@@ -82,8 +82,8 @@
  *
  * \li pa_simple_drain() - Will wait for all sent data to finish playing.
  * \li pa_simple_flush() - Will throw away all data currently in buffers.
- * \li pa_simple_get_playback_latency() - Will return the total latency of
- *                                        the playback pipeline.
+ * \li pa_simple_get_latency() - Will return the total latency of
+ *                               the playback pipeline.
  *
  * \section cleanup_sec Cleanup
  *

@@ -63,6 +63,7 @@ static inline int PA_CONTEXT_IS_GOOD(pa_context_state_t x) {
 #define PA_CONTEXT_SETTING_NAME PA_CONTEXT_SETTING_NAME
 #define PA_CONTEXT_READY PA_CONTEXT_READY
 #define PA_CONTEXT_FAILED PA_CONTEXT_FAILED
+#define PA_CONTEXT_TERMINATED PA_CONTEXT_TERMINATED
 #define PA_CONTEXT_IS_GOOD PA_CONTEXT_IS_GOOD
 /** \endcond */
 
@@ -351,7 +352,7 @@ typedef struct pa_buffer_attr {
      * that may be. Initialize to 0 to enable manual start/stop
      * control of the stream. This means that playback will not stop
      * on underrun and playback will not start automatically. Instead
-     * pa_stream_corked() needs to be called explicitly. If you set
+     * pa_stream_cork() needs to be called explicitly. If you set
      * this value to 0 you should also set PA_STREAM_START_CORKED. */
 
     uint32_t minreq;

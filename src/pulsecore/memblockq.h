@@ -165,7 +165,7 @@ void pa_memblockq_set_silence(pa_memblockq *memblockq, pa_memchunk *silence);
 void pa_memblockq_apply_attr(pa_memblockq *memblockq, const pa_buffer_attr *a);
 void pa_memblockq_get_attr(pa_memblockq *bq, pa_buffer_attr *a);
 
-/* Call pa_memchunk_willneed() for every chunk in the queue from the current read pointer to the end */
+/* Call pa_memchunk_will_need() for every chunk in the queue from the current read pointer to the end */
 void pa_memblockq_willneed(pa_memblockq *bq);
 
 /* Check whether the memblockq is completely empty, i.e. no data

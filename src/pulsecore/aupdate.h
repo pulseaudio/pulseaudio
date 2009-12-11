@@ -39,7 +39,7 @@ void pa_aupdate_write_end(pa_aupdate *a);
 
 /* Will return 0, or 1, depending which copy of the data the caller
  * should modify. Each time called this will return the opposite of
- * the previous pa_aupdate_write_begin()/pa_aupdate_write_swap()
+ * the previous pa_aupdate_write_begin() / pa_aupdate_write_swap()
  * call. Should only be called between pa_aupdate_write_begin() and
  * pa_aupdate_write_end() */
 unsigned pa_aupdate_write_swap(pa_aupdate *a);

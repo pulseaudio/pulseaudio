@@ -325,7 +325,7 @@ void pa_proplist_update(pa_proplist *p, pa_update_mode_t mode, pa_proplist *othe
  * specified key name. \since 0.9.11 */
 int pa_proplist_unset(pa_proplist *p, const char *key);
 
-/** Similar to pa_proplist_remove() but takes an array of keys to
+/** Similar to pa_proplist_unset() but takes an array of keys to
  * remove. The array should be terminated by a NULL pointer. Return -1
  * on failure, otherwise the number of entries actually removed (which
  * might even be 0, if there where no matching entries to

@@ -48,8 +48,9 @@ void pa_asyncq_free(pa_asyncq* q, pa_free_cb_t free_cb);
 void* pa_asyncq_pop(pa_asyncq *q, pa_bool_t wait);
 int pa_asyncq_push(pa_asyncq *q, void *p, pa_bool_t wait);
 
-/* Similar to pa_asyncq_push(), but if the queue is full, postpone it
- * locally and delay until pa_asyncq_before_poll_post() */
+/* Similar to pa_asyncq_push(), but if the queue is full, postpone the
+ * appending of the item locally and delay until
+ * pa_asyncq_before_poll_post() is called. */
 void pa_asyncq_post(pa_asyncq*l, void *p);
 
 /* For the reading side */

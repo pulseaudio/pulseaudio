@@ -460,7 +460,7 @@ typedef struct pa_card_info {
     pa_proplist *proplist;               /**< Property list */
 } pa_card_info;
 
-/** Callback prototype for pa_context_get_card_info() and friends \since 0.9.15 */
+/** Callback prototype for pa_context_get_card_info_...() \since 0.9.15 */
 typedef void (*pa_card_info_cb_t) (pa_context *c, const pa_card_info*i, int eol, void *userdata);
 
 /** Get information about a card by its index \since 0.9.15 */

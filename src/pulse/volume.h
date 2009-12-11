@@ -149,7 +149,7 @@ pa_cvolume* pa_cvolume_set(pa_cvolume *a, unsigned channels, pa_volume_t v);
 char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c);
 
 /** Maximum length of the strings returned by
- * pa_cvolume_snprint_dB(). Please note that this value can change with
+ * pa_sw_cvolume_snprint_dB(). Please note that this value can change with
  * any release without warning and without being considered API or ABI
  * breakage. You should not use this definition anywhere where it
  * might become part of an ABI. \since 0.9.13 */
@@ -169,7 +169,7 @@ char *pa_sw_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c);
 char *pa_volume_snprint(char *s, size_t l, pa_volume_t v);
 
 /** Maximum length of the strings returned by
- * pa_volume_snprint_dB(). Please note that this value can change with
+ * pa_sw_volume_snprint_dB(). Please note that this value can change with
  * any release without warning and without being considered API or ABI
  * breakage. You should not use this definition anywhere where it
  * might become part of an ABI. \since 0.9.15 */
@@ -268,7 +268,7 @@ double pa_sw_volume_to_linear(pa_volume_t v) PA_GCC_CONST;
 #ifdef INFINITY
 #define PA_DECIBEL_MININFTY ((double) -INFINITY)
 #else
-/** This floor value is used as minus infinity when using pa_volume_{to,from}_dB(). */
+/** This floor value is used as minus infinity when using pa_sw_volume_to_dB() / pa_sw_volume_from_dB(). */
 #define PA_DECIBEL_MININFTY ((double) -200.0)
 #endif
 

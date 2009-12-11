@@ -289,7 +289,7 @@
  * issued on the others.
  *
  * To synchronize a stream to another, just pass the "master" stream
- * as last argument to pa_stream_connect_playack(). To make sure that
+ * as last argument to pa_stream_connect_playback(). To make sure that
  * the freshly created stream doesn't start playback right-away, make
  * sure to pass PA_STREAM_START_CORKED and - after all streams have
  * been created - uncork them all with a single call to
@@ -716,7 +716,7 @@ pa_operation *pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr
 
 /** Change the stream sampling rate during playback. You need to pass
  * PA_STREAM_VARIABLE_RATE in the flags parameter of
- * pa_stream_connect() if you plan to use this function. Only valid
+ * pa_stream_connect_...() if you plan to use this function. Only valid
  * after the stream has been connected successfully and if the server
  * is at least PulseAudio 0.9.8. \since 0.9.8 */
 pa_operation *pa_stream_update_sample_rate(pa_stream *s, uint32_t rate, pa_stream_success_cb_t cb, void *userdata);
