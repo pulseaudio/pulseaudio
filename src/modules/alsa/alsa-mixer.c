@@ -2683,7 +2683,7 @@ static int mapping_parse_description(
     pa_assert(ps);
 
     if ((m = mapping_get(ps, section))) {
-        pa_xstrdup(m->description);
+        pa_xfree(m->description);
         m->description = pa_xstrdup(rvalue);
     } else if ((p = profile_get(ps, section))) {
         pa_xfree(p->description);
