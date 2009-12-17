@@ -68,7 +68,7 @@ static char *get_cpuinfo(void) {
         return NULL;
     }
 
-    if ((n = pa_read(fd, cpuinfo, MAX_BUFFER-1)) < 0) {
+    if ((n = pa_read(fd, cpuinfo, MAX_BUFFER-1, NULL)) < 0) {
         pa_xfree(cpuinfo);
         pa_close(fd);
         return NULL;
@@ -106,7 +106,8 @@ void pa_cpu_init_arm (void) {
     }
     /* get the CPU features */
     if ((line = get_cpuinfo_line (cpuinfo, "Features"))) {
-        char *state = NULL, *current;
+        const char *state = NULL;
+        char *current;
 
         while ((current = pa_split_spaces (line, &state))) {
             if (!strcmp (current, "vfp"))
