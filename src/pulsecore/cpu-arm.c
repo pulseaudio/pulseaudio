@@ -30,6 +30,7 @@
 #include <fcntl.h>
 
 #include <pulse/xmalloc.h>
+#include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 
 #include "cpu-arm.h"
