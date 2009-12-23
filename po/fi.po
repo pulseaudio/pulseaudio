@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-29 23:47+0200\n"
-"PO-Revision-Date: 2009-11-09 15:16+0200\n"
+"POT-Creation-Date: 2009-12-23 17:25+0000\n"
+"PO-Revision-Date: 2009-12-23 23:45+0200\n"
 "Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
 "MIME-Version: 1.0\n"
@@ -2369,7 +2369,7 @@ msgstr "Korkean äänenlaadun tallennus (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2213
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr ""
+msgstr "Puhelut, molemmat suunnat (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
@@ -2568,19 +2568,16 @@ msgid "Digital Stereo (HDMI)"
 msgstr "Digitaalinen stereo (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2928
-#, fuzzy
 msgid "Analog Mono Duplex"
-msgstr "Analoginen mono"
+msgstr "Analoginen mono, molemmat suunnat"
 
 #: ../src/modules/alsa/alsa-mixer.c:2929
-#, fuzzy
 msgid "Analog Stereo Duplex"
-msgstr "Analoginen stereo"
+msgstr "Analoginen stereo, molemmat suunnat"
 
 #: ../src/modules/alsa/alsa-mixer.c:2930
-#, fuzzy
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "Digitaalinen stereo (IEC958)"
+msgstr "Digitaalinen stereo, molemmat suunnat (IEC958)"
 
 #~ msgid "Invalid client name '%s'\n"
 #~ msgstr "Virheellinen asiakasohjelman nimi ”%s”\n"
