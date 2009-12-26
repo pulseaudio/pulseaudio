@@ -129,7 +129,7 @@ int pa__init(pa_module*m) {
     pa_assert(m);
 
     if (ice_in_use) {
-        pa_log("module-x11-xsmp may no be loaded twice.");
+        pa_log("module-x11-xsmp may not be loaded twice.");
         return -1;
     }
 
