@@ -1037,7 +1037,7 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
 
         e->switch_use = PA_ALSA_SWITCH_IGNORE;
         e->volume_use = PA_ALSA_VOLUME_IGNORE;
-        e->enumeration_use = PA_ALSA_VOLUME_IGNORE;
+        e->enumeration_use = PA_ALSA_ENUMERATION_IGNORE;
 
         return 0;
     }
