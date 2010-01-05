@@ -33,6 +33,7 @@
 #include <pulse/i18n.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/poll.h>
 #include <pulsecore/mutex.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/core-util.h>
@@ -182,7 +183,7 @@ static void wait_for_ping(void) {
     pfd.fd = pipe_fd[0];
     pfd.events = POLLIN;
 
-    if ((k = poll(&pfd, 1, -1)) != 1) {
+    if ((k = pa_poll(&pfd, 1, -1)) != 1) {
         pa_assert(k < 0);
         pa_assert(errno == EINTR);
     } else if ((s = read(pipe_fd[0], &x, 1)) != 1) {

@@ -23,9 +23,9 @@
 #include <config.h>
 #endif
 
-#include <sys/poll.h>
 #include <string.h>
 
+#include <pulsecore/poll.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/lock-autospawn.h>
@@ -69,7 +69,7 @@ static void thread_func2(void *k) {
         pollfd.fd = fd;
         pollfd.events = POLLIN;
 
-        pa_assert_se(poll(&pollfd, 1, -1) == 1);
+        pa_assert_se(pa_poll(&pollfd, 1, -1) == 1);
 
         pa_log("%i, woke up", PA_PTR_TO_INT(k));
     }

@@ -32,7 +32,6 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/ioctl.h>
-#include <sys/poll.h>
 
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
@@ -48,6 +47,7 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
+#include <pulsecore/poll.h>
 
 #include "module-sine-source-symdef.h"
 

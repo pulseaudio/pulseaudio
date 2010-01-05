@@ -640,12 +640,21 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += \
 		pulsecore/mutex-win32.c pulsecore/mutex.h \
 		pulsecore/thread-win32.c pulsecore/thread.h \
 		pulsecore/semaphore-win32.c pulsecore/semaphore.h
-else
+else !OS_IS_WIN32
+if OS_IS_DARWIN
+libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += \
+		pulsecore/mutex-posix.c pulsecore/mutex.h \
+		pulsecore/thread-posix.c pulsecore/thread.h \
+		pulsecore/semaphore-osx.c pulsecore/semaphore.h
+libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS += "-I/Developer/Headers/FlatCarbon/"
+#libpulsecommon_@PA_MAJORMINORMICRO@_la_LDFLAGS += "-framework CoreServices"
+else !OS_IS_DARWIN
 libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += \
 		pulsecore/mutex-posix.c pulsecore/mutex.h \
 		pulsecore/thread-posix.c pulsecore/thread.h \
 		pulsecore/semaphore-posix.c pulsecore/semaphore.h
-endif
+endif !OS_IS_DARWIN
+endif !OS_IS_WIN32
 
 if HAVE_X11
 libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/x11prop.c pulsecore/x11prop.h
@@ -1057,6 +1066,12 @@ modlibexec_LTLIBRARIES += \
 		module-oss.la
 endif
 
+if HAVE_COREAUDIO
+modlibexec_LTLIBRARIES += \
+		module-coreaudio-detect.la \
+		module-coreaudio-device.la
+endif
+
 pulselibexec_PROGRAMS =
 
 if HAVE_ALSA
@@ -1106,6 +1121,11 @@ if HAVE_AVAHI
 modlibexec_LTLIBRARIES += \
 		module-zeroconf-publish.la \
 		module-zeroconf-discover.la
+endif
+
+if HAVE_BONJOUR
+modlibexec_LTLIBRARIES += \
+		module-bonjour-publish.la
 endif
 
 if HAVE_LIRC
@@ -1216,6 +1236,7 @@ SYMDEF_FILES = \
 		modules/module-esound-sink-symdef.h \
 		modules/module-zeroconf-publish-symdef.h \
 		modules/module-zeroconf-discover-symdef.h \
+		modules/module-bonjour-publish-symdef.h \
 		modules/module-lirc-symdef.h \
 		modules/module-mmkbd-evdev-symdef.h \
 		modules/module-http-protocol-tcp-symdef.h \
@@ -1229,6 +1250,8 @@ SYMDEF_FILES = \
 		modules/alsa/module-alsa-sink-symdef.h \
 		modules/alsa/module-alsa-source-symdef.h \
 		modules/alsa/module-alsa-card-symdef.h \
+		modules/coreaudio/module-coreaudio-detect-symdef.h \
+		modules/coreaudio/module-coreaudio-device-symdef.h \
 		modules/module-solaris-symdef.h \
 		modules/module-waveout-symdef.h \
 		modules/module-detect-symdef.h \
@@ -1460,6 +1483,19 @@ module_oss_la_SOURCES = modules/oss/module-oss.c
 module_oss_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_oss_la_LIBADD = $(AM_LIBADD) liboss-util.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
+# COREAUDIO
+
+module_coreaudio_detect_la_SOURCES = modules/coreaudio/module-coreaudio-detect.c
+module_coreaudio_detect_la_LDFLAGS = $(MODULE_LDFLAGS) \
+			-Wl,-framework -Wl,Cocoa -framework CoreAudio \
+			-Wl,-framework -Wl,AudioUnit -framework AudioUnit
+module_coreaudio_detect_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+
+module_coreaudio_device_la_SOURCES = modules/coreaudio/module-coreaudio-device.c
+module_coreaudio_device_la_LDFLAGS = $(MODULE_LDFLAGS) \
+			-Wl,-framework -Wl,Cocoa -framework CoreAudio \
+			-Wl,-framework -Wl,AudioUnit -framework AudioUnit
+module_coreaudio_device_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 # ALSA
 
 libalsa_util_la_SOURCES = modules/alsa/alsa-util.c modules/alsa/alsa-util.h modules/alsa/alsa-mixer.c modules/alsa/alsa-mixer.h modules/alsa/alsa-sink.c modules/alsa/alsa-sink.h modules/alsa/alsa-source.c modules/alsa/alsa-source.h modules/reserve-wrap.c modules/reserve-wrap.h
@@ -1517,6 +1553,13 @@ module_zeroconf_discover_la_SOURCES = modules/module-zeroconf-discover.c
 module_zeroconf_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_zeroconf_discover_la_LIBADD = $(AM_LIBADD) $(AVAHI_LIBS) libavahi-wrap.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_zeroconf_discover_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
+
+# Bonjour
+
+module_bonjour_publish_la_SOURCES = modules/module-bonjour-publish.c
+module_bonjour_publish_la_LDFLAGS = $(MODULE_LDFLAGS) \
+			-Wl,-framework -Wl,CoreFoundation -framework CoreFoundation
+module_bonjour_publish_la_LIBADD = libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 # LIRC
 

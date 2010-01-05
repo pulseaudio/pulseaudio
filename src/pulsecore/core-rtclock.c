@@ -37,6 +37,7 @@
 #include <CoreServices/CoreServices.h>
 #include <mach/mach.h>
 #include <mach/mach_time.h>
+#include <unistd.h>
 #endif
 
 #include <pulse/timeval.h>
@@ -54,7 +55,19 @@ pa_usec_t pa_rtclock_age(const struct timeval *tv) {
 
 struct timeval *pa_rtclock_get(struct timeval *tv) {
 
-#if defined(HAVE_CLOCK_GETTIME)
+#if defined(OS_IS_DARWIN)
+    uint64_t val, abs_time = mach_absolute_time();
+    Nanoseconds nanos;
+
+    nanos = AbsoluteToNanoseconds(*(AbsoluteTime *) &abs_time);
+    val = *(uint64_t *) &nanos;
+
+    tv->tv_sec = val / PA_NSEC_PER_SEC;
+    tv->tv_usec = (val % PA_NSEC_PER_SEC) / PA_NSEC_PER_USEC;
+
+    return tv;
+
+#elif defined(HAVE_CLOCK_GETTIME)
     struct timespec ts;
 
 #ifdef CLOCK_MONOTONIC
@@ -75,52 +88,14 @@ struct timeval *pa_rtclock_get(struct timeval *tv) {
     tv->tv_usec = ts.tv_nsec / PA_NSEC_PER_USEC;
 
     return tv;
-
-#elif defined(OS_IS_DARWIN)
-    static mach_timebase_info_data_t   tbi;
-    uint64_t nticks;
-    uint64_t time_nsec;
-
-    /* Refer Apple ADC QA1398
-       Also: http://devworld.apple.com/documentation/Darwin/Conceptual/KernelProgramming/services/services.html
-
-       Note: argument is timespec NOT timeval (timespec uses nsec, timeval uses usec)
-    */
-
-    /* try and be a mite efficient - maybe I should keep the N/D as a float !? */
-    if (tbi.denom == 0)
-        mach_timebase_info(&tbi);
-
-    nticks = mach_absolute_time();
-    time_nsec = nticks * tbi.numer / tbi.denom; // see above
-
-    tv->tv_sec = time_nsec / PA_NSEC_PER_SEC;
-    tv->tv_usec = time_nsec / PA_NSEC_PER_USEC;
-
-    return tv;
-
-#else /* OS_IS_DARWIN */
+#endif /* HAVE_CLOCK_GETTIME */
 
     return pa_gettimeofday(tv);
-
-#endif
 }
 
 pa_bool_t pa_rtclock_hrtimer(void) {
 
-#if defined(HAVE_CLOCK_GETTIME)
-    struct timespec ts;
-
-#ifdef CLOCK_MONOTONIC
-
-    if (clock_getres(CLOCK_MONOTONIC, &ts) >= 0)
-        return ts.tv_sec == 0 && ts.tv_nsec <= (long) (PA_HRTIMER_THRESHOLD_USEC*PA_NSEC_PER_USEC);
-#endif /* CLOCK_MONOTONIC */
-
-    pa_assert_se(clock_getres(CLOCK_REALTIME, &ts) == 0);
-    return ts.tv_sec == 0 && ts.tv_nsec <= (long) (PA_HRTIMER_THRESHOLD_USEC*PA_NSEC_PER_USEC);
-
-#elif defined (OS_IS_DARWIN)
+#if defined (OS_IS_DARWIN)
     mach_timebase_info_data_t tbi;
     uint64_t time_nsec;
 
@@ -130,10 +105,22 @@ pa_bool_t pa_rtclock_hrtimer(void) {
     time_nsec = tbi.numer / tbi.denom;
     return time_nsec <= (long) (PA_HRTIMER_THRESHOLD_USEC*PA_NSEC_PER_USEC);
 
-#else /* OS_IS_DARWIN */
-    return FALSE;
+#elif defined(HAVE_CLOCK_GETTIME)
+    struct timespec ts;
 
-#endif
+#ifdef CLOCK_MONOTONIC
+
+    if (clock_getres(CLOCK_MONOTONIC, &ts) >= 0)
+        return ts.tv_sec == 0 && ts.tv_nsec <= (long) (PA_HRTIMER_THRESHOLD_USEC*PA_NSEC_PER_USEC);
+
+#endif /* CLOCK_MONOTONIC */
+
+    pa_assert_se(clock_getres(CLOCK_REALTIME, &ts) == 0);
+    return ts.tv_sec == 0 && ts.tv_nsec <= (long) (PA_HRTIMER_THRESHOLD_USEC*PA_NSEC_PER_USEC);
+
+#endif /* HAVE_CLOCK_GETTIME */
+
+    return FALSE;
 }
 
 #define TIMER_SLACK_NS (int) ((500 * PA_NSEC_PER_USEC))

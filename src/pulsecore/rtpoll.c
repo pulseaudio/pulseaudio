@@ -30,15 +30,10 @@
 #include <string.h>
 #include <errno.h>
 
-#ifdef HAVE_POLL_H
-#include <poll.h>
-#else
-#include <pulsecore/poll.h>
-#endif
-
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 
+#include <pulsecore/poll.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/macro.h>
@@ -321,7 +316,7 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait_op) {
         r = ppoll(p->pollfd, p->n_pollfd_used, (!wait_op || p->quit || p->timer_enabled) ? &ts : NULL, NULL);
     }
 #else
-    r = poll(p->pollfd, p->n_pollfd_used, (!wait_op || p->quit || p->timer_enabled) ? (int) ((timeout.tv_sec*1000) + (timeout.tv_usec / 1000)) : -1);
+    r = pa_poll(p->pollfd, p->n_pollfd_used, (!wait_op || p->quit || p->timer_enabled) ? (int) ((timeout.tv_sec*1000) + (timeout.tv_usec / 1000)) : -1);
 #endif
 
     p->timer_elapsed = r == 0;

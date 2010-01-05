@@ -32,12 +32,6 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#ifdef HAVE_POLL_H
-#include <poll.h>
-#else
-#include <pulsecore/poll.h>
-#endif
-
 #ifndef HAVE_PIPE
 #include <pulsecore/pipe.h>
 #endif
@@ -47,6 +41,7 @@
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/poll.h>
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/llist.h>
@@ -887,7 +882,7 @@ int pa_mainloop_poll(pa_mainloop *m) {
                     m->prepared_timeout == PA_USEC_INVALID ? NULL : pa_timespec_store(&ts, m->prepared_timeout),
                     NULL);
 #else
-            m->poll_func_ret = poll(
+            m->poll_func_ret = pa_poll(
                     m->pollfds, m->n_pollfds,
                     usec_to_timeout(m->prepared_timeout));
 #endif
