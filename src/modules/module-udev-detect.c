@@ -426,7 +426,7 @@ static void process_device(struct userdata *u, struct udev_device *dev) {
         return;
     }
 
-    if ((ff = udev_device_get_property_value(dev, "SOUND_FORM_FACTOR")) &&
+    if ((ff = udev_device_get_property_value(dev, "SOUND_CLASS")) &&
         pa_streq(ff, "modem")) {
         pa_log_debug("Ignoring %s, because it is a modem.", udev_device_get_devpath(dev));
         return;
