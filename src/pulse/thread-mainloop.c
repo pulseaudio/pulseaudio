@@ -116,6 +116,7 @@ pa_threaded_mainloop *pa_threaded_mainloop_new(void) {
     pa_mainloop_set_poll_func(m->real_mainloop, poll_func, m->mutex);
 
     m->n_waiting = 0;
+    m->n_waiting_for_accept = 0;
 
     return m;
 }
