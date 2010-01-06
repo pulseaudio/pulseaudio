@@ -1769,7 +1769,7 @@ static void sink_input_rewind_ramp_info(pa_sink_input *i, size_t nbytes) {
     if (!i->thread_info.ramp_info.envelope_dead) {
         int32_t envelope_length;
 
-	pa_assert(i->thread_info.ramp_info.envelope);
+        pa_assert(i->thread_info.ramp_info.envelope);
 
         envelope_length = pa_envelope_length(i->thread_info.ramp_info.envelope);
 
