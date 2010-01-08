@@ -92,7 +92,8 @@ struct userdata {
     unsigned n_found;
     unsigned n_unknown;
 
-    pa_bool_t muted;
+    pa_bool_t muted:1;
+    pa_bool_t filter_added:1;
 };
 
 static void update_volume(struct userdata *u) {
@@ -358,9 +359,10 @@ static int add_matches(struct userdata *u, pa_bool_t add) {
     } else
         dbus_bus_remove_match(pa_dbus_connection_get(u->dbus_connection), filter2, &e);
 
-    if (add)
+    if (add) {
         pa_assert_se(dbus_connection_add_filter(pa_dbus_connection_get(u->dbus_connection), filter_func, u, NULL));
-    else
+        u->filter_added = TRUE;
+    } else if (u->filter_added)
         dbus_connection_remove_filter(pa_dbus_connection_get(u->dbus_connection), filter_func, u);
 
     r = 0;
@@ -393,9 +395,6 @@ int pa__init(pa_module*m) {
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     u->hci = pa_xstrdup(pa_modargs_get_value(ma, "hci", DEFAULT_HCI));
     u->hci_path = pa_sprintf_malloc("/org/bluez/%s", u->hci);
-    u->n_found = u->n_unknown = 0;
-    u->muted = FALSE;
-
     u->bondings = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     if (!(u->dbus_connection = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &e))) {
