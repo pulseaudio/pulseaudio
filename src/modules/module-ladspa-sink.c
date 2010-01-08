@@ -476,6 +476,7 @@ int pa__init(pa_module*m) {
     unsigned long input_port, output_port, p, j, n_control;
     unsigned c;
     pa_bool_t *use_default = NULL;
+    pa_memchunk silence;
 
     pa_assert(m);
 
@@ -514,7 +515,10 @@ int pa__init(pa_module*m) {
     u = pa_xnew0(struct userdata, 1);
     u->module = m;
     m->userdata = u;
-    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, NULL);
+
+    pa_silence_memchunk_get(&m->core->silence_cache, m->core->mempool, &silence, &ss, 0);
+    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, &silence);
+    pa_memblock_unref(silence.memblock);
 
     if (!(e = getenv("LADSPA_PATH")))
         e = LADSPA_PATH;
