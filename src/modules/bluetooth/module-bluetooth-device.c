@@ -972,10 +972,14 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
             pa_usec_t wi, ri;
 
-            wi = pa_smoother_get(u->read_smoother, pa_rtclock_now());
-            ri = pa_bytes_to_usec(u->read_index, &u->sample_spec);
+            if (u->read_smoother) {
+                wi = pa_smoother_get(u->read_smoother, pa_rtclock_now());
+                ri = pa_bytes_to_usec(u->read_index, &u->sample_spec);
 
-            *((pa_usec_t*) data) = (wi > ri ? wi - ri : 0) + u->source->thread_info.fixed_latency;
+                *((pa_usec_t*) data) = (wi > ri ? wi - ri : 0) + u->source->thread_info.fixed_latency;
+            } else
+                *((pa_usec_t*) data) = 0;
+
             return 0;
         }
 
