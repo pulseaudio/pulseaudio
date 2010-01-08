@@ -1186,10 +1186,7 @@ static int source_set_port_cb(pa_source *s, pa_device_port *p) {
         s->base_volume = pa_sw_volume_from_dB(-u->mixer_path->max_dB);
         s->n_volume_steps = PA_VOLUME_NORM+1;
 
-        if (u->mixer_path->max_dB > 0.0)
-            pa_log_info("Fixing base volume to %0.2f dB", pa_sw_volume_to_dB(s->base_volume));
-        else
-            pa_log_info("No particular base volume set, fixing to 0 dB");
+        pa_log_info("Fixing base volume to %0.2f dB", pa_sw_volume_to_dB(s->base_volume));
     } else {
         s->base_volume = PA_VOLUME_NORM;
         s->n_volume_steps = u->mixer_path->max_volume - u->mixer_path->min_volume + 1;
