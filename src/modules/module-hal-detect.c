@@ -87,6 +87,7 @@ struct userdata {
 #ifdef HAVE_OSS_OUTPUT
     pa_bool_t init_subdevs;
 #endif
+    pa_bool_t filter_added:1;
 };
 
 #define CAPABILITY_ALSA "alsa"
@@ -733,12 +734,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
-    u->context = NULL;
-    u->connection = NULL;
     u->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    u->capability = NULL;
 
 #ifdef HAVE_ALSA
     u->use_tsched = TRUE;
@@ -800,6 +798,7 @@ int pa__init(pa_module*m) {
         pa_log_error("Failed to add filter function");
         goto fail;
     }
+    u->filter_added = TRUE;
 
     if (pa_dbus_add_matches(
                 pa_dbus_connection_get(u->connection), &error,
@@ -856,7 +855,8 @@ void pa__done(pa_module *m) {
                 "type='signal',sender='org.freedesktop.Hal',interface='org.freedesktop.Hal.Device.AccessControl',member='ACLRemoved'",
                 "type='signal',interface='org.pulseaudio.Server',member='DirtyGiveUpMessage'", NULL);
 
-        dbus_connection_remove_filter(pa_dbus_connection_get(u->connection), filter_cb, u);
+        if (u->filter_added)
+            dbus_connection_remove_filter(pa_dbus_connection_get(u->connection), filter_cb, u);
         pa_dbus_connection_unref(u->connection);
     }
 

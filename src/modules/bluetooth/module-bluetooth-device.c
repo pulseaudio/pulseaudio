@@ -179,6 +179,8 @@ struct userdata {
 
     int stream_write_type;
     int service_write_type, service_read_type;
+
+    pa_bool_t filter_added;
 };
 
 #define FIXED_LATENCY_PLAYBACK_A2DP (25*PA_USEC_PER_MSEC)
@@ -2405,6 +2407,7 @@ int pa__init(pa_module* m) {
         pa_log_error("Failed to add filter function");
         goto fail;
     }
+    u->filter_added = TRUE;
 
     speaker = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='SpeakerGainChanged',path='%s'", u->path);
     mike = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='MicrophoneGainChanged',path='%s'", u->path);
@@ -2494,7 +2497,9 @@ void pa__done(pa_module *m) {
             pa_xfree(mike);
         }
 
-        dbus_connection_remove_filter(pa_dbus_connection_get(u->connection), filter_cb, u);
+        if (u->filter_added)
+            dbus_connection_remove_filter(pa_dbus_connection_get(u->connection), filter_cb, u);
+
         pa_dbus_connection_unref(u->connection);
     }
 

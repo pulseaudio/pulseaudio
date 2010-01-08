@@ -67,6 +67,7 @@ struct userdata {
     pa_core *core;
     pa_dbus_connection *connection;
     pa_hashmap *sessions;
+    pa_bool_t filter_added;
 };
 
 static void add_session(struct userdata *u, const char *id) {
@@ -300,7 +301,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
     u->connection = connection;
@@ -310,6 +311,8 @@ int pa__init(pa_module*m) {
         pa_log_error("Failed to add filter function");
         goto fail;
     }
+
+    u->filter_added = TRUE;
 
     if (pa_dbus_add_matches(
                 pa_dbus_connection_get(connection), &error,
@@ -359,7 +362,9 @@ void pa__done(pa_module *m) {
                 "type='signal',sender='org.freedesktop.ConsoleKit',interface='org.freedesktop.ConsoleKit.Seat',member='SessionAdded'",
                 "type='signal',sender='org.freedesktop.ConsoleKit',interface='org.freedesktop.ConsoleKit.Seat',member='SessionRemoved'", NULL);
 
-        dbus_connection_remove_filter(pa_dbus_connection_get(u->connection), filter_cb, u);
+        if (u->filter_added)
+            dbus_connection_remove_filter(pa_dbus_connection_get(u->connection), filter_cb, u);
+
         pa_dbus_connection_unref(u->connection);
     }
 

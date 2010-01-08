@@ -145,7 +145,7 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
 
     pa_init_i18n();
 
-    c = pa_xnew(pa_context, 1);
+    c = pa_xnew0(pa_context, 1);
     PA_REFCNT_INIT(c);
 
     c->proplist = p ? pa_proplist_copy(p) : pa_proplist_new();
@@ -157,9 +157,6 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     c->system_bus = c->session_bus = NULL;
 #endif
     c->mainloop = mainloop;
-    c->client = NULL;
-    c->pstream = NULL;
-    c->pdispatch = NULL;
     c->playback_streams = pa_dynarray_new();
     c->record_streams = pa_dynarray_new();
     c->client_index = PA_INVALID_INDEX;
@@ -170,21 +167,8 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
 
     c->error = PA_OK;
     c->state = PA_CONTEXT_UNCONNECTED;
-    c->ctag = 0;
-    c->csyncid = 0;
 
     reset_callbacks(c);
-
-    c->is_local = FALSE;
-    c->server_list = NULL;
-    c->server = NULL;
-
-    c->do_shm = FALSE;
-
-    c->server_specified = FALSE;
-    c->no_fail = FALSE;
-    c->do_autospawn = FALSE;
-    memset(&c->spawn_api, 0, sizeof(c->spawn_api));
 
 #ifndef MSG_NOSIGNAL
 #ifdef SIGPIPE
@@ -255,12 +239,14 @@ static void context_free(pa_context *c) {
 
 #ifdef HAVE_DBUS
     if (c->system_bus) {
-        dbus_connection_remove_filter(pa_dbus_wrap_connection_get(c->system_bus), filter_cb, c);
+        if (c->filter_added)
+            dbus_connection_remove_filter(pa_dbus_wrap_connection_get(c->system_bus), filter_cb, c);
         pa_dbus_wrap_connection_free(c->system_bus);
     }
 
     if (c->session_bus) {
-        dbus_connection_remove_filter(pa_dbus_wrap_connection_get(c->session_bus), filter_cb, c);
+        if (c->filter_added)
+            dbus_connection_remove_filter(pa_dbus_wrap_connection_get(c->session_bus), filter_cb, c);
         pa_dbus_wrap_connection_free(c->session_bus);
     }
 #endif
@@ -794,6 +780,7 @@ static void track_pulseaudio_on_dbus(pa_context *c, DBusBusType type, pa_dbus_wr
         pa_log_warn("Failed to add filter function");
         goto fail;
     }
+    c->filter_added = TRUE;
 
     if (pa_dbus_add_matches(
                 pa_dbus_wrap_connection_get(*conn), &error,

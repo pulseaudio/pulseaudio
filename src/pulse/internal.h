@@ -91,6 +91,7 @@ struct pa_context {
     pa_bool_t no_fail:1;
     pa_bool_t do_autospawn:1;
     pa_bool_t use_rtclock:1;
+    pa_bool_t filter_added:1;
     pa_spawn_api spawn_api;
 
     pa_strlist *server_list;
