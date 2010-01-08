@@ -741,6 +741,8 @@ void pa_command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tag
 
     s->requested_bytes += bytes;
 
+    /* pa_log("got request for %lli, now at %lli", (long long) bytes, (long long) s->requested_bytes); */
+
     if (s->requested_bytes > 0 && s->write_callback)
         s->write_callback(s, (size_t) s->requested_bytes, s->write_userdata);
 
@@ -1361,6 +1363,8 @@ int pa_stream_write(
     /* This is obviously wrong since we ignore the seeking index . But
      * that's OK, the server side applies the same error */
     s->requested_bytes -= (seek == PA_SEEK_RELATIVE ? offset : 0) + (int64_t) length;
+
+    /* pa_log("wrote %lli, now at %lli", (long long) length, (long long) s->requested_bytes); */
 
     if (s->direction == PA_STREAM_PLAYBACK) {
 
