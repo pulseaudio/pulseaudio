@@ -823,23 +823,25 @@ static int stop_stream_fd(struct userdata *u) {
 
     pa_assert(u);
     pa_assert(u->rtpoll);
-    pa_assert(u->rtpoll_item);
-    pa_assert(u->stream_fd >= 0);
 
-    pa_rtpoll_item_free(u->rtpoll_item);
-    u->rtpoll_item = NULL;
+    if (u->rtpoll_item) {
+        pa_rtpoll_item_free(u->rtpoll_item);
+        u->rtpoll_item = NULL;
+    }
 
-    memset(msg.buf, 0, BT_SUGGESTED_BUFFER_SIZE);
-    msg.start_req.h.type = BT_REQUEST;
-    msg.start_req.h.name = BT_STOP_STREAM;
-    msg.start_req.h.length = sizeof(msg.start_req);
+    if (u->stream_fd >= 0) {
+        memset(msg.buf, 0, BT_SUGGESTED_BUFFER_SIZE);
+        msg.start_req.h.type = BT_REQUEST;
+        msg.start_req.h.name = BT_STOP_STREAM;
+        msg.start_req.h.length = sizeof(msg.start_req);
 
-    if (service_send(u, &msg.start_req.h) < 0 ||
-        service_expect(u, &msg.rsp, sizeof(msg), BT_STOP_STREAM, sizeof(msg.start_rsp)) < 0)
-        r = -1;
+        if (service_send(u, &msg.start_req.h) < 0 ||
+            service_expect(u, &msg.rsp, sizeof(msg), BT_STOP_STREAM, sizeof(msg.start_rsp)) < 0)
+            r = -1;
 
-    pa_close(u->stream_fd);
-    u->stream_fd = -1;
+        pa_close(u->stream_fd);
+        u->stream_fd = -1;
+    }
 
     if (u->read_smoother) {
         pa_smoother_free(u->read_smoother);
