@@ -1113,6 +1113,8 @@ static playback_stream* playback_stream_new(
 
     *missing = (uint32_t) pa_memblockq_pop_missing(s->memblockq);
 
+    /* pa_log("missing original: %li", (long int) *missing); */
+
     *ss = s->sink_input->sample_spec;
     *map = s->sink_input->channel_map;
 
@@ -1137,11 +1139,12 @@ static void playback_stream_request_bytes(playback_stream *s) {
 
     m = pa_memblockq_pop_missing(s->memblockq);
 
-    /* pa_log("request_bytes(%lu) (tlength=%lu minreq=%lu length=%lu)", */
+    /* pa_log("request_bytes(%lu) (tlength=%lu minreq=%lu length=%lu really missing=%lli)", */
     /*        (unsigned long) m, */
     /*        pa_memblockq_get_tlength(s->memblockq), */
     /*        pa_memblockq_get_minreq(s->memblockq), */
-    /*        pa_memblockq_get_length(s->memblockq)); */
+    /*        pa_memblockq_get_length(s->memblockq), */
+    /*        (long long) pa_memblockq_get_tlength(s->memblockq) - (long long) pa_memblockq_get_length(s->memblockq)); */
 
     if (m <= 0)
         return;
