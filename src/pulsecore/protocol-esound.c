@@ -389,6 +389,7 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
     size_t l;
     pa_sink *sink = NULL;
     pa_sink_input_new_data sdata;
+    pa_memchunk silence;
 
     connection_assert_ref(c);
     pa_assert(data);
@@ -435,6 +436,7 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
     CHECK_VALIDITY(c->sink_input, "Failed to create sink input.");
 
     l = (size_t) ((double) pa_bytes_per_second(&ss)*PLAYBACK_BUFFER_SECONDS);
+    pa_sink_input_get_silence(c->sink_input, &silence);
     c->input_memblockq = pa_memblockq_new(
             0,
             l,
@@ -443,7 +445,8 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
             (size_t) -1,
             l/PLAYBACK_BUFFER_FRAGMENTS,
             0,
-            NULL);
+            &silence);
+    pa_memblock_unref(silence.memblock);
     pa_iochannel_socket_set_rcvbuf(c->io, l);
 
     c->sink_input->parent.process_msg = sink_input_process_msg;

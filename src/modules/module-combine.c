@@ -890,7 +890,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink) {
             1,
             0,
             0,
-            NULL);
+            &u->sink->silence);
 
     pa_assert_se(pa_idxset_put(u->outputs, o, NULL) == 0);
     update_description(u);

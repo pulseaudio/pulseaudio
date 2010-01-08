@@ -525,6 +525,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
 
     if (o->playback) {
         pa_sink_input_new_data data;
+        pa_memchunk silence;
         size_t l;
         pa_sink *sink;
 
@@ -559,6 +560,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
         pa_sink_input_set_requested_latency(c->sink_input, DEFAULT_SINK_LATENCY);
 
         l = (size_t) ((double) pa_bytes_per_second(&o->sample_spec)*PLAYBACK_BUFFER_SECONDS);
+        pa_sink_input_get_silence(c->sink_input, &silence);
         c->input_memblockq = pa_memblockq_new(
                 0,
                 l,
@@ -567,7 +569,9 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
                 (size_t) -1,
                 l/PLAYBACK_BUFFER_FRAGMENTS,
                 0,
-                NULL);
+                &silence);
+        pa_memblock_unref(silence.memblock);
+
         pa_iochannel_socket_set_rcvbuf(io, l);
 
         pa_atomic_store(&c->playback.missing, (int) pa_memblockq_missing(c->input_memblockq));

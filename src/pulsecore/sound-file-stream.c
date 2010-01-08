@@ -239,6 +239,7 @@ int pa_play_file(
     pa_sink_input_new_data data;
     int fd;
     SF_INFO sfi;
+    pa_memchunk silence;
 
     pa_assert(sink);
     pa_assert(fname);
@@ -320,7 +321,9 @@ int pa_play_file(
     u->sink_input->state_change = sink_input_state_change_cb;
     u->sink_input->userdata = u;
 
-    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, NULL);
+    pa_sink_input_get_silence(u->sink_input, &silence);
+    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, &silence);
+    pa_memblock_unref(silence.memblock);
 
     pa_sink_input_put(u->sink_input);
 

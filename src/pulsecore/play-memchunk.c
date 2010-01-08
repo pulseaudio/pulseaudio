@@ -47,12 +47,16 @@ int pa_play_memchunk(
 
     pa_memblockq *q;
     int r;
+    pa_memchunk silence;
 
     pa_assert(sink);
     pa_assert(ss);
     pa_assert(chunk);
 
-    q = pa_memblockq_new(0, chunk->length, 0, pa_frame_size(ss), 1, 1, 0, NULL);
+    pa_silence_memchunk_get(&sink->core->silence_cache, sink->core->mempool, &silence, ss, 0);
+    q = pa_memblockq_new(0, chunk->length, 0, pa_frame_size(ss), 1, 1, 0, &silence);
+    pa_memblock_unref(silence.memblock);
+
     pa_assert_se(pa_memblockq_push(q, chunk) >= 0);
 
     if ((r = pa_play_memblockq(sink, ss, map, q, volume, p, sink_input_index)) < 0) {
