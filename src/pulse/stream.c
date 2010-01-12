@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include <pulse/def.h>
+#include <pulse/stream.h>
 #include <pulse/timeval.h>
 #include <pulse/rtclock.h>
 #include <pulse/xmalloc.h>
