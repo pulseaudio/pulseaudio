@@ -49,6 +49,7 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, length > 0, PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, length == (size_t) (uint32_t) length, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context, s->context->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
     if (!(name = pa_proplist_gets(s->proplist, PA_PROP_EVENT_ID)))
         name = pa_proplist_gets(s->proplist, PA_PROP_MEDIA_NAME);
