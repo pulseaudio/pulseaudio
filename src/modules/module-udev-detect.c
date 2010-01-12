@@ -416,8 +416,10 @@ static void monitor_cb(
         goto fail;
     }
 
-    if (!path_get_card_id(udev_device_get_devpath(dev)))
+    if (!path_get_card_id(udev_device_get_devpath(dev))) {
+        udev_device_unref(dev);
         return;
+    }
 
     process_device(u, dev);
     udev_device_unref(dev);
