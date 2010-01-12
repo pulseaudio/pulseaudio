@@ -80,11 +80,9 @@ pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
 
     pa_assert(thread_func);
 
-    t = pa_xnew(pa_thread, 1);
+    t = pa_xnew0(pa_thread, 1);
     t->thread_func = thread_func;
     t->userdata = userdata;
-    t->joined = FALSE;
-    pa_atomic_store(&t->running, 0);
 
     if (pthread_create(&t->id, NULL, internal_thread_func, t) < 0) {
         pa_xfree(t);
@@ -135,10 +133,8 @@ pa_thread* pa_thread_self(void) {
     /* This is a foreign thread, let's create a pthread structure to
      * make sure that we can always return a sensible pointer */
 
-    t = pa_xnew(pa_thread, 1);
+    t = pa_xnew0(pa_thread, 1);
     t->id = pthread_self();
-    t->thread_func = NULL;
-    t->userdata = NULL;
     t->joined = TRUE;
     pa_atomic_store(&t->running, 2);
 
