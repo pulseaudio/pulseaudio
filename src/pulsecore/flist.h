@@ -45,7 +45,7 @@ void* pa_flist_pop(pa_flist*l);
 
 #define PA_STATIC_FLIST_DECLARE(name, size, free_cb)                    \
     static struct {                                                     \
-        pa_flist *flist;                                                \
+        pa_flist *volatile flist;                                       \
         pa_once once;                                                   \
     } name##_flist = { NULL, PA_ONCE_INIT };                            \
     static void name##_flist_init(void) {                               \

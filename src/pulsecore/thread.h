@@ -55,7 +55,7 @@ void *pa_tls_set(pa_tls *t, void *userdata);
 #define PA_STATIC_TLS_DECLARE(name, free_cb)                            \
     static struct {                                                     \
         pa_once once;                                                   \
-        pa_tls *tls;                                                    \
+        pa_tls *volatile tls;                                           \
     } name##_tls = {                                                    \
         .once = PA_ONCE_INIT,                                           \
         .tls = NULL                                                     \

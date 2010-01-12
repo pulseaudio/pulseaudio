@@ -29,8 +29,6 @@
 #include "once.h"
 
 pa_bool_t pa_once_begin(pa_once *control) {
-    pa_mutex *m;
-
     pa_assert(control);
 
     if (pa_atomic_load(&control->done))
@@ -43,6 +41,7 @@ pa_bool_t pa_once_begin(pa_once *control) {
      * executed by us. Hence the awkward locking. */
 
     for (;;) {
+        pa_mutex *m;
 
         if ((m = pa_atomic_ptr_load(&control->mutex))) {
 
