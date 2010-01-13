@@ -78,6 +78,10 @@ priority = 19
 name = input-microphone
 priority = 19
 
+[Option Input Source:Int Mic]
+name = input-microphone
+priority = 19
+
 [Option Input Source:Internal Mic]
 name = input-microphone
 priority = 19
