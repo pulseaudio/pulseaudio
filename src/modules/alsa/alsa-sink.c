@@ -1103,6 +1103,9 @@ static int mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
     if (mask == SND_CTL_EVENT_MASK_REMOVE)
         return 0;
 
+    if (u->sink->suspend_cause & PA_SUSPEND_SESSION)
+        return 0;
+
     if (mask & SND_CTL_EVENT_MASK_VALUE) {
         pa_sink_get_volume(u->sink, TRUE);
         pa_sink_get_mute(u->sink, TRUE);
