@@ -342,7 +342,13 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
 /*                  dbus_message_get_interface(p->message), */
 /*                  dbus_message_get_path(p->message)); */
 
-    d = p->call_data;
+    /* We don't use p->call_data here right-away since the device
+     * might already be invalidated at this point */
+
+    if (!(d = pa_hashmap_get(y->devices, dbus_message_get_path(p->message))))
+        return;
+
+    pa_assert(p->call_data == d);
 
     valid = dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR ? -1 : 1;
 
