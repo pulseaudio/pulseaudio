@@ -62,7 +62,8 @@ static const pa_client_conf default_conf = {
     .disable_shm = FALSE,
     .cookie_file = NULL,
     .cookie_valid = FALSE,
-    .shm_size = 0
+    .shm_size = 0,
+    .auto_connect_localhost = FALSE
 };
 
 pa_client_conf *pa_client_conf_new(void) {
@@ -105,6 +106,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
         { "disable-shm",            pa_config_parse_bool,     &c->disable_shm, NULL },
         { "enable-shm",             pa_config_parse_not_bool, &c->disable_shm, NULL },
         { "shm-size-bytes",         pa_config_parse_size,     &c->shm_size, NULL },
+        { "auto-connect-localhost", pa_config_parse_bool,     &c->auto_connect_localhost, NULL },
         { NULL,                     NULL,                     NULL, NULL },
     };
 
