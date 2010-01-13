@@ -987,13 +987,15 @@ int pa_context_connect(
         /* Prepend in reverse order */
 
         /* Follow the X display */
-        if ((d = getenv("DISPLAY"))) {
-            d = pa_xstrndup(d, strcspn(d, ":"));
+        if (c->conf->auto_connect_display) {
+            if ((d = getenv("DISPLAY"))) {
+                d = pa_xstrndup(d, strcspn(d, ":"));
 
-            if (*d)
-                c->server_list = pa_strlist_prepend(c->server_list, d);
+                if (*d)
+                    c->server_list = pa_strlist_prepend(c->server_list, d);
 
-            pa_xfree(d);
+                pa_xfree(d);
+            }
         }
 
         /* Add TCP/IP on the localhost */

@@ -116,6 +116,13 @@ USA.
       <opt>no</opt>.</p>
     </option>
 
+    <option>
+      <p><opt>auto-connect-display=</opt> Automatically try to connect
+      to the host X11's $DISPLAY variable is set to. The same security
+      issues apply as to <opt>auto-connect-localhost=</opt>. Defaults
+      to <opt>no</opt>.</p>
+    </option>
+
   </section>
 
   <section name="Authors">
