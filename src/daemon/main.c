@@ -63,6 +63,10 @@
 #include <dbus/dbus.h>
 #endif
 
+#include <pulse/client-conf.h>
+#ifdef HAVE_X11
+#include <pulse/client-conf-x11.h>
+#endif
 #include <pulse/mainloop.h>
 #include <pulse/mainloop-signal.h>
 #include <pulse/timeval.h>
@@ -343,6 +347,24 @@ static void set_all_rlimits(const pa_daemon_conf *conf) {
 }
 #endif
 
+static char *check_configured_address(void) {
+    char *default_server = NULL;
+    pa_client_conf *c = pa_client_conf_new();
+
+    pa_client_conf_load(c, NULL);
+#ifdef HAVE_X11
+    pa_client_conf_from_x11(c, NULL);
+#endif
+    pa_client_conf_env(c);
+
+    if (c->default_server && *c->default_server)
+        default_server = pa_xstrdup(c->default_server);
+
+    pa_client_conf_free(c);
+
+    return default_server;
+}
+
 #ifdef HAVE_DBUS
 static pa_dbus_connection *register_dbus_name(pa_core *c, DBusBusType bus, const char* name) {
     DBusError error;
@@ -383,6 +405,7 @@ int main(int argc, char *argv[]) {
     pa_daemon_conf *conf = NULL;
     pa_mainloop *mainloop = NULL;
     char *s;
+    char *configured_address;
     int r = 0, retval = 1, d = 0;
     pa_bool_t valid_pid_file = FALSE;
     pa_bool_t ltdl_init = FALSE;
@@ -646,6 +669,13 @@ int main(int argc, char *argv[]) {
 
     if (conf->cmd == PA_CMD_START && conf->system_instance) {
         pa_log(_("--start not supported for system instances."));
+        goto finish;
+    }
+
+    if (conf->cmd == PA_CMD_START && (configured_address = check_configured_address())) {
+        pa_log_notice(_("User-configured server at %s, not autospawning."), configured_address);
+        pa_xfree(configured_address);
+        retval = 0;
         goto finish;
     }
 

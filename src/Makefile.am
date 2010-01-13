@@ -633,6 +633,12 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS = $(AM_CFLAGS)
 libpulsecommon_@PA_MAJORMINORMICRO@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libpulsecommon_@PA_MAJORMINORMICRO@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSNDFILE_LIBS)
 
+if HAVE_X11
+libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += pulse/client-conf-x11.c pulse/client-conf-x11.h
+libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS += $(X11_CFLAGS)
+libpulsecommon_@PA_MAJORMINORMICRO@_la_LDFLAGS += $(X11_LIBS)
+endif
+
 # proplist-util.h uses these header files, but not the library itself!
 libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS += $(GLIB20_CFLAGS) $(GTK20_CFLAGS)
 
@@ -772,12 +778,6 @@ libpulse_la_SOURCES = \
 libpulse_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINORMICRO@.la
 libpulse_la_LDFLAGS = $(AM_LDFLAGS) $(VERSIONING_LDFLAGS) -version-info $(LIBPULSE_VERSION_INFO)
-
-if HAVE_X11
-libpulse_la_SOURCES += pulse/client-conf-x11.c pulse/client-conf-x11.h
-libpulse_la_CFLAGS += $(X11_CFLAGS)
-libpulse_la_LDFLAGS += $(X11_LIBS)
-endif
 
 libpulse_simple_la_SOURCES = pulse/simple.c pulse/simple.h
 libpulse_simple_la_CFLAGS = $(AM_CFLAGS)

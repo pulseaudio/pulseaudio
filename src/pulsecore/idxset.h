@@ -65,7 +65,7 @@ int pa_idxset_put(pa_idxset*s, void *p, uint32_t *idx);
 /* Get the entry by its idx */
 void* pa_idxset_get_by_index(pa_idxset*s, uint32_t idx);
 
-/* Get the entry by its data. The idx is returned in *index */
+/* Get the entry by its data. The index is returned in *idx */
 void* pa_idxset_get_by_data(pa_idxset*s, const void *p, uint32_t *idx);
 
 /* Similar to pa_idxset_get_by_index(), but removes the entry from the idxset. */
