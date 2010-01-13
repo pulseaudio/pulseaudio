@@ -295,7 +295,7 @@ int pa__init(pa_module*m) {
 
 #if defined(USE_TCP_SOCKETS)
 
-    if (pa_modargs_get_value(ma, "port", NULL))
+    if (pa_in_system_mode() || pa_modargs_get_value(ma, "port", NULL))
         port_fallback = FALSE;
 
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
