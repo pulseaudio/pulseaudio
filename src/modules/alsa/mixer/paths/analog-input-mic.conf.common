@@ -61,3 +61,12 @@ name = input-boost-on
 
 [Option Front Mic Boost:off]
 name = input-boost-off
+
+[Element Int Mic Boost]
+switch = select
+
+[Option Int Mic Boost:on]
+name = input-boost-on
+
+[Option Int Mic Boost:off]
+name = input-boost-off
