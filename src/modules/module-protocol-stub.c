@@ -246,6 +246,7 @@ int pa__init(pa_module*m) {
 
 #if defined(USE_TCP_SOCKETS)
     uint32_t port = IPV4_PORT;
+    pa_bool_t port_fallback = TRUE;
     const char *listen_on;
 #else
     int r;
@@ -293,6 +294,10 @@ int pa__init(pa_module*m) {
 #endif
 
 #if defined(USE_TCP_SOCKETS)
+
+    if (pa_modargs_get_value(ma, "port", NULL))
+        port_fallback = FALSE;
+
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
         pa_log("port= expects a numerical argument between 1 and 65535.");
         goto fail;
@@ -302,14 +307,14 @@ int pa__init(pa_module*m) {
 
     if (listen_on) {
 #  ifdef HAVE_IPV6
-        u->socket_server_ipv6 = pa_socket_server_new_ipv6_string(m->core->mainloop, listen_on, (uint16_t) port, TCPWRAP_SERVICE);
+        u->socket_server_ipv6 = pa_socket_server_new_ipv6_string(m->core->mainloop, listen_on, (uint16_t) port, port_fallback, TCPWRAP_SERVICE);
 #  endif
-        u->socket_server_ipv4 = pa_socket_server_new_ipv4_string(m->core->mainloop, listen_on, (uint16_t) port, TCPWRAP_SERVICE);
+        u->socket_server_ipv4 = pa_socket_server_new_ipv4_string(m->core->mainloop, listen_on, (uint16_t) port, port_fallback, TCPWRAP_SERVICE);
     } else {
 #  ifdef HAVE_IPV6
-        u->socket_server_ipv6 = pa_socket_server_new_ipv6_any(m->core->mainloop, (uint16_t) port, TCPWRAP_SERVICE);
+        u->socket_server_ipv6 = pa_socket_server_new_ipv6_any(m->core->mainloop, (uint16_t) port, port_fallback, TCPWRAP_SERVICE);
 #  endif
-        u->socket_server_ipv4 = pa_socket_server_new_ipv4_any(m->core->mainloop, (uint16_t) port, TCPWRAP_SERVICE);
+        u->socket_server_ipv4 = pa_socket_server_new_ipv4_any(m->core->mainloop, (uint16_t) port, port_fallback, TCPWRAP_SERVICE);
     }
 
 #  ifdef HAVE_IPV6
