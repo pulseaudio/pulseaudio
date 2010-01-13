@@ -294,6 +294,7 @@ TESTS_BINARIES = \
 		hook-list-test \
 		memblock-test \
 		thread-test \
+		once-test \
 		flist-test \
 		asyncq-test \
 		asyncmsgq-test \
@@ -384,6 +385,11 @@ thread_test_SOURCES = tests/thread-test.c
 thread_test_CFLAGS = $(AM_CFLAGS)
 thread_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 thread_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+once_test_SOURCES = tests/once-test.c
+once_test_CFLAGS = $(AM_CFLAGS)
+once_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la
+once_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 flist_test_SOURCES = tests/flist-test.c
 flist_test_CFLAGS = $(AM_CFLAGS)
