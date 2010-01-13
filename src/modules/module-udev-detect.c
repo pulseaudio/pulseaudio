@@ -103,13 +103,17 @@ static const char *path_get_card_id(const char *path) {
     return e + 5;
 }
 
+static const char *pa_udev_get_sysattr(const char *card_idx, const char *name);
+
 static pa_bool_t is_card_busy(const char *id) {
-    char *card_path = NULL, *pcm_path = NULL, *sub_status = NULL;
+    const char *pcm_class;
+    char *card_path = NULL, *pcm_path = NULL, *sub_status = NULL,
+         *sysfs_path = NULL;
     DIR *card_dir = NULL, *pcm_dir = NULL;
     FILE *status_file = NULL;
     size_t len;
     struct dirent *space = NULL, *de;
-    pa_bool_t busy = FALSE;
+    pa_bool_t busy = FALSE, is_modem = FALSE;
     int r;
 
     pa_assert(id);
@@ -126,6 +130,17 @@ static pa_bool_t is_card_busy(const char *id) {
 
     len = offsetof(struct dirent, d_name) + fpathconf(dirfd(card_dir), _PC_NAME_MAX) + 1;
     space = pa_xmalloc(len);
+
+    /* Also check /sys/class/sound/card.../pcmC...D6p/pcm_class. An HDA
+     * modem can be used simultaneously with generic playback/record. */
+
+    pa_xfree(sysfs_path);
+    sysfs_path = pa_sprintf_malloc("pcmC%sD6p/pcm_class", id);
+
+    pcm_class = pa_udev_get_sysattr(id, sysfs_path);
+
+    if (pcm_class && pa_streq(pcm_class, "modem"))
+        is_modem = TRUE;
 
     for (;;) {
         de = NULL;
@@ -182,7 +197,7 @@ static pa_bool_t is_card_busy(const char *id) {
                 continue;
             }
 
-            if (!pa_streq(line, "closed\n")) {
+            if (!is_modem && !pa_streq(line, "closed\n")) {
                 busy = TRUE;
                 break;
             }
@@ -193,6 +208,7 @@ fail:
 
     pa_xfree(card_path);
     pa_xfree(pcm_path);
+    pa_xfree(sysfs_path);
     pa_xfree(sub_status);
     pa_xfree(space);
 
@@ -592,6 +608,43 @@ static int setup_inotify(struct userdata *u) {
     pa_assert_se(u->inotify_io = u->core->mainloop->io_new(u->core->mainloop, u->inotify_fd, PA_IO_EVENT_INPUT, inotify_cb, u));
 
     return 0;
+}
+
+static const char *pa_udev_get_sysattr(const char *card_idx, const char *name) {
+    struct udev *udev;
+    struct udev_device *card = NULL;
+    char *t, *r = NULL;
+    const char *v;
+
+    pa_assert(card_idx);
+    pa_assert(name);
+
+    if (!(udev = udev_new())) {
+        pa_log_error("Failed to allocate udev context.");
+        goto finish;
+    }
+
+    t = pa_sprintf_malloc("%s/class/sound/card%s", udev_get_sys_path(udev), card_idx);
+    card = udev_device_new_from_syspath(udev, t);
+    pa_xfree(t);
+
+    if (!card) {
+        pa_log_error("Failed to get card object.");
+        goto finish;
+    }
+
+    if ((v = udev_device_get_sysattr_value(card, name)) && *v)
+        r = pa_xstrdup(v);
+
+finish:
+
+    if (card)
+        udev_device_unref(card);
+
+    if (udev)
+        udev_unref(udev);
+
+    return r;
 }
 
 int pa__init(pa_module *m) {
