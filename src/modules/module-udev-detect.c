@@ -639,6 +639,11 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    if (udev_monitor_filter_add_match_subsystem_devtype(u->monitor, "sound", NULL) < 0) {
+        pa_log("Failed to subscribe to sound devices.");
+        goto fail;
+    }
+
     errno = 0;
     if (udev_monitor_enable_receiving(u->monitor) < 0) {
         pa_log("Failed to enable monitor: %s", pa_cstrerror(errno));
