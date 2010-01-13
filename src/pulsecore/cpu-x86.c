@@ -57,6 +57,9 @@ void pa_cpu_init_x86 (void) {
     if (level >= 1) {
         get_cpuid (0x00000001, &eax, &ebx, &ecx, &edx);
 
+        if (edx & (1<<15))
+          flags |= PA_CPU_X86_CMOV;
+
         if (edx & (1<<23))
           flags |= PA_CPU_X86_MMX;
 
@@ -97,7 +100,8 @@ void pa_cpu_init_x86 (void) {
           flags |= PA_CPU_X86_3DNOW;
     }
 
-    pa_log_info ("CPU flags: %s%s%s%s%s%s%s%s%s%s",
+    pa_log_info ("CPU flags: %s%s%s%s%s%s%s%s%s%s%s",
+    (flags & PA_CPU_X86_CMOV) ? "CMOV " : "",
     (flags & PA_CPU_X86_MMX) ? "MMX " : "",
     (flags & PA_CPU_X86_SSE) ? "SSE " : "",
     (flags & PA_CPU_X86_SSE2) ? "SSE2 " : "",

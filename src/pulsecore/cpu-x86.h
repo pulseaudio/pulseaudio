@@ -5,7 +5,7 @@
   This file is part of PulseAudio.
 
   Copyright 2004-2006 Lennart Poettering
-  Copyright 2009 Wim Taymans <wim.taymans@collabora.co.uk> 
+  Copyright 2009 Wim Taymans <wim.taymans@collabora.co.uk>
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -35,11 +35,11 @@ typedef enum pa_cpu_x86_flag {
     PA_CPU_X86_SSE4_1    = (1 << 6),
     PA_CPU_X86_SSE4_2    = (1 << 7),
     PA_CPU_X86_3DNOW     = (1 << 8),
-    PA_CPU_X86_3DNOWEXT  = (1 << 9)
+    PA_CPU_X86_3DNOWEXT  = (1 << 9),
+    PA_CPU_X86_CMOV      = (1 << 10)
 } pa_cpu_x86_flag_t;
 
 void pa_cpu_init_x86 (void);
-
 
 #if defined (__i386__)
 typedef int32_t pa_reg_x86;

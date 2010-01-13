@@ -305,7 +305,7 @@ void pa_volume_func_init_mmx (pa_cpu_x86_flag_t flags) {
     run_test ();
 #endif
 
-    if (flags & PA_CPU_X86_MMX) {
+    if ((flags & PA_CPU_X86_MMX) && (flags & PA_CPU_X86_CMOV)) {
         pa_log_info("Initialising MMX optimized functions.");
 
         pa_set_volume_func (PA_SAMPLE_S16NE, (pa_do_volume_func_t) pa_volume_s16ne_mmx);
