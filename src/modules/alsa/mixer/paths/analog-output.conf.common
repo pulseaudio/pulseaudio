@@ -110,6 +110,17 @@ priority = 10
 name = output-amplifier-off
 priority = 0
 
+[Element Bass Boost]
+switch = select
+
+[Option Bass Boost:on]
+name = output-bass-boost-on
+priority = 0
+
+[Option Bass Boost:off]
+name = output-bass-boost-off
+priority = 10
+
 ;;; 'Analog Output'
 
 [Element Analog Output]

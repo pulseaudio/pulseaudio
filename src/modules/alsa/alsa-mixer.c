@@ -1713,6 +1713,8 @@ static int option_verify(pa_alsa_option *o) {
         { "input-boost-off",           N_("No Boost") },
         { "output-amplifier-on",       N_("Amplifier") },
         { "output-amplifier-off",      N_("No Amplifier") },
+        { "output-bass-boost-on",      N_("Bass Boost") },
+        { "output-bass-boost-off",     N_("No Bass Boost") },
         { "output-speaker",            N_("Speaker") },
         { "output-headphones",         N_("Headphones") }
     };
