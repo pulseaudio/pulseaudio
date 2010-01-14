@@ -1027,15 +1027,6 @@ int main(int argc, char *argv[]) {
      * from now on, if requested */
     c->disallow_module_loading = !!conf->disallow_module_loading;
 
-#ifdef HAVE_FORK
-    if (daemon_pipe[1] >= 0) {
-        int ok = 0;
-        pa_loop_write(daemon_pipe[1], &ok, sizeof(ok), NULL);
-        pa_close(daemon_pipe[1]);
-        daemon_pipe[1] = -1;
-    }
-#endif
-
 #ifdef HAVE_DBUS
     if (!conf->system_instance) {
         if (!(server_lookup = pa_dbusobj_server_lookup_new(c)))
@@ -1046,6 +1037,15 @@ int main(int argc, char *argv[]) {
 
     if (start_server && !(server_bus = register_dbus_name(c, conf->system_instance ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION, "org.pulseaudio.Server")))
         goto finish;
+#endif
+
+#ifdef HAVE_FORK
+    if (daemon_pipe[1] >= 0) {
+        int ok = 0;
+        pa_loop_write(daemon_pipe[1], &ok, sizeof(ok), NULL);
+        pa_close(daemon_pipe[1]);
+        daemon_pipe[1] = -1;
+    }
 #endif
 
     pa_log_info(_("Daemon startup complete."));
