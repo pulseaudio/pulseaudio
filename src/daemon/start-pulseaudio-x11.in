@@ -19,8 +19,6 @@
 
 set -e
 
-[ -z "$PULSE_SERVER" ]
-
 @PA_BINARY@ --start "$@"
 
 if [ x"$DISPLAY" != x ] ; then
