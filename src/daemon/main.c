@@ -952,6 +952,10 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 
+#ifdef HAVE_DBUS
+    dbus = register_dbus(c);
+#endif
+
 #ifdef HAVE_FORK
     if (daemon_pipe[1] >= 0) {
         int ok = 0;
@@ -959,10 +963,6 @@ int main(int argc, char *argv[]) {
         pa_close(daemon_pipe[1]);
         daemon_pipe[1] = -1;
     }
-#endif
-
-#ifdef HAVE_DBUS
-    dbus = register_dbus(c);
 #endif
 
     pa_log_info(_("Daemon startup complete."));
