@@ -1,24 +1,23 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-#
+# 
 # Dimitris Glezos <dimitris@glezos.com>, 2008.
 # Thalia Papoutsaki <saliyath@gmail.com>, 2009.
 msgid ""
 msgstr ""
 "Project-Id-Version: el\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-10-26 09:45+0000\n"
+"POT-Creation-Date: 2010-01-15 06:45+0000\n"
 "PO-Revision-Date: 2009-10-26 17:15+0200\n"
 "Last-Translator: Thalia Papoutsaki <saliyath@gmail.com>\n"
 "Language-Team: Greek <fedora-trans-el@redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: KAider 0.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: KAider 0.1\n"
 
-#: ../src/modules/alsa/alsa-util.c:858
-#: ../src/pulsecore/sink.c:2629
+#: ../src/modules/alsa/alsa-util.c:858 ../src/pulsecore/sink.c:2629
 #, c-format
 msgid "%s %s"
 msgstr "%s %s"
@@ -70,7 +69,7 @@ msgstr ""
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
-msgstr ""
+msgstr "Εσωτερικός ήχος"
 
 #: ../src/pulsecore/sink.c:2618
 msgid "Modem"
@@ -91,7 +90,7 @@ msgstr ""
 #: ../src/daemon/main.c:141
 #, c-format
 msgid "Got signal %s."
-msgstr ""
+msgstr "Έγινε λήψη σήματος %s."
 
 #: ../src/daemon/main.c:168
 msgid "Exiting."
@@ -122,8 +121,7 @@ msgstr ""
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr ""
 
-#: ../src/daemon/main.c:208
-#: ../src/daemon/main.c:213
+#: ../src/daemon/main.c:208 ../src/daemon/main.c:213
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr ""
@@ -216,8 +214,7 @@ msgstr ""
 msgid "fork() failed: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:646
-#: ../src/utils/pacat.c:508
+#: ../src/daemon/main.c:646 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
 msgstr ""
@@ -623,8 +620,7 @@ msgstr ""
 msgid "Start the PulseAudio Sound System"
 msgstr ""
 
-#: ../src/pulse/channelmap.c:105
-#: ../src/pulse/channelmap.c:757
+#: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
 msgid "Mono"
 msgstr "Mono"
 
@@ -828,12 +824,9 @@ msgstr ""
 msgid "Top Rear Right"
 msgstr ""
 
-#: ../src/pulse/channelmap.c:484
-#: ../src/pulse/sample.c:170
-#: ../src/pulse/volume.c:295
-#: ../src/pulse/volume.c:321
-#: ../src/pulse/volume.c:341
-#: ../src/pulse/volume.c:371
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
+#: ../src/pulse/volume.c:295 ../src/pulse/volume.c:321
+#: ../src/pulse/volume.c:341 ../src/pulse/volume.c:371
 msgid "(invalid)"
 msgstr "(μη έγκυρο)"
 
@@ -994,8 +987,7 @@ msgstr "%0.1f KiB"
 msgid "%u B"
 msgstr "%u B"
 
-#: ../src/pulse/client-conf-x11.c:55
-#: ../src/utils/pax11publish.c:100
+#: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
 msgstr ""
 
@@ -1055,8 +1047,7 @@ msgstr ""
 msgid "pa_stream_begin_write() failed: %s"
 msgstr ""
 
-#: ../src/utils/pacat.c:237
-#: ../src/utils/pacat.c:267
+#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
 #, c-format
 msgid "pa_stream_peek() failed: %s"
 msgstr ""
@@ -1154,8 +1145,7 @@ msgstr ""
 msgid "pa_stream_connect_record() failed: %s"
 msgstr ""
 
-#: ../src/utils/pacat.c:470
-#: ../src/utils/pactl.c:857
+#: ../src/utils/pacat.c:470 ../src/utils/pactl.c:857
 #, c-format
 msgid "Connection failure: %s"
 msgstr "Αποτυχία σύνδεσης: %s"
@@ -1237,8 +1227,7 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:764
-#: ../src/utils/pactl.c:953
+#: ../src/utils/pacat.c:764 ../src/utils/pactl.c:953
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr ""
@@ -1303,8 +1292,7 @@ msgstr ""
 msgid "Warning: specified sample specification will be overwritten with specification from file."
 msgstr ""
 
-#: ../src/utils/pacat.c:962
-#: ../src/utils/pactl.c:997
+#: ../src/utils/pacat.c:962 ../src/utils/pactl.c:997
 msgid "Failed to determine sample specification from file."
 msgstr ""
 
@@ -1333,8 +1321,7 @@ msgstr ""
 msgid "playback"
 msgstr ""
 
-#: ../src/utils/pacat.c:1035
-#: ../src/utils/pactl.c:1267
+#: ../src/utils/pacat.c:1035 ../src/utils/pactl.c:1267
 msgid "pa_mainloop_new() failed."
 msgstr ""
 
@@ -1342,13 +1329,11 @@ msgstr ""
 msgid "io_new() failed."
 msgstr ""
 
-#: ../src/utils/pacat.c:1061
-#: ../src/utils/pactl.c:1279
+#: ../src/utils/pacat.c:1061 ../src/utils/pactl.c:1279
 msgid "pa_context_new() failed."
 msgstr ""
 
-#: ../src/utils/pacat.c:1069
-#: ../src/utils/pactl.c:1285
+#: ../src/utils/pacat.c:1069 ../src/utils/pactl.c:1285
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr ""
@@ -1357,8 +1342,7 @@ msgstr ""
 msgid "pa_context_rttime_new() failed."
 msgstr ""
 
-#: ../src/utils/pacat.c:1082
-#: ../src/utils/pactl.c:1290
+#: ../src/utils/pacat.c:1082 ../src/utils/pactl.c:1290
 msgid "pa_mainloop_run() failed."
 msgstr ""
 
@@ -1502,14 +1486,12 @@ msgid ""
 "\t\t%s\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:268
-#: ../src/utils/pactl.c:360
+#: ../src/utils/pactl.c:268 ../src/utils/pactl.c:360
 #, c-format
 msgid "\tPorts:\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:274
-#: ../src/utils/pactl.c:366
+#: ../src/utils/pactl.c:274 ../src/utils/pactl.c:366
 #, c-format
 msgid "\tActive Port: %s\n"
 msgstr ""
@@ -1541,18 +1523,10 @@ msgid ""
 "\t\t%s\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:345
-#: ../src/utils/pactl.c:401
-#: ../src/utils/pactl.c:436
-#: ../src/utils/pactl.c:473
-#: ../src/utils/pactl.c:532
-#: ../src/utils/pactl.c:533
-#: ../src/utils/pactl.c:543
-#: ../src/utils/pactl.c:587
-#: ../src/utils/pactl.c:588
-#: ../src/utils/pactl.c:594
-#: ../src/utils/pactl.c:637
-#: ../src/utils/pactl.c:638
+#: ../src/utils/pactl.c:345 ../src/utils/pactl.c:401 ../src/utils/pactl.c:436
+#: ../src/utils/pactl.c:473 ../src/utils/pactl.c:532 ../src/utils/pactl.c:533
+#: ../src/utils/pactl.c:543 ../src/utils/pactl.c:587 ../src/utils/pactl.c:588
+#: ../src/utils/pactl.c:594 ../src/utils/pactl.c:637 ../src/utils/pactl.c:638
 #: ../src/utils/pactl.c:645
 msgid "n/a"
 msgstr ""
@@ -1685,8 +1659,7 @@ msgid ""
 "\t\t%s\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:653
-#: ../src/utils/pactl.c:663
+#: ../src/utils/pactl.c:653 ../src/utils/pactl.c:663
 #, c-format
 msgid "Failure: %s"
 msgstr "Αποτυχία: %s"
@@ -1804,12 +1777,9 @@ msgstr ""
 msgid "You have to specify a sink name/index and a volume"
 msgstr ""
 
-#: ../src/utils/pactl.c:1154
-#: ../src/utils/pactl.c:1171
-#: ../src/utils/pactl.c:1193
-#: ../src/utils/pactl.c:1209
-#: ../src/utils/pactl.c:1226
-#: ../src/utils/pactl.c:1248
+#: ../src/utils/pactl.c:1154 ../src/utils/pactl.c:1171
+#: ../src/utils/pactl.c:1193 ../src/utils/pactl.c:1209
+#: ../src/utils/pactl.c:1226 ../src/utils/pactl.c:1248
 msgid "Invalid volume specification"
 msgstr ""
 
@@ -1943,25 +1913,21 @@ msgstr ""
 msgid "poll(): %s"
 msgstr ""
 
-#: ../src/utils/pacmd.c:171
-#: ../src/utils/pacmd.c:188
+#: ../src/utils/pacmd.c:171 ../src/utils/pacmd.c:188
 #, c-format
 msgid "read(): %s"
 msgstr ""
 
-#: ../src/utils/pacmd.c:207
-#: ../src/utils/pacmd.c:223
+#: ../src/utils/pacmd.c:207 ../src/utils/pacmd.c:223
 #, c-format
 msgid "write(): %s"
 msgstr ""
 
-#: ../src/pulsecore/lock-autospawn.c:136
-#: ../src/pulsecore/lock-autospawn.c:219
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-sink.c:530
-#: ../src/modules/alsa/alsa-sink.c:689
+#: ../src/modules/alsa/alsa-sink.c:530 ../src/modules/alsa/alsa-sink.c:689
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually nothing to write!\n"
@@ -1969,8 +1935,7 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-source.c:506
-#: ../src/modules/alsa/alsa-source.c:656
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually nothing to read!\n"
@@ -2115,8 +2080,7 @@ msgstr "Analog Mono Output"
 msgid "%s+%s"
 msgstr "%s+%s"
 
-#: ../src/modules/alsa/alsa-mixer.c:1984
-#: ../src/modules/alsa/alsa-mixer.c:3404
+#: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
 #, c-format
 msgid "%s / %s"
 msgstr "%s / %s"
@@ -2204,4 +2168,3 @@ msgstr "Analog Stereo Duplex"
 #: ../src/modules/alsa/alsa-mixer.c:2930
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Digital Stereo Duplex (IEC958)"
-
