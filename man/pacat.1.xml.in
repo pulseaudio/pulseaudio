@@ -21,18 +21,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 USA.
 -->
 
-<manpage name="pacat" section="1" desc="Play back or record raw audio streams on a PulseAudio sound server">
+<manpage name="pacat" section="1" desc="Play back or record raw or encoded audio streams on a PulseAudio sound server">
 
   <synopsis>
+    <cmd>paplay [<arg>options</arg>] [<arg>FILE</arg>]</cmd>
+    <cmd>parecord [<arg>options</arg>] [<arg>FILE</arg>]</cmd>
     <cmd>pacat [<arg>options</arg>] [<arg>FILE</arg>]</cmd>
     <cmd>parec [<arg>options</arg>] [<arg>FILE</arg>]</cmd>
-    <cmd>paplay <opt>--help</opt></cmd>
-    <cmd>paplay <opt>--version</opt></cmd>
+    <cmd>pamon [<arg>options</arg>] [<arg>FILE</arg>]</cmd>
+    <cmd>pacat <opt>--help</opt></cmd>
+    <cmd>pacat <opt>--version</opt></cmd>
   </synopsis>
 
   <description>
     <p><file>pacat</file> is a simple tool for playing back or
-    capturing raw audio files on a PulseAudio sound server.</p>
+    capturing raw or encoded audio files on a PulseAudio sound
+    server.</p>
   </description>
 
   <options>
@@ -52,13 +56,13 @@ USA.
     <option>
       <p><opt>-r | --record</opt></p>
 
-      <optdesc><p>Capture raw audio data and write it to the specified file or to STDOUT if none is specified. If the tool is called under the name <file>parec</file> this is the default.</p></optdesc>
+      <optdesc><p>Capture audio data and write it to the specified file or to STDOUT if none is specified. If the tool is called under the name <file>parec</file> this is the default.</p></optdesc>
     </option>
 
     <option>
       <p><opt>-p | --playback</opt></p>
 
-      <optdesc><p>Read raw audio data from the specified file or STDIN if none is specified, and play it back. If the tool is called under the name <file>pacat</file> this is the default.</p></optdesc>
+      <optdesc><p>Read audio data from the specified file or STDIN if none is specified, and play it back. If the tool is called under the name <file>pacat</file> this is the default.</p></optdesc>
     </option>
 
     <option>
@@ -108,14 +112,17 @@ USA.
 
       <optdesc><p>Capture or play back audio with the specified sample
       format. Specify one of <opt>u8</opt>, <opt>s16le</opt>,
-      <opt>s16be</opt>, <opt>s32le</opt>,
-      <opt>s32be</opt>, <opt>float32le</opt>, <opt>float32be</opt>,
-      <opt>ulaw</opt>, <opt>alaw</opt>. Depending on the endianess of
-      the CPU the
-      formats <opt>s16ne</opt>, <opt>s16re</opt>, <opt>s32ne</opt>, <opt>s32re</opt>,
-      <opt>float32ne</opt>, <opt>float32re</opt> (for native,
-      resp. reverse endian) are available as aliases. Defaults to
-      s16ne.</p></optdesc>
+      <opt>s16be</opt>, <opt>s32le</opt>, <opt>s32be</opt>,
+      <opt>float32le</opt>, <opt>float32be</opt>, <opt>ulaw</opt>,
+      <opt>alaw</opt>, <opt>s32le</opt>, <opt>s32be</opt>,
+      <opt>s24le</opt>, <opt>s24be</opt>, <opt>s24-32le</opt>,
+      <opt>s24-32be</opt>. Depending on the endianess of the CPU the
+      formats <opt>s16ne</opt>, <opt>s16re</opt>, <opt>s32ne</opt>,
+      <opt>s32re</opt>, <opt>float32ne</opt>, <opt>float32re</opt>,
+      <opt>s32ne</opt>, <opt>s32re</opt>, <opt>s24ne</opt>,
+      <opt>s24re</opt>, <opt>s24-32ne</opt>, <opt>s24-32re</opt> (for
+      native, resp. reverse endian) are available as aliases. Defaults
+      to s16ne.</p></optdesc>
     </option>
 
     <option>
@@ -170,6 +177,65 @@ USA.
       <optdesc><p>Never remap channels. Instead of mapping channels by their name this will match them solely by their index/order.</p></optdesc>
     </option>
 
+    <option>
+      <p><opt>--latency</opt><arg>=BYTES</arg></p>
+      <optdesc><p>Explicitly configure the latency, with a time
+      specified in bytes in the selected sample format. If left out
+      the server will pick the latency, usually relatively high for
+      power saving reasons. Use either this option or
+      <opt>--latency-msec</opt>, but not both.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--latency-msec</opt><arg>=MSEC</arg></p>
+      <optdesc><p>Explicitly configure the latency, with a time
+      specified in miliseconds. If left out the server will pick the
+      latency, usually relatively high for power saving reasons. Use
+      either this option or <opt>--latency</opt>, but not
+      both.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--process-time</opt><arg>=BYTES</arg></p>
+      <optdesc><p>Explicitly configure the process time, with a time
+      specified in bytes in the selected sample format. If left out
+      the server will pick the process time. Use either this option or
+      <opt>--process-time-msec</opt>, but not both.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--process-time-msec</opt><arg>=MSEC</arg></p>
+      <optdesc><p>Explicitly configure the process time, with a time
+      specified in miliseconds. If left out the server will pick the
+      process time. Use either this option or <opt>--process-time</opt>,
+      but not both.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--property</opt><arg>=PROPERTY=VALUE</arg></p>
+      <optdesc><p>Attach a property to the client and stream. May be
+      used multiple times</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--raw</opt></p>
+      <optdesc><p>Play/record raw audio data. This is the default if
+      this program is invoked as <cmd>pacat</cmd>, <cmd>parec</cmd> or
+      <cmd>pamon</cmd>.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--file-format</opt><arg>[=FFORMAT]</arg></p>
+      <optdesc><p>Play/record encoded audio data in the file format
+      specified. This is the default if this program is invoked as
+      <cmd>paplay</cmd> and <cmd>parecord</cmd>.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--list-file-formats</opt></p>
+      <optdesc><p>List supported file formats.</p></optdesc>
+    </option>
+
   </options>
 
   <section name="Authors">
@@ -178,7 +244,7 @@ USA.
 
   <section name="See also">
     <p>
-      <manref name="pulseaudio" section="1"/>, <manref name="paplay" section="1"/>
+      <manref name="pulseaudio" section="1"/>, <manref name="pactl" section="1"/>
     </p>
   </section>
 
