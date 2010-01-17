@@ -60,7 +60,7 @@ msgstr "Garde toujours au moins une destination même si elle est vide"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr "Sortie obsolète"
+msgstr "Sortie factice"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
