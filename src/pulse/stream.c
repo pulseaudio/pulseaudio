@@ -2154,6 +2154,11 @@ pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *use
          * index, but the read index might jump. */
         invalidate_indexes(s, TRUE, FALSE);
 
+    /* Note that we do not update requested_bytes here. This is
+     * because we cannot really know how data actually was dropped
+     * from the write index due to this. This 'error' will be applied
+     * by both client and server and hence we should be fine. */
+
     return o;
 }
 

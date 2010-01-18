@@ -430,7 +430,7 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
             if (PA_SINK_IS_OPENED(u->sink_input->sink->thread_info.state))
                 pa_memblockq_push_align(u->memblockq, chunk);
             else
-                pa_memblockq_flush_write(u->memblockq);
+                pa_memblockq_flush_write(u->memblockq, TRUE);
 
             update_min_memblockq_length(u);
 
@@ -457,7 +457,7 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
             if (PA_SINK_IS_OPENED(u->sink_input->sink->thread_info.state))
                 pa_memblockq_seek(u->memblockq, -offset, PA_SEEK_RELATIVE, TRUE);
             else
-                pa_memblockq_flush_write(u->memblockq);
+                pa_memblockq_flush_write(u->memblockq, TRUE);
 
             u->recv_counter -= offset;
 

@@ -1326,6 +1326,10 @@ static void handle_seek(playback_stream *s, int64_t indexw) {
     playback_stream_request_bytes(s);
 }
 
+static void flush_write_no_account(pa_memblockq *q) {
+    pa_memblockq_flush_write(q, FALSE);
+}
+
 /* Called from thread context */
 static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_sink_input *i = PA_SINK_INPUT(o);
@@ -1387,7 +1391,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 
             switch  (code) {
                 case SINK_INPUT_MESSAGE_FLUSH:
-                    func = pa_memblockq_flush_write;
+                    func = flush_write_no_account;
                     break;
 
                 case SINK_INPUT_MESSAGE_PREBUF_FORCE:
