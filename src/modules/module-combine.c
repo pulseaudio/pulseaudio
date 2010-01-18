@@ -562,7 +562,7 @@ static int sink_input_process_msg(pa_msgobject *obj, int code, void *data, int64
             if (PA_SINK_IS_OPENED(o->sink_input->sink->thread_info.state))
                 pa_memblockq_push_align(o->memblockq, chunk);
             else
-                pa_memblockq_flush_write(o->memblockq);
+                pa_memblockq_flush_write(o->memblockq, TRUE);
 
             return 0;
     }
@@ -982,7 +982,7 @@ static void output_disable(struct output *o) {
     o->sink_input = NULL;
 
     /* Finally, drop all queued data */
-    pa_memblockq_flush_write(o->memblockq);
+    pa_memblockq_flush_write(o->memblockq, TRUE);
     pa_asyncmsgq_flush(o->inq, FALSE);
     pa_asyncmsgq_flush(o->outq, FALSE);
 }

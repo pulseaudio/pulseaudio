@@ -118,7 +118,7 @@ size_t pa_memblockq_pop_missing(pa_memblockq *bq);
 int pa_memblockq_splice(pa_memblockq *bq, pa_memblockq *source);
 
 /* Set the queue to silence, set write index to read index */
-void pa_memblockq_flush_write(pa_memblockq *bq);
+void pa_memblockq_flush_write(pa_memblockq *bq, pa_bool_t account);
 
 /* Set the queue to silence, set write read index to write index*/
 void pa_memblockq_flush_read(pa_memblockq *bq);

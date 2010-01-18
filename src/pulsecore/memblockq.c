@@ -254,6 +254,8 @@ static void write_index_changed(pa_memblockq *bq, int64_t old_write_index, pa_bo
 
     if (account)
         bq->requested -= delta;
+    else
+        bq->missing -= delta;
 
     /* pa_log("pushed/seeked %lli: requested counter at %lli, account=%i", (long long) delta, (long long) bq->requested, account); */
 }
@@ -642,7 +644,7 @@ void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek, pa
     write_index_changed(bq, old, account);
 }
 
-void pa_memblockq_flush_write(pa_memblockq *bq) {
+void pa_memblockq_flush_write(pa_memblockq *bq, pa_bool_t account) {
     int64_t old;
     pa_assert(bq);
 
@@ -652,7 +654,7 @@ void pa_memblockq_flush_write(pa_memblockq *bq) {
     bq->write_index = bq->read_index;
 
     pa_memblockq_prebuf_force(bq);
-    write_index_changed(bq, old, TRUE);
+    write_index_changed(bq, old, account);
 }
 
 void pa_memblockq_flush_read(pa_memblockq *bq) {
