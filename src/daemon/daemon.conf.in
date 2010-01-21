@@ -16,7 +16,7 @@
 # USA.
 
 ## Configuration file for the PulseAudio daemon. See pulse-daemon.conf(5) for
-## more information. Default values a commented out.  Use either ; or # for
+## more information. Default values are commented out.  Use either ; or # for
 ## commenting.
 
 ; daemonize = no
