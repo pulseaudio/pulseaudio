@@ -119,91 +119,91 @@ msgstr "Найден пользователь '%s' (UID %lu) и группа '%s
 #: ../src/daemon/main.c:200
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr ""
+msgstr "Идентификаторы групп пользователя '%s' и группы '%s' не совпадают."
 
 #: ../src/daemon/main.c:205
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr ""
+msgstr "Домашняя папка пользователя '%s' не является '%s', игнорирование."
 
 #: ../src/daemon/main.c:208 ../src/daemon/main.c:213
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr ""
+msgstr "Не удалось создать '%s': %s"
 
 #: ../src/daemon/main.c:220
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr ""
+msgstr "Ошибка при изменении списка групп: %s"
 
 #: ../src/daemon/main.c:236
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr ""
+msgstr "Не удалось изменить идентификатор группы GID: %s"
 
 #: ../src/daemon/main.c:252
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr ""
+msgstr "Не удалось изменить идентификатор пользователя UID: %s"
 
 #: ../src/daemon/main.c:271
 msgid "Successfully dropped root privileges."
-msgstr ""
+msgstr "Успешное удаление привилегий администратора."
 
 #: ../src/daemon/main.c:279
 msgid "System wide mode unsupported on this platform."
-msgstr ""
+msgstr "Расширенный режим не поддерживается на этой платформе."
 
 #: ../src/daemon/main.c:297
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr ""
+msgstr "setrlimit(%s, (%u, %u)) не удалось: %s"
 
 #: ../src/daemon/main.c:474
 msgid "Failed to parse command line."
-msgstr ""
+msgstr "Ошибка разбора командной строки."
 
 #: ../src/daemon/main.c:541
 msgid "Daemon not running"
-msgstr ""
+msgstr "Демон не запущен"
 
 #: ../src/daemon/main.c:543
 #, c-format
 msgid "Daemon running as PID %u"
-msgstr ""
+msgstr "Демон запущен как PID %u"
 
 #: ../src/daemon/main.c:553
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr ""
+msgstr "Не удалось убить демон: %s"
 
 #: ../src/daemon/main.c:571
 msgid "This program is not intended to be run as root (unless --system is specified)."
-msgstr ""
+msgstr "Эта программа не предназначена для запуска с правами администратора (если не указано в системе)."
 
 #: ../src/daemon/main.c:573
 msgid "Root privileges required."
-msgstr ""
+msgstr "Необходимы права администратора."
 
 #: ../src/daemon/main.c:578
 msgid "--start not supported for system instances."
-msgstr ""
+msgstr "--start не поддерживается для элементов системы."
 
 #: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
+msgstr "Запущен в системном режиме, но --disallow-exit не задан!"
 
 #: ../src/daemon/main.c:586
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
+msgstr "Запущен в системном режиме, но --disallow-module-loading не задан!"
 
 #: ../src/daemon/main.c:589
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr ""
+msgstr "Запущен в системном режиме с принудительным отключением режима SHM!"
 
 #: ../src/daemon/main.c:594
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr ""
+msgstr "Запущен в системном режиме с принудительным отключением времени выхода после простоя!"
 
 #: ../src/daemon/main.c:621
 msgid "Failed to acquire stdio."
