@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-24 06:51+0000\n"
-"PO-Revision-Date: 2010-01-25 00:09+0300\n"
+"PO-Revision-Date: 2010-01-25 00:19+0300\n"
 "Last-Translator: Leonid Kurbatov <llenchikk@rambler.ru>\n"
 "Language-Team: Russian <->\n"
 "MIME-Version: 1.0\n"
@@ -176,7 +176,7 @@ msgstr "Успешное удаление привилегий админист�
 
 #: ../src/daemon/main.c:279
 msgid "System wide mode unsupported on this platform."
-msgstr "Расширенный режим не поддерживается на этой платформе."
+msgstr "Расширенный системный режим не поддерживается на этой платформе."
 
 #: ../src/daemon/main.c:297
 #, c-format
@@ -215,7 +215,7 @@ msgstr "Необходимы права администратора."
 
 #: ../src/daemon/main.c:578
 msgid "--start not supported for system instances."
-msgstr "--start не поддерживается для элементов системы."
+msgstr "--start не поддерживается для системных элементов."
 
 #: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-exit not set!"
