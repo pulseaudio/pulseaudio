@@ -50,19 +50,19 @@ msgstr ""
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "Всегда держать хотя бы один аудиоприёмник загруженным, даже если он неопределён."
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "Фиктивный выход"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
-msgstr ""
+msgstr "Виртуальный LADSPA аудиоприёмник"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid "sink_name=<name for the sink> sink_properties=<properties for the sink> master=<name of sink to filter> format=<sample format> rate=<sample rate> channels=<number of channels> channel_map=<channel map> plugin=<ladspa plugin name> label=<ladspa plugin label> control=<comma seperated list of input control values>"
-msgstr ""
+msgstr "sink_name=<имя аудиоприёмника> sink_properties=<свойства аудиоприёмника> master=<имя аудиоприёмника для фильтрации> format=<формат> rate=<частота> channels=<число каналов> channel_map=<схема каналов> plugin=<имя плагина ladspa> label=<метка плагина ladspa> control=<список входных значений, разделённый запятыми>"
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
