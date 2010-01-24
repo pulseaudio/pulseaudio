@@ -207,127 +207,127 @@ msgstr "Запущен в системном режиме с принудите�
 
 #: ../src/daemon/main.c:621
 msgid "Failed to acquire stdio."
-msgstr ""
+msgstr "Не удалось запросить stdio."
 
 #: ../src/daemon/main.c:627
 #, c-format
 msgid "pipe failed: %s"
-msgstr ""
+msgstr "Канал не удался: %s"
 
 #: ../src/daemon/main.c:632
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork() ветвь не удалась: %s"
 
 #: ../src/daemon/main.c:646 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
-msgstr ""
+msgstr "read() чтение не удалось: %s"
 
 #: ../src/daemon/main.c:652
 msgid "Daemon startup failed."
-msgstr ""
+msgstr "Запуск демона не удался."
 
 #: ../src/daemon/main.c:654
 msgid "Daemon startup successful."
-msgstr ""
+msgstr "Успешный запуск демона."
 
 #: ../src/daemon/main.c:731
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr ""
+msgstr "PulseAudio %s"
 
 #: ../src/daemon/main.c:732
 #, c-format
 msgid "Compilation host: %s"
-msgstr ""
+msgstr "Хост компиляции: %s"
 
 #: ../src/daemon/main.c:733
 #, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr ""
+msgstr "Компиляция CFLAGS: %s"
 
 #: ../src/daemon/main.c:736
 #, c-format
 msgid "Running on host: %s"
-msgstr ""
+msgstr "Запущен на хосте: %s"
 
 #: ../src/daemon/main.c:739
 #, c-format
 msgid "Found %u CPUs."
-msgstr ""
+msgstr "Найдено процессоров: %u."
 
 #: ../src/daemon/main.c:741
 #, c-format
 msgid "Page size is %lu bytes"
-msgstr ""
+msgstr "Размер страницы: %lu байт"
 
 #: ../src/daemon/main.c:744
 msgid "Compiled with Valgrind support: yes"
-msgstr ""
+msgstr "Скомпилировано с поддержкой Valgrind: да"
 
 #: ../src/daemon/main.c:746
 msgid "Compiled with Valgrind support: no"
-msgstr ""
+msgstr "Скомпилировано с поддержкой Valgrind: нет"
 
 #: ../src/daemon/main.c:749
 #, c-format
 msgid "Running in valgrind mode: %s"
-msgstr ""
+msgstr "Запуск в режиме Valgrind: %s"
 
 #: ../src/daemon/main.c:752
 msgid "Optimized build: yes"
-msgstr ""
+msgstr "Оптимизированная сборка: да"
 
 #: ../src/daemon/main.c:754
 msgid "Optimized build: no"
-msgstr ""
+msgstr "Оптимизированная сборка: нет"
 
 #: ../src/daemon/main.c:758
 msgid "NDEBUG defined, all asserts disabled."
-msgstr ""
+msgstr "NDEBUG задан, все ассерты запрещены."
 
 #: ../src/daemon/main.c:760
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr ""
+msgstr "FASTPATH задан, запрещены только fast path ассерты."
 
 #: ../src/daemon/main.c:762
 msgid "All asserts enabled."
-msgstr ""
+msgstr "Все ассерты разрешены."
 
 #: ../src/daemon/main.c:766
 msgid "Failed to get machine ID"
-msgstr ""
+msgstr "Не удалось получить ID машины"
 
 #: ../src/daemon/main.c:769
 #, c-format
 msgid "Machine ID is %s."
-msgstr ""
+msgstr "ID машины %s."
 
 #: ../src/daemon/main.c:773
 #, c-format
 msgid "Session ID is %s."
-msgstr ""
+msgstr "ID сессии %s."
 
 #: ../src/daemon/main.c:779
 #, c-format
 msgid "Using runtime directory %s."
-msgstr ""
+msgstr "Использование каталога изолированного окружения %s."
 
 #: ../src/daemon/main.c:784
 #, c-format
 msgid "Using state directory %s."
-msgstr ""
+msgstr "Использование заданного каталога %s."
 
 #: ../src/daemon/main.c:787
 #, c-format
 msgid "Using modules directory %s."
-msgstr ""
+msgstr "Использование каталога модулей %s."
 
 #: ../src/daemon/main.c:789
 #, c-format
 msgid "Running in system mode: %s"
-msgstr ""
+msgstr "Запуск в системном режиме: %s"
 
 #: ../src/daemon/main.c:792
 msgid ""
@@ -335,42 +335,46 @@ msgid ""
 "If you do it nonetheless then it's your own fault if things don't work as expected.\n"
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an explanation why system mode is usually a bad idea."
 msgstr ""
+"Итак, вы запускаете PA в системном режиме. Помните, что вам, скорее всего, не следует делать этого.\n"
+"Если вы это всё равно делаете, то ваша вина, что вещи не работают как ожидалось.\n"
+"Пожалуйста прочитайте http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode для объяснения, почему системный режим обычно является плохой идеей."
 
 #: ../src/daemon/main.c:809
 msgid "pa_pid_file_create() failed."
-msgstr ""
+msgstr "pa_pid_file_create() не удалось."
 
 #: ../src/daemon/main.c:819
 msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr ""
+msgstr "Доступен свежий таймер высокого разрешения! Приятного аппетита!"
 
 #: ../src/daemon/main.c:821
 msgid "Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"
-msgstr ""
+msgstr "Братан, твоё ядро воняет! Сегодняшняя рекомендация шефа - ядро с включенным таймером высокого разрешения!"
 
 #: ../src/daemon/main.c:844
 msgid "pa_core_new() failed."
-msgstr ""
+msgstr "pa_core_new() не удалась."
 
 #: ../src/daemon/main.c:904
+#, fuzzy
 msgid "Failed to initialize daemon."
-msgstr ""
+msgstr "Ошибка инициализации демона."
 
 #: ../src/daemon/main.c:909
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr ""
+msgstr "Запуск демона без каких-либо загружемых модули, отказ от работы."
 
 #: ../src/daemon/main.c:926
 msgid "Daemon startup complete."
-msgstr ""
+msgstr "Запуск демона завершён."
 
 #: ../src/daemon/main.c:932
 msgid "Daemon shutdown initiated."
-msgstr ""
+msgstr "Завершение демона инициализировано."
 
 #: ../src/daemon/main.c:954
 msgid "Daemon terminated."
-msgstr ""
+msgstr "Демон завершён."
 
 #: ../src/daemon/cmdline.c:115
 #, c-format
@@ -435,11 +439,11 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:247
 msgid "--daemonize expects boolean argument"
-msgstr ""
+msgstr "--daemonize ожидает логический аргумент"
 
 #: ../src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr ""
+msgstr "--fail ожидает логический аргумент"
 
 #: ../src/daemon/cmdline.c:264
 msgid "--log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error)."
