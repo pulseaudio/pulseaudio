@@ -66,55 +66,55 @@ msgstr "sink_name=<имя аудиоприёмника> sink_properties=<сво�
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "Синхронизированный NULL аудиоприёмник"
 
 #: ../src/modules/module-null-sink.c:291
 msgid "Null Output"
-msgstr ""
+msgstr "Пустой выход"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
-msgstr ""
+msgstr "Встроенное аудио"
 
 #: ../src/pulsecore/sink.c:2618
 msgid "Modem"
-msgstr ""
+msgstr "Модем"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr ""
+msgstr "Не удалось найти оригинальный lt_dlopen загрузчик."
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
-msgstr ""
+msgstr "Не удалось выделить новый dl загрузчик."
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
-msgstr ""
+msgstr "Не удалось добавить bind-now-загрузчик."
 
 #: ../src/daemon/main.c:141
 #, c-format
 msgid "Got signal %s."
-msgstr ""
+msgstr "Получен сигнал %s."
 
 #: ../src/daemon/main.c:168
 msgid "Exiting."
-msgstr ""
+msgstr "Выход."
 
 #: ../src/daemon/main.c:186
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr ""
+msgstr "Не удалось найти пользователя '%s'."
 
 #: ../src/daemon/main.c:191
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr ""
+msgstr "Не удалось найти группу '%s'."
 
 #: ../src/daemon/main.c:195
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr ""
+msgstr "Найден пользователь '%s' (UID %lu) и группа '%s' (GID %lu)."
 
 #: ../src/daemon/main.c:200
 #, c-format
