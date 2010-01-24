@@ -356,7 +356,6 @@ msgid "pa_core_new() failed."
 msgstr "pa_core_new() не удалась."
 
 #: ../src/daemon/main.c:904
-#, fuzzy
 msgid "Failed to initialize daemon."
 msgstr "Ошибка инициализации демона."
 
@@ -447,161 +446,161 @@ msgstr "--fail ожидает логический аргумент"
 
 #: ../src/daemon/cmdline.c:264
 msgid "--log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error)."
-msgstr ""
+msgstr "--log-level ожидает аргумент протоколирования (или числовой в диапазоне 0..4 или одному из debug, info, notice, warn, error)."
 
 #: ../src/daemon/cmdline.c:276
 msgid "--high-priority expects boolean argument"
-msgstr ""
+msgstr "--high-priority ожидает логический аргумент"
 
 #: ../src/daemon/cmdline.c:283
 msgid "--realtime expects boolean argument"
-msgstr ""
+msgstr "--realtime ожидает логический аргумент"
 
 #: ../src/daemon/cmdline.c:290
 msgid "--disallow-module-loading expects boolean argument"
-msgstr ""
+msgstr "--disallow-module-loading ожидает логический аргумент"
 
 #: ../src/daemon/cmdline.c:297
 msgid "--disallow-exit expects boolean argument"
-msgstr ""
+msgstr "--disallow-exit ожидает логический аргумент"
 
 #: ../src/daemon/cmdline.c:304
 msgid "--use-pid-file expects boolean argument"
-msgstr ""
+msgstr "--use-pid-file ожидает логический аргумент"
 
 #: ../src/daemon/cmdline.c:321
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr ""
+msgstr "Неверный журнал: используйте либо 'syslog', 'stderr' или 'auto'."
 
 #: ../src/daemon/cmdline.c:328
 msgid "--log-time expects boolean argument"
-msgstr ""
+msgstr "--log-time ожидает логический аргумент"
 
 #: ../src/daemon/cmdline.c:335
 msgid "--log-meta expects boolean argument"
-msgstr ""
+msgstr "--log-meta ожидает логический аргумент"
 
 #: ../src/daemon/cmdline.c:354
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr ""
+msgstr "Неверный метод перевыборки '%s'."
 
 #: ../src/daemon/cmdline.c:361
 msgid "--system expects boolean argument"
-msgstr ""
+msgstr "--system ожидает логический аргумент"
 
 #: ../src/daemon/cmdline.c:368
 msgid "--no-cpu-limit expects boolean argument"
-msgstr ""
+msgstr "--no-cpu-limit ожидает логический аргумент"
 
 #: ../src/daemon/cmdline.c:375
 msgid "--disable-shm expects boolean argument"
-msgstr ""
+msgstr "--disable-shm ожидает логический аргумент"
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "Имя: %s\n"
 
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
 msgid "No module information available\n"
-msgstr ""
+msgstr "Нет информации о модулях\n"
 
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "Версия: %s\n"
 
 #: ../src/daemon/dumpmodules.c:68
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "Описание: %s\n"
 
 #: ../src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "Автор: %s\n"
 
 #: ../src/daemon/dumpmodules.c:72
 #, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "Использование: %s\n"
 
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
 msgid "Load Once: %s\n"
-msgstr ""
+msgstr "Загружен раз: %s\n"
 
 #: ../src/daemon/dumpmodules.c:75
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr ""
+msgstr "DEPRECATION WARNING: %s\n"
 
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
 msgid "Path: %s\n"
-msgstr ""
+msgstr "Путь: %s\n"
 
 #: ../src/daemon/daemon-conf.c:232
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr ""
+msgstr "[%s:%u] Неверный журнал '%s'."
 
 #: ../src/daemon/daemon-conf.c:248
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr ""
+msgstr "[%s:%u] Неверный аргумент протоколирования '%s'."
 
 #: ../src/daemon/daemon-conf.c:264
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr ""
+msgstr "[%s:%u] Неверный метод перевыборки '%s'."
 
 #: ../src/daemon/daemon-conf.c:287
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr ""
+msgstr "[%s:%u] Неверный rlimit '%s'."
 
 #: ../src/daemon/daemon-conf.c:294
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
-msgstr ""
+msgstr "[%s:%u] rlimit не поддерживается на этой платформе."
 
 #: ../src/daemon/daemon-conf.c:310
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr ""
+msgstr "[%s:%u] Неверный формат сэмпла '%s'."
 
 #: ../src/daemon/daemon-conf.c:328
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr ""
+msgstr "[%s:%u] Неверная частота дискретизации '%s'."
 
 #: ../src/daemon/daemon-conf.c:352
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr ""
+msgstr "[%s:%u] Неверные сэмпл-каналы '%s'."
 
 #: ../src/daemon/daemon-conf.c:370
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr ""
+msgstr "[%s:%u] Неверная схема каналов '%s'."
 
 #: ../src/daemon/daemon-conf.c:388
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr ""
+msgstr "[%s:%u] Неверное число фрагментов '%s'."
 
 #: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr ""
+msgstr "[%s:%u] Неверный размер фрагмента '%s'."
 
 #: ../src/daemon/daemon-conf.c:424
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr ""
+msgstr "[%s:%u] Неверный точный уровень '%s'."
 
 #: ../src/daemon/daemon-conf.c:546
 #, c-format
