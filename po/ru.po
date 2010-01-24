@@ -36,6 +36,8 @@ msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
+"snd_pcm_delay() возвращает значение, которое является исключительно большим: %li байт (%s%lu мс).\n"
+"Вероятно, это ошибка в драйвере ALSA '%s'. Пожалуйста, сообщите об этой проблеме разработчикам ALSA."
 
 #: ../src/modules/alsa/alsa-util.c:1194
 #, c-format
@@ -43,6 +45,8 @@ msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
+"snd_pcm_mmap_begin() возвращает значение, которое является исключительно большим: %lu байт (%lu мс).\n"
+"Вероятно, это ошибка в драйвере ALSA '%s'. Пожалуйста, сообщите об этой проблеме разработчикам ALSA."
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
