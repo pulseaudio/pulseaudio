@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-24 06:51+0000\n"
-"PO-Revision-Date: 2010-01-24 23:47+0300\n"
+"PO-Revision-Date: 2010-01-25 00:09+0300\n"
 "Last-Translator: Leonid Kurbatov <llenchikk@rambler.ru>\n"
 "Language-Team: Russian <->\n"
 "MIME-Version: 1.0\n"
@@ -2354,11 +2354,11 @@ msgstr "Выключено"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2184
 msgid "High Fidelity Playback (A2DP)"
-msgstr "Воспроизведение высокой точности (A2DP)"
+msgstr "Воспроизведение высокого качества (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2198
 msgid "High Fidelity Capture (A2DP)"
-msgstr "Запись высокой точности (A2DP)"
+msgstr "Запись высокого качества (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2213
 msgid "Telephony Duplex (HSP/HFP)"
