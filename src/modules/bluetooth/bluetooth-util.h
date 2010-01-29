@@ -89,6 +89,9 @@ struct pa_bluetooth_device {
 
     /* Headset state */
     pa_bt_audio_state_t headset_state;
+
+    /* HandsfreeGateway state */
+    pa_bt_audio_state_t hfgw_state;
 };
 
 pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core);

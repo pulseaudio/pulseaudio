@@ -98,6 +98,7 @@ static pa_bluetooth_device* device_new(const char *path) {
     d->audio_sink_state = PA_BT_AUDIO_STATE_INVALID;
     d->audio_source_state = PA_BT_AUDIO_STATE_INVALID;
     d->headset_state = PA_BT_AUDIO_STATE_INVALID;
+    d->hfgw_state = PA_BT_AUDIO_STATE_INVALID;
 
     return d;
 }
@@ -123,11 +124,11 @@ static pa_bool_t device_is_audio(pa_bluetooth_device *d) {
     pa_assert(d);
 
     return
-        d->device_info_valid &&
+        d->device_info_valid && (d->hfgw_state != PA_BT_AUDIO_STATE_INVALID ||
         (d->audio_state != PA_BT_AUDIO_STATE_INVALID &&
          (d->audio_sink_state != PA_BT_AUDIO_STATE_INVALID ||
           d->audio_source_state != PA_BT_AUDIO_STATE_INVALID ||
-          d->headset_state != PA_BT_AUDIO_STATE_INVALID));
+          d->headset_state != PA_BT_AUDIO_STATE_INVALID)));
 }
 
 static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device *d, DBusMessageIter *i) {
@@ -230,7 +231,10 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
                     PA_LLIST_PREPEND(pa_bluetooth_uuid, d->uuids, node);
 
                     /* Vudentz said the interfaces are here when the UUIDs are announced */
-                    if (strcasecmp(HSP_HS_UUID, value) == 0 || strcasecmp(HFP_HS_UUID, value) == 0) {
+                    if (strcasecmp(HSP_AG_UUID, value) == 0 || strcasecmp(HFP_AG_UUID, value) == 0) {
+                        pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.HandsfreeGateway", "GetProperties"));
+                        send_and_add_to_pending(y, d, m, get_properties_reply);
+                    } else if (strcasecmp(HSP_HS_UUID, value) == 0 || strcasecmp(HFP_HS_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.Headset", "GetProperties"));
                         send_and_add_to_pending(y, d, m, get_properties_reply);
                     } else if (strcasecmp(A2DP_SINK_UUID, value) == 0) {
@@ -403,8 +407,13 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
             }  else if (dbus_message_has_interface(p->message, "org.bluez.AudioSink")) {
                 if (parse_audio_property(y, &d->audio_sink_state, &dict_i) < 0)
                     goto finish;
+
             }  else if (dbus_message_has_interface(p->message, "org.bluez.AudioSource")) {
                 if (parse_audio_property(y, &d->audio_source_state, &dict_i) < 0)
+                    goto finish;
+
+            }  else if (dbus_message_has_interface(p->message, "org.bluez.HandsfreeGateway")) {
+                if (parse_audio_property(y, &d->hfgw_state, &arg_i) < 0)
                     goto finish;
             }
         }
@@ -633,6 +642,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                dbus_message_is_signal(m, "org.bluez.Headset", "PropertyChanged") ||
                dbus_message_is_signal(m, "org.bluez.AudioSink", "PropertyChanged") ||
                dbus_message_is_signal(m, "org.bluez.AudioSource", "PropertyChanged") ||
+               dbus_message_is_signal(m, "org.bluez.HandsfreeGateway", "PropertyChanged") ||
                dbus_message_is_signal(m, "org.bluez.Device", "PropertyChanged")) {
 
         pa_bluetooth_device *d;
@@ -660,8 +670,13 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             }  else if (dbus_message_has_interface(m, "org.bluez.AudioSink")) {
                 if (parse_audio_property(y, &d->audio_sink_state, &arg_i) < 0)
                     goto fail;
+
             }  else if (dbus_message_has_interface(m, "org.bluez.AudioSource")) {
                 if (parse_audio_property(y, &d->audio_source_state, &arg_i) < 0)
+                    goto fail;
+
+            }  else if (dbus_message_has_interface(m, "org.bluez.HandsfreeGateway")) {
+                if (parse_audio_property(y, &d->hfgw_state, &arg_i) < 0)
                     goto fail;
             }
 
@@ -679,6 +694,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             d->audio_sink_state = PA_BT_AUDIO_STATE_DISCONNECTED;
             d->audio_source_state = PA_BT_AUDIO_STATE_DISCONNECTED;
             d->headset_state = PA_BT_AUDIO_STATE_DISCONNECTED;
+            d->hfgw_state = PA_BT_AUDIO_STATE_DISCONNECTED;
 
             run_callback(y, d, FALSE);
         }
@@ -809,7 +825,9 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
                 "type='signal',sender='org.bluez',interface='org.bluez.Audio',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'",
-                "type='signal',sender='org.bluez',interface='org.bluez.AudioSource',member='PropertyChanged'", NULL) < 0) {
+                "type='signal',sender='org.bluez',interface='org.bluez.AudioSource',member='PropertyChanged'",
+                "type='signal',sender='org.bluez',interface='org.bluez.HandsfreeGateway',member='PropertyChanged'",
+                NULL) < 0) {
         pa_log("Failed to add D-Bus matches: %s", err.message);
         goto fail;
     }
@@ -863,7 +881,9 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
                                "type='signal',sender='org.bluez',interface='org.bluez.Audio',member='PropertyChanged'",
                                "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged'",
                                "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'",
-                               "type='signal',sender='org.bluez',interface='org.bluez.AudioSource',member='PropertyChanged'", NULL);
+                               "type='signal',sender='org.bluez',interface='org.bluez.AudioSource',member='PropertyChanged'",
+                               "type='signal',sender='org.bluez',interface='org.bluez.HandsfreeGateway',member='PropertyChanged'",
+                               NULL);
 
         if (y->filter_added)
             dbus_connection_remove_filter(pa_dbus_connection_get(y->connection), filter_cb, y);

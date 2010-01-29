@@ -71,7 +71,7 @@ PA_MODULE_USAGE(
         "source_name=<name for the source> "
         "source_properties=<properties for the source> "
         "address=<address of the device> "
-        "profile=<a2dp|hsp> "
+        "profile=<a2dp|hsp|hfgw> "
         "rate=<sample rate> "
         "channels=<number of channels> "
         "path=<device object path> "
@@ -133,6 +133,7 @@ enum profile {
     PROFILE_A2DP,
     PROFILE_A2DP_SOURCE,
     PROFILE_HSP,
+    PROFILE_HFGW,
     PROFILE_OFF
 };
 
@@ -318,12 +319,12 @@ static int parse_caps(struct userdata *u, uint8_t seid, const struct bt_get_capa
     pa_log_debug("Payload size is %lu %lu", (unsigned long) bytes_left, (unsigned long) sizeof(*codec));
 
     if (((u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) && codec->transport != BT_CAPABILITIES_TRANSPORT_A2DP) ||
-        (u->profile == PROFILE_HSP && codec->transport != BT_CAPABILITIES_TRANSPORT_SCO)) {
+        ((u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) && codec->transport != BT_CAPABILITIES_TRANSPORT_SCO)) {
         pa_log_error("Got capabilities for wrong codec.");
         return -1;
     }
 
-    if (u->profile == PROFILE_HSP) {
+    if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) {
 
         if (bytes_left <= 0 || codec->length != sizeof(u->hsp.pcm_capabilities))
             return -1;
@@ -401,7 +402,7 @@ static int get_caps(struct userdata *u, uint8_t seid) {
     if (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE)
         msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_A2DP;
     else {
-        pa_assert(u->profile == PROFILE_HSP);
+        pa_assert(u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW);
         msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_SCO;
     }
     msg.getcaps_req.flags = u->auto_connect ? BT_FLAG_AUTOCONNECT : 0;
@@ -697,7 +698,7 @@ static int set_conf(struct userdata *u) {
         if (setup_a2dp(u) < 0)
             return -1;
     } else {
-        pa_assert(u->profile == PROFILE_HSP);
+        pa_assert(u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW);
 
         u->sample_spec.format = PA_SAMPLE_S16LE;
         u->sample_spec.channels = 1;
@@ -995,7 +996,7 @@ static int hsp_process_render(struct userdata *u) {
     int ret = 0;
 
     pa_assert(u);
-    pa_assert(u->profile == PROFILE_HSP);
+    pa_assert(u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW);
     pa_assert(u->sink);
 
     /* First, render some data */
@@ -1060,7 +1061,7 @@ static int hsp_process_push(struct userdata *u) {
     pa_memchunk memchunk;
 
     pa_assert(u);
-    pa_assert(u->profile == PROFILE_HSP);
+    pa_assert(u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW);
     pa_assert(u->source);
     pa_assert(u->read_smoother);
 
@@ -1434,7 +1435,7 @@ static void thread_func(void *userdata) {
             if (pollfd && (pollfd->revents & POLLIN)) {
                 int n_read;
 
-                if (u->profile == PROFILE_HSP)
+                if (u->profile == PROFILE_HSP || PROFILE_HFGW)
                     n_read = hsp_process_push(u);
                 else
                     n_read = a2dp_process_push(u);
@@ -1842,7 +1843,7 @@ static int add_source(struct userdata *u) {
         data.module = u->module;
         pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
         pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP_SOURCE ? "a2dp_source" : "hsp");
-        if (u->profile == PROFILE_HSP)
+        if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW))
             pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
         data.card = u->card;
         data.name = get_name("source", u->modargs, u->address, &b);
@@ -1870,8 +1871,10 @@ static int add_source(struct userdata *u) {
                                     pa_bytes_to_usec(u->block_size, &u->sample_spec));
     }
 
-    if (u->profile == PROFILE_HSP) {
+    if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW)
         pa_proplist_sets(u->source->proplist, "bluetooth.nrec", (u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC) ? "1" : "0");
+
+    if (u->profile == PROFILE_HSP) {
         u->source->set_volume = source_set_volume_cb;
         u->source->n_volume_steps = 16;
     }
@@ -1959,12 +1962,14 @@ static int init_profile(struct userdata *u) {
         return -1;
 
     if (u->profile == PROFILE_A2DP ||
-        u->profile == PROFILE_HSP)
+        u->profile == PROFILE_HSP ||
+        u->profile == PROFILE_HFGW)
         if (add_sink(u) < 0)
             r = -1;
 
     if (u->profile == PROFILE_HSP ||
-        u->profile == PROFILE_A2DP_SOURCE)
+        u->profile == PROFILE_A2DP_SOURCE ||
+        u->profile == PROFILE_HFGW)
         if (add_source(u) < 0)
             r = -1;
 
@@ -2097,6 +2102,10 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     }
     else if (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
         pa_log_warn("A2DP is not connected, refused to switch profile");
+        return -PA_ERR_IO;
+    }
+    else if (device->hfgw_state <= PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HFGW) {
+        pa_log_warn("HandsfreeGateway is not connected, refused to switch profile");
         return -PA_ERR_IO;
     }
 
@@ -2234,6 +2243,20 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
         pa_hashmap_put(data.profiles, p->name, p);
     }
 
+    if (pa_bluetooth_uuid_has(device->uuids, HFP_AG_UUID)) {
+        p = pa_card_profile_new("hfgw", _("Handsfree Gateway"), sizeof(enum profile));
+        p->priority = 20;
+        p->n_sinks = 1;
+        p->n_sources = 1;
+        p->max_sink_channels = 1;
+        p->max_source_channels = 1;
+
+        d = PA_CARD_PROFILE_DATA(p);
+        *d = PROFILE_HFGW;
+
+        pa_hashmap_put(data.profiles, p->name, p);
+    }
+
     pa_assert(!pa_hashmap_isempty(data.profiles));
 
     p = pa_card_profile_new("off", _("Off"), sizeof(enum profile));
@@ -2262,7 +2285,8 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
     d = PA_CARD_PROFILE_DATA(u->card->active_profile);
 
     if ((device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) ||
-        (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP)) {
+        (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) ||
+        (device->hfgw_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HFGW)) {
         pa_log_warn("Default profile not connected, selecting off profile");
         u->card->active_profile = pa_hashmap_get(u->card->profiles, "off");
         u->card->save_profile = FALSE;
