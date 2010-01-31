@@ -53,14 +53,14 @@ USA.
 
     <option>
       <p><opt>daemonize= </opt> Daemonize after startup. Takes a
-      boolean value, defaults to "no". The <opt>--daemonize</opt>
+      boolean value, defaults to <opt>no</opt>. The <opt>--daemonize</opt>
       command line option takes precedence.</p>
     </option>
 
     <option>
       <p><opt>fail=</opt> Fail to start up if any of the directives
       in the configuration script <file>default.pa</file>
-      fail. Takes a boolean argument, defaults to "yes". The <opt>--fail</opt> command line
+      fail. Takes a boolean argument, defaults to <opt>yes</opt>. The <opt>--fail</opt> command line
       option takes precedence.</p>
     </option>
 
@@ -191,7 +191,7 @@ USA.
       RLIMIT_NICE is used. root is dropped immediately after gaining
       the nice level on startup, thus it is presumably safe. See
       <manref section="1" name="pulseaudio"/> for more
-      information. Takes a boolean argument, defaults to "yes". The <opt>--high-priority</opt>
+      information. Takes a boolean argument, defaults to <opt>yes</opt>. The <opt>--high-priority</opt>
       command line option takes precedence.</p>
     </option>
 
@@ -205,7 +205,7 @@ USA.
       real-time. The controlling thread is left a normally scheduled
       thread. Thus enabling the high-priority option is orthogonal.
       See <manref section="1" name="pulseaudio"/> for more
-      information. Takes a boolean argument, defaults to "yes". The
+      information. Takes a boolean argument, defaults to <opt>yes</opt>. The
       <opt>--realtime</opt> command line option takes precedence.</p>
     </option>
 
@@ -215,7 +215,7 @@ USA.
       by default, 9 for clients. Thus it is recommended to choose the
       PulseAudio real-time priorities lower. Some PulseAudio threads
       might choose a priority a little lower or higher than the
-      specified value. Defaults to "5".</p>
+      specified value. Defaults to <opt>5</opt>.</p>
     </option>
 
     <option>
