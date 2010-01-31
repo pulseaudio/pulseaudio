@@ -24,6 +24,7 @@
 #endif
 
 #include <sys/stat.h>
+#include <dirent.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/volume.h>
@@ -168,20 +169,53 @@ static void update_rule(struct rule *r) {
         { NULL,  catch_all, NULL, NULL },
         { NULL, NULL, NULL, NULL },
     };
+    pa_bool_t found = FALSE;
 
     pa_assert(r);
     fn = pa_sprintf_malloc(DESKTOPFILEDIR PA_PATH_SEP "%s.desktop", r->process_name);
 
-    if (stat(fn, &st) < 0) {
+    if (stat(fn, &st) == 0)
+        found = TRUE;
+    else {
+        DIR *desktopfiles_dir;
+        struct dirent *dir;
+
+        /* Let's try a more aggressive search, but only one level */
+        if ((desktopfiles_dir = opendir(DESKTOPFILEDIR))) {
+            while ((dir = readdir(desktopfiles_dir))) {
+                if (dir->d_type != DT_DIR
+                    || strcmp(dir->d_name, ".") == 0
+                    || strcmp(dir->d_name, "..") == 0)
+                    continue;
+
+                pa_xfree(fn);
+                fn = pa_sprintf_malloc(DESKTOPFILEDIR
+                                       PA_PATH_SEP "%s" PA_PATH_SEP "%s.desktop",
+                                       dir->d_name, r->process_name);
+
+                if (stat(fn, &st) == 0) {
+                    found = TRUE;
+                    break;
+                }
+            }
+            closedir(desktopfiles_dir);
+        }
+    }
+    if (!found) {
         r->good = FALSE;
         pa_xfree(fn);
         return;
     }
 
-    if (r->good && st.st_mtime == r->mtime) {
-        pa_xfree(fn);
-        return;
-    }
+    if (r->good)
+        if (st.st_mtime == r->mtime) {
+            /* Theoretically the filename could have changed, but if so
+               having the same mtime is very unlikely so not worth tracking it in r */
+            pa_xfree(fn);
+            return;
+        }
+    else
+        pa_log_debug("Found %s.", fn);
 
     r->good = TRUE;
     r->mtime = st.st_mtime;
