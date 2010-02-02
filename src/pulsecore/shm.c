@@ -154,7 +154,11 @@ int pa_shm_create_rw(pa_shm *m, size_t size, pa_bool_t shared, mode_t mode) {
             goto fail;
         }
 
-        if ((m->ptr = mmap(NULL, PA_PAGE_ALIGN(m->size), PROT_READ|PROT_WRITE, MAP_SHARED, fd, (off_t) 0)) == MAP_FAILED) {
+#ifndef MAP_NORESERVE
+#define MAP_NORESERVE 0
+#endif
+
+        if ((m->ptr = mmap(NULL, PA_PAGE_ALIGN(m->size), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_NORESERVE, fd, (off_t) 0)) == MAP_FAILED) {
             pa_log("mmap() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
