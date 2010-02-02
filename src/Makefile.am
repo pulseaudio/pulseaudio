@@ -294,7 +294,6 @@ TESTS_BINARIES = \
 		hook-list-test \
 		memblock-test \
 		thread-test \
-		once-test \
 		flist-test \
 		asyncq-test \
 		asyncmsgq-test \
@@ -338,6 +337,11 @@ endif
 if HAVE_ALSA
 TESTS_BINARIES += \
 		alsa-time-test
+endif
+
+if !OS_IS_DARWIN
+TESTS_BINARIES += \
+		once-test
 endif
 
 if BUILD_TESTS_DEFAULT
