@@ -1086,7 +1086,7 @@ void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_p
     if (p)
         pa_proplist_update(i->proplist, mode, p);
 
-    if (PA_SINK_IS_LINKED(i->state)) {
+    if (PA_SINK_INPUT_IS_LINKED(i->state)) {
         pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], i);
         pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     }
