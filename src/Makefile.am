@@ -1027,7 +1027,9 @@ modlibexec_LTLIBRARIES += \
 		module-position-event-sounds.la \
 		module-augment-properties.la \
 		module-cork-music-on-phone.la \
-		module-loopback.la
+		module-loopback.la \
+		module-virtual-sink.la \
+		module-virtual-source.la
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -1292,7 +1294,9 @@ SYMDEF_FILES = \
 		modules/module-cork-music-on-phone-symdef.h \
 		modules/module-console-kit-symdef.h \
 		modules/dbus/module-dbus-protocol-symdef.h \
-		modules/module-loopback-symdef.h
+		modules/module-loopback-symdef.h \
+		modules/module-virtual-sink-symdef.h \
+		modules/module-virtual-source-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1460,6 +1464,14 @@ module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.
 module_loopback_la_SOURCES = modules/module-loopback.c
 module_loopback_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_loopback_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+
+module_virtual_sink_la_SOURCES = modules/module-virtual-sink.c
+module_virtual_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_virtual_sink_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+
+module_virtual_source_la_SOURCES = modules/module-virtual-source.c
+module_virtual_source_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_virtual_source_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 # X11
 
