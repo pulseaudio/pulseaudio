@@ -277,6 +277,31 @@ name = input-microphone
 [Option Digital Input Source:Digital Mic 2]
 name = input-microphone
 
+;;; 'Analog Source'
+
+[Element Analog Source]
+enumeration = select
+
+[Option Analog Source:Mic]
+name = input-microphone
+
+[Option Analog Source:Line in]
+name = input-linein
+
+[Option Analog Source:Aux]
+name = input
+
+;;; 'Shared Mic/Line in'
+
+[Element Shared Mic/Line in]
+enumeration = select
+
+[Option Shared Mic/Line in:Mic in]
+name = input-microphone
+
+[Option Shared Mic/Line in:Line in]
+name = input-linein
+
 ;;; Various Boosts
 
 [Element Capture Boost]
