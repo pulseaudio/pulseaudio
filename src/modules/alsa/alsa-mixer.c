@@ -1784,7 +1784,8 @@ static int path_verify(pa_alsa_path *p) {
         { "analog-output-lfe-on-mono",  N_("Analog Output (LFE)") },
         { "analog-output-mono",         N_("Analog Mono Output") },
         { "analog-output-headphones-2", N_("Analog Headphones 2") },
-        { "analog-output-speaker",      N_("Analog Speaker") }
+        { "analog-output-speaker",      N_("Analog Speakers") }
+        { "analog-output-desktop-speaker", N_("Analog Speakers 2") }
     };
 
     pa_alsa_element *e;
