@@ -45,17 +45,16 @@ struct pa_dbus_wrap_connection {
 };
 
 struct timeout_data {
-    pa_dbus_wrap_connection *c;
+    pa_dbus_wrap_connection *connection;
     DBusTimeout *timeout;
 };
 
 static void dispatch_cb(pa_mainloop_api *ea, pa_defer_event *ev, void *userdata) {
     DBusConnection *conn = userdata;
 
-    if (dbus_connection_dispatch(conn) == DBUS_DISPATCH_COMPLETE) {
+    if (dbus_connection_dispatch(conn) == DBUS_DISPATCH_COMPLETE)
         /* no more data to process, disable the deferred */
         ea->defer_enable(ev, 0);
-    }
 }
 
 /* DBusDispatchStatusFunction callback for the pa mainloop */
@@ -132,13 +131,17 @@ static void handle_time_event(pa_mainloop_api *ea, pa_time_event* e, const struc
     struct timeout_data *d = userdata;
 
     pa_assert(d);
-    pa_assert(d->c);
+    pa_assert(d->connection);
 
     if (dbus_timeout_get_enabled(d->timeout)) {
-        dbus_timeout_handle(d->timeout);
+        /* Restart it for the next scheduled time. We do this before
+         * calling dbus_timeout_handle() to make sure that the time
+         * event is still around. */
+        ea->time_restart(e, pa_timeval_rtstore(&tv,
+                                               pa_timeval_load(t) + dbus_timeout_get_interval(d->timeout) * PA_USEC_PER_MSEC,
+                                               d->connection->use_rtclock));
 
-        /* restart it for the next scheduled time */
-        ea->time_restart(e, pa_timeval_rtstore(&tv, pa_timeval_load(t) + dbus_timeout_get_interval(d->timeout) * PA_USEC_PER_MSEC, d->c->use_rtclock));
+        dbus_timeout_handle(d->timeout);
     }
 }
 
@@ -208,7 +211,7 @@ static dbus_bool_t add_timeout(DBusTimeout *timeout, void *data) {
         return FALSE;
 
     d = pa_xnew(struct timeout_data, 1);
-    d->c = c;
+    d->connection = c;
     d->timeout = timeout;
     ev = c->mainloop->time_new(c->mainloop, pa_timeval_rtstore(&tv, pa_rtclock_now() + dbus_timeout_get_interval(timeout) * PA_USEC_PER_MSEC, c->use_rtclock), handle_time_event, d);
     c->mainloop->time_set_destroy(ev, time_event_destroy_cb);
@@ -237,15 +240,15 @@ static void toggle_timeout(DBusTimeout *timeout, void *data) {
     struct timeval tv;
 
     pa_assert(d);
-    pa_assert(d->c);
+    pa_assert(d->connection);
     pa_assert(timeout);
 
     pa_assert_se(ev = dbus_timeout_get_data(timeout));
 
-    if (dbus_timeout_get_enabled(timeout)) {
-        d->c->mainloop->time_restart(ev, pa_timeval_rtstore(&tv, pa_rtclock_now() + dbus_timeout_get_interval(timeout) * PA_USEC_PER_MSEC, d->c->use_rtclock));
-    } else
-        d->c->mainloop->time_restart(ev, pa_timeval_rtstore(&tv, PA_USEC_INVALID, d->c->use_rtclock));
+    if (dbus_timeout_get_enabled(timeout))
+        d->connection->mainloop->time_restart(ev, pa_timeval_rtstore(&tv, pa_rtclock_now() + dbus_timeout_get_interval(timeout) * PA_USEC_PER_MSEC, d->connection->use_rtclock));
+    else
+        d->connection->mainloop->time_restart(ev, pa_timeval_rtstore(&tv, PA_USEC_INVALID, d->connection->use_rtclock));
 }
 
 static void wakeup_main(void *userdata) {
