@@ -893,7 +893,7 @@ AC_ARG_ENABLE([gconf],
         [gconf=auto])
 
 if test "x${gconf}" != xno ; then
-    PKG_CHECK_MODULES(GCONF, [ gconf-2.0 >= 2.4.0 ],
+    PKG_CHECK_MODULES(GCONF, [ gconf-2.0 >= 2.4.0 gobject-2.0 ],
         HAVE_GCONF=1,
         [
             HAVE_GCONF=0
