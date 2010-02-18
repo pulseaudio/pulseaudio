@@ -61,6 +61,7 @@ int main(int argc, char*argv[]) {
     char *cli;
     pa_bool_t ibuf_eof, obuf_eof, ibuf_closed, obuf_closed;
     struct pollfd pollfd[N_WATCH];
+    int stdin_type = 0, stdout_type = 0, fd_type = 0;
 
     setlocale(LC_ALL, "");
     bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
@@ -166,7 +167,7 @@ int main(int argc, char*argv[]) {
             ssize_t r;
             pa_assert(!ibuf_length);
 
-            if ((r = pa_read(STDIN_FILENO, ibuf, sizeof(ibuf), NULL)) <= 0) {
+            if ((r = pa_read(STDIN_FILENO, ibuf, sizeof(ibuf), &stdin_type)) <= 0) {
                 if (r < 0) {
                     pa_log(_("read(): %s"), strerror(errno));
                     goto fail;
@@ -183,7 +184,7 @@ int main(int argc, char*argv[]) {
             ssize_t r;
             pa_assert(!obuf_length);
 
-            if ((r = pa_read(fd, obuf, sizeof(obuf), NULL)) <= 0) {
+            if ((r = pa_read(fd, obuf, sizeof(obuf), &fd_type)) <= 0) {
                 if (r < 0) {
                     pa_log(_("read(): %s"), strerror(errno));
                     goto fail;
@@ -203,7 +204,7 @@ int main(int argc, char*argv[]) {
             ssize_t r;
             pa_assert(obuf_length);
 
-            if ((r = pa_write(STDOUT_FILENO, obuf + obuf_index, obuf_length, NULL)) < 0) {
+            if ((r = pa_write(STDOUT_FILENO, obuf + obuf_index, obuf_length, &stdout_type)) < 0) {
                 pa_log(_("write(): %s"), strerror(errno));
                 goto fail;
             }
@@ -219,7 +220,7 @@ int main(int argc, char*argv[]) {
             ssize_t r;
             pa_assert(ibuf_length);
 
-            if ((r = pa_write(fd, ibuf + ibuf_index, ibuf_length, NULL)) < 0) {
+            if ((r = pa_write(fd, ibuf + ibuf_index, ibuf_length, &fd_type)) < 0) {
                 pa_log(_("write(): %s"), strerror(errno));
                 goto fail;
             }
