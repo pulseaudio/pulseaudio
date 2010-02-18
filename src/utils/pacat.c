@@ -195,28 +195,41 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
 
         pa_assert(sndfile);
 
-        if (pa_stream_begin_write(s, &data, &length) < 0) {
-            pa_log(_("pa_stream_begin_write() failed: %s"), pa_strerror(pa_context_errno(context)));
-            quit(1);
-            return;
+        for (;;) {
+            size_t data_length = length;
+
+            if (pa_stream_begin_write(s, &data, &data_length) < 0) {
+                pa_log(_("pa_stream_begin_write() failed: %s"), pa_strerror(pa_context_errno(context)));
+                quit(1);
+                return;
+            }
+
+            if (readf_function) {
+                size_t k = pa_frame_size(&sample_spec);
+
+                if ((bytes = readf_function(sndfile, data, (sf_count_t) (data_length/k))) > 0)
+                    bytes *= (sf_count_t) k;
+
+            } else
+                bytes = sf_read_raw(sndfile, data, (sf_count_t) data_length);
+
+            if (bytes > 0)
+                pa_stream_write(s, data, (size_t) bytes, NULL, 0, PA_SEEK_RELATIVE);
+            else
+                pa_stream_cancel_write(s);
+
+            /* EOF? */
+            if (bytes < (sf_count_t) data_length) {
+                start_drain();
+                break;
+            }
+
+            /* Request fulfilled */
+            if ((size_t) bytes >= length)
+                break;
+
+            length -= bytes;
         }
-
-        if (readf_function) {
-            size_t k = pa_frame_size(&sample_spec);
-
-            if ((bytes = readf_function(sndfile, data, (sf_count_t) (length/k))) > 0)
-                bytes *= (sf_count_t) k;
-
-        } else
-            bytes = sf_read_raw(sndfile, data, (sf_count_t) length);
-
-        if (bytes > 0)
-            pa_stream_write(s, data, (size_t) bytes, NULL, 0, PA_SEEK_RELATIVE);
-        else
-            pa_stream_cancel_write(s);
-
-        if (bytes < (sf_count_t) length)
-            start_drain();
     }
 }
 
