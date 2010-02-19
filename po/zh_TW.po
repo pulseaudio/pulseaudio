@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PulseAudio Volume Control\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-05 08:05+0000\n"
-"PO-Revision-Date: 2010-02-19 19:41+0800\n"
+"PO-Revision-Date: 2010-02-19 20:10+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: zh_TW\n"
 "MIME-Version: 1.0\n"
@@ -21,7 +21,7 @@ msgstr ""
 #: ../src/pulsecore/sink.c:2629
 #, c-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 #: ../src/modules/alsa/alsa-util.c:1106
 #, c-format
@@ -78,34 +78,34 @@ msgstr "數據機"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr ""
+msgstr "找不到 original lt_dlopen loader。"
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
-msgstr ""
+msgstr "分配新的 dl loader 失敗。"
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
-msgstr ""
+msgstr "加入 bind-now-loader 失敗。"
 
 #: ../src/daemon/main.c:141
 #, c-format
 msgid "Got signal %s."
-msgstr ""
+msgstr "取得信號 %s。"
 
 #: ../src/daemon/main.c:168
 msgid "Exiting."
-msgstr ""
+msgstr "正在退出。"
 
 #: ../src/daemon/main.c:186
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr ""
+msgstr "尋找使用者「%s」失敗。"
 
 #: ../src/daemon/main.c:191
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr ""
+msgstr "尋找群組「%s」失敗。"
 
 #: ../src/daemon/main.c:195
 #, c-format
@@ -145,7 +145,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:271
 msgid "Successfully dropped root privileges."
-msgstr ""
+msgstr "成功地放下 root 特權。"
 
 #: ../src/daemon/main.c:279
 msgid "System wide mode unsupported on this platform."
@@ -158,7 +158,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:474
 msgid "Failed to parse command line."
-msgstr ""
+msgstr "解析命令列失敗。"
 
 #: ../src/daemon/main.c:541
 msgid "Daemon not running"
@@ -180,7 +180,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:573
 msgid "Root privileges required."
-msgstr ""
+msgstr "需要 root 特權。"
 
 #: ../src/daemon/main.c:578
 msgid "--start not supported for system instances."
@@ -209,31 +209,31 @@ msgstr ""
 #: ../src/daemon/main.c:627
 #, c-format
 msgid "pipe failed: %s"
-msgstr ""
+msgstr "pipe 失敗: %s"
 
 #: ../src/daemon/main.c:632
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork() 失敗: %s"
 
 #: ../src/daemon/main.c:646
 #: ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
-msgstr ""
+msgstr "read() 失敗: %s"
 
 #: ../src/daemon/main.c:652
 msgid "Daemon startup failed."
-msgstr ""
+msgstr "幕後程式啟動失敗。"
 
 #: ../src/daemon/main.c:654
 msgid "Daemon startup successful."
-msgstr ""
+msgstr "幕後程式啟動成功。"
 
 #: ../src/daemon/main.c:731
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr ""
+msgstr "這是 PulseAudio %s"
 
 #: ../src/daemon/main.c:732
 #, c-format
@@ -253,7 +253,7 @@ msgstr ""
 #: ../src/daemon/main.c:739
 #, c-format
 msgid "Found %u CPUs."
-msgstr ""
+msgstr "找到 %u 個 CPU。"
 
 #: ../src/daemon/main.c:741
 #, c-format
@@ -352,23 +352,23 @@ msgstr ""
 
 #: ../src/daemon/main.c:904
 msgid "Failed to initialize daemon."
-msgstr ""
+msgstr "初始化幕後程式失敗。"
 
 #: ../src/daemon/main.c:909
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr ""
+msgstr "幕後程式啟動而沒有任何載入的模組，拒絕運作。"
 
 #: ../src/daemon/main.c:926
 msgid "Daemon startup complete."
-msgstr ""
+msgstr "幕後程式啟動完成。"
 
 #: ../src/daemon/main.c:932
 msgid "Daemon shutdown initiated."
-msgstr ""
+msgstr "幕後程式已開始關閉。"
 
 #: ../src/daemon/main.c:954
 msgid "Daemon terminated."
-msgstr ""
+msgstr "幕後程式已終止。"
 
 #: ../src/daemon/cmdline.c:115
 #, c-format
@@ -495,32 +495,32 @@ msgstr ""
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "名稱：%s\n"
 
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
 msgid "No module information available\n"
-msgstr ""
+msgstr "沒有可用的模組資訊\n"
 
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "版本：%s\n"
 
 #: ../src/daemon/dumpmodules.c:68
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "描述：%s\n"
 
 #: ../src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "作者：%s\n"
 
 #: ../src/daemon/dumpmodules.c:72
 #, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "用法：%s\n"
 
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
@@ -535,7 +535,7 @@ msgstr ""
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
 msgid "Path: %s\n"
-msgstr ""
+msgstr "路徑：%s\n"
 
 #: ../src/daemon/daemon-conf.c:232
 #, c-format
@@ -613,15 +613,15 @@ msgstr ""
 
 #: ../src/daemon/caps.c:62
 msgid "Cleaning up privileges."
-msgstr ""
+msgstr "正在清除特權。"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr ""
+msgstr "PulseAudio 音效系統"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr ""
+msgstr "啟動 PulseAudio 音效系統"
 
 #: ../src/pulse/channelmap.c:105
 #: ../src/pulse/channelmap.c:757
@@ -630,27 +630,27 @@ msgstr "單聲道"
 
 #: ../src/pulse/channelmap.c:107
 msgid "Front Center"
-msgstr "前方中央"
+msgstr "正前方"
 
 #: ../src/pulse/channelmap.c:108
 msgid "Front Left"
-msgstr "前方左側"
+msgstr "左前方"
 
 #: ../src/pulse/channelmap.c:109
 msgid "Front Right"
-msgstr "前方右側"
+msgstr "右前方"
 
 #: ../src/pulse/channelmap.c:111
 msgid "Rear Center"
-msgstr "後方中央"
+msgstr "正後方"
 
 #: ../src/pulse/channelmap.c:112
 msgid "Rear Left"
-msgstr "後方左側"
+msgstr "左後方"
 
 #: ../src/pulse/channelmap.c:113
 msgid "Rear Right"
-msgstr "後方右側"
+msgstr "右後方"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Low Frequency Emmiter"
@@ -802,31 +802,31 @@ msgstr "輔助 31"
 
 #: ../src/pulse/channelmap.c:156
 msgid "Top Center"
-msgstr "頂端中央"
+msgstr "正上方"
 
 #: ../src/pulse/channelmap.c:158
 msgid "Top Front Center"
-msgstr "頂端前方中央"
+msgstr "頂端正上方"
 
 #: ../src/pulse/channelmap.c:159
 msgid "Top Front Left"
-msgstr "頂端前方左側"
+msgstr "頂端左前方"
 
 #: ../src/pulse/channelmap.c:160
 msgid "Top Front Right"
-msgstr "頂端前方右側"
+msgstr "頂端右前方"
 
 #: ../src/pulse/channelmap.c:162
 msgid "Top Rear Center"
-msgstr "頂端後方中央"
+msgstr "頂端正後方"
 
 #: ../src/pulse/channelmap.c:163
 msgid "Top Rear Left"
-msgstr "頂端後方左側"
+msgstr "頂端左後方"
 
 #: ../src/pulse/channelmap.c:164
 msgid "Top Rear Right"
-msgstr "頂端後方右側"
+msgstr "頂端右後方"
 
 #: ../src/pulse/channelmap.c:484
 #: ../src/pulse/sample.c:170
@@ -867,15 +867,15 @@ msgstr "確定"
 
 #: ../src/pulse/error.c:44
 msgid "Access denied"
-msgstr ""
+msgstr "拒絕存取"
 
 #: ../src/pulse/error.c:45
 msgid "Unknown command"
-msgstr ""
+msgstr "未知指令"
 
 #: ../src/pulse/error.c:46
 msgid "Invalid argument"
-msgstr ""
+msgstr "無效的參數"
 
 #: ../src/pulse/error.c:47
 msgid "Entity exists"
@@ -887,27 +887,27 @@ msgstr ""
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
-msgstr ""
+msgstr "拒絕連線"
 
 #: ../src/pulse/error.c:50
 msgid "Protocol error"
-msgstr ""
+msgstr "協定錯誤"
 
 #: ../src/pulse/error.c:51
 msgid "Timeout"
-msgstr ""
+msgstr "逾時"
 
 #: ../src/pulse/error.c:52
 msgid "No authorization key"
-msgstr ""
+msgstr "沒有認證金鑰"
 
 #: ../src/pulse/error.c:53
 msgid "Internal error"
-msgstr ""
+msgstr "內部錯誤"
 
 #: ../src/pulse/error.c:54
 msgid "Connection terminated"
-msgstr ""
+msgstr "連線已終止"
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
@@ -915,47 +915,47 @@ msgstr ""
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
-msgstr ""
+msgstr "無效的伺服器"
 
 #: ../src/pulse/error.c:57
 msgid "Module initalization failed"
-msgstr ""
+msgstr "模組初始化失敗"
 
 #: ../src/pulse/error.c:58
 msgid "Bad state"
-msgstr ""
+msgstr "不良狀態"
 
 #: ../src/pulse/error.c:59
 msgid "No data"
-msgstr ""
+msgstr "無資料"
 
 #: ../src/pulse/error.c:60
 msgid "Incompatible protocol version"
-msgstr ""
+msgstr "不相容的協定版本"
 
 #: ../src/pulse/error.c:61
 msgid "Too large"
-msgstr ""
+msgstr "過大"
 
 #: ../src/pulse/error.c:62
 msgid "Not supported"
-msgstr ""
+msgstr "不支援"
 
 #: ../src/pulse/error.c:63
 msgid "Unknown error code"
-msgstr ""
+msgstr "未知的錯誤碼"
 
 #: ../src/pulse/error.c:64
 msgid "No such extension"
-msgstr ""
+msgstr "無此擴展功能"
 
 #: ../src/pulse/error.c:65
 msgid "Obsolete functionality"
-msgstr ""
+msgstr "淘汰的功能"
 
 #: ../src/pulse/error.c:66
 msgid "Missing implementation"
-msgstr ""
+msgstr "遺失的實作"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
@@ -963,64 +963,64 @@ msgstr ""
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "輸入/輸出 錯誤"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "裝置或資源忙碌"
 
 #: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
-msgstr ""
+msgstr "%s %uch %uHz"
 
 #: ../src/pulse/sample.c:184
 #, c-format
 msgid "%0.1f GiB"
-msgstr ""
+msgstr "%0.1f GiB"
 
 #: ../src/pulse/sample.c:186
 #, c-format
 msgid "%0.1f MiB"
-msgstr ""
+msgstr "%0.1f MiB"
 
 #: ../src/pulse/sample.c:188
 #, c-format
 msgid "%0.1f KiB"
-msgstr ""
+msgstr "%0.1f KiB"
 
 #: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
-msgstr ""
+msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:55
 #: ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
-msgstr ""
+msgstr "XOpenDisplay() 失敗"
 
 #: ../src/pulse/client-conf-x11.c:93
 msgid "Failed to parse cookie data"
-msgstr ""
+msgstr "解析 cookie 資料失敗"
 
 #: ../src/pulse/client-conf.c:111
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
-msgstr ""
+msgstr "開啟配置檔「%s」失敗：%s"
 
 #: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
-msgstr ""
+msgstr "沒有載入 cookie。試圖連接而不用 cookie。"
 
 #: ../src/pulse/context.c:693
 #, c-format
 msgid "fork(): %s"
-msgstr ""
+msgstr "fork(): %s"
 
 #: ../src/pulse/context.c:748
 #, c-format
 msgid "waitpid(): %s"
-msgstr ""
+msgstr "waitpid(): %s"
 
 #: ../src/pulse/context.c:1438
 #, c-format
@@ -1043,32 +1043,32 @@ msgstr ""
 #: ../src/utils/pacat.c:136
 #, c-format
 msgid "pa_stream_drain(): %s"
-msgstr ""
+msgstr "pa_stream_drain(): %s"
 
 #: ../src/utils/pacat.c:159
 #, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr ""
+msgstr "pa_stream_write() failed: %s"
 
 #: ../src/utils/pacat.c:197
 #, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr ""
+msgstr "pa_stream_begin_write() 失敗: %s"
 
 #: ../src/utils/pacat.c:237
 #: ../src/utils/pacat.c:267
 #, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr ""
+msgstr "pa_stream_peek() 失敗: %s"
 
 #: ../src/utils/pacat.c:307
 msgid "Stream successfully created."
-msgstr ""
+msgstr "已成功建立串流。"
 
 #: ../src/utils/pacat.c:310
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr ""
+msgstr "pa_stream_get_buffer_attr() 失敗: %s"
 
 #: ../src/utils/pacat.c:314
 #, c-format
@@ -1280,12 +1280,12 @@ msgstr ""
 #: ../src/utils/pacat.c:910
 #, c-format
 msgid "open(): %s"
-msgstr ""
+msgstr "open(): %s"
 
 #: ../src/utils/pacat.c:915
 #, c-format
 msgid "dup2(): %s"
-msgstr ""
+msgstr "dup2(): %s"
 
 #: ../src/utils/pacat.c:922
 msgid "Too many arguments."
@@ -1327,11 +1327,11 @@ msgstr ""
 
 #: ../src/utils/pacat.c:1009
 msgid "recording"
-msgstr ""
+msgstr "錄製"
 
 #: ../src/utils/pacat.c:1009
 msgid "playback"
-msgstr ""
+msgstr "播放控制"
 
 #: ../src/utils/pacat.c:1035
 #: ../src/utils/pactl.c:1267
@@ -1365,7 +1365,7 @@ msgstr ""
 #: ../src/utils/pasuspender.c:81
 #, c-format
 msgid "fork(): %s\n"
-msgstr ""
+msgstr "fork(): %s\n"
 
 #: ../src/utils/pasuspender.c:92
 #, c-format
@@ -1555,7 +1555,7 @@ msgstr ""
 #: ../src/utils/pactl.c:638
 #: ../src/utils/pactl.c:645
 msgid "n/a"
-msgstr ""
+msgstr "n/a"
 
 #: ../src/utils/pactl.c:375
 #, c-format
@@ -1702,7 +1702,7 @@ msgstr ""
 
 #: ../src/utils/pactl.c:863
 msgid "Got SIGINT, exiting."
-msgstr ""
+msgstr "取得 SIGINT，正在退出。"
 
 #: ../src/utils/pactl.c:869
 #, c-format
@@ -1843,7 +1843,7 @@ msgstr ""
 
 #: ../src/utils/pactl.c:1262
 msgid "No valid command specified."
-msgstr ""
+msgstr "沒有指定有效的命令。"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -1859,27 +1859,27 @@ msgstr ""
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr ""
+msgstr "解析命令列失敗。\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
 msgid "Server: %s\n"
-msgstr ""
+msgstr "伺服器：%s\n"
 
 #: ../src/utils/pax11publish.c:110
 #, c-format
 msgid "Source: %s\n"
-msgstr ""
+msgstr "來源：%s\n"
 
 #: ../src/utils/pax11publish.c:112
 #, c-format
 msgid "Sink: %s\n"
-msgstr ""
+msgstr "Sink: %s\n"
 
 #: ../src/utils/pax11publish.c:114
 #, c-format
 msgid "Cookie: %s\n"
-msgstr ""
+msgstr "Cookie: %s\n"
 
 #: ../src/utils/pax11publish.c:132
 #, c-format
@@ -1928,7 +1928,7 @@ msgstr ""
 #: ../src/utils/pacmd.c:91
 #, c-format
 msgid "connect(): %s"
-msgstr ""
+msgstr "connect(): %s"
 
 #: ../src/utils/pacmd.c:99
 msgid "Failed to kill PulseAudio daemon."
@@ -1936,24 +1936,24 @@ msgstr ""
 
 #: ../src/utils/pacmd.c:107
 msgid "Daemon not responding."
-msgstr ""
+msgstr "幕後程式沒有回應。"
 
 #: ../src/utils/pacmd.c:161
 #, c-format
 msgid "poll(): %s"
-msgstr ""
+msgstr "poll(): %s"
 
 #: ../src/utils/pacmd.c:171
 #: ../src/utils/pacmd.c:188
 #, c-format
 msgid "read(): %s"
-msgstr ""
+msgstr "read(): %s"
 
 #: ../src/utils/pacmd.c:207
 #: ../src/utils/pacmd.c:223
 #, c-format
 msgid "write(): %s"
-msgstr ""
+msgstr "write(): %s"
 
 #: ../src/pulsecore/lock-autospawn.c:136
 #: ../src/pulsecore/lock-autospawn.c:219
@@ -2068,11 +2068,11 @@ msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
-msgstr ""
+msgstr "揚聲器"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
 msgid "No Amplifier"
-msgstr ""
+msgstr "無揚聲器"
 
 #: ../src/modules/alsa/alsa-mixer.c:1773
 msgid "Analog Input"
@@ -2113,13 +2113,13 @@ msgstr "類比單聲道輸出"
 #: ../src/modules/alsa/alsa-mixer.c:1981
 #, c-format
 msgid "%s+%s"
-msgstr ""
+msgstr "%s+%s"
 
 #: ../src/modules/alsa/alsa-mixer.c:1984
 #: ../src/modules/alsa/alsa-mixer.c:3404
 #, c-format
 msgid "%s / %s"
-msgstr ""
+msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2790
 msgid "Analog Mono"
