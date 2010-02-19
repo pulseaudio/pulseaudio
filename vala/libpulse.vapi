@@ -46,7 +46,7 @@ namespace PulseAudio {
         [CCode (cname="PA_CHECK_VERSION")]
         public bool CHECK_VERSION(int major, int minor, int micro);
 
-        [CCode (cname="INVALID_INDEX")]
+        [CCode (cname="PA_INVALID_INDEX")]
         public const uint32 INVALID_INDEX;
 
         [CCode (cname="pa_free_cb_t")]
