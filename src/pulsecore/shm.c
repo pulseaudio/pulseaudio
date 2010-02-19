@@ -290,7 +290,7 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
     segment_name(fn, sizeof(fn), m->id = id);
 
     if ((fd = shm_open(fn, O_RDONLY, 0)) < 0) {
-        if (errno != EACCES)
+        if (errno != EACCES && errno != ENOENT)
             pa_log("shm_open() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
