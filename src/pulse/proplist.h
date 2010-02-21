@@ -59,7 +59,7 @@ PA_C_DECL_BEGIN
 /** For streams: an XDG icon name for the media. e.g. "audio-x-mp3" */
 #define PA_PROP_MEDIA_ICON_NAME                "media.icon_name"
 
-/** For streams: logic role of this media. One of the strings "video", "music", "game", "event", "phone", "animation", "production", "a11y" */
+/** For streams: logic role of this media. One of the strings "video", "music", "game", "event", "phone", "animation", "production", "a11y", "test" */
 #define PA_PROP_MEDIA_ROLE                     "media.role"
 
 /** For event sound streams: XDG event sound name. e.g. "message-new-email" (Event sound streams are those with media.role set to "event") */
