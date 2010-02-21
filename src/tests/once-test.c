@@ -36,7 +36,6 @@ static pa_once once = PA_ONCE_INIT;
 static volatile unsigned n_run = 0;
 static const char * volatile ran_by = NULL;
 static pthread_barrier_t barrier;
-static pa_atomic_t i_cpu = PA_ATOMIC_INIT(0);
 static unsigned n_cpu;
 
 #define N_ITERATIONS 500
@@ -51,6 +50,7 @@ static void thread_func(void *data) {
     int r;
 
 #ifdef HAVE_PTHREAD_SETAFFINITY_NP
+    static pa_atomic_t i_cpu = PA_ATOMIC_INIT(0);
     cpu_set_t mask;
 
     CPU_ZERO(&mask);

@@ -402,6 +402,7 @@ AC_SEARCH_LIBS([dlopen], [dl])
 AC_SEARCH_LIBS([shm_open], [rt])
 AC_SEARCH_LIBS([inet_ntop], [nsl])
 AC_SEARCH_LIBS([timer_create], [rt])
+AC_SEARCH_LIBS([pthread_setaffinity_np], [pthread])
 
 # BSD
 AC_SEARCH_LIBS([connect], [socket])
