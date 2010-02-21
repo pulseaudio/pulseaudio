@@ -126,6 +126,9 @@
 #define MSG_NOSIGNAL 0
 #endif
 
+#define NEWLINE "\r\n"
+#define WHITESPACE "\n\r \t"
+
 static pa_strlist *recorded_env = NULL;
 
 #ifdef OS_IS_WIN32
@@ -830,9 +833,6 @@ char *pa_split(const char *c, const char *delimiter, const char**state) {
     return pa_xstrndup(current, l);
 }
 
-/* What is interpreted as whitespace? */
-#define WHITESPACE " \t\n"
-
 /* Split a string into words. Otherwise similar to pa_split(). */
 char *pa_split_spaces(const char *c, const char **state) {
     const char *current = *state ? *state : c;
@@ -1189,7 +1189,27 @@ int pa_lock_fd(int fd, int b) {
 char* pa_strip_nl(char *s) {
     pa_assert(s);
 
-    s[strcspn(s, "\r\n")] = 0;
+    s[strcspn(s, NEWLINE)] = 0;
+    return s;
+}
+
+char *pa_strip(char *s) {
+    char *e, *l = NULL;
+
+    /* Drops trailing whitespace. Modifies the string in
+     * place. Returns pointer to first non-space character */
+
+    s += strspn(s, WHITESPACE);
+
+    for (e = s; *e; e++)
+        if (!strchr(WHITESPACE, *e))
+            l = e;
+
+    if (l)
+        *(l+1) = 0;
+    else
+        *s = 0;
+
     return s;
 }
 
