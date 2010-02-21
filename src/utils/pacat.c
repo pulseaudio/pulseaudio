@@ -409,7 +409,6 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
         case PA_CONTEXT_READY: {
             pa_buffer_attr buffer_attr;
-            const pa_buffer_attr *active_buffer_attr = NULL;
 
             pa_assert(c);
             pa_assert(!stream);
@@ -439,33 +438,29 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
             if (latency_msec > 0) {
                 buffer_attr.fragsize = buffer_attr.tlength = pa_usec_to_bytes(latency_msec * PA_USEC_PER_MSEC, &sample_spec);
-                active_buffer_attr = &buffer_attr;
                 flags |= PA_STREAM_ADJUST_LATENCY;
             } else if (latency > 0) {
                 buffer_attr.fragsize = buffer_attr.tlength = (uint32_t) latency;
-                active_buffer_attr = &buffer_attr;
                 flags |= PA_STREAM_ADJUST_LATENCY;
             } else
                 buffer_attr.fragsize = buffer_attr.tlength = (uint32_t) -1;
 
             if (process_time_msec > 0) {
                 buffer_attr.minreq = pa_usec_to_bytes(process_time_msec * PA_USEC_PER_MSEC, &sample_spec);
-                active_buffer_attr = &buffer_attr;
-            } else if (process_time > 0) {
+            } else if (process_time > 0)
                 buffer_attr.minreq = (uint32_t) process_time;
-                active_buffer_attr = &buffer_attr;
-            } else
+            else
                 buffer_attr.minreq = (uint32_t) -1;
 
             if (mode == PLAYBACK) {
                 pa_cvolume cv;
-                if (pa_stream_connect_playback(stream, device, active_buffer_attr, flags, volume_is_set ? pa_cvolume_set(&cv, sample_spec.channels, volume) : NULL, NULL) < 0) {
+                if (pa_stream_connect_playback(stream, device, &buffer_attr, flags, volume_is_set ? pa_cvolume_set(&cv, sample_spec.channels, volume) : NULL, NULL) < 0) {
                     pa_log(_("pa_stream_connect_playback() failed: %s"), pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
 
             } else {
-                if (pa_stream_connect_record(stream, device, active_buffer_attr, flags) < 0) {
+                if (pa_stream_connect_record(stream, device, latency > 0 ? &buffer_attr : NULL, flags) < 0) {
                     pa_log(_("pa_stream_connect_record() failed: %s"), pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
