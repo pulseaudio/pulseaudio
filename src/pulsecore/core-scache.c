@@ -351,7 +351,12 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
     if (p)
         pa_proplist_update(merged, PA_UPDATE_REPLACE, p);
 
-    if (pa_play_memchunk(sink, &e->sample_spec, &e->channel_map, &e->memchunk, pass_volume ? &r : NULL, merged, sink_input_idx) < 0)
+    if (pa_play_memchunk(sink,
+                         &e->sample_spec, &e->channel_map,
+                         &e->memchunk,
+                         pass_volume ? &r : NULL,
+                         merged,
+                         PA_SINK_INPUT_NO_CREATE_ON_SUSPEND|PA_SINK_INPUT_KILL_ON_SUSPEND, sink_input_idx) < 0)
         goto fail;
 
     pa_proplist_free(merged);

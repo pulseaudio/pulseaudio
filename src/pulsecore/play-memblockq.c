@@ -173,7 +173,8 @@ pa_sink_input* pa_memblockq_sink_input_new(
         const pa_channel_map *map,
         pa_memblockq *q,
         pa_cvolume *volume,
-        pa_proplist *p) {
+        pa_proplist *p,
+        pa_sink_input_flags_t flags) {
 
     memblockq_stream *u = NULL;
     pa_sink_input_new_data data;
@@ -198,6 +199,7 @@ pa_sink_input* pa_memblockq_sink_input_new(
     pa_sink_input_new_data_set_channel_map(&data, map);
     pa_sink_input_new_data_set_volume(&data, volume);
     pa_proplist_update(data.proplist, PA_UPDATE_REPLACE, p);
+    data.flags |= flags;
 
     pa_sink_input_new(&u->sink_input, sink->core, &data);
     pa_sink_input_new_data_done(&data);
@@ -237,6 +239,7 @@ int pa_play_memblockq(
         pa_memblockq *q,
         pa_cvolume *volume,
         pa_proplist *p,
+        pa_sink_input_flags_t flags,
         uint32_t *sink_input_index) {
 
     pa_sink_input *i;
@@ -245,7 +248,7 @@ int pa_play_memblockq(
     pa_assert(ss);
     pa_assert(q);
 
-    if (!(i = pa_memblockq_sink_input_new(sink, ss, map, q, volume, p)))
+    if (!(i = pa_memblockq_sink_input_new(sink, ss, map, q, volume, p, flags)))
         return -1;
 
     pa_sink_input_put(i);
