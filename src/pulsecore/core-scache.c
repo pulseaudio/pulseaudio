@@ -310,7 +310,8 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
         return -1;
 
     merged = pa_proplist_new();
-    pa_proplist_setf(merged, PA_PROP_MEDIA_NAME, "Sample %s", name);
+    pa_proplist_sets(merged, PA_PROP_MEDIA_NAME, name);
+    pa_proplist_sets(merged, PA_PROP_EVENT_ID, name);
 
     if (e->lazy && !e->memchunk.memblock) {
         pa_channel_map old_channel_map = e->channel_map;
