@@ -102,6 +102,7 @@ char *pa_split(const char *c, const char*delimiters, const char **state);
 char *pa_split_spaces(const char *c, const char **state);
 
 char *pa_strip_nl(char *s);
+char *pa_strip(char *s);
 
 const char *pa_sig2str(int sig) PA_GCC_PURE;
 
