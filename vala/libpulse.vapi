@@ -1024,7 +1024,7 @@ namespace PulseAudio {
                 public Operation? suspend_sink_by_index(uint32 idx, bool suspend, SuccessCb? cb = null);
 
                 public Operation? set_sink_port_by_name(string name, string port, SuccessCb? cb = null);
-                public Operation? set_sink_port_by_index(string idx, string port, SuccessCb? cb = null);
+                public Operation? set_sink_port_by_index(uint32 idx, string port, SuccessCb? cb = null);
 
                 public Operation? get_source_info_by_name(string name, SourceInfoCb cb);
                 public Operation? get_source_info_by_index(uint32 idx, SourceInfoCb cb);
@@ -1039,7 +1039,7 @@ namespace PulseAudio {
                 public Operation? suspend_source_by_index(uint32 idx, bool suspend, SuccessCb? cb = null);
 
                 public Operation? set_source_port_by_name(string name, string port, SuccessCb? cb = null);
-                public Operation? set_source_port_by_index(string idx, string port, SuccessCb? cb = null);
+                public Operation? set_source_port_by_index(uint32 idx, string port, SuccessCb? cb = null);
 
                 public Operation? get_server_info(ServerInfoCb cb);
 
