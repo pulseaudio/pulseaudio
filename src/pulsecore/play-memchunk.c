@@ -43,6 +43,7 @@ int pa_play_memchunk(
         const pa_memchunk *chunk,
         pa_cvolume *volume,
         pa_proplist *p,
+        pa_sink_input_flags_t flags,
         uint32_t *sink_input_index) {
 
     pa_memblockq *q;
@@ -59,7 +60,7 @@ int pa_play_memchunk(
 
     pa_assert_se(pa_memblockq_push(q, chunk) >= 0);
 
-    if ((r = pa_play_memblockq(sink, ss, map, q, volume, p, sink_input_index)) < 0) {
+    if ((r = pa_play_memblockq(sink, ss, map, q, volume, p, flags, sink_input_index)) < 0) {
         pa_memblockq_free(q);
         return r;
     }
