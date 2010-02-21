@@ -874,12 +874,12 @@ void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card) {
     pa_proplist_setf(p, "alsa.card", "%i", card);
 
     if (snd_card_get_name(card, &cn) >= 0) {
-        pa_proplist_sets(p, "alsa.card_name", cn);
+        pa_proplist_sets(p, "alsa.card_name", pa_strip(cn));
         free(cn);
     }
 
     if (snd_card_get_longname(card, &lcn) >= 0) {
-        pa_proplist_sets(p, "alsa.long_card_name", lcn);
+        pa_proplist_sets(p, "alsa.long_card_name", pa_strip(lcn));
         free(lcn);
     }
 
@@ -937,8 +937,11 @@ void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *
         if (alsa_subclass_table[subclass])
             pa_proplist_sets(p, "alsa.subclass", alsa_subclass_table[subclass]);
 
-    if ((n = snd_pcm_info_get_name(pcm_info)))
-        pa_proplist_sets(p, "alsa.name", n);
+    if ((n = snd_pcm_info_get_name(pcm_info))) {
+        char *t = pa_xstrdup(n);
+        pa_proplist_sets(p, "alsa.name", pa_strip(t));
+        pa_xfree(t);
+    }
 
     if ((id = snd_pcm_info_get_id(pcm_info)))
         pa_proplist_sets(p, "alsa.id", id);
@@ -1330,7 +1333,6 @@ pa_bool_t pa_alsa_may_tsched(pa_bool_t want) {
         pa_log_notice("Disabling timer-based scheduling because running inside a VM.");
         return FALSE;
     }
-
 
     return TRUE;
 }
