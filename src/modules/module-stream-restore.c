@@ -394,7 +394,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         return PA_HOOK_OK;
 
     if (new_data->sink)
-        pa_log_debug("Not restoring device for stream %s, because already set.", name);
+        pa_log_debug("Not restoring device for stream %s, because already set to '%s'.", name, new_data->sink->name);
     else if ((e = read_entry(u, name))) {
         pa_sink *s = NULL;
 
