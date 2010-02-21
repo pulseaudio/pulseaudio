@@ -73,33 +73,6 @@ static int next_assignment(
     return -1;
 }
 
-/* Returns non-zero when c is contained in s */
-static int in_string(char c, const char *s) {
-    pa_assert(s);
-
-    for (; *s; s++)
-        if (*s == c)
-            return 1;
-
-    return 0;
-}
-
-/* Remove all whitepsapce from the beginning and the end of *s. *s may
- * be modified. */
-static char *strip(char *s) {
-    char *b = s+strspn(s, WHITESPACE);
-    char *e, *l = NULL;
-
-    for (e = b; *e; e++)
-        if (!in_string(*e, WHITESPACE))
-            l = e;
-
-    if (l)
-        *(l+1) = 0;
-
-    return b;
-}
-
 /* Parse a variable assignment line */
 static int parse_line(const char *filename, unsigned line, char **section, const pa_config_item *t, char *l, void *userdata) {
     char *e, *c, *b;
@@ -116,7 +89,7 @@ static int parse_line(const char *filename, unsigned line, char **section, const
         char *path = NULL, *fn;
         int r;
 
-        fn = strip(b+9);
+        fn = pa_strip(b+9);
         if (!pa_is_path_absolute(fn)) {
             const char *k;
             if ((k = strrchr(filename, '/'))) {
@@ -155,7 +128,7 @@ static int parse_line(const char *filename, unsigned line, char **section, const
     *e = 0;
     e++;
 
-    return next_assignment(filename, line, *section, t, strip(b), strip(e), userdata);
+    return next_assignment(filename, line, *section, t, pa_strip(b), pa_strip(e), userdata);
 }
 
 /* Go through the file and parse each line */
