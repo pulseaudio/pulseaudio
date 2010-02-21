@@ -112,7 +112,7 @@ const char *const pretty_table[PA_CHANNEL_POSITION_MAX] = {
     [PA_CHANNEL_POSITION_REAR_LEFT] = N_("Rear Left"),
     [PA_CHANNEL_POSITION_REAR_RIGHT] = N_("Rear Right"),
 
-    [PA_CHANNEL_POSITION_LFE] = N_("Low Frequency Emmiter"),
+    [PA_CHANNEL_POSITION_LFE] = N_("Subwoofer"),
 
     [PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER] = N_("Front Left-of-center"),
     [PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER] = N_("Front Right-of-center"),
