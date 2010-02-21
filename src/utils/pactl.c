@@ -99,7 +99,8 @@ static enum {
     SET_SINK_INPUT_VOLUME,
     SET_SINK_MUTE,
     SET_SOURCE_MUTE,
-    SET_SINK_INPUT_MUTE
+    SET_SINK_INPUT_MUTE,
+    SUBSCRIBE
 } action = NONE;
 
 static void quit(int ret) {
@@ -728,6 +729,67 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     }
 }
 
+static const char *subscription_event_type_to_string(pa_subscription_event_type_t t) {
+
+    switch (t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) {
+
+    case PA_SUBSCRIPTION_EVENT_NEW:
+        return _("new");
+
+    case PA_SUBSCRIPTION_EVENT_CHANGE:
+        return _("change");
+
+    case PA_SUBSCRIPTION_EVENT_REMOVE:
+        return _("remove");
+    }
+
+    return _("unknown");
+}
+
+static const char *subscription_event_facility_to_string(pa_subscription_event_type_t t) {
+
+    switch (t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) {
+
+    case PA_SUBSCRIPTION_EVENT_SINK:
+        return _("sink");
+
+    case PA_SUBSCRIPTION_EVENT_SOURCE:
+        return _("source");
+
+    case PA_SUBSCRIPTION_EVENT_SINK_INPUT:
+        return _("sink-input");
+
+    case PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT:
+        return _("source-output");
+
+    case PA_SUBSCRIPTION_EVENT_MODULE:
+        return _("module");
+
+    case PA_SUBSCRIPTION_EVENT_CLIENT:
+        return _("client");
+
+    case PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE:
+        return _("sample-cache");
+
+    case PA_SUBSCRIPTION_EVENT_SERVER:
+        return _("server");
+
+    case PA_SUBSCRIPTION_EVENT_CARD:
+        return _("server");
+    }
+
+    return _("unknown");
+}
+
+static void context_subscribe_callback(pa_context *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
+    pa_assert(c);
+
+    printf(_("Event '%s' on %s #%u\n"),
+           subscription_event_type_to_string(t),
+           subscription_event_facility_to_string(t),
+           idx);
+}
+
 static void context_state_callback(pa_context *c, void *userdata) {
     pa_assert(c);
     switch (pa_context_get_state(c)) {
@@ -855,6 +917,24 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     break;
                 }
 
+               case SUBSCRIBE:
+                   pa_context_set_subscribe_callback(c, context_subscribe_callback, NULL);
+
+                   pa_operation_unref(pa_context_subscribe(
+                                              c,
+                                              PA_SUBSCRIPTION_MASK_SINK|
+                                              PA_SUBSCRIPTION_MASK_SOURCE|
+                                              PA_SUBSCRIPTION_MASK_SINK_INPUT|
+                                              PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT|
+                                              PA_SUBSCRIPTION_MASK_MODULE|
+                                              PA_SUBSCRIPTION_MASK_CLIENT|
+                                              PA_SUBSCRIPTION_MASK_SAMPLE_CACHE|
+                                              PA_SUBSCRIPTION_MASK_SERVER|
+                                              PA_SUBSCRIPTION_MASK_CARD,
+                                              NULL,
+                                              NULL));
+                   break;
+
                 default:
                     pa_assert_not_reached();
             }
@@ -898,7 +978,8 @@ static void help(const char *argv0) {
              "%s [options] set-sink-input-volume SINKINPUT VOLUME\n"
              "%s [options] set-sink-mute SINK 1|0\n"
              "%s [options] set-source-mute SOURCE 1|0\n"
-             "%s [options] set-sink-input-mute SINKINPUT 1|0\n\n"
+             "%s [options] set-sink-input-mute SINKINPUT 1|0\n"
+             "%s [options] subscribe\n\n"
              "  -h, --help                            Show this help\n"
              "      --version                         Show version\n\n"
              "  -s, --server=SERVER                   The name of the server to connect to\n"
@@ -907,7 +988,7 @@ static void help(const char *argv0) {
            argv0, argv0, argv0, argv0, argv0,
            argv0, argv0, argv0, argv0, argv0,
            argv0, argv0, argv0, argv0, argv0,
-           argv0);
+           argv0, argv0);
 }
 
 enum {
@@ -1263,7 +1344,11 @@ int main(int argc, char *argv[]) {
 
             mute = b;
 
-        } else if (pa_streq(argv[optind], "help")) {
+        } else if (pa_streq(argv[optind], "subscribe"))
+
+            action = SUBSCRIBE;
+
+        else if (pa_streq(argv[optind], "help")) {
             help(bn);
             ret = 0;
             goto quit;
