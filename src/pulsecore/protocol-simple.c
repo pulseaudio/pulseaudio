@@ -574,7 +574,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
 
         pa_iochannel_socket_set_rcvbuf(io, l);
 
-        pa_atomic_store(&c->playback.missing, (int) pa_memblockq_missing(c->input_memblockq));
+        pa_atomic_store(&c->playback.missing, (int) pa_memblockq_pop_missing(c->input_memblockq));
 
         pa_sink_input_put(c->sink_input);
     }

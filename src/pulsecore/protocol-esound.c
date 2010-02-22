@@ -462,7 +462,7 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
 
     c->protocol->n_player++;
 
-    pa_atomic_store(&c->playback.missing, (int) pa_memblockq_missing(c->input_memblockq));
+    pa_atomic_store(&c->playback.missing, (int) pa_memblockq_pop_missing(c->input_memblockq));
 
     pa_sink_input_put(c->sink_input);
 
