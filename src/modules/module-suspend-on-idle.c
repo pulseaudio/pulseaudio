@@ -145,8 +145,9 @@ static pa_hook_result_t sink_input_fixate_hook_cb(pa_core *c, pa_sink_input_new_
     pa_assert(data);
     pa_assert(u);
 
-    if (data->flags & PA_SINK_INPUT_START_CORKED)
-        return PA_HOOK_OK;
+    /* We need to resume the audio device here even for
+     * PA_SINK_INPUT_START_CORKED, since we need the device parameters
+     * to be fully available while the stream is set up. */
 
     if ((d = pa_hashmap_get(u->device_infos, data->sink)))
         resume(d);
@@ -160,9 +161,6 @@ static pa_hook_result_t source_output_fixate_hook_cb(pa_core *c, pa_source_outpu
     pa_assert(c);
     pa_assert(data);
     pa_assert(u);
-
-    if (data->flags & PA_SOURCE_OUTPUT_START_CORKED)
-        return PA_HOOK_OK;
 
     if (data->source->monitor_of)
         d = pa_hashmap_get(u->device_infos, data->source->monitor_of);
