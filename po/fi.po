@@ -2,13 +2,13 @@
 # Copyright (C) 2008 Timo Jyrinki
 # This file is distributed under the same license as the pulseaudio package.
 # Timo Jyrinki <timo.jyrinki@iki.fi>, 2008.
-# Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>, 2009.
+# Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>, 2009, 2010.
 msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-12-23 23:45+0200\n"
+"POT-Creation-Date: 2010-02-22 07:19+0000\n"
+"PO-Revision-Date: 2010-02-22 21:13+0200\n"
 "Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
 "MIME-Version: 1.0\n"
@@ -190,6 +190,8 @@ msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
 msgstr ""
+"Käyttäjä ei ole root, ei käytetä järjestelmätilaa, käynnistetään vain D-Bus-"
+"palvelimien etsintäpalvelu."
 
 #: ../src/daemon/main.c:617
 msgid "Daemon not running"
@@ -225,6 +227,8 @@ msgstr "--start-valitsinta ei tueta järjestelmätilassa."
 #, c-format
 msgid "User-configured server at %s, not autospawning."
 msgstr ""
+"Käyttäjän asettama palvelin sijainnissa %s, ei käynnistetä automaattisesti "
+"uudelleen."
 
 #: ../src/daemon/main.c:683
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -253,9 +257,9 @@ msgid "Failed to acquire stdio."
 msgstr "stdio:n saaminen epäonnistui."
 
 #: ../src/daemon/main.c:726
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "putki epäonnistui: %s"
+msgstr "pipe() epäonnistui: %s"
 
 #: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
@@ -276,9 +280,9 @@ msgid "Daemon startup successful."
 msgstr "Taustaprosessin käynnistys onnistui."
 
 #: ../src/daemon/main.c:778
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() epäonnistui: %s"
+msgstr "setsid() epäonnistui: %s"
 
 #: ../src/daemon/main.c:830
 #, c-format
@@ -324,9 +328,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "Käynnissä valgrind-tilassa: %s"
 
 #: ../src/daemon/main.c:850
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "Käynnissä isäntäkoneella: %s"
+msgstr "Käynnissä virtuaalikoneessa: %s"
 
 #: ../src/daemon/main.c:853
 msgid "Optimized build: yes"
@@ -766,9 +770,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Virheellinen nice-taso ”%s”."
 
 #: ../src/daemon/daemon-conf.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] Virheellinen näytteenottotaajuus ”%s”."
+msgstr "[%s:%u] Virheellinen palvelimen tyyppi ”%s”."
 
 #: ../src/daemon/daemon-conf.c:586
 #, c-format
@@ -830,7 +834,7 @@ msgstr "Oikea taka"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "Subwoofer"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1359,7 +1363,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() epäonnistui: %s"
 
 #: ../src/utils/pacat.c:630
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1371,8 +1375,7 @@ msgid ""
 "\n"
 "  -v, --verbose                         Enable verbose operations\n"
 "\n"
-"  -s, --server=SERVER                   The name of the server to connect "
-"to\n"
+"  -s, --server=SERVER                   The name of the server to connect to\n"
 "  -d, --device=DEVICE                   The name of the sink/source to "
 "connect to\n"
 "  -n, --client-name=NAME                How to call this client on the "
@@ -1441,10 +1444,10 @@ msgstr ""
 "palvelimella\n"
 "      --volume=ÄÄNENVOIMAKKUUS          Määritä (lineaarinen) "
 "aloitusäänenvoimakkuus väliltä 0...65536\n"
-"      --rate=NÄYTTEENOTTOTAAJUUS        Näytteenottotaajuus hertseinä"
-"(oletus: 44100)\n"
-"      --format=NÄYTEMUOTO               Näytteen tyyppi, yksi seuraavista:"
-"s16le, s16be, u8, float32le,\n"
+"      --rate=NÄYTTEENOTTOTAAJUUS        Näytteenottotaajuus "
+"hertseinä (oletus: 44100)\n"
+"      --format=NÄYTEMUOTO               Näytteen tyyppi, yksi "
+"seuraavista: s16le, s16be, u8, float32le,\n"
 "                                        float32be, ulaw, alaw, s32le, s32be\n"
 "s24le, s24be,\n"
 "                                        s24-32le, s24-32be (oletus s16ne)\n"
@@ -1466,6 +1469,10 @@ msgstr ""
 "tavuissa.\n"
 "      --process-time=TAVUA              Pyydä määritettyä prosessiaikaa "
 "pyyntöä kohti tavuissa.\n"
+"      --latency-msec=MSEK               Pyydä määritettyä latenssia "
+"millisekunneissa.\n"
+"      --process-time-msec=MSEK          Pyydä määritettyä prosessiaikaa "
+"pyyntöä kohti millisekunneissa.\n"
 "      --property=ASETUS=ARVO            Anna määritetylle asetukselle "
 "määritetty arvo.\n"
 "      --raw                             Tallenna/soita raakaa PCM-dataa.\n"
@@ -1728,9 +1735,15 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"Palvelimen nimi: %s\n"
+"Kirjaston protokollaversio: %u\n"
+"Palvelimen protokollaversio: %u\n"
+"Onko paikallinen: %s\n"
+"Asiakkaan indeksi: %u\n"
+"Palan koko: %zu\n"
 
 #: ../src/utils/pactl.c:176
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1750,7 +1763,7 @@ msgstr ""
 "Oletuskanavakartta: %s\n"
 "Oletusnielu: %s\n"
 "Oletuslähde: %s\n"
-"Eväste: %08x\n"
+"Eväste: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:218
 #, c-format
@@ -2060,19 +2073,19 @@ msgstr "Ennenaikainen tiedoston päättyminen"
 
 #: ../src/utils/pactl.c:737
 msgid "new"
-msgstr ""
+msgstr "uusi"
 
 #: ../src/utils/pactl.c:740
 msgid "change"
-msgstr ""
+msgstr "muutos"
 
 #: ../src/utils/pactl.c:743
 msgid "remove"
-msgstr ""
+msgstr "poisto"
 
 #: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
-msgstr ""
+msgstr "tuntematon"
 
 #: ../src/utils/pactl.c:754
 msgid "sink"
@@ -2084,41 +2097,39 @@ msgstr "lähde"
 
 #: ../src/utils/pactl.c:760
 msgid "sink-input"
-msgstr ""
+msgstr "nielu-sisäänmeno"
 
 #: ../src/utils/pactl.c:763
-#, fuzzy
 msgid "source-output"
-msgstr "lähde"
+msgstr "nielu-ulostulo"
 
 #: ../src/utils/pactl.c:766
 msgid "module"
-msgstr ""
+msgstr "moduuli"
 
 #: ../src/utils/pactl.c:769
 msgid "client"
-msgstr ""
+msgstr "asiakas"
 
 #: ../src/utils/pactl.c:772
 msgid "sample-cache"
-msgstr ""
+msgstr "näytevälimuisti"
 
 #: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
-#, fuzzy
 msgid "server"
-msgstr "Virheellinen palvelin"
+msgstr "palvelin"
 
 #: ../src/utils/pactl.c:787
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "Tapahtuma ”%s” kohteessa %s #%u\n"
 
 #: ../src/utils/pactl.c:955
 msgid "Got SIGINT, exiting."
 msgstr "Saatiin SIGINT, lopetetaan."
 
 #: ../src/utils/pactl.c:961
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2146,8 +2157,7 @@ msgid ""
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
 "\n"
-"  -s, --server=SERVER                   The name of the server to connect "
-"to\n"
+"  -s, --server=SERVER                   The name of the server to connect to\n"
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 msgstr ""
@@ -2172,6 +2182,7 @@ msgstr ""
 "%s [valitsimet] set-sink-mute NIELU 1|0\n"
 "%s [valitsimet] set-source-mute LÄHDE 1|0\n"
 "%s [valitsimet] set-sink-input-mute NIELUSISÄÄNMENO 1|0\n"
+"%s [valitsimet] subscribe"
 "\n"
 "  -h, --help                            Näytä tämä ohje\n"
 "      --version                         Näytä versio\n"
@@ -2551,23 +2562,20 @@ msgid "No Amplifier"
 msgstr "Ei vahvistinta"
 
 #: ../src/modules/alsa/alsa-mixer.c:1716
-#, fuzzy
 msgid "Bass Boost"
-msgstr "Vahvistus"
+msgstr "Bassovahvistus"
 
 #: ../src/modules/alsa/alsa-mixer.c:1717
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "Ei vahvistusta"
+msgstr "Ei bassovahvistusta"
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "Kaiutin"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
 msgid "Headphones"
-msgstr "Analoginen kuulokeliitäntä"
+msgstr "Kuulokkeet"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
@@ -2606,9 +2614,8 @@ msgid "Analog Mono Output"
 msgstr "Analoginen monoulostulo"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
-#, fuzzy
 msgid "Analog Speakers"
-msgstr "Analoginen stereo"
+msgstr "Analogiset kaiuttimet"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
