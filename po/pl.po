@@ -6,9 +6,9 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-09-30 17:04+0200\n"
+"PO-Revision-Date: 2009-02-22 17:03+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
-"Language-Team: Polish <fedora-trans-pl@redhat.com>\n"
+"Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -118,7 +118,7 @@ msgstr "Otrzymano sygnał %s."
 
 #: ../src/daemon/main.c:173
 msgid "Exiting."
-msgstr "Kończenie pracy."
+msgstr "Kończenie działania."
 
 #: ../src/daemon/main.c:191
 #, c-format
@@ -187,6 +187,8 @@ msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
 msgstr ""
+"Odmówiono trybu serwera dla użytkownika nie będącego rootem. Uruchamianie "
+"tylko usługi wyszukiwania serwerów D-Bus."
 
 #: ../src/daemon/main.c:617
 msgid "Daemon not running"
@@ -222,6 +224,8 @@ msgstr "--start nie jest obsługiwane przy uruchamianiu systemowym."
 #, c-format
 msgid "User-configured server at %s, not autospawning."
 msgstr ""
+"Serwer skonfigurowany przez użytkownika na %s, bez automatycznego "
+"przywracania."
 
 #: ../src/daemon/main.c:683
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -249,9 +253,9 @@ msgid "Failed to acquire stdio."
 msgstr "Uzyskanie standardowego wejścia/wyjścia nie powiodło się."
 
 #: ../src/daemon/main.c:726
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "potok nie powiódł się: %s"
+msgstr "pipe() nie powiodło się: %s"
 
 #: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
@@ -272,9 +276,9 @@ msgid "Daemon startup successful."
 msgstr "Pomyślnie uruchomiono demona."
 
 #: ../src/daemon/main.c:778
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() nie powiodło się: %s"
+msgstr "setsid() nie powiodło się: %s"
 
 #: ../src/daemon/main.c:830
 #, c-format
@@ -320,9 +324,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "Uruchamianie w trybie Valgrind: %s"
 
 #: ../src/daemon/main.c:850
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "Uruchamianie na komputerze: %s"
+msgstr "Uruchamianie w maszynie wirtualnej: %s"
 
 #: ../src/daemon/main.c:853
 msgid "Optimized build: yes"
@@ -420,7 +424,8 @@ msgstr "Zainicjowanie demona nie powiodło się."
 
 #: ../src/daemon/main.c:1013
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr "Uruchamianie demona bez żadnych wczytanych modułów, odmawianie pracy."
+msgstr ""
+"Uruchamianie demona bez żadnych wczytanych modułów, odmawianie działania."
 
 #: ../src/daemon/main.c:1051
 msgid "Daemon startup complete."
@@ -554,7 +559,7 @@ msgstr ""
 "                                        wyświetlanych informacji\n"
 "  -v                                    Zwiększa poziom wyświetlanych\n"
 "                                        informacji\n"
-"      --log-target={auto,syslog,stderr} Określa dziennik docelowy\n"
+"      --log-target={auto,syslog,stderr} Podaje dziennik docelowy\n"
 "      --log-meta[=ZMIENNALOGICZNA]      Dołącza położenie kodu do\n"
 "                                        komunikatów dziennika\n"
 "      --log-time[=ZMIENNALOGICZNA]      Dołącza czas w komunikatach\n"
@@ -757,9 +762,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Nieprawidłowy poziom nice \"%s\"."
 
 #: ../src/daemon/daemon-conf.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] Nieprawidłowa częstotliwość próbki \"%s\"."
+msgstr "[%s:%u] Nieprawidłowy typ serwera \"%s\"."
 
 #: ../src/daemon/daemon-conf.c:586
 #, c-format
@@ -821,7 +826,7 @@ msgstr "Tylny prawy"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "Subwoofer"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1332,7 +1337,7 @@ msgstr "write() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:582
 msgid "Got signal, exiting."
-msgstr "Otrzymano sygnał, kończenie pracy."
+msgstr "Otrzymano sygnał, kończenie działania."
 
 #: ../src/utils/pacat.c:596
 #, c-format
@@ -1350,7 +1355,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:630
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1429,7 +1434,7 @@ msgstr ""
 "  -n, --client-name=NAZWA               Jak nazywać tego klienta na\n"
 "                                        serwerze\n"
 "      --stream-name=NAZWA               Jak nazwać ten strumień na serwerze\n"
-"      --volume=POZIOMGŁOŚNOŚCI          Określa początkowy (liniowy)\n"
+"      --volume=POZIOMGŁOŚNOŚCI          Podaje początkowy (liniowy)\n"
 "                                        poziom głośności z zakresie\n"
 "                                        0...65536\n"
 "      --rate=CZĘSTOTLIWOŚĆPRÓBKI        Częstotliwość próbki w Hz\n"
@@ -1456,14 +1461,17 @@ msgstr ""
 "                                        dół.\n"
 "      --no-remap                        Mapuje kanały przez indeks zamiast\n"
 "                                        przez nazwę.\n"
-"      --latency=BAJTY                   Żąda określonego opóźnienia w\n"
-"                                        bajtach.\n"
-"      --process-time=BAJTY              Żąda określonego czasu procesu na\n"
+"      --latency=BAJTY                   Żąda podanego opóźnienia w bajtach.\n"
+"      --process-time=BAJTY              Żąda podanego czasu procesu na\n"
 "                                        żądanie w bajtach.\n"
+"      --latency-msec=MSEK               Żąda podanego opóźnienia w\n"
+"                                        milisekundach.\n"
+"      --process-time-msec=MSEK          Żąda podanego czasu procesu na\n"
+"                                        żądanie w milisekundach.\n"
 "      --property=WŁASNOŚĆ=WARTOŚĆ       Ustawia podaną własność na podaną\n"
 "                                        wartość.\n"
 "      --raw                             Nagrywa/odtwarza surowe dane PCM.\n"
-"      --file-format=FFORMAT             Nagrywa/odtwarza sformatowane dane\n"
+"      --file-format[=FFORMAT]           Nagrywa/odtwarza sformatowane dane\n"
 "                                        PCM.\n"
 "      --list-file-formats               Wyświetla listę dostępnych formatów\n"
 "                                        plików.\n"
@@ -1639,7 +1647,7 @@ msgstr "Połączenie nie powiodło się: %s\n"
 #: ../src/utils/pasuspender.c:174
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr "Otrzymano SIGINT, kończenie pracy.\n"
+msgstr "Otrzymano SIGINT, kończenie działania.\n"
 
 #: ../src/utils/pasuspender.c:192
 #, c-format
@@ -1727,9 +1735,15 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"Ciąg serwera: %s\n"
+"Wersja protokołu biblioteki: %u\n"
+"Wersja protokołu serwera: %u\n"
+"Czy jest lokalny: %s\n"
+"Indeks klienta: %u\n"
+"Rozmiar kafelka: %zu\n"
 
 #: ../src/utils/pactl.c:176
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1749,7 +1763,7 @@ msgstr ""
 "Domyślna mapa kanałów: %s\n"
 "Domyślny odpływ: %s\n"
 "Domyślne źródło: %s\n"
-"Ciasteczko: %08x\n"
+"Ciasteczko: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:218
 #, c-format
@@ -2059,64 +2073,63 @@ msgstr "Przedwczesny koniec pliku"
 
 #: ../src/utils/pactl.c:737
 msgid "new"
-msgstr ""
+msgstr "nowe"
 
 #: ../src/utils/pactl.c:740
 msgid "change"
-msgstr ""
+msgstr "zmień"
 
 #: ../src/utils/pactl.c:743
 msgid "remove"
-msgstr ""
+msgstr "usuń"
 
 #: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
-msgstr ""
+msgstr "nieznane"
 
 #: ../src/utils/pactl.c:754
 msgid "sink"
-msgstr ""
+msgstr "odpływ"
 
 #: ../src/utils/pactl.c:757
 msgid "source"
-msgstr ""
+msgstr "źródło"
 
 #: ../src/utils/pactl.c:760
 msgid "sink-input"
-msgstr ""
+msgstr "wejście-odpływu"
 
 #: ../src/utils/pactl.c:763
 msgid "source-output"
-msgstr ""
+msgstr "wyjście-źródła"
 
 #: ../src/utils/pactl.c:766
 msgid "module"
-msgstr ""
+msgstr "moduł"
 
 #: ../src/utils/pactl.c:769
 msgid "client"
-msgstr ""
+msgstr "klient"
 
 #: ../src/utils/pactl.c:772
 msgid "sample-cache"
-msgstr ""
+msgstr "pamięć-podręczna-próbek"
 
 #: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
-#, fuzzy
 msgid "server"
-msgstr "Nieprawidłowy serwer"
+msgstr "serwer"
 
 #: ../src/utils/pactl.c:787
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "Zdarzenie \"%s\" na %s #%u\n"
 
 #: ../src/utils/pactl.c:955
 msgid "Got SIGINT, exiting."
-msgstr "Otrzymano SIGINT, kończenie pracy."
+msgstr "Otrzymano SIGINT, kończenie działania."
 
 #: ../src/utils/pactl.c:961
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2170,6 +2183,7 @@ msgstr ""
 "%s [opcje] set-sink-mute ODPŁYW 1|0\n"
 "%s [opcje] set-source-mute ŹRÓDŁO 1|0\n"
 "%s [opcje] set-sink-input-mute WEJŚCIE_ODPŁYWU 1|0\n"
+"%s [opcje] subscribe\n"
 "\n"
 "\n"
 "  -h, --help                            Wyświetla tę pomoc\n"
@@ -2468,7 +2482,7 @@ msgstr "Duplex telefoniczny (HSP/HFP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2247
 msgid "Handsfree Gateway"
-msgstr ""
+msgstr "Handsfree Gateway"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
@@ -2549,23 +2563,20 @@ msgid "No Amplifier"
 msgstr "Brak amplitunera"
 
 #: ../src/modules/alsa/alsa-mixer.c:1716
-#, fuzzy
 msgid "Bass Boost"
-msgstr "Podbicie"
+msgstr "Podbicie basów"
 
 #: ../src/modules/alsa/alsa-mixer.c:1717
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "Brak podbicia"
+msgstr "Brak podbicia basów"
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "Głośnik"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
 msgid "Headphones"
-msgstr "Słuchawki analogowe"
+msgstr "Słuchawki"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
@@ -2604,9 +2615,8 @@ msgid "Analog Mono Output"
 msgstr "Analogowe wyjście mono"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
-#, fuzzy
 msgid "Analog Speakers"
-msgstr "Analogowe stereo"
+msgstr "Głośniki analogowe"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
@@ -2701,6 +2711,3 @@ msgstr "Analogowy dupleks stereo"
 #: ../src/modules/alsa/alsa-mixer.c:2935
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Cyfrowy dupleks stereo (IEC958)"
-
-#~ msgid "Low Frequency Emmiter"
-#~ msgstr "Subwoofer"
