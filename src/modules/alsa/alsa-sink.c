@@ -79,7 +79,7 @@
 #define TSCHED_MIN_WAKEUP_USEC (4*PA_USEC_PER_MSEC)                /* 4ms   -- Wakeup at least this long before the buffer runs empty*/
 
 #define SMOOTHER_MIN_INTERVAL (2*PA_USEC_PER_MSEC)                 /* 2ms   -- min smoother update interval */
-#define SMOOTHER_MAX_INTERVAL (200*PA_USEC_PER_MSEC)               /* 200ms -- max smoother update inteval */
+#define SMOOTHER_MAX_INTERVAL (200*PA_USEC_PER_MSEC)               /* 200ms -- max smoother update interval */
 
 #define VOLUME_ACCURACY (PA_VOLUME_NORM/100)  /* don't require volume adjustments to be perfectly correct. don't necessarily extend granularity in software unless the differences get greater than this level */
 
@@ -876,6 +876,14 @@ static int suspend(struct userdata *u) {
         u->alsa_rtpoll_item = NULL;
     }
 
+    /* We reset max_rewind/max_request here to make sure that while we
+     * are suspended the old max_request/max_rewind values set before
+     * the suspend can influence the per-stream buffer of newly
+     * created streams, without their requirements having any
+     * influence on them. */
+    pa_sink_set_max_rewind_within_thread(u->sink, 0);
+    pa_sink_set_max_request_within_thread(u->sink, 0);
+
     pa_log_info("Device suspended...");
 
     return 0;
@@ -933,6 +941,7 @@ static int update_sw_params(struct userdata *u) {
     }
 
     pa_sink_set_max_request_within_thread(u->sink, u->hwbuf_size - u->hwbuf_unused);
+    pa_sink_set_max_rewind_within_thread(u->sink, u->hwbuf_size);
 
     return 0;
 }
