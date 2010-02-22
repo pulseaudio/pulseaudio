@@ -858,6 +858,18 @@ static void fix_playback_buffer_attr(playback_stream *s) {
 
     pa_assert(s);
 
+    /* pa_log("Client requested: maxlength=%li bytes tlength=%li bytes minreq=%li bytes prebuf=%li bytes", */
+    /*        (long) s->buffer_attr.maxlength, */
+    /*        (long) s->buffer_attr.tlength, */
+    /*        (long) s->buffer_attr.minreq, */
+    /*        (long) s->buffer_attr.prebuf); */
+
+    /* pa_log("Client requested: maxlength=%lu ms tlength=%lu ms minreq=%lu ms prebuf=%lu ms", */
+    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.maxlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC), */
+    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.tlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC), */
+    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.minreq, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC), */
+    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.prebuf, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC)); */
+
     /* This function will be called from the main thread, before as
      * well as after the sink input has been activated using
      * pa_sink_input_put()! That means it may not touch any
@@ -984,6 +996,12 @@ static void fix_playback_buffer_attr(playback_stream *s) {
     if (s->buffer_attr.prebuf == (uint32_t) -1 ||
         s->buffer_attr.prebuf > max_prebuf)
         s->buffer_attr.prebuf = max_prebuf;
+
+    /* pa_log("Client accepted: maxlength=%lu ms tlength=%lu ms minreq=%lu ms prebuf=%lu ms", */
+    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.maxlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC), */
+    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.tlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC), */
+    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.minreq, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC), */
+    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.prebuf, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC)); */
 }
 
 /* Called from main context */
