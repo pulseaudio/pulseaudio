@@ -1037,7 +1037,7 @@ static playback_stream* playback_stream_new(
     pa_assert(ret);
 
     /* Find syncid group */
-    for (ssync = pa_idxset_first(c->output_streams, &idx); ssync; ssync = pa_idxset_next(c->output_streams, &idx)) {
+    PA_IDXSET_FOREACH(ssync, c->output_streams, idx) {
 
         if (!playback_stream_isinstance(ssync))
             continue;

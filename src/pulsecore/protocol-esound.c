@@ -328,12 +328,12 @@ static int format_native2esd(pa_sample_spec *ss) {
     return format;
 }
 
-#define CHECK_VALIDITY(expression, ...) do { \
-    if (!(expression)) { \
-        pa_log_warn(__FILE__ ": " __VA_ARGS__); \
-        return -1; \
-    } \
-} while(0);
+#define CHECK_VALIDITY(expression, ...) do {            \
+        if (PA_UNLIKELY(!(expression))) {               \
+            pa_log_warn(__FILE__ ": " __VA_ARGS__);     \
+            return -1;                                  \
+        }                                               \
+    } while(0);
 
 /*** esound commands ***/
 
@@ -631,7 +631,7 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
 
     memset(terminator, 0, sizeof(terminator));
 
-    for (conn = pa_idxset_first(c->protocol->connections, &idx); conn; conn = pa_idxset_next(c->protocol->connections, &idx)) {
+    PA_IDXSET_FOREACH(conn, c->protocol->connections, idx) {
         int32_t id, format = ESD_BITS16 | ESD_STEREO, rate = 44100, lvolume = ESD_VOLUME_BASE, rvolume = ESD_VOLUME_BASE;
         char name[ESD_NAME_MAX];
 
@@ -689,7 +689,8 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
         pa_scache_entry *ce;
 
         idx = PA_IDXSET_INVALID;
-        for (ce = pa_idxset_first(c->protocol->core->scache, &idx); ce; ce = pa_idxset_next(c->protocol->core->scache, &idx)) {
+
+        PA_IDXSET_FOREACH(ce, c->protocol->core->scache, idx) {
             int32_t id, rate, lvolume, rvolume, format, len;
             char name[ESD_NAME_MAX];
             pa_channel_map stereo = { .channels = 2, .map = { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT } };
@@ -1130,7 +1131,7 @@ static int do_read(connection *c) {
 
 /*         pa_log("STREAMING_DATA"); */
 
-        if (!(l = (size_t) pa_atomic_load(&c->playback.missing)))
+        if ((l = (size_t) pa_atomic_load(&c->playback.missing)) <= 0)
             return 0;
 
         if (c->playback.current_memblock) {
@@ -1172,8 +1173,8 @@ static int do_read(connection *c) {
 
         c->playback.memblock_index += (size_t) r;
 
-        pa_asyncmsgq_post(c->sink_input->sink->asyncmsgq, PA_MSGOBJECT(c->sink_input), SINK_INPUT_MESSAGE_POST_DATA, NULL, 0, &chunk, NULL);
         pa_atomic_sub(&c->playback.missing, (int) r);
+        pa_asyncmsgq_post(c->sink_input->sink->asyncmsgq, PA_MSGOBJECT(c->sink_input), SINK_INPUT_MESSAGE_POST_DATA, NULL, 0, &chunk, NULL);
     }
 
     return 0;
@@ -1381,10 +1382,9 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
     } else {
         size_t m;
 
-        chunk->length = PA_MIN(length, chunk->length);
-
         c->playback.underrun = FALSE;
 
+        chunk->length = PA_MIN(length, chunk->length);
         pa_memblockq_drop(c->input_memblockq, chunk->length);
         m = pa_memblockq_pop_missing(c->input_memblockq);
 

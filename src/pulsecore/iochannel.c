@@ -55,11 +55,10 @@ struct pa_iochannel {
     pa_iochannel_cb_t callback;
     void*userdata;
 
-    pa_bool_t readable;
-    pa_bool_t writable;
-    pa_bool_t hungup;
-
-    pa_bool_t no_close;
+    pa_bool_t readable:1;
+    pa_bool_t writable:1;
+    pa_bool_t hungup:1;
+    pa_bool_t no_close:1;
 
     pa_io_event* input_event, *output_event;
 };
@@ -258,7 +257,12 @@ ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
 #ifdef HAVE_CREDS
 
 pa_bool_t pa_iochannel_creds_supported(pa_iochannel *io) {
-    struct sockaddr_un sa;
+    struct {
+        struct sockaddr sa;
+        struct sockaddr_un un;
+        struct sockaddr_storage storage;
+    } sa;
+
     socklen_t l;
 
     pa_assert(io);
@@ -266,11 +270,10 @@ pa_bool_t pa_iochannel_creds_supported(pa_iochannel *io) {
     pa_assert(io->ofd == io->ifd);
 
     l = sizeof(sa);
+    if (getsockname(io->ifd, &sa.sa, &l) < 0)
+        return FALSE;
 
-    if (getsockname(io->ifd, (struct sockaddr*) &sa, &l) < 0)
-        return 0;
-
-    return sa.sun_family == AF_UNIX;
+    return sa.sa.sa_family == AF_UNIX;
 }
 
 int pa_iochannel_creds_enable(pa_iochannel *io) {
@@ -302,11 +305,11 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
     pa_assert(l);
     pa_assert(io->ofd >= 0);
 
-    memset(&iov, 0, sizeof(iov));
+    pa_zero(iov);
     iov.iov_base = (void*) data;
     iov.iov_len = l;
 
-    memset(&cmsg, 0, sizeof(cmsg));
+    pa_zero(cmsg);
     cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(struct ucred));
     cmsg.hdr.cmsg_level = SOL_SOCKET;
     cmsg.hdr.cmsg_type = SCM_CREDENTIALS;
@@ -352,25 +355,21 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_cr
     pa_assert(creds);
     pa_assert(creds_valid);
 
-    memset(&iov, 0, sizeof(iov));
+    pa_zero(iov);
     iov.iov_base = data;
     iov.iov_len = l;
 
-    memset(&cmsg, 0, sizeof(cmsg));
-
-    memset(&mh, 0, sizeof(mh));
-    mh.msg_name = NULL;
-    mh.msg_namelen = 0;
+    pa_zero(cmsg);
+    pa_zero(mh);
     mh.msg_iov = &iov;
     mh.msg_iovlen = 1;
     mh.msg_control = &cmsg;
     mh.msg_controllen = sizeof(cmsg);
-    mh.msg_flags = 0;
 
     if ((r = recvmsg(io->ifd, &mh, 0)) >= 0) {
         struct cmsghdr *cmh;
 
-        *creds_valid = 0;
+        *creds_valid = FALSE;
 
         for (cmh = CMSG_FIRSTHDR(&mh); cmh; cmh = CMSG_NXTHDR(&mh, cmh)) {
 
