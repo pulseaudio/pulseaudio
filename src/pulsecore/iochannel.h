@@ -38,11 +38,6 @@
    the channel a callback function is called. It is safe to destroy
    the calling iochannel object from the callback */
 
-/* When pa_iochannel_is_readable() returns non-zero, the user has to
- * call this function in a loop until it is no longer set or EOF
- * reached. Otherwise strange things may happen when an EOF is
- * reached. */
-
 typedef struct pa_iochannel pa_iochannel;
 
 /* Create a new IO channel for the specified file descriptors for
