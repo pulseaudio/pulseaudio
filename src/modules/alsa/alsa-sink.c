@@ -632,11 +632,14 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
         }
     }
 
-    *sleep_usec = pa_bytes_to_usec(left_to_play, &u->sink->sample_spec);
+    if (u->use_tsched) {
+        *sleep_usec = pa_bytes_to_usec(left_to_play, &u->sink->sample_spec);
 
-    if (*sleep_usec > process_usec)
-        *sleep_usec -= process_usec;
-    else
+        if (*sleep_usec > process_usec)
+            *sleep_usec -= process_usec;
+        else
+            *sleep_usec = 0;
+    } else
         *sleep_usec = 0;
 
     return work_done ? 1 : 0;
@@ -769,11 +772,14 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
         }
     }
 
-    *sleep_usec = pa_bytes_to_usec(left_to_play, &u->sink->sample_spec);
+    if (u->use_tsched) {
+        *sleep_usec = pa_bytes_to_usec(left_to_play, &u->sink->sample_spec);
 
-    if (*sleep_usec > process_usec)
-        *sleep_usec -= process_usec;
-    else
+        if (*sleep_usec > process_usec)
+            *sleep_usec -= process_usec;
+        else
+            *sleep_usec = 0;
+    } else
         *sleep_usec = 0;
 
     return work_done ? 1 : 0;
@@ -1275,6 +1281,9 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     size_t before;
     pa_assert(u);
+    pa_assert(u->use_tsched); /* only when timer scheduling is used
+                               * we can dynamically adjust the
+                               * latency */
 
     if (!u->pcm_handle)
         return;
@@ -1309,7 +1318,10 @@ static int process_rewind(struct userdata *u) {
         return -1;
     }
 
-    unused_nbytes = u->tsched_watermark + (size_t) unused * u->frame_size;
+    unused_nbytes = (size_t) unused * u->frame_size;
+
+    if (u->use_tsched)
+        unused_nbytes += u->tsched_watermark;
 
     if (u->hwbuf_size > unused_nbytes)
         limit_nbytes = u->hwbuf_size - unused_nbytes;
@@ -1870,7 +1882,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     }
 
     u->sink->parent.process_msg = sink_process_msg;
-    u->sink->update_requested_latency = sink_update_requested_latency_cb;
+    if (u->use_tsched)
+        u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->set_state = sink_set_state_cb;
     u->sink->set_port = sink_set_port_cb;
     u->sink->userdata = u;
@@ -1918,7 +1931,6 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
                     (double) pa_bytes_to_usec(u->tsched_watermark, &ss) / PA_USEC_PER_MSEC);
     } else
         pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(u->hwbuf_size, &ss));
-
 
     reserve_update(u);
 

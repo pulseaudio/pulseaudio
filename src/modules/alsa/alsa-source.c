@@ -603,12 +603,14 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
         }
     }
 
-    *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec);
+    if (u->use_tsched) {
+        *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec);
 
-    if (*sleep_usec > process_usec)
-        *sleep_usec -= process_usec;
-    else
-        *sleep_usec = 0;
+        if (*sleep_usec > process_usec)
+            *sleep_usec -= process_usec;
+        else
+            *sleep_usec = 0;
+    }
 
     return work_done ? 1 : 0;
 }
@@ -730,12 +732,14 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
         }
     }
 
-    *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec);
+    if (u->use_tsched) {
+        *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec);
 
-    if (*sleep_usec > process_usec)
-        *sleep_usec -= process_usec;
-    else
-        *sleep_usec = 0;
+        if (*sleep_usec > process_usec)
+            *sleep_usec -= process_usec;
+        else
+            *sleep_usec = 0;
+    }
 
     return work_done ? 1 : 0;
 }
@@ -1205,6 +1209,7 @@ static int source_set_port_cb(pa_source *s, pa_device_port *p) {
 static void source_update_requested_latency_cb(pa_source *s) {
     struct userdata *u = s->userdata;
     pa_assert(u);
+    pa_assert(u->use_tsched);
 
     if (!u->pcm_handle)
         return;
@@ -1693,7 +1698,8 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     }
 
     u->source->parent.process_msg = source_process_msg;
-    u->source->update_requested_latency = source_update_requested_latency_cb;
+    if (u->use_tsched)
+        u->source->update_requested_latency = source_update_requested_latency_cb;
     u->source->set_state = source_set_state_cb;
     u->source->set_port = source_set_port_cb;
     u->source->userdata = u;
