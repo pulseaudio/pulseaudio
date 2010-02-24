@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-23 07:20+0000\n"
-"PO-Revision-Date: 2010-02-23 11:19+0200\n"
+"PO-Revision-Date: 2010-02-24 18:32+0200\n"
 "Last-Translator: Alvar Kusma <alvar@raamat.polva.ee>\n"
 "Language-Team: Estonian <et@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:861 ../src/pulsecore/sink.c:2631
 #, c-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 #: ../src/modules/alsa/alsa-util.c:1109
 #, c-format
@@ -29,6 +29,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_avail() andis tagasi äärmiselt suure väärtuse: %lu baiti (%lu ms).\n"
+"Kõige tõenäolisemalt on see viga ALSA tüürelis '%s'. "
+"Palun anna sellest probleemist ALSA arendajatele teada."
 
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
@@ -38,6 +41,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_delay() andis tagasi äärmiselt suure väärtuse:  %li baiti (%s%lu ms).\n"
+"Kõige tõenäolisemalt on see viga ALSA tüürelis '%s'. "
+"Palun anna sellest probleemist ALSA arendajatele teada."
 
 #: ../src/modules/alsa/alsa-util.c:1197
 #, c-format
@@ -47,18 +53,21 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_mmap_begin() andis tagasi äärmiselt suure väärtuse: %lu baiti (%lu ms).\n"
+"Kõige tõenäolisemalt on see viga ALSA tüürelis '%s'. "
+"Palun anna sellest probleemist ALSA arendajatele teada."
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "Hoia alati vähemalt üks neel avatuna, isegi kui see on 'NULL' neel"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "Tühi väljund"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
-msgstr ""
+msgstr "Virtuaalne LADSPA neel"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid ""
@@ -75,19 +84,19 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:291
 msgid "Null Output"
-msgstr ""
+msgstr "NULL väljund"
 
 #: ../src/pulsecore/sink.c:2615
 msgid "Internal Audio"
-msgstr ""
+msgstr "Sisemine audio"
 
 #: ../src/pulsecore/sink.c:2620
 msgid "Modem"
-msgstr ""
+msgstr "Modem"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr ""
+msgstr "Algse lt_dlopen laaduri leidmine nurjus."
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
@@ -100,7 +109,7 @@ msgstr ""
 #: ../src/daemon/main.c:146
 #, c-format
 msgid "Got signal %s."
-msgstr ""
+msgstr "Saadi signaal %s."
 
 #: ../src/daemon/main.c:173
 msgid "Exiting."
@@ -134,22 +143,22 @@ msgstr ""
 #: ../src/daemon/main.c:213 ../src/daemon/main.c:218
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr ""
+msgstr "'%s' loomine nurjus: %s"
 
 #: ../src/daemon/main.c:225
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr ""
+msgstr "Grupi nimekirja muutmine nurjus: %s"
 
 #: ../src/daemon/main.c:241
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr ""
+msgstr "GID muutmine nurjus: %s"
 
 #: ../src/daemon/main.c:257
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr ""
+msgstr "UID muutmine nurjus: %s"
 
 #: ../src/daemon/main.c:276
 msgid "Successfully dropped root privileges."
@@ -1309,6 +1318,9 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pacat %s\n"
+"Kompileeritud teegiga libpulse %s\n"
+"Lingitud teegiga libpulse %s\n"
 
 #: ../src/utils/pacat.c:791 ../src/utils/pactl.c:1046
 #, c-format
@@ -1343,7 +1355,7 @@ msgstr ""
 #: ../src/utils/pacat.c:922
 #, c-format
 msgid "Unknown file format %s."
-msgstr ""
+msgstr "Tudnmatu failiformaat %s."
 
 #: ../src/utils/pacat.c:941
 msgid "Invalid sample specification"
@@ -1352,16 +1364,16 @@ msgstr ""
 #: ../src/utils/pacat.c:951
 #, c-format
 msgid "open(): %s"
-msgstr ""
+msgstr "open(): %s"
 
 #: ../src/utils/pacat.c:956
 #, c-format
 msgid "dup2(): %s"
-msgstr ""
+msgstr "dup2(): %s"
 
 #: ../src/utils/pacat.c:963
 msgid "Too many arguments."
-msgstr ""
+msgstr "Liiga palju argumente."
 
 #: ../src/utils/pacat.c:974
 msgid "Failed to generate sample specification for file."
@@ -1400,61 +1412,61 @@ msgstr ""
 
 #: ../src/utils/pacat.c:1050
 msgid "recording"
-msgstr ""
+msgstr "salvestus"
 
 #: ../src/utils/pacat.c:1050
 msgid "playback"
-msgstr ""
+msgstr "esitus"
 
 #: ../src/utils/pacat.c:1076 ../src/utils/pactl.c:1364
 msgid "pa_mainloop_new() failed."
-msgstr ""
+msgstr "pa_mainloop_new() nurjus."
 
 #: ../src/utils/pacat.c:1095
 msgid "io_new() failed."
-msgstr ""
+msgstr "io_new() nurjus."
 
 #: ../src/utils/pacat.c:1102 ../src/utils/pactl.c:1376
 msgid "pa_context_new() failed."
-msgstr ""
+msgstr "pa_context_new() nurjus."
 
 #: ../src/utils/pacat.c:1110 ../src/utils/pactl.c:1382
 #, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr ""
+msgstr "pa_context_connect() nurjus: %s"
 
 #: ../src/utils/pacat.c:1116
 msgid "pa_context_rttime_new() failed."
-msgstr ""
+msgstr "pa_context_rttime_new() nurjus."
 
 #: ../src/utils/pacat.c:1123 ../src/utils/pactl.c:1387
 msgid "pa_mainloop_run() failed."
-msgstr ""
+msgstr "pa_mainloop_run() nurjus."
 
 #: ../src/utils/pasuspender.c:79
 #, c-format
 msgid "fork(): %s\n"
-msgstr ""
+msgstr "fork(): %s\n"
 
 #: ../src/utils/pasuspender.c:90
 #, c-format
 msgid "execvp(): %s\n"
-msgstr ""
+msgstr "execvp(): %s\n"
 
 #: ../src/utils/pasuspender.c:107
 #, c-format
 msgid "Failure to suspend: %s\n"
-msgstr ""
+msgstr "Suspendeerimine nurjus: %s\n"
 
 #: ../src/utils/pasuspender.c:122
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr ""
+msgstr "Tagasipöördumine nurjus: %s\n"
 
 #: ../src/utils/pasuspender.c:145
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr ""
+msgstr "HOIATUS: Heliserver ei ole lokaalne, suspend pole võimalik.\n"
 
 #: ../src/utils/pasuspender.c:157
 #, c-format
@@ -1464,12 +1476,12 @@ msgstr ""
 #: ../src/utils/pasuspender.c:174
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr ""
+msgstr "Saadi SIGINT, väljumine.\n"
 
 #: ../src/utils/pasuspender.c:192
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
+msgstr "HOIATUS: Tütarprotsess on katkestatud signaaliga %u\n"
 
 #: ../src/utils/pasuspender.c:210
 #, c-format
@@ -1490,26 +1502,29 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pasuspender %s\n"
+"Kompileeritud teegiga libpulse %s\n"
+"Lingitud teegiga libpulse %s\n"
 
 #: ../src/utils/pasuspender.c:275
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_new() nurjus.\n"
 
 #: ../src/utils/pasuspender.c:288
 #, c-format
 msgid "pa_context_new() failed.\n"
-msgstr ""
+msgstr "pa_context_new() nurjus.\n"
 
 #: ../src/utils/pasuspender.c:296
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_run() nurjus.\n"
 
 #: ../src/utils/pactl.c:134
 #, c-format
 msgid "Failed to get statistics: %s"
-msgstr ""
+msgstr "Statistika saamine nurjus: %s"
 
 #: ../src/utils/pactl.c:140
 #, c-format
@@ -1529,7 +1544,7 @@ msgstr ""
 #: ../src/utils/pactl.c:155
 #, c-format
 msgid "Failed to get server information: %s"
-msgstr ""
+msgstr "Serveri informatsiooni saamine nurjus: %s"
 
 #: ../src/utils/pactl.c:160
 #, c-format
@@ -1559,7 +1574,7 @@ msgstr ""
 #: ../src/utils/pactl.c:218
 #, c-format
 msgid "Failed to get sink information: %s"
-msgstr ""
+msgstr "Neelu informatsiooni saamine nurjus: %s"
 
 #: ../src/utils/pactl.c:234
 #, c-format
@@ -1586,17 +1601,17 @@ msgstr ""
 #: ../src/utils/pactl.c:281 ../src/utils/pactl.c:373
 #, c-format
 msgid "\tPorts:\n"
-msgstr ""
+msgstr "\tPordid:\n"
 
 #: ../src/utils/pactl.c:287 ../src/utils/pactl.c:379
 #, c-format
 msgid "\tActive Port: %s\n"
-msgstr ""
+msgstr "\tAktiivne port: %s\n"
 
 #: ../src/utils/pactl.c:310
 #, c-format
 msgid "Failed to get source information: %s"
-msgstr ""
+msgstr "Lätte informatsiooni saamine nurjus: %s"
 
 #: ../src/utils/pactl.c:326
 #, c-format
