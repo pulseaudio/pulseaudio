@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-23 07:20+0000\n"
-"PO-Revision-Date: 2010-02-24 18:32+0200\n"
+"PO-Revision-Date: 2010-02-24 23:46+0200\n"
 "Last-Translator: Alvar Kusma <alvar@raamat.polva.ee>\n"
 "Language-Team: Estonian <et@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -162,40 +162,40 @@ msgstr "UID muutmine nurjus: %s"
 
 #: ../src/daemon/main.c:276
 msgid "Successfully dropped root privileges."
-msgstr ""
+msgstr "Juurkasutaja õigustest loobutud edukalt."
 
 #: ../src/daemon/main.c:284
 msgid "System wide mode unsupported on this platform."
-msgstr ""
+msgstr "Ülesüsteemiline režiim pole sellel platvormil toetatud."
 
 #: ../src/daemon/main.c:302
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr ""
+msgstr "setrlimit(%s, (%u, %u)) nurjus: %s"
 
 #: ../src/daemon/main.c:502
 msgid "Failed to parse command line."
-msgstr ""
+msgstr "Käsurea analüüsimine nurjus."
 
 #: ../src/daemon/main.c:535
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
-msgstr ""
+msgstr "Süsteemirežiim on tavakasutaja õiguste jaoks tagasi lükatud. Käivitatakse ainult D-Bus serveri jälgimise teenus."
 
 #: ../src/daemon/main.c:617
 msgid "Daemon not running"
-msgstr ""
+msgstr "Deemon ei tööta"
 
 #: ../src/daemon/main.c:619
 #, c-format
 msgid "Daemon running as PID %u"
-msgstr ""
+msgstr "Deemon töötab, PID on %u"
 
 #: ../src/daemon/main.c:634
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr ""
+msgstr "Deemoni tapmine nurjus: %s"
 
 #: ../src/daemon/main.c:662
 msgid ""
@@ -205,7 +205,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:665
 msgid "Root privileges required."
-msgstr ""
+msgstr "Vaja on juurkasutaja õigusi."
 
 #: ../src/daemon/main.c:671
 msgid "--start not supported for system instances."
@@ -239,35 +239,35 @@ msgstr ""
 #: ../src/daemon/main.c:726
 #, c-format
 msgid "pipe() failed: %s"
-msgstr ""
+msgstr "pipe() nurjus: %s"
 
 #: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork() nurjus: %s"
 
 #: ../src/daemon/main.c:745 ../src/utils/pacat.c:529
 #, c-format
 msgid "read() failed: %s"
-msgstr ""
+msgstr "read() nurjus: %s"
 
 #: ../src/daemon/main.c:751
 msgid "Daemon startup failed."
-msgstr ""
+msgstr "Deemoni käivitamine nurjus."
 
 #: ../src/daemon/main.c:753
 msgid "Daemon startup successful."
-msgstr ""
+msgstr "Deemoni käivitamine õnnestus."
 
 #: ../src/daemon/main.c:778
 #, c-format
 msgid "setsid() failed: %s"
-msgstr ""
+msgstr "setsid() nurjus: %s"
 
 #: ../src/daemon/main.c:830
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr ""
+msgstr "See on PulseAudio %s"
 
 #: ../src/daemon/main.c:831
 #, c-format
@@ -1109,26 +1109,26 @@ msgstr ""
 #: ../src/utils/pacat.c:161
 #, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr ""
+msgstr "pa_stream_write() nurjus: %s"
 
 #: ../src/utils/pacat.c:202
 #, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr ""
+msgstr "pa_stream_begin_write() nurjus: %s"
 
 #: ../src/utils/pacat.c:252 ../src/utils/pacat.c:282
 #, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr ""
+msgstr "pa_stream_peek() nurjus: %s"
 
 #: ../src/utils/pacat.c:322
 msgid "Stream successfully created."
-msgstr ""
+msgstr "Voog on edukalt loodud."
 
 #: ../src/utils/pacat.c:325
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr ""
+msgstr "pa_stream_get_buffer_attr() nurjus: %s"
 
 #: ../src/utils/pacat.c:329
 #, c-format
@@ -1153,7 +1153,7 @@ msgstr ""
 #: ../src/utils/pacat.c:350
 #, c-format
 msgid "Stream error: %s"
-msgstr ""
+msgstr "Voo viga: %s"
 
 #: ../src/utils/pacat.c:360
 #, c-format
@@ -1168,17 +1168,17 @@ msgstr ""
 #: ../src/utils/pacat.c:370
 #, c-format
 msgid "Stream underrun.%s"
-msgstr ""
+msgstr "Voo alatäitumine.%s"
 
 #: ../src/utils/pacat.c:377
 #, c-format
 msgid "Stream overrun.%s"
-msgstr ""
+msgstr "Voo ületäitumine.%s"
 
 #: ../src/utils/pacat.c:384
 #, c-format
 msgid "Stream started.%s"
-msgstr ""
+msgstr "Voog käivitatud.%s"
 
 #: ../src/utils/pacat.c:391
 #, c-format
@@ -1187,7 +1187,7 @@ msgstr ""
 
 #: ../src/utils/pacat.c:391
 msgid "not "
-msgstr ""
+msgstr "mitte "
 
 #: ../src/utils/pacat.c:398
 #, c-format
@@ -1197,45 +1197,45 @@ msgstr ""
 #: ../src/utils/pacat.c:430
 #, c-format
 msgid "Connection established.%s"
-msgstr ""
+msgstr "Ühendus loodud.%s"
 
 #: ../src/utils/pacat.c:433
 #, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr ""
+msgstr "pa_stream_new() nurjus: %s"
 
 #: ../src/utils/pacat.c:471
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr ""
+msgstr "pa_stream_connect_playback() nurjus: %s"
 
 #: ../src/utils/pacat.c:477
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr ""
+msgstr "pa_stream_connect_record() nurjus: %s"
 
 #: ../src/utils/pacat.c:491 ../src/utils/pactl.c:949
 #, c-format
 msgid "Connection failure: %s"
-msgstr ""
+msgstr "Ühenduse nurjumine: %s"
 
 #: ../src/utils/pacat.c:524
 msgid "Got EOF."
-msgstr ""
+msgstr "Saadi EOF."
 
 #: ../src/utils/pacat.c:561
 #, c-format
 msgid "write() failed: %s"
-msgstr ""
+msgstr "write() nurjus: %s"
 
 #: ../src/utils/pacat.c:582
 msgid "Got signal, exiting."
-msgstr ""
+msgstr "Saadi signaal, väljumine."
 
 #: ../src/utils/pacat.c:596
 #, c-format
 msgid "Failed to get latency: %s"
-msgstr ""
+msgstr "Latentsi saamine nurjus: %s"
 
 #: ../src/utils/pacat.c:601
 #, c-format
@@ -1245,7 +1245,7 @@ msgstr ""
 #: ../src/utils/pacat.c:620
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr ""
+msgstr "pa_stream_update_timing_info() nurjus: %s"
 
 #: ../src/utils/pacat.c:630
 #, c-format
@@ -1325,12 +1325,12 @@ msgstr ""
 #: ../src/utils/pacat.c:791 ../src/utils/pactl.c:1046
 #, c-format
 msgid "Invalid client name '%s'"
-msgstr ""
+msgstr "Vigane kliendi nimi '%s'"
 
 #: ../src/utils/pacat.c:806
 #, c-format
 msgid "Invalid stream name '%s'"
-msgstr ""
+msgstr "Vigane voo nimi '%s'"
 
 #: ../src/utils/pacat.c:843
 #, c-format
@@ -1471,7 +1471,7 @@ msgstr "HOIATUS: Heliserver ei ole lokaalne, suspend pole võimalik.\n"
 #: ../src/utils/pasuspender.c:157
 #, c-format
 msgid "Connection failure: %s\n"
-msgstr ""
+msgstr "Ühenduse nurjumine: %s\n"
 
 #: ../src/utils/pasuspender.c:174
 #, c-format
@@ -2003,7 +2003,7 @@ msgstr ""
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr ""
+msgstr "Käsurea analüüsimine nurjus.\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
@@ -2028,12 +2028,12 @@ msgstr "Küpsis: %s\n"
 #: ../src/utils/pax11publish.c:132
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr ""
+msgstr "Küpsise analüüsimine nurjus\n"
 
 #: ../src/utils/pax11publish.c:137
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr ""
+msgstr "Küpsise salvestamine nurjus\n"
 
 #: ../src/utils/pax11publish.c:152
 #, c-format
@@ -2067,7 +2067,7 @@ msgstr "PulseAudio deemon ei tööta või töötab sessiooni deemonina."
 #: ../src/utils/pacmd.c:70
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
-msgstr ""
+msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 
 #: ../src/utils/pacmd.c:87
 #, c-format
@@ -2147,17 +2147,17 @@ msgstr ""
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
-msgstr ""
+msgstr "PulseAudio Heliserver"
 
 #: ../src/modules/module-rygel-media-server.c:592
 #: ../src/modules/module-rygel-media-server.c:606
 msgid "Output Devices"
-msgstr ""
+msgstr "Väljundseadmed"
 
 #: ../src/modules/module-rygel-media-server.c:593
 #: ../src/modules/module-rygel-media-server.c:607
 msgid "Input Devices"
-msgstr ""
+msgstr "Sisendseadmed"
 
 #: ../src/modules/module-rygel-media-server.c:797
 msgid "Audio on @HOSTNAME@"
@@ -2181,31 +2181,31 @@ msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1705
 msgid "Microphone"
-msgstr ""
+msgstr "Mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1706
 msgid "External Microphone"
-msgstr ""
+msgstr "Väline mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1707
 msgid "Internal Microphone"
-msgstr ""
+msgstr "Sisemine mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
-msgstr ""
+msgstr "Raadio"
 
 #: ../src/modules/alsa/alsa-mixer.c:1709
 msgid "Video"
-msgstr ""
+msgstr "Video"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "Automaatne võimendusregulaator"
 
 #: ../src/modules/alsa/alsa-mixer.c:1711
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "Pole automaatset võimendusregulaatorit"
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
@@ -2282,12 +2282,12 @@ msgstr ""
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
 msgid "%s+%s"
-msgstr ""
+msgstr "%s+%s"
 
 #: ../src/modules/alsa/alsa-mixer.c:1989 ../src/modules/alsa/alsa-mixer.c:3409
 #, c-format
 msgid "%s / %s"
-msgstr ""
+msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
 msgid "Analog Mono"
