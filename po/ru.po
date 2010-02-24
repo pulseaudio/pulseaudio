@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2010-01-31 15:49+0300\n"
+"POT-Creation-Date: 2010-02-24 07:15+0000\n"
+"PO-Revision-Date: 2010-02-24 22:27+0300\n"
 "Last-Translator: Leonid Kurbatov <llenchikk@rambler.ru>\n"
 "Language-Team: Russian <->\n"
 "MIME-Version: 1.0\n"
@@ -192,6 +192,8 @@ msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
 msgstr ""
+"В системном режиме отказано для не суперпользователя. Запускается только "
+"сервис поиска сервера D-Bus."
 
 #: ../src/daemon/main.c:617
 msgid "Daemon not running"
@@ -226,7 +228,7 @@ msgstr "--start не поддерживается для системных эл
 #: ../src/daemon/main.c:676
 #, c-format
 msgid "User-configured server at %s, not autospawning."
-msgstr ""
+msgstr "User-configured server at %s, not autospawning."
 
 #: ../src/daemon/main.c:683
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -251,9 +253,9 @@ msgid "Failed to acquire stdio."
 msgstr "Не удалось запросить stdio."
 
 #: ../src/daemon/main.c:726
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "Канал не удался: %s"
+msgstr "pipe() не удался: %s"
 
 #: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
@@ -274,9 +276,9 @@ msgid "Daemon startup successful."
 msgstr "Успешный запуск демона."
 
 #: ../src/daemon/main.c:778
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() чтение не удалось: %s"
+msgstr "setsid() не удалось: %s"
 
 #: ../src/daemon/main.c:830
 #, c-format
@@ -322,9 +324,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "Запуск в режиме Valgrind: %s"
 
 #: ../src/daemon/main.c:850
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "Запущен на хосте: %s"
+msgstr "Запущен в VM: %s"
 
 #: ../src/daemon/main.c:853
 msgid "Optimized build: yes"
@@ -750,9 +752,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Недопустимый точный уровень '%s'."
 
 #: ../src/daemon/daemon-conf.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] Неверная частота дискретизации '%s'."
+msgstr "[%s:%u] Неверный тип сервера '%s'."
 
 #: ../src/daemon/daemon-conf.c:586
 #, c-format
@@ -814,7 +816,7 @@ msgstr "Сзади право"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "Сабвуфер"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1343,7 +1345,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() не удалось: %s"
 
 #: ../src/utils/pacat.c:630
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1455,10 +1457,14 @@ msgstr ""
 "bytes.\n"
 "      --process-time=BYTES              Request the specified process time "
 "per request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in "
+"msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time "
+"per request in msec.\n"
 "      --property=PROPERTY=VALUE         Set the specified property to the "
 "specified value.\n"
 "      --raw                             Record/play raw PCM data.\n"
-"      --file-format=FFORMAT             Record/play formatted PCM data.\n"
+"      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
 "      --list-file-formats               List available file formats.\n"
 
 #: ../src/utils/pacat.c:758
@@ -1718,9 +1724,15 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"Серверная строка: %s\n"
+"Версия протокола библиотеки: %u\n"
+"Версия протокола сервера: %u\n"
+"Локально: %s\n"
+"Индекс клиента: %u\n"
+"Размер плитки: %zu\n"
 
 #: ../src/utils/pactl.c:176
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1740,7 +1752,7 @@ msgstr ""
 "Схема каналов по умолчанию: %s\n"
 "Аудиоприёмник по умолчанию: %s\n"
 "Источник по умолчанию: %s\n"
-"Cookie: %08x\n"
+"Cookie: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:218
 #, c-format
@@ -2050,64 +2062,63 @@ msgstr "Преждевременный конец файла"
 
 #: ../src/utils/pactl.c:737
 msgid "new"
-msgstr ""
+msgstr "новый"
 
 #: ../src/utils/pactl.c:740
 msgid "change"
-msgstr ""
+msgstr "изменение"
 
 #: ../src/utils/pactl.c:743
 msgid "remove"
-msgstr ""
+msgstr "удаление"
 
 #: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
-msgstr ""
+msgstr "неизвестный"
 
 #: ../src/utils/pactl.c:754
 msgid "sink"
-msgstr ""
+msgstr "аудиоприёмник"
 
 #: ../src/utils/pactl.c:757
 msgid "source"
-msgstr ""
+msgstr "источник"
 
 #: ../src/utils/pactl.c:760
 msgid "sink-input"
-msgstr ""
+msgstr "ввод аудиоприёмника"
 
 #: ../src/utils/pactl.c:763
 msgid "source-output"
-msgstr ""
+msgstr "вывод источника"
 
 #: ../src/utils/pactl.c:766
 msgid "module"
-msgstr ""
+msgstr "модуль"
 
 #: ../src/utils/pactl.c:769
 msgid "client"
-msgstr ""
+msgstr "клиент"
 
 #: ../src/utils/pactl.c:772
 msgid "sample-cache"
-msgstr ""
+msgstr "кэш сэмпла"
 
 #: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
-#, fuzzy
 msgid "server"
-msgstr "Неверный сервер"
+msgstr "сервер"
 
 #: ../src/utils/pactl.c:787
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "Событие '%s' в %s #%u\n"
 
 #: ../src/utils/pactl.c:955
 msgid "Got SIGINT, exiting."
 msgstr "Получен сигнал для остановки, выход."
 
 #: ../src/utils/pactl.c:961
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2161,6 +2172,7 @@ msgstr ""
 "%s [options] set-sink-mute SINK 1|0\n"
 "%s [options] set-source-mute SOURCE 1|0\n"
 "%s [options] set-sink-input-mute SINKINPUT 1|0\n"
+"%s [options] subscribe\n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
@@ -2462,7 +2474,7 @@ msgstr "Дуплексная телефония (HSP/HFP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2247
 msgid "Handsfree Gateway"
-msgstr ""
+msgstr "Шлюз гарнитуры"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
@@ -2543,23 +2555,20 @@ msgid "No Amplifier"
 msgstr "Нет усилителя"
 
 #: ../src/modules/alsa/alsa-mixer.c:1716
-#, fuzzy
 msgid "Bass Boost"
-msgstr "Усиление"
+msgstr "Усиление басов"
 
 #: ../src/modules/alsa/alsa-mixer.c:1717
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "Нет усиления"
+msgstr "Нет усиления басов"
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "Громкоговоритель"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
 msgid "Headphones"
-msgstr "Аналоговые наушники"
+msgstr "Наушники"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
@@ -2598,9 +2607,8 @@ msgid "Analog Mono Output"
 msgstr "Аналоговый вывод моно"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
-#, fuzzy
 msgid "Analog Speakers"
-msgstr "Аналоговое стерео"
+msgstr "Аналоговые громкоговорители"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
