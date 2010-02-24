@@ -158,7 +158,9 @@ static void sink_request_rewind_cb(pa_sink *s) {
         return;
 
     /* Just hand this one over to the master sink */
-    pa_sink_input_request_rewind(u->sink_input, s->thread_info.rewind_nbytes + pa_memblockq_get_length(u->memblockq), TRUE, FALSE, FALSE);
+    pa_sink_input_request_rewind(u->sink_input,
+                                 s->thread_info.rewind_nbytes +
+                                 pa_memblockq_get_length(u->memblockq), TRUE, FALSE, FALSE);
 }
 
 /* Called from I/O thread context */
@@ -924,7 +926,6 @@ void pa__done(pa_module*m) {
         pa_memblockq_free(u->memblockq);
 
     pa_xfree(u->input);
-
     pa_xfree(u->control);
 
     pa_xfree(u);

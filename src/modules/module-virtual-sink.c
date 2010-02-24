@@ -142,7 +142,9 @@ static void sink_request_rewind_cb(pa_sink *s) {
         return;
 
     /* Just hand this one over to the master sink */
-    pa_sink_input_request_rewind(u->sink_input, s->thread_info.rewind_nbytes + pa_memblockq_get_length(u->memblockq), TRUE, FALSE, FALSE);
+    pa_sink_input_request_rewind(u->sink_input,
+                                 s->thread_info.rewind_nbytes +
+                                 pa_memblockq_get_length(u->memblockq), TRUE, FALSE, FALSE);
 }
 
 /* Called from I/O thread context */
@@ -234,16 +236,19 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     dst = (float*) pa_memblock_acquire(chunk->memblock);
 
     /* PUT YOUR CODE HERE TO DO SOMETHING WITH THE DATA */
-    /* example, copy input to output */
+
+    /* As an example, copy input to output */
     for (c = 0; c < u->channels; c++) {
-        pa_sample_clamp(PA_SAMPLE_FLOAT32NE,dst+c, u->channels*sizeof(float),
-                        src+c, u->channels*sizeof(float),n);
+        pa_sample_clamp(PA_SAMPLE_FLOAT32NE,
+                        dst+c, u->channels*sizeof(float),
+                        src+c, u->channels*sizeof(float),
+                        n);
     }
+
     pa_memblock_release(tchunk.memblock);
     pa_memblock_release(chunk->memblock);
 
     pa_memblock_unref(tchunk.memblock);
-
 
     curr_latency =
         /* Get the latency of the master sink */
@@ -253,7 +258,6 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         pa_bytes_to_usec(pa_memblockq_get_length(i->thread_info.render_memblockq), &i->sink->sample_spec);
 
     /* FIXME: do something with the latency */
-
 
     return 0;
 }
@@ -275,8 +279,8 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
 
         if (amount > 0) {
             pa_memblockq_seek(u->memblockq, - (int64_t) amount, PA_SEEK_RELATIVE, TRUE);
-            /* NEED TO RESET POST-PROCESSING HERE */
 
+            /* PUT YOUR CODE HERE TO RESET POST-PROCESSING  */
         }
     }
 
@@ -480,19 +484,10 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-
     u = pa_xnew0(struct userdata, 1);
-    if (!u) {
-        pa_log("Failed to alloc userdata");
-        goto fail;
-    }
     u->module = m;
     m->userdata = u;
     u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, NULL);
-    if (!u->memblockq) {
-        pa_log("Failed to create sink memblockq.");
-        goto fail;
-    }
     u->channels = ss.channels;
 
     /* Create sink */
@@ -572,8 +567,6 @@ int pa__init(pa_module*m) {
     u->sink_input->mute_changed = sink_input_mute_changed_cb;
     u->sink_input->userdata = u;
 
-    //pa_sink_input_set_requested_latency(u->sink_input, 5000);
-
     pa_sink_put(u->sink);
     pa_sink_input_put(u->sink_input);
 
@@ -626,10 +619,8 @@ void pa__done(pa_module*m) {
     if (u->sink)
         pa_sink_unref(u->sink);
 
-
     if (u->memblockq)
         pa_memblockq_free(u->memblockq);
-
 
     pa_xfree(u);
 }
