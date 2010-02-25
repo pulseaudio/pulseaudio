@@ -199,7 +199,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     size_t fs;
     unsigned n, c;
     pa_memchunk tchunk;
-    pa_usec_t curr_latency;
+    pa_usec_t current_latency;
 
     pa_sink_input_assert_ref(i);
     pa_assert(chunk);
@@ -208,6 +208,10 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     /* Hmm, process any rewind request that might be queued up */
     pa_sink_process_rewind(u->sink, 0);
 
+    /* (1) IF YOU NEED A FIXED BLOCK SIZE USE
+     * pa_memblockq_peek_fixed_size() HERE INSTEAD. NOTE THAT FILTERS
+     * WHICH CAN DEAL WITH DYNAMIC BLOCK SIZES ARE HIGHLY
+     * PREFERRED. */
     while (pa_memblockq_peek(u->memblockq, &tchunk) < 0) {
         pa_memchunk nchunk;
 
@@ -216,6 +220,8 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         pa_memblock_unref(nchunk.memblock);
     }
 
+    /* (2) IF YOU NEED A FIXED BLOCK SIZE, THIS NEXT LINE IS NOT
+     * NECESSARY */
     tchunk.length = PA_MIN(nbytes, tchunk.length);
     pa_assert(tchunk.length > 0);
 
@@ -233,7 +239,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     src = (float*) ((uint8_t*) pa_memblock_acquire(tchunk.memblock) + tchunk.index);
     dst = (float*) pa_memblock_acquire(chunk->memblock);
 
-    /* PUT YOUR CODE HERE TO DO SOMETHING WITH THE DATA */
+    /* (3) PUT YOUR CODE HERE TO DO SOMETHING WITH THE DATA */
 
     /* As an example, copy input to output */
     for (c = 0; c < u->channels; c++) {
@@ -248,14 +254,13 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
     pa_memblock_unref(tchunk.memblock);
 
-    curr_latency =
+    /* (4) IF YOU NEED THE LATENCY FOR SOMETHING ACQUIRE IT LIKE THIS: */
+    current_latency =
         /* Get the latency of the master sink */
         pa_sink_get_latency_within_thread(i->sink) +
 
         /* Add the latency internal to our sink input on top */
         pa_bytes_to_usec(pa_memblockq_get_length(i->thread_info.render_memblockq), &i->sink->sample_spec);
-
-    /* FIXME: do something with the latency */
 
     return 0;
 }
@@ -278,7 +283,7 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
         if (amount > 0) {
             pa_memblockq_seek(u->memblockq, - (int64_t) amount, PA_SEEK_RELATIVE, TRUE);
 
-            /* PUT YOUR CODE HERE TO RESET POST-PROCESSING  */
+            /* (5) PUT YOUR CODE HERE TO RESET YOUR FILTER  */
         }
     }
 
@@ -304,6 +309,9 @@ static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
+    /* (6) IF YOU NEED A FIXED BLOCK SIZE ROUND nbytes UP TO MULTIPLES
+     * OF IT HERE. THE PA_ROUND_UP MACRO IS USEFUL FOR THAT. */
+
     pa_sink_set_max_request_within_thread(u->sink, nbytes);
 }
 
@@ -323,6 +331,10 @@ static void sink_input_update_sink_fixed_latency_cb(pa_sink_input *i) {
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
+
+    /* (7) IF YOU NEED A FIXED BLOCK SIZE ADD THE LATENCY FOR ONE
+     * BLOCK MINUS ONE SAMPLE HERE. pa_usec_to_bytes_round_up() IS
+     * USEFUL FOR THAT. */
 
     pa_sink_set_fixed_latency_within_thread(u->sink, i->sink->thread_info.fixed_latency);
 }
@@ -348,7 +360,14 @@ static void sink_input_attach_cb(pa_sink_input *i) {
 
     pa_sink_set_rtpoll(u->sink, i->sink->thread_info.rtpoll);
     pa_sink_set_latency_range_within_thread(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
+
+    /* (8.1) IF YOU NEED A FIXED BLOCK SIZE ADD THE LATENCY FOR ONE
+     * BLOCK MINUS ONE SAMPLE HERE. SEE (7) */
     pa_sink_set_fixed_latency_within_thread(u->sink, i->sink->thread_info.fixed_latency);
+
+    /* (8.2) IF YOU NEED A FIXED BLOCK SIZE ROUND
+     * pa_sink_input_get_max_request(i) UP TO MULTIPLES OF IT
+     * HERE. SEE (6) */
     pa_sink_set_max_request_within_thread(u->sink, pa_sink_input_get_max_request(i));
     pa_sink_set_max_rewind_within_thread(u->sink, pa_sink_input_get_max_rewind(i));
 
@@ -564,6 +583,8 @@ int pa__init(pa_module*m) {
     u->sink_input->volume_changed = sink_input_volume_changed_cb;
     u->sink_input->mute_changed = sink_input_mute_changed_cb;
     u->sink_input->userdata = u;
+
+    /* (9) INITIALIZE ANYTHING ELSE YOU NEED HERE */
 
     pa_sink_put(u->sink);
     pa_sink_input_put(u->sink_input);
