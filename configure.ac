@@ -1518,6 +1518,11 @@ if test "x$HAVE_LIRC" = "x1" ; then
    ENABLE_LIRC=yes
 fi
 
+ENABLE_DBUS=no
+if test "x$HAVE_DBUS" = "x1" ; then
+   ENABLE_DBUS=yes
+fi
+
 ENABLE_HAL=no
 if test "x$HAVE_HAL" = "x1" ; then
    ENABLE_HAL=yes
@@ -1608,6 +1613,7 @@ echo "
     Enable Jack:                   ${ENABLE_JACK}
     Enable Async DNS:              ${ENABLE_LIBASYNCNS}
     Enable LIRC:                   ${ENABLE_LIRC}
+    Enable DBUS:                   ${ENABLE_DBUS}
     Enable HAL:                    ${ENABLE_HAL}
     Enable udev:                   ${ENABLE_UDEV}
     Enable HAL->udev compat:       ${ENABLE_HAL_COMPAT}
