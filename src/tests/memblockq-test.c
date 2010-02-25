@@ -29,23 +29,43 @@
 #include <pulsecore/memblockq.h>
 #include <pulsecore/log.h>
 
+static void dump_chunk(const pa_memchunk *chunk) {
+    size_t n;
+    void *q;
+    char *e;
+
+    pa_assert(chunk);
+
+    printf("[");
+
+    q = pa_memblock_acquire(chunk->memblock);
+    for (e = (char*) q + chunk->index, n = 0; n < chunk->length; n++, e++)
+        printf("%c", *e);
+    pa_memblock_release(chunk->memblock);
+
+    printf("]");
+}
+
 static void dump(pa_memblockq *bq) {
-    printf(">");
+    pa_memchunk out;
+
+    pa_assert(bq);
+
+    /* First let's dump this as fixed block */
+    printf("FIXED >");
+    pa_memblockq_peek_fixed_size(bq, 64, &out);
+    dump_chunk(&out);
+    pa_memblock_unref(out.memblock);
+    printf("<\n");
+
+    /* Then let's dump the queue manually */
+    printf("MANUAL>");
 
     for (;;) {
-        pa_memchunk out;
-        char *e;
-        size_t n;
-        void *q;
-
         if (pa_memblockq_peek(bq, &out) < 0)
             break;
 
-        q = pa_memblock_acquire(out.memblock);
-        for (e = (char*) q + out.index, n = 0; n < out.length; n++)
-            printf("%c", *e);
-        pa_memblock_release(out.memblock);
-
+        dump_chunk(&out);
         pa_memblock_unref(out.memblock);
         pa_memblockq_drop(bq, out.length);
     }
@@ -70,7 +90,7 @@ int main(int argc, char *argv[]) {
     silence.index = 0;
     silence.length = pa_memblock_get_length(silence.memblock);
 
-    bq = pa_memblockq_new(0, 40, 10, 2, 4, 4, 40, &silence);
+    bq = pa_memblockq_new(0, 200, 10, 2, 4, 4, 40, &silence);
     assert(bq);
 
     chunk1.memblock = pa_memblock_new_fixed(p, (char*) "11", 2, 1);

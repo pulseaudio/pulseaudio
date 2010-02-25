@@ -95,6 +95,11 @@ void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek, pa
  * was passed we return the length of the hole in chunk->length. */
 int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk);
 
+/* Much like pa_memblockq_peek, but guarantees that the returned chunk
+ * will have a length of the block size passed. You must configure a
+ * silence memchunk for this memblockq if you use this call. */
+int pa_memblockq_peek_fixed_size(pa_memblockq *bq, size_t block_size, pa_memchunk *chunk);
+
 /* Drop the specified bytes from the queue. */
 void pa_memblockq_drop(pa_memblockq *bq, size_t length);
 

@@ -220,7 +220,6 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert(tchunk.length > 0);
 
     fs = pa_frame_size(&i->sample_spec);
-    //n = (unsigned) (PA_MIN(tchunk.length, u->block_size) / fs);
     n = (unsigned) (tchunk.length / fs);
 
     pa_assert(n > 0);
@@ -228,7 +227,6 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     chunk->index = 0;
     chunk->length = n*fs;
     chunk->memblock = pa_memblock_new(i->sink->core->mempool, chunk->length);
-    pa_assert( chunk->memblock );
 
     pa_memblockq_drop(u->memblockq, chunk->length);
 
@@ -240,8 +238,8 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     /* As an example, copy input to output */
     for (c = 0; c < u->channels; c++) {
         pa_sample_clamp(PA_SAMPLE_FLOAT32NE,
-                        dst+c, u->channels*sizeof(float),
-                        src+c, u->channels*sizeof(float),
+                        dst+c, u->channels * sizeof(float),
+                        src+c, u->channels * sizeof(float),
                         n);
     }
 

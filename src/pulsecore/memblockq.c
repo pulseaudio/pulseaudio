@@ -481,7 +481,6 @@ int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
 
     /* Do we need to spit out silence? */
     if (!bq->current_read || bq->current_read->index > bq->read_index) {
-
         size_t length;
 
         /* How much silence shall we return? */
@@ -524,6 +523,76 @@ int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
     chunk->index += (size_t) d;
     chunk->length -= (size_t) d;
 
+    return 0;
+}
+
+int pa_memblockq_peek_fixed_size(pa_memblockq *bq, size_t block_size, pa_memchunk *chunk) {
+    pa_memchunk tchunk, rchunk;
+    int64_t ri;
+    struct list_item *item;
+
+    pa_assert(bq);
+    pa_assert(block_size > 0);
+    pa_assert(chunk);
+    pa_assert(bq->silence.memblock);
+
+    if (pa_memblockq_peek(bq, &tchunk) < 0)
+        return -1;
+
+    if (tchunk.length >= block_size) {
+        *chunk = tchunk;
+        chunk->length = block_size;
+        return 0;
+    }
+
+    rchunk.memblock = pa_memblock_new(pa_memblock_get_pool(tchunk.memblock), block_size);
+    rchunk.index = 0;
+    rchunk.length = tchunk.length;
+
+    pa_memchunk_memcpy(&rchunk, &tchunk);
+    pa_memblock_unref(tchunk.memblock);
+
+    rchunk.index += tchunk.length;
+
+    /* We don't need to call fix_current_read() here, since
+     * pa_memblock_peek() already did that */
+    item = bq->current_read;
+    ri = bq->read_index + tchunk.length;
+
+    while (rchunk.index < block_size) {
+
+        if (!item || item->index > ri) {
+            /* Do we need to append silence? */
+            tchunk = bq->silence;
+
+            if (item)
+                tchunk.length = PA_MIN(tchunk.length, (size_t) (item->index - ri));
+
+        } else {
+            int64_t d;
+
+            /* We can append real data! */
+            tchunk = item->chunk;
+
+            d = ri - item->index;
+            tchunk.index += (size_t) d;
+            tchunk.length -= (size_t) d;
+
+            /* Go to next item for the next iteration */
+            item = item->next;
+        }
+
+        rchunk.length = tchunk.length = PA_MIN(tchunk.length, block_size - rchunk.index);
+        pa_memchunk_memcpy(&rchunk, &tchunk);
+
+        rchunk.index += rchunk.length;
+        ri += rchunk.length;
+    }
+
+    rchunk.index = 0;
+    rchunk.length = block_size;
+
+    *chunk = rchunk;
     return 0;
 }
 
