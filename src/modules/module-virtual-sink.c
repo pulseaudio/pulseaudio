@@ -504,7 +504,6 @@ int pa__init(pa_module*m) {
     u = pa_xnew0(struct userdata, 1);
     u->module = m;
     m->userdata = u;
-    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, NULL);
     u->channels = ss.channels;
 
     /* Create sink */
@@ -584,7 +583,12 @@ int pa__init(pa_module*m) {
     u->sink_input->mute_changed = sink_input_mute_changed_cb;
     u->sink_input->userdata = u;
 
-    /* (9) INITIALIZE ANYTHING ELSE YOU NEED HERE */
+    /* (9) IF YOU REQUIRE A FIXED BLOCK SIZE MAKE SURE TO PASS A
+     * SILENCE MEMBLOCK AS LAST PARAMETER
+     * HERE. pa_sink_input_get_silence() IS USEFUL HERE. */
+    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, NULL);
+
+    /* (10) INITIALIZE ANYTHING ELSE YOU NEED HERE */
 
     pa_sink_put(u->sink);
     pa_sink_input_put(u->sink_input);
