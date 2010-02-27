@@ -171,7 +171,7 @@ msgstr "Échec lors de l'analyse de la ligne de commande"
 
 #: ../src/daemon/main.c:535
 msgid "System mode refused for non-root user. Only starting the D-Bus server lookup service."
-msgstr ""
+msgstr "System mode refused for non-root user. Only starting the D-Bus server lookup service."
 
 #: ../src/daemon/main.c:617
 msgid "Daemon not running"
@@ -202,7 +202,7 @@ msgstr "--start n'est pas pris en charge pour les instances système."
 #: ../src/daemon/main.c:676
 #, c-format
 msgid "User-configured server at %s, not autospawning."
-msgstr ""
+msgstr "User-configured server at %s, not autospawning."
 
 #: ../src/daemon/main.c:683
 msgid "Running in system mode, but --disallow-exit not set!"
