@@ -1,50 +1,45 @@
 # Swedish translation for pulseaudio.
-# Copyright (C) 2008 Free Software Foundation, Inc.
+# Copyright (C) 2008, 2010 Free Software Foundation, Inc.
 # This file is distributed under the same license as the pulseaudio package.
-# Daniel Nylander <po@danielnylander.se>, 2008.
+# Daniel Nylander <po@danielnylander.se>, 2008, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2008-09-05 18:24+0100\n"
+"POT-Creation-Date: 2010-03-01 15:48+0000\n"
+"PO-Revision-Date: 2010-03-01 18:39+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/modules/alsa/alsa-util.c:861 ../src/pulsecore/sink.c:2631
+#: ../src/modules/alsa/alsa-util.c:861
+#: ../src/pulsecore/sink.c:2631
 #, c-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 #: ../src/modules/alsa/alsa-util.c:1109
 #, c-format
 msgid ""
-"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
-"ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
 
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
 
 #: ../src/modules/alsa/alsa-util.c:1197
 #, c-format
 msgid ""
-"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
-"(%lu ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
 
 #: ../src/modules/module-always-sink.c:39
@@ -60,12 +55,7 @@ msgid "Virtual LADSPA sink"
 msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:53
-msgid ""
-"sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
-"channels=<number of channels> channel_map=<channel map> plugin=<ladspa "
-"plugin name> label=<ladspa plugin label> control=<comma seperated list of "
-"input control values>"
+msgid "sink_name=<name for the sink> sink_properties=<properties for the sink> master=<name of sink to filter> format=<sample format> rate=<sample rate> channels=<number of channels> channel_map=<channel map> plugin=<ladspa plugin name> label=<ladspa plugin label> control=<comma seperated list of input control values>"
 msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
@@ -77,13 +67,12 @@ msgid "Null Output"
 msgstr ""
 
 #: ../src/pulsecore/sink.c:2615
-#, fuzzy
 msgid "Internal Audio"
-msgstr "Internt fel"
+msgstr "Internt ljud"
 
 #: ../src/pulsecore/sink.c:2620
 msgid "Modem"
-msgstr ""
+msgstr "Modem"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
@@ -132,7 +121,8 @@ msgstr ""
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "Hemkatalogen för användaren \"%s\" är inte \"%s\", ignorerar."
 
-#: ../src/daemon/main.c:213 ../src/daemon/main.c:218
+#: ../src/daemon/main.c:213
+#: ../src/daemon/main.c:218
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Misslyckades med att skapa \"%s\": %s"
@@ -170,9 +160,7 @@ msgid "Failed to parse command line."
 msgstr ""
 
 #: ../src/daemon/main.c:535
-msgid ""
-"System mode refused for non-root user. Only starting the D-Bus server lookup "
-"service."
+msgid "System mode refused for non-root user. Only starting the D-Bus server lookup service."
 msgstr ""
 
 #: ../src/daemon/main.c:617
@@ -190,15 +178,10 @@ msgid "Failed to kill daemon: %s"
 msgstr ""
 
 #: ../src/daemon/main.c:662
-msgid ""
-"This program is not intended to be run as root (unless --system is "
-"specified)."
-msgstr ""
-"Detta program är inte tänkt att köras som root (såvida inte --system har "
-"angivits)."
+msgid "This program is not intended to be run as root (unless --system is specified)."
+msgstr "Detta program är inte tänkt att köras som root (såvida inte --system har angivits)."
 
 #: ../src/daemon/main.c:665
-#, fuzzy
 msgid "Root privileges required."
 msgstr "Root-behörighet krävs."
 
@@ -232,16 +215,18 @@ msgid "Failed to acquire stdio."
 msgstr ""
 
 #: ../src/daemon/main.c:726
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "pipe misslyckades: %s"
+msgstr "pipe() misslyckades: %s"
 
-#: ../src/daemon/main.c:731 ../src/daemon/main.c:790
+#: ../src/daemon/main.c:731
+#: ../src/daemon/main.c:790
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() misslyckades: %s"
 
-#: ../src/daemon/main.c:745 ../src/utils/pacat.c:529
+#: ../src/daemon/main.c:745
+#: ../src/utils/pacat.c:529
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() misslyckades: %s"
@@ -277,12 +262,12 @@ msgstr ""
 #: ../src/daemon/main.c:835
 #, c-format
 msgid "Running on host: %s"
-msgstr ""
+msgstr "Kör på värd: %s"
 
 #: ../src/daemon/main.c:838
 #, c-format
 msgid "Found %u CPUs."
-msgstr ""
+msgstr "Hittade %u processorer."
 
 #: ../src/daemon/main.c:840
 #, c-format
@@ -363,12 +348,9 @@ msgstr ""
 
 #: ../src/daemon/main.c:893
 msgid ""
-"OK, so you are running PA in system mode. Please note that you most likely "
-"shouldn't be doing that.\n"
-"If you do it nonetheless then it's your own fault if things don't work as "
-"expected.\n"
-"Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
-"explanation why system mode is usually a bad idea."
+"OK, so you are running PA in system mode. Please note that you most likely shouldn't be doing that.\n"
+"If you do it nonetheless then it's your own fault if things don't work as expected.\n"
+"Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an explanation why system mode is usually a bad idea."
 msgstr ""
 
 #: ../src/daemon/main.c:910
@@ -380,9 +362,7 @@ msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr ""
 
 #: ../src/daemon/main.c:922
-msgid ""
-"Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
-"resolution timers enabled!"
+msgid "Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"
 msgstr ""
 
 #: ../src/daemon/main.c:945
@@ -420,48 +400,37 @@ msgid ""
 "      --dump-conf                       Dump default configuration\n"
 "      --dump-modules                    Dump list of available modules\n"
 "      --dump-resample-methods           Dump available resample methods\n"
-"      --cleanup-shm                     Cleanup stale shared memory "
-"segments\n"
-"      --start                           Start the daemon if it is not "
-"running\n"
+"      --cleanup-shm                     Cleanup stale shared memory segments\n"
+"      --start                           Start the daemon if it is not running\n"
 "  -k  --kill                            Kill a running daemon\n"
-"      --check                           Check for a running daemon (only "
-"returns exit code)\n"
+"      --check                           Check for a running daemon (only returns exit code)\n"
 "\n"
 "OPTIONS:\n"
 "      --system[=BOOL]                   Run as system-wide instance\n"
 "  -D, --daemonize[=BOOL]                Daemonize after startup\n"
 "      --fail[=BOOL]                     Quit when startup fails\n"
 "      --high-priority[=BOOL]            Try to set high nice level\n"
-"                                        (only available as root, when SUID "
-"or\n"
+"                                        (only available as root, when SUID or\n"
 "                                        with elevated RLIMIT_NICE)\n"
 "      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
-"                                        (only available as root, when SUID "
-"or\n"
+"                                        (only available as root, when SUID or\n"
 "                                        with elevated RLIMIT_RTPRIO)\n"
-"      --disallow-module-loading[=BOOL]  Disallow module user requested "
-"module\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested module\n"
 "                                        loading/unloading after startup\n"
 "      --disallow-exit[=BOOL]            Disallow user requested exit\n"
-"      --exit-idle-time=SECS             Terminate the daemon when idle and "
-"this\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and this\n"
 "                                        time passed\n"
-"      --module-idle-time=SECS           Unload autoloaded modules when idle "
-"and\n"
+"      --module-idle-time=SECS           Unload autoloaded modules when idle and\n"
 "                                        this time passed\n"
-"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
-"and\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle and\n"
 "                                        this time passed\n"
 "      --log-level[=LEVEL]               Increase or set verbosity level\n"
 "  -v                                    Increase the verbosity level\n"
 "      --log-target={auto,syslog,stderr} Specify the log target\n"
-"      --log-meta[=BOOL]                 Include code location in log "
-"messages\n"
+"      --log-meta[=BOOL]                 Include code location in log messages\n"
 "      --log-time[=BOOL]                 Include timestamps in log messages\n"
 "      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
-"  -p, --dl-search-path=PATH             Set the search path for dynamic "
-"shared\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic shared\n"
 "                                        objects (plugins)\n"
 "      --resample-method=METHOD          Use the specified resampling method\n"
 "                                        (See --dump-resample-methods for\n"
@@ -472,12 +441,10 @@ msgid ""
 "      --disable-shm[=BOOL]              Disable shared memory support.\n"
 "\n"
 "STARTUP SCRIPT:\n"
-"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
-"with\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module with\n"
 "                                        the specified argument\n"
 "  -F, --file=FILENAME                   Run the specified script\n"
-"  -C                                    Open a command line on the running "
-"TTY\n"
+"  -C                                    Open a command line on the running TTY\n"
 "                                        after startup\n"
 "\n"
 "  -n                                    Don't load default script file\n"
@@ -492,9 +459,7 @@ msgid "--fail expects boolean argument"
 msgstr "--fail förväntar sig ett booleskt argument"
 
 #: ../src/daemon/cmdline.c:264
-msgid ""
-"--log-level expects log level argument (either numeric in range 0..4 or one "
-"of debug, info, notice, warn, error)."
+msgid "--log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error)."
 msgstr ""
 
 #: ../src/daemon/cmdline.c:276
@@ -665,15 +630,13 @@ msgid "Failed to open configuration file: %s"
 msgstr "Misslyckades med att öppna konfigurationsfil: %s"
 
 #: ../src/daemon/daemon-conf.c:602
-msgid ""
-"The specified default channel map has a different number of channels than "
-"the specified default number of channels."
+msgid "The specified default channel map has a different number of channels than the specified default number of channels."
 msgstr ""
 
 #: ../src/daemon/daemon-conf.c:688
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
-msgstr ""
+msgstr "### Läs från konfigurationsfil: %s ###\n"
 
 #: ../src/daemon/caps.c:62
 #, fuzzy
@@ -682,13 +645,14 @@ msgstr "Släpper root-behörighet."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr ""
+msgstr "Ljudsystemet PulseAudio"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr ""
+msgstr "Starta ljudsystemet PulseAudio"
 
-#: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
+#: ../src/pulse/channelmap.c:105
+#: ../src/pulse/channelmap.c:757
 msgid "Mono"
 msgstr "Mono"
 
@@ -718,7 +682,7 @@ msgstr "Höger bak"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "Subwoofer"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -892,36 +856,38 @@ msgstr ""
 msgid "Top Rear Right"
 msgstr ""
 
-#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
-#: ../src/pulse/volume.c:295 ../src/pulse/volume.c:321
-#: ../src/pulse/volume.c:341 ../src/pulse/volume.c:371
-#, fuzzy
+#: ../src/pulse/channelmap.c:484
+#: ../src/pulse/sample.c:170
+#: ../src/pulse/volume.c:295
+#: ../src/pulse/volume.c:321
+#: ../src/pulse/volume.c:341
+#: ../src/pulse/volume.c:371
 msgid "(invalid)"
-msgstr "Ogiltig"
+msgstr "(ogiltig)"
 
 #: ../src/pulse/channelmap.c:761
 msgid "Stereo"
-msgstr ""
+msgstr "Stereo"
 
 #: ../src/pulse/channelmap.c:766
 msgid "Surround 4.0"
-msgstr ""
+msgstr "Surround 4.0"
 
 #: ../src/pulse/channelmap.c:772
 msgid "Surround 4.1"
-msgstr ""
+msgstr "Surround 4.1"
 
 #: ../src/pulse/channelmap.c:778
 msgid "Surround 5.0"
-msgstr ""
+msgstr "Surround 5.0"
 
 #: ../src/pulse/channelmap.c:784
 msgid "Surround 5.1"
-msgstr ""
+msgstr "Surround 5.1"
 
 #: ../src/pulse/channelmap.c:791
 msgid "Surround 7.1"
-msgstr ""
+msgstr "Surround 7.1"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
@@ -1034,29 +1000,30 @@ msgstr ""
 #: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
-msgstr ""
+msgstr "%s %uch %uHz"
 
 #: ../src/pulse/sample.c:184
 #, c-format
 msgid "%0.1f GiB"
-msgstr ""
+msgstr "%0.1f GiB"
 
 #: ../src/pulse/sample.c:186
 #, c-format
 msgid "%0.1f MiB"
-msgstr ""
+msgstr "%0.1f MiB"
 
 #: ../src/pulse/sample.c:188
 #, c-format
 msgid "%0.1f KiB"
-msgstr ""
+msgstr "%0.1f KiB"
 
 #: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
-msgstr ""
+msgstr "%u B"
 
-#: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
+#: ../src/pulse/client-conf-x11.c:55
+#: ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
 msgstr "XOpenDisplay() misslyckades"
 
@@ -1116,7 +1083,8 @@ msgstr "pa_stream_write() misslyckades: %s\n"
 msgid "pa_stream_begin_write() failed: %s"
 msgstr "pa_stream_write() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:252 ../src/utils/pacat.c:282
+#: ../src/utils/pacat.c:252
+#: ../src/utils/pacat.c:282
 #, fuzzy, c-format
 msgid "pa_stream_peek() failed: %s"
 msgstr "pa_stream_peek() misslyckades: %s\n"
@@ -1195,9 +1163,9 @@ msgid "Stream buffer attributes changed.%s"
 msgstr ""
 
 #: ../src/utils/pacat.c:430
-#, fuzzy, c-format
+#, c-format
 msgid "Connection established.%s"
-msgstr "Anslutning etablerad.\n"
+msgstr "Anslutning etablerad.%s"
 
 #: ../src/utils/pacat.c:433
 #, fuzzy, c-format
@@ -1214,20 +1182,20 @@ msgstr "pa_stream_connect_playback() misslyckades: %s\n"
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:491 ../src/utils/pactl.c:949
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:491
+#: ../src/utils/pactl.c:949
+#, c-format
 msgid "Connection failure: %s"
-msgstr "Anslutningsfel: %s\n"
+msgstr "Anslutningsfel: %s"
 
 #: ../src/utils/pacat.c:524
-#, fuzzy
 msgid "Got EOF."
-msgstr "Fick filslut.\n"
+msgstr "Fick filslut."
 
 #: ../src/utils/pacat.c:561
-#, fuzzy, c-format
+#, c-format
 msgid "write() failed: %s"
-msgstr "write() misslyckades: %s\n"
+msgstr "write() misslyckades: %s"
 
 #: ../src/utils/pacat.c:582
 #, fuzzy
@@ -1240,9 +1208,9 @@ msgid "Failed to get latency: %s"
 msgstr "Misslyckades med att få statistik: %s\n"
 
 #: ../src/utils/pacat.c:601
-#, fuzzy, c-format
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "Tid: %0.3f sec; Latens: %0.0f ms  \r"
+msgstr ""
 
 #: ../src/utils/pacat.c:620
 #, fuzzy, c-format
@@ -1262,52 +1230,31 @@ msgid ""
 "\n"
 "  -v, --verbose                         Enable verbose operations\n"
 "\n"
-"  -s, --server=SERVER                   The name of the server to connect "
-"to\n"
-"  -d, --device=DEVICE                   The name of the sink/source to "
-"connect to\n"
-"  -n, --client-name=NAME                How to call this client on the "
-"server\n"
-"      --stream-name=NAME                How to call this stream on the "
-"server\n"
-"      --volume=VOLUME                   Specify the initial (linear) volume "
-"in range 0...65536\n"
-"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
-"44100)\n"
-"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
-"s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be, "
-"s24le, s24be,\n"
-"                                        s24-32le, s24-32be (defaults to "
-"s16ne)\n"
-"      --channels=CHANNELS               The number of channels, 1 for mono, "
-"2 for stereo\n"
+"  -s, --server=SERVER                   The name of the server to connect to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to connect to\n"
+"  -n, --client-name=NAME                How to call this client on the server\n"
+"      --stream-name=NAME                How to call this stream on the server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to 44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, s24le, s24be,\n"
+"                                        s24-32le, s24-32be (defaults to s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, 2 for stereo\n"
 "                                        (defaults to 2)\n"
-"      --channel-map=CHANNELMAP          Channel map to use instead of the "
-"default\n"
-"      --fix-format                      Take the sample format from the sink "
-"the stream is\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the default\n"
+"      --fix-format                      Take the sample format from the sink the stream is\n"
 "                                        being connected to.\n"
-"      --fix-rate                        Take the sampling rate from the sink "
-"the stream is\n"
+"      --fix-rate                        Take the sampling rate from the sink the stream is\n"
 "                                        being connected to.\n"
-"      --fix-channels                    Take the number of channels and the "
-"channel map\n"
-"                                        from the sink the stream is being "
-"connected to.\n"
+"      --fix-channels                    Take the number of channels and the channel map\n"
+"                                        from the sink the stream is being connected to.\n"
 "      --no-remix                        Don't upmix or downmix channels.\n"
-"      --no-remap                        Map channels by index instead of "
-"name.\n"
-"      --latency=BYTES                   Request the specified latency in "
-"bytes.\n"
-"      --process-time=BYTES              Request the specified process time "
-"per request in bytes.\n"
-"      --latency-msec=MSEC               Request the specified latency in "
-"msec.\n"
-"      --process-time-msec=MSEC          Request the specified process time "
-"per request in msec.\n"
-"      --property=PROPERTY=VALUE         Set the specified property to the "
-"specified value.\n"
+"      --no-remap                        Map channels by index instead of name.\n"
+"      --latency=BYTES                   Request the specified latency in bytes.\n"
+"      --process-time=BYTES              Request the specified process time per request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time per request in msec.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the specified value.\n"
 "      --raw                             Record/play raw PCM data.\n"
 "      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
 "      --list-file-formats               List available file formats.\n"
@@ -1320,8 +1267,12 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pacat %s\n"
+"Kompilerad med libpulse %s\n"
+"Länkad med libpulse %s\n"
 
-#: ../src/utils/pacat.c:791 ../src/utils/pactl.c:1046
+#: ../src/utils/pacat.c:791
+#: ../src/utils/pactl.c:1046
 #, fuzzy, c-format
 msgid "Invalid client name '%s'"
 msgstr "Ogiltig server"
@@ -1336,12 +1287,14 @@ msgstr "Ogiltig server"
 msgid "Invalid channel map '%s'"
 msgstr "Ogiltig server"
 
-#: ../src/utils/pacat.c:872 ../src/utils/pacat.c:886
+#: ../src/utils/pacat.c:872
+#: ../src/utils/pacat.c:886
 #, c-format
 msgid "Invalid latency specification '%s'"
 msgstr ""
 
-#: ../src/utils/pacat.c:879 ../src/utils/pacat.c:893
+#: ../src/utils/pacat.c:879
+#: ../src/utils/pacat.c:893
 #, fuzzy, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "Ogiltig server"
@@ -1354,7 +1307,7 @@ msgstr "Ogiltig server"
 #: ../src/utils/pacat.c:922
 #, c-format
 msgid "Unknown file format %s."
-msgstr ""
+msgstr "Okänt filformat %s."
 
 #: ../src/utils/pacat.c:941
 #, fuzzy
@@ -1362,19 +1315,18 @@ msgid "Invalid sample specification"
 msgstr "Misslyckades med att få modulinformation: %s\n"
 
 #: ../src/utils/pacat.c:951
-#, fuzzy, c-format
+#, c-format
 msgid "open(): %s"
-msgstr "open(): %s\n"
+msgstr "open(): %s"
 
 #: ../src/utils/pacat.c:956
-#, fuzzy, c-format
+#, c-format
 msgid "dup2(): %s"
-msgstr "dup2(): %s\n"
+msgstr "dup2(): %s"
 
 #: ../src/utils/pacat.c:963
-#, fuzzy
 msgid "Too many arguments."
-msgstr "För många argument.\n"
+msgstr "För många argument."
 
 #: ../src/utils/pacat.c:974
 #, fuzzy
@@ -1387,12 +1339,11 @@ msgid "Failed to open audio file."
 msgstr "Misslyckades med att öppna ljudfil.\n"
 
 #: ../src/utils/pacat.c:1000
-msgid ""
-"Warning: specified sample specification will be overwritten with "
-"specification from file."
+msgid "Warning: specified sample specification will be overwritten with specification from file."
 msgstr ""
 
-#: ../src/utils/pacat.c:1003 ../src/utils/pactl.c:1090
+#: ../src/utils/pacat.c:1003
+#: ../src/utils/pactl.c:1090
 #, fuzzy
 msgid "Failed to determine sample specification from file."
 msgstr "Misslyckades med att få modulinformation: %s\n"
@@ -1412,19 +1363,19 @@ msgstr ""
 
 #: ../src/utils/pacat.c:1049
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 
 #: ../src/utils/pacat.c:1050
 msgid "recording"
-msgstr ""
+msgstr "inspelning"
 
 #: ../src/utils/pacat.c:1050
 msgid "playback"
-msgstr ""
+msgstr "uppspelning"
 
-#: ../src/utils/pacat.c:1076 ../src/utils/pactl.c:1364
+#: ../src/utils/pacat.c:1076
+#: ../src/utils/pactl.c:1364
 #, fuzzy
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() misslyckades.\n"
@@ -1434,12 +1385,14 @@ msgstr "pa_mainloop_new() misslyckades.\n"
 msgid "io_new() failed."
 msgstr "io_new() misslyckades.\n"
 
-#: ../src/utils/pacat.c:1102 ../src/utils/pactl.c:1376
+#: ../src/utils/pacat.c:1102
+#: ../src/utils/pactl.c:1376
 #, fuzzy
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() misslyckades.\n"
 
-#: ../src/utils/pacat.c:1110 ../src/utils/pactl.c:1382
+#: ../src/utils/pacat.c:1110
+#: ../src/utils/pactl.c:1382
 #, fuzzy, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_new() misslyckades.\n"
@@ -1449,7 +1402,8 @@ msgstr "pa_context_new() misslyckades.\n"
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_new() misslyckades.\n"
 
-#: ../src/utils/pacat.c:1123 ../src/utils/pactl.c:1387
+#: ../src/utils/pacat.c:1123
+#: ../src/utils/pactl.c:1387
 #, fuzzy
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() misslyckades.\n"
@@ -1501,8 +1455,7 @@ msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
-"  -s, --server=SERVER                   The name of the server to connect "
-"to\n"
+"  -s, --server=SERVER                   The name of the server to connect to\n"
 "\n"
 msgstr ""
 
@@ -1609,15 +1562,17 @@ msgid ""
 "\t\t%s\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:281 ../src/utils/pactl.c:373
+#: ../src/utils/pactl.c:281
+#: ../src/utils/pactl.c:373
 #, c-format
 msgid "\tPorts:\n"
-msgstr ""
+msgstr "\tPortar:\n"
 
-#: ../src/utils/pactl.c:287 ../src/utils/pactl.c:379
-#, fuzzy, c-format
+#: ../src/utils/pactl.c:287
+#: ../src/utils/pactl.c:379
+#, c-format
 msgid "\tActive Port: %s\n"
-msgstr "pipe misslyckades: %s"
+msgstr "\tAktiv port: %s\n"
 
 #: ../src/utils/pactl.c:310
 #, fuzzy, c-format
@@ -1646,10 +1601,18 @@ msgid ""
 "\t\t%s\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:358 ../src/utils/pactl.c:414 ../src/utils/pactl.c:449
-#: ../src/utils/pactl.c:486 ../src/utils/pactl.c:545 ../src/utils/pactl.c:546
-#: ../src/utils/pactl.c:556 ../src/utils/pactl.c:600 ../src/utils/pactl.c:601
-#: ../src/utils/pactl.c:607 ../src/utils/pactl.c:650 ../src/utils/pactl.c:651
+#: ../src/utils/pactl.c:358
+#: ../src/utils/pactl.c:414
+#: ../src/utils/pactl.c:449
+#: ../src/utils/pactl.c:486
+#: ../src/utils/pactl.c:545
+#: ../src/utils/pactl.c:546
+#: ../src/utils/pactl.c:556
+#: ../src/utils/pactl.c:600
+#: ../src/utils/pactl.c:601
+#: ../src/utils/pactl.c:607
+#: ../src/utils/pactl.c:650
+#: ../src/utils/pactl.c:651
 #: ../src/utils/pactl.c:658
 msgid "n/a"
 msgstr ""
@@ -1684,6 +1647,11 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Klient #%u\n"
+"\tDrivrutin: %s\n"
+"\tÄgarmodul: %s\n"
+"\tEgenskaper:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:460
 #, fuzzy, c-format
@@ -1700,16 +1668,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Kort #%u\n"
+"\tNamn: %s\n"
+"\tDrivrutin: %s\n"
+"\tÄgarmodul: %s\n"
+"\tEgenskaper:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:492
 #, c-format
 msgid "\tProfiles:\n"
-msgstr ""
+msgstr "\tProfiler:\n"
 
 #: ../src/utils/pactl.c:498
-#, fuzzy, c-format
+#, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "pipe misslyckades: %s"
+msgstr "\tAktiv profil: %s\n"
 
 #: ../src/utils/pactl.c:509
 #, fuzzy, c-format
@@ -1782,7 +1756,8 @@ msgid ""
 "\t\t%s\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:666 ../src/utils/pactl.c:676
+#: ../src/utils/pactl.c:666
+#: ../src/utils/pactl.c:676
 #, fuzzy, c-format
 msgid "Failure: %s"
 msgstr "Fel: %s\n"
@@ -1808,7 +1783,8 @@ msgstr ""
 msgid "remove"
 msgstr ""
 
-#: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
+#: ../src/utils/pactl.c:746
+#: ../src/utils/pactl.c:781
 msgid "unknown"
 msgstr ""
 
@@ -1841,10 +1817,10 @@ msgstr ""
 msgid "sample-cache"
 msgstr ""
 
-#: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
-#, fuzzy
+#: ../src/utils/pactl.c:775
+#: ../src/utils/pactl.c:778
 msgid "server"
-msgstr "Ogiltig server"
+msgstr "server"
 
 #: ../src/utils/pactl.c:787
 #, c-format
@@ -1885,10 +1861,8 @@ msgid ""
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
 "\n"
-"  -s, --server=SERVER                   The name of the server to connect "
-"to\n"
-"  -n, --client-name=NAME                How to call this client on the "
-"server\n"
+"  -s, --server=SERVER                   The name of the server to connect to\n"
+"  -n, --client-name=NAME                How to call this client on the server\n"
 msgstr ""
 
 #: ../src/utils/pactl.c:1026
@@ -1941,14 +1915,11 @@ msgid "You have to specify a module index"
 msgstr ""
 
 #: ../src/utils/pactl.c:1183
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
 
 #: ../src/utils/pactl.c:1196
-msgid ""
-"You may not specify more than one source. You have to specify a boolean "
-"value."
+msgid "You may not specify more than one source. You have to specify a boolean value."
 msgstr ""
 
 #: ../src/utils/pactl.c:1208
@@ -1967,9 +1938,12 @@ msgstr ""
 msgid "You have to specify a sink name/index and a volume"
 msgstr ""
 
-#: ../src/utils/pactl.c:1247 ../src/utils/pactl.c:1264
-#: ../src/utils/pactl.c:1286 ../src/utils/pactl.c:1302
-#: ../src/utils/pactl.c:1319 ../src/utils/pactl.c:1341
+#: ../src/utils/pactl.c:1247
+#: ../src/utils/pactl.c:1264
+#: ../src/utils/pactl.c:1286
+#: ../src/utils/pactl.c:1302
+#: ../src/utils/pactl.c:1319
+#: ../src/utils/pactl.c:1341
 #, fuzzy
 msgid "Invalid volume specification"
 msgstr "Misslyckades med att få modulinformation: %s\n"
@@ -2014,8 +1988,7 @@ msgid ""
 "\n"
 " -d    Show current PulseAudio data attached to X11 display (default)\n"
 " -e    Export local PulseAudio data to X11 display\n"
-" -i    Import PulseAudio data from X11 display to local environment "
-"variables and cookie file.\n"
+" -i    Import PulseAudio data from X11 display to local environment variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
 
@@ -2102,51 +2075,50 @@ msgid "Daemon not responding."
 msgstr ""
 
 #: ../src/utils/pacmd.c:178
-#, fuzzy, c-format
+#, c-format
 msgid "poll(): %s"
-msgstr "fork(): %s"
+msgstr "poll(): %s"
 
-#: ../src/utils/pacmd.c:189 ../src/utils/pacmd.c:209
+#: ../src/utils/pacmd.c:189
+#: ../src/utils/pacmd.c:209
 #, c-format
 msgid "read(): %s"
 msgstr "read(): %s"
 
-#: ../src/utils/pacmd.c:231 ../src/utils/pacmd.c:249
+#: ../src/utils/pacmd.c:231
+#: ../src/utils/pacmd.c:249
 #, c-format
 msgid "write(): %s"
 msgstr "write(): %s"
 
-#: ../src/pulsecore/lock-autospawn.c:134 ../src/pulsecore/lock-autospawn.c:217
+#: ../src/pulsecore/lock-autospawn.c:134
+#: ../src/pulsecore/lock-autospawn.c:217
 msgid "Cannot access autospawn lock."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-sink.c:530 ../src/modules/alsa/alsa-sink.c:689
+#: ../src/modules/alsa/alsa-sink.c:530
+#: ../src/modules/alsa/alsa-sink.c:689
 #, c-format
 msgid ""
-"ALSA woke us up to write new data to the device, but there was actually "
-"nothing to write!\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers.\n"
-"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
-"returned 0 or another value < min_avail."
+"ALSA woke us up to write new data to the device, but there was actually nothing to write!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
+#: ../src/modules/alsa/alsa-source.c:506
+#: ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
-"ALSA woke us up to read new data from the device, but there was actually "
-"nothing to read!\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers.\n"
-"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
-"returned 0 or another value < min_avail."
+"ALSA woke us up to read new data from the device, but there was actually nothing to read!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
 
 #: ../src/modules/alsa/module-alsa-card.c:152
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2262
 #: ../src/modules/alsa/alsa-mixer.c:2936
 msgid "Off"
-msgstr ""
+msgstr "Av"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2204
 msgid "High Fidelity Playback (A2DP)"
@@ -2171,20 +2143,20 @@ msgstr ""
 #: ../src/modules/module-rygel-media-server.c:592
 #: ../src/modules/module-rygel-media-server.c:606
 msgid "Output Devices"
-msgstr ""
+msgstr "Utgångsenheter"
 
 #: ../src/modules/module-rygel-media-server.c:593
 #: ../src/modules/module-rygel-media-server.c:607
 msgid "Input Devices"
-msgstr ""
+msgstr "Ingångsenheter"
 
 #: ../src/modules/module-rygel-media-server.c:797
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "Ljud på @HOSTNAME@"
 
 #: ../src/modules/alsa/alsa-mixer.c:1701
 msgid "Input"
-msgstr ""
+msgstr "Ingång"
 
 #: ../src/modules/alsa/alsa-mixer.c:1702
 msgid "Docking Station Input"
@@ -2200,24 +2172,23 @@ msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1705
 msgid "Microphone"
-msgstr ""
+msgstr "Mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1706
 msgid "External Microphone"
-msgstr ""
+msgstr "Extern mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1707
-#, fuzzy
 msgid "Internal Microphone"
-msgstr "Internt fel"
+msgstr "Intern mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
-msgstr ""
+msgstr "Radio"
 
 #: ../src/modules/alsa/alsa-mixer.c:1709
 msgid "Video"
-msgstr ""
+msgstr "Video"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
@@ -2237,11 +2208,11 @@ msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
-msgstr ""
+msgstr "Förstärkare"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
 msgid "No Amplifier"
-msgstr ""
+msgstr "Ingen förstärkare"
 
 #: ../src/modules/alsa/alsa-mixer.c:1716
 msgid "Bass Boost"
@@ -2253,19 +2224,19 @@ msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "Högtalare"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
 msgid "Headphones"
-msgstr ""
+msgstr "Hörlurar"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
-msgstr ""
+msgstr "Analog ingång"
 
 #: ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Analog Microphone"
-msgstr ""
+msgstr "Analog mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1779
 msgid "Analog Line-In"
@@ -2273,23 +2244,23 @@ msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Analog Radio"
-msgstr ""
+msgstr "Analog radio"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Analog Video"
-msgstr ""
+msgstr "Analog video"
 
 #: ../src/modules/alsa/alsa-mixer.c:1782
 msgid "Analog Output"
-msgstr ""
+msgstr "Analog utgång"
 
 #: ../src/modules/alsa/alsa-mixer.c:1783
 msgid "Analog Headphones"
-msgstr ""
+msgstr "Analoga hörlurar"
 
 #: ../src/modules/alsa/alsa-mixer.c:1784
 msgid "Analog Output (LFE)"
-msgstr ""
+msgstr "Analog utgång (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
 msgid "Analog Mono Output"
@@ -2297,89 +2268,90 @@ msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
 msgid "Analog Speakers"
-msgstr ""
+msgstr "Analoga högtalare"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
 msgid "%s+%s"
-msgstr ""
+msgstr "%s+%s"
 
-#: ../src/modules/alsa/alsa-mixer.c:1989 ../src/modules/alsa/alsa-mixer.c:3409
+#: ../src/modules/alsa/alsa-mixer.c:1989
+#: ../src/modules/alsa/alsa-mixer.c:3409
 #, c-format
 msgid "%s / %s"
-msgstr ""
+msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
 msgid "Analog Mono"
-msgstr ""
+msgstr "Analog mono"
 
 #: ../src/modules/alsa/alsa-mixer.c:2796
 msgid "Analog Stereo"
-msgstr ""
+msgstr "Analog stereo"
 
 #: ../src/modules/alsa/alsa-mixer.c:2797
 msgid "Analog Surround 2.1"
-msgstr ""
+msgstr "Analog Surround 2.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2798
 msgid "Analog Surround 3.0"
-msgstr ""
+msgstr "Analog Surround 3.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2799
 msgid "Analog Surround 3.1"
-msgstr ""
+msgstr "Analog Surround 3.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2800
 msgid "Analog Surround 4.0"
-msgstr ""
+msgstr "Analog Surround 4.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2801
 msgid "Analog Surround 4.1"
-msgstr ""
+msgstr "Analog Surround 4.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2802
 msgid "Analog Surround 5.0"
-msgstr ""
+msgstr "Analog Surround 5.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2803
 msgid "Analog Surround 5.1"
-msgstr ""
+msgstr "Analog Surround 5.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2804
 msgid "Analog Surround 6.0"
-msgstr ""
+msgstr "Analog Surround 6.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2805
 msgid "Analog Surround 6.1"
-msgstr ""
+msgstr "Analog Surround 6.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Surround 7.0"
-msgstr ""
+msgstr "Analog Surround 7.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2807
 msgid "Analog Surround 7.1"
-msgstr ""
+msgstr "Analog Surround 7.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2808
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "Digital stereo (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2809
 msgid "Digital Surround 4.0 (IEC958)"
-msgstr ""
+msgstr "Digital Surround 4.0 (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2810
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "Digital Surround 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2811
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "Digital Surround 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2812
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "Digital stereo (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2933
 msgid "Analog Mono Duplex"
@@ -2395,23 +2367,18 @@ msgstr ""
 
 #~ msgid "select(): %s"
 #~ msgstr "select(): %s"
-
 #~ msgid "PolicyKit responded with '%s'"
 #~ msgstr "PolicyKit svarade med \"%s\""
-
 #~ msgid "read() failed: %s\n"
 #~ msgstr "read() misslyckades: %s\n"
 
 #, fuzzy
 #~ msgid "pa_context_connect() failed: %s\n"
 #~ msgstr "pa_context_new() misslyckades.\n"
-
 #~ msgid "RLIMIT_RTPRIO failed: %s"
 #~ msgstr "RLIMIT_RTPRIO misslyckades: %s"
-
 #~ msgid "time_new() failed.\n"
 #~ msgstr "time_new() misslyckades.\n"
-
 #~ msgid ""
 #~ "paplay %s\n"
 #~ "Compiled with libpulse %s\n"
@@ -2420,19 +2387,16 @@ msgstr ""
 #~ "paplay %s\n"
 #~ "Kompilerad med libpulse %s\n"
 #~ "Länkad med libpulse %s\n"
-
 #~ msgid "Failed to open file '%s'\n"
 #~ msgstr "Misslyckades med att öppna filen \"%s\"\n"
 
 #, fuzzy
 #~ msgid "--log-time boolean argument"
 #~ msgstr "--disallow-exit booleskt argument"
-
 #~ msgid "pa_stream_drop() failed: %s\n"
 #~ msgstr "pa_stream_drop() misslyckades: %s\n"
-
 #~ msgid "muted"
 #~ msgstr "tystad"
-
 #~ msgid "socketpair(): %s"
 #~ msgstr "socketpair(): %s"
+
