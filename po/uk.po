@@ -1,21 +1,21 @@
 # Copyright (C) 2009 Free Software Foundation, Inc.
 # This file is distributed under the same license as the pulseaudio.master-tx package.
 #
-# Yuri Chornoivan <yurchor@ukr.net>, 2009.
+# Yuri Chornoivan <yurchor@ukr.net>, 2009, 2010.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-10-03 19:28+0300\n"
+"POT-Creation-Date: 2010-03-02 09:40+0000\n"
+"PO-Revision-Date: 2010-03-02 14:53+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation@linux.org.ua>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 0.3\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
-"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Lokalize 1.0\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 "
+"&& (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: ../src/modules/alsa/alsa-util.c:861 ../src/pulsecore/sink.c:2631
 #, c-format
@@ -196,6 +196,8 @@ msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
 msgstr ""
+"Запуск у системному режимі для неадміністративного користувача неможливий. Буде "
+"запущено лише службу виявлення пристроїв сервера D-Bus."
 
 #: ../src/daemon/main.c:617
 msgid "Daemon not running"
@@ -231,12 +233,11 @@ msgstr ""
 #: ../src/daemon/main.c:676
 #, c-format
 msgid "User-configured server at %s, not autospawning."
-msgstr ""
+msgstr "Налаштований користувачем сервер на %s, без автоматичного розгалуження."
 
 #: ../src/daemon/main.c:683
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
-"Запуск у загальносистемному режимі, але не встановлено --disallow-exit!"
+msgstr "Запуск у загальносистемному режимі, але не встановлено --disallow-exit!"
 
 #: ../src/daemon/main.c:686
 msgid "Running in system mode, but --disallow-module-loading not set!"
@@ -259,9 +260,9 @@ msgid "Failed to acquire stdio."
 msgstr "Не вдалося отримати stdio."
 
 #: ../src/daemon/main.c:726
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "Спроба створення каналу завершилася невдало: %s"
+msgstr "Спроба виконання pipe() завершилася невдало: %s"
 
 #: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
@@ -282,9 +283,9 @@ msgid "Daemon startup successful."
 msgstr "Фонову службу успішно запущено."
 
 #: ../src/daemon/main.c:778
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "Спроба виконання read() завершилася невдало: %s"
+msgstr "Спроба виконання setsid() завершилася невдало: %s"
 
 #: ../src/daemon/main.c:830
 #, c-format
@@ -330,9 +331,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "Запуск у режимі valgrind: %s"
 
 #: ../src/daemon/main.c:850
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "Запущено на вузлі: %s"
+msgstr "Запущено у віртуальній машині: %s"
 
 #: ../src/daemon/main.c:853
 msgid "Optimized build: yes"
@@ -778,9 +779,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Некоректний рівень nice «%s»."
 
 #: ../src/daemon/daemon-conf.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] Некоректна частота вибірки «%s»."
+msgstr "[%s:%u] Некоректний тип сервера «%s»."
 
 #: ../src/daemon/daemon-conf.c:586
 #, c-format
@@ -842,7 +843,7 @@ msgstr "Задній правий"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "Низькочастотний динамік"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1194,8 +1195,7 @@ msgstr "Не вдалося відкрити файл налаштування �
 
 #: ../src/pulse/context.c:539
 msgid "No cookie loaded. Attempting to connect without."
-msgstr ""
-"Куків не завантажено. Буде виконано спробу з’єднання за їх відсутності."
+msgstr "Куків не завантажено. Буде виконано спробу з’єднання за їх відсутності."
 
 #: ../src/pulse/context.c:682
 #, c-format
@@ -1369,11 +1369,10 @@ msgstr "Час: %0.3f сек.; Латентність: %0.0f мкс."
 #: ../src/utils/pacat.c:620
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr ""
-"Спроба виконання pa_stream_update_timing_info() завершилася невдало: %s"
+msgstr "Спроба виконання pa_stream_update_timing_info() завершилася невдало: %s"
 
 #: ../src/utils/pacat.c:630
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1449,15 +1448,18 @@ msgstr ""
 "встановити з’єднання\n"
 "  -d, --device=ПРИСТРІЙ                  Назва пристрою приймача/джерела, з "
 "яким слід встановити з’єднання\n"
-"  -n, --client-name=НАЗВА               Спосіб виклику клієнта на сервері\n"
-"      --stream-name=НАЗВА               Спосіб виклику потоку на сервері\n"
+"  -n, --client-name=НАЗВА               Назва клієнта на сервері\n"
+"      --stream-name=НАЗВА               Назва потоку на сервері\n"
 "      --volume=ГУЧНІСТЬ                 Вказати початкову (лінійну) гучність "
 "у діапазоні 0..65536\n"
 "      --rate=ЧАСТОТА_ВИБІРКИ             Частота вибірки у Гц (типовим є "
 "значення 44100)\n"
 "      --format=ФОРМАТ                   Тип вибірки, можливі значення: "
-"s16le, s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be "
+"s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be "
 "(типовим є значення s16ne)\n"
 "      --channels=КАНАЛИ              Кількість каналів, 1 — моно, 2 — "
 "стерео\n"
@@ -1485,7 +1487,7 @@ msgstr ""
 "вказане значення.\n"
 "      --raw                             Записати/Відтворити не оброблені "
 "дані PCM.\n"
-"      --file-format=ФОРМАТ              Записати/Відтворити форматовані дані "
+"      --file-format[=ФОРМАТ]              Записати/Відтворити форматовані дані "
 "PCM.\n"
 "      --list-file-formats               Показати список можливих форматів "
 "файлів.\n"
@@ -1588,10 +1590,8 @@ msgstr "Попередження: не вдалося записати карт�
 
 #: ../src/utils/pacat.c:1049
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr ""
-"Відкриття потоку %s з частотною специфікацією «%s» і картою каналів «%s»."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr "Відкриття потоку %s з частотною специфікацією «%s» і картою каналів «%s»."
 
 #: ../src/utils/pacat.c:1050
 msgid "recording"
@@ -1665,8 +1665,7 @@ msgstr "Отримано сигнал SIGINT, завершення роботи.
 #: ../src/utils/pasuspender.c:192
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
-"ПОПЕРЕДЖЕННЯ: виконання дочірнього процесу було перервано з сигналом %u\n"
+msgstr "ПОПЕРЕДЖЕННЯ: виконання дочірнього процесу було перервано з сигналом %u\n"
 
 #: ../src/utils/pasuspender.c:210
 #, c-format
@@ -1726,8 +1725,7 @@ msgstr "Зараз використано: %u блоків, що містять 
 #: ../src/utils/pactl.c:143
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
-"Виділено протягом виконання загалом: %u блоків, що містять %s байтів.\n"
+msgstr "Виділено протягом виконання загалом: %u блоків, що містять %s байтів.\n"
 
 #: ../src/utils/pactl.c:146
 #, c-format
@@ -1749,9 +1747,15 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"Рядок сервера: %s\n"
+"Версія протоколу бібліотеки: %u\n"
+"Версія протоколу сервера: %u\n"
+"Локальний: %s\n"
+"Номер клієнта: %u\n"
+"Розмір фрагмента: %zu\n"
 
 #: ../src/utils/pactl.c:176
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1771,7 +1775,7 @@ msgstr ""
 "Типова карта каналів: %s\n"
 "Типовий приймач: %s\n"
 "Типове джерело: %s\n"
-"Кука: %08x\n"
+"Кука: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:218
 #, c-format
@@ -2081,64 +2085,63 @@ msgstr "Передчасне завершення файла"
 
 #: ../src/utils/pactl.c:737
 msgid "new"
-msgstr ""
+msgstr "створення"
 
 #: ../src/utils/pactl.c:740
 msgid "change"
-msgstr ""
+msgstr "зміна"
 
 #: ../src/utils/pactl.c:743
 msgid "remove"
-msgstr ""
+msgstr "вилучення"
 
 #: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
-msgstr ""
+msgstr "невідомо"
 
 #: ../src/utils/pactl.c:754
 msgid "sink"
-msgstr ""
+msgstr "приймач"
 
 #: ../src/utils/pactl.c:757
 msgid "source"
-msgstr ""
+msgstr "джерело"
 
 #: ../src/utils/pactl.c:760
 msgid "sink-input"
-msgstr ""
+msgstr "вхід приймача"
 
 #: ../src/utils/pactl.c:763
 msgid "source-output"
-msgstr ""
+msgstr "відтворення джерела"
 
 #: ../src/utils/pactl.c:766
 msgid "module"
-msgstr ""
+msgstr "модуль"
 
 #: ../src/utils/pactl.c:769
 msgid "client"
-msgstr ""
+msgstr "клієнт"
 
 #: ../src/utils/pactl.c:772
 msgid "sample-cache"
-msgstr ""
+msgstr "кеш семплів"
 
 #: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
-#, fuzzy
 msgid "server"
-msgstr "Некоректний сервер"
+msgstr "сервер"
 
 #: ../src/utils/pactl.c:787
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "Подія «%s» на %s №%u\n"
 
 #: ../src/utils/pactl.c:955
 msgid "Got SIGINT, exiting."
 msgstr "Отримано сигнал SIGINT, завершення роботи."
 
 #: ../src/utils/pactl.c:961
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2192,6 +2195,7 @@ msgstr ""
 "%s [параметри] set-sink-mute ПРИЙМАЧ 1|0\n"
 "%s [параметри] set-source-mute ДЖЕРЕЛО 1|0\n"
 "%s [параметри] set-sink-input-mute ВХІДПРИЙМАЧА 1|0\n"
+"%s [параметри] subscribe\n"
 "\n"
 "  -h, --help                            Показати цю довідку\n"
 "      --version                         Показати дані щодо версії\n"
@@ -2299,18 +2303,15 @@ msgstr "Некоректний індекс вхідних даних прийм
 
 #: ../src/utils/pactl.c:1297
 msgid "You have to specify a sink name/index and a mute boolean"
-msgstr ""
-"Вам слід вказати назву/індекс приймача і булеве значення вимикання звуку"
+msgstr "Вам слід вказати назву/індекс приймача і булеве значення вимикання звуку"
 
 #: ../src/utils/pactl.c:1314
 msgid "You have to specify a source name/index and a mute boolean"
-msgstr ""
-"Вам слід вказати назву/індекс джерела і булеве значення вимикання звуку"
+msgstr "Вам слід вказати назву/індекс джерела і булеве значення вимикання звуку"
 
 #: ../src/utils/pactl.c:1331
 msgid "You have to specify a sink input index and a mute boolean"
-msgstr ""
-"Вам слід вказати індекс приймача даних і булеве значення вимикання звуку"
+msgstr "Вам слід вказати індекс приймача даних і булеве значення вимикання звуку"
 
 #: ../src/utils/pactl.c:1336
 msgid "Invalid sink input index specification"
@@ -2419,8 +2420,7 @@ msgstr "connect(): %s"
 
 #: ../src/utils/pacmd.c:95
 msgid "Failed to kill PulseAudio daemon."
-msgstr ""
-"Спроба завершення роботи фонової служби PulseAudio завершилася невдало."
+msgstr "Спроба завершення роботи фонової служби PulseAudio завершилася невдало."
 
 #: ../src/utils/pacmd.c:103
 msgid "Daemon not responding."
@@ -2499,7 +2499,7 @@ msgstr "Телефонний дуплекс (HSP/HFP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2247
 msgid "Handsfree Gateway"
-msgstr ""
+msgstr "Пристрій гучного зв’язку"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
@@ -2569,7 +2569,7 @@ msgstr "Підсилення"
 
 #: ../src/modules/alsa/alsa-mixer.c:1713
 msgid "No Boost"
-msgstr "Без пісилення"
+msgstr "Без підсилення"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
@@ -2580,23 +2580,20 @@ msgid "No Amplifier"
 msgstr "Без підсилювача"
 
 #: ../src/modules/alsa/alsa-mixer.c:1716
-#, fuzzy
 msgid "Bass Boost"
-msgstr "Підсилення"
+msgstr "Підсилення басів"
 
 #: ../src/modules/alsa/alsa-mixer.c:1717
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "Без пісилення"
+msgstr "Без підсилення басів"
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "Гучномовець"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
 msgid "Headphones"
-msgstr "Аналогові навушники"
+msgstr "Навушники"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
@@ -2635,9 +2632,8 @@ msgid "Analog Mono Output"
 msgstr "Аналоговий моно-вихід"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
-#, fuzzy
 msgid "Analog Speakers"
-msgstr "Аналогове стерео"
+msgstr "Аналогові гучномовці"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
