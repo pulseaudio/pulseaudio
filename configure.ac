@@ -439,7 +439,7 @@ AC_CHECK_FUNCS_ONCE([lrintf strtof])
 AC_FUNC_FORK
 AC_FUNC_GETGROUPS
 AC_FUNC_SELECT_ARGTYPES
-AC_CHECK_FUNCS_ONCE([chmod chown clock_gettime getaddrinfo getgrgid_r getgrnam_r \
+AC_CHECK_FUNCS_ONCE([chmod chown fstat fchown fchmod clock_gettime getaddrinfo getgrgid_r getgrnam_r \
     getpwnam_r getpwuid_r gettimeofday getuid inet_ntop inet_pton mlock nanosleep \
     pipe posix_fadvise posix_madvise posix_memalign setpgid setsid shm_open \
     sigaction sleep sysconf pthread_setaffinity_np])

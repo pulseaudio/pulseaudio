@@ -199,7 +199,7 @@ void pa_make_fd_cloexec(int fd) {
 /** Creates a directory securely */
 int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     struct stat st;
-    int r, saved_errno;
+    int r, saved_errno, fd;
 
     pa_assert(dir);
 
@@ -217,16 +217,45 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     if (r < 0 && errno != EEXIST)
         return -1;
 
-#ifdef HAVE_CHOWN
+#ifdef HAVE_FSTAT
+    if ((fd = open(dir,
+#ifdef O_CLOEXEC
+                   O_CLOEXEC|
+#endif
+#ifdef O_NOCTTY
+                   O_NOCTTY|
+#endif
+#ifdef O_NOFOLLOW
+                   O_NOFOLLOW|
+#endif
+                   O_RDONLY)) < 0)
+        goto fail;
+
+    if (fstat(fd, &st) < 0) {
+        pa_assert_se(pa_close(fd) >= 0);
+        goto fail;
+    }
+
+    if (!S_ISDIR(st.st_mode)) {
+        pa_assert_se(pa_close(fd) >= 0);
+        errno = EEXIST;
+        goto fail;
+    }
+
+#ifdef HAVE_FCHOWN
     if (uid == (uid_t)-1)
         uid = getuid();
     if (gid == (gid_t)-1)
         gid = getgid();
-    (void) chown(dir, uid, gid);
+    (void) fchown(fd, uid, gid);
 #endif
 
-#ifdef HAVE_CHMOD
-    chmod(dir, m);
+#ifdef HAVE_FCHMOD
+    (void) fchmod(fd, m);
+#endif
+
+    pa_assert_se(pa_close(fd) >= 0);
+
 #endif
 
 #ifdef HAVE_LSTAT
