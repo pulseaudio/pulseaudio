@@ -62,6 +62,10 @@ priority = 5
 [Element Input Source]
 enumeration = select
 
+[Option Input Source:Digital Mic]
+name = input-microphone
+priority = 20
+
 [Option Input Source:Mic]
 name = input-microphone
 priority = 20
