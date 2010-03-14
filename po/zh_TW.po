@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PulseAudio Volume Control\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-03-08 07:25+0000\n"
-"PO-Revision-Date: 2010-03-08 20:17+0800\n"
+"PO-Revision-Date: 2010-03-14 19:20+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: chinese-l10n <chinese-l10n@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
@@ -86,11 +86,11 @@ msgstr "數據機"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr "找不到 original lt_dlopen loader。"
+msgstr "找不到 original lt_dlopen 載入器。"
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
-msgstr "未能分配新的 dl loader。"
+msgstr "未能分配新的 dl 載入器。"
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
@@ -144,7 +144,7 @@ msgstr "未能變更群組清單：%s"
 #: ../src/daemon/main.c:241
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr "未能變更 GIC：%s"
+msgstr "未能變更 GID：%s"
 
 #: ../src/daemon/main.c:257
 #, c-format
@@ -680,7 +680,7 @@ msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] 無效的片段大小「%s」。"
 
 #: ../src/daemon/daemon-conf.c:443
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] 無效的良好等級「%s」。"
 
@@ -1356,10 +1356,10 @@ msgstr ""
 "      --process-time=BYTES              Request the specified process time per request in bytes.\n"
 "      --latency-msec=MSEC               Request the specified latency in msec.\n"
 "      --process-time-msec=MSEC          Request the specified process time per request in msec.\n"
-"      --property=PROPERTY=VALUE         Set the specified property to the specified value.\n"
-"      --raw                             Record/play raw PCM data.\n"
-"      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
-"      --list-file-formats               List available file formats.\n"
+"      --property=PROPERTY=VALUE         為指定的屬性設定其值。\n"
+"      --raw                             錄製或播放 raw PCM 資料。\n"
+"      --file-format[=FFORMAT]           錄製或播放格式化過的 PCM 資料。\n"
+"      --list-file-formats               列出可用的檔案格式。\n"
 
 #: ../src/utils/pacat.c:758
 #, c-format
