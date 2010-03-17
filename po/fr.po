@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-27 07:20+0000\n"
+"POT-Creation-Date: 2010-03-17 10:00+0000\n"
 "PO-Revision-Date: 2009-12-09 21:40+0100\n"
 "Last-Translator: Thomas Canniot <mrtom@fedoraproject.org>\n"
 "Language-Team: French <fedora-trans-fr@redhat.com>\n"
@@ -1991,7 +1991,7 @@ msgstr "Serveur invalide"
 #: ../src/utils/pactl.c:787
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "Evénement '%s' sur %s #%u\n"
 
 #: ../src/utils/pactl.c:955
 msgid "Got SIGINT, exiting."
@@ -2327,7 +2327,7 @@ msgstr "Telephonie en duplex (HSP/HFP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2247
 msgid "Handsfree Gateway"
-msgstr ""
+msgstr "Passerelle kit mains libres"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
@@ -2408,23 +2408,20 @@ msgid "No Amplifier"
 msgstr "Pas d'amplificateur"
 
 #: ../src/modules/alsa/alsa-mixer.c:1716
-#, fuzzy
 msgid "Bass Boost"
-msgstr "Boost"
+msgstr "Amplification des Basses"
 
 #: ../src/modules/alsa/alsa-mixer.c:1717
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "Pas de boost"
+msgstr "Pas d'Amplification des Basses"
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "Haut-parleurs"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
 msgid "Headphones"
-msgstr "Casques analogiques"
+msgstr "Casques"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
@@ -2463,9 +2460,8 @@ msgid "Analog Mono Output"
 msgstr "Sortie mono analogique"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
-#, fuzzy
 msgid "Analog Speakers"
-msgstr "Stéréo analogique"
+msgstr "Haut-parleurs analogique"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
