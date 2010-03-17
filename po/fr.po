@@ -1939,16 +1939,19 @@ msgid "Premature end of file"
 msgstr "Fin prématurée du fichier"
 
 #: ../src/utils/pactl.c:737
+#, fuzzy
 msgid "new"
-msgstr ""
+msgstr "nouveau"
 
 #: ../src/utils/pactl.c:740
+#, fuzzy
 msgid "change"
-msgstr ""
+msgstr "changer"
 
 #: ../src/utils/pactl.c:743
+#, fuzzy
 msgid "remove"
-msgstr ""
+msgstr "supprimer"
 
 #: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
@@ -1980,8 +1983,9 @@ msgid "client"
 msgstr "client"
 
 #: ../src/utils/pactl.c:772
+#, fuzzy
 msgid "sample-cache"
-msgstr ""
+msgstr "échantillon-cache"
 
 #: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
 msgid "server"
