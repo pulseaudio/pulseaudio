@@ -1952,7 +1952,7 @@ msgstr ""
 
 #: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
-msgstr ""
+msgstr "inconnu(e)"
 
 #: ../src/utils/pactl.c:754
 msgid "sink"
@@ -1973,20 +1973,19 @@ msgstr "source"
 
 #: ../src/utils/pactl.c:766
 msgid "module"
-msgstr ""
+msgstr "module"
 
 #: ../src/utils/pactl.c:769
 msgid "client"
-msgstr ""
+msgstr "client"
 
 #: ../src/utils/pactl.c:772
 msgid "sample-cache"
 msgstr ""
 
 #: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
-#, fuzzy
 msgid "server"
-msgstr "Serveur invalide"
+msgstr "serveur"
 
 #: ../src/utils/pactl.c:787
 #, c-format
