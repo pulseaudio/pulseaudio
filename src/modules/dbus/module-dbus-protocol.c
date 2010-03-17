@@ -48,7 +48,8 @@
 PA_MODULE_DESCRIPTION("D-Bus interface");
 PA_MODULE_USAGE(
         "access=local|remote|local,remote "
-        "tcp_port=<port number>");
+        "tcp_port=<port number> "
+        "tcp_listen=<hostname>");
 PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_AUTHOR("Tanu Kaskinen");
 PA_MODULE_VERSION(PACKAGE_VERSION);
@@ -68,6 +69,7 @@ struct userdata {
     pa_bool_t local_access;
     pa_bool_t remote_access;
     uint32_t tcp_port;
+    char *tcp_listen;
 
     struct server *local_server;
     struct server *tcp_server;
@@ -95,6 +97,7 @@ struct connection {
 static const char* const valid_modargs[] = {
     "access",
     "tcp_port",
+    "tcp_listen",
     NULL
 };
 
@@ -452,7 +455,7 @@ static struct server *start_tcp_server(struct userdata *u) {
 
     pa_assert(u);
 
-    address = pa_sprintf_malloc("tcp:host=127.0.0.1,port=%u", u->tcp_port);
+    address = pa_sprintf_malloc("tcp:host=%s,port=%u", u->tcp_listen, u->tcp_port);
 
     s = start_server(u, address, SERVER_TYPE_TCP); /* May return NULL */
 
@@ -537,6 +540,8 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    u->tcp_listen = pa_xstrdup(pa_modargs_get_value(ma, "tcp_listen", "0.0.0.0"));
+
     if (u->local_access && !(u->local_server = start_local_server(u))) {
         pa_log("Starting the local D-Bus server failed.");
         goto fail;
@@ -602,6 +607,7 @@ void pa__done(pa_module *m) {
     if (u->dbus_protocol)
         pa_dbus_protocol_unref(u->dbus_protocol);
 
+    pa_xfree(u->tcp_listen);
     pa_xfree(u);
     m->userdata = NULL;
 }
