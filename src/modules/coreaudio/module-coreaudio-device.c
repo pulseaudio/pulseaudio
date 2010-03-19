@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2009 Daniel Mack <daniel@caiaq.de>
+  Copyright 2009,2010 Daniel Mack <daniel@caiaq.de>
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -58,11 +58,11 @@ PA_MODULE_AUTHOR("Daniel Mack");
 PA_MODULE_DESCRIPTION("CoreAudio device");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
-PA_MODULE_USAGE("device_id=<the CoreAudio device id> "
+PA_MODULE_USAGE("object_id=<the CoreAudio device id> "
                 "ioproc_frames=<audio frames per IOProc call> ");
 
 static const char* const valid_modargs[] = {
-    "device_id",
+    "object_id",
     "ioproc_frames",
     NULL
 };
@@ -75,7 +75,7 @@ typedef struct coreaudio_sink coreaudio_sink;
 typedef struct coreaudio_source coreaudio_source;
 
 struct userdata {
-    AudioDeviceID device_id;
+    AudioObjectID object_id;
     AudioDeviceIOProcID proc_id;
 
     pa_thread_mq thread_mq;
@@ -138,7 +138,7 @@ static OSStatus io_render_proc (AudioDeviceID          device,
     struct userdata *u = clientData;
 
     pa_assert(u);
-    pa_assert(device == u->device_id);
+    pa_assert(device == u->object_id);
 
     u->render_input_data = inputData;
     u->render_output_data = outputData;
@@ -154,13 +154,13 @@ static OSStatus io_render_proc (AudioDeviceID          device,
     return 0;
 }
 
-static OSStatus ca_stream_format_changed(AudioDeviceID inDevice,
-                                         UInt32 inChannel,
-                                         Boolean isInput,
-                                         AudioDevicePropertyID inPropertyID,
-                                         void *inClientData)
+static OSStatus ca_stream_format_changed(AudioObjectID objectID,
+                                         UInt32 numberAddresses,
+                                         const AudioObjectPropertyAddress addresses[],
+                                         void *clientData)
 {
-    struct userdata *u = inClientData;
+    struct userdata *u = clientData;
+    UInt32 i;
 
     pa_assert(u);
 
@@ -169,8 +169,10 @@ static OSStatus ca_stream_format_changed(AudioDeviceID inDevice,
      * The device settings will appear to be 'locked' for any application as long as the PA daemon is running.
      * Once we're able to propagate such events up in the core, this needs to be changed. */
 
-    return AudioDeviceSetProperty(inDevice, NULL, inChannel, isInput,
-                                  kAudioDevicePropertyStreamFormat, sizeof(u->stream_description), &u->stream_description);
+    for (i = 0; i < numberAddresses; i++)
+        AudioObjectSetPropertyData(objectID, addresses + i, 0, NULL, sizeof(u->stream_description), &u->stream_description);
+
+    return 0;
 }
 
 static pa_usec_t get_latency_us(pa_object *o) {
@@ -179,6 +181,8 @@ static pa_usec_t get_latency_us(pa_object *o) {
     bool is_source;
     UInt32 v, total = 0;
     UInt32 err, size = sizeof(v);
+    AudioObjectPropertyAddress property_address;
+    AudioObjectID stream_id;
 
     if (pa_sink_isinstance(o)) {
         coreaudio_sink *sink = PA_SINK(o)->userdata;
@@ -197,26 +201,39 @@ static pa_usec_t get_latency_us(pa_object *o) {
 
     pa_assert(u);
 
+    property_address.mScope = kAudioObjectPropertyScopeGlobal;
+    property_address.mElement = kAudioObjectPropertyElementMaster;
+
     /* get the device latency */
+    property_address.mSelector = kAudioDevicePropertyLatency;
     size = sizeof(total);
-    AudioDeviceGetProperty(u->device_id, 0, is_source, kAudioDevicePropertyLatency, &size, &v);
+    AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, &total);
     total += v;
 
     /* the the IOProc buffer size */
+    property_address.mSelector = kAudioDevicePropertyBufferFrameSize;
     size = sizeof(v);
-    AudioDeviceGetProperty(u->device_id, 0, is_source, kAudioDevicePropertyBufferFrameSize, &size, &v);
+    AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, &v);
     total += v;
 
     /* IOProc safety offset - this value is the same for both directions, hence we divide it by 2 */
+    property_address.mSelector = kAudioDevicePropertySafetyOffset;
     size = sizeof(v);
-    AudioDeviceGetProperty(u->device_id, 0, is_source, kAudioDevicePropertySafetyOffset, &size, &v);
+    AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, &v);
     total += v / 2;
 
     /* get the stream latency.
      * FIXME: this assumes the stream latency is the same for all streams */
-    err = AudioStreamGetProperty(0, is_source, kAudioStreamPropertyLatency, &size, &v);
-    if (!err)
-        total += v;
+    property_address.mSelector = kAudioDevicePropertyStreams;
+    size = sizeof(stream_id);
+    err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, &stream_id);
+    if (!err) {
+        property_address.mSelector = kAudioStreamPropertyLatency;
+        size = sizeof(v);
+        err = AudioObjectGetPropertyData(stream_id, &property_address, 0, NULL, &size, &v);
+        if (!err)
+            total += v;
+    }
 
     return pa_bytes_to_usec(total * pa_frame_size(ss), ss);
 }
@@ -237,9 +254,9 @@ static void ca_device_check_device_state(struct userdata *u) {
             active = TRUE;
 
     if (active && !u->running)
-        AudioDeviceStart(u->device_id, u->proc_id);
+        AudioDeviceStart(u->object_id, u->proc_id);
     else if (!active && u->running)
-        AudioDeviceStop(u->device_id, u->proc_id);
+        AudioDeviceStop(u->object_id, u->proc_id);
 
     u->running = active;
 }
@@ -374,6 +391,7 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
     unsigned int i;
     char tmp[255];
     pa_strbuf *strbuf;
+    AudioObjectPropertyAddress property_address;
 
     ca_sink = pa_xnew0(coreaudio_sink, 1);
     ca_sink->map.channels = buf->mNumberChannels;
@@ -384,10 +402,13 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
     strbuf = pa_strbuf_new();
 
     for (i = 0; i < buf->mNumberChannels; i++) {
+        property_address.mSelector = kAudioObjectPropertyElementName;
+        property_address.mScope = kAudioDevicePropertyScopeOutput;
+        property_address.mElement = channel_idx + i + 1;
         size = sizeof(tmp);
-        err = AudioDeviceGetProperty(u->device_id, channel_idx + i + 1, 0, kAudioObjectPropertyElementName, &size, tmp);
+        err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, tmp);
         if (err || !strlen(tmp))
-            snprintf(tmp, sizeof(tmp), "Channel %d", channel_idx + i + 1);
+            snprintf(tmp, sizeof(tmp), "Channel %d", property_address.mElement);
 
         if (i > 0)
             pa_strbuf_puts(strbuf, ", ");
@@ -463,6 +484,7 @@ static int ca_device_create_source(pa_module *m, AudioBuffer *buf, int channel_i
     unsigned int i;
     char tmp[255];
     pa_strbuf *strbuf;
+    AudioObjectPropertyAddress property_address;
 
     ca_source = pa_xnew0(coreaudio_source, 1);
     ca_source->map.channels = buf->mNumberChannels;
@@ -473,10 +495,13 @@ static int ca_device_create_source(pa_module *m, AudioBuffer *buf, int channel_i
     strbuf = pa_strbuf_new();
 
     for (i = 0; i < buf->mNumberChannels; i++) {
+        property_address.mSelector = kAudioObjectPropertyElementName;
+        property_address.mScope = kAudioDevicePropertyScopeInput;
+        property_address.mElement = channel_idx + i + 1;
         size = sizeof(tmp);
-        err = AudioDeviceGetProperty(u->device_id, channel_idx + i + 1, 0, kAudioObjectPropertyElementName, &size, tmp);
+        err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, tmp);
         if (err || !strlen(tmp))
-            snprintf(tmp, sizeof(tmp), "Channel %d", channel_idx + i + 1);
+            snprintf(tmp, sizeof(tmp), "Channel %d", property_address.mElement);
 
         if (i > 0)
             pa_strbuf_puts(strbuf, ", ");
@@ -545,12 +570,16 @@ static int ca_device_create_streams(pa_module *m, bool direction_in) {
     OSStatus err;
     UInt32 size, i, channel_idx;
     struct userdata *u = m->userdata;
-    int section = direction_in ? 1 : 0;
     AudioBufferList *buffer_list;
+    AudioObjectPropertyAddress property_address;
+
+    property_address.mScope = direction_in ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
+    property_address.mElement = kAudioObjectPropertyElementMaster;
 
     /* get current stream format */
     size = sizeof(AudioStreamBasicDescription);
-    err = AudioDeviceGetProperty(u->device_id, 0, section, kAudioDevicePropertyStreamFormat, &size, &u->stream_description);
+    property_address.mSelector = kAudioDevicePropertyStreamFormat;
+    err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, &u->stream_description);
     if (err) {
         /* no appropriate streams found - silently bail. */
         return -1;
@@ -567,7 +596,8 @@ static int ca_device_create_streams(pa_module *m, bool direction_in) {
 
     /* get stream configuration */
     size = 0;
-    err = AudioDeviceGetPropertyInfo(u->device_id, 0, section, kAudioDevicePropertyStreamConfiguration, &size, NULL);
+    property_address.mSelector = kAudioDevicePropertyStreamConfiguration;
+    err = AudioObjectGetPropertyDataSize(u->object_id, &property_address, 0, NULL, &size);
     if (err) {
         pa_log("Failed to get kAudioDevicePropertyStreamConfiguration (%s).", direction_in ? "input" : "output");
         return -1;
@@ -577,7 +607,7 @@ static int ca_device_create_streams(pa_module *m, bool direction_in) {
         return 0;
 
     buffer_list = (AudioBufferList *) pa_xmalloc(size);
-    err = AudioDeviceGetProperty(u->device_id, 0, section, kAudioDevicePropertyStreamConfiguration, &size, buffer_list);
+    err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, buffer_list);
 
     if (!err) {
         pa_log_debug("Sample rate: %f", u->stream_description.mSampleRate);
@@ -648,6 +678,7 @@ int pa__init(pa_module *m) {
     pa_card_new_data card_new_data;
     coreaudio_sink *ca_sink;
     coreaudio_source *ca_source;
+    AudioObjectPropertyAddress property_address;
 
     pa_assert(m);
 
@@ -660,14 +691,18 @@ int pa__init(pa_module *m) {
     u->module = m;
     m->userdata = u;
 
-    if (pa_modargs_get_value_u32(ma, "device_id", (unsigned int *) &u->device_id) != 0) {
-        pa_log("Failed to parse device_id argument.");
+    if (pa_modargs_get_value_u32(ma, "object_id", (unsigned int *) &u->object_id) != 0) {
+        pa_log("Failed to parse object_id argument.");
         goto fail;
     }
 
+    property_address.mScope = kAudioObjectPropertyScopeGlobal;
+    property_address.mElement = kAudioObjectPropertyElementMaster;
+
     /* get device product name */
+    property_address.mSelector = kAudioDevicePropertyDeviceName;
     size = sizeof(tmp);
-    err = AudioDeviceGetProperty(u->device_id, 0, 0, kAudioDevicePropertyDeviceName, &size, &tmp);
+    err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, tmp);
     if (err) {
         pa_log("Failed to get kAudioDevicePropertyDeviceName (err = %08x).", (int) err);
         goto fail;
@@ -679,11 +714,12 @@ int pa__init(pa_module *m) {
     pa_proplist_sets(card_new_data.proplist, PA_PROP_DEVICE_STRING, tmp);
     card_new_data.driver = __FILE__;
     pa_card_new_data_set_name(&card_new_data, tmp);
-    pa_log_info("Initializing module for CoreAudio device '%s' (id %d)", tmp, (unsigned int) u->device_id);
+    pa_log_info("Initializing module for CoreAudio device '%s' (id %d)", tmp, (unsigned int) u->object_id);
 
     /* get device vendor name (may fail) */
+    property_address.mSelector = kAudioDevicePropertyDeviceManufacturer;
     size = sizeof(tmp);
-    err = AudioDeviceGetProperty(u->device_id, 0, 0, kAudioDevicePropertyDeviceManufacturer, &size, &tmp);
+    err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, tmp);
     if (!err)
         u->vendor_name = pa_xstrdup(tmp);
 
@@ -717,17 +753,22 @@ int pa__init(pa_module *m) {
     }
 
     /* register notification callback for stream format changes */
-    AudioDeviceAddPropertyListener(u->device_id, 0, 0, kAudioDevicePropertyStreamFormat, ca_stream_format_changed, u);
+    property_address.mSelector = kAudioDevicePropertyStreamFormat;
+    property_address.mScope = kAudioObjectPropertyScopeGlobal;
+    property_address.mElement = kAudioObjectPropertyElementMaster;
+
+    AudioObjectAddPropertyListener(u->object_id, &property_address, ca_stream_format_changed, u);
 
     /* set number of frames in IOProc */
     frames = DEFAULT_FRAMES_PER_IOPROC;
     pa_modargs_get_value_u32(ma, "ioproc_frames", (unsigned int *) &frames);
 
-    AudioDeviceSetProperty(u->device_id, NULL, 0, 0, kAudioDevicePropertyBufferFrameSize, sizeof(frames), &frames);
+    property_address.mSelector = kAudioDevicePropertyBufferFrameSize;
+    AudioObjectSetPropertyData(u->object_id, &property_address, 0, NULL, sizeof(frames), &frames);
     pa_log_debug("%u frames per IOProc\n", (unsigned int) frames);
 
     /* create one ioproc for both directions */
-    err = AudioDeviceCreateIOProcID(u->device_id, io_render_proc, u, &u->proc_id);
+    err = AudioDeviceCreateIOProcID(u->object_id, io_render_proc, u, &u->proc_id);
     if (err) {
         pa_log("AudioDeviceCreateIOProcID() failed (err = %08x\n).", (int) err);
         goto fail;
@@ -757,6 +798,7 @@ void pa__done(pa_module *m) {
     struct userdata *u;
     coreaudio_sink *ca_sink;
     coreaudio_source *ca_source;
+    AudioObjectPropertyAddress property_address;
 
     pa_assert(m);
 
@@ -805,11 +847,15 @@ void pa__done(pa_module *m) {
     }
 
     if (u->proc_id) {
-        AudioDeviceStop(u->device_id, u->proc_id);
-        AudioDeviceDestroyIOProcID(u->device_id, u->proc_id);
+        AudioDeviceStop(u->object_id, u->proc_id);
+        AudioDeviceDestroyIOProcID(u->object_id, u->proc_id);
     }
 
-    AudioDeviceRemovePropertyListener(u->device_id, 0, 0, kAudioDevicePropertyStreamFormat, ca_stream_format_changed);
+    property_address.mSelector = kAudioDevicePropertyStreamFormat;
+    property_address.mScope = kAudioObjectPropertyScopeGlobal;
+    property_address.mElement = kAudioObjectPropertyElementMaster;
+
+    AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &property_address, ca_stream_format_changed, u);
 
     pa_xfree(u->device_name);
     pa_xfree(u->vendor_name);

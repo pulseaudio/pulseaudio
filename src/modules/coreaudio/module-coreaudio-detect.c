@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2009 Daniel Mack <daniel@caiaq.de>
+  Copyright 2009,2010 Daniel Mack <daniel@caiaq.de>
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -46,7 +46,7 @@ PA_MODULE_USAGE("");
 typedef struct ca_device ca_device;
 
 struct ca_device {
-    AudioDeviceID id;
+    AudioObjectID id;
     unsigned int  module_index;
     PA_LLIST_FIELDS(ca_device);
 };
@@ -58,15 +58,31 @@ struct userdata {
     PA_LLIST_HEAD(ca_device, devices);
 };
 
-static int ca_device_added(struct pa_module *m, AudioDeviceID id) {
+static int ca_device_added(struct pa_module *m, AudioObjectID id) {
+    AudioObjectPropertyAddress property_address;
+    OSStatus err;
     pa_module *mod;
     struct userdata *u = m->userdata;
     struct ca_device *dev;
-    char *args;
+    char *args, tmp[64];
+    UInt32 size;
 
     pa_assert(u);
 
-    args = pa_sprintf_malloc("device_id=%d", (int) id);
+    /* To prevent generating a black hole that will suck us in,
+       don't create sources/sinks for PulseAudio virtual devices */
+
+    property_address.mSelector = kAudioDevicePropertyDeviceManufacturer;
+    property_address.mScope = kAudioObjectPropertyScopeGlobal;
+    property_address.mElement = kAudioObjectPropertyElementMaster;
+
+    size = sizeof(tmp);
+    err = AudioObjectGetPropertyData(id, &property_address, 0, NULL, &size, tmp);
+
+    if (!err && strcmp(tmp, "pulseaudio.org") == 0)
+        return 0;
+
+    args = pa_sprintf_malloc("object_id=%d", (int) id);
     pa_log_debug("Loading %s with arguments '%s'", DEVICE_MODULE_NAME, args);
     mod = pa_module_load(m->core, DEVICE_MODULE_NAME, args);
     pa_xfree(args);
@@ -87,26 +103,30 @@ static int ca_device_added(struct pa_module *m, AudioDeviceID id) {
 }
 
 static int ca_update_device_list(struct pa_module *m) {
+    AudioObjectPropertyAddress property_address;
     OSStatus err;
     UInt32 i, size, num_devices;
-    Boolean writable;
     AudioDeviceID *device_id;
     struct ca_device *dev;
     struct userdata *u = m->userdata;
 
     pa_assert(u);
 
+    property_address.mSelector = kAudioHardwarePropertyDevices;
+    property_address.mScope = kAudioObjectPropertyScopeGlobal;
+    property_address.mElement = kAudioObjectPropertyElementMaster;
+
     /* get the number of currently available audio devices */
-    err = AudioHardwareGetPropertyInfo(kAudioHardwarePropertyDevices, &size, &writable);
+    err = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &property_address, 0, NULL, &size);
     if (err) {
-        pa_log("Unable to get info for kAudioHardwarePropertyDevices.");
+        pa_log("Unable to get data size for kAudioHardwarePropertyDevices.");
         return -1;
     }
 
     num_devices = size / sizeof(AudioDeviceID);
     device_id = pa_xnew(AudioDeviceID, num_devices);
 
-    err = AudioHardwareGetProperty(kAudioHardwarePropertyDevices, &size, device_id);
+    err = AudioObjectGetPropertyData(kAudioObjectSystemObject, &property_address, 0, NULL, &size, device_id);
     if (err) {
         pa_log("Unable to get kAudioHardwarePropertyDevices.");
         pa_xfree(device_id);
@@ -140,7 +160,7 @@ scan_removed:
             }
 
         if (!found) {
-            pa_log_debug("device id %d has been removed (module index %d)  %p", (unsigned int) dev->id, dev->module_index, dev);
+            pa_log_debug("object id %d has been removed (module index %d)  %p", (unsigned int) dev->id, dev->module_index, dev);
             pa_module_unload_request_by_index(m->core, dev->module_index, TRUE);
             PA_LLIST_REMOVE(ca_device, u->devices, dev);
             pa_xfree(dev);
@@ -153,15 +173,17 @@ scan_removed:
     return 0;
 }
 
-static OSStatus property_listener_proc(AudioHardwarePropertyID property, void *data) {
-    struct userdata *u = data;
+static OSStatus property_listener_proc(AudioObjectID objectID, UInt32 numberAddresses,
+                                       const AudioObjectPropertyAddress inAddresses[],
+                                       void *clientData)
+{
+    struct userdata *u = clientData;
     char dummy = 1;
 
     pa_assert(u);
 
     /* dispatch module load/unload operations in main thread */
-    if (property == kAudioHardwarePropertyDevices)
-        write(u->detect_fds[1], &dummy, 1);
+    write(u->detect_fds[1], &dummy, 1);
 
     return 0;
 }
@@ -178,11 +200,16 @@ static void detect_handle(pa_mainloop_api *a, pa_io_event *e, int fd, pa_io_even
 
 int pa__init(pa_module *m) {
     struct userdata *u = pa_xnew0(struct userdata, 1);
+    AudioObjectPropertyAddress property_address;
 
     m->userdata = u;
 
-    if (AudioHardwareAddPropertyListener(kAudioHardwarePropertyDevices, property_listener_proc, u)) {
-        pa_log("AudioHardwareAddPropertyListener() failed.");
+    property_address.mSelector = kAudioHardwarePropertyDevices;
+    property_address.mScope = kAudioObjectPropertyScopeGlobal;
+    property_address.mElement = kAudioObjectPropertyElementMaster;
+
+    if (AudioObjectAddPropertyListener(kAudioObjectSystemObject, &property_address, property_listener_proc, u)) {
+        pa_log("AudioObjectAddPropertyListener() failed.");
         goto fail;
     }
 
@@ -202,10 +229,15 @@ fail:
 void pa__done(pa_module *m) {
     struct userdata *u = m->userdata;
     struct ca_device *dev = u->devices;
+    AudioObjectPropertyAddress property_address;
 
     pa_assert(u);
 
-    AudioHardwareRemovePropertyListener(kAudioHardwarePropertyDevices, property_listener_proc);
+    property_address.mSelector = kAudioHardwarePropertyDevices;
+    property_address.mScope = kAudioObjectPropertyScopeGlobal;
+    property_address.mElement = kAudioObjectPropertyElementMaster;
+
+    AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &property_address, property_listener_proc, u);
 
     while (dev) {
         struct ca_device *next = dev->next;
