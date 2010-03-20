@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-24 07:15+0000\n"
-"PO-Revision-Date: 2010-02-24 22:27+0300\n"
+"PO-Revision-Date: 2010-03-20 13:48+0300\n"
 "Last-Translator: Leonid Kurbatov <llenchikk@rambler.ru>\n"
 "Language-Team: Russian <->\n"
 "MIME-Version: 1.0\n"
@@ -228,7 +228,7 @@ msgstr "--start не поддерживается для системных эл
 #: ../src/daemon/main.c:676
 #, c-format
 msgid "User-configured server at %s, not autospawning."
-msgstr "User-configured server at %s, not autospawning."
+msgstr "Сервер на %s настроен пользователем, нет автоматического запуска."
 
 #: ../src/daemon/main.c:683
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -2418,7 +2418,7 @@ msgstr "write(): %s"
 
 #: ../src/pulsecore/lock-autospawn.c:134 ../src/pulsecore/lock-autospawn.c:217
 msgid "Cannot access autospawn lock."
-msgstr "Cannot access autospawn lock."
+msgstr "Нет доступа к блокировке автоматического запуска."
 
 #: ../src/modules/alsa/alsa-sink.c:530 ../src/modules/alsa/alsa-sink.c:689
 #, c-format
