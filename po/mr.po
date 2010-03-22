@@ -1,15 +1,15 @@
-# translation of pulseaudio.master-tx.po to Marathi
+# translation of mr.po to Marathi
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Sandeep Shedmake <sandeep.shedmake@gmail.com>, 2009.
-# Sandeep Shedmake <sshedmak@redhat.com>, 2009.
+# Sandeep Shedmake <sshedmak@redhat.com>, 2009, 2010.
 msgid ""
 msgstr ""
-"Project-Id-Version: pulseaudio.master-tx\n"
+"Project-Id-Version: mr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-12-09 18:30+0530\n"
+"POT-Creation-Date: 2010-03-22 08:29+0000\n"
+"PO-Revision-Date: 2010-03-22 19:37+0530\n"
 "Last-Translator: Sandeep Shedmake <sshedmak@redhat.com>\n"
 "Language-Team: Marathi <fedora-trans-mr@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -188,7 +188,7 @@ msgstr "आदेश ओळ वाचण्यास अपयशी."
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
-msgstr ""
+msgstr "विना-रूट वापरकर्त्यासाठी प्रणाली मोड नकारले गेले. फक्त D-Bus सर्व्हर लुकअप सेवा सुरू करत आहे."
 
 #: ../src/daemon/main.c:617
 msgid "Daemon not running"
@@ -221,7 +221,7 @@ msgstr "प्रणाली घटनांकरीता --start समर�
 #: ../src/daemon/main.c:676
 #, c-format
 msgid "User-configured server at %s, not autospawning."
-msgstr ""
+msgstr "%s येथील वापरकर्ता-संरचीत सर्व्हर, ऑटोस्पॉनींग अशक्य."
 
 #: ../src/daemon/main.c:683
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -229,8 +229,7 @@ msgstr "प्रणाली पद्धती अंतर्गत कार
 
 #: ../src/daemon/main.c:686
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
-"प्रणाली पद्धती अंतर्गत कार्यरत, परंतु --disallow-module-loading निश्चित केले नाही!"
+msgstr "प्रणाली पद्धती अंतर्गत कार्यरत, परंतु --disallow-module-loading निश्चित केले नाही!"
 
 #: ../src/daemon/main.c:689
 msgid "Running in system mode, forcibly disabling SHM mode!"
@@ -245,9 +244,9 @@ msgid "Failed to acquire stdio."
 msgstr "stdio प्राप्त करण्यास अपयशी."
 
 #: ../src/daemon/main.c:726
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "पाइप अपयशी: %s"
+msgstr "pipe() अपयशी: %s"
 
 #: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
@@ -268,9 +267,9 @@ msgid "Daemon startup successful."
 msgstr "डिमन स्टार्टअप यशस्वी."
 
 #: ../src/daemon/main.c:778
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() अपयशी: %s"
+msgstr "setsid() अपयशी: %s"
 
 #: ../src/daemon/main.c:830
 #, c-format
@@ -316,9 +315,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "valgrind पद्धतीत कार्यरत: %s"
 
 #: ../src/daemon/main.c:850
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "यजमान वर कार्यरत: %s"
+msgstr "VM मध्ये कार्यरत आहे: %s"
 
 #: ../src/daemon/main.c:853
 msgid "Optimized build: yes"
@@ -744,9 +743,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] अवैध nice स्तर '%s'."
 
 #: ../src/daemon/daemon-conf.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] अवैध सॅम्पल दर '%s'."
+msgstr "[%s:%u] अवैध सर्व्हर प्रकार '%s'."
 
 #: ../src/daemon/daemon-conf.c:586
 #, c-format
@@ -808,7 +807,7 @@ msgstr "पाठीमागे उजवीकडे"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "सबवूफर"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1337,7 +1336,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() अपयशी: %s"
 
 #: ../src/utils/pacat.c:630
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1449,10 +1448,14 @@ msgstr ""
 "bytes.\n"
 "      --process-time=BYTES              Request the specified process time "
 "per request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in "
+"msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time "
+"per request in msec.\n"
 "      --property=PROPERTY=VALUE         Set the specified property to the "
 "specified value.\n"
 "      --raw                             Record/play raw PCM data.\n"
-"      --file-format=FFORMAT             Record/play formatted PCM data.\n"
+"      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
 "      --list-file-formats               List available file formats.\n"
 
 #: ../src/utils/pacat.c:758
@@ -1551,8 +1554,7 @@ msgstr "सावधानता: वाहिनी नकाशा फाइ�
 
 #: ../src/utils/pacat.c:1049
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "%s स्ट्रीम चाचणी संयोजना '%s' व वाहिनी नकाशा '%s' सह उघडत आहे."
 
 #: ../src/utils/pacat.c:1050
@@ -1708,9 +1710,15 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"सर्व्हर अक्षरसंच: %s\n"
+"लाइब्ररी प्रोटोकॉल आवृत्ती: %u\n"
+"सर्व्हर प्रोटोकॉल आवृत्ती: %u\n"
+"स्थानीय आहे: %s\n"
+"क्लाएंट इंडेक्स्: %u\n"
+"टाइलचा आकार: %zu\n"
 
 #: ../src/utils/pactl.c:176
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1730,7 +1738,7 @@ msgstr ""
 "मुलभूत वाहिनी नकाशा: %s\n"
 "मुलभूत सींक: %s\n"
 "मुलभूत स्रोत: %s\n"
-"कुकीज: %08x\n"
+"कुकीज: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:218
 #, c-format
@@ -1758,22 +1766,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Sink #%u\n"
-"\tState: %s\n"
-"\tName: %s\n"
-"\tDescription: %s\n"
-"\tDriver: %s\n"
-"\tSample Specification: %s\n"
-"\tChannel Map: %s\n"
-"\tOwner Module: %u\n"
-"\tMute: %s\n"
-"\tVolume: %s%s%s\n"
-"\t        balance %0.2f\n"
-"\tBase Volume: %s%s%s\n"
-"\tMonitor Source: %s\n"
-"\tLatency: %0.0f usec, configured %0.0f usec\n"
-"\tFlags: %s%s%s%s%s%s\n"
-"\tProperties:\n"
+"सींक #%u\n"
+"\tस्टेट: %s\n"
+"\tनाव: %s\n"
+"\tवर्णन: %s\n"
+"\tड्राइव्हर: %s\n"
+"\tसॅम्पल संयोजना: %s\n"
+"\tचॅनल मॅप: %s\n"
+"\tओनर मॉड्यूल: %u\n"
+"\tम्यूट: %s\n"
+"\tवॉल्यूम: %s%s%s\n"
+"\t        बॅलेंस् %0.2f\n"
+"\tबेस वॉल्यूम: %s%s%s\n"
+"\tमॉनीटर सोअर्स्: %s\n"
+"\tलेटंसी: %0.0f usec, %0.0f usec संरचीत केले\n"
+"\tफ्लॅग्स्: %s%s%s%s%s%s\n"
+"\tगुणधर्म:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:281 ../src/utils/pactl.c:373
@@ -1812,22 +1820,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Source #%u\n"
-"\tState: %s\n"
-"\tName: %s\n"
-"\tDescription: %s\n"
-"\tDriver: %s\n"
-"\tSample Specification: %s\n"
-"\tChannel Map: %s\n"
-"\tOwner Module: %u\n"
-"\tMute: %s\n"
-"\tVolume: %s%s%s\n"
-"\t        balance %0.2f\n"
-"\tBase Volume: %s%s%s\n"
-"\tMonitor of Sink: %s\n"
-"\tLatency: %0.0f usec, configured %0.0f usec\n"
-"\tFlags: %s%s%s%s%s%s\n"
-"\tProperties:\n"
+"सोअर्स् #%u\n"
+"\tस्टेट: %s\n"
+"\tनाव: %s\n"
+"\tवर्णन: %s\n"
+"\tड्राइव्हर: %s\n"
+"\tसॅमप्ल संयोजना: %s\n"
+"\tचॅनल मॅप: %s\n"
+"\tओनर मॉड्यूल: %u\n"
+"\tम्यूट: %s\n"
+"\tवॉल्यूम: %s%s%s\n"
+"\t        बॅलेंस् %0.2f\n"
+"\tबेस् वॉल्यूम: %s%s%s\n"
+"\tमॉनीटर ऑफ सींक: %s\n"
+"\tलेटंसी: %0.0f usec, %0.0f usec संरचीत केले\n"
+"\tफ्लॅग्स्: %s%s%s%s%s%s\n"
+"\tगुणधर्म:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:358 ../src/utils/pactl.c:414 ../src/utils/pactl.c:449
@@ -1853,11 +1861,11 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Module #%u\n"
-"\tName: %s\n"
-"\tArgument: %s\n"
-"\tUsage counter: %s\n"
-"\tProperties:\n"
+"विभाग #%u\n"
+"\tनाव: %s\n"
+"\tघटक: %s\n"
+"\tयूसेज काऊंटर: %s\n"
+"\tगुणधर्म:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:425
@@ -1874,10 +1882,10 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Client #%u\n"
-"\tDriver: %s\n"
-"\tOwner Module: %s\n"
-"\tProperties:\n"
+"क्लाएंट #%u\n"
+"\tड्राइव्हर: %s\n"
+"\tओनर मॉड्यूल: %s\n"
+"\tगुणधर्म:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:460
@@ -1895,11 +1903,11 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Card #%u\n"
-"\tName: %s\n"
-"\tDriver: %s\n"
-"\tOwner Module: %s\n"
-"\tProperties:\n"
+"कार्ड #%u\n"
+"\tनाव: %s\n"
+"\tड्राइव्हर: %s\n"
+"\tओनर मॉड्यूल: %s\n"
+"\tगुणधर्म:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:492
@@ -1937,21 +1945,21 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Sink Input #%u\n"
-"\tDriver: %s\n"
-"\tOwner Module: %s\n"
-"\tClient: %s\n"
-"\tSink: %u\n"
-"\tSample Specification: %s\n"
-"\tChannel Map: %s\n"
-"\tMute: %s\n"
-"\tVolume: %s\n"
+"सींक इंपुट #%u\n"
+"\tड्राइव्हर: %s\n"
+"\tओनर मॉड्यूल: %s\n"
+"\tक्लाएंट: %s\n"
+"\tसींक: %u\n"
+"\tसॅमप्ल संयोजना: %s\n"
+"\tचॅनल मॅप: %s\n"
+"\tम्यूट: %s\n"
+"\tवॉल्यूम: %s\n"
 "\t        %s\n"
-"\t        balance %0.2f\n"
-"\tBuffer Latency: %0.0f usec\n"
-"\tSink Latency: %0.0f usec\n"
-"\tResample method: %s\n"
-"\tProperties:\n"
+"\t        बॅलेंस् %0.2f\n"
+"\tबफर लेटंसी: %0.0f usec\n"
+"\tसींक लेटंसी: %0.0f usec\n"
+"\tरिसॅम्पल पद्धत: %s\n"
+"\tगुणधर्म:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:567
@@ -1975,17 +1983,17 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Source Output #%u\n"
-"\tDriver: %s\n"
-"\tOwner Module: %s\n"
-"\tClient: %s\n"
-"\tSource: %u\n"
-"\tSample Specification: %s\n"
-"\tChannel Map: %s\n"
-"\tBuffer Latency: %0.0f usec\n"
-"\tSource Latency: %0.0f usec\n"
-"\tResample method: %s\n"
-"\tProperties:\n"
+"सोअर्स् आऊटपुट #%u\n"
+"\tड्राइव्हर: %s\n"
+"\tओनर मॉड्यूल: %s\n"
+"\tक्लाएंट: %s\n"
+"\tसोअर्स्: %u\n"
+"\tसॅम्पल संयोजना: %s\n"
+"\tचॅनल मॅप: %s\n"
+"\tबफर लेटंसी: %0.0f usec\n"
+"\tसोअर्स् लेटंसी: %0.0f usec\n"
+"\tरिसॅमप्ल पद्धत: %s\n"
+"\tगुणधर्म:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:618
@@ -2010,18 +2018,18 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Sample #%u\n"
-"\tName: %s\n"
-"\tSample Specification: %s\n"
-"\tChannel Map: %s\n"
-"\tVolume: %s\n"
+"सॅमप्ल #%u\n"
+"\tनाव: %s\n"
+"\tसॅमप्ल संयोजना: %s\n"
+"\tचॅनल मॅप: %s\n"
+"\tवॉल्यूम: %s\n"
 "\t        %s\n"
-"\t        balance %0.2f\n"
-"\tDuration: %0.1fs\n"
-"\tSize: %s\n"
-"\tLazy: %s\n"
-"\tFilename: %s\n"
-"\tProperties:\n"
+"\t        बॅलेंस् %0.2f\n"
+"\tकालावधी: %0.1fs\n"
+"\tआकार: %s\n"
+"\tलेजी: %s\n"
+"\tफाइलचेनाव: %s\n"
+"\tगुणधर्म:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:666 ../src/utils/pactl.c:676
@@ -2040,64 +2048,63 @@ msgstr "फाइलची अयोग्य समाप्ती"
 
 #: ../src/utils/pactl.c:737
 msgid "new"
-msgstr ""
+msgstr "नवीन"
 
 #: ../src/utils/pactl.c:740
 msgid "change"
-msgstr ""
+msgstr "बदल"
 
 #: ../src/utils/pactl.c:743
 msgid "remove"
-msgstr ""
+msgstr "काढून टाका"
 
 #: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
-msgstr ""
+msgstr "अपरिचीत"
 
 #: ../src/utils/pactl.c:754
 msgid "sink"
-msgstr ""
+msgstr "सींक"
 
 #: ../src/utils/pactl.c:757
 msgid "source"
-msgstr ""
+msgstr "स्रोत"
 
 #: ../src/utils/pactl.c:760
 msgid "sink-input"
-msgstr ""
+msgstr "सींक-इंपुट"
 
 #: ../src/utils/pactl.c:763
 msgid "source-output"
-msgstr ""
+msgstr "सोअर्स-आऊटपुट"
 
 #: ../src/utils/pactl.c:766
 msgid "module"
-msgstr ""
+msgstr "विभाग"
 
 #: ../src/utils/pactl.c:769
 msgid "client"
-msgstr ""
+msgstr "क्लाएंट"
 
 #: ../src/utils/pactl.c:772
 msgid "sample-cache"
-msgstr ""
+msgstr "सँपल-कॅशे"
 
 #: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
-#, fuzzy
 msgid "server"
-msgstr "अवैध सर्वर"
+msgstr "सर्व्हर"
 
 #: ../src/utils/pactl.c:787
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "इव्हेंट '%s', %s #%u वरील\n"
 
 #: ../src/utils/pactl.c:955
 msgid "Got SIGINT, exiting."
 msgstr "SIGINT प्राप्त झाले, बाहेर पडत आहे."
 
 #: ../src/utils/pactl.c:961
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2151,6 +2158,7 @@ msgstr ""
 "%s [options] set-sink-mute SINK 1|0\n"
 "%s [options] set-source-mute SOURCE 1|0\n"
 "%s [options] set-sink-input-mute SINKINPUT 1|0\n"
+"%s [options] subscribe\n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
@@ -2208,17 +2216,14 @@ msgid "You have to specify a module index"
 msgstr "तुम्हाला विभाग इंडेक्स् निश्चित करावे लागेल"
 
 #: ../src/utils/pactl.c:1183
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
-"तुम्ही एकापेक्षा जास्त सींक निश्चित करू शकत नाही. तुम्हाला बूलीयन मूल्य निश्चित करावे लागेल."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
+msgstr "तुम्ही एकापेक्षा जास्त सींक निश्चित करू शकत नाही. तुम्हाला बूलीयन मूल्य निश्चित करावे लागेल."
 
 #: ../src/utils/pactl.c:1196
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr ""
-"तुम्ही एकापेक्षा जास्त स्रोत निश्चित करू शकत नाही. तुम्हाला बूलीयन मूल्य निश्चित करावे लागेल."
+msgstr "तुम्ही एकापेक्षा जास्त स्रोत निश्चित करू शकत नाही. तुम्हाला बूलीयन मूल्य निश्चित करावे लागेल."
 
 #: ../src/utils/pactl.c:1208
 msgid "You have to specify a card name/index and a profile name"
@@ -2444,7 +2449,7 @@ msgstr "टेलिफोनी ड्युप्लेक्स् (HSP/HFP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2247
 msgid "Handsfree Gateway"
-msgstr ""
+msgstr "हँड्स्फ्री गेटवे"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
@@ -2525,23 +2530,20 @@ msgid "No Amplifier"
 msgstr "ऍमप्लिफायर अशक्य"
 
 #: ../src/modules/alsa/alsa-mixer.c:1716
-#, fuzzy
 msgid "Bass Boost"
-msgstr "बूस्ट"
+msgstr "बास बूस्ट"
 
 #: ../src/modules/alsa/alsa-mixer.c:1717
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "बूस्ट अशक्य"
+msgstr "बास बूस्ट अशक्य"
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "स्पीकर"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
 msgid "Headphones"
-msgstr "ऍनलॉग हेडफोन्स्"
+msgstr "हेडफोन्स्"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
@@ -2580,9 +2582,8 @@ msgid "Analog Mono Output"
 msgstr "ऍनलॉग मोनो आऊटपुट"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
-#, fuzzy
 msgid "Analog Speakers"
-msgstr "ऍनलॉग स्टिरीओ"
+msgstr "ऍनलॉग स्पीकर्स्"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
@@ -2678,5 +2679,3 @@ msgstr "ऍनलॉग स्टिरीओ ड्युप्लेक्स�
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "डिजीटल स्टिरीओ ड्युप्लेक्स् (IEC958)"
 
-#~ msgid "Low Frequency Emmiter"
-#~ msgstr "कमी क्रिक्वेन्सी स्रोत"
