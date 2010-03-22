@@ -389,7 +389,8 @@ static void asyncns_cb(pa_mainloop_api*m, pa_io_event *e, int fd, pa_io_event_fl
         goto fail;
 
     if (res->ai_addr)
-        sockaddr_prepare(c, res->ai_addr, res->ai_addrlen);
+        if (sockaddr_prepare(c, res->ai_addr, res->ai_addrlen) < 0)
+            goto fail;
 
     asyncns_freeaddrinfo(res);
 
