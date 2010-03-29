@@ -406,7 +406,7 @@ static enum find_result_t find_handler_from_properties_call(struct call_info *ca
                 return NO_SUCH_PROPERTY_INTERFACE;
             else if ((call_info->property_handler =
                         pa_hashmap_get(call_info->iface_entry->property_handlers, call_info->property)))
-                return FOUND_GET_PROPERTY;
+                return call_info->property_handler->get_cb ? FOUND_GET_PROPERTY : PROPERTY_ACCESS_DENIED;
             else
                 return NO_SUCH_PROPERTY;
 
@@ -440,7 +440,7 @@ static enum find_result_t find_handler_from_properties_call(struct call_info *ca
                 call_info->expected_property_sig = call_info->property_handler->type;
 
                 if (pa_streq(call_info->property_sig, call_info->expected_property_sig))
-                    return FOUND_SET_PROPERTY;
+                    return call_info->property_handler->set_cb ? FOUND_SET_PROPERTY : PROPERTY_ACCESS_DENIED;
                 else
                     return INVALID_PROPERTY_SIG;
 
