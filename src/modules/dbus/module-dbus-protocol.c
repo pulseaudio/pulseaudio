@@ -404,6 +404,7 @@ static struct server *start_server(struct userdata *u, const char *address, enum
 
     s = pa_xnew0(struct server, 1);
     s->userdata = u;
+    s->type = type;
     s->dbus_server = dbus_server_listen(address, &error);
 
     if (dbus_error_is_set(&error)) {
