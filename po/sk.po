@@ -1,0 +1,1112 @@
+# Slovak translation of pulseaudio.
+# Copyright (C) 2008, 2009 the author(s) of pulseaudio.
+# This file is distributed under the same license as the pulseaudio package.
+# Tomáš Virgl <tomas@virgl.net>, 2010.
+msgid ""
+msgstr ""
+"Project-Id-Version: pulseaudio.master-tx\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-03-31 08:03+0000\n"
+"PO-Revision-Date: 2010-03-16 07:59+0100\n"
+"Last-Translator: Tomáš Virgl <tomas@virgl.net>\n"
+"Language-Team: Slovak <sk-i18n@lists.linux.sk>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0\n"
+"X-Generator: Lokalize 1.0\n"
+"Project-Id-Version: \n"
+
+#: ../src/modules/alsa/alsa-util.c:861 ../src/pulsecore/sink.c:2631
+#, c-format
+msgid "%s %s"
+msgstr "%s %s"
+
+#: ../src/modules/alsa/alsa-util.c:1109
+#, c-format
+msgid ""
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"snd_pcm_avail() navrátil hodnotu, ktorá je nezvykle vysoká: %lu bajtov (%lu "
+"ms).\n"
+"S najväčšou pravdepodobnosťou sa jedná o chybu v ovládači ALSA '%s'. "
+"Nahláste tento problém vývojárom ALSA."
+
+#: ../src/modules/alsa/alsa-util.c:1150
+#, c-format
+msgid ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
+"lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"snd_pcm_delay() navrátil hodnotu, ktorá je nezvykle vysoká: %li bajtov (%s%"
+"lu ms).\n"
+"S najväčšou pravdepodobnosťou sa jedná o chybu v ovládači ALSA '%s'. "
+"Nahláste tento problém vývojárom ALSA."
+
+#: ../src/modules/alsa/alsa-util.c:1197
+#, c-format
+msgid ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"snd_pcm_mmap_begin() navrátil hodnotu, ktorá je nezvykle vysoká: %lu bajtov "
+"(%lu ms).\n"
+"S najväčšou pravdepodobnosťou sa jedná o chybu v ovládači ALSA '%s'. "
+"Nahláste tento problém vývojárom ALSA."
+
+#: ../src/modules/module-always-sink.c:39
+msgid "Always keeps at least one sink loaded even if it's a null one"
+msgstr ""
+
+#: ../src/modules/module-always-sink.c:83
+msgid "Dummy Output"
+msgstr "Prázdny výstup"
+
+#: ../src/modules/module-ladspa-sink.c:49
+msgid "Virtual LADSPA sink"
+msgstr "Virtuálny cieľ LADSPA"
+
+#: ../src/modules/module-null-sink.c:55
+msgid "Clocked NULL sink"
+msgstr "Taktovaný cieľ NULL"
+
+#: ../src/modules/module-null-sink.c:291
+msgid "Null Output"
+msgstr ""
+
+#: ../src/pulsecore/sink.c:2620
+msgid "Modem"
+msgstr "Modem"
+
+#: ../src/daemon/main.c:173
+msgid "Exiting."
+msgstr "Ukončovanie."
+
+#: ../src/daemon/main.c:191
+#, c-format
+msgid "Failed to find user '%s'."
+msgstr "Nepodarilo sa nájsť používateľa '%s'"
+
+#: ../src/daemon/main.c:196
+#, c-format
+msgid "Failed to find group '%s'."
+msgstr "Nepodarilo sa nájsť skupinu '%s'"
+
+#: ../src/daemon/main.c:200
+#, c-format
+msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
+msgstr ""
+
+#: ../src/daemon/main.c:205
+#, c-format
+msgid "GID of user '%s' and of group '%s' don't match."
+msgstr ""
+
+#: ../src/daemon/main.c:210
+#, c-format
+msgid "Home directory of user '%s' is not '%s', ignoring."
+msgstr ""
+
+#: ../src/daemon/main.c:213 ../src/daemon/main.c:218
+#, c-format
+msgid "Failed to create '%s': %s"
+msgstr ""
+
+#: ../src/daemon/main.c:726
+#, c-format
+msgid "pipe() failed: %s"
+msgstr "pipe() zlyhalo: %s"
+
+#: ../src/daemon/main.c:731 ../src/daemon/main.c:790
+#, c-format
+msgid "fork() failed: %s"
+msgstr "fork() zlyhalo: %s"
+
+#: ../src/daemon/main.c:745 ../src/utils/pacat.c:529
+#, c-format
+msgid "read() failed: %s"
+msgstr "read() zlyhalo: %s"
+
+#: ../src/daemon/cmdline.c:354
+#, c-format
+msgid "Invalid resample method '%s'."
+msgstr ""
+
+#: ../src/daemon/dumpmodules.c:60
+#, c-format
+msgid "Name: %s\n"
+msgstr ""
+
+#: ../src/daemon/dumpmodules.c:75
+#, c-format
+msgid "DEPRECATION WARNING: %s\n"
+msgstr ""
+
+#: ../src/daemon/dumpmodules.c:79
+#, c-format
+msgid "Path: %s\n"
+msgstr "Cesta: %s\n"
+
+#: ../src/daemon/daemon-conf.c:688
+#, c-format
+msgid "### Read from configuration file: %s ###\n"
+msgstr "### Čítanie z konfiguračného súboru: %s ###\n"
+
+#: ../src/daemon/caps.c:62
+msgid "Cleaning up privileges."
+msgstr "Rušenie oprávnení."
+
+#: ../src/daemon/pulseaudio.desktop.in.h:1
+msgid "PulseAudio Sound System"
+msgstr "Zvukový systém PulseAudio"
+
+#: ../src/daemon/pulseaudio.desktop.in.h:2
+msgid "Start the PulseAudio Sound System"
+msgstr "Spustiť zvukový systém PulseAudio"
+
+#: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
+msgid "Mono"
+msgstr "Mono"
+
+#: ../src/pulse/channelmap.c:107
+msgid "Front Center"
+msgstr "Predný stredný"
+
+#: ../src/pulse/channelmap.c:108
+msgid "Front Left"
+msgstr "Predný ľavý"
+
+#: ../src/pulse/channelmap.c:109
+msgid "Front Right"
+msgstr "Predný pravý"
+
+#: ../src/pulse/channelmap.c:111
+msgid "Rear Center"
+msgstr "Zadný stredný"
+
+#: ../src/pulse/channelmap.c:112
+msgid "Rear Left"
+msgstr "Zadný ľavý"
+
+#: ../src/pulse/channelmap.c:113
+msgid "Rear Right"
+msgstr "Zadný pravý"
+
+#: ../src/pulse/channelmap.c:115
+msgid "Subwoofer"
+msgstr "Subwoofer"
+
+#: ../src/pulse/channelmap.c:117
+msgid "Front Left-of-center"
+msgstr "Predný ľavý stredný"
+
+#: ../src/pulse/channelmap.c:118
+msgid "Front Right-of-center"
+msgstr "Predný pravý stredný"
+
+#: ../src/pulse/channelmap.c:120
+msgid "Side Left"
+msgstr "Bočný ľavý"
+
+#: ../src/pulse/channelmap.c:121
+msgid "Side Right"
+msgstr "Bočný pravý"
+
+#: ../src/pulse/channelmap.c:123
+msgid "Auxiliary 0"
+msgstr "Aux 0"
+
+#: ../src/pulse/channelmap.c:124
+msgid "Auxiliary 1"
+msgstr "Aux 1"
+
+#: ../src/pulse/channelmap.c:125
+msgid "Auxiliary 2"
+msgstr "Aux 2"
+
+#: ../src/pulse/channelmap.c:126
+msgid "Auxiliary 3"
+msgstr "Aux 3"
+
+#: ../src/pulse/channelmap.c:127
+msgid "Auxiliary 4"
+msgstr "Aux 4"
+
+#: ../src/pulse/channelmap.c:128
+msgid "Auxiliary 5"
+msgstr "Aux 5"
+
+#: ../src/pulse/channelmap.c:129
+msgid "Auxiliary 6"
+msgstr "Aux 6"
+
+#: ../src/pulse/channelmap.c:130
+msgid "Auxiliary 7"
+msgstr "Aux 7"
+
+#: ../src/pulse/channelmap.c:131
+msgid "Auxiliary 8"
+msgstr "Aux 8"
+
+#: ../src/pulse/channelmap.c:132
+msgid "Auxiliary 9"
+msgstr "Aux 9"
+
+#: ../src/pulse/channelmap.c:133
+msgid "Auxiliary 10"
+msgstr "Aux 10"
+
+#: ../src/pulse/channelmap.c:134
+msgid "Auxiliary 11"
+msgstr "Aux 11"
+
+#: ../src/pulse/channelmap.c:135
+msgid "Auxiliary 12"
+msgstr "Aux 12"
+
+#: ../src/pulse/channelmap.c:136
+msgid "Auxiliary 13"
+msgstr "Aux 13"
+
+#: ../src/pulse/channelmap.c:137
+msgid "Auxiliary 14"
+msgstr "Aux 14"
+
+#: ../src/pulse/channelmap.c:138
+msgid "Auxiliary 15"
+msgstr "Aux 15"
+
+#: ../src/pulse/channelmap.c:139
+msgid "Auxiliary 16"
+msgstr "Aux 16"
+
+#: ../src/pulse/channelmap.c:140
+msgid "Auxiliary 17"
+msgstr "Aux 17"
+
+#: ../src/pulse/channelmap.c:141
+msgid "Auxiliary 18"
+msgstr "Aux 18"
+
+#: ../src/pulse/channelmap.c:142
+msgid "Auxiliary 19"
+msgstr "Aux 19"
+
+#: ../src/pulse/channelmap.c:143
+msgid "Auxiliary 20"
+msgstr "Aux 20"
+
+#: ../src/pulse/channelmap.c:144
+msgid "Auxiliary 21"
+msgstr "Aux 21"
+
+#: ../src/pulse/channelmap.c:145
+msgid "Auxiliary 22"
+msgstr "Aux 22"
+
+#: ../src/pulse/channelmap.c:146
+msgid "Auxiliary 23"
+msgstr "Aux 23"
+
+#: ../src/pulse/channelmap.c:147
+msgid "Auxiliary 24"
+msgstr "Aux 24"
+
+#: ../src/pulse/channelmap.c:148
+msgid "Auxiliary 25"
+msgstr "Aux 25"
+
+#: ../src/pulse/channelmap.c:149
+msgid "Auxiliary 26"
+msgstr "Aux 26"
+
+#: ../src/pulse/channelmap.c:150
+msgid "Auxiliary 27"
+msgstr "Aux 27"
+
+#: ../src/pulse/channelmap.c:151
+msgid "Auxiliary 28"
+msgstr "Aux 28"
+
+#: ../src/pulse/channelmap.c:152
+msgid "Auxiliary 29"
+msgstr "Aux 29"
+
+#: ../src/pulse/channelmap.c:153
+msgid "Auxiliary 30"
+msgstr "Aux 30"
+
+#: ../src/pulse/channelmap.c:154
+msgid "Auxiliary 31"
+msgstr "Aux 31"
+
+#: ../src/pulse/channelmap.c:156
+msgid "Top Center"
+msgstr "Horný stredný"
+
+#: ../src/pulse/channelmap.c:158
+msgid "Top Front Center"
+msgstr "Horný predný stredný"
+
+#: ../src/pulse/channelmap.c:159
+msgid "Top Front Left"
+msgstr "Horný predný ľavý"
+
+#: ../src/pulse/channelmap.c:160
+msgid "Top Front Right"
+msgstr "Horný predný pravý"
+
+#: ../src/pulse/channelmap.c:162
+msgid "Top Rear Center"
+msgstr "Hornej zadnej stredný"
+
+#: ../src/pulse/channelmap.c:163
+msgid "Top Rear Left"
+msgstr "Hornej zadnej ľavý"
+
+#: ../src/pulse/channelmap.c:164
+msgid "Top Rear Right"
+msgstr "Hornej zadnej pravý"
+
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
+#: ../src/pulse/volume.c:295 ../src/pulse/volume.c:321
+#: ../src/pulse/volume.c:341 ../src/pulse/volume.c:371
+msgid "(invalid)"
+msgstr "(neplatné)"
+
+#: ../src/pulse/channelmap.c:761
+msgid "Stereo"
+msgstr "Stereo"
+
+#: ../src/pulse/channelmap.c:766
+msgid "Surround 4.0"
+msgstr "Surround 4.0"
+
+#: ../src/pulse/channelmap.c:772
+msgid "Surround 4.1"
+msgstr "Surround 4.1"
+
+#: ../src/pulse/channelmap.c:778
+msgid "Surround 5.0"
+msgstr "Surround 5.0"
+
+#: ../src/pulse/channelmap.c:784
+msgid "Surround 5.1"
+msgstr "Surround 5.1"
+
+#: ../src/pulse/channelmap.c:791
+msgid "Surround 7.1"
+msgstr "Surround 7.1"
+
+#: ../src/pulse/error.c:43
+msgid "OK"
+msgstr "OK"
+
+#: ../src/pulse/error.c:44
+msgid "Access denied"
+msgstr "Prístup zamietnutý"
+
+#: ../src/pulse/error.c:45
+msgid "Unknown command"
+msgstr "Neznámy príkaz"
+
+#: ../src/pulse/error.c:46
+msgid "Invalid argument"
+msgstr "Neplatný argument"
+
+#: ../src/pulse/error.c:47
+msgid "Entity exists"
+msgstr "Entita existuje"
+
+#: ../src/pulse/error.c:48
+msgid "No such entity"
+msgstr "Taká entita neexistuje"
+
+#: ../src/pulse/error.c:49
+msgid "Connection refused"
+msgstr "Spojenie odmietnuté"
+
+#: ../src/pulse/error.c:50
+msgid "Protocol error"
+msgstr "Chyba protokolu"
+
+#: ../src/pulse/error.c:51
+msgid "Timeout"
+msgstr "Časový limit"
+
+#: ../src/pulse/error.c:52
+msgid "No authorization key"
+msgstr "Bez autorizačného kľúča"
+
+#: ../src/pulse/error.c:53
+msgid "Internal error"
+msgstr "Vnútorná chyba"
+
+#: ../src/pulse/error.c:54
+msgid "Connection terminated"
+msgstr "Spojenie prerušené"
+
+#: ../src/pulse/error.c:55
+msgid "Entity killed"
+msgstr "Entita zabitá"
+
+#: ../src/pulse/error.c:56
+msgid "Invalid server"
+msgstr "Neplatný server"
+
+#: ../src/pulse/error.c:57
+msgid "Module initalization failed"
+msgstr "Spustenie modulu zlyhalo"
+
+#: ../src/pulse/error.c:58
+msgid "Bad state"
+msgstr "Chybný stav"
+
+#: ../src/pulse/error.c:59
+msgid "No data"
+msgstr "Žiadne dáta"
+
+#: ../src/pulse/error.c:60
+msgid "Incompatible protocol version"
+msgstr "Nekompatibilné verzia protokolu"
+
+#: ../src/pulse/error.c:61
+msgid "Too large"
+msgstr "Príliš veľké"
+
+#: ../src/pulse/error.c:62
+msgid "Not supported"
+msgstr "Nepodporované"
+
+#: ../src/pulse/error.c:63
+msgid "Unknown error code"
+msgstr "Neznámy chybový kód"
+
+#: ../src/pulse/error.c:64
+msgid "No such extension"
+msgstr "Takéto rozšírenie neexistuje"
+
+#: ../src/pulse/error.c:65
+msgid "Obsolete functionality"
+msgstr "Zastaralá vlastnosť"
+
+#: ../src/pulse/error.c:66
+msgid "Missing implementation"
+msgstr "Chýbajúce implementácia"
+
+#: ../src/pulse/error.c:67
+msgid "Client forked"
+msgstr "Klient rozvetvený"
+
+#: ../src/pulse/error.c:68
+msgid "Input/Output error"
+msgstr "Chyba vstupu/výstupu"
+
+#: ../src/pulse/error.c:69
+msgid "Device or resource busy"
+msgstr "Zariadenie alebo zdroj sa používa"
+
+#: ../src/pulse/sample.c:172
+#, c-format
+msgid "%s %uch %uHz"
+msgstr "%s %uch %uHz"
+
+#: ../src/pulse/sample.c:184
+#, c-format
+msgid "%0.1f GiB"
+msgstr "%0.1f GiB"
+
+#: ../src/pulse/sample.c:186
+#, c-format
+msgid "%0.1f MiB"
+msgstr "%0.1f MiB"
+
+#: ../src/pulse/sample.c:188
+#, c-format
+msgid "%0.1f KiB"
+msgstr "%0.1f KiB"
+
+#: ../src/pulse/sample.c:190
+#, c-format
+msgid "%u B"
+msgstr "%u B"
+
+#: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
+msgid "XOpenDisplay() failed"
+msgstr "XOpenDisplay() zlyhalo"
+
+#: ../src/pulse/client-conf-x11.c:93
+msgid "Failed to parse cookie data"
+msgstr "Zlyhala analýza dát cookie"
+
+#: ../src/pulse/client-conf.c:118
+#, c-format
+msgid "Failed to open configuration file '%s': %s"
+msgstr "Zlyhalo otvorenie konfiguračného súboru '%s': %s"
+
+#: ../src/pulse/context.c:682
+#, c-format
+msgid "fork(): %s"
+msgstr "fork(): %s"
+
+#: ../src/pulse/context.c:737
+#, c-format
+msgid "waitpid(): %s"
+msgstr "waitpid(): %s"
+
+#: ../src/pulse/context.c:1434
+#, c-format
+msgid "Received message for unknown extension '%s'"
+msgstr "Prijatá správa pre neznáme rozšírenie '%s'"
+
+#: ../src/utils/pacat.c:110
+#, c-format
+msgid "Failed to drain stream: %s"
+msgstr "Nepodarilo sa vyprázdniť prúd: %s"
+
+#: ../src/utils/pacat.c:115
+msgid "Playback stream drained."
+msgstr "Prúd prehrávania vyprázdnený."
+
+#: ../src/utils/pacat.c:138
+#, c-format
+msgid "pa_stream_drain(): %s"
+msgstr "pa_stream_drain(): %s"
+
+#: ../src/utils/pacat.c:161
+#, c-format
+msgid "pa_stream_write() failed: %s"
+msgstr "pa_stream_write() zlyhalo: %s"
+
+#: ../src/utils/pacat.c:202
+#, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "pa_stream_begin_write() zlyhalo: %s"
+
+#: ../src/utils/pacat.c:252 ../src/utils/pacat.c:282
+#, c-format
+msgid "pa_stream_peek() failed: %s"
+msgstr "pa_stream_peek() zlyhalo: %s"
+
+#: ../src/utils/pactl.c:666 ../src/utils/pactl.c:676
+#, c-format
+msgid "Failure: %s"
+msgstr "Zlyhania: %s"
+
+#: ../src/utils/pactl.c:700
+#, c-format
+msgid "Failed to upload sample: %s"
+msgstr "Zlyhalo nahranie vzorky: %s"
+
+#: ../src/utils/pactl.c:717
+msgid "Premature end of file"
+msgstr "Predčasný koniec súboru"
+
+#: ../src/utils/pactl.c:737
+msgid "new"
+msgstr "nový"
+
+#: ../src/utils/pactl.c:754
+msgid "sink"
+msgstr "cieľ"
+
+#: ../src/utils/pactl.c:757
+msgid "source"
+msgstr "zdroj"
+
+#: ../src/utils/pactl.c:760
+msgid "sink-input"
+msgstr "vstup-cieľa"
+
+#: ../src/utils/pactl.c:763
+msgid "source-output"
+msgstr "výstup-zdroja"
+
+#: ../src/utils/pactl.c:766
+msgid "module"
+msgstr "modul"
+
+#: ../src/utils/pactl.c:769
+msgid "client"
+msgstr "klient"
+
+#: ../src/utils/pactl.c:772
+msgid "sample-cache"
+msgstr "vyrovnávacia-pamäť-vzorky"
+
+#: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
+msgid "server"
+msgstr "server"
+
+#: ../src/utils/pactl.c:1026
+#, c-format
+msgid ""
+"pactl %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pactl %s\n"
+"Preložené s libpulse %s\n"
+"Prepojené s libpulse %s\n"
+
+#: ../src/utils/pactl.c:1072
+msgid "Please specify a sample file to load"
+msgstr "Zadajte prosím súbor so vzorkou určenou k nahraniu"
+
+#: ../src/utils/pactl.c:1085
+msgid "Failed to open sound file."
+msgstr "Zlyhalo otvorenie zvukového súboru."
+
+#: ../src/utils/pactl.c:1097
+msgid "Warning: Failed to determine sample specification from file."
+msgstr "Varovanie: Zlyhalo zistenie určenia vzorky zo súboru."
+
+#: ../src/utils/pactl.c:1107
+msgid "You have to specify a sample name to play"
+msgstr "Je nutné zadať názov vzorky určenej na prehranie"
+
+#: ../src/utils/pactl.c:1119
+msgid "You have to specify a sample name to remove"
+msgstr "Je nutné zadať názov vzorky určeného na odstánenie"
+
+#: ../src/utils/pactl.c:1128
+msgid "You have to specify a sink input index and a sink"
+msgstr "Je nutné zadať vstup cieľa a cieľ"
+
+#: ../src/utils/pactl.c:1138
+msgid "You have to specify a source output index and a source"
+msgstr "Je potrebné zadať index výstupu zdroja a zdroju"
+
+#: ../src/utils/pactl.c:1153
+msgid "You have to specify a module name and arguments."
+msgstr "Je nutné zadať názov modulu a argumenty."
+
+#: ../src/utils/pactl.c:1173
+msgid "You have to specify a module index"
+msgstr "Je nutné zadať index modulu"
+
+#: ../src/utils/pactl.c:1183
+msgid ""
+"You may not specify more than one sink. You have to specify a boolean value."
+msgstr ""
+"Nie je možné zadať viac ako jeden cieľ. Je potrebné zadať hodnotu boolean."
+
+#: ../src/utils/pactl.c:1196
+msgid ""
+"You may not specify more than one source. You have to specify a boolean "
+"value."
+msgstr ""
+"Nie je možné zadať viac ako jeden zdroj. Je potrebné zadať hodnotu boolean."
+
+#: ../src/utils/pactl.c:1208
+msgid "You have to specify a card name/index and a profile name"
+msgstr "Je potrebné upresniť názov karty/indexu a názov profilu"
+
+#: ../src/utils/pactl.c:1219
+msgid "You have to specify a sink name/index and a port name"
+msgstr "Je potrebné upresniť názov cieľa/indexu a názov portu"
+
+#: ../src/utils/pactl.c:1230
+msgid "You have to specify a source name/index and a port name"
+msgstr "Je potrebné upresniť názov zdroja/indexu a názov portu"
+
+#: ../src/utils/pactl.c:1242
+msgid "You have to specify a sink name/index and a volume"
+msgstr "Je potrebné upresniť názov cieľa/indexu a hlasitosť"
+
+#: ../src/utils/pactl.c:1247 ../src/utils/pactl.c:1264
+#: ../src/utils/pactl.c:1286 ../src/utils/pactl.c:1302
+#: ../src/utils/pactl.c:1319 ../src/utils/pactl.c:1341
+msgid "Invalid volume specification"
+msgstr "Neplatné určenie hlasitosti"
+
+#: ../src/utils/pactl.c:1259
+msgid "You have to specify a source name/index and a volume"
+msgstr "Je potrebné upresniť názov zdroja/indexu a hlasitosť"
+
+#: ../src/utils/pactl.c:1276
+msgid "You have to specify a sink input index and a volume"
+msgstr "Je potrebné zadať index vstupu cieľa a hlasitosť"
+
+#: ../src/utils/pactl.c:1281
+msgid "Invalid sink input index"
+msgstr "Neplatný index vstupu cieľa"
+
+#: ../src/utils/pactl.c:1297
+msgid "You have to specify a sink name/index and a mute boolean"
+msgstr ""
+"Je potrebné upresniť názov cieľa/indexu a hodnotu stlmenia typu boolean"
+
+#: ../src/utils/pactl.c:1314
+msgid "You have to specify a source name/index and a mute boolean"
+msgstr ""
+"Je potrebné upresniť názov zdroja/indexu a hodnotu stlmenia typu boolean"
+
+#: ../src/utils/pactl.c:1331
+msgid "You have to specify a sink input index and a mute boolean"
+msgstr "Je potrebné zadať index vstupu cieľa a hodnotu stlmenia typu boolean"
+
+#: ../src/utils/pactl.c:1336
+msgid "Invalid sink input index specification"
+msgstr "Neplatné určenia indexu vstupu cieľa"
+
+#: ../src/utils/pactl.c:1359
+msgid "No valid command specified."
+msgstr "Nie je zadaný žiadny platný príkaz."
+
+#: ../src/utils/pax11publish.c:61
+#, c-format
+msgid ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Show current PulseAudio data attached to X11 display (default)\n"
+" -e    Export local PulseAudio data to X11 display\n"
+" -i    Import PulseAudio data from X11 display to local environment "
+"variables and cookie file.\n"
+" -r    Remove PulseAudio data from X11 display\n"
+msgstr ""
+"%s [-D displej] [-S server] [-O cíl] [-I zdroj] [-c soubor]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Zobrazí aktuálne dáta PulseAudio priradené k displeju X11 "
+"(predvolené)\n"
+" -e    Exportuje lokálne dáta PulseAudio na displej X11\n"
+" -i    Importuje dáta PulseAudio z displeja X11 medzi lokálne premenné "
+"prostredia a súbor cookie.\n"
+" -r    Odstráni dáta PulseAudio z displeja X11\n"
+
+#: ../src/utils/pax11publish.c:94
+#, c-format
+msgid "Failed to parse command line.\n"
+msgstr "Zlyhala analýza príkazového riadku.\n"
+
+#: ../src/utils/pax11publish.c:108
+#, c-format
+msgid "Server: %s\n"
+msgstr "Server: %s\n"
+
+#: ../src/utils/pax11publish.c:110
+#, c-format
+msgid "Source: %s\n"
+msgstr "Zdroj: %s\n"
+
+#: ../src/utils/pax11publish.c:112
+#, c-format
+msgid "Sink: %s\n"
+msgstr "Cieľ: %s\n"
+
+#: ../src/utils/pax11publish.c:114
+#, c-format
+msgid "Cookie: %s\n"
+msgstr "Cookie: %s\n"
+
+#: ../src/utils/pax11publish.c:132
+#, c-format
+msgid "Failed to parse cookie data\n"
+msgstr "Nepodarilo sa analyzovať dáta cookie\n"
+
+#: ../src/utils/pax11publish.c:137
+#, c-format
+msgid "Failed to save cookie data\n"
+msgstr "Nepodarilo sa uložiť dáta cookie\n"
+
+#: ../src/utils/pax11publish.c:152
+#, c-format
+msgid "Failed to load client configuration file.\n"
+msgstr "Nepodarilo sa nahrať konfiguračný súbor klienta.\n"
+
+#: ../src/utils/pax11publish.c:157
+#, c-format
+msgid "Failed to read environment configuration data.\n"
+msgstr "Nepodarilo sa prečítať konfiguračné dáta prostredia.\n"
+
+#: ../src/utils/pax11publish.c:174
+#, c-format
+msgid "Failed to get FQDN.\n"
+msgstr "Nepodarilo sa získať FQDN.\n"
+
+#: ../src/utils/pax11publish.c:194
+#, c-format
+msgid "Failed to load cookie data\n"
+msgstr "Nepodarilo sa nahrať dáta cookie\n"
+
+#: ../src/utils/pax11publish.c:211
+#, c-format
+msgid "Not yet implemented.\n"
+msgstr "Doteraz neimplementované.\n"
+
+#: ../src/utils/pacmd.c:87
+#, c-format
+msgid "connect(): %s"
+msgstr "connect(): %s"
+
+#: ../src/utils/pacmd.c:103
+msgid "Daemon not responding."
+msgstr "Démon neodpovedá."
+
+#: ../src/utils/pacmd.c:178
+#, c-format
+msgid "poll(): %s"
+msgstr "poll(): %s"
+
+#: ../src/utils/pacmd.c:189 ../src/utils/pacmd.c:209
+#, c-format
+msgid "read(): %s"
+msgstr "read(): %s"
+
+#: ../src/utils/pacmd.c:231 ../src/utils/pacmd.c:249
+#, c-format
+msgid "write(): %s"
+msgstr "write(): %s"
+
+#: ../src/modules/alsa/module-alsa-card.c:152
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2262
+#: ../src/modules/alsa/alsa-mixer.c:2936
+msgid "Off"
+msgstr "Vypnuté"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2204
+msgid "High Fidelity Playback (A2DP)"
+msgstr "Prehrávanie s veľmi vernou reprodukciou (A2DP)"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2218
+msgid "High Fidelity Capture (A2DP)"
+msgstr "Záznam s veľmi vernou reprodukciou (A2DP)"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2247
+msgid "Handsfree Gateway"
+msgstr "Smerovač handsfree"
+
+#: ../src/modules/reserve-wrap.c:151
+msgid "PulseAudio Sound Server"
+msgstr "Zvukový server PulseAudio"
+
+#: ../src/modules/module-rygel-media-server.c:592
+#: ../src/modules/module-rygel-media-server.c:606
+msgid "Output Devices"
+msgstr "Výstupné zariadenia"
+
+#: ../src/modules/module-rygel-media-server.c:593
+#: ../src/modules/module-rygel-media-server.c:607
+msgid "Input Devices"
+msgstr "Vstupné zariadenia"
+
+#: ../src/modules/module-rygel-media-server.c:797
+msgid "Audio on @HOSTNAME@"
+msgstr "Zvuk na @HOSTNAME@"
+
+#: ../src/modules/alsa/alsa-mixer.c:1701
+msgid "Input"
+msgstr "Vstup"
+
+#: ../src/modules/alsa/alsa-mixer.c:1702
+msgid "Docking Station Input"
+msgstr "Vstup dokovacej stanice"
+
+#: ../src/modules/alsa/alsa-mixer.c:1703
+msgid "Docking Station Microphone"
+msgstr "Mikrofón dokovacej stanica"
+
+#: ../src/modules/alsa/alsa-mixer.c:1704
+msgid "Line-In"
+msgstr "Linkový vstup"
+
+#: ../src/modules/alsa/alsa-mixer.c:1705
+msgid "Microphone"
+msgstr "Mikrofón"
+
+#: ../src/modules/alsa/alsa-mixer.c:1706
+msgid "External Microphone"
+msgstr "Externý mikrofón"
+
+#: ../src/modules/alsa/alsa-mixer.c:1707
+msgid "Internal Microphone"
+msgstr "Interný mikrofón"
+
+#: ../src/modules/alsa/alsa-mixer.c:1708
+msgid "Radio"
+msgstr "Rádio"
+
+#: ../src/modules/alsa/alsa-mixer.c:1709
+msgid "Video"
+msgstr "Obraz"
+
+#: ../src/modules/alsa/alsa-mixer.c:1710
+msgid "Automatic Gain Control"
+msgstr "Automatické ovládanie zosilnenia"
+
+#: ../src/modules/alsa/alsa-mixer.c:1711
+msgid "No Automatic Gain Control"
+msgstr "Bez automatického ovládania zosilnenia"
+
+#: ../src/modules/alsa/alsa-mixer.c:1712
+msgid "Boost"
+msgstr "Zosilnenie"
+
+#: ../src/modules/alsa/alsa-mixer.c:1713
+msgid "No Boost"
+msgstr "Bez zosilnenia"
+
+#: ../src/modules/alsa/alsa-mixer.c:1714
+msgid "Amplifier"
+msgstr "Zosilňovač"
+
+#: ../src/modules/alsa/alsa-mixer.c:1715
+msgid "No Amplifier"
+msgstr "Bez zosilňovača"
+
+#: ../src/modules/alsa/alsa-mixer.c:1716
+msgid "Bass Boost"
+msgstr "Basové zosilnenie"
+
+#: ../src/modules/alsa/alsa-mixer.c:1717
+msgid "No Bass Boost"
+msgstr "Bez basového zosilnenia"
+
+#: ../src/modules/alsa/alsa-mixer.c:1718
+msgid "Speaker"
+msgstr "Reproduktor"
+
+#: ../src/modules/alsa/alsa-mixer.c:1719
+msgid "Headphones"
+msgstr "Slúchadlá"
+
+#: ../src/modules/alsa/alsa-mixer.c:1777
+msgid "Analog Input"
+msgstr "Analógový vstup"
+
+#: ../src/modules/alsa/alsa-mixer.c:1778
+msgid "Analog Microphone"
+msgstr "Analógový mikrofón"
+
+#: ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Analog Line-In"
+msgstr "Analógový linkový vstup"
+
+#: ../src/modules/alsa/alsa-mixer.c:1780
+msgid "Analog Radio"
+msgstr "Analógové rádio"
+
+#: ../src/modules/alsa/alsa-mixer.c:1781
+msgid "Analog Video"
+msgstr "Analógový obraz"
+
+#: ../src/modules/alsa/alsa-mixer.c:1782
+msgid "Analog Output"
+msgstr "Analógový výstup"
+
+#: ../src/modules/alsa/alsa-mixer.c:1783
+msgid "Analog Headphones"
+msgstr "Analógová slúchadlá"
+
+#: ../src/modules/alsa/alsa-mixer.c:1784
+msgid "Analog Output (LFE)"
+msgstr "Analógový výstup (LFE)"
+
+#: ../src/modules/alsa/alsa-mixer.c:1785
+msgid "Analog Mono Output"
+msgstr "Analógový mono výstup"
+
+#: ../src/modules/alsa/alsa-mixer.c:1786
+msgid "Analog Speakers"
+msgstr "Analógové reproduktory"
+
+#: ../src/modules/alsa/alsa-mixer.c:1986
+#, c-format
+msgid "%s+%s"
+msgstr "%s+%s"
+
+#: ../src/modules/alsa/alsa-mixer.c:1989 ../src/modules/alsa/alsa-mixer.c:3409
+#, c-format
+msgid "%s / %s"
+msgstr "%s / %s"
+
+#: ../src/modules/alsa/alsa-mixer.c:2795
+msgid "Analog Mono"
+msgstr "Analógové mono"
+
+#: ../src/modules/alsa/alsa-mixer.c:2796
+msgid "Analog Stereo"
+msgstr "Analógové stereo"
+
+#: ../src/modules/alsa/alsa-mixer.c:2797
+msgid "Analog Surround 2.1"
+msgstr "Analógový Surround 2.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2798
+msgid "Analog Surround 3.0"
+msgstr "Analógový Surround 3.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2799
+msgid "Analog Surround 3.1"
+msgstr "Analógový Surround 3.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2800
+msgid "Analog Surround 4.0"
+msgstr "Analógový Surround 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2801
+msgid "Analog Surround 4.1"
+msgstr "Analógový Surround 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2802
+msgid "Analog Surround 5.0"
+msgstr "Analógový Surround 5.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2803
+msgid "Analog Surround 5.1"
+msgstr "Analógový Surround 5.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2804
+msgid "Analog Surround 6.0"
+msgstr "Analógový Surround 6.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2805
+msgid "Analog Surround 6.1"
+msgstr "Analógový Surround 6.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2806
+msgid "Analog Surround 7.0"
+msgstr "Analógový Surround 7.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2807
+msgid "Analog Surround 7.1"
+msgstr "Analógový Surround 7.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2808
+msgid "Digital Stereo (IEC958)"
+msgstr "Digitálne stereo (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2809
+msgid "Digital Surround 4.0 (IEC958)"
+msgstr "Digitálny Surround 4.0 (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2810
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr "Digitálny Surround 4.0 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2811
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr "Digitálny Surround 5.1 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2812
+msgid "Digital Stereo (HDMI)"
+msgstr "Digitálne stereo (HDMI)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2933
+msgid "Analog Mono Duplex"
+msgstr "Analógové duplexné mono"
+
+#: ../src/modules/alsa/alsa-mixer.c:2934
+msgid "Analog Stereo Duplex"
+msgstr "Analógové duplexné stereo"
+
+#: ../src/modules/alsa/alsa-mixer.c:2935
+msgid "Digital Stereo Duplex (IEC958)"
+msgstr "Digitálne duplexné stereo (IEC958)"
