@@ -310,7 +310,7 @@ static struct dbus_entry *dbus_entry_new(struct userdata *u, const char *entry_n
     de->index = u->next_index++;
     de->object_path = pa_sprintf_malloc("%s/%s%u", OBJECT_PATH, ENTRY_OBJECT_NAME, de->index);
 
-    pa_assert_se(pa_dbus_protocol_add_interface(u->dbus_protocol, de->object_path, &entry_interface_info, u) >= 0);
+    pa_assert_se(pa_dbus_protocol_add_interface(u->dbus_protocol, de->object_path, &entry_interface_info, de) >= 0);
 
     return de;
 }
