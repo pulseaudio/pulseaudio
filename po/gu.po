@@ -1,14 +1,14 @@
-# translation of PulseAudio.po to Gujarati
+# translation of pulseaudio.po to Gujarati
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
-# Sweta Kothari <swkothar@redhat.com>, 2009.
+# Sweta Kothari <swkothar@redhat.com>, 2009, 2010.
 msgid ""
 msgstr ""
-"Project-Id-Version: PulseAudio\n"
+"Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-12-07 17:22+0530\n"
+"POT-Creation-Date: 2010-04-06 03:09+0000\n"
+"PO-Revision-Date: 2010-04-06 11:32+0530\n"
 "Last-Translator: Sweta Kothari <swkothar@redhat.com>\n"
 "Language-Team: Gujarati\n"
 "MIME-Version: 1.0\n"
@@ -189,7 +189,7 @@ msgstr "આદેશ વાક્યને પદચ્છેદન કરવા
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
-msgstr ""
+msgstr "સિસ્ટમ સ્થિતિ એ બિન-રુટ વપરાશકર્તા માટે અસંમત થયેલ છે. ફક્ત D-Bus સર્વર લુકઅપ સેવા ને શરૂ કરી રહ્યા છે."
 
 #: ../src/daemon/main.c:617
 msgid "Daemon not running"
@@ -209,8 +209,7 @@ msgstr "ડિમનને મારવાનું નિષ્ફળ: %s"
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
-"આ પ્રક્રિયાને રુટ તરીકે ચલાવવા માટે વિચાર થયેલ નથી (નહિં તો --system એ સ્પષ્ટ થયેલ છે)."
+msgstr "આ પ્રક્રિયાને રુટ તરીકે ચલાવવા માટે વિચાર થયેલ નથી (નહિં તો --system એ સ્પષ્ટ થયેલ છે)."
 
 #: ../src/daemon/main.c:665
 msgid "Root privileges required."
@@ -223,7 +222,7 @@ msgstr "--start એ સિસ્ટમ ઉદાહરણો માટે આધ
 #: ../src/daemon/main.c:676
 #, c-format
 msgid "User-configured server at %s, not autospawning."
-msgstr ""
+msgstr "%s પ વપરાશકર્તા એ સર્વરને રૂપરેખાંકિત કરેલ છે, સ્વયંસ્પૉનીંગ નથી."
 
 #: ../src/daemon/main.c:683
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -248,9 +247,9 @@ msgid "Failed to acquire stdio."
 msgstr "stdio ને મેળવવામાં નિષ્ફળ."
 
 #: ../src/daemon/main.c:726
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "પાઇપ નિષ્ફળ: %s"
+msgstr "pipe() નિષ્ફળ: %s"
 
 #: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
@@ -271,9 +270,9 @@ msgid "Daemon startup successful."
 msgstr "ડિમન શરૂઆત કરવુ સફળ છે."
 
 #: ../src/daemon/main.c:778
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() નિષ્ફળ: %s"
+msgstr "setsid() નિષ્ફળ: %s"
 
 #: ../src/daemon/main.c:830
 #, c-format
@@ -319,9 +318,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "valgrind સ્થિતિમાં ચાલી રહ્યુ છે: %s"
 
 #: ../src/daemon/main.c:850
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "યજમાન પર ચાલી રહ્યુ છે: %s"
+msgstr "VM માં ચાલી રહ્યુ છે: %s"
 
 #: ../src/daemon/main.c:853
 msgid "Optimized build: yes"
@@ -745,9 +744,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] અયોગ્ય સારુ સ્તર '%s'."
 
 #: ../src/daemon/daemon-conf.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] અયોગ્ય નમૂના દર '%s'."
+msgstr "[%s:%u] અયોગ્ય સર્વર પ્રકાર '%s'."
 
 #: ../src/daemon/daemon-conf.c:586
 #, c-format
@@ -758,8 +757,7 @@ msgstr "રૂપરેખાંકન ફાઇલને ખોલવાનુ�
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
-msgstr ""
-"સ્પષ્ટ થયેલ મૂળભૂત ચેનલ મેપ પાસે સ્પષ્ટ થયેલ ચેનલોની મૂળભૂત સંખ્યા કરતા વિવિધ ચેનલોની સંખ્યા છે."
+msgstr "સ્પષ્ટ થયેલ મૂળભૂત ચેનલ મેપ પાસે સ્પષ્ટ થયેલ ચેનલોની મૂળભૂત સંખ્યા કરતા વિવિધ ચેનલોની સંખ્યા છે."
 
 #: ../src/daemon/daemon-conf.c:688
 #, c-format
@@ -808,7 +806,7 @@ msgstr "રિઅર જમણે"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "સબવુફર"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1337,7 +1335,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() નિષ્ફળ: %s"
 
 #: ../src/utils/pacat.c:630
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1541,8 +1539,7 @@ msgstr "ચેતણી: ફાઇલમાં ચેનલ મેપને લ�
 
 #: ../src/utils/pacat.c:1049
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "નમૂના સ્પષ્ટીકરણ '%s' અને ચેનલ નક્ષા '%s' સાથે %s સ્ટ્રીમને ખોલી રહ્યા છે."
 
 #: ../src/utils/pacat.c:1050
@@ -1697,9 +1694,15 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"સર્વર શબ્દમાળા: %s\n"
+"લાઇબ્રેરી પ્રોટોકોલ આવૃત્તિ: %u\n"
+"લર્વર પ્રોટોકોલ આવૃત્તિ: %u\n"
+"સ્થાનિય છે: %s\n"
+"ક્લાઇન્ટ અનુક્રમણિકા: %u\n"
+"તકતી માપ: %zu\n"
 
 #: ../src/utils/pactl.c:176
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1719,7 +1722,7 @@ msgstr ""
 "મૂળભૂત ચેનલ મેપ: %s\n"
 "મૂળભૂત સિંક: %s\n"
 "મૂળભૂત સ્ત્રોત: %s\n"
-"કુકી: %08x\n"
+"કુકી: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:218
 #, c-format
@@ -2029,64 +2032,63 @@ msgstr "ફાઇલનો નિયત સમય પહેલા અંત"
 
 #: ../src/utils/pactl.c:737
 msgid "new"
-msgstr ""
+msgstr "નવું"
 
 #: ../src/utils/pactl.c:740
 msgid "change"
-msgstr ""
+msgstr "બદલો"
 
 #: ../src/utils/pactl.c:743
 msgid "remove"
-msgstr ""
+msgstr "દૂર કરો"
 
 #: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
-msgstr ""
+msgstr "અજ્ઞાત"
 
 #: ../src/utils/pactl.c:754
 msgid "sink"
-msgstr ""
+msgstr "સીંક"
 
 #: ../src/utils/pactl.c:757
 msgid "source"
-msgstr ""
+msgstr "સ્ત્રોત"
 
 #: ../src/utils/pactl.c:760
 msgid "sink-input"
-msgstr ""
+msgstr "સીંક-ઇનપુટ"
 
 #: ../src/utils/pactl.c:763
 msgid "source-output"
-msgstr ""
+msgstr "સ્ત્રોત-આઉટપુટ"
 
 #: ../src/utils/pactl.c:766
 msgid "module"
-msgstr ""
+msgstr "મોડ્યુલ"
 
 #: ../src/utils/pactl.c:769
 msgid "client"
-msgstr ""
+msgstr "ક્લાઇન્ટ"
 
 #: ../src/utils/pactl.c:772
 msgid "sample-cache"
-msgstr ""
+msgstr "નમૂના-કેસ"
 
 #: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
-#, fuzzy
 msgid "server"
-msgstr "અયોગ્ય સર્વર"
+msgstr "સર્વર"
 
 #: ../src/utils/pactl.c:787
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "ઘટના '%s' એ %s #%u પર\n"
 
 #: ../src/utils/pactl.c:955
 msgid "Got SIGINT, exiting."
 msgstr "SIGINT મળ્યુ, બહાર નીકળી રહ્યા છે."
 
 #: ../src/utils/pactl.c:961
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2140,6 +2142,7 @@ msgstr ""
 "%s [options] set-sink-mute SINK 1|0\n"
 "%s [options] set-source-mute SOURCE 1|0\n"
 "%s [options] set-sink-input-mute SINKINPUT 1|0\n"
+"%s [options] subscribe\n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
@@ -2197,17 +2200,14 @@ msgid "You have to specify a module index"
 msgstr "તમારે મોડ્યુલ અનુક્રમણિકાને સ્પષ્ટ કરવુ જ પડશે"
 
 #: ../src/utils/pactl.c:1183
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
-"તમે એક સિંક કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
+msgstr "તમે એક સિંક કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
 
 #: ../src/utils/pactl.c:1196
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr ""
-"તમે એક સ્ત્રોત કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
+msgstr "તમે એક સ્ત્રોત કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
 
 #: ../src/utils/pactl.c:1208
 msgid "You have to specify a card name/index and a profile name"
@@ -2437,7 +2437,7 @@ msgstr "Telephony Duplex (HSP/HFP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2247
 msgid "Handsfree Gateway"
-msgstr ""
+msgstr "હેન્ડ્સફ્રી ગેટવે"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
@@ -2487,7 +2487,7 @@ msgstr "આંતરિક માઇક્રોફોન"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
-msgstr "રેડિયો"
+msgstr "રેડિઓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1709
 msgid "Video"
@@ -2495,11 +2495,11 @@ msgstr "વિડિયો"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
-msgstr "Automatic Gain Control"
+msgstr "આપોઆપ સંપાદન નિયંત્રણ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1711
 msgid "No Automatic Gain Control"
-msgstr "Automatic Gain Control નથી"
+msgstr "આપોઆપ સંપાદન નિયંત્રણ નથી"
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
@@ -2511,30 +2511,27 @@ msgstr "બુસ્ટ નથી"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
-msgstr "પરિવર્ધક"
+msgstr "ઍમ્પ્લિફાયર"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
 msgid "No Amplifier"
-msgstr "પરિવર્ધક નથી"
+msgstr "ઍમ્પ્લિફાયર નથી"
 
 #: ../src/modules/alsa/alsa-mixer.c:1716
-#, fuzzy
 msgid "Bass Boost"
-msgstr "બુસ્ટ"
+msgstr "બેસ બુસ્ટ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1717
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "બુસ્ટ નથી"
+msgstr "બેસ બુસ્ટ નથી"
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "સ્પીકર"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
 msgid "Headphones"
-msgstr "ઍનલૉગ હૅડફોનો"
+msgstr "હેડફોનો"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
@@ -2550,7 +2547,7 @@ msgstr "ઍનલૉગ લાઇન-ઇન"
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Analog Radio"
-msgstr "ઍનલૉગ રેડિયો"
+msgstr "ઍનલૉગ રેડિઓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Analog Video"
@@ -2562,7 +2559,7 @@ msgstr "ઍનલૉગ આઉટપુટ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1783
 msgid "Analog Headphones"
-msgstr "ઍનલૉગ હૅડફોનો"
+msgstr "ઍનલૉગ હેડફોનો"
 
 #: ../src/modules/alsa/alsa-mixer.c:1784
 msgid "Analog Output (LFE)"
@@ -2573,9 +2570,8 @@ msgid "Analog Mono Output"
 msgstr "ઍનલૉગ મોનો આઉટપુટ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
-#, fuzzy
 msgid "Analog Speakers"
-msgstr "ઍનલૉગ સ્ટેરિઓ"
+msgstr "ઍનલૉગ સ્પીકરો"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
@@ -2671,5 +2667,3 @@ msgstr "ઍનલૉગ સ્ટેરિઓ ડુપ્લેક્ષ"
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "ડિજિટલ સ્ટેરિઓ ડુપ્લેક્ષ (IEC958)"
 
-#~ msgid "Low Frequency Emmiter"
-#~ msgstr "Low Frequency Emmiter"
