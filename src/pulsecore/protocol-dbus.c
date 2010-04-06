@@ -1074,8 +1074,9 @@ void pa_dbus_protocol_send_signal(pa_dbus_protocol *p, DBusMessage *signal_msg) 
     pa_assert(p);
     pa_assert(signal_msg);
     pa_assert(dbus_message_get_type(signal_msg) == DBUS_MESSAGE_TYPE_SIGNAL);
-    pa_assert_se(dbus_message_get_interface(signal_msg));
-    pa_assert_se(dbus_message_get_member(signal_msg));
+    pa_assert(dbus_message_get_path(signal_msg));
+    pa_assert(dbus_message_get_interface(signal_msg));
+    pa_assert(dbus_message_get_member(signal_msg));
 
     signal_string = pa_sprintf_malloc("%s.%s", dbus_message_get_interface(signal_msg), dbus_message_get_member(signal_msg));
 
