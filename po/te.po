@@ -1,14 +1,14 @@
-# translation of pulseaudio.master-tx.te.po to Telugu
+# translation of te.po to Telugu
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
-# Krishna Babu K <kkrothap@redhat.com>, 2009.
+# Krishna Babu K <kkrothap@redhat.com>, 2009, 2010.
 msgid ""
 msgstr ""
-"Project-Id-Version: pulseaudio.master-tx.te\n"
+"Project-Id-Version: te\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-11-12 13:10+0530\n"
+"POT-Creation-Date: 2010-04-07 09:25+0000\n"
+"PO-Revision-Date: 2010-04-07 15:23+0530\n"
 "Last-Translator: Krishna Babu K <kkrothap@redhat.com>\n"
 "Language-Team: Telugu <en@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -16,6 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"\n"
 "\n"
 "\n"
 "\n"
@@ -251,7 +252,7 @@ msgstr "stdio పొందుటకు విఫలమైంది."
 #: ../src/daemon/main.c:726
 #, fuzzy, c-format
 msgid "pipe() failed: %s"
-msgstr "పైర్ విఫలమైంది: %s"
+msgstr "పైప్ విఫలమైంది: %s"
 
 #: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
@@ -320,9 +321,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "valgrind రీతినందు నడుపుచున్నది: %s"
 
 #: ../src/daemon/main.c:850
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "హోస్టును నడుపుచున్నది: %s"
+msgstr "VM నందు నడుపుచున్నది: %s"
 
 #: ../src/daemon/main.c:853
 msgid "Optimized build: yes"
@@ -808,7 +809,7 @@ msgstr "వెనుక కుడివైపు"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "ఉపవూఫర్"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1337,7 +1338,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() విఫలమైంది: %s"
 
 #: ../src/utils/pacat.c:630
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1449,10 +1450,14 @@ msgstr ""
 "bytes.\n"
 "      --process-time=BYTES              Request the specified process time "
 "per request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in "
+"msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time "
+"per request in msec.\n"
 "      --property=PROPERTY=VALUE         Set the specified property to the "
 "specified value.\n"
 "      --raw                             Record/play raw PCM data.\n"
-"      --file-format=FFORMAT             Record/play formatted PCM data.\n"
+"      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
 "      --list-file-formats               List available file formats.\n"
 
 #: ../src/utils/pacat.c:758
@@ -2527,23 +2532,20 @@ msgid "No Amplifier"
 msgstr "ఎంప్లిఫైర్ లేదు"
 
 #: ../src/modules/alsa/alsa-mixer.c:1716
-#, fuzzy
 msgid "Bass Boost"
-msgstr "బూస్ట్"
+msgstr "బాస్ బూస్ట్"
 
 #: ../src/modules/alsa/alsa-mixer.c:1717
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "బూస్ట్ లేదు"
+msgstr "బాస్ బూస్ట్ లేదు"
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "స్పీకర్"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
 msgid "Headphones"
-msgstr "ఎనలాగ్ హెడ్‌ఫోన్స్"
+msgstr "హెడ్‌ఫోన్స్"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
@@ -2582,9 +2584,8 @@ msgid "Analog Mono Output"
 msgstr "ఎనలాగ్ మోనో అవుట్పుట్"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
-#, fuzzy
 msgid "Analog Speakers"
-msgstr "ఎనలాగ్ స్టీరియో"
+msgstr "ఎనలాగ్ స్పీకర్స్"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
@@ -2679,6 +2680,3 @@ msgstr "ఎనలాగ్ స్టీరియో డుప్లెక్స�
 #: ../src/modules/alsa/alsa-mixer.c:2935
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "డిజిటల్ స్టీరియో డుప్లెక్స్ (IEC958)"
-
-#~ msgid "Low Frequency Emmiter"
-#~ msgstr "తక్కువ తరచుదనం వెలువరించునది"
