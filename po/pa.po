@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Amanpreet Singh Alam <aalam@users.sf.net>, 2008.
-# Jaswinder Singh <jsingh@redhat.com>, 2009.
+# Jaswinder Singh <jsingh@redhat.com>, 2009, 2010.
 # A S Alam <aalam@users.sf.net>, 2009.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pa\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-12-08 15:04+0530\n"
+"POT-Creation-Date: 2010-04-08 07:53+0000\n"
+"PO-Revision-Date: 2010-04-09 12:40+0530\n"
 "Last-Translator: Jaswinder Singh <jsingh@redhat.com>\n"
 "Language-Team: Punjabi/Panjabi <kde-i18n-doc@kde.org>\n"
 "MIME-Version: 1.0\n"
@@ -187,6 +187,7 @@ msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
 msgstr ""
+"ਸਿਸਟਮ ਮੋਡ ਨਾਨ-ਰੂਟ ਯੂਜ਼ਰਾਂ ਨੂੰ ਰੱਦ ਕਰਦਾ ਹੈ। ਸਿਰਫ  D-Bus ਸਰਵਰ ਲੁੱਕਅੱਪ ਸਰਵਿਸ ਚਾਲੂ ਕਰਦਾ ਹੈ।"
 
 #: ../src/daemon/main.c:617
 msgid "Daemon not running"
@@ -219,7 +220,7 @@ msgstr "--start ਨੂੰ ਸਿਸਟਮ ਮੌਕਿਆਂ ਲਈ ਸਹਿਯ
 #: ../src/daemon/main.c:676
 #, c-format
 msgid "User-configured server at %s, not autospawning."
-msgstr ""
+msgstr "%s ਉੱਪਰ ਯੂਜ਼ਰ-ਸੰਰਚਿਤ ਸਰਵਰ, autospawning ਨਹੀਂ।"
 
 #: ../src/daemon/main.c:683
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -242,9 +243,9 @@ msgid "Failed to acquire stdio."
 msgstr "ਸਟੂਡੀਓ ਪ੍ਰਾਪਤ ਕਰਨ ਵਿੱਚ ਫੇਲ੍ਹ।"
 
 #: ../src/daemon/main.c:726
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "pipe ਫੇਲ੍ਹ: %s"
+msgstr "pipe() ਫੇਲ੍ਹ: %s"
 
 #: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
@@ -265,9 +266,9 @@ msgid "Daemon startup successful."
 msgstr "ਡੈਮਨ ਸ਼ੁਰੂਆਤੀ ਸਫ਼ਲ ਹੋਈ।"
 
 #: ../src/daemon/main.c:778
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() ਫੇਲ੍ਹ ਹੈ: %s"
+msgstr "setsid() ਫੇਲ ਹੈ: %s"
 
 #: ../src/daemon/main.c:830
 #, c-format
@@ -313,9 +314,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "Valgrind ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ: %s"
 
 #: ../src/daemon/main.c:850
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "ਹੋਸਟ ਤੇ ਚੱਲ ਰਿਹਾ ਹੈ: %s"
+msgstr "VM ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ: %s"
 
 #: ../src/daemon/main.c:853
 msgid "Optimized build: yes"
@@ -739,9 +740,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] ਅਢੁੱਕਵਾਂ nice ਲੈਵਲ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] ਅਢੁੱਕਵਾਂ ਸੈਂਪਲ ਰੇਟ '%s'।"
+msgstr "[%s:%u] ਅਢੁੱਕਵੀਂ ਸਰਵਰ ਕਿਸਮ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:586
 #, c-format
@@ -801,7 +802,7 @@ msgstr "ਪਿੱਛੇ ਸੱਜਾ"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "ਸਬਵੂਫ਼ਰ"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1330,7 +1331,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() ਫੇਲ੍ਹ ਹੈ: %s"
 
 #: ../src/utils/pacat.c:630
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1442,10 +1443,14 @@ msgstr ""
 "bytes.\n"
 "      --process-time=BYTES              Request the specified process time "
 "per request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in "
+"msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time "
+"per request in msec.\n"
 "      --property=PROPERTY=VALUE         Set the specified property to the "
 "specified value.\n"
 "      --raw                             Record/play raw PCM data.\n"
-"      --file-format=FFORMAT             Record/play formatted PCM data.\n"
+"      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
 "      --list-file-formats               List available file formats.\n"
 
 #: ../src/utils/pacat.c:758
@@ -1701,9 +1706,15 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"Server String: %s\n"
+"Library Protocol Version: %u\n"
+"Server Protocol Version: %u\n"
+"Is Local: %s\n"
+"Client Index: %u\n"
+"Tile Size: %zu\n"
 
 #: ../src/utils/pactl.c:176
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1715,7 +1726,7 @@ msgid ""
 "Default Source: %s\n"
 "Cookie: %04x:%04x\n"
 msgstr ""
-"User name: %s\n"
+"User Name: %s\n"
 "Host Name: %s\n"
 "Server Name: %s\n"
 "Server Version: %s\n"
@@ -1723,7 +1734,7 @@ msgstr ""
 "Default Channel Map: %s\n"
 "Default Sink: %s\n"
 "Default Source: %s\n"
-"Cookie: %08x\n"
+"Cookie: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:218
 #, c-format
@@ -2033,64 +2044,63 @@ msgstr "ਫਾਇਲ ਦਾ ਸਮੇਂ ਤੋਂ ਪਹਿਲਾਂ ਅੰਤ"
 
 #: ../src/utils/pactl.c:737
 msgid "new"
-msgstr ""
+msgstr "ਨਵਾਂ"
 
 #: ../src/utils/pactl.c:740
 msgid "change"
-msgstr ""
+msgstr "ਬਦਲੋ"
 
 #: ../src/utils/pactl.c:743
 msgid "remove"
-msgstr ""
+msgstr "ਹਟਾਓ"
 
 #: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
-msgstr ""
+msgstr "ਅਣਜਾਣ"
 
 #: ../src/utils/pactl.c:754
 msgid "sink"
-msgstr ""
+msgstr "ਸਿੰਕ"
 
 #: ../src/utils/pactl.c:757
 msgid "source"
-msgstr ""
+msgstr "ਸਰੋਤ"
 
 #: ../src/utils/pactl.c:760
 msgid "sink-input"
-msgstr ""
+msgstr "ਸਿੰਕ-ਇੰਪੁੱਟ"
 
 #: ../src/utils/pactl.c:763
 msgid "source-output"
-msgstr ""
+msgstr "ਸਰੋਤ-ਆਊਟਪੁੱਟ"
 
 #: ../src/utils/pactl.c:766
 msgid "module"
-msgstr ""
+msgstr "ਮੈਡਿਊਲ"
 
 #: ../src/utils/pactl.c:769
 msgid "client"
-msgstr ""
+msgstr "ਕਲਾਂਈਟ"
 
 #: ../src/utils/pactl.c:772
 msgid "sample-cache"
-msgstr ""
+msgstr "ਸੈਂਪਲ-ਕੈਸ਼ੇ"
 
 #: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
-#, fuzzy
 msgid "server"
-msgstr "ਅਢੁੱਕਵਾਂ ਸਰਵਰ"
+msgstr "ਸਰਵਰ"
 
 #: ../src/utils/pactl.c:787
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "'%s' ਘਟਨਾ %s #%u ਉੱਪਰ\n"
 
 #: ../src/utils/pactl.c:955
 msgid "Got SIGINT, exiting."
 msgstr "SIGINT ਮਿਲਿਆ, ਬੰਦ ਹੋ ਰਿਹਾ ਹੈ।"
 
 #: ../src/utils/pactl.c:961
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2144,6 +2154,7 @@ msgstr ""
 "%s [options] set-sink-mute SINK 1|0\n"
 "%s [options] set-source-mute SOURCE 1|0\n"
 "%s [options] set-sink-input-mute SINKINPUT 1|0\n"
+"%s [options] subscribe\n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
@@ -2439,7 +2450,7 @@ msgstr "ਟੈਲੀਫੋਨੀ ਡੁਪਲੈਕਸ (HSP/HFP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2247
 msgid "Handsfree Gateway"
-msgstr ""
+msgstr "ਹੈਂਡਸਫਰੀ ਗੇਟਵੇ"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
@@ -2520,23 +2531,20 @@ msgid "No Amplifier"
 msgstr "ਕੋਈ ਐਂਪਲੀਫਾਇਰ ਨਹੀਂ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1716
-#, fuzzy
 msgid "Bass Boost"
-msgstr "ਬੂਸਟ"
+msgstr "ਬਾਸ ਬੂਸਟ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1717
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "ਕੋਈ ਬੂਸਟ ਨਹੀਂ"
+msgstr "ਕੋਈ ਬਾਸ ਬੂਸਟ ਨਹੀਂ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "ਸਪੀਕਰ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
 msgid "Headphones"
-msgstr "ਐਨਾਲਾਗ ਹੈੱਡਫੋਨ"
+msgstr "ਹੈੱਡਫੋਨ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
@@ -2575,9 +2583,8 @@ msgid "Analog Mono Output"
 msgstr "ਐਨਾਲਾਗ ਮੋਨੋ ਆਊਟਪੁੱਟ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
-#, fuzzy
 msgid "Analog Speakers"
-msgstr "ਐਨਾਲਾਗ ਸਟੀਰੀਓ"
+msgstr "ਐਨਾਲਾਗ ਸਪੀਕਰ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
