@@ -1,21 +1,21 @@
-# translation of pulseaudio.master-tx.or.po to Oriya
+# translation of pulseaudio.or.po to Oriya
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
-# Manoj Kumar Giri <mgiri@redhat.com>, 2009.
+# Manoj Kumar Giri <mgiri@redhat.com>, 2009, 2010.
 msgid ""
 msgstr ""
-"Project-Id-Version: pulseaudio.master-tx.or\n"
+"Project-Id-Version: pulseaudio.or\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-11-14 15:33+0530\n"
+"POT-Creation-Date: 2010-04-15 09:10+0000\n"
+"PO-Revision-Date: 2010-04-15 17:50+0530\n"
 "Last-Translator: Manoj Kumar Giri <mgiri@redhat.com>\n"
-"Language-Team: Oriya <oriya-it@googlegroups.com>\n"
+"Language-Team: Oriya <Translation-team-or@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
-"Plural-Forms:  nplurals=2; plural=(n!=1);\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
 "\n"
 "\n"
 "\n"
@@ -206,6 +206,8 @@ msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
 msgstr ""
+"ତନ୍ତ୍ର ଧାରା ମୂଖ୍ୟ ଚାଳକ (ରୁଟ) ହୋଇନଥିବା ଚାଳକମାନଙ୍କୁ ବାରଣ କରିଥାଏ। କେବଳ D-Bus ସର୍ଭରରେ "
+"ଅବଲୋକନ ସର୍ଭିସ ପାଇଁ ଆରମ୍ଭ କରିଥାଏ।"
 
 #: ../src/daemon/main.c:617
 msgid "Daemon not running"
@@ -240,7 +242,7 @@ msgstr "--start ତନ୍ତ୍ର ସ୍ଥିତି ପାଇଁ ସମର୍�
 #: ../src/daemon/main.c:676
 #, c-format
 msgid "User-configured server at %s, not autospawning."
-msgstr ""
+msgstr "%s ଠାରେ ଚାଳକ-ବିନ୍ୟାସିତ ସର୍ଭର, ସ୍ୱୟଂନିର୍ମିତ ନୁହଁ।"
 
 #: ../src/daemon/main.c:683
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -263,9 +265,9 @@ msgid "Failed to acquire stdio."
 msgstr "stdio କୁ ଅଧିକାର କରିବାରେ ବିଫଳ।"
 
 #: ../src/daemon/main.c:726
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "ପାଇପ ବିଫଳ ହୋଇଛି: %s"
+msgstr "pipe() ବିଫଳ ହୋଇଛି: %s"
 
 #: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
@@ -286,9 +288,9 @@ msgid "Daemon startup successful."
 msgstr "ଡେମନ ଆରମ୍ଭ ସଫଳ ହୋଇଛି।"
 
 #: ../src/daemon/main.c:778
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() ବିଫଳ ହୋଇଛି: %s"
+msgstr "setsid() ବିଫଳ ହୋଇଛି: %s"
 
 #: ../src/daemon/main.c:830
 #, c-format
@@ -334,9 +336,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "valgrind ଧାରାରେ ଚାଲୁଅଛି: %s"
 
 #: ../src/daemon/main.c:850
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "ଆଧାରରେ ଚାଲୁଅଛି: %s"
+msgstr "VM ରେ ଚାଲୁଅଛି: %s"
 
 #: ../src/daemon/main.c:853
 msgid "Optimized build: yes"
@@ -760,9 +762,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] ଅବୈଧ ସୁନ୍ଦର ସ୍ତର '%s'."
 
 #: ../src/daemon/daemon-conf.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] ଅବୈଧ ନମୁନା ହାର '%s'।"
+msgstr "[%s:%u] ଅବୈଧ ସର୍ଭର ପ୍ରକାର '%s'।"
 
 #: ../src/daemon/daemon-conf.c:586
 #, c-format
@@ -824,7 +826,7 @@ msgstr "ପଛ ଡ଼ାହାଣ ପାଖ"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "ଉପ ଉଫର"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1353,7 +1355,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() ବିଫଳ ହୋଇଛି: %s"
 
 #: ../src/utils/pacat.c:630
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1459,10 +1461,13 @@ msgstr ""
 "      --latency=BYTES                   ନିର୍ଦ୍ଦିଷ୍ଟିତ ବିଳମ୍ବତାକୁ ବାଇଟରେ ଆବେଦନ କରନ୍ତୁ।\n"
 "      --process-time=BYTES              ଅନୁରୋଧ ପ୍ରତି ନିର୍ଦ୍ଦିଷ୍ଟିତ ବିଳମ୍ବତାକୁ ବାଇଟରେ "
 "ଆବେଦନ କରନ୍ତୁ।\n"
+"      --latency-msec=MSEC               ନିର୍ଦ୍ଦିଷ୍ଟିତ ବିଳମ୍ବତାକୁ msec ରେ ଆବେଦନ କରନ୍ତୁ।\n"
+"      --process-time-msec=MSEC          ଅନୁରୋଧ ପ୍ରତି ନିର୍ଦ୍ଦିଷ୍ଟିତ ବିଳମ୍ବତାକୁ msec ରେ "
+"ଆବେଦନ କରନ୍ତୁ।\n"
 "      --property=PROPERTY=VALUE         ନିର୍ଦ୍ଦିଷ୍ଟିତ ମୂଲ୍ୟ ପାଇଁ ଉଲ୍ଲିଖିତ ଗୁଣଧର୍ମକୁ ସେଟ "
 "କରନ୍ତୁ।\n"
 "      --raw                             ଅପରିପକ୍ୱ PCM ତଥ୍ୟକୁ ଲିପିବଦ୍ଧ କରନ୍ତୁ/ଚଲାନ୍ତୁ।\n"
-"      --file-format=FFORMAT             ସଜ୍ଜିକୃତ PCM ତଥ୍ୟକୁ ଲିପିବଦ୍ଧ କରନ୍ତୁ/ଚଲାନ୍ତୁ।\n"
+"      --file-format[=FFORMAT]             ସଜ୍ଜିକୃତ PCM ତଥ୍ୟକୁ ଲିପିବଦ୍ଧ କରନ୍ତୁ/ଚଲାନ୍ତୁ।\n"
 "      --list-file-formats               ତାଲିକା ଉପଲବ୍ଧ ଫାଇଲ ସଜ୍ଜିକରଣ ଶୈଳୀ।\n"
 
 #: ../src/utils/pacat.c:758
@@ -1561,8 +1566,7 @@ msgstr "ଚେତାବନୀ: ଚ୍ୟାନେଲ ମ୍ୟାପକୁ ଫ�
 
 #: ../src/utils/pacat.c:1049
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "ନମୁନା ବିଶେଷ ଲକ୍ଷଣ '%s' ଏବଂ ଚ୍ୟାନେଲ ମ୍ୟାପ '%s' ସହିତ ଗୋଟିଏ %s ଧାରାକୁ ଖୋଲୁଅଛି।"
 
 #: ../src/utils/pacat.c:1050
@@ -1717,9 +1721,15 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"ସର୍ଭର ବାକ୍ୟଖଣ୍ଡ: %s\n"
+"ଲାଇବ୍ରେରୀ ପ୍ରଟୋକଲ ସଂସ୍କରଣ: %u\n"
+"ସର୍ଭର ପ୍ରଟୋକଲ ସଂସ୍କରଣ: %u\n"
+"ଟି ସ୍ଥାନୀୟ: %s\n"
+"କ୍ଲାଏଣ୍ଟ ଅନୁକ୍ରମଣିକା: %u\n"
+"ଟାଇଲ ଆକାର: %zu\n"
 
 #: ../src/utils/pactl.c:176
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1739,7 +1749,7 @@ msgstr ""
 "ପୂର୍ବନିର୍ଦ୍ଧାରିତ ଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
 "ପୂର୍ବନିର୍ଦ୍ଧାରିତ ସିଙ୍କ: %s\n"
 "ପୂର୍ବନିର୍ଦ୍ଧାରିତ ଉତ୍ସ: %s\n"
-"କୁକି: %08x\n"
+"କୁକି: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:218
 #, c-format
@@ -2049,64 +2059,63 @@ msgstr "ଫାଇଲର ସମୟ ପୂର୍ବ ସମାପ୍ତି"
 
 #: ../src/utils/pactl.c:737
 msgid "new"
-msgstr ""
+msgstr "ନୂତନ"
 
 #: ../src/utils/pactl.c:740
 msgid "change"
-msgstr ""
+msgstr "ପରିବର୍ତ୍ତନ କରନ୍ତୁ"
 
 #: ../src/utils/pactl.c:743
 msgid "remove"
-msgstr ""
+msgstr "କାଢ଼ନ୍ତୁ"
 
 #: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
-msgstr ""
+msgstr "ଅଜଣା"
 
 #: ../src/utils/pactl.c:754
 msgid "sink"
-msgstr ""
+msgstr "ସିଙ୍କ"
 
 #: ../src/utils/pactl.c:757
 msgid "source"
-msgstr ""
+msgstr "ଉତ୍ସ"
 
 #: ../src/utils/pactl.c:760
 msgid "sink-input"
-msgstr ""
+msgstr "ସିଙ୍କ-ନିବେଶ"
 
 #: ../src/utils/pactl.c:763
 msgid "source-output"
-msgstr ""
+msgstr "ଉତ୍ସ-ଫଳାଫଳ"
 
 #: ../src/utils/pactl.c:766
 msgid "module"
-msgstr ""
+msgstr "ଏକକାଂଶ"
 
 #: ../src/utils/pactl.c:769
 msgid "client"
-msgstr ""
+msgstr "କ୍ଲାଏଣ୍ଟ"
 
 #: ../src/utils/pactl.c:772
 msgid "sample-cache"
-msgstr ""
+msgstr "ନମୁନା-କ୍ୟାଶେ"
 
 #: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
-#, fuzzy
 msgid "server"
-msgstr "ଅବୈଧ ସର୍ଭର"
+msgstr "ସର୍ଭର"
 
 #: ../src/utils/pactl.c:787
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "ଘଟଣା '%s' %s #%u ଉପରେ\n"
 
 #: ../src/utils/pactl.c:955
 msgid "Got SIGINT, exiting."
 msgstr "SIGINT ପାଇଛି, ଉତ୍ସାହିତ କରୁଅଛି।"
 
 #: ../src/utils/pactl.c:961
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2139,33 +2148,35 @@ msgid ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 msgstr ""
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] stat\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] list\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] exit\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] upload-sample FILENAME [NAME]\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] play-sample NAME [SINK]\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] remove-sample NAME\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] move-sink-input ID SINK\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] move-source-output ID SOURCE\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] load-module NAME [ARGS ...]\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] unload-module ID\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] suspend-sink [SINK] 1|0\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] suspend-source [SOURCE] 1|0\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] set-card-profile [CARD] [PROFILE] \n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] set-sink-port [SINK] [PORT] \n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] set-source-port [SOURCE] [PORT] \n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] set-sink-volume SINK VOLUME\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] set-source-volume SOURCE VOLUME\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] set-sink-input-volume SINKINPUT VOLUME\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] set-sink-mute SINK 1|0\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] set-source-mute SOURCE 1|0\n"
-"%s [ବିକଳ୍ପଗୁଡ଼ିକ] set-sink-input-mute SINKINPUT 1|0\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ଆରମ୍ଭ କରନ୍ତୁ\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ତାଲିକା\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ପ୍ରସ୍ଥାନ କରନ୍ତୁ\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ନମୁନାକୁ ଆହରଣ କରନ୍ତୁ FILENAME [NAME]\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ନମୁନାକୁ ଚଲାନ୍ତୁ NAME [SINK]\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ନମୁନାକୁ କାଢ଼ନ୍ତୁ NAME\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ସିଙ୍କ ନିବେଶକୁ ଘୁଞ୍ଚାନ୍ତୁ SINKINPUT SINK\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ଉତ୍ସ ଫଳାଫଳକୁ ଘୁଞ୍ଚାନ୍ତୁ SOURCEOUTPUT SOURCE\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ଏକକାଂଶ ଧାରଣ କରନ୍ତୁ NAME [ARGS ...]\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ଏକକାଂଶକୁ କାଢ଼ନ୍ତୁ MODULE\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ସିଙ୍କକୁ ନିଲମ୍ବିତ କରନ୍ତୁ SINK 1|0\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ଉତ୍ସକୁ ନିଲମ୍ବିତ କରନ୍ତୁ SOURCE 1|0\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] କାର୍ଡ-ରୂପରେଖା ସେଟ କରନ୍ତୁ CARD PROFILE\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ସିଙ୍କ-ପୋର୍ଟକୁ ସେଟ କରନ୍ତୁ SINK PORT\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ଉତ୍ସ-ପୋର୍ଟକୁ ସେଟ କରନ୍ତୁ SOURCE PORT\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ସିଙ୍କ-ଭଲ୍ୟୁମକୁ ସେଟ କରନ୍ତୁ SINK VOLUME\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ଉତ୍ସ-ଭଲ୍ୟୁମକୁ ସେଟ କରନ୍ତୁ SOURCE VOLUME\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ସିଙ୍କ-ନିବେଶ-ଭଲ୍ୟୁମକୁ ସେଟ କରନ୍ତୁ SINKINPUT VOLUME\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ସିଙ୍କ-ମ୍ୟୁଟକୁ ସେଟ କରନ୍ତୁ SINK 1|0\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ଉତ୍ସ-ମ୍ୟୁଟକୁ ସେଟ କରନ୍ତୁ SOURCE 1|0\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] ସିଙ୍କ-ନିବେଶ-ମ୍ୟୁଟକୁ ସେଟ କରନ୍ତୁ SINKINPUT 1|0\n"
+"%s [ବିକଳ୍ପଗୁଡ଼ିକ] କିଣନ୍ତୁ\n"
 "\n"
 "  -h, --help                            ଏହି ସହାୟତାକୁ ଦର୍ଶାନ୍ତୁ\n"
 "      --version                         ସଂସ୍କରଣ ଦର୍ଶାନ୍ତୁ\n"
 "\n"
 "  -s, --server=SERVER                   ସଂଯୋଗ କରିବା ପାଇଁ ସର୍ଭରର ନାମ\n"
-"  -n, --client-name=NAME                ସର୍ଭରରେ ଏହି କ୍ଲାଏଣ୍ଟକୁ କିପରି ଡାକିବେ\n"
+"  -n, --client-name=NAME                ସର୍ଭରରେ ଏହି କ୍ଲାଏଣ୍ଟକୁ କିପରି "
+"ଡାକିବେ\n"
 
 #: ../src/utils/pactl.c:1026
 #, c-format
@@ -2215,17 +2226,14 @@ msgid "You have to specify a module index"
 msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏ ଏକକାଂଶ ଅନୁକ୍ରମଣିକାକୁ ଉଲ୍ଲେଖ କରିବା ଉଚିତ ନୁହଁ"
 
 #: ../src/utils/pactl.c:1183
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
-"ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ସିଙ୍କ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।"
+msgid "You may not specify more than one sink. You have to specify a boolean value."
+msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ସିଙ୍କ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।"
 
 #: ../src/utils/pactl.c:1196
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr ""
-"ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ଉତ୍ସ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।"
+msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ଉତ୍ସ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।"
 
 #: ../src/utils/pactl.c:1208
 msgid "You have to specify a card name/index and a profile name"
@@ -2454,7 +2462,7 @@ msgstr "ଟେଲିଫୋନି ଡ୍ୟୁପ୍ଲେକ୍ସ (HSP/HFP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2247
 msgid "Handsfree Gateway"
-msgstr ""
+msgstr "ମୁକ୍ତ ହସ୍ତ ଗେଟୱେ"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
@@ -2463,16 +2471,16 @@ msgstr "PulseAudio ଧ୍ୱନି ସର୍ଭର"
 #: ../src/modules/module-rygel-media-server.c:592
 #: ../src/modules/module-rygel-media-server.c:606
 msgid "Output Devices"
-msgstr "ଫଳାଫଳ ଉପକରଣ"
+msgstr "ଫଳାଫଳ ଉପକରଣଗୁଡ଼ିକ"
 
 #: ../src/modules/module-rygel-media-server.c:593
 #: ../src/modules/module-rygel-media-server.c:607
 msgid "Input Devices"
-msgstr "ନିବେଶ ଉପକରଣ"
+msgstr "ନିବେଶ ଉପକରଣଗୁଡ଼ିକ"
 
 #: ../src/modules/module-rygel-media-server.c:797
 msgid "Audio on @HOSTNAME@"
-msgstr "@HOSTNAME@ ରେ ଧ୍ୱନି"
+msgstr "@HOSTNAME@ ଉପରେ ଧ୍ୱନି"
 
 #: ../src/modules/alsa/alsa-mixer.c:1701
 msgid "Input"
@@ -2508,7 +2516,7 @@ msgstr "ରେଡିଓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1709
 msgid "Video"
-msgstr "ଭିଡ଼ିଓ"
+msgstr "ଭିଡିଓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
@@ -2520,11 +2528,11 @@ msgstr "କୌଣସି ସ୍ୱୟଂଚାଳିତ ଲାଭ ନିୟନ୍
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
-msgstr "ବୃଦ୍ଧି"
+msgstr "ବୁଷ୍ଟ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1713
 msgid "No Boost"
-msgstr "ବୃଦ୍ଧି ନାହିଁ"
+msgstr "ବୁଷ୍ଟ ନାହିଁ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
@@ -2532,67 +2540,63 @@ msgstr "ଏମ୍ପ୍ଲିଫାୟର"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
 msgid "No Amplifier"
-msgstr "ଏମ୍ପ୍ଲିଫାୟର ନାହିଁ"
+msgstr "କୌଣସି ଏମ୍ପ୍ଲିଫାୟର ନାହିଁ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1716
-#, fuzzy
 msgid "Bass Boost"
-msgstr "ବୃଦ୍ଧି"
+msgstr "ଆଧାର ବୁଷ୍ଟ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1717
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "ବୃଦ୍ଧି ନାହିଁ"
+msgstr "କୌଣସି ଆଧାର ବୁଷ୍ଟ ନାହିଁ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "ସ୍ପିକର"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
 msgid "Headphones"
-msgstr "ଏନାଲୋଗ ହେଡ଼ଫୋନଗୁଡ଼ିକ"
+msgstr "ହେଡଫୋନ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
-msgstr "ଏନାଲୋଗ ନିବେଶ"
+msgstr "ଆନାଲଗ ନିବେଶ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Analog Microphone"
-msgstr "ଏନାଲୋଗ ମାଇକ୍ରୋଫୋନ"
+msgstr "ଆନାଲଗ ମାଇକ୍ରୋଫୋନ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1779
 msgid "Analog Line-In"
-msgstr "ଏନାଲୋଗ ଲାଇନ-ଇନ"
+msgstr "ଆନାଲଗ ଲାଇନ-ଇନ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Analog Radio"
-msgstr "ଏନାଲୋଗ ରେଡ଼ିଓ"
+msgstr "ଆନାଲଗ ରେଡ଼ିଓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Analog Video"
-msgstr "ଏନାଲୋଗ ଭିଡ଼ିଓ"
+msgstr "ଆନାଲଗ ଭିଡ଼ିଓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1782
 msgid "Analog Output"
-msgstr "ଏନାଲୋଗ ଫଳାଫଳ"
+msgstr "ଆନାଲଗ ଫଳାଫଳ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1783
 msgid "Analog Headphones"
-msgstr "ଏନାଲୋଗ ହେଡ଼ଫୋନଗୁଡ଼ିକ"
+msgstr "ଆନାଲଗ ହେଡ଼ଫୋନ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1784
 msgid "Analog Output (LFE)"
-msgstr "ଏନାଲୋଗ ଫଳାଫଳ (LFE)"
+msgstr "ଆନାଲଗ ଫଳାଫଳ (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
 msgid "Analog Mono Output"
-msgstr "ଏନାଲୋଗ ମୋନୋ ଫଳାଫଳ"
+msgstr "ଆନାଲଗ ମୋନୋ ଫଳାଫଳ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
-#, fuzzy
 msgid "Analog Speakers"
-msgstr "ଏନାଲୋଗ ଷ୍ଟେରିଓ"
+msgstr "ଆନାଲଗ ସ୍ପିକର"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
@@ -2606,55 +2610,55 @@ msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
 msgid "Analog Mono"
-msgstr "ଏନାଲୋଗ ମୋନୋ"
+msgstr "ଆନାଲଗ ମୋନୋ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2796
 msgid "Analog Stereo"
-msgstr "ଏନାଲୋଗ ଷ୍ଟେରିଓ"
+msgstr "ଆନାଲଗ ଷ୍ଟେରିଓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2797
 msgid "Analog Surround 2.1"
-msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 2.1"
+msgstr "ଆନାଲଗ ଚତୁଃ ପାର୍ଶ୍ୱ 2.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2798
 msgid "Analog Surround 3.0"
-msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 3.0"
+msgstr "ଆନାଲଗ ଚତୁଃ ପାର୍ଶ୍ୱ 3.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2799
 msgid "Analog Surround 3.1"
-msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 3.1"
+msgstr "ଆନାଲଗ ଚତୁଃ ପାର୍ଶ୍ୱ 3.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2800
 msgid "Analog Surround 4.0"
-msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 4.0"
+msgstr "ଆନାଲଗ ଚତୁଃ ପାର୍ଶ୍ୱ 4.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2801
 msgid "Analog Surround 4.1"
-msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 4.1"
+msgstr "ଆନାଲଗ ଚତୁଃ ପାର୍ଶ୍ୱ 4.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2802
 msgid "Analog Surround 5.0"
-msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 5.0"
+msgstr "ଆନାଲଗ ଚତୁଃ ପାର୍ଶ୍ୱ 5.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2803
 msgid "Analog Surround 5.1"
-msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 5.1"
+msgstr "ଆନାଲଗ ଚତୁଃ ପାର୍ଶ୍ୱ 5.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2804
 msgid "Analog Surround 6.0"
-msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 6.0"
+msgstr "ଆନାଲଗ ଚତୁଃ ପାର୍ଶ୍ୱ 6.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2805
 msgid "Analog Surround 6.1"
-msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 6.1"
+msgstr "ଆନାଲଗ ଚତୁଃ ପାର୍ଶ୍ୱ 6.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Surround 7.0"
-msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 7.0"
+msgstr "ଆନାଲଗ ଚତୁଃ ପାର୍ଶ୍ୱ 7.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2807
 msgid "Analog Surround 7.1"
-msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 7.1"
+msgstr "ଆନାଲଗ ଚତୁଃ ପାର୍ଶ୍ୱ 7.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2808
 msgid "Digital Stereo (IEC958)"
@@ -2678,15 +2682,13 @@ msgstr "ଡିଜିଟାଲ ଷ୍ଟେରିଓ (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2933
 msgid "Analog Mono Duplex"
-msgstr "ଏନାଲୋଗ ମୋନୋ ଡ଼ୁପ୍ଲେକ୍ସ"
+msgstr "ଆନାଲଗ ମୋନୋ ଡୁପ୍ଲେକ୍ସ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2934
 msgid "Analog Stereo Duplex"
-msgstr "ଏନାଲୋଗ ଷ୍ଟେରିଓ ଡ଼ୁପ୍ଲେକ୍ସ"
+msgstr "ଆନାଲଗ ଷ୍ଟେରିଓ ଡୁପ୍ଲେକ୍ସ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2935
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "ଡିଜିଟାଲ ଷ୍ଟେରିଓ ଡ଼ୁପ୍ଲେକ୍ସ (IEC958)"
+msgstr "ଡିଜିଟାଲ ଷ୍ଟେରିଓ ଡୁପ୍ଲେକ୍ସ (IEC958)"
 
-#~ msgid "Low Frequency Emmiter"
-#~ msgstr "ନିମ୍ନ ଆବୃତ୍ତି ପରିତ୍ୟାଗ କାରୀ"
