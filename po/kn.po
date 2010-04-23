@@ -2,15 +2,15 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
-# Shankar Prasad <svenkate@redhat.com>, 2009.
+# Shankar Prasad <svenkate@redhat.com>, 2009, 2010.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.kn\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-12-08 11:50+0530\n"
+"POT-Creation-Date: 2010-04-23 08:04+0000\n"
+"PO-Revision-Date: 2010-04-23 14:53+0530\n"
 "Last-Translator: Shankar Prasad <svenkate@redhat.com>\n"
-"Language-Team: Kannada <kde-l10n-kn@kde.org>\n"
+"Language-Team: kn-IN <>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -252,9 +252,9 @@ msgid "Failed to acquire stdio."
 msgstr "stdio ಅನ್ನು ಪಡೆದುಕೊಳ್ಳುವಲ್ಲಿ ವಿಫಲಗೊಂಡಿದೆ."
 
 #: ../src/daemon/main.c:726
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "ಪೈಪ್‌ ವಿಫಲಗೊಂಡಿದೆ: %s"
+msgstr "pipe() ವಿಫಲಗೊಂಡಿದೆ: %s"
 
 #: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
@@ -275,9 +275,9 @@ msgid "Daemon startup successful."
 msgstr "ಡೀಮನ್ ಅನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಆರಂಭಿಸಲಾಗಿದೆ."
 
 #: ../src/daemon/main.c:778
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() ವಿಫಲಗೊಂಡಿದೆ: %s"
+msgstr "setsid() ವಿಫಲಗೊಂಡಿದೆ: %s"
 
 #: ../src/daemon/main.c:830
 #, c-format
@@ -323,9 +323,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "valgrind ಕ್ರಮದಲ್ಲಿ ಚಲಾಯಿಸಲಾಗುತ್ತಿದೆ: %s"
 
 #: ../src/daemon/main.c:850
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "ಅತಿಥೇಯದಲ್ಲಿ ಚಲಾಯಿತಗೊಳ್ಳುತ್ತಿದೆ: %s"
+msgstr "VM ನಲ್ಲಿ ಚಲಾಯಿತಗೊಳ್ಳುತ್ತಿದೆ: %s"
 
 #: ../src/daemon/main.c:853
 msgid "Optimized build: yes"
@@ -341,8 +341,7 @@ msgstr "NDEBUG ಅನ್ನು ಸೂಚಿಸಲಾಗಿದೆ, ಎಲ್ಲ�
 
 #: ../src/daemon/main.c:861
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr ""
-"FASTPATH ಅನ್ನು ಸೂಚಿಸಲಾಗಿದೆ, ಕೇವಲ ವೇಗ ಮಾರ್ಗದ ಪ್ರತಿಪಾದನೆಗಳನ್ನೂ ಅಶಕ್ತಗೊಳಿಸಲಾಗಿದೆ."
+msgstr "FASTPATH ಅನ್ನು ಸೂಚಿಸಲಾಗಿದೆ, ಕೇವಲ ವೇಗ ಮಾರ್ಗದ ಪ್ರತಿಪಾದನೆಗಳನ್ನೂ ಅಶಕ್ತಗೊಳಿಸಲಾಗಿದೆ."
 
 #: ../src/daemon/main.c:863
 msgid "All asserts enabled."
@@ -821,7 +820,7 @@ msgstr "ಹಿಂಬದಿಯ ಬಲಭಾಗ"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "ಸಬ್‌ವೂಫರ್"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1351,7 +1350,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() ವಿಫಲಗೊಂಡಿದೆ: %s"
 
 #: ../src/utils/pacat.c:630
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1413,58 +1412,65 @@ msgid ""
 "      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
 "      --list-file-formats               List available file formats.\n"
 msgstr ""
-"%s [ಆಯ್ಕೆಗಳು]\n"
+"%s [options]\n"
 "\n"
-"  -h, --help                            ಈ ನೆರವನ್ನು ತೋರಿಸು\n"
-"      --version                         ಆವೃತ್ತಿಯನ್ನು ತೋರಿಸು\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
 "\n"
-"  -r, --record                          ರೆಕಾರ್ಡಿಂಗಿಗಾಗಿ ಒಂದು ಸಂಪರ್ಕವನ್ನು ರಚಿಸು\n"
-"  -p, --playback                        ಪ್ಲೇಬ್ಯಾಕಿಗಾಗಿ ಒಂದು ಸಂಪರ್ಕವನ್ನು ರಚಿಸು\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
 "\n"
-"  -v, --verbose                         ವರ್ಬೋಸ್ ಕಾರ್ಯವನ್ನು ಶಕ್ತಗೊಳಿಸು\n"
+"  -v, --verbose                         Enable verbose operations\n"
 "\n"
-"  -s, --server=SERVER                   ಸಂಪರ್ಕಸಾಧಿಸಬೇಕಿರುವ ಪರಿಚಾರಕದ ಹೆಸರು\n"
-"  -d, --device=DEVICE                   ಸಂಪರ್ಕಸಾಧಿಸಬೇಕಿರುವ ಸಿಂಕಿನ/ಆಕರದ ಹೆಸರು\n"
-"  -n, --client-name=NAME                ಪರಿಚಾರಕದಲ್ಲಿ ಈ ಕ್ಲೈಂಟಿನಲ್ಲಿ ಏನೆಂದು "
-"ಕರೆಯಬೇಕು\n"
-"      --stream-name=NAME                ಪರಿಚಾರಕದಲ್ಲಿ ಈ ಸ್ಟ್ರೀಮ್ ಅನ್ನು ಏನೆಂದು "
-"ಕರೆಯಬೇಕು\n"
-"      --volume=VOLUME                   ಆರಂಭಿಕ (ರೇಖೀಯ) ಪರಿಮಾಣವನ್ನು 0...65536 "
-"ವ್ಯಾಪ್ತಿಯಲ್ಲಿ ತೋರಿಸು\n"
-"      --rate=SAMPLERATE                 ನಮೂನೆಯ ದರ Hz ನಲ್ಲಿ (ಪೂರ್ವನಿಯೊಜಿತವು "
-"44100 ಆಗಿರುತ್ತದೆ)\n"
-"      --format=SAMPLEFORMAT             ನಮೂನೆಯ ಬಗೆ, s16le, s16be, u8, "
-"float32le ಗಳಲ್ಲಿ ಒಂದು,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be "
-"(ಪೂರ್ವನಿಯೋಜಿತವು s16ne ಆಗಿರುತ್ತದೆ)\n"
-"      --channels=CHANNELS               ಚಾನಲ್‌ಗಳ ಸಂಖ್ಯೆ, ಮೋನೊಗಾಗಿ 1, "
-"ಸ್ಟೀರಿಯೋಗಾಗಿ 2 ಆಗಿರುತ್ತದೆ\n"
-"                                        (ಪೂರ್ವನಿಯೊಜಿತವು 2 ಆಗಿರುತ್ತದೆ)\n"
-"      --channel-map=CHANNELMAP          ಪೂರ್ವನಿಯೋಜಿತದ ಬದಲಿಗೆ ಬಳಸಬೇಕಿರುವ ಚಾನಲ್ "
-"ನಕ್ಷೆ\n"
-"      --fix-format                      ಸ್ಟ್ರೀಮ್ ಸಂಪರ್ಕಿತಗೊಳ್ಳಲಿರುವ ಸಿಂಕಿನಿಂದ "
-"ನಮೂನೆಯ\n"
-"                                        ರಚನೆಯನ್ನು ತೆಗೆದುಕೊ.\n"
-"      --fix-rate                        ಸ್ಟ್ರೀಮ್ ಸಂಪರ್ಕಿತಗೊಳ್ಳಲಿರುವ ಸಿಂಕಿನಿಂದ "
-"ನಮೂನೆಯ\n"
-"                                        ದರವನ್ನು ತೆಗೆದುಕೊ.\n"
-"      --fix-channels                    ಸ್ಟ್ರೀಮ್ ಸಂಪರ್ಕಿತಗೊಳ್ಳಲಿರುವ ಸಿಂಕಿನಿಂದ "
-"ಚಾನಲ್‌ಗಳ ಸಂಖ್ಯೆ\n"
-"                                        ಹಾಗು ಚಾನಲ್‌ನ ನಕ್ಷೆಯನ್ನು ತೆಗೆದುಕೊ.\n"
-"      --no-remix                        ಚಾನಲ್‌ಗಳನ್ನು upmix ಅಥವ downmix ಮಾಡಬೇಡ.\n"
-"      --no-remap                        ಚಾನಲ್‌ಗಳನ್ನು ಹೆಸರುಗಳ ಬದಲಿಗೆ ಸೂಚಿಯಿಂದ "
-"ಮ್ಯಾಪ್ ಮಾಡು.\n"
-"      --latency=BYTES                   ಸೂಚಿಸಲಾದ ಅಗೋಚರತೆಯನ್ನು ಬೈಟ್‌ಗಳಲ್ಲಿ ಮನವಿ "
-"ಮಾಡು.\n"
-"      --process-time=BYTES              ಸೂಚಿಸಲಾದ ಪ್ರತಿ ಮನವಿಯ ಪ್ರಕ್ರಿಯೆಯ ಸಮಯವನ್ನು "
-"ಬೈಟ್‌ಗಳಲ್ಲಿ ಮನವಿ ಮಾಡು.\n"
-"      --property=PROPERTY=VALUE         ನಿಶ್ಚಿತ ಗುಣಲಕ್ಷಣವನ್ನು ನಿಶ್ಚಿತ ಮೌಲ್ಯವನ್ನು "
-"ಹೊಂದಿಸಿ.\n"
-"      --raw                             ಕಚ್ಛಾ PCM ದತ್ತಾಂಶವನ್ನು ರೆಕಾರ್ಡು ಮಾಡು/"
-"ಚಲಾಯಿಸು.\n"
-"      --file-format=FFORMAT             ಫಾರ್ಮಾಟ್ ಮಾಡಲಾದ PCM ದತ್ತಾಂಶವನ್ನು ರೆಕಾರ್ಡು "
-"ಮಾಡು/ಚಲಾಯಿಸು.\n"
-"      --list-file-formats               ಲಭ್ಯವಿರುವ ಕಡತ ವಿನ್ಯಾಸಗಳ ಪಟ್ಟಿ.\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (defaults to "
+"s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink the stream is being "
+"connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in "
+"msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time "
+"per request in msec.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the "
+"specified value.\n"
+"      --raw                             Record/play raw PCM data.\n"
+"      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
+"      --list-file-formats               List available file formats.\n"
 
 #: ../src/utils/pacat.c:758
 #, c-format
@@ -1542,8 +1548,7 @@ msgstr "ಧ್ವನಿ ಕಡತವನ್ನು ತೆರೆಯುವಲ್ಲ�
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
-msgstr ""
-"ಎಚ್ಚರಿಕೆ: ಸೂಚಿಸಲಾದ ನಮೂನೆ ವಿವರಣೆಯನ್ನು ಕಡತದಲ್ಲಿನ ವಿವರಣೆಯಿಂದ ತಿದ್ದಿಬರೆಯಲಾಗುತ್ತದೆ."
+msgstr "ಎಚ್ಚರಿಕೆ: ಸೂಚಿಸಲಾದ ನಮೂನೆ ವಿವರಣೆಯನ್ನು ಕಡತದಲ್ಲಿನ ವಿವರಣೆಯಿಂದ ತಿದ್ದಿಬರೆಯಲಾಗುತ್ತದೆ."
 
 #: ../src/utils/pacat.c:1003 ../src/utils/pactl.c:1090
 msgid "Failed to determine sample specification from file."
@@ -1563,8 +1568,7 @@ msgstr "ಎಚ್ಚರಿಕೆ: ಕಡತಕ್ಕೆ ಚಾನಲ್ ನಕ�
 
 #: ../src/utils/pacat.c:1049
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 "ಒಂದು %s ಸ್ಟ್ರೀಮ್‌ ಅನ್ನು ನಮೂನೆ ವಿವರಣೆ '%s' ಯೊಂದಿಗೆ ಹಾಗು ಚಾನಲ್ ನಕ್ಷೆ '%s' ಯೊಂದಿಗೆ "
 "ತೆರೆಯಲಾಗುತ್ತಿದೆ."
@@ -1653,11 +1657,12 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [ಆಯ್ಕೆಗಳು] ... \n"
+"%s [options] ... \n"
 "\n"
-"  -h, --help                            ಈ ನೆರವನ್ನು ತೋರಿಸು\n"
-"      --version                         ಆವೃತ್ತಿಯನ್ನು ತೋರಿಸು\n"
-"  -s, --server=SERVER                   ಸಂಪರ್ಕಸಾಧಿಸಬೇಕಿರುವ ಪರಿಚಾರಕದ ಹೆಸರು\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
 "\n"
 
 #: ../src/utils/pasuspender.c:246
@@ -1725,7 +1730,7 @@ msgid ""
 msgstr ""
 
 #: ../src/utils/pactl.c:176
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1738,14 +1743,14 @@ msgid ""
 "Cookie: %04x:%04x\n"
 msgstr ""
 "ಬಳಕೆದಾರ ಹೆಸರು: %s\n"
-"ಅತಿಥೇಯದ ಹೆಸರು: %s\n"
+"ಆತಿಥೇಯದ ಹೆಸರು: %s\n"
 "ಪರಿಚಾರಕದ ಹೆಸರು: %s\n"
 "ಪರಿಚಾರಕ ಆವೃತ್ತಿ: %s\n"
 "ಪೂರ್ವನಿಯೋಜಿತ ನಮೂನೆ ವಿವರಣೆ: %s\n"
 "ಪೂರ್ವನಿಯೋಜಿತ ಚಾನಲ್‌ ನಕ್ಷೆ: %s\n"
 "ಪೂರ್ವನಿಯೋಜಿತ ಸಿಂಕ್: %s\n"
 "ಪೂರ್ವನಿಯೋಜಿತ ಆಕರ: %s\n"
-"ಕುಕಿ: %08x\n"
+"ಕುಕಿ: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:218
 #, c-format
@@ -2055,27 +2060,27 @@ msgstr "ಕಡತದ ಅಪ್ರಾಪ್ತ ಸಮಯದಲ್ಲಿ ಅಂತ
 
 #: ../src/utils/pactl.c:737
 msgid "new"
-msgstr ""
+msgstr "ಹೊಸತು"
 
 #: ../src/utils/pactl.c:740
 msgid "change"
-msgstr ""
+msgstr "ಬದಲಾಯಿಸಿ"
 
 #: ../src/utils/pactl.c:743
 msgid "remove"
-msgstr ""
+msgstr "ತೆಗೆದುಹಾಕು"
 
 #: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
-msgstr ""
+msgstr "ಅಜ್ಞಾತ"
 
 #: ../src/utils/pactl.c:754
 msgid "sink"
-msgstr ""
+msgstr "ಸಿಂಕ್"
 
 #: ../src/utils/pactl.c:757
 msgid "source"
-msgstr ""
+msgstr "ಆಕರ"
 
 #: ../src/utils/pactl.c:760
 msgid "sink-input"
@@ -2087,20 +2092,19 @@ msgstr ""
 
 #: ../src/utils/pactl.c:766
 msgid "module"
-msgstr ""
+msgstr "ಮಾಡ್ಯೂಲ್"
 
 #: ../src/utils/pactl.c:769
 msgid "client"
-msgstr ""
+msgstr "ಕ್ಲೈಂಟ್"
 
 #: ../src/utils/pactl.c:772
 msgid "sample-cache"
 msgstr ""
 
 #: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
-#, fuzzy
 msgid "server"
-msgstr "ಅಮಾನ್ಯವಾದ ಪರಿಚಾರಕ"
+msgstr "ಪರಿಚಾರಕ"
 
 #: ../src/utils/pactl.c:787
 #, c-format
@@ -2167,12 +2171,13 @@ msgstr ""
 "%s [ಆಯ್ಕೆಗಳು] set-source-mute SOURCE 1|0\n"
 "%s [ಆಯ್ಕೆಗಳು] set-sink-input-mute SINKINPUT 1|0\n"
 "\n"
-"  -h, --help                            ಈ ನೆರವನ್ನು ತೋರಿಸು\n"
-"      --version                         ಆವೃತ್ತಿಯನ್ನು ತೋರಿಸು\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
 "\n"
-"  -s, --server=SERVER                   ಸಂಪರ್ಕಸಾಧಿಸಬೇಕಿರುವ ಪರಿಚಾರಕದ ಹೆಸರು\n"
-"  -n, --client-name=NAME                ಪರಿಚಾರಕದಲ್ಲಿ ಈ ಕ್ಲೈಂಟಿನಲ್ಲಿ ಏನೆಂದು "
-"ಕರೆಯಬೇಕು\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
 
 #: ../src/utils/pactl.c:1026
 #, c-format
@@ -2222,8 +2227,7 @@ msgid "You have to specify a module index"
 msgstr "ನೀವು ಒಂದು ಘಟಕ ಸೂಚಿಯನ್ನು ಸೂಚಿಸಬೇಕು"
 
 #: ../src/utils/pactl.c:1183
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
 "ನೀವು ಒಂದಕ್ಕಿಂತ ಹೆಚ್ಚಿನ ಸಿಂಕನ್ನು ಸೂಚಿಸಲಾಗುವುದಿಲ್ಲ. ನೀವು ಒಂದು ಬೂಲಿಯನ್‌ ಮೌಲ್ಯವನ್ನು "
 "ಸೂಚಿಸಬೇಕಾಗುತ್ತದೆ."
@@ -2543,23 +2547,20 @@ msgid "No Amplifier"
 msgstr "ಯಾವುದೆ ಆಂಪ್ಲಿಫಯರ್ ಇಲ್ಲ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1716
-#, fuzzy
 msgid "Bass Boost"
-msgstr "ಬೂಸ್ಟ್"
+msgstr "ಬಾಸ್ ಬೂಸ್ಟ್"
 
 #: ../src/modules/alsa/alsa-mixer.c:1717
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "ಯಾವುದೆ ಬೂಸ್ಟ್ ಇಲ್ಲ"
+msgstr "ಯಾವುದೆ ಬಾಸ್ ಬೂಸ್ಟ್ ಇಲ್ಲ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "ಸ್ಪೀಕರ್"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
 msgid "Headphones"
-msgstr "ಅನಲಾಗ್ ಹೆಡ್‌ಫೋನ್‌ಗಳು"
+msgstr "ಹೆಡ್‌ಫೋನ್‌ಗಳು"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
@@ -2598,9 +2599,8 @@ msgid "Analog Mono Output"
 msgstr "ಅನಲಾಗ್ ಮೊನೊ ಔಟ್‌ಪುಟ್"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
-#, fuzzy
 msgid "Analog Speakers"
-msgstr "ಅನಲಾಗ್ ಸ್ಟೀರಿಯೋ"
+msgstr "ಅನಲಾಗ್ ಸ್ಪೀಕರುಗಳು"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
