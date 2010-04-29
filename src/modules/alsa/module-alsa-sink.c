@@ -54,7 +54,8 @@ PA_MODULE_USAGE(
         "tsched_buffer_size=<buffer size when using timer based scheduling> "
         "tsched_buffer_watermark=<lower fill watermark> "
         "ignore_dB=<ignore dB information from the device?> "
-        "control=<name of mixer control>");
+        "control=<name of mixer control>"
+        "rewind_safeguard=<number of bytes that cannot be rewound");
 
 static const char* const valid_modargs[] = {
     "name",
@@ -74,6 +75,7 @@ static const char* const valid_modargs[] = {
     "tsched_buffer_watermark",
     "ignore_dB",
     "control",
+    "rewind_safeguard",
     NULL
 };
 
