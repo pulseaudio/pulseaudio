@@ -83,6 +83,8 @@
 
 #define VOLUME_ACCURACY (PA_VOLUME_NORM/100)  /* don't require volume adjustments to be perfectly correct. don't necessarily extend granularity in software unless the differences get greater than this level */
 
+#define DEFAULT_REWIND_SAFEGUARD_BYTES (256) /* 1.33ms @48kHz, should work for most hardware */
+
 struct userdata {
     pa_core *core;
     pa_module *module;
@@ -112,7 +114,8 @@ struct userdata {
         watermark_inc_step,
         watermark_dec_step,
         watermark_inc_threshold,
-        watermark_dec_threshold;
+        watermark_dec_threshold,
+        rewind_safeguard;
 
     pa_usec_t watermark_dec_not_before;
 
@@ -1320,8 +1323,8 @@ static int process_rewind(struct userdata *u) {
 
     unused_nbytes = (size_t) unused * u->frame_size;
 
-    if (u->use_tsched)
-        unused_nbytes += u->tsched_watermark;
+    /* make sure rewind doesn't go too far, can cause issues with DMAs */
+    unused_nbytes += u->rewind_safeguard;
 
     if (u->hwbuf_size > unused_nbytes)
         limit_nbytes = u->hwbuf_size - unused_nbytes;
@@ -1676,7 +1679,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     pa_channel_map map;
     uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark;
     snd_pcm_uframes_t period_frames, buffer_frames, tsched_frames;
-    size_t frame_size;
+    size_t frame_size, rewind_safeguard;
     pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE;
     pa_sink_new_data data;
     pa_alsa_profile_set *profile_set = NULL;
@@ -1730,6 +1733,12 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         goto fail;
     }
 
+    rewind_safeguard = DEFAULT_REWIND_SAFEGUARD_BYTES;
+    if (pa_modargs_get_value_u32(ma, "rewind_safeguard", &rewind_safeguard) < 0) {
+        pa_log("Failed to parse rewind_safeguard argument");
+        goto fail;
+    }
+
     use_tsched = pa_alsa_may_tsched(use_tsched);
 
     u = pa_xnew0(struct userdata, 1);
@@ -1738,6 +1747,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     u->use_mmap = use_mmap;
     u->use_tsched = use_tsched;
     u->first = TRUE;
+    u->rewind_safeguard = rewind_safeguard;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
