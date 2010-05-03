@@ -244,7 +244,7 @@ finish:
 static int start_thread(void) {
 
     if (!thread)
-        if (!(thread = pa_thread_new(thread_func, NULL)))
+        if (!(thread = pa_thread_new("autospawn", thread_func, NULL)))
             return -1;
 
     return 0;

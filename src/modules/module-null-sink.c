@@ -317,7 +317,7 @@ int pa__init(pa_module*m) {
     pa_sink_set_max_rewind(u->sink, nbytes);
     pa_sink_set_max_request(u->sink, nbytes);
 
-    if (!(u->thread = pa_thread_new(thread_func, u))) {
+    if (!(u->thread = pa_thread_new("null-sink", thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
     }

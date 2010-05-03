@@ -620,7 +620,7 @@ int pa__init(pa_module*m) {
     pa_raop_client_set_callback(u->raop, on_connection, u);
     pa_raop_client_set_closed_callback(u->raop, on_close, u);
 
-    if (!(u->thread = pa_thread_new(thread_func, u))) {
+    if (!(u->thread = pa_thread_new("raop-sink", thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
     }

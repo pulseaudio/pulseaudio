@@ -2046,7 +2046,7 @@ static int start_thread(struct userdata *u) {
     }
 #endif
 
-    if (!(u->thread = pa_thread_new(thread_func, u))) {
+    if (!(u->thread = pa_thread_new("bluetooth", thread_func, u))) {
         pa_log_error("Failed to create IO thread");
         stop_thread(u);
         return -1;

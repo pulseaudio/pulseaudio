@@ -363,7 +363,7 @@ int pa__init(pa_module*m) {
     jack_on_shutdown(u->client, jack_shutdown, u);
     jack_set_thread_init_callback(u->client, jack_init, u);
 
-    if (!(u->thread = pa_thread_new(thread_func, u))) {
+    if (!(u->thread = pa_thread_new("jack-source", thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
     }

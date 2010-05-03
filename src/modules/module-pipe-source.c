@@ -295,7 +295,7 @@ int pa__init(pa_module*m) {
     pollfd->fd = u->fd;
     pollfd->events = pollfd->revents = 0;
 
-    if (!(u->thread = pa_thread_new(thread_func, u))) {
+    if (!(u->thread = pa_thread_new("pipe-source", thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
     }
