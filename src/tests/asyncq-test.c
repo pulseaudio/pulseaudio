@@ -73,8 +73,8 @@ int main(int argc, char *argv[]) {
 
     pa_assert_se(q = pa_asyncq_new(0));
 
-    pa_assert_se(t1 = pa_thread_new(producer, q));
-    pa_assert_se(t2 = pa_thread_new(consumer, q));
+    pa_assert_se(t1 = pa_thread_new("producer", producer, q));
+    pa_assert_se(t2 = pa_thread_new("consumer", consumer, q));
 
     pa_thread_free(t1);
     pa_thread_free(t2);

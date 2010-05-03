@@ -146,7 +146,7 @@ int pa_threaded_mainloop_start(pa_threaded_mainloop *m) {
 
     pa_assert(!m->thread || !pa_thread_is_running(m->thread));
 
-    if (!(m->thread = pa_thread_new(thread, m)))
+    if (!(m->thread = pa_thread_new("threaded-ml", thread, m)))
         return -1;
 
     return 0;

@@ -628,7 +628,7 @@ int pa__init(pa_module*m) {
     /* Reserve space for the response */
     u->read_data = pa_xmalloc(u->read_length = sizeof(int32_t));
 
-    if (!(u->thread = pa_thread_new(thread_func, u))) {
+    if (!(u->thread = pa_thread_new("esound-sink", thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
     }

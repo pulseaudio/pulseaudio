@@ -197,6 +197,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     return pa_sink_process_msg(o, code, data, offset, memchunk);
 }
 
+/* JACK Callback: This is called when JACK needs some data */
 static int jack_process(jack_nframes_t nframes, void *arg) {
     struct userdata *u = arg;
     unsigned c;
@@ -250,6 +251,7 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
+/* JACK Callback: This is called when JACK triggers an error */
 static void jack_error_func(const char*t) {
     char *s;
 
@@ -258,6 +260,7 @@ static void jack_error_func(const char*t) {
     pa_xfree(s);
 }
 
+/* JACK Callback: This is called when JACK is set up */
 static void jack_init(void *arg) {
     struct userdata *u = arg;
 
@@ -267,6 +270,7 @@ static void jack_init(void *arg) {
         pa_make_realtime(u->core->realtime_priority+4);
 }
 
+/* JACK Callback: This is called when JACK kicks us */
 static void jack_shutdown(void* arg) {
     struct userdata *u = arg;
 
@@ -274,6 +278,7 @@ static void jack_shutdown(void* arg) {
     pa_asyncmsgq_post(u->jack_msgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_ON_SHUTDOWN, NULL, 0, NULL, NULL);
 }
 
+/* JACK Callback: This is called when JACK changes the buffer size */
 static int jack_buffer_size(jack_nframes_t nframes, void *arg) {
     struct userdata *u = arg;
 
@@ -413,7 +418,7 @@ int pa__init(pa_module*m) {
     jack_set_thread_init_callback(u->client, jack_init, u);
     jack_set_buffer_size_callback(u->client, jack_buffer_size, u);
 
-    if (!(u->thread = pa_thread_new(thread_func, u))) {
+    if (!(u->thread = pa_thread_new("jack-sink", thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
     }

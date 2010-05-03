@@ -2014,7 +2014,7 @@ int pa__init(pa_module*m) {
     u->fragsize = (uint32_t) -1;
 #endif
 
-    if (!(u->thread = pa_thread_new(thread_func, u))) {
+    if (!(u->thread = pa_thread_new("module-tunnel", thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
     }

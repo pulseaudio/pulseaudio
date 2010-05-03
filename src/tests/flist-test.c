@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     flist = pa_flist_new(0);
 
     for (i = 0; i < THREADS_MAX; i++) {
-        threads[i] = pa_thread_new(thread_func, pa_sprintf_malloc("Thread #%i", i+1));
+        threads[i] = pa_thread_new("test", thread_func, pa_sprintf_malloc("Thread #%i", i+1));
         assert(threads[i]);
     }
 

@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
     tls = pa_tls_new(pa_xfree);
 
     for (i = 0; i < THREADS_MAX; i++) {
-        t[i] = pa_thread_new(thread_func, pa_sprintf_malloc("Thread #%i", i+1));
+        t[i] = pa_thread_new("test", thread_func, pa_sprintf_malloc("Thread #%i", i+1));
         assert(t[i]);
     }
 

@@ -1456,7 +1456,7 @@ go_on:
 
     pa_memchunk_reset(&u->memchunk);
 
-    if (!(u->thread = pa_thread_new(thread_func, u))) {
+    if (!(u->thread = pa_thread_new("oss", thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
     }

@@ -28,6 +28,10 @@
 #include <sched.h>
 #include <errno.h>
 
+#ifdef __linux__
+#include <sys/prctl.h>
+#endif
+
 #include <pulse/xmalloc.h>
 #include <pulsecore/mutex.h>
 #include <pulsecore/once.h>
@@ -42,6 +46,7 @@ struct pa_thread {
     void *userdata;
     pa_atomic_t running;
     pa_bool_t joined;
+    char *name;
 };
 
 struct pa_tls {
@@ -53,9 +58,11 @@ static void thread_free_cb(void *p) {
 
     pa_assert(t);
 
-    if (!t->thread_func)
+    if (!t->thread_func) {
         /* This is a foreign thread, we need to free the struct */
+        pa_xfree(t->name);
         pa_xfree(t);
+    }
 }
 
 PA_STATIC_TLS_DECLARE(current_thread, thread_free_cb);
@@ -63,6 +70,10 @@ PA_STATIC_TLS_DECLARE(current_thread, thread_free_cb);
 static void* internal_thread_func(void *userdata) {
     pa_thread *t = userdata;
     pa_assert(t);
+
+#ifdef __linux__
+    prctl(PR_SET_NAME, t->name);
+#endif
 
     t->id = pthread_self();
 
@@ -75,12 +86,13 @@ static void* internal_thread_func(void *userdata) {
     return NULL;
 }
 
-pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
+pa_thread* pa_thread_new(const char *name, pa_thread_func_t thread_func, void *userdata) {
     pa_thread *t;
 
     pa_assert(thread_func);
 
     t = pa_xnew0(pa_thread, 1);
+    t->name = pa_xstrdup(name);
     t->thread_func = thread_func;
     t->userdata = userdata;
 
@@ -110,6 +122,8 @@ void pa_thread_free(pa_thread *t) {
     pa_assert(t);
 
     pa_thread_join(t);
+
+    pa_xfree(t->name);
     pa_xfree(t);
 }
 
@@ -153,6 +167,36 @@ void pa_thread_set_data(pa_thread *t, void *userdata) {
     pa_assert(t);
 
     t->userdata = userdata;
+}
+
+void pa_thread_set_name(pa_thread *t, const char *name) {
+    pa_assert(t);
+
+    pa_xfree(t->name);
+    t->name = pa_xstrdup(name);
+
+#ifdef __linux__
+    prctl(PR_SET_NAME, name);
+#endif
+}
+
+const char *pa_thread_get_name(pa_thread *t) {
+    pa_assert(t);
+
+#ifdef __linux__
+    if (!t->name) {
+        t->name = pa_xmalloc(17);
+
+        if (prctl(PR_GET_NAME, t->name) >= 0)
+            t->name[16] = 0;
+        else {
+            pa_xfree(t->name);
+            t->name = NULL;
+        }
+    }
+#endif
+
+    return t->name;
 }
 
 void pa_thread_yield(void) {

@@ -88,10 +88,10 @@ static void thread_func2(void *k) {
 int main(int argc, char**argv) {
     pa_thread *a, *b, *c, *d;
 
-    pa_assert_se((a = pa_thread_new(thread_func, PA_INT_TO_PTR(1))));
-    pa_assert_se((b = pa_thread_new(thread_func2, PA_INT_TO_PTR(2))));
-    pa_assert_se((c = pa_thread_new(thread_func2, PA_INT_TO_PTR(3))));
-    pa_assert_se((d = pa_thread_new(thread_func, PA_INT_TO_PTR(4))));
+    pa_assert_se((a = pa_thread_new("test1", thread_func, PA_INT_TO_PTR(1))));
+    pa_assert_se((b = pa_thread_new("test2", thread_func2, PA_INT_TO_PTR(2))));
+    pa_assert_se((c = pa_thread_new("test3", thread_func2, PA_INT_TO_PTR(3))));
+    pa_assert_se((d = pa_thread_new("test4", thread_func, PA_INT_TO_PTR(4))));
 
     pa_thread_join(a);
     pa_thread_join(b);

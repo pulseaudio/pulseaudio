@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
 
     pa_assert_se(q = pa_asyncmsgq_new(0));
 
-    pa_assert_se(t = pa_thread_new(the_thread, q));
+    pa_assert_se(t = pa_thread_new("test", the_thread, q));
 
     printf("Operation A post\n");
     pa_asyncmsgq_post(q, NULL, OPERATION_A, NULL, 0, NULL, NULL);
