@@ -425,11 +425,11 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->client)
-        jack_client_close(u->client);
-
     if (u->source)
         pa_source_unlink(u->source);
+
+    if (u->client)
+        jack_client_close(u->client);
 
     if (u->thread) {
         pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
