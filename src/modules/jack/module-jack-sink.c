@@ -147,6 +147,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 pa_sample_spec ss;
 
                 /* Humm, we're not RUNNING, hence let's write some silence */
+                /* This can happen if we're paused, or during shutdown (when we're unlinked but jack is still running). */
 
                 ss = u->sink->sample_spec;
                 ss.channels = 1;
@@ -480,11 +481,11 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->client)
-        jack_client_close(u->client);
-
     if (u->sink)
         pa_sink_unlink(u->sink);
+
+    if (u->client)
+        jack_client_close(u->client);
 
     if (u->thread) {
         pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
