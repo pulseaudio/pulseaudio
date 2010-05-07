@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
         pa_zero(once);
 
         for (i = 0; i < N_THREADS; i++)
-            threads[i] = pa_thread_new(thread_func, pa_sprintf_malloc("Thread #%i", i+1));
+            threads[i] = pa_thread_new("once", thread_func, pa_sprintf_malloc("Thread #%i", i+1));
 
         for (i = 0; i < N_THREADS; i++)
             pa_thread_join(threads[i]);
