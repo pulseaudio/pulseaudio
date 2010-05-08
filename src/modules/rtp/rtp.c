@@ -278,8 +278,8 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct 
         pa_memchunk_reset(&c->memchunk);
     }
 
-    for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm)) {
-        if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP)
+    for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm))
+        if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP) {
             memcpy(tstamp, CMSG_DATA(cm), sizeof(struct timeval));
             found_tstamp = TRUE;
             break;
