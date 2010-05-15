@@ -1,16 +1,16 @@
 # Italian translation for PulseAudio.
-# Copyright (C) 2008, 2009 The Free Software Foundation, Inc
+# Copyright (C) 2008, 2009, 2010 The Free Software Foundation, Inc
 # This file is distributed under the same license as the pulseaudio package.
 #
 # Luca Ferretti <elle.uca@libero.it>, 2008, 2009.
 # mario_santagiuliana <mario at marionline.it>, 2009.
-# Milo Casagrande <milo@ubuntu.com>, 2009.
+# Milo Casagrande <milo@ubuntu.com>, 2009, 2010.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-10-18 11:46+0200\n"
+"POT-Creation-Date: 2010-04-17 14:47+0000\n"
+"PO-Revision-Date: 2010-04-24 18:41+0200\n"
 "Last-Translator: Milo Casagrande <milo@ubuntu.com>\n"
 "Language-Team: Italian <tp@lists.linux.it>\n"
 "MIME-Version: 1.0\n"
@@ -171,7 +171,7 @@ msgstr "Cambio di UID non riuscito: %s"
 
 #: ../src/daemon/main.c:276
 msgid "Successfully dropped root privileges."
-msgstr "Privilegi di root abbandonati con successo."
+msgstr "Privilegi di root interrotti con successo."
 
 #: ../src/daemon/main.c:284
 msgid "System wide mode unsupported on this platform."
@@ -191,6 +191,8 @@ msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
 msgstr ""
+"Modalità di sistema rifiutata per utente non root. Viene avviato il solo "
+"servizio di ricerca server D-Bus."
 
 #: ../src/daemon/main.c:617
 msgid "Daemon not running"
@@ -225,7 +227,7 @@ msgstr "--start non supportato per le istanze di sistema."
 #: ../src/daemon/main.c:676
 #, c-format
 msgid "User-configured server at %s, not autospawning."
-msgstr ""
+msgstr "Server configurato dall'utente in %s, autospawn disabilitato."
 
 #: ../src/daemon/main.c:683
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -254,9 +256,9 @@ msgid "Failed to acquire stdio."
 msgstr "Acquisizione di STDIO non riuscita."
 
 #: ../src/daemon/main.c:726
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "pipe non riuscita: %s"
+msgstr "pipe() non riuscita: %s"
 
 #: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
@@ -277,9 +279,9 @@ msgid "Daemon startup successful."
 msgstr "Avvio del demone riuscito."
 
 #: ../src/daemon/main.c:778
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() non riuscita: %s"
+msgstr "setsid() non riuscita: %s"
 
 #: ../src/daemon/main.c:830
 #, c-format
@@ -326,9 +328,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "In esecuzione in modalità valgrind: %s"
 
 #: ../src/daemon/main.c:850
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "In esecuzione sull'host: %s"
+msgstr "Esecuzione nella VM: %s"
 
 #: ../src/daemon/main.c:853
 msgid "Optimized build: yes"
@@ -792,9 +794,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Livello di nice \"%s\" non valido."
 
 #: ../src/daemon/daemon-conf.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] Frequenza di campionamento '%s' non valida."
+msgstr "[%s:%u] Tipo di server \"%s\" non valido."
 
 #: ../src/daemon/daemon-conf.c:586
 #, c-format
@@ -816,15 +818,15 @@ msgstr "### Lettura dal file di configurazione: %s ###\n"
 
 #: ../src/daemon/caps.c:62
 msgid "Cleaning up privileges."
-msgstr "Abbandono dei privilegi."
+msgstr "Azzeramento dei privilegi."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr "Sistema sonoro PulseAudio"
+msgstr "Sistema audio PulseAudio"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr "Avvia il sistema sonoro PulseAudio"
+msgstr "Avvia il sistema audio PulseAudio"
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
 msgid "Mono"
@@ -858,7 +860,7 @@ msgstr "Posteriore destro"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "Subwoofer"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1390,7 +1392,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() non riuscita: %s"
 
 #: ../src/utils/pacat.c:630
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1512,12 +1514,18 @@ msgstr ""
 "      --process-time=BYTE               Richiede il tempo di elaborazione "
 "per\n"
 "                                         richiesta specificato in byte\n"
+"      --latency-msec=MSEC               Richiede la latenza specificata in\n"
+"                                         millisecondi\n"
+"      --process-time-msec=MSEC          Richiede il tempo di elaborazione "
+"per\n"
+"                                         richiesta specificato in "
+"millisecondi\n"
 "      --property=PROPRIETÀ=VAL          Imposta la proprietà al valore "
 "specificato\n"
-"      --raw                             Registra/riproduce dati PCM grezzi\n"
-"      --file-format=FFORMAT             Registra/riproduce dati PCM "
+"      --raw                             Registra/Riproduce dati PCM grezzi\n"
+"      --file-format[=FFORMAT]           Registra/Riproduce dati PCM "
 "formattati\n"
-"      --list-file-FORMATI               Elenca i formati disponibili.\n"
+"      --list-file-formats               Elenca i formati disponibili.\n"
 
 #: ../src/utils/pacat.c:758
 #, c-format
@@ -1781,9 +1789,15 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"Stringa server: %s\n"
+"Versione protocollo libreria: %u\n"
+"Versione protocollo server: %u\n"
+"È locale: %s\n"
+"Indice client: %u\n"
+"Dimensione: %zu\n"
 
 #: ../src/utils/pactl.c:176
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1803,7 +1817,7 @@ msgstr ""
 "Mappa canale predefinita: %s\n"
 "Sink predefinito: %s\n"
 "Sorgente predefinita: %s\n"
-"Cookie: %08x\n"
+"Cookie: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:218
 #, c-format
@@ -2126,64 +2140,63 @@ msgstr "Fine del file prematura"
 
 #: ../src/utils/pactl.c:737
 msgid "new"
-msgstr ""
+msgstr "nuovo"
 
 #: ../src/utils/pactl.c:740
 msgid "change"
-msgstr ""
+msgstr "modifica"
 
 #: ../src/utils/pactl.c:743
 msgid "remove"
-msgstr ""
+msgstr "rimozione"
 
 #: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
-msgstr ""
+msgstr "sconosciuto"
 
 #: ../src/utils/pactl.c:754
 msgid "sink"
-msgstr ""
+msgstr "sink"
 
 #: ../src/utils/pactl.c:757
 msgid "source"
-msgstr ""
+msgstr "sorgente"
 
 #: ../src/utils/pactl.c:760
 msgid "sink-input"
-msgstr ""
+msgstr "sink-input"
 
 #: ../src/utils/pactl.c:763
 msgid "source-output"
-msgstr ""
+msgstr "sorgente-output"
 
 #: ../src/utils/pactl.c:766
 msgid "module"
-msgstr ""
+msgstr "modulo"
 
 #: ../src/utils/pactl.c:769
 msgid "client"
-msgstr ""
+msgstr "client"
 
 #: ../src/utils/pactl.c:772
 msgid "sample-cache"
-msgstr ""
+msgstr "cache-campione"
 
 #: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
-#, fuzzy
 msgid "server"
-msgstr "Server non valido"
+msgstr "server"
 
 #: ../src/utils/pactl.c:787
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "Evento \"%s\" su %s #%u\n"
 
 #: ../src/utils/pactl.c:955
 msgid "Got SIGINT, exiting."
 msgstr "Ricevuto SIGINT, uscita."
 
 #: ../src/utils/pactl.c:961
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2237,6 +2250,7 @@ msgstr ""
 "%s [OPZIONI] set-sink-mute SINK 1|0\n"
 "%s [OPZIONI] set-source-mute SORGENTE 1|0\n"
 "%s [OPZIONI] set-sink-input-mute SINKINPUT 1|0\n"
+"%s [OPZIONI] subscribe\n"
 "\n"
 "  -h, --help                       Mostra questo aiuto\n"
 "      --version                    Mostra la versione\n"
@@ -2542,11 +2556,11 @@ msgstr "Doppino telefonico (HSP/HFP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2247
 msgid "Handsfree Gateway"
-msgstr ""
+msgstr "Gateway Handsfree"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
-msgstr "Server sonoro PulseAudio"
+msgstr "Server audio PulseAudio"
 
 #: ../src/modules/module-rygel-media-server.c:592
 #: ../src/modules/module-rygel-media-server.c:606
@@ -2622,24 +2636,23 @@ msgstr "Amplificatore"
 msgid "No Amplifier"
 msgstr "Nessun amplificatore"
 
+# (ndt) da GLAUDIO, il glossario del car audio :-)
+# Per lo meno per capire cosa fosse, lì lo usano non tradotto.
 #: ../src/modules/alsa/alsa-mixer.c:1716
-#, fuzzy
 msgid "Bass Boost"
-msgstr "Boost"
+msgstr "Boost dei bassi"
 
 #: ../src/modules/alsa/alsa-mixer.c:1717
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "Nessun boost"
+msgstr "Nessun boost dei bassi"
 
 #: ../src/modules/alsa/alsa-mixer.c:1718
 msgid "Speaker"
-msgstr ""
+msgstr "Altoparlante"
 
 #: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
 msgid "Headphones"
-msgstr "Cuffie analogiche"
+msgstr "Cuffie"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Input"
@@ -2678,9 +2691,8 @@ msgid "Analog Mono Output"
 msgstr "Uscita mono analogica"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
-#, fuzzy
 msgid "Analog Speakers"
-msgstr "Stereo analogico"
+msgstr "Altoparlanti analogici"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
 #, c-format
@@ -2775,6 +2787,3 @@ msgstr "Duplex stereo analogico"
 #: ../src/modules/alsa/alsa-mixer.c:2935
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Duplex stereo digitale (IEC958)"
-
-#~ msgid "Low Frequency Emmiter"
-#~ msgstr "Emettitore basse frequenze"
