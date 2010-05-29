@@ -259,6 +259,10 @@ Display *pa_x11_wrapper_get_display(pa_x11_wrapper *w) {
     return w->display;
 }
 
+xcb_connection_t *pa_x11_wrapper_get_xcb_connection(pa_x11_wrapper *w) {
+    return XGetXCBConnection(pa_x11_wrapper_get_display(w));
+}
+
 void pa_x11_wrapper_kill(pa_x11_wrapper *w) {
     pa_x11_client *c, *n;
 

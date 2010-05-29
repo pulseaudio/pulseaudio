@@ -23,6 +23,7 @@
 ***/
 
 #include <X11/Xlib.h>
+#include <X11/Xlib-xcb.h>
 
 #include <pulsecore/core.h>
 
@@ -45,6 +46,9 @@ void pa_x11_wrapper_unref(pa_x11_wrapper* w);
 
 /* Return the X11 display object for this connection */
 Display *pa_x11_wrapper_get_display(pa_x11_wrapper *w);
+
+/* Return the XCB connection object for this connection */
+xcb_connection_t *pa_x11_wrapper_get_xcb_connection(pa_x11_wrapper *w);
 
 /* Kill the connection to the X11 display */
 void pa_x11_wrapper_kill(pa_x11_wrapper *w);

@@ -28,8 +28,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
+#include <xcb/xcb.h>
 
 #include <pulse/util.h>
 #include <pulse/xmalloc.h>
@@ -92,10 +91,10 @@ static void publish_servers(struct userdata *u, pa_strlist *l) {
         s = pa_strlist_tostring(l);
         pa_strlist_reverse(l);
 
-        pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SERVER", s);
+        pa_x11_set_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_SERVER", s);
         pa_xfree(s);
     } else
-        pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SERVER");
+        pa_x11_del_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_SERVER");
 }
 
 static pa_hook_result_t servers_changed_cb(void *hook_data, void *call_data, void *slot_data) {
@@ -105,7 +104,7 @@ static pa_hook_result_t servers_changed_cb(void *hook_data, void *call_data, voi
 
     pa_assert(u);
 
-    if (!pa_x11_get_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_ID", t, sizeof(t)) || strcmp(t, u->id)) {
+    if (!pa_x11_get_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_ID", t, sizeof(t)) || strcmp(t, u->id)) {
         pa_log_warn("PulseAudio information vanished from X11!");
         return PA_HOOK_OK;
     }
@@ -168,22 +167,22 @@ int pa__init(pa_module*m) {
     u->id = pa_sprintf_malloc("%lu@%s/%lu", (unsigned long) getuid(), mid, (unsigned long) getpid());
     pa_xfree(mid);
 
-    pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_ID", u->id);
+    pa_x11_set_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_ID", u->id);
 
     if ((sid = pa_session_id())) {
-        pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SESSION_ID", sid);
+        pa_x11_set_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_SESSION_ID", sid);
         pa_xfree(sid);
     }
 
     publish_servers(u, pa_native_protocol_servers(u->protocol));
 
     if ((t = pa_modargs_get_value(ma, "source", NULL)))
-        pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SOURCE", t);
+        pa_x11_set_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_SOURCE", t);
 
     if ((t = pa_modargs_get_value(ma, "sink", NULL)))
-        pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SINK", t);
+        pa_x11_set_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_SINK", t);
 
-    pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_COOKIE",
+    pa_x11_set_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_COOKIE",
                     pa_hexstr(pa_auth_cookie_read(u->auth_cookie, PA_NATIVE_COOKIE_LENGTH), PA_NATIVE_COOKIE_LENGTH, hx, sizeof(hx)));
 
     u->x11_client = pa_x11_client_new(u->x11_wrapper, NULL, x11_kill_cb, u);
@@ -216,16 +215,16 @@ void pa__done(pa_module*m) {
         char t[256];
 
         /* Yes, here is a race condition */
-        if (!pa_x11_get_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_ID", t, sizeof(t)) || strcmp(t, u->id))
+        if (!pa_x11_get_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_ID", t, sizeof(t)) || strcmp(t, u->id))
             pa_log_warn("PulseAudio information vanished from X11!");
         else {
-            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_ID");
-            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SERVER");
-            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SINK");
-            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SOURCE");
-            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_COOKIE");
-            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SESSION_ID");
-            XSync(pa_x11_wrapper_get_display(u->x11_wrapper), False);
+            pa_x11_del_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_ID");
+            pa_x11_del_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_SERVER");
+            pa_x11_del_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_SINK");
+            pa_x11_del_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_SOURCE");
+            pa_x11_del_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_COOKIE");
+            pa_x11_del_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), "PULSE_SESSION_ID");
+            xcb_flush(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper));
         }
 
         pa_x11_wrapper_unref(u->x11_wrapper);

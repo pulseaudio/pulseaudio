@@ -5,6 +5,7 @@
   This file is part of PulseAudio.
 
   Copyright 2004-2006 Lennart Poettering
+  Copyright 2010 Colin Guthrie
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -24,10 +25,10 @@
 
 #include <sys/types.h>
 
-#include <X11/Xlib.h>
+#include <xcb/xcb.h>
 
-void pa_x11_set_prop(Display *d, const char *name, const char *data);
-void pa_x11_del_prop(Display *d, const char *name);
-char* pa_x11_get_prop(Display *d, const char *name, char *p, size_t l);
+void pa_x11_set_prop(xcb_connection_t *xcb, const char *name, const char *data);
+void pa_x11_del_prop(xcb_connection_t *xcb, const char *name);
+char* pa_x11_get_prop(xcb_connection_t *xcb, const char *name, char *p, size_t l);
 
 #endif

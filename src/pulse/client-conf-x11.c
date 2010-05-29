@@ -25,8 +25,7 @@
 
 #include <string.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
+#include <xcb/xcb.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/i18n.h>
@@ -39,7 +38,7 @@
 #include "client-conf-x11.h"
 
 int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
-    Display *d = NULL;
+    xcb_connection_t *xcb = NULL;
     int ret = -1;
     char t[1024];
 
@@ -51,18 +50,18 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
     if (*dname == 0)
         goto finish;
 
-    if (!(d = XOpenDisplay(dname))) {
-        pa_log(_("XOpenDisplay() failed"));
+    if (!(xcb = xcb_connect(dname, NULL))) {
+        pa_log(_("xcb_connect() failed"));
         goto finish;
     }
 
-    if (pa_x11_get_prop(d, "PULSE_SERVER", t, sizeof(t))) {
+    if (pa_x11_get_prop(xcb, "PULSE_SERVER", t, sizeof(t))) {
         pa_bool_t disable_autospawn = TRUE;
 
         pa_xfree(c->default_server);
         c->default_server = pa_xstrdup(t);
 
-        if (pa_x11_get_prop(d, "PULSE_SESSION_ID", t, sizeof(t))) {
+        if (pa_x11_get_prop(xcb, "PULSE_SESSION_ID", t, sizeof(t))) {
             char *id;
 
             if ((id = pa_session_id())) {
@@ -76,17 +75,17 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
             c->autospawn = FALSE;
     }
 
-    if (pa_x11_get_prop(d, "PULSE_SINK", t, sizeof(t))) {
+    if (pa_x11_get_prop(xcb, "PULSE_SINK", t, sizeof(t))) {
         pa_xfree(c->default_sink);
         c->default_sink = pa_xstrdup(t);
     }
 
-    if (pa_x11_get_prop(d, "PULSE_SOURCE", t, sizeof(t))) {
+    if (pa_x11_get_prop(xcb, "PULSE_SOURCE", t, sizeof(t))) {
         pa_xfree(c->default_source);
         c->default_source = pa_xstrdup(t);
     }
 
-    if (pa_x11_get_prop(d, "PULSE_COOKIE", t, sizeof(t))) {
+    if (pa_x11_get_prop(xcb, "PULSE_COOKIE", t, sizeof(t))) {
         uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
 
         if (pa_parsehex(t, cookie, sizeof(cookie)) != sizeof(cookie)) {
@@ -106,8 +105,8 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
     ret = 0;
 
 finish:
-    if (d)
-        XCloseDisplay(d);
+    if (xcb)
+        xcb_disconnect(xcb);
 
     return ret;
 

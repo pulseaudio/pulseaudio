@@ -25,53 +25,58 @@
 
 #include <string.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-
 #include "x11prop.h"
 
-void pa_x11_set_prop(Display *d, const char *name, const char *data) {
-    Atom a = XInternAtom(d, name, False);
-    XChangeProperty(d, DefaultRootWindow(d), a, XA_STRING, 8, PropModeReplace, (const unsigned char*) data, (int) (strlen(data)+1));
+#include <xcb/xproto.h>
+#include <xcb/xcb_atom.h>
+
+#define PA_XCB_FORMAT 8
+
+void pa_x11_set_prop(xcb_connection_t *xcb, const char *name, const char *data) {
+    xcb_screen_t *screen;
+    xcb_atom_t a = xcb_atom_get(xcb, name);
+    screen = xcb_setup_roots_iterator(xcb_get_setup(xcb)).data;
+    xcb_change_property(xcb, XCB_PROP_MODE_REPLACE, screen->root, a, STRING, PA_XCB_FORMAT, (int) strlen(data), (const void*) data);
 }
 
-void pa_x11_del_prop(Display *d, const char *name) {
-    Atom a = XInternAtom(d, name, False);
-    XDeleteProperty(d, DefaultRootWindow(d), a);
+void pa_x11_del_prop(xcb_connection_t *xcb, const char *name) {
+    xcb_screen_t *screen;
+    xcb_atom_t a = xcb_atom_get(xcb, name);
+    screen = xcb_setup_roots_iterator(xcb_get_setup(xcb)).data;
+    xcb_delete_property(xcb, screen->root, a);
 }
 
-char* pa_x11_get_prop(Display *d, const char *name, char *p, size_t l) {
-    Atom actual_type;
-    int actual_format;
-    unsigned long nitems;
-    unsigned long nbytes_after;
-    unsigned char *prop = NULL;
+char* pa_x11_get_prop(xcb_connection_t *xcb, const char *name, char *p, size_t l) {
     char *ret = NULL;
-    int window_ret;
+    int len;
+    xcb_get_property_cookie_t req;
+    xcb_get_property_reply_t* prop = NULL;
+    xcb_screen_t *screen;
+    xcb_atom_t a = xcb_atom_get(xcb, name);
+    screen = xcb_setup_roots_iterator(xcb_get_setup(xcb)).data;
 
-    Atom a = XInternAtom(d, name, False);
+    req = xcb_get_property(xcb, 0, screen->root, a, STRING, 0, (uint32_t)(l-1));
+    prop = xcb_get_property_reply(xcb, req, NULL);
 
-    window_ret = XGetWindowProperty(d, DefaultRootWindow(d), a, 0, (long) ((l+2)/4), False, XA_STRING, &actual_type, &actual_format, &nitems, &nbytes_after, &prop);
+    if (!prop)
+        goto finish;
 
-    if (window_ret != Success || actual_type != XA_STRING) {
-        if (DefaultScreen(d) != 0) {
-            window_ret = XGetWindowProperty(d, RootWindow(d, 0), a, 0, (long) ((l+2)/4), False, XA_STRING, &actual_type, &actual_format, &nitems, &nbytes_after, &prop);
+    if (PA_XCB_FORMAT != prop->format)
+        goto finish;
 
-            if (window_ret != Success || actual_type != XA_STRING)
-                goto finish;
-        } else
-            goto finish;
-    }
+    len = xcb_get_property_value_length(prop);
+    if (len < 1 || len >= (int)l)
+        goto finish;
 
-    memcpy(p, prop, nitems);
-    p[nitems] = 0;
+    memcpy(p, xcb_get_property_value(prop), len);
+    p[len] = 0;
 
     ret = p;
 
 finish:
 
     if (prop)
-        XFree(prop);
+        free(prop);
 
     return ret;
 }
