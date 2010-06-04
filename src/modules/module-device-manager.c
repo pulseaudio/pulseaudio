@@ -1389,6 +1389,11 @@ static pa_hook_result_t connection_unlink_hook_cb(pa_native_protocol *p, pa_nati
     return PA_HOOK_OK;
 }
 
+struct prioritised_indexes {
+    uint32_t index;
+    int32_t priority;
+};
+
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
@@ -1397,6 +1402,7 @@ int pa__init(pa_module*m) {
     pa_source *source;
     uint32_t idx;
     pa_bool_t do_routing = FALSE, on_hotplug = TRUE, on_rescue = TRUE;
+    uint32_t total_devices;
 
     pa_assert(m);
 
@@ -1460,12 +1466,60 @@ int pa__init(pa_module*m) {
     pa_log_info("Sucessfully opened database file '%s'.", fname);
     pa_xfree(fname);
 
-    /* We cycle over all the available sinks so that they are added to our database if they are not in it yet */
-    PA_IDXSET_FOREACH(sink, m->core->sinks, idx)
-        subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_NEW, sink->index, u);
+    /* Attempt to inject the devices into the list in priority order */
+    total_devices = PA_MAX(pa_idxset_size(m->core->sinks), pa_idxset_size(m->core->sources));
+    if (total_devices > 0 && total_devices < 128) {
+        uint32_t i;
+        struct prioritised_indexes p_i[128];
 
-    PA_IDXSET_FOREACH(source, m->core->sources, idx)
-        subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_NEW, source->index, u);
+        /* We cycle over all the available sinks so that they are added to our database if they are not in it yet */
+        i = 0;
+        PA_IDXSET_FOREACH(sink, m->core->sinks, idx) {
+            pa_log_debug("Found sink index %u", sink->index);
+            p_i[i  ].index = sink->index;
+            p_i[i++].priority = sink->priority;
+        }
+        /* Bubble sort it (only really useful for first time creation) */
+        if (i > 1)
+          for (uint32_t j = 0; j < i; ++j)
+              for (uint32_t k = 0; k < i; ++k)
+                  if (p_i[j].priority > p_i[k].priority) {
+                      struct prioritised_indexes tmp_pi = p_i[k];
+                      p_i[k] = p_i[j];
+                      p_i[j] = tmp_pi;
+                  }
+        /* Register it */
+        for (uint32_t j = 0; j < i; ++j)
+            subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_NEW, p_i[j].index, u);
+
+
+        /* We cycle over all the available sources so that they are added to our database if they are not in it yet */
+        i = 0;
+        PA_IDXSET_FOREACH(source, m->core->sources, idx) {
+            p_i[i  ].index = source->index;
+            p_i[i++].priority = source->priority;
+        }
+        /* Bubble sort it (only really useful for first time creation) */
+        if (i > 1)
+          for (uint32_t j = 0; j < i; ++j)
+              for (uint32_t k = 0; k < i; ++k)
+                  if (p_i[j].priority > p_i[k].priority) {
+                      struct prioritised_indexes tmp_pi = p_i[k];
+                      p_i[k] = p_i[j];
+                      p_i[j] = tmp_pi;
+                  }
+        /* Register it */
+        for (uint32_t j = 0; j < i; ++j)
+            subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_NEW, p_i[j].index, u);
+    }
+    else if (total_devices > 0) {
+        /* This user has a *lot* of devices... */
+        PA_IDXSET_FOREACH(sink, m->core->sinks, idx)
+            subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_NEW, sink->index, u);
+
+        PA_IDXSET_FOREACH(source, m->core->sources, idx)
+            subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_NEW, source->index, u);
+    }
 
     /* Perform the routing (if it's enabled) which will update our priority list cache too */
     for (uint32_t i = 0; i < NUM_ROLES; ++i) {
