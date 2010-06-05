@@ -63,10 +63,16 @@ struct connection_entry {
      * are accepted. Only used when listening_for_all_signals == TRUE. */
     pa_idxset *all_signals_objects;
 
-    /* Signal name -> idxset. The idxsets contain object paths. If an idxset is
-     * empty, then that signal is accepted from all objects. Only used when
-     * listening_for_all_signals == FALSE. */
+    /* Signal name -> signal paths entry. The entries contain object paths. If
+     * a path set is empty, then that signal is accepted from all objects. This
+     * variable is only used when listening_for_all_signals == FALSE. */
     pa_hashmap *listening_signals;
+};
+
+/* Only used in connection entries' listening_signals hashmap. */
+struct signal_paths_entry {
+    char *signal;
+    pa_idxset *paths;
 };
 
 struct interface_entry {
@@ -406,7 +412,7 @@ static enum find_result_t find_handler_from_properties_call(struct call_info *ca
                 return NO_SUCH_PROPERTY_INTERFACE;
             else if ((call_info->property_handler =
                         pa_hashmap_get(call_info->iface_entry->property_handlers, call_info->property)))
-                return FOUND_GET_PROPERTY;
+                return call_info->property_handler->get_cb ? FOUND_GET_PROPERTY : PROPERTY_ACCESS_DENIED;
             else
                 return NO_SUCH_PROPERTY;
 
@@ -440,7 +446,7 @@ static enum find_result_t find_handler_from_properties_call(struct call_info *ca
                 call_info->expected_property_sig = call_info->property_handler->type;
 
                 if (pa_streq(call_info->property_sig, call_info->expected_property_sig))
-                    return FOUND_SET_PROPERTY;
+                    return call_info->property_handler->set_cb ? FOUND_SET_PROPERTY : PROPERTY_ACCESS_DENIED;
                 else
                     return INVALID_PROPERTY_SIG;
 
@@ -919,22 +925,35 @@ static void unregister_all_objects(pa_dbus_protocol *p, DBusConnection *conn) {
         pa_assert_se(dbus_connection_unregister_object_path(conn, obj_entry->path));
 }
 
-static void free_listened_object_name_cb(void *p, void *userdata) {
-    pa_assert(p);
+static struct signal_paths_entry *signal_paths_entry_new(const char *signal_name) {
+    struct signal_paths_entry *e = NULL;
 
-    pa_xfree(p);
+    pa_assert(signal_name);
+
+    e = pa_xnew0(struct signal_paths_entry, 1);
+    e->signal = pa_xstrdup(signal_name);
+    e->paths = pa_idxset_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+
+    return e;
 }
 
-static void free_listening_signals_idxset_cb(void *p, void *userdata) {
-    pa_idxset *set = p;
+static void signal_paths_entry_free(struct signal_paths_entry *e) {
+    char *path = NULL;
 
-    pa_assert(set);
+    pa_assert(e);
 
-    pa_idxset_free(set, free_listened_object_name_cb, NULL);
+    pa_xfree(e->signal);
+
+    while ((path = pa_idxset_steal_first(e->paths, NULL)))
+        pa_xfree(path);
+
+    pa_xfree(e);
 }
 
 int pa_dbus_protocol_unregister_connection(pa_dbus_protocol *p, DBusConnection *conn) {
-    struct connection_entry *conn_entry;
+    struct connection_entry *conn_entry = NULL;
+    struct signal_paths_entry *signal_paths_entry = NULL;
+    char *object_path = NULL;
 
     pa_assert(p);
     pa_assert(conn);
@@ -945,8 +964,13 @@ int pa_dbus_protocol_unregister_connection(pa_dbus_protocol *p, DBusConnection *
     unregister_all_objects(p, conn);
 
     dbus_connection_unref(conn_entry->connection);
-    pa_idxset_free(conn_entry->all_signals_objects, free_listened_object_name_cb, NULL);
-    pa_hashmap_free(conn_entry->listening_signals, free_listening_signals_idxset_cb, NULL);
+
+    while ((object_path = pa_idxset_steal_first(conn_entry->all_signals_objects, NULL)))
+        pa_xfree(object_path);
+
+    while ((signal_paths_entry = pa_hashmap_steal_first(conn_entry->listening_signals)))
+        signal_paths_entry_free(signal_paths_entry);
+
     pa_xfree(conn_entry);
 
     return 0;
@@ -970,10 +994,10 @@ void pa_dbus_protocol_add_signal_listener(
         const char *signal_name,
         char **objects,
         unsigned n_objects) {
-    struct connection_entry *conn_entry;
-    pa_idxset *object_set;
-    char *object_path;
-    unsigned i;
+    struct connection_entry *conn_entry = NULL;
+    struct signal_paths_entry *signal_paths_entry = NULL;
+    char *object_path = NULL;
+    unsigned i = 0;
 
     pa_assert(p);
     pa_assert(conn);
@@ -983,30 +1007,31 @@ void pa_dbus_protocol_add_signal_listener(
 
     /* all_signals_objects will either be emptied or replaced with new objects,
      * so we empty it here unconditionally. If listening_for_all_signals is
-     * currently FALSE, the idxset is empty already. */
+     * currently FALSE, the idxset is empty already so this does nothing. */
     while ((object_path = pa_idxset_steal_first(conn_entry->all_signals_objects, NULL)))
         pa_xfree(object_path);
 
     if (signal_name) {
         conn_entry->listening_for_all_signals = FALSE;
 
-        /* Replace the old object list with a new one. */
-        if ((object_set = pa_hashmap_remove(conn_entry->listening_signals, signal_name)))
-            pa_idxset_free(object_set, free_listened_object_name_cb, NULL);
-        object_set = pa_idxset_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+        /* Replace the old signal paths entry for this signal with a new
+         * one. */
+        if ((signal_paths_entry = pa_hashmap_remove(conn_entry->listening_signals, signal_name)))
+            signal_paths_entry_free(signal_paths_entry);
+        signal_paths_entry = signal_paths_entry_new(signal_name);
 
         for (i = 0; i < n_objects; ++i)
-            pa_idxset_put(object_set, pa_xstrdup(objects[i]), NULL);
+            pa_idxset_put(signal_paths_entry->paths, pa_xstrdup(objects[i]), NULL);
 
-        pa_hashmap_put(conn_entry->listening_signals, signal_name, object_set);
+        pa_hashmap_put(conn_entry->listening_signals, signal_paths_entry->signal, signal_paths_entry);
 
     } else {
         conn_entry->listening_for_all_signals = TRUE;
 
         /* We're not interested in individual signals anymore, so let's empty
          * listening_signals. */
-        while ((object_set = pa_hashmap_steal_first(conn_entry->listening_signals)))
-            pa_idxset_free(object_set, free_listened_object_name_cb, NULL);
+        while ((signal_paths_entry = pa_hashmap_steal_first(conn_entry->listening_signals)))
+            signal_paths_entry_free(signal_paths_entry);
 
         for (i = 0; i < n_objects; ++i)
             pa_idxset_put(conn_entry->all_signals_objects, pa_xstrdup(objects[i]), NULL);
@@ -1014,8 +1039,8 @@ void pa_dbus_protocol_add_signal_listener(
 }
 
 void pa_dbus_protocol_remove_signal_listener(pa_dbus_protocol *p, DBusConnection *conn, const char *signal_name) {
-    struct connection_entry *conn_entry;
-    pa_idxset *object_set;
+    struct connection_entry *conn_entry = NULL;
+    struct signal_paths_entry *signal_paths_entry = NULL;
 
     pa_assert(p);
     pa_assert(conn);
@@ -1023,8 +1048,8 @@ void pa_dbus_protocol_remove_signal_listener(pa_dbus_protocol *p, DBusConnection
     pa_assert_se((conn_entry = pa_hashmap_get(p->connections, conn)));
 
     if (signal_name) {
-        if ((object_set = pa_hashmap_get(conn_entry->listening_signals, signal_name)))
-            pa_idxset_free(object_set, free_listened_object_name_cb, NULL);
+        if ((signal_paths_entry = pa_hashmap_get(conn_entry->listening_signals, signal_name)))
+            signal_paths_entry_free(signal_paths_entry);
 
     } else {
         char *object_path;
@@ -1034,37 +1059,38 @@ void pa_dbus_protocol_remove_signal_listener(pa_dbus_protocol *p, DBusConnection
         while ((object_path = pa_idxset_steal_first(conn_entry->all_signals_objects, NULL)))
             pa_xfree(object_path);
 
-        while ((object_set = pa_hashmap_steal_first(conn_entry->listening_signals)))
-            pa_idxset_free(object_set, free_listened_object_name_cb, NULL);
+        while ((signal_paths_entry = pa_hashmap_steal_first(conn_entry->listening_signals)))
+            signal_paths_entry_free(signal_paths_entry);
     }
 }
 
-void pa_dbus_protocol_send_signal(pa_dbus_protocol *p, DBusMessage *signal_name) {
+void pa_dbus_protocol_send_signal(pa_dbus_protocol *p, DBusMessage *signal_msg) {
     struct connection_entry *conn_entry;
+    struct signal_paths_entry *signal_paths_entry;
     void *state = NULL;
-    pa_idxset *object_set;
     DBusMessage *signal_copy;
     char *signal_string;
 
     pa_assert(p);
-    pa_assert(signal_name);
-    pa_assert(dbus_message_get_type(signal_name) == DBUS_MESSAGE_TYPE_SIGNAL);
-    pa_assert_se(dbus_message_get_interface(signal_name));
-    pa_assert_se(dbus_message_get_member(signal_name));
+    pa_assert(signal_msg);
+    pa_assert(dbus_message_get_type(signal_msg) == DBUS_MESSAGE_TYPE_SIGNAL);
+    pa_assert(dbus_message_get_path(signal_msg));
+    pa_assert(dbus_message_get_interface(signal_msg));
+    pa_assert(dbus_message_get_member(signal_msg));
 
-    signal_string = pa_sprintf_malloc("%s.%s", dbus_message_get_interface(signal_name), dbus_message_get_member(signal_name));
+    signal_string = pa_sprintf_malloc("%s.%s", dbus_message_get_interface(signal_msg), dbus_message_get_member(signal_msg));
 
     PA_HASHMAP_FOREACH(conn_entry, p->connections, state) {
         if ((conn_entry->listening_for_all_signals /* Case 1: listening for all signals */
-             && (pa_idxset_get_by_data(conn_entry->all_signals_objects, dbus_message_get_path(signal_name), NULL)
+             && (pa_idxset_get_by_data(conn_entry->all_signals_objects, dbus_message_get_path(signal_msg), NULL)
                  || pa_idxset_isempty(conn_entry->all_signals_objects)))
 
             || (!conn_entry->listening_for_all_signals /* Case 2: not listening for all signals */
-                && (object_set = pa_hashmap_get(conn_entry->listening_signals, signal_string))
-                && (pa_idxset_get_by_data(object_set, dbus_message_get_path(signal_name), NULL)
-                    || pa_idxset_isempty(object_set)))) {
+                && (signal_paths_entry = pa_hashmap_get(conn_entry->listening_signals, signal_string))
+                && (pa_idxset_get_by_data(signal_paths_entry->paths, dbus_message_get_path(signal_msg), NULL)
+                    || pa_idxset_isempty(signal_paths_entry->paths)))) {
 
-            pa_assert_se(signal_copy = dbus_message_copy(signal_name));
+            pa_assert_se(signal_copy = dbus_message_copy(signal_msg));
             pa_assert_se(dbus_connection_send(conn_entry->connection, signal_copy, NULL));
             dbus_message_unref(signal_copy);
         }

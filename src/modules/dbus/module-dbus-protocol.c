@@ -48,12 +48,11 @@
 PA_MODULE_DESCRIPTION("D-Bus interface");
 PA_MODULE_USAGE(
         "access=local|remote|local,remote "
-        "tcp_port=<port number>");
+        "tcp_port=<port number> "
+        "tcp_listen=<hostname>");
 PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_AUTHOR("Tanu Kaskinen");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-
-#define CLEANUP_INTERVAL 10 /* seconds */
 
 enum server_type {
     SERVER_TYPE_LOCAL,
@@ -68,13 +67,14 @@ struct userdata {
     pa_bool_t local_access;
     pa_bool_t remote_access;
     uint32_t tcp_port;
+    char *tcp_listen;
 
     struct server *local_server;
     struct server *tcp_server;
 
     pa_idxset *connections;
 
-    pa_time_event *cleanup_event;
+    pa_defer_event *cleanup_event;
 
     pa_dbus_protocol *dbus_protocol;
     pa_dbusiface_core *core_iface;
@@ -95,6 +95,7 @@ struct connection {
 static const char* const valid_modargs[] = {
     "access",
     "tcp_port",
+    "tcp_listen",
     NULL
 };
 
@@ -154,6 +155,23 @@ static dbus_bool_t user_check_cb(DBusConnection *connection, unsigned long uid, 
     return TRUE;
 }
 
+static DBusHandlerResult disconnection_filter_cb(DBusConnection *connection, DBusMessage *message, void *user_data) {
+    struct connection *c = user_data;
+
+    pa_assert(connection);
+    pa_assert(message);
+    pa_assert(c);
+
+    if (dbus_message_is_signal(message, "org.freedesktop.DBus.Local", "Disconnected")) {
+        /* The connection died. Now we want to free the connection object, but
+         * let's wait until this message is fully processed, in case someone
+         * else is interested in this signal too. */
+        c->server->userdata->module->core->mainloop->defer_enable(c->server->userdata->cleanup_event, 1);
+    }
+
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
+
 /* Called by D-Bus when a new client connection is received. */
 static void connection_new_cb(DBusServer *dbus_server, DBusConnection *new_connection, void *data) {
     struct server *s = data;
@@ -191,6 +209,8 @@ static void connection_new_cb(DBusServer *dbus_server, DBusConnection *new_conne
     c->client->kill = client_kill_cb;
     c->client->send_event = client_send_event_cb;
     c->client->userdata = c;
+
+    pa_assert_se(dbus_connection_add_filter(new_connection, disconnection_filter_cb, c, NULL));
 
     pa_idxset_put(s->userdata->connections, c, NULL);
 
@@ -401,6 +421,7 @@ static struct server *start_server(struct userdata *u, const char *address, enum
 
     s = pa_xnew0(struct server, 1);
     s->userdata = u;
+    s->type = type;
     s->dbus_server = dbus_server_listen(address, &error);
 
     if (dbus_error_is_set(&error)) {
@@ -452,7 +473,7 @@ static struct server *start_tcp_server(struct userdata *u) {
 
     pa_assert(u);
 
-    address = pa_sprintf_malloc("tcp:host=127.0.0.1,port=%u", u->tcp_port);
+    address = pa_sprintf_malloc("tcp:host=%s,port=%u", u->tcp_listen, u->tcp_port);
 
     s = start_server(u, address, SERVER_TYPE_TCP); /* May return NULL */
 
@@ -486,33 +507,23 @@ static int get_access_arg(pa_modargs *ma, pa_bool_t *local_access, pa_bool_t *re
     return 0;
 }
 
-/* Frees dead client connections. Called every CLEANUP_INTERVAL seconds. */
-static void cleanup_cb(pa_mainloop_api *a, pa_time_event *e, const struct timeval *tv, void *userdata) {
+/* Frees dead client connections. */
+static void cleanup_cb(pa_mainloop_api *a, pa_defer_event *e, void *userdata) {
     struct userdata *u = userdata;
     struct connection *conn = NULL;
     uint32_t idx;
-    struct timeval cleanup_timeval;
-    unsigned free_count = 0;
 
-    for (conn = pa_idxset_first(u->connections, &idx); conn; conn = pa_idxset_next(u->connections, &idx)) {
-        if (!dbus_connection_get_is_connected(pa_dbus_wrap_connection_get(conn->wrap_conn))) {
+    PA_IDXSET_FOREACH(conn, u->connections, idx) {
+        if (!dbus_connection_get_is_connected(pa_dbus_wrap_connection_get(conn->wrap_conn)))
             connection_free(conn);
-            ++free_count;
-        }
     }
 
-    if (free_count > 0)
-        pa_log_debug("Freed %u dead D-Bus client connections.", free_count);
-
-    pa_gettimeofday(&cleanup_timeval);
-    cleanup_timeval.tv_sec += CLEANUP_INTERVAL;
-    u->module->core->mainloop->time_restart(e, &cleanup_timeval);
+    u->module->core->mainloop->defer_enable(e, 0);
 }
 
 int pa__init(pa_module *m) {
     struct userdata *u = NULL;
     pa_modargs *ma = NULL;
-    struct timeval cleanup_timeval;
 
     pa_assert(m);
 
@@ -537,6 +548,8 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    u->tcp_listen = pa_xstrdup(pa_modargs_get_value(ma, "tcp_listen", "0.0.0.0"));
+
     if (u->local_access && !(u->local_server = start_local_server(u))) {
         pa_log("Starting the local D-Bus server failed.");
         goto fail;
@@ -549,9 +562,8 @@ int pa__init(pa_module *m) {
 
     u->connections = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
-    pa_gettimeofday(&cleanup_timeval);
-    cleanup_timeval.tv_sec += CLEANUP_INTERVAL;
-    u->cleanup_event = m->core->mainloop->time_new(m->core->mainloop, &cleanup_timeval, cleanup_cb, u);
+    u->cleanup_event = m->core->mainloop->defer_new(m->core->mainloop, cleanup_cb, u);
+    m->core->mainloop->defer_enable(u->cleanup_event, 0);
 
     u->dbus_protocol = pa_dbus_protocol_get(m->core);
     u->core_iface = pa_dbusiface_core_new(m->core);
@@ -588,7 +600,7 @@ void pa__done(pa_module *m) {
         pa_dbusiface_core_free(u->core_iface);
 
     if (u->cleanup_event)
-        m->core->mainloop->time_free(u->cleanup_event);
+        m->core->mainloop->defer_free(u->cleanup_event);
 
     if (u->connections)
         pa_idxset_free(u->connections, connection_free_cb, NULL);
@@ -602,6 +614,7 @@ void pa__done(pa_module *m) {
     if (u->dbus_protocol)
         pa_dbus_protocol_unref(u->dbus_protocol);
 
+    pa_xfree(u->tcp_listen);
     pa_xfree(u);
     m->userdata = NULL;
 }

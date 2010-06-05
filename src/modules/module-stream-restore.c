@@ -310,7 +310,7 @@ static struct dbus_entry *dbus_entry_new(struct userdata *u, const char *entry_n
     de->index = u->next_index++;
     de->object_path = pa_sprintf_malloc("%s/%s%u", OBJECT_PATH, ENTRY_OBJECT_NAME, de->index);
 
-    pa_assert_se(pa_dbus_protocol_add_interface(u->dbus_protocol, de->object_path, &entry_interface_info, u) >= 0);
+    pa_assert_se(pa_dbus_protocol_add_interface(u->dbus_protocol, de->object_path, &entry_interface_info, de) >= 0);
 
     return de;
 }
@@ -765,6 +765,7 @@ static void handle_entry_set_device(DBusConnection *conn, DBusMessage *msg, DBus
         value.size = sizeof(struct entry);
         pa_assert_se(pa_database_set(de->userdata->database, &key, &value, TRUE) == 0);
 
+        apply_entry(de->userdata, de->entry_name, e);
         send_device_updated_signal(de, e);
         trigger_save(de->userdata);
     }
@@ -829,6 +830,7 @@ static void handle_entry_set_volume(DBusConnection *conn, DBusMessage *msg, DBus
         value.size = sizeof(struct entry);
         pa_assert_se(pa_database_set(de->userdata->database, &key, &value, TRUE) == 0);
 
+        apply_entry(de->userdata, de->entry_name, e);
         send_volume_updated_signal(de, e);
         trigger_save(de->userdata);
     }
@@ -886,6 +888,7 @@ static void handle_entry_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMe
         value.size = sizeof(struct entry);
         pa_assert_se(pa_database_set(de->userdata->database, &key, &value, TRUE) == 0);
 
+        apply_entry(de->userdata, de->entry_name, e);
         send_mute_updated_signal(de, e);
         trigger_save(de->userdata);
     }

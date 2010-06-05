@@ -1766,7 +1766,7 @@ int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, pa_bo
 }
 
 int pa_cli_command_execute_file_stream(pa_core *c, FILE *f, pa_strbuf *buf, pa_bool_t *fail) {
-    char line[1024];
+    char line[2048];
     int ifstate = IFSTATE_NONE;
     int ret = -1;
     pa_bool_t _fail = TRUE;
