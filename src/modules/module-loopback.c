@@ -53,7 +53,11 @@ PA_MODULE_USAGE(
         "format=<sample format> "
         "rate=<sample rate> "
         "channels=<number of channels> "
-        "channel_map=<channel map>");
+        "channel_map=<channel map> "
+        "sink_input_name=<custom name for the sink input> "
+        "source_output_name=<custom name for the source output> "
+        "sink_input_role=<media.role for the sink input> "
+        "source_output_role=<media.role for the source output>");
 
 #define DEFAULT_LATENCY_MSEC 200
 
@@ -107,6 +111,10 @@ static const char* const valid_modargs[] = {
     "rate",
     "channels",
     "channel_map",
+    "sink_input_name",
+    "source_output_name",
+    "sink_input_role",
+    "source_output_role",
     NULL,
 };
 
@@ -669,11 +677,20 @@ int pa__init(pa_module *m) {
     sink_input_data.module = m;
     sink_input_data.sink = sink;
 
-    pa_proplist_setf(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Loopback of %s",
-                     pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+    if ((n = pa_modargs_get_value(ma, "sink_input_name", NULL)))
+        pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, n);
+    else
+        pa_proplist_setf(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Loopback from %s",
+                         pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+
+    if ((n = pa_modargs_get_value(ma, "sink_input_role", NULL)))
+        pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, n);
+    else
+        pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
+
     if ((n = pa_proplist_gets(source->proplist, PA_PROP_DEVICE_ICON_NAME)))
         pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ICON_NAME, n);
-    pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
+
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
     sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE;
@@ -702,11 +719,21 @@ int pa__init(pa_module *m) {
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
     source_output_data.source = source;
-    pa_proplist_setf(source_output_data.proplist, PA_PROP_MEDIA_NAME, "Loopback to %s",
-                     pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+
+    if ((n = pa_modargs_get_value(ma, "source_output_name", NULL)))
+        pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_NAME, n);
+    else
+        pa_proplist_setf(source_output_data.proplist, PA_PROP_MEDIA_NAME, "Loopback to %s",
+                         pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+
+    if ((n = pa_modargs_get_value(ma, "source_output_role", NULL)))
+        pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_ROLE, n);
+    else
+        pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
+
     if ((n = pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_ICON_NAME)))
         pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_ICON_NAME, n);
-    pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
+
     pa_source_output_new_data_set_sample_spec(&source_output_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
 
