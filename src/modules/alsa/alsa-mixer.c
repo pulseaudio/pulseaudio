@@ -1783,7 +1783,9 @@ static int path_verify(pa_alsa_path *p) {
         { "analog-output-headphones",   N_("Analog Headphones") },
         { "analog-output-lfe-on-mono",  N_("Analog Output (LFE)") },
         { "analog-output-mono",         N_("Analog Mono Output") },
-        { "analog-output-speaker",      N_("Analog Speakers") }
+        { "analog-output-speaker",      N_("Analog Speakers") },
+        { "iec958-stereo-output",       N_("Digital Output (IEC958)") },
+        { "iec958-passthrough-output",  N_("Digital Passthrough (IEC958)") }
     };
 
     pa_alsa_element *e;
@@ -2806,7 +2808,7 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
         { "analog-surround-70",     N_("Analog Surround 7.0") },
         { "analog-surround-71",     N_("Analog Surround 7.1") },
         { "iec958-stereo",          N_("Digital Stereo (IEC958)") },
-        { "iec958-surround-40",     N_("Digital Surround 4.0 (IEC958)") },
+        { "iec958-passthrough",     N_("Digital Passthrough  (IEC958)") },
         { "iec958-ac3-surround-40", N_("Digital Surround 4.0 (IEC958/AC3)") },
         { "iec958-ac3-surround-51", N_("Digital Surround 5.1 (IEC958/AC3)") },
         { "hdmi-stereo",            N_("Digital Stereo (HDMI)") }
@@ -2932,7 +2934,7 @@ static int profile_verify(pa_alsa_profile *p) {
     static const struct description_map well_known_descriptions[] = {
         { "output:analog-mono+input:analog-mono",     N_("Analog Mono Duplex") },
         { "output:analog-stereo+input:analog-stereo", N_("Analog Stereo Duplex") },
-        { "output:iec958-stereo",                     N_("Digital Stereo Duplex (IEC958)") },
+        { "output:iec958-stereo+input:iec958-stereo", N_("Digital Stereo Duplex (IEC958)") },
         { "off",                                      N_("Off") }
     };
 
