@@ -944,7 +944,12 @@ static int update_sw_params(struct userdata *u) {
     }
 
     pa_sink_set_max_request_within_thread(u->sink, u->hwbuf_size - u->hwbuf_unused);
-    pa_sink_set_max_rewind_within_thread(u->sink, u->hwbuf_size);
+     if (pa_alsa_pcm_is_hw(u->pcm_handle))
+         pa_sink_set_max_rewind_within_thread(u->sink, u->hwbuf_size);
+    else {
+        pa_log_info("Disabling rewind_within_thread for device %s", u->device_name);
+        pa_sink_set_max_rewind_within_thread(u->sink, 0);
+    }
 
     return 0;
 }
@@ -1886,7 +1891,12 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
                 (double) pa_bytes_to_usec(u->hwbuf_size, &ss) / PA_USEC_PER_MSEC);
 
     pa_sink_set_max_request(u->sink, u->hwbuf_size);
-    pa_sink_set_max_rewind(u->sink, u->hwbuf_size);
+    if (pa_alsa_pcm_is_hw(u->pcm_handle))
+        pa_sink_set_max_rewind(u->sink, u->hwbuf_size);
+    else {
+        pa_log_info("Disabling rewind for device %s", u->device_name);
+        pa_sink_set_max_rewind(u->sink, 0);
+    }
 
     if (u->use_tsched) {
         u->tsched_watermark = pa_usec_to_bytes_round_up(pa_bytes_to_usec_round_up(tsched_watermark, &requested_ss), &u->sink->sample_spec);
