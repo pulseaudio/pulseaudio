@@ -289,6 +289,12 @@ typedef enum pa_stream_flags {
      * device volume. If this is not specified the volume will be
      * consider absolute when the sink is in flat volume mode,
      * relative otherwise. \since 0.9.20 */
+
+    PA_STREAM_PASSTHROUGH = 0x80000U
+    /**< Used to tag content that will be rendered by passthrough sinks.
+     * The data will be left as is and not reformatted, resampled.
+     * \since 0.9.22*/
+
 } pa_stream_flags_t;
 
 /** \cond fulldocs */
@@ -316,6 +322,7 @@ typedef enum pa_stream_flags {
 #define PA_STREAM_START_UNMUTED PA_STREAM_START_UNMUTED
 #define PA_STREAM_FAIL_ON_SUSPEND PA_STREAM_FAIL_ON_SUSPEND
 #define PA_STREAM_RELATIVE_VOLUME PA_STREAM_RELATIVE_VOLUME
+#define PA_STREAM_PASSTHROUGH PA_STREAM_PASSTHROUGH
 
 /** \endcond */
 
@@ -729,9 +736,15 @@ typedef enum pa_sink_flags {
     /**< This sink is in flat volume mode, i.e. always the maximum of
      * the volume of all connected inputs. \since 0.9.15 */
 
-    PA_SINK_DYNAMIC_LATENCY = 0x0080U
+    PA_SINK_DYNAMIC_LATENCY = 0x0080U,
     /**< The latency can be adjusted dynamically depending on the
      * needs of the connected streams. \since 0.9.15 */
+
+    PA_SINK_PASSTHROUGH = 0x0100U
+    /**< This sink has support for passthrough mode. The data will be left
+     * as is and not reformatted, resampled, mixed.
+     * \since 0.9.22*/
+
 } pa_sink_flags_t;
 
 /** \cond fulldocs */
@@ -743,6 +756,8 @@ typedef enum pa_sink_flags {
 #define PA_SINK_DECIBEL_VOLUME PA_SINK_DECIBEL_VOLUME
 #define PA_SINK_FLAT_VOLUME PA_SINK_FLAT_VOLUME
 #define PA_SINK_DYNAMIC_LATENCY PA_SINK_DYNAMIC_LATENCY
+#define PA_SINK_PASSTHROUGH PA_SINK_PASSTHROUGH
+
 /** \endcond */
 
 /** Sink state. \since 0.9.15 */

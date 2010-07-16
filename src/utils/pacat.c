@@ -659,6 +659,7 @@ static void help(const char *argv0) {
              "      --process-time-msec=MSEC          Request the specified process time per request in msec.\n"
              "      --property=PROPERTY=VALUE         Set the specified property to the specified value.\n"
              "      --raw                             Record/play raw PCM data.\n"
+             "      --passthrough                     passthrough data \n"
              "      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
              "      --list-file-formats               List available file formats.\n")
            , argv0);
@@ -680,6 +681,7 @@ enum {
     ARG_LATENCY,
     ARG_PROCESS_TIME,
     ARG_RAW,
+    ARG_PASSTHROUGH,
     ARG_PROPERTY,
     ARG_FILE_FORMAT,
     ARG_LIST_FILE_FORMATS,
@@ -718,6 +720,7 @@ int main(int argc, char *argv[]) {
         {"process-time", 1, NULL, ARG_PROCESS_TIME},
         {"property",     1, NULL, ARG_PROPERTY},
         {"raw",          0, NULL, ARG_RAW},
+        {"passthrough",  0, NULL, ARG_PASSTHROUGH},
         {"file-format",  2, NULL, ARG_FILE_FORMAT},
         {"list-file-formats", 0, NULL, ARG_LIST_FILE_FORMATS},
         {"latency-msec", 1, NULL, ARG_LATENCY_MSEC},
@@ -912,6 +915,10 @@ int main(int argc, char *argv[]) {
 
             case ARG_RAW:
                 raw = TRUE;
+                break;
+
+            case ARG_PASSTHROUGH:
+                flags |= PA_STREAM_PASSTHROUGH;
                 break;
 
             case ARG_FILE_FORMAT:

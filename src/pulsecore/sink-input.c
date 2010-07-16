@@ -55,6 +55,39 @@ static void sink_input_volume_ramping(pa_sink_input* i, pa_memchunk* chunk);
 static void sink_input_rewind_ramp_info(pa_sink_input *i, size_t nbytes);
 static void sink_input_release_envelope(pa_sink_input *i);
 
+static int check_passthrough_connection(pa_sink_input_flags_t flags, pa_sink *dest) {
+
+    if (dest->flags & PA_SINK_PASSTHROUGH) {
+
+        if (pa_idxset_size(dest->inputs) > 0) {
+
+            pa_sink_input *alt_i;
+            uint32_t idx;
+
+            alt_i = pa_idxset_first(dest->inputs, &idx);
+
+            /* only need to check the first input is not PASSTHROUGH */
+            if (alt_i->flags & PA_SINK_INPUT_PASSTHROUGH) {
+                pa_log_warn("Sink is already connected to PASSTHROUGH input");
+                return -PA_ERR_BUSY;
+            }
+
+            /* Current inputs are PCM, check new input is not PASSTHROUGH */
+            if (flags & PA_SINK_INPUT_PASSTHROUGH) {
+                pa_log_warn("Sink is already connected, cannot accept new PASSTHROUGH INPUT");
+                return -PA_ERR_BUSY;
+            }
+        }
+
+    } else {
+         if (flags & PA_SINK_INPUT_PASSTHROUGH) {
+             pa_log_warn("Cannot connect PASSTHROUGH sink input to sink without PASSTHROUGH capabilities");
+             return -PA_ERR_INVALID;
+         }
+    }
+    return PA_OK;
+}
+
 pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data) {
     pa_assert(data);
 
@@ -182,6 +215,9 @@ int pa_sink_input_new(
     pa_return_val_if_fail(data->sink, -PA_ERR_NOENTITY);
     pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
     pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED), -PA_ERR_INVALID);
+
+    r = check_passthrough_connection(data->flags, data->sink);
+    pa_return_val_if_fail(r == PA_OK, r);
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->sink->sample_spec;
@@ -1020,6 +1056,11 @@ static void set_real_ratio(pa_sink_input *i, const pa_cvolume *v) {
 
 /* Called from main context */
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute) {
+
+    /* Do not allow for volume changes for non-audio types */
+    if (i->flags & PA_SINK_INPUT_PASSTHROUGH)
+        return;
+
     /* test ramping -> return pa_sink_input_set_volume_with_ramping(i, volume, save, absolute, 2000 * PA_USEC_PER_MSEC); */
     return pa_sink_input_set_volume_with_ramping(i, volume, save, absolute, 0);
 }
@@ -1161,6 +1202,9 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
         pa_log_warn("Failed to move sink input: too many inputs per sink.");
         return FALSE;
     }
+
+    if (check_passthrough_connection(i->flags, dest) < 0)
+        return FALSE;
 
     if (i->may_move_to)
         if (!i->may_move_to(i, dest))

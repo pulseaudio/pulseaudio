@@ -194,3 +194,9 @@ new messages:
 new flag at end of CREATE_PLAYBACK_STREAM:
 
     bool relative_volume
+
+## v18, implemented by >= 0.9.22
+
+new flag at end of CREATE_PLAYBACK_STREAM:
+
+    bool passthrough

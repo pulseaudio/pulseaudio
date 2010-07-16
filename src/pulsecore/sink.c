@@ -1393,6 +1393,24 @@ void pa_sink_set_volume(
     pa_assert(volume || (s->flags & PA_SINK_FLAT_VOLUME));
     pa_assert(!volume || volume->channels == 1 || pa_cvolume_compatible(volume, &s->sample_spec));
 
+    /* make sure we don't change the volume when a PASSTHROUGH input is connected */
+    if (s->flags & PA_SINK_PASSTHROUGH) {
+        pa_sink_input *alt_i;
+        uint32_t idx;
+
+        /* one and only one PASSTHROUGH input can possibly be connected */
+        if (pa_idxset_size(s->inputs) == 1) {
+
+            alt_i = pa_idxset_first(s->inputs, &idx);
+
+            if (alt_i->flags & PA_SINK_INPUT_PASSTHROUGH) {
+                /* FIXME: Need to notify client that volume control is disabled */
+                pa_log_warn("Cannot change volume, Sink is connected to PASSTHROUGH input");
+                return;
+            }
+        }
+    }
+
     /* As a special exception we accept mono volumes on all sinks --
      * even on those with more complex channel maps */
 

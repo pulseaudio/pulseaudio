@@ -61,7 +61,8 @@ typedef enum pa_sink_input_flags {
     PA_SINK_INPUT_FIX_CHANNELS = 128,
     PA_SINK_INPUT_DONT_INHIBIT_AUTO_SUSPEND = 256,
     PA_SINK_INPUT_NO_CREATE_ON_SUSPEND = 512,
-    PA_SINK_INPUT_KILL_ON_SUSPEND = 1024
+    PA_SINK_INPUT_KILL_ON_SUSPEND = 1024,
+    PA_SINK_INPUT_PASSTHROUGH = 2048
 } pa_sink_input_flags_t;
 
 struct pa_sink_input {
