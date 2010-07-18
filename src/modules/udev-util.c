@@ -63,10 +63,10 @@ static int dehex(char x) {
         return x - '0';
 
     if (x >= 'A' && x <= 'F')
-        return x - 'A';
+        return x - 'A' + 10;
 
     if (x >= 'a' && x <= 'f')
-        return x - 'a';
+        return x - 'a' + 10;
 
     return -1;
 }
