@@ -263,3 +263,12 @@ int pa_module_get_n_used(pa_module*m) {
 
     return m->get_n_used(m);
 }
+
+void pa_module_update_proplist(pa_module *m, pa_update_mode_t mode, pa_proplist *p) {
+    pa_assert(m);
+
+    if (p)
+        pa_proplist_update(m->proplist, mode, p);
+
+    pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_CHANGE, m->index);
+}

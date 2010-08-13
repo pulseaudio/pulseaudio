@@ -62,6 +62,8 @@ void pa_module_unload_all(pa_core *c);
 
 int pa_module_get_n_used(pa_module*m);
 
+void pa_module_update_proplist(pa_module *m, pa_update_mode_t mode, pa_proplist *p);
+
 #define PA_MODULE_AUTHOR(s)                                     \
     const char *pa__get_author(void) { return s; }              \
     struct __stupid_useless_struct_to_allow_trailing_semicolon
