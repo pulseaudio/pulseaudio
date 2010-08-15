@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PulseAudio Volume Control\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-08 07:25+0000\n"
-"PO-Revision-Date: 2010-03-14 19:20+0800\n"
+"POT-Creation-Date: 2010-07-03 20:41+0000\n"
+"PO-Revision-Date: 2010-08-15 21:40+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: chinese-l10n <chinese-l10n@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
@@ -2427,11 +2427,11 @@ msgstr "無自動增益控制"
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
-msgstr "加速器"
+msgstr "增強"
 
 #: ../src/modules/alsa/alsa-mixer.c:1713
 msgid "No Boost"
-msgstr "無加速器"
+msgstr "無增強"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
@@ -2594,4 +2594,3 @@ msgstr "數位立體聲雙工 (IEC958)"
 
 #~ msgid "Low Frequency Emmiter"
 #~ msgstr "低頻率揚聲器"
-
