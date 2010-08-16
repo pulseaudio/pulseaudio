@@ -5,18 +5,20 @@
 # Luca Ferretti <elle.uca@libero.it>, 2008, 2009.
 # mario_santagiuliana <mario at marionline.it>, 2009.
 # Milo Casagrande <milo@ubuntu.com>, 2009, 2010.
+# Mario Santagiuliana <mario at marionline.it>, 2010.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-04-17 14:47+0000\n"
-"PO-Revision-Date: 2010-04-24 18:41+0200\n"
-"Last-Translator: Milo Casagrande <milo@ubuntu.com>\n"
-"Language-Team: Italian <tp@lists.linux.it>\n"
+"PO-Revision-Date: 2010-08-15 18:45+0200\n"
+"Last-Translator: Mario Santagiuliana <mario at marionline.it>\n"
+"Language-Team: Italian <fedora-trans-it at redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 1.0\n"
 
 #: ../src/modules/alsa/alsa-util.c:861 ../src/pulsecore/sink.c:2631
 #, c-format
@@ -248,7 +250,7 @@ msgstr ""
 #: ../src/daemon/main.c:694
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
-"In esecuzione in modalità sistema, disabilitato in modo forzoso il tempo di "
+"In esecuzione in modalità sistema, disabilitato in modo forzato il tempo di "
 "uscita per inattività."
 
 #: ../src/daemon/main.c:720
@@ -399,7 +401,7 @@ msgstr ""
 "PulseAudio è in esecuzione in modalità sistema. È sconsigliato eseguire "
 "PulseAudio in questa modalità.\n"
 "Continuando a usarlo in questo modo molte cose potrebbero non funzionare "
-"come atteso.\n"
+"nel modo atteso.\n"
 "Consultare http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode per maggiori "
 "informazioni sul perché la modalità sistema è una pessima idea."
 
@@ -546,7 +548,7 @@ msgstr ""
 "      --system[=BOOL]                   Esegue un'istanza di sistema\n"
 "  -D, --daemonize[=BOOL]                Rende demone dopo l'avvio\n"
 "      --fail[=BOOL]                     Esce quando l'avvio non riesce\n"
-"      --high-priority[=BOOL]            Tenta di impostare un livello di "
+"      --high-priority[=BOOL]            Tenta di impostare un livello "
 "nice\n"
 "                                         elevato (disponibile solo come "
 "root,\n"
@@ -2786,4 +2788,6 @@ msgstr "Duplex stereo analogico"
 
 #: ../src/modules/alsa/alsa-mixer.c:2935
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "Duplex stereo digitale (IEC958)"
+msgstr "Digital Stereo Duplex (IEC958)"
+
+
