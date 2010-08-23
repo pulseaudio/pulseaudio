@@ -1013,6 +1013,7 @@ modlibexec_LTLIBRARIES += \
 		module-rescue-streams.la \
 		module-intended-roles.la \
 		module-suspend-on-idle.la \
+		module-echo-cancel.la \
 		module-http-protocol-tcp.la \
 		module-sine.la \
 		module-native-protocol-tcp.la \
@@ -1286,6 +1287,7 @@ SYMDEF_FILES = \
 		modules/module-rescue-streams-symdef.h \
 		modules/module-intended-roles-symdef.h \
 		modules/module-suspend-on-idle-symdef.h \
+		modules/module-echo-cancel-symdef.h \
 		modules/module-hal-detect-symdef.h \
 		modules/module-udev-detect-symdef.h \
 		modules/bluetooth/module-bluetooth-proximity-symdef.h \
@@ -1698,6 +1700,12 @@ module_suspend_on_idle_la_SOURCES = modules/module-suspend-on-idle.c
 module_suspend_on_idle_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_suspend_on_idle_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
+
+# echo-cancel module
+module_echo_cancel_la_SOURCES = modules/module-echo-cancel.c
+module_echo_cancel_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_echo_cancel_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la $(LIBSPEEX_LIBS)
+module_echo_cancel_la_CFLAGS = $(AM_CFLAGS) $(LIBSPEEX_CFLAGS)
 
 # RTP modules
 module_rtp_send_la_SOURCES = modules/rtp/module-rtp-send.c
