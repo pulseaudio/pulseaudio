@@ -949,7 +949,7 @@ static int unsuspend(struct userdata *u) {
     snd_pcm_start(u->pcm_handle);
 
     u->read_count = 0;
-    pa_smoother_reset(u->smoother, pa_rtclock_now(), TRUE);
+    pa_smoother_reset(u->smoother, pa_rtclock_now(), FALSE);
     u->smoother_interval = SMOOTHER_MIN_INTERVAL;
     u->last_smoother_update = 0;
 
