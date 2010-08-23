@@ -120,10 +120,12 @@ PA_MODULE_USAGE(
  */
 
 struct snapshot {
+    pa_usec_t sink_now;
     pa_usec_t sink_latency;
     size_t sink_delay;
     int64_t send_counter;
 
+    pa_usec_t source_now;
     pa_usec_t source_latency;
     size_t source_delay;
     int64_t recv_counter;
@@ -224,13 +226,15 @@ static int64_t calc_diff(struct userdata *u, struct snapshot *snapshot) {
     buffer_latency = pa_bytes_to_usec(buffer, &u->source_output->sample_spec);
 
     /* capture and playback samples are perfectly aligned when diff_time is 0 */
-    diff_time = (snapshot->sink_latency - buffer_latency) + snapshot->source_latency;
+    diff_time = (snapshot->sink_now + snapshot->sink_latency - buffer_latency) -
+          (snapshot->source_now - snapshot->source_latency);
 
-    pa_log_debug("diff %lld (%lld - %lld + %lld) %lld %lld %lld", (long long) diff_time,
+    pa_log_debug("diff %lld (%lld - %lld + %lld) %lld %lld %lld %lld", (long long) diff_time,
         (long long) snapshot->sink_latency,
         (long long) buffer_latency, (long long) snapshot->source_latency,
         (long long) snapshot->source_delay, (long long) snapshot->sink_delay,
-        (long long) (snapshot->send_counter - snapshot->recv_counter));
+        (long long) (snapshot->send_counter - snapshot->recv_counter),
+        (long long) (snapshot->sink_now - snapshot->source_now));
 
     return diff_time;
 }
@@ -771,8 +775,9 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
 
 static void source_output_snapshot_within_thread(struct userdata *u, struct snapshot *snapshot) {
     size_t delay, rlen, plen;
-    pa_usec_t latency;
+    pa_usec_t now, latency;
 
+    now = pa_rtclock_now();
     latency = pa_source_get_latency_within_thread(u->source_output->source);
     delay = pa_memblockq_get_length(u->source_output->thread_info.delay_memblockq);
 
@@ -780,6 +785,7 @@ static void source_output_snapshot_within_thread(struct userdata *u, struct snap
     rlen = pa_memblockq_get_length(u->source_memblockq);
     plen = pa_memblockq_get_length(u->sink_memblockq);
 
+    snapshot->source_now = now;
     snapshot->source_latency = latency;
     snapshot->source_delay = delay;
     snapshot->recv_counter = u->recv_counter;
@@ -845,16 +851,18 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
 
         case SINK_INPUT_MESSAGE_LATENCY_SNAPSHOT: {
             size_t delay;
-            pa_usec_t latency;
+            pa_usec_t now, latency;
             struct snapshot *snapshot = (struct snapshot *) data;
 
             pa_sink_input_assert_io_context(u->sink_input);
 
+            now = pa_rtclock_now();
             latency = pa_sink_get_latency_within_thread(u->sink_input->sink);
             delay = pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq);
 
             delay = (u->sink_input->thread_info.resampler ? pa_resampler_request(u->sink_input->thread_info.resampler, delay) : delay);
 
+            snapshot->sink_now = now;
             snapshot->sink_latency = latency;
             snapshot->sink_delay = delay;
             snapshot->send_counter = u->send_counter;
