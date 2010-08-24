@@ -383,6 +383,7 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
     d->args = pa_sprintf_malloc("device_id=\"%s\" "
                                 "name=\"%s\" "
                                 "card_name=\"%s\" "
+                                "namereg_fail=false "
                                 "tsched=%s "
                                 "ignore_dB=%s "
                                 "card_properties=\"module-udev-detect.discovered=1\"",
