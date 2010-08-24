@@ -1677,9 +1677,9 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     const char *dev_id = NULL;
     pa_sample_spec ss, requested_ss;
     pa_channel_map map;
-    uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark;
+    uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark, rewind_safeguard;
     snd_pcm_uframes_t period_frames, buffer_frames, tsched_frames;
-    size_t frame_size, rewind_safeguard;
+    size_t frame_size;
     pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE;
     pa_sink_new_data data;
     pa_alsa_profile_set *profile_set = NULL;
