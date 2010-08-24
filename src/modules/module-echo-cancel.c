@@ -1360,6 +1360,7 @@ int pa__init(pa_module*m) {
     pa_source_new_data_set_channel_map(&source_data, &map);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, source_master->name);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
+    pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
     pa_proplist_sets(source_data.proplist, "device.echo-cancel.name", source_data.name);
 
     if (pa_modargs_get_proplist(ma, "source_properties", source_data.proplist, PA_UPDATE_REPLACE) < 0) {
@@ -1406,6 +1407,7 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_channel_map(&sink_data, &map);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, sink_master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
+    pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
     pa_proplist_sets(sink_data.proplist, "device.echo-cancel.name", sink_data.name);
 
     if (pa_modargs_get_proplist(ma, "sink_properties", sink_data.proplist, PA_UPDATE_REPLACE) < 0) {
