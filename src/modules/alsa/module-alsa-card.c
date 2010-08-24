@@ -53,6 +53,7 @@ PA_MODULE_USAGE(
         "sink_properties=<properties for the sink> "
         "source_name=<name for the source> "
         "source_properties=<properties for the source> "
+        "namereg_fail=<pa_namereg_register() fail parameter value> "
         "device_id=<ALSA card index> "
         "format=<sample format> "
         "rate=<sample rate> "
@@ -73,6 +74,7 @@ static const char* const valid_modargs[] = {
     "sink_properties",
     "source_name",
     "source_properties",
+    "namereg_fail",
     "device_id",
     "format",
     "rate",
@@ -286,6 +288,7 @@ int pa__init(pa_module *m) {
     pa_reserve_wrapper *reserve = NULL;
     const char *description;
     char *fn = NULL;
+    pa_bool_t namereg_fail = FALSE;
 
     pa_alsa_refcnt_inc();
 
@@ -340,6 +343,18 @@ int pa__init(pa_module *m) {
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_id);
     pa_alsa_init_description(data.proplist);
     set_card_name(&data, ma, u->device_id);
+
+    /* We need to give pa_modargs_get_value_boolean() a pointer to a local
+     * variable instead of using &data.namereg_fail directly, because
+     * data.namereg_fail is a bitfield and taking the address of a bitfield
+     * variable is impossible. */
+    namereg_fail = data.namereg_fail;
+    if (pa_modargs_get_value_boolean(ma, "namereg_fail", &namereg_fail) < 0) {
+        pa_log("Failed to parse boolean argument namereg_fail.");
+        pa_card_new_data_done(&data);
+        goto fail;
+    }
+    data.namereg_fail = namereg_fail;
 
     if (reserve)
         if ((description = pa_proplist_gets(data.proplist, PA_PROP_DEVICE_DESCRIPTION)))
