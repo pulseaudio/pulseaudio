@@ -276,7 +276,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
         new_rate = base_rate;
     }
     else {
-        if (diff_time > (u->frame_size_ms / 2) * 1000) {
+        if (diff_time > 4000) {
             pa_log_info("playback too far ahead (%lld), realign", (long long) diff_time);
             /* diff too big, quickly adjust */
             pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_APPLY_DIFF_TIME,
@@ -627,9 +627,8 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         ;
     u->in_push = FALSE;
 
-    if (pa_atomic_load (&u->request_resync) == 1) {
+    if (pa_atomic_cmpxchg (&u->request_resync, 1, 0)) {
         do_resync (u);
-        pa_atomic_store (&u->request_resync, 0);
     }
 
     pa_memblockq_push_align(u->source_memblockq, chunk);
@@ -920,7 +919,6 @@ static void sink_input_update_sink_requested_latency_cb(pa_sink_input *i) {
     latency = pa_sink_get_requested_latency_within_thread(i->sink);
 
     pa_log_debug("Sink input update requested latency %lld", (long long) latency);
-    pa_atomic_store (&u->request_resync, 1);
 }
 
 /* Called from I/O thread context */
@@ -934,7 +932,6 @@ static void source_output_update_source_requested_latency_cb(pa_source_output *o
     latency = pa_source_get_requested_latency_within_thread(o->source);
 
     pa_log_debug("source output update requested latency %lld", (long long) latency);
-    pa_atomic_store (&u->request_resync, 1);
 }
 
 /* Called from I/O thread context */
