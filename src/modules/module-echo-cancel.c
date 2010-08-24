@@ -267,17 +267,15 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
     base_rate = u->source_output->sample_spec.rate;
 
     if (diff_time < 0) {
-        pa_log_info("Playback after capture (%lld), realign", (long long) diff_time);
-        pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_APPLY_DIFF_TIME,
-            NULL, diff_time, NULL, NULL);
         /* recording before playback, we need to adjust quickly. The echo
          * canceler does not work in this case. */
+        pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_APPLY_DIFF_TIME,
+            NULL, diff_time, NULL, NULL);
         //new_rate = base_rate - ((pa_usec_to_bytes (-diff_time, &u->source_output->sample_spec) / fs) * PA_USEC_PER_SEC) / u->adjust_time;
         new_rate = base_rate;
     }
     else {
         if (diff_time > 4000) {
-            pa_log_info("playback too far ahead (%lld), realign", (long long) diff_time);
             /* diff too big, quickly adjust */
             pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_APPLY_DIFF_TIME,
                 NULL, diff_time, NULL, NULL);
@@ -575,17 +573,21 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
     if (diff_time < 0) {
         diff = pa_usec_to_bytes (-diff_time, &u->source_output->sample_spec);
 
-        pa_log_debug("drop sink (%lld)", (long long) diff);
+        if (diff > 0) {
+            pa_log_info("Playback after capture (%lld), drop sink %lld", (long long) diff_time, (long long) diff);
 
-        /* go forwards on the read side */
-        pa_memblockq_drop(u->sink_memblockq, diff);
-    } else {
+            /* go forwards on the read side */
+            pa_memblockq_drop(u->sink_memblockq, diff);
+        }
+    } else if (diff_time > 0) {
         diff = pa_usec_to_bytes (diff_time, &u->source_output->sample_spec);
 
-        pa_log_debug("drop source (%lld)", (long long) diff);
+        if (diff > 0) {
+            pa_log_info("playback too far ahead (%lld), drop source %lld", (long long) diff_time, (long long) diff);
 
-        /* go back on the read side */
-        pa_memblockq_rewind(u->sink_memblockq, diff);
+            /* go back on the read side */
+            pa_memblockq_rewind(u->sink_memblockq, diff);
+        }
     }
 }
 
