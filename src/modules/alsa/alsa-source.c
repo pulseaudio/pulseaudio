@@ -1493,7 +1493,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark;
     snd_pcm_uframes_t period_frames, buffer_frames, tsched_frames;
     size_t frame_size;
-    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE;
+    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE, namereg_fail = FALSE;
     pa_source_new_data data;
     pa_alsa_profile_set *profile_set = NULL;
 
@@ -1658,6 +1658,19 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     data.module = m;
     data.card = card;
     set_source_name(&data, ma, dev_id, u->device_name, mapping);
+
+    /* We need to give pa_modargs_get_value_boolean() a pointer to a local
+     * variable instead of using &data.namereg_fail directly, because
+     * data.namereg_fail is a bitfield and taking the address of a bitfield
+     * variable is impossible. */
+    namereg_fail = data.namereg_fail;
+    if (pa_modargs_get_value_boolean(ma, "namereg_fail", &namereg_fail) < 0) {
+        pa_log("Failed to parse boolean argument namereg_fail.");
+        pa_source_new_data_done(&data);
+        goto fail;
+    }
+    data.namereg_fail = namereg_fail;
+
     pa_source_new_data_set_sample_spec(&data, &ss);
     pa_source_new_data_set_channel_map(&data, &map);
 
