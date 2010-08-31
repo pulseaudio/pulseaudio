@@ -1269,7 +1269,7 @@ int pa__init(pa_module*m) {
     pa_source_new_data source_data;
     pa_sink_new_data sink_data;
     pa_memchunk silence;
-    int framelen, rate;
+    int framelen, rate, y;
     uint32_t frame_size_ms, filter_size_ms;
     uint32_t adjust_time_sec;
 
@@ -1323,6 +1323,13 @@ int pa__init(pa_module*m) {
     u->frame_size_ms = frame_size_ms;
     rate = ss.rate;
     framelen = (rate * frame_size_ms) / 1000;
+
+    /* framelen should be a power of 2, round down to nearest power of two */
+    y = 1 << ((8 * sizeof (int)) - 2);
+    while (y > framelen)
+      y >>= 1;
+    framelen = y;
+
     u->blocksize = framelen * pa_frame_size (&ss);
     pa_log_debug ("Using framelen %d, blocksize %lld, channels %d, rate %d", framelen, (long long) u->blocksize,
         ss.channels, ss.rate);
