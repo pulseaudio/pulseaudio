@@ -1555,8 +1555,8 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
     u->smoother = pa_smoother_new(
-            DEFAULT_TSCHED_WATERMARK_USEC*2,
-            DEFAULT_TSCHED_WATERMARK_USEC*2,
+            DEFAULT_TSCHED_BUFFER_USEC*2,
+            DEFAULT_TSCHED_BUFFER_USEC*2,
             TRUE,
             TRUE,
             5,
