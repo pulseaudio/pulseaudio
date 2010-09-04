@@ -86,7 +86,8 @@
 
 #define VOLUME_ACCURACY (PA_VOLUME_NORM/100)  /* don't require volume adjustments to be perfectly correct. don't necessarily extend granularity in software unless the differences get greater than this level */
 
-#define DEFAULT_REWIND_SAFEGUARD_BYTES (256) /* 1.33ms @48kHz, should work for most hardware */
+#define DEFAULT_REWIND_SAFEGUARD_BYTES (256U) /* 1.33ms @48kHz, we'll never rewind less than this */
+#define DEFAULT_REWIND_SAFEGUARD_USEC (1330) /* 1.33ms, depending on channels/rate/sample we may rewind more than 256 above */
 
 struct userdata {
     pa_core *core;
@@ -1740,7 +1741,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         goto fail;
     }
 
-    rewind_safeguard = DEFAULT_REWIND_SAFEGUARD_BYTES;
+    rewind_safeguard = PA_MAX(DEFAULT_REWIND_SAFEGUARD_BYTES, pa_usec_to_bytes(DEFAULT_REWIND_SAFEGUARD_USEC, &ss));
     if (pa_modargs_get_value_u32(ma, "rewind_safeguard", &rewind_safeguard) < 0) {
         pa_log("Failed to parse rewind_safeguard argument");
         goto fail;
