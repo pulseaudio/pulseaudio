@@ -39,9 +39,21 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec, pa_sample_spec ss, pa_channel_map map, const char *args)
+static void pa_speex_ec_fixate_spec(pa_sample_spec *source_ss, pa_channel_map *source_map,
+				    pa_sample_spec *sink_ss, pa_channel_map *sink_map)
 {
-    int framelen, y, rate = ss.rate;
+    source_ss->format = PA_SAMPLE_S16LE;
+
+    *sink_ss = *source_ss;
+    *sink_map = *source_map;
+}
+
+pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec,
+                           pa_sample_spec *source_ss, pa_channel_map *source_map,
+                           pa_sample_spec *sink_ss, pa_channel_map *sink_map,
+                           const char *args)
+{
+    int framelen, y, rate;
     uint32_t frame_size_ms, filter_size_ms;
     pa_modargs *ma;
 
@@ -62,6 +74,9 @@ pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec, pa_sample_spec ss, pa_channel_
         goto fail;
     }
 
+    pa_speex_ec_fixate_spec(source_ss, source_map, sink_ss, sink_map);
+
+    rate = source_ss->rate;
     framelen = (rate * frame_size_ms) / 1000;
     /* framelen should be a power of 2, round down to nearest power of two */
     y = 1 << ((8 * sizeof (int)) - 2);
@@ -69,11 +84,11 @@ pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec, pa_sample_spec ss, pa_channel_
       y >>= 1;
     framelen = y;
 
-    ec->params.priv.speex.blocksize = framelen * pa_frame_size (&ss);
+    ec->params.priv.speex.blocksize = framelen * pa_frame_size (source_ss);
 
-    pa_log_debug ("Using framelen %d, blocksize %lld, channels %d, rate %d", framelen, (long long) ec->params.priv.speex.blocksize, ss.channels, ss.rate);
+    pa_log_debug ("Using framelen %d, blocksize %lld, channels %d, rate %d", framelen, (long long) ec->params.priv.speex.blocksize, source_ss->channels, source_ss->rate);
 
-    ec->params.priv.speex.state = speex_echo_state_init_mc (framelen, (rate * filter_size_ms) / 1000, ss.channels, ss.channels);
+    ec->params.priv.speex.state = speex_echo_state_init_mc (framelen, (rate * filter_size_ms) / 1000, source_ss->channels, source_ss->channels);
 
     if (!ec->params.priv.speex.state)
 	goto fail;

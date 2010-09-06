@@ -1269,8 +1269,8 @@ static void sink_input_mute_changed_cb(pa_sink_input *i) {
 
 int pa__init(pa_module*m) {
     struct userdata *u;
-    pa_sample_spec ss;
-    pa_channel_map map;
+    pa_sample_spec source_ss, sink_ss;
+    pa_channel_map source_map, sink_map;
     pa_modargs *ma;
     pa_source *source_master=NULL;
     pa_sink *sink_master=NULL;
@@ -1300,13 +1300,15 @@ int pa__init(pa_module*m) {
     }
     pa_assert(sink_master);
 
-    ss = source_master->sample_spec;
-    ss.format = PA_SAMPLE_S16LE;
-    map = source_master->channel_map;
-    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
+    source_ss = source_master->sample_spec;
+    source_map = source_master->channel_map;
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &source_ss, &source_map, PA_CHANNEL_MAP_DEFAULT) < 0) {
         pa_log("Invalid sample format specification or channel map");
         goto fail;
     }
+
+    sink_ss = sink_master->sample_spec;
+    sink_map = sink_master->channel_map;
 
     u = pa_xnew0(struct userdata, 1);
     if (!u) {
@@ -1347,7 +1349,7 @@ int pa__init(pa_module*m) {
     u->asyncmsgq = pa_asyncmsgq_new(0);
     u->need_realign = TRUE;
     if (u->ec->init) {
-        if (!u->ec->init(u->ec, ss, map, pa_modargs_get_value(ma, "aec_args", NULL))) {
+        if (!u->ec->init(u->ec, &source_ss, &source_map, &sink_ss, &sink_map, pa_modargs_get_value(ma, "aec_args", NULL))) {
             pa_log("Failed to init AEC engine");
             goto fail;
         }
@@ -1359,8 +1361,8 @@ int pa__init(pa_module*m) {
     source_data.module = m;
     if (!(source_data.name = pa_xstrdup(pa_modargs_get_value(ma, "source_name", NULL))))
         source_data.name = pa_sprintf_malloc("%s.echo-cancel", source_master->name);
-    pa_source_new_data_set_sample_spec(&source_data, &ss);
-    pa_source_new_data_set_channel_map(&source_data, &map);
+    pa_source_new_data_set_sample_spec(&source_data, &source_ss);
+    pa_source_new_data_set_channel_map(&source_data, &source_map);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, source_master->name);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
@@ -1406,8 +1408,8 @@ int pa__init(pa_module*m) {
     sink_data.module = m;
     if (!(sink_data.name = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", NULL))))
         sink_data.name = pa_sprintf_malloc("%s.echo-cancel", sink_master->name);
-    pa_sink_new_data_set_sample_spec(&sink_data, &ss);
-    pa_sink_new_data_set_channel_map(&sink_data, &map);
+    pa_sink_new_data_set_sample_spec(&sink_data, &sink_ss);
+    pa_sink_new_data_set_channel_map(&sink_data, &sink_map);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, sink_master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
@@ -1456,8 +1458,8 @@ int pa__init(pa_module*m) {
 
     pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_NAME, "Echo-Cancel Source Stream");
     pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
-    pa_source_output_new_data_set_sample_spec(&source_output_data, &ss);
-    pa_source_output_new_data_set_channel_map(&source_output_data, &map);
+    pa_source_output_new_data_set_sample_spec(&source_output_data, &source_ss);
+    pa_source_output_new_data_set_channel_map(&source_output_data, &source_map);
 
     pa_source_output_new(&u->source_output, m->core, &source_output_data);
     pa_source_output_new_data_done(&source_output_data);
@@ -1487,8 +1489,8 @@ int pa__init(pa_module*m) {
     sink_input_data.sink = sink_master;
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Echo-Cancel Sink Stream");
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
-    pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
-    pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
+    pa_sink_input_new_data_set_sample_spec(&sink_input_data, &sink_ss);
+    pa_sink_input_new_data_set_channel_map(&sink_input_data, &sink_map);
     sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE;
 
     pa_sink_input_new(&u->sink_input, m->core, &sink_input_data);
@@ -1518,9 +1520,9 @@ int pa__init(pa_module*m) {
     pa_sink_input_get_silence(u->sink_input, &silence);
 
     u->source_memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0,
-        pa_frame_size(&ss), 1, 1, 0, &silence);
+        pa_frame_size(&source_ss), 1, 1, 0, &silence);
     u->sink_memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0,
-        pa_frame_size(&ss), 1, 1, 0, &silence);
+        pa_frame_size(&sink_ss), 1, 1, 0, &silence);
 
     pa_memblock_unref(silence.memblock);
 
