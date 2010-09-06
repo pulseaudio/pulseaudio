@@ -12,7 +12,7 @@ static uint64_t timespec_us(const struct timespec *ts) {
 
 int main(int argc, char *argv[]) {
     const char *dev;
-    int r;
+    int r, cap;
     snd_pcm_hw_params_t *hwparams;
     snd_pcm_sw_params_t *swparams;
     snd_pcm_status_t *status;
@@ -38,8 +38,12 @@ int main(int argc, char *argv[]) {
     start_us = timespec_us(&start);
 
     dev = argc > 1 ? argv[1] : "front:AudioPCI";
+    cap = argc > 2 ? atoi(argv[2]) : 0;
 
-    r = snd_pcm_open(&pcm, dev, SND_PCM_STREAM_PLAYBACK, 0);
+    if (cap == 0)
+      r = snd_pcm_open(&pcm, dev, SND_PCM_STREAM_PLAYBACK, 0);
+    else
+      r = snd_pcm_open(&pcm, dev, SND_PCM_STREAM_CAPTURE, 0);
     assert(r == 0);
 
     r = snd_pcm_hw_params_any(pcm, hwparams);
@@ -78,7 +82,10 @@ int main(int argc, char *argv[]) {
     r = snd_pcm_sw_params_current(pcm, swparams);
     assert(r == 0);
 
-    r = snd_pcm_sw_params_set_avail_min(pcm, swparams, 1);
+    if (cap == 0)
+      r = snd_pcm_sw_params_set_avail_min(pcm, swparams, 1);
+    else
+      r = snd_pcm_sw_params_set_avail_min(pcm, swparams, 0);
     assert(r == 0);
 
     r = snd_pcm_sw_params_set_period_event(pcm, swparams, 0);
@@ -117,13 +124,19 @@ int main(int argc, char *argv[]) {
     r = snd_pcm_poll_descriptors(pcm, pollfds, n_pollfd);
     assert(r == n_pollfd);
 
+    if (cap) {
+      r = snd_pcm_start(pcm);
+      assert(r == 0);
+    }
+
     for (;;) {
         snd_pcm_sframes_t avail, delay;
         struct timespec now, timestamp;
         unsigned short revents;
-        int written = 0;
+        int handled = 0;
         uint64_t now_us, timestamp_us;
         snd_pcm_state_t state;
+        unsigned long long pos;
 
         r = poll(pollfds, n_pollfd, 0);
         assert(r >= 0);
@@ -131,7 +144,10 @@ int main(int argc, char *argv[]) {
         r = snd_pcm_poll_descriptors_revents(pcm, pollfds, n_pollfd, &revents);
         assert(r == 0);
 
-        assert((revents & ~POLLOUT) == 0);
+        if (cap == 0)
+          assert((revents & ~POLLOUT) == 0);
+        else
+          assert((revents & ~POLLIN) == 0);
 
         avail = snd_pcm_avail(pcm);
         assert(avail >= 0);
@@ -152,18 +168,22 @@ int main(int argc, char *argv[]) {
 
         assert(!revents || avail > 0);
 
-        if (avail) {
+        if ((!cap && avail) || (cap && (unsigned)avail >= buffer_size)) {
             snd_pcm_sframes_t sframes;
-            static const uint16_t samples[2] = { 0, 0 };
+            static const uint16_t psamples[2] = { 0, 0 };
+            uint16_t csamples[2];
 
-            sframes = snd_pcm_writei(pcm, samples, 1);
+            if (cap == 0)
+              sframes = snd_pcm_writei(pcm, psamples, 1);
+            else
+              sframes = snd_pcm_readi(pcm, csamples, 1);
             assert(sframes == 1);
 
-            written = 1;
+            handled = 1;
             sample_count++;
         }
 
-        if (!written &&
+        if (!handled &&
             memcmp(&timestamp, &last_timestamp, sizeof(timestamp)) == 0 &&
             avail == last_avail &&
             delay == last_delay) {
@@ -174,19 +194,26 @@ int main(int argc, char *argv[]) {
         now_us = timespec_us(&now);
         timestamp_us = timespec_us(&timestamp);
 
-        printf("%llu\t%llu\t%llu\t%li\t%li\t%i\t%i\t%i\n",
+        if (cap == 0)
+            pos = (unsigned long long) ((sample_count - handled - delay) * 1000000LU / 44100);
+        else
+            pos = (unsigned long long) ((sample_count - handled + delay) * 1000000LU / 44100);
+
+        printf("%llu\t%llu\t%llu\t%llu\t%li\t%li\t%i\t%i\t%i\n",
                (unsigned long long) (now_us - start_us),
                (unsigned long long) (timestamp_us ? timestamp_us - start_us : 0),
-               (unsigned long long) ((sample_count - 1 - delay) * 1000000LU / 44100),
+               pos,
+               (unsigned long long) sample_count,
                (signed long) avail,
                (signed long) delay,
                revents,
-               written,
+               handled,
                state);
 
-        /** When this assert is hit, most likely something bad
-         * happened, i.e. the avail jumped suddenly. */
-        assert((unsigned) avail <= buffer_size);
+        if (cap == 0)
+          /** When this assert is hit, most likely something bad
+           * happened, i.e. the avail jumped suddenly. */
+          assert((unsigned) avail <= buffer_size);
 
         last_avail = avail;
         last_delay = delay;
