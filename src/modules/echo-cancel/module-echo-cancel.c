@@ -70,13 +70,12 @@ PA_MODULE_USAGE(
           "sink_name=<name for the sink> "
           "sink_properties=<properties for the sink> "
           "sink_master=<name of sink to filter> "
-          "frame_size_ms=<amount of data to process at one time> "
-          "filter_size_ms=<amount of echo to cancel> "
           "adjust_time=<how often to readjust rates in s> "
           "format=<sample format> "
           "rate=<sample rate> "
           "channels=<number of channels> "
           "channel_map=<channel map> "
+          "aec_args=<parameters for the AEC engine> "
           "save_aec=<save AEC data in /tmp> "
         ));
 
@@ -96,11 +95,6 @@ static const pa_echo_canceller ec_table[] = {
         .get_block_size         = pa_speex_ec_get_block_size,
     },
 };
-
-/* should be between 10-20 ms */
-#define DEFAULT_FRAME_SIZE_MS 20
-/* should be between 100-500 ms */
-#define DEFAULT_FILTER_SIZE_MS 200
 
 #define DEFAULT_ADJUST_TIME_USEC (1*PA_USEC_PER_SEC)
 #define DEFAULT_SAVE_AEC 0
@@ -154,7 +148,6 @@ struct userdata {
     pa_core *core;
     pa_module *module;
 
-    uint32_t frame_size_ms;
     uint32_t save_aec;
 
     pa_echo_canceller *ec;
@@ -199,13 +192,12 @@ static const char* const valid_modargs[] = {
     "sink_name",
     "sink_properties",
     "sink_master",
-    "frame_size_ms",
-    "filter_size_ms",
     "adjust_time",
     "format",
     "rate",
     "channels",
     "channel_map",
+    "aec_args",
     "save_aec",
     NULL
 };
@@ -1287,7 +1279,6 @@ int pa__init(pa_module*m) {
     pa_source_new_data source_data;
     pa_sink_new_data sink_data;
     pa_memchunk silence;
-    uint32_t frame_size_ms, filter_size_ms;
     uint32_t adjust_time_sec;
 
     pa_assert(m);
@@ -1309,18 +1300,6 @@ int pa__init(pa_module*m) {
     }
     pa_assert(sink_master);
 
-    frame_size_ms = DEFAULT_FRAME_SIZE_MS;
-    if (pa_modargs_get_value_u32(ma, "frame_size_ms", &frame_size_ms) < 0 || frame_size_ms < 1 || frame_size_ms > 200) {
-        pa_log("Invalid frame_size_ms specification");
-        goto fail;
-    }
-
-    filter_size_ms = DEFAULT_FILTER_SIZE_MS;
-    if (pa_modargs_get_value_u32(ma, "filter_size_ms", &filter_size_ms) < 0 || filter_size_ms < 1 || filter_size_ms > 2000) {
-        pa_log("Invalid filter_size_ms specification");
-        goto fail;
-    }
-
     ss = source_master->sample_spec;
     ss.format = PA_SAMPLE_S16LE;
     map = source_master->channel_map;
@@ -1337,7 +1316,6 @@ int pa__init(pa_module*m) {
     u->core = m->core;
     u->module = m;
     m->userdata = u;
-    u->frame_size_ms = frame_size_ms;
 
     u->ec = pa_xnew0(pa_echo_canceller, 1);
     if (!u->ec) {
@@ -1369,7 +1347,7 @@ int pa__init(pa_module*m) {
     u->asyncmsgq = pa_asyncmsgq_new(0);
     u->need_realign = TRUE;
     if (u->ec->init) {
-        if (!u->ec->init(u->ec, ss, map, filter_size_ms, frame_size_ms)) {
+        if (!u->ec->init(u->ec, ss, map, pa_modargs_get_value(ma, "aec_args", NULL))) {
             pa_log("Failed to init AEC engine");
             goto fail;
         }
