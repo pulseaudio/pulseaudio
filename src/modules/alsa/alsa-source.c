@@ -116,6 +116,8 @@ struct userdata {
 
     pa_bool_t use_mmap:1, use_tsched:1;
 
+    pa_bool_t first;
+
     pa_rtpoll_item *alsa_rtpoll_item;
 
     snd_mixer_selem_channel_id_t mixer_map[SND_MIXER_SCHN_LAST];
@@ -397,7 +399,7 @@ static int try_recover(struct userdata *u, const char *call, int err) {
         return -1;
     }
 
-    snd_pcm_start(u->pcm_handle);
+    u->first = TRUE;
     return 0;
 }
 
@@ -946,12 +948,12 @@ static int unsuspend(struct userdata *u) {
 
     /* FIXME: We need to reload the volume somehow */
 
-    snd_pcm_start(u->pcm_handle);
-
     u->read_count = 0;
-    pa_smoother_reset(u->smoother, pa_rtclock_now(), FALSE);
+    pa_smoother_reset(u->smoother, pa_rtclock_now(), TRUE);
     u->smoother_interval = SMOOTHER_MIN_INTERVAL;
     u->last_smoother_update = 0;
+
+    u->first = TRUE;
 
     pa_log_info("Resumed successfully...");
 
@@ -1003,8 +1005,6 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                     if (u->source->thread_info.state == PA_SOURCE_INIT) {
                         if (build_pollfd(u) < 0)
                             return -PA_ERR_IO;
-
-                        snd_pcm_start(u->pcm_handle);
                     }
 
                     if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
@@ -1240,6 +1240,15 @@ static void thread_func(void *userdata) {
             pa_usec_t sleep_usec = 0;
             pa_bool_t on_timeout = pa_rtpoll_timer_elapsed(u->rtpoll);
 
+            if (u->first) {
+                pa_log_info("Starting capture.");
+                snd_pcm_start(u->pcm_handle);
+
+                pa_smoother_resume(u->smoother, pa_rtclock_now(), TRUE);
+
+                u->first = FALSE;
+            }
+
             if (u->use_mmap)
                 work_done = mmap_read(u, &sleep_usec, revents & POLLIN, on_timeout);
             else
@@ -1299,7 +1308,7 @@ static void thread_func(void *userdata) {
                 if (pa_alsa_recover_from_poll(u->pcm_handle, revents) < 0)
                     goto fail;
 
-                snd_pcm_start(u->pcm_handle);
+                u->first = TRUE;
             } else if (revents && u->use_tsched && pa_log_ratelimit())
                 pa_log_debug("Wakeup from ALSA!");
 
@@ -1553,6 +1562,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     u->module = m;
     u->use_mmap = use_mmap;
     u->use_tsched = use_tsched;
+    u->first = TRUE;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
@@ -1563,7 +1573,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
             TRUE,
             5,
             pa_rtclock_now(),
-            FALSE);
+            TRUE);
     u->smoother_interval = SMOOTHER_MIN_INTERVAL;
 
     dev_id = pa_modargs_get_value(
