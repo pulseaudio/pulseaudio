@@ -313,10 +313,8 @@ static void estimate(pa_smoother *s, pa_usec_t x, pa_usec_t *y, double *deriv) {
 
         calc_abc(s);
 
-        tx = (double) x;
-
         /* Move to origin */
-        tx -= (double) s->ex;
+        tx = (double) (x - s->ex);
 
         /* Horner scheme */
         ty = (tx * (s->c + tx * (s->b + tx * s->a)));
