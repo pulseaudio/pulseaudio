@@ -33,7 +33,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <speex/speex_echo.h>
+#include "echo-cancel.h"
 
 #include <pulse/xmalloc.h>
 #include <pulse/i18n.h>
@@ -79,6 +79,23 @@ PA_MODULE_USAGE(
           "channel_map=<channel map> "
           "save_aec=<save AEC data in /tmp> "
         ));
+
+/* NOTE: Make sure the enum and ec_table are maintained in the correct order */
+enum {
+    PA_ECHO_CANCELLER_SPEEX,
+};
+
+#define DEFAULT_ECHO_CANCELLER PA_ECHO_CANCELLER_SPEEX
+
+static const pa_echo_canceller ec_table[] = {
+    {
+        /* Speex */
+        .init                   = pa_speex_ec_init,
+        .run                    = pa_speex_ec_run,
+        .done                   = pa_speex_ec_done,
+        .get_block_size         = pa_speex_ec_get_block_size,
+    },
+};
 
 /* should be between 10-20 ms */
 #define DEFAULT_FRAME_SIZE_MS 20
@@ -140,9 +157,8 @@ struct userdata {
     uint32_t frame_size_ms;
     uint32_t save_aec;
 
-    SpeexEchoState *echo_state;
+    pa_echo_canceller *ec;
 
-    size_t blocksize;
     pa_bool_t need_realign;
 
     /* to wakeup the source I/O thread */
@@ -326,7 +342,7 @@ static int source_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t 
                 /* Add the latency internal to our source output on top */
                 pa_bytes_to_usec(pa_memblockq_get_length(u->source_output->thread_info.delay_memblockq), &u->source_output->source->sample_spec) +
                 /* and the buffering we do on the source */
-                pa_bytes_to_usec(u->blocksize, &u->source_output->source->sample_spec);
+                pa_bytes_to_usec(u->ec->get_block_size(u->ec), &u->source_output->source->sample_spec);
 
             return 0;
 
@@ -613,6 +629,7 @@ static void do_resync(struct userdata *u) {
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk) {
     struct userdata *u;
     size_t rlen, plen;
+    uint32_t blocksize;
 
     pa_source_output_assert_ref(o);
     pa_source_output_assert_io_context(o);
@@ -638,18 +655,20 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     rlen = pa_memblockq_get_length(u->source_memblockq);
     plen = pa_memblockq_get_length(u->sink_memblockq);
 
-    while (rlen >= u->blocksize) {
+    blocksize = u->ec->get_block_size(u->ec);
+
+    while (rlen >= blocksize) {
         pa_memchunk rchunk, pchunk;
 
         /* take fixed block from recorded samples */
-        pa_memblockq_peek_fixed_size(u->source_memblockq, u->blocksize, &rchunk);
+        pa_memblockq_peek_fixed_size(u->source_memblockq, blocksize, &rchunk);
 
-        if (plen > u->blocksize) {
+        if (plen > blocksize) {
             uint8_t *rdata, *pdata, *cdata;
             pa_memchunk cchunk;
 
             /* take fixed block from played samples */
-            pa_memblockq_peek_fixed_size(u->sink_memblockq, u->blocksize, &pchunk);
+            pa_memblockq_peek_fixed_size(u->sink_memblockq, blocksize, &pchunk);
 
             rdata = pa_memblock_acquire(rchunk.memblock);
             rdata += rchunk.index;
@@ -657,21 +676,20 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
             pdata += pchunk.index;
 
             cchunk.index = 0;
-            cchunk.length = u->blocksize;
+            cchunk.length = blocksize;
             cchunk.memblock = pa_memblock_new(u->source->core->mempool, cchunk.length);
             cdata = pa_memblock_acquire(cchunk.memblock);
 
             /* perform echo cancelation */
-            speex_echo_cancellation(u->echo_state, (const spx_int16_t *) rdata,
-                (const spx_int16_t *) pdata, (spx_int16_t *) cdata);
+            u->ec->run(u->ec, rdata, pdata, cdata);
 
             if (u->save_aec) {
                 if (u->captured_file)
-                    fwrite(rdata, 1, u->blocksize, u->captured_file);
+                    fwrite(rdata, 1, blocksize, u->captured_file);
                 if (u->played_file)
-                    fwrite(pdata, 1, u->blocksize, u->played_file);
+                    fwrite(pdata, 1, blocksize, u->played_file);
                 if (u->canceled_file)
-                    fwrite(cdata, 1, u->blocksize, u->canceled_file);
+                    fwrite(cdata, 1, blocksize, u->canceled_file);
                 pa_log_debug("AEC frame saved.");
             }
 
@@ -680,7 +698,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
             pa_memblock_release(rchunk.memblock);
 
             /* drop consumed sink samples */
-            pa_memblockq_drop(u->sink_memblockq, u->blocksize);
+            pa_memblockq_drop(u->sink_memblockq, blocksize);
             pa_memblock_unref(pchunk.memblock);
 
             pa_memblock_unref(rchunk.memblock);
@@ -688,11 +706,11 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
              * source */
             rchunk = cchunk;
 
-            plen -= u->blocksize;
+            plen -= blocksize;
         } else {
             /* not enough played samples to perform echo cancelation,
              * drop what we have */
-            pa_memblockq_drop(u->sink_memblockq, u->blocksize - plen);
+            pa_memblockq_drop(u->sink_memblockq, blocksize - plen);
             plen = 0;
         }
 
@@ -700,9 +718,9 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         pa_source_post(u->source, &rchunk);
         pa_memblock_unref(rchunk.memblock);
 
-        pa_memblockq_drop(u->source_memblockq, u->blocksize);
+        pa_memblockq_drop(u->source_memblockq, blocksize);
 
-        rlen -= u->blocksize;
+        rlen -= blocksize;
     }
 }
 
@@ -1269,7 +1287,6 @@ int pa__init(pa_module*m) {
     pa_source_new_data source_data;
     pa_sink_new_data sink_data;
     pa_memchunk silence;
-    int framelen, rate, y;
     uint32_t frame_size_ms, filter_size_ms;
     uint32_t adjust_time_sec;
 
@@ -1321,18 +1338,16 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->frame_size_ms = frame_size_ms;
-    rate = ss.rate;
-    framelen = (rate * frame_size_ms) / 1000;
 
-    /* framelen should be a power of 2, round down to nearest power of two */
-    y = 1 << ((8 * sizeof (int)) - 2);
-    while (y > framelen)
-      y >>= 1;
-    framelen = y;
-
-    u->blocksize = framelen * pa_frame_size (&ss);
-    pa_log_debug ("Using framelen %d, blocksize %lld, channels %d, rate %d", framelen, (long long) u->blocksize,
-        ss.channels, ss.rate);
+    u->ec = pa_xnew0(pa_echo_canceller, 1);
+    if (!u->ec) {
+        pa_log("Failed to alloc echo canceller");
+        goto fail;
+    }
+    u->ec->init = ec_table[DEFAULT_ECHO_CANCELLER].init;
+    u->ec->run = ec_table[DEFAULT_ECHO_CANCELLER].run;
+    u->ec->done = ec_table[DEFAULT_ECHO_CANCELLER].done;
+    u->ec->get_block_size = ec_table[DEFAULT_ECHO_CANCELLER].get_block_size;
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
     if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
@@ -1353,8 +1368,12 @@ int pa__init(pa_module*m) {
 
     u->asyncmsgq = pa_asyncmsgq_new(0);
     u->need_realign = TRUE;
-    u->echo_state = speex_echo_state_init_mc (framelen, (rate * filter_size_ms) / 1000, ss.channels, ss.channels);
-    speex_echo_ctl(u->echo_state, SPEEX_ECHO_SET_SAMPLING_RATE, &rate);
+    if (u->ec->init) {
+        if (!u->ec->init(u->ec, ss, map, filter_size_ms, frame_size_ms)) {
+            pa_log("Failed to init AEC engine");
+            goto fail;
+        }
+    }
 
     /* Create source */
     pa_source_new_data_init(&source_data);
@@ -1615,8 +1634,12 @@ void pa__done(pa_module*m) {
     if (u->sink_memblockq)
         pa_memblockq_free(u->sink_memblockq);
 
-    if (u->echo_state)
-        speex_echo_state_destroy (u->echo_state);
+    if (u->ec) {
+        if (u->ec->done)
+            u->ec->done(u->ec);
+
+        pa_xfree(u->ec);
+    }
 
     if (u->asyncmsgq)
         pa_asyncmsgq_unref(u->asyncmsgq);
