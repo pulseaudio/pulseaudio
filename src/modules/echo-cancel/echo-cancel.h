@@ -46,7 +46,7 @@ struct pa_echo_canceller_params {
 typedef struct pa_echo_canceller pa_echo_canceller;
 
 struct pa_echo_canceller {
-    pa_bool_t   (*init)                 (pa_echo_canceller *ec, pa_sample_spec ss, pa_channel_map map, uint32_t filter_size_ms, uint32_t frame_size_ms);
+    pa_bool_t   (*init)                 (pa_echo_canceller *ec, pa_sample_spec ss, pa_channel_map map, const char *args);
     void        (*run)                  (pa_echo_canceller *ec, uint8_t *rec, uint8_t *play, uint8_t *out);
     void        (*done)                 (pa_echo_canceller *ec);
     uint32_t    (*get_block_size)       (pa_echo_canceller *ec);
@@ -55,7 +55,7 @@ struct pa_echo_canceller {
 };
 
 /* Speex canceller functions */
-pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec, pa_sample_spec ss, pa_channel_map map, uint32_t filter_size_ms, uint32_t frame_size_ms);
+pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec, pa_sample_spec ss, pa_channel_map map, const char *args);
 void pa_speex_ec_run(pa_echo_canceller *ec, uint8_t *rec, uint8_t *play, uint8_t *out);
 void pa_speex_ec_done(pa_echo_canceller *ec);
 uint32_t pa_speex_ec_get_block_size(pa_echo_canceller *ec);

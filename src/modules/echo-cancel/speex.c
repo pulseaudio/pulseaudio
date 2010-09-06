@@ -21,11 +21,46 @@
     USA.
 ***/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <pulsecore/modargs.h>
 #include "echo-cancel.h"
 
-pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec, pa_sample_spec ss, pa_channel_map map, uint32_t filter_size_ms, uint32_t frame_size_ms)
+/* should be between 10-20 ms */
+#define DEFAULT_FRAME_SIZE_MS 20
+/* should be between 100-500 ms */
+#define DEFAULT_FILTER_SIZE_MS 200
+
+static const char* const valid_modargs[] = {
+    "frame_size_ms",
+    "filter_size_ms",
+    NULL
+};
+
+pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec, pa_sample_spec ss, pa_channel_map map, const char *args)
 {
     int framelen, y, rate = ss.rate;
+    uint32_t frame_size_ms, filter_size_ms;
+    pa_modargs *ma;
+
+    if (!(ma = pa_modargs_new(args, valid_modargs))) {
+        pa_log("Failed to parse submodule arguments.");
+        goto fail;
+    }
+
+    filter_size_ms = DEFAULT_FILTER_SIZE_MS;
+    if (pa_modargs_get_value_u32(ma, "filter_size_ms", &filter_size_ms) < 0 || filter_size_ms < 1 || filter_size_ms > 2000) {
+        pa_log("Invalid filter_size_ms specification");
+        goto fail;
+    }
+
+    frame_size_ms = DEFAULT_FRAME_SIZE_MS;
+    if (pa_modargs_get_value_u32(ma, "frame_size_ms", &frame_size_ms) < 0 || frame_size_ms < 1 || frame_size_ms > 200) {
+        pa_log("Invalid frame_size_ms specification");
+        goto fail;
+    }
 
     framelen = (rate * frame_size_ms) / 1000;
     /* framelen should be a power of 2, round down to nearest power of two */
@@ -40,11 +75,18 @@ pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec, pa_sample_spec ss, pa_channel_
 
     ec->params.priv.speex.state = speex_echo_state_init_mc (framelen, (rate * filter_size_ms) / 1000, ss.channels, ss.channels);
 
-    if (ec->params.priv.speex.state) {
-	speex_echo_ctl(ec->params.priv.speex.state, SPEEX_ECHO_SET_SAMPLING_RATE, &rate);
-	return TRUE;
-    } else
-	return FALSE;
+    if (!ec->params.priv.speex.state)
+	goto fail;
+
+    speex_echo_ctl(ec->params.priv.speex.state, SPEEX_ECHO_SET_SAMPLING_RATE, &rate);
+
+    pa_modargs_free(ma);
+    return TRUE;
+
+fail:
+    if (ma)
+	pa_modargs_free(ma);
+    return FALSE;
 }
 
 void pa_speex_ec_run(pa_echo_canceller *ec, uint8_t *rec, uint8_t *play, uint8_t *out)
