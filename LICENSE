@@ -10,4 +10,8 @@ LGPL licensed and the server part ('libpulsecore') as being GPL licensed. Since
 the PulseAudio daemon and the modules link to 'libpulsecore' they are of course
 also GPL licensed.
 
+Andre Adrian's echo cancellation implementation is licensed under a less
+restrictive license - see src/modules/echo-cancel/adrian-license.txt for
+details.
+
 -- Lennart Poettering, April 20th, 2006.

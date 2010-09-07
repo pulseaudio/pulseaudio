@@ -82,6 +82,7 @@ PA_MODULE_USAGE(
 /* NOTE: Make sure the enum and ec_table are maintained in the correct order */
 enum {
     PA_ECHO_CANCELLER_SPEEX,
+    PA_ECHO_CANCELLER_ADRIAN,
 };
 
 #define DEFAULT_ECHO_CANCELLER PA_ECHO_CANCELLER_SPEEX
@@ -93,6 +94,13 @@ static const pa_echo_canceller ec_table[] = {
         .run                    = pa_speex_ec_run,
         .done                   = pa_speex_ec_done,
         .get_block_size         = pa_speex_ec_get_block_size,
+    },
+    {
+        /* Adrian Andre's NLMS implementation */
+        .init                   = pa_adrian_ec_init,
+        .run                    = pa_adrian_ec_run,
+        .done                   = pa_adrian_ec_done,
+        .get_block_size         = pa_adrian_ec_get_block_size,
     },
 };
 

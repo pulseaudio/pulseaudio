@@ -28,6 +28,7 @@
 #include <pulsecore/macro.h>
 
 #include <speex/speex_echo.h>
+#include "adrian.h"
 
 /* Common data structures */
 
@@ -39,6 +40,10 @@ struct pa_echo_canceller_params {
             uint32_t blocksize;
             SpeexEchoState *state;
         } speex;
+        struct {
+            uint32_t blocksize;
+            AEC *aec;
+        } adrian;
         /* each canceller-specific structure goes here */
     } priv;
 };
@@ -67,3 +72,12 @@ pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec,
 void pa_speex_ec_run(pa_echo_canceller *ec, uint8_t *rec, uint8_t *play, uint8_t *out);
 void pa_speex_ec_done(pa_echo_canceller *ec);
 uint32_t pa_speex_ec_get_block_size(pa_echo_canceller *ec);
+
+/* Adrian Andre's echo canceller */
+pa_bool_t pa_adrian_ec_init(pa_echo_canceller *ec,
+                           pa_sample_spec *source_ss, pa_channel_map *source_map,
+                           pa_sample_spec *sink_ss, pa_channel_map *sink_map,
+                           const char *args);
+void pa_adrian_ec_run(pa_echo_canceller *ec, uint8_t *rec, uint8_t *play, uint8_t *out);
+void pa_adrian_ec_done(pa_echo_canceller *ec);
+uint32_t pa_adrian_ec_get_block_size(pa_echo_canceller *ec);
