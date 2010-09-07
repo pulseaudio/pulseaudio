@@ -57,7 +57,7 @@ struct pa_echo_canceller {
                                          pa_channel_map *sink_map,
                                          uint32_t *blocksize,
                                          const char *args);
-    void        (*run)                  (pa_echo_canceller *ec, uint8_t *rec, uint8_t *play, uint8_t *out);
+    void        (*run)                  (pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
     void        (*done)                 (pa_echo_canceller *ec);
 
     pa_echo_canceller_params params;
@@ -68,7 +68,7 @@ pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
                            uint32_t *blocksize, const char *args);
-void pa_speex_ec_run(pa_echo_canceller *ec, uint8_t *rec, uint8_t *play, uint8_t *out);
+void pa_speex_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_speex_ec_done(pa_echo_canceller *ec);
 
 /* Adrian Andre's echo canceller */
@@ -76,5 +76,5 @@ pa_bool_t pa_adrian_ec_init(pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
                            uint32_t *blocksize, const char *args);
-void pa_adrian_ec_run(pa_echo_canceller *ec, uint8_t *rec, uint8_t *play, uint8_t *out);
+void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_adrian_ec_done(pa_echo_canceller *ec);
