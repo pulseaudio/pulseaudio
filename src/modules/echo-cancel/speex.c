@@ -51,7 +51,7 @@ static void pa_speex_ec_fixate_spec(pa_sample_spec *source_ss, pa_channel_map *s
 pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                           const char *args)
+                           uint32_t *blocksize, const char *args)
 {
     int framelen, y, rate;
     uint32_t frame_size_ms, filter_size_ms;
@@ -84,9 +84,9 @@ pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec,
       y >>= 1;
     framelen = y;
 
-    ec->params.priv.speex.blocksize = framelen * pa_frame_size (source_ss);
+    *blocksize = framelen * pa_frame_size (source_ss);
 
-    pa_log_debug ("Using framelen %d, blocksize %lld, channels %d, rate %d", framelen, (long long) ec->params.priv.speex.blocksize, source_ss->channels, source_ss->rate);
+    pa_log_debug ("Using framelen %d, blocksize %u, channels %d, rate %d", framelen, *blocksize, source_ss->channels, source_ss->rate);
 
     ec->params.priv.speex.state = speex_echo_state_init_mc (framelen, (rate * filter_size_ms) / 1000, source_ss->channels, source_ss->channels);
 
@@ -113,9 +113,4 @@ void pa_speex_ec_done(pa_echo_canceller *ec)
 {
     speex_echo_state_destroy (ec->params.priv.speex.state);
     ec->params.priv.speex.state = NULL;
-}
-
-uint32_t pa_speex_ec_get_block_size(pa_echo_canceller *ec)
-{
-    return ec->params.priv.speex.blocksize;
 }

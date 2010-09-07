@@ -95,14 +95,12 @@ static const pa_echo_canceller ec_table[] = {
         .init                   = pa_speex_ec_init,
         .run                    = pa_speex_ec_run,
         .done                   = pa_speex_ec_done,
-        .get_block_size         = pa_speex_ec_get_block_size,
     },
     {
         /* Adrian Andre's NLMS implementation */
         .init                   = pa_adrian_ec_init,
         .run                    = pa_adrian_ec_run,
         .done                   = pa_adrian_ec_done,
-        .get_block_size         = pa_adrian_ec_get_block_size,
     },
 };
 
@@ -161,6 +159,7 @@ struct userdata {
     uint32_t save_aec;
 
     pa_echo_canceller *ec;
+    uint32_t blocksize;
 
     pa_bool_t need_realign;
 
@@ -345,7 +344,7 @@ static int source_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t 
                 /* Add the latency internal to our source output on top */
                 pa_bytes_to_usec(pa_memblockq_get_length(u->source_output->thread_info.delay_memblockq), &u->source_output->source->sample_spec) +
                 /* and the buffering we do on the source */
-                pa_bytes_to_usec(u->ec->get_block_size(u->ec), &u->source_output->source->sample_spec);
+                pa_bytes_to_usec(u->blocksize, &u->source_output->source->sample_spec);
 
             return 0;
 
@@ -632,7 +631,6 @@ static void do_resync(struct userdata *u) {
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk) {
     struct userdata *u;
     size_t rlen, plen;
-    uint32_t blocksize;
 
     pa_source_output_assert_ref(o);
     pa_source_output_assert_io_context(o);
@@ -658,20 +656,18 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     rlen = pa_memblockq_get_length(u->source_memblockq);
     plen = pa_memblockq_get_length(u->sink_memblockq);
 
-    blocksize = u->ec->get_block_size(u->ec);
-
-    while (rlen >= blocksize) {
+    while (rlen >= u->blocksize) {
         pa_memchunk rchunk, pchunk;
 
         /* take fixed block from recorded samples */
-        pa_memblockq_peek_fixed_size(u->source_memblockq, blocksize, &rchunk);
+        pa_memblockq_peek_fixed_size(u->source_memblockq, u->blocksize, &rchunk);
 
-        if (plen > blocksize) {
+        if (plen > u->blocksize) {
             uint8_t *rdata, *pdata, *cdata;
             pa_memchunk cchunk;
 
             /* take fixed block from played samples */
-            pa_memblockq_peek_fixed_size(u->sink_memblockq, blocksize, &pchunk);
+            pa_memblockq_peek_fixed_size(u->sink_memblockq, u->blocksize, &pchunk);
 
             rdata = pa_memblock_acquire(rchunk.memblock);
             rdata += rchunk.index;
@@ -679,7 +675,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
             pdata += pchunk.index;
 
             cchunk.index = 0;
-            cchunk.length = blocksize;
+            cchunk.length = u->blocksize;
             cchunk.memblock = pa_memblock_new(u->source->core->mempool, cchunk.length);
             cdata = pa_memblock_acquire(cchunk.memblock);
 
@@ -688,11 +684,11 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
 
             if (u->save_aec) {
                 if (u->captured_file)
-                    fwrite(rdata, 1, blocksize, u->captured_file);
+                    fwrite(rdata, 1, u->blocksize, u->captured_file);
                 if (u->played_file)
-                    fwrite(pdata, 1, blocksize, u->played_file);
+                    fwrite(pdata, 1, u->blocksize, u->played_file);
                 if (u->canceled_file)
-                    fwrite(cdata, 1, blocksize, u->canceled_file);
+                    fwrite(cdata, 1, u->blocksize, u->canceled_file);
                 pa_log_debug("AEC frame saved.");
             }
 
@@ -701,7 +697,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
             pa_memblock_release(rchunk.memblock);
 
             /* drop consumed sink samples */
-            pa_memblockq_drop(u->sink_memblockq, blocksize);
+            pa_memblockq_drop(u->sink_memblockq, u->blocksize);
             pa_memblock_unref(pchunk.memblock);
 
             pa_memblock_unref(rchunk.memblock);
@@ -709,11 +705,11 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
              * source */
             rchunk = cchunk;
 
-            plen -= blocksize;
+            plen -= u->blocksize;
         } else {
             /* not enough played samples to perform echo cancelation,
              * drop what we have */
-            pa_memblockq_drop(u->sink_memblockq, blocksize - plen);
+            pa_memblockq_drop(u->sink_memblockq, u->blocksize - plen);
             plen = 0;
         }
 
@@ -721,9 +717,9 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         pa_source_post(u->source, &rchunk);
         pa_memblock_unref(rchunk.memblock);
 
-        pa_memblockq_drop(u->source_memblockq, blocksize);
+        pa_memblockq_drop(u->source_memblockq, u->blocksize);
 
-        rlen -= blocksize;
+        rlen -= u->blocksize;
     }
 }
 
@@ -1354,7 +1350,6 @@ int pa__init(pa_module*m) {
     u->ec->init = ec_table[ec_method].init;
     u->ec->run = ec_table[ec_method].run;
     u->ec->done = ec_table[ec_method].done;
-    u->ec->get_block_size = ec_table[ec_method].get_block_size;
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
     if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
@@ -1376,7 +1371,7 @@ int pa__init(pa_module*m) {
     u->asyncmsgq = pa_asyncmsgq_new(0);
     u->need_realign = TRUE;
     if (u->ec->init) {
-        if (!u->ec->init(u->ec, &source_ss, &source_map, &sink_ss, &sink_map, pa_modargs_get_value(ma, "aec_args", NULL))) {
+        if (!u->ec->init(u->ec, &source_ss, &source_map, &sink_ss, &sink_map, &u->blocksize, pa_modargs_get_value(ma, "aec_args", NULL))) {
             pa_log("Failed to init AEC engine");
             goto fail;
         }
