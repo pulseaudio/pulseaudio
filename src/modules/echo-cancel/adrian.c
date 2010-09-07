@@ -54,7 +54,7 @@ static void pa_adrian_ec_fixate_spec(pa_sample_spec *source_ss, pa_channel_map *
 pa_bool_t pa_adrian_ec_init(pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                           const char *args)
+                           uint32_t *blocksize, const char *args)
 {
     int framelen, rate;
     uint32_t frame_size_ms;
@@ -76,9 +76,9 @@ pa_bool_t pa_adrian_ec_init(pa_echo_canceller *ec,
     rate = source_ss->rate;
     framelen = (rate * frame_size_ms) / 1000;
 
-    ec->params.priv.adrian.blocksize = framelen * pa_frame_size (source_ss);
+    *blocksize = ec->params.priv.adrian.blocksize = framelen * pa_frame_size (source_ss);
 
-    pa_log_debug ("Using framelen %d, blocksize %lld, channels %d, rate %d", framelen, (long long) ec->params.priv.adrian.blocksize, source_ss->channels, source_ss->rate);
+    pa_log_debug ("Using framelen %d, blocksize %u, channels %d, rate %d", framelen, ec->params.priv.adrian.blocksize, source_ss->channels, source_ss->rate);
 
     ec->params.priv.adrian.aec = AEC_init(rate);
     if (!ec->params.priv.adrian.aec)
@@ -113,9 +113,4 @@ void pa_adrian_ec_done(pa_echo_canceller *ec)
 {
     pa_xfree(ec->params.priv.adrian.aec);
     ec->params.priv.adrian.aec = NULL;
-}
-
-uint32_t pa_adrian_ec_get_block_size(pa_echo_canceller *ec)
-{
-    return ec->params.priv.adrian.blocksize;
 }
