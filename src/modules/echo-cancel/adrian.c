@@ -93,7 +93,7 @@ fail:
     return FALSE;
 }
 
-void pa_adrian_ec_run(pa_echo_canceller *ec, uint8_t *rec, uint8_t *play, uint8_t *out)
+void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out)
 {
     unsigned int i;
 

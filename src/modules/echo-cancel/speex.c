@@ -104,7 +104,7 @@ fail:
     return FALSE;
 }
 
-void pa_speex_ec_run(pa_echo_canceller *ec, uint8_t *rec, uint8_t *play, uint8_t *out)
+void pa_speex_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out)
 {
     speex_echo_cancellation(ec->params.priv.speex.state, (const spx_int16_t *) rec, (const spx_int16_t *) play, (spx_int16_t *) out);
 }
