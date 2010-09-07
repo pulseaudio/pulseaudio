@@ -75,17 +75,19 @@ PA_MODULE_USAGE(
           "rate=<sample rate> "
           "channels=<number of channels> "
           "channel_map=<channel map> "
+          "aec_method=<implementation to use> "
           "aec_args=<parameters for the AEC engine> "
           "save_aec=<save AEC data in /tmp> "
         ));
 
 /* NOTE: Make sure the enum and ec_table are maintained in the correct order */
-enum {
-    PA_ECHO_CANCELLER_SPEEX,
+typedef enum {
+    PA_ECHO_CANCELLER_INVALID = -1,
+    PA_ECHO_CANCELLER_SPEEX = 0,
     PA_ECHO_CANCELLER_ADRIAN,
-};
+} pa_echo_canceller_method_t;
 
-#define DEFAULT_ECHO_CANCELLER PA_ECHO_CANCELLER_SPEEX
+#define DEFAULT_ECHO_CANCELLER "speex"
 
 static const pa_echo_canceller ec_table[] = {
     {
@@ -205,6 +207,7 @@ static const char* const valid_modargs[] = {
     "rate",
     "channels",
     "channel_map",
+    "aec_method",
     "aec_args",
     "save_aec",
     NULL
@@ -1274,6 +1277,15 @@ static void sink_input_mute_changed_cb(pa_sink_input *i) {
     pa_sink_mute_changed(u->sink, i->muted);
 }
 
+static pa_echo_canceller_method_t get_ec_method_from_string(const char *method)
+{
+    if (strcmp(method, "speex") == 0)
+        return PA_ECHO_CANCELLER_SPEEX;
+    else if (strcmp(method, "adrian") == 0)
+        return PA_ECHO_CANCELLER_ADRIAN;
+    else
+        return PA_ECHO_CANCELLER_INVALID;
+}
 
 int pa__init(pa_module*m) {
     struct userdata *u;
@@ -1287,6 +1299,7 @@ int pa__init(pa_module*m) {
     pa_source_new_data source_data;
     pa_sink_new_data sink_data;
     pa_memchunk silence;
+    pa_echo_canceller_method_t ec_method;
     uint32_t adjust_time_sec;
 
     pa_assert(m);
@@ -1332,10 +1345,16 @@ int pa__init(pa_module*m) {
         pa_log("Failed to alloc echo canceller");
         goto fail;
     }
-    u->ec->init = ec_table[DEFAULT_ECHO_CANCELLER].init;
-    u->ec->run = ec_table[DEFAULT_ECHO_CANCELLER].run;
-    u->ec->done = ec_table[DEFAULT_ECHO_CANCELLER].done;
-    u->ec->get_block_size = ec_table[DEFAULT_ECHO_CANCELLER].get_block_size;
+
+    if ((ec_method = get_ec_method_from_string(pa_modargs_get_value(ma, "aec_method", DEFAULT_ECHO_CANCELLER))) < 0) {
+        pa_log("Invalid echo canceller implementation");
+        goto fail;
+    }
+
+    u->ec->init = ec_table[ec_method].init;
+    u->ec->run = ec_table[ec_method].run;
+    u->ec->done = ec_table[ec_method].done;
+    u->ec->get_block_size = ec_table[ec_method].get_block_size;
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
     if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
