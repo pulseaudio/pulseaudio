@@ -1,0 +1,233 @@
+/* aec.cpp
+ *
+ * Copyright (C) DFS Deutsche Flugsicherung (2004, 2005).
+ * All Rights Reserved.
+ *
+ * Acoustic Echo Cancellation NLMS-pw algorithm
+ *
+ * Version 0.3 filter created with www.dsptutor.freeuk.com
+ * Version 0.3.1 Allow change of stability parameter delta
+ * Version 0.4 Leaky Normalized LMS - pre whitening algorithm
+ */
+
+#include <math.h>
+#include <string.h>
+
+#include <pulse/xmalloc.h>
+
+#include "adrian-aec.h"
+
+/* Vector Dot Product */
+static REAL dotp(REAL a[], REAL b[])
+{
+  REAL sum0 = 0.0, sum1 = 0.0;
+  int j;
+
+  for (j = 0; j < NLMS_LEN; j += 2) {
+    // optimize: partial loop unrolling
+    sum0 += a[j] * b[j];
+    sum1 += a[j + 1] * b[j + 1];
+  }
+  return sum0 + sum1;
+}
+
+
+AEC* AEC_init(int RATE)
+{
+  AEC *a = pa_xnew(AEC, 1);
+  a->hangover = 0;
+  memset(a->x, 0, sizeof(a->x));
+  memset(a->xf, 0, sizeof(a->xf));
+  memset(a->w, 0, sizeof(a->w));
+  a->j = NLMS_EXT;
+  a->delta = 0.0f;
+  AEC_setambient(a, NoiseFloor);
+  a->dfast = a->dslow = M75dB_PCM;
+  a->xfast = a->xslow = M80dB_PCM;
+  a->gain = 1.0f;
+  a->Fx = IIR1_init(2000.0f/RATE);
+  a->Fe = IIR1_init(2000.0f/RATE);
+  a->cutoff = FIR_HP_300Hz_init();
+  a->acMic = IIR_HP_init();
+  a->acSpk = IIR_HP_init();
+
+  a->aes_y2 = M0dB;
+
+  a->fdwdisplay = -1;
+  a->dumpcnt = 0;
+  memset(a->ws, 0, sizeof(a->ws));
+
+  return a;
+}
+
+// Adrian soft decision DTD
+// (Dual Average Near-End to Far-End signal Ratio DTD)
+// This algorithm uses exponential smoothing with differnt
+// ageing parameters to get fast and slow near-end and far-end
+// signal averages. The ratio of NFRs term
+// (dfast / xfast) / (dslow / xslow) is used to compute the stepsize
+// A ratio value of 2.5 is mapped to stepsize 0, a ratio of 0 is
+// mapped to 1.0 with a limited linear function.
+static float AEC_dtd(AEC *a, REAL d, REAL x)
+{
+  float stepsize;
+  float ratio, M;
+
+  // fast near-end and far-end average
+  a->dfast += ALPHAFAST * (fabsf(d) - a->dfast);
+  a->xfast += ALPHAFAST * (fabsf(x) - a->xfast);
+
+  // slow near-end and far-end average
+  a->dslow += ALPHASLOW * (fabsf(d) - a->dslow);
+  a->xslow += ALPHASLOW * (fabsf(x) - a->xslow);
+
+  if (a->xfast < M70dB_PCM) {
+    return 0.0;   // no Spk signal
+  }
+
+  if (a->dfast < M70dB_PCM) {
+    return 0.0;   // no Mic signal
+  }
+
+  // ratio of NFRs
+  ratio = (a->dfast * a->xslow) / (a->dslow * a->xfast);
+
+  // begrenzte lineare Kennlinie
+  M = (STEPY2 - STEPY1) / (STEPX2 - STEPX1);
+  if (ratio < STEPX1) {
+    stepsize = STEPY1;
+  } else if (ratio > STEPX2) {
+    stepsize = STEPY2;
+  } else {
+    // Punktrichtungsform einer Geraden
+    stepsize = M * (ratio - STEPX1) + STEPY1;
+  }
+
+  return stepsize;
+}
+
+
+static void AEC_leaky(AEC *a)
+// The xfast signal is used to charge the hangover timer to Thold.
+// When hangover expires (no Spk signal for some time) the vector w
+// is erased. This is my implementation of Leaky NLMS.
+{
+  if (a->xfast >= M70dB_PCM) {
+    // vector w is valid for hangover Thold time
+    a->hangover = Thold;
+  } else {
+    if (a->hangover > 1) {
+      --(a->hangover);
+    } else if (1 == a->hangover) {
+      --(a->hangover);
+      // My Leaky NLMS is to erase vector w when hangover expires
+      memset(a->w, 0, sizeof(a->w));
+    }
+  }
+}
+
+
+#if 0
+void AEC::openwdisplay() {
+  // open TCP connection to program wdisplay.tcl
+  fdwdisplay = socket_async("127.0.0.1", 50999);
+};
+#endif
+
+
+static REAL AEC_nlms_pw(AEC *a, REAL d, REAL x_, float stepsize)
+{
+  REAL e;
+  REAL ef;
+  a->x[a->j] = x_;
+  a->xf[a->j] = IIR1_highpass(a->Fx, x_);     // pre-whitening of x
+
+  // calculate error value
+  // (mic signal - estimated mic signal from spk signal)
+  e = d;
+  if (a->hangover > 0) {
+    e -= dotp(a->w, a->x + a->j);
+  }
+  ef = IIR1_highpass(a->Fe, e);     // pre-whitening of e
+
+  // optimize: iterative dotp(xf, xf)
+  a->dotp_xf_xf += (a->xf[a->j] * a->xf[a->j] - a->xf[a->j + NLMS_LEN - 1] * a->xf[a->j + NLMS_LEN - 1]);
+
+  if (stepsize > 0.0) {
+    // calculate variable step size
+    REAL mikro_ef = stepsize * ef / a->dotp_xf_xf;
+
+    // update tap weights (filter learning)
+    int i;
+    for (i = 0; i < NLMS_LEN; i += 2) {
+      // optimize: partial loop unrolling
+      a->w[i] += mikro_ef * a->xf[i + a->j];
+      a->w[i + 1] += mikro_ef * a->xf[i + a->j + 1];
+    }
+  }
+
+  if (--(a->j) < 0) {
+    // optimize: decrease number of memory copies
+    a->j = NLMS_EXT;
+    memmove(a->x + a->j + 1, a->x, (NLMS_LEN - 1) * sizeof(REAL));
+    memmove(a->xf + a->j + 1, a->xf, (NLMS_LEN - 1) * sizeof(REAL));
+  }
+
+  // Saturation
+  if (e > MAXPCM) {
+    return MAXPCM;
+  } else if (e < -MAXPCM) {
+    return -MAXPCM;
+  } else {
+    return e;
+  }
+}
+
+
+int AEC_doAEC(AEC *a, int d_, int x_)
+{
+  REAL d = (REAL) d_;
+  REAL x = (REAL) x_;
+
+  // Mic Highpass Filter - to remove DC
+  d = IIR_HP_highpass(a->acMic, d);
+
+  // Mic Highpass Filter - cut-off below 300Hz
+  d = FIR_HP_300Hz_highpass(a->cutoff, d);
+
+  // Amplify, for e.g. Soundcards with -6dB max. volume
+  d *= a->gain;
+
+  // Spk Highpass Filter - to remove DC
+  x = IIR_HP_highpass(a->acSpk, x);
+
+  // Double Talk Detector
+  a->stepsize = AEC_dtd(a, d, x);
+
+  // Leaky (ageing of vector w)
+  AEC_leaky(a);
+
+  // Acoustic Echo Cancellation
+  d = AEC_nlms_pw(a, d, x, a->stepsize);
+
+#if 0
+  if (fdwdisplay >= 0) {
+    if (++dumpcnt >= (WIDEB*RATE/10)) {
+      // wdisplay creates 10 dumps per seconds = large CPU load!
+      dumpcnt = 0;
+      write(fdwdisplay, ws, DUMP_LEN*sizeof(float));
+      // we don't check return value. This is not production quality!!!
+      memset(ws, 0, sizeof(ws));
+    } else {
+      int i;
+      for (i = 0; i < DUMP_LEN; i += 2) {
+        // optimize: partial loop unrolling
+        ws[i] += w[i];
+        ws[i + 1] += w[i + 1];
+      }
+    }
+  }
+#endif
+
+  return (int) d;
+}
