@@ -803,7 +803,7 @@ static void update_smoother(struct userdata *u) {
 
     /* Let's update the time smoother */
 
-    if (PA_UNLIKELY((err = pa_alsa_safe_delay(u->pcm_handle, &delay, u->hwbuf_size, &u->sink->sample_spec)) < 0)) {
+    if (PA_UNLIKELY((err = pa_alsa_safe_delay(u->pcm_handle, &delay, u->hwbuf_size, &u->sink->sample_spec, FALSE)) < 0)) {
         pa_log_warn("Failed to query DSP status data: %s", pa_alsa_strerror(err));
         return;
     }
