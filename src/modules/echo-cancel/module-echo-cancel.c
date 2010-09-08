@@ -173,6 +173,7 @@ struct userdata {
     pa_source_output *source_output;
     pa_memblockq *source_memblockq; /* echo canceler needs fixed sized chunks */
     pa_atomic_t source_active;
+    size_t source_skip;
 
     pa_sink *sink;
     pa_bool_t sink_auto_desc;
@@ -181,6 +182,7 @@ struct userdata {
     int64_t send_counter;          /* updated in sink IO thread */
     int64_t recv_counter;
     pa_atomic_t sink_active;
+    size_t sink_skip;
 
     pa_atomic_t request_resync;
 
@@ -594,8 +596,8 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
         if (diff > 0) {
             pa_log_info("Playback after capture (%lld), drop sink %lld", (long long) diff_time, (long long) diff);
 
-            /* go forwards on the read side */
-            pa_memblockq_drop(u->sink_memblockq, diff);
+            u->sink_skip = diff;
+            u->source_skip = 0;
         }
     } else if (diff_time > 0) {
         diff = pa_usec_to_bytes (diff_time, &u->source_output->sample_spec);
@@ -603,8 +605,8 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
         if (diff > 0) {
             pa_log_info("playback too far ahead (%lld), drop source %lld", (long long) diff_time, (long long) diff);
 
-            /* go back on the read side */
-            pa_memblockq_rewind(u->sink_memblockq, diff);
+            u->source_skip = diff;
+            u->sink_skip = 0;
         }
     }
 }
@@ -662,55 +664,66 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         /* take fixed block from recorded samples */
         pa_memblockq_peek_fixed_size(u->source_memblockq, u->blocksize, &rchunk);
 
-        if (plen > u->blocksize) {
+        if (plen > u->blocksize && u->source_skip == 0) {
             uint8_t *rdata, *pdata, *cdata;
             pa_memchunk cchunk;
 
-            /* take fixed block from played samples */
-            pa_memblockq_peek_fixed_size(u->sink_memblockq, u->blocksize, &pchunk);
+            if (u->sink_skip) {
+                size_t to_skip;
 
-            rdata = pa_memblock_acquire(rchunk.memblock);
-            rdata += rchunk.index;
-            pdata = pa_memblock_acquire(pchunk.memblock);
-            pdata += pchunk.index;
+                if (u->sink_skip > plen)
+                    to_skip = plen;
+                else
+                    to_skip = u->sink_skip;
 
-            cchunk.index = 0;
-            cchunk.length = u->blocksize;
-            cchunk.memblock = pa_memblock_new(u->source->core->mempool, cchunk.length);
-            cdata = pa_memblock_acquire(cchunk.memblock);
+                pa_memblockq_drop(u->sink_memblockq, to_skip);
+                plen -= to_skip;
 
-            /* perform echo cancelation */
-            u->ec->run(u->ec, rdata, pdata, cdata);
-
-            if (u->save_aec) {
-                if (u->captured_file)
-                    fwrite(rdata, 1, u->blocksize, u->captured_file);
-                if (u->played_file)
-                    fwrite(pdata, 1, u->blocksize, u->played_file);
-                if (u->canceled_file)
-                    fwrite(cdata, 1, u->blocksize, u->canceled_file);
-                pa_log_debug("AEC frame saved.");
+                u->sink_skip -= to_skip;
             }
 
-            pa_memblock_release(cchunk.memblock);
-            pa_memblock_release(pchunk.memblock);
-            pa_memblock_release(rchunk.memblock);
+            if (plen > u->blocksize && u->sink_skip == 0) {
+                /* take fixed block from played samples */
+                pa_memblockq_peek_fixed_size(u->sink_memblockq, u->blocksize, &pchunk);
 
-            /* drop consumed sink samples */
-            pa_memblockq_drop(u->sink_memblockq, u->blocksize);
-            pa_memblock_unref(pchunk.memblock);
+                rdata = pa_memblock_acquire(rchunk.memblock);
+                rdata += rchunk.index;
+                pdata = pa_memblock_acquire(pchunk.memblock);
+                pdata += pchunk.index;
 
-            pa_memblock_unref(rchunk.memblock);
-            /* the filtered samples now become the samples from our
-             * source */
-            rchunk = cchunk;
+                cchunk.index = 0;
+                cchunk.length = u->blocksize;
+                cchunk.memblock = pa_memblock_new(u->source->core->mempool, cchunk.length);
+                cdata = pa_memblock_acquire(cchunk.memblock);
 
-            plen -= u->blocksize;
-        } else {
-            /* not enough played samples to perform echo cancelation,
-             * drop what we have */
-            pa_memblockq_drop(u->sink_memblockq, u->blocksize - plen);
-            plen = 0;
+                /* perform echo cancelation */
+                u->ec->run(u->ec, rdata, pdata, cdata);
+
+                if (u->save_aec) {
+                    if (u->captured_file)
+                        fwrite(rdata, 1, u->blocksize, u->captured_file);
+                    if (u->played_file)
+                        fwrite(pdata, 1, u->blocksize, u->played_file);
+                    if (u->canceled_file)
+                        fwrite(cdata, 1, u->blocksize, u->canceled_file);
+                    pa_log_debug("AEC frame saved.");
+                }
+
+                pa_memblock_release(cchunk.memblock);
+                pa_memblock_release(pchunk.memblock);
+                pa_memblock_release(rchunk.memblock);
+
+                /* drop consumed sink samples */
+                pa_memblockq_drop(u->sink_memblockq, u->blocksize);
+                pa_memblock_unref(pchunk.memblock);
+
+                pa_memblock_unref(rchunk.memblock);
+                /* the filtered samples now become the samples from our
+                 * source */
+                rchunk = cchunk;
+
+                plen -= u->blocksize;
+            }
         }
 
         /* forward the (echo-canceled) data to the virtual source */
@@ -718,8 +731,17 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         pa_memblock_unref(rchunk.memblock);
 
         pa_memblockq_drop(u->source_memblockq, u->blocksize);
-
         rlen -= u->blocksize;
+
+        if (u->source_skip) {
+            if (u->source_skip > u->blocksize) {
+                u->source_skip -= u->blocksize;
+            }
+            else {
+                u->sink_skip += (u->blocksize - u->source_skip);
+                u->source_skip = 0;
+            }
+        }
     }
 }
 
@@ -773,19 +795,13 @@ static void source_output_process_rewind_cb(pa_source_output *o, size_t nbytes) 
 /* Called from I/O thread context */
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     struct userdata *u;
-    size_t amount = 0;
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
     pa_log_debug("Sink process rewind %lld", (long long) nbytes);
 
-    if (u->sink->thread_info.rewind_nbytes > 0) {
-        amount = PA_MIN(u->sink->thread_info.rewind_nbytes, nbytes);
-        u->sink->thread_info.rewind_nbytes = 0;
-    }
-
-    pa_sink_process_rewind(u->sink, amount);
+    pa_sink_process_rewind(u->sink, nbytes);
 
     pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_REWIND, NULL, (int64_t) nbytes, NULL, NULL);
     u->send_counter -= nbytes;
@@ -807,8 +823,8 @@ static void source_output_snapshot_within_thread(struct userdata *u, struct snap
     snapshot->source_latency = latency;
     snapshot->source_delay = delay;
     snapshot->recv_counter = u->recv_counter;
-    snapshot->rlen = rlen;
-    snapshot->plen = plen;
+    snapshot->rlen = rlen + u->sink_skip;
+    snapshot->plen = plen + u->source_skip;
 }
 
 
@@ -900,6 +916,7 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
 
     pa_log_debug("Sink input update max rewind %lld", (long long) nbytes);
 
+    pa_memblockq_set_maxrewind (u->sink_memblockq, nbytes);
     pa_sink_set_max_rewind_within_thread(u->sink, nbytes);
 }
 
@@ -922,7 +939,7 @@ static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    pa_log_debug("Sink input update max rewind %lld", (long long) nbytes);
+    pa_log_debug("Sink input update max request %lld", (long long) nbytes);
 
     pa_sink_set_max_request_within_thread(u->sink, nbytes);
 }
