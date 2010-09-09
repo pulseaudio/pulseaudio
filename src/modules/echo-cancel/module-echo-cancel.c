@@ -172,7 +172,6 @@ struct userdata {
     pa_bool_t source_auto_desc;
     pa_source_output *source_output;
     pa_memblockq *source_memblockq; /* echo canceler needs fixed sized chunks */
-    pa_atomic_t source_active;
     size_t source_skip;
 
     pa_sink *sink;
@@ -181,11 +180,11 @@ struct userdata {
     pa_memblockq *sink_memblockq;
     int64_t send_counter;          /* updated in sink IO thread */
     int64_t recv_counter;
-    pa_atomic_t sink_active;
     size_t sink_skip;
 
     pa_atomic_t request_resync;
 
+    int active_mask;
     pa_time_event *time_event;
     pa_usec_t adjust_time;
 
@@ -272,8 +271,8 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
     pa_assert(u->time_event == e);
     pa_assert_ctl_context();
 
-    if (pa_atomic_load (&u->sink_active) == 0 || pa_atomic_load (&u->source_active) == 0)
-        goto done;
+    if (u->active_mask != 3)
+        return;
 
     /* update our snapshots */
     pa_asyncmsgq_send(u->source_output->source->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_LATENCY_SNAPSHOT, &latency_snapshot, 0, NULL);
@@ -318,7 +317,6 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
         pa_sink_input_set_rate(u->sink_input, new_rate);
     }
 
-done:
     pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
 }
 
@@ -398,14 +396,18 @@ static int source_set_state_cb(pa_source *s, pa_source_state_t state) {
         !PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output)))
         return 0;
 
-    pa_log_debug("Source state %d", state);
+    pa_log_debug("Source state %d %d", state, u->active_mask);
 
     if (state == PA_SOURCE_RUNNING) {
-        pa_atomic_store (&u->source_active, 1);
+        /* restart timer when both sink and source are active */
+        u->active_mask |= 1;
+        if (u->active_mask == 3)
+            pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
+
         pa_atomic_store (&u->request_resync, 1);
         pa_source_output_cork(u->source_output, FALSE);
     } else if (state == PA_SOURCE_SUSPENDED) {
-        pa_atomic_store (&u->source_active, 0);
+        u->active_mask &= ~1;
         pa_source_output_cork(u->source_output, TRUE);
     }
     return 0;
@@ -422,14 +424,18 @@ static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
         !PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(u->sink_input)))
         return 0;
 
-    pa_log_debug("Sink state %d", state);
+    pa_log_debug("Sink state %d %d", state, u->active_mask);
 
     if (state == PA_SINK_RUNNING) {
-        pa_atomic_store (&u->sink_active, 1);
+        /* restart timer when both sink and source are active */
+        u->active_mask |= 2;
+        if (u->active_mask == 3)
+            pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
+
         pa_atomic_store (&u->request_resync, 1);
         pa_sink_input_cork(u->sink_input, FALSE);
     } else if (state == PA_SINK_SUSPENDED) {
-        pa_atomic_store (&u->sink_active, 0);
+        u->active_mask &= ~2;
         pa_sink_input_cork(u->sink_input, TRUE);
     }
     return 0;
@@ -598,7 +604,7 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
              * timings */
             diff += 10 * pa_frame_size (&u->source_output->sample_spec);
 
-            pa_log_info("Playback after capture (%lld), drop sink %lld", (long long) diff_time, (long long) diff);
+            pa_log("Playback after capture (%lld), drop sink %lld", (long long) diff_time, (long long) diff);
 
             u->sink_skip = diff;
             u->source_skip = 0;
@@ -607,7 +613,7 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
         diff = pa_usec_to_bytes (diff_time, &u->source_output->sample_spec);
 
         if (diff > 0) {
-            pa_log_info("playback too far ahead (%lld), drop source %lld", (long long) diff_time, (long long) diff);
+            pa_log("playback too far ahead (%lld), drop source %lld", (long long) diff_time, (long long) diff);
 
             u->source_skip = diff;
             u->sink_skip = 0;
@@ -1574,6 +1580,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    /* our source and sink are not suspended when we create them */
+    u->active_mask = 3;
+
     if (u->adjust_time > 0)
         u->time_event = pa_core_rttime_new(m->core, pa_rtclock_now() + u->adjust_time, time_callback, u);
 
@@ -1629,6 +1638,9 @@ void pa__done(pa_module*m) {
     /* See comments in source_output_kill_cb() above regarding
      * destruction order! */
 
+    if (u->time_event)
+        u->core->mainloop->time_free(u->time_event);
+
     if (u->source_output)
         pa_source_output_unlink(u->source_output);
     if (u->sink_input)
@@ -1648,9 +1660,6 @@ void pa__done(pa_module*m) {
         pa_source_unref(u->source);
     if (u->sink)
         pa_sink_unref(u->sink);
-
-    if (u->time_event)
-        u->core->mainloop->time_free(u->time_event);
 
     if (u->source_memblockq)
         pa_memblockq_free(u->source_memblockq);
