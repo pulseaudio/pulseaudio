@@ -73,6 +73,9 @@
 #define TSCHED_MIN_SLEEP_USEC (10*PA_USEC_PER_MSEC)                /* 10ms */
 #define TSCHED_MIN_WAKEUP_USEC (4*PA_USEC_PER_MSEC)                /* 4ms */
 
+#define SMOOTHER_WINDOW_USEC  (10*PA_USEC_PER_SEC)                 /* 10s */
+#define SMOOTHER_ADJUST_USEC  (1*PA_USEC_PER_SEC)                  /* 1s */
+
 #define SMOOTHER_MIN_INTERVAL (2*PA_USEC_PER_MSEC)                 /* 2ms */
 #define SMOOTHER_MAX_INTERVAL (200*PA_USEC_PER_MSEC)               /* 200ms */
 
@@ -1567,8 +1570,8 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
     u->smoother = pa_smoother_new(
-            DEFAULT_TSCHED_BUFFER_USEC*2,
-            DEFAULT_TSCHED_BUFFER_USEC*2,
+            SMOOTHER_ADJUST_USEC,
+            SMOOTHER_WINDOW_USEC,
             TRUE,
             TRUE,
             5,
