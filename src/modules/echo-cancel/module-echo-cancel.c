@@ -295,7 +295,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
         new_rate = base_rate;
     }
     else {
-        if (diff_time > 4000) {
+        if (diff_time > 1000) {
             /* diff too big, quickly adjust */
             pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_APPLY_DIFF_TIME,
                 NULL, diff_time, NULL, NULL);
@@ -594,6 +594,10 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
         diff = pa_usec_to_bytes (-diff_time, &u->source_output->sample_spec);
 
         if (diff > 0) {
+            /* add some extra safety samples to compensate for jitter in the
+             * timings */
+            diff += 10 * pa_frame_size (&u->source_output->sample_spec);
+
             pa_log_info("Playback after capture (%lld), drop sink %lld", (long long) diff_time, (long long) diff);
 
             u->sink_skip = diff;
