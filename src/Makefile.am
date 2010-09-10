@@ -124,7 +124,8 @@ EXTRA_DIST = \
 		daemon/pulseaudio.desktop.in \
 		daemon/pulseaudio-kde.desktop.in \
 		map-file \
-		daemon/pulseaudio-system.conf
+		daemon/pulseaudio-system.conf \
+		modules/echo-cancel/adrian-license.txt
 
 pulseconf_DATA = \
 		default.pa \
@@ -1702,10 +1703,10 @@ module_suspend_on_idle_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO
 module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
 
 # echo-cancel module
-module_echo_cancel_la_SOURCES = modules/echo-cancel/module-echo-cancel.c \
+module_echo_cancel_la_SOURCES = modules/echo-cancel/module-echo-cancel.c modules/echo-cancel/echo-cancel.h \
 				modules/echo-cancel/speex.c \
-				modules/echo-cancel/adrian-aec.c \
-				modules/echo-cancel/adrian.c
+				modules/echo-cancel/adrian-aec.c modules/echo-cancel/adrian-aec.h \
+				modules/echo-cancel/adrian.c modules/echo-cancel/adrian.h
 module_echo_cancel_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_echo_cancel_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la $(LIBSPEEX_LIBS)
 module_echo_cancel_la_CFLAGS = $(AM_CFLAGS) $(LIBSPEEX_CFLAGS)
