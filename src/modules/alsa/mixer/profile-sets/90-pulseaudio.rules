@@ -22,6 +22,7 @@ KERNEL!="card*", GOTO="pulseaudio_end"
 
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="1978", ENV{PULSE_PROFILE_SET}="native-instruments-audio8dj.conf"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="0839", ENV{PULSE_PROFILE_SET}="native-instruments-audio4dj.conf"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="baff", ENV{PULSE_PROFILE_SET}="native-instruments-traktorkontrol-s4.conf"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0763", ATTRS{idProduct}=="2012", ENV{PULSE_PROFILE_SET}="maudio-fasttrack-pro.conf"
 
 LABEL="pulseaudio_end"
