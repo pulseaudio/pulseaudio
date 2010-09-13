@@ -23,7 +23,7 @@
 #define WIDEB 2
 
 // use double if your CPU does software-emulation of float
-typedef float REAL;
+#define REAL float
 
 /* dB Values */
 #define M0dB 1.0f
@@ -306,7 +306,7 @@ struct AEC {
   // NLMS-pw
   REAL x[NLMS_LEN + NLMS_EXT];  // tap delayed loudspeaker signal
   REAL xf[NLMS_LEN + NLMS_EXT]; // pre-whitening tap delayed signal
-  REAL w[NLMS_LEN];             // tap weights
+  PA_DECLARE_ALIGNED(16, REAL, w[NLMS_LEN]);             // tap weights
   int j;                        // optimize: less memory copies
   double dotp_xf_xf;            // double to avoid loss of precision
   float delta;                  // noise floor to stabilize NLMS

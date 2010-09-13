@@ -1708,13 +1708,17 @@ module_suspend_on_idle_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO
 module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
 
 # echo-cancel module
+ORC_SOURCE=modules/echo-cancel/adrian-aec-orc
+include $(top_srcdir)/build/orc.mak
 module_echo_cancel_la_SOURCES = modules/echo-cancel/module-echo-cancel.c modules/echo-cancel/echo-cancel.h \
 				modules/echo-cancel/speex.c \
 				modules/echo-cancel/adrian-aec.c modules/echo-cancel/adrian-aec.h \
-				modules/echo-cancel/adrian.c modules/echo-cancel/adrian.h
+				modules/echo-cancel/adrian.c modules/echo-cancel/adrian.h \
+				$(ORC_SOURCE).orc
+nodist_module_echo_cancel_la_SOURCES = $(ORC_NODIST_SOURCES)
 module_echo_cancel_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_echo_cancel_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la $(LIBSPEEX_LIBS)
-module_echo_cancel_la_CFLAGS = $(AM_CFLAGS) $(LIBSPEEX_CFLAGS)
+module_echo_cancel_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la $(LIBSPEEX_LIBS) $(ORC_LIBS)
+module_echo_cancel_la_CFLAGS = $(AM_CFLAGS) $(LIBSPEEX_CFLAGS) $(ORC_CFLAGS)
 
 # RTP modules
 module_rtp_send_la_SOURCES = modules/rtp/module-rtp-send.c

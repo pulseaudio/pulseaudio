@@ -1321,6 +1321,9 @@ if test "x${with_fftw}" != "xno"; then
 fi
 AM_CONDITIONAL([HAVE_FFTW], [test "x$HAVE_FFTW" = "x1"])
 
+### ORC (optional) ###
+ORC_CHECK([0.4.9])
+
 ### Build and Install man pages ###
 AC_ARG_ENABLE(manpages,
         AS_HELP_STRING([--disable-manpages],[Disable building and installation of man pages]),
@@ -1573,6 +1576,11 @@ if test "x${HAVE_FFTW}" = "x1" ; then
    ENABLE_FFTW=yes
 fi
 
+ENABLE_ORC=no
+if test "x${HAVE_ORC}" = "xyes" ; then
+   ENABLE_ORC=yes
+fi
+
 ENABLE_OPENSSL=no
 if test "x${HAVE_OPENSSL}" = "x1" ; then
    ENABLE_OPENSSL=yes
@@ -1626,6 +1634,7 @@ echo "
     Enable gdbm:                   ${ENABLE_GDBM}
     Enable simple database:        ${ENABLE_SIMPLEDB}
     Enable fftw:                   ${ENABLE_FFTW}
+    Enable orc:                    ${ENABLE_ORC}
 
     System User:                   ${PA_SYSTEM_USER}
     System Group:                  ${PA_SYSTEM_GROUP}

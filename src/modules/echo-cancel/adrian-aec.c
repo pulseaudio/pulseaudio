@@ -17,6 +17,10 @@
 
 #include "adrian-aec.h"
 
+#ifndef DISABLE_ORC
+#include "adrian-aec-orc.h"
+#endif
+
 #ifdef __SSE__
 #include <xmmintrin.h>
 #endif
@@ -190,6 +194,7 @@ static REAL AEC_nlms_pw(AEC *a, REAL d, REAL x_, float stepsize)
     // calculate variable step size
     REAL mikro_ef = stepsize * ef / a->dotp_xf_xf;
 
+#ifdef DISABLE_ORC
     // update tap weights (filter learning)
     int i;
     for (i = 0; i < NLMS_LEN; i += 2) {
@@ -197,6 +202,9 @@ static REAL AEC_nlms_pw(AEC *a, REAL d, REAL x_, float stepsize)
       a->w[i] += mikro_ef * a->xf[i + a->j];
       a->w[i + 1] += mikro_ef * a->xf[i + a->j + 1];
     }
+#else
+    update_tap_weights(a->w, &a->xf[a->j], mikro_ef, NLMS_LEN);
+#endif
   }
 
   if (--(a->j) < 0) {
