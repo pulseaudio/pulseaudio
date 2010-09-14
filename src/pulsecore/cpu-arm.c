@@ -80,12 +80,11 @@ static char *get_cpuinfo(void) {
 }
 #endif /* defined (__arm__) && defined (__linux__) */
 
-void pa_cpu_init_arm (void) {
+pa_bool_t pa_cpu_init_arm (pa_cpu_arm_flag_t *flags) {
 #if defined (__arm__)
 #if defined (__linux__)
     char *cpuinfo, *line;
     int arch;
-    pa_cpu_arm_flag_t flags = 0;
 
     /* We need to read the CPU flags from /proc/cpuinfo because there is no user
      * space support to get the CPU features. This only works on linux AFAIK. */
@@ -94,13 +93,15 @@ void pa_cpu_init_arm (void) {
         return;
     }
 
+    *flags = 0;
+
     /* get the CPU architecture */
     if ((line = get_cpuinfo_line (cpuinfo, "CPU architecture"))) {
         arch = strtoul (line, NULL, 0);
         if (arch >= 6)
-            flags |= PA_CPU_ARM_V6;
+            *flags |= PA_CPU_ARM_V6;
         if (arch >= 7)
-            flags |= PA_CPU_ARM_V7;
+            *flags |= PA_CPU_ARM_V7;
 
         pa_xfree(line);
     }
@@ -111,13 +112,13 @@ void pa_cpu_init_arm (void) {
 
         while ((current = pa_split_spaces (line, &state))) {
             if (!strcmp (current, "vfp"))
-                flags |= PA_CPU_ARM_VFP;
+                *flags |= PA_CPU_ARM_VFP;
             else if (!strcmp (current, "edsp"))
-                flags |= PA_CPU_ARM_EDSP;
+                *flags |= PA_CPU_ARM_EDSP;
             else if (!strcmp (current, "neon"))
-                flags |= PA_CPU_ARM_NEON;
+                *flags |= PA_CPU_ARM_NEON;
             else if (!strcmp (current, "vfpv3"))
-                flags |= PA_CPU_ARM_VFPV3;
+                *flags |= PA_CPU_ARM_VFPV3;
 
             pa_xfree(current);
         }
@@ -125,17 +126,23 @@ void pa_cpu_init_arm (void) {
     pa_xfree(cpuinfo);
 
     pa_log_info ("CPU flags: %s%s%s%s%s%s",
-          (flags & PA_CPU_ARM_V6) ? "V6 " : "",
-          (flags & PA_CPU_ARM_V7) ? "V7 " : "",
-          (flags & PA_CPU_ARM_VFP) ? "VFP " : "",
-          (flags & PA_CPU_ARM_EDSP) ? "EDSP " : "",
-          (flags & PA_CPU_ARM_NEON) ? "NEON " : "",
-          (flags & PA_CPU_ARM_VFPV3) ? "VFPV3 " : "");
+          (*flags & PA_CPU_ARM_V6) ? "V6 " : "",
+          (*flags & PA_CPU_ARM_V7) ? "V7 " : "",
+          (*flags & PA_CPU_ARM_VFP) ? "VFP " : "",
+          (*flags & PA_CPU_ARM_EDSP) ? "EDSP " : "",
+          (*flags & PA_CPU_ARM_NEON) ? "NEON " : "",
+          (*flags & PA_CPU_ARM_VFPV3) ? "VFPV3 " : "");
+
+    if (*flags & PA_CPU_ARM_V6)
+        pa_volume_func_init_arm (*flags);
+
+    return TRUE;
+
 #else /* defined (__linux__) */
     pa_log ("ARM cpu features not yet supported on this OS");
 #endif /* defined (__linux__) */
 
-    if (flags & PA_CPU_ARM_V6)
-        pa_volume_func_init_arm (flags);
+#else /* defined (__arm__) */
+    return FALSE;
 #endif /* defined (__arm__) */
 }

@@ -24,6 +24,7 @@
 
 #include <pulse/mainloop-api.h>
 #include <pulse/sample.h>
+#include <pulsecore/cpu.h>
 
 typedef struct pa_core pa_core;
 
@@ -169,6 +170,7 @@ struct pa_core {
     int realtime_priority;
 
     pa_server_type_t server_type;
+    pa_cpu_info cpu_info;
 
     /* hooks */
     pa_hook hooks[PA_CORE_HOOK_MAX];

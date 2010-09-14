@@ -1,11 +1,10 @@
-#ifndef foocpuarmhfoo
-#define foocpuarmhfoo
+#ifndef foocpuhfoo
+#define foocpuhfoo
 
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
-  Copyright 2009 Wim Taymans <wim.taymans@collabora.co.uk>
+  Copyright 2010 Arun Raghavan
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -23,21 +22,24 @@
   USA.
 ***/
 
-#include <stdint.h>
-#include <pulsecore/macro.h>
+#include <pulsecore/cpu-x86.h>
+#include <pulsecore/cpu-arm.h>
 
-typedef enum pa_cpu_arm_flag {
-    PA_CPU_ARM_V6       = (1 << 0),
-    PA_CPU_ARM_V7       = (1 << 1),
-    PA_CPU_ARM_VFP      = (1 << 2),
-    PA_CPU_ARM_EDSP     = (1 << 3),
-    PA_CPU_ARM_NEON     = (1 << 4),
-    PA_CPU_ARM_VFPV3    = (1 << 5)
-} pa_cpu_arm_flag_t;
+typedef enum {
+    PA_CPU_UNDEFINED = 0,
+    PA_CPU_X86,
+    PA_CPU_ARM,
+} pa_cpu_type_t;
 
-pa_bool_t pa_cpu_init_arm (pa_cpu_arm_flag_t *flags);
+typedef struct pa_cpu_info pa_cpu_info;
 
-/* some optimized functions */
-void pa_volume_func_init_arm(pa_cpu_arm_flag_t flags);
+struct pa_cpu_info {
+    pa_cpu_type_t cpu_type;
 
-#endif /* foocpuarmhfoo */
+    union {
+        pa_cpu_x86_flag_t x86;
+        pa_cpu_arm_flag_t arm;
+    } flags;
+};
+
+#endif /* foocpuhfoo */

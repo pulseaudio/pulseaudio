@@ -934,11 +934,6 @@ int main(int argc, char *argv[]) {
 
     pa_memtrap_install();
 
-    if (!getenv("PULSE_NO_SIMD")) {
-        pa_cpu_init_x86();
-        pa_cpu_init_arm();
-    }
-
     pa_assert_se(mainloop = pa_mainloop_new());
 
     if (!(c = pa_core_new(pa_mainloop_get_api(mainloop), !conf->disable_shm, conf->shm_size))) {
@@ -963,6 +958,14 @@ int main(int argc, char *argv[]) {
 #ifdef HAVE_DBUS
     c->server_type = conf->local_server_type;
 #endif
+
+    c->cpu_info.cpu_type = PA_CPU_UNDEFINED;
+    if (!getenv("PULSE_NO_SIMD")) {
+        if (pa_cpu_init_x86(&(c->cpu_info.flags.x86)))
+            c->cpu_info.cpu_type = PA_CPU_X86;
+        if (pa_cpu_init_arm(&(c->cpu_info.flags.arm)))
+            c->cpu_info.cpu_type = PA_CPU_ARM;
+    }
 
     pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);
     pa_signal_new(SIGINT, signal_callback, c);

@@ -24,6 +24,7 @@
 ***/
 
 #include <stdint.h>
+#include <pulsecore/macro.h>
 
 typedef enum pa_cpu_x86_flag {
     PA_CPU_X86_MMX       = (1 << 0),
@@ -39,7 +40,7 @@ typedef enum pa_cpu_x86_flag {
     PA_CPU_X86_CMOV      = (1 << 10)
 } pa_cpu_x86_flag_t;
 
-void pa_cpu_init_x86 (void);
+pa_bool_t pa_cpu_init_x86 (pa_cpu_x86_flag_t *flags);
 
 #if defined (__i386__)
 typedef int32_t pa_reg_x86;

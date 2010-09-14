@@ -46,11 +46,12 @@ get_cpuid (uint32_t op, uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d)
 }
 #endif
 
-void pa_cpu_init_x86 (void) {
+pa_bool_t pa_cpu_init_x86 (pa_cpu_x86_flag_t *flags) {
 #if defined (__i386__) || defined (__amd64__)
     uint32_t eax, ebx, ecx, edx;
     uint32_t level;
-    pa_cpu_x86_flag_t flags = 0;
+
+    *flags = 0;
 
     /* get standard level */
     get_cpuid (0x00000000, &level, &ebx, &ecx, &edx);
@@ -58,28 +59,28 @@ void pa_cpu_init_x86 (void) {
         get_cpuid (0x00000001, &eax, &ebx, &ecx, &edx);
 
         if (edx & (1<<15))
-          flags |= PA_CPU_X86_CMOV;
+          *flags |= PA_CPU_X86_CMOV;
 
         if (edx & (1<<23))
-          flags |= PA_CPU_X86_MMX;
+          *flags |= PA_CPU_X86_MMX;
 
         if (edx & (1<<25))
-          flags |= PA_CPU_X86_SSE;
+          *flags |= PA_CPU_X86_SSE;
 
         if (edx & (1<<26))
-          flags |= PA_CPU_X86_SSE2;
+          *flags |= PA_CPU_X86_SSE2;
 
         if (ecx & (1<<0))
-          flags |= PA_CPU_X86_SSE3;
+          *flags |= PA_CPU_X86_SSE3;
 
         if (ecx & (1<<9))
-          flags |= PA_CPU_X86_SSSE3;
+          *flags |= PA_CPU_X86_SSSE3;
 
         if (ecx & (1<<19))
-          flags |= PA_CPU_X86_SSE4_1;
+          *flags |= PA_CPU_X86_SSE4_1;
 
         if (ecx & (1<<20))
-          flags |= PA_CPU_X86_SSE4_2;
+          *flags |= PA_CPU_X86_SSE4_2;
     }
 
     /* get extended level */
@@ -88,42 +89,45 @@ void pa_cpu_init_x86 (void) {
         get_cpuid (0x80000001, &eax, &ebx, &ecx, &edx);
 
         if (edx & (1<<22))
-          flags |= PA_CPU_X86_MMXEXT;
+          *flags |= PA_CPU_X86_MMXEXT;
 
         if (edx & (1<<23))
-          flags |= PA_CPU_X86_MMX;
+          *flags |= PA_CPU_X86_MMX;
 
         if (edx & (1<<30))
-          flags |= PA_CPU_X86_3DNOWEXT;
+          *flags |= PA_CPU_X86_3DNOWEXT;
 
         if (edx & (1<<31))
-          flags |= PA_CPU_X86_3DNOW;
+          *flags |= PA_CPU_X86_3DNOW;
     }
 
     pa_log_info ("CPU flags: %s%s%s%s%s%s%s%s%s%s%s",
-    (flags & PA_CPU_X86_CMOV) ? "CMOV " : "",
-    (flags & PA_CPU_X86_MMX) ? "MMX " : "",
-    (flags & PA_CPU_X86_SSE) ? "SSE " : "",
-    (flags & PA_CPU_X86_SSE2) ? "SSE2 " : "",
-    (flags & PA_CPU_X86_SSE3) ? "SSE3 " : "",
-    (flags & PA_CPU_X86_SSSE3) ? "SSSE3 " : "",
-    (flags & PA_CPU_X86_SSE4_1) ? "SSE4_1 " : "",
-    (flags & PA_CPU_X86_SSE4_2) ? "SSE4_2 " : "",
-    (flags & PA_CPU_X86_MMXEXT) ? "MMXEXT " : "",
-    (flags & PA_CPU_X86_3DNOW) ? "3DNOW " : "",
-    (flags & PA_CPU_X86_3DNOWEXT) ? "3DNOWEXT " : "");
+    (*flags & PA_CPU_X86_CMOV) ? "CMOV " : "",
+    (*flags & PA_CPU_X86_MMX) ? "MMX " : "",
+    (*flags & PA_CPU_X86_SSE) ? "SSE " : "",
+    (*flags & PA_CPU_X86_SSE2) ? "SSE2 " : "",
+    (*flags & PA_CPU_X86_SSE3) ? "SSE3 " : "",
+    (*flags & PA_CPU_X86_SSSE3) ? "SSSE3 " : "",
+    (*flags & PA_CPU_X86_SSE4_1) ? "SSE4_1 " : "",
+    (*flags & PA_CPU_X86_SSE4_2) ? "SSE4_2 " : "",
+    (*flags & PA_CPU_X86_MMXEXT) ? "MMXEXT " : "",
+    (*flags & PA_CPU_X86_3DNOW) ? "3DNOW " : "",
+    (*flags & PA_CPU_X86_3DNOWEXT) ? "3DNOWEXT " : "");
 
     /* activate various optimisations */
-    if (flags & PA_CPU_X86_MMX) {
-        pa_volume_func_init_mmx (flags);
-        pa_remap_func_init_mmx (flags);
+    if (*flags & PA_CPU_X86_MMX) {
+        pa_volume_func_init_mmx (*flags);
+        pa_remap_func_init_mmx (*flags);
     }
 
-    if (flags & (PA_CPU_X86_SSE | PA_CPU_X86_SSE2)) {
-        pa_volume_func_init_sse (flags);
-        pa_remap_func_init_sse (flags);
-        pa_convert_func_init_sse (flags);
+    if (*flags & (PA_CPU_X86_SSE | PA_CPU_X86_SSE2)) {
+        pa_volume_func_init_sse (*flags);
+        pa_remap_func_init_sse (*flags);
+        pa_convert_func_init_sse (*flags);
     }
 
+    return TRUE;
+#else /* defined (__i386__) || defined (__amd64__) */
+    return FALSE;
 #endif /* defined (__i386__) || defined (__amd64__) */
 }
