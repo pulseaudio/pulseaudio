@@ -1417,6 +1417,8 @@ static void thread_func(void *userdata) {
                     snd_pcm_start(u->pcm_handle);
 
                     pa_smoother_resume(u->smoother, pa_rtclock_now(), TRUE);
+
+                    u->first = FALSE;
                 }
 
                 update_smoother(u);
@@ -1454,7 +1456,6 @@ static void thread_func(void *userdata) {
                 pa_rtpoll_set_timer_relative(u->rtpoll, PA_MIN(sleep_usec, cusec));
             }
 
-            u->first = FALSE;
             u->after_rewind = FALSE;
 
         } else if (u->use_tsched)
