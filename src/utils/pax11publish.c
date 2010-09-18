@@ -100,6 +100,11 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 
+    if (xcb_connection_has_error(xcb)) {
+        pa_log(_("xcb_connection_has_error() returned true"));
+        goto finish;
+    }
+
     switch (mode) {
         case DUMP: {
             char t[1024];
