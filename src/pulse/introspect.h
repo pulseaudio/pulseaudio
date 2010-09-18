@@ -59,7 +59,7 @@
  * Note that even if a single object is requested, and not the entire list,
  * the terminating call will still be made.
  *
- * If an error occurs, the callback will be called without and information
+ * If an error occurs, the callback will be called without an information
  * structure and eol set to a negative value..
  *
  * Data members in the information structures are only valid during the
