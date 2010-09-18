@@ -55,6 +55,11 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
         goto finish;
     }
 
+    if (xcb_connection_has_error(xcb)) {
+        pa_log(_("xcb_connection_has_error() returned true"));
+        goto finish;
+    }
+
     if (pa_x11_get_prop(xcb, "PULSE_SERVER", t, sizeof(t))) {
         pa_bool_t disable_autospawn = TRUE;
 
