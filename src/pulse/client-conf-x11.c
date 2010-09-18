@@ -39,7 +39,7 @@
 
 int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
     xcb_connection_t *xcb = NULL;
-    int ret = -1;
+    int ret = -1, screen = 0;
     char t[1024];
 
     pa_assert(c);
@@ -60,13 +60,13 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
         goto finish;
     }
 
-    if (pa_x11_get_prop(xcb, "PULSE_SERVER", t, sizeof(t))) {
+    if (pa_x11_get_prop(xcb, screen, "PULSE_SERVER", t, sizeof(t))) {
         pa_bool_t disable_autospawn = TRUE;
 
         pa_xfree(c->default_server);
         c->default_server = pa_xstrdup(t);
 
-        if (pa_x11_get_prop(xcb, "PULSE_SESSION_ID", t, sizeof(t))) {
+        if (pa_x11_get_prop(xcb, screen, "PULSE_SESSION_ID", t, sizeof(t))) {
             char *id;
 
             if ((id = pa_session_id())) {
@@ -80,17 +80,17 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
             c->autospawn = FALSE;
     }
 
-    if (pa_x11_get_prop(xcb, "PULSE_SINK", t, sizeof(t))) {
+    if (pa_x11_get_prop(xcb, screen, "PULSE_SINK", t, sizeof(t))) {
         pa_xfree(c->default_sink);
         c->default_sink = pa_xstrdup(t);
     }
 
-    if (pa_x11_get_prop(xcb, "PULSE_SOURCE", t, sizeof(t))) {
+    if (pa_x11_get_prop(xcb, screen, "PULSE_SOURCE", t, sizeof(t))) {
         pa_xfree(c->default_source);
         c->default_source = pa_xstrdup(t);
     }
 
-    if (pa_x11_get_prop(xcb, "PULSE_COOKIE", t, sizeof(t))) {
+    if (pa_x11_get_prop(xcb, screen, "PULSE_COOKIE", t, sizeof(t))) {
         uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
 
         if (pa_parsehex(t, cookie, sizeof(cookie)) != sizeof(cookie)) {

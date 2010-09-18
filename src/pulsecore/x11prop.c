@@ -34,55 +34,74 @@
 
 #define PA_XCB_FORMAT 8
 
-void pa_x11_set_prop(xcb_connection_t *xcb, const char *name, const char *data) {
-    xcb_screen_t *screen;
+static xcb_screen_t *screen_of_display(xcb_connection_t *xcb, int screen)
+{
     const xcb_setup_t *s;
+    xcb_screen_iterator_t iter;
+
+    if ((s = xcb_get_setup(xcb))) {
+        iter = xcb_setup_roots_iterator(s);
+        for (; iter.rem; --screen, xcb_screen_next(&iter))
+            if (0 == screen)
+                return iter.data;
+    }
+    return NULL;
+}
+
+void pa_x11_set_prop(xcb_connection_t *xcb, int screen, const char *name, const char *data) {
+    xcb_screen_t *xs;
     xcb_atom_t a;
 
     pa_assert(xcb);
     pa_assert(name);
     pa_assert(data);
 
-    if ((s = xcb_get_setup(xcb))) {
+    if ((xs = screen_of_display(xcb, screen))) {
         a = xcb_atom_get(xcb, name);
-        screen = xcb_setup_roots_iterator(s).data;
-        xcb_change_property(xcb, XCB_PROP_MODE_REPLACE, screen->root, a, STRING, PA_XCB_FORMAT, (int) strlen(data), (const void*) data);
+        xcb_change_property(xcb, XCB_PROP_MODE_REPLACE, xs->root, a, STRING, PA_XCB_FORMAT, (int) strlen(data), (const void*) data);
     }
 }
 
-void pa_x11_del_prop(xcb_connection_t *xcb, const char *name) {
-    xcb_screen_t *screen;
-    const xcb_setup_t *s;
+void pa_x11_del_prop(xcb_connection_t *xcb, int screen, const char *name) {
+    xcb_screen_t *xs;
     xcb_atom_t a;
 
     pa_assert(xcb);
     pa_assert(name);
 
-    if ((s = xcb_get_setup(xcb))) {
+    if ((xs = screen_of_display(xcb, screen))) {
         a = xcb_atom_get(xcb, name);
-        screen = xcb_setup_roots_iterator(s).data;
-        xcb_delete_property(xcb, screen->root, a);
+        xcb_delete_property(xcb, xs->root, a);
     }
 }
 
-char* pa_x11_get_prop(xcb_connection_t *xcb, const char *name, char *p, size_t l) {
+char* pa_x11_get_prop(xcb_connection_t *xcb, int screen, const char *name, char *p, size_t l) {
     char *ret = NULL;
     int len;
     xcb_get_property_cookie_t req;
     xcb_get_property_reply_t* prop = NULL;
-    xcb_screen_t *screen;
-    const xcb_setup_t *s;
+    xcb_screen_t *xs;
     xcb_atom_t a;
 
     pa_assert(xcb);
     pa_assert(name);
     pa_assert(p);
 
-    if ((s = xcb_get_setup(xcb))) {
-        a = xcb_atom_get(xcb, name);
-        screen = xcb_setup_roots_iterator(s).data;
 
-        req = xcb_get_property(xcb, 0, screen->root, a, STRING, 0, (uint32_t)(l-1));
+    xs = screen_of_display(xcb, screen);
+    /*
+     * Also try and get the settings from the first screen.
+     * This allows for e.g. a Media Center to run on screen 1 (e.g. HDMI) and have
+     * different defaults (e.g. prefer the HDMI sink) than the primary screen 0
+     * which uses the Internal Audio sink.
+     */
+    if (!xs && 0 != screen)
+        xs = screen_of_display(xcb, 0);
+
+    if (xs) {
+        a = xcb_atom_get(xcb, name);
+
+        req = xcb_get_property(xcb, 0, xs->root, a, STRING, 0, (uint32_t)(l-1));
         prop = xcb_get_property_reply(xcb, req, NULL);
 
         if (!prop)
