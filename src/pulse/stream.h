@@ -486,8 +486,8 @@ int pa_stream_cancel_write(
  * data is not copied. If NULL, the data is copied into an internal
  * buffer. The client may freely seek around in the output buffer. For
  * most applications passing 0 and PA_SEEK_RELATIVE as arguments for
- * offset and seek should be useful. Afte ther write call succeeded
- * the write index will be a the position after where this chunk of
+ * offset and seek should be useful. After the write call succeeded
+ * the write index will be at the position after where this chunk of
  * data has been written to.
  *
  * As an optimization for avoiding needless memory copies you may call
@@ -739,8 +739,9 @@ pa_operation *pa_stream_proplist_remove(pa_stream *s, const char *const keys[], 
  * 0.9.11 */
 int pa_stream_set_monitor_stream(pa_stream *s, uint32_t sink_input_idx);
 
-/** Return what has been set with pa_stream_set_monitor_stream()
- * ebfore. \since 0.9.11 */
+/** Return the sink input index previously set with
+ * pa_stream_set_monitor_stream().
+ * \since 0.9.11 */
 uint32_t pa_stream_get_monitor_stream(pa_stream *s);
 
 PA_C_DECL_END

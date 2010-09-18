@@ -72,10 +72,10 @@ int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) PA_GCC_PURE
 /** Return the time difference between now and the specified timestamp */
 pa_usec_t pa_timeval_age(const struct timeval *tv);
 
-/** Add the specified time inmicroseconds to the specified timeval structure */
+/** Add the specified time in microseconds to the specified timeval structure */
 struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v);
 
-/** Subtract the specified time inmicroseconds to the specified timeval structure. \since 0.9.11 */
+/** Subtract the specified time in microseconds to the specified timeval structure. \since 0.9.11 */
 struct timeval* pa_timeval_sub(struct timeval *tv, pa_usec_t v);
 
 /** Store the specified uec value in the timeval struct. \since 0.9.7 */
