@@ -27,6 +27,8 @@
 
 #include "x11prop.h"
 
+#include <pulsecore/macro.h>
+
 #include <xcb/xproto.h>
 #include <xcb/xcb_atom.h>
 
@@ -34,16 +36,33 @@
 
 void pa_x11_set_prop(xcb_connection_t *xcb, const char *name, const char *data) {
     xcb_screen_t *screen;
-    xcb_atom_t a = xcb_atom_get(xcb, name);
-    screen = xcb_setup_roots_iterator(xcb_get_setup(xcb)).data;
-    xcb_change_property(xcb, XCB_PROP_MODE_REPLACE, screen->root, a, STRING, PA_XCB_FORMAT, (int) strlen(data), (const void*) data);
+    const xcb_setup_t *s;
+    xcb_atom_t a;
+
+    pa_assert(xcb);
+    pa_assert(name);
+    pa_assert(data);
+
+    if ((s = xcb_get_setup(xcb))) {
+        a = xcb_atom_get(xcb, name);
+        screen = xcb_setup_roots_iterator(s).data;
+        xcb_change_property(xcb, XCB_PROP_MODE_REPLACE, screen->root, a, STRING, PA_XCB_FORMAT, (int) strlen(data), (const void*) data);
+    }
 }
 
 void pa_x11_del_prop(xcb_connection_t *xcb, const char *name) {
     xcb_screen_t *screen;
-    xcb_atom_t a = xcb_atom_get(xcb, name);
-    screen = xcb_setup_roots_iterator(xcb_get_setup(xcb)).data;
-    xcb_delete_property(xcb, screen->root, a);
+    const xcb_setup_t *s;
+    xcb_atom_t a;
+
+    pa_assert(xcb);
+    pa_assert(name);
+
+    if ((s = xcb_get_setup(xcb))) {
+        a = xcb_atom_get(xcb, name);
+        screen = xcb_setup_roots_iterator(s).data;
+        xcb_delete_property(xcb, screen->root, a);
+    }
 }
 
 char* pa_x11_get_prop(xcb_connection_t *xcb, const char *name, char *p, size_t l) {
@@ -52,26 +71,35 @@ char* pa_x11_get_prop(xcb_connection_t *xcb, const char *name, char *p, size_t l
     xcb_get_property_cookie_t req;
     xcb_get_property_reply_t* prop = NULL;
     xcb_screen_t *screen;
-    xcb_atom_t a = xcb_atom_get(xcb, name);
-    screen = xcb_setup_roots_iterator(xcb_get_setup(xcb)).data;
+    const xcb_setup_t *s;
+    xcb_atom_t a;
 
-    req = xcb_get_property(xcb, 0, screen->root, a, STRING, 0, (uint32_t)(l-1));
-    prop = xcb_get_property_reply(xcb, req, NULL);
+    pa_assert(xcb);
+    pa_assert(name);
+    pa_assert(p);
 
-    if (!prop)
-        goto finish;
+    if ((s = xcb_get_setup(xcb))) {
+        a = xcb_atom_get(xcb, name);
+        screen = xcb_setup_roots_iterator(s).data;
 
-    if (PA_XCB_FORMAT != prop->format)
-        goto finish;
+        req = xcb_get_property(xcb, 0, screen->root, a, STRING, 0, (uint32_t)(l-1));
+        prop = xcb_get_property_reply(xcb, req, NULL);
 
-    len = xcb_get_property_value_length(prop);
-    if (len < 1 || len >= (int)l)
-        goto finish;
+        if (!prop)
+            goto finish;
 
-    memcpy(p, xcb_get_property_value(prop), len);
-    p[len] = 0;
+        if (PA_XCB_FORMAT != prop->format)
+            goto finish;
 
-    ret = p;
+        len = xcb_get_property_value_length(prop);
+        if (len < 1 || len >= (int)l)
+            goto finish;
+
+        memcpy(p, xcb_get_property_value(prop), len);
+        p[len] = 0;
+
+        ret = p;
+    }
 
 finish:
 
