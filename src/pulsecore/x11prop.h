@@ -27,8 +27,8 @@
 
 #include <xcb/xcb.h>
 
-void pa_x11_set_prop(xcb_connection_t *xcb, const char *name, const char *data);
-void pa_x11_del_prop(xcb_connection_t *xcb, const char *name);
-char* pa_x11_get_prop(xcb_connection_t *xcb, const char *name, char *p, size_t l);
+void pa_x11_set_prop(xcb_connection_t *xcb, int screen, const char *name, const char *data);
+void pa_x11_del_prop(xcb_connection_t *xcb, int screen, const char *name);
+char* pa_x11_get_prop(xcb_connection_t *xcb, int screen, const char *name, char *p, size_t l);
 
 #endif

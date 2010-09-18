@@ -44,7 +44,7 @@
 
 int main(int argc, char *argv[]) {
     const char *dname = NULL, *sink = NULL, *source = NULL, *server = NULL, *cookie_file = PA_NATIVE_COOKIE_FILE;
-    int c, ret = 1;
+    int c, ret = 1, screen = 0;
     xcb_connection_t *xcb = NULL;
     enum { DUMP, EXPORT, IMPORT, REMOVE } mode = DUMP;
 
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (!(xcb = xcb_connect(dname, NULL))) {
+    if (!(xcb = xcb_connect(dname, &screen))) {
         pa_log(_("xcb_connect() failed"));
         goto finish;
     }
@@ -108,13 +108,13 @@ int main(int argc, char *argv[]) {
     switch (mode) {
         case DUMP: {
             char t[1024];
-            if (pa_x11_get_prop(xcb, "PULSE_SERVER", t, sizeof(t)))
+            if (pa_x11_get_prop(xcb, screen, "PULSE_SERVER", t, sizeof(t)))
                 printf(_("Server: %s\n"), t);
-            if (pa_x11_get_prop(xcb, "PULSE_SOURCE", t, sizeof(t)))
+            if (pa_x11_get_prop(xcb, screen, "PULSE_SOURCE", t, sizeof(t)))
                 printf(_("Source: %s\n"), t);
-            if (pa_x11_get_prop(xcb, "PULSE_SINK", t, sizeof(t)))
+            if (pa_x11_get_prop(xcb, screen, "PULSE_SINK", t, sizeof(t)))
                 printf(_("Sink: %s\n"), t);
-            if (pa_x11_get_prop(xcb, "PULSE_COOKIE", t, sizeof(t)))
+            if (pa_x11_get_prop(xcb, screen, "PULSE_COOKIE", t, sizeof(t)))
                 printf(_("Cookie: %s\n"), t);
 
             break;
@@ -122,14 +122,14 @@ int main(int argc, char *argv[]) {
 
         case IMPORT: {
             char t[1024];
-            if (pa_x11_get_prop(xcb, "PULSE_SERVER", t, sizeof(t)))
+            if (pa_x11_get_prop(xcb, screen, "PULSE_SERVER", t, sizeof(t)))
                 printf("PULSE_SERVER='%s'\nexport PULSE_SERVER\n", t);
-            if (pa_x11_get_prop(xcb, "PULSE_SOURCE", t, sizeof(t)))
+            if (pa_x11_get_prop(xcb, screen, "PULSE_SOURCE", t, sizeof(t)))
                 printf("PULSE_SOURCE='%s'\nexport PULSE_SOURCE\n", t);
-            if (pa_x11_get_prop(xcb, "PULSE_SINK", t, sizeof(t)))
+            if (pa_x11_get_prop(xcb, screen, "PULSE_SINK", t, sizeof(t)))
                 printf("PULSE_SINK='%s'\nexport PULSE_SINK\n", t);
 
-            if (pa_x11_get_prop(xcb, "PULSE_COOKIE", t, sizeof(t))) {
+            if (pa_x11_get_prop(xcb, screen, "PULSE_COOKIE", t, sizeof(t))) {
                 uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
                 size_t l;
                 if ((l = pa_parsehex(t, cookie, sizeof(cookie))) != sizeof(cookie)) {
@@ -162,16 +162,16 @@ int main(int argc, char *argv[]) {
                 goto finish;
             }
 
-            pa_x11_del_prop(xcb, "PULSE_SERVER");
-            pa_x11_del_prop(xcb, "PULSE_SINK");
-            pa_x11_del_prop(xcb, "PULSE_SOURCE");
-            pa_x11_del_prop(xcb, "PULSE_ID");
-            pa_x11_del_prop(xcb, "PULSE_COOKIE");
+            pa_x11_del_prop(xcb, screen, "PULSE_SERVER");
+            pa_x11_del_prop(xcb, screen, "PULSE_SINK");
+            pa_x11_del_prop(xcb, screen, "PULSE_SOURCE");
+            pa_x11_del_prop(xcb, screen, "PULSE_ID");
+            pa_x11_del_prop(xcb, screen, "PULSE_COOKIE");
 
             if (server)
-                pa_x11_set_prop(xcb, "PULSE_SERVER", server);
+                pa_x11_set_prop(xcb, screen, "PULSE_SERVER", server);
             else if (conf->default_server)
-                pa_x11_set_prop(xcb, "PULSE_SERVER", conf->default_server);
+                pa_x11_set_prop(xcb, screen, "PULSE_SERVER", conf->default_server);
             else {
                 char hn[256];
                 if (!pa_get_fqdn(hn, sizeof(hn))) {
@@ -179,18 +179,18 @@ int main(int argc, char *argv[]) {
                     goto finish;
                 }
 
-                pa_x11_set_prop(xcb, "PULSE_SERVER", hn);
+                pa_x11_set_prop(xcb, screen, "PULSE_SERVER", hn);
             }
 
             if (sink)
-                pa_x11_set_prop(xcb, "PULSE_SINK", sink);
+                pa_x11_set_prop(xcb, screen, "PULSE_SINK", sink);
             else if (conf->default_sink)
-                pa_x11_set_prop(xcb, "PULSE_SINK", conf->default_sink);
+                pa_x11_set_prop(xcb, screen, "PULSE_SINK", conf->default_sink);
 
             if (source)
-                pa_x11_set_prop(xcb, "PULSE_SOURCE", source);
+                pa_x11_set_prop(xcb, screen, "PULSE_SOURCE", source);
             if (conf->default_source)
-                pa_x11_set_prop(xcb, "PULSE_SOURCE", conf->default_source);
+                pa_x11_set_prop(xcb, screen, "PULSE_SOURCE", conf->default_source);
 
             pa_client_conf_free(conf);
 
@@ -199,16 +199,16 @@ int main(int argc, char *argv[]) {
                 goto finish;
             }
 
-            pa_x11_set_prop(xcb, "PULSE_COOKIE", pa_hexstr(cookie, sizeof(cookie), hx, sizeof(hx)));
+            pa_x11_set_prop(xcb, screen, "PULSE_COOKIE", pa_hexstr(cookie, sizeof(cookie), hx, sizeof(hx)));
             break;
         }
 
         case REMOVE:
-            pa_x11_del_prop(xcb, "PULSE_SERVER");
-            pa_x11_del_prop(xcb, "PULSE_SINK");
-            pa_x11_del_prop(xcb, "PULSE_SOURCE");
-            pa_x11_del_prop(xcb, "PULSE_ID");
-            pa_x11_del_prop(xcb, "PULSE_COOKIE");
+            pa_x11_del_prop(xcb, screen, "PULSE_SERVER");
+            pa_x11_del_prop(xcb, screen, "PULSE_SINK");
+            pa_x11_del_prop(xcb, screen, "PULSE_SOURCE");
+            pa_x11_del_prop(xcb, screen, "PULSE_ID");
+            pa_x11_del_prop(xcb, screen, "PULSE_COOKIE");
             break;
 
         default:
