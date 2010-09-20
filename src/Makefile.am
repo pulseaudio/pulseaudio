@@ -70,6 +70,8 @@ AM_CFLAGS = \
 	-I$(top_builddir)/src/modules/x11 \
 	-I$(top_srcdir)/src/modules/jack \
 	-I$(top_builddir)/src/modules/jack \
+	-I$(top_srcdir)/src/modules/echo-cancel \
+	-I$(top_builddir)/src/modules/echo-cancel \
 	$(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS \
 	$(LIBSAMPLERATE_CFLAGS) \
 	$(LIBSNDFILE_CFLAGS) \
