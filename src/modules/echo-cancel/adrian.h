@@ -27,5 +27,5 @@
 
 typedef struct AEC AEC;
 
-AEC* AEC_init(int RATE);
+AEC* AEC_init(int RATE, int have_vector);
 int AEC_doAEC(AEC *a, int d_, int x_);

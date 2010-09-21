@@ -13,6 +13,13 @@
 
 #ifndef _AEC_H                  /* include only once */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <pulsecore/macro.h>
+#include <pulse/xmalloc.h>
+
 #define WIDEB 2
 
 // use double if your CPU does software-emulation of float
@@ -315,6 +322,9 @@ struct AEC {
   // variables are public for visualization
   int hangover;
   float stepsize;
+
+  // vfuncs that are picked based on processor features available
+  REAL (*dotp) (REAL[], REAL[]);
 };
 
 /* Double-Talk Detector
@@ -338,7 +348,7 @@ static  void AEC_leaky(AEC *a);
  */
 static  REAL AEC_nlms_pw(AEC *a, REAL d, REAL x_, float stepsize);
 
-  AEC* AEC_init(int RATE);
+  AEC* AEC_init(int RATE, int have_vector);
 
 /* Acoustic Echo Cancellation and Suppression of one sample
  * in   d:  microphone signal with echo

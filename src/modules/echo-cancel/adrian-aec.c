@@ -17,6 +17,10 @@
 
 #include "adrian-aec.h"
 
+#ifdef __SSE__
+#include <xmmintrin.h>
+#endif
+
 /* Vector Dot Product */
 static REAL dotp(REAL a[], REAL b[])
 {
@@ -31,8 +35,32 @@ static REAL dotp(REAL a[], REAL b[])
   return sum0 + sum1;
 }
 
+static REAL dotp_sse(REAL a[], REAL b[]) __attribute__((noinline));
+static REAL dotp_sse(REAL a[], REAL b[])
+{
+#ifdef __SSE__
+  /* This is taken from speex's inner product implementation */
+  int j;
+  REAL sum;
+  __m128 acc = _mm_setzero_ps();
 
-AEC* AEC_init(int RATE)
+  for (j=0;j<NLMS_LEN;j+=8)
+  {
+    acc = _mm_add_ps(acc, _mm_mul_ps(_mm_load_ps(a+j), _mm_loadu_ps(b+j)));
+    acc = _mm_add_ps(acc, _mm_mul_ps(_mm_load_ps(a+j+4), _mm_loadu_ps(b+j+4)));
+  }
+  acc = _mm_add_ps(acc, _mm_movehl_ps(acc, acc));
+  acc = _mm_add_ss(acc, _mm_shuffle_ps(acc, acc, 0x55));
+  _mm_store_ss(&sum, acc);
+
+  return sum;
+#else
+  return dotp(a, b);
+#endif
+}
+
+
+AEC* AEC_init(int RATE, int have_vector)
 {
   AEC *a = pa_xnew(AEC, 1);
   a->hangover = 0;
@@ -56,6 +84,11 @@ AEC* AEC_init(int RATE)
   a->fdwdisplay = -1;
   a->dumpcnt = 0;
   memset(a->ws, 0, sizeof(a->ws));
+
+  if (have_vector)
+      a->dotp = dotp_sse;
+  else
+      a->dotp = dotp;
 
   return a;
 }
@@ -146,7 +179,7 @@ static REAL AEC_nlms_pw(AEC *a, REAL d, REAL x_, float stepsize)
   // (mic signal - estimated mic signal from spk signal)
   e = d;
   if (a->hangover > 0) {
-    e -= dotp(a->w, a->x + a->j);
+    e -= a->dotp(a->w, a->x + a->j);
   }
   ef = IIR1_highpass(a->Fe, e);     // pre-whitening of e
 

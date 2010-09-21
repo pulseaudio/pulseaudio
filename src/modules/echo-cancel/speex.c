@@ -48,7 +48,7 @@ static void pa_speex_ec_fixate_spec(pa_sample_spec *source_ss, pa_channel_map *s
     *sink_map = *source_map;
 }
 
-pa_bool_t pa_speex_ec_init(pa_echo_canceller *ec,
+pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
                            uint32_t *blocksize, const char *args)

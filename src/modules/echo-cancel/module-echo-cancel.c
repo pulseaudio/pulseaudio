@@ -1398,7 +1398,7 @@ int pa__init(pa_module*m) {
     u->asyncmsgq = pa_asyncmsgq_new(0);
     u->need_realign = TRUE;
     if (u->ec->init) {
-        if (!u->ec->init(u->ec, &source_ss, &source_map, &sink_ss, &sink_map, &u->blocksize, pa_modargs_get_value(ma, "aec_args", NULL))) {
+        if (!u->ec->init(u->core, u->ec, &source_ss, &source_map, &sink_ss, &sink_map, &u->blocksize, pa_modargs_get_value(ma, "aec_args", NULL))) {
             pa_log("Failed to init AEC engine");
             goto fail;
         }
