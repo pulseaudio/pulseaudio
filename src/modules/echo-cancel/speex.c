@@ -42,7 +42,7 @@ static const char* const valid_modargs[] = {
 static void pa_speex_ec_fixate_spec(pa_sample_spec *source_ss, pa_channel_map *source_map,
 				    pa_sample_spec *sink_ss, pa_channel_map *sink_map)
 {
-    source_ss->format = PA_SAMPLE_S16LE;
+    source_ss->format = PA_SAMPLE_S16NE;
 
     *sink_ss = *source_ss;
     *sink_map = *source_map;
