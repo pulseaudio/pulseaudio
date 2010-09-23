@@ -30,6 +30,7 @@
 #endif
 
 #include <pulsecore/modargs.h>
+#include <pulsecore/endianmacros.h>
 #include "echo-cancel.h"
 
 /* should be between 10-20 ms */
@@ -103,8 +104,8 @@ void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *
 
     for (i = 0; i < ec->params.priv.adrian.blocksize; i += 2) {
         /* We know it's S16LE mono data */
-        int r = (((int8_t) rec[i + 1]) << 8) | rec[i];
-        int p = (((int8_t) play[i + 1]) << 8) | play[i];
+        int r = PA_INT16_FROM_LE(*(int16_t *)(rec + i));
+        int p = PA_INT16_FROM_LE(*(int16_t *)(play + i));
         int res;
 
         res = AEC_doAEC(ec->params.priv.adrian.aec, r, p);
