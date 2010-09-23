@@ -122,6 +122,7 @@ EXTRA_DIST = \
 		daemon/start-pulseaudio-x11.in \
 		daemon/start-pulseaudio-kde.in \
 		utils/padsp \
+		utils/qpaeq \
 		modules/module-defs.h.m4 \
 		daemon/pulseaudio.desktop.in \
 		daemon/pulseaudio-kde.desktop.in \
