@@ -44,7 +44,7 @@ static const char* const valid_modargs[] = {
 static void pa_adrian_ec_fixate_spec(pa_sample_spec *source_ss, pa_channel_map *source_map,
 				    pa_sample_spec *sink_ss, pa_channel_map *sink_map)
 {
-    source_ss->format = PA_SAMPLE_S16LE;
+    source_ss->format = PA_SAMPLE_S16NE;
     source_ss->channels = 1;
     pa_channel_map_init_mono(source_map);
 
@@ -103,14 +103,10 @@ void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *
     unsigned int i;
 
     for (i = 0; i < ec->params.priv.adrian.blocksize; i += 2) {
-        /* We know it's S16LE mono data */
-        int r = PA_INT16_FROM_LE(*(int16_t *)(rec + i));
-        int p = PA_INT16_FROM_LE(*(int16_t *)(play + i));
-        int res;
-
-        res = AEC_doAEC(ec->params.priv.adrian.aec, r, p);
-        out[i] = (uint8_t) (res & 0xff);
-        out[i + 1] = (uint8_t) ((res >> 8) & 0xff);
+        /* We know it's S16NE mono data */
+        int r = *(int16_t *)(rec + i);
+        int p = *(int16_t *)(play + i);
+        *(int16_t *)(out + i) = (int16_t) AEC_doAEC(ec->params.priv.adrian.aec, r, p);
     }
 }
 
