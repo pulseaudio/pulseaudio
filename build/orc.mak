@@ -67,5 +67,6 @@ dist-hook-orc: tmp-orc.c $(ORC_SOURCE).h
 	  cp tmp-orc.c $(srcdir)/$(ORC_SOURCE)-dist.c
 	cmp -s $(ORC_SOURCE).h $(srcdir)/$(ORC_SOURCE)-dist.h || \
 	  cp $(ORC_SOURCE).h $(srcdir)/$(ORC_SOURCE)-dist.h
-	cp -p $(srcdir)/$(ORC_SOURCE)-dist.c $(distdir)/
-	cp -p $(srcdir)/$(ORC_SOURCE)-dist.h $(distdir)/
+	mkdir -p $$(dirname $(ORC_SOURCE))
+	cp -p $(srcdir)/$(ORC_SOURCE)-dist.c $(distdir)/$$(dirname $(ORC_SOURCE))
+	cp -p $(srcdir)/$(ORC_SOURCE)-dist.h $(distdir)/$$(dirname $(ORC_SOURCE))
