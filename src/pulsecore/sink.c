@@ -1763,7 +1763,14 @@ unsigned pa_sink_check_suspend(pa_sink *s) {
         pa_sink_input_state_t st;
 
         st = pa_sink_input_get_state(i);
-        pa_assert(PA_SINK_INPUT_IS_LINKED(st));
+
+        /* We do not assert here. It is perfectly valid for a sink input to
+         * be in the INIT state (i.e. created, marked done but not yet put)
+         * and we should not care if it's unlinked as it won't contribute
+         * towarards our busy status.
+         */
+        if (!PA_SINK_INPUT_IS_LINKED(st))
+            continue;
 
         if (st == PA_SINK_INPUT_CORKED)
             continue;

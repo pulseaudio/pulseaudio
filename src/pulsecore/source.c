@@ -996,7 +996,14 @@ unsigned pa_source_check_suspend(pa_source *s) {
         pa_source_output_state_t st;
 
         st = pa_source_output_get_state(o);
-        pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(st));
+
+        /* We do not assert here. It is perfectly valid for a source output to
+         * be in the INIT state (i.e. created, marked done but not yet put)
+         * and we should not care if it's unlinked as it won't contribute
+         * towarards our busy status.
+         */
+        if (!PA_SOURCE_OUTPUT_IS_LINKED(st))
+            continue;
 
         if (st == PA_SOURCE_OUTPUT_CORKED)
             continue;
