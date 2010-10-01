@@ -38,7 +38,7 @@ typedef struct pa_sink_input pa_sink_input;
 #include <pulsecore/envelope.h>
 
 typedef enum pa_sink_input_state {
-    PA_SINK_INPUT_INIT,         /*< The stream is not active yet, because pa_sink_put() has not been called yet */
+    PA_SINK_INPUT_INIT,         /*< The stream is not active yet, because pa_sink_input_put() has not been called yet */
     PA_SINK_INPUT_DRAINED,      /*< The stream stopped playing because there was no data to play */
     PA_SINK_INPUT_RUNNING,      /*< The stream is alive and kicking */
     PA_SINK_INPUT_CORKED,       /*< The stream was corked on user request */
