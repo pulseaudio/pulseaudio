@@ -187,6 +187,8 @@
 /** \file
  *
  * Routines for daemon introspection.
+ *
+ * See also \subpage introspect
  */
 
 PA_C_DECL_BEGIN

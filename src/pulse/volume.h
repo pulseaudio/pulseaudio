@@ -92,7 +92,10 @@
  */
 
 /** \file
- * Constants and routines for volume handling */
+ * Constants and routines for volume handling
+ *
+ * See also \subpage volume
+ */
 
 PA_C_DECL_BEGIN
 

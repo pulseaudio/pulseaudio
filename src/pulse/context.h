@@ -145,7 +145,10 @@
 /** \file
  * Connection contexts for asynchrononous communication with a
  * server. A pa_context object wraps a connection to a PulseAudio
- * server using its native protocol. */
+ * server using its native protocol.
+ *
+ * See also \subpage async
+ */
 
 PA_C_DECL_BEGIN
 

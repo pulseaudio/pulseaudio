@@ -98,7 +98,10 @@
 /** \file
  * A simple but limited synchronous playback and recording
  * API. This is a synchronous, simplified wrapper around the standard
- * asynchronous API. */
+ * asynchronous API.
+ *
+ * See also \subpage simple
+ */
 
 /** \example pacat-simple.c
  * A simple playback tool using the simple API */

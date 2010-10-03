@@ -71,7 +71,10 @@ struct pollfd;
  * function. Using the routines defined herein you may create a simple
  * main loop supporting the generic main loop abstraction layer as
  * defined in \ref mainloop-api.h. This implementation is thread safe
- * as long as you access the main loop object from a single thread only.*/
+ * as long as you access the main loop object from a single thread only.
+ *
+ * See also \subpage mainloop
+ */
 
 /** An opaque main loop object */
 typedef struct pa_mainloop pa_mainloop;

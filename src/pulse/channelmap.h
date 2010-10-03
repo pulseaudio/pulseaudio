@@ -65,7 +65,10 @@
  */
 
 /** \file
- * Constants and routines for channel mapping handling */
+ * Constants and routines for channel mapping handling
+ *
+ * See also \subpage channelmap
+ */
 
 PA_C_DECL_BEGIN
 
