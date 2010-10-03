@@ -310,7 +310,10 @@
  */
 
 /** \file
- * Audio streams for input, output and sample upload */
+ * Audio streams for input, output and sample upload
+ *
+ * See also \subpage streams
+ */
 
 PA_C_DECL_BEGIN
 

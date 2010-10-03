@@ -41,7 +41,10 @@
  */
 
 /** \file
- * GLIB main loop support */
+ * GLIB main loop support
+ *
+ * See also \subpage glib-mainloop
+ */
 
 PA_C_DECL_BEGIN
 

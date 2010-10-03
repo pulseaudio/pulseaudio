@@ -74,7 +74,10 @@
  */
 
 /** \file
- * All sample cache related routines */
+ * All sample cache related routines
+ *
+ * See also \subpage scache
+ */
 
 PA_C_DECL_BEGIN
 

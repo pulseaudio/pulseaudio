@@ -105,7 +105,10 @@
  */
 
 /** \file
- * Constants and routines for sample type handling */
+ * Constants and routines for sample type handling
+ *
+ * See also \subpage sample
+ */
 
 PA_C_DECL_BEGIN
 

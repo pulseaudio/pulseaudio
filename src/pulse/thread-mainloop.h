@@ -239,7 +239,10 @@ PA_C_DECL_BEGIN
  * A thread based event loop implementation based on pa_mainloop. The
  * event loop is run in a helper thread in the background. A few
  * synchronization primitives are available to access the objects
- * attached to the event loop safely. */
+ * attached to the event loop safely.
+ *
+ * See also \subpage threaded_mainloop
+ */
 
 /** An opaque threaded main loop object */
 typedef struct pa_threaded_mainloop pa_threaded_mainloop;

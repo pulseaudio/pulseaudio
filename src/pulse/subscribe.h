@@ -45,7 +45,10 @@
  */
 
 /** \file
- * Daemon introspection event subscription subsystem. */
+ * Daemon introspection event subscription subsystem.
+ *
+ * See also \subpage subscribe
+ */
 
 PA_C_DECL_BEGIN
 
