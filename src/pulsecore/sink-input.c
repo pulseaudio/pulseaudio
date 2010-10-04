@@ -470,6 +470,9 @@ static void sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) 
 
         for (ssync = i->sync_next; ssync; ssync = ssync->sync_next)
             pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], ssync);
+
+        if (PA_SINK_INPUT_IS_LINKED(state))
+            pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     }
 
     pa_sink_update_status(i->sink);

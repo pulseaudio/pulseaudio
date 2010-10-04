@@ -40,7 +40,7 @@ AC_SUBST(PA_MAJORMINORMICRO, pa_major.pa_minor.pa_micro)
 AC_SUBST(PACKAGE_URL, [http://pulseaudio.org/])
 
 AC_SUBST(PA_API_VERSION, 12)
-AC_SUBST(PA_PROTOCOL_VERSION, 18)
+AC_SUBST(PA_PROTOCOL_VERSION, 19)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z

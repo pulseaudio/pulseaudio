@@ -500,6 +500,7 @@ typedef struct pa_sink_input_info {
     const char *driver;                  /**< Driver name */
     int mute;                            /**< Stream muted \since 0.9.7 */
     pa_proplist *proplist;               /**< Property list \since 0.9.11 */
+    int corked;                          /**< Stream corked \since 0.9.22 */
 } pa_sink_input_info;
 
 /** Callback prototype for pa_context_get_sink_input_info() and friends*/
@@ -546,6 +547,7 @@ typedef struct pa_source_output_info {
     const char *resample_method;         /**< The resampling method used by this source output. */
     const char *driver;                  /**< Driver name */
     pa_proplist *proplist;               /**< Property list \since 0.9.11 */
+    int corked;                          /**< Stream corked \since 0.9.22 */
 } pa_source_output_info;
 
 /** Callback prototype for pa_context_get_source_output_info() and friends*/

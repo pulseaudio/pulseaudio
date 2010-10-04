@@ -200,3 +200,10 @@ new flag at end of CREATE_PLAYBACK_STREAM:
 new flag at end of CREATE_PLAYBACK_STREAM:
 
     bool passthrough
+
+## v19, implemented by >= 0.9.22
+
+New proplist field for sink input, source output introspection opcodes and at the end:
+
+    bool corked
+

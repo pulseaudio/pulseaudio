@@ -291,8 +291,12 @@ static void source_output_set_state(pa_source_output *o, pa_source_output_state_
     update_n_corked(o, state);
     o->state = state;
 
-    if (state != PA_SOURCE_OUTPUT_UNLINKED)
+    if (state != PA_SOURCE_OUTPUT_UNLINKED) {
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], o);
+
+        if (PA_SOURCE_OUTPUT_IS_LINKED(state))
+            pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    }
 
     pa_source_update_status(o->source);
 }
