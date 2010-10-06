@@ -207,14 +207,15 @@ static void update_rule(struct rule *r) {
         return;
     }
 
-    if (r->good)
+    if (r->good) {
         if (st.st_mtime == r->mtime) {
             /* Theoretically the filename could have changed, but if so
                having the same mtime is very unlikely so not worth tracking it in r */
             pa_xfree(fn);
             return;
         }
-    else
+        pa_log_debug("Found %s (which has been updated since we last checked).", fn);
+    } else
         pa_log_debug("Found %s.", fn);
 
     r->good = TRUE;
