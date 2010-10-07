@@ -25,6 +25,7 @@
 #include <dbus/dbus.h>
 
 #include <pulsecore/llist.h>
+#include <pulsecore/strlist.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 
@@ -45,12 +46,30 @@
 typedef struct pa_bluetooth_uuid pa_bluetooth_uuid;
 typedef struct pa_bluetooth_device pa_bluetooth_device;
 typedef struct pa_bluetooth_discovery pa_bluetooth_discovery;
+typedef struct pa_bluetooth_transport pa_bluetooth_transport;
 
 struct userdata;
 
 struct pa_bluetooth_uuid {
     char *uuid;
     PA_LLIST_FIELDS(pa_bluetooth_uuid);
+};
+
+enum profile {
+    PROFILE_A2DP,
+    PROFILE_A2DP_SOURCE,
+    PROFILE_HSP,
+    PROFILE_HFGW,
+    PROFILE_OFF
+};
+
+struct pa_bluetooth_transport {
+    pa_bluetooth_discovery *y;
+    char *path;
+    enum profile profile;
+    uint8_t codec;
+    uint8_t *config;
+    int config_size;
 };
 
 /* This enum is shared among Audio, Headset, AudioSink, and AudioSource, although not all values are acceptable in all profiles */
@@ -70,6 +89,7 @@ struct pa_bluetooth_device {
     /* Device information */
     char *name;
     char *path;
+    pa_hashmap *transports;
     int paired;
     char *alias;
     int device_connected;
@@ -102,6 +122,12 @@ void pa_bluetooth_discovery_sync(pa_bluetooth_discovery *d);
 
 const pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *d, const char* path);
 const pa_bluetooth_device* pa_bluetooth_discovery_get_by_address(pa_bluetooth_discovery *d, const char* address);
+
+const pa_bluetooth_transport* pa_bluetooth_discovery_get_transport(pa_bluetooth_discovery *y, const char *path);
+const pa_bluetooth_transport* pa_bluetooth_device_get_transport(const pa_bluetooth_device *d, enum profile profile);
+
+int pa_bluetooth_transport_acquire(const pa_bluetooth_transport *t, const char *accesstype);
+void pa_bluetooth_transport_release(const pa_bluetooth_transport *t, const char *accesstype);
 
 pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *d);
 

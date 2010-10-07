@@ -48,6 +48,7 @@
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/dbus-shared.h>
+#include <pulsecore/llist.h>
 
 #include "module-bluetooth-device-symdef.h"
 #include "ipc.h"
@@ -129,20 +130,15 @@ struct hsp_info {
     pa_hook_slot *source_state_changed_slot;
 };
 
-enum profile {
-    PROFILE_A2DP,
-    PROFILE_A2DP_SOURCE,
-    PROFILE_HSP,
-    PROFILE_HFGW,
-    PROFILE_OFF
-};
-
 struct userdata {
     pa_core *core;
     pa_module *module;
 
     char *address;
     char *path;
+    char *transport;
+    char *accesstype;
+
     pa_bluetooth_discovery *discovery;
     pa_bool_t auto_connect;
 
@@ -202,9 +198,13 @@ static int service_send(struct userdata *u, const bt_audio_msg_header_t *msg) {
     ssize_t r;
 
     pa_assert(u);
-    pa_assert(u->service_fd >= 0);
     pa_assert(msg);
     pa_assert(msg->length > 0);
+
+    if (u->service_fd < 0) {
+        pa_log_warn("Service not connected");
+        return -1;
+    }
 
     pa_log_debug("Sending %s -> %s",
                  pa_strnull(bt_audio_strtype(msg->type)),
@@ -745,41 +745,10 @@ static int set_conf(struct userdata *u) {
 }
 
 /* from IO thread, except in SCO over PCM */
-static int start_stream_fd(struct userdata *u) {
-    union {
-        bt_audio_msg_header_t rsp;
-        struct bt_start_stream_req start_req;
-        struct bt_start_stream_rsp start_rsp;
-        struct bt_new_stream_ind streamfd_ind;
-        bt_audio_error_t error;
-        uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
-    } msg;
+
+static int setup_stream(struct userdata *u) {
     struct pollfd *pollfd;
     int one;
-
-    pa_assert(u);
-    pa_assert(u->rtpoll);
-    pa_assert(!u->rtpoll_item);
-    pa_assert(u->stream_fd < 0);
-
-    memset(msg.buf, 0, BT_SUGGESTED_BUFFER_SIZE);
-    msg.start_req.h.type = BT_REQUEST;
-    msg.start_req.h.name = BT_START_STREAM;
-    msg.start_req.h.length = sizeof(msg.start_req);
-
-    if (service_send(u, &msg.start_req.h) < 0)
-        return -1;
-
-    if (service_expect(u, &msg.rsp, sizeof(msg), BT_START_STREAM, sizeof(msg.start_rsp)) < 0)
-        return -1;
-
-    if (service_expect(u, &msg.rsp, sizeof(msg), BT_NEW_STREAM, sizeof(msg.streamfd_ind)) < 0)
-        return -1;
-
-    if ((u->stream_fd = bt_audio_service_get_data_fd(u->service_fd)) < 0) {
-        pa_log("Failed to get stream fd from audio service.");
-        return -1;
-    }
 
     pa_make_fd_nonblock(u->stream_fd);
     pa_make_socket_low_delay(u->stream_fd);
@@ -809,6 +778,43 @@ static int start_stream_fd(struct userdata *u) {
                 TRUE);
 
     return 0;
+}
+
+static int start_stream_fd(struct userdata *u) {
+    union {
+        bt_audio_msg_header_t rsp;
+        struct bt_start_stream_req start_req;
+        struct bt_start_stream_rsp start_rsp;
+        struct bt_new_stream_ind streamfd_ind;
+        bt_audio_error_t error;
+        uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
+    } msg;
+
+    pa_assert(u);
+    pa_assert(u->rtpoll);
+    pa_assert(!u->rtpoll_item);
+    pa_assert(u->stream_fd < 0);
+
+    memset(msg.buf, 0, BT_SUGGESTED_BUFFER_SIZE);
+    msg.start_req.h.type = BT_REQUEST;
+    msg.start_req.h.name = BT_START_STREAM;
+    msg.start_req.h.length = sizeof(msg.start_req);
+
+    if (service_send(u, &msg.start_req.h) < 0)
+        return -1;
+
+    if (service_expect(u, &msg.rsp, sizeof(msg), BT_START_STREAM, sizeof(msg.start_rsp)) < 0)
+        return -1;
+
+    if (service_expect(u, &msg.rsp, sizeof(msg), BT_NEW_STREAM, sizeof(msg.streamfd_ind)) < 0)
+        return -1;
+
+    if ((u->stream_fd = bt_audio_service_get_data_fd(u->service_fd)) < 0) {
+        pa_log("Failed to get stream fd from audio service.");
+        return -1;
+    }
+
+    return setup_stream(u);
 }
 
 /* from IO thread */
@@ -852,6 +858,76 @@ static int stop_stream_fd(struct userdata *u) {
     return r;
 }
 
+static void bt_transport_release(struct userdata *u)
+{
+    const char *accesstype = "rw";
+    const pa_bluetooth_transport *t;
+
+    /* Ignore if already released */
+    if (!u->accesstype)
+        return;
+
+    pa_log_debug("Releasing transport %s", u->transport);
+
+    t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
+    if (t)
+        pa_bluetooth_transport_release(t, accesstype);
+
+    pa_xfree(u->accesstype);
+    u->accesstype = NULL;
+
+    if (u->rtpoll_item) {
+        pa_rtpoll_item_free(u->rtpoll_item);
+        u->rtpoll_item = NULL;
+    }
+
+    if (u->stream_fd >= 0) {
+        pa_close(u->stream_fd);
+        u->stream_fd = -1;
+    }
+
+    if (u->read_smoother) {
+        pa_smoother_free(u->read_smoother);
+        u->read_smoother = NULL;
+    }
+}
+
+static int bt_transport_acquire(struct userdata *u, pa_bool_t start)
+{
+    const char *accesstype = "rw";
+    const pa_bluetooth_transport *t;
+
+    if (u->accesstype) {
+        if (start)
+            goto done;
+        return 0;
+    }
+
+    pa_log_debug("Acquiring transport %s", u->transport);
+
+    t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
+    if (!t) {
+        pa_log("Transport %s no longer available", u->transport);
+        pa_xfree(u->transport);
+        u->transport = NULL;
+        return -1;
+    }
+
+    u->stream_fd = pa_bluetooth_transport_acquire(t, accesstype);
+    if (u->stream_fd < 0)
+        return -1;
+
+    u->accesstype = pa_xstrdup(accesstype);
+    pa_log_info("Transport %s acquired: fd %d", u->transport, u->stream_fd);
+
+    if (!start)
+        return 0;
+
+done:
+    pa_log_info("Transport %s resuming", u->transport);
+    return setup_stream(u);
+}
+
 /* Run from IO thread */
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
@@ -870,11 +946,15 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                     pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
                     /* Stop the device if the source is suspended as well */
-                    if (!u->source || u->source->state == PA_SOURCE_SUSPENDED)
+                    if (!u->source || u->source->state == PA_SOURCE_SUSPENDED) {
                         /* We deliberately ignore whether stopping
                          * actually worked. Since the stream_fd is
                          * closed it doesn't really matter */
-                        stop_stream_fd(u);
+                        if (u->transport)
+                            bt_transport_release(u);
+                        else
+                            stop_stream_fd(u);
+                    }
 
                     break;
 
@@ -884,9 +964,13 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                         break;
 
                     /* Resume the device if the source was suspended as well */
-                    if (!u->source || u->source->state == PA_SOURCE_SUSPENDED)
-                        if (start_stream_fd(u) < 0)
+                    if (!u->source || u->source->state == PA_SOURCE_SUSPENDED) {
+                        if (u->transport) {
+                            if (bt_transport_acquire(u, TRUE) < 0)
+                                failed = TRUE;
+                        } else if (start_stream_fd(u) < 0)
                             failed = TRUE;
+                    }
                     break;
 
                 case PA_SINK_UNLINKED:
@@ -942,8 +1026,12 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                     pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
 
                     /* Stop the device if the sink is suspended as well */
-                    if (!u->sink || u->sink->state == PA_SINK_SUSPENDED)
-                        stop_stream_fd(u);
+                    if (!u->sink || u->sink->state == PA_SINK_SUSPENDED) {
+                        if (u->transport)
+                            bt_transport_release(u);
+                        else
+                            stop_stream_fd(u);
+                    }
 
                     if (u->read_smoother)
                         pa_smoother_pause(u->read_smoother, pa_rtclock_now());
@@ -955,10 +1043,13 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                         break;
 
                     /* Resume the device if the sink was suspended as well */
-                    if (!u->sink || u->sink->thread_info.state == PA_SINK_SUSPENDED)
-                        if (start_stream_fd(u) < 0)
+                    if (!u->sink || u->sink->thread_info.state == PA_SINK_SUSPENDED) {
+                        if (u->transport) {
+                            if (bt_transport_acquire(u, TRUE) < 0)
                             failed = TRUE;
-
+                        } else if (start_stream_fd(u) < 0)
+                            failed = TRUE;
+                    }
                     /* We don't resume the smoother here. Instead we
                      * wait until the first packet arrives */
                     break;
@@ -1414,7 +1505,10 @@ static void thread_func(void *userdata) {
 
     pa_thread_mq_install(&u->thread_mq);
 
-    if (start_stream_fd(u) < 0)
+    if (u->transport) {
+        if (bt_transport_acquire(u, TRUE) < 0)
+            goto fail;
+    } else if (start_stream_fd(u) < 0)
         goto fail;
 
     for (;;) {
@@ -1709,17 +1803,25 @@ static void sco_over_pcm_state_update(struct userdata *u) {
         if (u->service_fd >= 0)
             return;
 
+        init_bt(u);
+
         pa_log_debug("Resuming SCO over PCM");
-        if ((init_bt(u) < 0) || (init_profile(u) < 0))
+        if (init_profile(u) < 0)
             pa_log("Can't resume SCO over PCM");
 
-        start_stream_fd(u);
+        if (u->transport)
+            bt_transport_acquire(u, TRUE);
+        else
+            start_stream_fd(u);
     } else {
 
         if (u->service_fd < 0)
             return;
 
-        stop_stream_fd(u);
+        if (u->transport)
+            bt_transport_release(u);
+        else
+            stop_stream_fd(u);
 
         pa_log_debug("Closing SCO over PCM");
         pa_close(u->service_fd);
@@ -1906,6 +2008,218 @@ static void shutdown_bt(struct userdata *u) {
     }
 }
 
+static int bt_transport_config_a2dp(struct userdata *u)
+{
+    const pa_bluetooth_transport *t;
+    struct a2dp_info *a2dp = &u->a2dp;
+    sbc_capabilities_raw_t *config;
+
+    t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
+    pa_assert(t);
+
+    config = (sbc_capabilities_raw_t *) t->config;
+
+    if (a2dp->sbc_initialized)
+        sbc_reinit(&a2dp->sbc, 0);
+    else
+        sbc_init(&a2dp->sbc, 0);
+    a2dp->sbc_initialized = TRUE;
+
+    switch (config->frequency) {
+        case BT_SBC_SAMPLING_FREQ_16000:
+            a2dp->sbc.frequency = SBC_FREQ_16000;
+            break;
+        case BT_SBC_SAMPLING_FREQ_32000:
+            a2dp->sbc.frequency = SBC_FREQ_32000;
+            break;
+        case BT_SBC_SAMPLING_FREQ_44100:
+            a2dp->sbc.frequency = SBC_FREQ_44100;
+            break;
+        case BT_SBC_SAMPLING_FREQ_48000:
+            a2dp->sbc.frequency = SBC_FREQ_48000;
+            break;
+        default:
+            pa_assert_not_reached();
+    }
+
+    switch (config->channel_mode) {
+        case BT_A2DP_CHANNEL_MODE_MONO:
+            a2dp->sbc.mode = SBC_MODE_MONO;
+            break;
+        case BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL:
+            a2dp->sbc.mode = SBC_MODE_DUAL_CHANNEL;
+            break;
+        case BT_A2DP_CHANNEL_MODE_STEREO:
+            a2dp->sbc.mode = SBC_MODE_STEREO;
+            break;
+        case BT_A2DP_CHANNEL_MODE_JOINT_STEREO:
+            a2dp->sbc.mode = SBC_MODE_JOINT_STEREO;
+            break;
+        default:
+            pa_assert_not_reached();
+    }
+
+    switch (config->allocation_method) {
+        case BT_A2DP_ALLOCATION_SNR:
+            a2dp->sbc.allocation = SBC_AM_SNR;
+            break;
+        case BT_A2DP_ALLOCATION_LOUDNESS:
+            a2dp->sbc.allocation = SBC_AM_LOUDNESS;
+            break;
+        default:
+            pa_assert_not_reached();
+    }
+
+    switch (config->subbands) {
+        case BT_A2DP_SUBBANDS_4:
+            a2dp->sbc.subbands = SBC_SB_4;
+            break;
+        case BT_A2DP_SUBBANDS_8:
+            a2dp->sbc.subbands = SBC_SB_8;
+            break;
+        default:
+            pa_assert_not_reached();
+    }
+
+    switch (config->block_length) {
+        case BT_A2DP_BLOCK_LENGTH_4:
+            a2dp->sbc.blocks = SBC_BLK_4;
+            break;
+        case BT_A2DP_BLOCK_LENGTH_8:
+            a2dp->sbc.blocks = SBC_BLK_8;
+            break;
+        case BT_A2DP_BLOCK_LENGTH_12:
+            a2dp->sbc.blocks = SBC_BLK_12;
+            break;
+        case BT_A2DP_BLOCK_LENGTH_16:
+            a2dp->sbc.blocks = SBC_BLK_16;
+            break;
+        default:
+            pa_assert_not_reached();
+    }
+
+    a2dp->sbc.bitpool = config->max_bitpool;
+    a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
+    a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
+
+    u->block_size =
+        ((u->link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+        / a2dp->frame_length
+        * a2dp->codesize);
+
+    pa_log_info("SBC parameters:\n\tallocation=%u\n\tsubbands=%u\n\tblocks=%u\n\tbitpool=%u\n",
+                a2dp->sbc.allocation, a2dp->sbc.subbands, a2dp->sbc.blocks, a2dp->sbc.bitpool);
+
+    return 0;
+}
+
+static int bt_transport_config(struct userdata *u)
+{
+    if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) {
+        u->block_size = u->link_mtu;
+        return 0;
+    }
+
+    return bt_transport_config_a2dp(u);
+}
+
+static int parse_transport_property(struct userdata *u, DBusMessageIter *i)
+{
+    const char *key;
+    DBusMessageIter variant_i;
+
+    pa_assert(u);
+    pa_assert(i);
+
+    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_STRING) {
+        pa_log("Property name not a string.");
+        return -1;
+    }
+
+    dbus_message_iter_get_basic(i, &key);
+
+    if (!dbus_message_iter_next(i))  {
+        pa_log("Property value missing");
+        return -1;
+    }
+
+    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_VARIANT) {
+        pa_log("Property value not a variant.");
+        return -1;
+    }
+
+    dbus_message_iter_recurse(i, &variant_i);
+
+    switch (dbus_message_iter_get_arg_type(&variant_i)) {
+
+        case DBUS_TYPE_UINT16: {
+
+            uint16_t value;
+            dbus_message_iter_get_basic(&variant_i, &value);
+
+            if (pa_streq(key, "OMTU"))
+                u->link_mtu = value;
+
+            break;
+        }
+
+    }
+
+    return 0;
+}
+
+/* Run from main thread */
+static int bt_transport_open(struct userdata *u)
+{
+    DBusMessage *m, *r;
+    DBusMessageIter arg_i, element_i;
+    DBusError err;
+
+    if (bt_transport_acquire(u, FALSE) < 0)
+        return -1;
+
+    dbus_error_init(&err);
+
+    pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->transport, "org.bluez.MediaTransport", "GetProperties"));
+    r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->connection), m, -1, &err);
+
+    if (dbus_error_is_set(&err) || !r) {
+        pa_log("Failed to get transport properties: %s", err.message);
+        goto fail;
+    }
+
+    if (!dbus_message_iter_init(r, &arg_i)) {
+        pa_log("GetProperties reply has no arguments.");
+        goto fail;
+    }
+
+    if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_ARRAY) {
+        pa_log("GetProperties argument is not an array.");
+        goto fail;
+    }
+
+    dbus_message_iter_recurse(&arg_i, &element_i);
+    while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
+
+        if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
+            DBusMessageIter dict_i;
+
+            dbus_message_iter_recurse(&element_i, &dict_i);
+
+            parse_transport_property(u, &dict_i);
+        }
+
+        if (!dbus_message_iter_next(&element_i))
+            break;
+    }
+
+    return bt_transport_config(u);
+
+fail:
+    dbus_message_unref(r);
+    return -1;
+}
+
 /* Run from main thread */
 static int init_bt(struct userdata *u) {
     pa_assert(u);
@@ -1917,7 +2231,7 @@ static int init_bt(struct userdata *u) {
     u->service_read_type = 0;
 
     if ((u->service_fd = bt_audio_service_open()) < 0) {
-        pa_log_error("Couldn't connect to bluetooth audio service");
+        pa_log_warn("Bluetooth audio service not available");
         return -1;
     }
 
@@ -1928,7 +2242,29 @@ static int init_bt(struct userdata *u) {
 
 /* Run from main thread */
 static int setup_bt(struct userdata *u) {
+    const pa_bluetooth_device *d;
+    const pa_bluetooth_transport *t;
+
     pa_assert(u);
+
+    if (!(d = pa_bluetooth_discovery_get_by_path(u->discovery, u->path))) {
+        pa_log_error("Failed to get device object.");
+        return -1;
+    }
+
+    /* release transport if exist */
+    if (u->transport) {
+        bt_transport_release(u);
+        pa_xfree(u->transport);
+        u->transport = NULL;
+    }
+
+    /* check if profile has a transport */
+    t = pa_bluetooth_device_get_transport(d, u->profile);
+    if (t) {
+        u->transport = pa_xstrdup(t->path);
+        return bt_transport_open(u);
+    }
 
     if (get_caps(u, 0) < 0)
         return -1;
@@ -2036,7 +2372,10 @@ static int start_thread(struct userdata *u) {
 
 #ifdef NOKIA
     if (USE_SCO_OVER_PCM(u)) {
-        if (start_stream_fd(u) < 0)
+        if (u->transport) {
+            if (bt_transport_acquire(u, TRUE) < 0)
+                return -1;
+        } else if (start_stream_fd(u) < 0)
             return -1;
 
         pa_sink_ref(u->sink);
@@ -2316,7 +2655,7 @@ static const pa_bluetooth_device* find_device(struct userdata *u, const char *ad
         }
 
         if (address && !(pa_streq(d->address, address))) {
-            pa_log_error("Passed path %s and address %s don't match.", path, address);
+            pa_log_error("Passed path %s address %s != %s don't match.", path, d->address, address);
             return NULL;
         }
 
@@ -2429,10 +2768,6 @@ int pa__init(pa_module* m) {
     if (add_card(u, device) < 0)
         goto fail;
 
-    /* Connect to the BT service and query capabilities */
-    if (init_bt(u) < 0)
-        goto fail;
-
     if (!dbus_connection_add_filter(pa_dbus_connection_get(u->connection), filter_cb, u, NULL)) {
         pa_log_error("Failed to add filter function");
         goto fail;
@@ -2457,6 +2792,9 @@ int pa__init(pa_module* m) {
 
     pa_xfree(speaker);
     pa_xfree(mike);
+
+    /* Connect to the BT service */
+    init_bt(u);
 
     if (u->profile != PROFILE_OFF)
         if (init_profile(u) < 0)
@@ -2551,6 +2889,11 @@ void pa__done(pa_module *m) {
 
     pa_xfree(u->address);
     pa_xfree(u->path);
+
+    if (u->transport) {
+        bt_transport_release(u);
+        pa_xfree(u->transport);
+    }
 
     if (u->discovery)
         pa_bluetooth_discovery_unref(u->discovery);
