@@ -47,7 +47,10 @@ pa_volume_s16ne_arm (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 {
     int32_t *ve;
 
-    channels = PA_MAX (4U, channels);
+    /* Channels must be at least 4, and always a multiple of the original number.
+     * This is also the max amount we overread the volume array, which should
+     * have enough padding. */
+    channels = channels == 3 ? 6 : PA_MAX (4U, channels);
     ve = volumes + channels;
 
     __asm__ __volatile__ (

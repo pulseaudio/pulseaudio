@@ -100,9 +100,10 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 {
     pa_reg_x86 channel, temp;
 
-    /* the max number of samples we process at a time, this is also the max amount
-     * we overread the volume array, which should have enough padding. */
-    channels = PA_MAX (4U, channels);
+    /* Channels must be at least 4, and always a multiple of the original number.
+     * This is also the max amount we overread the volume array, which should
+     * have enough padding. */
+    channels = channels == 3 ? 6 : PA_MAX (4U, channels);
 
     __asm__ __volatile__ (
         " xor %3, %3                    \n\t"
@@ -166,9 +167,10 @@ pa_volume_s16re_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 {
     pa_reg_x86 channel, temp;
 
-    /* the max number of samples we process at a time, this is also the max amount
-     * we overread the volume array, which should have enough padding. */
-    channels = PA_MAX (4U, channels);
+    /* Channels must be at least 4, and always a multiple of the original number.
+     * This is also the max amount we overread the volume array, which should
+     * have enough padding. */
+    channels = channels == 3 ? 6 : PA_MAX (4U, channels);
 
     __asm__ __volatile__ (
         " xor %3, %3                    \n\t"
