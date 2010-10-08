@@ -74,14 +74,19 @@
       " por %%xmm4, "#s1"            \n\t" /* .. |  l  h |  */ \
       " por %%xmm5, "#s2"            \n\t"
 
+
+static int channel_overread_table[8] = {8,8,8,12,8,10,12,14};
+
 static void
 pa_volume_s16ne_sse2 (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
     pa_reg_x86 channel, temp;
 
-    /* the max number of samples we process at a time, this is also the max amount
-     * we overread the volume array, which should have enough padding. */
-    channels = PA_MAX (8U, channels);
+    /* Channels must be at least 8 and always a multiple of the original number.
+     * This is also the max amount we overread the volume array, which should
+     * have enough padding. */
+    if (channels < 8)
+        channels = channel_overread_table[channels];
 
     __asm__ __volatile__ (
         " xor %3, %3                    \n\t"
@@ -159,9 +164,11 @@ pa_volume_s16re_sse2 (int16_t *samples, int32_t *volumes, unsigned channels, uns
 {
     pa_reg_x86 channel, temp;
 
-    /* the max number of samples we process at a time, this is also the max amount
-     * we overread the volume array, which should have enough padding. */
-    channels = PA_MAX (8U, channels);
+    /* Channels must be at least 8 and always a multiple of the original number.
+     * This is also the max amount we overread the volume array, which should
+     * have enough padding. */
+    if (channels < 8)
+        channels = channel_overread_table[channels];
 
     __asm__ __volatile__ (
         " xor %3, %3                    \n\t"
