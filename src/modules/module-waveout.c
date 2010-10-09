@@ -359,8 +359,8 @@ static int sink_get_hw_volume_cb(pa_sink *s) {
     if (waveOutGetVolume(u->hwo, &vol) != MMSYSERR_NOERROR)
         return -1;
 
-    left = (vol & 0xFFFF) * PA_VOLUME_NORM / WAVEOUT_MAX_VOLUME;
-    right = ((vol >> 16) & 0xFFFF) * PA_VOLUME_NORM / WAVEOUT_MAX_VOLUME;
+    left = PA_CLAMP_VOLUME((vol & 0xFFFF) * PA_VOLUME_NORM / WAVEOUT_MAX_VOLUME);
+    right = PA_CLAMP_VOLUME(((vol >> 16) & 0xFFFF) * PA_VOLUME_NORM / WAVEOUT_MAX_VOLUME);
 
     /* Windows supports > 2 channels, except for volume control */
     if (s->hw_volume.channels > 2)

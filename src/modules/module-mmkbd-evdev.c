@@ -188,8 +188,8 @@ int pa__init(pa_module*m) {
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     u->fd = -1;
     u->fd_type = 0;
-    u->volume_limit = volume_limit;
-    u->volume_step = volume_step;
+    u->volume_limit = PA_CLAMP_VOLUME(volume_limit);
+    u->volume_step = PA_CLAMP_VOLUME(volume_step);
 
     if ((u->fd = pa_open_cloexec(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), O_RDONLY, 0)) < 0) {
         pa_log("Failed to open evdev device: %s", pa_cstrerror(errno));

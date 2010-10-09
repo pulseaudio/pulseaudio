@@ -79,7 +79,9 @@ pa_cvolume* pa_cvolume_set(pa_cvolume *a, unsigned channels, pa_volume_t v) {
     a->channels = (uint8_t) channels;
 
     for (i = 0; i < a->channels; i++)
-        a->values[i] = v;
+        /* Clamp in case there is stale data that exceeds the current
+         * PA_VOLUME_MAX */
+        a->values[i] = PA_CLAMP_VOLUME(v);
 
     return a;
 }
@@ -206,7 +208,7 @@ pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b) {
 
     /* cbrt((a/PA_VOLUME_NORM)^3*(b/PA_VOLUME_NORM)^3)*PA_VOLUME_NORM = a*b/PA_VOLUME_NORM */
 
-    return (pa_volume_t) (((uint64_t) a * (uint64_t) b + (uint64_t) PA_VOLUME_NORM / 2ULL) / (uint64_t) PA_VOLUME_NORM);
+    return (pa_volume_t) PA_CLAMP_VOLUME((((uint64_t) a * (uint64_t) b + (uint64_t) PA_VOLUME_NORM / 2ULL) / (uint64_t) PA_VOLUME_NORM));
 }
 
 pa_volume_t pa_sw_volume_divide(pa_volume_t a, pa_volume_t b) {
@@ -261,7 +263,7 @@ pa_volume_t pa_sw_volume_from_linear(double v) {
      * same volume value! That's why we need the lround() below!
      */
 
-    return (pa_volume_t) lround(cbrt(v) * PA_VOLUME_NORM);
+    return (pa_volume_t) PA_CLAMP_VOLUME(lround(cbrt(v) * PA_VOLUME_NORM));
 }
 
 double pa_sw_volume_to_linear(pa_volume_t v) {
@@ -667,12 +669,12 @@ pa_cvolume* pa_cvolume_set_balance(pa_cvolume *v, const pa_channel_map *map, flo
             if (left == 0)
                 v->values[c] = nleft;
             else
-                v->values[c] = (pa_volume_t) (((uint64_t) v->values[c] * (uint64_t) nleft) / (uint64_t) left);
+                v->values[c] = (pa_volume_t) PA_CLAMP_VOLUME(((uint64_t) v->values[c] * (uint64_t) nleft) / (uint64_t) left);
         } else if (on_right(map->map[c])) {
             if (right == 0)
                 v->values[c] = nright;
             else
-                v->values[c] = (pa_volume_t) (((uint64_t) v->values[c] * (uint64_t) nright) / (uint64_t) right);
+                v->values[c] = (pa_volume_t) PA_CLAMP_VOLUME(((uint64_t) v->values[c] * (uint64_t) nright) / (uint64_t) right);
         }
     }
 
@@ -694,7 +696,7 @@ pa_cvolume* pa_cvolume_scale(pa_cvolume *v, pa_volume_t max) {
         return pa_cvolume_set(v, v->channels, max);
 
     for (c = 0; c < v->channels; c++)
-        v->values[c] = (pa_volume_t) (((uint64_t)  v->values[c] * (uint64_t) max) / (uint64_t) t);
+        v->values[c] = (pa_volume_t) PA_CLAMP_VOLUME(((uint64_t) v->values[c] * (uint64_t) max) / (uint64_t) t);
 
     return v;
 }
@@ -718,7 +720,7 @@ pa_cvolume* pa_cvolume_scale_mask(pa_cvolume *v, pa_volume_t max, pa_channel_map
         return pa_cvolume_set(v, v->channels, max);
 
     for (c = 0; c < v->channels; c++)
-        v->values[c] = (pa_volume_t) (((uint64_t)  v->values[c] * (uint64_t) max) / (uint64_t) t);
+        v->values[c] = (pa_volume_t) PA_CLAMP_VOLUME(((uint64_t)  v->values[c] * (uint64_t) max) / (uint64_t) t);
 
     return v;
 }
@@ -808,12 +810,12 @@ pa_cvolume* pa_cvolume_set_fade(pa_cvolume *v, const pa_channel_map *map, float 
             if (front == 0)
                 v->values[c] = nfront;
             else
-                v->values[c] = (pa_volume_t) (((uint64_t) v->values[c] * (uint64_t) nfront) / (uint64_t) front);
+                v->values[c] = (pa_volume_t) PA_CLAMP_VOLUME(((uint64_t) v->values[c] * (uint64_t) nfront) / (uint64_t) front);
         } else if (on_rear(map->map[c])) {
             if (rear == 0)
                 v->values[c] = nrear;
             else
-                v->values[c] = (pa_volume_t) (((uint64_t) v->values[c] * (uint64_t) nrear) / (uint64_t) rear);
+                v->values[c] = (pa_volume_t) PA_CLAMP_VOLUME(((uint64_t) v->values[c] * (uint64_t) nrear) / (uint64_t) rear);
         }
     }
 

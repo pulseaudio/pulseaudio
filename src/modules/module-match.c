@@ -127,7 +127,7 @@ static int load_rules(struct userdata *u, const char *filename) {
 
         *d = 0;
         if (pa_atou(v, &k) >= 0) {
-            volume = (pa_volume_t) k;
+            volume = (pa_volume_t) PA_CLAMP_VOLUME(k);
         } else if (*v == '"') {
             char *e;
 

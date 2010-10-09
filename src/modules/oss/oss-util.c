@@ -271,10 +271,10 @@ int pa_oss_get_volume(int fd, unsigned long mixer, const pa_sample_spec *ss, pa_
 
     pa_cvolume_reset(volume, ss->channels);
 
-    volume->values[0] = ((vol & 0xFF) * PA_VOLUME_NORM) / 100;
+    volume->values[0] = PA_CLAMP_VOLUME(((vol & 0xFF) * PA_VOLUME_NORM) / 100);
 
     if (volume->channels >= 2)
-        volume->values[1] = (((vol >> 8) & 0xFF) * PA_VOLUME_NORM) / 100;
+        volume->values[1] = PA_CLAMP_VOLUME((((vol >> 8) & 0xFF) * PA_VOLUME_NORM) / 100);
 
     pa_log_debug("Read mixer settings: %s", pa_cvolume_snprint(cv, sizeof(cv), volume));
     return 0;

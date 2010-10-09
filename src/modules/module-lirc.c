@@ -172,7 +172,7 @@ fail:
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
-    pa_volume_t volume_limit = PA_VOLUME_NORM*3/2;
+    pa_volume_t volume_limit = PA_CLAMP_VOLUME(PA_VOLUME_NORM*3/2);
     pa_volume_t volume_step = PA_VOLUME_NORM/20;
 
     pa_assert(m);
@@ -199,8 +199,8 @@ int pa__init(pa_module*m) {
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     u->lirc_fd = -1;
     u->mute_toggle_save = 0;
-    u->volume_limit = volume_limit;
-    u->volume_step = volume_step;
+    u->volume_limit = PA_CLAMP_VOLUME(volume_limit);
+    u->volume_step = PA_CLAMP_VOLUME(volume_step);
 
     if ((u->lirc_fd = lirc_init((char*) pa_modargs_get_value(ma, "appname", "pulseaudio"), 1)) < 0) {
         pa_log("lirc_init() failed.");
