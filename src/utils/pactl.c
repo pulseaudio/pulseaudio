@@ -1248,6 +1248,11 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
+            if (!PA_VOLUME_IS_VALID(v)) {
+                pa_log(_("Volume outside permissible range.\n"));
+                goto quit;
+            }
+
             sink_name = pa_xstrdup(argv[optind+1]);
             volume = (pa_volume_t) v;
 
@@ -1262,6 +1267,11 @@ int main(int argc, char *argv[]) {
 
             if (pa_atou(argv[optind+2], &v) < 0) {
                 pa_log(_("Invalid volume specification"));
+                goto quit;
+            }
+
+            if (!PA_VOLUME_IS_VALID(v)) {
+                pa_log(_("Volume outside permissible range.\n"));
                 goto quit;
             }
 
@@ -1284,6 +1294,11 @@ int main(int argc, char *argv[]) {
 
             if (pa_atou(argv[optind+2], &v) < 0) {
                 pa_log(_("Invalid volume specification"));
+                goto quit;
+            }
+
+            if (!PA_VOLUME_IS_VALID(v)) {
+                pa_log(_("Volume outside permissible range.\n"));
                 goto quit;
             }
 
