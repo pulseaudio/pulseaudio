@@ -191,7 +191,7 @@ pa_operation *pa_context_play_sample(pa_context *c, const char *name, const char
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, dev);
 
-    if (volume == PA_VOLUME_INVALID && c->version < 15)
+    if (!PA_VOLUME_IS_VALID(volume) && c->version < 15)
         volume = PA_VOLUME_NORM;
 
     pa_tagstruct_putu32(t, volume);
@@ -232,7 +232,7 @@ pa_operation *pa_context_play_sample_with_proplist(pa_context *c, const char *na
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, dev);
 
-    if (volume == PA_VOLUME_INVALID && c->version < 15)
+    if (!PA_VOLUME_IS_VALID(volume) && c->version < 15)
         volume = PA_VOLUME_NORM;
 
     pa_tagstruct_putu32(t, volume);

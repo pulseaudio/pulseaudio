@@ -118,6 +118,9 @@ typedef uint32_t pa_volume_t;
 /** Special 'invalid' volume. \since 0.9.16 */
 #define PA_VOLUME_INVALID ((pa_volume_t) UINT32_MAX)
 
+/** Check if volume is valid. \since 0.9.22 */
+#define PA_VOLUME_IS_VALID(v) ((v) <= PA_VOLUME_MAX)
+
 /** A structure encapsulating a per-channel volume */
 typedef struct pa_cvolume {
     uint8_t channels;                     /**< Number of channels */

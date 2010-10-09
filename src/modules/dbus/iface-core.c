@@ -1310,7 +1310,7 @@ static void handle_upload_sample(DBusConnection *conn, DBusMessage *msg, void *u
     }
 
     for (i = 0; i < n_volume_entries; ++i) {
-        if (default_volume[i] > PA_VOLUME_MAX) {
+        if (!PA_VOLUME_IS_VALID(default_volume[i])) {
             pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid volume: %u.", default_volume[i]);
             goto finish;
         }

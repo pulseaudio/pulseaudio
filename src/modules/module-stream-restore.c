@@ -367,7 +367,7 @@ static int get_volume_arg(DBusConnection *conn, DBusMessage *msg, DBusMessageIte
         pa_assert_se(dbus_message_iter_next(&struct_iter));
         dbus_message_iter_get_basic(&struct_iter, &chan_vol);
 
-        if (chan_vol > PA_VOLUME_MAX) {
+        if (PA_VOLUME_IS_VALID(chan_vol)) {
             pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid volume: %u", chan_vol);
             return -1;
         }
