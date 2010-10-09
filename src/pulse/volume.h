@@ -113,7 +113,7 @@ typedef uint32_t pa_volume_t;
 #define PA_VOLUME_MUTED ((pa_volume_t) 0U)
 
 /** Maximum valid volume we can store. \since 0.9.15 */
-#define PA_VOLUME_MAX ((pa_volume_t) UINT32_MAX-1)
+#define PA_VOLUME_MAX ((pa_volume_t) UINT32_MAX/2)
 
 /** Special 'invalid' volume. \since 0.9.16 */
 #define PA_VOLUME_INVALID ((pa_volume_t) UINT32_MAX)
