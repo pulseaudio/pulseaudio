@@ -527,6 +527,11 @@ static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
+    if (!PA_VOLUME_IS_VALID(volume)) {
+        pa_strbuf_puts(buf, "Volume outside permissible range.\n");
+        return -1;
+    }
+
     if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK))) {
         pa_strbuf_puts(buf, "No sink found by this name or index.\n");
         return -1;
@@ -569,6 +574,11 @@ static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strb
         return -1;
     }
 
+    if (!PA_VOLUME_IS_VALID(volume)) {
+        pa_strbuf_puts(buf, "Volume outside permissible range.\n");
+        return -1;
+    }
+
     if (!(si = pa_idxset_get_by_index(c->sink_inputs, (uint32_t) idx))) {
         pa_strbuf_puts(buf, "No sink input found with this index.\n");
         return -1;
@@ -602,6 +612,11 @@ static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *
 
     if (pa_atou(v, &volume) < 0) {
         pa_strbuf_puts(buf, "Failed to parse volume.\n");
+        return -1;
+    }
+
+    if (!PA_VOLUME_IS_VALID(volume)) {
+        pa_strbuf_puts(buf, "Volume outside permissible range.\n");
         return -1;
     }
 
