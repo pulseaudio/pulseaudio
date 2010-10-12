@@ -81,12 +81,12 @@
  *                             structure are muted.
  * \li pa_cvolume_is_norm() - Tests if all channels of a pa_cvolume structure
  *                            are at a normal volume.
- * \li pa_cvolume_set() - Set all channels of a pa_cvolume structure to a
- *                        certain volume.
- * \li pa_cvolume_reset() - Set all channels of a pa_cvolume structure to a
- *                          normal volume.
- * \li pa_cvolume_mute() - Set all channels of a pa_cvolume structure to a
- *                         muted volume.
+ * \li pa_cvolume_set() - Set the first n channels of a pa_cvolume structure to
+ *                        a certain volume.
+ * \li pa_cvolume_reset() - Set the first n channels of a pa_cvolume structure
+ *                          to a normal volume.
+ * \li pa_cvolume_mute() - Set the first n channels of a pa_cvolume structure
+ *                         to a muted volume.
  * \li pa_cvolume_avg() - Return the average volume of all channels.
  * \li pa_cvolume_snprint() - Pretty print a pa_cvolume structure.
  */
@@ -129,13 +129,13 @@ int pa_cvolume_equal(const pa_cvolume *a, const pa_cvolume *b) PA_GCC_PURE;
  * pa_cvolume_valid() will fail for it. \since 0.9.13 */
 pa_cvolume* pa_cvolume_init(pa_cvolume *a);
 
-/** Set the volume of all channels to PA_VOLUME_NORM */
+/** Set the volume of the first n channels to PA_VOLUME_NORM */
 #define pa_cvolume_reset(a, n) pa_cvolume_set((a), (n), PA_VOLUME_NORM)
 
-/** Set the volume of all channels to PA_VOLUME_MUTED */
+/** Set the volume of the first n channels to PA_VOLUME_MUTED */
 #define pa_cvolume_mute(a, n) pa_cvolume_set((a), (n), PA_VOLUME_MUTED)
 
-/** Set the volume of all channels to the specified parameter */
+/** Set the volume of the specified number of channels to the volume v */
 pa_cvolume* pa_cvolume_set(pa_cvolume *a, unsigned channels, pa_volume_t v);
 
 /** Maximum length of the strings returned by
@@ -259,7 +259,8 @@ pa_volume_t pa_sw_volume_from_dB(double f) PA_GCC_CONST;
 /** Convert a volume to a decibel value (amplitude, not power). This is only valid for software volumes! */
 double pa_sw_volume_to_dB(pa_volume_t v) PA_GCC_CONST;
 
-/** Convert a linear factor to a volume. This is only valid for software volumes! */
+/** Convert a linear factor to a volume.  0.0 and less is muted while
+ * 1.0 is PA_VOLUME_NORM.  This is only valid for software volumes! */
 pa_volume_t pa_sw_volume_from_linear(double v) PA_GCC_CONST;
 
 /** Convert a volume to a linear factor. This is only valid for software volumes! */
