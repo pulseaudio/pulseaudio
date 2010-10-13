@@ -57,8 +57,8 @@ pa_glib_mainloop *pa_glib_mainloop_new(GMainContext *c);
 void pa_glib_mainloop_free(pa_glib_mainloop* g);
 
 /** Return the abstract main loop API vtable for the GLIB main loop
-    object. No need of freeing the API as it is owned by the loop and
-    it is destroyed when this dies */
+    object. No need to free the API as it is owned by the loop
+    and is destroyed when the loop is freed. */
 pa_mainloop_api* pa_glib_mainloop_get_api(pa_glib_mainloop *g);
 
 PA_C_DECL_END

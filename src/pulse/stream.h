@@ -529,9 +529,10 @@ size_t pa_stream_writable_size(pa_stream *p);
 /** Return the number of bytes that may be read using pa_stream_peek()*/
 size_t pa_stream_readable_size(pa_stream *p);
 
-/** Drain a playback stream. Use this for notification when the buffer
- * is empty. Please note that only one drain operation per stream may
- * be issued at a time. */
+/** Drain a playback stream.  Use this for notification when the
+ * playback buffer is empty after playing all the audio in the buffer.
+ * Please note that only one drain operation per stream may be issued
+ * at a time. */
 pa_operation* pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
 /** Request a timing info structure update for a stream. Use
@@ -609,10 +610,10 @@ void pa_stream_set_buffer_attr_callback(pa_stream *p, pa_stream_notify_cb_t cb, 
  * of the stream it will be created in corked state. */
 pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, void *userdata);
 
-/** Flush the playback buffer of this stream. Most of the time you're
- * better off using the parameter delta of pa_stream_write() instead
- * of this function. Available on both playback and recording
- * streams. */
+/** Flush the playback buffer of this stream. This discards any audio
+ * in the buffer.  Most of the time you're better off using the parameter
+ * delta of pa_stream_write() instead of this function. Available on both
+ * playback and recording streams. */
 pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
 /** Reenable prebuffering as specified in the pa_buffer_attr
