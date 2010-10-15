@@ -25,6 +25,7 @@
 
 typedef struct pa_sink pa_sink;
 typedef struct pa_device_port pa_device_port;
+typedef struct pa_sink_volume_change pa_sink_volume_change;
 
 #include <inttypes.h>
 
@@ -116,26 +117,72 @@ struct pa_sink {
      * inhibited */
     int (*set_state)(pa_sink *s, pa_sink_state_t state); /* may be NULL */
 
-    /* Callled when the volume is queried. Called from main loop
-     * context. If this is NULL a PA_SINK_MESSAGE_GET_VOLUME message
-     * will be sent to the IO thread instead. If refresh_volume is
-     * FALSE neither this function is called nor a message is sent. */
+    /* Sink drivers that support hardware volume may set this
+     * callback. This is called when the current volume needs to be
+     * re-read from the hardware.
+     *
+     * There are two ways for drivers to implement hardware volume
+     * query: either set this callback or handle
+     * PA_SINK_MESSAGE_GET_VOLUME. The callback implementation or the
+     * message handler must update s->real_volume and s->soft_volume
+     * (using pa_sink_set_soft_volume()) to match the current hardware
+     * volume.
+     *
+     * If PA_SINK_SYNC_VOLUME is not set, then this is called from the
+     * main thread before sending PA_SINK_MESSAGE_GET_VOLUME, so in
+     * this case the driver can choose whether to read the volume from
+     * the hardware in the main thread or in the IO thread.
+     *
+     * If PA_SINK_SYNC_VOLUME is set, then this is called from the IO
+     * thread within the default handler for
+     * PA_SINK_MESSAGE_GET_VOLUME (the main thread is waiting while
+     * the message is being processed), so there's no choice of where
+     * to do the volume reading - it has to be done in the IO thread
+     * always. */
     void (*get_volume)(pa_sink *s);             /* may be NULL */
 
-    /* Called when the volume shall be changed. Called from main loop
-     * context. If this is NULL a PA_SINK_MESSAGE_SET_VOLUME message
-     * will be sent to the IO thread instead. */
+    /* Sink drivers that support hardware volume must set this
+     * callback. This is called when the hardware volume needs to be
+     * updated.
+     *
+     * If PA_SINK_SYNC_VOLUME is not set, then this is called from the
+     * main thread. The callback implementation must set the hardware
+     * volume according to s->real_volume. If the driver can't set the
+     * hardware volume to the exact requested value, it has to update
+     * s->real_volume and/or s->soft_volume so that they together
+     * match the actual hardware volume that was set.
+     *
+     * If PA_SINK_SYNC_VOLUME is set, then this is called from the IO
+     * thread. The callback implementation must not actually set the
+     * hardware volume yet, but it must check how close to the
+     * requested volume the hardware volume can be set, and update
+     * s->real_volume and/or s->soft_volume so that they together
+     * match the actual hardware volume that will be set later in the
+     * write_volume callback. */
     void (*set_volume)(pa_sink *s);             /* dito */
 
-    /* Called when the mute setting is queried. Called from main loop
-     * context. If this is NULL a PA_SINK_MESSAGE_GET_MUTE message
-     * will be sent to the IO thread instead. If refresh_mute is
-     * FALSE neither this function is called nor a message is sent.*/
+    /* Sink drivers that set PA_SINK_SYNC_VOLUME must provide this
+     * callback. This callback is not used with sinks that do not set
+     * PA_SINK_SYNC_VOLUME. This is called from the IO thread when a
+     * pending hardware volume change has to be written to the
+     * hardware. The requested volume is passed to the callback
+     * implementation in s->thread_info.current_hw_volume.
+     *
+     * The call is done inside pa_sink_volume_change_apply(), which is
+     * not called automatically - it is the driver's responsibility to
+     * schedule that function to be called at the right times in the
+     * IO thread. */
+    void (*write_volume)(pa_sink *s);           /* dito */
+
+    /* Called when the mute setting is queried. A PA_SINK_MESSAGE_GET_MUTE
+     * message will also be sent. Called from IO thread if PA_SINK_SYNC_VOLUME
+     * flag is set otherwise from main loop context. If refresh_mute is FALSE
+     * neither this function is called nor a message is sent.*/
     void (*get_mute)(pa_sink *s);               /* dito */
 
-    /* Called when the mute setting shall be changed. Called from main
-     * loop context. If this is NULL a PA_SINK_MESSAGE_SET_MUTE
-     * message will be sent to the IO thread instead. */
+    /* Called when the mute setting shall be changed. A PA_SINK_MESSAGE_SET_MUTE
+     * message will also be sent. Called from IO thread if PA_SINK_SYNC_VOLUME
+     * flag is set otherwise from main loop context. */
     void (*set_mute)(pa_sink *s);               /* dito */
 
     /* Called when a rewind request is issued. Called from IO thread
@@ -188,6 +235,21 @@ struct pa_sink {
          * decided on by the sink, and the clients have no influence
          * in changing it */
         pa_usec_t fixed_latency; /* for sinks with PA_SINK_DYNAMIC_LATENCY this is 0 */
+
+        /* Delayed volume change events are queued here. The events
+         * are stored in expiration order. The one expiring next is in
+         * the head of the list. */
+        PA_LLIST_HEAD(pa_sink_volume_change, volume_changes);
+        pa_sink_volume_change *volume_changes_tail;
+        /* This value is updated in pa_sink_volume_change_apply() and
+         * used only by sinks with PA_SINK_SYNC_VOLUME. */
+        pa_cvolume current_hw_volume;
+
+        /* The amount of usec volume up events are delayed and volume
+         * down events are made earlier. */
+        uint32_t volume_change_safety_margin;
+        /* Usec delay added to all volume change events, may be negative. */
+        int32_t volume_change_extra_delay;
     } thread_info;
 
     void *userdata;
@@ -200,6 +262,7 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_ADD_INPUT,
     PA_SINK_MESSAGE_REMOVE_INPUT,
     PA_SINK_MESSAGE_GET_VOLUME,
+    PA_SINK_MESSAGE_SET_VOLUME_SYNCED,
     PA_SINK_MESSAGE_SET_VOLUME,
     PA_SINK_MESSAGE_SYNC_VOLUMES,
     PA_SINK_MESSAGE_GET_MUTE,
@@ -219,6 +282,8 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_GET_MAX_REQUEST,
     PA_SINK_MESSAGE_SET_MAX_REWIND,
     PA_SINK_MESSAGE_SET_MAX_REQUEST,
+    PA_SINK_MESSAGE_SET_PORT,
+    PA_SINK_MESSAGE_UPDATE_VOLUME_AND_MUTE,
     PA_SINK_MESSAGE_MAX
 } pa_sink_message_t;
 
@@ -348,6 +413,10 @@ void pa_sink_set_max_request_within_thread(pa_sink *s, size_t max_request);
 
 void pa_sink_set_latency_range_within_thread(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency);
 void pa_sink_set_fixed_latency_within_thread(pa_sink *s, pa_usec_t latency);
+
+void pa_sink_update_volume_and_mute(pa_sink *s);
+
+pa_bool_t pa_sink_volume_change_apply(pa_sink *s, pa_usec_t *usec_to_next);
 
 /*** To be called exclusively by sink input drivers, from IO context */
 

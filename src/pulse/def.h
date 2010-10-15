@@ -740,10 +740,14 @@ typedef enum pa_sink_flags {
     /**< The latency can be adjusted dynamically depending on the
      * needs of the connected streams. \since 0.9.15 */
 
-    PA_SINK_PASSTHROUGH = 0x0100U
+    PA_SINK_PASSTHROUGH = 0x0100U,
     /**< This sink has support for passthrough mode. The data will be left
      * as is and not reformatted, resampled, mixed.
      * \since 0.9.22*/
+
+    PA_SINK_SYNC_VOLUME = 0x0200U,
+    /**< The HW volume changes are syncronized with SW volume.
+     * \since 0.9.22 */
 
 } pa_sink_flags_t;
 
@@ -757,6 +761,7 @@ typedef enum pa_sink_flags {
 #define PA_SINK_FLAT_VOLUME PA_SINK_FLAT_VOLUME
 #define PA_SINK_DYNAMIC_LATENCY PA_SINK_DYNAMIC_LATENCY
 #define PA_SINK_PASSTHROUGH PA_SINK_PASSTHROUGH
+#define PA_SINK_SYNC_VOLUME PA_SINK_SYNC_VOLUME
 
 /** \endcond */
 
