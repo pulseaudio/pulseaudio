@@ -64,7 +64,8 @@ PA_MODULE_USAGE(
         "tsched_buffer_size=<buffer size when using timer based scheduling> "
         "tsched_buffer_watermark=<lower fill watermark> "
         "profile=<profile name> "
-        "ignore_dB=<ignore dB information from the device?>");
+        "ignore_dB=<ignore dB information from the device?> "
+        "sync_volume=<syncronize sw and hw voluchanges in IO-thread?>");
 
 static const char* const valid_modargs[] = {
     "name",
@@ -86,6 +87,7 @@ static const char* const valid_modargs[] = {
     "tsched_buffer_watermark",
     "profile",
     "ignore_dB",
+    "sync_volume",
     NULL
 };
 

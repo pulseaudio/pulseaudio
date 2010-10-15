@@ -1108,7 +1108,7 @@ static void source_set_volume_cb(pa_source *s) {
     /* Shift up by the base volume */
     pa_sw_cvolume_divide_scalar(&r, &s->volume, s->base_volume);
 
-    if (pa_alsa_path_set_volume(u->mixer_path, u->mixer_handle, &s->channel_map, &r) < 0)
+    if (pa_alsa_path_set_volume(u->mixer_path, u->mixer_handle, &s->channel_map, &r, TRUE) < 0)
         return;
 
     /* Shift down by the base volume, so that 0dB becomes maximum volume */

@@ -243,6 +243,95 @@ int pa_alsa_fdlist_set_mixer(struct pa_alsa_fdlist *fdl, snd_mixer_t *mixer_hand
     return 0;
 }
 
+struct pa_alsa_mixer_pdata {
+    pa_rtpoll *rtpoll;
+    pa_rtpoll_item *poll_item;
+    snd_mixer_t *mixer;
+};
+
+
+struct pa_alsa_mixer_pdata *pa_alsa_mixer_pdata_new(void) {
+    struct pa_alsa_mixer_pdata *pd;
+
+    pd = pa_xnew0(struct pa_alsa_mixer_pdata, 1);
+
+    return pd;
+}
+
+void pa_alsa_mixer_pdata_free(struct pa_alsa_mixer_pdata *pd) {
+    pa_assert(pd);
+
+    if (pd->poll_item) {
+        pa_rtpoll_item_free(pd->poll_item);
+    }
+
+    pa_xfree(pd);
+}
+
+static int rtpoll_work_cb(pa_rtpoll_item *i) {
+    struct pa_alsa_mixer_pdata *pd;
+    struct pollfd *p;
+    unsigned n_fds;
+    unsigned short revents = 0;
+    int err;
+
+    pd = pa_rtpoll_item_get_userdata(i);
+    pa_assert_fp(pd);
+    pa_assert_fp(i == pd->poll_item);
+
+    p = pa_rtpoll_item_get_pollfd(i, &n_fds);
+
+    if ((err = snd_mixer_poll_descriptors_revents(pd->mixer, p, n_fds, &revents)) < 0) {
+        pa_log_error("Unable to get poll revent: %s", pa_alsa_strerror(err));
+        pa_rtpoll_item_free(i);
+        return -1;
+    }
+
+    if (revents) {
+        snd_mixer_handle_events(pd->mixer);
+        pa_rtpoll_item_free(i);
+        pa_alsa_set_mixer_rtpoll(pd, pd->mixer, pd->rtpoll);
+    }
+
+    return 0;
+}
+
+int pa_alsa_set_mixer_rtpoll(struct pa_alsa_mixer_pdata *pd, snd_mixer_t *mixer, pa_rtpoll *rtp) {
+    pa_rtpoll_item *i;
+    struct pollfd *p;
+    int err, n;
+
+    pa_assert(pd);
+    pa_assert(mixer);
+    pa_assert(rtp);
+
+    if ((n = snd_mixer_poll_descriptors_count(mixer)) < 0) {
+        pa_log("snd_mixer_poll_descriptors_count() failed: %s", pa_alsa_strerror(n));
+        return -1;
+    }
+
+    i = pa_rtpoll_item_new(rtp, PA_RTPOLL_LATE, (unsigned) n);
+
+    p = pa_rtpoll_item_get_pollfd(i, NULL);
+
+    memset(p, 0, sizeof(struct pollfd) * n);
+
+    if ((err = snd_mixer_poll_descriptors(mixer, p, (unsigned) n)) < 0) {
+        pa_log_error("Unable to get poll descriptors: %s", pa_alsa_strerror(err));
+        pa_rtpoll_item_free(i);
+        return -1;
+    }
+
+    pd->rtpoll = rtp;
+    pd->poll_item = i;
+    pd->mixer = mixer;
+
+    pa_rtpoll_item_set_userdata(i, pd);
+    pa_rtpoll_item_set_work_callback(i, rtpoll_work_cb);
+
+    return 0;
+}
+
 static int prepare_mixer(snd_mixer_t *mixer, const char *dev) {
     int err;
 
@@ -671,7 +760,8 @@ int pa_alsa_path_get_mute(pa_alsa_path *p, snd_mixer_t *m, pa_bool_t *muted) {
     return 0;
 }
 
-static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v) {
+static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t write_to_hw) {
+
     snd_mixer_selem_id_t *sid;
     pa_cvolume rv;
     snd_mixer_elem_t *me;
@@ -720,14 +810,26 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
                  * if the channel is available, ALSA behaves ver
                  * strangely and doesn't fail the call */
                 if (snd_mixer_selem_has_playback_channel(me, c)) {
-                    if ((r = snd_mixer_selem_set_playback_dB(me, c, value, +1)) >= 0)
-                        r = snd_mixer_selem_get_playback_dB(me, c, &value);
+                    if (write_to_hw) {
+                        if ((r = snd_mixer_selem_set_playback_dB(me, c, value, +1)) >= 0)
+                            r = snd_mixer_selem_get_playback_dB(me, c, &value);
+                    } else {
+                        long alsa_val;
+                        if ((r = snd_mixer_selem_ask_playback_dB_vol(me, value, +1, &alsa_val)) >= 0)
+                            r = snd_mixer_selem_ask_playback_vol_dB(me, alsa_val, &value);
+                    }
                 } else
                     r = -1;
             } else {
                 if (snd_mixer_selem_has_capture_channel(me, c)) {
-                    if ((r = snd_mixer_selem_set_capture_dB(me, c, value, +1)) >= 0)
-                        r = snd_mixer_selem_get_capture_dB(me, c, &value);
+                    if (write_to_hw) {
+                        if ((r = snd_mixer_selem_set_capture_dB(me, c, value, +1)) >= 0)
+                            r = snd_mixer_selem_get_capture_dB(me, c, &value);
+                    } else {
+                        long alsa_val;
+                        if ((r = snd_mixer_selem_ask_capture_dB_vol(me, value, +1, &alsa_val)) >= 0)
+                            r = snd_mixer_selem_ask_capture_vol_dB(me, alsa_val, &value);
+                    }
                 } else
                     r = -1;
             }
@@ -782,7 +884,8 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
     return 0;
 }
 
-int pa_alsa_path_set_volume(pa_alsa_path *p, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v) {
+int pa_alsa_path_set_volume(pa_alsa_path *p, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t write_to_hw) {
+
     pa_alsa_element *e;
     pa_cvolume rv;
 
@@ -807,7 +910,7 @@ int pa_alsa_path_set_volume(pa_alsa_path *p, snd_mixer_t *m, const pa_channel_ma
         pa_assert(!p->has_dB || e->has_dB);
 
         ev = rv;
-        if (element_set_volume(e, m, cm, &ev) < 0)
+        if (element_set_volume(e, m, cm, &ev, write_to_hw) < 0)
             return -1;
 
         if (!p->has_dB) {
