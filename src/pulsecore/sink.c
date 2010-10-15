@@ -2700,6 +2700,8 @@ int pa_sink_set_port(pa_sink *s, const char *name, pa_bool_t save) {
     s->active_port = port;
     s->save_port = save;
 
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_PORT_CHANGED], s);
+
     return 0;
 }
 
