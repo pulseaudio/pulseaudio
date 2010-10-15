@@ -75,7 +75,8 @@ typedef struct pa_daemon_conf {
         log_meta,
         log_time,
         flat_volumes,
-        lock_memory;
+        lock_memory,
+        sync_volume;
     pa_server_type_t local_server_type;
     int exit_idle_time,
         scache_idle_time,
@@ -127,6 +128,8 @@ typedef struct pa_daemon_conf {
 #endif
 
     unsigned default_n_fragments, default_fragment_size_msec;
+    unsigned sync_volume_safety_margin_usec;
+    int sync_volume_extra_delay_usec;
     pa_sample_spec default_sample_spec;
     pa_channel_map default_channel_map;
     size_t shm_size;

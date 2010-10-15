@@ -142,6 +142,8 @@ struct pa_core {
     pa_channel_map default_channel_map;
     pa_sample_spec default_sample_spec;
     unsigned default_n_fragments, default_fragment_size_msec;
+    unsigned sync_volume_safety_margin_usec;
+    int sync_volume_extra_delay_usec;
 
     pa_defer_event *module_defer_unload_event;
 
@@ -165,6 +167,7 @@ struct pa_core {
     pa_bool_t realtime_scheduling:1;
     pa_bool_t disable_remixing:1;
     pa_bool_t disable_lfe_remixing:1;
+    pa_bool_t sync_volume:1;
 
     pa_resample_method_t resample_method;
     int realtime_priority;

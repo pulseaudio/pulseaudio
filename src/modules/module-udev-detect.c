@@ -666,7 +666,7 @@ int pa__init(pa_module *m) {
     struct udev_enumerate *enumerate = NULL;
     struct udev_list_entry *item = NULL, *first = NULL;
     int fd;
-    pa_bool_t use_tsched = TRUE, ignore_dB = FALSE, sync_volume = FALSE;
+    pa_bool_t use_tsched = TRUE, ignore_dB = FALSE, sync_volume = m->core->sync_volume;
 
 
     pa_assert(m);

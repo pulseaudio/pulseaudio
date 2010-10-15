@@ -117,6 +117,9 @@ pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size) {
     c->default_n_fragments = 4;
     c->default_fragment_size_msec = 25;
 
+    c->sync_volume_safety_margin_usec = 8000;
+    c->sync_volume_extra_delay_usec = 0;
+
     c->module_defer_unload_event = NULL;
     c->scache_auto_unload_event = NULL;
 
@@ -141,6 +144,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size) {
     c->realtime_priority = 5;
     c->disable_remixing = FALSE;
     c->disable_lfe_remixing = FALSE;
+    c->sync_volume = TRUE;
     c->resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
 
     for (j = 0; j < PA_CORE_HOOK_MAX; j++)

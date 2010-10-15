@@ -945,6 +945,8 @@ int main(int argc, char *argv[]) {
     c->default_channel_map = conf->default_channel_map;
     c->default_n_fragments = conf->default_n_fragments;
     c->default_fragment_size_msec = conf->default_fragment_size_msec;
+    c->sync_volume_safety_margin_usec = conf->sync_volume_safety_margin_usec;
+    c->sync_volume_extra_delay_usec = conf->sync_volume_extra_delay_usec;
     c->exit_idle_time = conf->exit_idle_time;
     c->scache_idle_time = conf->scache_idle_time;
     c->resample_method = conf->resample_method;
@@ -952,6 +954,7 @@ int main(int argc, char *argv[]) {
     c->realtime_scheduling = !!conf->realtime_scheduling;
     c->disable_remixing = !!conf->disable_remixing;
     c->disable_lfe_remixing = !!conf->disable_lfe_remixing;
+    c->sync_volume = !!conf->sync_volume;
     c->running_as_daemon = !!conf->daemonize;
     c->disallow_exit = conf->disallow_exit;
     c->flat_volumes = conf->flat_volumes;

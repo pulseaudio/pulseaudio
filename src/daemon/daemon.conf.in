@@ -80,3 +80,7 @@
 
 ; default-fragments = 4
 ; default-fragment-size-msec = 25
+
+; enable-sync-volume = yes
+; sync-volume-safety-margin-usec = 8000
+; sync-volume-extra-delay-usec = 0

@@ -53,8 +53,6 @@
 #define ABSOLUTE_MIN_LATENCY (500)
 #define ABSOLUTE_MAX_LATENCY (10*PA_USEC_PER_SEC)
 #define DEFAULT_FIXED_LATENCY (250*PA_USEC_PER_MSEC)
-#define VOLUME_CHANGE_SAFETY_MARGIN_DEFAULT (8*PA_USEC_PER_MSEC)
-#define VOLUME_CHANGE_EXTRA_DELAY_DEFAULT (0*PA_USEC_PER_MSEC)
 
 PA_DEFINE_PUBLIC_CLASS(pa_sink, pa_msgobject);
 
@@ -333,8 +331,8 @@ pa_sink* pa_sink_new(
     PA_LLIST_HEAD_INIT(pa_sink_volume_change, s->thread_info.volume_changes);
     s->thread_info.volume_changes_tail = NULL;
     pa_sw_cvolume_multiply(&s->thread_info.current_hw_volume, &s->soft_volume, &s->real_volume);
-    s->thread_info.volume_change_safety_margin = VOLUME_CHANGE_SAFETY_MARGIN_DEFAULT;
-    s->thread_info.volume_change_extra_delay = VOLUME_CHANGE_EXTRA_DELAY_DEFAULT;
+    s->thread_info.volume_change_safety_margin = core->sync_volume_safety_margin_usec;
+    s->thread_info.volume_change_extra_delay = core->sync_volume_extra_delay_usec;
 
     /* FIXME: This should probably be moved to pa_sink_put() */
     pa_assert_se(pa_idxset_put(core->sinks, s, &s->index) >= 0);

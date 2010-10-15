@@ -1831,6 +1831,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         goto fail;
     }
 
+    sync_volume = m->core->sync_volume;
     if (pa_modargs_get_value_boolean(ma, "sync_volume", &sync_volume) < 0) {
         pa_log("Failed to parse sync_volume argument.");
         goto fail;
