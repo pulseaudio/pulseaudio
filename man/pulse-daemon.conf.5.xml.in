@@ -437,6 +437,36 @@ USA.
 
   </section>
 
+  <section name="Default Sync Volume Settings">
+
+    <p>With the flat volume feature enabled, the sink HW volume is set
+    to the same level as the highest volume input stream. Any other streams
+    (with lower volumes) have the appropriate adjustment applied in SW to
+    bring them to the correct overall level. Sadly hadware mixer changes
+    cannot be timed accurately and thus this change of volumes can somtimes
+    cause the resulting output sound to be momentarily too loud or too soft.
+    So to ensure SW and HW volumes are applied concurrently without any
+    glitches, their application needs to be synchronized. The sink
+    implementation needs to support synchornised volumes can use the following
+    parameters to refine the process.</p>
+
+    <option>
+      <p><opt>enable-sync-volume=</opt> Enable sync volume for the sinks that
+      support it. This feature is enabled by default.</p>
+    </option>
+    <option>
+      <p><opt>sync-volume-safety-margin-usec=</opt> The amount of time (in
+      usec) by which the HW volume increases are delayed and HW volume
+      decreases are advanced. Defaults to 8000 usec.</p>
+    </option>
+    <option>
+      <p><opt>sync-volume-extra-delay-usec=</opt> The amount of time (in usec)
+      by which HW volume changes are delayed. Negative values are also allowed.
+      Defaults to 0.</p>
+    </option>
+
+  </section>
+
   <section name="Authors">
     <p>The PulseAudio Developers &lt;@PACKAGE_BUGREPORT@&gt;; PulseAudio is available from <url href="@PACKAGE_URL@"/></p>
   </section>
