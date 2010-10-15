@@ -111,7 +111,8 @@ ALSA_PROFILES = \
 		modules/alsa/mixer/profile-sets/maudio-fasttrack-pro.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf \
-		modules/alsa/mixer/profile-sets/native-instruments-traktorkontrol-s4.conf
+		modules/alsa/mixer/profile-sets/native-instruments-traktorkontrol-s4.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-korecontroller.conf
 
 ALSA_PATHS = \
 		modules/alsa/mixer/paths/analog-input-aux.conf \
