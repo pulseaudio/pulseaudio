@@ -2686,7 +2686,8 @@ pa_bool_t pa_device_init_intended_roles(pa_proplist *p) {
         return TRUE;
 
     if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_FORM_FACTOR)))
-        if (pa_streq(s, "handset") || pa_streq(s, "hands-free")) {
+        if (pa_streq(s, "handset") || pa_streq(s, "hands-free")
+            || pa_streq(s, "headset")) {
             pa_proplist_sets(p, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
             return TRUE;
         }
