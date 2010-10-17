@@ -447,8 +447,8 @@ USA.
     cause the resulting output sound to be momentarily too loud or too soft.
     So to ensure SW and HW volumes are applied concurrently without any
     glitches, their application needs to be synchronized. The sink
-    implementation needs to support synchornised volumes can use the following
-    parameters to refine the process.</p>
+    implementation needs to support synchronized volumes. The following
+    parameters can be used to refine the process.</p>
 
     <option>
       <p><opt>enable-sync-volume=</opt> Enable sync volume for the sinks that
