@@ -1695,7 +1695,7 @@ module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
 
 # echo-cancel module
 ORC_SOURCE=modules/echo-cancel/adrian-aec-orc
-include $(top_srcdir)/build/orc.mak
+include $(top_srcdir)/orc.mak
 module_echo_cancel_la_SOURCES = modules/echo-cancel/module-echo-cancel.c modules/echo-cancel/echo-cancel.h \
 				modules/echo-cancel/speex.c \
 				modules/echo-cancel/adrian-aec.c modules/echo-cancel/adrian-aec.h \
