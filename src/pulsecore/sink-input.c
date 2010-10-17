@@ -1181,7 +1181,7 @@ pa_bool_t pa_sink_input_may_move(pa_sink_input *i) {
         return FALSE;
 
     if (i->sync_next || i->sync_prev) {
-        pa_log_warn("Moving synchronised streams not supported.");
+        pa_log_warn("Moving synchronized streams not supported.");
         return FALSE;
     }
 
