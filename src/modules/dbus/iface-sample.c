@@ -366,7 +366,7 @@ static void handle_play(DBusConnection *conn, DBusMessage *msg, void *userdata) 
     if (!(property_list = pa_dbus_get_proplist_arg(conn, msg, &msg_iter)))
         return;
 
-    if (PA_VOLUME_IS_VALID(volume)) {
+    if (!PA_VOLUME_IS_VALID(volume)) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid volume.");
         goto finish;
     }
@@ -416,7 +416,7 @@ static void handle_play_to_sink(DBusConnection *conn, DBusMessage *msg, void *us
         goto finish;
     }
 
-    if (PA_VOLUME_IS_VALID(volume)) {
+    if (!PA_VOLUME_IS_VALID(volume)) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid volume.");
         goto finish;
     }
