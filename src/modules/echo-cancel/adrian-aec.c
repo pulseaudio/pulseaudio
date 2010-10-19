@@ -18,7 +18,7 @@
 #include "adrian-aec.h"
 
 #ifndef DISABLE_ORC
-#include "adrian-aec-orc.h"
+#include "adrian-aec-orc-orc-gen.h"
 #endif
 
 #ifdef __SSE__

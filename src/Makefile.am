@@ -125,6 +125,15 @@ xdgautostart_DATA = $(xdgautostart_in_files:.desktop.in=.desktop)
 
 
 ###################################
+#          Includes               #
+###################################
+
+BUILT_SOURCES =
+CLEANFILES =
+include $(top_srcdir)/orc.mak
+ORC_SOURCE =
+
+###################################
 #          Main daemon            #
 ###################################
 
@@ -1293,7 +1302,7 @@ SYMDEF_FILES = \
 		module-virtual-source-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
-BUILT_SOURCES = $(SYMDEF_FILES) builddirs
+BUILT_SOURCES += $(SYMDEF_FILES) builddirs
 
 $(SYMDEF_FILES): modules/module-defs.h.m4
 	$(AM_V_at)$(MKDIR_P) modules
@@ -1694,17 +1703,21 @@ module_suspend_on_idle_la_LIBADD = $(MODULE_LIBADD)
 module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
 
 # echo-cancel module
-ORC_SOURCE=modules/echo-cancel/adrian-aec-orc
-include $(top_srcdir)/orc.mak
 module_echo_cancel_la_SOURCES = modules/echo-cancel/module-echo-cancel.c modules/echo-cancel/echo-cancel.h \
 				modules/echo-cancel/speex.c \
 				modules/echo-cancel/adrian-aec.c modules/echo-cancel/adrian-aec.h \
-				modules/echo-cancel/adrian.c modules/echo-cancel/adrian.h \
-				$(ORC_SOURCE).orc
-nodist_module_echo_cancel_la_SOURCES = $(ORC_NODIST_SOURCES)
+				modules/echo-cancel/adrian.c modules/echo-cancel/adrian.h
 module_echo_cancel_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_echo_cancel_la_LIBADD = $(MODULE_LIBADD) $(LIBSPEEX_LIBS) $(ORC_LIBS)
-module_echo_cancel_la_CFLAGS = $(AM_CFLAGS) $(LIBSPEEX_CFLAGS) $(ORC_CFLAGS) -I$(top_builddir)/src/modules/echo-cancel
+module_echo_cancel_la_LIBADD = $(MODULE_LIBADD) $(LIBSPEEX_LIBS)
+module_echo_cancel_la_CFLAGS = $(AM_CFLAGS) $(LIBSPEEX_CFLAGS)
+if HAVE_ORC
+ORC_SOURCE += modules/echo-cancel/adrian-aec-orc
+nodist_module_echo_cancel_la_SOURCES = \
+				modules/echo-cancel/adrian-aec-orc-orc-gen.c \
+				modules/echo-cancel/adrian-aec-orc-orc-gen.h
+module_echo_cancel_la_LIBADD += $(ORC_LIBS)
+module_echo_cancel_la_CFLAGS += $(ORC_CFLAGS) -I$(top_builddir)/src/modules/echo-cancel
+endif
 
 # RTP modules
 module_rtp_send_la_SOURCES = modules/rtp/module-rtp-send.c
@@ -1826,7 +1839,7 @@ module_rygel_media_server_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 #        Some minor stuff         #
 ###################################
 
-CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 start-pulseaudio-kde daemon/pulseaudio.desktop daemon/pulseaudio-kde.desktop
+CLEANFILES += esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 start-pulseaudio-kde daemon/pulseaudio.desktop daemon/pulseaudio-kde.desktop
 
 esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
