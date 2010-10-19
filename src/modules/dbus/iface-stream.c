@@ -379,7 +379,7 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessag
 
     for (i = 0; i < n_volume_entries; ++i) {
         if (!PA_VOLUME_IS_VALID(volume[i])) {
-            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too large volume value: %u", volume[i]);
+            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid volume: %u", volume[i]);
             return;
         }
         new_vol.values[i] = volume[i];
