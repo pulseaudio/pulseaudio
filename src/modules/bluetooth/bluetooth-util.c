@@ -598,67 +598,6 @@ finish:
     pa_dbus_pending_free(p);
 }
 
-static void append_variant(DBusMessageIter *iter, int type, const void *val)
-{
-    DBusMessageIter value;
-    char sig[2] = { type, '\0' };
-
-    dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, sig, &value);
-
-    dbus_message_iter_append_basic(&value, type, val);
-
-    dbus_message_iter_close_container(iter, &value);
-}
-
-static void append_array_variant(DBusMessageIter *iter, int type, const void *val, int n_elements)
-{
-    DBusMessageIter variant, array;
-    char type_sig[2] = { type, '\0' };
-    char array_sig[3] = { DBUS_TYPE_ARRAY, type, '\0' };
-
-    dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, array_sig, &variant);
-
-    dbus_message_iter_open_container(&variant, DBUS_TYPE_ARRAY, type_sig, &array);
-
-    dbus_message_iter_append_fixed_array(&array, type, val, n_elements);
-
-    dbus_message_iter_close_container(&variant, &array);
-
-    dbus_message_iter_close_container(iter, &variant);
-}
-
-static void dict_append_entry(DBusMessageIter *dict, const char *key, int type, void *val)
-{
-    DBusMessageIter entry;
-
-    if (type == DBUS_TYPE_STRING) {
-        const char *str = *((const char **) val);
-        if (str == NULL)
-            return;
-    }
-
-    dbus_message_iter_open_container(dict, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
-
-    dbus_message_iter_append_basic(&entry, DBUS_TYPE_STRING, &key);
-
-    append_variant(&entry, type, val);
-
-    dbus_message_iter_close_container(dict, &entry);
-}
-
-static void dict_append_array(DBusMessageIter *dict, const char *key, int type, void *val, int n_elements)
-{
-    DBusMessageIter entry;
-
-    dbus_message_iter_open_container(dict, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
-
-    dbus_message_iter_append_basic(&entry, DBUS_TYPE_STRING, &key);
-
-    append_array_variant(&entry, type, val, n_elements);
-
-    dbus_message_iter_close_container(dict, &entry);
-}
-
 static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const char *endpoint, const char *uuid)
 {
     DBusMessage *m;
@@ -677,13 +616,14 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
                                     DBUS_TYPE_STRING_AS_STRING DBUS_TYPE_VARIANT_AS_STRING DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
                                     &d);
 
-    dict_append_entry(&d, "UUID", DBUS_TYPE_STRING, &uuid);
+    pa_dbus_append_basic_variant_dict_entry(&d, "UUID", DBUS_TYPE_STRING, &uuid);
 
-    dict_append_entry(&d, "Codec", DBUS_TYPE_BYTE, &codec);
+    pa_dbus_append_basic_variant_dict_entry(&d, "Codec", DBUS_TYPE_BYTE, &codec);
 
     if (pa_streq(uuid, HFP_AG_UUID)) {
-        uint8_t *caps = NULL;
-        dict_append_array(&d, "Capabilities", DBUS_TYPE_BYTE, &caps, 0);
+        uint8_t capability = 0;
+        uint8_t *caps = &capability;
+        pa_dbus_append_basic_array_variant_dict_entry(&d, "Capabilities", DBUS_TYPE_BYTE, &caps, 1);
     } else {
         sbc_capabilities_raw_t capabilities;
         uint8_t *caps = (uint8_t *) &capabilities;
@@ -699,7 +639,7 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
         capabilities.min_bitpool = MIN_BITPOOL;
         capabilities.max_bitpool = MAX_BITPOOL;
 
-        dict_append_array(&d, "Capabilities", DBUS_TYPE_BYTE, &caps, sizeof(capabilities));
+        pa_dbus_append_basic_array_variant_dict_entry(&d, "Capabilities", DBUS_TYPE_BYTE, &caps, sizeof(capabilities));
     }
 
     dbus_message_iter_close_container(&i, &d);
