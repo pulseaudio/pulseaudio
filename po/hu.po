@@ -1,3 +1,4 @@
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
@@ -9,13 +10,12 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Hungarian\n"
-"X-Poedit-Country: HUNGARY\n"
-"X-Poedit-SourceCharset: utf-8\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Language: Hungarian\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Country: HUNGARY\n"
 
-#: ../src/modules/alsa/alsa-util.c:861
-#: ../src/pulsecore/sink.c:2631
+#: ../src/modules/alsa/alsa-util.c:861 ../src/pulsecore/sink.c:2631
 #, c-format
 msgid "%s %s"
 msgstr "%s %s"
@@ -125,8 +125,7 @@ msgstr "A(z) „%s” felhasználó GID azonosítója és „%s” csoportja nem
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "A(z) „%s” felhasználó Saját mappája nem „%s”. Kihagyás."
 
-#: ../src/daemon/main.c:213
-#: ../src/daemon/main.c:218
+#: ../src/daemon/main.c:213 ../src/daemon/main.c:218
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Nem sikerült létrehozni a(z) „%s” fájlt: %s"
@@ -165,7 +164,7 @@ msgstr "Nem sikerült feldolgozni a parancssort."
 
 #: ../src/daemon/main.c:535
 msgid "System mode refused for non-root user. Only starting the D-Bus server lookup service."
-msgstr ""
+msgstr "Rendszermód visszautasítva a nem root felhasználónak. Csak a D-Bus kiszolgálókikeresési szolgáltatás indul el."
 
 #: ../src/daemon/main.c:617
 msgid "Daemon not running"
@@ -196,7 +195,7 @@ msgstr "--start nem támogatott rendszer üzemmód használata esetén."
 #: ../src/daemon/main.c:676
 #, c-format
 msgid "User-configured server at %s, not autospawning."
-msgstr ""
+msgstr "Felhasználó által beállított kiszolgáló itt: %s, nincs automatikus indítás."
 
 #: ../src/daemon/main.c:683
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -223,14 +222,12 @@ msgstr "Nem sikerült jogot szerezni az alapértelmezett ki- és bemenetre (stdi
 msgid "pipe() failed: %s"
 msgstr "pipe() meghiúsult: %s"
 
-#: ../src/daemon/main.c:731
-#: ../src/daemon/main.c:790
+#: ../src/daemon/main.c:731 ../src/daemon/main.c:790
 #, c-format
 msgid "fork() failed: %s"
 msgstr "Programindítás meghiúsult: %s"
 
-#: ../src/daemon/main.c:745
-#: ../src/utils/pacat.c:529
+#: ../src/daemon/main.c:745 ../src/utils/pacat.c:529
 #, c-format
 msgid "read() failed: %s"
 msgstr "Olvasás meghiúsult: %s"
@@ -654,8 +651,7 @@ msgstr "PulseAudio hangrendszer"
 msgid "Start the PulseAudio Sound System"
 msgstr "A PulseAudio hangrendszer elindítása"
 
-#: ../src/pulse/channelmap.c:105
-#: ../src/pulse/channelmap.c:757
+#: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
 msgid "Mono"
 msgstr "Mono"
 
@@ -859,12 +855,9 @@ msgstr "Felső hátsó bal"
 msgid "Top Rear Right"
 msgstr "Felső hátsó jobb"
 
-#: ../src/pulse/channelmap.c:484
-#: ../src/pulse/sample.c:170
-#: ../src/pulse/volume.c:295
-#: ../src/pulse/volume.c:321
-#: ../src/pulse/volume.c:341
-#: ../src/pulse/volume.c:371
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
+#: ../src/pulse/volume.c:295 ../src/pulse/volume.c:321
+#: ../src/pulse/volume.c:341 ../src/pulse/volume.c:371
 msgid "(invalid)"
 msgstr "(Érvénytelen)"
 
@@ -1025,8 +1018,7 @@ msgstr "%0.1f KiB"
 msgid "%u B"
 msgstr "%u B"
 
-#: ../src/pulse/client-conf-x11.c:55
-#: ../src/utils/pax11publish.c:100
+#: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
 msgstr "Az XOpenDisplay() függvényhívás meghiúsult."
 
@@ -1086,8 +1078,7 @@ msgstr "A „pa_stream_write()” függvényhívás meghiúsult: %s"
 msgid "pa_stream_begin_write() failed: %s"
 msgstr "A „pa_stream_begin_write()” függvényhívás meghiúsult: %s"
 
-#: ../src/utils/pacat.c:252
-#: ../src/utils/pacat.c:282
+#: ../src/utils/pacat.c:252 ../src/utils/pacat.c:282
 #, c-format
 msgid "pa_stream_peek() failed: %s"
 msgstr "A „pa_stream_peek()” függvényhívás meghiúsult: %s"
@@ -1185,8 +1176,7 @@ msgstr "A „pa_stream_connect_playback()” függvényhívás meghiúsult: %s"
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "A „pa_stream_connect_record()” függvényhívás meghiúsult: %s"
 
-#: ../src/utils/pacat.c:491
-#: ../src/utils/pactl.c:949
+#: ../src/utils/pacat.c:491 ../src/utils/pactl.c:949
 #, c-format
 msgid "Connection failure: %s"
 msgstr "Kapcsolódási hiba: %s"
@@ -1309,8 +1299,7 @@ msgstr ""
 "Összeépítve a libpulse %s programkönyvtárral\n"
 "Csatolva a libpulse %s programkönyvtárhoz\n"
 
-#: ../src/utils/pacat.c:791
-#: ../src/utils/pactl.c:1046
+#: ../src/utils/pacat.c:791 ../src/utils/pactl.c:1046
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "Érvénytelen kliensnév: „%s”"
@@ -1325,14 +1314,12 @@ msgstr "Érvénytelen adatfolyam-név: „%s”"
 msgid "Invalid channel map '%s'"
 msgstr "Érvénytelen csatornaleképzés: „%s”"
 
-#: ../src/utils/pacat.c:872
-#: ../src/utils/pacat.c:886
+#: ../src/utils/pacat.c:872 ../src/utils/pacat.c:886
 #, c-format
 msgid "Invalid latency specification '%s'"
 msgstr "Érvénytelen késleltetés leírás: „%s”"
 
-#: ../src/utils/pacat.c:879
-#: ../src/utils/pacat.c:893
+#: ../src/utils/pacat.c:879 ../src/utils/pacat.c:893
 #, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "Érvénytelen műveleti idő leírás: „%s”"
@@ -1377,8 +1364,7 @@ msgstr "Nem sikerült megnyitni a hangfájlt."
 msgid "Warning: specified sample specification will be overwritten with specification from file."
 msgstr "Figyelmeztetés: a megadott mintavételi leírás felül lesz írva a fájlból származó mintavételi leírással."
 
-#: ../src/utils/pacat.c:1003
-#: ../src/utils/pactl.c:1090
+#: ../src/utils/pacat.c:1003 ../src/utils/pactl.c:1090
 msgid "Failed to determine sample specification from file."
 msgstr "Nem sikerült meghatározni a mintavételi leírást a fájlból."
 
@@ -1407,8 +1393,7 @@ msgstr "Felvétel"
 msgid "playback"
 msgstr "Lejátszás"
 
-#: ../src/utils/pacat.c:1076
-#: ../src/utils/pactl.c:1364
+#: ../src/utils/pacat.c:1076 ../src/utils/pactl.c:1364
 msgid "pa_mainloop_new() failed."
 msgstr "A „pa_mainloop_new()” függvényhívás meghiúsult."
 
@@ -1416,13 +1401,11 @@ msgstr "A „pa_mainloop_new()” függvényhívás meghiúsult."
 msgid "io_new() failed."
 msgstr "A „io_new()” függvényhívás meghiúsult."
 
-#: ../src/utils/pacat.c:1102
-#: ../src/utils/pactl.c:1376
+#: ../src/utils/pacat.c:1102 ../src/utils/pactl.c:1376
 msgid "pa_context_new() failed."
 msgstr "A „pa_context_new()” függvényhívás meghiúsult."
 
-#: ../src/utils/pacat.c:1110
-#: ../src/utils/pactl.c:1382
+#: ../src/utils/pacat.c:1110 ../src/utils/pactl.c:1382
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "A „pa_context_connect()” függvényhívás meghiúsult: %s"
@@ -1431,8 +1414,7 @@ msgstr "A „pa_context_connect()” függvényhívás meghiúsult: %s"
 msgid "pa_context_rttime_new() failed."
 msgstr "A „pa_context_rttime_new()” függvényhívás meghiúsult."
 
-#: ../src/utils/pacat.c:1123
-#: ../src/utils/pactl.c:1387
+#: ../src/utils/pacat.c:1123 ../src/utils/pactl.c:1387
 msgid "pa_mainloop_run() failed."
 msgstr "A „pa_mainloop_run()” függvényhívás meghiúsult."
 
@@ -1627,14 +1609,12 @@ msgstr ""
 "\tTulajdonságok:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:281
-#: ../src/utils/pactl.c:373
+#: ../src/utils/pactl.c:281 ../src/utils/pactl.c:373
 #, c-format
 msgid "\tPorts:\n"
 msgstr "\tPort:\n"
 
-#: ../src/utils/pactl.c:287
-#: ../src/utils/pactl.c:379
+#: ../src/utils/pactl.c:287 ../src/utils/pactl.c:379
 #, c-format
 msgid "\tActive Port: %s\n"
 msgstr "\tAktív Port: %s\n"
@@ -1683,18 +1663,10 @@ msgstr ""
 "\tTulajdonságok:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:358
-#: ../src/utils/pactl.c:414
-#: ../src/utils/pactl.c:449
-#: ../src/utils/pactl.c:486
-#: ../src/utils/pactl.c:545
-#: ../src/utils/pactl.c:546
-#: ../src/utils/pactl.c:556
-#: ../src/utils/pactl.c:600
-#: ../src/utils/pactl.c:601
-#: ../src/utils/pactl.c:607
-#: ../src/utils/pactl.c:650
-#: ../src/utils/pactl.c:651
+#: ../src/utils/pactl.c:358 ../src/utils/pactl.c:414 ../src/utils/pactl.c:449
+#: ../src/utils/pactl.c:486 ../src/utils/pactl.c:545 ../src/utils/pactl.c:546
+#: ../src/utils/pactl.c:556 ../src/utils/pactl.c:600 ../src/utils/pactl.c:601
+#: ../src/utils/pactl.c:607 ../src/utils/pactl.c:650 ../src/utils/pactl.c:651
 #: ../src/utils/pactl.c:658
 msgid "n/a"
 msgstr "ismeretlen"
@@ -1885,8 +1857,7 @@ msgstr ""
 "\tTulajdonságok:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:666
-#: ../src/utils/pactl.c:676
+#: ../src/utils/pactl.c:666 ../src/utils/pactl.c:676
 #, c-format
 msgid "Failure: %s"
 msgstr "Hiba: %s"
@@ -1912,8 +1883,7 @@ msgstr "változás"
 msgid "remove"
 msgstr "eltávolítás"
 
-#: ../src/utils/pactl.c:746
-#: ../src/utils/pactl.c:781
+#: ../src/utils/pactl.c:746 ../src/utils/pactl.c:781
 msgid "unknown"
 msgstr "ismeretlen"
 
@@ -1945,8 +1915,7 @@ msgstr "kliens"
 msgid "sample-cache"
 msgstr "mintatár"
 
-#: ../src/utils/pactl.c:775
-#: ../src/utils/pactl.c:778
+#: ../src/utils/pactl.c:775 ../src/utils/pactl.c:778
 msgid "server"
 msgstr "kiszolgáló"
 
@@ -2091,12 +2060,9 @@ msgstr "Meg kell adnia a forrás nevét vagy azonosítóját és a port nevét"
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Meg kell adnia a nyelő nevét vagy azonosítóját és a hangerejét."
 
-#: ../src/utils/pactl.c:1247
-#: ../src/utils/pactl.c:1264
-#: ../src/utils/pactl.c:1286
-#: ../src/utils/pactl.c:1302
-#: ../src/utils/pactl.c:1319
-#: ../src/utils/pactl.c:1341
+#: ../src/utils/pactl.c:1247 ../src/utils/pactl.c:1264
+#: ../src/utils/pactl.c:1286 ../src/utils/pactl.c:1302
+#: ../src/utils/pactl.c:1319 ../src/utils/pactl.c:1341
 msgid "Invalid volume specification"
 msgstr "A hangerő megadása érvénytelen."
 
@@ -2236,25 +2202,21 @@ msgstr "A démon nem válaszol."
 msgid "poll(): %s"
 msgstr "Lekérdezés: %s"
 
-#: ../src/utils/pacmd.c:189
-#: ../src/utils/pacmd.c:209
+#: ../src/utils/pacmd.c:189 ../src/utils/pacmd.c:209
 #, c-format
 msgid "read(): %s"
 msgstr "Olvasás: %s"
 
-#: ../src/utils/pacmd.c:231
-#: ../src/utils/pacmd.c:249
+#: ../src/utils/pacmd.c:231 ../src/utils/pacmd.c:249
 #, c-format
 msgid "write(): %s"
 msgstr "Írás: %s"
 
-#: ../src/pulsecore/lock-autospawn.c:134
-#: ../src/pulsecore/lock-autospawn.c:217
+#: ../src/pulsecore/lock-autospawn.c:134 ../src/pulsecore/lock-autospawn.c:217
 msgid "Cannot access autospawn lock."
 msgstr "Nem érhető zárolás az automatikus indításhoz."
 
-#: ../src/modules/alsa/alsa-sink.c:530
-#: ../src/modules/alsa/alsa-sink.c:689
+#: ../src/modules/alsa/alsa-sink.c:530 ../src/modules/alsa/alsa-sink.c:689
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually nothing to write!\n"
@@ -2265,8 +2227,7 @@ msgstr ""
 "Ez egy hiba lehet az ALSA „%s” eszközmeghajtóban. Kérem jelentse ezt a problémát az ALSA fejlesztői felé.\n"
 "Az értesítés a POLLOUT jelzésen keresztül érkezett – viszont a „snd_pcm_avail()” függvény visszatérési értéke 0 volt vagy a második érték kisebb volt, mint a minimum."
 
-#: ../src/modules/alsa/alsa-source.c:506
-#: ../src/modules/alsa/alsa-source.c:656
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually nothing to read!\n"
@@ -2438,8 +2399,7 @@ msgstr "Analóg hangszóró"
 msgid "%s+%s"
 msgstr "%s+%s"
 
-#: ../src/modules/alsa/alsa-mixer.c:1989
-#: ../src/modules/alsa/alsa-mixer.c:3409
+#: ../src/modules/alsa/alsa-mixer.c:1989 ../src/modules/alsa/alsa-mixer.c:3409
 #, c-format
 msgid "%s / %s"
 msgstr "%s / %s"
@@ -2530,4 +2490,3 @@ msgstr "Analóg sztereó duplex (IEC958)"
 
 #~ msgid "Low Frequency Emmiter"
 #~ msgstr "Mély-hangszóró (LFE)"
-
