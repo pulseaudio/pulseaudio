@@ -966,6 +966,7 @@ int main(int argc, char *argv[]) {
             c->cpu_info.cpu_type = PA_CPU_X86;
         if (pa_cpu_init_arm(&(c->cpu_info.flags.arm)))
             c->cpu_info.cpu_type = PA_CPU_ARM;
+	pa_cpu_init_orc(c->cpu_info);
     }
 
     pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);

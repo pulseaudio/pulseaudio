@@ -850,6 +850,7 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/cpu.h \
 		pulsecore/cpu-arm.c pulsecore/cpu-arm.h \
 		pulsecore/cpu-x86.c pulsecore/cpu-x86.h \
+		pulsecore/cpu-orc.c pulsecore/cpu-orc.h \
 		pulsecore/svolume_c.c pulsecore/svolume_arm.c \
 		pulsecore/svolume_mmx.c pulsecore/svolume_sse.c \
 		pulsecore/sconv-s16be.c pulsecore/sconv-s16be.h \
@@ -873,6 +874,14 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
 libpulsecore_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSPEEX_CFLAGS) $(LIBSNDFILE_CFLAGS) $(WINSOCK_CFLAGS)
 libpulsecore_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libpulsecore_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSPEEX_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINOR@.la libpulse.la libpulsecore-foreign.la
+
+if HAVE_ORC
+ORC_SOURCE += pulsecore/svolume
+libpulsecore_@PA_MAJORMINOR@_la_SOURCES += pulsecore/svolume_orc.c
+nodist_libpulsecore_@PA_MAJORMINOR@_la_SOURCES = pulsecore/svolume-orc-gen.c pulsecore/svolume-orc-gen.h
+libpulsecore_@PA_MAJORMINOR@_la_CFLAGS += $(ORC_CFLAGS)
+libpulsecore_@PA_MAJORMINOR@_la_LIBADD += $(ORC_LIBS)
+endif
 
 if HAVE_X11
 libpulsecore_@PA_MAJORMINOR@_la_SOURCES += pulsecore/x11wrap.c pulsecore/x11wrap.h
