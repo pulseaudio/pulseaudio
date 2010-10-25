@@ -1711,10 +1711,10 @@ module_echo_cancel_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_echo_cancel_la_LIBADD = $(MODULE_LIBADD) $(LIBSPEEX_LIBS)
 module_echo_cancel_la_CFLAGS = $(AM_CFLAGS) $(LIBSPEEX_CFLAGS)
 if HAVE_ORC
-ORC_SOURCE += modules/echo-cancel/adrian-aec-orc
+ORC_SOURCE += modules/echo-cancel/adrian-aec
 nodist_module_echo_cancel_la_SOURCES = \
-				modules/echo-cancel/adrian-aec-orc-orc-gen.c \
-				modules/echo-cancel/adrian-aec-orc-orc-gen.h
+				modules/echo-cancel/adrian-aec-orc-gen.c \
+				modules/echo-cancel/adrian-aec-orc-gen.h
 module_echo_cancel_la_LIBADD += $(ORC_LIBS)
 module_echo_cancel_la_CFLAGS += $(ORC_CFLAGS) -I$(top_builddir)/src/modules/echo-cancel
 endif
