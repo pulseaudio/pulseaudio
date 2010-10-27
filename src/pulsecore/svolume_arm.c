@@ -130,7 +130,7 @@ pa_volume_s16ne_arm (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 
 #ifdef RUN_TEST
 #define CHANNELS 2
-#define SAMPLES 1023
+#define SAMPLES 1022
 #define TIMES 1000
 #define PADDING 16
 

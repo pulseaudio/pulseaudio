@@ -255,7 +255,7 @@ pa_volume_s16re_sse2 (int16_t *samples, int32_t *volumes, unsigned channels, uns
 
 #ifdef RUN_TEST
 #define CHANNELS 2
-#define SAMPLES 1021
+#define SAMPLES 1022
 #define TIMES 1000
 #define PADDING 16
 
