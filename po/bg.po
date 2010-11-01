@@ -1,0 +1,409 @@
+# Bulgarian translation.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the pulseaudio package.
+# Svetoslav Stefanov <lfu.project@gmail.com>.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: pulseaudio\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-10-14 17:10+0200\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Svetoslav Stefanov <lfu.project@gmail.com>\n"
+"Language-Team: Svetoslav Stefanov <lfu.project@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Bulgarian\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Poedit-Country: BULGARIA\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: ../src/pavucontrol.desktop.in.h:1
+msgid "Adjust the volume level"
+msgstr "Нагласяване на силата на звука"
+
+#: ../src/pavucontrol.desktop.in.h:2
+#: ../src/pavucontrol.cc:476
+msgid "PulseAudio Volume Control"
+msgstr "Сила на звука на PulseAudio"
+
+#: ../src/pavucontrol.desktop.in.h:3
+#: ../src/pavucontrol.glade.h:32
+msgid "Volume Control"
+msgstr "Сила на звука"
+
+#: ../src/pavucontrol.glade.h:2
+#, no-c-format
+msgid "50%"
+msgstr "50%"
+
+#: ../src/pavucontrol.glade.h:3
+msgid "<b>Port:</b>"
+msgstr "<b>Порт:</b>"
+
+#: ../src/pavucontrol.glade.h:4
+msgid "<b>Profile:</b>"
+msgstr "<b>Профил:</b>"
+
+#: ../src/pavucontrol.glade.h:5
+msgid "<b>S_how:</b>"
+msgstr "<b>_Показване:</b>"
+
+#: ../src/pavucontrol.glade.h:6
+msgid "<b>Sho_w:</b>"
+msgstr "<b>По_казване:</b>"
+
+#: ../src/pavucontrol.glade.h:7
+msgid "<b>_Show:</b>"
+msgstr "<b>Пок_азване:</b>"
+
+#: ../src/pavucontrol.glade.h:8
+msgid "<b>left-front</b>"
+msgstr "<b>преден ляв</b>"
+
+#: ../src/pavucontrol.glade.h:9
+msgid "<i>No application is currently playing audio.</i>"
+msgstr "<i>В момента няма програма, която възпроизвежда звук.</i>"
+
+#: ../src/pavucontrol.glade.h:10
+msgid "<i>No application is currently recording audio.</i>"
+msgstr "<i>В момента няма програма, която записва звук.</i>"
+
+#: ../src/pavucontrol.glade.h:11
+msgid "<i>No cards available for configuration</i>"
+msgstr "<i>Няма налични карти за конфигурацията</i>"
+
+#: ../src/pavucontrol.glade.h:12
+msgid "<i>No input devices available</i>"
+msgstr "<i>Няма налични входни устройства</i>"
+
+#: ../src/pavucontrol.glade.h:13
+msgid "<i>No output devices available</i>"
+msgstr "<i>Няма налични изходни устойства</i>"
+
+#: ../src/pavucontrol.glade.h:14
+msgid ""
+"All Input Devices\n"
+"All Except Monitors\n"
+"Hardware Input Devices\n"
+"Virtual Input Devices\n"
+"Monitors"
+msgstr ""
+"Всички входни устройства\n"
+"Всички, без мониторите\n"
+"Хардуерни входни устройства\n"
+"Виртуални входни устройства\n"
+"Монитори"
+
+#: ../src/pavucontrol.glade.h:19
+msgid ""
+"All Output Devices\n"
+"Hardware Output Devices\n"
+"Virtual Output Devices"
+msgstr ""
+"Всички изходни устройста\n"
+"Хардуерни изходни устройства\n"
+"Виртуални изходни устройства"
+
+#. Applications All streams
+#: ../src/pavucontrol.glade.h:23
+msgid ""
+"All Streams\n"
+"Applications\n"
+"Virtual Streams"
+msgstr ""
+"Всички потоци\n"
+"Приложения\n"
+"Виртуални потоци"
+
+#: ../src/pavucontrol.glade.h:26
+msgid "Card Name"
+msgstr "Име на картата"
+
+#: ../src/pavucontrol.glade.h:27
+msgid "Device"
+msgstr "Устройство"
+
+#: ../src/pavucontrol.glade.h:28
+msgid "Lock channels together"
+msgstr "Заключване на каналите заедно"
+
+#: ../src/pavucontrol.glade.h:29
+msgid "Mute audio"
+msgstr "Изключване на звука"
+
+#: ../src/pavucontrol.glade.h:30
+msgid "Set as fallback"
+msgstr "Да бъде по подразбиране"
+
+#: ../src/pavucontrol.glade.h:31
+msgid "Stream Title"
+msgstr "Име на потока"
+
+#: ../src/pavucontrol.glade.h:33
+msgid "_Configuration"
+msgstr "_Конфигурация"
+
+#: ../src/pavucontrol.glade.h:34
+msgid "_Input Devices"
+msgstr "_Входни устройства"
+
+#: ../src/pavucontrol.glade.h:35
+msgid "_Output Devices"
+msgstr "_Изходни устройства"
+
+#: ../src/pavucontrol.glade.h:36
+msgid "_Playback"
+msgstr "_Възпроизвеждане"
+
+#: ../src/pavucontrol.glade.h:37
+msgid "_Recording"
+msgstr "_Запис"
+
+#: ../src/pavucontrol.glade.h:38
+msgid "direction"
+msgstr "посока"
+
+#: ../src/pavucontrol.cc:73
+msgid "Card callback failure"
+msgstr "Неуспех при обратно извикване на картата"
+
+#: ../src/pavucontrol.cc:92
+msgid "Sink callback failure"
+msgstr "Неуспех при обратно извикване на елемента-приемник"
+
+#: ../src/pavucontrol.cc:111
+msgid "Source callback failure"
+msgstr "Неуспех при обратно извикване на източника"
+
+#: ../src/pavucontrol.cc:130
+msgid "Sink input callback failure"
+msgstr ""
+
+#: ../src/pavucontrol.cc:149
+msgid "Source output callback failure"
+msgstr ""
+
+#: ../src/pavucontrol.cc:183
+msgid "Client callback failure"
+msgstr "Неуспех при обратно извикване на клиента"
+
+#: ../src/pavucontrol.cc:199
+msgid "Server info callback failure"
+msgstr "Неуспрех при обратно извикване на информация за сървъра"
+
+#: ../src/pavucontrol.cc:217
+#: ../src/pavucontrol.cc:430
+#, c-format
+msgid "Failed to initialize stream_restore extension: %s"
+msgstr "Неуспех при инициализиране на разширението stream_restore: %s"
+
+#: ../src/pavucontrol.cc:235
+msgid "pa_ext_stream_restore_read() failed"
+msgstr "Неуспех на pa_ext_stream_restore_read()"
+
+#: ../src/pavucontrol.cc:252
+msgid "pa_context_get_sink_info_by_index() failed"
+msgstr "Неуспех на pa_context_get_sink_info_by_index()"
+
+#: ../src/pavucontrol.cc:265
+msgid "pa_context_get_source_info_by_index() failed"
+msgstr "Неуспех на pa_context_get_source_info_by_index()"
+
+#: ../src/pavucontrol.cc:278
+#: ../src/pavucontrol.cc:291
+msgid "pa_context_get_sink_input_info() failed"
+msgstr "Неуспех на pa_context_get_sink_input_info()"
+
+#: ../src/pavucontrol.cc:304
+msgid "pa_context_get_client_info() failed"
+msgstr "Неуспех на pa_context_get_client_info()"
+
+#: ../src/pavucontrol.cc:314
+#: ../src/pavucontrol.cc:371
+msgid "pa_context_get_server_info() failed"
+msgstr "Неуспех на pa_context_get_server_info()"
+
+#: ../src/pavucontrol.cc:327
+msgid "pa_context_get_card_info_by_index() failed"
+msgstr "Неуспех на pa_context_get_card_info_by_index()"
+
+#: ../src/pavucontrol.cc:362
+msgid "pa_context_subscribe() failed"
+msgstr "Неуспех на pa_context_subscribe()"
+
+#: ../src/pavucontrol.cc:378
+msgid "pa_context_client_info_list() failed"
+msgstr "Сбой pa_context_client_info_list()"
+
+#: ../src/pavucontrol.cc:385
+msgid "pa_context_get_card_info_list() failed"
+msgstr "Неуспех на pa_context_get_card_info_list()"
+
+#: ../src/pavucontrol.cc:392
+msgid "pa_context_get_sink_info_list() failed"
+msgstr "Неуспех на pa_context_get_sink_info_list()"
+
+#: ../src/pavucontrol.cc:399
+msgid "pa_context_get_source_info_list() failed"
+msgstr "Неуспех на pa_context_get_source_info_list()"
+
+#: ../src/pavucontrol.cc:406
+msgid "pa_context_get_sink_input_info_list() failed"
+msgstr "Неуспех на pa_context_get_sink_input_info_list()"
+
+#: ../src/pavucontrol.cc:413
+msgid "pa_context_get_source_output_info_list() failed"
+msgstr "Неуспех на pa_context_get_source_output_info_list()"
+
+#: ../src/pavucontrol.cc:437
+msgid "Connection failed"
+msgstr "Неуспех при свързването"
+
+#: ../src/cardwidget.cc:87
+msgid "pa_context_set_card_profile_by_index() failed"
+msgstr "Сбой pa_context_set_card_profile_by_index()"
+
+#: ../src/channelwidget.cc:104
+msgid "<small>Silence</small>"
+msgstr "<small>Тишина</small>"
+
+#: ../src/channelwidget.cc:104
+msgid "<small>Min</small>"
+msgstr "<small>Минимум</small>"
+
+#: ../src/channelwidget.cc:105
+msgid "<small>Max</small>"
+msgstr "<small>Максимум</small>"
+
+#: ../src/channelwidget.cc:109
+msgid "<small><i>Base</i></small>"
+msgstr "<small><i>База</i></small>"
+
+#: ../src/mainwindow.cc:269
+msgid "Failed to read data from stream"
+msgstr "Неуспех при прочитането на данни от потока"
+
+#: ../src/mainwindow.cc:304
+#: ../src/mainwindow.cc:341
+msgid "Peak detect"
+msgstr "Засичане на максимумите"
+
+#: ../src/mainwindow.cc:305
+#: ../src/mainwindow.cc:342
+msgid "Failed to create monitoring stream"
+msgstr "Неуспех при създаване на поток за наблюдение"
+
+#: ../src/mainwindow.cc:313
+#: ../src/mainwindow.cc:351
+msgid "Failed to connect monitoring stream"
+msgstr "Неуспех при свързване на поток за наблюдение"
+
+#: ../src/mainwindow.cc:466
+msgid "Ignoring sink-input due to it being designated as an event and thus handled by the Event widget"
+msgstr ""
+
+#: ../src/mainwindow.cc:618
+msgid "System Sounds"
+msgstr "Системни звуци"
+
+#: ../src/rolewidget.cc:71
+msgid "pa_ext_stream_restore_write() failed"
+msgstr "Неуспех на pa_ext_stream_restore_write()"
+
+#: ../src/sinkinputwidget.cc:35
+msgid "on"
+msgstr ""
+
+#: ../src/sinkinputwidget.cc:38
+msgid "Terminate Playback"
+msgstr "Прекратяване на изпълнението"
+
+#: ../src/sinkinputwidget.cc:61
+msgid "Unknown output"
+msgstr "Неизвестен изход"
+
+#: ../src/sinkinputwidget.cc:72
+msgid "pa_context_set_sink_input_volume() failed"
+msgstr "Неуспех на pa_context_set_sink_input_volume()"
+
+#: ../src/sinkinputwidget.cc:87
+msgid "pa_context_set_sink_input_mute() failed"
+msgstr "Неуспех на pa_context_set_sink_input_mute()"
+
+#: ../src/sinkinputwidget.cc:97
+msgid "pa_context_kill_sink_input() failed"
+msgstr "Неуспех на pa_context_kill_sink_input()"
+
+#: ../src/sinkinputwidget.cc:133
+msgid "pa_context_move_sink_input_by_index() failed"
+msgstr "Неуспех на pa_context_move_sink_input_by_index()"
+
+#: ../src/sinkwidget.cc:48
+msgid "pa_context_set_sink_volume_by_index() failed"
+msgstr "Неуспех на pa_context_set_sink_volume_by_index()"
+
+#: ../src/sinkwidget.cc:63
+msgid "Volume Control Feedback Sound"
+msgstr ""
+
+#: ../src/sinkwidget.cc:80
+msgid "pa_context_set_sink_mute_by_index() failed"
+msgstr "Неуспех на pa_context_set_sink_mute_by_index() "
+
+#: ../src/sinkwidget.cc:94
+msgid "pa_context_set_default_sink() failed"
+msgstr "Неуспех на pa_context_set_default_sink()"
+
+#: ../src/sinkwidget.cc:114
+msgid "pa_context_set_sink_port_by_index() failed"
+msgstr "Неуспех на pa_context_set_sink_port_by_index()"
+
+#: ../src/sourceoutputwidget.cc:35
+msgid "from"
+msgstr "от"
+
+#: ../src/sourceoutputwidget.cc:38
+msgid "Terminate Recording"
+msgstr "Прекратяване на записа"
+
+#: ../src/sourceoutputwidget.cc:61
+msgid "Unknown input"
+msgstr "Неизвестен вход"
+
+#: ../src/sourceoutputwidget.cc:71
+msgid "pa_context_kill_source_output() failed"
+msgstr "Неуспех на pa_context_kill_source_output()"
+
+#: ../src/sourceoutputwidget.cc:108
+msgid "pa_context_move_source_output_by_index() failed"
+msgstr "Неуспех на pa_context_move_source_output_by_index()"
+
+#: ../src/sourcewidget.cc:44
+msgid "pa_context_set_source_volume_by_index() failed"
+msgstr "Неуспех на pa_context_set_source_volume_by_index()"
+
+#: ../src/sourcewidget.cc:59
+msgid "pa_context_set_source_mute_by_index() failed"
+msgstr "Неуспех на pa_context_set_source_mute_by_index()"
+
+#: ../src/sourcewidget.cc:73
+msgid "pa_context_set_default_source() failed"
+msgstr "Неуспех на pa_context_set_default_source()"
+
+#: ../src/sourcewidget.cc:95
+msgid "pa_context_set_source_port_by_index() failed"
+msgstr "Неуспех на pa_context_set_source_port_by_index()"
+
+#: ../src/streamwidget.cc:45
+msgid "Terminate"
+msgstr "Прекратяване"
+
+#~ msgid "Open menu"
+#~ msgstr "Открыть меню"
+#~ msgid "_Move Stream..."
+#~ msgstr "П_ереместить поток..."
+#~ msgid "_Default"
+#~ msgstr "_По умолчанию"
+
