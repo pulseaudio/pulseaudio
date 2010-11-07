@@ -1186,8 +1186,9 @@ msgstr "waitpid(): %s"
 msgid "Received message for unknown extension '%s'"
 msgstr "Получено сообщение для неизвестного расширения «%s»"
 
+# How to distinguish this from "tunneling"?
 #: ../src/utils/pacat.c:110
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to drain stream: %s"
 msgstr "Не удалось создать туннель для потока: %s"
 
