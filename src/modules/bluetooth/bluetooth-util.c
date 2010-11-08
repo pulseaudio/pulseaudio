@@ -955,12 +955,14 @@ int pa_bluetooth_transport_acquire(const pa_bluetooth_transport *t, const char *
         return -1;
     }
 
+#ifdef DBUS_TYPE_UNIX_FD
     if (!dbus_message_get_args(r, &err, DBUS_TYPE_UNIX_FD, &ret, DBUS_TYPE_INVALID)) {
         pa_log("Failed to parse org.bluez.MediaTransport.Acquire(): %s", err.message);
         ret = -1;
         dbus_error_free(&err);
         goto fail;
     }
+#endif
 
 fail:
     dbus_message_unref(r);
