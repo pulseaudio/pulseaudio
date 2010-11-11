@@ -399,8 +399,6 @@ success:
 
     ret = 0;
 
-    snd_pcm_nonblock(pcm_handle, 1);
-
 finish:
 
     return ret;
