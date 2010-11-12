@@ -47,6 +47,7 @@
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/time-smoother.h>
+#include <pulsecore/strlist.h>
 
 #include "module-combine-symdef.h"
 
@@ -124,6 +125,8 @@ struct userdata {
 
     pa_bool_t automatic;
     pa_bool_t auto_desc;
+
+    pa_strlist *unlinked_slaves;
 
     pa_hook_slot *sink_put_slot, *sink_unlink_slot, *sink_state_changed_slot;
 
@@ -1026,10 +1029,22 @@ static pa_hook_result_t sink_put_hook_cb(pa_core *c, pa_sink *s, struct userdata
     pa_core_assert_ref(c);
     pa_sink_assert_ref(s);
     pa_assert(u);
-    pa_assert(u->automatic);
 
     if (!is_suitable_sink(u, s))
         return PA_HOOK_OK;
+
+    /* Check if the sink is a previously unlinked slave (non-automatic mode) */
+    if (!u->automatic) {
+        pa_strlist *l = u->unlinked_slaves;
+
+        while (l && !pa_streq(pa_strlist_data(l), s->name))
+            l = pa_strlist_next(l);
+
+        if (l)
+            u->unlinked_slaves = pa_strlist_remove(u->unlinked_slaves, s->name);
+        else
+            return PA_HOOK_OK;
+    }
 
     pa_log_info("Configuring new sink: %s", s->name);
     if (!(o = output_new(u, s))) {
@@ -1072,6 +1087,10 @@ static pa_hook_result_t sink_unlink_hook_cb(pa_core *c, pa_sink *s, struct userd
         return PA_HOOK_OK;
 
     pa_log_info("Unconfiguring sink: %s", s->name);
+
+    if (!u->automatic)
+        u->unlinked_slaves = pa_strlist_prepend(u->unlinked_slaves, s->name);
+
     output_free(o);
 
     return PA_HOOK_OK;
@@ -1297,10 +1316,9 @@ int pa__init(pa_module*m) {
                 goto fail;
             }
         }
-
-        u->sink_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_put_hook_cb, u);
     }
 
+    u->sink_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_put_hook_cb, u);
     u->sink_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_EARLY, (pa_hook_cb_t) sink_unlink_hook_cb, u);
     u->sink_state_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_state_changed_hook_cb, u);
 
@@ -1340,6 +1358,8 @@ void pa__done(pa_module*m) {
 
     if (!(u = m->userdata))
         return;
+
+    pa_strlist_free(u->unlinked_slaves);
 
     if (u->sink_put_slot)
         pa_hook_slot_free(u->sink_put_slot);
