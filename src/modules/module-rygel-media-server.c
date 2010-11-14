@@ -52,33 +52,52 @@ PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("UPnP MediaServer Plugin for Rygel");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
-PA_MODULE_USAGE(
-        "display_name=<UPnP Media Server name>");
+PA_MODULE_USAGE("display_name=<UPnP Media Server name>");
 
-/* This implements http://live.gnome.org/Rygel/MediaServerSpec */
+/* This implements http://live.gnome.org/Rygel/MediaServer2Spec */
 
-#define SERVICE_NAME "org.gnome.UPnP.MediaServer1.PulseAudio"
+#define SERVICE_NAME "org.gnome.UPnP.MediaServer2.PulseAudio"
 
-#define OBJECT_ROOT "/org/gnome/UPnP/MediaServer1/PulseAudio"
-#define OBJECT_SINKS "/org/gnome/UPnP/MediaServer1/PulseAudio/Sinks"
-#define OBJECT_SOURCES "/org/gnome/UPnP/MediaServer1/PulseAudio/Sources"
+#define OBJECT_ROOT "/org/gnome/UPnP/MediaServer2/PulseAudio"
+#define OBJECT_SINKS "/org/gnome/UPnP/MediaServer2/PulseAudio/Sinks"
+#define OBJECT_SOURCES "/org/gnome/UPnP/MediaServer2/PulseAudio/Sources"
 
 #define CONTAINER_INTROSPECT_XML_PREFIX                                 \
     DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE                           \
     "<node>"                                                            \
     " <!-- If you are looking for documentation make sure to check out" \
-    "      http://live.gnome.org/Rygel/MediaServerSpec -->"             \
-    " <interface name=\"org.gnome.UPnP.MediaContainer1\">"              \
+    "      http://live.gnome.org/Rygel/MediaServer2Spec -->"            \
+    " <interface name=\"org.gnome.UPnP.MediaContainer2\">"              \
+    "  <method name='ListChildren'>"                                    \
+    "   <arg direction='in' name='offset' type='u' />"                  \
+    "   <arg direction='in' name='max' type='u' />"                     \
+    "   <arg direction='in' name='filter' type='as' />"                 \
+    "   <arg direction='out' type='aa{sv}' />"                          \
+    "  </method>"                                                       \
+    "  <method name='ListContainers'>"                                  \
+    "   <arg direction='in' name='offset' type='u' />"                  \
+    "   <arg direction='in' name='max' type='u' />"                     \
+    "   <arg direction='in' name='filter' type='as' />"                 \
+    "   <arg direction='out' type='aa{sv}' />"                          \
+    "  </method>"                                                       \
+    "  <method name='ListItems'>"                                       \
+    "   <arg direction='in' name='offset' type='u' />"                  \
+    "   <arg direction='in' name='max' type='u' />"                     \
+    "   <arg direction='in' name='filter' type='as' />"                 \
+    "   <arg direction='out' type='aa{sv}' />"                          \
+    "  </method>"                                                       \
     "  <signal name=\"Updated\">"                                       \
     "   <arg name=\"path\" type=\"o\"/>"                                \
     "  </signal>"                                                       \
-    "  <property name=\"Items\" type=\"ao\" access=\"read\"/>"          \
+    "  <property name=\"ChildCount\" type=\"u\" access=\"read\"/>"      \
     "  <property name=\"ItemCount\" type=\"u\" access=\"read\"/>"       \
-    "  <property name=\"Containers\" type=\"ao\" access=\"read\"/>"     \
     "  <property name=\"ContainerCount\" type=\"u\" access=\"read\"/>"  \
+    "  <property name=\"Searchable\" type=\"b\" access=\"read\"/>"      \
     " </interface>"                                                     \
-    " <interface name=\"org.gnome.UPnP.MediaObject1\">"                 \
+    " <interface name=\"org.gnome.UPnP.MediaObject2\">"                 \
     "  <property name=\"Parent\" type=\"s\" access=\"read\"/>"          \
+    "  <property name=\"Type\" type=\"s\" access=\"read\"/>"            \
+    "  <property name=\"Path\" type=\"s\" access=\"read\"/>"            \
     "  <property name=\"DisplayName\" type=\"s\" access=\"read\"/>"     \
     " </interface>"                                                     \
     " <interface name=\"org.freedesktop.DBus.Properties\">"             \
@@ -111,14 +130,14 @@ PA_MODULE_USAGE(
     DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE                           \
     "<node>"                                                            \
     " <!-- If you are looking for documentation make sure to check out" \
-    "      http://live.gnome.org/Rygel/MediaProviderSpec -->"           \
-    " <interface name=\"org.gnome.UPnP.MediaItem1\">"                   \
+    "      http://live.gnome.org/Rygel/MediaProvider2Spec -->"          \
+    " <interface name=\"org.gnome.UPnP.MediaItem2\">"                   \
     "  <property name=\"URLs\" type=\"as\" access=\"read\"/>"           \
     "  <property name=\"MIMEType\" type=\"s\" access=\"read\"/>"        \
-    "  <property name=\"Type\" type=\"s\" access=\"read\"/>"            \
-    " </interface>"                                                     \
-    " <interface name=\"org.gnome.UPnP.MediaObject1\">"                 \
+    " <interface name=\"org.gnome.UPnP.MediaObject2\">"                 \
     "  <property name=\"Parent\" type=\"s\" access=\"read\"/>"          \
+    "  <property name=\"Type\" type=\"s\" access=\"read\"/>"            \
+    "  <property name=\"Path\" type=\"s\" access=\"read\"/>"            \
     "  <property name=\"DisplayName\" type=\"s\" access=\"read\"/>"     \
     " </interface>"                                                     \
     " <interface name=\"org.freedesktop.DBus.Properties\">"             \
@@ -159,6 +178,8 @@ struct userdata {
     pa_http_protocol *http;
 };
 
+static char *compute_url(const struct userdata *u, const char *name);
+
 static void send_signal(struct userdata *u, pa_source *s) {
     DBusMessage *m;
     const char *parent;
@@ -174,7 +195,7 @@ static void send_signal(struct userdata *u, pa_source *s) {
     else
         parent = OBJECT_SOURCES;
 
-    pa_assert_se(m = dbus_message_new_signal(parent, "org.gnome.UPnP.MediaContainer1", "Updated"));
+    pa_assert_se(m = dbus_message_new_signal(parent, "org.gnome.UPnP.MediaContainer2", "Updated"));
     pa_assert_se(dbus_connection_send(pa_dbus_connection_get(u->bus), m, NULL));
 
     dbus_message_unref(m);
@@ -296,6 +317,69 @@ static void append_variant_unsigned(DBusMessage *m, DBusMessageIter *iter, unsig
     pa_assert_se(dbus_message_iter_close_container(iter, &sub));
 }
 
+static void append_variant_boolean(DBusMessage *m, DBusMessageIter *iter, dbus_bool_t b) {
+    DBusMessageIter _iter, sub;
+
+    pa_assert(m);
+
+    if (!iter) {
+        dbus_message_iter_init_append(m, &_iter);
+        iter = &_iter;
+    }
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, "b", &sub));
+    pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_BOOLEAN, &b));
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
+static void append_variant_urls(DBusMessage *m, DBusMessageIter *iter, const struct userdata *u, pa_sink *sink, pa_source *source) {
+    DBusMessageIter _iter, sub, array;
+    char *url;
+
+    pa_assert(m);
+    pa_assert(u);
+    pa_assert(sink || source);
+
+    if (!iter) {
+        dbus_message_iter_init_append(m, &_iter);
+        iter = &_iter;
+    }
+
+    url = compute_url(u, sink ? sink->monitor_source->name : source->name);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, "as", &sub));
+    pa_assert_se(dbus_message_iter_open_container(&sub, DBUS_TYPE_ARRAY, "s", &array));
+    pa_assert_se(dbus_message_iter_append_basic(&array, DBUS_TYPE_STRING, &url));
+    pa_assert_se(dbus_message_iter_close_container(&sub, &array));
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+
+    pa_xfree(url);
+}
+
+static void append_variant_mime_type(DBusMessage *m, DBusMessageIter *iter, pa_sink *sink, pa_source *source) {
+    char *mime_type;
+
+    pa_assert(sink || source);
+
+    if (sink)
+        mime_type = pa_sample_spec_to_mime_type_mimefy(&sink->sample_spec, &sink->channel_map);
+    else
+        mime_type = pa_sample_spec_to_mime_type_mimefy(&source->sample_spec, &source->channel_map);
+
+    append_variant_string(m, iter, mime_type);
+
+    pa_xfree(mime_type);
+}
+
+static void append_variant_item_display_name(DBusMessage *m, DBusMessageIter *iter, pa_sink *sink, pa_source *source) {
+    const char *display_name;
+
+    pa_assert(sink || source);
+
+    display_name = pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION));
+    append_variant_string(m, iter, display_name);
+}
+
 static void append_property_dict_entry_object_array(DBusMessage *m, DBusMessageIter *iter, const char *name, const char *path[], unsigned n) {
     DBusMessageIter sub;
 
@@ -340,6 +424,195 @@ static void append_property_dict_entry_unsigned(DBusMessage *m, DBusMessageIter 
     pa_assert_se(dbus_message_iter_close_container(iter, &sub));
 }
 
+static void append_property_dict_entry_boolean(DBusMessage *m, DBusMessageIter *iter, const char *name, dbus_bool_t b) {
+    DBusMessageIter sub;
+
+    pa_assert(iter);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_DICT_ENTRY, NULL, &sub));
+    pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &name));
+    append_variant_boolean(m, &sub, b);
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
+static void append_property_dict_entry_urls(DBusMessage *m, DBusMessageIter *iter, const struct userdata *u, pa_sink *sink, pa_source *source) {
+    DBusMessageIter sub;
+    const char *property_name = "URLs";
+
+    pa_assert(iter);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_DICT_ENTRY, NULL, &sub));
+    pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &property_name));
+    append_variant_urls(m, &sub, u, sink, source);
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
+static void append_property_dict_entry_mime_type(DBusMessage *m, DBusMessageIter *iter, pa_sink *sink, pa_source *source) {
+    DBusMessageIter sub;
+    const char *property_name = "MIMEType";
+
+    pa_assert(iter);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_DICT_ENTRY, NULL, &sub));
+    pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &property_name));
+    append_variant_mime_type(m, &sub, sink, source);
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
+static void append_property_dict_entry_item_display_name(DBusMessage *m, DBusMessageIter *iter, pa_sink *sink, pa_source *source) {
+    DBusMessageIter sub;
+    const char *property_name = "DisplayName";
+
+    pa_assert(iter);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_DICT_ENTRY, NULL, &sub));
+    pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &property_name));
+    append_variant_item_display_name(m, &sub, sink, source);
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
+static pa_bool_t get_mediacontainer2_list_args(DBusMessage *m, unsigned *offset, unsigned *max_entries, char ***filter, int *filter_len) {
+    DBusError error;
+
+    dbus_error_init(&error);
+
+    pa_assert(m);
+    pa_assert(offset);
+    pa_assert(max_entries);
+    pa_assert(filter);
+
+    if (!dbus_message_get_args(m, &error, DBUS_TYPE_UINT32, offset, DBUS_TYPE_UINT32, max_entries, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, filter, filter_len, DBUS_TYPE_INVALID) || dbus_error_is_set(&error)) {
+        dbus_error_free(&error);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static unsigned get_sinks_or_sources_count(const char *path, const struct userdata *u) {
+    unsigned n, k;
+
+    n = pa_idxset_size(u->core->sinks);
+    k = pa_idxset_size(u->core->sources);
+    pa_assert(k >= n);
+
+    return pa_streq(path, OBJECT_SINKS) ? n : k - n;
+}
+
+static void append_sink_or_source_container_mediaobject2_properties(DBusMessage *r, DBusMessageIter *sub, const char *path) {
+    append_property_dict_entry_object(r, sub, "Parent", OBJECT_ROOT);
+    append_property_dict_entry_string(r, sub, "Type", "container");
+    append_property_dict_entry_object(r, sub, "Path", path);
+    append_property_dict_entry_string(r, sub, "DisplayName",
+                                      pa_streq(path, OBJECT_SINKS) ?
+                                      _("Output Devices") :
+                                      _("Input Devices"));
+}
+
+static void append_sink_or_source_container_properties(
+    DBusMessage *r, DBusMessageIter *iter,
+    const char *path, const struct userdata *user_data,
+    char * const * filter, int filter_len) {
+
+    DBusMessageIter sub;
+
+    pa_assert(r);
+    pa_assert(iter);
+    pa_assert(path);
+    pa_assert(filter);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+
+    if (filter_len == 1 && (*filter)[0] == '*' && (*filter)[1] == '\0') {
+        append_sink_or_source_container_mediaobject2_properties(r, &sub, path);
+        append_property_dict_entry_unsigned(r, &sub, "ChildCount", get_sinks_or_sources_count(path, user_data));
+        append_property_dict_entry_boolean(r, &sub, "Searchable", FALSE);
+    }
+    else {
+        for (int i = 0; i < filter_len; ++i) {
+            const char *property_name = filter[i];
+            if (pa_streq(property_name, "Parent")) {
+                append_property_dict_entry_object(r, &sub, "Parent", OBJECT_ROOT);
+            }
+            else if (pa_streq(property_name, "Type")) {
+                append_property_dict_entry_string(r, &sub, "Type", "container");
+            }
+            else if (pa_streq(property_name, "Path")) {
+                append_property_dict_entry_object(r, &sub, "Path", path);
+            }
+            else if (pa_streq(property_name, "DisplayName")) {
+                append_property_dict_entry_string(r, &sub, "DisplayName",
+                                                  pa_streq(path, OBJECT_SINKS) ?
+                                                  _("Output Devices") :
+                                                  _("Input Devices"));
+            }
+            else if (pa_streq(property_name, "ChildCount")) {
+                append_property_dict_entry_unsigned(r, &sub, "ChildCount", get_sinks_or_sources_count(path, user_data));
+            }
+            else if (pa_streq(property_name, "Searchable")) {
+                append_property_dict_entry_boolean(r, &sub, "Searchable", FALSE);
+            }
+        }
+    }
+
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
+static void append_sink_or_source_item_mediaobject2_properties(DBusMessage *r, DBusMessageIter *sub, const char *path, pa_sink *sink, pa_source *source) {
+    append_property_dict_entry_object(r, sub, "Parent", sink ? OBJECT_SINKS : OBJECT_SOURCES);
+    append_property_dict_entry_string(r, sub, "Type", "audio");
+    append_property_dict_entry_object(r, sub, "Path", path);
+    append_property_dict_entry_item_display_name(r, sub, sink, source);
+}
+
+static void append_sink_or_source_item_properties(
+    DBusMessage *r, DBusMessageIter *iter,
+    const char *path, const struct userdata *user_data,
+    pa_sink *sink, pa_source *source,
+    char * const * filter, int filter_len) {
+
+    DBusMessageIter sub;
+
+    pa_assert(r);
+    pa_assert(iter);
+    pa_assert(path);
+    pa_assert(filter);
+    pa_assert(sink || source);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+
+    if (filter_len == 1 && (*filter)[0] == '*' && (*filter)[1] == '\0') {
+        append_sink_or_source_item_mediaobject2_properties(r, &sub, path, sink, source);
+        append_property_dict_entry_urls(r, &sub, user_data, sink, source);
+        append_property_dict_entry_mime_type(r, &sub, sink, source);
+    }
+    else {
+        for (int i = 0; i < filter_len; ++i) {
+            const char *property_name = filter[i];
+            if (pa_streq(property_name, "Parent")) {
+                append_property_dict_entry_object(r, &sub, "Parent", sink ? OBJECT_SINKS : OBJECT_SOURCES);
+            }
+            else if (pa_streq(property_name, "Type")) {
+                append_property_dict_entry_string(r, &sub, "Type", "audio");
+            }
+            else if (pa_streq(property_name, "Path")) {
+                append_property_dict_entry_object(r, &sub, "Path", path);
+            }
+            else if (pa_streq(property_name, "DisplayName")) {
+                append_property_dict_entry_item_display_name(r, &sub, sink, source);
+            }
+            else if (pa_streq(property_name, "URLs")) {
+                append_property_dict_entry_urls(r, &sub, user_data, sink, source);
+            }
+            else if (pa_streq(property_name, "MIMEType")) {
+                append_property_dict_entry_mime_type(r, &sub, sink, source);
+            }
+        }
+    }
+
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
 static const char *array_root_containers[] = { OBJECT_SINKS, OBJECT_SOURCES };
 static const char *array_no_children[] = { };
 
@@ -349,50 +622,100 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
 
     pa_assert(u);
 
-    if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "Containers")) {
-        pa_assert_se(r = dbus_message_new_method_return(m));
-        append_variant_object_array(r, NULL, (const char**) array_root_containers, PA_ELEMENTSOF(array_root_containers));
-
-    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "ContainerCount")) {
+    if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer2", "ChildCount")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
         append_variant_unsigned(r, NULL, PA_ELEMENTSOF(array_root_containers));
 
-    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "Items")) {
-        pa_assert_se(r = dbus_message_new_method_return(m));
-        append_variant_object_array(r, NULL, array_no_children, PA_ELEMENTSOF(array_no_children));
-
-    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "ItemCount")) {
+    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer2", "ItemCount")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
         append_variant_unsigned(r, NULL, PA_ELEMENTSOF(array_no_children));
 
-    } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaContainer1")) {
+    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer2", "ContainerCount")) {
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        append_variant_unsigned(r, NULL, PA_ELEMENTSOF(array_root_containers));
+
+    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer2", "Searchable")) {
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        append_variant_boolean(r, NULL, FALSE);
+
+    } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaContainer2")) {
         DBusMessageIter iter, sub;
 
         pa_assert_se(r = dbus_message_new_method_return(m));
         dbus_message_iter_init_append(r, &iter);
 
         pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
-        append_property_dict_entry_object_array(r, &sub, "Containers", array_root_containers, PA_ELEMENTSOF(array_root_containers));
-        append_property_dict_entry_unsigned(r, &sub, "ContainerCount", PA_ELEMENTSOF(array_root_containers));
-        append_property_dict_entry_object_array(r, &sub, "Items", array_no_children, PA_ELEMENTSOF(array_no_children));
+        append_property_dict_entry_unsigned(r, &sub, "ChildCount", PA_ELEMENTSOF(array_root_containers));
         append_property_dict_entry_unsigned(r, &sub, "ItemCount", PA_ELEMENTSOF(array_no_children));
+        append_property_dict_entry_unsigned(r, &sub, "ContainerCount", PA_ELEMENTSOF(array_root_containers));
+        append_property_dict_entry_boolean(r, &sub, "Searchable", FALSE);
         pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
-    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject1", "Parent")) {
+    } else if (dbus_message_is_method_call(m, "org.gnome.UPnP.MediaContainer2", "ListChildren")
+        || dbus_message_is_method_call(m, "org.gnome.UPnP.MediaContainer2", "ListContainers")) {
+        DBusMessageIter iter, sub;
+        unsigned offset, max;
+        char ** filter;
+        int filter_len;
+
+        pa_assert_se(r = dbus_message_new_method_return(m));
+
+        dbus_message_iter_init_append(r, &iter);
+        pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "a{sv}", &sub));
+
+        if (get_mediacontainer2_list_args(m, &offset, &max, &filter, &filter_len)) {
+            unsigned end = (max != 0 && offset + max < PA_ELEMENTSOF(array_root_containers))
+                                ? max + offset
+                                : PA_ELEMENTSOF(array_root_containers);
+
+            for (unsigned i = offset; i < end; ++i) {
+                const char *container_path = array_root_containers[i];
+                append_sink_or_source_container_properties(r, &sub, container_path, u, filter, filter_len);
+            }
+
+            dbus_free_string_array(filter);
+        }
+
+        pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
+
+    } else if (dbus_message_is_method_call(m, "org.gnome.UPnP.MediaContainer2", "ListItems")) {
+        DBusMessageIter iter, sub;
+
+        pa_assert_se(r = dbus_message_new_method_return(m));
+
+        dbus_message_iter_init_append(r, &iter);
+        pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "a{sv}", &sub));
+        pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
+
+    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject2", "Parent")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
         append_variant_object(r, NULL, OBJECT_ROOT);
 
-    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject1", "DisplayName")) {
+    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject2", "Type")) {
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        append_variant_string(r, NULL, "container");
+
+    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject2", "Path")) {
+        const char *path = dbus_message_get_path(m);
+
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        append_variant_object(r, NULL, path);
+
+    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject2", "DisplayName")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
         append_variant_string(r, NULL, u->display_name);
 
-    } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaObject1")) {
+    } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaObject2")) {
         DBusMessageIter iter, sub;
+        const char *path = dbus_message_get_path(m);
 
         pa_assert_se(r = dbus_message_new_method_return(m));
         dbus_message_iter_init_append(r, &iter);
 
         pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+        append_property_dict_entry_object(r, &sub, "Parent", OBJECT_ROOT);
+        append_property_dict_entry_string(r, &sub, "Type", "container");
+        append_property_dict_entry_object(r, &sub, "Path", path);
         append_property_dict_entry_string(r, &sub, "DisplayName", u->display_name);
         pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
@@ -416,7 +739,7 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
     return DBUS_HANDLER_RESULT_HANDLED;
 }
 
-static char *compute_url(struct userdata *u, const char *name) {
+static char *compute_url(const struct userdata *u, const char *name) {
     pa_strlist *i;
 
     pa_assert(u);
@@ -453,65 +776,6 @@ static char *compute_url(struct userdata *u, const char *name) {
     return pa_sprintf_malloc("http://@ADDRESS@:4714/listen/source/%s", name);
 }
 
-static char **child_array(struct userdata *u, const char *path, unsigned *n) {
-    unsigned m;
-    uint32_t idx;
-    char **array;
-
-    pa_assert(u);
-    pa_assert(path);
-    pa_assert(n);
-
-    if (pa_streq(path, OBJECT_SINKS))
-        m = pa_idxset_size(u->core->sinks);
-    else {
-        unsigned k;
-
-        m = pa_idxset_size(u->core->sources);
-        k = pa_idxset_size(u->core->sinks);
-
-        pa_assert(m >= k);
-
-        /* Subtract the monitor sources from the numbers of
-         * sources. There is one monitor source for each sink */
-        m -= k;
-    }
-
-    array = pa_xnew(char*, m);
-    *n = 0;
-
-    if (pa_streq(path, OBJECT_SINKS)) {
-        pa_sink *sink;
-
-        PA_IDXSET_FOREACH(sink, u->core->sinks, idx) {
-            pa_assert((*n) < m);
-            array[(*n)++] = pa_sprintf_malloc(OBJECT_SINKS "/%u", sink->index);
-        }
-    } else {
-        pa_source *source;
-
-        PA_IDXSET_FOREACH(source, u->core->sources, idx) {
-
-            if (!source->monitor_of) {
-                pa_assert((*n) < m);
-                array[(*n)++] = pa_sprintf_malloc(OBJECT_SOURCES "/%u", source->index);
-            }
-        }
-    }
-
-    pa_assert((*n) <= m);
-
-    return array;
-}
-
-static void free_child_array(char **array, unsigned n) {
-
-    for (; n >= 1; n--)
-        pa_xfree(array[n-1]);
-
-    pa_xfree(array);
-}
-
 static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessage *m, void *userdata) {
     struct userdata *u = userdata;
     DBusMessage *r = NULL;
@@ -525,66 +789,114 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
         /* Container nodes */
 
-        if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "Containers")) {
+        if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer2", "ChildCount")
+            || message_is_property_get(m, "org.gnome.UPnP.MediaContainer2", "ItemCount")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
-            append_variant_object_array(r, NULL, array_no_children, PA_ELEMENTSOF(array_no_children));
+            append_variant_unsigned(r, NULL, get_sinks_or_sources_count(path, u));
 
-        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "ContainerCount")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer2", "ContainerCount")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
-            append_variant_unsigned(r, NULL, PA_ELEMENTSOF(array_no_children));
+            append_variant_unsigned(r, NULL, 0);
 
-        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "Items")) {
-            char ** array;
-            unsigned n;
-
-            array = child_array(u, path, &n);
-
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer2", "Searchable")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
-            append_variant_object_array(r, NULL, (const char**) array, n);
+            append_variant_boolean(r, NULL, FALSE);
 
-            free_child_array(array, n);
-
-        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "ItemCount")) {
-            unsigned n, k;
-
-            n = pa_idxset_size(u->core->sinks);
-            k = pa_idxset_size(u->core->sources);
-            pa_assert(k >= n);
-
-            pa_assert_se(r = dbus_message_new_method_return(m));
-            append_variant_unsigned(r, NULL,
-                                    pa_streq(path, OBJECT_SINKS) ? n : k - n);
-
-        } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaContainer1")) {
+        } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaContainer2")) {
             DBusMessageIter iter, sub;
-            char **array;
-            unsigned n, k;
+            unsigned item_count;
 
             pa_assert_se(r = dbus_message_new_method_return(m));
             dbus_message_iter_init_append(r, &iter);
 
             pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
-            append_property_dict_entry_object_array(r, &sub, "Containers", array_no_children, PA_ELEMENTSOF(array_no_children));
+
+            item_count = get_sinks_or_sources_count(path, u);
+
+            append_property_dict_entry_unsigned(r, &sub, "ChildCount", item_count);
+            append_property_dict_entry_unsigned(r, &sub, "ItemCount", item_count);
             append_property_dict_entry_unsigned(r, &sub, "ContainerCount", 0);
-
-            array = child_array(u, path, &n);
-            append_property_dict_entry_object_array(r, &sub, "Items", (const char**) array, n);
-            free_child_array(array, n);
-
-            n = pa_idxset_size(u->core->sinks);
-            k = pa_idxset_size(u->core->sources);
-            pa_assert(k >= n);
-
-            append_property_dict_entry_unsigned(r, &sub, "ItemCount",
-                                                pa_streq(path, OBJECT_SINKS) ? n : k - n);
+            append_property_dict_entry_boolean(r, &sub, "Searchable", FALSE);
 
             pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
-        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject1", "Parent")) {
+        } else if (dbus_message_is_method_call(m, "org.gnome.UPnP.MediaContainer2", "ListChildren")
+            || dbus_message_is_method_call(m, "org.gnome.UPnP.MediaContainer2", "ListItems")) {
+            DBusMessageIter iter, sub;
+            unsigned offset, max;
+            char **filter;
+            int filter_len;
+
+            pa_assert_se(r = dbus_message_new_method_return(m));
+
+            dbus_message_iter_init_append(r, &iter);
+            pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "a{sv}", &sub));
+
+            if (get_mediacontainer2_list_args(m, &offset, &max, &filter, &filter_len)) {
+                unsigned end = (max != 0) ? max + offset : UINT_MAX;
+
+                if (pa_streq(path, OBJECT_SINKS)) {
+                    pa_sink *sink;
+                    char sink_path[sizeof(OBJECT_SINKS) + 32];
+                    char *path_end = sink_path + sizeof(OBJECT_SINKS);
+                    unsigned item_index = 0;
+                    uint32_t idx;
+
+                    strcpy(sink_path, OBJECT_SINKS "/");
+
+                    PA_IDXSET_FOREACH(sink, u->core->sinks, idx) {
+                        if (item_index >= offset && item_index < end) {
+                            sprintf(path_end, "%u", sink->index);
+                            append_sink_or_source_item_properties(r, &sub, sink_path, u, sink, NULL, filter, filter_len);
+                        }
+                        ++item_index;
+                    }
+                } else {
+                    pa_source *source;
+                    char source_path[sizeof(OBJECT_SOURCES) + 32];
+                    char *path_end = source_path + sizeof(OBJECT_SOURCES);
+                    unsigned item_index = 0;
+                    uint32_t idx;
+
+                    strcpy(source_path, OBJECT_SOURCES "/");
+
+                    PA_IDXSET_FOREACH(source, u->core->sources, idx)
+                        if (!source->monitor_of) {
+                            if (item_index >= offset && item_index < end) {
+                                sprintf(path_end, "%u", source->index);
+                                append_sink_or_source_item_properties(r, &sub, source_path, u, NULL, source, filter, filter_len);
+                            }
+                            ++item_index;
+                        }
+                }
+
+                dbus_free_string_array(filter);
+            }
+
+            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
+
+        } else if (dbus_message_is_method_call(m, "org.gnome.UPnP.MediaContainer2", "ListContainers")) {
+            DBusMessageIter iter, sub;
+
+            pa_assert_se(r = dbus_message_new_method_return(m));
+
+            dbus_message_iter_init_append(r, &iter);
+            pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "a{sv}", &sub));
+            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
+
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject2", "Parent")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_object(r, NULL, OBJECT_ROOT);
 
-        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject1", "DisplayName")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject2", "Type")) {
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            append_variant_string(r, NULL, "container");
+
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject2", "Path")) {
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            append_variant_object(r, NULL, path);
+
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject2", "DisplayName")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_string(r,
                                   NULL,
@@ -592,20 +904,14 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
                                   _("Output Devices") :
                                   _("Input Devices"));
 
-        } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaObject1")) {
+        } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaObject2")) {
             DBusMessageIter iter, sub;
 
             pa_assert_se(r = dbus_message_new_method_return(m));
 
             dbus_message_iter_init_append(r, &iter);
-
             pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
-            append_property_dict_entry_object(m, &sub, "Parent", OBJECT_ROOT);
-            append_property_dict_entry_string(m, &sub, "DisplayName",
-                                              pa_streq(path, OBJECT_SINKS) ?
-                                              _("Output Devices") :
-                                              _("Input Devices"));
-            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
+            append_sink_or_source_container_mediaobject2_properties(r, &sub, path);
 
         } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
             pa_strbuf *sb;
@@ -655,91 +961,49 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
         if (!sink && !source)
             return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
-        if (message_is_property_get(m, "org.gnome.UPnP.MediaObject1", "Parent")) {
+        if (message_is_property_get(m, "org.gnome.UPnP.MediaObject2", "Parent")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_object(r, NULL, sink ? OBJECT_SINKS : OBJECT_SOURCES);
 
-        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject1", "DisplayName")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject2", "Type")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
-            append_variant_string(r, NULL, pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+            append_variant_string(r, NULL, "audio");
 
-        } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaObject1")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject2", "Path")) {
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            append_variant_object(r, NULL, path);
+
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject2", "DisplayName")) {
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            append_variant_item_display_name(r, NULL, sink, source);
+
+        } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaObject2")) {
             DBusMessageIter iter, sub;
 
             pa_assert_se(r = dbus_message_new_method_return(m));
             dbus_message_iter_init_append(r, &iter);
 
             pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
-            append_property_dict_entry_object(r, &sub, "Parent", sink ? OBJECT_SINKS : OBJECT_SOURCES);
-            append_property_dict_entry_string(r, &sub, "DisplayName", pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
-            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
+            append_sink_or_source_item_mediaobject2_properties(r, &sub, path, sink, source);
 
-        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaItem1", "Type")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaItem2", "MIMEType")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
-            append_variant_string(r, NULL, "audio");
+            append_variant_mime_type(r, NULL, sink, source);
 
-        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaItem1", "MIMEType")) {
-            char *t;
-
-            if (sink)
-                t = pa_sample_spec_to_mime_type_mimefy(&sink->sample_spec, &sink->channel_map);
-            else
-                t = pa_sample_spec_to_mime_type_mimefy(&source->sample_spec, &source->channel_map);
-
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaItem2", "URLs")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
-            append_variant_string(r, NULL, t);
-            pa_xfree(t);
+            append_variant_urls(r, NULL, u, sink, source);
 
-        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaItem1", "URLs")) {
-            DBusMessageIter iter, sub, array;
-            char *url;
-
-            pa_assert_se(r = dbus_message_new_method_return(m));
-
-            dbus_message_iter_init_append(r, &iter);
-
-            url = compute_url(u, sink ? sink->monitor_source->name : source->name);
-
-            pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_VARIANT, "as", &sub));
-            pa_assert_se(dbus_message_iter_open_container(&sub, DBUS_TYPE_ARRAY, "s", &array));
-            pa_assert_se(dbus_message_iter_append_basic(&array, DBUS_TYPE_STRING, &url));
-            pa_assert_se(dbus_message_iter_close_container(&sub, &array));
-            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
-
-            pa_xfree(url);
-
-        } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaItem1")) {
-            DBusMessageIter iter, sub, dict, variant, array;
-            char *url, *t;
-            const char *un = "URLs";
+        } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaItem2")) {
+            DBusMessageIter iter, sub;
 
             pa_assert_se(r = dbus_message_new_method_return(m));
             dbus_message_iter_init_append(r, &iter);
 
             pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
-            append_property_dict_entry_string(r, &sub, "Type", "audio");
 
-            if (sink)
-                t = pa_sample_spec_to_mime_type_mimefy(&sink->sample_spec, &sink->channel_map);
-            else
-                t = pa_sample_spec_to_mime_type_mimefy(&source->sample_spec, &source->channel_map);
-
-            append_property_dict_entry_string(r, &sub, "MIMEType", t);
-            pa_xfree(t);
-
-            pa_assert_se(dbus_message_iter_open_container(&sub, DBUS_TYPE_DICT_ENTRY, NULL, &dict));
-            pa_assert_se(dbus_message_iter_append_basic(&dict, DBUS_TYPE_STRING, &un));
-
-            url = compute_url(u, sink ? sink->monitor_source->name : source->name);
-
-            pa_assert_se(dbus_message_iter_open_container(&dict, DBUS_TYPE_VARIANT, "as", &variant));
-            pa_assert_se(dbus_message_iter_open_container(&variant, DBUS_TYPE_ARRAY, "s", &array));
-            pa_assert_se(dbus_message_iter_append_basic(&array, DBUS_TYPE_STRING, &url));
-            pa_assert_se(dbus_message_iter_close_container(&variant, &array));
-            pa_assert_se(dbus_message_iter_close_container(&dict, &variant));
-            pa_assert_se(dbus_message_iter_close_container(&sub, &dict));
-
-            pa_xfree(url);
+            append_property_dict_entry_mime_type(r, &sub, sink, source);
+            append_property_dict_entry_urls(r, &sub, u, sink, source);
 
             pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
