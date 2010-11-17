@@ -1030,20 +1030,20 @@ static pa_hook_result_t sink_put_hook_cb(pa_core *c, pa_sink *s, struct userdata
     pa_sink_assert_ref(s);
     pa_assert(u);
 
-    if (!is_suitable_sink(u, s))
-        return PA_HOOK_OK;
-
-    /* Check if the sink is a previously unlinked slave (non-automatic mode) */
-    if (!u->automatic) {
+    if (u->automatic) {
+        if (!is_suitable_sink(u, s))
+            return PA_HOOK_OK;
+    } else {
+        /* Check if the sink is a previously unlinked slave (non-automatic mode) */
         pa_strlist *l = u->unlinked_slaves;
 
         while (l && !pa_streq(pa_strlist_data(l), s->name))
             l = pa_strlist_next(l);
 
-        if (l)
-            u->unlinked_slaves = pa_strlist_remove(u->unlinked_slaves, s->name);
-        else
+        if (!l)
             return PA_HOOK_OK;
+
+        u->unlinked_slaves = pa_strlist_remove(u->unlinked_slaves, s->name);
     }
 
     pa_log_info("Configuring new sink: %s", s->name);
