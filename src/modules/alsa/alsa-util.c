@@ -1102,8 +1102,8 @@ snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa
 
     k = (size_t) n * pa_frame_size(ss);
 
-    if (k >= hwbuf_size * 5 ||
-        k >= pa_bytes_per_second(ss)*10) {
+    if (PA_UNLIKELY(k >= hwbuf_size * 5 ||
+                    k >= pa_bytes_per_second(ss)*10)) {
 
         PA_ONCE_BEGIN {
             char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
@@ -1145,8 +1145,8 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_sframes_t *delay, size_t hwbuf_si
 
     abs_k = k >= 0 ? (size_t) k : (size_t) -k;
 
-    if (abs_k >= hwbuf_size * 5 ||
-        abs_k >= pa_bytes_per_second(ss)*10) {
+    if (PA_UNLIKELY(abs_k >= hwbuf_size * 5 ||
+                    abs_k >= pa_bytes_per_second(ss)*10)) {
 
         PA_ONCE_BEGIN {
             char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
@@ -1170,8 +1170,8 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_sframes_t *delay, size_t hwbuf_si
     if (capture) {
         abs_k = (size_t) avail * pa_frame_size(ss);
 
-        if (abs_k >= hwbuf_size * 5 ||
-            abs_k >= pa_bytes_per_second(ss)*10) {
+        if (PA_UNLIKELY(abs_k >= hwbuf_size * 5 ||
+                        abs_k >= pa_bytes_per_second(ss)*10)) {
 
             PA_ONCE_BEGIN {
                 char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
@@ -1188,7 +1188,7 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_sframes_t *delay, size_t hwbuf_si
             avail = (snd_pcm_sframes_t) (hwbuf_size / pa_frame_size(ss));
         }
 
-        if (*delay < avail) {
+        if (PA_UNLIKELY(*delay < avail)) {
             PA_ONCE_BEGIN {
                 char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
                 pa_log(_("snd_pcm_avail_delay() returned strange values: delay %lu is less than avail %lu.\n"
@@ -1229,10 +1229,9 @@ int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas
 
     k = (size_t) *frames * pa_frame_size(ss);
 
-    if (*frames > before ||
-        k >= hwbuf_size * 3 ||
-        k >= pa_bytes_per_second(ss)*10)
-
+    if (PA_UNLIKELY(*frames > before ||
+                    k >= hwbuf_size * 3 ||
+                    k >= pa_bytes_per_second(ss)*10))
         PA_ONCE_BEGIN {
             char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
             pa_log(_("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
