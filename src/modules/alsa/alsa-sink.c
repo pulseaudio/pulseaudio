@@ -1166,7 +1166,7 @@ static int io_mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
 static void sink_get_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     pa_cvolume r;
-    char t[PA_CVOLUME_SNPRINT_MAX];
+    char vol_str_pcnt[PA_CVOLUME_SNPRINT_MAX];
 
     pa_assert(u);
     pa_assert(u->mixer_path);
@@ -1178,7 +1178,13 @@ static void sink_get_volume_cb(pa_sink *s) {
     /* Shift down by the base volume, so that 0dB becomes maximum volume */
     pa_sw_cvolume_multiply_scalar(&r, &r, s->base_volume);
 
-    pa_log_debug("Read hardware volume: %s", pa_cvolume_snprint(t, sizeof(t), &r));
+    pa_log_debug("Read hardware volume: %s", pa_cvolume_snprint(vol_str_pcnt, sizeof(vol_str_pcnt), &r));
+
+    if (u->mixer_path->has_dB) {
+        char vol_str_db[PA_SW_CVOLUME_SNPRINT_DB_MAX];
+
+        pa_log_debug("               in dB: %s", pa_sw_cvolume_snprint_dB(vol_str_db, sizeof(vol_str_db), &r));
+    }
 
     if (pa_cvolume_equal(&u->hardware_volume, &r))
         return;
@@ -1193,7 +1199,7 @@ static void sink_get_volume_cb(pa_sink *s) {
 static void sink_set_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     pa_cvolume r;
-    char t[PA_CVOLUME_SNPRINT_MAX];
+    char vol_str_pcnt[PA_CVOLUME_SNPRINT_MAX];
     pa_bool_t write_to_hw = (s->flags & PA_SINK_SYNC_VOLUME) ? FALSE : TRUE;
 
     pa_assert(u);
@@ -1214,6 +1220,7 @@ static void sink_set_volume_cb(pa_sink *s) {
     if (u->mixer_path->has_dB) {
         pa_cvolume new_soft_volume;
         pa_bool_t accurate_enough;
+        char vol_str_db[PA_SW_CVOLUME_SNPRINT_DB_MAX];
 
         /* Match exactly what the user requested by software */
         pa_sw_cvolume_divide(&new_soft_volume, &s->real_volume, &u->hardware_volume);
@@ -1225,16 +1232,20 @@ static void sink_set_volume_cb(pa_sink *s) {
             (pa_cvolume_min(&new_soft_volume) >= (PA_VOLUME_NORM - VOLUME_ACCURACY)) &&
             (pa_cvolume_max(&new_soft_volume) <= (PA_VOLUME_NORM + VOLUME_ACCURACY));
 
-        pa_log_debug("Requested volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->real_volume));
-        pa_log_debug("Got hardware volume: %s", pa_cvolume_snprint(t, sizeof(t), &u->hardware_volume));
-        pa_log_debug("Calculated software volume: %s (accurate-enough=%s)", pa_cvolume_snprint(t, sizeof(t), &new_soft_volume),
+        pa_log_debug("Requested volume: %s", pa_cvolume_snprint(vol_str_pcnt, sizeof(vol_str_pcnt), &s->real_volume));
+        pa_log_debug("           in dB: %s", pa_sw_cvolume_snprint_dB(vol_str_db, sizeof(vol_str_db), &s->real_volume));
+        pa_log_debug("Got hardware volume: %s", pa_cvolume_snprint(vol_str_pcnt, sizeof(vol_str_pcnt), &u->hardware_volume));
+        pa_log_debug("              in dB: %s", pa_sw_cvolume_snprint_dB(vol_str_db, sizeof(vol_str_db), &u->hardware_volume));
+        pa_log_debug("Calculated software volume: %s (accurate-enough=%s)",
+                     pa_cvolume_snprint(vol_str_pcnt, sizeof(vol_str_pcnt), &new_soft_volume),
                      pa_yes_no(accurate_enough));
+        pa_log_debug("                     in dB: %s", pa_sw_cvolume_snprint_dB(vol_str_db, sizeof(vol_str_db), &new_soft_volume));
 
         if (!accurate_enough)
             s->soft_volume = new_soft_volume;
 
     } else {
-        pa_log_debug("Wrote hardware volume: %s", pa_cvolume_snprint(t, sizeof(t), &r));
+        pa_log_debug("Wrote hardware volume: %s", pa_cvolume_snprint(vol_str_pcnt, sizeof(vol_str_pcnt), &r));
 
         /* We can't match exactly what the user requested, hence let's
          * at least tell the user about it */
@@ -1257,15 +1268,22 @@ static void sink_write_volume_cb(pa_sink *s) {
     else {
         pa_cvolume tmp_vol;
         pa_bool_t accurate_enough;
+
         pa_sw_cvolume_divide(&tmp_vol, &hw_vol, &s->thread_info.current_hw_volume);
         accurate_enough =
             (pa_cvolume_min(&tmp_vol) >= (PA_VOLUME_NORM - VOLUME_ACCURACY)) &&
             (pa_cvolume_max(&tmp_vol) <= (PA_VOLUME_NORM + VOLUME_ACCURACY));
+
         if (!accurate_enough) {
-            char t[PA_CVOLUME_SNPRINT_MAX];
+            char vol_str_pcnt[PA_CVOLUME_SNPRINT_MAX];
+            char vol_str_db[PA_SW_CVOLUME_SNPRINT_DB_MAX];
+
             pa_log_debug("Written HW volume did not match with the request %s != %s",
-                         pa_cvolume_snprint(t, sizeof(t), &s->thread_info.current_hw_volume),
-                         pa_cvolume_snprint(t, sizeof(t), &hw_vol));
+                         pa_cvolume_snprint(vol_str_pcnt, sizeof(vol_str_pcnt), &s->thread_info.current_hw_volume),
+                         pa_cvolume_snprint(vol_str_pcnt, sizeof(vol_str_pcnt), &hw_vol));
+            pa_log_debug("                                          in dB: %s != %s",
+                         pa_sw_cvolume_snprint_dB(vol_str_db, sizeof(vol_str_db), &s->thread_info.current_hw_volume),
+                         pa_sw_cvolume_snprint_dB(vol_str_db, sizeof(vol_str_db), &hw_vol));
         }
     }
 }
