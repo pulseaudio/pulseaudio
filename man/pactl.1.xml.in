@@ -143,12 +143,6 @@ USA.
     </option>
 
     <option>
-      <p><opt>unload-module</opt> <arg>ID</arg></p>
-
-      <optdesc><p>Unload the module instance identified by the specified numeric index.</p></optdesc>
-    </option>
-
-    <option>
       <p><opt>suspend-sink</opt> <arg>SINK</arg> <arg>1|0</arg></p>
 
       <optdesc><p>Suspend or resume the specified sink (which my be
