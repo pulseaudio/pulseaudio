@@ -90,6 +90,10 @@ priority = 19
 name = input-microphone
 priority = 19
 
+[Option Input Source:Rear Mic]
+name = input-microphone
+priority = 19
+
 [Option Input Source:Line]
 name = input-linein
 priority = 18
