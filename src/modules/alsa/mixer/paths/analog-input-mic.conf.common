@@ -62,6 +62,15 @@ name = input-boost-on
 [Option Front Mic Boost:off]
 name = input-boost-off
 
+[Element Rear Mic Boost]
+switch = select
+
+[Option Rear Mic Boost:on]
+name = input-boost-on
+
+[Option Rear Mic Boost:off]
+name = input-boost-off
+
 [Element Int Mic Boost]
 switch = select
 
