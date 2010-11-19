@@ -44,7 +44,6 @@
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/dynarray.h>
 #include <pulsecore/modargs.h>
-#include <pulsecore/avahi-wrap.h>
 #include <pulsecore/endianmacros.h>
 #include <pulsecore/protocol-native.h>
 
