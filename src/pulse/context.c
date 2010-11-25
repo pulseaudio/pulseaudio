@@ -624,7 +624,7 @@ static pa_strlist *prepend_per_user(pa_strlist *l) {
     char *ufn;
 
 #ifdef ENABLE_LEGACY_RUNTIME_DIR
-    static char *legacy_dir;
+    char *legacy_dir;
 
     /* The very old per-user instance path (< 0.9.11). This is supported only to ease upgrades */
     if ((legacy_dir = get_very_old_legacy_runtime_dir())) {
