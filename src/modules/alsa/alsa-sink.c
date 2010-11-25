@@ -1263,11 +1263,17 @@ static void sink_write_volume_cb(pa_sink *s) {
     pa_assert(u->mixer_handle);
     pa_assert(s->flags & PA_SINK_SYNC_VOLUME);
 
+    /* Shift up by the base volume */
+    pa_sw_cvolume_divide_scalar(&hw_vol, &hw_vol, s->base_volume);
+
     if (pa_alsa_path_set_volume(u->mixer_path, u->mixer_handle, &s->channel_map, &hw_vol, TRUE) < 0)
         pa_log_error("Writing HW volume failed");
     else {
         pa_cvolume tmp_vol;
         pa_bool_t accurate_enough;
+
+        /* Shift down by the base volume, so that 0dB becomes maximum volume */
+        pa_sw_cvolume_multiply_scalar(&hw_vol, &hw_vol, s->base_volume);
 
         pa_sw_cvolume_divide(&tmp_vol, &hw_vol, &s->thread_info.current_hw_volume);
         accurate_enough =
@@ -1278,10 +1284,10 @@ static void sink_write_volume_cb(pa_sink *s) {
             char vol_str_pcnt[PA_CVOLUME_SNPRINT_MAX];
             char vol_str_db[PA_SW_CVOLUME_SNPRINT_DB_MAX];
 
-            pa_log_debug("Written HW volume did not match with the request %s != %s",
+            pa_log_debug("Written HW volume did not match with the request: %s (request) != %s",
                          pa_cvolume_snprint(vol_str_pcnt, sizeof(vol_str_pcnt), &s->thread_info.current_hw_volume),
                          pa_cvolume_snprint(vol_str_pcnt, sizeof(vol_str_pcnt), &hw_vol));
-            pa_log_debug("                                          in dB: %s != %s",
+            pa_log_debug("                                           in dB: %s (request) != %s",
                          pa_sw_cvolume_snprint_dB(vol_str_db, sizeof(vol_str_db), &s->thread_info.current_hw_volume),
                          pa_sw_cvolume_snprint_dB(vol_str_db, sizeof(vol_str_db), &hw_vol));
         }
