@@ -1040,9 +1040,9 @@ static int source_set_state_cb(pa_source *s, pa_source_state_t new_state) {
 
     old_state = pa_source_get_state(u->source);
 
-    if (PA_SINK_IS_OPENED(old_state) && new_state == PA_SINK_SUSPENDED)
+    if (PA_SOURCE_IS_OPENED(old_state) && new_state == PA_SOURCE_SUSPENDED)
         reserve_done(u);
-    else if (old_state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(new_state))
+    else if (old_state == PA_SOURCE_SUSPENDED && PA_SOURCE_IS_OPENED(new_state))
         if (reserve_init(u, u->device_name) < 0)
             return -PA_ERR_BUSY;
 
