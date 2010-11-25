@@ -62,7 +62,7 @@ static const char *lookup_description(const char *name, const struct description
 
     for (i = 0; i < n; i++)
         if (pa_streq(dm[i].name, name))
-            return dm[i].description;
+            return _(dm[i].description);
 
     return NULL;
 }
@@ -3137,7 +3137,7 @@ static int profile_verify(pa_alsa_profile *p) {
                 if (!pa_strbuf_isempty(sb))
                     pa_strbuf_puts(sb, " + ");
 
-                pa_strbuf_printf(sb, "%s Output", m->description);
+                pa_strbuf_printf(sb, _("%s Output"), m->description);
             }
 
         if (p->input_mappings)
@@ -3145,7 +3145,7 @@ static int profile_verify(pa_alsa_profile *p) {
                 if (!pa_strbuf_isempty(sb))
                     pa_strbuf_puts(sb, " + ");
 
-                pa_strbuf_printf(sb, "%s Input", m->description);
+                pa_strbuf_printf(sb, _("%s Input"), m->description);
             }
 
         p->description = pa_strbuf_tostring_free(sb);
