@@ -116,7 +116,8 @@ int pa_flist_push(pa_flist *l, void *p) {
 
     elem = stack_pop(&l->empty);
     if (elem == NULL) {
-        pa_log_warn("flist is full");
+        if (pa_log_ratelimit())
+            pa_log_debug("flist is full (don't worry)");
         return -1;
     }
     pa_atomic_ptr_store(&elem->ptr, p);
