@@ -48,6 +48,7 @@ struct pa_flist_elem {
 typedef struct pa_flist_elem pa_flist_elem;
 
 struct pa_flist {
+    const char *name;
     unsigned size;
     /* Stack that contains pointers stored into free list */
     pa_atomic_ptr_t stored;
@@ -79,7 +80,7 @@ static void stack_push(pa_atomic_ptr_t *list, pa_flist_elem *new_elem) {
     } while (!pa_atomic_ptr_cmpxchg(list, next, new_elem));
 }
 
-pa_flist *pa_flist_new(unsigned size) {
+pa_flist *pa_flist_new_with_name(unsigned size, const char *name) {
     pa_flist *l;
     unsigned i;
 
@@ -88,6 +89,7 @@ pa_flist *pa_flist_new(unsigned size) {
 
     l = pa_xmalloc0(sizeof(pa_flist) + sizeof(pa_flist_elem) * size);
 
+    l->name = name;
     l->size = size;
     pa_atomic_ptr_store(&l->stored, NULL);
     pa_atomic_ptr_store(&l->empty, NULL);
@@ -95,6 +97,10 @@ pa_flist *pa_flist_new(unsigned size) {
         stack_push(&l->empty, &l->table[i]);
     }
     return l;
+}
+
+pa_flist *pa_flist_new(unsigned size) {
+    return pa_flist_new_with_name(size, "unknown");
 }
 
 void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb) {
@@ -117,7 +123,7 @@ int pa_flist_push(pa_flist *l, void *p) {
     elem = stack_pop(&l->empty);
     if (elem == NULL) {
         if (pa_log_ratelimit())
-            pa_log_debug("flist is full (don't worry)");
+            pa_log_debug("%s flist is full (don't worry)", l->name);
         return -1;
     }
     pa_atomic_ptr_store(&elem->ptr, p);

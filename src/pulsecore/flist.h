@@ -32,8 +32,10 @@
 
 typedef struct pa_flist pa_flist;
 
-/* Size is required to be a power of two, or 0 for the default size */
 pa_flist * pa_flist_new(unsigned size);
+/* Freeing the name is responsibility of caller. The name is only used
+ * for debug printing. */
+pa_flist * pa_flist_new_with_name(unsigned size, const char *name);
 void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb);
 
 /* Please note that this routine might fail! */
@@ -49,7 +51,8 @@ void* pa_flist_pop(pa_flist*l);
         pa_once once;                                                   \
     } name##_flist = { NULL, PA_ONCE_INIT };                            \
     static void name##_flist_init(void) {                               \
-        name##_flist.flist = pa_flist_new(size);                        \
+        name##_flist.flist =                                            \
+            pa_flist_new_with_name(size, __FILE__ ": " #name);          \
     }                                                                   \
     static inline pa_flist* name##_flist_get(void) {                    \
         pa_run_once(&name##_flist.once, name##_flist_init);             \
