@@ -375,7 +375,7 @@ endif
 
 mainloop_test_SOURCES = tests/mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)
-mainloop_test_LDADD = $(AM_LDADD) libpulse.la
+mainloop_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 thread_mainloop_test_SOURCES = tests/thread-mainloop-test.c
@@ -390,7 +390,7 @@ utf8_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 get_binary_name_test_SOURCES = tests/get-binary-name-test.c
 get_binary_name_test_CFLAGS = $(AM_CFLAGS)
-get_binary_name_test_LDADD = $(AM_LDADD) libpulse.la
+get_binary_name_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 get_binary_name_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ipacl_test_SOURCES = tests/ipacl-test.c
@@ -444,12 +444,12 @@ mcalign_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS) libpulsecore-@PA_MAJORMINORMICR
 mcalign_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pacat_simple_SOURCES = tests/pacat-simple.c
-pacat_simple_LDADD = $(AM_LDADD) libpulse.la libpulse-simple.la
+pacat_simple_LDADD = $(AM_LDADD) libpulse.la libpulse-simple.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 pacat_simple_CFLAGS = $(AM_CFLAGS)
 pacat_simple_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 parec_simple_SOURCES = tests/parec-simple.c
-parec_simple_LDADD = $(AM_LDADD) libpulse.la libpulse-simple.la
+parec_simple_LDADD = $(AM_LDADD) libpulse.la libpulse-simple.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
 parec_simple_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
@@ -465,7 +465,7 @@ close_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 voltest_SOURCES = tests/voltest.c
 voltest_CFLAGS = $(AM_CFLAGS)
-voltest_LDADD = $(AM_LDADD) libpulse.la
+voltest_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 voltest_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 vector_test_SOURCES = tests/vector-test.c
@@ -475,7 +475,7 @@ vector_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 channelmap_test_SOURCES = tests/channelmap-test.c
 channelmap_test_CFLAGS = $(AM_CFLAGS)
-channelmap_test_LDADD = $(AM_LDADD) libpulse.la
+channelmap_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 channelmap_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 cpulimit_test_SOURCES = tests/cpulimit-test.c daemon/cpulimit.c daemon/cpulimit.h
@@ -499,7 +499,7 @@ memblockq_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS) libpulsecore-@PA_MAJORMINORMI
 memblockq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 sync_playback_SOURCES = tests/sync-playback.c
-sync_playback_LDADD = $(AM_LDADD) libpulse.la
+sync_playback_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 sync_playback_CFLAGS = $(AM_CFLAGS)
 sync_playback_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
@@ -569,7 +569,7 @@ sigbus_test_CFLAGS = $(AM_CFLAGS)
 sigbus_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 gtk_test_SOURCES = tests/gtk-test.c
-gtk_test_LDADD = $(AM_LDADD) libpulse.la libpulse-mainloop-glib.la
+gtk_test_LDADD = $(AM_LDADD) libpulse.la libpulse-mainloop-glib.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 gtk_test_CFLAGS = $(AM_CFLAGS) $(GTK20_CFLAGS)
 gtk_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(GTK20_LIBS)
 
@@ -579,7 +579,7 @@ alsa_time_test_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 alsa_time_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(ASOUNDLIB_LIBS)
 
 usergroup_test_SOURCES = tests/usergroup-test.c
-usergroup_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la
+usergroup_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 usergroup_test_CFLAGS = $(AM_CFLAGS)
 usergroup_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
