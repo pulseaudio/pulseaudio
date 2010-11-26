@@ -240,7 +240,7 @@ else
                     [pulseaudio_cv_support_arm_atomic_ops=no])
                  ])
                AS_IF([test "$pulseaudio_cv_support_arm_atomic_ops" = "yes"], [
-                   AC_DEFINE([ATOMIC_ARM_INLINE_ASM], 1, [Have ARMv6 instructions.])
+                   AC_DEFINE([ATOMIC_ARM_INLINE_ASM], 1, [Have ARM atomic instructions.])
                    need_libatomic_ops=no
                  ])
            fi
@@ -256,6 +256,37 @@ else
         ;;
     esac
 fi
+
+# If we're on ARM, check for the ARMV6 instructions we need */
+case $host in
+  arm*)
+    AC_CACHE_CHECK([support for required armv6 instructions],
+      pulseaudio_cv_support_armv6,
+      [AC_COMPILE_IFELSE(
+         AC_LANG_PROGRAM([],
+           [[volatile int a = -60000, b = 0xaaaabbbb, c = 0xccccdddd;
+             asm volatile ("ldr r0, %2 \n"
+                           "ldr r2, %3 \n"
+                           "ldr r3, %4 \n"
+                           "ssat r1, #8, r0 \n"
+                           "str r1, %0 \n"
+                           "pkhbt r1, r3, r2, LSL #8 \n"
+                           "str r1, %1 \n"
+                           : "=m" (a), "=m" (b)
+                           : "m" (a), "m" (b), "m" (c)
+                           : "r0", "r1", "r2", "r3", "cc");
+             return (a == -128 && b == 0xaabbdddd) ? 0 : -1;
+           ]]),
+         [pulseaudio_cv_support_armv6=yes],
+         [pulseaudio_cv_support_armv6=no])
+      ])
+    AS_IF([test "$pulseaudio_cv_support_armv6" = "yes"], [
+        AC_DEFINE([HAVE_ARMV6], 1, [Have ARMv6 instructions.])
+      ])
+  ;;
+  *)
+  ;;
+esac
 
 CC_CHECK_TLS
 

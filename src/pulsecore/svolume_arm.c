@@ -35,7 +35,7 @@
 #include "sample-util.h"
 #include "endianmacros.h"
 
-#if defined (__arm__)
+#if defined (__arm__) && defined (HAVE_ARMV6)
 
 #define MOD_INC() \
     " subs  r0, r6, %2              \n\t" \
@@ -182,11 +182,11 @@ static void run_test (void) {
 }
 #endif
 
-#endif /* defined (__arm__) */
+#endif /* defined (__arm__) && defined (HAVE_ARMV6) */
 
 
 void pa_volume_func_init_arm (pa_cpu_arm_flag_t flags) {
-#if defined (__arm__)
+#if defined (__arm__) && defined (HAVE_ARMV6)
     pa_log_info("Initialising ARM optimized functions.");
 
 #ifdef RUN_TEST
@@ -194,5 +194,5 @@ void pa_volume_func_init_arm (pa_cpu_arm_flag_t flags) {
 #endif
 
     pa_set_volume_func (PA_SAMPLE_S16NE,     (pa_do_volume_func_t) pa_volume_s16ne_arm);
-#endif /* defined (__arm__) */
+#endif /* defined (__arm__) && defined (HAVE_ARMV6) */
 }
