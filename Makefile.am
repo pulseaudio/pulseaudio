@@ -55,6 +55,7 @@ homepage: all dist doxygen
 	test -d $$HOME/homepage/private
 	mkdir -p $$HOME/homepage/private/projects/pulseaudio $$HOME/homepage/private/projects/pulseaudio/doxygen
 	cp pulseaudio-@PACKAGE_VERSION@.tar.gz $$HOME/homepage/private/projects/pulseaudio
+	cp pulseaudio-@PACKAGE_VERSION@.tar.gz $$HOME/git.fedora/pulseaudio
 	cp -a doxygen/html/* $$HOME/homepage/private/projects/pulseaudio/doxygen
 
 doxygen:
@@ -67,7 +68,7 @@ untabify:
 	find \( -name '*.c' -o -name '*.h' \) -exec perl -i -pe 's/\t/        /g;' \{\} \;
 
 fedora-snapshot: dist
-	cp $(distdir).tar.gz $$HOME/cvs.fedora/pulseaudio/devel/$(distdir).tar.gz
+	cp $(distdir).tar.gz $$HOME/git.fedora/pulseaudio/$(distdir).tar.gz
 
 dist-hook:
 	if test -d .git ; then \
