@@ -153,6 +153,7 @@ src/daemon/dumpmodules.c
 src/daemon/daemon-conf.c
 src/daemon/caps.c
 src/daemon/pulseaudio.desktop.in
+src/daemon/pulseaudio-kde.desktop.in
 src/pulse/channelmap.c
 src/pulse/error.c
 src/pulse/proplist.c
