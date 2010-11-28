@@ -8,5 +8,5 @@ Name: libpulse
 Description: PulseAudio Client Interface
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lpulse @PTHREAD_LIBS@
-Libs.private: -lpulsecommon-@PA_MAJORMINORMICRO@
+Libs.private: -lpulsecommon-@PA_MAJORMINOR@
 Cflags: -I${includedir} -D_REENTRANT

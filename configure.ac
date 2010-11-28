@@ -30,13 +30,10 @@ AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules tar-pax])
 
 m4_define(pa_major, `echo $VERSION | cut -d. -f1 | cut -d- -f1`)
 m4_define(pa_minor, `echo $VERSION | cut -d. -f2 | cut -d- -f1`)
-m4_define(pa_micro, `echo $VERSION | cut -d. -f3 | cut -d- -f1`)
 
 AC_SUBST(PA_MAJOR, pa_major)
 AC_SUBST(PA_MINOR, pa_minor)
-AC_SUBST(PA_MICRO, pa_micro)
 AC_SUBST(PA_MAJORMINOR, pa_major.pa_minor)
-AC_SUBST(PA_MAJORMINORMICRO, pa_major.pa_minor.pa_micro)
 AC_SUBST(PACKAGE_URL, [http://pulseaudio.org/])
 
 AC_SUBST(PA_API_VERSION, 12)
@@ -1420,8 +1417,8 @@ fi
 
 AC_ARG_WITH(
         [module-dir],
-        AS_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/pulse-${PA_MAJORMINORMICRO}/modules]),
-        [modlibexecdir=$withval], [modlibexecdir="${libdir}/pulse-${PA_MAJORMINORMICRO}/modules"])
+        AS_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/pulse-${PA_MAJORMINOR}/modules]),
+        [modlibexecdir=$withval], [modlibexecdir="${libdir}/pulse-${PA_MAJORMINOR}/modules"])
 
 AC_SUBST(modlibexecdir)
 
