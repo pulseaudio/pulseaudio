@@ -1125,6 +1125,12 @@ if HAVE_JACK
 modlibexec_LTLIBRARIES += \
 		module-jack-sink.la \
 		module-jack-source.la
+
+if HAVE_DBUS
+modlibexec_LTLIBRARIES += \
+		module-jackdbus-detect.la
+endif
+
 endif
 
 if HAVE_GCONF
@@ -1229,6 +1235,7 @@ SYMDEF_FILES = \
 		modules/module-detect-symdef.h \
 		modules/rtp/module-rtp-send-symdef.h \
 		modules/rtp/module-rtp-recv-symdef.h \
+		modules/jack/module-jackdbus-detect-symdef.h \
 		modules/jack/module-jack-sink-symdef.h \
 		modules/jack/module-jack-source-symdef.h \
 		modules/module-volume-restore-symdef.h \
@@ -1607,6 +1614,11 @@ module_rtp_recv_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la li
 module_rtp_recv_la_CFLAGS = $(AM_CFLAGS)
 
 # JACK
+
+module_jackdbus_detect_la_SOURCES = modules/jack/module-jackdbus-detect.c
+module_jackdbus_detect_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_jackdbus_detect_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la $(JACK_LIBS) libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_jackdbus_detect_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) $(JACK_CFLAGS)
 
 module_jack_sink_la_SOURCES = modules/jack/module-jack-sink.c
 module_jack_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
