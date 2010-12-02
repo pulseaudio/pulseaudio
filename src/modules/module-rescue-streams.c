@@ -159,7 +159,7 @@ static pa_source* find_evacuation_source(pa_core *c, pa_source_output *o, pa_sou
         if (target == skip)
             continue;
 
-        if (!target->monitor_of != !skip->monitor_of)
+        if (skip && !target->monitor_of != !skip->monitor_of)
             continue;
 
         if (!PA_SOURCE_IS_LINKED(pa_source_get_state(target)))
