@@ -910,7 +910,8 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
         return -1;
     }
 
-    u->stream_fd = pa_bluetooth_transport_acquire(t, accesstype);
+    /* FIXME: Handle in/out MTU properly when unix socket is not longer supported */
+    u->stream_fd = pa_bluetooth_transport_acquire(t, accesstype, NULL, &u->link_mtu);
     if (u->stream_fd < 0)
         return -1;
 
@@ -2164,53 +2165,10 @@ static int parse_transport_property(struct userdata *u, DBusMessageIter *i) {
 
 /* Run from main thread */
 static int bt_transport_open(struct userdata *u) {
-    DBusMessage *m, *r;
-    DBusMessageIter arg_i, element_i;
-    DBusError err;
-
     if (bt_transport_acquire(u, FALSE) < 0)
         return -1;
 
-    dbus_error_init(&err);
-
-    pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->transport, "org.bluez.MediaTransport", "GetProperties"));
-    r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->connection), m, -1, &err);
-
-    if (dbus_error_is_set(&err) || !r) {
-        pa_log("Failed to get transport properties: %s", err.message);
-        goto fail;
-    }
-
-    if (!dbus_message_iter_init(r, &arg_i)) {
-        pa_log("GetProperties reply has no arguments.");
-        goto fail;
-    }
-
-    if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_ARRAY) {
-        pa_log("GetProperties argument is not an array.");
-        goto fail;
-    }
-
-    dbus_message_iter_recurse(&arg_i, &element_i);
-    while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
-
-        if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
-            DBusMessageIter dict_i;
-
-            dbus_message_iter_recurse(&element_i, &dict_i);
-
-            parse_transport_property(u, &dict_i);
-        }
-
-        if (!dbus_message_iter_next(&element_i))
-            break;
-    }
-
     return bt_transport_config(u);
-
-fail:
-    dbus_message_unref(r);
-    return -1;
 }
 
 /* Run from main thread */

@@ -934,10 +934,11 @@ const pa_bluetooth_transport* pa_bluetooth_device_get_transport(const pa_bluetoo
     return NULL;
 }
 
-int pa_bluetooth_transport_acquire(const pa_bluetooth_transport *t, const char *accesstype) {
+int pa_bluetooth_transport_acquire(const pa_bluetooth_transport *t, const char *accesstype, size_t *imtu, size_t *omtu) {
     DBusMessage *m, *r;
     DBusError err;
     int ret;
+    uint16_t i, o;
 
     pa_assert(t);
     pa_assert(t->y);
@@ -955,13 +956,19 @@ int pa_bluetooth_transport_acquire(const pa_bluetooth_transport *t, const char *
     }
 
 #ifdef DBUS_TYPE_UNIX_FD
-    if (!dbus_message_get_args(r, &err, DBUS_TYPE_UNIX_FD, &ret, DBUS_TYPE_INVALID)) {
+    if (!dbus_message_get_args(r, &err, DBUS_TYPE_UNIX_FD, &ret, DBUS_TYPE_UINT16, &i, DBUS_TYPE_UINT16, &o, DBUS_TYPE_INVALID)) {
         pa_log("Failed to parse org.bluez.MediaTransport.Acquire(): %s", err.message);
         ret = -1;
         dbus_error_free(&err);
         goto fail;
     }
 #endif
+
+    if (imtu)
+        *imtu = i;
+
+    if (omtu)
+        *omtu = o;
 
 fail:
     dbus_message_unref(r);
