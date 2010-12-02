@@ -1212,7 +1212,7 @@ static pa_bool_t source_output_may_move_to_cb(pa_source_output *o, pa_source *de
     pa_assert_ctl_context();
     pa_assert_se(u = o->userdata);
 
-    return TRUE;
+    return (u->source != dest) && (u->sink != dest->monitor_of);
 }
 
 /* Called from main context */
