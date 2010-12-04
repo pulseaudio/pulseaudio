@@ -293,7 +293,7 @@ typedef enum pa_stream_flags {
     PA_STREAM_PASSTHROUGH = 0x80000U
     /**< Used to tag content that will be rendered by passthrough sinks.
      * The data will be left as is and not reformatted, resampled.
-     * \since 0.9.22*/
+     * \since 1.0 */
 
 } pa_stream_flags_t;
 
@@ -743,11 +743,11 @@ typedef enum pa_sink_flags {
     PA_SINK_PASSTHROUGH = 0x0100U,
     /**< This sink has support for passthrough mode. The data will be left
      * as is and not reformatted, resampled, mixed.
-     * \since 0.9.22*/
+     * \since 1.0 */
 
     PA_SINK_SYNC_VOLUME = 0x0200U,
     /**< The HW volume changes are syncronized with SW volume.
-     * \since 0.9.22 */
+     * \since 1.0 */
 
 } pa_sink_flags_t;
 
