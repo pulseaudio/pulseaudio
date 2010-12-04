@@ -1,6 +1,6 @@
 #!/bin/sh
 # Print a version string.
-scriptversion=2008-04-08.07
+scriptversion=2008-04-08.07.01
 
 # Copyright (C) 2007-2008 Free Software Foundation
 #
@@ -76,6 +76,7 @@ esac
 tarball_version_file=$1
 nl='
 '
+v=
 
 # First see if there is a tarball-only version file.
 # then try "git describe", then default.
@@ -95,13 +96,20 @@ if test -n "$v"
 then
     : # use $v
 elif test -d .git \
-    && v=`git describe --abbrev=4 --match='v*' HEAD 2>/dev/null \
-	  || git describe --abbrev=4 HEAD 2>/dev/null` \
-    && case $v in
-	 v[0-9]*) ;;
-	 *) (exit 1) ;;
-       esac
+    && v=`git describe --abbrev=4 --match='v[0-9]*' HEAD 2>/dev/null` \
+    && [ -n "$v" ]
 then
+    # If we are on a "dev" tag, we need to check that it is not the same
+    # reference as the a previous version tag (this only happens when we are
+    # working with a release tag).
+    # NB The below trick relies on the $v being an exact tag to work which
+    # will only work when HEAD == tag. When further commits have been made on top
+    # of the tag, the $v will be supplimented with the number of commits since
+    # that tag and the commit ref of the most recent commit and thus will
+    # fail the test below (as intended)
+    v2=`git describe --abbrev=4 --match='v[0-9]\.[0-9]' --contains $v 2>/dev/null | cut -d'^' -f1`
+    [ -n "$v2" ] && v=$v2
+
     # Is this a new git that lists number of commits since the last
     # tag or the previous older version that did not?
     #   Newer: v6.10-77-g0f8faeb
