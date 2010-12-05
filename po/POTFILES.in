@@ -195,3 +195,5 @@ src/modules/bluetooth/module-bluetooth-device.c
 src/modules/reserve-wrap.c
 src/modules/module-rygel-media-server.c
 src/modules/alsa/alsa-mixer.c
+src/modules/echo-cancel/module-echo-cancel.c
+src/modules/module-equalizer-sink.c
