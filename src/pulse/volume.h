@@ -127,7 +127,7 @@ typedef uint32_t pa_volume_t;
 /** A structure encapsulating a per-channel volume */
 typedef struct pa_cvolume {
     uint8_t channels;                     /**< Number of channels */
-    pa_volume_t values[PA_CHANNELS_MAX];  /**< Per-channel volume  */
+    pa_volume_t values[PA_CHANNELS_MAX];  /**< Per-channel volume */
 } pa_cvolume;
 
 /** Return non-zero when *a == *b */
