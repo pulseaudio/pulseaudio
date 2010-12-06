@@ -1351,6 +1351,7 @@ static void flush_write_no_account(pa_memblockq *q) {
 static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_sink_input *i = PA_SINK_INPUT(o);
     playback_stream *s;
+    int64_t windex_seek = 0;
 
     pa_sink_input_assert_ref(i);
     s = PLAYBACK_STREAM(i->userdata);
@@ -1359,18 +1360,19 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
     switch (code) {
 
         case SINK_INPUT_MESSAGE_SEEK: {
-            int64_t windex;
 
-            windex = pa_memblockq_get_write_index(s->memblockq);
+            windex_seek = pa_memblockq_get_write_index(s->memblockq);
 
             /* The client side is incapable of accounting correctly
              * for seeks of a type != PA_SEEK_RELATIVE. We need to be
              * able to deal with that. */
 
             pa_memblockq_seek(s->memblockq, offset, PA_PTR_TO_UINT(userdata), PA_PTR_TO_UINT(userdata) == PA_SEEK_RELATIVE);
-
-            handle_seek(s, windex);
-            return 0;
+            if (!chunk) {
+                handle_seek(s, windex_seek);
+                return 0;
+            }
+            /* else fall through and write some data */
         }
 
         case SINK_INPUT_MESSAGE_POST_DATA: {
@@ -1379,6 +1381,8 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
             pa_assert(chunk);
 
             windex = pa_memblockq_get_write_index(s->memblockq);
+            if (code == SINK_INPUT_MESSAGE_SEEK)
+                windex = PA_MIN(windex, windex_seek);
 
 /*             pa_log("sink input post: %lu %lli", (unsigned long) chunk->length, (long long) windex); */
 
@@ -4440,9 +4444,9 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 
         if (chunk->memblock) {
             if (seek != PA_SEEK_RELATIVE || offset != 0)
-                pa_asyncmsgq_post(ps->sink_input->sink->asyncmsgq, PA_MSGOBJECT(ps->sink_input), SINK_INPUT_MESSAGE_SEEK, PA_UINT_TO_PTR(seek), offset, NULL, NULL);
-
-            pa_asyncmsgq_post(ps->sink_input->sink->asyncmsgq, PA_MSGOBJECT(ps->sink_input), SINK_INPUT_MESSAGE_POST_DATA, NULL, 0, chunk, NULL);
+                pa_asyncmsgq_post(ps->sink_input->sink->asyncmsgq, PA_MSGOBJECT(ps->sink_input), SINK_INPUT_MESSAGE_SEEK, PA_UINT_TO_PTR(seek), offset, chunk, NULL);
+            else
+                pa_asyncmsgq_post(ps->sink_input->sink->asyncmsgq, PA_MSGOBJECT(ps->sink_input), SINK_INPUT_MESSAGE_POST_DATA, NULL, 0, chunk, NULL);
         } else
             pa_asyncmsgq_post(ps->sink_input->sink->asyncmsgq, PA_MSGOBJECT(ps->sink_input), SINK_INPUT_MESSAGE_SEEK, PA_UINT_TO_PTR(seek), offset+chunk->length, NULL, NULL);
 
