@@ -125,6 +125,10 @@ typedef struct playback_stream {
     uint32_t drain_tag;
     uint32_t syncid;
 
+    /* Optimization to avoid too many rewinds with a lot of small blocks */
+    pa_atomic_t seek_or_post_in_queue;
+    int64_t seek_windex;
+
     pa_atomic_t missing;
     pa_usec_t configured_sink_latency;
     pa_buffer_attr buffer_attr;
@@ -1100,6 +1104,8 @@ static playback_stream* playback_stream_new(
     s->buffer_attr = *a;
     s->adjust_latency = adjust_latency;
     s->early_requests = early_requests;
+    pa_atomic_store(&s->seek_or_post_in_queue, 0);
+    s->seek_windex = -1;
 
     s->sink_input->parent.process_msg = sink_input_process_msg;
     s->sink_input->pop = sink_input_pop_cb;
@@ -1352,7 +1358,6 @@ static void flush_write_no_account(pa_memblockq *q) {
 static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_sink_input *i = PA_SINK_INPUT(o);
     playback_stream *s;
-    int64_t windex_seek = 0;
 
     pa_sink_input_assert_ref(i);
     s = PLAYBACK_STREAM(i->userdata);
@@ -1360,45 +1365,35 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 
     switch (code) {
 
-        case SINK_INPUT_MESSAGE_SEEK: {
-
-            windex_seek = pa_memblockq_get_write_index(s->memblockq);
-
-            /* The client side is incapable of accounting correctly
-             * for seeks of a type != PA_SEEK_RELATIVE. We need to be
-             * able to deal with that. */
-
-            pa_memblockq_seek(s->memblockq, offset, PA_PTR_TO_UINT(userdata), PA_PTR_TO_UINT(userdata) == PA_SEEK_RELATIVE);
-            if (!chunk) {
-                handle_seek(s, windex_seek);
-                return 0;
-            }
-            /* else fall through and write some data */
-        }
-
+        case SINK_INPUT_MESSAGE_SEEK:
         case SINK_INPUT_MESSAGE_POST_DATA: {
-            int64_t windex;
+            int64_t windex = pa_memblockq_get_write_index(s->memblockq);
 
-            pa_assert(chunk);
+            if (code == SINK_INPUT_MESSAGE_SEEK) {
+                /* The client side is incapable of accounting correctly
+                 * for seeks of a type != PA_SEEK_RELATIVE. We need to be
+                 * able to deal with that. */
 
-            windex = pa_memblockq_get_write_index(s->memblockq);
-            if (code == SINK_INPUT_MESSAGE_SEEK)
-                windex = PA_MIN(windex, windex_seek);
+                pa_memblockq_seek(s->memblockq, offset, PA_PTR_TO_UINT(userdata), PA_PTR_TO_UINT(userdata) == PA_SEEK_RELATIVE);
+                windex = PA_MIN(windex, pa_memblockq_get_write_index(s->memblockq));
+            }
 
-/*             pa_log("sink input post: %lu %lli", (unsigned long) chunk->length, (long long) windex); */
-
-            if (pa_memblockq_push_align(s->memblockq, chunk) < 0) {
-
+            if (chunk && pa_memblockq_push_align(s->memblockq, chunk) < 0) {
                 if (pa_log_ratelimit(PA_LOG_WARN))
                     pa_log_warn("Failed to push data into queue");
                 pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_OVERFLOW, NULL, 0, NULL, NULL);
                 pa_memblockq_seek(s->memblockq, (int64_t) chunk->length, PA_SEEK_RELATIVE, TRUE);
             }
 
-            handle_seek(s, windex);
-
-/*             pa_log("sink input post2: %lu", (unsigned long) pa_memblockq_get_length(s->memblockq)); */
-
+            /* If more data is in queue, we rewind later instead. */
+            if (s->seek_windex != -1)
+                 windex = PA_MIN(windex, s->seek_windex);
+            if (pa_atomic_dec(&s->seek_or_post_in_queue) > 1)
+                s->seek_windex = windex;
+            else {
+                s->seek_windex = -1;
+                handle_seek(s, windex);
+            }
             return 0;
         }
 
@@ -4468,6 +4463,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     if (playback_stream_isinstance(stream)) {
         playback_stream *ps = PLAYBACK_STREAM(stream);
 
+        pa_atomic_inc(&ps->seek_or_post_in_queue);
         if (chunk->memblock) {
             if (seek != PA_SEEK_RELATIVE || offset != 0)
                 pa_asyncmsgq_post(ps->sink_input->sink->asyncmsgq, PA_MSGOBJECT(ps->sink_input), SINK_INPUT_MESSAGE_SEEK, PA_UINT_TO_PTR(seek), offset, chunk, NULL);
