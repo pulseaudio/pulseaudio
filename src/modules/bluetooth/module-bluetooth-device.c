@@ -1529,7 +1529,7 @@ static void thread_func(void *userdata) {
             if (pollfd && (pollfd->revents & POLLIN)) {
                 int n_read;
 
-                if (u->profile == PROFILE_HSP || PROFILE_HFGW)
+                if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW)
                     n_read = hsp_process_push(u);
                 else
                     n_read = a2dp_process_push(u);
