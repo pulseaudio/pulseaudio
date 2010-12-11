@@ -493,7 +493,8 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
 
             pa_assert_ctl_context();
 
-            adjust_rates(u);
+            if (u->adjust_time > 0)
+                adjust_rates(u);
             return 0;
         }
     }
