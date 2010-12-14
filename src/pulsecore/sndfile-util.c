@@ -416,7 +416,7 @@ int pa_sndfile_format_from_string(const char *name) {
         pa_assert_se(sf_command(NULL, SFC_GET_FORMAT_MAJOR, &fi, sizeof(fi)) == 0);
 
         if (strcasecmp(name, fi.name) == 0)
-            return i;
+            return fi.format;
     }
 
     /* Then, try to match via the full extension */
@@ -428,7 +428,7 @@ int pa_sndfile_format_from_string(const char *name) {
         pa_assert_se(sf_command(NULL, SFC_GET_FORMAT_MAJOR, &fi, sizeof(fi)) == 0);
 
         if (strcasecmp(name, fi.extension) == 0)
-            return i;
+            return fi.format;
     }
 
     /* Then, try to match via the start of the type string */
@@ -440,7 +440,7 @@ int pa_sndfile_format_from_string(const char *name) {
         pa_assert_se(sf_command(NULL, SFC_GET_FORMAT_MAJOR, &fi, sizeof(fi)) == 0);
 
         if (strncasecmp(name, fi.extension, strlen(name)) == 0)
-            return i;
+            return fi.format;
     }
 
     return -1;
