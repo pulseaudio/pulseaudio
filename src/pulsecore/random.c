@@ -37,7 +37,7 @@
 
 #include "random.h"
 
-static pa_bool_t has_whined = TRUE;
+static pa_bool_t has_whined = FALSE;
 
 static const char * const devices[] = { "/dev/urandom", "/dev/random", NULL };
 
