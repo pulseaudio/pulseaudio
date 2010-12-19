@@ -90,19 +90,20 @@ USA.
       <opt>trivial</opt>, <opt>speex-float-N</opt>,
       <opt>speex-fixed-N</opt>, <opt>ffmpeg</opt>. See the
       documentation of libsamplerate and speex for explanations of the
-      different src- methods. The method <opt>trivial</opt> is the most basic
-      algorithm implemented. If you're tight on CPU consider using
-      this. On the other hand it has the worst quality of them
-      all. The Speex resamplers take an integer quality setting in the
-      range 0..9 (bad...good). They exist in two flavours: <opt>fixed</opt> and
-      <opt>float</opt>. The former uses fixed point numbers, the latter relies on
-      floating point numbers. On most desktop CPUs the float point
-      resmampler is a lot faster, and it also offers slightly better
-      quality. See the output of <opt>dump-resample-methods</opt> for
-      a complete list of all available resamplers. Defaults to
-      <opt>speex-float-3</opt>. The <opt>--resample-method</opt>
-      command line option takes precedence. Note that some modules
-      overwrite or allow overwriting of the resampler to use.</p>
+      different src- and speex- methods, respectively. The method
+      <opt>trivial</opt> is the most basic algorithm implemented. If
+      you're tight on CPU consider using this. On the other hand it has
+      the worst quality of them all. The Speex resamplers take an
+      integer quality setting in the range 0..10 (bad...good). They
+      exist in two flavours: <opt>fixed</opt> and <opt>float</opt>. The former uses fixed point
+      numbers, the latter relies on floating point numbers. On most
+      desktop CPUs the float point resampler is a lot faster, and it
+      also offers slightly better quality. See the output of
+      <opt>dump-resample-methods</opt> for a complete list of all
+      available resamplers. Defaults to <opt>speex-float-3</opt>. The
+      <opt>--resample-method</opt> command line option takes precedence.
+      Note that some modules overwrite or allow overwriting of the
+      resampler to use.</p>
     </option>
 
     <option>
