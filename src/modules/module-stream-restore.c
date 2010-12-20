@@ -599,7 +599,7 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
         if (!PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(so)))
             continue;
 
-        if (!(name = get_name(so->proplist, "source-input")))
+        if (!(name = get_name(so->proplist, "source-output")))
             continue;
 
         if ((e = read_entry(u, name))) {
