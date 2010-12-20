@@ -849,7 +849,59 @@ static long decibel_fix_get_step(pa_alsa_decibel_fix *db_fix, long *db_value, in
     return i + db_fix->min_step;
 }
 
-static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t write_to_hw) {
+/* Alsa lib documentation says for snd_mixer_selem_set_playback_dB() direction argument,
+ * that "-1 = accurate or first below, 0 = accurate, 1 = accurate or first above".
+ * But even with accurate nearest dB volume step is not selected, so that is why we need
+ * this function. Returns 0 and nearest selectable volume in *value_dB on success or
+ * negative error code if fails. */
+static int element_get_nearest_alsa_dB(snd_mixer_elem_t *me, snd_mixer_selem_channel_id_t c, pa_alsa_direction_t d, long *value_dB) {
+
+    long alsa_val;
+    long value_high;
+    long value_low;
+    int r = -1;
+
+    pa_assert(me);
+    pa_assert(value_dB);
+
+    if (d == PA_ALSA_DIRECTION_OUTPUT) {
+        if ((r = snd_mixer_selem_ask_playback_dB_vol(me, *value_dB, +1, &alsa_val)) >= 0)
+            r = snd_mixer_selem_ask_playback_vol_dB(me, alsa_val, &value_high);
+
+        if (r < 0)
+            return r;
+
+        if (value_high == *value_dB)
+            return r;
+
+        if ((r = snd_mixer_selem_ask_playback_dB_vol(me, *value_dB, -1, &alsa_val)) >= 0)
+            r = snd_mixer_selem_ask_playback_vol_dB(me, alsa_val, &value_low);
+    } else {
+        if ((r = snd_mixer_selem_ask_capture_dB_vol(me, *value_dB, +1, &alsa_val)) >= 0)
+            r = snd_mixer_selem_ask_capture_vol_dB(me, alsa_val, &value_high);
+
+        if (r < 0)
+            return r;
+
+        if (value_high == *value_dB)
+            return r;
+
+        if ((r = snd_mixer_selem_ask_capture_dB_vol(me, *value_dB, -1, &alsa_val)) >= 0)
+            r = snd_mixer_selem_ask_capture_vol_dB(me, alsa_val, &value_low);
+    }
+
+    if (r < 0)
+        return r;
+
+    if (labs(value_high - *value_dB) < labs(value_low - *value_dB))
+        *value_dB = value_high;
+    else
+        *value_dB = value_low;
+
+    return r;
+}
+
+static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t sync_volume, pa_bool_t write_to_hw) {
 
     snd_mixer_selem_id_t *sid;
     pa_cvolume rv;
@@ -914,8 +966,13 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
 
                     } else {
                         if (write_to_hw) {
-                            if ((r = snd_mixer_selem_set_playback_dB(me, c, value, rounding)) >= 0)
-                                r = snd_mixer_selem_get_playback_dB(me, c, &value);
+                            if (sync_volume) {
+                                if ((r = element_get_nearest_alsa_dB(me, c, PA_ALSA_DIRECTION_OUTPUT, &value)) >= 0)
+                                    r = snd_mixer_selem_set_playback_dB(me, c, value, 0);
+                            } else {
+                                if ((r = snd_mixer_selem_set_playback_dB(me, c, value, rounding)) >= 0)
+                                    r = snd_mixer_selem_get_playback_dB(me, c, &value);
+                           }
                         } else {
                             long alsa_val;
                             if ((r = snd_mixer_selem_ask_playback_dB_vol(me, value, rounding, &alsa_val)) >= 0)
@@ -937,8 +994,13 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
 
                     } else {
                         if (write_to_hw) {
-                            if ((r = snd_mixer_selem_set_capture_dB(me, c, value, rounding)) >= 0)
-                                r = snd_mixer_selem_get_capture_dB(me, c, &value);
+                            if (sync_volume) {
+                                if ((r = element_get_nearest_alsa_dB(me, c, PA_ALSA_DIRECTION_INPUT, &value)) >= 0)
+                                    r = snd_mixer_selem_set_capture_dB(me, c, value, 0);
+                            } else {
+                                if ((r = snd_mixer_selem_set_capture_dB(me, c, value, rounding)) >= 0)
+                                    r = snd_mixer_selem_get_capture_dB(me, c, &value);
+                            }
                         } else {
                             long alsa_val;
                             if ((r = snd_mixer_selem_ask_capture_dB_vol(me, value, rounding, &alsa_val)) >= 0)
@@ -999,7 +1061,7 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
     return 0;
 }
 
-int pa_alsa_path_set_volume(pa_alsa_path *p, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t write_to_hw) {
+int pa_alsa_path_set_volume(pa_alsa_path *p, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t sync_volume, pa_bool_t write_to_hw) {
 
     pa_alsa_element *e;
     pa_cvolume rv;
@@ -1025,7 +1087,7 @@ int pa_alsa_path_set_volume(pa_alsa_path *p, snd_mixer_t *m, const pa_channel_ma
         pa_assert(!p->has_dB || e->has_dB);
 
         ev = rv;
-        if (element_set_volume(e, m, cm, &ev, write_to_hw) < 0)
+        if (element_set_volume(e, m, cm, &ev, sync_volume, write_to_hw) < 0)
             return -1;
 
         if (!p->has_dB) {

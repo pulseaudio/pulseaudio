@@ -1253,7 +1253,7 @@ static void sink_set_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     pa_cvolume r;
     char vol_str_pcnt[PA_CVOLUME_SNPRINT_MAX];
-    pa_bool_t write_to_hw = (s->flags & PA_SINK_SYNC_VOLUME) ? FALSE : TRUE;
+    pa_bool_t sync_volume = !!(s->flags & PA_SINK_SYNC_VOLUME);
 
     pa_assert(u);
     pa_assert(u->mixer_path);
@@ -1262,7 +1262,7 @@ static void sink_set_volume_cb(pa_sink *s) {
     /* Shift up by the base volume */
     pa_sw_cvolume_divide_scalar(&r, &s->real_volume, s->base_volume);
 
-    if (pa_alsa_path_set_volume(u->mixer_path, u->mixer_handle, &s->channel_map, &r, write_to_hw) < 0)
+    if (pa_alsa_path_set_volume(u->mixer_path, u->mixer_handle, &s->channel_map, &r, sync_volume, !sync_volume) < 0)
         return;
 
     /* Shift down by the base volume, so that 0dB becomes maximum volume */
@@ -1319,7 +1319,7 @@ static void sink_write_volume_cb(pa_sink *s) {
     /* Shift up by the base volume */
     pa_sw_cvolume_divide_scalar(&hw_vol, &hw_vol, s->base_volume);
 
-    if (pa_alsa_path_set_volume(u->mixer_path, u->mixer_handle, &s->channel_map, &hw_vol, TRUE) < 0)
+    if (pa_alsa_path_set_volume(u->mixer_path, u->mixer_handle, &s->channel_map, &hw_vol, TRUE, TRUE) < 0)
         pa_log_error("Writing HW volume failed");
     else {
         pa_cvolume tmp_vol;
