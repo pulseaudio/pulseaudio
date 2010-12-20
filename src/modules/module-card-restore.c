@@ -236,7 +236,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    pa_log_info("Sucessfully opened database file '%s'.", fname);
+    pa_log_info("Successfully opened database file '%s'.", fname);
     pa_xfree(fname);
 
     for (card = pa_idxset_first(m->core->cards, &idx); card; card = pa_idxset_next(m->core->cards, &idx))

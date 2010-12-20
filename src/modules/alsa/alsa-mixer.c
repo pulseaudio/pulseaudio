@@ -991,7 +991,7 @@ static int element_mute_volume(pa_alsa_element *e, snd_mixer_t *m) {
         r = snd_mixer_selem_set_capture_volume_all(me, e->min_volume);
 
     if (r < 0)
-        pa_log_warn("Faile to set volume to muted of %s: %s", e->alsa_name, pa_alsa_strerror(errno));
+        pa_log_warn("Failed to set volume to muted of %s: %s", e->alsa_name, pa_alsa_strerror(errno));
 
     return r;
 }
@@ -1017,7 +1017,7 @@ static int element_zero_volume(pa_alsa_element *e, snd_mixer_t *m) {
         r = snd_mixer_selem_set_capture_dB_all(me, 0, +1);
 
     if (r < 0)
-        pa_log_warn("Faile to set volume to 0dB of %s: %s", e->alsa_name, pa_alsa_strerror(errno));
+        pa_log_warn("Failed to set volume to 0dB of %s: %s", e->alsa_name, pa_alsa_strerror(errno));
 
     return r;
 }
@@ -1774,13 +1774,13 @@ static int element_set_option(pa_alsa_element *e, snd_mixer_t *m, int alsa_idx) 
             r = snd_mixer_selem_set_capture_switch_all(me, alsa_idx);
 
         if (r < 0)
-            pa_log_warn("Faile to set switch of %s: %s", e->alsa_name, pa_alsa_strerror(errno));
+            pa_log_warn("Failed to set switch of %s: %s", e->alsa_name, pa_alsa_strerror(errno));
 
     } else {
         pa_assert(e->enumeration_use == PA_ALSA_ENUMERATION_SELECT);
 
         if ((r = snd_mixer_selem_set_enum_item(me, 0, alsa_idx)) < 0)
-            pa_log_warn("Faile to set enumeration of %s: %s", e->alsa_name, pa_alsa_strerror(errno));
+            pa_log_warn("Failed to set enumeration of %s: %s", e->alsa_name, pa_alsa_strerror(errno));
     }
 
     return r;

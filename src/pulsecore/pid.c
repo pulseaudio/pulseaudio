@@ -218,7 +218,7 @@ int pa_pid_file_create(const char *procname) {
             if (procname)
                 if ((ours = proc_name_ours(pid, procname)) < 0) {
                     pa_log_warn("Could not check to see if pid %lu is a pulseaudio process. "
-                                "Asssuming it is and the daemon is already running.", (unsigned long) pid);
+                                "Assuming it is and the daemon is already running.", (unsigned long) pid);
                     goto fail;
                 }
 

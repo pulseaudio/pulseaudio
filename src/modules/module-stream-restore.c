@@ -2055,7 +2055,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    pa_log_info("Sucessfully opened database file '%s'.", fname);
+    pa_log_info("Successfully opened database file '%s'.", fname);
     pa_xfree(fname);
 
 #ifdef HAVE_DBUS
