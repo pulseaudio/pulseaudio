@@ -112,6 +112,10 @@ struct pa_alsa_option {
     char *name;
     char *description;
     unsigned priority;
+
+    pa_alsa_required_t required;
+    pa_alsa_required_t required_any;
+    pa_alsa_required_t required_absent;
 };
 
 /* And element wraps one specific ALSA element. A series of elements *
@@ -129,6 +133,7 @@ struct pa_alsa_element {
     pa_alsa_enumeration_use_t enumeration_use;
 
     pa_alsa_required_t required;
+    pa_alsa_required_t required_any;
     pa_alsa_required_t required_absent;
 
     pa_bool_t override_map:1;
@@ -164,6 +169,9 @@ struct pa_alsa_path {
     pa_bool_t has_mute:1;
     pa_bool_t has_volume:1;
     pa_bool_t has_dB:1;
+    /* These two are used during probing only */
+    pa_bool_t has_req_any:1;
+    pa_bool_t req_any_present:1;
 
     long min_volume, max_volume;
     double min_dB, max_dB;

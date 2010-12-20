@@ -63,10 +63,15 @@
 ;                                        # by the option name, resp. on/off if the element is a switch.
 ; name = ...                             # Logical name to use in the path identifier
 ; priority = ...                         # Priority if this is made into a device port
+; required = ignore | enumeration | any            # In this element, this option must exist or the path will be invalid. ("any" is an alias for "enumeration".)
+; required-any = ignore | enumeration | any        # In this element, either this or another option must exist (or an element)
+; required-absent = ignore | enumeration | any     # In this element, this option must not exist or the path will be invalid
 ;
 ; [Element ...]                          # For each element that we shall control
 ; required = ignore | switch | volume | enumeration | any     # If set, require this element to be of this kind and available,
 ;                                                             # otherwise don't consider this path valid for the card
+; required-any = ignore | switch | volume | enumeration | any # If set, at least one of the elements with required-any in this
+;                                                             # path must be present, otherwise this path is invalid for the card
 ; required-absent = ignore | switch | volume                  # If set, require this element to not be of this kind and not
 ;                                                             # available, otherwise don't consider this path valid for the card
 ;

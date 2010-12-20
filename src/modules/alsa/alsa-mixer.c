@@ -1121,6 +1121,41 @@ static int check_required(pa_alsa_element *e, snd_mixer_elem_t *me) {
     if (e->required_absent == PA_ALSA_REQUIRED_ANY && (has_switch || has_volume || has_enumeration))
         return -1;
 
+    if (e->required_any != PA_ALSA_REQUIRED_IGNORE) {
+        switch (e->required_any) {
+        case PA_ALSA_REQUIRED_VOLUME:
+            e->path->req_any_present |= (e->volume_use != PA_ALSA_VOLUME_IGNORE);
+            break;
+        case PA_ALSA_REQUIRED_SWITCH:
+            e->path->req_any_present |= (e->switch_use != PA_ALSA_SWITCH_IGNORE);
+            break;
+        case PA_ALSA_REQUIRED_ENUMERATION:
+            e->path->req_any_present |= (e->enumeration_use != PA_ALSA_ENUMERATION_IGNORE);
+            break;
+        case PA_ALSA_REQUIRED_ANY:
+            e->path->req_any_present |=
+                (e->volume_use != PA_ALSA_VOLUME_IGNORE) ||
+                (e->switch_use != PA_ALSA_SWITCH_IGNORE) ||
+                (e->enumeration_use != PA_ALSA_ENUMERATION_IGNORE);
+            break;
+        }
+    }
+
+    if (e->enumeration_use == PA_ALSA_ENUMERATION_SELECT) {
+        pa_alsa_option *o;
+        PA_LLIST_FOREACH(o, e->options) {
+            e->path->req_any_present |= (o->required_any != PA_ALSA_REQUIRED_IGNORE) &&
+                (o->alsa_idx >= 0);
+            if (o->required != PA_ALSA_REQUIRED_IGNORE && o->alsa_idx < 0)
+                return -1;
+            if (o->required_absent != PA_ALSA_REQUIRED_IGNORE && o->alsa_idx >= 0)
+                return -1;
+        }
+    }
+
+    if (check_required(e, me) < 0)
+        return -1;
+
     return 0;
 }
 
@@ -1292,9 +1327,6 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
         }
 
     }
-
-    if (check_required(e, me) < 0)
-        return -1;
 
     if (e->switch_use == PA_ALSA_SWITCH_SELECT) {
         pa_alsa_option *o;
@@ -1581,20 +1613,23 @@ static int element_parse_required(
 
     pa_alsa_path *p = userdata;
     pa_alsa_element *e;
+    pa_alsa_option *o;
     pa_alsa_required_t req;
 
     pa_assert(p);
 
-    if (!(e = element_get(p, section, TRUE))) {
+    e = element_get(p, section, TRUE);
+    o = option_get(p, section);
+    if (!e && !o) {
         pa_log("[%s:%u] Required makes no sense in '%s'", filename, line, section);
         return -1;
     }
 
     if (pa_streq(rvalue, "ignore"))
         req = PA_ALSA_REQUIRED_IGNORE;
-    else if (pa_streq(rvalue, "switch"))
+    else if (pa_streq(rvalue, "switch") && e)
         req = PA_ALSA_REQUIRED_SWITCH;
-    else if (pa_streq(rvalue, "volume"))
+    else if (pa_streq(rvalue, "volume") && e)
         req = PA_ALSA_REQUIRED_VOLUME;
     else if (pa_streq(rvalue, "enumeration"))
         req = PA_ALSA_REQUIRED_ENUMERATION;
@@ -1605,10 +1640,28 @@ static int element_parse_required(
         return -1;
     }
 
-    if (pa_streq(lvalue, "required-absent"))
-        e->required_absent = req;
-    else
-        e->required = req;
+    if (pa_streq(lvalue, "required-absent")) {
+        if (e)
+            e->required_absent = req;
+        if (o)
+            o->required_absent = req;
+    }
+    else if (pa_streq(lvalue, "required-any")) {
+        if (e) {
+            e->required_any = req;
+            e->path->has_req_any = TRUE;
+        }
+        if (o) {
+            o->required_any = req;
+            o->element->path->has_req_any = TRUE;
+        }
+    }
+    else {
+        if (e)
+            e->required = req;
+        if (o)
+            o->required = req;
+    }
 
     return 0;
 }
@@ -1860,7 +1913,10 @@ static int element_verify(pa_alsa_element *e) {
 
     pa_assert(e);
 
+//    pa_log_debug("Element %s, path %s: r=%d, r-any=%d, r-abs=%d", e->alsa_name, e->path->name, e->required, e->required_any, e->required_absent);
     if ((e->required != PA_ALSA_REQUIRED_IGNORE && e->required == e->required_absent) ||
+        (e->required_any != PA_ALSA_REQUIRED_IGNORE && e->required_any == e->required_absent) ||
+        (e->required_absent == PA_ALSA_REQUIRED_ANY && e->required_any != PA_ALSA_REQUIRED_IGNORE) ||
         (e->required_absent == PA_ALSA_REQUIRED_ANY && e->required != PA_ALSA_REQUIRED_IGNORE)) {
         pa_log("Element %s cannot be required and absent at the same time.", e->alsa_name);
         return -1;
@@ -1941,6 +1997,7 @@ pa_alsa_path* pa_alsa_path_new(const char *fname, pa_alsa_direction_t direction)
         { "override-map.2",      element_parse_override_map,        NULL, NULL },
         /* ... later on we might add override-map.3 and so on here ... */
         { "required",            element_parse_required,            NULL, NULL },
+        { "required-any",        element_parse_required,            NULL, NULL },
         { "required-absent",     element_parse_required,            NULL, NULL },
         { "direction",           element_parse_direction,           NULL, NULL },
         { "direction-try-other", element_parse_direction_try_other, NULL, NULL },
@@ -2185,11 +2242,13 @@ int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, pa_bool_t ignore_dB) {
                                 min_dB[t] += e->min_dB;
                                 max_dB[t] += e->max_dB;
                             }
-                    } else
+                    } else {
                         /* Hmm, there's another element before us
                          * which cannot do dB volumes, so we we need
                          * to 'neutralize' this slider */
                         e->volume_use = PA_ALSA_VOLUME_ZERO;
+                        pa_log_info("Zeroing volume of '%s' on path '%s'", e->alsa_name, p->name);
+                    }
                 }
             } else if (p->has_volume)
                 /* We can't use this volume, so let's ignore it */
@@ -2200,6 +2259,12 @@ int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, pa_bool_t ignore_dB) {
 
         if (e->switch_use == PA_ALSA_SWITCH_MUTE)
             p->has_mute = TRUE;
+    }
+
+    if (p->has_req_any && !p->req_any_present) {
+        p->supported = FALSE;
+        pa_log_debug("Skipping path '%s', none of required-any elements preset.", p->name);
+        return -1;
     }
 
     path_drop_unsupported(p);
@@ -2247,13 +2312,14 @@ void pa_alsa_element_dump(pa_alsa_element *e) {
     pa_alsa_option *o;
     pa_assert(e);
 
-    pa_log_debug("Element %s, direction=%i, switch=%i, volume=%i, enumeration=%i, required=%i, required_absent=%i, mask=0x%llx, n_channels=%u, override_map=%s",
+    pa_log_debug("Element %s, direction=%i, switch=%i, volume=%i, enumeration=%i, required=%i, required_any=%i, required_absent=%i, mask=0x%llx, n_channels=%u, override_map=%s",
                  e->alsa_name,
                  e->direction,
                  e->switch_use,
                  e->volume_use,
                  e->enumeration_use,
                  e->required,
+                 e->required_any,
                  e->required_absent,
                  (long long unsigned) e->merged_mask,
                  e->n_channels,
