@@ -867,7 +867,7 @@ int main(int argc, char *argv[]) {
         if (mlockall(MCL_FUTURE) < 0)
             pa_log_warn("mlockall() failed: %s", pa_cstrerror(errno));
         else
-            pa_log_info("Sucessfully locked process into memory.");
+            pa_log_info("Successfully locked process into memory.");
 #else
         pa_log_warn("Memory locking requested but not supported on platform.");
 #endif

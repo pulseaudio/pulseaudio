@@ -108,7 +108,7 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, voi
             pa_log_info("Failed to move sink input %u \"%s\" to %s.", i->index,
                         pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), target->name);
         else
-            pa_log_info("Sucessfully moved sink input %u \"%s\" to %s.", i->index,
+            pa_log_info("Successfully moved sink input %u \"%s\" to %s.", i->index,
                         pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), target->name);
     }
 
@@ -134,7 +134,7 @@ static pa_hook_result_t sink_input_move_fail_hook_callback(pa_core *c, pa_sink_i
         return PA_HOOK_OK;
 
     } else {
-        pa_log_info("Sucessfully moved sink input %u \"%s\" to %s.", i->index,
+        pa_log_info("Successfully moved sink input %u \"%s\" to %s.", i->index,
                     pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), target->name);
         return PA_HOOK_STOP;
     }
@@ -199,7 +199,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
             pa_log_info("Failed to move source output %u \"%s\" to %s.", o->index,
                         pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME)), target->name);
         else
-            pa_log_info("Sucessfully moved source output %u \"%s\" to %s.", o->index,
+            pa_log_info("Successfully moved source output %u \"%s\" to %s.", o->index,
                         pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME)), target->name);
     }
 
@@ -225,7 +225,7 @@ static pa_hook_result_t source_output_move_fail_hook_callback(pa_core *c, pa_sou
         return PA_HOOK_OK;
 
     } else {
-        pa_log_info("Sucessfully moved source input %u \"%s\" to %s.", i->index,
+        pa_log_info("Successfully moved source input %u \"%s\" to %s.", i->index,
                     pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), target->name);
         return PA_HOOK_STOP;
     }
