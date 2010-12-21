@@ -62,12 +62,13 @@ static int ca_device_added(struct pa_module *m, AudioObjectID id) {
     AudioObjectPropertyAddress property_address;
     OSStatus err;
     pa_module *mod;
-    struct userdata *u = m->userdata;
+    struct userdata *u;
     struct ca_device *dev;
     char *args, tmp[64];
     UInt32 size;
 
-    pa_assert(u);
+    pa_assert(m);
+    pa_assert_se(u = m->userdata);
 
     /* To prevent generating a black hole that will suck us in,
        don't create sources/sinks for PulseAudio virtual devices */
@@ -108,9 +109,10 @@ static int ca_update_device_list(struct pa_module *m) {
     UInt32 i, size, num_devices;
     AudioDeviceID *device_id;
     struct ca_device *dev;
-    struct userdata *u = m->userdata;
+    struct userdata *u;
 
-    pa_assert(u);
+    pa_assert(m);
+    pa_assert_se(u = m->userdata);
 
     property_address.mSelector = kAudioHardwarePropertyDevices;
     property_address.mScope = kAudioObjectPropertyScopeGlobal;
@@ -202,6 +204,8 @@ int pa__init(pa_module *m) {
     struct userdata *u = pa_xnew0(struct userdata, 1);
     AudioObjectPropertyAddress property_address;
 
+    pa_assert(m);
+
     m->userdata = u;
 
     property_address.mSelector = kAudioHardwarePropertyDevices;
@@ -227,11 +231,12 @@ fail:
 }
 
 void pa__done(pa_module *m) {
-    struct userdata *u = m->userdata;
+    struct userdata *u;
     struct ca_device *dev = u->devices;
     AudioObjectPropertyAddress property_address;
 
-    pa_assert(u);
+    pa_assert(m);
+    pa_assert_se(u = m->userdata);
 
     property_address.mSelector = kAudioHardwarePropertyDevices;
     property_address.mScope = kAudioObjectPropertyScopeGlobal;
