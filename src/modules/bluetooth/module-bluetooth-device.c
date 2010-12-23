@@ -58,6 +58,9 @@
 #define MAX_BITPOOL 64
 #define MIN_BITPOOL 2U
 
+#define BITPOOL_DEC_LIMIT 32
+#define BITPOOL_DEC_STEP 5
+
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Bluetooth audio sink and source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
@@ -117,6 +120,8 @@ struct a2dp_info {
     size_t buffer_size;                  /* Size of the buffer */
 
     uint16_t seq_num;                    /* Cumulative packet sequence */
+    uint8_t min_bitpool;
+    uint8_t max_bitpool;
 };
 
 struct hsp_info {
@@ -660,6 +665,9 @@ static void setup_sbc(struct a2dp_info *a2dp) {
             pa_assert_not_reached();
     }
 
+    a2dp->min_bitpool = active_capabilities->min_bitpool;
+    a2dp->max_bitpool = active_capabilities->max_bitpool;
+
     a2dp->sbc.bitpool = active_capabilities->max_bitpool;
     a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
     a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
@@ -743,6 +751,39 @@ static int set_conf(struct userdata *u) {
     return 0;
 }
 
+/* from IO thread */
+static void a2dp_set_bitpool(struct userdata *u, uint8_t bitpool)
+{
+    struct a2dp_info *a2dp;
+
+    pa_assert(u);
+
+    a2dp = &u->a2dp;
+
+    if (a2dp->sbc.bitpool == bitpool)
+        return;
+
+    if (bitpool > a2dp->max_bitpool)
+        bitpool = a2dp->max_bitpool;
+    else if (bitpool < a2dp->min_bitpool)
+        bitpool = a2dp->min_bitpool;
+
+    a2dp->sbc.bitpool = bitpool;
+
+    a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
+    a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
+
+    pa_log_debug("Bitpool has changed to %u", a2dp->sbc.bitpool);
+
+    u->block_size =
+            (u->link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+            / a2dp->frame_length * a2dp->codesize;
+
+    pa_sink_set_max_request_within_thread(u->sink, u->block_size);
+    pa_sink_set_fixed_latency_within_thread(u->sink,
+            FIXED_LATENCY_PLAYBACK_A2DP + pa_bytes_to_usec(u->block_size, &u->sample_spec));
+}
+
 /* from IO thread, except in SCO over PCM */
 
 static int setup_stream(struct userdata *u) {
@@ -757,6 +798,9 @@ static int setup_stream(struct userdata *u) {
         pa_log_warn("Failed to enable SO_TIMESTAMP: %s", pa_cstrerror(errno));
 
     pa_log_debug("Stream properly set up, we're ready to roll!");
+
+    if (u->profile == PROFILE_A2DP)
+        a2dp_set_bitpool(u, u->a2dp.max_bitpool);
 
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
@@ -1489,6 +1533,27 @@ static int a2dp_process_push(struct userdata *u) {
     return ret;
 }
 
+static void a2dp_reduce_bitpool(struct userdata *u)
+{
+    struct a2dp_info *a2dp;
+    uint8_t bitpool;
+
+    pa_assert(u);
+
+    a2dp = &u->a2dp;
+
+    /* Check if bitpool is already at its limit */
+    if (a2dp->sbc.bitpool <= BITPOOL_DEC_LIMIT)
+        return;
+
+    bitpool = a2dp->sbc.bitpool - BITPOOL_DEC_STEP;
+
+    if (bitpool < BITPOOL_DEC_LIMIT)
+        bitpool = BITPOOL_DEC_LIMIT;
+
+    a2dp_set_bitpool(u, bitpool);
+}
+
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     unsigned do_write = 0;
@@ -1580,6 +1645,9 @@ static void thread_func(void *userdata) {
                                 pa_sink_render_full(u->sink, skip_bytes, &tmp);
                                 pa_memblock_unref(tmp.memblock);
                                 u->write_index += skip_bytes;
+
+                                if (u->profile == PROFILE_A2DP)
+                                    a2dp_reduce_bitpool(u);
                             }
                         }
 
@@ -2094,6 +2162,9 @@ static int bt_transport_config_a2dp(struct userdata *u) {
         default:
             pa_assert_not_reached();
     }
+
+    a2dp->min_bitpool = config->min_bitpool;
+    a2dp->max_bitpool = config->max_bitpool;
 
     a2dp->sbc.bitpool = config->max_bitpool;
     a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
