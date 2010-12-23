@@ -57,7 +57,9 @@ PA_MODULE_USAGE(
         "sink_input_name=<custom name for the sink input> "
         "source_output_name=<custom name for the source output> "
         "sink_input_role=<media.role for the sink input> "
-        "source_output_role=<media.role for the source output>");
+        "source_output_role=<media.role for the source output> "
+        "source_dont_move=<boolean> "
+        "sink_dont_move=<boolean>");
 
 #define DEFAULT_LATENCY_MSEC 200
 
@@ -115,6 +117,8 @@ static const char* const valid_modargs[] = {
     "source_output_name",
     "sink_input_role",
     "source_output_role",
+    "source_dont_move",
+    "sink_dont_move",
     NULL,
 };
 
@@ -618,8 +622,10 @@ int pa__init(pa_module *m) {
     struct userdata *u;
     pa_sink *sink;
     pa_sink_input_new_data sink_input_data;
+    pa_bool_t sink_dont_move;
     pa_source *source;
     pa_source_output_new_data source_output_data;
+    pa_bool_t source_dont_move;
     uint32_t latency_msec;
     pa_sample_spec ss;
     pa_channel_map map;
@@ -696,6 +702,15 @@ int pa__init(pa_module *m) {
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
     sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE;
 
+    sink_dont_move = FALSE;
+    if (pa_modargs_get_value_boolean(ma, "sink_dont_move", &sink_dont_move) < 0) {
+        pa_log("sink_dont_move= expects a boolean argument.");
+        goto fail;
+    }
+
+    if (sink_dont_move)
+        sink_input_data.flags |= PA_SINK_INPUT_DONT_MOVE;
+
     pa_sink_input_new(&u->sink_input, m->core, &sink_input_data);
     pa_sink_input_new_data_done(&sink_input_data);
 
@@ -737,6 +752,16 @@ int pa__init(pa_module *m) {
 
     pa_source_output_new_data_set_sample_spec(&source_output_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
+    source_output_data.flags = (pa_source_output_flags_t)0;
+
+    source_dont_move = FALSE;
+    if (pa_modargs_get_value_boolean(ma, "source_dont_move", &source_dont_move) < 0) {
+        pa_log("source_dont_move= expects a boolean argument.");
+        goto fail;
+    }
+
+    if (source_dont_move)
+        source_output_data.flags |= PA_SOURCE_OUTPUT_DONT_MOVE;
 
     pa_source_output_new(&u->source_output, m->core, &source_output_data);
     pa_source_output_new_data_done(&source_output_data);
