@@ -579,7 +579,7 @@ static int setup_a2dp(struct userdata *u) {
 }
 
 /* Run from main thread */
-static void setup_sbc(struct a2dp_info *a2dp) {
+static void setup_sbc(struct a2dp_info *a2dp, enum profile p) {
     sbc_capabilities_t *active_capabilities;
 
     pa_assert(a2dp);
@@ -668,7 +668,8 @@ static void setup_sbc(struct a2dp_info *a2dp) {
     a2dp->min_bitpool = active_capabilities->min_bitpool;
     a2dp->max_bitpool = active_capabilities->max_bitpool;
 
-    a2dp->sbc.bitpool = active_capabilities->max_bitpool;
+    /* Set minimum bitpool for source to get the maximum possible block_size */
+    a2dp->sbc.bitpool = p == PROFILE_A2DP ? a2dp->max_bitpool : a2dp->min_bitpool;
     a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
     a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
 }
@@ -736,7 +737,7 @@ static int set_conf(struct userdata *u) {
 
     /* setup SBC encoder now we agree on parameters */
     if (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) {
-        setup_sbc(&u->a2dp);
+        setup_sbc(&u->a2dp, u->profile);
 
         u->block_size =
             ((u->link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
@@ -1486,7 +1487,7 @@ static int a2dp_process_push(struct userdata *u) {
         d = pa_memblock_acquire(memchunk.memblock);
         to_write = memchunk.length = pa_memblock_get_length(memchunk.memblock);
 
-        while (PA_LIKELY(to_decode > 0 && to_write > 0)) {
+        while (PA_LIKELY(to_decode > 0)) {
             size_t written;
             ssize_t decoded;
 
@@ -1505,10 +1506,12 @@ static int a2dp_process_push(struct userdata *u) {
 /*             pa_log_debug("SBC: decoded: %lu; written: %lu", (unsigned long) decoded, (unsigned long) written); */
 /*             pa_log_debug("SBC: frame_length: %lu; codesize: %lu", (unsigned long) a2dp->frame_length, (unsigned long) a2dp->codesize); */
 
+            /* Reset frame length, it can be changed due to bitpool change */
+            a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
+
             pa_assert_fp((size_t) decoded <= to_decode);
             pa_assert_fp((size_t) decoded == a2dp->frame_length);
 
-            pa_assert_fp((size_t) written <= to_write);
             pa_assert_fp((size_t) written == a2dp->codesize);
 
             p = (const uint8_t*) p + decoded;
@@ -1519,6 +1522,8 @@ static int a2dp_process_push(struct userdata *u) {
 
             frame_count++;
         }
+
+        memchunk.length -= to_write;
 
         pa_memblock_release(memchunk.memblock);
 
@@ -2166,7 +2171,8 @@ static int bt_transport_config_a2dp(struct userdata *u) {
     a2dp->min_bitpool = config->min_bitpool;
     a2dp->max_bitpool = config->max_bitpool;
 
-    a2dp->sbc.bitpool = config->max_bitpool;
+    /* Set minimum bitpool for source to get the maximum possible block_size */
+    a2dp->sbc.bitpool = u->profile == PROFILE_A2DP ? a2dp->max_bitpool : a2dp->min_bitpool;
     a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
     a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
 
