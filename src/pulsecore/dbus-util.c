@@ -595,14 +595,19 @@ void pa_dbus_send_proplist_variant_reply(DBusConnection *c, DBusMessage *in_repl
 
 void pa_dbus_append_basic_array(DBusMessageIter *iter, int item_type, const void *array, unsigned n) {
     DBusMessageIter array_iter;
+    unsigned i;
+    unsigned item_size;
 
     pa_assert(iter);
     pa_assert(dbus_type_is_basic(item_type));
     pa_assert(array || n == 0);
 
+    item_size = basic_type_size(item_type);
+
     pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY, signature_from_basic_type(item_type), &array_iter));
 
-    pa_assert_se(dbus_message_iter_append_fixed_array(&array_iter, item_type, array, n));
+    for (i = 0; i < n; ++i)
+        pa_assert_se(dbus_message_iter_append_basic(&array_iter, item_type, &((uint8_t*) array)[i * item_size]));
 
     pa_assert_se(dbus_message_iter_close_container(iter, &array_iter));
 };
