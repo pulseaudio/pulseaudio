@@ -31,7 +31,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/ioctl.h>
@@ -44,6 +43,7 @@
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/socket.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/iochannel.h>
 #include <pulsecore/sink.h>

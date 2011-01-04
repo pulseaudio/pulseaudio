@@ -35,7 +35,7 @@
 
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/winsock.h>
+#include <pulsecore/socket.h>
 #include <pulsecore/macro.h>
 
 #include "tagstruct.h"

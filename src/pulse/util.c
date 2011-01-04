@@ -37,10 +37,6 @@
 #include <pwd.h>
 #endif
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
@@ -56,7 +52,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 
-#include <pulsecore/winsock.h>
+#include <pulsecore/socket.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
@@ -195,11 +191,11 @@ char *pa_get_binary_name(char *s, size_t l) {
     {
         char *rp;
 
-	if ((rp = pa_readlink("/proc/curproc/file"))) {
-	    pa_strlcpy(s, pa_path_get_filename(rp), l);
-	    pa_xfree(rp);
-	    return s;
-	}
+        if ((rp = pa_readlink("/proc/curproc/file"))) {
+            pa_strlcpy(s, pa_path_get_filename(rp), l);
+            pa_xfree(rp);
+            return s;
+        }
     }
 #endif
 

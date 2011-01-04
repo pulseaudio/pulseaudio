@@ -70,7 +70,7 @@
 #include <pulse/i18n.h>
 
 #include <pulsecore/lock-autospawn.h>
-#include <pulsecore/winsock.h>
+#include <pulsecore/socket.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/core.h>

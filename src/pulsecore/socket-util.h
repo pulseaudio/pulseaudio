@@ -24,8 +24,8 @@
 ***/
 
 #include <sys/types.h>
-#include <sys/socket.h>
 
+#include <pulsecore/socket.h>
 #include <pulsecore/macro.h>
 
 void pa_socket_peer_to_string(int fd, char *c, size_t l);

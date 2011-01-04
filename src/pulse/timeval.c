@@ -31,7 +31,6 @@
 #include <windows.h>
 #endif
 
-#include <pulsecore/winsock.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 

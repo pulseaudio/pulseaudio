@@ -32,9 +32,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
 #ifndef SUN_LEN
@@ -54,18 +51,16 @@
 #endif
 
 #ifndef HAVE_INET_NTOP
-#include "inet_ntop.h"
+#include <pulsecore/inet_ntop.h>
 #endif
-
 #ifndef HAVE_INET_PTON
-#include "inet_pton.h"
+#include <pulsecore/inet_pton.h>
 #endif
-
-#include "winsock.h"
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 
+#include <pulsecore/socket.h>
 #include <pulsecore/socket-util.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>

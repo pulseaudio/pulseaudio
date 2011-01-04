@@ -45,8 +45,7 @@
 #include <sys/select.h>
 #endif
 
-#include "winsock.h"
-
+#include <pulsecore/socket.h>
 #include <pulsecore/core-util.h>
 #include <pulse/util.h>
 
@@ -187,11 +186,11 @@ int pa_poll (struct pollfd *fds, unsigned long int nfds, int timeout) {
                      * connected socket, a server socket, or something else using a
                      * 0-byte recv, and use ioctl(2) to detect POLLHUP.  */
                     r = recv(f->fd, NULL, 0, MSG_PEEK);
-		    if (r == 0 || (r < 0 && errno == ENOTSOCK))
-		        ioctl(f->fd, FIONREAD, &r);
+                    if (r == 0 || (r < 0 && errno == ENOTSOCK))
+                        ioctl(f->fd, FIONREAD, &r);
 
-		    if (r == 0)
-		        f->revents |= POLLHUP;
+                    if (r == 0)
+                        f->revents |= POLLHUP;
 #else /* !OS_IS_DARWIN */
                     if (recv (f->fd, data, 64, MSG_PEEK) == -1) {
                         if (errno == ESHUTDOWN || errno == ECONNRESET ||

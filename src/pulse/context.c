@@ -39,9 +39,6 @@
 #include <sys/wait.h>
 #endif
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
 #endif
@@ -57,9 +54,7 @@
 #include <pulse/mainloop.h>
 #include <pulse/timeval.h>
 
-#include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
-
 #include <pulsecore/native-common.h>
 #include <pulsecore/pdispatch.h>
 #include <pulsecore/pstream.h>
@@ -69,6 +64,7 @@
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
+#include <pulsecore/socket.h>
 #include <pulsecore/socket-util.h>
 #include <pulsecore/creds.h>
 #include <pulsecore/macro.h>

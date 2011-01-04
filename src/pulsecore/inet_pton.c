@@ -28,11 +28,7 @@
 
 #ifndef HAVE_INET_PTON
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-
-#include "winsock.h"
+#include <pulsecore/socket.h>
 
 #include "inet_pton.h"
 

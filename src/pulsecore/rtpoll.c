@@ -40,7 +40,6 @@
 #include <pulsecore/llist.h>
 #include <pulsecore/flist.h>
 #include <pulsecore/core-util.h>
-#include <pulsecore/winsock.h>
 #include <pulsecore/ratelimit.h>
 #include <pulse/rtclock.h>
 

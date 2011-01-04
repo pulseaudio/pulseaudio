@@ -28,7 +28,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/socket.h>
 
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
@@ -36,6 +35,7 @@
 
 #include <pulse/gccmacro.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/socket.h>
 
 #ifndef PACKAGE
 #error "Please include config.h before including this file!"

@@ -43,7 +43,6 @@
 #include <regex.h>
 #include <langinfo.h>
 #include <sys/utsname.h>
-#include <sys/socket.h>
 
 #ifdef HAVE_STRTOF_L
 #include <locale.h>
@@ -110,7 +109,7 @@
 #include <pulse/utf8.h>
 
 #include <pulsecore/core-error.h>
-#include <pulsecore/winsock.h>
+#include <pulsecore/socket.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/thread.h>

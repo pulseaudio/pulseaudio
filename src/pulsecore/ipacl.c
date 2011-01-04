@@ -28,9 +28,6 @@
 #include <sys/types.h>
 #include <string.h>
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -50,10 +47,10 @@
 #include <pulsecore/llist.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/winsock.h>
+#include <pulsecore/socket.h>
 
 #ifndef HAVE_INET_PTON
-#include "inet_pton.h"
+#include <pulsecore/inet_pton.h>
 #endif
 
 #include "ipacl.h"
