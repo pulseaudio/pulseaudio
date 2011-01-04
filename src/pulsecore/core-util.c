@@ -40,7 +40,6 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <dirent.h>
-#include <regex.h>
 
 #ifdef HAVE_LANGINFO_H
 #include <langinfo.h>
@@ -48,6 +47,12 @@
 
 #ifdef HAVE_UNAME
 #include <sys/utsname.h>
+#endif
+
+#if defined(HAVE_REGEX_H)
+#include <regex.h>
+#elif defined(HAVE_PCREPOSIX_H)
+#include <pcreposix.h>
 #endif
 
 #ifdef HAVE_STRTOF_L

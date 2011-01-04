@@ -27,9 +27,14 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#if defined(HAVE_REGEX_H)
+#include <regex.h>
+#elif defined(HAVE_PCREPOSIX_H)
+#include <pcreposix.h>
+#endif
 
 #include <pulse/xmalloc.h>
 

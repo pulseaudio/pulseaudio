@@ -362,10 +362,7 @@ AC_CHECK_HEADERS([netinet/ip.h], [], [],
                   # include <netinet/in_systm.h>
                   #endif
                  ])
-AC_CHECK_HEADERS([regex.h], [HAVE_REGEX=1], [HAVE_REGEX=0])
 AC_CHECK_HEADERS([sys/un.h], [HAVE_AF_UNIX=1], [HAVE_AF_UNIX=0])
-
-AM_CONDITIONAL(HAVE_REGEX, test "x$HAVE_REGEX" = "x1")
 AM_CONDITIONAL(HAVE_AF_UNIX, test "x$HAVE_AF_UNIX" = "x1")
 
 # Linux
@@ -391,6 +388,7 @@ AC_CHECK_HEADERS_ONCE([sys/syscall.h])
 AC_CHECK_HEADERS_ONCE([sys/eventfd.h])
 AC_CHECK_HEADERS_ONCE([execinfo.h])
 AC_CHECK_HEADERS_ONCE([langinfo.h])
+AC_CHECK_HEADERS_ONCE([regex.h pcreposix.h])
 
 #### Typdefs, structures, etc. ####
 
@@ -459,6 +457,8 @@ fi
 AC_SUBST(HAVE_BONJOUR)
 AM_CONDITIONAL([HAVE_BONJOUR], [test "x$HAVE_BONJOUR" = x1])
 
+AC_SEARCH_LIBS([regexec], [pcreposix])
+
 #### Check for functions ####
 
 # ISO
@@ -517,6 +517,9 @@ AS_IF([test "$pulseaudio_cv_PTHREAD_PRIO_INHERIT" = "yes"], [
   ])
 
 AC_DEFINE_UNQUOTED(PA_CFLAGS,"$CFLAGS", [The CFLAGS used during compilation])
+
+AC_CHECK_FUNCS([regexec], [HAVE_REGEX=1], [HAVE_REGEX=0])
+AM_CONDITIONAL(HAVE_REGEX, [test "x$HAVE_REGEX" = "x1"])
 
 #### Large File-Support (LFS) ####
 
