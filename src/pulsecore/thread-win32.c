@@ -71,8 +71,9 @@ static DWORD WINAPI internal_thread_func(LPVOID param) {
     return 0;
 }
 
-pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
+pa_thread* pa_thread_new(const char *name, pa_thread_func_t thread_func, void *userdata) {
     pa_thread *t;
+    DWORD thread_id;
 
     assert(thread_func);
 
@@ -80,7 +81,7 @@ pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
     t->thread_func = thread_func;
     t->userdata = userdata;
 
-    t->thread = CreateThread(NULL, 0, internal_thread_func, t, 0, NULL);
+    t->thread = CreateThread(NULL, 0, internal_thread_func, t, 0, &thread_id);
 
     if (!t->thread) {
         pa_xfree(t);
