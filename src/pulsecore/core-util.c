@@ -1166,23 +1166,23 @@ int pa_check_in_group(gid_t g) {
 #else /* HAVE_GRP_H */
 
 int pa_own_uid_in_group(const char *name, gid_t *gid) {
-    errno = ENOSUP;
+    errno = ENOTSUP;
     return -1;
 
 }
 
 int pa_uid_in_group(uid_t uid, const char *name) {
-    errno = ENOSUP;
+    errno = ENOTSUP;
     return -1;
 }
 
 gid_t pa_get_gid_of_group(const char *name) {
-    errno = ENOSUP;
+    errno = ENOTSUP;
     return (gid_t) -1;
 }
 
 int pa_check_in_group(gid_t g) {
-    errno = ENOSUP;
+    errno = ENOTSUP;
     return -1;
 }
 

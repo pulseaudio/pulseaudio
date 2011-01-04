@@ -522,7 +522,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, pa_bool_t use_
                 if (!host)
                     goto finish;
 
-                pa_zero(sa);
+                pa_zero(s);
                 s.sin_family = AF_INET;
                 memcpy(&s.sin_addr, host->h_addr, sizeof(struct in_addr));
                 s.sin_port = htons(a.port);

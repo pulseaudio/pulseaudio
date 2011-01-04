@@ -27,7 +27,7 @@
 #include <pulsecore/rtpoll.h>
 
 /* Two way communication between a thread and a mainloop. Before the
- * thread is started a pa_pthread_mq should be initialized and than
+ * thread is started a pa_thread_mq should be initialized and than
  * attached to the thread using pa_thread_mq_install(). */
 
 typedef struct pa_thread_mq {
