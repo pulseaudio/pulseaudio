@@ -43,10 +43,6 @@
 #include <sys/mman.h>
 #endif
 
-#ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
-#endif
-
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif

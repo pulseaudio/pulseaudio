@@ -53,7 +53,6 @@
 #include <unistd.h>
 #include <limits.h>
 #include <signal.h>
-#include <poll.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
@@ -70,6 +69,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
+#include <pulsecore/poll.h>
 
 #if defined(__NetBSD__) && !defined(SNDCTL_DSP_GETODELAY)
 #include <sys/audioio.h>

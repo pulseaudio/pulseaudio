@@ -26,7 +26,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/poll.h>
 #include <signal.h>
 #include <pthread.h>
 

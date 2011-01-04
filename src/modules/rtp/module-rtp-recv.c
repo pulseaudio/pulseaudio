@@ -31,7 +31,6 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
-#include <poll.h>
 
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
@@ -54,6 +53,7 @@
 #include <pulsecore/atomic.h>
 #include <pulsecore/socket-util.h>
 #include <pulsecore/once.h>
+#include <pulsecore/poll.h>
 
 #include "module-rtp-recv-symdef.h"
 

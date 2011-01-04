@@ -31,12 +31,6 @@
 #include <signal.h>
 #include <stdio.h>
 
-#ifdef HAVE_POLL_H
-#include <poll.h>
-#else
-#include <pulsecore/poll.h>
-#endif
-
 #include <pulse/xmalloc.h>
 #include <pulse/mainloop.h>
 #include <pulse/i18n.h>
@@ -46,6 +40,7 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/mutex.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/poll.h>
 
 #include "thread-mainloop.h"
 
