@@ -1120,9 +1120,12 @@ dist_alsapaths_DATA = \
 		modules/alsa/mixer/paths/analog-input.conf \
 		modules/alsa/mixer/paths/analog-input.conf.common \
 		modules/alsa/mixer/paths/analog-input-fm.conf \
-		modules/alsa/mixer/paths/analog-input-internal-mic.conf \
 		modules/alsa/mixer/paths/analog-input-linein.conf \
 		modules/alsa/mixer/paths/analog-input-mic.conf \
+		modules/alsa/mixer/paths/analog-input-dock-mic.conf \
+		modules/alsa/mixer/paths/analog-input-front-mic.conf \
+		modules/alsa/mixer/paths/analog-input-internal-mic.conf \
+		modules/alsa/mixer/paths/analog-input-rear-mic.conf \
 		modules/alsa/mixer/paths/analog-input-mic.conf.common \
 		modules/alsa/mixer/paths/analog-input-mic-line.conf \
 		modules/alsa/mixer/paths/analog-input-tvtuner.conf \
