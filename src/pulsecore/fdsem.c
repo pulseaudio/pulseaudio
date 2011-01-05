@@ -154,7 +154,7 @@ static void flush(pa_fdsem *f) {
         if (f->efd >= 0) {
             uint64_t u;
 
-            if ((r = read(f->efd, &u, sizeof(u))) != sizeof(u)) {
+            if ((r = pa_read(f->efd, &u, sizeof(u), NULL)) != sizeof(u)) {
 
                 if (r >= 0 || errno != EINTR) {
                     pa_log_error("Invalid read from eventfd: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
@@ -167,7 +167,7 @@ static void flush(pa_fdsem *f) {
         } else
 #endif
 
-        if ((r = read(f->fds[0], &x, sizeof(x))) <= 0) {
+        if ((r = pa_read(f->fds[0], &x, sizeof(x), NULL)) <= 0) {
 
             if (r >= 0 || errno != EINTR) {
                 pa_log_error("Invalid read from pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
@@ -197,9 +197,9 @@ void pa_fdsem_post(pa_fdsem *f) {
                 if (f->efd >= 0) {
                     uint64_t u = 1;
 
-                    if ((r = write(f->efd, &u, sizeof(u))) != sizeof(u)) {
+                    if ((r = pa_write(f->efd, &u, sizeof(u), NULL)) != sizeof(u)) {
                         if (r >= 0 || errno != EINTR) {
-                            pa_log_error("Invalid read from pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+                            pa_log_error("Invalid write to eventfd: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
                             pa_assert_not_reached();
                         }
 
@@ -208,9 +208,9 @@ void pa_fdsem_post(pa_fdsem *f) {
                 } else
 #endif
 
-                if ((r = write(f->fds[1], &x, 1)) != 1) {
+                if ((r = pa_write(f->fds[1], &x, 1, NULL)) != 1) {
                     if (r >= 0 || errno != EINTR) {
-                        pa_log_error("Invalid read from pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+                        pa_log_error("Invalid write to pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
                         pa_assert_not_reached();
                     }
 
@@ -241,10 +241,10 @@ void pa_fdsem_wait(pa_fdsem *f) {
         if (f->efd >= 0) {
             uint64_t u;
 
-            if ((r = read(f->efd, &u, sizeof(u))) != sizeof(u)) {
+            if ((r = pa_read(f->efd, &u, sizeof(u), NULL)) != sizeof(u)) {
 
                 if (r >= 0 || errno != EINTR) {
-                    pa_log_error("Invalid read from pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+                    pa_log_error("Invalid read from eventfd: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
                     pa_assert_not_reached();
                 }
 
@@ -255,7 +255,7 @@ void pa_fdsem_wait(pa_fdsem *f) {
         } else
 #endif
 
-        if ((r = read(f->fds[0], &x, sizeof(x))) <= 0) {
+        if ((r = pa_read(f->fds[0], &x, sizeof(x), NULL)) <= 0) {
 
             if (r >= 0 || errno != EINTR) {
                 pa_log_error("Invalid read from pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");

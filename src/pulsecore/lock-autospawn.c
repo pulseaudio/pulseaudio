@@ -161,7 +161,7 @@ static void ping(void) {
     for (;;) {
         char x = 'x';
 
-        if ((s = write(pipe_fd[1], &x, 1)) == 1)
+        if ((s = pa_write(pipe_fd[1], &x, 1, NULL)) == 1)
             break;
 
         pa_assert(s < 0);
@@ -188,7 +188,7 @@ static void wait_for_ping(void) {
     if ((k = pa_poll(&pfd, 1, -1)) != 1) {
         pa_assert(k < 0);
         pa_assert(errno == EINTR);
-    } else if ((s = read(pipe_fd[0], &x, 1)) != 1) {
+    } else if ((s = pa_read(pipe_fd[0], &x, 1, NULL)) != 1) {
         pa_assert(s < 0);
         pa_assert(errno == EAGAIN);
     }
@@ -200,7 +200,7 @@ static void empty_pipe(void) {
 
     pa_assert(pipe_fd[0] >= 0);
 
-    if ((s = read(pipe_fd[0], &x, sizeof(x))) < 1) {
+    if ((s = pa_read(pipe_fd[0], &x, sizeof(x), NULL)) < 1) {
         pa_assert(s < 0);
         pa_assert(errno == EAGAIN);
     }

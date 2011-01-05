@@ -67,7 +67,7 @@ static int poll_func(struct pollfd *ufds, unsigned long nfds, int timeout, void 
      * avahi_simple_poll_quit() can succeed from another thread. */
 
     pa_mutex_unlock(mutex);
-    r = poll(ufds, nfds, timeout);
+    r = pa_poll(ufds, nfds, timeout);
     pa_mutex_lock(mutex);
 
     return r;
