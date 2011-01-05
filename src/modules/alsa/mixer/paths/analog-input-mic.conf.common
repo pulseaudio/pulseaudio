@@ -41,3 +41,10 @@ volume = off
 [Element FM]
 switch = off
 volume = off
+
+[Element Mic Jack Mode]
+enumeration = select
+
+[Option Mic Jack Mode:Mic In]
+priority = 19
+name = input-microphone
