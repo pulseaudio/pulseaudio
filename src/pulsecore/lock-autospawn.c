@@ -27,7 +27,10 @@
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
+
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
+#endif
 
 #include <pulse/i18n.h>
 #include <pulse/xmalloc.h>
@@ -206,11 +209,14 @@ static void empty_pipe(void) {
 static void thread_func(void *u) {
     int fd;
     char *lf;
+
+#ifdef HAVE_PTHREAD
     sigset_t fullset;
 
     /* No signals in this thread please */
     sigfillset(&fullset);
     pthread_sigmask(SIG_BLOCK, &fullset, NULL);
+#endif
 
     if (!(lf = pa_runtime_path(AUTOSPAWN_LOCK))) {
         pa_log_warn(_("Cannot access autospawn lock."));

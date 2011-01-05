@@ -41,8 +41,14 @@
 #include <sys/time.h>
 #include <dirent.h>
 #include <regex.h>
+
+#ifdef HAVE_LANGINFO_H
 #include <langinfo.h>
+#endif
+
+#ifdef HAVE_UNAME
 #include <sys/utsname.h>
+#endif
 
 #ifdef HAVE_STRTOF_L
 #include <locale.h>
@@ -216,7 +222,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     if (r < 0 && errno != EEXIST)
         return -1;
 
-#ifdef HAVE_FSTAT
+#if defined(HAVE_FSTAT) && !defined(OS_IS_WIN32)
     if ((fd = open(dir,
 #ifdef O_CLOEXEC
                    O_CLOEXEC|
@@ -254,7 +260,6 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
 #endif
 
     pa_assert_se(pa_close(fd) >= 0);
-
 #endif
 
 #ifdef HAVE_LSTAT
@@ -610,6 +615,7 @@ char *pa_strlcpy(char *b, const char *s, size_t l) {
 }
 
 static int set_scheduler(int rtprio) {
+#ifdef HAVE_SCHED_H
     struct sched_param sp;
 #ifdef HAVE_DBUS
     int r;
@@ -633,6 +639,7 @@ static int set_scheduler(int rtprio) {
         pa_log_debug("SCHED_RR worked.");
         return 0;
     }
+#endif  /* HAVE_SCHED_H */
 
 #ifdef HAVE_DBUS
     /* Try to talk to RealtimeKit */
@@ -702,10 +709,12 @@ static int set_nice(int nice_level) {
     dbus_error_init(&error);
 #endif
 
+#ifdef HAVE_SYS_RESOURCE_H
     if (setpriority(PRIO_PROCESS, 0, nice_level) >= 0) {
         pa_log_debug("setpriority() worked.");
         return 0;
     }
+#endif
 
 #ifdef HAVE_DBUS
     /* Try to talk to RealtimeKit */
@@ -826,6 +835,7 @@ int pa_parse_boolean(const char *v) {
     else if (!strcmp(v, "0") || v[0] == 'n' || v[0] == 'N' || v[0] == 'f' || v[0] == 'F' || !strcasecmp(v, "off"))
         return 0;
 
+#ifdef HAVE_LANGINFO_H
     /* And then we check language dependant */
     if ((expr = nl_langinfo(YESEXPR)))
         if (expr[0])
@@ -836,6 +846,7 @@ int pa_parse_boolean(const char *v) {
         if (expr[0])
             if (pa_match(expr, v) > 0)
                 return 0;
+#endif
 
     errno = EINVAL;
     return -1;
@@ -1338,11 +1349,13 @@ static char *get_pulse_home(void) {
         goto finish;
     }
 
+#ifdef HAVE_GETUID
     if (st.st_uid != getuid()) {
         pa_log_error("Home directory %s not ours.", h);
         errno = EACCES;
         goto finish;
     }
+#endif
 
     ret = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse", h);
 
@@ -1440,7 +1453,11 @@ static char* make_random_dir(mode_t m) {
             fn[i] = table[rand() % (sizeof(table)-1)];
 
         u = umask((~m) & 0777);
+#ifndef OS_IS_WIN32
         r = mkdir(fn, m);
+#else
+        r = mkdir(fn);
+#endif
 
         saved_errno = errno;
         umask(u);
@@ -1463,6 +1480,7 @@ static int make_random_dir_and_link(mode_t m, const char *k) {
     if (!(p = make_random_dir(m)))
         return -1;
 
+#ifdef HAVE_SYMLINK
     if (symlink(p, k) < 0) {
         int saved_errno = errno;
 
@@ -1475,6 +1493,7 @@ static int make_random_dir_and_link(mode_t m, const char *k) {
         errno = saved_errno;
         return -1;
     }
+#endif
 
     pa_xfree(p);
     return 0;
@@ -1559,6 +1578,7 @@ char *pa_get_runtime_dir(void) {
         /* Hmm, so this symlink is still around, make sure nobody fools
          * us */
 
+#ifdef HAVE_LSTAT
         if (lstat(p, &st) < 0) {
 
             if (errno != ENOENT) {
@@ -1578,6 +1598,7 @@ char *pa_get_runtime_dir(void) {
 
             pa_log_info("Hmm, runtime path exists, but points to an invalid directory. Changing runtime directory.");
         }
+#endif
 
         pa_xfree(p);
         p = NULL;
@@ -2217,6 +2238,7 @@ void pa_close_pipe(int fds[2]) {
 }
 
 char *pa_readlink(const char *p) {
+#ifdef HAVE_READLINK
     size_t l = 100;
 
     for (;;) {
@@ -2238,6 +2260,9 @@ char *pa_readlink(const char *p) {
         pa_xfree(c);
         l *= 2;
     }
+#else
+    return NULL;
+#endif
 }
 
 int pa_close_all(int except_fd, ...) {
@@ -2276,6 +2301,7 @@ int pa_close_all(int except_fd, ...) {
 }
 
 int pa_close_allv(const int except_fds[]) {
+#ifndef OS_IS_WIN32
     struct rlimit rl;
     int maxfd, fd;
 
@@ -2365,6 +2391,7 @@ int pa_close_allv(const int except_fds[]) {
         if (pa_close(fd) < 0 && errno != EBADF)
             return -1;
     }
+#endif  /* !OS_IS_WIN32 */
 
     return 0;
 }
@@ -2405,6 +2432,7 @@ int pa_unblock_sigs(int except, ...) {
 }
 
 int pa_unblock_sigsv(const int except[]) {
+#ifndef OS_IS_WIN32
     int i;
     sigset_t ss;
 
@@ -2416,6 +2444,9 @@ int pa_unblock_sigsv(const int except[]) {
             return -1;
 
     return sigprocmask(SIG_SETMASK, &ss, NULL);
+#else
+    return 0;
+#endif
 }
 
 int pa_reset_sigs(int except, ...) {
@@ -2454,6 +2485,7 @@ int pa_reset_sigs(int except, ...) {
 }
 
 int pa_reset_sigsv(const int except[]) {
+#ifndef OS_IS_WIN32
     int sig;
 
     for (sig = 1; sig < NSIG; sig++) {
@@ -2490,6 +2522,7 @@ int pa_reset_sigsv(const int except[]) {
                     return -1;
         }
     }
+#endif
 
     return 0;
 }
@@ -2624,9 +2657,13 @@ char *pa_machine_id(void) {
     if ((h = pa_get_host_name_malloc()))
         return h;
 
+#ifndef OS_IS_WIN32
     /* If no hostname was set we use the POSIX hostid. It's usually
      * the IPv4 address.  Might not be that stable. */
     return pa_sprintf_malloc("%08lx", (unsigned long) gethostid);
+#else
+    return NULL;
+#endif
 }
 
 char *pa_session_id(void) {

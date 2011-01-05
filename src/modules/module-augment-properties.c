@@ -180,6 +180,7 @@ static void update_rule(struct rule *r) {
         DIR *desktopfiles_dir;
         struct dirent *dir;
 
+#ifdef DT_DIR
         /* Let's try a more aggressive search, but only one level */
         if ((desktopfiles_dir = opendir(DESKTOPFILEDIR))) {
             while ((dir = readdir(desktopfiles_dir))) {
@@ -200,6 +201,7 @@ static void update_rule(struct rule *r) {
             }
             closedir(desktopfiles_dir);
         }
+#endif
     }
     if (!found) {
         r->good = FALSE;

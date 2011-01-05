@@ -75,11 +75,15 @@ char *pa_get_user_name(char *s, size_t l) {
     pa_assert(s);
     pa_assert(l > 0);
 
-    if ((p = (getuid() == 0 ? "root" : NULL)) ||
-        (p = getenv("USER")) ||
-        (p = getenv("LOGNAME")) ||
-        (p = getenv("USERNAME")))
-    {
+    p = NULL;
+#ifdef HAVE_GETUID
+    p = getuid() == 0 ? "root" : NULL;
+#endif
+    if (!p) p = getenv("USER");
+    if (!p) p = getenv("LOGNAME");
+    if (!p) p = getenv("USERNAME");
+
+    if (p) {
         name = pa_strlcpy(s, p, l);
     } else {
 #ifdef HAVE_PWD_H

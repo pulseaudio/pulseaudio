@@ -29,7 +29,10 @@
 #include <sched.h>
 #include <inttypes.h>
 #include <string.h>
+
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
+#endif
 
 #include <pulse/timeval.h>
 #include <pulse/gccmacro.h>
@@ -43,9 +46,6 @@ static int msec_lower, msec_upper;
 static void* work(void *p) PA_GCC_NORETURN;
 
 static void* work(void *p) {
-#ifdef HAVE_PTHREAD_SETAFFINITY_NP
-    cpu_set_t mask;
-#endif
     struct sched_param param;
 
     pa_log_notice("CPU%i: Created thread.", PA_PTR_TO_UINT(p));
@@ -55,9 +55,13 @@ static void* work(void *p) {
     pa_assert_se(pthread_setschedparam(pthread_self(), SCHED_FIFO, &param) == 0);
 
 #ifdef HAVE_PTHREAD_SETAFFINITY_NP
+{
+    cpu_set_t mask;
+
     CPU_ZERO(&mask);
     CPU_SET((size_t) PA_PTR_TO_UINT(p), &mask);
     pa_assert_se(pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask) == 0);
+}
 #endif
 
     for (;;) {

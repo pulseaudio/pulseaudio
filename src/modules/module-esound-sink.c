@@ -31,9 +31,18 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
+
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+
+#ifdef HAVE_NETINET_TCP_H
 #include <netinet/tcp.h>
+#endif
+
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
+#endif
 
 #ifdef HAVE_LINUX_SOCKIOS_H
 #include <linux/sockios.h>

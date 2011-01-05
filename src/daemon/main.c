@@ -654,6 +654,7 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 
+#ifdef HAVE_GETUID
     if (getuid() == 0 && !conf->system_instance)
         pa_log_warn(_("This program is not intended to be run as root (unless --system is specified)."));
 #ifndef HAVE_DBUS /* A similar, only a notice worthy check was done earlier, if D-Bus is enabled. */
@@ -662,6 +663,7 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 #endif
+#endif  /* HAVE_GETUID */
 
     if (conf->cmd == PA_CMD_START && conf->system_instance) {
         pa_log(_("--start not supported for system instances."));

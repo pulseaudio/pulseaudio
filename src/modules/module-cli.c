@@ -105,10 +105,14 @@ int pa__init(pa_module*m) {
      * of log messages, particularly because if stdout and stderr are
      * dup'ed they share the same O_NDELAY, too. */
 
+#ifndef OS_IS_WIN32
     if ((fd = pa_open_cloexec("/dev/tty", O_RDWR|O_NONBLOCK, 0)) >= 0) {
         io = pa_iochannel_new(m->core->mainloop, fd, fd);
         pa_log_debug("Managed to open /dev/tty.");
-    } else {
+    }
+    else
+#endif
+    {
         io = pa_iochannel_new(m->core->mainloop, STDIN_FILENO, STDOUT_FILENO);
         pa_iochannel_set_noclose(io, TRUE);
         pa_log_debug("Failed to open /dev/tty, using stdin/stdout fds instead.");

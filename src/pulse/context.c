@@ -585,10 +585,12 @@ static char *get_old_legacy_runtime_dir(void) {
         return NULL;
     }
 
+#ifdef HAVE_GETUID
     if (st.st_uid != getuid()) {
         pa_xfree(p);
         return NULL;
     }
+#endif
 
     return p;
 }
@@ -607,10 +609,12 @@ static char *get_very_old_legacy_runtime_dir(void) {
         return NULL;
     }
 
+#ifdef HAVE_GETUID
     if (st.st_uid != getuid()) {
         pa_xfree(p);
         return NULL;
     }
+#endif
 
     return p;
 }
@@ -997,6 +1001,7 @@ int pa_context_connect(
     /* Set up autospawning */
     if (!(flags & PA_CONTEXT_NOAUTOSPAWN) && c->conf->autospawn) {
 
+#ifdef HAVE_GETUID
         if (getuid() == 0)
             pa_log_debug("Not doing autospawn since we are root.");
         else {
@@ -1005,6 +1010,7 @@ int pa_context_connect(
             if (api)
                 c->spawn_api = *api;
         }
+#endif
     }
 
     pa_context_set_state(c, PA_CONTEXT_CONNECTING);
