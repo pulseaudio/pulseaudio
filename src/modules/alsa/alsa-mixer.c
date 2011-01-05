@@ -804,6 +804,7 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
 
         if (e->has_dB) {
             long value = to_alsa_dB(f);
+            int rounding = value > 0 ? -1 : +1;
 
             if (e->direction == PA_ALSA_DIRECTION_OUTPUT) {
                 /* If we call set_play_volume() without checking first
@@ -811,11 +812,11 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
                  * strangely and doesn't fail the call */
                 if (snd_mixer_selem_has_playback_channel(me, c)) {
                     if (write_to_hw) {
-                        if ((r = snd_mixer_selem_set_playback_dB(me, c, value, +1)) >= 0)
+                        if ((r = snd_mixer_selem_set_playback_dB(me, c, value, rounding)) >= 0)
                             r = snd_mixer_selem_get_playback_dB(me, c, &value);
                     } else {
                         long alsa_val;
-                        if ((r = snd_mixer_selem_ask_playback_dB_vol(me, value, +1, &alsa_val)) >= 0)
+                        if ((r = snd_mixer_selem_ask_playback_dB_vol(me, value, rounding, &alsa_val)) >= 0)
                             r = snd_mixer_selem_ask_playback_vol_dB(me, alsa_val, &value);
                     }
                 } else
@@ -823,11 +824,11 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
             } else {
                 if (snd_mixer_selem_has_capture_channel(me, c)) {
                     if (write_to_hw) {
-                        if ((r = snd_mixer_selem_set_capture_dB(me, c, value, +1)) >= 0)
+                        if ((r = snd_mixer_selem_set_capture_dB(me, c, value, rounding)) >= 0)
                             r = snd_mixer_selem_get_capture_dB(me, c, &value);
                     } else {
                         long alsa_val;
-                        if ((r = snd_mixer_selem_ask_capture_dB_vol(me, value, +1, &alsa_val)) >= 0)
+                        if ((r = snd_mixer_selem_ask_capture_dB_vol(me, value, rounding, &alsa_val)) >= 0)
                             r = snd_mixer_selem_ask_capture_vol_dB(me, alsa_val, &value);
                     }
                 } else
@@ -2214,6 +2215,7 @@ int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, pa_bool_t ignore_dB) {
             pa_log_debug("Probe of element '%s' failed.", e->alsa_name);
             return -1;
         }
+        pa_log_debug("Probe of element '%s' succeeded (volume=%d, switch=%d, enumeration=%d).", e->alsa_name, e->volume_use, e->switch_use, e->enumeration_use);
 
         if (ignore_dB)
             e->has_dB = FALSE;
@@ -2250,10 +2252,11 @@ int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, pa_bool_t ignore_dB) {
                         pa_log_info("Zeroing volume of '%s' on path '%s'", e->alsa_name, p->name);
                     }
                 }
-            } else if (p->has_volume)
+            } else if (p->has_volume) {
                 /* We can't use this volume, so let's ignore it */
                 e->volume_use = PA_ALSA_VOLUME_IGNORE;
-
+                pa_log_info("Ignoring volume of '%s' on path '%s' (missing dB info)", e->alsa_name, p->name);
+            }
             p->has_volume = TRUE;
         }
 
