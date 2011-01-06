@@ -40,6 +40,7 @@
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/pipe.h>
 
 #include "start-child.h"
 

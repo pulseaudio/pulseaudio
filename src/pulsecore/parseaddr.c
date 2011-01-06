@@ -35,6 +35,7 @@
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/inet_pton.h>
 
 #include "parseaddr.h"
 

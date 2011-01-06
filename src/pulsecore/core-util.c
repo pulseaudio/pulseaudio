@@ -128,6 +128,7 @@
 #include <pulsecore/usergroup.h>
 #include <pulsecore/strlist.h>
 #include <pulsecore/cpu-x86.h>
+#include <pulsecore/pipe.h>
 
 #include "core-util.h"
 

@@ -28,6 +28,7 @@
 
 #ifndef HAVE_INET_NTOP
 
+#include <pulsecore/core-util.h>
 #include <pulsecore/socket.h>
 
 #include "inet_ntop.h"

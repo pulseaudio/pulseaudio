@@ -24,6 +24,7 @@
 #include <pulsecore/socket.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/ipacl.h>
+#include <pulsecore/inet_pton.h>
 
 int main(int argc, char *argv[]) {
     struct sockaddr_in sa;

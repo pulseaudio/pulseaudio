@@ -30,6 +30,7 @@
 #include <sys/types.h>
 
 #include <pulsecore/socket.h>
+#include <pulsecore/core-util.h>
 
 #include "pipe.h"
 
