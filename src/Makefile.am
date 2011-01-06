@@ -177,8 +177,11 @@ endif
 
 bin_PROGRAMS += \
 		pacat \
-		pactl \
-		pasuspender
+		pactl
+
+if !OS_IS_WIN32
+bin_PROGRAMS += pasuspender
+endif
 
 if HAVE_AF_UNIX
 bin_PROGRAMS += pacmd
@@ -256,9 +259,7 @@ TESTS = \
 		envelope-test \
 		proplist-test \
 		lock-autospawn-test \
-		prioq-test \
-		sigbus-test \
-		usergroup-test
+		prioq-test
 
 TESTS_BINARIES = \
 		mainloop-test \
@@ -295,9 +296,16 @@ TESTS_BINARIES = \
 		rtstutter \
 		stripnul \
 		lock-autospawn-test \
-		prioq-test \
+		prioq-test
+
+if !OS_IS_WIN32
+TESTS += \
 		sigbus-test \
 		usergroup-test
+TESTS_BINARIES += \
+		sigbus-test \
+		usergroup-test
+endif
 
 if HAVE_SIGXCPU
 #TESTS += \
@@ -326,8 +334,10 @@ TESTS_BINARIES += \
 endif
 
 if !OS_IS_DARWIN
+if !OS_IS_WIN32
 TESTS_BINARIES += \
 		once-test
+endif
 endif
 
 if BUILD_TESTS_DEFAULT

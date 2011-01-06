@@ -1078,7 +1078,7 @@ finish:
     }
 
 #ifdef OS_IS_WIN32
-    if (win32_timer)
+    if (mainloop && win32_timer)
         pa_mainloop_get_api(mainloop)->time_free(win32_timer);
 #endif
 

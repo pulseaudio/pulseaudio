@@ -151,7 +151,7 @@ static char *normalize_path(const char *fn) {
 #ifndef OS_IS_WIN32
     if (fn[0] != '/') {
 #else
-    if (strlen(fn) < 3 || !isalpha(fn[0]) || fn[1] != ':' || fn[2] != '\\') {
+    if (strlen(fn) < 3 || !IsCharAlpha(fn[0]) || fn[1] != ':' || fn[2] != '\\') {
 #endif
         char *homedir, *s;
 

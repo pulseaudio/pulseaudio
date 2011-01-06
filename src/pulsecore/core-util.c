@@ -91,6 +91,10 @@
 #include <windows.h>
 #endif
 
+#ifndef ENOTSUP
+#define ENOTSUP   135
+#endif
+
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
@@ -147,20 +151,18 @@ static pa_strlist *recorded_env = NULL;
 #define PULSE_ROOTENV "PULSE_ROOT"
 
 int pa_set_root(HANDLE handle) {
-    char library_path[MAX_PATH + sizeof(PULSE_ROOTENV) + 1], *sep;
-
-    strcpy(library_path, PULSE_ROOTENV "=");
+    char library_path[MAX_PATH], *sep;
 
     /* FIXME: Needs to set errno */
 
-    if (!GetModuleFileName(handle, library_path + sizeof(PULSE_ROOTENV), MAX_PATH))
+    if (!GetModuleFileName(handle, library_path, MAX_PATH))
         return 0;
 
     sep = strrchr(library_path, PA_PATH_SEP_CHAR);
     if (sep)
         *sep = '\0';
 
-    if (_putenv(library_path) < 0)
+    if (!SetEnvironmentVariable(PULSE_ROOTENV, library_path))
         return 0;
 
     return 1;
@@ -696,14 +698,21 @@ int pa_make_realtime(int rtprio) {
             pa_log_info("Successfully enabled SCHED_RR scheduling for thread, with priority %i, which is lower than the requested %i.", p, rtprio);
             return 0;
         }
+#elif defined(OS_IS_WIN32)
+    /* Windows only allows realtime scheduling to be set on a per process basis.
+     * Therefore, instead of making the thread realtime, just give it the highest non-realtime priority. */
+    if(SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL)) {
+        pa_log_info("Successfully enabled THREAD_PRIORITY_TIME_CRITICAL scheduling for thread.");
+        return 0;
+    }
 
+    pa_log_warn("SetThreadPriority() failed: 0x%08X", GetLastError());
+    errno = EPERM;
+#else
+    errno = ENOTSUP;
+#endif
     pa_log_info("Failed to acquire real-time scheduling: %s", pa_cstrerror(errno));
     return -1;
-#else
-
-    errno = ENOTSUP;
-    return -1;
-#endif
 }
 
 static int set_nice(int nice_level) {
@@ -1499,6 +1508,9 @@ static int make_random_dir_and_link(mode_t m, const char *k) {
         errno = saved_errno;
         return -1;
     }
+#else
+    pa_xfree(p);
+    return -1;
 #endif
 
     pa_xfree(p);
@@ -1558,6 +1570,7 @@ char *pa_get_runtime_dir(void) {
                 goto fail;
             }
 
+#ifdef HAVE_SYMLINK
             /* Hmm, so the runtime directory didn't exist yet, so let's
              * create one in /tmp and symlink that to it */
 
@@ -1570,6 +1583,11 @@ char *pa_get_runtime_dir(void) {
 
                 goto fail;
             }
+#else
+            /* No symlink possible, so let's just create the runtime directly */
+            if (!mkdir(k))
+                goto fail;
+#endif
 
             return k;
         }
@@ -2539,7 +2557,11 @@ void pa_set_env(const char *key, const char *value) {
 
     /* This is not thread-safe */
 
+#ifdef OS_IS_WIN32
+    SetEnvironmentVariable(key, value);
+#else
     setenv(key, value, 1);
+#endif
 }
 
 void pa_set_env_and_record(const char *key, const char *value) {
@@ -2564,7 +2586,11 @@ void pa_unset_env_recorded(void) {
         if (!s)
             break;
 
+#ifdef OS_IS_WIN32
+        SetEnvironmentVariable(s, NULL);
+#else
         unsetenv(s);
+#endif
         pa_xfree(s);
     }
 }
@@ -2682,11 +2708,22 @@ char *pa_session_id(void) {
 }
 
 char *pa_uname_string(void) {
+#ifdef HAVE_UNAME
     struct utsname u;
 
     pa_assert_se(uname(&u) >= 0);
 
     return pa_sprintf_malloc("%s %s %s %s", u.sysname, u.machine, u.release, u.version);
+#endif
+#ifdef OS_IS_WIN32
+    OSVERSIONINFO i;
+
+    pa_zero(i);
+    i.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    pa_assert_se(GetVersionEx(&i));
+
+    return pa_sprintf_malloc("Windows %d.%d (%d) %s", i.dwMajorVersion, i.dwMinorVersion, i.dwBuildNumber, i.szCSDVersion);
+#endif
 }
 
 #ifdef HAVE_VALGRIND_MEMCHECK_H
@@ -2835,10 +2872,17 @@ char *pa_realpath(const char *path) {
         char *path_buf;
         path_buf = pa_xmalloc(PATH_MAX);
 
+#if defined(OS_IS_WIN32)
+        if (!(t = _fullpath(path_buf, path, _MAX_PATH))) {
+            pa_xfree(path_buf);
+            return NULL;
+        }
+#else
         if (!(t = realpath(path, path_buf))) {
             pa_xfree(path_buf);
             return NULL;
         }
+#endif
     }
 #else
 #error "It's not clear whether this system supports realpath(..., NULL) like GNU libc does. If it doesn't we need a private version of realpath() here."
