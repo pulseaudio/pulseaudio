@@ -167,13 +167,13 @@ static void adjust_rates(struct userdata *u) {
 
     buffer_latency = pa_bytes_to_usec(buffer, &u->sink_input->sample_spec);
 
-    pa_log_info("Loopback overall latency is %0.2f ms + %0.2f ms + %0.2f ms = %0.2f ms",
+    pa_log_debug("Loopback overall latency is %0.2f ms + %0.2f ms + %0.2f ms = %0.2f ms",
                 (double) u->latency_snapshot.sink_latency / PA_USEC_PER_MSEC,
                 (double) buffer_latency / PA_USEC_PER_MSEC,
                 (double) u->latency_snapshot.source_latency / PA_USEC_PER_MSEC,
                 ((double) u->latency_snapshot.sink_latency + buffer_latency + u->latency_snapshot.source_latency) / PA_USEC_PER_MSEC);
 
-    pa_log_info("Should buffer %zu bytes, buffered at minimum %zu bytes",
+    pa_log_debug("Should buffer %zu bytes, buffered at minimum %zu bytes",
                 u->latency_snapshot.max_request*2,
                 u->latency_snapshot.min_memblockq_length);
 
@@ -186,9 +186,21 @@ static void adjust_rates(struct userdata *u) {
     else
         new_rate = base_rate + (((u->latency_snapshot.min_memblockq_length - u->latency_snapshot.max_request*2) / fs) *PA_USEC_PER_SEC)/u->adjust_time;
 
-    pa_log_info("Old rate %lu Hz, new rate %lu Hz", (unsigned long) old_rate, (unsigned long) new_rate);
+    if (new_rate < (uint32_t) (base_rate*0.8) || new_rate > (uint32_t) (base_rate*1.25)) {
+        pa_log_warn("Sample rates too different, not adjusting (%u vs. %u).", base_rate, new_rate);
+        new_rate = base_rate;
+    } else {
+        if (base_rate < new_rate + 20 && new_rate < base_rate + 20)
+          new_rate = base_rate;
+        /* Do the adjustment in small steps; 2‰ can be considered inaudible */
+        if (new_rate < (uint32_t) (old_rate*0.998) || new_rate > (uint32_t) (old_rate*1.002)) {
+            pa_log_info("New rate of %u Hz not within 2‰ of %u Hz, forcing smaller adjustment", new_rate, old_rate);
+            new_rate = PA_CLAMP(new_rate, (uint32_t) (old_rate*0.998), (uint32_t) (old_rate*1.002));
+        }
+    }
 
     pa_sink_input_set_rate(u->sink_input, new_rate);
+    pa_log_debug("[%s] Updated sampling rate to %lu Hz.", u->sink_input->sink->name, (unsigned long) new_rate);
 
     pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
 }
