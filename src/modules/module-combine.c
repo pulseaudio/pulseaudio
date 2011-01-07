@@ -217,23 +217,29 @@ static void adjust_rates(struct userdata *u) {
     base_rate = u->sink->sample_spec.rate;
 
     PA_IDXSET_FOREACH(o, u->outputs, idx) {
-        uint32_t r = base_rate;
+        uint32_t new_rate = base_rate;
+        uint32_t current_rate = o->sink_input->sample_spec.rate;
 
         if (!o->sink_input || !PA_SINK_IS_OPENED(pa_sink_get_state(o->sink)))
             continue;
 
-        if (o->total_latency < target_latency)
-            r -= (uint32_t) ((((double) (target_latency - o->total_latency))/(double)u->adjust_time)*(double)r);
-        else if (o->total_latency > target_latency)
-            r += (uint32_t) ((((double) (o->total_latency - target_latency))/(double)u->adjust_time)*(double)r);
+        if (o->total_latency != target_latency)
+            new_rate += (uint32_t) (((double) o->total_latency - (double) target_latency) / (double) u->adjust_time * (double) new_rate);
 
-        if (r < (uint32_t) (base_rate*0.9) || r > (uint32_t) (base_rate*1.1)) {
-            pa_log_warn("[%s] sample rates too different, not adjusting (%u vs. %u).", o->sink_input->sink->name, base_rate, r);
-            pa_sink_input_set_rate(o->sink_input, base_rate);
+        if (new_rate < (uint32_t) (base_rate*0.8) || new_rate > (uint32_t) (base_rate*1.25)) {
+            pa_log_warn("[%s] sample rates too different, not adjusting (%u vs. %u).", o->sink_input->sink->name, base_rate, new_rate);
+            new_rate = base_rate;
         } else {
-            pa_log_info("[%s] new rate is %u Hz; ratio is %0.3f; latency is %0.0f usec.", o->sink_input->sink->name, r, (double) r / base_rate, (float) o->total_latency);
-            pa_sink_input_set_rate(o->sink_input, r);
+            if (base_rate < new_rate + 20 && new_rate < base_rate + 20)
+              new_rate = base_rate;
+            /* Do the adjustment in small steps; 2‰ can be considered inaudible */
+            if (new_rate < (uint32_t) (current_rate*0.998) || new_rate > (uint32_t) (current_rate*1.002)) {
+                pa_log_info("[%s] new rate of %u Hz not within 2‰ of %u Hz, forcing smaller adjustment", o->sink_input->sink->name, new_rate, current_rate);
+                new_rate = PA_CLAMP(new_rate, (uint32_t) (current_rate*0.998), (uint32_t) (current_rate*1.002));
+            }
+            pa_log_info("[%s] new rate is %u Hz; ratio is %0.3f; latency is %0.2f msec.", o->sink_input->sink->name, new_rate, (double) new_rate / base_rate, (double) o->total_latency / PA_USEC_PER_MSEC);
         }
+        pa_sink_input_set_rate(o->sink_input, new_rate);
     }
 
     pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_UPDATE_LATENCY, NULL, (int64_t) avg_total_latency, NULL);

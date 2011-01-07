@@ -288,6 +288,9 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     if (s->last_rate_update + RATE_UPDATE_INTERVAL < pa_timeval_load(&now)) {
         pa_usec_t wi, ri, render_delay, sink_delay = 0, latency, fix;
         unsigned fix_samples;
+        uint32_t base_rate = s->sink_input->sink->sample_spec.rate;
+        uint32_t current_rate = s->sink_input->sample_spec.rate;
+        uint32_t new_rate;
 
         pa_log_debug("Updating sample rate");
 
@@ -309,7 +312,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         else
             latency = wi - ri;
 
-        pa_log_debug("Write index deviates by %0.2f ms, expected %0.2f ms", (double) latency/PA_USEC_PER_MSEC, (double)  s->intended_latency/PA_USEC_PER_MSEC);
+        pa_log_debug("Write index deviates by %0.2f ms, expected %0.2f ms", (double) latency/PA_USEC_PER_MSEC, (double) s->intended_latency/PA_USEC_PER_MSEC);
 
         /* Calculate deviation */
         if (latency < s->intended_latency)
@@ -320,19 +323,24 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         /* How many samples is this per second? */
         fix_samples = (unsigned) (fix * (pa_usec_t) s->sink_input->thread_info.sample_spec.rate / (pa_usec_t) RATE_UPDATE_INTERVAL);
 
-        /* Check if deviation is in bounds */
-        if (fix_samples > s->sink_input->sample_spec.rate*.50)
-            pa_log_debug("Hmmm, rate fix is too large (%lu Hz), not applying.", (unsigned long) fix_samples);
-        else {
-            /* Fix up rate */
-            if (latency < s->intended_latency)
-                s->sink_input->sample_spec.rate -= fix_samples;
-            else
-                s->sink_input->sample_spec.rate += fix_samples;
+        if (latency < s->intended_latency)
+            new_rate = current_rate - fix_samples;
+        else
+            new_rate = current_rate + fix_samples;
 
-            if (s->sink_input->sample_spec.rate > PA_RATE_MAX)
-                s->sink_input->sample_spec.rate = PA_RATE_MAX;
+        if (new_rate < (uint32_t) (base_rate*0.8) || new_rate > (uint32_t) (base_rate*1.25)) {
+            pa_log_warn("Sample rates too different, not adjusting (%u vs. %u).", base_rate, new_rate);
+            new_rate = base_rate;
+        } else {
+            if (base_rate < new_rate + 20 && new_rate < base_rate + 20)
+              new_rate = base_rate;
+            /* Do the adjustment in small steps; 2‰ can be considered inaudible */
+            if (new_rate < (uint32_t) (current_rate*0.998) || new_rate > (uint32_t) (current_rate*1.002)) {
+                pa_log_info("New rate of %u Hz not within 2‰ of %u Hz, forcing smaller adjustment", new_rate, current_rate);
+                new_rate = PA_CLAMP(new_rate, (uint32_t) (current_rate*0.998), (uint32_t) (current_rate*1.002));
+            }
         }
+        s->sink_input->sample_spec.rate = new_rate;
 
         pa_assert(pa_sample_spec_valid(&s->sink_input->sample_spec));
 
