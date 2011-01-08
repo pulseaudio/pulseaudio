@@ -118,6 +118,7 @@ static PA_LLIST_HEAD(fd_info, fd_infos) = NULL;
 static int (*_ioctl)(int, int, void*) = NULL;
 static int (*_close)(int) = NULL;
 static int (*_open)(const char *, int, mode_t) = NULL;
+static int (*___open_2)(const char *, int) = NULL;
 static FILE* (*_fopen)(const char *path, const char *mode) = NULL;
 static int (*_stat)(const char *, struct stat *) = NULL;
 #ifdef _STAT_VER
@@ -125,6 +126,7 @@ static int (*___xstat)(int, const char *, struct stat *) = NULL;
 #endif
 #ifdef HAVE_OPEN64
 static int (*_open64)(const char *, int, mode_t) = NULL;
+static int (*___open64_2)(const char *, int) = NULL;
 static FILE* (*_fopen64)(const char *path, const char *mode) = NULL;
 static int (*_stat64)(const char *, struct stat64 *) = NULL;
 #ifdef _STAT_VER
@@ -157,11 +159,27 @@ do { \
     pthread_mutex_unlock(&func_mutex); \
 } while(0)
 
+#define LOAD___OPEN_2_FUNC() \
+do { \
+    pthread_mutex_lock(&func_mutex); \
+    if (!___open_2) \
+        ___open_2 = (int (*)(const char *, int)) dlsym_fn(RTLD_NEXT, "__open_2"); \
+    pthread_mutex_unlock(&func_mutex); \
+} while(0)
+
 #define LOAD_OPEN64_FUNC() \
 do { \
     pthread_mutex_lock(&func_mutex); \
     if (!_open64) \
         _open64 = (int (*)(const char *, int, mode_t)) dlsym_fn(RTLD_NEXT, "open64"); \
+    pthread_mutex_unlock(&func_mutex); \
+} while(0)
+
+#define LOAD___OPEN64_2_FUNC() \
+do { \
+    pthread_mutex_lock(&func_mutex); \
+    if (!___open64_2) \
+        ___open64_2 = (int (*)(const char *, int)) dlsym_fn(RTLD_NEXT, "__open64_2"); \
     pthread_mutex_unlock(&func_mutex); \
 } while(0)
 
@@ -1494,6 +1512,27 @@ int open(const char *filename, int flags, ...) {
     return real_open(filename, flags, mode);
 }
 
+static pa_bool_t is_audio_device_node(const char *path) {
+    return
+        pa_streq(path, "/dev/dsp") ||
+        pa_streq(path, "/dev/adsp") ||
+        pa_streq(path, "/dev/audio") ||
+        pa_streq(path, "/dev/sndstat") ||
+        pa_streq(path, "/dev/mixer");
+}
+
+int __open_2(const char *filename, int flags) {
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": __open_2(%s)\n", filename?filename:"NULL");
+
+    if ((flags & O_CREAT) ||
+        !filename ||
+        !is_audio_device_node(filename)) {
+        LOAD___OPEN_2_FUNC();
+        return ___open_2(filename, flags);
+    }
+    return real_open(filename, flags, 0);
+}
+
 static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) {
     int ret = -1;
 
@@ -2383,15 +2422,6 @@ int close(int fd) {
     return 0;
 }
 
-static pa_bool_t is_audio_device_node(const char *path) {
-    return
-        pa_streq(path, "/dev/dsp") ||
-        pa_streq(path, "/dev/adsp") ||
-        pa_streq(path, "/dev/audio") ||
-        pa_streq(path, "/dev/sndstat") ||
-        pa_streq(path, "/dev/mixer");
-}
-
 int access(const char *pathname, int mode) {
 
     debug(DEBUG_LEVEL_VERBOSE, __FILE__": access(%s)\n", pathname?pathname:"NULL");
@@ -2525,6 +2555,19 @@ int open64(const char *filename, int flags, ...) {
     }
 
     return real_open(filename, flags, mode);
+}
+
+int __open64_2(const char *filename, int flags) {
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": __open64_2(%s)\n", filename?filename:"NULL");
+
+    if ((flags & O_CREAT) ||
+        !filename ||
+        !is_audio_device_node(filename)) {
+        LOAD___OPEN64_2_FUNC();
+        return ___open64_2(filename, flags);
+    }
+
+    return real_open(filename, flags, 0);
 }
 
 #endif
