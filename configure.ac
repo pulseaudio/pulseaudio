@@ -1617,3 +1617,27 @@ echo "
     Force preopen:                 ${FORCE_PREOPEN}
     Preopened modules:             ${PREOPEN_MODS}
 "
+
+if test "${ENABLE_DBUS}" = "no" ; then
+   echo "
+===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
+You do not have DBUS support enabled. It is strongly recommended
+that you enable DBUS support if you platform supports it.
+Many parts of PulseAudio use udev, from Console Kit interaction
+to the Device Reservation Protocol to speak to JACK, Bluetooth
+support and even a native control protocol for communicating and
+controling the PulseAudio daemon itself.
+===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
+"
+fi
+
+if test "${ENABLE_UDEV}" = "no" ; then
+   echo "
+===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
+You do not have udev support enabled. It is strongly recommended
+that you enable udev support if you platform supports it as it is
+the primary method used to detect hardware audio devices (on Linux)
+and is thus a critical part of PulseAudio on that platform.
+===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
+"
+fi
