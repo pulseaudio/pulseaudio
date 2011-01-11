@@ -111,7 +111,9 @@ load-module module-suspend-on-idle
 
 ### If autoexit on idle is enabled we want to make sure we only quit
 ### when no local session needs us anymore.
+.ifexists module-console-kit@PA_SOEXT@
 load-module module-console-kit
+.endif
 
 ### Enable positioned event sounds
 load-module module-position-event-sounds
