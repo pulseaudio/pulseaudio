@@ -1154,28 +1154,6 @@ AC_SUBST(UDEV_LIBS)
 AC_SUBST(HAVE_UDEV)
 AM_CONDITIONAL([HAVE_UDEV], [test "x$HAVE_UDEV" = x1])
 
-#### HAL compat support (optional) ####
-
-AC_ARG_ENABLE([hal-compat],
-    AS_HELP_STRING([--disable-hal-compat],[Disable optional HAL->udev transition compatibility support]),
-        [
-            case "${enableval}" in
-                yes) halcompat=yes ;;
-                no) halcompat=no ;;
-                *) AC_MSG_ERROR(bad value ${enableval} for --disable-hal-compat) ;;
-            esac
-        ],
-        [halcompat=auto])
-if test "x${halcompat}" != xno -a "x$HAVE_HAL" = "x0" -a "x$HAVE_UDEV" = "x1" ; then
-    HAVE_HAL_COMPAT=1
-    AC_DEFINE([HAVE_HAL_COMPAT], 1, [Have HAL compatibility.])
-else
-    HAVE_HAL_COMPAT=0
-fi
-
-AC_SUBST(HAVE_HAL_COMPAT)
-AM_CONDITIONAL([HAVE_HAL_COMPAT], [test "x$HAVE_HAL_COMPAT" = x1])
-
 #### BlueZ support (optional) ####
 
 AC_ARG_ENABLE([bluez],
@@ -1219,11 +1197,7 @@ AC_ARG_ENABLE([dbus],
         ],
         [dbus=auto])
 
-if test "x$HAVE_HAL" = x1 ; then
-   dbus=yes
-fi
-
-if test "x${dbus}" != xno || test "x${bluez}" != xno || test "x${hal}" != xno ; then
+if test "x${dbus}" != xno ; then
 
     PKG_CHECK_MODULES(DBUS, [ dbus-1 >= 1.0.0 ],
         [
@@ -1248,6 +1222,43 @@ AC_SUBST(DBUS_CFLAGS)
 AC_SUBST(DBUS_LIBS)
 AC_SUBST(HAVE_DBUS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
+
+
+# udev and HAL depend on DBUS: So double check if they were explicitly enabled.
+if test "x$HAVE_DBUS" != "x1" ; then
+    HAVE_HAL=0
+    if test "x${hal}" = xyes ; then
+        AC_MSG_ERROR([*** D-Bus support is required by HAL])
+    fi
+
+    HAVE_BLUEZ=0
+    if test "x${bluez}" = xyes ; then
+        AC_MSG_ERROR([*** D-Bus support is required by BLUEZ])
+    fi
+fi
+
+
+#### HAL compat support (optional) ####
+
+AC_ARG_ENABLE([hal-compat],
+    AS_HELP_STRING([--disable-hal-compat],[Disable optional HAL->udev transition compatibility support]),
+        [
+            case "${enableval}" in
+                yes) halcompat=yes ;;
+                no) halcompat=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-hal-compat) ;;
+            esac
+        ],
+        [halcompat=auto])
+if test "x${halcompat}" != xno -a "x$HAVE_HAL" = "x0" -a "x$HAVE_UDEV" = "x1" ; then
+    HAVE_HAL_COMPAT=1
+    AC_DEFINE([HAVE_HAL_COMPAT], 1, [Have HAL compatibility.])
+else
+    HAVE_HAL_COMPAT=0
+fi
+
+AC_SUBST(HAVE_HAL_COMPAT)
+AM_CONDITIONAL([HAVE_HAL_COMPAT], [test "x$HAVE_HAL_COMPAT" = x1])
 
 ### IPv6 connection support (optional) ###
 
@@ -1604,10 +1615,10 @@ echo "
     Enable Async DNS:              ${ENABLE_LIBASYNCNS}
     Enable LIRC:                   ${ENABLE_LIRC}
     Enable DBUS:                   ${ENABLE_DBUS}
-    Enable HAL:                    ${ENABLE_HAL}
+      Enable HAL:                  ${ENABLE_HAL}
+      Enable BlueZ:                ${ENABLE_BLUEZ}
     Enable udev:                   ${ENABLE_UDEV}
-    Enable HAL->udev compat:       ${ENABLE_HAL_COMPAT}
-    Enable BlueZ:                  ${ENABLE_BLUEZ}
+      Enable HAL->udev compat:     ${ENABLE_HAL_COMPAT}
     Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
     Enable IPv6:                   ${ENABLE_IPV6}
