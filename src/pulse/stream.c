@@ -1733,8 +1733,8 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                 i->read_index -= (int64_t) pa_memblockq_get_length(o->stream->record_memblockq);
         }
 
-        /* Update smoother */
-        if (o->stream->smoother) {
+        /* Update smoother if we're not corked */
+        if (o->stream->smoother && !o->stream->corked) {
             pa_usec_t u, x;
 
             u = x = pa_rtclock_now() - i->transport_usec;
