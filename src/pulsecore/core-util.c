@@ -2501,7 +2501,7 @@ void pa_set_env(const char *key, const char *value) {
 
     /* This is not thread-safe */
 
-    putenv(pa_sprintf_malloc("%s=%s", key, value));
+    setenv(key, value, 1);
 }
 
 void pa_set_env_and_record(const char *key, const char *value) {
