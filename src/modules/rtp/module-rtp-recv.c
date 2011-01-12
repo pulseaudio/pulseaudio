@@ -109,6 +109,7 @@ struct session {
     pa_usec_t sink_latency;
 
     pa_usec_t last_rate_update;
+    pa_usec_t last_latency;
 };
 
 struct userdata {
@@ -286,11 +287,11 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     pa_atomic_store(&s->timestamp, (int) now.tv_sec);
 
     if (s->last_rate_update + RATE_UPDATE_INTERVAL < pa_timeval_load(&now)) {
-        pa_usec_t wi, ri, render_delay, sink_delay = 0, latency, fix;
-        unsigned fix_samples;
+        pa_usec_t wi, ri, render_delay, sink_delay = 0, latency;
         uint32_t base_rate = s->sink_input->sink->sample_spec.rate;
         uint32_t current_rate = s->sink_input->sample_spec.rate;
         uint32_t new_rate;
+        double estimated_rate;
 
         pa_log_debug("Updating sample rate");
 
@@ -314,19 +315,31 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
         pa_log_debug("Write index deviates by %0.2f ms, expected %0.2f ms", (double) latency/PA_USEC_PER_MSEC, (double) s->intended_latency/PA_USEC_PER_MSEC);
 
-        /* Calculate deviation */
-        if (latency < s->intended_latency)
-            fix = s->intended_latency - latency;
-        else
-            fix = latency - s->intended_latency;
-
-        /* How many samples is this per second? */
-        fix_samples = (unsigned) (fix * (pa_usec_t) s->sink_input->thread_info.sample_spec.rate / (pa_usec_t) RATE_UPDATE_INTERVAL);
-
-        if (latency < s->intended_latency)
-            new_rate = current_rate - fix_samples;
-        else
-            new_rate = current_rate + fix_samples;
+        /* The buffer is filling with some unknown rate R̂ samples/second. If the rate of reading in
+         * the last T seconds was Rⁿ, then the increase in buffer latency ΔLⁿ = Lⁿ - Lⁿ⁻ⁱ in that
+         * same period is ΔLⁿ = (TR̂ - TRⁿ) / R̂, giving the estimated target rate
+         *                                           T
+         *                                 R̂ = ─────────────── Rⁿ .                             (1)
+         *                                     T - (Lⁿ - Lⁿ⁻ⁱ)
+         *
+         * Setting the sample rate to R̂ results in the latency being constant (if the estimate of R̂
+         * is correct).  But there is also the requirement to keep the buffer at a predefined target
+         * latency L̂.  So instead of setting Rⁿ⁺ⁱ to R̂ immediately, the strategy will be to reduce R
+         * from Rⁿ⁺ⁱ to R̂ in a steps of T seconds, where Rⁿ⁺ⁱ is chosen such that in the total time
+         * aT the latency is reduced from Lⁿ to L̂.  This strategy translates to the requirements
+         *            ₐ      R̂ - Rⁿ⁺ʲ                            a-j+1         j-1
+         *            Σ  T ────────── = L̂ - Lⁿ    with    Rⁿ⁺ʲ = ───── Rⁿ⁺ⁱ + ───── R̂ .
+         *           ʲ⁼ⁱ        R̂                                  a            a
+         * Solving for Rⁿ⁺ⁱ gives
+         *                                     T - ²∕ₐ₊₁(L̂ - Lⁿ)
+         *                              Rⁿ⁺ⁱ = ───────────────── R̂ .                            (2)
+         *                                            T
+         * Together Equations (1) and (2) specify the algorithm used below, where a = 7 is used.
+         */
+        estimated_rate = (double) current_rate * (double) RATE_UPDATE_INTERVAL / (double) (RATE_UPDATE_INTERVAL + s->last_latency - latency);
+        pa_log_debug("Estimated target rate: %.0f Hz", estimated_rate);
+        new_rate = (uint32_t) ((double) (RATE_UPDATE_INTERVAL + latency/4 - s->intended_latency/4) / (double) RATE_UPDATE_INTERVAL * estimated_rate);
+        s->last_latency = latency;
 
         if (new_rate < (uint32_t) (base_rate*0.8) || new_rate > (uint32_t) (base_rate*1.25)) {
             pa_log_warn("Sample rates too different, not adjusting (%u vs. %u).", base_rate, new_rate);
@@ -488,6 +501,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
             pa_timeval_load(&now),
             TRUE);
     s->last_rate_update = pa_timeval_load(&now);
+    s->last_latency = LATENCY_USEC;
     pa_atomic_store(&s->timestamp, (int) now.tv_sec);
 
     if ((fd = mcast_socket((const struct sockaddr*) &sdp_info->sa, sdp_info->salen)) < 0)
