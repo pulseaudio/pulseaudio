@@ -52,7 +52,6 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/atomic.h>
 #include <pulsecore/atomic.h>
-#include <pulsecore/time-smoother.h>
 #include <pulsecore/socket-util.h>
 #include <pulsecore/once.h>
 
@@ -104,7 +103,6 @@ struct session {
 
     pa_atomic_t timestamp;
 
-    pa_smoother *smoother;
     pa_usec_t intended_latency;
     pa_usec_t sink_latency;
 
@@ -197,10 +195,9 @@ static void sink_input_suspend_within_thread(pa_sink_input* i, pa_bool_t b) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(s = i->userdata);
 
-    if (b) {
-        pa_smoother_pause(s->smoother, pa_rtclock_now());
+    if (b)
         pa_memblockq_flush_read(s->memblockq);
-    } else
+    else
         s->first_packet = FALSE;
 }
 
@@ -269,11 +266,6 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     } else
         pa_rtclock_from_wallclock(&now);
 
-    pa_smoother_put(s->smoother, pa_timeval_load(&now), pa_bytes_to_usec((uint64_t) pa_memblockq_get_write_index(s->memblockq), &s->sink_input->sample_spec));
-
-    /* Tell the smoother that we are rolling now, in case it is still paused */
-    pa_smoother_resume(s->smoother, pa_timeval_load(&now), TRUE);
-
     if (pa_memblockq_push(s->memblockq, &chunk) < 0) {
         pa_log_warn("Queue overrun");
         pa_memblockq_seek(s->memblockq, (int64_t) chunk.length, PA_SEEK_RELATIVE, TRUE);
@@ -297,7 +289,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
         pa_log_debug("Updating sample rate");
 
-        wi = pa_smoother_get(s->smoother, pa_timeval_load(&now));
+        wi = pa_bytes_to_usec((uint64_t) pa_memblockq_get_write_index(s->memblockq), &s->sink_input->sample_spec);
         ri = pa_bytes_to_usec((uint64_t) pa_memblockq_get_read_index(s->memblockq), &s->sink_input->sample_spec);
 
         pa_log_debug("wi=%lu ri=%lu", (unsigned long) wi, (unsigned long) ri);
@@ -508,14 +500,6 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->sdp_info = *sdp_info;
     s->rtpoll_item = NULL;
     s->intended_latency = LATENCY_USEC;
-    s->smoother = pa_smoother_new(
-            PA_USEC_PER_SEC*5,
-            PA_USEC_PER_SEC*2,
-            TRUE,
-            TRUE,
-            10,
-            pa_timeval_load(&now),
-            TRUE);
     s->last_rate_update = pa_timeval_load(&now);
     s->last_latency = LATENCY_USEC;
     s->estimated_rate = (double) sink->sample_spec.rate;
@@ -618,8 +602,6 @@ static void session_free(struct session *s) {
     pa_memblockq_free(s->memblockq);
     pa_sdp_info_destroy(&s->sdp_info);
     pa_rtp_context_destroy(&s->rtp_context);
-
-    pa_smoother_free(s->smoother);
 
     pa_xfree(s);
 }
