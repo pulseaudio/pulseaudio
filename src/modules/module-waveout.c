@@ -31,6 +31,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
+#include <pulse/rtclock.h>
 
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
@@ -39,12 +40,14 @@
 #include <pulsecore/sample-util.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
+#include <pulsecore/thread.h>
+#include <pulsecore/thread-mq.h>
 
 #include "module-waveout-symdef.h"
 
-PA_MODULE_AUTHOR("Pierre Ossman")
-PA_MODULE_DESCRIPTION("Windows waveOut Sink/Source")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Pierre Ossman");
+PA_MODULE_DESCRIPTION("Windows waveOut Sink/Source");
+PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE(
     "sink_name=<name for the sink> "
     "source_name=<name for the source> "
@@ -56,7 +59,7 @@ PA_MODULE_USAGE(
     "rate=<sample rate> "
     "fragments=<number of fragments> "
     "fragment_size=<fragment size> "
-    "channel_map=<channel map>")
+    "channel_map=<channel map>");
 
 #define DEFAULT_SINK_NAME "wave_output"
 #define DEFAULT_SOURCE_NAME "wave_input"
@@ -67,9 +70,11 @@ struct userdata {
     pa_sink *sink;
     pa_source *source;
     pa_core *core;
-    pa_time_event *event;
-    pa_defer_event *defer;
     pa_usec_t poll_timeout;
+
+    pa_thread *thread;
+    pa_thread_mq thread_mq;
+    pa_rtpoll *rtpoll;
 
     uint32_t fragments, fragment_size;
 
@@ -103,20 +108,17 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static void update_usage(struct userdata *u) {
-   pa_module_set_used(u->module,
-                      (u->sink ? pa_sink_used_by(u->sink) : 0) +
-                      (u->source ? pa_source_used_by(u->source) : 0));
-}
-
-static void do_write(struct userdata *u)
-{
+static void do_write(struct userdata *u) {
     uint32_t free_frags;
     pa_memchunk memchunk;
     WAVEHDR *hdr;
     MMRESULT res;
+    void *p;
 
     if (!u->sink)
+        return;
+
+    if (!PA_SINK_IS_LINKED(u->sink->state))
         return;
 
     EnterCriticalSection(&u->crit);
@@ -137,18 +139,17 @@ static void do_write(struct userdata *u)
 
             len = u->fragment_size - hdr->dwBufferLength;
 
-            if (pa_sink_render(u->sink, len, &memchunk) < 0)
-                break;
+            pa_sink_render(u->sink, len, &memchunk);
 
-            assert(memchunk.memblock);
-            assert(memchunk.memblock->data);
-            assert(memchunk.length);
+            pa_assert(memchunk.memblock);
+            pa_assert(memchunk.length);
 
             if (memchunk.length < len)
                 len = memchunk.length;
 
-            memcpy(hdr->lpData + hdr->dwBufferLength,
-                (char*)memchunk.memblock->data + memchunk.index, len);
+            p = pa_memblock_acquire(memchunk.memblock);
+            memcpy(hdr->lpData + hdr->dwBufferLength, (char*) p + memchunk.index, len);
+            pa_memblock_release(memchunk.memblock);
 
             hdr->dwBufferLength += len;
 
@@ -165,15 +166,12 @@ static void do_write(struct userdata *u)
         u->sink_underflow = 0;
 
         res = waveOutPrepareHeader(u->hwo, hdr, sizeof(WAVEHDR));
-        if (res != MMSYSERR_NOERROR) {
-            pa_log_error(__FILE__ ": ERROR: Unable to prepare waveOut block: %d",
-                res);
-        }
+        if (res != MMSYSERR_NOERROR)
+            pa_log_error("Unable to prepare waveOut block: %d", res);
+
         res = waveOutWrite(u->hwo, hdr, sizeof(WAVEHDR));
-        if (res != MMSYSERR_NOERROR) {
-            pa_log_error(__FILE__ ": ERROR: Unable to write waveOut block: %d",
-                res);
-        }
+        if (res != MMSYSERR_NOERROR)
+            pa_log_error("Unable to write waveOut block: %d", res);
 
         u->written_bytes += hdr->dwBufferLength;
 
@@ -187,21 +185,22 @@ static void do_write(struct userdata *u)
     }
 }
 
-static void do_read(struct userdata *u)
-{
+static void do_read(struct userdata *u) {
     uint32_t free_frags;
     pa_memchunk memchunk;
     WAVEHDR *hdr;
     MMRESULT res;
+    void *p;
 
     if (!u->source)
         return;
 
-    EnterCriticalSection(&u->crit);
+    if (!PA_SOURCE_IS_LINKED(u->source->state))
+        return;
 
+    EnterCriticalSection(&u->crit);
     free_frags = u->free_ifrags;
     u->free_ifrags = 0;
-
     LeaveCriticalSection(&u->crit);
 
     if (free_frags == u->fragments)
@@ -214,11 +213,13 @@ static void do_read(struct userdata *u)
 
         if (hdr->dwBytesRecorded) {
             memchunk.memblock = pa_memblock_new(u->core->mempool, hdr->dwBytesRecorded);
-            assert(memchunk.memblock);
+            pa_assert(memchunk.memblock);
 
-            memcpy((char*)memchunk.memblock->data, hdr->lpData, hdr->dwBytesRecorded);
+            p = pa_memblock_acquire(memchunk.memblock);
+            memcpy((char*) p, hdr->lpData, hdr->dwBytesRecorded);
+            pa_memblock_release(memchunk.memblock);
 
-            memchunk.length = memchunk.memblock->length = hdr->dwBytesRecorded;
+            memchunk.length = hdr->dwBytesRecorded;
             memchunk.index = 0;
 
             pa_source_post(u->source, &memchunk);
@@ -226,15 +227,12 @@ static void do_read(struct userdata *u)
         }
 
         res = waveInPrepareHeader(u->hwi, hdr, sizeof(WAVEHDR));
-        if (res != MMSYSERR_NOERROR) {
-            pa_log_error(__FILE__ ": ERROR: Unable to prepare waveIn block: %d",
-                res);
-        }
+        if (res != MMSYSERR_NOERROR)
+            pa_log_error("Unable to prepare waveIn block: %d", res);
+
         res = waveInAddBuffer(u->hwi, hdr, sizeof(WAVEHDR));
-        if (res != MMSYSERR_NOERROR) {
-            pa_log_error(__FILE__ ": ERROR: Unable to add waveIn block: %d",
-                res);
-        }
+        if (res != MMSYSERR_NOERROR)
+            pa_log_error("Unable to add waveIn block: %d", res);
 
         free_frags--;
         u->cur_ihdr++;
@@ -242,32 +240,53 @@ static void do_read(struct userdata *u)
     }
 }
 
-static void poll_cb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *tv, void *userdata) {
-    struct userdata *u = userdata;
-    struct timeval ntv;
-
-    assert(u);
-
-    update_usage(u);
-
-    do_write(u);
-    do_read(u);
-
-    pa_gettimeofday(&ntv);
-    pa_timeval_add(&ntv, u->poll_timeout);
-
-    a->rtclock_time_restart(e, &ntv);
-}
-
-static void defer_cb(pa_mainloop_api*a, pa_defer_event *e, void *userdata) {
+static void thread_func(void *userdata) {
     struct userdata *u = userdata;
 
-    assert(u);
+    pa_assert(u);
+    pa_assert(u->sink || u->source);
 
-    a->defer_enable(e, 0);
+    pa_log_debug("Thread starting up");
 
-    do_write(u);
-    do_read(u);
+    if (u->core->realtime_scheduling)
+        pa_make_realtime(u->core->realtime_priority);
+
+    pa_thread_mq_install(&u->thread_mq);
+
+    for (;;) {
+        int ret;
+
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state) ||
+            PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
+
+            if (u->sink->thread_info.rewind_requested)
+                pa_sink_process_rewind(u->sink, 0);
+
+            if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
+                do_write(u);
+            if (PA_SOURCE_IS_OPENED(u->source->thread_info.state))
+                do_read(u);
+
+            pa_rtpoll_set_timer_relative(u->rtpoll, u->poll_timeout);
+        } else
+            pa_rtpoll_set_timer_disabled(u->rtpoll);
+
+        /* Hmm, nothing to do. Let's sleep */
+        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
+            goto fail;
+
+        if (ret == 0)
+            goto finish;
+    }
+
+fail:
+    /* If this was no regular exit from the loop we have to continue
+     * processing messages until we received PA_MESSAGE_SHUTDOWN */
+    pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
+    pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
+
+finish:
+    pa_log_debug("Thread shutting down");
 }
 
 static void CALLBACK chunk_done_cb(HWAVEOUT hwo, UINT msg, DWORD_PTR inst, DWORD param1, DWORD param2) {
@@ -277,10 +296,8 @@ static void CALLBACK chunk_done_cb(HWAVEOUT hwo, UINT msg, DWORD_PTR inst, DWORD
         return;
 
     EnterCriticalSection(&u->crit);
-
     u->free_ofrags++;
-    assert(u->free_ofrags <= u->fragments);
-
+    pa_assert(u->free_ofrags <= u->fragments);
     LeaveCriticalSection(&u->crit);
 }
 
@@ -291,107 +308,124 @@ static void CALLBACK chunk_ready_cb(HWAVEIN hwi, UINT msg, DWORD_PTR inst, DWORD
         return;
 
     EnterCriticalSection(&u->crit);
-
     u->free_ifrags++;
-    assert(u->free_ifrags <= u->fragments);
-
+    pa_assert(u->free_ifrags <= u->fragments);
     LeaveCriticalSection(&u->crit);
 }
 
-static pa_usec_t sink_get_latency_cb(pa_sink *s) {
-    struct userdata *u = s->userdata;
+static pa_usec_t sink_get_latency(struct userdata *u) {
     uint32_t free_frags;
     MMTIME mmt;
-    assert(s && u && u->sink);
+    pa_assert(u);
+    pa_assert(u->sink);
 
     memset(&mmt, 0, sizeof(mmt));
     mmt.wType = TIME_BYTES;
     if (waveOutGetPosition(u->hwo, &mmt, sizeof(mmt)) == MMSYSERR_NOERROR)
-        return pa_bytes_to_usec(u->written_bytes - mmt.u.cb, &s->sample_spec);
+        return pa_bytes_to_usec(u->written_bytes - mmt.u.cb, &u->sink->sample_spec);
     else {
         EnterCriticalSection(&u->crit);
-
         free_frags = u->free_ofrags;
-
         LeaveCriticalSection(&u->crit);
 
-        return pa_bytes_to_usec((u->fragments - free_frags) * u->fragment_size,
-                              &s->sample_spec);
+        return pa_bytes_to_usec((u->fragments - free_frags) * u->fragment_size, &u->sink->sample_spec);
     }
 }
 
-static pa_usec_t source_get_latency_cb(pa_source *s) {
+static pa_usec_t source_get_latency(struct userdata *u) {
     pa_usec_t r = 0;
-    struct userdata *u = s->userdata;
     uint32_t free_frags;
-    assert(s && u && u->sink);
+    pa_assert(u);
+    pa_assert(u->source);
 
     EnterCriticalSection(&u->crit);
-
     free_frags = u->free_ifrags;
-
     LeaveCriticalSection(&u->crit);
 
-    r += pa_bytes_to_usec((free_frags + 1) * u->fragment_size, &s->sample_spec);
+    r += pa_bytes_to_usec((free_frags + 1) * u->fragment_size, &u->source->sample_spec);
 
     return r;
 }
 
-static void notify_sink_cb(pa_sink *s) {
-    struct userdata *u = s->userdata;
-    assert(u);
+static int process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
+    struct userdata *u;
 
-    u->core->mainloop->defer_enable(u->defer, 1);
+    if (pa_sink_isinstance(o)) {
+        u = PA_SINK(o)->userdata;
+
+        switch (code) {
+
+            case PA_SINK_MESSAGE_GET_LATENCY: {
+                pa_usec_t r = 0;
+                if (u->hwo)
+                    r = sink_get_latency(u);
+                *((pa_usec_t*) data) = r;
+                return 0;
+            }
+
+        }
+
+        return pa_sink_process_msg(o, code, data, offset, chunk);
+    }
+
+    if (pa_source_isinstance(o)) {
+        u = PA_SOURCE(o)->userdata;
+
+        switch (code) {
+
+            case PA_SOURCE_MESSAGE_GET_LATENCY: {
+                pa_usec_t r = 0;
+                if (u->hwi)
+                    r = source_get_latency(u);
+                *((pa_usec_t*) data) = r;
+                return 0;
+            }
+
+        }
+
+        return pa_source_process_msg(o, code, data, offset, chunk);
+    }
+
+    return -1;
 }
 
-static void notify_source_cb(pa_source *s) {
-    struct userdata *u = s->userdata;
-    assert(u);
-
-    u->core->mainloop->defer_enable(u->defer, 1);
-}
-
-static int sink_get_hw_volume_cb(pa_sink *s) {
+static void sink_get_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     DWORD vol;
     pa_volume_t left, right;
 
     if (waveOutGetVolume(u->hwo, &vol) != MMSYSERR_NOERROR)
-        return -1;
+        return;
 
     left = PA_CLAMP_VOLUME((vol & 0xFFFF) * PA_VOLUME_NORM / WAVEOUT_MAX_VOLUME);
     right = PA_CLAMP_VOLUME(((vol >> 16) & 0xFFFF) * PA_VOLUME_NORM / WAVEOUT_MAX_VOLUME);
 
     /* Windows supports > 2 channels, except for volume control */
-    if (s->hw_volume.channels > 2)
-        pa_cvolume_set(&s->hw_volume, s->hw_volume.channels, (left + right)/2);
+    if (s->real_volume.channels > 2)
+        pa_cvolume_set(&s->real_volume, s->real_volume.channels, (left + right)/2);
 
-    s->hw_volume.values[0] = left;
-    if (s->hw_volume.channels > 1)
-        s->hw_volume.values[1] = right;
-
-    return 0;
+    s->real_volume.values[0] = left;
+    if (s->real_volume.channels > 1)
+        s->real_volume.values[1] = right;
 }
 
-static int sink_set_hw_volume_cb(pa_sink *s) {
+static void sink_set_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     DWORD vol;
 
-    vol = s->hw_volume.values[0] * WAVEOUT_MAX_VOLUME / PA_VOLUME_NORM;
-    if (s->hw_volume.channels > 1)
-        vol |= (s->hw_volume.values[0] * WAVEOUT_MAX_VOLUME / PA_VOLUME_NORM) << 16;
+    vol = s->real_volume.values[0] * WAVEOUT_MAX_VOLUME / PA_VOLUME_NORM;
+    if (s->real_volume.channels > 1)
+        vol |= (s->real_volume.values[1] * WAVEOUT_MAX_VOLUME / PA_VOLUME_NORM) << 16;
 
     if (waveOutSetVolume(u->hwo, vol) != MMSYSERR_NOERROR)
-        return -1;
-
-    return 0;
+        return;
 }
 
 static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     wf->wFormatTag = WAVE_FORMAT_PCM;
 
     if (ss->channels > 2) {
-        pa_log_error("ERROR: More than two channels not supported.");
+        pa_log_error("More than two channels not supported.");
         return -1;
     }
 
@@ -404,7 +438,7 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     case 44100:
         break;
     default:
-        pa_log_error("ERROR: Unsupported sample rate.");
+        pa_log_error("Unsupported sample rate.");
         return -1;
     }
 
@@ -415,7 +449,7 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     else if (ss->format == PA_SAMPLE_S16NE)
         wf->wBitsPerSample = 16;
     else {
-        pa_log_error("ERROR: Unsupported sample format.");
+        pa_log_error("Unsupported sample format.");
         return -1;
     }
 
@@ -427,21 +461,31 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     return 0;
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__get_n_used(pa_module *m) {
+    struct userdata *u;
+    pa_assert(m);
+    pa_assert(m->userdata);
+    u = (struct userdata *)m->userdata;
+
+    return (u->sink ? pa_sink_used_by(u->sink) : 0) +
+           (u->source ? pa_source_used_by(u->source) : 0);
+}
+
+int pa__init(pa_module *m) {
     struct userdata *u = NULL;
     HWAVEOUT hwo = INVALID_HANDLE_VALUE;
     HWAVEIN hwi = INVALID_HANDLE_VALUE;
     WAVEFORMATEX wf;
     int nfrags, frag_size;
-    int record = 1, playback = 1;
+    pa_bool_t record = TRUE, playback = TRUE;
     unsigned int device;
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
     unsigned int i;
-    struct timeval tv;
 
-    assert(c && m);
+    pa_assert(m);
+    pa_assert(m->core);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("failed to parse module arguments.");
@@ -471,7 +515,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    ss = c->default_sample_spec;
+    ss = m->core->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_WAVEEX) < 0) {
         pa_log("failed to parse sample specification");
         goto fail;
@@ -505,34 +549,47 @@ int pa__init(pa_core *c, pa_module*m) {
     InitializeCriticalSection(&u->crit);
 
     if (hwi != INVALID_HANDLE_VALUE) {
-        u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map);
-        assert(u->source);
+        pa_source_new_data data;
+        pa_source_new_data_init(&data);
+        data.driver = __FILE__;
+        data.module = m;
+        pa_source_new_data_set_sample_spec(&data, &ss);
+        pa_source_new_data_set_channel_map(&data, &map);
+        pa_source_new_data_set_name(&data, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME));
+        u->source = pa_source_new(m->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
+        pa_source_new_data_done(&data);
+
+        pa_assert(u->source);
         u->source->userdata = u;
-        u->source->notify = notify_source_cb;
-        u->source->get_latency = source_get_latency_cb;
-        pa_source_set_owner(u->source, m);
         pa_source_set_description(u->source, "Windows waveIn PCM");
-        u->source->is_hardware = 1;
+        u->source->parent.process_msg = process_msg;
     } else
         u->source = NULL;
 
     if (hwo != INVALID_HANDLE_VALUE) {
-        u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map);
-        assert(u->sink);
-        u->sink->notify = notify_sink_cb;
-        u->sink->get_latency = sink_get_latency_cb;
-        u->sink->get_hw_volume = sink_get_hw_volume_cb;
-        u->sink->set_hw_volume = sink_set_hw_volume_cb;
+        pa_sink_new_data data;
+        pa_sink_new_data_init(&data);
+        data.driver = __FILE__;
+        data.module = m;
+        pa_sink_new_data_set_sample_spec(&data, &ss);
+        pa_sink_new_data_set_channel_map(&data, &map);
+        pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
+        u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
+        pa_sink_new_data_done(&data);
+
+        pa_assert(u->sink);
+        u->sink->get_volume = sink_get_volume_cb;
+        u->sink->set_volume = sink_set_volume_cb;
         u->sink->userdata = u;
-        pa_sink_set_owner(u->sink, m);
         pa_sink_set_description(u->sink, "Windows waveOut PCM");
-        u->sink->is_hardware = 1;
+        u->sink->parent.process_msg = process_msg;
     } else
         u->sink = NULL;
 
-    assert(u->source || u->sink);
+    pa_assert(u->source || u->sink);
+    pa_modargs_free(ma);
 
-    u->core = c;
+    u->core = m->core;
     u->hwi = hwi;
     u->hwo = hwo;
 
@@ -546,82 +603,84 @@ int pa__init(pa_core *c, pa_module*m) {
 
     u->poll_timeout = pa_bytes_to_usec(u->fragments * u->fragment_size / 10, &ss);
 
-    pa_gettimeofday(&tv);
-    pa_timeval_add(&tv, u->poll_timeout);
-
-    u->event = c->mainloop->rtclock_time_new(c->mainloop, &tv, poll_cb, u);
-    assert(u->event);
-
-    u->defer = c->mainloop->defer_new(c->mainloop, defer_cb, u);
-    assert(u->defer);
-    c->mainloop->defer_enable(u->defer, 0);
-
     u->cur_ihdr = 0;
     u->cur_ohdr = 0;
     u->ihdrs = pa_xmalloc0(sizeof(WAVEHDR) * u->fragments);
-    assert(u->ihdrs);
+    pa_assert(u->ihdrs);
     u->ohdrs = pa_xmalloc0(sizeof(WAVEHDR) * u->fragments);
-    assert(u->ohdrs);
+    pa_assert(u->ohdrs);
     for (i = 0;i < u->fragments;i++) {
         u->ihdrs[i].dwBufferLength = u->fragment_size;
         u->ohdrs[i].dwBufferLength = u->fragment_size;
         u->ihdrs[i].lpData = pa_xmalloc(u->fragment_size);
-        assert(u->ihdrs);
+        pa_assert(u->ihdrs);
         u->ohdrs[i].lpData = pa_xmalloc(u->fragment_size);
-        assert(u->ohdrs);
+        pa_assert(u->ohdrs);
     }
 
     u->module = m;
     m->userdata = u;
 
-    pa_modargs_free(ma);
-
     /* Read mixer settings */
     if (u->sink)
-        sink_get_hw_volume_cb(u->sink);
+        sink_get_volume_cb(u->sink);
+
+    u->rtpoll = pa_rtpoll_new();
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
+    if (!(u->thread = pa_thread_new("waveout-source", thread_func, u))) {
+        pa_log("Failed to create thread.");
+        goto fail;
+    }
+
+    if (u->sink) {
+        pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
+        pa_sink_set_rtpoll(u->sink, u->rtpoll);
+        pa_sink_put(u->sink);
+    }
+    if (u->source) {
+        pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
+        pa_source_set_rtpoll(u->source, u->rtpoll);
+        pa_source_put(u->source);
+    }
 
     return 0;
 
 fail:
-   if (hwi != INVALID_HANDLE_VALUE)
-        waveInClose(hwi);
-
-   if (hwo != INVALID_HANDLE_VALUE)
-        waveOutClose(hwo);
-
-    if (u)
-        pa_xfree(u);
-
     if (ma)
         pa_modargs_free(ma);
+
+    pa__done(m);
 
     return -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module *m) {
     struct userdata *u;
     unsigned int i;
 
-    assert(c && m);
+    pa_assert(m);
+    pa_assert(m->core);
 
     if (!(u = m->userdata))
         return;
 
-    if (u->event)
-        c->mainloop->time_free(u->event);
+    if (u->sink)
+        pa_sink_unlink(u->sink);
+    if (u->source)
+        pa_source_unlink(u->source);
 
-    if (u->defer)
-        c->mainloop->defer_free(u->defer);
+    pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
+    if (u->thread)
+      pa_thread_free(u->thread);
+    pa_thread_mq_done(&u->thread_mq);
 
-    if (u->sink) {
-        pa_sink_disconnect(u->sink);
+    if (u->sink)
         pa_sink_unref(u->sink);
-    }
-
-    if (u->source) {
-        pa_source_disconnect(u->source);
+    if (u->source)
         pa_source_unref(u->source);
-    }
+
+    if (u->rtpoll)
+        pa_rtpoll_free(u->rtpoll);
 
     if (u->hwi != INVALID_HANDLE_VALUE) {
         waveInReset(u->hwi);

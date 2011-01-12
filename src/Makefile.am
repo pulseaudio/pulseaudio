@@ -1183,10 +1183,10 @@ pulselibexec_PROGRAMS += \
 		gconf-helper
 endif
 
-#if OS_IS_WIN32
-#modlibexec_LTLIBRARIES += \
-#		module-waveout.la
-#endif
+if OS_IS_WIN32
+modlibexec_LTLIBRARIES += \
+		module-waveout.la
+endif
 
 if HAVE_HAL
 modlibexec_LTLIBRARIES += \
@@ -1624,11 +1624,10 @@ module_mmkbd_evdev_la_LIBADD = $(MODULE_LIBADD)
 module_mmkbd_evdev_la_CFLAGS = $(AM_CFLAGS)
 
 # Windows waveout
-
-#module_waveout_la_SOURCES = modules/module-waveout.c
-#module_waveout_la_LDFLAGS = $(MODULE_LDFLAGS)
-#module_waveout_la_LIBADD = $(MODULE_LIBADD) -lwinmm
-#module_waveout_la_CFLAGS = $(AM_CFLAGS)
+module_waveout_la_SOURCES = modules/module-waveout.c
+module_waveout_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_waveout_la_LIBADD = $(MODULE_LIBADD) -lwinmm
+module_waveout_la_CFLAGS = $(AM_CFLAGS)
 
 # Hardware autodetection module
 module_detect_la_SOURCES = modules/module-detect.c
