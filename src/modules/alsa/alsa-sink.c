@@ -1672,8 +1672,6 @@ fail:
 }
 
 static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB, pa_bool_t sync_volume) {
-    int (*mixer_callback)(snd_mixer_elem_t *, unsigned int);
-
     pa_assert(u);
 
     if (!u->mixer_handle)
@@ -1762,29 +1760,31 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB, pa_bool_t sync_v
         pa_log_info("Using hardware mute control.");
     }
 
-    if (sync_volume) {
-        u->mixer_pd = pa_alsa_mixer_pdata_new();
-        mixer_callback = io_mixer_callback;
+    if (u->sink->flags & (PA_SINK_HW_VOLUME_CTRL|PA_SINK_HW_MUTE_CTRL)) {
+        int (*mixer_callback)(snd_mixer_elem_t *, unsigned int);
+        if (u->sink->flags & PA_SINK_SYNC_VOLUME) {
+            u->mixer_pd = pa_alsa_mixer_pdata_new();
+            mixer_callback = io_mixer_callback;
 
-        if (pa_alsa_set_mixer_rtpoll(u->mixer_pd, u->mixer_handle, u->rtpoll) < 0) {
-            pa_log("Failed to initialize file descriptor monitoring");
-            return -1;
+            if (pa_alsa_set_mixer_rtpoll(u->mixer_pd, u->mixer_handle, u->rtpoll) < 0) {
+                pa_log("Failed to initialize file descriptor monitoring");
+                return -1;
+            }
+        } else {
+            u->mixer_fdl = pa_alsa_fdlist_new();
+            mixer_callback = ctl_mixer_callback;
+
+            if (pa_alsa_fdlist_set_mixer(u->mixer_fdl, u->mixer_handle, u->core->mainloop) < 0) {
+                pa_log("Failed to initialize file descriptor monitoring");
+                return -1;
+            }
         }
 
-    } else {
-        u->mixer_fdl = pa_alsa_fdlist_new();
-        mixer_callback = ctl_mixer_callback;
-
-        if (pa_alsa_fdlist_set_mixer(u->mixer_fdl, u->mixer_handle, u->core->mainloop) < 0) {
-            pa_log("Failed to initialize file descriptor monitoring");
-            return -1;
-        }
+        if (u->mixer_path_set)
+            pa_alsa_path_set_set_callback(u->mixer_path_set, u->mixer_handle, mixer_callback, u);
+        else
+            pa_alsa_path_set_callback(u->mixer_path, u->mixer_handle, mixer_callback, u);
     }
-
-    if (u->mixer_path_set)
-        pa_alsa_path_set_set_callback(u->mixer_path_set, u->mixer_handle, mixer_callback, u);
-    else
-        pa_alsa_path_set_callback(u->mixer_path, u->mixer_handle, mixer_callback, u);
 
     return 0;
 }
