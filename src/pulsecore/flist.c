@@ -83,13 +83,14 @@ static void stack_push(pa_atomic_ptr_t *list, pa_flist_elem *new_elem) {
 pa_flist *pa_flist_new_with_name(unsigned size, const char *name) {
     pa_flist *l;
     unsigned i;
+    pa_assert(name);
 
     if (!size)
         size = FLIST_SIZE;
 
     l = pa_xmalloc0(sizeof(pa_flist) + sizeof(pa_flist_elem) * size);
 
-    l->name = name;
+    l->name = pa_xstrdup(name);
     l->size = size;
     pa_atomic_ptr_store(&l->stored, NULL);
     pa_atomic_ptr_store(&l->empty, NULL);
@@ -105,6 +106,7 @@ pa_flist *pa_flist_new(unsigned size) {
 
 void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb) {
     pa_assert(l);
+    pa_assert(l->name);
 
     if (free_cb) {
         pa_flist_elem *elem;

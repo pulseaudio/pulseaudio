@@ -33,8 +33,8 @@
 typedef struct pa_flist pa_flist;
 
 pa_flist * pa_flist_new(unsigned size);
-/* Freeing the name is responsibility of caller. The name is only used
- * for debug printing. */
+/* Name string is copied and added to flist structure. The original is
+ * responsibility of the caller. The name is only used for debug printing. */
 pa_flist * pa_flist_new_with_name(unsigned size, const char *name);
 void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb);
 
