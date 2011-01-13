@@ -1281,15 +1281,17 @@ static void sink_write_volume_cb(pa_sink *s) {
             (pa_cvolume_max(&tmp_vol) <= (PA_VOLUME_NORM + VOLUME_ACCURACY));
 
         if (!accurate_enough) {
-            char vol_str_pcnt[PA_CVOLUME_SNPRINT_MAX];
-            char vol_str_db[PA_SW_CVOLUME_SNPRINT_DB_MAX];
+            union {
+                char db[2][PA_SW_CVOLUME_SNPRINT_DB_MAX];
+                char pcnt[2][PA_CVOLUME_SNPRINT_MAX];
+            } vol;
 
             pa_log_debug("Written HW volume did not match with the request: %s (request) != %s",
-                         pa_cvolume_snprint(vol_str_pcnt, sizeof(vol_str_pcnt), &s->thread_info.current_hw_volume),
-                         pa_cvolume_snprint(vol_str_pcnt, sizeof(vol_str_pcnt), &hw_vol));
+                         pa_cvolume_snprint(vol.pcnt[0], sizeof(vol.pcnt[0]), &s->thread_info.current_hw_volume),
+                         pa_cvolume_snprint(vol.pcnt[1], sizeof(vol.pcnt[1]), &hw_vol));
             pa_log_debug("                                           in dB: %s (request) != %s",
-                         pa_sw_cvolume_snprint_dB(vol_str_db, sizeof(vol_str_db), &s->thread_info.current_hw_volume),
-                         pa_sw_cvolume_snprint_dB(vol_str_db, sizeof(vol_str_db), &hw_vol));
+                         pa_sw_cvolume_snprint_dB(vol.db[0], sizeof(vol.db[0]), &s->thread_info.current_hw_volume),
+                         pa_sw_cvolume_snprint_dB(vol.db[1], sizeof(vol.db[1]), &hw_vol));
         }
     }
 }
