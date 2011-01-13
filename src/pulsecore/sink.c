@@ -751,8 +751,11 @@ void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     if (s->thread_info.state == PA_SINK_SUSPENDED)
         return;
 
-    if (nbytes > 0)
+    if (nbytes > 0) {
         pa_log_debug("Processing rewind...");
+        if (s->flags & PA_SINK_SYNC_VOLUME)
+            pa_sink_volume_change_rewind(s, nbytes);
+    }
 
     PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state) {
         pa_sink_input_assert_ref(i);
@@ -762,8 +765,6 @@ void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     if (nbytes > 0) {
         if (s->monitor_source && PA_SOURCE_IS_LINKED(s->monitor_source->thread_info.state))
             pa_source_process_rewind(s->monitor_source, nbytes);
-        if (s->flags & PA_SINK_SYNC_VOLUME)
-            pa_sink_volume_change_rewind(s, nbytes);
     }
 }
 
@@ -3006,6 +3007,7 @@ pa_bool_t pa_sink_volume_change_apply(pa_sink *s, pa_usec_t *usec_to_next) {
 static void pa_sink_volume_change_rewind(pa_sink *s, size_t nbytes) {
     /* All the queued volume events later than current latency are shifted to happen earlier. */
     pa_sink_volume_change *c;
+    pa_volume_t prev_vol = pa_cvolume_avg(&s->thread_info.current_hw_volume);
     pa_usec_t rewound = pa_bytes_to_usec(nbytes, &s->sample_spec);
     pa_usec_t limit;
 
@@ -3013,13 +3015,21 @@ static void pa_sink_volume_change_rewind(pa_sink *s, size_t nbytes) {
     if (PA_MSGOBJECT(s)->process_msg(PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &limit, 0, NULL) < 0)
         limit = 0;
 
+    pa_log_debug("latency = %lld", limit);
     limit += pa_rtclock_now() + s->thread_info.volume_change_extra_delay;
 
     PA_LLIST_FOREACH(c, s->thread_info.volume_changes) {
-        if (c->at > limit) {
+        pa_usec_t modified_limit = limit;
+        if (prev_vol > pa_cvolume_avg(&c->hw_volume))
+            modified_limit -= s->thread_info.volume_change_safety_margin;
+        else
+            modified_limit += s->thread_info.volume_change_safety_margin;
+        if (c->at > modified_limit) {
             c->at -= rewound;
-            if (c->at < limit)
-                c->at = limit;
+            if (c->at < modified_limit)
+                c->at = modified_limit;
         }
+        prev_vol = pa_cvolume_avg(&c->hw_volume);
     }
+    pa_sink_volume_change_apply(s, NULL);
 }
