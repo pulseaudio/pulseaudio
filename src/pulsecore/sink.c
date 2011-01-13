@@ -2906,10 +2906,7 @@ void pa_sink_volume_change_push(pa_sink *s) {
         return;
     }
 
-    /* Get the latency of the sink */
-    if (PA_MSGOBJECT(s)->process_msg(PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &nc->at, 0, NULL) < 0)
-        nc->at = 0;
-
+    nc->at = pa_sink_get_latency_within_thread(s);
     nc->at += pa_rtclock_now() + s->thread_info.volume_change_extra_delay;
 
     if (s->thread_info.volume_changes_tail) {
@@ -3009,11 +3006,7 @@ static void pa_sink_volume_change_rewind(pa_sink *s, size_t nbytes) {
     pa_sink_volume_change *c;
     pa_volume_t prev_vol = pa_cvolume_avg(&s->thread_info.current_hw_volume);
     pa_usec_t rewound = pa_bytes_to_usec(nbytes, &s->sample_spec);
-    pa_usec_t limit;
-
-    /* Get the latency of the sink */
-    if (PA_MSGOBJECT(s)->process_msg(PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &limit, 0, NULL) < 0)
-        limit = 0;
+    pa_usec_t limit = pa_sink_get_latency_within_thread(s);
 
     pa_log_debug("latency = %lld", limit);
     limit += pa_rtclock_now() + s->thread_info.volume_change_extra_delay;
