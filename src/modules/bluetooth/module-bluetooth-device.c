@@ -1751,7 +1751,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                  dbus_message_get_path(m),
                  dbus_message_get_member(m));
 
-    if (!dbus_message_has_path(m, u->path))
+    if (!dbus_message_has_path(m, u->path) && !dbus_message_has_path(m, u->transport))
         goto fail;
 
     if (dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged") ||
@@ -1776,6 +1776,28 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
                 pa_source_volume_changed(u->source, &v);
             }
+        }
+    } else if (dbus_message_is_signal(m, "org.bluez.MediaTransport", "PropertyChanged")) {
+        DBusMessageIter arg_i;
+        pa_bluetooth_transport *t;
+        pa_bool_t nrec;
+
+        t = (pa_bluetooth_transport *) pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
+        pa_assert(t);
+
+        if (!dbus_message_iter_init(m, &arg_i)) {
+            pa_log("Failed to parse PropertyChanged: %s", err.message);
+            goto fail;
+        }
+
+        nrec = t->nrec;
+
+        if (pa_bluetooth_transport_parse_property(t, &arg_i) < 0)
+            goto fail;
+
+        if (nrec != t->nrec) {
+            pa_log_debug("dbus: property 'NREC' changed to value '%s'", t->nrec ? "True" : "False");
+            pa_proplist_sets(u->source->proplist, "bluetooth.nrec", t->nrec ? "1" : "0");
         }
     }
 
@@ -2018,6 +2040,7 @@ static int add_source(struct userdata *u) {
         pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP_SOURCE ? "a2dp_source" : "hsp");
         if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW))
             pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
+
         data.card = u->card;
         data.name = get_name("source", u->modargs, u->address, &b);
         data.namereg_fail = b;
@@ -2044,8 +2067,15 @@ static int add_source(struct userdata *u) {
                                     pa_bytes_to_usec(u->block_size, &u->sample_spec));
     }
 
-    if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW)
-        pa_proplist_sets(u->source->proplist, "bluetooth.nrec", (u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC) ? "1" : "0");
+    if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW)) {
+        if (u->transport) {
+            const pa_bluetooth_transport *t;
+            t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
+            pa_assert(t);
+            pa_proplist_sets(u->source->proplist, "bluetooth.nrec", t->nrec ? "1" : "0");
+        } else
+            pa_proplist_sets(u->source->proplist, "bluetooth.nrec", (u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC) ? "1" : "0");
+    }
 
     if (u->profile == PROFILE_HSP) {
         u->source->set_volume = source_set_volume_cb;
@@ -2194,50 +2224,6 @@ static int bt_transport_config(struct userdata *u) {
     }
 
     return bt_transport_config_a2dp(u);
-}
-
-static int parse_transport_property(struct userdata *u, DBusMessageIter *i) {
-    const char *key;
-    DBusMessageIter variant_i;
-
-    pa_assert(u);
-    pa_assert(i);
-
-    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_STRING) {
-        pa_log("Property name not a string.");
-        return -1;
-    }
-
-    dbus_message_iter_get_basic(i, &key);
-
-    if (!dbus_message_iter_next(i))  {
-        pa_log("Property value missing");
-        return -1;
-    }
-
-    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_VARIANT) {
-        pa_log("Property value not a variant.");
-        return -1;
-    }
-
-    dbus_message_iter_recurse(i, &variant_i);
-
-    switch (dbus_message_iter_get_arg_type(&variant_i)) {
-
-        case DBUS_TYPE_UINT16: {
-
-            uint16_t value;
-            dbus_message_iter_get_basic(&variant_i, &value);
-
-            if (pa_streq(key, "OMTU"))
-                u->link_mtu = value;
-
-            break;
-        }
-
-    }
-
-    return 0;
 }
 
 /* Run from main thread */
@@ -2725,7 +2711,7 @@ int pa__init(pa_module* m) {
     struct userdata *u;
     const char *address, *path;
     DBusError err;
-    char *mike, *speaker;
+    char *mike, *speaker, *transport;
     const pa_bluetooth_device *device;
 
     pa_assert(m);
@@ -2804,15 +2790,18 @@ int pa__init(pa_module* m) {
 
     speaker = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='SpeakerGainChanged',path='%s'", u->path);
     mike = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='MicrophoneGainChanged',path='%s'", u->path);
+    transport = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.MediaTransport',member='PropertyChanged'");
 
     if (pa_dbus_add_matches(
                 pa_dbus_connection_get(u->connection), &err,
                 speaker,
                 mike,
+                transport,
                 NULL) < 0) {
 
         pa_xfree(speaker);
         pa_xfree(mike);
+        pa_xfree(transport);
 
         pa_log("Failed to add D-Bus matches: %s", err.message);
         goto fail;
@@ -2820,6 +2809,7 @@ int pa__init(pa_module* m) {
 
     pa_xfree(speaker);
     pa_xfree(mike);
+    pa_xfree(transport);
 
     /* Connect to the BT service */
     init_bt(u);

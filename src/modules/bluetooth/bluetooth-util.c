@@ -714,6 +714,47 @@ static void list_adapters(pa_bluetooth_discovery *y) {
     send_and_add_to_pending(y, NULL, m, list_adapters_reply);
 }
 
+int pa_bluetooth_transport_parse_property(pa_bluetooth_transport *t, DBusMessageIter *i)
+{
+    const char *key;
+    DBusMessageIter variant_i;
+
+    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_STRING) {
+        pa_log("Property name not a string.");
+        return -1;
+    }
+
+    dbus_message_iter_get_basic(i, &key);
+
+    if (!dbus_message_iter_next(i))  {
+        pa_log("Property value missing");
+        return -1;
+    }
+
+    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_VARIANT) {
+        pa_log("Property value not a variant.");
+        return -1;
+    }
+
+    dbus_message_iter_recurse(i, &variant_i);
+
+    switch (dbus_message_iter_get_arg_type(&variant_i)) {
+
+        case DBUS_TYPE_BOOLEAN: {
+
+            pa_bool_t *value;
+            dbus_message_iter_get_basic(&variant_i, &value);
+
+            if (pa_streq(key, "NREC"))
+                t->nrec = value;
+
+            break;
+         }
+    }
+
+    return 0;
+}
+
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *userdata) {
     DBusError err;
     pa_bluetooth_discovery *y;
@@ -860,6 +901,28 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 list_adapters(y);
             }
         }
+
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+    } else if (dbus_message_is_signal(m, "org.bluez.MediaTransport", "PropertyChanged")) {
+        pa_bluetooth_device *d;
+        pa_bluetooth_transport *t;
+        void *state = NULL;
+        DBusMessageIter arg_i;
+
+        while ((d = pa_hashmap_iterate(y->devices, &state, NULL)))
+            if ((t = pa_hashmap_get(d->transports, dbus_message_get_path(m))))
+                break;
+
+        if (!t)
+            goto fail;
+
+        if (!dbus_message_iter_init(m, &arg_i)) {
+            pa_log("Failed to parse PropertyChanged: %s", err.message);
+            goto fail;
+        }
+
+        if (pa_bluetooth_transport_parse_property(t, &arg_i) < 0)
+            goto fail;
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
     }
@@ -1035,6 +1098,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     const char *path, *dev_path = NULL, *uuid = NULL;
     uint8_t *config = NULL;
     int size = 0;
+    pa_bool_t nrec;
     enum profile p;
     DBusMessageIter args, props;
     DBusMessage *r;
@@ -1070,6 +1134,10 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
             if (var != DBUS_TYPE_OBJECT_PATH)
                 goto fail;
             dbus_message_iter_get_basic(&value, &dev_path);
+        } else if (strcasecmp(key, "NREC") == 0) {
+            if (var != DBUS_TYPE_BOOLEAN)
+                goto fail;
+            dbus_message_iter_get_basic(&value, &nrec);
         } else if (strcasecmp(key, "Configuration") == 0) {
             DBusMessageIter array;
             if (var != DBUS_TYPE_ARRAY)
@@ -1093,6 +1161,8 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
         p = PROFILE_A2DP_SOURCE;
 
     t = transport_new(y, path, p, config, size);
+    if (nrec)
+        t->nrec = nrec;
     pa_hashmap_put(d->transports, t->path, t);
 
     pa_log_debug("Transport %s profile %d available", t->path, t->profile);
@@ -1402,6 +1472,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
                 "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.AudioSource',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.HandsfreeGateway',member='PropertyChanged'",
+                "type='signal',sender='org.bluez',interface='org.bluez.MediaTransport',member='PropertyChanged'",
                 NULL) < 0) {
         pa_log("Failed to add D-Bus matches: %s", err.message);
         goto fail;
@@ -1469,6 +1540,7 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
                                "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'",
                                "type='signal',sender='org.bluez',interface='org.bluez.AudioSource',member='PropertyChanged'",
                                "type='signal',sender='org.bluez',interface='org.bluez.HandsfreeGateway',member='PropertyChanged'",
+                               "type='signal',sender='org.bluez',interface='org.bluez.MediaTransport',member='PropertyChanged'",
                                NULL);
 
         if (y->filter_added)
