@@ -110,6 +110,8 @@ struct session {
 
     pa_usec_t last_rate_update;
     pa_usec_t last_latency;
+    double estimated_rate;
+    double avg_estimated_rate;
 };
 
 struct userdata {
@@ -291,7 +293,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         uint32_t base_rate = s->sink_input->sink->sample_spec.rate;
         uint32_t current_rate = s->sink_input->sample_spec.rate;
         uint32_t new_rate;
-        double estimated_rate;
+        double estimated_rate, alpha = 0.02;
 
         pa_log_debug("Updating sample rate");
 
@@ -334,11 +336,25 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
          *                                     T - ²∕ₐ₊₁(L̂ - Lⁿ)
          *                              Rⁿ⁺ⁱ = ───────────────── R̂ .                            (2)
          *                                            T
-         * Together Equations (1) and (2) specify the algorithm used below, where a = 7 is used.
+         * In the code below a = 7 is used.
+         *
+         * Equation (1) is not directly used in (2), but instead an exponentially weighted average
+         * of the estimated rate R̂ is used.  This average R̅ is defined as
+         *                                R̅ⁿ = α R̂ⁿ + (1-α) R̅ⁿ⁻ⁱ .
+         * Because it is difficult to find a fixed value for the coefficient α such that the
+         * averaging is without significant lag but oscillations are filtered out, a heuristic is
+         * used.  When the successive estimates R̂ⁿ do not change much then α→1, but when there is a
+         * sudden spike in the estimated rate α→0, such that the deviation is given little weight.
          */
         estimated_rate = (double) current_rate * (double) RATE_UPDATE_INTERVAL / (double) (RATE_UPDATE_INTERVAL + s->last_latency - latency);
-        pa_log_debug("Estimated target rate: %.0f Hz", estimated_rate);
-        new_rate = (uint32_t) ((double) (RATE_UPDATE_INTERVAL + latency/4 - s->intended_latency/4) / (double) RATE_UPDATE_INTERVAL * estimated_rate);
+        if (fabs(s->estimated_rate - s->avg_estimated_rate) > 1) {
+          double ratio = (estimated_rate + s->estimated_rate - 2*s->avg_estimated_rate) / (s->estimated_rate - s->avg_estimated_rate);
+          alpha = PA_CLAMP(2 * (ratio + fabs(ratio)) / (4 + ratio*ratio), 0.02, 0.8);
+        }
+        s->avg_estimated_rate = alpha * estimated_rate + (1-alpha) * s->avg_estimated_rate;
+        s->estimated_rate = estimated_rate;
+        pa_log_debug("Estimated target rate: %.0f Hz, using average of %.0f Hz  (α=%.3f)", estimated_rate, s->avg_estimated_rate, alpha);
+        new_rate = (uint32_t) ((double) (RATE_UPDATE_INTERVAL + latency/4 - s->intended_latency/4) / (double) RATE_UPDATE_INTERVAL * s->avg_estimated_rate);
         s->last_latency = latency;
 
         if (new_rate < (uint32_t) (base_rate*0.8) || new_rate > (uint32_t) (base_rate*1.25)) {
@@ -502,6 +518,8 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
             TRUE);
     s->last_rate_update = pa_timeval_load(&now);
     s->last_latency = LATENCY_USEC;
+    s->estimated_rate = (double) sink->sample_spec.rate;
+    s->avg_estimated_rate = (double) sink->sample_spec.rate;
     pa_atomic_store(&s->timestamp, (int) now.tv_sec);
 
     if ((fd = mcast_socket((const struct sockaddr*) &sdp_info->sa, sdp_info->salen)) < 0)
