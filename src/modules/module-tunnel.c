@@ -1919,7 +1919,7 @@ int pa__init(pa_module*m) {
 #ifdef TUNNEL_SINK
 
     if (!(dn = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", NULL))))
-        dn = pa_sprintf_malloc("tunnel.%s", u->server_name);
+        dn = pa_sprintf_malloc("tunnel-sink.%s", u->server_name);
 
     pa_sink_new_data_init(&data);
     data.driver = __FILE__;
@@ -1963,7 +1963,7 @@ int pa__init(pa_module*m) {
 #else
 
     if (!(dn = pa_xstrdup(pa_modargs_get_value(ma, "source_name", NULL))))
-        dn = pa_sprintf_malloc("tunnel.%s", u->server_name);
+        dn = pa_sprintf_malloc("tunnel-source.%s", u->server_name);
 
     pa_source_new_data_init(&data);
     data.driver = __FILE__;
