@@ -30,18 +30,18 @@
 #include <pulsecore/core-util.h>
 
 /* UUID copied from bluez/audio/device.h */
-#define GENERIC_AUDIO_UUID      "00001203-0000-1000-8000-00805F9B34FB"
+#define GENERIC_AUDIO_UUID      "00001203-0000-1000-8000-00805f9b34fb"
 
-#define HSP_HS_UUID             "00001108-0000-1000-8000-00805F9B34FB"
-#define HSP_AG_UUID             "00001112-0000-1000-8000-00805F9B34FB"
+#define HSP_HS_UUID             "00001108-0000-1000-8000-00805f9b34fb"
+#define HSP_AG_UUID             "00001112-0000-1000-8000-00805f9b34fb"
 
-#define HFP_HS_UUID             "0000111E-0000-1000-8000-00805F9B34FB"
-#define HFP_AG_UUID             "0000111F-0000-1000-8000-00805F9B34FB"
+#define HFP_HS_UUID             "0000111e-0000-1000-8000-00805f9b34fb"
+#define HFP_AG_UUID             "0000111f-0000-1000-8000-00805f9b34fb"
 
-#define ADVANCED_AUDIO_UUID     "0000110D-0000-1000-8000-00805F9B34FB"
+#define ADVANCED_AUDIO_UUID     "0000110d-0000-1000-8000-00805f9b34fb"
 
-#define A2DP_SOURCE_UUID        "0000110A-0000-1000-8000-00805F9B34FB"
-#define A2DP_SINK_UUID          "0000110B-0000-1000-8000-00805F9B34FB"
+#define A2DP_SOURCE_UUID        "0000110a-0000-1000-8000-00805f9b34fb"
+#define A2DP_SINK_UUID          "0000110b-0000-1000-8000-00805f9b34fb"
 
 typedef struct pa_bluetooth_uuid pa_bluetooth_uuid;
 typedef struct pa_bluetooth_device pa_bluetooth_device;
