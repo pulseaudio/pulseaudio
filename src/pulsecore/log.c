@@ -374,6 +374,9 @@ void pa_log_levelv_meta(
                     fprintf(stderr, "%s%c: %s%s%s%s%s%s\n", timestamp, level_to_char[level], location, prefix, t, grey, pa_strempty(bt), suffix);
                 else
                     fprintf(stderr, "%s%s%s%s%s%s%s\n", timestamp, location, prefix, t, grey, pa_strempty(bt), suffix);
+#ifdef OS_IS_WIN32
+                fflush(stderr);
+#endif
 
                 pa_xfree(local_t);
 
