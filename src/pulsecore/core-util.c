@@ -34,11 +34,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
-#include <time.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <dirent.h>
 
 #ifdef HAVE_LANGINFO_H
