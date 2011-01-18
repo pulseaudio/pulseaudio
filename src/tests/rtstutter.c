@@ -41,6 +41,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/core-rtclock.h>
 
 static int msec_lower, msec_upper;
 
@@ -63,36 +64,24 @@ static void work(void *p) {
 #endif
 
     for (;;) {
-        struct timespec now, end;
-        uint64_t nsec;
+        struct timeval now, end;
+        uint64_t usec;
 
         pa_log_notice("CPU%i: Sleeping for 1s", PA_PTR_TO_UINT(p));
         pa_msleep(1000);
 
-#ifdef CLOCK_REALTIME
-        pa_assert_se(clock_gettime(CLOCK_REALTIME, &end) == 0);
-#endif
+        usec =
+            (uint64_t) ((((double) rand())*(double)(msec_upper-msec_lower)*PA_USEC_PER_MSEC)/RAND_MAX) +
+            (uint64_t) ((uint64_t) msec_lower*PA_USEC_PER_MSEC);
 
-        nsec =
-            (uint64_t) ((((double) rand())*(double)(msec_upper-msec_lower)*PA_NSEC_PER_MSEC)/RAND_MAX) +
-            (uint64_t) ((uint64_t) msec_lower*PA_NSEC_PER_MSEC);
+        pa_log_notice("CPU%i: Freezing for %ims", PA_PTR_TO_UINT(p), (int) (usec/PA_USEC_PER_MSEC));
 
-        pa_log_notice("CPU%i: Freezing for %ims", PA_PTR_TO_UINT(p), (int) (nsec/PA_NSEC_PER_MSEC));
-
-        end.tv_sec += (time_t) (nsec / PA_NSEC_PER_SEC);
-        end.tv_nsec += (long int) (nsec % PA_NSEC_PER_SEC);
-
-        while ((pa_usec_t) end.tv_nsec > PA_NSEC_PER_SEC) {
-            end.tv_sec++;
-            end.tv_nsec -= (long int) PA_NSEC_PER_SEC;
-        }
+        pa_rtclock_get(&end);
+        pa_timeval_add(&end, usec);
 
         do {
-#ifdef CLOCK_REALTIME
-            pa_assert_se(clock_gettime(CLOCK_REALTIME, &now) == 0);
-#endif
-        } while (now.tv_sec < end.tv_sec ||
-                 (now.tv_sec == end.tv_sec && now.tv_nsec < end.tv_nsec));
+            pa_rtclock_get(&now);
+        } while (pa_timeval_cmp(&now, &end) < 0);
     }
 }
 
