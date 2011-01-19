@@ -1489,25 +1489,6 @@ doxygen/Makefile
 doxygen/doxygen.conf
 src/pulse/version.h
 po/Makefile.in
-src/daemon/Makefile
-src/modules/Makefile
-src/modules/alsa/Makefile
-src/modules/alsa/mixer/Makefile
-src/modules/alsa/mixer/paths/Makefile
-src/modules/alsa/mixer/profile-sets/Makefile
-src/modules/bluetooth/Makefile
-src/modules/dbus/Makefile
-src/modules/gconf/Makefile
-src/modules/jack/Makefile
-src/modules/oss/Makefile
-src/modules/raop/Makefile
-src/modules/rtp/Makefile
-src/modules/x11/Makefile
-src/pulse/Makefile
-src/pulsecore/Makefile
-src/pulsecore/ffmpeg/Makefile
-src/tests/Makefile
-src/utils/Makefile
 ])
 
 AC_OUTPUT
