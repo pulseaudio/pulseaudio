@@ -66,41 +66,17 @@ enumeration = select
 name = input-microphone
 priority = 20
 
-[Option Input Source:Mic]
-name = input-microphone
-priority = 20
-
 [Option Input Source:Microphone]
 name = input-microphone
 priority = 20
 
-[Option Input Source:Front Mic]
-name = input-microphone
-priority = 19
-
 [Option Input Source:Front Microphone]
-name = input-microphone
-priority = 19
-
-[Option Input Source:Int Mic]
-name = input-microphone
-priority = 19
-
-[Option Input Source:Internal Mic]
-name = input-microphone
-priority = 19
-
-[Option Input Source:Rear Mic]
 name = input-microphone
 priority = 19
 
 [Option Input Source:Internal Mic 1]
 name = input-microphone
 priority = 19
-
-[Option Input Source:Line]
-name = input-linein
-priority = 18
 
 [Option Input Source:Line-In]
 name = input-linein
@@ -135,19 +111,10 @@ name = input
 [Option Capture Source:Line/Mic]
 name = input
 
-[Option Capture Source:Mic]
-name = input-microphone
-
 [Option Capture Source:Microphone]
 name = input-microphone
 
-[Option Capture Source:Int Mic]
-name = input-microphone-internal
-
 [Option Capture Source:Int DMic]
-name = input-microphone-internal
-
-[Option Capture Source:Internal Mic]
 name = input-microphone-internal
 
 [Option Capture Source:iMic]
@@ -159,13 +126,7 @@ name = input-microphone-internal
 [Option Capture Source:Internal Microphone]
 name = input-microphone-internal
 
-[Option Capture Source:Front Mic]
-name = input-microphone
-
 [Option Capture Source:Front Microphone]
-name = input-microphone
-
-[Option Capture Source:Rear Mic]
 name = input-microphone
 
 [Option Capture Source:Mic1]
@@ -197,9 +158,6 @@ name = input-linein
 
 [Option Capture Source:Analog]
 name = input
-
-[Option Capture Source:Line]
-name = input-linein
 
 [Option Capture Source:Line-In]
 name = input-linein
@@ -260,9 +218,6 @@ name = input
 
 [Option Capture Source:Docking-Station]
 name = input-docking
-
-[Option Capture Source:Dock Mic]
-name = input-docking-microphone
 
 ;;; 'Mic Jack Mode'
 
