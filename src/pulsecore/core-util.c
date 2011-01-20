@@ -680,7 +680,7 @@ int pa_make_realtime(int rtprio) {
     }
 
     for (p = rtprio-1; p >= 1; p--)
-        if (set_scheduler(p)) {
+        if (set_scheduler(p) >= 0) {
             pa_log_info("Successfully enabled SCHED_RR scheduling for thread, with priority %i, which is lower than the requested %i.", p, rtprio);
             return 0;
         }
@@ -750,7 +750,7 @@ int pa_raise_priority(int nice_level) {
     }
 
     for (n = nice_level+1; n < 0; n++)
-        if (set_nice(n) > 0) {
+        if (set_nice(n) >= 0) {
             pa_log_info("Successfully acquired nice level %i, which is lower than the requested %i.", n, nice_level);
             return 0;
         }
