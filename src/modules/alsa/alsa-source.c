@@ -428,7 +428,7 @@ static size_t check_left_to_record(struct userdata *u, size_t n_bytes, pa_bool_t
         PA_DEBUG_TRAP;
 #endif
 
-        if (pa_log_ratelimit())
+        if (pa_log_ratelimit(PA_LOG_INFO))
             pa_log_info("Overrun!");
     }
 
@@ -1315,7 +1315,7 @@ static void thread_func(void *userdata) {
                     goto fail;
 
                 u->first = TRUE;
-            } else if (revents && u->use_tsched && pa_log_ratelimit())
+            } else if (revents && u->use_tsched && pa_log_ratelimit(PA_LOG_DEBUG))
                 pa_log_debug("Wakeup from ALSA!");
 
         } else

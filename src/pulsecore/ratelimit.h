@@ -23,6 +23,7 @@
 ***/
 
 #include <pulse/sample.h>
+#include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 
 typedef struct pa_ratelimit {
@@ -51,6 +52,6 @@ typedef struct pa_ratelimit {
         r->begin = 0;                                   \
     } while (FALSE);
 
-pa_bool_t pa_ratelimit_test(pa_ratelimit *r);
+pa_bool_t pa_ratelimit_test(pa_ratelimit *r, pa_log_level_t t);
 
 #endif

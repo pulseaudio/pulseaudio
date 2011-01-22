@@ -832,7 +832,7 @@ static int do_read(pa_pstream *p) {
                                           ntohl(p->read.shm_info[PA_PSTREAM_SHM_INDEX]),
                                           ntohl(p->read.shm_info[PA_PSTREAM_SHM_LENGTH])))) {
 
-                    if (pa_log_ratelimit())
+                    if (pa_log_ratelimit(PA_LOG_DEBUG))
                         pa_log_debug("Failed to import memory block.");
                 }
 

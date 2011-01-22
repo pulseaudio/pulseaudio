@@ -439,7 +439,7 @@ static size_t check_left_to_play(struct userdata *u, size_t n_bytes, pa_bool_t o
 #endif
 
         if (!u->first && !u->after_rewind)
-            if (pa_log_ratelimit())
+            if (pa_log_ratelimit(PA_LOG_INFO))
                 pa_log_info("Underrun!");
     }
 
@@ -1440,7 +1440,7 @@ static void thread_func(void *userdata) {
                      * we have filled the buffer at least once
                      * completely.*/
 
-                    if (pa_log_ratelimit())
+                    if (pa_log_ratelimit(PA_LOG_DEBUG))
                         pa_log_debug("Cutting sleep time for the initial iterations by half.");
                     sleep_usec /= 2;
                 }
@@ -1492,7 +1492,7 @@ static void thread_func(void *userdata) {
 
                 u->first = TRUE;
                 u->since_start = 0;
-            } else if (revents && u->use_tsched && pa_log_ratelimit())
+            } else if (revents && u->use_tsched && pa_log_ratelimit(PA_LOG_DEBUG))
                 pa_log_debug("Wakeup from ALSA!");
 
         } else
