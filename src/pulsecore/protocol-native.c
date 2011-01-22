@@ -1385,7 +1385,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 
             if (pa_memblockq_push_align(s->memblockq, chunk) < 0) {
 
-                if (pa_log_ratelimit())
+                if (pa_log_ratelimit(PA_LOG_WARN))
                     pa_log_warn("Failed to push data into queue");
                 pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_OVERFLOW, NULL, 0, NULL, NULL);
                 pa_memblockq_seek(s->memblockq, (int64_t) chunk->length, PA_SEEK_RELATIVE, TRUE);

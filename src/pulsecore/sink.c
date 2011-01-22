@@ -2989,7 +2989,7 @@ pa_bool_t pa_sink_volume_change_apply(pa_sink *s, pa_usec_t *usec_to_next) {
     if (s->thread_info.volume_changes) {
         if (usec_to_next)
             *usec_to_next = s->thread_info.volume_changes->at - now;
-        if (pa_log_ratelimit())
+        if (pa_log_ratelimit(PA_LOG_DEBUG))
             pa_log_debug("Next volume change in %lld usec", s->thread_info.volume_changes->at - now);
     }
     else {

@@ -431,7 +431,7 @@ void pa_log_level(pa_log_level_t level, const char *format, ...) {
     va_end(ap);
 }
 
-pa_bool_t pa_log_ratelimit(void) {
+pa_bool_t pa_log_ratelimit(pa_log_level_t level) {
     /* Not more than 10 messages every 5s */
     static PA_DEFINE_RATELIMIT(ratelimit, 5 * PA_USEC_PER_SEC, 10);
 
@@ -440,5 +440,5 @@ pa_bool_t pa_log_ratelimit(void) {
     if (no_rate_limit)
         return TRUE;
 
-    return pa_ratelimit_test(&ratelimit);
+    return pa_ratelimit_test(&ratelimit, level);
 }

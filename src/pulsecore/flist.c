@@ -124,7 +124,7 @@ int pa_flist_push(pa_flist *l, void *p) {
 
     elem = stack_pop(&l->empty);
     if (elem == NULL) {
-        if (pa_log_ratelimit())
+        if (pa_log_ratelimit(PA_LOG_DEBUG))
             pa_log_debug("%s flist is full (don't worry)", l->name);
         return -1;
     }

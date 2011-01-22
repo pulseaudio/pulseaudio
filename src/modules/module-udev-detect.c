@@ -324,7 +324,7 @@ static void verify_access(struct userdata *u, struct device *d) {
                  * during opening was canceled by a "try again"
                  * failure or a "fatal" failure. */
 
-                if (pa_ratelimit_test(&d->ratelimit)) {
+                if (pa_ratelimit_test(&d->ratelimit, PA_LOG_DEBUG)) {
                     pa_log_debug("Loading module-alsa-card with arguments '%s'", d->args);
                     m = pa_module_load(u->core, "module-alsa-card", d->args);
 

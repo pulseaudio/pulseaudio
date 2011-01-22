@@ -35,7 +35,7 @@ static pa_static_mutex mutex = PA_STATIC_MUTEX_INIT;
 /* Modelled after Linux' lib/ratelimit.c by Dave Young
  * <hidave.darkstar@gmail.com>, which is licensed GPLv2. */
 
-pa_bool_t pa_ratelimit_test(pa_ratelimit *r) {
+pa_bool_t pa_ratelimit_test(pa_ratelimit *r, pa_log_level_t t) {
     pa_usec_t now;
     pa_mutex *m;
 
@@ -52,7 +52,7 @@ pa_bool_t pa_ratelimit_test(pa_ratelimit *r) {
         r->begin + r->interval < now) {
 
         if (r->n_missed > 0)
-            pa_log_warn("%u events suppressed", r->n_missed);
+            pa_logl(t, "%u events suppressed", r->n_missed);
 
         r->begin = now;
 
