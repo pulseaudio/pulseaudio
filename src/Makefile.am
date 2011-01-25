@@ -52,9 +52,6 @@ AM_CFLAGS = \
 	-I$(top_srcdir)/src/modules \
 	-I$(top_builddir)/src/modules \
 	$(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS \
-	$(LIBSAMPLERATE_CFLAGS) \
-	$(LIBSNDFILE_CFLAGS) \
-	$(LIBSPEEX_CFLAGS) \
 	-DPA_BUILDDIR=\"$(abs_builddir)\" \
 	-DPA_DLSEARCHPATH=\"$(modlibexecdir)\" \
 	-DPA_DEFAULT_CONFIG_DIR=\"$(PA_DEFAULT_CONFIG_DIR)\" \
@@ -65,8 +62,8 @@ AM_CFLAGS = \
 	-DAO_REQUIRE_CAS \
 	-DPULSE_LOCALEDIR=\"$(pulselocaledir)\" \
 	-DPA_MACHINE_ID=\"$(localstatedir)/lib/dbus/machine-id\" \
-        -DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
-        -DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\"
+	-DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
+	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\"
 
 AM_LIBADD = $(PTHREAD_LIBS) $(INTLLIBS)
 AM_LDADD = $(PTHREAD_LIBS) $(INTLLIBS)
@@ -127,9 +124,6 @@ xdgautostart_DATA = $(xdgautostart_in_files:.desktop.in=.desktop)
 @INTLTOOL_DESKTOP_RULE@
 
 
-BUILT_SOURCES = \
-		pulse/version.h
-
 ###################################
 #          Main daemon            #
 ###################################
@@ -145,8 +139,8 @@ pulseaudio_SOURCES = \
 		daemon/ltdl-bind-now.c daemon/ltdl-bind-now.h \
 		daemon/main.c
 
-pulseaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSPEEX_CFLAGS) $(LIBSNDFILE_CFLAGS) $(CAP_CFLAGS)
-pulseaudio_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSPEEX_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS)
+pulseaudio_CFLAGS = $(AM_CFLAGS) $(CAP_CFLAGS)
+pulseaudio_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la $(LIBLTDL) $(CAP_LIBS)
 # This is needed because automake doesn't properly expand the foreach below
 pulseaudio_DEPENDENCIES = libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la $(PREOPEN_LIBS)
 
@@ -616,9 +610,9 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/sndfile-util.c pulsecore/sndfile-util.h \
 		pulsecore/winsock.h
 
-libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
+libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
-libpulsecommon_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSNDFILE_LIBS)
+libpulsecommon_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS)
 
 if HAVE_X11
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += pulse/client-conf-x11.c pulse/client-conf-x11.h
@@ -854,9 +848,9 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/time-smoother.c pulsecore/time-smoother.h \
 		pulsecore/database.h
 
-libpulsecore_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSPEEX_CFLAGS) $(WINSOCK_CFLAGS)
+libpulsecore_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSPEEX_CFLAGS) $(LIBSNDFILE_CFLAGS) $(WINSOCK_CFLAGS)
 libpulsecore_@PA_MAJORMINOR@_la_LDFLAGS = -avoid-version
-libpulsecore_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSPEEX_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINOR@.la libpulse.la libpulsecore-foreign.la
+libpulsecore_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSPEEX_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINOR@.la libpulse.la libpulsecore-foreign.la
 
 if HAVE_X11
 libpulsecore_@PA_MAJORMINOR@_la_SOURCES += pulsecore/x11wrap.c pulsecore/x11wrap.h
@@ -1299,7 +1293,7 @@ SYMDEF_FILES = \
 		module-virtual-source-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
-BUILT_SOURCES += $(SYMDEF_FILES) builddirs
+BUILT_SOURCES = $(SYMDEF_FILES) builddirs
 
 $(SYMDEF_FILES): modules/module-defs.h.m4
 	$(AM_V_at)$(MKDIR_P) modules
