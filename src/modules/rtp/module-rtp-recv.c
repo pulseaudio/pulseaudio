@@ -52,7 +52,6 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/atomic.h>
 #include <pulsecore/atomic.h>
-#include <pulsecore/time-smoother.h>
 #include <pulsecore/socket-util.h>
 #include <pulsecore/once.h>
 
@@ -104,11 +103,13 @@ struct session {
 
     pa_atomic_t timestamp;
 
-    pa_smoother *smoother;
     pa_usec_t intended_latency;
     pa_usec_t sink_latency;
 
     pa_usec_t last_rate_update;
+    pa_usec_t last_latency;
+    double estimated_rate;
+    double avg_estimated_rate;
 };
 
 struct userdata {
@@ -194,10 +195,9 @@ static void sink_input_suspend_within_thread(pa_sink_input* i, pa_bool_t b) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(s = i->userdata);
 
-    if (b) {
-        pa_smoother_pause(s->smoother, pa_rtclock_now());
+    if (b)
         pa_memblockq_flush_read(s->memblockq);
-    } else
+    else
         s->first_packet = FALSE;
 }
 
@@ -266,11 +266,6 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     } else
         pa_rtclock_from_wallclock(&now);
 
-    pa_smoother_put(s->smoother, pa_timeval_load(&now), pa_bytes_to_usec((uint64_t) pa_memblockq_get_write_index(s->memblockq), &s->sink_input->sample_spec));
-
-    /* Tell the smoother that we are rolling now, in case it is still paused */
-    pa_smoother_resume(s->smoother, pa_timeval_load(&now), TRUE);
-
     if (pa_memblockq_push(s->memblockq, &chunk) < 0) {
         pa_log_warn("Queue overrun");
         pa_memblockq_seek(s->memblockq, (int64_t) chunk.length, PA_SEEK_RELATIVE, TRUE);
@@ -286,12 +281,15 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     pa_atomic_store(&s->timestamp, (int) now.tv_sec);
 
     if (s->last_rate_update + RATE_UPDATE_INTERVAL < pa_timeval_load(&now)) {
-        pa_usec_t wi, ri, render_delay, sink_delay = 0, latency, fix;
-        unsigned fix_samples;
+        pa_usec_t wi, ri, render_delay, sink_delay = 0, latency;
+        uint32_t base_rate = s->sink_input->sink->sample_spec.rate;
+        uint32_t current_rate = s->sink_input->sample_spec.rate;
+        uint32_t new_rate;
+        double estimated_rate, alpha = 0.02;
 
         pa_log_debug("Updating sample rate");
 
-        wi = pa_smoother_get(s->smoother, pa_timeval_load(&now));
+        wi = pa_bytes_to_usec((uint64_t) pa_memblockq_get_write_index(s->memblockq), &s->sink_input->sample_spec);
         ri = pa_bytes_to_usec((uint64_t) pa_memblockq_get_read_index(s->memblockq), &s->sink_input->sample_spec);
 
         pa_log_debug("wi=%lu ri=%lu", (unsigned long) wi, (unsigned long) ri);
@@ -309,30 +307,61 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         else
             latency = wi - ri;
 
-        pa_log_debug("Write index deviates by %0.2f ms, expected %0.2f ms", (double) latency/PA_USEC_PER_MSEC, (double)  s->intended_latency/PA_USEC_PER_MSEC);
+        pa_log_debug("Write index deviates by %0.2f ms, expected %0.2f ms", (double) latency/PA_USEC_PER_MSEC, (double) s->intended_latency/PA_USEC_PER_MSEC);
 
-        /* Calculate deviation */
-        if (latency < s->intended_latency)
-            fix = s->intended_latency - latency;
-        else
-            fix = latency - s->intended_latency;
-
-        /* How many samples is this per second? */
-        fix_samples = (unsigned) (fix * (pa_usec_t) s->sink_input->thread_info.sample_spec.rate / (pa_usec_t) RATE_UPDATE_INTERVAL);
-
-        /* Check if deviation is in bounds */
-        if (fix_samples > s->sink_input->sample_spec.rate*.50)
-            pa_log_debug("Hmmm, rate fix is too large (%lu Hz), not applying.", (unsigned long) fix_samples);
-        else {
-            /* Fix up rate */
-            if (latency < s->intended_latency)
-                s->sink_input->sample_spec.rate -= fix_samples;
-            else
-                s->sink_input->sample_spec.rate += fix_samples;
-
-            if (s->sink_input->sample_spec.rate > PA_RATE_MAX)
-                s->sink_input->sample_spec.rate = PA_RATE_MAX;
+        /* The buffer is filling with some unknown rate R̂ samples/second. If the rate of reading in
+         * the last T seconds was Rⁿ, then the increase in buffer latency ΔLⁿ = Lⁿ - Lⁿ⁻ⁱ in that
+         * same period is ΔLⁿ = (TR̂ - TRⁿ) / R̂, giving the estimated target rate
+         *                                           T
+         *                                 R̂ = ─────────────── Rⁿ .                             (1)
+         *                                     T - (Lⁿ - Lⁿ⁻ⁱ)
+         *
+         * Setting the sample rate to R̂ results in the latency being constant (if the estimate of R̂
+         * is correct).  But there is also the requirement to keep the buffer at a predefined target
+         * latency L̂.  So instead of setting Rⁿ⁺ⁱ to R̂ immediately, the strategy will be to reduce R
+         * from Rⁿ⁺ⁱ to R̂ in a steps of T seconds, where Rⁿ⁺ⁱ is chosen such that in the total time
+         * aT the latency is reduced from Lⁿ to L̂.  This strategy translates to the requirements
+         *            ₐ      R̂ - Rⁿ⁺ʲ                            a-j+1         j-1
+         *            Σ  T ────────── = L̂ - Lⁿ    with    Rⁿ⁺ʲ = ───── Rⁿ⁺ⁱ + ───── R̂ .
+         *           ʲ⁼ⁱ        R̂                                  a            a
+         * Solving for Rⁿ⁺ⁱ gives
+         *                                     T - ²∕ₐ₊₁(L̂ - Lⁿ)
+         *                              Rⁿ⁺ⁱ = ───────────────── R̂ .                            (2)
+         *                                            T
+         * In the code below a = 7 is used.
+         *
+         * Equation (1) is not directly used in (2), but instead an exponentially weighted average
+         * of the estimated rate R̂ is used.  This average R̅ is defined as
+         *                                R̅ⁿ = α R̂ⁿ + (1-α) R̅ⁿ⁻ⁱ .
+         * Because it is difficult to find a fixed value for the coefficient α such that the
+         * averaging is without significant lag but oscillations are filtered out, a heuristic is
+         * used.  When the successive estimates R̂ⁿ do not change much then α→1, but when there is a
+         * sudden spike in the estimated rate α→0, such that the deviation is given little weight.
+         */
+        estimated_rate = (double) current_rate * (double) RATE_UPDATE_INTERVAL / (double) (RATE_UPDATE_INTERVAL + s->last_latency - latency);
+        if (fabs(s->estimated_rate - s->avg_estimated_rate) > 1) {
+          double ratio = (estimated_rate + s->estimated_rate - 2*s->avg_estimated_rate) / (s->estimated_rate - s->avg_estimated_rate);
+          alpha = PA_CLAMP(2 * (ratio + fabs(ratio)) / (4 + ratio*ratio), 0.02, 0.8);
         }
+        s->avg_estimated_rate = alpha * estimated_rate + (1-alpha) * s->avg_estimated_rate;
+        s->estimated_rate = estimated_rate;
+        pa_log_debug("Estimated target rate: %.0f Hz, using average of %.0f Hz  (α=%.3f)", estimated_rate, s->avg_estimated_rate, alpha);
+        new_rate = (uint32_t) ((double) (RATE_UPDATE_INTERVAL + latency/4 - s->intended_latency/4) / (double) RATE_UPDATE_INTERVAL * s->avg_estimated_rate);
+        s->last_latency = latency;
+
+        if (new_rate < (uint32_t) (base_rate*0.8) || new_rate > (uint32_t) (base_rate*1.25)) {
+            pa_log_warn("Sample rates too different, not adjusting (%u vs. %u).", base_rate, new_rate);
+            new_rate = base_rate;
+        } else {
+            if (base_rate < new_rate + 20 && new_rate < base_rate + 20)
+              new_rate = base_rate;
+            /* Do the adjustment in small steps; 2‰ can be considered inaudible */
+            if (new_rate < (uint32_t) (current_rate*0.998) || new_rate > (uint32_t) (current_rate*1.002)) {
+                pa_log_info("New rate of %u Hz not within 2‰ of %u Hz, forcing smaller adjustment", new_rate, current_rate);
+                new_rate = PA_CLAMP(new_rate, (uint32_t) (current_rate*0.998), (uint32_t) (current_rate*1.002));
+            }
+        }
+        s->sink_input->sample_spec.rate = new_rate;
 
         pa_assert(pa_sample_spec_valid(&s->sink_input->sample_spec));
 
@@ -346,7 +375,9 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     if (pa_memblockq_is_readable(s->memblockq) &&
         s->sink_input->thread_info.underrun_for > 0) {
         pa_log_debug("Requesting rewind due to end of underrun");
-        pa_sink_input_request_rewind(s->sink_input, 0, FALSE, TRUE, FALSE);
+        pa_sink_input_request_rewind(s->sink_input,
+                                     (size_t) (s->sink_input->thread_info.underrun_for == (uint64_t) -1 ? 0 : s->sink_input->thread_info.underrun_for),
+                                     FALSE, TRUE, FALSE);
     }
 
     return 1;
@@ -471,15 +502,10 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->sdp_info = *sdp_info;
     s->rtpoll_item = NULL;
     s->intended_latency = LATENCY_USEC;
-    s->smoother = pa_smoother_new(
-            PA_USEC_PER_SEC*5,
-            PA_USEC_PER_SEC*2,
-            TRUE,
-            TRUE,
-            10,
-            pa_timeval_load(&now),
-            TRUE);
     s->last_rate_update = pa_timeval_load(&now);
+    s->last_latency = LATENCY_USEC;
+    s->estimated_rate = (double) sink->sample_spec.rate;
+    s->avg_estimated_rate = (double) sink->sample_spec.rate;
     pa_atomic_store(&s->timestamp, (int) now.tv_sec);
 
     if ((fd = mcast_socket((const struct sockaddr*) &sdp_info->sa, sdp_info->salen)) < 0)
@@ -578,8 +604,6 @@ static void session_free(struct session *s) {
     pa_memblockq_free(s->memblockq);
     pa_sdp_info_destroy(&s->sdp_info);
     pa_rtp_context_destroy(&s->rtp_context);
-
-    pa_smoother_free(s->smoother);
 
     pa_xfree(s);
 }
