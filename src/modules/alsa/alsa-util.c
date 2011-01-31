@@ -251,6 +251,22 @@ int pa_alsa_set_hw_params(
     if (!pa_alsa_pcm_is_hw(pcm_handle))
         _use_tsched = FALSE;
 
+#if (SND_LIB_VERSION >= ((1<<16)|(0<<8)|24)) /* API additions in 1.0.24 */
+    if (_use_tsched) {
+
+        /* try to disable period wakeups if hardware can do so */
+        if (snd_pcm_hw_params_can_disable_period_wakeup(hwparams)) {
+
+            if (snd_pcm_hw_params_set_period_wakeup(pcm_handle, hwparams, FALSE) < 0)
+                /* don't bail, keep going with default mode with period wakeups */
+                pa_log_debug("snd_pcm_hw_params_set_period_wakeup() failed: %s", pa_alsa_strerror(ret));
+            else
+                pa_log_info("Trying to disable ALSA period wakeups, using timers only");
+        } else
+            pa_log_info("cannot disable ALSA period wakeups");
+    }
+#endif
+
     if ((ret = set_format(pcm_handle, hwparams, &_ss.format)) < 0)
         goto finish;
 
@@ -377,6 +393,18 @@ success:
         pa_log_info("snd_pcm_hw_params_get_{period|buffer}_size() failed: %s", pa_alsa_strerror(ret));
         goto finish;
     }
+
+#if (SND_LIB_VERSION >= ((1<<16)|(0<<8)|24)) /* API additions in 1.0.24 */
+    if (_use_tsched) {
+        unsigned int no_wakeup;
+        /* see if period wakeups were disabled */
+        snd_pcm_hw_params_get_period_wakeup(pcm_handle, hwparams, &no_wakeup);
+        if (no_wakeup == 0)
+            pa_log_info("ALSA period wakeups disabled");
+        else
+            pa_log_info("ALSA period wakeups were not disabled");
+    }
+#endif
 
     ss->rate = _ss.rate;
     ss->channels = _ss.channels;
