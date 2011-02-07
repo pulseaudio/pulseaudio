@@ -269,6 +269,7 @@ pa_sink* pa_sink_new(
 
     s->inputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
+    s->input_to_master = NULL;
 
     s->reference_volume = s->real_volume = data->volume;
     pa_cvolume_reset(&s->soft_volume, s->sample_spec.channels);

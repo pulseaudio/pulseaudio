@@ -221,6 +221,7 @@ pa_source* pa_source_new(
     s->outputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
     s->monitor_of = NULL;
+    s->output_from_master = NULL;
 
     s->volume = data->volume;
     pa_cvolume_reset(&s->soft_volume, s->sample_spec.channels);

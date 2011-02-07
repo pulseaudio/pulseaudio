@@ -1502,6 +1502,7 @@ int pa__init(pa_module*m) {
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
     source_output_data.source = source_master;
+    source_output_data.destination_source = u->source;
     /* FIXME
        source_output_data.flags = PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND; */
 
@@ -1531,11 +1532,14 @@ int pa__init(pa_module*m) {
     u->source_output->moving = source_output_moving_cb;
     u->source_output->userdata = u;
 
+    u->source->output_from_master = u->source_output;
+
     /* Create sink input */
     pa_sink_input_new_data_init(&sink_input_data);
     sink_input_data.driver = __FILE__;
     sink_input_data.module = m;
     sink_input_data.sink = sink_master;
+    sink_input_data.origin_sink = u->sink;
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Echo-Cancel Sink Stream");
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &sink_ss);
@@ -1565,6 +1569,8 @@ int pa__init(pa_module*m) {
     u->sink_input->volume_changed = sink_input_volume_changed_cb;
     u->sink_input->mute_changed = sink_input_mute_changed_cb;
     u->sink_input->userdata = u;
+
+    u->sink->input_to_master = u->sink_input;
 
     pa_sink_input_get_silence(u->sink_input, &silence);
 

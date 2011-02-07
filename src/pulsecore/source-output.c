@@ -208,6 +208,7 @@ int pa_source_output_new(
     o->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     o->module = data->module;
     o->source = data->source;
+    o->destination_source = data->destination_source;
     o->client = data->client;
 
     o->actual_resample_method = resampler ? pa_resampler_get_method(resampler) : PA_RESAMPLER_INVALID;

@@ -321,6 +321,7 @@ int pa_sink_input_new(
     i->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     i->module = data->module;
     i->sink = data->sink;
+    i->origin_sink = data->origin_sink;
     i->client = data->client;
 
     i->requested_resample_method = data->resample_method;

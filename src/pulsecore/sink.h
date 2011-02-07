@@ -44,6 +44,7 @@ typedef struct pa_sink_volume_change pa_sink_volume_change;
 #include <pulsecore/card.h>
 #include <pulsecore/queue.h>
 #include <pulsecore/thread-mq.h>
+#include <pulsecore/sink-input.h>
 
 #define PA_MAX_INPUTS_PER_SINK 32
 
@@ -86,6 +87,7 @@ struct pa_sink {
     pa_idxset *inputs;
     unsigned n_corked;
     pa_source *monitor_source;
+    pa_sink_input *input_to_master;         /* non-NULL only for filter sinks */
 
     pa_volume_t base_volume; /* shall be constant */
     unsigned n_volume_steps; /* shall be constant */

@@ -75,6 +75,7 @@ struct pa_source {
     pa_idxset *outputs;
     unsigned n_corked;
     pa_sink *monitor_of;                     /* may be NULL */
+    pa_source_output *output_from_master;    /* non-NULL only for filter sources */
 
     pa_volume_t base_volume; /* shall be constant */
     unsigned n_volume_steps; /* shall be constant */

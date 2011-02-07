@@ -1200,6 +1200,7 @@ int pa__init(pa_module*m) {
     sink_input_data.driver = __FILE__;
     sink_input_data.module = m;
     sink_input_data.sink = master;
+    sink_input_data.origin_sink = u->sink;
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Equalized Stream");
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
@@ -1225,8 +1226,9 @@ int pa__init(pa_module*m) {
     u->sink_input->moving = sink_input_moving_cb;
     u->sink_input->volume_changed = sink_input_volume_changed_cb;
     u->sink_input->mute_changed = sink_input_mute_changed_cb;
-
     u->sink_input->userdata = u;
+
+    u->sink->input_to_master = u->sink_input;
 
     dbus_init(u);
 

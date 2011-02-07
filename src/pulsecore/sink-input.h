@@ -83,7 +83,8 @@ struct pa_sink_input {
     pa_module *module;                  /* may be NULL */
     pa_client *client;                  /* may be NULL */
 
-    pa_sink *sink; /* NULL while we are being moved */
+    pa_sink *sink;                      /* NULL while we are being moved */
+    pa_sink *origin_sink;               /* only set by filter sinks */
 
     /* A sink input may be connected to multiple source outputs
      * directly, so that they don't get mixed data of the entire
@@ -285,6 +286,7 @@ typedef struct pa_sink_input_new_data {
     pa_client *client;
 
     pa_sink *sink;
+    pa_sink *origin_sink;
 
     pa_resample_method_t resample_method;
 

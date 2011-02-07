@@ -74,7 +74,8 @@ struct pa_source_output {
     pa_module *module;                    /* may be NULL */
     pa_client *client;                    /* may be NULL */
 
-    pa_source *source; /* NULL while being moved */
+    pa_source *source;                    /* NULL while being moved */
+    pa_source *destination_source;        /* only set by filter sources */
 
     /* A source output can monitor just a single input of a sink, in which case we find it here */
     pa_sink_input *direct_on_input;       /* may be NULL */
@@ -211,6 +212,7 @@ typedef struct pa_source_output_new_data {
     pa_client *client;
 
     pa_source *source;
+    pa_source *destination_source;
 
     pa_resample_method_t resample_method;
 

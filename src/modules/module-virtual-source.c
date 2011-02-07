@@ -629,6 +629,7 @@ int pa__init(pa_module*m) {
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
     source_output_data.source = master;
+    source_output_data.destination_source = u->source;
     /* FIXME
        source_output_data.flags = PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND; */
 
@@ -653,6 +654,8 @@ int pa__init(pa_module*m) {
     u->source_output->may_move_to = source_output_may_move_to_cb;
     u->source_output->moving = source_output_moving_cb;
     u->source_output->userdata = u;
+
+    u->source->output_from_master = u->source_output;
 
     pa_source_put(u->source);
     pa_source_output_put(u->source_output);
