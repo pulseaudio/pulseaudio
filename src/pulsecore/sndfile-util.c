@@ -51,6 +51,9 @@ int pa_sndfile_read_sample_spec(SNDFILE *sf, pa_sample_spec *ss) {
             break;
 
         case SF_FORMAT_PCM_24:
+            ss->format = PA_SAMPLE_S24NE;
+	    break;
+
         case SF_FORMAT_PCM_32:
             ss->format = PA_SAMPLE_S32NE;
             break;
@@ -106,10 +109,14 @@ int pa_sndfile_write_sample_spec(SF_INFO *sfi, pa_sample_spec *ss) {
 
         case PA_SAMPLE_S24LE:
         case PA_SAMPLE_S24BE:
+	    ss->format = PA_SAMPLE_S24NE;
+	    sfi->format |= SF_FORMAT_PCM_24;
+	    break;
+
         case PA_SAMPLE_S24_32LE:
         case PA_SAMPLE_S24_32BE:
-            ss->format = PA_SAMPLE_S32NE;
-            sfi->format |= SF_FORMAT_PCM_24;
+            ss->format = PA_SAMPLE_S24_32NE;
+            sfi->format |= SF_FORMAT_PCM_32;
             break;
 
         case PA_SAMPLE_S32LE:
@@ -362,6 +369,7 @@ pa_sndfile_readf_t pa_sndfile_readf_function(const pa_sample_spec *ss) {
             return (pa_sndfile_readf_t) sf_readf_short;
 
         case PA_SAMPLE_S32NE:
+        case PA_SAMPLE_S24_32NE:
             return (pa_sndfile_readf_t) sf_readf_int;
 
         case PA_SAMPLE_FLOAT32NE:
@@ -384,6 +392,7 @@ pa_sndfile_writef_t pa_sndfile_writef_function(const pa_sample_spec *ss) {
             return (pa_sndfile_writef_t) sf_writef_short;
 
         case PA_SAMPLE_S32NE:
+        case PA_SAMPLE_S24_32NE:
             return (pa_sndfile_writef_t) sf_writef_int;
 
         case PA_SAMPLE_FLOAT32NE:
