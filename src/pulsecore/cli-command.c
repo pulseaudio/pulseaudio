@@ -579,8 +579,13 @@ static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strb
         return -1;
     }
 
-    if (!(si = pa_idxset_get_by_index(c->sink_inputs, (uint32_t) idx))) {
+    if (!(si = pa_idxset_get_by_index(c->sink_inputs, idx))) {
         pa_strbuf_puts(buf, "No sink input found with this index.\n");
+        return -1;
+    }
+
+    if (!pa_sink_input_is_volume_writable(si)) {
+        pa_strbuf_puts(buf, "This sink input's volume can't be changed.\n");
         return -1;
     }
 

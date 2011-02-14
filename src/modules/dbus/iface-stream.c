@@ -56,6 +56,9 @@ struct pa_dbusiface_stream {
     dbus_bool_t mute;
     pa_proplist *proplist;
 
+    pa_bool_t has_volume;
+    pa_bool_t read_only_volume;
+
     pa_dbus_protocol *dbus_protocol;
     pa_subscription *subscription;
     pa_hook_slot *send_event_slot;
@@ -189,6 +192,14 @@ static void handle_get_index(DBusConnection *conn, DBusMessage *msg, void *userd
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &idx);
 }
 
+/* The returned string has to be freed with pa_xfree() by the caller. */
+static char *stream_to_string(pa_dbusiface_stream *s) {
+    if (s->type == STREAM_TYPE_PLAYBACK)
+        return pa_sprintf_malloc("Playback stream %u", (unsigned) s->sink_input->index);
+    else
+        return pa_sprintf_malloc("Record stream %u", (unsigned) s->source_output->index);
+}
+
 static void handle_get_driver(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_stream *s = userdata;
     const char *driver = NULL;
@@ -200,12 +211,11 @@ static void handle_get_driver(DBusConnection *conn, DBusMessage *msg, void *user
     driver = (s->type == STREAM_TYPE_PLAYBACK) ? s->sink_input->driver : s->source_output->driver;
 
     if (!driver) {
-        if (s->type == STREAM_TYPE_PLAYBACK)
-            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
-                               "Playback stream %u doesn't have a driver.", s->sink_input->index);
-        else
-            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
-                               "Record stream %u doesn't have a driver.", s->source_output->index);
+        char *str = stream_to_string(s);
+
+        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "%s doesn't have a driver.", str);
+        pa_xfree(str);
+
         return;
     }
 
@@ -224,12 +234,11 @@ static void handle_get_owner_module(DBusConnection *conn, DBusMessage *msg, void
     owner_module = (s->type == STREAM_TYPE_PLAYBACK) ? s->sink_input->module : s->source_output->module;
 
     if (!owner_module) {
-        if (s->type == STREAM_TYPE_PLAYBACK)
-            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
-                               "Playback stream %u doesn't have an owner module.", s->sink_input->index);
-        else
-            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
-                               "Record stream %u doesn't have an owner module.", s->source_output->index);
+        char *str = stream_to_string(s);
+
+        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "%s doesn't have an owner module.", str);
+        pa_xfree(str);
+
         return;
     }
 
@@ -250,12 +259,11 @@ static void handle_get_client(DBusConnection *conn, DBusMessage *msg, void *user
     client = (s->type == STREAM_TYPE_PLAYBACK) ? s->sink_input->client : s->source_output->client;
 
     if (!client) {
-        if (s->type == STREAM_TYPE_PLAYBACK)
-            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
-                               "Playback stream %u isn't associated to any client.", s->sink_input->index);
-        else
-            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
-                               "Record stream %u isn't associated to any client.", s->source_output->index);
+        char *str = stream_to_string(s);
+
+        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "%s isn't associated to any client.", str);
+        pa_xfree(str);
+
         return;
     }
 
@@ -332,8 +340,12 @@ static void handle_get_volume(DBusConnection *conn, DBusMessage *msg, void *user
     pa_assert(msg);
     pa_assert(s);
 
-    if (s->type == STREAM_TYPE_RECORD) {
-        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "Record streams don't have volume.");
+    if (!s->has_volume) {
+        char *str = stream_to_string(s);
+
+        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "%s doesn't have volume.", str);
+        pa_xfree(str);
+
         return;
     }
 
@@ -357,8 +369,15 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessag
     pa_assert(iter);
     pa_assert(s);
 
-    if (s->type == STREAM_TYPE_RECORD) {
-        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "Record streams don't have volume.");
+    if (!s->has_volume || s->read_only_volume) {
+        char *str = stream_to_string(s);
+
+        if (!s->has_volume)
+            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "%s doesn't have volume.", str);
+        else if (s->read_only_volume)
+            pa_dbus_send_error(conn, msg, DBUS_ERROR_ACCESS_DENIED, "%s has read-only volume.", str);
+        pa_xfree(str);
+
         return;
     }
 
@@ -509,6 +528,11 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     pa_assert(msg);
     pa_assert(s);
 
+    if (s->has_volume) {
+        for (i = 0; i < s->volume.channels; ++i)
+            volume[i] = s->volume.values[i];
+    }
+
     if (s->type == STREAM_TYPE_PLAYBACK) {
         idx = s->sink_input->index;
         driver = s->sink_input->driver;
@@ -517,8 +541,6 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
         device = pa_dbusiface_core_get_sink_path(s->core, s->sink);
         sample_format = s->sink_input->sample_spec.format;
         channel_map = &s->sink_input->channel_map;
-        for (i = 0; i < s->volume.channels; ++i)
-            volume[i] = s->volume.values[i];
         buffer_latency = pa_sink_input_get_latency(s->sink_input, &device_latency);
         resample_method = pa_resample_method_to_string(s->sink_input->actual_resample_method);
     } else {
@@ -560,7 +582,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_SAMPLE_RATE].property_name, DBUS_TYPE_UINT32, &s->sample_rate);
     pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_CHANNELS].property_name, DBUS_TYPE_UINT32, channels, channel_map->channels);
 
-    if (s->type == STREAM_TYPE_PLAYBACK) {
+    if (s->has_volume) {
         pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_VOLUME].property_name, DBUS_TYPE_UINT32, volume, s->volume.channels);
         pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_MUTE].property_name, DBUS_TYPE_BOOLEAN, &s->mute);
     }
@@ -708,30 +730,33 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
     }
 
     if (s->type == STREAM_TYPE_PLAYBACK) {
-        pa_cvolume new_volume;
         pa_bool_t new_mute = FALSE;
 
-        pa_sink_input_get_volume(s->sink_input, &new_volume, TRUE);
+        if (s->has_volume) {
+            pa_cvolume new_volume;
 
-        if (!pa_cvolume_equal(&s->volume, &new_volume)) {
-            dbus_uint32_t volume[PA_CHANNELS_MAX];
-            dbus_uint32_t *volume_ptr = volume;
+            pa_sink_input_get_volume(s->sink_input, &new_volume, TRUE);
 
-            s->volume = new_volume;
+            if (!pa_cvolume_equal(&s->volume, &new_volume)) {
+                dbus_uint32_t volume[PA_CHANNELS_MAX];
+                dbus_uint32_t *volume_ptr = volume;
 
-            for (i = 0; i < s->volume.channels; ++i)
-                volume[i] = s->volume.values[i];
+                s->volume = new_volume;
 
-            pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
-							      PA_DBUSIFACE_STREAM_INTERFACE,
-							      signals[SIGNAL_VOLUME_UPDATED].name));
-            pa_assert_se(dbus_message_append_args(signal_msg,
-                                                  DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32, &volume_ptr, s->volume.channels,
-                                                  DBUS_TYPE_INVALID));
+                for (i = 0; i < s->volume.channels; ++i)
+                    volume[i] = s->volume.values[i];
 
-            pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
-            dbus_message_unref(signal_msg);
-            signal_msg = NULL;
+                pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
+                                                                  PA_DBUSIFACE_STREAM_INTERFACE,
+                                                                  signals[SIGNAL_VOLUME_UPDATED].name));
+                pa_assert_se(dbus_message_append_args(signal_msg,
+                                                      DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32, &volume_ptr, s->volume.channels,
+                                                      DBUS_TYPE_INVALID));
+
+                pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
+                dbus_message_unref(signal_msg);
+                signal_msg = NULL;
+            }
         }
 
         new_mute = pa_sink_input_get_mute(s->sink_input);
@@ -823,7 +848,14 @@ pa_dbusiface_stream *pa_dbusiface_stream_new_playback(pa_dbusiface_core *core, p
     s->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, PLAYBACK_OBJECT_NAME, sink_input->index);
     s->sink = pa_sink_ref(sink_input->sink);
     s->sample_rate = sink_input->sample_spec.rate;
-    pa_sink_input_get_volume(sink_input, &s->volume, TRUE);
+    s->has_volume = pa_sink_input_is_volume_readable(sink_input);
+    s->read_only_volume = s->has_volume ? !pa_sink_input_is_volume_writable(sink_input) : FALSE;
+
+    if (s->has_volume)
+        pa_sink_input_get_volume(sink_input, &s->volume, TRUE);
+    else
+        pa_cvolume_init(&s->volume);
+
     s->mute = pa_sink_input_get_mute(sink_input);
     s->proplist = pa_proplist_copy(sink_input->proplist);
     s->dbus_protocol = pa_dbus_protocol_get(sink_input->core);
@@ -854,6 +886,8 @@ pa_dbusiface_stream *pa_dbusiface_stream_new_record(pa_dbusiface_core *core, pa_
     pa_cvolume_init(&s->volume);
     s->mute = FALSE;
     s->proplist = pa_proplist_copy(source_output->proplist);
+    s->has_volume = FALSE;
+    s->read_only_volume = FALSE;
     s->dbus_protocol = pa_dbus_protocol_get(source_output->core);
     s->subscription = pa_subscription_new(source_output->core, PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscription_cb, s);
     s->send_event_slot = pa_hook_connect(&source_output->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_SEND_EVENT],

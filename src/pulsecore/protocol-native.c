@@ -3056,11 +3056,18 @@ static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, 
     pa_sample_spec fixed_ss;
     pa_usec_t sink_latency;
     pa_cvolume v;
+    pa_bool_t has_volume = FALSE;
 
     pa_assert(t);
     pa_sink_input_assert_ref(s);
 
     fixup_sample_spec(c, &fixed_ss, &s->sample_spec);
+
+    has_volume = pa_sink_input_is_volume_readable(s);
+    if (has_volume)
+        pa_sink_input_get_volume(s, &v, TRUE);
+    else
+        pa_cvolume_reset(&v, fixed_ss.channels);
 
     pa_tagstruct_putu32(t, s->index);
     pa_tagstruct_puts(t, pa_strnull(pa_proplist_gets(s->proplist, PA_PROP_MEDIA_NAME)));
@@ -3069,7 +3076,7 @@ static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, 
     pa_tagstruct_putu32(t, s->sink->index);
     pa_tagstruct_put_sample_spec(t, &fixed_ss);
     pa_tagstruct_put_channel_map(t, &s->channel_map);
-    pa_tagstruct_put_cvolume(t, pa_sink_input_get_volume(s, &v, TRUE));
+    pa_tagstruct_put_cvolume(t, &v);
     pa_tagstruct_put_usec(t, pa_sink_input_get_latency(s, &sink_latency));
     pa_tagstruct_put_usec(t, sink_latency);
     pa_tagstruct_puts(t, pa_resample_method_to_string(pa_sink_input_get_resample_method(s)));
@@ -3080,6 +3087,10 @@ static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, 
         pa_tagstruct_put_proplist(t, s->proplist);
     if (c->version >= 19)
         pa_tagstruct_put_boolean(t, (pa_sink_input_get_state(s) == PA_SINK_INPUT_CORKED));
+    if (c->version >= 20) {
+        pa_tagstruct_put_boolean(t, has_volume);
+        pa_tagstruct_put_boolean(t, has_volume ? !pa_sink_input_is_volume_writable(s) : FALSE);
+    }
 }
 
 static void source_output_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_source_output *s) {
@@ -3461,6 +3472,7 @@ static void command_set_volume(
         pa_log_debug("Client %s changes volume of source %s.", client_name, source->name);
         pa_source_set_volume(source, &volume, TRUE);
     } else if (si) {
+        CHECK_VALIDITY(c->pstream, pa_sink_input_is_volume_writable(si), tag, PA_ERR_INVALID);
         CHECK_VALIDITY(c->pstream, volume.channels == 1 || pa_cvolume_compatible(&volume, &si->sample_spec), tag, PA_ERR_INVALID);
 
         pa_log_debug("Client %s changes volume of sink input %s.",

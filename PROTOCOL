@@ -203,7 +203,13 @@ new flag at end of CREATE_PLAYBACK_STREAM:
 
 ## v19, implemented by >= 0.9.22
 
-New proplist field for sink input, source output introspection opcodes and at the end:
+New flag at the end of sink input and source output introspection data:
 
     bool corked
 
+## v20, implemented by >= 1.0
+
+Two new flags at the end of sink input introspection data:
+
+    bool has_volume
+    bool read_only_volume

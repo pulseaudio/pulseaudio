@@ -112,8 +112,15 @@ void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const 
         data->channel_map = *map;
 }
 
+pa_bool_t pa_sink_input_new_data_is_volume_writable(pa_sink_input_new_data *data) {
+    pa_assert(data);
+
+    return !(data->flags & PA_SINK_INPUT_PASSTHROUGH);
+}
+
 void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume) {
     pa_assert(data);
+    pa_assert(pa_sink_input_new_data_is_volume_writable(data));
 
     if ((data->volume_is_set = !!volume))
         data->volume = *volume;
@@ -205,6 +212,7 @@ int pa_sink_input_new(
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], data)) < 0)
         return r;
 
+    pa_assert(!data->volume_is_set || pa_sink_input_new_data_is_volume_writable(data));
     pa_return_val_if_fail(!data->driver || pa_utf8_valid(data->driver), -PA_ERR_INVALID);
 
     if (!data->sink) {
@@ -1059,12 +1067,23 @@ static void set_real_ratio(pa_sink_input *i, const pa_cvolume *v) {
 }
 
 /* Called from main context */
+pa_bool_t pa_sink_input_is_volume_readable(pa_sink_input *i) {
+    pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
+
+    return !(i->flags & PA_SINK_INPUT_PASSTHROUGH);
+}
+
+/* Called from main context */
+pa_bool_t pa_sink_input_is_volume_writable(pa_sink_input *i) {
+    pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
+
+    return !(i->flags & PA_SINK_INPUT_PASSTHROUGH);
+}
+
+/* Called from main context */
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute) {
-
-    /* Do not allow for volume changes for non-audio types */
-    if (i->flags & PA_SINK_INPUT_PASSTHROUGH)
-        return;
-
     /* test ramping -> return pa_sink_input_set_volume_with_ramping(i, volume, save, absolute, 2000 * PA_USEC_PER_MSEC); */
     return pa_sink_input_set_volume_with_ramping(i, volume, save, absolute, 0);
 }
@@ -1074,6 +1093,7 @@ pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i, pa_cvolume *volume, pa_bo
     pa_sink_input_assert_ref(i);
     pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
+    pa_assert(pa_sink_input_is_volume_readable(i));
 
     if (absolute || !(i->sink->flags & PA_SINK_FLAT_VOLUME))
         *volume = i->volume;
@@ -1854,6 +1874,7 @@ void pa_sink_input_set_volume_with_ramping(pa_sink_input *i, const pa_cvolume *v
     pa_assert(volume);
     pa_assert(pa_cvolume_valid(volume));
     pa_assert(volume->channels == 1 || pa_cvolume_compatible(volume, &i->sample_spec));
+    pa_assert(pa_sink_input_is_volume_writable(i));
 
     if ((i->sink->flags & PA_SINK_FLAT_VOLUME) && !absolute) {
         v = i->sink->reference_volume;

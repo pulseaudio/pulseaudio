@@ -503,6 +503,8 @@ typedef struct pa_sink_input_info {
     int mute;                            /**< Stream muted \since 0.9.7 */
     pa_proplist *proplist;               /**< Property list \since 0.9.11 */
     int corked;                          /**< Stream corked \since 1.0 */
+    int has_volume;                      /**< Stream has volume. If not set, then the meaning of this struct's volume member is unspecified. \since 1.0 */
+    int read_only_volume;                /**< Stream volume can only be read. Although volume control is disabled, the stream volume is still not necessarily constant. \since 1.0 */
 } pa_sink_input_info;
 
 /** Callback prototype for pa_context_get_sink_input_info() and friends*/
