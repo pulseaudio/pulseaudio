@@ -22,6 +22,10 @@
 switch = off
 volume = off
 
+[Element Line Boost]
+switch = off
+volume = off
+
 [Element Aux]
 switch = off
 volume = off
