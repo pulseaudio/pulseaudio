@@ -28,6 +28,7 @@
 
 #ifndef HAVE_INET_PTON
 
+#include <pulsecore/macro.h>
 #include <pulsecore/socket.h>
 
 #include "inet_pton.h"
@@ -38,7 +39,8 @@ int inet_pton(int af, const char *src, void *dst) {
     struct in6_addr *in6 = (struct in6_addr*)dst;
 #endif
 
-    assert(src && dst);
+    pa_assert(src);
+    pa_assert(dst);
 
     switch (af) {
     case AF_INET:

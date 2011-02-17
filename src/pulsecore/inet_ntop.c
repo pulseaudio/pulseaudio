@@ -29,6 +29,7 @@
 #ifndef HAVE_INET_NTOP
 
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/socket.h>
 
 #include "inet_ntop.h"
@@ -39,7 +40,8 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt) {
     struct in6_addr *in6 = (struct in6_addr*)src;
 #endif
 
-    assert(src && dst);
+    pa_assert(src);
+    pa_assert(dst);
 
     switch (af) {
     case AF_INET:

@@ -26,7 +26,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
-#include <sched.h>
 #include <inttypes.h>
 #include <string.h>
 
@@ -34,25 +33,24 @@
 #include <pthread.h>
 #endif
 
+#include <pulse/util.h>
 #include <pulse/timeval.h>
 #include <pulse/gccmacro.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/thread.h>
 #include <pulsecore/core-util.h>
 
 static int msec_lower, msec_upper;
 
-static void* work(void *p) PA_GCC_NORETURN;
+static void work(void *p) PA_GCC_NORETURN;
 
-static void* work(void *p) {
-    struct sched_param param;
+static void work(void *p) {
 
     pa_log_notice("CPU%i: Created thread.", PA_PTR_TO_UINT(p));
 
-    memset(&param, 0, sizeof(param));
-    param.sched_priority = 12;
-    pa_assert_se(pthread_setschedparam(pthread_self(), SCHED_FIFO, &param) == 0);
+    pa_make_realtime(12);
 
 #ifdef HAVE_PTHREAD_SETAFFINITY_NP
 {
@@ -69,7 +67,7 @@ static void* work(void *p) {
         uint64_t nsec;
 
         pa_log_notice("CPU%i: Sleeping for 1s", PA_PTR_TO_UINT(p));
-        sleep(1);
+        pa_msleep(1000);
 
 #ifdef CLOCK_REALTIME
         pa_assert_se(clock_gettime(CLOCK_REALTIME, &end) == 0);
@@ -101,7 +99,7 @@ static void* work(void *p) {
 int main(int argc, char*argv[]) {
     unsigned n;
 
-    pa_log_set_level(PA_LOG_DEBUG);
+    pa_log_set_level(PA_LOG_INFO);
 
     srand((unsigned) time(NULL));
 
@@ -122,8 +120,7 @@ int main(int argc, char*argv[]) {
     pa_log_notice("Creating random latencies in the range of %ims to  %ims.", msec_lower, msec_upper);
 
     for (n = 1; n < pa_ncpus(); n++) {
-        pthread_t t;
-        pa_assert_se(pthread_create(&t, NULL, work, PA_UINT_TO_PTR(n)) == 0);
+        pa_assert_se(pa_thread_new("rtstutter", work, PA_UINT_TO_PTR(n)));
     }
 
     work(PA_INT_TO_PTR(0));
