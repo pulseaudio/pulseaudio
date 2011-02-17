@@ -878,6 +878,39 @@ fi
 AC_SUBST(HAVE_SOLARIS)
 AM_CONDITIONAL([HAVE_SOLARIS], [test "x$HAVE_SOLARIS" = x1])
 
+#### WaveOut audio support (optional) ####
+
+AC_ARG_ENABLE([waveout],
+    AS_HELP_STRING([--disable-waveout],[Disable optional WaveOut audio support]),
+        [
+            case "${enableval}" in
+                yes) waveout=yes ;;
+                no) waveout=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-waveout) ;;
+            esac
+        ],
+        [waveout=auto])
+
+if test "x${waveout}" != xno ; then
+    AC_CHECK_HEADERS([mmsystem.h],
+        [
+            HAVE_WAVEOUT=1
+            AC_DEFINE([HAVE_WAVEOUT], 1, [Have WaveOut audio?])
+        ],
+        [
+            HAVE_WAVEOUT=0
+            if test "x$waveout" = xyes ; then
+                AC_MSG_ERROR([*** WaveOut audio support not found])
+            fi
+        ],
+        [#include <windows.h>])
+else
+    HAVE_WAVEOUT=0
+fi
+
+AC_SUBST(HAVE_WAVEOUT)
+AM_CONDITIONAL([HAVE_WAVEOUT], [test "x$HAVE_WAVEOUT" = x1])
+
 #### GLib 2 support (optional) ####
 
 AC_ARG_ENABLE([glib2],
@@ -1529,6 +1562,11 @@ if test "x$HAVE_SOLARIS" = "x1" ; then
    ENABLE_SOLARIS=yes
 fi
 
+ENABLE_WAVEOUT=no
+if test "x$HAVE_WAVEOUT" = "x1" ; then
+   ENABLE_WAVEOUT=yes
+fi
+
 ENABLE_GTK20=no
 if test "x$HAVE_GTK20" = "x1" ; then
    ENABLE_GTK20=yes
@@ -1650,6 +1688,7 @@ echo "
     System Config Path:            ${PA_SYSTEM_CONFIG_PATH}
     Compiler:                      ${CC}
     CFLAGS:                        ${CFLAGS}
+    LIBS:                          ${LIBS}
 
     Have X11:                      ${ENABLE_X11}
     Enable OSS Output:             ${ENABLE_OSS_OUTPUT}
@@ -1657,6 +1696,7 @@ echo "
     Enable CoreAudio:              ${ENABLE_COREAUDIO}
     Enable Alsa:                   ${ENABLE_ALSA}
     Enable Solaris:                ${ENABLE_SOLARIS}
+    Enable WaveOut:                ${ENABLE_WAVEOUT}
     Enable GLib 2.0:               ${ENABLE_GLIB20}
     Enable Gtk+ 2.0:               ${ENABLE_GTK20}
     Enable GConf:                  ${ENABLE_GCONF}
@@ -1687,7 +1727,7 @@ echo "
     Preopened modules:             ${PREOPEN_MODS}
 "
 
-if test "${ENABLE_DBUS}" = "no" ; then
+if test "${ENABLE_DBUS}" = "no" && test "x$os_is_win32" != "x1" ; then
    echo "
 ===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
 You do not have DBUS support enabled. It is strongly recommended
@@ -1700,7 +1740,7 @@ controling the PulseAudio daemon itself.
 "
 fi
 
-if test "${ENABLE_UDEV}" = "no" ; then
+if test "${ENABLE_UDEV}" = "no" && test "x$os_is_win32" != "x1" ; then
    echo "
 ===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
 You do not have udev support enabled. It is strongly recommended

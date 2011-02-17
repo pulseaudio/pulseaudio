@@ -112,8 +112,10 @@ pulseconf_DATA = \
 		daemon.conf \
 		client.conf
 
+if HAVE_DBUS
 dbuspolicy_DATA = \
 		daemon/pulseaudio-system.conf
+endif
 
 if HAVE_X11
 xdgautostart_in_files = \
@@ -175,6 +177,8 @@ endif
 #       Utility programs          #
 ###################################
 
+bin_SCRIPTS = esdcompat
+
 bin_PROGRAMS += \
 		pacat \
 		pactl
@@ -189,13 +193,12 @@ endif
 
 if HAVE_X11
 bin_PROGRAMS += pax11publish
+bin_SCRIPTS += start-pulseaudio-x11 start-pulseaudio-kde
 endif
 
 if HAVE_AVAHI
 bin_PROGRAMS += pabrowse
 endif
-
-bin_SCRIPTS = esdcompat start-pulseaudio-x11 start-pulseaudio-kde
 
 pacat_SOURCES = utils/pacat.c
 pacat_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la $(LIBSNDFILE_LIBS)
@@ -1183,7 +1186,7 @@ pulselibexec_PROGRAMS += \
 		gconf-helper
 endif
 
-if OS_IS_WIN32
+if HAVE_WAVEOUT
 modlibexec_LTLIBRARIES += \
 		module-waveout.la
 endif
