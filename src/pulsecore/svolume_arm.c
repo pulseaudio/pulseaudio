@@ -39,6 +39,7 @@
 
 #define MOD_INC() \
     " subs  r0, r6, %2              \n\t" \
+    " itt cs                        \n\t" \
     " addcs r0, %1                  \n\t" \
     " movcs r6, r0                  \n\t"
 
