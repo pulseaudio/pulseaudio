@@ -1259,7 +1259,7 @@ AC_SUBST(HAVE_DBUS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 
 
-# udev and HAL depend on DBUS: So double check if they were explicitly enabled.
+# udev and HAL depend on D-Bus: So double check if they were explicitly enabled.
 if test "x$HAVE_DBUS" != "x1" ; then
     HAVE_HAL=0
     if test "x${hal}" = xyes ; then
@@ -1660,7 +1660,7 @@ echo "
     Enable Jack:                   ${ENABLE_JACK}
     Enable Async DNS:              ${ENABLE_LIBASYNCNS}
     Enable LIRC:                   ${ENABLE_LIRC}
-    Enable DBUS:                   ${ENABLE_DBUS}
+    Enable D-Bus:                  ${ENABLE_DBUS}
       Enable HAL:                  ${ENABLE_HAL}
       Enable BlueZ:                ${ENABLE_BLUEZ}
     Enable udev:                   ${ENABLE_UDEV}
@@ -1686,9 +1686,9 @@ echo "
 if test "${ENABLE_DBUS}" = "no" ; then
    echo "
 ===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
-You do not have DBUS support enabled. It is strongly recommended
-that you enable DBUS support if you platform supports it.
-Many parts of PulseAudio use udev, from Console Kit interaction
+You do not have D-Bus support enabled. It is strongly recommended
+that you enable D-Bus support if your platform supports it.
+Many parts of PulseAudio use D-Bus, from ConsoleKit interaction
 to the Device Reservation Protocol to speak to JACK, Bluetooth
 support and even a native control protocol for communicating and
 controling the PulseAudio daemon itself.
@@ -1700,7 +1700,7 @@ if test "${ENABLE_UDEV}" = "no" ; then
    echo "
 ===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
 You do not have udev support enabled. It is strongly recommended
-that you enable udev support if you platform supports it as it is
+that you enable udev support if your platform supports it as it is
 the primary method used to detect hardware audio devices (on Linux)
 and is thus a critical part of PulseAudio on that platform.
 ===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
