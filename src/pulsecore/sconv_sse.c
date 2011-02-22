@@ -35,7 +35,7 @@
 #include "cpu-x86.h"
 #include "sconv.h"
 
-#if defined (__i386__) || defined (__amd64__)
+#if !defined(__APPLE__) && defined (__i386__) || defined (__amd64__)
 
 static const PA_DECLARE_ALIGNED (16, float, one[4]) = { 1.0, 1.0, 1.0, 1.0 };
 static const PA_DECLARE_ALIGNED (16, float, mone[4]) = { -1.0, -1.0, -1.0, -1.0 };
@@ -217,7 +217,7 @@ static void run_test (void) {
 
 
 void pa_convert_func_init_sse (pa_cpu_x86_flag_t flags) {
-#if defined (__i386__) || defined (__amd64__)
+#if !defined(__APPLE__) && defined (__i386__) || defined (__amd64__)
 
 #ifdef RUN_TEST
     run_test ();
