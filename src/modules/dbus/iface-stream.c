@@ -555,6 +555,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     if (client)
         pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_CLIENT].property_name, DBUS_TYPE_OBJECT_PATH, &client_path);
 
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_DEVICE].property_name, DBUS_TYPE_OBJECT_PATH, &device);
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_SAMPLE_FORMAT].property_name, DBUS_TYPE_UINT32, &sample_format);
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_SAMPLE_RATE].property_name, DBUS_TYPE_UINT32, &s->sample_rate);
     pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_CHANNELS].property_name, DBUS_TYPE_UINT32, channels, channel_map->channels);
