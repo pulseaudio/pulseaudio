@@ -633,7 +633,7 @@ int pa__init(pa_module*m) {
     /* FIXME
        source_output_data.flags = PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND; */
 
-    pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_NAME, "Virtual Source Stream");
+    pa_proplist_setf(source_output_data.proplist, PA_PROP_MEDIA_NAME, "Virtual Source Stream of %s", pa_proplist_gets(u->source->proplist, PA_PROP_DEVICE_DESCRIPTION));
     pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
     pa_source_output_new_data_set_sample_spec(&source_output_data, &ss);
     pa_source_output_new_data_set_channel_map(&source_output_data, &map);

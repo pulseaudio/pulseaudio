@@ -578,7 +578,7 @@ int pa__init(pa_module*m) {
     sink_input_data.module = m;
     sink_input_data.sink = master;
     sink_input_data.origin_sink = u->sink;
-    pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Virtual Sink Stream");
+    pa_proplist_setf(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Virtual Sink Stream from %s", pa_proplist_gets(u->sink->proplist, PA_PROP_DEVICE_DESCRIPTION));
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
