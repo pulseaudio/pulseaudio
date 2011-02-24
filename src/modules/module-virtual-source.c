@@ -535,7 +535,6 @@ int pa__init(pa_module*m) {
     pa_source *master=NULL;
     pa_source_output_new_data source_output_data;
     pa_source_new_data source_data;
-    pa_bool_t *use_default = NULL;
 
     /* optional for uplink_sink */
     pa_sink_new_data sink_data;
@@ -714,15 +713,11 @@ int pa__init(pa_module*m) {
 
     pa_modargs_free(ma);
 
-    pa_xfree(use_default);
-
     return 0;
 
  fail:
     if (ma)
         pa_modargs_free(ma);
-
-    pa_xfree(use_default);
 
     pa__done(m);
 

@@ -481,7 +481,6 @@ int pa__init(pa_module*m) {
     pa_sink *master=NULL;
     pa_sink_input_new_data sink_input_data;
     pa_sink_new_data sink_data;
-    pa_bool_t *use_default = NULL;
     pa_bool_t use_volume_sharing = FALSE;
     pa_bool_t force_flat_volume = FALSE;
 
@@ -619,15 +618,11 @@ int pa__init(pa_module*m) {
 
     pa_modargs_free(ma);
 
-    pa_xfree(use_default);
-
     return 0;
 
  fail:
     if (ma)
         pa_modargs_free(ma);
-
-    pa_xfree(use_default);
 
     pa__done(m);
 
