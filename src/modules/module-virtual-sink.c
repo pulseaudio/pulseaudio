@@ -58,6 +58,7 @@ PA_MODULE_USAGE(
           "channels=<number of channels> "
           "channel_map=<channel map> "
           "use_volume_sharing=<yes or no> "
+          "force_flat_volume=<yes or no> "
         ));
 
 #define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
@@ -83,6 +84,7 @@ static const char* const valid_modargs[] = {
     "channels",
     "channel_map",
     "use_volume_sharing",
+    "force_flat_volume",
     NULL
 };
 
@@ -481,6 +483,7 @@ int pa__init(pa_module*m) {
     pa_sink_new_data sink_data;
     pa_bool_t *use_default = NULL;
     pa_bool_t use_volume_sharing = FALSE;
+    pa_bool_t force_flat_volume = FALSE;
 
     pa_assert(m);
 
@@ -506,6 +509,16 @@ int pa__init(pa_module*m) {
 
     if (pa_modargs_get_value_boolean(ma, "use_volume_sharing", &use_volume_sharing) < 0) {
         pa_log("use_volume_sharing= expects a boolean argument");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_boolean(ma, "force_flat_volume", &force_flat_volume) < 0) {
+        pa_log("force_flat_volume= expects a boolean argument");
+        goto fail;
+    }
+
+    if (use_volume_sharing && force_flat_volume) {
+        pa_log("Flat volume can't be forced when using volume sharing.");
         goto fail;
     }
 
@@ -540,7 +553,8 @@ int pa__init(pa_module*m) {
     }
 
     u->sink = pa_sink_new(m->core, &sink_data, (master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY))
-                                               | (use_volume_sharing ? PA_SINK_SHARE_VOLUME_WITH_MASTER : 0));
+                                               | (use_volume_sharing ? PA_SINK_SHARE_VOLUME_WITH_MASTER : 0)
+                                               | (force_flat_volume ? PA_SINK_FLAT_VOLUME : 0));
     pa_sink_new_data_done(&sink_data);
 
     if (!u->sink) {
