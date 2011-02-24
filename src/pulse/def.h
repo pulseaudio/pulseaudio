@@ -748,6 +748,16 @@ typedef enum pa_sink_flags {
     /**< The HW volume changes are syncronized with SW volume.
      * \since 1.0 */
 
+/** \cond fulldocs */
+    /* PRIVATE: Server-side values -- do not try to use these at client-side.
+     * The server will filter out these flags anyway, so you should never see
+     * these flags in sinks. */
+
+    PA_SINK_SHARE_VOLUME_WITH_MASTER = 0x0400U,
+    /**< This sink shares the volume with the master sink (used by some filter
+     * sinks). */
+/** \endcond */
+
 } pa_sink_flags_t;
 
 /** \cond fulldocs */
@@ -761,6 +771,7 @@ typedef enum pa_sink_flags {
 #define PA_SINK_DYNAMIC_LATENCY PA_SINK_DYNAMIC_LATENCY
 #define PA_SINK_PASSTHROUGH PA_SINK_PASSTHROUGH
 #define PA_SINK_SYNC_VOLUME PA_SINK_SYNC_VOLUME
+#define PA_SINK_SHARE_VOLUME_WITH_MASTER PA_SINK_SHARE_VOLUME_WITH_MASTER
 
 /** \endcond */
 

@@ -264,6 +264,7 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_ADD_INPUT,
     PA_SINK_MESSAGE_REMOVE_INPUT,
     PA_SINK_MESSAGE_GET_VOLUME,
+    PA_SINK_MESSAGE_SET_SHARED_VOLUME,
     PA_SINK_MESSAGE_SET_VOLUME_SYNCED,
     PA_SINK_MESSAGE_SET_VOLUME,
     PA_SINK_MESSAGE_SYNC_VOLUMES,
@@ -373,6 +374,9 @@ size_t pa_sink_get_max_request(pa_sink *s);
 int pa_sink_update_status(pa_sink*s);
 int pa_sink_suspend(pa_sink *s, pa_bool_t suspend, pa_suspend_cause_t cause);
 int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause);
+
+/* Use this instead of checking s->flags & PA_SINK_FLAT_VOLUME directly. */
+pa_bool_t pa_sink_flat_volume_enabled(pa_sink *s);
 
 void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume, pa_bool_t sendmsg, pa_bool_t save);
 const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_bool_t force_refresh);

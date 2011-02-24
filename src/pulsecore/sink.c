@@ -226,8 +226,14 @@ pa_sink* pa_sink_new(
     pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
     pa_return_null_if_fail(data->channel_map.channels == data->sample_spec.channels);
 
-    if (!data->volume_is_set)
+    /* FIXME: There should probably be a general function for checking whether
+     * the sink volume is allowed to be set, like there is for sink inputs. */
+    pa_assert(!data->volume_is_set || !(flags & PA_SINK_SHARE_VOLUME_WITH_MASTER));
+
+    if (!data->volume_is_set) {
         pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+        data->save_volume = FALSE;
+    }
 
     pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
     pa_return_null_if_fail(pa_cvolume_compatible(&data->volume, &data->sample_spec));
@@ -447,6 +453,7 @@ void pa_sink_put(pa_sink* s) {
     pa_assert_ctl_context();
 
     pa_assert(s->state == PA_SINK_INIT);
+    pa_assert(!(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER) || s->input_to_master);
 
     /* The following fields must be initialized properly when calling _put() */
     pa_assert(s->asyncmsgq);
@@ -456,22 +463,43 @@ void pa_sink_put(pa_sink* s) {
      * special exception we allow volume related flags to be set
      * between _new() and _put(). */
 
-    if (!(s->flags & PA_SINK_HW_VOLUME_CTRL))
+    /* XXX: Currently decibel volume is disabled for all sinks that use volume
+     * sharing. When the master sink supports decibel volume, it would be good
+     * to have the flag also in the filter sink, but currently we don't do that
+     * so that the flags of the filter sink never change when it's moved from
+     * a master sink to another. One solution for this problem would be to
+     * remove user-visible volume altogether from filter sinks when volume
+     * sharing is used, but the current approach was easier to implement... */
+    if (!(s->flags & PA_SINK_HW_VOLUME_CTRL) && !(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
         s->flags |= PA_SINK_DECIBEL_VOLUME;
 
     if ((s->flags & PA_SINK_DECIBEL_VOLUME) && s->core->flat_volumes)
         s->flags |= PA_SINK_FLAT_VOLUME;
 
-    /* We assume that if the sink implementor changed the default
-     * volume he did so in real_volume, because that is the usual
-     * place where he is supposed to place his changes.  */
-    s->reference_volume = s->real_volume;
+    if (s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER) {
+        pa_sink *root_sink = s->input_to_master->sink;
+
+        while (root_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)
+            root_sink = root_sink->input_to_master->sink;
+
+        s->reference_volume = root_sink->reference_volume;
+        pa_cvolume_remap(&s->reference_volume, &root_sink->channel_map, &s->channel_map);
+
+        s->real_volume = root_sink->real_volume;
+        pa_cvolume_remap(&s->real_volume, &root_sink->channel_map, &s->channel_map);
+    } else
+        /* We assume that if the sink implementor changed the default
+         * volume he did so in real_volume, because that is the usual
+         * place where he is supposed to place his changes.  */
+        s->reference_volume = s->real_volume;
 
     s->thread_info.soft_volume = s->soft_volume;
     s->thread_info.soft_muted = s->muted;
     pa_sw_cvolume_multiply(&s->thread_info.current_hw_volume, &s->soft_volume, &s->real_volume);
 
-    pa_assert((s->flags & PA_SINK_HW_VOLUME_CTRL) || (s->base_volume == PA_VOLUME_NORM && s->flags & PA_SINK_DECIBEL_VOLUME));
+    pa_assert((s->flags & PA_SINK_HW_VOLUME_CTRL)
+              || (s->base_volume == PA_VOLUME_NORM
+                  && ((s->flags & PA_SINK_DECIBEL_VOLUME || (s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)))));
     pa_assert(!(s->flags & PA_SINK_DECIBEL_VOLUME) || s->n_volume_steps == PA_VOLUME_NORM+1);
     pa_assert(!(s->flags & PA_SINK_DYNAMIC_LATENCY) == (s->thread_info.fixed_latency != 0));
     pa_assert(!(s->flags & PA_SINK_LATENCY) == !(s->monitor_source->flags & PA_SOURCE_LATENCY));
@@ -1196,47 +1224,61 @@ pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s) {
     return usec;
 }
 
-static pa_cvolume* cvolume_remap_minimal_impact(
-        pa_cvolume *v,
-        const pa_cvolume *template,
-        const pa_channel_map *from,
-        const pa_channel_map *to) {
+/* Called from the main thread (and also from the IO thread while the main
+ * thread is waiting).
+ *
+ * When a sink uses volume sharing, it never has the PA_SINK_FLAT_VOLUME flag
+ * set. Instead, flat volume mode is detected by checking whether the root sink
+ * has the flag set. */
+pa_bool_t pa_sink_flat_volume_enabled(pa_sink *s) {
+    pa_sink_assert_ref(s);
 
-    pa_cvolume t;
+    while (s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)
+        s = s->input_to_master->sink;
 
-    pa_assert(v);
-    pa_assert(template);
-    pa_assert(from);
-    pa_assert(to);
-
-    pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(v, from), NULL);
-    pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(template, to), NULL);
-
-    /* Much like pa_cvolume_remap(), but tries to minimize impact when
-     * mapping from sink input to sink volumes:
-     *
-     * If template is a possible remapping from v it is used instead
-     * of remapping anew.
-     *
-     * If the channel maps don't match we set an all-channel volume on
-     * the sink to ensure that changing a volume on one stream has no
-     * effect that cannot be compensated for in another stream that
-     * does not have the same channel map as the sink. */
-
-    if (pa_channel_map_equal(from, to))
-        return v;
-
-    t = *template;
-    if (pa_cvolume_equal(pa_cvolume_remap(&t, to, from), v)) {
-        *v = *template;
-        return v;
-    }
-
-    pa_cvolume_set(v, to->channels, pa_cvolume_max(v));
-    return v;
+    return (s->flags & PA_SINK_FLAT_VOLUME);
 }
 
-/* Called from main context */
+/* Called from main context. */
+static void compute_reference_ratio(pa_sink_input *i) {
+    unsigned c = 0;
+    pa_cvolume remapped;
+
+    pa_assert(i);
+    pa_assert(pa_sink_flat_volume_enabled(i->sink));
+
+    /*
+     * Calculates the reference ratio from the sink's reference
+     * volume. This basically calculates:
+     *
+     * i->reference_ratio = i->volume / i->sink->reference_volume
+     */
+
+    remapped = i->sink->reference_volume;
+    pa_cvolume_remap(&remapped, &i->sink->channel_map, &i->channel_map);
+
+    i->reference_ratio.channels = i->sample_spec.channels;
+
+    for (c = 0; c < i->sample_spec.channels; c++) {
+
+        /* We don't update when the sink volume is 0 anyway */
+        if (remapped.values[c] <= PA_VOLUME_MUTED)
+            continue;
+
+        /* Don't update the reference ratio unless necessary */
+        if (pa_sw_volume_multiply(
+                    i->reference_ratio.values[c],
+                    remapped.values[c]) == i->volume.values[c])
+            continue;
+
+        i->reference_ratio.values[c] = pa_sw_volume_divide(
+                i->volume.values[c],
+                remapped.values[c]);
+    }
+}
+
+/* Called from main context. Only called for the root sink in volume sharing
+ * cases, except for internal recursive calls. */
 static void compute_reference_ratios(pa_sink *s) {
     uint32_t idx;
     pa_sink_input *i;
@@ -1244,44 +1286,18 @@ static void compute_reference_ratios(pa_sink *s) {
     pa_sink_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SINK_IS_LINKED(s->state));
-    pa_assert(s->flags & PA_SINK_FLAT_VOLUME);
+    pa_assert(pa_sink_flat_volume_enabled(s));
 
     PA_IDXSET_FOREACH(i, s->inputs, idx) {
-        unsigned c;
-        pa_cvolume remapped;
+        compute_reference_ratio(i);
 
-        /*
-         * Calculates the reference volume from the sink's reference
-         * volume. This basically calculates:
-         *
-         * i->reference_ratio = i->volume / s->reference_volume
-         */
-
-        remapped = s->reference_volume;
-        pa_cvolume_remap(&remapped, &s->channel_map, &i->channel_map);
-
-        i->reference_ratio.channels = i->sample_spec.channels;
-
-        for (c = 0; c < i->sample_spec.channels; c++) {
-
-            /* We don't update when the sink volume is 0 anyway */
-            if (remapped.values[c] <= PA_VOLUME_MUTED)
-                continue;
-
-            /* Don't update the reference ratio unless necessary */
-            if (pa_sw_volume_multiply(
-                        i->reference_ratio.values[c],
-                        remapped.values[c]) == i->volume.values[c])
-                continue;
-
-            i->reference_ratio.values[c] = pa_sw_volume_divide(
-                    i->volume.values[c],
-                    remapped.values[c]);
-        }
+        if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
+            compute_reference_ratios(i->origin_sink);
     }
 }
 
-/* Called from main context */
+/* Called from main context. Only called for the root sink in volume sharing
+ * cases, except for internal recursive calls. */
 static void compute_real_ratios(pa_sink *s) {
     pa_sink_input *i;
     uint32_t idx;
@@ -1289,11 +1305,23 @@ static void compute_real_ratios(pa_sink *s) {
     pa_sink_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SINK_IS_LINKED(s->state));
-    pa_assert(s->flags & PA_SINK_FLAT_VOLUME);
+    pa_assert(pa_sink_flat_volume_enabled(s));
 
     PA_IDXSET_FOREACH(i, s->inputs, idx) {
         unsigned c;
         pa_cvolume remapped;
+
+        if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)) {
+            /* The origin sink uses volume sharing, so this input's real ratio
+             * is handled as a special case - the real ratio must be 0 dB, and
+             * as a result i->soft_volume must equal i->volume_factor. */
+            pa_cvolume_reset(&i->real_ratio, i->real_ratio.channels);
+            i->soft_volume = i->volume_factor;
+
+            compute_real_ratios(i->origin_sink);
+
+            continue;
+        }
 
         /*
          * This basically calculates:
@@ -1335,23 +1363,144 @@ static void compute_real_ratios(pa_sink *s) {
     }
 }
 
-/* Called from main thread */
-static void compute_real_volume(pa_sink *s) {
+static pa_cvolume *cvolume_remap_minimal_impact(
+        pa_cvolume *v,
+        const pa_cvolume *template,
+        const pa_channel_map *from,
+        const pa_channel_map *to) {
+
+    pa_cvolume t;
+
+    pa_assert(v);
+    pa_assert(template);
+    pa_assert(from);
+    pa_assert(to);
+    pa_assert(pa_cvolume_compatible_with_channel_map(v, from));
+    pa_assert(pa_cvolume_compatible_with_channel_map(template, to));
+
+    /* Much like pa_cvolume_remap(), but tries to minimize impact when
+     * mapping from sink input to sink volumes:
+     *
+     * If template is a possible remapping from v it is used instead
+     * of remapping anew.
+     *
+     * If the channel maps don't match we set an all-channel volume on
+     * the sink to ensure that changing a volume on one stream has no
+     * effect that cannot be compensated for in another stream that
+     * does not have the same channel map as the sink. */
+
+    if (pa_channel_map_equal(from, to))
+        return v;
+
+    t = *template;
+    if (pa_cvolume_equal(pa_cvolume_remap(&t, to, from), v)) {
+        *v = *template;
+        return v;
+    }
+
+    pa_cvolume_set(v, to->channels, pa_cvolume_max(v));
+    return v;
+}
+
+/* Called from main thread. Only called for the root sink in volume sharing
+ * cases, except for internal recursive calls. */
+static void get_maximum_input_volume(pa_sink *s, pa_cvolume *max_volume, const pa_channel_map *channel_map) {
     pa_sink_input *i;
     uint32_t idx;
 
     pa_sink_assert_ref(s);
+    pa_assert(max_volume);
+    pa_assert(channel_map);
+    pa_assert(pa_sink_flat_volume_enabled(s));
+
+    PA_IDXSET_FOREACH(i, s->inputs, idx) {
+        pa_cvolume remapped;
+
+        if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)) {
+            get_maximum_input_volume(i->origin_sink, max_volume, channel_map);
+
+            /* Ignore this input. The origin sink uses volume sharing, so this
+             * input's volume will be set to be equal to the root sink's real
+             * volume. Obviously this input's current volume must not then
+             * affect what the root sink's real volume will be. */
+            continue;
+        }
+
+        remapped = i->volume;
+        cvolume_remap_minimal_impact(&remapped, max_volume, &i->channel_map, channel_map);
+        pa_cvolume_merge(max_volume, max_volume, &remapped);
+    }
+}
+
+/* Called from main thread. Only called for the root sink in volume sharing
+ * cases, except for internal recursive calls. */
+static pa_bool_t has_inputs(pa_sink *s) {
+    pa_sink_input *i;
+    uint32_t idx;
+
+    pa_sink_assert_ref(s);
+
+    PA_IDXSET_FOREACH(i, s->inputs, idx) {
+        if (!i->origin_sink || !(i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER) || has_inputs(i->origin_sink))
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+/* Called from main thread. Only called for the root sink in volume sharing
+ * cases, except for internal recursive calls. */
+static void update_real_volume(pa_sink *s, const pa_cvolume *new_volume, pa_channel_map *channel_map) {
+    pa_sink_input *i;
+    uint32_t idx;
+
+    pa_sink_assert_ref(s);
+    pa_assert(new_volume);
+    pa_assert(channel_map);
+
+    s->real_volume = *new_volume;
+    pa_cvolume_remap(&s->real_volume, channel_map, &s->channel_map);
+
+    PA_IDXSET_FOREACH(i, s->inputs, idx) {
+        if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)) {
+            if (pa_sink_flat_volume_enabled(s)) {
+                pa_cvolume old_volume = i->volume;
+
+                /* Follow the root sink's real volume. */
+                i->volume = *new_volume;
+                pa_cvolume_remap(&i->volume, channel_map, &i->channel_map);
+                compute_reference_ratio(i);
+
+                /* The volume changed, let's tell people so */
+                if (!pa_cvolume_equal(&old_volume, &i->volume)) {
+                    if (i->volume_changed)
+                        i->volume_changed(i);
+
+                    pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+                }
+            }
+
+            update_real_volume(i->origin_sink, new_volume, channel_map);
+        }
+    }
+}
+
+/* Called from main thread. Only called for the root sink in shared volume
+ * cases. */
+static void compute_real_volume(pa_sink *s) {
+    pa_sink_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SINK_IS_LINKED(s->state));
-    pa_assert(s->flags & PA_SINK_FLAT_VOLUME);
+    pa_assert(pa_sink_flat_volume_enabled(s));
+    pa_assert(!(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER));
 
     /* This determines the maximum volume of all streams and sets
      * s->real_volume accordingly. */
 
-    if (pa_idxset_isempty(s->inputs)) {
-        /* In the special case that we have no sink input we leave the
+    if (!has_inputs(s)) {
+        /* In the special case that we have no sink inputs we leave the
          * volume unmodified. */
-        s->real_volume = s->reference_volume;
+        update_real_volume(s, &s->reference_volume, &s->channel_map);
         return;
     }
 
@@ -1359,20 +1508,16 @@ static void compute_real_volume(pa_sink *s) {
 
     /* First let's determine the new maximum volume of all inputs
      * connected to this sink */
-    PA_IDXSET_FOREACH(i, s->inputs, idx) {
-        pa_cvolume remapped;
-
-        remapped = i->volume;
-        cvolume_remap_minimal_impact(&remapped, &s->real_volume, &i->channel_map, &s->channel_map);
-        pa_cvolume_merge(&s->real_volume, &s->real_volume, &remapped);
-    }
+    get_maximum_input_volume(s, &s->real_volume, &s->channel_map);
+    update_real_volume(s, &s->real_volume, &s->channel_map);
 
     /* Then, let's update the real ratios/soft volumes of all inputs
      * connected to this sink */
     compute_real_ratios(s);
 }
 
-/* Called from main thread */
+/* Called from main thread. Only called for the root sink in shared volume
+ * cases, except for internal recursive calls. */
 static void propagate_reference_volume(pa_sink *s) {
     pa_sink_input *i;
     uint32_t idx;
@@ -1380,14 +1525,23 @@ static void propagate_reference_volume(pa_sink *s) {
     pa_sink_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SINK_IS_LINKED(s->state));
-    pa_assert(s->flags & PA_SINK_FLAT_VOLUME);
+    pa_assert(pa_sink_flat_volume_enabled(s));
 
     /* This is called whenever the sink volume changes that is not
      * caused by a sink input volume change. We need to fix up the
      * sink input volumes accordingly */
 
     PA_IDXSET_FOREACH(i, s->inputs, idx) {
-        pa_cvolume old_volume, remapped;
+        pa_cvolume old_volume;
+
+        if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)) {
+            propagate_reference_volume(i->origin_sink);
+
+            /* Since the origin sink uses volume sharing, this input's volume
+             * needs to be updated to match the root sink's real volume, but
+             * that will be done later in update_shared_real_volume(). */
+            continue;
+        }
 
         old_volume = i->volume;
 
@@ -1395,9 +1549,9 @@ static void propagate_reference_volume(pa_sink *s) {
          *
          * i->volume := s->reference_volume * i->reference_ratio  */
 
-        remapped = s->reference_volume;
-        pa_cvolume_remap(&remapped, &s->channel_map, &i->channel_map);
-        pa_sw_cvolume_multiply(&i->volume, &remapped, &i->reference_ratio);
+        i->volume = s->reference_volume;
+        pa_cvolume_remap(&i->volume, &s->channel_map, &i->channel_map);
+        pa_sw_cvolume_multiply(&i->volume, &i->volume, &i->reference_ratio);
 
         /* The volume changed, let's tell people so */
         if (!pa_cvolume_equal(&old_volume, &i->volume)) {
@@ -1410,6 +1564,54 @@ static void propagate_reference_volume(pa_sink *s) {
     }
 }
 
+/* Called from main thread. Only called for the root sink in volume sharing
+ * cases, except for internal recursive calls. The return value indicates
+ * whether any reference volume actually changed. */
+static pa_bool_t update_reference_volume(pa_sink *s, const pa_cvolume *v, const pa_channel_map *channel_map, pa_bool_t save) {
+    pa_cvolume volume;
+    pa_bool_t reference_volume_changed;
+    pa_sink_input *i;
+    uint32_t idx;
+
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_IS_LINKED(s->state));
+    pa_assert(v);
+    pa_assert(channel_map);
+    pa_assert(pa_cvolume_valid(v));
+
+    volume = *v;
+    pa_cvolume_remap(&volume, channel_map, &s->channel_map);
+
+    reference_volume_changed = !pa_cvolume_equal(&volume, &s->reference_volume);
+    s->reference_volume = volume;
+
+    s->save_volume = (!reference_volume_changed && s->save_volume) || save;
+
+    if (reference_volume_changed)
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    else if (!(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
+        /* If the root sink's volume doesn't change, then there can't be any
+         * changes in the other sinks in the sink tree either.
+         *
+         * It's probably theoretically possible that even if the root sink's
+         * volume changes slightly, some filter sink doesn't change its volume
+         * due to rounding errors. If that happens, we still want to propagate
+         * the changed root sink volume to the sinks connected to the
+         * intermediate sink that didn't change its volume. This theoretical
+         * possiblity is the reason why we have that !(s->flags &
+         * PA_SINK_SHARE_VOLUME_WITH_MASTER) condition. Probably nobody would
+         * notice even if we returned here FALSE always if
+         * reference_volume_changed is FALSE. */
+        return FALSE;
+
+    PA_IDXSET_FOREACH(i, s->inputs, idx) {
+        if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
+            update_reference_volume(i->origin_sink, v, channel_map, FALSE);
+    }
+
+    return TRUE;
+}
+
 /* Called from main thread */
 void pa_sink_set_volume(
         pa_sink *s,
@@ -1417,14 +1619,14 @@ void pa_sink_set_volume(
         pa_bool_t send_msg,
         pa_bool_t save) {
 
-    pa_cvolume old_reference_volume;
-    pa_bool_t reference_changed;
+    pa_cvolume new_reference_volume;
+    pa_sink *root_sink = s;
 
     pa_sink_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SINK_IS_LINKED(s->state));
     pa_assert(!volume || pa_cvolume_valid(volume));
-    pa_assert(volume || (s->flags & PA_SINK_FLAT_VOLUME));
+    pa_assert(volume || pa_sink_flat_volume_enabled(s));
     pa_assert(!volume || volume->channels == 1 || pa_cvolume_compatible(volume, &s->sample_spec));
 
     /* make sure we don't change the volume when a PASSTHROUGH input is connected */
@@ -1445,76 +1647,82 @@ void pa_sink_set_volume(
         }
     }
 
+    /* In case of volume sharing, the volume is set for the root sink first,
+     * from which it's then propagated to the sharing sinks. */
+    while (root_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)
+        root_sink = root_sink->input_to_master->sink;
+
     /* As a special exception we accept mono volumes on all sinks --
      * even on those with more complex channel maps */
+
+    if (volume) {
+        if (pa_cvolume_compatible(volume, &s->sample_spec))
+            new_reference_volume = *volume;
+        else {
+            new_reference_volume = s->reference_volume;
+            pa_cvolume_scale(&new_reference_volume, pa_cvolume_max(volume));
+        }
+
+        pa_cvolume_remap(&new_reference_volume, &s->channel_map, &root_sink->channel_map);
+    }
 
     /* If volume is NULL we synchronize the sink's real and reference
      * volumes with the stream volumes. If it is not NULL we update
      * the reference_volume with it. */
 
-    old_reference_volume = s->reference_volume;
-
     if (volume) {
+        if (update_reference_volume(root_sink, &new_reference_volume, &root_sink->channel_map, save)) {
+            if (pa_sink_flat_volume_enabled(root_sink)) {
+                /* OK, propagate this volume change back to the inputs */
+                propagate_reference_volume(root_sink);
 
-        if (pa_cvolume_compatible(volume, &s->sample_spec))
-            s->reference_volume = *volume;
-        else
-            pa_cvolume_scale(&s->reference_volume, pa_cvolume_max(volume));
-
-        if (s->flags & PA_SINK_FLAT_VOLUME) {
-            /* OK, propagate this volume change back to the inputs */
-            propagate_reference_volume(s);
-
-            /* And now recalculate the real volume */
-            compute_real_volume(s);
-        } else
-            s->real_volume = s->reference_volume;
+                /* And now recalculate the real volume */
+                compute_real_volume(root_sink);
+            } else
+                update_real_volume(root_sink, &root_sink->reference_volume, &root_sink->channel_map);
+        }
 
     } else {
-        pa_assert(s->flags & PA_SINK_FLAT_VOLUME);
+        pa_assert(pa_sink_flat_volume_enabled(root_sink));
 
         /* Ok, let's determine the new real volume */
-        compute_real_volume(s);
+        compute_real_volume(root_sink);
 
         /* Let's 'push' the reference volume if necessary */
-        pa_cvolume_merge(&s->reference_volume, &s->reference_volume, &s->real_volume);
+        pa_cvolume_merge(&new_reference_volume, &s->reference_volume, &root_sink->real_volume);
+        update_reference_volume(root_sink, &new_reference_volume, &root_sink->channel_map, save);
 
-        /* We need to fix the reference ratios of all streams now that
-         * we changed the reference volume */
-        compute_reference_ratios(s);
+        /* Now that the reference volume is updated, we can update the streams'
+         * reference ratios. */
+        compute_reference_ratios(root_sink);
     }
 
-    reference_changed = !pa_cvolume_equal(&old_reference_volume, &s->reference_volume);
-    s->save_volume = (!reference_changed && s->save_volume) || save;
-
-    if (s->set_volume) {
+    if (root_sink->set_volume) {
         /* If we have a function set_volume(), then we do not apply a
          * soft volume by default. However, set_volume() is free to
-         * apply one to s->soft_volume */
+         * apply one to root_sink->soft_volume */
 
-        pa_cvolume_reset(&s->soft_volume, s->sample_spec.channels);
-        if (!(s->flags & PA_SINK_SYNC_VOLUME))
-            s->set_volume(s);
+        pa_cvolume_reset(&root_sink->soft_volume, root_sink->sample_spec.channels);
+        if (!(root_sink->flags & PA_SINK_SYNC_VOLUME))
+            root_sink->set_volume(root_sink);
         else
             send_msg = TRUE;
 
     } else
         /* If we have no function set_volume(), then the soft volume
-         * becomes the virtual volume */
-        s->soft_volume = s->real_volume;
+         * becomes the real volume */
+        root_sink->soft_volume = root_sink->real_volume;
 
-    /* This tells the sink that soft and/or virtual volume changed */
+    /* This tells the sink that soft volume and/or real volume changed */
     if (send_msg)
-        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_VOLUME_SYNCED, NULL, 0, NULL) == 0);
-
-    if (reference_changed)
-        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+        pa_assert_se(pa_asyncmsgq_send(root_sink->asyncmsgq, PA_MSGOBJECT(root_sink), PA_SINK_MESSAGE_SET_SHARED_VOLUME, NULL, 0, NULL) == 0);
 }
 
 /* Called from the io thread if sync volume is used, otherwise from the main thread.
  * Only to be called by sink implementor */
 void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume) {
     pa_sink_assert_ref(s);
+    pa_assert(!(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER));
     if (s->flags & PA_SINK_SYNC_VOLUME)
         pa_sink_assert_io_context(s);
     else
@@ -1531,12 +1739,14 @@ void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume) {
         s->thread_info.soft_volume = s->soft_volume;
 }
 
+/* Called from the main thread. Only called for the root sink in volume sharing
+ * cases, except for internal recursive calls. */
 static void propagate_real_volume(pa_sink *s, const pa_cvolume *old_real_volume) {
     pa_sink_input *i;
     uint32_t idx;
-    pa_cvolume old_reference_volume;
 
     pa_sink_assert_ref(s);
+    pa_assert(old_real_volume);
     pa_assert_ctl_context();
     pa_assert(PA_SINK_IS_LINKED(s->state));
 
@@ -1545,20 +1755,18 @@ static void propagate_real_volume(pa_sink *s, const pa_cvolume *old_real_volume)
      * reference volume and then rebuild the stream volumes based on
      * i->real_ratio which should stay fixed. */
 
-    if (old_real_volume && pa_cvolume_equal(old_real_volume, &s->real_volume))
-        return;
+    if (!(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)) {
+        if (pa_cvolume_equal(old_real_volume, &s->real_volume))
+            return;
 
-    old_reference_volume = s->reference_volume;
+        /* 1. Make the real volume the reference volume */
+        update_reference_volume(s, &s->real_volume, &s->channel_map, TRUE);
+    }
 
-    /* 1. Make the real volume the reference volume */
-    s->reference_volume = s->real_volume;
-
-    if (s->flags & PA_SINK_FLAT_VOLUME) {
+    if (pa_sink_flat_volume_enabled(s)) {
 
         PA_IDXSET_FOREACH(i, s->inputs, idx) {
-            pa_cvolume old_volume, remapped;
-
-            old_volume = i->volume;
+            pa_cvolume old_volume = i->volume;
 
             /* 2. Since the sink's reference and real volumes are equal
              * now our ratios should be too. */
@@ -1572,9 +1780,9 @@ static void propagate_real_volume(pa_sink *s, const pa_cvolume *old_real_volume)
              * i->volume = s->reference_volume * i->reference_ratio
              *
              * This is identical to propagate_reference_volume() */
-            remapped = s->reference_volume;
-            pa_cvolume_remap(&remapped, &s->channel_map, &i->channel_map);
-            pa_sw_cvolume_multiply(&i->volume, &remapped, &i->reference_ratio);
+            i->volume = s->reference_volume;
+            pa_cvolume_remap(&i->volume, &s->channel_map, &i->channel_map);
+            pa_sw_cvolume_multiply(&i->volume, &i->volume, &i->reference_ratio);
 
             /* Notify if something changed */
             if (!pa_cvolume_equal(&old_volume, &i->volume)) {
@@ -1584,16 +1792,17 @@ static void propagate_real_volume(pa_sink *s, const pa_cvolume *old_real_volume)
 
                 pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
             }
+
+            if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
+                propagate_real_volume(i->origin_sink, old_real_volume);
         }
     }
 
     /* Something got changed in the hardware. It probably makes sense
      * to save changed hw settings given that hw volume changes not
      * triggered by PA are almost certainly done by the user. */
-    s->save_volume = TRUE;
-
-    if (!pa_cvolume_equal(&old_reference_volume, &s->reference_volume))
-        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    if (!(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
+        s->save_volume = TRUE;
 }
 
 /* Called from io thread */
@@ -1613,6 +1822,8 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh) {
     if (s->refresh_volume || force_refresh) {
         struct pa_cvolume old_real_volume;
 
+        pa_assert(!(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER));
+
         old_real_volume = s->real_volume;
 
         if (!(s->flags & PA_SINK_SYNC_VOLUME) && s->get_volume)
@@ -1620,25 +1831,27 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh) {
 
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_VOLUME, NULL, 0, NULL) == 0);
 
+        update_real_volume(s, &s->real_volume, &s->channel_map);
         propagate_real_volume(s, &old_real_volume);
     }
 
     return &s->reference_volume;
 }
 
-/* Called from main thread */
+/* Called from main thread. In volume sharing cases, only the root sink may
+ * call this. */
 void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_real_volume) {
     pa_cvolume old_real_volume;
 
     pa_sink_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SINK_IS_LINKED(s->state));
+    pa_assert(!(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER));
 
     /* The sink implementor may call this if the volume changed to make sure everyone is notified */
 
     old_real_volume = s->real_volume;
-    s->real_volume = *new_real_volume;
-
+    update_real_volume(s, new_real_volume, &s->channel_map);
     propagate_real_volume(s, &old_real_volume);
 }
 
@@ -1853,7 +2066,24 @@ static void sync_input_volumes_within_thread(pa_sink *s) {
 
         if (!pa_atomic_load(&i->before_ramping_v))
             i->thread_info.soft_volume = i->soft_volume;
+
         pa_sink_input_request_rewind(i, 0, TRUE, FALSE, FALSE);
+    }
+}
+
+/* Called from the IO thread. Only called for the root sink in volume sharing
+ * cases, except for internal recursive calls. */
+static void set_shared_volume_within_thread(pa_sink *s) {
+    pa_sink_input *i = NULL;
+    void *state = NULL;
+
+    pa_sink_assert_ref(s);
+
+    PA_MSGOBJECT(s)->process_msg(PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_VOLUME_SYNCED, NULL, 0, NULL);
+
+    PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state) {
+        if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
+            set_shared_volume_within_thread(i->origin_sink);
     }
 }
 
@@ -1913,7 +2143,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             /* In flat volume mode we need to update the volume as
              * well */
-            return o->process_msg(o, PA_SINK_MESSAGE_SET_VOLUME_SYNCED, NULL, 0, NULL);
+            return o->process_msg(o, PA_SINK_MESSAGE_SET_SHARED_VOLUME, NULL, 0, NULL);
         }
 
         case PA_SINK_MESSAGE_REMOVE_INPUT: {
@@ -1956,7 +2186,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             /* In flat volume mode we need to update the volume as
              * well */
-            return o->process_msg(o, PA_SINK_MESSAGE_SET_VOLUME_SYNCED, NULL, 0, NULL);
+            return o->process_msg(o, PA_SINK_MESSAGE_SET_SHARED_VOLUME, NULL, 0, NULL);
         }
 
         case PA_SINK_MESSAGE_START_MOVE: {
@@ -2001,7 +2231,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             /* In flat volume mode we need to update the volume as
              * well */
-            return o->process_msg(o, PA_SINK_MESSAGE_SET_VOLUME_SYNCED, NULL, 0, NULL);
+            return o->process_msg(o, PA_SINK_MESSAGE_SET_SHARED_VOLUME, NULL, 0, NULL);
         }
 
         case PA_SINK_MESSAGE_FINISH_MOVE: {
@@ -2042,9 +2272,17 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 pa_sink_request_rewind(s, nbytes);
             }
 
-            /* In flat volume mode we need to update the volume as
-             * well */
-            return o->process_msg(o, PA_SINK_MESSAGE_SET_VOLUME_SYNCED, NULL, 0, NULL);
+            return o->process_msg(o, PA_SINK_MESSAGE_SET_SHARED_VOLUME, NULL, 0, NULL);
+        }
+
+        case PA_SINK_MESSAGE_SET_SHARED_VOLUME: {
+            pa_sink *root_sink = s;
+
+            while (root_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)
+                root_sink = root_sink->input_to_master->sink;
+
+            set_shared_volume_within_thread(root_sink);
+            return 0;
         }
 
         case PA_SINK_MESSAGE_SET_VOLUME_SYNCED:
@@ -2061,9 +2299,6 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 s->thread_info.soft_volume = s->soft_volume;
                 pa_sink_request_rewind(s, (size_t) -1);
             }
-
-            if (!(s->flags & PA_SINK_FLAT_VOLUME))
-                return 0;
 
             /* Fall through ... */
 
