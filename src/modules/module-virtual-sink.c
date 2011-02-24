@@ -483,6 +483,7 @@ int pa__init(pa_module*m) {
     pa_sink_new_data sink_data;
     pa_bool_t use_volume_sharing = FALSE;
     pa_bool_t force_flat_volume = FALSE;
+    pa_memchunk silence;
 
     pa_assert(m);
 
@@ -606,12 +607,11 @@ int pa__init(pa_module*m) {
 
     u->sink->input_to_master = u->sink_input;
 
-    /* (9) IF YOU REQUIRE A FIXED BLOCK SIZE MAKE SURE TO PASS A
-     * SILENCE MEMBLOCK AS LAST PARAMETER
-     * HERE. pa_sink_input_get_silence() IS USEFUL HERE. */
-    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, NULL);
+    pa_sink_input_get_silence(u->sink_input, &silence);
+    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, &silence);
+    pa_memblock_unref(silence.memblock);
 
-    /* (10) INITIALIZE ANYTHING ELSE YOU NEED HERE */
+    /* (9) INITIALIZE ANYTHING ELSE YOU NEED HERE */
 
     pa_sink_put(u->sink);
     pa_sink_input_put(u->sink_input);

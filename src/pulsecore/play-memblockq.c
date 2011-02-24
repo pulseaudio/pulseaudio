@@ -135,6 +135,12 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         return -1;
     }
 
+    /* FIXME: u->memblockq doesn't have a silence memchunk set, so
+     * pa_memblockq_peek() will return 0 without returning any memblock if the
+     * read index points to a hole. If the memblockq is rewound beyond index 0,
+     * then there will be a hole. */
+    pa_assert(chunk->memblock);
+
     chunk->length = PA_MIN(chunk->length, nbytes);
     pa_memblockq_drop(u->memblockq, chunk->length);
 
