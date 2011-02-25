@@ -1992,6 +1992,7 @@ pa_alsa_path* pa_alsa_path_synthesize(const char*element, pa_alsa_direction_t di
     e->volume_use = PA_ALSA_VOLUME_MERGE;
 
     PA_LLIST_PREPEND(pa_alsa_element, p->elements, e);
+    p->last_element = e;
     return p;
 }
 
@@ -2390,6 +2391,10 @@ pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t d
         /* Mark all other passed elements for require-absent */
         for (je = en; *je; je++) {
             pa_alsa_element *e;
+
+            if (je == ie)
+                continue;
+
             e = pa_xnew0(pa_alsa_element, 1);
             e->path = p;
             e->alsa_name = pa_xstrdup(*je);
