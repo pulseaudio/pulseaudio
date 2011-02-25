@@ -177,6 +177,7 @@ src/pulse/thread-mainloop.c
 src/pulse/scache.c
 src/pulse/glib-mainloop.c
 src/pulse/timeval.c
+src/pulse/format.c
 src/utils/pacat.c
 src/utils/pasuspender.c
 src/utils/pabrowse.c

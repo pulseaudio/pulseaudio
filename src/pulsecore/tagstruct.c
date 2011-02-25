@@ -291,6 +291,17 @@ void pa_tagstruct_put_proplist(pa_tagstruct *t, pa_proplist *p) {
     pa_tagstruct_puts(t, NULL);
 }
 
+void pa_tagstruct_put_format_info(pa_tagstruct *t, pa_format_info *f) {
+    pa_assert(t);
+    pa_assert(f);
+
+    extend(t, 1);
+
+    t->data[t->length++] = PA_TAG_FORMAT_INFO;
+    pa_tagstruct_putu8(t, (uint8_t) f->encoding);
+    pa_tagstruct_put_proplist(t, f->plist);
+}
+
 int pa_tagstruct_gets(pa_tagstruct*t, const char **s) {
     int error = 0;
     size_t n;
@@ -623,6 +634,37 @@ int pa_tagstruct_get_proplist(pa_tagstruct *t, pa_proplist *p) {
         if (pa_proplist_set(p, k, d, length) < 0)
             goto fail;
     }
+
+    return 0;
+
+fail:
+    t->rindex = saved_rindex;
+    return -1;
+}
+
+int pa_tagstruct_get_format_info(pa_tagstruct *t, pa_format_info *f) {
+    size_t saved_rindex;
+    uint8_t encoding;
+
+    pa_assert(t);
+    pa_assert(f);
+
+    if (t->rindex+1 > t->length)
+        return -1;
+
+    if (t->data[t->rindex] != PA_TAG_FORMAT_INFO)
+        return -1;
+
+    saved_rindex = t->rindex;
+    t->rindex++;
+
+    if (pa_tagstruct_getu8(t, &encoding) < 0)
+        goto fail;
+
+    f->encoding = encoding;
+
+    if (pa_tagstruct_get_proplist(t, f->plist) < 0)
+        goto fail;
 
     return 0;
 

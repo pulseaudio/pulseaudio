@@ -25,6 +25,7 @@
 
 #include <pulse/mainloop-api.h>
 #include <pulse/sample.h>
+#include <pulse/format.h>
 #include <pulse/def.h>
 #include <pulse/context.h>
 #include <pulse/stream.h>
