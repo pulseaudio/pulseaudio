@@ -25,8 +25,6 @@
 
 #include <string.h>
 #include <errno.h>
-#include <poll.h>
-#include <sys/ioctl.h>
 #include <linux/sockios.h>
 #include <arpa/inet.h>
 
@@ -44,6 +42,7 @@
 #include <pulsecore/socket-util.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
+#include <pulsecore/poll.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/namereg.h>

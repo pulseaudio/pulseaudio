@@ -36,9 +36,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
 #endif
@@ -62,10 +59,8 @@
 #endif
 
 #ifndef HAVE_INET_NTOP
-#include "inet_ntop.h"
+#include <pulsecore/inet_ntop.h>
 #endif
-
-#include "winsock.h"
 
 #include <pulse/xmalloc.h>
 
@@ -73,6 +68,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/socket.h>
 
 #include "socket-util.h"
 

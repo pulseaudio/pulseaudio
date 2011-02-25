@@ -28,19 +28,16 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
+
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
 #endif
-
-#include "winsock.h"
 
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/socket.h>
 #include <pulsecore/socket-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>

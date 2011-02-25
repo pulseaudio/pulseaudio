@@ -1,12 +1,12 @@
 #ifndef fooinet_ntophfoo
 #define fooinet_ntophfoo
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
+#ifndef HAVE_INET_NTOP
 
-#include "winsock.h"
+#include <pulsecore/socket.h>
 
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt);
+
+#endif
 
 #endif

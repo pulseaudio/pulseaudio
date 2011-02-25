@@ -51,7 +51,7 @@ static void consumer(void *_q) {
     void *p;
     int i;
 
-    sleep(1);
+    pa_msleep(1000);
 
     for (i = 0;; i++) {
         p = pa_asyncq_pop(q, TRUE);

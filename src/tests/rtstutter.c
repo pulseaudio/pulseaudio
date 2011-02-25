@@ -26,78 +26,69 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
-#include <sched.h>
 #include <inttypes.h>
 #include <string.h>
-#include <pthread.h>
 
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
+
+#include <pulse/util.h>
 #include <pulse/timeval.h>
 #include <pulse/gccmacro.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/thread.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/core-rtclock.h>
 
 static int msec_lower, msec_upper;
 
-static void* work(void *p) PA_GCC_NORETURN;
+static void work(void *p) PA_GCC_NORETURN;
 
-static void* work(void *p) {
-#ifdef HAVE_PTHREAD_SETAFFINITY_NP
-    cpu_set_t mask;
-#endif
-    struct sched_param param;
+static void work(void *p) {
 
     pa_log_notice("CPU%i: Created thread.", PA_PTR_TO_UINT(p));
 
-    memset(&param, 0, sizeof(param));
-    param.sched_priority = 12;
-    pa_assert_se(pthread_setschedparam(pthread_self(), SCHED_FIFO, &param) == 0);
+    pa_make_realtime(12);
 
 #ifdef HAVE_PTHREAD_SETAFFINITY_NP
+{
+    cpu_set_t mask;
+
     CPU_ZERO(&mask);
     CPU_SET((size_t) PA_PTR_TO_UINT(p), &mask);
     pa_assert_se(pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask) == 0);
+}
 #endif
 
     for (;;) {
-        struct timespec now, end;
-        uint64_t nsec;
+        struct timeval now, end;
+        uint64_t usec;
 
         pa_log_notice("CPU%i: Sleeping for 1s", PA_PTR_TO_UINT(p));
-        sleep(1);
+        pa_msleep(1000);
 
-#ifdef CLOCK_REALTIME
-        pa_assert_se(clock_gettime(CLOCK_REALTIME, &end) == 0);
-#endif
+        usec =
+            (uint64_t) ((((double) rand())*(double)(msec_upper-msec_lower)*PA_USEC_PER_MSEC)/RAND_MAX) +
+            (uint64_t) ((uint64_t) msec_lower*PA_USEC_PER_MSEC);
 
-        nsec =
-            (uint64_t) ((((double) rand())*(double)(msec_upper-msec_lower)*PA_NSEC_PER_MSEC)/RAND_MAX) +
-            (uint64_t) ((uint64_t) msec_lower*PA_NSEC_PER_MSEC);
+        pa_log_notice("CPU%i: Freezing for %ims", PA_PTR_TO_UINT(p), (int) (usec/PA_USEC_PER_MSEC));
 
-        pa_log_notice("CPU%i: Freezing for %ims", PA_PTR_TO_UINT(p), (int) (nsec/PA_NSEC_PER_MSEC));
-
-        end.tv_sec += (time_t) (nsec / PA_NSEC_PER_SEC);
-        end.tv_nsec += (long int) (nsec % PA_NSEC_PER_SEC);
-
-        while ((pa_usec_t) end.tv_nsec > PA_NSEC_PER_SEC) {
-            end.tv_sec++;
-            end.tv_nsec -= (long int) PA_NSEC_PER_SEC;
-        }
+        pa_rtclock_get(&end);
+        pa_timeval_add(&end, usec);
 
         do {
-#ifdef CLOCK_REALTIME
-            pa_assert_se(clock_gettime(CLOCK_REALTIME, &now) == 0);
-#endif
-        } while (now.tv_sec < end.tv_sec ||
-                 (now.tv_sec == end.tv_sec && now.tv_nsec < end.tv_nsec));
+            pa_rtclock_get(&now);
+        } while (pa_timeval_cmp(&now, &end) < 0);
     }
 }
 
 int main(int argc, char*argv[]) {
     unsigned n;
 
-    pa_log_set_level(PA_LOG_DEBUG);
+    pa_log_set_level(PA_LOG_INFO);
 
     srand((unsigned) time(NULL));
 
@@ -118,8 +109,7 @@ int main(int argc, char*argv[]) {
     pa_log_notice("Creating random latencies in the range of %ims to  %ims.", msec_lower, msec_upper);
 
     for (n = 1; n < pa_ncpus(); n++) {
-        pthread_t t;
-        pa_assert_se(pthread_create(&t, NULL, work, PA_UINT_TO_PTR(n)) == 0);
+        pa_assert_se(pa_thread_new("rtstutter", work, PA_UINT_TO_PTR(n)));
     }
 
     work(PA_INT_TO_PTR(0));

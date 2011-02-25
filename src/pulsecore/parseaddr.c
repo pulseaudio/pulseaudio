@@ -25,14 +25,17 @@
 
 #include <string.h>
 #include <stdlib.h>
+
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
-#include <sys/socket.h>
+#endif
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/inet_pton.h>
 
 #include "parseaddr.h"
 

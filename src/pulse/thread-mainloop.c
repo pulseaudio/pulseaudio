@@ -31,12 +31,6 @@
 #include <signal.h>
 #include <stdio.h>
 
-#ifdef HAVE_POLL_H
-#include <poll.h>
-#else
-#include <pulsecore/poll.h>
-#endif
-
 #include <pulse/xmalloc.h>
 #include <pulse/mainloop.h>
 #include <pulse/i18n.h>
@@ -46,6 +40,7 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/mutex.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/poll.h>
 
 #include "thread-mainloop.h"
 
@@ -72,7 +67,7 @@ static int poll_func(struct pollfd *ufds, unsigned long nfds, int timeout, void 
      * avahi_simple_poll_quit() can succeed from another thread. */
 
     pa_mutex_unlock(mutex);
-    r = poll(ufds, nfds, timeout);
+    r = pa_poll(ufds, nfds, timeout);
     pa_mutex_lock(mutex);
 
     return r;

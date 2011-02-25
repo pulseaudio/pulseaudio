@@ -43,10 +43,6 @@
 #include <sys/mman.h>
 #endif
 
-#ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
-#endif
-
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
@@ -74,7 +70,7 @@
 #include <pulse/i18n.h>
 
 #include <pulsecore/lock-autospawn.h>
-#include <pulsecore/winsock.h>
+#include <pulsecore/socket.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/core.h>
@@ -137,7 +133,7 @@ static void message_cb(pa_mainloop_api*a, pa_time_event*e, const struct timeval 
     }
 
     pa_timeval_add(pa_gettimeofday(&tvnext), 100000);
-    a->rtclock_time_restart(e, &tvnext);
+    a->time_restart(e, &tvnext);
 }
 
 #endif
@@ -658,6 +654,7 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 
+#ifdef HAVE_GETUID
     if (getuid() == 0 && !conf->system_instance)
         pa_log_warn(_("This program is not intended to be run as root (unless --system is specified)."));
 #ifndef HAVE_DBUS /* A similar, only a notice worthy check was done earlier, if D-Bus is enabled. */
@@ -666,6 +663,7 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 #endif
+#endif  /* HAVE_GETUID */
 
     if (conf->cmd == PA_CMD_START && conf->system_instance) {
         pa_log(_("--start not supported for system instances."));
@@ -984,7 +982,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef OS_IS_WIN32
-    win32_timer = pa_mainloop_get_api(mainloop)->rtclock_time_new(pa_mainloop_get_api(mainloop), pa_gettimeofday(&win32_tv), message_cb, NULL);
+    win32_timer = pa_mainloop_get_api(mainloop)->time_new(pa_mainloop_get_api(mainloop), pa_gettimeofday(&win32_tv), message_cb, NULL);
 #endif
 
     if (!conf->no_cpu_limit)
@@ -1080,7 +1078,7 @@ finish:
     }
 
 #ifdef OS_IS_WIN32
-    if (win32_timer)
+    if (mainloop && win32_timer)
         pa_mainloop_get_api(mainloop)->time_free(win32_timer);
 #endif
 

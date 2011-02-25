@@ -74,12 +74,12 @@ BINLDFLAGS = -static
 endif
 
 if OS_IS_WIN32
-AM_LDFLAGS+=-Wl,--export-all-symbols
+AM_LDFLAGS+=-Wl,--export-all-symbols,--enable-auto-import -no-undefined
 WINSOCK_LIBS=-lwsock32 -lws2_32 -lwininet
 endif
 
 FOREIGN_CFLAGS = -w
-MODULE_LDFLAGS = -module -disable-static -avoid-version $(LDFLAGS_NOUNDEFINED)
+MODULE_LDFLAGS = $(AM_LDFLAGS) -module -disable-static -avoid-version $(LDFLAGS_NOUNDEFINED)
 MODULE_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 
 ###################################
@@ -112,8 +112,10 @@ pulseconf_DATA = \
 		daemon.conf \
 		client.conf
 
+if HAVE_DBUS
 dbuspolicy_DATA = \
 		daemon/pulseaudio-system.conf
+endif
 
 if HAVE_X11
 xdgautostart_in_files = \
@@ -175,10 +177,15 @@ endif
 #       Utility programs          #
 ###################################
 
+bin_SCRIPTS = esdcompat
+
 bin_PROGRAMS += \
 		pacat \
-		pactl \
-		pasuspender
+		pactl
+
+if !OS_IS_WIN32
+bin_PROGRAMS += pasuspender
+endif
 
 if HAVE_AF_UNIX
 bin_PROGRAMS += pacmd
@@ -186,13 +193,12 @@ endif
 
 if HAVE_X11
 bin_PROGRAMS += pax11publish
+bin_SCRIPTS += start-pulseaudio-x11 start-pulseaudio-kde
 endif
 
 if HAVE_AVAHI
 bin_PROGRAMS += pabrowse
 endif
-
-bin_SCRIPTS = esdcompat start-pulseaudio-x11 start-pulseaudio-kde
 
 pacat_SOURCES = utils/pacat.c
 pacat_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la $(LIBSNDFILE_LIBS)
@@ -256,9 +262,7 @@ TESTS = \
 		envelope-test \
 		proplist-test \
 		lock-autospawn-test \
-		prioq-test \
-		sigbus-test \
-		usergroup-test
+		prioq-test
 
 TESTS_BINARIES = \
 		mainloop-test \
@@ -295,9 +299,16 @@ TESTS_BINARIES = \
 		rtstutter \
 		stripnul \
 		lock-autospawn-test \
-		prioq-test \
+		prioq-test
+
+if !OS_IS_WIN32
+TESTS += \
 		sigbus-test \
 		usergroup-test
+TESTS_BINARIES += \
+		sigbus-test \
+		usergroup-test
+endif
 
 if HAVE_SIGXCPU
 #TESTS += \
@@ -326,8 +337,10 @@ TESTS_BINARIES += \
 endif
 
 if !OS_IS_DARWIN
+if !OS_IS_WIN32
 TESTS_BINARIES += \
 		once-test
+endif
 endif
 
 if BUILD_TESTS_DEFAULT
@@ -562,6 +575,14 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulse/client-conf.c pulse/client-conf.h \
 		pulse/i18n.c pulse/i18n.h \
 		pulse/fork-detect.c pulse/fork-detect.h \
+		pulse/xmalloc.c pulse/xmalloc.h \
+		pulse/proplist.c pulse/proplist.h \
+		pulse/utf8.c pulse/utf8.h \
+		pulse/channelmap.c pulse/channelmap.h \
+		pulse/sample.c pulse/sample.h \
+		pulse/util.c pulse/util.h \
+		pulse/timeval.c pulse/timeval.h \
+		pulse/rtclock.c pulse/rtclock.h \
 		pulsecore/atomic.h \
 		pulsecore/authkey.c pulsecore/authkey.h \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
@@ -617,7 +638,7 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/tokenizer.c pulsecore/tokenizer.h \
 		pulsecore/usergroup.c pulsecore/usergroup.h \
 		pulsecore/sndfile-util.c pulsecore/sndfile-util.h \
-		pulsecore/winsock.h
+		pulsecore/socket.h
 
 libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
@@ -858,7 +879,7 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/database.h
 
 libpulsecore_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSPEEX_CFLAGS) $(LIBSNDFILE_CFLAGS) $(WINSOCK_CFLAGS)
-libpulsecore_@PA_MAJORMINOR@_la_LDFLAGS = -avoid-version
+libpulsecore_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libpulsecore_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSPEEX_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINOR@.la libpulse.la libpulsecore-foreign.la
 
 if HAVE_X11
@@ -928,27 +949,27 @@ modlibexec_LTLIBRARIES += \
 endif
 
 libprotocol_simple_la_SOURCES = pulsecore/protocol-simple.c pulsecore/protocol-simple.h
-libprotocol_simple_la_LDFLAGS = -avoid-version
+libprotocol_simple_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libprotocol_simple_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 
 libcli_la_SOURCES = pulsecore/cli.c pulsecore/cli.h
-libcli_la_LDFLAGS = -avoid-version
+libcli_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libcli_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 
 libprotocol_cli_la_SOURCES = pulsecore/protocol-cli.c pulsecore/protocol-cli.h
-libprotocol_cli_la_LDFLAGS = -avoid-version
+libprotocol_cli_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libprotocol_cli_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la libcli.la
 
 libprotocol_http_la_SOURCES = pulsecore/protocol-http.c pulsecore/protocol-http.h pulsecore/mime-type.c pulsecore/mime-type.h
-libprotocol_http_la_LDFLAGS = -avoid-version
+libprotocol_http_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libprotocol_http_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 
 libprotocol_native_la_SOURCES = pulsecore/protocol-native.c pulsecore/protocol-native.h pulsecore/native-common.h
-libprotocol_native_la_LDFLAGS = -avoid-version
+libprotocol_native_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libprotocol_native_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 
 libprotocol_esound_la_SOURCES = pulsecore/protocol-esound.c pulsecore/protocol-esound.h pulsecore/esound.h
-libprotocol_esound_la_LDFLAGS = -avoid-version
+libprotocol_esound_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libprotocol_esound_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 
 librtp_la_SOURCES = \
@@ -957,19 +978,19 @@ librtp_la_SOURCES = \
 		modules/rtp/sap.c modules/rtp/sap.h \
 		modules/rtp/rtsp_client.c modules/rtp/rtsp_client.h \
 		modules/rtp/headerlist.c modules/rtp/headerlist.h
-librtp_la_LDFLAGS = -avoid-version
+librtp_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 librtp_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 
 libraop_la_SOURCES = \
         modules/raop/raop_client.c modules/raop/raop_client.h \
         modules/raop/base64.c modules/raop/base64.h
 libraop_la_CFLAGS = $(AM_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/src/modules/rtp
-libraop_la_LDFLAGS = -avoid-version
+libraop_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libraop_la_LIBADD = $(AM_LIBADD) $(OPENSSL_LIBS) libpulsecore-@PA_MAJORMINOR@.la librtp.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 
 # Avahi
 libavahi_wrap_la_SOURCES = pulsecore/avahi-wrap.c pulsecore/avahi-wrap.h
-libavahi_wrap_la_LDFLAGS = -avoid-version
+libavahi_wrap_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libavahi_wrap_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
 libavahi_wrap_la_LIBADD = $(AM_LIBADD) $(AVAHI_CFLAGS) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 
@@ -1165,10 +1186,10 @@ pulselibexec_PROGRAMS += \
 		gconf-helper
 endif
 
-#if OS_IS_WIN32
-#modlibexec_LTLIBRARIES += \
-#		module-waveout.la
-#endif
+if HAVE_WAVEOUT
+modlibexec_LTLIBRARIES += \
+		module-waveout.la
+endif
 
 if HAVE_HAL
 modlibexec_LTLIBRARIES += \
@@ -1408,7 +1429,7 @@ module_esound_compat_spawnpid_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_esound_compat_spawnpid_la_LIBADD = $(MODULE_LIBADD)
 
 module_esound_sink_la_SOURCES = modules/module-esound-sink.c
-module_esound_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_esound_sink_la_LDFLAGS = $(MODULE_LDFLAGS) $(WINSOCK_LIBS)
 module_esound_sink_la_LIBADD = $(MODULE_LIBADD)
 
 # Pipes
@@ -1432,7 +1453,7 @@ module_null_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_null_sink_la_LIBADD = $(MODULE_LIBADD)
 
 module_sine_source_la_SOURCES = modules/module-sine-source.c
-module_sine_source_la_LDFLAGS = -module -avoid-version
+module_sine_source_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_sine_source_la_LIBADD = $(MODULE_LIBADD)
 
 # Couplings
@@ -1606,11 +1627,10 @@ module_mmkbd_evdev_la_LIBADD = $(MODULE_LIBADD)
 module_mmkbd_evdev_la_CFLAGS = $(AM_CFLAGS)
 
 # Windows waveout
-
-#module_waveout_la_SOURCES = modules/module-waveout.c
-#module_waveout_la_LDFLAGS = $(MODULE_LDFLAGS)
-#module_waveout_la_LIBADD = $(MODULE_LIBADD) -lwinmm
-#module_waveout_la_CFLAGS = $(AM_CFLAGS)
+module_waveout_la_SOURCES = modules/module-waveout.c
+module_waveout_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_waveout_la_LIBADD = $(MODULE_LIBADD) -lwinmm
+module_waveout_la_CFLAGS = $(AM_CFLAGS)
 
 # Hardware autodetection module
 module_detect_la_SOURCES = modules/module-detect.c

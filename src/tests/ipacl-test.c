@@ -8,9 +8,6 @@
 #include <assert.h>
 #include <string.h>
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -24,10 +21,10 @@
 #include <arpa/inet.h>
 #endif
 
-#include "../pulsecore/winsock.h"
-#include "../pulsecore/macro.h"
-
+#include <pulsecore/socket.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/ipacl.h>
+#include <pulsecore/inet_pton.h>
 
 int main(int argc, char *argv[]) {
     struct sockaddr_in sa;

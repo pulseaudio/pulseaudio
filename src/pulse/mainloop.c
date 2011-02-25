@@ -47,7 +47,7 @@
 #include <pulsecore/llist.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-error.h>
-#include <pulsecore/winsock.h>
+#include <pulsecore/socket.h>
 #include <pulsecore/macro.h>
 
 #include "mainloop.h"

@@ -51,6 +51,10 @@
 #undef PA_BIND_NOW
 #endif
 
+#ifdef OS_IS_WIN32
+#undef PA_BIND_NOW
+#endif
+
 #ifdef PA_BIND_NOW
 
 /*

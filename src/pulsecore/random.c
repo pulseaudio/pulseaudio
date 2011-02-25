@@ -31,6 +31,11 @@
 #include <stdlib.h>
 #include <time.h>
 
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#include <wincrypt.h>
+#endif
+
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
@@ -43,10 +48,20 @@ static const char * const devices[] = { "/dev/urandom", "/dev/random", NULL };
 
 static int random_proper(void *ret_data, size_t length) {
 #ifdef OS_IS_WIN32
+    int ret = -1;
+
     pa_assert(ret_data);
     pa_assert(length > 0);
 
-    return -1;
+    HCRYPTPROV hCryptProv = NULL;
+
+    if (CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
+        if(CryptGenRandom(hCryptProv, length, ret_data))
+            ret = 0;
+        CryptReleaseContext(hCryptProv, 0);
+    }
+
+    return ret;
 
 #else /* OS_IS_WIN32 */
 

@@ -362,10 +362,7 @@ AC_CHECK_HEADERS([netinet/ip.h], [], [],
                   # include <netinet/in_systm.h>
                   #endif
                  ])
-AC_CHECK_HEADERS([regex.h], [HAVE_REGEX=1], [HAVE_REGEX=0])
 AC_CHECK_HEADERS([sys/un.h], [HAVE_AF_UNIX=1], [HAVE_AF_UNIX=0])
-
-AM_CONDITIONAL(HAVE_REGEX, test "x$HAVE_REGEX" = "x1")
 AM_CONDITIONAL(HAVE_AF_UNIX, test "x$HAVE_AF_UNIX" = "x1")
 
 # Linux
@@ -390,6 +387,8 @@ AC_CHECK_HEADERS_ONCE([byteswap.h])
 AC_CHECK_HEADERS_ONCE([sys/syscall.h])
 AC_CHECK_HEADERS_ONCE([sys/eventfd.h])
 AC_CHECK_HEADERS_ONCE([execinfo.h])
+AC_CHECK_HEADERS_ONCE([langinfo.h])
+AC_CHECK_HEADERS_ONCE([regex.h pcreposix.h])
 
 #### Typdefs, structures, etc. ####
 
@@ -458,6 +457,8 @@ fi
 AC_SUBST(HAVE_BONJOUR)
 AM_CONDITIONAL([HAVE_BONJOUR], [test "x$HAVE_BONJOUR" = x1])
 
+AC_SEARCH_LIBS([regexec], [pcreposix])
+
 #### Check for functions ####
 
 # ISO
@@ -470,7 +471,7 @@ AC_FUNC_SELECT_ARGTYPES
 AC_CHECK_FUNCS_ONCE([chmod chown fstat fchown fchmod clock_gettime getaddrinfo getgrgid_r getgrnam_r \
     getpwnam_r getpwuid_r gettimeofday getuid inet_ntop inet_pton mlock nanosleep \
     pipe posix_fadvise posix_madvise posix_memalign setpgid setsid shm_open \
-    sigaction sleep sysconf pthread_setaffinity_np])
+    sigaction sleep symlink sysconf uname pthread_setaffinity_np])
 AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])
 
 AM_CONDITIONAL(HAVE_MKFIFO, test "x$HAVE_MKFIFO" = "x1")
@@ -516,6 +517,9 @@ AS_IF([test "$pulseaudio_cv_PTHREAD_PRIO_INHERIT" = "yes"], [
   ])
 
 AC_DEFINE_UNQUOTED(PA_CFLAGS,"$CFLAGS", [The CFLAGS used during compilation])
+
+AC_CHECK_FUNCS([regexec], [HAVE_REGEX=1], [HAVE_REGEX=0])
+AM_CONDITIONAL(HAVE_REGEX, [test "x$HAVE_REGEX" = "x1"])
 
 #### Large File-Support (LFS) ####
 
@@ -873,6 +877,39 @@ fi
 
 AC_SUBST(HAVE_SOLARIS)
 AM_CONDITIONAL([HAVE_SOLARIS], [test "x$HAVE_SOLARIS" = x1])
+
+#### WaveOut audio support (optional) ####
+
+AC_ARG_ENABLE([waveout],
+    AS_HELP_STRING([--disable-waveout],[Disable optional WaveOut audio support]),
+        [
+            case "${enableval}" in
+                yes) waveout=yes ;;
+                no) waveout=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-waveout) ;;
+            esac
+        ],
+        [waveout=auto])
+
+if test "x${waveout}" != xno ; then
+    AC_CHECK_HEADERS([mmsystem.h],
+        [
+            HAVE_WAVEOUT=1
+            AC_DEFINE([HAVE_WAVEOUT], 1, [Have WaveOut audio?])
+        ],
+        [
+            HAVE_WAVEOUT=0
+            if test "x$waveout" = xyes ; then
+                AC_MSG_ERROR([*** WaveOut audio support not found])
+            fi
+        ],
+        [#include <windows.h>])
+else
+    HAVE_WAVEOUT=0
+fi
+
+AC_SUBST(HAVE_WAVEOUT)
+AM_CONDITIONAL([HAVE_WAVEOUT], [test "x$HAVE_WAVEOUT" = x1])
 
 #### GLib 2 support (optional) ####
 
@@ -1525,6 +1562,11 @@ if test "x$HAVE_SOLARIS" = "x1" ; then
    ENABLE_SOLARIS=yes
 fi
 
+ENABLE_WAVEOUT=no
+if test "x$HAVE_WAVEOUT" = "x1" ; then
+   ENABLE_WAVEOUT=yes
+fi
+
 ENABLE_GTK20=no
 if test "x$HAVE_GTK20" = "x1" ; then
    ENABLE_GTK20=yes
@@ -1646,6 +1688,7 @@ echo "
     System Config Path:            ${PA_SYSTEM_CONFIG_PATH}
     Compiler:                      ${CC}
     CFLAGS:                        ${CFLAGS}
+    LIBS:                          ${LIBS}
 
     Have X11:                      ${ENABLE_X11}
     Enable OSS Output:             ${ENABLE_OSS_OUTPUT}
@@ -1653,6 +1696,7 @@ echo "
     Enable CoreAudio:              ${ENABLE_COREAUDIO}
     Enable Alsa:                   ${ENABLE_ALSA}
     Enable Solaris:                ${ENABLE_SOLARIS}
+    Enable WaveOut:                ${ENABLE_WAVEOUT}
     Enable GLib 2.0:               ${ENABLE_GLIB20}
     Enable Gtk+ 2.0:               ${ENABLE_GTK20}
     Enable GConf:                  ${ENABLE_GCONF}
@@ -1683,7 +1727,7 @@ echo "
     Preopened modules:             ${PREOPEN_MODS}
 "
 
-if test "${ENABLE_DBUS}" = "no" ; then
+if test "${ENABLE_DBUS}" = "no" && test "x$os_is_win32" != "x1" ; then
    echo "
 ===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
 You do not have D-Bus support enabled. It is strongly recommended
@@ -1696,7 +1740,7 @@ controling the PulseAudio daemon itself.
 "
 fi
 
-if test "${ENABLE_UDEV}" = "no" ; then
+if test "${ENABLE_UDEV}" = "no" && test "x$os_is_win32" != "x1" ; then
    echo "
 ===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
 You do not have udev support enabled. It is strongly recommended

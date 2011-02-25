@@ -32,9 +32,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
 #endif
@@ -56,9 +53,9 @@
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/winsock.h>
-#include <pulsecore/core-error.h>
+#include <pulsecore/socket.h>
 #include <pulsecore/socket-util.h>
+#include <pulsecore/core-error.h>
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/socket-util.h>
@@ -525,7 +522,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, pa_bool_t use_
                 if (!host)
                     goto finish;
 
-                pa_zero(sa);
+                pa_zero(s);
                 s.sin_family = AF_INET;
                 memcpy(&s.sin_addr, host->h_addr, sizeof(struct in_addr));
                 s.sin_port = htons(a.port);

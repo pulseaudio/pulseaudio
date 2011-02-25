@@ -29,11 +29,8 @@
 
 #include <sys/types.h>
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-
-#include "winsock.h"
+#include <pulsecore/socket.h>
+#include <pulsecore/core-util.h>
 
 #include "pipe.h"
 

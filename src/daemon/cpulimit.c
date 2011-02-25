@@ -140,7 +140,7 @@ static void signal_handler(int sig) {
             write_err("Soft CPU time limit exhausted, terminating.\n");
 
             /* Try a soft cleanup */
-            (void) write(the_pipe[1], &c, sizeof(c));
+            (void) pa_write(the_pipe[1], &c, sizeof(c), NULL);
             phase = PHASE_SOFT;
             reset_cpu_time(CPUTIME_INTERVAL_HARD);
 

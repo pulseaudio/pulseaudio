@@ -30,9 +30,6 @@
 #include <unistd.h>
 #include <limits.h>
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
@@ -42,9 +39,9 @@
 
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
+#include <pulsecore/socket.h>
 #include <pulsecore/socket-server.h>
 #include <pulsecore/socket-util.h>
 #include <pulsecore/core-util.h>

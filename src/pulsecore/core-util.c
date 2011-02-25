@@ -34,16 +34,24 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
-#include <time.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <dirent.h>
-#include <regex.h>
+
+#ifdef HAVE_LANGINFO_H
 #include <langinfo.h>
+#endif
+
+#ifdef HAVE_UNAME
 #include <sys/utsname.h>
-#include <sys/socket.h>
+#endif
+
+#if defined(HAVE_REGEX_H)
+#include <regex.h>
+#elif defined(HAVE_PCREPOSIX_H)
+#include <pcreposix.h>
+#endif
 
 #ifdef HAVE_STRTOF_L
 #include <locale.h>
@@ -81,6 +89,10 @@
 #include <windows.h>
 #endif
 
+#ifndef ENOTSUP
+#define ENOTSUP   135
+#endif
+
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
@@ -110,7 +122,7 @@
 #include <pulse/utf8.h>
 
 #include <pulsecore/core-error.h>
-#include <pulsecore/winsock.h>
+#include <pulsecore/socket.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/thread.h>
@@ -118,6 +130,7 @@
 #include <pulsecore/usergroup.h>
 #include <pulsecore/strlist.h>
 #include <pulsecore/cpu-x86.h>
+#include <pulsecore/pipe.h>
 
 #include "core-util.h"
 
@@ -136,20 +149,18 @@ static pa_strlist *recorded_env = NULL;
 #define PULSE_ROOTENV "PULSE_ROOT"
 
 int pa_set_root(HANDLE handle) {
-    char library_path[MAX_PATH + sizeof(PULSE_ROOTENV) + 1], *sep;
-
-    strcpy(library_path, PULSE_ROOTENV "=");
+    char library_path[MAX_PATH], *sep;
 
     /* FIXME: Needs to set errno */
 
-    if (!GetModuleFileName(handle, library_path + sizeof(PULSE_ROOTENV), MAX_PATH))
+    if (!GetModuleFileName(handle, library_path, MAX_PATH))
         return 0;
 
     sep = strrchr(library_path, PA_PATH_SEP_CHAR);
     if (sep)
         *sep = '\0';
 
-    if (_putenv(library_path) < 0)
+    if (!SetEnvironmentVariable(PULSE_ROOTENV, library_path))
         return 0;
 
     return 1;
@@ -217,7 +228,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     if (r < 0 && errno != EEXIST)
         return -1;
 
-#ifdef HAVE_FSTAT
+#if defined(HAVE_FSTAT) && !defined(OS_IS_WIN32)
     if ((fd = open(dir,
 #ifdef O_CLOEXEC
                    O_CLOEXEC|
@@ -255,7 +266,6 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
 #endif
 
     pa_assert_se(pa_close(fd) >= 0);
-
 #endif
 
 #ifdef HAVE_LSTAT
@@ -611,6 +621,7 @@ char *pa_strlcpy(char *b, const char *s, size_t l) {
 }
 
 static int set_scheduler(int rtprio) {
+#ifdef HAVE_SCHED_H
     struct sched_param sp;
 #ifdef HAVE_DBUS
     int r;
@@ -634,6 +645,7 @@ static int set_scheduler(int rtprio) {
         pa_log_debug("SCHED_RR worked.");
         return 0;
     }
+#endif  /* HAVE_SCHED_H */
 
 #ifdef HAVE_DBUS
     /* Try to talk to RealtimeKit */
@@ -684,14 +696,21 @@ int pa_make_realtime(int rtprio) {
             pa_log_info("Successfully enabled SCHED_RR scheduling for thread, with priority %i, which is lower than the requested %i.", p, rtprio);
             return 0;
         }
+#elif defined(OS_IS_WIN32)
+    /* Windows only allows realtime scheduling to be set on a per process basis.
+     * Therefore, instead of making the thread realtime, just give it the highest non-realtime priority. */
+    if(SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL)) {
+        pa_log_info("Successfully enabled THREAD_PRIORITY_TIME_CRITICAL scheduling for thread.");
+        return 0;
+    }
 
+    pa_log_warn("SetThreadPriority() failed: 0x%08X", GetLastError());
+    errno = EPERM;
+#else
+    errno = ENOTSUP;
+#endif
     pa_log_info("Failed to acquire real-time scheduling: %s", pa_cstrerror(errno));
     return -1;
-#else
-
-    errno = ENOTSUP;
-    return -1;
-#endif
 }
 
 static int set_nice(int nice_level) {
@@ -703,10 +722,12 @@ static int set_nice(int nice_level) {
     dbus_error_init(&error);
 #endif
 
+#ifdef HAVE_SYS_RESOURCE_H
     if (setpriority(PRIO_PROCESS, 0, nice_level) >= 0) {
         pa_log_debug("setpriority() worked.");
         return 0;
     }
+#endif
 
 #ifdef HAVE_DBUS
     /* Try to talk to RealtimeKit */
@@ -827,6 +848,7 @@ int pa_parse_boolean(const char *v) {
     else if (!strcmp(v, "0") || v[0] == 'n' || v[0] == 'N' || v[0] == 'f' || v[0] == 'F' || !strcasecmp(v, "off"))
         return 0;
 
+#ifdef HAVE_LANGINFO_H
     /* And then we check language dependant */
     if ((expr = nl_langinfo(YESEXPR)))
         if (expr[0])
@@ -837,6 +859,7 @@ int pa_parse_boolean(const char *v) {
         if (expr[0])
             if (pa_match(expr, v) > 0)
                 return 0;
+#endif
 
     errno = EINVAL;
     return -1;
@@ -1150,23 +1173,23 @@ int pa_check_in_group(gid_t g) {
 #else /* HAVE_GRP_H */
 
 int pa_own_uid_in_group(const char *name, gid_t *gid) {
-    errno = ENOSUP;
+    errno = ENOTSUP;
     return -1;
 
 }
 
 int pa_uid_in_group(uid_t uid, const char *name) {
-    errno = ENOSUP;
+    errno = ENOTSUP;
     return -1;
 }
 
 gid_t pa_get_gid_of_group(const char *name) {
-    errno = ENOSUP;
+    errno = ENOTSUP;
     return (gid_t) -1;
 }
 
 int pa_check_in_group(gid_t g) {
-    errno = ENOSUP;
+    errno = ENOTSUP;
     return -1;
 }
 
@@ -1339,11 +1362,13 @@ static char *get_pulse_home(void) {
         goto finish;
     }
 
+#ifdef HAVE_GETUID
     if (st.st_uid != getuid()) {
         pa_log_error("Home directory %s not ours.", h);
         errno = EACCES;
         goto finish;
     }
+#endif
 
     ret = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse", h);
 
@@ -1441,7 +1466,11 @@ static char* make_random_dir(mode_t m) {
             fn[i] = table[rand() % (sizeof(table)-1)];
 
         u = umask((~m) & 0777);
+#ifndef OS_IS_WIN32
         r = mkdir(fn, m);
+#else
+        r = mkdir(fn);
+#endif
 
         saved_errno = errno;
         umask(u);
@@ -1464,6 +1493,7 @@ static int make_random_dir_and_link(mode_t m, const char *k) {
     if (!(p = make_random_dir(m)))
         return -1;
 
+#ifdef HAVE_SYMLINK
     if (symlink(p, k) < 0) {
         int saved_errno = errno;
 
@@ -1476,6 +1506,10 @@ static int make_random_dir_and_link(mode_t m, const char *k) {
         errno = saved_errno;
         return -1;
     }
+#else
+    pa_xfree(p);
+    return -1;
+#endif
 
     pa_xfree(p);
     return 0;
@@ -1534,6 +1568,7 @@ char *pa_get_runtime_dir(void) {
                 goto fail;
             }
 
+#ifdef HAVE_SYMLINK
             /* Hmm, so the runtime directory didn't exist yet, so let's
              * create one in /tmp and symlink that to it */
 
@@ -1546,6 +1581,11 @@ char *pa_get_runtime_dir(void) {
 
                 goto fail;
             }
+#else
+            /* No symlink possible, so let's just create the runtime directly */
+            if (!mkdir(k))
+                goto fail;
+#endif
 
             return k;
         }
@@ -1560,6 +1600,7 @@ char *pa_get_runtime_dir(void) {
         /* Hmm, so this symlink is still around, make sure nobody fools
          * us */
 
+#ifdef HAVE_LSTAT
         if (lstat(p, &st) < 0) {
 
             if (errno != ENOENT) {
@@ -1579,6 +1620,7 @@ char *pa_get_runtime_dir(void) {
 
             pa_log_info("Hmm, runtime path exists, but points to an invalid directory. Changing runtime directory.");
         }
+#endif
 
         pa_xfree(p);
         p = NULL;
@@ -2218,6 +2260,7 @@ void pa_close_pipe(int fds[2]) {
 }
 
 char *pa_readlink(const char *p) {
+#ifdef HAVE_READLINK
     size_t l = 100;
 
     for (;;) {
@@ -2239,6 +2282,9 @@ char *pa_readlink(const char *p) {
         pa_xfree(c);
         l *= 2;
     }
+#else
+    return NULL;
+#endif
 }
 
 int pa_close_all(int except_fd, ...) {
@@ -2277,6 +2323,7 @@ int pa_close_all(int except_fd, ...) {
 }
 
 int pa_close_allv(const int except_fds[]) {
+#ifndef OS_IS_WIN32
     struct rlimit rl;
     int maxfd, fd;
 
@@ -2366,6 +2413,7 @@ int pa_close_allv(const int except_fds[]) {
         if (pa_close(fd) < 0 && errno != EBADF)
             return -1;
     }
+#endif  /* !OS_IS_WIN32 */
 
     return 0;
 }
@@ -2406,6 +2454,7 @@ int pa_unblock_sigs(int except, ...) {
 }
 
 int pa_unblock_sigsv(const int except[]) {
+#ifndef OS_IS_WIN32
     int i;
     sigset_t ss;
 
@@ -2417,6 +2466,9 @@ int pa_unblock_sigsv(const int except[]) {
             return -1;
 
     return sigprocmask(SIG_SETMASK, &ss, NULL);
+#else
+    return 0;
+#endif
 }
 
 int pa_reset_sigs(int except, ...) {
@@ -2455,6 +2507,7 @@ int pa_reset_sigs(int except, ...) {
 }
 
 int pa_reset_sigsv(const int except[]) {
+#ifndef OS_IS_WIN32
     int sig;
 
     for (sig = 1; sig < NSIG; sig++) {
@@ -2491,6 +2544,7 @@ int pa_reset_sigsv(const int except[]) {
                     return -1;
         }
     }
+#endif
 
     return 0;
 }
@@ -2501,7 +2555,11 @@ void pa_set_env(const char *key, const char *value) {
 
     /* This is not thread-safe */
 
-    putenv(pa_sprintf_malloc("%s=%s", key, value));
+#ifdef OS_IS_WIN32
+    SetEnvironmentVariable(key, value);
+#else
+    setenv(key, value, 1);
+#endif
 }
 
 void pa_set_env_and_record(const char *key, const char *value) {
@@ -2526,7 +2584,11 @@ void pa_unset_env_recorded(void) {
         if (!s)
             break;
 
+#ifdef OS_IS_WIN32
+        SetEnvironmentVariable(s, NULL);
+#else
         unsetenv(s);
+#endif
         pa_xfree(s);
     }
 }
@@ -2625,9 +2687,13 @@ char *pa_machine_id(void) {
     if ((h = pa_get_host_name_malloc()))
         return h;
 
+#ifndef OS_IS_WIN32
     /* If no hostname was set we use the POSIX hostid. It's usually
      * the IPv4 address.  Might not be that stable. */
     return pa_sprintf_malloc("%08lx", (unsigned long) gethostid);
+#else
+    return NULL;
+#endif
 }
 
 char *pa_session_id(void) {
@@ -2640,11 +2706,22 @@ char *pa_session_id(void) {
 }
 
 char *pa_uname_string(void) {
+#ifdef HAVE_UNAME
     struct utsname u;
 
     pa_assert_se(uname(&u) >= 0);
 
     return pa_sprintf_malloc("%s %s %s %s", u.sysname, u.machine, u.release, u.version);
+#endif
+#ifdef OS_IS_WIN32
+    OSVERSIONINFO i;
+
+    pa_zero(i);
+    i.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    pa_assert_se(GetVersionEx(&i));
+
+    return pa_sprintf_malloc("Windows %d.%d (%d) %s", i.dwMajorVersion, i.dwMinorVersion, i.dwBuildNumber, i.szCSDVersion);
+#endif
 }
 
 #ifdef HAVE_VALGRIND_MEMCHECK_H
@@ -2793,10 +2870,17 @@ char *pa_realpath(const char *path) {
         char *path_buf;
         path_buf = pa_xmalloc(PATH_MAX);
 
+#if defined(OS_IS_WIN32)
+        if (!(t = _fullpath(path_buf, path, _MAX_PATH))) {
+            pa_xfree(path_buf);
+            return NULL;
+        }
+#else
         if (!(t = realpath(path, path_buf))) {
             pa_xfree(path_buf);
             return NULL;
         }
+#endif
     }
 #else
 #error "It's not clear whether this system supports realpath(..., NULL) like GNU libc does. If it doesn't we need a private version of realpath() here."

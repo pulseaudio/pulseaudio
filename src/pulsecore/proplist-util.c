@@ -25,7 +25,7 @@
 
 #include <string.h>
 #include <locale.h>
-#include <dlfcn.h>
+#include <libintl.h>
 
 #ifdef __APPLE__
 #include <crt_externs.h>

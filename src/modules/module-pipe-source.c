@@ -32,7 +32,6 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/ioctl.h>
-#include <sys/poll.h>
 
 #ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
@@ -49,6 +48,7 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
+#include <pulsecore/poll.h>
 
 #include "module-pipe-source-symdef.h"
 

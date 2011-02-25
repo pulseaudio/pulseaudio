@@ -37,10 +37,6 @@
 #include <pwd.h>
 #endif
 
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
@@ -56,7 +52,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 
-#include <pulsecore/winsock.h>
+#include <pulsecore/socket.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
@@ -79,11 +75,15 @@ char *pa_get_user_name(char *s, size_t l) {
     pa_assert(s);
     pa_assert(l > 0);
 
-    if ((p = (getuid() == 0 ? "root" : NULL)) ||
-        (p = getenv("USER")) ||
-        (p = getenv("LOGNAME")) ||
-        (p = getenv("USERNAME")))
-    {
+    p = NULL;
+#ifdef HAVE_GETUID
+    p = getuid() == 0 ? "root" : NULL;
+#endif
+    if (!p) p = getenv("USER");
+    if (!p) p = getenv("LOGNAME");
+    if (!p) p = getenv("USERNAME");
+
+    if (p) {
         name = pa_strlcpy(s, p, l);
     } else {
 #ifdef HAVE_PWD_H
@@ -195,11 +195,11 @@ char *pa_get_binary_name(char *s, size_t l) {
     {
         char *rp;
 
-	if ((rp = pa_readlink("/proc/curproc/file"))) {
-	    pa_strlcpy(s, pa_path_get_filename(rp), l);
-	    pa_xfree(rp);
-	    return s;
-	}
+        if ((rp = pa_readlink("/proc/curproc/file"))) {
+            pa_strlcpy(s, pa_path_get_filename(rp), l);
+            pa_xfree(rp);
+            return s;
+        }
     }
 #endif
 

@@ -25,7 +25,6 @@
 #include <inttypes.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#include <time.h>
 
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>

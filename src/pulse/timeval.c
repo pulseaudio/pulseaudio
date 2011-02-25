@@ -31,35 +31,27 @@
 #include <windows.h>
 #endif
 
-#include <pulsecore/winsock.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 
 #include "timeval.h"
 
 struct timeval *pa_gettimeofday(struct timeval *tv) {
-#ifdef HAVE_GETTIMEOFDAY
     pa_assert(tv);
 
-    pa_assert_se(gettimeofday(tv, NULL) == 0);
-    return tv;
-#elif defined(OS_IS_WIN32)
+#if defined(OS_IS_WIN32)
     /*
      * Copied from implementation by Steven Edwards (LGPL).
      * Found on wine mailing list.
      */
-
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 #define EPOCHFILETIME (116444736000000000i64)
 #else
 #define EPOCHFILETIME (116444736000000000LL)
 #endif
-
     FILETIME ft;
     LARGE_INTEGER li;
     int64_t t;
-
-    pa_assert(tv);
 
     GetSystemTimeAsFileTime(&ft);
     li.LowPart  = ft.dwLowDateTime;
@@ -69,11 +61,13 @@ struct timeval *pa_gettimeofday(struct timeval *tv) {
     t /= 10;                /* In microseconds */
     tv->tv_sec  = (time_t) (t / PA_USEC_PER_SEC);
     tv->tv_usec = (suseconds_t) (t % PA_USEC_PER_SEC);
-
-    return tv;
+#elif defined(HAVE_GETTIMEOFDAY)
+    pa_assert_se(gettimeofday(tv, NULL) == 0);
 #else
 #error "Platform lacks gettimeofday() or equivalent function."
 #endif
+
+    return tv;
 }
 
 pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
