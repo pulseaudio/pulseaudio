@@ -241,6 +241,8 @@ int pa_card_set_profile(pa_card *c, const char *name, pa_bool_t save) {
     c->active_profile = profile;
     c->save_profile = save;
 
+    pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], c);
+
     return 0;
 }
 
