@@ -52,6 +52,7 @@ PA_MODULE_USAGE(
     "sink_name=<name for the sink> "
     "source_name=<name for the source> "
     "device=<device number> "
+    "device_name=<name of the device> "
     "record=<enable source?> "
     "playback=<enable sink?> "
     "format=<sample format> "
@@ -97,6 +98,7 @@ static const char* const valid_modargs[] = {
     "sink_name",
     "source_name",
     "device",
+    "device_name",
     "record",
     "playback",
     "fragments",
@@ -476,12 +478,14 @@ int pa__init(pa_module *m) {
     HWAVEOUT hwo = INVALID_HANDLE_VALUE;
     HWAVEIN hwi = INVALID_HANDLE_VALUE;
     WAVEFORMATEX wf;
+    WAVEOUTCAPS pwoc;
     int nfrags, frag_size;
     pa_bool_t record = TRUE, playback = TRUE;
     unsigned int device;
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
+    const char *device_name = NULL;
     unsigned int i;
 
     pa_assert(m);
@@ -502,11 +506,31 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    /* Set the device to be opened.  If set device_name is used,
+     * else device if set and lastly WAVE_MAPPER is the default */
     device = WAVE_MAPPER;
     if (pa_modargs_get_value_u32(ma, "device", &device) < 0) {
         pa_log("failed to parse device argument");
         goto fail;
     }
+    if ((device_name = pa_modargs_get_value(ma, "device_name", NULL)) != NULL) {
+        unsigned int num_devices = waveOutGetNumDevs();
+        for (i = 0; i < num_devices; i++) {
+            if (waveOutGetDevCaps(i, &pwoc, sizeof(pwoc)) == MMSYSERR_NOERROR)
+                if (_stricmp(device_name, pwoc.szPname) == 0)
+                    break;
+        }
+        if (i < num_devices)
+            device = i;
+        else {
+            pa_log("device not found: %s", device_name);
+            goto fail;
+        }
+    }
+    if (waveOutGetDevCaps(device, &pwoc, sizeof(pwoc)) == MMSYSERR_NOERROR)
+        device_name = pwoc.szPname;
+    else
+        device_name = "unknown";
 
     nfrags = 5;
     frag_size = 8192;
@@ -549,6 +573,7 @@ int pa__init(pa_module *m) {
     InitializeCriticalSection(&u->crit);
 
     if (hwi != INVALID_HANDLE_VALUE) {
+        char *description = pa_sprintf_malloc("WaveIn on %s", device_name);
         pa_source_new_data data;
         pa_source_new_data_init(&data);
         data.driver = __FILE__;
@@ -561,12 +586,14 @@ int pa__init(pa_module *m) {
 
         pa_assert(u->source);
         u->source->userdata = u;
-        pa_source_set_description(u->source, "Windows waveIn PCM");
+        pa_source_set_description(u->source, description);
         u->source->parent.process_msg = process_msg;
+        pa_xfree(description);
     } else
         u->source = NULL;
 
     if (hwo != INVALID_HANDLE_VALUE) {
+        char *description = pa_sprintf_malloc("WaveOut on %s", device_name);
         pa_sink_new_data data;
         pa_sink_new_data_init(&data);
         data.driver = __FILE__;
@@ -581,8 +608,9 @@ int pa__init(pa_module *m) {
         u->sink->get_volume = sink_get_volume_cb;
         u->sink->set_volume = sink_set_volume_cb;
         u->sink->userdata = u;
-        pa_sink_set_description(u->sink, "Windows waveOut PCM");
+        pa_sink_set_description(u->sink, description);
         u->sink->parent.process_msg = process_msg;
+        pa_xfree(description);
     } else
         u->sink = NULL;
 
