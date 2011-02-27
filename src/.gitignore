@@ -66,3 +66,4 @@ voltest
 start-pulseaudio-x11
 start-pulseaudio-kde
 vector-test
+*-symdef.h
