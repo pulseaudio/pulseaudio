@@ -1705,8 +1705,6 @@ void pa_sink_set_volume(
         pa_cvolume_reset(&root_sink->soft_volume, root_sink->sample_spec.channels);
         if (!(root_sink->flags & PA_SINK_SYNC_VOLUME))
             root_sink->set_volume(root_sink);
-        else
-            send_msg = TRUE;
 
     } else
         /* If we have no function set_volume(), then the soft volume
