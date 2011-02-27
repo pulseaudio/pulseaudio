@@ -177,7 +177,7 @@ static int32_t item_get_int(pa_envelope_item *i, pa_usec_t x) {
 
     pa_assert(i->j > 0);
     pa_assert(i->def->points_x[i->j-1] <= x);
-    pa_assert(x <= i->def->points_x[i->j]);
+    pa_assert(x < i->def->points_x[i->j]);
 
     return linear_interpolate_int(i->def->points_x[i->j-1], i->def->points_y.i[i->j-1],
                                   i->def->points_x[i->j], i->def->points_y.i[i->j], x);
@@ -200,7 +200,7 @@ static float item_get_float(pa_envelope_item *i, pa_usec_t x) {
 
     pa_assert(i->j > 0);
     pa_assert(i->def->points_x[i->j-1] <= x);
-    pa_assert(x <= i->def->points_x[i->j]);
+    pa_assert(x < i->def->points_x[i->j]);
 
     return linear_interpolate_float(i->def->points_x[i->j-1], i->def->points_y.f[i->j-1],
                                     i->def->points_x[i->j], i->def->points_y.f[i->j], x);
@@ -550,7 +550,7 @@ static int32_t linear_get_int(pa_envelope *e, int v) {
         e->points[v].cached_valid = TRUE;
     }
 
-	return e->points[v].y.i[e->points[v].n_current] + ((float)e->points[v].cached_dy_i * (int32_t) (e->x - e->points[v].x[e->points[v].n_current])) / (int32_t) e->points[v].cached_dx;
+    return e->points[v].y.i[e->points[v].n_current] + (e->points[v].cached_dy_i * (int32_t) (e->x - e->points[v].x[e->points[v].n_current])) / (int32_t) e->points[v].cached_dx;
 }
 
 static float linear_get_float(pa_envelope *e, int v) {
@@ -597,60 +597,34 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
         fs = pa_frame_size(&e->sample_spec);
         n = chunk->length;
 
-        pa_log_debug("Envelop position %zu applying factor %d=%f, sample spec is %d, chunk's length is %zu, fs is %zu\n", e->x, linear_get_int(e, v), ((float) linear_get_int(e,v))/0x10000, e->sample_spec.format, n, fs);
-
         switch (e->sample_spec.format) {
 
             case PA_SAMPLE_U8: {
-                uint8_t *d, *s;
-                unsigned channel;
-                int32_t factor = linear_get_int(e, v);
+                uint8_t *t;
 
-                s = (uint8_t*) p + n;
+                for (t = p; n > 0; n -= fs) {
+                    int32_t factor = linear_get_int(e, v);
+                    unsigned c;
+                    e->x += fs;
 
-                for (channel = 0, d = p; d < s; d++) {
-                    int32_t t, hi, lo;
-
-                    hi = factor >> 16;
-                    lo = factor & 0xFFFF;
-
-                    t = (int32_t) *d - 0x80;
-                    t = ((t * lo) >> 16) + (t * hi);
-                    t = PA_CLAMP_UNLIKELY(t, -0x80, 0x7F);
-                    *d = (uint8_t) (t + 0x80);
-
-                    if (PA_UNLIKELY(++channel >= e->sample_spec.channels)) {
-                        channel = 0;
-                        e->x += fs;
-                        factor = linear_get_int(e, v);
-                    }
+                    for (c = 0; c < e->sample_spec.channels; c++, t++)
+                        *t = (uint8_t) (((factor * ((int16_t) *t - 0x80)) / 0x10000) + 0x80);
                 }
 
                 break;
             }
 
             case PA_SAMPLE_ULAW: {
-                uint8_t *d, *s;
-                unsigned channel;
-                int32_t factor = linear_get_int(e, v);
+                uint8_t *t;
 
-                s = (uint8_t*) p + n;
+                for (t = p; n > 0; n -= fs) {
+                    int32_t factor = linear_get_int(e, v);
+                    unsigned c;
+                    e->x += fs;
 
-                for (channel = 0, d = p; d < s; d++) {
-                    int32_t t, hi, lo;
-
-                    hi = factor >> 16;
-                    lo = factor & 0xFFFF;
-
-                    t = (int32_t) st_ulaw2linear16(*d);
-                    t = ((t * lo) >> 16) + (t * hi);
-                    t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
-                    *d = (uint8_t) st_14linear2ulaw((int16_t) t >> 2);
-
-                     if (PA_UNLIKELY(++channel >= e->sample_spec.channels)) {
-                        channel = 0;
-                        e->x += fs;
-                        factor = linear_get_int(e, v);
+                    for (c = 0; c < e->sample_spec.channels; c++, t++) {
+                        int16_t k = st_ulaw2linear16(*t);
+                        *t = (uint8_t) st_14linear2ulaw((int16_t) (((factor * k) / 0x10000) >> 2));
                     }
                 }
 
@@ -658,27 +632,16 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
             }
 
             case PA_SAMPLE_ALAW: {
-                uint8_t *d, *s;
-                unsigned channel;
-                int32_t factor = linear_get_int(e, v);
+                uint8_t *t;
 
-                s = (uint8_t*) p + n;
+                for (t = p; n > 0; n -= fs) {
+                    int32_t factor = linear_get_int(e, v);
+                    unsigned c;
+                    e->x += fs;
 
-                for (channel = 0, d = p; d < s; d++) {
-                    int32_t t, hi, lo;
-
-                    hi = factor >> 16;
-                    lo = factor & 0xFFFF;
-
-                    t = (int32_t) st_alaw2linear16(*d);
-                    t = ((t * lo) >> 16) + (t * hi);
-                    t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
-                    *d = (uint8_t) st_13linear2alaw((int16_t) t >> 3);
-
-                    if (PA_UNLIKELY(++channel >= e->sample_spec.channels)) {
-                        channel = 0;
-                        e->x += fs;
-                        factor = linear_get_int(e, v);
+                    for (c = 0; c < e->sample_spec.channels; c++, t++) {
+                        int16_t k = st_alaw2linear16(*t);
+                        *t = (uint8_t) st_13linear2alaw((int16_t) (((factor * k) / 0x10000) >> 3));
                     }
                 }
 
@@ -686,55 +649,31 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
             }
 
             case PA_SAMPLE_S16NE: {
-                int16_t *d, *s;
-                unsigned channel;
-                int32_t factor = linear_get_int(e, v);
+                int16_t *t;
 
-                s = (int16_t*) p + n/sizeof(int16_t);
+                for (t = p; n > 0; n -= fs) {
+                    int32_t factor = linear_get_int(e, v);
+                    unsigned c;
+                    e->x += fs;
 
-                for (channel = 0, d = p; d < s; d++) {
-                    int32_t t, hi, lo;
-
-                    hi = factor >> 16;
-                    lo = factor & 0xFFFF;
-
-                    t = (int32_t)(*d);
-                    t = ((t * lo) >> 16) + (t * hi);
-                    t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
-                    *d = (int16_t) t;
-
-                    if (PA_UNLIKELY(++channel >= e->sample_spec.channels)) {
-                        channel = 0;
-                        e->x += fs;
-                        factor = linear_get_int(e, v);
-                    }
+                    for (c = 0; c < e->sample_spec.channels; c++, t++)
+                        *t = (int16_t) ((factor * *t) / 0x10000);
                 }
 
                 break;
             }
 
             case PA_SAMPLE_S16RE: {
-                int16_t *d, *s;
-                unsigned channel;
-                int32_t factor = linear_get_int(e, v);
+                int16_t *t;
 
-                s = (int16_t*) p + n/sizeof(int16_t);
+                for (t = p; n > 0; n -= fs) {
+                    int32_t factor = linear_get_int(e, v);
+                    unsigned c;
+                    e->x += fs;
 
-                for (channel = 0, d = p; d < s; d++) {
-                    int32_t t, hi, lo;
-
-                    hi = factor >> 16;
-                    lo = factor & 0xFFFF;
-
-                    t = (int32_t) PA_INT16_SWAP(*d);
-                    t = ((t * lo) >> 16) + (t * hi);
-                    t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
-                    *d = PA_INT16_SWAP((int16_t) t);
-
-                    if (PA_UNLIKELY(++channel >= e->sample_spec.channels)) {
-                        channel = 0;
-                        e->x += fs;
-                        factor = linear_get_int(e, v);
+                    for (c = 0; c < e->sample_spec.channels; c++, t++) {
+                        int16_t r = (int16_t) ((factor * PA_INT16_SWAP(*t)) / 0x10000);
+                        *t = PA_INT16_SWAP(r);
                     }
                 }
 
@@ -742,49 +681,31 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
             }
 
             case PA_SAMPLE_S32NE: {
-                int32_t *d, *s;
-                unsigned channel;
-                int32_t factor = linear_get_int(e, v);
+                int32_t *t;
 
-                s = (int32_t*) p + n/sizeof(int32_t);
+                for (t = p; n > 0; n -= fs) {
+                    int32_t factor = linear_get_int(e, v);
+                    unsigned c;
+                    e->x += fs;
 
-                for (channel = 0, d = p; d < s; d++) {
-                    int64_t t;
-
-                    t = (int64_t)(*d);
-                    t = (t * factor) >> 16;
-                    t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
-                    *d = (int32_t) t;
-
-                    if (PA_UNLIKELY(++channel >= e->sample_spec.channels)) {
-                        channel = 0;
-                        e->x += fs;
-                        factor = linear_get_int(e, v);
-                    }
+                    for (c = 0; c < e->sample_spec.channels; c++, t++)
+                        *t = (int32_t) (((int64_t) factor * (int64_t) *t) / 0x10000);
                 }
 
                 break;
             }
 
             case PA_SAMPLE_S32RE: {
-                int32_t *d, *s;
-                unsigned channel;
-                int32_t factor = linear_get_int(e, v);
+                int32_t *t;
 
-                s = (int32_t*) p + n/sizeof(int32_t);
+                for (t = p; n > 0; n -= fs) {
+                    int32_t factor = linear_get_int(e, v);
+                    unsigned c;
+                    e->x += fs;
 
-                for (channel = 0, d = p; d < s; d++) {
-                    int64_t t;
-
-                    t = (int64_t) PA_INT32_SWAP(*d);
-                    t = (t * factor) >> 16;
-                    t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
-                    *d = PA_INT32_SWAP((int32_t) t);
-
-                    if (PA_UNLIKELY(++channel >= e->sample_spec.channels)) {
-                        channel = 0;
-                        e->x += fs;
-                        factor = linear_get_int(e, v);
+                    for (c = 0; c < e->sample_spec.channels; c++, t++) {
+                        int32_t r = (int32_t) (((int64_t) factor * (int64_t) PA_INT32_SWAP(*t)) / 0x10000);
+                        *t = PA_INT32_SWAP(r);
                     }
                 }
 
@@ -792,7 +713,6 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
             }
 
             case PA_SAMPLE_FLOAT32NE: {
-            /*Seems the FLOAT32NE part of pa_volume_memchunk not right, do not reuse here*/
                 float *t;
 
                 for (t = p; n > 0; n -= fs) {
@@ -808,7 +728,6 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
             }
 
             case PA_SAMPLE_FLOAT32RE: {
-            /*Seems the FLOAT32RE part of pa_volume_memchunk not right, do not reuse here*/
                 float *t;
 
                 for (t = p; n > 0; n -= fs) {
@@ -825,101 +744,10 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
                 break;
             }
 
-            case PA_SAMPLE_S24NE: {
-                uint8_t *d, *s;
-                unsigned channel;
-                int32_t factor = linear_get_int(e, v);
-
-                s = (uint8_t*) p + n/3;
-
-                for (channel = 0, d = p; d < s; d++) {
-                    int64_t t;
-
-                    t = (int64_t)((int32_t) (PA_READ24NE(d) << 8));
-                    t = (t * factor) >> 16;
-                    t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
-                    PA_WRITE24NE(d, ((uint32_t) (int32_t) t) >> 8);
-
-                    if (PA_UNLIKELY(++channel >= e->sample_spec.channels)) {
-                            channel = 0;
-                            e->x += fs;
-                            factor = linear_get_int(e, v);
-                    }
-                }
-
-                break;
-            }
-            case PA_SAMPLE_S24RE: {
-                uint8_t *d, *s;
-                unsigned channel;
-                int32_t factor = linear_get_int(e, v);
-
-                s = (uint8_t*) p + n/3;
-
-                for (channel = 0, d = p; d < s; d++) {
-                    int64_t t;
-
-                    t = (int64_t)((int32_t) (PA_READ24RE(d) << 8));
-                    t = (t * factor) >> 16;
-                    t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
-                    PA_WRITE24RE(d, ((uint32_t) (int32_t) t) >> 8);
-
-                    if (PA_UNLIKELY(++channel >= e->sample_spec.channels)) {
-                            channel = 0;
-                            e->x += fs;
-                            factor = linear_get_int(e, v);
-                    }
-                }
-
-                break;
-            }
-            case PA_SAMPLE_S24_32NE: {
-                uint32_t *d, *s;
-                unsigned channel;
-                int32_t factor = linear_get_int(e, v);
-
-                s = (uint32_t*) p + n/sizeof(uint32_t);
-
-                for (channel = 0, d = p; d < s; d++) {
-                    int64_t t;
-
-                    t = (int64_t) ((int32_t) (*d << 8));
-                    t = (t * factor) >> 16;
-                    t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
-                    *d = ((uint32_t) ((int32_t) t)) >> 8;
-
-                    if (PA_UNLIKELY(++channel >= e->sample_spec.channels)) {
-                            channel = 0;
-                            e->x += fs;
-                            factor = linear_get_int(e, v);
-                    }
-                }
-
-                break;
-            }
-            case PA_SAMPLE_S24_32RE: {
-                uint32_t *d, *s;
-                unsigned channel;
-                int32_t factor = linear_get_int(e, v);
-
-                s = (uint32_t*) p + n/sizeof(uint32_t);
-
-                for (channel = 0, d = p; d < s; d++) {
-                    int64_t t;
-
-                    t = (int64_t) ((int32_t) (PA_UINT32_SWAP(*d) << 8));
-                    t = (t * factor) >> 16;
-                    t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
-                    *d = PA_UINT32_SWAP(((uint32_t) ((int32_t) t)) >> 8);
-
-                    if (PA_UNLIKELY(++channel >= e->sample_spec.channels)) {
-                            channel = 0;
-                            e->x += fs;
-                            factor = linear_get_int(e, v);
-                    }
-                }
-                break;
-            }
+            case PA_SAMPLE_S24LE:
+            case PA_SAMPLE_S24BE:
+            case PA_SAMPLE_S24_32LE:
+            case PA_SAMPLE_S24_32BE:
                 /* FIXME */
                 pa_assert_not_reached();
 
@@ -929,6 +757,8 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
         }
 
         pa_memblock_release(chunk->memblock);
+
+        e->x += chunk->length;
     } else {
         /* When we have no envelope to apply we reset our origin */
         e->x = 0;
@@ -944,46 +774,13 @@ void pa_envelope_rewind(pa_envelope *e, size_t n_bytes) {
 
     envelope_begin_read(e, &v);
 
-    if (e->x - n_bytes <= e->points[v].x[0])
-        e->x = e->points[v].x[0];
-    else
+    if (n_bytes < e->x)
         e->x -= n_bytes;
+    else
+        e->x = 0;
 
     e->points[v].n_current = 0;
     e->points[v].cached_valid = FALSE;
 
     envelope_commit_read(e, v);
-}
-
-void pa_envelope_restart(pa_envelope* e) {
-    int v;
-    pa_assert(e);
-
-    envelope_begin_read(e, &v);
-    e->x = e->points[v].x[0];
-    envelope_commit_read(e, v);
-}
-
-pa_bool_t pa_envelope_is_finished(pa_envelope* e) {
-    int v;
-    pa_bool_t finished;
-
-    pa_assert(e);
-    envelope_begin_read(e, &v);
-    finished = (e->x >=  e->points[v].x[e->points[v].n_points-1]);
-    envelope_commit_read(e, v);
-
-    return finished;
-}
-
-int32_t pa_envelope_length(pa_envelope *e) {
-    int v;
-    size_t size;
-
-    pa_assert(e);
-    envelope_begin_read(e, &v);
-    size = e->points[v].x[e->points[v].n_points-1] - e->points[v].x[0];
-    envelope_commit_read(e, v);
-
-    return size;
 }
