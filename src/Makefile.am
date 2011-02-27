@@ -1896,21 +1896,26 @@ daemon.conf: daemon/daemon.conf.in Makefile
 	sed -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
 		-e 's,@PA_DEFAULT_CONFIG_FILE\@,$(DEFAULT_CONFIG_DIR),g' < $< > $@
 
+if OS_IS_WIN32
+SYMLINK_PROGRAM=cd $(DESTDIR)$(bindir) && cp
+else
+SYMLINK_PROGRAM=ln -sf
+endif
 install-exec-hook:
 	-chown root $(DESTDIR)$(pulselibexecdir)/proximity-helper
 	-chmod u+s $(DESTDIR)$(pulselibexecdir)/proximity-helper
-	ln -sf pacat $(DESTDIR)$(bindir)/parec
-	ln -sf pacat $(DESTDIR)$(bindir)/pamon
-	ln -sf pacat $(DESTDIR)$(bindir)/paplay
-	ln -sf pacat $(DESTDIR)$(bindir)/parecord
+	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/parec$(EXEEXT)
+	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/pamon$(EXEEXT)
+	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/paplay$(EXEEXT)
+	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/parecord$(EXEEXT)
 	rm -f $(DESTDIR)$(libdir)/libpulsedsp.la
 	rm -f $(DESTDIR)$(modlibexecdir)/*.la
 
 uninstall-hook:
-	rm -f $(DESTDIR)$(bindir)/parec
-	rm -f $(DESTDIR)$(bindir)/pamon
-	rm -f $(DESTDIR)$(bindir)/paplay
-	rm -f $(DESTDIR)$(bindir)/parecord
+	rm -f $(DESTDIR)$(bindir)/parec$(EXEEXT)
+	rm -f $(DESTDIR)$(bindir)/pamon$(EXEEXT)
+	rm -f $(DESTDIR)$(bindir)/paplay$(EXEEXT)
+	rm -f $(DESTDIR)$(bindir)/parecord$(EXEEXT)
 	rm -f $(DESTDIR)$(libdir)/libpulsedsp.*
 	rm -f $(DESTDIR)$(modlibexecdir)/*.so
 
