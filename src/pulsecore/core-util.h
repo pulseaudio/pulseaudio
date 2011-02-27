@@ -271,4 +271,8 @@ void pa_nullify_stdfds(void);
 char *pa_read_line_from_file(const char *fn);
 pa_bool_t pa_running_in_vm(void);
 
+#ifdef OS_IS_WIN32
+char *pa_win32_get_toplevel(HANDLE handle);
+#endif
+
 #endif

@@ -37,11 +37,7 @@ dbuspolicydir=$(sysconfdir)/dbus-1/system.d
 ###################################
 
 PA_BINARY=$(bindir)/pulseaudio$(EXEEXT)
-if OS_IS_WIN32
-PA_DEFAULT_CONFIG_DIR=%PULSE_ROOT%
-else
 PA_DEFAULT_CONFIG_DIR=$(pulseconfdir)
-endif
 
 ###################################
 #     Compiler/linker flags       #
