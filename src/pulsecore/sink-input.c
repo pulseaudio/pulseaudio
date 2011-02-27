@@ -2040,7 +2040,6 @@ void pa_sink_input_set_volume_with_ramping(pa_sink_input *i, const pa_cvolume *v
         else
             volume = pa_sw_cvolume_multiply_scalar(&v, &v, pa_cvolume_max(volume));
     } else {
-
         if (!pa_cvolume_compatible(volume, &i->sample_spec)) {
             v = i->volume;
             volume = pa_cvolume_scale(&v, pa_cvolume_max(volume));
@@ -2095,18 +2094,15 @@ void pa_sink_input_set_volume_with_ramping(pa_sink_input *i, const pa_cvolume *v
 
 void pa_sink_input_set_mute_with_ramping(pa_sink_input *i, pa_bool_t mute, pa_bool_t save, pa_usec_t t){
 
+    pa_assert(i);
     pa_sink_input_assert_ref(i);
-    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
-    if (!i->muted == !mute) {
-        i->save_muted = i->save_muted || mute;
+    if (!i->muted == !mute)
         return;
-    }
 
     i->muted = mute;
     i->save_muted = save;
-
     /* Set this flag before the following code modify i->thread_info.muted, otherwise distortion will be heard */
     if (t > 0)
         pa_atomic_store(&i->before_ramping_m, 1);
@@ -2115,10 +2111,6 @@ void pa_sink_input_set_mute_with_ramping(pa_sink_input *i, pa_bool_t mute, pa_bo
 
     if (t > 0)
         sink_input_set_ramping_info_for_mute(i, mute, t);
-
-    /* The mute status changed, let's tell people so */
-    if (i->mute_changed)
-        i->mute_changed(i);
 
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 }
