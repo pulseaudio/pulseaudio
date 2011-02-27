@@ -109,7 +109,6 @@ src/pulsecore/core-error.c
 src/pulsecore/strbuf.c
 src/pulsecore/play-memblockq.c
 src/pulsecore/dllmain.c
-src/pulsecore/envelope.c
 src/pulsecore/pid.c
 src/pulsecore/thread-mq.c
 src/pulsecore/shm.c

@@ -259,7 +259,6 @@ TESTS = \
 		smoother-test \
 		mix-test \
 		remix-test \
-		envelope-test \
 		proplist-test \
 		lock-autospawn-test \
 		prioq-test
