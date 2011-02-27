@@ -3178,11 +3178,11 @@ void pa_sink_volume_change_push(pa_sink *s) {
         PA_LLIST_INSERT_AFTER(pa_sink_volume_change, s->thread_info.volume_changes, c, nc);
     }
 
-    pa_log_debug("Volume going %s to %d at %llu", direction, pa_cvolume_avg(&nc->hw_volume), nc->at);
+    pa_log_debug("Volume going %s to %d at %llu", direction, pa_cvolume_avg(&nc->hw_volume), (long long unsigned) nc->at);
 
     /* We can ignore volume events that came earlier but should happen later than this. */
     PA_LLIST_FOREACH(c, nc->next) {
-        pa_log_debug("Volume change to %d at %llu was dropped", pa_cvolume_avg(&c->hw_volume), c->at);
+        pa_log_debug("Volume change to %d at %llu was dropped", pa_cvolume_avg(&c->hw_volume), (long long unsigned) c->at);
         pa_sink_volume_change_free(c);
     }
     nc->next = NULL;
@@ -3213,7 +3213,8 @@ pa_bool_t pa_sink_volume_change_apply(pa_sink *s, pa_usec_t *usec_to_next) {
     while (s->thread_info.volume_changes && now >= s->thread_info.volume_changes->at) {
         pa_sink_volume_change *c = s->thread_info.volume_changes;
         PA_LLIST_REMOVE(pa_sink_volume_change, s->thread_info.volume_changes, c);
-        pa_log_debug("Volume change to %d at %llu was written %llu usec late", pa_cvolume_avg(&c->hw_volume), c->at, now - c->at);
+        pa_log_debug("Volume change to %d at %llu was written %llu usec late",
+                     pa_cvolume_avg(&c->hw_volume), (long long unsigned) c->at, (long long unsigned) (now - c->at));
         ret = TRUE;
         s->thread_info.current_hw_volume = c->hw_volume;
         pa_sink_volume_change_free(c);
@@ -3226,7 +3227,7 @@ pa_bool_t pa_sink_volume_change_apply(pa_sink *s, pa_usec_t *usec_to_next) {
         if (usec_to_next)
             *usec_to_next = s->thread_info.volume_changes->at - now;
         if (pa_log_ratelimit(PA_LOG_DEBUG))
-            pa_log_debug("Next volume change in %lld usec", s->thread_info.volume_changes->at - now);
+            pa_log_debug("Next volume change in %lld usec", (long long) (s->thread_info.volume_changes->at - now));
     }
     else {
         if (usec_to_next)
@@ -3244,7 +3245,7 @@ static void pa_sink_volume_change_rewind(pa_sink *s, size_t nbytes) {
     pa_usec_t rewound = pa_bytes_to_usec(nbytes, &s->sample_spec);
     pa_usec_t limit = pa_sink_get_latency_within_thread(s);
 
-    pa_log_debug("latency = %lld", limit);
+    pa_log_debug("latency = %lld", (long long) limit);
     limit += pa_rtclock_now() + s->thread_info.volume_change_extra_delay;
 
     PA_LLIST_FOREACH(c, s->thread_info.volume_changes) {
