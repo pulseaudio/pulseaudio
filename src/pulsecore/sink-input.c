@@ -2003,7 +2003,7 @@ static void sink_input_rewind_ramp_info(pa_sink_input *i, size_t nbytes) {
                 i->thread_info.ramp_info.is_ramping = TRUE;
             }
         } else if (i->thread_info.ramp_info.envelope_dying < envelope_length) {
-            if ((i->thread_info.ramp_info.envelope_dying - (ssize_t) nbytes) <= 0) {
+            if ((i->thread_info.ramp_info.envelope_dying - nbytes) <= 0) {
                 pa_log_debug("Envelope Restart");
                 pa_envelope_restart(i->thread_info.ramp_info.envelope);
             }
