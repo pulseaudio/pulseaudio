@@ -254,6 +254,18 @@ PA_C_DECL_BEGIN
 /** For modules: a version string for the module. e.g. "0.9.15" */
 #define PA_PROP_MODULE_VERSION                 "module.version"
 
+/** For PCM formats: the sample format used as returned by pa_sample_format_to_string() \since 1.0 */
+#define PA_PROP_FORMAT_SAMPLE_FORMAT           "format.sample_format"
+
+/** For all formats: the sample rate (unsigned integer) \since 1.0 */
+#define PA_PROP_FORMAT_RATE                    "format.rate"
+
+/** For all formats: the number of channels (unsigned integer) \since 1.0 */
+#define PA_PROP_FORMAT_CHANNELS                "format.channels"
+
+/** For PCM formats: the channel map of the stream as returned by pa_channel_map_snprint() \since 1.0 */
+#define PA_PROP_FORMAT_CHANNEL_MAP             "format.channel_map"
+
 /** A property list object. Basically a dictionary with ASCII strings
  * as keys and arbitrary data as values. \since 0.9.11 */
 typedef struct pa_proplist pa_proplist;
