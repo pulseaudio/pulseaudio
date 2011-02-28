@@ -31,6 +31,7 @@
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
+#include <pulse/internal.h>
 
 #include <pulsecore/sample-util.h>
 #include <pulsecore/core-subscribe.h>
@@ -146,8 +147,74 @@ void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mu
     data->muted = !!mute;
 }
 
-void pa_sink_input_new_data_done(pa_sink_input_new_data *data) {
+static void free_format_info(pa_format_info *f, void *userdata) {
+    pa_format_info_free(f);
+}
+
+pa_bool_t pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, pa_bool_t save) {
+    pa_bool_t ret = TRUE;
+    pa_idxset *formats = NULL;
+
     pa_assert(data);
+    pa_assert(s);
+
+    if (!data->req_formats) {
+        /* We're not working with the extended API */
+        data->sink = s;
+        data->save_sink = save;
+    } else {
+        /* Extended API: let's see if this sink supports the formats the client can provide */
+        formats = pa_sink_check_formats(s, data->req_formats);
+
+        if (formats && !pa_idxset_isempty(formats)) {
+            /* Sink supports at least one of the requested formats */
+            data->sink = s;
+            data->save_sink = save;
+            if (data->nego_formats)
+                pa_idxset_free(data->nego_formats, (pa_free2_cb_t) free_format_info, NULL);
+            data->nego_formats = formats;
+        } else {
+            /* Sink doesn't support any of the formats requested by the client */
+            if (formats)
+                pa_idxset_free(formats, (pa_free2_cb_t) free_format_info, NULL);
+            ret = FALSE;
+        }
+    }
+
+    return ret;
+}
+
+pa_bool_t pa_sink_input_new_data_set_formats(pa_sink_input_new_data *data, pa_idxset *formats) {
+    pa_assert(data);
+    pa_assert(formats);
+
+    if (data->req_formats)
+        pa_idxset_free(formats, (pa_free2_cb_t) free_format_info, NULL);
+
+    data->req_formats = formats;
+
+    if (data->sink) {
+        /* Trigger format negotiation */
+        return pa_sink_input_new_data_set_sink(data, data->sink, data->save_sink);
+    }
+
+    return TRUE;
+}
+
+void pa_sink_input_new_data_done(pa_sink_input_new_data *data) {
+    pa_format_info *f;
+    int i;
+
+    pa_assert(data);
+
+    if (data->req_formats)
+        pa_idxset_free(data->req_formats, (pa_free2_cb_t) free_format_info, NULL);
+
+    if (data->nego_formats)
+        pa_idxset_free(data->nego_formats, (pa_free2_cb_t) free_format_info, NULL);
+
+    if (data->format)
+        pa_format_info_free(data->format);
 
     pa_proplist_free(data->proplist);
 }
@@ -189,6 +256,8 @@ int pa_sink_input_new(
     pa_channel_map original_cm;
     int r;
     char *pt;
+    pa_sample_spec ss;
+    pa_channel_map map;
 
     pa_assert(_i);
     pa_assert(core);
@@ -201,14 +270,43 @@ int pa_sink_input_new(
     if (data->origin_sink && (data->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
         data->volume_writable = FALSE;
 
+    if (!data->req_formats) {
+        /* From this point on, we want to work only with formats, and get back
+         * to using the sample spec and channel map after all decisions w.r.t.
+         * routing are complete. */
+        pa_idxset *tmp = pa_idxset_new(NULL, NULL);
+        pa_format_info *f = pa_format_info_from_sample_spec(&data->sample_spec, &data->channel_map);
+        pa_idxset_put(tmp, f, NULL);
+        pa_sink_input_new_data_set_formats(data, tmp);
+    }
+
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], data)) < 0)
         return r;
 
     pa_return_val_if_fail(!data->driver || pa_utf8_valid(data->driver), -PA_ERR_INVALID);
 
-    if (!data->sink) {
-        data->sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK);
-        data->save_sink = FALSE;
+    if (!data->sink)
+        pa_sink_input_new_data_set_sink(data, pa_namereg_get(core, NULL, PA_NAMEREG_SINK), FALSE);
+
+    /* Routing's done, we have a sink. Now let's fix the format and set up the
+     * sample spec */
+    pa_return_val_if_fail(data->format || (data->nego_formats && !pa_idxset_isempty(data->nego_formats)), -PA_ERR_INVALID);
+    /* If something didn't pick a format for us, pick the top-most format since
+     * we assume this is sorted in priority order */
+    if (!data->format)
+        data->format = pa_format_info_copy(pa_idxset_first(data->nego_formats, NULL));
+    /* Now populate the sample spec and format according to the final
+     * format that we've negotiated */
+    if (PA_LIKELY(data->format->encoding == PA_ENCODING_PCM)) {
+        pa_format_info_to_sample_spec(data->format, &ss, &map);
+        pa_sink_input_new_data_set_sample_spec(data, &ss);
+        if (pa_channel_map_valid(&map))
+            pa_sink_input_new_data_set_channel_map(data, &map);
+    } else {
+        pa_format_info_to_sample_spec_fake(data->format, &ss);
+        pa_sink_input_new_data_set_sample_spec(data, &ss);
+        /* XXX: this is redundant - we can just check the encoding */
+        data->flags |= PA_SINK_INPUT_PASSTHROUGH;
     }
 
     pa_return_val_if_fail(data->sink, -PA_ERR_NOENTITY);
@@ -329,6 +427,7 @@ int pa_sink_input_new(
     i->actual_resample_method = resampler ? pa_resampler_get_method(resampler) : PA_RESAMPLER_INVALID;
     i->sample_spec = data->sample_spec;
     i->channel_map = data->channel_map;
+    i->format = pa_format_info_copy(data->format);
 
     if (!data->volume_is_absolute && pa_sink_flat_volume_enabled(i->sink)) {
         pa_cvolume remapped;
@@ -563,6 +662,9 @@ static void sink_input_free(pa_object *o) {
 
     if (i->thread_info.resampler)
         pa_resampler_free(i->thread_info.resampler);
+
+    if (i->format)
+        pa_format_info_free(i->format);
 
     if (i->proplist)
         pa_proplist_free(i->proplist);

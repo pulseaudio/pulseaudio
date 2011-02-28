@@ -122,6 +122,8 @@ typedef struct pa_index_correction {
     pa_bool_t corrupt:1;
 } pa_index_correction;
 
+#define PA_MAX_FORMATS (PA_ENCODING_MAX)
+
 struct pa_stream {
     PA_REFCNT_DECLARE;
     PA_LLIST_FIELDS(pa_stream);
@@ -137,6 +139,9 @@ struct pa_stream {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+    uint8_t n_formats;
+    pa_format_info *req_formats[PA_MAX_FORMATS];
+    pa_format_info *format;
 
     pa_proplist *proplist;
 

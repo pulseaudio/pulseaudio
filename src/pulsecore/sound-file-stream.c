@@ -299,7 +299,7 @@ int pa_play_file(
     u->readf_function = pa_sndfile_readf_function(&ss);
 
     pa_sink_input_new_data_init(&data);
-    data.sink = sink;
+    pa_sink_input_new_data_set_sink(&data, sink, FALSE);
     data.driver = __FILE__;
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
     pa_sink_input_new_data_set_channel_map(&data, &cm);

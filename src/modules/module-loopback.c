@@ -695,7 +695,7 @@ int pa__init(pa_module *m) {
     pa_sink_input_new_data_init(&sink_input_data);
     sink_input_data.driver = __FILE__;
     sink_input_data.module = m;
-    sink_input_data.sink = sink;
+    pa_sink_input_new_data_set_sink(&sink_input_data, sink, FALSE);
 
     if ((n = pa_modargs_get_value(ma, "sink_input_name", NULL)))
         pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, n);

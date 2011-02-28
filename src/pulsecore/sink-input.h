@@ -28,6 +28,7 @@
 typedef struct pa_sink_input pa_sink_input;
 
 #include <pulse/sample.h>
+#include <pulse/format.h>
 #include <pulsecore/hook-list.h>
 #include <pulsecore/memblockq.h>
 #include <pulsecore/resampler.h>
@@ -92,6 +93,7 @@ struct pa_sink_input {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+    pa_format_info *format;
 
     pa_sink_input *sync_prev, *sync_next;
 
@@ -279,6 +281,9 @@ typedef struct pa_sink_input_new_data {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+    pa_format_info *format;
+    pa_idxset *req_formats;
+    pa_idxset *nego_formats;
 
     pa_cvolume volume, volume_factor, volume_factor_sink;
     pa_bool_t muted:1;
@@ -303,6 +308,8 @@ void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cv
 void pa_sink_input_new_data_apply_volume_factor(pa_sink_input_new_data *data, const pa_cvolume *volume_factor);
 void pa_sink_input_new_data_apply_volume_factor_sink(pa_sink_input_new_data *data, const pa_cvolume *volume_factor);
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute);
+pa_bool_t pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, pa_bool_t save);
+pa_bool_t pa_sink_input_new_data_set_formats(pa_sink_input_new_data *data, pa_idxset *formats);
 void pa_sink_input_new_data_done(pa_sink_input_new_data *data);
 
 /* To be called by the implementing module only */

@@ -1014,6 +1014,7 @@ static playback_stream* playback_stream_new(
         pa_sink *sink,
         pa_sample_spec *ss,
         pa_channel_map *map,
+        pa_idxset *formats,
         pa_buffer_attr *a,
         pa_cvolume *volume,
         pa_bool_t muted,
@@ -1067,12 +1068,14 @@ static playback_stream* playback_stream_new(
     data.driver = __FILE__;
     data.module = c->options->module;
     data.client = c->client;
-    if (sink) {
-        data.sink = sink;
-        data.save_sink = TRUE;
-    }
-    pa_sink_input_new_data_set_sample_spec(&data, ss);
-    pa_sink_input_new_data_set_channel_map(&data, map);
+    if (sink)
+        pa_sink_input_new_data_set_sink(&data, sink, TRUE);
+    if (pa_sample_spec_valid(ss))
+        pa_sink_input_new_data_set_sample_spec(&data, ss);
+    if (pa_channel_map_valid(map))
+        pa_sink_input_new_data_set_channel_map(&data, map);
+    if (formats)
+        pa_sink_input_new_data_set_formats(&data, formats);
     if (volume) {
         pa_sink_input_new_data_set_volume(&data, volume);
         data.volume_is_absolute = !relative_volume;
@@ -1846,6 +1849,10 @@ static pa_tagstruct *reply_new(uint32_t tag) {
     return reply;
 }
 
+static void free_format_info(pa_format_info *f, void *userdata) {
+    pa_format_info_free(f);
+}
+
 static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     playback_stream *s;
@@ -1876,9 +1883,13 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         passthrough = FALSE;
 
     pa_sink_input_flags_t flags = 0;
-    pa_proplist *p;
+    pa_proplist *p = NULL;
     pa_bool_t volume_set = TRUE;
     int ret = PA_ERR_INVALID;
+    uint8_t n_formats = 0;
+    pa_format_info *format;
+    pa_idxset *formats = NULL;
+    uint32_t i;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
@@ -1901,17 +1912,14 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
                 PA_TAG_INVALID) < 0) {
 
         protocol_error(c);
-        return;
+        goto error;
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
     CHECK_VALIDITY(c->pstream, !sink_name || pa_namereg_is_valid_name_or_wildcard(sink_name, PA_NAMEREG_SINK), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, sink_index == PA_INVALID_INDEX || !sink_name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !sink_name || sink_index == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, pa_channel_map_valid(&map), tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, pa_cvolume_valid(&volume), tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, map.channels == ss.channels && volume.channels == ss.channels, tag, PA_ERR_INVALID);
 
     p = pa_proplist_new();
 
@@ -1930,8 +1938,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
             pa_tagstruct_get_boolean(t, &variable_rate) < 0) {
 
             protocol_error(c);
-            pa_proplist_free(p);
-            return;
+            goto error;
         }
     }
 
@@ -1940,9 +1947,9 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         if (pa_tagstruct_get_boolean(t, &muted) < 0 ||
             pa_tagstruct_get_boolean(t, &adjust_latency) < 0 ||
             pa_tagstruct_get_proplist(t, p) < 0) {
+
             protocol_error(c);
-            pa_proplist_free(p);
-            return;
+            goto error;
         }
     }
 
@@ -1950,9 +1957,9 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
 
         if (pa_tagstruct_get_boolean(t, &volume_set) < 0 ||
             pa_tagstruct_get_boolean(t, &early_requests) < 0) {
+
             protocol_error(c);
-            pa_proplist_free(p);
-            return;
+            goto error;
         }
     }
 
@@ -1961,18 +1968,18 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         if (pa_tagstruct_get_boolean(t, &muted_set) < 0 ||
             pa_tagstruct_get_boolean(t, &dont_inhibit_auto_suspend) < 0 ||
             pa_tagstruct_get_boolean(t, &fail_on_suspend) < 0) {
+
             protocol_error(c);
-            pa_proplist_free(p);
-            return;
+            goto error;
         }
     }
 
     if (c->version >= 17) {
 
         if (pa_tagstruct_get_boolean(t, &relative_volume) < 0) {
+
             protocol_error(c);
-            pa_proplist_free(p);
-            return;
+            goto error;
         }
     }
 
@@ -1980,31 +1987,52 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
 
         if (pa_tagstruct_get_boolean(t, &passthrough) < 0 ) {
             protocol_error(c);
-            pa_proplist_free(p);
-            return;
+            goto error;
         }
     }
 
+    if (c->version >= 21) {
+
+        if (pa_tagstruct_getu8(t, &n_formats) < 0) {
+            protocol_error(c);
+            goto error;
+        }
+
+        if (n_formats)
+            formats = pa_idxset_new(NULL, NULL);
+
+        for (i = 0; i < n_formats; i++) {
+            format = pa_format_info_new();
+            if (pa_tagstruct_get_format_info(t, format) < 0) {
+                protocol_error(c);
+                goto error;
+            }
+            pa_idxset_put(formats, format, NULL);
+        }
+    }
+
+    CHECK_VALIDITY(c->pstream, n_formats > 0 || pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, n_formats > 0 || (map.channels == ss.channels && volume.channels == ss.channels), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, n_formats > 0 || pa_channel_map_valid(&map), tag, PA_ERR_INVALID);
+    /* XXX: add checks on formats. At least inverse checks of the 3 above */
+
     if (!pa_tagstruct_eof(t)) {
         protocol_error(c);
-        pa_proplist_free(p);
-        return;
+        goto error;
     }
 
     if (sink_index != PA_INVALID_INDEX) {
 
         if (!(sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index))) {
             pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-            pa_proplist_free(p);
-            return;
+            goto error;
         }
 
     } else if (sink_name) {
 
         if (!(sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK))) {
             pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-            pa_proplist_free(p);
-            return;
+            goto error;
         }
     }
 
@@ -2025,7 +2053,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
      * flag. For older versions we synthesize it here */
     muted_set = muted_set || muted;
 
-    s = playback_stream_new(c, sink, &ss, &map, &attr, volume_set ? &volume : NULL, muted, muted_set, syncid, &missing, flags, p, adjust_latency, early_requests, relative_volume, &ret);
+    s = playback_stream_new(c, sink, &ss, &map, formats, &attr, volume_set ? &volume : NULL, muted, muted_set, syncid, &missing, flags, p, adjust_latency, early_requests, relative_volume, &ret);
     pa_proplist_free(p);
 
     CHECK_VALIDITY(c->pstream, s, tag, ret);
@@ -2064,7 +2092,26 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
     if (c->version >= 13)
         pa_tagstruct_put_usec(reply, s->configured_sink_latency);
 
+    if (c->version >= 21) {
+        /* Send back the format we negotiated */
+        if (s->sink_input->format)
+            pa_tagstruct_put_format_info(reply, s->sink_input->format);
+        else {
+            pa_format_info *f = pa_format_info_new();
+            pa_tagstruct_put_format_info(reply, f);
+            pa_format_info_free(f);
+        }
+    }
+
     pa_pstream_send_tagstruct(c->pstream, reply);
+    return;
+
+error:
+    if (p)
+        pa_proplist_free(p);
+    if (formats)
+        pa_idxset_free(formats, (pa_free2_cb_t) free_format_info, NULL);
+    return;
 }
 
 static void command_delete_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {

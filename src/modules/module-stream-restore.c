@@ -1301,11 +1301,9 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         /* It might happen that a stream and a sink are set up at the
            same time, in which case we want to make sure we don't
            interfere with that */
-        if (s && PA_SINK_IS_LINKED(pa_sink_get_state(s))) {
-            pa_log_info("Restoring device for stream %s.", name);
-            new_data->sink = s;
-            new_data->save_sink = TRUE;
-        }
+        if (s && PA_SINK_IS_LINKED(pa_sink_get_state(s)))
+            if (pa_sink_input_new_data_set_sink(new_data, s, TRUE))
+                pa_log_info("Restoring device for stream %s.", name);
 
         pa_xfree(e);
     }

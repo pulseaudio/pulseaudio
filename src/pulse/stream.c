@@ -80,30 +80,23 @@ static void reset_callbacks(pa_stream *s) {
     s->buffer_attr_userdata = NULL;
 }
 
-pa_stream *pa_stream_new_with_proplist(
+static pa_stream *pa_stream_new_with_proplist_internal(
         pa_context *c,
         const char *name,
         const pa_sample_spec *ss,
         const pa_channel_map *map,
+        pa_format_info * const *formats,
         pa_proplist *p) {
 
     pa_stream *s;
     int i;
-    pa_channel_map tmap;
 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
+    pa_assert((ss == NULL && map == NULL) || formats == NULL);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, ss && pa_sample_spec_valid(ss), PA_ERR_INVALID);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 12 || (ss->format != PA_SAMPLE_S32LE && ss->format != PA_SAMPLE_S32BE), PA_ERR_NOTSUPPORTED);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 15 || (ss->format != PA_SAMPLE_S24LE && ss->format != PA_SAMPLE_S24BE), PA_ERR_NOTSUPPORTED);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 15 || (ss->format != PA_SAMPLE_S24_32LE && ss->format != PA_SAMPLE_S24_32BE), PA_ERR_NOTSUPPORTED);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, !map || (pa_channel_map_valid(map) && map->channels == ss->channels), PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name || (p && pa_proplist_contains(p, PA_PROP_MEDIA_NAME)), PA_ERR_INVALID);
-
-    if (!map)
-        PA_CHECK_VALIDITY_RETURN_NULL(c, map = pa_channel_map_init_auto(&tmap, ss->channels, PA_CHANNEL_MAP_DEFAULT), PA_ERR_INVALID);
 
     s = pa_xnew(pa_stream, 1);
     PA_REFCNT_INIT(s);
@@ -114,8 +107,28 @@ pa_stream *pa_stream_new_with_proplist(
     s->state = PA_STREAM_UNCONNECTED;
     s->flags = 0;
 
-    s->sample_spec = *ss;
-    s->channel_map = *map;
+    if (ss)
+        s->sample_spec = *ss;
+    else
+        s->sample_spec.format = PA_SAMPLE_INVALID;
+
+    if (map)
+        s->channel_map = *map;
+    else
+        pa_channel_map_init(&s->channel_map);
+
+    s->n_formats = 0;
+    if (formats) {
+        for (i = 0; formats[i] && i < PA_MAX_FORMATS; i++) {
+            s->n_formats++;
+            s->req_formats[i] = pa_format_info_copy(formats[i]);
+        }
+        /* Make sure the input array was NULL-terminated */
+        pa_assert(formats[i] == NULL);
+    }
+
+    /* We'll get the final negotiated format after connecting */
+    s->format = NULL;
 
     s->direct_on_input = PA_INVALID_INDEX;
 
@@ -136,7 +149,10 @@ pa_stream *pa_stream_new_with_proplist(
      * what older PA versions provided. */
 
     s->buffer_attr.maxlength = (uint32_t) -1;
-    s->buffer_attr.tlength = (uint32_t) pa_usec_to_bytes(250*PA_USEC_PER_MSEC, ss); /* 250ms of buffering */
+    if (ss)
+        s->buffer_attr.tlength = (uint32_t) pa_usec_to_bytes(250*PA_USEC_PER_MSEC, ss); /* 250ms of buffering */
+    else
+        /* XXX: How do we apply worst case conversion here? */
     s->buffer_attr.minreq = (uint32_t) -1;
     s->buffer_attr.prebuf = (uint32_t) -1;
     s->buffer_attr.fragsize = (uint32_t) -1;
@@ -177,6 +193,40 @@ pa_stream *pa_stream_new_with_proplist(
     pa_stream_ref(s);
 
     return s;
+}
+
+pa_stream *pa_stream_new_with_proplist(
+        pa_context *c,
+        const char *name,
+        const pa_sample_spec *ss,
+        const pa_channel_map *map,
+        pa_proplist *p) {
+
+    pa_channel_map tmap;
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, ss && pa_sample_spec_valid(ss), PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 12 || (ss->format != PA_SAMPLE_S32LE && ss->format != PA_SAMPLE_S32BE), PA_ERR_NOTSUPPORTED);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 15 || (ss->format != PA_SAMPLE_S24LE && ss->format != PA_SAMPLE_S24BE), PA_ERR_NOTSUPPORTED);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 15 || (ss->format != PA_SAMPLE_S24_32LE && ss->format != PA_SAMPLE_S24_32BE), PA_ERR_NOTSUPPORTED);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !map || (pa_channel_map_valid(map) && map->channels == ss->channels), PA_ERR_INVALID);
+
+    if (!map)
+        PA_CHECK_VALIDITY_RETURN_NULL(c, map = pa_channel_map_init_auto(&tmap, ss->channels, PA_CHANNEL_MAP_DEFAULT), PA_ERR_INVALID);
+
+    return pa_stream_new_with_proplist_internal(c, name, ss, map, NULL, p);
+}
+
+pa_stream *pa_stream_new_extended(
+        pa_context *c,
+        const char *name,
+        pa_format_info * const *formats,
+        pa_proplist *p) {
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 21, PA_ERR_NOTSUPPORTED);
+
+    /* XXX: For the single-format PCM case, pass ss/map instead of formats */
+
+    return pa_stream_new_with_proplist_internal(c, name, NULL, NULL, formats, p);
 }
 
 static void stream_unlink(pa_stream *s) {
@@ -220,6 +270,8 @@ static void stream_unlink(pa_stream *s) {
 }
 
 static void stream_free(pa_stream *s) {
+    unsigned int i;
+
     pa_assert(s);
 
     stream_unlink(s);
@@ -243,6 +295,9 @@ static void stream_free(pa_stream *s) {
 
     if (s->smoother)
         pa_smoother_free(s->smoother);
+
+    for (i = 0; i < s->n_formats; i++)
+        pa_xfree(s->req_formats[i]);
 
     pa_xfree(s->device_name);
     pa_xfree(s);
@@ -970,9 +1025,11 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
             ss.channels != cm.channels ||
             !pa_channel_map_valid(&cm) ||
             !pa_sample_spec_valid(&ss) ||
-            (!(s->flags & PA_STREAM_FIX_FORMAT) && ss.format != s->sample_spec.format) ||
-            (!(s->flags & PA_STREAM_FIX_RATE) && ss.rate != s->sample_spec.rate) ||
-            (!(s->flags & PA_STREAM_FIX_CHANNELS) && !pa_channel_map_equal(&cm, &s->channel_map))) {
+            (s->n_formats == 0 && (
+                (!(s->flags & PA_STREAM_FIX_FORMAT) && ss.format != s->sample_spec.format) ||
+                (!(s->flags & PA_STREAM_FIX_RATE) && ss.rate != s->sample_spec.rate) ||
+                (!(s->flags & PA_STREAM_FIX_CHANNELS) && !pa_channel_map_equal(&cm, &s->channel_map))))) {
+            /* XXX: checks for the n_formats > 0 case? */
             pa_context_fail(s->context, PA_ERR_PROTOCOL);
             goto finish;
         }
@@ -997,6 +1054,16 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
             s->timing_info.configured_source_usec = usec;
         else
             s->timing_info.configured_sink_usec = usec;
+    }
+
+    if (s->context->version >= 21 && s->direction == PA_STREAM_PLAYBACK) {
+        pa_format_info *f = pa_format_info_new();
+        pa_tagstruct_get_format_info(t, f);
+
+        if (pa_format_info_valid(f))
+            s->format = f;
+        else
+            pa_format_info_free(f);
     }
 
     if (!pa_tagstruct_eof(t)) {
@@ -1039,6 +1106,7 @@ static int create_stream(
     pa_tagstruct *t;
     uint32_t tag;
     pa_bool_t volume_set = FALSE;
+    uint32_t i;
 
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
@@ -1079,7 +1147,7 @@ static int create_stream(
 
     PA_CHECK_VALIDITY(s->context, direction == PA_STREAM_PLAYBACK || !(flags & (PA_STREAM_START_MUTED)), PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, direction == PA_STREAM_RECORD || !(flags & (PA_STREAM_PEAK_DETECT)), PA_ERR_INVALID);
-    PA_CHECK_VALIDITY(s->context, !volume || volume->channels == s->sample_spec.channels, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context, !volume || (pa_sample_spec_valid(&s->sample_spec) && volume->channels == s->sample_spec.channels), PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, !sync_stream || (direction == PA_STREAM_PLAYBACK && sync_stream->direction == PA_STREAM_PLAYBACK), PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, (flags & (PA_STREAM_ADJUST_LATENCY|PA_STREAM_EARLY_REQUESTS)) != (PA_STREAM_ADJUST_LATENCY|PA_STREAM_EARLY_REQUESTS), PA_ERR_INVALID);
 
@@ -1147,8 +1215,16 @@ static int create_stream(
 
         volume_set = !!volume;
 
-        if (!volume)
-            volume = pa_cvolume_reset(&cv, s->sample_spec.channels);
+        if (!volume) {
+            if (pa_sample_spec_valid(&s->sample_spec))
+                volume = pa_cvolume_reset(&cv, s->sample_spec.channels);
+            else {
+                /* This is not really relevant, since no volume was set, and
+                 * the real number of channels is embedded in the format_info
+                 * structure */
+                volume = pa_cvolume_reset(&cv, PA_CHANNELS_MAX);
+            }
+        }
 
         pa_tagstruct_put_cvolume(t, volume);
     } else
@@ -1212,6 +1288,15 @@ static int create_stream(
 
         if (s->direction == PA_STREAM_PLAYBACK)
             pa_tagstruct_put_boolean(t, flags & (PA_STREAM_PASSTHROUGH));
+    }
+
+    if (s->context->version >= 21) {
+
+        if (s->direction == PA_STREAM_PLAYBACK) {
+            pa_tagstruct_putu8(t, s->n_formats);
+            for (i = 0; i < s->n_formats; i++)
+                pa_tagstruct_put_format_info(t, s->req_formats[i]);
+        }
     }
 
     pa_pstream_send_tagstruct(s->context->pstream, t);

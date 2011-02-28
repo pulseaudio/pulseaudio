@@ -426,7 +426,7 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
     sdata.driver = __FILE__;
     sdata.module = c->options->module;
     sdata.client = c->client;
-    sdata.sink = sink;
+    pa_sink_input_new_data_set_sink(&sdata, sink, FALSE);
     pa_sink_input_new_data_set_sample_spec(&sdata, &ss);
 
     pa_sink_input_new(&c->sink_input, c->protocol->core, &sdata);

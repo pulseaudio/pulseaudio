@@ -265,6 +265,7 @@ pa_stream_get_timing_info;
 pa_stream_is_corked;
 pa_stream_is_suspended;
 pa_stream_new;
+pa_stream_new_extended;
 pa_stream_new_with_proplist;
 pa_stream_peek;
 pa_stream_prebuf;
