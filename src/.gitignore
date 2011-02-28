@@ -24,7 +24,6 @@ cpulimit-test2
 daemon.conf
 default.pa
 system.pa
-envelope-test
 esdcompat
 flist-test
 gconf-helper

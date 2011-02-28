@@ -259,7 +259,6 @@ TESTS = \
 		smoother-test \
 		mix-test \
 		remix-test \
-		envelope-test \
 		proplist-test \
 		lock-autospawn-test \
 		prioq-test
@@ -294,7 +293,6 @@ TESTS_BINARIES = \
 		smoother-test \
 		mix-test \
 		remix-test \
-		envelope-test \
 		proplist-test \
 		rtstutter \
 		stripnul \
@@ -513,11 +511,6 @@ smoother_test_SOURCES = tests/smoother-test.c
 smoother_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 smoother_test_CFLAGS = $(AM_CFLAGS)
 smoother_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
-
-envelope_test_SOURCES = tests/envelope-test.c
-envelope_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-envelope_test_CFLAGS = $(AM_CFLAGS)
-envelope_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 proplist_test_SOURCES = tests/proplist-test.c
 proplist_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
@@ -837,7 +830,6 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/core-scache.c pulsecore/core-scache.h \
 		pulsecore/core-subscribe.c pulsecore/core-subscribe.h \
 		pulsecore/core.c pulsecore/core.h \
-		pulsecore/envelope.c pulsecore/envelope.h \
 		pulsecore/fdsem.c pulsecore/fdsem.h \
 		pulsecore/g711.c pulsecore/g711.h \
 		pulsecore/hook-list.c pulsecore/hook-list.h \
