@@ -35,6 +35,7 @@
 #include <pulse/util.h>
 #include <pulse/i18n.h>
 #include <pulse/rtclock.h>
+#include <pulse/internal.h>
 
 #include <pulsecore/sink-input.h>
 #include <pulsecore/namereg.h>
@@ -177,6 +178,7 @@ static void reset_callbacks(pa_sink *s) {
     s->request_rewind = NULL;
     s->update_requested_latency = NULL;
     s->set_port = NULL;
+    s->get_formats = NULL;
 }
 
 /* Called from main context */
@@ -3257,4 +3259,53 @@ static void pa_sink_volume_change_rewind(pa_sink *s, size_t nbytes) {
         prev_vol = pa_cvolume_avg(&c->hw_volume);
     }
     pa_sink_volume_change_apply(s, NULL);
+}
+
+/* Called from the main thread */
+/* Gets the list of formats supported by the sink. The members and idxset must
+ * be freed by the caller. */
+pa_idxset* pa_sink_get_formats(pa_sink *s) {
+    pa_idxset *ret;
+
+    pa_assert(s);
+
+    if (s->get_formats) {
+        /* Sink supports format query, all is good */
+        ret = s->get_formats(s);
+    } else {
+        /* Sink doesn't support format query, so assume it does PCM */
+        pa_format_info *f = pa_format_info_new();
+        f->encoding = PA_ENCODING_PCM;
+
+        ret = pa_idxset_new(NULL, NULL);
+        pa_idxset_put(ret, f, NULL);
+    }
+
+    return ret;
+}
+
+/* Called from the main thread */
+/* Calculates the intersection between formats supported by the sink and
+ * in_formats, and returns these, in the order of the sink's formats. */
+pa_idxset* pa_sink_check_formats(pa_sink *s, pa_idxset *in_formats) {
+    pa_idxset *out_formats = pa_idxset_new(NULL, NULL), *sink_formats;
+    pa_format_info *f_sink, *f_in;
+    uint32_t i, j;
+
+    pa_assert(s);
+
+    if (!in_formats || pa_idxset_isempty(in_formats))
+        goto done;
+
+    sink_formats = pa_sink_get_formats(s);
+
+    PA_IDXSET_FOREACH(f_sink, sink_formats, i) {
+        PA_IDXSET_FOREACH(f_in, in_formats, j) {
+            if (pa_format_info_is_compatible(f_sink, f_in))
+                pa_idxset_put(out_formats, pa_format_info_copy(f_in), NULL);
+        }
+    }
+
+done:
+    return out_formats;
 }

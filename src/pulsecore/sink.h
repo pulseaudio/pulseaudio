@@ -199,6 +199,10 @@ struct pa_sink {
      * thread. */
     int (*set_port)(pa_sink *s, pa_device_port *port); /* ditto */
 
+    /* Called to get the list of formats supported by the sink, sorted
+     * in descending order of preference. */
+    pa_idxset* (*get_formats)(pa_sink *s); /* ditto */
+
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
     struct {
@@ -397,6 +401,9 @@ unsigned pa_sink_check_suspend(pa_sink *s); /* Returns how many streams are acti
 pa_queue *pa_sink_move_all_start(pa_sink *s, pa_queue *q);
 void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, pa_bool_t save);
 void pa_sink_move_all_fail(pa_queue *q);
+
+pa_idxset* pa_sink_get_formats(pa_sink *s);
+pa_idxset* pa_sink_check_formats(pa_sink *s, pa_idxset *in_formats);
 
 /*** To be called exclusively by the sink driver, from IO context */
 
