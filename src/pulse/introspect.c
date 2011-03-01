@@ -996,7 +996,7 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
 
         while (!pa_tagstruct_eof(t)) {
             pa_sink_input_info i;
-            pa_bool_t mute = FALSE, corked = FALSE;
+            pa_bool_t mute = FALSE, corked = FALSE, has_volume = FALSE, read_only_volume = FALSE;
 
             pa_zero(i);
             i.proplist = pa_proplist_new();
@@ -1015,7 +1015,9 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
                 pa_tagstruct_gets(t, &i.driver) < 0 ||
                 (o->context->version >= 11 && pa_tagstruct_get_boolean(t, &mute) < 0) ||
                 (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0) ||
-                (o->context->version >= 19 && pa_tagstruct_get_boolean(t, &corked) < 0)) {
+                (o->context->version >= 19 && pa_tagstruct_get_boolean(t, &corked) < 0) ||
+                (o->context->version >= 20 && (pa_tagstruct_get_boolean(t, &has_volume) < 0 ||
+                                               pa_tagstruct_get_boolean(t, &read_only_volume) < 0))) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);
@@ -1024,6 +1026,8 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
 
             i.mute = (int) mute;
             i.corked = (int) corked;
+            i.has_volume = (int) has_volume;
+            i.read_only_volume = (int) read_only_volume;
 
             if (o->callback) {
                 pa_sink_input_info_cb_t cb = (pa_sink_input_info_cb_t) o->callback;
