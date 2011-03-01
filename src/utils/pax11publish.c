@@ -209,6 +209,7 @@ int main(int argc, char *argv[]) {
             pa_x11_del_prop(xcb, screen, "PULSE_SOURCE");
             pa_x11_del_prop(xcb, screen, "PULSE_ID");
             pa_x11_del_prop(xcb, screen, "PULSE_COOKIE");
+            pa_x11_del_prop(xcb, screen, "PULSE_SESSION_ID");
             break;
 
         default:
