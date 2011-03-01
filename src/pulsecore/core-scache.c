@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <limits.h>
+#include <time.h>
 
 #ifdef HAVE_GLOB_H
 #include <glob.h>

@@ -32,6 +32,7 @@
 #include <ltdl.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <time.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/error.h>
