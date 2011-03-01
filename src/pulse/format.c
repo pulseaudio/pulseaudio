@@ -70,6 +70,10 @@ int pa_format_info_valid(pa_format_info *f) {
     return (f->encoding >= 0 && f->encoding < PA_ENCODING_MAX && f->plist != NULL);
 }
 
+int pa_format_info_is_pcm(pa_format_info *f) {
+    return f->encoding == PA_ENCODING_PCM;
+}
+
 pa_bool_t pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second) {
     const char *key;
     void *state = NULL;
