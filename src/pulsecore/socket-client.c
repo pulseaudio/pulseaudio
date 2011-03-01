@@ -35,9 +35,6 @@
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
 #endif
-#ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
-#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -63,6 +60,7 @@
 #include <pulsecore/parseaddr.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/refcnt.h>
+#include <pulsecore/arpa-inet.h>
 
 #include "socket-client.h"
 

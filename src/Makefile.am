@@ -597,8 +597,7 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/flist.c pulsecore/flist.h \
 		pulsecore/hashmap.c pulsecore/hashmap.h \
 		pulsecore/idxset.c pulsecore/idxset.h \
-		pulsecore/inet_ntop.c pulsecore/inet_ntop.h \
-		pulsecore/inet_pton.c pulsecore/inet_pton.h \
+		pulsecore/arpa-inet.c pulsecore/arpa-inet.h \
 		pulsecore/iochannel.c pulsecore/iochannel.h \
 		pulsecore/ioline.c pulsecore/ioline.h \
 		pulsecore/ipacl.h pulsecore/ipacl.c \

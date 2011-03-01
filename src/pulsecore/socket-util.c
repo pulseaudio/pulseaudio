@@ -54,13 +54,6 @@
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
-#ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
-#endif
-
-#ifndef HAVE_INET_NTOP
-#include <pulsecore/inet_ntop.h>
-#endif
 
 #include <pulse/xmalloc.h>
 
@@ -69,6 +62,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/socket.h>
+#include <pulsecore/arpa-inet.h>
 
 #include "socket-util.h"
 

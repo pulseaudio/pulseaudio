@@ -469,7 +469,7 @@ AC_FUNC_FORK
 AC_FUNC_GETGROUPS
 AC_FUNC_SELECT_ARGTYPES
 AC_CHECK_FUNCS_ONCE([chmod chown fstat fchown fchmod clock_gettime getaddrinfo getgrgid_r getgrnam_r \
-    getpwnam_r getpwuid_r gettimeofday getuid inet_ntop inet_pton mlock nanosleep \
+    getpwnam_r getpwuid_r gettimeofday getuid mlock nanosleep \
     pipe posix_fadvise posix_madvise posix_memalign setpgid setsid shm_open \
     sigaction sleep symlink sysconf uname pthread_setaffinity_np])
 AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])

@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
@@ -46,6 +45,7 @@
 #include <pulsecore/strbuf.h>
 #include <pulsecore/ioline.h>
 #include <pulsecore/poll.h>
+#include <pulsecore/arpa-inet.h>
 
 #include "rtsp_client.h"
 
