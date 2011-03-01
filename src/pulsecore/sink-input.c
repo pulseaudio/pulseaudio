@@ -50,36 +50,19 @@ PA_DEFINE_PUBLIC_CLASS(pa_sink_input, pa_msgobject);
 static void sink_input_free(pa_object *o);
 static void set_real_ratio(pa_sink_input *i, const pa_cvolume *v);
 
-static int check_passthrough_connection(pa_sink_input_flags_t flags, pa_sink *dest) {
+static int check_passthrough_connection(pa_format_info *format, pa_sink *dest) {
 
-    if (dest->flags & PA_SINK_PASSTHROUGH) {
-
-        if (pa_idxset_size(dest->inputs) > 0) {
-
-            pa_sink_input *alt_i;
-            uint32_t idx;
-
-            alt_i = pa_idxset_first(dest->inputs, &idx);
-
-            /* only need to check the first input is not PASSTHROUGH */
-            if (alt_i->flags & PA_SINK_INPUT_PASSTHROUGH) {
-                pa_log_warn("Sink is already connected to PASSTHROUGH input");
-                return -PA_ERR_BUSY;
-            }
-
-            /* Current inputs are PCM, check new input is not PASSTHROUGH */
-            if (flags & PA_SINK_INPUT_PASSTHROUGH) {
-                pa_log_warn("Sink is already connected, cannot accept new PASSTHROUGH INPUT");
-                return -PA_ERR_BUSY;
-            }
-        }
-
-    } else {
-        if (flags & PA_SINK_INPUT_PASSTHROUGH) {
-            pa_log_warn("Cannot connect PASSTHROUGH sink input to sink without PASSTHROUGH capabilities");
-            return -PA_ERR_INVALID;
-        }
+    if (pa_sink_is_passthrough(dest)) {
+        pa_log_warn("Sink is already connected to PASSTHROUGH input");
+        return -PA_ERR_BUSY;
     }
+
+    /* If current input(s) exist, check new input is not PASSTHROUGH */
+    if (pa_idxset_size(dest->inputs) > 0 && !pa_format_info_is_pcm(format)) {
+        pa_log_warn("Sink is already connected, cannot accept new PASSTHROUGH INPUT");
+        return -PA_ERR_BUSY;
+    }
+
     return PA_OK;
 }
 
@@ -313,7 +296,7 @@ int pa_sink_input_new(
     pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
     pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED), -PA_ERR_INVALID);
 
-    r = check_passthrough_connection(data->flags, data->sink);
+    r = check_passthrough_connection(data->format, data->sink);
     pa_return_val_if_fail(r == PA_OK, r);
 
     if (!data->sample_spec_is_set)
@@ -1355,7 +1338,7 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
         return FALSE;
     }
 
-    if (check_passthrough_connection(i->flags, dest) < 0)
+    if (check_passthrough_connection(i->format, dest) < 0)
         return FALSE;
 
     if (i->may_move_to)

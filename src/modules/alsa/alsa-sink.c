@@ -1707,13 +1707,6 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB, pa_bool_t sync_v
             return 0;
     }
 
-    /* FIXME: need automatic detection rather than hard-coded path */
-    if (!strcmp(u->mixer_path->name, "iec958-passthrough-output")) {
-        u->sink->flags |= PA_SINK_PASSTHROUGH;
-    } else {
-        u->sink->flags &= ~PA_SINK_PASSTHROUGH;
-    }
-
     if (!u->mixer_path->has_volume)
         pa_log_info("Driver does not support hardware volume control, falling back to software volume control.");
     else {

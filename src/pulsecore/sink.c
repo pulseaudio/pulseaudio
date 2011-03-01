@@ -1241,6 +1241,24 @@ pa_bool_t pa_sink_flat_volume_enabled(pa_sink *s) {
     return (s->flags & PA_SINK_FLAT_VOLUME);
 }
 
+/* Called from main context */
+pa_bool_t pa_sink_is_passthrough(pa_sink *s) {
+    pa_sink_input *alt_i;
+    uint32_t idx;
+
+    pa_sink_assert_ref(s);
+
+    /* one and only one PASSTHROUGH input can possibly be connected */
+    if (pa_idxset_size(s->inputs) == 1) {
+        alt_i = pa_idxset_first(s->inputs, &idx);
+
+        if (!pa_format_info_is_pcm(alt_i->format))
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
 /* Called from main context. */
 static void compute_reference_ratio(pa_sink_input *i) {
     unsigned c = 0;
@@ -1632,21 +1650,10 @@ void pa_sink_set_volume(
     pa_assert(!volume || volume->channels == 1 || pa_cvolume_compatible(volume, &s->sample_spec));
 
     /* make sure we don't change the volume when a PASSTHROUGH input is connected */
-    if (s->flags & PA_SINK_PASSTHROUGH) {
-        pa_sink_input *alt_i;
-        uint32_t idx;
-
-        /* one and only one PASSTHROUGH input can possibly be connected */
-        if (pa_idxset_size(s->inputs) == 1) {
-
-            alt_i = pa_idxset_first(s->inputs, &idx);
-
-            if (alt_i->flags & PA_SINK_INPUT_PASSTHROUGH) {
-                /* FIXME: Need to notify client that volume control is disabled */
-                pa_log_warn("Cannot change volume, Sink is connected to PASSTHROUGH input");
-                return;
-            }
-        }
+    if (pa_sink_is_passthrough(s)) {
+        /* FIXME: Need to notify client that volume control is disabled */
+        pa_log_warn("Cannot change volume, Sink is connected to PASSTHROUGH input");
+        return;
     }
 
     /* In case of volume sharing, the volume is set for the root sink first,
