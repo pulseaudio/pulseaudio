@@ -2008,10 +2008,15 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         }
     }
 
-    CHECK_VALIDITY(c->pstream, n_formats > 0 || pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, n_formats > 0 || (map.channels == ss.channels && volume.channels == ss.channels), tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, n_formats > 0 || pa_channel_map_valid(&map), tag, PA_ERR_INVALID);
-    /* XXX: add checks on formats. At least inverse checks of the 3 above */
+    if (n_formats == 0) {
+        CHECK_VALIDITY(c->pstream, pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID);
+        CHECK_VALIDITY(c->pstream, map.channels == ss.channels && volume.channels == ss.channels, tag, PA_ERR_INVALID);
+        CHECK_VALIDITY(c->pstream, pa_channel_map_valid(&map), tag, PA_ERR_INVALID);
+    } else {
+        PA_IDXSET_FOREACH(format, formats, i) {
+            CHECK_VALIDITY(c->pstream, pa_format_info_valid(format), tag, PA_ERR_INVALID);
+        }
+    }
 
     if (!pa_tagstruct_eof(t)) {
         protocol_error(c);

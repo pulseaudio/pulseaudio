@@ -151,8 +151,16 @@ static pa_stream *pa_stream_new_with_proplist_internal(
     s->buffer_attr.maxlength = (uint32_t) -1;
     if (ss)
         s->buffer_attr.tlength = (uint32_t) pa_usec_to_bytes(250*PA_USEC_PER_MSEC, ss); /* 250ms of buffering */
-    else
-        /* XXX: How do we apply worst case conversion here? */
+    else {
+        /* FIXME: We assume a worst-case compressed format corresponding to
+         * 48000 Hz, 2 ch, S16 PCM, but this can very well be incorrect */
+        pa_sample_spec tmp_ss = {
+            .format   = PA_SAMPLE_S16NE,
+            .rate     = 48000,
+            .channels = 2,
+        };
+        s->buffer_attr.tlength = (uint32_t) pa_usec_to_bytes(250*PA_USEC_PER_MSEC, &tmp_ss); /* 250ms of buffering */
+    }
     s->buffer_attr.minreq = (uint32_t) -1;
     s->buffer_attr.prebuf = (uint32_t) -1;
     s->buffer_attr.fragsize = (uint32_t) -1;
@@ -223,8 +231,6 @@ pa_stream *pa_stream_new_extended(
         pa_proplist *p) {
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 21, PA_ERR_NOTSUPPORTED);
-
-    /* XXX: For the single-format PCM case, pass ss/map instead of formats */
 
     return pa_stream_new_with_proplist_internal(c, name, NULL, NULL, formats, p);
 }
@@ -1029,7 +1035,6 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
                 (!(s->flags & PA_STREAM_FIX_FORMAT) && ss.format != s->sample_spec.format) ||
                 (!(s->flags & PA_STREAM_FIX_RATE) && ss.rate != s->sample_spec.rate) ||
                 (!(s->flags & PA_STREAM_FIX_CHANNELS) && !pa_channel_map_equal(&cm, &s->channel_map))))) {
-            /* XXX: checks for the n_formats > 0 case? */
             pa_context_fail(s->context, PA_ERR_PROTOCOL);
             goto finish;
         }
@@ -1062,8 +1067,14 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
 
         if (pa_format_info_valid(f))
             s->format = f;
-        else
+        else {
             pa_format_info_free(f);
+            if (s->n_formats > 0) {
+                /* We used the extended API, so we should have got back a proper format */
+                pa_context_fail(s->context, PA_ERR_PROTOCOL);
+                goto finish;
+            }
+        }
     }
 
     if (!pa_tagstruct_eof(t)) {
