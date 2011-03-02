@@ -274,6 +274,7 @@ TESTS_BINARIES = \
 		mcalign-test \
 		pacat-simple \
 		parec-simple \
+		extended-test \
 		strlist-test \
 		close-test \
 		voltest \
@@ -438,6 +439,11 @@ parec_simple_SOURCES = tests/parec-simple.c
 parec_simple_LDADD = $(AM_LDADD) libpulse.la libpulse-simple.la libpulsecommon-@PA_MAJORMINOR@.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
 parec_simple_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+extended_test_SOURCES = tests/extended-test.c
+extended_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+extended_test_CFLAGS = $(AM_CFLAGS)
+extended_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 strlist_test_SOURCES = tests/strlist-test.c
 strlist_test_CFLAGS = $(AM_CFLAGS)
