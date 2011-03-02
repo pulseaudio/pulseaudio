@@ -263,7 +263,7 @@ pa_volume_t pa_sw_volume_from_linear(double v) {
      * same volume value! That's why we need the lround() below!
      */
 
-    return (pa_volume_t) PA_CLAMP_VOLUME(lround(cbrt(v) * PA_VOLUME_NORM));
+    return (pa_volume_t) PA_CLAMP_VOLUME((uint64_t) lround(cbrt(v) * PA_VOLUME_NORM));
 }
 
 double pa_sw_volume_to_linear(pa_volume_t v) {

@@ -74,7 +74,7 @@ static int dehex(char x) {
 static void proplist_sets_unescape(pa_proplist *p, const char *prop, const char *s) {
     const char *f;
     char *t, *r;
-    int c;
+    int c = 0;
 
     enum {
         TEXT,

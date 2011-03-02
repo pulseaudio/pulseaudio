@@ -48,7 +48,7 @@ static pa_defer_event *de;
 
 static void iocb(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     unsigned char c;
-    (void) read(fd, &c, sizeof(c));
+    pa_assert_se(read(fd, &c, sizeof(c)) >= 0);
     fprintf(stderr, "IO EVENT: %c\n", c < 32 ? '.' : c);
     a->defer_enable(de, 1);
 }

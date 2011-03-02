@@ -42,7 +42,7 @@ pa_void_func_t pa_load_sym(lt_dlhandle handle, const char *module, const char *s
     pa_assert(handle);
     pa_assert(symbol);
 
-    *(void**) &f = lt_dlsym(handle, symbol);
+    f = (pa_void_func_t) lt_dlsym(handle, symbol);
 
     if (f)
         return f;
@@ -59,7 +59,7 @@ pa_void_func_t pa_load_sym(lt_dlhandle handle, const char *module, const char *s
         if (!isalnum(*c))
             *c = '_';
 
-    *(void**) &f = lt_dlsym(handle, sn);
+    f = (pa_void_func_t) lt_dlsym(handle, sn);
     pa_xfree(sn);
 
     return f;
