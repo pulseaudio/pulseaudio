@@ -42,7 +42,7 @@ static const char* const valid_modargs[] = {
 };
 
 static void pa_adrian_ec_fixate_spec(pa_sample_spec *source_ss, pa_channel_map *source_map,
-				    pa_sample_spec *sink_ss, pa_channel_map *sink_map)
+                                    pa_sample_spec *sink_ss, pa_channel_map *sink_map)
 {
     source_ss->format = PA_SAMPLE_S16NE;
     source_ss->channels = 1;
@@ -87,19 +87,18 @@ pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
 
     ec->params.priv.adrian.aec = AEC_init(rate, have_vector);
     if (!ec->params.priv.adrian.aec)
-	goto fail;
+        goto fail;
 
     pa_modargs_free(ma);
     return TRUE;
 
 fail:
     if (ma)
-	pa_modargs_free(ma);
+        pa_modargs_free(ma);
     return FALSE;
 }
 
-void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out)
-{
+void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {
     unsigned int i;
 
     for (i = 0; i < ec->params.priv.adrian.blocksize; i += 2) {
@@ -110,8 +109,7 @@ void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *
     }
 }
 
-void pa_adrian_ec_done(pa_echo_canceller *ec)
-{
+void pa_adrian_ec_done(pa_echo_canceller *ec) {
     pa_xfree(ec->params.priv.adrian.aec);
     ec->params.priv.adrian.aec = NULL;
 }

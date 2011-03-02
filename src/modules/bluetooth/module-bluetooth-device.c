@@ -857,8 +857,7 @@ static int stop_stream_fd(struct userdata *u) {
     return r;
 }
 
-static void bt_transport_release(struct userdata *u)
-{
+static void bt_transport_release(struct userdata *u) {
     const char *accesstype = "rw";
     const pa_bluetooth_transport *t;
 
@@ -891,8 +890,7 @@ static void bt_transport_release(struct userdata *u)
     }
 }
 
-static int bt_transport_acquire(struct userdata *u, pa_bool_t start)
-{
+static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
     const char *accesstype = "rw";
     const pa_bluetooth_transport *t;
 
@@ -1679,8 +1677,8 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                  dbus_message_get_path(m),
                  dbus_message_get_member(m));
 
-   if (!dbus_message_has_path(m, u->path))
-       goto fail;
+    if (!dbus_message_has_path(m, u->path))
+        goto fail;
 
     if (dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged") ||
         dbus_message_is_signal(m, "org.bluez.Headset", "MicrophoneGainChanged")) {
@@ -2007,8 +2005,7 @@ static void shutdown_bt(struct userdata *u) {
     }
 }
 
-static int bt_transport_config_a2dp(struct userdata *u)
-{
+static int bt_transport_config_a2dp(struct userdata *u) {
     const pa_bluetooth_transport *t;
     struct a2dp_info *a2dp = &u->a2dp;
     sbc_capabilities_raw_t *config;
@@ -2112,8 +2109,7 @@ static int bt_transport_config_a2dp(struct userdata *u)
     return 0;
 }
 
-static int bt_transport_config(struct userdata *u)
-{
+static int bt_transport_config(struct userdata *u) {
     if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) {
         u->block_size = u->link_mtu;
         return 0;
@@ -2122,8 +2118,7 @@ static int bt_transport_config(struct userdata *u)
     return bt_transport_config_a2dp(u);
 }
 
-static int parse_transport_property(struct userdata *u, DBusMessageIter *i)
-{
+static int parse_transport_property(struct userdata *u, DBusMessageIter *i) {
     const char *key;
     DBusMessageIter variant_i;
 
@@ -2168,8 +2163,7 @@ static int parse_transport_property(struct userdata *u, DBusMessageIter *i)
 }
 
 /* Run from main thread */
-static int bt_transport_open(struct userdata *u)
-{
+static int bt_transport_open(struct userdata *u) {
     DBusMessage *m, *r;
     DBusMessageIter arg_i, element_i;
     DBusError err;
@@ -2855,10 +2849,7 @@ void pa__done(pa_module *m) {
             speaker = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='SpeakerGainChanged',path='%s'", u->path);
             mike = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='MicrophoneGainChanged',path='%s'", u->path);
 
-            pa_dbus_remove_matches(pa_dbus_connection_get(u->connection),
-                                   speaker,
-                                   mike,
-                                   NULL);
+            pa_dbus_remove_matches(pa_dbus_connection_get(u->connection), speaker, mike, NULL);
 
             pa_xfree(speaker);
             pa_xfree(mike);

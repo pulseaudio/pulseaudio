@@ -144,7 +144,7 @@ static int detect_oss(pa_core *c, int just_one) {
         line[strcspn(line, "\r\n")] = 0;
 
         if (!b) {
-             b = strcmp(line, "Audio devices:") == 0 || strcmp(line, "Installed devices:") == 0;
+            b = strcmp(line, "Audio devices:") == 0 || strcmp(line, "Installed devices:") == 0;
             continue;
         }
 

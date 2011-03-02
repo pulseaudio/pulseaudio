@@ -379,7 +379,7 @@ static void command_stream_buffer_attr_changed(pa_pdispatch *pd, uint32_t comman
 
 /* Called from main context */
 static void command_started(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
-   struct userdata *u = userdata;
+    struct userdata *u = userdata;
 
     pa_assert(pd);
     pa_assert(t);
@@ -973,8 +973,7 @@ static void server_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
         pa_tagstruct_gets(t, &default_sink_name) < 0 ||
         pa_tagstruct_gets(t, &default_source_name) < 0 ||
         pa_tagstruct_getu32(t, &cookie) < 0 ||
-        (u->version >= 15 &&
-         pa_tagstruct_get_channel_map(t, &cm) < 0)) {
+        (u->version >= 15 && pa_tagstruct_get_channel_map(t, &cm) < 0)) {
 
         pa_log("Parse failure");
         goto fail;

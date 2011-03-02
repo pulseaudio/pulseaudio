@@ -30,8 +30,7 @@
 
 #include "semaphore.h"
 
-struct pa_semaphore
-{
+struct pa_semaphore {
     HANDLE sema;
 };
 

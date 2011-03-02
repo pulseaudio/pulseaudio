@@ -723,10 +723,7 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
         const char *xml = ROOT_INTROSPECT_XML;
 
         pa_assert_se(r = dbus_message_new_method_return(m));
-        pa_assert_se(dbus_message_append_args(
-                             r,
-                             DBUS_TYPE_STRING, &xml,
-                             DBUS_TYPE_INVALID));
+        pa_assert_se(dbus_message_append_args(r, DBUS_TYPE_STRING, &xml, DBUS_TYPE_INVALID));
 
     } else
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
@@ -938,10 +935,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             xml = pa_strbuf_tostring_free(sb);
 
             pa_assert_se(r = dbus_message_new_method_return(m));
-            pa_assert_se(dbus_message_append_args(
-                                 r,
-                                 DBUS_TYPE_STRING, &xml,
-                                 DBUS_TYPE_INVALID));
+            pa_assert_se(dbus_message_append_args(r, DBUS_TYPE_STRING, &xml, DBUS_TYPE_INVALID));
 
             pa_xfree(xml);
         } else
@@ -1012,10 +1006,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
                 ITEM_INTROSPECT_XML;
 
             pa_assert_se(r = dbus_message_new_method_return(m));
-            pa_assert_se(dbus_message_append_args(
-                                 r,
-                                 DBUS_TYPE_STRING, &xml,
-                                 DBUS_TYPE_INVALID));
+            pa_assert_se(dbus_message_append_args(r, DBUS_TYPE_STRING, &xml, DBUS_TYPE_INVALID));
 
         } else
             return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;

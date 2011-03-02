@@ -2732,22 +2732,22 @@ void pa_sink_set_latency_range(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_
 
 /* Called from main thread */
 void pa_sink_get_latency_range(pa_sink *s, pa_usec_t *min_latency, pa_usec_t *max_latency) {
-   pa_sink_assert_ref(s);
-   pa_assert_ctl_context();
-   pa_assert(min_latency);
-   pa_assert(max_latency);
+    pa_sink_assert_ref(s);
+    pa_assert_ctl_context();
+    pa_assert(min_latency);
+    pa_assert(max_latency);
 
-   if (PA_SINK_IS_LINKED(s->state)) {
-       pa_usec_t r[2] = { 0, 0 };
+    if (PA_SINK_IS_LINKED(s->state)) {
+        pa_usec_t r[2] = { 0, 0 };
 
-       pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY_RANGE, r, 0, NULL) == 0);
+        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY_RANGE, r, 0, NULL) == 0);
 
-       *min_latency = r[0];
-       *max_latency = r[1];
-   } else {
-       *min_latency = s->thread_info.min_latency;
-       *max_latency = s->thread_info.max_latency;
-   }
+        *min_latency = r[0];
+        *max_latency = r[1];
+    } else {
+        *min_latency = s->thread_info.min_latency;
+        *max_latency = s->thread_info.max_latency;
+    }
 }
 
 /* Called from IO thread */

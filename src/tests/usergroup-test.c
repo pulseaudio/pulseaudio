@@ -47,28 +47,24 @@ static int compare_group(const struct group *a, const struct group *b) {
     char **amem, **bmem;
 
     if (strcmp(a->gr_name, b->gr_name)) {
-        fprintf(stderr, "Group name mismatch: [%s] [%s]\n",
-                a->gr_name, b->gr_name);
+        fprintf(stderr, "Group name mismatch: [%s] [%s]\n", a->gr_name, b->gr_name);
         return 1;
     }
 
     if (strcmp(a->gr_passwd, b->gr_passwd)) {
-        fprintf(stderr, "Group password mismatch: [%s] [%s]\n",
-                a->gr_passwd, b->gr_passwd);
+        fprintf(stderr, "Group password mismatch: [%s] [%s]\n", a->gr_passwd, b->gr_passwd);
         return 1;
     }
 
     if (a->gr_gid != b->gr_gid) {
-        fprintf(stderr, "Gid mismatch: [%lu] [%lu]\n",
-                (unsigned long) a->gr_gid, (unsigned long) b->gr_gid);
+        fprintf(stderr, "Gid mismatch: [%lu] [%lu]\n", (unsigned long) a->gr_gid, (unsigned long) b->gr_gid);
         return 1;
     }
 
     /* XXX: Assuming the group ordering is identical. */
     for (amem = a->gr_mem, bmem = b->gr_mem; *amem && *bmem; ++amem, ++bmem) {
         if (strcmp(*amem, *bmem)) {
-            fprintf(stderr, "Group member mismatch: [%s] [%s]\n",
-                    *amem, *bmem);
+            fprintf(stderr, "Group member mismatch: [%s] [%s]\n", *amem, *bmem);
             return 1;
         }
     }
@@ -93,14 +89,12 @@ static int compare_passwd(const struct passwd *a, const struct passwd *b) {
     }
 
     if (a->pw_uid != b->pw_uid) {
-        fprintf(stderr, "pw_uid mismatch: [%lu] [%lu]\n",
-		(unsigned long) a->pw_uid, (unsigned long) b->pw_uid);
+        fprintf(stderr, "pw_uid mismatch: [%lu] [%lu]\n", (unsigned long) a->pw_uid, (unsigned long) b->pw_uid);
         return 1;
     }
 
     if (a->pw_gid != b->pw_gid) {
-        fprintf(stderr, "pw_gid mismatch: [%lu] [%lu]\n",
-		(unsigned long) a->pw_gid, (unsigned long) b->pw_gid);
+        fprintf(stderr, "pw_gid mismatch: [%lu] [%lu]\n", (unsigned long) a->pw_gid, (unsigned long) b->pw_gid);
         return 1;
     }
 

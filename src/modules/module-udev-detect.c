@@ -442,8 +442,7 @@ static void process_device(struct userdata *u, struct udev_device *dev) {
 
     if (action && pa_streq(action, "remove"))
         remove_card(u, dev);
-    else if ((!action || pa_streq(action, "change")) &&
-             udev_device_get_property_value(dev, "SOUND_INITIALIZED"))
+    else if ((!action || pa_streq(action, "change")) && udev_device_get_property_value(dev, "SOUND_INITIALIZED"))
         card_changed(u, dev);
 
     /* For an explanation why we don't look for 'add' events here

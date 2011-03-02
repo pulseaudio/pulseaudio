@@ -790,7 +790,7 @@ void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, uint32
             s->underflow_callback(s, s->underflow_userdata);
     }
 
- finish:
+finish:
     pa_context_unref(c);
 }
 

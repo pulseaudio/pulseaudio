@@ -43,12 +43,11 @@
 #define POLLNVAL        0x020           /* Invalid polling request.  */
 
 /* Data structure describing a polling request.  */
-struct pollfd
-  {
+struct pollfd {
     int fd;                     /* File descriptor to poll.  */
     short int events;           /* Types of events poller cares about.  */
     short int revents;          /* Types of events that actually occurred.  */
-  };
+};
 
 
 /* Poll the file descriptors described by the NFDS structures starting at
@@ -62,5 +61,5 @@ struct pollfd
 #if defined(HAVE_POLL_H) && !defined(OS_IS_DARWIN)
 #define pa_poll(fds,nfds,timeout) poll((fds),(nfds),(timeout))
 #else
-int pa_poll (struct pollfd *fds, unsigned long nfds, int timeout);
+int pa_poll(struct pollfd *fds, unsigned long nfds, int timeout);
 #endif

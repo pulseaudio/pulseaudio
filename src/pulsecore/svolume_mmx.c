@@ -95,9 +95,7 @@
       " por %%mm4, "#s1"             \n\t" /* .. |  l  h |  */ \
       " por %%mm5, "#s2"             \n\t"
 
-static void
-pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_s16ne_mmx(int16_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     pa_reg_x86 channel, temp;
 
     /* Channels must be at least 4, and always a multiple of the original number.
@@ -162,9 +160,7 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     );
 }
 
-static void
-pa_volume_s16re_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_s16re_mmx(int16_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     pa_reg_x86 channel, temp;
 
     /* Channels must be at least 4, and always a multiple of the original number.
@@ -247,7 +243,7 @@ pa_volume_s16re_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 #define TIMES 1000
 #define PADDING 16
 
-static void run_test (void) {
+static void run_test(void) {
     int16_t samples[SAMPLES];
     int16_t samples_ref[SAMPLES];
     int16_t samples_orig[SAMPLES];
@@ -256,15 +252,15 @@ static void run_test (void) {
     pa_do_volume_func_t func;
     pa_usec_t start, stop;
 
-    func = pa_get_volume_func (PA_SAMPLE_S16NE);
+    func = pa_get_volume_func(PA_SAMPLE_S16NE);
 
-    printf ("checking MMX %zd\n", sizeof (samples));
+    printf("checking MMX %zd\n", sizeof(samples));
 
-    pa_random (samples, sizeof (samples));
+    pa_random(samples, sizeof(samples));
     /* for (i = 0; i < SAMPLES; i++)
        samples[i] = -1; */
-    memcpy (samples_ref, samples, sizeof (samples));
-    memcpy (samples_orig, samples, sizeof (samples));
+    memcpy(samples_ref, samples, sizeof(samples));
+    memcpy(samples_orig, samples, sizeof(samples));
 
     for (i = 0; i < CHANNELS; i++)
         volumes[i] = PA_CLAMP_VOLUME(rand() >> 1);
@@ -272,27 +268,27 @@ static void run_test (void) {
     for (padding = 0; padding < PADDING; padding++, i++)
         volumes[i] = volumes[padding];
 
-    func (samples_ref, volumes, CHANNELS, sizeof (samples));
-    pa_volume_s16ne_mmx (samples, volumes, CHANNELS, sizeof (samples));
+    func(samples_ref, volumes, CHANNELS, sizeof(samples));
+    pa_volume_s16ne_mmx(samples, volumes, CHANNELS, sizeof(samples));
     for (i = 0; i < SAMPLES; i++) {
         if (samples[i] != samples_ref[i]) {
-            printf ("%d: %04x != %04x (%04x * %08x)\n", i, samples[i], samples_ref[i],
+            printf("%d: %04x != %04x (%04x * %08x)\n", i, samples[i], samples_ref[i],
                   samples_orig[i], volumes[i % CHANNELS]);
         }
     }
 
     start = pa_rtclock_now();
     for (j = 0; j < TIMES; j++) {
-        memcpy (samples, samples_orig, sizeof (samples));
-        pa_volume_s16ne_mmx (samples, volumes, CHANNELS, sizeof (samples));
+        memcpy(samples, samples_orig, sizeof(samples));
+        pa_volume_s16ne_mmx(samples, volumes, CHANNELS, sizeof(samples));
     }
     stop = pa_rtclock_now();
     pa_log_info("MMX: %llu usec.", (long long unsigned int)(stop - start));
 
     start = pa_rtclock_now();
     for (j = 0; j < TIMES; j++) {
-        memcpy (samples_ref, samples_orig, sizeof (samples));
-        func (samples_ref, volumes, CHANNELS, sizeof (samples));
+        memcpy(samples_ref, samples_orig, sizeof(samples));
+        func(samples_ref, volumes, CHANNELS, sizeof(samples));
     }
     stop = pa_rtclock_now();
     pa_log_info("ref: %llu usec.", (long long unsigned int)(stop - start));
@@ -304,18 +300,18 @@ static void run_test (void) {
 #endif /* defined (__i386__) || defined (__amd64__) */
 
 
-void pa_volume_func_init_mmx (pa_cpu_x86_flag_t flags) {
+void pa_volume_func_init_mmx(pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)
 
 #ifdef RUN_TEST
-    run_test ();
+    run_test();
 #endif
 
     if ((flags & PA_CPU_X86_MMX) && (flags & PA_CPU_X86_CMOV)) {
         pa_log_info("Initialising MMX optimized functions.");
 
-        pa_set_volume_func (PA_SAMPLE_S16NE, (pa_do_volume_func_t) pa_volume_s16ne_mmx);
-        pa_set_volume_func (PA_SAMPLE_S16RE, (pa_do_volume_func_t) pa_volume_s16re_mmx);
+        pa_set_volume_func(PA_SAMPLE_S16NE, (pa_do_volume_func_t) pa_volume_s16ne_mmx);
+        pa_set_volume_func(PA_SAMPLE_S16RE, (pa_do_volume_func_t) pa_volume_s16re_mmx);
     }
 #endif /* defined (__i386__) || defined (__amd64__) */
 }

@@ -32,9 +32,7 @@
 #include "sample-util.h"
 #include "endianmacros.h"
 
-static void
-pa_volume_u8_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_u8_c(uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     unsigned channel;
 
     for (channel = 0; length; length--) {
@@ -53,9 +51,7 @@ pa_volume_u8_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigned 
     }
 }
 
-static void
-pa_volume_alaw_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_alaw_c(uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     unsigned channel;
 
     for (channel = 0; length; length--) {
@@ -74,9 +70,7 @@ pa_volume_alaw_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigne
     }
 }
 
-static void
-pa_volume_ulaw_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_ulaw_c(uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     unsigned channel;
 
     for (channel = 0; length; length--) {
@@ -95,12 +89,10 @@ pa_volume_ulaw_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigne
     }
 }
 
-static void
-pa_volume_s16ne_c (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_s16ne_c(int16_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     unsigned channel;
 
-    length /= sizeof (int16_t);
+    length /= sizeof(int16_t);
 
     for (channel = 0; length; length--) {
         int32_t t, hi, lo;
@@ -124,12 +116,10 @@ pa_volume_s16ne_c (int16_t *samples, int32_t *volumes, unsigned channels, unsign
     }
 }
 
-static void
-pa_volume_s16re_c (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_s16re_c(int16_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     unsigned channel;
 
-    length /= sizeof (int16_t);
+    length /= sizeof(int16_t);
 
     for (channel = 0; length; length--) {
         int32_t t, hi, lo;
@@ -147,12 +137,10 @@ pa_volume_s16re_c (int16_t *samples, int32_t *volumes, unsigned channels, unsign
     }
 }
 
-static void
-pa_volume_float32ne_c (float *samples, float *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_float32ne_c(float *samples, float *volumes, unsigned channels, unsigned length) {
     unsigned channel;
 
-    length /= sizeof (float);
+    length /= sizeof(float);
 
     for (channel = 0; length; length--) {
         *samples++ *= volumes[channel];
@@ -162,12 +150,10 @@ pa_volume_float32ne_c (float *samples, float *volumes, unsigned channels, unsign
     }
 }
 
-static void
-pa_volume_float32re_c (float *samples, float *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_float32re_c(float *samples, float *volumes, unsigned channels, unsigned length) {
     unsigned channel;
 
-    length /= sizeof (float);
+    length /= sizeof(float);
 
     for (channel = 0; length; length--) {
         float t;
@@ -181,12 +167,10 @@ pa_volume_float32re_c (float *samples, float *volumes, unsigned channels, unsign
     }
 }
 
-static void
-pa_volume_s32ne_c (int32_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_s32ne_c(int32_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     unsigned channel;
 
-    length /= sizeof (int32_t);
+    length /= sizeof(int32_t);
 
     for (channel = 0; length; length--) {
         int64_t t;
@@ -201,12 +185,10 @@ pa_volume_s32ne_c (int32_t *samples, int32_t *volumes, unsigned channels, unsign
     }
 }
 
-static void
-pa_volume_s32re_c (int32_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_s32re_c(int32_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     unsigned channel;
 
-    length /= sizeof (int32_t);
+    length /= sizeof(int32_t);
 
     for (channel = 0; length; length--) {
         int64_t t;
@@ -221,9 +203,7 @@ pa_volume_s32re_c (int32_t *samples, int32_t *volumes, unsigned channels, unsign
     }
 }
 
-static void
-pa_volume_s24ne_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_s24ne_c(uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     unsigned channel;
     uint8_t *e;
 
@@ -242,9 +222,7 @@ pa_volume_s24ne_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsign
     }
 }
 
-static void
-pa_volume_s24re_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_s24re_c(uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     unsigned channel;
     uint8_t *e;
 
@@ -263,12 +241,10 @@ pa_volume_s24re_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsign
     }
 }
 
-static void
-pa_volume_s24_32ne_c (uint32_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_s24_32ne_c(uint32_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     unsigned channel;
 
-    length /= sizeof (uint32_t);
+    length /= sizeof(uint32_t);
 
     for (channel = 0; length; length--) {
         int64_t t;
@@ -283,12 +259,10 @@ pa_volume_s24_32ne_c (uint32_t *samples, int32_t *volumes, unsigned channels, un
     }
 }
 
-static void
-pa_volume_s24_32re_c (uint32_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
+static void pa_volume_s24_32re_c(uint32_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     unsigned channel;
 
-    length /= sizeof (uint32_t);
+    length /= sizeof(uint32_t);
 
     for (channel = 0; length; length--) {
         int64_t t;
@@ -303,8 +277,7 @@ pa_volume_s24_32re_c (uint32_t *samples, int32_t *volumes, unsigned channels, un
     }
 }
 
-static pa_do_volume_func_t do_volume_table[] =
-{
+static pa_do_volume_func_t do_volume_table[] = {
     [PA_SAMPLE_U8]        = (pa_do_volume_func_t) pa_volume_u8_c,
     [PA_SAMPLE_ALAW]      = (pa_do_volume_func_t) pa_volume_alaw_c,
     [PA_SAMPLE_ULAW]      = (pa_do_volume_func_t) pa_volume_ulaw_c,

@@ -191,9 +191,7 @@ static void update_rule(struct rule *r) {
                     continue;
 
                 pa_xfree(fn);
-                fn = pa_sprintf_malloc(DESKTOPFILEDIR
-                                       PA_PATH_SEP "%s" PA_PATH_SEP "%s.desktop",
-                                       dir->d_name, r->process_name);
+                fn = pa_sprintf_malloc(DESKTOPFILEDIR PA_PATH_SEP "%s" PA_PATH_SEP "%s.desktop", dir->d_name, r->process_name);
 
                 if (stat(fn, &st) == 0) {
                     found = TRUE;

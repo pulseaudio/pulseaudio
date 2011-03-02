@@ -74,10 +74,10 @@ static int check_passthrough_connection(pa_sink_input_flags_t flags, pa_sink *de
         }
 
     } else {
-         if (flags & PA_SINK_INPUT_PASSTHROUGH) {
-             pa_log_warn("Cannot connect PASSTHROUGH sink input to sink without PASSTHROUGH capabilities");
-             return -PA_ERR_INVALID;
-         }
+        if (flags & PA_SINK_INPUT_PASSTHROUGH) {
+            pa_log_warn("Cannot connect PASSTHROUGH sink input to sink without PASSTHROUGH capabilities");
+            return -PA_ERR_INVALID;
+        }
     }
     return PA_OK;
 }

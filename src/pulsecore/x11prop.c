@@ -34,8 +34,7 @@
 
 #define PA_XCB_FORMAT 8
 
-static xcb_screen_t *screen_of_display(xcb_connection_t *xcb, int screen)
-{
+static xcb_screen_t *screen_of_display(xcb_connection_t *xcb, int screen) {
     const xcb_setup_t *s;
     xcb_screen_iterator_t iter;
 

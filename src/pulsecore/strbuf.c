@@ -146,7 +146,7 @@ void pa_strbuf_putsn(pa_strbuf *sb, const char *t, size_t l) {
     pa_assert(t);
 
     if (!l)
-       return;
+        return;
 
     c = pa_xmalloc(PA_ALIGN(sizeof(struct chunk)) + l);
     c->length = l;

@@ -362,7 +362,7 @@ int pa_alsa_set_hw_params(
     pa_log_debug("Set neither period nor buffer size.");
 
     /* Last chance, set nothing */
-    if  ((ret = snd_pcm_hw_params(pcm_handle, hwparams)) < 0) {
+    if ((ret = snd_pcm_hw_params(pcm_handle, hwparams)) < 0) {
         pa_log_info("snd_pcm_hw_params failed: %s", pa_alsa_strerror(ret));
         goto finish;
     }

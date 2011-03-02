@@ -156,7 +156,7 @@ struct pa_source {
         pa_usec_t max_latency; /* An upper limit for the latencies */
 
         pa_usec_t fixed_latency; /* for sources with PA_SOURCE_DYNAMIC_LATENCY this is 0 */
- } thread_info;
+} thread_info;
 
     void *userdata;
 };

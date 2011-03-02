@@ -429,7 +429,7 @@ static int write_uint(FILE *f, const uint32_t num) {
     errno = 0;
 
     for (i = 0; i < 4; i++)
-         values[i] = (num >> (i*8)) & 0xFF;
+        values[i] = (num >> (i*8)) & 0xFF;
 
     items = fwrite(&values, sizeof(values), sizeof(uint8_t), f);
 

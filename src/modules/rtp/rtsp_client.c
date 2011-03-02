@@ -372,8 +372,7 @@ void pa_rtsp_set_url(pa_rtsp_client* c, const char* url) {
     c->url = pa_xstrdup(url);
 }
 
-void pa_rtsp_add_header(pa_rtsp_client *c, const char* key, const char* value)
-{
+void pa_rtsp_add_header(pa_rtsp_client *c, const char* key, const char* value) {
     pa_assert(c);
     pa_assert(key);
     pa_assert(value);
@@ -381,8 +380,7 @@ void pa_rtsp_add_header(pa_rtsp_client *c, const char* key, const char* value)
     pa_headerlist_puts(c->headers, key, value);
 }
 
-void pa_rtsp_remove_header(pa_rtsp_client *c, const char* key)
-{
+void pa_rtsp_remove_header(pa_rtsp_client *c, const char* key) {
     pa_assert(c);
     pa_assert(key);
 

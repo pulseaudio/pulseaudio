@@ -362,7 +362,7 @@ void pa__done(pa_module*m) {
         pa_sink_unref(u->sink);
 
     if (u->memchunk.memblock)
-       pa_memblock_unref(u->memchunk.memblock);
+        pa_memblock_unref(u->memchunk.memblock);
 
     if (u->rtpoll_item)
         pa_rtpoll_item_free(u->rtpoll_item);

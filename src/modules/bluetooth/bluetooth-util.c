@@ -590,7 +590,7 @@ static void list_devices_reply(DBusPendingCall *pending, void *userdata) {
 
 finish:
     if (paths)
-        dbus_free_string_array (paths);
+        dbus_free_string_array(paths);
 
     dbus_message_unref(r);
 
@@ -598,8 +598,7 @@ finish:
     pa_dbus_pending_free(p);
 }
 
-static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const char *endpoint, const char *uuid)
-{
+static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const char *endpoint, const char *uuid) {
     DBusMessage *m;
     DBusMessageIter i, d;
     uint8_t codec = 0;
@@ -699,7 +698,7 @@ static void list_adapters_reply(DBusPendingCall *pending, void *userdata) {
 
 finish:
     if (paths)
-        dbus_free_string_array (paths);
+        dbus_free_string_array(paths);
 
     dbus_message_unref(r);
 

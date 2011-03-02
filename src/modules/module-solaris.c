@@ -307,8 +307,8 @@ static int auto_format(int fd, int mode, pa_sample_spec *ss) {
             info.record.encoding = AUDIO_ENCODING_LINEAR;
             break;
         default:
-             pa_log("AUDIO_SETINFO: Unsupported sample format.");
-             return -1;
+            pa_log("AUDIO_SETINFO: Unsupported sample format.");
+            return -1;
         }
     }
 

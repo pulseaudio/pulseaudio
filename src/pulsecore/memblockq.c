@@ -376,8 +376,8 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
             size_t d;
 
             pa_assert(bq->write_index + (int64_t)chunk.length > q->index &&
-                   bq->write_index + (int64_t)chunk.length < q->index + (int64_t)q->chunk.length &&
-                   bq->write_index < q->index);
+                      bq->write_index + (int64_t)chunk.length < q->index + (int64_t)q->chunk.length &&
+                      bq->write_index < q->index);
 
             /* The job overwrites the current entry at the end, so let's drop the beginning of this entry */
 

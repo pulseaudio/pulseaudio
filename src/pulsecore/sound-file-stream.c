@@ -200,7 +200,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
     }
 
     return -1;
- }
+}
 
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     file_stream *u;

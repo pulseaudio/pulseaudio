@@ -557,7 +557,7 @@ static int sink_input_process_msg(pa_msgobject *obj, int code, void *data, int64
     switch (code) {
 
         case PA_SINK_INPUT_MESSAGE_GET_LATENCY: {
-             pa_usec_t *r = data;
+            pa_usec_t *r = data;
 
             *r = pa_bytes_to_usec(pa_memblockq_get_length(o->memblockq), &o->sink_input->sample_spec);
 

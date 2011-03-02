@@ -531,9 +531,7 @@ static void memblock_free(pa_memblock *b) {
 
             pa_mutex_lock(import->mutex);
 
-            pa_assert_se(pa_hashmap_remove(
-                                 import->blocks,
-                                 PA_UINT32_TO_PTR(b->per_type.imported.id)));
+            pa_assert_se(pa_hashmap_remove(import->blocks, PA_UINT32_TO_PTR(b->per_type.imported.id)));
 
             pa_assert(segment->n_blocks >= 1);
             if (-- segment->n_blocks <= 0)
@@ -693,9 +691,7 @@ static void memblock_replace_import(pa_memblock *b) {
 
     pa_mutex_lock(import->mutex);
 
-    pa_assert_se(pa_hashmap_remove(
-                         import->blocks,
-                         PA_UINT32_TO_PTR(b->per_type.imported.id)));
+    pa_assert_se(pa_hashmap_remove(import->blocks, PA_UINT32_TO_PTR(b->per_type.imported.id)));
 
     memblock_make_local(b);
 

@@ -40,7 +40,7 @@ static const char* const valid_modargs[] = {
 };
 
 static void pa_speex_ec_fixate_spec(pa_sample_spec *source_ss, pa_channel_map *source_map,
-				    pa_sample_spec *sink_ss, pa_channel_map *sink_map)
+                                    pa_sample_spec *sink_ss, pa_channel_map *sink_map)
 {
     source_ss->format = PA_SAMPLE_S16NE;
 
@@ -91,7 +91,7 @@ pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
     ec->params.priv.speex.state = speex_echo_state_init_mc (framelen, (rate * filter_size_ms) / 1000, source_ss->channels, source_ss->channels);
 
     if (!ec->params.priv.speex.state)
-	goto fail;
+        goto fail;
 
     speex_echo_ctl(ec->params.priv.speex.state, SPEEX_ECHO_SET_SAMPLING_RATE, &rate);
 
@@ -100,17 +100,15 @@ pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
 
 fail:
     if (ma)
-	pa_modargs_free(ma);
+        pa_modargs_free(ma);
     return FALSE;
 }
 
-void pa_speex_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out)
-{
+void pa_speex_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {
     speex_echo_cancellation(ec->params.priv.speex.state, (const spx_int16_t *) rec, (const spx_int16_t *) play, (spx_int16_t *) out);
 }
 
-void pa_speex_ec_done(pa_echo_canceller *ec)
-{
-    speex_echo_state_destroy (ec->params.priv.speex.state);
+void pa_speex_ec_done(pa_echo_canceller *ec) {
+    speex_echo_state_destroy(ec->params.priv.speex.state);
     ec->params.priv.speex.state = NULL;
 }

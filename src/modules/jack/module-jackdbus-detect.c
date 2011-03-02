@@ -84,8 +84,7 @@ struct userdata {
 };
 
 
-static void ensure_ports_stopped(struct userdata* u)
-{
+static void ensure_ports_stopped(struct userdata* u) {
     int i;
     pa_assert(u);
 
@@ -97,8 +96,7 @@ static void ensure_ports_stopped(struct userdata* u)
         }
 }
 
-static void ensure_ports_started(struct userdata* u)
-{
+static void ensure_ports_started(struct userdata* u) {
     int i;
     pa_assert(u);
 
@@ -120,8 +118,7 @@ static void ensure_ports_started(struct userdata* u)
 }
 
 
-static pa_bool_t check_service_started(struct userdata* u)
-{
+static pa_bool_t check_service_started(struct userdata* u) {
     DBusError error;
     DBusMessage *m = NULL, *reply = NULL;
     pa_bool_t new_status = FALSE;
@@ -169,8 +166,7 @@ finish:
     return new_status;
 }
 
-static DBusHandlerResult dbus_filter_handler(DBusConnection *c,	DBusMessage *s,	void *userdata)
-{
+static DBusHandlerResult dbus_filter_handler(DBusConnection *c, DBusMessage *s, void *userdata) {
     struct userdata *u = NULL;
     DBusError error;
 
@@ -182,13 +178,11 @@ static DBusHandlerResult dbus_filter_handler(DBusConnection *c,	DBusMessage *s,	
 
     if (dbus_message_is_signal(s, DBUS_INTERFACE_DBUS, "NameOwnerChanged")) {
         const char *name, *old, *new;
-        if (!dbus_message_get_args(
-			    s,
-			    &error,
-			    DBUS_TYPE_STRING, &name,
-			    DBUS_TYPE_STRING, &old,
-			    DBUS_TYPE_STRING, &new,
-			    DBUS_TYPE_INVALID))
+        if (!dbus_message_get_args(s, &error,
+                                   DBUS_TYPE_STRING, &name,
+                                   DBUS_TYPE_STRING, &old,
+                                   DBUS_TYPE_STRING, &new,
+                                   DBUS_TYPE_INVALID))
             goto finish;
         if (strcmp(name, JACK_SERVICE_NAME))
             goto finish;
@@ -211,8 +205,7 @@ finish:
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
-int pa__init(pa_module *m)
-{
+int pa__init(pa_module *m) {
     DBusError error;
     pa_dbus_connection *connection = NULL;
     struct userdata *u = NULL;
@@ -275,8 +268,7 @@ fail:
     return -1;
 }
 
-void pa__done(pa_module *m)
-{
+void pa__done(pa_module *m) {
     struct userdata *u;
 
     pa_assert(m);

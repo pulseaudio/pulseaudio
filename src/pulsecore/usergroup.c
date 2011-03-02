@@ -142,9 +142,7 @@ struct group *pa_getgrgid_malloc(gid_t gid) {
     getgr_buflen = buflen - sizeof(struct group);
     getgr_buf = (char *)buf + sizeof(struct group);
 
-    while ((err = getgrgid_r(gid, (struct group *)buf, getgr_buf,
-                    getgr_buflen, &result)) == ERANGE)
-    {
+    while ((err = getgrgid_r(gid, (struct group *)buf, getgr_buf, getgr_buflen, &result)) == ERANGE) {
         if (expand_buffer_trashcontents(&buf, &buflen))
             break;
 
@@ -203,9 +201,7 @@ struct group *pa_getgrnam_malloc(const char *name) {
     getgr_buflen = buflen - sizeof(struct group);
     getgr_buf = (char *)buf + sizeof(struct group);
 
-    while ((err = getgrnam_r(name, (struct group *)buf, getgr_buf,
-                    getgr_buflen, &result)) == ERANGE)
-    {
+    while ((err = getgrnam_r(name, (struct group *)buf, getgr_buf, getgr_buflen, &result)) == ERANGE) {
         if (expand_buffer_trashcontents(&buf, &buflen))
             break;
 
@@ -268,9 +264,7 @@ struct passwd *pa_getpwnam_malloc(const char *name) {
     getpw_buflen = buflen - sizeof(struct passwd);
     getpw_buf = (char *)buf + sizeof(struct passwd);
 
-    while ((err = getpwnam_r(name, (struct passwd *)buf, getpw_buf,
-                    getpw_buflen, &result)) == ERANGE)
-    {
+    while ((err = getpwnam_r(name, (struct passwd *)buf, getpw_buf, getpw_buflen, &result)) == ERANGE) {
         if (expand_buffer_trashcontents(&buf, &buflen))
             break;
 
@@ -329,9 +323,7 @@ struct passwd *pa_getpwuid_malloc(uid_t uid) {
     getpw_buflen = buflen - sizeof(struct passwd);
     getpw_buf = (char *)buf + sizeof(struct passwd);
 
-    while ((err = getpwuid_r(uid, (struct passwd *)buf, getpw_buf,
-                    getpw_buflen, &result)) == ERANGE)
-    {
+    while ((err = getpwuid_r(uid, (struct passwd *)buf, getpw_buf, getpw_buflen, &result)) == ERANGE) {
         if (expand_buffer_trashcontents(&buf, &buflen))
             break;
 

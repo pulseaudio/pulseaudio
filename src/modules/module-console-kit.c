@@ -77,7 +77,7 @@ static void add_session(struct userdata *u, const char *id) {
     struct session *session;
     pa_client_new_data data;
 
-    dbus_error_init (&error);
+    dbus_error_init(&error);
 
     if (pa_hashmap_get(u->sessions, id)) {
         pa_log_warn("Duplicate session %s, ignoring.", id);

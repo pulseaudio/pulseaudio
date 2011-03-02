@@ -103,7 +103,7 @@
                 " emms                          \n\t"
 
 #if defined (__i386__) || defined (__amd64__)
-static void remap_mono_to_stereo_mmx (pa_remap_t *m, void *dst, const void *src, unsigned n) {
+static void remap_mono_to_stereo_mmx(pa_remap_t *m, void *dst, const void *src, unsigned n) {
     pa_reg_x86 temp, temp2;
 
     switch (*m->format) {
@@ -133,7 +133,7 @@ static void remap_mono_to_stereo_mmx (pa_remap_t *m, void *dst, const void *src,
 }
 
 /* set the function that will execute the remapping based on the matrices */
-static void init_remap_mmx (pa_remap_t *m) {
+static void init_remap_mmx(pa_remap_t *m) {
     unsigned n_oc, n_ic;
 
     n_oc = m->o_ss->channels;
@@ -148,13 +148,13 @@ static void init_remap_mmx (pa_remap_t *m) {
 }
 #endif /* defined (__i386__) || defined (__amd64__) */
 
-void pa_remap_func_init_mmx (pa_cpu_x86_flag_t flags) {
+void pa_remap_func_init_mmx(pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)
 
     if (flags & PA_CPU_X86_MMX) {
         pa_log_info("Initialising MMX optimized remappers.");
 
-        pa_set_init_remap_func ((pa_init_remap_func_t) init_remap_mmx);
+        pa_set_init_remap_func((pa_init_remap_func_t) init_remap_mmx);
     }
 
 #endif /* defined (__i386__) || defined (__amd64__) */

@@ -715,7 +715,7 @@ int pa__init(pa_module*m) {
 
     return 0;
 
- fail:
+fail:
     if (ma)
         pa_modargs_free(ma);
 
@@ -763,7 +763,7 @@ void pa__done(pa_module*m) {
         pa_memblockq_free(u->memblockq);
 
     if (u->sink_memblockq)
-         pa_memblockq_free(u->sink_memblockq);
+        pa_memblockq_free(u->sink_memblockq);
 
     pa_xfree(u);
 }

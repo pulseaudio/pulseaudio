@@ -620,7 +620,7 @@ int pa__init(pa_module*m) {
 
     return 0;
 
- fail:
+fail:
     if (ma)
         pa_modargs_free(ma);
 

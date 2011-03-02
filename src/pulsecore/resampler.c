@@ -1022,7 +1022,7 @@ static void calc_map_table(pa_resampler *r) {
     pa_xfree(t);
 
     /* initialize the remapping function */
-    pa_init_remap (m);
+    pa_init_remap(m);
 }
 
 static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) {
@@ -1096,8 +1096,8 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
 
     remap = &r->remap;
 
-    pa_assert (remap->do_remap);
-    remap->do_remap (remap, dst, src, n_frames);
+    pa_assert(remap->do_remap);
+    remap->do_remap(remap, dst, src, n_frames);
 
     pa_memblock_release(input->memblock);
     pa_memblock_release(r->buf2.memblock);

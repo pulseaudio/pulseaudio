@@ -752,7 +752,7 @@ void pa_volume_memchunk(
       return;
     }
 
-    do_volume = pa_get_volume_func (spec->format);
+    do_volume = pa_get_volume_func(spec->format);
     pa_assert(do_volume);
 
     calc_volume_table[spec->format] ((void *)linear, volume);

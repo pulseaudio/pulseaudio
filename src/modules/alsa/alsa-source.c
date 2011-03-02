@@ -796,7 +796,7 @@ static void update_smoother(struct userdata *u) {
 }
 
 static pa_usec_t source_get_latency(struct userdata *u) {
-   int64_t delay;
+    int64_t delay;
     pa_usec_t now1, now2;
 
     pa_assert(u);

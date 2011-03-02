@@ -217,12 +217,12 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
 #ifdef OS_IS_WIN32
     r = mkdir(dir);
 #else
-    {
+{
     mode_t u;
     u = umask((~m) & 0777);
     r = mkdir(dir, m);
     umask(u);
-    }
+}
 #endif
 
     if (r < 0 && errno != EEXIST)
@@ -1043,8 +1043,7 @@ static int is_group(gid_t gid, const char *name) {
     int r = -1;
 
     errno = 0;
-    if (!(group = pa_getgrgid_malloc(gid)))
-    {
+    if (!(group = pa_getgrgid_malloc(gid))) {
         if (!errno)
             errno = ENOENT;
 
@@ -1110,8 +1109,7 @@ int pa_uid_in_group(uid_t uid, const char *name) {
     int r = -1;
 
     errno = 0;
-    if (!(group = pa_getgrnam_malloc(name)))
-    {
+    if (!(group = pa_getgrnam_malloc(name))) {
         if (!errno)
             errno = ENOENT;
         goto finish;
@@ -1146,8 +1144,7 @@ gid_t pa_get_gid_of_group(const char *name) {
     struct group *gr = NULL;
 
     errno = 0;
-    if (!(gr = pa_getgrnam_malloc(name)))
-    {
+    if (!(gr = pa_getgrnam_malloc(name))) {
         if (!errno)
             errno = ENOENT;
         goto finish;

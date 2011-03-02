@@ -169,7 +169,7 @@ static void trigger(struct userdata *u, pa_bool_t quick) {
     if (u->fd < 0)
         return;
 
-     pa_log_debug("trigger");
+    pa_log_debug("trigger");
 
     if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state))
         enable_bits |= PCM_ENABLE_INPUT;

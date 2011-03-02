@@ -38,8 +38,7 @@
 static const char base64_chars[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-static int pos(char c)
-{
+static int pos(char c) {
     if (c >= 'A' && c <= 'Z') return c - 'A' + 0;
     if (c >= 'a' && c <= 'z') return c - 'a' + 26;
     if (c >= '0' && c <= '9') return c - '0' + 52;
@@ -48,8 +47,7 @@ static int pos(char c)
     return -1;
 }
 
-int pa_base64_encode(const void *data, int size, char **str)
-{
+int pa_base64_encode(const void *data, int size, char **str) {
     char *s, *p;
     int i;
     int c;
@@ -84,8 +82,7 @@ int pa_base64_encode(const void *data, int size, char **str)
 
 #define DECODE_ERROR 0xffffffff
 
-static unsigned int token_decode(const char *token)
-{
+static unsigned int token_decode(const char *token) {
     int i;
     unsigned int val = 0;
     int marker = 0;
@@ -109,8 +106,7 @@ static unsigned int token_decode(const char *token)
     return (marker << 24) | val;
 }
 
-int pa_base64_decode(const char *str, void *data)
-{
+int pa_base64_decode(const char *str, void *data) {
     const char *p;
     unsigned char *q;
 

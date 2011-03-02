@@ -290,7 +290,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
          * canceler does not work in this case. */
         pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_APPLY_DIFF_TIME,
             NULL, diff_time, NULL, NULL);
-        //new_rate = base_rate - ((pa_usec_to_bytes (-diff_time, &u->source_output->sample_spec) / fs) * PA_USEC_PER_SEC) / u->adjust_time;
+        //new_rate = base_rate - ((pa_usec_to_bytes(-diff_time, &u->source_output->sample_spec) / fs) * PA_USEC_PER_SEC) / u->adjust_time;
         new_rate = base_rate;
     }
     else {
@@ -301,7 +301,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
         }
 
         /* recording behind playback, we need to slowly adjust the rate to match */
-        //new_rate = base_rate + ((pa_usec_to_bytes (diff_time, &u->source_output->sample_spec) / fs) * PA_USEC_PER_SEC) / u->adjust_time;
+        //new_rate = base_rate + ((pa_usec_to_bytes(diff_time, &u->source_output->sample_spec) / fs) * PA_USEC_PER_SEC) / u->adjust_time;
 
         /* assume equal samplerates for now */
         new_rate = base_rate;
@@ -404,7 +404,7 @@ static int source_set_state_cb(pa_source *s, pa_source_state_t state) {
         if (u->active_mask == 3)
             pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
 
-        pa_atomic_store (&u->request_resync, 1);
+        pa_atomic_store(&u->request_resync, 1);
         pa_source_output_cork(u->source_output, FALSE);
     } else if (state == PA_SOURCE_SUSPENDED) {
         u->active_mask &= ~1;
@@ -432,7 +432,7 @@ static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
         if (u->active_mask == 3)
             pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
 
-        pa_atomic_store (&u->request_resync, 1);
+        pa_atomic_store(&u->request_resync, 1);
         pa_sink_input_cork(u->sink_input, FALSE);
     } else if (state == PA_SINK_SUSPENDED) {
         u->active_mask &= ~2;
@@ -597,7 +597,7 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
     int64_t diff;
 
     if (diff_time < 0) {
-        diff = pa_usec_to_bytes (-diff_time, &u->source_output->sample_spec);
+        diff = pa_usec_to_bytes(-diff_time, &u->source_output->sample_spec);
 
         if (diff > 0) {
             /* add some extra safety samples to compensate for jitter in the
@@ -610,7 +610,7 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
             u->source_skip = 0;
         }
     } else if (diff_time > 0) {
-        diff = pa_usec_to_bytes (diff_time, &u->source_output->sample_spec);
+        diff = pa_usec_to_bytes(diff_time, &u->source_output->sample_spec);
 
         if (diff > 0) {
             pa_log("playback too far ahead (%lld), drop source %lld", (long long) diff_time, (long long) diff);
@@ -660,7 +660,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     u->in_push = FALSE;
 
     if (pa_atomic_cmpxchg (&u->request_resync, 1, 0)) {
-        do_resync (u);
+        do_resync(u);
     }
 
     pa_memblockq_push_align(u->source_memblockq, chunk);
@@ -770,7 +770,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
     if (i->thread_info.underrun_for > 0) {
         pa_log_debug("Handling end of underrun.");
-        pa_atomic_store (&u->request_resync, 1);
+        pa_atomic_store(&u->request_resync, 1);
     }
 
     /* let source thread handle the chunk. pass the sample count as well so that
@@ -926,7 +926,7 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
 
     pa_log_debug("Sink input update max rewind %lld", (long long) nbytes);
 
-    pa_memblockq_set_maxrewind (u->sink_memblockq, nbytes);
+    pa_memblockq_set_maxrewind(u->sink_memblockq, nbytes);
     pa_sink_set_max_rewind_within_thread(u->sink, nbytes);
 }
 
@@ -1300,8 +1300,7 @@ static void sink_input_mute_changed_cb(pa_sink_input *i) {
     pa_sink_mute_changed(u->sink, i->muted);
 }
 
-static pa_echo_canceller_method_t get_ec_method_from_string(const char *method)
-{
+static pa_echo_canceller_method_t get_ec_method_from_string(const char *method) {
     if (strcmp(method, "speex") == 0)
         return PA_ECHO_CANCELLER_SPEEX;
     else if (strcmp(method, "adrian") == 0)
@@ -1615,7 +1614,7 @@ int pa__init(pa_module*m) {
 
     return 0;
 
- fail:
+fail:
     if (ma)
         pa_modargs_free(ma);
 

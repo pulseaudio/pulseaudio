@@ -212,7 +212,7 @@ int pa_ip_acl_check(pa_ip_acl *acl, int fd) {
                 return 1;
 #ifdef HAVE_IPV6
         } else if (e->family == AF_INET6) {
-            int i, bits ;
+            int i, bits;
             struct sockaddr_in6 *sai = (struct sockaddr_in6*) &sa;
 
             if (e->bits == 128)

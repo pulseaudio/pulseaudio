@@ -44,8 +44,7 @@
 #include <pulsecore/pid.h>
 
 int main(int argc, char*argv[]) {
-
-    pid_t pid ;
+    pid_t pid;
     int fd = -1;
     int ret = 1, i;
     struct sockaddr_un sa;

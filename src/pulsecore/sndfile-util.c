@@ -52,7 +52,7 @@ int pa_sndfile_read_sample_spec(SNDFILE *sf, pa_sample_spec *ss) {
 
         case SF_FORMAT_PCM_24:
             ss->format = PA_SAMPLE_S24NE;
-	    break;
+            break;
 
         case SF_FORMAT_PCM_32:
             ss->format = PA_SAMPLE_S32NE;
@@ -109,9 +109,9 @@ int pa_sndfile_write_sample_spec(SF_INFO *sfi, pa_sample_spec *ss) {
 
         case PA_SAMPLE_S24LE:
         case PA_SAMPLE_S24BE:
-	    ss->format = PA_SAMPLE_S24NE;
-	    sfi->format |= SF_FORMAT_PCM_24;
-	    break;
+            ss->format = PA_SAMPLE_S24NE;
+            sfi->format |= SF_FORMAT_PCM_24;
+            break;
 
         case PA_SAMPLE_S24_32LE:
         case PA_SAMPLE_S24_32BE:
@@ -304,8 +304,7 @@ int pa_sndfile_write_channel_map(SNDFILE *sf, pa_channel_map *cm) {
         channels[c] = table[cm->map[c]];
     }
 
-    if (!sf_command(sf, SFC_SET_CHANNEL_MAP_INFO,
-                    channels, sizeof(channels[0]) * cm->channels)) {
+    if (!sf_command(sf, SFC_SET_CHANNEL_MAP_INFO, channels, sizeof(channels[0]) * cm->channels)) {
         pa_xfree(channels);
         return -1;
     }

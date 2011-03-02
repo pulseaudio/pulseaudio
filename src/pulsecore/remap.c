@@ -32,7 +32,7 @@
 
 #include "remap.h"
 
-static void remap_mono_to_stereo_c (pa_remap_t *m, void *dst, const void *src, unsigned n) {
+static void remap_mono_to_stereo_c(pa_remap_t *m, void *dst, const void *src, unsigned n) {
     unsigned i;
 
     switch (*m->format) {
@@ -85,7 +85,7 @@ static void remap_mono_to_stereo_c (pa_remap_t *m, void *dst, const void *src, u
     }
 }
 
-static void remap_channels_matrix_c (pa_remap_t *m, void *dst, const void *src, unsigned n) {
+static void remap_channels_matrix_c(pa_remap_t *m, void *dst, const void *src, unsigned n) {
     unsigned oc, ic, i;
     unsigned n_ic, n_oc;
 
@@ -97,7 +97,7 @@ static void remap_channels_matrix_c (pa_remap_t *m, void *dst, const void *src, 
         {
             float *d, *s;
 
-            memset(dst, 0, n * sizeof (float) * n_oc);
+            memset(dst, 0, n * sizeof(float) * n_oc);
 
             for (oc = 0; oc < n_oc; oc++) {
 
@@ -128,7 +128,7 @@ static void remap_channels_matrix_c (pa_remap_t *m, void *dst, const void *src, 
         {
             int16_t *d, *s;
 
-            memset(dst, 0, n * sizeof (int16_t) * n_oc);
+            memset(dst, 0, n * sizeof(int16_t) * n_oc);
 
             for (oc = 0; oc < n_oc; oc++) {
 
@@ -160,7 +160,7 @@ static void remap_channels_matrix_c (pa_remap_t *m, void *dst, const void *src, 
 }
 
 /* set the function that will execute the remapping based on the matrices */
-static void init_remap_c (pa_remap_t *m) {
+static void init_remap_c(pa_remap_t *m) {
     unsigned n_oc, n_ic;
 
     n_oc = m->o_ss->channels;
@@ -181,17 +181,17 @@ static void init_remap_c (pa_remap_t *m) {
 /* default C implementation */
 static pa_init_remap_func_t remap_func = init_remap_c;
 
-void pa_init_remap (pa_remap_t *m) {
-    pa_assert (remap_func);
+void pa_init_remap(pa_remap_t *m) {
+    pa_assert(remap_func);
 
     m->do_remap = NULL;
 
     /* call the installed remap init function */
-    remap_func (m);
+    remap_func(m);
 
     if (m->do_remap == NULL) {
         /* nothing was installed, fallback to C version */
-        init_remap_c (m);
+        init_remap_c(m);
     }
 }
 

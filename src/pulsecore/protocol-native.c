@@ -1387,7 +1387,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 
             /* If more data is in queue, we rewind later instead. */
             if (s->seek_windex != -1)
-                 windex = PA_MIN(windex, s->seek_windex);
+                windex = PA_MIN(windex, s->seek_windex);
             if (pa_atomic_dec(&s->seek_or_post_in_queue) > 1)
                 s->seek_windex = windex;
             else {
@@ -1406,7 +1406,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
             pa_sink_input *isync;
             void (*func)(pa_memblockq *bq);
 
-            switch  (code) {
+            switch (code) {
                 case SINK_INPUT_MESSAGE_FLUSH:
                     func = flush_write_no_account;
                     break;
@@ -4939,7 +4939,7 @@ pa_pstream* pa_native_connection_get_pstream(pa_native_connection *c) {
 }
 
 pa_client* pa_native_connection_get_client(pa_native_connection *c) {
-   pa_native_connection_assert_ref(c);
+    pa_native_connection_assert_ref(c);
 
-   return c->client;
+    return c->client;
 }

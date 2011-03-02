@@ -1174,7 +1174,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             goto fail;
 
         if (PA_INVALID_INDEX == (role_index = get_role_index(role)))
-           goto fail;
+            goto fail;
 
         /* Cycle through the devices given and make sure they exist */
         h = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
@@ -1209,9 +1209,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             if (first) {
                 first = FALSE;
                 sink_mode = (0 == strncmp("sink:", s, 5));
-            } else if ((sink_mode && 0 != strncmp("sink:", s, 5))
-                       || (!sink_mode && 0 != strncmp("source:", s, 7)))
-            {
+            } else if ((sink_mode && 0 != strncmp("sink:", s, 5)) || (!sink_mode && 0 != strncmp("source:", s, 7))) {
                 while ((device = pa_hashmap_steal_first(h))) {
                     pa_xfree(device->device);
                     pa_xfree(device);

@@ -105,7 +105,7 @@ int pa_poll (struct pollfd *fds, unsigned long int nfds, int timeout) {
     tv.tv_sec = timeout / 1000;
     tv.tv_usec = (timeout % 1000) * 1000;
 
-    ready = select ((SELECT_TYPE_ARG1) maxfd + 1, SELECT_TYPE_ARG234 &rset,
+    ready = select((SELECT_TYPE_ARG1) maxfd + 1, SELECT_TYPE_ARG234 &rset,
                     SELECT_TYPE_ARG234 &wset, SELECT_TYPE_ARG234 &xset,
                     SELECT_TYPE_ARG5 (timeout == -1 ? NULL : &tv));
 
@@ -160,7 +160,7 @@ int pa_poll (struct pollfd *fds, unsigned long int nfds, int timeout) {
         /* Linux alters the tv struct... but it shouldn't matter here ...
          * as we're going to be a little bit out anyway as we've just eaten
          * more than a couple of cpu cycles above */
-            ready = select ((SELECT_TYPE_ARG1) maxfd + 1, SELECT_TYPE_ARG234 &rset,
+            ready = select((SELECT_TYPE_ARG1) maxfd + 1, SELECT_TYPE_ARG234 &rset,
                             SELECT_TYPE_ARG234 &wset, SELECT_TYPE_ARG234 &xset,
                             SELECT_TYPE_ARG5 (timeout == -1 ? NULL : &tv));
         }
