@@ -276,7 +276,7 @@ int pa_sink_input_new(
     if (!data->format && data->nego_formats && !pa_idxset_isempty(data->nego_formats))
         data->format = pa_format_info_copy(pa_idxset_first(data->nego_formats, NULL));
 
-    pa_return_val_if_fail(data->format, -PA_ERR_INVALID);
+    pa_return_val_if_fail(data->format, -PA_ERR_NOTSUPPORTED);
 
     /* Now populate the sample spec and format according to the final
      * format that we've negotiated */
