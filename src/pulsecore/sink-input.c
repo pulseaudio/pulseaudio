@@ -185,9 +185,6 @@ pa_bool_t pa_sink_input_new_data_set_formats(pa_sink_input_new_data *data, pa_id
 }
 
 void pa_sink_input_new_data_done(pa_sink_input_new_data *data) {
-    pa_format_info *f;
-    int i;
-
     pa_assert(data);
 
     if (data->req_formats)
@@ -273,11 +270,14 @@ int pa_sink_input_new(
 
     /* Routing's done, we have a sink. Now let's fix the format and set up the
      * sample spec */
-    pa_return_val_if_fail(data->format || (data->nego_formats && !pa_idxset_isempty(data->nego_formats)), -PA_ERR_INVALID);
+
     /* If something didn't pick a format for us, pick the top-most format since
      * we assume this is sorted in priority order */
-    if (!data->format)
+    if (!data->format && data->nego_formats && !pa_idxset_isempty(data->nego_formats))
         data->format = pa_format_info_copy(pa_idxset_first(data->nego_formats, NULL));
+
+    pa_return_val_if_fail(data->format, -PA_ERR_INVALID);
+
     /* Now populate the sample spec and format according to the final
      * format that we've negotiated */
     if (PA_LIKELY(data->format->encoding == PA_ENCODING_PCM)) {
