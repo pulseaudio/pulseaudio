@@ -620,6 +620,7 @@ char *pa_strlcpy(char *b, const char *s, size_t l) {
     return b;
 }
 
+#ifdef _POSIX_PRIORITY_SCHEDULING
 static int set_scheduler(int rtprio) {
 #ifdef HAVE_SCHED_H
     struct sched_param sp;
@@ -677,6 +678,7 @@ static int set_scheduler(int rtprio) {
 
     return -1;
 }
+#endif
 
 /* Make the current thread a realtime thread, and acquire the highest
  * rtprio we can get that is less or equal the specified parameter. If
@@ -713,6 +715,7 @@ int pa_make_realtime(int rtprio) {
     return -1;
 }
 
+#ifdef HAVE_SYS_RESOURCE_H
 static int set_nice(int nice_level) {
 #ifdef HAVE_DBUS
     DBusError error;
@@ -757,6 +760,7 @@ static int set_nice(int nice_level) {
 
     return -1;
 }
+#endif
 
 /* Raise the priority of the current process as much as possible that
  * is <= the specified nice level..*/

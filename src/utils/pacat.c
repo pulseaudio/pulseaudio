@@ -604,6 +604,7 @@ static void stream_update_timing_callback(pa_stream *s, int success, void *userd
     fprintf(stderr, "        \r");
 }
 
+#ifdef SIGUSR1
 /* Someone requested that the latency is shown */
 static void sigusr1_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
 
@@ -612,6 +613,7 @@ static void sigusr1_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int s
 
     pa_operation_unref(pa_stream_update_timing_info(stream, stream_update_timing_callback, NULL));
 }
+#endif
 
 static void time_event_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata) {
     if (stream && pa_stream_get_state(stream) == PA_STREAM_READY) {

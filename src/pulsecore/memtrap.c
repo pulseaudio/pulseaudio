@@ -67,11 +67,11 @@ pa_bool_t pa_memtrap_is_good(pa_memtrap *m) {
     return !pa_atomic_load(&m->bad);
 }
 
+#ifdef HAVE_SIGACTION
 static void sigsafe_error(const char *s) {
     (void) write(STDERR_FILENO, s, strlen(s));
 }
 
-#ifdef HAVE_SIGACTION
 static void signal_handler(int sig, siginfo_t* si, void *data) {
     unsigned j;
     pa_memtrap *m;
