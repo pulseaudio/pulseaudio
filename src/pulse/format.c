@@ -120,21 +120,21 @@ pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_m
 }
 
 /* For PCM streams */
-void pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
+pa_bool_t pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
     const char *sf, *r, *ch;
     uint32_t channels;
 
     pa_assert(f);
     pa_assert(ss);
-    pa_assert(f->encoding == PA_ENCODING_PCM);
+    pa_return_val_if_fail(f->encoding == PA_ENCODING_PCM, FALSE);
 
-    pa_assert(sf = pa_proplist_gets(f->plist, PA_PROP_FORMAT_SAMPLE_FORMAT));
-    pa_assert(r = pa_proplist_gets(f->plist, PA_PROP_FORMAT_RATE));
-    pa_assert(ch = pa_proplist_gets(f->plist, PA_PROP_FORMAT_CHANNELS));
+    pa_return_val_if_fail(sf = pa_proplist_gets(f->plist, PA_PROP_FORMAT_SAMPLE_FORMAT), FALSE);
+    pa_return_val_if_fail(r = pa_proplist_gets(f->plist, PA_PROP_FORMAT_RATE), FALSE);
+    pa_return_val_if_fail(ch = pa_proplist_gets(f->plist, PA_PROP_FORMAT_CHANNELS), FALSE);
 
-    pa_assert((ss->format = pa_parse_sample_format(sf)) != PA_SAMPLE_INVALID);
-    pa_assert(pa_atou(r, &ss->rate) == 0);
-    pa_assert(pa_atou(ch, &channels) == 0);
+    pa_return_val_if_fail((ss->format = pa_parse_sample_format(sf)) != PA_SAMPLE_INVALID, FALSE);
+    pa_return_val_if_fail(pa_atou(r, &ss->rate) == 0, FALSE);
+    pa_return_val_if_fail(pa_atou(ch, &channels) == 0, FALSE);
     ss->channels = (uint8_t) channels;
 
     if (map) {
@@ -142,21 +142,25 @@ void pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_cha
         pa_channel_map_init(map);
 
         if (m)
-            pa_assert(pa_channel_map_parse(map, m) != NULL);
+            pa_return_val_if_fail(pa_channel_map_parse(map, m) != NULL, FALSE);
     }
+
+    return TRUE;
 }
 
 /* For compressed streams */
-void pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss) {
+pa_bool_t pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss) {
     const char *r;
 
     pa_assert(f);
     pa_assert(ss);
-    pa_assert(f->encoding != PA_ENCODING_PCM);
+    pa_return_val_if_fail(f->encoding != PA_ENCODING_PCM, FALSE);
 
     ss->format = PA_SAMPLE_S16LE;
     ss->channels = 2;
 
-    pa_assert(r = pa_proplist_gets(f->plist, PA_PROP_FORMAT_RATE));
-    pa_assert(pa_atou(r, &ss->rate) == 0);
+    pa_return_val_if_fail(r = pa_proplist_gets(f->plist, PA_PROP_FORMAT_RATE), FALSE);
+    pa_return_val_if_fail(pa_atou(r, &ss->rate) == 0, FALSE);
+
+    return TRUE;
 }

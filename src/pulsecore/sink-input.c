@@ -281,12 +281,12 @@ int pa_sink_input_new(
     /* Now populate the sample spec and format according to the final
      * format that we've negotiated */
     if (PA_LIKELY(data->format->encoding == PA_ENCODING_PCM)) {
-        pa_format_info_to_sample_spec(data->format, &ss, &map);
+        pa_return_val_if_fail(pa_format_info_to_sample_spec(data->format, &ss, &map), -PA_ERR_INVALID);
         pa_sink_input_new_data_set_sample_spec(data, &ss);
         if (pa_channel_map_valid(&map))
             pa_sink_input_new_data_set_channel_map(data, &map);
     } else {
-        pa_format_info_to_sample_spec_fake(data->format, &ss);
+        pa_return_val_if_fail(pa_format_info_to_sample_spec_fake(data->format, &ss), -PA_ERR_INVALID);
         pa_sink_input_new_data_set_sample_spec(data, &ss);
         /* XXX: this is redundant - we can just check the encoding */
         data->flags |= PA_SINK_INPUT_PASSTHROUGH;
