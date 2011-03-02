@@ -1552,6 +1552,11 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     if (!pa_sink_input_may_move_to(i, dest))
         return -PA_ERR_NOTSUPPORTED;
 
+    if (!pa_format_info_is_pcm(i->format) && !pa_sink_check_format(dest, i->format)) {
+        /* FIXME: Fire a message here so the client can renegotiate */
+        return -PA_ERR_NOTSUPPORTED;
+    }
+
     if (i->thread_info.resampler &&
         pa_sample_spec_equal(pa_resampler_output_sample_spec(i->thread_info.resampler), &dest->sample_spec) &&
         pa_channel_map_equal(pa_resampler_output_channel_map(i->thread_info.resampler), &dest->channel_map))

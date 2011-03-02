@@ -407,6 +407,7 @@ void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, pa_bool_t save);
 void pa_sink_move_all_fail(pa_queue *q);
 
 pa_idxset* pa_sink_get_formats(pa_sink *s);
+pa_bool_t pa_sink_check_format(pa_sink *s, pa_format_info *f);
 pa_idxset* pa_sink_check_formats(pa_sink *s, pa_idxset *in_formats);
 
 /*** To be called exclusively by the sink driver, from IO context */

@@ -3292,6 +3292,33 @@ pa_idxset* pa_sink_get_formats(pa_sink *s) {
 }
 
 /* Called from the main thread */
+/* Checks if the sink can accept this format */
+pa_bool_t pa_sink_check_format(pa_sink *s, pa_format_info *f)
+{
+    pa_idxset *sink_formats = NULL;
+    pa_format_info *f_sink;
+    uint32_t i;
+    pa_bool_t ret = FALSE;
+
+    pa_assert(s);
+    pa_assert(f);
+
+    sink_formats = pa_sink_get_formats(s);
+
+    PA_IDXSET_FOREACH(f_sink, sink_formats, i) {
+        if (pa_format_info_is_compatible(f_sink, f)) {
+            ret = TRUE;
+            break;
+        }
+    }
+
+    if (sink_formats)
+        pa_idxset_free(sink_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+
+    return ret;
+}
+
+/* Called from the main thread */
 /* Calculates the intersection between formats supported by the sink and
  * in_formats, and returns these, in the order of the sink's formats. */
 pa_idxset* pa_sink_check_formats(pa_sink *s, pa_idxset *in_formats) {
