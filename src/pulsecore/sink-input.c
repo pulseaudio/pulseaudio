@@ -130,10 +130,6 @@ void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mu
     data->muted = !!mute;
 }
 
-static void free_format_info(pa_format_info *f, void *userdata) {
-    pa_format_info_free(f);
-}
-
 pa_bool_t pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, pa_bool_t save) {
     pa_bool_t ret = TRUE;
     pa_idxset *formats = NULL;
@@ -154,12 +150,12 @@ pa_bool_t pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink 
             data->sink = s;
             data->save_sink = save;
             if (data->nego_formats)
-                pa_idxset_free(data->nego_formats, (pa_free2_cb_t) free_format_info, NULL);
+                pa_idxset_free(data->nego_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
             data->nego_formats = formats;
         } else {
             /* Sink doesn't support any of the formats requested by the client */
             if (formats)
-                pa_idxset_free(formats, (pa_free2_cb_t) free_format_info, NULL);
+                pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
             ret = FALSE;
         }
     }
@@ -172,7 +168,7 @@ pa_bool_t pa_sink_input_new_data_set_formats(pa_sink_input_new_data *data, pa_id
     pa_assert(formats);
 
     if (data->req_formats)
-        pa_idxset_free(formats, (pa_free2_cb_t) free_format_info, NULL);
+        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
 
     data->req_formats = formats;
 
@@ -188,10 +184,10 @@ void pa_sink_input_new_data_done(pa_sink_input_new_data *data) {
     pa_assert(data);
 
     if (data->req_formats)
-        pa_idxset_free(data->req_formats, (pa_free2_cb_t) free_format_info, NULL);
+        pa_idxset_free(data->req_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
 
     if (data->nego_formats)
-        pa_idxset_free(data->nego_formats, (pa_free2_cb_t) free_format_info, NULL);
+        pa_idxset_free(data->nego_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
 
     if (data->format)
         pa_format_info_free(data->format);

@@ -35,6 +35,7 @@
 #include <pulse/utf8.h>
 #include <pulse/util.h>
 #include <pulse/xmalloc.h>
+#include <pulse/internal.h>
 
 #include <pulsecore/native-common.h>
 #include <pulsecore/packet.h>
@@ -1849,10 +1850,6 @@ static pa_tagstruct *reply_new(uint32_t tag) {
     return reply;
 }
 
-static void free_format_info(pa_format_info *f, void *userdata) {
-    pa_format_info_free(f);
-}
-
 static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     playback_stream *s;
@@ -2110,7 +2107,7 @@ error:
     if (p)
         pa_proplist_free(p);
     if (formats)
-        pa_idxset_free(formats, (pa_free2_cb_t) free_format_info, NULL);
+        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
     return;
 }
 

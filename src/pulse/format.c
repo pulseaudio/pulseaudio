@@ -66,6 +66,10 @@ void pa_format_info_free(pa_format_info *f) {
     pa_xfree(f);
 }
 
+void pa_format_info_free2(pa_format_info *f, void *userdata) {
+    pa_format_info_free(f);
+}
+
 int pa_format_info_valid(pa_format_info *f) {
     return (f->encoding >= 0 && f->encoding < PA_ENCODING_MAX && f->plist != NULL);
 }
