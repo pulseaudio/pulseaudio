@@ -20,11 +20,11 @@
 # mode.
 
 ### Automatically load driver modules depending on the hardware available
-.ifexists module-hal-detect@PA_SOEXT@
-load-module module-hal-detect
+.ifexists module-udev-detect@PA_SOEXT@
+load-module module-udev-detect
 .else
 ### Alternatively use the static hardware detection module (for systems that
-### lack HAL support)
+### lack udev support)
 load-module module-detect
 .endif
 
