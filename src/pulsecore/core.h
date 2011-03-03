@@ -35,6 +35,7 @@ typedef enum pa_suspend_cause {
     PA_SUSPEND_APPLICATION = 2,  /* Used by the device reservation logic */
     PA_SUSPEND_IDLE = 4,         /* Used by module-suspend-on-idle */
     PA_SUSPEND_SESSION = 8,      /* Used by module-hal for mark inactive sessions */
+    PA_SUSPEND_PASSTHROUGH = 16, /* Used to suspend monitor sources when the sink is in passthrough mode */
     PA_SUSPEND_ALL = 0xFFFF      /* Magic cause that can be used to resume forcibly */
 } pa_suspend_cause_t;
 

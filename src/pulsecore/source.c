@@ -514,7 +514,7 @@ int pa_source_suspend(pa_source *s, pa_bool_t suspend, pa_suspend_cause_t cause)
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
     pa_assert(cause != 0);
 
-    if (s->monitor_of)
+    if (s->monitor_of && cause != PA_SUSPEND_PASSTHROUGH)
         return -PA_ERR_NOTSUPPORTED;
 
     if (suspend)
