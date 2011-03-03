@@ -115,6 +115,13 @@ typedef uint32_t pa_volume_t;
 /** Maximum valid volume we can store. \since 0.9.15 */
 #define PA_VOLUME_MAX ((pa_volume_t) UINT32_MAX/2)
 
+/** Recommended maximum volume to show in user facing UIs.
+ * Note: UIs should deal gracefully with volumes greater than this value
+ * and not cause feedback loops etc. - i.e. if the volume is more than
+ * this, the UI should not limit it and push the limited value back to
+ * the server. \since 0.9.23 */
+#define PA_VOLUME_UI_MAX (pa_sw_volume_from_dB(+11.0))
+
 /** Special 'invalid' volume. \since 0.9.16 */
 #define PA_VOLUME_INVALID ((pa_volume_t) UINT32_MAX)
 
