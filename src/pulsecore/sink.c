@@ -2153,7 +2153,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             /* If you change anything here, make sure to change the
              * sink input handling a few lines down at
-             * PA_SINK_MESSAGE_PREPAPRE_MOVE, too. */
+             * PA_SINK_MESSAGE_START_MOVE, too. */
 
             if (i->detach)
                 i->detach(i);
