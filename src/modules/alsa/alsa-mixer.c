@@ -1154,9 +1154,6 @@ static int check_required(pa_alsa_element *e, snd_mixer_elem_t *me) {
         }
     }
 
-    if (check_required(e, me) < 0)
-        return -1;
-
     return 0;
 }
 
@@ -1359,6 +1356,9 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
             }
         }
     }
+
+    if (check_required(e, me) < 0)
+        return -1;
 
     return 0;
 }
