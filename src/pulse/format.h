@@ -72,10 +72,10 @@ pa_format_info* pa_format_info_copy(const pa_format_info *src);
 void pa_format_info_free(pa_format_info *f);
 
 /** Returns non-zero when the format info structure is valid */
-int pa_format_info_valid(pa_format_info *f);
+int pa_format_info_valid(const pa_format_info *f);
 
 /** Returns non-zero when the format info structure represents a PCM (i.e. uncompressed data) format */
-int pa_format_info_is_pcm(pa_format_info *f);
+int pa_format_info_is_pcm(const pa_format_info *f);
 
 PA_C_DECL_END
 
