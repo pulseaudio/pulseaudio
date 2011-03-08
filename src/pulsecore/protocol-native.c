@@ -2984,6 +2984,19 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
 
         pa_tagstruct_puts(t, sink->active_port ? sink->active_port->name : NULL);
     }
+
+    if (c->version >= 21) {
+        uint32_t i;
+        pa_format_info *f;
+        pa_idxset *formats = pa_sink_get_formats(sink);
+
+        pa_tagstruct_putu8(t, (uint8_t) pa_idxset_size(formats));
+        PA_IDXSET_FOREACH(f, formats, i) {
+            pa_tagstruct_put_format_info(t, f);
+        }
+
+        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+    }
 }
 
 static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_source *source) {

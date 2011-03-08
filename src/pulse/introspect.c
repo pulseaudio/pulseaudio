@@ -240,6 +240,33 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                 }
             }
 
+            if (o->context->version >= 21) {
+                i.formats = NULL;
+
+                if (pa_tagstruct_getu8(t, &i.n_formats)) {
+                    pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                    pa_proplist_free(i.proplist);
+                    goto finish;
+                }
+
+                pa_assert(i.n_formats > 0);
+                i.formats = pa_xnew0(pa_format_info*, i.n_formats);
+
+                for (j = 0; j < i.n_formats; j++) {
+                    i.formats[j] = pa_format_info_new();
+                    if (pa_tagstruct_get_format_info(t, i.formats[j]) < 0) {
+                        do {
+                            pa_format_info_free(i.formats[j]);
+                        } while (j--);
+                        pa_xfree(i.formats);
+
+                        pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                        pa_proplist_free(i.proplist);
+                        goto finish;
+                    }
+                }
+            }
+
             i.mute = (int) mute;
             i.flags = (pa_sink_flags_t) flags;
             i.state = (pa_sink_state_t) state;
@@ -253,6 +280,13 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                 pa_xfree(i.ports[0]);
                 pa_xfree(i.ports);
             }
+
+            if (i.formats) {
+                for (j = 0; j < i.n_formats; j++)
+                    pa_format_info_free(i.formats[j]);
+                pa_xfree(i.formats);
+            }
+
             pa_proplist_free(i.proplist);
         }
     }
