@@ -3153,6 +3153,8 @@ static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, 
         pa_tagstruct_put_boolean(t, has_volume);
         pa_tagstruct_put_boolean(t, s->volume_writable);
     }
+    if (c->version >= 21)
+        pa_tagstruct_put_format_info(t, s->format);
 }
 
 static void source_output_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_source_output *s) {

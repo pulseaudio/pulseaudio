@@ -1033,6 +1033,7 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
 
             pa_zero(i);
             i.proplist = pa_proplist_new();
+            i.format = pa_format_info_new();
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -1050,10 +1051,12 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
                 (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0) ||
                 (o->context->version >= 19 && pa_tagstruct_get_boolean(t, &corked) < 0) ||
                 (o->context->version >= 20 && (pa_tagstruct_get_boolean(t, &has_volume) < 0 ||
-                                               pa_tagstruct_get_boolean(t, &volume_writable) < 0))) {
+                                               pa_tagstruct_get_boolean(t, &volume_writable) < 0)) ||
+                (o->context->version >= 21 && pa_tagstruct_get_format_info(t, i.format) < 0)) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);
+                pa_format_info_free(i.format);
                 goto finish;
             }
 
@@ -1068,6 +1071,7 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
             }
 
             pa_proplist_free(i.proplist);
+            pa_format_info_free(i.format);
         }
     }
 

@@ -560,7 +560,7 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
 }
 
 static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info *i, int is_last, void *userdata) {
-    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], f[PA_FORMAT_INFO_SNPRINT_MAX];
     char *pl;
 
     if (is_last < 0) {
@@ -600,6 +600,7 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
              "\tSink: %u\n"
              "\tSample Specification: %s\n"
              "\tChannel Map: %s\n"
+             "\tFormat: %s\n"
              "\tMute: %s\n"
              "\tVolume: %s\n"
              "\t        %s\n"
@@ -615,6 +616,7 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
            i->sink,
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
+           pa_format_info_snprint(f, sizeof(f), i->format),
            pa_yes_no(i->mute),
            pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
            pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &i->volume),

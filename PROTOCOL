@@ -236,3 +236,8 @@ PA_COMMAND_GET_SINK_INFO_LIST)
     format_info format1
     ...
     format_info formatn
+
+One new field in reply from PA_COMMAND_GET_SINK_INPUT_INFO (and thus
+PA_COMMAND_GET_SINK_INPUT_INFO_LIST)
+
+    format_info format
