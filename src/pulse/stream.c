@@ -2470,6 +2470,16 @@ const pa_channel_map* pa_stream_get_channel_map(pa_stream *s) {
     return &s->channel_map;
 }
 
+const pa_format_info* pa_stream_get_format_info(pa_stream *s) {
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    /* We don't have the format till routing is done */
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, !pa_detect_fork(), PA_ERR_FORKED);
+
+    return s->format;
+}
 const pa_buffer_attr* pa_stream_get_buffer_attr(pa_stream *s) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);

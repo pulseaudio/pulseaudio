@@ -709,6 +709,9 @@ const pa_sample_spec* pa_stream_get_sample_spec(pa_stream *s);
 /** Return a pointer to the stream's channel map. */
 const pa_channel_map* pa_stream_get_channel_map(pa_stream *s);
 
+/** Return a pointer to the stream's format \since 1.0 */
+const pa_format_info* pa_stream_get_format_info(pa_stream *s);
+
 /** Return the per-stream server-side buffer metrics of the
  * stream. Only valid after the stream has been connected successfuly
  * and if the server is at least PulseAudio 0.9. This will return the

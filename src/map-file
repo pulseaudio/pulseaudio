@@ -258,6 +258,7 @@ pa_stream_get_channel_map;
 pa_stream_get_context;
 pa_stream_get_device_index;
 pa_stream_get_device_name;
+pa_stream_get_format_info;
 pa_stream_get_index;
 pa_stream_get_latency;
 pa_stream_get_monitor_stream;
