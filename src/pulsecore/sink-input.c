@@ -295,18 +295,20 @@ int pa_sink_input_new(
         !pa_sample_spec_equal(&data->sample_spec, &data->sink->sample_spec) ||
         !pa_channel_map_equal(&data->channel_map, &data->sink->channel_map)) {
 
-        if (!(resampler = pa_resampler_new(
-                      core->mempool,
-                      &data->sample_spec, &data->channel_map,
-                      &data->sink->sample_spec, &data->sink->channel_map,
-                      data->resample_method,
-                      ((data->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
-                      ((data->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
-                      (core->disable_remixing || (data->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
-                      (core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0)))) {
-            pa_log_warn("Unsupported resampling operation.");
-            return -PA_ERR_NOTSUPPORTED;
-        }
+        /* Note: for passthrough content we need to adjust the output rate to that of the current sink-input */
+        if (!(data->flags & PA_SINK_INPUT_PASSTHROUGH)) /* no resampler for passthrough content */
+            if (!(resampler = pa_resampler_new(
+                          core->mempool,
+                          &data->sample_spec, &data->channel_map,
+                          &data->sink->sample_spec, &data->sink->channel_map,
+                          data->resample_method,
+                          ((data->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
+                          ((data->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
+                          (core->disable_remixing || (data->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
+                          (core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0)))) {
+                pa_log_warn("Unsupported resampling operation.");
+                return -PA_ERR_NOTSUPPORTED;
+            }
     }
 
     i = pa_msgobject_new(pa_sink_input);
