@@ -27,11 +27,27 @@
 
 #include <pulse/internal.h>
 #include <pulse/xmalloc.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 
 #include "format.h"
+
+const char *pa_encoding_to_string(pa_encoding_t e) {
+    static const char* const table[]= {
+        [PA_ENCODING_PCM] = "pcm",
+        [PA_ENCODING_AC3_IEC61937] = "ac3-iec61937",
+        [PA_ENCODING_EAC3_IEC61937] = "eac3-iec61937",
+        [PA_ENCODING_MPEG_IEC61937] = "mpeg-iec61937",
+        [PA_ENCODING_ANY] = "any",
+    };
+
+    if (e < 0 || e >= PA_ENCODING_MAX)
+        return NULL;
+
+    return table[e];
+}
 
 pa_format_info* pa_format_info_new(void) {
     pa_format_info *f = pa_xnew(pa_format_info, 1);
@@ -76,6 +92,26 @@ int pa_format_info_valid(const pa_format_info *f) {
 
 int pa_format_info_is_pcm(const pa_format_info *f) {
     return f->encoding == PA_ENCODING_PCM;
+}
+
+char *pa_format_info_snprint(char *s, size_t l, const pa_format_info *f) {
+    char *tmp;
+
+    pa_assert(s);
+    pa_assert(l > 0);
+    pa_assert(f);
+
+    pa_init_i18n();
+
+    if (!pa_format_info_valid(f))
+        pa_snprintf(s, l, _("(invalid)"));
+    else {
+        tmp = pa_proplist_to_string_sep(f->plist, ", ");
+        pa_snprintf(s, l, _("%s, %s"), pa_encoding_to_string(f->encoding), tmp[0] ? tmp : _("(no properties)"));
+        pa_xfree(tmp);
+    }
+
+    return s;
 }
 
 pa_bool_t pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second) {
