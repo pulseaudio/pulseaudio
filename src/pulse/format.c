@@ -40,6 +40,7 @@ const char *pa_encoding_to_string(pa_encoding_t e) {
         [PA_ENCODING_AC3_IEC61937] = "ac3-iec61937",
         [PA_ENCODING_EAC3_IEC61937] = "eac3-iec61937",
         [PA_ENCODING_MPEG_IEC61937] = "mpeg-iec61937",
+        [PA_ENCODING_DTS_IEC61937] = "dts-iec61937",
         [PA_ENCODING_ANY] = "any",
     };
 
