@@ -29,14 +29,13 @@
 #include <pulse/context.h>
 #include <pulse/gccmacro.h>
 #include <pulse/xmalloc.h>
+#include <pulse/fork-detect.h>
 
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/pstream-util.h>
 
 #include "internal.h"
-#include "fork-detect.h"
-
 #include "introspect.h"
 
 /*** Statistics ***/

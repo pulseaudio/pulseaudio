@@ -53,6 +53,11 @@
 #include <pulse/i18n.h>
 #include <pulse/mainloop.h>
 #include <pulse/timeval.h>
+#include <pulse/fork-detect.h>
+#include <pulse/client-conf.h>
+#ifdef HAVE_X11
+#include <pulse/client-conf-x11.h>
+#endif
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/native-common.h>
@@ -71,14 +76,6 @@
 #include <pulsecore/proplist-util.h>
 
 #include "internal.h"
-
-#include "client-conf.h"
-#include "fork-detect.h"
-
-#ifdef HAVE_X11
-#include "client-conf-x11.h"
-#endif
-
 #include "context.h"
 
 void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);

@@ -29,8 +29,7 @@
 
 #include <pulsecore/g711.h>
 #include <pulsecore/macro.h>
-
-#include "endianmacros.h"
+#include <pulsecore/endianmacros.h>
 
 #include "cpu-x86.h"
 #include "sconv.h"

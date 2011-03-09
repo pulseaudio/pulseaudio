@@ -26,6 +26,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <pulse/xmalloc.h>
+
 #include <pulsecore/atomic.h>
 #include <pulsecore/log.h>
 #include <pulsecore/thread.h>
@@ -33,10 +35,9 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/flist.h>
-#include <pulse/xmalloc.h>
+#include <pulsecore/fdsem.h>
 
 #include "asyncq.h"
-#include "fdsem.h"
 
 #define ASYNCQ_SIZE 256
 

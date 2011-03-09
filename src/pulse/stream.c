@@ -29,10 +29,10 @@
 #include <string.h>
 
 #include <pulse/def.h>
-#include <pulse/stream.h>
 #include <pulse/timeval.h>
 #include <pulse/rtclock.h>
 #include <pulse/xmalloc.h>
+#include <pulse/fork-detect.h>
 
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/log.h>
@@ -41,8 +41,8 @@
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 
-#include "fork-detect.h"
 #include "internal.h"
+#include "stream.h"
 
 #define AUTO_TIMING_INTERVAL_START_USEC (10*PA_USEC_PER_MSEC)
 #define AUTO_TIMING_INTERVAL_END_USEC (1500*PA_USEC_PER_MSEC)

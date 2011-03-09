@@ -31,7 +31,6 @@
 #include <pulsecore/pstream-util.h>
 
 #include "internal.h"
-
 #include "subscribe.h"
 
 void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {

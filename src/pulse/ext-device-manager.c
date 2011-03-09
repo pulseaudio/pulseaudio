@@ -27,14 +27,13 @@
 #include <pulse/context.h>
 #include <pulse/gccmacro.h>
 #include <pulse/xmalloc.h>
+#include <pulse/fork-detect.h>
+#include <pulse/operation.h>
 
 #include <pulsecore/macro.h>
 #include <pulsecore/pstream-util.h>
 
 #include "internal.h"
-#include "operation.h"
-#include "fork-detect.h"
-
 #include "ext-device-manager.h"
 
 enum {

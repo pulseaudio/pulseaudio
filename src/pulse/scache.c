@@ -28,14 +28,14 @@
 #include <string.h>
 
 #include <pulse/utf8.h>
-#include <pulse/scache.h>
+#include <pulse/fork-detect.h>
 
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/proplist-util.h>
 
-#include "fork-detect.h"
 #include "internal.h"
+#include "scache.h"
 
 int pa_stream_connect_upload(pa_stream *s, size_t length) {
     pa_tagstruct *t;

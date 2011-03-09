@@ -36,11 +36,11 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
+#include <pulsecore/remap.h>
 
 #include "ffmpeg/avcodec.h"
 
 #include "resampler.h"
-#include "remap.h"
 
 /* Number of samples of extra space we allow the resamplers to return */
 #define EXTRA_FRAMES 128

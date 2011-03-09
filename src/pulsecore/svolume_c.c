@@ -28,9 +28,9 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/g711.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/endianmacros.h>
 
 #include "sample-util.h"
-#include "endianmacros.h"
 
 static void pa_volume_u8_c(uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
     unsigned channel;

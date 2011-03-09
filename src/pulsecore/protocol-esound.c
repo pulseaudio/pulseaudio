@@ -55,8 +55,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/shared.h>
-
-#include "endianmacros.h"
+#include <pulsecore/endianmacros.h>
 
 #include "protocol-esound.h"
 

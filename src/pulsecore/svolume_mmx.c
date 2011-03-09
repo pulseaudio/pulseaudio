@@ -31,11 +31,11 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/g711.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/endianmacros.h>
 
 #include "cpu-x86.h"
 
 #include "sample-util.h"
-#include "endianmacros.h"
 
 #if defined (__i386__) || defined (__amd64__)
 /* in s: 2 int16_t samples

@@ -37,9 +37,9 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/g711.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/endianmacros.h>
 
 #include "sample-util.h"
-#include "endianmacros.h"
 
 #define PA_SILENCE_MAX (PA_PAGE_SIZE*16)
 

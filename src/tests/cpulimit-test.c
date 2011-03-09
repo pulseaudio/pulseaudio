@@ -34,7 +34,7 @@
 #include <pulse/mainloop-signal.h>
 #endif
 
-#include "../daemon/cpulimit.h"
+#include <daemon/cpulimit.h>
 
 /* A simple example for testing the cpulimit subsystem */
 
