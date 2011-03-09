@@ -36,7 +36,7 @@ noinst_DATA = \
 	default.pa.5.xml
 
 %.xml: %.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	$(AM_V_GEN) sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
 	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
             -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
 
@@ -66,7 +66,7 @@ CLEANFILES += \
 	$(dist_man_MANS)
 
 %: %.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
+	$(AM_V_GEN) perl $(srcdir)/xmltoman $< > $@ || rm -f $@
 
 endif
 

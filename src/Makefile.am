@@ -1866,23 +1866,23 @@ module_rygel_media_server_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 CLEANFILES += esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 start-pulseaudio-kde daemon/pulseaudio.desktop daemon/pulseaudio-kde.desktop
 
 esdcompat: daemon/esdcompat.in Makefile
-	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
+	$(AM_V_GEN) sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
 		-e 's,@PACKAGE_NAME\@,$(PACKAGE_NAME),g' \
 		-e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
-	chmod +x esdcompat
+	$(AM_V_at) chmod +x esdcompat
 
 start-pulseaudio-x11: daemon/start-pulseaudio-x11.in Makefile
-	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
+	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
 		-e 's,@PACTL_BINARY\@,$(bindir)/pactl,g' < $< > $@
-	chmod +x start-pulseaudio-x11
+	$(AM_V_at) chmod +x start-pulseaudio-x11
 
 start-pulseaudio-kde: daemon/start-pulseaudio-kde.in Makefile
-	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
+	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
 		-e 's,@PACTL_BINARY\@,$(bindir)/pactl,g' < $< > $@
-	chmod +x start-pulseaudio-kde
+	$(AM_V_at) chmod +x start-pulseaudio-kde
 
 client.conf: pulse/client.conf.in Makefile
-	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
+	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
 
 if OS_IS_WIN32
 default.pa: daemon/default.pa.win32
@@ -1891,17 +1891,17 @@ system.pa: daemon/default.pa.win32
 	cp $< $@
 else
 default.pa: daemon/default.pa.in Makefile
-	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
+	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
             -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
 	    -e 's,@PA_SOEXT\@,.so,g' < $< > $@
 system.pa: daemon/system.pa.in Makefile
-	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
+	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
             -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
 	    -e 's,@PA_SOEXT\@,.so,g' < $< > $@
 endif
 
 daemon.conf: daemon/daemon.conf.in Makefile
-	sed -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
+	$(AM_V_GEN) sed -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
 		-e 's,@PA_DEFAULT_CONFIG_FILE\@,$(DEFAULT_CONFIG_DIR),g' < $< > $@
 
 install-exec-hook:
