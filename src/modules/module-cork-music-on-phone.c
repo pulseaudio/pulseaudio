@@ -66,8 +66,10 @@ static pa_bool_t shall_cork(pa_sink *s, pa_sink_input *ignore) {
         if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
             continue;
 
-        if (pa_streq(role, "phone"))
+        if (pa_streq(role, "phone")) {
+            pa_log_debug("Found a phone stream that will trigger the auto-cork.");
             return TRUE;
+        }
     }
 
     return FALSE;
@@ -81,7 +83,7 @@ static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa
     pa_sink_assert_ref(s);
 
     for (j = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); j; j = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
-        pa_bool_t corked;
+        pa_bool_t corked, muted, corked_here;
         const char *role;
 
         if (j == ignore)
@@ -94,18 +96,25 @@ static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa
             !pa_streq(role, "music"))
             continue;
 
-        corked = !!pa_hashmap_get(u->cork_state, j);
+        corked = (pa_sink_input_get_state(j) == PA_SINK_INPUT_CORKED);
+        muted = pa_sink_input_get_mute(j);
+        corked_here = !!pa_hashmap_get(u->cork_state, j);
 
-        if (cork && !corked) {
-            pa_hashmap_put(u->cork_state, j, PA_INT_TO_PTR(1));
+        if (cork && !corked && !muted) {
+            pa_log_debug("Found a music/video stream that should be corked/muted.");
+            if (!corked_here)
+                pa_hashmap_put(u->cork_state, j, PA_INT_TO_PTR(1));
             pa_sink_input_set_mute(j, TRUE, FALSE);
             pa_sink_input_send_event(j, PA_STREAM_EVENT_REQUEST_CORK, NULL);
         } else if (!cork) {
             pa_hashmap_remove(u->cork_state, j);
 
-            if (corked) {
-                pa_sink_input_set_mute(j, FALSE, FALSE);
-                pa_sink_input_send_event(j, PA_STREAM_EVENT_REQUEST_UNCORK, NULL);
+            if (corked_here && (corked || muted)) {
+                pa_log_debug("Found a music/video stream that should be uncorked/unmuted.");
+                if (muted)
+                    pa_sink_input_set_mute(j, FALSE, FALSE);
+                if (corked)
+                    pa_sink_input_send_event(j, PA_STREAM_EVENT_REQUEST_UNCORK, NULL);
             }
         }
     }
