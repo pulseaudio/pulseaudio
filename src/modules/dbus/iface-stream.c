@@ -381,20 +381,19 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessag
         return;
     }
 
-    pa_cvolume_init(&new_vol);
-
     stream_channels = s->sink_input->channel_map.channels;
-
-    new_vol.channels = stream_channels;
 
     dbus_message_iter_recurse(iter, &array_iter);
     dbus_message_iter_get_fixed_array(&array_iter, &volume, &n_volume_entries);
 
-    if (n_volume_entries != stream_channels) {
+    if (n_volume_entries != stream_channels && n_volume_entries != 1) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
                            "Expected %u volume entries, got %u.", stream_channels, n_volume_entries);
         return;
     }
+
+    pa_cvolume_init(&new_vol);
+    new_vol.channels = n_volume_entries;
 
     for (i = 0; i < n_volume_entries; ++i) {
         if (!PA_VOLUME_IS_VALID(volume[i])) {
