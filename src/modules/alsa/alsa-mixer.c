@@ -2400,6 +2400,7 @@ int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, pa_bool_t ignore_dB) {
     pa_alsa_element *e;
     double min_dB[PA_CHANNEL_POSITION_MAX], max_dB[PA_CHANNEL_POSITION_MAX];
     pa_channel_position_t t;
+    pa_channel_position_mask_t path_volume_channels = 0;
 
     pa_assert(p);
     pa_assert(m);
@@ -2436,6 +2437,7 @@ int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, pa_bool_t ignore_dB) {
                         if (PA_CHANNEL_POSITION_MASK(t) & e->merged_mask) {
                             min_dB[t] = e->min_dB;
                             max_dB[t] = e->max_dB;
+                            path_volume_channels |= PA_CHANNEL_POSITION_MASK(t);
                         }
 
                     p->has_dB = TRUE;
@@ -2446,6 +2448,7 @@ int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, pa_bool_t ignore_dB) {
                             if (PA_CHANNEL_POSITION_MASK(t) & e->merged_mask) {
                                 min_dB[t] += e->min_dB;
                                 max_dB[t] += e->max_dB;
+                                path_volume_channels |= PA_CHANNEL_POSITION_MASK(t);
                             }
                     } else {
                         /* Hmm, there's another element before us
@@ -2484,11 +2487,13 @@ int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, pa_bool_t ignore_dB) {
     p->max_dB = -INFINITY;
 
     for (t = 0; t < PA_CHANNEL_POSITION_MAX; t++) {
-        if (p->min_dB > min_dB[t])
-            p->min_dB = min_dB[t];
+        if (path_volume_channels & PA_CHANNEL_POSITION_MASK(t)) {
+            if (p->min_dB > min_dB[t])
+                p->min_dB = min_dB[t];
 
-        if (p->max_dB < max_dB[t])
-            p->max_dB = max_dB[t];
+            if (p->max_dB < max_dB[t])
+                p->max_dB = max_dB[t];
+        }
     }
 
     return 0;
