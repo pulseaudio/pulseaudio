@@ -895,6 +895,9 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
             long value = to_alsa_dB(f);
             int rounding = value > 0 ? -1 : +1;
 
+            if (e->volume_limit >= 0 && value > (e->max_dB * 100))
+                value = e->max_dB * 100;
+
             if (e->direction == PA_ALSA_DIRECTION_OUTPUT) {
                 /* If we call set_playback_volume() without checking first
                  * if the channel is available, ALSA behaves very
@@ -1284,6 +1287,7 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
 
     pa_assert(m);
     pa_assert(e);
+    pa_assert(e->path);
 
     SELEM_INIT(sid, e->alsa_name);
 
@@ -1404,6 +1408,36 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
                         pa_assert(!e->db_fix);
                         pa_log_warn("Your kernel driver is broken: it reports a volume range from %0.2f dB to %0.2f dB which makes no sense.", e->min_dB, e->max_dB);
                         e->has_dB = FALSE;
+                    }
+                }
+
+                if (e->volume_limit >= 0) {
+                    if (e->volume_limit <= e->min_volume || e->volume_limit > e->max_volume)
+                        pa_log_warn("Volume limit for element %s of path %s is invalid: %li isn't within the valid range "
+                                    "%li-%li. The volume limit is ignored.",
+                                    e->alsa_name, e->path->name, e->volume_limit, e->min_volume + 1, e->max_volume);
+
+                    else {
+                        e->max_volume = e->volume_limit;
+
+                        if (e->has_dB) {
+                            if (e->db_fix) {
+                                e->db_fix->max_step = e->max_volume;
+                                e->max_dB = ((double) e->db_fix->db_values[e->db_fix->max_step - e->db_fix->min_step]) / 100.0;
+
+                            } else {
+                                if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
+                                    r = snd_mixer_selem_ask_playback_vol_dB(me, e->max_volume, &max_dB);
+                                else
+                                    r = snd_mixer_selem_ask_capture_vol_dB(me, e->max_volume, &max_dB);
+
+                                if (r < 0) {
+                                    pa_log_warn("Failed to get dB value of %s: %s", e->alsa_name, pa_alsa_strerror(r));
+                                    e->has_dB = FALSE;
+                                } else
+                                    e->max_dB = ((double) max_dB) / 100.0;
+                            }
+                        }
                     }
                 }
 
@@ -1530,6 +1564,7 @@ static pa_alsa_element* element_get(pa_alsa_path *p, const char *section, pa_boo
     e->path = p;
     e->alsa_name = pa_xstrdup(section);
     e->direction = p->direction;
+    e->volume_limit = -1;
 
     PA_LLIST_INSERT_AFTER(pa_alsa_element, p->elements, p->last_element, e);
 
@@ -1864,6 +1899,33 @@ static int element_parse_direction_try_other(
     return 0;
 }
 
+static int element_parse_volume_limit(
+        const char *filename,
+        unsigned line,
+        const char *section,
+        const char *lvalue,
+        const char *rvalue,
+        void *data,
+        void *userdata) {
+
+    pa_alsa_path *p = userdata;
+    pa_alsa_element *e;
+    uint32_t volume_limit;
+
+    if (!(e = element_get(p, section, TRUE))) {
+        pa_log("[%s:%u] volume-limit makes no sense in '%s'", filename, line, section);
+        return -1;
+    }
+
+    if (pa_atou(rvalue, &volume_limit) < 0 || volume_limit > LONG_MAX) {
+        pa_log("[%s:%u] Invalid value for volume-limit", filename, line);
+        return -1;
+    }
+
+    e->volume_limit = volume_limit;
+    return 0;
+}
+
 static pa_channel_position_mask_t parse_mask(const char *m) {
     pa_channel_position_mask_t v;
 
@@ -2141,6 +2203,7 @@ pa_alsa_path* pa_alsa_path_new(const char *fname, pa_alsa_direction_t direction)
         { "required-absent",     element_parse_required,            NULL, NULL },
         { "direction",           element_parse_direction,           NULL, NULL },
         { "direction-try-other", element_parse_direction_try_other, NULL, NULL },
+        { "volume-limit",        element_parse_volume_limit,        NULL, NULL },
         { NULL, NULL, NULL, NULL }
     };
 
@@ -2191,6 +2254,7 @@ pa_alsa_path* pa_alsa_path_synthesize(const char*element, pa_alsa_direction_t di
     e->path = p;
     e->alsa_name = pa_xstrdup(element);
     e->direction = direction;
+    e->volume_limit = -1;
 
     e->switch_use = PA_ALSA_SWITCH_MUTE;
     e->volume_use = PA_ALSA_VOLUME_MERGE;
@@ -2454,11 +2518,12 @@ void pa_alsa_element_dump(pa_alsa_element *e) {
     pa_alsa_option *o;
     pa_assert(e);
 
-    pa_log_debug("Element %s, direction=%i, switch=%i, volume=%i, enumeration=%i, required=%i, required_any=%i, required_absent=%i, mask=0x%llx, n_channels=%u, override_map=%s",
+    pa_log_debug("Element %s, direction=%i, switch=%i, volume=%i, volume_limit=%li, enumeration=%i, required=%i, required_any=%i, required_absent=%i, mask=0x%llx, n_channels=%u, override_map=%s",
                  e->alsa_name,
                  e->direction,
                  e->switch_use,
                  e->volume_use,
+                 e->volume_limit,
                  e->enumeration_use,
                  e->required,
                  e->required_any,
@@ -2619,6 +2684,7 @@ pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t d
             e->alsa_name = pa_xstrdup(*je);
             e->direction = direction;
             e->required_absent = PA_ALSA_REQUIRED_ANY;
+            e->volume_limit = -1;
 
             PA_LLIST_INSERT_AFTER(pa_alsa_element, p->elements, p->last_element, e);
             p->last_element = e;

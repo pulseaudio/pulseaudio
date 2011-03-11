@@ -142,6 +142,7 @@ struct pa_alsa_element {
 
     pa_bool_t has_dB:1;
     long min_volume, max_volume;
+    long volume_limit; /* -1 for no configured limit */
     double min_dB, max_dB;
 
     pa_channel_position_mask_t masks[SND_MIXER_SCHN_LAST][2];

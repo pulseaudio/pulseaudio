@@ -82,6 +82,7 @@
 ; volume = ignore | merge | off | zero   # What to do with this volume: ignore it, merge it into the device
 ;                                        # volume slider, always set it to the lowest value possible, or always
 ;                                        # set it to 0 dB (for whatever that means)
+; volume-limit = <volume step>           # Limit the maximum volume by disabling the volume steps above <volume step>.
 ; enumeration = ignore | select          # What to do with this enumeration, ignore it or make it selectable
 ;                                        # via device ports. If set to 'select' you need to define an Option section
 ;                                        # for each of the items you want to expose
