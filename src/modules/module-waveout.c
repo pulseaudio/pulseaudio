@@ -650,7 +650,7 @@ int pa__init(pa_module *m) {
     pa_assert(u->ihdrs);
     u->ohdrs = pa_xmalloc0(sizeof(WAVEHDR) * u->fragments);
     pa_assert(u->ohdrs);
-    for (i = 0;i < u->fragments;i++) {
+    for (i = 0; i < u->fragments; i++) {
         u->ihdrs[i].dwBufferLength = u->fragment_size;
         u->ohdrs[i].dwBufferLength = u->fragment_size;
         u->ihdrs[i].lpData = pa_xmalloc(u->fragment_size);
@@ -668,21 +668,25 @@ int pa__init(pa_module *m) {
 
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
-    if (!(u->thread = pa_thread_new("waveout-source", thread_func, u))) {
-        pa_log("Failed to create thread.");
-        goto fail;
-    }
 
     if (u->sink) {
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
-        pa_sink_put(u->sink);
     }
     if (u->source) {
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_rtpoll(u->source, u->rtpoll);
-        pa_source_put(u->source);
     }
+
+    if (!(u->thread = pa_thread_new("waveout", thread_func, u))) {
+        pa_log("Failed to create thread.");
+        goto fail;
+    }
+
+    if (u->sink)
+        pa_sink_put(u->sink);
+    if (u->source)
+        pa_source_put(u->source);
 
     return 0;
 
@@ -712,7 +716,7 @@ void pa__done(pa_module *m) {
 
     pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
     if (u->thread)
-      pa_thread_free(u->thread);
+        pa_thread_free(u->thread);
     pa_thread_mq_done(&u->thread_mq);
 
     if (u->sink)
@@ -733,7 +737,7 @@ void pa__done(pa_module *m) {
         waveOutClose(u->hwo);
     }
 
-    for (i = 0;i < u->fragments;i++) {
+    for (i = 0; i < u->fragments; i++) {
         pa_xfree(u->ihdrs[i].lpData);
         pa_xfree(u->ohdrs[i].lpData);
     }
