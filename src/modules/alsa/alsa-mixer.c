@@ -1243,21 +1243,23 @@ static int check_required(pa_alsa_element *e, snd_mixer_elem_t *me) {
 
     if (e->required_any != PA_ALSA_REQUIRED_IGNORE) {
         switch (e->required_any) {
-        case PA_ALSA_REQUIRED_VOLUME:
-            e->path->req_any_present |= (e->volume_use != PA_ALSA_VOLUME_IGNORE);
-            break;
-        case PA_ALSA_REQUIRED_SWITCH:
-            e->path->req_any_present |= (e->switch_use != PA_ALSA_SWITCH_IGNORE);
-            break;
-        case PA_ALSA_REQUIRED_ENUMERATION:
-            e->path->req_any_present |= (e->enumeration_use != PA_ALSA_ENUMERATION_IGNORE);
-            break;
-        case PA_ALSA_REQUIRED_ANY:
-            e->path->req_any_present |=
-                (e->volume_use != PA_ALSA_VOLUME_IGNORE) ||
-                (e->switch_use != PA_ALSA_SWITCH_IGNORE) ||
-                (e->enumeration_use != PA_ALSA_ENUMERATION_IGNORE);
-            break;
+            case PA_ALSA_REQUIRED_VOLUME:
+                e->path->req_any_present |= (e->volume_use != PA_ALSA_VOLUME_IGNORE);
+                break;
+            case PA_ALSA_REQUIRED_SWITCH:
+                e->path->req_any_present |= (e->switch_use != PA_ALSA_SWITCH_IGNORE);
+                break;
+            case PA_ALSA_REQUIRED_ENUMERATION:
+                e->path->req_any_present |= (e->enumeration_use != PA_ALSA_ENUMERATION_IGNORE);
+                break;
+            case PA_ALSA_REQUIRED_ANY:
+                e->path->req_any_present |=
+                    (e->volume_use != PA_ALSA_VOLUME_IGNORE) ||
+                    (e->switch_use != PA_ALSA_SWITCH_IGNORE) ||
+                    (e->enumeration_use != PA_ALSA_ENUMERATION_IGNORE);
+                break;
+            default:
+                pa_assert_not_reached();
         }
     }
 
