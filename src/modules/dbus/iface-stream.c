@@ -490,6 +490,9 @@ static void handle_get_resample_method(DBusConnection *conn, DBusMessage *msg, v
     else
         resample_method = pa_resample_method_to_string(s->source_output->actual_resample_method);
 
+    if (!resample_method)
+        resample_method = "";
+
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_STRING, &resample_method);
 }
 
@@ -560,6 +563,8 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
         client_path = pa_dbusiface_core_get_client_path(s->core, client);
     for (i = 0; i < channel_map->channels; ++i)
         channels[i] = channel_map->map[i];
+    if (!resample_method)
+        resample_method = "";
 
     pa_assert_se((reply = dbus_message_new_method_return(msg)));
 
