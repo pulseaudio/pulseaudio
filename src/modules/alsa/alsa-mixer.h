@@ -119,9 +119,9 @@ struct pa_alsa_option {
     pa_alsa_required_t required_absent;
 };
 
-/* And element wraps one specific ALSA element. A series of elements *
-make up a path (see below). If the element is an enumeration or switch
-* element it may includes a list of options. */
+/* An element wraps one specific ALSA element. A series of elements
+ * make up a path (see below). If the element is an enumeration or switch
+ * element it may include a list of options. */
 struct pa_alsa_element {
     pa_alsa_path *path;
     PA_LLIST_FIELDS(pa_alsa_element);
@@ -150,6 +150,8 @@ struct pa_alsa_element {
     pa_channel_position_mask_t merged_mask;
 
     PA_LLIST_HEAD(pa_alsa_option, options);
+
+    pa_alsa_decibel_fix *db_fix;
 };
 
 /* A path wraps a series of elements into a single entity which can be

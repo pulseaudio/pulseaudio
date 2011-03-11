@@ -491,6 +491,15 @@ static void option_free(pa_alsa_option *o) {
     pa_xfree(o);
 }
 
+static void decibel_fix_free(pa_alsa_decibel_fix *db_fix) {
+    pa_assert(db_fix);
+
+    pa_xfree(db_fix->name);
+    pa_xfree(db_fix->db_values);
+
+    pa_xfree(db_fix);
+}
+
 static void element_free(pa_alsa_element *e) {
     pa_alsa_option *o;
     pa_assert(e);
@@ -499,6 +508,9 @@ static void element_free(pa_alsa_element *e) {
         PA_LLIST_REMOVE(pa_alsa_option, e->options, o);
         option_free(o);
     }
+
+    if (e->db_fix)
+        decibel_fix_free(e->db_fix);
 
     pa_xfree(e->alsa_name);
     pa_xfree(e);
@@ -593,14 +605,60 @@ static int element_get_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
             long value = 0;
 
             if (e->direction == PA_ALSA_DIRECTION_OUTPUT) {
-                if (snd_mixer_selem_has_playback_channel(me, c))
-                    r = snd_mixer_selem_get_playback_dB(me, c, &value);
-                else
+                if (snd_mixer_selem_has_playback_channel(me, c)) {
+                    if (e->db_fix) {
+                        if ((r = snd_mixer_selem_get_playback_volume(me, c, &value)) >= 0) {
+                            /* If the channel volume is outside the limits set
+                             * by the dB fix, we clamp the hw volume to be
+                             * within the limits. */
+                            if (value < e->db_fix->min_step) {
+                                value = e->db_fix->min_step;
+                                snd_mixer_selem_set_playback_volume(me, c, value);
+                                pa_log_debug("Playback volume for element %s channel %i was below the dB fix limit. "
+                                             "Volume reset to %0.2f dB.", e->alsa_name, c,
+                                             e->db_fix->db_values[value - e->db_fix->min_step] / 100.0);
+                            } else if (value > e->db_fix->max_step) {
+                                value = e->db_fix->max_step;
+                                snd_mixer_selem_set_playback_volume(me, c, value);
+                                pa_log_debug("Playback volume for element %s channel %i was over the dB fix limit. "
+                                             "Volume reset to %0.2f dB.", e->alsa_name, c,
+                                             e->db_fix->db_values[value - e->db_fix->min_step] / 100.0);
+                            }
+
+                            /* Volume step -> dB value conversion. */
+                            value = e->db_fix->db_values[value - e->db_fix->min_step];
+                        }
+                    } else
+                        r = snd_mixer_selem_get_playback_dB(me, c, &value);
+                } else
                     r = -1;
             } else {
-                if (snd_mixer_selem_has_capture_channel(me, c))
-                    r = snd_mixer_selem_get_capture_dB(me, c, &value);
-                else
+                if (snd_mixer_selem_has_capture_channel(me, c)) {
+                    if (e->db_fix) {
+                        if ((r = snd_mixer_selem_get_capture_volume(me, c, &value)) >= 0) {
+                            /* If the channel volume is outside the limits set
+                             * by the dB fix, we clamp the hw volume to be
+                             * within the limits. */
+                            if (value < e->db_fix->min_step) {
+                                value = e->db_fix->min_step;
+                                snd_mixer_selem_set_capture_volume(me, c, value);
+                                pa_log_debug("Capture volume for element %s channel %i was below the dB fix limit. "
+                                             "Volume reset to %0.2f dB.", e->alsa_name, c,
+                                             e->db_fix->db_values[value - e->db_fix->min_step] / 100.0);
+                            } else if (value > e->db_fix->max_step) {
+                                value = e->db_fix->max_step;
+                                snd_mixer_selem_set_capture_volume(me, c, value);
+                                pa_log_debug("Capture volume for element %s channel %i was over the dB fix limit. "
+                                             "Volume reset to %0.2f dB.", e->alsa_name, c,
+                                             e->db_fix->db_values[value - e->db_fix->min_step] / 100.0);
+                            }
+
+                            /* Volume step -> dB value conversion. */
+                            value = e->db_fix->db_values[value - e->db_fix->min_step];
+                        }
+                    } else
+                        r = snd_mixer_selem_get_capture_dB(me, c, &value);
+                } else
                     r = -1;
             }
 
@@ -760,6 +818,37 @@ int pa_alsa_path_get_mute(pa_alsa_path *p, snd_mixer_t *m, pa_bool_t *muted) {
     return 0;
 }
 
+/* Finds the closest item in db_fix->db_values and returns the corresponding
+ * step. *db_value is replaced with the value from the db_values table.
+ * Rounding is done based on the rounding parameter: -1 means rounding down and
+ * +1 means rounding up. */
+static long decibel_fix_get_step(pa_alsa_decibel_fix *db_fix, long *db_value, int rounding) {
+    unsigned i = 0;
+    unsigned max_i = 0;
+
+    pa_assert(db_fix);
+    pa_assert(db_value);
+    pa_assert(rounding != 0);
+
+    max_i = db_fix->max_step - db_fix->min_step;
+
+    if (rounding > 0) {
+        for (i = 0; i < max_i; i++) {
+            if (db_fix->db_values[i] >= *db_value)
+                break;
+        }
+    } else {
+        for (i = 0; i < max_i; i++) {
+            if (db_fix->db_values[i + 1] > *db_value)
+                break;
+        }
+    }
+
+    *db_value = db_fix->db_values[i];
+
+    return i + db_fix->min_step;
+}
+
 static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t write_to_hw) {
 
     snd_mixer_selem_id_t *sid;
@@ -807,29 +896,49 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
             int rounding = value > 0 ? -1 : +1;
 
             if (e->direction == PA_ALSA_DIRECTION_OUTPUT) {
-                /* If we call set_play_volume() without checking first
-                 * if the channel is available, ALSA behaves ver
+                /* If we call set_playback_volume() without checking first
+                 * if the channel is available, ALSA behaves very
                  * strangely and doesn't fail the call */
                 if (snd_mixer_selem_has_playback_channel(me, c)) {
-                    if (write_to_hw) {
-                        if ((r = snd_mixer_selem_set_playback_dB(me, c, value, rounding)) >= 0)
-                            r = snd_mixer_selem_get_playback_dB(me, c, &value);
+                    if (e->db_fix) {
+                        if (write_to_hw)
+                            r = snd_mixer_selem_set_playback_volume(me, c, decibel_fix_get_step(e->db_fix, &value, rounding));
+                        else {
+                            decibel_fix_get_step(e->db_fix, &value, rounding);
+                            r = 0;
+                        }
+
                     } else {
-                        long alsa_val;
-                        if ((r = snd_mixer_selem_ask_playback_dB_vol(me, value, rounding, &alsa_val)) >= 0)
-                            r = snd_mixer_selem_ask_playback_vol_dB(me, alsa_val, &value);
+                        if (write_to_hw) {
+                            if ((r = snd_mixer_selem_set_playback_dB(me, c, value, rounding)) >= 0)
+                                r = snd_mixer_selem_get_playback_dB(me, c, &value);
+                        } else {
+                            long alsa_val;
+                            if ((r = snd_mixer_selem_ask_playback_dB_vol(me, value, rounding, &alsa_val)) >= 0)
+                                r = snd_mixer_selem_ask_playback_vol_dB(me, alsa_val, &value);
+                        }
                     }
                 } else
                     r = -1;
             } else {
                 if (snd_mixer_selem_has_capture_channel(me, c)) {
-                    if (write_to_hw) {
-                        if ((r = snd_mixer_selem_set_capture_dB(me, c, value, rounding)) >= 0)
-                            r = snd_mixer_selem_get_capture_dB(me, c, &value);
+                    if (e->db_fix) {
+                        if (write_to_hw)
+                            r = snd_mixer_selem_set_capture_volume(me, c, decibel_fix_get_step(e->db_fix, &value, rounding));
+                        else {
+                            decibel_fix_get_step(e->db_fix, &value, rounding);
+                            r = 0;
+                        }
+
                     } else {
-                        long alsa_val;
-                        if ((r = snd_mixer_selem_ask_capture_dB_vol(me, value, rounding, &alsa_val)) >= 0)
-                            r = snd_mixer_selem_ask_capture_vol_dB(me, alsa_val, &value);
+                        if (write_to_hw) {
+                            if ((r = snd_mixer_selem_set_capture_dB(me, c, value, rounding)) >= 0)
+                                r = snd_mixer_selem_get_capture_dB(me, c, &value);
+                        } else {
+                            long alsa_val;
+                            if ((r = snd_mixer_selem_ask_capture_dB_vol(me, value, rounding, &alsa_val)) >= 0)
+                                r = snd_mixer_selem_ask_capture_vol_dB(me, alsa_val, &value);
+                        }
                     }
                 } else
                     r = -1;
@@ -1013,9 +1122,19 @@ static int element_zero_volume(pa_alsa_element *e, snd_mixer_t *m) {
     }
 
     if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-        r = snd_mixer_selem_set_playback_dB_all(me, 0, +1);
+        if (e->db_fix) {
+            long value = 0;
+
+            r = snd_mixer_selem_set_playback_volume_all(me, decibel_fix_get_step(e->db_fix, &value, +1));
+        } else
+            r = snd_mixer_selem_set_playback_dB_all(me, 0, +1);
     else
-        r = snd_mixer_selem_set_capture_dB_all(me, 0, +1);
+        if (e->db_fix) {
+            long value = 0;
+
+            r = snd_mixer_selem_set_capture_volume_all(me, decibel_fix_get_step(e->db_fix, &value, +1));
+        } else
+            r = snd_mixer_selem_set_capture_dB_all(me, 0, +1);
 
     if (r < 0)
         pa_log_warn("Failed to set volume to 0dB of %s: %s", e->alsa_name, pa_alsa_strerror(errno));
@@ -1230,26 +1349,6 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
             e->direction_try_other = FALSE;
 
             if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-                e->has_dB = snd_mixer_selem_get_playback_dB_range(me, &min_dB, &max_dB) >= 0;
-            else
-                e->has_dB = snd_mixer_selem_get_capture_dB_range(me, &min_dB, &max_dB) >= 0;
-
-            if (e->has_dB) {
-#ifdef HAVE_VALGRIND_MEMCHECK_H
-                VALGRIND_MAKE_MEM_DEFINED(&min_dB, sizeof(min_dB));
-                VALGRIND_MAKE_MEM_DEFINED(&max_dB, sizeof(max_dB));
-#endif
-
-                e->min_dB = ((double) min_dB) / 100.0;
-                e->max_dB = ((double) max_dB) / 100.0;
-
-                if (min_dB >= max_dB) {
-                    pa_log_warn("Your kernel driver is broken: it reports a volume range from %0.2f dB to %0.2f dB which makes no sense.", e->min_dB, e->max_dB);
-                    e->has_dB = FALSE;
-                }
-            }
-
-            if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
                 r = snd_mixer_selem_get_playback_volume_range(me, &e->min_volume, &e->max_volume);
             else
                 r = snd_mixer_selem_get_capture_volume_range(me, &e->min_volume, &e->max_volume);
@@ -1259,7 +1358,6 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
                 return -1;
             }
 
-
             if (e->min_volume >= e->max_volume) {
                 pa_log_warn("Your kernel driver is broken: it reports a volume range from %li to %li which makes no sense.", e->min_volume, e->max_volume);
                 e->volume_use = PA_ALSA_VOLUME_IGNORE;
@@ -1267,6 +1365,45 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
             } else {
                 pa_bool_t is_mono;
                 pa_channel_position_t p;
+
+                if (e->db_fix &&
+                        ((e->min_volume > e->db_fix->min_step) ||
+                         (e->max_volume < e->db_fix->max_step))) {
+                    pa_log_warn("The step range of the decibel fix for element %s (%li-%li) doesn't fit to the "
+                                "real hardware range (%li-%li). Disabling the decibel fix.", e->alsa_name,
+                                e->db_fix->min_step, e->db_fix->max_step,
+                                e->min_volume, e->max_volume);
+
+                    decibel_fix_free(e->db_fix);
+                    e->db_fix = NULL;
+                }
+
+                if (e->db_fix) {
+                    e->has_dB = TRUE;
+                    e->min_volume = e->db_fix->min_step;
+                    e->max_volume = e->db_fix->max_step;
+                    min_dB = e->db_fix->db_values[0];
+                    max_dB = e->db_fix->db_values[e->db_fix->max_step - e->db_fix->min_step];
+                } else if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
+                    e->has_dB = snd_mixer_selem_get_playback_dB_range(me, &min_dB, &max_dB) >= 0;
+                else
+                    e->has_dB = snd_mixer_selem_get_capture_dB_range(me, &min_dB, &max_dB) >= 0;
+
+                if (e->has_dB) {
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+                    VALGRIND_MAKE_MEM_DEFINED(&min_dB, sizeof(min_dB));
+                    VALGRIND_MAKE_MEM_DEFINED(&max_dB, sizeof(max_dB));
+#endif
+
+                    e->min_dB = ((double) min_dB) / 100.0;
+                    e->max_dB = ((double) max_dB) / 100.0;
+
+                    if (min_dB >= max_dB) {
+                        pa_assert(!e->db_fix);
+                        pa_log_warn("Your kernel driver is broken: it reports a volume range from %0.2f dB to %0.2f dB which makes no sense.", e->min_dB, e->max_dB);
+                        e->has_dB = FALSE;
+                    }
+                }
 
                 if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
                     is_mono = snd_mixer_selem_is_playback_mono(me) > 0;
@@ -2401,8 +2538,12 @@ void pa_alsa_path_set_set_callback(pa_alsa_path_set *ps, snd_mixer_t *m, snd_mix
 pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t direction) {
     pa_alsa_path_set *ps;
     char **pn = NULL, **en = NULL, **ie;
+    pa_alsa_decibel_fix *db_fix;
+    void *state;
 
     pa_assert(m);
+    pa_assert(m->profile_set);
+    pa_assert(m->profile_set->decibel_fixes);
     pa_assert(direction == PA_ALSA_DIRECTION_OUTPUT || direction == PA_ALSA_DIRECTION_INPUT);
 
     if (m->direction != PA_ALSA_DIRECTION_ANY && m->direction != direction)
@@ -2444,7 +2585,7 @@ pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t d
             pa_xfree(fn);
         }
 
-        return ps;
+        goto finish;
     }
 
     if (direction == PA_ALSA_DIRECTION_OUTPUT)
@@ -2483,6 +2624,28 @@ pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t d
 
         PA_LLIST_INSERT_AFTER(pa_alsa_path, ps->paths, ps->last_path, p);
         ps->last_path = p;
+    }
+
+finish:
+    /* Assign decibel fixes to elements. */
+    PA_HASHMAP_FOREACH(db_fix, m->profile_set->decibel_fixes, state) {
+        pa_alsa_path *p;
+
+        PA_LLIST_FOREACH(p, ps->paths) {
+            pa_alsa_element *e;
+
+            PA_LLIST_FOREACH(e, p->elements) {
+                if (e->volume_use != PA_ALSA_VOLUME_IGNORE && pa_streq(db_fix->name, e->alsa_name)) {
+                    /* The profile set that contains the dB fix may be freed
+                     * before the element, so we have to copy the dB fix
+                     * object. */
+                    e->db_fix = pa_xnewdup(pa_alsa_decibel_fix, db_fix, 1);
+                    e->db_fix->profile_set = NULL;
+                    e->db_fix->name = pa_xstrdup(db_fix->name);
+                    e->db_fix->db_values = pa_xmemdup(db_fix->db_values, (db_fix->max_step - db_fix->min_step + 1) * sizeof(long));
+                }
+            }
+        }
     }
 
     return ps;
@@ -2638,15 +2801,6 @@ static void profile_free(pa_alsa_profile *p) {
         pa_idxset_free(p->output_mappings, NULL, NULL);
 
     pa_xfree(p);
-}
-
-static void decibel_fix_free(pa_alsa_decibel_fix *db_fix) {
-    pa_assert(db_fix);
-
-    pa_xfree(db_fix->name);
-    pa_xfree(db_fix->db_values);
-
-    pa_xfree(db_fix);
 }
 
 void pa_alsa_profile_set_free(pa_alsa_profile_set *ps) {
