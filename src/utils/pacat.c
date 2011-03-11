@@ -105,6 +105,7 @@ static void context_drain_complete(pa_context*c, void *userdata) {
 
 /* Stream draining complete */
 static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
+    pa_operation *o = NULL;
 
     if (!success) {
         pa_log(_("Failed to drain stream: %s"), pa_strerror(pa_context_errno(context)));
@@ -118,9 +119,10 @@ static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
     pa_stream_unref(stream);
     stream = NULL;
 
-    if (!pa_context_drain(context, context_drain_complete, NULL))
+    if (!(o = pa_context_drain(context, context_drain_complete, NULL)))
         pa_context_disconnect(context);
     else {
+        pa_operation_unref(o);
         if (verbose)
             pa_log(_("Draining connection to server."));
     }
