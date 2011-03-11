@@ -2640,6 +2640,15 @@ static void profile_free(pa_alsa_profile *p) {
     pa_xfree(p);
 }
 
+static void decibel_fix_free(pa_alsa_decibel_fix *db_fix) {
+    pa_assert(db_fix);
+
+    pa_xfree(db_fix->name);
+    pa_xfree(db_fix->db_values);
+
+    pa_xfree(db_fix);
+}
+
 void pa_alsa_profile_set_free(pa_alsa_profile_set *ps) {
     pa_assert(ps);
 
@@ -2659,6 +2668,15 @@ void pa_alsa_profile_set_free(pa_alsa_profile_set *ps) {
             mapping_free(m);
 
         pa_hashmap_free(ps->mappings, NULL, NULL);
+    }
+
+    if (ps->decibel_fixes) {
+        pa_alsa_decibel_fix *db_fix;
+
+        while ((db_fix = pa_hashmap_steal_first(ps->decibel_fixes)))
+            decibel_fix_free(db_fix);
+
+        pa_hashmap_free(ps->decibel_fixes, NULL, NULL);
     }
 
     pa_xfree(ps);
@@ -2703,6 +2721,26 @@ static pa_alsa_profile *profile_get(pa_alsa_profile_set *ps, const char *name) {
     pa_hashmap_put(ps->profiles, p->name, p);
 
     return p;
+}
+
+static pa_alsa_decibel_fix *decibel_fix_get(pa_alsa_profile_set *ps, const char *name) {
+    pa_alsa_decibel_fix *db_fix;
+
+    if (!pa_startswith(name, "DecibelFix "))
+        return NULL;
+
+    name += 11;
+
+    if ((db_fix = pa_hashmap_get(ps->decibel_fixes, name)))
+        return db_fix;
+
+    db_fix = pa_xnew0(pa_alsa_decibel_fix, 1);
+    db_fix->profile_set = ps;
+    db_fix->name = pa_xstrdup(name);
+
+    pa_hashmap_put(ps->decibel_fixes, db_fix->name, db_fix);
+
+    return db_fix;
 }
 
 static int mapping_parse_device_strings(
@@ -2975,6 +3013,130 @@ static int profile_parse_skip_probe(
     return 0;
 }
 
+static int decibel_fix_parse_db_values(
+        const char *filename,
+        unsigned line,
+        const char *section,
+        const char *lvalue,
+        const char *rvalue,
+        void *data,
+        void *userdata) {
+
+    pa_alsa_profile_set *ps = userdata;
+    pa_alsa_decibel_fix *db_fix;
+    char **items;
+    char *item;
+    long *db_values;
+    unsigned n = 8; /* Current size of the db_values table. */
+    unsigned min_step = 0;
+    unsigned max_step = 0;
+    unsigned i = 0; /* Index to the items table. */
+    unsigned prev_step = 0;
+    double prev_db = 0;
+
+    pa_assert(filename);
+    pa_assert(section);
+    pa_assert(lvalue);
+    pa_assert(rvalue);
+    pa_assert(ps);
+
+    if (!(db_fix = decibel_fix_get(ps, section))) {
+        pa_log("[%s:%u] %s invalid in section %s", filename, line, lvalue, section);
+        return -1;
+    }
+
+    if (!(items = pa_split_spaces_strv(rvalue))) {
+        pa_log("[%s:%u] Value missing", pa_strnull(filename), line);
+        return -1;
+    }
+
+    db_values = pa_xnew(long, n);
+
+    while ((item = items[i++])) {
+        char *s = item; /* Step value string. */
+        char *d = item; /* dB value string. */
+        uint32_t step;
+        double db;
+
+        /* Move d forward until it points to a colon or to the end of the item. */
+        for (; *d && *d != ':'; ++d);
+
+        if (d == s) {
+            /* item started with colon. */
+            pa_log("[%s:%u] No step value found in %s", filename, line, item);
+            goto fail;
+        }
+
+        if (!*d || !*(d + 1)) {
+            /* No colon found, or it was the last character in item. */
+            pa_log("[%s:%u] No dB value found in %s", filename, line, item);
+            goto fail;
+        }
+
+        /* pa_atou() needs a null-terminating string. Let's replace the colon
+         * with a zero byte. */
+        *d++ = '\0';
+
+        if (pa_atou(s, &step) < 0) {
+            pa_log("[%s:%u] Invalid step value: %s", filename, line, s);
+            goto fail;
+        }
+
+        if (pa_atod(d, &db) < 0) {
+            pa_log("[%s:%u] Invalid dB value: %s", filename, line, d);
+            goto fail;
+        }
+
+        if (step <= prev_step && i != 1) {
+            pa_log("[%s:%u] Step value %u not greater than the previous value %u", filename, line, step, prev_step);
+            goto fail;
+        }
+
+        if (db < prev_db && i != 1) {
+            pa_log("[%s:%u] Decibel value %0.2f less than the previous value %0.2f", filename, line, db, prev_db);
+            goto fail;
+        }
+
+        if (i == 1) {
+            min_step = step;
+            db_values[0] = (long) (db * 100.0);
+            prev_step = step;
+            prev_db = db;
+        } else {
+            /* Interpolate linearly. */
+            double db_increment = (db - prev_db) / (step - prev_step);
+
+            for (; prev_step < step; ++prev_step, prev_db += db_increment) {
+
+                /* Reallocate the db_values table if it's about to overflow. */
+                if (prev_step + 1 - min_step == n) {
+                    n *= 2;
+                    db_values = pa_xrenew(long, db_values, n);
+                }
+
+                db_values[prev_step + 1 - min_step] = (long) ((prev_db + db_increment) * 100.0);
+            }
+        }
+
+        max_step = step;
+    }
+
+    db_fix->min_step = min_step;
+    db_fix->max_step = max_step;
+    pa_xfree(db_fix->db_values);
+    db_fix->db_values = db_values;
+
+    pa_xstrfreev(items);
+
+    return 0;
+
+fail:
+    pa_xstrfreev(items);
+    pa_xfree(db_values);
+
+    return -1;
+}
+
 static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
 
     static const struct description_map well_known_descriptions[] = {
@@ -3012,7 +3174,7 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
 
     if ((m->input_path_names && m->input_element) ||
         (m->output_path_names && m->output_element)) {
-        pa_log("Mapping %s must have either mixer path or mixer elment, not both.", m->name);
+        pa_log("Mapping %s must have either mixer path or mixer element, not both.", m->name);
         return -1;
     }
 
@@ -3257,10 +3419,52 @@ void pa_alsa_profile_dump(pa_alsa_profile *p) {
             pa_log_debug("Output %s", m->name);
 }
 
+static int decibel_fix_verify(pa_alsa_decibel_fix *db_fix) {
+    pa_assert(db_fix);
+
+    /* Check that the dB mapping has been configured. Since "db-values" is
+     * currently the only option in the DecibelFix section, and decibel fix
+     * objects don't get created if a DecibelFix section is empty, this is
+     * actually a redundant check. Having this may prevent future bugs,
+     * however. */
+    if (!db_fix->db_values) {
+        pa_log("Decibel fix for element %s lacks the dB values.", db_fix->name);
+        return -1;
+    }
+
+    return 0;
+}
+
+void pa_alsa_decibel_fix_dump(pa_alsa_decibel_fix *db_fix) {
+    char *db_values = NULL;
+
+    pa_assert(db_fix);
+
+    if (db_fix->db_values) {
+        pa_strbuf *buf;
+        long i;
+        long max_i = db_fix->max_step - db_fix->min_step;
+
+        buf = pa_strbuf_new();
+        pa_strbuf_printf(buf, "[%li]:%0.2f", db_fix->min_step, db_fix->db_values[0] / 100.0);
+
+        for (i = 1; i <= max_i; ++i)
+            pa_strbuf_printf(buf, " [%li]:%0.2f", i + db_fix->min_step, db_fix->db_values[i] / 100.0);
+
+        db_values = pa_strbuf_tostring_free(buf);
+    }
+
+    pa_log_debug("Decibel fix %s, min_step=%li, max_step=%li, db_values=%s",
+                 db_fix->name, db_fix->min_step, db_fix->max_step, pa_strnull(db_values));
+
+    pa_xfree(db_values);
+}
+
 pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel_map *bonus) {
     pa_alsa_profile_set *ps;
     pa_alsa_profile *p;
     pa_alsa_mapping *m;
+    pa_alsa_decibel_fix *db_fix;
     char *fn;
     int r;
     void *state;
@@ -3286,12 +3490,16 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
         { "input-mappings",         profile_parse_mappings,       NULL, NULL },
         { "output-mappings",        profile_parse_mappings,       NULL, NULL },
         { "skip-probe",             profile_parse_skip_probe,     NULL, NULL },
+
+        /* [DecibelFix ...] */
+        { "db-values",              decibel_fix_parse_db_values,  NULL, NULL },
         { NULL, NULL, NULL, NULL }
     };
 
     ps = pa_xnew0(pa_alsa_profile_set, 1);
     ps->mappings = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     ps->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    ps->decibel_fixes = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     items[0].data = &ps->auto_profiles;
 
@@ -3319,6 +3527,10 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
 
     PA_HASHMAP_FOREACH(p, ps->profiles, state)
         if (profile_verify(p) < 0)
+            goto fail;
+
+    PA_HASHMAP_FOREACH(db_fix, ps->decibel_fixes, state)
+        if (decibel_fix_verify(db_fix) < 0)
             goto fail;
 
     return ps;
@@ -3501,23 +3713,28 @@ void pa_alsa_profile_set_probe(
 void pa_alsa_profile_set_dump(pa_alsa_profile_set *ps) {
     pa_alsa_profile *p;
     pa_alsa_mapping *m;
+    pa_alsa_decibel_fix *db_fix;
     void *state;
 
     pa_assert(ps);
 
-    pa_log_debug("Profile set %p, auto_profiles=%s, probed=%s, n_mappings=%u, n_profiles=%u",
+    pa_log_debug("Profile set %p, auto_profiles=%s, probed=%s, n_mappings=%u, n_profiles=%u, n_decibel_fixes=%u",
                  (void*)
                  ps,
                  pa_yes_no(ps->auto_profiles),
                  pa_yes_no(ps->probed),
                  pa_hashmap_size(ps->mappings),
-                 pa_hashmap_size(ps->profiles));
+                 pa_hashmap_size(ps->profiles),
+                 pa_hashmap_size(ps->decibel_fixes));
 
     PA_HASHMAP_FOREACH(m, ps->mappings, state)
         pa_alsa_mapping_dump(m);
 
     PA_HASHMAP_FOREACH(p, ps->profiles, state)
         pa_alsa_profile_dump(p);
+
+    PA_HASHMAP_FOREACH(db_fix, ps->decibel_fixes, state)
+        pa_alsa_decibel_fix_dump(db_fix);
 }
 
 void pa_alsa_add_ports(pa_hashmap **p, pa_alsa_path_set *ps) {

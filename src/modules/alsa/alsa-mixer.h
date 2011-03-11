@@ -46,6 +46,7 @@ typedef struct pa_alsa_path pa_alsa_path;
 typedef struct pa_alsa_path_set pa_alsa_path_set;
 typedef struct pa_alsa_mapping pa_alsa_mapping;
 typedef struct pa_alsa_profile pa_alsa_profile;
+typedef struct pa_alsa_decibel_fix pa_alsa_decibel_fix;
 typedef struct pa_alsa_profile_set pa_alsa_profile_set;
 typedef struct pa_alsa_port_data pa_alsa_port_data;
 
@@ -266,9 +267,26 @@ struct pa_alsa_profile {
     pa_idxset *output_mappings;
 };
 
+struct pa_alsa_decibel_fix {
+    pa_alsa_profile_set *profile_set;
+
+    char *name; /* Alsa volume element name. */
+    long min_step;
+    long max_step;
+
+    /* An array that maps alsa volume element steps to decibels. The steps can
+     * be used as indices to this array, after substracting min_step from the
+     * real value.
+     *
+     * The values are actually stored as integers representing millibels,
+     * because that's the format the alsa API uses. */
+    long *db_values;
+};
+
 struct pa_alsa_profile_set {
     pa_hashmap *mappings;
     pa_hashmap *profiles;
+    pa_hashmap *decibel_fixes;
 
     pa_bool_t auto_profiles;
     pa_bool_t probed:1;
@@ -276,6 +294,7 @@ struct pa_alsa_profile_set {
 
 void pa_alsa_mapping_dump(pa_alsa_mapping *m);
 void pa_alsa_profile_dump(pa_alsa_profile *p);
+void pa_alsa_decibel_fix_dump(pa_alsa_decibel_fix *db_fix);
 
 pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel_map *bonus);
 void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, const pa_sample_spec *ss, unsigned default_n_fragments, unsigned default_fragment_size_msec);
