@@ -159,12 +159,11 @@ static void do_write(struct userdata *u) {
             memchunk.memblock = NULL;
         }
 
-        /* Insufficient data in sink buffer? */
+        /* Underflow detection */
         if (hdr->dwBufferLength == 0) {
             u->sink_underflow = 1;
             break;
         }
-
         u->sink_underflow = 0;
 
         res = waveOutPrepareHeader(u->hwo, hdr, sizeof(WAVEHDR));
@@ -292,8 +291,12 @@ finish:
 }
 
 static void CALLBACK chunk_done_cb(HWAVEOUT hwo, UINT msg, DWORD_PTR inst, DWORD param1, DWORD param2) {
-    struct userdata *u = (struct userdata *)inst;
+    struct userdata *u = (struct userdata*) inst;
 
+    if (msg == WOM_OPEN)
+        pa_log_debug("WaveOut subsystem opened.");
+    if (msg == WOM_CLOSE)
+        pa_log_debug("WaveOut subsystem closed.");
     if (msg != WOM_DONE)
         return;
 
@@ -304,8 +307,12 @@ static void CALLBACK chunk_done_cb(HWAVEOUT hwo, UINT msg, DWORD_PTR inst, DWORD
 }
 
 static void CALLBACK chunk_ready_cb(HWAVEIN hwi, UINT msg, DWORD_PTR inst, DWORD param1, DWORD param2) {
-    struct userdata *u = (struct userdata *)inst;
+    struct userdata *u = (struct userdata*) inst;
 
+    if (msg == WIM_OPEN)
+        pa_log_debug("WaveIn subsystem opened.");
+    if (msg == WIM_CLOSE)
+        pa_log_debug("WaveIn subsystem closed.");
     if (msg != WIM_DATA)
         return;
 
@@ -433,17 +440,6 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
 
     wf->nChannels = ss->channels;
 
-    switch (ss->rate) {
-    case 8000:
-    case 11025:
-    case 22005:
-    case 44100:
-        break;
-    default:
-        pa_log_error("Unsupported sample rate.");
-        return -1;
-    }
-
     wf->nSamplesPerSec = ss->rate;
 
     if (ss->format == PA_SAMPLE_U8)
@@ -451,7 +447,7 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     else if (ss->format == PA_SAMPLE_S16NE)
         wf->wBitsPerSample = 16;
     else {
-        pa_log_error("Unsupported sample format.");
+        pa_log_error("Unsupported sample format, only u8 and s16 are supported.");
         return -1;
     }
 
@@ -467,7 +463,7 @@ int pa__get_n_used(pa_module *m) {
     struct userdata *u;
     pa_assert(m);
     pa_assert(m->userdata);
-    u = (struct userdata *)m->userdata;
+    u = (struct userdata*) m->userdata;
 
     return (u->sink ? pa_sink_used_by(u->sink) : 0) +
            (u->source ? pa_source_used_by(u->source) : 0);
@@ -479,6 +475,7 @@ int pa__init(pa_module *m) {
     HWAVEIN hwi = INVALID_HANDLE_VALUE;
     WAVEFORMATEX wf;
     WAVEOUTCAPS pwoc;
+    MMRESULT result;
     int nfrags, frag_size;
     pa_bool_t record = TRUE, playback = TRUE;
     unsigned int device;
@@ -551,23 +548,39 @@ int pa__init(pa_module *m) {
     u = pa_xmalloc(sizeof(struct userdata));
 
     if (record) {
-        if (waveInOpen(&hwi, device, &wf, (DWORD_PTR)chunk_ready_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR) {
-            pa_log("failed to open waveIn");
+        result = waveInOpen(&hwi, device, &wf, 0, 0, WAVE_FORMAT_DIRECT | WAVE_FORMAT_QUERY);
+        if (result != MMSYSERR_NOERROR) {
+            pa_log_warn("Sample spec not supported by WaveIn, falling back to default sample rate.");
+            ss.rate = wf.nSamplesPerSec = m->core->default_sample_spec.rate;
+        }
+        result = waveInOpen(&hwi, device, &wf, (DWORD_PTR) chunk_ready_cb, (DWORD_PTR) u, CALLBACK_FUNCTION);
+        if (result != MMSYSERR_NOERROR) {
+            char errortext[MAXERRORLENGTH];
+            pa_log("Failed to open WaveIn.");
+            if (waveInGetErrorText(result, errortext, sizeof(errortext)) == MMSYSERR_NOERROR)
+                pa_log("Error: %s", errortext);
             goto fail;
         }
         if (waveInStart(hwi) != MMSYSERR_NOERROR) {
             pa_log("failed to start waveIn");
             goto fail;
         }
-        pa_log_debug("Opened waveIn subsystem.");
     }
 
     if (playback) {
-        if (waveOutOpen(&hwo, device, &wf, (DWORD_PTR)chunk_done_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR) {
-            pa_log("failed to open waveOut");
+        result = waveOutOpen(&hwo, device, &wf, 0, 0, WAVE_FORMAT_DIRECT | WAVE_FORMAT_QUERY);
+        if (result != MMSYSERR_NOERROR) {
+            pa_log_warn("Sample spec not supported by WaveOut, falling back to default sample rate.");
+            ss.rate = wf.nSamplesPerSec = m->core->default_sample_spec.rate;
+        }
+        result = waveOutOpen(&hwo, device, &wf, (DWORD_PTR) chunk_done_cb, (DWORD_PTR) u, CALLBACK_FUNCTION);
+        if (result != MMSYSERR_NOERROR) {
+            char errortext[MAXERRORLENGTH];
+            pa_log("Failed to open WaveOut.");
+            if (waveOutGetErrorText(result, errortext, sizeof(errortext)) == MMSYSERR_NOERROR)
+                pa_log("Error: %s", errortext);
             goto fail;
         }
-        pa_log_debug("Opened waveOut subsystem.");
     }
 
     InitializeCriticalSection(&u->crit);
