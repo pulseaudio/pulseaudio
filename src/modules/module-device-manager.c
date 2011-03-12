@@ -698,7 +698,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         pa_strlcpy(entry.icon, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_ICON_NAME)), sizeof(entry.icon));
 
-    } else  if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE) {
+    } else if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE) {
         pa_source *source;
 
         pa_assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE);
@@ -1540,7 +1540,7 @@ fail:
     if (ma)
         pa_modargs_free(ma);
 
-    return  -1;
+    return -1;
 }
 
 void pa__done(pa_module*m) {

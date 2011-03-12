@@ -385,7 +385,7 @@ void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
     s->abc_valid = FALSE;
 
 #ifdef DEBUG_DATA
-    pa_log_debug("%p, put(%llu | %llu) = %llu", s, (unsigned long long)  (x + s->time_offset), (unsigned long long) x, (unsigned long long) y);
+    pa_log_debug("%p, put(%llu | %llu) = %llu", s, (unsigned long long) (x + s->time_offset), (unsigned long long) x, (unsigned long long) y);
 #endif
 }
 
@@ -441,7 +441,7 @@ void pa_smoother_pause(pa_smoother *s, pa_usec_t x) {
         return;
 
 #ifdef DEBUG_DATA
-    pa_log_debug("pause(%llu)", (unsigned long long)  x);
+    pa_log_debug("pause(%llu)", (unsigned long long) x);
 #endif
 
     s->paused = TRUE;

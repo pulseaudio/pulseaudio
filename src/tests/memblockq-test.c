@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
 
     p = pa_mempool_new(FALSE, 0);
 
-    silence.memblock = pa_memblock_new_fixed(p, (char*)  "__", 2, 1);
+    silence.memblock = pa_memblock_new_fixed(p, (char*) "__", 2, 1);
     assert(silence.memblock);
     silence.index = 0;
     silence.length = pa_memblock_get_length(silence.memblock);

@@ -80,7 +80,7 @@ typedef void (*pa_defer_event_cb_t)(pa_mainloop_api*a, pa_defer_event* e, void *
 typedef void (*pa_defer_event_destroy_cb_t)(pa_mainloop_api*a, pa_defer_event *e, void *userdata);
 
 /** An abstract mainloop API vtable */
-struct pa_mainloop_api  {
+struct pa_mainloop_api {
     /** A pointer to some private, arbitrary data of the main loop implementation */
     void *userdata;
 

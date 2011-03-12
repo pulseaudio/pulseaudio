@@ -124,7 +124,7 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
                     key_len++;
                 break;
 
-            case  VALUE_START:
+            case VALUE_START:
                 if (*p == '\'') {
                     state = VALUE_TICKS;
                     value = p+1;

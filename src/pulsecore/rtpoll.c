@@ -124,7 +124,7 @@ static void rtpoll_rebuild(pa_rtpoll *p) {
 
     for (i = p->items; i; i = i->next) {
 
-        if (i->n_pollfd > 0)  {
+        if (i->n_pollfd > 0) {
             size_t l = i->n_pollfd * sizeof(struct pollfd);
 
             if (i->pollfd)

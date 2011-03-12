@@ -37,7 +37,7 @@
 
 #if defined (__arm__) && defined (__linux__)
 
-#define MAX_BUFFER  4096
+#define MAX_BUFFER 4096
 static char *
 get_cpuinfo_line(char *cpuinfo, const char *tag) {
     char *line, *end, *colon;

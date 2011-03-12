@@ -106,7 +106,7 @@ int main(int argc, char*argv[]) {
     pa_assert(msec_upper > 0);
     pa_assert(msec_upper >= msec_lower);
 
-    pa_log_notice("Creating random latencies in the range of %ims to  %ims.", msec_lower, msec_upper);
+    pa_log_notice("Creating random latencies in the range of %ims to %ims.", msec_lower, msec_upper);
 
     for (n = 1; n < pa_ncpus(); n++) {
         pa_assert_se(pa_thread_new("rtstutter", work, PA_UINT_TO_PTR(n)));

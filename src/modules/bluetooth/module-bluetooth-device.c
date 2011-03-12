@@ -1395,7 +1395,7 @@ static int a2dp_process_render(struct userdata *u) {
                 break;
 
             pa_log_error("Failed to write data to socket: %s", pa_cstrerror(errno));
-            ret  = -1;
+            ret = -1;
             break;
         }
 

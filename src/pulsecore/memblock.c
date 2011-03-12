@@ -82,7 +82,7 @@ struct pa_memblock {
             pa_free_cb_t free_cb;
         } user;
 
-        struct  {
+        struct {
             uint32_t id;
             pa_memimport_segment *segment;
         } imported;

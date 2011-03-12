@@ -86,7 +86,7 @@ static struct sigaction sigaction_prev;
 static pa_bool_t installed = FALSE;
 
 /* The current state of operation */
-static enum  {
+static enum {
     PHASE_IDLE,   /* Normal state */
     PHASE_SOFT    /* After CPU overload has been detected */
 } phase = PHASE_IDLE;

@@ -1629,7 +1629,7 @@ int pa__get_n_used(pa_module *m) {
     pa_assert(m);
     pa_assert_se(u = m->userdata);
 
-    return pa_sink_linked_by(u->sink) +  pa_source_linked_by(u->source);
+    return pa_sink_linked_by(u->sink) + pa_source_linked_by(u->source);
 }
 
 void pa__done(pa_module*m) {

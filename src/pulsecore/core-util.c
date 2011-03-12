@@ -544,7 +544,7 @@ void pa_check_signal_is_blocked(int sig) {
 /* The following function is based on an example from the GNU libc
  * documentation. This function is similar to GNU's asprintf(). */
 char *pa_sprintf_malloc(const char *format, ...) {
-    size_t  size = 100;
+    size_t size = 100;
     char *c = NULL;
 
     pa_assert(format);
@@ -574,7 +574,7 @@ char *pa_sprintf_malloc(const char *format, ...) {
 /* Same as the previous function, but use a va_list instead of an
  * ellipsis */
 char *pa_vsprintf_malloc(const char *format, va_list ap) {
-    size_t  size = 100;
+    size_t size = 100;
     char *c = NULL;
 
     pa_assert(format);
@@ -1392,7 +1392,7 @@ char *pa_get_state_dir(void) {
     /* If PULSE_STATE_PATH and PULSE_RUNTIME_PATH point to the same
      * dir then this will break. */
 
-    if (pa_make_secure_dir(d, 0700U, (uid_t) -1, (gid_t) -1) < 0)  {
+    if (pa_make_secure_dir(d, 0700U, (uid_t) -1, (gid_t) -1) < 0) {
         pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
         pa_xfree(d);
         return NULL;
@@ -1532,7 +1532,7 @@ char *pa_get_runtime_dir(void) {
 
     if ((d = getenv("PULSE_RUNTIME_PATH"))) {
 
-        if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0)  {
+        if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0) {
             pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
             goto fail;
         }
@@ -1543,7 +1543,7 @@ char *pa_get_runtime_dir(void) {
     if (!(d = get_pulse_home()))
         goto fail;
 
-    if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0)  {
+    if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0) {
         pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
         pa_xfree(d);
         goto fail;

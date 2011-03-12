@@ -34,7 +34,7 @@
 #include <glib.h>
 #include "glib-mainloop.h"
 
-struct pa_io_event  {
+struct pa_io_event {
     pa_glib_mainloop *mainloop;
     int dead;
 

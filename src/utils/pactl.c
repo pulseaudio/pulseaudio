@@ -723,7 +723,7 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
 
     sample_length -= length;
 
-    if (sample_length  <= 0) {
+    if (sample_length <= 0) {
         pa_stream_set_write_callback(sample_stream, NULL, NULL);
         pa_stream_finish_upload(sample_stream);
     }

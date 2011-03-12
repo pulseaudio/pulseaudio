@@ -393,7 +393,7 @@ static void command_started(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
 #endif
 
 /* Called from IO thread context */
-static void check_smoother_status(struct userdata *u, pa_bool_t past)  {
+static void check_smoother_status(struct userdata *u, pa_bool_t past) {
     pa_usec_t x;
 
     pa_assert(u);
@@ -2036,7 +2036,7 @@ fail:
 
     pa_xfree(dn);
 
-    return  -1;
+    return -1;
 }
 
 void pa__done(pa_module*m) {

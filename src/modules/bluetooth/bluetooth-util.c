@@ -193,7 +193,7 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
 
     dbus_message_iter_get_basic(i, &key);
 
-    if (!dbus_message_iter_next(i))  {
+    if (!dbus_message_iter_next(i)) {
         pa_log("Property value missing");
         return -1;
     }
@@ -323,7 +323,7 @@ static int parse_audio_property(pa_bluetooth_discovery *u, int *state, DBusMessa
 
     dbus_message_iter_get_basic(i, &key);
 
-    if (!dbus_message_iter_next(i))  {
+    if (!dbus_message_iter_next(i)) {
         pa_log("Property value missing");
         return -1;
     }

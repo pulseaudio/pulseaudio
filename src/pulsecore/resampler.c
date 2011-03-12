@@ -898,7 +898,7 @@ static void calc_map_table(pa_resampler *r) {
                 if (!on_center(r->o_cm.map[oc]))
                     continue;
 
-                for (ic = 0; ic < n_ic; ic++)  {
+                for (ic = 0; ic < n_ic; ic++) {
 
                     if (ic_connected[ic]) {
                         m->map_table_f[oc][ic] *= .9f;
@@ -961,7 +961,7 @@ static void calc_map_table(pa_resampler *r) {
                     if (ncenter[oc] <= 0)
                         continue;
 
-                    for (ic = 0; ic < n_ic; ic++)  {
+                    for (ic = 0; ic < n_ic; ic++) {
 
                         if (ic_connected[ic]) {
                             m->map_table_f[oc][ic] *= .75f;
@@ -983,7 +983,7 @@ static void calc_map_table(pa_resampler *r) {
             /* OK, so there is an unconnected LFE channel. Let's mix
              * it into all channels, with factor 0.375 */
 
-            for (ic = 0; ic < n_ic; ic++)  {
+            for (ic = 0; ic < n_ic; ic++) {
 
                 if (!on_lfe(r->i_cm.map[ic]))
                     continue;

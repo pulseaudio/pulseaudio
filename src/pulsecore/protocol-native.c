@@ -1293,7 +1293,7 @@ static void native_connection_send_memblock(pa_native_connection *c) {
         else if (start == c->rrobin_index)
             return;
 
-        if (pa_memblockq_peek(r->memblockq,  &chunk) >= 0) {
+        if (pa_memblockq_peek(r->memblockq, &chunk) >= 0) {
             pa_memchunk schunk = chunk;
 
             if (schunk.length > r->buffer_attr.fragsize)
@@ -1918,7 +1918,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
     if (name)
         pa_proplist_sets(p, PA_PROP_MEDIA_NAME, name);
 
-    if (c->version >= 12)  {
+    if (c->version >= 12) {
         /* Since 0.9.8 the user can ask for a couple of additional flags */
 
         if (pa_tagstruct_get_boolean(t, &no_remap) < 0 ||
@@ -2009,14 +2009,14 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
     }
 
     flags =
-        (corked ?  PA_SINK_INPUT_START_CORKED : 0) |
-        (no_remap ?  PA_SINK_INPUT_NO_REMAP : 0) |
-        (no_remix ?  PA_SINK_INPUT_NO_REMIX : 0) |
-        (fix_format ?  PA_SINK_INPUT_FIX_FORMAT : 0) |
-        (fix_rate ?  PA_SINK_INPUT_FIX_RATE : 0) |
-        (fix_channels ?  PA_SINK_INPUT_FIX_CHANNELS : 0) |
-        (no_move ?  PA_SINK_INPUT_DONT_MOVE : 0) |
-        (variable_rate ?  PA_SINK_INPUT_VARIABLE_RATE : 0) |
+        (corked ? PA_SINK_INPUT_START_CORKED : 0) |
+        (no_remap ? PA_SINK_INPUT_NO_REMAP : 0) |
+        (no_remix ? PA_SINK_INPUT_NO_REMIX : 0) |
+        (fix_format ? PA_SINK_INPUT_FIX_FORMAT : 0) |
+        (fix_rate ? PA_SINK_INPUT_FIX_RATE : 0) |
+        (fix_channels ? PA_SINK_INPUT_FIX_CHANNELS : 0) |
+        (no_move ? PA_SINK_INPUT_DONT_MOVE : 0) |
+        (variable_rate ? PA_SINK_INPUT_VARIABLE_RATE : 0) |
         (dont_inhibit_auto_suspend ? PA_SINK_INPUT_DONT_INHIBIT_AUTO_SUSPEND : 0) |
         (fail_on_suspend ? PA_SINK_INPUT_NO_CREATE_ON_SUSPEND|PA_SINK_INPUT_KILL_ON_SUSPEND : 0) |
         (passthrough ? PA_SINK_INPUT_PASSTHROUGH : 0);
@@ -2185,7 +2185,7 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
     if (name)
         pa_proplist_sets(p, PA_PROP_MEDIA_NAME, name);
 
-    if (c->version >= 12)  {
+    if (c->version >= 12) {
         /* Since 0.9.8 the user can ask for a couple of additional flags */
 
         if (pa_tagstruct_get_boolean(t, &no_remap) < 0 ||
@@ -2266,14 +2266,14 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
     }
 
     flags =
-        (corked ?  PA_SOURCE_OUTPUT_START_CORKED : 0) |
-        (no_remap ?  PA_SOURCE_OUTPUT_NO_REMAP : 0) |
-        (no_remix ?  PA_SOURCE_OUTPUT_NO_REMIX : 0) |
-        (fix_format ?  PA_SOURCE_OUTPUT_FIX_FORMAT : 0) |
-        (fix_rate ?  PA_SOURCE_OUTPUT_FIX_RATE : 0) |
-        (fix_channels ?  PA_SOURCE_OUTPUT_FIX_CHANNELS : 0) |
-        (no_move ?  PA_SOURCE_OUTPUT_DONT_MOVE : 0) |
-        (variable_rate ?  PA_SOURCE_OUTPUT_VARIABLE_RATE : 0) |
+        (corked ? PA_SOURCE_OUTPUT_START_CORKED : 0) |
+        (no_remap ? PA_SOURCE_OUTPUT_NO_REMAP : 0) |
+        (no_remix ? PA_SOURCE_OUTPUT_NO_REMIX : 0) |
+        (fix_format ? PA_SOURCE_OUTPUT_FIX_FORMAT : 0) |
+        (fix_rate ? PA_SOURCE_OUTPUT_FIX_RATE : 0) |
+        (fix_channels ? PA_SOURCE_OUTPUT_FIX_CHANNELS : 0) |
+        (no_move ? PA_SOURCE_OUTPUT_DONT_MOVE : 0) |
+        (variable_rate ? PA_SOURCE_OUTPUT_VARIABLE_RATE : 0) |
         (dont_inhibit_auto_suspend ? PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND : 0) |
         (fail_on_suspend ? PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND|PA_SOURCE_OUTPUT_KILL_ON_SUSPEND : 0);
 

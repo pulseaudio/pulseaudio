@@ -59,7 +59,7 @@ Ignored directives:
   -terminate    terminate esd daemone after last client exits
   -nobeeps      disable startup beeps
   -trust        start esd even if use of /tmp/.esd can be insecure
-  -port PORT   listen for connections at PORT (only for tcp/ip)
+  -port PORT    listen for connections at PORT (only for tcp/ip)
   -bind ADDRESS binds to ADDRESS (only for tcp/ip)
 EOF
             exit 0

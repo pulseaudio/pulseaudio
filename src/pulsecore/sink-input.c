@@ -480,7 +480,7 @@ static void sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) 
 /* Called from main context */
 void pa_sink_input_unlink(pa_sink_input *i) {
     pa_bool_t linked;
-    pa_source_output *o, *p =  NULL;
+    pa_source_output *o, *p = NULL;
 
     pa_assert(i);
     pa_assert_ctl_context();
@@ -990,7 +990,7 @@ pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) 
         if (usec != (pa_usec_t) -1) {
             pa_usec_t min_latency, max_latency;
             pa_sink_get_latency_range(i->sink, &min_latency, &max_latency);
-            usec =  PA_CLAMP(usec, min_latency, max_latency);
+            usec = PA_CLAMP(usec, min_latency, max_latency);
         }
     }
 

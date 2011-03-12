@@ -175,7 +175,7 @@ void pa_ip_acl_free(pa_ip_acl *acl) {
 int pa_ip_acl_check(pa_ip_acl *acl, int fd) {
     struct sockaddr_storage sa;
     struct acl_entry *e;
-    socklen_t  salen;
+    socklen_t salen;
 
     pa_assert(acl);
     pa_assert(fd >= 0);

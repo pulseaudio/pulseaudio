@@ -47,7 +47,7 @@ typedef struct ca_device ca_device;
 
 struct ca_device {
     AudioObjectID id;
-    unsigned int  module_index;
+    unsigned int module_index;
     PA_LLIST_FIELDS(ca_device);
 };
 
@@ -162,7 +162,7 @@ scan_removed:
             }
 
         if (!found) {
-            pa_log_debug("object id %d has been removed (module index %d)  %p", (unsigned int) dev->id, dev->module_index, dev);
+            pa_log_debug("object id %d has been removed (module index %d) %p", (unsigned int) dev->id, dev->module_index, dev);
             pa_module_unload_request_by_index(m->core, dev->module_index, TRUE);
             PA_LLIST_REMOVE(ca_device, u->devices, dev);
             pa_xfree(dev);

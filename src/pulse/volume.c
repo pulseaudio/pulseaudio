@@ -375,8 +375,7 @@ char *pa_sw_volume_snprint_dB(char *s, size_t l, pa_volume_t v) {
     }
 
     f = pa_sw_volume_to_dB(v);
-    pa_snprintf(s, l, "%0.2f dB",
-                isinf(f) < 0 || f <= PA_DECIBEL_MININFTY ?  -INFINITY : f);
+    pa_snprintf(s, l, "%0.2f dB", isinf(f) < 0 || f <= PA_DECIBEL_MININFTY ? -INFINITY : f);
 
     return s;
 }
@@ -657,9 +656,9 @@ pa_cvolume* pa_cvolume_set_balance(pa_cvolume *v, const pa_channel_map *map, flo
     m = PA_MAX(left, right);
 
     if (new_balance <= 0) {
-        nright  = (new_balance + 1.0f) * m;
+        nright = (new_balance + 1.0f) * m;
         nleft = m;
-    } else  {
+    } else {
         nleft = (1.0f - new_balance) * m;
         nright = m;
     }
@@ -720,7 +719,7 @@ pa_cvolume* pa_cvolume_scale_mask(pa_cvolume *v, pa_volume_t max, pa_channel_map
         return pa_cvolume_set(v, v->channels, max);
 
     for (c = 0; c < v->channels; c++)
-        v->values[c] = (pa_volume_t) PA_CLAMP_VOLUME(((uint64_t)  v->values[c] * (uint64_t) max) / (uint64_t) t);
+        v->values[c] = (pa_volume_t) PA_CLAMP_VOLUME(((uint64_t) v->values[c] * (uint64_t) max) / (uint64_t) t);
 
     return v;
 }
@@ -798,9 +797,9 @@ pa_cvolume* pa_cvolume_set_fade(pa_cvolume *v, const pa_channel_map *map, float 
     m = PA_MAX(front, rear);
 
     if (new_fade <= 0) {
-        nfront  = (new_fade + 1.0f) * m;
+        nfront = (new_fade + 1.0f) * m;
         nrear = m;
-    } else  {
+    } else {
         nrear = (1.0f - new_fade) * m;
         nfront = m;
     }

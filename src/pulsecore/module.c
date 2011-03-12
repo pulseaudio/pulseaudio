@@ -110,7 +110,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     m->unload_requested = FALSE;
 
     if (m->init(m) < 0) {
-        pa_log_error("Failed to load  module \"%s\" (argument: \"%s\"): initialization failed.", name, argument ? argument : "");
+        pa_log_error("Failed to load module \"%s\" (argument: \"%s\"): initialization failed.", name, argument ? argument : "");
         goto fail;
     }
 

@@ -68,7 +68,7 @@ PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
-        "sink_properties=<properties  for the card> "
+        "sink_properties=<properties for the card> "
         "server_name=<jack server name> "
         "client_name=<jack client name> "
         "channels=<number of channels> "
