@@ -256,20 +256,23 @@ static void thread_func(void *userdata) {
 
     for (;;) {
         int ret;
+        pa_bool_t need_timer = FALSE;
 
-        if (PA_SINK_IS_OPENED(u->sink->thread_info.state) ||
-            PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
-
+        if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
             if (u->sink->thread_info.rewind_requested)
                 pa_sink_process_rewind(u->sink, 0);
 
-            if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
-                do_write(u);
-            if (PA_SOURCE_IS_OPENED(u->source->thread_info.state))
-                do_read(u);
+            do_write(u);
+            need_timer = TRUE;
+        }
+        if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
+            do_read(u);
+            need_timer = TRUE;
+        }
 
+        if (need_timer)
             pa_rtpoll_set_timer_relative(u->rtpoll, u->poll_timeout);
-        } else
+        else
             pa_rtpoll_set_timer_disabled(u->rtpoll);
 
         /* Hmm, nothing to do. Let's sleep */
@@ -643,6 +646,7 @@ int pa__init(pa_module *m) {
     u->sink_underflow = 1;
 
     u->poll_timeout = pa_bytes_to_usec(u->fragments * u->fragment_size / 10, &ss);
+    pa_log_debug("Poll timeout = %.1f ms", (double) u->poll_timeout / PA_USEC_PER_MSEC);
 
     u->cur_ihdr = 0;
     u->cur_ohdr = 0;
