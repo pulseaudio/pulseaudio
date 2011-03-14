@@ -1335,7 +1335,7 @@ $(SYMDEF_FILES): modules/module-defs.h.m4
 
 .PHONY: builddirs
 builddirs:
-	$(AM_V_at)$(MKDIR_P) daemon modules src/modules/echo-cancel
+	$(AM_V_at)$(MKDIR_P) daemon modules
 
 # Simple protocol
 
