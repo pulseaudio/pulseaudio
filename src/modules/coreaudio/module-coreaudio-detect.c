@@ -232,11 +232,13 @@ fail:
 
 void pa__done(pa_module *m) {
     struct userdata *u;
-    struct ca_device *dev = u->devices;
+    struct ca_device *dev;
     AudioObjectPropertyAddress property_address;
 
     pa_assert(m);
     pa_assert_se(u = m->userdata);
+
+    dev = u->devices;
 
     property_address.mSelector = kAudioHardwarePropertyDevices;
     property_address.mScope = kAudioObjectPropertyScopeGlobal;
