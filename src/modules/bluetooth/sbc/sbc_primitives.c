@@ -32,6 +32,7 @@
 
 #include "sbc_primitives.h"
 #include "sbc_primitives_mmx.h"
+#include "sbc_primitives_iwmmxt.h"
 #include "sbc_primitives_neon.h"
 #include "sbc_primitives_armv6.h"
 
@@ -542,6 +543,9 @@ void sbc_init_primitives(struct sbc_encoder_state *state)
 	/* ARM optimizations */
 #ifdef SBC_BUILD_WITH_ARMV6_SUPPORT
 	sbc_init_primitives_armv6(state);
+#endif
+#ifdef SBC_BUILD_WITH_IWMMXT_SUPPORT
+	sbc_init_primitives_iwmmxt(state);
 #endif
 #ifdef SBC_BUILD_WITH_NEON_SUPPORT
 	sbc_init_primitives_neon(state);
