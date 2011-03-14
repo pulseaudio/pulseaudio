@@ -1820,7 +1820,7 @@ module_bluetooth_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_bluetooth_discover_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) libbluetooth-util.la
 module_bluetooth_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
-libbluetooth_sbc_la_SOURCES = modules/bluetooth/sbc/sbc.c modules/bluetooth/sbc/sbc.h modules/bluetooth/sbc/sbc_tables.h modules/bluetooth/sbc/sbc_math.h modules/bluetooth/sbc/sbc_primitives.h modules/bluetooth/sbc/sbc_primitives.c modules/bluetooth/sbc/sbc_primitives_mmx.h modules/bluetooth/sbc/sbc_primitives_neon.h modules/bluetooth/sbc/sbc_primitives_mmx.c modules/bluetooth/sbc/sbc_primitives_neon.c
+libbluetooth_sbc_la_SOURCES = modules/bluetooth/sbc/sbc.c modules/bluetooth/sbc/sbc.h modules/bluetooth/sbc/sbc_tables.h modules/bluetooth/sbc/sbc_math.h modules/bluetooth/sbc/sbc_primitives.h modules/bluetooth/sbc/sbc_primitives.c modules/bluetooth/sbc/sbc_primitives_mmx.h modules/bluetooth/sbc/sbc_primitives_neon.h modules/bluetooth/sbc/sbc_primitives_mmx.c modules/bluetooth/sbc/sbc_primitives_neon.c modules/bluetooth/sbc/sbc_primitives_armv6.c
 libbluetooth_sbc_la_LDFLAGS = -avoid-version
 libbluetooth_sbc_la_LIBADD = $(MODULE_LIBADD)
 libbluetooth_sbc_la_CFLAGS = $(AM_CFLAGS)
