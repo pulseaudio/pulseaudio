@@ -1541,13 +1541,13 @@ module_oss_la_LIBADD = $(MODULE_LIBADD) liboss-util.la
 
 # COREAUDIO
 
-module_coreaudio_detect_la_SOURCES = modules/coreaudio/module-coreaudio-detect.c
+module_coreaudio_detect_la_SOURCES = modules/macosx/module-coreaudio-detect.c
 module_coreaudio_detect_la_LDFLAGS = $(MODULE_LDFLAGS) \
 		-Wl,-framework -Wl,Cocoa -framework CoreAudio \
 		-Wl,-framework -Wl,AudioUnit -framework AudioUnit
 module_coreaudio_detect_la_LIBADD = $(MODULE_LIBADD)
 
-module_coreaudio_device_la_SOURCES = modules/coreaudio/module-coreaudio-device.c
+module_coreaudio_device_la_SOURCES = modules/macosx/module-coreaudio-device.c
 module_coreaudio_device_la_LDFLAGS = $(MODULE_LDFLAGS) \
 		-Wl,-framework -Wl,Cocoa -framework CoreAudio \
 		-Wl,-framework -Wl,AudioUnit -framework AudioUnit
@@ -1618,7 +1618,7 @@ module_zeroconf_discover_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
 
 # Bonjour
 
-module_bonjour_publish_la_SOURCES = modules/module-bonjour-publish.c
+module_bonjour_publish_la_SOURCES = modules/macosx/module-bonjour-publish.c
 module_bonjour_publish_la_LDFLAGS = $(MODULE_LDFLAGS) \
 			-Wl,-framework -Wl,CoreFoundation -framework CoreFoundation
 module_bonjour_publish_la_LIBADD = $(MODULE_LIBADD)
