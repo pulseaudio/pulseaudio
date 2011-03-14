@@ -154,7 +154,7 @@ static void pa_volume_s16ne_mmx(int16_t *samples, int32_t *volumes, unsigned cha
         "6:                             \n\t"
         " emms                          \n\t"
 
-        : "+r" (samples), "+r" (volumes), "+r" (length), "=D" ((pa_reg_x86)channel), "=&r" (temp)
+        : "+r" (samples), "+r" (volumes), "+r" (length), "=D" (channel), "=&r" (temp)
         : "rm" ((pa_reg_x86)channels)
         : "cc"
     );
@@ -229,7 +229,7 @@ static void pa_volume_s16re_mmx(int16_t *samples, int32_t *volumes, unsigned cha
         "6:                             \n\t"
         " emms                          \n\t"
 
-        : "+r" (samples), "+r" (volumes), "+r" (length), "=D" ((pa_reg_x86)channel), "=&r" (temp)
+        : "+r" (samples), "+r" (volumes), "+r" (length), "=D" (channel), "=&r" (temp)
         : "rm" ((pa_reg_x86)channels)
         : "cc"
     );

@@ -102,7 +102,13 @@ if test "x$M4" = xno ; then
 fi
 
 dnl Compiler flags
+
+# Some compilers (e.g. clang) default to a warning on an unkown command line option.
+# Change that temporarily to an error, for the CC_CHECK_CFLAGS_APPEND macro to work.
+save_CC="$CC"
+CC="$CC -Werror"
 CC_CHECK_CFLAGS_APPEND([-Wall -W -Wextra -pipe -Wno-long-long -Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -ffast-math -Wp,-D_FORTIFY_SOURCE=2 -fno-common -fdiagnostics-show-option])
+CC="$save_CC"
 
 dnl Linker flags.
 dnl Check whether the linker supports the -version-script option.
