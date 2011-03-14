@@ -51,7 +51,7 @@
 
 #include "module-bluetooth-device-symdef.h"
 #include "ipc.h"
-#include "sbc.h"
+#include "sbc/sbc.h"
 #include "rtp.h"
 #include "bluetooth-util.h"
 
