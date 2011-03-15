@@ -182,14 +182,12 @@ void pa_rtclock_hrtimer_enable(void) {
 }
 
 struct timeval* pa_rtclock_from_wallclock(struct timeval *tv) {
-
-#ifdef HAVE_CLOCK_GETTIME
     struct timeval wc_now, rt_now;
+
+    pa_assert(tv);
 
     pa_gettimeofday(&wc_now);
     pa_rtclock_get(&rt_now);
-
-    pa_assert(tv);
 
     /* pa_timeval_sub() saturates on underflow! */
 
@@ -199,7 +197,6 @@ struct timeval* pa_rtclock_from_wallclock(struct timeval *tv) {
         pa_timeval_sub(&rt_now, pa_timeval_diff(&wc_now, tv));
 
     *tv = rt_now;
-#endif
 
     return tv;
 }
@@ -232,14 +229,12 @@ struct timespec* pa_timespec_store(struct timespec *ts, pa_usec_t v) {
 #endif
 
 static struct timeval* wallclock_from_rtclock(struct timeval *tv) {
-
-#ifdef HAVE_CLOCK_GETTIME
     struct timeval wc_now, rt_now;
+
+    pa_assert(tv);
 
     pa_gettimeofday(&wc_now);
     pa_rtclock_get(&rt_now);
-
-    pa_assert(tv);
 
     /* pa_timeval_sub() saturates on underflow! */
 
@@ -249,7 +244,6 @@ static struct timeval* wallclock_from_rtclock(struct timeval *tv) {
         pa_timeval_sub(&wc_now, pa_timeval_diff(&rt_now, tv));
 
     *tv = wc_now;
-#endif
 
     return tv;
 }
