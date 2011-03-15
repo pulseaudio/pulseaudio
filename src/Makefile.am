@@ -27,10 +27,16 @@ pulseincludedir=$(includedir)/pulse
 pulsecoreincludedir=$(includedir)/pulsecore
 pulseconfdir=$(sysconfdir)/pulse
 pulselibexecdir=$(libexecdir)/pulse
+if HAVE_X11
 xdgautostartdir=$(sysconfdir)/xdg/autostart
+endif
+if HAVE_ALSA
 alsaprofilesetsdir=$(datadir)/pulseaudio/alsa-mixer/profile-sets
 alsapathsdir=$(datadir)/pulseaudio/alsa-mixer/paths
+endif
+if HAVE_DBUS
 dbuspolicydir=$(sysconfdir)/dbus-1/system.d
+endif
 
 ###################################
 #            Defines              #
@@ -117,9 +123,9 @@ if HAVE_X11
 xdgautostart_in_files = \
 		daemon/pulseaudio.desktop.in \
 		daemon/pulseaudio-kde.desktop.in
-endif
 xdgautostart_DATA = $(xdgautostart_in_files:.desktop.in=.desktop)
 @INTLTOOL_DESKTOP_RULE@
+endif
 
 
 ###################################
@@ -1902,8 +1908,10 @@ else
 SYMLINK_PROGRAM=ln -sf
 endif
 install-exec-hook:
+if HAVE_BLUEZ
 	-chown root $(DESTDIR)$(pulselibexecdir)/proximity-helper
 	-chmod u+s $(DESTDIR)$(pulselibexecdir)/proximity-helper
+endif
 	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/parec$(EXEEXT)
 	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/pamon$(EXEEXT)
 	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/paplay$(EXEEXT)
