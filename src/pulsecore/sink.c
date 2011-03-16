@@ -1252,7 +1252,7 @@ pa_bool_t pa_sink_is_passthrough(pa_sink *s) {
     if (pa_idxset_size(s->inputs) == 1) {
         alt_i = pa_idxset_first(s->inputs, &idx);
 
-        if (!pa_format_info_is_pcm(alt_i->format))
+        if (pa_sink_input_is_passthrough(alt_i))
             return TRUE;
     }
 

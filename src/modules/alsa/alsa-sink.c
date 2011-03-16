@@ -1058,7 +1058,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             pa_sink_input *i = PA_SINK_INPUT(data);
             int r = 0;
 
-            if (PA_LIKELY(pa_format_info_is_pcm(i->format)))
+            if (PA_LIKELY(!pa_sink_input_is_passthrough(i)))
                 break;
 
             u->old_rate = u->sink->sample_spec.rate;
@@ -1084,7 +1084,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             pa_sink_input *i = PA_SINK_INPUT(data);
             int r = 0;
 
-            if (PA_LIKELY(pa_format_info_is_pcm(i->format)))
+            if (PA_LIKELY(!pa_sink_input_is_passthrough(i)))
                 break;
 
             /* Passthrough format, see if we need to reset sink sample rate */

@@ -50,15 +50,14 @@ PA_DEFINE_PUBLIC_CLASS(pa_sink_input, pa_msgobject);
 static void sink_input_free(pa_object *o);
 static void set_real_ratio(pa_sink_input *i, const pa_cvolume *v);
 
-static int check_passthrough_connection(pa_format_info *format, pa_sink *dest) {
-
+static int check_passthrough_connection(pa_bool_t passthrough, pa_sink *dest) {
     if (pa_sink_is_passthrough(dest)) {
         pa_log_warn("Sink is already connected to PASSTHROUGH input");
         return -PA_ERR_BUSY;
     }
 
     /* If current input(s) exist, check new input is not PASSTHROUGH */
-    if (pa_idxset_size(dest->inputs) > 0 && !pa_format_info_is_pcm(format)) {
+    if (pa_idxset_size(dest->inputs) > 0 && passthrough) {
         pa_log_warn("Sink is already connected, cannot accept new PASSTHROUGH INPUT");
         return -PA_ERR_BUSY;
     }
@@ -89,6 +88,18 @@ void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const 
 
     if ((data->channel_map_is_set = !!map))
         data->channel_map = *map;
+}
+
+pa_bool_t pa_sink_input_new_data_is_passthrough(pa_sink_input_new_data *data) {
+    pa_assert(data);
+
+    if (PA_LIKELY(data->format) && PA_UNLIKELY(!pa_format_info_is_pcm(data->format)))
+        return TRUE;
+
+    if (PA_UNLIKELY(data->flags & PA_SINK_INPUT_PASSTHROUGH))
+        return TRUE;
+
+    return FALSE;
 }
 
 void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume) {
@@ -284,15 +295,13 @@ int pa_sink_input_new(
     } else {
         pa_return_val_if_fail(pa_format_info_to_sample_spec_fake(data->format, &ss), -PA_ERR_INVALID);
         pa_sink_input_new_data_set_sample_spec(data, &ss);
-        /* XXX: this is redundant - we can just check the encoding */
-        data->flags |= PA_SINK_INPUT_PASSTHROUGH;
     }
 
     pa_return_val_if_fail(data->sink, -PA_ERR_NOENTITY);
     pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
     pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED), -PA_ERR_INVALID);
 
-    r = check_passthrough_connection(data->format, data->sink);
+    r = check_passthrough_connection(pa_sink_input_new_data_is_passthrough(data), data->sink);
     pa_return_val_if_fail(r == PA_OK, r);
 
     if (!data->sample_spec_is_set)
@@ -373,7 +382,7 @@ int pa_sink_input_new(
         !pa_channel_map_equal(&data->channel_map, &data->sink->channel_map)) {
 
         /* Note: for passthrough content we need to adjust the output rate to that of the current sink-input */
-        if (!(data->flags & PA_SINK_INPUT_PASSTHROUGH)) /* no resampler for passthrough content */
+        if (!pa_sink_input_new_data_is_passthrough(data)) /* no resampler for passthrough content */
             if (!(resampler = pa_resampler_new(
                           core->mempool,
                           &data->sample_spec, &data->channel_map,
@@ -601,7 +610,7 @@ void pa_sink_input_unlink(pa_sink_input *i) {
             pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_REMOVE_INPUT, i, 0, NULL) == 0);
 
         /* We suspend the monitor if there was a passthrough sink, unsuspend now if required */
-        if (!pa_format_info_is_pcm(i->format) && i->sink->monitor_source)
+        if (pa_sink_input_is_passthrough(i) && i->sink->monitor_source)
             pa_source_suspend(i->sink->monitor_source, FALSE, PA_SUSPEND_PASSTHROUGH);
     }
 
@@ -694,7 +703,7 @@ void pa_sink_input_put(pa_sink_input *i) {
     }
 
     /* If we're entering passthrough mode, disable the monitor */
-    if (!pa_format_info_is_pcm(i->format) && i->sink->monitor_source)
+    if (pa_sink_input_is_passthrough(i) && i->sink->monitor_source)
         pa_source_suspend(i->sink->monitor_source, TRUE, PA_SUSPEND_PASSTHROUGH);
 
     i->thread_info.soft_volume = i->soft_volume;
@@ -1178,12 +1187,25 @@ static void set_real_ratio(pa_sink_input *i, const pa_cvolume *v) {
     /* We don't copy the data to the thread_info data. That's left for someone else to do */
 }
 
+/* Called from main or I/O context */
+pa_bool_t pa_sink_input_is_passthrough(pa_sink_input *i) {
+    pa_sink_input_assert_ref(i);
+
+    if (PA_UNLIKELY(!pa_format_info_is_pcm(i->format)))
+        return TRUE;
+
+    if (PA_UNLIKELY(i->flags & PA_SINK_INPUT_PASSTHROUGH))
+        return TRUE;
+
+    return FALSE;
+}
+
 /* Called from main context */
 pa_bool_t pa_sink_input_is_volume_readable(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_ctl_context();
 
-    return !(i->flags & PA_SINK_INPUT_PASSTHROUGH);
+    return !pa_sink_input_is_passthrough(i);
 }
 
 /* Called from main context */
@@ -1342,7 +1364,7 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
         return FALSE;
     }
 
-    if (check_passthrough_connection(i->format, dest) < 0)
+    if (check_passthrough_connection(pa_sink_input_is_passthrough(i), dest) < 0)
         return FALSE;
 
     if (i->may_move_to)
@@ -1389,7 +1411,7 @@ int pa_sink_input_start_move(pa_sink_input *i) {
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_START_MOVE, i, 0, NULL) == 0);
 
     /* We suspend the monitor if there was a passthrough sink, unsuspend now if required */
-    if (!pa_format_info_is_pcm(i->format) && i->sink->monitor_source)
+    if (pa_sink_input_is_passthrough(i) && i->sink->monitor_source)
         pa_source_suspend(i->sink->monitor_source, FALSE, PA_SUSPEND_PASSTHROUGH);
 
     pa_sink_update_status(i->sink);
@@ -1564,7 +1586,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     if (!pa_sink_input_may_move_to(i, dest))
         return -PA_ERR_NOTSUPPORTED;
 
-    if (!pa_format_info_is_pcm(i->format) && !pa_sink_check_format(dest, i->format)) {
+    if (pa_sink_input_is_passthrough(i) && !pa_sink_check_format(dest, i->format)) {
         /* FIXME: Fire a message here so the client can renegotiate */
         return -PA_ERR_NOTSUPPORTED;
     }
@@ -1634,7 +1656,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_FINISH_MOVE, i, 0, NULL) == 0);
 
     /* If we're entering passthrough mode, disable the monitor */
-    if (!pa_format_info_is_pcm(i->format) && i->sink->monitor_source)
+    if (pa_sink_input_is_passthrough(i) && i->sink->monitor_source)
         pa_source_suspend(i->sink->monitor_source, TRUE, PA_SUSPEND_PASSTHROUGH);
 
     pa_log_debug("Successfully moved sink input %i to %s.", i->index, dest->name);
