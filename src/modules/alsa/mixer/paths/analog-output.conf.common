@@ -75,13 +75,15 @@
 ; required-absent = ignore | switch | volume                  # If set, require this element to not be of this kind and not
 ;                                                             # available, otherwise don't consider this path valid for the card
 ;
-; switch = ignore | mute | off | on | select                  # What to do with this switch: ignore it, make it follow mute status,
-;                                                             # always set it to off, always to on, or make it selectable as port.
-;                                                             # If set to 'select' you need to define an Option section for on
-;                                                             # and off
-; volume = ignore | merge | off | zero   # What to do with this volume: ignore it, merge it into the device
-;                                        # volume slider, always set it to the lowest value possible, or always
-;                                        # set it to 0 dB (for whatever that means)
+; switch = ignore | mute | off | on | select # What to do with this switch: ignore it, make it follow mute status,
+;                                            # always set it to off, always to on, or make it selectable as port.
+;                                            # If set to 'select' you need to define an Option section for on
+;                                            # and off
+; volume = ignore | merge | off | zero | <volume step> # What to do with this volume: ignore it, merge it into the device
+;                                                      # volume slider, always set it to the lowest value possible, or always
+;                                                      # set it to 0 dB (for whatever that means), or always set it to
+;                                                      # <volume step> (this only makes sense in path configurations where
+;                                                      # the exact hardware and driver are known beforehand).
 ; volume-limit = <volume step>           # Limit the maximum volume by disabling the volume steps above <volume step>.
 ; enumeration = ignore | select          # What to do with this enumeration, ignore it or make it selectable
 ;                                        # via device ports. If set to 'select' you need to define an Option section

@@ -62,9 +62,10 @@ typedef enum pa_alsa_switch_use {
 
 typedef enum pa_alsa_volume_use {
     PA_ALSA_VOLUME_IGNORE,
-    PA_ALSA_VOLUME_MERGE,  /* merge this volume slider into the global volume slider */
-    PA_ALSA_VOLUME_OFF,    /* set this volume to minimal unconditionally */
-    PA_ALSA_VOLUME_ZERO    /* set this volume to 0dB unconditionally */
+    PA_ALSA_VOLUME_MERGE,   /* merge this volume slider into the global volume slider */
+    PA_ALSA_VOLUME_OFF,     /* set this volume to minimal unconditionally */
+    PA_ALSA_VOLUME_ZERO,    /* set this volume to 0dB unconditionally */
+    PA_ALSA_VOLUME_CONSTANT /* set this volume to a constant value unconditionally */
 } pa_alsa_volume_use_t;
 
 typedef enum pa_alsa_enumeration_use {
@@ -136,6 +137,8 @@ struct pa_alsa_element {
     pa_alsa_required_t required;
     pa_alsa_required_t required_any;
     pa_alsa_required_t required_absent;
+
+    long constant_volume;
 
     pa_bool_t override_map:1;
     pa_bool_t direction_try_other:1;

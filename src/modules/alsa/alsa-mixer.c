@@ -1145,6 +1145,31 @@ static int element_zero_volume(pa_alsa_element *e, snd_mixer_t *m) {
     return r;
 }
 
+static int element_apply_constant_volume(pa_alsa_element *e, snd_mixer_t *m) {
+    snd_mixer_elem_t *me;
+    snd_mixer_selem_id_t *sid;
+    int r;
+
+    pa_assert(m);
+    pa_assert(e);
+
+    SELEM_INIT(sid, e->alsa_name);
+    if (!(me = snd_mixer_find_selem(m, sid))) {
+        pa_log_warn("Element %s seems to have disappeared.", e->alsa_name);
+        return -1;
+    }
+
+    if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
+        r = snd_mixer_selem_set_playback_volume_all(me, e->constant_volume);
+    else
+        r = snd_mixer_selem_set_capture_volume_all(me, e->constant_volume);
+
+    if (r < 0)
+        pa_log_warn("Failed to set volume to %li of %s: %s", e->constant_volume, e->alsa_name, pa_alsa_strerror(errno));
+
+    return r;
+}
+
 int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m) {
     pa_alsa_element *e;
     int r = 0;
@@ -1183,6 +1208,10 @@ int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m) {
 
             case PA_ALSA_VOLUME_ZERO:
                 r = element_zero_volume(e, m);
+                break;
+
+            case PA_ALSA_VOLUME_CONSTANT:
+                r = element_apply_constant_volume(e, m);
                 break;
 
             case PA_ALSA_VOLUME_MERGE:
@@ -1366,6 +1395,12 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
 
             if (e->min_volume >= e->max_volume) {
                 pa_log_warn("Your kernel driver is broken: it reports a volume range from %li to %li which makes no sense.", e->min_volume, e->max_volume);
+                e->volume_use = PA_ALSA_VOLUME_IGNORE;
+
+            } else if (e->volume_use == PA_ALSA_VOLUME_CONSTANT &&
+                       (e->min_volume > e->constant_volume || e->max_volume < e->constant_volume)) {
+                pa_log_warn("Constant volume %li configured for element %s, but the available range is from %li to %li.",
+                            e->constant_volume, e->alsa_name, e->min_volume, e->max_volume);
                 e->volume_use = PA_ALSA_VOLUME_IGNORE;
 
             } else {
@@ -1685,8 +1720,15 @@ static int element_parse_volume(
     else if (pa_streq(rvalue, "zero"))
         e->volume_use = PA_ALSA_VOLUME_ZERO;
     else {
-        pa_log("[%s:%u] Volume invalid of '%s'", filename, line, section);
-        return -1;
+        uint32_t constant;
+
+        if (pa_atou(rvalue, &constant) >= 0) {
+            e->volume_use = PA_ALSA_VOLUME_CONSTANT;
+            e->constant_volume = constant;
+        } else {
+            pa_log("[%s:%u] Volume invalid of '%s'", filename, line, section);
+            return -1;
+        }
     }
 
     return 0;
