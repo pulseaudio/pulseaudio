@@ -78,6 +78,10 @@ AM_LDFLAGS+=-Wl,--export-all-symbols,--enable-auto-import -no-undefined
 WINSOCK_LIBS=-lwsock32 -lws2_32 -lwininet
 endif
 
+if OS_IS_DARWIN
+AM_LDFLAGS+=-headerpad_max_install_names
+endif
+
 FOREIGN_CFLAGS = -w
 MODULE_LDFLAGS = $(AM_LDFLAGS) -module -disable-static -avoid-version $(LDFLAGS_NOUNDEFINED)
 MODULE_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
