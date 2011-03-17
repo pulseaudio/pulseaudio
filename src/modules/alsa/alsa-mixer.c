@@ -1084,10 +1084,14 @@ int pa_alsa_path_set_mute(pa_alsa_path *p, snd_mixer_t *m, pa_bool_t muted) {
     return 0;
 }
 
-static int element_mute_volume(pa_alsa_element *e, snd_mixer_t *m) {
-    snd_mixer_elem_t *me;
-    snd_mixer_selem_id_t *sid;
-    int r;
+/* Depending on whether e->volume_use is _OFF, _ZERO or _CONSTANT, this
+ * function sets all channels of the volume element to e->min_volume, 0 dB or
+ * e->constant_volume. */
+static int element_set_constant_volume(pa_alsa_element *e, snd_mixer_t *m) {
+    snd_mixer_elem_t *me = NULL;
+    snd_mixer_selem_id_t *sid = NULL;
+    int r = 0;
+    long volume = -1;
 
     pa_assert(m);
     pa_assert(e);
@@ -1098,74 +1102,44 @@ static int element_mute_volume(pa_alsa_element *e, snd_mixer_t *m) {
         return -1;
     }
 
-    if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-        r = snd_mixer_selem_set_playback_volume_all(me, e->min_volume);
-    else
-        r = snd_mixer_selem_set_capture_volume_all(me, e->min_volume);
+    switch (e->volume_use) {
+        case PA_ALSA_VOLUME_OFF:
+            volume = e->min_volume;
+            break;
 
-    if (r < 0)
-        pa_log_warn("Failed to set volume to muted of %s: %s", e->alsa_name, pa_alsa_strerror(errno));
+        case PA_ALSA_VOLUME_ZERO:
+            if (e->db_fix) {
+                long dB = 0;
 
-    return r;
-}
+                volume = decibel_fix_get_step(e->db_fix, &dB, +1);
+            }
+            break;
 
-/* The volume to 0dB */
-static int element_zero_volume(pa_alsa_element *e, snd_mixer_t *m) {
-    snd_mixer_elem_t *me;
-    snd_mixer_selem_id_t *sid;
-    int r;
+        case PA_ALSA_VOLUME_CONSTANT:
+            volume = e->constant_volume;
+            break;
 
-    pa_assert(m);
-    pa_assert(e);
-
-    SELEM_INIT(sid, e->alsa_name);
-    if (!(me = snd_mixer_find_selem(m, sid))) {
-        pa_log_warn("Element %s seems to have disappeared.", e->alsa_name);
-        return -1;
+        default:
+            pa_assert_not_reached();
     }
 
-    if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-        if (e->db_fix) {
-            long value = 0;
+    if (volume >= 0) {
+        if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
+            r = snd_mixer_selem_set_playback_volume_all(me, volume);
+        else
+            r = snd_mixer_selem_set_capture_volume_all(me, volume);
+    } else {
+        pa_assert(e->volume_use == PA_ALSA_VOLUME_ZERO);
+        pa_assert(!e->db_fix);
 
-            r = snd_mixer_selem_set_playback_volume_all(me, decibel_fix_get_step(e->db_fix, &value, +1));
-        } else
+        if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
             r = snd_mixer_selem_set_playback_dB_all(me, 0, +1);
-    else
-        if (e->db_fix) {
-            long value = 0;
-
-            r = snd_mixer_selem_set_capture_volume_all(me, decibel_fix_get_step(e->db_fix, &value, +1));
-        } else
+        else
             r = snd_mixer_selem_set_capture_dB_all(me, 0, +1);
-
-    if (r < 0)
-        pa_log_warn("Failed to set volume to 0dB of %s: %s", e->alsa_name, pa_alsa_strerror(errno));
-
-    return r;
-}
-
-static int element_apply_constant_volume(pa_alsa_element *e, snd_mixer_t *m) {
-    snd_mixer_elem_t *me;
-    snd_mixer_selem_id_t *sid;
-    int r;
-
-    pa_assert(m);
-    pa_assert(e);
-
-    SELEM_INIT(sid, e->alsa_name);
-    if (!(me = snd_mixer_find_selem(m, sid))) {
-        pa_log_warn("Element %s seems to have disappeared.", e->alsa_name);
-        return -1;
     }
 
-    if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-        r = snd_mixer_selem_set_playback_volume_all(me, e->constant_volume);
-    else
-        r = snd_mixer_selem_set_capture_volume_all(me, e->constant_volume);
-
     if (r < 0)
-        pa_log_warn("Failed to set volume to %li of %s: %s", e->constant_volume, e->alsa_name, pa_alsa_strerror(errno));
+        pa_log_warn("Failed to set volume of %s: %s", e->alsa_name, pa_alsa_strerror(errno));
 
     return r;
 }
@@ -1203,15 +1177,9 @@ int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m) {
 
         switch (e->volume_use) {
             case PA_ALSA_VOLUME_OFF:
-                r = element_mute_volume(e, m);
-                break;
-
             case PA_ALSA_VOLUME_ZERO:
-                r = element_zero_volume(e, m);
-                break;
-
             case PA_ALSA_VOLUME_CONSTANT:
-                r = element_apply_constant_volume(e, m);
+                r = element_set_constant_volume(e, m);
                 break;
 
             case PA_ALSA_VOLUME_MERGE:
