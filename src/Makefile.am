@@ -1543,19 +1543,24 @@ module_oss_la_LIBADD = $(MODULE_LIBADD) liboss-util.la
 
 module_coreaudio_detect_la_SOURCES = modules/coreaudio/module-coreaudio-detect.c
 module_coreaudio_detect_la_LDFLAGS = $(MODULE_LDFLAGS) \
-			-Wl,-framework -Wl,Cocoa -framework CoreAudio \
-			-Wl,-framework -Wl,AudioUnit -framework AudioUnit
+		-Wl,-framework -Wl,Cocoa -framework CoreAudio \
+		-Wl,-framework -Wl,AudioUnit -framework AudioUnit
 module_coreaudio_detect_la_LIBADD = $(MODULE_LIBADD)
 
 module_coreaudio_device_la_SOURCES = modules/coreaudio/module-coreaudio-device.c
 module_coreaudio_device_la_LDFLAGS = $(MODULE_LDFLAGS) \
-			-Wl,-framework -Wl,Cocoa -framework CoreAudio \
-			-Wl,-framework -Wl,AudioUnit -framework AudioUnit
+		-Wl,-framework -Wl,Cocoa -framework CoreAudio \
+		-Wl,-framework -Wl,AudioUnit -framework AudioUnit
 module_coreaudio_device_la_LIBADD = $(MODULE_LIBADD)
 
 # ALSA
 
-libalsa_util_la_SOURCES = modules/alsa/alsa-util.c modules/alsa/alsa-util.h modules/alsa/alsa-mixer.c modules/alsa/alsa-mixer.h modules/alsa/alsa-sink.c modules/alsa/alsa-sink.h modules/alsa/alsa-source.c modules/alsa/alsa-source.h modules/reserve-wrap.c modules/reserve-wrap.h
+libalsa_util_la_SOURCES = \
+		modules/alsa/alsa-util.c modules/alsa/alsa-util.h \
+		modules/alsa/alsa-mixer.c modules/alsa/alsa-mixer.h \
+		modules/alsa/alsa-sink.c modules/alsa/alsa-sink.h \
+		modules/alsa/alsa-source.c modules/alsa/alsa-source.h \
+		modules/reserve-wrap.c modules/reserve-wrap.h
 libalsa_util_la_LDFLAGS = -avoid-version
 libalsa_util_la_LIBADD = $(MODULE_LIBADD) $(ASOUNDLIB_LIBS)
 libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
@@ -1729,18 +1734,19 @@ module_suspend_on_idle_la_LIBADD = $(MODULE_LIBADD)
 module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
 
 # echo-cancel module
-module_echo_cancel_la_SOURCES = modules/echo-cancel/module-echo-cancel.c modules/echo-cancel/echo-cancel.h \
-				modules/echo-cancel/speex.c \
-				modules/echo-cancel/adrian-aec.c modules/echo-cancel/adrian-aec.h \
-				modules/echo-cancel/adrian.c modules/echo-cancel/adrian.h
+module_echo_cancel_la_SOURCES = \
+		modules/echo-cancel/module-echo-cancel.c modules/echo-cancel/echo-cancel.h \
+		modules/echo-cancel/speex.c \
+		modules/echo-cancel/adrian-aec.c modules/echo-cancel/adrian-aec.h \
+		modules/echo-cancel/adrian.c modules/echo-cancel/adrian.h
 module_echo_cancel_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_echo_cancel_la_LIBADD = $(MODULE_LIBADD) $(LIBSPEEX_LIBS)
 module_echo_cancel_la_CFLAGS = $(AM_CFLAGS) $(LIBSPEEX_CFLAGS)
 if HAVE_ORC
 ORC_SOURCE += modules/echo-cancel/adrian-aec
 nodist_module_echo_cancel_la_SOURCES = \
-				modules/echo-cancel/adrian-aec-orc-gen.c \
-				modules/echo-cancel/adrian-aec-orc-gen.h
+		modules/echo-cancel/adrian-aec-orc-gen.c \
+		modules/echo-cancel/adrian-aec-orc-gen.h
 module_echo_cancel_la_LIBADD += $(ORC_LIBS)
 module_echo_cancel_la_CFLAGS += $(ORC_CFLAGS) -I$(top_builddir)/src/modules/echo-cancel
 endif
@@ -1822,7 +1828,15 @@ module_bluetooth_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_bluetooth_discover_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) libbluetooth-util.la
 module_bluetooth_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
-libbluetooth_sbc_la_SOURCES = modules/bluetooth/sbc/sbc.c modules/bluetooth/sbc/sbc.h modules/bluetooth/sbc/sbc_tables.h modules/bluetooth/sbc/sbc_math.h modules/bluetooth/sbc/sbc_primitives.h modules/bluetooth/sbc/sbc_primitives.c modules/bluetooth/sbc/sbc_primitives_mmx.h modules/bluetooth/sbc/sbc_primitives_neon.h modules/bluetooth/sbc/sbc_primitives_mmx.c modules/bluetooth/sbc/sbc_primitives_neon.c modules/bluetooth/sbc/sbc_primitives_armv6.c modules/bluetooth/sbc/sbc_primitives_iwmmxt.c
+libbluetooth_sbc_la_SOURCES = \
+		modules/bluetooth/sbc/sbc.c modules/bluetooth/sbc/sbc.h \
+		modules/bluetooth/sbc/sbc_primitives.c modules/bluetooth/sbc/sbc_primitives.h \
+		modules/bluetooth/sbc/sbc_primitives_armv6.h modules/bluetooth/sbc/sbc_primitives_armv6.c \
+		modules/bluetooth/sbc/sbc_primitives_iwmmxt.h modules/bluetooth/sbc/sbc_primitives_iwmmxt.c \
+		modules/bluetooth/sbc/sbc_primitives_mmx.c modules/bluetooth/sbc/sbc_primitives_mmx.h \
+		modules/bluetooth/sbc/sbc_primitives_neon.c modules/bluetooth/sbc/sbc_primitives_neon.h \
+		modules/bluetooth/sbc/sbc_math.h \
+		modules/bluetooth/sbc/sbc_tables.h
 libbluetooth_sbc_la_LDFLAGS = -avoid-version
 libbluetooth_sbc_la_LIBADD = $(MODULE_LIBADD)
 libbluetooth_sbc_la_CFLAGS = $(AM_CFLAGS) -I$(top_srcdir)/src/modules/bluetooth/sbc
