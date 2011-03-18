@@ -169,6 +169,11 @@ AC_ARG_ENABLE([atomic-arm-memory-barrier],
             esac
         ],)
 
+AC_ARG_ENABLE(mac-universal,
+    AS_HELP_STRING([--enable-mac-universal], [Build Mac universal binaries]),
+		enable_mac_universal=$enableval, enable_mac_universal="no")
+
+
 AC_MSG_CHECKING([target operating system])
 case $host in
         *-*-linux*)
@@ -178,6 +183,14 @@ case $host in
         *-*-darwin*)
             AC_MSG_RESULT([darwin])
             pulse_target_os=darwin
+
+            if test "x$enable_mac_universal" = "xyes" ; then
+	        mac_version_min="-mmacosx-version-min=10.5"
+                mac_arches="-arch i386 -arch x86_64"
+                mac_sysroot="-isysroot /Developer/SDKs/MacOSX10.5.sdk"
+                LDFLAGS="$LDFLAGS $mac_arches $mac_sysroot $mac_version_min"
+                CFLAGS="$CFLAGS $CFLAGS $mac_arches $mac_sysroot $mac_version_min"
+            fi
         ;;
         *)
             AC_MSG_RESULT([unknown])
