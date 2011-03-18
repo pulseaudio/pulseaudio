@@ -77,7 +77,7 @@ struct sbc_frame {
 	uint8_t joint;
 
 	/* only the lower 4 bits of every element are to be used */
-	uint32_t scale_factor[2][8];
+	uint32_t SBC_ALIGNED scale_factor[2][8];
 
 	/* raw integer subband samples in the frame */
 	int32_t SBC_ALIGNED sb_sample_f[16][2][8];
@@ -159,7 +159,8 @@ static uint8_t sbc_crc8(const uint8_t *data, size_t len)
  * Takes a pointer to the frame in question, a pointer to the bits array and
  * the sampling frequency (as 2 bit integer)
  */
-static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
+static SBC_ALWAYS_INLINE void sbc_calculate_bits_internal(
+		const struct sbc_frame *frame, int (*bits)[8], int subbands)
 {
 	uint8_t sf = frame->frequency;
 
@@ -170,17 +171,17 @@ static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
 		for (ch = 0; ch < frame->channels; ch++) {
 			max_bitneed = 0;
 			if (frame->allocation == SNR) {
-				for (sb = 0; sb < frame->subbands; sb++) {
+				for (sb = 0; sb < subbands; sb++) {
 					bitneed[ch][sb] = frame->scale_factor[ch][sb];
 					if (bitneed[ch][sb] > max_bitneed)
 						max_bitneed = bitneed[ch][sb];
 				}
 			} else {
-				for (sb = 0; sb < frame->subbands; sb++) {
+				for (sb = 0; sb < subbands; sb++) {
 					if (frame->scale_factor[ch][sb] == 0)
 						bitneed[ch][sb] = -5;
 					else {
-						if (frame->subbands == 4)
+						if (subbands == 4)
 							loudness = frame->scale_factor[ch][sb] - sbc_offset4[sf][sb];
 						else
 							loudness = frame->scale_factor[ch][sb] - sbc_offset8[sf][sb];
@@ -201,7 +202,7 @@ static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
 				bitslice--;
 				bitcount += slicecount;
 				slicecount = 0;
-				for (sb = 0; sb < frame->subbands; sb++) {
+				for (sb = 0; sb < subbands; sb++) {
 					if ((bitneed[ch][sb] > bitslice + 1) && (bitneed[ch][sb] < bitslice + 16))
 						slicecount++;
 					else if (bitneed[ch][sb] == bitslice + 1)
@@ -214,7 +215,7 @@ static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
 				bitslice--;
 			}
 
-			for (sb = 0; sb < frame->subbands; sb++) {
+			for (sb = 0; sb < subbands; sb++) {
 				if (bitneed[ch][sb] < bitslice + 2)
 					bits[ch][sb] = 0;
 				else {
@@ -224,7 +225,8 @@ static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
 				}
 			}
 
-			for (sb = 0; bitcount < frame->bitpool && sb < frame->subbands; sb++) {
+			for (sb = 0; bitcount < frame->bitpool &&
+							sb < subbands; sb++) {
 				if ((bits[ch][sb] >= 2) && (bits[ch][sb] < 16)) {
 					bits[ch][sb]++;
 					bitcount++;
@@ -234,7 +236,8 @@ static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
 				}
 			}
 
-			for (sb = 0; bitcount < frame->bitpool && sb < frame->subbands; sb++) {
+			for (sb = 0; bitcount < frame->bitpool &&
+							sb < subbands; sb++) {
 				if (bits[ch][sb] < 16) {
 					bits[ch][sb]++;
 					bitcount++;
@@ -250,7 +253,7 @@ static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
 		max_bitneed = 0;
 		if (frame->allocation == SNR) {
 			for (ch = 0; ch < 2; ch++) {
-				for (sb = 0; sb < frame->subbands; sb++) {
+				for (sb = 0; sb < subbands; sb++) {
 					bitneed[ch][sb] = frame->scale_factor[ch][sb];
 					if (bitneed[ch][sb] > max_bitneed)
 						max_bitneed = bitneed[ch][sb];
@@ -258,11 +261,11 @@ static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
 			}
 		} else {
 			for (ch = 0; ch < 2; ch++) {
-				for (sb = 0; sb < frame->subbands; sb++) {
+				for (sb = 0; sb < subbands; sb++) {
 					if (frame->scale_factor[ch][sb] == 0)
 						bitneed[ch][sb] = -5;
 					else {
-						if (frame->subbands == 4)
+						if (subbands == 4)
 							loudness = frame->scale_factor[ch][sb] - sbc_offset4[sf][sb];
 						else
 							loudness = frame->scale_factor[ch][sb] - sbc_offset8[sf][sb];
@@ -285,7 +288,7 @@ static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
 			bitcount += slicecount;
 			slicecount = 0;
 			for (ch = 0; ch < 2; ch++) {
-				for (sb = 0; sb < frame->subbands; sb++) {
+				for (sb = 0; sb < subbands; sb++) {
 					if ((bitneed[ch][sb] > bitslice + 1) && (bitneed[ch][sb] < bitslice + 16))
 						slicecount++;
 					else if (bitneed[ch][sb] == bitslice + 1)
@@ -300,7 +303,7 @@ static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
 		}
 
 		for (ch = 0; ch < 2; ch++) {
-			for (sb = 0; sb < frame->subbands; sb++) {
+			for (sb = 0; sb < subbands; sb++) {
 				if (bitneed[ch][sb] < bitslice + 2) {
 					bits[ch][sb] = 0;
 				} else {
@@ -324,7 +327,8 @@ static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
 			if (ch == 1) {
 				ch = 0;
 				sb++;
-				if (sb >= frame->subbands) break;
+				if (sb >= subbands)
+					break;
 			} else
 				ch = 1;
 		}
@@ -339,13 +343,22 @@ static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
 			if (ch == 1) {
 				ch = 0;
 				sb++;
-				if (sb >= frame->subbands) break;
+				if (sb >= subbands)
+					break;
 			} else
 				ch = 1;
 		}
 
 	}
 
+}
+
+static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
+{
+	if (frame->subbands == 4)
+		sbc_calculate_bits_internal(frame, bits, 4);
+	else
+		sbc_calculate_bits_internal(frame, bits, 8);
 }
 
 /*
@@ -534,6 +547,16 @@ static void sbc_decoder_init(struct sbc_decoder_state *state,
 			state->offset[ch][i] = (10 * i + 10);
 }
 
+static SBC_ALWAYS_INLINE int16_t sbc_clip16(int32_t s)
+{
+	if (s > 0x7FFF)
+		return 0x7FFF;
+	else if (s < -0x8000)
+		return -0x8000;
+	else
+		return s;
+}
+
 static inline void sbc_synthesize_four(struct sbc_decoder_state *state,
 				struct sbc_frame *frame, int ch, int blk)
 {
@@ -562,7 +585,7 @@ static inline void sbc_synthesize_four(struct sbc_decoder_state *state,
 		k = (i + 4) & 0xf;
 
 		/* Store in output, Q0 */
-		frame->pcm_sample[ch][blk * 4 + i] = SCALE4_STAGED1(
+		frame->pcm_sample[ch][blk * 4 + i] = sbc_clip16(SCALE4_STAGED1(
 			MULA(v[offset[i] + 0], sbc_proto_4_40m0[idx + 0],
 			MULA(v[offset[k] + 1], sbc_proto_4_40m1[idx + 0],
 			MULA(v[offset[i] + 2], sbc_proto_4_40m0[idx + 1],
@@ -572,7 +595,7 @@ static inline void sbc_synthesize_four(struct sbc_decoder_state *state,
 			MULA(v[offset[i] + 6], sbc_proto_4_40m0[idx + 3],
 			MULA(v[offset[k] + 7], sbc_proto_4_40m1[idx + 3],
 			MULA(v[offset[i] + 8], sbc_proto_4_40m0[idx + 4],
-			MUL( v[offset[k] + 9], sbc_proto_4_40m1[idx + 4])))))))))));
+			MUL( v[offset[k] + 9], sbc_proto_4_40m1[idx + 4]))))))))))));
 	}
 }
 
@@ -607,8 +630,8 @@ static inline void sbc_synthesize_eight(struct sbc_decoder_state *state,
 	for (idx = 0, i = 0; i < 8; i++, idx += 5) {
 		k = (i + 8) & 0xf;
 
-		/* Store in output */
-		frame->pcm_sample[ch][blk * 8 + i] = SCALE8_STAGED1( // Q0
+		/* Store in output, Q0 */
+		frame->pcm_sample[ch][blk * 8 + i] = sbc_clip16(SCALE8_STAGED1(
 			MULA(state->V[ch][offset[i] + 0], sbc_proto_8_80m0[idx + 0],
 			MULA(state->V[ch][offset[k] + 1], sbc_proto_8_80m1[idx + 0],
 			MULA(state->V[ch][offset[i] + 2], sbc_proto_8_80m0[idx + 1],
@@ -618,7 +641,7 @@ static inline void sbc_synthesize_eight(struct sbc_decoder_state *state,
 			MULA(state->V[ch][offset[i] + 6], sbc_proto_8_80m0[idx + 3],
 			MULA(state->V[ch][offset[k] + 7], sbc_proto_8_80m1[idx + 3],
 			MULA(state->V[ch][offset[i] + 8], sbc_proto_8_80m0[idx + 4],
-			MUL( state->V[ch][offset[k] + 9], sbc_proto_8_80m1[idx + 4])))))))))));
+			MUL( state->V[ch][offset[k] + 9], sbc_proto_8_80m1[idx + 4]))))))))))));
 	}
 }
 
@@ -732,9 +755,9 @@ static int sbc_analyze_audio(struct sbc_encoder_state *state,
  * -99 not implemented
  */
 
-static SBC_ALWAYS_INLINE int sbc_pack_frame_internal(
+static SBC_ALWAYS_INLINE ssize_t sbc_pack_frame_internal(
 	uint8_t *data, struct sbc_frame *frame, size_t len,
-	int frame_subbands, int frame_channels)
+	int frame_subbands, int frame_channels, int joint)
 {
 	/* Bitstream writer starts from the fourth byte */
 	uint8_t *data_ptr = data + 4;
@@ -791,63 +814,6 @@ static SBC_ALWAYS_INLINE int sbc_pack_frame_internal(
 	crc_pos = 16;
 
 	if (frame->mode == JOINT_STEREO) {
-		/* like frame->sb_sample but joint stereo */
-		int32_t sb_sample_j[16][2];
-		/* scalefactor and scale_factor in joint case */
-		uint32_t scalefactor_j[2];
-		uint8_t scale_factor_j[2];
-
-		uint8_t joint = 0;
-		frame->joint = 0;
-
-		for (sb = 0; sb < frame_subbands - 1; sb++) {
-			scale_factor_j[0] = 0;
-			scalefactor_j[0] = 2 << SCALE_OUT_BITS;
-			scale_factor_j[1] = 0;
-			scalefactor_j[1] = 2 << SCALE_OUT_BITS;
-
-			for (blk = 0; blk < frame->blocks; blk++) {
-				uint32_t tmp;
-				/* Calculate joint stereo signal */
-				sb_sample_j[blk][0] =
-					ASR(frame->sb_sample_f[blk][0][sb], 1) +
-					ASR(frame->sb_sample_f[blk][1][sb], 1);
-				sb_sample_j[blk][1] =
-					ASR(frame->sb_sample_f[blk][0][sb], 1) -
-					ASR(frame->sb_sample_f[blk][1][sb], 1);
-
-				/* calculate scale_factor_j and scalefactor_j for joint case */
-				tmp = fabs(sb_sample_j[blk][0]);
-				while (scalefactor_j[0] < tmp) {
-					scale_factor_j[0]++;
-					scalefactor_j[0] *= 2;
-				}
-				tmp = fabs(sb_sample_j[blk][1]);
-				while (scalefactor_j[1] < tmp) {
-					scale_factor_j[1]++;
-					scalefactor_j[1] *= 2;
-				}
-			}
-
-			/* decide whether to join this subband */
-			if ((frame->scale_factor[0][sb] +
-					frame->scale_factor[1][sb]) >
-					(scale_factor_j[0] +
-					scale_factor_j[1])) {
-				/* use joint stereo for this subband */
-				joint |= 1 << (frame_subbands - 1 - sb);
-				frame->joint |= 1 << sb;
-				frame->scale_factor[0][sb] = scale_factor_j[0];
-				frame->scale_factor[1][sb] = scale_factor_j[1];
-				for (blk = 0; blk < frame->blocks; blk++) {
-					frame->sb_sample_f[blk][0][sb] =
-							sb_sample_j[blk][0];
-					frame->sb_sample_f[blk][1][sb] =
-							sb_sample_j[blk][1];
-				}
-			}
-		}
-
 		PUT_BITS(data_ptr, bits_cache, bits_count,
 			joint, frame_subbands);
 		crc_header[crc_pos >> 3] = joint;
@@ -905,18 +871,23 @@ static SBC_ALWAYS_INLINE int sbc_pack_frame_internal(
 	return data_ptr - data;
 }
 
-static int sbc_pack_frame(uint8_t *data, struct sbc_frame *frame, size_t len)
+static ssize_t sbc_pack_frame(uint8_t *data, struct sbc_frame *frame, size_t len,
+								int joint)
 {
 	if (frame->subbands == 4) {
 		if (frame->channels == 1)
-			return sbc_pack_frame_internal(data, frame, len, 4, 1);
+			return sbc_pack_frame_internal(
+				data, frame, len, 4, 1, joint);
 		else
-			return sbc_pack_frame_internal(data, frame, len, 4, 2);
+			return sbc_pack_frame_internal(
+				data, frame, len, 4, 2, joint);
 	} else {
 		if (frame->channels == 1)
-			return sbc_pack_frame_internal(data, frame, len, 8, 1);
+			return sbc_pack_frame_internal(
+				data, frame, len, 8, 1, joint);
 		else
-			return sbc_pack_frame_internal(data, frame, len, 8, 2);
+			return sbc_pack_frame_internal(
+				data, frame, len, 8, 2, joint);
 	}
 }
 
@@ -924,7 +895,7 @@ static void sbc_encoder_init(struct sbc_encoder_state *state,
 				const struct sbc_frame *frame)
 {
 	memset(&state->X, 0, sizeof(state->X));
-	state->position = SBC_X_BUFFER_SIZE - frame->subbands * 9;
+	state->position = (SBC_X_BUFFER_SIZE - frame->subbands * 9) & ~7;
 
 	sbc_init_primitives(state);
 }
@@ -1046,10 +1017,11 @@ ssize_t sbc_decode(sbc_t *sbc, const void *input, size_t input_len,
 }
 
 ssize_t sbc_encode(sbc_t *sbc, const void *input, size_t input_len,
-			void *output, size_t output_len, size_t *written)
+			void *output, size_t output_len, ssize_t *written)
 {
 	struct sbc_priv *priv;
-	int framelen, samples;
+	int samples;
+	ssize_t framelen;
 	int (*sbc_enc_process_input)(int position,
 			const uint8_t *pcm, int16_t X[2][SBC_X_BUFFER_SIZE],
 			int nsamples, int nchannels);
@@ -1114,11 +1086,18 @@ ssize_t sbc_encode(sbc_t *sbc, const void *input, size_t input_len,
 
 	samples = sbc_analyze_audio(&priv->enc_state, &priv->frame);
 
-	priv->enc_state.sbc_calc_scalefactors(
-		priv->frame.sb_sample_f, priv->frame.scale_factor,
-		priv->frame.blocks, priv->frame.channels, priv->frame.subbands);
-
-	framelen = sbc_pack_frame(output, &priv->frame, output_len);
+	if (priv->frame.mode == JOINT_STEREO) {
+		int j = priv->enc_state.sbc_calc_scalefactors_j(
+			priv->frame.sb_sample_f, priv->frame.scale_factor,
+			priv->frame.blocks, priv->frame.subbands);
+		framelen = sbc_pack_frame(output, &priv->frame, output_len, j);
+	} else {
+		priv->enc_state.sbc_calc_scalefactors(
+			priv->frame.sb_sample_f, priv->frame.scale_factor,
+			priv->frame.blocks, priv->frame.channels,
+			priv->frame.subbands);
+		framelen = sbc_pack_frame(output, &priv->frame, output_len, 0);
+	}
 
 	if (written)
 		*written = framelen;
@@ -1131,8 +1110,7 @@ void sbc_finish(sbc_t *sbc)
 	if (!sbc)
 		return;
 
-	if (sbc->priv_alloc_base)
-		free(sbc->priv_alloc_base);
+	free(sbc->priv_alloc_base);
 
 	memset(sbc, 0, sizeof(sbc_t));
 }

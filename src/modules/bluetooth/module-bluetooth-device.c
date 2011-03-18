@@ -51,12 +51,15 @@
 
 #include "module-bluetooth-device-symdef.h"
 #include "ipc.h"
-#include "sbc.h"
+#include "sbc/sbc.h"
 #include "rtp.h"
 #include "bluetooth-util.h"
 
 #define MAX_BITPOOL 64
 #define MIN_BITPOOL 2U
+
+#define BITPOOL_DEC_LIMIT 32
+#define BITPOOL_DEC_STEP 5
 
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Bluetooth audio sink and source");
@@ -117,6 +120,8 @@ struct a2dp_info {
     size_t buffer_size;                  /* Size of the buffer */
 
     uint16_t seq_num;                    /* Cumulative packet sequence */
+    uint8_t min_bitpool;
+    uint8_t max_bitpool;
 };
 
 struct hsp_info {
@@ -574,7 +579,7 @@ static int setup_a2dp(struct userdata *u) {
 }
 
 /* Run from main thread */
-static void setup_sbc(struct a2dp_info *a2dp) {
+static void setup_sbc(struct a2dp_info *a2dp, enum profile p) {
     sbc_capabilities_t *active_capabilities;
 
     pa_assert(a2dp);
@@ -660,7 +665,11 @@ static void setup_sbc(struct a2dp_info *a2dp) {
             pa_assert_not_reached();
     }
 
-    a2dp->sbc.bitpool = active_capabilities->max_bitpool;
+    a2dp->min_bitpool = active_capabilities->min_bitpool;
+    a2dp->max_bitpool = active_capabilities->max_bitpool;
+
+    /* Set minimum bitpool for source to get the maximum possible block_size */
+    a2dp->sbc.bitpool = p == PROFILE_A2DP ? a2dp->max_bitpool : a2dp->min_bitpool;
     a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
     a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
 }
@@ -728,7 +737,7 @@ static int set_conf(struct userdata *u) {
 
     /* setup SBC encoder now we agree on parameters */
     if (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) {
-        setup_sbc(&u->a2dp);
+        setup_sbc(&u->a2dp, u->profile);
 
         u->block_size =
             ((u->link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
@@ -741,6 +750,39 @@ static int set_conf(struct userdata *u) {
         u->block_size = u->link_mtu;
 
     return 0;
+}
+
+/* from IO thread */
+static void a2dp_set_bitpool(struct userdata *u, uint8_t bitpool)
+{
+    struct a2dp_info *a2dp;
+
+    pa_assert(u);
+
+    a2dp = &u->a2dp;
+
+    if (a2dp->sbc.bitpool == bitpool)
+        return;
+
+    if (bitpool > a2dp->max_bitpool)
+        bitpool = a2dp->max_bitpool;
+    else if (bitpool < a2dp->min_bitpool)
+        bitpool = a2dp->min_bitpool;
+
+    a2dp->sbc.bitpool = bitpool;
+
+    a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
+    a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
+
+    pa_log_debug("Bitpool has changed to %u", a2dp->sbc.bitpool);
+
+    u->block_size =
+            (u->link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+            / a2dp->frame_length * a2dp->codesize;
+
+    pa_sink_set_max_request_within_thread(u->sink, u->block_size);
+    pa_sink_set_fixed_latency_within_thread(u->sink,
+            FIXED_LATENCY_PLAYBACK_A2DP + pa_bytes_to_usec(u->block_size, &u->sample_spec));
 }
 
 /* from IO thread, except in SCO over PCM */
@@ -757,6 +799,9 @@ static int setup_stream(struct userdata *u) {
         pa_log_warn("Failed to enable SO_TIMESTAMP: %s", pa_cstrerror(errno));
 
     pa_log_debug("Stream properly set up, we're ready to roll!");
+
+    if (u->profile == PROFILE_A2DP)
+        a2dp_set_bitpool(u, u->a2dp.max_bitpool);
 
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
@@ -910,7 +955,8 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
         return -1;
     }
 
-    u->stream_fd = pa_bluetooth_transport_acquire(t, accesstype);
+    /* FIXME: Handle in/out MTU properly when unix socket is not longer supported */
+    u->stream_fd = pa_bluetooth_transport_acquire(t, accesstype, NULL, &u->link_mtu);
     if (u->stream_fd < 0)
         return -1;
 
@@ -1441,7 +1487,7 @@ static int a2dp_process_push(struct userdata *u) {
         d = pa_memblock_acquire(memchunk.memblock);
         to_write = memchunk.length = pa_memblock_get_length(memchunk.memblock);
 
-        while (PA_LIKELY(to_decode > 0 && to_write > 0)) {
+        while (PA_LIKELY(to_decode > 0)) {
             size_t written;
             ssize_t decoded;
 
@@ -1460,10 +1506,12 @@ static int a2dp_process_push(struct userdata *u) {
 /*             pa_log_debug("SBC: decoded: %lu; written: %lu", (unsigned long) decoded, (unsigned long) written); */
 /*             pa_log_debug("SBC: frame_length: %lu; codesize: %lu", (unsigned long) a2dp->frame_length, (unsigned long) a2dp->codesize); */
 
+            /* Reset frame length, it can be changed due to bitpool change */
+            a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
+
             pa_assert_fp((size_t) decoded <= to_decode);
             pa_assert_fp((size_t) decoded == a2dp->frame_length);
 
-            pa_assert_fp((size_t) written <= to_write);
             pa_assert_fp((size_t) written == a2dp->codesize);
 
             p = (const uint8_t*) p + decoded;
@@ -1474,6 +1522,8 @@ static int a2dp_process_push(struct userdata *u) {
 
             frame_count++;
         }
+
+        memchunk.length -= to_write;
 
         pa_memblock_release(memchunk.memblock);
 
@@ -1486,6 +1536,27 @@ static int a2dp_process_push(struct userdata *u) {
     pa_memblock_unref(memchunk.memblock);
 
     return ret;
+}
+
+static void a2dp_reduce_bitpool(struct userdata *u)
+{
+    struct a2dp_info *a2dp;
+    uint8_t bitpool;
+
+    pa_assert(u);
+
+    a2dp = &u->a2dp;
+
+    /* Check if bitpool is already at its limit */
+    if (a2dp->sbc.bitpool <= BITPOOL_DEC_LIMIT)
+        return;
+
+    bitpool = a2dp->sbc.bitpool - BITPOOL_DEC_STEP;
+
+    if (bitpool < BITPOOL_DEC_LIMIT)
+        bitpool = BITPOOL_DEC_LIMIT;
+
+    a2dp_set_bitpool(u, bitpool);
 }
 
 static void thread_func(void *userdata) {
@@ -1579,6 +1650,9 @@ static void thread_func(void *userdata) {
                                 pa_sink_render_full(u->sink, skip_bytes, &tmp);
                                 pa_memblock_unref(tmp.memblock);
                                 u->write_index += skip_bytes;
+
+                                if (u->profile == PROFILE_A2DP)
+                                    a2dp_reduce_bitpool(u);
                             }
                         }
 
@@ -1677,7 +1751,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                  dbus_message_get_path(m),
                  dbus_message_get_member(m));
 
-    if (!dbus_message_has_path(m, u->path))
+    if (!dbus_message_has_path(m, u->path) && !dbus_message_has_path(m, u->transport))
         goto fail;
 
     if (dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged") ||
@@ -1702,6 +1776,28 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
                 pa_source_volume_changed(u->source, &v);
             }
+        }
+    } else if (dbus_message_is_signal(m, "org.bluez.MediaTransport", "PropertyChanged")) {
+        DBusMessageIter arg_i;
+        pa_bluetooth_transport *t;
+        pa_bool_t nrec;
+
+        t = (pa_bluetooth_transport *) pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
+        pa_assert(t);
+
+        if (!dbus_message_iter_init(m, &arg_i)) {
+            pa_log("Failed to parse PropertyChanged: %s", err.message);
+            goto fail;
+        }
+
+        nrec = t->nrec;
+
+        if (pa_bluetooth_transport_parse_property(t, &arg_i) < 0)
+            goto fail;
+
+        if (nrec != t->nrec) {
+            pa_log_debug("dbus: property 'NREC' changed to value '%s'", t->nrec ? "True" : "False");
+            pa_proplist_sets(u->source->proplist, "bluetooth.nrec", t->nrec ? "1" : "0");
         }
     }
 
@@ -1944,6 +2040,7 @@ static int add_source(struct userdata *u) {
         pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP_SOURCE ? "a2dp_source" : "hsp");
         if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW))
             pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
+
         data.card = u->card;
         data.name = get_name("source", u->modargs, u->address, &b);
         data.namereg_fail = b;
@@ -1970,8 +2067,15 @@ static int add_source(struct userdata *u) {
                                     pa_bytes_to_usec(u->block_size, &u->sample_spec));
     }
 
-    if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW)
-        pa_proplist_sets(u->source->proplist, "bluetooth.nrec", (u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC) ? "1" : "0");
+    if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW)) {
+        if (u->transport) {
+            const pa_bluetooth_transport *t;
+            t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
+            pa_assert(t);
+            pa_proplist_sets(u->source->proplist, "bluetooth.nrec", t->nrec ? "1" : "0");
+        } else
+            pa_proplist_sets(u->source->proplist, "bluetooth.nrec", (u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC) ? "1" : "0");
+    }
 
     if (u->profile == PROFILE_HSP) {
         u->source->set_volume = source_set_volume_cb;
@@ -2094,7 +2198,11 @@ static int bt_transport_config_a2dp(struct userdata *u) {
             pa_assert_not_reached();
     }
 
-    a2dp->sbc.bitpool = config->max_bitpool;
+    a2dp->min_bitpool = config->min_bitpool;
+    a2dp->max_bitpool = config->max_bitpool;
+
+    /* Set minimum bitpool for source to get the maximum possible block_size */
+    a2dp->sbc.bitpool = u->profile == PROFILE_A2DP ? a2dp->max_bitpool : a2dp->min_bitpool;
     a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
     a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
 
@@ -2118,99 +2226,12 @@ static int bt_transport_config(struct userdata *u) {
     return bt_transport_config_a2dp(u);
 }
 
-static int parse_transport_property(struct userdata *u, DBusMessageIter *i) {
-    const char *key;
-    DBusMessageIter variant_i;
-
-    pa_assert(u);
-    pa_assert(i);
-
-    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_STRING) {
-        pa_log("Property name not a string.");
-        return -1;
-    }
-
-    dbus_message_iter_get_basic(i, &key);
-
-    if (!dbus_message_iter_next(i))  {
-        pa_log("Property value missing");
-        return -1;
-    }
-
-    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_VARIANT) {
-        pa_log("Property value not a variant.");
-        return -1;
-    }
-
-    dbus_message_iter_recurse(i, &variant_i);
-
-    switch (dbus_message_iter_get_arg_type(&variant_i)) {
-
-        case DBUS_TYPE_UINT16: {
-
-            uint16_t value;
-            dbus_message_iter_get_basic(&variant_i, &value);
-
-            if (pa_streq(key, "OMTU"))
-                u->link_mtu = value;
-
-            break;
-        }
-
-    }
-
-    return 0;
-}
-
 /* Run from main thread */
 static int bt_transport_open(struct userdata *u) {
-    DBusMessage *m, *r;
-    DBusMessageIter arg_i, element_i;
-    DBusError err;
-
     if (bt_transport_acquire(u, FALSE) < 0)
         return -1;
 
-    dbus_error_init(&err);
-
-    pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->transport, "org.bluez.MediaTransport", "GetProperties"));
-    r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->connection), m, -1, &err);
-
-    if (dbus_error_is_set(&err) || !r) {
-        pa_log("Failed to get transport properties: %s", err.message);
-        goto fail;
-    }
-
-    if (!dbus_message_iter_init(r, &arg_i)) {
-        pa_log("GetProperties reply has no arguments.");
-        goto fail;
-    }
-
-    if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_ARRAY) {
-        pa_log("GetProperties argument is not an array.");
-        goto fail;
-    }
-
-    dbus_message_iter_recurse(&arg_i, &element_i);
-    while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
-
-        if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
-            DBusMessageIter dict_i;
-
-            dbus_message_iter_recurse(&element_i, &dict_i);
-
-            parse_transport_property(u, &dict_i);
-        }
-
-        if (!dbus_message_iter_next(&element_i))
-            break;
-    }
-
     return bt_transport_config(u);
-
-fail:
-    dbus_message_unref(r);
-    return -1;
 }
 
 /* Run from main thread */
@@ -2690,7 +2711,7 @@ int pa__init(pa_module* m) {
     struct userdata *u;
     const char *address, *path;
     DBusError err;
-    char *mike, *speaker;
+    char *mike, *speaker, *transport;
     const pa_bluetooth_device *device;
 
     pa_assert(m);
@@ -2769,15 +2790,18 @@ int pa__init(pa_module* m) {
 
     speaker = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='SpeakerGainChanged',path='%s'", u->path);
     mike = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='MicrophoneGainChanged',path='%s'", u->path);
+    transport = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.MediaTransport',member='PropertyChanged'");
 
     if (pa_dbus_add_matches(
                 pa_dbus_connection_get(u->connection), &err,
                 speaker,
                 mike,
+                transport,
                 NULL) < 0) {
 
         pa_xfree(speaker);
         pa_xfree(mike);
+        pa_xfree(transport);
 
         pa_log("Failed to add D-Bus matches: %s", err.message);
         goto fail;
@@ -2785,6 +2809,7 @@ int pa__init(pa_module* m) {
 
     pa_xfree(speaker);
     pa_xfree(mike);
+    pa_xfree(transport);
 
     /* Connect to the BT service */
     init_bt(u);

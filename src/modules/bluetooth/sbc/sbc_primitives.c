@@ -32,7 +32,9 @@
 
 #include "sbc_primitives.h"
 #include "sbc_primitives_mmx.h"
+#include "sbc_primitives_iwmmxt.h"
 #include "sbc_primitives_neon.h"
+#include "sbc_primitives_armv6.h"
 
 /*
  * A reference C code of analysis filter with SIMD-friendly tables
@@ -231,12 +233,12 @@ static SBC_ALWAYS_INLINE int sbc_encoder_process_input_s4_internal(
 	/* handle X buffer wraparound */
 	if (position < nsamples) {
 		if (nchannels > 0)
-			memcpy(&X[0][SBC_X_BUFFER_SIZE - 36], &X[0][position],
+			memcpy(&X[0][SBC_X_BUFFER_SIZE - 40], &X[0][position],
 							36 * sizeof(int16_t));
 		if (nchannels > 1)
-			memcpy(&X[1][SBC_X_BUFFER_SIZE - 36], &X[1][position],
+			memcpy(&X[1][SBC_X_BUFFER_SIZE - 40], &X[1][position],
 							36 * sizeof(int16_t));
-		position = SBC_X_BUFFER_SIZE - 36;
+		position = SBC_X_BUFFER_SIZE - 40;
 	}
 
 	#define PCM(i) (big_endian ? \
@@ -439,6 +441,80 @@ static void sbc_calc_scalefactors(
 	}
 }
 
+static int sbc_calc_scalefactors_j(
+	int32_t sb_sample_f[16][2][8],
+	uint32_t scale_factor[2][8],
+	int blocks, int subbands)
+{
+	int blk, joint = 0;
+	int32_t tmp0, tmp1;
+	uint32_t x, y;
+
+	/* last subband does not use joint stereo */
+	int sb = subbands - 1;
+	x = 1 << SCALE_OUT_BITS;
+	y = 1 << SCALE_OUT_BITS;
+	for (blk = 0; blk < blocks; blk++) {
+		tmp0 = fabs(sb_sample_f[blk][0][sb]);
+		tmp1 = fabs(sb_sample_f[blk][1][sb]);
+		if (tmp0 != 0)
+			x |= tmp0 - 1;
+		if (tmp1 != 0)
+			y |= tmp1 - 1;
+	}
+	scale_factor[0][sb] = (31 - SCALE_OUT_BITS) - sbc_clz(x);
+	scale_factor[1][sb] = (31 - SCALE_OUT_BITS) - sbc_clz(y);
+
+	/* the rest of subbands can use joint stereo */
+	while (--sb >= 0) {
+		int32_t sb_sample_j[16][2];
+		x = 1 << SCALE_OUT_BITS;
+		y = 1 << SCALE_OUT_BITS;
+		for (blk = 0; blk < blocks; blk++) {
+			tmp0 = sb_sample_f[blk][0][sb];
+			tmp1 = sb_sample_f[blk][1][sb];
+			sb_sample_j[blk][0] = ASR(tmp0, 1) + ASR(tmp1, 1);
+			sb_sample_j[blk][1] = ASR(tmp0, 1) - ASR(tmp1, 1);
+			tmp0 = fabs(tmp0);
+			tmp1 = fabs(tmp1);
+			if (tmp0 != 0)
+				x |= tmp0 - 1;
+			if (tmp1 != 0)
+				y |= tmp1 - 1;
+		}
+		scale_factor[0][sb] = (31 - SCALE_OUT_BITS) -
+			sbc_clz(x);
+		scale_factor[1][sb] = (31 - SCALE_OUT_BITS) -
+			sbc_clz(y);
+		x = 1 << SCALE_OUT_BITS;
+		y = 1 << SCALE_OUT_BITS;
+		for (blk = 0; blk < blocks; blk++) {
+			tmp0 = fabs(sb_sample_j[blk][0]);
+			tmp1 = fabs(sb_sample_j[blk][1]);
+			if (tmp0 != 0)
+				x |= tmp0 - 1;
+			if (tmp1 != 0)
+				y |= tmp1 - 1;
+		}
+		x = (31 - SCALE_OUT_BITS) - sbc_clz(x);
+		y = (31 - SCALE_OUT_BITS) - sbc_clz(y);
+
+		/* decide whether to use joint stereo for this subband */
+		if ((scale_factor[0][sb] + scale_factor[1][sb]) > x + y) {
+			joint |= 1 << (subbands - 1 - sb);
+			scale_factor[0][sb] = x;
+			scale_factor[1][sb] = y;
+			for (blk = 0; blk < blocks; blk++) {
+				sb_sample_f[blk][0][sb] = sb_sample_j[blk][0];
+				sb_sample_f[blk][1][sb] = sb_sample_j[blk][1];
+			}
+		}
+	}
+
+	/* bitmask with the information about subbands using joint stereo */
+	return joint;
+}
+
 /*
  * Detect CPU features and setup function pointers
  */
@@ -456,6 +532,7 @@ void sbc_init_primitives(struct sbc_encoder_state *state)
 
 	/* Default implementation for scale factors calculation */
 	state->sbc_calc_scalefactors = sbc_calc_scalefactors;
+	state->sbc_calc_scalefactors_j = sbc_calc_scalefactors_j;
 	state->implementation_info = "Generic C";
 
 	/* X86/AMD64 optimizations */
@@ -464,6 +541,12 @@ void sbc_init_primitives(struct sbc_encoder_state *state)
 #endif
 
 	/* ARM optimizations */
+#ifdef SBC_BUILD_WITH_ARMV6_SUPPORT
+	sbc_init_primitives_armv6(state);
+#endif
+#ifdef SBC_BUILD_WITH_IWMMXT_SUPPORT
+	sbc_init_primitives_iwmmxt(state);
+#endif
 #ifdef SBC_BUILD_WITH_NEON_SUPPORT
 	sbc_init_primitives_neon(state);
 #endif
