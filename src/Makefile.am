@@ -1947,8 +1947,8 @@ update-ffmpeg:
 # We get things twice here, because sometimes gitweb will us just give a "Generating..." otherwise.
 update-sbc:
 	for i in $(BLUETOOTH_SBC_FILES) ; do \
-		wget -O /dev/null http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=sbc/$$i ; \
-		wget -O modules/bluetooth/$$i http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=sbc/$$i ; \
+		wget -O /dev/null http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=$$i ; \
+		wget -O modules/bluetooth/$$i http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=$$i ; \
 	done
 	for i in $(BLUETOOTH_IPC_FILES); do \
 		wget -O /dev/null http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=audio/$$i ; \
