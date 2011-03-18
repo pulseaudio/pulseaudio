@@ -145,7 +145,8 @@ void pa_cmdline_help(const char *argv0) {
            "                                        this time passed\n"
            "      --log-level[=LEVEL]               Increase or set verbosity level\n"
            "  -v                                    Increase the verbosity level\n"
-           "      --log-target={auto,syslog,stderr} Specify the log target\n"
+           "      --log-target={auto,syslog,stderr,file:PATH}\n"
+           "                                        Specify the log target\n"
            "      --log-meta[=BOOL]                 Include code location in log messages\n"
            "      --log-time[=BOOL]                 Include timestamps in log messages\n"
            "      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
@@ -318,7 +319,7 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
 
             case ARG_LOG_TARGET:
                 if (pa_daemon_conf_set_log_target(conf, optarg) < 0) {
-                    pa_log(_("Invalid log target: use either 'syslog', 'stderr' or 'auto'."));
+                    pa_log(_("Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file name 'file:<path>'."));
                     goto fail;
                 }
                 break;

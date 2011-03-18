@@ -70,6 +70,7 @@ static pa_log_level_t maximum_level = PA_LOG_ERROR, maximum_level_override = PA_
 static unsigned show_backtrace = 0, show_backtrace_override = 0, skip_backtrace = 0;
 static pa_log_flags_t flags = 0, flags_override = 0;
 static pa_bool_t no_rate_limit = FALSE;
+static int log_fd = -1;
 
 #ifdef HAVE_SYSLOG_H
 static const int level_to_syslog[] = {
@@ -126,6 +127,15 @@ void pa_log_set_flags(pa_log_flags_t _flags, pa_log_merge_t merge) {
         flags &= ~_flags;
     else
         flags = _flags;
+}
+
+void pa_log_set_fd(int fd) {
+    if (fd >= 0)
+        log_fd = fd;
+    else if (log_fd >= 0) {
+        pa_close(log_fd);
+        log_fd = -1;
+    }
 }
 
 void pa_log_set_show_backtrace(unsigned nlevels) {
@@ -399,6 +409,23 @@ void pa_log_levelv_meta(
             }
 #endif
 
+            case PA_LOG_FD: {
+                if (log_fd >= 0) {
+                    char metadata[256];
+
+                    pa_snprintf(metadata, sizeof(metadata), "\n%c %s %s", level_to_char[level], timestamp, location);
+
+                    if ((write(log_fd, metadata, strlen(metadata)) < 0) || (write(log_fd, t, strlen(t)) < 0)) {
+                        saved_errno = errno;
+                        pa_log_set_fd(-1);
+                        fprintf(stderr, "%s\n", "Error writing logs to a file descriptor. Redirect log messages to console.");
+                        fprintf(stderr, "%s %s\n", metadata, t);
+                        pa_log_set_target(PA_LOG_STDERR);
+                    }
+                }
+
+                break;
+            }
             case PA_LOG_NULL:
             default:
                 break;

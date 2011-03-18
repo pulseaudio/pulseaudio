@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #ifdef HAVE_SCHED_H
 #include <sched.h>
@@ -166,6 +167,9 @@ pa_daemon_conf* pa_daemon_conf_new(void) {
 
 void pa_daemon_conf_free(pa_daemon_conf *c) {
     pa_assert(c);
+
+    pa_log_set_fd(-1);
+
     pa_xfree(c->script_commands);
     pa_xfree(c->dl_search_path);
     pa_xfree(c->default_script_file);
@@ -211,6 +215,23 @@ int pa_daemon_conf_set_log_level(pa_daemon_conf *c, const char *string) {
         c->log_level = PA_LOG_WARN;
     else if (pa_startswith(string, "err"))
         c->log_level = PA_LOG_ERROR;
+    else if (pa_startswith(string, "file:")) {
+        char file_path[512];
+        int log_fd;
+
+        pa_strlcpy(file_path, string + 5, sizeof(file_path));
+
+        /* Open target file with user rights */
+        if ((log_fd = open(file_path, O_RDWR|O_TRUNC|O_CREAT, S_IRWXU)) >= 0) {
+             c->auto_log_target = 0;
+             c->log_target = PA_LOG_FD;
+             pa_log_set_fd(log_fd);
+        }
+        else {
+            printf("Failed to open target file %s, error : %s\n", file_path, pa_cstrerror(errno));
+            return -1;
+        }
+    }
     else
         return -1;
 
