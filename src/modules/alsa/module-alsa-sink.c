@@ -40,7 +40,8 @@ PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "name=<name of the sink, to be prefixed> "
         "sink_name=<name for the sink> "
-        "sink_properities=<properties for the sink> "
+        "sink_properties=<properties for the sink> "
+        "namereg_fail=<pa_namereg_register() fail parameter value> "
         "device=<ALSA device> "
         "device_id=<ALSA card index> "
         "format=<sample format> "
@@ -64,6 +65,7 @@ static const char* const valid_modargs[] = {
     "name",
     "sink_name",
     "sink_properties",
+    "namereg_fail",
     "device",
     "device_id",
     "format",

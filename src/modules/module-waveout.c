@@ -55,11 +55,11 @@ PA_MODULE_USAGE(
     "record=<enable source?> "
     "playback=<enable sink?> "
     "format=<sample format> "
-    "channels=<number of channels> "
     "rate=<sample rate> "
+    "channels=<number of channels> "
+    "channel_map=<channel map> "
     "fragments=<number of fragments> "
-    "fragment_size=<fragment size> "
-    "channel_map=<channel map>");
+    "fragment_size=<fragment size>");
 
 #define DEFAULT_SINK_NAME "wave_output"
 #define DEFAULT_SOURCE_NAME "wave_input"

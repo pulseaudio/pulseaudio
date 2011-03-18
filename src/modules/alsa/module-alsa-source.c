@@ -65,6 +65,7 @@ PA_MODULE_USAGE(
         "name=<name for the source, to be prefixed> "
         "source_name=<name for the source> "
         "source_properties=<properties for the source> "
+        "namereg_fail=<pa_namereg_register() fail parameter value> "
         "device=<ALSA device> "
         "device_id=<ALSA card index> "
         "format=<sample format> "
@@ -84,6 +85,7 @@ static const char* const valid_modargs[] = {
     "name",
     "source_name",
     "source_properties",
+    "namereg_fail",
     "device",
     "device_id",
     "format",

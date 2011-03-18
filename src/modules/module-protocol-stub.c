@@ -137,7 +137,7 @@
   PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION);
   PA_MODULE_USAGE("auth-anonymous=<don't check for cookies?> "
                   "auth-cookie=<path to cookie file> "
-                  "auth-cookie-enabled=<enable cookie authentification? "
+                  "auth-cookie-enabled=<enable cookie authentification?> "
                   AUTH_USAGE
                   SOCKET_USAGE);
 #elif defined(USE_PROTOCOL_ESOUND)
@@ -166,7 +166,7 @@
                   "source=<source to connect to> "
                   "auth-anonymous=<don't verify cookies?> "
                   "auth-cookie=<path to cookie file> "
-                  "auth-cookie-enabled=<enable cookie authentification? "
+                  "auth-cookie-enabled=<enable cookie authentification?> "
                   AUTH_USAGE
                   SOCKET_USAGE);
 #else

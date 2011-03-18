@@ -77,7 +77,8 @@ PA_MODULE_DESCRIPTION(_("General Purpose Equalizer"));
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
-        _("sink_name=<name of the sink>"
+        _("sink_name=<name of the sink> "
+          "sink_properties=<properties for the sink> "
           "master=<sink to connect to> "
           "format=<sample format> "
           "rate=<sample rate> "
@@ -131,6 +132,7 @@ struct userdata {
 
 static const char* const valid_modargs[] = {
     "sink_name",
+    "sink_properties",
     "master",
     "format",
     "rate",

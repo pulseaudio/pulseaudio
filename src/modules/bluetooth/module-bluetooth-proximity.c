@@ -59,7 +59,6 @@ PA_MODULE_USAGE(
 
 static const char* const valid_modargs[] = {
     "sink",
-    "rssi",
     "hci",
     NULL,
 };

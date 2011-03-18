@@ -61,7 +61,7 @@ PA_MODULE_USAGE(
         "sink_properties=<properties for the sink> "
         "file=<path of the FIFO> "
         "format=<sample format> "
-        "rate=<sample rate>"
+        "rate=<sample rate> "
         "channels=<number of channels> "
         "channel_map=<channel map>");
 
