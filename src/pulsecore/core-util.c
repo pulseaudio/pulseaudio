@@ -1823,7 +1823,7 @@ char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength) {
     pa_assert(s);
     pa_assert(slength > 0);
 
-    while (i < dlength && j+3 <= slength) {
+    while (j+2 < slength && i < dlength) {
         s[j++] = hex[*d >> 4];
         s[j++] = hex[*d & 0xF];
 

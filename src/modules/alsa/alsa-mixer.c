@@ -2637,7 +2637,7 @@ pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t d
             pa_bool_t duplicate = FALSE;
             char **kn, *fn;
 
-            for (kn = pn; kn != in; kn++)
+            for (kn = pn; kn < in; kn++)
                 if (pa_streq(*kn, *in)) {
                     duplicate = TRUE;
                     break;
@@ -3669,14 +3669,14 @@ void pa_alsa_decibel_fix_dump(pa_alsa_decibel_fix *db_fix) {
 
     if (db_fix->db_values) {
         pa_strbuf *buf;
-        long i;
-        long max_i = db_fix->max_step - db_fix->min_step;
+        unsigned long i, nsteps;
+
+        pa_assert(db_fix->min_step <= db_fix->max_step);
+        nsteps = db_fix->max_step - db_fix->min_step + 1;
 
         buf = pa_strbuf_new();
-        pa_strbuf_printf(buf, "[%li]:%0.2f", db_fix->min_step, db_fix->db_values[0] / 100.0);
-
-        for (i = 1; i <= max_i; ++i)
-            pa_strbuf_printf(buf, " [%li]:%0.2f", i + db_fix->min_step, db_fix->db_values[i] / 100.0);
+        for (i = 0; i < nsteps; ++i)
+            pa_strbuf_printf(buf, "[%li]:%0.2f ", i + db_fix->min_step, db_fix->db_values[i] / 100.0);
 
         db_values = pa_strbuf_tostring_free(buf);
     }
