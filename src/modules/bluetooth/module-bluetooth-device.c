@@ -1326,7 +1326,7 @@ static int a2dp_process_render(struct userdata *u) {
     to_write = a2dp->buffer_size - sizeof(*header) - sizeof(*payload);
 
     while (PA_LIKELY(to_encode > 0 && to_write > 0)) {
-        size_t written;
+        ssize_t written;
         ssize_t encoded;
 
         encoded = sbc_encode(&a2dp->sbc,

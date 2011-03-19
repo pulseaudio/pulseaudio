@@ -49,7 +49,7 @@
 #ifdef __GNUC__
 #define PA_GCC_UNUSED __attribute__ ((unused))
 #else
-/** Macro for not used parameter */
+/** Macro for not used function, variable or parameter */
 #define PA_GCC_UNUSED
 #endif
 

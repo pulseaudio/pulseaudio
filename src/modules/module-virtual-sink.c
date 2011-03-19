@@ -203,7 +203,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     size_t fs;
     unsigned n, c;
     pa_memchunk tchunk;
-    pa_usec_t current_latency;
+    pa_usec_t current_latency PA_GCC_UNUSED;
 
     pa_sink_input_assert_ref(i);
     pa_assert(chunk);

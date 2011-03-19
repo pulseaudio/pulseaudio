@@ -263,7 +263,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
     struct userdata *u = userdata;
     uint32_t old_rate, base_rate, new_rate;
     int64_t diff_time;
-    size_t fs;
+    /*size_t fs*/;
     struct snapshot latency_snapshot;
 
     pa_assert(u);
@@ -281,7 +281,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
     /* calculate drift between capture and playback */
     diff_time = calc_diff(u, &latency_snapshot);
 
-    fs = pa_frame_size(&u->source_output->sample_spec);
+    /*fs = pa_frame_size(&u->source_output->sample_spec);*/
     old_rate = u->sink_input->sample_spec.rate;
     base_rate = u->source_output->sample_spec.rate;
 
@@ -290,7 +290,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
          * canceler does not work in this case. */
         pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_APPLY_DIFF_TIME,
             NULL, diff_time, NULL, NULL);
-        //new_rate = base_rate - ((pa_usec_to_bytes(-diff_time, &u->source_output->sample_spec) / fs) * PA_USEC_PER_SEC) / u->adjust_time;
+        /*new_rate = base_rate - ((pa_usec_to_bytes(-diff_time, &u->source_output->sample_spec) / fs) * PA_USEC_PER_SEC) / u->adjust_time;*/
         new_rate = base_rate;
     }
     else {
@@ -301,7 +301,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
         }
 
         /* recording behind playback, we need to slowly adjust the rate to match */
-        //new_rate = base_rate + ((pa_usec_to_bytes(diff_time, &u->source_output->sample_spec) / fs) * PA_USEC_PER_SEC) / u->adjust_time;
+        /*new_rate = base_rate + ((pa_usec_to_bytes(diff_time, &u->source_output->sample_spec) / fs) * PA_USEC_PER_SEC) / u->adjust_time;*/
 
         /* assume equal samplerates for now */
         new_rate = base_rate;

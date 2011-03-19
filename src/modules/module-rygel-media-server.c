@@ -380,6 +380,7 @@ static void append_variant_item_display_name(DBusMessage *m, DBusMessageIter *it
     append_variant_string(m, iter, display_name);
 }
 
+PA_GCC_UNUSED
 static void append_property_dict_entry_object_array(DBusMessage *m, DBusMessageIter *iter, const char *name, const char *path[], unsigned n) {
     DBusMessageIter sub;
 

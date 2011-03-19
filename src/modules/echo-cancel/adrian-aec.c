@@ -107,8 +107,7 @@ AEC* AEC_init(int RATE, int have_vector)
 // mapped to 1.0 with a limited linear function.
 static float AEC_dtd(AEC *a, REAL d, REAL x)
 {
-  float stepsize;
-  float ratio, M;
+  float ratio, stepsize;
 
   // fast near-end and far-end average
   a->dfast += ALPHAFAST * (fabsf(d) - a->dfast);
@@ -129,16 +128,13 @@ static float AEC_dtd(AEC *a, REAL d, REAL x)
   // ratio of NFRs
   ratio = (a->dfast * a->xslow) / (a->dslow * a->xfast);
 
-  // begrenzte lineare Kennlinie
-  M = (STEPY2 - STEPY1) / (STEPX2 - STEPX1);
-  if (ratio < STEPX1) {
+  // Linear interpolation with clamping at the limits
+  if (ratio < STEPX1)
     stepsize = STEPY1;
-  } else if (ratio > STEPX2) {
+  else if (ratio > STEPX2)
     stepsize = STEPY2;
-  } else {
-    // Punktrichtungsform einer Geraden
-    stepsize = M * (ratio - STEPX1) + STEPY1;
-  }
+  else
+    stepsize = STEPY1 + (STEPY2 - STEPY1) * (ratio - STEPX1) / (STEPX2 - STEPX1);
 
   return stepsize;
 }
