@@ -55,7 +55,10 @@ static int generate(int fd, void *ret_data, size_t length) {
     pa_random(ret_data, length);
 
     lseek(fd, (off_t) 0, SEEK_SET);
-    (void) ftruncate(fd, (off_t) 0);
+    if (ftruncate(fd, (off_t) 0) < 0) {
+        pa_log("Failed to truncate cookie file: %s", pa_cstrerror(errno));
+        return -1;
+    }
 
     if ((r = pa_loop_write(fd, ret_data, length, NULL)) < 0 || (size_t) r != length) {
         pa_log("Failed to write cookie file: %s", pa_cstrerror(errno));
