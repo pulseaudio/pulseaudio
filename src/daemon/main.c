@@ -95,6 +95,7 @@
 #endif
 #include <pulsecore/cpu-arm.h>
 #include <pulsecore/cpu-x86.h>
+#include <pulsecore/cpu-orc.h>
 
 #include "cmdline.h"
 #include "cpulimit.h"
