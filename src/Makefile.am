@@ -1956,21 +1956,21 @@ update-ffmpeg:
 update-sbc:
 	for i in $(BLUETOOTH_SBC_FILES) ; do \
 		wget -O /dev/null http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=$$i ; \
-		wget -O modules/bluetooth/$$i http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=$$i ; \
+		wget -O $(top_srcdir)/src/modules/bluetooth/$$i http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=$$i ; \
 	done
 	for i in $(BLUETOOTH_IPC_FILES); do \
 		wget -O /dev/null http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=audio/$$i ; \
-		wget -O modules/bluetooth/$$i http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=audio/$$i ; \
+		wget -O $(top_srcdir)/src/modules/bluetooth/$$i http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=audio/$$i ; \
 	done
 
 update-reserve:
 	for i in reserve.c reserve.h reserve-monitor.c reserve-monitor.h ; do \
-		wget -O modules/$$i http://git.0pointer.de/\?p=reserve.git\;a=blob_plain\;f=$$i\;hb=master ; \
+		wget -O $(top_srcdir)/src/modules/$$i http://git.0pointer.de/\?p=reserve.git\;a=blob_plain\;f=$$i\;hb=master ; \
 	done
 
 update-rtkit:
 	for i in rtkit.c rtkit.h ; do \
-		wget -O pulsecore/$$i http://git.0pointer.de/\?p=rtkit.git\;a=blob_plain\;f=$$i\;hb=master ; \
+		wget -O $(top_srcdir)/src/pulsecore/$$i http://git.0pointer.de/\?p=rtkit.git\;a=blob_plain\;f=$$i\;hb=master ; \
 	done
 
 # Automatically generate linker version script. We use the same one for all public .sos
