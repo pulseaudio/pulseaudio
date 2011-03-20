@@ -1689,8 +1689,8 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     if (u->version >= 17)
         pa_tagstruct_put_boolean(reply, FALSE); /* relative volume */
 
-    if (u->version >= 18) {
-        pa_tagstruct_put_boolean(reply, FALSE); /* passthough stream */
+    if (u->version >= 18)
+        pa_tagstruct_put_boolean(reply, FALSE); /* passthrough stream */
 #endif
 
     pa_pstream_send_tagstruct(u->pstream, reply);
