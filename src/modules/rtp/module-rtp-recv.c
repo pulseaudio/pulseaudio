@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
@@ -54,6 +53,7 @@
 #include <pulsecore/socket-util.h>
 #include <pulsecore/once.h>
 #include <pulsecore/poll.h>
+#include <pulsecore/arpa-inet.h>
 
 #include "module-rtp-recv-symdef.h"
 

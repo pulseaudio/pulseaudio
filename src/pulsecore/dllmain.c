@@ -31,7 +31,7 @@
 
 #include <windows.h>
 
-extern pa_set_root(HANDLE handle);
+extern pa_win32_get_toplevel(HANDLE handle);
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     WSADATA data;
@@ -39,7 +39,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     switch (fdwReason) {
 
     case DLL_PROCESS_ATTACH:
-        if (!pa_set_root(hinstDLL))
+        if (!pa_win32_get_toplevel(hinstDLL))
             return FALSE;
         WSAStartup(MAKEWORD(2, 0), &data);
         break;

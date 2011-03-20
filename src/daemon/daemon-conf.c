@@ -160,7 +160,21 @@ pa_daemon_conf* pa_daemon_conf_new(void) {
     } else
 
 #endif
+#ifdef OS_IS_WIN32
+    {
+        char *t;
+        char *majorminor = pa_xstrdup(VERSION);
+        char *toplevel = pa_win32_get_toplevel(NULL);
+
+        if ((t = strchr(majorminor, '-')))
+          *t = '\0';
+
+        c->dl_search_path = pa_sprintf_malloc("%s" PA_PATH_SEP "lib" PA_PATH_SEP "pulse-%s" PA_PATH_SEP "modules", toplevel, majorminor);
+        pa_xfree(majorminor);
+    }
+#else
         c->dl_search_path = pa_xstrdup(PA_DLSEARCHPATH);
+#endif
 
     return c;
 }

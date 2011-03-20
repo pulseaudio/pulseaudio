@@ -146,24 +146,29 @@ static pa_strlist *recorded_env = NULL;
 
 #ifdef OS_IS_WIN32
 
-#define PULSE_ROOTENV "PULSE_ROOT"
+/* Returns the directory of the current DLL, with '/bin/' removed if it is the last component */
+char *pa_win32_get_toplevel(HANDLE handle) {
+    static char *toplevel = NULL;
 
-int pa_set_root(HANDLE handle) {
-    char library_path[MAX_PATH], *sep;
+    if (!toplevel) {
+        char library_path[MAX_PATH];
+        char *p;
 
-    /* FIXME: Needs to set errno */
+        if (!GetModuleFileName(handle, library_path, MAX_PATH))
+            return NULL;
 
-    if (!GetModuleFileName(handle, library_path, MAX_PATH))
-        return 0;
+        toplevel = pa_xstrdup(library_path);
 
-    sep = strrchr(library_path, PA_PATH_SEP_CHAR);
-    if (sep)
-        *sep = '\0';
+        p = strrchr(toplevel, PA_PATH_SEP_CHAR);
+        if (p)
+            *p = '\0';
 
-    if (!SetEnvironmentVariable(PULSE_ROOTENV, library_path))
-        return 0;
+        p = strrchr(toplevel, PA_PATH_SEP_CHAR);
+        if (p && (strcmp(p + 1, "bin") == 0))
+            *p = '\0';
+    }
 
-    return 1;
+    return toplevel;
 }
 
 #endif
@@ -701,7 +706,7 @@ int pa_make_realtime(int rtprio) {
 #elif defined(OS_IS_WIN32)
     /* Windows only allows realtime scheduling to be set on a per process basis.
      * Therefore, instead of making the thread realtime, just give it the highest non-realtime priority. */
-    if(SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL)) {
+    if (SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL)) {
         pa_log_info("Successfully enabled THREAD_PRIORITY_TIME_CRITICAL scheduling for thread.");
         return 0;
     }
@@ -932,7 +937,7 @@ const char *pa_sig2str(int sig) {
     }
 #else
 
-    switch(sig) {
+    switch (sig) {
 #ifdef SIGHUP
         case SIGHUP:    return "SIGHUP";
 #endif
@@ -1219,11 +1224,11 @@ int pa_lock_fd(int fd, int b) {
             return 0;
     }
 
-    pa_log("%slock: %s", !b? "un" : "", pa_cstrerror(errno));
+    pa_log("%slock: %s", !b ? "un" : "", pa_cstrerror(errno));
 #endif
 
 #ifdef OS_IS_WIN32
-    HANDLE h = (HANDLE)_get_osfhandle(fd);
+    HANDLE h = (HANDLE) _get_osfhandle(fd);
 
     if (b && LockFile(h, 0, 0, 0xFFFFFFFF, 0xFFFFFFFF))
         return 0;
@@ -1676,23 +1681,9 @@ fail:
  * stored there.*/
 FILE *pa_open_config_file(const char *global, const char *local, const char *env, char **result) {
     const char *fn;
-#ifdef OS_IS_WIN32
-    char buf[PATH_MAX];
-
-    if (!getenv(PULSE_ROOTENV))
-        pa_set_root(NULL);
-#endif
+    FILE *f;
 
     if (env && (fn = getenv(env))) {
-        FILE *f;
-
-#ifdef OS_IS_WIN32
-        if (!ExpandEnvironmentStrings(fn, buf, PATH_MAX))
-            /* FIXME: Needs to set errno! */
-            return NULL;
-        fn = buf;
-#endif
-
         if ((f = pa_fopen_cloexec(fn, "r"))) {
             if (result)
                 *result = pa_xstrdup(fn);
@@ -1708,7 +1699,6 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         const char *e;
         char *lfn;
         char *h;
-        FILE *f;
 
         if ((e = getenv("PULSE_CONFIG_PATH")))
             fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", e, local);
@@ -1717,15 +1707,6 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
             pa_xfree(h);
         } else
             return NULL;
-
-#ifdef OS_IS_WIN32
-        if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX)) {
-            /* FIXME: Needs to set errno! */
-            pa_xfree(lfn);
-            return NULL;
-        }
-        fn = buf;
-#endif
 
         if ((f = pa_fopen_cloexec(fn, "r"))) {
             if (result)
@@ -1745,22 +1726,26 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
     }
 
     if (global) {
-        FILE *f;
+        char *gfn;
 
 #ifdef OS_IS_WIN32
-        if (!ExpandEnvironmentStrings(global, buf, PATH_MAX))
-            /* FIXME: Needs to set errno! */
-            return NULL;
-        global = buf;
+        if (strncmp(global, PA_DEFAULT_CONFIG_DIR, strlen(PA_DEFAULT_CONFIG_DIR)) == 0)
+            gfn = pa_sprintf_malloc("%s" PA_PATH_SEP "etc" PA_PATH_SEP "pulse%s",
+                                    pa_win32_get_toplevel(NULL),
+                                    global + strlen(PA_DEFAULT_CONFIG_DIR));
+        else
 #endif
+        gfn = pa_xstrdup(global);
 
-        if ((f = pa_fopen_cloexec(global, "r"))) {
-
+        if ((f = pa_fopen_cloexec(gfn, "r"))) {
             if (result)
-                *result = pa_xstrdup(global);
+                *result = gfn;
+            else
+                pa_xfree(gfn);
 
             return f;
         }
+        pa_xfree(gfn);
     }
 
     errno = ENOENT;
@@ -1769,22 +1754,8 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 
 char *pa_find_config_file(const char *global, const char *local, const char *env) {
     const char *fn;
-#ifdef OS_IS_WIN32
-    char buf[PATH_MAX];
-
-    if (!getenv(PULSE_ROOTENV))
-        pa_set_root(NULL);
-#endif
 
     if (env && (fn = getenv(env))) {
-
-#ifdef OS_IS_WIN32
-        if (!ExpandEnvironmentStrings(fn, buf, PATH_MAX))
-            /* FIXME: Needs to set errno! */
-            return NULL;
-        fn = buf;
-#endif
-
         if (access(fn, R_OK) == 0)
             return pa_xstrdup(fn);
 
@@ -1805,15 +1776,6 @@ char *pa_find_config_file(const char *global, const char *local, const char *env
         } else
             return NULL;
 
-#ifdef OS_IS_WIN32
-        if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX)) {
-            /* FIXME: Needs to set errno! */
-            pa_xfree(lfn);
-            return NULL;
-        }
-        fn = buf;
-#endif
-
         if (access(fn, R_OK) == 0) {
             char *r = pa_xstrdup(fn);
             pa_xfree(lfn);
@@ -1830,15 +1792,20 @@ char *pa_find_config_file(const char *global, const char *local, const char *env
     }
 
     if (global) {
-#ifdef OS_IS_WIN32
-        if (!ExpandEnvironmentStrings(global, buf, PATH_MAX))
-            /* FIXME: Needs to set errno! */
-            return NULL;
-        global = buf;
-#endif
+        char *gfn;
 
-        if (access(global, R_OK) == 0)
-            return pa_xstrdup(global);
+#ifdef OS_IS_WIN32
+        if (strncmp(global, PA_DEFAULT_CONFIG_DIR, strlen(PA_DEFAULT_CONFIG_DIR)) == 0)
+            gfn = pa_sprintf_malloc("%s" PA_PATH_SEP "etc" PA_PATH_SEP "pulse%s",
+                                    pa_win32_get_toplevel(NULL),
+                                    global + strlen(PA_DEFAULT_CONFIG_DIR));
+        else
+#endif
+        gfn = pa_xstrdup(global);
+
+        if (access(gfn, R_OK) == 0)
+            return gfn;
+        pa_xfree(gfn);
     }
 
     errno = ENOENT;

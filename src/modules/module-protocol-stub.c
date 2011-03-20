@@ -30,9 +30,6 @@
 #include <unistd.h>
 #include <limits.h>
 
-#ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
-#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -49,6 +46,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/native-common.h>
 #include <pulsecore/creds.h>
+#include <pulsecore/arpa-inet.h>
 
 #ifdef USE_TCP_SOCKETS
 #define SOCKET_DESCRIPTION "(TCP sockets)"

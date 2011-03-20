@@ -39,22 +39,12 @@
     ((size_t)(((struct sockaddr_un *) 0)->sun_path) + strlen((ptr)->sun_path))
 #endif
 #endif
-#ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
-#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
 
 #ifdef HAVE_LIBWRAP
 #include <tcpd.h>
-#endif
-
-#ifndef HAVE_INET_NTOP
-#include <pulsecore/inet_ntop.h>
-#endif
-#ifndef HAVE_INET_PTON
-#include <pulsecore/inet_pton.h>
 #endif
 
 #include <pulse/xmalloc.h>
@@ -67,6 +57,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/refcnt.h>
+#include <pulsecore/arpa-inet.h>
 
 #include "socket-server.h"
 

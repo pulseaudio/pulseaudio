@@ -27,21 +27,23 @@ pulseincludedir=$(includedir)/pulse
 pulsecoreincludedir=$(includedir)/pulsecore
 pulseconfdir=$(sysconfdir)/pulse
 pulselibexecdir=$(libexecdir)/pulse
+if HAVE_X11
 xdgautostartdir=$(sysconfdir)/xdg/autostart
+endif
+if HAVE_ALSA
 alsaprofilesetsdir=$(datadir)/pulseaudio/alsa-mixer/profile-sets
 alsapathsdir=$(datadir)/pulseaudio/alsa-mixer/paths
+endif
+if HAVE_DBUS
 dbuspolicydir=$(sysconfdir)/dbus-1/system.d
+endif
 
 ###################################
 #            Defines              #
 ###################################
 
 PA_BINARY=$(bindir)/pulseaudio$(EXEEXT)
-if OS_IS_WIN32
-PA_DEFAULT_CONFIG_DIR=%PULSE_ROOT%
-else
 PA_DEFAULT_CONFIG_DIR=$(pulseconfdir)
-endif
 
 ###################################
 #     Compiler/linker flags       #
@@ -121,9 +123,9 @@ if HAVE_X11
 xdgautostart_in_files = \
 		daemon/pulseaudio.desktop.in \
 		daemon/pulseaudio-kde.desktop.in
-endif
 xdgautostart_DATA = $(xdgautostart_in_files:.desktop.in=.desktop)
 @INTLTOOL_DESKTOP_RULE@
+endif
 
 
 ###################################
@@ -588,8 +590,7 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/flist.c pulsecore/flist.h \
 		pulsecore/hashmap.c pulsecore/hashmap.h \
 		pulsecore/idxset.c pulsecore/idxset.h \
-		pulsecore/inet_ntop.c pulsecore/inet_ntop.h \
-		pulsecore/inet_pton.c pulsecore/inet_pton.h \
+		pulsecore/arpa-inet.c pulsecore/arpa-inet.h \
 		pulsecore/iochannel.c pulsecore/iochannel.h \
 		pulsecore/ioline.c pulsecore/ioline.h \
 		pulsecore/ipacl.h pulsecore/ipacl.c \
@@ -1920,21 +1921,28 @@ daemon.conf: daemon/daemon.conf.in Makefile
 	$(AM_V_GEN) sed -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
 		-e 's,@PA_DEFAULT_CONFIG_FILE\@,$(DEFAULT_CONFIG_DIR),g' < $< > $@
 
+if OS_IS_WIN32
+SYMLINK_PROGRAM=cd $(DESTDIR)$(bindir) && cp
+else
+SYMLINK_PROGRAM=ln -sf
+endif
 install-exec-hook:
+if HAVE_BLUEZ
 	-chown root $(DESTDIR)$(pulselibexecdir)/proximity-helper
 	-chmod u+s $(DESTDIR)$(pulselibexecdir)/proximity-helper
-	ln -sf pacat $(DESTDIR)$(bindir)/parec
-	ln -sf pacat $(DESTDIR)$(bindir)/pamon
-	ln -sf pacat $(DESTDIR)$(bindir)/paplay
-	ln -sf pacat $(DESTDIR)$(bindir)/parecord
+endif
+	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/parec$(EXEEXT)
+	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/pamon$(EXEEXT)
+	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/paplay$(EXEEXT)
+	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/parecord$(EXEEXT)
 	rm -f $(DESTDIR)$(libdir)/libpulsedsp.la
 	rm -f $(DESTDIR)$(modlibexecdir)/*.la
 
 uninstall-hook:
-	rm -f $(DESTDIR)$(bindir)/parec
-	rm -f $(DESTDIR)$(bindir)/pamon
-	rm -f $(DESTDIR)$(bindir)/paplay
-	rm -f $(DESTDIR)$(bindir)/parecord
+	rm -f $(DESTDIR)$(bindir)/parec$(EXEEXT)
+	rm -f $(DESTDIR)$(bindir)/pamon$(EXEEXT)
+	rm -f $(DESTDIR)$(bindir)/paplay$(EXEEXT)
+	rm -f $(DESTDIR)$(bindir)/parecord$(EXEEXT)
 	rm -f $(DESTDIR)$(libdir)/libpulsedsp.*
 	rm -f $(DESTDIR)$(modlibexecdir)/*.so
 

@@ -23,16 +23,15 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <errno.h>
+#if !defined(HAVE_ARPA_INET_H) && defined(OS_IS_WIN32)
 
-#ifndef HAVE_INET_NTOP
+#include <errno.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/socket.h>
 
-#include "inet_ntop.h"
+#include "arpa-inet.h"
 
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt) {
     struct in_addr *in = (struct in_addr*)src;
@@ -79,4 +78,31 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt) {
     return dst;
 }
 
-#endif /* INET_NTOP */
+int inet_pton(int af, const char *src, void *dst) {
+    struct in_addr *in = (struct in_addr*)dst;
+#ifdef HAVE_IPV6
+    struct in6_addr *in6 = (struct in6_addr*)dst;
+#endif
+
+    pa_assert(src);
+    pa_assert(dst);
+
+    switch (af) {
+    case AF_INET:
+        in->s_addr = inet_addr(src);
+        if (in->s_addr == INADDR_NONE)
+            return 0;
+        break;
+#ifdef HAVE_IPV6
+    case AF_INET6:
+        /* FIXME */
+#endif
+    default:
+        errno = EAFNOSUPPORT;
+        return -1;
+    }
+
+    return 1;
+}
+
+#endif

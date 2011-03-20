@@ -37,9 +37,6 @@
 #ifdef HAVE_NETINET_IP_H
 #include <netinet/ip.h>
 #endif
-#ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
-#endif
 
 #include <pulse/xmalloc.h>
 
@@ -48,10 +45,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/socket.h>
-
-#ifndef HAVE_INET_PTON
-#include <pulsecore/inet_pton.h>
-#endif
+#include <pulsecore/arpa-inet.h>
 
 #include "ipacl.h"
 

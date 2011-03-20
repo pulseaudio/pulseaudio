@@ -52,6 +52,7 @@ PA_MODULE_USAGE(
     "sink_name=<name for the sink> "
     "source_name=<name for the source> "
     "device=<device number> "
+    "device_name=<name of the device> "
     "record=<enable source?> "
     "playback=<enable sink?> "
     "format=<sample format> "
@@ -97,6 +98,7 @@ static const char* const valid_modargs[] = {
     "sink_name",
     "source_name",
     "device",
+    "device_name",
     "record",
     "playback",
     "fragments",
@@ -157,12 +159,11 @@ static void do_write(struct userdata *u) {
             memchunk.memblock = NULL;
         }
 
-        /* Insufficient data in sink buffer? */
+        /* Underflow detection */
         if (hdr->dwBufferLength == 0) {
             u->sink_underflow = 1;
             break;
         }
-
         u->sink_underflow = 0;
 
         res = waveOutPrepareHeader(u->hwo, hdr, sizeof(WAVEHDR));
@@ -255,20 +256,23 @@ static void thread_func(void *userdata) {
 
     for (;;) {
         int ret;
+        pa_bool_t need_timer = FALSE;
 
-        if (PA_SINK_IS_OPENED(u->sink->thread_info.state) ||
-            PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
-
+        if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
             if (u->sink->thread_info.rewind_requested)
                 pa_sink_process_rewind(u->sink, 0);
 
-            if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
-                do_write(u);
-            if (PA_SOURCE_IS_OPENED(u->source->thread_info.state))
-                do_read(u);
+            do_write(u);
+            need_timer = TRUE;
+        }
+        if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
+            do_read(u);
+            need_timer = TRUE;
+        }
 
+        if (need_timer)
             pa_rtpoll_set_timer_relative(u->rtpoll, u->poll_timeout);
-        } else
+        else
             pa_rtpoll_set_timer_disabled(u->rtpoll);
 
         /* Hmm, nothing to do. Let's sleep */
@@ -290,8 +294,12 @@ finish:
 }
 
 static void CALLBACK chunk_done_cb(HWAVEOUT hwo, UINT msg, DWORD_PTR inst, DWORD param1, DWORD param2) {
-    struct userdata *u = (struct userdata *)inst;
+    struct userdata *u = (struct userdata*) inst;
 
+    if (msg == WOM_OPEN)
+        pa_log_debug("WaveOut subsystem opened.");
+    if (msg == WOM_CLOSE)
+        pa_log_debug("WaveOut subsystem closed.");
     if (msg != WOM_DONE)
         return;
 
@@ -302,8 +310,12 @@ static void CALLBACK chunk_done_cb(HWAVEOUT hwo, UINT msg, DWORD_PTR inst, DWORD
 }
 
 static void CALLBACK chunk_ready_cb(HWAVEIN hwi, UINT msg, DWORD_PTR inst, DWORD param1, DWORD param2) {
-    struct userdata *u = (struct userdata *)inst;
+    struct userdata *u = (struct userdata*) inst;
 
+    if (msg == WIM_OPEN)
+        pa_log_debug("WaveIn subsystem opened.");
+    if (msg == WIM_CLOSE)
+        pa_log_debug("WaveIn subsystem closed.");
     if (msg != WIM_DATA)
         return;
 
@@ -431,17 +443,6 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
 
     wf->nChannels = ss->channels;
 
-    switch (ss->rate) {
-    case 8000:
-    case 11025:
-    case 22005:
-    case 44100:
-        break;
-    default:
-        pa_log_error("Unsupported sample rate.");
-        return -1;
-    }
-
     wf->nSamplesPerSec = ss->rate;
 
     if (ss->format == PA_SAMPLE_U8)
@@ -449,7 +450,7 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     else if (ss->format == PA_SAMPLE_S16NE)
         wf->wBitsPerSample = 16;
     else {
-        pa_log_error("Unsupported sample format.");
+        pa_log_error("Unsupported sample format, only u8 and s16 are supported.");
         return -1;
     }
 
@@ -465,7 +466,7 @@ int pa__get_n_used(pa_module *m) {
     struct userdata *u;
     pa_assert(m);
     pa_assert(m->userdata);
-    u = (struct userdata *)m->userdata;
+    u = (struct userdata*) m->userdata;
 
     return (u->sink ? pa_sink_used_by(u->sink) : 0) +
            (u->source ? pa_source_used_by(u->source) : 0);
@@ -476,12 +477,15 @@ int pa__init(pa_module *m) {
     HWAVEOUT hwo = INVALID_HANDLE_VALUE;
     HWAVEIN hwi = INVALID_HANDLE_VALUE;
     WAVEFORMATEX wf;
+    WAVEOUTCAPS pwoc;
+    MMRESULT result;
     int nfrags, frag_size;
     pa_bool_t record = TRUE, playback = TRUE;
     unsigned int device;
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
+    const char *device_name = NULL;
     unsigned int i;
 
     pa_assert(m);
@@ -502,11 +506,31 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    /* Set the device to be opened.  If set device_name is used,
+     * else device if set and lastly WAVE_MAPPER is the default */
     device = WAVE_MAPPER;
     if (pa_modargs_get_value_u32(ma, "device", &device) < 0) {
         pa_log("failed to parse device argument");
         goto fail;
     }
+    if ((device_name = pa_modargs_get_value(ma, "device_name", NULL)) != NULL) {
+        unsigned int num_devices = waveOutGetNumDevs();
+        for (i = 0; i < num_devices; i++) {
+            if (waveOutGetDevCaps(i, &pwoc, sizeof(pwoc)) == MMSYSERR_NOERROR)
+                if (_stricmp(device_name, pwoc.szPname) == 0)
+                    break;
+        }
+        if (i < num_devices)
+            device = i;
+        else {
+            pa_log("device not found: %s", device_name);
+            goto fail;
+        }
+    }
+    if (waveOutGetDevCaps(device, &pwoc, sizeof(pwoc)) == MMSYSERR_NOERROR)
+        device_name = pwoc.szPname;
+    else
+        device_name = "unknown";
 
     nfrags = 5;
     frag_size = 8192;
@@ -527,28 +551,45 @@ int pa__init(pa_module *m) {
     u = pa_xmalloc(sizeof(struct userdata));
 
     if (record) {
-        if (waveInOpen(&hwi, device, &wf, (DWORD_PTR)chunk_ready_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR) {
-            pa_log("failed to open waveIn");
+        result = waveInOpen(&hwi, device, &wf, 0, 0, WAVE_FORMAT_DIRECT | WAVE_FORMAT_QUERY);
+        if (result != MMSYSERR_NOERROR) {
+            pa_log_warn("Sample spec not supported by WaveIn, falling back to default sample rate.");
+            ss.rate = wf.nSamplesPerSec = m->core->default_sample_spec.rate;
+        }
+        result = waveInOpen(&hwi, device, &wf, (DWORD_PTR) chunk_ready_cb, (DWORD_PTR) u, CALLBACK_FUNCTION);
+        if (result != MMSYSERR_NOERROR) {
+            char errortext[MAXERRORLENGTH];
+            pa_log("Failed to open WaveIn.");
+            if (waveInGetErrorText(result, errortext, sizeof(errortext)) == MMSYSERR_NOERROR)
+                pa_log("Error: %s", errortext);
             goto fail;
         }
         if (waveInStart(hwi) != MMSYSERR_NOERROR) {
             pa_log("failed to start waveIn");
             goto fail;
         }
-        pa_log_debug("Opened waveIn subsystem.");
     }
 
     if (playback) {
-        if (waveOutOpen(&hwo, device, &wf, (DWORD_PTR)chunk_done_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR) {
-            pa_log("failed to open waveOut");
+        result = waveOutOpen(&hwo, device, &wf, 0, 0, WAVE_FORMAT_DIRECT | WAVE_FORMAT_QUERY);
+        if (result != MMSYSERR_NOERROR) {
+            pa_log_warn("Sample spec not supported by WaveOut, falling back to default sample rate.");
+            ss.rate = wf.nSamplesPerSec = m->core->default_sample_spec.rate;
+        }
+        result = waveOutOpen(&hwo, device, &wf, (DWORD_PTR) chunk_done_cb, (DWORD_PTR) u, CALLBACK_FUNCTION);
+        if (result != MMSYSERR_NOERROR) {
+            char errortext[MAXERRORLENGTH];
+            pa_log("Failed to open WaveOut.");
+            if (waveOutGetErrorText(result, errortext, sizeof(errortext)) == MMSYSERR_NOERROR)
+                pa_log("Error: %s", errortext);
             goto fail;
         }
-        pa_log_debug("Opened waveOut subsystem.");
     }
 
     InitializeCriticalSection(&u->crit);
 
     if (hwi != INVALID_HANDLE_VALUE) {
+        char *description = pa_sprintf_malloc("WaveIn on %s", device_name);
         pa_source_new_data data;
         pa_source_new_data_init(&data);
         data.driver = __FILE__;
@@ -561,12 +602,14 @@ int pa__init(pa_module *m) {
 
         pa_assert(u->source);
         u->source->userdata = u;
-        pa_source_set_description(u->source, "Windows waveIn PCM");
+        pa_source_set_description(u->source, description);
         u->source->parent.process_msg = process_msg;
+        pa_xfree(description);
     } else
         u->source = NULL;
 
     if (hwo != INVALID_HANDLE_VALUE) {
+        char *description = pa_sprintf_malloc("WaveOut on %s", device_name);
         pa_sink_new_data data;
         pa_sink_new_data_init(&data);
         data.driver = __FILE__;
@@ -581,8 +624,9 @@ int pa__init(pa_module *m) {
         u->sink->get_volume = sink_get_volume_cb;
         u->sink->set_volume = sink_set_volume_cb;
         u->sink->userdata = u;
-        pa_sink_set_description(u->sink, "Windows waveOut PCM");
+        pa_sink_set_description(u->sink, description);
         u->sink->parent.process_msg = process_msg;
+        pa_xfree(description);
     } else
         u->sink = NULL;
 
@@ -602,6 +646,7 @@ int pa__init(pa_module *m) {
     u->sink_underflow = 1;
 
     u->poll_timeout = pa_bytes_to_usec(u->fragments * u->fragment_size / 10, &ss);
+    pa_log_debug("Poll timeout = %.1f ms", (double) u->poll_timeout / PA_USEC_PER_MSEC);
 
     u->cur_ihdr = 0;
     u->cur_ohdr = 0;
@@ -609,7 +654,7 @@ int pa__init(pa_module *m) {
     pa_assert(u->ihdrs);
     u->ohdrs = pa_xmalloc0(sizeof(WAVEHDR) * u->fragments);
     pa_assert(u->ohdrs);
-    for (i = 0;i < u->fragments;i++) {
+    for (i = 0; i < u->fragments; i++) {
         u->ihdrs[i].dwBufferLength = u->fragment_size;
         u->ohdrs[i].dwBufferLength = u->fragment_size;
         u->ihdrs[i].lpData = pa_xmalloc(u->fragment_size);
@@ -627,21 +672,25 @@ int pa__init(pa_module *m) {
 
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
-    if (!(u->thread = pa_thread_new("waveout-source", thread_func, u))) {
-        pa_log("Failed to create thread.");
-        goto fail;
-    }
 
     if (u->sink) {
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
-        pa_sink_put(u->sink);
     }
     if (u->source) {
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_rtpoll(u->source, u->rtpoll);
-        pa_source_put(u->source);
     }
+
+    if (!(u->thread = pa_thread_new("waveout", thread_func, u))) {
+        pa_log("Failed to create thread.");
+        goto fail;
+    }
+
+    if (u->sink)
+        pa_sink_put(u->sink);
+    if (u->source)
+        pa_source_put(u->source);
 
     return 0;
 
@@ -671,7 +720,7 @@ void pa__done(pa_module *m) {
 
     pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
     if (u->thread)
-      pa_thread_free(u->thread);
+        pa_thread_free(u->thread);
     pa_thread_mq_done(&u->thread_mq);
 
     if (u->sink)
@@ -692,7 +741,7 @@ void pa__done(pa_module *m) {
         waveOutClose(u->hwo);
     }
 
-    for (i = 0;i < u->fragments;i++) {
+    for (i = 0; i < u->fragments; i++) {
         pa_xfree(u->ihdrs[i].lpData);
         pa_xfree(u->ohdrs[i].lpData);
     }
