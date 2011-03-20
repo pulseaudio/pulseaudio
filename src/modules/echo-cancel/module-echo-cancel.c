@@ -263,7 +263,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
     struct userdata *u = userdata;
     uint32_t old_rate, base_rate, new_rate;
     int64_t diff_time;
-    /*size_t fs*/;
+    /*size_t fs*/
     struct snapshot latency_snapshot;
 
     pa_assert(u);
