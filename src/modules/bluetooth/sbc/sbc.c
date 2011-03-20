@@ -2,7 +2,8 @@
  *
  *  Bluetooth low-complexity, subband codec (SBC) library
  *
- *  Copyright (C) 2004-2009  Marcel Holtmann <marcel@holtmann.org>
+ *  Copyright (C) 2008-2010  Nokia Corporation
+ *  Copyright (C) 2004-2010  Marcel Holtmann <marcel@holtmann.org>
  *  Copyright (C) 2004-2005  Henryk Ploetz <henryk@ploetzli.ch>
  *  Copyright (C) 2005-2008  Brad Midgley <bmidgley@xmission.com>
  *
@@ -373,7 +374,7 @@ static void sbc_calculate_bits(const struct sbc_frame *frame, int (*bits)[8])
  *  -4   Bitpool value out of bounds
  */
 static int sbc_unpack_frame(const uint8_t *data, struct sbc_frame *frame,
-				size_t len)
+								size_t len)
 {
 	unsigned int consumed;
 	/* Will copy the parts of the header that are relevant to crc
@@ -535,7 +536,7 @@ static int sbc_unpack_frame(const uint8_t *data, struct sbc_frame *frame,
 }
 
 static void sbc_decoder_init(struct sbc_decoder_state *state,
-				const struct sbc_frame *frame)
+					const struct sbc_frame *frame)
 {
 	int i, ch;
 
@@ -646,7 +647,7 @@ static inline void sbc_synthesize_eight(struct sbc_decoder_state *state,
 }
 
 static int sbc_synthesize_audio(struct sbc_decoder_state *state,
-				struct sbc_frame *frame)
+						struct sbc_frame *frame)
 {
 	int ch, blk;
 
@@ -671,7 +672,7 @@ static int sbc_synthesize_audio(struct sbc_decoder_state *state,
 }
 
 static int sbc_analyze_audio(struct sbc_encoder_state *state,
-				struct sbc_frame *frame)
+						struct sbc_frame *frame)
 {
 	int ch, blk;
 	int16_t *x;
@@ -755,9 +756,10 @@ static int sbc_analyze_audio(struct sbc_encoder_state *state,
  * -99 not implemented
  */
 
-static SBC_ALWAYS_INLINE ssize_t sbc_pack_frame_internal(
-	uint8_t *data, struct sbc_frame *frame, size_t len,
-	int frame_subbands, int frame_channels, int joint)
+static SBC_ALWAYS_INLINE ssize_t sbc_pack_frame_internal(uint8_t *data,
+					struct sbc_frame *frame, size_t len,
+					int frame_subbands, int frame_channels,
+					int joint)
 {
 	/* Bitstream writer starts from the fourth byte */
 	uint8_t *data_ptr = data + 4;
@@ -892,7 +894,7 @@ static ssize_t sbc_pack_frame(uint8_t *data, struct sbc_frame *frame, size_t len
 }
 
 static void sbc_encoder_init(struct sbc_encoder_state *state,
-				const struct sbc_frame *frame)
+					const struct sbc_frame *frame)
 {
 	memset(&state->X, 0, sizeof(state->X));
 	state->position = (SBC_X_BUFFER_SIZE - frame->subbands * 9) & ~7;
@@ -976,8 +978,10 @@ ssize_t sbc_decode(sbc_t *sbc, const void *input, size_t input_len,
 
 		priv->frame.codesize = sbc_get_codesize(sbc);
 		priv->frame.length = framelen;
-	} else if (priv->frame.bitpool != sbc->bitpool)
+	} else if (priv->frame.bitpool != sbc->bitpool) {
+		priv->frame.length = framelen;
 		sbc->bitpool = priv->frame.bitpool;
+	}
 
 	if (!output)
 		return framelen;
@@ -1117,7 +1121,7 @@ void sbc_finish(sbc_t *sbc)
 
 size_t sbc_get_frame_length(sbc_t *sbc)
 {
-	size_t ret;
+	int ret;
 	uint8_t subbands, channels, blocks, joint, bitpool;
 	struct sbc_priv *priv;
 
