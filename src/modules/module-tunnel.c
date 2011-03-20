@@ -1685,6 +1685,14 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
         pa_tagstruct_put_boolean(reply, FALSE); /* fail on suspend */
     }
 
+#ifdef TUNNEL_SINK
+    if (u->version >= 17)
+        pa_tagstruct_put_boolean(reply, FALSE); /* relative volume */
+
+    if (u->version >= 18) {
+        pa_tagstruct_put_boolean(reply, FALSE); /* passthough stream */
+#endif
+
     pa_pstream_send_tagstruct(u->pstream, reply);
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, create_stream_callback, u, NULL);
 
