@@ -519,6 +519,7 @@ static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, DBusM
     return p;
 }
 
+#ifdef DBUS_TYPE_UNIX_FD
 static void register_endpoint_reply(DBusPendingCall *pending, void *userdata) {
     DBusError e;
     DBusMessage *r;
@@ -559,6 +560,7 @@ finish:
 
     pa_xfree(endpoint);
 }
+#endif
 
 static void list_devices_reply(DBusPendingCall *pending, void *userdata) {
     DBusError e;
@@ -607,6 +609,7 @@ finish:
     pa_dbus_pending_free(p);
 }
 
+#ifdef DBUS_TYPE_UNIX_FD
 static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const char *endpoint, const char *uuid) {
     DBusMessage *m;
     DBusMessageIter i, d;
@@ -654,6 +657,7 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
 
     send_and_add_to_pending(y, m, register_endpoint_reply, pa_xstrdup(endpoint));
 }
+#endif
 
 static void found_adapter(pa_bluetooth_discovery *y, const char *path) {
     DBusMessage *m;
@@ -1042,7 +1046,9 @@ int pa_bluetooth_transport_acquire(const pa_bluetooth_transport *t, const char *
     if (omtu)
         *omtu = o;
 
+#ifdef DBUS_TYPE_UNIX_FD
 fail:
+#endif
     dbus_message_unref(r);
     return ret;
 }
@@ -1083,6 +1089,7 @@ static int setup_dbus(pa_bluetooth_discovery *y) {
     return 0;
 }
 
+#ifdef DBUS_TYPE_UNIX_FD
 static pa_bluetooth_transport *transport_new(pa_bluetooth_discovery *y, const char *path, enum profile p, const uint8_t *config, int size) {
     pa_bluetooth_transport *t;
 
@@ -1435,13 +1442,16 @@ static DBusHandlerResult endpoint_handler(DBusConnection *c, DBusMessage *m, voi
 
     return DBUS_HANDLER_RESULT_HANDLED;
 }
+#endif /* DBUS_TYPE_UNIX_FD */
 
 pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     DBusError err;
     pa_bluetooth_discovery *y;
+#ifdef DBUS_TYPE_UNIX_FD
     static const DBusObjectPathVTable vtable_endpoint = {
         .message_function = endpoint_handler,
     };
+#endif
 
     pa_assert(c);
 
