@@ -29,6 +29,8 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 
+#define PA_BLUETOOTH_ERROR_NOT_SUPPORTED "org.bluez.Error.NotSupported"
+
 /* UUID copied from bluez/audio/device.h */
 #define GENERIC_AUDIO_UUID      "00001203-0000-1000-8000-00805f9b34fb"
 

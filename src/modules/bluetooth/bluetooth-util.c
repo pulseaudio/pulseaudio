@@ -73,7 +73,7 @@ struct pa_bluetooth_discovery {
 };
 
 static void get_properties_reply(DBusPendingCall *pending, void *userdata);
-static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, pa_bluetooth_device *d, DBusMessage *m, DBusPendingCallNotifyFunction func);
+static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, DBusMessage *m, DBusPendingCallNotifyFunction func, void *call_data);
 
 static pa_bt_audio_state_t pa_bt_audio_state_from_string(const char* value) {
     pa_assert(value);
@@ -280,21 +280,21 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
                     /* Vudentz said the interfaces are here when the UUIDs are announced */
                     if (strcasecmp(HSP_AG_UUID, value) == 0 || strcasecmp(HFP_AG_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.HandsfreeGateway", "GetProperties"));
-                        send_and_add_to_pending(y, d, m, get_properties_reply);
+                        send_and_add_to_pending(y, m, get_properties_reply, d);
                     } else if (strcasecmp(HSP_HS_UUID, value) == 0 || strcasecmp(HFP_HS_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.Headset", "GetProperties"));
-                        send_and_add_to_pending(y, d, m, get_properties_reply);
+                        send_and_add_to_pending(y, m, get_properties_reply, d);
                     } else if (strcasecmp(A2DP_SINK_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.AudioSink", "GetProperties"));
-                        send_and_add_to_pending(y, d, m, get_properties_reply);
+                        send_and_add_to_pending(y, m, get_properties_reply, d);
                     } else if (strcasecmp(A2DP_SOURCE_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.AudioSource", "GetProperties"));
-                        send_and_add_to_pending(y, d, m, get_properties_reply);
+                        send_and_add_to_pending(y, m, get_properties_reply, d);
                     }
 
                     /* this might eventually be racy if .Audio is not there yet, but the State change will come anyway later, so this call is for cold-detection mostly */
                     pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.Audio", "GetProperties"));
-                    send_and_add_to_pending(y, d, m, get_properties_reply);
+                    send_and_add_to_pending(y, m, get_properties_reply, d);
 
                     if (!dbus_message_iter_next(&ai))
                         break;
@@ -394,7 +394,7 @@ static pa_bluetooth_device *found_device(pa_bluetooth_discovery *y, const char* 
     pa_hashmap_put(y->devices, d->path, d);
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", path, "org.bluez.Device", "GetProperties"));
-    send_and_add_to_pending(y, d, m, get_properties_reply);
+    send_and_add_to_pending(y, m, get_properties_reply, d);
 
     /* Before we read the other properties (Audio, AudioSink, AudioSource,
      * Headset) we wait that the UUID is read */
@@ -503,7 +503,7 @@ finish2:
     pa_dbus_pending_free(p);
 }
 
-static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, pa_bluetooth_device *d, DBusMessage *m, DBusPendingCallNotifyFunction func) {
+static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, DBusMessage *m, DBusPendingCallNotifyFunction func, void *call_data) {
     pa_dbus_pending *p;
     DBusPendingCall *call;
 
@@ -512,7 +512,7 @@ static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, pa_bl
 
     pa_assert_se(dbus_connection_send_with_reply(pa_dbus_connection_get(y->connection), m, &call, -1));
 
-    p = pa_dbus_pending_new(pa_dbus_connection_get(y->connection), m, call, y, d);
+    p = pa_dbus_pending_new(pa_dbus_connection_get(y->connection), m, call, y, call_data);
     PA_LLIST_PREPEND(pa_dbus_pending, y->pending, p);
     dbus_pending_call_set_notify(call, func, p, NULL);
 
@@ -524,6 +524,7 @@ static void register_endpoint_reply(DBusPendingCall *pending, void *userdata) {
     DBusMessage *r;
     pa_dbus_pending *p;
     pa_bluetooth_discovery *y;
+    char *endpoint;
 
     pa_assert(pending);
 
@@ -531,11 +532,17 @@ static void register_endpoint_reply(DBusPendingCall *pending, void *userdata) {
 
     pa_assert_se(p = userdata);
     pa_assert_se(y = p->context_data);
+    pa_assert_se(endpoint = p->call_data);
     pa_assert_se(r = dbus_pending_call_steal_reply(pending));
 
     if (dbus_message_is_error(r, DBUS_ERROR_SERVICE_UNKNOWN)) {
         pa_log_debug("Bluetooth daemon is apparently not available.");
         remove_all_devices(y);
+        goto finish;
+    }
+
+    if (dbus_message_is_error(r, PA_BLUETOOTH_ERROR_NOT_SUPPORTED)) {
+        pa_log_info("Couldn't register endpoint %s, because BlueZ is configured to disable the endpoint type.", endpoint);
         goto finish;
     }
 
@@ -549,6 +556,8 @@ finish:
 
     PA_LLIST_REMOVE(pa_dbus_pending, y->pending, p);
     pa_dbus_pending_free(p);
+
+    pa_xfree(endpoint);
 }
 
 static void list_devices_reply(DBusPendingCall *pending, void *userdata) {
@@ -643,14 +652,14 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
 
     dbus_message_iter_close_container(&i, &d);
 
-    send_and_add_to_pending(y, NULL, m, register_endpoint_reply);
+    send_and_add_to_pending(y, m, register_endpoint_reply, pa_xstrdup(endpoint));
 }
 
 static void found_adapter(pa_bluetooth_discovery *y, const char *path) {
     DBusMessage *m;
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", path, "org.bluez.Adapter", "ListDevices"));
-    send_and_add_to_pending(y, NULL, m, list_devices_reply);
+    send_and_add_to_pending(y, m, list_devices_reply, NULL);
 
 #ifdef DBUS_TYPE_UNIX_FD
     register_endpoint(y, path, HFP_AG_ENDPOINT, HFP_AG_UUID);
@@ -711,7 +720,7 @@ static void list_adapters(pa_bluetooth_discovery *y) {
     pa_assert(y);
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", "/", "org.bluez.Manager", "ListAdapters"));
-    send_and_add_to_pending(y, NULL, m, list_adapters_reply);
+    send_and_add_to_pending(y, m, list_adapters_reply, NULL);
 }
 
 int pa_bluetooth_transport_parse_property(pa_bluetooth_transport *t, DBusMessageIter *i)
