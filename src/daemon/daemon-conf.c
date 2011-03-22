@@ -29,6 +29,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #ifdef HAVE_SCHED_H
 #include <sched.h>
@@ -37,6 +38,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulse/i18n.h>
+#include <pulse/version.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
@@ -147,6 +149,10 @@ pa_daemon_conf* pa_daemon_conf_new(void) {
 
     c = pa_xnewdup(pa_daemon_conf, &default_conf, 1);
 
+#ifdef OS_IS_WIN32
+    c->dl_search_path = pa_sprintf_malloc("%s" PA_PATH_SEP "lib" PA_PATH_SEP "pulse-%d.%d" PA_PATH_SEP "modules",
+                                          pa_win32_get_toplevel(NULL), PA_MAJOR, PA_MINOR);
+#else
 #if defined(__linux__) && !defined(__OPTIMIZE__)
 
     /* We abuse __OPTIMIZE__ as a check whether we are a debug build
@@ -160,19 +166,6 @@ pa_daemon_conf* pa_daemon_conf_new(void) {
     } else
 
 #endif
-#ifdef OS_IS_WIN32
-    {
-        char *t;
-        char *majorminor = pa_xstrdup(VERSION);
-        char *toplevel = pa_win32_get_toplevel(NULL);
-
-        if ((t = strchr(majorminor, '-')))
-          *t = '\0';
-
-        c->dl_search_path = pa_sprintf_malloc("%s" PA_PATH_SEP "lib" PA_PATH_SEP "pulse-%s" PA_PATH_SEP "modules", toplevel, majorminor);
-        pa_xfree(majorminor);
-    }
-#else
         c->dl_search_path = pa_xstrdup(PA_DLSEARCHPATH);
 #endif
 
