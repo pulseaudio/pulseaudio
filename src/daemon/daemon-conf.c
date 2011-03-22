@@ -144,7 +144,7 @@ static const pa_daemon_conf default_conf = {
 #endif
 };
 
-pa_daemon_conf* pa_daemon_conf_new(void) {
+pa_daemon_conf *pa_daemon_conf_new(void) {
     pa_daemon_conf *c;
 
     c = pa_xnewdup(pa_daemon_conf, &default_conf, 1);
@@ -153,19 +153,10 @@ pa_daemon_conf* pa_daemon_conf_new(void) {
     c->dl_search_path = pa_sprintf_malloc("%s" PA_PATH_SEP "lib" PA_PATH_SEP "pulse-%d.%d" PA_PATH_SEP "modules",
                                           pa_win32_get_toplevel(NULL), PA_MAJOR, PA_MINOR);
 #else
-#if defined(__linux__) && !defined(__OPTIMIZE__)
-
-    /* We abuse __OPTIMIZE__ as a check whether we are a debug build
-     * or not. If we are and are run from the build tree then we
-     * override the search path to point to our build tree */
-
     if (pa_run_from_build_tree()) {
         pa_log_notice("Detected that we are run from the build tree, fixing search path.");
         c->dl_search_path = pa_xstrdup(PA_BUILDDIR "/.libs/");
-
     } else
-
-#endif
         c->dl_search_path = pa_xstrdup(PA_DLSEARCHPATH);
 #endif
 

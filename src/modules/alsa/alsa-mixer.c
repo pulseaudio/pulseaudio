@@ -85,7 +85,7 @@ struct pa_alsa_fdlist {
     void *userdata;
 };
 
-static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
+static void io_cb(pa_mainloop_api *a, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata) {
 
     struct pa_alsa_fdlist *fdl = userdata;
     int err;
@@ -132,7 +132,7 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t
         snd_mixer_handle_events(fdl->mixer);
 }
 
-static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
+static void defer_cb(pa_mainloop_api *a, pa_defer_event *e, void *userdata) {
     struct pa_alsa_fdlist *fdl = userdata;
     unsigned num_fds, i;
     int err, n;
@@ -230,7 +230,7 @@ void pa_alsa_fdlist_free(struct pa_alsa_fdlist *fdl) {
     pa_xfree(fdl);
 }
 
-int pa_alsa_fdlist_set_mixer(struct pa_alsa_fdlist *fdl, snd_mixer_t *mixer_handle, pa_mainloop_api* m) {
+int pa_alsa_fdlist_set_mixer(struct pa_alsa_fdlist *fdl, snd_mixer_t *mixer_handle, pa_mainloop_api *m) {
     pa_assert(fdl);
     pa_assert(mixer_handle);
     pa_assert(m);
@@ -2229,9 +2229,7 @@ pa_alsa_path* pa_alsa_path_new(const char *fname, pa_alsa_direction_t direction)
     items[2].data = &p->name;
 
     fn = pa_maybe_prefix_path(fname,
-#if defined(__linux__) && !defined(__OPTIMIZE__)
                               pa_run_from_build_tree() ? PA_BUILDDIR "/modules/alsa/mixer/paths/" :
-#endif
                               PA_ALSA_PATHS_DIR);
 
     r = pa_config_parse(fn, NULL, items, p);
@@ -2250,7 +2248,7 @@ fail:
     return NULL;
 }
 
-pa_alsa_path* pa_alsa_path_synthesize(const char*element, pa_alsa_direction_t direction) {
+pa_alsa_path *pa_alsa_path_synthesize(const char *element, pa_alsa_direction_t direction) {
     pa_alsa_path *p;
     pa_alsa_element *e;
 
@@ -3744,9 +3742,7 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
         fname = "default.conf";
 
     fn = pa_maybe_prefix_path(fname,
-#if defined(__linux__) && !defined(__OPTIMIZE__)
                               pa_run_from_build_tree() ? PA_BUILDDIR "/modules/alsa/mixer/profile-sets/" :
-#endif
                               PA_ALSA_PROFILE_SETS_DIR);
 
     r = pa_config_parse(fn, NULL, items, ps);

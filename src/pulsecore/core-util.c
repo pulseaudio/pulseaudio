@@ -2991,9 +2991,6 @@ pa_bool_t pa_run_from_build_tree(void) {
     char *rp;
     pa_bool_t b = FALSE;
 
-    /* We abuse __OPTIMIZE__ as a check whether we are a debug build
-     * or not. */
-
     if ((rp = pa_readlink("/proc/self/exe"))) {
         b = pa_startswith(rp, PA_BUILDDIR);
         pa_xfree(rp);
