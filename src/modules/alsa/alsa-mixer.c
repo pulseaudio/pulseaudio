@@ -1398,6 +1398,43 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
                 else
                     e->has_dB = snd_mixer_selem_get_capture_dB_range(me, &min_dB, &max_dB) >= 0;
 
+                /* Check that the kernel driver returns consistent limits with
+                 * both _get_*_dB_range() and _ask_*_vol_dB(). */
+                if (e->has_dB && !e->db_fix) {
+                    long min_dB_checked = 0;
+                    long max_dB_checked = 0;
+
+                    if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
+                        r = snd_mixer_selem_ask_playback_vol_dB(me, e->min_volume, &min_dB_checked);
+                    else
+                        r = snd_mixer_selem_ask_capture_vol_dB(me, e->min_volume, &min_dB_checked);
+
+                    if (r < 0) {
+                        pa_log_warn("Failed to query the dB value for %s at volume level %li", e->alsa_name, e->min_volume);
+                        return -1;
+                    }
+
+                    if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
+                        r = snd_mixer_selem_ask_playback_vol_dB(me, e->max_volume, &max_dB_checked);
+                    else
+                        r = snd_mixer_selem_ask_capture_vol_dB(me, e->max_volume, &max_dB_checked);
+
+                    if (r < 0) {
+                        pa_log_warn("Failed to query the dB value for %s at volume level %li", e->alsa_name, e->max_volume);
+                        return -1;
+                    }
+
+                    if (min_dB != min_dB_checked || max_dB != max_dB_checked) {
+                        pa_log_warn("Your kernel driver is broken: the reported dB range for %s (from %0.2f dB to %0.2f dB) "
+                                    "doesn't match the dB values at minimum and maximum volume levels: %0.2f dB at level %li, "
+                                    "%0.2f dB at level %li.",
+                                    e->alsa_name,
+                                    min_dB / 100.0, max_dB / 100.0,
+                                    min_dB_checked / 100.0, e->min_volume, max_dB_checked / 100.0, e->max_volume);
+                        return -1;
+                    }
+                }
+
                 if (e->has_dB) {
 #ifdef HAVE_VALGRIND_MEMCHECK_H
                     VALGRIND_MAKE_MEM_DEFINED(&min_dB, sizeof(min_dB));
