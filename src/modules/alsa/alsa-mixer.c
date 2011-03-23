@@ -1453,8 +1453,13 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
                     e->n_channels = 1;
 
                     if (!e->override_map) {
-                        for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++)
+                        for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
+                            if (alsa_channel_ids[p] == SND_MIXER_SCHN_UNKNOWN)
+                                continue;
+
                             e->masks[alsa_channel_ids[p]][e->n_channels-1] = 0;
+                        }
+
                         e->masks[SND_MIXER_SCHN_MONO][e->n_channels-1] = PA_CHANNEL_POSITION_MASK_ALL;
                     }
 
@@ -1510,8 +1515,12 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
                     }
 
                     e->merged_mask = 0;
-                    for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++)
+                    for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
+                        if (alsa_channel_ids[p] == SND_MIXER_SCHN_UNKNOWN)
+                            continue;
+
                         e->merged_mask |= e->masks[alsa_channel_ids[p]][e->n_channels-1];
+                    }
                 }
             }
         }
