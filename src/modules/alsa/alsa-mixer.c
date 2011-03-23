@@ -1477,6 +1477,22 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
                         return -1;
                     }
 
+                    if (e->n_channels > 2) {
+                        /* FIXME: In some places code like this is used:
+                         *
+                         *     e->masks[alsa_channel_ids[p]][e->n_channels-1]
+                         *
+                         * The definition of e->masks is
+                         *
+                         *     pa_channel_position_mask_t masks[SND_MIXER_SCHN_LAST][2];
+                         *
+                         * Since the array size is fixed at 2, we obviously
+                         * don't support elements with more than two
+                         * channels... */
+                        pa_log_warn("Volume element %s has %u channels. That's too much! I can't handle that!", e->alsa_name, e->n_channels);
+                        return -1;
+                    }
+
                     if (!e->override_map) {
                         for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
                             pa_bool_t has_channel;
