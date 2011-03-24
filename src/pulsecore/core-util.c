@@ -107,6 +107,10 @@
 
 #ifdef __APPLE__
 #include <xlocale.h>
+#include <mach/mach_init.h>
+#include <mach/thread_act.h>
+#include <mach/thread_policy.h>
+#include <sys/sysctl.h>
 #endif
 
 #ifdef HAVE_DBUS
@@ -691,7 +695,39 @@ static int set_scheduler(int rtprio) {
  * the thread is already realtime, don't do anything. */
 int pa_make_realtime(int rtprio) {
 
-#ifdef _POSIX_PRIORITY_SCHEDULING
+#if defined(OS_IS_DARWIN)
+    struct thread_time_constraint_policy ttcpolicy;
+    uint64_t freq = 0;
+    size_t size = sizeof(freq);
+    int ret;
+
+    ret = sysctlbyname("hw.cpufrequency", &freq, &size, NULL, 0);
+    if (ret < 0) {
+        pa_log_info("Unable to read CPU frequency, acquisition of real-time scheduling failed.");
+        return -1;
+    }
+
+    pa_log_debug("sysctl for hw.cpufrequency: %llu", freq);
+
+    /* See http://developer.apple.com/library/mac/#documentation/Darwin/Conceptual/KernelProgramming/scheduler/scheduler.html */
+    ttcpolicy.period = freq / 160;
+    ttcpolicy.computation = freq / 3300;
+    ttcpolicy.constraint = freq / 2200;
+    ttcpolicy.preemptible = 1;
+
+    ret = thread_policy_set(mach_thread_self(),
+                            THREAD_TIME_CONSTRAINT_POLICY,
+                            (thread_policy_t) &ttcpolicy,
+                            THREAD_TIME_CONSTRAINT_POLICY_COUNT);
+    if (ret) {
+        pa_log_info("Unable to set real-time thread priority (%08x).", ret);
+        return -1;
+    }
+
+    pa_log_info("Successfully acquired real-time thread priority.");
+    return 0;
+
+#elif _POSIX_PRIORITY_SCHEDULING
     int p;
 
     if (set_scheduler(rtprio) >= 0) {
