@@ -84,7 +84,6 @@ src/pulsecore/socket-client.c
 src/pulsecore/idxset.c
 src/pulsecore/pipe.c
 src/pulsecore/asyncmsgq.c
-src/pulsecore/inet_pton.c
 src/pulsecore/socket-util.c
 src/pulsecore/object.c
 src/pulsecore/sioman.c
@@ -93,7 +92,6 @@ src/pulsecore/x11prop.c
 src/pulsecore/sconv-s16be.c
 src/pulsecore/thread-posix.c
 src/pulsecore/client.c
-src/pulsecore/inet_ntop.c
 src/pulsecore/strlist.c
 src/pulsecore/msgobject.c
 src/pulsecore/mutex-win32.c
