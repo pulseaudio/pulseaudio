@@ -410,6 +410,7 @@ int main(int argc, char *argv[]) {
     const char *e;
 #ifdef HAVE_FORK
     int daemon_pipe[2] = { -1, -1 };
+    int daemon_pipe2[2] = { -1, -1 };
 #endif
 #ifdef OS_IS_WIN32
     pa_time_event *win32_timer;
@@ -779,21 +780,53 @@ int main(int argc, char *argv[]) {
         }
 #endif
 
+#ifdef HAVE_FORK
         /* We now are a session and process group leader. Let's fork
          * again and let the father die, so that we'll become a
          * process that can never acquire a TTY again, in a session and
          * process group without leader */
 
-#ifdef HAVE_FORK
+        if (pipe(daemon_pipe2) < 0) {
+            pa_log(_("pipe() failed: %s"), pa_cstrerror(errno));
+            goto finish;
+        }
+
         if ((child = fork()) < 0) {
             pa_log(_("fork() failed: %s"), pa_cstrerror(errno));
             goto finish;
         }
 
         if (child != 0) {
-            retval = 0;
+            ssize_t n;
+            /* Father */
+
+            pa_assert_se(pa_close(daemon_pipe2[1]) == 0);
+            daemon_pipe2[1] = -1;
+
+            if ((n = pa_loop_read(daemon_pipe2[0], &retval, sizeof(retval), NULL)) != sizeof(retval)) {
+
+                if (n < 0)
+                    pa_log(_("read() failed: %s"), pa_cstrerror(errno));
+
+                retval = 1;
+            }
+
+            /* We now have to take care of signalling the first fork with
+             * the return value we've received from this fork... */
+            pa_assert(daemon_pipe[1] >= 0);
+
+            pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
+            pa_close(daemon_pipe[1]);
+            daemon_pipe[1] = -1;
+
             goto finish;
         }
+
+        pa_assert_se(pa_close(daemon_pipe2[0]) == 0);
+        daemon_pipe2[0] = -1;
+
+        /* We no longer need the (first) daemon_pipe as it's handled in our child above */
+        pa_close_pipe(daemon_pipe);
 #endif
 
 #ifdef SIGTTOU
@@ -1046,11 +1079,11 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef HAVE_FORK
-    if (daemon_pipe[1] >= 0) {
+    if (daemon_pipe2[1] >= 0) {
         int ok = 0;
-        pa_loop_write(daemon_pipe[1], &ok, sizeof(ok), NULL);
-        pa_close(daemon_pipe[1]);
-        daemon_pipe[1] = -1;
+        pa_loop_write(daemon_pipe2[1], &ok, sizeof(ok), NULL);
+        pa_close(daemon_pipe2[1]);
+        daemon_pipe2[1] = -1;
     }
 #endif
 
@@ -1095,10 +1128,10 @@ finish:
     pa_signal_done();
 
 #ifdef HAVE_FORK
-    if (daemon_pipe[1] >= 0)
-        pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
+    if (daemon_pipe2[1] >= 0)
+        pa_loop_write(daemon_pipe2[1], &retval, sizeof(retval), NULL);
 
-    pa_close_pipe(daemon_pipe);
+    pa_close_pipe(daemon_pipe2);
 #endif
 
     if (mainloop)
