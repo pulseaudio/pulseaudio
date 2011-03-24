@@ -237,7 +237,7 @@ namespace PulseAudio {
         [CCode (cname="PA_CHANNELS_MAX")]
         public const int CHANNELS_MAX;
 
-        [CCode (cname="PA_CHANNELS_MAX")]
+        [CCode (cname="PA_RATE_MAX")]
         public const int RATE_MAX;
 
         [CCode (cname="pa_cvolume")]
@@ -854,7 +854,7 @@ namespace PulseAudio {
                 public int iterate(bool block = true, out int retval = null);
                 public int run(out int retval = null);
                 public unowned MainLoopApi get_api();
-                public void quit(int r);
+                public void quit(int retval);
                 public void wakeup();
                 public void set_poll_func(PollFunc poll_func);
         }
@@ -1194,8 +1194,8 @@ namespace PulseAudio {
                 public int is_suspended();
                 public int is_corked();
 
-                public int connect_playback(string dev, BufferAttr? a = null, Flags flags = 0, CVolume? volume = null, Stream? sync_stream = null);
-                public int connect_record(string dev, BufferAttr? a = null, Flags flags = 0);
+                public int connect_playback(string? dev = null, BufferAttr? a = null, Flags flags = 0, CVolume? volume = null, Stream? sync_stream = null);
+                public int connect_record(string? dev = null, BufferAttr? a = null, Flags flags = 0);
                 public int connect_upload(size_t length);
                 public int disconnect();
                 public int finish_upload();
