@@ -90,6 +90,7 @@
 #include <pulsecore/once.h>
 #include <pulsecore/shm.h>
 #include <pulsecore/memtrap.h>
+#include <pulsecore/strlist.h>
 #ifdef HAVE_DBUS
 #include <pulsecore/dbus-shared.h>
 #endif
@@ -673,10 +674,49 @@ int main(int argc, char *argv[]) {
     }
 
     if (conf->cmd == PA_CMD_START && (configured_address = check_configured_address())) {
-        pa_log_notice(_("User-configured server at %s, not autospawning."), configured_address);
+        /* There is an server address in our config, but where did it come from?
+         * By default a standard X11 login will load module-x11-publish which will
+         * inject PULSE_SERVER X11 property. If the PA daemon crashes, we will end
+         * up hitting this code path. So we have to check to see if our configured_address
+         * is the same as the value that would go into this property so that we can
+         * recover (i.e. autospawn) from a crash.
+         */
+        char *ufn;
+        pa_bool_t start_anyway = FALSE;
+
+        if ((ufn = pa_runtime_path(PA_NATIVE_DEFAULT_UNIX_SOCKET))) {
+            char *id;
+
+            if ((id = pa_machine_id())) {
+                pa_strlist *server_list;
+                char formatted_ufn[256];
+
+                pa_snprintf(formatted_ufn, sizeof(formatted_ufn), "{%s}unix:%s", id, ufn);
+                pa_xfree(id);
+
+                if ((server_list = pa_strlist_parse(configured_address))) {
+                    char *u = NULL;
+
+                    /* We only need to check the first server */
+                    server_list = pa_strlist_pop(server_list, &u);
+                    pa_strlist_free(server_list);
+
+                    start_anyway = (u && pa_streq(formatted_ufn, u));
+                    pa_xfree(u);
+                }
+            }
+            pa_xfree(ufn);
+        }
+
+        if (!start_anyway) {
+            pa_log_notice(_("User-configured server at %s, refusing to start/autospawn."), configured_address);
+            pa_xfree(configured_address);
+            retval = 0;
+            goto finish;
+        }
+
+        pa_log_notice(_("User-configured server at %s, which appears to be local. Probing deeper."), configured_address);
         pa_xfree(configured_address);
-        retval = 0;
-        goto finish;
     }
 
     if (conf->system_instance && !conf->disallow_exit)
