@@ -1975,7 +1975,7 @@ pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core) {
     pa_assert(core);
 
     c = pa_xnew(pa_dbusiface_core, 1);
-    c->core = pa_core_ref(core);
+    c->core = core;
     c->subscription = pa_subscription_new(core, PA_SUBSCRIPTION_MASK_ALL, subscription_cb, c);
     c->dbus_protocol = pa_dbus_protocol_get(core);
     c->cards = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
@@ -2124,7 +2124,6 @@ void pa_dbusiface_core_free(pa_dbusiface_core *c) {
         pa_source_unref(c->fallback_source);
 
     pa_dbus_protocol_unref(c->dbus_protocol);
-    pa_core_unref(c->core);
 
     pa_xfree(c);
 }

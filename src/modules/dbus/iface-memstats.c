@@ -202,7 +202,7 @@ pa_dbusiface_memstats *pa_dbusiface_memstats_new(pa_dbusiface_core *dbus_core, p
     pa_assert(core);
 
     m = pa_xnew(pa_dbusiface_memstats, 1);
-    m->core = pa_core_ref(core);
+    m->core = core;
     m->path = pa_sprintf_malloc("%s/%s", PA_DBUS_CORE_OBJECT_PATH, OBJECT_NAME);
     m->dbus_protocol = pa_dbus_protocol_get(core);
 
@@ -219,7 +219,6 @@ void pa_dbusiface_memstats_free(pa_dbusiface_memstats *m) {
     pa_xfree(m->path);
 
     pa_dbus_protocol_unref(m->dbus_protocol);
-    pa_core_unref(m->core);
 
     pa_xfree(m);
 }

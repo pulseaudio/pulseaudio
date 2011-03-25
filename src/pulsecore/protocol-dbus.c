@@ -125,7 +125,7 @@ static pa_dbus_protocol *dbus_protocol_new(pa_core *c) {
 
     p = pa_xnew(pa_dbus_protocol, 1);
     PA_REFCNT_INIT(p);
-    p->core = pa_core_ref(c);
+    p->core = c;
     p->objects = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     p->connections = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     p->extensions = pa_idxset_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
@@ -177,8 +177,6 @@ void pa_dbus_protocol_unref(pa_dbus_protocol *p) {
         pa_hook_done(&p->hooks[i]);
 
     pa_assert_se(pa_shared_remove(p->core, "dbus-protocol") >= 0);
-
-    pa_core_unref(p->core);
 
     pa_xfree(p);
 }
