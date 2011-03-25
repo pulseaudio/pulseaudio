@@ -49,7 +49,7 @@ namespace PulseAudio {
         [CCode (cname="PA_INVALID_INDEX")]
         public const uint32 INVALID_INDEX;
 
-        [CCode (cname="pa_free_cb_t")]
+        [CCode (cname="pa_free_cb_t", has_target=false)]
         public delegate void FreeCb(void *p);
 
         [CCode (cname="pa_sample_format_t", cprefix="PA_SAMPLE_")]
