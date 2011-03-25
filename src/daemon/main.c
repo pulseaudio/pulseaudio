@@ -729,6 +729,7 @@ int main(int argc, char *argv[]) {
 
         if ((child = fork()) < 0) {
             pa_log(_("fork() failed: %s"), pa_cstrerror(errno));
+            pa_close_pipe(daemon_pipe);
             goto finish;
         }
 
@@ -793,6 +794,7 @@ int main(int argc, char *argv[]) {
 
         if ((child = fork()) < 0) {
             pa_log(_("fork() failed: %s"), pa_cstrerror(errno));
+            pa_close_pipe(daemon_pipe2);
             goto finish;
         }
 
@@ -1128,10 +1130,15 @@ finish:
     pa_signal_done();
 
 #ifdef HAVE_FORK
-    if (daemon_pipe2[1] >= 0)
+    /* If we have daemon_pipe[1] still open, this means we've failed after
+     * the first fork, but before the second. Therefore just write to it. */
+    if (daemon_pipe[1] >= 0)
+        pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
+    else if (daemon_pipe2[1] >= 0)
         pa_loop_write(daemon_pipe2[1], &retval, sizeof(retval), NULL);
 
     pa_close_pipe(daemon_pipe2);
+    pa_close_pipe(daemon_pipe);
 #endif
 
     if (mainloop)
