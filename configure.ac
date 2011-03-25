@@ -1417,7 +1417,7 @@ fi
 AM_CONDITIONAL([HAVE_FFTW], [test "x$HAVE_FFTW" = "x1"])
 
 ### ORC (optional) ###
-ORC_CHECK([0.4.9])
+ORC_CHECK([0.4.11])
 
 ### Build and Install man pages ###
 AC_ARG_ENABLE(manpages,
