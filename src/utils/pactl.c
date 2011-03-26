@@ -48,6 +48,7 @@ static pa_context *context = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
 
 static char
+    *list_type = NULL,
     *sample_name = NULL,
     *sink_name = NULL,
     *source_name = NULL,
@@ -908,15 +909,36 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     break;
 
                 case LIST:
-                    actions = 8;
-                    pa_operation_unref(pa_context_get_module_info_list(c, get_module_info_callback, NULL));
-                    pa_operation_unref(pa_context_get_sink_info_list(c, get_sink_info_callback, NULL));
-                    pa_operation_unref(pa_context_get_source_info_list(c, get_source_info_callback, NULL));
-                    pa_operation_unref(pa_context_get_sink_input_info_list(c, get_sink_input_info_callback, NULL));
-                    pa_operation_unref(pa_context_get_source_output_info_list(c, get_source_output_info_callback, NULL));
-                    pa_operation_unref(pa_context_get_client_info_list(c, get_client_info_callback, NULL));
-                    pa_operation_unref(pa_context_get_sample_info_list(c, get_sample_info_callback, NULL));
-                    pa_operation_unref(pa_context_get_card_info_list(c, get_card_info_callback, NULL));
+                    if (list_type) {
+                        if (pa_streq(list_type, "modules"))
+                            pa_operation_unref(pa_context_get_module_info_list(c, get_module_info_callback, NULL));
+                        else if (pa_streq(list_type, "sinks"))
+                            pa_operation_unref(pa_context_get_sink_info_list(c, get_sink_info_callback, NULL));
+                        else if (pa_streq(list_type, "sources"))
+                            pa_operation_unref(pa_context_get_source_info_list(c, get_source_info_callback, NULL));
+                        else if (pa_streq(list_type, "sink-inputs"))
+                            pa_operation_unref(pa_context_get_sink_input_info_list(c, get_sink_input_info_callback, NULL));
+                        else if (pa_streq(list_type, "source-outputs"))
+                            pa_operation_unref(pa_context_get_source_output_info_list(c, get_source_output_info_callback, NULL));
+                        else if (pa_streq(list_type, "clients"))
+                            pa_operation_unref(pa_context_get_client_info_list(c, get_client_info_callback, NULL));
+                        else if (pa_streq(list_type, "samples"))
+                            pa_operation_unref(pa_context_get_sample_info_list(c, get_sample_info_callback, NULL));
+                        else if (pa_streq(list_type, "cards"))
+                            pa_operation_unref(pa_context_get_card_info_list(c, get_card_info_callback, NULL));
+                        else
+                            pa_assert_not_reached();
+                    } else {
+                        actions = 8;
+                        pa_operation_unref(pa_context_get_module_info_list(c, get_module_info_callback, NULL));
+                        pa_operation_unref(pa_context_get_sink_info_list(c, get_sink_info_callback, NULL));
+                        pa_operation_unref(pa_context_get_source_info_list(c, get_source_info_callback, NULL));
+                        pa_operation_unref(pa_context_get_sink_input_info_list(c, get_sink_input_info_callback, NULL));
+                        pa_operation_unref(pa_context_get_source_output_info_list(c, get_source_output_info_callback, NULL));
+                        pa_operation_unref(pa_context_get_client_info_list(c, get_client_info_callback, NULL));
+                        pa_operation_unref(pa_context_get_sample_info_list(c, get_sample_info_callback, NULL));
+                        pa_operation_unref(pa_context_get_card_info_list(c, get_card_info_callback, NULL));
+                    }
                     break;
 
                 case MOVE_SINK_INPUT:
@@ -1100,7 +1122,7 @@ static int parse_volume(const char *vol_spec, pa_volume_t *vol, enum volume_flag
 static void help(const char *argv0) {
 
     printf(_("%s [options] stat\n"
-             "%s [options] list\n"
+             "%s [options] list [TYPE]\n"
              "%s [options] exit\n"
              "%s [options] upload-sample FILENAME [NAME]\n"
              "%s [options] play-sample NAME [SINK]\n"
@@ -1137,7 +1159,7 @@ enum {
 };
 
 int main(int argc, char *argv[]) {
-    pa_mainloop* m = NULL;
+    pa_mainloop *m = NULL;
     int ret = 1, c;
     char *server = NULL, *bn;
 
@@ -1201,11 +1223,26 @@ int main(int argc, char *argv[]) {
     if (optind < argc) {
         if (pa_streq(argv[optind], "stat"))
             action = STAT;
+
         else if (pa_streq(argv[optind], "exit"))
             action = EXIT;
-        else if (pa_streq(argv[optind], "list"))
+
+        else if (pa_streq(argv[optind], "list")) {
             action = LIST;
-        else if (pa_streq(argv[optind], "upload-sample")) {
+
+            for (int i = optind+1; i < argc; i++){
+                if (pa_streq(argv[i], "modules") || pa_streq(argv[i], "clients") ||
+                    pa_streq(argv[i], "sinks")   || pa_streq(argv[i], "sink-inputs") ||
+                    pa_streq(argv[i], "sources") || pa_streq(argv[i], "source-outputs") ||
+                    pa_streq(argv[i], "samples") || pa_streq(argv[i], "cards")) {
+                    list_type = pa_xstrdup(argv[i]);
+                } else {
+                    pa_log(_("Specify nothing, or one of: %s"), "modules, sinks, sources, sink-inputs, source-outputs, clients, samples, cards");
+                    goto quit;
+                }
+            }
+
+        } else if (pa_streq(argv[optind], "upload-sample")) {
             struct SF_INFO sfi;
             action = UPLOAD_SAMPLE;
 
@@ -1235,7 +1272,7 @@ int main(int argc, char *argv[]) {
 
             if (pa_sndfile_read_channel_map(sndfile, &channel_map) < 0) {
                 if (sample_spec.channels > 2)
-                     pa_log(_("Warning: Failed to determine sample specification from file."));
+                    pa_log(_("Warning: Failed to determine sample specification from file."));
                 pa_channel_map_init_extend(&channel_map, sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
             }
 
@@ -1529,12 +1566,14 @@ quit:
     }
 
     pa_xfree(server);
+    pa_xfree(list_type);
     pa_xfree(sample_name);
     pa_xfree(sink_name);
     pa_xfree(source_name);
     pa_xfree(module_args);
     pa_xfree(card_name);
     pa_xfree(profile_name);
+    pa_xfree(port_name);
 
     if (sndfile)
         sf_close(sndfile);
