@@ -65,6 +65,14 @@ static uint32_t module_index;
 static pa_bool_t suspend;
 static pa_bool_t mute;
 static pa_volume_t volume;
+static enum volume_flags {
+    VOL_UINT     = 0,
+    VOL_PERCENT  = 1,
+    VOL_LINEAR   = 2,
+    VOL_DECIBEL  = 3,
+    VOL_ABSOLUTE = 0 << 4,
+    VOL_RELATIVE = 1 << 4,
+} volume_flags;
 
 static pa_proplist *proplist = NULL;
 
@@ -683,6 +691,78 @@ static void index_callback(pa_context *c, uint32_t idx, void *userdata) {
     complete_action();
 }
 
+static void volume_relative_adjust(pa_cvolume *cv) {
+    pa_assert((volume_flags & VOL_RELATIVE) == VOL_RELATIVE);
+
+    /* Relative volume change is additive in case of UINT or PERCENT
+     * and multiplicative for LINEAR or DECIBEL */
+    if ((volume_flags & 0x0F) == VOL_UINT || (volume_flags & 0x0F) == VOL_PERCENT) {
+        pa_volume_t v = pa_cvolume_avg(cv);
+        v = v + volume < PA_VOLUME_NORM ? PA_VOLUME_MUTED : v + volume - PA_VOLUME_NORM;
+        pa_cvolume_set(cv, 1, v);
+    }
+    if ((volume_flags & 0x0F) == VOL_LINEAR || (volume_flags & 0x0F) == VOL_DECIBEL) {
+        pa_sw_cvolume_multiply_scalar(cv, cv, volume);
+    }
+}
+
+static void get_sink_volume_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
+    pa_cvolume cv;
+
+    if (is_last < 0) {
+        pa_log(_("Failed to get sink information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(i);
+
+    cv = i->volume;
+    volume_relative_adjust(&cv);
+    pa_operation_unref(pa_context_set_sink_volume_by_name(c, sink_name, &cv, simple_callback, NULL));
+}
+
+static void get_source_volume_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
+    pa_cvolume cv;
+
+    if (is_last < 0) {
+        pa_log(_("Failed to get source information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(i);
+
+    cv = i->volume;
+    volume_relative_adjust(&cv);
+    pa_operation_unref(pa_context_set_source_volume_by_name(c, source_name, &cv, simple_callback, NULL));
+}
+
+static void get_sink_input_volume_callback(pa_context *c, const pa_sink_input_info *i, int is_last, void *userdata) {
+    pa_cvolume cv;
+
+    if (is_last < 0) {
+        pa_log(_("Failed to get sink input information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(i);
+
+    cv = i->volume;
+    volume_relative_adjust(&cv);
+    pa_operation_unref(pa_context_set_sink_input_volume(c, sink_input_idx, &cv, simple_callback, NULL));
+}
+
 static void stream_state_callback(pa_stream *s, void *userdata) {
     pa_assert(s);
 
@@ -893,34 +973,40 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     pa_operation_unref(pa_context_set_sink_input_mute(c, sink_input_idx, mute, simple_callback, NULL));
                     break;
 
-                case SET_SINK_VOLUME: {
-                    pa_cvolume v;
-
-                    pa_cvolume_set(&v, 1, volume);
-                    pa_operation_unref(pa_context_set_sink_volume_by_name(c, sink_name, &v, simple_callback, NULL));
+                case SET_SINK_VOLUME:
+                    if ((volume_flags & VOL_RELATIVE) == VOL_RELATIVE) {
+                        pa_operation_unref(pa_context_get_sink_info_by_name(c, sink_name, get_sink_volume_callback, NULL));
+                    } else {
+                        pa_cvolume v;
+                        pa_cvolume_set(&v, 1, volume);
+                        pa_operation_unref(pa_context_set_sink_volume_by_name(c, sink_name, &v, simple_callback, NULL));
+                    }
                     break;
-                }
 
-                case SET_SOURCE_VOLUME: {
-                    pa_cvolume v;
-
-                    pa_cvolume_set(&v, 1, volume);
-                    pa_operation_unref(pa_context_set_source_volume_by_name(c, source_name, &v, simple_callback, NULL));
+                case SET_SOURCE_VOLUME:
+                    if ((volume_flags & VOL_RELATIVE) == VOL_RELATIVE) {
+                        pa_operation_unref(pa_context_get_source_info_by_name(c, source_name, get_source_volume_callback, NULL));
+                    } else {
+                        pa_cvolume v;
+                        pa_cvolume_set(&v, 1, volume);
+                        pa_operation_unref(pa_context_set_source_volume_by_name(c, source_name, &v, simple_callback, NULL));
+                    }
                     break;
-                }
 
-                case SET_SINK_INPUT_VOLUME: {
-                    pa_cvolume v;
-
-                    pa_cvolume_set(&v, 1, volume);
-                    pa_operation_unref(pa_context_set_sink_input_volume(c, sink_input_idx, &v, simple_callback, NULL));
+                case SET_SINK_INPUT_VOLUME:
+                    if ((volume_flags & VOL_RELATIVE) == VOL_RELATIVE) {
+                        pa_operation_unref(pa_context_get_sink_input_info(c, sink_input_idx, get_sink_input_volume_callback, NULL));
+                    } else {
+                        pa_cvolume v;
+                        pa_cvolume_set(&v, 1, volume);
+                        pa_operation_unref(pa_context_set_sink_input_volume(c, sink_input_idx, &v, simple_callback, NULL));
+                    }
                     break;
-                }
 
-               case SUBSCRIBE:
-                   pa_context_set_subscribe_callback(c, context_subscribe_callback, NULL);
+                case SUBSCRIBE:
+                    pa_context_set_subscribe_callback(c, context_subscribe_callback, NULL);
 
-                   pa_operation_unref(pa_context_subscribe(
+                    pa_operation_unref(pa_context_subscribe(
                                               c,
                                               PA_SUBSCRIPTION_MASK_SINK|
                                               PA_SUBSCRIPTION_MASK_SOURCE|
@@ -933,7 +1019,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
                                               PA_SUBSCRIPTION_MASK_CARD,
                                               NULL,
                                               NULL));
-                   break;
+                    break;
 
                 default:
                     pa_assert_not_reached();
@@ -954,6 +1040,61 @@ static void context_state_callback(pa_context *c, void *userdata) {
 static void exit_signal_callback(pa_mainloop_api *m, pa_signal_event *e, int sig, void *userdata) {
     pa_log(_("Got SIGINT, exiting."));
     quit(0);
+}
+
+static int parse_volume(const char *vol_spec, pa_volume_t *vol, enum volume_flags *vol_flags) {
+    double v;
+    char *vs;
+
+    pa_assert(vol_spec);
+    pa_assert(vol);
+    pa_assert(vol_flags);
+
+    vs = pa_xstrdup(vol_spec);
+
+    *vol_flags = (pa_startswith(vs, "+") || pa_startswith(vs, "-")) ? VOL_RELATIVE : VOL_ABSOLUTE;
+    if (strchr(vs, '.'))
+        *vol_flags |= VOL_LINEAR;
+    if (pa_endswith(vs, "%")) {
+        *vol_flags |= VOL_PERCENT;
+        vs[strlen(vs)-1] = 0;
+    }
+    if (pa_endswith(vs, "db") || pa_endswith(vs, "dB")) {
+        *vol_flags |= VOL_DECIBEL;
+        vs[strlen(vs)-2] = 0;
+    }
+
+    if (pa_atod(vs, &v) < 0) {
+        pa_log(_("Invalid volume specification"));
+        pa_xfree(vs);
+        return -1;
+    }
+
+    pa_xfree(vs);
+
+    if ((*vol_flags & VOL_RELATIVE) == VOL_RELATIVE) {
+        if ((*vol_flags & 0x0F) == VOL_UINT)
+            v += (double) PA_VOLUME_NORM;
+        if ((*vol_flags & 0x0F) == VOL_PERCENT)
+            v += 100.0;
+        if ((*vol_flags & 0x0F) == VOL_LINEAR)
+            v += 1.0;
+    }
+    if ((*vol_flags & 0x0F) == VOL_PERCENT)
+        v = v * (double) PA_VOLUME_NORM / 100;
+    if ((*vol_flags & 0x0F) == VOL_LINEAR)
+        v = pa_sw_volume_from_linear(v);
+    if ((*vol_flags & 0x0F) == VOL_DECIBEL)
+        v = pa_sw_volume_from_dB(v);
+
+    if (!PA_VOLUME_IS_VALID((pa_volume_t) v)) {
+        pa_log(_("Volume outside permissible range.\n"));
+        return -1;
+    }
+
+    *vol = (pa_volume_t) v;
+
+    return 0;
 }
 
 static void help(const char *argv0) {
@@ -1235,7 +1376,6 @@ int main(int argc, char *argv[]) {
             port_name = pa_xstrdup(argv[optind+2]);
 
         } else if (pa_streq(argv[optind], "set-sink-volume")) {
-            uint32_t v;
             action = SET_SINK_VOLUME;
 
             if (argc != optind+3) {
@@ -1243,21 +1383,12 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            if (pa_atou(argv[optind+2], &v) < 0) {
-                pa_log(_("Invalid volume specification"));
-                goto quit;
-            }
-
-            if (!PA_VOLUME_IS_VALID(v)) {
-                pa_log(_("Volume outside permissible range.\n"));
-                goto quit;
-            }
-
             sink_name = pa_xstrdup(argv[optind+1]);
-            volume = (pa_volume_t) v;
+
+            if (parse_volume(argv[optind+2], &volume, &volume_flags) < 0)
+                goto quit;
 
         } else if (pa_streq(argv[optind], "set-source-volume")) {
-            uint32_t v;
             action = SET_SOURCE_VOLUME;
 
             if (argc != optind+3) {
@@ -1265,21 +1396,12 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            if (pa_atou(argv[optind+2], &v) < 0) {
-                pa_log(_("Invalid volume specification"));
-                goto quit;
-            }
-
-            if (!PA_VOLUME_IS_VALID(v)) {
-                pa_log(_("Volume outside permissible range.\n"));
-                goto quit;
-            }
-
             source_name = pa_xstrdup(argv[optind+1]);
-            volume = (pa_volume_t) v;
+
+            if (parse_volume(argv[optind+2], &volume, &volume_flags) < 0)
+                goto quit;
 
         } else if (pa_streq(argv[optind], "set-sink-input-volume")) {
-            uint32_t v;
             action = SET_SINK_INPUT_VOLUME;
 
             if (argc != optind+3) {
@@ -1292,17 +1414,8 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            if (pa_atou(argv[optind+2], &v) < 0) {
-                pa_log(_("Invalid volume specification"));
+            if (parse_volume(argv[optind+2], &volume, &volume_flags) < 0)
                 goto quit;
-            }
-
-            if (!PA_VOLUME_IS_VALID(v)) {
-                pa_log(_("Volume outside permissible range.\n"));
-                goto quit;
-            }
-
-            volume = (pa_volume_t) v;
 
         } else if (pa_streq(argv[optind], "set-sink-mute")) {
             int b;
@@ -1314,7 +1427,7 @@ int main(int argc, char *argv[]) {
             }
 
             if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
-                pa_log(_("Invalid volume specification"));
+                pa_log(_("Invalid mute specification"));
                 goto quit;
             }
 
@@ -1331,7 +1444,7 @@ int main(int argc, char *argv[]) {
             }
 
             if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
-                pa_log(_("Invalid volume specification"));
+                pa_log(_("Invalid mute specification"));
                 goto quit;
             }
 
@@ -1353,7 +1466,7 @@ int main(int argc, char *argv[]) {
             }
 
             if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
-                pa_log(_("Invalid volume specification"));
+                pa_log(_("Invalid mute specification"));
                 goto quit;
             }
 
