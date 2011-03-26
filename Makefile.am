@@ -41,7 +41,7 @@ noinst_DATA =
 vapidir = $(datadir)/vala/vapi
 vapi_DATA = \
 		vala/libpulse.deps vala/libpulse.vapi \
-		libpulse-mainloop-glib.deps libpulse-mainloop-glib.vapi
+		vala/libpulse-mainloop-glib.deps vala/libpulse-mainloop-glib.vapi
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libpulse.pc libpulse-simple.pc
