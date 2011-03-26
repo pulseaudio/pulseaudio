@@ -90,6 +90,7 @@ static enum {
     NONE,
     EXIT,
     STAT,
+    INFO,
     UPLOAD_SAMPLE,
     PLAY_SAMPLE,
     REMOVE_SAMPLE,
@@ -882,8 +883,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_READY:
             switch (action) {
                 case STAT:
-                    actions = 2;
                     pa_operation_unref(pa_context_stat(c, stat_callback, NULL));
+                    break;
+
+                case INFO:
                     pa_operation_unref(pa_context_get_server_info(c, get_server_info_callback, NULL));
                     break;
 
@@ -1122,6 +1125,7 @@ static int parse_volume(const char *vol_spec, pa_volume_t *vol, enum volume_flag
 static void help(const char *argv0) {
 
     printf(_("%s [options] stat\n"
+             "%s [options] info\n"
              "%s [options] list [TYPE]\n"
              "%s [options] exit\n"
              "%s [options] upload-sample FILENAME [NAME]\n"
@@ -1151,7 +1155,7 @@ static void help(const char *argv0) {
            argv0, argv0, argv0, argv0, argv0,
            argv0, argv0, argv0, argv0, argv0,
            argv0, argv0, argv0, argv0, argv0,
-           argv0, argv0);
+           argv0, argv0, argv0);
 }
 
 enum {
@@ -1223,6 +1227,9 @@ int main(int argc, char *argv[]) {
     if (optind < argc) {
         if (pa_streq(argv[optind], "stat"))
             action = STAT;
+
+        else if (pa_streq(argv[optind], "info"))
+            action = INFO;
 
         else if (pa_streq(argv[optind], "exit"))
             action = EXIT;
