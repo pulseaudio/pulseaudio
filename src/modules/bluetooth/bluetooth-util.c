@@ -1565,8 +1565,6 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
         if (y->filter_added)
             dbus_connection_remove_filter(pa_dbus_connection_get(y->connection), filter_cb, y);
 
-        dbus_connection_remove_filter(pa_dbus_connection_get(y->connection), filter_cb, y);
-
         pa_dbus_connection_unref(y->connection);
     }
 
