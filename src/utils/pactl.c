@@ -62,6 +62,7 @@ static uint32_t
     sink_input_idx = PA_INVALID_INDEX,
     source_output_idx = PA_INVALID_INDEX;
 
+static pa_bool_t short_list_format = FALSE;
 static uint32_t module_index;
 static pa_bool_t suspend;
 static pa_bool_t mute;
@@ -237,9 +238,19 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
 
     pa_assert(i);
 
-    if (nl)
+    if (nl && !short_list_format)
         printf("\n");
     nl = TRUE;
+
+    if (short_list_format) {
+        printf("%u\t%s\t%s\t%s\t%s\n",
+               i->index,
+               i->name,
+               pa_strnull(i->driver),
+               pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
+               state_table[1+i->state]);
+        return;
+    }
 
     printf(_("Sink #%u\n"
              "\tState: %s\n"
@@ -329,9 +340,19 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
 
     pa_assert(i);
 
-    if (nl)
+    if (nl && !short_list_format)
         printf("\n");
     nl = TRUE;
+
+    if (short_list_format) {
+        printf("%u\t%s\t%s\t%s\t%s\n",
+               i->index,
+               i->name,
+               pa_strnull(i->driver),
+               pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
+               state_table[1+i->state]);
+        return;
+    }
 
     printf(_("Source #%u\n"
              "\tState: %s\n"
@@ -407,11 +428,16 @@ static void get_module_info_callback(pa_context *c, const pa_module_info *i, int
 
     pa_assert(i);
 
-    if (nl)
+    if (nl && !short_list_format)
         printf("\n");
     nl = TRUE;
 
     pa_snprintf(t, sizeof(t), "%u", i->n_used);
+
+    if (short_list_format) {
+        printf("%u\t%s\t%s\t\n", i->index, i->name, i->argument ? i->argument : "");
+        return;
+    }
 
     printf(_("Module #%u\n"
              "\tName: %s\n"
@@ -444,11 +470,19 @@ static void get_client_info_callback(pa_context *c, const pa_client_info *i, int
 
     pa_assert(i);
 
-    if (nl)
+    if (nl && !short_list_format)
         printf("\n");
     nl = TRUE;
 
     pa_snprintf(t, sizeof(t), "%u", i->owner_module);
+
+    if (short_list_format) {
+        printf("%u\t%s\t%s\n",
+               i->index,
+               pa_strnull(i->driver),
+               pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_PROCESS_BINARY)));
+        return;
+    }
 
     printf(_("Client #%u\n"
              "\tDriver: %s\n"
@@ -479,11 +513,16 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
 
     pa_assert(i);
 
-    if (nl)
+    if (nl && !short_list_format)
         printf("\n");
     nl = TRUE;
 
     pa_snprintf(t, sizeof(t), "%u", i->owner_module);
+
+    if (short_list_format) {
+        printf("%u\t%s\t%s\n", i->index, i->name, pa_strnull(i->driver));
+        return;
+    }
 
     printf(_("Card #%u\n"
              "\tName: %s\n"
@@ -528,12 +567,22 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
 
     pa_assert(i);
 
-    if (nl)
+    if (nl && !short_list_format)
         printf("\n");
     nl = TRUE;
 
     pa_snprintf(t, sizeof(t), "%u", i->owner_module);
     pa_snprintf(k, sizeof(k), "%u", i->client);
+
+    if (short_list_format) {
+        printf("%u\t%u\t%s\t%s\t%s\n",
+               i->index,
+               i->sink,
+               i->client != PA_INVALID_INDEX ? k : "-",
+               pa_strnull(i->driver),
+               pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec));
+        return;
+    }
 
     printf(_("Sink Input #%u\n"
              "\tDriver: %s\n"
@@ -586,13 +635,23 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
 
     pa_assert(i);
 
-    if (nl)
+    if (nl && !short_list_format)
         printf("\n");
     nl = TRUE;
 
 
     pa_snprintf(t, sizeof(t), "%u", i->owner_module);
     pa_snprintf(k, sizeof(k), "%u", i->client);
+
+    if (short_list_format) {
+        printf("%u\t%u\t%s\t%s\t%s\n",
+               i->index,
+               i->source,
+               i->client != PA_INVALID_INDEX ? k : "-",
+               pa_strnull(i->driver),
+               pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec));
+        return;
+    }
 
     printf(_("Source Output #%u\n"
              "\tDriver: %s\n"
@@ -637,11 +696,20 @@ static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int
 
     pa_assert(i);
 
-    if (nl)
+    if (nl && !short_list_format)
         printf("\n");
     nl = TRUE;
 
     pa_bytes_snprint(t, sizeof(t), i->bytes);
+
+    if (short_list_format) {
+        printf("%u\t%s\t%s\t%0.3f\n",
+               i->index,
+               i->name,
+               pa_sample_spec_valid(&i->sample_spec) ? pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec) : "-",
+               (double) i->duration/1000000.0);
+        return;
+    }
 
     printf(_("Sample #%u\n"
              "\tName: %s\n"
@@ -1126,7 +1194,7 @@ static void help(const char *argv0) {
 
     printf(_("%s [options] stat\n"
              "%s [options] info\n"
-             "%s [options] list [TYPE]\n"
+             "%s [options] list [short] [TYPE]\n"
              "%s [options] exit\n"
              "%s [options] upload-sample FILENAME [NAME]\n"
              "%s [options] play-sample NAME [SINK]\n"
@@ -1243,6 +1311,8 @@ int main(int argc, char *argv[]) {
                     pa_streq(argv[i], "sources") || pa_streq(argv[i], "source-outputs") ||
                     pa_streq(argv[i], "samples") || pa_streq(argv[i], "cards")) {
                     list_type = pa_xstrdup(argv[i]);
+                } else if (pa_streq(argv[i], "short")) {
+                    short_list_format = TRUE;
                 } else {
                     pa_log(_("Specify nothing, or one of: %s"), "modules, sinks, sources, sink-inputs, source-outputs, clients, samples, cards");
                     goto quit;
