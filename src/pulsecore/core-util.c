@@ -2012,20 +2012,13 @@ char *pa_state_path(const char *fn, pa_bool_t appendmid) {
 
 /* Convert the string s to a signed integer in *ret_i */
 int pa_atoi(const char *s, int32_t *ret_i) {
-    char *x = NULL;
     long l;
 
     pa_assert(s);
     pa_assert(ret_i);
 
-    errno = 0;
-    l = strtol(s, &x, 0);
-
-    if (!x || *x || errno) {
-        if (!errno)
-            errno = EINVAL;
+    if (pa_atol(s, &l) < 0)
         return -1;
-    }
 
     if ((int32_t) l != l) {
         errno = ERANGE;
@@ -2060,6 +2053,28 @@ int pa_atou(const char *s, uint32_t *ret_u) {
     }
 
     *ret_u = (uint32_t) l;
+
+    return 0;
+}
+
+/* Convert the string s to a signed long integer in *ret_l. */
+int pa_atol(const char *s, long *ret_l) {
+    char *x = NULL;
+    long l;
+
+    pa_assert(s);
+    pa_assert(ret_l);
+
+    errno = 0;
+    l = strtol(s, &x, 0);
+
+    if (!x || *x || errno) {
+        if (!errno)
+            errno = EINVAL;
+        return -1;
+    }
+
+    *ret_l = l;
 
     return 0;
 }

@@ -1920,14 +1920,14 @@ static int element_parse_volume_limit(
 
     pa_alsa_path *p = userdata;
     pa_alsa_element *e;
-    uint32_t volume_limit;
+    long volume_limit;
 
     if (!(e = element_get(p, section, TRUE))) {
         pa_log("[%s:%u] volume-limit makes no sense in '%s'", filename, line, section);
         return -1;
     }
 
-    if (pa_atou(rvalue, &volume_limit) < 0 || volume_limit > LONG_MAX) {
+    if (pa_atol(rvalue, &volume_limit) < 0 || volume_limit < 0) {
         pa_log("[%s:%u] Invalid value for volume-limit", filename, line);
         return -1;
     }

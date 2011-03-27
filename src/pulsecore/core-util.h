@@ -135,6 +135,7 @@ char *pa_state_path(const char *fn, pa_bool_t prepend_machine_id);
 
 int pa_atoi(const char *s, int32_t *ret_i);
 int pa_atou(const char *s, uint32_t *ret_u);
+int pa_atol(const char *s, long *ret_l);
 int pa_atod(const char *s, double *ret_d);
 
 size_t pa_snprintf(char *str, size_t size, const char *format, ...);
