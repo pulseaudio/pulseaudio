@@ -57,7 +57,6 @@ struct pa_dbusiface_stream {
     pa_proplist *proplist;
 
     pa_bool_t has_volume;
-    pa_bool_t read_only_volume;
 
     pa_dbus_protocol *dbus_protocol;
     pa_subscription *subscription;
@@ -357,6 +356,7 @@ static void handle_get_volume(DBusConnection *conn, DBusMessage *msg, void *user
 
 static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_stream *s = userdata;
+    pa_bool_t volume_writable = TRUE;
     DBusMessageIter array_iter;
     int stream_channels = 0;
     dbus_uint32_t *volume = NULL;
@@ -369,12 +369,14 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessag
     pa_assert(iter);
     pa_assert(s);
 
-    if (!s->has_volume || s->read_only_volume) {
+    volume_writable = (s->type == STREAM_TYPE_PLAYBACK) ? s->sink_input->volume_writable : FALSE;
+
+    if (!s->has_volume || !volume_writable) {
         char *str = stream_to_string(s);
 
         if (!s->has_volume)
             pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "%s doesn't have volume.", str);
-        else if (s->read_only_volume)
+        else if (!volume_writable)
             pa_dbus_send_error(conn, msg, DBUS_ERROR_ACCESS_DENIED, "%s has read-only volume.", str);
         pa_xfree(str);
 
@@ -853,7 +855,6 @@ pa_dbusiface_stream *pa_dbusiface_stream_new_playback(pa_dbusiface_core *core, p
     s->sink = pa_sink_ref(sink_input->sink);
     s->sample_rate = sink_input->sample_spec.rate;
     s->has_volume = pa_sink_input_is_volume_readable(sink_input);
-    s->read_only_volume = s->has_volume ? !pa_sink_input_is_volume_writable(sink_input) : FALSE;
 
     if (s->has_volume)
         pa_sink_input_get_volume(sink_input, &s->volume, TRUE);
@@ -891,7 +892,6 @@ pa_dbusiface_stream *pa_dbusiface_stream_new_record(pa_dbusiface_core *core, pa_
     s->mute = FALSE;
     s->proplist = pa_proplist_copy(source_output->proplist);
     s->has_volume = FALSE;
-    s->read_only_volume = FALSE;
     s->dbus_protocol = pa_dbus_protocol_get(source_output->core);
     s->subscription = pa_subscription_new(source_output->core, PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscription_cb, s);
     s->send_event_slot = pa_hook_connect(&source_output->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_SEND_EVENT],

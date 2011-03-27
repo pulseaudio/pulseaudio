@@ -1168,7 +1168,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         }
 
         if (sink_input->save_volume) {
-            pa_assert(pa_sink_input_is_volume_writable(sink_input));
+            pa_assert(sink_input->volume_writable);
 
             entry.channel_map = sink_input->channel_map;
             pa_sink_input_get_volume(sink_input, &entry.volume, FALSE);
@@ -1329,7 +1329,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
     if ((e = read_entry(u, name))) {
 
         if (u->restore_volume && e->volume_valid) {
-            if (!pa_sink_input_new_data_is_volume_writable(new_data))
+            if (!new_data->volume_writable)
                 pa_log_debug("Not restoring volume for sink input %s, because its volume can't be changed.", name);
             else if (new_data->volume_is_set)
                 pa_log_debug("Not restoring volume for sink input %s, because already set.", name);
@@ -1619,7 +1619,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
         }
         pa_xfree(n);
 
-        if (u->restore_volume && e->volume_valid && pa_sink_input_is_volume_writable(si)) {
+        if (u->restore_volume && e->volume_valid && si->volume_writable) {
             pa_cvolume v;
 
             v = e->volume;

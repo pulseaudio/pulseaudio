@@ -3089,7 +3089,7 @@ static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, 
         pa_tagstruct_put_boolean(t, (pa_sink_input_get_state(s) == PA_SINK_INPUT_CORKED));
     if (c->version >= 20) {
         pa_tagstruct_put_boolean(t, has_volume);
-        pa_tagstruct_put_boolean(t, has_volume ? !pa_sink_input_is_volume_writable(s) : FALSE);
+        pa_tagstruct_put_boolean(t, s->volume_writable);
     }
 }
 
@@ -3472,7 +3472,7 @@ static void command_set_volume(
         pa_log_debug("Client %s changes volume of source %s.", client_name, source->name);
         pa_source_set_volume(source, &volume, TRUE);
     } else if (si) {
-        CHECK_VALIDITY(c->pstream, pa_sink_input_is_volume_writable(si), tag, PA_ERR_INVALID);
+        CHECK_VALIDITY(c->pstream, si->volume_writable, tag, PA_ERR_BADSTATE);
         CHECK_VALIDITY(c->pstream, volume.channels == 1 || pa_cvolume_compatible(&volume, &si->sample_spec), tag, PA_ERR_INVALID);
 
         pa_log_debug("Client %s changes volume of sink input %s.",

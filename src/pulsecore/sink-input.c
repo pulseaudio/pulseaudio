@@ -88,6 +88,7 @@ pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data
     pa_zero(*data);
     data->resample_method = PA_RESAMPLER_INVALID;
     data->proplist = pa_proplist_new();
+    data->volume_writable = TRUE;
 
     return data;
 }
@@ -106,21 +107,9 @@ void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const 
         data->channel_map = *map;
 }
 
-pa_bool_t pa_sink_input_new_data_is_volume_writable(pa_sink_input_new_data *data) {
-    pa_assert(data);
-
-    if (data->flags & PA_SINK_INPUT_PASSTHROUGH)
-        return FALSE;
-
-    if (data->origin_sink && (data->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
-        return FALSE;
-
-    return TRUE;
-}
-
 void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume) {
     pa_assert(data);
-    pa_assert(pa_sink_input_new_data_is_volume_writable(data));
+    pa_assert(data->volume_writable);
 
     if ((data->volume_is_set = !!volume))
         data->volume = *volume;
@@ -209,10 +198,12 @@ int pa_sink_input_new(
     if (data->client)
         pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->client->proplist);
 
+    if (data->origin_sink && (data->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
+        data->volume_writable = FALSE;
+
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], data)) < 0)
         return r;
 
-    pa_assert(!data->volume_is_set || pa_sink_input_new_data_is_volume_writable(data));
     pa_return_val_if_fail(!data->driver || pa_utf8_valid(data->driver), -PA_ERR_INVALID);
 
     if (!data->sink) {
@@ -353,6 +344,7 @@ int pa_sink_input_new(
     i->real_ratio = i->reference_ratio = data->volume;
     pa_cvolume_reset(&i->soft_volume, i->sample_spec.channels);
     pa_cvolume_reset(&i->real_ratio, i->sample_spec.channels);
+    i->volume_writable = data->volume_writable;
     i->save_volume = data->save_volume;
     i->save_sink = data->save_sink;
     i->save_muted = data->save_muted;
@@ -1026,7 +1018,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
     pa_assert(volume);
     pa_assert(pa_cvolume_valid(volume));
     pa_assert(volume->channels == 1 || pa_cvolume_compatible(volume, &i->sample_spec));
-    pa_assert(pa_sink_input_is_volume_writable(i));
+    pa_assert(i->volume_writable);
 
     if ((i->sink->flags & PA_SINK_FLAT_VOLUME) && !absolute) {
         v = i->sink->reference_volume;
@@ -1101,20 +1093,6 @@ pa_bool_t pa_sink_input_is_volume_readable(pa_sink_input *i) {
     pa_assert_ctl_context();
 
     return !(i->flags & PA_SINK_INPUT_PASSTHROUGH);
-}
-
-/* Called from main context */
-pa_bool_t pa_sink_input_is_volume_writable(pa_sink_input *i) {
-    pa_sink_input_assert_ref(i);
-    pa_assert_ctl_context();
-
-    if (i->flags & PA_SINK_INPUT_PASSTHROUGH)
-        return FALSE;
-
-    if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
-        return FALSE;
-
-    return TRUE;
 }
 
 /* Called from main context */

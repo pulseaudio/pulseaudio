@@ -585,7 +585,7 @@ static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strb
         return -1;
     }
 
-    if (!pa_sink_input_is_volume_writable(si)) {
+    if (!si->volume_writable) {
         pa_strbuf_puts(buf, "This sink input's volume can't be changed.\n");
         return -1;
     }
