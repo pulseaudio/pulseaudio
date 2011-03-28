@@ -119,7 +119,9 @@ struct a2dp_info {
 struct hsp_info {
     pcm_capabilities_t pcm_capabilities;
     pa_sink *sco_sink;
+    void (*sco_sink_set_volume)(pa_sink *s);
     pa_source *sco_source;
+    void (*sco_source_set_volume)(pa_source *s);
     pa_hook_slot *sink_state_changed_slot;
     pa_hook_slot *source_state_changed_slot;
 };
@@ -2802,12 +2804,14 @@ int pa__init(pa_module* m) {
     init_bt(u);
 
     if (u->hsp.sco_sink) {
+        u->hsp.sco_sink_set_volume = u->hsp.sco_sink->set_volume;
         k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->hsp.sco_sink);
         pa_shared_set(u->core, k, u);
         pa_xfree(k);
     }
 
     if (u->hsp.sco_source) {
+        u->hsp.sco_source_set_volume = u->hsp.sco_source->set_volume;
         k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->hsp.sco_source);
         pa_shared_set(u->core, k, u);
         pa_xfree(k);
@@ -2888,12 +2892,14 @@ void pa__done(pa_module *m) {
     shutdown_bt(u);
 
     if (u->hsp.sco_sink) {
+        u->hsp.sco_sink->set_volume = u->hsp.sco_sink_set_volume;
         k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->hsp.sco_sink);
         pa_shared_remove(u->core, k);
         pa_xfree(k);
     }
 
     if (u->hsp.sco_source) {
+        u->hsp.sco_source->set_volume = u->hsp.sco_source_set_volume;
         k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->hsp.sco_source);
         pa_shared_remove(u->core, k);
         pa_xfree(k);
