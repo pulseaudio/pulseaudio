@@ -76,14 +76,9 @@ PA_MODULE_USAGE(
         "rate=<sample rate> "
         "channels=<number of channels> "
         "path=<device object path> "
-        "auto_connect=<automatically connect?>");
-
-/*
-#ifdef NOKIA
+        "auto_connect=<automatically connect?> "
         "sco_sink=<SCO over PCM sink name> "
-        "sco_source=<SCO over PCM source name>"
-#endif
-*/
+        "sco_source=<SCO over PCM source name>");
 
 /* TODO: not close fd when entering suspend mode in a2dp */
 
@@ -101,10 +96,8 @@ static const char* const valid_modargs[] = {
     "channels",
     "path",
     "auto_connect",
-#ifdef NOKIA
     "sco_sink",
     "sco_source",
-#endif
     NULL
 };
 
@@ -124,10 +117,8 @@ struct a2dp_info {
 
 struct hsp_info {
     pcm_capabilities_t pcm_capabilities;
-#ifdef NOKIA
     pa_sink *sco_sink;
     pa_source *sco_source;
-#endif
     pa_hook_slot *sink_state_changed_slot;
     pa_hook_slot *source_state_changed_slot;
 };
@@ -189,9 +180,7 @@ struct userdata {
 
 #define MAX_PLAYBACK_CATCH_UP_USEC (100*PA_USEC_PER_MSEC)
 
-#ifdef NOKIA
 #define USE_SCO_OVER_PCM(u) (u->profile == PROFILE_HSP && (u->hsp.sco_sink && u->hsp.sco_source))
-#endif
 
 static int init_bt(struct userdata *u);
 static int init_profile(struct userdata *u);
@@ -1882,8 +1871,6 @@ static char *get_name(const char *type, pa_modargs *ma, const char *device_id, p
     return pa_sprintf_malloc("bluez_%s.%s", type, n);
 }
 
-#ifdef NOKIA
-
 static void sco_over_pcm_state_update(struct userdata *u) {
     pa_assert(u);
     pa_assert(USE_SCO_OVER_PCM(u));
@@ -1946,12 +1933,8 @@ static pa_hook_result_t source_state_changed_cb(pa_core *c, pa_source *s, struct
     return PA_HOOK_OK;
 }
 
-#endif
-
 /* Run from main thread */
 static int add_sink(struct userdata *u) {
-
-#ifdef NOKIA
     if (USE_SCO_OVER_PCM(u)) {
         pa_proplist *p;
 
@@ -1964,10 +1947,7 @@ static int add_sink(struct userdata *u) {
         if (!u->hsp.sink_state_changed_slot)
             u->hsp.sink_state_changed_slot = pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_state_changed_cb, u);
 
-    } else
-#endif
-
-    {
+    } else {
         pa_sink_new_data data;
         pa_bool_t b;
 
@@ -2015,8 +1995,6 @@ static int add_sink(struct userdata *u) {
 
 /* Run from main thread */
 static int add_source(struct userdata *u) {
-
-#ifdef NOKIA
     if (USE_SCO_OVER_PCM(u)) {
         u->source = u->hsp.sco_source;
         pa_proplist_sets(u->source->proplist, "bluetooth.protocol", "hsp");
@@ -2024,10 +2002,7 @@ static int add_source(struct userdata *u) {
         if (!u->hsp.source_state_changed_slot)
             u->hsp.source_state_changed_slot = pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) source_state_changed_cb, u);
 
-    } else
-#endif
-
-    {
+    } else {
         pa_source_new_data data;
         pa_bool_t b;
 
@@ -2288,12 +2263,10 @@ static int setup_bt(struct userdata *u) {
 
     pa_log_debug("Connection to the device configured");
 
-#ifdef NOKIA
     if (USE_SCO_OVER_PCM(u)) {
         pa_log_debug("Configured to use SCO over PCM");
         return 0;
     }
-#endif
 
     pa_log_debug("Got the stream socket");
 
@@ -2382,7 +2355,6 @@ static int start_thread(struct userdata *u) {
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
 
-#ifdef NOKIA
     if (USE_SCO_OVER_PCM(u)) {
         if (u->transport) {
             if (bt_transport_acquire(u, TRUE) < 0)
@@ -2395,7 +2367,6 @@ static int start_thread(struct userdata *u) {
         /* FIXME: monitor stream_fd error */
         return 0;
     }
-#endif
 
     if (!(u->thread = pa_thread_new("bluetooth", thread_func, u))) {
         pa_log_error("Failed to create IO thread");
@@ -2462,17 +2433,15 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     if (u->sink) {
         inputs = pa_sink_move_all_start(u->sink, NULL);
-#ifdef NOKIA
+
         if (!USE_SCO_OVER_PCM(u))
-#endif
             pa_sink_unlink(u->sink);
     }
 
     if (u->source) {
         outputs = pa_source_move_all_start(u->source, NULL);
-#ifdef NOKIA
+
         if (!USE_SCO_OVER_PCM(u))
-#endif
             pa_source_unlink(u->source);
     }
 
@@ -2729,7 +2698,6 @@ int pa__init(pa_module* m) {
     u->sample_spec = m->core->default_sample_spec;
     u->modargs = ma;
 
-#ifdef NOKIA
     if (pa_modargs_get_value(ma, "sco_sink", NULL) &&
         !(u->hsp.sco_sink = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sco_sink", NULL), PA_NAMEREG_SINK))) {
         pa_log("SCO sink not found");
@@ -2741,7 +2709,6 @@ int pa__init(pa_module* m) {
         pa_log("SCO source not found");
         goto fail;
     }
-#endif
 
     if (pa_modargs_get_value_u32(ma, "rate", &u->sample_spec.rate) < 0 ||
         u->sample_spec.rate <= 0 || u->sample_spec.rate > PA_RATE_MAX) {
@@ -2849,18 +2816,10 @@ void pa__done(pa_module *m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->sink
-#ifdef NOKIA
-        && !USE_SCO_OVER_PCM(u)
-#endif
-    )
+    if (u->sink && !USE_SCO_OVER_PCM(u))
         pa_sink_unlink(u->sink);
 
-    if (u->source
-#ifdef NOKIA
-        && !USE_SCO_OVER_PCM(u)
-#endif
-    )
+    if (u->source && !USE_SCO_OVER_PCM(u))
         pa_source_unlink(u->source);
 
     stop_thread(u);
