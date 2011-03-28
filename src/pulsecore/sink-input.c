@@ -302,7 +302,8 @@ int pa_sink_input_new(
     pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED), -PA_ERR_INVALID);
 
     r = check_passthrough_connection(pa_sink_input_new_data_is_passthrough(data), data->sink);
-    pa_return_val_if_fail(r == PA_OK, r);
+    if (r != PA_OK)
+        return r;
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->sink->sample_spec;
