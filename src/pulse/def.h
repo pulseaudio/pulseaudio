@@ -912,6 +912,13 @@ typedef void (*pa_free_cb_t)(void *p);
  * information, \since 0.9.15 */
 #define PA_STREAM_EVENT_REQUEST_UNCORK "request-uncork"
 
+/** A stream event notifying that the stream is going to be
+ * disconnected because the underlying sink changed and no longer
+ * supports the format that was originally negotiated. Clients need
+ * to connect a new stream to renegotiate a format and continue
+ * playback, \since 1.0 */
+#define PA_STREAM_EVENT_FORMAT_LOST "format-lost"
+
 PA_C_DECL_END
 
 #endif

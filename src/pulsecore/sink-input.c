@@ -1594,7 +1594,8 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
         return -PA_ERR_NOTSUPPORTED;
 
     if (pa_sink_input_is_passthrough(i) && !pa_sink_check_format(dest, i->format)) {
-        /* FIXME: Fire a message here so the client can renegotiate */
+        pa_log_debug("New sink doesn't support stream format, sending format-changed and killing");
+        pa_sink_input_send_event(i, PA_STREAM_EVENT_FORMAT_LOST, NULL);
         return -PA_ERR_NOTSUPPORTED;
     }
 
