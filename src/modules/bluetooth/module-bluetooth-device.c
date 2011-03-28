@@ -39,6 +39,7 @@
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/shared.h>
 #include <pulsecore/socket-util.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
@@ -1796,14 +1797,21 @@ fail:
 
 /* Run from main thread */
 static void sink_set_volume_cb(pa_sink *s) {
-    struct userdata *u = s->userdata;
     DBusMessage *m;
     dbus_uint16_t gain;
+    struct userdata *u;
+    char *k;
+
+    pa_assert(s);
+    pa_assert(s->core);
+
+    k = pa_sprintf_malloc("bluetooth-device@%p", (void*) s);
+    u = pa_shared_get(s->core, k);
+    pa_xfree(k);
 
     pa_assert(u);
-
-    if (u->profile != PROFILE_HSP)
-        return;
+    pa_assert(u->sink == s);
+    pa_assert(u->profile == PROFILE_HSP);
 
     gain = (pa_cvolume_max(&s->real_volume) * 15) / PA_VOLUME_NORM;
 
@@ -1820,14 +1828,21 @@ static void sink_set_volume_cb(pa_sink *s) {
 
 /* Run from main thread */
 static void source_set_volume_cb(pa_source *s) {
-    struct userdata *u = s->userdata;
     DBusMessage *m;
     dbus_uint16_t gain;
+    struct userdata *u;
+    char *k;
+
+    pa_assert(s);
+    pa_assert(s->core);
+
+    k = pa_sprintf_malloc("bluetooth-device@%p", (void*) s);
+    u = pa_shared_get(s->core, k);
+    pa_xfree(k);
 
     pa_assert(u);
-
-    if (u->profile != PROFILE_HSP)
-        return;
+    pa_assert(u->source == s);
+    pa_assert(u->profile == PROFILE_HSP);
 
     gain = (pa_cvolume_max(&s->volume) * 15) / PA_VOLUME_NORM;
 
@@ -2685,7 +2700,7 @@ int pa__init(pa_module* m) {
     struct userdata *u;
     const char *address, *path;
     DBusError err;
-    char *mike, *speaker, *transport;
+    char *mike, *speaker, *transport, *k;
     const pa_bluetooth_device *device;
 
     pa_assert(m);
@@ -2786,6 +2801,18 @@ int pa__init(pa_module* m) {
     /* Connect to the BT service */
     init_bt(u);
 
+    if (u->hsp.sco_sink) {
+        k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->hsp.sco_sink);
+        pa_shared_set(u->core, k, u);
+        pa_xfree(k);
+    }
+
+    if (u->hsp.sco_source) {
+        k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->hsp.sco_source);
+        pa_shared_set(u->core, k, u);
+        pa_xfree(k);
+    }
+
     if (u->profile != PROFILE_OFF)
         if (init_profile(u) < 0)
             goto fail;
@@ -2818,6 +2845,8 @@ int pa__get_n_used(pa_module *m) {
 
 void pa__done(pa_module *m) {
     struct userdata *u;
+    char *k;
+
     pa_assert(m);
 
     if (!(u = m->userdata))
@@ -2857,6 +2886,18 @@ void pa__done(pa_module *m) {
         pa_smoother_free(u->read_smoother);
 
     shutdown_bt(u);
+
+    if (u->hsp.sco_sink) {
+        k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->hsp.sco_sink);
+        pa_shared_remove(u->core, k);
+        pa_xfree(k);
+    }
+
+    if (u->hsp.sco_source) {
+        k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->hsp.sco_source);
+        pa_shared_remove(u->core, k);
+        pa_xfree(k);
+    }
 
     if (u->a2dp.buffer)
         pa_xfree(u->a2dp.buffer);
