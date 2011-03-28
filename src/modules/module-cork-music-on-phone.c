@@ -138,6 +138,9 @@ static pa_hook_result_t process(struct userdata *u, pa_sink_input *i, pa_bool_t 
         !pa_streq(role, "video"))
         return PA_HOOK_OK;
 
+    if (!i->sink)
+        return PA_HOOK_OK;
+
     cork = shall_cork(i->sink, create ? NULL : i);
     apply_cork(u, i->sink, create ? NULL : i, cork);
 
