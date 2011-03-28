@@ -1871,39 +1871,46 @@ static char *get_name(const char *type, pa_modargs *ma, const char *device_id, p
     return pa_sprintf_malloc("bluez_%s.%s", type, n);
 }
 
-static void sco_over_pcm_state_update(struct userdata *u) {
+static int sco_over_pcm_state_update(struct userdata *u) {
     pa_assert(u);
     pa_assert(USE_SCO_OVER_PCM(u));
 
     if (PA_SINK_IS_OPENED(pa_sink_get_state(u->hsp.sco_sink)) ||
         PA_SOURCE_IS_OPENED(pa_source_get_state(u->hsp.sco_source))) {
 
-        if (u->service_fd >= 0)
-            return;
+        if (u->service_fd >= 0 && u->stream_fd >= 0)
+            return 0;
 
         init_bt(u);
 
         pa_log_debug("Resuming SCO over PCM");
-        if (init_profile(u) < 0)
+        if (init_profile(u) < 0) {
             pa_log("Can't resume SCO over PCM");
+            return -1;
+        }
 
         if (u->transport)
-            bt_transport_acquire(u, TRUE);
+            return bt_transport_acquire(u, TRUE);
         else
-            start_stream_fd(u);
-    } else {
+            return start_stream_fd(u);
 
-        if (u->service_fd < 0)
-            return;
+    } else {
+        if (u->service_fd < 0 && u->stream_fd < 0)
+            return 0;
+
+        pa_log_debug("Closing SCO over PCM");
 
         if (u->transport)
             bt_transport_release(u);
-        else
+        else if (u->stream_fd >= 0)
             stop_stream_fd(u);
 
-        pa_log_debug("Closing SCO over PCM");
-        pa_close(u->service_fd);
-        u->service_fd = -1;
+        if (u->service_fd >= 0) {
+            pa_close(u->service_fd);
+            u->service_fd = -1;
+        }
+
+        return 0;
     }
 }
 
@@ -2356,11 +2363,11 @@ static int start_thread(struct userdata *u) {
     pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
 
     if (USE_SCO_OVER_PCM(u)) {
-        if (u->transport) {
-            if (bt_transport_acquire(u, TRUE) < 0)
-                return -1;
-        } else if (start_stream_fd(u) < 0)
+        if (sco_over_pcm_state_update(u) < 0) {
+            u->sink = NULL;
+            u->source = NULL;
             return -1;
+        }
 
         pa_sink_ref(u->sink);
         pa_source_ref(u->source);
