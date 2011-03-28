@@ -343,8 +343,9 @@ int pa__init(pa_module*m) {
     ports = jack_get_ports(u->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsInput);
 
     channels = 0;
-    for (p = ports; *p; p++)
-        channels++;
+    if (ports)
+        for (p = ports; *p; p++)
+            channels++;
 
     if (!channels)
         channels = m->core->default_sample_spec.channels;
@@ -432,7 +433,7 @@ int pa__init(pa_module*m) {
     if (do_connect) {
         for (i = 0, p = ports; i < ss.channels; i++, p++) {
 
-            if (!*p) {
+            if (!p || !*p) {
                 pa_log("Not enough physical output ports, leaving unconnected.");
                 break;
             }
@@ -448,7 +449,8 @@ int pa__init(pa_module*m) {
 
     pa_sink_put(u->sink);
 
-    free(ports);
+    if (ports)
+        jack_free(ports);
     pa_modargs_free(ma);
 
     return 0;
@@ -457,7 +459,8 @@ fail:
     if (ma)
         pa_modargs_free(ma);
 
-    free(ports);
+    if (ports)
+        jack_free(ports);
 
     pa__done(m);
 
