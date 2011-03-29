@@ -118,7 +118,6 @@ static const char* const valid_modargs[] = {
     "format",
     "rate",
     "channels",
-    "description", /* supported for compatibility reasons, made redundant by sink_properties= */
     NULL
 };
 
@@ -507,7 +506,7 @@ int pa__init(pa_module*m) {
     struct userdata *u = NULL;
     pa_sample_spec ss;
     pa_modargs *ma = NULL;
-    const char *server, *desc;
+    const char *server;
     pa_sink_new_data data;
 
     pa_assert(m);
@@ -577,10 +576,7 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "music");
-    if ((desc = pa_modargs_get_value(ma, "description", NULL)))
-        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, desc);
-    else
-        pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "RAOP sink '%s'", server);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "RAOP sink '%s'", server);
 
     if (pa_modargs_get_proplist(ma, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
         pa_log("Invalid properties");

@@ -195,7 +195,7 @@ static void resolver_cb(
         if (nicename) {
             args = pa_sprintf_malloc("server=%s "
                                      "sink_name=%s "
-                                     "description=\"%s\"",
+                                     "sink_properties=device.description=\"%s\"",
                                      avahi_address_snprint(at, sizeof(at), a),
                                      vname,
                                      nicename);
