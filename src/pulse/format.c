@@ -115,7 +115,7 @@ char *pa_format_info_snprint(char *s, size_t l, const pa_format_info *f) {
     return s;
 }
 
-pa_bool_t pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second) {
+int pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second) {
     const char *key;
     void *state = NULL;
 

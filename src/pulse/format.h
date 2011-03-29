@@ -83,6 +83,15 @@ int pa_format_info_valid(const pa_format_info *f);
 /** Returns non-zero when the format info structure represents a PCM (i.e. uncompressed data) format */
 int pa_format_info_is_pcm(const pa_format_info *f);
 
+/** Returns non-zero if the format represented \a first is a subset of
+ * the format represented by \second. This means that \a second must
+ * have all the fields that \a first does, but the reverse need not
+ * be true. This is typically expected to be used to check if a
+ * stream's format is compatible with a given sink. In such a case,
+ * \a first would be the sink's format and \a second would be the
+ * stream's.*/
+int pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second);
+
 /** Maximum required string length for
  * pa_format_info_snprint(). Please note that this value can change
  * with any release without warning and without being considered API

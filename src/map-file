@@ -163,6 +163,7 @@ pa_ext_stream_restore_test;
 pa_ext_stream_restore_write;
 pa_format_info_copy;
 pa_format_info_free;
+pa_format_info_is_compatible;
 pa_format_info_is_pcm;
 pa_format_info_new;
 pa_format_info_snprint;
