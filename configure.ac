@@ -547,7 +547,7 @@ AC_ARG_ENABLE([x11],
         [x11=auto])
 
 if test "x${x11}" != xno ; then
-    PKG_CHECK_MODULES(X11, [ x11-xcb ice sm xtst xcb-atom ],
+    PKG_CHECK_MODULES(X11, [ x11-xcb xcb >= 1.6 ice sm xtst ],
         HAVE_X11=1,
         [
             HAVE_X11=0
