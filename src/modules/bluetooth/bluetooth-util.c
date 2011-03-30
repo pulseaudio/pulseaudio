@@ -29,6 +29,7 @@
 
 #include "bluetooth-util.h"
 #include "ipc.h"
+#include "a2dp-codecs.h"
 
 #define HFP_AG_ENDPOINT "/MediaEndpoint/HFPAG"
 #define A2DP_SOURCE_ENDPOINT "/MediaEndpoint/A2DPSource"
@@ -57,9 +58,6 @@
     "  </method>"                                                       \
     " </interface>"                                                     \
     "</node>"
-
-#define MAX_BITPOOL 64
-#define MIN_BITPOOL 2U
 
 struct pa_bluetooth_discovery {
     PA_REFCNT_DECLARE;
@@ -636,7 +634,7 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
         uint8_t *caps = &capability;
         pa_dbus_append_basic_array_variant_dict_entry(&d, "Capabilities", DBUS_TYPE_BYTE, &caps, 1);
     } else {
-        sbc_capabilities_raw_t capabilities;
+        a2dp_sbc_t capabilities;
         uint8_t *caps = (uint8_t *) &capabilities;
 
         capabilities.channel_mode = BT_A2DP_CHANNEL_MODE_MONO | BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL |
@@ -1277,7 +1275,7 @@ static uint8_t a2dp_default_bitpool(uint8_t freq, uint8_t mode) {
 
 static DBusMessage *endpoint_select_configuration(DBusConnection *c, DBusMessage *m, void *userdata) {
     pa_bluetooth_discovery *y = userdata;
-    sbc_capabilities_raw_t *cap, config;
+    a2dp_sbc_t *cap, config;
     uint8_t *pconf = (uint8_t *) &config;
     int i, size;
     DBusMessage *r;

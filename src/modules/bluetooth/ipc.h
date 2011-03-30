@@ -202,34 +202,6 @@ typedef struct {
 	uint8_t max_bitpool;
 } __attribute__ ((packed)) sbc_capabilities_t;
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-
-typedef struct {
-	uint8_t channel_mode:4;
-	uint8_t frequency:4;
-	uint8_t allocation_method:2;
-	uint8_t subbands:2;
-	uint8_t block_length:4;
-	uint8_t min_bitpool;
-	uint8_t max_bitpool;
-} __attribute__ ((packed)) sbc_capabilities_raw_t;
-
-#elif __BYTE_ORDER == __BIG_ENDIAN
-
-typedef struct {
-	uint8_t frequency:4;
-	uint8_t channel_mode:4;
-	uint8_t block_length:4;
-	uint8_t subbands:2;
-	uint8_t allocation_method:2;
-	uint8_t min_bitpool;
-	uint8_t max_bitpool;
-} __attribute__ ((packed)) sbc_capabilities_raw_t;
-
-#else
-#error "Unknown byte order"
-#endif
-
 typedef struct {
 	codec_capabilities_t capability;
 	uint8_t channel_mode;

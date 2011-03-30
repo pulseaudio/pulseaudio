@@ -52,11 +52,9 @@
 #include "module-bluetooth-device-symdef.h"
 #include "ipc.h"
 #include "sbc.h"
+#include "a2dp-codecs.h"
 #include "rtp.h"
 #include "bluetooth-util.h"
-
-#define MAX_BITPOOL 64
-#define MIN_BITPOOL 2U
 
 #define BITPOOL_DEC_LIMIT 32
 #define BITPOOL_DEC_STEP 5
@@ -2112,12 +2110,12 @@ static void shutdown_bt(struct userdata *u) {
 static int bt_transport_config_a2dp(struct userdata *u) {
     const pa_bluetooth_transport *t;
     struct a2dp_info *a2dp = &u->a2dp;
-    sbc_capabilities_raw_t *config;
+    a2dp_sbc_t *config;
 
     t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
     pa_assert(t);
 
-    config = (sbc_capabilities_raw_t *) t->config;
+    config = (a2dp_sbc_t *) t->config;
 
     if (a2dp->sbc_initialized)
         sbc_reinit(&a2dp->sbc, 0);
