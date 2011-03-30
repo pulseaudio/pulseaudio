@@ -373,7 +373,7 @@ namespace PulseAudio {
                 public unowned CVolume? dec(Volume minus = 1);
         }
 
-        [CCode (cname="pa_channel_map")]
+        [CCode (cname="pa_channel_map",has_destroy_function=false)]
         public struct ChannelMap {
                 public uint8 channels;
                 public ChannelPosition map[];
