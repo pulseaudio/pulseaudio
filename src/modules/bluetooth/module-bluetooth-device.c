@@ -1959,6 +1959,8 @@ static pa_hook_result_t source_state_changed_cb(pa_core *c, pa_source *s, struct
 
 /* Run from main thread */
 static int add_sink(struct userdata *u) {
+    char *k;
+
     if (USE_SCO_OVER_PCM(u)) {
         pa_proplist *p;
 
@@ -2012,6 +2014,10 @@ static int add_sink(struct userdata *u) {
     if (u->profile == PROFILE_HSP) {
         u->sink->set_volume = sink_set_volume_cb;
         u->sink->n_volume_steps = 16;
+
+        k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->sink);
+        pa_shared_set(u->core, k, u);
+        pa_xfree(k);
     }
 
     return 0;
@@ -2019,6 +2025,8 @@ static int add_sink(struct userdata *u) {
 
 /* Run from main thread */
 static int add_source(struct userdata *u) {
+    char *k;
+
     if (USE_SCO_OVER_PCM(u)) {
         u->source = u->hsp.sco_source;
         pa_proplist_sets(u->source->proplist, "bluetooth.protocol", "hsp");
@@ -2077,6 +2085,10 @@ static int add_source(struct userdata *u) {
     if (u->profile == PROFILE_HSP) {
         u->source->set_volume = source_set_volume_cb;
         u->source->n_volume_steps = 16;
+
+        k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->source);
+        pa_shared_set(u->core, k, u);
+        pa_xfree(k);
     }
 
     return 0;
@@ -2323,6 +2335,8 @@ static int init_profile(struct userdata *u) {
 
 /* Run from main thread */
 static void stop_thread(struct userdata *u) {
+    char *k;
+
     pa_assert(u);
 
     if (u->thread) {
@@ -2347,11 +2361,23 @@ static void stop_thread(struct userdata *u) {
     }
 
     if (u->sink) {
+        if (u->profile == PROFILE_HSP) {
+            k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->sink);
+            pa_shared_remove(u->core, k);
+            pa_xfree(k);
+        }
+
         pa_sink_unref(u->sink);
         u->sink = NULL;
     }
 
     if (u->source) {
+        if (u->profile == PROFILE_HSP) {
+            k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->source);
+            pa_shared_remove(u->core, k);
+            pa_xfree(k);
+        }
+
         pa_source_unref(u->source);
         u->source = NULL;
     }
@@ -2381,8 +2407,20 @@ static int start_thread(struct userdata *u) {
 
     if (USE_SCO_OVER_PCM(u)) {
         if (sco_over_pcm_state_update(u) < 0) {
-            u->sink = NULL;
-            u->source = NULL;
+            char *k;
+
+            if (u->sink) {
+                k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->sink);
+                pa_shared_remove(u->core, k);
+                pa_xfree(k);
+                u->sink = NULL;
+            }
+            if (u->source) {
+                k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->source);
+                pa_shared_remove(u->core, k);
+                pa_xfree(k);
+                u->source = NULL;
+            }
             return -1;
         }
 
@@ -2417,6 +2455,22 @@ static int start_thread(struct userdata *u) {
     }
 
     return 0;
+}
+
+static void save_sco_volume_callbacks(struct userdata *u) {
+    pa_assert(u);
+    pa_assert(USE_SCO_OVER_PCM(u));
+
+    u->hsp.sco_sink_set_volume = u->hsp.sco_sink->set_volume;
+    u->hsp.sco_source_set_volume = u->hsp.sco_source->set_volume;
+}
+
+static void restore_sco_volume_callbacks(struct userdata *u) {
+    pa_assert(u);
+    pa_assert(USE_SCO_OVER_PCM(u));
+
+    u->hsp.sco_sink->set_volume = u->hsp.sco_sink_set_volume;
+    u->hsp.sco_source->set_volume = u->hsp.sco_source_set_volume;
 }
 
 /* Run from main thread */
@@ -2472,8 +2526,14 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     stop_thread(u);
     shutdown_bt(u);
 
+    if (USE_SCO_OVER_PCM(u))
+        restore_sco_volume_callbacks(u);
+
     u->profile = *d;
     u->sample_spec = u->requested_sample_spec;
+
+    if (USE_SCO_OVER_PCM(u))
+        save_sco_volume_callbacks(u);
 
     init_bt(u);
 
@@ -2639,6 +2699,9 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
     d = PA_CARD_PROFILE_DATA(u->card->active_profile);
     u->profile = *d;
 
+    if (USE_SCO_OVER_PCM(u))
+        save_sco_volume_callbacks(u);
+
     return 0;
 }
 
@@ -2702,7 +2765,7 @@ int pa__init(pa_module* m) {
     struct userdata *u;
     const char *address, *path;
     DBusError err;
-    char *mike, *speaker, *transport, *k;
+    char *mike, *speaker, *transport;
     const pa_bluetooth_device *device;
 
     pa_assert(m);
@@ -2803,20 +2866,6 @@ int pa__init(pa_module* m) {
     /* Connect to the BT service */
     init_bt(u);
 
-    if (u->hsp.sco_sink) {
-        u->hsp.sco_sink_set_volume = u->hsp.sco_sink->set_volume;
-        k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->hsp.sco_sink);
-        pa_shared_set(u->core, k, u);
-        pa_xfree(k);
-    }
-
-    if (u->hsp.sco_source) {
-        u->hsp.sco_source_set_volume = u->hsp.sco_source->set_volume;
-        k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->hsp.sco_source);
-        pa_shared_set(u->core, k, u);
-        pa_xfree(k);
-    }
-
     if (u->profile != PROFILE_OFF)
         if (init_profile(u) < 0)
             goto fail;
@@ -2849,7 +2898,6 @@ int pa__get_n_used(pa_module *m) {
 
 void pa__done(pa_module *m) {
     struct userdata *u;
-    char *k;
 
     pa_assert(m);
 
@@ -2863,6 +2911,9 @@ void pa__done(pa_module *m) {
         pa_source_unlink(u->source);
 
     stop_thread(u);
+
+    if (USE_SCO_OVER_PCM(u))
+        restore_sco_volume_callbacks(u);
 
     if (u->connection) {
 
@@ -2890,20 +2941,6 @@ void pa__done(pa_module *m) {
         pa_smoother_free(u->read_smoother);
 
     shutdown_bt(u);
-
-    if (u->hsp.sco_sink) {
-        u->hsp.sco_sink->set_volume = u->hsp.sco_sink_set_volume;
-        k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->hsp.sco_sink);
-        pa_shared_remove(u->core, k);
-        pa_xfree(k);
-    }
-
-    if (u->hsp.sco_source) {
-        u->hsp.sco_source->set_volume = u->hsp.sco_source_set_volume;
-        k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->hsp.sco_source);
-        pa_shared_remove(u->core, k);
-        pa_xfree(k);
-    }
 
     if (u->a2dp.buffer)
         pa_xfree(u->a2dp.buffer);
