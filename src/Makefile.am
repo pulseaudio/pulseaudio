@@ -240,7 +240,7 @@ pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 #         Test programs           #
 ###################################
 
-# missing: mcalign-test flist-test pacat-simple parec-simple sync-playback rtstutter stripnul interpol-test thread-test
+# missing: mcalign-test flist-test pacat-simple parec-simple sync-playback rtstutter stripnul interpol-test thread-test connect-stress
 
 TESTS = \
 		mainloop-test \
@@ -303,7 +303,8 @@ TESTS_BINARIES = \
 		rtstutter \
 		stripnul \
 		lock-autospawn-test \
-		prioq-test
+		prioq-test \
+		connect-stress
 
 if !OS_IS_WIN32
 TESTS += \
@@ -562,6 +563,12 @@ usergroup_test_SOURCES = tests/usergroup-test.c
 usergroup_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 usergroup_test_CFLAGS = $(AM_CFLAGS)
 usergroup_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+connect_stress_SOURCES = tests/connect-stress.c
+connect_stress_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+connect_stress_CFLAGS = $(AM_CFLAGS)
+connect_stress_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
 
 ###################################
 #         Common library          #
