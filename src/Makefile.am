@@ -1051,7 +1051,8 @@ modlibexec_LTLIBRARIES += \
 		module-cork-music-on-phone.la \
 		module-loopback.la \
 		module-virtual-sink.la \
-		module-virtual-source.la
+		module-virtual-source.la \
+		module-switch-on-connect.la
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -1338,7 +1339,8 @@ SYMDEF_FILES = \
 		module-dbus-protocol-symdef.h \
 		module-loopback-symdef.h \
 		module-virtual-sink-symdef.h \
-		module-virtual-source-symdef.h
+		module-virtual-source-symdef.h \
+		module-switch-on-connect-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES) builddirs
@@ -1479,6 +1481,10 @@ module_sine_source_la_LIBADD = $(MODULE_LIBADD)
 module_combine_la_SOURCES = modules/module-combine.c
 module_combine_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_combine_la_LIBADD = $(MODULE_LIBADD)
+
+module_switch_on_connect_la_SOURCES = modules/module-switch-on-connect.c
+module_switch_on_connect_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_switch_on_connect_la_LIBADD = $(MODULE_LIBADD)
 
 module_remap_sink_la_SOURCES = modules/module-remap-sink.c
 module_remap_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
