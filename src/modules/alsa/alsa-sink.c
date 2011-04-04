@@ -1724,10 +1724,7 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB, pa_bool_t sync_v
             u->sink->base_volume = pa_sw_volume_from_dB(-u->mixer_path->max_dB);
             u->sink->n_volume_steps = PA_VOLUME_NORM+1;
 
-            if (u->mixer_path->max_dB > 0.0)
-                pa_log_info("Fixing base volume to %0.2f dB", pa_sw_volume_to_dB(u->sink->base_volume));
-            else
-                pa_log_info("No particular base volume set, fixing to 0 dB");
+            pa_log_info("Fixing base volume to %0.2f dB", pa_sw_volume_to_dB(u->sink->base_volume));
 
         } else {
             pa_log_info("Hardware volume ranges from %li to %li.", u->mixer_path->min_volume, u->mixer_path->max_volume);
