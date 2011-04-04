@@ -59,6 +59,7 @@
 
 #define BITPOOL_DEC_LIMIT 32
 #define BITPOOL_DEC_STEP 5
+#define HSP_MAX_GAIN 15
 
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Bluetooth audio sink and source");
@@ -1753,20 +1754,30 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
         dbus_uint16_t gain;
         pa_cvolume v;
 
-        if (!dbus_message_get_args(m, &err, DBUS_TYPE_UINT16, &gain, DBUS_TYPE_INVALID) || gain > 15) {
+        if (!dbus_message_get_args(m, &err, DBUS_TYPE_UINT16, &gain, DBUS_TYPE_INVALID) || gain > HSP_MAX_GAIN) {
             pa_log("Failed to parse org.bluez.Headset.{Speaker|Microphone}GainChanged: %s", err.message);
             goto fail;
         }
 
         if (u->profile == PROFILE_HSP) {
             if (u->sink && dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged")) {
+                pa_volume_t volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
 
-                pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+                /* increment volume by one to correct rounding errors */
+                if (volume < PA_VOLUME_NORM)
+                    volume++;
+
+                pa_cvolume_set(&v, u->sample_spec.channels, volume);
                 pa_sink_volume_changed(u->sink, &v);
 
             } else if (u->source && dbus_message_is_signal(m, "org.bluez.Headset", "MicrophoneGainChanged")) {
+                pa_volume_t volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
 
-                pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+                /* increment volume by one to correct rounding errors */
+                if (volume < PA_VOLUME_NORM)
+                    volume++;
+
+                pa_cvolume_set(&v, u->sample_spec.channels, volume);
                 pa_source_volume_changed(u->source, &v);
             }
         }
@@ -1804,6 +1815,7 @@ fail:
 static void sink_set_volume_cb(pa_sink *s) {
     DBusMessage *m;
     dbus_uint16_t gain;
+    pa_volume_t volume;
     struct userdata *u;
     char *k;
 
@@ -1818,12 +1830,18 @@ static void sink_set_volume_cb(pa_sink *s) {
     pa_assert(u->sink == s);
     pa_assert(u->profile == PROFILE_HSP);
 
-    gain = (pa_cvolume_max(&s->real_volume) * 15) / PA_VOLUME_NORM;
+    gain = (pa_cvolume_max(&s->real_volume) * HSP_MAX_GAIN) / PA_VOLUME_NORM;
 
-    if (gain > 15)
-        gain = 15;
+    if (gain > HSP_MAX_GAIN)
+        gain = HSP_MAX_GAIN;
 
-    pa_cvolume_set(&s->real_volume, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+    volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
+
+    /* increment volume by one to correct rounding errors */
+    if (volume < PA_VOLUME_NORM)
+        volume++;
+
+    pa_cvolume_set(&s->real_volume, u->sample_spec.channels, volume);
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->path, "org.bluez.Headset", "SetSpeakerGain"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_UINT16, &gain, DBUS_TYPE_INVALID));
@@ -1835,6 +1853,7 @@ static void sink_set_volume_cb(pa_sink *s) {
 static void source_set_volume_cb(pa_source *s) {
     DBusMessage *m;
     dbus_uint16_t gain;
+    pa_volume_t volume;
     struct userdata *u;
     char *k;
 
@@ -1849,12 +1868,18 @@ static void source_set_volume_cb(pa_source *s) {
     pa_assert(u->source == s);
     pa_assert(u->profile == PROFILE_HSP);
 
-    gain = (pa_cvolume_max(&s->volume) * 15) / PA_VOLUME_NORM;
+    gain = (pa_cvolume_max(&s->volume) * HSP_MAX_GAIN) / PA_VOLUME_NORM;
 
-    if (gain > 15)
-        gain = 15;
+    if (gain > HSP_MAX_GAIN)
+        gain = HSP_MAX_GAIN;
 
-    pa_cvolume_set(&s->volume, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+    volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
+
+    /* increment volume by one to correct rounding errors */
+    if (volume < PA_VOLUME_NORM)
+        volume++;
+
+    pa_cvolume_set(&s->volume, u->sample_spec.channels, volume);
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->path, "org.bluez.Headset", "SetMicrophoneGain"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_UINT16, &gain, DBUS_TYPE_INVALID));
