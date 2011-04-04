@@ -1671,17 +1671,20 @@ static void thread_func(void *userdata) {
                     writable = FALSE;
                 }
 
-                if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && do_write <= 0 && writable) {
-                    pa_usec_t time_passed, next_write_at, sleep_for;
+                if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && do_write <= 0) {
+                    pa_usec_t sleep_for;
+                    pa_usec_t time_passed, next_write_at;
 
-                    /* Hmm, there is no input stream we could synchronize
-                     * to. So let's estimate when we need to wake up the latest */
-
-                    time_passed = pa_rtclock_now() - u->started_at;
-                    next_write_at = pa_bytes_to_usec(u->write_index, &u->sample_spec);
-                    sleep_for = time_passed < next_write_at ? next_write_at - time_passed : 0;
-
-/*                 pa_log("Sleeping for %lu; time passed %lu, next write at %lu", (unsigned long) sleep_for, (unsigned long) time_passed, (unsigned long)next_write_at); */
+                    if (writable) {
+                        /* Hmm, there is no input stream we could synchronize
+                         * to. So let's estimate when we need to wake up the latest */
+                        time_passed = pa_rtclock_now() - u->started_at;
+                        next_write_at = pa_bytes_to_usec(u->write_index, &u->sample_spec);
+                        sleep_for = time_passed < next_write_at ? next_write_at - time_passed : 0;
+                        /* pa_log("Sleeping for %lu; time passed %lu, next write at %lu", (unsigned long) sleep_for, (unsigned long) time_passed, (unsigned long)next_write_at); */
+                    } else
+                        /* drop stream every 500 ms */
+                        sleep_for = PA_USEC_PER_MSEC * 500;
 
                     pa_rtpoll_set_timer_relative(u->rtpoll, sleep_for);
                     disable_timer = FALSE;
