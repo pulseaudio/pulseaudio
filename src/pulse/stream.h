@@ -266,7 +266,7 @@
  * pa_stream_get_time() and pa_stream_get_latency() will try to
  * interpolate the current playback time/latency by estimating the
  * number of samples that have been played back by the hardware since
- * the last regular timing update. It is espcially useful to combine
+ * the last regular timing update. It is especially useful to combine
  * this option with PA_STREAM_AUTO_TIMING_UPDATE, which will enable
  * you to monitor the current playback time/latency very precisely and
  * very frequently without requiring a network round trip every time.
