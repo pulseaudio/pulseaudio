@@ -41,7 +41,12 @@ PA_MODULE_AUTHOR("Daniel Mack");
 PA_MODULE_DESCRIPTION("CoreAudio device detection");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
-PA_MODULE_USAGE("");
+PA_MODULE_USAGE("ioproc_frames=<passed on to module-coreaudio-device> ");
+
+static const char* const valid_modargs[] = {
+    "ioproc_frames",
+    NULL
+};
 
 typedef struct ca_device ca_device;
 
@@ -54,7 +59,7 @@ struct ca_device {
 struct userdata {
     int detect_fds[2];
     pa_io_event *detect_io;
-
+    unsigned int ioproc_frames;
     PA_LLIST_HEAD(ca_device, devices);
 };
 
@@ -83,7 +88,11 @@ static int ca_device_added(struct pa_module *m, AudioObjectID id) {
     if (!err && strcmp(tmp, "pulseaudio.org") == 0)
         return 0;
 
-    args = pa_sprintf_malloc("object_id=%d", (int) id);
+    if (u->ioproc_frames)
+        args = pa_sprintf_malloc("object_id=%d ioproc_frames=%d", (int) id, u->ioproc_frames);
+    else
+        args = pa_sprintf_malloc("object_id=%d", (int) id);
+
     pa_log_debug("Loading %s with arguments '%s'", DEVICE_MODULE_NAME, args);
     mod = pa_module_load(m->core, DEVICE_MODULE_NAME, args);
     pa_xfree(args);
@@ -203,10 +212,18 @@ static void detect_handle(pa_mainloop_api *a, pa_io_event *e, int fd, pa_io_even
 int pa__init(pa_module *m) {
     struct userdata *u = pa_xnew0(struct userdata, 1);
     AudioObjectPropertyAddress property_address;
+    pa_modargs *ma;
 
     pa_assert(m);
 
     m->userdata = u;
+
+    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
+        pa_log("Failed to parse module arguments.");
+        goto fail;
+    }
+
+    pa_modargs_get_value_u32(ma, "ioproc_frames", &u->ioproc_frames);
 
     property_address.mSelector = kAudioHardwarePropertyDevices;
     property_address.mScope = kAudioObjectPropertyScopeGlobal;
