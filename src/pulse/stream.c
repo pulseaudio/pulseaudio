@@ -389,12 +389,18 @@ static void request_auto_timing_update(pa_stream *s, pa_bool_t force) {
     }
 
     if (s->auto_timing_update_event) {
-        if (force)
-            s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
+        if (s->suspended && !force) {
+            pa_assert(s->mainloop);
+            s->mainloop->time_free(s->auto_timing_update_event);
+            s->auto_timing_update_event = NULL;
+        } else {
+            if (force)
+                s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
 
-        pa_context_rttime_restart(s->context, s->auto_timing_update_event, pa_rtclock_now() + s->auto_timing_interval_usec);
+            pa_context_rttime_restart(s->context, s->auto_timing_update_event, pa_rtclock_now() + s->auto_timing_interval_usec);
 
-        s->auto_timing_interval_usec = PA_MIN(AUTO_TIMING_INTERVAL_END_USEC, s->auto_timing_interval_usec*2);
+            s->auto_timing_interval_usec = PA_MIN(AUTO_TIMING_INTERVAL_END_USEC, s->auto_timing_interval_usec*2);
+        }
     }
 }
 
@@ -474,6 +480,8 @@ static void check_smoother_status(pa_stream *s, pa_bool_t aposteriori, pa_bool_t
     /* Please note that we have no idea if playback actually started
      * if prebuf is non-zero! */
 }
+
+static void auto_timing_update_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata);
 
 void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
@@ -561,6 +569,12 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
     s->device_index = di;
 
     s->suspended = suspended;
+
+    if ((s->flags & PA_STREAM_AUTO_TIMING_UPDATE) && !suspended && !s->auto_timing_update_event) {
+        s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
+        s->auto_timing_update_event = pa_context_rttime_new(s->context, pa_rtclock_now() + s->auto_timing_interval_usec, &auto_timing_update_callback, s);
+        request_auto_timing_update(s, TRUE);
+    }
 
     check_smoother_status(s, TRUE, FALSE, FALSE);
     request_auto_timing_update(s, TRUE);
@@ -679,6 +693,12 @@ void pa_command_stream_suspended(pa_pdispatch *pd, uint32_t command, uint32_t ta
         goto finish;
 
     s->suspended = suspended;
+
+    if ((s->flags & PA_STREAM_AUTO_TIMING_UPDATE) && !suspended && !s->auto_timing_update_event) {
+        s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
+        s->auto_timing_update_event = pa_context_rttime_new(s->context, pa_rtclock_now() + s->auto_timing_interval_usec, &auto_timing_update_callback, s);
+        request_auto_timing_update(s, TRUE);
+    }
 
     check_smoother_status(s, TRUE, FALSE, FALSE);
     request_auto_timing_update(s, TRUE);
