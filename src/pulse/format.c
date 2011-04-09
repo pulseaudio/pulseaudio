@@ -203,5 +203,8 @@ pa_bool_t pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *
     pa_return_val_if_fail(r = pa_proplist_gets(f->plist, PA_PROP_FORMAT_RATE), FALSE);
     pa_return_val_if_fail(pa_atou(r, &ss->rate) == 0, FALSE);
 
+    if (f->encoding == PA_ENCODING_EAC3_IEC61937)
+        ss->rate *= 4;
+
     return TRUE;
 }
