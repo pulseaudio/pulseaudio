@@ -1594,8 +1594,12 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
         return -PA_ERR_NOTSUPPORTED;
 
     if (pa_sink_input_is_passthrough(i) && !pa_sink_check_format(dest, i->format)) {
+        pa_proplist *p = pa_proplist_new();
         pa_log_debug("New sink doesn't support stream format, sending format-changed and killing");
-        pa_sink_input_send_event(i, PA_STREAM_EVENT_FORMAT_LOST, NULL);
+        /* Tell the client what device we want to be on if it is going to
+         * reconnect */
+        pa_proplist_sets(p, "device", dest->name);
+        pa_sink_input_send_event(i, PA_STREAM_EVENT_FORMAT_LOST, p);
         return -PA_ERR_NOTSUPPORTED;
     }
 

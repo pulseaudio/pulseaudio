@@ -766,6 +766,14 @@ void pa_command_stream_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
     if (s->state != PA_STREAM_READY)
         goto finish;
 
+    if (pa_streq(event, PA_STREAM_EVENT_FORMAT_LOST)) {
+        /* Let client know what the running time was when the stream had to be
+         * killed  */
+        pa_usec_t time;
+        if (pa_stream_get_time(s, &time) == 0)
+            pa_proplist_setf(pl, "stream-time", "%llu", (unsigned long long) time);
+    }
+
     if (s->event_callback)
         s->event_callback(s, event, pl, s->event_userdata);
 
