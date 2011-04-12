@@ -1168,7 +1168,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             created_new_entry = FALSE;
         }
 
-        if (sink_input->save_volume) {
+        if (sink_input->save_volume && pa_sink_input_is_volume_readable(sink_input)) {
             pa_assert(sink_input->volume_writable);
 
             entry.channel_map = sink_input->channel_map;
