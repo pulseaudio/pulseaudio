@@ -40,6 +40,7 @@
 #endif
 
 #include <errno.h>
+#include <fcntl.h>
 
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
@@ -111,12 +112,17 @@ int pa_poll (struct pollfd *fds, unsigned long int nfds, int timeout) {
 
     if ((ready == -1) && (errno == EBADF)) {
         ready = 0;
+        maxfd = -1;
+
+#ifdef OS_IS_WIN32
+        /*
+         * Windows has no fcntl(), so we have to trick around with more
+         * select() calls to find out what went wrong
+         */
 
         FD_ZERO (&rset);
         FD_ZERO (&wset);
         FD_ZERO (&xset);
-
-        maxfd = -1;
 
         for (f = fds; f < &fds[nfds]; ++f) {
             if (f->fd != -1) {
@@ -155,6 +161,25 @@ int pa_poll (struct pollfd *fds, unsigned long int nfds, int timeout) {
                 }
             }
         }
+
+#else /* !OS_IS_WIN32 */
+
+        for (f = fds; f < &fds[nfds]; f++)
+            if (f->fd != -1) {
+                /* use fcntl() to find out whether the descriptor is valid */
+                if (fcntl(f->fd, F_GETFL) != -1) {
+                    if (f->fd > maxfd && (f->events & (POLLIN|POLLOUT|POLLPRI))) {
+                        maxfd = f->fd;
+                        ready++;
+                    }
+                } else {
+                    FD_CLR(f->fd, &rset);
+                    FD_CLR(f->fd, &wset);
+                    FD_CLR(f->fd, &xset);
+                }
+            }
+
+#endif
 
         if (ready) {
         /* Linux alters the tv struct... but it shouldn't matter here ...
