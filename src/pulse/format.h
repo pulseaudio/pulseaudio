@@ -102,6 +102,17 @@ int pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second);
 /** Return a human-readable string representing the given format. \since 1.0 */
 char *pa_format_info_snprint(char *s, size_t l, const pa_format_info *f);
 
+/** Sets an integer property on the given format info */
+void pa_format_info_set_prop_int(pa_format_info *f, const char *key, int value);
+/** Sets a property with a list of integer values on the given format info */
+void pa_format_info_set_prop_int_array(pa_format_info *f, const char *key, const int *values, int n_values);
+/** Sets a property which can have any value in a given integer range on the given format info */
+void pa_format_info_set_prop_int_range(pa_format_info *f, const char *key, int min, int max);
+/** Sets a string property on the given format info */
+void pa_format_info_set_prop_string(pa_format_info *f, const char *key, const char *value);
+/** Sets a property with a list of string values on the given format info */
+void pa_format_info_set_prop_string_array(pa_format_info *f, const char *key, const char **values, int n_values);
+
 PA_C_DECL_END
 
 #endif

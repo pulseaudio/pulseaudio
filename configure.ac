@@ -603,6 +603,12 @@ fi
 
 AC_CHECK_HEADERS_ONCE([valgrind/memcheck.h])
 
+#### json parsing ####
+
+PKG_CHECK_MODULES(LIBJSON, [ json >= 0.9 ])
+AC_SUBST(LIBJSON_CFLAGS)
+AC_SUBST(LIBJSON_LIBS)
+
 #### Sound file ####
 
 PKG_CHECK_MODULES(LIBSNDFILE, [ sndfile >= 1.0.20 ])

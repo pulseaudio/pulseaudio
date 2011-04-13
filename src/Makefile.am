@@ -252,6 +252,7 @@ TESTS = \
 		channelmap-test \
 		thread-mainloop-test \
 		utf8-test \
+		format-test \
 		get-binary-name-test \
 		ipacl-test \
 		hook-list-test \
@@ -285,6 +286,7 @@ TESTS_BINARIES = \
 		channelmap-test \
 		thread-mainloop-test \
 		utf8-test \
+		format-test \
 		get-binary-name-test \
 		ipacl-test \
 		hook-list-test \
@@ -369,6 +371,11 @@ utf8_test_SOURCES = tests/utf8-test.c
 utf8_test_CFLAGS = $(AM_CFLAGS)
 utf8_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 utf8_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+format_test_SOURCES = tests/format-test.c
+format_test_CFLAGS = $(AM_CFLAGS)
+format_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+format_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 get_binary_name_test_SOURCES = tests/get-binary-name-test.c
 get_binary_name_test_CFLAGS = $(AM_CFLAGS)
@@ -652,9 +659,9 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/sndfile-util.c pulsecore/sndfile-util.h \
 		pulsecore/socket.h
 
-libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
+libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS) $(LIBJSON_CFLAGS)
 libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
-libpulsecommon_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS)
+libpulsecommon_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LIBJSON_LIBS)
 
 if HAVE_X11
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += pulse/client-conf-x11.c pulse/client-conf-x11.h
