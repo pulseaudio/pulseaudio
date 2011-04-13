@@ -26,6 +26,8 @@
 
 #include <pulse/cdecl.h>
 #include <pulse/proplist.h>
+#include <pulse/sample.h>
+#include <pulse/channelmap.h>
 
 PA_C_DECL_BEGIN
 
@@ -112,6 +114,15 @@ void pa_format_info_set_prop_int_range(pa_format_info *f, const char *key, int m
 void pa_format_info_set_prop_string(pa_format_info *f, const char *key, const char *value);
 /** Sets a property with a list of string values on the given format info */
 void pa_format_info_set_prop_string_array(pa_format_info *f, const char *key, const char **values, int n_values);
+
+/** Convenience method to set the sample format as a property on the given format */
+void pa_format_info_set_sample_format(pa_format_info *f, pa_sample_format_t sf);
+/** Convenience method to set the sampling rate as a property on the given format */
+void pa_format_info_set_rate(pa_format_info *f, int rate);
+/** Convenience method to set the number of channels as a property on the given format */
+void pa_format_info_set_channels(pa_format_info *f, int channels);
+/** Convenience method to set the channel map as a property on the given format */
+void pa_format_info_set_channel_map(pa_format_info *f, const pa_channel_map *map);
 
 PA_C_DECL_END
 
