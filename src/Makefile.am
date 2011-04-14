@@ -1052,7 +1052,8 @@ modlibexec_LTLIBRARIES += \
 		module-loopback.la \
 		module-virtual-sink.la \
 		module-virtual-source.la \
-		module-switch-on-connect.la
+		module-switch-on-connect.la \
+		module-filter-apply.la
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -1340,7 +1341,8 @@ SYMDEF_FILES = \
 		module-loopback-symdef.h \
 		module-virtual-sink-symdef.h \
 		module-virtual-source-symdef.h \
-		module-switch-on-connect-symdef.h
+		module-switch-on-connect-symdef.h \
+		module-filter-apply-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES) builddirs
@@ -1485,6 +1487,10 @@ module_combine_la_LIBADD = $(MODULE_LIBADD)
 module_switch_on_connect_la_SOURCES = modules/module-switch-on-connect.c
 module_switch_on_connect_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_switch_on_connect_la_LIBADD = $(MODULE_LIBADD)
+
+module_filter_apply_la_SOURCES = modules/module-filter-apply.c
+module_filter_apply_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_filter_apply_la_LIBADD = $(MODULE_LIBADD)
 
 module_remap_sink_la_SOURCES = modules/module-remap-sink.c
 module_remap_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
