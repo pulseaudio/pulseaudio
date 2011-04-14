@@ -79,7 +79,7 @@ PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         _("sink_name=<name of the sink> "
           "sink_properties=<properties for the sink> "
-          "master=<sink to connect to> "
+          "sink_master=<sink to connect to> "
           "format=<sample format> "
           "rate=<sample rate> "
           "channels=<number of channels> "
@@ -133,7 +133,7 @@ struct userdata {
 static const char* const valid_modargs[] = {
     "sink_name",
     "sink_properties",
-    "master",
+    "sink_master",
     "format",
     "rate",
     "channels",
@@ -1088,7 +1088,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (!(master = pa_namereg_get(m->core, pa_modargs_get_value(ma, "master", NULL), PA_NAMEREG_SINK))) {
+    if (!(master = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sink_master", NULL), PA_NAMEREG_SINK))) {
         pa_log("Master sink not found");
         goto fail;
     }
