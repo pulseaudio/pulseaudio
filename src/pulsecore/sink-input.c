@@ -1020,7 +1020,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
     pa_assert(volume->channels == 1 || pa_cvolume_compatible(volume, &i->sample_spec));
     pa_assert(i->volume_writable);
 
-    if ((i->sink->flags & PA_SINK_FLAT_VOLUME) && !absolute) {
+    if (!absolute && pa_sink_flat_volume_enabled(i->sink)) {
         v = i->sink->reference_volume;
         pa_cvolume_remap(&v, &i->sink->channel_map, &i->channel_map);
 
@@ -1043,7 +1043,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
     i->volume = *volume;
     i->save_volume = save;
 
-    if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
+    if (pa_sink_flat_volume_enabled(i->sink)) {
         /* We are in flat volume mode, so let's update all sink input
          * volumes and update the flat volume of the sink */
 
