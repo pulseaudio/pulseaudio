@@ -49,6 +49,11 @@
 #include <sys/prctl.h>
 #endif
 
+#ifdef OS_IS_DARWIN
+#include <libgen.h>
+#include <sys/sysctl.h>
+#endif
+
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 
@@ -220,6 +225,27 @@ char *pa_get_binary_name(char *s, size_t l) {
 
     }
 #endif
+
+#ifdef OS_IS_DARWIN
+    {
+        int mib[] = { CTL_KERN, KERN_PROCARGS, getpid(), 0 };
+        size_t len, nmib = (sizeof(mib) / sizeof(mib[0])) - 1;
+        char *buf;
+
+        sysctl(mib, nmib, NULL, &len, NULL, 0);
+        buf = (char *) pa_xmalloc(len);
+
+        if (sysctl(mib, nmib, buf, &len, NULL, 0) == 0) {
+            pa_strlcpy(s, basename(buf), l);
+            pa_xfree(buf);
+            return s;
+        }
+
+        pa_xfree(buf);
+
+        /* fall thru */
+    }
+#endif /* OS_IS_DARWIN */
 
     errno = ENOENT;
     return NULL;
