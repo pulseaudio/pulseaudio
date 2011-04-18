@@ -243,7 +243,8 @@ namespace PulseAudio {
         [CCode (cname="pa_cvolume")]
         public struct CVolume {
                 public uint8 channels;
-                public Volume values[];
+                // TODO: Replace array length with CHANNELS_MAX once vala's bug #647788 is fixed
+                public Volume values[32];
 
                 [CCode (cname="PA_SW_CVOLUME_SNPRINT_DB_MAX")]
                 public static const size_t SW_SNPRINT_DB_MAX;
@@ -373,10 +374,11 @@ namespace PulseAudio {
                 public unowned CVolume? dec(Volume minus = 1);
         }
 
-        [CCode (cname="pa_channel_map",has_destroy_function=false)]
+        [CCode (cname="pa_channel_map")]
         public struct ChannelMap {
                 public uint8 channels;
-                public ChannelPosition map[];
+                // TODO: Replace array length with CHANNELS_MAX once vala's bug #647788 is fixed
+                public ChannelPosition map[32];
 
                 [CCode (cname="PA_CHANNEL_MAP_SNPRINT_MAX")]
                 public static const size_t SNPRINT_MAX;
@@ -1350,7 +1352,7 @@ namespace PulseAudio {
                 public uint32 owner_module;
                 public string driver;
                 public uint32 n_profiles;
-                public CardProfileInfo profiles[];
+                public CardProfileInfo[] profiles;
                 public CardProfileInfo *active_profile;
                 public Proplist proplist;
         }
