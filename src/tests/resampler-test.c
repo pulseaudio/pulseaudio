@@ -22,7 +22,13 @@
 #endif
 
 #include <stdio.h>
+#include <getopt.h>
+#include <locale.h>
 
+#include <pulse/i18n.h>
+#include <pulse/pulseaudio.h>
+
+#include <pulse/rtclock.h>
 #include <pulse/sample.h>
 #include <pulse/volume.h>
 
@@ -31,6 +37,8 @@
 #include <pulsecore/endianmacros.h>
 #include <pulsecore/memblock.h>
 #include <pulsecore/sample-util.h>
+#include <pulsecore/core-rtclock.h>
+#include <pulsecore/core-util.h>
 
 static void dump_block(const pa_sample_spec *ss, const pa_memchunk *chunk) {
     void *d;
@@ -241,10 +249,78 @@ static pa_memblock* generate_block(pa_mempool *pool, const pa_sample_spec *ss) {
     return r;
 }
 
+static void help(const char *argv0) {
+    printf(_("%s [options]\n\n"
+             "-h, --help                            Show this help\n"
+             "-v, --verbose                         Print debug messages\n"
+             "      --from-rate=SAMPLERATE          From sample rate in Hz (defaults to 44100)\n"
+             "      --from-format=SAMPLEFORMAT      From sample type (defaults to s16le)\n"
+             "      --from-channels=CHANNELS        From number of channels (defaults to 1)\n"
+             "      --to-rate=SAMPLERATE            To sample rate in Hz (defaults to 44100)\n"
+             "      --to-format=SAMPLEFORMAT        To sample type (defaults to s16le)\n"
+             "      --to-channels=CHANNELS          To number of channels (defaults to 1)\n"
+             "      --resample-method=METHOD        Resample method (defaults to auto)\n"
+             "      --seconds=SECONDS               From stream duration (defaults to 60)\n"
+             "\n"
+             "If the formats are not specified, the test performs all formats combinations,\n"
+             "back and forth.\n"
+             "\n"
+             "Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, alaw,\n"
+             "32le, s32be (defaults to s16ne)\n"
+             "\n"
+             "See --dump-resample-methods for possible values of resample methods.\n"),
+             argv0);
+}
+
+enum {
+    ARG_VERSION = 256,
+    ARG_FROM_SAMPLERATE,
+    ARG_FROM_SAMPLEFORMAT,
+    ARG_FROM_CHANNELS,
+    ARG_TO_SAMPLERATE,
+    ARG_TO_SAMPLEFORMAT,
+    ARG_TO_CHANNELS,
+    ARG_SECONDS,
+    ARG_RESAMPLE_METHOD,
+    ARG_DUMP_RESAMPLE_METHODS
+};
+
+static void dump_resample_methods(void) {
+    int i;
+
+    for (i = 0; i < PA_RESAMPLER_MAX; i++)
+        if (pa_resample_method_supported(i))
+            printf("%s\n", pa_resample_method_to_string(i));
+
+}
+
 int main(int argc, char *argv[]) {
-    pa_mempool *pool;
+    pa_mempool *pool = NULL;
     pa_sample_spec a, b;
     pa_cvolume v;
+    int ret = 1, verbose = 0, c;
+    pa_bool_t all_formats = TRUE;
+    pa_resample_method_t method;
+    int seconds;
+
+    static const struct option long_options[] = {
+        {"help",                  0, NULL, 'h'},
+        {"verbose",               0, NULL, 'v'},
+        {"version",               0, NULL, ARG_VERSION},
+        {"from-rate",             1, NULL, ARG_FROM_SAMPLERATE},
+        {"from-format",           1, NULL, ARG_FROM_SAMPLEFORMAT},
+        {"from-channels",         1, NULL, ARG_FROM_CHANNELS},
+        {"to-rate",               1, NULL, ARG_TO_SAMPLERATE},
+        {"to-format",             1, NULL, ARG_TO_SAMPLEFORMAT},
+        {"to-channels",           1, NULL, ARG_TO_CHANNELS},
+        {"seconds",               1, NULL, ARG_SECONDS},
+        {"resample-method",       1, NULL, ARG_RESAMPLE_METHOD},
+        {"dump-resample-methods", 0, NULL, ARG_DUMP_RESAMPLE_METHODS},
+        {NULL,                    0, NULL, 0}
+    };
+
+    setlocale(LC_ALL, "");
+    bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
 
     pa_log_set_level(PA_LOG_DEBUG);
 
@@ -252,22 +328,131 @@ int main(int argc, char *argv[]) {
 
     a.channels = b.channels = 1;
     a.rate = b.rate = 44100;
-
+    a.format = b.format = PA_SAMPLE_S16LE;
     v.channels = a.channels;
     v.values[0] = pa_sw_volume_from_linear(0.5);
+
+    method = PA_RESAMPLER_AUTO;
+    seconds = 60;
+
+    while ((c = getopt_long(argc, argv, "hv", long_options, NULL)) != -1) {
+
+        switch (c) {
+            case 'h' :
+                help(argv[0]);
+                ret = 0;
+                goto quit;
+
+            case 'v':
+                pa_log_set_level(PA_LOG_DEBUG);
+                verbose = 1;
+                ret = 0;
+                break;
+
+            case ARG_VERSION:
+                printf(_("%s %s\n"), argv[0], PACKAGE_VERSION);
+                ret = 0;
+                goto quit;
+
+            case ARG_DUMP_RESAMPLE_METHODS:
+                dump_resample_methods();
+                ret = 0;
+                goto quit;
+
+            case ARG_FROM_CHANNELS:
+                a.channels = (uint8_t) atoi(optarg);
+                break;
+
+            case ARG_FROM_SAMPLEFORMAT:
+                a.format = pa_parse_sample_format(optarg);
+                all_formats = FALSE;
+                break;
+
+            case ARG_FROM_SAMPLERATE:
+                a.rate = (uint32_t) atoi(optarg);
+                break;
+
+            case ARG_TO_CHANNELS:
+                b.channels = (uint8_t) atoi(optarg);
+                break;
+
+            case ARG_TO_SAMPLEFORMAT:
+                b.format = pa_parse_sample_format(optarg);
+                all_formats = FALSE;
+                break;
+
+            case ARG_TO_SAMPLERATE:
+                b.rate = (uint32_t) atoi(optarg);
+                break;
+
+            case ARG_SECONDS:
+                seconds = atoi(optarg);
+                break;
+
+            case ARG_RESAMPLE_METHOD:
+                if (*optarg == '\0' || pa_streq(optarg, "help")) {
+                    dump_resample_methods();
+                    ret = 0;
+                    goto quit;
+                }
+                method = pa_parse_resample_method(optarg);
+                break;
+
+            default:
+                goto quit;
+        }
+    }
+
+    pa_assert_se(pool = pa_mempool_new(FALSE, 0));
+
+    if (!all_formats) {
+
+        pa_resampler *resampler;
+        pa_memchunk i, j;
+        pa_usec_t ts;
+
+        if (verbose) {
+            printf(_("Compilation CFLAGS: %s\n"), PA_CFLAGS);
+            printf(_("=== %d seconds: %d Hz %d ch (%s) -> %d Hz %d ch (%s)\n"), seconds,
+                   a.rate, a.channels, pa_sample_format_to_string(a.format),
+                   b.rate, b.channels, pa_sample_format_to_string(b.format));
+        }
+
+        ts = pa_rtclock_now();
+        pa_assert_se(resampler = pa_resampler_new(pool, &a, NULL, &b, NULL, method, 0));
+        printf("init: %llu\n", pa_rtclock_now() - ts);
+
+        i.memblock = pa_memblock_new(pool, pa_usec_to_bytes(1*PA_USEC_PER_SEC, &a) / pa_frame_size(&a));
+
+        ts = pa_rtclock_now();
+        i.length = pa_memblock_get_length(i.memblock);
+        i.index = 0;
+        while (seconds--) {
+            pa_resampler_run(resampler, &i, &j);
+            pa_memblock_unref(j.memblock);
+        }
+        printf("resampling: %llu\n", pa_rtclock_now() - ts);
+        pa_memblock_unref(i.memblock);
+
+        pa_resampler_free(resampler);
+
+        ret = 0;
+        goto quit;
+    }
 
     for (a.format = 0; a.format < PA_SAMPLE_MAX; a.format ++) {
         for (b.format = 0; b.format < PA_SAMPLE_MAX; b.format ++) {
             pa_resampler *forth, *back;
             pa_memchunk i, j, k;
 
-            printf("=== %s -> %s -> %s -> /2\n",
-                   pa_sample_format_to_string(a.format),
-                   pa_sample_format_to_string(b.format),
-                   pa_sample_format_to_string(a.format));
+            if (verbose)
+                printf("=== %s -> %s -> %s -> /2\n",
+                       pa_sample_format_to_string(a.format),
+                       pa_sample_format_to_string(b.format),
+                       pa_sample_format_to_string(a.format));
 
-            pa_assert_se(forth = pa_resampler_new(pool, &a, NULL, &b, NULL, PA_RESAMPLER_AUTO, 0));
-            pa_assert_se(back = pa_resampler_new(pool, &b, NULL, &a, NULL, PA_RESAMPLER_AUTO, 0));
+            pa_assert_se(forth = pa_resampler_new(pool, &a, NULL, &b, NULL, method, 0));
+            pa_assert_se(back = pa_resampler_new(pool, &b, NULL, &a, NULL, method, 0));
 
             i.memblock = generate_block(pool, &a);
             i.length = pa_memblock_get_length(i.memblock);
@@ -296,7 +481,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    pa_mempool_free(pool);
+ quit:
+    if (pool)
+        pa_mempool_free(pool);
 
-    return 0;
+    return ret;
 }
