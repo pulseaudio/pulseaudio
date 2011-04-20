@@ -36,9 +36,6 @@
 
 #include "module-filter-apply-symdef.h"
 
-#define PA_PROP_FILTER_WANT "filter.want"
-#define PA_PROP_FILTER_SUPPRESS "filter.suppress"
-
 
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("Load filter sinks automatically when needed");

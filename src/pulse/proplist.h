@@ -62,6 +62,12 @@ PA_C_DECL_BEGIN
 /** For streams: logic role of this media. One of the strings "video", "music", "game", "event", "phone", "animation", "production", "a11y", "test" */
 #define PA_PROP_MEDIA_ROLE                     "media.role"
 
+/** For streams: the name of a filter that is desired, e.g. "echo-cancel" or "equalizer-sink" \since 1.0 */
+#define PA_PROP_FILTER_WANT "filter.want"
+
+/** For streams: the name of a filter that should specifically suppressed (i.e. overrides PA_PROP_FILTER_WANT). Useful for the times that PA_PROP_FILTER_WANT is automatically added (e.g. echo-cancellation for phone streams when $VOIP_APP does it's own, internal AEC) \since 1.0 */
+#define PA_PROP_FILTER_SUPPRESS "filter.suppress"
+
 /** For event sound streams: XDG event sound name. e.g. "message-new-email" (Event sound streams are those with media.role set to "event") */
 #define PA_PROP_EVENT_ID                       "event.id"
 
