@@ -25,6 +25,7 @@
 
 #include <pulse/timeval.h>
 #include <pulse/rtclock.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/macro.h>
 #include <pulsecore/hashmap.h>
@@ -41,11 +42,14 @@ PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("Load filter sinks automatically when needed");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_USAGE(_("autoclean=<automatically unload unused filters?>"));
 
 static const char* const valid_modargs[] = {
+    "autoclean",
     NULL
 };
 
+#define DEFAULT_AUTOCLEAN TRUE
 #define HOUSEKEEPING_INTERVAL (10 * PA_USEC_PER_SEC)
 
 struct filter {
@@ -63,6 +67,7 @@ struct userdata {
         *sink_input_proplist_slot,
         *sink_input_unlink_slot,
         *sink_unlink_slot;
+    pa_bool_t autoclean;
     pa_time_event *housekeeping_time_event;
 };
 
@@ -148,6 +153,9 @@ static void housekeeping_time_callback(pa_mainloop_api*a, pa_time_event* e, cons
 
 static void trigger_housekeeping(struct userdata *u) {
     pa_assert(u);
+
+    if (!u->autoclean)
+        return;
 
     if (u->housekeeping_time_event)
         return;
@@ -341,6 +349,12 @@ int pa__init(pa_module *m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
 
     u->core = m->core;
+
+    u->autoclean = DEFAULT_AUTOCLEAN;
+    if (pa_modargs_get_value_boolean(ma, "autoclean", &u->autoclean) < 0) {
+        pa_log("Failed to parse autoclean value");
+        goto fail;
+    }
 
     u->filters = pa_hashmap_new(filter_hash, filter_compare);
 
