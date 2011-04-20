@@ -135,11 +135,14 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         return -1;
     }
 
-    /* FIXME: u->memblockq doesn't have a silence memchunk set, so
-     * pa_memblockq_peek() will return 0 without returning any memblock if the
-     * read index points to a hole. If the memblockq is rewound beyond index 0,
-     * then there will be a hole. */
-    pa_assert(chunk->memblock);
+    /* If there's no memblock, there's going to be data in the memblockq after
+     * a gap with length chunk->length. Drop the the gap and peek the actual
+     * data. There should always be some data coming - hence the assert. The
+     * gap will occur if the memblockq is rewound beyond index 0.*/
+    if (!chunk->memblock) {
+        pa_memblockq_drop(u->memblockq, chunk->length);
+        pa_assert_se(pa_memblockq_peek(u->memblockq, chunk) >= 0);
+    }
 
     chunk->length = PA_MIN(chunk->length, nbytes);
     pa_memblockq_drop(u->memblockq, chunk->length);
