@@ -95,7 +95,6 @@ static int load_rules(struct userdata *u, const char *filename) {
         f = pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn);
 
     if (!f) {
-        pa_xfree(fn);
         pa_log("Failed to open file config file: %s", pa_cstrerror(errno));
         goto finish;
     }
