@@ -43,7 +43,6 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
-#include <pulsecore/core-subscribe.h>
 #include <pulsecore/sink-input.h>
 #include <pulsecore/core-util.h>
 
@@ -77,7 +76,7 @@ struct rule {
 struct userdata {
     struct rule *rules;
     char *property_key;
-    pa_subscription *subscription;
+    pa_hook_slot *sink_input_new_hook_slot;
 };
 
 static int load_rules(struct userdata *u, const char *filename) {
@@ -191,23 +190,15 @@ finish:
     return ret;
 }
 
-static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
-    struct userdata *u =  userdata;
-    pa_sink_input *si;
+static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_new_data *si, struct userdata *u) {
     struct rule *r;
     const char *n;
 
     pa_assert(c);
     pa_assert(u);
 
-    if (t != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW))
-        return;
-
-    if (!(si = pa_idxset_get_by_index(c->sink_inputs, idx)))
-        return;
-
     if (!(n = pa_proplist_gets(si->proplist, u->property_key)))
-        return;
+        return PA_HOOK_OK;
 
     pa_log_debug("Matching with %s", n);
 
@@ -216,14 +207,17 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
             if (r->proplist) {
                 pa_log_debug("updating proplist of sink input '%s'", n);
                 pa_proplist_update(si->proplist, PA_UPDATE_MERGE, r->proplist);
-            } else {
+            } else if (si->volume_writable) {
                 pa_cvolume cv;
                 pa_log_debug("changing volume of sink input '%s' to 0x%03x", n, r->volume);
                 pa_cvolume_set(&cv, si->sample_spec.channels, r->volume);
-                pa_sink_input_set_volume(si, &cv, TRUE, FALSE);
-            }
+                pa_sink_input_new_data_set_volume(si, &cv);
+            } else
+                pa_log_debug("the volume of sink input '%s' is not writable, can't change it", n);
         }
     }
+
+    return PA_HOOK_OK;
 }
 
 int pa__init(pa_module*m) {
@@ -239,7 +233,6 @@ int pa__init(pa_module*m) {
 
     u = pa_xnew(struct userdata, 1);
     u->rules = NULL;
-    u->subscription = NULL;
     m->userdata = u;
 
     u->property_key = pa_xstrdup(pa_modargs_get_value(ma, "key", PA_PROP_MEDIA_NAME));
@@ -247,10 +240,8 @@ int pa__init(pa_module*m) {
     if (load_rules(u, pa_modargs_get_value(ma, "table", NULL)) < 0)
         goto fail;
 
-    /* FIXME: Doing this asynchronously is just broken. This needs to
-     * use a hook! */
-
-    u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK_INPUT, callback, u);
+    /* hook EARLY - 1, to match before stream-restore */
+    u->sink_input_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], PA_HOOK_EARLY - 1, (pa_hook_cb_t) sink_input_new_hook_callback, u);
 
     pa_modargs_free(ma);
     return 0;
@@ -272,8 +263,8 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->subscription)
-        pa_subscription_free(u->subscription);
+    if (u->sink_input_new_hook_slot)
+        pa_hook_slot_free(u->sink_input_new_hook_slot);
 
     if (u->property_key)
         pa_xfree(u->property_key);
