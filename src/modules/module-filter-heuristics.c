@@ -50,7 +50,7 @@ struct userdata {
 };
 
 static pa_hook_result_t sink_input_put_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
-    const char *role;
+    const char *sink_role, *si_role;
 
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
@@ -60,7 +60,10 @@ static pa_hook_result_t sink_input_put_cb(pa_core *core, pa_sink_input *i, struc
     if (pa_proplist_gets(i->proplist, PA_PROP_FILTER_WANT))
         return PA_HOOK_OK;
 
-    if ((role = pa_proplist_gets(i->proplist, PA_PROP_MEDIA_ROLE)) && pa_streq(role, "phone"))
+    if ((sink_role = pa_proplist_gets(i->sink->proplist, PA_PROP_DEVICE_INTENDED_ROLES)) && strstr(sink_role, "phone"))
+        return PA_HOOK_OK;
+
+    if ((si_role = pa_proplist_gets(i->proplist, PA_PROP_MEDIA_ROLE)) && pa_streq(si_role, "phone"))
         pa_proplist_sets(i->proplist, PA_PROP_FILTER_WANT, "echo-cancel");
 
     return PA_HOOK_OK;
