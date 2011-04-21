@@ -742,7 +742,7 @@ int pa_dbus_protocol_add_interface(pa_dbus_protocol *p,
         obj_entry->interfaces = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
         obj_entry->introspection = NULL;
 
-        pa_hashmap_put(p->objects, path, obj_entry);
+        pa_hashmap_put(p->objects, obj_entry->path, obj_entry);
         obj_entry_created = TRUE;
     }
 
@@ -770,11 +770,6 @@ int pa_dbus_protocol_add_interface(pa_dbus_protocol *p,
     return 0;
 
 fail:
-    if (obj_entry_created) {
-        pa_hashmap_remove(p->objects, path);
-        pa_xfree(obj_entry);
-    }
-
     return -1;
 }
 
@@ -804,6 +799,7 @@ static void method_handler_free_cb(void *p, void *userdata) {
     }
 
     pa_xfree((pa_dbus_arg_info *) h->arguments);
+    pa_xfree(h);
 }
 
 static void method_signature_free_cb(void *p, void *userdata) {
@@ -945,6 +941,7 @@ static void signal_paths_entry_free(struct signal_paths_entry *e) {
     while ((path = pa_idxset_steal_first(e->paths, NULL)))
         pa_xfree(path);
 
+    pa_idxset_free(e->paths, NULL, NULL);
     pa_xfree(e);
 }
 
@@ -966,9 +963,12 @@ int pa_dbus_protocol_unregister_connection(pa_dbus_protocol *p, DBusConnection *
     while ((object_path = pa_idxset_steal_first(conn_entry->all_signals_objects, NULL)))
         pa_xfree(object_path);
 
+    pa_idxset_free(conn_entry->all_signals_objects, NULL, NULL);
+
     while ((signal_paths_entry = pa_hashmap_steal_first(conn_entry->listening_signals)))
         signal_paths_entry_free(signal_paths_entry);
 
+    pa_hashmap_free(conn_entry->listening_signals, NULL, NULL);
     pa_xfree(conn_entry);
 
     return 0;
