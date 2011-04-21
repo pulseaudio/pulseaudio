@@ -37,6 +37,7 @@
 
 #include "module-filter-apply-symdef.h"
 
+#define PA_PROP_FILTER_APPLY_MOVING "filter.apply.moving"
 
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("Load filter sinks automatically when needed");
@@ -64,6 +65,7 @@ struct userdata {
     pa_hashmap *filters;
     pa_hook_slot
         *sink_input_put_slot,
+        *sink_input_move_finish_slot,
         *sink_input_proplist_slot,
         *sink_input_unlink_slot,
         *sink_unlink_slot;
@@ -110,14 +112,14 @@ static void filter_free(struct filter *f) {
 }
 
 static const char* should_filter(pa_sink_input *i) {
-    const char *want;
+    const char *apply;
 
     /* If the stream doesn't what any filter, then let it be. */
-    if ((want = pa_proplist_gets(i->proplist, PA_PROP_FILTER_WANT)) && !pa_streq(want, "")) {
+    if ((apply = pa_proplist_gets(i->proplist, PA_PROP_FILTER_APPLY)) && !pa_streq(apply, "")) {
         const char* suppress = pa_proplist_gets(i->proplist, PA_PROP_FILTER_SUPPRESS);
 
-        if (!suppress || !pa_streq(suppress, want))
-            return want;
+        if (!suppress || !pa_streq(suppress, apply))
+            return apply;
     }
 
     return NULL;
@@ -171,12 +173,16 @@ static void move_input_for_filter(pa_sink_input *i, struct filter* filter, pa_bo
 
     pa_assert_se(sink = (restore ? filter->parent_sink : filter->sink));
 
+    pa_proplist_sets(i->proplist, PA_PROP_FILTER_APPLY_MOVING, "1");
+
     if (pa_sink_input_move_to(i, sink, FALSE) < 0)
         pa_log_info("Failed to move sink input %u \"%s\" to <%s>.", i->index,
                     pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), sink->name);
     else
         pa_log_info("Sucessfully moved sink input %u \"%s\" to <%s>.", i->index,
                     pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), sink->name);
+
+    pa_proplist_unset(i->proplist, PA_PROP_FILTER_APPLY_MOVING);
 }
 
 static pa_hook_result_t process(struct userdata *u, pa_sink_input *i) {
@@ -281,6 +287,16 @@ static pa_hook_result_t sink_input_put_cb(pa_core *core, pa_sink_input *i, struc
     return process(u, i);
 }
 
+static pa_hook_result_t sink_input_move_finish_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
+    pa_core_assert_ref(core);
+    pa_sink_input_assert_ref(i);
+
+    if (pa_proplist_gets(i->proplist, PA_PROP_FILTER_APPLY_MOVING))
+        return PA_HOOK_OK;
+
+    return process(u, i);
+}
+
 static pa_hook_result_t sink_input_proplist_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
@@ -359,6 +375,7 @@ int pa__init(pa_module *m) {
     u->filters = pa_hashmap_new(filter_hash, filter_compare);
 
     u->sink_input_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_put_cb, u);
+    u->sink_input_move_finish_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_move_finish_cb, u);
     u->sink_input_proplist_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_proplist_cb, u);
     u->sink_input_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_unlink_cb, u);
     u->sink_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_unlink_cb, u);
@@ -386,6 +403,8 @@ void pa__done(pa_module *m) {
 
     if (u->sink_input_put_slot)
         pa_hook_slot_free(u->sink_input_put_slot);
+    if (u->sink_input_move_finish_slot)
+        pa_hook_slot_free(u->sink_input_move_finish_slot);
     if (u->sink_input_proplist_slot)
         pa_hook_slot_free(u->sink_input_proplist_slot);
     if (u->sink_input_unlink_slot)
