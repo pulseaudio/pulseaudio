@@ -321,7 +321,7 @@ void pa_asyncmsgq_write_after_poll(pa_asyncmsgq *a) {
 int pa_asyncmsgq_dispatch(pa_msgobject *object, int code, void *userdata, int64_t offset, pa_memchunk *memchunk) {
 
     if (object)
-        return object->process_msg(object, code, userdata, offset, memchunk);
+        return object->process_msg(object, code, userdata, offset, pa_memchunk_isset(memchunk) ? memchunk : NULL);
 
     return 0;
 }

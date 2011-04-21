@@ -50,4 +50,7 @@ pa_memchunk *pa_memchunk_will_need(const pa_memchunk *c);
 /* Copy the data in the src memchunk to the dst memchunk */
 pa_memchunk* pa_memchunk_memcpy(pa_memchunk *dst, pa_memchunk *src);
 
+/* Return TRUE if any field is set != 0 */
+pa_bool_t pa_memchunk_isset(pa_memchunk *c);
+
 #endif
