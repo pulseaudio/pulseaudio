@@ -172,6 +172,13 @@ AC_ARG_ENABLE(mac-universal,
     AS_HELP_STRING([--enable-mac-universal], [Build Mac universal binaries]),
 		enable_mac_universal=$enableval, enable_mac_universal="no")
 
+AC_ARG_WITH(mac-version-min,
+    AS_HELP_STRING([--with-mac-version-min=<version>], [Defines the earliest version of MacOS X that the executables will run on.]),
+		mac_version_min=$withval, mac_version_min="10.5")
+
+AC_ARG_WITH(mac-sysroot,
+    AS_HELP_STRING([--with-mac-sysroot=<path>], [SDK basedir to use as the logical root directory for headers and libraries.]),
+		mac_sysroot=$withval, mac_sysroot="/Developer/SDKs/MacOSX10.5.sdk")
 
 AC_MSG_CHECKING([target operating system])
 case $host in
@@ -183,12 +190,13 @@ case $host in
             AC_MSG_RESULT([darwin])
             pulse_target_os=darwin
 
+            LDFLAGS="$LDFLAGS -isysroot $mac_sysroot -mmacosx-version-min=$mac_version_min"
+            CFLAGS="$CFLAGS -isysroot $mac_sysroot -mmacosx-version-min=$mac_version_min"
+
             if test "x$enable_mac_universal" = "xyes" ; then
-	        mac_version_min="-mmacosx-version-min=10.5"
                 mac_arches="-arch i386 -arch x86_64"
-                mac_sysroot="-isysroot /Developer/SDKs/MacOSX10.5.sdk"
-                LDFLAGS="$LDFLAGS $mac_arches $mac_sysroot $mac_version_min"
-                CFLAGS="$CFLAGS $CFLAGS $mac_arches $mac_sysroot $mac_version_min"
+                LDFLAGS="$LDFLAGS $mac_arches"
+                CFLAGS="$CFLAGS $mac_arches"
             fi
         ;;
         *)
