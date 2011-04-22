@@ -393,7 +393,7 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
         size = sizeof(tmp);
         err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, tmp);
         if (err || !strlen(tmp))
-            snprintf(tmp, sizeof(tmp), "Channel %d", property_address.mElement);
+            snprintf(tmp, sizeof(tmp), "Channel %d", (int) property_address.mElement);
 
         if (i > 0)
             pa_strbuf_puts(strbuf, ", ");
@@ -512,7 +512,7 @@ static int ca_device_create_source(pa_module *m, AudioBuffer *buf, int channel_i
         size = sizeof(tmp);
         err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, tmp);
         if (err || !strlen(tmp))
-            snprintf(tmp, sizeof(tmp), "Channel %d", property_address.mElement);
+            snprintf(tmp, sizeof(tmp), "Channel %d", (int) property_address.mElement);
 
         if (i > 0)
             pa_strbuf_puts(strbuf, ", ");
