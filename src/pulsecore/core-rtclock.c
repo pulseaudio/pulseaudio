@@ -24,6 +24,10 @@
 #include <config.h>
 #endif
 
+#ifdef OS_IS_DARWIN
+#define _POSIX_C_SOURCE 1
+#endif
+
 #include <stddef.h>
 #include <time.h>
 #include <sys/time.h>
