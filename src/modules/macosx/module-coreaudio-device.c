@@ -297,26 +297,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             *((pa_usec_t *) data) = get_latency_us(PA_OBJECT(o));
             return 0;
         }
-
-        case PA_SINK_MESSAGE_SET_STATE:
-            switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
-                case PA_SINK_SUSPENDED:
-                case PA_SINK_IDLE:
-                    sink->active = FALSE;
-                    break;
-
-                case PA_SINK_RUNNING:
-                    sink->active = TRUE;
-                    break;
-
-                case PA_SINK_UNLINKED:
-                case PA_SINK_INIT:
-                case PA_SINK_INVALID_STATE:
-                    ;
-            }
-
-            ca_device_check_device_state(sink->userdata);
-            break;
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
@@ -355,29 +335,34 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             *((pa_usec_t *) data) = get_latency_us(PA_OBJECT(o));
             return 0;
         }
-
-        case PA_SOURCE_MESSAGE_SET_STATE:
-            switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
-                case PA_SOURCE_SUSPENDED:
-                case PA_SOURCE_IDLE:
-                    source->active = FALSE;
-                    break;
-
-                case PA_SOURCE_RUNNING:
-                    source->active = TRUE;
-                    break;
-
-                case PA_SOURCE_UNLINKED:
-                case PA_SOURCE_INIT:
-                case PA_SOURCE_INVALID_STATE:
-                    ;
-            }
-
-            ca_device_check_device_state(source->userdata);
-            break;
     }
 
-    return pa_source_process_msg(o, code, data, offset, chunk);
+    return pa_source_process_msg(o, code, data, offset, chunk);;
+}
+
+static int ca_sink_set_state(pa_sink *s, pa_sink_state_t state)
+{
+    coreaudio_sink *sink = s->userdata;
+
+    switch (state) {
+        case PA_SINK_SUSPENDED:
+        case PA_SINK_IDLE:
+            sink->active = FALSE;
+            break;
+
+        case PA_SINK_RUNNING:
+            sink->active = TRUE;
+            break;
+
+        case PA_SINK_UNLINKED:
+        case PA_SINK_INIT:
+        case PA_SINK_INVALID_STATE:
+            ;
+    }
+
+    ca_device_check_device_state(sink->userdata);
+
+    return 0;
 }
 
 static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx) {
@@ -461,6 +446,7 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
 
     sink->parent.process_msg = sink_process_msg;
     sink->userdata = ca_sink;
+    sink->set_state = ca_sink_set_state;
 
     pa_sink_set_asyncmsgq(sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(sink, u->rtpoll);
@@ -469,6 +455,31 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
     ca_sink->userdata = u;
 
     PA_LLIST_PREPEND(coreaudio_sink, u->sinks, ca_sink);
+
+    return 0;
+}
+
+static int ca_source_set_state(pa_source *s, pa_source_state_t state)
+{
+    coreaudio_source *source = s->userdata;
+
+    switch (state) {
+        case PA_SOURCE_SUSPENDED:
+        case PA_SOURCE_IDLE:
+            source->active = FALSE;
+            break;
+
+        case PA_SOURCE_RUNNING:
+            source->active = TRUE;
+            break;
+
+        case PA_SOURCE_UNLINKED:
+        case PA_SOURCE_INIT:
+        case PA_SOURCE_INVALID_STATE:
+            ;
+    }
+
+    ca_device_check_device_state(source->userdata);
 
     return 0;
 }
@@ -554,6 +565,7 @@ static int ca_device_create_source(pa_module *m, AudioBuffer *buf, int channel_i
 
     source->parent.process_msg = source_process_msg;
     source->userdata = ca_source;
+    source->set_state = ca_source_set_state;
 
     pa_source_set_asyncmsgq(source, u->thread_mq.inq);
     pa_source_set_rtpoll(source, u->rtpoll);
