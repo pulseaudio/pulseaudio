@@ -32,7 +32,15 @@
 #include <pulse/pulseaudio.h>
 #include <pulse/mainloop.h>
 
-#define NSTREAMS 16
+#include <pulsecore/sink.h>
+
+/* Set the number of streams such that it allows two simultaneous instances of
+ * connect-stress to be run and not go above the max limit for streams-per-sink.
+ * This leaves enough room for a couple other streams from regular system usage,
+ * which makes a non-error abort less likely (although still easily possible of
+ * playing >=3 streams outside of the test - including internal loopback, rtp,
+ * combine, remap streams etc.) */
+#define NSTREAMS ((PA_MAX_INPUTS_PER_SINK/2) - 1)
 #define NTESTS 1000
 #define SAMPLE_HZ 44100
 
