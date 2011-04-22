@@ -759,7 +759,7 @@ int pa__init(pa_module *m) {
     ca_device_create_streams(m, TRUE);
 
     /* create the message thread */
-    if (!(u->thread = pa_thread_new("coreaudio", thread_func, u))) {
+    if (!(u->thread = pa_thread_new(u->device_name, thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
     }
