@@ -78,6 +78,7 @@ PA_MODULE_USAGE(
           "aec_method=<implementation to use> "
           "aec_args=<parameters for the AEC engine> "
           "save_aec=<save AEC data in /tmp> "
+          "manual_load=<set if this module is being loaded manually> "
         ));
 
 /* NOTE: Make sure the enum and ec_table are maintained in the correct order */
@@ -106,6 +107,7 @@ static const pa_echo_canceller ec_table[] = {
 
 #define DEFAULT_ADJUST_TIME_USEC (1*PA_USEC_PER_SEC)
 #define DEFAULT_SAVE_AEC 0
+#define DEFAULT_MANUAL_LOAD FALSE
 
 #define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
 
@@ -156,6 +158,7 @@ struct userdata {
     pa_core *core;
     pa_module *module;
 
+    pa_bool_t manual_load;
     uint32_t save_aec;
 
     pa_echo_canceller *ec;
@@ -210,6 +213,7 @@ static const char* const valid_modargs[] = {
     "aec_method",
     "aec_args",
     "save_aec",
+    "manual_load",
     NULL
 };
 
@@ -1394,6 +1398,12 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    u->manual_load = DEFAULT_MANUAL_LOAD;
+    if (pa_modargs_get_value_boolean(ma, "manual_load", &u->manual_load) < 0) {
+        pa_log("Failed to parse manual_load value");
+        goto fail;
+    }
+
     u->asyncmsgq = pa_asyncmsgq_new(0);
     u->need_realign = TRUE;
     if (u->ec->init) {
@@ -1413,7 +1423,8 @@ int pa__init(pa_module*m) {
     pa_source_new_data_set_channel_map(&source_data, &source_map);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, source_master->name);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
-    pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
+    if (u->manual_load)
+        pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
     pa_proplist_sets(source_data.proplist, "device.echo-cancel.name", source_data.name);
 
     if (pa_modargs_get_proplist(ma, "source_properties", source_data.proplist, PA_UPDATE_REPLACE) < 0) {
@@ -1460,7 +1471,8 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_channel_map(&sink_data, &sink_map);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, sink_master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
-    pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
+    if (u->manual_load)
+        pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
     pa_proplist_sets(sink_data.proplist, "device.echo-cancel.name", sink_data.name);
 
     if (pa_modargs_get_proplist(ma, "sink_properties", sink_data.proplist, PA_UPDATE_REPLACE) < 0) {
