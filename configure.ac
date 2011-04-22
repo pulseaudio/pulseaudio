@@ -448,6 +448,8 @@ AC_SEARCH_LIBS([shm_open], [rt])
 AC_SEARCH_LIBS([inet_ntop], [nsl])
 AC_SEARCH_LIBS([timer_create], [rt])
 AC_SEARCH_LIBS([pthread_setaffinity_np], [pthread])
+AC_SEARCH_LIBS([pthread_getname_np], [pthread])
+AC_SEARCH_LIBS([pthread_setname_np], [pthread])
 
 # BSD
 AC_SEARCH_LIBS([connect], [socket])
@@ -489,7 +491,7 @@ AC_FUNC_SELECT_ARGTYPES
 AC_CHECK_FUNCS_ONCE([chmod chown fstat fchown fchmod clock_gettime getaddrinfo getgrgid_r getgrnam_r \
     getpwnam_r getpwuid_r gettimeofday getuid mlock nanosleep \
     pipe posix_fadvise posix_madvise posix_memalign setpgid setsid shm_open \
-    sigaction sleep symlink sysconf uname pthread_setaffinity_np])
+    sigaction sleep symlink sysconf uname pthread_setaffinity_np pthread_getname_np pthread_setname_np])
 AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])
 
 AM_CONDITIONAL(HAVE_MKFIFO, test "x$HAVE_MKFIFO" = "x1")
