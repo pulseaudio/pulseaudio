@@ -1690,8 +1690,8 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
     }
 }
 
-#if 0
-static void dump_database(struct userdata *u) {
+#ifdef DEBUG_VOLUME
+PA_GCC_UNUSED static void stream_restore_dump_database(struct userdata *u) {
     pa_datum key;
     pa_bool_t done;
 
