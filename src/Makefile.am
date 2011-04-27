@@ -1022,6 +1022,7 @@ modlibexec_LTLIBRARIES += \
 		module-cli-protocol-tcp.la \
 		module-simple-protocol-tcp.la \
 		module-null-sink.la \
+		module-null-source.la \
 		module-sine-source.la \
 		module-detect.la \
 		module-volume-restore.la \
@@ -1287,6 +1288,7 @@ SYMDEF_FILES = \
 		module-tunnel-sink-symdef.h \
 		module-tunnel-source-symdef.h \
 		module-null-sink-symdef.h \
+		module-null-source-symdef.h \
 		module-sine-source-symdef.h \
 		module-esound-sink-symdef.h \
 		module-zeroconf-publish-symdef.h \
@@ -1475,6 +1477,10 @@ module_sine_la_LIBADD = $(MODULE_LIBADD)
 module_null_sink_la_SOURCES = modules/module-null-sink.c
 module_null_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_null_sink_la_LIBADD = $(MODULE_LIBADD)
+
+module_null_source_la_SOURCES = modules/module-null-source.c
+module_null_source_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_null_source_la_LIBADD = $(MODULE_LIBADD)
 
 module_sine_source_la_SOURCES = modules/module-sine-source.c
 module_sine_source_la_LDFLAGS = $(MODULE_LDFLAGS)
