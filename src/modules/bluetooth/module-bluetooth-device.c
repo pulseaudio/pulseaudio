@@ -1916,7 +1916,7 @@ static char *get_name(const char *type, pa_modargs *ma, const char *device_id, p
     return pa_sprintf_malloc("bluez_%s.%s", type, n);
 }
 
-static int sco_over_pcm_state_update(struct userdata *u) {
+static int sco_over_pcm_state_update(struct userdata *u, pa_bool_t changed) {
     pa_assert(u);
     pa_assert(USE_SCO_OVER_PCM(u));
 
@@ -1939,7 +1939,7 @@ static int sco_over_pcm_state_update(struct userdata *u) {
         else
             return start_stream_fd(u);
 
-    } else {
+    } else if (changed) {
         if (u->service_fd < 0 && u->stream_fd < 0)
             return 0;
 
@@ -1967,7 +1967,7 @@ static pa_hook_result_t sink_state_changed_cb(pa_core *c, pa_sink *s, struct use
     if (s != u->hsp.sco_sink)
         return PA_HOOK_OK;
 
-    sco_over_pcm_state_update(u);
+    sco_over_pcm_state_update(u, TRUE);
 
     return PA_HOOK_OK;
 }
@@ -1980,7 +1980,7 @@ static pa_hook_result_t source_state_changed_cb(pa_core *c, pa_source *s, struct
     if (s != u->hsp.sco_source)
         return PA_HOOK_OK;
 
-    sco_over_pcm_state_update(u);
+    sco_over_pcm_state_update(u, TRUE);
 
     return PA_HOOK_OK;
 }
@@ -2447,7 +2447,7 @@ static int start_thread(struct userdata *u) {
     pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
 
     if (USE_SCO_OVER_PCM(u)) {
-        if (sco_over_pcm_state_update(u) < 0) {
+        if (sco_over_pcm_state_update(u, FALSE) < 0) {
             char *k;
 
             if (u->sink) {
