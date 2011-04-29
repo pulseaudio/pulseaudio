@@ -1042,6 +1042,7 @@ modlibexec_LTLIBRARIES += \
 		module-native-protocol-fd.la \
 		module-esound-protocol-tcp.la \
 		module-combine.la \
+		module-combine-sink.la \
 		module-remap-sink.la \
 		module-ladspa-sink.la \
 		module-esound-sink.la \
@@ -1279,6 +1280,7 @@ SYMDEF_FILES = \
 		module-native-protocol-fd-symdef.h \
 		module-sine-symdef.h \
 		module-combine-symdef.h \
+		module-combine-sink-symdef.h \
 		module-remap-sink-symdef.h \
 		module-ladspa-sink-symdef.h \
 		module-equalizer-sink-symdef.h \
@@ -1491,6 +1493,10 @@ module_sine_source_la_LIBADD = $(MODULE_LIBADD)
 module_combine_la_SOURCES = modules/module-combine.c
 module_combine_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_combine_la_LIBADD = $(MODULE_LIBADD)
+
+module_combine_sink_la_SOURCES = modules/module-combine-sink.c
+module_combine_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_combine_sink_la_LIBADD = $(MODULE_LIBADD)
 
 module_switch_on_connect_la_SOURCES = modules/module-switch-on-connect.c
 module_switch_on_connect_la_LDFLAGS = $(MODULE_LDFLAGS)
