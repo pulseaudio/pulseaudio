@@ -105,7 +105,6 @@ static void connection_free(struct connection *c) {
     pa_assert_se(pa_dbus_protocol_unregister_connection(c->server->userdata->dbus_protocol, pa_dbus_wrap_connection_get(c->wrap_conn)) >= 0);
 
     pa_client_free(c->client);
-    pa_assert_se(pa_idxset_remove_by_data(c->server->userdata->connections, c, NULL));
     pa_dbus_wrap_connection_free(c->wrap_conn);
     pa_xfree(c);
 }
@@ -514,8 +513,10 @@ static void cleanup_cb(pa_mainloop_api *a, pa_defer_event *e, void *userdata) {
     uint32_t idx;
 
     PA_IDXSET_FOREACH(conn, u->connections, idx) {
-        if (!dbus_connection_get_is_connected(pa_dbus_wrap_connection_get(conn->wrap_conn)))
+        if (!dbus_connection_get_is_connected(pa_dbus_wrap_connection_get(conn->wrap_conn))) {
+            pa_idxset_remove_by_data(u->connections, conn, NULL);
             connection_free(conn);
+        }
     }
 
     u->module->core->mainloop->defer_enable(e, 0);
@@ -579,17 +580,9 @@ fail:
     return -1;
 }
 
-/* Called by idxset when the connection set is freed. */
-static void connection_free_cb(void *p, void *userdata) {
-    struct connection *conn = p;
-
-    pa_assert(conn);
-
-    connection_free(conn);
-}
-
 void pa__done(pa_module *m) {
     struct userdata *u;
+    struct connection *c;
 
     pa_assert(m);
 
@@ -602,8 +595,10 @@ void pa__done(pa_module *m) {
     if (u->cleanup_event)
         m->core->mainloop->defer_free(u->cleanup_event);
 
-    if (u->connections)
-        pa_idxset_free(u->connections, connection_free_cb, NULL);
+    while ((c = pa_idxset_steal_first(u->connections, NULL)))
+        connection_free(c);
+
+    pa_idxset_free(u->connections, NULL, NULL);
 
     if (u->tcp_server)
         server_free(u->tcp_server);
