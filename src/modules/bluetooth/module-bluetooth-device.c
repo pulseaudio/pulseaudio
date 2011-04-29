@@ -2156,6 +2156,8 @@ static int bt_transport_config_a2dp(struct userdata *u) {
 
     config = (a2dp_sbc_t *) t->config;
 
+    u->sample_spec.format = PA_SAMPLE_S16LE;
+
     if (a2dp->sbc_initialized)
         sbc_reinit(&a2dp->sbc, 0);
     else
@@ -2165,15 +2167,19 @@ static int bt_transport_config_a2dp(struct userdata *u) {
     switch (config->frequency) {
         case BT_SBC_SAMPLING_FREQ_16000:
             a2dp->sbc.frequency = SBC_FREQ_16000;
+            u->sample_spec.rate = 16000U;
             break;
         case BT_SBC_SAMPLING_FREQ_32000:
             a2dp->sbc.frequency = SBC_FREQ_32000;
+            u->sample_spec.rate = 32000U;
             break;
         case BT_SBC_SAMPLING_FREQ_44100:
             a2dp->sbc.frequency = SBC_FREQ_44100;
+            u->sample_spec.rate = 44100U;
             break;
         case BT_SBC_SAMPLING_FREQ_48000:
             a2dp->sbc.frequency = SBC_FREQ_48000;
+            u->sample_spec.rate = 48000U;
             break;
         default:
             pa_assert_not_reached();
@@ -2182,15 +2188,19 @@ static int bt_transport_config_a2dp(struct userdata *u) {
     switch (config->channel_mode) {
         case BT_A2DP_CHANNEL_MODE_MONO:
             a2dp->sbc.mode = SBC_MODE_MONO;
+            u->sample_spec.channels = 1;
             break;
         case BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL:
             a2dp->sbc.mode = SBC_MODE_DUAL_CHANNEL;
+            u->sample_spec.channels = 2;
             break;
         case BT_A2DP_CHANNEL_MODE_STEREO:
             a2dp->sbc.mode = SBC_MODE_STEREO;
+            u->sample_spec.channels = 2;
             break;
         case BT_A2DP_CHANNEL_MODE_JOINT_STEREO:
             a2dp->sbc.mode = SBC_MODE_JOINT_STEREO;
+            u->sample_spec.channels = 2;
             break;
         default:
             pa_assert_not_reached();
@@ -2257,6 +2267,9 @@ static int bt_transport_config_a2dp(struct userdata *u) {
 static int bt_transport_config(struct userdata *u) {
     if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) {
         u->block_size = u->link_mtu;
+        u->sample_spec.format = PA_SAMPLE_S16LE;
+        u->sample_spec.channels = 1;
+        u->sample_spec.rate = 8000;
         return 0;
     }
 
