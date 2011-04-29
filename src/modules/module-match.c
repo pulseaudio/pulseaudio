@@ -60,6 +60,9 @@ PA_MODULE_USAGE("table=<filename> "
 #define DEFAULT_MATCH_TABLE_FILE PA_DEFAULT_CONFIG_DIR"/match.table"
 #define DEFAULT_MATCH_TABLE_FILE_USER "match.table"
 
+#define UPDATE_REPLACE "replace"
+#define UPDATE_MERGE "merge"
+
 static const char* const valid_modargs[] = {
     "table",
     "key",
@@ -70,6 +73,7 @@ struct rule {
     regex_t regex;
     pa_volume_t volume;
     pa_proplist *proplist;
+    pa_update_mode_t mode;
     struct rule *next;
 };
 
@@ -101,13 +105,14 @@ static int load_rules(struct userdata *u, const char *filename) {
     pa_lock_fd(fileno(f), 1);
 
     while (!feof(f)) {
-        char *d, *v;
+        char *token_end, *value_str;
         pa_volume_t volume = PA_VOLUME_NORM;
         uint32_t k;
         regex_t regex;
         char ln[256];
         struct rule *rule;
         pa_proplist *proplist = NULL;
+        pa_update_mode_t mode = (pa_update_mode_t) -1;
 
         if (!fgets(ln, sizeof(ln), f))
             break;
@@ -119,51 +124,72 @@ static int load_rules(struct userdata *u, const char *filename) {
         if (ln[0] == '#' || !*ln )
             continue;
 
-        d = ln+strcspn(ln, WHITESPACE);
-        v = d+strspn(d, WHITESPACE);
+        token_end = ln + strcspn(ln, WHITESPACE);
+        value_str = token_end + strspn(token_end, WHITESPACE);
+        *token_end = 0;
 
-
-        if (!*v) {
-            pa_log(__FILE__ ": [%s:%u] failed to parse line - too few words", filename, n);
+        if (!*ln) {
+            pa_log("[%s:%u] failed to parse line - missing regexp", fn, n);
             goto finish;
         }
 
-        *d = 0;
-        if (pa_atou(v, &k) >= 0) {
+        if (!*value_str) {
+            pa_log("[%s:%u] failed to parse line - too few words", fn, n);
+            goto finish;
+        }
+
+        if (pa_atou(value_str, &k) >= 0)
             volume = (pa_volume_t) PA_CLAMP_VOLUME(k);
-        } else if (*v == '"') {
-            char *e;
+        else {
+            size_t len;
 
-            e = strchr(v+1, '"');
-            if (!e) {
-                pa_log(__FILE__ ": [%s:%u] failed to parse line - missing role closing quote", filename, n);
-                goto finish;
-            }
+            token_end = value_str + strcspn(value_str, WHITESPACE);
 
-            *e = '\0';
-            e = pa_sprintf_malloc("media.role=\"%s\"", v+1);
-            proplist = pa_proplist_from_string(e);
-            pa_xfree(e);
-        } else {
-            char *e;
+            len = token_end - value_str;
+            if (len == (sizeof(UPDATE_REPLACE) - 1) && !strncmp(value_str, UPDATE_REPLACE, len))
+                mode = PA_UPDATE_REPLACE;
+            else if (len == (sizeof(UPDATE_MERGE) - 1) && !strncmp(value_str, UPDATE_MERGE, len))
+                mode = PA_UPDATE_MERGE;
 
-            e = v+strspn(v, WHITESPACE);
-            if (!*e) {
-                pa_log(__FILE__ ": [%s:%u] failed to parse line - missing end of property list", filename, n);
-                goto finish;
-            }
-            *e = '\0';
-            proplist = pa_proplist_from_string(v);
+            if (mode != (pa_update_mode_t) -1) {
+                value_str = token_end + strspn(token_end, WHITESPACE);
+
+                if (!*value_str) {
+                    pa_log("[%s:%u] failed to parse line - too few words", fn, n);
+                    goto finish;
+                }
+            } else
+                mode = PA_UPDATE_MERGE;
+
+            if (*value_str == '"') {
+                value_str++;
+
+                token_end = strchr(value_str, '"');
+                if (!token_end) {
+                    pa_log("[%s:%u] failed to parse line - missing role closing quote", fn, n);
+                    goto finish;
+                }
+            } else
+                token_end = value_str + strcspn(value_str, WHITESPACE);
+
+            *token_end = 0;
+
+            value_str = pa_sprintf_malloc("media.role=\"%s\"", value_str);
+            proplist = pa_proplist_from_string(value_str);
+            pa_xfree(value_str);
         }
 
         if (regcomp(&regex, ln, REG_EXTENDED|REG_NOSUB) != 0) {
-            pa_log("[%s:%u] invalid regular expression", filename, n);
+            pa_log("[%s:%u] invalid regular expression", fn, n);
+            if (proplist)
+                pa_proplist_free(proplist);
             goto finish;
         }
 
         rule = pa_xnew(struct rule, 1);
         rule->regex = regex;
         rule->proplist = proplist;
+        rule->mode = mode;
         rule->volume = volume;
         rule->next = NULL;
 
@@ -172,8 +198,6 @@ static int load_rules(struct userdata *u, const char *filename) {
         else
             u->rules = rule;
         end = rule;
-
-        *d = 0;
     }
 
     ret = 0;
@@ -184,8 +208,7 @@ finish:
         fclose(f);
     }
 
-    if (fn)
-        pa_xfree(fn);
+    pa_xfree(fn);
 
     return ret;
 }
@@ -206,7 +229,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         if (!regexec(&r->regex, n, 0, NULL, 0)) {
             if (r->proplist) {
                 pa_log_debug("updating proplist of sink input '%s'", n);
-                pa_proplist_update(si->proplist, PA_UPDATE_MERGE, r->proplist);
+                pa_proplist_update(si->proplist, r->mode, r->proplist);
             } else if (si->volume_writable) {
                 pa_cvolume cv;
                 pa_log_debug("changing volume of sink input '%s' to 0x%03x", n, r->volume);
@@ -231,7 +254,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u = pa_xnew(struct userdata, 1);
+    u = pa_xnew0(struct userdata, 1);
     u->rules = NULL;
     m->userdata = u;
 
