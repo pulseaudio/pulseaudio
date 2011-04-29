@@ -592,13 +592,19 @@ void pa__done(pa_module *m) {
     if (u->core_iface)
         pa_dbusiface_core_free(u->core_iface);
 
-    if (u->cleanup_event)
-        m->core->mainloop->defer_free(u->cleanup_event);
-
     while ((c = pa_idxset_steal_first(u->connections, NULL)))
         connection_free(c);
 
     pa_idxset_free(u->connections, NULL, NULL);
+
+    /* This must not be called before the connections are freed, because if
+     * there are any connections left, they will emit the
+     * org.freedesktop.DBus.Local.Disconnected signal, and
+     * disconnection_filter_cb() will be called. disconnection_filter_cb() then
+     * tries to enable the defer event, and if it's already freed, an assertion
+     * will be hit in mainloop.c. */
+    if (u->cleanup_event)
+        m->core->mainloop->defer_free(u->cleanup_event);
 
     if (u->tcp_server)
         server_free(u->tcp_server);
