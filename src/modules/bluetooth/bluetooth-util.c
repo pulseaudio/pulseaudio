@@ -631,11 +631,9 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
 
     if (pa_streq(uuid, HFP_AG_UUID)) {
         uint8_t capability = 0;
-        uint8_t *caps = &capability;
-        pa_dbus_append_basic_array_variant_dict_entry(&d, "Capabilities", DBUS_TYPE_BYTE, &caps, 1);
+        pa_dbus_append_basic_array_variant_dict_entry(&d, "Capabilities", DBUS_TYPE_BYTE, &capability, 1);
     } else {
         a2dp_sbc_t capabilities;
-        uint8_t *caps = (uint8_t *) &capabilities;
 
         capabilities.channel_mode = BT_A2DP_CHANNEL_MODE_MONO | BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL |
                                     BT_A2DP_CHANNEL_MODE_STEREO | BT_A2DP_CHANNEL_MODE_JOINT_STEREO;
@@ -648,7 +646,7 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
         capabilities.min_bitpool = MIN_BITPOOL;
         capabilities.max_bitpool = MAX_BITPOOL;
 
-        pa_dbus_append_basic_array_variant_dict_entry(&d, "Capabilities", DBUS_TYPE_BYTE, &caps, sizeof(capabilities));
+        pa_dbus_append_basic_array_variant_dict_entry(&d, "Capabilities", DBUS_TYPE_BYTE, &capabilities, sizeof(capabilities));
     }
 
     dbus_message_iter_close_container(&i, &d);
