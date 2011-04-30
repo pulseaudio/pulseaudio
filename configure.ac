@@ -584,14 +584,11 @@ else
     HAVE_X11=0
 fi
 
-if test "x${HAVE_X11}" = x1 ; then
-   AC_DEFINE([HAVE_X11], 1, [Have X11?])
-fi
-
 AC_SUBST(X11_CFLAGS)
 AC_SUBST(X11_LIBS)
 AC_SUBST(HAVE_X11)
 AM_CONDITIONAL([HAVE_X11], [test "x$HAVE_X11" = x1])
+AS_IF([test "x$HAVE_X11" = "x1"], AC_DEFINE([HAVE_X11], 1, [Have X11?]))
 
 #### Capabilities (optional) ####
 
@@ -661,14 +658,11 @@ else
     HAVE_LIBSAMPLERATE=0
 fi
 
-if test "x${HAVE_LIBSAMPLERATE}" = x1 ; then
-   AC_DEFINE([HAVE_LIBSAMPLERATE], 1, [Have libsamplerate?])
-fi
-
 AC_SUBST(LIBSAMPLERATE_CFLAGS)
 AC_SUBST(LIBSAMPLERATE_LIBS)
 AC_SUBST(HAVE_LIBSAMPLERATE)
 AM_CONDITIONAL([HAVE_LIBSAMPLERATE], [test "x$HAVE_LIBSAMPLERATE" = x1])
+AS_IF([test "x$HAVE_LIBSAMPLERATE" = "x1"], AC_DEFINE([HAVE_LIBSAMPLERATE], 1, [Have libsamplerate?]))
 
 #### Database support ####
 
@@ -717,30 +711,21 @@ if test "x${HAVE_TDB}" != x1 -a "x${HAVE_GDBM}" != x1 -a "x${HAVE_SIMPLEDB}" != 
    AC_MSG_ERROR([*** missing database backend])
 fi
 
-if test "x${HAVE_TDB}" = x1 ; then
-   AC_DEFINE([HAVE_TDB], 1, [Have tdb?])
-fi
-
-if test "x${HAVE_GDBM}" = x1 ; then
-   AC_DEFINE([HAVE_GDBM], 1, [Have gdbm?])
-fi
-
-if test "x${HAVE_SIMPLEDB}" = x1 ; then
-    AC_DEFINE([HAVE_SIMPLEDB], 1, [Have simple?])
-fi
-
 AC_SUBST(TDB_CFLAGS)
 AC_SUBST(TDB_LIBS)
 AC_SUBST(HAVE_TDB)
 AM_CONDITIONAL([HAVE_TDB], [test "x$HAVE_TDB" = x1])
+AS_IF([test "x$HAVE_TDB" = "x1"], AC_DEFINE([HAVE_TDB], 1, [Have tdb?]))
 
 AC_SUBST(GDBM_CFLAGS)
 AC_SUBST(GDBM_LIBS)
 AC_SUBST(HAVE_GDBM)
 AM_CONDITIONAL([HAVE_GDBM], [test "x$HAVE_GDBM" = x1])
+AS_IF([test "x$HAVE_GDBM" = "x1"], AC_DEFINE([HAVE_GDBM], 1, [Have gdbm?]))
 
 AC_SUBST(HAVE_SIMPLEDB)
 AM_CONDITIONAL([HAVE_SIMPLEDB], [test "x$HAVE_SIMPLEDB" = x1])
+AS_IF([test "x$HAVE_SIMPLEDB" = "x1"], AC_DEFINE([HAVE_SIMPLEDB], 1, [Have simple?]))
 
 #### OSS support (optional) ####
 
@@ -755,11 +740,9 @@ if test "x$enable_oss_output" != "xno" || test "x$enable_oss_wrapper" != "xno"; 
         [
             if test "x$enable_oss_output" != "xno"; then
                 HAVE_OSS_OUTPUT=1
-                AC_DEFINE([HAVE_OSS_OUTPUT], 1, [Have OSS output?])
             fi
             if test "x$enable_oss_wrapper" != "xno"; then
                 HAVE_OSS_WRAPPER=1
-                AC_DEFINE([HAVE_OSS_WRAPPER], 1, [Have OSS wrapper (padsp)?])
             fi
             HAVE_OSS=1
         ],
@@ -780,6 +763,8 @@ fi
 AC_SUBST(HAVE_OSS)
 AM_CONDITIONAL([HAVE_OSS_OUTPUT], [test "x$HAVE_OSS_OUTPUT" = "x1"])
 AM_CONDITIONAL([HAVE_OSS_WRAPPER], [test "x$HAVE_OSS_WRAPPER" = "x1"])
+AS_IF([test "x$HAVE_OSS_OUTPUT" = "x1"], AC_DEFINE([HAVE_OSS_OUTPUT], 1, [Have OSS output?]))
+AS_IF([test "x$HAVE_OSS_WRAPPER" = "x1"], AC_DEFINE([HAVE_OSS_WRAPPER], 1, [Have OSS wrapper (padsp)?]))
 
 #### CoreAudio support (optional) ####
 
@@ -804,7 +789,6 @@ if test "x$enable_alsa" != "xno"; then
     PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.19 ],
         [
             HAVE_ALSA=1
-            AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?])
         ],
         [
             HAVE_ALSA=0
@@ -820,6 +804,7 @@ AC_SUBST(ASOUNDLIB_CFLAGS)
 AC_SUBST(ASOUNDLIB_LIBS)
 AC_SUBST(HAVE_ALSA)
 AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
+AS_IF([test "x$HAVE_ALSA" = "x1"], AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?]))
 
 #### Solaris audio support (optional) ####
 
@@ -830,7 +815,6 @@ if test "x$enable_solaris" != "xno"; then
     AC_CHECK_HEADERS([sys/audio.h],
         [
             HAVE_SOLARIS=1
-            AC_DEFINE([HAVE_SOLARIS], 1, [Have Solaris audio?])
         ],
         [
             HAVE_SOLARIS=0
@@ -844,6 +828,7 @@ fi
 
 AC_SUBST(HAVE_SOLARIS)
 AM_CONDITIONAL([HAVE_SOLARIS], [test "x$HAVE_SOLARIS" = x1])
+AS_IF([test "x$HAVE_SOLARIS" = "x1"], AC_DEFINE([HAVE_SOLARIS], 1, [Have Solaris audio?]))
 
 #### WaveOut audio support (optional) ####
 
@@ -854,7 +839,6 @@ if test "x$enable_waveout" != "xno"; then
     AC_CHECK_HEADERS([mmsystem.h],
         [
             HAVE_WAVEOUT=1
-            AC_DEFINE([HAVE_WAVEOUT], 1, [Have WaveOut audio?])
         ],
         [
             HAVE_WAVEOUT=0
@@ -869,6 +853,7 @@ fi
 
 AC_SUBST(HAVE_WAVEOUT)
 AM_CONDITIONAL([HAVE_WAVEOUT], [test "x$HAVE_WAVEOUT" = x1])
+AS_IF([test "x$HAVE_WAVEOUT" = "x1"], AC_DEFINE([HAVE_WAVEOUT], 1, [Have WaveOut audio?]))
 
 #### GLib 2 support (optional) ####
 
@@ -892,10 +877,7 @@ AC_SUBST(GLIB20_CFLAGS)
 AC_SUBST(GLIB20_LIBS)
 AC_SUBST(HAVE_GLIB20)
 AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
-
-if test "x$HAVE_GLIB20" = x1 ; then
-   AC_DEFINE([HAVE_GLIB], 1, [Have GLIB?])
-fi
+AS_IF([test "x$HAVE_GLIB20" = "x1"], AC_DEFINE([HAVE_GLIB], 1, [Have GLIB?]))
 
 #### GTK2 support (optional) ####
 
@@ -919,10 +901,7 @@ AC_SUBST(GTK20_CFLAGS)
 AC_SUBST(GTK20_LIBS)
 AC_SUBST(HAVE_GTK20)
 AM_CONDITIONAL([HAVE_GTK20], [test "x$HAVE_GTK20" = x1])
-
-if test "x$HAVE_GTK20" = x1 ; then
-   AC_DEFINE([HAVE_GTK], 1, [Have GTK?])
-fi
+AS_IF([test "x$HAVE_GTK20" = "x1"], AC_DEFINE([HAVE_GTK], 1, [Have GTK?]))
 
 #### GConf support (optional) ####
 
@@ -1015,10 +994,7 @@ AC_SUBST(LIBASYNCNS_CFLAGS)
 AC_SUBST(LIBASYNCNS_LIBS)
 AC_SUBST(HAVE_LIBASYNCNS)
 AM_CONDITIONAL([HAVE_LIBASYNCNS], [test "x$HAVE_LIBASYNCNS" = x1])
-
-if test "x$HAVE_LIBASYNCNS" != "x0" ; then
-   AC_DEFINE([HAVE_LIBASYNCNS], 1, [Have libasyncns?])
-fi
+AS_IF([test "x$HAVE_LIBASYNCNS" = "x1"], AC_DEFINE([HAVE_LIBASYNCNS], 1, [Have libasyncns?]))
 
 #### TCP wrappers (optional) ####
 
@@ -1067,7 +1043,6 @@ if test "x$enable_hal" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1
     PKG_CHECK_MODULES(HAL, [ hal >= 0.5.11 ],
         [
             HAVE_HAL=1
-            AC_DEFINE([HAVE_HAL], 1, [Have HAL.])
         ],
         [
             HAVE_HAL=0
@@ -1083,6 +1058,7 @@ AC_SUBST(HAL_CFLAGS)
 AC_SUBST(HAL_LIBS)
 AC_SUBST(HAVE_HAL)
 AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
+AS_IF([test "x$HAVE_HAL" = "x1"], AC_DEFINE([HAVE_HAL], 1, [Have HAL.]))
 
 #### UDEV support (optional) ####
 
@@ -1093,7 +1069,6 @@ if test "x$enable_udev" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x
     PKG_CHECK_MODULES(UDEV, [ libudev >= 143 ],
         [
             HAVE_UDEV=1
-            AC_DEFINE([HAVE_UDEV], 1, [Have UDEV.])
         ],
         [
             HAVE_UDEV=0
@@ -1109,6 +1084,7 @@ AC_SUBST(UDEV_CFLAGS)
 AC_SUBST(UDEV_LIBS)
 AC_SUBST(HAVE_UDEV)
 AM_CONDITIONAL([HAVE_UDEV], [test "x$HAVE_UDEV" = x1])
+AS_IF([test "x$HAVE_UDEV" = "x1"], AC_DEFINE([HAVE_UDEV], 1, [Have UDEV.]))
 
 #### BlueZ support (optional) ####
 
@@ -1147,7 +1123,6 @@ if test "x$enable_dbus" != "xno"; then
             CFLAGS="$CFLAGS $DBUS_CFLAGS"
             AC_CHECK_FUNCS(dbus_watch_get_unix_fd)
             LIBS="$saved_LIBS"
-            AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.])
         ],
         [
             HAVE_DBUS=0
@@ -1163,7 +1138,7 @@ AC_SUBST(DBUS_CFLAGS)
 AC_SUBST(DBUS_LIBS)
 AC_SUBST(HAVE_DBUS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
-
+AS_IF([test "x$HAVE_DBUS" = "x1"], AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.]))
 
 # udev and HAL depend on D-Bus: So double check if they were explicitly enabled.
 if test "x$HAVE_DBUS" != "x1" ; then
@@ -1216,7 +1191,6 @@ if test "x$enable_openssl" != "xno"; then
     PKG_CHECK_MODULES(OPENSSL, [ openssl > 0.9 ],
         [
             HAVE_OPENSSL=1
-            AC_DEFINE([HAVE_OPENSSL], 1, [Have OpenSSL])
         ],
         [
             HAVE_OPENSSL=0
@@ -1232,6 +1206,7 @@ AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
 AC_SUBST(HAVE_OPENSSL)
 AM_CONDITIONAL([HAVE_OPENSSL], [test "x$HAVE_OPENSSL" = x1])
+AS_IF([test "x$HAVE_OPENSSL" = "x1"], AC_DEFINE([HAVE_OPENSSL], 1, [Have OpenSSL]))
 
 #### FFTW (optional) ####
 AC_ARG_WITH([fftw],
