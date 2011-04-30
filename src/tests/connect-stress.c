@@ -118,7 +118,7 @@ static void stream_write_callback(pa_stream *stream, size_t nbytes, void *userda
     memset(silence, 0, sizeof(silence));
 
     while (nbytes) {
-        int n = MIN(sizeof(silence), nbytes);
+        int n = PA_MIN(sizeof(silence), nbytes);
         pa_stream_write(stream, silence, n, NULL, 0, 0);
         nbytes -= n;
     }
@@ -195,9 +195,9 @@ int main(int argc, char *argv[]) {
 
     for (i = 0; i < NTESTS; i++) {
         connect(argv[0], &i);
-        usleep(random() % 500000);
+        usleep(rand() % 500000);
         disconnect();
-        usleep(random() % 500000);
+        usleep(rand() % 500000);
     }
 
     fprintf(stderr, "Done.\n");
