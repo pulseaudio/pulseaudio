@@ -571,15 +571,10 @@ PKG_PROG_PKG_CONFIG
 AC_ARG_ENABLE([x11],
     AS_HELP_STRING([--disable-x11],[Disable optional X11 support]))
 
-if test "x$enable_x11" != "xno"; then
-    PKG_CHECK_MODULES(X11, [ x11-xcb xcb >= 1.6 ice sm xtst ],
-        HAVE_X11=1,
-        [
-            HAVE_X11=0
-        ])
-else
-    HAVE_X11=0
-fi
+AS_IF([test "x$enable_x11" != "xno"],
+    [PKG_CHECK_MODULES(X11, [ x11-xcb xcb >= 1.6 ice sm xtst ], HAVE_X11=1, HAVE_X11=0)],
+    HAVE_X11=0)
+
 AS_IF([test "x$enable_x11" = "xyes" && test "x$HAVE_X11" = "x0"],
     [AC_MSG_ERROR([*** X11 not found])])
 
@@ -644,15 +639,10 @@ fi
 AC_ARG_ENABLE([samplerate],
     AS_HELP_STRING([--disable-samplerate],[Disable optional libsamplerate support]))
 
-if test "x$enable_samplerate" != "xno"; then
-    PKG_CHECK_MODULES(LIBSAMPLERATE, [ samplerate >= 0.1.0 ],
-        HAVE_LIBSAMPLERATE=1,
-        [
-            HAVE_LIBSAMPLERATE=0
-        ])
-else
-    HAVE_LIBSAMPLERATE=0
-fi
+AS_IF([test "x$enable_samplerate" != "xno"],
+    [PKG_CHECK_MODULES(LIBSAMPLERATE, [ samplerate >= 0.1.0 ], HAVE_LIBSAMPLERATE=1, HAVE_LIBSAMPLERATE=0)],
+    HAVE_LIBSAMPLERATE=0)
+
 AS_IF([test "x$enable_samplerate" = "xyes" && test "x$HAVE_LIBSAMPLERATE" = "x0"],
     [AC_MSG_ERROR([*** Libsamplerate not found])])
 
@@ -731,29 +721,20 @@ AC_ARG_ENABLE([oss-output],
 AC_ARG_ENABLE([oss-wrapper],
     AS_HELP_STRING([--disable-oss-wrapper],[Disable optional OSS wrapper support]))
 
-if test "x$enable_oss_output" != "xno" || test "x$enable_oss_wrapper" != "xno"; then
-    AC_CHECK_HEADERS([sys/soundcard.h],
-        [
-            if test "x$enable_oss_output" != "xno"; then
-                HAVE_OSS_OUTPUT=1
-            fi
-            if test "x$enable_oss_wrapper" != "xno"; then
-                HAVE_OSS_WRAPPER=1
-            fi
-            HAVE_OSS=1
-        ],
-        [
-            HAVE_OSS=0
-            HAVE_OSS_OUTPUT=0
-            HAVE_OSS_WRAPPER=0
-        ])
-else
-    HAVE_OSS=0
-    HAVE_OSS_OUTPUT=0
-    HAVE_OSS_WRAPPER=0
-fi
-AS_IF([test "x$enable_oss_output" = "xyes" -o "x$enable_oss_wrapper" = "xyes" && test "x$HAVE_ALSA" = "x0"],
+AS_IF([test "x$enable_oss_output" != "xno" -o "x$enable_oss_wrapper" != "xno"],
+    [AC_CHECK_HEADERS([sys/soundcard.h], HAVE_OSS=1, HAVE_OSS=0)],
+    HAVE_OSS=0)
+
+AS_IF([test "x$enable_oss_output" = "xyes" -o "x$enable_oss_wrapper" = "xyes" && test "x$HAVE_OSS" = "x0"],
     [AC_MSG_ERROR([*** OSS support not found])])
+
+AS_IF([test "x$enable_oss_output" != "xno"],
+    [AS_IF([test "x$HAVE_OSS" = "x1"], HAVE_OSS_OUTPUT=1, HAVE_OSS_OUTPUT=0)],
+    HAVE_OSS_OUTPUT=0)
+
+AS_IF([test "x$enable_oss_wrapper" != "xno"],
+    [AS_IF([test "x$HAVE_OSS" = "x1"], HAVE_OSS_WRAPPER=1, HAVE_OSS_WRAPPER=0)],
+    HAVE_OSS_WRAPPER=0)
 
 AC_SUBST(HAVE_OSS)
 AM_CONDITIONAL([HAVE_OSS_OUTPUT], [test "x$HAVE_OSS_OUTPUT" = "x1"])
@@ -766,11 +747,9 @@ AS_IF([test "x$HAVE_OSS_WRAPPER" = "x1"], AC_DEFINE([HAVE_OSS_WRAPPER], 1, [Have
 AC_ARG_ENABLE([coreaudio-output],
     AS_HELP_STRING([--disable-coreaudio-output],[Disable optional CoreAudio output support]))
 
-if test "x$enable_coreaudio_output" != "xno"; then
-    AC_CHECK_HEADERS([CoreAudio/CoreAudio.h], HAVE_COREAUDIO=1)
-else
-    HAVE_COREAUDIO=0
-fi
+AS_IF([test "x$enable_coreaudio_output" != "xno"],
+    [AC_CHECK_HEADERS([CoreAudio/CoreAudio.h], HAVE_COREAUDIO=1, HAVE_COREAUDIO=0)],
+    HAVE_COREAUDIO=0)
 
 AC_SUBST(HAVE_COREAUDIO)
 AM_CONDITIONAL([HAVE_COREAUDIO], [test "x$HAVE_COREAUDIO" = "x1" && test "x$enable_coreaudio_output" != "xno"])
@@ -780,17 +759,10 @@ AM_CONDITIONAL([HAVE_COREAUDIO], [test "x$HAVE_COREAUDIO" = "x1" && test "x$enab
 AC_ARG_ENABLE([alsa],
     AS_HELP_STRING([--disable-alsa],[Disable optional ALSA support]))
 
-if test "x$enable_alsa" != "xno"; then
-    PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.19 ],
-        [
-            HAVE_ALSA=1
-        ],
-        [
-            HAVE_ALSA=0
-        ])
-else
-    HAVE_ALSA=0
-fi
+AS_IF([test "x$enable_alsa" != "xno"],
+    [PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.19 ], HAVE_ALSA=1, HAVE_ALSA=0)],
+    HAVE_ALSA=0)
+
 AS_IF([test "x$enable_alsa" = "xyes" && test "x$HAVE_ALSA" = "x0"],
     [AC_MSG_ERROR([*** Needed alsa >= 1.0.19 support not found])])
 
@@ -805,17 +777,10 @@ AS_IF([test "x$HAVE_ALSA" = "x1"], AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?]))
 AC_ARG_ENABLE([solaris],
     AS_HELP_STRING([--disable-solaris],[Disable optional Solaris audio support]))
 
-if test "x$enable_solaris" != "xno"; then
-    AC_CHECK_HEADERS([sys/audio.h],
-        [
-            HAVE_SOLARIS=1
-        ],
-        [
-            HAVE_SOLARIS=0
-        ])
-else
-    HAVE_SOLARIS=0
-fi
+AS_IF([test "x$enable_solaris" != "xno"],
+    [AC_CHECK_HEADERS([sys/audio.h], HAVE_SOLARIS=1, HAVE_SOLARIS=0)],
+    HAVE_SOLARIS=0)
+
 AS_IF([test "x$enable_solaris" = "xyes" && test "x$HAVE_SOLARIS" = "x0"],
     [AC_MSG_ERROR([*** Solaris audio support not found])])
 
@@ -828,18 +793,10 @@ AS_IF([test "x$HAVE_SOLARIS" = "x1"], AC_DEFINE([HAVE_SOLARIS], 1, [Have Solaris
 AC_ARG_ENABLE([waveout],
     AS_HELP_STRING([--disable-waveout],[Disable optional WaveOut audio support]))
 
-if test "x$enable_waveout" != "xno"; then
-    AC_CHECK_HEADERS([mmsystem.h],
-        [
-            HAVE_WAVEOUT=1
-        ],
-        [
-            HAVE_WAVEOUT=0
-        ],
-        [#include <windows.h>])
-else
-    HAVE_WAVEOUT=0
-fi
+AS_IF([test "x$enable_waveout" != "xno"],
+    [AC_CHECK_HEADERS([mmsystem.h], HAVE_WAVEOUT=1, HAVE_WAVEOUT=0, [#include <windows.h>])],
+    HAVE_WAVEOUT=0)
+
 AS_IF([test "x$enable_waveout" = "xyes" && test "x$HAVE_WAVEOUT" = "x0"],
     [AC_MSG_ERROR([*** WaveOut audio support not found])])
 
@@ -852,15 +809,10 @@ AS_IF([test "x$HAVE_WAVEOUT" = "x1"], AC_DEFINE([HAVE_WAVEOUT], 1, [Have WaveOut
 AC_ARG_ENABLE([glib2],
     AS_HELP_STRING([--disable-glib2],[Disable optional GLib 2 support]))
 
-if test "x$enable_glib2" != "xno"; then
-    PKG_CHECK_MODULES(GLIB20, [ glib-2.0 >= 2.4.0 ],
-        HAVE_GLIB20=1,
-        [
-            HAVE_GLIB20=0
-        ])
-else
-    HAVE_GLIB20=0
-fi
+AS_IF([test "x$enable_glib2" != "xno"],
+    [PKG_CHECK_MODULES(GLIB20, [ glib-2.0 >= 2.4.0 ], HAVE_GLIB20=1, HAVE_GLIB20=0)],
+    HAVE_GLIB20=0)
+
 AS_IF([test "x$enable_glib2" = "xyes" && test "x$HAVE_GLIB20" = "x0"],
     [AC_MSG_ERROR([*** GLib 2 support not found])])
 
@@ -875,15 +827,10 @@ AS_IF([test "x$HAVE_GLIB20" = "x1"], AC_DEFINE([HAVE_GLIB], 1, [Have GLIB?]))
 AC_ARG_ENABLE([gtk2],
     AS_HELP_STRING([--disable-gtk2],[Disable optional Gtk+ 2 support]))
 
-if test "x$enable_gtk2" != "xno"; then
-    PKG_CHECK_MODULES(GTK20, [ gtk+-2.0 >= 2.4.0 ],
-        HAVE_GTK20=1,
-        [
-            HAVE_GTK20=0
-        ])
-else
-    HAVE_GTK20=0
-fi
+AS_IF([test "x$enable_gtk2" != "xno"],
+    [PKG_CHECK_MODULES(GTK20, [ gtk+-2.0 >= 2.4.0 ], HAVE_GTK20=1, HAVE_GTK20=0)],
+    HAVE_GTK20=0)
+
 AS_IF([test "x$enable_gtk2" = "xyes" && test "x$HAVE_GTK20" = "x0"],
     [AC_MSG_ERROR([*** Gtk+ 2 support not found])])
 
@@ -898,15 +845,10 @@ AS_IF([test "x$HAVE_GTK20" = "x1"], AC_DEFINE([HAVE_GTK], 1, [Have GTK?]))
 AC_ARG_ENABLE([gconf],
     AS_HELP_STRING([--disable-gconf],[Disable optional GConf support]))
 
-if test "x$enable_gconf" != "xno"; then
-    PKG_CHECK_MODULES(GCONF, [ gconf-2.0 >= 2.4.0 gobject-2.0 ],
-        HAVE_GCONF=1,
-        [
-            HAVE_GCONF=0
-        ])
-else
-    HAVE_GCONF=0
-fi
+AS_IF([test "x$enable_gconf" != "xno"],
+    [PKG_CHECK_MODULES(GCONF, [ gconf-2.0 >= 2.4.0 gobject-2.0 ], HAVE_GCONF=1, HAVE_GCONF=0)],
+    HAVE_GCONF=0)
+
 AS_IF([test "x$enable_gconf" = "xyes" && test "x$HAVE_GCONF" = "x0"],
     [AC_MSG_ERROR([*** GConf support not found])])
 
@@ -920,15 +862,10 @@ AM_CONDITIONAL([HAVE_GCONF], [test "x$HAVE_GCONF" = x1])
 AC_ARG_ENABLE([avahi],
     AS_HELP_STRING([--disable-avahi],[Disable optional Avahi support]))
 
-if test "x$enable_avahi" != "xno"; then
-    PKG_CHECK_MODULES(AVAHI, [ avahi-client >= 0.6.0 ],
-        HAVE_AVAHI=1,
-        [
-                HAVE_AVAHI=0
-        ])
-else
-    HAVE_AVAHI=0
-fi
+AS_IF([test "x$enable_avahi" != "xno"],
+    [PKG_CHECK_MODULES(AVAHI, [ avahi-client >= 0.6.0 ], HAVE_AVAHI=1, HAVE_AVAHI=0)],
+    HAVE_AVAHI=0)
+
 AS_IF([test "x$enable_avahi" = "xyes" && test "x$HAVE_AVAHI" = "x0"],
     [AC_MSG_ERROR([*** Avahi support not found])])
 
@@ -942,15 +879,10 @@ AM_CONDITIONAL([HAVE_AVAHI], [test "x$HAVE_AVAHI" = x1])
 AC_ARG_ENABLE([jack],
     AS_HELP_STRING([--disable-jack],[Disable optional JACK support]))
 
-if test "x$enable_jack" != "xno"; then
-    PKG_CHECK_MODULES(JACK, [ jack >= 0.100 ],
-        HAVE_JACK=1,
-        [
-            HAVE_JACK=0
-        ])
-else
-    HAVE_JACK=0
-fi
+AS_IF([test "x$enable_jack" != "xno"],
+    [PKG_CHECK_MODULES(JACK, [ jack >= 0.100 ], HAVE_JACK=1, HAVE_JACK=0)],
+    HAVE_JACK=0)
+
 AS_IF([test "x$enable_jack" = "xyes" && test "x$HAVE_JACK" = "x0"],
     [AC_MSG_ERROR([*** JACK support not found])])
 
@@ -964,15 +896,10 @@ AM_CONDITIONAL([HAVE_JACK], [test "x$HAVE_JACK" = x1])
 AC_ARG_ENABLE([asyncns],
     AS_HELP_STRING([--disable-asyncns],[Disable optional Async DNS support]))
 
-if test "x$enable_asyncns" != "xno"; then
-    PKG_CHECK_MODULES(LIBASYNCNS, [ libasyncns >= 0.1 ],
-        HAVE_LIBASYNCNS=1,
-        [
-            HAVE_LIBASYNCNS=0
-        ])
-else
-    HAVE_LIBASYNCNS=0
-fi
+AS_IF([test "x$enable_asyncns" != "xno"],
+    [PKG_CHECK_MODULES(LIBASYNCNS, [ libasyncns >= 0.1 ], HAVE_LIBASYNCNS=1, HAVE_LIBASYNCNS=0)],
+    HAVE_LIBASYNCNS=0)
+
 AS_IF([test "x$enable_asyncns" = "xyes" && test "x$HAVE_LIBASYNCNS" = "x0"],
     [AC_MSG_ERROR([*** Async DNS support not found])])
 
@@ -987,15 +914,13 @@ AS_IF([test "x$HAVE_LIBASYNCNS" = "x1"], AC_DEFINE([HAVE_LIBASYNCNS], 1, [Have l
 AC_ARG_ENABLE([tcpwrap],
     AS_HELP_STRING([--disable-tcpwrap],[Disable optional TCP wrappers support]))
 
-if test "x$enable_tcpwrap" != "xno"; then
-    ACX_LIBWRAP
-    HAVE_TCPWRAP=1
-    if test "x${LIBWRAP_LIBS}" = "x"; then
-        HAVE_TCPWRAP=0
-    fi
-else
-    HAVE_TCPWRAP=0
-fi
+AS_IF([test "x$enable_tcpwrap" != "xno"],
+    [
+        ACX_LIBWRAP
+        AS_IF([test "x$LIBWRAP_LIBS" != "x"], HAVE_TCPWRAP=1, HAVE_TCPWRAP=0)
+    ],
+    HAVE_TCPWRAP=0)
+
 AS_IF([test "x$enable_tcpwrap" = "xyes" && test "x$HAVE_TCPWRAP" = "x0"],
     [AC_MSG_ERROR([*** TCP wrappers support not found])])
 
@@ -1006,11 +931,10 @@ AC_SUBST(LIBWRAP_LIBS)
 AC_ARG_ENABLE([lirc],
     AS_HELP_STRING([--disable-lirc],[Disable optional LIRC support]))
 
-if test "x$enable_lirc" != "xno"; then
-    ACX_LIRC
-else
-    HAVE_LIRC=0
-fi
+AS_IF([test "x$enable_lirc" != "xno"],
+    [ACX_LIRC],
+    HAVE_LIRC=0)
+
 AS_IF([test "x$enable_lirc" = "xyes" && test "x$HAVE_LIRC" = "x0"],
     [AC_MSG_ERROR([*** LIRC support not found])])
 
@@ -1023,17 +947,10 @@ AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
 AC_ARG_ENABLE([hal],
     AS_HELP_STRING([--disable-hal],[Disable optional HAL support]))
 
-if test "x$enable_hal" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \); then
-    PKG_CHECK_MODULES(HAL, [ hal >= 0.5.11 ],
-        [
-            HAVE_HAL=1
-        ],
-        [
-            HAVE_HAL=0
-        ])
-else
-    HAVE_HAL=0
-fi
+AS_IF([test "x$enable_hal" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \)],
+    [PKG_CHECK_MODULES(HAL, [ hal >= 0.5.11 ], HAVE_HAL=1, HAVE_HAL=0)],
+    HAVE_HAL=0)
+
 AS_IF([test "x$enable_hal" = "xyes" && test "x$HAVE_HAL" = "x0"],
     [AC_MSG_ERROR([*** HAL support not found])])
 
@@ -1048,17 +965,10 @@ AS_IF([test "x$HAVE_HAL" = "x1"], AC_DEFINE([HAVE_HAL], 1, [Have HAL.]))
 AC_ARG_ENABLE([udev],
     AS_HELP_STRING([--disable-udev],[Disable optional UDEV support]))
 
-if test "x$enable_udev" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \); then
-    PKG_CHECK_MODULES(UDEV, [ libudev >= 143 ],
-        [
-            HAVE_UDEV=1
-        ],
-        [
-            HAVE_UDEV=0
-        ])
-else
-    HAVE_UDEV=0
-fi
+AS_IF([test "x$enable_udev" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \)],
+    [PKG_CHECK_MODULES(UDEV, [ libudev >= 143 ], HAVE_UDEV=1, HAVE_UDEV=0)],
+    HAVE_UDEV=0)
+
 AS_IF([test "x$enable_udev" = "xyes" && test "x$HAVE_UDEV" = "x0"],
     [AC_MSG_ERROR([*** UDEV support not found])])
 
@@ -1073,15 +983,10 @@ AS_IF([test "x$HAVE_UDEV" = "x1"], AC_DEFINE([HAVE_UDEV], 1, [Have UDEV.]))
 AC_ARG_ENABLE([bluez],
     AS_HELP_STRING([--disable-bluez],[Disable optional BlueZ support]))
 
-if test "x$enable_bluez" != "xno"; then
-    PKG_CHECK_MODULES(BLUEZ, [ bluez >= 3.0 ],
-        HAVE_BLUEZ=1,
-        [
-            HAVE_BLUEZ=0
-        ])
-else
-    HAVE_BLUEZ=0
-fi
+AS_IF([test "x$enable_bluez" != "xno"],
+    [PKG_CHECK_MODULES(BLUEZ, [ bluez >= 3.0 ], HAVE_BLUEZ=1, HAVE_BLUEZ=0)],
+    HAVE_BLUEZ=0)
+
 AS_IF([test "x$enable_bluez" = "xyes" && test "x$HAVE_BLUEZ" = "x0"],
     [AC_MSG_ERROR([*** BLUEZ support not found])])
 
@@ -1095,24 +1000,21 @@ AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
 AC_ARG_ENABLE([dbus],
     AS_HELP_STRING([--disable-dbus],[Disable optional D-Bus support]))
 
-if test "x$enable_dbus" != "xno"; then
-    PKG_CHECK_MODULES(DBUS, [ dbus-1 >= 1.0.0 ],
-        [
-            HAVE_DBUS=1
-            saved_LIBS="$LIBS"
-            LIBS="$LIBS $DBUS_LIBS"
-            CFLAGS="$CFLAGS $DBUS_CFLAGS"
-            AC_CHECK_FUNCS(dbus_watch_get_unix_fd)
-            LIBS="$saved_LIBS"
-        ],
-        [
-            HAVE_DBUS=0
-        ])
-else
-    HAVE_DBUS=0
-fi
+AS_IF([test "x$enable_dbus" != "xno"],
+    [PKG_CHECK_MODULES(DBUS, [ dbus-1 >= 1.0.0 ], HAVE_DBUS=1, HAVE_DBUS=0)],
+    HAVE_DBUS=0)
+
 AS_IF([test "x$enable_dbus" = "xyes" && test "x$HAVE_DBUS" = "x0"],
     [AC_MSG_ERROR([*** D-Bus support not found])])
+
+AS_IF([test "x$HAVE_DBUS" = "x1"],
+    [
+        saved_LIBS="$LIBS"
+        LIBS="$LIBS $DBUS_LIBS"
+        CFLAGS="$CFLAGS $DBUS_CFLAGS"
+        AC_CHECK_FUNCS(dbus_watch_get_unix_fd)
+        LIBS="$saved_LIBS"
+    ])
 
 AC_SUBST(DBUS_CFLAGS)
 AC_SUBST(DBUS_LIBS)
@@ -1166,18 +1068,10 @@ fi
 AC_ARG_ENABLE([openssl],
     AS_HELP_STRING([--disable-openssl],[Disable OpenSSL support (used for Airtunes/RAOP)]))
 
-if test "x$enable_openssl" != "xno"; then
+AS_IF([test "x$enable_openssl" != "xno"],
+    [PKG_CHECK_MODULES(OPENSSL, [ openssl > 0.9 ], HAVE_OPENSSL=1, HAVE_OPENSSL=0)],
+    HAVE_OPENSSL=0)
 
-    PKG_CHECK_MODULES(OPENSSL, [ openssl > 0.9 ],
-        [
-            HAVE_OPENSSL=1
-        ],
-        [
-            HAVE_OPENSSL=0
-        ])
-else
-    HAVE_OPENSSL=0
-fi
 AS_IF([test "x$enable_openssl" = "xyes" && test "x$HAVE_OPENSSL" = "x0"],
     [AC_MSG_ERROR([*** OpenSSL support not found])])
 
@@ -1191,9 +1085,10 @@ AS_IF([test "x$HAVE_OPENSSL" = "x1"], AC_DEFINE([HAVE_OPENSSL], 1, [Have OpenSSL
 AC_ARG_WITH([fftw],
     AS_HELP_STRING([--without-fftw],[Omit FFTW-using modules (equalizer)]))
 
-if test "x${with_fftw}" != "xno"; then
-    PKG_CHECK_MODULES([FFTW], [fftw3f], [HAVE_FFTW=1], [HAVE_FFTW=0])
-fi
+AS_IF([test "x$with_fftw" != "xno"],
+    [PKG_CHECK_MODULES(FFTW, [ fftw3f ], HAVE_FFTW=1, HAVE_FFTW=0)],
+    HAVE_FFTW=0)
+
 AM_CONDITIONAL([HAVE_FFTW], [test "x$HAVE_FFTW" = "x1"])
 
 ### ORC (optional) ###
