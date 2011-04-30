@@ -576,13 +576,12 @@ if test "x$enable_x11" != "xno"; then
         HAVE_X11=1,
         [
             HAVE_X11=0
-            if test "x$enable_x11" = "xyes"; then
-                AC_MSG_ERROR([*** X11 not found])
-            fi
         ])
 else
     HAVE_X11=0
 fi
+AS_IF([test "x$enable_x11" = "xyes" && test "x$HAVE_X11" = "x0"],
+    [AC_MSG_ERROR([*** X11 not found])])
 
 AC_SUBST(X11_CFLAGS)
 AC_SUBST(X11_LIBS)
@@ -650,13 +649,12 @@ if test "x$enable_samplerate" != "xno"; then
         HAVE_LIBSAMPLERATE=1,
         [
             HAVE_LIBSAMPLERATE=0
-            if test "x$enable_samplerate" = "xyes"; then
-                AC_MSG_ERROR([*** Libsamplerate not found])
-            fi
         ])
 else
     HAVE_LIBSAMPLERATE=0
 fi
+AS_IF([test "x$enable_samplerate" = "xyes" && test "x$HAVE_LIBSAMPLERATE" = "x0"],
+    [AC_MSG_ERROR([*** Libsamplerate not found])])
 
 AC_SUBST(LIBSAMPLERATE_CFLAGS)
 AC_SUBST(LIBSAMPLERATE_LIBS)
@@ -679,12 +677,10 @@ if test "x${with_database}" = "xauto" -o "x${with_database}" = "xtdb" ; then
         [
             HAVE_TDB=1
             with_database=tdb
-        ], [
-            if test "x${with_database}" = "xtdb" ; then
-                AC_MSG_ERROR([*** tdb not found])
-            fi
-        ])
+        ], [])
 fi
+AS_IF([test "x$with_database" = "xtdb" && test "x$HAVE_TDB" = "x0"],
+    [AC_MSG_ERROR([*** tdb not found])])
 
 if test "x${with_database}" = "xauto" -o "x${with_database}" = "xgdbm" ; then
    have_gdbm=yes
@@ -697,10 +693,10 @@ if test "x${with_database}" = "xauto" -o "x${with_database}" = "xgdbm" ; then
        GDBM_CFLAGS=
        GDBM_LIBS=-lgdbm
        with_database=gdbm
-   elif test "x${with_database}" = "xgdbm"; then
-       AC_MSG_ERROR([*** gdbm not found])
    fi
 fi
+AS_IF([test "x$with_database" = "xgdbm" && test "x$HAVE_GDBM" = "x0"],
+    [AC_MSG_ERROR([*** gdbm not found])])
 
 if test "x${with_database}" = "xauto" -o "x${with_database}" = "xsimple" ; then
     HAVE_SIMPLEDB=1
@@ -750,15 +746,14 @@ if test "x$enable_oss_output" != "xno" || test "x$enable_oss_wrapper" != "xno"; 
             HAVE_OSS=0
             HAVE_OSS_OUTPUT=0
             HAVE_OSS_WRAPPER=0
-            if test "x$enable_oss_output" = "xyes" || test "x$enable_oss_wrapper" = "xyes"; then
-                AC_MSG_ERROR([*** OSS support not found])
-            fi
         ])
 else
     HAVE_OSS=0
     HAVE_OSS_OUTPUT=0
     HAVE_OSS_WRAPPER=0
 fi
+AS_IF([test "x$enable_oss_output" = "xyes" -o "x$enable_oss_wrapper" = "xyes" && test "x$HAVE_ALSA" = "x0"],
+    [AC_MSG_ERROR([*** OSS support not found])])
 
 AC_SUBST(HAVE_OSS)
 AM_CONDITIONAL([HAVE_OSS_OUTPUT], [test "x$HAVE_OSS_OUTPUT" = "x1"])
@@ -792,13 +787,12 @@ if test "x$enable_alsa" != "xno"; then
         ],
         [
             HAVE_ALSA=0
-            if test "x$enable_alsa" = "xyes"; then
-                AC_MSG_ERROR([*** Needed alsa >= 1.0.19 support not found])
-            fi
         ])
 else
     HAVE_ALSA=0
 fi
+AS_IF([test "x$enable_alsa" = "xyes" && test "x$HAVE_ALSA" = "x0"],
+    [AC_MSG_ERROR([*** Needed alsa >= 1.0.19 support not found])])
 
 AC_SUBST(ASOUNDLIB_CFLAGS)
 AC_SUBST(ASOUNDLIB_LIBS)
@@ -818,13 +812,12 @@ if test "x$enable_solaris" != "xno"; then
         ],
         [
             HAVE_SOLARIS=0
-            if test "x$enable_solaris" = "xyes"; then
-                AC_MSG_ERROR([*** Solaris audio support not found])
-            fi
         ])
 else
     HAVE_SOLARIS=0
 fi
+AS_IF([test "x$enable_solaris" = "xyes" && test "x$HAVE_SOLARIS" = "x0"],
+    [AC_MSG_ERROR([*** Solaris audio support not found])])
 
 AC_SUBST(HAVE_SOLARIS)
 AM_CONDITIONAL([HAVE_SOLARIS], [test "x$HAVE_SOLARIS" = x1])
@@ -842,14 +835,13 @@ if test "x$enable_waveout" != "xno"; then
         ],
         [
             HAVE_WAVEOUT=0
-            if test "x$enable_waveout" = "xyes"; then
-                AC_MSG_ERROR([*** WaveOut audio support not found])
-            fi
         ],
         [#include <windows.h>])
 else
     HAVE_WAVEOUT=0
 fi
+AS_IF([test "x$enable_waveout" = "xyes" && test "x$HAVE_WAVEOUT" = "x0"],
+    [AC_MSG_ERROR([*** WaveOut audio support not found])])
 
 AC_SUBST(HAVE_WAVEOUT)
 AM_CONDITIONAL([HAVE_WAVEOUT], [test "x$HAVE_WAVEOUT" = x1])
@@ -865,13 +857,12 @@ if test "x$enable_glib2" != "xno"; then
         HAVE_GLIB20=1,
         [
             HAVE_GLIB20=0
-            if test "x$enable_glib2" = "xyes"; then
-                AC_MSG_ERROR([*** GLib 2 support not found])
-            fi
         ])
 else
     HAVE_GLIB20=0
 fi
+AS_IF([test "x$enable_glib2" = "xyes" && test "x$HAVE_GLIB20" = "x0"],
+    [AC_MSG_ERROR([*** GLib 2 support not found])])
 
 AC_SUBST(GLIB20_CFLAGS)
 AC_SUBST(GLIB20_LIBS)
@@ -889,13 +880,12 @@ if test "x$enable_gtk2" != "xno"; then
         HAVE_GTK20=1,
         [
             HAVE_GTK20=0
-            if test "x$enable_gtk2" = "xyes"; then
-                AC_MSG_ERROR([*** Gtk+ 2 support not found])
-            fi
         ])
 else
     HAVE_GTK20=0
 fi
+AS_IF([test "x$enable_gtk2" = "xyes" && test "x$HAVE_GTK20" = "x0"],
+    [AC_MSG_ERROR([*** Gtk+ 2 support not found])])
 
 AC_SUBST(GTK20_CFLAGS)
 AC_SUBST(GTK20_LIBS)
@@ -913,13 +903,12 @@ if test "x$enable_gconf" != "xno"; then
         HAVE_GCONF=1,
         [
             HAVE_GCONF=0
-            if test "x$enable_gconf" = "xyes"; then
-                AC_MSG_ERROR([*** GConf support not found])
-            fi
         ])
 else
     HAVE_GCONF=0
 fi
+AS_IF([test "x$enable_gconf" = "xyes" && test "x$HAVE_GCONF" = "x0"],
+    [AC_MSG_ERROR([*** GConf support not found])])
 
 AC_SUBST(GCONF_CFLAGS)
 AC_SUBST(GCONF_LIBS)
@@ -936,13 +925,12 @@ if test "x$enable_avahi" != "xno"; then
         HAVE_AVAHI=1,
         [
                 HAVE_AVAHI=0
-                if test "x$enable_avahi" = "xyes"; then
-                        AC_MSG_ERROR([*** Avahi support not found])
-                fi
         ])
 else
     HAVE_AVAHI=0
 fi
+AS_IF([test "x$enable_avahi" = "xyes" && test "x$HAVE_AVAHI" = "x0"],
+    [AC_MSG_ERROR([*** Avahi support not found])])
 
 AC_SUBST(AVAHI_CFLAGS)
 AC_SUBST(AVAHI_LIBS)
@@ -959,13 +947,12 @@ if test "x$enable_jack" != "xno"; then
         HAVE_JACK=1,
         [
             HAVE_JACK=0
-            if test "x$enable_jack" = "xyes"; then
-                AC_MSG_ERROR([*** JACK support not found])
-            fi
         ])
 else
     HAVE_JACK=0
 fi
+AS_IF([test "x$enable_jack" = "xyes" && test "x$HAVE_JACK" = "x0"],
+    [AC_MSG_ERROR([*** JACK support not found])])
 
 AC_SUBST(JACK_CFLAGS)
 AC_SUBST(JACK_LIBS)
@@ -982,13 +969,12 @@ if test "x$enable_asyncns" != "xno"; then
         HAVE_LIBASYNCNS=1,
         [
             HAVE_LIBASYNCNS=0
-            if test "x$enable_asyncns" = "xyes"; then
-                AC_MSG_ERROR([*** Async DNS support not found])
-            fi
         ])
 else
     HAVE_LIBASYNCNS=0
 fi
+AS_IF([test "x$enable_asyncns" = "xyes" && test "x$HAVE_LIBASYNCNS" = "x0"],
+    [AC_MSG_ERROR([*** Async DNS support not found])])
 
 AC_SUBST(LIBASYNCNS_CFLAGS)
 AC_SUBST(LIBASYNCNS_LIBS)
@@ -1006,13 +992,12 @@ if test "x$enable_tcpwrap" != "xno"; then
     HAVE_TCPWRAP=1
     if test "x${LIBWRAP_LIBS}" = "x"; then
         HAVE_TCPWRAP=0
-        if test "x$enable_tcpwrap" = "xyes"; then
-            AC_MSG_ERROR([*** TCP wrappers support not found])
-        fi
     fi
 else
     HAVE_TCPWRAP=0
 fi
+AS_IF([test "x$enable_tcpwrap" = "xyes" && test "x$HAVE_TCPWRAP" = "x0"],
+    [AC_MSG_ERROR([*** TCP wrappers support not found])])
 
 AC_SUBST(LIBWRAP_LIBS)
 
@@ -1023,12 +1008,11 @@ AC_ARG_ENABLE([lirc],
 
 if test "x$enable_lirc" != "xno"; then
     ACX_LIRC
-    if test "x${HAVE_LIRC}" = "x0" && test "x$enable_lirc" = "xyes"; then
-        AC_MSG_ERROR([*** LIRC support not found])
-    fi
 else
     HAVE_LIRC=0
 fi
+AS_IF([test "x$enable_lirc" = "xyes" && test "x$HAVE_LIRC" = "x0"],
+    [AC_MSG_ERROR([*** LIRC support not found])])
 
 AC_SUBST(LIRC_CFLAGS)
 AC_SUBST(LIRC_LIBS)
@@ -1046,13 +1030,12 @@ if test "x$enable_hal" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1
         ],
         [
             HAVE_HAL=0
-            if test "x$enable_hal" = "xyes"; then
-                AC_MSG_ERROR([*** HAL support not found])
-            fi
         ])
 else
     HAVE_HAL=0
 fi
+AS_IF([test "x$enable_hal" = "xyes" && test "x$HAVE_HAL" = "x0"],
+    [AC_MSG_ERROR([*** HAL support not found])])
 
 AC_SUBST(HAL_CFLAGS)
 AC_SUBST(HAL_LIBS)
@@ -1072,13 +1055,12 @@ if test "x$enable_udev" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x
         ],
         [
             HAVE_UDEV=0
-            if test "x$enable_udev" = "xyes"; then
-                AC_MSG_ERROR([*** UDEV support not found])
-            fi
         ])
 else
     HAVE_UDEV=0
 fi
+AS_IF([test "x$enable_udev" = "xyes" && test "x$HAVE_UDEV" = "x0"],
+    [AC_MSG_ERROR([*** UDEV support not found])])
 
 AC_SUBST(UDEV_CFLAGS)
 AC_SUBST(UDEV_LIBS)
@@ -1096,13 +1078,12 @@ if test "x$enable_bluez" != "xno"; then
         HAVE_BLUEZ=1,
         [
             HAVE_BLUEZ=0
-            if test "x$enable_bluez" = "xyes"; then
-                AC_MSG_ERROR([*** BLUEZ support not found])
-            fi
         ])
 else
     HAVE_BLUEZ=0
 fi
+AS_IF([test "x$enable_bluez" = "xyes" && test "x$HAVE_BLUEZ" = "x0"],
+    [AC_MSG_ERROR([*** BLUEZ support not found])])
 
 AC_SUBST(BLUEZ_CFLAGS)
 AC_SUBST(BLUEZ_LIBS)
@@ -1126,13 +1107,12 @@ if test "x$enable_dbus" != "xno"; then
         ],
         [
             HAVE_DBUS=0
-            if test "x$enable_dbus" = "xyes"; then
-                AC_MSG_ERROR([*** D-Bus support not found])
-            fi
         ])
 else
     HAVE_DBUS=0
 fi
+AS_IF([test "x$enable_dbus" = "xyes" && test "x$HAVE_DBUS" = "x0"],
+    [AC_MSG_ERROR([*** D-Bus support not found])])
 
 AC_SUBST(DBUS_CFLAGS)
 AC_SUBST(DBUS_LIBS)
@@ -1194,13 +1174,12 @@ if test "x$enable_openssl" != "xno"; then
         ],
         [
             HAVE_OPENSSL=0
-            if test "x$enable_openssl" = "xyes"; then
-                AC_MSG_ERROR([*** OpenSSL support not found])
-            fi
         ])
 else
     HAVE_OPENSSL=0
 fi
+AS_IF([test "x$enable_openssl" = "xyes" && test "x$HAVE_OPENSSL" = "x0"],
+    [AC_MSG_ERROR([*** OpenSSL support not found])])
 
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
