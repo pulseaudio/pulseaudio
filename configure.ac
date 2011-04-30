@@ -654,48 +654,45 @@ AS_IF([test "x$HAVE_LIBSAMPLERATE" = "x1"], AC_DEFINE([HAVE_LIBSAMPLERATE], 1, [
 
 #### Database support ####
 
-HAVE_TDB=0
-HAVE_GDBM=0
-HAVE_SIMPLEDB=0
+AC_ARG_WITH([database],
+    AS_HELP_STRING([--with-database=auto|tdb|gdbm|simple],[Choose database backend.]),[],[with_database=auto])
 
-AC_ARG_WITH(
-        [database],
-        AS_HELP_STRING([--with-database=auto|tdb|gdbm|simple],[Choose database backend.]),[],[with_database=auto])
 
-if test "x${with_database}" = "xauto" -o "x${with_database}" = "xtdb" ; then
-    PKG_CHECK_MODULES(TDB, [ tdb ],
-        [
-            HAVE_TDB=1
-            with_database=tdb
-        ], [])
-fi
+AS_IF([test "x$with_database" = "xauto" -o "x$with_database" = "xtdb"],
+    [PKG_CHECK_MODULES(TDB, [ tdb ], HAVE_TDB=1, HAVE_TDB=0)],
+    HAVE_TDB=0)
+AS_IF([test "x$HAVE_TDB" = "x1"], with_database=tdb)
+
 AS_IF([test "x$with_database" = "xtdb" && test "x$HAVE_TDB" = "x0"],
     [AC_MSG_ERROR([*** tdb not found])])
 
-if test "x${with_database}" = "xauto" -o "x${with_database}" = "xgdbm" ; then
-   have_gdbm=yes
 
-   AC_CHECK_LIB(gdbm, gdbm_open, [], [have_gdbm=no])
-   AC_CHECK_HEADERS(gdbm.h, [], [have_gdbm=no])
+AS_IF([test "x$with_database" = "xauto" -o "x$with_database" = "xgdbm"],
+    [
+        HAVE_GDBM=1
+        AC_CHECK_LIB(gdbm, gdbm_open, [], HAVE_GDBM=0)
+        AC_CHECK_HEADERS(gdbm.h, [], HAVE_GDBM=0)
+    ],
+    HAVE_GDBM=0)
+AS_IF([test "x$HAVE_GDBM" = "x1"],
+    [
+        with_database=gdbm
+        GDBM_CFLAGS=
+        GDBM_LIBS=-lgdbm
+    ])
 
-   if test "x${have_gdbm}" = "xyes" ; then
-       HAVE_GDBM=1
-       GDBM_CFLAGS=
-       GDBM_LIBS=-lgdbm
-       with_database=gdbm
-   fi
-fi
 AS_IF([test "x$with_database" = "xgdbm" && test "x$HAVE_GDBM" = "x0"],
     [AC_MSG_ERROR([*** gdbm not found])])
 
-if test "x${with_database}" = "xauto" -o "x${with_database}" = "xsimple" ; then
-    HAVE_SIMPLEDB=1
-    with_database=simple
-fi
 
-if test "x${HAVE_TDB}" != x1 -a "x${HAVE_GDBM}" != x1 -a "x${HAVE_SIMPLEDB}" != x1; then
-   AC_MSG_ERROR([*** missing database backend])
-fi
+AS_IF([test "x$with_database" = "xauto" -o "x$with_database" = "xsimple"],
+    HAVE_SIMPLEDB=1,
+    HAVE_SIMPLEDB=0)
+AS_IF([test "x$HAVE_SIMPLEDB" = "x1"], with_database=simple)
+
+AS_IF([test "x$HAVE_TDB" != x1 -a "x$HAVE_GDBM" != x1 -a "x$HAVE_SIMPLEDB" != x1],
+    AC_MSG_ERROR([*** missing database backend]))
+
 
 AC_SUBST(TDB_CFLAGS)
 AC_SUBST(TDB_LIBS)
@@ -750,6 +747,9 @@ AC_ARG_ENABLE([coreaudio-output],
 AS_IF([test "x$enable_coreaudio_output" != "xno"],
     [AC_CHECK_HEADERS([CoreAudio/CoreAudio.h], HAVE_COREAUDIO=1, HAVE_COREAUDIO=0)],
     HAVE_COREAUDIO=0)
+
+AS_IF([test "x$enable_coreaudio_output" = "xyes" && test "x$HAVE_COREAUDIO" = "x0"],
+    [AC_MSG_ERROR([*** CoreAudio output support not found])])
 
 AC_SUBST(HAVE_COREAUDIO)
 AM_CONDITIONAL([HAVE_COREAUDIO], [test "x$HAVE_COREAUDIO" = "x1" && test "x$enable_coreaudio_output" != "xno"])
