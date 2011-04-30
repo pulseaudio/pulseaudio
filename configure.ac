@@ -754,26 +754,32 @@ if test "x$enable_oss_output" != "xno" || test "x$enable_oss_wrapper" != "xno"; 
     AC_CHECK_HEADERS([sys/soundcard.h],
         [
             if test "x$enable_oss_output" != "xno"; then
+                HAVE_OSS_OUTPUT=1
                 AC_DEFINE([HAVE_OSS_OUTPUT], 1, [Have OSS output?])
             fi
             if test "x$enable_oss_wrapper" != "xno"; then
+                HAVE_OSS_WRAPPER=1
                 AC_DEFINE([HAVE_OSS_WRAPPER], 1, [Have OSS wrapper (padsp)?])
             fi
             HAVE_OSS=1
         ],
         [
             HAVE_OSS=0
+            HAVE_OSS_OUTPUT=0
+            HAVE_OSS_WRAPPER=0
             if test "x$enable_oss_output" = "xyes" || test "x$enable_oss_wrapper" = "xyes"; then
                 AC_MSG_ERROR([*** OSS support not found])
             fi
         ])
 else
     HAVE_OSS=0
+    HAVE_OSS_OUTPUT=0
+    HAVE_OSS_WRAPPER=0
 fi
 
 AC_SUBST(HAVE_OSS)
-AM_CONDITIONAL([HAVE_OSS_OUTPUT], [test "x$HAVE_OSS" = "x1" && test "x$enable_oss_output" != "xno"])
-AM_CONDITIONAL([HAVE_OSS_WRAPPER], [test "x$HAVE_OSS" = "x1" && test "x$enable_oss_wrapper" != "xno"])
+AM_CONDITIONAL([HAVE_OSS_OUTPUT], [test "x$HAVE_OSS_OUTPUT" = "x1"])
+AM_CONDITIONAL([HAVE_OSS_WRAPPER], [test "x$HAVE_OSS_WRAPPER" = "x1"])
 
 #### CoreAudio support (optional) ####
 
@@ -1021,11 +1027,15 @@ AC_ARG_ENABLE([tcpwrap],
 
 if test "x$enable_tcpwrap" != "xno"; then
     ACX_LIBWRAP
-    if test "x${LIBWRAP_LIBS}" = "x" && test "x$enable_tcpwrap" = "xyes"; then
-        AC_MSG_ERROR([*** TCP wrappers support not found])
+    HAVE_TCPWRAP=1
+    if test "x${LIBWRAP_LIBS}" = "x"; then
+        HAVE_TCPWRAP=0
+        if test "x$enable_tcpwrap" = "xyes"; then
+            AC_MSG_ERROR([*** TCP wrappers support not found])
+        fi
     fi
 else
-    LIBWRAP_LIBS=
+    HAVE_TCPWRAP=0
 fi
 
 AC_SUBST(LIBWRAP_LIBS)
@@ -1274,7 +1284,10 @@ AC_ARG_ENABLE([per-user-esound-socket],
     AS_HELP_STRING([--disable-per-user-esound-socket],[Use global esound socket directory /tmp/.esd/socket.]))
 
 if test "x$enable_per_user_esound_socket" != "xno"; then
-   AC_DEFINE([USE_PER_USER_ESOUND_SOCKET], [1], [Define this if you want per-user esound socket directories])
+    USE_PER_USER_ESOUND_SOCKET=1
+    AC_DEFINE([USE_PER_USER_ESOUND_SOCKET], [1], [Define this if you want per-user esound socket directories])
+else
+    USE_PER_USER_ESOUND_SOCKET=0
 fi
 
 #### PulseAudio system runtime dir ####
@@ -1362,151 +1375,36 @@ po/Makefile.in
 AC_OUTPUT
 
 # ==========================================================================
-ENABLE_X11=no
-if test "x$HAVE_X11" = "x1" ; then
-   ENABLE_X11=yes
-fi
 
-ENABLE_OSS_OUTPUT=no
-ENABLE_OSS_WRAPPER=no
-if test "x$HAVE_OSS" = "x1" ; then
-   if test "x$enable_oss_output" != "xno"; then
-      ENABLE_OSS_OUTPUT=yes
-   fi
-   if test "x$enable_oss_wrapper" != "xno"; then
-      ENABLE_OSS_WRAPPER=yes
-   fi
-fi
-
-ENABLE_COREAUDIO=no
-if test "x$HAVE_COREAUDIO" = "x1" ; then
-   ENABLE_COREAUDIO=yes
-fi
-
-ENABLE_ALSA=no
-if test "x$HAVE_ALSA" = "x1" ; then
-   ENABLE_ALSA=yes
-fi
-
-ENABLE_SOLARIS=no
-if test "x$HAVE_SOLARIS" = "x1" ; then
-   ENABLE_SOLARIS=yes
-fi
-
-ENABLE_WAVEOUT=no
-if test "x$HAVE_WAVEOUT" = "x1" ; then
-   ENABLE_WAVEOUT=yes
-fi
-
-ENABLE_GTK20=no
-if test "x$HAVE_GTK20" = "x1" ; then
-   ENABLE_GTK20=yes
-fi
-
-ENABLE_GLIB20=no
-if test "x$HAVE_GLIB20" = "x1" ; then
-   ENABLE_GLIB20=yes
-fi
-
-ENABLE_GCONF=no
-if test "x$HAVE_GCONF" = "x1" ; then
-   ENABLE_GCONF=yes
-fi
-
-ENABLE_AVAHI=no
-if test "x$HAVE_AVAHI" = "x1" ; then
-   ENABLE_AVAHI=yes
-fi
-
-ENABLE_JACK=no
-if test "x$HAVE_JACK" = "x1" ; then
-   ENABLE_JACK=yes
-fi
-
-ENABLE_LIBASYNCNS=no
-if test "x$HAVE_LIBASYNCNS" = "x1" ; then
-   ENABLE_LIBASYNCNS=yes
-fi
-
-ENABLE_LIRC=no
-if test "x$HAVE_LIRC" = "x1" ; then
-   ENABLE_LIRC=yes
-fi
-
-ENABLE_DBUS=no
-if test "x$HAVE_DBUS" = "x1" ; then
-   ENABLE_DBUS=yes
-fi
-
-ENABLE_HAL=no
-if test "x$HAVE_HAL" = "x1" ; then
-   ENABLE_HAL=yes
-fi
-
-ENABLE_UDEV=no
-if test "x$HAVE_UDEV" = "x1" ; then
-   ENABLE_UDEV=yes
-fi
-
-ENABLE_HAL_COMPAT=no
-if test "x$HAVE_HAL_COMPAT" = "x1" ; then
-   ENABLE_HAL_COMPAT=yes
-fi
-
-ENABLE_TCPWRAP=no
-if test "x${LIBWRAP_LIBS}" != x ; then
-   ENABLE_TCPWRAP=yes
-fi
-
-ENABLE_LIBSAMPLERATE=no
-if test "x${HAVE_LIBSAMPLERATE}" = "x1" ; then
-   ENABLE_LIBSAMPLERATE=yes
-fi
-
-ENABLE_BLUEZ=no
-if test "x${HAVE_BLUEZ}" = "x1" ; then
-   ENABLE_BLUEZ=yes
-fi
-
-ENABLE_GDBM=no
-if test "x${HAVE_GDBM}" = "x1" ; then
-   ENABLE_GDBM=yes
-fi
-
-ENABLE_TDB=no
-if test "x${HAVE_TDB}" = "x1" ; then
-   ENABLE_TDB=yes
-fi
-
-ENABLE_SIMPLEDB=no
-if test "x${HAVE_SIMPLEDB}" = "x1" ; then
-    ENABLE_SIMPLEDB=yes
-fi
-
-ENABLE_FFTW=no
-if test "x${HAVE_FFTW}" = "x1" ; then
-   ENABLE_FFTW=yes
-fi
-
-ENABLE_ORC=no
-if test "x${HAVE_ORC}" = "xyes" ; then
-   ENABLE_ORC=yes
-fi
-
-ENABLE_OPENSSL=no
-if test "x${HAVE_OPENSSL}" = "x1" ; then
-   ENABLE_OPENSSL=yes
-fi
-
-ENABLE_IPV6=no
-if test "x${HAVE_IPV6}" = "x1" ; then
-   ENABLE_IPV6=yes
-fi
-
-ENABLE_PER_USER_ESOUND_SOCKET=no
-if test "x$enable_per_user_esound_socket" != "xno"; then
-   ENABLE_PER_USER_ESOUND_SOCKET=yes
-fi
+AS_IF([test "x$HAVE_X11" = "x1"], ENABLE_X11=yes, ENABLE_X11=no)
+AS_IF([test "x$HAVE_OSS_OUTPUT" = "x1"], ENABLE_OSS_OUTPUT=yes, ENABLE_OSS_OUTPUT=no)
+AS_IF([test "x$HAVE_OSS_WRAPPER" = "x1"], ENABLE_OSS_WRAPPER=yes, ENABLE_OSS_WRAPPER=no)
+AS_IF([test "x$HAVE_ALSA" = "x1"], ENABLE_ALSA=yes, ENABLE_ALSA=no)
+AS_IF([test "x$HAVE_COREAUDIO" = "x1"], ENABLE_COREAUDIO=yes, ENABLE_COREAUDIO=no)
+AS_IF([test "x$HAVE_SOLARIS" = "x1"], ENABLE_SOLARIS=yes, ENABLE_SOLARIS=no)
+AS_IF([test "x$HAVE_WAVEOUT" = "x1"], ENABLE_WAVEOUT=yes, ENABLE_WAVEOUT=no)
+AS_IF([test "x$HAVE_GLIB20" = "x1"], ENABLE_GLIB20=yes, ENABLE_GLIB20=no)
+AS_IF([test "x$HAVE_GTK20" = "x1"], ENABLE_GTK20=yes, ENABLE_GTK20=no)
+AS_IF([test "x$HAVE_GCONF" = "x1"], ENABLE_GCONF=yes, ENABLE_GCONF=no)
+AS_IF([test "x$HAVE_AVAHI" = "x1"], ENABLE_AVAHI=yes, ENABLE_AVAHI=no)
+AS_IF([test "x$HAVE_JACK" = "x1"], ENABLE_JACK=yes, ENABLE_JACK=no)
+AS_IF([test "x$HAVE_LIBASYNCNS" = "x1"], ENABLE_LIBASYNCNS=yes, ENABLE_LIBASYNCNS=no)
+AS_IF([test "x$HAVE_LIRC" = "x1"], ENABLE_LIRC=yes, ENABLE_LIRC=no)
+AS_IF([test "x$HAVE_DBUS" = "x1"], ENABLE_DBUS=yes, ENABLE_DBUS=no)
+AS_IF([test "x$HAVE_HAL" = "x1"], ENABLE_HAL=yes, ENABLE_HAL=no)
+AS_IF([test "x$HAVE_UDEV" = "x1"], ENABLE_UDEV=yes, ENABLE_UDEV=no)
+AS_IF([test "x$HAVE_BLUEZ" = "x1"], ENABLE_BLUEZ=yes, ENABLE_BLUEZ=no)
+AS_IF([test "x$HAVE_HAL_COMPAT" = "x1"], ENABLE_HAL_COMPAT=yes, ENABLE_HAL_COMPAT=no)
+AS_IF([test "x$HAVE_TCPWRAP" = "x1"], ENABLE_TCPWRAP=yes, ENABLE_TCPWRAP=no)
+AS_IF([test "x$HAVE_LIBSAMPLERATE" = "x1"], ENABLE_LIBSAMPLERATE=yes, ENABLE_LIBSAMPLERATE=no)
+AS_IF([test "x$HAVE_IPV6" = "x1"], ENABLE_IPV6=yes, ENABLE_IPV6=no)
+AS_IF([test "x$HAVE_OPENSSL" = "x1"], ENABLE_OPENSSL=yes, ENABLE_OPENSSL=no)
+AS_IF([test "x$HAVE_FFTW" = "x1"], ENABLE_FFTW=yes, ENABLE_FFTW=no)
+AS_IF([test "x$HAVE_ORC" = "xyes"], ENABLE_ORC=yes, ENABLE_ORC=no)
+AS_IF([test "x$HAVE_TDB" = "x1"], ENABLE_TDB=yes, ENABLE_TDB=no)
+AS_IF([test "x$HAVE_GDBM" = "x1"], ENABLE_GDBM=yes, ENABLE_GDBM=no)
+AS_IF([test "x$HAVE_SIMPLEDB" = "x1"], ENABLE_SIMPLEDB=yes, ENABLE_SIMPLEDB=no)
+AS_IF([test "x$USE_PER_USER_ESOUND_SOCKET" = "x1"], ENABLE_PER_USER_ESOUND_SOCKET=yes, ENABLE_PER_USER_ESOUND_SOCKET=no)
 
 echo "
  ---{ $PACKAGE_NAME $VERSION }---
