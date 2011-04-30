@@ -382,7 +382,6 @@ AM_CONDITIONAL(HAVE_AF_UNIX, test "x$HAVE_AF_UNIX" = "x1")
 
 # Linux
 AC_CHECK_HEADERS([linux/input.h], [HAVE_EVDEV=1], [HAVE_EVDEV=0])
-
 AM_CONDITIONAL([HAVE_EVDEV], [test "x$HAVE_EVDEV" = "x1"])
 
 AC_CHECK_HEADERS_ONCE([sys/prctl.h])
@@ -452,12 +451,6 @@ AC_SEARCH_LIBS([pthread_setname_np], [pthread])
 AC_SEARCH_LIBS([connect], [socket])
 AC_SEARCH_LIBS([backtrace], [execinfo])
 
-# Non-standard
-
-# This magic is needed so we do not needlessly add static libs to the win32
-# build, disabling its ability to make dlls.
-AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
-
 # Darwin/OS X
 if test "x$os_is_darwin" = "x1" ; then
     AC_MSG_CHECKING([looking for Apple CoreService Framework])
@@ -474,7 +467,10 @@ fi
 AC_SUBST(HAVE_BONJOUR)
 AM_CONDITIONAL([HAVE_BONJOUR], [test "x$HAVE_BONJOUR" = x1])
 
+# Windows
 AC_SEARCH_LIBS([regexec], [pcreposix])
+# This magic is needed so we do not needlessly add static libs to the win32  build, disabling its ability to make dlls.
+AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
 
 #### Check for functions ####
 
@@ -1022,7 +1018,7 @@ AC_SUBST(HAVE_DBUS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 AS_IF([test "x$HAVE_DBUS" = "x1"], AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.]))
 
-# udev and HAL depend on D-Bus: So double check if they were explicitly enabled.
+# HAL and BlueZ depend on D-Bus: So double check if they were explicitly enabled.
 if test "x$HAVE_DBUS" != "x1" ; then
     HAVE_HAL=0
     if test "x$enable_hal" = "xyes"; then
@@ -1034,7 +1030,6 @@ if test "x$HAVE_DBUS" != "x1" ; then
         AC_MSG_ERROR([*** D-Bus support is required by BLUEZ])
     fi
 fi
-
 
 #### HAL compat support (optional) ####
 
@@ -1268,11 +1263,11 @@ echo "
     CFLAGS:                        ${CFLAGS}
     LIBS:                          ${LIBS}
 
-    Have X11:                      ${ENABLE_X11}
+    Enable X11:                    ${ENABLE_X11}
     Enable OSS Output:             ${ENABLE_OSS_OUTPUT}
     Enable OSS Wrapper:            ${ENABLE_OSS_WRAPPER}
-    Enable CoreAudio:              ${ENABLE_COREAUDIO}
     Enable Alsa:                   ${ENABLE_ALSA}
+    Enable CoreAudio:              ${ENABLE_COREAUDIO}
     Enable Solaris:                ${ENABLE_SOLARIS}
     Enable WaveOut:                ${ENABLE_WAVEOUT}
     Enable GLib 2.0:               ${ENABLE_GLIB20}
@@ -1291,11 +1286,12 @@ echo "
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
     Enable IPv6:                   ${ENABLE_IPV6}
     Enable OpenSSL (for Airtunes): ${ENABLE_OPENSSL}
-    Enable tdb:                    ${ENABLE_TDB}
-    Enable gdbm:                   ${ENABLE_GDBM}
-    Enable simple database:        ${ENABLE_SIMPLEDB}
     Enable fftw:                   ${ENABLE_FFTW}
     Enable orc:                    ${ENABLE_ORC}
+    Database
+      tdb:                         ${ENABLE_TDB}
+      gdbm:                        ${ENABLE_GDBM}
+      simple database:             ${ENABLE_SIMPLEDB}
 
     System User:                   ${PA_SYSTEM_USER}
     System Group:                  ${PA_SYSTEM_GROUP}
