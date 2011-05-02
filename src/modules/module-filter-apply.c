@@ -314,7 +314,7 @@ static pa_hook_result_t process(struct userdata *u, pa_object *o, pa_bool_t is_s
             char *args;
             pa_module *m;
 
-            args = pa_sprintf_malloc("%s_master=%s", is_sink_input ? "sink" : "source", parent_name);
+            args = pa_sprintf_malloc("autoloaded=1 %s_master=%s", is_sink_input ? "sink" : "source", parent_name);
             pa_log_debug("Loading %s with arguments '%s'", module_name, args);
 
             if ((m = pa_module_load(u->core, module_name, args))) {

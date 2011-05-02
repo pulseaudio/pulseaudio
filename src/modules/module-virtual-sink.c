@@ -66,6 +66,9 @@ PA_MODULE_USAGE(
 struct userdata {
     pa_module *module;
 
+    /* FIXME: Uncomment this and take "autoloaded" as a modarg if this is a filter */
+    /* pa_bool_t autoloaded; */
+
     pa_sink *sink;
     pa_sink_input *sink_input;
 
