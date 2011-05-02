@@ -83,14 +83,18 @@ PA_MODULE_USAGE(
           "format=<sample format> "
           "rate=<sample rate> "
           "channels=<number of channels> "
-          "channel_map=<channel map>"));
+          "channel_map=<channel map> "
+          "autoloaded=<set if this module is being loaded automatically> "
+         ));
 
 #define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
+#define DEFAULT_AUTOLOADED FALSE
 
 struct userdata {
     pa_module *module;
     pa_sink *sink;
     pa_sink_input *sink_input;
+    pa_bool_t autoloaded;
 
     size_t channels;
     size_t fft_size;//length (res) of fft
@@ -138,6 +142,7 @@ static const char* const valid_modargs[] = {
     "rate",
     "channels",
     "channel_map",
+    "autoloaded",
     NULL
 };
 
@@ -1167,6 +1172,12 @@ int pa__init(pa_module*m) {
     if (pa_modargs_get_proplist(ma, "sink_properties", sink_data.proplist, PA_UPDATE_REPLACE) < 0) {
         pa_log("Invalid properties");
         pa_sink_new_data_done(&sink_data);
+        goto fail;
+    }
+
+    u->autoloaded = DEFAULT_AUTOLOADED;
+    if (pa_modargs_get_value_boolean(ma, "autoloaded", &u->autoloaded) < 0) {
+        pa_log("Failed to parse autoloaded value");
         goto fail;
     }
 
