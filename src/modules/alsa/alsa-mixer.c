@@ -893,7 +893,7 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
 
         if (e->has_dB) {
             long value = to_alsa_dB(f);
-            int rounding = value > 0 ? -1 : +1;
+            int rounding;
 
             if (e->volume_limit >= 0 && value > (e->max_dB * 100))
                 value = e->max_dB * 100;
@@ -903,6 +903,7 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
                  * if the channel is available, ALSA behaves very
                  * strangely and doesn't fail the call */
                 if (snd_mixer_selem_has_playback_channel(me, c)) {
+                    rounding = +1;
                     if (e->db_fix) {
                         if (write_to_hw)
                             r = snd_mixer_selem_set_playback_volume(me, c, decibel_fix_get_step(e->db_fix, &value, rounding));
@@ -925,6 +926,7 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
                     r = -1;
             } else {
                 if (snd_mixer_selem_has_capture_channel(me, c)) {
+                    rounding = -1;
                     if (e->db_fix) {
                         if (write_to_hw)
                             r = snd_mixer_selem_set_capture_volume(me, c, decibel_fix_get_step(e->db_fix, &value, rounding));
