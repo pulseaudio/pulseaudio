@@ -306,7 +306,8 @@ struct AEC {
   // NLMS-pw
   REAL x[NLMS_LEN + NLMS_EXT];  // tap delayed loudspeaker signal
   REAL xf[NLMS_LEN + NLMS_EXT]; // pre-whitening tap delayed signal
-  PA_DECLARE_ALIGNED(16, REAL, w[NLMS_LEN]);             // tap weights
+  REAL w_arr[NLMS_LEN+16];      // tap weights
+  REAL *w;                      // this will be a 16-byte aligned pointer into w_arr
   int j;                        // optimize: less memory copies
   double dotp_xf_xf;            // double to avoid loss of precision
   float delta;                  // noise floor to stabilize NLMS

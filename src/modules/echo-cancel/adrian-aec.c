@@ -12,6 +12,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <stdint.h>
 
 #include <pulse/xmalloc.h>
 
@@ -70,7 +71,7 @@ AEC* AEC_init(int RATE, int have_vector)
   a->hangover = 0;
   memset(a->x, 0, sizeof(a->x));
   memset(a->xf, 0, sizeof(a->xf));
-  memset(a->w, 0, sizeof(a->w));
+  memset(a->w_arr, 0, sizeof(a->w_arr));
   a->j = NLMS_EXT;
   a->delta = 0.0f;
   AEC_setambient(a, NoiseFloor);
@@ -89,10 +90,15 @@ AEC* AEC_init(int RATE, int have_vector)
   a->dumpcnt = 0;
   memset(a->ws, 0, sizeof(a->ws));
 
-  if (have_vector)
+  if (have_vector) {
+      /* Get a 16-byte aligned location */
+      a->w = (REAL *) (((uintptr_t) a->w_arr) + (((uintptr_t) a->w_arr) % 16));
       a->dotp = dotp_sse;
-  else
+  } else {
+      /* We don't care about alignment, just use the array as-is */
+      a->w = a->w_arr;
       a->dotp = dotp;
+  }
 
   return a;
 }
