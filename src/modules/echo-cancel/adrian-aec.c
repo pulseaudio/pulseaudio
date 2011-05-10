@@ -40,7 +40,6 @@ static REAL dotp(REAL a[], REAL b[])
   return sum0 + sum1;
 }
 
-static REAL dotp_sse(REAL a[], REAL b[]) __attribute__((noinline));
 static REAL dotp_sse(REAL a[], REAL b[])
 {
 #ifdef __SSE__
