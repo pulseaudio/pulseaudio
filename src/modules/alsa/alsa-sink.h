@@ -28,7 +28,6 @@
 #include <pulsecore/sink.h>
 
 #include "alsa-util.h"
-#include "alsa-mixer.h"
 
 pa_sink* pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_card *card, pa_alsa_mapping *mapping);
 
