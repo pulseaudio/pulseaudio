@@ -59,7 +59,8 @@ PA_MODULE_USAGE(
         "sink_input_role=<media.role for the sink input> "
         "source_output_role=<media.role for the source output> "
         "source_dont_move=<boolean> "
-        "sink_dont_move=<boolean>");
+        "sink_dont_move=<boolean> "
+        "remix=<remix channels?> ");
 
 #define DEFAULT_LATENCY_MSEC 200
 
@@ -120,6 +121,7 @@ static const char* const valid_modargs[] = {
     "source_output_role",
     "source_dont_move",
     "sink_dont_move",
+    "remix",
     NULL,
 };
 
@@ -407,7 +409,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     u->in_pop = FALSE;
 
     if (pa_memblockq_peek(u->memblockq, chunk) < 0) {
-        pa_log_info("Coud not peek into queue");
+        pa_log_info("Could not peek into queue");
         return -1;
     }
 
@@ -645,6 +647,7 @@ int pa__init(pa_module *m) {
     pa_memchunk silence;
     uint32_t adjust_time_sec;
     const char *n;
+    pa_bool_t remix = TRUE;
 
     pa_assert(m);
 
@@ -660,6 +663,11 @@ int pa__init(pa_module *m) {
 
     if (!(sink = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sink", NULL), PA_NAMEREG_SINK))) {
         pa_log("No such sink.");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_boolean(ma, "remix", &remix) < 0) {
+        pa_log("Invalid boolean remix parameter");
         goto fail;
     }
 
@@ -713,7 +721,7 @@ int pa__init(pa_module *m) {
 
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
-    sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE;
+    sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE | (remix ? 0 : PA_SINK_INPUT_NO_REMIX);
 
     sink_dont_move = FALSE;
     if (pa_modargs_get_value_boolean(ma, "sink_dont_move", &sink_dont_move) < 0) {
@@ -764,8 +772,8 @@ int pa__init(pa_module *m) {
         pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_ICON_NAME, n);
 
     pa_source_output_new_data_set_sample_spec(&source_output_data, &ss);
-    pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
-    source_output_data.flags = (pa_source_output_flags_t)0;
+    pa_source_output_new_data_set_channel_map(&source_output_data, &map);
+    source_output_data.flags = (remix ? 0 : PA_SOURCE_OUTPUT_NO_REMIX);
 
     source_dont_move = FALSE;
     if (pa_modargs_get_value_boolean(ma, "source_dont_move", &source_dont_move) < 0) {
