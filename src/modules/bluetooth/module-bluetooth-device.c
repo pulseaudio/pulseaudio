@@ -1936,10 +1936,11 @@ static int sco_over_pcm_state_update(struct userdata *u, pa_bool_t changed) {
 
         if (u->transport)
             return bt_transport_acquire(u, TRUE);
-        else
-            return start_stream_fd(u);
 
-    } else if (changed) {
+        return start_stream_fd(u);
+    }
+
+    if (changed) {
         if (u->service_fd < 0 && u->stream_fd < 0)
             return 0;
 
@@ -1954,9 +1955,9 @@ static int sco_over_pcm_state_update(struct userdata *u, pa_bool_t changed) {
             pa_close(u->service_fd);
             u->service_fd = -1;
         }
-
-        return 0;
     }
+
+    return 0;
 }
 
 static pa_hook_result_t sink_state_changed_cb(pa_core *c, pa_sink *s, struct userdata *u) {
