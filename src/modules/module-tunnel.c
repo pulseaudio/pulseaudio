@@ -1095,6 +1095,23 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
         }
     }
 
+    if (u->version >= 21) {
+        uint8_t n_formats;
+        pa_format_info format;
+
+        if (pa_tagstruct_getu8(t, &n_formats) < 0) { /* no. of formats */
+            pa_log("Parse failure");
+            goto fail;
+        }
+
+        for (uint8_t j = 0; j < n_formats; j++) {
+            if (pa_tagstruct_get_format_info(t, &format)) { /* format info */
+                pa_log("Parse failure");
+                goto fail;
+            }
+        }
+    }
+
     if (!pa_tagstruct_eof(t)) {
         pa_log("Packet too long");
         goto fail;
@@ -1128,6 +1145,7 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
     pa_channel_map channel_map;
     pa_cvolume volume;
     pa_proplist *pl;
+    pa_bool_t b;
 
     pa_assert(pd);
     pa_assert(u);
@@ -1169,6 +1187,33 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
 
     if (u->version >= 13) {
         if (pa_tagstruct_get_proplist(t, pl) < 0) {
+
+            pa_log("Parse failure");
+            goto fail;
+        }
+    }
+
+    if (u->version >= 19) {
+        if (pa_tagstruct_get_boolean(t, &b) < 0) {
+
+            pa_log("Parse failure");
+            goto fail;
+        }
+    }
+
+    if (u->version >= 20) {
+        if (pa_tagstruct_get_boolean(t, &b) < 0 ||
+            pa_tagstruct_get_boolean(t, &b) < 0) {
+
+            pa_log("Parse failure");
+            goto fail;
+        }
+    }
+
+    if (u->version >= 21) {
+        pa_format_info format;
+
+        if (pa_tagstruct_get_format_info(t, &format) < 0) {
 
             pa_log("Parse failure");
             goto fail;
@@ -1491,6 +1536,13 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command,  uint32_t
 /* #endif */
     }
 
+    if (u->version >= 21) {
+        pa_format_info format;
+
+        if (pa_tagstruct_get_format_info(t, &format) < 0)
+            goto parse_error;
+    }
+
     if (!pa_tagstruct_eof(t))
         goto parse_error;
 
@@ -1691,6 +1743,13 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 
     if (u->version >= 18)
         pa_tagstruct_put_boolean(reply, FALSE); /* passthrough stream */
+#endif
+
+#ifdef TUNNEL_SINK
+    if (u->version >= 21) {
+        /* We're not using the extended API, so n_formats = 0 and that's that */
+        pa_tagstruct_putu8(t, 0);
+    }
 #endif
 
     pa_pstream_send_tagstruct(u->pstream, reply);
