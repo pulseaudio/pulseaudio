@@ -195,3 +195,5 @@ src/modules/module-rygel-media-server.c
 src/modules/alsa/alsa-mixer.c
 src/modules/echo-cancel/module-echo-cancel.c
 src/modules/module-equalizer-sink.c
+src/modules/module-filter-apply.c
+src/tests/resampler-test.c
