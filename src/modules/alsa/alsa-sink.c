@@ -108,6 +108,8 @@ struct userdata {
 
     pa_cvolume hardware_volume;
 
+    uint32_t old_rate;
+
     size_t
         frame_size,
         fragment_size,
@@ -1051,6 +1053,56 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
     switch (code) {
 
+        case PA_SINK_MESSAGE_FINISH_MOVE:
+        case PA_SINK_MESSAGE_ADD_INPUT: {
+            pa_sink_input *i = PA_SINK_INPUT(data);
+            int r = 0;
+
+            if (PA_LIKELY(!pa_sink_input_is_passthrough(i)))
+                break;
+
+            u->old_rate = u->sink->sample_spec.rate;
+
+            /* Passthrough format, see if we need to reset sink sample rate */
+            if (u->sink->sample_spec.rate == i->thread_info.sample_spec.rate)
+                break;
+
+            /* .. we do */
+            if ((r = suspend(u)) < 0)
+                return r;
+
+            u->sink->sample_spec.rate = i->thread_info.sample_spec.rate;
+
+            if ((r = unsuspend(u)) < 0)
+                return r;
+
+            break;
+        }
+
+        case PA_SINK_MESSAGE_START_MOVE:
+        case PA_SINK_MESSAGE_REMOVE_INPUT: {
+            pa_sink_input *i = PA_SINK_INPUT(data);
+            int r = 0;
+
+            if (PA_LIKELY(!pa_sink_input_is_passthrough(i)))
+                break;
+
+            /* Passthrough format, see if we need to reset sink sample rate */
+            if (u->sink->sample_spec.rate == u->old_rate)
+                break;
+
+            /* .. we do */
+            if ((r = suspend(u)) < 0)
+                return r;
+
+            u->sink->sample_spec.rate = u->old_rate;
+
+            if ((r = unsuspend(u)) < 0)
+                return r;
+
+            break;
+        }
+
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t r = 0;
 
@@ -1705,13 +1757,6 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB, pa_bool_t sync_v
                 pa_alsa_setting_select(u->mixer_path->settings, u->mixer_handle);
         } else
             return 0;
-    }
-
-    /* FIXME: need automatic detection rather than hard-coded path */
-    if (!strcmp(u->mixer_path->name, "iec958-passthrough-output")) {
-        u->sink->flags |= PA_SINK_PASSTHROUGH;
-    } else {
-        u->sink->flags &= ~PA_SINK_PASSTHROUGH;
     }
 
     if (!u->mixer_path->has_volume)

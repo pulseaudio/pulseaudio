@@ -27,6 +27,7 @@
 #include <sys/time.h>
 
 #include <pulse/sample.h>
+#include <pulse/format.h>
 #include <pulse/channelmap.h>
 #include <pulse/volume.h>
 #include <pulse/proplist.h>
@@ -58,7 +59,8 @@ enum {
     PA_TAG_CHANNEL_MAP = 'm',
     PA_TAG_CVOLUME = 'v',
     PA_TAG_PROPLIST = 'P',
-    PA_TAG_VOLUME = 'V'
+    PA_TAG_VOLUME = 'V',
+    PA_TAG_FORMAT_INFO = 'f',
 };
 
 pa_tagstruct *pa_tagstruct_new(const uint8_t* data, size_t length);
@@ -84,6 +86,7 @@ void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map);
 void pa_tagstruct_put_cvolume(pa_tagstruct *t, const pa_cvolume *cvolume);
 void pa_tagstruct_put_proplist(pa_tagstruct *t, pa_proplist *p);
 void pa_tagstruct_put_volume(pa_tagstruct *t, pa_volume_t volume);
+void pa_tagstruct_put_format_info(pa_tagstruct *t, pa_format_info *f);
 
 int pa_tagstruct_get(pa_tagstruct *t, ...);
 
@@ -101,5 +104,6 @@ int pa_tagstruct_get_channel_map(pa_tagstruct *t, pa_channel_map *map);
 int pa_tagstruct_get_cvolume(pa_tagstruct *t, pa_cvolume *v);
 int pa_tagstruct_get_proplist(pa_tagstruct *t, pa_proplist *p);
 int pa_tagstruct_get_volume(pa_tagstruct *t, pa_volume_t *v);
+int pa_tagstruct_get_format_info(pa_tagstruct *t, pa_format_info *f);
 
 #endif

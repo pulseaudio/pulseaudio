@@ -122,6 +122,8 @@ typedef struct pa_index_correction {
     pa_bool_t corrupt:1;
 } pa_index_correction;
 
+#define PA_MAX_FORMATS (PA_ENCODING_MAX)
+
 struct pa_stream {
     PA_REFCNT_DECLARE;
     PA_LLIST_FIELDS(pa_stream);
@@ -137,6 +139,9 @@ struct pa_stream {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+    uint8_t n_formats;
+    pa_format_info *req_formats[PA_MAX_FORMATS];
+    pa_format_info *format;
 
     pa_proplist *proplist;
 
@@ -290,6 +295,13 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
 
 void pa_ext_device_manager_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
 void pa_ext_stream_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
+
+void pa_format_info_free2(pa_format_info *f, void *userdata);
+pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_map *map);
+pa_bool_t pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map);
+pa_bool_t pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss);
+pa_bool_t pa_format_info_get_prop_int(pa_format_info *f, const char *key, int *v);
+pa_bool_t pa_format_info_get_prop_string(pa_format_info *f, const char *key, char **v);
 
 pa_bool_t pa_mainloop_is_our_api(pa_mainloop_api*m);
 

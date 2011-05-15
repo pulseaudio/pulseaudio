@@ -157,7 +157,7 @@ int pa__init(pa_module*m) {
     pa_sink_input_new_data_init(&data);
     data.driver = __FILE__;
     data.module = m;
-    data.sink = sink;
+    pa_sink_input_new_data_set_sink(&data, sink, FALSE);
     pa_proplist_setf(data.proplist, PA_PROP_MEDIA_NAME, "%u Hz Sine", frequency);
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
     pa_proplist_setf(data.proplist, "sine.hz", "%u", frequency);

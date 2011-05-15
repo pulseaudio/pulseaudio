@@ -252,6 +252,7 @@ TESTS = \
 		channelmap-test \
 		thread-mainloop-test \
 		utf8-test \
+		format-test \
 		get-binary-name-test \
 		ipacl-test \
 		hook-list-test \
@@ -274,6 +275,7 @@ TESTS_BINARIES = \
 		mcalign-test \
 		pacat-simple \
 		parec-simple \
+		extended-test \
 		strlist-test \
 		close-test \
 		voltest \
@@ -284,6 +286,7 @@ TESTS_BINARIES = \
 		channelmap-test \
 		thread-mainloop-test \
 		utf8-test \
+		format-test \
 		get-binary-name-test \
 		ipacl-test \
 		hook-list-test \
@@ -369,6 +372,11 @@ utf8_test_CFLAGS = $(AM_CFLAGS)
 utf8_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 utf8_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
+format_test_SOURCES = tests/format-test.c
+format_test_CFLAGS = $(AM_CFLAGS)
+format_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+format_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
 get_binary_name_test_SOURCES = tests/get-binary-name-test.c
 get_binary_name_test_CFLAGS = $(AM_CFLAGS)
 get_binary_name_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
@@ -438,6 +446,11 @@ parec_simple_SOURCES = tests/parec-simple.c
 parec_simple_LDADD = $(AM_LDADD) libpulse.la libpulse-simple.la libpulsecommon-@PA_MAJORMINOR@.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
 parec_simple_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+extended_test_SOURCES = tests/extended-test.c
+extended_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+extended_test_CFLAGS = $(AM_CFLAGS)
+extended_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 strlist_test_SOURCES = tests/strlist-test.c
 strlist_test_CFLAGS = $(AM_CFLAGS)
@@ -589,6 +602,7 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulse/util.c pulse/util.h \
 		pulse/timeval.c pulse/timeval.h \
 		pulse/rtclock.c pulse/rtclock.h \
+		pulse/format.c pulse/format.h \
 		pulsecore/atomic.h \
 		pulsecore/authkey.c pulsecore/authkey.h \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
@@ -645,9 +659,9 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/sndfile-util.c pulsecore/sndfile-util.h \
 		pulsecore/socket.h
 
-libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
+libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS) $(LIBJSON_CFLAGS)
 libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
-libpulsecommon_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS)
+libpulsecommon_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LIBJSON_LIBS)
 
 if HAVE_X11
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += pulse/client-conf-x11.c pulse/client-conf-x11.h
@@ -719,6 +733,7 @@ pulseinclude_HEADERS = \
 		pulse/error.h \
 		pulse/ext-device-manager.h \
 		pulse/ext-stream-restore.h \
+		pulse/format.h \
 		pulse/gccmacro.h \
 		pulse/introspect.h \
 		pulse/mainloop-api.h \
@@ -1158,8 +1173,7 @@ dist_alsapaths_DATA = \
 		modules/alsa/mixer/paths/analog-output-headphones-2.conf \
 		modules/alsa/mixer/paths/analog-output-lfe-on-mono.conf \
 		modules/alsa/mixer/paths/analog-output-mono.conf \
-		modules/alsa/mixer/paths/iec958-stereo-output.conf \
-		modules/alsa/mixer/paths/iec958-passthrough-output.conf
+		modules/alsa/mixer/paths/iec958-stereo-output.conf
 
 endif
 

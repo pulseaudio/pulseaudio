@@ -417,7 +417,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = ../src/pulse/context.h ../src/pulse/stream.h ../src/pulse/pulseaudio.h ../src/pulse/sample.h ../src/pulse/def.h ../src/pulse/subscribe.h ../src/pulse/introspect.h ../src/pulse/scache.h ../src/pulse/mainloop-api.h ../src/pulse/glib-mainloop.h ../src/pulse/mainloop.h ../src/pulse/mainloop-signal.h ../src/pulse/error.h ../src/pulse/operation.h ../src/pulse/simple.h ../src/pulse/version.h ../src/pulse/volume.h ../src/pulse/channelmap.h ../src/pulse/thread-mainloop.h ../src/pulse/xmalloc.h ../src/pulse/utf8.h ../src/pulse/util.h ../src/pulse/timeval.h ../src/pulse/proplist.h ../src/pulse/gccmacro.h ../src/pulse/ext-stream-restore.h ../src/pulse/rtclock.h
+INPUT                  = ../src/pulse/context.h ../src/pulse/stream.h ../src/pulse/pulseaudio.h ../src/pulse/sample.h ../src/pulse/def.h ../src/pulse/subscribe.h ../src/pulse/introspect.h ../src/pulse/scache.h ../src/pulse/mainloop-api.h ../src/pulse/glib-mainloop.h ../src/pulse/mainloop.h ../src/pulse/mainloop-signal.h ../src/pulse/error.h ../src/pulse/operation.h ../src/pulse/simple.h ../src/pulse/version.h ../src/pulse/volume.h ../src/pulse/channelmap.h ../src/pulse/thread-mainloop.h ../src/pulse/xmalloc.h ../src/pulse/utf8.h ../src/pulse/util.h ../src/pulse/timeval.h ../src/pulse/proplist.h ../src/pulse/gccmacro.h ../src/pulse/ext-stream-restore.h ../src/pulse/rtclock.h ../src/pulse/format.h
 
 # If the value of the INPUT tag contains directories, you can use the
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp

@@ -161,7 +161,7 @@ struct pa_sink {
      * s->real_volume and/or s->soft_volume so that they together
      * match the actual hardware volume that will be set later in the
      * write_volume callback. */
-    void (*set_volume)(pa_sink *s);             /* dito */
+    void (*set_volume)(pa_sink *s);             /* ditto */
 
     /* Sink drivers that set PA_SINK_SYNC_VOLUME must provide this
      * callback. This callback is not used with sinks that do not set
@@ -174,30 +174,34 @@ struct pa_sink {
      * not called automatically - it is the driver's responsibility to
      * schedule that function to be called at the right times in the
      * IO thread. */
-    void (*write_volume)(pa_sink *s);           /* dito */
+    void (*write_volume)(pa_sink *s);           /* ditto */
 
     /* Called when the mute setting is queried. A PA_SINK_MESSAGE_GET_MUTE
      * message will also be sent. Called from IO thread if PA_SINK_SYNC_VOLUME
      * flag is set otherwise from main loop context. If refresh_mute is FALSE
      * neither this function is called nor a message is sent.*/
-    void (*get_mute)(pa_sink *s);               /* dito */
+    void (*get_mute)(pa_sink *s);               /* ditto */
 
     /* Called when the mute setting shall be changed. A PA_SINK_MESSAGE_SET_MUTE
      * message will also be sent. Called from IO thread if PA_SINK_SYNC_VOLUME
      * flag is set otherwise from main loop context. */
-    void (*set_mute)(pa_sink *s);               /* dito */
+    void (*set_mute)(pa_sink *s);               /* ditto */
 
     /* Called when a rewind request is issued. Called from IO thread
      * context. */
-    void (*request_rewind)(pa_sink *s);        /* dito */
+    void (*request_rewind)(pa_sink *s);        /* ditto */
 
     /* Called when a the requested latency is changed. Called from IO
      * thread context. */
-    void (*update_requested_latency)(pa_sink *s); /* dito */
+    void (*update_requested_latency)(pa_sink *s); /* ditto */
 
     /* Called whenever the port shall be changed. Called from main
      * thread. */
-    int (*set_port)(pa_sink *s, pa_device_port *port); /* dito */
+    int (*set_port)(pa_sink *s, pa_device_port *port); /* ditto */
+
+    /* Called to get the list of formats supported by the sink, sorted
+     * in descending order of preference. */
+    pa_idxset* (*get_formats)(pa_sink *s); /* ditto */
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
@@ -378,6 +382,10 @@ int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause)
 /* Use this instead of checking s->flags & PA_SINK_FLAT_VOLUME directly. */
 pa_bool_t pa_sink_flat_volume_enabled(pa_sink *s);
 
+/* Is the sink in passthrough mode? (that is, is there a passthrough sink input
+ * connected to this sink? */
+pa_bool_t pa_sink_is_passthrough(pa_sink *s);
+
 void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume, pa_bool_t sendmsg, pa_bool_t save);
 const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_bool_t force_refresh);
 
@@ -397,6 +405,10 @@ unsigned pa_sink_check_suspend(pa_sink *s); /* Returns how many streams are acti
 pa_queue *pa_sink_move_all_start(pa_sink *s, pa_queue *q);
 void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, pa_bool_t save);
 void pa_sink_move_all_fail(pa_queue *q);
+
+pa_idxset* pa_sink_get_formats(pa_sink *s);
+pa_bool_t pa_sink_check_format(pa_sink *s, pa_format_info *f);
+pa_idxset* pa_sink_check_formats(pa_sink *s, pa_idxset *in_formats);
 
 /*** To be called exclusively by the sink driver, from IO context */
 

@@ -845,7 +845,7 @@ static int output_create_sink_input(struct output *o) {
         return 0;
 
     pa_sink_input_new_data_init(&data);
-    data.sink = o->sink;
+    pa_sink_input_new_data_set_sink(&data, o->sink, FALSE);
     data.driver = __FILE__;
     pa_proplist_setf(data.proplist, PA_PROP_MEDIA_NAME, "Simultaneous output on %s", pa_strnull(pa_proplist_gets(o->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_ROLE, "filter");

@@ -32,6 +32,7 @@
 #include <pulse/channelmap.h>
 #include <pulse/volume.h>
 #include <pulse/proplist.h>
+#include <pulse/format.h>
 #include <pulse/version.h>
 
 /** \page introspect Server Query and Control
@@ -230,6 +231,8 @@ typedef struct pa_sink_info {
     uint32_t n_ports;                  /**< Number of entries in port array \since 0.9.16 */
     pa_sink_port_info** ports;         /**< Array of available ports, or NULL. Array is terminated by an entry set to NULL. The number of entries is stored in n_ports \since 0.9.16 */
     pa_sink_port_info* active_port;    /**< Pointer to active port in the array, or NULL \since 0.9.16 */
+    uint8_t n_formats;                 /**< Number of formats supported by the sink. \since 1.0 */
+    pa_format_info **formats;          /**< Array of formats supported by the sink. \since 1.0 */
 } pa_sink_info;
 
 /** Callback prototype for pa_context_get_sink_info_by_name() and friends */
@@ -505,6 +508,7 @@ typedef struct pa_sink_input_info {
     int corked;                          /**< Stream corked \since 1.0 */
     int has_volume;                      /**< Stream has volume. If not set, then the meaning of this struct's volume member is unspecified. \since 1.0 */
     int volume_writable;                 /**< The volume can be set. If not set, the volume can still change even though clients can't control the volume. \since 1.0 */
+    pa_format_info *format;              /**< Stream format information. \since 1.0 */
 } pa_sink_input_info;
 
 /** Callback prototype for pa_context_get_sink_input_info() and friends*/

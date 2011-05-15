@@ -35,6 +35,7 @@
 #include <pulse/util.h>
 #include <pulse/i18n.h>
 #include <pulse/rtclock.h>
+#include <pulse/internal.h>
 
 #include <pulsecore/sink-input.h>
 #include <pulsecore/namereg.h>
@@ -177,6 +178,7 @@ static void reset_callbacks(pa_sink *s) {
     s->request_rewind = NULL;
     s->update_requested_latency = NULL;
     s->set_port = NULL;
+    s->get_formats = NULL;
 }
 
 /* Called from main context */
@@ -1239,6 +1241,24 @@ pa_bool_t pa_sink_flat_volume_enabled(pa_sink *s) {
     return (s->flags & PA_SINK_FLAT_VOLUME);
 }
 
+/* Called from main context */
+pa_bool_t pa_sink_is_passthrough(pa_sink *s) {
+    pa_sink_input *alt_i;
+    uint32_t idx;
+
+    pa_sink_assert_ref(s);
+
+    /* one and only one PASSTHROUGH input can possibly be connected */
+    if (pa_idxset_size(s->inputs) == 1) {
+        alt_i = pa_idxset_first(s->inputs, &idx);
+
+        if (pa_sink_input_is_passthrough(alt_i))
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
 /* Called from main context. */
 static void compute_reference_ratio(pa_sink_input *i) {
     unsigned c = 0;
@@ -1630,21 +1650,10 @@ void pa_sink_set_volume(
     pa_assert(!volume || volume->channels == 1 || pa_cvolume_compatible(volume, &s->sample_spec));
 
     /* make sure we don't change the volume when a PASSTHROUGH input is connected */
-    if (s->flags & PA_SINK_PASSTHROUGH) {
-        pa_sink_input *alt_i;
-        uint32_t idx;
-
-        /* one and only one PASSTHROUGH input can possibly be connected */
-        if (pa_idxset_size(s->inputs) == 1) {
-
-            alt_i = pa_idxset_first(s->inputs, &idx);
-
-            if (alt_i->flags & PA_SINK_INPUT_PASSTHROUGH) {
-                /* FIXME: Need to notify client that volume control is disabled */
-                pa_log_warn("Cannot change volume, Sink is connected to PASSTHROUGH input");
-                return;
-            }
-        }
+    if (pa_sink_is_passthrough(s)) {
+        /* FIXME: Need to notify client that volume control is disabled */
+        pa_log_warn("Cannot change volume, Sink is connected to PASSTHROUGH input");
+        return;
     }
 
     /* In case of volume sharing, the volume is set for the root sink first,
@@ -2144,7 +2153,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             /* If you change anything here, make sure to change the
              * sink input handling a few lines down at
-             * PA_SINK_MESSAGE_PREPAPRE_MOVE, too. */
+             * PA_SINK_MESSAGE_START_MOVE, too. */
 
             if (i->detach)
                 i->detach(i);
@@ -3257,4 +3266,83 @@ static void pa_sink_volume_change_rewind(pa_sink *s, size_t nbytes) {
         prev_vol = pa_cvolume_avg(&c->hw_volume);
     }
     pa_sink_volume_change_apply(s, NULL);
+}
+
+/* Called from the main thread */
+/* Gets the list of formats supported by the sink. The members and idxset must
+ * be freed by the caller. */
+pa_idxset* pa_sink_get_formats(pa_sink *s) {
+    pa_idxset *ret;
+
+    pa_assert(s);
+
+    if (s->get_formats) {
+        /* Sink supports format query, all is good */
+        ret = s->get_formats(s);
+    } else {
+        /* Sink doesn't support format query, so assume it does PCM */
+        pa_format_info *f = pa_format_info_new();
+        f->encoding = PA_ENCODING_PCM;
+
+        ret = pa_idxset_new(NULL, NULL);
+        pa_idxset_put(ret, f, NULL);
+    }
+
+    return ret;
+}
+
+/* Called from the main thread */
+/* Checks if the sink can accept this format */
+pa_bool_t pa_sink_check_format(pa_sink *s, pa_format_info *f)
+{
+    pa_idxset *sink_formats = NULL;
+    pa_format_info *f_sink;
+    uint32_t i;
+    pa_bool_t ret = FALSE;
+
+    pa_assert(s);
+    pa_assert(f);
+
+    sink_formats = pa_sink_get_formats(s);
+
+    PA_IDXSET_FOREACH(f_sink, sink_formats, i) {
+        if (pa_format_info_is_compatible(f_sink, f)) {
+            ret = TRUE;
+            break;
+        }
+    }
+
+    if (sink_formats)
+        pa_idxset_free(sink_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+
+    return ret;
+}
+
+/* Called from the main thread */
+/* Calculates the intersection between formats supported by the sink and
+ * in_formats, and returns these, in the order of the sink's formats. */
+pa_idxset* pa_sink_check_formats(pa_sink *s, pa_idxset *in_formats) {
+    pa_idxset *out_formats = pa_idxset_new(NULL, NULL), *sink_formats = NULL;
+    pa_format_info *f_sink, *f_in;
+    uint32_t i, j;
+
+    pa_assert(s);
+
+    if (!in_formats || pa_idxset_isempty(in_formats))
+        goto done;
+
+    sink_formats = pa_sink_get_formats(s);
+
+    PA_IDXSET_FOREACH(f_sink, sink_formats, i) {
+        PA_IDXSET_FOREACH(f_in, in_formats, j) {
+            if (pa_format_info_is_compatible(f_sink, f_in))
+                pa_idxset_put(out_formats, pa_format_info_copy(f_in), NULL);
+        }
+    }
+
+done:
+    if (sink_formats)
+        pa_idxset_free(sink_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+
+    return out_formats;
 }

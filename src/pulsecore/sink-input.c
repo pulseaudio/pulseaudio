@@ -31,6 +31,7 @@
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
+#include <pulse/internal.h>
 
 #include <pulsecore/sample-util.h>
 #include <pulsecore/core-subscribe.h>
@@ -49,36 +50,18 @@ PA_DEFINE_PUBLIC_CLASS(pa_sink_input, pa_msgobject);
 static void sink_input_free(pa_object *o);
 static void set_real_ratio(pa_sink_input *i, const pa_cvolume *v);
 
-static int check_passthrough_connection(pa_sink_input_flags_t flags, pa_sink *dest) {
-
-    if (dest->flags & PA_SINK_PASSTHROUGH) {
-
-        if (pa_idxset_size(dest->inputs) > 0) {
-
-            pa_sink_input *alt_i;
-            uint32_t idx;
-
-            alt_i = pa_idxset_first(dest->inputs, &idx);
-
-            /* only need to check the first input is not PASSTHROUGH */
-            if (alt_i->flags & PA_SINK_INPUT_PASSTHROUGH) {
-                pa_log_warn("Sink is already connected to PASSTHROUGH input");
-                return -PA_ERR_BUSY;
-            }
-
-            /* Current inputs are PCM, check new input is not PASSTHROUGH */
-            if (flags & PA_SINK_INPUT_PASSTHROUGH) {
-                pa_log_warn("Sink is already connected, cannot accept new PASSTHROUGH INPUT");
-                return -PA_ERR_BUSY;
-            }
-        }
-
-    } else {
-        if (flags & PA_SINK_INPUT_PASSTHROUGH) {
-            pa_log_warn("Cannot connect PASSTHROUGH sink input to sink without PASSTHROUGH capabilities");
-            return -PA_ERR_INVALID;
-        }
+static int check_passthrough_connection(pa_bool_t passthrough, pa_sink *dest) {
+    if (pa_sink_is_passthrough(dest)) {
+        pa_log_warn("Sink is already connected to PASSTHROUGH input");
+        return -PA_ERR_BUSY;
     }
+
+    /* If current input(s) exist, check new input is not PASSTHROUGH */
+    if (pa_idxset_size(dest->inputs) > 0 && passthrough) {
+        pa_log_warn("Sink is already connected, cannot accept new PASSTHROUGH INPUT");
+        return -PA_ERR_BUSY;
+    }
+
     return PA_OK;
 }
 
@@ -105,6 +88,18 @@ void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const 
 
     if ((data->channel_map_is_set = !!map))
         data->channel_map = *map;
+}
+
+pa_bool_t pa_sink_input_new_data_is_passthrough(pa_sink_input_new_data *data) {
+    pa_assert(data);
+
+    if (PA_LIKELY(data->format) && PA_UNLIKELY(!pa_format_info_is_pcm(data->format)))
+        return TRUE;
+
+    if (PA_UNLIKELY(data->flags & PA_SINK_INPUT_PASSTHROUGH))
+        return TRUE;
+
+    return FALSE;
 }
 
 void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume) {
@@ -146,8 +141,67 @@ void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mu
     data->muted = !!mute;
 }
 
+pa_bool_t pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, pa_bool_t save) {
+    pa_bool_t ret = TRUE;
+    pa_idxset *formats = NULL;
+
+    pa_assert(data);
+    pa_assert(s);
+
+    if (!data->req_formats) {
+        /* We're not working with the extended API */
+        data->sink = s;
+        data->save_sink = save;
+    } else {
+        /* Extended API: let's see if this sink supports the formats the client can provide */
+        formats = pa_sink_check_formats(s, data->req_formats);
+
+        if (formats && !pa_idxset_isempty(formats)) {
+            /* Sink supports at least one of the requested formats */
+            data->sink = s;
+            data->save_sink = save;
+            if (data->nego_formats)
+                pa_idxset_free(data->nego_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+            data->nego_formats = formats;
+        } else {
+            /* Sink doesn't support any of the formats requested by the client */
+            if (formats)
+                pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+            ret = FALSE;
+        }
+    }
+
+    return ret;
+}
+
+pa_bool_t pa_sink_input_new_data_set_formats(pa_sink_input_new_data *data, pa_idxset *formats) {
+    pa_assert(data);
+    pa_assert(formats);
+
+    if (data->req_formats)
+        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+
+    data->req_formats = formats;
+
+    if (data->sink) {
+        /* Trigger format negotiation */
+        return pa_sink_input_new_data_set_sink(data, data->sink, data->save_sink);
+    }
+
+    return TRUE;
+}
+
 void pa_sink_input_new_data_done(pa_sink_input_new_data *data) {
     pa_assert(data);
+
+    if (data->req_formats)
+        pa_idxset_free(data->req_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+
+    if (data->nego_formats)
+        pa_idxset_free(data->nego_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+
+    if (data->format)
+        pa_format_info_free(data->format);
 
     pa_proplist_free(data->proplist);
 }
@@ -189,6 +243,8 @@ int pa_sink_input_new(
     pa_channel_map original_cm;
     int r;
     char *pt;
+    pa_sample_spec ss;
+    pa_channel_map map;
 
     pa_assert(_i);
     pa_assert(core);
@@ -201,22 +257,53 @@ int pa_sink_input_new(
     if (data->origin_sink && (data->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
         data->volume_writable = FALSE;
 
+    if (!data->req_formats) {
+        /* From this point on, we want to work only with formats, and get back
+         * to using the sample spec and channel map after all decisions w.r.t.
+         * routing are complete. */
+        pa_idxset *tmp = pa_idxset_new(NULL, NULL);
+        pa_format_info *f = pa_format_info_from_sample_spec(&data->sample_spec, &data->channel_map);
+        pa_idxset_put(tmp, f, NULL);
+        pa_sink_input_new_data_set_formats(data, tmp);
+    }
+
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], data)) < 0)
         return r;
 
     pa_return_val_if_fail(!data->driver || pa_utf8_valid(data->driver), -PA_ERR_INVALID);
 
-    if (!data->sink) {
-        data->sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK);
-        data->save_sink = FALSE;
+    if (!data->sink)
+        pa_sink_input_new_data_set_sink(data, pa_namereg_get(core, NULL, PA_NAMEREG_SINK), FALSE);
+
+    /* Routing's done, we have a sink. Now let's fix the format and set up the
+     * sample spec */
+
+    /* If something didn't pick a format for us, pick the top-most format since
+     * we assume this is sorted in priority order */
+    if (!data->format && data->nego_formats && !pa_idxset_isempty(data->nego_formats))
+        data->format = pa_format_info_copy(pa_idxset_first(data->nego_formats, NULL));
+
+    pa_return_val_if_fail(data->format, -PA_ERR_NOTSUPPORTED);
+
+    /* Now populate the sample spec and format according to the final
+     * format that we've negotiated */
+    if (PA_LIKELY(data->format->encoding == PA_ENCODING_PCM)) {
+        pa_return_val_if_fail(pa_format_info_to_sample_spec(data->format, &ss, &map), -PA_ERR_INVALID);
+        pa_sink_input_new_data_set_sample_spec(data, &ss);
+        if (pa_channel_map_valid(&map))
+            pa_sink_input_new_data_set_channel_map(data, &map);
+    } else {
+        pa_return_val_if_fail(pa_format_info_to_sample_spec_fake(data->format, &ss), -PA_ERR_INVALID);
+        pa_sink_input_new_data_set_sample_spec(data, &ss);
     }
 
     pa_return_val_if_fail(data->sink, -PA_ERR_NOENTITY);
     pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
     pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED), -PA_ERR_INVALID);
 
-    r = check_passthrough_connection(data->flags, data->sink);
-    pa_return_val_if_fail(r == PA_OK, r);
+    r = check_passthrough_connection(pa_sink_input_new_data_is_passthrough(data), data->sink);
+    if (r != PA_OK)
+        return r;
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->sink->sample_spec;
@@ -231,6 +318,12 @@ int pa_sink_input_new(
     }
 
     pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
+
+    /* Don't restore (or save) stream volume for passthrough streams */
+    if (!pa_format_info_is_pcm(data->format)) {
+        data->volume_is_set = FALSE;
+        data->volume_factor_is_set = FALSE;
+    }
 
     if (!data->volume_is_set) {
         pa_cvolume_reset(&data->volume, data->sample_spec.channels);
@@ -295,18 +388,20 @@ int pa_sink_input_new(
         !pa_sample_spec_equal(&data->sample_spec, &data->sink->sample_spec) ||
         !pa_channel_map_equal(&data->channel_map, &data->sink->channel_map)) {
 
-        if (!(resampler = pa_resampler_new(
-                      core->mempool,
-                      &data->sample_spec, &data->channel_map,
-                      &data->sink->sample_spec, &data->sink->channel_map,
-                      data->resample_method,
-                      ((data->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
-                      ((data->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
-                      (core->disable_remixing || (data->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
-                      (core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0)))) {
-            pa_log_warn("Unsupported resampling operation.");
-            return -PA_ERR_NOTSUPPORTED;
-        }
+        /* Note: for passthrough content we need to adjust the output rate to that of the current sink-input */
+        if (!pa_sink_input_new_data_is_passthrough(data)) /* no resampler for passthrough content */
+            if (!(resampler = pa_resampler_new(
+                          core->mempool,
+                          &data->sample_spec, &data->channel_map,
+                          &data->sink->sample_spec, &data->sink->channel_map,
+                          data->resample_method,
+                          ((data->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
+                          ((data->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
+                          (core->disable_remixing || (data->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
+                          (core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0)))) {
+                pa_log_warn("Unsupported resampling operation.");
+                return -PA_ERR_NOTSUPPORTED;
+            }
     }
 
     i = pa_msgobject_new(pa_sink_input);
@@ -327,6 +422,7 @@ int pa_sink_input_new(
     i->actual_resample_method = resampler ? pa_resampler_get_method(resampler) : PA_RESAMPLER_INVALID;
     i->sample_spec = data->sample_spec;
     i->channel_map = data->channel_map;
+    i->format = pa_format_info_copy(data->format);
 
     if (!data->volume_is_absolute && pa_sink_flat_volume_enabled(i->sink)) {
         pa_cvolume remapped;
@@ -519,6 +615,10 @@ void pa_sink_input_unlink(pa_sink_input *i) {
 
         if (i->sink->asyncmsgq)
             pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_REMOVE_INPUT, i, 0, NULL) == 0);
+
+        /* We suspend the monitor if there was a passthrough sink, unsuspend now if required */
+        if (pa_sink_input_is_passthrough(i) && i->sink->monitor_source)
+            pa_source_suspend(i->sink->monitor_source, FALSE, PA_SUSPEND_PASSTHROUGH);
     }
 
     reset_callbacks(i);
@@ -561,6 +661,9 @@ static void sink_input_free(pa_object *o) {
 
     if (i->thread_info.resampler)
         pa_resampler_free(i->thread_info.resampler);
+
+    if (i->format)
+        pa_format_info_free(i->format);
 
     if (i->proplist)
         pa_proplist_free(i->proplist);
@@ -605,6 +708,10 @@ void pa_sink_input_put(pa_sink_input *i) {
 
         set_real_ratio(i, &i->volume);
     }
+
+    /* If we're entering passthrough mode, disable the monitor */
+    if (pa_sink_input_is_passthrough(i) && i->sink->monitor_source)
+        pa_source_suspend(i->sink->monitor_source, TRUE, PA_SUSPEND_PASSTHROUGH);
 
     i->thread_info.soft_volume = i->soft_volume;
     i->thread_info.muted = i->muted;
@@ -1087,12 +1194,25 @@ static void set_real_ratio(pa_sink_input *i, const pa_cvolume *v) {
     /* We don't copy the data to the thread_info data. That's left for someone else to do */
 }
 
+/* Called from main or I/O context */
+pa_bool_t pa_sink_input_is_passthrough(pa_sink_input *i) {
+    pa_sink_input_assert_ref(i);
+
+    if (PA_UNLIKELY(!pa_format_info_is_pcm(i->format)))
+        return TRUE;
+
+    if (PA_UNLIKELY(i->flags & PA_SINK_INPUT_PASSTHROUGH))
+        return TRUE;
+
+    return FALSE;
+}
+
 /* Called from main context */
 pa_bool_t pa_sink_input_is_volume_readable(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_ctl_context();
 
-    return !(i->flags & PA_SINK_INPUT_PASSTHROUGH);
+    return !pa_sink_input_is_passthrough(i);
 }
 
 /* Called from main context */
@@ -1251,7 +1371,7 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
         return FALSE;
     }
 
-    if (check_passthrough_connection(i->flags, dest) < 0)
+    if (check_passthrough_connection(pa_sink_input_is_passthrough(i), dest) < 0)
         return FALSE;
 
     if (i->may_move_to)
@@ -1296,6 +1416,10 @@ int pa_sink_input_start_move(pa_sink_input *i) {
         pa_sink_set_volume(i->sink, NULL, FALSE, FALSE);
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_START_MOVE, i, 0, NULL) == 0);
+
+    /* We suspend the monitor if there was a passthrough sink, unsuspend now if required */
+    if (pa_sink_input_is_passthrough(i) && i->sink->monitor_source)
+        pa_source_suspend(i->sink->monitor_source, FALSE, PA_SUSPEND_PASSTHROUGH);
 
     pa_sink_update_status(i->sink);
     pa_cvolume_remap(&i->volume_factor_sink, &i->sink->channel_map, &i->channel_map);
@@ -1469,6 +1593,16 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     if (!pa_sink_input_may_move_to(i, dest))
         return -PA_ERR_NOTSUPPORTED;
 
+    if (pa_sink_input_is_passthrough(i) && !pa_sink_check_format(dest, i->format)) {
+        pa_proplist *p = pa_proplist_new();
+        pa_log_debug("New sink doesn't support stream format, sending format-changed and killing");
+        /* Tell the client what device we want to be on if it is going to
+         * reconnect */
+        pa_proplist_sets(p, "device", dest->name);
+        pa_sink_input_send_event(i, PA_STREAM_EVENT_FORMAT_LOST, p);
+        return -PA_ERR_NOTSUPPORTED;
+    }
+
     if (i->thread_info.resampler &&
         pa_sample_spec_equal(pa_resampler_output_sample_spec(i->thread_info.resampler), &dest->sample_spec) &&
         pa_channel_map_equal(pa_resampler_output_channel_map(i->thread_info.resampler), &dest->channel_map))
@@ -1532,6 +1666,10 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     update_volume_due_to_moving(i, dest);
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_FINISH_MOVE, i, 0, NULL) == 0);
+
+    /* If we're entering passthrough mode, disable the monitor */
+    if (pa_sink_input_is_passthrough(i) && i->sink->monitor_source)
+        pa_source_suspend(i->sink->monitor_source, TRUE, PA_SUSPEND_PASSTHROUGH);
 
     pa_log_debug("Successfully moved sink input %i to %s.", i->index, dest->name);
 

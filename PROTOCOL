@@ -213,3 +213,31 @@ Two new flags at the end of sink input introspection data:
 
     bool has_volume
     bool volume_writable
+
+## v21, implemented by >= 1.0
+
+Changes for format negotiation in the extended API.
+
+New fields PA_COMMAND_CREATE_PLAYBACK_STREAM:
+
+    uint8_t n_formats
+    format_info format1
+    ...
+    format_info formatn
+
+One new field in reply from PA_COMMAND_CREATE_PLAYBACK_STREAM:
+
+    format_info format
+
+New fields in reply from PA_COMMAND_GET_SINK_INFO (and thus
+PA_COMMAND_GET_SINK_INFO_LIST)
+
+    uint8_t n_formats
+    format_info format1
+    ...
+    format_info formatn
+
+One new field in reply from PA_COMMAND_GET_SINK_INPUT_INFO (and thus
+PA_COMMAND_GET_SINK_INPUT_INFO_LIST)
+
+    format_info format

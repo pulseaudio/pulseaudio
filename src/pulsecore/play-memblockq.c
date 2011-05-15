@@ -202,7 +202,7 @@ pa_sink_input* pa_memblockq_sink_input_new(
     u->memblockq = NULL;
 
     pa_sink_input_new_data_init(&data);
-    data.sink = sink;
+    pa_sink_input_new_data_set_sink(&data, sink, FALSE);
     data.driver = __FILE__;
     pa_sink_input_new_data_set_sample_spec(&data, ss);
     pa_sink_input_new_data_set_channel_map(&data, map);

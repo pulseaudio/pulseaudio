@@ -739,12 +739,7 @@ typedef enum pa_sink_flags {
     /**< The latency can be adjusted dynamically depending on the
      * needs of the connected streams. \since 0.9.15 */
 
-    PA_SINK_PASSTHROUGH = 0x0100U,
-    /**< This sink has support for passthrough mode. The data will be left
-     * as is and not reformatted, resampled, mixed.
-     * \since 1.0 */
-
-    PA_SINK_SYNC_VOLUME = 0x0200U,
+    PA_SINK_SYNC_VOLUME = 0x0100U,
     /**< The HW volume changes are syncronized with SW volume.
      * \since 1.0 */
 
@@ -753,7 +748,7 @@ typedef enum pa_sink_flags {
      * The server will filter out these flags anyway, so you should never see
      * these flags in sinks. */
 
-    PA_SINK_SHARE_VOLUME_WITH_MASTER = 0x0400U,
+    PA_SINK_SHARE_VOLUME_WITH_MASTER = 0x0200U,
     /**< This sink shares the volume with the master sink (used by some filter
      * sinks). */
 /** \endcond */
@@ -769,7 +764,6 @@ typedef enum pa_sink_flags {
 #define PA_SINK_DECIBEL_VOLUME PA_SINK_DECIBEL_VOLUME
 #define PA_SINK_FLAT_VOLUME PA_SINK_FLAT_VOLUME
 #define PA_SINK_DYNAMIC_LATENCY PA_SINK_DYNAMIC_LATENCY
-#define PA_SINK_PASSTHROUGH PA_SINK_PASSTHROUGH
 #define PA_SINK_SYNC_VOLUME PA_SINK_SYNC_VOLUME
 #define PA_SINK_SHARE_VOLUME_WITH_MASTER PA_SINK_SHARE_VOLUME_WITH_MASTER
 
@@ -917,6 +911,13 @@ typedef void (*pa_free_cb_t)(void *p);
  * cork a specific stream. See pa_stream_event_cb_t for more
  * information, \since 0.9.15 */
 #define PA_STREAM_EVENT_REQUEST_UNCORK "request-uncork"
+
+/** A stream event notifying that the stream is going to be
+ * disconnected because the underlying sink changed and no longer
+ * supports the format that was originally negotiated. Clients need
+ * to connect a new stream to renegotiate a format and continue
+ * playback, \since 1.0 */
+#define PA_STREAM_EVENT_FORMAT_LOST "format-lost"
 
 PA_C_DECL_END
 
