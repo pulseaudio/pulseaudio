@@ -1600,6 +1600,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
          * reconnect */
         pa_proplist_sets(p, "device", dest->name);
         pa_sink_input_send_event(i, PA_STREAM_EVENT_FORMAT_LOST, p);
+        pa_proplist_free(p);
         return -PA_ERR_NOTSUPPORTED;
     }
 
