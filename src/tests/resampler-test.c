@@ -346,7 +346,6 @@ int main(int argc, char *argv[]) {
             case 'v':
                 pa_log_set_level(PA_LOG_DEBUG);
                 verbose = 1;
-                ret = 0;
                 break;
 
             case ARG_VERSION:
@@ -403,6 +402,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    ret = 0;
     pa_assert_se(pool = pa_mempool_new(FALSE, 0));
 
     if (!all_formats) {
@@ -420,7 +420,7 @@ int main(int argc, char *argv[]) {
 
         ts = pa_rtclock_now();
         pa_assert_se(resampler = pa_resampler_new(pool, &a, NULL, &b, NULL, method, 0));
-        printf("init: %llu\n", pa_rtclock_now() - ts);
+        printf("init: %llu\n", (long long unsigned)(pa_rtclock_now() - ts));
 
         i.memblock = pa_memblock_new(pool, pa_usec_to_bytes(1*PA_USEC_PER_SEC, &a) / pa_frame_size(&a));
 
@@ -431,12 +431,11 @@ int main(int argc, char *argv[]) {
             pa_resampler_run(resampler, &i, &j);
             pa_memblock_unref(j.memblock);
         }
-        printf("resampling: %llu\n", pa_rtclock_now() - ts);
+        printf("resampling: %llu\n", (long long unsigned)(pa_rtclock_now() - ts));
         pa_memblock_unref(i.memblock);
 
         pa_resampler_free(resampler);
 
-        ret = 0;
         goto quit;
     }
 
