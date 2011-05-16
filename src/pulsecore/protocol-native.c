@@ -1841,6 +1841,13 @@ if (!(expression)) { \
 } \
 } while(0);
 
+#define CHECK_VALIDITY_GOTO(pstream, expression, tag, error, label) do { \
+if (!(expression)) { \
+    pa_pstream_send_error((pstream), (tag), (error)); \
+    goto label; \
+} \
+} while(0);
+
 static pa_tagstruct *reply_new(uint32_t tag) {
     pa_tagstruct *reply;
 
@@ -1909,14 +1916,14 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
                 PA_TAG_INVALID) < 0) {
 
         protocol_error(c);
-        goto error;
+        goto finish;
     }
 
-    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, !sink_name || pa_namereg_is_valid_name_or_wildcard(sink_name, PA_NAMEREG_SINK), tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, sink_index == PA_INVALID_INDEX || !sink_name, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, !sink_name || sink_index == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, pa_cvolume_valid(&volume), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY_GOTO(c->pstream, c->authorized, tag, PA_ERR_ACCESS, finish);
+    CHECK_VALIDITY_GOTO(c->pstream, !sink_name || pa_namereg_is_valid_name_or_wildcard(sink_name, PA_NAMEREG_SINK), tag, PA_ERR_INVALID, finish);
+    CHECK_VALIDITY_GOTO(c->pstream, sink_index == PA_INVALID_INDEX || !sink_name, tag, PA_ERR_INVALID, finish);
+    CHECK_VALIDITY_GOTO(c->pstream, !sink_name || sink_index == PA_INVALID_INDEX, tag, PA_ERR_INVALID, finish);
+    CHECK_VALIDITY_GOTO(c->pstream, pa_cvolume_valid(&volume), tag, PA_ERR_INVALID, finish);
 
     p = pa_proplist_new();
 
@@ -1935,7 +1942,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
             pa_tagstruct_get_boolean(t, &variable_rate) < 0) {
 
             protocol_error(c);
-            goto error;
+            goto finish;
         }
     }
 
@@ -1946,7 +1953,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
             pa_tagstruct_get_proplist(t, p) < 0) {
 
             protocol_error(c);
-            goto error;
+            goto finish;
         }
     }
 
@@ -1956,7 +1963,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
             pa_tagstruct_get_boolean(t, &early_requests) < 0) {
 
             protocol_error(c);
-            goto error;
+            goto finish;
         }
     }
 
@@ -1967,7 +1974,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
             pa_tagstruct_get_boolean(t, &fail_on_suspend) < 0) {
 
             protocol_error(c);
-            goto error;
+            goto finish;
         }
     }
 
@@ -1976,7 +1983,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         if (pa_tagstruct_get_boolean(t, &relative_volume) < 0) {
 
             protocol_error(c);
-            goto error;
+            goto finish;
         }
     }
 
@@ -1984,7 +1991,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
 
         if (pa_tagstruct_get_boolean(t, &passthrough) < 0 ) {
             protocol_error(c);
-            goto error;
+            goto finish;
         }
     }
 
@@ -1992,7 +1999,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
 
         if (pa_tagstruct_getu8(t, &n_formats) < 0) {
             protocol_error(c);
-            goto error;
+            goto finish;
         }
 
         if (n_formats)
@@ -2002,39 +2009,39 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
             format = pa_format_info_new();
             if (pa_tagstruct_get_format_info(t, format) < 0) {
                 protocol_error(c);
-                goto error;
+                goto finish;
             }
             pa_idxset_put(formats, format, NULL);
         }
     }
 
     if (n_formats == 0) {
-        CHECK_VALIDITY(c->pstream, pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID);
-        CHECK_VALIDITY(c->pstream, map.channels == ss.channels && volume.channels == ss.channels, tag, PA_ERR_INVALID);
-        CHECK_VALIDITY(c->pstream, pa_channel_map_valid(&map), tag, PA_ERR_INVALID);
+        CHECK_VALIDITY_GOTO(c->pstream, pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID, finish);
+        CHECK_VALIDITY_GOTO(c->pstream, map.channels == ss.channels && volume.channels == ss.channels, tag, PA_ERR_INVALID, finish);
+        CHECK_VALIDITY_GOTO(c->pstream, pa_channel_map_valid(&map), tag, PA_ERR_INVALID, finish);
     } else {
         PA_IDXSET_FOREACH(format, formats, i) {
-            CHECK_VALIDITY(c->pstream, pa_format_info_valid(format), tag, PA_ERR_INVALID);
+            CHECK_VALIDITY_GOTO(c->pstream, pa_format_info_valid(format), tag, PA_ERR_INVALID, finish);
         }
     }
 
     if (!pa_tagstruct_eof(t)) {
         protocol_error(c);
-        goto error;
+        goto finish;
     }
 
     if (sink_index != PA_INVALID_INDEX) {
 
         if (!(sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index))) {
             pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-            goto error;
+            goto finish;
         }
 
     } else if (sink_name) {
 
         if (!(sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK))) {
             pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-            goto error;
+            goto finish;
         }
     }
 
@@ -2056,9 +2063,8 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
     muted_set = muted_set || muted;
 
     s = playback_stream_new(c, sink, &ss, &map, formats, &attr, volume_set ? &volume : NULL, muted, muted_set, syncid, &missing, flags, p, adjust_latency, early_requests, relative_volume, &ret);
-    pa_proplist_free(p);
 
-    CHECK_VALIDITY(c->pstream, s, tag, ret);
+    CHECK_VALIDITY_GOTO(c->pstream, s, tag, ret, finish);
 
     reply = reply_new(tag);
     pa_tagstruct_putu32(reply, s->index);
@@ -2106,14 +2112,12 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
     }
 
     pa_pstream_send_tagstruct(c->pstream, reply);
-    return;
 
-error:
+finish:
     if (p)
         pa_proplist_free(p);
     if (formats)
         pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
-    return;
 }
 
 static void command_delete_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
