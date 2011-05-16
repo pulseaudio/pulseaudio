@@ -140,10 +140,15 @@ pa_operation* pa_context_get_server_info(pa_context *c, pa_server_info_cb_t cb, 
 static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int eol = 1;
+    pa_sink_info i;
+    uint32_t j;
 
     pa_assert(pd);
     pa_assert(o);
     pa_assert(PA_REFCNT_VALUE(o) >= 1);
+
+    /* For safety incase someone use fail: outside the while loop below */
+    pa_zero(i);
 
     if (!o->context)
         goto finish;
@@ -156,11 +161,9 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
     } else {
 
         while (!pa_tagstruct_eof(t)) {
-            pa_sink_info i;
             pa_bool_t mute;
             uint32_t flags;
             uint32_t state;
-            uint32_t j;
             const char *ap = NULL;
 
             pa_zero(i);
@@ -195,9 +198,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                 (o->context->version >= 16 &&
                  (pa_tagstruct_getu32(t, &i.n_ports)))) {
 
-                pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                pa_proplist_free(i.proplist);
-                goto finish;
+                goto fail;
             }
 
             if (o->context->version >= 16) {
@@ -210,11 +211,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                             pa_tagstruct_gets(t, &i.ports[0][j].description) < 0 ||
                             pa_tagstruct_getu32(t, &i.ports[0][j].priority) < 0) {
 
-                            pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                            pa_xfree(i.ports[0]);
-                            pa_xfree(i.ports);
-                            pa_proplist_free(i.proplist);
-                            goto finish;
+                            goto fail;
                         }
 
                         i.ports[j] = &i.ports[0][j];
@@ -223,13 +220,8 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                     i.ports[j] = NULL;
                 }
 
-                if (pa_tagstruct_gets(t, &ap) < 0) {
-                    pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                    pa_xfree(i.ports[0]);
-                    pa_xfree(i.ports);
-                    pa_proplist_free(i.proplist);
-                    goto finish;
-                }
+                if (pa_tagstruct_gets(t, &ap) < 0)
+                    goto fail;
 
                 if (ap) {
                     for (j = 0; j < i.n_ports; j++)
@@ -241,29 +233,18 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
             }
 
             if (o->context->version >= 21) {
-                i.formats = NULL;
+                uint8_t n_formats;
+                if (pa_tagstruct_getu8(t, &n_formats) < 0 || n_formats < 1)
+                    goto fail;
 
-                if (pa_tagstruct_getu8(t, &i.n_formats)) {
-                    pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                    pa_proplist_free(i.proplist);
-                    goto finish;
-                }
+                i.formats = pa_xnew0(pa_format_info*, n_formats);
 
-                pa_assert(i.n_formats > 0);
-                i.formats = pa_xnew0(pa_format_info*, i.n_formats);
-
-                for (j = 0; j < i.n_formats; j++) {
+                for (j = 0; j < n_formats; j++) {
+                    i.n_formats++;
                     i.formats[j] = pa_format_info_new();
-                    if (pa_tagstruct_get_format_info(t, i.formats[j]) < 0) {
-                        do {
-                            pa_format_info_free(i.formats[j]);
-                        } while (j--);
-                        pa_xfree(i.formats);
 
-                        pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                        pa_proplist_free(i.proplist);
-                        goto finish;
-                    }
+                    if (pa_tagstruct_get_format_info(t, i.formats[j]) < 0)
+                        goto fail;
                 }
             }
 
@@ -276,17 +257,15 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                 cb(o->context, &i, 0, o->userdata);
             }
 
-            if (i.ports) {
-                pa_xfree(i.ports[0]);
-                pa_xfree(i.ports);
-            }
-
             if (i.formats) {
                 for (j = 0; j < i.n_formats; j++)
                     pa_format_info_free(i.formats[j]);
                 pa_xfree(i.formats);
             }
-
+            if (i.ports) {
+                pa_xfree(i.ports[0]);
+                pa_xfree(i.ports);
+            }
             pa_proplist_free(i.proplist);
         }
     }
@@ -299,6 +278,25 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
 finish:
     pa_operation_done(o);
     pa_operation_unref(o);
+    return;
+
+fail:
+    pa_assert(i.proplist);
+
+    pa_context_fail(o->context, PA_ERR_PROTOCOL);
+
+    if (i.formats) {
+        for (j = 0; j < i.n_formats; j++)
+            pa_format_info_free(i.formats[j]);
+        pa_xfree(i.formats);
+    }
+    if (i.ports) {
+        pa_xfree(i.ports[0]);
+        pa_xfree(i.ports);
+    }
+    pa_proplist_free(i.proplist);
+
+    goto finish;
 }
 
 pa_operation* pa_context_get_sink_info_list(pa_context *c, pa_sink_info_cb_t cb, void *userdata) {
