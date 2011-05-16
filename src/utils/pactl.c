@@ -333,7 +333,8 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
         cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX],
         v[PA_VOLUME_SNPRINT_MAX],
         vdb[PA_SW_VOLUME_SNPRINT_DB_MAX],
-        cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+        cm[PA_CHANNEL_MAP_SNPRINT_MAX],
+        f[PA_FORMAT_INFO_SNPRINT_MAX];
     char *pl;
 
     if (is_last < 0) {
@@ -418,6 +419,14 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
     if (i->active_port)
         printf(_("\tActive Port: %s\n"),
                i->active_port->name);
+
+    if (i->formats) {
+        uint8_t j;
+
+        printf(_("\tFormats:\n"));
+        for (j = 0; j < i->n_formats; j++)
+            printf("\t\t%s\n", pa_format_info_snprint(f, sizeof(f), i->formats[j]));
+    }
 }
 
 static void get_module_info_callback(pa_context *c, const pa_module_info *i, int is_last, void *userdata) {

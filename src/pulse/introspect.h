@@ -310,6 +310,8 @@ typedef struct pa_source_info {
     uint32_t n_ports;                   /**< Number of entries in port array \since 0.9.16 */
     pa_source_port_info** ports;        /**< Array of available ports, or NULL. Array is terminated by an entry set to NULL. The number of entries is stored in n_ports \since 0.9.16  */
     pa_source_port_info* active_port;   /**< Pointer to active port in the array, or NULL \since 0.9.16  */
+    uint8_t n_formats;                  /**< Number of formats supported by the source. \since 1.0 */
+    pa_format_info **formats;           /**< Array of formats supported by the source. \since 1.0 */
 } pa_source_info;
 
 /** Callback prototype for pa_context_get_source_info_by_name() and friends */
