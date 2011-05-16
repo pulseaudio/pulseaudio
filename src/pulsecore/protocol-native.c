@@ -3317,6 +3317,7 @@ static void source_output_fill_tagstruct(pa_native_connection *c, pa_tagstruct *
         pa_tagstruct_put_boolean(t, pa_source_output_get_mute(s));
         pa_tagstruct_put_boolean(t, has_volume);
         pa_tagstruct_put_boolean(t, s->volume_writable);
+        pa_tagstruct_put_format_info(t, s->format);
     }
 }
 

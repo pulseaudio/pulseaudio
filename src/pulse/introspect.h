@@ -561,6 +561,7 @@ typedef struct pa_source_output_info {
     int mute;                            /**< Stream muted \since 1.0 */
     int has_volume;                      /**< Stream has volume. If not set, then the meaning of this struct's volume member is unspecified. \since 1.0 */
     int volume_writable;                 /**< The volume can be set. If not set, the volume can still change even though clients can't control the volume. \since 1.0 */
+    pa_format_info *format;              /**< Stream format information. \since 1.0 */
 } pa_source_output_info;
 
 /** Callback prototype for pa_context_get_source_output_info() and friends*/

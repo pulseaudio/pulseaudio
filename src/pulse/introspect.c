@@ -1168,6 +1168,7 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
 
             pa_zero(i);
             i.proplist = pa_proplist_new();
+            i.format = pa_format_info_new();
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -1185,10 +1186,12 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
                 (o->context->version >= 22 && (pa_tagstruct_get_cvolume(t, &i.volume) < 0 ||
                                                pa_tagstruct_get_boolean(t, &mute) < 0 ||
                                                pa_tagstruct_get_boolean(t, &has_volume) < 0 ||
-                                               pa_tagstruct_get_boolean(t, &volume_writable) < 0))) {
+                                               pa_tagstruct_get_boolean(t, &volume_writable) < 0 ||
+                                               pa_tagstruct_get_format_info(t, i.format) < 0))) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);
+                pa_format_info_free(i.format);
                 goto finish;
             }
 
@@ -1203,6 +1206,7 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
             }
 
             pa_proplist_free(i.proplist);
+            pa_format_info_free(i.format);
         }
     }
 
