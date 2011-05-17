@@ -30,6 +30,7 @@
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
+#include <pulse/internal.h>
 
 #include <pulsecore/sample-util.h>
 #include <pulsecore/core-subscribe.h>
@@ -69,8 +70,79 @@ void pa_source_output_new_data_set_channel_map(pa_source_output_new_data *data, 
         data->channel_map = *map;
 }
 
+pa_bool_t pa_source_output_new_data_is_passthrough(pa_source_output_new_data *data) {
+    pa_assert(data);
+
+    if (PA_LIKELY(data->format) && PA_UNLIKELY(!pa_format_info_is_pcm(data->format)))
+        return TRUE;
+
+    if (PA_UNLIKELY(data->flags & PA_SOURCE_OUTPUT_PASSTHROUGH))
+        return TRUE;
+
+    return FALSE;
+}
+
+pa_bool_t pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_source *s, pa_bool_t save) {
+    pa_bool_t ret = TRUE;
+    pa_idxset *formats = NULL;
+
+    pa_assert(data);
+    pa_assert(s);
+
+    if (!data->req_formats) {
+        /* We're not working with the extended API */
+        data->source = s;
+        data->save_source = save;
+    } else {
+        /* Extended API: let's see if this source supports the formats the client would like */
+        formats = pa_source_check_formats(s, data->req_formats);
+
+        if (formats && !pa_idxset_isempty(formats)) {
+            /* Source supports at least one of the requested formats */
+            data->source = s;
+            data->save_source = save;
+            if (data->nego_formats)
+                pa_idxset_free(data->nego_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+            data->nego_formats = formats;
+        } else {
+            /* Source doesn't support any of the formats requested by the client */
+            if (formats)
+                pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+            ret = FALSE;
+        }
+    }
+
+    return ret;
+}
+
+pa_bool_t pa_source_output_new_data_set_formats(pa_source_output_new_data *data, pa_idxset *formats) {
+    pa_assert(data);
+    pa_assert(formats);
+
+    if (data->req_formats)
+        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+
+    data->req_formats = formats;
+
+    if (data->source) {
+        /* Trigger format negotiation */
+        return pa_source_output_new_data_set_source(data, data->source, data->save_source);
+    }
+
+    return TRUE;
+}
+
 void pa_source_output_new_data_done(pa_source_output_new_data *data) {
     pa_assert(data);
+
+    if (data->req_formats)
+        pa_idxset_free(data->req_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+
+    if (data->nego_formats)
+        pa_idxset_free(data->nego_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+
+    if (data->format)
+        pa_format_info_free(data->format);
 
     pa_proplist_free(data->proplist);
 }
@@ -106,8 +178,11 @@ int pa_source_output_new(
     pa_source_output *o;
     pa_resampler *resampler = NULL;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    pa_channel_map original_cm;
     int r;
     char *pt;
+    pa_sample_spec ss;
+    pa_channel_map map;
 
     pa_assert(_o);
     pa_assert(core);
@@ -117,14 +192,44 @@ int pa_source_output_new(
     if (data->client)
         pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->client->proplist);
 
+    if (!data->req_formats) {
+        /* From this point on, we want to work only with formats, and get back
+         * to using the sample spec and channel map after all decisions w.r.t.
+         * routing are complete. */
+        pa_idxset *tmp = pa_idxset_new(NULL, NULL);
+        pa_format_info *f = pa_format_info_from_sample_spec(&data->sample_spec, &data->channel_map);
+        pa_idxset_put(tmp, f, NULL);
+        pa_source_output_new_data_set_formats(data, tmp);
+    }
+
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], data)) < 0)
         return r;
 
     pa_return_val_if_fail(!data->driver || pa_utf8_valid(data->driver), -PA_ERR_INVALID);
 
-    if (!data->source) {
-        data->source = pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE);
-        data->save_source = FALSE;
+    if (!data->source)
+        pa_source_output_new_data_set_source(data, pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE), FALSE);
+
+    /* Routing's done, we have a source. Now let's fix the format and set up the
+     * sample spec */
+
+    /* If something didn't pick a format for us, pick the top-most format since
+     * we assume this is sorted in priority order */
+    if (!data->format && data->nego_formats && !pa_idxset_isempty(data->nego_formats))
+        data->format = pa_format_info_copy(pa_idxset_first(data->nego_formats, NULL));
+
+    pa_return_val_if_fail(data->format, -PA_ERR_NOTSUPPORTED);
+
+    /* Now populate the sample spec and format according to the final
+     * format that we've negotiated */
+    if (PA_LIKELY(data->format->encoding == PA_ENCODING_PCM)) {
+        pa_return_val_if_fail(pa_format_info_to_sample_spec(data->format, &ss, &map), -PA_ERR_INVALID);
+        pa_source_output_new_data_set_sample_spec(data, &ss);
+        if (pa_channel_map_valid(&map))
+            pa_source_output_new_data_set_channel_map(data, &map);
+    } else {
+        pa_return_val_if_fail(pa_format_info_to_sample_spec_fake(data->format, &ss), -PA_ERR_INVALID);
+        pa_source_output_new_data_set_sample_spec(data, &ss);
     }
 
     pa_return_val_if_fail(data->source, -PA_ERR_NOENTITY);
@@ -143,7 +248,6 @@ int pa_source_output_new(
             pa_channel_map_init_extend(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
     }
 
-    pa_return_val_if_fail(pa_channel_map_valid(&data->channel_map), -PA_ERR_INVALID);
     pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
 
     if (data->flags & PA_SOURCE_OUTPUT_FIX_FORMAT)
@@ -151,6 +255,8 @@ int pa_source_output_new(
 
     if (data->flags & PA_SOURCE_OUTPUT_FIX_RATE)
         data->sample_spec.rate = data->source->sample_spec.rate;
+
+    original_cm = data->channel_map;
 
     if (data->flags & PA_SOURCE_OUTPUT_FIX_CHANNELS) {
         data->sample_spec.channels = data->source->sample_spec.channels;
@@ -183,18 +289,19 @@ int pa_source_output_new(
         !pa_sample_spec_equal(&data->sample_spec, &data->source->sample_spec) ||
         !pa_channel_map_equal(&data->channel_map, &data->source->channel_map)) {
 
-        if (!(resampler = pa_resampler_new(
-                      core->mempool,
-                      &data->source->sample_spec, &data->source->channel_map,
-                      &data->sample_spec, &data->channel_map,
-                      data->resample_method,
-                      ((data->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
-                      ((data->flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
-                      (core->disable_remixing || (data->flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
-                      (core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0)))) {
-            pa_log_warn("Unsupported resampling operation.");
-            return -PA_ERR_NOTSUPPORTED;
-        }
+        if (!pa_source_output_new_data_is_passthrough(data)) /* no resampler for passthrough content */
+            if (!(resampler = pa_resampler_new(
+                        core->mempool,
+                        &data->source->sample_spec, &data->source->channel_map,
+                        &data->sample_spec, &data->channel_map,
+                        data->resample_method,
+                        ((data->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
+                        ((data->flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
+                        (core->disable_remixing || (data->flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
+                        (core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0)))) {
+                pa_log_warn("Unsupported resampling operation.");
+                return -PA_ERR_NOTSUPPORTED;
+            }
     }
 
     o = pa_msgobject_new(pa_source_output);
@@ -211,14 +318,13 @@ int pa_source_output_new(
     o->destination_source = data->destination_source;
     o->client = data->client;
 
-    o->actual_resample_method = resampler ? pa_resampler_get_method(resampler) : PA_RESAMPLER_INVALID;
     o->requested_resample_method = data->resample_method;
+    o->actual_resample_method = resampler ? pa_resampler_get_method(resampler) : PA_RESAMPLER_INVALID;
     o->sample_spec = data->sample_spec;
     o->channel_map = data->channel_map;
+    o->format = pa_format_info_copy(data->format);
 
     o->direct_on_input = data->direct_on_input;
-
-    o->save_source = data->save_source;
 
     reset_callbacks(o);
     o->userdata = NULL;
@@ -372,6 +478,9 @@ static void source_output_free(pa_object* mo) {
 
     if (o->thread_info.resampler)
         pa_resampler_free(o->thread_info.resampler);
+
+    if (o->format)
+        pa_format_info_free(o->format);
 
     if (o->proplist)
         pa_proplist_free(o->proplist);
@@ -677,6 +786,19 @@ void pa_source_output_set_name(pa_source_output *o, const char *name) {
     }
 }
 
+/* Called from main or I/O context */
+pa_bool_t pa_source_output_is_passthrough(pa_source_output *o) {
+    pa_source_output_assert_ref(o);
+
+    if (PA_UNLIKELY(!pa_format_info_is_pcm(o->format)))
+        return TRUE;
+
+    if (PA_UNLIKELY(o->flags & PA_SOURCE_OUTPUT_PASSTHROUGH))
+        return TRUE;
+
+    return FALSE;
+}
+
 /* Called from main thread */
 void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p) {
     pa_source_output_assert_ref(o);
@@ -782,7 +904,18 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
     pa_source_assert_ref(dest);
 
     if (!pa_source_output_may_move_to(o, dest))
-        return -1;
+        return -PA_ERR_NOTSUPPORTED;
+
+    if (pa_source_output_is_passthrough(o) && !pa_source_check_format(dest, o->format)) {
+        pa_proplist *p = pa_proplist_new();
+        pa_log_debug("New source doesn't support stream format, sending format-changed and killing");
+        /* Tell the client what device we want to be on if it is going to
+         * reconnect */
+        pa_proplist_sets(p, "device", dest->name);
+        pa_source_output_send_event(o, PA_STREAM_EVENT_FORMAT_LOST, p);
+        pa_proplist_free(p);
+        return -PA_ERR_NOTSUPPORTED;
+    }
 
     if (o->thread_info.resampler &&
         pa_sample_spec_equal(pa_resampler_input_sample_spec(o->thread_info.resampler), &dest->sample_spec) &&
@@ -795,7 +928,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
              !pa_sample_spec_equal(&o->sample_spec, &dest->sample_spec) ||
              !pa_channel_map_equal(&o->channel_map, &dest->channel_map)) {
 
-        /* Okey, we need a new resampler for the new source */
+        /* Okay, we need a new resampler for the new source */
 
         if (!(new_resampler = pa_resampler_new(
                       o->core->mempool,

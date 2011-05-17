@@ -755,7 +755,7 @@ int pa__init(pa_module *m) {
     pa_source_output_new_data_init(&source_output_data);
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
-    source_output_data.source = source;
+    pa_source_output_new_data_set_source(&source_output_data, source, FALSE);
 
     if ((n = pa_modargs_get_value(ma, "source_output_name", NULL)))
         pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_NAME, n);

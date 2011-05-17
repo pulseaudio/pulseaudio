@@ -241,3 +241,16 @@ One new field in reply from PA_COMMAND_GET_SINK_INPUT_INFO (and thus
 PA_COMMAND_GET_SINK_INPUT_INFO_LIST)
 
     format_info format
+
+## v22, implemented by >= 1.0
+
+New fields PA_COMMAND_CREATE_RECORD_STREAM:
+
+    uint8_t n_formats
+    format_info format1
+    ...
+    format_info formatn
+
+One new field in reply from PA_COMMAND_CREATE_RECORD_STREAM:
+
+    format_info format

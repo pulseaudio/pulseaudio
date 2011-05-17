@@ -1217,7 +1217,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         if (source_output->save_source) {
             pa_strlcpy(entry.device, source_output->source->name, sizeof(entry.device));
-            entry.device_valid = source_output->save_source;
+            entry.device_valid = TRUE;
 
             device_updated = !created_new_entry && (!old->device_valid || !pa_streq(entry.device, old->device));
 
@@ -1399,8 +1399,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
            interfere with that */
         if (s && PA_SOURCE_IS_LINKED(pa_source_get_state(s))) {
             pa_log_info("Restoring device for stream %s.", name);
-            new_data->source = s;
-            new_data->save_source = TRUE;
+            pa_source_output_new_data_set_source(new_data, s, TRUE);
         }
 
         pa_xfree(e);

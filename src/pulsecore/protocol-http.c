@@ -560,7 +560,7 @@ static void handle_listen_prefix(struct connection *c, const char *source_name) 
     data.driver = __FILE__;
     data.module = c->module;
     data.client = c->client;
-    data.source = source;
+    pa_source_output_new_data_set_source(&data, source, FALSE);
     pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
     pa_source_output_new_data_set_sample_spec(&data, &ss);
     pa_source_output_new_data_set_channel_map(&data, &cm);

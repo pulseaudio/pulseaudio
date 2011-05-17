@@ -1599,7 +1599,7 @@ int pa__init(pa_module*m) {
     pa_source_output_new_data_init(&source_output_data);
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
-    source_output_data.source = source_master;
+    pa_source_output_new_data_set_source(&source_output_data, source_master, FALSE);
     source_output_data.destination_source = u->source;
     /* FIXME
        source_output_data.flags = PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND; */

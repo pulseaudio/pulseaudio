@@ -32,6 +32,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
+#include <pulse/internal.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/source-output.h>
@@ -130,6 +131,7 @@ static void reset_callbacks(pa_source *s) {
     s->set_mute = NULL;
     s->update_requested_latency = NULL;
     s->set_port = NULL;
+    s->get_formats = NULL;
 }
 
 /* Called from main context */
@@ -752,6 +754,15 @@ pa_usec_t pa_source_get_latency_within_thread(pa_source *s) {
         return -1;
 
     return usec;
+}
+
+/* Called from main context */
+pa_bool_t pa_source_is_passthrough(pa_source *s) {
+
+    pa_source_assert_ref(s);
+
+    /* NB Currently only monitor sources support passthrough mode */
+    return (s->monitor_of && pa_sink_is_passthrough(s->monitor_of));
 }
 
 /* Called from main thread */
@@ -1574,4 +1585,85 @@ int pa_source_set_port(pa_source *s, const char *name, pa_bool_t save) {
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PORT_CHANGED], s);
 
     return 0;
+}
+
+/* Called from the main thread */
+/* Gets the list of formats supported by the source. The members and idxset must
+ * be freed by the caller. */
+pa_idxset* pa_source_get_formats(pa_source *s) {
+    pa_idxset *ret;
+
+    pa_assert(s);
+
+    if (s->get_formats) {
+        /* Source supports format query, all is good */
+        ret = s->get_formats(s);
+    } else {
+        /* Source doesn't support format query, so assume it does PCM */
+        pa_format_info *f = pa_format_info_new();
+        f->encoding = PA_ENCODING_PCM;
+
+        ret = pa_idxset_new(NULL, NULL);
+        pa_idxset_put(ret, f, NULL);
+    }
+
+    return ret;
+}
+
+/* Called from the main thread */
+/* Checks if the source can accept this format */
+pa_bool_t pa_source_check_format(pa_source *s, pa_format_info *f)
+{
+    pa_idxset *formats = NULL;
+    pa_bool_t ret = FALSE;
+
+    pa_assert(s);
+    pa_assert(f);
+
+    formats = pa_source_get_formats(s);
+
+    if (formats) {
+        pa_format_info *finfo_device;
+        uint32_t i;
+
+        PA_IDXSET_FOREACH(finfo_device, formats, i) {
+            if (pa_format_info_is_compatible(finfo_device, f)) {
+                ret = TRUE;
+                break;
+            }
+        }
+
+        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+    }
+
+    return ret;
+}
+
+/* Called from the main thread */
+/* Calculates the intersection between formats supported by the source and
+ * in_formats, and returns these, in the order of the source's formats. */
+pa_idxset* pa_source_check_formats(pa_source *s, pa_idxset *in_formats) {
+    pa_idxset *out_formats = pa_idxset_new(NULL, NULL), *source_formats = NULL;
+    pa_format_info *f_source, *f_in;
+    uint32_t i, j;
+
+    pa_assert(s);
+
+    if (!in_formats || pa_idxset_isempty(in_formats))
+        goto done;
+
+    source_formats = pa_source_get_formats(s);
+
+    PA_IDXSET_FOREACH(f_source, source_formats, i) {
+        PA_IDXSET_FOREACH(f_in, in_formats, j) {
+            if (pa_format_info_is_compatible(f_source, f_in))
+                pa_idxset_put(out_formats, pa_format_info_copy(f_in), NULL);
+        }
+    }
+
+done:
+    if (source_formats)
+        pa_idxset_free(source_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+
+    return out_formats;
 }

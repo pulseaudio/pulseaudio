@@ -28,6 +28,7 @@ typedef struct pa_source_output pa_source_output;
 
 #include <pulse/sample.h>
 #include <pulsecore/source.h>
+#include <pulse/format.h>
 #include <pulsecore/memblockq.h>
 #include <pulsecore/resampler.h>
 #include <pulsecore/module.h>
@@ -56,7 +57,8 @@ typedef enum pa_source_output_flags {
     PA_SOURCE_OUTPUT_FIX_CHANNELS = 128,
     PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND = 256,
     PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND = 512,
-    PA_SOURCE_OUTPUT_KILL_ON_SUSPEND = 1024
+    PA_SOURCE_OUTPUT_KILL_ON_SUSPEND = 1024,
+    PA_SOURCE_OUTPUT_PASSTHROUGH = 2048
 } pa_source_output_flags_t;
 
 struct pa_source_output {
@@ -82,6 +84,7 @@ struct pa_source_output {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+    pa_format_info *format;
 
     /* if TRUE then the source we are connected to is worth
      * remembering, i.e. was explicitly chosen by the user and not
@@ -218,6 +221,9 @@ typedef struct pa_source_output_new_data {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+    pa_format_info *format;
+    pa_idxset *req_formats;
+    pa_idxset *nego_formats;
 
     pa_bool_t sample_spec_is_set:1;
     pa_bool_t channel_map_is_set:1;
@@ -228,6 +234,9 @@ typedef struct pa_source_output_new_data {
 pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data);
 void pa_source_output_new_data_set_sample_spec(pa_source_output_new_data *data, const pa_sample_spec *spec);
 void pa_source_output_new_data_set_channel_map(pa_source_output_new_data *data, const pa_channel_map *map);
+pa_bool_t pa_source_output_new_data_is_passthrough(pa_source_output_new_data *data);
+pa_bool_t pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_source *s, pa_bool_t save);
+pa_bool_t pa_source_output_new_data_set_formats(pa_source_output_new_data *data, pa_idxset *formats);
 void pa_source_output_new_data_done(pa_source_output_new_data *data);
 
 /* To be called by the implementing module only */
@@ -256,6 +265,8 @@ size_t pa_source_output_get_max_rewind(pa_source_output *o);
 void pa_source_output_kill(pa_source_output*o);
 
 pa_usec_t pa_source_output_get_latency(pa_source_output *o, pa_usec_t *source_latency);
+
+pa_bool_t pa_source_output_is_passthrough(pa_source_output *o);
 
 void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p);
 

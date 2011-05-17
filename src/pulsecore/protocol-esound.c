@@ -524,7 +524,7 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
     sdata.driver = __FILE__;
     sdata.module = c->options->module;
     sdata.client = c->client;
-    sdata.source = source;
+    pa_source_output_new_data_set_source(&sdata, source, FALSE);
     pa_source_output_new_data_set_sample_spec(&sdata, &ss);
 
     pa_source_output_new(&c->source_output, c->protocol->core, &sdata);

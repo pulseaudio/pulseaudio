@@ -1092,7 +1092,9 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
             s->timing_info.configured_sink_usec = usec;
     }
 
-    if (s->context->version >= 21 && s->direction == PA_STREAM_PLAYBACK) {
+    if ((s->context->version >= 21 && s->direction == PA_STREAM_PLAYBACK)
+        || s->context->version >= 22) {
+
         pa_format_info *f = pa_format_info_new();
         pa_tagstruct_get_format_info(t, f);
 
@@ -1319,26 +1321,18 @@ static int create_stream(
         pa_tagstruct_put_boolean(t, flags & PA_STREAM_FAIL_ON_SUSPEND);
     }
 
-    if (s->context->version >= 17) {
+    if (s->context->version >= 17 && s->direction == PA_STREAM_PLAYBACK)
+        pa_tagstruct_put_boolean(t, flags & PA_STREAM_RELATIVE_VOLUME);
 
-        if (s->direction == PA_STREAM_PLAYBACK)
-            pa_tagstruct_put_boolean(t, flags & PA_STREAM_RELATIVE_VOLUME);
+    if (s->context->version >= 18 && s->direction == PA_STREAM_PLAYBACK)
+        pa_tagstruct_put_boolean(t, flags & (PA_STREAM_PASSTHROUGH));
 
-    }
+    if ((s->context->version >= 21 && s->direction == PA_STREAM_PLAYBACK)
+        || s->context->version >= 22) {
 
-    if (s->context->version >= 18) {
-
-        if (s->direction == PA_STREAM_PLAYBACK)
-            pa_tagstruct_put_boolean(t, flags & (PA_STREAM_PASSTHROUGH));
-    }
-
-    if (s->context->version >= 21) {
-
-        if (s->direction == PA_STREAM_PLAYBACK) {
-            pa_tagstruct_putu8(t, s->n_formats);
-            for (i = 0; i < s->n_formats; i++)
-                pa_tagstruct_put_format_info(t, s->req_formats[i]);
-        }
+        pa_tagstruct_putu8(t, s->n_formats);
+        for (i = 0; i < s->n_formats; i++)
+            pa_tagstruct_put_format_info(t, s->req_formats[i]);
     }
 
     pa_pstream_send_tagstruct(s->context->pstream, t);

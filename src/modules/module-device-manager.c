@@ -871,10 +871,9 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
             if (PA_INVALID_INDEX != device_index) {
                 pa_source *source;
 
-                if ((source = pa_idxset_get_by_index(u->core->sources, device_index))) {
-                    new_data->source = source;
-                    new_data->save_source = FALSE;
-                }
+                if ((source = pa_idxset_get_by_index(u->core->sources, device_index)))
+                    if (!pa_source_output_new_data_set_source(new_data, source, FALSE))
+                        pa_log_debug("Not restoring device for stream because no supported format was found");
             }
         }
     }
