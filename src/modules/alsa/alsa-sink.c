@@ -256,6 +256,7 @@ static int reserve_monitor_init(struct userdata *u, const char *dname) {
     if (!(rname = pa_alsa_get_reserve_name(dname)))
         return 0;
 
+    /* We are resuming, try to lock the device */
     u->monitor = pa_reserve_monitor_wrapper_get(u->core, rname);
     pa_xfree(rname);
 
@@ -1590,7 +1591,7 @@ static void thread_func(void *userdata) {
             pa_usec_t volume_sleep;
             pa_sink_volume_change_apply(u->sink, &volume_sleep);
             if (volume_sleep > 0)
-                rtpoll_sleep = MIN(volume_sleep, rtpoll_sleep);
+                rtpoll_sleep = PA_MIN(volume_sleep, rtpoll_sleep);
         }
 
         if (rtpoll_sleep > 0)
@@ -1954,7 +1955,6 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
                       SND_PCM_STREAM_PLAYBACK,
                       &period_frames, &buffer_frames, tsched_frames,
                       &b, &d, mapping)))
-
             goto fail;
 
     } else if ((dev_id = pa_modargs_get_value(ma, "device_id", NULL))) {
@@ -1969,7 +1969,6 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
                       SND_PCM_STREAM_PLAYBACK,
                       &period_frames, &buffer_frames, tsched_frames,
                       &b, &d, profile_set, &mapping)))
-
             goto fail;
 
     } else {

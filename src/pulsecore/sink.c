@@ -1728,8 +1728,10 @@ void pa_sink_set_volume(
 /* Called from the io thread if sync volume is used, otherwise from the main thread.
  * Only to be called by sink implementor */
 void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume) {
+
     pa_sink_assert_ref(s);
     pa_assert(!(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER));
+
     if (s->flags & PA_SINK_SYNC_VOLUME)
         pa_sink_assert_io_context(s);
     else
@@ -3295,25 +3297,27 @@ pa_idxset* pa_sink_get_formats(pa_sink *s) {
 /* Checks if the sink can accept this format */
 pa_bool_t pa_sink_check_format(pa_sink *s, pa_format_info *f)
 {
-    pa_idxset *sink_formats = NULL;
-    pa_format_info *f_sink;
-    uint32_t i;
+    pa_idxset *formats = NULL;
     pa_bool_t ret = FALSE;
 
     pa_assert(s);
     pa_assert(f);
 
-    sink_formats = pa_sink_get_formats(s);
+    formats = pa_sink_get_formats(s);
 
-    PA_IDXSET_FOREACH(f_sink, sink_formats, i) {
-        if (pa_format_info_is_compatible(f_sink, f)) {
-            ret = TRUE;
-            break;
+    if (formats) {
+        pa_format_info *finfo_device;
+        uint32_t i;
+
+        PA_IDXSET_FOREACH(finfo_device, formats, i) {
+            if (pa_format_info_is_compatible(finfo_device, f)) {
+                ret = TRUE;
+                break;
+            }
         }
-    }
 
-    if (sink_formats)
-        pa_idxset_free(sink_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+    }
 
     return ret;
 }

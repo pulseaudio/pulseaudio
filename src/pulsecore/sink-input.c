@@ -1616,7 +1616,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
              !pa_sample_spec_equal(&i->sample_spec, &dest->sample_spec) ||
              !pa_channel_map_equal(&i->channel_map, &dest->channel_map)) {
 
-        /* Okey, we need a new resampler for the new sink */
+        /* Okay, we need a new resampler for the new sink */
 
         if (!(new_resampler = pa_resampler_new(
                       i->core->mempool,
@@ -1664,6 +1664,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
                 &i->sink->silence);
         i->actual_resample_method = new_resampler ? pa_resampler_get_method(new_resampler) : PA_RESAMPLER_INVALID;
     }
+
     pa_sink_update_status(dest);
 
     update_volume_due_to_moving(i, dest);
@@ -1678,7 +1679,6 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
 
     /* Notify everyone */
     pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], i);
-
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 
     return 0;

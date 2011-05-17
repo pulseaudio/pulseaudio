@@ -110,7 +110,7 @@ struct pa_sink_input {
 
     pa_bool_t muted:1;
 
-    /* if TRUE then the source we are connected to and/or the volume
+    /* if TRUE then the sink we are connected to and/or the volume
      * set is worth remembering, i.e. was explicitly chosen by the
      * user and not automatically. module-stream-restore looks for
      * this.*/
