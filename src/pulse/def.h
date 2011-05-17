@@ -839,9 +839,31 @@ typedef enum pa_source_flags {
     /**< Volume can be translated to dB with pa_sw_volume_to_dB()
      * \since 0.9.11 */
 
-    PA_SOURCE_DYNAMIC_LATENCY = 0x0040U
+    PA_SOURCE_DYNAMIC_LATENCY = 0x0040U,
     /**< The latency can be adjusted dynamically depending on the
      * needs of the connected streams. \since 0.9.15 */
+
+    PA_SOURCE_FLAT_VOLUME = 0x0080U,
+    /**< This source is in flat volume mode, i.e. always the maximum of
+     * the volume of all connected outputs. \since 1.0 */
+
+    PA_SOURCE_PASSTHROUGH = 0x0100U,
+    /**< This sink has support for passthrough mode. The data will be left
+     * as is and not reformatted, resampled, mixed.
+     * \since 1.0 */
+
+    PA_SOURCE_SYNC_VOLUME = 0x0200U,
+    /**< The HW volume changes are syncronized with SW volume.
+     * \since 1.0 */
+
+/** \cond fulldocs */
+    /* PRIVATE: Server-side values -- do not try to use these at client-side.
+     * The server will filter out these flags anyway, so you should never see
+     * these flags in sources. */
+
+    PA_SOURCE_SHARE_VOLUME_WITH_MASTER = 0x0400U,
+    /**< This source shares the volume with the master source (used by some filter
+     * sources). */
 } pa_source_flags_t;
 
 /** \cond fulldocs */
@@ -852,6 +874,11 @@ typedef enum pa_source_flags {
 #define PA_SOURCE_HW_MUTE_CTRL PA_SOURCE_HW_MUTE_CTRL
 #define PA_SOURCE_DECIBEL_VOLUME PA_SOURCE_DECIBEL_VOLUME
 #define PA_SOURCE_DYNAMIC_LATENCY PA_SOURCE_DYNAMIC_LATENCY
+#define PA_SOURCE_FLAT_VOLUME PA_SOURCE_FLAT_VOLUME
+#define PA_SOURCE_PASSTHROUGH PA_SOURCE_PASSTHROUGH
+#define PA_SOURCE_SYNC_VOLUME PA_SOURCE_SYNC_VOLUME
+#define PA_SOURCE_SHARE_VOLUME_WITH_MASTER PA_SOURCE_SHARE_VOLUME_WITH_MASTER
+
 /** \endcond */
 
 /** Source state. \since 0.9.15 */
