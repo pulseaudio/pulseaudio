@@ -338,10 +338,12 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_SET_SINK_VOLUME] = command_set_volume,
     [PA_COMMAND_SET_SINK_INPUT_VOLUME] = command_set_volume,
     [PA_COMMAND_SET_SOURCE_VOLUME] = command_set_volume,
+    [PA_COMMAND_SET_SOURCE_OUTPUT_VOLUME] = command_set_volume,
 
     [PA_COMMAND_SET_SINK_MUTE] = command_set_mute,
     [PA_COMMAND_SET_SINK_INPUT_MUTE] = command_set_mute,
     [PA_COMMAND_SET_SOURCE_MUTE] = command_set_mute,
+    [PA_COMMAND_SET_SOURCE_OUTPUT_MUTE] = command_set_mute,
 
     [PA_COMMAND_SUSPEND_SINK] = command_suspend,
     [PA_COMMAND_SUSPEND_SOURCE] = command_suspend,
@@ -631,10 +633,14 @@ static record_stream* record_stream_new(
         pa_channel_map *map,
         pa_idxset *formats,
         pa_buffer_attr *attr,
+        pa_cvolume *volume,
+        pa_bool_t muted,
+        pa_bool_t muted_set,
         pa_source_output_flags_t flags,
         pa_proplist *p,
         pa_bool_t adjust_latency,
         pa_bool_t early_requests,
+        pa_bool_t relative_volume,
         pa_bool_t peak_detect,
         pa_sink_input *direct_on_input,
         int *ret) {
@@ -663,6 +669,15 @@ static record_stream* record_stream_new(
     if (formats)
         pa_source_output_new_data_set_formats(&data, formats);
     data.direct_on_input = direct_on_input;
+    if (volume) {
+        pa_source_output_new_data_set_volume(&data, volume);
+        data.volume_is_absolute = !relative_volume;
+        data.save_volume = TRUE;
+    }
+    if (muted_set) {
+        pa_source_output_new_data_set_muted(&data, muted);
+        data.save_muted = TRUE;
+    }
     if (peak_detect)
         data.resample_method = PA_RESAMPLER_PEAKS;
     data.flags = flags;
@@ -2215,6 +2230,7 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
     pa_channel_map map;
     pa_tagstruct *reply;
     pa_source *source = NULL;
+    pa_cvolume volume;
     pa_bool_t
         corked = FALSE,
         no_remap = FALSE,
@@ -2224,11 +2240,15 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
         fix_channels = FALSE,
         no_move = FALSE,
         variable_rate = FALSE,
+        muted = FALSE,
         adjust_latency = FALSE,
         peak_detect = FALSE,
         early_requests = FALSE,
         dont_inhibit_auto_suspend = FALSE,
+        volume_set = TRUE,
+        muted_set = FALSE,
         fail_on_suspend = FALSE,
+        relative_volume = FALSE,
         passthrough = FALSE;
 
     pa_source_output_flags_t flags = 0;
@@ -2333,10 +2353,24 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
             }
             pa_idxset_put(formats, format, NULL);
         }
+
+        if (pa_tagstruct_get_cvolume(t, &volume) < 0 ||
+            pa_tagstruct_get_boolean(t, &muted) < 0 ||
+            pa_tagstruct_get_boolean(t, &volume_set) < 0 ||
+            pa_tagstruct_get_boolean(t, &muted_set) < 0 ||
+            pa_tagstruct_get_boolean(t, &relative_volume) < 0 ||
+            pa_tagstruct_get_boolean(t, &passthrough) < 0) {
+
+            protocol_error(c);
+            goto finish;
+        }
+
+        CHECK_VALIDITY_GOTO(c->pstream, pa_cvolume_valid(&volume), tag, PA_ERR_INVALID, finish);
     }
 
     if (n_formats == 0) {
         CHECK_VALIDITY_GOTO(c->pstream, pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID, finish);
+        CHECK_VALIDITY_GOTO(c->pstream, map.channels == ss.channels && volume.channels == ss.channels, tag, PA_ERR_INVALID, finish);
         CHECK_VALIDITY_GOTO(c->pstream, pa_channel_map_valid(&map), tag, PA_ERR_INVALID, finish);
     } else {
         PA_IDXSET_FOREACH(format, formats, i) {
@@ -2386,7 +2420,7 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
         (fail_on_suspend ? PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND|PA_SOURCE_OUTPUT_KILL_ON_SUSPEND : 0) |
         (passthrough ? PA_SOURCE_OUTPUT_PASSTHROUGH : 0);
 
-    s = record_stream_new(c, source, &ss, &map, formats, &attr, flags, p, adjust_latency, early_requests, peak_detect, direct_on_input, &ret);
+    s = record_stream_new(c, source, &ss, &map, formats, &attr, volume_set ? &volume : NULL, muted, muted_set, flags, p, adjust_latency, early_requests, relative_volume, peak_detect, direct_on_input, &ret);
 
     CHECK_VALIDITY_GOTO(c->pstream, s, tag, ret, finish);
 
@@ -3249,11 +3283,19 @@ static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, 
 static void source_output_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_source_output *s) {
     pa_sample_spec fixed_ss;
     pa_usec_t source_latency;
+    pa_cvolume v;
+    pa_bool_t has_volume = FALSE;
 
     pa_assert(t);
     pa_source_output_assert_ref(s);
 
     fixup_sample_spec(c, &fixed_ss, &s->sample_spec);
+
+    has_volume = pa_source_output_is_volume_readable(s);
+    if (has_volume)
+        pa_source_output_get_volume(s, &v, TRUE);
+    else
+        pa_cvolume_reset(&v, fixed_ss.channels);
 
     pa_tagstruct_putu32(t, s->index);
     pa_tagstruct_puts(t, pa_strnull(pa_proplist_gets(s->proplist, PA_PROP_MEDIA_NAME)));
@@ -3270,6 +3312,12 @@ static void source_output_fill_tagstruct(pa_native_connection *c, pa_tagstruct *
         pa_tagstruct_put_proplist(t, s->proplist);
     if (c->version >= 19)
         pa_tagstruct_put_boolean(t, (pa_source_output_get_state(s) == PA_SOURCE_OUTPUT_CORKED));
+    if (c->version >= 22) {
+        pa_tagstruct_put_cvolume(t, &v);
+        pa_tagstruct_put_boolean(t, pa_source_output_get_mute(s));
+        pa_tagstruct_put_boolean(t, has_volume);
+        pa_tagstruct_put_boolean(t, s->volume_writable);
+    }
 }
 
 static void scache_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_scache_entry *e) {
@@ -3564,6 +3612,7 @@ static void command_set_volume(
     pa_sink *sink = NULL;
     pa_source *source = NULL;
     pa_sink_input *si = NULL;
+    pa_source_output *so = NULL;
     const char *name = NULL;
     const char *client_name;
 
@@ -3606,11 +3655,15 @@ static void command_set_volume(
             si = pa_idxset_get_by_index(c->protocol->core->sink_inputs, idx);
             break;
 
+        case PA_COMMAND_SET_SOURCE_OUTPUT_VOLUME:
+            so = pa_idxset_get_by_index(c->protocol->core->source_outputs, idx);
+            break;
+
         default:
             pa_assert_not_reached();
     }
 
-    CHECK_VALIDITY(c->pstream, si || sink || source, tag, PA_ERR_NOENTITY);
+    CHECK_VALIDITY(c->pstream, si || so || sink || source, tag, PA_ERR_NOENTITY);
 
     client_name = pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_PROCESS_BINARY));
 
@@ -3623,7 +3676,7 @@ static void command_set_volume(
         CHECK_VALIDITY(c->pstream, volume.channels == 1 || pa_cvolume_compatible(&volume, &source->sample_spec), tag, PA_ERR_INVALID);
 
         pa_log_debug("Client %s changes volume of source %s.", client_name, source->name);
-        pa_source_set_volume(source, &volume, TRUE);
+        pa_source_set_volume(source, &volume, TRUE, TRUE);
     } else if (si) {
         CHECK_VALIDITY(c->pstream, si->volume_writable, tag, PA_ERR_BADSTATE);
         CHECK_VALIDITY(c->pstream, volume.channels == 1 || pa_cvolume_compatible(&volume, &si->sample_spec), tag, PA_ERR_INVALID);
@@ -3632,6 +3685,13 @@ static void command_set_volume(
                      client_name,
                      pa_strnull(pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)));
         pa_sink_input_set_volume(si, &volume, TRUE, TRUE);
+    } else if (so) {
+        CHECK_VALIDITY(c->pstream, volume.channels == 1 || pa_cvolume_compatible(&volume, &so->sample_spec), tag, PA_ERR_INVALID);
+
+        pa_log_debug("Client %s changes volume of source output %s.",
+                     client_name,
+                     pa_strnull(pa_proplist_gets(so->proplist, PA_PROP_MEDIA_NAME)));
+        pa_source_output_set_volume(so, &volume, TRUE, TRUE);
     }
 
     pa_pstream_send_simple_ack(c->pstream, tag);
@@ -3650,6 +3710,7 @@ static void command_set_mute(
     pa_sink *sink = NULL;
     pa_source *source = NULL;
     pa_sink_input *si = NULL;
+    pa_source_output *so = NULL;
     const char *name = NULL, *client_name;
 
     pa_native_connection_assert_ref(c);
@@ -3692,11 +3753,15 @@ static void command_set_mute(
             si = pa_idxset_get_by_index(c->protocol->core->sink_inputs, idx);
             break;
 
+        case PA_COMMAND_SET_SOURCE_OUTPUT_MUTE:
+            so = pa_idxset_get_by_index(c->protocol->core->source_outputs, idx);
+            break;
+
         default:
             pa_assert_not_reached();
     }
 
-    CHECK_VALIDITY(c->pstream, si || sink || source, tag, PA_ERR_NOENTITY);
+    CHECK_VALIDITY(c->pstream, si || so || sink || source, tag, PA_ERR_NOENTITY);
 
     client_name = pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_PROCESS_BINARY));
 
@@ -3711,6 +3776,11 @@ static void command_set_mute(
                      client_name,
                      pa_strnull(pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)));
         pa_sink_input_set_mute(si, mute, TRUE);
+    } else if (so) {
+        pa_log_debug("Client %s changes mute of source output %s.",
+                     client_name,
+                     pa_strnull(pa_proplist_gets(so->proplist, PA_PROP_MEDIA_NAME)));
+        pa_source_output_set_mute(so, mute, TRUE);
     }
 
     pa_pstream_send_simple_ack(c->pstream, tag);

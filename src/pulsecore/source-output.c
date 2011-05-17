@@ -45,6 +45,7 @@
 PA_DEFINE_PUBLIC_CLASS(pa_source_output, pa_msgobject);
 
 static void source_output_free(pa_object* mo);
+static void set_real_ratio(pa_source_output *o, const pa_cvolume *v);
 
 pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data) {
     pa_assert(data);
@@ -52,6 +53,7 @@ pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_d
     pa_zero(*data);
     data->resample_method = PA_RESAMPLER_INVALID;
     data->proplist = pa_proplist_new();
+    data->volume_writable = TRUE;
 
     return data;
 }
@@ -80,6 +82,45 @@ pa_bool_t pa_source_output_new_data_is_passthrough(pa_source_output_new_data *da
         return TRUE;
 
     return FALSE;
+}
+
+void pa_source_output_new_data_set_volume(pa_source_output_new_data *data, const pa_cvolume *volume) {
+    pa_assert(data);
+    pa_assert(data->volume_writable);
+
+    if ((data->volume_is_set = !!volume))
+        data->volume = *volume;
+}
+
+void pa_source_output_new_data_apply_volume_factor(pa_source_output_new_data *data, const pa_cvolume *volume_factor) {
+    pa_assert(data);
+    pa_assert(volume_factor);
+
+    if (data->volume_factor_is_set)
+        pa_sw_cvolume_multiply(&data->volume_factor, &data->volume_factor, volume_factor);
+    else {
+        data->volume_factor_is_set = TRUE;
+        data->volume_factor = *volume_factor;
+    }
+}
+
+void pa_source_output_new_data_apply_volume_factor_source(pa_source_output_new_data *data, const pa_cvolume *volume_factor) {
+    pa_assert(data);
+    pa_assert(volume_factor);
+
+    if (data->volume_factor_source_is_set)
+        pa_sw_cvolume_multiply(&data->volume_factor_source, &data->volume_factor_source, volume_factor);
+    else {
+        data->volume_factor_source_is_set = TRUE;
+        data->volume_factor_source = *volume_factor;
+    }
+}
+
+void pa_source_output_new_data_set_muted(pa_source_output_new_data *data, pa_bool_t mute) {
+    pa_assert(data);
+
+    data->muted_is_set = TRUE;
+    data->muted = !!mute;
 }
 
 pa_bool_t pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_source *s, pa_bool_t save) {
@@ -167,6 +208,8 @@ static void reset_callbacks(pa_source_output *o) {
     o->state_change = NULL;
     o->may_move_to = NULL;
     o->send_event = NULL;
+    o->volume_changed = NULL;
+    o->mute_changed = NULL;
 }
 
 /* Called from main context */
@@ -191,6 +234,9 @@ int pa_source_output_new(
 
     if (data->client)
         pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->client->proplist);
+
+    if (data->destination_source && (data->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
+        data->volume_writable = FALSE;
 
     if (!data->req_formats) {
         /* From this point on, we want to work only with formats, and get back
@@ -250,6 +296,33 @@ int pa_source_output_new(
 
     pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
 
+    /* Don't restore (or save) stream volume for passthrough streams */
+    if (!pa_format_info_is_pcm(data->format)) {
+        data->volume_is_set = FALSE;
+        data->volume_factor_is_set = FALSE;
+    }
+
+    if (!data->volume_is_set) {
+        pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+        data->volume_is_absolute = FALSE;
+        data->save_volume = FALSE;
+    }
+
+    pa_return_val_if_fail(pa_cvolume_compatible(&data->volume, &data->sample_spec), -PA_ERR_INVALID);
+
+    if (!data->volume_factor_is_set)
+        pa_cvolume_reset(&data->volume_factor, data->sample_spec.channels);
+
+    pa_return_val_if_fail(pa_cvolume_compatible(&data->volume_factor, &data->sample_spec), -PA_ERR_INVALID);
+
+    if (!data->volume_factor_source_is_set)
+        pa_cvolume_reset(&data->volume_factor_source, data->source->sample_spec.channels);
+
+    pa_return_val_if_fail(pa_cvolume_compatible(&data->volume_factor_source, &data->source->sample_spec), -PA_ERR_INVALID);
+
+    if (!data->muted_is_set)
+        data->muted = FALSE;
+
     if (data->flags & PA_SOURCE_OUTPUT_FIX_FORMAT)
         data->sample_spec.format = data->source->sample_spec.format;
 
@@ -265,6 +338,9 @@ int pa_source_output_new(
 
     pa_assert(pa_sample_spec_valid(&data->sample_spec));
     pa_assert(pa_channel_map_valid(&data->channel_map));
+
+    /* Due to the fixing of the sample spec the volume might not match anymore */
+    pa_cvolume_remap(&data->volume, &original_cm, &data->channel_map);
 
     if (data->resample_method == PA_RESAMPLER_INVALID)
         data->resample_method = core->resample_method;
@@ -324,6 +400,39 @@ int pa_source_output_new(
     o->channel_map = data->channel_map;
     o->format = pa_format_info_copy(data->format);
 
+    if (!data->volume_is_absolute && pa_source_flat_volume_enabled(o->source)) {
+        pa_cvolume remapped;
+
+        /* When the 'absolute' bool is not set then we'll treat the volume
+         * as relative to the source volume even in flat volume mode */
+        remapped = data->source->reference_volume;
+        pa_cvolume_remap(&remapped, &data->source->channel_map, &data->channel_map);
+        pa_sw_cvolume_multiply(&o->volume, &data->volume, &remapped);
+    } else
+        o->volume = data->volume;
+
+    o->volume_factor = data->volume_factor;
+    o->volume_factor_source = data->volume_factor_source;
+    o->real_ratio = o->reference_ratio = data->volume;
+    pa_cvolume_reset(&o->soft_volume, o->sample_spec.channels);
+    pa_cvolume_reset(&o->real_ratio, o->sample_spec.channels);
+    o->volume_writable = data->volume_writable;
+    o->save_volume = data->save_volume;
+    o->save_source = data->save_source;
+    o->save_muted = data->save_muted;
+
+    o->muted = data->muted;
+
+    if (data->sync_base) {
+        o->sync_next = data->sync_base->sync_next;
+        o->sync_prev = data->sync_base;
+
+        if (data->sync_base->sync_next)
+            data->sync_base->sync_next->sync_prev = o;
+        data->sync_base->sync_next = o;
+    } else
+        o->sync_next = o->sync_prev = NULL;
+
     o->direct_on_input = data->direct_on_input;
 
     reset_callbacks(o);
@@ -333,6 +442,8 @@ int pa_source_output_new(
     o->thread_info.attached = FALSE;
     o->thread_info.sample_spec = o->sample_spec;
     o->thread_info.resampler = resampler;
+    o->thread_info.soft_volume = o->soft_volume;
+    o->thread_info.muted = o->muted;
     o->thread_info.requested_source_latency = (pa_usec_t) -1;
     o->thread_info.direct_on_input = o->direct_on_input;
 
@@ -387,6 +498,7 @@ static void update_n_corked(pa_source_output *o, pa_source_output_state_t state)
 
 /* Called from main context */
 static void source_output_set_state(pa_source_output *o, pa_source_output_state_t state) {
+    pa_source_output *ssync;
     pa_assert(o);
     pa_assert_ctl_context();
 
@@ -398,8 +510,23 @@ static void source_output_set_state(pa_source_output *o, pa_source_output_state_
     update_n_corked(o, state);
     o->state = state;
 
+    for (ssync = o->sync_prev; ssync; ssync = ssync->sync_prev) {
+        update_n_corked(ssync, state);
+        ssync->state = state;
+    }
+    for (ssync = o->sync_next; ssync; ssync = ssync->sync_next) {
+        update_n_corked(ssync, state);
+        ssync->state = state;
+    }
+
     if (state != PA_SOURCE_OUTPUT_UNLINKED) {
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], o);
+
+        for (ssync = o->sync_prev; ssync; ssync = ssync->sync_prev)
+            pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], ssync);
+
+        for (ssync = o->sync_next; ssync; ssync = ssync->sync_next)
+            pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], ssync);
 
         if (PA_SOURCE_OUTPUT_IS_LINKED(state))
             pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
@@ -424,6 +551,13 @@ void pa_source_output_unlink(pa_source_output*o) {
     if (linked)
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], o);
 
+    if (o->sync_prev)
+        o->sync_prev->sync_next = o->sync_next;
+    if (o->sync_next)
+        o->sync_next->sync_prev = o->sync_prev;
+
+    o->sync_prev = o->sync_next = NULL;
+
     if (o->direct_on_input)
         pa_idxset_remove_by_data(o->direct_on_input->direct_outputs, o, NULL);
 
@@ -439,9 +573,14 @@ void pa_source_output_unlink(pa_source_output*o) {
     update_n_corked(o, PA_SOURCE_OUTPUT_UNLINKED);
     o->state = PA_SOURCE_OUTPUT_UNLINKED;
 
-    if (linked && o->source)
+    if (linked && o->source) {
+        /* We might need to update the source's volume if we are in flat volume mode. */
+        if (pa_source_flat_volume_enabled(o->source))
+            pa_source_set_volume(o->source, NULL, FALSE, FALSE);
+
         if (o->source->asyncmsgq)
             pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL) == 0);
+    }
 
     reset_callbacks(o);
 
@@ -507,6 +646,21 @@ void pa_source_output_put(pa_source_output *o) {
     update_n_corked(o, state);
     o->state = state;
 
+    /* We might need to update the source's volume if we are in flat volume mode. */
+    if (pa_source_flat_volume_enabled(o->source))
+        pa_source_set_volume(o->source, NULL, FALSE, o->save_volume);
+    else {
+        if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)) {
+            pa_assert(pa_cvolume_is_norm(&o->volume));
+            pa_assert(pa_cvolume_is_norm(&o->reference_ratio));
+        }
+
+        set_real_ratio(o, &o->volume);
+    }
+
+    o->thread_info.soft_volume = o->soft_volume;
+    o->thread_info.muted = o->muted;
+
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL) == 0);
 
     pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
@@ -545,6 +699,8 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *o, pa_usec_t *source_la
 
 /* Called from thread context */
 void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
+    pa_bool_t need_volume_factor_source;
+    pa_bool_t volume_is_norm;
     size_t length;
     size_t limit, mbs = 0;
 
@@ -565,6 +721,9 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     }
 
     limit = o->process_rewind ? 0 : o->source->thread_info.max_rewind;
+
+    volume_is_norm = pa_cvolume_is_norm(&o->thread_info.soft_volume) && !o->thread_info.muted;
+    need_volume_factor_source = !pa_cvolume_is_norm(&o->volume_factor_source);
 
     if (limit > 0 && o->source->monitor_of) {
         pa_usec_t latency;
@@ -588,6 +747,7 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     /* Implement the delay queue */
     while ((length = pa_memblockq_get_length(o->thread_info.delay_memblockq)) > limit) {
         pa_memchunk qchunk;
+        pa_bool_t nvfs = need_volume_factor_source;
 
         length -= limit;
 
@@ -598,9 +758,36 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
 
         pa_assert(qchunk.length > 0);
 
-        if (!o->thread_info.resampler)
+        /* It might be necessary to adjust the volume here */
+        if (!volume_is_norm) {
+            pa_memchunk_make_writable(&qchunk, 0);
+
+            if (o->thread_info.muted) {
+                pa_silence_memchunk(&qchunk, &o->thread_info.sample_spec);
+                nvfs = FALSE;
+
+            } else if (!o->thread_info.resampler && nvfs) {
+                pa_cvolume v;
+
+                /* If we don't need a resampler we can merge the
+                 * post and the pre volume adjustment into one */
+
+                pa_sw_cvolume_multiply(&v, &o->thread_info.soft_volume, &o->volume_factor_source);
+                pa_volume_memchunk(&qchunk, &o->thread_info.sample_spec, &v);
+                nvfs = FALSE;
+
+            } else
+                pa_volume_memchunk(&qchunk, &o->thread_info.sample_spec, &o->thread_info.soft_volume);
+        }
+
+        if (!o->thread_info.resampler) {
+            if (nvfs) {
+                pa_memchunk_make_writable(&qchunk, 0);
+                pa_volume_memchunk(&qchunk, &o->source->sample_spec, &o->volume_factor_source);
+            }
+
             o->push(o, &qchunk);
-        else {
+        } else {
             pa_memchunk rchunk;
 
             if (mbs == 0)
@@ -611,8 +798,14 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
 
             pa_resampler_run(o->thread_info.resampler, &qchunk, &rchunk);
 
-            if (rchunk.length > 0)
+            if (rchunk.length > 0) {
+                if (nvfs) {
+                    pa_memchunk_make_writable(&rchunk, 0);
+                    pa_volume_memchunk(&rchunk, &o->source->sample_spec, &o->volume_factor_source);
+                }
+
                 o->push(o, &rchunk);
+            }
 
             if (rchunk.memblock)
                 pa_memblock_unref(rchunk.memblock);
@@ -786,6 +979,85 @@ void pa_source_output_set_name(pa_source_output *o, const char *name) {
     }
 }
 
+/* Called from main context */
+void pa_source_output_set_volume(pa_source_output *o, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute) {
+    pa_cvolume v;
+
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+    pa_assert(volume);
+    pa_assert(pa_cvolume_valid(volume));
+    pa_assert(volume->channels == 1 || pa_cvolume_compatible(volume, &o->sample_spec));
+    pa_assert(o->volume_writable);
+
+    if (!absolute && pa_source_flat_volume_enabled(o->source)) {
+        v = o->source->reference_volume;
+        pa_cvolume_remap(&v, &o->source->channel_map, &o->channel_map);
+
+        if (pa_cvolume_compatible(volume, &o->sample_spec))
+            volume = pa_sw_cvolume_multiply(&v, &v, volume);
+        else
+            volume = pa_sw_cvolume_multiply_scalar(&v, &v, pa_cvolume_max(volume));
+    } else {
+        if (!pa_cvolume_compatible(volume, &o->sample_spec)) {
+            v = o->volume;
+            volume = pa_cvolume_scale(&v, pa_cvolume_max(volume));
+        }
+    }
+
+    if (pa_cvolume_equal(volume, &o->volume)) {
+        o->save_volume = o->save_volume || save;
+        return;
+    }
+
+    o->volume = *volume;
+    o->save_volume = save;
+
+    if (pa_source_flat_volume_enabled(o->source)) {
+        /* We are in flat volume mode, so let's update all source input
+         * volumes and update the flat volume of the source */
+
+        pa_source_set_volume(o->source, NULL, TRUE, save);
+
+    } else {
+        /* OK, we are in normal volume mode. The volume only affects
+         * ourselves */
+        set_real_ratio(o, volume);
+
+        /* Copy the new soft_volume to the thread_info struct */
+        pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_SOFT_VOLUME, NULL, 0, NULL) == 0);
+    }
+
+    /* The volume changed, let's tell people so */
+    if (o->volume_changed)
+        o->volume_changed(o);
+
+    /* The virtual volume changed, let's tell people so */
+    pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+}
+
+/* Called from main context */
+static void set_real_ratio(pa_source_output *o, const pa_cvolume *v) {
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+    pa_assert(!v || pa_cvolume_compatible(v, &o->sample_spec));
+
+    /* This basically calculates:
+     *
+     * o->real_ratio := v
+     * o->soft_volume := o->real_ratio * o->volume_factor */
+
+    if (v)
+        o->real_ratio = *v;
+    else
+        pa_cvolume_reset(&o->real_ratio, o->sample_spec.channels);
+
+    pa_sw_cvolume_multiply(&o->soft_volume, &o->real_ratio, &o->volume_factor);
+    /* We don't copy the data to the thread_info data. That's left for someone else to do */
+}
+
 /* Called from main or I/O context */
 pa_bool_t pa_source_output_is_passthrough(pa_source_output *o) {
     pa_source_output_assert_ref(o);
@@ -797,6 +1069,61 @@ pa_bool_t pa_source_output_is_passthrough(pa_source_output *o) {
         return TRUE;
 
     return FALSE;
+}
+
+/* Called from main context */
+pa_bool_t pa_source_output_is_volume_readable(pa_source_output *o) {
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+
+    return !pa_source_output_is_passthrough(o);
+}
+
+/* Called from main context */
+pa_cvolume *pa_source_output_get_volume(pa_source_output *o, pa_cvolume *volume, pa_bool_t absolute) {
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+    pa_assert(pa_source_output_is_volume_readable(o));
+
+    if (absolute || !pa_source_flat_volume_enabled(o->source))
+        *volume = o->volume;
+    else
+        *volume = o->reference_ratio;
+
+    return volume;
+}
+
+/* Called from main context */
+void pa_source_output_set_mute(pa_source_output *o, pa_bool_t mute, pa_bool_t save) {
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+
+    if (!o->muted == !mute) {
+        o->save_muted = o->save_muted || mute;
+        return;
+    }
+
+    o->muted = mute;
+    o->save_muted = save;
+
+    pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_SOFT_MUTE, NULL, 0, NULL) == 0);
+
+    /* The mute status changed, let's tell people so */
+    if (o->mute_changed)
+        o->mute_changed(o);
+
+    pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+}
+
+/* Called from main context */
+pa_bool_t pa_source_output_get_mute(pa_source_output *o) {
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+
+    return o->muted;
 }
 
 /* Called from main thread */
@@ -832,6 +1159,11 @@ pa_bool_t pa_source_output_may_move(pa_source_output *o) {
 
     if (o->direct_on_input)
         return FALSE;
+
+    if (o->sync_next || o->sync_prev) {
+        pa_log_warn("Moving synchronized streams not supported.");
+        return FALSE;
+    }
 
     return TRUE;
 }
@@ -883,6 +1215,11 @@ int pa_source_output_start_move(pa_source_output *o) {
     if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
         pa_assert_se(origin->n_corked-- >= 1);
 
+    if (pa_source_flat_volume_enabled(o->source))
+        /* We might need to update the source's volume if we are in flat
+         * volume mode. */
+        pa_source_set_volume(o->source, NULL, FALSE, FALSE);
+
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL) == 0);
 
     pa_source_update_status(o->source);
@@ -891,6 +1228,156 @@ int pa_source_output_start_move(pa_source_output *o) {
     pa_source_output_unref(o);
 
     return 0;
+}
+
+/* Called from main context. If it has an origin source that uses volume sharing,
+ * then also the origin source and all streams connected to it need to update
+ * their volume - this function does all that by using recursion. */
+static void update_volume_due_to_moving(pa_source_output *o, pa_source *dest) {
+    pa_cvolume old_volume;
+
+    pa_assert(o);
+    pa_assert(dest);
+    pa_assert(o->source); /* The destination source should already be set. */
+
+    if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)) {
+        pa_source *root_source = o->source;
+        pa_source_output *destination_source_output;
+        uint32_t idx;
+
+        while (root_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)
+            root_source = root_source->output_from_master->source;
+
+        if (pa_source_flat_volume_enabled(o->source)) {
+            /* Ok, so the origin source uses volume sharing, and flat volume is
+             * enabled. The volume will have to be updated as follows:
+             *
+             *     o->volume := o->source->real_volume
+             *         (handled later by pa_source_set_volume)
+             *     o->reference_ratio := o->volume / o->source->reference_volume
+             *         (handled later by pa_source_set_volume)
+             *     o->real_ratio stays unchanged
+             *         (streams whose origin source uses volume sharing should
+             *          always have real_ratio of 0 dB)
+             *     o->soft_volume stays unchanged
+             *         (streams whose origin source uses volume sharing should
+             *          always have volume_factor as soft_volume, so no change
+             *          should be needed) */
+
+            pa_assert(pa_cvolume_is_norm(&o->real_ratio));
+            pa_assert(pa_cvolume_equal(&o->soft_volume, &o->volume_factor));
+
+            /* Notifications will be sent by pa_source_set_volume(). */
+
+        } else {
+            /* Ok, so the origin source uses volume sharing, and flat volume is
+             * disabled. The volume will have to be updated as follows:
+             *
+             *     o->volume := 0 dB
+             *     o->reference_ratio := 0 dB
+             *     o->real_ratio stays unchanged
+             *         (streams whose origin source uses volume sharing should
+             *          always have real_ratio of 0 dB)
+             *     o->soft_volume stays unchanged
+             *         (streams whose origin source uses volume sharing should
+             *          always have volume_factor as soft_volume, so no change
+             *          should be needed) */
+
+            old_volume = o->volume;
+            pa_cvolume_reset(&o->volume, o->volume.channels);
+            pa_cvolume_reset(&o->reference_ratio, o->reference_ratio.channels);
+            pa_assert(pa_cvolume_is_norm(&o->real_ratio));
+            pa_assert(pa_cvolume_equal(&o->soft_volume, &o->volume_factor));
+
+            /* Notify others about the changed source output volume. */
+            if (!pa_cvolume_equal(&o->volume, &old_volume)) {
+                if (o->volume_changed)
+                    o->volume_changed(o);
+
+                pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+            }
+        }
+
+        /* Additionally, the origin source volume needs updating:
+         *
+         *     o->destination_source->reference_volume := root_source->reference_volume
+         *     o->destination_source->real_volume := root_source->real_volume
+         *     o->destination_source->soft_volume stays unchanged
+         *         (sources that use volume sharing should always have
+         *          soft_volume of 0 dB) */
+
+        old_volume = o->destination_source->reference_volume;
+
+        o->destination_source->reference_volume = root_source->reference_volume;
+        pa_cvolume_remap(&o->destination_source->reference_volume, &root_source->channel_map, &o->destination_source->channel_map);
+
+        o->destination_source->real_volume = root_source->real_volume;
+        pa_cvolume_remap(&o->destination_source->real_volume, &root_source->channel_map, &o->destination_source->channel_map);
+
+        pa_assert(pa_cvolume_is_norm(&o->destination_source->soft_volume));
+
+        /* Notify others about the changed source volume. If you wonder whether
+         * o->destination_source->set_volume() should be called somewhere, that's not
+         * the case, because sources that use volume sharing shouldn't have any
+         * internal volume that set_volume() would update. If you wonder
+         * whether the thread_info variables should be synced, yes, they
+         * should, and it's done by the PA_SOURCE_MESSAGE_FINISH_MOVE message
+         * handler. */
+        if (!pa_cvolume_equal(&o->destination_source->reference_volume, &old_volume))
+            pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, o->destination_source->index);
+
+        /* Recursively update origin source outputs. */
+        PA_IDXSET_FOREACH(destination_source_output, o->destination_source->outputs, idx)
+            update_volume_due_to_moving(destination_source_output, dest);
+
+    } else {
+        old_volume = o->volume;
+
+        if (pa_source_flat_volume_enabled(o->source)) {
+            /* Ok, so this is a regular stream, and flat volume is enabled. The
+             * volume will have to be updated as follows:
+             *
+             *     o->volume := o->reference_ratio * o->source->reference_volume
+             *     o->reference_ratio stays unchanged
+             *     o->real_ratio := o->volume / o->source->real_volume
+             *         (handled later by pa_source_set_volume)
+             *     o->soft_volume := o->real_ratio * o->volume_factor
+             *         (handled later by pa_source_set_volume) */
+
+            o->volume = o->source->reference_volume;
+            pa_cvolume_remap(&o->volume, &o->source->channel_map, &o->channel_map);
+            pa_sw_cvolume_multiply(&o->volume, &o->volume, &o->reference_ratio);
+
+        } else {
+            /* Ok, so this is a regular stream, and flat volume is disabled.
+             * The volume will have to be updated as follows:
+             *
+             *     o->volume := o->reference_ratio
+             *     o->reference_ratio stays unchanged
+             *     o->real_ratio := o->reference_ratio
+             *     o->soft_volume := o->real_ratio * o->volume_factor */
+
+            o->volume = o->reference_ratio;
+            o->real_ratio = o->reference_ratio;
+            pa_sw_cvolume_multiply(&o->soft_volume, &o->real_ratio, &o->volume_factor);
+        }
+
+        /* Notify others about the changed source output volume. */
+        if (!pa_cvolume_equal(&o->volume, &old_volume)) {
+            /* XXX: In case o->source has flat volume enabled, then real_ratio
+             * and soft_volume are not updated yet. Let's hope that the
+             * callback implementation doesn't care about those variables... */
+            if (o->volume_changed)
+                o->volume_changed(o);
+
+            pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+        }
+    }
+
+    /* If o->source == dest, then recursion has finished, and we can finally call
+     * pa_source_set_volume(), which will do the rest of the updates. */
+    if ((o->source == dest) && pa_source_flat_volume_enabled(o->source))
+        pa_source_set_volume(o->source, NULL, FALSE, o->save_volume);
 }
 
 /* Called from main context */
@@ -951,11 +1438,14 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
     o->save_source = save;
     pa_idxset_put(o->source->outputs, pa_source_output_ref(o), NULL);
 
+    pa_cvolume_remap(&o->volume_factor_source, &o->channel_map, &o->source->channel_map);
+
     if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
         o->source->n_corked++;
 
     /* Replace resampler */
     if (new_resampler != o->thread_info.resampler) {
+
         if (o->thread_info.resampler)
             pa_resampler_free(o->thread_info.resampler);
         o->thread_info.resampler = new_resampler;
@@ -975,6 +1465,8 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
     }
 
     pa_source_update_status(dest);
+
+    update_volume_due_to_moving(o, dest);
 
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL) == 0);
 
@@ -1075,10 +1567,19 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
             pa_resampler_set_output_rate(o->thread_info.resampler, PA_PTR_TO_UINT(userdata));
             return 0;
 
-        case PA_SOURCE_OUTPUT_MESSAGE_SET_STATE:
+        case PA_SOURCE_OUTPUT_MESSAGE_SET_STATE: {
+            pa_source_output *ssync;
 
             pa_source_output_set_state_within_thread(o, PA_PTR_TO_UINT(userdata));
+
+            for (ssync = o->thread_info.sync_prev; ssync; ssync = ssync->thread_info.sync_prev)
+                pa_source_output_set_state_within_thread(ssync, PA_PTR_TO_UINT(userdata));
+
+            for (ssync = o->thread_info.sync_next; ssync; ssync = ssync->thread_info.sync_next)
+                pa_source_output_set_state_within_thread(ssync, PA_PTR_TO_UINT(userdata));
+
             return 0;
+        }
 
         case PA_SOURCE_OUTPUT_MESSAGE_SET_REQUESTED_LATENCY: {
             pa_usec_t *usec = userdata;
@@ -1094,6 +1595,18 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
             *r = o->thread_info.requested_source_latency;
             return 0;
         }
+
+        case PA_SOURCE_OUTPUT_MESSAGE_SET_SOFT_VOLUME:
+            if (!pa_cvolume_equal(&o->thread_info.soft_volume, &o->soft_volume)) {
+                o->thread_info.soft_volume = o->soft_volume;
+            }
+            return 0;
+
+        case PA_SOURCE_OUTPUT_MESSAGE_SET_SOFT_MUTE:
+            if (o->thread_info.muted != o->muted) {
+                o->thread_info.muted = o->muted;
+            }
+            return 0;
     }
 
     return -PA_ERR_NOTIMPLEMENTED;

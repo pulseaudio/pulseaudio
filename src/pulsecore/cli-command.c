@@ -632,7 +632,7 @@ static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *
     }
 
     pa_cvolume_set(&cvolume, 1, volume);
-    pa_source_set_volume(source, &cvolume, TRUE);
+    pa_source_set_volume(source, &cvolume, TRUE, TRUE);
     return 0;
 }
 

@@ -1868,7 +1868,7 @@ static void source_set_volume_cb(pa_source *s) {
     pa_assert(u->source == s);
     pa_assert(u->profile == PROFILE_HSP);
 
-    gain = (pa_cvolume_max(&s->volume) * HSP_MAX_GAIN) / PA_VOLUME_NORM;
+    gain = (pa_cvolume_max(&s->real_volume) * HSP_MAX_GAIN) / PA_VOLUME_NORM;
 
     if (gain > HSP_MAX_GAIN)
         gain = HSP_MAX_GAIN;
@@ -1879,7 +1879,7 @@ static void source_set_volume_cb(pa_source *s) {
     if (volume < PA_VOLUME_NORM)
         volume++;
 
-    pa_cvolume_set(&s->volume, u->sample_spec.channels, volume);
+    pa_cvolume_set(&s->real_volume, u->sample_spec.channels, volume);
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->path, "org.bluez.Headset", "SetMicrophoneGain"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_UINT16, &gain, DBUS_TYPE_INVALID));

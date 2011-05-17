@@ -79,7 +79,10 @@ PA_MODULE_USAGE(
         "tsched_buffer_size=<buffer size when using timer based scheduling> "
         "tsched_buffer_watermark=<upper fill watermark> "
         "ignore_dB=<ignore dB information from the device?> "
-        "control=<name of mixer control>");
+        "control=<name of mixer control>"
+        "sync_volume=<syncronize sw and hw voluchanges in IO-thread?> "
+        "sync_volume_safety_margin=<usec adjustment depending on volume direction> "
+        "sync_volume_extra_delay=<usec adjustment to HW volume changes>");
 
 static const char* const valid_modargs[] = {
     "name",
@@ -100,6 +103,9 @@ static const char* const valid_modargs[] = {
     "tsched_buffer_watermark",
     "ignore_dB",
     "control",
+    "sync_volume",
+    "sync_volume_safety_margin",
+    "sync_volume_extra_delay",
     NULL
 };
 

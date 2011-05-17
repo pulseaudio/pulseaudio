@@ -1164,7 +1164,7 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
 
         while (!pa_tagstruct_eof(t)) {
             pa_source_output_info i;
-            pa_bool_t corked = FALSE;
+            pa_bool_t mute = FALSE, corked = FALSE, has_volume = FALSE, volume_writable = TRUE;
 
             pa_zero(i);
             i.proplist = pa_proplist_new();
@@ -1181,14 +1181,21 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
                 pa_tagstruct_gets(t, &i.resample_method) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0 ||
                 (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0) ||
-                (o->context->version >= 19 && pa_tagstruct_get_boolean(t, &corked) < 0)) {
+                (o->context->version >= 19 && pa_tagstruct_get_boolean(t, &corked) < 0) ||
+                (o->context->version >= 22 && (pa_tagstruct_get_cvolume(t, &i.volume) < 0 ||
+                                               pa_tagstruct_get_boolean(t, &mute) < 0 ||
+                                               pa_tagstruct_get_boolean(t, &has_volume) < 0 ||
+                                               pa_tagstruct_get_boolean(t, &volume_writable) < 0))) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);
                 goto finish;
             }
 
+            i.mute = (int) mute;
             i.corked = (int) corked;
+            i.has_volume = (int) has_volume;
+            i.volume_writable = (int) volume_writable;
 
             if (o->callback) {
                 pa_source_output_info_cb_t cb = (pa_source_output_info_cb_t) o->callback;
@@ -1480,6 +1487,56 @@ pa_operation* pa_context_set_source_mute_by_name(pa_context *c, const char *name
     t = pa_tagstruct_command(c, PA_COMMAND_SET_SOURCE_MUTE, &tag);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, name);
+    pa_tagstruct_put_boolean(t, mute);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    return o;
+}
+
+pa_operation* pa_context_set_source_output_volume(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+    pa_assert(volume);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 22, PA_ERR_NOTSUPPORTED);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, pa_cvolume_valid(volume), PA_ERR_INVALID);
+
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_SOURCE_OUTPUT_VOLUME, &tag);
+    pa_tagstruct_putu32(t, idx);
+    pa_tagstruct_put_cvolume(t, volume);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    return o;
+}
+
+pa_operation* pa_context_set_source_output_mute(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 22, PA_ERR_NOTSUPPORTED);
+
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_SOURCE_OUTPUT_MUTE, &tag);
+    pa_tagstruct_putu32(t, idx);
     pa_tagstruct_put_boolean(t, mute);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);

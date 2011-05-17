@@ -24,6 +24,7 @@
 ***/
 
 typedef struct pa_source pa_source;
+typedef struct pa_source_volume_change pa_source_volume_change;
 
 #include <inttypes.h>
 
@@ -80,12 +81,15 @@ struct pa_source {
     pa_volume_t base_volume; /* shall be constant */
     unsigned n_volume_steps; /* shall be constant */
 
-    pa_cvolume volume, soft_volume;
+    /* Also see http://pulseaudio.org/wiki/InternalVolumes */
+    pa_cvolume reference_volume; /* The volume exported and taken as reference base for relative source output volumes */
+    pa_cvolume real_volume;      /* The volume that the hardware is configured to  */
+    pa_cvolume soft_volume;      /* The internal software volume we apply to all PCM data while it passes through */
+
     pa_bool_t muted:1;
 
     pa_bool_t refresh_volume:1;
     pa_bool_t refresh_muted:1;
-
     pa_bool_t save_port:1;
     pa_bool_t save_volume:1;
     pa_bool_t save_muted:1;
@@ -114,6 +118,19 @@ struct pa_source {
      * context. If this is NULL a PA_SOURCE_MESSAGE_SET_VOLUME message
      * will be sent to the IO thread instead. */
     void (*set_volume)(pa_source *s);         /* ditto */
+
+    /* Source drivers that set PA_SOURCE_SYNC_VOLUME must provide this
+     * callback. This callback is not used with source that do not set
+     * PA_SOURCE_SYNC_VOLUME. This is called from the IO thread when a
+     * pending hardware volume change has to be written to the
+     * hardware. The requested volume is passed to the callback
+     * implementation in s->thread_info.current_hw_volume.
+     *
+     * The call is done inside pa_source_volume_change_apply(), which is
+     * not called automatically - it is the driver's responsibility to
+     * schedule that function to be called at the right times in the
+     * IO thread. */
+    void (*write_volume)(pa_source *s);       /* ditto */
 
     /* Called when the mute setting is queried. Called from main loop
      * context. If this is NULL a PA_SOURCE_MESSAGE_GET_MUTE message
@@ -160,6 +177,21 @@ struct pa_source {
         pa_usec_t max_latency; /* An upper limit for the latencies */
 
         pa_usec_t fixed_latency; /* for sources with PA_SOURCE_DYNAMIC_LATENCY this is 0 */
+
+        /* Delayed volume change events are queued here. The events
+         * are stored in expiration order. The one expiring next is in
+         * the head of the list. */
+        PA_LLIST_HEAD(pa_source_volume_change, volume_changes);
+        pa_source_volume_change *volume_changes_tail;
+        /* This value is updated in pa_source_volume_change_apply() and
+         * used only by sources with PA_SOURCE_SYNC_VOLUME. */
+        pa_cvolume current_hw_volume;
+
+        /* The amount of usec volume up events are delayed and volume
+         * down events are made earlier. */
+        uint32_t volume_change_safety_margin;
+        /* Usec delay added to all volume change events, may be negative. */
+        int32_t volume_change_extra_delay;
 } thread_info;
 
     void *userdata;
@@ -172,7 +204,10 @@ typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_ADD_OUTPUT,
     PA_SOURCE_MESSAGE_REMOVE_OUTPUT,
     PA_SOURCE_MESSAGE_GET_VOLUME,
+    PA_SOURCE_MESSAGE_SET_SHARED_VOLUME,
+    PA_SOURCE_MESSAGE_SET_VOLUME_SYNCED,
     PA_SOURCE_MESSAGE_SET_VOLUME,
+    PA_SOURCE_MESSAGE_SYNC_VOLUMES,
     PA_SOURCE_MESSAGE_GET_MUTE,
     PA_SOURCE_MESSAGE_SET_MUTE,
     PA_SOURCE_MESSAGE_GET_LATENCY,
@@ -186,6 +221,8 @@ typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_GET_FIXED_LATENCY,
     PA_SOURCE_MESSAGE_GET_MAX_REWIND,
     PA_SOURCE_MESSAGE_SET_MAX_REWIND,
+    PA_SOURCE_MESSAGE_SET_PORT,
+    PA_SOURCE_MESSAGE_UPDATE_VOLUME_AND_MUTE,
     PA_SOURCE_MESSAGE_MAX
 } pa_source_message_t;
 
@@ -269,11 +306,14 @@ int pa_source_update_status(pa_source*s);
 int pa_source_suspend(pa_source *s, pa_bool_t suspend, pa_suspend_cause_t cause);
 int pa_source_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause);
 
+/* Use this instead of checking s->flags & PA_SOURCE_FLAT_VOLUME directly. */
+pa_bool_t pa_source_flat_volume_enabled(pa_source *s);
+
 /* Is the source in passthrough mode? (that is, is this a monitor source for a sink
  * that has a passthrough sink input connected to it. */
 pa_bool_t pa_source_is_passthrough(pa_source *s);
 
-void pa_source_set_volume(pa_source *source, const pa_cvolume *volume, pa_bool_t save);
+void pa_source_set_volume(pa_source *source, const pa_cvolume *volume, pa_bool_t sendmsg, pa_bool_t save);
 const pa_cvolume *pa_source_get_volume(pa_source *source, pa_bool_t force_refresh);
 
 void pa_source_set_mute(pa_source *source, pa_bool_t mute, pa_bool_t save);
@@ -314,6 +354,10 @@ void pa_source_set_max_rewind_within_thread(pa_source *s, size_t max_rewind);
 
 void pa_source_set_latency_range_within_thread(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency);
 void pa_source_set_fixed_latency_within_thread(pa_source *s, pa_usec_t latency);
+
+void pa_source_update_volume_and_mute(pa_source *s);
+
+pa_bool_t pa_source_volume_change_apply(pa_source *s, pa_usec_t *usec_to_next);
 
 /*** To be called exclusively by source output drivers, from IO context */
 

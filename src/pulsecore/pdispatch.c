@@ -184,7 +184,12 @@ static const char *command_names[PA_COMMAND_MAX] = {
 
     /* Supported since protocol v16 (0.9.16) */
     [PA_COMMAND_SET_SINK_PORT] = "SET_SINK_PORT",
-    [PA_COMMAND_SET_SOURCE_PORT] = "SET_SOURCE_PORT"
+    [PA_COMMAND_SET_SOURCE_PORT] = "SET_SOURCE_PORT",
+
+    /* Supported since protocol v22 (1.0) */
+    [PA_COMMAND_SET_SOURCE_OUTPUT_VOLUME] = "SET_SOURCE_OUTPUT_VOLUME",
+    [PA_COMMAND_SET_SOURCE_OUTPUT_MUTE] = "SET_SOURCE_OUTPUT_MUTE",
+
 };
 
 #endif

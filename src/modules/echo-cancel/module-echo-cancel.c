@@ -526,8 +526,7 @@ static void source_set_volume_cb(pa_source *s) {
         !PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output)))
         return;
 
-    /* FIXME, no volume control in source_output, set volume at the master */
-    pa_source_set_volume(u->source_output->source, &s->volume, TRUE);
+    pa_source_output_set_volume(u->source_output, &s->real_volume, s->save_volume, TRUE);
 }
 
 /* Called from main context */
@@ -546,6 +545,7 @@ static void sink_set_volume_cb(pa_sink *s) {
 
 static void source_get_volume_cb(pa_source *s) {
     struct userdata *u;
+    pa_cvolume v;
 
     pa_source_assert_ref(s);
     pa_assert_se(u = s->userdata);
@@ -554,17 +554,15 @@ static void source_get_volume_cb(pa_source *s) {
         !PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output)))
         return;
 
-    /* FIXME, no volume control in source_output, get the info from the master */
-    pa_source_get_volume(u->source_output->source, TRUE);
+    pa_source_output_get_volume(u->source_output, &v, TRUE);
 
-    if (pa_cvolume_equal(&s->volume,&u->source_output->source->volume))
+    if (pa_cvolume_equal(&s->real_volume, &v))
         /* no change */
         return;
 
-    s->volume = u->source_output->source->volume;
+    s->real_volume = v;
     pa_source_set_soft_volume(s, NULL);
 }
-
 
 /* Called from main context */
 static void source_set_mute_cb(pa_source *s) {
@@ -577,8 +575,7 @@ static void source_set_mute_cb(pa_source *s) {
         !PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output)))
         return;
 
-    /* FIXME, no volume control in source_output, set mute at the master */
-    pa_source_set_mute(u->source_output->source, TRUE, TRUE);
+    pa_source_output_set_mute(u->source_output, s->muted, s->save_muted);
 }
 
 /* Called from main context */
@@ -606,8 +603,7 @@ static void source_get_mute_cb(pa_source *s) {
         !PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output)))
         return;
 
-    /* FIXME, no volume control in source_output, get the info from the master */
-    pa_source_get_mute(u->source_output->source, TRUE);
+    pa_source_output_get_mute(u->source_output);
 }
 
 /* must be called from the input thread context */

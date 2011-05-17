@@ -164,9 +164,8 @@
  *
  * If an application desires to modify the volume of just a single stream
  * (commonly one of its own streams), this can be done by setting the volume
- * of its associated sink input, using pa_context_set_sink_input_volume().
- *
- * There is no support for modifying the volume of source outputs.
+ * of its associated sink input or source output, using
+ * pa_context_set_sink_input_volume() or pa_context_set_source_output_volume()
  *
  * It is also possible to remove sink inputs and source outputs, terminating
  * the streams associated with them:
@@ -558,6 +557,10 @@ typedef struct pa_source_output_info {
     const char *driver;                  /**< Driver name */
     pa_proplist *proplist;               /**< Property list \since 0.9.11 */
     int corked;                          /**< Stream corked \since 1.0 */
+    pa_cvolume volume;                   /**< The volume of this source output \since 1.0 */
+    int mute;                            /**< Stream muted \since 1.0 */
+    int has_volume;                      /**< Stream has volume. If not set, then the meaning of this struct's volume member is unspecified. \since 1.0 */
+    int volume_writable;                 /**< The volume can be set. If not set, the volume can still change even though clients can't control the volume. \since 1.0 */
 } pa_source_output_info;
 
 /** Callback prototype for pa_context_get_source_output_info() and friends*/
@@ -574,6 +577,12 @@ pa_operation* pa_context_move_source_output_by_name(pa_context *c, uint32_t idx,
 
 /** Move the specified source output to a different source. \since 0.9.5 */
 pa_operation* pa_context_move_source_output_by_index(pa_context *c, uint32_t idx, uint32_t source_idx, pa_context_success_cb_t cb, void* userdata);
+
+/** Set the volume of a source output stream \since 1.0 */
+pa_operation* pa_context_set_source_output_volume(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the mute switch of a source output stream \since 1.0 */
+pa_operation* pa_context_set_source_output_mute(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
 
 /** Kill a source output. */
 pa_operation* pa_context_kill_source_output(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);

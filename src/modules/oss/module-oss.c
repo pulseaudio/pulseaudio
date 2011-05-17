@@ -848,11 +848,11 @@ static void source_get_volume(pa_source *s) {
     pa_assert(u->mixer_devmask & (SOUND_MASK_IGAIN|SOUND_MASK_RECLEV));
 
     if (u->mixer_devmask & SOUND_MASK_IGAIN)
-        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_IGAIN, &s->sample_spec, &s->volume) >= 0)
+        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_IGAIN, &s->sample_spec, &s->real_volume) >= 0)
             return;
 
     if (u->mixer_devmask & SOUND_MASK_RECLEV)
-        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_RECLEV, &s->sample_spec, &s->volume) >= 0)
+        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_RECLEV, &s->sample_spec, &s->real_volume) >= 0)
             return;
 
     pa_log_info("Device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
@@ -866,11 +866,11 @@ static void source_set_volume(pa_source *s) {
     pa_assert(u->mixer_devmask & (SOUND_MASK_IGAIN|SOUND_MASK_RECLEV));
 
     if (u->mixer_devmask & SOUND_MASK_IGAIN)
-        if (pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_IGAIN, &s->sample_spec, &s->volume) >= 0)
+        if (pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_IGAIN, &s->sample_spec, &s->real_volume) >= 0)
             return;
 
     if (u->mixer_devmask & SOUND_MASK_RECLEV)
-        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_WRITE_RECLEV, &s->sample_spec, &s->volume) >= 0)
+        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_WRITE_RECLEV, &s->sample_spec, &s->real_volume) >= 0)
             return;
 
     pa_log_info("Device doesn't support writing mixer settings: %s", pa_cstrerror(errno));

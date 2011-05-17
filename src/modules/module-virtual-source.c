@@ -61,6 +61,8 @@ PA_MODULE_USAGE(
           "rate=<sample rate> "
           "channels=<number of channels> "
           "channel_map=<channel map> "
+          "use_volume_sharing=<yes or no> "
+          "force_flat_volume=<yes or no> "
         ));
 
 #define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
@@ -96,6 +98,8 @@ static const char* const valid_modargs[] = {
     "rate",
     "channels",
     "channel_map",
+    "use_volume_sharing",
+    "force_flat_volume",
     NULL
 };
 
@@ -241,31 +245,8 @@ static void source_set_volume_cb(pa_source *s) {
         !PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output)))
         return;
 
-    /* FIXME, no volume control in source_output, set volume at the master */
-    pa_source_set_volume(u->source_output->source, &s->volume, TRUE);
+    pa_source_output_set_volume(u->source_output, &s->real_volume, s->save_volume, TRUE);
 }
-
-static void source_get_volume_cb(pa_source *s) {
-    struct userdata *u;
-
-    pa_source_assert_ref(s);
-    pa_assert_se(u = s->userdata);
-
-    if (!PA_SOURCE_IS_LINKED(pa_source_get_state(s)) ||
-        !PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output)))
-        return;
-
-    /* FIXME, no volume control in source_output, get the info from the master */
-    pa_source_get_volume(u->source_output->source, TRUE);
-
-    if (pa_cvolume_equal(&s->volume,&u->source_output->source->volume))
-        /* no change */
-        return;
-
-    s->volume = u->source_output->source->volume;
-    pa_source_set_soft_volume(s, NULL);
-}
-
 
 /* Called from main context */
 static void source_set_mute_cb(pa_source *s) {
@@ -278,23 +259,7 @@ static void source_set_mute_cb(pa_source *s) {
         !PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output)))
         return;
 
-    /* FIXME, no volume control in source_output, set mute at the master */
-    pa_source_set_mute(u->source_output->source, TRUE, TRUE);
-}
-
-/* Called from main context */
-static void source_get_mute_cb(pa_source *s) {
-    struct userdata *u;
-
-    pa_source_assert_ref(s);
-    pa_assert_se(u = s->userdata);
-
-    if (!PA_SOURCE_IS_LINKED(pa_source_get_state(s)) ||
-        !PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output)))
-        return;
-
-    /* FIXME, no volume control in source_output, get the info from the master */
-    pa_source_get_mute(u->source_output->source, TRUE);
+    pa_source_output_set_mute(u->source_output, s->muted, s->save_muted);
 }
 
 /* Called from input thread context */
@@ -538,6 +503,8 @@ int pa__init(pa_module*m) {
     pa_source *master=NULL;
     pa_source_output_new_data source_output_data;
     pa_source_new_data source_data;
+    pa_bool_t use_volume_sharing = FALSE;
+    pa_bool_t force_flat_volume = FALSE;
 
     /* optional for uplink_sink */
     pa_sink_new_data sink_data;
@@ -565,6 +532,20 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    if (pa_modargs_get_value_boolean(ma, "use_volume_sharing", &use_volume_sharing) < 0) {
+        pa_log("use_volume_sharing= expects a boolean argument");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_boolean(ma, "force_flat_volume", &force_flat_volume) < 0) {
+        pa_log("force_flat_volume= expects a boolean argument");
+        goto fail;
+    }
+
+    if (use_volume_sharing && force_flat_volume) {
+        pa_log("Flat volume can't be forced when using volume sharing.");
+        goto fail;
+    }
 
     u = pa_xnew0(struct userdata, 1);
     if (!u) {
@@ -605,9 +586,10 @@ int pa__init(pa_module*m) {
         pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Virtual Source %s on %s", source_data.name, z ? z : master->name);
     }
 
-    u->source = pa_source_new(m->core, &source_data,
-                          PA_SOURCE_HW_MUTE_CTRL|PA_SOURCE_HW_VOLUME_CTRL|PA_SOURCE_DECIBEL_VOLUME|
-                          (master->flags & (PA_SOURCE_LATENCY|PA_SOURCE_DYNAMIC_LATENCY)));
+    u->source = pa_source_new(m->core, &source_data, (master->flags & (PA_SOURCE_LATENCY|PA_SOURCE_DYNAMIC_LATENCY))
+                                                     | (use_volume_sharing ? PA_SOURCE_SHARE_VOLUME_WITH_MASTER : 0)
+                                                     | (force_flat_volume ? PA_SOURCE_FLAT_VOLUME : 0));
+
     pa_source_new_data_done(&source_data);
 
     if (!u->source) {
@@ -618,10 +600,8 @@ int pa__init(pa_module*m) {
     u->source->parent.process_msg = source_process_msg_cb;
     u->source->set_state = source_set_state_cb;
     u->source->update_requested_latency = source_update_requested_latency_cb;
-    u->source->set_volume = source_set_volume_cb;
+    u->source->set_volume = use_volume_sharing ? NULL : source_set_volume_cb;
     u->source->set_mute = source_set_mute_cb;
-    u->source->get_volume = source_get_volume_cb;
-    u->source->get_mute = source_get_mute_cb;
     u->source->userdata = u;
 
     pa_source_set_asyncmsgq(u->source, master->asyncmsgq);

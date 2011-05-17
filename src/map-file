@@ -103,6 +103,8 @@ pa_context_set_sink_port_by_index;
 pa_context_set_sink_port_by_name;
 pa_context_set_sink_volume_by_index;
 pa_context_set_sink_volume_by_name;
+pa_context_set_source_output_mute;
+pa_context_set_source_output_volume;
 pa_context_set_source_mute_by_index;
 pa_context_set_source_mute_by_name;
 pa_context_set_source_port_by_index;

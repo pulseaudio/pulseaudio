@@ -1149,7 +1149,8 @@ static int create_stream(
 
     pa_tagstruct *t;
     uint32_t tag;
-    pa_bool_t volume_set = FALSE;
+    pa_bool_t volume_set = !!volume;
+    pa_cvolume cv;
     uint32_t i;
 
     pa_assert(s);
@@ -1246,9 +1247,18 @@ static int create_stream(
             PA_TAG_BOOLEAN, s->corked,
             PA_TAG_INVALID);
 
-    if (s->direction == PA_STREAM_PLAYBACK) {
-        pa_cvolume cv;
+    if (!volume) {
+        if (pa_sample_spec_valid(&s->sample_spec))
+            volume = pa_cvolume_reset(&cv, s->sample_spec.channels);
+        else {
+            /* This is not really relevant, since no volume was set, and
+             * the real number of channels is embedded in the format_info
+             * structure */
+            volume = pa_cvolume_reset(&cv, PA_CHANNELS_MAX);
+        }
+    }
 
+    if (s->direction == PA_STREAM_PLAYBACK) {
         pa_tagstruct_put(
                 t,
                 PA_TAG_U32, s->buffer_attr.tlength,
@@ -1256,19 +1266,6 @@ static int create_stream(
                 PA_TAG_U32, s->buffer_attr.minreq,
                 PA_TAG_U32, s->syncid,
                 PA_TAG_INVALID);
-
-        volume_set = !!volume;
-
-        if (!volume) {
-            if (pa_sample_spec_valid(&s->sample_spec))
-                volume = pa_cvolume_reset(&cv, s->sample_spec.channels);
-            else {
-                /* This is not really relevant, since no volume was set, and
-                 * the real number of channels is embedded in the format_info
-                 * structure */
-                volume = pa_cvolume_reset(&cv, PA_CHANNELS_MAX);
-            }
-        }
 
         pa_tagstruct_put_cvolume(t, volume);
     } else
@@ -1333,6 +1330,15 @@ static int create_stream(
         pa_tagstruct_putu8(t, s->n_formats);
         for (i = 0; i < s->n_formats; i++)
             pa_tagstruct_put_format_info(t, s->req_formats[i]);
+    }
+
+    if (s->context->version >= 22 && s->direction == PA_STREAM_RECORD) {
+        pa_tagstruct_put_cvolume(t, volume);
+        pa_tagstruct_put_boolean(t, flags & PA_STREAM_START_MUTED);
+        pa_tagstruct_put_boolean(t, volume_set);
+        pa_tagstruct_put_boolean(t, flags & (PA_STREAM_START_MUTED|PA_STREAM_START_UNMUTED));
+        pa_tagstruct_put_boolean(t, flags & PA_STREAM_RELATIVE_VOLUME);
+        pa_tagstruct_put_boolean(t, flags & (PA_STREAM_PASSTHROUGH));
     }
 
     pa_pstream_send_tagstruct(s->context->pstream, t);

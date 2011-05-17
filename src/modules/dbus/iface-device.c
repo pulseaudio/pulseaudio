@@ -447,7 +447,7 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessag
     if (d->type == DEVICE_TYPE_SINK)
         pa_sink_set_volume(d->sink, &new_vol, TRUE, TRUE);
     else
-        pa_source_set_volume(d->source, &new_vol, TRUE);
+        pa_source_set_volume(d->source, &new_vol, TRUE, TRUE);
 
     pa_dbus_send_empty_reply(conn, msg);
 }

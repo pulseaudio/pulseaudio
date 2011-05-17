@@ -262,3 +262,11 @@ PA_COMMAND_GET_SOURCE_INFO_LIST)
     format_info format1
     ...
     format_info formatn
+
+Four new fields in reply from PA_COMMAND_GET_SOURCE_OUTPUT_INFO (and thus
+PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST)
+
+    volume
+    bool mute
+    bool has_volume
+    bool volume_writable

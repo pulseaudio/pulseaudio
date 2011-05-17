@@ -24,9 +24,9 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include <pulse/introspect.h>
 #include <pulse/utf8.h>
@@ -2616,6 +2616,7 @@ pa_usec_t pa_sink_get_requested_latency(pa_sink *s) {
         return 0;
 
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
+
     return usec;
 }
 
@@ -2873,8 +2874,8 @@ void pa_sink_set_fixed_latency_within_thread(pa_sink *s, pa_usec_t latency) {
 /* Called from main context */
 size_t pa_sink_get_max_rewind(pa_sink *s) {
     size_t r;
-    pa_sink_assert_ref(s);
     pa_assert_ctl_context();
+    pa_sink_assert_ref(s);
 
     if (!PA_SINK_IS_LINKED(s->state))
         return s->thread_info.max_rewind;
@@ -2902,6 +2903,7 @@ size_t pa_sink_get_max_request(pa_sink *s) {
 int pa_sink_set_port(pa_sink *s, const char *name, pa_bool_t save) {
     pa_device_port *port;
     int ret;
+
     pa_sink_assert_ref(s);
     pa_assert_ctl_context();
 
