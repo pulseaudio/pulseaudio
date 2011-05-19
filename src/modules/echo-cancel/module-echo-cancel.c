@@ -77,6 +77,9 @@ PA_MODULE_USAGE(
           "channel_map=<channel map> "
           "aec_method=<implementation to use> "
           "aec_args=<parameters for the AEC engine> "
+          "agc=<perform automagic gain control?> "
+          "denoise=<apply denoising?> "
+          "echo_suppress=<perform echo suppression? (only with the speex canceller)> "
           "save_aec=<save AEC data in /tmp> "
           "autoloaded=<set if this module is being loaded automatically> "
         ));
@@ -106,6 +109,9 @@ static const pa_echo_canceller ec_table[] = {
 };
 
 #define DEFAULT_ADJUST_TIME_USEC (1*PA_USEC_PER_SEC)
+#define DEFAULT_AGC_ENABLED FALSE
+#define DEFAULT_DENOISE_ENABLED FALSE
+#define DEFAULT_ECHO_SUPPRESS_ENABLED FALSE
 #define DEFAULT_SAVE_AEC 0
 #define DEFAULT_AUTOLOADED FALSE
 
@@ -212,6 +218,9 @@ static const char* const valid_modargs[] = {
     "channel_map",
     "aec_method",
     "aec_args",
+    "agc",
+    "denoise",
+    "echo_suppress",
     "save_aec",
     "autoloaded",
     NULL
@@ -710,14 +719,20 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
                 cchunk.memblock = pa_memblock_new(u->source->core->mempool, cchunk.length);
                 cdata = pa_memblock_acquire(cchunk.memblock);
 
-                /* perform echo cancelation */
-                u->ec->run(u->ec, rdata, pdata, cdata);
-
                 if (u->save_aec) {
                     if (u->captured_file)
                         fwrite(rdata, 1, u->blocksize, u->captured_file);
                     if (u->played_file)
                         fwrite(pdata, 1, u->blocksize, u->played_file);
+                }
+
+                if (u->ec->pp_state)
+                    speex_preprocess_run(u->ec->pp_state, (spx_int16_t *) rdata);
+
+                /* perform echo cancelation */
+                u->ec->run(u->ec, rdata, pdata, cdata);
+
+                if (u->save_aec) {
                     if (u->canceled_file)
                         fwrite(cdata, 1, u->blocksize, u->canceled_file);
                 }
@@ -1391,6 +1406,28 @@ int pa__init(pa_module*m) {
     else
         u->adjust_time = DEFAULT_ADJUST_TIME_USEC;
 
+    u->ec->agc = DEFAULT_AGC_ENABLED;
+    if (pa_modargs_get_value_boolean(ma, "agc", &u->ec->agc) < 0) {
+        pa_log("Failed to parse agc value");
+        goto fail;
+    }
+
+    u->ec->denoise = DEFAULT_DENOISE_ENABLED;
+    if (pa_modargs_get_value_boolean(ma, "denoise", &u->ec->denoise) < 0) {
+        pa_log("Failed to parse denoise value");
+        goto fail;
+    }
+
+    u->ec->echo_suppress = DEFAULT_ECHO_SUPPRESS_ENABLED;
+    if (pa_modargs_get_value_boolean(ma, "echo_suppress", &u->ec->echo_suppress) < 0) {
+        pa_log("Failed to parse echo_suppress value");
+        goto fail;
+    }
+    if (u->ec->echo_suppress && ec_method != PA_ECHO_CANCELLER_SPEEX) {
+        pa_log("Echo suppression is only useful with the speex canceller");
+        goto fail;
+    }
+
     u->save_aec = DEFAULT_SAVE_AEC;
     if (pa_modargs_get_value_u32(ma, "save_aec", &u->save_aec) < 0) {
         pa_log("Failed to parse save_aec value");
@@ -1410,6 +1447,21 @@ int pa__init(pa_module*m) {
             pa_log("Failed to init AEC engine");
             goto fail;
         }
+    }
+
+    if (u->ec->agc || u->ec->denoise || u->ec->echo_suppress) {
+        if (source_ss.channels != 1) {
+            pa_log("AGC, denoising and echo suppression only work with channels=1");
+            goto fail;
+        }
+
+        u->ec->pp_state = speex_preprocess_state_init(u->blocksize, source_ss.rate);
+
+        speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_AGC, &u->ec->agc);
+        speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_DENOISE, &u->ec->denoise);
+        speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_ECHO_SUPPRESS, &u->ec->echo_suppress);
+        if (u->ec->echo_suppress)
+            speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_ECHO_STATE, u->ec->params.priv.speex.state);
     }
 
     /* Create source */
@@ -1681,6 +1733,9 @@ void pa__done(pa_module*m) {
         pa_memblockq_free(u->source_memblockq);
     if (u->sink_memblockq)
         pa_memblockq_free(u->sink_memblockq);
+
+    if (u->ec->pp_state)
+        speex_preprocess_state_destroy(u->ec->pp_state);
 
     if (u->ec) {
         if (u->ec->done)

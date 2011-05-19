@@ -29,6 +29,7 @@
 #include <pulsecore/macro.h>
 
 #include <speex/speex_echo.h>
+#include <speex/speex_preprocess.h>
 #include "adrian.h"
 
 /* Common data structures */
@@ -63,6 +64,11 @@ struct pa_echo_canceller {
     void        (*done)                 (pa_echo_canceller *ec);
 
     pa_echo_canceller_params params;
+
+    pa_bool_t agc;
+    pa_bool_t denoise;
+    pa_bool_t echo_suppress;
+    SpeexPreprocessState *pp_state;
 };
 
 /* Speex canceller functions */
