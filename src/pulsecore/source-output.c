@@ -423,16 +423,6 @@ int pa_source_output_new(
 
     o->muted = data->muted;
 
-    if (data->sync_base) {
-        o->sync_next = data->sync_base->sync_next;
-        o->sync_prev = data->sync_base;
-
-        if (data->sync_base->sync_next)
-            data->sync_base->sync_next->sync_prev = o;
-        data->sync_base->sync_next = o;
-    } else
-        o->sync_next = o->sync_prev = NULL;
-
     o->direct_on_input = data->direct_on_input;
 
     reset_callbacks(o);
@@ -498,7 +488,7 @@ static void update_n_corked(pa_source_output *o, pa_source_output_state_t state)
 
 /* Called from main context */
 static void source_output_set_state(pa_source_output *o, pa_source_output_state_t state) {
-    pa_source_output *ssync;
+
     pa_assert(o);
     pa_assert_ctl_context();
 
@@ -510,23 +500,8 @@ static void source_output_set_state(pa_source_output *o, pa_source_output_state_
     update_n_corked(o, state);
     o->state = state;
 
-    for (ssync = o->sync_prev; ssync; ssync = ssync->sync_prev) {
-        update_n_corked(ssync, state);
-        ssync->state = state;
-    }
-    for (ssync = o->sync_next; ssync; ssync = ssync->sync_next) {
-        update_n_corked(ssync, state);
-        ssync->state = state;
-    }
-
     if (state != PA_SOURCE_OUTPUT_UNLINKED) {
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], o);
-
-        for (ssync = o->sync_prev; ssync; ssync = ssync->sync_prev)
-            pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], ssync);
-
-        for (ssync = o->sync_next; ssync; ssync = ssync->sync_next)
-            pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], ssync);
 
         if (PA_SOURCE_OUTPUT_IS_LINKED(state))
             pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
@@ -550,13 +525,6 @@ void pa_source_output_unlink(pa_source_output*o) {
 
     if (linked)
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], o);
-
-    if (o->sync_prev)
-        o->sync_prev->sync_next = o->sync_next;
-    if (o->sync_next)
-        o->sync_next->sync_prev = o->sync_prev;
-
-    o->sync_prev = o->sync_next = NULL;
 
     if (o->direct_on_input)
         pa_idxset_remove_by_data(o->direct_on_input->direct_outputs, o, NULL);
@@ -1160,11 +1128,6 @@ pa_bool_t pa_source_output_may_move(pa_source_output *o) {
     if (o->direct_on_input)
         return FALSE;
 
-    if (o->sync_next || o->sync_prev) {
-        pa_log_warn("Moving synchronized streams not supported.");
-        return FALSE;
-    }
-
     return TRUE;
 }
 
@@ -1567,19 +1530,11 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
             pa_resampler_set_output_rate(o->thread_info.resampler, PA_PTR_TO_UINT(userdata));
             return 0;
 
-        case PA_SOURCE_OUTPUT_MESSAGE_SET_STATE: {
-            pa_source_output *ssync;
+        case PA_SOURCE_OUTPUT_MESSAGE_SET_STATE:
 
             pa_source_output_set_state_within_thread(o, PA_PTR_TO_UINT(userdata));
 
-            for (ssync = o->thread_info.sync_prev; ssync; ssync = ssync->thread_info.sync_prev)
-                pa_source_output_set_state_within_thread(ssync, PA_PTR_TO_UINT(userdata));
-
-            for (ssync = o->thread_info.sync_next; ssync; ssync = ssync->thread_info.sync_next)
-                pa_source_output_set_state_within_thread(ssync, PA_PTR_TO_UINT(userdata));
-
             return 0;
-        }
 
         case PA_SOURCE_OUTPUT_MESSAGE_SET_REQUESTED_LATENCY: {
             pa_usec_t *usec = userdata;

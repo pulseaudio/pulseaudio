@@ -1665,22 +1665,6 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             pa_hashmap_put(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index), pa_source_output_ref(o));
 
-            /* Since the caller sleeps in pa_source_output_put(), we can
-             * safely access data outside of thread_info even though
-             * it is mutable */
-
-            if ((o->thread_info.sync_prev = o->sync_prev)) {
-                pa_assert(o->source == o->thread_info.sync_prev->source);
-                pa_assert(o->sync_prev->sync_next == o);
-                o->thread_info.sync_prev->thread_info.sync_next = o;
-            }
-
-            if ((o->thread_info.sync_next = o->sync_next)) {
-                pa_assert(o->source == o->thread_info.sync_next->source);
-                pa_assert(o->sync_next->sync_prev == o);
-                o->thread_info.sync_next->thread_info.sync_prev = o;
-            }
-
             if (o->direct_on_input) {
                 o->thread_info.direct_on_input = o->direct_on_input;
                 pa_hashmap_put(o->thread_info.direct_on_input->thread_info.direct_outputs, PA_UINT32_TO_PTR(o->index), o);
@@ -1719,23 +1703,6 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             pa_assert(o->thread_info.attached);
             o->thread_info.attached = FALSE;
-
-            /* Since the caller sleeps in pa_sink_input_unlink(),
-             * we can safely access data outside of thread_info even
-             * though it is mutable */
-
-            pa_assert(!o->sync_prev);
-            pa_assert(!o->sync_next);
-
-            if (o->thread_info.sync_prev) {
-                o->thread_info.sync_prev->thread_info.sync_next = o->thread_info.sync_prev->sync_next;
-                o->thread_info.sync_prev = NULL;
-            }
-
-            if (o->thread_info.sync_next) {
-                o->thread_info.sync_next->thread_info.sync_prev = o->thread_info.sync_next->sync_prev;
-                o->thread_info.sync_next = NULL;
-            }
 
             if (o->thread_info.direct_on_input) {
                 pa_hashmap_remove(o->thread_info.direct_on_input->thread_info.direct_outputs, PA_UINT32_TO_PTR(o->index));

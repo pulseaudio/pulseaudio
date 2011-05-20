@@ -87,8 +87,6 @@ struct pa_source_output {
     pa_channel_map channel_map;
     pa_format_info *format;
 
-    pa_source_output *sync_prev, *sync_next;
-
     /* Also see http://pulseaudio.org/wiki/InternalVolumes */
     pa_cvolume volume;             /* The volume clients are informed about */
     pa_cvolume reference_ratio;    /* The ratio of the stream's volume to the source's reference volume */
@@ -208,8 +206,6 @@ struct pa_source_output {
          * don't implement rewind() */
         pa_memblockq *delay_memblockq;
 
-        pa_source_output *sync_prev, *sync_next;
-
         /* The requested latency for the source */
         pa_usec_t requested_source_latency;
 
@@ -253,8 +249,6 @@ typedef struct pa_source_output_new_data {
     pa_source *destination_source;
 
     pa_resample_method_t resample_method;
-
-    pa_source_output *sync_base;
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
