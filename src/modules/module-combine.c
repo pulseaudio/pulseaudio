@@ -732,15 +732,18 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
     switch (code) {
 
-        case PA_SINK_MESSAGE_SET_STATE:
-            pa_atomic_store(&u->thread_info.running, PA_PTR_TO_UINT(data) == PA_SINK_RUNNING);
+        case PA_SINK_MESSAGE_SET_STATE: {
+            pa_bool_t running = (PA_PTR_TO_UINT(data) == PA_SINK_RUNNING);
 
-            if (PA_PTR_TO_UINT(data) == PA_SINK_SUSPENDED)
-                pa_smoother_pause(u->thread_info.smoother, pa_rtclock_now());
-            else
+            pa_atomic_store(&u->thread_info.running, running);
+
+            if (running)
                 pa_smoother_resume(u->thread_info.smoother, pa_rtclock_now(), TRUE);
+            else
+                pa_smoother_pause(u->thread_info.smoother, pa_rtclock_now());
 
             break;
+        }
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t x, y, c, *delay = data;
@@ -1160,7 +1163,7 @@ int pa__init(pa_module*m) {
             TRUE,
             10,
             pa_rtclock_now(),
-            FALSE);
+            TRUE);
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
     if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
