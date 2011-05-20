@@ -720,7 +720,6 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
                         fwrite(pdata, 1, u->blocksize, u->played_file);
                     if (u->canceled_file)
                         fwrite(cdata, 1, u->blocksize, u->canceled_file);
-                    pa_log_debug("AEC frame saved.");
                 }
 
                 pa_memblock_release(cchunk.memblock);
