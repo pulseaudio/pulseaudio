@@ -1159,7 +1159,7 @@ int pa__init(pa_module*m) {
             TRUE,
             TRUE,
             10,
-            0,
+            pa_rtclock_now(),
             FALSE);
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
