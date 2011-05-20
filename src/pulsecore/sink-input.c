@@ -262,7 +262,8 @@ int pa_sink_input_new(
          * to using the sample spec and channel map after all decisions w.r.t.
          * routing are complete. */
         pa_idxset *tmp = pa_idxset_new(NULL, NULL);
-        pa_format_info *f = pa_format_info_from_sample_spec(&data->sample_spec, &data->channel_map);
+        pa_format_info *f = pa_format_info_from_sample_spec(&data->sample_spec,
+                data->channel_map_is_set ? &data->channel_map : NULL);
         pa_idxset_put(tmp, f, NULL);
         pa_sink_input_new_data_set_formats(data, tmp);
     }

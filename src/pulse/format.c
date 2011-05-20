@@ -193,11 +193,9 @@ pa_bool_t pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, p
     if (map) {
         pa_channel_map_init(map);
 
-        if (!pa_format_info_get_prop_string(f, PA_PROP_FORMAT_CHANNEL_MAP, &m))
-            goto out;
-
-        if (m && pa_channel_map_parse(map, m) == NULL)
-            goto out;
+        if (pa_format_info_get_prop_string(f, PA_PROP_FORMAT_CHANNEL_MAP, &m))
+            if (pa_channel_map_parse(map, m) == NULL)
+                goto out;
     }
 
     ret = TRUE;
@@ -281,7 +279,10 @@ pa_bool_t pa_format_info_get_prop_string(pa_format_info *f, const char *key, cha
     pa_assert(key);
     pa_assert(v);
 
-    pa_return_val_if_fail(str = pa_proplist_gets(f->plist, key), FALSE);
+    str = pa_proplist_gets(f->plist, key), FALSE;
+    if (!str)
+        return FALSE;
+
     o = json_tokener_parse(str);
     pa_return_val_if_fail(!is_error(o), FALSE);
     if (json_object_get_type(o) != json_type_string) {
