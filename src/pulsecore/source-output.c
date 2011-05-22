@@ -896,58 +896,6 @@ pa_usec_t pa_source_output_get_requested_latency(pa_source_output *o) {
 }
 
 /* Called from main context */
-void pa_source_output_cork(pa_source_output *o, pa_bool_t b) {
-    pa_source_output_assert_ref(o);
-    pa_assert_ctl_context();
-    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
-
-    source_output_set_state(o, b ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING);
-}
-
-/* Called from main context */
-int pa_source_output_set_rate(pa_source_output *o, uint32_t rate) {
-    pa_source_output_assert_ref(o);
-    pa_assert_ctl_context();
-    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
-    pa_return_val_if_fail(o->thread_info.resampler, -PA_ERR_BADSTATE);
-
-    if (o->sample_spec.rate == rate)
-        return 0;
-
-    o->sample_spec.rate = rate;
-
-    pa_asyncmsgq_post(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_RATE, PA_UINT_TO_PTR(rate), 0, NULL, NULL);
-
-    pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
-    return 0;
-}
-
-/* Called from main context */
-void pa_source_output_set_name(pa_source_output *o, const char *name) {
-    const char *old;
-    pa_assert_ctl_context();
-    pa_source_output_assert_ref(o);
-
-    if (!name && !pa_proplist_contains(o->proplist, PA_PROP_MEDIA_NAME))
-        return;
-
-    old = pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME);
-
-    if (old && name && !strcmp(old, name))
-        return;
-
-    if (name)
-        pa_proplist_sets(o->proplist, PA_PROP_MEDIA_NAME, name);
-    else
-        pa_proplist_unset(o->proplist, PA_PROP_MEDIA_NAME);
-
-    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state)) {
-        pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
-        pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
-    }
-}
-
-/* Called from main context */
 void pa_source_output_set_volume(pa_source_output *o, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute) {
     pa_cvolume v;
 
@@ -1101,6 +1049,58 @@ void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode
 
     if (p)
         pa_proplist_update(o->proplist, mode, p);
+
+    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state)) {
+        pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
+        pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    }
+}
+
+/* Called from main context */
+void pa_source_output_cork(pa_source_output *o, pa_bool_t b) {
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+
+    source_output_set_state(o, b ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING);
+}
+
+/* Called from main context */
+int pa_source_output_set_rate(pa_source_output *o, uint32_t rate) {
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+    pa_return_val_if_fail(o->thread_info.resampler, -PA_ERR_BADSTATE);
+
+    if (o->sample_spec.rate == rate)
+        return 0;
+
+    o->sample_spec.rate = rate;
+
+    pa_asyncmsgq_post(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_RATE, PA_UINT_TO_PTR(rate), 0, NULL, NULL);
+
+    pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    return 0;
+}
+
+/* Called from main context */
+void pa_source_output_set_name(pa_source_output *o, const char *name) {
+    const char *old;
+    pa_assert_ctl_context();
+    pa_source_output_assert_ref(o);
+
+    if (!name && !pa_proplist_contains(o->proplist, PA_PROP_MEDIA_NAME))
+        return;
+
+    old = pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME);
+
+    if (old && name && !strcmp(old, name))
+        return;
+
+    if (name)
+        pa_proplist_sets(o->proplist, PA_PROP_MEDIA_NAME, name);
+    else
+        pa_proplist_unset(o->proplist, PA_PROP_MEDIA_NAME);
 
     if (PA_SOURCE_OUTPUT_IS_LINKED(o->state)) {
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
