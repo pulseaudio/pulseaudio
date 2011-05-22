@@ -448,7 +448,7 @@ AC_SEARCH_LIBS([pthread_setname_np], [pthread])
 
 # BSD
 AC_SEARCH_LIBS([connect], [socket])
-AC_SEARCH_LIBS([backtrace], [execinfo])
+AC_SEARCH_LIBS([backtrace], [execinfo ubacktrace])
 
 # Darwin/OS X
 if test "x$os_is_darwin" = "x1" ; then
