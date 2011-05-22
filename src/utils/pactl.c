@@ -108,6 +108,7 @@ static enum {
     SET_SINK_VOLUME,
     SET_SOURCE_VOLUME,
     SET_SINK_INPUT_VOLUME,
+    SET_SOURCE_OUTPUT_VOLUME,
     SET_SINK_MUTE,
     SET_SOURCE_MUTE,
     SET_SINK_INPUT_MUTE,
@@ -863,6 +864,25 @@ static void get_sink_input_volume_callback(pa_context *c, const pa_sink_input_in
     pa_operation_unref(pa_context_set_sink_input_volume(c, sink_input_idx, &cv, simple_callback, NULL));
 }
 
+static void get_source_output_volume_callback(pa_context *c, const pa_source_output_info *o, int is_last, void *userdata) {
+    pa_cvolume cv;
+
+    if (is_last < 0) {
+        pa_log(_("Failed to get source output information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(o);
+
+    cv = o->volume;
+    volume_relative_adjust(&cv);
+    pa_operation_unref(pa_context_set_source_output_volume(c, source_output_idx, &cv, simple_callback, NULL));
+}
+
 static void stream_state_callback(pa_stream *s, void *userdata) {
     pa_assert(s);
 
@@ -1126,6 +1146,16 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     }
                     break;
 
+                case SET_SOURCE_OUTPUT_VOLUME:
+                    if ((volume_flags & VOL_RELATIVE) == VOL_RELATIVE) {
+                        pa_operation_unref(pa_context_get_source_output_info(c, source_output_idx, get_source_output_volume_callback, NULL));
+                    } else {
+                        pa_cvolume v;
+                        pa_cvolume_set(&v, 1, volume);
+                        pa_operation_unref(pa_context_set_source_output_volume(c, source_output_idx, &v, simple_callback, NULL));
+                    }
+                    break;
+
                 case SUBSCRIBE:
                     pa_context_set_subscribe_callback(c, context_subscribe_callback, NULL);
 
@@ -1241,6 +1271,7 @@ static void help(const char *argv0) {
              "%s [options] set-sink-volume SINK VOLUME\n"
              "%s [options] set-source-volume SOURCE VOLUME\n"
              "%s [options] set-sink-input-volume SINKINPUT VOLUME\n"
+             "%s [options] set-source-output-volume SOURCEOUTPUT VOLUME\n"
              "%s [options] set-sink-mute SINK 1|0\n"
              "%s [options] set-source-mute SOURCE 1|0\n"
              "%s [options] set-sink-input-mute SINKINPUT 1|0\n"
@@ -1253,7 +1284,7 @@ static void help(const char *argv0) {
            argv0, argv0, argv0, argv0, argv0,
            argv0, argv0, argv0, argv0, argv0,
            argv0, argv0, argv0, argv0, argv0,
-           argv0, argv0, argv0);
+           argv0, argv0, argv0, argv0);
 }
 
 enum {
@@ -1555,6 +1586,22 @@ int main(int argc, char *argv[]) {
 
             if (pa_atou(argv[optind+1], &sink_input_idx) < 0) {
                 pa_log(_("Invalid sink input index"));
+                goto quit;
+            }
+
+            if (parse_volume(argv[optind+2], &volume, &volume_flags) < 0)
+                goto quit;
+
+        } else if (pa_streq(argv[optind], "set-source-output-volume")) {
+            action = SET_SOURCE_OUTPUT_VOLUME;
+
+            if (argc != optind+3) {
+                pa_log(_("You have to specify a source output index and a volume"));
+                goto quit;
+            }
+
+            if (pa_atou(argv[optind+1], &source_output_idx) < 0) {
+                pa_log(_("Invalid source output index"));
                 goto quit;
             }
 
