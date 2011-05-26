@@ -1092,6 +1092,7 @@ static int element_set_constant_volume(pa_alsa_element *e, snd_mixer_t *m) {
     snd_mixer_selem_id_t *sid = NULL;
     int r = 0;
     long volume = -1;
+    pa_bool_t volume_set = FALSE;
 
     pa_assert(m);
     pa_assert(e);
@@ -1105,6 +1106,7 @@ static int element_set_constant_volume(pa_alsa_element *e, snd_mixer_t *m) {
     switch (e->volume_use) {
         case PA_ALSA_VOLUME_OFF:
             volume = e->min_volume;
+            volume_set = TRUE;
             break;
 
         case PA_ALSA_VOLUME_ZERO:
@@ -1112,18 +1114,20 @@ static int element_set_constant_volume(pa_alsa_element *e, snd_mixer_t *m) {
                 long dB = 0;
 
                 volume = decibel_fix_get_step(e->db_fix, &dB, +1);
+                volume_set = TRUE;
             }
             break;
 
         case PA_ALSA_VOLUME_CONSTANT:
             volume = e->constant_volume;
+            volume_set = TRUE;
             break;
 
         default:
             pa_assert_not_reached();
     }
 
-    if (volume >= 0) {
+    if (volume_set) {
         if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
             r = snd_mixer_selem_set_playback_volume_all(me, volume);
         else
