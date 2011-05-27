@@ -81,7 +81,7 @@ WINSOCK_LIBS=-lwsock32 -lws2_32 -lwininet
 endif
 
 if OS_IS_DARWIN
-AM_LDFLAGS+=-headerpad_max_install_names
+AM_LDFLAGS+=-Wl,-headerpad_max_install_names -headerpad_max_install_names
 endif
 
 FOREIGN_CFLAGS = -w
