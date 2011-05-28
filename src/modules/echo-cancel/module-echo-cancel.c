@@ -726,11 +726,12 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
                         fwrite(pdata, 1, u->blocksize, u->played_file);
                 }
 
-                if (u->ec->pp_state)
-                    speex_preprocess_run(u->ec->pp_state, (spx_int16_t *) rdata);
-
                 /* perform echo cancelation */
                 u->ec->run(u->ec, rdata, pdata, cdata);
+
+                /* preprecessor is run after AEC. This is not a mistake! */
+                if (u->ec->pp_state)
+                    speex_preprocess_run(u->ec->pp_state, (spx_int16_t *) cdata);
 
                 if (u->save_aec) {
                     if (u->canceled_file)
