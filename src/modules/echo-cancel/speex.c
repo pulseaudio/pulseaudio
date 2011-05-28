@@ -109,6 +109,7 @@ void pa_speex_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *p
 }
 
 void pa_speex_ec_done(pa_echo_canceller *ec) {
-    speex_echo_state_destroy(ec->params.priv.speex.state);
+    if (ec->params.priv.speex.state)
+        speex_echo_state_destroy(ec->params.priv.speex.state);
     ec->params.priv.speex.state = NULL;
 }
