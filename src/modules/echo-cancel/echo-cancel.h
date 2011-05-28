@@ -68,6 +68,8 @@ struct pa_echo_canceller {
     pa_bool_t agc;
     pa_bool_t denoise;
     pa_bool_t echo_suppress;
+    int32_t echo_suppress_attenuation;
+    int32_t echo_suppress_attenuation_active;
     SpeexPreprocessState *pp_state;
 };
 
