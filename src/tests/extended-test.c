@@ -126,9 +126,9 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
                 formats[0] = pa_format_info_new();
                 formats[0]->encoding = PA_ENCODING_PCM;
-                pa_proplist_sets(formats[0]->plist, PA_PROP_FORMAT_SAMPLE_FORMAT, pa_sample_format_to_string(PA_SAMPLE_FLOAT32));
-                pa_proplist_setf(formats[0]->plist, PA_PROP_FORMAT_RATE, "%u", SAMPLE_HZ);
-                pa_proplist_setf(formats[0]->plist, PA_PROP_FORMAT_CHANNELS, "%u", 1);
+                pa_format_info_set_sample_format(formats[0], PA_SAMPLE_FLOAT32);
+                pa_format_info_set_rate(formats[0], SAMPLE_HZ);
+                pa_format_info_set_channels(formats[0], 1);
 
                 fprintf(stderr, "Creating stream %i\n", i);
 
