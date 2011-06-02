@@ -1662,6 +1662,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
                 1,
                 0,
                 &i->sink->silence);
+        i->actual_resample_method = new_resampler ? pa_resampler_get_method(new_resampler) : PA_RESAMPLER_INVALID;
     }
     pa_sink_update_status(dest);
 
