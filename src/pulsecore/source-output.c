@@ -833,6 +833,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
                 1,
                 0,
                 &o->source->silence);
+        o->actual_resample_method = new_resampler ? pa_resampler_get_method(new_resampler) : PA_RESAMPLER_INVALID;
     }
 
     pa_source_update_status(dest);
