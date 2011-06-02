@@ -1037,6 +1037,9 @@ static playback_stream* playback_stream_new(
         pa_bool_t relative_volume,
         int *ret) {
 
+    /* Note: This function takes ownership of the 'formats' param, so we need
+     * to take extra care to not leak it */
+
     playback_stream *s, *ssync;
     pa_sink_input *sink_input = NULL;
     pa_memchunk silence;
@@ -1067,7 +1070,7 @@ static playback_stream* playback_stream_new(
             sink = ssync->sink_input->sink;
         else if (sink != ssync->sink_input->sink) {
             *ret = PA_ERR_INVALID;
-            return NULL;
+            goto out;
         }
     }
 
@@ -1083,8 +1086,11 @@ static playback_stream* playback_stream_new(
         pa_sink_input_new_data_set_sample_spec(&data, ss);
     if (pa_channel_map_valid(map))
         pa_sink_input_new_data_set_channel_map(&data, map);
-    if (formats)
+    if (formats) {
         pa_sink_input_new_data_set_formats(&data, formats);
+        /* Ownership transferred to new_data, so we don't free it ourseleves */
+        formats = NULL;
+    }
     if (volume) {
         pa_sink_input_new_data_set_volume(&data, volume);
         data.volume_is_absolute = !relative_volume;
@@ -1102,7 +1108,7 @@ static playback_stream* playback_stream_new(
     pa_sink_input_new_data_done(&data);
 
     if (!sink_input)
-        return NULL;
+        goto out;
 
     s = pa_msgobject_new(playback_stream);
     s->parent.parent.parent.free = playback_stream_free;
@@ -1164,6 +1170,11 @@ static playback_stream* playback_stream_new(
                 (double) s->configured_sink_latency / PA_USEC_PER_MSEC);
 
     pa_sink_input_put(s->sink_input);
+
+out:
+    if (formats)
+        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+
     return s;
 }
 
@@ -2071,6 +2082,8 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
     muted_set = muted_set || muted;
 
     s = playback_stream_new(c, sink, &ss, &map, formats, &attr, volume_set ? &volume : NULL, muted, muted_set, syncid, &missing, flags, p, adjust_latency, early_requests, relative_volume, &ret);
+    /* We no longer own the formats idxset */
+    formats = NULL;
 
     CHECK_VALIDITY_GOTO(c->pstream, s, tag, ret, finish);
 
