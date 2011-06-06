@@ -228,6 +228,7 @@ void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map) {
     unsigned i;
 
     pa_assert(t);
+    pa_assert(map);
     extend(t, 2 + (size_t) map->channels);
 
     t->data[t->length++] = PA_TAG_CHANNEL_MAP;
@@ -242,6 +243,7 @@ void pa_tagstruct_put_cvolume(pa_tagstruct *t, const pa_cvolume *cvolume) {
     pa_volume_t vol;
 
     pa_assert(t);
+    pa_assert(cvolume);
     extend(t, 2 + cvolume->channels * sizeof(pa_volume_t));
 
     t->data[t->length++] = PA_TAG_CVOLUME;
