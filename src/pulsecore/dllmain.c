@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include <windows.h>
+#include <winsock2.h>
 
 extern pa_win32_get_toplevel(HANDLE handle);
 

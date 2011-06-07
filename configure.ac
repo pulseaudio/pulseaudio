@@ -91,6 +91,9 @@ case $host in
    *-*-darwin* )
       AC_DEFINE([_DARWIN_C_SOURCE], [200112L], [Needed to get NSIG on Mac OS X])
       ;;
+   *-*-mingw* )
+      AC_DEFINE([WIN32_LEAN_AND_MEAN], 1, [Needed to avoid including unnecessary headers])
+      ;;
 esac
 
 # M4
