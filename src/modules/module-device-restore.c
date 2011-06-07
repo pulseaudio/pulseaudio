@@ -2,6 +2,7 @@
   This file is part of PulseAudio.
 
   Copyright 2006-2008 Lennart Poettering
+  Copyright 2011 Colin Guthrie
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -36,6 +37,8 @@
 #include <pulse/timeval.h>
 #include <pulse/util.h>
 #include <pulse/rtclock.h>
+#include <pulse/format.h>
+#include <pulse/internal.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
@@ -46,6 +49,9 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
 #include <pulsecore/namereg.h>
+#include <pulsecore/protocol-native.h>
+#include <pulsecore/pstream.h>
+#include <pulsecore/pstream-util.h>
 #include <pulsecore/database.h>
 #include <pulsecore/tagstruct.h>
 
@@ -77,14 +83,29 @@ struct userdata {
         *sink_new_hook_slot,
         *sink_fixate_hook_slot,
         *source_new_hook_slot,
-        *source_fixate_hook_slot;
+        *source_fixate_hook_slot,
+        *connection_unlink_hook_slot;
     pa_time_event *save_time_event;
     pa_database *database;
+
+    pa_native_protocol *protocol;
+    pa_idxset *subscribed;
 
     pa_bool_t restore_volume:1;
     pa_bool_t restore_muted:1;
     pa_bool_t restore_port:1;
 };
+
+/* Protocol extention commands */
+enum {
+    SUBCOMMAND_TEST,
+    SUBCOMMAND_SUBSCRIBE,
+    SUBCOMMAND_EVENT,
+    SUBCOMMAND_READ_SINK_FORMATS_ALL,
+    SUBCOMMAND_READ_SINK_FORMATS,
+    SUBCOMMAND_SAVE_SINK_FORMATS
+};
+
 
 #define ENTRY_VERSION 3
 
@@ -95,6 +116,7 @@ struct entry {
     pa_channel_map channel_map;
     pa_cvolume volume;
     char *port;
+    pa_idxset *formats;
 };
 
 static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
@@ -115,12 +137,14 @@ static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct
 static struct entry* entry_new(void) {
     struct entry *r = pa_xnew0(struct entry, 1);
     r->version = ENTRY_VERSION;
+    r->formats = pa_idxset_new(NULL, NULL);
     return r;
 }
 
 static void entry_free(struct entry* e) {
     pa_assert(e);
 
+    pa_idxset_free(e->formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
     pa_xfree(e->port);
     pa_xfree(e);
 }
@@ -130,6 +154,7 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
     struct entry *e = NULL;
     pa_tagstruct *t = NULL;
     const char* port;
+    uint8_t i, n_formats;
 
     pa_assert(u);
     pa_assert(name);
@@ -153,12 +178,22 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
         pa_tagstruct_get_boolean(t, &e->muted_valid) < 0 ||
         pa_tagstruct_get_boolean(t, &e->muted) < 0 ||
         pa_tagstruct_get_boolean(t, &e->port_valid) < 0 ||
-        pa_tagstruct_gets(t, &port) < 0) {
+        pa_tagstruct_gets(t, &port) < 0 ||
+        pa_tagstruct_getu8(t, &n_formats) < 0) {
 
         goto fail;
     }
 
     e->port = pa_xstrdup(port);
+
+    for (i = 0; i < n_formats; ++i) {
+        pa_format_info *f = pa_format_info_new();
+        if (pa_tagstruct_get_format_info(t, f) < 0) {
+            pa_format_info_free(f);
+            goto fail;
+        }
+        pa_idxset_put(e->formats, f, NULL);
+    }
 
     if (!pa_tagstruct_eof(t))
         goto fail;
@@ -194,6 +229,8 @@ static pa_bool_t entry_write(struct userdata *u, const char *name, const struct 
     pa_tagstruct *t;
     pa_datum key, data;
     pa_bool_t r;
+    uint32_t i;
+    pa_format_info *f;
 
     pa_assert(u);
     pa_assert(name);
@@ -208,6 +245,11 @@ static pa_bool_t entry_write(struct userdata *u, const char *name, const struct 
     pa_tagstruct_put_boolean(t, e->muted);
     pa_tagstruct_put_boolean(t, e->port_valid);
     pa_tagstruct_puts(t, e->port);
+    pa_tagstruct_putu8(t, pa_idxset_size(e->formats));
+
+    PA_IDXSET_FOREACH(f, e->formats, i) {
+        pa_tagstruct_put_format_info(t, f);
+    }
 
     key.data = (char *) name;
     key.size = strlen(name);
@@ -223,11 +265,23 @@ static pa_bool_t entry_write(struct userdata *u, const char *name, const struct 
 
 static struct entry* entry_copy(const struct entry *e) {
     struct entry* r;
+    uint32_t idx;
+    pa_format_info *f;
 
     pa_assert(e);
     r = entry_new();
-    *r = *e;
+    r->version = e->version;
+    r->muted_valid = e->muted_valid;
+    r->volume_valid = e->volume_valid;
+    r->port_valid = e->port_valid;
+    r->muted = e->muted;
+    r->channel_map = e->channel_map;
+    r->volume = e->volume;
     r->port = pa_xstrdup(e->port);
+
+    PA_IDXSET_FOREACH(f, e->formats, idx) {
+        pa_idxset_put(r->formats, pa_format_info_copy(f), NULL);
+    }
     return r;
 }
 
@@ -511,6 +565,197 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
     return PA_HOOK_OK;
 }
 
+#define EXT_VERSION 1
+
+static void read_sink_format_reply(struct userdata *u, pa_tagstruct *reply, pa_sink *sink) {
+    struct entry *e;
+    char *name;
+
+    pa_assert(u);
+    pa_assert(reply);
+    pa_assert(sink);
+
+    pa_tagstruct_putu32(reply, sink->index);
+
+    /* Read or create an entry */
+    name = pa_sprintf_malloc("sink:%s", sink->name);
+    if (!(e = entry_read(u, name))) {
+        /* Fake a reply with PCM encoding supported */
+        pa_format_info *f = pa_format_info_new();
+
+        pa_tagstruct_putu8(reply, 1);
+        f->encoding = PA_ENCODING_PCM;
+        pa_tagstruct_put_format_info(reply, f);
+
+        pa_format_info_free(f);
+    } else {
+        uint32_t idx;
+        pa_format_info *f;
+
+        /* Write all the formats from the entry to the reply */
+        pa_tagstruct_putu8(reply, pa_idxset_size(e->formats));
+        PA_IDXSET_FOREACH(f, e->formats, idx) {
+            pa_tagstruct_put_format_info(reply, f);
+        }
+    }
+    pa_xfree(name);
+}
+
+static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connection *c, uint32_t tag, pa_tagstruct *t) {
+    struct userdata *u;
+    uint32_t command;
+    pa_tagstruct *reply = NULL;
+
+    pa_assert(p);
+    pa_assert(m);
+    pa_assert(c);
+    pa_assert(t);
+
+    u = m->userdata;
+
+    if (pa_tagstruct_getu32(t, &command) < 0)
+        goto fail;
+
+    reply = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+    pa_tagstruct_putu32(reply, tag);
+
+    switch (command) {
+        case SUBCOMMAND_TEST: {
+            if (!pa_tagstruct_eof(t))
+                goto fail;
+
+            pa_tagstruct_putu32(reply, EXT_VERSION);
+            break;
+        }
+
+        case SUBCOMMAND_SUBSCRIBE: {
+
+            pa_bool_t enabled;
+
+            if (pa_tagstruct_get_boolean(t, &enabled) < 0 ||
+                !pa_tagstruct_eof(t))
+                goto fail;
+
+            if (enabled)
+                pa_idxset_put(u->subscribed, c, NULL);
+            else
+                pa_idxset_remove_by_data(u->subscribed, c, NULL);
+
+            break;
+        }
+
+        case SUBCOMMAND_READ_SINK_FORMATS_ALL: {
+            pa_sink *sink;
+            uint32_t idx;
+
+            if (!pa_tagstruct_eof(t))
+                goto fail;
+
+            PA_IDXSET_FOREACH(sink, u->core->sinks, idx) {
+                read_sink_format_reply(u, reply, sink);
+            }
+
+            break;
+        }
+        case SUBCOMMAND_READ_SINK_FORMATS: {
+            uint32_t sink_index;
+            pa_sink *sink;
+
+            pa_assert(reply);
+
+            /* Get the sink index and the number of formats from the tagstruct */
+            if (pa_tagstruct_getu32(t, &sink_index) < 0)
+                goto fail;
+
+            if (!pa_tagstruct_eof(t))
+                goto fail;
+
+            /* Now find our sink */
+            if (!(sink = pa_idxset_get_by_index(u->core->sinks, sink_index)))
+                goto fail;
+
+            read_sink_format_reply(u, reply, sink);
+
+            break;
+        }
+
+        case SUBCOMMAND_SAVE_SINK_FORMATS: {
+
+            struct entry *e;
+            uint32_t sink_index;
+            char *name;
+            pa_sink *sink;
+            uint8_t i, n_formats;
+
+            /* Get the sink index and the number of formats from the tagstruct */
+            if (pa_tagstruct_getu32(t, &sink_index) < 0 ||
+                pa_tagstruct_getu8(t, &n_formats) < 0 || n_formats < 1) {
+
+                goto fail;
+            }
+
+            /* Now find our sink */
+            if (!(sink = pa_idxset_get_by_index(u->core->sinks, sink_index)))
+                goto fail;
+
+            /* Read or create an entry */
+            name = pa_sprintf_malloc("sink:%s", sink->name);
+            if (!(e = entry_read(u, name)))
+                e = entry_new();
+
+            /* Read all the formats from our tagstruct */
+            for (i = 0; i < n_formats; ++i) {
+                pa_format_info *f = pa_format_info_new();
+                if (pa_tagstruct_get_format_info(t, f) < 0) {
+                    pa_format_info_free(f);
+                    pa_xfree(name);
+                    goto fail;
+                }
+                pa_idxset_put(e->formats, f, NULL);
+            }
+
+            if (!pa_tagstruct_eof(t)) {
+                entry_free(e);
+                pa_xfree(name);
+                goto fail;
+            }
+
+            if (entry_write(u, name, e))
+                trigger_save(u);
+            else
+                pa_log_warn("Could not save format info for sink %s", sink->name);
+
+            pa_xfree(name);
+            entry_free(e);
+
+            break;
+        }
+
+        default:
+            goto fail;
+    }
+
+    pa_pstream_send_tagstruct(pa_native_connection_get_pstream(c), reply);
+    return 0;
+
+fail:
+
+    if (reply)
+        pa_tagstruct_free(reply);
+
+    return -1;
+}
+
+static pa_hook_result_t connection_unlink_hook_cb(pa_native_protocol *p, pa_native_connection *c, struct userdata *u) {
+    pa_assert(p);
+    pa_assert(c);
+    pa_assert(u);
+
+    pa_idxset_remove_by_data(u->subscribed, c, NULL);
+    return PA_HOOK_OK;
+}
+
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
@@ -543,6 +788,13 @@ int pa__init(pa_module*m) {
     u->restore_volume = restore_volume;
     u->restore_muted = restore_muted;
     u->restore_port = restore_port;
+
+    u->subscribed = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+
+    u->protocol = pa_native_protocol_get(m->core);
+    pa_native_protocol_install_ext(u->protocol, m, extension_cb);
+
+    u->connection_unlink_hook_slot = pa_hook_connect(&pa_native_protocol_hooks(u->protocol)[PA_NATIVE_HOOK_CONNECTION_UNLINK], PA_HOOK_NORMAL, (pa_hook_cb_t) connection_unlink_hook_cb, u);
 
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK|PA_SUBSCRIPTION_MASK_SOURCE, subscribe_callback, u);
 
@@ -606,11 +858,22 @@ void pa__done(pa_module*m) {
     if (u->source_new_hook_slot)
         pa_hook_slot_free(u->source_new_hook_slot);
 
+    if (u->connection_unlink_hook_slot)
+        pa_hook_slot_free(u->connection_unlink_hook_slot);
+
     if (u->save_time_event)
         u->core->mainloop->time_free(u->save_time_event);
 
     if (u->database)
         pa_database_close(u->database);
+
+    if (u->protocol) {
+        pa_native_protocol_remove_ext(u->protocol, m);
+        pa_native_protocol_unref(u->protocol);
+    }
+
+    if (u->subscribed)
+        pa_idxset_free(u->subscribed, NULL, NULL);
 
     pa_xfree(u);
 }

@@ -124,6 +124,9 @@ static void reset_callbacks(pa_context *c) {
     c->ext_device_manager.callback = NULL;
     c->ext_device_manager.userdata = NULL;
 
+    c->ext_device_restore.callback = NULL;
+    c->ext_device_restore.userdata = NULL;
+
     c->ext_stream_restore.callback = NULL;
     c->ext_stream_restore.userdata = NULL;
 }
@@ -1425,10 +1428,12 @@ void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_t
         goto finish;
     }
 
-    if (!strcmp(name, "module-stream-restore"))
-        pa_ext_stream_restore_command(c, tag, t);
-    else if (!strcmp(name, "module-device-manager"))
+    if (pa_streq(name, "module-device-manager"))
         pa_ext_device_manager_command(c, tag, t);
+    else if (pa_streq(name, "module-device-restore"))
+        pa_ext_device_manager_command(c, tag, t);
+    else if (pa_streq(name, "module-stream-restore"))
+        pa_ext_stream_restore_command(c, tag, t);
     else
         pa_log(_("Received message for unknown extension '%s'"), name);
 

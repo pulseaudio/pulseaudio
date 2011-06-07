@@ -732,6 +732,7 @@ pulseinclude_HEADERS = \
 		pulse/def.h \
 		pulse/error.h \
 		pulse/ext-device-manager.h \
+		pulse/ext-device-restore.h \
 		pulse/ext-stream-restore.h \
 		pulse/format.h \
 		pulse/gccmacro.h \
@@ -784,6 +785,7 @@ libpulse_la_SOURCES = \
 		pulse/def.h \
 		pulse/error.c pulse/error.h \
 		pulse/ext-device-manager.c pulse/ext-device-manager.h \
+		pulse/ext-device-restore.c pulse/ext-device-restore.h \
 		pulse/ext-stream-restore.c pulse/ext-stream-restore.h \
 		pulse/gccmacro.h \
 		pulse/internal.h \
@@ -1754,8 +1756,13 @@ module_device_manager_la_CFLAGS = $(AM_CFLAGS)
 # Device volume/muted restore module
 module_device_restore_la_SOURCES = modules/module-device-restore.c
 module_device_restore_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_device_restore_la_LIBADD = $(MODULE_LIBADD)
+module_device_restore_la_LIBADD = $(MODULE_LIBADD) libprotocol-native.la
 module_device_restore_la_CFLAGS = $(AM_CFLAGS)
+
+if HAVE_DBUS
+module_device_restore_la_LIBADD += $(DBUS_LIBS)
+module_device_restore_la_CFLAGS += $(DBUS_CFLAGS)
+endif
 
 # Stream volume/muted/device restore module
 module_stream_restore_la_SOURCES = modules/module-stream-restore.c
