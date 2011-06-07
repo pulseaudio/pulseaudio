@@ -51,6 +51,7 @@
 #include <pulsecore/pstream.h>
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/database.h>
+#include <pulsecore/tagstruct.h>
 
 #include "module-device-manager-symdef.h"
 
@@ -84,6 +85,7 @@ enum {
     ROLE_ANIMATION,
     ROLE_PRODUCTION,
     ROLE_A11Y,
+    ROLE_MAX
 };
 
 typedef uint32_t role_indexes_t[NUM_ROLES];
@@ -128,15 +130,15 @@ struct userdata {
     role_indexes_t preferred_sources;
 };
 
-#define ENTRY_VERSION 1
+#define ENTRY_VERSION 2
 
 struct entry {
     uint8_t version;
-    char description[PA_NAME_MAX];
+    char *description;
     pa_bool_t user_set_description;
-    char icon[PA_NAME_MAX];
+    char *icon;
     role_indexes_t priority;
-} PA_GCC_PACKED;
+};
 
 enum {
     SUBCOMMAND_TEST,
@@ -150,9 +152,24 @@ enum {
 };
 
 
-static struct entry* read_entry(struct userdata *u, const char *name) {
+static struct entry* entry_new(void) {
+    struct entry *r = pa_xnew0(struct entry, 1);
+    r->version = ENTRY_VERSION;
+    return r;
+}
+
+static void entry_free(struct entry* e) {
+    pa_assert(e);
+
+    pa_xfree(e->description);
+    pa_xfree(e->icon);
+}
+
+static struct entry* entry_read(struct userdata *u, const char *name) {
     pa_datum key, data;
-    struct entry *e;
+    struct entry *e = NULL;
+    pa_tagstruct *t = NULL;
+    const char *description, *icon;
 
     pa_assert(u);
     pa_assert(name);
@@ -165,34 +182,72 @@ static struct entry* read_entry(struct userdata *u, const char *name) {
     if (!pa_database_get(u->database, &key, &data))
         goto fail;
 
-    if (data.size != sizeof(struct entry)) {
-        pa_log_debug("Database contains entry for device %s of wrong size %lu != %lu. Probably due to upgrade, ignoring.", name, (unsigned long) data.size, (unsigned long) sizeof(struct entry));
+    t = pa_tagstruct_new(data.data, data.size);
+    e = entry_new();
+
+    if (pa_tagstruct_getu8(t, &e->version) < 0 ||
+        e->version > ENTRY_VERSION ||
+        pa_tagstruct_gets(t, &description) < 0 ||
+        pa_tagstruct_get_boolean(t, &e->user_set_description) < 0 ||
+        pa_tagstruct_gets(t, &icon) < 0) {
+
         goto fail;
     }
 
-    e = (struct entry*) data.data;
+    e->description = pa_xstrdup(description);
+    e->icon = pa_xstrdup(icon);
 
-    if (e->version != ENTRY_VERSION) {
-        pa_log_debug("Version of database entry for device %s doesn't match our version. Probably due to upgrade, ignoring.", name);
-        goto fail;
+    for (uint8_t i=0; i<ROLE_MAX; ++i) {
+        if (pa_tagstruct_getu32(t, &e->priority[i]) < 0)
+            goto fail;
     }
 
-    if (!memchr(e->description, 0, sizeof(e->description))) {
-        pa_log_warn("Database contains entry for device %s with missing NUL byte in description", name);
+    if (!pa_tagstruct_eof(t))
         goto fail;
-    }
 
-    if (!memchr(e->icon, 0, sizeof(e->icon))) {
-        pa_log_warn("Database contains entry for device %s with missing NUL byte in icon", name);
-        goto fail;
-    }
+    pa_tagstruct_free(t);
+    pa_datum_free(&data);
 
     return e;
 
 fail:
+    pa_log_debug("Database contains invalid data for key: %s (probably pre-v1.0 data)", name);
 
+    if (e)
+        entry_free(e);
+    if (t)
+        pa_tagstruct_free(t);
     pa_datum_free(&data);
     return NULL;
+}
+
+static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e) {
+    pa_tagstruct *t;
+    pa_datum key, data;
+    pa_bool_t r;
+
+    pa_assert(u);
+    pa_assert(name);
+    pa_assert(e);
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu8(t, e->version);
+    pa_tagstruct_puts(t, e->description);
+    pa_tagstruct_put_boolean(t, e->user_set_description);
+    pa_tagstruct_puts(t, e->icon);
+    for (uint8_t i=0; i<ROLE_MAX; ++i)
+        pa_tagstruct_putu32(t, e->priority[i]);
+
+    key.data = (char *) name;
+    key.size = strlen(name);
+
+    data.data = (void*)pa_tagstruct_data(t, &data.size);
+
+    r = (pa_database_set(u->database, &key, &data, TRUE) == 0);
+
+    pa_tagstruct_free(t);
+
+    return r;
 }
 
 #ifdef DUMP_DATABASE
@@ -233,14 +288,14 @@ static void dump_database(struct userdata *u) {
 
         name = pa_xstrndup(key.data, key.size);
 
-        if ((e = read_entry(u, name))) {
+        if ((e = entry_read(u, name))) {
             pa_log_debug(" Got entry: %s", name);
             pa_log_debug("  Description: %s", e->description);
             pa_log_debug("  Priorities: None:   %3u, Video: %3u, Music:  %3u, Game: %3u, Event: %3u",
                          e->priority[ROLE_NONE], e->priority[ROLE_VIDEO], e->priority[ROLE_MUSIC], e->priority[ROLE_GAME], e->priority[ROLE_EVENT]);
             pa_log_debug("              Phone:  %3u, Anim:  %3u, Prodtn: %3u, A11y: %3u",
                          e->priority[ROLE_PHONE], e->priority[ROLE_ANIMATION], e->priority[ROLE_PRODUCTION], e->priority[ROLE_A11Y]);
-            pa_xfree(e);
+            entry_free(e);
         }
 
         pa_xfree(name);
@@ -334,9 +389,9 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
     pa_assert(a);
     pa_assert(b);
 
-    if (strncmp(a->description, b->description, sizeof(a->description))
+    if (!pa_streq(a->description, b->description)
         || a->user_set_description != b->user_set_description
-        || strncmp(a->icon, b->icon, sizeof(a->icon)))
+        || !pa_streq(a->icon, b->icon))
         return FALSE;
 
     for (int i=0; i < NUM_ROLES; ++i)
@@ -364,9 +419,11 @@ static inline struct entry *load_or_initialize_entry(struct userdata *u, struct 
     pa_assert(name);
     pa_assert(prefix);
 
-    if ((old = read_entry(u, name)))
+    if ((old = entry_read(u, name))) {
         *entry = *old;
-    else {
+        entry->description = pa_xstrdup(old->description);
+        entry->icon = pa_xstrdup(old->icon);
+    } else {
         /* This is a new device, so make sure we write it's priority list correctly */
         role_indexes_t max_priority;
         pa_datum key;
@@ -387,12 +444,12 @@ static inline struct entry *load_or_initialize_entry(struct userdata *u, struct 
 
                 name2 = pa_xstrndup(key.data, key.size);
 
-                if ((e = read_entry(u, name2))) {
+                if ((e = entry_read(u, name2))) {
                     for (uint32_t i = 0; i < NUM_ROLES; ++i) {
                         max_priority[i] = PA_MAX(max_priority[i], e->priority[i]);
                     }
 
-                    pa_xfree(e);
+                    entry_free(e);
                 }
 
                 pa_xfree(name2);
@@ -456,7 +513,7 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
             name = pa_xstrndup(key.data, key.size);
             device_name = get_name(name, prefix);
 
-            if ((e = read_entry(u, name))) {
+            if ((e = entry_read(u, name))) {
                 for (uint32_t i = 0; i < NUM_ROLES; ++i) {
                     if (!highest_priority_available[i] || e->priority[i] < highest_priority_available[i]) {
                         /* We've found a device with a higher priority than that we've currently got,
@@ -497,7 +554,7 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
                     }
                 }
 
-                pa_xfree(e);
+                entry_free(e);
             }
 
             pa_xfree(name);
@@ -631,9 +688,8 @@ static pa_hook_result_t route_source_outputs(struct userdata *u, pa_source* igno
 
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u = userdata;
-    struct entry entry, *old = NULL;
+    struct entry *entry, *old = NULL;
     char *name = NULL;
-    pa_datum key, data;
 
     pa_assert(c);
     pa_assert(u);
@@ -649,8 +705,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         t != (PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE))
         return;
 
-    pa_zero(entry);
-    entry.version = ENTRY_VERSION;
+    entry = entry_new();
 
     if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
         pa_sink_input *si;
@@ -684,19 +739,21 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         name = pa_sprintf_malloc("sink:%s", sink->name);
 
-        old = load_or_initialize_entry(u, &entry, name, "sink:");
+        old = load_or_initialize_entry(u, entry, name, "sink:");
 
-        if (!entry.user_set_description)
-            pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
-        else if (strncmp(entry.description, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description)) != 0) {
+        if (!entry->user_set_description) {
+            pa_xfree(entry->description);
+            entry->description = pa_xstrdup(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION));
+        } else if (!pa_streq(entry->description, pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION))) {
             /* Warning: If two modules fight over the description, this could cause an infinite loop.
                by changing the description here, we retrigger this subscription callback. The only thing stopping us from
                looping is the fact that the string comparison will fail on the second iteration. If another module tries to manage
                the description, this will fail... */
-            pa_sink_set_description(sink, entry.description);
+            pa_sink_set_description(sink, entry->description);
         }
 
-        pa_strlcpy(entry.icon, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_ICON_NAME)), sizeof(entry.icon));
+        pa_xfree(entry->icon);
+        entry->icon = pa_xstrdup(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_ICON_NAME));
 
     } else if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE) {
         pa_source *source;
@@ -711,48 +768,46 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         name = pa_sprintf_malloc("source:%s", source->name);
 
-        old = load_or_initialize_entry(u, &entry, name, "source:");
+        old = load_or_initialize_entry(u, entry, name, "source:");
 
-        if (!entry.user_set_description)
-            pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
-        else if (strncmp(entry.description, pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description)) != 0) {
+        if (!entry->user_set_description) {
+            pa_xfree(entry->description);
+            entry->description = pa_xstrdup(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION));
+        } else if (!pa_streq(entry->description, pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION))) {
             /* Warning: If two modules fight over the description, this could cause an infinite loop.
                by changing the description here, we retrigger this subscription callback. The only thing stopping us from
                looping is the fact that the string comparison will fail on the second iteration. If another module tries to manage
                the description, this will fail... */
-            pa_source_set_description(source, entry.description);
+            pa_source_set_description(source, entry->description);
         }
 
-        pa_strlcpy(entry.icon, pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_ICON_NAME)), sizeof(entry.icon));
+        pa_xfree(entry->icon);
+        entry->icon = pa_xstrdup(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_ICON_NAME));
     }
 
     pa_assert(name);
 
     if (old) {
 
-        if (entries_equal(old, &entry)) {
-            pa_xfree(old);
+        if (entries_equal(old, entry)) {
+            entry_free(old);
+            entry_free(entry);
             pa_xfree(name);
 
             return;
         }
 
-        pa_xfree(old);
+        entry_free(old);
     }
-
-    key.data = name;
-    key.size = strlen(name);
-
-    data.data = &entry;
-    data.size = sizeof(entry);
 
     pa_log_info("Storing device %s.", name);
 
-    if (pa_database_set(u->database, &key, &data, TRUE) == 0)
+    if (entry_write(u, name, entry))
         trigger_save(u);
     else
         pa_log_warn("Could not save device");;
 
+    entry_free(entry);
     pa_xfree(name);
 }
 
@@ -766,13 +821,13 @@ static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new
 
     name = pa_sprintf_malloc("sink:%s", new_data->name);
 
-    if ((e = read_entry(u, name))) {
+    if ((e = entry_read(u, name))) {
         if (e->user_set_description && strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
             pa_log_info("Restoring description for sink %s.", new_data->name);
             pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
         }
 
-        pa_xfree(e);
+        entry_free(e);
     }
 
     pa_xfree(name);
@@ -790,14 +845,14 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
 
     name = pa_sprintf_malloc("source:%s", new_data->name);
 
-    if ((e = read_entry(u, name))) {
+    if ((e = entry_read(u, name))) {
         if (e->user_set_description && strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
             /* NB, We cannot detect if we are a monitor here... this could mess things up a bit... */
             pa_log_info("Restoring description for source %s.", new_data->name);
             pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
         }
 
-        pa_xfree(e);
+        entry_free(e);
     }
 
     pa_xfree(name);
@@ -1029,7 +1084,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         name = pa_xstrndup(key.data, key.size);
         pa_datum_free(&key);
 
-        if ((e = read_entry(u, name))) {
+        if ((e = entry_read(u, name))) {
             uint32_t idx;
             char *device_name;
             uint32_t found_index = PA_INVALID_INDEX;
@@ -1065,7 +1120,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 pa_tagstruct_putu32(reply, e->priority[i]);
             }
 
-            pa_xfree(e);
+            entry_free(e);
         }
 
         pa_xfree(name);
@@ -1088,19 +1143,12 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         if (!device || !*device || !description || !*description)
           goto fail;
 
-        if ((e = read_entry(u, device))) {
-            pa_datum key, data;
-
-            pa_strlcpy(e->description, description, sizeof(e->description));
+        if ((e = entry_read(u, device))) {
+            pa_xfree(e->description);
+            e->description = pa_xstrdup(description);
             e->user_set_description = TRUE;
 
-            key.data = (char *) device;
-            key.size = strlen(device);
-
-            data.data = e;
-            data.size = sizeof(*e);
-
-            if (pa_database_set(u->database, &key, &data, TRUE) == 0) {
+            if (entry_write(u, (char *)device, e)) {
                 apply_entry(u, device, e);
 
                 trigger_save(u);
@@ -1108,7 +1156,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             else
                 pa_log_warn("Could not save device");
 
-            pa_xfree(e);
+            entry_free(e);
         }
         else
             pa_log_warn("Could not rename device %s, no entry in database", device);
@@ -1157,7 +1205,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         const char *role;
         struct entry *e;
         uint32_t role_index, n_devices;
-        pa_datum key, data;
+        pa_datum key;
         pa_bool_t done, sink_mode = TRUE;
         struct device_t { uint32_t prio; char *device; };
         struct device_t *device;
@@ -1193,7 +1241,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             }
 
             /* Ensure this is a valid entry */
-            if (!(e = read_entry(u, s))) {
+            if (!(e = entry_read(u, s))) {
                 while ((device = pa_hashmap_steal_first(h))) {
                     pa_xfree(device->device);
                     pa_xfree(device);
@@ -1203,7 +1251,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 pa_log_error("Client specified an unknown device in it's reorder list.");
                 goto fail;
             }
-            pa_xfree(e);
+            entry_free(e);
 
             if (first) {
                 first = FALSE;
@@ -1255,7 +1303,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
                 /* Add the device to our hashmap. If it's alredy in it, free it now and carry on */
                 if (pa_hashmap_put(h, device->device, device) == 0
-                    && (e = read_entry(u, device->device))) {
+                    && (e = entry_read(u, device->device))) {
                     /* We add offset on to the existing priorirty so that when we order, the
                        existing entries are always lower priority than the new ones. */
                     device->prio = (offset + e->priority[role_index]);
@@ -1310,19 +1358,13 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         idx = 1;
         first = TRUE;
         for (i = 0; i < n_devices; ++i) {
-            if ((e = read_entry(u, devices[i]->device))) {
+            if ((e = entry_read(u, devices[i]->device))) {
                 if (e->priority[role_index] == idx)
                     idx++;
                 else {
                     e->priority[role_index] = idx;
 
-                    key.data = (char *) devices[i]->device;
-                    key.size = strlen(devices[i]->device);
-
-                    data.data = e;
-                    data.size = sizeof(*e);
-
-                    if (pa_database_set(u->database, &key, &data, TRUE) == 0) {
+                    if (entry_write(u, (char *) devices[i]->device, e)) {
                         first = FALSE;
                         idx++;
                     }

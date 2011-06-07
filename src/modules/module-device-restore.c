@@ -47,6 +47,7 @@
 #include <pulsecore/source-output.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/database.h>
+#include <pulsecore/tagstruct.h>
 
 #include "module-device-restore-symdef.h"
 
@@ -85,16 +86,16 @@ struct userdata {
     pa_bool_t restore_port:1;
 };
 
-#define ENTRY_VERSION 2
+#define ENTRY_VERSION 3
 
 struct entry {
     uint8_t version;
-    pa_bool_t muted_valid:1, volume_valid:1, port_valid:1;
-    pa_bool_t muted:1;
+    pa_bool_t muted_valid, volume_valid, port_valid;
+    pa_bool_t muted;
     pa_channel_map channel_map;
     pa_cvolume volume;
-    char port[PA_NAME_MAX];
-} PA_GCC_PACKED;
+    char *port;
+};
 
 static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
     struct userdata *u = userdata;
@@ -111,9 +112,24 @@ static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct
     pa_log_info("Synced.");
 }
 
-static struct entry* read_entry(struct userdata *u, const char *name) {
+static struct entry* entry_new(void) {
+    struct entry *r = pa_xnew0(struct entry, 1);
+    r->version = ENTRY_VERSION;
+    return r;
+}
+
+static void entry_free(struct entry* e) {
+    pa_assert(e);
+
+    pa_xfree(e->port);
+    pa_xfree(e);
+}
+
+static struct entry* entry_read(struct userdata *u, const char *name) {
     pa_datum key, data;
-    struct entry *e;
+    struct entry *e = NULL;
+    pa_tagstruct *t = NULL;
+    const char* port;
 
     pa_assert(u);
     pa_assert(name);
@@ -126,22 +142,26 @@ static struct entry* read_entry(struct userdata *u, const char *name) {
     if (!pa_database_get(u->database, &key, &data))
         goto fail;
 
-    if (data.size != sizeof(struct entry)) {
-        pa_log_debug("Database contains entry for device %s of wrong size %lu != %lu. Probably due to upgrade, ignoring.", name, (unsigned long) data.size, (unsigned long) sizeof(struct entry));
+    t = pa_tagstruct_new(data.data, data.size);
+    e = entry_new();
+
+    if (pa_tagstruct_getu8(t, &e->version) < 0 ||
+        e->version > ENTRY_VERSION ||
+        pa_tagstruct_get_boolean(t, &e->volume_valid) < 0 ||
+        pa_tagstruct_get_channel_map(t, &e->channel_map) < 0 ||
+        pa_tagstruct_get_cvolume(t, &e->volume) < 0 ||
+        pa_tagstruct_get_boolean(t, &e->muted_valid) < 0 ||
+        pa_tagstruct_get_boolean(t, &e->muted) < 0 ||
+        pa_tagstruct_get_boolean(t, &e->port_valid) < 0 ||
+        pa_tagstruct_gets(t, &port) < 0) {
+
         goto fail;
     }
 
-    e = (struct entry*) data.data;
+    e->port = pa_xstrdup(port);
 
-    if (e->version != ENTRY_VERSION) {
-        pa_log_debug("Version of database entry for device %s doesn't match our version. Probably due to upgrade, ignoring.", name);
+    if (!pa_tagstruct_eof(t))
         goto fail;
-    }
-
-    if (!memchr(e->port, 0, sizeof(e->port))) {
-        pa_log_warn("Database contains entry for device %s with missing NUL byte in port name", name);
-        goto fail;
-    }
 
     if (e->volume_valid && !pa_channel_map_valid(&e->channel_map)) {
         pa_log_warn("Invalid channel map stored in database for device %s", name);
@@ -153,12 +173,62 @@ static struct entry* read_entry(struct userdata *u, const char *name) {
         goto fail;
     }
 
+    pa_tagstruct_free(t);
+    pa_datum_free(&data);
+
     return e;
 
 fail:
 
+    pa_log_debug("Database contains invalid data for key: %s (probably pre-v1.0 data)", name);
+
+    if (e)
+        entry_free(e);
+    if (t)
+        pa_tagstruct_free(t);
     pa_datum_free(&data);
     return NULL;
+}
+
+static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e) {
+    pa_tagstruct *t;
+    pa_datum key, data;
+    pa_bool_t r;
+
+    pa_assert(u);
+    pa_assert(name);
+    pa_assert(e);
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu8(t, e->version);
+    pa_tagstruct_put_boolean(t, e->volume_valid);
+    pa_tagstruct_put_channel_map(t, &e->channel_map);
+    pa_tagstruct_put_cvolume(t, &e->volume);
+    pa_tagstruct_put_boolean(t, e->muted_valid);
+    pa_tagstruct_put_boolean(t, e->muted);
+    pa_tagstruct_put_boolean(t, e->port_valid);
+    pa_tagstruct_puts(t, e->port);
+
+    key.data = (char *) name;
+    key.size = strlen(name);
+
+    data.data = (void*)pa_tagstruct_data(t, &data.size);
+
+    r = (pa_database_set(u->database, &key, &data, TRUE) == 0);
+
+    pa_tagstruct_free(t);
+
+    return r;
+}
+
+static struct entry* entry_copy(const struct entry *e) {
+    struct entry* r;
+
+    pa_assert(e);
+    r = entry_new();
+    *r = *e;
+    r->port = pa_xstrdup(e->port);
+    return r;
 }
 
 static void trigger_save(struct userdata *u) {
@@ -172,7 +242,7 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
     pa_cvolume t;
 
     if (a->port_valid != b->port_valid ||
-        (a->port_valid && strncmp(a->port, b->port, sizeof(a->port))))
+        (a->port_valid && !pa_streq(a->port, b->port)))
         return FALSE;
 
     if (a->muted_valid != b->muted_valid ||
@@ -189,9 +259,8 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
 
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u = userdata;
-    struct entry entry, *old;
+    struct entry *entry, *old;
     char *name;
-    pa_datum key, data;
 
     pa_assert(c);
     pa_assert(u);
@@ -202,9 +271,6 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         t != (PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE))
         return;
 
-    pa_zero(entry);
-    entry.version = ENTRY_VERSION;
-
     if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK) {
         pa_sink *sink;
 
@@ -213,23 +279,26 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         name = pa_sprintf_malloc("sink:%s", sink->name);
 
-        if ((old = read_entry(u, name)))
-            entry = *old;
+        if ((old = entry_read(u, name)))
+            entry = entry_copy(old);
+        else
+            entry = entry_new();
 
         if (sink->save_volume) {
-            entry.channel_map = sink->channel_map;
-            entry.volume = *pa_sink_get_volume(sink, FALSE);
-            entry.volume_valid = TRUE;
+            entry->channel_map = sink->channel_map;
+            entry->volume = *pa_sink_get_volume(sink, FALSE);
+            entry->volume_valid = TRUE;
         }
 
         if (sink->save_muted) {
-            entry.muted = pa_sink_get_mute(sink, FALSE);
-            entry.muted_valid = TRUE;
+            entry->muted = pa_sink_get_mute(sink, FALSE);
+            entry->muted_valid = TRUE;
         }
 
         if (sink->save_port) {
-            pa_strlcpy(entry.port, sink->active_port ? sink->active_port->name : "", sizeof(entry.port));
-            entry.port_valid = TRUE;
+            pa_xfree(entry->port);
+            entry->port = pa_xstrdup(sink->active_port ? sink->active_port->name : "");
+            entry->port_valid = TRUE;
         }
 
     } else {
@@ -242,50 +311,50 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         name = pa_sprintf_malloc("source:%s", source->name);
 
-        if ((old = read_entry(u, name)))
-            entry = *old;
+        if ((old = entry_read(u, name)))
+            entry = entry_copy(old);
+        else
+            entry = entry_new();
 
         if (source->save_volume) {
-            entry.channel_map = source->channel_map;
-            entry.volume = *pa_source_get_volume(source, FALSE);
-            entry.volume_valid = TRUE;
+            entry->channel_map = source->channel_map;
+            entry->volume = *pa_source_get_volume(source, FALSE);
+            entry->volume_valid = TRUE;
         }
 
         if (source->save_muted) {
-            entry.muted = pa_source_get_mute(source, FALSE);
-            entry.muted_valid = TRUE;
+            entry->muted = pa_source_get_mute(source, FALSE);
+            entry->muted_valid = TRUE;
         }
 
         if (source->save_port) {
-            pa_strlcpy(entry.port, source->active_port ? source->active_port->name : "", sizeof(entry.port));
-            entry.port_valid = TRUE;
+            pa_xfree(entry->port);
+            entry->port = pa_xstrdup(source->active_port ? source->active_port->name : "");
+            entry->port_valid = TRUE;
         }
     }
 
+    pa_assert(entry);
+
     if (old) {
 
-        if (entries_equal(old, &entry)) {
-            pa_xfree(old);
+        if (entries_equal(old, entry)) {
+            entry_free(old);
+            entry_free(entry);
             pa_xfree(name);
             return;
         }
 
-        pa_xfree(old);
+        entry_free(old);
     }
-
-    key.data = name;
-    key.size = strlen(name);
-
-    data.data = &entry;
-    data.size = sizeof(entry);
 
     pa_log_info("Storing volume/mute/port for device %s.", name);
 
-    pa_database_set(u->database, &key, &data, TRUE);
+    if (entry_write(u, name, entry))
+        trigger_save(u);
 
+    entry_free(entry);
     pa_xfree(name);
-
-    trigger_save(u);
 }
 
 static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new_data, struct userdata *u) {
@@ -299,7 +368,7 @@ static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new
 
     name = pa_sprintf_malloc("sink:%s", new_data->name);
 
-    if ((e = read_entry(u, name))) {
+    if ((e = entry_read(u, name))) {
 
         if (e->port_valid) {
             if (!new_data->active_port) {
@@ -310,7 +379,7 @@ static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new
                 pa_log_debug("Not restoring port for sink %s, because already set.", name);
         }
 
-        pa_xfree(e);
+        entry_free(e);
     }
 
     pa_xfree(name);
@@ -329,7 +398,7 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
 
     name = pa_sprintf_malloc("sink:%s", new_data->name);
 
-    if ((e = read_entry(u, name))) {
+    if ((e = entry_read(u, name))) {
 
         if (u->restore_volume && e->volume_valid) {
 
@@ -357,7 +426,7 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
                 pa_log_debug("Not restoring mute state for sink %s, because already set.", new_data->name);
         }
 
-        pa_xfree(e);
+        entry_free(e);
     }
 
     pa_xfree(name);
@@ -376,7 +445,7 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
 
     name = pa_sprintf_malloc("source:%s", new_data->name);
 
-    if ((e = read_entry(u, name))) {
+    if ((e = entry_read(u, name))) {
 
         if (e->port_valid) {
             if (!new_data->active_port) {
@@ -387,7 +456,7 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
                 pa_log_debug("Not restoring port for source %s, because already set.", name);
         }
 
-        pa_xfree(e);
+        entry_free(e);
     }
 
     pa_xfree(name);
@@ -406,7 +475,7 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
 
     name = pa_sprintf_malloc("source:%s", new_data->name);
 
-    if ((e = read_entry(u, name))) {
+    if ((e = entry_read(u, name))) {
 
         if (u->restore_volume && e->volume_valid) {
 
@@ -434,7 +503,7 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
                 pa_log_debug("Not restoring mute state for source %s, because already set.", new_data->name);
         }
 
-        pa_xfree(e);
+        entry_free(e);
     }
 
     pa_xfree(name);

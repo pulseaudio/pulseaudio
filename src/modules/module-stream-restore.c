@@ -51,6 +51,7 @@
 #include <pulsecore/pstream.h>
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/database.h>
+#include <pulsecore/tagstruct.h>
 
 #ifdef HAVE_DBUS
 #include <pulsecore/dbus-util.h>
@@ -114,17 +115,17 @@ struct userdata {
 #endif
 };
 
-#define ENTRY_VERSION 3
+#define ENTRY_VERSION 4
 
 struct entry {
     uint8_t version;
-    pa_bool_t muted_valid:1, volume_valid:1, device_valid:1, card_valid:1;
-    pa_bool_t muted:1;
+    pa_bool_t muted_valid, volume_valid, device_valid, card_valid;
+    pa_bool_t muted;
     pa_channel_map channel_map;
     pa_cvolume volume;
-    char device[PA_NAME_MAX];
-    char card[PA_NAME_MAX];
-} PA_GCC_PACKED;
+    char* device;
+    char* card;
+};
 
 enum {
     SUBCOMMAND_TEST,
@@ -135,8 +136,13 @@ enum {
     SUBCOMMAND_EVENT
 };
 
-static struct entry *read_entry(struct userdata *u, const char *name);
-static void apply_entry(struct userdata *u, const char *name, struct entry *e);
+
+static struct entry* entry_new(void);
+static void entry_free(struct entry *e);
+static struct entry *entry_read(struct userdata *u, const char *name);
+static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e, pa_bool_t replace);
+static struct entry* entry_copy(const struct entry *e);
+static void entry_apply(struct userdata *u, const char *name, struct entry *e);
 static void trigger_save(struct userdata *u);
 
 #ifdef HAVE_DBUS
@@ -590,8 +596,6 @@ static void handle_add_entry(DBusConnection *conn, DBusMessage *msg, void *userd
     pa_cvolume vol;
     dbus_bool_t muted = FALSE;
     dbus_bool_t apply_immediately = FALSE;
-    pa_datum key;
-    pa_datum value;
     struct dbus_entry *dbus_entry = NULL;
     struct entry *e = NULL;
 
@@ -624,7 +628,7 @@ static void handle_add_entry(DBusConnection *conn, DBusMessage *msg, void *userd
         pa_bool_t volume_updated = FALSE;
         pa_bool_t device_updated = FALSE;
 
-        pa_assert_se(e = read_entry(u, name));
+        pa_assert_se(e = entry_read(u, name));
         mute_updated = e->muted != muted;
         e->muted = muted;
         e->muted_valid = TRUE;
@@ -635,7 +639,8 @@ static void handle_add_entry(DBusConnection *conn, DBusMessage *msg, void *userd
         e->volume_valid = !!map.channels;
 
         device_updated = (e->device_valid != !!device[0]) || !pa_streq(e->device, device);
-        pa_strlcpy(e->device, device, sizeof(e->device));
+        pa_xfree(e->device);
+        e->device = pa_xstrdup(device);
         e->device_valid = !!device[0];
 
         if (mute_updated)
@@ -649,34 +654,28 @@ static void handle_add_entry(DBusConnection *conn, DBusMessage *msg, void *userd
         dbus_entry = dbus_entry_new(u, name);
         pa_assert_se(pa_hashmap_put(u->dbus_entries, dbus_entry->entry_name, dbus_entry) == 0);
 
-        e = pa_xnew0(struct entry, 1);
-        e->version = ENTRY_VERSION;
+        e = entry_new();
         e->muted_valid = TRUE;
         e->volume_valid = !!map.channels;
         e->device_valid = !!device[0];
         e->muted = muted;
         e->volume = vol;
         e->channel_map = map;
-        pa_strlcpy(e->device, device, sizeof(e->device));
+        e->device = pa_xstrdup(device);
 
         send_new_entry_signal(dbus_entry);
     }
 
-    key.data = (char *) name;
-    key.size = strlen(name);
+    pa_assert_se(entry_write(u, name, e, TRUE));
 
-    value.data = e;
-    value.size = sizeof(struct entry);
-
-    pa_assert_se(pa_database_set(u->database, &key, &value, TRUE) == 0);
     if (apply_immediately)
-        apply_entry(u, name, e);
+        entry_apply(u, name, e);
 
     trigger_save(u);
 
     pa_dbus_send_empty_reply(conn, msg);
 
-    pa_xfree(e);
+    entry_free(e);
 }
 
 static void handle_get_entry_by_name(DBusConnection *conn, DBusMessage *msg, void *userdata) {
@@ -727,13 +726,13 @@ static void handle_entry_get_device(DBusConnection *conn, DBusMessage *msg, void
     pa_assert(msg);
     pa_assert(de);
 
-    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+    pa_assert_se(e = entry_read(de->userdata, de->entry_name));
 
     device = e->device_valid ? e->device : "";
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_STRING, &device);
 
-    pa_xfree(e);
+    entry_free(e);
 }
 
 static void handle_entry_set_device(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
@@ -749,31 +748,25 @@ static void handle_entry_set_device(DBusConnection *conn, DBusMessage *msg, DBus
 
     dbus_message_iter_get_basic(iter, &device);
 
-    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+    pa_assert_se(e = entry_read(de->userdata, de->entry_name));
 
     updated = (e->device_valid != !!device[0]) || !pa_streq(e->device, device);
 
     if (updated) {
-        pa_datum key;
-        pa_datum value;
-
-        pa_strlcpy(e->device, device, sizeof(e->device));
+        pa_xfree(e->device);
+        e->device = pa_xstrdup(device);
         e->device_valid = !!device[0];
 
-        key.data = de->entry_name;
-        key.size = strlen(de->entry_name);
-        value.data = e;
-        value.size = sizeof(struct entry);
-        pa_assert_se(pa_database_set(de->userdata->database, &key, &value, TRUE) == 0);
+        pa_assert_se(entry_write(de->userdata, de->entry_name, e, TRUE));
 
-        apply_entry(de->userdata, de->entry_name, e);
+        entry_apply(de->userdata, de->entry_name, e);
         send_device_updated_signal(de, e);
         trigger_save(de->userdata);
     }
 
     pa_dbus_send_empty_reply(conn, msg);
 
-    pa_xfree(e);
+    entry_free(e);
 }
 
 static void handle_entry_get_volume(DBusConnection *conn, DBusMessage *msg, void *userdata) {
@@ -786,7 +779,7 @@ static void handle_entry_get_volume(DBusConnection *conn, DBusMessage *msg, void
     pa_assert(msg);
     pa_assert(de);
 
-    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+    pa_assert_se(e = entry_read(de->userdata, de->entry_name));
 
     pa_assert_se(reply = dbus_message_new_method_return(msg));
 
@@ -795,7 +788,7 @@ static void handle_entry_get_volume(DBusConnection *conn, DBusMessage *msg, void
 
     pa_assert_se(dbus_connection_send(conn, reply, NULL));
 
-    pa_xfree(e);
+    entry_free(e);
 }
 
 static void handle_entry_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
@@ -813,32 +806,25 @@ static void handle_entry_set_volume(DBusConnection *conn, DBusMessage *msg, DBus
     if (get_volume_arg(conn, msg, iter, &map, &vol) < 0)
         return;
 
-    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+    pa_assert_se(e = entry_read(de->userdata, de->entry_name));
 
     updated = (e->volume_valid != !!map.channels) || !pa_cvolume_equal(&e->volume, &vol);
 
     if (updated) {
-        pa_datum key;
-        pa_datum value;
-
         e->volume = vol;
         e->channel_map = map;
         e->volume_valid = !!map.channels;
 
-        key.data = de->entry_name;
-        key.size = strlen(de->entry_name);
-        value.data = e;
-        value.size = sizeof(struct entry);
-        pa_assert_se(pa_database_set(de->userdata->database, &key, &value, TRUE) == 0);
+        pa_assert_se(entry_write(de->userdata, de->entry_name, e, TRUE));
 
-        apply_entry(de->userdata, de->entry_name, e);
+        entry_apply(de->userdata, de->entry_name, e);
         send_volume_updated_signal(de, e);
         trigger_save(de->userdata);
     }
 
     pa_dbus_send_empty_reply(conn, msg);
 
-    pa_xfree(e);
+    entry_free(e);
 }
 
 static void handle_entry_get_mute(DBusConnection *conn, DBusMessage *msg, void *userdata) {
@@ -850,13 +836,13 @@ static void handle_entry_get_mute(DBusConnection *conn, DBusMessage *msg, void *
     pa_assert(msg);
     pa_assert(de);
 
-    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+    pa_assert_se(e = entry_read(de->userdata, de->entry_name));
 
     mute = e->muted_valid ? e->muted : FALSE;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &mute);
 
-    pa_xfree(e);
+    entry_free(e);
 }
 
 static void handle_entry_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
@@ -872,31 +858,24 @@ static void handle_entry_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMe
 
     dbus_message_iter_get_basic(iter, &mute);
 
-    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+    pa_assert_se(e = entry_read(de->userdata, de->entry_name));
 
     updated = !e->muted_valid || e->muted != mute;
 
     if (updated) {
-        pa_datum key;
-        pa_datum value;
-
         e->muted = mute;
         e->muted_valid = TRUE;
 
-        key.data = de->entry_name;
-        key.size = strlen(de->entry_name);
-        value.data = e;
-        value.size = sizeof(struct entry);
-        pa_assert_se(pa_database_set(de->userdata->database, &key, &value, TRUE) == 0);
+        pa_assert_se(entry_write(de->userdata, de->entry_name, e, TRUE));
 
-        apply_entry(de->userdata, de->entry_name, e);
+        entry_apply(de->userdata, de->entry_name, e);
         send_mute_updated_signal(de, e);
         trigger_save(de->userdata);
     }
 
     pa_dbus_send_empty_reply(conn, msg);
 
-    pa_xfree(e);
+    entry_free(e);
 }
 
 static void handle_entry_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata) {
@@ -913,7 +892,7 @@ static void handle_entry_get_all(DBusConnection *conn, DBusMessage *msg, void *u
     pa_assert(msg);
     pa_assert(de);
 
-    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+    pa_assert_se(e = entry_read(de->userdata, de->entry_name));
 
     device = e->device_valid ? e->device : "";
     mute = e->muted_valid ? e->muted : FALSE;
@@ -942,7 +921,7 @@ static void handle_entry_get_all(DBusConnection *conn, DBusMessage *msg, void *u
 
     dbus_message_unref(reply);
 
-    pa_xfree(e);
+    entry_free(e);
 }
 
 static void handle_entry_remove(DBusConnection *conn, DBusMessage *msg, void *userdata) {
@@ -1009,9 +988,25 @@ static char *get_name(pa_proplist *p, const char *prefix) {
     return t;
 }
 
-static struct entry *read_entry(struct userdata *u, const char *name) {
+static struct entry* entry_new(void) {
+    struct entry *r = pa_xnew0(struct entry, 1);
+    r->version = ENTRY_VERSION;
+    return r;
+}
+
+static void entry_free(struct entry* e) {
+    pa_assert(e);
+
+    pa_xfree(e->device);
+    pa_xfree(e->card);
+    pa_xfree(e);
+}
+
+static struct entry *entry_read(struct userdata *u, const char *name) {
     pa_datum key, data;
-    struct entry *e;
+    struct entry *e = NULL;
+    pa_tagstruct *t = NULL;
+    const char *device, *card;
 
     pa_assert(u);
     pa_assert(name);
@@ -1024,29 +1019,29 @@ static struct entry *read_entry(struct userdata *u, const char *name) {
     if (!pa_database_get(u->database, &key, &data))
         goto fail;
 
-    if (data.size != sizeof(struct entry)) {
-        /* This is probably just a database upgrade, hence let's not
-         * consider this more than a debug message */
-        pa_log_debug("Database contains entry for stream %s of wrong size %lu != %lu. Probably due to uprade, ignoring.", name, (unsigned long) data.size, (unsigned long) sizeof(struct entry));
+    t = pa_tagstruct_new(data.data, data.size);
+    e = entry_new();
+
+    if (pa_tagstruct_getu8(t, &e->version) < 0 ||
+        e->version > ENTRY_VERSION ||
+        pa_tagstruct_get_boolean(t, &e->volume_valid) < 0 ||
+        pa_tagstruct_get_channel_map(t, &e->channel_map) < 0 ||
+        pa_tagstruct_get_cvolume(t, &e->volume) < 0 ||
+        pa_tagstruct_get_boolean(t, &e->muted_valid) < 0 ||
+        pa_tagstruct_get_boolean(t, &e->muted) < 0 ||
+        pa_tagstruct_get_boolean(t, &e->device_valid) < 0 ||
+        pa_tagstruct_gets(t, &device) < 0 ||
+        pa_tagstruct_get_boolean(t, &e->card_valid) < 0 ||
+        pa_tagstruct_gets(t, &card) < 0) {
+
         goto fail;
     }
 
-    e = (struct entry*) data.data;
+    e->device = pa_xstrdup(device);
+    e->card = pa_xstrdup(card);
 
-    if (e->version != ENTRY_VERSION) {
-        pa_log_debug("Version of database entry for stream %s doesn't match our version. Probably due to upgrade, ignoring.", name);
+    if (!pa_tagstruct_eof(t))
         goto fail;
-    }
-
-    if (!memchr(e->device, 0, sizeof(e->device))) {
-        pa_log_warn("Database contains entry for stream %s with missing NUL byte in device name", name);
-        goto fail;
-    }
-
-    if (!memchr(e->card, 0, sizeof(e->card))) {
-        pa_log_warn("Database contains entry for stream %s with missing NUL byte in card name", name);
-        goto fail;
-    }
 
     if (e->device_valid && !pa_namereg_is_valid_name(e->device)) {
         pa_log_warn("Invalid device name stored in database for stream %s", name);
@@ -1068,12 +1063,65 @@ static struct entry *read_entry(struct userdata *u, const char *name) {
         goto fail;
     }
 
+    pa_tagstruct_free(t);
+    pa_datum_free(&data);
+
     return e;
 
 fail:
 
+    pa_log_debug("Database contains invalid data for key: %s (probably pre-v1.0 data)", name);
+
+    if (e)
+        entry_free(e);
+    if (t)
+        pa_tagstruct_free(t);
     pa_datum_free(&data);
     return NULL;
+}
+
+static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e, pa_bool_t replace) {
+    pa_tagstruct *t;
+    pa_datum key, data;
+    pa_bool_t r;
+
+    pa_assert(u);
+    pa_assert(name);
+    pa_assert(e);
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu8(t, e->version);
+    pa_tagstruct_put_boolean(t, e->volume_valid);
+    pa_tagstruct_put_channel_map(t, &e->channel_map);
+    pa_tagstruct_put_cvolume(t, &e->volume);
+    pa_tagstruct_put_boolean(t, e->muted_valid);
+    pa_tagstruct_put_boolean(t, e->muted);
+    pa_tagstruct_put_boolean(t, e->device_valid);
+    pa_tagstruct_puts(t, e->device);
+    pa_tagstruct_put_boolean(t, e->card_valid);
+    pa_tagstruct_puts(t, e->card);
+
+    key.data = (char *) name;
+    key.size = strlen(name);
+
+    data.data = (void*)pa_tagstruct_data(t, &data.size);
+
+    r = (pa_database_set(u->database, &key, &data, replace) == 0);
+
+    pa_tagstruct_free(t);
+
+    return r;
+}
+
+static struct entry* entry_copy(const struct entry *e) {
+    struct entry* r;
+
+    pa_assert(e);
+    r = entry_new();
+    *r = *e;
+    r->device = pa_xstrdup(e->device);
+    r->card = pa_xstrdup(e->card);
+    return r;
 }
 
 static void trigger_save(struct userdata *u) {
@@ -1106,11 +1154,11 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
     pa_assert(b);
 
     if (a->device_valid != b->device_valid ||
-        (a->device_valid && strncmp(a->device, b->device, sizeof(a->device))))
+        (a->device_valid && !pa_streq(a->device, b->device)))
         return FALSE;
 
     if (a->card_valid != b->card_valid ||
-        (a->card_valid && strncmp(a->card, b->card, sizeof(a->card))))
+        (a->card_valid && !pa_streq(a->card, b->card)))
         return FALSE;
 
     if (a->muted_valid != b->muted_valid ||
@@ -1127,9 +1175,8 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
 
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u = userdata;
-    struct entry entry, *old = NULL;
+    struct entry *entry, *old = NULL;
     char *name = NULL;
-    pa_datum key, data;
 
     /* These are only used when D-Bus is enabled, but in order to reduce ifdef
      * clutter these are defined here unconditionally. */
@@ -1151,9 +1198,6 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         t != (PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE))
         return;
 
-    pa_zero(entry);
-    entry.version = ENTRY_VERSION;
-
     if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
         pa_sink_input *sink_input;
 
@@ -1163,39 +1207,42 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!(name = get_name(sink_input->proplist, "sink-input")))
             return;
 
-        if ((old = read_entry(u, name))) {
-            entry = *old;
+        if ((old = entry_read(u, name))) {
+            entry = entry_copy(old);
             created_new_entry = FALSE;
-        }
+        } else
+            entry = entry_new();
 
         if (sink_input->save_volume && pa_sink_input_is_volume_readable(sink_input)) {
             pa_assert(sink_input->volume_writable);
 
-            entry.channel_map = sink_input->channel_map;
-            pa_sink_input_get_volume(sink_input, &entry.volume, FALSE);
-            entry.volume_valid = TRUE;
+            entry->channel_map = sink_input->channel_map;
+            pa_sink_input_get_volume(sink_input, &entry->volume, FALSE);
+            entry->volume_valid = TRUE;
 
             volume_updated = !created_new_entry
                              && (!old->volume_valid
-                                 || !pa_channel_map_equal(&entry.channel_map, &old->channel_map)
-                                 || !pa_cvolume_equal(&entry.volume, &old->volume));
+                                 || !pa_channel_map_equal(&entry->channel_map, &old->channel_map)
+                                 || !pa_cvolume_equal(&entry->volume, &old->volume));
         }
 
         if (sink_input->save_muted) {
-            entry.muted = pa_sink_input_get_mute(sink_input);
-            entry.muted_valid = TRUE;
+            entry->muted = pa_sink_input_get_mute(sink_input);
+            entry->muted_valid = TRUE;
 
-            mute_updated = !created_new_entry && (!old->muted_valid || entry.muted != old->muted);
+            mute_updated = !created_new_entry && (!old->muted_valid || entry->muted != old->muted);
         }
 
         if (sink_input->save_sink) {
-            pa_strlcpy(entry.device, sink_input->sink->name, sizeof(entry.device));
-            entry.device_valid = TRUE;
+            pa_xfree(entry->device);
+            entry->device = pa_xstrdup(sink_input->sink->name);
+            entry->device_valid = TRUE;
 
-            device_updated = !created_new_entry && (!old->device_valid || !pa_streq(entry.device, old->device));
+            device_updated = !created_new_entry && (!old->device_valid || !pa_streq(entry->device, old->device));
             if (sink_input->sink->card) {
-                pa_strlcpy(entry.card, sink_input->sink->card->name, sizeof(entry.card));
-                entry.card_valid = TRUE;
+                pa_xfree(entry->card);
+                entry->card = pa_xstrdup(sink_input->sink->card->name);
+                entry->card_valid = TRUE;
             }
         }
 
@@ -1210,44 +1257,45 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!(name = get_name(source_output->proplist, "source-output")))
             return;
 
-        if ((old = read_entry(u, name))) {
-            entry = *old;
+        if ((old = entry_read(u, name))) {
+            entry = entry_copy(old);
             created_new_entry = FALSE;
-        }
+        } else
+            entry = entry_new();
 
         if (source_output->save_source) {
-            pa_strlcpy(entry.device, source_output->source->name, sizeof(entry.device));
-            entry.device_valid = TRUE;
+            pa_xfree(entry->device);
+            entry->device = pa_xstrdup(source_output->source->name);
+            entry->device_valid = TRUE;
 
-            device_updated = !created_new_entry && (!old->device_valid || !pa_streq(entry.device, old->device));
+            device_updated = !created_new_entry && (!old->device_valid || !pa_streq(entry->device, old->device));
 
             if (source_output->source->card) {
-                pa_strlcpy(entry.card, source_output->source->card->name, sizeof(entry.card));
-                entry.card_valid = TRUE;
+                pa_xfree(entry->card);
+                entry->card = pa_xstrdup(source_output->source->card->name);
+                entry->card_valid = TRUE;
             }
         }
     }
 
+    pa_assert(entry);
+
     if (old) {
 
-        if (entries_equal(old, &entry)) {
-            pa_xfree(old);
+        if (entries_equal(old, entry)) {
+            entry_free(old);
+            entry_free(entry);
             pa_xfree(name);
             return;
         }
 
-        pa_xfree(old);
+        entry_free(old);
     }
-
-    key.data = name;
-    key.size = strlen(name);
-
-    data.data = &entry;
-    data.size = sizeof(entry);
 
     pa_log_info("Storing volume/mute/device for stream %s.", name);
 
-    pa_database_set(u->database, &key, &data, TRUE);
+    if (entry_write(u, name, entry, TRUE))
+        trigger_save(u);
 
 #ifdef HAVE_DBUS
     if (created_new_entry) {
@@ -1258,17 +1306,16 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         pa_assert_se(de = pa_hashmap_get(u->dbus_entries, name));
 
         if (device_updated)
-            send_device_updated_signal(de, &entry);
+            send_device_updated_signal(de, entry);
         if (volume_updated)
-            send_volume_updated_signal(de, &entry);
+            send_volume_updated_signal(de, entry);
         if (mute_updated)
-            send_mute_updated_signal(de, &entry);
+            send_mute_updated_signal(de, entry);
     }
 #endif
 
+    entry_free(entry);
     pa_xfree(name);
-
-    trigger_save(u);
 }
 
 static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_new_data *new_data, struct userdata *u) {
@@ -1285,7 +1332,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
 
     if (new_data->sink)
         pa_log_debug("Not restoring device for stream %s, because already set to '%s'.", name, new_data->sink->name);
-    else if ((e = read_entry(u, name))) {
+    else if ((e = entry_read(u, name))) {
         pa_sink *s = NULL;
 
         if (e->device_valid)
@@ -1305,7 +1352,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
             if (pa_sink_input_new_data_set_sink(new_data, s, TRUE))
                 pa_log_info("Restoring device for stream %s.", name);
 
-        pa_xfree(e);
+        entry_free(e);
     }
 
     pa_xfree(name);
@@ -1325,7 +1372,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
     if (!(name = get_name(new_data->proplist, "sink-input")))
         return PA_HOOK_OK;
 
-    if ((e = read_entry(u, name))) {
+    if ((e = entry_read(u, name))) {
 
         if (u->restore_volume && e->volume_valid) {
             if (!new_data->volume_writable)
@@ -1356,7 +1403,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
                 pa_log_debug("Not restoring mute state for sink input %s, because already set.", name);
         }
 
-        pa_xfree(e);
+        entry_free(e);
     }
 
     pa_xfree(name);
@@ -1381,7 +1428,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
 
     if (new_data->source)
         pa_log_debug("Not restoring device for stream %s, because already set", name);
-    else if ((e = read_entry(u, name))) {
+    else if ((e = entry_read(u, name))) {
         pa_source *s = NULL;
 
         if (e->device_valid)
@@ -1402,7 +1449,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
             pa_source_output_new_data_set_source(new_data, s, TRUE);
         }
 
-        pa_xfree(e);
+        entry_free(e);
     }
 
     pa_xfree(name);
@@ -1443,11 +1490,11 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct
         if (!(name = get_name(si->proplist, "sink-input")))
             continue;
 
-        if ((e = read_entry(u, name))) {
+        if ((e = entry_read(u, name))) {
             if (e->device_valid && pa_streq(e->device, sink->name))
                 pa_sink_input_move_to(si, sink, TRUE);
 
-            pa_xfree(e);
+            entry_free(e);
         }
 
         pa_xfree(name);
@@ -1491,11 +1538,11 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
         if (!(name = get_name(so->proplist, "source-output")))
             continue;
 
-        if ((e = read_entry(u, name))) {
+        if ((e = entry_read(u, name))) {
             if (e->device_valid && pa_streq(e->device, source->name))
                 pa_source_output_move_to(so, source, TRUE);
 
-            pa_xfree(e);
+            entry_free(e);
         }
 
         pa_xfree(name);
@@ -1527,7 +1574,7 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
         if (!(name = get_name(si->proplist, "sink-input")))
             continue;
 
-        if ((e = read_entry(u, name))) {
+        if ((e = entry_read(u, name))) {
 
             if (e->device_valid) {
                 pa_sink *d;
@@ -1538,7 +1585,7 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
                     pa_sink_input_move_to(si, d, TRUE);
             }
 
-            pa_xfree(e);
+            entry_free(e);
         }
 
         pa_xfree(name);
@@ -1573,7 +1620,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
         if (!(name = get_name(so->proplist, "source-output")))
             continue;
 
-        if ((e = read_entry(u, name))) {
+        if ((e = entry_read(u, name))) {
 
             if (e->device_valid) {
                 pa_source *d;
@@ -1584,7 +1631,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
                     pa_source_output_move_to(so, d, TRUE);
             }
 
-            pa_xfree(e);
+            entry_free(e);
         }
 
         pa_xfree(name);
@@ -1595,7 +1642,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
 
 #define EXT_VERSION 1
 
-static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
+static void entry_apply(struct userdata *u, const char *name, struct entry *e) {
     pa_sink_input *si;
     pa_source_output *so;
     uint32_t idx;
@@ -1704,14 +1751,14 @@ PA_GCC_UNUSED static void stream_restore_dump_database(struct userdata *u) {
         name = pa_xstrndup(key.data, key.size);
         pa_datum_free(&key);
 
-        if ((e = read_entry(u, name))) {
+        if ((e = entry_read(u, name))) {
             char t[256];
             pa_log("name=%s", name);
             pa_log("device=%s %s", e->device, pa_yes_no(e->device_valid));
             pa_log("channel_map=%s", pa_channel_map_snprint(t, sizeof(t), &e->channel_map));
             pa_log("volume=%s %s", pa_cvolume_snprint(t, sizeof(t), &e->volume), pa_yes_no(e->volume_valid));
             pa_log("mute=%s %s", pa_yes_no(e->muted), pa_yes_no(e->volume_valid));
-            pa_xfree(e);
+            entry_free(e);
         }
 
         pa_xfree(name);
@@ -1768,7 +1815,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 name = pa_xstrndup(key.data, key.size);
                 pa_datum_free(&key);
 
-                if ((e = read_entry(u, name))) {
+                if ((e = entry_read(u, name))) {
                     pa_cvolume r;
                     pa_channel_map cm;
 
@@ -1778,7 +1825,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                     pa_tagstruct_puts(reply, e->device_valid ? e->device : NULL);
                     pa_tagstruct_put_boolean(reply, e->muted_valid ? e->muted : FALSE);
 
-                    pa_xfree(e);
+                    entry_free(e);
                 }
 
                 pa_xfree(name);
@@ -1818,74 +1865,70 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             while (!pa_tagstruct_eof(t)) {
                 const char *name, *device;
                 pa_bool_t muted;
-                struct entry entry;
-                pa_datum key, data;
+                struct entry *entry;
 #ifdef HAVE_DBUS
                 struct entry *old;
 #endif
 
-                pa_zero(entry);
-                entry.version = ENTRY_VERSION;
+                entry = entry_new();
 
                 if (pa_tagstruct_gets(t, &name) < 0 ||
-                    pa_tagstruct_get_channel_map(t, &entry.channel_map) ||
-                    pa_tagstruct_get_cvolume(t, &entry.volume) < 0 ||
+                    pa_tagstruct_get_channel_map(t, &entry->channel_map) ||
+                    pa_tagstruct_get_cvolume(t, &entry->volume) < 0 ||
                     pa_tagstruct_gets(t, &device) < 0 ||
                     pa_tagstruct_get_boolean(t, &muted) < 0)
                     goto fail;
 
-                if (!name || !*name)
+                if (!name || !*name) {
+                    entry_free(entry);
                     goto fail;
+                }
 
-                entry.volume_valid = entry.volume.channels > 0;
+                entry->volume_valid = entry->volume.channels > 0;
 
-                if (entry.volume_valid)
-                    if (!pa_cvolume_compatible_with_channel_map(&entry.volume, &entry.channel_map))
+                if (entry->volume_valid)
+                    if (!pa_cvolume_compatible_with_channel_map(&entry->volume, &entry->channel_map)) {
+                        entry_free(entry);
                         goto fail;
+                    }
 
-                entry.muted = muted;
-                entry.muted_valid = TRUE;
+                entry->muted = muted;
+                entry->muted_valid = TRUE;
 
-                if (device)
-                    pa_strlcpy(entry.device, device, sizeof(entry.device));
-                entry.device_valid = !!entry.device[0];
+                entry->device = pa_xstrdup(device);
+                entry->device_valid = device && !!entry->device[0];
 
-                if (entry.device_valid &&
-                    !pa_namereg_is_valid_name(entry.device))
+                if (entry->device_valid && !pa_namereg_is_valid_name(entry->device)) {
+                    entry_free(entry);
                     goto fail;
+                }
 
 #ifdef HAVE_DBUS
-                old = read_entry(u, name);
+                old = entry_read(u, name);
 #endif
-
-                key.data = (char*) name;
-                key.size = strlen(name);
-
-                data.data = &entry;
-                data.size = sizeof(entry);
 
                 pa_log_debug("Client %s changes entry %s.",
                              pa_strnull(pa_proplist_gets(pa_native_connection_get_client(c)->proplist, PA_PROP_APPLICATION_PROCESS_BINARY)),
                              name);
 
-                if (pa_database_set(u->database, &key, &data, mode == PA_UPDATE_REPLACE) == 0) {
+                if (entry_write(u, name, entry, mode == PA_UPDATE_REPLACE)) {
 #ifdef HAVE_DBUS
                     struct dbus_entry *de;
 
                     if (old) {
                         pa_assert_se((de = pa_hashmap_get(u->dbus_entries, name)));
 
-                        if ((old->device_valid != entry.device_valid)
-                            || (entry.device_valid && !pa_streq(entry.device, old->device)))
-                            send_device_updated_signal(de, &entry);
+                        if ((old->device_valid != entry->device_valid)
+                            || (entry->device_valid && !pa_streq(entry->device, old->device)))
+                            send_device_updated_signal(de, entry);
 
-                        if ((old->volume_valid != entry.volume_valid)
-                            || (entry.volume_valid && (!pa_cvolume_equal(&entry.volume, &old->volume)
-                                                       || !pa_channel_map_equal(&entry.channel_map, &old->channel_map))))
-                            send_volume_updated_signal(de, &entry);
+                        if ((old->volume_valid != entry->volume_valid)
+                            || (entry->volume_valid && (!pa_cvolume_equal(&entry->volume, &old->volume)
+                                                       || !pa_channel_map_equal(&entry->channel_map, &old->channel_map))))
+                            send_volume_updated_signal(de, entry);
 
-                        if (!old->muted_valid || (entry.muted != old->muted))
-                            send_mute_updated_signal(de, &entry);
+                        if (!old->muted_valid || (entry->muted != old->muted))
+                            send_mute_updated_signal(de, entry);
 
                     } else {
                         de = dbus_entry_new(u, name);
@@ -1895,13 +1938,14 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 #endif
 
                     if (apply_immediately)
-                        apply_entry(u, name, &entry);
+                        entry_apply(u, name, entry);
                 }
 
 #ifdef HAVE_DBUS
                 if (old)
-                    pa_xfree(old);
+                    entry_free(old);
 #endif
+                entry_free(entry);
             }
 
             trigger_save(u);
@@ -2080,11 +2124,11 @@ int pa__init(pa_module*m) {
         name = pa_xstrndup(key.data, key.size);
         pa_datum_free(&key);
 
-        /* Use read_entry() for checking that the entry is valid. */
-        if ((e = read_entry(u, name))) {
+        /* Use entry_read() for checking that the entry is valid. */
+        if ((e = entry_read(u, name))) {
             de = dbus_entry_new(u, name);
             pa_assert_se(pa_hashmap_put(u->dbus_entries, de->entry_name, de) == 0);
-            pa_xfree(e);
+            entry_free(e);
         }
 
         pa_xfree(name);
