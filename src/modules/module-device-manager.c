@@ -130,7 +130,7 @@ struct userdata {
     role_indexes_t preferred_sources;
 };
 
-#define ENTRY_VERSION 2
+#define ENTRY_VERSION 1
 
 struct entry {
     uint8_t version;
@@ -152,6 +152,44 @@ enum {
 };
 
 
+/* Forward declarations */
+#ifdef DUMP_DATABASE
+static void dump_database(struct userdata *);
+#endif
+static void notify_subscribers(struct userdata *);
+
+
+static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
+    struct userdata *u = userdata;
+
+    pa_assert(a);
+    pa_assert(e);
+    pa_assert(u);
+
+    pa_assert(e == u->save_time_event);
+    u->core->mainloop->time_free(u->save_time_event);
+    u->save_time_event = NULL;
+
+    pa_database_sync(u->database);
+    pa_log_info("Synced.");
+
+#ifdef DUMP_DATABASE
+    dump_database(u);
+#endif
+}
+
+static void trigger_save(struct userdata *u) {
+
+    pa_assert(u);
+
+    notify_subscribers(u);
+
+    if (u->save_time_event)
+        return;
+
+    u->save_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, save_time_callback, u);
+}
+
 static struct entry* entry_new(void) {
     struct entry *r = pa_xnew0(struct entry, 1);
     r->version = ENTRY_VERSION;
@@ -164,6 +202,81 @@ static void entry_free(struct entry* e) {
     pa_xfree(e->description);
     pa_xfree(e->icon);
 }
+
+static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e) {
+    pa_tagstruct *t;
+    pa_datum key, data;
+    pa_bool_t r;
+
+    pa_assert(u);
+    pa_assert(name);
+    pa_assert(e);
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu8(t, e->version);
+    pa_tagstruct_puts(t, e->description);
+    pa_tagstruct_put_boolean(t, e->user_set_description);
+    pa_tagstruct_puts(t, e->icon);
+    for (uint8_t i=0; i<ROLE_MAX; ++i)
+        pa_tagstruct_putu32(t, e->priority[i]);
+
+    key.data = (char *) name;
+    key.size = strlen(name);
+
+    data.data = (void*)pa_tagstruct_data(t, &data.size);
+
+    r = (pa_database_set(u->database, &key, &data, TRUE) == 0);
+
+    pa_tagstruct_free(t);
+
+    return r;
+}
+
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+
+#define LEGACY_ENTRY_VERSION 1
+static struct entry* legacy_entry_read(struct userdata *u, pa_datum *data) {
+    struct legacy_entry {
+        uint8_t version;
+        char description[PA_NAME_MAX];
+        pa_bool_t user_set_description;
+        char icon[PA_NAME_MAX];
+        role_indexes_t priority;
+    } PA_GCC_PACKED;
+    struct legacy_entry *le;
+    struct entry *e;
+
+    pa_assert(u);
+    pa_assert(data);
+
+    if (data->size != sizeof(struct legacy_entry)) {
+        pa_log_debug("Size does not match.");
+        return NULL;
+    }
+
+    le = (struct legacy_entry*)data->data;
+
+    if (le->version != LEGACY_ENTRY_VERSION) {
+        pa_log_debug("Version mismatch.");
+        return NULL;
+    }
+
+    if (!memchr(le->description, 0, sizeof(le->description))) {
+        pa_log_warn("Description has missing NUL byte.");
+        return NULL;
+    }
+
+    if (!memchr(le->icon, 0, sizeof(le->icon))) {
+        pa_log_warn("Icon has missing NUL byte.");
+        return NULL;
+    }
+
+    e = entry_new();
+    e->description = pa_xstrdup(le->description);
+    e->icon = pa_xstrdup(le->icon);
+    return e;
+}
+#endif
 
 static struct entry* entry_read(struct userdata *u, const char *name) {
     pa_datum key, data;
@@ -217,37 +330,21 @@ fail:
         entry_free(e);
     if (t)
         pa_tagstruct_free(t);
+
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+    pa_log_debug("Attempting to load legacy (pre-v1.0) data for key: %s", name);
+    if ((e = legacy_entry_read(u, &data))) {
+        pa_log_debug("Success. Saving new format for key: %s", name);
+        if (entry_write(u, name, e))
+            trigger_save(u);
+        pa_datum_free(&data);
+        return e;
+    } else
+        pa_log_debug("Unable to load legacy (pre-v1.0) data for key: %s. Ignoring.", name);
+#endif
+
     pa_datum_free(&data);
     return NULL;
-}
-
-static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e) {
-    pa_tagstruct *t;
-    pa_datum key, data;
-    pa_bool_t r;
-
-    pa_assert(u);
-    pa_assert(name);
-    pa_assert(e);
-
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu8(t, e->version);
-    pa_tagstruct_puts(t, e->description);
-    pa_tagstruct_put_boolean(t, e->user_set_description);
-    pa_tagstruct_puts(t, e->icon);
-    for (uint8_t i=0; i<ROLE_MAX; ++i)
-        pa_tagstruct_putu32(t, e->priority[i]);
-
-    key.data = (char *) name;
-    key.size = strlen(name);
-
-    data.data = (void*)pa_tagstruct_data(t, &data.size);
-
-    r = (pa_database_set(u->database, &key, &data, TRUE) == 0);
-
-    pa_tagstruct_free(t);
-
-    return r;
 }
 
 #ifdef DUMP_DATABASE
@@ -332,25 +429,6 @@ static void dump_database(struct userdata *u) {
 }
 #endif
 
-static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
-    struct userdata *u = userdata;
-
-    pa_assert(a);
-    pa_assert(e);
-    pa_assert(u);
-
-    pa_assert(e == u->save_time_event);
-    u->core->mainloop->time_free(u->save_time_event);
-    u->save_time_event = NULL;
-
-    pa_database_sync(u->database);
-    pa_log_info("Synced.");
-
-#ifdef DUMP_DATABASE
-    dump_database(u);
-#endif
-}
-
 static void notify_subscribers(struct userdata *u) {
 
     pa_native_connection *c;
@@ -370,18 +448,6 @@ static void notify_subscribers(struct userdata *u) {
 
         pa_pstream_send_tagstruct(pa_native_connection_get_pstream(c), t);
     }
-}
-
-static void trigger_save(struct userdata *u) {
-
-    pa_assert(u);
-
-    notify_subscribers(u);
-
-    if (u->save_time_event)
-        return;
-
-    u->save_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, save_time_callback, u);
 }
 
 static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {

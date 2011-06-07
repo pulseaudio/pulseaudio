@@ -70,7 +70,7 @@ struct userdata {
     pa_database *database;
 };
 
-#define ENTRY_VERSION 2
+#define ENTRY_VERSION 1
 
 struct entry {
     uint8_t version;
@@ -92,6 +92,13 @@ static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct
     pa_log_info("Synced.");
 }
 
+static void trigger_save(struct userdata *u) {
+    if (u->save_time_event)
+        return;
+
+    u->save_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, save_time_callback, u);
+}
+
 static struct entry* entry_new(void) {
     struct entry *r = pa_xnew0(struct entry, 1);
     r->version = ENTRY_VERSION;
@@ -104,6 +111,68 @@ static void entry_free(struct entry* e) {
     pa_xfree(e->profile);
     pa_xfree(e);
 }
+
+static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e) {
+    pa_tagstruct *t;
+    pa_datum key, data;
+    pa_bool_t r;
+
+    pa_assert(u);
+    pa_assert(name);
+    pa_assert(e);
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu8(t, e->version);
+    pa_tagstruct_puts(t, e->profile);
+
+    key.data = (char *) name;
+    key.size = strlen(name);
+
+    data.data = (void*)pa_tagstruct_data(t, &data.size);
+
+    r = (pa_database_set(u->database, &key, &data, TRUE) == 0);
+
+    pa_tagstruct_free(t);
+
+    return r;
+}
+
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+
+#define LEGACY_ENTRY_VERSION 1
+static struct entry* legacy_entry_read(struct userdata *u, pa_datum *data) {
+    struct legacy_entry {
+        uint8_t version;
+        char profile[PA_NAME_MAX];
+    } PA_GCC_PACKED ;
+    struct legacy_entry *le;
+    struct entry *e;
+
+    pa_assert(u);
+    pa_assert(data);
+
+    if (data->size != sizeof(struct legacy_entry)) {
+        pa_log_debug("Size does not match.");
+        return NULL;
+    }
+
+    le = (struct legacy_entry*)data->data;
+
+    if (le->version != LEGACY_ENTRY_VERSION) {
+        pa_log_debug("Version mismatch.");
+        return NULL;
+    }
+
+    if (!memchr(le->profile, 0, sizeof(le->profile))) {
+        pa_log_warn("Profile has missing NUL byte.");
+        return NULL;
+    }
+
+    e = entry_new();
+    e->profile = pa_xstrdup(le->profile);
+    return e;
+}
+#endif
 
 static struct entry* entry_read(struct userdata *u, const char *name) {
     pa_datum key, data;
@@ -150,40 +219,21 @@ fail:
         entry_free(e);
     if (t)
         pa_tagstruct_free(t);
+
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+    pa_log_debug("Attempting to load legacy (pre-v1.0) data for key: %s", name);
+    if ((e = legacy_entry_read(u, &data))) {
+        pa_log_debug("Success. Saving new format for key: %s", name);
+        if (entry_write(u, name, e))
+            trigger_save(u);
+        pa_datum_free(&data);
+        return e;
+    } else
+        pa_log_debug("Unable to load legacy (pre-v1.0) data for key: %s. Ignoring.", name);
+#endif
+
     pa_datum_free(&data);
     return NULL;
-}
-
-static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e) {
-    pa_tagstruct *t;
-    pa_datum key, data;
-    pa_bool_t r;
-
-    pa_assert(u);
-    pa_assert(name);
-    pa_assert(e);
-
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu8(t, e->version);
-    pa_tagstruct_puts(t, e->profile);
-
-    key.data = (char *) name;
-    key.size = strlen(name);
-
-    data.data = (void*)pa_tagstruct_data(t, &data.size);
-
-    r = (pa_database_set(u->database, &key, &data, TRUE) == 0);
-
-    pa_tagstruct_free(t);
-
-    return r;
-}
-
-static void trigger_save(struct userdata *u) {
-    if (u->save_time_event)
-        return;
-
-    u->save_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, save_time_callback, u);
 }
 
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {

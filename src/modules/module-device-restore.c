@@ -107,7 +107,7 @@ enum {
 };
 
 
-#define ENTRY_VERSION 3
+#define ENTRY_VERSION 1
 
 struct entry {
     uint8_t version;
@@ -134,10 +134,22 @@ static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct
     pa_log_info("Synced.");
 }
 
-static struct entry* entry_new(void) {
+static void trigger_save(struct userdata *u) {
+    if (u->save_time_event)
+        return;
+
+    u->save_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, save_time_callback, u);
+}
+
+static struct entry* entry_new(pa_bool_t add_pcm_format) {
     struct entry *r = pa_xnew0(struct entry, 1);
     r->version = ENTRY_VERSION;
     r->formats = pa_idxset_new(NULL, NULL);
+    if (add_pcm_format) {
+        pa_format_info *f = pa_format_info_new();
+        f->encoding = PA_ENCODING_PCM;
+        pa_idxset_put(r->formats, f, NULL);
+    }
     return r;
 }
 
@@ -148,6 +160,105 @@ static void entry_free(struct entry* e) {
     pa_xfree(e->port);
     pa_xfree(e);
 }
+
+static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e) {
+    pa_tagstruct *t;
+    pa_datum key, data;
+    pa_bool_t r;
+    uint32_t i;
+    pa_format_info *f;
+    uint8_t n_formats;
+
+    pa_assert(u);
+    pa_assert(name);
+    pa_assert(e);
+
+    n_formats = pa_idxset_size(e->formats);
+    pa_assert(n_formats > 0);
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu8(t, e->version);
+    pa_tagstruct_put_boolean(t, e->volume_valid);
+    pa_tagstruct_put_channel_map(t, &e->channel_map);
+    pa_tagstruct_put_cvolume(t, &e->volume);
+    pa_tagstruct_put_boolean(t, e->muted_valid);
+    pa_tagstruct_put_boolean(t, e->muted);
+    pa_tagstruct_put_boolean(t, e->port_valid);
+    pa_tagstruct_puts(t, e->port);
+    pa_tagstruct_putu8(t, n_formats);
+
+    PA_IDXSET_FOREACH(f, e->formats, i) {
+        pa_tagstruct_put_format_info(t, f);
+    }
+
+    key.data = (char *) name;
+    key.size = strlen(name);
+
+    data.data = (void*)pa_tagstruct_data(t, &data.size);
+
+    r = (pa_database_set(u->database, &key, &data, TRUE) == 0);
+
+    pa_tagstruct_free(t);
+
+    return r;
+}
+
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+
+#define LEGACY_ENTRY_VERSION 2
+static struct entry* legacy_entry_read(struct userdata *u, pa_datum *data) {
+    struct legacy_entry {
+        uint8_t version;
+        pa_bool_t muted_valid:1, volume_valid:1, port_valid:1;
+        pa_bool_t muted:1;
+        pa_channel_map channel_map;
+        pa_cvolume volume;
+        char port[PA_NAME_MAX];
+    } PA_GCC_PACKED;
+    struct legacy_entry *le;
+    struct entry *e;
+
+    pa_assert(u);
+    pa_assert(data);
+
+    if (data->size != sizeof(struct legacy_entry)) {
+        pa_log_debug("Size does not match.");
+        return NULL;
+    }
+
+    le = (struct legacy_entry*)data->data;
+
+    if (le->version != LEGACY_ENTRY_VERSION) {
+        pa_log_debug("Version mismatch.");
+        return NULL;
+    }
+
+    if (!memchr(le->port, 0, sizeof(le->port))) {
+        pa_log_warn("Port has missing NUL byte.");
+        return NULL;
+    }
+
+    if (le->volume_valid && !pa_channel_map_valid(&le->channel_map)) {
+        pa_log_warn("Invalid channel map.");
+        return NULL;
+    }
+
+    if (le->volume_valid && (!pa_cvolume_valid(&le->volume) || !pa_cvolume_compatible_with_channel_map(&le->volume, &le->channel_map))) {
+        pa_log_warn("Volume and channel map don't match.");
+        return NULL;
+    }
+
+    e = entry_new(TRUE);
+    e->muted_valid = le->muted_valid;
+    e->volume_valid = le->volume_valid;
+    e->port_valid = le->port_valid;
+    e->muted = le->muted;
+    e->channel_map = le->channel_map;
+    e->volume = le->volume;
+    e->port = pa_xstrdup(le->port);
+    return e;
+}
+#endif
 
 static struct entry* entry_read(struct userdata *u, const char *name) {
     pa_datum key, data;
@@ -168,7 +279,7 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
         goto fail;
 
     t = pa_tagstruct_new(data.data, data.size);
-    e = entry_new();
+    e = entry_new(FALSE);
 
     if (pa_tagstruct_getu8(t, &e->version) < 0 ||
         e->version > ENTRY_VERSION ||
@@ -179,7 +290,7 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
         pa_tagstruct_get_boolean(t, &e->muted) < 0 ||
         pa_tagstruct_get_boolean(t, &e->port_valid) < 0 ||
         pa_tagstruct_gets(t, &port) < 0 ||
-        pa_tagstruct_getu8(t, &n_formats) < 0) {
+        pa_tagstruct_getu8(t, &n_formats) < 0 || n_formats < 1) {
 
         goto fail;
     }
@@ -221,46 +332,21 @@ fail:
         entry_free(e);
     if (t)
         pa_tagstruct_free(t);
+
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+    pa_log_debug("Attempting to load legacy (pre-v1.0) data for key: %s", name);
+    if ((e = legacy_entry_read(u, &data))) {
+        pa_log_debug("Success. Saving new format for key: %s", name);
+        if (entry_write(u, name, e))
+            trigger_save(u);
+        pa_datum_free(&data);
+        return e;
+    } else
+        pa_log_debug("Unable to load legacy (pre-v1.0) data for key: %s. Ignoring.", name);
+#endif
+
     pa_datum_free(&data);
     return NULL;
-}
-
-static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e) {
-    pa_tagstruct *t;
-    pa_datum key, data;
-    pa_bool_t r;
-    uint32_t i;
-    pa_format_info *f;
-
-    pa_assert(u);
-    pa_assert(name);
-    pa_assert(e);
-
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu8(t, e->version);
-    pa_tagstruct_put_boolean(t, e->volume_valid);
-    pa_tagstruct_put_channel_map(t, &e->channel_map);
-    pa_tagstruct_put_cvolume(t, &e->volume);
-    pa_tagstruct_put_boolean(t, e->muted_valid);
-    pa_tagstruct_put_boolean(t, e->muted);
-    pa_tagstruct_put_boolean(t, e->port_valid);
-    pa_tagstruct_puts(t, e->port);
-    pa_tagstruct_putu8(t, pa_idxset_size(e->formats));
-
-    PA_IDXSET_FOREACH(f, e->formats, i) {
-        pa_tagstruct_put_format_info(t, f);
-    }
-
-    key.data = (char *) name;
-    key.size = strlen(name);
-
-    data.data = (void*)pa_tagstruct_data(t, &data.size);
-
-    r = (pa_database_set(u->database, &key, &data, TRUE) == 0);
-
-    pa_tagstruct_free(t);
-
-    return r;
 }
 
 static struct entry* entry_copy(const struct entry *e) {
@@ -269,7 +355,7 @@ static struct entry* entry_copy(const struct entry *e) {
     pa_format_info *f;
 
     pa_assert(e);
-    r = entry_new();
+    r = entry_new(FALSE);
     r->version = e->version;
     r->muted_valid = e->muted_valid;
     r->volume_valid = e->volume_valid;
@@ -283,13 +369,6 @@ static struct entry* entry_copy(const struct entry *e) {
         pa_idxset_put(r->formats, pa_format_info_copy(f), NULL);
     }
     return r;
-}
-
-static void trigger_save(struct userdata *u) {
-    if (u->save_time_event)
-        return;
-
-    u->save_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, save_time_callback, u);
 }
 
 static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
@@ -307,6 +386,11 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
     if (a->volume_valid != b->volume_valid ||
         (a->volume_valid && !pa_cvolume_equal(pa_cvolume_remap(&t, &b->channel_map, &a->channel_map), &a->volume)))
         return FALSE;
+
+    if (pa_idxset_size(a->formats) != pa_idxset_size(b->formats))
+        return FALSE;
+
+    /** TODO: Compare a bit better */
 
     return TRUE;
 }
@@ -336,7 +420,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if ((old = entry_read(u, name)))
             entry = entry_copy(old);
         else
-            entry = entry_new();
+            entry = entry_new(TRUE);
 
         if (sink->save_volume) {
             entry->channel_map = sink->channel_map;
@@ -368,7 +452,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if ((old = entry_read(u, name)))
             entry = entry_copy(old);
         else
-            entry = entry_new();
+            entry = entry_new(TRUE);
 
         if (source->save_volume) {
             entry->channel_map = source->channel_map;
@@ -702,7 +786,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             /* Read or create an entry */
             name = pa_sprintf_malloc("sink:%s", sink->name);
             if (!(e = entry_read(u, name)))
-                e = entry_new();
+                e = entry_new(FALSE);
 
             /* Read all the formats from our tagstruct */
             for (i = 0; i < n_formats; ++i) {

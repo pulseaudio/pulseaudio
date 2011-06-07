@@ -115,7 +115,7 @@ struct userdata {
 #endif
 };
 
-#define ENTRY_VERSION 4
+#define ENTRY_VERSION 1
 
 struct entry {
     uint8_t version;
@@ -1002,6 +1002,86 @@ static void entry_free(struct entry* e) {
     pa_xfree(e);
 }
 
+static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e, pa_bool_t replace) {
+    pa_tagstruct *t;
+    pa_datum key, data;
+    pa_bool_t r;
+
+    pa_assert(u);
+    pa_assert(name);
+    pa_assert(e);
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu8(t, e->version);
+    pa_tagstruct_put_boolean(t, e->volume_valid);
+    pa_tagstruct_put_channel_map(t, &e->channel_map);
+    pa_tagstruct_put_cvolume(t, &e->volume);
+    pa_tagstruct_put_boolean(t, e->muted_valid);
+    pa_tagstruct_put_boolean(t, e->muted);
+    pa_tagstruct_put_boolean(t, e->device_valid);
+    pa_tagstruct_puts(t, e->device);
+    pa_tagstruct_put_boolean(t, e->card_valid);
+    pa_tagstruct_puts(t, e->card);
+
+    key.data = (char *) name;
+    key.size = strlen(name);
+
+    data.data = (void*)pa_tagstruct_data(t, &data.size);
+
+    r = (pa_database_set(u->database, &key, &data, replace) == 0);
+
+    pa_tagstruct_free(t);
+
+    return r;
+}
+
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+
+#define LEGACY_ENTRY_VERSION 3
+static struct entry* legacy_entry_read(struct userdata *u, pa_datum *data) {
+    struct legacy_entry {
+        uint8_t version;
+        pa_bool_t muted_valid:1, volume_valid:1, device_valid:1, card_valid:1;
+        pa_bool_t muted:1;
+        pa_channel_map channel_map;
+        pa_cvolume volume;
+        char device[PA_NAME_MAX];
+        char card[PA_NAME_MAX];
+    } PA_GCC_PACKED;
+    struct legacy_entry *le;
+    struct entry *e;
+
+    pa_assert(u);
+    pa_assert(data);
+
+    if (data->size != sizeof(struct legacy_entry)) {
+        pa_log_debug("Size does not match.");
+        return NULL;
+    }
+
+    le = (struct legacy_entry*)data->data;
+
+    if (le->version != LEGACY_ENTRY_VERSION) {
+        pa_log_debug("Version mismatch.");
+        return NULL;
+    }
+
+    if (!memchr(le->device, 0, sizeof(le->device))) {
+        pa_log_warn("Device has missing NUL byte.");
+        return NULL;
+    }
+
+    if (!memchr(le->card, 0, sizeof(le->card))) {
+        pa_log_warn("Card has missing NUL byte.");
+        return NULL;
+    }
+
+    e = entry_new();
+    e->card = pa_xstrdup(le->card);
+    return e;
+}
+#endif
+
 static struct entry *entry_read(struct userdata *u, const char *name) {
     pa_datum key, data;
     struct entry *e = NULL;
@@ -1076,41 +1156,21 @@ fail:
         entry_free(e);
     if (t)
         pa_tagstruct_free(t);
+
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+    pa_log_debug("Attempting to load legacy (pre-v1.0) data for key: %s", name);
+    if ((e = legacy_entry_read(u, &data))) {
+        pa_log_debug("Success. Saving new format for key: %s", name);
+        if (entry_write(u, name, e, TRUE))
+            trigger_save(u);
+        pa_datum_free(&data);
+        return e;
+    } else
+        pa_log_debug("Unable to load legacy (pre-v1.0) data for key: %s. Ignoring.", name);
+#endif
+
     pa_datum_free(&data);
     return NULL;
-}
-
-static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e, pa_bool_t replace) {
-    pa_tagstruct *t;
-    pa_datum key, data;
-    pa_bool_t r;
-
-    pa_assert(u);
-    pa_assert(name);
-    pa_assert(e);
-
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu8(t, e->version);
-    pa_tagstruct_put_boolean(t, e->volume_valid);
-    pa_tagstruct_put_channel_map(t, &e->channel_map);
-    pa_tagstruct_put_cvolume(t, &e->volume);
-    pa_tagstruct_put_boolean(t, e->muted_valid);
-    pa_tagstruct_put_boolean(t, e->muted);
-    pa_tagstruct_put_boolean(t, e->device_valid);
-    pa_tagstruct_puts(t, e->device);
-    pa_tagstruct_put_boolean(t, e->card_valid);
-    pa_tagstruct_puts(t, e->card);
-
-    key.data = (char *) name;
-    key.size = strlen(name);
-
-    data.data = (void*)pa_tagstruct_data(t, &data.size);
-
-    r = (pa_database_set(u->database, &key, &data, replace) == 0);
-
-    pa_tagstruct_free(t);
-
-    return r;
 }
 
 static struct entry* entry_copy(const struct entry *e) {

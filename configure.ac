@@ -1138,6 +1138,13 @@ if test "x$enable_legacy_runtime_dir" != "xno" ; then
         AC_DEFINE(ENABLE_LEGACY_RUNTIME_DIR, [1], [Legacy runtime dir])
 fi
 
+AC_ARG_ENABLE([legacy-database-entry-format],
+        AS_HELP_STRING([--disable-legacy-database-entry-format], [Try to load legacy (< 1.0) database files (card, device and volume restore).]))
+if test "x$enable_legacy_database_entry_format" != "xno" ; then
+        AC_DEFINE(ENABLE_LEGACY_DATABASE_ENTRY_FORMAT, [1], [Legacy database entry format])
+fi
+AC_DEFINE([WIBBLE], 1, [Just a test.])
+
 AC_ARG_ENABLE([static-bins],
     AS_HELP_STRING([--enable-static-bins],[Statically link executables.]))
 
@@ -1229,6 +1236,8 @@ AS_IF([test "x$HAVE_TDB" = "x1"], ENABLE_TDB=yes, ENABLE_TDB=no)
 AS_IF([test "x$HAVE_GDBM" = "x1"], ENABLE_GDBM=yes, ENABLE_GDBM=no)
 AS_IF([test "x$HAVE_SIMPLEDB" = "x1"], ENABLE_SIMPLEDB=yes, ENABLE_SIMPLEDB=no)
 AS_IF([test "x$USE_PER_USER_ESOUND_SOCKET" = "x1"], ENABLE_PER_USER_ESOUND_SOCKET=yes, ENABLE_PER_USER_ESOUND_SOCKET=no)
+AS_IF([test "x$enable_legacy_runtime_dir" != "xno"], ENABLE_LEGACY_RUNTIME_DIR=yes, ENABLE_LEGACY_RUNTIME_DIR=no)
+AS_IF([test "x$enable_legacy_database_entry_format" != "xno"], ENABLE_LEGACY_DATABASE_ENTRY_FORMAT=yes, ENABLE_LEGACY_DATABASE_ENTRY_FORMAT=no)
 
 echo "
  ---{ $PACKAGE_NAME $VERSION }---
@@ -1279,6 +1288,9 @@ echo "
     Enable per-user EsounD socket: ${ENABLE_PER_USER_ESOUND_SOCKET}
     Force preopen:                 ${FORCE_PREOPEN}
     Preopened modules:             ${PREOPEN_MODS}
+
+    Legacy Runtime Dir Support:    ${ENABLE_LEGACY_RUNTIME_DIR}
+    Legacy Database Entry Support: ${ENABLE_LEGACY_DATABASE_ENTRY_FORMAT}
 "
 
 if test "${ENABLE_DBUS}" = "no" && test "x$os_is_win32" != "x1" ; then
