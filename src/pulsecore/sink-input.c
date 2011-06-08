@@ -273,9 +273,11 @@ int pa_sink_input_new(
 
     pa_return_val_if_fail(!data->driver || pa_utf8_valid(data->driver), -PA_ERR_INVALID);
 
-    if (!data->sink)
-        pa_sink_input_new_data_set_sink(data, pa_namereg_get(core, NULL, PA_NAMEREG_SINK), FALSE);
-
+    if (!data->sink) {
+        pa_sink *sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK);
+        pa_return_val_if_fail(sink, -PA_ERR_NOENTITY);
+        pa_sink_input_new_data_set_sink(data, sink, FALSE);
+    }
     /* Routing's done, we have a sink. Now let's fix the format and set up the
      * sample spec */
 
@@ -298,7 +300,6 @@ int pa_sink_input_new(
         pa_sink_input_new_data_set_sample_spec(data, &ss);
     }
 
-    pa_return_val_if_fail(data->sink, -PA_ERR_NOENTITY);
     pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
     pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED), -PA_ERR_INVALID);
 

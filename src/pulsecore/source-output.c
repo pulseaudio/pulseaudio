@@ -253,8 +253,11 @@ int pa_source_output_new(
 
     pa_return_val_if_fail(!data->driver || pa_utf8_valid(data->driver), -PA_ERR_INVALID);
 
-    if (!data->source)
-        pa_source_output_new_data_set_source(data, pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE), FALSE);
+    if (!data->source) {
+        pa_source *source = pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE);
+        pa_return_val_if_fail(source, -PA_ERR_NOENTITY);
+        pa_source_output_new_data_set_source(data, source, FALSE);
+    }
 
     /* Routing's done, we have a source. Now let's fix the format and set up the
      * sample spec */
@@ -278,7 +281,6 @@ int pa_source_output_new(
         pa_source_output_new_data_set_sample_spec(data, &ss);
     }
 
-    pa_return_val_if_fail(data->source, -PA_ERR_NOENTITY);
     pa_return_val_if_fail(PA_SOURCE_IS_LINKED(pa_source_get_state(data->source)), -PA_ERR_BADSTATE);
     pa_return_val_if_fail(!data->direct_on_input || data->direct_on_input->sink == data->source->monitor_of, -PA_ERR_INVALID);
 
