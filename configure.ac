@@ -433,24 +433,7 @@ AS_IF([test "$ac_cv_tls" == "__thread"],
 
 # Win32 build breaks with win32 pthread installed
 AS_IF([test "x$os_is_win32" != "x1"],
-  [ACX_PTHREAD])
-
-AC_CACHE_CHECK([for PTHREAD_PRIO_INHERIT],
-    pulseaudio_cv_PTHREAD_PRIO_INHERIT, [
-        save_CC=$CC; CC=$PTHREAD_CC
-        save_CFLAGS=$CFLAGS; CFLAGS=$PTHREAD_CFLAGS
-        save_LIBS=$LIBS; LIBS=$PTHREAD_LIBS
-        AC_LINK_IFELSE(
-            AC_LANG_PROGRAM([[#include <pthread.h>]], [[int i = PTHREAD_PRIO_INHERIT;]]),
-            [pulseaudio_cv_PTHREAD_PRIO_INHERIT=yes],
-            [pulseaudio_cv_PTHREAD_PRIO_INHERIT=no])
-        CC=$save_CC
-        CFLAGS=$save_CFLAGS
-        LIBS=$save_LIBS
-    ])
-
-AS_IF([test "$pulseaudio_cv_PTHREAD_PRIO_INHERIT" = "yes"],
-    AC_DEFINE([HAVE_PTHREAD_PRIO_INHERIT], 1, [Have PTHREAD_PRIO_INHERIT.]))
+  [AX_PTHREAD])
 
 
 #### Check for libs ####
