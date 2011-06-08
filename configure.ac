@@ -971,11 +971,11 @@ AS_IF([test "x$enable_dbus" = "xyes" && test "x$HAVE_DBUS" = "x0"],
 
 AS_IF([test "x$HAVE_DBUS" = "x1"],
     [
-        saved_LIBS="$LIBS"
-        LIBS="$LIBS $DBUS_LIBS"
-        CFLAGS="$CFLAGS $DBUS_CFLAGS"
+        save_CFLAGS="$CFLAGS"; CFLAGS="$CFLAGS $DBUS_CFLAGS"
+        save_LIBS="$LIBS"; LIBS="$LIBS $DBUS_LIBS"
         AC_CHECK_FUNCS(dbus_watch_get_unix_fd)
-        LIBS="$saved_LIBS"
+        CFLAGS="$save_CFLAGS"
+        LIBS="$save_LIBS"
     ])
 
 AC_SUBST(DBUS_CFLAGS)

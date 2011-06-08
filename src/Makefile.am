@@ -998,8 +998,13 @@ libprotocol_http_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libprotocol_http_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 
 libprotocol_native_la_SOURCES = pulsecore/protocol-native.c pulsecore/protocol-native.h pulsecore/native-common.h
+libprotocol_native_la_CFLAGS = $(AM_CFLAGS)
 libprotocol_native_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libprotocol_native_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
+if HAVE_DBUS
+libprotocol_native_la_CFLAGS += $(DBUS_CFLAGS)
+libprotocol_native_la_LIBADD += $(DBUS_LIBS)
+endif
 
 libprotocol_esound_la_SOURCES = pulsecore/protocol-esound.c pulsecore/protocol-esound.h pulsecore/esound.h
 libprotocol_esound_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
