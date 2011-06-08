@@ -81,27 +81,57 @@ AM_PROG_CC_C_O
 AC_PROG_GCC_TRADITIONAL
 AC_USE_SYSTEM_EXTENSIONS
 
-#### Platform hacks ####
-
-case $host in
-   *-*-solaris* )
-      AC_DEFINE(_XOPEN_SOURCE,        600, Needed to get declarations for msg_control and msg_controllen on Solaris)
-      AC_DEFINE(__EXTENSIONS__,         1, Needed to get declarations for msg_control and msg_controllen on Solaris)
-      ;;
-   *-*-darwin* )
-      AC_DEFINE([_DARWIN_C_SOURCE], [200112L], [Needed to get NSIG on Mac OS X])
-      ;;
-   *-*-mingw* )
-      AC_DEFINE([WIN32_LEAN_AND_MEAN], 1, [Needed to avoid including unnecessary headers])
-      ;;
-esac
-
 # M4
 
 AC_CHECK_PROGS([M4], gm4 m4, no)
 if test "x$M4" = xno ; then
    AC_MSG_ERROR([m4 missing])
 fi
+
+
+#### Determine host OS ####
+
+os_is_linux=0
+os_is_win32=0
+os_is_darwin=0
+
+AC_MSG_CHECKING([host operating system])
+case "$host_os" in
+    linux*)
+        AC_MSG_RESULT([linux])
+        os_is_linux=1
+    ;;
+    darwin*)
+        AC_MSG_RESULT([darwin])
+        os_is_darwin=1
+        AC_DEFINE([OS_IS_DARWIN], 1, [Build target is Darwin.])
+    ;;
+    mingw*)
+        AC_MSG_RESULT([win32])
+        os_is_win32=1
+        AC_DEFINE([OS_IS_WIN32], 1, [Build target is Windows.])
+    ;;
+    *)
+        AC_MSG_RESULT([unknown])
+    ;;
+esac
+
+AM_CONDITIONAL(OS_IS_DARWIN, test "x$os_is_darwin" = "x1")
+AM_CONDITIONAL(OS_IS_WIN32, test "x$os_is_win32" = "x1")
+
+# Platform specific hacks
+case "$host_os" in
+    darwin* )
+        AC_DEFINE([_DARWIN_C_SOURCE], [200112L], [Needed to get NSIG on Mac OS X])
+    ;;
+    mingw* )
+        AC_DEFINE([WIN32_LEAN_AND_MEAN], 1, [Needed to avoid including unnecessary headers on Windows])
+    ;;
+    solaris* )
+        AC_DEFINE(_XOPEN_SOURCE,       600, [Needed to get declarations for msg_control and msg_controllen on Solaris])
+        AC_DEFINE(__EXTENSIONS__,        1, [Needed to get declarations for msg_control and msg_controllen on Solaris])
+    ;;
+esac
 
 dnl Compiler flags
 
@@ -160,43 +190,6 @@ if test "x$enable_atomic_arm_memory_barrier" = "xyes"; then
     AC_DEFINE_UNQUOTED(ATOMIC_ARM_MEMORY_BARRIER_ENABLED, 1, [Enable memory barriers])
 fi
 
-AC_ARG_ENABLE(mac-universal,
-    AS_HELP_STRING([--enable-mac-universal], [Build Mac universal binaries]),
-		enable_mac_universal=$enableval, enable_mac_universal="no")
-
-AC_ARG_WITH(mac-version-min,
-    AS_HELP_STRING([--with-mac-version-min=<version>], [Defines the earliest version of MacOS X that the executables will run on.]),
-		mac_version_min=$withval, mac_version_min="10.5")
-
-AC_ARG_WITH(mac-sysroot,
-    AS_HELP_STRING([--with-mac-sysroot=<path>], [SDK basedir to use as the logical root directory for headers and libraries.]),
-		mac_sysroot=$withval, mac_sysroot="/Developer/SDKs/MacOSX10.5.sdk")
-
-AC_MSG_CHECKING([target operating system])
-case $host in
-        *-*-linux*)
-            AC_MSG_RESULT([linux])
-            pulse_target_os=linux
-        ;;
-        *-*-darwin*)
-            AC_MSG_RESULT([darwin])
-            pulse_target_os=darwin
-
-            LDFLAGS="$LDFLAGS -isysroot $mac_sysroot -mmacosx-version-min=$mac_version_min"
-            CFLAGS="$CFLAGS -isysroot $mac_sysroot -mmacosx-version-min=$mac_version_min"
-
-            if test "x$enable_mac_universal" = "xyes" ; then
-                mac_arches="-arch i386 -arch x86_64"
-                LDFLAGS="$LDFLAGS $mac_arches"
-                CFLAGS="$CFLAGS $mac_arches"
-            fi
-        ;;
-        *)
-            AC_MSG_RESULT([unknown])
-            pulse_target_os=unknown
-        ;;
-esac
-
 # If everything else fails use libatomic_ops
 need_libatomic_ops=yes
 
@@ -221,7 +214,7 @@ else
             # The Linux kernel helper functions have been there since 2.6.16. However
             # compile time checking for kernel version in cross compile environment
             # (which is usually the case for arm cpu) is tricky (or impossible).
-            if test "x$pulse_target_os" = "xlinux" && test "x$enable_atomic_arm_linux_helpers" != "xno"; then
+            if test "x$os_is_linux" = "x1" && test "x$enable_atomic_arm_linux_helpers" != "xno"; then
                 AC_MSG_RESULT([yes])
                 AC_DEFINE_UNQUOTED(ATOMIC_ARM_LINUX_HELPERS, 1, [special arm linux implementation])
                 need_libatomic_ops=no
@@ -338,24 +331,6 @@ AS_IF([test "x$LIBLTDL" = "x"],
     [AC_MSG_ERROR([Unable to find libltdl version 2. Makes sure you have libtool 2.2 or later installed.])])
 AC_SUBST([LIBLTDL])
 
-#### Determine build environment ####
-
-os_is_win32=0
-os_is_darwin=0
-
-case "$host_os" in
-        mingw*)
-        AC_DEFINE([OS_IS_WIN32], 1, [Build target is Windows.])
-        os_is_win32=1
-                ;;
-        darwin*)
-        AC_DEFINE([OS_IS_DARWIN], 1, [Build target is Darwin.])
-        os_is_darwin=1
-                ;;
-        esac
-
-AM_CONDITIONAL(OS_IS_WIN32, test "x$os_is_win32" = "x1")
-AM_CONDITIONAL(OS_IS_DARWIN, test "x$os_is_darwin" = "x1")
 
 ###################################
 #   Basic environment checks      #
@@ -1129,6 +1104,33 @@ PA_SYSTEM_CONFIG_PATH="${localstatedir}/lib/pulse"
 AC_SUBST(PA_SYSTEM_CONFIG_PATH)
 PA_SYSTEM_STATE_PATH="${localstatedir}/lib/pulse"
 AC_SUBST(PA_SYSTEM_STATE_PATH)
+
+
+#### Mac OSX specific stuff #####
+
+AC_ARG_ENABLE(mac-universal,
+    AS_HELP_STRING([--enable-mac-universal], [Build Mac universal binaries]),
+    enable_mac_universal=$enableval, enable_mac_universal="no")
+
+AC_ARG_WITH(mac-version-min,
+    AS_HELP_STRING([--with-mac-version-min=<version>], [Defines the earliest version of MacOS X that the executables will run on.]),
+    mac_version_min=$withval, mac_version_min="10.5")
+
+AC_ARG_WITH(mac-sysroot,
+    AS_HELP_STRING([--with-mac-sysroot=<path>], [SDK basedir to use as the logical root directory for headers and libraries.]),
+    mac_sysroot=$withval, mac_sysroot="/Developer/SDKs/MacOSX10.5.sdk")
+
+if test "x$os_is_darwin" = "x1" ; then
+    LDFLAGS="$LDFLAGS -isysroot $mac_sysroot -mmacosx-version-min=$mac_version_min"
+    CFLAGS="$CFLAGS -isysroot $mac_sysroot -mmacosx-version-min=$mac_version_min"
+
+    if test "x$enable_mac_universal" = "xyes" ; then
+        mac_arches="-arch i386 -arch x86_64"
+        LDFLAGS="$LDFLAGS $mac_arches"
+        CFLAGS="$CFLAGS $mac_arches"
+    fi
+fi
+
 
 ###################################
 #            Output               #
