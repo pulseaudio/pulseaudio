@@ -895,8 +895,15 @@ AC_SUBST(LIBWRAP_LIBS)
 AC_ARG_ENABLE([lirc],
     AS_HELP_STRING([--disable-lirc],[Disable optional LIRC support]))
 
+LIRC_CFLAGS=
+LIRC_LIBS=
+
 AS_IF([test "x$enable_lirc" != "xno"],
-    [ACX_LIRC],
+    [
+        HAVE_LIRC=1
+        AC_CHECK_HEADER(lirc/lirc_client.h, [], [HAVE_LIRC=0])
+        AC_CHECK_LIB(lirc_client, lirc_init, [LIRC_LIBS=-llirc_client], [HAVE_LIRC=0])
+    ],
     HAVE_LIRC=0)
 
 AS_IF([test "x$enable_lirc" = "xyes" && test "x$HAVE_LIRC" = "x0"],
