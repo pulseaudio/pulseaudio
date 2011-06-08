@@ -39,20 +39,22 @@ PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_DEPRECATED("Please use module-combine-sink instead of module-combine!");
 
 struct userdata {
-    pa_module *module;
+    uint32_t module_index;
 };
 
 int pa__init(pa_module*m) {
     struct userdata *u;
+    pa_module *module;
 
     pa_assert(m);
     pa_assert_se(m->userdata = u = pa_xnew0(struct userdata, 1));
 
     pa_log_warn("We will now load module-combine-sink. Please make sure to remove module-combine from your configuration.");
 
-    u->module = pa_module_load(m->core, "module-combine-sink", m->argument);
+    module = pa_module_load(m->core, "module-combine-sink", m->argument);
+    u->module_index = module ? module->index : PA_INVALID_INDEX;
 
-    return u->module ? 0 : -1;
+    return module ? 0 : -1;
 }
 
 
@@ -64,8 +66,8 @@ void pa__done(pa_module*m) {
 
     u = m->userdata;
 
-    if (u)
-        pa_module_unload_request(u->module, TRUE);
+    if (u && PA_INVALID_INDEX != u->module_index)
+        pa_module_unload_by_index(m->core, u->module_index, TRUE);
 
     pa_xfree(u);
 }
