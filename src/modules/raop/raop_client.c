@@ -219,7 +219,6 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     c->fd = pa_iochannel_get_send_fd(io);
 
     pa_iochannel_set_noclose(io, TRUE);
-    pa_iochannel_socket_set_sndbuf(io, 1024);
     pa_iochannel_free(io);
 
     pa_make_tcp_socket_low_delay(c->fd);
