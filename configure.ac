@@ -469,7 +469,6 @@ if test "x$os_is_darwin" = "x1" ; then
     HAVE_BONJOUR=1
 fi
 
-AC_SUBST(HAVE_BONJOUR)
 AM_CONDITIONAL([HAVE_BONJOUR], [test "x$HAVE_BONJOUR" = x1])
 
 # Windows
@@ -581,7 +580,6 @@ AS_IF([test "x$enable_x11" = "xyes" && test "x$HAVE_X11" = "x0"],
 
 AC_SUBST(X11_CFLAGS)
 AC_SUBST(X11_LIBS)
-AC_SUBST(HAVE_X11)
 AM_CONDITIONAL([HAVE_X11], [test "x$HAVE_X11" = x1])
 AS_IF([test "x$HAVE_X11" = "x1"], AC_DEFINE([HAVE_X11], 1, [Have X11?]))
 
@@ -655,7 +653,6 @@ AS_IF([test "x$enable_samplerate" = "xyes" && test "x$HAVE_LIBSAMPLERATE" = "x0"
 
 AC_SUBST(LIBSAMPLERATE_CFLAGS)
 AC_SUBST(LIBSAMPLERATE_LIBS)
-AC_SUBST(HAVE_LIBSAMPLERATE)
 AM_CONDITIONAL([HAVE_LIBSAMPLERATE], [test "x$HAVE_LIBSAMPLERATE" = x1])
 AS_IF([test "x$HAVE_LIBSAMPLERATE" = "x1"], AC_DEFINE([HAVE_LIBSAMPLERATE], 1, [Have libsamplerate?]))
 
@@ -703,17 +700,14 @@ AS_IF([test "x$HAVE_TDB" != x1 -a "x$HAVE_GDBM" != x1 -a "x$HAVE_SIMPLEDB" != x1
 
 AC_SUBST(TDB_CFLAGS)
 AC_SUBST(TDB_LIBS)
-AC_SUBST(HAVE_TDB)
 AM_CONDITIONAL([HAVE_TDB], [test "x$HAVE_TDB" = x1])
 AS_IF([test "x$HAVE_TDB" = "x1"], AC_DEFINE([HAVE_TDB], 1, [Have tdb?]))
 
 AC_SUBST(GDBM_CFLAGS)
 AC_SUBST(GDBM_LIBS)
-AC_SUBST(HAVE_GDBM)
 AM_CONDITIONAL([HAVE_GDBM], [test "x$HAVE_GDBM" = x1])
 AS_IF([test "x$HAVE_GDBM" = "x1"], AC_DEFINE([HAVE_GDBM], 1, [Have gdbm?]))
 
-AC_SUBST(HAVE_SIMPLEDB)
 AM_CONDITIONAL([HAVE_SIMPLEDB], [test "x$HAVE_SIMPLEDB" = x1])
 AS_IF([test "x$HAVE_SIMPLEDB" = "x1"], AC_DEFINE([HAVE_SIMPLEDB], 1, [Have simple?]))
 
@@ -740,7 +734,6 @@ AS_IF([test "x$enable_oss_wrapper" != "xno"],
     [AS_IF([test "x$HAVE_OSS" = "x1"], HAVE_OSS_WRAPPER=1, HAVE_OSS_WRAPPER=0)],
     HAVE_OSS_WRAPPER=0)
 
-AC_SUBST(HAVE_OSS)
 AM_CONDITIONAL([HAVE_OSS_OUTPUT], [test "x$HAVE_OSS_OUTPUT" = "x1"])
 AM_CONDITIONAL([HAVE_OSS_WRAPPER], [test "x$HAVE_OSS_WRAPPER" = "x1"])
 AS_IF([test "x$HAVE_OSS_OUTPUT" = "x1"], AC_DEFINE([HAVE_OSS_OUTPUT], 1, [Have OSS output?]))
@@ -758,7 +751,6 @@ AS_IF([test "x$enable_coreaudio_output" != "xno"],
 AS_IF([test "x$enable_coreaudio_output" = "xyes" && test "x$HAVE_COREAUDIO" = "x0"],
     [AC_MSG_ERROR([*** CoreAudio output support not found])])
 
-AC_SUBST(HAVE_COREAUDIO)
 AM_CONDITIONAL([HAVE_COREAUDIO], [test "x$HAVE_COREAUDIO" = "x1" && test "x$enable_coreaudio_output" != "xno"])
 
 #### ALSA support (optional) ####
@@ -775,7 +767,6 @@ AS_IF([test "x$enable_alsa" = "xyes" && test "x$HAVE_ALSA" = "x0"],
 
 AC_SUBST(ASOUNDLIB_CFLAGS)
 AC_SUBST(ASOUNDLIB_LIBS)
-AC_SUBST(HAVE_ALSA)
 AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
 AS_IF([test "x$HAVE_ALSA" = "x1"], AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?]))
 
@@ -791,7 +782,6 @@ AS_IF([test "x$enable_solaris" != "xno"],
 AS_IF([test "x$enable_solaris" = "xyes" && test "x$HAVE_SOLARIS" = "x0"],
     [AC_MSG_ERROR([*** Solaris audio support not found])])
 
-AC_SUBST(HAVE_SOLARIS)
 AM_CONDITIONAL([HAVE_SOLARIS], [test "x$HAVE_SOLARIS" = x1])
 AS_IF([test "x$HAVE_SOLARIS" = "x1"], AC_DEFINE([HAVE_SOLARIS], 1, [Have Solaris audio?]))
 
@@ -807,7 +797,6 @@ AS_IF([test "x$enable_waveout" != "xno"],
 AS_IF([test "x$enable_waveout" = "xyes" && test "x$HAVE_WAVEOUT" = "x0"],
     [AC_MSG_ERROR([*** WaveOut audio support not found])])
 
-AC_SUBST(HAVE_WAVEOUT)
 AM_CONDITIONAL([HAVE_WAVEOUT], [test "x$HAVE_WAVEOUT" = x1])
 AS_IF([test "x$HAVE_WAVEOUT" = "x1"], AC_DEFINE([HAVE_WAVEOUT], 1, [Have WaveOut audio?]))
 
@@ -825,7 +814,6 @@ AS_IF([test "x$enable_glib2" = "xyes" && test "x$HAVE_GLIB20" = "x0"],
 
 AC_SUBST(GLIB20_CFLAGS)
 AC_SUBST(GLIB20_LIBS)
-AC_SUBST(HAVE_GLIB20)
 AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
 AS_IF([test "x$HAVE_GLIB20" = "x1"], AC_DEFINE([HAVE_GLIB], 1, [Have GLIB?]))
 
@@ -843,7 +831,6 @@ AS_IF([test "x$enable_gtk2" = "xyes" && test "x$HAVE_GTK20" = "x0"],
 
 AC_SUBST(GTK20_CFLAGS)
 AC_SUBST(GTK20_LIBS)
-AC_SUBST(HAVE_GTK20)
 AM_CONDITIONAL([HAVE_GTK20], [test "x$HAVE_GTK20" = x1])
 AS_IF([test "x$HAVE_GTK20" = "x1"], AC_DEFINE([HAVE_GTK], 1, [Have GTK?]))
 
@@ -861,7 +848,6 @@ AS_IF([test "x$enable_gconf" = "xyes" && test "x$HAVE_GCONF" = "x0"],
 
 AC_SUBST(GCONF_CFLAGS)
 AC_SUBST(GCONF_LIBS)
-AC_SUBST(HAVE_GCONF)
 AM_CONDITIONAL([HAVE_GCONF], [test "x$HAVE_GCONF" = x1])
 
 #### Avahi support (optional) ####
@@ -878,7 +864,6 @@ AS_IF([test "x$enable_avahi" = "xyes" && test "x$HAVE_AVAHI" = "x0"],
 
 AC_SUBST(AVAHI_CFLAGS)
 AC_SUBST(AVAHI_LIBS)
-AC_SUBST(HAVE_AVAHI)
 AM_CONDITIONAL([HAVE_AVAHI], [test "x$HAVE_AVAHI" = x1])
 
 ### JACK (optional) ####
@@ -895,7 +880,6 @@ AS_IF([test "x$enable_jack" = "xyes" && test "x$HAVE_JACK" = "x0"],
 
 AC_SUBST(JACK_CFLAGS)
 AC_SUBST(JACK_LIBS)
-AC_SUBST(HAVE_JACK)
 AM_CONDITIONAL([HAVE_JACK], [test "x$HAVE_JACK" = x1])
 
 #### Async DNS support (optional) ####
@@ -912,7 +896,6 @@ AS_IF([test "x$enable_asyncns" = "xyes" && test "x$HAVE_LIBASYNCNS" = "x0"],
 
 AC_SUBST(LIBASYNCNS_CFLAGS)
 AC_SUBST(LIBASYNCNS_LIBS)
-AC_SUBST(HAVE_LIBASYNCNS)
 AM_CONDITIONAL([HAVE_LIBASYNCNS], [test "x$HAVE_LIBASYNCNS" = x1])
 AS_IF([test "x$HAVE_LIBASYNCNS" = "x1"], AC_DEFINE([HAVE_LIBASYNCNS], 1, [Have libasyncns?]))
 
@@ -963,7 +946,6 @@ AS_IF([test "x$enable_hal" = "xyes" && test "x$HAVE_HAL" = "x0"],
 
 AC_SUBST(HAL_CFLAGS)
 AC_SUBST(HAL_LIBS)
-AC_SUBST(HAVE_HAL)
 AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
 AS_IF([test "x$HAVE_HAL" = "x1"], AC_DEFINE([HAVE_HAL], 1, [Have HAL.]))
 
@@ -981,7 +963,6 @@ AS_IF([test "x$enable_udev" = "xyes" && test "x$HAVE_UDEV" = "x0"],
 
 AC_SUBST(UDEV_CFLAGS)
 AC_SUBST(UDEV_LIBS)
-AC_SUBST(HAVE_UDEV)
 AM_CONDITIONAL([HAVE_UDEV], [test "x$HAVE_UDEV" = x1])
 AS_IF([test "x$HAVE_UDEV" = "x1"], AC_DEFINE([HAVE_UDEV], 1, [Have UDEV.]))
 
@@ -999,7 +980,6 @@ AS_IF([test "x$enable_bluez" = "xyes" && test "x$HAVE_BLUEZ" = "x0"],
 
 AC_SUBST(BLUEZ_CFLAGS)
 AC_SUBST(BLUEZ_LIBS)
-AC_SUBST(HAVE_BLUEZ)
 AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
 
 #### D-Bus support (optional) ####
@@ -1025,7 +1005,6 @@ AS_IF([test "x$HAVE_DBUS" = "x1"],
 
 AC_SUBST(DBUS_CFLAGS)
 AC_SUBST(DBUS_LIBS)
-AC_SUBST(HAVE_DBUS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 AS_IF([test "x$HAVE_DBUS" = "x1"], AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.]))
 
@@ -1054,7 +1033,6 @@ else
     HAVE_HAL_COMPAT=0
 fi
 
-AC_SUBST(HAVE_HAL_COMPAT)
 AM_CONDITIONAL([HAVE_HAL_COMPAT], [test "x$HAVE_HAL_COMPAT" = x1])
 
 ### IPv6 connection support (optional) ###
@@ -1083,7 +1061,6 @@ AS_IF([test "x$enable_openssl" = "xyes" && test "x$HAVE_OPENSSL" = "x0"],
 
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
-AC_SUBST(HAVE_OPENSSL)
 AM_CONDITIONAL([HAVE_OPENSSL], [test "x$HAVE_OPENSSL" = x1])
 AS_IF([test "x$HAVE_OPENSSL" = "x1"], AC_DEFINE([HAVE_OPENSSL], 1, [Have OpenSSL]))
 
