@@ -22,7 +22,7 @@
 
 AC_PREREQ(2.63)
 
-AC_INIT([pulseaudio],[m4_esyscmd(./git-version-gen .tarball-version)],[mzchyfrnhqvb (at) 0pointer (dot) net])
+AC_INIT([pulseaudio],[m4_esyscmd(./git-version-gen .tarball-version)],[mzchyfrnhqvb (at) 0pointer (dot) net],[pulseaudio],[http://pulseaudio.org/])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
@@ -34,7 +34,6 @@ m4_define(pa_minor, `echo $VERSION | cut -d. -f2 | cut -d- -f1`)
 AC_SUBST(PA_MAJOR, pa_major)
 AC_SUBST(PA_MINOR, pa_minor)
 AC_SUBST(PA_MAJORMINOR, pa_major.pa_minor)
-AC_SUBST(PACKAGE_URL, [http://pulseaudio.org/])
 
 AC_SUBST(PA_API_VERSION, 12)
 AC_SUBST(PA_PROTOCOL_VERSION, 21)
@@ -86,6 +85,21 @@ AC_USE_SYSTEM_EXTENSIONS
 
 AC_CHECK_PROGS([M4], gm4 m4, no)
 AS_IF([test "x$M4" = "xno"], AC_MSG_ERROR([m4 missing]))
+
+# pkg-config
+
+PKG_PROG_PKG_CONFIG
+
+# gettext
+
+IT_PROG_INTLTOOL([0.35.0])
+GETTEXT_PACKAGE=pulseaudio
+AC_SUBST([GETTEXT_PACKAGE])
+AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
+AM_GLIB_GNU_GETTEXT
+
+pulselocaledir='${prefix}/${DATADIRNAME}/locale'
+AC_SUBST(pulselocaledir)
 
 
 #### Determine host OS ####
@@ -293,20 +307,6 @@ case $host in
   ;;
 esac
 
-CC_CHECK_TLS
-
-AC_CACHE_CHECK([whether $CC knows _Bool],
-  pulseaudio_cv__Bool,
-  [AC_COMPILE_IFELSE(
-     AC_LANG_PROGRAM([], [[_Bool b;]]),
-     [pulseaudio_cv__Bool=yes],
-     [pulseaudio_cv__Bool=no])
-  ])
-
-AS_IF([test "$pulseaudio_cv__Bool" = "yes"], [
-    AC_DEFINE([HAVE_STD_BOOL], 1, [Have _Bool.])
-  ])
-
 
 #### libtool stuff ####
 
@@ -412,11 +412,44 @@ AC_CHECK_DEFINE([INADDR_NONE], [netinet/in.h], [],
     [AC_CHECK_DEFINE([INADDR_NONE], [winsock2.h], [],
         [AC_DEFINE([INADDR_NONE],  [0xffffffff], [Define INADDR_NONE if not found in <netinet/in.h>])])])
 
-#### POSIX threads ####
+
+# _Bool
+AC_CACHE_CHECK([whether $CC knows _Bool],
+    pulseaudio_cv__Bool,
+    [AC_COMPILE_IFELSE(
+        AC_LANG_PROGRAM([], [[_Bool b;]]),
+        [pulseaudio_cv__Bool=yes],
+        [pulseaudio_cv__Bool=no])
+    ])
+
+AS_IF([test "$pulseaudio_cv__Bool" = "yes"], AC_DEFINE([HAVE_STD_BOOL], 1, [Have _Bool.]))
+
+
+#### Thread support ####
+
+CC_CHECK_TLS
 
 # Win32 build breaks with win32 pthread installed
 AS_IF([test "x$os_is_win32" != "x1"],
   [ACX_PTHREAD])
+
+AC_CACHE_CHECK([for PTHREAD_PRIO_INHERIT],
+    pulseaudio_cv_PTHREAD_PRIO_INHERIT, [
+        save_CC=$CC; CC=$PTHREAD_CC
+        save_CFLAGS=$CFLAGS; CFLAGS=$PTHREAD_CFLAGS
+        save_LIBS=$LIBS; LIBS=$PTHREAD_LIBS
+        AC_LINK_IFELSE(
+            AC_LANG_PROGRAM([[#include <pthread.h>]], [[int i = PTHREAD_PRIO_INHERIT;]]),
+            [pulseaudio_cv_PTHREAD_PRIO_INHERIT=yes],
+            [pulseaudio_cv_PTHREAD_PRIO_INHERIT=no])
+        CC=$save_CC
+        CFLAGS=$save_CFLAGS
+        LIBS=$save_LIBS
+    ])
+
+AS_IF([test "$pulseaudio_cv_PTHREAD_PRIO_INHERIT" = "yes"],
+    AC_DEFINE([HAVE_PTHREAD_PRIO_INHERIT], 1, [Have PTHREAD_PRIO_INHERIT.]))
+
 
 #### Check for libs ####
 
@@ -493,28 +526,6 @@ AC_CHECK_FUNCS_ONCE([setresuid setresgid setreuid setregid seteuid setegid ppoll
 
 AC_FUNC_ALLOCA
 
-AC_CACHE_CHECK([for PTHREAD_PRIO_INHERIT],
-  pulseaudio_cv_PTHREAD_PRIO_INHERIT,
-  [save_CC=$CC; CC=$PTHREAD_CC
-   save_CFLAGS=$CFLAGS; CFLAGS=$PTHREAD_CFLAGS
-   save_LIBS=$LIBS; LIBS=$PTHREAD_LIBS
-   AC_LINK_IFELSE(
-     AC_LANG_PROGRAM(
-       [[
-         #include <pthread.h>
-       ]],
-       [[int i = PTHREAD_PRIO_INHERIT;]]),
-     [pulseaudio_cv_PTHREAD_PRIO_INHERIT=yes],
-     [pulseaudio_cv_PTHREAD_PRIO_INHERIT=no])
-   CC=$save_CC
-   CFLAGS=$save_CFLAGS
-   LIBS=$save_LIBS
-  ])
-
-AS_IF([test "$pulseaudio_cv_PTHREAD_PRIO_INHERIT" = "yes"], [
-    AC_DEFINE([HAVE_PTHREAD_PRIO_INHERIT], 1, [Have PTHREAD_PRIO_INHERIT.])
-  ])
-
 AC_CHECK_FUNCS([regexec], [HAVE_REGEX=1], [HAVE_REGEX=0])
 AM_CONDITIONAL(HAVE_REGEX, [test "x$HAVE_REGEX" = "x1"])
 
@@ -523,26 +534,14 @@ AC_SYS_LARGEFILE
 # Check for open64 to know if the current system does have open64() and similar functions
 AC_CHECK_FUNCS_ONCE([open64])
 
-#### [lib]iconv ####
-
-AM_ICONV
-
-IT_PROG_INTLTOOL([0.35.0])
-GETTEXT_PACKAGE=pulseaudio
-AC_SUBST([GETTEXT_PACKAGE])
-AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
-AM_GLIB_GNU_GETTEXT
-
-pulselocaledir='${prefix}/${DATADIRNAME}/locale'
-AC_SUBST(pulselocaledir)
 
 ###################################
 #      External libraries         #
 ###################################
 
-#### pkg-config ####
+#### [lib]iconv ####
 
-PKG_PROG_PKG_CONFIG
+AM_ICONV
 
 #### X11 (optional) ####
 
