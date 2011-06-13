@@ -42,21 +42,14 @@
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Detect available bluetooth audio devices and load bluetooth audio drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_USAGE("async=<Asynchronous initialization?>");
+PA_MODULE_USAGE("async=<Asynchronous initialization?> "
+                "sco_sink=<name of sink> "
+                "sco_source=<name of source> ");
 PA_MODULE_LOAD_ONCE(TRUE);
 
-/*
-#ifdef NOKIA
-   "sco_sink=<name of sink> "
-   "sco_source=<name of source>"
-#endif
-*/
-
 static const char* const valid_modargs[] = {
-#ifdef NOKIA
     "sco_sink",
     "sco_source",
-#endif
     "async",
     NULL
 };
@@ -105,7 +98,6 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
             }
 #endif
 
-#ifdef NOKIA
             if (pa_modargs_get_value(u->modargs, "sco_sink", NULL) &&
                 pa_modargs_get_value(u->modargs, "sco_source", NULL)) {
                 char *tmp;
@@ -116,7 +108,6 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
                 pa_xfree(args);
                 args = tmp;
             }
-#endif
 
             if (d->audio_source_state >= PA_BT_AUDIO_STATE_CONNECTED)
                 args = pa_sprintf_malloc("%s profile=\"a2dp_source\" auto_connect=no", args);
