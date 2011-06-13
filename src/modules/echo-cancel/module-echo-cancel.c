@@ -1481,7 +1481,7 @@ int pa__init(pa_module*m) {
             goto fail;
         }
 
-        u->ec->pp_state = speex_preprocess_state_init(u->blocksize, source_ss.rate);
+        u->ec->pp_state = speex_preprocess_state_init(u->blocksize / pa_frame_size(&source_ss), source_ss.rate);
 
         speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_AGC, &u->ec->agc);
         speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_DENOISE, &u->ec->denoise);
