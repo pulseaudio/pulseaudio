@@ -1476,6 +1476,8 @@ int pa__init(pa_module*m) {
     }
 
     if (u->ec->agc || u->ec->denoise || u->ec->echo_suppress) {
+        spx_int32_t tmp;
+
         if (source_ss.channels != 1) {
             pa_log("AGC, denoising and echo suppression only work with channels=1");
             goto fail;
@@ -1483,8 +1485,10 @@ int pa__init(pa_module*m) {
 
         u->ec->pp_state = speex_preprocess_state_init(u->blocksize / pa_frame_size(&source_ss), source_ss.rate);
 
-        speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_AGC, &u->ec->agc);
-        speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_DENOISE, &u->ec->denoise);
+        tmp = u->ec->agc;
+        speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_AGC, &tmp);
+        tmp = u->ec->denoise;
+        speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_DENOISE, &tmp);
         if (u->ec->echo_suppress) {
             if (u->ec->echo_suppress_attenuation)
                 speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_ECHO_SUPPRESS, &u->ec->echo_suppress_attenuation);
