@@ -23,6 +23,7 @@
   USA.
 ***/
 
+#include <pulse/gccmacro.h>
 #include <pulse/sample.h>
 
 typedef void (*pa_convert_func_t)(unsigned n, const void *a, void *b);

@@ -25,13 +25,10 @@
 #endif
 
 #include <stdlib.h>
-#include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <fcntl.h>
 #include <unistd.h>
-#include <limits.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -46,19 +43,15 @@
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
-#include <pulsecore/iochannel.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/module.h>
-#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 #include <pulsecore/socket-client.h>
-#include <pulsecore/authkey.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/time-smoother.h>
-#include <pulsecore/socket-util.h>
 #include <pulsecore/poll.h>
 
 #include "module-raop-sink-symdef.h"

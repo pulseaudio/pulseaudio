@@ -24,7 +24,6 @@
 #endif
 
 #include <pulse/context.h>
-#include <pulse/gccmacro.h>
 #include <pulse/fork-detect.h>
 #include <pulse/operation.h>
 

@@ -24,6 +24,8 @@
 ***/
 
 #include <pulse/def.h>
+#include <pulse/gccmacro.h>
+
 #include <pulsecore/once.h>
 #include <pulsecore/core-util.h>
 

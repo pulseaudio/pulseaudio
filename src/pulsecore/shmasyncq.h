@@ -24,7 +24,6 @@
 
 #include <sys/types.h>
 
-#include <pulse/def.h>
 #include <pulsecore/macro.h>
 
 /* Similar to pa_asyncq, but stores data in a shared memory segment */

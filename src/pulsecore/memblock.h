@@ -27,8 +27,6 @@
 #include <inttypes.h>
 
 #include <pulse/def.h>
-#include <pulsecore/llist.h>
-#include <pulsecore/refcnt.h>
 #include <pulsecore/atomic.h>
 
 /* A pa_memblock is a reference counted memory block. PulseAudio

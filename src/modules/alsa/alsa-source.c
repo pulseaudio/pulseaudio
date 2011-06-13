@@ -31,10 +31,9 @@
 #include <pulse/i18n.h>
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
-#include <pulse/util.h>
+#include <pulse/volume.h>
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/core-error.h>
 #include <pulsecore/core.h>
 #include <pulsecore/module.h>
 #include <pulsecore/memchunk.h>
@@ -46,7 +45,6 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/thread.h>
-#include <pulsecore/core-error.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/time-smoother.h>

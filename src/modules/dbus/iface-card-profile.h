@@ -28,7 +28,6 @@
  * documentation.
  */
 
-#include <pulsecore/core-scache.h>
 #include <pulsecore/protocol-dbus.h>
 
 #include "iface-card.h"

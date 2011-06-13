@@ -23,7 +23,6 @@
 ***/
 
 #include <sys/types.h>
-#include <pulse/def.h>
 
 /* A simple, asynchronous semaphore which uses fds for sleeping. In
  * the best case all functions are lock-free unless sleeping is

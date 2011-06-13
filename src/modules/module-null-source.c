@@ -25,20 +25,14 @@
 #endif
 
 #include <stdlib.h>
-#include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
-#include <string.h>
-#include <fcntl.h>
 #include <unistd.h>
-#include <limits.h>
 
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/core-error.h>
-#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>

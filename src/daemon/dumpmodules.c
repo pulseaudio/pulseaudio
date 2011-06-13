@@ -25,7 +25,6 @@
 #endif
 
 #include <string.h>
-#include <getopt.h>
 #include <stdio.h>
 #include <ltdl.h>
 

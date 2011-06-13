@@ -27,7 +27,6 @@
 #include <unistd.h>
 #include <time.h>
 #include <inttypes.h>
-#include <string.h>
 
 #ifdef HAVE_PTHREAD
 #include <pthread.h>

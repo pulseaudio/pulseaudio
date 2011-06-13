@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 #include <avahi-client/client.h>
@@ -43,11 +42,9 @@
 #include <pulsecore/native-common.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
-#include <pulsecore/core-subscribe.h>
 #include <pulsecore/dynarray.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/avahi-wrap.h>
-#include <pulsecore/endianmacros.h>
 #include <pulsecore/protocol-native.h>
 
 #include "module-zeroconf-publish-symdef.h"

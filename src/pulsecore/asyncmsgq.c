@@ -28,13 +28,11 @@
 
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/atomic.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/log.h>
-#include <pulsecore/thread.h>
 #include <pulsecore/semaphore.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/core-util.h>
+#include <pulsecore/mutex.h>
 #include <pulsecore/flist.h>
 
 #include "asyncmsgq.h"

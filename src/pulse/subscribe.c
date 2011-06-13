@@ -25,8 +25,6 @@
 
 #include <stdio.h>
 
-#include <pulse/gccmacro.h>
-
 #include <pulsecore/macro.h>
 #include <pulsecore/pstream-util.h>
 

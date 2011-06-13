@@ -29,8 +29,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <pulse/gccmacro.h>
-
 #include <pulsecore/core-util.h>
 #include <pulsecore/mcalign.h>
 

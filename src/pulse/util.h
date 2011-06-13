@@ -26,7 +26,6 @@
 #include <stddef.h>
 
 #include <pulse/cdecl.h>
-#include <pulse/gccmacro.h>
 #include <pulse/version.h>
 
 /** \file

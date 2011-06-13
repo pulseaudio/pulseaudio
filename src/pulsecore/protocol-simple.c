@@ -24,10 +24,8 @@
 #endif
 
 #include <stdlib.h>
-#include <limits.h>
 #include <stdio.h>
 #include <errno.h>
-#include <string.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>

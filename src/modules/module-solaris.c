@@ -28,12 +28,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
-#include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <limits.h>
 #include <sys/ioctl.h>
-#include <sys/stat.h>
 #include <sys/types.h>
 
 #include <signal.h>
@@ -41,14 +38,12 @@
 #include <sys/conf.h>
 #include <sys/audio.h>
 
-#include <pulse/error.h>
 #include <pulse/mainloop-signal.h>
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
 #include <pulse/rtclock.h>
 
-#include <pulsecore/iochannel.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
 #include <pulsecore/module.h>

@@ -28,7 +28,6 @@
 #include <ctype.h>
 
 #include <pulse/xmalloc.h>
-#include <pulse/util.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>

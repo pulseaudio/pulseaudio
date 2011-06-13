@@ -28,7 +28,7 @@
 
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
-#include <pulse/util.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/module.h>

@@ -24,8 +24,6 @@
 #include <config.h>
 #endif
 
-#include <pulsecore/core-util.h>
-
 #include "object.h"
 
 const char pa_object_type_id[] = "pa_object";

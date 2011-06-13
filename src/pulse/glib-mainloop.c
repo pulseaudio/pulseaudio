@@ -26,7 +26,6 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 
-#include <pulsecore/idxset.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/llist.h>

@@ -36,7 +36,6 @@
 #include <pulse/i18n.h>
 
 #include <pulsecore/log.h>
-#include <pulsecore/hashmap.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/mutex.h>
 #include <pulsecore/macro.h>

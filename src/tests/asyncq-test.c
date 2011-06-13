@@ -26,11 +26,9 @@
 #include <unistd.h>
 
 #include <pulse/util.h>
-#include <pulse/xmalloc.h>
 #include <pulsecore/asyncq.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/log.h>
-#include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 
 static void producer(void *_q) {

@@ -32,26 +32,10 @@
 #include <valgrind/memcheck.h>
 #endif
 
-#include <pulse/xmalloc.h>
-#include <pulse/util.h>
-#include <pulse/timeval.h>
-
-#include <pulsecore/core-error.h>
-#include <pulsecore/core-rtclock.h>
-#include <pulsecore/core.h>
 #include <pulsecore/module.h>
-#include <pulsecore/memchunk.h>
-#include <pulsecore/sink.h>
 #include <pulsecore/modargs.h>
-#include <pulsecore/core-util.h>
-#include <pulsecore/sample-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/thread.h>
-#include <pulsecore/core-error.h>
-#include <pulsecore/thread-mq.h>
-#include <pulsecore/rtpoll.h>
-#include <pulsecore/time-smoother.h>
 
 #include "alsa-util.h"
 #include "alsa-source.h"

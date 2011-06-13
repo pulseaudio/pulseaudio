@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 
-#include <pulse/xmalloc.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 

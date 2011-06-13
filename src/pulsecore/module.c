@@ -24,14 +24,11 @@
 #include <config.h>
 #endif
 
-#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <ctype.h>
 
-#include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 #include <pulse/proplist.h>
 

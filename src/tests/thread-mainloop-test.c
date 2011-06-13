@@ -29,7 +29,6 @@
 #include <pulse/timeval.h>
 #include <pulse/util.h>
 #include <pulse/thread-mainloop.h>
-#include <pulse/gccmacro.h>
 
 #include <pulsecore/macro.h>
 #include <pulsecore/core-rtclock.h>

@@ -29,8 +29,10 @@
 #include <config.h>
 #endif
 
+#include <pulse/xmalloc.h>
+
 #include <pulsecore/modargs.h>
-#include <pulsecore/endianmacros.h>
+
 #include "echo-cancel.h"
 
 /* should be between 10-20 ms */

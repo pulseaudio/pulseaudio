@@ -31,8 +31,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <pulse/gccmacro.h>
-
 #ifndef PACKAGE
 #error "Please include config.h before including this file!"
 #endif

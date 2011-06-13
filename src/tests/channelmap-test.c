@@ -6,7 +6,6 @@
 #include <assert.h>
 
 #include <pulse/channelmap.h>
-#include <pulse/gccmacro.h>
 
 int main(int argc, char *argv[]) {
     char cm[PA_CHANNEL_MAP_SNPRINT_MAX];

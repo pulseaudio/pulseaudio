@@ -26,7 +26,6 @@
 #endif
 
 #include "cpu-orc.h"
-#include <pulse/xmalloc.h>
 #include <pulse/rtclock.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/random.h>

@@ -46,7 +46,6 @@
 #include <pulsecore/tagstruct.h>
 #include <pulsecore/pdispatch.h>
 #include <pulsecore/pstream-util.h>
-#include <pulsecore/authkey.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/core-subscribe.h>
@@ -54,7 +53,6 @@
 #include <pulsecore/strlist.h>
 #include <pulsecore/shared.h>
 #include <pulsecore/sample-util.h>
-#include <pulsecore/llist.h>
 #include <pulsecore/creds.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/ipacl.h>

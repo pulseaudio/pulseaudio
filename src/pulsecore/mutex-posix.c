@@ -28,8 +28,6 @@
 
 #include <pulse/xmalloc.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/log.h>
-#include <pulsecore/core-error.h>
 
 #include "mutex.h"
 

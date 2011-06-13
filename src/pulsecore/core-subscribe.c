@@ -27,7 +27,6 @@
 
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/queue.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 

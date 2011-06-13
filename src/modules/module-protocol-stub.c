@@ -24,11 +24,9 @@
 #include <config.h>
 #endif
 
-#include <string.h>
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <limits.h>
 
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>

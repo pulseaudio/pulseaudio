@@ -29,7 +29,6 @@
 #include <pulse/utf8.h>
 
 #include <pulsecore/macro.h>
-#include <pulsecore/core-util.h>
 
 #include "sndfile-util.h"
 

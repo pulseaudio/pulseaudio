@@ -29,7 +29,6 @@
 
 #include <pulse/browser.h>
 #include <pulse/pulseaudio.h>
-#include <pulse/rtclock.h>
 
 #include <pulsecore/core-util.h>
 

@@ -23,7 +23,6 @@
 #include <config.h>
 #endif
 
-#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -39,12 +38,10 @@
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
-#include <pulsecore/socket-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
 #include <pulsecore/ioline.h>
-#include <pulsecore/poll.h>
 #include <pulsecore/arpa-inet.h>
 
 #include "rtsp_client.h"

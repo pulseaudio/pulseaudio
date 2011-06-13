@@ -27,7 +27,6 @@
 
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/ltdl-helper.h>

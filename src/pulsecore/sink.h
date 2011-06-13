@@ -36,9 +36,10 @@ typedef struct pa_sink_volume_change pa_sink_volume_change;
 
 #include <pulsecore/core.h>
 #include <pulsecore/idxset.h>
+#include <pulsecore/memchunk.h>
 #include <pulsecore/source.h>
 #include <pulsecore/module.h>
-#include <pulsecore/refcnt.h>
+#include <pulsecore/asyncmsgq.h>
 #include <pulsecore/msgobject.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/card.h>

@@ -24,9 +24,11 @@
 
 #include <dbus/dbus.h>
 
-#include <pulsecore/llist.h>
+#include <pulse/gccmacro.h>
 #include <pulse/mainloop-api.h>
 #include <pulse/proplist.h>
+
+#include <pulsecore/llist.h>
 
 /* A wrap connection is not shared or refcounted, it is available in client side */
 typedef struct pa_dbus_wrap_connection pa_dbus_wrap_connection;

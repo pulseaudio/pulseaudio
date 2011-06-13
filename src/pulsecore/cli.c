@@ -24,21 +24,16 @@
 #endif
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/core-util.h>
 #include <pulsecore/ioline.h>
 #include <pulsecore/module.h>
-#include <pulsecore/sink.h>
-#include <pulsecore/source.h>
 #include <pulsecore/client.h>
-#include <pulsecore/sink-input.h>
-#include <pulsecore/source-output.h>
 #include <pulsecore/tokenizer.h>
 #include <pulsecore/strbuf.h>
-#include <pulsecore/namereg.h>
 #include <pulsecore/cli-text.h>
 #include <pulsecore/cli-command.h>
 #include <pulsecore/log.h>

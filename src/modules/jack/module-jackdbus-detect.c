@@ -27,6 +27,8 @@
 #include <config.h>
 #endif
 
+#include <pulse/xmalloc.h>
+
 #include <pulsecore/log.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/core-util.h>

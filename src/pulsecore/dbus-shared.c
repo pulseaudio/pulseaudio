@@ -24,11 +24,8 @@
 #include <config.h>
 #endif
 
-#include <stdarg.h>
-
 #include <pulse/xmalloc.h>
-#include <pulse/timeval.h>
-#include <pulsecore/log.h>
+
 #include <pulsecore/shared.h>
 
 #include "dbus-shared.h"

@@ -33,8 +33,6 @@
 #endif
 
 #include <pulse/xmalloc.h>
-#include <pulsecore/mutex.h>
-#include <pulsecore/once.h>
 #include <pulsecore/atomic.h>
 #include <pulsecore/macro.h>
 

@@ -25,14 +25,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <pulse/xmalloc.h>
 #include <pulsecore/module.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/llist.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/dbus-shared.h>
 

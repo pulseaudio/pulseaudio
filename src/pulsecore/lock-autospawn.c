@@ -23,7 +23,6 @@
 #include <config.h>
 #endif
 
-#include <fcntl.h>
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
@@ -32,6 +31,7 @@
 #include <pthread.h>
 #endif
 
+#include <pulse/gccmacro.h>
 #include <pulse/i18n.h>
 #include <pulse/xmalloc.h>
 

@@ -27,7 +27,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <errno.h>
-#include <string.h>
 #include <unistd.h>
 
 #include <pulse/rtclock.h>
@@ -37,7 +36,6 @@
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
-#include <pulsecore/llist.h>
 #include <pulsecore/source.h>
 #include <pulsecore/source-output.h>
 #include <pulsecore/memblockq.h>

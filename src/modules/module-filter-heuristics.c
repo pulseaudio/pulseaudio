@@ -23,8 +23,9 @@
 #include <config.h>
 #endif
 
+#include <pulse/xmalloc.h>
+
 #include <pulsecore/macro.h>
-#include <pulsecore/hashmap.h>
 #include <pulsecore/hook-list.h>
 #include <pulsecore/core.h>
 #include <pulsecore/core-util.h>

@@ -40,7 +40,6 @@
 #endif
 
 #include <pulse/xmalloc.h>
-#include <pulse/util.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>

@@ -22,7 +22,6 @@
   USA.
 ***/
 
-#include <pulsecore/mutex.h>
 #include <pulsecore/atomic.h>
 
 typedef struct pa_once {

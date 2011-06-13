@@ -32,23 +32,17 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <signal.h>
-#include <limits.h>
-#include <locale.h>
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
 
-#ifdef HAVE_SYS_UN_H
-#include <sys/un.h>
-#endif
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
 
 #include <pulse/version.h>
 #include <pulse/xmalloc.h>
-#include <pulse/utf8.h>
 #include <pulse/util.h>
 #include <pulse/i18n.h>
 #include <pulse/mainloop.h>
@@ -70,7 +64,6 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/socket.h>
-#include <pulsecore/socket-util.h>
 #include <pulsecore/creds.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/proplist-util.h>

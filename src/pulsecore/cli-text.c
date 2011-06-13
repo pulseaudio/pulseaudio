@@ -23,8 +23,6 @@
 #include <config.h>
 #endif
 
-#include <string.h>
-
 #include <pulse/volume.h>
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
@@ -36,7 +34,6 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
 #include <pulsecore/strbuf.h>
-#include <pulsecore/sample-util.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>

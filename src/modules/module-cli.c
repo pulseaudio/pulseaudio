@@ -36,7 +36,6 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
-#include <pulsecore/core-error.h>
 
 #include "module-cli-symdef.h"
 

@@ -28,7 +28,6 @@
 ***/
 
 #include <dbus/dbus.h>
-#include <inttypes.h>
 
 #ifdef __cplusplus
 extern "C" {

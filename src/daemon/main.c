@@ -33,7 +33,6 @@
 #include <stddef.h>
 #include <ltdl.h>
 #include <limits.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <locale.h>
 #include <sys/types.h>
@@ -74,7 +73,6 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/core.h>
-#include <pulsecore/memblock.h>
 #include <pulsecore/module.h>
 #include <pulsecore/cli-command.h>
 #include <pulsecore/log.h>
@@ -82,12 +80,8 @@
 #include <pulsecore/sioman.h>
 #include <pulsecore/cli-text.h>
 #include <pulsecore/pid.h>
-#include <pulsecore/namereg.h>
 #include <pulsecore/random.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/mutex.h>
-#include <pulsecore/thread.h>
-#include <pulsecore/once.h>
 #include <pulsecore/shm.h>
 #include <pulsecore/memtrap.h>
 #include <pulsecore/strlist.h>

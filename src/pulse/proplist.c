@@ -28,7 +28,6 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/utf8.h>
-#include <pulse/i18n.h>
 
 #include <pulsecore/hashmap.h>
 #include <pulsecore/strbuf.h>

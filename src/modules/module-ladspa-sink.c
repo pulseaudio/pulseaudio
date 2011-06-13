@@ -26,18 +26,17 @@
 #include <config.h>
 #endif
 
+#include <math.h>
+
 #include <pulse/xmalloc.h>
 #include <pulse/i18n.h>
 
-#include <pulsecore/core-error.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/module.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
-#include <pulsecore/thread.h>
-#include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/ltdl-helper.h>

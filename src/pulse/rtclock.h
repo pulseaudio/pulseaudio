@@ -23,8 +23,7 @@
 ***/
 
 #include <pulse/cdecl.h>
-#include <pulse/def.h>
-#include <pulse/gccmacro.h>
+#include <pulse/sample.h>
 
 /** \file
  *  Monotonic clock utilities. */

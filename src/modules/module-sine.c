@@ -24,7 +24,6 @@
 #endif
 
 #include <stdio.h>
-#include <math.h>
 
 #include <pulse/xmalloc.h>
 
@@ -33,7 +32,6 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/log.h>
-#include <pulsecore/core-util.h>
 
 #include "module-sine-symdef.h"
 

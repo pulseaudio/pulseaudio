@@ -25,7 +25,6 @@
 #endif
 
 #include <sys/types.h>
-#include <limits.h>
 #include <asoundlib.h>
 
 #include <pulse/sample.h>
@@ -40,7 +39,6 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/atomic.h>
 #include <pulsecore/core-error.h>
-#include <pulsecore/once.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/conf-parser.h>
 #include <pulsecore/core-rtclock.h>

@@ -23,6 +23,8 @@
 #include <config.h>
 #endif
 
+#include <pulse/xmalloc.h>
+
 #include <pulsecore/core-util.h>
 #include <pulsecore/shared.h>
 #include <pulsecore/dbus-shared.h>

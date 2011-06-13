@@ -25,9 +25,7 @@
 #include <dbus/dbus.h>
 
 #include <pulsecore/llist.h>
-#include <pulsecore/strlist.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/core-util.h>
 
 #define PA_BLUETOOTH_ERROR_NOT_SUPPORTED "org.bluez.Error.NotSupported"
 

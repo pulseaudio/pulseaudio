@@ -23,9 +23,11 @@
   USA.
 ***/
 
+#include <pulse/gccmacro.h>
 #include <pulse/sample.h>
 #include <pulse/volume.h>
 #include <pulse/channelmap.h>
+
 #include <pulsecore/memblock.h>
 #include <pulsecore/memchunk.h>
 

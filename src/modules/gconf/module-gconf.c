@@ -30,12 +30,10 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <fcntl.h>
 
 #include <pulse/xmalloc.h>
 #include <pulsecore/module.h>
 #include <pulsecore/core.h>
-#include <pulsecore/llist.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulse/mainloop-api.h>

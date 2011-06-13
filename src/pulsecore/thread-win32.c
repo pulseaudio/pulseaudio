@@ -28,7 +28,6 @@
 #include <windows.h>
 
 #include <pulse/xmalloc.h>
-#include <pulsecore/log.h>
 #include <pulsecore/once.h>
 
 #include "thread.h"

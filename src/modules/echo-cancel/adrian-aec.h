@@ -17,8 +17,10 @@
 #include <config.h>
 #endif
 
-#include <pulsecore/macro.h>
+#include <pulse/gccmacro.h>
 #include <pulse/xmalloc.h>
+
+#include <pulsecore/macro.h>
 
 #define WIDEB 2
 

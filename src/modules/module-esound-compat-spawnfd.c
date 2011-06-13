@@ -24,7 +24,6 @@
 #endif
 
 #include <unistd.h>
-#include <string.h>
 #include <errno.h>
 
 #include <pulsecore/core-error.h>

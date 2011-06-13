@@ -28,7 +28,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 
 #include <pulse/rtclock.h>
 #include <pulse/sample.h>
@@ -46,7 +45,6 @@
 #include <pulsecore/source.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/sample-util.h>
-#include <pulsecore/authkey.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>

@@ -37,7 +37,6 @@
 #include <pulsecore/endianmacros.h>
 #include <pulsecore/memblock.h>
 #include <pulsecore/sample-util.h>
-#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 
 static void dump_block(const pa_sample_spec *ss, const pa_memchunk *chunk) {

@@ -24,7 +24,6 @@
 #include <config.h>
 #endif
 
-#include <pulsecore/core.h>
 #include <pulsecore/module.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/modargs.h>

@@ -22,9 +22,9 @@
 #endif
 
 #include <stdio.h>
+#include <math.h>
 
 #include <pulse/volume.h>
-#include <pulse/gccmacro.h>
 
 #include <pulsecore/macro.h>
 

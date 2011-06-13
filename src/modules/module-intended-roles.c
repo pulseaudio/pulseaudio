@@ -24,16 +24,11 @@
 #endif
 
 #include <pulse/xmalloc.h>
-#include <pulse/volume.h>
-#include <pulse/timeval.h>
-#include <pulse/util.h>
 
-#include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
-#include <pulsecore/core-subscribe.h>
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
 #include <pulsecore/namereg.h>

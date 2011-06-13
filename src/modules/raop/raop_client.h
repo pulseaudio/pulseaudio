@@ -22,8 +22,6 @@
   USA.
 ***/
 
-#include <pulse/mainloop-api.h>
-#include <pulsecore/iochannel.h>
 #include <pulsecore/core.h>
 
 typedef struct pa_raop_client pa_raop_client;

@@ -22,8 +22,9 @@
   USA.
 ***/
 
+#include <pulse/gccmacro.h>
+
 #include <pulsecore/iochannel.h>
-#include <pulsecore/core-util.h>
 
 /* An ioline wraps an iochannel for line based communication. A
  * callback function is called whenever a new line has been recieved

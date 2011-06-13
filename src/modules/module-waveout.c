@@ -27,11 +27,8 @@
 #include <windows.h>
 #include <mmsystem.h>
 
-#include <pulse/mainloop-api.h>
-
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
-#include <pulse/rtclock.h>
 
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>

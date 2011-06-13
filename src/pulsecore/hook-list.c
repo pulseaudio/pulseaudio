@@ -23,6 +23,8 @@
 #include <config.h>
 #endif
 
+#include <pulse/xmalloc.h>
+
 #include <pulsecore/macro.h>
 
 #include "hook-list.h"

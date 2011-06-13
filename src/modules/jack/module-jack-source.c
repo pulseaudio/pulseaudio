@@ -24,19 +24,15 @@
 #endif
 
 #include <stdlib.h>
-#include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <fcntl.h>
 #include <unistd.h>
-#include <limits.h>
 
 #include <jack/jack.h>
 
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/core-error.h>
 #include <pulsecore/source.h>
 #include <pulsecore/module.h>
 #include <pulsecore/core-util.h>

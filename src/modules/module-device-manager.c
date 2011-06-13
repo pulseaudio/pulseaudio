@@ -30,12 +30,10 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 
+#include <pulse/gccmacro.h>
 #include <pulse/xmalloc.h>
-#include <pulse/volume.h>
 #include <pulse/timeval.h>
-#include <pulse/util.h>
 #include <pulse/rtclock.h>
 
 #include <pulsecore/core-error.h>

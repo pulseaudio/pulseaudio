@@ -48,7 +48,6 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/cli-text.h>
 #include <pulsecore/core-scache.h>
-#include <pulsecore/sample-util.h>
 #include <pulsecore/sound-file.h>
 #include <pulsecore/play-memchunk.h>
 #include <pulsecore/sound-file-stream.h>

@@ -26,16 +26,9 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include <pulse/xmalloc.h>
-
-#include <pulsecore/atomic.h>
-#include <pulsecore/once.h>
-#include <pulsecore/log.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/semaphore.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/core-util.h>
-#include <pulsecore/flist.h>
 
 #include "thread-mq.h"
 

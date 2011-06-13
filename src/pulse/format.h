@@ -25,6 +25,7 @@
 ***/
 
 #include <pulse/cdecl.h>
+#include <pulse/gccmacro.h>
 #include <pulse/proplist.h>
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>

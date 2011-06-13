@@ -32,7 +32,6 @@
 #include <sys/un.h>
 #include <locale.h>
 
-#include <pulse/error.h>
 #include <pulse/util.h>
 #include <pulse/xmalloc.h>
 #include <pulse/i18n.h>

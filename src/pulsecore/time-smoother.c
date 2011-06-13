@@ -24,6 +24,7 @@
 #endif
 
 #include <stdio.h>
+#include <math.h>
 
 #include <pulse/sample.h>
 #include <pulse/xmalloc.h>

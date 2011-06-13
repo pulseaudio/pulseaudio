@@ -33,7 +33,6 @@
 #include <pulsecore/source-output.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
-#include <pulsecore/namereg.h>
 
 #include "module-suspend-on-idle-symdef.h"
 

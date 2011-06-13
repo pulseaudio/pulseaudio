@@ -28,23 +28,23 @@ typedef struct pa_source_volume_change pa_source_volume_change;
 
 #include <inttypes.h>
 
+#include <pulse/def.h>
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 #include <pulse/volume.h>
 
 #include <pulsecore/core.h>
 #include <pulsecore/idxset.h>
-#include <pulsecore/memblock.h>
 #include <pulsecore/memchunk.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/module.h>
 #include <pulsecore/asyncmsgq.h>
 #include <pulsecore/msgobject.h>
 #include <pulsecore/rtpoll.h>
-#include <pulsecore/source-output.h>
 #include <pulsecore/card.h>
 #include <pulsecore/queue.h>
 #include <pulsecore/thread-mq.h>
+#include <pulsecore/source-output.h>
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 32
 

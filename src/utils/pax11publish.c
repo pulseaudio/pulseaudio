@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 #include <getopt.h>
-#include <string.h>
 #include <assert.h>
 #include <locale.h>
 

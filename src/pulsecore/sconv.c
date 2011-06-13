@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <pulsecore/g711.h>
 #include <pulsecore/macro.h>

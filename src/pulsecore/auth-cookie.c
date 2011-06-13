@@ -26,7 +26,6 @@
 #include <sys/types.h>
 
 #include <pulse/xmalloc.h>
-#include <pulse/util.h>
 
 #include <pulsecore/refcnt.h>
 #include <pulsecore/macro.h>

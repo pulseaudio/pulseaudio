@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <math.h>
 
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
@@ -48,9 +49,8 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/atomic.h>
-#include <pulsecore/atomic.h>
 #include <pulsecore/socket-util.h>
+#include <pulsecore/atomic.h>
 #include <pulsecore/once.h>
 #include <pulsecore/poll.h>
 #include <pulsecore/arpa-inet.h>

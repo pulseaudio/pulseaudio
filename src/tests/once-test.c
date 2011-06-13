@@ -24,11 +24,9 @@
 #include <pthread.h>
 
 #include <pulsecore/thread.h>
-#include <pulsecore/mutex.h>
 #include <pulsecore/once.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
-#include <pulsecore/core-error.h>
 #include <pulsecore/atomic.h>
 #include <pulse/xmalloc.h>
 

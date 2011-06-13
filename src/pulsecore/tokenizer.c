@@ -27,7 +27,6 @@
 #include <stdlib.h>
 
 #include <pulse/xmalloc.h>
-#include <pulse/gccmacro.h>
 
 #include <pulsecore/dynarray.h>
 #include <pulsecore/macro.h>

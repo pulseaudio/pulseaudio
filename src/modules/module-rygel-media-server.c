@@ -28,8 +28,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <pulse/gccmacro.h>
 #include <pulse/xmalloc.h>
-#include <pulse/util.h>
 #include <pulse/i18n.h>
 #include <pulse/utf8.h>
 
@@ -39,7 +39,6 @@
 #include <pulsecore/log.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/dbus-shared.h>
-#include <pulsecore/endianmacros.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/mime-type.h>
 #include <pulsecore/strbuf.h>

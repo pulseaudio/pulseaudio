@@ -22,13 +22,11 @@
 #endif
 
 #include <signal.h>
-#include <string.h>
 #include <errno.h>
 #include <unistd.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <getopt.h>
 #include <math.h>
 
 #include <pulse/pulseaudio.h>

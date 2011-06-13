@@ -25,8 +25,6 @@
 
 #include <sys/types.h>
 
-#include <pulse/xmalloc.h>
-#include <pulsecore/refcnt.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/object.h>
 #include <pulsecore/memchunk.h>

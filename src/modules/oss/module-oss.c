@@ -45,14 +45,10 @@
 #include <sys/soundcard.h>
 #include <sys/ioctl.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
-#include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <limits.h>
-#include <signal.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>

@@ -25,7 +25,6 @@
 #endif
 
 #include <stdio.h>
-#include <math.h>
 #include <string.h>
 
 #include <pulse/timeval.h>

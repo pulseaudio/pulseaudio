@@ -25,18 +25,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <X11/Xlib.h>
 #include <X11/XKBlib.h>
 
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/iochannel.h>
-#include <pulsecore/sink.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/modargs.h>
-#include <pulsecore/namereg.h>
 #include <pulsecore/log.h>
 #include <pulsecore/x11wrap.h>
 

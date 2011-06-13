@@ -24,10 +24,7 @@
 #include <config.h>
 #endif
 
-#include <string.h>
-
 #include <pulse/context.h>
-#include <pulse/gccmacro.h>
 #include <pulse/xmalloc.h>
 #include <pulse/fork-detect.h>
 

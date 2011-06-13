@@ -22,8 +22,6 @@
   USA.
 ***/
 
-#include <inttypes.h>
-
 #include <pulsecore/macro.h>
 #include <pulsecore/idxset.h>
 

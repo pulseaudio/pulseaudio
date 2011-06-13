@@ -24,8 +24,6 @@
 #include <config.h>
 #endif
 
-#include <string.h>
-
 #include <pulse/sample.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>

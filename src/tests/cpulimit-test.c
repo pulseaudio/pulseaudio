@@ -28,7 +28,6 @@
 #include <signal.h>
 
 #include <pulse/mainloop.h>
-#include <pulse/gccmacro.h>
 
 #ifdef TEST2
 #include <pulse/mainloop-signal.h>

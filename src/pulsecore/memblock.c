@@ -42,7 +42,10 @@
 #include <pulsecore/log.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/semaphore.h>
+#include <pulsecore/mutex.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/refcnt.h>
+#include <pulsecore/llist.h>
 #include <pulsecore/flist.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/memtrap.h>

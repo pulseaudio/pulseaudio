@@ -26,15 +26,12 @@
 
 #include <unistd.h>
 #include <errno.h>
-#include <string.h>
 #include <sys/types.h>
 
 #include <pulse/i18n.h>
 
 #include <pulsecore/macro.h>
-#include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
-#include <pulsecore/core-util.h>
 
 #ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/capability.h>

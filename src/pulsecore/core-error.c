@@ -32,8 +32,6 @@
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/core-util.h>
-#include <pulsecore/native-common.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/log.h>

@@ -25,7 +25,7 @@
 #include <inttypes.h>
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
-#include <pulsecore/core.h>
+#include <pulse/proplist.h>
 #include <pulsecore/macro.h>
 
 typedef struct pa_modargs pa_modargs;

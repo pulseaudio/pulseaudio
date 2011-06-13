@@ -28,10 +28,7 @@
 #include <time.h>
 
 #include <pulse/xmalloc.h>
-#include <pulse/volume.h>
-#include <pulse/channelmap.h>
 
-#include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>

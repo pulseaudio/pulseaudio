@@ -24,13 +24,10 @@
 #include <stdio.h>
 
 #include <pulse/sample.h>
-#include <pulse/volume.h>
 
 #include <pulsecore/resampler.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/endianmacros.h>
 #include <pulsecore/memblock.h>
-#include <pulsecore/sample-util.h>
 
 int main(int argc, char *argv[]) {
 

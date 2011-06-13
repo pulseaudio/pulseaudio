@@ -29,9 +29,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
-#include <inttypes.h>
 #include <stdlib.h>
-#include <limits.h>
 #include <sys/stat.h>
 
 #include <pulse/util.h>

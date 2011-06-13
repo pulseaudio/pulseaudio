@@ -1,7 +1,6 @@
 #include <stdio.h>
 
 #include <pulse/xmalloc.h>
-#include <pulse/gccmacro.h>
 
 #include <pulsecore/strlist.h>
 

@@ -25,13 +25,11 @@
 #endif
 
 #include <unistd.h>
-#include <string.h>
 #include <errno.h>
 #include <signal.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
-#include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 

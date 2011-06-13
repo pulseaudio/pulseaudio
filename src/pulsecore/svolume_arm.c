@@ -24,11 +24,8 @@
 #include <config.h>
 #endif
 
-#include <pulse/timeval.h>
 #include <pulsecore/random.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/g711.h>
-#include <pulsecore/core-util.h>
 #include <pulsecore/endianmacros.h>
 
 #include "cpu-arm.h"

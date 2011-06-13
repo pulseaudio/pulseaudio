@@ -23,7 +23,6 @@
   USA.
 ***/
 
-#include <string.h>
 #include <sys/types.h>
 
 #include <pulse/xmalloc.h>

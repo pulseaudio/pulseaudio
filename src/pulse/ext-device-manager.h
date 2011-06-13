@@ -23,6 +23,7 @@
   USA.
 ***/
 
+#include <pulse/cdecl.h>
 #include <pulse/context.h>
 #include <pulse/version.h>
 

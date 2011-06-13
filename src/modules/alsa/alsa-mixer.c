@@ -25,27 +25,25 @@
 #endif
 
 #include <sys/types.h>
-#include <limits.h>
 #include <asoundlib.h>
+#include <math.h>
 
 #ifdef HAVE_VALGRIND_MEMCHECK_H
 #include <valgrind/memcheck.h>
 #endif
 
+#include <pulse/mainloop-api.h>
 #include <pulse/sample.h>
-#include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
+#include <pulse/volume.h>
+#include <pulse/xmalloc.h>
 #include <pulse/i18n.h>
 #include <pulse/utf8.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
-#include <pulsecore/atomic.h>
-#include <pulsecore/core-error.h>
-#include <pulsecore/once.h>
-#include <pulsecore/thread.h>
 #include <pulsecore/conf-parser.h>
 #include <pulsecore/strbuf.h>
 

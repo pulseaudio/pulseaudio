@@ -32,6 +32,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 
+#include <pulsecore/core-util.h>
 #include <pulsecore/ioline.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/macro.h>

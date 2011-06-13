@@ -34,8 +34,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <pulse/xmalloc.h>
-
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>

@@ -33,13 +33,8 @@
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 
-#include <pulsecore/iochannel.h>
-#include <pulsecore/sink.h>
-#include <pulsecore/core-scache.h>
 #include <pulsecore/modargs.h>
-#include <pulsecore/namereg.h>
 #include <pulsecore/log.h>
-#include <pulsecore/core-util.h>
 #include <pulsecore/x11wrap.h>
 
 #include "module-x11-xsmp-symdef.h"

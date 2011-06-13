@@ -26,7 +26,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>

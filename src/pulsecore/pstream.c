@@ -28,9 +28,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#ifdef HAVE_SYS_UN_H
-#include <sys/un.h>
-#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif

@@ -41,10 +41,8 @@
 #include <pulsecore/native-common.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
-#include <pulsecore/core-subscribe.h>
 #include <pulsecore/dynarray.h>
 #include <pulsecore/modargs.h>
-#include <pulsecore/endianmacros.h>
 #include <pulsecore/protocol-native.h>
 
 #include "module-bonjour-publish-symdef.h"

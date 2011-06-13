@@ -27,10 +27,8 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
-#include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <limits.h>
 #include <sys/ioctl.h>
 
 #ifdef HAVE_SYS_FILIO_H

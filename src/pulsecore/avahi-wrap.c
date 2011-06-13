@@ -26,7 +26,6 @@
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 
 #include "avahi-wrap.h"

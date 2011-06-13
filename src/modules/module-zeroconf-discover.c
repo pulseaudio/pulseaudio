@@ -36,14 +36,9 @@
 #include <avahi-common/malloc.h>
 
 #include <pulse/xmalloc.h>
-#include <pulse/util.h>
 
-#include <pulsecore/sink.h>
-#include <pulsecore/source.h>
-#include <pulsecore/native-common.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
-#include <pulsecore/core-subscribe.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/namereg.h>

@@ -33,14 +33,10 @@
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/module.h>
-#include <pulsecore/sink.h>
-#include <pulsecore/source.h>
-#include <pulsecore/namereg.h>
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/core-subscribe.h>
-#include <pulsecore/shared.h>
 #include <pulsecore/random.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>

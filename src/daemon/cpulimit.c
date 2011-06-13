@@ -23,11 +23,9 @@
 #include <config.h>
 #endif
 
-#include <pulse/error.h>
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 
-#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
@@ -40,7 +38,6 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/time.h>
 #include <unistd.h>
 #include <signal.h>
 

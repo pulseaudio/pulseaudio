@@ -29,9 +29,7 @@
 #endif
 
 #include <pulse/xmalloc.h>
-#include <pulse/util.h>
 
-#include <pulsecore/core-error.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
 #include <pulsecore/module.h>

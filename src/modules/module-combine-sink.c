@@ -41,11 +41,9 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/namereg.h>
-#include <pulsecore/mutex.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
-#include <pulsecore/core-error.h>
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/strlist.h>
 

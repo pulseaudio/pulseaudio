@@ -43,7 +43,6 @@ typedef enum pa_suspend_cause {
 #include <pulsecore/hashmap.h>
 #include <pulsecore/memblock.h>
 #include <pulsecore/resampler.h>
-#include <pulsecore/queue.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/hook-list.h>
 #include <pulsecore/asyncmsgq.h>
@@ -51,7 +50,6 @@ typedef enum pa_suspend_cause {
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
 #include <pulsecore/core-subscribe.h>
-#include <pulsecore/sink-input.h>
 #include <pulsecore/msgobject.h>
 
 typedef enum pa_server_type {

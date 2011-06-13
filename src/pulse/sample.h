@@ -26,7 +26,6 @@
 #include <inttypes.h>
 #include <sys/types.h>
 #include <sys/param.h>
-#include <math.h>
 
 #include <pulse/gccmacro.h>
 #include <pulse/cdecl.h>

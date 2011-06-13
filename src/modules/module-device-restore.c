@@ -30,12 +30,11 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 
+#include <pulse/gccmacro.h>
 #include <pulse/xmalloc.h>
 #include <pulse/volume.h>
 #include <pulse/timeval.h>
-#include <pulse/util.h>
 #include <pulse/rtclock.h>
 #include <pulse/format.h>
 #include <pulse/internal.h>
@@ -46,8 +45,8 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-subscribe.h>
-#include <pulsecore/sink-input.h>
-#include <pulsecore/source-output.h>
+#include <pulsecore/sink.h>
+#include <pulsecore/source.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/protocol-native.h>
 #include <pulsecore/pstream.h>

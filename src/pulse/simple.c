@@ -32,7 +32,6 @@
 #include <pulse/thread-mainloop.h>
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/native-common.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 

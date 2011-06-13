@@ -30,14 +30,10 @@
 
 #include <xcb/xcb.h>
 
-#include <pulse/util.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/module.h>
-#include <pulsecore/sink.h>
-#include <pulsecore/core-scache.h>
 #include <pulsecore/modargs.h>
-#include <pulsecore/namereg.h>
 #include <pulsecore/log.h>
 #include <pulsecore/x11wrap.h>
 #include <pulsecore/core-util.h>
@@ -45,7 +41,6 @@
 #include <pulsecore/auth-cookie.h>
 #include <pulsecore/x11prop.h>
 #include <pulsecore/strlist.h>
-#include <pulsecore/shared.h>
 #include <pulsecore/protocol-native.h>
 
 #include "module-x11-publish-symdef.h"

@@ -26,7 +26,6 @@
 #include <pulse/sample.h>
 #include <pulse/volume.h>
 
-#include <pulsecore/resampler.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/endianmacros.h>
 #include <pulsecore/memblock.h>

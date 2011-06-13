@@ -31,10 +31,6 @@
 
 #include <pulsecore/hashmap.h>
 #include <pulsecore/idxset.h>
-#include <pulsecore/sample-util.h>
-#include <pulsecore/namereg.h>
-#include <pulsecore/sink.h>
-#include <pulsecore/source.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 

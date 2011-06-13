@@ -42,12 +42,10 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-subscribe.h>
-#include <pulsecore/sink-input.h>
 #include <pulsecore/pdispatch.h>
 #include <pulsecore/pstream.h>
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/socket-client.h>
-#include <pulsecore/socket-util.h>
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>

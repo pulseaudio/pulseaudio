@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 #include <X11/Xlib.h>
@@ -33,7 +32,6 @@
 #include <X11/XF86keysym.h>
 #include <X11/keysym.h>
 
-#include <pulse/util.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/module.h>

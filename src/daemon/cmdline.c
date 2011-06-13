@@ -23,11 +23,9 @@
 #include <config.h>
 #endif
 
-#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <getopt.h>
-#include <sys/stat.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/i18n.h>

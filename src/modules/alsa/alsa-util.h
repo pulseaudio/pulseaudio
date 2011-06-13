@@ -26,13 +26,9 @@
 #include <asoundlib.h>
 
 #include <pulse/sample.h>
-#include <pulse/volume.h>
-#include <pulse/mainloop-api.h>
 #include <pulse/channelmap.h>
 #include <pulse/proplist.h>
-#include <pulse/volume.h>
 
-#include <pulsecore/llist.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/core.h>
 #include <pulsecore/log.h>

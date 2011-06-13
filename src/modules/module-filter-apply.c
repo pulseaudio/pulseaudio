@@ -26,6 +26,7 @@
 #include <pulse/timeval.h>
 #include <pulse/rtclock.h>
 #include <pulse/i18n.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/macro.h>
 #include <pulsecore/hashmap.h>

@@ -27,8 +27,6 @@
 #include <sys/types.h>
 #include <netdb.h>
 
-#include <pulsecore/memblockq.h>
-#include <pulsecore/memchunk.h>
 #include <pulsecore/socket-client.h>
 #include <pulse/mainloop-api.h>
 
