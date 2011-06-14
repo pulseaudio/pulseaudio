@@ -87,6 +87,9 @@ typedef struct record_stream {
     pa_bool_t adjust_latency:1;
     pa_bool_t early_requests:1;
 
+    /* Requested buffer attributes */
+    pa_buffer_attr buffer_attr_req;
+    /* Fixed-up and adjusted buffer attributes */
     pa_buffer_attr buffer_attr;
 
     pa_atomic_t on_the_fly;
@@ -132,6 +135,9 @@ typedef struct playback_stream {
 
     pa_atomic_t missing;
     pa_usec_t configured_sink_latency;
+    /* Requested buffer attributes */
+    pa_buffer_attr buffer_attr_req;
+    /* Fixed-up and adjusted buffer attributes */
     pa_buffer_attr buffer_attr;
 
     /* Only updated after SINK_INPUT_MESSAGE_UPDATE_LATENCY */
@@ -526,6 +532,7 @@ static void fix_record_buffer_attr_pre(record_stream *s) {
      * ->thread_info data! */
 
     frame_size = pa_frame_size(&s->source_output->sample_spec);
+    s->buffer_attr = s->buffer_attr_req;
 
     if (s->buffer_attr.maxlength == (uint32_t) -1 || s->buffer_attr.maxlength > MAX_MEMBLOCKQ_LENGTH)
         s->buffer_attr.maxlength = MAX_MEMBLOCKQ_LENGTH;
@@ -666,7 +673,7 @@ static record_stream* record_stream_new(
     s->parent.process_msg = record_stream_process_msg;
     s->connection = c;
     s->source_output = source_output;
-    s->buffer_attr = *attr;
+    s->buffer_attr_req = *attr;
     s->adjust_latency = adjust_latency;
     s->early_requests = early_requests;
     pa_atomic_store(&s->on_the_fly, 0);
@@ -881,6 +888,7 @@ static void fix_playback_buffer_attr(playback_stream *s) {
      * ->thread_info data, such as the memblockq! */
 
     frame_size = pa_frame_size(&s->sink_input->sample_spec);
+    s->buffer_attr = s->buffer_attr_req;
 
     if (s->buffer_attr.maxlength == (uint32_t) -1 || s->buffer_attr.maxlength > MAX_MEMBLOCKQ_LENGTH)
         s->buffer_attr.maxlength = MAX_MEMBLOCKQ_LENGTH;
@@ -1105,7 +1113,7 @@ static playback_stream* playback_stream_new(
     s->is_underrun = TRUE;
     s->drain_request = FALSE;
     pa_atomic_store(&s->missing, 0);
-    s->buffer_attr = *a;
+    s->buffer_attr_req = *a;
     s->adjust_latency = adjust_latency;
     s->early_requests = early_requests;
     pa_atomic_store(&s->seek_or_post_in_queue, 0);
@@ -3790,7 +3798,7 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
 
         s->adjust_latency = adjust_latency;
         s->early_requests = early_requests;
-        s->buffer_attr = a;
+        s->buffer_attr_req = a;
 
         fix_playback_buffer_attr(s);
         pa_assert_se(pa_asyncmsgq_send(s->sink_input->sink->asyncmsgq, PA_MSGOBJECT(s->sink_input), SINK_INPUT_MESSAGE_UPDATE_BUFFER_ATTR, NULL, 0, NULL) == 0);
@@ -3826,7 +3834,7 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
 
         s->adjust_latency = adjust_latency;
         s->early_requests = early_requests;
-        s->buffer_attr = a;
+        s->buffer_attr_req = a;
 
         fix_record_buffer_attr_pre(s);
         pa_memblockq_set_maxlength(s->memblockq, s->buffer_attr.maxlength);
