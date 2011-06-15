@@ -403,13 +403,13 @@ AC_TYPE_UID_T
 AC_CHECK_DECLS(environ)
 
 # SIGXCPU
-AC_CHECK_DEFINE([SIGXCPU], [signal.h], [HAVE_SIGXCPU=1], [HAVE_SIGXCPU=0])
+AX_CHECK_DEFINE([signal.h], [SIGXCPU], [HAVE_SIGXCPU=1], [HAVE_SIGXCPU=0])
 AS_IF([test "x$HAVE_SIGXCPU" = "x1"], AC_DEFINE([HAVE_SIGXCPU], 1, [Have SIGXCPU?]))
 AM_CONDITIONAL(HAVE_SIGXCPU, test "x$HAVE_SIGXCPU" = "x1")
 
 # INADDR_NONE, Solaris lacks this
-AC_CHECK_DEFINE([INADDR_NONE], [netinet/in.h], [],
-    [AC_CHECK_DEFINE([INADDR_NONE], [winsock2.h], [],
+AX_CHECK_DEFINE([netinet/in.h], [INADDR_NONE], [],
+    [AX_CHECK_DEFINE([winsock2.h], [INADDR_NONE], [],
         [AC_DEFINE([INADDR_NONE],  [0xffffffff], [Define INADDR_NONE if not found in <netinet/in.h>])])])
 
 
