@@ -478,11 +478,13 @@ static int parse_rtprio(const char *filename, unsigned line, const char *section
     pa_assert(rvalue);
     pa_assert(data);
 
-#ifdef HAVE_SCHED_H
+#ifndef OS_IS_WIN32
+# ifdef HAVE_SCHED_H
     if (pa_atoi(rvalue, &rtprio) < 0 || rtprio < sched_get_priority_min(SCHED_FIFO) || rtprio > sched_get_priority_max(SCHED_FIFO)) {
         pa_log("[%s:%u] Invalid realtime priority '%s'.", filename, line, rvalue);
         return -1;
     }
+# endif
 #endif
 
     c->realtime_priority = (int) rtprio;
