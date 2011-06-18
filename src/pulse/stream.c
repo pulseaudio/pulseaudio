@@ -303,7 +303,10 @@ static void stream_free(pa_stream *s) {
         pa_smoother_free(s->smoother);
 
     for (i = 0; i < s->n_formats; i++)
-        pa_xfree(s->req_formats[i]);
+        pa_format_info_free(s->req_formats[i]);
+
+    if (s->format)
+        pa_format_info_free(s->format);
 
     pa_xfree(s->device_name);
     pa_xfree(s);
