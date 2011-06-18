@@ -86,14 +86,16 @@ static pa_stream *pa_stream_new_with_proplist_internal(
         const pa_sample_spec *ss,
         const pa_channel_map *map,
         pa_format_info * const *formats,
+        unsigned int n_formats,
         pa_proplist *p) {
 
     pa_stream *s;
-    int i;
+    unsigned int i;
 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
-    pa_assert((ss == NULL && map == NULL) || formats == NULL);
+    pa_assert((ss == NULL && map == NULL) || (formats == NULL && n_formats == 0));
+    pa_assert(n_formats < PA_MAX_FORMATS);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name || (p && pa_proplist_contains(p, PA_PROP_MEDIA_NAME)), PA_ERR_INVALID);
@@ -119,12 +121,9 @@ static pa_stream *pa_stream_new_with_proplist_internal(
 
     s->n_formats = 0;
     if (formats) {
-        for (i = 0; formats[i] && i < PA_MAX_FORMATS; i++) {
-            s->n_formats++;
+        s->n_formats = n_formats;
+        for (i = 0; i < n_formats; i++)
             s->req_formats[i] = pa_format_info_copy(formats[i]);
-        }
-        /* Make sure the input array was NULL-terminated */
-        pa_assert(formats[i] == NULL);
     }
 
     /* We'll get the final negotiated format after connecting */
@@ -221,18 +220,19 @@ pa_stream *pa_stream_new_with_proplist(
     if (!map)
         PA_CHECK_VALIDITY_RETURN_NULL(c, map = pa_channel_map_init_auto(&tmap, ss->channels, PA_CHANNEL_MAP_DEFAULT), PA_ERR_INVALID);
 
-    return pa_stream_new_with_proplist_internal(c, name, ss, map, NULL, p);
+    return pa_stream_new_with_proplist_internal(c, name, ss, map, NULL, 0, p);
 }
 
 pa_stream *pa_stream_new_extended(
         pa_context *c,
         const char *name,
         pa_format_info * const *formats,
+        unsigned int n_formats,
         pa_proplist *p) {
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 21, PA_ERR_NOTSUPPORTED);
 
-    return pa_stream_new_with_proplist_internal(c, name, NULL, NULL, formats, p);
+    return pa_stream_new_with_proplist_internal(c, name, NULL, NULL, formats, n_formats, p);
 }
 
 static void stream_unlink(pa_stream *s) {

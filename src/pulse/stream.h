@@ -365,6 +365,7 @@ pa_stream *pa_stream_new_extended(
         pa_context *c                     /**< The context to create this stream in */,
         const char *name                  /**< A name for this stream */,
         pa_format_info * const * formats  /**< The list of formats that can be provided */,
+        unsigned int n_formats            /**< The number of formats being passed in */,
         pa_proplist *p                    /**< The initial property list */);
 
 /** Decrease the reference counter by one */

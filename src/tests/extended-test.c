@@ -122,7 +122,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
             for (i = 0; i < NSTREAMS; i++) {
                 char name[64];
-                pa_format_info *formats[2] = { NULL };
+                pa_format_info *formats[1];
 
                 formats[0] = pa_format_info_new();
                 formats[0]->encoding = PA_ENCODING_PCM;
@@ -134,10 +134,12 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
                 snprintf(name, sizeof(name), "stream #%i", i);
 
-                streams[i] = pa_stream_new_extended(c, name, formats, NULL);
+                streams[i] = pa_stream_new_extended(c, name, formats, 1, NULL);
                 assert(streams[i]);
                 pa_stream_set_state_callback(streams[i], stream_state_callback, (void*) (long) i);
                 pa_stream_connect_playback(streams[i], NULL, &buffer_attr, PA_STREAM_START_CORKED, NULL, i == 0 ? NULL : streams[0]);
+
+                pa_format_info_free(formats[0]);
             }
 
             break;
