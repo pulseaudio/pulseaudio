@@ -1548,6 +1548,11 @@ module_equalizer_sink_la_CFLAGS = $(AM_CFLAGS) $(FFTW_CFLAGS)
 module_equalizer_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_equalizer_sink_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) $(FFTW_LIBS)
 
+if HAVE_DBUS
+module_equalizer_sink_la_CFLAGS += $(DBUS_CFLAGS)
+module_equalizer_sink_la_LIBADD += $(DBUS_LIBS)
+endif
+
 module_match_la_SOURCES = modules/module-match.c
 module_match_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_match_la_LIBADD = $(MODULE_LIBADD)
