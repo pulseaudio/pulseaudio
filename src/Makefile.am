@@ -203,10 +203,6 @@ bin_PROGRAMS += pax11publish
 bin_SCRIPTS += start-pulseaudio-x11 start-pulseaudio-kde
 endif
 
-if HAVE_AVAHI
-bin_PROGRAMS += pabrowse
-endif
-
 pacat_SOURCES = utils/pacat.c
 pacat_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la $(LIBSNDFILE_LIBS)
 pacat_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
@@ -231,11 +227,6 @@ pax11publish_SOURCES = utils/pax11publish.c
 pax11publish_CFLAGS = $(AM_CFLAGS) $(X11_CFLAGS)
 pax11publish_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la $(X11_LIBS)
 pax11publish_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
-
-pabrowse_SOURCES = utils/pabrowse.c
-pabrowse_LDADD = $(AM_LDADD) libpulse.la libpulse-browse.la libpulsecommon-@PA_MAJORMINOR@.la
-pabrowse_CFLAGS = $(AM_CFLAGS)
-pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
 #         Test programs           #
@@ -716,14 +707,6 @@ lib_LTLIBRARIES += \
 		libpulse.la \
 		libpulse-simple.la
 
-if HAVE_AVAHI
-pulseinclude_HEADERS += \
-		pulse/browser.h
-
-lib_LTLIBRARIES += \
-		libpulse-browse.la
-endif
-
 if HAVE_GLIB20
 pulseinclude_HEADERS += \
 		pulse/glib-mainloop.h
@@ -776,11 +759,6 @@ libpulse_simple_la_SOURCES = pulse/simple.c pulse/simple.h
 libpulse_simple_la_CFLAGS = $(AM_CFLAGS)
 libpulse_simple_la_LIBADD = $(AM_LIBADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 libpulse_simple_la_LDFLAGS = $(AM_LDFLAGS) $(VERSIONING_LDFLAGS) -version-info $(LIBPULSE_SIMPLE_VERSION_INFO)
-
-libpulse_browse_la_SOURCES = pulse/browser.c pulse/browser.h pulsecore/avahi-wrap.c pulsecore/avahi-wrap.h
-libpulse_browse_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
-libpulse_browse_la_LIBADD = $(AM_LIBADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la $(AVAHI_LIBS)
-libpulse_browse_la_LDFLAGS = $(AM_LDFLAGS) $(VERSIONING_LDFLAGS) -version-info $(LIBPULSE_BROWSE_VERSION_INFO)
 
 libpulse_mainloop_glib_la_SOURCES = pulse/glib-mainloop.h pulse/glib-mainloop.c
 libpulse_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)

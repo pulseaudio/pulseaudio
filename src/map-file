@@ -2,12 +2,6 @@ PULSE_0 {
 global:
 pa_ascii_filter;
 pa_ascii_valid;
-pa_browser_new;
-pa_browser_new_full;
-pa_browser_ref;
-pa_browser_set_callback;
-pa_browser_set_error_callback;
-pa_browser_unref;
 pa_bytes_per_second;
 pa_bytes_snprint;
 pa_bytes_to_usec;

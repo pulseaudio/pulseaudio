@@ -30,7 +30,6 @@ noinst_DATA = \
 	pactl.1.xml \
 	pasuspender.1.xml \
 	padsp.1.xml \
-	pabrowse.1.xml \
 	pulse-daemon.conf.5.xml \
 	pulse-client.conf.5.xml \
 	default.pa.5.xml
@@ -57,7 +56,6 @@ dist_man_MANS = \
 	pactl.1 \
 	pasuspender.1 \
 	padsp.1 \
-	pabrowse.1 \
 	pulse-daemon.conf.5 \
 	pulse-client.conf.5 \
 	default.pa.5
@@ -80,7 +78,6 @@ EXTRA_DIST = \
 	pactl.1.xml.in \
 	pasuspender.1.xml.in \
 	padsp.1.xml.in \
-	pabrowse.1.xml.in \
 	pulse-daemon.conf.5.xml.in \
 	pulse-client.conf.5.xml.in \
 	default.pa.5.xml.in \

@@ -1195,7 +1195,6 @@ src/Makefile
 man/Makefile
 libpulse.pc
 libpulse-simple.pc
-libpulse-browse.pc
 libpulse-mainloop-glib.pc
 doxygen/Makefile
 doxygen/doxygen.conf

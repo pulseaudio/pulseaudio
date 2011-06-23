@@ -164,7 +164,6 @@ src/pulse/mainloop-api.c
 src/pulse/sample.c
 src/pulse/client-conf-x11.c
 src/pulse/client-conf.c
-src/pulse/browser.c
 src/pulse/volume.c
 src/pulse/simple.c
 src/pulse/subscribe.c
@@ -180,7 +179,6 @@ src/pulse/timeval.c
 src/pulse/format.c
 src/utils/pacat.c
 src/utils/pasuspender.c
-src/utils/pabrowse.c
 src/utils/pactl.c
 src/utils/padsp.c
 src/utils/pax11publish.c
