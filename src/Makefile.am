@@ -85,6 +85,7 @@ AM_LDFLAGS+=-Wl,-headerpad_max_install_names -headerpad_max_install_names
 endif
 
 FOREIGN_CFLAGS = -w
+
 MODULE_LDFLAGS = $(AM_LDFLAGS) -module -disable-static -avoid-version $(LDFLAGS_NOUNDEFINED)
 MODULE_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 
@@ -240,8 +241,6 @@ pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 #         Test programs           #
 ###################################
 
-# missing: mcalign-test flist-test pacat-simple parec-simple sync-playback rtstutter stripnul interpol-test thread-test connect-stress
-
 TESTS = \
 		mainloop-test \
 		strlist-test \
@@ -270,59 +269,27 @@ TESTS = \
 		lock-autospawn-test \
 		prioq-test
 
-TESTS_BINARIES = \
-		mainloop-test \
+TESTS_norun = \
 		mcalign-test \
 		pacat-simple \
 		parec-simple \
 		extended-test \
-		strlist-test \
-		close-test \
-		voltest \
-		vector-test \
-		memblockq-test \
 		sync-playback \
 		interpol-test \
-		channelmap-test \
-		thread-mainloop-test \
-		utf8-test \
-		format-test \
-		get-binary-name-test \
-		ipacl-test \
-		hook-list-test \
-		memblock-test \
 		thread-test \
 		flist-test \
-		asyncq-test \
-		asyncmsgq-test \
-		queue-test \
-		rtpoll-test \
-		sig2str-test \
-		resampler-test \
-		smoother-test \
-		mix-test \
-		remix-test \
-		proplist-test \
 		rtstutter \
 		stripnul \
-		lock-autospawn-test \
-		prioq-test \
 		connect-stress
 
 if !OS_IS_WIN32
 TESTS += \
 		sigbus-test \
 		usergroup-test
-TESTS_BINARIES += \
-		sigbus-test \
-		usergroup-test
 endif
 
 if HAVE_SIGXCPU
-#TESTS += \
-#		cpulimit-test \
-#		cpulimit-test2
-TESTS_BINARIES += \
+TESTS_norun += \
 		cpulimit-test \
 		cpulimit-test2
 endif
@@ -330,17 +297,15 @@ endif
 if HAVE_GLIB20
 TESTS += \
 		mainloop-test-glib
-TESTS_BINARIES += \
-		mainloop-test-glib
 endif
 
 if HAVE_GTK20
-TESTS_BINARIES += \
+TESTS_norun += \
 		gtk-test
 endif
 
 if HAVE_ALSA
-TESTS_BINARIES += \
+TESTS_norun += \
 		alsa-time-test
 endif
 
@@ -352,9 +317,9 @@ endif
 endif
 
 if BUILD_TESTS_DEFAULT
-noinst_PROGRAMS = $(TESTS_BINARIES)
+noinst_PROGRAMS = $(TESTS) $(TESTS_norun)
 else
-check_PROGRAMS = $(TESTS_BINARIES)
+check_PROGRAMS = $(TESTS) $(TESTS_norun)
 endif
 
 mainloop_test_SOURCES = tests/mainloop-test.c
@@ -664,7 +629,9 @@ libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libpulsecommon_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LIBJSON_LIBS)
 
 if HAVE_X11
-libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += pulse/client-conf-x11.c pulse/client-conf-x11.h
+libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += \
+		pulse/client-conf-x11.c pulse/client-conf-x11.h \
+		pulsecore/x11prop.c pulsecore/x11prop.h
 libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += $(X11_CFLAGS)
 libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS += $(X11_LIBS)
 endif
@@ -697,12 +664,6 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += \
 		pulsecore/semaphore-posix.c pulsecore/semaphore.h
 endif !OS_IS_DARWIN
 endif !OS_IS_WIN32
-
-if HAVE_X11
-libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += pulsecore/x11prop.c pulsecore/x11prop.h
-libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += $(X11_CFLAGS)
-libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS += $(X11_LIBS)
-endif
 
 if HAVE_LIBASYNCNS
 libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += $(LIBASYNCNS_CFLAGS)
