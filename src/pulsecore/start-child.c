@@ -45,10 +45,10 @@
 #include "start-child.h"
 
 int pa_start_child_for_read(const char *name, const char *argv1, pid_t *pid) {
+#ifdef HAVE_FORK
     pid_t child;
     int pipe_fds[2] = { -1, -1 };
 
-#ifdef HAVE_FORK
     if (pipe(pipe_fds) < 0) {
         pa_log("pipe() failed: %s", pa_cstrerror(errno));
         goto fail;
@@ -106,10 +106,10 @@ int pa_start_child_for_read(const char *name, const char *argv1, pid_t *pid) {
         execl(name, name, argv1, NULL);
         _exit(1);
     }
-#endif
 
 fail:
     pa_close_pipe(pipe_fds);
+#endif /* HAVE_FORK */
 
     return -1;
 }

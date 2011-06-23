@@ -98,8 +98,10 @@ static char *segment_name(char *fn, size_t l, unsigned id) {
 #endif
 
 int pa_shm_create_rw(pa_shm *m, size_t size, pa_bool_t shared, mode_t mode) {
+#ifdef HAVE_SHM_OPEN
     char fn[32];
     int fd = -1;
+#endif
 
     pa_assert(m);
     pa_assert(size > 0);

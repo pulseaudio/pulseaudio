@@ -72,7 +72,9 @@ int pa__init(pa_module*m) {
     pa_iochannel *io;
     pa_modargs *ma;
     pa_bool_t exit_on_eof = FALSE;
+#ifndef OS_IS_WIN32
     int fd;
+#endif
 
     pa_assert(m);
 

@@ -49,6 +49,7 @@ struct timeval *pa_gettimeofday(struct timeval *tv) {
 #else
 #define EPOCHFILETIME (116444736000000000LL)
 #endif
+{
     FILETIME ft;
     LARGE_INTEGER li;
     int64_t t;
@@ -61,6 +62,7 @@ struct timeval *pa_gettimeofday(struct timeval *tv) {
     t /= 10;                /* In microseconds */
     tv->tv_sec  = (time_t) (t / PA_USEC_PER_SEC);
     tv->tv_usec = (suseconds_t) (t % PA_USEC_PER_SEC);
+}
 #elif defined(HAVE_GETTIMEOFDAY)
     pa_assert_se(gettimeofday(tv, NULL) == 0);
 #else

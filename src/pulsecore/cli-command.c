@@ -1574,8 +1574,10 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     pa_card *card;
     pa_bool_t nl;
     uint32_t idx;
-    char txt[256];
     time_t now;
+#ifdef HAVE_CTIME_R
+    char txt[256];
+#endif
 
     pa_core_assert_ref(c);
     pa_assert(t);

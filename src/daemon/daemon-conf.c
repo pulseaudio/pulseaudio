@@ -470,6 +470,10 @@ static int parse_nice_level(const char *filename, unsigned line, const char *sec
 }
 
 static int parse_rtprio(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+#ifdef OS_IS_WIN32
+    pa_log("[%s:%u] Realtime priority not available on win32.", filename, line);
+#else
+# ifdef HAVE_SCHED_H
     pa_daemon_conf *c = data;
     int32_t rtprio;
 
@@ -478,16 +482,15 @@ static int parse_rtprio(const char *filename, unsigned line, const char *section
     pa_assert(rvalue);
     pa_assert(data);
 
-#ifndef OS_IS_WIN32
-# ifdef HAVE_SCHED_H
     if (pa_atoi(rvalue, &rtprio) < 0 || rtprio < sched_get_priority_min(SCHED_FIFO) || rtprio > sched_get_priority_max(SCHED_FIFO)) {
         pa_log("[%s:%u] Invalid realtime priority '%s'.", filename, line, rvalue);
         return -1;
     }
-# endif
-#endif
 
     c->realtime_priority = (int) rtprio;
+# endif
+#endif /* OS_IS_WIN32 */
+
     return 0;
 }
 

@@ -72,8 +72,9 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
 #ifndef OS_IS_WIN32
     pa_assert_se(fstat(fd, &st) == 0);
 
-    if (S_ISSOCK(st.st_mode)) {
+    if (S_ISSOCK(st.st_mode))
 #endif
+    {
         union {
             struct sockaddr_storage storage;
             struct sockaddr sa;
@@ -118,10 +119,11 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
             }
         }
 
-#ifndef OS_IS_WIN32
         pa_snprintf(c, l, "Unknown network client");
         return;
-    } else if (S_ISCHR(st.st_mode) && (fd == 0 || fd == 1)) {
+    }
+#ifndef OS_IS_WIN32
+    else if (S_ISCHR(st.st_mode) && (fd == 0 || fd == 1)) {
         pa_snprintf(c, l, "STDIN/STDOUT client");
         return;
     }

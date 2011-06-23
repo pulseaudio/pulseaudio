@@ -748,7 +748,9 @@ int main(int argc, char *argv[]) {
     }
 
     if (conf->daemonize) {
+#ifdef HAVE_FORK
         pid_t child;
+#endif
 
         if (pa_stdio_acquire() < 0) {
             pa_log(_("Failed to acquire stdio."));

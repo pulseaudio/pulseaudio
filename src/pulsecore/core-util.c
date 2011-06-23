@@ -219,7 +219,7 @@ void pa_make_fd_cloexec(int fd) {
 /** Creates a directory securely */
 int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     struct stat st;
-    int r, saved_errno, fd;
+    int r, saved_errno;
 
     pa_assert(dir);
 
@@ -238,6 +238,8 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
         return -1;
 
 #if defined(HAVE_FSTAT) && !defined(OS_IS_WIN32)
+{
+    int fd;
     if ((fd = open(dir,
 #ifdef O_CLOEXEC
                    O_CLOEXEC|
@@ -276,6 +278,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
 #endif
 
     pa_assert_se(pa_close(fd) >= 0);
+}
 #endif
 
 #ifdef HAVE_LSTAT
@@ -728,7 +731,7 @@ int pa_make_realtime(int rtprio) {
     pa_log_info("Successfully acquired real-time thread priority.");
     return 0;
 
-#elif _POSIX_PRIORITY_SCHEDULING
+#elif defined(_POSIX_PRIORITY_SCHEDULING)
     int p;
 
     if (set_scheduler(rtprio) >= 0) {
@@ -886,7 +889,6 @@ int pa_match(const char *expr, const char *v) {
 
 /* Try to parse a boolean string value.*/
 int pa_parse_boolean(const char *v) {
-    const char *expr;
     pa_assert(v);
 
     /* First we check language independant */
@@ -896,6 +898,8 @@ int pa_parse_boolean(const char *v) {
         return 0;
 
 #ifdef HAVE_LANGINFO_H
+{
+    const char *expr;
     /* And then we check language dependant */
     if ((expr = nl_langinfo(YESEXPR)))
         if (expr[0])
@@ -906,6 +910,7 @@ int pa_parse_boolean(const char *v) {
         if (expr[0])
             if (pa_match(expr, v) > 0)
                 return 0;
+}
 #endif
 
     errno = EINVAL;
@@ -1561,7 +1566,6 @@ static int make_random_dir_and_link(mode_t m, const char *k) {
 
 char *pa_get_runtime_dir(void) {
     char *d, *k = NULL, *p = NULL, *t = NULL, *mid;
-    struct stat st;
     mode_t m;
 
     /* The runtime directory shall contain dynamic data that needs NOT
@@ -1641,10 +1645,10 @@ char *pa_get_runtime_dir(void) {
             goto fail;
         }
 
-        /* Hmm, so this symlink is still around, make sure nobody fools
-         * us */
-
+        /* Hmm, so this symlink is still around, make sure nobody fools us */
 #ifdef HAVE_LSTAT
+{
+        struct stat st;
         if (lstat(p, &st) < 0) {
 
             if (errno != ENOENT) {
@@ -1664,6 +1668,7 @@ char *pa_get_runtime_dir(void) {
 
             pa_log_info("Hmm, runtime path exists, but points to an invalid directory. Changing runtime directory.");
         }
+}
 #endif
 
         pa_xfree(p);
@@ -2203,7 +2208,7 @@ void *pa_will_need(const void *p, size_t l) {
 #endif
     const void *a;
     size_t size;
-    int r;
+    int r = ENOTSUP;
     size_t bs;
 
     pa_assert(p);

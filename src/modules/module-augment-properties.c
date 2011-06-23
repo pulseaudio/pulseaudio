@@ -175,10 +175,10 @@ static void update_rule(struct rule *r) {
     if (stat(fn, &st) == 0)
         found = TRUE;
     else {
+#ifdef DT_DIR
         DIR *desktopfiles_dir;
         struct dirent *dir;
 
-#ifdef DT_DIR
         /* Let's try a more aggressive search, but only one level */
         if ((desktopfiles_dir = opendir(DESKTOPFILEDIR))) {
             while ((dir = readdir(desktopfiles_dir))) {
