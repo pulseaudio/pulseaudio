@@ -123,6 +123,27 @@ pa_thread* pa_thread_self(void) {
     return pa_tls_get(thread_tls);
 }
 
+void* pa_thread_get_data(pa_thread *t) {
+    pa_assert(t);
+
+    return t->userdata;
+}
+
+void pa_thread_set_data(pa_thread *t, void *userdata) {
+    pa_assert(t);
+
+    t->userdata = userdata;
+}
+
+void pa_thread_set_name(pa_thread *t, const char *name) {
+    /* Not implemented */
+}
+
+const char *pa_thread_get_name(pa_thread *t) {
+    /* Not implemented */
+    return NULL;
+}
+
 void pa_thread_yield(void) {
     Sleep(0);
 }

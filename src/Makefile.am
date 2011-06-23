@@ -271,6 +271,7 @@ TESTS = \
 
 TESTS_norun = \
 		mcalign-test \
+		once-test \
 		pacat-simple \
 		parec-simple \
 		extended-test \
@@ -307,13 +308,6 @@ endif
 if HAVE_ALSA
 TESTS_norun += \
 		alsa-time-test
-endif
-
-if !OS_IS_DARWIN
-if !OS_IS_WIN32
-TESTS_BINARIES += \
-		once-test
-endif
 endif
 
 if BUILD_TESTS_DEFAULT

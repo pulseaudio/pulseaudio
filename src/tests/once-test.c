@@ -21,7 +21,9 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
+#endif
 
 #include <pulsecore/thread.h>
 #include <pulsecore/once.h>
@@ -33,7 +35,9 @@
 static pa_once once = PA_ONCE_INIT;
 static volatile unsigned n_run = 0;
 static const char * volatile ran_by = NULL;
+#ifdef HAVE_PTHREAD
 static pthread_barrier_t barrier;
+#endif
 static unsigned n_cpu;
 
 #define N_ITERATIONS 500
@@ -45,6 +49,7 @@ static void once_func(void) {
 }
 
 static void thread_func(void *data) {
+#ifdef HAVE_PTHREAD
     int r;
 
 #ifdef HAVE_PTHREAD_SETAFFINITY_NP
@@ -60,6 +65,7 @@ static void thread_func(void *data) {
 
     r = pthread_barrier_wait(&barrier);
     pa_assert(r == 0 || r == PTHREAD_BARRIER_SERIAL_THREAD);
+#endif /* HAVE_PTHREAD */
 
     pa_run_once(&once, once_func);
 }
@@ -72,7 +78,9 @@ int main(int argc, char *argv[]) {
     for (n = 0; n < N_ITERATIONS; n++) {
         pa_thread* threads[N_THREADS];
 
+#ifdef HAVE_PTHREAD
         pa_assert_se(pthread_barrier_init(&barrier, NULL, N_THREADS) == 0);
+#endif
 
         /* Yes, kinda ugly */
         pa_zero(once);
@@ -94,7 +102,9 @@ int main(int argc, char *argv[]) {
         n_run = 0;
         ran_by = NULL;
 
+#ifdef HAVE_PTHREAD
         pa_assert_se(pthread_barrier_destroy(&barrier) == 0);
+#endif
     }
 
     return 0;

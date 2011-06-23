@@ -94,8 +94,6 @@ int main(int argc, char *argv[]) {
     int i, k;
     pa_thread* t[THREADS_MAX];
 
-    assert(pa_thread_is_running(pa_thread_self()));
-
     mutex = pa_mutex_new(FALSE, FALSE);
     cond1 = pa_cond_new();
     cond2 = pa_cond_new();
