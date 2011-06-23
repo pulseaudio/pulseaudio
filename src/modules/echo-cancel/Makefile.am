@@ -1,6 +1,6 @@
 # This file is part of PulseAudio.
 #
-# Copyright 2010 Colin Guthrie
+# Copyright 2011 Colin Guthrie
 #
 # PulseAudio is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,4 +17,4 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-SUBDIRS = alsa bluetooth echo-cancel gconf jack oss raop rtp x11
+# This Automake file is intentionally blank.

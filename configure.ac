@@ -1448,6 +1448,7 @@ src/modules/alsa/mixer/Makefile
 src/modules/alsa/mixer/paths/Makefile
 src/modules/alsa/mixer/profile-sets/Makefile
 src/modules/bluetooth/Makefile
+src/modules/echo-cancel/Makefile
 src/modules/gconf/Makefile
 src/modules/jack/Makefile
 src/modules/oss/Makefile
