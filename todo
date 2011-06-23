@@ -13,9 +13,12 @@ I18N:
 
 Cleanups:
 - drop dependency of libpulse on libX11, instead use an external mini binary
+
+Network:
 - module-tunnel: improve latency calculation
-- use software volume when hardware doesn't support all channels (alsa done)
-- using POSIX monotonous clocks wherever possible instead of gettimeofday()
+- module-tunnel: more reliable audio streaming over wifi
+- Compressed network streams for tunnels/rtp streams. (Might be a good GSoC project)
+  This builds on passthrough support. A good candidate codec would be CELT.
 
 Test:
 - autoload
@@ -27,19 +30,14 @@ Auth/Crypto:
 - sasl auth 
 
 Features:
-- chroot()
 - use scatter/gather io for sockets
-- CODECs to reduce bandwidth usage (plug-in based)
-- multiline configuration statements
-- paplay needs to set a channel map. our default is only correct for AIFF.
-  (we need help from libsndfile for this)
 - examine if it is possible to mimic esd's handling of half duplex cards
   (switch to capture when a recording client connects and drop playback during
   that time)
-- Support for device selection in waveout driver
 - add an API to libpulse for allocating memory from the pa_context memory pool
-- better ".include" command in configuration files. should have glob support.
-- recursive .if
+- configuration file syntax:
+  - multiline configuration statements
+  - recursive .if
 
 Long term:
 - pass meta info for hearing impaired
