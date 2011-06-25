@@ -55,15 +55,9 @@ AM_CFLAGS = \
 	-I$(top_builddir)/src/modules \
 	$(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS \
 	-DPA_BUILDDIR=\"$(abs_builddir)\" \
-	-DPA_DLSEARCHPATH=\"$(modlibexecdir)\" \
 	-DPA_DEFAULT_CONFIG_DIR=\"$(PA_DEFAULT_CONFIG_DIR)\" \
 	-DPA_BINARY=\"$(PA_BINARY)\" \
-	-DPA_SYSTEM_RUNTIME_PATH=\"$(PA_SYSTEM_RUNTIME_PATH)\" \
-	-DPA_SYSTEM_CONFIG_PATH=\"$(PA_SYSTEM_CONFIG_PATH)\" \
-	-DPA_SYSTEM_STATE_PATH=\"$(PA_SYSTEM_STATE_PATH)\" \
 	-DAO_REQUIRE_CAS \
-	-DPULSE_LOCALEDIR=\"$(pulselocaledir)\" \
-	-DPA_MACHINE_ID=\"$(localstatedir)/lib/dbus/machine-id\" \
 	-DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
 	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\"
 

@@ -99,7 +99,7 @@ AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
 AM_GLIB_GNU_GETTEXT
 
 pulselocaledir='${prefix}/${DATADIRNAME}/locale'
-AC_SUBST(pulselocaledir)
+AX_DEFINE_DIR(PULSE_LOCALEDIR, pulselocaledir, [Gettext locale dir])
 
 
 #### Determine host OS ####
@@ -966,6 +966,9 @@ AC_SUBST(DBUS_LIBS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 AS_IF([test "x$HAVE_DBUS" = "x1"], AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.]))
 
+PA_MACHINE_ID="${localstatedir}/lib/dbus/machine-id"
+AX_DEFINE_DIR(PA_MACHINE_ID, PA_MACHINE_ID, [D-Bus machine-id file])
+
 # HAL and BlueZ depend on D-Bus: So double check if they were explicitly enabled.
 if test "x$HAVE_DBUS" != "x1" ; then
     HAVE_HAL=0
@@ -1086,11 +1089,11 @@ fi
 #### PulseAudio system runtime dir ####
 
 PA_SYSTEM_RUNTIME_PATH="${localstatedir}/run/pulse"
-AC_SUBST(PA_SYSTEM_RUNTIME_PATH)
+AX_DEFINE_DIR(PA_SYSTEM_RUNTIME_PATH, PA_SYSTEM_RUNTIME_PATH, [System runtime dir])
 PA_SYSTEM_CONFIG_PATH="${localstatedir}/lib/pulse"
-AC_SUBST(PA_SYSTEM_CONFIG_PATH)
+AX_DEFINE_DIR(PA_SYSTEM_CONFIG_PATH, PA_SYSTEM_CONFIG_PATH, [System config dir])
 PA_SYSTEM_STATE_PATH="${localstatedir}/lib/pulse"
-AC_SUBST(PA_SYSTEM_STATE_PATH)
+AX_DEFINE_DIR(PA_SYSTEM_STATE_PATH, PA_SYSTEM_STATE_PATH, [System state dir])
 
 #### Mac OSX specific stuff #####
 
@@ -1166,6 +1169,7 @@ AC_ARG_WITH(
         [modlibexecdir=$withval], [modlibexecdir="${libdir}/pulse-${PA_MAJORMINOR}/modules"])
 
 AC_SUBST(modlibexecdir)
+AX_DEFINE_DIR(PA_DLSEARCHPATH, modlibexecdir, [Modules dir])
 
 AC_ARG_WITH(
         [udev-rules-dir],
@@ -1240,6 +1244,7 @@ echo "
     prefix:                        ${prefix}
     sysconfdir:                    ${sysconfdir}
     localstatedir:                 ${localstatedir}
+    modlibexecdir:                 ${modlibexecdir}
     System Runtime Path:           ${PA_SYSTEM_RUNTIME_PATH}
     System State Path:             ${PA_SYSTEM_STATE_PATH}
     System Config Path:            ${PA_SYSTEM_CONFIG_PATH}
