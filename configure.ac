@@ -147,53 +147,45 @@ case "$host_os" in
 esac
 
 
-#### Flags ####
+#### Compiler flags ####
 
-dnl Compiler flags
+AX_APPEND_COMPILE_FLAGS(
+    [-Wall -W -Wextra -pipe -Wno-long-long -Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -ffast-math -Wp,-D_FORTIFY_SOURCE=2 -fno-common -fdiagnostics-show-option],
+    [], [-pedantic -Werror])
 
-# Some compilers (e.g. clang) default to a warning on an unkown command line option.
-# Change that temporarily to an error, for the CC_CHECK_CFLAGS_APPEND macro to work.
-save_CC="$CC"
-CC="$CC -Werror"
-CC_CHECK_CFLAGS_APPEND([-Wall -W -Wextra -pipe -Wno-long-long -Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -ffast-math -Wp,-D_FORTIFY_SOURCE=2 -fno-common -fdiagnostics-show-option])
-CC="$save_CC"
 
-dnl Linker flags.
-dnl Check whether the linker supports the -version-script option.
+#### Linker flags ####
 
-dnl This variable is used to make sure ${srcdir} is expanded and not
-dnl passed to the CC_CHECK_LDFLAGS macro as a name.
-tmp_ldflag="-Wl,-version-script=${srcdir}/src/map-file"
-
-CC_CHECK_LDFLAGS([${tmp_ldflag}],
+# Check whether the linker supports the -version-script option.
+# The Make variable $(srcdir) needs to be in the LDFLAGS in that form,
+# so that it is expanded the right way in every subdir.
+AX_CHECK_LINK_FLAG(["-Wl,-version-script=${srcdir}/src/map-file"],
     [VERSIONING_LDFLAGS='-Wl,-version-script=$(srcdir)/map-file'])
 AC_SUBST([VERSIONING_LDFLAGS])
 
-dnl Use immediate (now) bindings; avoids the funky re-call in itself
-dnl  the -z now syntax is lifted from Sun's linker and works with GNU's too
-dnl  other linkes might be added later
-CC_CHECK_LDFLAGS([-Wl,-z,now], [IMMEDIATE_LDFLAGS="-Wl,-z,now"])
+# Use immediate (now) bindings; avoids the funky re-call in itself.
+# The -z now syntax is lifted from Sun's linker and works with GNU's too, other linkers might be added later.
+AX_APPEND_LINK_FLAGS([-Wl,-z,now], [IMMEDIATE_LDFLAGS])
 AC_SUBST([IMMEDIATE_LDFLAGS])
 
-dnl On ELF systems we don't want the libraries to be unloaded since we
-dnl don't clean them up properly, so we request the nodelete flag to be
-dnl enabled.
-dnl
-dnl On other systems, we don't really know how to do that, but it's
-dnl welcome if somebody can tell.
-CC_CHECK_LDFLAGS([-Wl,-z,nodelete], [NODELETE_LDFLAGS="-Wl,-z,nodelete"])
+# On ELF systems we don't want the libraries to be unloaded since we don't clean them up properly,
+# so we request the nodelete flag to be enabled.
+# On other systems, we don't really know how to do that, but it's welcome if somebody can tell.
+AX_APPEND_LINK_FLAGS([-Wl,-z,nodelete], [NODELETE_LDFLAGS])
 AC_SUBST([NODELETE_LDFLAGS])
 
-dnl Check for the proper way to build libraries that have no undefined
-dnl symbols; on some hosts this needs to be avoided but the macro
-dnl takes care of it.
-CC_NOUNDEFINED
-
-dnl Check whether to build tests by default (as compile-test) or not
-AC_ARG_ENABLE([default-build-tests],
-    AS_HELP_STRING([--disable-default-build-tests], [Build test programs only during make check]))
-
-AM_CONDITIONAL([BUILD_TESTS_DEFAULT], [test "x$enable_default_build_tests" != "xno"])
+# Check for the proper way to build libraries that have no undefined symbols
+case $host in
+    # FreeBSD (et al.) does not complete linking for shared objects when pthreads
+    # are requested, as different implementations are present.
+    *-freebsd* | *-openbsd*) ;;
+    *)
+        for possible_flag in "-Wl,--no-undefined" "-Wl,-z,defs"; do
+            AX_CHECK_LINK_FLAG([$possible_flag], [NOUNDEFINED_LDFLAGS="$possible_flag"; break])
+        done
+    ;;
+esac
+AC_SUBST([NOUNDEFINED_LDFLAGS])
 
 
 #### Atomic operations ####
@@ -1132,6 +1124,11 @@ fi
 
 AC_DEFINE_UNQUOTED(PA_CFLAGS, "$CFLAGS", [The CFLAGS used during compilation])
 
+# Check whether to build tests by default (as compile-test) or not
+AC_ARG_ENABLE([default-build-tests],
+    AS_HELP_STRING([--disable-default-build-tests], [Build test programs only during make check]))
+AM_CONDITIONAL([BUILD_TESTS_DEFAULT], [test "x$enable_default_build_tests" != "xno"])
+
 AC_ARG_ENABLE([legacy-runtime-dir],
         AS_HELP_STRING([--disable-legacy-runtime-dir], [Try to connect on legacy (< 0.9.12) socket paths.]))
 if test "x$enable_legacy_runtime_dir" != "xno" ; then
@@ -1147,7 +1144,6 @@ AC_DEFINE([WIBBLE], 1, [Just a test.])
 
 AC_ARG_ENABLE([static-bins],
     AS_HELP_STRING([--enable-static-bins],[Statically link executables.]))
-
 AM_CONDITIONAL([STATIC_BINS], [test "x$enable_static_bins" = "xyes"])
 
 AC_ARG_WITH(
