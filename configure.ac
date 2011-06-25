@@ -427,6 +427,9 @@ AS_IF([test "$ac_cv_tls" == "__thread"],
 AS_IF([test "x$os_is_win32" != "x1"],
   [AX_PTHREAD])
 
+AS_IF([test "x$ax_pthread_ok" == "xyes"],
+    AC_DEFINE([_POSIX_PTHREAD_SEMANTICS], 1, [Needed on Solaris]))
+
 
 #### Check for libs ####
 
@@ -580,9 +583,9 @@ AC_SUBST(LIBSPEEX_LIBS)
 AC_MSG_CHECKING([whether we need libatomic_ops])
 if test "x$need_libatomic_ops" = "xyes"; then
     AC_MSG_RESULT([yes])
-    AC_CHECK_HEADERS([atomic_ops.h], [], [
-    AC_MSG_ERROR([*** libatomic-ops headers not found])
-    ])
+    AC_CHECK_HEADERS([atomic_ops.h],
+        [CFLAGS="$CFLAGS -DAO_REQUIRE_CAS"],
+        [AC_MSG_ERROR([*** libatomic-ops headers not found])])
 
     # Win32 does not need the lib and breaks horribly if we try to include it
     AS_IF([test "x$os_is_win32" != "x1"], [LIBS="$LIBS -latomic_ops"])

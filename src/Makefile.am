@@ -53,11 +53,10 @@ AM_CFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/modules \
 	-I$(top_builddir)/src/modules \
-	$(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS \
+	$(PTHREAD_CFLAGS) \
 	-DPA_BUILDDIR=\"$(abs_builddir)\" \
 	-DPA_DEFAULT_CONFIG_DIR=\"$(PA_DEFAULT_CONFIG_DIR)\" \
 	-DPA_BINARY=\"$(PA_BINARY)\" \
-	-DAO_REQUIRE_CAS \
 	-DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
 	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\"
 
