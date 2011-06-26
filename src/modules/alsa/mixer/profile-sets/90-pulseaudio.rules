@@ -24,6 +24,8 @@ KERNEL!="card*", GOTO="pulseaudio_end"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="01ab", ENV{PULSE_PROFILE_SET}="usb-headset.conf"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="0a0c", ENV{PULSE_PROFILE_SET}="usb-headset.conf"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="1395", ATTRS{idProduct}=="0002", ENV{PULSE_PROFILE_SET}="usb-headset.conf"
+# UAC1.0 Sennheiser Dongle
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1395", ATTRS{idProduct}=="3554", ENV{PULSE_PROFILE_SET}="usb-headset.conf"
 # BT Agile Handset
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="1885", ATTRS{idProduct}=="0501", ENV{PULSE_PROFILE_SET}="usb-headset.conf"
 
