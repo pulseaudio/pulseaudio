@@ -926,8 +926,6 @@ int main(int argc, char *argv[]) {
                 break;
 
             case ARG_FILE_FORMAT:
-                raw = FALSE;
-
                 if (optarg) {
                     if ((file_format = pa_sndfile_format_from_string(optarg)) < 0) {
                         pa_log(_("Unknown file format %s."), optarg);
@@ -986,13 +984,19 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            /* Transparently upgrade classic .wav to wavex for multichannel audio */
             if (file_format <= 0) {
-                if ((sample_spec.channels == 2 && (!channel_map_set || (channel_map.map[0] == PA_CHANNEL_POSITION_LEFT &&
-                                                                        channel_map.map[1] == PA_CHANNEL_POSITION_RIGHT))) ||
-                    (sample_spec.channels == 1 && (!channel_map_set || (channel_map.map[0] == PA_CHANNEL_POSITION_MONO))))
+                char *extension;
+                if (filename && (extension = strrchr(filename, '.')))
+                    file_format = pa_sndfile_format_from_string(extension+1);
+                if (file_format <= 0)
                     file_format = SF_FORMAT_WAV;
-                else
+                /* Transparently upgrade classic .wav to wavex for multichannel audio */
+                if (file_format == SF_FORMAT_WAV &&
+                    (sample_spec.channels > 2 ||
+                    (channel_map_set &&
+                    !(sample_spec.channels == 1 && channel_map.map[0] == PA_CHANNEL_POSITION_MONO) &&
+                    !(sample_spec.channels == 2 && channel_map.map[0] == PA_CHANNEL_POSITION_LEFT
+                                                && channel_map.map[1] == PA_CHANNEL_POSITION_RIGHT))))
                     file_format = SF_FORMAT_WAVEX;
             }
 
