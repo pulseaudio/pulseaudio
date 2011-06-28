@@ -479,7 +479,7 @@ static size_t check_left_to_play(struct userdata *u, size_t n_bytes, pa_bool_t o
 }
 
 static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled, pa_bool_t on_timeout) {
-    pa_bool_t work_done = TRUE;
+    pa_bool_t work_done = FALSE;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_play;
     unsigned j = 0;
