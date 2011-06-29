@@ -902,59 +902,6 @@ AC_SUBST(LIRC_CFLAGS)
 AC_SUBST(LIRC_LIBS)
 AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
 
-#### HAL support (optional) ####
-
-AC_ARG_ENABLE([hal],
-    AS_HELP_STRING([--disable-hal],[Disable optional HAL support]))
-
-AS_IF([test "x$enable_hal" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \)],
-    [PKG_CHECK_MODULES(HAL, [ hal >= 0.5.11 ], HAVE_HAL=1, HAVE_HAL=0)],
-    HAVE_HAL=0)
-
-AS_IF([test "x$enable_hal" = "xyes" && test "x$HAVE_HAL" = "x0"],
-    [AC_MSG_ERROR([*** HAL support not found])])
-
-AC_SUBST(HAL_CFLAGS)
-AC_SUBST(HAL_LIBS)
-AC_SUBST(HAVE_HAL)
-AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
-AS_IF([test "x$HAVE_HAL" = "x1"], AC_DEFINE([HAVE_HAL], 1, [Have HAL.]))
-
-#### UDEV support (optional) ####
-
-AC_ARG_ENABLE([udev],
-    AS_HELP_STRING([--disable-udev],[Disable optional UDEV support]))
-
-AS_IF([test "x$enable_udev" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \)],
-    [PKG_CHECK_MODULES(UDEV, [ libudev >= 143 ], HAVE_UDEV=1, HAVE_UDEV=0)],
-    HAVE_UDEV=0)
-
-AS_IF([test "x$enable_udev" = "xyes" && test "x$HAVE_UDEV" = "x0"],
-    [AC_MSG_ERROR([*** UDEV support not found])])
-
-AC_SUBST(UDEV_CFLAGS)
-AC_SUBST(UDEV_LIBS)
-AC_SUBST(HAVE_UDEV)
-AM_CONDITIONAL([HAVE_UDEV], [test "x$HAVE_UDEV" = x1])
-AS_IF([test "x$HAVE_UDEV" = "x1"], AC_DEFINE([HAVE_UDEV], 1, [Have UDEV.]))
-
-#### BlueZ support (optional) ####
-
-AC_ARG_ENABLE([bluez],
-    AS_HELP_STRING([--disable-bluez],[Disable optional BlueZ support]))
-
-AS_IF([test "x$enable_bluez" != "xno"],
-    [PKG_CHECK_MODULES(BLUEZ, [ bluez >= 3.0 ], HAVE_BLUEZ=1, HAVE_BLUEZ=0)],
-    HAVE_BLUEZ=0)
-
-AS_IF([test "x$enable_bluez" = "xyes" && test "x$HAVE_BLUEZ" = "x0"],
-    [AC_MSG_ERROR([*** BLUEZ support not found])])
-
-AC_SUBST(BLUEZ_CFLAGS)
-AC_SUBST(BLUEZ_LIBS)
-AC_SUBST(HAVE_BLUEZ)
-AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
-
 #### D-Bus support (optional) ####
 
 AC_ARG_ENABLE([dbus],
@@ -985,44 +932,84 @@ AS_IF([test "x$HAVE_DBUS" = "x1"], AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.]))
 PA_MACHINE_ID="${localstatedir}/lib/dbus/machine-id"
 AX_DEFINE_DIR(PA_MACHINE_ID, PA_MACHINE_ID, [D-Bus machine-id file])
 
-# HAL and BlueZ depend on D-Bus: So double check if they were explicitly enabled.
-if test "x$HAVE_DBUS" != "x1" ; then
-    HAVE_HAL=0
-    if test "x$enable_hal" = "xyes"; then
-        AC_MSG_ERROR([*** D-Bus support is required by HAL])
-    fi
+#### HAL support (optional), dependant on D-Bus ####
 
-    HAVE_BLUEZ=0
-    if test "x$enable_bluez" = "xyes"; then
-        AC_MSG_ERROR([*** D-Bus support is required by BLUEZ])
-    fi
-fi
+AC_ARG_ENABLE([hal],
+    AS_HELP_STRING([--disable-hal],[Disable optional HAL support]))
 
-#### HAL compat support (optional) ####
+AS_IF([test "x$enable_hal" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \)],
+    [PKG_CHECK_MODULES(HAL, [ hal >= 0.5.11 ], HAVE_HAL=1, HAVE_HAL=0)],
+    HAVE_HAL=0)
+AS_IF([test "x$HAVE_DBUS" != "x1"], HAVE_HAL=0)
+
+AS_IF([test "x$enable_hal" = "xyes" && test "x$HAVE_HAL" = "x0"],
+    [AC_MSG_ERROR([*** HAL support not found (requires D-Bus)])])
+
+AC_SUBST(HAL_CFLAGS)
+AC_SUBST(HAL_LIBS)
+AC_SUBST(HAVE_HAL)
+AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
+AS_IF([test "x$HAVE_HAL" = "x1"], AC_DEFINE([HAVE_HAL], 1, [Have HAL.]))
+
+#### BlueZ support (optional, dependant on D-Bus) ####
+
+AC_ARG_ENABLE([bluez],
+    AS_HELP_STRING([--disable-bluez],[Disable optional BlueZ support]))
+
+AS_IF([test "x$enable_bluez" != "xno"],
+    [PKG_CHECK_MODULES(BLUEZ, [ bluez >= 3.0 ], HAVE_BLUEZ=1, HAVE_BLUEZ=0)],
+    HAVE_BLUEZ=0)
+AS_IF([test "x$HAVE_DBUS" != "x1"], HAVE_BLUEZ=0)
+
+AS_IF([test "x$enable_bluez" = "xyes" && test "x$HAVE_BLUEZ" = "x0"],
+    [AC_MSG_ERROR([*** BLUEZ support not found (requires D-Bus)])])
+
+AC_SUBST(BLUEZ_CFLAGS)
+AC_SUBST(BLUEZ_LIBS)
+AC_SUBST(HAVE_BLUEZ)
+AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
+
+#### UDEV support (optional) ####
+
+AC_ARG_ENABLE([udev],
+    AS_HELP_STRING([--disable-udev],[Disable optional UDEV support]))
+
+AS_IF([test "x$enable_udev" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \)],
+    [PKG_CHECK_MODULES(UDEV, [ libudev >= 143 ], HAVE_UDEV=1, HAVE_UDEV=0)],
+    HAVE_UDEV=0)
+
+AS_IF([test "x$enable_udev" = "xyes" && test "x$HAVE_UDEV" = "x0"],
+    [AC_MSG_ERROR([*** UDEV support not found])])
+
+AC_SUBST(UDEV_CFLAGS)
+AC_SUBST(UDEV_LIBS)
+AC_SUBST(HAVE_UDEV)
+AM_CONDITIONAL([HAVE_UDEV], [test "x$HAVE_UDEV" = x1])
+AS_IF([test "x$HAVE_UDEV" = "x1"], AC_DEFINE([HAVE_UDEV], 1, [Have UDEV.]))
+
+#### HAL compat support (optional, dependant on UDEV) ####
 
 AC_ARG_ENABLE([hal-compat],
     AS_HELP_STRING([--disable-hal-compat],[Disable optional HAL->udev transition compatibility support]))
 
-if test "x$enable_hal_compat" != "xno" -a "x$HAVE_HAL" = "x0" -a "x$HAVE_UDEV" = "x1"; then
-    HAVE_HAL_COMPAT=1
-    AC_DEFINE([HAVE_HAL_COMPAT], 1, [Have HAL compatibility.])
-else
-    HAVE_HAL_COMPAT=0
-fi
+AS_IF([test "x$enable_hal_compat" != "xno"],
+    [AS_IF([test "x$HAVE_HAL" = "x0" -a "x$HAVE_UDEV" = "x1"], HAVE_HAL_COMPAT=1, HAVE_HAL_COMPAT=0)],
+    HAVE_HAL_COMPAT=0)
+
+AS_IF([test "x$enable_hal_compat" = "xyes" && test "x$HAVE_HAL_COMPAT" = "x0"],
+    [AC_MSG_ERROR([*** HAL-compat support requires UDEV and no HAL])])
 
 AM_CONDITIONAL([HAVE_HAL_COMPAT], [test "x$HAVE_HAL_COMPAT" = x1])
+AS_IF([test "x$HAVE_HAL_COMPAT" = "x1"], AC_DEFINE([HAVE_HAL_COMPAT], 1, [Have HAL compatibility.]))
 
 #### IPv6 connection support (optional) ####
 
 AC_ARG_ENABLE([ipv6],
     AS_HELP_STRING([--disable-ipv6],[Disable optional IPv6 support]))
 
-if test "x$enable_ipv6" != "xno"; then
-    AC_DEFINE([HAVE_IPV6], [1], [Define this to enable IPv6 connection support])
-    HAVE_IPV6=1
-else
-    HAVE_IPV6=0
-fi
+AS_IF([test "x$enable_ipv6" != "xno"], [HAVE_IPV6=1], [HAVE_IPV6=0])
+
+AS_IF([test "x$HAVE_IPV6" = "x1"], AC_DEFINE([HAVE_IPV6], 1, [Define this to enable IPv6 connection support]))
 
 #### OpenSSL support (optional) ####
 
@@ -1049,6 +1036,9 @@ AC_ARG_WITH([fftw],
 AS_IF([test "x$with_fftw" != "xno"],
     [PKG_CHECK_MODULES(FFTW, [ fftw3f ], HAVE_FFTW=1, HAVE_FFTW=0)],
     HAVE_FFTW=0)
+
+AS_IF([test "x$with_fftw" = "xyes" && test "x$HAVE_FFTW" = "x0"],
+    [AC_MSG_ERROR([*** FFTW support not found])])
 
 AM_CONDITIONAL([HAVE_FFTW], [test "x$HAVE_FFTW" = "x1"])
 
