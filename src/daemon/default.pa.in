@@ -44,47 +44,68 @@ load-module module-card-restore
 ### stored in /usr/share/application
 load-module module-augment-properties
 
-### Load audio drivers statically (it's probably better to not load
-### these drivers manually, but instead use module-udev-detect --
-### see below -- for doing this automatically)
+### Load audio drivers statically
+### (it's probably better to not load these drivers manually, but instead
+### use module-udev-detect -- see below -- for doing this automatically)
+ifelse(@HAVE_ALSA@, 1, [dnl
 #load-module module-alsa-sink
 #load-module module-alsa-source device=hw:1,0
+])dnl
+ifelse(@HAVE_OSS_OUTPUT@, 1, [dnl
 #load-module module-oss device="/dev/dsp" sink_name=output source_name=input
 #load-module module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
+])dnl
 ifelse(@HAVE_WAVEOUT@, 1, [dnl
 load-module module-waveout sink_name=output source_name=input
 ])dnl
 #load-module module-null-sink
+ifelse(@HAVE_MKFIFO@, 1, [dnl
 #load-module module-pipe-sink
+])dnl
 
 ### Automatically load driver modules depending on the hardware available
+ifelse(1, @HAVE_UDEV@, [dnl
 .ifexists module-udev-detect@PA_SOEXT@
 load-module module-udev-detect
 .else
-### Alternatively use the static hardware detection module (for systems that
-### lack udev support)
+], @HAVE_HAL@, [dnl
+.ifexists module-hal-detect@PA_SOEXT@
+load-module module-hal-detect
+.else
+], [dnl
+.ifexists module-detect@PA_SOEXT@
+])dnl
+### Use the static hardware detection module (for systems that lack udev support)
 load-module module-detect
 .endif
 
+ifelse(@HAVE_BLUEZ@, 1, [dnl
 ### Automatically load driver modules for Bluetooth hardware
 .ifexists module-bluetooth-discover@PA_SOEXT@
 load-module module-bluetooth-discover
 .endif
+])dnl
 
+ifelse(@HAVE_AF_UNIX@, 1, [dnl
 ### Load several protocols
 .ifexists module-esound-protocol-unix@PA_SOEXT@
 load-module module-esound-protocol-unix
 .endif
+load-module module-native-protocol-unix
+])dnl
+ifelse(@HAVE_DBUS@, 1, [dnl
 .ifexists module-dbus-protocol@PA_SOEXT@
 load-module module-dbus-protocol
 .endif
-load-module module-native-protocol-unix
+])dnl
 
 ### Network access (may be configured with paprefs, so leave this commented
 ### here if you plan to use paprefs)
 #load-module module-esound-protocol-tcp
 #load-module module-native-protocol-tcp
+ifelse(@HAVE_AVAHI@, 1, [dnl
 #load-module module-zeroconf-publish
+])dnl
 
 ifelse(@OS_IS_WIN32@, 0, [dnl
 ### Load the RTP receiver module (also configured via paprefs, see above)
@@ -130,7 +151,9 @@ load-module module-position-event-sounds
 
 ### Cork music streams when a phone stream is active
 load-module module-cork-music-on-phone
+])dnl
 
+ifelse(@HAVE_X11@, 1, [dnl
 # X11 modules should not be started from default.pa so that one daemon
 # can be shared by multiple sessions.
 

@@ -18,6 +18,7 @@
 ## Configuration file for the PulseAudio daemon. See pulse-daemon.conf(5) for
 ## more information. Default values are commented out.  Use either ; or # for
 ## commenting.
+changequote(`[', `]')dnl Set up m4 quoting
 
 ; daemonize = no
 ; fail = yes
@@ -25,7 +26,9 @@
 ; allow-exit = yes
 ; use-pid-file = yes
 ; system-instance = no
+ifelse(@HAVE_DBUS@, 1, [dnl
 ; local-server-type = user
+])dnl
 ; enable-shm = yes
 ; shm-size-bytes = 0 # setting this 0 will use the system-default, usually 64 MiB
 ; lock-memory = no
@@ -57,6 +60,7 @@
 
 ; flat-volumes = yes
 
+ifelse(@HAVE_SYS_RESOURCE_H@, 1, [dnl
 ; rlimit-fsize = -1
 ; rlimit-data = -1
 ; rlimit-stack = -1
@@ -72,6 +76,7 @@
 ; rlimit-nice = 31
 ; rlimit-rtprio = 9
 ; rlimit-rttime = 1000000
+])dnl
 
 ; default-sample-format = s16le
 ; default-sample-rate = 44100

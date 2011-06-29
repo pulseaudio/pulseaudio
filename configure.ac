@@ -344,7 +344,7 @@ AC_HEADER_STDC
 # POSIX
 AC_CHECK_HEADERS_ONCE([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
     netinet/in_systm.h netinet/tcp.h poll.h pwd.h sched.h \
-    sys/mman.h sys/resource.h sys/select.h sys/socket.h sys/wait.h \
+    sys/mman.h sys/select.h sys/socket.h sys/wait.h \
     sys/uio.h syslog.h sys/dl.h dlfcn.h linux/sockios.h])
 AC_CHECK_HEADERS([netinet/ip.h], [], [],
                  [#include <sys/types.h>
@@ -355,8 +355,11 @@ AC_CHECK_HEADERS([netinet/ip.h], [], [],
                   # include <netinet/in_systm.h>
                   #endif
                  ])
+AC_CHECK_HEADERS([sys/resource.h], [HAVE_SYS_RESOURCE_H=1], [HAVE_SYS_RESOURCE_H=0])
+AC_SUBST(HAVE_SYS_RESOURCE_H)
 AC_CHECK_HEADERS([sys/un.h], [HAVE_AF_UNIX=1], [HAVE_AF_UNIX=0])
 AM_CONDITIONAL(HAVE_AF_UNIX, test "x$HAVE_AF_UNIX" = "x1")
+AC_SUBST(HAVE_AF_UNIX)
 
 # Linux
 AC_CHECK_HEADERS([linux/input.h], [HAVE_EVDEV=1], [HAVE_EVDEV=0])
@@ -487,7 +490,7 @@ AC_CHECK_FUNCS_ONCE([chmod chown fstat fchown fchmod clock_gettime getaddrinfo g
     pipe posix_fadvise posix_madvise posix_memalign setpgid setsid shm_open \
     sigaction sleep symlink sysconf uname pthread_setaffinity_np pthread_getname_np pthread_setname_np])
 AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])
-
+AC_SUBST(HAVE_MKFIFO)
 AM_CONDITIONAL(HAVE_MKFIFO, test "x$HAVE_MKFIFO" = "x1")
 
 # X/OPEN
@@ -538,6 +541,7 @@ AS_IF([test "x$enable_x11" = "xyes" && test "x$HAVE_X11" = "x0"],
 
 AC_SUBST(X11_CFLAGS)
 AC_SUBST(X11_LIBS)
+AC_SUBST(HAVE_X11)
 AM_CONDITIONAL([HAVE_X11], [test "x$HAVE_X11" = x1])
 AS_IF([test "x$HAVE_X11" = "x1"], AC_DEFINE([HAVE_X11], 1, [Have X11?]))
 
@@ -689,6 +693,7 @@ AS_IF([test "x$enable_oss_wrapper" != "xno"],
     [AS_IF([test "x$HAVE_OSS" = "x1"], HAVE_OSS_WRAPPER=1, HAVE_OSS_WRAPPER=0)],
     HAVE_OSS_WRAPPER=0)
 
+AC_SUBST(HAVE_OSS_OUTPUT)
 AM_CONDITIONAL([HAVE_OSS_OUTPUT], [test "x$HAVE_OSS_OUTPUT" = "x1"])
 AM_CONDITIONAL([HAVE_OSS_WRAPPER], [test "x$HAVE_OSS_WRAPPER" = "x1"])
 AS_IF([test "x$HAVE_OSS_OUTPUT" = "x1"], AC_DEFINE([HAVE_OSS_OUTPUT], 1, [Have OSS output?]))
@@ -722,6 +727,7 @@ AS_IF([test "x$enable_alsa" = "xyes" && test "x$HAVE_ALSA" = "x0"],
 
 AC_SUBST(ASOUNDLIB_CFLAGS)
 AC_SUBST(ASOUNDLIB_LIBS)
+AC_SUBST(HAVE_ALSA)
 AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
 AS_IF([test "x$HAVE_ALSA" = "x1"], AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?]))
 
@@ -752,6 +758,7 @@ AS_IF([test "x$enable_waveout" != "xno"],
 AS_IF([test "x$enable_waveout" = "xyes" && test "x$HAVE_WAVEOUT" = "x0"],
     [AC_MSG_ERROR([*** WaveOut audio support not found])])
 
+AC_SUBST(HAVE_WAVEOUT)
 AM_CONDITIONAL([HAVE_WAVEOUT], [test "x$HAVE_WAVEOUT" = x1])
 AS_IF([test "x$HAVE_WAVEOUT" = "x1"], AC_DEFINE([HAVE_WAVEOUT], 1, [Have WaveOut audio?]))
 
@@ -819,6 +826,7 @@ AS_IF([test "x$enable_avahi" = "xyes" && test "x$HAVE_AVAHI" = "x0"],
 
 AC_SUBST(AVAHI_CFLAGS)
 AC_SUBST(AVAHI_LIBS)
+AC_SUBST(HAVE_AVAHI)
 AM_CONDITIONAL([HAVE_AVAHI], [test "x$HAVE_AVAHI" = x1])
 
 #### JACK (optional) ####
@@ -908,6 +916,7 @@ AS_IF([test "x$enable_hal" = "xyes" && test "x$HAVE_HAL" = "x0"],
 
 AC_SUBST(HAL_CFLAGS)
 AC_SUBST(HAL_LIBS)
+AC_SUBST(HAVE_HAL)
 AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
 AS_IF([test "x$HAVE_HAL" = "x1"], AC_DEFINE([HAVE_HAL], 1, [Have HAL.]))
 
@@ -925,6 +934,7 @@ AS_IF([test "x$enable_udev" = "xyes" && test "x$HAVE_UDEV" = "x0"],
 
 AC_SUBST(UDEV_CFLAGS)
 AC_SUBST(UDEV_LIBS)
+AC_SUBST(HAVE_UDEV)
 AM_CONDITIONAL([HAVE_UDEV], [test "x$HAVE_UDEV" = x1])
 AS_IF([test "x$HAVE_UDEV" = "x1"], AC_DEFINE([HAVE_UDEV], 1, [Have UDEV.]))
 
@@ -942,6 +952,7 @@ AS_IF([test "x$enable_bluez" = "xyes" && test "x$HAVE_BLUEZ" = "x0"],
 
 AC_SUBST(BLUEZ_CFLAGS)
 AC_SUBST(BLUEZ_LIBS)
+AC_SUBST(HAVE_BLUEZ)
 AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
 
 #### D-Bus support (optional) ####
@@ -967,6 +978,7 @@ AS_IF([test "x$HAVE_DBUS" = "x1"],
 
 AC_SUBST(DBUS_CFLAGS)
 AC_SUBST(DBUS_LIBS)
+AC_SUBST(HAVE_DBUS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 AS_IF([test "x$HAVE_DBUS" = "x1"], AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.]))
 
