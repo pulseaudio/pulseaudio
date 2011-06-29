@@ -81,7 +81,6 @@ EXTRA_DIST = \
 		daemon/daemon.conf.in \
 		daemon/default.pa.in \
 		daemon/system.pa.in \
-		daemon/default.pa.win32 \
 		depmod.py \
 		daemon/esdcompat.in \
 		daemon/start-pulseaudio-x11.in \

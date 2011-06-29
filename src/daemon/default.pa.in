@@ -18,14 +18,20 @@
 
 # This startup script is used only if PulseAudio is started per-user
 # (i.e. not in system mode)
+changequote(`[', `]')dnl Set up m4 quoting
 
 .nofail
 
 ### Load something into the sample cache
+ifelse(@OS_IS_WIN32@, 1, [dnl
+load-sample x11-bell %WINDIR%\Media\ding.wav
+load-sample-dir-lazy %WINDIR%\Media\*.wav
+], [dnl
 #load-sample-lazy x11-bell /usr/share/sounds/gtk-events/activate.wav
 #load-sample-lazy pulse-hotplug /usr/share/sounds/startup3.wav
 #load-sample-lazy pulse-coldplug /usr/share/sounds/startup3.wav
 #load-sample-lazy pulse-access /usr/share/sounds/generic.wav
+])dnl
 
 .fail
 
@@ -45,6 +51,9 @@ load-module module-augment-properties
 #load-module module-alsa-source device=hw:1,0
 #load-module module-oss device="/dev/dsp" sink_name=output source_name=input
 #load-module module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
+ifelse(@HAVE_WAVEOUT@, 1, [dnl
+load-module module-waveout sink_name=output source_name=input
+])dnl
 #load-module module-null-sink
 #load-module module-pipe-sink
 
@@ -77,7 +86,8 @@ load-module module-native-protocol-unix
 #load-module module-native-protocol-tcp
 #load-module module-zeroconf-publish
 
-### Load the RTP reciever module (also configured via paprefs, see above)
+ifelse(@OS_IS_WIN32@, 0, [dnl
+### Load the RTP receiver module (also configured via paprefs, see above)
 #load-module module-rtp-recv
 
 ### Load the RTP sender module (also configured via paprefs, see above)
@@ -136,6 +146,7 @@ load-module module-cork-music-on-phone
 #load-module module-x11-publish
 #.fail
 #.endif
+])dnl
 
 ### Make some devices default
 #set-default-sink output

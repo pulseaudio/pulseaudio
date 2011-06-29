@@ -131,6 +131,7 @@ esac
 
 AM_CONDITIONAL(OS_IS_DARWIN, test "x$os_is_darwin" = "x1")
 AM_CONDITIONAL(OS_IS_WIN32, test "x$os_is_win32" = "x1")
+AC_SUBST([OS_IS_WIN32], [$os_is_win32])
 
 # Platform specific hacks
 case "$host_os" in
@@ -1234,10 +1235,12 @@ AC_CONFIG_FILES([src/esdcompat:src/daemon/esdcompat.in], [chmod +x src/esdcompat
 AC_CONFIG_FILES([src/start-pulseaudio-x11:src/daemon/start-pulseaudio-x11.in], [chmod +x src/start-pulseaudio-x11])
 AC_CONFIG_FILES([src/start-pulseaudio-kde:src/daemon/start-pulseaudio-kde.in], [chmod +x src/start-pulseaudio-kde])
 AC_CONFIG_FILES([src/client.conf:src/pulse/client.conf.in])
-AC_CONFIG_FILES([src/daemon.conf:src/daemon/daemon.conf.in])
-AS_IF([test "x$os_is_win32" = "x1"], [config_source_ext=win32], [config_source_ext=in])
-AC_CONFIG_FILES([src/default.pa:src/daemon/default.pa.$config_source_ext])
-AC_CONFIG_FILES([src/system.pa:src/daemon/system.pa.$config_source_ext])
+AC_CONFIG_FILES([src/daemon.conf:src/daemon/daemon.conf.in],
+    [m4 src/daemon.conf > src/daemon.conf.gen && mv src/daemon.conf.gen src/daemon.conf])
+AC_CONFIG_FILES([src/default.pa:src/daemon/default.pa.in],
+    [m4 src/default.pa > src/default.pa.gen && mv src/default.pa.gen src/default.pa])
+AC_CONFIG_FILES([src/system.pa:src/daemon/system.pa.in],
+    [m4 src/system.pa > src/system.pa.gen && mv src/system.pa.gen src/system.pa])
 
 AC_OUTPUT
 
