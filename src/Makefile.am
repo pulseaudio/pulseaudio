@@ -1875,46 +1875,8 @@ module_rygel_media_server_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 #        Some minor stuff         #
 ###################################
 
-CLEANFILES += esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 start-pulseaudio-kde daemon/pulseaudio.desktop daemon/pulseaudio-kde.desktop
-
-esdcompat: daemon/esdcompat.in Makefile
-	$(AM_V_GEN) sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
-		-e 's,@PACKAGE_NAME\@,$(PACKAGE_NAME),g' \
-		-e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
-	$(AM_V_at) chmod +x esdcompat
-
-start-pulseaudio-x11: daemon/start-pulseaudio-x11.in Makefile
-	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
-		-e 's,@PACTL_BINARY\@,$(PACTL_BINARY),g' < $< > $@
-	$(AM_V_at) chmod +x start-pulseaudio-x11
-
-start-pulseaudio-kde: daemon/start-pulseaudio-kde.in Makefile
-	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
-		-e 's,@PACTL_BINARY\@,$(PACTL_BINARY),g' < $< > $@
-	$(AM_V_at) chmod +x start-pulseaudio-kde
-
-client.conf: pulse/client.conf.in Makefile
-	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
-
-if OS_IS_WIN32
-default.pa: daemon/default.pa.win32
-	cp $< $@
-system.pa: daemon/default.pa.win32
-	cp $< $@
-else
-default.pa: daemon/default.pa.in Makefile
-	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
-            -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
-	    -e 's,@PA_SOEXT\@,$(PA_SOEXT),g' < $< > $@
-system.pa: daemon/system.pa.in Makefile
-	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
-            -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
-	    -e 's,@PA_SOEXT\@,$(PA_SOEXT),g' < $< > $@
-endif
-
-daemon.conf: daemon/daemon.conf.in Makefile
-	$(AM_V_GEN) sed -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
-		-e 's,@PA_DEFAULT_CONFIG_DIR\@,$(PA_DEFAULT_CONFIG_DIR),g' < $< > $@
+CLEANFILES += daemon/pulseaudio.desktop daemon/pulseaudio-kde.desktop
+DISTCLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 start-pulseaudio-kde
 
 if OS_IS_WIN32
 SYMLINK_PROGRAM=cd $(DESTDIR)$(bindir) && cp

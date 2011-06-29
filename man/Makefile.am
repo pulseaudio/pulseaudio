@@ -15,7 +15,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-CLEANFILES = \
+DISTCLEANFILES = \
 	$(noinst_DATA)
 
 noinst_DATA = \
@@ -31,11 +31,6 @@ noinst_DATA = \
 	pulse-daemon.conf.5.xml \
 	pulse-client.conf.5.xml \
 	default.pa.5.xml
-
-%.xml: %.xml.in Makefile
-	$(AM_V_GEN) sed -e 's,@PA_DEFAULT_CONFIG_DIR\@,$(PA_DEFAULT_CONFIG_DIR),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
 
 xmllint: $(noinst_DATA)
 	for f in $(noinst_DATA) ; do \
@@ -58,7 +53,7 @@ dist_man_MANS = \
 	pulse-client.conf.5 \
 	default.pa.5
 
-CLEANFILES += \
+CLEANFILES = \
 	$(dist_man_MANS)
 
 %: %.xml Makefile

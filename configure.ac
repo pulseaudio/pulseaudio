@@ -1216,7 +1216,28 @@ doxygen/Makefile
 doxygen/doxygen.conf
 src/pulse/version.h
 po/Makefile.in
+man/pulseaudio.1.xml
+man/esdcompat.1.xml
+man/pax11publish.1.xml
+man/paplay.1.xml
+man/pacat.1.xml
+man/pacmd.1.xml
+man/pactl.1.xml
+man/pasuspender.1.xml
+man/padsp.1.xml
+man/pulse-daemon.conf.5.xml
+man/pulse-client.conf.5.xml
+man/default.pa.5.xml
 ])
+
+AC_CONFIG_FILES([src/esdcompat:src/daemon/esdcompat.in], [chmod +x src/esdcompat])
+AC_CONFIG_FILES([src/start-pulseaudio-x11:src/daemon/start-pulseaudio-x11.in], [chmod +x src/start-pulseaudio-x11])
+AC_CONFIG_FILES([src/start-pulseaudio-kde:src/daemon/start-pulseaudio-kde.in], [chmod +x src/start-pulseaudio-kde])
+AC_CONFIG_FILES([src/client.conf:src/pulse/client.conf.in])
+AC_CONFIG_FILES([src/daemon.conf:src/daemon/daemon.conf.in])
+AS_IF([test "x$os_is_win32" = "x1"], [config_source_ext=win32], [config_source_ext=in])
+AC_CONFIG_FILES([src/default.pa:src/daemon/default.pa.$config_source_ext])
+AC_CONFIG_FILES([src/system.pa:src/daemon/system.pa.$config_source_ext])
 
 AC_OUTPUT
 
