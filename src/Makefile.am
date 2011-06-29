@@ -25,7 +25,6 @@
 
 pulseincludedir=$(includedir)/pulse
 pulsecoreincludedir=$(includedir)/pulsecore
-pulseconfdir=$(sysconfdir)/pulse
 pulselibexecdir=$(libexecdir)/pulse
 if HAVE_X11
 xdgautostartdir=$(sysconfdir)/xdg/autostart
@@ -39,13 +38,6 @@ dbuspolicydir=$(sysconfdir)/dbus-1/system.d
 endif
 
 ###################################
-#            Defines              #
-###################################
-
-PA_BINARY=$(bindir)/pulseaudio$(EXEEXT)
-PA_DEFAULT_CONFIG_DIR=$(pulseconfdir)
-
-###################################
 #     Compiler/linker flags       #
 ###################################
 
@@ -54,9 +46,6 @@ AM_CFLAGS = \
 	-I$(top_srcdir)/src/modules \
 	-I$(top_builddir)/src/modules \
 	$(PTHREAD_CFLAGS) \
-	-DPA_BUILDDIR=\"$(abs_builddir)\" \
-	-DPA_DEFAULT_CONFIG_DIR=\"$(PA_DEFAULT_CONFIG_DIR)\" \
-	-DPA_BINARY=\"$(PA_BINARY)\" \
 	-DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
 	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\"
 
@@ -1896,12 +1885,12 @@ esdcompat: daemon/esdcompat.in Makefile
 
 start-pulseaudio-x11: daemon/start-pulseaudio-x11.in Makefile
 	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
-		-e 's,@PACTL_BINARY\@,$(bindir)/pactl,g' < $< > $@
+		-e 's,@PACTL_BINARY\@,$(PACTL_BINARY),g' < $< > $@
 	$(AM_V_at) chmod +x start-pulseaudio-x11
 
 start-pulseaudio-kde: daemon/start-pulseaudio-kde.in Makefile
 	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
-		-e 's,@PACTL_BINARY\@,$(bindir)/pactl,g' < $< > $@
+		-e 's,@PACTL_BINARY\@,$(PACTL_BINARY),g' < $< > $@
 	$(AM_V_at) chmod +x start-pulseaudio-kde
 
 client.conf: pulse/client.conf.in Makefile
@@ -1916,16 +1905,16 @@ else
 default.pa: daemon/default.pa.in Makefile
 	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
             -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
-	    -e 's,@PA_SOEXT\@,.so,g' < $< > $@
+	    -e 's,@PA_SOEXT\@,$(PA_SOEXT),g' < $< > $@
 system.pa: daemon/system.pa.in Makefile
 	$(AM_V_GEN) sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
             -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
-	    -e 's,@PA_SOEXT\@,.so,g' < $< > $@
+	    -e 's,@PA_SOEXT\@,$(PA_SOEXT),g' < $< > $@
 endif
 
 daemon.conf: daemon/daemon.conf.in Makefile
 	$(AM_V_GEN) sed -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
-		-e 's,@PA_DEFAULT_CONFIG_FILE\@,$(DEFAULT_CONFIG_DIR),g' < $< > $@
+		-e 's,@PA_DEFAULT_CONFIG_DIR\@,$(PA_DEFAULT_CONFIG_DIR),g' < $< > $@
 
 if OS_IS_WIN32
 SYMLINK_PROGRAM=cd $(DESTDIR)$(bindir) && cp

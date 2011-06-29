@@ -1098,6 +1098,19 @@ AX_DEFINE_DIR(PA_SYSTEM_CONFIG_PATH, PA_SYSTEM_CONFIG_PATH, [System config dir])
 PA_SYSTEM_STATE_PATH="${localstatedir}/lib/pulse"
 AX_DEFINE_DIR(PA_SYSTEM_STATE_PATH, PA_SYSTEM_STATE_PATH, [System state dir])
 
+PA_BINARY=${bindir}/pulseaudio${EXEEXT}
+AX_DEFINE_DIR(PA_BINARY, PA_BINARY, [Location of pulseaudio binary])
+
+PACTL_BINARY=${bindir}/pactl${EXEEXT}
+AX_DEFINE_DIR(PACTL_BINARY, PACTL_BINARY, [Location of pactl binary])
+
+AC_SUBST(PA_SOEXT, [.so])
+
+AC_SUBST(pulseconfdir, ["${sysconfdir}/pulse"])
+AX_DEFINE_DIR(PA_DEFAULT_CONFIG_DIR, pulseconfdir, [Location of configuration files])
+
+AC_DEFINE_UNQUOTED(PA_BUILDDIR, "${ac_pwd}/src", [Location of uninstalled binaries])
+
 #### Mac OSX specific stuff #####
 
 AC_ARG_ENABLE(mac-universal,

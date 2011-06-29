@@ -26,14 +26,14 @@ USA.
   <synopsis>
     <p><file>~/.pulse/daemon.conf</file></p>
 
-    <p><file>@pulseconfdir@/daemon.conf</file></p>
+    <p><file>@PA_DEFAULT_CONFIG_DIR@/daemon.conf</file></p>
   </synopsis>
 
   <description>
     <p>The PulseAudio sound server reads configuration directives from
     a file <file>~/.pulse/daemon.conf</file> on startup and when that
     file doesn't exist from
-    <file>@pulseconfdir@/daemon.conf</file>. Please note that the
+    <file>@PA_DEFAULT_CONFIG_DIR@/daemon.conf</file>. Please note that the
     server also reads a configuration script on startup
     <file>default.pa</file> which also contains runtime configuration
     directives.</p>
@@ -262,8 +262,8 @@ USA.
       default script file. The default behaviour is to load
       <file>~/.pulse/default.pa</file>, and if that file does not
       exist fall back to the system wide installed version
-      <file>@pulseconfdir@/default.pa</file>. If run in system-wide
-      mode the file <file>@pulseconfdir@/system.pa</file> is used
+      <file>@PA_DEFAULT_CONFIG_DIR@/default.pa</file>. If run in system-wide
+      mode the file <file>@PA_DEFAULT_CONFIG_DIR@/system.pa</file> is used
       instead. If <opt>-n</opt> is passed on the command line
       or <opt>default-script-file=</opt> is disabled the default
       configuration script is ignored.</p>

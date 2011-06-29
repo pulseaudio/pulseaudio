@@ -84,7 +84,7 @@ USA.
       the data from the $PULSE_SERVER, $PULSE_SINK, $PULSE_SOURCE
       environment variables and combines them with the data from
       <file>~/.pulse/client.conf</file> (or
-      <file>@pulseconfdir@/client.conf</file> if that file does not
+      <file>@PA_DEFAULT_CONFIG_DIR@/client.conf</file> if that file does not
       exist). If specific options are passed on the command line
       (<opt>-S</opt>, <opt>-O</opt>, <opt>-I</opt>, <opt>-c</opt>, see
       below), they take precedence. Also uploads the local

@@ -15,8 +15,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-pulseconfdir=$(sysconfdir)/pulse
-
 CLEANFILES = \
 	$(noinst_DATA)
 
@@ -35,7 +33,7 @@ noinst_DATA = \
 	default.pa.5.xml
 
 %.xml: %.xml.in Makefile
-	$(AM_V_GEN) sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	$(AM_V_GEN) sed -e 's,@PA_DEFAULT_CONFIG_DIR\@,$(PA_DEFAULT_CONFIG_DIR),g' \
 	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
             -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
 

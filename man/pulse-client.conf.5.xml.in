@@ -26,14 +26,14 @@ USA.
   <synopsis>
     <p><file>~/.pulse/client.conf</file></p>
 
-    <p><file>@pulseconfdir@/client.conf</file></p>
+    <p><file>@PA_DEFAULT_CONFIG_DIR@/client.conf</file></p>
   </synopsis>
 
   <description>
     <p>The PulseAudio client library reads configuration directives from
     a file <file>~/.pulse/client.conf</file> on startup and when that
     file doesn't exist from
-    <file>@pulseconfdir@/client.conf</file>.</p>
+    <file>@PA_DEFAULT_CONFIG_DIR@/client.conf</file>.</p>
 
     <p>The configuration file is a simple collection of variable
     declarations. If the configuration file parser encounters either ;
