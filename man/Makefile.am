@@ -30,7 +30,9 @@ noinst_DATA = \
 	padsp.1.xml \
 	pulse-daemon.conf.5.xml \
 	pulse-client.conf.5.xml \
-	default.pa.5.xml
+	default.pa.5.xml \
+	start-pulseaudio-kde.1.xml \
+	start-pulseaudio-x11.1.xml
 
 xmllint: $(noinst_DATA)
 	for f in $(noinst_DATA) ; do \
@@ -51,7 +53,9 @@ dist_man_MANS = \
 	padsp.1 \
 	pulse-daemon.conf.5 \
 	pulse-client.conf.5 \
-	default.pa.5
+	default.pa.5 \
+	start-pulseaudio-kde.1 \
+	start-pulseaudio-x11.1
 
 CLEANFILES = \
 	$(dist_man_MANS)
@@ -74,6 +78,8 @@ EXTRA_DIST = \
 	pulse-daemon.conf.5.xml.in \
 	pulse-client.conf.5.xml.in \
 	default.pa.5.xml.in \
+	start-pulseaudio-kde.1.xml.in \
+	start-pulseaudio-x11.1.xml.in \
 	xmltoman \
 	xmltoman.css \
 	xmltoman.xsl \
