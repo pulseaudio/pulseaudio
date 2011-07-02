@@ -1741,9 +1741,6 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
             goto fail;
 
         pa_alsa_path_set_probe(u->mixer_path_set, u->mixer_handle, ignore_dB);
-
-        pa_log_debug("Probed mixer paths:");
-        pa_alsa_path_set_dump(u->mixer_path_set);
     }
 
     return;

@@ -2873,6 +2873,196 @@ void pa_alsa_path_set_dump(pa_alsa_path_set *ps) {
         pa_alsa_path_dump(p);
 }
 
+
+static pa_bool_t options_have_option(pa_alsa_option *options, const char *alsa_name) {
+    pa_alsa_option *o;
+
+    pa_assert(options);
+    pa_assert(alsa_name);
+
+    PA_LLIST_FOREACH(o, options) {
+        if (pa_streq(o->alsa_name, alsa_name))
+            return TRUE;
+    }
+    return FALSE;
+}
+
+static pa_bool_t enumeration_is_subset(pa_alsa_option *a_options, pa_alsa_option *b_options) {
+    pa_alsa_option *oa, *ob;
+
+    pa_assert(a_options);
+    pa_assert(b_options);
+
+    /* If there is an option A offers that B does not, then A is not a subset of B. */
+    PA_LLIST_FOREACH(oa, a_options) {
+        pa_bool_t found = FALSE;
+        PA_LLIST_FOREACH(ob, b_options) {
+            if (pa_streq(oa->alsa_name, ob->alsa_name)) {
+                found = TRUE;
+                break;
+            }
+        }
+        if (!found)
+            return FALSE;
+    }
+    return TRUE;
+}
+
+/**
+ *  Compares two elements to see if a is a subset of b
+ */
+static pa_bool_t element_is_subset(pa_alsa_element *a, pa_alsa_element *b, snd_mixer_t *m) {
+    pa_assert(a);
+    pa_assert(b);
+    pa_assert(m);
+
+    /* General rules:
+     * Every state is a subset of itself (with caveats for volume_limits and options)
+     * IGNORE is a subset of every other state */
+
+    /* Check the volume_use */
+    if (a->volume_use != PA_ALSA_VOLUME_IGNORE) {
+
+        /* "Constant" is subset of "Constant" only when their constant values are equal */
+        if (a->volume_use == PA_ALSA_VOLUME_CONSTANT && b->volume_use == PA_ALSA_VOLUME_CONSTANT && a->constant_volume != b->constant_volume)
+            return FALSE;
+
+        /* Different volume uses when b is not "Merge" means we are definitely not a subset */
+        if (a->volume_use != b->volume_use && b->volume_use != PA_ALSA_VOLUME_MERGE)
+            return FALSE;
+
+        /* "Constant" is a subset of "Merge", if there is not a "volume-limit" in "Merge" below the actual constant.
+         * "Zero" and "Off" are just special cases of "Constant" when comparing to "Merge"
+         * "Merge" with a "volume-limit" is a subset of "Merge" without a "volume-limit" or with a higher "volume-limit" */
+        if (b->volume_use == PA_ALSA_VOLUME_MERGE && b->volume_limit >= 0) {
+            long a_limit;
+
+            if (a->volume_use == PA_ALSA_VOLUME_CONSTANT)
+                a_limit = a->constant_volume;
+            else if (a->volume_use == PA_ALSA_VOLUME_ZERO) {
+                long dB = 0;
+
+                if (a->db_fix) {
+                    int rounding = (a->direction == PA_ALSA_DIRECTION_OUTPUT ? +1 : -1);
+                    a_limit = decibel_fix_get_step(a->db_fix, &dB, rounding);
+                } else {
+                    snd_mixer_selem_id_t *sid;
+                    snd_mixer_elem_t *me;
+
+                    SELEM_INIT(sid, a->alsa_name);
+                    if (!(me = snd_mixer_find_selem(m, sid))) {
+                        pa_log_warn("Element %s seems to have disappeared.", a->alsa_name);
+                        return FALSE;
+                    }
+
+                    if (a->direction == PA_ALSA_DIRECTION_OUTPUT) {
+                        if (snd_mixer_selem_ask_playback_dB_vol(me, dB, +1, &a_limit) < 0)
+                            return FALSE;
+                    } else {
+                        if (snd_mixer_selem_ask_capture_dB_vol(me, dB, -1, &a_limit) < 0)
+                            return FALSE;
+                    }
+                }
+            } else if (a->volume_use == PA_ALSA_VOLUME_OFF)
+                a_limit = a->min_volume;
+            else if (a->volume_use == PA_ALSA_VOLUME_MERGE)
+                a_limit = a->volume_limit;
+            else
+                /* This should never be reached */
+                pa_assert(FALSE);
+
+            if (a_limit > b->volume_limit)
+                return FALSE;
+        }
+    }
+
+    if (a->switch_use != PA_ALSA_SWITCH_IGNORE) {
+        /* "On" is a subset of "Mute".
+         * "Off" is a subset of "Mute".
+         * "On" is a subset of "Select", if there is an "Option:On" in B.
+         * "Off" is a subset of "Select", if there is an "Option:Off" in B.
+         * "Select" is a subset of "Select", if they have the same options (is this always true?). */
+
+        if (a->switch_use != b->switch_use) {
+
+            if (a->switch_use == PA_ALSA_SWITCH_SELECT || a->switch_use == PA_ALSA_SWITCH_MUTE
+                || b->switch_use == PA_ALSA_SWITCH_OFF || b->switch_use == PA_ALSA_SWITCH_ON)
+                return FALSE;
+
+            if (b->switch_use == PA_ALSA_SWITCH_SELECT) {
+                if (a->switch_use == PA_ALSA_SWITCH_ON) {
+                    if (!options_have_option(b->options, "on"))
+                        return FALSE;
+                } else if (a->switch_use == PA_ALSA_SWITCH_OFF) {
+                    if (!options_have_option(b->options, "off"))
+                        return FALSE;
+                }
+            }
+        } else if (a->switch_use == PA_ALSA_SWITCH_SELECT) {
+            if (!enumeration_is_subset(a->options, b->options))
+                return FALSE;
+        }
+    }
+
+    if (a->enumeration_use != PA_ALSA_ENUMERATION_IGNORE) {
+        if (!enumeration_is_subset(a->options, b->options))
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
+static void path_set_condense(pa_alsa_path_set *ps, snd_mixer_t *m) {
+    pa_alsa_path *p, *np;
+
+    pa_assert(ps);
+    pa_assert(m);
+
+    /* If we only have one path, then don't bother */
+    if (!ps->paths || !ps->paths->next)
+        return;
+
+    for (p = ps->paths; p; p = np) {
+        pa_alsa_path *p2;
+        np = p->next;
+
+        PA_LLIST_FOREACH(p2, ps->paths) {
+            pa_alsa_element *ea, *eb;
+            pa_bool_t is_subset = TRUE;
+
+            if (p == p2)
+                continue;
+
+            /* Compare the elements of each set... */
+            pa_assert_se(ea = p->elements);
+            pa_assert_se(eb = p2->elements);
+
+            while (is_subset) {
+                if (pa_streq(ea->alsa_name, eb->alsa_name)) {
+                    if (element_is_subset(ea, eb, m)) {
+                        ea = ea->next;
+                        eb = eb->next;
+                        if ((ea && !eb) || (!ea && eb))
+                            is_subset = FALSE;
+                        else if (!ea && !eb)
+                            break;
+                    } else
+                        is_subset = FALSE;
+
+                } else
+                    is_subset = FALSE;
+            }
+
+            if (is_subset) {
+                pa_log_debug("Removing path '%s' as it is a subset of '%s'.", p->name, p2->name);
+                PA_LLIST_REMOVE(pa_alsa_path, ps->paths, p);
+                pa_alsa_path_free(p);
+                break;
+            }
+        }
+    }
+}
+
 static void path_set_make_paths_unique(pa_alsa_path_set *ps) {
     pa_alsa_path *p, *q;
 
@@ -2928,8 +3118,15 @@ void pa_alsa_path_set_probe(pa_alsa_path_set *ps, snd_mixer_t *m, pa_bool_t igno
         }
     }
 
+    pa_log_debug("Found mixer paths (before tidying):");
+    pa_alsa_path_set_dump(ps);
+
+    path_set_condense(ps, m);
     path_set_make_paths_unique(ps);
     ps->probed = TRUE;
+
+    pa_log_debug("Available mixer paths (after tidying):");
+    pa_alsa_path_set_dump(ps);
 }
 
 static void mapping_free(pa_alsa_mapping *m) {
