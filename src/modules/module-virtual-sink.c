@@ -554,8 +554,7 @@ int pa__init(pa_module*m) {
     }
 
     u->sink = pa_sink_new(m->core, &sink_data, (master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY))
-                                               | (use_volume_sharing ? PA_SINK_SHARE_VOLUME_WITH_MASTER : 0)
-                                               | (force_flat_volume ? PA_SINK_FLAT_VOLUME : 0));
+                                               | (use_volume_sharing ? PA_SINK_SHARE_VOLUME_WITH_MASTER : 0));
     pa_sink_new_data_done(&sink_data);
 
     if (!u->sink) {
@@ -567,8 +566,14 @@ int pa__init(pa_module*m) {
     u->sink->set_state = sink_set_state_cb;
     u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->request_rewind = sink_request_rewind_cb;
-    pa_sink_set_set_volume_callback(u->sink, use_volume_sharing ? NULL : sink_set_volume_cb);
     pa_sink_set_set_mute_callback(u->sink, sink_set_mute_cb);
+    if (use_volume_sharing) {
+        pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
+        pa_sink_enable_decibel_volume(u->sink, TRUE);
+    }
+    /* Normally this flag would be enabled automatically be we can force it. */
+    if (force_flat_volume)
+        u->sink->flags |= PA_SINK_FLAT_VOLUME;
     u->sink->userdata = u;
 
     pa_sink_set_asyncmsgq(u->sink, master->asyncmsgq);

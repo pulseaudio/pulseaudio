@@ -116,7 +116,7 @@ struct userdata {
     char *device_name;  /* name of the PCM device */
     char *control_device; /* name of the control device */
 
-    pa_bool_t use_mmap:1, use_tsched:1;
+    pa_bool_t use_mmap:1, use_tsched:1, sync_volume:1;
 
     pa_bool_t first;
 
@@ -1247,6 +1247,55 @@ static void source_set_mute_cb(pa_source *s) {
     pa_alsa_path_set_mute(u->mixer_path, u->mixer_handle, s->muted);
 }
 
+static void mixer_volume_init(struct userdata *u) {
+    pa_assert(u);
+
+    if (!u->mixer_path->has_volume) {
+        pa_source_set_write_volume_callback(u->source, NULL);
+        pa_source_set_get_volume_callback(u->source, NULL);
+        pa_source_set_set_volume_callback(u->source, NULL);
+
+        pa_log_info("Driver does not support hardware volume control, falling back to software volume control.");
+    } else {
+        pa_source_set_get_volume_callback(u->source, source_get_volume_cb);
+        pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
+
+        if (u->mixer_path->has_dB && u->sync_volume) {
+            pa_source_set_write_volume_callback(u->source, source_write_volume_cb);
+            pa_log_info("Successfully enabled synchronous volume.");
+        } else
+            pa_source_set_write_volume_callback(u->source, NULL);
+
+        if (u->mixer_path->has_dB) {
+            pa_source_enable_decibel_volume(u->source, TRUE);
+            pa_log_info("Hardware volume ranges from %0.2f dB to %0.2f dB.", u->mixer_path->min_dB, u->mixer_path->max_dB);
+
+            u->source->base_volume = pa_sw_volume_from_dB(-u->mixer_path->max_dB);
+            u->source->n_volume_steps = PA_VOLUME_NORM+1;
+
+            pa_log_info("Fixing base volume to %0.2f dB", pa_sw_volume_to_dB(u->source->base_volume));
+        } else {
+            pa_source_enable_decibel_volume(u->source, FALSE);
+            pa_log_info("Hardware volume ranges from %li to %li.", u->mixer_path->min_volume, u->mixer_path->max_volume);
+
+            u->source->base_volume = PA_VOLUME_NORM;
+            u->source->n_volume_steps = u->mixer_path->max_volume - u->mixer_path->min_volume + 1;
+        }
+
+        pa_log_info("Using hardware volume control. Hardware dB scale %s.", u->mixer_path->has_dB ? "supported" : "not supported");
+    }
+
+    if (!u->mixer_path->has_mute) {
+        pa_source_set_get_mute_callback(u->source, NULL);
+        pa_source_set_set_mute_callback(u->source, NULL);
+        pa_log_info("Driver does not support hardware mute control, falling back to software mute control.");
+    } else {
+        pa_source_set_get_mute_callback(u->source, source_get_mute_cb);
+        pa_source_set_set_mute_callback(u->source, source_set_mute_cb);
+        pa_log_info("Using hardware mute control.");
+    }
+}
+
 static int source_set_port_cb(pa_source *s, pa_device_port *p) {
     struct userdata *u = s->userdata;
     pa_alsa_port_data *data;
@@ -1260,15 +1309,7 @@ static int source_set_port_cb(pa_source *s, pa_device_port *p) {
     pa_assert_se(u->mixer_path = data->path);
     pa_alsa_path_select(u->mixer_path, u->mixer_handle);
 
-    if (u->mixer_path->has_volume && u->mixer_path->has_dB) {
-        s->base_volume = pa_sw_volume_from_dB(-u->mixer_path->max_dB);
-        s->n_volume_steps = PA_VOLUME_NORM+1;
-
-        pa_log_info("Fixing base volume to %0.2f dB", pa_sw_volume_to_dB(s->base_volume));
-    } else {
-        s->base_volume = PA_VOLUME_NORM;
-        s->n_volume_steps = u->mixer_path->max_volume - u->mixer_path->min_volume + 1;
-    }
+    mixer_volume_init(u);
 
     if (data->setting)
         pa_alsa_setting_select(data->setting, u->mixer_handle);
@@ -1498,7 +1539,9 @@ fail:
     }
 }
 
-static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB, pa_bool_t sync_volume) {
+static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB) {
+    pa_bool_t need_mixer_callback = FALSE;
+
     pa_assert(u);
 
     if (!u->mixer_handle)
@@ -1534,47 +1577,21 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB, pa_bool_t sync_v
             return 0;
     }
 
-    if (!u->mixer_path->has_volume) {
-        pa_log_info("Driver does not support hardware volume control, falling back to software volume control.");
-    } else {
+    mixer_volume_init(u);
 
-        if (u->mixer_path->has_dB) {
-            pa_log_info("Hardware volume ranges from %0.2f dB to %0.2f dB.", u->mixer_path->min_dB, u->mixer_path->max_dB);
+    /* Will we need to register callbacks? */
+    if (u->mixer_path_set && u->mixer_path_set->paths) {
+        pa_alsa_path *p;
 
-            u->source->base_volume = pa_sw_volume_from_dB(-u->mixer_path->max_dB);
-            u->source->n_volume_steps = PA_VOLUME_NORM+1;
-
-            pa_log_info("Fixing base volume to %0.2f dB", pa_sw_volume_to_dB(u->source->base_volume));
-
-        } else {
-            pa_log_info("Hardware volume ranges from %li to %li.", u->mixer_path->min_volume, u->mixer_path->max_volume);
-            u->source->base_volume = PA_VOLUME_NORM;
-            u->source->n_volume_steps = u->mixer_path->max_volume - u->mixer_path->min_volume + 1;
+        PA_LLIST_FOREACH(p, u->mixer_path_set->paths) {
+            if (p->has_volume || p->has_mute)
+                need_mixer_callback = TRUE;
         }
-
-        pa_source_set_get_volume_callback(u->source, source_get_volume_cb);
-        pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
-
-        if (u->mixer_path->has_dB) {
-            u->source->flags |= PA_SOURCE_DECIBEL_VOLUME;
-            if (sync_volume) {
-                pa_source_set_write_volume_callback(u->source, source_write_volume_cb);
-                pa_log_info("Successfully enabled synchronous volume.");
-            }
-        }
-
-        pa_log_info("Using hardware volume control. Hardware dB scale %s.", u->mixer_path->has_dB ? "supported" : "not supported");
     }
+    else if (u->mixer_path)
+        need_mixer_callback = u->mixer_path->has_volume || u->mixer_path->has_mute;
 
-    if (!u->mixer_path->has_mute) {
-        pa_log_info("Driver does not support hardware mute control, falling back to software mute control.");
-    } else {
-        pa_source_set_get_mute_callback(u->source, source_get_mute_cb);
-        pa_source_set_set_mute_callback(u->source, source_set_mute_cb);
-        pa_log_info("Using hardware mute control.");
-    }
-
-    if (u->mixer_path->has_volume || u->mixer_path->has_mute) {
+    if (need_mixer_callback) {
         int (*mixer_callback)(snd_mixer_elem_t *, unsigned int);
         if (u->source->flags & PA_SOURCE_SYNC_VOLUME) {
             u->mixer_pd = pa_alsa_mixer_pdata_new();
@@ -1678,6 +1695,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     u->module = m;
     u->use_mmap = use_mmap;
     u->use_tsched = use_tsched;
+    u->sync_volume = sync_volume;
     u->first = TRUE;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
@@ -1893,7 +1911,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     if (update_sw_params(u) < 0)
         goto fail;
 
-    if (setup_mixer(u, ignore_dB, sync_volume) < 0)
+    if (setup_mixer(u, ignore_dB) < 0)
         goto fail;
 
     pa_alsa_dump(PA_LOG_DEBUG, u->pcm_handle);

@@ -456,29 +456,49 @@ void pa_sink_set_get_volume_callback(pa_sink *s, pa_sink_cb_t cb) {
 }
 
 void pa_sink_set_set_volume_callback(pa_sink *s, pa_sink_cb_t cb) {
-    pa_assert(s);
+    pa_sink_flags_t flags;
 
+    pa_assert(s);
     pa_assert(!s->write_volume || cb);
 
     s->set_volume = cb;
 
-    if (cb)
+    /* Save the current flags so we can tell if they've changed */
+    flags = s->flags;
+
+    if (cb) {
+        /* The sink implementor is responsible for setting decibel volume support */
         s->flags |= PA_SINK_HW_VOLUME_CTRL;
-    else
+    } else {
         s->flags &= ~PA_SINK_HW_VOLUME_CTRL;
+        /* See note below in pa_sink_put() about volume sharing and decibel volumes */
+        pa_sink_enable_decibel_volume(s, !(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER));
+    }
+
+    /* If the flags have changed after init, let any clients know via a change event */
+    if (s->state != PA_SINK_INIT && flags != s->flags)
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 void pa_sink_set_write_volume_callback(pa_sink *s, pa_sink_cb_t cb) {
-    pa_assert(s);
+    pa_sink_flags_t flags;
 
+    pa_assert(s);
     pa_assert(!cb || s->set_volume);
 
     s->write_volume = cb;
+
+    /* Save the current flags so we can tell if they've changed */
+    flags = s->flags;
 
     if (cb)
         s->flags |= PA_SINK_SYNC_VOLUME;
     else
         s->flags &= ~PA_SINK_SYNC_VOLUME;
+
+    /* If the flags have changed after init, let any clients know via a change event */
+    if (s->state != PA_SINK_INIT && flags != s->flags)
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 void pa_sink_set_get_mute_callback(pa_sink *s, pa_sink_cb_t cb) {
@@ -488,14 +508,65 @@ void pa_sink_set_get_mute_callback(pa_sink *s, pa_sink_cb_t cb) {
 }
 
 void pa_sink_set_set_mute_callback(pa_sink *s, pa_sink_cb_t cb) {
+    pa_sink_flags_t flags;
+
     pa_assert(s);
 
     s->set_mute = cb;
+
+    /* Save the current flags so we can tell if they've changed */
+    flags = s->flags;
 
     if (cb)
         s->flags |= PA_SINK_HW_MUTE_CTRL;
     else
         s->flags &= ~PA_SINK_HW_MUTE_CTRL;
+
+    /* If the flags have changed after init, let any clients know via a change event */
+    if (s->state != PA_SINK_INIT && flags != s->flags)
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+}
+
+static void enable_flat_volume(pa_sink *s, pa_bool_t enable) {
+    pa_sink_flags_t flags;
+
+    pa_assert(s);
+
+    /* Always follow the overall user preference here */
+    enable = enable && s->core->flat_volumes;
+
+    /* Save the current flags so we can tell if they've changed */
+    flags = s->flags;
+
+    if (enable)
+        s->flags |= PA_SINK_FLAT_VOLUME;
+    else
+        s->flags &= ~PA_SINK_FLAT_VOLUME;
+
+    /* If the flags have changed after init, let any clients know via a change event */
+    if (s->state != PA_SINK_INIT && flags != s->flags)
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+}
+
+void pa_sink_enable_decibel_volume(pa_sink *s, pa_bool_t enable) {
+    pa_sink_flags_t flags;
+
+    pa_assert(s);
+
+    /* Save the current flags so we can tell if they've changed */
+    flags = s->flags;
+
+    if (enable) {
+        s->flags |= PA_SINK_DECIBEL_VOLUME;
+        enable_flat_volume(s, TRUE);
+    } else {
+        s->flags &= ~PA_SINK_DECIBEL_VOLUME;
+        enable_flat_volume(s, FALSE);
+    }
+
+    /* If the flags have changed after init, let any clients know via a change event */
+    if (s->state != PA_SINK_INIT && flags != s->flags)
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 /* Called from main context */
@@ -536,10 +607,12 @@ void pa_sink_put(pa_sink* s) {
      *
      * Note: This flag can also change over the life time of the sink. */
     if (!(s->flags & PA_SINK_HW_VOLUME_CTRL) && !(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
-        s->flags |= PA_SINK_DECIBEL_VOLUME;
+        pa_sink_enable_decibel_volume(s, TRUE);
 
-    if ((s->flags & PA_SINK_DECIBEL_VOLUME) && s->core->flat_volumes)
-        s->flags |= PA_SINK_FLAT_VOLUME;
+    /* If the sink implementor support DB volumes by itself, we should always
+     * try and enable flat volumes too */
+    if ((s->flags & PA_SINK_DECIBEL_VOLUME))
+        enable_flat_volume(s, TRUE);
 
     if (s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER) {
         pa_sink *root_sink = s->input_to_master->sink;

@@ -388,29 +388,49 @@ void pa_source_set_get_volume_callback(pa_source *s, pa_source_cb_t cb) {
 }
 
 void pa_source_set_set_volume_callback(pa_source *s, pa_source_cb_t cb) {
-    pa_assert(s);
+    pa_source_flags_t flags;
 
+    pa_assert(s);
     pa_assert(!s->write_volume || cb);
 
     s->set_volume = cb;
 
-    if (cb)
+    /* Save the current flags so we can tell if they've changed */
+    flags = s->flags;
+
+    if (cb) {
+        /* The source implementor is responsible for setting decibel volume support */
         s->flags |= PA_SOURCE_HW_VOLUME_CTRL;
-    else
+    } else {
         s->flags &= ~PA_SOURCE_HW_VOLUME_CTRL;
+        /* See note below in pa_source_put() about volume sharing and decibel volumes */
+        pa_source_enable_decibel_volume(s, !(s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER));
+    }
+
+    /* If the flags have changed after init, let any clients know via a change event */
+    if (s->state != PA_SOURCE_INIT && flags != s->flags)
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 void pa_source_set_write_volume_callback(pa_source *s, pa_source_cb_t cb) {
-    pa_assert(s);
+    pa_source_flags_t flags;
 
+    pa_assert(s);
     pa_assert(!cb || s->set_volume);
 
     s->write_volume = cb;
+
+    /* Save the current flags so we can tell if they've changed */
+    flags = s->flags;
 
     if (cb)
         s->flags |= PA_SOURCE_SYNC_VOLUME;
     else
         s->flags &= ~PA_SOURCE_SYNC_VOLUME;
+
+    /* If the flags have changed after init, let any clients know via a change event */
+    if (s->state != PA_SOURCE_INIT && flags != s->flags)
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 void pa_source_set_get_mute_callback(pa_source *s, pa_source_cb_t cb) {
@@ -420,14 +440,65 @@ void pa_source_set_get_mute_callback(pa_source *s, pa_source_cb_t cb) {
 }
 
 void pa_source_set_set_mute_callback(pa_source *s, pa_source_cb_t cb) {
+    pa_source_flags_t flags;
+
     pa_assert(s);
 
     s->set_mute = cb;
+
+    /* Save the current flags so we can tell if they've changed */
+    flags = s->flags;
 
     if (cb)
         s->flags |= PA_SOURCE_HW_MUTE_CTRL;
     else
         s->flags &= ~PA_SOURCE_HW_MUTE_CTRL;
+
+    /* If the flags have changed after init, let any clients know via a change event */
+    if (s->state != PA_SOURCE_INIT && flags != s->flags)
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+}
+
+static void enable_flat_volume(pa_source *s, pa_bool_t enable) {
+    pa_source_flags_t flags;
+
+    pa_assert(s);
+
+    /* Always follow the overall user preference here */
+    enable = enable && s->core->flat_volumes;
+
+    /* Save the current flags so we can tell if they've changed */
+    flags = s->flags;
+
+    if (enable)
+        s->flags |= PA_SOURCE_FLAT_VOLUME;
+    else
+        s->flags &= ~PA_SOURCE_FLAT_VOLUME;
+
+    /* If the flags have changed after init, let any clients know via a change event */
+    if (s->state != PA_SOURCE_INIT && flags != s->flags)
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+}
+
+void pa_source_enable_decibel_volume(pa_source *s, pa_bool_t enable) {
+    pa_source_flags_t flags;
+
+    pa_assert(s);
+
+    /* Save the current flags so we can tell if they've changed */
+    flags = s->flags;
+
+    if (enable) {
+        s->flags |= PA_SOURCE_DECIBEL_VOLUME;
+        enable_flat_volume(s, TRUE);
+    } else {
+        s->flags &= ~PA_SOURCE_DECIBEL_VOLUME;
+        enable_flat_volume(s, FALSE);
+    }
+
+    /* If the flags have changed after init, let any clients know via a change event */
+    if (s->state != PA_SOURCE_INIT && flags != s->flags)
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 /* Called from main context */
@@ -468,10 +539,12 @@ void pa_source_put(pa_source *s) {
      *
      * Note: This flag can also change over the life time of the source. */
     if (!(s->flags & PA_SOURCE_HW_VOLUME_CTRL) && !(s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
-        s->flags |= PA_SOURCE_DECIBEL_VOLUME;
+        pa_source_enable_decibel_volume(s, TRUE);
 
-    if ((s->flags & PA_SOURCE_DECIBEL_VOLUME) && s->core->flat_volumes)
-        s->flags |= PA_SOURCE_FLAT_VOLUME;
+    /* If the source implementor support DB volumes by itself, we should always
+     * try and enable flat volumes too */
+    if ((s->flags & PA_SOURCE_DECIBEL_VOLUME))
+        enable_flat_volume(s, TRUE);
 
     if (s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER) {
         pa_source *root_source = s->output_from_master->source;

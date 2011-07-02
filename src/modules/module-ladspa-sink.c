@@ -883,7 +883,6 @@ int pa__init(pa_module*m) {
     }
 
     u->sink = pa_sink_new(m->core, &sink_data,
-                          PA_SINK_DECIBEL_VOLUME|
                           (master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY)));
     pa_sink_new_data_done(&sink_data);
 
@@ -896,6 +895,7 @@ int pa__init(pa_module*m) {
     u->sink->set_state = sink_set_state_cb;
     u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->request_rewind = sink_request_rewind_cb;
+    pa_sink_enable_decibel_volume(u->sink, TRUE);
     pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
     pa_sink_set_set_mute_callback(u->sink, sink_set_mute_cb);
     u->sink->userdata = u;

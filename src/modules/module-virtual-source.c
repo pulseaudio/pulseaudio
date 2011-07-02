@@ -581,8 +581,7 @@ int pa__init(pa_module*m) {
     }
 
     u->source = pa_source_new(m->core, &source_data, (master->flags & (PA_SOURCE_LATENCY|PA_SOURCE_DYNAMIC_LATENCY))
-                                                     | (use_volume_sharing ? PA_SOURCE_SHARE_VOLUME_WITH_MASTER : 0)
-                                                     | (force_flat_volume ? PA_SOURCE_FLAT_VOLUME : 0));
+                                                     | (use_volume_sharing ? PA_SOURCE_SHARE_VOLUME_WITH_MASTER : 0));
 
     pa_source_new_data_done(&source_data);
 
@@ -594,8 +593,14 @@ int pa__init(pa_module*m) {
     u->source->parent.process_msg = source_process_msg_cb;
     u->source->set_state = source_set_state_cb;
     u->source->update_requested_latency = source_update_requested_latency_cb;
-    pa_source_set_set_volume_callback(u->source, use_volume_sharing ? NULL : source_set_volume_cb);
     pa_source_set_set_mute_callback(u->source, source_set_mute_cb);
+    if (use_volume_sharing) {
+        pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
+        pa_source_enable_decibel_volume(u->source, TRUE);
+    }
+    /* Normally this flag would be enabled automatically be we can force it. */
+    if (force_flat_volume)
+        u->source->flags |= PA_SOURCE_FLAT_VOLUME;
     u->source->userdata = u;
 
     pa_source_set_asyncmsgq(u->source, master->asyncmsgq);

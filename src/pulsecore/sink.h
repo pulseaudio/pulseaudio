@@ -362,6 +362,7 @@ void pa_sink_set_set_volume_callback(pa_sink *s, pa_sink_cb_t cb);
 void pa_sink_set_write_volume_callback(pa_sink *s, pa_sink_cb_t cb);
 void pa_sink_set_get_mute_callback(pa_sink *s, pa_sink_cb_t cb);
 void pa_sink_set_set_mute_callback(pa_sink *s, pa_sink_cb_t cb);
+void pa_sink_enable_decibel_volume(pa_sink *s, pa_bool_t enable);
 
 void pa_sink_put(pa_sink *s);
 void pa_sink_unlink(pa_sink* s);
