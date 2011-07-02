@@ -400,14 +400,23 @@ static int process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa
 
 static void sink_get_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
+    WAVEOUTCAPS caps;
     DWORD vol;
     pa_volume_t left, right;
+
+    if (waveOutGetDevCaps(u->hwo, &caps, sizeof(caps)) != MMSYSERR_NOERROR)
+        return;
+    if (!(caps.dwSupport & WAVECAPS_VOLUME))
+        return;
 
     if (waveOutGetVolume(u->hwo, &vol) != MMSYSERR_NOERROR)
         return;
 
     left = PA_CLAMP_VOLUME((vol & 0xFFFF) * PA_VOLUME_NORM / WAVEOUT_MAX_VOLUME);
-    right = PA_CLAMP_VOLUME(((vol >> 16) & 0xFFFF) * PA_VOLUME_NORM / WAVEOUT_MAX_VOLUME);
+    if (caps.dwSupport & WAVECAPS_LRVOLUME)
+        right = PA_CLAMP_VOLUME(((vol >> 16) & 0xFFFF) * PA_VOLUME_NORM / WAVEOUT_MAX_VOLUME);
+    else
+        right = left;
 
     /* Windows supports > 2 channels, except for volume control */
     if (s->real_volume.channels > 2)
@@ -420,11 +429,21 @@ static void sink_get_volume_cb(pa_sink *s) {
 
 static void sink_set_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
+    WAVEOUTCAPS caps;
     DWORD vol;
 
-    vol = s->real_volume.values[0] * WAVEOUT_MAX_VOLUME / PA_VOLUME_NORM;
-    if (s->real_volume.channels > 1)
-        vol |= (s->real_volume.values[1] * WAVEOUT_MAX_VOLUME / PA_VOLUME_NORM) << 16;
+    if (waveOutGetDevCaps(u->hwo, &caps, sizeof(caps)) != MMSYSERR_NOERROR)
+        return;
+    if (!(caps.dwSupport & WAVECAPS_VOLUME))
+        return;
+
+    if (s->real_volume.channels == 2 && caps.dwSupport & WAVECAPS_LRVOLUME) {
+        vol = (s->real_volume.values[0] * WAVEOUT_MAX_VOLUME / PA_VOLUME_NORM)
+            | (s->real_volume.values[1] * WAVEOUT_MAX_VOLUME / PA_VOLUME_NORM) << 16;
+    } else {
+        vol = (pa_cvolume_avg(&(s->real_volume)) * WAVEOUT_MAX_VOLUME / PA_VOLUME_NORM)
+            | (pa_cvolume_avg(&(s->real_volume)) * WAVEOUT_MAX_VOLUME / PA_VOLUME_NORM) << 16;
+    }
 
     if (waveOutSetVolume(u->hwo, vol) != MMSYSERR_NOERROR)
         return;
