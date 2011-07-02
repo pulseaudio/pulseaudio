@@ -2873,49 +2873,6 @@ void pa_alsa_path_set_dump(pa_alsa_path_set *ps) {
         pa_alsa_path_dump(p);
 }
 
-static void path_set_unify(pa_alsa_path_set *ps) {
-    pa_alsa_path *p;
-    pa_bool_t has_dB = TRUE, has_volume = TRUE, has_mute = TRUE;
-    pa_assert(ps);
-
-    /* We have issues dealing with paths that vary too wildly. That
-     * means for now we have to have all paths support volume/mute/dB
-     * or none. */
-
-    PA_LLIST_FOREACH(p, ps->paths) {
-        pa_assert(p->probed);
-
-        if (!p->has_volume)
-            has_volume = FALSE;
-        else if (!p->has_dB)
-            has_dB = FALSE;
-
-        if (!p->has_mute)
-            has_mute = FALSE;
-    }
-
-    if (!has_volume || !has_dB || !has_mute) {
-
-        if (!has_volume)
-            pa_log_debug("Some paths of the device lack hardware volume control, disabling hardware control altogether.");
-        else if (!has_dB)
-            pa_log_debug("Some paths of the device lack dB information, disabling dB logic altogether.");
-
-        if (!has_mute)
-            pa_log_debug("Some paths of the device lack hardware mute control, disabling hardware control altogether.");
-
-        PA_LLIST_FOREACH(p, ps->paths) {
-            if (!has_volume)
-                p->has_volume = FALSE;
-            else if (!has_dB)
-                p->has_dB = FALSE;
-
-            if (!has_mute)
-                p->has_mute = FALSE;
-        }
-    }
-}
-
 static void path_set_make_paths_unique(pa_alsa_path_set *ps) {
     pa_alsa_path *p, *q;
 
@@ -2971,7 +2928,6 @@ void pa_alsa_path_set_probe(pa_alsa_path_set *ps, snd_mixer_t *m, pa_bool_t igno
         }
     }
 
-    path_set_unify(ps);
     path_set_make_paths_unique(ps);
     ps->probed = TRUE;
 }
