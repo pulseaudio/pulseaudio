@@ -712,7 +712,8 @@ typedef enum pa_sink_flags {
     /**< Flag to pass when no specific options are needed (used to avoid casting)  \since 0.9.19 */
 
     PA_SINK_HW_VOLUME_CTRL = 0x0001U,
-    /**< Supports hardware volume control */
+    /**< Supports hardware volume control. This is a dynamic flag and may
+     * change at runtime after the sink has initialized */
 
     PA_SINK_LATENCY = 0x0002U,
     /**< Supports latency querying */
@@ -725,10 +726,12 @@ typedef enum pa_sink_flags {
     /**< Is a networked sink of some kind. \since 0.9.7 */
 
     PA_SINK_HW_MUTE_CTRL = 0x0010U,
-    /**< Supports hardware mute control \since 0.9.11 */
+    /**< Supports hardware mute control. This is a dynamic flag and may
+     * change at runtime after the sink has initialized \since 0.9.11 */
 
     PA_SINK_DECIBEL_VOLUME = 0x0020U,
-    /**< Volume can be translated to dB with pa_sw_volume_to_dB()
+    /**< Volume can be translated to dB with pa_sw_volume_to_dB(). This is a
+     * dynamic flag and may change at runtime after the sink has initialized
      * \since 0.9.11 */
 
     PA_SINK_FLAT_VOLUME = 0x0040U,
@@ -820,7 +823,8 @@ typedef enum pa_source_flags {
     /**< Flag to pass when no specific options are needed (used to avoid casting)  \since 0.9.19 */
 
     PA_SOURCE_HW_VOLUME_CTRL = 0x0001U,
-    /**< Supports hardware volume control */
+    /**< Supports hardware volume control. This is a dynamic flag and may
+     * change at runtime after the source has initialized */
 
     PA_SOURCE_LATENCY = 0x0002U,
     /**< Supports latency querying */
@@ -833,10 +837,12 @@ typedef enum pa_source_flags {
     /**< Is a networked source of some kind. \since 0.9.7 */
 
     PA_SOURCE_HW_MUTE_CTRL = 0x0010U,
-    /**< Supports hardware mute control \since 0.9.11 */
+    /**< Supports hardware mute control. This is a dynamic flag and may
+     * change at runtime after the source has initialized \since 0.9.11 */
 
     PA_SOURCE_DECIBEL_VOLUME = 0x0020U,
-    /**< Volume can be translated to dB with pa_sw_volume_to_dB()
+    /**< Volume can be translated to dB with pa_sw_volume_to_dB(). This is a
+     * dynamic flag and may change at runtime after the source has initialized
      * \since 0.9.11 */
 
     PA_SOURCE_DYNAMIC_LATENCY = 0x0040U,

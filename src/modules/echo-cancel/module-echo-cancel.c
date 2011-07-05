@@ -1523,7 +1523,7 @@ int pa__init(pa_module*m) {
     }
 
     u->source = pa_source_new(m->core, &source_data,
-                          PA_SOURCE_HW_MUTE_CTRL|PA_SOURCE_HW_VOLUME_CTRL|PA_SOURCE_DECIBEL_VOLUME|
+                          PA_SOURCE_DECIBEL_VOLUME|
                           (source_master->flags & (PA_SOURCE_LATENCY|PA_SOURCE_DYNAMIC_LATENCY)));
     pa_source_new_data_done(&source_data);
 
@@ -1571,7 +1571,7 @@ int pa__init(pa_module*m) {
     }
 
     u->sink = pa_sink_new(m->core, &sink_data,
-                          PA_SINK_HW_MUTE_CTRL|PA_SINK_HW_VOLUME_CTRL|PA_SINK_DECIBEL_VOLUME|
+                          PA_SINK_DECIBEL_VOLUME|
                           (sink_master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY)));
     pa_sink_new_data_done(&sink_data);
 

@@ -933,7 +933,7 @@ int pa__init(pa_module *m) {
             goto fail;
         }
 
-        u->source = pa_source_new(m->core, &source_new_data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY|PA_SOURCE_HW_VOLUME_CTRL);
+        u->source = pa_source_new(m->core, &source_new_data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
         pa_source_new_data_done(&source_new_data);
         pa_xfree(name_buf);
 
@@ -981,7 +981,7 @@ int pa__init(pa_module *m) {
             goto fail;
         }
 
-        u->sink = pa_sink_new(m->core, &sink_new_data, PA_SINK_HARDWARE|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL|PA_SINK_HW_MUTE_CTRL);
+        u->sink = pa_sink_new(m->core, &sink_new_data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
         pa_sink_new_data_done(&sink_new_data);
 
         pa_assert(u->sink);

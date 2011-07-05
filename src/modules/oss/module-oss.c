@@ -1418,11 +1418,9 @@ int pa__init(pa_module*m) {
 
         if (ioctl(fd, SOUND_MIXER_READ_DEVMASK, &u->mixer_devmask) < 0)
             pa_log_warn("SOUND_MIXER_READ_DEVMASK failed: %s", pa_cstrerror(errno));
-
         else {
             if (u->sink && (u->mixer_devmask & (SOUND_MASK_VOLUME|SOUND_MASK_PCM))) {
                 pa_log_debug("Found hardware mixer track for playback.");
-                u->sink->flags |= PA_SINK_HW_VOLUME_CTRL;
                 pa_sink_set_get_volume_callback(u->sink, sink_get_volume);
                 pa_sink_set_set_volume_callback(u->sink, sink_set_volume);
                 u->sink->n_volume_steps = 101;
@@ -1431,7 +1429,6 @@ int pa__init(pa_module*m) {
 
             if (u->source && (u->mixer_devmask & (SOUND_MASK_RECLEV|SOUND_MASK_IGAIN))) {
                 pa_log_debug("Found hardware mixer track for recording.");
-                u->source->flags |= PA_SOURCE_HW_VOLUME_CTRL;
                 pa_source_set_get_volume_callback(u->source, source_get_volume);
                 pa_source_set_set_volume_callback(u->source, source_set_volume);
                 u->source->n_volume_steps = 101;

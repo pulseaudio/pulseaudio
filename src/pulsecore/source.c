@@ -390,13 +390,27 @@ void pa_source_set_get_volume_callback(pa_source *s, pa_source_cb_t cb) {
 void pa_source_set_set_volume_callback(pa_source *s, pa_source_cb_t cb) {
     pa_assert(s);
 
+    pa_assert(!s->write_volume || cb);
+
     s->set_volume = cb;
+
+    if (cb)
+        s->flags |= PA_SOURCE_HW_VOLUME_CTRL;
+    else
+        s->flags &= ~PA_SOURCE_HW_VOLUME_CTRL;
 }
 
 void pa_source_set_write_volume_callback(pa_source *s, pa_source_cb_t cb) {
     pa_assert(s);
 
+    pa_assert(!cb || s->set_volume);
+
     s->write_volume = cb;
+
+    if (cb)
+        s->flags |= PA_SOURCE_SYNC_VOLUME;
+    else
+        s->flags &= ~PA_SOURCE_SYNC_VOLUME;
 }
 
 void pa_source_set_get_mute_callback(pa_source *s, pa_source_cb_t cb) {
@@ -409,6 +423,11 @@ void pa_source_set_set_mute_callback(pa_source *s, pa_source_cb_t cb) {
     pa_assert(s);
 
     s->set_mute = cb;
+
+    if (cb)
+        s->flags |= PA_SOURCE_HW_MUTE_CTRL;
+    else
+        s->flags &= ~PA_SOURCE_HW_MUTE_CTRL;
 }
 
 /* Called from main context */
@@ -424,8 +443,18 @@ void pa_source_put(pa_source *s) {
     pa_assert(s->thread_info.min_latency <= s->thread_info.max_latency);
 
     /* Generally, flags should be initialized via pa_source_new(). As a
-     * special exception we allow volume related flags to be set
-     * between _new() and _put(). */
+     * special exception we allow some volume related flags to be set
+     * between _new() and _put() by the callback setter functions above.
+     *
+     * Thus we implement a couple safeguards here which ensure the above
+     * setters were used (or at least the implementor made manual changes
+     * in a compatible way).
+     *
+     * Note: All of these flags set here can change over the life time
+     * of the source. */
+    pa_assert(!(s->flags & PA_SOURCE_HW_VOLUME_CTRL) || s->set_volume);
+    pa_assert(!(s->flags & PA_SOURCE_SYNC_VOLUME) || s->write_volume);
+    pa_assert(!(s->flags & PA_SOURCE_HW_MUTE_CTRL) || s->set_mute);
 
     /* XXX: Currently decibel volume is disabled for all sources that use volume
      * sharing. When the master source supports decibel volume, it would be good
@@ -434,6 +463,10 @@ void pa_source_put(pa_source *s) {
      * a master source to another. One solution for this problem would be to
      * remove user-visible volume altogether from filter sources when volume
      * sharing is used, but the current approach was easier to implement... */
+    /* We always support decibel volumes in software, otherwise we leave it to
+     * the source implementor to set this flag as needed.
+     *
+     * Note: This flag can also change over the life time of the source. */
     if (!(s->flags & PA_SOURCE_HW_VOLUME_CTRL) && !(s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
         s->flags |= PA_SOURCE_DECIBEL_VOLUME;
 
@@ -466,10 +499,6 @@ void pa_source_put(pa_source *s) {
                   && ((s->flags & PA_SOURCE_DECIBEL_VOLUME || (s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)))));
     pa_assert(!(s->flags & PA_SOURCE_DECIBEL_VOLUME) || s->n_volume_steps == PA_VOLUME_NORM+1);
     pa_assert(!(s->flags & PA_SOURCE_DYNAMIC_LATENCY) == (s->thread_info.fixed_latency != 0));
-    pa_assert(!(s->flags & PA_SOURCE_HW_VOLUME_CTRL) || s->set_volume);
-    pa_assert(!(s->flags & PA_SOURCE_SYNC_VOLUME) || (s->flags & PA_SOURCE_HW_VOLUME_CTRL));
-    pa_assert(!(s->flags & PA_SOURCE_SYNC_VOLUME) || s->write_volume);
-    pa_assert(!(s->flags & PA_SOURCE_HW_MUTE_CTRL) || s->set_mute);
 
     pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
 

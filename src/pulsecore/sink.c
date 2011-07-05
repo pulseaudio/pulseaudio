@@ -458,13 +458,27 @@ void pa_sink_set_get_volume_callback(pa_sink *s, pa_sink_cb_t cb) {
 void pa_sink_set_set_volume_callback(pa_sink *s, pa_sink_cb_t cb) {
     pa_assert(s);
 
+    pa_assert(!s->write_volume || cb);
+
     s->set_volume = cb;
+
+    if (cb)
+        s->flags |= PA_SINK_HW_VOLUME_CTRL;
+    else
+        s->flags &= ~PA_SINK_HW_VOLUME_CTRL;
 }
 
 void pa_sink_set_write_volume_callback(pa_sink *s, pa_sink_cb_t cb) {
     pa_assert(s);
 
+    pa_assert(!cb || s->set_volume);
+
     s->write_volume = cb;
+
+    if (cb)
+        s->flags |= PA_SINK_SYNC_VOLUME;
+    else
+        s->flags &= ~PA_SINK_SYNC_VOLUME;
 }
 
 void pa_sink_set_get_mute_callback(pa_sink *s, pa_sink_cb_t cb) {
@@ -477,6 +491,11 @@ void pa_sink_set_set_mute_callback(pa_sink *s, pa_sink_cb_t cb) {
     pa_assert(s);
 
     s->set_mute = cb;
+
+    if (cb)
+        s->flags |= PA_SINK_HW_MUTE_CTRL;
+    else
+        s->flags &= ~PA_SINK_HW_MUTE_CTRL;
 }
 
 /* Called from main context */
@@ -492,8 +511,18 @@ void pa_sink_put(pa_sink* s) {
     pa_assert(s->thread_info.min_latency <= s->thread_info.max_latency);
 
     /* Generally, flags should be initialized via pa_sink_new(). As a
-     * special exception we allow volume related flags to be set
-     * between _new() and _put(). */
+     * special exception we allow some volume related flags to be set
+     * between _new() and _put() by the callback setter functions above.
+     *
+     * Thus we implement a couple safeguards here which ensure the above
+     * setters were used (or at least the implementor made manual changes
+     * in a compatible way).
+     *
+     * Note: All of these flags set here can change over the life time
+     * of the sink. */
+    pa_assert(!(s->flags & PA_SINK_HW_VOLUME_CTRL) || s->set_volume);
+    pa_assert(!(s->flags & PA_SINK_SYNC_VOLUME) || s->write_volume);
+    pa_assert(!(s->flags & PA_SINK_HW_MUTE_CTRL) || s->set_mute);
 
     /* XXX: Currently decibel volume is disabled for all sinks that use volume
      * sharing. When the master sink supports decibel volume, it would be good
@@ -502,6 +531,10 @@ void pa_sink_put(pa_sink* s) {
      * a master sink to another. One solution for this problem would be to
      * remove user-visible volume altogether from filter sinks when volume
      * sharing is used, but the current approach was easier to implement... */
+    /* We always support decibel volumes in software, otherwise we leave it to
+     * the sink implementor to set this flag as needed.
+     *
+     * Note: This flag can also change over the life time of the sink. */
     if (!(s->flags & PA_SINK_HW_VOLUME_CTRL) && !(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
         s->flags |= PA_SINK_DECIBEL_VOLUME;
 
@@ -536,10 +569,6 @@ void pa_sink_put(pa_sink* s) {
     pa_assert(!(s->flags & PA_SINK_DYNAMIC_LATENCY) == (s->thread_info.fixed_latency != 0));
     pa_assert(!(s->flags & PA_SINK_LATENCY) == !(s->monitor_source->flags & PA_SOURCE_LATENCY));
     pa_assert(!(s->flags & PA_SINK_DYNAMIC_LATENCY) == !(s->monitor_source->flags & PA_SOURCE_DYNAMIC_LATENCY));
-    pa_assert(!(s->flags & PA_SINK_HW_VOLUME_CTRL) || s->set_volume);
-    pa_assert(!(s->flags & PA_SINK_SYNC_VOLUME) || (s->flags & PA_SINK_HW_VOLUME_CTRL));
-    pa_assert(!(s->flags & PA_SINK_SYNC_VOLUME) || s->write_volume);
-    pa_assert(!(s->flags & PA_SINK_HW_MUTE_CTRL) || s->set_mute);
 
     pa_assert(s->monitor_source->thread_info.fixed_latency == s->thread_info.fixed_latency);
     pa_assert(s->monitor_source->thread_info.min_latency == s->thread_info.min_latency);
