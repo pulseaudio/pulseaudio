@@ -1069,8 +1069,7 @@ dist_alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/native-instruments-traktor-audio6.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-traktor-audio10.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-traktorkontrol-s4.conf \
-		modules/alsa/mixer/profile-sets/native-instruments-korecontroller.conf \
-		modules/alsa/mixer/profile-sets/usb-headset.conf
+		modules/alsa/mixer/profile-sets/native-instruments-korecontroller.conf
 
 if HAVE_UDEV
 dist_udevrules_DATA = \
