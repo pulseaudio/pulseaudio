@@ -589,8 +589,8 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
             }
 
             /* Make sure that if these memblocks need to be copied they will fit into one slot */
-            if (frames > pa_mempool_block_size_max(u->sink->core->mempool)/u->frame_size)
-                frames = pa_mempool_block_size_max(u->sink->core->mempool)/u->frame_size;
+            if (frames > pa_mempool_block_size_max(u->core->mempool)/u->frame_size)
+                frames = pa_mempool_block_size_max(u->core->mempool)/u->frame_size;
 
             if (!after_avail && frames == 0)
                 break;
