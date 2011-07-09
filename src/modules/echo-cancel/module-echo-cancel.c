@@ -105,10 +105,12 @@ static const pa_echo_canceller ec_table[] = {
     },
 };
 
+#define DEFAULT_RATE 32000
+#define DEFAULT_CHANNELS 1
 #define DEFAULT_ADJUST_TIME_USEC (1*PA_USEC_PER_SEC)
-#define DEFAULT_AGC_ENABLED FALSE
-#define DEFAULT_DENOISE_ENABLED FALSE
-#define DEFAULT_ECHO_SUPPRESS_ENABLED FALSE
+#define DEFAULT_AGC_ENABLED TRUE
+#define DEFAULT_DENOISE_ENABLED TRUE
+#define DEFAULT_ECHO_SUPPRESS_ENABLED TRUE
 #define DEFAULT_ECHO_SUPPRESS_ATTENUATION 0
 #define DEFAULT_SAVE_AEC 0
 #define DEFAULT_AUTOLOADED FALSE
@@ -1359,7 +1361,9 @@ int pa__init(pa_module*m) {
     pa_assert(sink_master);
 
     source_ss = source_master->sample_spec;
-    source_map = source_master->channel_map;
+    source_ss.rate = DEFAULT_RATE;
+    source_ss.channels = DEFAULT_CHANNELS;
+    pa_channel_map_init_auto(&source_map, source_ss.channels, PA_CHANNEL_MAP_DEFAULT);
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &source_ss, &source_map, PA_CHANNEL_MAP_DEFAULT) < 0) {
         pa_log("Invalid sample format specification or channel map");
         goto fail;
