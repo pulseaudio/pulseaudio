@@ -2243,7 +2243,7 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
         peak_detect = FALSE,
         early_requests = FALSE,
         dont_inhibit_auto_suspend = FALSE,
-        volume_set = TRUE,
+        volume_set = FALSE,
         muted_set = FALSE,
         fail_on_suspend = FALSE,
         relative_volume = FALSE,
@@ -2334,6 +2334,9 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
     }
 
     if (c->version >= 22) {
+        /* For newer client versions (with per-source-output volumes), we try
+         * to make the behaviour for playback and record streams the same. */
+        volume_set = TRUE;
 
         if (pa_tagstruct_getu8(t, &n_formats) < 0) {
             protocol_error(c);
@@ -2368,7 +2371,8 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
 
     if (n_formats == 0) {
         CHECK_VALIDITY_GOTO(c->pstream, pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID, finish);
-        CHECK_VALIDITY_GOTO(c->pstream, map.channels == ss.channels && volume.channels == ss.channels, tag, PA_ERR_INVALID, finish);
+        CHECK_VALIDITY_GOTO(c->pstream, map.channels == ss.channels, tag, PA_ERR_INVALID, finish);
+        CHECK_VALIDITY_GOTO(c->pstream, c->version < 22 || (volume.channels == ss.channels), tag, PA_ERR_INVALID, finish);
         CHECK_VALIDITY_GOTO(c->pstream, pa_channel_map_valid(&map), tag, PA_ERR_INVALID, finish);
     } else {
         PA_IDXSET_FOREACH(format, formats, i) {
