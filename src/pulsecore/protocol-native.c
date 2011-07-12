@@ -3390,7 +3390,9 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
                    (command == PA_COMMAND_GET_SOURCE_INFO &&
                     pa_namereg_is_valid_name_or_wildcard(name, PA_NAMEREG_SOURCE)) ||
                    pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, command == PA_COMMAND_GET_SINK_INFO ||
+                   command == PA_COMMAND_GET_SOURCE_INFO ||
+                   (idx != PA_INVALID_INDEX || name), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx == PA_INVALID_INDEX || !name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !name || idx == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
 
