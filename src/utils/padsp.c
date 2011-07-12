@@ -1222,7 +1222,7 @@ fail:
 static void sink_info_cb(pa_context *context, const pa_sink_info *si, int eol, void *userdata) {
     fd_info *i = userdata;
 
-    if (!si || eol < 0) {
+    if (eol < 0) {
         i->operation_success = 0;
         pa_threaded_mainloop_signal(i->mainloop, 0);
         return;
@@ -1244,7 +1244,7 @@ static void sink_info_cb(pa_context *context, const pa_sink_info *si, int eol, v
 static void source_info_cb(pa_context *context, const pa_source_info *si, int eol, void *userdata) {
     fd_info *i = userdata;
 
-    if (!si || eol < 0) {
+    if (eol < 0) {
         i->operation_success = 0;
         pa_threaded_mainloop_signal(i->mainloop, 0);
         return;
