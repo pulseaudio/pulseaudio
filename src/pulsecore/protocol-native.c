@@ -1898,7 +1898,7 @@ static pa_tagstruct *reply_new(uint32_t tag) {
 static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     playback_stream *s;
-    uint32_t sink_index, syncid, missing;
+    uint32_t sink_index, syncid, missing = 0;
     pa_buffer_attr attr;
     const char *name = NULL, *sink_name;
     pa_sample_spec ss;
