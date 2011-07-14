@@ -1653,7 +1653,7 @@ pa_operation * pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *us
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
-    /* This might cause the read index to conitnue again, hence
+    /* This might cause the read index to continue again, hence
      * let's request a timing update */
     request_auto_timing_update(s, TRUE);
 

@@ -173,7 +173,7 @@ static void process_render(struct userdata *u, pa_usec_t now) {
 
     /* This is the configured latency. Sink inputs connected to us
     might not have a single frame more than the maxrequest value
-    queed. Hence: at maximum read this many bytes from the sink
+    queued. Hence: at maximum read this many bytes from the sink
     inputs. */
 
     /* Fill the buffer up the the latency size */
