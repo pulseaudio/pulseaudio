@@ -65,6 +65,9 @@ struct pa_device_port {
 
 #define PA_DEVICE_PORT_DATA(d) ((void*) ((uint8_t*) d + PA_ALIGN(sizeof(pa_device_port))))
 
+/* A generic definition for void callback functions */
+typedef void(*pa_sink_cb_t)(pa_sink *s);
+
 struct pa_sink {
     pa_msgobject parent;
 
@@ -141,8 +144,11 @@ struct pa_sink {
      * PA_SINK_MESSAGE_GET_VOLUME (the main thread is waiting while
      * the message is being processed), so there's no choice of where
      * to do the volume reading - it has to be done in the IO thread
-     * always. */
-    void (*get_volume)(pa_sink *s);             /* may be NULL */
+     * always.
+     *
+     * You must use the function pa_sink_set_get_volume_callback() to
+     * set this callback. */
+    pa_sink_cb_t get_volume; /* may be NULL */
 
     /* Sink drivers that support hardware volume must set this
      * callback. This is called when the hardware volume needs to be
@@ -161,8 +167,11 @@ struct pa_sink {
      * requested volume the hardware volume can be set, and update
      * s->real_volume and/or s->soft_volume so that they together
      * match the actual hardware volume that will be set later in the
-     * write_volume callback. */
-    void (*set_volume)(pa_sink *s);             /* ditto */
+     * write_volume callback.
+     *
+     * You must use the function pa_sink_set_set_volume_callback() to
+     * set this callback. */
+    pa_sink_cb_t set_volume; /* may be NULL */
 
     /* Sink drivers that set PA_SINK_SYNC_VOLUME must provide this
      * callback. This callback is not used with sinks that do not set
@@ -174,27 +183,36 @@ struct pa_sink {
      * The call is done inside pa_sink_volume_change_apply(), which is
      * not called automatically - it is the driver's responsibility to
      * schedule that function to be called at the right times in the
-     * IO thread. */
-    void (*write_volume)(pa_sink *s);           /* ditto */
+     * IO thread.
+     *
+     * You must use the function pa_sink_set_write_volume_callback() to
+     * set this callback. */
+    pa_sink_cb_t write_volume; /* may be NULL */
 
     /* Called when the mute setting is queried. A PA_SINK_MESSAGE_GET_MUTE
      * message will also be sent. Called from IO thread if PA_SINK_SYNC_VOLUME
      * flag is set otherwise from main loop context. If refresh_mute is FALSE
-     * neither this function is called nor a message is sent.*/
-    void (*get_mute)(pa_sink *s);               /* ditto */
+     * neither this function is called nor a message is sent.
+     *
+     * You must use the function pa_sink_set_get_mute_callback() to
+     * set this callback. */
+    pa_sink_cb_t get_mute; /* may be NULL */
 
     /* Called when the mute setting shall be changed. A PA_SINK_MESSAGE_SET_MUTE
      * message will also be sent. Called from IO thread if PA_SINK_SYNC_VOLUME
-     * flag is set otherwise from main loop context. */
-    void (*set_mute)(pa_sink *s);               /* ditto */
+     * flag is set otherwise from main loop context.
+     *
+     * You must use the function pa_sink_set_set_mute_callback() to
+     * set this callback. */
+    pa_sink_cb_t set_mute; /* may be NULL */
 
     /* Called when a rewind request is issued. Called from IO thread
      * context. */
-    void (*request_rewind)(pa_sink *s);        /* ditto */
+    pa_sink_cb_t request_rewind; /* may be NULL */
 
     /* Called when a the requested latency is changed. Called from IO
      * thread context. */
-    void (*update_requested_latency)(pa_sink *s); /* ditto */
+    pa_sink_cb_t update_requested_latency; /* may be NULL */
 
     /* Called whenever the port shall be changed. Called from main
      * thread. */
@@ -338,6 +356,12 @@ pa_sink* pa_sink_new(
         pa_core *core,
         pa_sink_new_data *data,
         pa_sink_flags_t flags);
+
+void pa_sink_set_get_volume_callback(pa_sink *s, pa_sink_cb_t cb);
+void pa_sink_set_set_volume_callback(pa_sink *s, pa_sink_cb_t cb);
+void pa_sink_set_write_volume_callback(pa_sink *s, pa_sink_cb_t cb);
+void pa_sink_set_get_mute_callback(pa_sink *s, pa_sink_cb_t cb);
+void pa_sink_set_set_mute_callback(pa_sink *s, pa_sink_cb_t cb);
 
 void pa_sink_put(pa_sink *s);
 void pa_sink_unlink(pa_sink* s);

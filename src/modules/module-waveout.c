@@ -637,8 +637,8 @@ int pa__init(pa_module *m) {
         pa_sink_new_data_done(&data);
 
         pa_assert(u->sink);
-        u->sink->get_volume = sink_get_volume_cb;
-        u->sink->set_volume = sink_set_volume_cb;
+        pa_sink_set_get_volume_callback(u->sink, sink_get_volume_cb);
+        pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
         u->sink->userdata = u;
         pa_sink_set_description(u->sink, description);
         u->sink->parent.process_msg = process_msg;

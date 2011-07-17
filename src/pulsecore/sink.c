@@ -449,6 +449,36 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     return 0;
 }
 
+void pa_sink_set_get_volume_callback(pa_sink *s, pa_sink_cb_t cb) {
+    pa_assert(s);
+
+    s->get_volume = cb;
+}
+
+void pa_sink_set_set_volume_callback(pa_sink *s, pa_sink_cb_t cb) {
+    pa_assert(s);
+
+    s->set_volume = cb;
+}
+
+void pa_sink_set_write_volume_callback(pa_sink *s, pa_sink_cb_t cb) {
+    pa_assert(s);
+
+    s->write_volume = cb;
+}
+
+void pa_sink_set_get_mute_callback(pa_sink *s, pa_sink_cb_t cb) {
+    pa_assert(s);
+
+    s->get_mute = cb;
+}
+
+void pa_sink_set_set_mute_callback(pa_sink *s, pa_sink_cb_t cb) {
+    pa_assert(s);
+
+    s->set_mute = cb;
+}
+
 /* Called from main context */
 void pa_sink_put(pa_sink* s) {
     pa_sink_assert_ref(s);

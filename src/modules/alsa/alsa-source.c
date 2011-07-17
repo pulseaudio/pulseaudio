@@ -1552,9 +1552,9 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB, pa_bool_t sync_v
             u->source->n_volume_steps = u->mixer_path->max_volume - u->mixer_path->min_volume + 1;
         }
 
-        u->source->get_volume = source_get_volume_cb;
-        u->source->set_volume = source_set_volume_cb;
-        u->source->write_volume = source_write_volume_cb;
+        pa_source_set_get_volume_callback(u->source, source_get_volume_cb);
+        pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
+        pa_source_set_write_volume_callback(u->source, source_write_volume_cb);
 
         u->source->flags |= PA_SOURCE_HW_VOLUME_CTRL;
         if (u->mixer_path->has_dB) {
@@ -1571,8 +1571,8 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB, pa_bool_t sync_v
     if (!u->mixer_path->has_mute) {
         pa_log_info("Driver does not support hardware mute control, falling back to software mute control.");
     } else {
-        u->source->get_mute = source_get_mute_cb;
-        u->source->set_mute = source_set_mute_cb;
+        pa_source_set_get_mute_callback(u->source, source_get_mute_cb);
+        pa_source_set_set_mute_callback(u->source, source_set_mute_cb);
         u->source->flags |= PA_SOURCE_HW_MUTE_CTRL;
         pa_log_info("Using hardware mute control.");
     }

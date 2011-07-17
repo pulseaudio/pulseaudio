@@ -594,8 +594,8 @@ int pa__init(pa_module*m) {
     u->source->parent.process_msg = source_process_msg_cb;
     u->source->set_state = source_set_state_cb;
     u->source->update_requested_latency = source_update_requested_latency_cb;
-    u->source->set_volume = use_volume_sharing ? NULL : source_set_volume_cb;
-    u->source->set_mute = source_set_mute_cb;
+    pa_source_set_set_volume_callback(u->source, use_volume_sharing ? NULL : source_set_volume_cb);
+    pa_source_set_set_mute_callback(u->source, source_set_mute_cb);
     u->source->userdata = u;
 
     pa_source_set_asyncmsgq(u->source, master->asyncmsgq);

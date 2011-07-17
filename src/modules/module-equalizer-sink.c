@@ -1191,8 +1191,8 @@ int pa__init(pa_module*m) {
     u->sink->set_state = sink_set_state_cb;
     u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->request_rewind = sink_request_rewind_cb;
-    u->sink->set_volume = sink_set_volume_cb;
-    u->sink->set_mute = sink_set_mute_cb;
+    pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
+    pa_sink_set_set_mute_callback(u->sink, sink_set_mute_cb);
     u->sink->userdata = u;
 
     u->input_q = pa_memblockq_new(0,  MEMBLOCKQ_MAXLENGTH, 0, fs, 1, 1, 0, &u->sink->silence);

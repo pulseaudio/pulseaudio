@@ -594,8 +594,8 @@ int pa__init(pa_module*m) {
 
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
-    u->sink->set_volume = sink_set_volume_cb;
-    u->sink->set_mute = sink_set_mute_cb;
+    pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
+    pa_sink_set_set_mute_callback(u->sink, sink_set_mute_cb);
     u->sink->flags = PA_SINK_LATENCY|PA_SINK_NETWORK|PA_SINK_HW_VOLUME_CTRL;
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);

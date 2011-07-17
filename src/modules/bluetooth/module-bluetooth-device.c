@@ -2040,7 +2040,7 @@ static int add_sink(struct userdata *u) {
     }
 
     if (u->profile == PROFILE_HSP) {
-        u->sink->set_volume = sink_set_volume_cb;
+        pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
         u->sink->n_volume_steps = 16;
 
         k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->sink);
@@ -2111,7 +2111,7 @@ static int add_source(struct userdata *u) {
     }
 
     if (u->profile == PROFILE_HSP) {
-        u->source->set_volume = source_set_volume_cb;
+        pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
         u->source->n_volume_steps = 16;
 
         k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->source);
@@ -2510,8 +2510,8 @@ static void restore_sco_volume_callbacks(struct userdata *u) {
     pa_assert(u);
     pa_assert(USE_SCO_OVER_PCM(u));
 
-    u->hsp.sco_sink->set_volume = u->hsp.sco_sink_set_volume;
-    u->hsp.sco_source->set_volume = u->hsp.sco_source_set_volume;
+    pa_sink_set_set_volume_callback(u->hsp.sco_sink, u->hsp.sco_sink_set_volume);
+    pa_source_set_set_volume_callback(u->hsp.sco_source, u->hsp.sco_source_set_volume);
 }
 
 /* Run from main thread */

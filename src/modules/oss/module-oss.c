@@ -1423,8 +1423,8 @@ int pa__init(pa_module*m) {
             if (u->sink && (u->mixer_devmask & (SOUND_MASK_VOLUME|SOUND_MASK_PCM))) {
                 pa_log_debug("Found hardware mixer track for playback.");
                 u->sink->flags |= PA_SINK_HW_VOLUME_CTRL;
-                u->sink->get_volume = sink_get_volume;
-                u->sink->set_volume = sink_set_volume;
+                pa_sink_set_get_volume_callback(u->sink, sink_get_volume);
+                pa_sink_set_set_volume_callback(u->sink, sink_set_volume);
                 u->sink->n_volume_steps = 101;
                 do_close = FALSE;
             }
@@ -1432,8 +1432,8 @@ int pa__init(pa_module*m) {
             if (u->source && (u->mixer_devmask & (SOUND_MASK_RECLEV|SOUND_MASK_IGAIN))) {
                 pa_log_debug("Found hardware mixer track for recording.");
                 u->source->flags |= PA_SOURCE_HW_VOLUME_CTRL;
-                u->source->get_volume = source_get_volume;
-                u->source->set_volume = source_set_volume;
+                pa_source_set_get_volume_callback(u->source, source_get_volume);
+                pa_source_set_set_volume_callback(u->source, source_set_volume);
                 u->source->n_volume_steps = 101;
                 do_close = FALSE;
             }

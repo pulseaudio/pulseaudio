@@ -1535,10 +1535,10 @@ int pa__init(pa_module*m) {
     u->source->parent.process_msg = source_process_msg_cb;
     u->source->set_state = source_set_state_cb;
     u->source->update_requested_latency = source_update_requested_latency_cb;
-    u->source->set_volume = source_set_volume_cb;
-    u->source->set_mute = source_set_mute_cb;
-    u->source->get_volume = source_get_volume_cb;
-    u->source->get_mute = source_get_mute_cb;
+    pa_source_set_get_volume_callback(u->source, source_get_volume_cb);
+    pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
+    pa_source_set_get_mute_callback(u->source, source_get_mute_cb);
+    pa_source_set_set_mute_callback(u->source, source_set_mute_cb);
     u->source->userdata = u;
 
     pa_source_set_asyncmsgq(u->source, source_master->asyncmsgq);
@@ -1584,8 +1584,8 @@ int pa__init(pa_module*m) {
     u->sink->set_state = sink_set_state_cb;
     u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->request_rewind = sink_request_rewind_cb;
-    u->sink->set_volume = sink_set_volume_cb;
-    u->sink->set_mute = sink_set_mute_cb;
+    pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
+    pa_sink_set_set_mute_callback(u->sink, sink_set_mute_cb);
     u->sink->userdata = u;
 
     pa_sink_set_asyncmsgq(u->sink, sink_master->asyncmsgq);

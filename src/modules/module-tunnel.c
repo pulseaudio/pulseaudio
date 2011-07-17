@@ -2014,8 +2014,8 @@ int pa__init(pa_module*m) {
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
     u->sink->set_state = sink_set_state;
-    u->sink->set_volume = sink_set_volume;
-    u->sink->set_mute = sink_set_mute;
+    pa_sink_set_set_volume_callback(u->sink, sink_set_volume);
+    pa_sink_set_set_mute_callback(u->sink, sink_set_mute);
 
     u->sink->refresh_volume = u->sink->refresh_muted = FALSE;
 

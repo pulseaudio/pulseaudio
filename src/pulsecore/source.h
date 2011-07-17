@@ -53,6 +53,9 @@ static inline pa_bool_t PA_SOURCE_IS_LINKED(pa_source_state_t x) {
     return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE || x == PA_SOURCE_SUSPENDED;
 }
 
+/* A generic definition for void callback functions */
+typedef void(*pa_source_cb_t)(pa_source *s);
+
 struct pa_source {
     pa_msgobject parent;
 
@@ -111,13 +114,19 @@ struct pa_source {
     /* Callled when the volume is queried. Called from main loop
      * context. If this is NULL a PA_SOURCE_MESSAGE_GET_VOLUME message
      * will be sent to the IO thread instead. If refresh_volume is
-     * FALSE neither this function is called nor a message is sent. */
-    void (*get_volume)(pa_source *s);         /* ditto */
+     * FALSE neither this function is called nor a message is sent.
+     *
+     * You must use the function pa_source_set_get_volume_callback() to
+     * set this callback. */
+    pa_source_cb_t get_volume; /* may be NULL */
 
     /* Called when the volume shall be changed. Called from main loop
      * context. If this is NULL a PA_SOURCE_MESSAGE_SET_VOLUME message
-     * will be sent to the IO thread instead. */
-    void (*set_volume)(pa_source *s);         /* ditto */
+     * will be sent to the IO thread instead.
+     *
+     * You must use the function pa_source_set_set_volume_callback() to
+     * set this callback. */
+    pa_source_cb_t set_volume; /* may be NULL */
 
     /* Source drivers that set PA_SOURCE_SYNC_VOLUME must provide this
      * callback. This callback is not used with source that do not set
@@ -129,23 +138,32 @@ struct pa_source {
      * The call is done inside pa_source_volume_change_apply(), which is
      * not called automatically - it is the driver's responsibility to
      * schedule that function to be called at the right times in the
-     * IO thread. */
-    void (*write_volume)(pa_source *s);       /* ditto */
+     * IO thread.
+     *
+     * You must use the function pa_source_set_write_volume_callback() to
+     * set this callback. */
+    pa_source_cb_t write_volume; /* may be NULL */
 
     /* Called when the mute setting is queried. Called from main loop
      * context. If this is NULL a PA_SOURCE_MESSAGE_GET_MUTE message
      * will be sent to the IO thread instead. If refresh_mute is
-     * FALSE neither this function is called nor a message is sent.*/
-    void (*get_mute)(pa_source *s);           /* ditto */
+     * FALSE neither this function is called nor a message is sent.
+     *
+     * You must use the function pa_source_set_get_mute_callback() to
+     * set this callback. */
+    pa_source_cb_t get_mute; /* may be NULL */
 
     /* Called when the mute setting shall be changed. Called from main
      * loop context. If this is NULL a PA_SOURCE_MESSAGE_SET_MUTE
-     * message will be sent to the IO thread instead. */
-    void (*set_mute)(pa_source *s);           /* ditto */
+     * message will be sent to the IO thread instead.
+     *
+     * You must use the function pa_source_set_set_mute_callback() to
+     * set this callback. */
+    pa_source_cb_t set_mute; /* may be NULL */
 
     /* Called when a the requested latency is changed. Called from IO
      * thread context. */
-    void (*update_requested_latency)(pa_source *s); /* ditto */
+    pa_source_cb_t update_requested_latency; /* may be NULL */
 
     /* Called whenever the port shall be changed. Called from main
      * thread. */
@@ -269,6 +287,12 @@ pa_source* pa_source_new(
         pa_core *core,
         pa_source_new_data *data,
         pa_source_flags_t flags);
+
+void pa_source_set_get_volume_callback(pa_source *s, pa_source_cb_t cb);
+void pa_source_set_set_volume_callback(pa_source *s, pa_source_cb_t cb);
+void pa_source_set_write_volume_callback(pa_source *s, pa_source_cb_t cb);
+void pa_source_set_get_mute_callback(pa_source *s, pa_source_cb_t cb);
+void pa_source_set_set_mute_callback(pa_source *s, pa_source_cb_t cb);
 
 void pa_source_put(pa_source *s);
 void pa_source_unlink(pa_source *s);

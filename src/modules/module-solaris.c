@@ -949,8 +949,8 @@ int pa__init(pa_module *m) {
         pa_source_set_rtpoll(u->source, u->rtpoll);
         pa_source_set_fixed_latency(u->source, pa_bytes_to_usec(u->buffer_size, &u->source->sample_spec));
 
-        u->source->get_volume = source_get_volume;
-        u->source->set_volume = source_set_volume;
+        pa_source_set_get_volume_callback(u->source, source_get_volume);
+        pa_source_set_set_volume_callback(u->source, source_set_volume);
         u->source->refresh_volume = TRUE;
     } else
         u->source = NULL;
@@ -994,10 +994,10 @@ int pa__init(pa_module *m) {
         pa_sink_set_max_request(u->sink, u->buffer_size);
         pa_sink_set_max_rewind(u->sink, u->buffer_size);
 
-        u->sink->get_volume = sink_get_volume;
-        u->sink->set_volume = sink_set_volume;
-        u->sink->get_mute = sink_get_mute;
-        u->sink->set_mute = sink_set_mute;
+        pa_sink_set_get_volume_callback(u->sink, sink_get_volume);
+        pa_sink_set_set_volume_callback(u->sink, sink_set_volume);
+        pa_sink_set_get_mute_callback(u->sink, sink_get_mute);
+        pa_sink_set_set_mute_callback(u->sink, sink_set_mute);
         u->sink->refresh_volume = u->sink->refresh_muted = TRUE;
     } else
         u->sink = NULL;
