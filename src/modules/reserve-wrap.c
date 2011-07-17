@@ -105,9 +105,9 @@ static int request_cb(rd_device *d, int forced) {
 
 pa_reserve_wrapper* pa_reserve_wrapper_get(pa_core *c, const char *device_name) {
     pa_reserve_wrapper *r;
-    int k;
     char *t;
 #ifdef HAVE_DBUS
+    int k;
     DBusError error;
 
     dbus_error_init(&error);
@@ -248,9 +248,9 @@ static void change_cb(rm_monitor *m) {
 
 pa_reserve_monitor_wrapper* pa_reserve_monitor_wrapper_get(pa_core *c, const char *device_name) {
     pa_reserve_monitor_wrapper *w;
-    int k;
     char *t;
 #ifdef HAVE_DBUS
+    int k;
     DBusError error;
 
     dbus_error_init(&error);
