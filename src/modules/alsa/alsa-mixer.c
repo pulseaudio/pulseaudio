@@ -1175,7 +1175,7 @@ static int element_set_constant_volume(pa_alsa_element *e, snd_mixer_t *m) {
             if (e->db_fix) {
                 long dB = 0;
 
-                volume = decibel_fix_get_step(e->db_fix, &dB, +1);
+                volume = decibel_fix_get_step(e->db_fix, &dB, (e->direction == PA_ALSA_DIRECTION_OUTPUT ? +1 : -1));
                 volume_set = TRUE;
             }
             break;
@@ -1201,7 +1201,7 @@ static int element_set_constant_volume(pa_alsa_element *e, snd_mixer_t *m) {
         if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
             r = snd_mixer_selem_set_playback_dB_all(me, 0, +1);
         else
-            r = snd_mixer_selem_set_capture_dB_all(me, 0, +1);
+            r = snd_mixer_selem_set_capture_dB_all(me, 0, -1);
     }
 
     if (r < 0)
