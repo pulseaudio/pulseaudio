@@ -567,7 +567,7 @@ int pa__init(pa_module*m) {
     u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->request_rewind = sink_request_rewind_cb;
     pa_sink_set_set_mute_callback(u->sink, sink_set_mute_cb);
-    if (use_volume_sharing) {
+    if (!use_volume_sharing) {
         pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
         pa_sink_enable_decibel_volume(u->sink, TRUE);
     }

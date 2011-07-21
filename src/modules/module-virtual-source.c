@@ -594,7 +594,7 @@ int pa__init(pa_module*m) {
     u->source->set_state = source_set_state_cb;
     u->source->update_requested_latency = source_update_requested_latency_cb;
     pa_source_set_set_mute_callback(u->source, source_set_mute_cb);
-    if (use_volume_sharing) {
+    if (!use_volume_sharing) {
         pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
         pa_source_enable_decibel_volume(u->source, TRUE);
     }
