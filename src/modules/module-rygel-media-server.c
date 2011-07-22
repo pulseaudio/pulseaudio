@@ -133,6 +133,7 @@ PA_MODULE_USAGE("display_name=<UPnP Media Server name>");
     " <interface name=\"org.gnome.UPnP.MediaItem2\">"                   \
     "  <property name=\"URLs\" type=\"as\" access=\"read\"/>"           \
     "  <property name=\"MIMEType\" type=\"s\" access=\"read\"/>"        \
+    " </interface>"                                                     \
     " <interface name=\"org.gnome.UPnP.MediaObject2\">"                 \
     "  <property name=\"Parent\" type=\"s\" access=\"read\"/>"          \
     "  <property name=\"Type\" type=\"s\" access=\"read\"/>"            \
