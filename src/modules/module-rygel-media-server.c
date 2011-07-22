@@ -909,6 +909,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             dbus_message_iter_init_append(r, &iter);
             pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
             append_sink_or_source_container_mediaobject2_properties(r, &sub, path);
+            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
         } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
             pa_strbuf *sb;
@@ -979,6 +980,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
             pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
             append_sink_or_source_item_mediaobject2_properties(r, &sub, path, sink, source);
+            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
         } else if (message_is_property_get(m, "org.gnome.UPnP.MediaItem2", "MIMEType")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
