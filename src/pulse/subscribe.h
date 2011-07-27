@@ -42,6 +42,26 @@
  * The application sets the notification mask using pa_context_subscribe()
  * and the function that will be called whenever a notification occurs using
  * pa_context_set_subscribe_callback().
+ *
+ * The callback will be called with a \ref pa_subscription_event_type_t
+ * representing the event that caused the callback. Clients can examine what
+ * object changed using \ref PA_SUBSCRIPTION_EVENT_FACILITY_MASK. The actual
+ * event type can then be extracted with \ref PA_SUBSCRIPTION_EVENT_TYPE_MASK.
+ * Please note that the masked values are integers, not flags (so you will
+ * check the object/event type using a comparison not a binary AND). For
+ * example, the callback might look something like:
+ *
+@verbatim
+void my_subscription_callback(pa_context *c, pa_subscription_event_type_t t,
+                              uint32_t idx, void *userdata)
+{
+    if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE) {
+        if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
+            ... a source was added, let's do stuff! ...
+        }
+    }
+}
+@endverbatim
  */
 
 /** \file
