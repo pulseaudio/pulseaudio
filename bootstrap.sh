@@ -45,6 +45,7 @@ case $(uname) in
 		LIBTOOLIZE="glibtoolize"
 		;;
 esac
+test "x$LIBTOOLIZE" = "x" && LIBTOOLIZE=libtoolize
 
 if [ -f .git/hooks/pre-commit.sample -a ! -f .git/hooks/pre-commit ] ; then
     cp -p .git/hooks/pre-commit.sample .git/hooks/pre-commit && \
@@ -63,8 +64,14 @@ fi
 # configure file faulty.
 if ! pkg-config --version &>/dev/null; then
     echo "pkg-config is required to bootstrap this program" &>/dev/null
-    exit 1
+    DIE=1
 fi
+
+# Other necessary programs
+glib-gettextize --version >/dev/null || DIE=1
+intltoolize --version >/dev/null || DIE=1
+$LIBTOOLIZE --version >/dev/null || DIE=1
+test "$DIE" = 1 && exit 1
 
 if type -p colorgcc > /dev/null ; then
    export CC=colorgcc
@@ -78,14 +85,11 @@ else
     rm -f config.cache
 
     rm -f Makefile.am~ configure.ac~
-    # Evil, evil, evil, evil hack
-    sed 's/read dummy/\#/' `which gettextize` | bash -s -- --copy --force
+    glib-gettextize --copy --force
     test -f Makefile.am~ && mv Makefile.am~ Makefile.am
     test -f configure.ac~ && mv configure.ac~ configure.ac
 
     touch config.rpath
-    test "x$LIBTOOLIZE" = "x" && LIBTOOLIZE=libtoolize
-
     intltoolize --copy --force --automake
     "$LIBTOOLIZE" -c --force
     run_versioned aclocal "$VERSION" -I m4

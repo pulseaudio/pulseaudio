@@ -27,5 +27,5 @@ libltdl
 libtool
 ltmain.sh
 missing
+mkinstalldirs
 stamp-*
-ChangeLog
