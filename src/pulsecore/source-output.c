@@ -348,6 +348,15 @@ int pa_source_output_new(
     /* Due to the fixing of the sample spec the volume might not match anymore */
     pa_cvolume_remap(&data->volume, &original_cm, &data->channel_map);
 
+    if (!(data->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) &&
+        !pa_sample_spec_equal(&data->sample_spec, &data->source->sample_spec)){
+        /* try to change source rate. This is done before the FIXATE hook since
+           module-suspend-on-idle can resume a source */
+
+        pa_log_info("Trying to change sample rate");
+        pa_source_update_rate(data->source, data->sample_spec.rate);
+    }
+
     if (data->resample_method == PA_RESAMPLER_INVALID)
         data->resample_method = core->resample_method;
 
@@ -1383,6 +1392,21 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
         pa_source_output_send_event(o, PA_STREAM_EVENT_FORMAT_LOST, p);
         pa_proplist_free(p);
         return -PA_ERR_NOTSUPPORTED;
+    }
+
+    if (!(o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) &&
+        !pa_sample_spec_equal(&o->sample_spec, &dest->sample_spec)){
+        /* try to change dest sink rate if possible without glitches.
+           module-suspend-on-idle resumes destination source with
+           SOURCE_OUTPUT_MOVE_FINISH hook */
+
+        pa_log_info("Trying to change sample rate");
+        if (pa_source_update_rate(dest, o->sample_spec.rate) == TRUE)
+            pa_log_info("Rate changed to %u kHz",
+                        dest->sample_spec.rate);
+        else
+            pa_log_info("Resampling enabled to %u kHz",
+                        dest->sample_spec.rate);
     }
 
     if (o->thread_info.resampler &&

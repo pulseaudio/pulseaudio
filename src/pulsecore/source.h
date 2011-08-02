@@ -76,6 +76,8 @@ struct pa_source {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+    uint32_t default_sample_rate;
+    uint32_t alternate_sample_rate;
 
     pa_idxset *outputs;
     unsigned n_corked;
@@ -178,6 +180,10 @@ struct pa_source {
      * in descending order of preference. */
     pa_idxset* (*get_formats)(pa_source *s); /* ditto */
 
+    /* Called whenever the sampling frequency shall be changed. Called from
+     * main thread. */
+    pa_bool_t (*update_rate)(pa_source *s, uint32_t rate);
+
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
     struct {
@@ -262,6 +268,7 @@ typedef struct pa_source_new_data {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+    uint32_t alternate_sample_rate;
     pa_cvolume volume;
     pa_bool_t muted:1;
 
@@ -269,6 +276,7 @@ typedef struct pa_source_new_data {
     pa_bool_t muted_is_set:1;
     pa_bool_t sample_spec_is_set:1;
     pa_bool_t channel_map_is_set:1;
+    pa_bool_t alternate_sample_rate_is_set:1;
 
     pa_bool_t namereg_fail:1;
 
@@ -281,6 +289,7 @@ pa_source_new_data* pa_source_new_data_init(pa_source_new_data *data);
 void pa_source_new_data_set_name(pa_source_new_data *data, const char *name);
 void pa_source_new_data_set_sample_spec(pa_source_new_data *data, const pa_sample_spec *spec);
 void pa_source_new_data_set_channel_map(pa_source_new_data *data, const pa_channel_map *map);
+void pa_source_new_data_set_alternate_sample_rate(pa_source_new_data *data, const uint32_t alternate_sample_rate);
 void pa_source_new_data_set_volume(pa_source_new_data *data, const pa_cvolume *volume);
 void pa_source_new_data_set_muted(pa_source_new_data *data, pa_bool_t mute);
 void pa_source_new_data_set_port(pa_source_new_data *data, const char *port);
@@ -358,6 +367,7 @@ pa_bool_t pa_source_get_mute(pa_source *source, pa_bool_t force_refresh);
 pa_bool_t pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist *p);
 
 int pa_source_set_port(pa_source *s, const char *name, pa_bool_t save);
+pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate);
 
 unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
 unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */

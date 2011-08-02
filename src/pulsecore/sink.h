@@ -88,6 +88,8 @@ struct pa_sink {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+    uint32_t default_sample_rate;
+    uint32_t alternate_sample_rate;
 
     pa_idxset *inputs;
     unsigned n_corked;
@@ -233,6 +235,10 @@ struct pa_sink {
      * set). Makes a copy of the formats passed in. */
     pa_bool_t (*set_formats)(pa_sink *s, pa_idxset *formats); /* may be NULL */
 
+    /* Called whenever the sampling frequency shall be changed. Called from
+     * main thread. */
+    pa_bool_t (*update_rate)(pa_sink *s, uint32_t rate);
+
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
     struct {
@@ -337,11 +343,13 @@ typedef struct pa_sink_new_data {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+    uint32_t alternate_sample_rate;
     pa_cvolume volume;
     pa_bool_t muted :1;
 
     pa_bool_t sample_spec_is_set:1;
     pa_bool_t channel_map_is_set:1;
+    pa_bool_t alternate_sample_rate_is_set:1;
     pa_bool_t volume_is_set:1;
     pa_bool_t muted_is_set:1;
 
@@ -356,6 +364,7 @@ pa_sink_new_data* pa_sink_new_data_init(pa_sink_new_data *data);
 void pa_sink_new_data_set_name(pa_sink_new_data *data, const char *name);
 void pa_sink_new_data_set_sample_spec(pa_sink_new_data *data, const pa_sample_spec *spec);
 void pa_sink_new_data_set_channel_map(pa_sink_new_data *data, const pa_channel_map *map);
+void pa_sink_new_data_set_alternate_sample_rate(pa_sink_new_data *data, const uint32_t alternate_sample_rate);
 void pa_sink_new_data_set_volume(pa_sink_new_data *data, const pa_cvolume *volume);
 void pa_sink_new_data_set_muted(pa_sink_new_data *data, pa_bool_t mute);
 void pa_sink_new_data_set_port(pa_sink_new_data *data, const char *port);
@@ -402,6 +411,8 @@ pa_bool_t pa_device_init_intended_roles(pa_proplist *p);
 unsigned pa_device_init_priority(pa_proplist *p);
 
 /**** May be called by everyone, from main context */
+
+pa_bool_t pa_sink_update_rate(pa_sink *s, uint32_t rate, pa_bool_t passthrough);
 
 /* The returned value is supposed to be in the time domain of the sound card! */
 pa_usec_t pa_sink_get_latency(pa_sink *s);

@@ -98,6 +98,13 @@ void pa_source_new_data_set_channel_map(pa_source_new_data *data, const pa_chann
         data->channel_map = *map;
 }
 
+void pa_source_new_data_set_alternate_sample_rate(pa_source_new_data *data, const uint32_t alternate_sample_rate) {
+    pa_assert(data);
+
+    data->alternate_sample_rate_is_set = TRUE;
+    data->alternate_sample_rate = alternate_sample_rate;
+}
+
 void pa_source_new_data_set_volume(pa_source_new_data *data, const pa_cvolume *volume) {
     pa_assert(data);
 
@@ -150,6 +157,7 @@ static void reset_callbacks(pa_source *s) {
     s->update_requested_latency = NULL;
     s->set_port = NULL;
     s->get_formats = NULL;
+    s->update_rate = NULL;
 }
 
 /* Called from main context */
@@ -243,6 +251,11 @@ pa_source* pa_source_new(
 
     s->sample_spec = data->sample_spec;
     s->channel_map = data->channel_map;
+    if (data->alternate_sample_rate_is_set)
+        s->alternate_sample_rate = data->alternate_sample_rate;
+    else
+        s->alternate_sample_rate = s->core->alternate_sample_rate;
+    s->default_sample_rate = s->sample_spec.rate;
 
     s->outputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
@@ -905,6 +918,52 @@ void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *
         pa_memblock_unref(vchunk.memblock);
     } else
         pa_source_output_push(o, chunk);
+}
+
+/* Called from main thread */
+pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate)
+{
+
+    if (s->update_rate) {
+        uint32_t desired_rate = rate;
+        uint32_t default_rate = s->default_sample_rate;
+        uint32_t alternate_rate = s->alternate_sample_rate;
+        pa_bool_t use_alternate = FALSE;
+
+        if (PA_SOURCE_IS_RUNNING(s->state)) {
+            pa_log_info("Cannot update rate, SOURCE_IS_RUNNING, will keep using %u kHz",
+                        s->sample_spec.rate);
+            return FALSE; /* cannot reconfigure a RUNNING source without glitches */
+        }
+
+        if (PA_UNLIKELY (desired_rate < 8000 ||
+                         desired_rate > PA_RATE_MAX))
+            return FALSE;
+
+        pa_assert(default_rate % 4000 || default_rate % 11025);
+        pa_assert(alternate_rate % 4000 || alternate_rate % 11025);
+
+        if (default_rate % 4000) {
+            /* default is a 11025 multiple */
+            if ((alternate_rate % 4000 == 0) && (desired_rate % 4000 == 0))
+                use_alternate=TRUE;
+        } else {
+            /* default is 4000 multiple */
+            if ((alternate_rate % 11025 == 0) && (desired_rate % 11025 == 0))
+                use_alternate=TRUE;
+        }
+
+        if (use_alternate)
+            desired_rate = alternate_rate;
+        else
+            desired_rate = default_rate;
+
+        if (s->update_rate(s, desired_rate) == TRUE) {
+            pa_log_info("Changed sampling rate successfully ");
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 /* Called from main thread */

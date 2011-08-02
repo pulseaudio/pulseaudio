@@ -367,6 +367,19 @@ int pa_sink_input_new(
     pa_assert(pa_sample_spec_valid(&data->sample_spec));
     pa_assert(pa_channel_map_valid(&data->channel_map));
 
+    if (!(data->flags & PA_SINK_INPUT_VARIABLE_RATE) &&
+        !pa_sample_spec_equal(&data->sample_spec, &data->sink->sample_spec)) {
+        /* try to change sink rate. This is done before the FIXATE hook since
+           module-suspend-on-idle can resume a sink */
+
+        pa_log_info("Trying to change sample rate");
+        if (pa_sink_update_rate(data->sink, data->sample_spec.rate, pa_sink_input_new_data_is_passthrough(data)) == TRUE)
+            pa_log_info("Rate changed to %u kHz",
+                        data->sink->sample_spec.rate);
+        else
+            pa_log_info("Resampling enabled to %u kHz", data->sink->sample_spec.rate);
+    }
+
     /* Due to the fixing of the sample spec the volume might not match anymore */
     pa_cvolume_remap(&data->volume, &original_cm, &data->channel_map);
 
@@ -1603,6 +1616,21 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
         pa_sink_input_send_event(i, PA_STREAM_EVENT_FORMAT_LOST, p);
         pa_proplist_free(p);
         return -PA_ERR_NOTSUPPORTED;
+    }
+
+    if (!(i->flags & PA_SINK_INPUT_VARIABLE_RATE) &&
+        !pa_sample_spec_equal(&i->sample_spec, &dest->sample_spec)) {
+        /* try to change dest sink rate if possible without glitches.
+           module-suspend-on-idle resumes destination sink with
+           SINK_INPUT_MOVE_FINISH hook */
+
+        pa_log_info("Trying to change sample rate");
+        if (pa_sink_update_rate(dest, i->sample_spec.rate, pa_sink_input_is_passthrough(i)) == TRUE)
+            pa_log_info("Rate changed to %u kHz",
+                        dest->sample_spec.rate);
+        else
+            pa_log_info("Resampling enabled to %u kHz",
+                        dest->sample_spec.rate);
     }
 
     if (i->thread_info.resampler &&

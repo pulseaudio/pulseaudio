@@ -826,6 +826,11 @@ static inline int PA_SINK_IS_OPENED(pa_sink_state_t x) {
     return x == PA_SINK_RUNNING || x == PA_SINK_IDLE;
 }
 
+/** Returns non-zero if sink is running. \since 1.0 */
+static inline int PA_SINK_IS_RUNNING(pa_sink_state_t x) {
+    return x == PA_SINK_RUNNING;
+}
+
 /** \cond fulldocs */
 #define PA_SINK_INVALID_STATE PA_SINK_INVALID_STATE
 #define PA_SINK_RUNNING PA_SINK_RUNNING
@@ -935,6 +940,11 @@ typedef enum pa_source_state {
 /** Returns non-zero if source is recording: running or idle. \since 0.9.15 */
 static inline int PA_SOURCE_IS_OPENED(pa_source_state_t x) {
     return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE;
+}
+
+/** Returns non-zero if source is running \since 1.0 */
+static inline int PA_SOURCE_IS_RUNNING(pa_source_state_t x) {
+    return x == PA_SOURCE_RUNNING;
 }
 
 /** \cond fulldocs */

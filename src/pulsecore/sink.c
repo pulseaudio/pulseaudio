@@ -106,6 +106,13 @@ void pa_sink_new_data_set_channel_map(pa_sink_new_data *data, const pa_channel_m
         data->channel_map = *map;
 }
 
+void pa_sink_new_data_set_alternate_sample_rate(pa_sink_new_data *data, const uint32_t alternate_sample_rate) {
+    pa_assert(data);
+
+    data->alternate_sample_rate_is_set = TRUE;
+    data->alternate_sample_rate = alternate_sample_rate;
+}
+
 void pa_sink_new_data_set_volume(pa_sink_new_data *data, const pa_cvolume *volume) {
     pa_assert(data);
 
@@ -182,6 +189,7 @@ static void reset_callbacks(pa_sink *s) {
     s->set_port = NULL;
     s->get_formats = NULL;
     s->set_formats = NULL;
+    s->update_rate = NULL;
 }
 
 /* Called from main context */
@@ -277,6 +285,11 @@ pa_sink* pa_sink_new(
 
     s->sample_spec = data->sample_spec;
     s->channel_map = data->channel_map;
+    if (data->alternate_sample_rate_is_set)
+        s->alternate_sample_rate = data->alternate_sample_rate;
+    else
+        s->alternate_sample_rate = s->core->alternate_sample_rate;
+    s->default_sample_rate = s->sample_spec.rate;
 
     s->inputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
@@ -364,6 +377,7 @@ pa_sink* pa_sink_new(
     pa_source_new_data_init(&source_data);
     pa_source_new_data_set_sample_spec(&source_data, &s->sample_spec);
     pa_source_new_data_set_channel_map(&source_data, &s->channel_map);
+    pa_source_new_data_set_alternate_sample_rate(&source_data, s->alternate_sample_rate);
     source_data.name = pa_sprintf_malloc("%s.monitor", name);
     source_data.driver = data->driver;
     source_data.module = data->module;
@@ -1310,6 +1324,69 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     }
 
     pa_sink_unref(s);
+}
+
+/* Called from main thread */
+pa_bool_t pa_sink_update_rate(pa_sink *s, uint32_t rate, pa_bool_t passthrough)
+{
+    if (s->update_rate) {
+        uint32_t desired_rate = rate;
+        uint32_t default_rate = s->default_sample_rate;
+        uint32_t alternate_rate = s->alternate_sample_rate;
+        pa_bool_t use_alternate = FALSE;
+
+        if (PA_SINK_IS_RUNNING(s->state)) {
+            pa_log_info("Cannot update rate, SINK_IS_RUNNING, will keep using %u kHz",
+                        s->sample_spec.rate);
+            return FALSE;
+        }
+
+        if (s->monitor_source) {
+            if (PA_SOURCE_IS_RUNNING(s->monitor_source->state) == TRUE) {
+                pa_log_info("Cannot update rate, monitor source is RUNNING");
+                return FALSE;
+            }
+        }
+
+        if (PA_UNLIKELY (desired_rate < 8000 ||
+                         desired_rate > PA_RATE_MAX))
+            return FALSE;
+
+        if (!passthrough) {
+            pa_assert(default_rate % 4000 || default_rate % 11025);
+            pa_assert(alternate_rate % 4000 || alternate_rate % 11025);
+
+            if (default_rate % 4000) {
+                /* default is a 11025 multiple */
+                if ((alternate_rate % 4000 == 0) && (desired_rate % 4000 == 0))
+                    use_alternate=TRUE;
+            } else {
+                /* default is 4000 multiple */
+                if ((alternate_rate % 11025 == 0) && (desired_rate % 11025 == 0))
+                    use_alternate=TRUE;
+            }
+
+            if (use_alternate)
+                desired_rate = alternate_rate;
+            else
+                desired_rate = default_rate;
+        } else {
+            desired_rate = rate; /* use stream sampling rate, discard default/alternate settings */
+        }
+
+        if (passthrough || pa_sink_used_by(s) == 0) {
+            pa_sink_suspend(s, TRUE, PA_SUSPEND_IDLE); /* needed before rate update, will be resumed automatically */
+        }
+
+        if (s->update_rate(s, desired_rate) == TRUE) {
+            /* update monitor source as well */
+            if (s->monitor_source)
+                pa_source_update_rate(s->monitor_source, desired_rate);
+            pa_log_info("Changed sampling rate successfully");
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 /* Called from main thread */
