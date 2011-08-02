@@ -368,6 +368,19 @@ int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *rss) {
     return 0;
 }
 
+int pa_modargs_get_alternate_sample_rate(pa_modargs *ma, uint32_t *alternate_rate) {
+    pa_assert(ma);
+    pa_assert(alternate_rate);
+
+    if ((pa_modargs_get_value_u32(ma, "alternate_rate", alternate_rate)) < 0 ||
+        *alternate_rate <= 0 ||
+        *alternate_rate > PA_RATE_MAX ||
+        !((*alternate_rate % 4000 == 0) || (*alternate_rate % 11025 == 0)))
+        return -1;
+
+    return 0;
+}
+
 int pa_modargs_get_channel_map(pa_modargs *ma, const char *name, pa_channel_map *rmap) {
     pa_channel_map map;
     const char *cm;

@@ -62,6 +62,8 @@ static void handle_get_default_sample_format(DBusConnection *conn, DBusMessage *
 static void handle_set_default_sample_format(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_default_sample_rate(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_set_default_sample_rate(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
+static void handle_get_alternate_sample_rate(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_alternate_sample_rate(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_cards(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_sinks(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_fallback_sink(DBusConnection *conn, DBusMessage *msg, void *userdata);
@@ -129,6 +131,7 @@ enum property_handler_index {
     PROPERTY_HANDLER_DEFAULT_CHANNELS,
     PROPERTY_HANDLER_DEFAULT_SAMPLE_FORMAT,
     PROPERTY_HANDLER_DEFAULT_SAMPLE_RATE,
+    PROPERTY_HANDLER_ALTERNATE_SAMPLE_RATE,
     PROPERTY_HANDLER_CARDS,
     PROPERTY_HANDLER_SINKS,
     PROPERTY_HANDLER_FALLBACK_SINK,
@@ -154,6 +157,7 @@ static pa_dbus_property_handler property_handlers[PROPERTY_HANDLER_MAX] = {
     [PROPERTY_HANDLER_DEFAULT_CHANNELS]      = { .property_name = "DefaultChannels",     .type = "au", .get_cb = handle_get_default_channels,      .set_cb = handle_set_default_channels },
     [PROPERTY_HANDLER_DEFAULT_SAMPLE_FORMAT] = { .property_name = "DefaultSampleFormat", .type = "u",  .get_cb = handle_get_default_sample_format, .set_cb = handle_set_default_sample_format },
     [PROPERTY_HANDLER_DEFAULT_SAMPLE_RATE]   = { .property_name = "DefaultSampleRate",   .type = "u",  .get_cb = handle_get_default_sample_rate,   .set_cb = handle_set_default_sample_rate },
+    [PROPERTY_HANDLER_ALTERNATE_SAMPLE_RATE]   = { .property_name = "AlternateSampleRate",   .type = "u",  .get_cb = handle_get_alternate_sample_rate,   .set_cb = handle_set_alternate_sample_rate },
     [PROPERTY_HANDLER_CARDS]                 = { .property_name = "Cards",               .type = "ao", .get_cb = handle_get_cards,                 .set_cb = NULL },
     [PROPERTY_HANDLER_SINKS]                 = { .property_name = "Sinks",               .type = "ao", .get_cb = handle_get_sinks,                 .set_cb = NULL },
     [PROPERTY_HANDLER_FALLBACK_SINK]         = { .property_name = "FallbackSink",        .type = "o",  .get_cb = handle_get_fallback_sink,         .set_cb = handle_set_fallback_sink },
@@ -540,12 +544,48 @@ static void handle_set_default_sample_rate(DBusConnection *conn, DBusMessage *ms
 
     dbus_message_iter_get_basic(iter, &default_sample_rate);
 
-    if (default_sample_rate <= 0 || default_sample_rate > PA_RATE_MAX) {
+    if (default_sample_rate <= 0 || default_sample_rate > PA_RATE_MAX ||
+        !((default_sample_rate % 4000 == 0) || (default_sample_rate % 11025 == 0)))  {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid sample rate.");
         return;
     }
 
     c->core->default_sample_spec.rate = default_sample_rate;
+
+    pa_dbus_send_empty_reply(conn, msg);
+}
+
+static void handle_get_alternate_sample_rate(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    pa_dbusiface_core *c = userdata;
+    dbus_uint32_t alternate_sample_rate;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(c);
+
+    alternate_sample_rate = c->core->alternate_sample_rate;
+
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &alternate_sample_rate);
+}
+
+static void handle_set_alternate_sample_rate(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
+    pa_dbusiface_core *c = userdata;
+    dbus_uint32_t alternate_sample_rate;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(iter);
+    pa_assert(c);
+
+    dbus_message_iter_get_basic(iter, &alternate_sample_rate);
+
+    if (alternate_sample_rate <= 0 || alternate_sample_rate > PA_RATE_MAX ||
+        !((alternate_sample_rate % 4000 == 0) || (alternate_sample_rate % 11025 == 0))) {
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid sample rate.");
+        return;
+    }
+
+    c->core->alternate_sample_rate = alternate_sample_rate;
 
     pa_dbus_send_empty_reply(conn, msg);
 }
@@ -1015,6 +1055,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     unsigned n_default_channels;
     dbus_uint32_t default_sample_format;
     dbus_uint32_t default_sample_rate;
+    dbus_uint32_t alternate_sample_rate;
     const char **cards;
     unsigned n_cards;
     const char **sinks;
@@ -1050,6 +1091,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     default_channels = get_default_channels(c, &n_default_channels);
     default_sample_format = c->core->default_sample_spec.format;
     default_sample_rate = c->core->default_sample_spec.rate;
+    alternate_sample_rate = c->core->alternate_sample_rate;
     cards = get_cards(c, &n_cards);
     sinks = get_sinks(c, &n_sinks);
     fallback_sink = c->fallback_sink
@@ -1082,6 +1124,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_DEFAULT_CHANNELS].property_name, DBUS_TYPE_UINT32, default_channels, n_default_channels);
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_DEFAULT_SAMPLE_FORMAT].property_name, DBUS_TYPE_UINT32, &default_sample_format);
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_DEFAULT_SAMPLE_RATE].property_name, DBUS_TYPE_UINT32, &default_sample_rate);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_ALTERNATE_SAMPLE_RATE].property_name, DBUS_TYPE_UINT32, &alternate_sample_rate);
     pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_CARDS].property_name, DBUS_TYPE_OBJECT_PATH, cards, n_cards);
     pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_SINKS].property_name, DBUS_TYPE_OBJECT_PATH, sinks, n_sinks);
 

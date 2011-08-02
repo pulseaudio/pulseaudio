@@ -131,6 +131,7 @@ typedef struct pa_daemon_conf {
     unsigned deferred_volume_safety_margin_usec;
     int deferred_volume_extra_delay_usec;
     pa_sample_spec default_sample_spec;
+    uint32_t alternate_sample_rate;
     pa_channel_map default_channel_map;
     size_t shm_size;
 } pa_daemon_conf;

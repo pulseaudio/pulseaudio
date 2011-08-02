@@ -58,6 +58,9 @@ structure if no channel_map is found, using pa_channel_map_init_auto() */
 
 int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *ss, pa_channel_map *map, pa_channel_map_def_t def);
 
+/* Return alternate sample rate from "alternate_sample_rate" parameter */
+int pa_modargs_get_alternate_sample_rate(pa_modargs *ma, uint32_t *alternate_rate);
+
 int pa_modargs_get_proplist(pa_modargs *ma, const char *name, pa_proplist *p, pa_update_mode_t m);
 
 /* Iterate through the module argument list. The user should allocate a

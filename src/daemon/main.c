@@ -1013,6 +1013,7 @@ int main(int argc, char *argv[]) {
     }
 
     c->default_sample_spec = conf->default_sample_spec;
+    c->alternate_sample_rate = conf->alternate_sample_rate;
     c->default_channel_map = conf->default_channel_map;
     c->default_n_fragments = conf->default_n_fragments;
     c->default_fragment_size_msec = conf->default_fragment_size_msec;

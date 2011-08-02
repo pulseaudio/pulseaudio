@@ -80,6 +80,7 @@ ifelse(@HAVE_SYS_RESOURCE_H@, 1, [dnl
 
 ; default-sample-format = s16le
 ; default-sample-rate = 44100
+; alternate-sample-rate = 48000
 ; default-sample-channels = 2
 ; default-channel-map = front-left,front-right
 

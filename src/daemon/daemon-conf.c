@@ -101,6 +101,7 @@ static const pa_daemon_conf default_conf = {
     .deferred_volume_safety_margin_usec = 8000,
     .deferred_volume_extra_delay_usec = 0,
     .default_sample_spec = { .format = PA_SAMPLE_S16NE, .rate = 44100, .channels = 2 },
+    .alternate_sample_rate = 48000,
     .default_channel_map = { .channels = 2, .map = { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT } },
     .shm_size = 0
 #ifdef HAVE_SYS_RESOURCE_H
@@ -364,12 +365,32 @@ static int parse_sample_rate(const char *filename, unsigned line, const char *se
     pa_assert(rvalue);
     pa_assert(data);
 
-    if (pa_atou(rvalue, &r) < 0 || r > (uint32_t) PA_RATE_MAX || r <= 0) {
+    if (pa_atou(rvalue, &r) < 0 || r > (uint32_t) PA_RATE_MAX || r <= 0 ||
+        !((r % 4000 == 0) || (r % 11025 == 0))) {
         pa_log(_("[%s:%u] Invalid sample rate '%s'."), filename, line, rvalue);
         return -1;
     }
 
     c->default_sample_spec.rate = r;
+    return 0;
+}
+
+static int parse_alternate_sample_rate(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+    pa_daemon_conf *c = data;
+    uint32_t r;
+
+    pa_assert(filename);
+    pa_assert(lvalue);
+    pa_assert(rvalue);
+    pa_assert(data);
+
+    if (pa_atou(rvalue, &r) < 0 || r > (uint32_t) PA_RATE_MAX || r <= 0 ||
+        !((r % 4000==0) || (r % 11025 == 0))) {
+        pa_log(_("[%s:%u] Invalid sample rate '%s'."), filename, line, rvalue);
+        return -1;
+    }
+
+    c->alternate_sample_rate = r;
     return 0;
 }
 
@@ -548,6 +569,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "resample-method",            parse_resample_method,    c, NULL },
         { "default-sample-format",      parse_sample_format,      c, NULL },
         { "default-sample-rate",        parse_sample_rate,        c, NULL },
+        { "alternate-sample-rate",      parse_alternate_sample_rate, c, NULL },
         { "default-sample-channels",    parse_sample_channels,    &ci,  NULL },
         { "default-channel-map",        parse_channel_map,        &ci,  NULL },
         { "default-fragments",          parse_fragments,          c, NULL },
@@ -751,6 +773,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "enable-lfe-remixing = %s\n", pa_yes_no(!c->disable_lfe_remixing));
     pa_strbuf_printf(s, "default-sample-format = %s\n", pa_sample_format_to_string(c->default_sample_spec.format));
     pa_strbuf_printf(s, "default-sample-rate = %u\n", c->default_sample_spec.rate);
+    pa_strbuf_printf(s, "alternate-sample-rate = %u\n", c->alternate_sample_rate);
     pa_strbuf_printf(s, "default-sample-channels = %u\n", c->default_sample_spec.channels);
     pa_strbuf_printf(s, "default-channel-map = %s\n", pa_channel_map_snprint(cm, sizeof(cm), &c->default_channel_map));
     pa_strbuf_printf(s, "default-fragments = %u\n", c->default_n_fragments);
