@@ -180,6 +180,7 @@ static pa_stream *pa_stream_new_with_proplist_internal(
     s->timing_info_valid = FALSE;
 
     s->previous_time = 0;
+    s->latest_underrun_at_index = -1;
 
     s->read_index_not_before = 0;
     s->write_index_not_before = 0;
@@ -843,10 +844,17 @@ finish:
     pa_context_unref(c);
 }
 
+int64_t pa_stream_get_underflow_index(pa_stream *p)
+{
+    pa_assert(p);
+    return p->latest_underrun_at_index;
+}
+
 void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_stream *s;
     pa_context *c = userdata;
     uint32_t channel;
+    int64_t offset = -1;
 
     pa_assert(pd);
     pa_assert(command == PA_COMMAND_OVERFLOW || command == PA_COMMAND_UNDERFLOW);
@@ -856,8 +864,19 @@ void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, uint32
 
     pa_context_ref(c);
 
-    if (pa_tagstruct_getu32(t, &channel) < 0 ||
-        !pa_tagstruct_eof(t)) {
+    if (pa_tagstruct_getu32(t, &channel) < 0) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (c->version >= 23 && command == PA_COMMAND_UNDERFLOW) {
+        if (pa_tagstruct_gets64(t, &offset) < 0) {
+            pa_context_fail(c, PA_ERR_PROTOCOL);
+            goto finish;
+        }
+    }
+
+    if (!pa_tagstruct_eof(t)) {
         pa_context_fail(c, PA_ERR_PROTOCOL);
         goto finish;
     }
@@ -867,6 +886,9 @@ void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, uint32
 
     if (s->state != PA_STREAM_READY)
         goto finish;
+
+    if (offset != -1)
+        s->latest_underrun_at_index = offset;
 
     if (s->buffer_attr.prebuf > 0)
         check_smoother_status(s, TRUE, FALSE, TRUE);

@@ -277,6 +277,7 @@ pa_stream_get_sample_spec;
 pa_stream_get_state;
 pa_stream_get_time;
 pa_stream_get_timing_info;
+pa_stream_get_underflow_index;
 pa_stream_is_corked;
 pa_stream_is_suspended;
 pa_stream_new;

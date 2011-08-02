@@ -169,6 +169,7 @@ struct pa_stream {
     /* playback */
     pa_memblock *write_memblock;
     void *write_data;
+    int64_t latest_underrun_at_index;
 
     /* recording */
     pa_memchunk peek_memchunk;

@@ -822,6 +822,8 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
             pa_tagstruct_putu32(t, PA_COMMAND_UNDERFLOW);
             pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
             pa_tagstruct_putu32(t, s->index);
+            if (s->connection->version >= 23)
+                pa_tagstruct_puts64(t, offset);
             pa_pstream_send_tagstruct(s->connection->pstream, t);
             break;
         }
@@ -1562,7 +1564,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
             s->drain_request = FALSE;
             pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_DRAIN_ACK, PA_UINT_TO_PTR(s->drain_tag), 0, NULL, NULL);
         } else if (!s->is_underrun)
-            pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_UNDERFLOW, NULL, 0, NULL, NULL);
+            pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_UNDERFLOW, NULL, pa_memblockq_get_read_index(s->memblockq), NULL, NULL);
 
         s->is_underrun = TRUE;
 
