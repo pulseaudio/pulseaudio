@@ -544,10 +544,10 @@ pa_operation* pa_context_kill_sink_input(pa_context *c, uint32_t idx, pa_context
  * can be extended as part of evolutionary API updates at any time in
  * any new release. */
 typedef struct pa_source_output_info {
-    uint32_t index;                      /**< Index of the sink input */
-    const char *name;                    /**< Name of the sink input */
-    uint32_t owner_module;               /**< Index of the module this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any module */
-    uint32_t client;                     /**< Index of the client this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any client */
+    uint32_t index;                      /**< Index of the source output */
+    const char *name;                    /**< Name of the source output */
+    uint32_t owner_module;               /**< Index of the module this source output belongs to, or PA_INVALID_INDEX when it does not belong to any module */
+    uint32_t client;                     /**< Index of the client this source output belongs to, or PA_INVALID_INDEX when it does not belong to any client */
     uint32_t source;                     /**< Index of the connected source */
     pa_sample_spec sample_spec;          /**< The sample specification of the source output */
     pa_channel_map channel_map;          /**< Channel map */
