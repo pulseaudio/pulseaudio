@@ -54,6 +54,7 @@ PA_MODULE_USAGE(
         "device_id=<ALSA card index> "
         "format=<sample format> "
         "rate=<sample rate> "
+        "alternate_rate=<alternate sample rate> "
         "channels=<number of channels> "
         "channel_map=<channel map> "
         "fragments=<number of fragments> "
@@ -77,6 +78,7 @@ static const char* const valid_modargs[] = {
     "device_id",
     "format",
     "rate",
+    "alternate_rate",
     "channels",
     "channel_map",
     "fragments",

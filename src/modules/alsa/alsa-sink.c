@@ -1121,56 +1121,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
     switch (code) {
 
-        case PA_SINK_MESSAGE_FINISH_MOVE:
-        case PA_SINK_MESSAGE_ADD_INPUT: {
-            pa_sink_input *i = PA_SINK_INPUT(data);
-            int r = 0;
-
-            if (PA_LIKELY(!pa_sink_input_is_passthrough(i)))
-                break;
-
-            u->old_rate = u->sink->sample_spec.rate;
-
-            /* Passthrough format, see if we need to reset sink sample rate */
-            if (u->sink->sample_spec.rate == i->thread_info.sample_spec.rate)
-                break;
-
-            /* .. we do */
-            if ((r = suspend(u)) < 0)
-                return r;
-
-            u->sink->sample_spec.rate = i->thread_info.sample_spec.rate;
-
-            if ((r = unsuspend(u)) < 0)
-                return r;
-
-            break;
-        }
-
-        case PA_SINK_MESSAGE_START_MOVE:
-        case PA_SINK_MESSAGE_REMOVE_INPUT: {
-            pa_sink_input *i = PA_SINK_INPUT(data);
-            int r = 0;
-
-            if (PA_LIKELY(!pa_sink_input_is_passthrough(i)))
-                break;
-
-            /* Passthrough format, see if we need to reset sink sample rate */
-            if (u->sink->sample_spec.rate == u->old_rate)
-                break;
-
-            /* .. we do */
-            if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && ((r = suspend(u)) < 0))
-                return r;
-
-            u->sink->sample_spec.rate = u->old_rate;
-
-            if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && ((r = unsuspend(u)) < 0))
-                return r;
-
-            break;
-        }
-
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t r = 0;
 
@@ -1595,6 +1545,19 @@ static pa_bool_t sink_set_formats(pa_sink *s, pa_idxset *formats) {
     return TRUE;
 }
 
+static pa_bool_t sink_update_rate_cb(pa_sink *s, uint32_t rate)
+{
+    struct userdata *u = s->userdata;
+    pa_assert(u);
+
+    if (!PA_SINK_IS_OPENED(s->state)) {
+        pa_log_info("Updating rate for device %s, new rate is %d",u->device_name, rate);
+        u->sink->sample_spec.rate = rate;
+        return TRUE;
+    }
+    return FALSE;
+}
+
 static int process_rewind(struct userdata *u) {
     snd_pcm_sframes_t unused;
     size_t rewind_nbytes, unused_nbytes, limit_nbytes;
@@ -1975,6 +1938,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     struct userdata *u = NULL;
     const char *dev_id = NULL;
     pa_sample_spec ss;
+    uint32_t alternate_sample_rate;
     pa_channel_map map;
     uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark, rewind_safeguard;
     snd_pcm_uframes_t period_frames, buffer_frames, tsched_frames;
@@ -1990,6 +1954,12 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     map = m->core->default_channel_map;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_ALSA) < 0) {
         pa_log("Failed to parse sample specification and channel map");
+        goto fail;
+    }
+
+    alternate_sample_rate = m->core->alternate_sample_rate;
+    if (pa_modargs_get_alternate_sample_rate(ma, &alternate_sample_rate) < 0) {
+        pa_log("Failed to parse alternate sample rate");
         goto fail;
     }
 
@@ -2178,6 +2148,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_sink_new_data_set_channel_map(&data, &map);
+    pa_sink_new_data_set_alternate_sample_rate(&data, alternate_sample_rate);
 
     pa_alsa_init_proplist_pcm(m->core, data.proplist, u->pcm_handle);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
@@ -2230,6 +2201,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->set_state = sink_set_state_cb;
     u->sink->set_port = sink_set_port_cb;
+    u->sink->update_rate = sink_update_rate_cb;
     u->sink->userdata = u;
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);

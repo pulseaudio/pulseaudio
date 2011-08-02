@@ -1382,6 +1382,19 @@ static void source_update_requested_latency_cb(pa_source *s) {
     update_sw_params(u);
 }
 
+static pa_bool_t source_update_rate_cb(pa_source *s, uint32_t rate)
+{
+    struct userdata *u = s->userdata;
+    pa_assert(u);
+
+    if (!PA_SOURCE_IS_OPENED(s->state)) {
+        pa_log_info("Updating rate for device %s, new rate is %d", u->device_name, rate);
+        u->source->sample_spec.rate = rate;
+        return TRUE;
+    }
+    return FALSE;
+}
+
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     unsigned short revents = 0;
@@ -1674,6 +1687,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     struct userdata *u = NULL;
     const char *dev_id = NULL;
     pa_sample_spec ss;
+    uint32_t alternate_sample_rate;
     pa_channel_map map;
     uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark;
     snd_pcm_uframes_t period_frames, buffer_frames, tsched_frames;
@@ -1689,6 +1703,12 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     map = m->core->default_channel_map;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_ALSA) < 0) {
         pa_log("Failed to parse sample specification and channel map");
+        goto fail;
+    }
+
+    alternate_sample_rate = m->core->alternate_sample_rate;
+    if (pa_modargs_get_alternate_sample_rate(ma, &alternate_sample_rate) < 0) {
+        pa_log("Failed to parse alternate sample rate");
         goto fail;
     }
 
@@ -1867,6 +1887,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
 
     pa_source_new_data_set_sample_spec(&data, &ss);
     pa_source_new_data_set_channel_map(&data, &map);
+    pa_source_new_data_set_alternate_sample_rate(&data, alternate_sample_rate);
 
     pa_alsa_init_proplist_pcm(m->core, data.proplist, u->pcm_handle);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
@@ -1918,6 +1939,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         u->source->update_requested_latency = source_update_requested_latency_cb;
     u->source->set_state = source_set_state_cb;
     u->source->set_port = source_set_port_cb;
+    u->source->update_rate = source_update_rate_cb;
     u->source->userdata = u;
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
