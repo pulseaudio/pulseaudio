@@ -2890,8 +2890,8 @@ static pa_bool_t options_have_option(pa_alsa_option *options, const char *alsa_n
 static pa_bool_t enumeration_is_subset(pa_alsa_option *a_options, pa_alsa_option *b_options) {
     pa_alsa_option *oa, *ob;
 
-    pa_assert(a_options);
-    pa_assert(b_options);
+    if (!a_options) return TRUE;
+    if (!b_options) return FALSE;
 
     /* If there is an option A offers that B does not, then A is not a subset of B. */
     PA_LLIST_FOREACH(oa, a_options) {
@@ -3005,6 +3005,8 @@ static pa_bool_t element_is_subset(pa_alsa_element *a, pa_alsa_element *b, snd_m
     }
 
     if (a->enumeration_use != PA_ALSA_ENUMERATION_IGNORE) {
+        if (b->enumeration_use == PA_ALSA_ENUMERATION_IGNORE)
+            return FALSE;
         if (!enumeration_is_subset(a->options, b->options))
             return FALSE;
     }
