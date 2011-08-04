@@ -271,3 +271,9 @@ PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST)
     bool mute
     bool has_volume
     bool volume_writable
+
+## v23, implemented by >= 1.0
+
+New field in PA_COMMAND_UNDERFLOW:
+
+    int64_t index
