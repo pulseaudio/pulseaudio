@@ -1670,6 +1670,7 @@ static void thread_func(void *userdata) {
 
                 u->first = TRUE;
                 u->since_start = 0;
+                revents = 0;
             } else if (revents && u->use_tsched && pa_log_ratelimit(PA_LOG_DEBUG))
                 pa_log_debug("Wakeup from ALSA!");
 
