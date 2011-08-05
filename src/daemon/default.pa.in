@@ -64,18 +64,18 @@ ifelse(@HAVE_MKFIFO@, 1, [dnl
 ])dnl
 
 ### Automatically load driver modules depending on the hardware available
-ifelse(1, @HAVE_UDEV@, [dnl
+ifelse(@HAVE_UDEV@, 1, [dnl
 .ifexists module-udev-detect@PA_SOEXT@
 load-module module-udev-detect
 .else
-], @HAVE_HAL@, [dnl
+], @HAVE_HAL@, 1, [dnl
 .ifexists module-hal-detect@PA_SOEXT@
 load-module module-hal-detect
 .else
 ], [dnl
 .ifexists module-detect@PA_SOEXT@
 ])dnl
-### Use the static hardware detection module (for systems that lack udev support)
+### Use the static hardware detection module (for systems that lack udev/hal support)
 load-module module-detect
 .endif
 
