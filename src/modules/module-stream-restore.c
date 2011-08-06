@@ -90,6 +90,7 @@ struct userdata {
         *sink_input_new_hook_slot,
         *sink_input_fixate_hook_slot,
         *source_output_new_hook_slot,
+        *source_output_fixate_hook_slot,
         *sink_put_hook_slot,
         *source_put_hook_slot,
         *sink_unlink_hook_slot,
@@ -1322,6 +1323,26 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         } else
             entry = entry_new();
 
+        if (source_output->save_volume && pa_source_output_is_volume_readable(source_output)) {
+            pa_assert(source_output->volume_writable);
+
+            entry->channel_map = source_output->channel_map;
+            pa_source_output_get_volume(source_output, &entry->volume, FALSE);
+            entry->volume_valid = TRUE;
+
+            volume_updated = !created_new_entry
+                             && (!old->volume_valid
+                                 || !pa_channel_map_equal(&entry->channel_map, &old->channel_map)
+                                 || !pa_cvolume_equal(&entry->volume, &old->volume));
+        }
+
+        if (source_output->save_muted) {
+            entry->muted = pa_source_output_get_mute(source_output);
+            entry->muted_valid = TRUE;
+
+            mute_updated = !created_new_entry && (!old->muted_valid || entry->muted != old->muted);
+        }
+
         if (source_output->save_source) {
             pa_xfree(entry->device);
             entry->device = pa_xstrdup(source_output->source->name);
@@ -1506,6 +1527,57 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
         if (s && PA_SOURCE_IS_LINKED(pa_source_get_state(s))) {
             pa_log_info("Restoring device for stream %s.", name);
             pa_source_output_new_data_set_source(new_data, s, TRUE);
+        }
+
+        entry_free(e);
+    }
+
+    pa_xfree(name);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_fixate_hook_callback(pa_core *c, pa_source_output_new_data *new_data, struct userdata *u) {
+    char *name;
+    struct entry *e;
+
+    pa_assert(c);
+    pa_assert(new_data);
+    pa_assert(u);
+    pa_assert(u->restore_volume || u->restore_muted);
+
+    if (!(name = get_name(new_data->proplist, "source-output")))
+        return PA_HOOK_OK;
+
+    if ((e = entry_read(u, name))) {
+
+        if (u->restore_volume && e->volume_valid) {
+            if (!new_data->volume_writable)
+                pa_log_debug("Not restoring volume for source output %s, because its volume can't be changed.", name);
+            else if (new_data->volume_is_set)
+                pa_log_debug("Not restoring volume for source output %s, because already set.", name);
+            else {
+                pa_cvolume v;
+
+                pa_log_info("Restoring volume for source output %s.", name);
+
+                v = e->volume;
+                pa_cvolume_remap(&v, &e->channel_map, &new_data->channel_map);
+                pa_source_output_new_data_set_volume(new_data, &v);
+
+                new_data->volume_is_absolute = FALSE;
+                new_data->save_volume = TRUE;
+            }
+        }
+
+        if (u->restore_muted && e->muted_valid) {
+
+            if (!new_data->muted_is_set) {
+                pa_log_info("Restoring mute state for source output %s.", name);
+                pa_source_output_new_data_set_muted(new_data, e->muted);
+                new_data->save_muted = TRUE;
+            } else
+                pa_log_debug("Not restoring mute state for source output %s, because already set.", name);
         }
 
         entry_free(e);
@@ -1770,6 +1842,20 @@ static void entry_apply(struct userdata *u, const char *name, struct entry *e) {
             continue;
         }
         pa_xfree(n);
+
+        if (u->restore_volume && e->volume_valid && so->volume_writable) {
+            pa_cvolume v;
+
+            v = e->volume;
+            pa_log_info("Restoring volume for source output %s.", name);
+            pa_cvolume_remap(&v, &e->channel_map, &so->channel_map);
+            pa_source_output_set_volume(so, &v, TRUE, FALSE);
+        }
+
+        if (u->restore_muted && e->muted_valid) {
+            pa_log_info("Restoring mute state for source output %s.", name);
+            pa_source_output_set_mute(so, e->muted, TRUE);
+        }
 
         if (u->restore_device) {
             if (!e->device_valid) {
@@ -2148,8 +2234,10 @@ int pa__init(pa_module*m) {
         u->source_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_unlink_hook_callback, u);
     }
 
-    if (restore_volume || restore_muted)
+    if (restore_volume || restore_muted) {
         u->sink_input_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_fixate_hook_callback, u);
+        u->source_output_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) source_output_fixate_hook_callback, u);
+    }
 
     if (!(fname = pa_state_path("stream-volumes", TRUE)))
         goto fail;
@@ -2254,6 +2342,8 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->sink_input_fixate_hook_slot);
     if (u->source_output_new_hook_slot)
         pa_hook_slot_free(u->source_output_new_hook_slot);
+    if (u->source_output_fixate_hook_slot)
+        pa_hook_slot_free(u->source_output_fixate_hook_slot);
 
     if (u->sink_put_hook_slot)
         pa_hook_slot_free(u->sink_put_hook_slot);
