@@ -24,18 +24,7 @@ USA.
 <manpage name="pactl" section="1" desc="Control a running PulseAudio sound server">
 
   <synopsis>
-    <cmd>pactl [<arg>options</arg>] stat</cmd>
-    <cmd>pactl [<arg>options</arg>] list</cmd>
-    <cmd>pactl [<arg>options</arg>] exit</cmd>
-    <cmd>pactl [<arg>options</arg>] upload-sample <arg>FILENAME</arg> [<arg>NAME</arg>]</cmd>
-    <cmd>pactl [<arg>options</arg>] play-sample <arg>NAME</arg> [<arg>SINK</arg>]</cmd>
-    <cmd>pactl [<arg>options</arg>] remove-sample <arg>NAME</arg></cmd>
-    <cmd>pactl [<arg>options</arg>] move-sink-input <arg>ID</arg> <arg>SINK</arg></cmd>
-    <cmd>pactl [<arg>options</arg>] move-source-input <arg>ID</arg> <arg>SOURCE</arg></cmd>
-    <cmd>pactl [<arg>options</arg>] load-module <arg>NAME</arg> [<arg>ARGUMENTS ...</arg>]</cmd>
-    <cmd>pactl [<arg>options</arg>] unload-module <arg>ID</arg></cmd>
-    <cmd>pactl [<arg>options</arg>] suspend-sink [<arg>SINK</arg>] <arg>1|0</arg></cmd>
-    <cmd>pactl [<arg>options</arg>] suspend-source [<arg>SOURCE</arg>] <arg>1|0</arg></cmd>
+    <cmd>pactl [<arg>options</arg>] <arg>COMMAND</arg> [<arg>ARGS ...</arg>]</cmd>
     <cmd>pactl <opt>--help</opt></cmd>
     <cmd>pactl <opt>--version</opt></cmd>
   </synopsis>
@@ -72,79 +61,77 @@ USA.
       <optdesc><p>Specify the client name <file>pactl</file> shall pass to the server when connecting.</p></optdesc>
     </option>
 
+  </options>
+
+  <section name="Commands">
+
     <option>
       <p><opt>stat</opt></p>
-
-      <optdesc><p>Dump a few statistics about the PulseAudio daemon.</p></optdesc>
+      <optdesc><p>Dump a few statistics about the memory usage of the PulseAudio daemon.</p></optdesc>
     </option>
 
     <option>
-      <p><opt>list</opt></p>
+      <p><opt>info</opt></p>
+      <optdesc><p>Dump some info about the PulseAudio daemon.</p></optdesc>
+    </option>
 
-      <optdesc><p>Dump all currently loaded modules, available sinks, sources, streams and clients.</p></optdesc>
+    <option>
+      <p><opt>list</opt> [short] [<arg>TYPE</arg>]</p>
+      <optdesc><p>Dump all currently loaded modules, available sinks, sources, streams, etc.  <arg>TYPE</arg> must be one of:
+      modules, sinks, sources, sink-inputs, source-outputs, clients, samples, cards.  If not specified, all info is listed.  If
+      short is given, output is in a tabular format, for easy parsing by scripts.</p></optdesc>
     </option>
 
     <option>
       <p><opt>exit</opt></p>
-
       <optdesc><p>Asks the PulseAudio server to terminate.</p></optdesc>
     </option>
 
-
     <option>
       <p><opt>upload-sample</opt> <arg>FILENAME</arg> [<arg>NAME</arg>]</p>
-
       <optdesc><p>Upload a sound from the specified audio file into
       the sample cache. The file types supported are those understood
       by <file>libsndfile</file>. The sample in the cache is named
       after the audio file, unless the name is explicitly
       specified.</p></optdesc>
-
     </option>
 
     <option>
       <p><opt>play-sample</opt> <arg>NAME</arg> [<arg>SINK</arg>]</p>
-
       <optdesc><p>Play the specified sample from the sample cache. It
       is played on the default sink, unless the symbolic name or the
       numerical index of the sink to play it on is
       specified.</p></optdesc>
-
     </option>
 
     <option>
       <p><opt>remove-sample</opt> <arg>NAME</arg></p>
-
       <optdesc><p>Remove the specified sample from the sample cache.</p></optdesc>
     </option>
 
     <option>
-      <p><opt>move-sink-input</opt> <arg>ID</arg> <arg>SINK</arg></p>
+      <p><opt>load-module</opt> <arg>NAME</arg> [<arg>ARGUMENTS ...</arg>]</p>
+      <optdesc><p>Load the specified module with the specified arguments into the running sound server.
+      Prints the numeric index of the module just loaded to STDOUT. You can use it to unload the module later.</p></optdesc>
+    </option>
 
+    <option>
+      <p><opt>unload-module</opt> <arg>ID</arg></p>
+      <optdesc><p>Unload the module instance identified by the specified numeric index.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>move-sink-input</opt> <arg>ID</arg> <arg>SINK</arg></p>
       <optdesc><p>Move the specified playback stream (identified by its numerical index) to the specified sink (identified by its symbolic name or numerical index).</p></optdesc>
     </option>
 
     <option>
       <p><opt>move-source-output</opt> <arg>ID</arg> <arg>SOURCE</arg></p>
-
       <optdesc><p>Move the specified recording stream (identified by its numerical index) to the specified source (identified by its symbolic name or numerical index).</p></optdesc>
     </option>
 
     <option>
-      <p><opt>load-module</opt> <arg>NAME</arg> [<arg>ARGUMENTS ...</arg>]</p>
-
-      <optdesc><p>Load the specified module with the specified arguments into the running sound server. Prints the numeric index of the module just loaded to STDOUT. You can use it to unload the module later.</p></optdesc>
-    </option>
-
-    <option>
-      <p><opt>unload-module</opt> <arg>ID</arg></p>
-
-      <optdesc><p>Unload the module instance identified by the specified numeric index.</p></optdesc>
-    </option>
-
-    <option>
       <p><opt>suspend-sink</opt> <arg>SINK</arg> <arg>1|0</arg></p>
-
       <optdesc><p>Suspend or resume the specified sink (which my be
       specified either by its symbolic name, or by its numeric index),
       depending whether 1 (suspend) or 0 (resume) is passed as last
@@ -157,7 +144,6 @@ USA.
 
     <option>
       <p><opt>suspend-source</opt> <arg>SOURCE</arg> <arg>1|0</arg></p>
-
       <optdesc><p>Suspend or resume the specified source (which my be
       specified either by its symbolic name, or by its numeric index),
       depending whether 1 (suspend) or 0 (resume) is passed as last
@@ -168,16 +154,81 @@ USA.
       behaviour depends on the module.</p></optdesc>
     </option>
 
-  </options>
+    <option>
+      <p><opt>set-card-profile</opt> <arg>CARD</arg> <arg>PROFILE</arg></p>
+      <optdesc><p>Set the specified card (identified by its symbolic name or numerical index) to the specified profile (identified by its symbolic name).</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>set-sink-port</opt> <arg>SINK</arg> <arg>PORT</arg></p>
+      <optdesc><p>Set the specified sink (identified by its symbolic name or numerical index) to the specified port (identified by its symbolic name).</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>set-source-port</opt> <arg>SOURCE</arg> <arg>PORT</arg></p>
+      <optdesc><p>Set the specified source (identified by its symbolic name or numerical index) to the specified port (identified by its symbolic name).</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>set-sink-volume</opt> <arg>SINK</arg> <arg>VOLUME</arg></p>
+      <optdesc><p>Set the volume of the specified sink (identified by its symbolic name or numerical index).
+      <arg>VOLUME</arg> can be specified as an integer (e.g. 2000, 16384), a linear factor (e.g. 0.4, 1.100), a percentage
+      (e.g.  10%, 100%) or a decibel value (e.g. 0dB, 20dB).  If the volume specification start with a + or - the volume
+      adjustment will be relative to the current sink volume.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>set-source-volume</opt> <arg>SOURCE</arg> <arg>VOLUME</arg></p>
+      <optdesc><p>Set the volume of the specified source (identified by its symbolic name or numerical index).
+      <arg>VOLUME</arg> can be specified as an integer (e.g. 2000, 16384), a linear factor (e.g. 0.4, 1.100), a percentage
+      (e.g.  10%, 100%) or a decibel value (e.g. 0dB, 20dB).  If the volume specification start with a + or - the volume
+      adjustment will be relative to the current source volume.</p></optdesc> </option>
+
+    <option>
+      <p><opt>set-sink-input-volume</opt> <arg>INPUT</arg> <arg>VOLUME</arg></p>
+      <optdesc><p>Set the volume of the specified sink input (identified by its numerical index).
+      <arg>VOLUME</arg> can be specified as an integer (e.g. 2000, 16384), a linear factor (e.g. 0.4, 1.100), a percentage
+      (e.g.  10%, 100%) or a decibel value (e.g. 0dB, 20dB).  If the volume specification start with a + or - the volume
+      adjustment will be relative to the current sink input volume.</p></optdesc> </option>
+
+    <option>
+      <p><opt>set-source-output-volume</opt> <arg>OUTPUT</arg> <arg>VOLUME</arg></p>
+      <optdesc><p>Set the volume of the specified source output (identified by its numerical index).
+      <arg>VOLUME</arg> can be specified as an integer (e.g. 2000, 16384), a linear factor (e.g. 0.4, 1.100), a percentage
+      (e.g.  10%, 100%) or a decibel value (e.g. 0dB, 20dB).  If the volume specification start with a + or - the volume
+      adjustment will be relative to the current source output volume.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>set-sink-mute</opt> <arg>SINK</arg> <arg>1|0</arg></p>
+      <optdesc><p>Set the mute status of the specified sink (identified by its symbolic name or numerical index).</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>set-source-mute</opt> <arg>SOURCE</arg> <arg>1|0</arg></p>
+      <optdesc><p>Set the mute status of the specified source (identified by its symbolic name or numerical index).</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>set-sink-input-mute</opt> <arg>INPUT</arg> <arg>1|0</arg></p>
+      <optdesc><p>Set the mute status of the specified sink input (identified by its numerical index).</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>subscribe</opt></p>
+      <optdesc><p>Subscribe to events, pactl does not exit by itself, but keeps waiting for new events.</p></optdesc>
+    </option>
+
+  </section>
 
   <section name="Authors">
     <p>The PulseAudio Developers &lt;@PACKAGE_BUGREPORT@&gt;; PulseAudio is available from <url href="@PACKAGE_URL@"/></p>
   </section>
 
-  <section name="See also">
+  <seealso>
     <p>
       <manref name="pulseaudio" section="1"/>, <manref name="pacmd" section="1"/>
     </p>
-  </section>
+  </seealso>
 
 </manpage>
