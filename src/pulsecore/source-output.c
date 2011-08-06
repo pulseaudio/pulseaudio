@@ -733,7 +733,7 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
             pa_memchunk_make_writable(&qchunk, 0);
 
             if (o->thread_info.muted) {
-                pa_silence_memchunk(&qchunk, &o->thread_info.sample_spec);
+                pa_silence_memchunk(&qchunk, &o->source->sample_spec);
                 nvfs = FALSE;
 
             } else if (!o->thread_info.resampler && nvfs) {
@@ -743,17 +743,17 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
                  * post and the pre volume adjustment into one */
 
                 pa_sw_cvolume_multiply(&v, &o->thread_info.soft_volume, &o->volume_factor_source);
-                pa_volume_memchunk(&qchunk, &o->thread_info.sample_spec, &v);
+                pa_volume_memchunk(&qchunk, &o->source->sample_spec, &v);
                 nvfs = FALSE;
 
             } else
-                pa_volume_memchunk(&qchunk, &o->thread_info.sample_spec, &o->thread_info.soft_volume);
+                pa_volume_memchunk(&qchunk, &o->source->sample_spec, &o->thread_info.soft_volume);
         }
 
         if (!o->thread_info.resampler) {
             if (nvfs) {
                 pa_memchunk_make_writable(&qchunk, 0);
-                pa_volume_memchunk(&qchunk, &o->source->sample_spec, &o->volume_factor_source);
+                pa_volume_memchunk(&qchunk, &o->thread_info.sample_spec, &o->volume_factor_source);
             }
 
             o->push(o, &qchunk);
@@ -771,7 +771,7 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
             if (rchunk.length > 0) {
                 if (nvfs) {
                     pa_memchunk_make_writable(&rchunk, 0);
-                    pa_volume_memchunk(&rchunk, &o->source->sample_spec, &o->volume_factor_source);
+                    pa_volume_memchunk(&rchunk, &o->thread_info.sample_spec, &o->volume_factor_source);
                 }
 
                 o->push(o, &rchunk);
