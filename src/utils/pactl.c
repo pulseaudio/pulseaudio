@@ -1251,32 +1251,30 @@ static int parse_volume(const char *vol_spec, pa_volume_t *vol, enum volume_flag
 
 static void help(const char *argv0) {
 
-    printf(_("%s [options] stat\n"
-             "%s [options] info\n"
-             "%s [options] list [short] [TYPE]\n"
-             "%s [options] exit\n"
-             "%s [options] upload-sample FILENAME [NAME]\n"
-             "%s [options] play-sample NAME [SINK]\n"
-             "%s [options] remove-sample NAME\n"
-             "%s [options] load-module NAME [ARGS ...]\n"
-             "%s [options] unload-module #N\n"
-             "%s [options] move-(sink-input|source-output) #N SINK|SOURCE\n"
-             "%s [options] suspend-(sink|source) NAME|#N 1|0\n"
-             "%s [options] set-card-profile CARD PROFILE\n"
-             "%s [options] set-(sink|source)-port NAME|#N PORT\n"
-             "%s [options] set-(sink|source)-volume NAME|#N VOLUME\n"
-             "%s [options] set-(sink-input|source-output)-volume #N VOLUME\n"
-             "%s [options] set-(sink|source)-mute NAME|#N 1|0\n"
-             "%s [options] set-sink-input-mute #N 1|0\n"
-             "%s [options] subscribe\n\n"
+    printf("%s %s %s\n",    argv0, _("[options]"), "stat");
+    printf("%s %s %s\n",    argv0, _("[options]"), "info");
+    printf("%s %s %s %s\n", argv0, _("[options]"), "list", _("[short] [TYPE]"));
+    printf("%s %s %s\n",    argv0, _("[options]"), "exit");
+    printf("%s %s %s %s\n", argv0, _("[options]"), "upload-sample", _("FILENAME [NAME]"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "play-sample ", _("NAME [SINK]"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "remove-sample ", _("NAME"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "load-module ", _("NAME [ARGS ...]"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "unload-module ", _("#N"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "move-(sink-input|source-output)", _("#N SINK|SOURCE"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "suspend-(sink|source)", _("NAME|#N 1|0"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "set-card-profile ", _("CARD PROFILE"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-port", _("NAME|#N PORT"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-volume", _("NAME|#N VOLUME"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink-input|source-output)-volume", _("#N VOLUME"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-mute", _("NAME|#N 1|0"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "set-sink-input-mute", _("#N 1|0"));
+    printf("%s %s %s\n",    argv0, _("[options]"), "subscribe");
+
+    printf(_("\n"
              "  -h, --help                            Show this help\n"
              "      --version                         Show version\n\n"
              "  -s, --server=SERVER                   The name of the server to connect to\n"
-             "  -n, --client-name=NAME                How to call this client on the server\n"),
-           argv0, argv0, argv0, argv0, argv0,
-           argv0, argv0, argv0, argv0, argv0,
-           argv0, argv0, argv0, argv0, argv0,
-           argv0, argv0, argv0);
+             "  -n, --client-name=NAME                How to call this client on the server\n"));
 }
 
 enum {
