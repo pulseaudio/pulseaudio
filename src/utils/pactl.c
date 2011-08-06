@@ -1258,22 +1258,16 @@ static void help(const char *argv0) {
              "%s [options] upload-sample FILENAME [NAME]\n"
              "%s [options] play-sample NAME [SINK]\n"
              "%s [options] remove-sample NAME\n"
-             "%s [options] move-sink-input SINKINPUT SINK\n"
-             "%s [options] move-source-output SOURCEOUTPUT SOURCE\n"
              "%s [options] load-module NAME [ARGS ...]\n"
-             "%s [options] unload-module MODULE\n"
-             "%s [options] suspend-sink SINK 1|0\n"
-             "%s [options] suspend-source SOURCE 1|0\n"
+             "%s [options] unload-module #N\n"
+             "%s [options] move-(sink-input|source-output) #N SINK|SOURCE\n"
+             "%s [options] suspend-(sink|source) NAME|#N 1|0\n"
              "%s [options] set-card-profile CARD PROFILE\n"
-             "%s [options] set-sink-port SINK PORT\n"
-             "%s [options] set-source-port SOURCE PORT\n"
-             "%s [options] set-sink-volume SINK VOLUME\n"
-             "%s [options] set-source-volume SOURCE VOLUME\n"
-             "%s [options] set-sink-input-volume SINKINPUT VOLUME\n"
-             "%s [options] set-source-output-volume SOURCEOUTPUT VOLUME\n"
-             "%s [options] set-sink-mute SINK 1|0\n"
-             "%s [options] set-source-mute SOURCE 1|0\n"
-             "%s [options] set-sink-input-mute SINKINPUT 1|0\n"
+             "%s [options] set-(sink|source)-port NAME|#N PORT\n"
+             "%s [options] set-(sink|source)-volume NAME|#N VOLUME\n"
+             "%s [options] set-(sink-input|source-output)-volume #N VOLUME\n"
+             "%s [options] set-(sink|source)-mute NAME|#N 1|0\n"
+             "%s [options] set-sink-input-mute #N 1|0\n"
              "%s [options] subscribe\n\n"
              "  -h, --help                            Show this help\n"
              "      --version                         Show version\n\n"
@@ -1282,8 +1276,7 @@ static void help(const char *argv0) {
            argv0, argv0, argv0, argv0, argv0,
            argv0, argv0, argv0, argv0, argv0,
            argv0, argv0, argv0, argv0, argv0,
-           argv0, argv0, argv0, argv0, argv0,
-           argv0, argv0, argv0, argv0);
+           argv0, argv0, argv0);
 }
 
 enum {
