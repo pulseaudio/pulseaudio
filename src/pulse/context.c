@@ -1424,7 +1424,7 @@ void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_t
     if (pa_streq(name, "module-device-manager"))
         pa_ext_device_manager_command(c, tag, t);
     else if (pa_streq(name, "module-device-restore"))
-        pa_ext_device_manager_command(c, tag, t);
+        pa_ext_device_restore_command(c, tag, t);
     else if (pa_streq(name, "module-stream-restore"))
         pa_ext_stream_restore_command(c, tag, t);
     else

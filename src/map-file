@@ -154,6 +154,7 @@ pa_ext_device_manager_test;
 pa_ext_device_restore_read_sink_formats;
 pa_ext_device_restore_read_sink_formats_all;
 pa_ext_device_restore_save_sink_formats;
+pa_ext_device_restore_set_subscribe_cb;
 pa_ext_device_restore_subscribe;
 pa_ext_device_restore_test;
 pa_ext_stream_restore_delete;

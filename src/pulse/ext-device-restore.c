@@ -324,12 +324,14 @@ pa_operation *pa_ext_device_restore_save_sink_formats(
 /* Command function defined in internal.h */
 void pa_ext_device_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t) {
     uint32_t subcommand;
+    uint32_t idx;
 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
     pa_assert(t);
 
     if (pa_tagstruct_getu32(t, &subcommand) < 0 ||
+        pa_tagstruct_getu32(t, &idx) < 0 ||
         !pa_tagstruct_eof(t)) {
 
         pa_context_fail(c, PA_ERR_PROTOCOL);
@@ -341,6 +343,11 @@ void pa_ext_device_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t)
         return;
     }
 
+    if (idx == PA_INVALID_INDEX) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        return;
+    }
+
     if (c->ext_device_restore.callback)
-        c->ext_device_restore.callback(c, c->ext_device_restore.userdata);
+        c->ext_device_restore.callback(c, idx, c->ext_device_restore.userdata);
 }

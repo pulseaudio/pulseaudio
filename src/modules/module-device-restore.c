@@ -133,7 +133,26 @@ static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct
     pa_log_info("Synced.");
 }
 
-static void trigger_save(struct userdata *u) {
+static void trigger_save(struct userdata *u, uint32_t sink_idx) {
+    pa_native_connection *c;
+    uint32_t idx;
+
+    if (sink_idx != PA_INVALID_INDEX) {
+        for (c = pa_idxset_first(u->subscribed, &idx); c; c = pa_idxset_next(u->subscribed, &idx)) {
+            pa_tagstruct *t;
+
+            t = pa_tagstruct_new(NULL, 0);
+            pa_tagstruct_putu32(t, PA_COMMAND_EXTENSION);
+            pa_tagstruct_putu32(t, 0);
+            pa_tagstruct_putu32(t, u->module->index);
+            pa_tagstruct_puts(t, u->module->name);
+            pa_tagstruct_putu32(t, SUBCOMMAND_EVENT);
+            pa_tagstruct_putu32(t, sink_idx);
+
+            pa_pstream_send_tagstruct(pa_native_connection_get_pstream(c), t);
+        }
+    }
+
     if (u->save_time_event)
         return;
 
@@ -337,7 +356,7 @@ fail:
     if ((e = legacy_entry_read(u, &data))) {
         pa_log_debug("Success. Saving new format for key: %s", name);
         if (entry_write(u, name, e))
-            trigger_save(u);
+            trigger_save(u, PA_INVALID_INDEX);
         pa_datum_free(&data);
         return e;
     } else
@@ -488,7 +507,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     pa_log_info("Storing volume/mute/port for device %s.", name);
 
     if (entry_write(u, name, entry))
-        trigger_save(u);
+        trigger_save(u, idx);
 
     entry_free(entry);
     pa_xfree(name);
@@ -786,6 +805,11 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             name = pa_sprintf_malloc("sink:%s", sink->name);
             if (!(e = entry_read(u, name)))
                 e = entry_new(FALSE);
+            else {
+                /* Clean out any saved formats */
+                pa_idxset_free(e->formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+                e->formats = pa_idxset_new(NULL, NULL);
+            }
 
             /* Read all the formats from our tagstruct */
             for (i = 0; i < n_formats; ++i) {
@@ -805,7 +829,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             }
 
             if (entry_write(u, name, e))
-                trigger_save(u);
+                trigger_save(u, sink_index);
             else
                 pa_log_warn("Could not save format info for sink %s", sink->name);
 
