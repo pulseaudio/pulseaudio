@@ -302,9 +302,9 @@ void pa_log_levelv_meta(
     pa_vsnprintf(text, sizeof(text), format, ap);
 
     if ((_flags & PA_LOG_PRINT_META) && file && line > 0 && func)
-        pa_snprintf(location, sizeof(location), "[%s:%i %s()] ", file, line, func);
+        pa_snprintf(location, sizeof(location), "[%s][%s:%i %s()] ", pa_thread_get_name(pa_thread_self()), file, line, func);
     else if ((_flags & (PA_LOG_PRINT_META|PA_LOG_PRINT_FILE)) && file)
-        pa_snprintf(location, sizeof(location), "%s: ", pa_path_get_filename(file));
+        pa_snprintf(location, sizeof(location), "[%s] %s: ", pa_thread_get_name(pa_thread_self()), pa_path_get_filename(file));
     else
         location[0] = 0;
 
