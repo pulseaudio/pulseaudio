@@ -66,8 +66,11 @@ USA.
   <section name="Commands">
 
     <option>
-      <p><opt>stat</opt></p>
-      <optdesc><p>Dump a few statistics about the memory usage of the PulseAudio daemon.</p></optdesc>
+      <p><opt>stat</opt> [short]</p>
+      <optdesc><p>Dump a few statistics about the memory usage of the PulseAudio daemon. (Note: for backwards
+      compatibility, we also show the output of the <arg>info</arg> command. In order to only show
+      statistics, use the optional <arg>short</arg> argument. In a future version of PA we will
+      make this the default)</p></optdesc>
     </option>
 
     <option>

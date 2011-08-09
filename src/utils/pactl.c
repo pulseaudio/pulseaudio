@@ -1001,7 +1001,9 @@ static void context_state_callback(pa_context *c, void *userdata) {
             switch (action) {
                 case STAT:
                     pa_operation_unref(pa_context_stat(c, stat_callback, NULL));
-                    break;
+                    if (short_list_format)
+                        break;
+                    actions++;
 
                 case INFO:
                     pa_operation_unref(pa_context_get_server_info(c, get_server_info_callback, NULL));
@@ -1251,9 +1253,9 @@ static int parse_volume(const char *vol_spec, pa_volume_t *vol, enum volume_flag
 
 static void help(const char *argv0) {
 
-    printf("%s %s %s\n",    argv0, _("[options]"), "stat");
+    printf("%s %s %s\n",    argv0, _("[options]"), "stat [short]");
     printf("%s %s %s\n",    argv0, _("[options]"), "info");
-    printf("%s %s %s %s\n", argv0, _("[options]"), "list", _("[short] [TYPE]"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "list [short]", _("[TYPE]"));
     printf("%s %s %s\n",    argv0, _("[options]"), "exit");
     printf("%s %s %s %s\n", argv0, _("[options]"), "upload-sample", _("FILENAME [NAME]"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "play-sample ", _("NAME [SINK]"));
@@ -1344,10 +1346,13 @@ int main(int argc, char *argv[]) {
     }
 
     if (optind < argc) {
-        if (pa_streq(argv[optind], "stat"))
+        if (pa_streq(argv[optind], "stat")) {
             action = STAT;
+            short_list_format = FALSE;
+            if (optind+1 < argc && pa_streq(argv[optind+1], "short"))
+                short_list_format = TRUE;
 
-        else if (pa_streq(argv[optind], "info"))
+        } else if (pa_streq(argv[optind], "info"))
             action = INFO;
 
         else if (pa_streq(argv[optind], "exit"))
