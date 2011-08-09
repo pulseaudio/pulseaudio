@@ -608,6 +608,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
     if (u->use_tsched) {
         *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec);
+        process_usec = pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec);
 
         if (*sleep_usec > process_usec)
             *sleep_usec -= process_usec;
@@ -737,6 +738,7 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
     if (u->use_tsched) {
         *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec);
+        process_usec = pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec);
 
         if (*sleep_usec > process_usec)
             *sleep_usec -= process_usec;

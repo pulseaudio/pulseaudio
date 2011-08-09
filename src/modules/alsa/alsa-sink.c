@@ -644,6 +644,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
 
     if (u->use_tsched) {
         *sleep_usec = pa_bytes_to_usec(left_to_play, &u->sink->sample_spec);
+        process_usec = pa_bytes_to_usec(u->tsched_watermark, &u->sink->sample_spec);
 
         if (*sleep_usec > process_usec)
             *sleep_usec -= process_usec;
@@ -784,6 +785,7 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
 
     if (u->use_tsched) {
         *sleep_usec = pa_bytes_to_usec(left_to_play, &u->sink->sample_spec);
+        process_usec = pa_bytes_to_usec(u->tsched_watermark, &u->sink->sample_spec);
 
         if (*sleep_usec > process_usec)
             *sleep_usec -= process_usec;
