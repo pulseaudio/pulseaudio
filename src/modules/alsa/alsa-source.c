@@ -1935,6 +1935,9 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
             u->source->get_mute(u->source);
     }
 
+    if ((data.volume_is_set || data.muted_is_set) && u->source->write_volume)
+        u->source->write_volume(u->source);
+
     pa_source_put(u->source);
 
     if (profile_set)

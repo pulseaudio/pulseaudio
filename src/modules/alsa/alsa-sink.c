@@ -2176,6 +2176,9 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
             u->sink->get_mute(u->sink);
     }
 
+    if ((data.volume_is_set || data.muted_is_set) && u->sink->write_volume)
+        u->sink->write_volume(u->sink);
+
     pa_sink_put(u->sink);
 
     if (profile_set)
