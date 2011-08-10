@@ -34,7 +34,6 @@
 #include <pulsecore/pipe.h>
 #endif
 
-#include <pulse/i18n.h>
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
@@ -42,6 +41,7 @@
 #include <pulsecore/poll.h>
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/i18n.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-error.h>

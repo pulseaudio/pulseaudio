@@ -24,13 +24,13 @@
 #endif
 
 #include <pulse/xmalloc.h>
-#include <pulse/i18n.h>
 
 #include <pulsecore/core.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/i18n.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
-#include <pulsecore/core-util.h>
 
 #include "module-always-sink-symdef.h"
 

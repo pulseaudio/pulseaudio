@@ -36,8 +36,7 @@
 
 #include <ltdl.h>
 
-#include <pulse/i18n.h>
-
+#include <pulsecore/i18n.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/log.h>
 

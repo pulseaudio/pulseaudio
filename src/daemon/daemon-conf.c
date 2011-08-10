@@ -37,11 +37,11 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
-#include <pulse/i18n.h>
 #include <pulse/version.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/i18n.h>
 #include <pulsecore/strbuf.h>
 #include <pulsecore/conf-parser.h>
 #include <pulsecore/resampler.h>

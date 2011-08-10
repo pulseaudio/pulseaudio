@@ -29,7 +29,8 @@
 #include <stdlib.h>
 
 #include <pulse/def.h>
-#include <pulse/i18n.h>
+
+#include <pulsecore/i18n.h>
 
 #include "error.h"
 

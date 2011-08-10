@@ -66,8 +66,8 @@
 #include <pulse/mainloop-signal.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
-#include <pulse/i18n.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/lock-autospawn.h>
 #include <pulsecore/socket.h>
 #include <pulsecore/core-error.h>

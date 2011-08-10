@@ -44,7 +44,6 @@
 #include <pulse/version.h>
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
-#include <pulse/i18n.h>
 #include <pulse/mainloop.h>
 #include <pulse/timeval.h>
 #include <pulse/fork-detect.h>
@@ -54,6 +53,7 @@
 #endif
 
 #include <pulsecore/core-error.h>
+#include <pulsecore/i18n.h>
 #include <pulsecore/native-common.h>
 #include <pulsecore/pdispatch.h>
 #include <pulsecore/pstream.h>

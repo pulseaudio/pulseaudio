@@ -46,10 +46,10 @@
 #include <fftw3.h>
 
 #include <pulse/xmalloc.h>
-#include <pulse/i18n.h>
 #include <pulse/timeval.h>
 
 #include <pulsecore/core-rtclock.h>
+#include <pulsecore/i18n.h>
 #include <pulsecore/aupdate.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/sink.h>

@@ -38,9 +38,9 @@
 #include <pulse/util.h>
 #include <pulse/volume.h>
 #include <pulse/xmalloc.h>
-#include <pulse/i18n.h>
 #include <pulse/utf8.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>

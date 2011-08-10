@@ -36,10 +36,10 @@
 #endif
 
 #include <pulse/xmalloc.h>
-#include <pulse/i18n.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/i18n.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 

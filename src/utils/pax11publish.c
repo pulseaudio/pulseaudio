@@ -31,10 +31,10 @@
 #include <xcb/xcb.h>
 
 #include <pulse/util.h>
-#include <pulse/i18n.h>
 #include <pulse/client-conf.h>
 
 #include <pulsecore/core-util.h>
+#include <pulsecore/i18n.h>
 #include <pulsecore/log.h>
 #include <pulsecore/authkey.h>
 #include <pulsecore/native-common.h>

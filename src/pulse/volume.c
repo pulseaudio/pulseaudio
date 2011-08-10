@@ -27,9 +27,8 @@
 #include <string.h>
 #include <math.h>
 
-#include <pulse/i18n.h>
-
 #include <pulsecore/core-util.h>
+#include <pulsecore/i18n.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/sample-util.h>
 

@@ -28,12 +28,12 @@
 #include <linux/sockios.h>
 #include <arpa/inet.h>
 
-#include <pulse/i18n.h>
 #include <pulse/rtclock.h>
 #include <pulse/sample.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/core-rtclock.h>

@@ -32,9 +32,9 @@
 #endif
 
 #include <pulse/gccmacro.h>
-#include <pulse/i18n.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/poll.h>
 #include <pulsecore/mutex.h>
 #include <pulsecore/thread.h>

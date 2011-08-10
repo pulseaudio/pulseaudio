@@ -33,8 +33,8 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/mainloop.h>
-#include <pulse/i18n.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/log.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/mutex.h>

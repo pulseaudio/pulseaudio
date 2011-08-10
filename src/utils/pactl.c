@@ -35,9 +35,9 @@
 
 #include <sndfile.h>
 
-#include <pulse/i18n.h>
 #include <pulse/pulseaudio.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>

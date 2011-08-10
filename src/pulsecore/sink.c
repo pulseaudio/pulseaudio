@@ -34,10 +34,10 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
-#include <pulse/i18n.h>
 #include <pulse/rtclock.h>
 #include <pulse/internal.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/sink-input.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-util.h>

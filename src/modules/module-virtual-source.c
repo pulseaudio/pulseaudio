@@ -27,8 +27,8 @@
 #include <stdio.h>
 
 #include <pulse/xmalloc.h>
-#include <pulse/i18n.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/sink.h>

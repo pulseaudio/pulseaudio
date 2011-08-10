@@ -28,10 +28,10 @@
 #include <getopt.h>
 
 #include <pulse/xmalloc.h>
-#include <pulse/i18n.h>
 #include <pulse/util.h>
 
 #include <pulsecore/core-util.h>
+#include <pulsecore/i18n.h>
 #include <pulsecore/strbuf.h>
 #include <pulsecore/macro.h>
 

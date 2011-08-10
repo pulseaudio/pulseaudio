@@ -28,13 +28,13 @@
 
 #include <asoundlib.h>
 
-#include <pulse/i18n.h>
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/volume.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core.h>
+#include <pulsecore/i18n.h>
 #include <pulsecore/module.h>
 #include <pulsecore/memchunk.h>
 #include <pulsecore/sink.h>

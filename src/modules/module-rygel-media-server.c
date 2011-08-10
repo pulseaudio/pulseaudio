@@ -30,9 +30,9 @@
 
 #include <pulse/gccmacro.h>
 #include <pulse/xmalloc.h>
-#include <pulse/i18n.h>
 #include <pulse/utf8.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
 #include <pulsecore/core-util.h>

@@ -523,7 +523,6 @@ lib_LTLIBRARIES = \
 
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulse/client-conf.c pulse/client-conf.h \
-		pulse/i18n.c pulse/i18n.h \
 		pulse/fork-detect.c pulse/fork-detect.h \
 		pulse/xmalloc.c pulse/xmalloc.h \
 		pulse/proplist.c pulse/proplist.h \
@@ -545,11 +544,12 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/endianmacros.h \
 		pulsecore/flist.c pulsecore/flist.h \
 		pulsecore/hashmap.c pulsecore/hashmap.h \
+		pulsecore/i18n.c pulsecore/i18n.h \
 		pulsecore/idxset.c pulsecore/idxset.h \
 		pulsecore/arpa-inet.c pulsecore/arpa-inet.h \
 		pulsecore/iochannel.c pulsecore/iochannel.h \
 		pulsecore/ioline.c pulsecore/ioline.h \
-		pulsecore/ipacl.h pulsecore/ipacl.c \
+		pulsecore/ipacl.c pulsecore/ipacl.h \
 		pulsecore/llist.h \
 		pulsecore/lock-autospawn.c pulsecore/lock-autospawn.h \
 		pulsecore/log.c pulsecore/log.h \

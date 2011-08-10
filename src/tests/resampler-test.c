@@ -25,13 +25,13 @@
 #include <getopt.h>
 #include <locale.h>
 
-#include <pulse/i18n.h>
 #include <pulse/pulseaudio.h>
 
 #include <pulse/rtclock.h>
 #include <pulse/sample.h>
 #include <pulse/volume.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/resampler.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/endianmacros.h>

@@ -37,15 +37,14 @@
 
 #include <sndfile.h>
 
-#include <pulse/i18n.h>
 #include <pulse/pulseaudio.h>
 #include <pulse/rtclock.h>
 
-#include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/i18n.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/sndfile-util.h>
-#include <pulsecore/core-util.h>
 
 #define TIME_EVENT_USEC 50000
 

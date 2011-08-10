@@ -28,8 +28,8 @@
 #include <xcb/xcb.h>
 
 #include <pulse/xmalloc.h>
-#include <pulse/i18n.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/x11prop.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>

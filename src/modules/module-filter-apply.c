@@ -25,14 +25,14 @@
 
 #include <pulse/timeval.h>
 #include <pulse/rtclock.h>
-#include <pulse/i18n.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/core.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/i18n.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/hook-list.h>
-#include <pulsecore/core.h>
-#include <pulsecore/core-util.h>
 #include <pulsecore/sink-input.h>
 #include <pulsecore/modargs.h>
 
