@@ -22,10 +22,6 @@
   USA.
 ***/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <pulsecore/cpu.h>
 
 /* Orc-optimised bits */

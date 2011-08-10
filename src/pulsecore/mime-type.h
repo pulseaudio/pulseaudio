@@ -21,10 +21,6 @@
   USA.
 ***/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <pulsecore/macro.h>
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>

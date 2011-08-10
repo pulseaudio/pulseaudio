@@ -19,6 +19,10 @@
   USA.
 ***/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "cpu-orc.h"
 
 void pa_cpu_init_orc(pa_cpu_info cpu_info)
