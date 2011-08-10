@@ -734,7 +734,7 @@ void pa_volume_memchunk(
 
     pa_assert(c);
     pa_assert(spec);
-    pa_assert(c->length % pa_frame_size(spec) == 0);
+    pa_assert(pa_frame_aligned(c->length, spec));
     pa_assert(volume);
 
     if (pa_memblock_is_silence(c->memblock))
