@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include <pulse/introspect.h>
+#include <pulse/format.h>
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>

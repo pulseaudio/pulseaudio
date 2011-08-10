@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <pulse/format.h>
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>

@@ -29,6 +29,7 @@ typedef struct pa_source_volume_change pa_source_volume_change;
 #include <inttypes.h>
 
 #include <pulse/def.h>
+#include <pulse/format.h>
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 #include <pulse/volume.h>
