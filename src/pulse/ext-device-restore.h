@@ -25,6 +25,7 @@
 
 #include <pulse/context.h>
 #include <pulse/version.h>
+#include <pulse/format.h>
 
 /** \file
  *
