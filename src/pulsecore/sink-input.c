@@ -769,10 +769,6 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
 
 /*     pa_log_debug("peek"); */
 
-    pa_assert(i->thread_info.state == PA_SINK_INPUT_RUNNING ||
-              i->thread_info.state == PA_SINK_INPUT_CORKED ||
-              i->thread_info.state == PA_SINK_INPUT_DRAINED);
-
     block_size_max_sink_input = i->thread_info.resampler ?
         pa_resampler_max_block_size(i->thread_info.resampler) :
         pa_frame_align(pa_mempool_block_size_max(i->core->mempool), &i->sample_spec);
