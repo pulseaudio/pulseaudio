@@ -142,6 +142,7 @@ src/pulsecore/sound-file-stream.c
 src/pulsecore/memblockq.c
 src/pulsecore/protocol-http.c
 src/pulsecore/semaphore-win32.c
+src/pulsecore/i18n.c
 src/daemon/cpulimit.c
 src/daemon/ltdl-bind-now.c
 src/daemon/main.c
@@ -157,7 +158,6 @@ src/pulse/proplist.c
 src/pulse/xmalloc.c
 src/pulse/ext-stream-restore.c
 src/pulse/stream.c
-src/pulse/i18n.c
 src/pulse/util.c
 src/pulse/utf8.c
 src/pulse/mainloop-api.c
