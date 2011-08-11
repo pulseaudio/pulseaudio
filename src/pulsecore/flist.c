@@ -113,6 +113,7 @@ void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb) {
             free_cb(pa_atomic_ptr_load(&elem->ptr));
     }
 
+    pa_xfree((char *) l->name);
     pa_xfree(l);
 }
 

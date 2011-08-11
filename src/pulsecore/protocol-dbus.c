@@ -839,8 +839,8 @@ int pa_dbus_protocol_remove_interface(pa_dbus_protocol *p, const char* path, con
     pa_log_debug("Interface %s removed from object %s", iface_entry->name, obj_entry->path);
 
     pa_xfree(iface_entry->name);
-    pa_hashmap_free(iface_entry->method_handlers, method_handler_free_cb, NULL);
     pa_hashmap_free(iface_entry->method_signatures, method_signature_free_cb, NULL);
+    pa_hashmap_free(iface_entry->method_handlers, method_handler_free_cb, NULL);
     pa_hashmap_free(iface_entry->property_handlers, property_handler_free_cb, NULL);
 
     for (i = 0; i < iface_entry->n_signals; ++i) {

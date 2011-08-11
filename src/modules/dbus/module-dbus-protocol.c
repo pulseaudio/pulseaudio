@@ -569,6 +569,8 @@ int pa__init(pa_module *m) {
     u->dbus_protocol = pa_dbus_protocol_get(m->core);
     u->core_iface = pa_dbusiface_core_new(m->core);
 
+    pa_modargs_free(ma);
+
     return 0;
 
 fail:

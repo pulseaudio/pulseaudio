@@ -246,14 +246,13 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         t != (PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE))
         return;
 
-    entry = entry_new();
-
     if (!(card = pa_idxset_get_by_index(c->cards, idx)))
         return;
 
     if (!card->save_profile)
         return;
 
+    entry = entry_new();
     entry->profile = pa_xstrdup(card->active_profile ? card->active_profile->name : "");
 
     if ((old = entry_read(u, card->name))) {

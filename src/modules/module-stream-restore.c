@@ -328,6 +328,7 @@ static void dbus_entry_free(struct dbus_entry *de) {
 
     pa_xfree(de->entry_name);
     pa_xfree(de->object_path);
+    pa_xfree(de);
 }
 
 /* Reads an array [(UInt32, UInt32)] from the iterator. The struct items are
