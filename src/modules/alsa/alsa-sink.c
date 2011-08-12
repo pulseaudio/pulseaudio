@@ -36,6 +36,7 @@
 #include <pulse/timeval.h>
 #include <pulse/volume.h>
 #include <pulse/xmalloc.h>
+#include <pulse/internal.h>
 
 #include <pulsecore/core.h>
 #include <pulsecore/i18n.h>
@@ -144,6 +145,8 @@ struct userdata {
     pa_usec_t smoother_interval;
     pa_usec_t last_smoother_update;
 
+    pa_idxset *formats;
+
     pa_reserve_wrapper *reserve;
     pa_hook_slot *reserve_slot;
     pa_reserve_monitor_wrapper *monitor;
@@ -151,6 +154,15 @@ struct userdata {
 };
 
 static void userdata_free(struct userdata *u);
+
+/* FIXME: Is there a better way to do this than device names? */
+static pa_bool_t is_iec958(struct userdata *u) {
+    return (strncmp("iec958", u->device_name, 6) == 0);
+}
+
+static pa_bool_t is_hdmi(struct userdata *u) {
+    return (strncmp("hdmi", u->device_name, 4) == 0);
+}
 
 static pa_hook_result_t reserve_cb(pa_reserve_wrapper *r, void *forced, struct userdata *u) {
     pa_assert(r);
@@ -1475,6 +1487,45 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
     }
 }
 
+static pa_idxset* sink_get_formats(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    pa_idxset *ret = pa_idxset_new(NULL, NULL);
+    pa_format_info *f;
+    uint32_t idx;
+
+    pa_assert(u);
+
+    PA_IDXSET_FOREACH(f, u->formats, idx) {
+        pa_idxset_put(ret, pa_format_info_copy(f), NULL);
+    }
+
+    return ret;
+}
+
+static pa_bool_t sink_set_formats(pa_sink *s, pa_idxset *formats) {
+    struct userdata *u = s->userdata;
+    pa_format_info *f;
+    uint32_t idx;
+
+    pa_assert(u);
+
+    /* FIXME: also validate sample rates against what the device supports */
+    PA_IDXSET_FOREACH(f, formats, idx) {
+        if (is_iec958(u) && f->encoding == PA_ENCODING_EAC3_IEC61937)
+            /* EAC3 cannot be sent over over S/PDIF */
+            return FALSE;
+    }
+
+    pa_idxset_free(u->formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+    u->formats = pa_idxset_new(NULL, NULL);
+
+    PA_IDXSET_FOREACH(f, formats, idx) {
+        pa_idxset_put(u->formats, pa_format_info_copy(f), NULL);
+    }
+
+    return TRUE;
+}
+
 static int process_rewind(struct userdata *u) {
     snd_pcm_sframes_t unused;
     size_t rewind_nbytes, unused_nbytes, limit_nbytes;
@@ -2182,6 +2233,21 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     if ((data.volume_is_set || data.muted_is_set) && u->sink->write_volume)
         u->sink->write_volume(u->sink);
 
+    if (is_iec958(u) || is_hdmi(u)) {
+        /* For S/PDIF and HDMI, allow getting/setting custom formats */
+        pa_format_info *format;
+
+        /* To start with, we only support PCM formats. Other formats may be added
+         * with pa_sink_set_formats().*/
+        format = pa_format_info_new();
+        format->encoding = PA_ENCODING_PCM;
+        u->formats = pa_idxset_new(NULL, NULL);
+        pa_idxset_put(u->formats, format, NULL);
+
+        u->sink->get_formats = sink_get_formats;
+        u->sink->set_formats = sink_set_formats;
+    }
+
     pa_sink_put(u->sink);
 
     if (profile_set)
@@ -2246,6 +2312,9 @@ static void userdata_free(struct userdata *u) {
 
     if (u->smoother)
         pa_smoother_free(u->smoother);
+
+    if (u->formats)
+        pa_idxset_free(u->formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
 
     reserve_done(u);
     monitor_done(u);
