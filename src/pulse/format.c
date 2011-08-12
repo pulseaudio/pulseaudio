@@ -114,8 +114,11 @@ char *pa_format_info_snprint(char *s, size_t l, const pa_format_info *f) {
     if (!pa_format_info_valid(f))
         pa_snprintf(s, l, _("(invalid)"));
     else {
-        tmp = pa_proplist_to_string_sep(f->plist, ", ");
-        pa_snprintf(s, l, _("%s, %s"), pa_encoding_to_string(f->encoding), tmp[0] ? tmp : _("(no properties)"));
+        tmp = pa_proplist_to_string_sep(f->plist, "  ");
+        if (tmp[0])
+            pa_snprintf(s, l, "%s, %s", pa_encoding_to_string(f->encoding), tmp);
+        else
+            pa_snprintf(s, l, "%s", pa_encoding_to_string(f->encoding));
         pa_xfree(tmp);
     }
 
