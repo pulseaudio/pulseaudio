@@ -49,6 +49,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/once.h>
 #include <pulsecore/ratelimit.h>
+#include <pulsecore/thread.h>
 
 #include "log.h"
 
