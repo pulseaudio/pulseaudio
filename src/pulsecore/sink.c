@@ -180,6 +180,7 @@ static void reset_callbacks(pa_sink *s) {
     s->update_requested_latency = NULL;
     s->set_port = NULL;
     s->get_formats = NULL;
+    s->set_formats = NULL;
 }
 
 /* Called from main context */
@@ -3426,6 +3427,21 @@ pa_idxset* pa_sink_get_formats(pa_sink *s) {
     }
 
     return ret;
+}
+
+/* Called from the main thread */
+/* Allows an external source to set what formats a sink supports if the sink
+ * permits this. The function makes a copy of the formats on success. */
+pa_bool_t pa_sink_set_formats(pa_sink *s, pa_idxset *formats) {
+    pa_assert(s);
+    pa_assert(formats);
+
+    if (s->set_formats)
+        /* Sink supports setting formats -- let's give it a shot */
+        return s->set_formats(s, formats);
+    else
+        /* Sink doesn't support setting this -- bail out */
+        return FALSE;
 }
 
 /* Called from the main thread */

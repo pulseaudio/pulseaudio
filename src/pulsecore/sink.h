@@ -223,6 +223,12 @@ struct pa_sink {
      * in descending order of preference. */
     pa_idxset* (*get_formats)(pa_sink *s); /* ditto */
 
+    /* Called to set the list of formats supported by the sink. Can be
+     * NULL if the sink does not support this. Returns TRUE on success,
+     * FALSE otherwise (for example when an unsupportable format is
+     * set). Makes a copy of the formats passed in. */
+    pa_bool_t (*set_formats)(pa_sink *s, pa_idxset *formats); /* ditto */
+
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
     struct {
@@ -434,6 +440,7 @@ void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, pa_bool_t save);
 void pa_sink_move_all_fail(pa_queue *q);
 
 pa_idxset* pa_sink_get_formats(pa_sink *s);
+pa_bool_t pa_sink_set_formats(pa_sink *s, pa_idxset *formats);
 pa_bool_t pa_sink_check_format(pa_sink *s, pa_format_info *f);
 pa_idxset* pa_sink_check_formats(pa_sink *s, pa_idxset *in_formats);
 
