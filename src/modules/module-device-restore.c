@@ -63,7 +63,8 @@ PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
         "restore_port=<Save/restore port?> "
         "restore_volume=<Save/restore volumes?> "
-        "restore_muted=<Save/restore muted states?>");
+        "restore_muted=<Save/restore muted states?> "
+        "restore_formats=<Save/restore saved formats?>");
 
 #define SAVE_INTERVAL (10 * PA_USEC_PER_SEC)
 
@@ -71,6 +72,7 @@ static const char* const valid_modargs[] = {
     "restore_volume",
     "restore_muted",
     "restore_port",
+    "restore_formats",
     NULL
 };
 
@@ -81,6 +83,7 @@ struct userdata {
     pa_hook_slot
         *sink_new_hook_slot,
         *sink_fixate_hook_slot,
+        *sink_put_hook_slot,
         *source_new_hook_slot,
         *source_fixate_hook_slot,
         *connection_unlink_hook_slot;
@@ -93,6 +96,7 @@ struct userdata {
     pa_bool_t restore_volume;
     pa_bool_t restore_muted;
     pa_bool_t restore_port;
+    pa_bool_t restore_formats;
 };
 
 /* Protocol extention commands */
@@ -590,6 +594,30 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
     return PA_HOOK_OK;
 }
 
+static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
+    char *name;
+    struct entry *e;
+
+    pa_assert(c);
+    pa_assert(sink);
+    pa_assert(u);
+    pa_assert(u->restore_formats);
+
+    name = pa_sprintf_malloc("sink:%s", sink->name);
+
+    if ((e = entry_read(u, name))) {
+
+        if (!pa_sink_set_formats(sink, e->formats))
+            pa_log_debug("Could not set format on sink %s", sink->name);
+
+        entry_free(e);
+    }
+
+    pa_xfree(name);
+
+    return PA_HOOK_OK;
+}
+
 static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data *new_data, struct userdata *u) {
     char *name;
     struct entry *e;
@@ -828,7 +856,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 goto fail;
             }
 
-            if (entry_write(u, name, e))
+            if (pa_sink_set_formats(sink, e->formats) && entry_write(u, name, e))
                 trigger_save(u, sink_index);
             else
                 pa_log_warn("Could not save format info for sink %s", sink->name);
@@ -870,7 +898,7 @@ int pa__init(pa_module*m) {
     pa_sink *sink;
     pa_source *source;
     uint32_t idx;
-    pa_bool_t restore_volume = TRUE, restore_muted = TRUE, restore_port = TRUE;
+    pa_bool_t restore_volume = TRUE, restore_muted = TRUE, restore_port = TRUE, restore_formats = TRUE;
 
     pa_assert(m);
 
@@ -881,12 +909,13 @@ int pa__init(pa_module*m) {
 
     if (pa_modargs_get_value_boolean(ma, "restore_volume", &restore_volume) < 0 ||
         pa_modargs_get_value_boolean(ma, "restore_muted", &restore_muted) < 0 ||
-        pa_modargs_get_value_boolean(ma, "restore_port", &restore_port) < 0) {
-        pa_log("restore_port=, restore_volume= and restore_muted= expect boolean arguments");
+        pa_modargs_get_value_boolean(ma, "restore_port", &restore_port) < 0 ||
+        pa_modargs_get_value_boolean(ma, "restore_formats", &restore_formats) < 0) {
+        pa_log("restore_port, restore_volume, restore_muted and restore_formats expect boolean arguments");
         goto fail;
     }
 
-    if (!restore_muted && !restore_volume && !restore_port)
+    if (!restore_muted && !restore_volume && !restore_port && !restore_formats)
         pa_log_warn("Neither restoring volume, nor restoring muted, nor restoring port enabled!");
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
@@ -895,6 +924,7 @@ int pa__init(pa_module*m) {
     u->restore_volume = restore_volume;
     u->restore_muted = restore_muted;
     u->restore_port = restore_port;
+    u->restore_formats = restore_formats;
 
     u->subscribed = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
@@ -914,6 +944,9 @@ int pa__init(pa_module*m) {
         u->sink_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) sink_fixate_hook_callback, u);
         u->source_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) source_fixate_hook_callback, u);
     }
+
+    if (restore_formats)
+        u->sink_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_EARLY, (pa_hook_cb_t) sink_put_hook_callback, u);
 
     if (!(fname = pa_state_path("device-volumes", TRUE)))
         goto fail;
@@ -964,6 +997,8 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->sink_new_hook_slot);
     if (u->source_new_hook_slot)
         pa_hook_slot_free(u->source_new_hook_slot);
+    if (u->sink_put_hook_slot)
+        pa_hook_slot_free(u->sink_put_hook_slot);
 
     if (u->connection_unlink_hook_slot)
         pa_hook_slot_free(u->connection_unlink_hook_slot);
