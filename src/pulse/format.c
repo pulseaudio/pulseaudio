@@ -41,20 +41,30 @@
 
 static int pa_format_info_prop_compatible(const char *one, const char *two);
 
-const char *pa_encoding_to_string(pa_encoding_t e) {
-    static const char* const table[]= {
-        [PA_ENCODING_PCM] = "pcm",
-        [PA_ENCODING_AC3_IEC61937] = "ac3-iec61937",
-        [PA_ENCODING_EAC3_IEC61937] = "eac3-iec61937",
-        [PA_ENCODING_MPEG_IEC61937] = "mpeg-iec61937",
-        [PA_ENCODING_DTS_IEC61937] = "dts-iec61937",
-        [PA_ENCODING_ANY] = "any",
-    };
+static const char* const _encoding_str_table[]= {
+    [PA_ENCODING_PCM] = "pcm",
+    [PA_ENCODING_AC3_IEC61937] = "ac3-iec61937",
+    [PA_ENCODING_EAC3_IEC61937] = "eac3-iec61937",
+    [PA_ENCODING_MPEG_IEC61937] = "mpeg-iec61937",
+    [PA_ENCODING_DTS_IEC61937] = "dts-iec61937",
+    [PA_ENCODING_ANY] = "any",
+};
 
+const char *pa_encoding_to_string(pa_encoding_t e) {
     if (e < 0 || e >= PA_ENCODING_MAX)
         return NULL;
 
-    return table[e];
+    return _encoding_str_table[e];
+}
+
+pa_encoding_t pa_encoding_from_string(const char *encoding) {
+    pa_encoding_t e;
+
+    for (e = PA_ENCODING_ANY; e < PA_ENCODING_MAX; e++)
+        if (pa_streq(_encoding_str_table[e], encoding))
+            return e;
+
+    return PA_ENCODING_INVALID;
 }
 
 pa_format_info* pa_format_info_new(void) {
@@ -123,6 +133,44 @@ char *pa_format_info_snprint(char *s, size_t l, const pa_format_info *f) {
     }
 
     return s;
+}
+
+pa_format_info* pa_format_info_from_string(const char *str) {
+    pa_format_info *f = pa_format_info_new();
+    char *encoding = NULL, *properties = NULL;
+    size_t pos;
+
+    pos = strcspn(str, ",");
+
+    encoding = pa_xstrndup(str, pos);
+    f->encoding = pa_encoding_from_string(pa_strip(encoding));
+    if (f->encoding == PA_ENCODING_INVALID)
+        goto error;
+
+    if (pos != strlen(str)) {
+        pa_proplist *plist;
+
+        properties = pa_xstrdup(&str[pos+1]);
+        plist = pa_proplist_from_string(properties);
+
+        if (!plist)
+            goto error;
+
+        pa_proplist_free(f->plist);
+        f->plist = plist;
+    }
+
+out:
+    if (encoding)
+        pa_xfree(encoding);
+    if (properties)
+        pa_xfree(properties);
+    return f;
+
+error:
+    pa_format_info_free(f);
+    f = NULL;
+    goto out;
 }
 
 int pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second) {
