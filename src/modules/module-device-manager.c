@@ -199,6 +199,7 @@ static void entry_free(struct entry* e) {
 
     pa_xfree(e->description);
     pa_xfree(e->icon);
+    pa_xfree(e);
 }
 
 static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e) {
@@ -769,8 +770,6 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         t != (PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE))
         return;
 
-    entry = entry_new();
-
     if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
         pa_sink_input *si;
 
@@ -801,6 +800,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!(sink = pa_idxset_get_by_index(c->sinks, idx)))
             return;
 
+        entry = entry_new();
         name = pa_sprintf_malloc("sink:%s", sink->name);
 
         old = load_or_initialize_entry(u, entry, name, "sink:");
@@ -830,6 +830,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (source->monitor_of)
             return;
 
+        entry = entry_new();
         name = pa_sprintf_malloc("source:%s", source->name);
 
         old = load_or_initialize_entry(u, entry, name, "source:");
@@ -847,6 +848,8 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         pa_xfree(entry->icon);
         entry->icon = pa_xstrdup(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_ICON_NAME));
+    } else {
+        pa_assert_not_reached();
     }
 
     pa_assert(name);

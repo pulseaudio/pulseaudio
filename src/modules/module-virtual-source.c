@@ -661,6 +661,7 @@ int pa__init(pa_module*m) {
 
         u->sink_memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, NULL);
         if (!u->sink_memblockq) {
+            pa_sink_new_data_done(&sink_data);
             pa_log("Failed to create sink memblockq.");
             goto fail;
         }
@@ -689,6 +690,7 @@ int pa__init(pa_module*m) {
 
         pa_sink_put(u->sink);
     } else {
+        pa_sink_new_data_done(&sink_data);
         /* optional uplink sink not enabled */
         u->sink = NULL;
     }

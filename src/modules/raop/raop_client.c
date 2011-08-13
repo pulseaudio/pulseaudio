@@ -385,6 +385,8 @@ void pa_raop_client_free(pa_raop_client* c) {
 
     if (c->rtsp)
         pa_rtsp_client_free(c->rtsp);
+    if (c->sid)
+        pa_xfree(c->sid);
     pa_xfree(c->host);
     pa_xfree(c);
 }
