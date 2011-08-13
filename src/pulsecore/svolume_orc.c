@@ -127,7 +127,7 @@ static void run_test(void) {
 #endif
 
 void pa_volume_func_init_orc(void) {
-    pa_log_info("Initialising ORC optimized functions.");
+    pa_log_info("Initialising ORC optimized volume functions.");
 
 #ifdef RUN_TEST
     run_test();

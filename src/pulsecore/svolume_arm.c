@@ -207,7 +207,7 @@ static void run_test(void) {
 
 void pa_volume_func_init_arm(pa_cpu_arm_flag_t flags) {
 #if defined (__arm__) && defined (HAVE_ARMV6)
-    pa_log_info("Initialising ARM optimized functions.");
+    pa_log_info("Initialising ARM optimized volume functions.");
 
 #ifdef RUN_TEST
     run_test();
