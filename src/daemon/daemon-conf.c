@@ -194,7 +194,7 @@ int pa_daemon_conf_set_log_target(pa_daemon_conf *c, const char *string) {
         pa_strlcpy(file_path, string + 5, sizeof(file_path));
 
         /* Open target file with user rights */
-        if ((log_fd = open(file_path, O_RDWR|O_TRUNC|O_CREAT, S_IRWXU)) >= 0) {
+        if ((log_fd = open(file_path, O_RDWR|O_TRUNC|O_CREAT, S_IRUSR | S_IWUSR)) >= 0) {
              c->auto_log_target = 0;
              c->log_target = PA_LOG_FD;
              pa_log_set_fd(log_fd);
