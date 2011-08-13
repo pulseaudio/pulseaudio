@@ -1095,7 +1095,7 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
 
     if (u->version >= 21) {
         uint8_t n_formats;
-        pa_format_info format;
+        pa_format_info *format;
 
         if (pa_tagstruct_getu8(t, &n_formats) < 0) { /* no. of formats */
             pa_log("Parse failure");
@@ -1103,10 +1103,13 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
         }
 
         for (uint8_t j = 0; j < n_formats; j++) {
-            if (pa_tagstruct_get_format_info(t, &format)) { /* format info */
+            format = pa_format_info_new();
+            if (pa_tagstruct_get_format_info(t, format)) { /* format info */
+                pa_format_info_free(format);
                 pa_log("Parse failure");
                 goto fail;
             }
+            pa_format_info_free(format);
         }
     }
 
@@ -1209,13 +1212,14 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
     }
 
     if (u->version >= 21) {
-        pa_format_info format;
+        pa_format_info *format = pa_format_info_new();
 
-        if (pa_tagstruct_get_format_info(t, &format) < 0) {
-
+        if (pa_tagstruct_get_format_info(t, format) < 0) {
+            pa_format_info_free(format);
             pa_log("Parse failure");
             goto fail;
         }
+        pa_format_info_free(format);
     }
 
     if (!pa_tagstruct_eof(t)) {
@@ -1535,10 +1539,14 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command,  uint32_t
     }
 
     if (u->version >= 21) {
-        pa_format_info format;
+        pa_format_info *format = pa_format_info_new();
 
-        if (pa_tagstruct_get_format_info(t, &format) < 0)
+        if (pa_tagstruct_get_format_info(t, format) < 0) {
+            pa_format_info_free(format);
             goto parse_error;
+        }
+
+        pa_format_info_free(format);
     }
 
     if (!pa_tagstruct_eof(t))
@@ -1746,7 +1754,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 #ifdef TUNNEL_SINK
     if (u->version >= 21) {
         /* We're not using the extended API, so n_formats = 0 and that's that */
-        pa_tagstruct_putu8(t, 0);
+        pa_tagstruct_putu8(reply, 0);
     }
 #endif
 
