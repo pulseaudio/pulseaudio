@@ -2099,12 +2099,14 @@ void pa_dbusiface_core_free(pa_dbusiface_core *c) {
 
     pa_assert_se(pa_dbus_protocol_remove_interface(c->dbus_protocol, PA_DBUS_CORE_OBJECT_PATH, core_interface_info.name) >= 0);
 
+    /* Note that the order of freeing is important below.
+     * Do not change it for the sake of tidiness without checking! */
     pa_subscription_free(c->subscription);
     pa_hashmap_free(c->cards, free_card_cb, NULL);
-    pa_hashmap_free(c->sinks_by_index, free_device_cb, NULL);
     pa_hashmap_free(c->sinks_by_path, NULL, NULL);
-    pa_hashmap_free(c->sources_by_index, free_device_cb, NULL);
+    pa_hashmap_free(c->sinks_by_index, free_device_cb, NULL);
     pa_hashmap_free(c->sources_by_path, NULL, NULL);
+    pa_hashmap_free(c->sources_by_index, free_device_cb, NULL);
     pa_hashmap_free(c->playback_streams, free_stream_cb, NULL);
     pa_hashmap_free(c->record_streams, free_stream_cb, NULL);
     pa_hashmap_free(c->samples, free_sample_cb, NULL);
