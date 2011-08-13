@@ -1061,7 +1061,8 @@ static playback_stream* playback_stream_new(
     /* Note: This function takes ownership of the 'formats' param, so we need
      * to take extra care to not leak it */
 
-    playback_stream *s, *ssync;
+    playback_stream *ssync;
+    playback_stream *s = NULL;
     pa_sink_input *sink_input = NULL;
     pa_memchunk silence;
     uint32_t idx;

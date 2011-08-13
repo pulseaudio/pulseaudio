@@ -48,7 +48,7 @@ static const char* const valid_modargs[] = {
 int pa__init(pa_module*m) {
     pa_iochannel *io;
     pa_modargs *ma;
-    int32_t fd;
+    int32_t fd = -1;
     int r = -1;
     pa_native_options *options = NULL;
 
@@ -59,7 +59,7 @@ int pa__init(pa_module*m) {
         goto finish;
     }
 
-    if (pa_modargs_get_value_s32(ma, "fd", &fd) < 0) {
+    if (pa_modargs_get_value_s32(ma, "fd", &fd) < 0 || fd < 0) {
         pa_log("Invalid file descriptor.");
         goto finish;
     }

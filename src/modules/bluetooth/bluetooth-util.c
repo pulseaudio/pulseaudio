@@ -916,7 +916,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
     } else if (dbus_message_is_signal(m, "org.bluez.MediaTransport", "PropertyChanged")) {
         pa_bluetooth_device *d;
-        pa_bluetooth_transport *t;
+        pa_bluetooth_transport *t = NULL;
         void *state = NULL;
         DBusMessageIter arg_i;
 
@@ -1112,7 +1112,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     const char *path, *dev_path = NULL, *uuid = NULL;
     uint8_t *config = NULL;
     int size = 0;
-    pa_bool_t nrec;
+    pa_bool_t nrec = FALSE;
     enum profile p;
     DBusMessageIter args, props;
     DBusMessage *r;
