@@ -826,8 +826,10 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             }
 
             /* Now find our sink */
-            if (!(sink = pa_idxset_get_by_index(u->core->sinks, sink_index)))
+            if (!(sink = pa_idxset_get_by_index(u->core->sinks, sink_index))) {
+                pa_log("Could not find sink #%d", sink_index);
                 goto fail;
+            }
 
             /* Read or create an entry */
             name = pa_sprintf_malloc("sink:%s", sink->name);
