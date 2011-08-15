@@ -151,6 +151,13 @@ load-module module-position-event-sounds
 
 ### Cork music streams when a phone stream is active
 load-module module-cork-music-on-phone
+
+### Modules to allow autoloading of filters (such as echo cancellation)
+### on demand. module-filter-heuristics tries to determine what filters
+### make sense, and module-filter-apply does the heavy-lifting of
+### loading modules and rerouting streams.
+load-module module-filter-heuristics
+load-module module-filter-apply
 ])dnl
 
 ifelse(@HAVE_X11@, 1, [dnl
