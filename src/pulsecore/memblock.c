@@ -229,7 +229,7 @@ static pa_memblock *memblock_new_appended(pa_mempool *p, size_t length) {
     /* If -1 is passed as length we choose the size for the caller. */
 
     if (length == (size_t) -1)
-        length = p->block_size - PA_ALIGN(sizeof(pa_memblock));
+        length = pa_mempool_block_size_max(p);
 
     b = pa_xmalloc(PA_ALIGN(sizeof(pa_memblock)) + length);
     PA_REFCNT_INIT(b);
