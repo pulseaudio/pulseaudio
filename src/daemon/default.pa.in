@@ -79,6 +79,11 @@ load-module module-hal-detect
 load-module module-detect
 .endif
 
+### Automatically connect sink and source if JACK server is present
+.ifexists module-jackdbus-detect@PA_SOEXT@
+load-module module-jackdbus-detect
+.endif
+
 ifelse(@HAVE_BLUEZ@, 1, [dnl
 ### Automatically load driver modules for Bluetooth hardware
 .ifexists module-bluetooth-discover@PA_SOEXT@
