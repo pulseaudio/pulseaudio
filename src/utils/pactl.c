@@ -36,6 +36,7 @@
 #include <sndfile.h>
 
 #include <pulse/pulseaudio.h>
+#include <pulse/ext-device-restore.h>
 
 #include <pulsecore/i18n.h>
 #include <pulsecore/macro.h>
@@ -55,11 +56,13 @@ static char
     *module_args = NULL,
     *card_name = NULL,
     *profile_name = NULL,
-    *port_name = NULL;
+    *port_name = NULL,
+    *formats = NULL;
 
 static uint32_t
     sink_input_idx = PA_INVALID_INDEX,
-    source_output_idx = PA_INVALID_INDEX;
+    source_output_idx = PA_INVALID_INDEX,
+    sink_idx = PA_INVALID_INDEX;
 
 static pa_bool_t short_list_format = FALSE;
 static uint32_t module_index;
@@ -111,6 +114,7 @@ static enum {
     SET_SINK_MUTE,
     SET_SOURCE_MUTE,
     SET_SINK_INPUT_MUTE,
+    SET_SINK_FORMATS,
     SUBSCRIBE
 } action = NONE;
 
@@ -882,6 +886,44 @@ static void get_source_output_volume_callback(pa_context *c, const pa_source_out
     pa_operation_unref(pa_context_set_source_output_volume(c, source_output_idx, &cv, simple_callback, NULL));
 }
 
+/* PA_MAX_FORMATS is defined in internal.h so we just define a sane value here */
+#define MAX_FORMATS 256
+
+static void set_sink_formats(pa_context *c, uint32_t sink, const char *str) {
+    pa_format_info *f_arr[MAX_FORMATS];
+    char *format = NULL;
+    const char *state = NULL;
+    int i = 0;
+
+    while ((format = pa_split(str, ";", &state))) {
+        pa_format_info *f = pa_format_info_from_string(pa_strip(format));
+
+        if (!f) {
+            pa_log(_("Failed to set format: invalid format string %s"), format);
+            goto error;
+        }
+
+        f_arr[i++] = f;
+        pa_xfree(format);
+    }
+
+    pa_operation_unref(pa_ext_device_restore_save_sink_formats(c, sink, i, f_arr, simple_callback, NULL));
+
+done:
+    if (format)
+        pa_xfree(format);
+    while(i--)
+        pa_format_info_free(f_arr[i]);
+
+    return;
+
+error:
+    while(i--)
+        pa_format_info_free(f_arr[i]);
+    quit(1);
+    goto done;
+}
+
 static void stream_state_callback(pa_stream *s, void *userdata) {
     pa_assert(s);
 
@@ -1157,6 +1199,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     }
                     break;
 
+                case SET_SINK_FORMATS:
+                    set_sink_formats(c, sink_idx, formats);
+                    break;
+
                 case SUBSCRIBE:
                     pa_context_set_subscribe_callback(c, context_subscribe_callback, NULL);
 
@@ -1270,6 +1316,7 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink-input|source-output)-volume", _("#N VOLUME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-mute", _("NAME|#N 1|0"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-sink-input-mute", _("#N 1|0"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "set-sink-formats", _("#N FORMATS"));
     printf("%s %s %s\n",    argv0, _("[options]"), "subscribe");
 
     printf(_("\n"
@@ -1662,7 +1709,19 @@ int main(int argc, char *argv[]) {
 
             action = SUBSCRIBE;
 
-        else if (pa_streq(argv[optind], "help")) {
+        else if (pa_streq(argv[optind], "set-sink-formats")) {
+            int32_t tmp;
+
+            if (argc != optind+3 || pa_atoi(argv[optind+1], &tmp) < 0) {
+                pa_log(_("You have to specify a sink index and a semicolon-separated list of supported formats"));
+                goto quit;
+            }
+
+            sink_idx = tmp;
+            action = SET_SINK_FORMATS;
+            formats = pa_xstrdup(argv[optind+2]);
+
+        } else if (pa_streq(argv[optind], "help")) {
             help(bn);
             ret = 0;
             goto quit;
@@ -1723,6 +1782,7 @@ quit:
     pa_xfree(card_name);
     pa_xfree(profile_name);
     pa_xfree(port_name);
+    pa_xfree(formats);
 
     if (sndfile)
         sf_close(sndfile);
