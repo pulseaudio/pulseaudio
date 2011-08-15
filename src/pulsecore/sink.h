@@ -217,17 +217,17 @@ struct pa_sink {
 
     /* Called whenever the port shall be changed. Called from main
      * thread. */
-    int (*set_port)(pa_sink *s, pa_device_port *port); /* ditto */
+    int (*set_port)(pa_sink *s, pa_device_port *port); /* may be NULL */
 
     /* Called to get the list of formats supported by the sink, sorted
      * in descending order of preference. */
-    pa_idxset* (*get_formats)(pa_sink *s); /* ditto */
+    pa_idxset* (*get_formats)(pa_sink *s); /* may be NULL */
 
     /* Called to set the list of formats supported by the sink. Can be
      * NULL if the sink does not support this. Returns TRUE on success,
      * FALSE otherwise (for example when an unsupportable format is
      * set). Makes a copy of the formats passed in. */
-    pa_bool_t (*set_formats)(pa_sink *s, pa_idxset *formats); /* ditto */
+    pa_bool_t (*set_formats)(pa_sink *s, pa_idxset *formats); /* may be NULL */
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
