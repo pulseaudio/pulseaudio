@@ -112,7 +112,7 @@ ifelse(@OS_IS_WIN32@, 0, [dnl
 #load-module module-rtp-recv
 
 ### Load the RTP sender module (also configured via paprefs, see above)
-#load-module module-null-sink sink_name=rtp format=s16be channels=2 rate=44100 description="RTP Multicast Sink"
+#load-module module-null-sink sink_name=rtp format=s16be channels=2 rate=44100 sink_properties="device.description='RTP Multicast Sink'"
 #load-module module-rtp-send source=rtp.monitor
 
 ### Load additional modules from GConf settings. This can be configured with the paprefs tool.
