@@ -129,6 +129,9 @@ priority = 0
 name = output-bass-boost-off
 priority = 10
 
+[Element IEC958 Optical Raw]
+switch = off
+
 ;;; 'Analog Output'
 
 [Element Analog Output]
