@@ -114,6 +114,7 @@ static enum {
     SET_SINK_MUTE,
     SET_SOURCE_MUTE,
     SET_SINK_INPUT_MUTE,
+    SET_SOURCE_OUTPUT_MUTE,
     SET_SINK_FORMATS,
     SUBSCRIBE
 } action = NONE;
@@ -1160,6 +1161,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     pa_operation_unref(pa_context_set_sink_input_mute(c, sink_input_idx, mute, simple_callback, NULL));
                     break;
 
+                case SET_SOURCE_OUTPUT_MUTE:
+                    pa_operation_unref(pa_context_set_source_output_mute(c, source_output_idx, mute, simple_callback, NULL));
+                    break;
+
                 case SET_SINK_VOLUME:
                     if ((volume_flags & VOL_RELATIVE) == VOL_RELATIVE) {
                         pa_operation_unref(pa_context_get_sink_info_by_name(c, sink_name, get_sink_volume_callback, NULL));
@@ -1316,7 +1321,7 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-volume", _("NAME|#N VOLUME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink-input|source-output)-volume", _("#N VOLUME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-mute", _("NAME|#N 1|0"));
-    printf("%s %s %s %s\n", argv0, _("[options]"), "set-sink-input-mute", _("#N 1|0"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink-input|source-output)-mute", _("#N 1|0"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-sink-formats", _("#N FORMATS"));
     printf("%s %s %s\n",    argv0, _("[options]"), "subscribe");
 
@@ -1696,6 +1701,27 @@ int main(int argc, char *argv[]) {
 
             if (pa_atou(argv[optind+1], &sink_input_idx) < 0) {
                 pa_log(_("Invalid sink input index specification"));
+                goto quit;
+            }
+
+            if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
+                pa_log(_("Invalid mute specification"));
+                goto quit;
+            }
+
+            mute = b;
+
+        } else if (pa_streq(argv[optind], "set-source-output-mute")) {
+            int b;
+            action = SET_SOURCE_OUTPUT_MUTE;
+
+            if (argc != optind+3) {
+                pa_log(_("You have to specify a source output index and a mute boolean"));
+                goto quit;
+            }
+
+            if (pa_atou(argv[optind+1], &source_output_idx) < 0) {
+                pa_log(_("Invalid source output index specification"));
                 goto quit;
             }
 

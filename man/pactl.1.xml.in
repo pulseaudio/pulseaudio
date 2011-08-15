@@ -218,6 +218,11 @@ USA.
     </option>
 
     <option>
+      <p><opt>set-source-output-mute</opt> <arg>INPUT</arg> <arg>1|0</arg></p>
+      <optdesc><p>Set the mute status of the specified source output (identified by its numerical index).</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>set-sink-formats</opt> <arg>SINK</arg> <arg>FORMATS</arg></p>
       <optdesc><p>Set the supported formats of the specified sink (identified by its numerical index) if supported by the sink.
       <arg>FORMATS</arg> is specified as a semi-colon (;) separated list of formats in the form
