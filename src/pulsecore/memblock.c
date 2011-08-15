@@ -711,9 +711,6 @@ pa_mempool* pa_mempool_new(pa_bool_t shared, size_t size) {
 
     p = pa_xnew(pa_mempool, 1);
 
-    p->mutex = pa_mutex_new(TRUE, TRUE);
-    p->semaphore = pa_semaphore_new(0);
-
     p->block_size = PA_PAGE_ALIGN(PA_MEMPOOL_SLOT_SIZE);
     if (p->block_size < PA_PAGE_SIZE)
         p->block_size = PA_PAGE_SIZE;
@@ -744,6 +741,9 @@ pa_mempool* pa_mempool_new(pa_bool_t shared, size_t size) {
 
     PA_LLIST_HEAD_INIT(pa_memimport, p->imports);
     PA_LLIST_HEAD_INIT(pa_memexport, p->exports);
+
+    p->mutex = pa_mutex_new(TRUE, TRUE);
+    p->semaphore = pa_semaphore_new(0);
 
     p->free_slots = pa_flist_new(p->n_blocks);
 
