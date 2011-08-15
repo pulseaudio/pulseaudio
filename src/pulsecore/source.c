@@ -144,6 +144,7 @@ static void reset_callbacks(pa_source *s) {
     s->set_state = NULL;
     s->get_volume = NULL;
     s->set_volume = NULL;
+    s->write_volume = NULL;
     s->get_mute = NULL;
     s->set_mute = NULL;
     s->update_requested_latency = NULL;
@@ -2533,6 +2534,13 @@ pa_bool_t pa_source_volume_change_apply(pa_source *s, pa_usec_t *usec_to_next) {
     pa_bool_t ret = FALSE;
 
     pa_assert(s);
+
+    if (!PA_SOURCE_IS_LINKED(s->state)) {
+        if (usec_to_next)
+            *usec_to_next = 0;
+        return ret;
+    }
+
     pa_assert(s->write_volume);
 
     while (s->thread_info.volume_changes && now >= s->thread_info.volume_changes->at) {
