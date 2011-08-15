@@ -277,3 +277,9 @@ PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST)
 New field in PA_COMMAND_UNDERFLOW:
 
     int64_t index
+
+#### If you just changed the protocol, read this
+## module-tunnel depends on the sink/source/sink-input/source-input protocol
+## internals, so if you changed these, you might have broken module-tunnel.
+## Don't forget to test module-tunnel-{source,sink} when pushing protocol
+## changes.
