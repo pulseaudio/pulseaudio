@@ -363,7 +363,7 @@ typedef struct pa_server_info {
     const char *server_name;            /**< Server package name (usually "pulseaudio") */
     pa_sample_spec sample_spec;         /**< Default sample specification */
     const char *default_sink_name;      /**< Name of default sink. */
-    const char *default_source_name;    /**< Name of default sink. */
+    const char *default_source_name;    /**< Name of default source. */
     uint32_t cookie;                    /**< A random cookie for identifying this instance of PulseAudio. */
     pa_channel_map channel_map;         /**< Default channel map. \since 0.9.15 */
 } pa_server_info;
