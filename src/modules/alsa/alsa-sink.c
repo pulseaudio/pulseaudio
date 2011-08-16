@@ -1906,7 +1906,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark, rewind_safeguard;
     snd_pcm_uframes_t period_frames, buffer_frames, tsched_frames;
     size_t frame_size;
-    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE, namereg_fail = FALSE, sync_volume = FALSE;
+    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE, namereg_fail = FALSE, sync_volume = FALSE, set_formats = FALSE;
     pa_sink_new_data data;
     pa_alsa_profile_set *profile_set = NULL;
 
@@ -2076,6 +2076,9 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     if (u->use_tsched)
         pa_log_info("Successfully enabled timer-based scheduling mode.");
 
+    if (is_iec958(u) || is_hdmi(u))
+        set_formats = TRUE;
+
     /* ALSA might tweak the sample spec, so recalculate the frame size */
     frame_size = pa_frame_size(&ss);
 
@@ -2127,7 +2130,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     if (u->mixer_path_set)
         pa_alsa_add_ports(&data.ports, u->mixer_path_set);
 
-    u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY|(u->use_tsched ? PA_SINK_DYNAMIC_LATENCY : 0));
+    u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE | PA_SINK_LATENCY | (u->use_tsched ? PA_SINK_DYNAMIC_LATENCY : 0) |
+                          (set_formats ? PA_SINK_SET_FORMATS : 0));
     pa_sink_new_data_done(&data);
 
     if (!u->sink) {
@@ -2233,7 +2237,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     if ((data.volume_is_set || data.muted_is_set) && u->sink->write_volume)
         u->sink->write_volume(u->sink);
 
-    if (is_iec958(u) || is_hdmi(u)) {
+    if (set_formats) {
         /* For S/PDIF and HDMI, allow getting/setting custom formats */
         pa_format_info *format;
 
