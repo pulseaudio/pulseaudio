@@ -756,6 +756,10 @@ typedef enum pa_sink_flags {
      * sinks). */
 /** \endcond */
 
+    PA_SINK_SET_FORMATS = 0x0400U,
+    /**< The sink allows setting what formats are supported by the connected
+     * hardware. The actual functionality to do this might be provided by an
+     * extension. \since 1.0 */
 } pa_sink_flags_t;
 
 /** \cond fulldocs */

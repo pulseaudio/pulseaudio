@@ -271,7 +271,7 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
              "\tBase Volume: %s%s%s\n"
              "\tMonitor Source: %s\n"
              "\tLatency: %0.0f usec, configured %0.0f usec\n"
-             "\tFlags: %s%s%s%s%s%s\n"
+             "\tFlags: %s%s%s%s%s%s%s\n"
              "\tProperties:\n\t\t%s\n"),
            i->index,
            state_table[1+i->state],
@@ -297,6 +297,7 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
            i->flags & PA_SINK_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
            i->flags & PA_SINK_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
            i->flags & PA_SINK_LATENCY ? "LATENCY " : "",
+           i->flags & PA_SINK_SET_FORMATS ? "SET_FORMATS " : "",
            pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
     pa_xfree(pl);
