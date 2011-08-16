@@ -166,8 +166,8 @@ static void core_free(pa_object *o) {
 
     c->state = PA_CORE_SHUTDOWN;
 
-    pa_module_unload_all(c);
-    pa_scache_free_all(c);
+    /* Note: All modules and samples in the cache should be unloaded before
+     * we get here */
 
     pa_assert(pa_idxset_isempty(c->scache));
     pa_idxset_free(c->scache, NULL, NULL);

@@ -1156,6 +1156,11 @@ finish:
 #endif
 
     if (c) {
+        /* Ensure all the modules/samples are unloaded when the core is still ref'ed,
+         * as unlink callback hooks in modules may need the core to be ref'ed */
+        pa_module_unload_all(c);
+        pa_scache_free_all(c);
+
         pa_core_unref(c);
         pa_log_info(_("Daemon terminated."));
     }
