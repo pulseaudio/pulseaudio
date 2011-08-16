@@ -330,7 +330,7 @@ pa_bool_t pa_format_info_get_prop_string(pa_format_info *f, const char *key, cha
     pa_assert(key);
     pa_assert(v);
 
-    str = pa_proplist_gets(f->plist, key), FALSE;
+    str = pa_proplist_gets(f->plist, key);
     if (!str)
         return FALSE;
 
