@@ -321,7 +321,7 @@ int pa_sink_input_new(
     pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
 
     /* Don't restore (or save) stream volume for passthrough streams */
-    if (!pa_format_info_is_pcm(data->format)) {
+    if (!pa_sink_input_new_data_is_passthrough(data)) {
         data->volume_is_set = FALSE;
         data->volume_factor_is_set = FALSE;
     }
