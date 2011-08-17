@@ -990,13 +990,22 @@ static int unsuspend(struct userdata *u) {
     int err;
     pa_bool_t b, d;
     snd_pcm_uframes_t period_size, buffer_size;
+    char *device_name = NULL;
 
     pa_assert(u);
     pa_assert(!u->pcm_handle);
 
     pa_log_info("Trying resume...");
 
-    if ((err = snd_pcm_open(&u->pcm_handle, u->device_name, SND_PCM_STREAM_PLAYBACK,
+    if ((is_spdif(u) || is_hdmi(u)) && pa_sink_is_passthrough(u->sink)) {
+        /* Need to open device in NONAUDIO mode */
+        int len = strlen(u->device_name) + 8;
+
+        device_name = pa_xmalloc(len);
+        pa_snprintf(device_name, len, "%s,AES0=6", u->device_name);
+    }
+
+    if ((err = snd_pcm_open(&u->pcm_handle, device_name ? device_name : u->device_name, SND_PCM_STREAM_PLAYBACK,
                             SND_PCM_NONBLOCK|
                             SND_PCM_NO_AUTO_RESAMPLE|
                             SND_PCM_NO_AUTO_CHANNELS|
@@ -1050,6 +1059,7 @@ static int unsuspend(struct userdata *u) {
 
     pa_log_info("Resumed successfully...");
 
+    pa_xfree(device_name);
     return 0;
 
 fail:
@@ -1057,6 +1067,8 @@ fail:
         snd_pcm_close(u->pcm_handle);
         u->pcm_handle = NULL;
     }
+
+    pa_xfree(device_name);
 
     return -PA_ERR_IO;
 }
