@@ -857,12 +857,7 @@ typedef enum pa_source_flags {
     /**< This source is in flat volume mode, i.e. always the maximum of
      * the volume of all connected outputs. \since 1.0 */
 
-    PA_SOURCE_PASSTHROUGH = 0x0100U,
-    /**< This sink has support for passthrough mode. The data will be left
-     * as is and not reformatted, resampled, mixed.
-     * \since 1.0 */
-
-    PA_SOURCE_SYNC_VOLUME = 0x0200U,
+    PA_SOURCE_SYNC_VOLUME = 0x0100U,
     /**< The HW volume changes are syncronized with SW volume.
      * \since 1.0 */
 
@@ -871,7 +866,7 @@ typedef enum pa_source_flags {
      * The server will filter out these flags anyway, so you should never see
      * these flags in sources. */
 
-    PA_SOURCE_SHARE_VOLUME_WITH_MASTER = 0x0400U,
+    PA_SOURCE_SHARE_VOLUME_WITH_MASTER = 0x0200U,
     /**< This source shares the volume with the master source (used by some filter
      * sources). */
 } pa_source_flags_t;
@@ -885,7 +880,6 @@ typedef enum pa_source_flags {
 #define PA_SOURCE_DECIBEL_VOLUME PA_SOURCE_DECIBEL_VOLUME
 #define PA_SOURCE_DYNAMIC_LATENCY PA_SOURCE_DYNAMIC_LATENCY
 #define PA_SOURCE_FLAT_VOLUME PA_SOURCE_FLAT_VOLUME
-#define PA_SOURCE_PASSTHROUGH PA_SOURCE_PASSTHROUGH
 #define PA_SOURCE_SYNC_VOLUME PA_SOURCE_SYNC_VOLUME
 #define PA_SOURCE_SHARE_VOLUME_WITH_MASTER PA_SOURCE_SHARE_VOLUME_WITH_MASTER
 
