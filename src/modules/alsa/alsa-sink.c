@@ -1106,12 +1106,12 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 break;
 
             /* .. we do */
-            if ((r = suspend(u)) < 0)
+            if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && ((r = suspend(u)) < 0))
                 return r;
 
             u->sink->sample_spec.rate = u->old_rate;
 
-            if ((r = unsuspend(u)) < 0)
+            if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && ((r = unsuspend(u)) < 0))
                 return r;
 
             break;
