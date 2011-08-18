@@ -104,9 +104,9 @@ enum {
     SUBCOMMAND_TEST,
     SUBCOMMAND_SUBSCRIBE,
     SUBCOMMAND_EVENT,
-    SUBCOMMAND_READ_SINK_FORMATS_ALL,
-    SUBCOMMAND_READ_SINK_FORMATS,
-    SUBCOMMAND_SAVE_SINK_FORMATS
+    SUBCOMMAND_READ_FORMATS_ALL,
+    SUBCOMMAND_READ_FORMATS,
+    SUBCOMMAND_SAVE_FORMATS
 };
 
 
@@ -137,7 +137,7 @@ static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct
     pa_log_info("Synced.");
 }
 
-static void trigger_save(struct userdata *u, uint32_t sink_idx) {
+static void trigger_save(struct userdata *u, pa_device_type_t type, uint32_t sink_idx) {
     pa_native_connection *c;
     uint32_t idx;
 
@@ -151,6 +151,7 @@ static void trigger_save(struct userdata *u, uint32_t sink_idx) {
             pa_tagstruct_putu32(t, u->module->index);
             pa_tagstruct_puts(t, u->module->name);
             pa_tagstruct_putu32(t, SUBCOMMAND_EVENT);
+            pa_tagstruct_putu32(t, type);
             pa_tagstruct_putu32(t, sink_idx);
 
             pa_pstream_send_tagstruct(pa_native_connection_get_pstream(c), t);
@@ -360,7 +361,7 @@ fail:
     if ((e = legacy_entry_read(u, &data))) {
         pa_log_debug("Success. Saving new format for key: %s", name);
         if (entry_write(u, name, e))
-            trigger_save(u, PA_INVALID_INDEX);
+            trigger_save(u, PA_DEVICE_TYPE_SINK, PA_INVALID_INDEX);
         pa_datum_free(&data);
         return e;
     } else
@@ -421,6 +422,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     struct userdata *u = userdata;
     struct entry *entry, *old;
     char *name;
+    pa_device_type_t type;
 
     pa_assert(c);
     pa_assert(u);
@@ -437,6 +439,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!(sink = pa_idxset_get_by_index(c->sinks, idx)))
             return;
 
+        type = PA_DEVICE_TYPE_SINK;
         name = pa_sprintf_malloc("sink:%s", sink->name);
 
         if ((old = entry_read(u, name)))
@@ -469,6 +472,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!(source = pa_idxset_get_by_index(c->sources, idx)))
             return;
 
+        type = PA_DEVICE_TYPE_SOURCE;
         name = pa_sprintf_malloc("source:%s", source->name);
 
         if ((old = entry_read(u, name)))
@@ -511,7 +515,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     pa_log_info("Storing volume/mute/port for device %s.", name);
 
     if (entry_write(u, name, entry))
-        trigger_save(u, idx);
+        trigger_save(u, type, idx);
 
     entry_free(entry);
     pa_xfree(name);
@@ -705,6 +709,7 @@ static void read_sink_format_reply(struct userdata *u, pa_tagstruct *reply, pa_s
     pa_assert(reply);
     pa_assert(sink);
 
+    pa_tagstruct_putu32(reply, PA_DEVICE_TYPE_SINK);
     pa_tagstruct_putu32(reply, sink->index);
 
     /* Read or create an entry */
@@ -775,7 +780,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             break;
         }
 
-        case SUBCOMMAND_READ_SINK_FORMATS_ALL: {
+        case SUBCOMMAND_READ_FORMATS_ALL: {
             pa_sink *sink;
             uint32_t idx;
 
@@ -788,15 +793,22 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
             break;
         }
-        case SUBCOMMAND_READ_SINK_FORMATS: {
+        case SUBCOMMAND_READ_FORMATS: {
+            pa_device_type_t type;
             uint32_t sink_index;
             pa_sink *sink;
 
             pa_assert(reply);
 
             /* Get the sink index and the number of formats from the tagstruct */
-            if (pa_tagstruct_getu32(t, &sink_index) < 0)
+            if (pa_tagstruct_getu32(t, &type) < 0 ||
+                pa_tagstruct_getu32(t, &sink_index) < 0)
                 goto fail;
+
+            if (type != PA_DEVICE_TYPE_SINK) {
+                pa_log("Device format reading is only supported on sinks");
+                goto fail;
+            }
 
             if (!pa_tagstruct_eof(t))
                 goto fail;
@@ -810,18 +822,25 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             break;
         }
 
-        case SUBCOMMAND_SAVE_SINK_FORMATS: {
+        case SUBCOMMAND_SAVE_FORMATS: {
 
             struct entry *e;
+            pa_device_type_t type;
             uint32_t sink_index;
             char *name;
             pa_sink *sink;
             uint8_t i, n_formats;
 
             /* Get the sink index and the number of formats from the tagstruct */
-            if (pa_tagstruct_getu32(t, &sink_index) < 0 ||
+            if (pa_tagstruct_getu32(t, &type) < 0 ||
+                pa_tagstruct_getu32(t, &sink_index) < 0 ||
                 pa_tagstruct_getu8(t, &n_formats) < 0 || n_formats < 1) {
 
+                goto fail;
+            }
+
+            if (type != PA_DEVICE_TYPE_SINK) {
+                pa_log("Device format saving is only supported on sinks");
                 goto fail;
             }
 
@@ -859,7 +878,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             }
 
             if (pa_sink_set_formats(sink, e->formats) && entry_write(u, name, e))
-                trigger_save(u, sink_index);
+                trigger_save(u, type, sink_index);
             else
                 pa_log_warn("Could not save format info for sink %s", sink->name);
 

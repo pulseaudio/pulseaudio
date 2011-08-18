@@ -909,7 +909,7 @@ static void set_sink_formats(pa_context *c, uint32_t sink, const char *str) {
         pa_xfree(format);
     }
 
-    pa_operation_unref(pa_ext_device_restore_save_sink_formats(c, sink, i, f_arr, simple_callback, NULL));
+    pa_operation_unref(pa_ext_device_restore_save_formats(c, PA_DEVICE_TYPE_SINK, sink, i, f_arr, simple_callback, NULL));
 
 done:
     if (format)

@@ -42,9 +42,9 @@ enum {
     SUBCOMMAND_TEST,
     SUBCOMMAND_SUBSCRIBE,
     SUBCOMMAND_EVENT,
-    SUBCOMMAND_READ_SINK_FORMATS_ALL,
-    SUBCOMMAND_READ_SINK_FORMATS,
-    SUBCOMMAND_SAVE_SINK_FORMATS
+    SUBCOMMAND_READ_FORMATS_ALL,
+    SUBCOMMAND_READ_FORMATS,
+    SUBCOMMAND_SAVE_FORMATS
 };
 
 static void ext_device_restore_test_cb(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -175,9 +175,20 @@ static void ext_device_restore_read_device_formats_cb(pa_pdispatch *pd, uint32_t
             pa_ext_device_restore_info i;
             pa_zero(i);
 
-            if (pa_tagstruct_getu32(t, &i.index) < 0 ||
+            if (pa_tagstruct_getu32(t, &i.type) < 0 ||
+                pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_getu8(t, &i.n_formats) < 0) {
 
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                goto finish;
+            }
+
+            if (PA_DEVICE_TYPE_SINK != i.type && PA_DEVICE_TYPE_SOURCE != i.type) {
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                goto finish;
+            }
+
+            if (i.index == PA_INVALID_INDEX) {
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
@@ -221,7 +232,7 @@ finish:
     pa_operation_unref(o);
 }
 
-pa_operation *pa_ext_device_restore_read_sink_formats_all(
+pa_operation *pa_ext_device_restore_read_formats_all(
         pa_context *c,
         pa_ext_device_restore_read_device_formats_cb_t cb,
         void *userdata) {
@@ -242,15 +253,16 @@ pa_operation *pa_ext_device_restore_read_sink_formats_all(
     t = pa_tagstruct_command(c, PA_COMMAND_EXTENSION, &tag);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, "module-device-restore");
-    pa_tagstruct_putu32(t, SUBCOMMAND_READ_SINK_FORMATS_ALL);
+    pa_tagstruct_putu32(t, SUBCOMMAND_READ_FORMATS_ALL);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, ext_device_restore_read_device_formats_cb, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
 
-pa_operation *pa_ext_device_restore_read_sink_formats(
+pa_operation *pa_ext_device_restore_read_formats(
         pa_context *c,
+        pa_device_type_t type,
         uint32_t idx,
         pa_ext_device_restore_read_device_formats_cb_t cb,
         void *userdata) {
@@ -272,7 +284,8 @@ pa_operation *pa_ext_device_restore_read_sink_formats(
     t = pa_tagstruct_command(c, PA_COMMAND_EXTENSION, &tag);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, "module-device-restore");
-    pa_tagstruct_putu32(t, SUBCOMMAND_READ_SINK_FORMATS);
+    pa_tagstruct_putu32(t, SUBCOMMAND_READ_FORMATS);
+    pa_tagstruct_putu32(t, type);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, ext_device_restore_read_device_formats_cb, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
@@ -280,8 +293,9 @@ pa_operation *pa_ext_device_restore_read_sink_formats(
     return o;
 }
 
-pa_operation *pa_ext_device_restore_save_sink_formats(
+pa_operation *pa_ext_device_restore_save_formats(
         pa_context *c,
+        pa_device_type_t type,
         uint32_t idx,
         uint8_t n_formats,
         pa_format_info **formats,
@@ -308,8 +322,9 @@ pa_operation *pa_ext_device_restore_save_sink_formats(
     t = pa_tagstruct_command(c, PA_COMMAND_EXTENSION, &tag);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, "module-device-restore");
-    pa_tagstruct_putu32(t, SUBCOMMAND_SAVE_SINK_FORMATS);
+    pa_tagstruct_putu32(t, SUBCOMMAND_SAVE_FORMATS);
 
+    pa_tagstruct_putu32(t, type);
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_putu8(t, n_formats);
     for (j = 0; j < n_formats; j++)
@@ -324,6 +339,7 @@ pa_operation *pa_ext_device_restore_save_sink_formats(
 /* Command function defined in internal.h */
 void pa_ext_device_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t) {
     uint32_t subcommand;
+    pa_device_type_t type;
     uint32_t idx;
 
     pa_assert(c);
@@ -331,6 +347,7 @@ void pa_ext_device_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t)
     pa_assert(t);
 
     if (pa_tagstruct_getu32(t, &subcommand) < 0 ||
+        pa_tagstruct_getu32(t, &type) < 0 ||
         pa_tagstruct_getu32(t, &idx) < 0 ||
         !pa_tagstruct_eof(t)) {
 
@@ -343,11 +360,16 @@ void pa_ext_device_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t)
         return;
     }
 
+    if (PA_DEVICE_TYPE_SINK != type && PA_DEVICE_TYPE_SOURCE != type) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        return;
+    }
+
     if (idx == PA_INVALID_INDEX) {
         pa_context_fail(c, PA_ERR_PROTOCOL);
         return;
     }
 
     if (c->ext_device_restore.callback)
-        c->ext_device_restore.callback(c, idx, c->ext_device_restore.userdata);
+        c->ext_device_restore.callback(c, type, idx, c->ext_device_restore.userdata);
 }

@@ -37,6 +37,7 @@ PA_C_DECL_BEGIN
 /** Stores information about one device in the device database that is
  * maintained by module-device-manager. \since 1.0 */
 typedef struct pa_ext_device_restore_info {
+    pa_device_type_t type;       /**< Device type sink or source? */
     uint32_t index;              /**< The device index */
     uint8_t n_formats;           /**< How many formats do we have? */
     pa_format_info **formats;    /**< An array of formats (may be NULL if n_formats == 0) */
@@ -64,6 +65,7 @@ pa_operation *pa_ext_device_restore_subscribe(
 /** Callback prototype for pa_ext_device_restore_set_subscribe_cb(). \since 1.0 */
 typedef void (*pa_ext_device_restore_subscribe_cb_t)(
         pa_context *c,
+        pa_device_type_t type,
         uint32_t idx,
         void *userdata);
 
@@ -74,29 +76,31 @@ void pa_ext_device_restore_set_subscribe_cb(
         pa_ext_device_restore_subscribe_cb_t cb,
         void *userdata);
 
-/** Callback prototype for pa_ext_device_restore_read_sink_formats(). \since 1.0 */
+/** Callback prototype for pa_ext_device_restore_read_formats(). \since 1.0 */
 typedef void (*pa_ext_device_restore_read_device_formats_cb_t)(
         pa_context *c,
         const pa_ext_device_restore_info *info,
         int eol,
         void *userdata);
 
-/** Read the formats for all present sinks from the device database. \since 1.0 */
-pa_operation *pa_ext_device_restore_read_sink_formats_all(
+/** Read the formats for all present devices from the device database. \since 1.0 */
+pa_operation *pa_ext_device_restore_read_formats_all(
         pa_context *c,
         pa_ext_device_restore_read_device_formats_cb_t cb,
         void *userdata);
 
 /** Read an entry from the device database. \since 1.0 */
-pa_operation *pa_ext_device_restore_read_sink_formats(
+pa_operation *pa_ext_device_restore_read_formats(
         pa_context *c,
+        pa_device_type_t type,
         uint32_t idx,
         pa_ext_device_restore_read_device_formats_cb_t cb,
         void *userdata);
 
 /** Read an entry from the device database. \since 1.0 */
-pa_operation *pa_ext_device_restore_save_sink_formats(
+pa_operation *pa_ext_device_restore_save_formats(
         pa_context *c,
+        pa_device_type_t type,
         uint32_t idx,
         uint8_t n_formats,
         pa_format_info **formats,
