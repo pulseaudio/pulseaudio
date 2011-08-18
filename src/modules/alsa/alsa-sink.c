@@ -997,7 +997,7 @@ static int unsuspend(struct userdata *u) {
 
     pa_log_info("Trying resume...");
 
-    if ((is_spdif(u) || is_hdmi(u)) && pa_sink_is_passthrough(u->sink)) {
+    if ((is_iec958(u) || is_hdmi(u)) && pa_sink_is_passthrough(u->sink)) {
         /* Need to open device in NONAUDIO mode */
         int len = strlen(u->device_name) + 8;
 
