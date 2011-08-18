@@ -76,11 +76,6 @@ static void handle_source_get_monitor_of_sink(DBusConnection *conn, DBusMessage 
 
 static void handle_source_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
-enum device_type {
-    DEVICE_TYPE_SINK,
-    DEVICE_TYPE_SOURCE
-};
-
 struct pa_dbusiface_device {
     pa_dbusiface_core *core;
 
@@ -88,7 +83,7 @@ struct pa_dbusiface_device {
         pa_sink *sink;
         pa_source *source;
     };
-    enum device_type type;
+    pa_device_type_t type;
     char *path;
     pa_cvolume volume;
     dbus_bool_t mute;
@@ -266,7 +261,7 @@ static void handle_get_index(DBusConnection *conn, DBusMessage *msg, void *userd
     pa_assert(msg);
     pa_assert(d);
 
-    idx = (d->type == DEVICE_TYPE_SINK) ? d->sink->index : d->source->index;
+    idx = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->index : d->source->index;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &idx);
 }
@@ -279,7 +274,7 @@ static void handle_get_name(DBusConnection *conn, DBusMessage *msg, void *userda
     pa_assert(msg);
     pa_assert(d);
 
-    name = (d->type == DEVICE_TYPE_SINK) ? d->sink->name : d->source->name;
+    name = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->name : d->source->name;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_STRING, &name);
 }
@@ -292,7 +287,7 @@ static void handle_get_driver(DBusConnection *conn, DBusMessage *msg, void *user
     pa_assert(msg);
     pa_assert(d);
 
-    driver = (d->type == DEVICE_TYPE_SINK) ? d->sink->driver : d->source->driver;
+    driver = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->driver : d->source->driver;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_STRING, &driver);
 }
@@ -306,10 +301,10 @@ static void handle_get_owner_module(DBusConnection *conn, DBusMessage *msg, void
     pa_assert(msg);
     pa_assert(d);
 
-    owner_module = (d->type == DEVICE_TYPE_SINK) ? d->sink->module : d->source->module;
+    owner_module = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->module : d->source->module;
 
     if (!owner_module) {
-        if (d->type == DEVICE_TYPE_SINK)
+        if (d->type == PA_DEVICE_TYPE_SINK)
             pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
                                "Sink %s doesn't have an owner module.", d->sink->name);
         else
@@ -332,10 +327,10 @@ static void handle_get_card(DBusConnection *conn, DBusMessage *msg, void *userda
     pa_assert(msg);
     pa_assert(d);
 
-    card = (d->type == DEVICE_TYPE_SINK) ? d->sink->card : d->source->card;
+    card = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->card : d->source->card;
 
     if (!card) {
-        if (d->type == DEVICE_TYPE_SINK)
+        if (d->type == PA_DEVICE_TYPE_SINK)
             pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
                                "Sink %s doesn't belong to any card.", d->sink->name);
         else
@@ -357,7 +352,7 @@ static void handle_get_sample_format(DBusConnection *conn, DBusMessage *msg, voi
     pa_assert(msg);
     pa_assert(d);
 
-    sample_format = (d->type == DEVICE_TYPE_SINK) ? d->sink->sample_spec.format : d->source->sample_spec.format;
+    sample_format = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->sample_spec.format : d->source->sample_spec.format;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &sample_format);
 }
@@ -370,7 +365,7 @@ static void handle_get_sample_rate(DBusConnection *conn, DBusMessage *msg, void 
     pa_assert(msg);
     pa_assert(d);
 
-    sample_rate = (d->type == DEVICE_TYPE_SINK) ? d->sink->sample_spec.rate : d->source->sample_spec.rate;
+    sample_rate = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->sample_spec.rate : d->source->sample_spec.rate;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &sample_rate);
 }
@@ -385,7 +380,7 @@ static void handle_get_channels(DBusConnection *conn, DBusMessage *msg, void *us
     pa_assert(msg);
     pa_assert(d);
 
-    channel_map = (d->type == DEVICE_TYPE_SINK) ? &d->sink->channel_map : &d->source->channel_map;
+    channel_map = (d->type == PA_DEVICE_TYPE_SINK) ? &d->sink->channel_map : &d->source->channel_map;
 
     for (i = 0; i < channel_map->channels; ++i)
         channels[i] = channel_map->map[i];
@@ -422,7 +417,7 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessag
     pa_assert(iter);
     pa_assert(d);
 
-    device_channels = (d->type == DEVICE_TYPE_SINK) ? d->sink->channel_map.channels : d->source->channel_map.channels;
+    device_channels = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->channel_map.channels : d->source->channel_map.channels;
 
     dbus_message_iter_recurse(iter, &array_iter);
     dbus_message_iter_get_fixed_array(&array_iter, &volume, &n_volume_entries);
@@ -444,7 +439,7 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessag
         new_vol.values[i] = volume[i];
     }
 
-    if (d->type == DEVICE_TYPE_SINK)
+    if (d->type == PA_DEVICE_TYPE_SINK)
         pa_sink_set_volume(d->sink, &new_vol, TRUE, TRUE);
     else
         pa_source_set_volume(d->source, &new_vol, TRUE, TRUE);
@@ -460,7 +455,7 @@ static void handle_get_has_flat_volume(DBusConnection *conn, DBusMessage *msg, v
     pa_assert(msg);
     pa_assert(d);
 
-    has_flat_volume = (d->type == DEVICE_TYPE_SINK) ? (d->sink->flags & PA_SINK_FLAT_VOLUME) : FALSE;
+    has_flat_volume = (d->type == PA_DEVICE_TYPE_SINK) ? (d->sink->flags & PA_SINK_FLAT_VOLUME) : FALSE;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &has_flat_volume);
 }
@@ -473,7 +468,7 @@ static void handle_get_has_convertible_to_decibel_volume(DBusConnection *conn, D
     pa_assert(msg);
     pa_assert(d);
 
-    has_convertible_to_decibel_volume = (d->type == DEVICE_TYPE_SINK)
+    has_convertible_to_decibel_volume = (d->type == PA_DEVICE_TYPE_SINK)
                                         ? (d->sink->flags & PA_SINK_DECIBEL_VOLUME)
                                         : (d->source->flags & PA_SOURCE_DECIBEL_VOLUME);
 
@@ -488,7 +483,7 @@ static void handle_get_base_volume(DBusConnection *conn, DBusMessage *msg, void 
     pa_assert(msg);
     pa_assert(d);
 
-    base_volume = (d->type == DEVICE_TYPE_SINK) ? d->sink->base_volume : d->source->base_volume;
+    base_volume = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->base_volume : d->source->base_volume;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &base_volume);
 }
@@ -501,7 +496,7 @@ static void handle_get_volume_steps(DBusConnection *conn, DBusMessage *msg, void
     pa_assert(msg);
     pa_assert(d);
 
-    volume_steps = (d->type == DEVICE_TYPE_SINK) ? d->sink->n_volume_steps : d->source->n_volume_steps;
+    volume_steps = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->n_volume_steps : d->source->n_volume_steps;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &volume_steps);
 }
@@ -527,7 +522,7 @@ static void handle_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMessageI
 
     dbus_message_iter_get_basic(iter, &mute);
 
-    if (d->type == DEVICE_TYPE_SINK)
+    if (d->type == PA_DEVICE_TYPE_SINK)
         pa_sink_set_mute(d->sink, mute, TRUE);
     else
         pa_source_set_mute(d->source, mute, TRUE);
@@ -543,7 +538,7 @@ static void handle_get_has_hardware_volume(DBusConnection *conn, DBusMessage *ms
     pa_assert(msg);
     pa_assert(d);
 
-    has_hardware_volume = (d->type == DEVICE_TYPE_SINK)
+    has_hardware_volume = (d->type == PA_DEVICE_TYPE_SINK)
                           ? (d->sink->flags & PA_SINK_HW_VOLUME_CTRL)
                           : (d->source->flags & PA_SOURCE_HW_VOLUME_CTRL);
 
@@ -558,7 +553,7 @@ static void handle_get_has_hardware_mute(DBusConnection *conn, DBusMessage *msg,
     pa_assert(msg);
     pa_assert(d);
 
-    has_hardware_mute = (d->type == DEVICE_TYPE_SINK)
+    has_hardware_mute = (d->type == PA_DEVICE_TYPE_SINK)
                         ? (d->sink->flags & PA_SINK_HW_MUTE_CTRL)
                         : (d->source->flags & PA_SOURCE_HW_MUTE_CTRL);
 
@@ -573,7 +568,7 @@ static void handle_get_configured_latency(DBusConnection *conn, DBusMessage *msg
     pa_assert(msg);
     pa_assert(d);
 
-    configured_latency = (d->type == DEVICE_TYPE_SINK)
+    configured_latency = (d->type == PA_DEVICE_TYPE_SINK)
                          ? pa_sink_get_requested_latency(d->sink)
                          : pa_source_get_requested_latency(d->source);
 
@@ -588,7 +583,7 @@ static void handle_get_has_dynamic_latency(DBusConnection *conn, DBusMessage *ms
     pa_assert(msg);
     pa_assert(d);
 
-    has_dynamic_latency = (d->type == DEVICE_TYPE_SINK)
+    has_dynamic_latency = (d->type == PA_DEVICE_TYPE_SINK)
                           ? (d->sink->flags & PA_SINK_DYNAMIC_LATENCY)
                           : (d->source->flags & PA_SOURCE_DYNAMIC_LATENCY);
 
@@ -603,15 +598,15 @@ static void handle_get_latency(DBusConnection *conn, DBusMessage *msg, void *use
     pa_assert(msg);
     pa_assert(d);
 
-    if (d->type == DEVICE_TYPE_SINK && !(d->sink->flags & PA_SINK_LATENCY))
+    if (d->type == PA_DEVICE_TYPE_SINK && !(d->sink->flags & PA_SINK_LATENCY))
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
                            "Sink %s doesn't support latency querying.", d->sink->name);
-    else if (d->type == DEVICE_TYPE_SOURCE && !(d->source->flags & PA_SOURCE_LATENCY))
+    else if (d->type == PA_DEVICE_TYPE_SOURCE && !(d->source->flags & PA_SOURCE_LATENCY))
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
                            "Source %s doesn't support latency querying.", d->source->name);
     return;
 
-    latency = (d->type == DEVICE_TYPE_SINK) ? pa_sink_get_latency(d->sink) : pa_source_get_latency(d->source);
+    latency = (d->type == PA_DEVICE_TYPE_SINK) ? pa_sink_get_latency(d->sink) : pa_source_get_latency(d->source);
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT64, &latency);
 }
@@ -624,7 +619,7 @@ static void handle_get_is_hardware_device(DBusConnection *conn, DBusMessage *msg
     pa_assert(msg);
     pa_assert(d);
 
-    is_hardware_device = (d->type == DEVICE_TYPE_SINK)
+    is_hardware_device = (d->type == PA_DEVICE_TYPE_SINK)
                          ? (d->sink->flags & PA_SINK_HARDWARE)
                          : (d->source->flags & PA_SOURCE_HARDWARE);
 
@@ -639,7 +634,7 @@ static void handle_get_is_network_device(DBusConnection *conn, DBusMessage *msg,
     pa_assert(msg);
     pa_assert(d);
 
-    is_network_device = (d->type == DEVICE_TYPE_SINK)
+    is_network_device = (d->type == PA_DEVICE_TYPE_SINK)
                         ? (d->sink->flags & PA_SINK_NETWORK)
                         : (d->source->flags & PA_SOURCE_NETWORK);
 
@@ -654,7 +649,7 @@ static void handle_get_state(DBusConnection *conn, DBusMessage *msg, void *userd
     pa_assert(msg);
     pa_assert(d);
 
-    state = (d->type == DEVICE_TYPE_SINK) ? d->sink_state : d->source_state;
+    state = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink_state : d->source_state;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &state);
 }
@@ -709,7 +704,7 @@ static void handle_get_active_port(DBusConnection *conn, DBusMessage *msg, void 
     if (!d->active_port) {
         pa_assert(pa_hashmap_isempty(d->ports));
 
-        if (d->type == DEVICE_TYPE_SINK)
+        if (d->type == PA_DEVICE_TYPE_SINK)
             pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
                                "The sink %s has no ports, and therefore there's no active port either.", d->sink->name);
         else
@@ -737,7 +732,7 @@ static void handle_set_active_port(DBusConnection *conn, DBusMessage *msg, DBusM
     if (!d->active_port) {
         pa_assert(pa_hashmap_isempty(d->ports));
 
-        if (d->type == DEVICE_TYPE_SINK)
+        if (d->type == PA_DEVICE_TYPE_SINK)
             pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
                                "The sink %s has no ports, and therefore there's no active port either.", d->sink->name);
         else
@@ -753,7 +748,7 @@ static void handle_set_active_port(DBusConnection *conn, DBusMessage *msg, DBusM
         return;
     }
 
-    if (d->type == DEVICE_TYPE_SINK) {
+    if (d->type == PA_DEVICE_TYPE_SINK) {
         if ((r = pa_sink_set_port(d->sink, pa_dbusiface_device_port_get_name(new_active), TRUE)) < 0) {
             pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED,
                                "Internal error in PulseAudio: pa_sink_set_port() failed with error code %i.", r);
@@ -818,7 +813,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     pa_assert(msg);
     pa_assert(d);
 
-    if (d->type == DEVICE_TYPE_SINK) {
+    if (d->type == PA_DEVICE_TYPE_SINK) {
         idx = d->sink->index;
         name = d->sink->name;
         driver = d->sink->driver;
@@ -931,10 +926,10 @@ static void handle_suspend(DBusConnection *conn, DBusMessage *msg, void *userdat
 
     pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_BOOLEAN, &suspend, DBUS_TYPE_INVALID));
 
-    if ((d->type == DEVICE_TYPE_SINK) && (pa_sink_suspend(d->sink, suspend, PA_SUSPEND_USER) < 0)) {
+    if ((d->type == PA_DEVICE_TYPE_SINK) && (pa_sink_suspend(d->sink, suspend, PA_SUSPEND_USER) < 0)) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED, "Internal error in PulseAudio: pa_sink_suspend() failed.");
         return;
-    } else if ((d->type == DEVICE_TYPE_SOURCE) && (pa_source_suspend(d->source, suspend, PA_SUSPEND_USER) < 0)) {
+    } else if ((d->type == PA_DEVICE_TYPE_SOURCE) && (pa_source_suspend(d->source, suspend, PA_SUSPEND_USER) < 0)) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED, "Internal error in PulseAudio: pa_source_suspend() failed.");
         return;
     }
@@ -955,7 +950,7 @@ static void handle_get_port_by_name(DBusConnection *conn, DBusMessage *msg, void
     pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &port_name, DBUS_TYPE_INVALID));
 
     if (!(port = pa_hashmap_get(d->ports, port_name))) {
-        if (d->type == DEVICE_TYPE_SINK)
+        if (d->type == PA_DEVICE_TYPE_SINK)
             pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND,
                                "%s: No such port on sink %s.", port_name, d->sink->name);
         else
@@ -976,7 +971,7 @@ static void handle_sink_get_monitor_source(DBusConnection *conn, DBusMessage *ms
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(d);
-    pa_assert(d->type == DEVICE_TYPE_SINK);
+    pa_assert(d->type == PA_DEVICE_TYPE_SINK);
 
     monitor_source = pa_dbusiface_core_get_source_path(d->core, d->sink->monitor_source);
 
@@ -993,7 +988,7 @@ static void handle_sink_get_all(DBusConnection *conn, DBusMessage *msg, void *us
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(d);
-    pa_assert(d->type == DEVICE_TYPE_SINK);
+    pa_assert(d->type == PA_DEVICE_TYPE_SINK);
 
     monitor_source = pa_dbusiface_core_get_source_path(d->core, d->sink->monitor_source);
 
@@ -1018,7 +1013,7 @@ static void handle_source_get_monitor_of_sink(DBusConnection *conn, DBusMessage 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(d);
-    pa_assert(d->type == DEVICE_TYPE_SOURCE);
+    pa_assert(d->type == PA_DEVICE_TYPE_SOURCE);
 
     if (!d->source->monitor_of) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "Source %s is not a monitor source.", d->source->name);
@@ -1040,7 +1035,7 @@ static void handle_source_get_all(DBusConnection *conn, DBusMessage *msg, void *
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(d);
-    pa_assert(d->type == DEVICE_TYPE_SOURCE);
+    pa_assert(d->type == PA_DEVICE_TYPE_SOURCE);
 
     if (d->source->monitor_of)
         monitor_of_sink = pa_dbusiface_core_get_sink_path(d->core, d->source->monitor_of);
@@ -1074,18 +1069,18 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
     pa_assert(c);
     pa_assert(d);
 
-    if ((d->type == DEVICE_TYPE_SINK && idx != d->sink->index) || (d->type == DEVICE_TYPE_SOURCE && idx != d->source->index))
+    if ((d->type == PA_DEVICE_TYPE_SINK && idx != d->sink->index) || (d->type == PA_DEVICE_TYPE_SOURCE && idx != d->source->index))
         return;
 
     if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) != PA_SUBSCRIPTION_EVENT_CHANGE)
         return;
 
-    pa_assert(((d->type == DEVICE_TYPE_SINK)
+    pa_assert(((d->type == PA_DEVICE_TYPE_SINK)
                 && ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK))
-              || ((d->type == DEVICE_TYPE_SOURCE)
+              || ((d->type == PA_DEVICE_TYPE_SOURCE)
                    && ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE)));
 
-    new_volume = (d->type == DEVICE_TYPE_SINK)
+    new_volume = (d->type == PA_DEVICE_TYPE_SINK)
                  ? pa_sink_get_volume(d->sink, FALSE)
                  : pa_source_get_volume(d->source, FALSE);
 
@@ -1110,7 +1105,7 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
         signal_msg = NULL;
     }
 
-    new_mute = (d->type == DEVICE_TYPE_SINK) ? pa_sink_get_mute(d->sink, FALSE) : pa_source_get_mute(d->source, FALSE);
+    new_mute = (d->type == PA_DEVICE_TYPE_SINK) ? pa_sink_get_mute(d->sink, FALSE) : pa_source_get_mute(d->source, FALSE);
 
     if (d->mute != new_mute) {
         d->mute = new_mute;
@@ -1125,21 +1120,21 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
         signal_msg = NULL;
     }
 
-    if (d->type == DEVICE_TYPE_SINK)
+    if (d->type == PA_DEVICE_TYPE_SINK)
         new_sink_state = pa_sink_get_state(d->sink);
     else
         new_source_state = pa_source_get_state(d->source);
 
-    if ((d->type == DEVICE_TYPE_SINK && d->sink_state != new_sink_state)
-        || (d->type == DEVICE_TYPE_SOURCE && d->source_state != new_source_state)) {
+    if ((d->type == PA_DEVICE_TYPE_SINK && d->sink_state != new_sink_state)
+        || (d->type == PA_DEVICE_TYPE_SOURCE && d->source_state != new_source_state)) {
         dbus_uint32_t state = 0;
 
-        if (d->type == DEVICE_TYPE_SINK)
+        if (d->type == PA_DEVICE_TYPE_SINK)
             d->sink_state = new_sink_state;
         else
             d->source_state = new_source_state;
 
-        state = (d->type == DEVICE_TYPE_SINK) ? d->sink_state : d->source_state;
+        state = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink_state : d->source_state;
 
         pa_assert_se(signal_msg = dbus_message_new_signal(d->path,
 							  PA_DBUSIFACE_DEVICE_INTERFACE,
@@ -1151,7 +1146,7 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
         signal_msg = NULL;
     }
 
-    new_active_port = (d->type == DEVICE_TYPE_SINK) ? d->sink->active_port : d->source->active_port;
+    new_active_port = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->active_port : d->source->active_port;
 
     if (d->active_port != new_active_port) {
         const char *object_path = NULL;
@@ -1169,7 +1164,7 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
         signal_msg = NULL;
     }
 
-    new_proplist = (d->type == DEVICE_TYPE_SINK) ? d->sink->proplist : d->source->proplist;
+    new_proplist = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->proplist : d->source->proplist;
 
     if (!pa_proplist_equal(d->proplist, new_proplist)) {
         DBusMessageIter msg_iter;
@@ -1197,7 +1192,7 @@ pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_si
     d = pa_xnew0(pa_dbusiface_device, 1);
     d->core = core;
     d->sink = pa_sink_ref(sink);
-    d->type = DEVICE_TYPE_SINK;
+    d->type = PA_DEVICE_TYPE_SINK;
     d->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, SINK_OBJECT_NAME, sink->index);
     d->volume = *pa_sink_get_volume(sink, FALSE);
     d->mute = pa_sink_get_mute(sink, FALSE);
@@ -1235,7 +1230,7 @@ pa_dbusiface_device *pa_dbusiface_device_new_source(pa_dbusiface_core *core, pa_
     d = pa_xnew0(pa_dbusiface_device, 1);
     d->core = core;
     d->source = pa_source_ref(source);
-    d->type = DEVICE_TYPE_SOURCE;
+    d->type = PA_DEVICE_TYPE_SOURCE;
     d->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, SOURCE_OBJECT_NAME, source->index);
     d->volume = *pa_source_get_volume(source, FALSE);
     d->mute = pa_source_get_mute(source, FALSE);
@@ -1277,7 +1272,7 @@ void pa_dbusiface_device_free(pa_dbusiface_device *d) {
 
     pa_assert_se(pa_dbus_protocol_remove_interface(d->dbus_protocol, d->path, device_interface_info.name) >= 0);
 
-    if (d->type == DEVICE_TYPE_SINK) {
+    if (d->type == PA_DEVICE_TYPE_SINK) {
         pa_assert_se(pa_dbus_protocol_remove_interface(d->dbus_protocol, d->path, sink_interface_info.name) >= 0);
         pa_sink_unref(d->sink);
 
@@ -1302,14 +1297,14 @@ const char *pa_dbusiface_device_get_path(pa_dbusiface_device *d) {
 
 pa_sink *pa_dbusiface_device_get_sink(pa_dbusiface_device *d) {
     pa_assert(d);
-    pa_assert(d->type == DEVICE_TYPE_SINK);
+    pa_assert(d->type == PA_DEVICE_TYPE_SINK);
 
     return d->sink;
 }
 
 pa_source *pa_dbusiface_device_get_source(pa_dbusiface_device *d) {
     pa_assert(d);
-    pa_assert(d->type == DEVICE_TYPE_SOURCE);
+    pa_assert(d->type == PA_DEVICE_TYPE_SOURCE);
 
     return d->source;
 }
