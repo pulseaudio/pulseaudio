@@ -130,6 +130,7 @@ static int pa_cli_command_update_source_output_proplist(pa_core *c, pa_tokenizer
 static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sink_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_source_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_dump_volumes(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 
 /* A method table for all available commands */
 
@@ -187,6 +188,7 @@ static const struct command commands[] = {
     { "set-log-meta",            pa_cli_command_log_meta,           "Show source code location in log messages (args: bool)", 2},
     { "set-log-time",            pa_cli_command_log_time,           "Show timestamps in log messages (args: bool)", 2},
     { "set-log-backtrace",       pa_cli_command_log_backtrace,      "Show backtrace in log messages (args: frames)", 2},
+    { "dump-volumes",            pa_cli_command_dump_volumes,       NULL, 1 },
     { NULL, NULL, NULL, 0 }
 };
 
@@ -1658,6 +1660,62 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     }
 
     pa_strbuf_puts(buf, "\n### EOF\n");
+
+    return 0;
+}
+
+static int pa_cli_command_dump_volumes(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    pa_sink *s;
+    pa_source *so;
+    pa_sink_input *i;
+    pa_source_output *o;
+    uint32_t s_idx, i_idx;
+    char v_str[PA_CVOLUME_SNPRINT_MAX];
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    PA_IDXSET_FOREACH(s, c->sinks, s_idx) {
+        pa_strbuf_printf(buf, "Sink %d: ", s_idx);
+        pa_strbuf_printf(buf, "reference = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &s->reference_volume));
+        pa_strbuf_printf(buf, "real = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &s->real_volume));
+        pa_strbuf_printf(buf, "soft = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &s->soft_volume));
+        pa_strbuf_printf(buf, "current_hw = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &s->thread_info.current_hw_volume));
+        pa_strbuf_printf(buf, "save = %s\n", pa_yes_no(s->save_volume));
+
+        PA_IDXSET_FOREACH(i, s->inputs, i_idx) {
+            pa_strbuf_printf(buf, "\tInput %d: ", i_idx);
+            pa_strbuf_printf(buf, "volume = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &i->volume));
+            pa_strbuf_printf(buf, "reference_ratio = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &i->reference_ratio));
+            pa_strbuf_printf(buf, "real_ratio = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &i->real_ratio));
+            pa_strbuf_printf(buf, "soft = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &i->soft_volume));
+            pa_strbuf_printf(buf, "volume_factor = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &i->volume_factor));
+            pa_strbuf_printf(buf, "volume_factor_sink = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &i->volume_factor_sink));
+            pa_strbuf_printf(buf, "save = %s\n", pa_yes_no(i->save_volume));
+        }
+    }
+
+    PA_IDXSET_FOREACH(so, c->sources, s_idx) {
+        pa_strbuf_printf(buf, "Source %d: ", s_idx);
+        pa_strbuf_printf(buf, "reference = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &so->reference_volume));
+        pa_strbuf_printf(buf, "real = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &so->real_volume));
+        pa_strbuf_printf(buf, "soft = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &so->soft_volume));
+        pa_strbuf_printf(buf, "current_hw = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &so->thread_info.current_hw_volume));
+        pa_strbuf_printf(buf, "save = %s\n", pa_yes_no(so->save_volume));
+
+        PA_IDXSET_FOREACH(o, so->outputs, i_idx) {
+            pa_strbuf_printf(buf, "\tOutput %d: ", i_idx);
+            pa_strbuf_printf(buf, "volume = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &o->volume));
+            pa_strbuf_printf(buf, "reference_ratio = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &o->reference_ratio));
+            pa_strbuf_printf(buf, "real_ratio = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &o->real_ratio));
+            pa_strbuf_printf(buf, "soft = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &o->soft_volume));
+            pa_strbuf_printf(buf, "volume_factor = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &o->volume_factor));
+            pa_strbuf_printf(buf, "volume_factor_source = %s, ", pa_cvolume_snprint(v_str, sizeof(v_str), &o->volume_factor_source));
+            pa_strbuf_printf(buf, "save = %s\n", pa_yes_no(o->save_volume));
+        }
+    }
 
     return 0;
 }
