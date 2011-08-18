@@ -1608,9 +1608,10 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
         /* Try to reuse the old resampler if possible */
         new_resampler = i->thread_info.resampler;
 
-    else if ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ||
-             !pa_sample_spec_equal(&i->sample_spec, &dest->sample_spec) ||
-             !pa_channel_map_equal(&i->channel_map, &dest->channel_map)) {
+    else if (!pa_sink_input_is_passthrough(i) &&
+             ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ||
+              !pa_sample_spec_equal(&i->sample_spec, &dest->sample_spec) ||
+              !pa_channel_map_equal(&i->channel_map, &dest->channel_map))) {
 
         /* Okay, we need a new resampler for the new sink */
 

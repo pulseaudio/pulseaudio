@@ -1376,9 +1376,10 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
         /* Try to reuse the old resampler if possible */
         new_resampler = o->thread_info.resampler;
 
-    else if ((o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ||
-             !pa_sample_spec_equal(&o->sample_spec, &dest->sample_spec) ||
-             !pa_channel_map_equal(&o->channel_map, &dest->channel_map)) {
+    else if (!pa_source_output_is_passthrough(o) &&
+             ((o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ||
+              !pa_sample_spec_equal(&o->sample_spec, &dest->sample_spec) ||
+              !pa_channel_map_equal(&o->channel_map, &dest->channel_map))) {
 
         /* Okay, we need a new resampler for the new source */
 
