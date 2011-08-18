@@ -748,8 +748,8 @@ void pa_volume_memchunk(
         return;
     }
 
-    if (spec->format < 0 || spec->format > PA_SAMPLE_MAX) {
-      pa_log_warn(" Unable to change volume of format %s.", pa_sample_format_to_string(spec->format));
+    if (spec->format < 0 || spec->format >= PA_SAMPLE_MAX) {
+      pa_log_warn("Unable to change volume of format");
       return;
     }
 
