@@ -72,6 +72,7 @@
 #include <pulsecore/socket.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-rtclock.h>
+#include <pulsecore/core-scache.h>
 #include <pulsecore/core.h>
 #include <pulsecore/module.h>
 #include <pulsecore/cli-command.h>
