@@ -98,6 +98,10 @@ struct pa_source {
     pa_bool_t save_volume:1;
     pa_bool_t save_muted:1;
 
+    /* Saved volume state while we're in passthrough mode */
+    pa_cvolume saved_volume;
+    pa_bool_t saved_save_volume:1;
+
     pa_asyncmsgq *asyncmsgq;
 
     pa_memchunk silence;
@@ -338,6 +342,9 @@ pa_bool_t pa_source_flat_volume_enabled(pa_source *s);
 /* Is the source in passthrough mode? (that is, is this a monitor source for a sink
  * that has a passthrough sink input connected to it. */
 pa_bool_t pa_source_is_passthrough(pa_source *s);
+/* These should be called when a source enters/leaves passthrough mode */
+void pa_source_enter_passthrough(pa_source *s);
+void pa_source_leave_passthrough(pa_source *s);
 
 void pa_source_set_volume(pa_source *source, const pa_cvolume *volume, pa_bool_t sendmsg, pa_bool_t save);
 const pa_cvolume *pa_source_get_volume(pa_source *source, pa_bool_t force_refresh);

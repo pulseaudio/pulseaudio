@@ -298,10 +298,13 @@ int pa_source_output_new(
 
     pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
 
-    /* Don't restore (or save) stream volume for passthrough streams */
+    /* Don't restore (or save) stream volume for passthrough streams and
+     * prevent attenuation/gain */
     if (pa_source_output_new_data_is_passthrough(data)) {
-        data->volume_is_set = FALSE;
-        data->volume_factor_is_set = FALSE;
+        data->volume_is_set = TRUE;
+        pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+        data->volume_is_absolute = TRUE;
+        data->save_volume = FALSE;
     }
 
     if (!data->volume_is_set) {
@@ -544,6 +547,9 @@ void pa_source_output_unlink(pa_source_output*o) {
     o->state = PA_SOURCE_OUTPUT_UNLINKED;
 
     if (linked && o->source) {
+        if (pa_source_output_is_passthrough(o))
+            pa_source_leave_passthrough(o->source);
+
         /* We might need to update the source's volume if we are in flat volume mode. */
         if (pa_source_flat_volume_enabled(o->source))
             pa_source_set_volume(o->source, NULL, FALSE, FALSE);
@@ -627,6 +633,9 @@ void pa_source_output_put(pa_source_output *o) {
 
         set_real_ratio(o, &o->volume);
     }
+
+    if (pa_source_output_is_passthrough(o))
+        pa_source_enter_passthrough(o->source);
 
     o->thread_info.soft_volume = o->soft_volume;
     o->thread_info.muted = o->muted;
@@ -1180,6 +1189,9 @@ int pa_source_output_start_move(pa_source_output *o) {
     if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
         pa_assert_se(origin->n_corked-- >= 1);
 
+    if (pa_source_output_is_passthrough(o))
+        pa_source_leave_passthrough(o->source);
+
     if (pa_source_flat_volume_enabled(o->source))
         /* We might need to update the source's volume if we are in flat
          * volume mode. */
@@ -1433,6 +1445,9 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
     pa_source_update_status(dest);
 
     update_volume_due_to_moving(o, dest);
+
+    if (pa_source_output_is_passthrough(o))
+        pa_source_enter_passthrough(o->source);
 
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL) == 0);
 
