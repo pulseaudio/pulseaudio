@@ -93,10 +93,10 @@ struct userdata {
     pa_native_protocol *protocol;
     pa_idxset *subscribed;
 
-    pa_bool_t restore_volume;
-    pa_bool_t restore_muted;
-    pa_bool_t restore_port;
-    pa_bool_t restore_formats;
+    pa_bool_t restore_volume:1;
+    pa_bool_t restore_muted:1;
+    pa_bool_t restore_port:1;
+    pa_bool_t restore_formats:1;
 };
 
 /* Protocol extention commands */
