@@ -124,6 +124,17 @@ typedef enum pa_context_flags {
 #define PA_CONTEXT_NOFAIL PA_CONTEXT_NOFAIL
 /** \endcond */
 
+/** The type of device we are dealing with */
+typedef enum pa_device_type {
+    PA_DEVICE_TYPE_SINK,     /**< Playback device */
+    PA_DEVICE_TYPE_SOURCE    /**< Recording device */
+} pa_device_type_t;
+
+/** \cond fulldocs */
+#define PA_DEVICE_TYPE_SINK PA_DEVICE_TYPE_SINK
+#define PA_DEVICE_TYPE_SOURCE PA_DEVICE_TYPE_SOURCE
+/** \endcond */
+
 /** The direction of a pa_stream object */
 typedef enum pa_stream_direction {
     PA_STREAM_NODIRECTION,   /**< Invalid direction */
