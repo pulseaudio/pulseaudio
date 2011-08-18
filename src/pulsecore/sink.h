@@ -110,6 +110,10 @@ struct pa_sink {
     pa_bool_t save_volume:1;
     pa_bool_t save_muted:1;
 
+    /* Saved volume state while we're in passthrough mode */
+    pa_cvolume saved_volume;
+    pa_bool_t saved_save_volume:1;
+
     pa_asyncmsgq *asyncmsgq;
 
     pa_memchunk silence;
@@ -418,6 +422,9 @@ pa_bool_t pa_sink_flat_volume_enabled(pa_sink *s);
 /* Is the sink in passthrough mode? (that is, is there a passthrough sink input
  * connected to this sink? */
 pa_bool_t pa_sink_is_passthrough(pa_sink *s);
+/* These should be called when a sink enters/leaves passthrough mode */
+void pa_sink_enter_passthrough(pa_sink *s);
+void pa_sink_leave_passthrough(pa_sink *s);
 
 void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume, pa_bool_t sendmsg, pa_bool_t save);
 const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_bool_t force_refresh);

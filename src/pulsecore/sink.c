@@ -1394,6 +1394,35 @@ pa_bool_t pa_sink_is_passthrough(pa_sink *s) {
     return FALSE;
 }
 
+/* Called from main context */
+void pa_sink_enter_passthrough(pa_sink *s) {
+    pa_cvolume volume;
+
+    /* disable the monitor in passthrough mode */
+    if (s->monitor_source)
+        pa_source_suspend(s->monitor_source, TRUE, PA_SUSPEND_PASSTHROUGH);
+
+    /* set the volume to NORM */
+    s->saved_volume = *pa_sink_get_volume(s, TRUE);
+    s->saved_save_volume = s->save_volume;
+
+    pa_cvolume_set(&volume, s->sample_spec.channels, PA_VOLUME_NORM);
+    pa_sink_set_volume(s, &volume, TRUE, FALSE);
+}
+
+/* Called from main context */
+void pa_sink_leave_passthrough(pa_sink *s) {
+    /* Unsuspend monitor */
+    if (s->monitor_source)
+        pa_source_suspend(s->monitor_source, FALSE, PA_SUSPEND_PASSTHROUGH);
+
+    /* Restore sink volume to what it was before we entered passthrough mode */
+    pa_sink_set_volume(s, &s->saved_volume, TRUE, s->saved_save_volume);
+
+    pa_cvolume_init(&s->saved_volume);
+    s->saved_save_volume = FALSE;
+}
+
 /* Called from main context. */
 static void compute_reference_ratio(pa_sink_input *i) {
     unsigned c = 0;
@@ -1784,9 +1813,9 @@ void pa_sink_set_volume(
     pa_assert(volume || pa_sink_flat_volume_enabled(s));
     pa_assert(!volume || volume->channels == 1 || pa_cvolume_compatible(volume, &s->sample_spec));
 
-    /* make sure we don't change the volume when a PASSTHROUGH input is connected */
-    if (pa_sink_is_passthrough(s)) {
-        /* FIXME: Need to notify client that volume control is disabled */
+    /* make sure we don't change the volume when a PASSTHROUGH input is connected ...
+     * ... *except* if we're being invoked to reset the volume to ensure 0 dB gain */
+    if (pa_sink_is_passthrough(s) && (!volume || !pa_cvolume_is_norm(volume))) {
         pa_log_warn("Cannot change volume, Sink is connected to PASSTHROUGH input");
         return;
     }

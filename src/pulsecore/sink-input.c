@@ -320,10 +320,13 @@ int pa_sink_input_new(
 
     pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
 
-    /* Don't restore (or save) stream volume for passthrough streams */
+    /* Don't restore (or save) stream volume for passthrough streams and
+     * prevent attenuation/gain */
     if (pa_sink_input_new_data_is_passthrough(data)) {
-        data->volume_is_set = FALSE;
-        data->volume_factor_is_set = FALSE;
+        data->volume_is_set = TRUE;
+        pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+        data->volume_is_absolute = TRUE;
+        data->save_volume = FALSE;
     }
 
     if (!data->volume_is_set) {
@@ -610,16 +613,15 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     i->state = PA_SINK_INPUT_UNLINKED;
 
     if (linked && i->sink) {
+        if (pa_sink_input_is_passthrough(i))
+            pa_sink_leave_passthrough(i->sink);
+
         /* We might need to update the sink's volume if we are in flat volume mode. */
         if (pa_sink_flat_volume_enabled(i->sink))
             pa_sink_set_volume(i->sink, NULL, FALSE, FALSE);
 
         if (i->sink->asyncmsgq)
             pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_REMOVE_INPUT, i, 0, NULL) == 0);
-
-        /* We suspend the monitor if there was a passthrough sink, unsuspend now if required */
-        if (pa_sink_input_is_passthrough(i) && i->sink->monitor_source)
-            pa_source_suspend(i->sink->monitor_source, FALSE, PA_SUSPEND_PASSTHROUGH);
     }
 
     reset_callbacks(i);
@@ -710,9 +712,8 @@ void pa_sink_input_put(pa_sink_input *i) {
         set_real_ratio(i, &i->volume);
     }
 
-    /* If we're entering passthrough mode, disable the monitor */
-    if (pa_sink_input_is_passthrough(i) && i->sink->monitor_source)
-        pa_source_suspend(i->sink->monitor_source, TRUE, PA_SUSPEND_PASSTHROUGH);
+    if (pa_sink_input_is_passthrough(i))
+        pa_sink_enter_passthrough(i->sink);
 
     i->thread_info.soft_volume = i->soft_volume;
     i->thread_info.muted = i->muted;
@@ -1407,16 +1408,15 @@ int pa_sink_input_start_move(pa_sink_input *i) {
     if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
         pa_assert_se(i->sink->n_corked-- >= 1);
 
+    if (pa_sink_input_is_passthrough(i))
+        pa_sink_leave_passthrough(i->sink);
+
     if (pa_sink_flat_volume_enabled(i->sink))
         /* We might need to update the sink's volume if we are in flat
          * volume mode. */
         pa_sink_set_volume(i->sink, NULL, FALSE, FALSE);
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_START_MOVE, i, 0, NULL) == 0);
-
-    /* We suspend the monitor if there was a passthrough sink, unsuspend now if required */
-    if (pa_sink_input_is_passthrough(i) && i->sink->monitor_source)
-        pa_source_suspend(i->sink->monitor_source, FALSE, PA_SUSPEND_PASSTHROUGH);
 
     pa_sink_update_status(i->sink);
     pa_cvolume_remap(&i->volume_factor_sink, &i->sink->channel_map, &i->channel_map);
@@ -1666,11 +1666,10 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
 
     update_volume_due_to_moving(i, dest);
 
-    pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_FINISH_MOVE, i, 0, NULL) == 0);
+    if (pa_sink_input_is_passthrough(i))
+        pa_sink_enter_passthrough(i->sink);
 
-    /* If we're entering passthrough mode, disable the monitor */
-    if (pa_sink_input_is_passthrough(i) && i->sink->monitor_source)
-        pa_source_suspend(i->sink->monitor_source, TRUE, PA_SUSPEND_PASSTHROUGH);
+    pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_FINISH_MOVE, i, 0, NULL) == 0);
 
     pa_log_debug("Successfully moved sink input %i to %s.", i->index, dest->name);
 
