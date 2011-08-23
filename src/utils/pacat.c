@@ -91,6 +91,8 @@ static int32_t latency_msec = 0, process_time_msec = 0;
 static pa_bool_t raw = TRUE;
 static int file_format = -1;
 
+static uint32_t cork_requests = 0;
+
 /* A shortcut for terminating the application */
 static void quit(int ret) {
     pa_assert(mainloop_api);
@@ -408,6 +410,24 @@ static void stream_event_callback(pa_stream *s, const char *name, pa_proplist *p
 
     t = pa_proplist_to_string_sep(pl, ", ");
     pa_log("Got event '%s', properties '%s'", name, t);
+
+    if (pa_streq(name, PA_STREAM_EVENT_REQUEST_CORK)) {
+        if (cork_requests == 0) {
+            pa_log(_("Cork request stack is empty: corking stream"));
+            pa_operation_unref(pa_stream_cork(s, 1, NULL, NULL));
+        }
+        cork_requests++;
+    } else if (pa_streq(name, PA_STREAM_EVENT_REQUEST_UNCORK)) {
+        if (cork_requests == 1) {
+            pa_log(_("Cork request stack is empty: uncorking stream"));
+            pa_operation_unref(pa_stream_cork(s, 0, NULL, NULL));
+        }
+        if (cork_requests == 0)
+            pa_log(_("Warning: Received more uncork requests than cork requests!"));
+        else
+            cork_requests--;
+    }
+
     pa_xfree(t);
 }
 
