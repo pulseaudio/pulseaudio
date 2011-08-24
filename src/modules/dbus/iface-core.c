@@ -480,7 +480,7 @@ static void handle_set_default_channels(DBusConnection *conn, DBusMessage *msg, 
     c->core->default_sample_spec.channels = n_channels;
 
     pa_dbus_send_empty_reply(conn, msg);
-};
+}
 
 static void handle_get_default_sample_format(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_core *c = userdata;

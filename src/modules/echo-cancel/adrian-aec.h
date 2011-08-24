@@ -123,7 +123,7 @@ static  REAL IIR_HP_highpass(IIR_HP *i, REAL in) {
     /* Highpass = Signal - Lowpass. Lowpass = Exponential Smoothing */
     i->x += a0 * (in - i->x);
     return in - i->x;
-  };
+  }
 
 typedef struct FIR_HP_300Hz FIR_HP_300Hz;
 
@@ -362,21 +362,21 @@ static  REAL AEC_nlms_pw(AEC *a, REAL d, REAL x_, float stepsize);
 
 PA_GCC_UNUSED static  float AEC_getambient(AEC *a) {
     return a->dfast;
-  };
+  }
 static  void AEC_setambient(AEC *a, float Min_xf) {
     a->dotp_xf_xf -= a->delta;  // subtract old delta
     a->delta = (NLMS_LEN-1) * Min_xf * Min_xf;
     a->dotp_xf_xf += a->delta;  // add new delta
-  };
+  }
 PA_GCC_UNUSED static  void AEC_setgain(AEC *a, float gain_) {
     a->gain = gain_;
-  };
+  }
 #if 0
   void AEC_openwdisplay(AEC *a);
 #endif
 PA_GCC_UNUSED static  void AEC_setaes(AEC *a, float aes_y2_) {
     a->aes_y2 = aes_y2_;
-  };
+  }
 
 #define _AEC_H
 #endif

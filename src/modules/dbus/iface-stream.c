@@ -444,7 +444,7 @@ static void handle_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMessageI
     pa_sink_input_set_mute(s->sink_input, mute, TRUE);
 
     pa_dbus_send_empty_reply(conn, msg);
-};
+}
 
 static void handle_get_buffer_latency(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_stream *s = userdata;
