@@ -68,3 +68,4 @@ vector-test
 connect-stress
 extended-test
 format-test
+*-orc-gen.[ch]
