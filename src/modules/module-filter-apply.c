@@ -219,7 +219,7 @@ static void move_object_for_filter(pa_object *o, struct filter* filter, pa_bool_
         pa_log_info("Failed to move %s for \"%s\" to <%s>.", is_sink_input ? "sink-input" : "source-output",
                     pa_strnull(pa_proplist_gets(pl, PA_PROP_APPLICATION_NAME)), name);
     else
-        pa_log_info("Sucessfully moved %s for \"%s\" to <%s>.", is_sink_input ? "sink-input" : "source-output",
+        pa_log_info("Successfully moved %s for \"%s\" to <%s>.", is_sink_input ? "sink-input" : "source-output",
                     pa_strnull(pa_proplist_gets(pl, PA_PROP_APPLICATION_NAME)), name);
 
     pa_proplist_unset(pl, PA_PROP_FILTER_APPLY_MOVING);

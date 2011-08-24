@@ -70,7 +70,7 @@ void pa_mcalign_free(pa_mcalign *m);
  * has to free the memchunk by himself. */
 void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c);
 
-/* Pop a new memchunk from the aligner. Returns 0 when sucessful,
+/* Pop a new memchunk from the aligner. Returns 0 when successful,
  * nonzero otherwise. */
 int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c);
 
