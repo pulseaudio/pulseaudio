@@ -1318,9 +1318,9 @@ static void sink_input_mute_changed_cb(pa_sink_input *i) {
 }
 
 static pa_echo_canceller_method_t get_ec_method_from_string(const char *method) {
-    if (strcmp(method, "speex") == 0)
+    if (pa_streq(method, "speex"))
         return PA_ECHO_CANCELLER_SPEEX;
-    else if (strcmp(method, "adrian") == 0)
+    else if (pa_streq(method, "adrian"))
         return PA_ECHO_CANCELLER_ADRIAN;
     else
         return PA_ECHO_CANCELLER_INVALID;
