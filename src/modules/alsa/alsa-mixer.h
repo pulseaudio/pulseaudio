@@ -277,7 +277,7 @@ struct pa_alsa_decibel_fix {
     long max_step;
 
     /* An array that maps alsa volume element steps to decibels. The steps can
-     * be used as indices to this array, after substracting min_step from the
+     * be used as indices to this array, after subtracting min_step from the
      * real value.
      *
      * The values are actually stored as integers representing millibels,

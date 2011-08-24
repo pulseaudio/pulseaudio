@@ -33,7 +33,7 @@
  * int16_t, int32_t, float. The vector type is a union. The fields .i,
  * .u, .f are arrays for accessing the separate elements of a
  * vector. .v is a gcc vector type of the right format. .m is the
- * vector in the type the SIMD extenstion specific intrinsics API
+ * vector in the type the SIMD extension specific intrinsic API
  * expects. PA_xxx_VECTOR_SIZE is the size of the
  * entries. PA_xxxx_VECTOR_MAKE constructs a gcc vector variable with
  * the same value in all elements. */

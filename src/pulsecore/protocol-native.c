@@ -953,9 +953,9 @@ static void fix_playback_buffer_attr(playback_stream *s) {
          * half the latency will be spent on the hw buffer, the other
          * half of it in the async buffer queue we maintain for each
          * client. In between we'll have a safety space of size
-         * 2*minreq. Why the 2*minreq? When the hw buffer is completey
+         * 2*minreq. Why the 2*minreq? When the hw buffer is completely
          * empty and needs to be filled, then our buffer must have
-         * enough data to fulfill this request immediatly and thus
+         * enough data to fulfill this request immediately and thus
          * have at least the same tlength as the size of the hw
          * buffer. It additionally needs space for 2 times minreq
          * because if the buffer ran empty and a partial fillup
@@ -1110,7 +1110,7 @@ static playback_stream* playback_stream_new(
         pa_sink_input_new_data_set_channel_map(&data, map);
     if (formats) {
         pa_sink_input_new_data_set_formats(&data, formats);
-        /* Ownership transferred to new_data, so we don't free it ourseleves */
+        /* Ownership transferred to new_data, so we don't free it ourselves */
         formats = NULL;
     }
     if (volume) {
@@ -1385,7 +1385,7 @@ static void handle_seek(playback_stream *s, int64_t indexw) {
 
         if (indexw < indexr) {
             /* OK, the sink already asked for this data, so
-             * let's have it usk us again */
+             * let's have it ask us again */
 
             pa_log_debug("Requesting rewind due to rewrite.");
             pa_sink_input_request_rewind(s->sink_input, (size_t) (indexr - indexw), TRUE, FALSE, FALSE);
@@ -2099,7 +2099,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         (fail_on_suspend ? PA_SINK_INPUT_NO_CREATE_ON_SUSPEND|PA_SINK_INPUT_KILL_ON_SUSPEND : 0) |
         (passthrough ? PA_SINK_INPUT_PASSTHROUGH : 0);
 
-    /* Only since protocol version 15 there's a seperate muted_set
+    /* Only since protocol version 15 there's a separate muted_set
      * flag. For older versions we synthesize it here */
     muted_set = muted_set || muted;
 

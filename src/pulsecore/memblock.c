@@ -873,7 +873,7 @@ pa_bool_t pa_mempool_is_shared(pa_mempool *p) {
     return !!p->memory.shared;
 }
 
-/* For recieving blocks from other nodes */
+/* For receiving blocks from other nodes */
 pa_memimport* pa_memimport_new(pa_mempool *p, pa_memimport_release_cb_t cb, void *userdata) {
     pa_memimport *i;
 

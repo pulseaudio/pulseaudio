@@ -29,7 +29,7 @@
 /* A little abstraction over simple databases, such as gdbm, tdb, and
  * so on. We only make minimal assumptions about the supported
  * backend: it does not need to support locking, it does not have to
- * be arch independant. */
+ * be arch independent. */
 
 typedef struct pa_database pa_database;
 

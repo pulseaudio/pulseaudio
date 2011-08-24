@@ -1334,7 +1334,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 goto fail;
             }
 
-            /* Add the device to our hashmap. If it's alredy in it, free it now and carry on */
+            /* Add the device to our hashmap. If it's already in it, free it now and carry on */
             device = pa_xnew(struct device_t, 1);
             device->device = pa_xstrdup(s);
             if (pa_hashmap_put(h, device->device, device) == 0) {
@@ -1352,7 +1352,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         }*/
 
         /* Now cycle through our list and add all the devices.
-           This has the effect of addign in any in our DB,
+           This has the effect of adding in any in our DB,
            not specified in the device list (and thus will be
            tacked on at the end) */
         offset = idx;
@@ -1368,10 +1368,10 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             if ((sink_mode && 0 == strncmp("sink:", device->device, 5))
                 || (!sink_mode && 0 == strncmp("source:", device->device, 7))) {
 
-                /* Add the device to our hashmap. If it's alredy in it, free it now and carry on */
+                /* Add the device to our hashmap. If it's already in it, free it now and carry on */
                 if (pa_hashmap_put(h, device->device, device) == 0
                     && (e = entry_read(u, device->device))) {
-                    /* We add offset on to the existing priorirty so that when we order, the
+                    /* We add offset on to the existing priority so that when we order, the
                        existing entries are always lower priority than the new ones. */
                     device->prio = (offset + e->priority[role_index]);
                     pa_xfree(e);

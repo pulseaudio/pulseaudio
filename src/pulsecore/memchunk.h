@@ -40,7 +40,7 @@ typedef struct pa_memchunk {
  * specified size, i.e. is enlarged if necessary. */
 pa_memchunk* pa_memchunk_make_writable(pa_memchunk *c, size_t min);
 
-/* Invalidate a memchunk. This does not free the cotaining memblock,
+/* Invalidate a memchunk. This does not free the containing memblock,
  * but sets all members to zero. */
 pa_memchunk* pa_memchunk_reset(pa_memchunk *c);
 

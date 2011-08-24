@@ -44,13 +44,13 @@ pa_prioq_item* pa_prioq_put(pa_prioq *q, void* data);
 /* Get the item on the top of the queue, but don't remove it from the queue*/
 void* pa_prioq_peek(pa_prioq*q);
 
-/* Get the item on the top of the queue, and remove it from thq queue */
+/* Get the item on the top of the queue, and remove it from the queue */
 void* pa_prioq_pop(pa_prioq*q);
 
-/* Remove an arbitrary from theq prioq, returning it's data */
+/* Remove an arbitrary from the prioq, returning it's data */
 void* pa_prioq_remove(pa_prioq*q, pa_prioq_item *i);
 
-/* The priority of an item was modified. Adjustthe queue to that */
+/* The priority of an item was modified. Adjust the queue to that */
 void pa_prioq_reshuffle(pa_prioq *q, pa_prioq_item *i);
 
 /* Return the current number of items in the prioq */

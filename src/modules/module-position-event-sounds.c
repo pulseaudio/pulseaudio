@@ -87,7 +87,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_i
     if ((id = pa_proplist_gets(data->proplist, PA_PROP_EVENT_ID))) {
 
         /* The test sounds should never be positioned in space, since
-         * they might be trigered themselves to configure the speakers
+         * they might be triggered themselves to configure the speakers
          * in space, which we don't want to mess up. */
 
         if (pa_startswith(id, "audio-channel-"))

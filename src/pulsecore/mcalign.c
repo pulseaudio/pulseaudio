@@ -182,7 +182,7 @@ int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c) {
         if (m->current.length == 0)
             pa_memblock_unref(m->current.memblock);
         else {
-            /* Move the raimainder to leftover */
+            /* Move the remainder to leftover */
             pa_assert(m->current.length < m->base && !m->leftover.memblock);
 
             m->leftover = m->current;

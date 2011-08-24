@@ -62,7 +62,7 @@ typedef struct pa_memblockq pa_memblockq;
 
    - maxrewind: how many bytes of history to keep in the queue
 
-   - silence:   return this memchunk when reading unitialized data
+   - silence:   return this memchunk when reading uninitialized data
 */
 pa_memblockq* pa_memblockq_new(
         int64_t idx,

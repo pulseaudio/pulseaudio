@@ -320,7 +320,7 @@ fail:
 }
 
 /* Check whether the daemon is currently running, i.e. if a PID file
- * exists and the PID therein too. Returns 0 on succcess, -1
+ * exists and the PID therein too. Returns 0 on success, -1
  * otherwise. If pid is non-NULL and a running daemon was found,
  * return its PID therein */
 int pa_pid_file_check_running(pid_t *pid, const char *procname) {

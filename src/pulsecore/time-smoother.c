@@ -39,7 +39,7 @@
  * Implementation of a time smoothing algorithm to synchronize remote
  * clocks to a local one. Evens out noise, adjusts to clock skew and
  * allows cheap estimations of the remote time while clock updates may
- * be seldom and recieved in non-equidistant intervals.
+ * be seldom and received in non-equidistant intervals.
  *
  * Basically, we estimate the gradient of received clock samples in a
  * certain history window (of size 'history_time') with linear
@@ -48,7 +48,7 @@
  * towards that point with a 3rd order polynomial interpolation with
  * fitting derivatives. (more or less a b-spline)
  *
- * The larger 'history_time' is chosen the better we will surpress
+ * The larger 'history_time' is chosen the better we will suppress
  * noise -- but we'll adjust to clock skew slower..
  *
  * The larger 'adjust_time' is chosen the smoother our estimation
@@ -83,7 +83,7 @@ struct pa_smoother {
 
     pa_bool_t monotonic:1;
     pa_bool_t paused:1;
-    pa_bool_t smoothing:1; /* If FALSE we skip the polonyomial interpolation step */
+    pa_bool_t smoothing:1; /* If FALSE we skip the polynomial interpolation step */
 
     pa_usec_t pause_time;
 
@@ -264,7 +264,7 @@ static void calc_abc(pa_smoother *s) {
 
     pa_assert(ex < px);
 
-    /* To increase the dynamic range and symplify calculation, we
+    /* To increase the dynamic range and simplify calculation, we
      * move these values to the origin */
     kx = (int64_t) px - (int64_t) ex;
     ky = (int64_t) py - (int64_t) ey;

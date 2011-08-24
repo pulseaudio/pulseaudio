@@ -116,7 +116,7 @@ struct pa_source {
      * inhibited */
     int (*set_state)(pa_source*source, pa_source_state_t state); /* may be NULL */
 
-    /* Callled when the volume is queried. Called from main loop
+    /* Called when the volume is queried. Called from main loop
      * context. If this is NULL a PA_SOURCE_MESSAGE_GET_VOLUME message
      * will be sent to the IO thread instead. If refresh_volume is
      * FALSE neither this function is called nor a message is sent.

@@ -78,7 +78,7 @@ pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
     pa_assert(a);
     pa_assert(b);
 
-    /* Check which whan is the earlier time and swap the two arguments if required. */
+    /* Check which is the earlier time and swap the two arguments if required. */
     if (PA_UNLIKELY(pa_timeval_cmp(a, b) < 0)) {
         const struct timeval *c;
         c = a;

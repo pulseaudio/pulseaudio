@@ -645,7 +645,7 @@ static void calc_map_table(pa_resampler *r) {
              * volume will not match, and the two channels will be a
              * linear combination of both.
              *
-             * This is losely based on random suggestions found on the
+             * This is loosely based on random suggestions found on the
              * Internet, such as this:
              * http://www.halfgaar.net/surround-sound-in-linux and the
              * alsa upmix plugin.
@@ -840,7 +840,7 @@ static void calc_map_table(pa_resampler *r) {
             /* OK, so there are unconnected input channels on the
              * left. Let's multiply all already connected channels on
              * the left side by .9 and add in our averaged unconnected
-             * channels multplied by .1 */
+             * channels multiplied by .1 */
 
             for (oc = 0; oc < n_oc; oc++) {
 
@@ -865,7 +865,7 @@ static void calc_map_table(pa_resampler *r) {
             /* OK, so there are unconnected input channels on the
              * right. Let's multiply all already connected channels on
              * the right side by .9 and add in our averaged unconnected
-             * channels multplied by .1 */
+             * channels multiplied by .1 */
 
             for (oc = 0; oc < n_oc; oc++) {
 
@@ -891,7 +891,7 @@ static void calc_map_table(pa_resampler *r) {
             /* OK, so there are unconnected input channels on the
              * center. Let's multiply all already connected channels on
              * the center side by .9 and add in our averaged unconnected
-             * channels multplied by .1 */
+             * channels multiplied by .1 */
 
             for (oc = 0; oc < n_oc; oc++) {
 

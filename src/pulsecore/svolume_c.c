@@ -99,7 +99,7 @@ static void pa_volume_s16ne_c(int16_t *samples, int32_t *volumes, unsigned chann
         /* Multiplying the 32bit volume factor with the 16bit
          * sample might result in an 48bit value. We want to
          * do without 64 bit integers and hence do the
-         * multiplication independantly for the HI and LO part
+         * multiplication independently for the HI and LO part
          * of the volume. */
 
         hi = volumes[channel] >> 16;

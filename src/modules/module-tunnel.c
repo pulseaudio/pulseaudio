@@ -485,7 +485,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         case PA_SINK_MESSAGE_SET_STATE: {
             int r;
 
-            /* First, change the state, because otherwide pa_sink_render() would fail */
+            /* First, change the state, because otherwise pa_sink_render() would fail */
             if ((r = pa_sink_process_msg(o, code, data, offset, chunk)) >= 0) {
 
                 stream_cork_within_thread(u, u->sink->state == PA_SINK_SUSPENDED);

@@ -74,7 +74,7 @@ static void load(struct userdata *u) {
             pa_namereg_set_default_sink(u->core, s);
             pa_log_info("Restored default sink '%s'.", ln);
         } else
-            pa_log_info("Saved default sink '%s' not existant, not restoring default sink setting.", ln);
+            pa_log_info("Saved default sink '%s' not existent, not restoring default sink setting.", ln);
 
     } else if (errno != ENOENT)
         pa_log("Failed to load default sink: %s", pa_cstrerror(errno));
@@ -95,7 +95,7 @@ static void load(struct userdata *u) {
             pa_namereg_set_default_source(u->core, s);
             pa_log_info("Restored default source '%s'.", ln);
         } else
-            pa_log_info("Saved default source '%s' not existant, not restoring default source setting.", ln);
+            pa_log_info("Saved default source '%s' not existent, not restoring default source setting.", ln);
 
     } else if (errno != ENOENT)
             pa_log("Failed to load default sink: %s", pa_cstrerror(errno));

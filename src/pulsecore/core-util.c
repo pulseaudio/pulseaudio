@@ -891,7 +891,7 @@ int pa_match(const char *expr, const char *v) {
 int pa_parse_boolean(const char *v) {
     pa_assert(v);
 
-    /* First we check language independant */
+    /* First we check language independent */
     if (!strcmp(v, "1") || v[0] == 'y' || v[0] == 'Y' || v[0] == 't' || v[0] == 'T' || !strcasecmp(v, "on"))
         return 1;
     else if (!strcmp(v, "0") || v[0] == 'n' || v[0] == 'N' || v[0] == 'f' || v[0] == 'F' || !strcasecmp(v, "off"))
@@ -900,7 +900,7 @@ int pa_parse_boolean(const char *v) {
 #ifdef HAVE_LANGINFO_H
 {
     const char *expr;
-    /* And then we check language dependant */
+    /* And then we check language dependent */
     if ((expr = nl_langinfo(YESEXPR)))
         if (expr[0])
             if (pa_match(expr, v) > 0)
@@ -920,7 +920,7 @@ int pa_parse_boolean(const char *v) {
 /* Split the specified string wherever one of the strings in delimiter
  * occurs. Each time it is called returns a newly allocated string
  * with pa_xmalloc(). The variable state points to, should be
- * initiallized to NULL before the first call. */
+ * initialized to NULL before the first call. */
 char *pa_split(const char *c, const char *delimiter, const char**state) {
     const char *current = *state ? *state : c;
     size_t l;
@@ -1150,7 +1150,7 @@ finish:
     return r;
 }
 
-/* Check whether the specifc user id is a member of the specified group */
+/* Check whether the specific user id is a member of the specified group */
 int pa_uid_in_group(uid_t uid, const char *name) {
     struct group *group = NULL;
     char **i;
@@ -1186,7 +1186,7 @@ finish:
     return r;
 }
 
-/* Get the GID of a gfiven group, return (gid_t) -1 on failure. */
+/* Get the GID of a given group, return (gid_t) -1 on failure. */
 gid_t pa_get_gid_of_group(const char *name) {
     gid_t ret = (gid_t) -1;
     struct group *gr = NULL;
@@ -1260,7 +1260,7 @@ int pa_lock_fd(int fd, int b) {
     if (fcntl(fd, F_SETLKW, &f_lock) >= 0)
         return 0;
 
-    /* Perhaps the file descriptor qas opened for read only, than try again with a read lock. */
+    /* Perhaps the file descriptor was opened for read only, than try again with a read lock. */
     if (b && errno == EBADF) {
         f_lock.l_type = F_RDLCK;
         if (fcntl(fd, F_SETLKW, &f_lock) >= 0)
@@ -1371,7 +1371,7 @@ fail:
     return -1;
 }
 
-/* Unlock a temporary lcok file */
+/* Unlock a temporary lock file */
 int pa_unlock_lockfile(const char *fn, int fd) {
     int r = 0;
     pa_assert(fd >= 0);
@@ -1569,7 +1569,7 @@ char *pa_get_runtime_dir(void) {
     mode_t m;
 
     /* The runtime directory shall contain dynamic data that needs NOT
-     * to be kept accross reboots and is usuallly private to the user,
+     * to be kept across reboots and is usually private to the user,
      * except in system mode, where it might be accessible by other
      * users, too. Since we need POSIX locking and UNIX sockets in
      * this directory, we link it to a random subdir in /tmp, if it
@@ -1606,8 +1606,7 @@ char *pa_get_runtime_dir(void) {
     pa_xfree(mid);
 
     for (;;) {
-        /* OK, first let's check if the "runtime" symlink is already
-         * existant */
+        /* OK, first let's check if the "runtime" symlink already exists */
 
         if (!(p = pa_readlink(k))) {
 
@@ -1691,7 +1690,7 @@ char *pa_get_runtime_dir(void) {
             pa_xfree(t);
             t = NULL;
 
-            /* Hmm, someone lese was quicker then us. Let's give
+            /* Hmm, someone else was quicker then us. Let's give
              * him some time to finish, and retry. */
             pa_msleep(10);
             continue;
@@ -2873,7 +2872,7 @@ char *pa_realpath(const char *path) {
     char *t;
     pa_assert(path);
 
-    /* We want only abolsute paths */
+    /* We want only absolute paths */
     if (path[0] != '/') {
         errno = EINVAL;
         return NULL;

@@ -46,7 +46,7 @@ PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
         "tsched=<enable system timer based scheduling mode?> "
         "ignore_dB=<ignore dB information from the device?> "
-        "sync_volume=<syncronize sw and hw voluchanges in IO-thread?>");
+        "sync_volume=<syncronize sw and hw volume changes in IO-thread?>");
 
 struct device {
     char *path;
@@ -318,7 +318,7 @@ static void verify_access(struct userdata *u, struct device *d) {
                  * A clean fix would be if we would be able to ignore
                  * our own inotify close events. However, inotify
                  * lacks such functionality. Also, during probing of
-                 * the device we cannot really distuingish between
+                 * the device we cannot really distinguish between
                  * other processes causing EBUSY or ourselves, which
                  * means we have no way to figure out if the probing
                  * during opening was canceled by a "try again"
@@ -721,7 +721,7 @@ int pa__init(pa_module *m) {
         pa_log("Failed to enable monitor: %s", pa_cstrerror(errno));
         if (errno == EPERM)
             pa_log_info("Most likely your kernel is simply too old and "
-                        "allows only priviliged processes to listen to device events. "
+                        "allows only privileged processes to listen to device events. "
                         "Please upgrade your kernel to at least 2.6.30.");
         goto fail;
     }

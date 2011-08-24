@@ -40,7 +40,7 @@
  * out s: contains scaled and clamped int16_t samples.
  *
  * We calculate the high 32 bits of a 32x16 multiply which we then
- * clamp to 16 bits. The calulcation is:
+ * clamp to 16 bits. The calculation is:
  *
  *  vl = (v & 0xffff)
  *  vh = (v >> 16)

@@ -99,7 +99,7 @@ struct userdata {
     pa_bool_t restore_formats:1;
 };
 
-/* Protocol extention commands */
+/* Protocol extension commands */
 enum {
     SUBCOMMAND_TEST,
     SUBCOMMAND_SUBSCRIBE,

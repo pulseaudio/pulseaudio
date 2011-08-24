@@ -361,7 +361,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
 
     s->state = state;
 
-    if (state != PA_SOURCE_UNLINKED) { /* if we enter UNLINKED state pa_source_unlink() will fire the apropriate events */
+    if (state != PA_SOURCE_UNLINKED) { /* if we enter UNLINKED state pa_source_unlink() will fire the appropriate events */
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], s);
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
     }
@@ -1181,7 +1181,7 @@ static void get_maximum_output_volume(pa_source *s, pa_cvolume *max_volume, cons
 
             /* Ignore this output. The origin source uses volume sharing, so this
              * output's volume will be set to be equal to the root source's real
-             * volume. Obviously this outputs's current volume must not then
+             * volume. Obviously this output's current volume must not then
              * affect what the root source's real volume will be. */
             continue;
         }
@@ -1358,7 +1358,7 @@ static pa_bool_t update_reference_volume(pa_source *s, const pa_cvolume *v, cons
          * due to rounding errors. If that happens, we still want to propagate
          * the changed root source volume to the sources connected to the
          * intermediate source that didn't change its volume. This theoretical
-         * possiblity is the reason why we have that !(s->flags &
+         * possibility is the reason why we have that !(s->flags &
          * PA_SOURCE_SHARE_VOLUME_WITH_MASTER) condition. Probably nobody would
          * notice even if we returned here FALSE always if
          * reference_volume_changed is FALSE. */
@@ -1757,7 +1757,7 @@ unsigned pa_source_check_suspend(pa_source *s) {
         /* We do not assert here. It is perfectly valid for a source output to
          * be in the INIT state (i.e. created, marked done but not yet put)
          * and we should not care if it's unlinked as it won't contribute
-         * towarards our busy status.
+         * towards our busy status.
          */
         if (!PA_SOURCE_OUTPUT_IS_LINKED(st))
             continue;

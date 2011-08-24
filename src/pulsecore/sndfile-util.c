@@ -151,7 +151,7 @@ int pa_sndfile_read_channel_map(SNDFILE *sf, pa_channel_map *cm) {
 
     static const pa_channel_position_t table[] = {
         [SF_CHANNEL_MAP_MONO] =                  PA_CHANNEL_POSITION_MONO,
-        [SF_CHANNEL_MAP_LEFT] =                  PA_CHANNEL_POSITION_FRONT_LEFT, /* libsndfile distuingishes left und front-left, which we don't */
+        [SF_CHANNEL_MAP_LEFT] =                  PA_CHANNEL_POSITION_FRONT_LEFT, /* libsndfile distinguishes left and front-left, which we don't */
         [SF_CHANNEL_MAP_RIGHT] =                 PA_CHANNEL_POSITION_FRONT_RIGHT,
         [SF_CHANNEL_MAP_CENTER] =                PA_CHANNEL_POSITION_FRONT_CENTER,
         [SF_CHANNEL_MAP_FRONT_LEFT] =            PA_CHANNEL_POSITION_FRONT_LEFT,

@@ -1019,7 +1019,7 @@ static int do_read(connection *c) {
             c->request = PA_MAYBE_INT32_SWAP(c->swap_byte_order, c->request);
 
             if (c->request < ESD_PROTO_CONNECT || c->request >= ESD_PROTO_MAX) {
-                pa_log("recieved invalid request.");
+                pa_log("received invalid request.");
                 return -1;
             }
 
@@ -1028,7 +1028,7 @@ static int do_read(connection *c) {
 /*             pa_log("executing request #%u", c->request); */
 
             if (!handler->proc) {
-                pa_log("recieved unimplemented request #%u.", c->request);
+                pa_log("received unimplemented request #%u.", c->request);
                 return -1;
             }
 

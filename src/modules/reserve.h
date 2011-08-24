@@ -51,7 +51,7 @@ typedef int (*rd_request_cb_t)(
  * the error was caused D-Bus. */
 int rd_acquire(
 	rd_device **d,                /* On success a pointer to the newly allocated rd_device object will be filled in here */
-	DBusConnection *connection,   /* Session bus (when D-Bus learns about user busses we should switchg to user busses) */
+	DBusConnection *connection,   /* Session bus (when D-Bus learns about user busses we should switch to user busses) */
 	const char *device_name,      /* The device to lock, e.g. "Audio0" */
 	const char *application_name, /* A human readable name of the application, e.g. "PulseAudio Sound Server" */
 	int32_t priority,             /* The priority for this application. If unsure use 0 */

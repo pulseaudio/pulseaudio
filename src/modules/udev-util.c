@@ -244,7 +244,7 @@ int pa_udev_get_info(int card_idx, pa_proplist *p) {
         if ((v = udev_device_get_property_value(card, "SOUND_FORM_FACTOR")) && *v)
             pa_proplist_sets(p, PA_PROP_DEVICE_FORM_FACTOR, v);
 
-    /* This is normaly not set by the udev rules but may be useful to
+    /* This is normally not set by the udev rules but may be useful to
      * allow administrators to overwrite the device description.*/
     if (!pa_proplist_contains(p, PA_PROP_DEVICE_DESCRIPTION))
         if ((v = udev_device_get_property_value(card, "SOUND_DESCRIPTION")) && *v)

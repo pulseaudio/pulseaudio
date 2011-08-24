@@ -291,7 +291,7 @@ enum find_result_t {
      * mode doesn't match the call. */
     PROPERTY_ACCESS_DENIED,
 
-    /* The new value signature of a .Set call didn't match the expexted
+    /* The new value signature of a .Set call didn't match the expected
      * signature. */
     INVALID_PROPERTY_SIG,
 

@@ -336,7 +336,7 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
                 struct list_item *p;
                 size_t d;
 
-                /* Create a new list entry for the end of thie memchunk */
+                /* Create a new list entry for the end of the memchunk */
                 if (!(p = pa_flist_pop(PA_STATIC_FLIST_GET(list_items))))
                     p = pa_xnew(struct list_item, 1);
 

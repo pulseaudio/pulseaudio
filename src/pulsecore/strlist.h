@@ -30,7 +30,7 @@ pa_strlist* pa_strlist_prepend(pa_strlist *l, const char *s);
 /* Remove the specified string from the list, return the new linked list head */
 pa_strlist* pa_strlist_remove(pa_strlist *l, const char *s);
 
-/* Make a whitespace separated string of all server stringes. Returned memory has to be freed with pa_xfree() */
+/* Make a whitespace separated string of all server strings. Returned memory has to be freed with pa_xfree() */
 char *pa_strlist_tostring(pa_strlist *l);
 
 /* Free the entire list */

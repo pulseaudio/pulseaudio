@@ -47,7 +47,7 @@
 
 /* General overview:
  *
- * Because JACK has a very unflexible event loop management which
+ * Because JACK has a very inflexible event loop management which
  * doesn't allow us to add our own event sources to the event thread
  * we cannot use the JACK real-time thread for dispatching our PA
  * work. Instead, we run an additional RT thread which does most of

@@ -110,7 +110,7 @@ static inline void bit_writer(uint8_t **buffer, uint8_t *bit_pos, int *size, uin
     if (!data_bit_len)
         return;
 
-    /* If bit pos is zero, we will definatly use at least one bit from the current byte so size increments. */
+    /* If bit pos is zero, we will definately use at least one bit from the current byte so size increments. */
     if (!*bit_pos)
         *size += 1;
 
@@ -128,7 +128,7 @@ static inline void bit_writer(uint8_t **buffer, uint8_t *bit_pos, int *size, uin
             **buffer = bit_data;
         /* If our data fits exactly into the current byte, we need to increment our pointer */
         if (0 == bit_overflow) {
-            /* Do not increment size as it will be incremeneted on next call as bit_pos is zero */
+            /* Do not increment size as it will be incremented on next call as bit_pos is zero */
             *buffer += 1;
             *bit_pos = 0;
         } else {
@@ -523,7 +523,7 @@ int pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw, pa_memchun
     pa_memblock_release(raw->memblock);
     encoded->length = header_size + size;
 
-    /* store the lenght (endian swapped: make this better) */
+    /* store the length (endian swapped: make this better) */
     len = size + header_size - 4;
     *(b + 2) = len >> 8;
     *(b + 3) = len & 0xff;

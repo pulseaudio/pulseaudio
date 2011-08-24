@@ -577,7 +577,7 @@ static void stdout_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_eve
     }
 }
 
-/* UNIX signal to quit recieved */
+/* UNIX signal to quit received */
 static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
     if (verbose)
         pa_log(_("Got signal, exiting."));

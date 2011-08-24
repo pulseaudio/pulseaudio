@@ -245,7 +245,7 @@ static void stream_unlink(pa_stream *s) {
 
     /* Detach from context */
 
-    /* Unref all operatio object that point to us */
+    /* Unref all operation object that point to us */
     for (o = s->context->operations; o; o = n) {
         n = o->next;
 
@@ -1206,7 +1206,7 @@ static int create_stream(
     PA_CHECK_VALIDITY(s->context, s->context->version >= 12 || !(flags & PA_STREAM_VARIABLE_RATE), PA_ERR_NOTSUPPORTED);
     PA_CHECK_VALIDITY(s->context, s->context->version >= 13 || !(flags & PA_STREAM_PEAK_DETECT), PA_ERR_NOTSUPPORTED);
     PA_CHECK_VALIDITY(s->context, s->context->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
-    /* Althought some of the other flags are not supported on older
+    /* Although some of the other flags are not supported on older
      * version, we don't check for them here, because it doesn't hurt
      * when they are passed but actually not supported. This makes
      * client development easier */
@@ -1804,7 +1804,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
 
         pa_gettimeofday(&now);
 
-        /* Calculcate timestamps */
+        /* Calculate timestamps */
         if (pa_timeval_cmp(&local, &remote) <= 0 && pa_timeval_cmp(&remote, &now) <= 0) {
             /* local and remote seem to have synchronized clocks */
 
@@ -2660,7 +2660,7 @@ pa_operation* pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_set_buffer_attr_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
-    /* This might cause changes in the read/write indexex, hence let's
+    /* This might cause changes in the read/write index, hence let's
      * request a timing update */
     request_auto_timing_update(s, TRUE);
 

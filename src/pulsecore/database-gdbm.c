@@ -69,7 +69,7 @@ pa_database* pa_database_open(const char *fn, pa_bool_t for_write) {
     pa_assert(fn);
 
     /* We include the host identifier in the file name because gdbm
-     * files are CPU dependant, and we don't want things to go wrong
+     * files are CPU dependent, and we don't want things to go wrong
      * if we are on a multiarch system. */
     path = pa_sprintf_malloc("%s."CANONICAL_HOST".gdbm", fn);
     errno = 0;

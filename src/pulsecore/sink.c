@@ -427,7 +427,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
 
     s->state = state;
 
-    if (state != PA_SINK_UNLINKED) { /* if we enter UNLINKED state pa_sink_unlink() will fire the apropriate events */
+    if (state != PA_SINK_UNLINKED) { /* if we enter UNLINKED state pa_sink_unlink() will fire the appropriate events */
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], s);
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
     }
@@ -1782,7 +1782,7 @@ static pa_bool_t update_reference_volume(pa_sink *s, const pa_cvolume *v, const 
          * due to rounding errors. If that happens, we still want to propagate
          * the changed root sink volume to the sinks connected to the
          * intermediate sink that didn't change its volume. This theoretical
-         * possiblity is the reason why we have that !(s->flags &
+         * possibility is the reason why we have that !(s->flags &
          * PA_SINK_SHARE_VOLUME_WITH_MASTER) condition. Probably nobody would
          * notice even if we returned here FALSE always if
          * reference_volume_changed is FALSE. */
@@ -2155,7 +2155,7 @@ unsigned pa_sink_linked_by(pa_sink *s) {
     ret = pa_idxset_size(s->inputs);
 
     /* We add in the number of streams connected to us here. Please
-     * note the asymmmetry to pa_sink_used_by()! */
+     * note the asymmetry to pa_sink_used_by()! */
 
     if (s->monitor_source)
         ret += pa_source_linked_by(s->monitor_source);
@@ -2202,7 +2202,7 @@ unsigned pa_sink_check_suspend(pa_sink *s) {
         /* We do not assert here. It is perfectly valid for a sink input to
          * be in the INIT state (i.e. created, marked done but not yet put)
          * and we should not care if it's unlinked as it won't contribute
-         * towarards our busy status.
+         * towards our busy status.
          */
         if (!PA_SINK_INPUT_IS_LINKED(st))
             continue;

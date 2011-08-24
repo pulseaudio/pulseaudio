@@ -124,11 +124,11 @@ struct pa_source_output {
      * changes. Called from IO context. */
     void (*update_source_requested_latency) (pa_source_output *o); /* may be NULL */
 
-    /* Called whenver the latency range of the source changes. Called
+    /* Called whenever the latency range of the source changes. Called
      * from IO context. */
     void (*update_source_latency_range) (pa_source_output *o); /* may be NULL */
 
-    /* Called whenver the fixed latency of the source changes, if there
+    /* Called whenever the fixed latency of the source changes, if there
      * is one. Called from IO context. */
     void (*update_source_fixed_latency) (pa_source_output *i); /* may be NULL */
 
@@ -163,7 +163,7 @@ struct pa_source_output {
      * context. */
     void (*kill)(pa_source_output* o);              /* may NOT be NULL */
 
-    /* Return the current latency (i.e. length of bufferd audio) of
+    /* Return the current latency (i.e. length of buffered audio) of
     this stream. Called from main context. This is added to what the
     PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY message sent to the IO thread
     returns */
@@ -306,7 +306,7 @@ size_t pa_source_output_get_max_rewind(pa_source_output *o);
 
 /* Callable by everyone */
 
-/* External code may request disconnection with this funcion */
+/* External code may request disconnection with this function */
 void pa_source_output_kill(pa_source_output*o);
 
 pa_usec_t pa_source_output_get_latency(pa_source_output *o, pa_usec_t *source_latency);
@@ -329,7 +329,7 @@ pa_bool_t pa_source_output_may_move(pa_source_output *o);
 pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest);
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t save);
 
-/* The same as pa_source_output_move_to() but in two seperate steps,
+/* The same as pa_source_output_move_to() but in two separate steps,
  * first the detaching from the old source, then the attaching to the
  * new source */
 int pa_source_output_start_move(pa_source_output *o);

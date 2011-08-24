@@ -34,7 +34,7 @@
 #include <pulsecore/macro.h>
 
 /* A wrapper around UNIX file descriptors for attaching them to the a
-   main event loop. Everytime new data may be read or be written to
+   main event loop. Every time new data may be read or be written to
    the channel a callback function is called. It is safe to destroy
    the calling iochannel object from the callback */
 
@@ -63,7 +63,7 @@ pa_bool_t pa_iochannel_is_readable(pa_iochannel*io);
 pa_bool_t pa_iochannel_is_writable(pa_iochannel*io);
 pa_bool_t pa_iochannel_is_hungup(pa_iochannel*io);
 
-/* Don't close the file descirptors when the io channel is freed. By
+/* Don't close the file descriptors when the io channel is freed. By
  * default the file descriptors are closed. */
 void pa_iochannel_set_noclose(pa_iochannel*io, pa_bool_t b);
 
@@ -74,7 +74,7 @@ void pa_iochannel_set_callback(pa_iochannel*io, pa_iochannel_cb_t callback, void
 /* In case the file descriptor is a socket, return a pretty-printed string in *s which describes the peer connected */
 void pa_iochannel_socket_peer_to_string(pa_iochannel*io, char*s, size_t l);
 
-/* Use setsockopt() to tune the recieve and send buffers of TCP sockets */
+/* Use setsockopt() to tune the receive and send buffers of TCP sockets */
 int pa_iochannel_socket_set_rcvbuf(pa_iochannel*io, size_t l);
 int pa_iochannel_socket_set_sndbuf(pa_iochannel*io, size_t l);
 

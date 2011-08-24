@@ -55,7 +55,7 @@
 #include "module-echo-cancel-symdef.h"
 
 PA_MODULE_AUTHOR("Wim Taymans");
-PA_MODULE_DESCRIPTION("Echo Cancelation");
+PA_MODULE_DESCRIPTION("Echo Cancellation");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
@@ -132,10 +132,10 @@ static const pa_echo_canceller ec_table[] = {
  *
  * Alignment is performed in two steps:
  *
- * 1) when something happens that requires quick adjustement of the alignment of
+ * 1) when something happens that requires quick adjustment of the alignment of
  *    capture and playback samples, we perform a resync. This adjusts the
  *    position in the playback memblock to the requested sample. Quick
- *    adjustements include moving the playback samples before the capture
+ *    adjustments include moving the playback samples before the capture
  *    samples (because else the echo canceler does not work) or when the
  *    playback pointer drifts too far away.
  *
@@ -250,7 +250,7 @@ static int64_t calc_diff(struct userdata *u, struct snapshot *snapshot) {
 
     buffer += snapshot->source_delay + snapshot->sink_delay;
 
-    /* add the amount of samples not yet transfered to the source context */
+    /* add the amount of samples not yet transferred to the source context */
     if (snapshot->recv_counter <= snapshot->send_counter)
         buffer += (int64_t) (snapshot->send_counter - snapshot->recv_counter);
     else
@@ -322,7 +322,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
         new_rate = base_rate;
     }
 
-    /* make sure we don't make too big adjustements because that sounds horrible */
+    /* make sure we don't make too big adjustments because that sounds horrible */
     if (new_rate > base_rate * 1.1 || new_rate < base_rate * 0.9)
         new_rate = base_rate;
 
@@ -724,7 +724,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
                         fwrite(pdata, 1, u->blocksize, u->played_file);
                 }
 
-                /* perform echo cancelation */
+                /* perform echo cancellation */
                 u->ec->run(u->ec, rdata, pdata, cdata);
 
                 /* preprecessor is run after AEC. This is not a mistake! */
@@ -1441,7 +1441,7 @@ int pa__init(pa_module*m) {
 
     u->ec->echo_suppress_attenuation_active = DEFAULT_ECHO_SUPPRESS_ATTENUATION;
     if (pa_modargs_get_value_s32(ma, "echo_suppress_attenuation_active", &u->ec->echo_suppress_attenuation_active) < 0) {
-        pa_log("Failed to parse echo_supress_attenuation_active value");
+        pa_log("Failed to parse echo_suppress_attenuation_active value");
         goto fail;
     }
     if (u->ec->echo_suppress_attenuation_active > 0) {

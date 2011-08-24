@@ -158,13 +158,13 @@ int main(int argc, char *argv[]) {
         pa_memexport_free(export_a);
     }
 
-    printf("vaccuuming...\n");
+    printf("vacuuming...\n");
 
     pa_mempool_vacuum(pool_a);
     pa_mempool_vacuum(pool_b);
     pa_mempool_vacuum(pool_c);
 
-    printf("vaccuuming done...\n");
+    printf("vacuuming done...\n");
 
     pa_mempool_free(pool_a);
     pa_mempool_free(pool_b);

@@ -42,7 +42,7 @@ void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb);
 int pa_flist_push(pa_flist*l, void *p);
 void* pa_flist_pop(pa_flist*l);
 
-/* Please not that the destructor stuff is not really necesary, we do
+/* Please note that the destructor stuff is not really necessary, we do
  * this just to make valgrind output more useful. */
 
 #define PA_STATIC_FLIST_DECLARE(name, size, free_cb)                    \

@@ -850,7 +850,7 @@ static int update_sw_params(struct userdata *u) {
 
     pa_assert(u);
 
-    /* Use the full buffer if noone asked us for anything specific */
+    /* Use the full buffer if no one asked us for anything specific */
     u->hwbuf_unused = 0;
 
     if (u->use_tsched) {

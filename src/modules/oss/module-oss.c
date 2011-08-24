@@ -27,7 +27,7 @@
  *   We make no difference between IDLE and RUNNING in our handling.
  *
  *   As long as we are in RUNNING/IDLE state we will *always* write data to
- *   the device. If none is avilable from the inputs, we write silence
+ *   the device. If none is available from the inputs, we write silence
  *   instead.
  *
  *   If power should be saved on IDLE module-suspend-on-idle should be used.

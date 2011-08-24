@@ -53,7 +53,7 @@ typedef struct pa_rtpoll pa_rtpoll;
 typedef struct pa_rtpoll_item pa_rtpoll_item;
 
 typedef enum pa_rtpoll_priority {
-    PA_RTPOLL_EARLY  = -100,          /* For veeery important stuff, like handling control messages */
+    PA_RTPOLL_EARLY  = -100,          /* For very important stuff, like handling control messages */
     PA_RTPOLL_NORMAL = 0,             /* For normal stuff */
     PA_RTPOLL_LATE   = +100,          /* For housekeeping */
     PA_RTPOLL_NEVER  = INT_MAX,       /* For stuff that doesn't register any callbacks, but only fds to listen on */
@@ -88,13 +88,12 @@ struct pollfd *pa_rtpoll_item_get_pollfd(pa_rtpoll_item *i, unsigned *n_fds);
 
 /* Set the callback that shall be called when there's time to do some work: If the
  * callback returns a value > 0, the poll is skipped and the next
- * iteraton of the loop will start immediately. */
+ * iteration of the loop will start immediately. */
 void pa_rtpoll_item_set_work_callback(pa_rtpoll_item *i, int (*work_cb)(pa_rtpoll_item *i));
 
 /* Set the callback that shall be called immediately before entering
  * the sleeping poll: If the callback returns a value > 0, the poll is
- * skipped and the next iteraton of the loop will start
- * immediately.. */
+ * skipped and the next iteration of the loop will start immediately. */
 void pa_rtpoll_item_set_before_callback(pa_rtpoll_item *i, int (*before_cb)(pa_rtpoll_item *i));
 
 /* Set the callback that shall be called immediately after having

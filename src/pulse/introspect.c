@@ -144,7 +144,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
     pa_assert(o);
     pa_assert(PA_REFCNT_VALUE(o) >= 1);
 
-    /* For safety incase someone use fail: outside the while loop below */
+    /* For safety in case someone use fail: outside the while loop below */
     pa_zero(i);
 
     if (!o->context)
@@ -409,7 +409,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
     pa_assert(o);
     pa_assert(PA_REFCNT_VALUE(o) >= 1);
 
-    /* For safety incase someone use fail: outside the while loop below */
+    /* For safety in case someone use fail: outside the while loop below */
     pa_zero(i);
 
     if (!o->context)

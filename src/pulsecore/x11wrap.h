@@ -35,7 +35,7 @@ typedef int (*pa_x11_event_cb_t)(pa_x11_wrapper *w, XEvent *e, void *userdata);
 typedef void (*pa_x11_kill_cb_t)(pa_x11_wrapper *w, void *userdata);
 
 /* Return the X11 wrapper for this core. In case no wrapper was
-    existant before, allocate a new one */
+    existent before, allocate a new one */
 pa_x11_wrapper* pa_x11_wrapper_get(pa_core *c, const char *name);
 
 /* Increase the wrapper's reference count by one */

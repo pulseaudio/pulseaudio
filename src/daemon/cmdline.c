@@ -71,7 +71,7 @@ enum {
     ARG_START
 };
 
-/* Tabel for getopt_long() */
+/* Table for getopt_long() */
 static const struct option long_options[] = {
     {"help",                        0, 0, ARG_HELP},
     {"version",                     0, 0, ARG_VERSION},

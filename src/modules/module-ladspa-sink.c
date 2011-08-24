@@ -58,7 +58,7 @@ PA_MODULE_USAGE(
       "channel_map=<input channel map> "
       "plugin=<ladspa plugin name> "
       "label=<ladspa plugin label> "
-      "control=<comma seperated list of input control values> "
+      "control=<comma separated list of input control values> "
       "input_ladspaport_map=<comma separated list of input LADSPA port names> "
       "output_ladspaport_map=<comma separated list of output LADSPA port names> "));
 

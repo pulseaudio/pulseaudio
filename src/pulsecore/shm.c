@@ -77,7 +77,7 @@
 /* We now put this SHM marker at the end of each segment. It's
  * optional, to not require a reboot when upgrading, though. Note that
  * on multiarch systems 32bit and 64bit processes might access this
- * region simultaneously. The header fields need to be independant
+ * region simultaneously. The header fields need to be independent
  * from the process' word with */
 struct shm_marker {
     pa_atomic_t marker; /* 0xbeefcafe */

@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     pa_assert(pa_format_info_is_compatible(f1, f2));
     pa_assert(pa_format_info_is_compatible(f2, f1));
 
-    /* 3. Check int array memebership - negative */
+    /* 3. Check int array membership - negative */
     REINIT(f2);
     f2->encoding = PA_ENCODING_AC3_IEC61937;
     pa_format_info_set_prop_int(f2, PA_PROP_FORMAT_RATE, 96000);
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
     pa_assert(pa_format_info_is_compatible(f1, f2));
     pa_assert(pa_format_info_is_compatible(f2, f1));
 
-    /* 8. Check string array memebership - negative */
+    /* 8. Check string array membership - negative */
     REINIT(f2);
     f2->encoding = PA_ENCODING_AC3_IEC61937;
     pa_format_info_set_prop_string(f2, "format.test_string", "thing5");

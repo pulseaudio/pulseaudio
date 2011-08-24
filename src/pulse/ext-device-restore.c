@@ -37,7 +37,7 @@
 #include "internal.h"
 #include "ext-device-restore.h"
 
-/* Protocol extention commands */
+/* Protocol extension commands */
 enum {
     SUBCOMMAND_TEST,
     SUBCOMMAND_SUBSCRIBE,

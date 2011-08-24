@@ -2341,7 +2341,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             break;
 
         default:
-            /* Mixer ioctls are valid on /dev/dsp aswell */
+            /* Mixer ioctls are valid on /dev/dsp as well */
             return mixer_ioctl(i, request, argp, _errno);
 
 inval:

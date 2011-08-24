@@ -123,7 +123,7 @@ int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id);
 pa_bool_t pa_mempool_is_shared(pa_mempool *p);
 size_t pa_mempool_block_size_max(pa_mempool *p);
 
-/* For recieving blocks from other nodes */
+/* For receiving blocks from other nodes */
 pa_memimport* pa_memimport_new(pa_mempool *p, pa_memimport_release_cb_t cb, void *userdata);
 void pa_memimport_free(pa_memimport *i);
 pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_id, size_t offset, size_t size);

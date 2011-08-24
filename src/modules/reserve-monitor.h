@@ -45,7 +45,7 @@ typedef void (*rm_change_cb_t)(rm_monitor *m);
  * DBus error might be set as well if the error was caused D-Bus. */
 int rm_watch(
 	rm_monitor **m,              /* On success a pointer to the newly allocated rm_device object will be filled in here */
-	DBusConnection *connection,  /* Session bus (when D-Bus learns about user busses we should switchg to user busses) */
+	DBusConnection *connection,  /* Session bus (when D-Bus learns about user busses we should switch to user busses) */
 	const char *device_name,     /* The device to monitor, e.g. "Audio0" */
 	rm_change_cb_t change_cb,    /* Will be called whenever the lock status changes. May be NULL */
 	DBusError *error);           /* If we fail due to a D-Bus related issue the error will be filled in here. May be NULL. */

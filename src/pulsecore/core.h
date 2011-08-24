@@ -191,7 +191,7 @@ enum {
 
 pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size);
 
-/* Check whether noone is connected to this core */
+/* Check whether no one is connected to this core */
 void pa_core_check_idle(pa_core *c);
 
 int pa_core_exit(pa_core *c, pa_bool_t force, int retval);

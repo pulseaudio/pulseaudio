@@ -55,7 +55,7 @@
 /*************************************/
 /* what can we do to/with the EsounD */
 enum esd_proto {
-    ESD_PROTO_CONNECT,      /* implied on inital client connection */
+    ESD_PROTO_CONNECT,      /* implied on initial client connection */
 
     /* pseudo "security" functionality */
     ESD_PROTO_LOCK,         /* disable "foreign" client connections */
@@ -72,7 +72,7 @@ enum esd_proto {
     ESD_PROTO_SAMPLE_PLAY,  /* play a cached sample */
     ESD_PROTO_SAMPLE_LOOP,  /* loop a cached sample, til eoloop */
     ESD_PROTO_SAMPLE_STOP,  /* stop a looping sample when done */
-    ESD_PROTO_SAMPLE_KILL,  /* stop the looping sample immed. */
+    ESD_PROTO_SAMPLE_KILL,  /* stop the looping sample immediately */
 
     /* free and reclaim /dev/dsp functionality */
     ESD_PROTO_STANDBY,      /* release /dev/dsp and ignore all data */
@@ -194,7 +194,7 @@ typedef int esd_standby_mode_t;
 enum esd_client_state {
     ESD_STREAMING_DATA,         /* data from here on is streamed data */
     ESD_CACHING_SAMPLE,         /* midway through caching a sample */
-    ESD_NEEDS_REQDATA,          /* more data needed to complere request */
+    ESD_NEEDS_REQDATA,          /* more data needed to complete request */
     ESD_NEXT_REQUEST,           /* proceed to next request */
     ESD_CLIENT_STATE_MAX        /* place holder */
 };

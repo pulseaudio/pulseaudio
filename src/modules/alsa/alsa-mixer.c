@@ -3826,7 +3826,7 @@ static int profile_verify(pa_alsa_profile *p) {
                 continue;
 
             if (!(m = pa_hashmap_get(p->profile_set->mappings, *name)) || m->direction == PA_ALSA_DIRECTION_INPUT) {
-                pa_log("Profile '%s' refers to unexistant mapping '%s'.", p->name, *name);
+                pa_log("Profile '%s' refers to nonexistent mapping '%s'.", p->name, *name);
                 return -1;
             }
 
@@ -3862,7 +3862,7 @@ static int profile_verify(pa_alsa_profile *p) {
                 continue;
 
             if (!(m = pa_hashmap_get(p->profile_set->mappings, *name)) || m->direction == PA_ALSA_DIRECTION_OUTPUT) {
-                pa_log("Profile '%s' refers to unexistant mapping '%s'.", p->name, *name);
+                pa_log("Profile '%s' refers to nonexistent mapping '%s'.", p->name, *name);
                 return -1;
             }
 

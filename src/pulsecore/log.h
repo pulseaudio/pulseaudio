@@ -53,7 +53,7 @@ typedef enum pa_log_flags {
     PA_LOG_COLORS      = 0x01, /* Show colorful output */
     PA_LOG_PRINT_TIME  = 0x02, /* Show time */
     PA_LOG_PRINT_FILE  = 0x04, /* Show source file */
-    PA_LOG_PRINT_META  = 0x08, /* Show extended locaton information */
+    PA_LOG_PRINT_META  = 0x08, /* Show extended location information */
     PA_LOG_PRINT_LEVEL = 0x10, /* Show log level prefix */
 } pa_log_flags_t;
 

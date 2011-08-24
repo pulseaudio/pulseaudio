@@ -1784,7 +1784,7 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
                     if (filename[0] == PA_PATH_SEP_CHAR) {
 
                         *ifstate = access(filename, F_OK) == 0 ? IFSTATE_TRUE : IFSTATE_FALSE;
-                        pa_log_debug("Checking for existance of '%s': %s", filename, *ifstate == IFSTATE_TRUE ? "success" : "failure");
+                        pa_log_debug("Checking for existence of '%s': %s", filename, *ifstate == IFSTATE_TRUE ? "success" : "failure");
 
                     } else {
                         const char *paths, *state = NULL;
@@ -1800,7 +1800,7 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
                             pa_xfree(p);
 
                             *ifstate = access(pathname, F_OK) == 0 ? IFSTATE_TRUE : IFSTATE_FALSE;
-                            pa_log_debug("Checking for existance of '%s': %s", pathname, *ifstate == IFSTATE_TRUE ? "success" : "failure");
+                            pa_log_debug("Checking for existence of '%s': %s", pathname, *ifstate == IFSTATE_TRUE ? "success" : "failure");
 
                             pa_xfree(pathname);
 

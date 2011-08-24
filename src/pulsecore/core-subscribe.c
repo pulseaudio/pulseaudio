@@ -152,7 +152,7 @@ static void dump_event(const char * prefix, pa_subscription_event*e) {
 }
 #endif
 
-/* Deferred callback for dispatching subscirption events */
+/* Deferred callback for dispatching subscription events */
 static void defer_cb(pa_mainloop_api *m, pa_defer_event *de, void *userdata) {
     pa_core *c = userdata;
     pa_subscription *s;
@@ -208,7 +208,7 @@ void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t i
     pa_subscription_event *e;
     pa_assert(c);
 
-    /* No need for queuing subscriptions of noone is listening */
+    /* No need for queuing subscriptions of no one is listening */
     if (!c->subscriptions)
         return;
 

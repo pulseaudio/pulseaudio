@@ -114,7 +114,7 @@ struct userdata {
     //size_t samplings;
 
     float **Xs;
-    float ***Hs;//thread updatable copies of the freq response filters (magintude based)
+    float ***Hs;//thread updatable copies of the freq response filters (magnitude based)
     pa_aupdate **a_H;
     pa_memblockq *input_q;
     char *output_buffer;
@@ -356,10 +356,10 @@ static void dsp_logic(
                                *automatically cycled in routine
                                */
     float * restrict overlap,
-    const float X,//multipliar
+    const float X,//multiplier
     const float * restrict H,//The freq. magnitude scalers filter
     const float * restrict W,//The windowing function
-    fftwf_complex * restrict output_window,//The transformed window'd src
+    fftwf_complex * restrict output_window,//The transformed windowed src
     struct userdata *u){
 
     //use a linear-phase sliding STFT and overlap-add method (for each channel)
@@ -367,7 +367,7 @@ static void dsp_logic(
     for(size_t j = 0; j < u->window_size; ++j){
         dst[j] = X * W[j] * src[j];
     }
-    //zero padd the the remaining fft window
+    //zero pad the the remaining fft window
     memset(dst + u->window_size, 0, (u->fft_size - u->window_size) * sizeof(float));
     //Processing is done here!
     //do fft
@@ -379,7 +379,7 @@ static void dsp_logic(
     }
     //inverse fft
     fftwf_execute_dft_c2r(u->inverse_plan, output_window, dst);
-    ////debug: tests overlaping add
+    ////debug: tests overlapping add
     ////and negates ALL PREVIOUS processing
     ////yields a perfect reconstruction if COLA is held
     //for(size_t j = 0; j < u->window_size; ++j){
@@ -397,7 +397,7 @@ static void dsp_logic(
     //    u->work_buffer[j] = u->input[c][j];
     //}
 
-    //preseve the needed input for the next window's overlap
+    //preserve the needed input for the next window's overlap
     memmove(src, src + u->R,
         (u->samples_gathered - u->R) * sizeof(float)
     );
@@ -418,10 +418,10 @@ static void dsp_logic(
                                *automatically cycled in routine
                                */
     float * restrict overlap,//The size of the overlap
-    const float X,//multipliar
+    const float X,//multiplier
     const float * restrict H,//The freq. magnitude scalers filter
     const float * restrict W,//The windowing function
-    fftwf_complex * restrict output_window,//The transformed window'd src
+    fftwf_complex * restrict output_window,//The transformed windowed src
     struct userdata *u){//Collection of constants
     const size_t overlap_size = PA_ROUND_UP(u->overlap_size, v_size);
     float_vector_t x;
@@ -439,7 +439,7 @@ static void dsp_logic(
 //        d->v = x->v * w->v * s->v;
 //#endif
     }
-    //zero padd the the remaining fft window
+    //zero pad the the remaining fft window
     memset(dst + u->window_size, 0, (u->fft_size - u->window_size) * sizeof(float));
 
     //Processing is done here!
@@ -463,7 +463,7 @@ static void dsp_logic(
     //inverse fft
     fftwf_execute_dft_c2r(u->inverse_plan, output_window, dst);
 
-    ////debug: tests overlaping add
+    ////debug: tests overlapping add
     ////and negates ALL PREVIOUS processing
     ////yields a perfect reconstruction if COLA is held
     //for(size_t j = 0; j < u->window_size; ++j){
@@ -494,7 +494,7 @@ static void dsp_logic(
     //    dst[j] = src[j];
     //}
 
-    //preseve the needed input for the next window's overlap
+    //preserve the needed input for the next window's overlap
     memmove(src, src + u->R,
         (u->samples_gathered - u->R) * sizeof(float)
     );

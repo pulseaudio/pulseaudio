@@ -28,7 +28,7 @@
 typedef struct pa_mutex pa_mutex;
 
 /* Please think twice before enabling priority inheritance. This is no
- * magic wand! Use it only when the potentially priorized threads are
+ * magic wand! Use it only when the potentially prioritized threads are
  * good candidates for it. Don't use this blindly! Also, note that
  * only very few operating systems actually implement this, hence this
  * is merely a hint. */

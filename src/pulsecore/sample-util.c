@@ -231,7 +231,7 @@ size_t pa_mix(
                     /* Multiplying the 32bit volume factor with the
                      * 16bit sample might result in an 48bit value. We
                      * want to do without 64 bit integers and hence do
-                     * the multiplication independantly for the HI and
+                     * the multiplication independently for the HI and
                      * LO part of the volume. */
 
                     hi = cv >> 16;

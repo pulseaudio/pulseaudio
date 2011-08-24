@@ -102,7 +102,7 @@ struct output {
     /* For communication of the stream latencies to the main thread */
     pa_usec_t total_latency;
 
-    /* For coomunication of the stream parameters to the sink thread */
+    /* For communication of the stream parameters to the sink thread */
     pa_atomic_t max_request;
     pa_atomic_t requested_latency;
 
@@ -991,7 +991,7 @@ static void output_disable(struct output *o) {
      * pass any further data to this output */
     pa_asyncmsgq_send(o->userdata->sink->asyncmsgq, PA_MSGOBJECT(o->userdata->sink), SINK_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
 
-    /* Now dellocate the stream */
+    /* Now deallocate the stream */
     pa_sink_input_unref(o->sink_input);
     o->sink_input = NULL;
 

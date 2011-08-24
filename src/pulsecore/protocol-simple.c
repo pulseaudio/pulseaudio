@@ -85,7 +85,7 @@ enum {
 enum {
     CONNECTION_MESSAGE_REQUEST_DATA,      /* data requested from sink input from the main loop */
     CONNECTION_MESSAGE_POST_DATA,         /* data from source output to main loop */
-    CONNECTION_MESSAGE_UNLINK_CONNECTION    /* Please drop a aconnection now */
+    CONNECTION_MESSAGE_UNLINK_CONNECTION  /* Please drop the connection now */
 };
 
 #define PLAYBACK_BUFFER_SECONDS (.5)

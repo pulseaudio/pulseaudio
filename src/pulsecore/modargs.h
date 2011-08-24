@@ -64,7 +64,7 @@ int pa_modargs_get_proplist(pa_modargs *ma, const char *name, pa_proplist *p, pa
  * state variable of type void* and initialize it with NULL. A pointer
  * to this variable should then be passed to pa_modargs_iterate()
  * which should be called in a loop until it returns NULL which
- * signifies EOL. On each invication this function will return the
+ * signifies EOL. On each invocation this function will return the
  * key string for the next entry. The keys in the argument list do not
  * have any particular order. */
 const char *pa_modargs_iterate(pa_modargs *ma, void **state);
