@@ -78,7 +78,7 @@ struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v);
 /** Subtract the specified time in microseconds to the specified timeval structure. \since 0.9.11 */
 struct timeval* pa_timeval_sub(struct timeval *tv, pa_usec_t v);
 
-/** Store the specified uec value in the timeval struct. \since 0.9.7 */
+/** Store the specified usec value in the timeval struct. \since 0.9.7 */
 struct timeval* pa_timeval_store(struct timeval *tv, pa_usec_t v);
 
 /** Load the specified tv value and return it in usec. \since 0.9.7 */

@@ -33,14 +33,14 @@
  * Main loop abstraction layer. Both the PulseAudio core and the
  * PulseAudio client library use a main loop abstraction layer. Due to
  * this it is possible to embed PulseAudio into other
- * applications easily. Two main loop implemenations are
+ * applications easily. Two main loop implementations are
  * currently available:
  * \li A minimal implementation based on the C library's poll() function (See \ref mainloop.h)
  * \li A wrapper around the GLIB main loop. Use this to embed PulseAudio into your GLIB/GTK+/GNOME programs (See \ref glib-mainloop.h)
  *
  * The structure pa_mainloop_api is used as vtable for the main loop abstraction.
  *
- * This mainloop abstraction layer has no direct support for UNIX signals. Generic, mainloop implementation agnostic support is available throught \ref mainloop-signal.h.
+ * This mainloop abstraction layer has no direct support for UNIX signals. Generic, mainloop implementation agnostic support is available through \ref mainloop-signal.h.
  * */
 
 PA_C_DECL_BEGIN
@@ -59,7 +59,7 @@ typedef enum pa_io_event_flags {
 
 /** An opaque IO event source object */
 typedef struct pa_io_event pa_io_event;
-/** An IO event callback protoype \since 0.9.3 */
+/** An IO event callback prototype \since 0.9.3 */
 typedef void (*pa_io_event_cb_t)(pa_mainloop_api*ea, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata);
 /** A IO event destroy callback prototype \ since 0.9.3 */
 typedef void (*pa_io_event_destroy_cb_t)(pa_mainloop_api*a, pa_io_event *e, void *userdata);
@@ -73,7 +73,7 @@ typedef void (*pa_time_event_destroy_cb_t)(pa_mainloop_api*a, pa_time_event *e, 
 
 /** An opaque deferred event source object. Events of this type are triggered once in every main loop iteration */
 typedef struct pa_defer_event pa_defer_event;
-/** A defer event callback protoype \since 0.9.3 */
+/** A defer event callback prototype \since 0.9.3 */
 typedef void (*pa_defer_event_cb_t)(pa_mainloop_api*a, pa_defer_event* e, void *userdata);
 /** A defer event destroy callback prototype \ since 0.9.3 */
 typedef void (*pa_defer_event_destroy_cb_t)(pa_mainloop_api*a, pa_defer_event *e, void *userdata);
@@ -110,7 +110,7 @@ struct pa_mainloop_api {
     /** Set a function that is called when the deferred event source is destroyed. Use this to free the userdata argument if required */
     void (*defer_set_destroy)(pa_defer_event *e, pa_defer_event_destroy_cb_t cb);
 
-    /** Exit the main loop and return the specfied retval*/
+    /** Exit the main loop and return the specified retval*/
     void (*quit)(pa_mainloop_api*a, int retval);
 };
 

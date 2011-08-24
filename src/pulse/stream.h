@@ -155,7 +155,7 @@
  * index. The application writes to the write index and the sound
  * device reads from the read index. The read index is increased
  * monotonically, while the write index may be freely controlled by
- * the application. Substracting the read index from the write index
+ * the application. Subtracting the read index from the write index
  * will give you the current fill level of the buffer. The read/write
  * indexes are 64bit values and measured in bytes, they will never
  * wrap. The current read/write index may be queried using
@@ -194,7 +194,7 @@
  * The transfer buffers can be controlled through a number of operations:
  *
  * \li pa_stream_cork() - Start or stop the playback or recording.
- * \li pa_stream_trigger() - Start playback immediatly and do not wait for
+ * \li pa_stream_trigger() - Start playback immediately and do not wait for
  *                           the buffer to fill up to the set trigger level.
  * \li pa_stream_prebuf() - Reenable the playback trigger level.
  * \li pa_stream_drain() - Wait for the playback buffer to go empty. Will
@@ -280,7 +280,7 @@
  * pa_stream_set_overflow_callback() and
  * pa_stream_set_underflow_callback().
  *
- * \section sync_streams Sychronizing Multiple Playback Streams
+ * \section sync_streams Synchronizing Multiple Playback Streams
  *
  * PulseAudio allows applications to fully synchronize multiple
  * playback streams that are connected to the same output device. That
@@ -419,7 +419,7 @@ int pa_stream_is_corked(pa_stream *s);
 /** Connect the stream to a sink. It is strongly recommended to pass
  * NULL in both dev and volume and not to set either
  * PA_STREAM_START_MUTED nor PA_STREAM_START_UNMUTED -- unless these
- * options are directly dependant on user input or configuration. If
+ * options are directly dependent on user input or configuration. If
  * you follow this rule then the sound server will have the full
  * flexibility to choose the device, volume and mute status
  * automatically, based on server-side policies, heuristics and stored
@@ -459,7 +459,7 @@ int pa_stream_disconnect(pa_stream *s);
  * can place the data to write and the maximum number of bytes you can
  * write. On return *nbytes can be smaller or have the same value as
  * you passed in. You need to be able to handle both cases. Accessing
- * memory beyond the returned *nbytes value is invalid. Acessing the
+ * memory beyond the returned *nbytes value is invalid. Accessing the
  * memory returned after the following pa_stream_write() or
  * pa_stream_cancel_write() is invalid. On invocation only *nbytes
  * needs to be initialized, on return both *data and *nbytes will be
@@ -608,11 +608,11 @@ void pa_stream_set_moved_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *
  * 0.9.8. \since 0.9.8 */
 void pa_stream_set_suspended_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
-/** Set the callback function that is called whenver a meta/policy
+/** Set the callback function that is called whenever a meta/policy
  * control event is received.\since 0.9.15 */
 void pa_stream_set_event_callback(pa_stream *p, pa_stream_event_cb_t cb, void *userdata);
 
-/** Set the callback function that is called whenver the buffer
+/** Set the callback function that is called whenever the buffer
  * attributes on the server side change. Please note that the buffer
  * attributes can change when moving a stream to a different
  * sink/source too, hence if you use this callback you should use
@@ -654,7 +654,7 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
  * pa_stream_get_timing_info().
  *
  * This function will usually only return new data if a timing info
- * update has been recieved. Only if timing interpolation has been
+ * update has been received. Only if timing interpolation has been
  * requested (PA_STREAM_INTERPOLATE_TIMING) the data from the last
  * timing update is used for an estimation of the current
  * playback/recording time based on the local time that passed since
@@ -678,7 +678,7 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
  * pa_stream_update_timing_info().
  *
  * If no timing information has been
- * recieved yet this call will return PA_ERR_NODATA. For more details
+ * received yet this call will return PA_ERR_NODATA. For more details
  * see pa_stream_get_timing_info(). */
 int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec);
 
@@ -689,7 +689,7 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec);
  * negative, i.e. the captured samples are not yet played. In this
  * case *negative is set to 1.
  *
- * If no timing information has been recieved yet this call will
+ * If no timing information has been received yet this call will
  * return PA_ERR_NODATA. For more details see
  * pa_stream_get_timing_info() and pa_stream_get_time(). */
 int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative);
@@ -707,7 +707,7 @@ int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative);
  *
  * Please note that the write_index member field (and only this field)
  * is updated on each pa_stream_write() call, not just when a timing
- * update has been recieved. */
+ * update has been received. */
 const pa_timing_info* pa_stream_get_timing_info(pa_stream *s);
 
 /** Return a pointer to the stream's sample specification. */
@@ -720,7 +720,7 @@ const pa_channel_map* pa_stream_get_channel_map(pa_stream *s);
 const pa_format_info* pa_stream_get_format_info(pa_stream *s);
 
 /** Return the per-stream server-side buffer metrics of the
- * stream. Only valid after the stream has been connected successfuly
+ * stream. Only valid after the stream has been connected successfully
  * and if the server is at least PulseAudio 0.9. This will return the
  * actual configured buffering metrics, which may differ from what was
  * requested during pa_stream_connect_record() or

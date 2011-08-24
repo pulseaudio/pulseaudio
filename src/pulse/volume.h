@@ -37,7 +37,7 @@
  * \section overv_sec Overview
  *
  * Sinks, sources, sink inputs and samples can all have their own volumes.
- * To deal with these, The PulseAudio libray contains a number of functions
+ * To deal with these, The PulseAudio library contains a number of functions
  * that ease handling.
  *
  * The basic volume type in PulseAudio is the \ref pa_volume_t type. Most of
@@ -71,7 +71,7 @@
  * \section conv_sec Convenience Functions
  *
  * To handle the pa_cvolume structure, the PulseAudio library provides a
- * number of convenienc functions:
+ * number of convenience functions:
  *
  * \li pa_cvolume_valid() - Tests if a pa_cvolume structure is valid.
  * \li pa_cvolume_equal() - Tests if two pa_cvolume structures are identical.

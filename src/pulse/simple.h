@@ -39,7 +39,7 @@
  * playback or capture needs. It can only support a single stream per
  * connection and has no handling of complex features like events, channel
  * mappings and volume control. It is, however, very simple to use and
- * quite sufficent for many programs.
+ * quite sufficient for many programs.
  *
  * \section conn_sec Connecting
  *

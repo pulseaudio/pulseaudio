@@ -48,14 +48,14 @@
  *                       that some implementations may block all other events
  *                       when a deferred event is active.
  * \li I/O events - Events that trigger on file descriptor activities.
- * \li Times events - Events that trigger after a fixed ammount of time.
+ * \li Times events - Events that trigger after a fixed amount of time.
  *
  * The abstraction is represented as a number of function pointers in the
  * pa_mainloop_api structure.
  *
  * To actually be able to use these functions, an implementation needs to
  * be coupled to the abstraction. There are three of these shipped with
- * PulseAudio, but any other can be used with a minimal ammount of work,
+ * PulseAudio, but any other can be used with a minimal amount of work,
  * provided it supports the three basic events listed above.
  *
  * The implementations shipped with PulseAudio are:
@@ -143,7 +143,7 @@
  */
 
 /** \file
- * Connection contexts for asynchrononous communication with a
+ * Connection contexts for asynchronous communication with a
  * server. A pa_context object wraps a connection to a PulseAudio
  * server using its native protocol.
  *
@@ -187,7 +187,7 @@ pa_context* pa_context_ref(pa_context *c);
 /** Set a callback function that is called whenever the context status changes */
 void pa_context_set_state_callback(pa_context *c, pa_context_notify_cb_t cb, void *userdata);
 
-/** Set a callback function that is called whenver a meta/policy
+/** Set a callback function that is called whenever a meta/policy
  * control event is received. \since 0.9.15 */
 void pa_context_set_event_callback(pa_context *p, pa_context_event_cb_t cb, void *userdata);
 
@@ -217,7 +217,7 @@ void pa_context_disconnect(pa_context *c);
 pa_operation* pa_context_drain(pa_context *c, pa_context_notify_cb_t cb, void *userdata);
 
 /** Tell the daemon to exit. The returned operation is unlikely to
- * complete succesfully, since the daemon probably died before
+ * complete successfully, since the daemon probably died before
  * returning a success notification */
 pa_operation* pa_context_exit_daemon(pa_context *c, pa_context_success_cb_t cb, void *userdata);
 

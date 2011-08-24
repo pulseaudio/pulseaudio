@@ -85,7 +85,7 @@
  * based style or if you want to use the advanced features of the
  * PulseAudio API. A guide can be found in \subpage async.
  *
- * By using the built-in threaded main loop, it is possible to acheive a
+ * By using the built-in threaded main loop, it is possible to achieve a
  * pseudo-synchronous API, which can be useful in synchronous applications
  * where the simple API is insufficient. See the \ref async page for
  * details.

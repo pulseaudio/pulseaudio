@@ -124,7 +124,7 @@ PA_C_DECL_BEGIN
 /** For streams that belong to a window on the screen: relative position of the window center on the screen, float formatted as text string, ranging from 0.0 (top of the screen) to 1.0 (bottom of the screen). e.g. "0.43". \since 0.9.17 */
 #define PA_PROP_WINDOW_VPOS                    "window.vpos"
 
-/** For streams that belong to a window on the screen: if the windowing system supports multiple desktops, a comma seperated list of indexes of the desktops this window is visible on. If this property is an empty string, it is visible on all desktops (i.e. 'sticky'). The first desktop is 0. e.g. "0,2,3" \since 0.9.18 */
+/** For streams that belong to a window on the screen: if the windowing system supports multiple desktops, a comma separated list of indexes of the desktops this window is visible on. If this property is an empty string, it is visible on all desktops (i.e. 'sticky'). The first desktop is 0. e.g. "0,2,3" \since 0.9.18 */
 #define PA_PROP_WINDOW_DESKTOP                 "window.desktop"
 
 /** For streams that belong to an X11 window on the screen: the X11 display string. e.g. ":0.0" */
@@ -236,7 +236,7 @@ PA_C_DECL_BEGIN
 /** For devices: profile identifier for the profile this devices is in. e.g. "analog-stereo", "analog-surround-40", "iec958-stereo", ...*/
 #define PA_PROP_DEVICE_PROFILE_NAME            "device.profile.name"
 
-/** For devices: intended use. A comma seperated list of roles (see PA_PROP_MEDIA_ROLE) this device is particularly well suited for, due to latency, quality or form factor. \since 0.9.16 */
+/** For devices: intended use. A comma separated list of roles (see PA_PROP_MEDIA_ROLE) this device is particularly well suited for, due to latency, quality or form factor. \since 0.9.16 */
 #define PA_PROP_DEVICE_INTENDED_ROLES          "device.intended_roles"
 
 /** For devices: human readable one-line description of the profile this device is in. e.g. "Analog Stereo", ... */
@@ -359,19 +359,19 @@ int pa_proplist_unset_many(pa_proplist *p, const char * const keys[]);
  * which should be called in a loop until it returns NULL which
  * signifies EOL. The property list should not be modified during
  * iteration through the list -- except for deleting the current
- * looked at entry. On each invication this function will return the
+ * looked at entry. On each invocation this function will return the
  * key string for the next entry. The keys in the property list do not
  * have any particular order. \since 0.9.11 */
 const char *pa_proplist_iterate(pa_proplist *p, void **state);
 
 /** Format the property list nicely as a human readable string. This
  * works very much like pa_proplist_to_string_sep() and uses a newline
- * as seperator and appends one final one. Call pa_xfree() on the
+ * as separator and appends one final one. Call pa_xfree() on the
  * result. \since 0.9.11 */
 char *pa_proplist_to_string(pa_proplist *p);
 
 /** Format the property list nicely as a human readable string and
- * choose the seperator. Call pa_xfree() on the result. \since
+ * choose the separator. Call pa_xfree() on the result. \since
  * 0.9.15 */
 char *pa_proplist_to_string_sep(pa_proplist *p, const char *sep);
 
@@ -379,7 +379,7 @@ char *pa_proplist_to_string_sep(pa_proplist *p, const char *sep);
  * readable string. \since 0.9.15 */
 pa_proplist *pa_proplist_from_string(const char *str);
 
-/** Returns 1 if an entry for the specified key is existant in the
+/** Returns 1 if an entry for the specified key exists in the
  * property list. \since 0.9.11 */
 int pa_proplist_contains(pa_proplist *p, const char *key);
 
