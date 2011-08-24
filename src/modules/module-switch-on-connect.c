@@ -29,6 +29,7 @@
 #include <pulsecore/core.h>
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
+#include <pulsecore/source.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 #include <pulsecore/namereg.h>
@@ -111,6 +112,10 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
 
     /* Don't want to run during startup or shutdown */
     if (c->state != PA_CORE_RUNNING)
+        return PA_HOOK_OK;
+
+    /* Don't switch to a monitoring source */
+    if (source->monitor_of)
         return PA_HOOK_OK;
 
     /* Don't switch to any internal devices */
