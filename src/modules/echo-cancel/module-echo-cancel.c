@@ -1046,7 +1046,7 @@ static void source_output_attach_cb(pa_source_output *o) {
     pa_source_set_fixed_latency_within_thread(u->source, o->source->thread_info.fixed_latency);
     pa_source_set_max_rewind_within_thread(u->source, pa_source_output_get_max_rewind(o));
 
-    pa_log_debug("Source output %p attach", o);
+    pa_log_debug("Source output %d attach", o->index);
 
     pa_source_attach_within_thread(u->source);
 
@@ -1076,7 +1076,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_sink_set_max_request_within_thread(u->sink, pa_sink_input_get_max_request(i));
     pa_sink_set_max_rewind_within_thread(u->sink, pa_sink_input_get_max_rewind(i));
 
-    pa_log_debug("Sink input %p attach", i);
+    pa_log_debug("Sink input %d attach", i->index);
 
     u->rtpoll_item_write = pa_rtpoll_item_new_asyncmsgq_write(
             i->sink->thread_info.rtpoll,
@@ -1098,7 +1098,7 @@ static void source_output_detach_cb(pa_source_output *o) {
     pa_source_detach_within_thread(u->source);
     pa_source_set_rtpoll(u->source, NULL);
 
-    pa_log_debug("Source output %p detach", o);
+    pa_log_debug("Source output %d detach", o->index);
 
     if (u->rtpoll_item_read) {
         pa_rtpoll_item_free(u->rtpoll_item_read);
@@ -1117,7 +1117,7 @@ static void sink_input_detach_cb(pa_sink_input *i) {
 
     pa_sink_set_rtpoll(u->sink, NULL);
 
-    pa_log_debug("Sink input %p detach", i);
+    pa_log_debug("Sink input %d detach", i->index);
 
     if (u->rtpoll_item_write) {
         pa_rtpoll_item_free(u->rtpoll_item_write);
@@ -1133,7 +1133,7 @@ static void source_output_state_change_cb(pa_source_output *o, pa_source_output_
     pa_source_output_assert_io_context(o);
     pa_assert_se(u = o->userdata);
 
-    pa_log_debug("Source output %p state %d", o, state);
+    pa_log_debug("Source output %d state %d", o->index, state);
 }
 
 /* Called from IO thread context */
@@ -1143,7 +1143,7 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    pa_log_debug("Sink input %p state %d", i, state);
+    pa_log_debug("Sink input %d state %d", i->index, state);
 
     /* If we are added for the first time, ask for a rewinding so that
      * we are heard right-away. */
@@ -1174,7 +1174,7 @@ static void source_output_kill_cb(pa_source_output *o) {
     pa_source_unref(u->source);
     u->source = NULL;
 
-    pa_log_debug("Source output kill %p", o);
+    pa_log_debug("Source output kill %d", o->index);
 
     pa_module_unload_request(u->module, TRUE);
 }
@@ -1198,7 +1198,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_sink_unref(u->sink);
     u->sink = NULL;
 
-    pa_log_debug("Sink input kill %p", i);
+    pa_log_debug("Sink input kill %d", i->index);
 
     pa_module_unload_request(u->module, TRUE);
 }
