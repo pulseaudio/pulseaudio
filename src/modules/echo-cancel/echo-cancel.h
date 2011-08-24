@@ -19,6 +19,9 @@
     USA.
 ***/
 
+#ifndef fooechocancelhfoo
+#define fooechocancelhfoo
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -88,3 +91,5 @@ pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
                            uint32_t *blocksize, const char *args);
 void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_adrian_ec_done(pa_echo_canceller *ec);
+
+#endif /* fooechocancelhfoo */
