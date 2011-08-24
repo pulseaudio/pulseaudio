@@ -83,9 +83,11 @@ struct userdata {
     pa_hook_slot
         *sink_new_hook_slot,
         *sink_fixate_hook_slot,
+        *sink_port_hook_slot,
         *sink_put_hook_slot,
         *source_new_hook_slot,
         *source_fixate_hook_slot,
+        *source_port_hook_slot,
         *connection_unlink_hook_slot;
     pa_time_event *save_time_event;
     pa_database *database;
@@ -804,6 +806,46 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
     return PA_HOOK_OK;
 }
 
+static pa_hook_result_t sink_port_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
+    char *name;
+    struct perportentry *e;
+
+    pa_assert(c);
+    pa_assert(sink);
+    pa_assert(u);
+    pa_assert(u->restore_volume || u->restore_muted);
+
+    name = pa_sprintf_malloc("sink:%s:%s", sink->name, (sink->active_port ? sink->active_port->name : "null"));
+
+    if ((e = perportentry_read(u, name))) {
+
+        if (u->restore_volume && e->volume_valid) {
+
+            pa_cvolume v;
+
+            pa_log_info("Restoring volume for sink %s.", sink->name);
+
+            v = e->volume;
+            pa_cvolume_remap(&v, &e->channel_map, &sink->channel_map);
+            pa_sink_set_volume(sink, &v, TRUE, FALSE);
+            sink->save_volume = TRUE;
+        }
+
+        if (u->restore_muted && e->muted_valid) {
+
+            pa_log_info("Restoring mute state for sink %s.", sink->name);
+            pa_sink_set_mute(sink, e->muted, FALSE);
+            sink->save_muted = TRUE;
+        }
+
+        perportentry_free(e);
+    }
+
+    pa_xfree(name);
+
+    return PA_HOOK_OK;
+}
+
 static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
     char *name;
     struct perportentry *e;
@@ -895,6 +937,46 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
                 new_data->save_muted = TRUE;
             } else
                 pa_log_debug("Not restoring mute state for source %s, because already set.", new_data->name);
+        }
+
+        perportentry_free(e);
+    }
+
+    pa_xfree(name);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_port_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
+    char *name;
+    struct perportentry *e;
+
+    pa_assert(c);
+    pa_assert(source);
+    pa_assert(u);
+    pa_assert(u->restore_volume || u->restore_muted);
+
+    name = pa_sprintf_malloc("source:%s:%s", source->name, (source->active_port ? source->active_port->name : "null"));
+
+    if ((e = perportentry_read(u, name))) {
+
+        if (u->restore_volume && e->volume_valid) {
+
+            pa_cvolume v;
+
+            pa_log_info("Restoring volume for source %s.", source->name);
+
+            v = e->volume;
+            pa_cvolume_remap(&v, &e->channel_map, &source->channel_map);
+            pa_source_set_volume(source, &v, TRUE, FALSE);
+            source->save_volume = TRUE;
+        }
+
+        if (u->restore_muted && e->muted_valid) {
+
+            pa_log_info("Restoring mute state for source %s.", source->name);
+            pa_source_set_mute(source, e->muted, FALSE);
+            source->save_muted = TRUE;
         }
 
         perportentry_free(e);
@@ -1170,6 +1252,9 @@ int pa__init(pa_module*m) {
     if (restore_muted || restore_volume) {
         u->sink_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) sink_fixate_hook_callback, u);
         u->source_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) source_fixate_hook_callback, u);
+
+        u->sink_port_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PORT_CHANGED], PA_HOOK_EARLY, (pa_hook_cb_t) sink_port_hook_callback, u);
+        u->source_port_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PORT_CHANGED], PA_HOOK_EARLY, (pa_hook_cb_t) source_port_hook_callback, u);
     }
 
     if (restore_formats)
@@ -1224,6 +1309,10 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->sink_new_hook_slot);
     if (u->source_new_hook_slot)
         pa_hook_slot_free(u->source_new_hook_slot);
+    if (u->sink_port_hook_slot)
+        pa_hook_slot_free(u->sink_port_hook_slot);
+    if (u->source_port_hook_slot)
+        pa_hook_slot_free(u->source_port_hook_slot);
     if (u->sink_put_hook_slot)
         pa_hook_slot_free(u->sink_put_hook_slot);
 
