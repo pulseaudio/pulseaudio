@@ -72,11 +72,6 @@ PA_MODULE_USAGE(
           "channel_map=<channel map> "
           "aec_method=<implementation to use> "
           "aec_args=<parameters for the AEC engine> "
-          "agc=<perform automagic gain control?> "
-          "denoise=<apply denoising?> "
-          "echo_suppress=<perform residual echo suppression? (only with the speex canceller)> "
-          "echo_suppress_attenuation=<dB value of residual echo attenuation> "
-          "echo_suppress_attenuation_active=<dB value of residual echo attenuation when near end is active> "
           "save_aec=<save AEC data in /tmp> "
           "autoloaded=<set if this module is being loaded automatically> "
         ));
@@ -108,10 +103,6 @@ static const pa_echo_canceller ec_table[] = {
 #define DEFAULT_RATE 32000
 #define DEFAULT_CHANNELS 1
 #define DEFAULT_ADJUST_TIME_USEC (1*PA_USEC_PER_SEC)
-#define DEFAULT_AGC_ENABLED TRUE
-#define DEFAULT_DENOISE_ENABLED TRUE
-#define DEFAULT_ECHO_SUPPRESS_ENABLED TRUE
-#define DEFAULT_ECHO_SUPPRESS_ATTENUATION 0
 #define DEFAULT_SAVE_AEC 0
 #define DEFAULT_AUTOLOADED FALSE
 
@@ -218,11 +209,6 @@ static const char* const valid_modargs[] = {
     "channel_map",
     "aec_method",
     "aec_args",
-    "agc",
-    "denoise",
-    "echo_suppress",
-    "echo_suppress_attenuation",
-    "echo_suppress_attenuation_active",
     "save_aec",
     "autoloaded",
     NULL
@@ -726,10 +712,6 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
 
                 /* perform echo cancellation */
                 u->ec->run(u->ec, rdata, pdata, cdata);
-
-                /* preprecessor is run after AEC. This is not a mistake! */
-                if (u->ec->pp_state)
-                    speex_preprocess_run(u->ec->pp_state, (spx_int16_t *) cdata);
 
                 if (u->save_aec) {
                     if (u->canceled_file)
@@ -1407,48 +1389,6 @@ int pa__init(pa_module*m) {
     else
         u->adjust_time = DEFAULT_ADJUST_TIME_USEC;
 
-    u->ec->agc = DEFAULT_AGC_ENABLED;
-    if (pa_modargs_get_value_boolean(ma, "agc", &u->ec->agc) < 0) {
-        pa_log("Failed to parse agc value");
-        goto fail;
-    }
-
-    u->ec->denoise = DEFAULT_DENOISE_ENABLED;
-    if (pa_modargs_get_value_boolean(ma, "denoise", &u->ec->denoise) < 0) {
-        pa_log("Failed to parse denoise value");
-        goto fail;
-    }
-
-    u->ec->echo_suppress = DEFAULT_ECHO_SUPPRESS_ENABLED;
-    if (pa_modargs_get_value_boolean(ma, "echo_suppress", &u->ec->echo_suppress) < 0) {
-        pa_log("Failed to parse echo_suppress value");
-        goto fail;
-    }
-    if (u->ec->echo_suppress && ec_method != PA_ECHO_CANCELLER_SPEEX) {
-        pa_log("Echo suppression is only useful with the speex canceller");
-        goto fail;
-    }
-
-    u->ec->echo_suppress_attenuation = DEFAULT_ECHO_SUPPRESS_ATTENUATION;
-    if (pa_modargs_get_value_s32(ma, "echo_suppress_attenuation", &u->ec->echo_suppress_attenuation) < 0) {
-        pa_log("Failed to parse echo_suppress_attenuation value");
-        goto fail;
-    }
-    if (u->ec->echo_suppress_attenuation > 0) {
-        pa_log("echo_suppress_attenuation should be a negative dB value");
-        goto fail;
-    }
-
-    u->ec->echo_suppress_attenuation_active = DEFAULT_ECHO_SUPPRESS_ATTENUATION;
-    if (pa_modargs_get_value_s32(ma, "echo_suppress_attenuation_active", &u->ec->echo_suppress_attenuation_active) < 0) {
-        pa_log("Failed to parse echo_suppress_attenuation_active value");
-        goto fail;
-    }
-    if (u->ec->echo_suppress_attenuation_active > 0) {
-        pa_log("echo_suppress_attenuation_active should be a negative dB value");
-        goto fail;
-    }
-
     u->save_aec = DEFAULT_SAVE_AEC;
     if (pa_modargs_get_value_u32(ma, "save_aec", &u->save_aec) < 0) {
         pa_log("Failed to parse save_aec value");
@@ -1467,31 +1407,6 @@ int pa__init(pa_module*m) {
         if (!u->ec->init(u->core, u->ec, &source_ss, &source_map, &sink_ss, &sink_map, &u->blocksize, pa_modargs_get_value(ma, "aec_args", NULL))) {
             pa_log("Failed to init AEC engine");
             goto fail;
-        }
-    }
-
-    if (u->ec->agc || u->ec->denoise || u->ec->echo_suppress) {
-        spx_int32_t tmp;
-
-        if (source_ss.channels != 1) {
-            pa_log("AGC, denoising and echo suppression only work with channels=1");
-            goto fail;
-        }
-
-        u->ec->pp_state = speex_preprocess_state_init(u->blocksize / pa_frame_size(&source_ss), source_ss.rate);
-
-        tmp = u->ec->agc;
-        speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_AGC, &tmp);
-        tmp = u->ec->denoise;
-        speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_DENOISE, &tmp);
-        if (u->ec->echo_suppress) {
-            if (u->ec->echo_suppress_attenuation)
-                speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_ECHO_SUPPRESS, &u->ec->echo_suppress_attenuation);
-            if (u->ec->echo_suppress_attenuation_active) {
-                speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_ECHO_SUPPRESS_ACTIVE,
-                                     &u->ec->echo_suppress_attenuation_active);
-            }
-            speex_preprocess_ctl(u->ec->pp_state, SPEEX_PREPROCESS_SET_ECHO_STATE, u->ec->params.priv.speex.state);
         }
     }
 
@@ -1764,9 +1679,6 @@ void pa__done(pa_module*m) {
         pa_memblockq_free(u->source_memblockq);
     if (u->sink_memblockq)
         pa_memblockq_free(u->sink_memblockq);
-
-    if (u->ec->pp_state)
-        speex_preprocess_state_destroy(u->ec->pp_state);
 
     if (u->ec) {
         if (u->ec->done)
