@@ -986,7 +986,7 @@ void pa_source_enter_passthrough(pa_source *s) {
     s->saved_volume = *pa_source_get_volume(s, TRUE);
     s->saved_save_volume = s->save_volume;
 
-    pa_cvolume_set(&volume, s->sample_spec.channels, PA_VOLUME_NORM);
+    pa_cvolume_set(&volume, s->sample_spec.channels, s->base_volume);
     pa_source_set_volume(s, &volume, TRUE, FALSE);
 }
 
