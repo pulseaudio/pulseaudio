@@ -675,6 +675,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         if (plen > u->blocksize && u->source_skip == 0) {
             uint8_t *rdata, *pdata, *cdata;
             pa_memchunk cchunk;
+            int unused;
 
             if (u->sink_skip) {
                 size_t to_skip;
@@ -706,9 +707,9 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
 
                 if (u->save_aec) {
                     if (u->captured_file)
-                        fwrite(rdata, 1, u->blocksize, u->captured_file);
+                        unused = fwrite(rdata, 1, u->blocksize, u->captured_file);
                     if (u->played_file)
-                        fwrite(pdata, 1, u->blocksize, u->played_file);
+                        unused = fwrite(pdata, 1, u->blocksize, u->played_file);
                 }
 
                 /* perform echo cancellation */
@@ -716,7 +717,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
 
                 if (u->save_aec) {
                     if (u->canceled_file)
-                        fwrite(cdata, 1, u->blocksize, u->canceled_file);
+                        unused = fwrite(cdata, 1, u->blocksize, u->canceled_file);
                 }
 
                 pa_memblock_release(cchunk.memblock);
