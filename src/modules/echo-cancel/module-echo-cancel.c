@@ -156,6 +156,7 @@ struct userdata {
     pa_module *module;
 
     pa_bool_t autoloaded;
+    pa_bool_t dead;
     pa_bool_t save_aec;
 
     pa_echo_canceller *ec;
@@ -1162,6 +1163,8 @@ static void source_output_kill_cb(pa_source_output *o) {
     pa_assert_ctl_context();
     pa_assert_se(u = o->userdata);
 
+    u->dead = TRUE;
+
     /* The order here matters! We first kill the source output, followed
      * by the source. That means the source callbacks must be protected
      * against an unconnected source output! */
@@ -1185,6 +1188,8 @@ static void sink_input_kill_cb(pa_sink_input *i) {
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
+
+    u->dead = TRUE;
 
     /* The order here matters! We first kill the sink input, followed
      * by the sink. That means the sink callbacks must be protected
@@ -1211,6 +1216,9 @@ static pa_bool_t source_output_may_move_to_cb(pa_source_output *o, pa_source *de
     pa_assert_ctl_context();
     pa_assert_se(u = o->userdata);
 
+    if (u->dead)
+        return FALSE;
+
     return (u->source != dest) && (u->sink != dest->monitor_of);
 }
 
@@ -1220,6 +1228,9 @@ static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
+
+    if (u->dead)
+        return FALSE;
 
     return u->sink != dest;
 }
@@ -1362,6 +1373,7 @@ int pa__init(pa_module*m) {
     u->core = m->core;
     u->module = m;
     m->userdata = u;
+    u->dead = FALSE;
 
     u->ec = pa_xnew0(pa_echo_canceller, 1);
     if (!u->ec) {
@@ -1648,6 +1660,8 @@ void pa__done(pa_module*m) {
 
     if (!(u = m->userdata))
         return;
+
+    u->dead = TRUE;
 
     /* See comments in source_output_kill_cb() above regarding
      * destruction order! */
