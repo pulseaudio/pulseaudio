@@ -103,7 +103,7 @@ static const pa_echo_canceller ec_table[] = {
 #define DEFAULT_RATE 32000
 #define DEFAULT_CHANNELS 1
 #define DEFAULT_ADJUST_TIME_USEC (1*PA_USEC_PER_SEC)
-#define DEFAULT_SAVE_AEC 0
+#define DEFAULT_SAVE_AEC FALSE
 #define DEFAULT_AUTOLOADED FALSE
 
 #define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
@@ -156,7 +156,7 @@ struct userdata {
     pa_module *module;
 
     pa_bool_t autoloaded;
-    uint32_t save_aec;
+    pa_bool_t save_aec;
 
     pa_echo_canceller *ec;
     uint32_t blocksize;
@@ -1390,7 +1390,7 @@ int pa__init(pa_module*m) {
         u->adjust_time = DEFAULT_ADJUST_TIME_USEC;
 
     u->save_aec = DEFAULT_SAVE_AEC;
-    if (pa_modargs_get_value_u32(ma, "save_aec", &u->save_aec) < 0) {
+    if (pa_modargs_get_value_boolean(ma, "save_aec", &u->save_aec) < 0) {
         pa_log("Failed to parse save_aec value");
         goto fail;
     }
