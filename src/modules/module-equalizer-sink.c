@@ -700,6 +700,7 @@ static void sink_input_mute_changed_cb(pa_sink_input *i) {
     pa_sink_mute_changed(u->sink, i->muted);
 }
 
+#if 0
 static void reset_filter(struct userdata *u){
     size_t fs = pa_frame_size(&u->sink->sample_spec);
     size_t max_request;
@@ -715,6 +716,7 @@ static void reset_filter(struct userdata *u){
     max_request = PA_MAX(max_request, u->window_size);
     pa_sink_set_max_request_within_thread(u->sink, max_request * fs);
 }
+#endif
 
 /* Called from I/O thread context */
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
