@@ -87,7 +87,7 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* 
     }
 
     PA_IDXSET_FOREACH(i, def->inputs, idx) {
-        if (i->save_sink)
+        if (i->save_sink || !PA_SINK_INPUT_IS_LINKED(i->state))
             continue;
 
         if (pa_sink_input_move_to(i, sink, FALSE) < 0)
@@ -140,7 +140,7 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
     }
 
     PA_IDXSET_FOREACH(o, def->outputs, idx) {
-        if (o->save_source)
+        if (o->save_source || !PA_SOURCE_OUTPUT_IS_LINKED(o->state))
             continue;
 
         if (pa_source_output_move_to(o, source, FALSE) < 0)
