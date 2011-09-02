@@ -1381,7 +1381,7 @@ pa_dbus_arg_info remove_profile_args[]={
 };
 
 static pa_dbus_method_handler manager_methods[MANAGER_METHOD_MAX]={
-    [MANAGER_METHOD_REMOVE_PROFILE]{
+    [MANAGER_METHOD_REMOVE_PROFILE]={
         .method_name="RemoveProfile",
         .arguments=remove_profile_args,
         .n_arguments=sizeof(remove_profile_args)/sizeof(pa_dbus_arg_info),
@@ -1488,42 +1488,42 @@ pa_dbus_arg_info base_profile_name_args[]={
 };
 
 static pa_dbus_method_handler equalizer_methods[EQUALIZER_METHOD_MAX]={
-    [EQUALIZER_METHOD_SEED_FILTER]{
+    [EQUALIZER_METHOD_SEED_FILTER]={
         .method_name="SeedFilter",
         .arguments=seed_filter_args,
         .n_arguments=sizeof(seed_filter_args)/sizeof(pa_dbus_arg_info),
         .receive_cb=equalizer_handle_seed_filter},
-    [EQUALIZER_METHOD_FILTER_POINTS]{
+    [EQUALIZER_METHOD_FILTER_POINTS]={
         .method_name="FilterAtPoints",
         .arguments=filter_points_args,
         .n_arguments=sizeof(filter_points_args)/sizeof(pa_dbus_arg_info),
         .receive_cb=equalizer_handle_get_filter_points},
-    [EQUALIZER_METHOD_SET_FILTER]{
+    [EQUALIZER_METHOD_SET_FILTER]={
         .method_name="SetFilter",
         .arguments=set_filter_args,
         .n_arguments=sizeof(set_filter_args)/sizeof(pa_dbus_arg_info),
         .receive_cb=equalizer_handle_set_filter},
-    [EQUALIZER_METHOD_GET_FILTER]{
+    [EQUALIZER_METHOD_GET_FILTER]={
         .method_name="GetFilter",
         .arguments=get_filter_args,
         .n_arguments=sizeof(get_filter_args)/sizeof(pa_dbus_arg_info),
         .receive_cb=equalizer_handle_get_filter},
-    [EQUALIZER_METHOD_SAVE_PROFILE]{
+    [EQUALIZER_METHOD_SAVE_PROFILE]={
         .method_name="SaveProfile",
         .arguments=save_profile_args,
         .n_arguments=sizeof(save_profile_args)/sizeof(pa_dbus_arg_info),
         .receive_cb=equalizer_handle_save_profile},
-    [EQUALIZER_METHOD_LOAD_PROFILE]{
+    [EQUALIZER_METHOD_LOAD_PROFILE]={
         .method_name="LoadProfile",
         .arguments=load_profile_args,
         .n_arguments=sizeof(load_profile_args)/sizeof(pa_dbus_arg_info),
         .receive_cb=equalizer_handle_load_profile},
-    [EQUALIZER_METHOD_SAVE_STATE]{
+    [EQUALIZER_METHOD_SAVE_STATE]={
         .method_name="SaveState",
         .arguments=NULL,
         .n_arguments=0,
         .receive_cb=equalizer_handle_save_state},
-    [EQUALIZER_METHOD_GET_PROFILE_NAME]{
+    [EQUALIZER_METHOD_GET_PROFILE_NAME]={
         .method_name="BaseProfile",
         .arguments=base_profile_name_args,
         .n_arguments=sizeof(base_profile_name_args)/sizeof(pa_dbus_arg_info),
@@ -1532,10 +1532,10 @@ static pa_dbus_method_handler equalizer_methods[EQUALIZER_METHOD_MAX]={
 
 static pa_dbus_property_handler equalizer_handlers[EQUALIZER_HANDLER_MAX]={
     [EQUALIZER_HANDLER_REVISION]={.property_name="InterfaceRevision",.type="u",.get_cb=equalizer_get_revision,.set_cb=NULL},
-    [EQUALIZER_HANDLER_SAMPLERATE]{.property_name="SampleRate",.type="u",.get_cb=equalizer_get_sample_rate,.set_cb=NULL},
-    [EQUALIZER_HANDLER_FILTERSAMPLERATE]{.property_name="FilterSampleRate",.type="u",.get_cb=equalizer_get_filter_rate,.set_cb=NULL},
-    [EQUALIZER_HANDLER_N_COEFS]{.property_name="NFilterCoefficients",.type="u",.get_cb=equalizer_get_n_coefs,.set_cb=NULL},
-    [EQUALIZER_HANDLER_N_CHANNELS]{.property_name="NChannels",.type="u",.get_cb=equalizer_get_n_channels,.set_cb=NULL},
+    [EQUALIZER_HANDLER_SAMPLERATE]={.property_name="SampleRate",.type="u",.get_cb=equalizer_get_sample_rate,.set_cb=NULL},
+    [EQUALIZER_HANDLER_FILTERSAMPLERATE]={.property_name="FilterSampleRate",.type="u",.get_cb=equalizer_get_filter_rate,.set_cb=NULL},
+    [EQUALIZER_HANDLER_N_COEFS]={.property_name="NFilterCoefficients",.type="u",.get_cb=equalizer_get_n_coefs,.set_cb=NULL},
+    [EQUALIZER_HANDLER_N_CHANNELS]={.property_name="NChannels",.type="u",.get_cb=equalizer_get_n_channels,.set_cb=NULL},
 };
 
 enum equalizer_signal_index{
