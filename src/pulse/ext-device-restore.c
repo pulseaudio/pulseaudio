@@ -203,7 +203,7 @@ static void ext_device_restore_read_device_formats_cb(pa_pdispatch *pd, uint32_t
                         uint8_t k;
 
                         pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                        for (k = 0; k <= j; k++)
+                        for (k = 0; k < j+1; k++)
                             pa_format_info_free(i.formats[k]);
                         pa_xfree(i.formats);
                         goto finish;

@@ -69,7 +69,8 @@ pa_bool_t pa_memtrap_is_good(pa_memtrap *m) {
 
 #ifdef HAVE_SIGACTION
 static void sigsafe_error(const char *s) {
-    (void) write(STDERR_FILENO, s, strlen(s));
+    size_t ret PA_GCC_UNUSED;
+    ret = write(STDERR_FILENO, s, strlen(s));
 }
 
 static void signal_handler(int sig, siginfo_t* si, void *data) {
