@@ -84,6 +84,10 @@ static inline size_t PA_PAGE_ALIGN(size_t l) {
     #define PA_DECLARE_ALIGNED(n,t,v)      t v
 #endif
 
+#ifdef __GNUC__
+#define typeof __typeof__
+#endif
+
 /* The users of PA_MIN and PA_MAX, PA_CLAMP, PA_ROUND_UP should be
  * aware that these macros on non-GCC executed code with side effects
  * twice. It is thus considered misuse to use code with side effects

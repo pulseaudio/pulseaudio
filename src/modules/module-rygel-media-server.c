@@ -37,6 +37,7 @@
 #include <pulsecore/source.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/dbus-shared.h>
 #include <pulsecore/namereg.h>

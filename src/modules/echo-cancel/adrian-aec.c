@@ -10,6 +10,10 @@
  * Version 0.4 Leaky Normalized LMS - pre whitening algorithm
  */
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <math.h>
 #include <string.h>
 #include <stdint.h>

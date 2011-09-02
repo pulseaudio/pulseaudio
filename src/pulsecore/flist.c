@@ -53,7 +53,7 @@ struct pa_flist {
     pa_atomic_ptr_t stored;
     /* Stack that contains empty list elements */
     pa_atomic_ptr_t empty;
-    pa_flist_elem table[0];
+    pa_flist_elem table[];
 };
 
 /* Lock free pop from linked list stack */
