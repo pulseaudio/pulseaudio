@@ -177,7 +177,8 @@ static void trigger_save(struct userdata *u, pa_device_type_t type, uint32_t sin
 #ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
 /* Some forward declarations */
 static pa_bool_t legacy_entry_read(struct userdata *u, pa_datum *data, struct entry **entry, struct perportentry **perportentry);
-static pa_bool_t perportentry_write(struct userdata *u, const char *name, const struct perportentry *e);
+static struct perportentry* perportentry_read(struct userdata *u, const char *basekeyname, const char *port);
+static pa_bool_t perportentry_write(struct userdata *u, const char *basekeyname, const char *port, const struct perportentry *e);
 static void perportentry_free(struct perportentry* e);
 #endif
 
@@ -273,9 +274,6 @@ fail:
     pa_log_debug("Attempting to load legacy (pre-v1.0) data for key: %s", name);
     if (legacy_entry_read(u, &data, &e, &ppe)) {
         pa_bool_t written = FALSE;
-        pa_device_port *dport;
-        char *ppename;
-        void *state = NULL;
 
         pa_log_debug("Success. Saving new format for key: %s", name);
         written = entry_write(u, name, e);
@@ -285,33 +283,17 @@ fail:
             pa_sink *sink;
 
             if ((sink = pa_namereg_get(u->core, name+5, PA_NAMEREG_SINK))) {
-                if (sink->ports) {
-                    PA_HASHMAP_FOREACH(dport, sink->ports, state) {
-                        ppename = pa_sprintf_malloc("%s:%s", name, dport->name);
-                        written = perportentry_write(u, ppename, ppe) || written;
-                        pa_xfree(ppename);
-                    }
-                } else {
-                    ppename = pa_sprintf_malloc("%s:%s", name, "null");
-                    written = perportentry_write(u, ppename, ppe) || written;
-                    pa_xfree(ppename);
-                }
+                /* Write a "null" port entry. The read code will automatically try this
+                 * if it cannot find a specific port-named entry. */
+                written = perportentry_write(u, name, NULL, ppe) || written;
             }
         } else if (0 == strncmp("source:", name, 7)) {
             pa_source *source;
 
             if ((source = pa_namereg_get(u->core, name+7, PA_NAMEREG_SOURCE))) {
-                if (source->ports) {
-                    PA_HASHMAP_FOREACH(dport, source->ports, state) {
-                        ppename = pa_sprintf_malloc("%s:%s", name, dport->name);
-                        written = perportentry_write(u, ppename, ppe) || written;
-                        pa_xfree(ppename);
-                    }
-                } else {
-                    ppename = pa_sprintf_malloc("%s:%s", name, "null");
-                    written = perportentry_write(u, ppename, ppe) || written;
-                    pa_xfree(ppename);
-                }
+                /* Write a "null" port entry. The read code will automatically try this
+                 * if it cannot find a specific port-named entry. */
+                written = perportentry_write(u, name, NULL, ppe) || written;
             }
         }
         perportentry_free(ppe);
@@ -373,17 +355,20 @@ static void perportentry_free(struct perportentry* e) {
     pa_xfree(e);
 }
 
-static pa_bool_t perportentry_write(struct userdata *u, const char *name, const struct perportentry *e) {
+static pa_bool_t perportentry_write(struct userdata *u, const char *basekeyname, const char *port, const struct perportentry *e) {
     pa_tagstruct *t;
     pa_datum key, data;
     pa_bool_t r;
     uint32_t i;
     pa_format_info *f;
     uint8_t n_formats;
+    char *name;
 
     pa_assert(u);
-    pa_assert(name);
+    pa_assert(basekeyname);
     pa_assert(e);
+
+    name = pa_sprintf_malloc("%s:%s", basekeyname, (port ? port : "null"));
 
     n_formats = pa_idxset_size(e->formats);
     pa_assert(n_formats > 0);
@@ -409,20 +394,24 @@ static pa_bool_t perportentry_write(struct userdata *u, const char *name, const 
     r = (pa_database_set(u->database, &key, &data, TRUE) == 0);
 
     pa_tagstruct_free(t);
+    pa_xfree(name);
 
     return r;
 }
 
-static struct perportentry* perportentry_read(struct userdata *u, const char *name) {
+static struct perportentry* perportentry_read(struct userdata *u, const char *basekeyname, const char *port) {
     pa_datum key, data;
     struct perportentry *e = NULL;
     pa_tagstruct *t = NULL;
     uint8_t i, n_formats;
+    char *name;
 
     pa_assert(u);
-    pa_assert(name);
+    pa_assert(basekeyname);
 
-    key.data = (char*) name;
+    name = pa_sprintf_malloc("%s:%s", basekeyname, (port ? port : "null"));
+
+    key.data = name;
     key.size = strlen(name);
 
     pa_zero(data);
@@ -469,12 +458,11 @@ static struct perportentry* perportentry_read(struct userdata *u, const char *na
 
     pa_tagstruct_free(t);
     pa_datum_free(&data);
+    pa_xfree(name);
 
     return e;
 
 fail:
-
-    pa_log_debug("Database contains invalid data for key: %s", name);
 
     if (e)
         perportentry_free(e);
@@ -482,6 +470,16 @@ fail:
         pa_tagstruct_free(t);
 
     pa_datum_free(&data);
+    pa_xfree(name);
+
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+    /* Try again with a null port. This is used when dealing with migration from older versions */
+    if (port)
+        return perportentry_read(u, basekeyname, NULL);
+#endif
+
+    pa_log_debug("Database contains invalid data for key: %s", name);
+
     return NULL;
 }
 
@@ -592,7 +590,8 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     struct userdata *u = userdata;
     struct entry *e, *olde;
     struct perportentry *ppe, *oldppe;
-    char *ename, *ppename;
+    char *name;
+    const char *port = NULL;
     pa_device_type_t type;
     pa_bool_t written = FALSE;
 
@@ -612,21 +611,22 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             return;
 
         type = PA_DEVICE_TYPE_SINK;
+        name = pa_sprintf_malloc("sink:%s", sink->name);
+        if (sink->active_port)
+            port = sink->active_port->name;
 
-        ename = pa_sprintf_malloc("sink:%s", sink->name);
-        if ((olde = entry_read(u, ename)))
+        if ((olde = entry_read(u, name)))
             e = entry_copy(olde);
         else
             e = entry_new();
 
         if (sink->save_port) {
             pa_xfree(e->port);
-            e->port = pa_xstrdup(sink->active_port ? sink->active_port->name : "");
+            e->port = pa_xstrdup(port ? port : "");
             e->port_valid = TRUE;
         }
 
-        ppename = pa_sprintf_malloc("sink:%s:%s", sink->name, (sink->active_port ? sink->active_port->name : "null"));
-        if ((oldppe = perportentry_read(u, ppename)))
+        if ((oldppe = perportentry_read(u, name, port)))
             ppe = perportentry_copy(oldppe);
         else
             ppe = perportentry_new(TRUE);
@@ -650,21 +650,22 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             return;
 
         type = PA_DEVICE_TYPE_SOURCE;
+        name = pa_sprintf_malloc("source:%s", source->name);
+        if (source->active_port)
+            port = source->active_port->name;
 
-        ename = pa_sprintf_malloc("source:%s", source->name);
-        if ((olde = entry_read(u, ename)))
+        if ((olde = entry_read(u, name)))
             e = entry_copy(olde);
         else
             e = entry_new();
 
         if (source->save_port) {
             pa_xfree(e->port);
-            e->port = pa_xstrdup(source->active_port ? source->active_port->name : "");
+            e->port = pa_xstrdup(port ? port : "");
             e->port_valid = TRUE;
         }
 
-        ppename = pa_sprintf_malloc("source:%s:%s", source->name, (source->active_port ? source->active_port->name : "null"));
-        if ((oldppe = perportentry_read(u, ppename)))
+        if ((oldppe = perportentry_read(u, name, port)))
             ppe = perportentry_copy(oldppe);
         else
             ppe = perportentry_new(TRUE);
@@ -695,13 +696,12 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     }
 
     if (e) {
-        pa_log_info("Storing port for device %s.", ename);
+        pa_log_info("Storing port for device %s.", name);
 
-        written = entry_write(u, ename, e);
+        written = entry_write(u, name, e);
 
         entry_free(e);
     }
-    pa_xfree(ename);
 
 
     pa_assert(ppe);
@@ -717,13 +717,13 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     }
 
     if (ppe) {
-        pa_log_info("Storing volume/mute for device+port %s.", ppename);
+        pa_log_info("Storing volume/mute for device+port %s:%s.", name, (port ? port : "null"));
 
-        written = perportentry_write(u, ppename, ppe) || written;
+        written = perportentry_write(u, name, port, ppe) || written;
 
         perportentry_free(ppe);
     }
-    pa_xfree(ppename);
+    pa_xfree(name);
 
     if (written)
         trigger_save(u, type, idx);
@@ -768,9 +768,9 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
     pa_assert(u);
     pa_assert(u->restore_volume || u->restore_muted);
 
-    name = pa_sprintf_malloc("sink:%s:%s", new_data->name, (new_data->active_port ? new_data->active_port : "null"));
+    name = pa_sprintf_malloc("sink:%s", new_data->name);
 
-    if ((e = perportentry_read(u, name))) {
+    if ((e = perportentry_read(u, name, new_data->active_port))) {
 
         if (u->restore_volume && e->volume_valid) {
 
@@ -815,9 +815,9 @@ static pa_hook_result_t sink_port_hook_callback(pa_core *c, pa_sink *sink, struc
     pa_assert(u);
     pa_assert(u->restore_volume || u->restore_muted);
 
-    name = pa_sprintf_malloc("sink:%s:%s", sink->name, (sink->active_port ? sink->active_port->name : "null"));
+    name = pa_sprintf_malloc("sink:%s", sink->name);
 
-    if ((e = perportentry_read(u, name))) {
+    if ((e = perportentry_read(u, name, (sink->active_port ? sink->active_port->name : NULL)))) {
 
         if (u->restore_volume && e->volume_valid) {
 
@@ -855,9 +855,9 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct
     pa_assert(u);
     pa_assert(u->restore_formats);
 
-    name = pa_sprintf_malloc("sink:%s:%s", sink->name, (sink->active_port ? sink->active_port->name : "null"));
+    name = pa_sprintf_malloc("sink:%s", sink->name);
 
-    if ((e = perportentry_read(u, name))) {
+    if ((e = perportentry_read(u, name, (sink->active_port ? sink->active_port->name : NULL)))) {
 
         if (!pa_sink_set_formats(sink, e->formats))
             pa_log_debug("Could not set format on sink %s", sink->name);
@@ -909,9 +909,9 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
     pa_assert(u);
     pa_assert(u->restore_volume || u->restore_muted);
 
-    name = pa_sprintf_malloc("source:%s:%s", new_data->name, (new_data->active_port ? new_data->active_port : "null"));
+    name = pa_sprintf_malloc("source:%s", new_data->name);
 
-    if ((e = perportentry_read(u, name))) {
+    if ((e = perportentry_read(u, name, new_data->active_port))) {
 
         if (u->restore_volume && e->volume_valid) {
 
@@ -956,9 +956,9 @@ static pa_hook_result_t source_port_hook_callback(pa_core *c, pa_source *source,
     pa_assert(u);
     pa_assert(u->restore_volume || u->restore_muted);
 
-    name = pa_sprintf_malloc("source:%s:%s", source->name, (source->active_port ? source->active_port->name : "null"));
+    name = pa_sprintf_malloc("source:%s", source->name);
 
-    if ((e = perportentry_read(u, name))) {
+    if ((e = perportentry_read(u, name, (source->active_port ? source->active_port->name : NULL)))) {
 
         if (u->restore_volume && e->volume_valid) {
 
@@ -1001,8 +1001,8 @@ static void read_sink_format_reply(struct userdata *u, pa_tagstruct *reply, pa_s
     pa_tagstruct_putu32(reply, sink->index);
 
     /* Read or create an entry */
-    name = pa_sprintf_malloc("sink:%s:%s", sink->name, (sink->active_port ? sink->active_port->name : "null"));
-    if (!(e = perportentry_read(u, name))) {
+    name = pa_sprintf_malloc("sink:%s", sink->name);
+    if (!(e = perportentry_read(u, name, (sink->active_port ? sink->active_port->name : NULL)))) {
         /* Fake a reply with PCM encoding supported */
         pa_format_info *f = pa_format_info_new();
 
@@ -1139,8 +1139,8 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             }
 
             /* Read or create an entry */
-            name = pa_sprintf_malloc("sink:%s:%s", sink->name, (sink->active_port ? sink->active_port->name : "null"));
-            if (!(e = perportentry_read(u, name)))
+            name = pa_sprintf_malloc("sink:%s", sink->name);
+            if (!(e = perportentry_read(u, name, (sink->active_port ? sink->active_port->name : NULL))))
                 e = perportentry_new(FALSE);
             else {
                 /* Clean out any saved formats */
@@ -1165,7 +1165,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 goto fail;
             }
 
-            if (pa_sink_set_formats(sink, e->formats) && perportentry_write(u, name, e))
+            if (pa_sink_set_formats(sink, e->formats) && perportentry_write(u, name, (sink->active_port ? sink->active_port->name : NULL), e))
                 trigger_save(u, type, sink_index);
             else
                 pa_log_warn("Could not save format info for sink %s", sink->name);
