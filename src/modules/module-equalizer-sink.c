@@ -909,7 +909,7 @@ static void save_profile(struct userdata *u, size_t channel, char *name){
     profile[0] = u->Xs[a_i][channel];
     H = u->Hs[channel][a_i];
     H_n = profile + 1;
-    for(size_t i = 0 ; i <= FILTER_SIZE(u); ++i){
+    for(size_t i = 0 ; i < FILTER_SIZE(u); ++i){
         H_n[i] = H[i] * u->fft_size;
         //H_n[i] = H[i];
     }
