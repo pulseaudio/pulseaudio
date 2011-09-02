@@ -1112,7 +1112,7 @@ int pa__init(pa_module*m) {
 
     u->channels = ss.channels;
     u->fft_size = pow(2, ceil(log(ss.rate) / log(2)));//probably unstable near corner cases of powers of 2
-    pa_log_debug("fft size: %ld", u->fft_size);
+    pa_log_debug("fft size: %zd", u->fft_size);
     u->window_size = 15999;
     if (u->window_size % 2 == 0)
         u->window_size--;
@@ -1802,11 +1802,11 @@ void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *
         }
     }
     if(!is_monotonic(xs, x_npoints) || !points_good){
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs must be monotonic and 0<=x<=%ld", u->fft_size / 2);
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs must be monotonic and 0<=x<=%zd", u->fft_size / 2);
         dbus_error_free(&error);
         return;
     }else if(x_npoints != y_npoints || x_npoints < 2 || x_npoints > FILTER_SIZE(u)){
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs and ys must be the same length and 2<=l<=%ld!", FILTER_SIZE(u));
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs and ys must be the same length and 2<=l<=%zd!", FILTER_SIZE(u));
         dbus_error_free(&error);
         return;
     }else if(xs[0] != 0 || xs[x_npoints - 1] != u->fft_size / 2){
@@ -1883,7 +1883,7 @@ void equalizer_handle_get_filter_points(DBusConnection *conn, DBusMessage *msg, 
     }
 
     if(x_npoints > FILTER_SIZE(u) || !points_good){
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs indices/length must be <= %ld!", FILTER_SIZE(u));
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs indices/length must be <= %zd!", FILTER_SIZE(u));
         dbus_error_free(&error);
         return;
     }
@@ -2015,7 +2015,7 @@ void equalizer_handle_set_filter(DBusConnection *conn, DBusMessage *msg, void *_
         return;
     }
     if(_n_coefs != FILTER_SIZE(u)){
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "This filter takes exactly %ld coefficients, you gave %d", FILTER_SIZE(u), _n_coefs);
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "This filter takes exactly %zd coefficients, you gave %d", FILTER_SIZE(u), _n_coefs);
         return;
     }
     set_filter(u, channel, H, preamp);
