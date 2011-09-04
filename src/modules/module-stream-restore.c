@@ -1077,6 +1077,26 @@ static struct entry* legacy_entry_read(struct userdata *u, pa_datum *data) {
         return NULL;
     }
 
+    if (le->device_valid && !pa_namereg_is_valid_name(le->device)) {
+        pa_log_warn("Invalid device name stored in database for legacy stream");
+        return NULL;
+    }
+
+    if (le->card_valid && !pa_namereg_is_valid_name(le->card)) {
+        pa_log_warn("Invalid card name stored in database for legacy stream");
+        return NULL;
+    }
+
+    if (le->volume_valid && !pa_channel_map_valid(&le->channel_map)) {
+        pa_log_warn("Invalid channel map stored in database for legacy stream");
+        return NULL;
+    }
+
+    if (le->volume_valid && (!pa_cvolume_valid(&le->volume) || !pa_cvolume_compatible_with_channel_map(&le->volume, &le->channel_map))) {
+        pa_log_warn("Invalid volume stored in database for legacy stream");
+        return NULL;
+    }
+
     e = entry_new();
     e->muted_valid = le->muted_valid;
     e->muted = le->muted;
