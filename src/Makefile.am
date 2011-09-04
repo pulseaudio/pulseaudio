@@ -532,7 +532,6 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulse/util.c pulse/util.h \
 		pulse/timeval.c pulse/timeval.h \
 		pulse/rtclock.c pulse/rtclock.h \
-		pulse/format.c pulse/format.h \
 		pulsecore/atomic.h \
 		pulsecore/authkey.c pulsecore/authkey.h \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
@@ -590,9 +589,9 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/sndfile-util.c pulsecore/sndfile-util.h \
 		pulsecore/socket.h
 
-libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS) $(LIBJSON_CFLAGS)
+libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
-libpulsecommon_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LIBJSON_LIBS)
+libpulsecommon_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS)
 
 if HAVE_X11
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += \
@@ -706,6 +705,7 @@ libpulse_la_SOURCES = \
 		pulse/ext-device-manager.c pulse/ext-device-manager.h \
 		pulse/ext-device-restore.c pulse/ext-device-restore.h \
 		pulse/ext-stream-restore.c pulse/ext-stream-restore.h \
+		pulse/format.c pulse/format.h \
 		pulse/gccmacro.h \
 		pulse/internal.h \
 		pulse/introspect.c pulse/introspect.h \
@@ -727,8 +727,8 @@ libpulse_la_SOURCES = \
 		pulse/volume.c pulse/volume.h \
 		pulse/xmalloc.c pulse/xmalloc.h
 
-libpulse_la_CFLAGS = $(AM_CFLAGS)
-libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINOR@.la
+libpulse_la_CFLAGS = $(AM_CFLAGS) $(LIBJSON_CFLAGS)
+libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBJSON_LIBS) libpulsecommon-@PA_MAJORMINOR@.la
 libpulse_la_LDFLAGS = $(AM_LDFLAGS) $(VERSIONING_LDFLAGS) -version-info $(LIBPULSE_VERSION_INFO)
 
 if HAVE_DBUS
