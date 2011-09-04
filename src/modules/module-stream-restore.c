@@ -1078,6 +1078,14 @@ static struct entry* legacy_entry_read(struct userdata *u, pa_datum *data) {
     }
 
     e = entry_new();
+    e->muted_valid = le->muted_valid;
+    e->muted = le->muted;
+    e->volume_valid = le->volume_valid;
+    e->channel_map = le->channel_map;
+    e->volume = le->volume;
+    e->device_valid = le->device_valid;
+    e->device = pa_xstrdup(le->device);
+    e->card_valid = le->card_valid;
     e->card = pa_xstrdup(le->card);
     return e;
 }
