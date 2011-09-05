@@ -470,15 +470,18 @@ fail:
         pa_tagstruct_free(t);
 
     pa_datum_free(&data);
-    pa_xfree(name);
 
 #ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
     /* Try again with a null port. This is used when dealing with migration from older versions */
-    if (port)
+    if (port) {
+        pa_xfree(name);
         return perportentry_read(u, basekeyname, NULL);
+    }
 #endif
 
     pa_log_debug("Database contains invalid data for key: %s", name);
+
+    pa_xfree(name);
 
     return NULL;
 }
