@@ -186,24 +186,18 @@ static void resolver_cb(
         }
         pa_xfree(dname);
 
-        /*
-         TODO: allow this syntax of server name in things....
-        args = pa_sprintf_malloc("server=[%s]:%u "
-                                 "sink_name=%s",
-                                 avahi_address_snprint(at, sizeof(at), a), port,
-                                 vname);*/
         if (nicename) {
-            args = pa_sprintf_malloc("server=%s "
+            args = pa_sprintf_malloc("server=[%s]:%u "
                                      "sink_name=%s "
                                      "sink_properties=device.description=\"%s\"",
-                                     avahi_address_snprint(at, sizeof(at), a),
+                                     avahi_address_snprint(at, sizeof(at), a), port,
                                      vname,
                                      nicename);
 
         } else {
-            args = pa_sprintf_malloc("server=%s "
+            args = pa_sprintf_malloc("server=[%s]:%u "
                                      "sink_name=%s",
-                                     avahi_address_snprint(at, sizeof(at), a),
+                                     avahi_address_snprint(at, sizeof(at), a), port,
                                      vname);
         }
 
