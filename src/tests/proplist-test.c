@@ -81,7 +81,7 @@ int main(int argc, char*argv[]) {
     printf("%s\n", v);
     pa_xfree(v);
 
-    pa_assert_se(ma = pa_modargs_new("foo='foobar=waldo foo2=\"lj\\\\\"dhflh\" foo3=\\'kjlskj\\\\\\'\\''", x));
+    pa_assert_se(ma = pa_modargs_new("foo='foobar=waldo foo2=\"lj\\\"dhflh\" foo3=\"kjlskj\\'\"'", x));
     pa_assert_se(a = pa_proplist_new());
 
     pa_assert_se(pa_modargs_get_proplist(ma, "foo", a, PA_UPDATE_REPLACE) >= 0);

@@ -36,18 +36,26 @@
 
 #include "modargs.h"
 
+struct pa_modargs {
+    pa_hashmap *raw;
+    pa_hashmap *unescaped;
+};
+
 struct entry {
     char *key, *value;
 };
 
-static int add_key_value(pa_hashmap *map, char *key, char *value, const char* const valid_keys[]) {
+static int add_key_value(pa_modargs *ma, char *key, char *value, const char* const valid_keys[]) {
     struct entry *e;
+    char *raw;
 
-    pa_assert(map);
+    pa_assert(ma);
+    pa_assert(ma->raw);
+    pa_assert(ma->unescaped);
     pa_assert(key);
     pa_assert(value);
 
-    if (pa_hashmap_get(map, key)) {
+    if (pa_hashmap_get(ma->unescaped, key)) {
         pa_xfree(key);
         pa_xfree(value);
         return -1;
@@ -66,10 +74,21 @@ static int add_key_value(pa_hashmap *map, char *key, char *value, const char* co
         }
     }
 
+    raw = pa_xstrdup(value);
+
     e = pa_xnew(struct entry, 1);
     e->key = key;
-    e->value = value;
-    pa_hashmap_put(map, key, e);
+    e->value = pa_unescape(value);
+    pa_hashmap_put(ma->unescaped, key, e);
+
+    if (pa_streq(raw, value))
+        pa_xfree(raw);
+    else {
+        e = pa_xnew(struct entry, 1);
+        e->key = pa_xstrdup(key);
+        e->value = raw;
+        pa_hashmap_put(ma->raw, key, e);
+    }
 
     return 0;
 }
@@ -89,12 +108,13 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
 
     const char *p, *key = NULL, *value = NULL;
     size_t key_len = 0, value_len = 0;
-    pa_hashmap *map;
+    pa_modargs *ma = pa_xnew(pa_modargs, 1);
 
-    map = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    ma->raw = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    ma->unescaped = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     if (!args)
-        return (pa_modargs*) map;
+        return ma;
 
     state = WHITESPACE;
 
@@ -130,7 +150,7 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
                     value = p+1;
                     value_len = 0;
                 } else if (isspace(*p)) {
-                    if (add_key_value(map,
+                    if (add_key_value(ma,
                                       pa_xstrndup(key, key_len),
                                       pa_xstrdup(""),
                                       valid_keys) < 0)
@@ -149,9 +169,9 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
 
             case VALUE_SIMPLE:
                 if (isspace(*p)) {
-                    if (add_key_value(map,
+                    if (add_key_value(ma,
                                       pa_xstrndup(key, key_len),
-                                      pa_unescape(pa_xstrndup(value, value_len)),
+                                      pa_xstrndup(value, value_len),
                                       valid_keys) < 0)
                         goto fail;
                     state = WHITESPACE;
@@ -169,9 +189,9 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
 
             case VALUE_DOUBLE_QUOTES:
                 if (*p == '"') {
-                    if (add_key_value(map,
+                    if (add_key_value(ma,
                                       pa_xstrndup(key, key_len),
-                                      pa_unescape(pa_xstrndup(value, value_len)),
+                                      pa_xstrndup(value, value_len),
                                       valid_keys) < 0)
                         goto fail;
                     state = WHITESPACE;
@@ -189,9 +209,9 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
 
             case VALUE_TICKS:
                 if (*p == '\'') {
-                    if (add_key_value(map,
+                    if (add_key_value(ma,
                                       pa_xstrndup(key, key_len),
-                                      pa_unescape(pa_xstrndup(value, value_len)),
+                                      pa_xstrndup(value, value_len),
                                       valid_keys) < 0)
                         goto fail;
                     state = WHITESPACE;
@@ -210,19 +230,19 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
     }
 
     if (state == VALUE_START) {
-        if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrdup(""), valid_keys) < 0)
+        if (add_key_value(ma, pa_xstrndup(key, key_len), pa_xstrdup(""), valid_keys) < 0)
             goto fail;
     } else if (state == VALUE_SIMPLE) {
-        if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrdup(value), valid_keys) < 0)
+        if (add_key_value(ma, pa_xstrndup(key, key_len), pa_xstrdup(value), valid_keys) < 0)
             goto fail;
     } else if (state != WHITESPACE)
         goto fail;
 
-    return (pa_modargs*) map;
+    return ma;
 
 fail:
 
-    pa_modargs_free((pa_modargs*) map);
+    pa_modargs_free(ma);
 
     return NULL;
 }
@@ -237,16 +257,34 @@ static void free_func(void *p, void*userdata) {
 }
 
 void pa_modargs_free(pa_modargs*ma) {
-    pa_hashmap *map = (pa_hashmap*) ma;
-    pa_hashmap_free(map, free_func, NULL);
+    pa_assert(ma);
+
+    pa_hashmap_free(ma->raw, free_func, NULL);
+    pa_hashmap_free(ma->unescaped, free_func, NULL);
+    pa_xfree(ma);
 }
 
 const char *pa_modargs_get_value(pa_modargs *ma, const char *key, const char *def) {
-    pa_hashmap *map = (pa_hashmap*) ma;
     struct entry*e;
 
-    if (!(e = pa_hashmap_get(map, key)))
+    pa_assert(ma);
+    pa_assert(key);
+
+    if (!(e = pa_hashmap_get(ma->unescaped, key)))
         return def;
+
+    return e->value;
+}
+
+static const char *modargs_get_value_raw(pa_modargs *ma, const char *key, const char *def) {
+    struct entry*e;
+
+    pa_assert(ma);
+    pa_assert(key);
+
+    if (!(e = pa_hashmap_get(ma->raw, key)))
+        if (!(e = pa_hashmap_get(ma->unescaped, key)))
+            return def;
 
     return e->value;
 }
@@ -254,8 +292,6 @@ const char *pa_modargs_get_value(pa_modargs *ma, const char *key, const char *de
 int pa_modargs_get_value_u32(pa_modargs *ma, const char *key, uint32_t *value) {
     const char *v;
 
-    pa_assert(ma);
-    pa_assert(key);
     pa_assert(value);
 
     if (!(v = pa_modargs_get_value(ma, key, NULL)))
@@ -270,8 +306,6 @@ int pa_modargs_get_value_u32(pa_modargs *ma, const char *key, uint32_t *value) {
 int pa_modargs_get_value_s32(pa_modargs *ma, const char *key, int32_t *value) {
     const char *v;
 
-    pa_assert(ma);
-    pa_assert(key);
     pa_assert(value);
 
     if (!(v = pa_modargs_get_value(ma, key, NULL)))
@@ -287,8 +321,6 @@ int pa_modargs_get_value_boolean(pa_modargs *ma, const char *key, pa_bool_t *val
     const char *v;
     int r;
 
-    pa_assert(ma);
-    pa_assert(key);
     pa_assert(value);
 
     if (!(v = pa_modargs_get_value(ma, key, NULL)))
@@ -309,7 +341,6 @@ int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *rss) {
     uint32_t channels;
     pa_sample_spec ss;
 
-    pa_assert(ma);
     pa_assert(rss);
 
     ss = *rss;
@@ -341,7 +372,6 @@ int pa_modargs_get_channel_map(pa_modargs *ma, const char *name, pa_channel_map 
     pa_channel_map map;
     const char *cm;
 
-    pa_assert(ma);
     pa_assert(rmap);
 
     map = *rmap;
@@ -366,7 +396,6 @@ int pa_modargs_get_sample_spec_and_channel_map(
     pa_sample_spec ss;
     pa_channel_map map;
 
-    pa_assert(ma);
     pa_assert(rss);
     pa_assert(rmap);
 
@@ -400,7 +429,7 @@ int pa_modargs_get_proplist(pa_modargs *ma, const char *name, pa_proplist *p, pa
     pa_assert(name);
     pa_assert(p);
 
-    if (!(v = pa_modargs_get_value(ma, name, NULL)))
+    if (!(v = modargs_get_value_raw(ma, name, NULL)))
         return 0;
 
     if (!(n = pa_proplist_from_string(v)))
@@ -413,10 +442,11 @@ int pa_modargs_get_proplist(pa_modargs *ma, const char *name, pa_proplist *p, pa
 }
 
 const char *pa_modargs_iterate(pa_modargs *ma, void **state) {
-    pa_hashmap *map = (pa_hashmap*) ma;
     struct entry *e;
 
-    if (!(e = pa_hashmap_iterate(map, state, NULL)))
+    pa_assert(ma);
+
+    if (!(e = pa_hashmap_iterate(ma->unescaped, state, NULL)))
         return NULL;
 
     return e->key;
