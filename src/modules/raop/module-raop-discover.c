@@ -156,7 +156,9 @@ static void resolver_cb(
             ++nicename;
             if (strlen(nicename) > 0) {
                 pa_log_debug("Found RAOP: %s", nicename);
-            }
+                nicename = pa_escape(nicename, "\"'");
+            } else
+                nicename = NULL;
         }
 
         for (l = txt; l; l = l->next) {
@@ -189,11 +191,11 @@ static void resolver_cb(
         if (nicename) {
             args = pa_sprintf_malloc("server=[%s]:%u "
                                      "sink_name=%s "
-                                     "sink_properties=device.description=\"%s\"",
+                                     "sink_properties='device.description=\"%s\"'",
                                      avahi_address_snprint(at, sizeof(at), a), port,
                                      vname,
                                      nicename);
-
+            pa_xfree(nicename);
         } else {
             args = pa_sprintf_malloc("server=[%s]:%u "
                                      "sink_name=%s",
