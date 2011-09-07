@@ -519,7 +519,6 @@ static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, DBusM
     return p;
 }
 
-#ifdef DBUS_TYPE_UNIX_FD
 static void register_endpoint_reply(DBusPendingCall *pending, void *userdata) {
     DBusError e;
     DBusMessage *r;
@@ -560,7 +559,6 @@ finish:
 
     pa_xfree(endpoint);
 }
-#endif
 
 static void list_devices_reply(DBusPendingCall *pending, void *userdata) {
     DBusError e;
@@ -609,7 +607,6 @@ finish:
     pa_dbus_pending_free(p);
 }
 
-#ifdef DBUS_TYPE_UNIX_FD
 static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const char *endpoint, const char *uuid) {
     DBusMessage *m;
     DBusMessageIter i, d;
@@ -655,7 +652,6 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
 
     send_and_add_to_pending(y, m, register_endpoint_reply, pa_xstrdup(endpoint));
 }
-#endif
 
 static void found_adapter(pa_bluetooth_discovery *y, const char *path) {
     DBusMessage *m;
@@ -663,11 +659,9 @@ static void found_adapter(pa_bluetooth_discovery *y, const char *path) {
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", path, "org.bluez.Adapter", "ListDevices"));
     send_and_add_to_pending(y, m, list_devices_reply, NULL);
 
-#ifdef DBUS_TYPE_UNIX_FD
     register_endpoint(y, path, HFP_AG_ENDPOINT, HFP_AG_UUID);
     register_endpoint(y, path, A2DP_SOURCE_ENDPOINT, A2DP_SOURCE_UUID);
     register_endpoint(y, path, A2DP_SINK_ENDPOINT, A2DP_SINK_UUID);
-#endif
 }
 
 static void list_adapters_reply(DBusPendingCall *pending, void *userdata) {
@@ -1029,14 +1023,12 @@ int pa_bluetooth_transport_acquire(const pa_bluetooth_transport *t, const char *
         return -1;
     }
 
-#ifdef DBUS_TYPE_UNIX_FD
     if (!dbus_message_get_args(r, &err, DBUS_TYPE_UNIX_FD, &ret, DBUS_TYPE_UINT16, &i, DBUS_TYPE_UINT16, &o, DBUS_TYPE_INVALID)) {
         pa_log("Failed to parse org.bluez.MediaTransport.Acquire(): %s", err.message);
         ret = -1;
         dbus_error_free(&err);
         goto fail;
     }
-#endif
 
     if (imtu)
         *imtu = i;
@@ -1044,9 +1036,7 @@ int pa_bluetooth_transport_acquire(const pa_bluetooth_transport *t, const char *
     if (omtu)
         *omtu = o;
 
-#ifdef DBUS_TYPE_UNIX_FD
 fail:
-#endif
     dbus_message_unref(r);
     return ret;
 }
@@ -1087,7 +1077,6 @@ static int setup_dbus(pa_bluetooth_discovery *y) {
     return 0;
 }
 
-#ifdef DBUS_TYPE_UNIX_FD
 static pa_bluetooth_transport *transport_new(pa_bluetooth_discovery *y, const char *path, enum profile p, const uint8_t *config, int size) {
     pa_bluetooth_transport *t;
 
@@ -1440,16 +1429,13 @@ static DBusHandlerResult endpoint_handler(DBusConnection *c, DBusMessage *m, voi
 
     return DBUS_HANDLER_RESULT_HANDLED;
 }
-#endif /* DBUS_TYPE_UNIX_FD */
 
 pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     DBusError err;
     pa_bluetooth_discovery *y;
-#ifdef DBUS_TYPE_UNIX_FD
     static const DBusObjectPathVTable vtable_endpoint = {
         .message_function = endpoint_handler,
     };
-#endif
 
     pa_assert(c);
 
@@ -1495,11 +1481,9 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
         goto fail;
     }
 
-#ifdef DBUS_TYPE_UNIX_FD
     pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(y->connection), HFP_AG_ENDPOINT, &vtable_endpoint, y));
     pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(y->connection), A2DP_SOURCE_ENDPOINT, &vtable_endpoint, y));
     pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(y->connection), A2DP_SINK_ENDPOINT, &vtable_endpoint, y));
-#endif
 
     list_adapters(y);
 
@@ -1539,11 +1523,9 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
     }
 
     if (y->connection) {
-#ifdef DBUS_TYPE_UNIX_FD
         dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), HFP_AG_ENDPOINT);
         dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), A2DP_SOURCE_ENDPOINT);
         dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), A2DP_SINK_ENDPOINT);
-#endif
         pa_dbus_remove_matches(pa_dbus_connection_get(y->connection),
                                "type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged',arg0='org.bluez'",
                                "type='signal',sender='org.bluez',interface='org.bluez.Manager',member='AdapterAdded'",
