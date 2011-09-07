@@ -49,7 +49,7 @@ PA_MODULE_USAGE(
         "name=<name for the source, to be prefixed> "
         "source_name=<name for the source> "
         "source_properties=<properties for the source> "
-        "namereg_fail=<pa_namereg_register() fail parameter value> "
+        "namereg_fail=<when false attempt to synthesise new source_name if it is already taken> "
         "device=<ALSA device> "
         "device_id=<ALSA card index> "
         "format=<sample format> "

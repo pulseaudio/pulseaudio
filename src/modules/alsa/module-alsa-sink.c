@@ -40,7 +40,7 @@ PA_MODULE_USAGE(
         "name=<name of the sink, to be prefixed> "
         "sink_name=<name for the sink> "
         "sink_properties=<properties for the sink> "
-        "namereg_fail=<pa_namereg_register() fail parameter value> "
+        "namereg_fail=<when false attempt to synthesise new sink_name if it is already taken> "
         "device=<ALSA device> "
         "device_id=<ALSA card index> "
         "format=<sample format> "
