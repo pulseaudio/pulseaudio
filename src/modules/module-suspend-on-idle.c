@@ -40,13 +40,10 @@ PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("When a sink/source is idle for too long, suspend it");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
-PA_MODULE_USAGE(
-        "timeout=<timeout> "
-        "mempool_vacuum=<vacuum memory if all sinks and sources are suspended?>");
+PA_MODULE_USAGE("timeout=<timeout>");
 
 static const char* const valid_modargs[] = {
     "timeout",
-    "mempool_vacuum",
     NULL,
 };
 
@@ -73,8 +70,6 @@ struct userdata {
         *source_output_move_finish_slot,
         *sink_input_state_changed_slot,
         *source_output_state_changed_slot;
-
-    pa_bool_t mempool_vacuum:1;
 };
 
 struct device_info {
@@ -84,29 +79,6 @@ struct device_info {
     pa_usec_t last_use;
     pa_time_event *time_event;
 };
-
-static void check_meempool_vacuum(struct device_info *d) {
-    pa_sink *si;
-    pa_source *so;
-    uint32_t idx;
-
-    pa_assert(d);
-    pa_assert(d->userdata);
-    pa_assert(d->userdata->core);
-
-    idx = 0;
-    PA_IDXSET_FOREACH(si, d->userdata->core->sinks, idx)
-        if (pa_sink_get_state(si) != PA_SINK_SUSPENDED)
-            return;
-
-    idx = 0;
-    PA_IDXSET_FOREACH(so, d->userdata->core->sources, idx)
-        if (pa_source_get_state(so) != PA_SOURCE_SUSPENDED)
-            return;
-
-    pa_log_info("All sinks and sources are suspended, vacuuming memory");
-    pa_mempool_vacuum(d->userdata->core->mempool);
-}
 
 static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
     struct device_info *d = userdata;
@@ -118,15 +90,13 @@ static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval
     if (d->sink && pa_sink_check_suspend(d->sink) <= 0 && !(d->sink->suspend_cause & PA_SUSPEND_IDLE)) {
         pa_log_info("Sink %s idle for too long, suspending ...", d->sink->name);
         pa_sink_suspend(d->sink, TRUE, PA_SUSPEND_IDLE);
-        if (d->userdata->mempool_vacuum)
-            check_meempool_vacuum(d);
+        pa_core_maybe_vacuum(d->userdata->core);
     }
 
     if (d->source && pa_source_check_suspend(d->source) <= 0 && !(d->source->suspend_cause & PA_SUSPEND_IDLE)) {
         pa_log_info("Source %s idle for too long, suspending ...", d->source->name);
         pa_source_suspend(d->source, TRUE, PA_SUSPEND_IDLE);
-        if (d->userdata->mempool_vacuum)
-            check_meempool_vacuum(d);
+        pa_core_maybe_vacuum(d->userdata->core);
     }
 }
 
@@ -448,7 +418,6 @@ int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     uint32_t timeout = 5;
-    pa_bool_t mempool_vacuum = FALSE;
     uint32_t idx;
     pa_sink *sink;
     pa_source *source;
@@ -465,16 +434,10 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (pa_modargs_get_value_boolean(ma, "mempool_vacuum", &mempool_vacuum) < 0) {
-        pa_log("Failed to parse mempool_vacuum boolean parameter.");
-        goto fail;
-    }
-
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
     u->timeout = timeout;
     u->device_infos = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-    u->mempool_vacuum = mempool_vacuum;
 
     for (sink = pa_idxset_first(m->core->sinks, &idx); sink; sink = pa_idxset_next(m->core->sinks, &idx))
         device_new_hook_cb(m->core, PA_OBJECT(sink), u);

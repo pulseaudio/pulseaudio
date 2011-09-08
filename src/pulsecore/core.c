@@ -252,12 +252,27 @@ int pa_core_exit(pa_core *c, pa_bool_t force, int retval) {
 void pa_core_maybe_vacuum(pa_core *c) {
     pa_assert(c);
 
-    if (!pa_idxset_isempty(c->sink_inputs) ||
-        !pa_idxset_isempty(c->source_outputs))
-        return;
+    if (pa_idxset_isempty(c->sink_inputs) && pa_idxset_isempty(c->source_outputs)) {
+        pa_log_debug("Hmm, no streams around, trying to vacuum.");
+        pa_mempool_vacuum(c->mempool);
+    } else {
+        pa_sink *si;
+        pa_source *so;
+        uint32_t idx;
 
-    pa_log_debug("Hmm, no streams around, trying to vacuum.");
-    pa_mempool_vacuum(c->mempool);
+        idx = 0;
+        PA_IDXSET_FOREACH(si, c->sinks, idx)
+            if (pa_sink_get_state(si) != PA_SINK_SUSPENDED)
+                return;
+
+        idx = 0;
+        PA_IDXSET_FOREACH(so, c->sources, idx)
+            if (pa_source_get_state(so) != PA_SOURCE_SUSPENDED)
+                return;
+
+        pa_log_info("All sinks and sources are suspended, vacuuming memory");
+        pa_mempool_vacuum(c->mempool);
+    }
 }
 
 pa_time_event* pa_core_rttime_new(pa_core *c, pa_usec_t usec, pa_time_event_cb_t cb, void *userdata) {
