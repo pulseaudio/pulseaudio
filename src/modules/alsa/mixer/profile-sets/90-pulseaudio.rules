@@ -27,5 +27,6 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="4711", ENV{PULSE_
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="1011", ENV{PULSE_PROFILE_SET}="native-instruments-traktor-audio6.conf"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="1021", ENV{PULSE_PROFILE_SET}="native-instruments-traktor-audio10.conf"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0763", ATTRS{idProduct}=="2012", ENV{PULSE_PROFILE_SET}="maudio-fasttrack-pro.conf"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02bb", ENV{PULSE_PROFILE_SET}="kinect-audio.conf"
 
 LABEL="pulseaudio_end"
