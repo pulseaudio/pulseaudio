@@ -32,3 +32,12 @@ OHLOH:
 
 AUTHORS:
 	Several
+
+HACKING:
+	In order to run pulseaudio from the build dir __OPTIMIZE__ should be
+	disabled (look at src/pulsecore/core-util.h::pa_run_from_build_tree()),
+	this can be done by passing "CFLAGS=-O0" to the configure script:
+	  ./autogen.sh
+	  CFLAGS="-ggdb3 -O0" LDFLAGS="-ggdb3" ./configure
+	  make
+	  ./src/pulseaudio -n -F src/default.pa -p $(pwd)/src/.libs/
