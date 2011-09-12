@@ -235,10 +235,12 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         }
 
         case SINK_MESSAGE_RIP_SOCKET: {
-            pa_assert(u->fd >= 0);
-
-            pa_close(u->fd);
-            u->fd = -1;
+            if (u->fd >= 0) {
+                pa_close(u->fd);
+                u->fd = -1;
+            } else
+                /* FIXME */
+                pa_log("We should not get to this state. Cannot rip socket if not connected.");
 
             if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
 
