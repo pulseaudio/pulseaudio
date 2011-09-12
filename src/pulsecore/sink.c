@@ -2623,6 +2623,10 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             /* This message is sent from IO-thread and handled in main thread. */
             pa_assert_ctl_context();
 
+            /* Make sure we're not messing with main thread when no longer linked */
+            if (!PA_SINK_IS_LINKED(s->state))
+                return 0;
+
             pa_sink_get_volume(s, TRUE);
             pa_sink_get_mute(s, TRUE);
             return 0;

@@ -1212,6 +1212,9 @@ static int ctl_mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
     if (mask == SND_CTL_EVENT_MASK_REMOVE)
         return 0;
 
+    if (!PA_SINK_IS_LINKED(u->sink->state))
+        return 0;
+
     if (u->sink->suspend_cause & PA_SUSPEND_SESSION)
         return 0;
 

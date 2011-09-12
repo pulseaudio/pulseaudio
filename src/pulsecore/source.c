@@ -2045,6 +2045,10 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
             /* This message is sent from IO-thread and handled in main thread. */
             pa_assert_ctl_context();
 
+            /* Make sure we're not messing with main thread when no longer linked */
+            if (!PA_SOURCE_IS_LINKED(s->state))
+                return 0;
+
             pa_source_get_volume(s, TRUE);
             pa_source_get_mute(s, TRUE);
             return 0;
