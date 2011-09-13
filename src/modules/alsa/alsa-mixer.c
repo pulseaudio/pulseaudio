@@ -899,7 +899,7 @@ static int element_get_nearest_alsa_dB(snd_mixer_elem_t *me, snd_mixer_selem_cha
     return r;
 }
 
-static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t sync_volume, pa_bool_t write_to_hw) {
+static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t deferred_volume, pa_bool_t write_to_hw) {
 
     snd_mixer_selem_id_t *sid;
     pa_cvolume rv;
@@ -964,7 +964,7 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
 
                     } else {
                         if (write_to_hw) {
-                            if (sync_volume) {
+                            if (deferred_volume) {
                                 if ((r = element_get_nearest_alsa_dB(me, c, PA_ALSA_DIRECTION_OUTPUT, &value)) >= 0)
                                     r = snd_mixer_selem_set_playback_dB(me, c, value, 0);
                             } else {
@@ -992,7 +992,7 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
 
                     } else {
                         if (write_to_hw) {
-                            if (sync_volume) {
+                            if (deferred_volume) {
                                 if ((r = element_get_nearest_alsa_dB(me, c, PA_ALSA_DIRECTION_INPUT, &value)) >= 0)
                                     r = snd_mixer_selem_set_capture_dB(me, c, value, 0);
                             } else {
@@ -1059,7 +1059,7 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
     return 0;
 }
 
-int pa_alsa_path_set_volume(pa_alsa_path *p, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t sync_volume, pa_bool_t write_to_hw) {
+int pa_alsa_path_set_volume(pa_alsa_path *p, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t deferred_volume, pa_bool_t write_to_hw) {
 
     pa_alsa_element *e;
     pa_cvolume rv;
@@ -1085,7 +1085,7 @@ int pa_alsa_path_set_volume(pa_alsa_path *p, snd_mixer_t *m, const pa_channel_ma
         pa_assert(!p->has_dB || e->has_dB);
 
         ev = rv;
-        if (element_set_volume(e, m, cm, &ev, sync_volume, write_to_hw) < 0)
+        if (element_set_volume(e, m, cm, &ev, deferred_volume, write_to_hw) < 0)
             return -1;
 
         if (!p->has_dB) {

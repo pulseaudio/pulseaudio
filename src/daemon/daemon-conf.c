@@ -95,11 +95,11 @@ static const pa_daemon_conf default_conf = {
     .no_cpu_limit = TRUE,
     .disable_shm = FALSE,
     .lock_memory = FALSE,
-    .sync_volume = TRUE,
+    .deferred_volume = TRUE,
     .default_n_fragments = 4,
     .default_fragment_size_msec = 25,
-    .sync_volume_safety_margin_usec = 8000,
-    .sync_volume_extra_delay_usec = 0,
+    .deferred_volume_safety_margin_usec = 8000,
+    .deferred_volume_extra_delay_usec = 0,
     .default_sample_spec = { .format = PA_SAMPLE_S16NE, .rate = 44100, .channels = 2 },
     .default_channel_map = { .channels = 2, .map = { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT } },
     .shm_size = 0
@@ -536,7 +536,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "enable-shm",                 pa_config_parse_not_bool, &c->disable_shm, NULL },
         { "flat-volumes",               pa_config_parse_bool,     &c->flat_volumes, NULL },
         { "lock-memory",                pa_config_parse_bool,     &c->lock_memory, NULL },
-        { "enable-sync-volume",         pa_config_parse_bool,     &c->sync_volume, NULL },
+        { "enable-deferred-volume",     pa_config_parse_bool,     &c->deferred_volume, NULL },
         { "exit-idle-time",             pa_config_parse_int,      &c->exit_idle_time, NULL },
         { "scache-idle-time",           pa_config_parse_int,      &c->scache_idle_time, NULL },
         { "realtime-priority",          parse_rtprio,             c, NULL },
@@ -552,8 +552,10 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "default-channel-map",        parse_channel_map,        &ci,  NULL },
         { "default-fragments",          parse_fragments,          c, NULL },
         { "default-fragment-size-msec", parse_fragment_size_msec, c, NULL },
-        { "sync-volume-safety-margin-usec", pa_config_parse_unsigned, &c->sync_volume_safety_margin_usec, NULL },
-        { "sync-volume-extra-delay-usec", pa_config_parse_int, &c->sync_volume_extra_delay_usec, NULL },
+        { "deferred-volume-safety-margin-usec",
+                                        pa_config_parse_unsigned, &c->deferred_volume_safety_margin_usec, NULL },
+        { "deferred-volume-extra-delay-usec",
+                                        pa_config_parse_int,      &c->deferred_volume_extra_delay_usec, NULL },
         { "nice-level",                 parse_nice_level,         c, NULL },
         { "disable-remixing",           pa_config_parse_bool,     &c->disable_remixing, NULL },
         { "enable-remixing",            pa_config_parse_not_bool, &c->disable_remixing, NULL },
@@ -737,7 +739,6 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "enable-shm = %s\n", pa_yes_no(!c->disable_shm));
     pa_strbuf_printf(s, "flat-volumes = %s\n", pa_yes_no(c->flat_volumes));
     pa_strbuf_printf(s, "lock-memory = %s\n", pa_yes_no(c->lock_memory));
-    pa_strbuf_printf(s, "enable-sync-volume = %s\n", pa_yes_no(c->sync_volume));
     pa_strbuf_printf(s, "exit-idle-time = %i\n", c->exit_idle_time);
     pa_strbuf_printf(s, "scache-idle-time = %i\n", c->scache_idle_time);
     pa_strbuf_printf(s, "dl-search-path = %s\n", pa_strempty(c->dl_search_path));
@@ -754,8 +755,9 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "default-channel-map = %s\n", pa_channel_map_snprint(cm, sizeof(cm), &c->default_channel_map));
     pa_strbuf_printf(s, "default-fragments = %u\n", c->default_n_fragments);
     pa_strbuf_printf(s, "default-fragment-size-msec = %u\n", c->default_fragment_size_msec);
-    pa_strbuf_printf(s, "sync-volume-safety-margin-usec = %u\n", c->sync_volume_safety_margin_usec);
-    pa_strbuf_printf(s, "sync-volume-extra-delay-usec = %d\n", c->sync_volume_extra_delay_usec);
+    pa_strbuf_printf(s, "enable-deferred-volume = %s\n", pa_yes_no(c->deferred_volume));
+    pa_strbuf_printf(s, "deferred-volume-safety-margin-usec = %u\n", c->deferred_volume_safety_margin_usec);
+    pa_strbuf_printf(s, "deferred-volume-extra-delay-usec = %d\n", c->deferred_volume_extra_delay_usec);
     pa_strbuf_printf(s, "shm-size-bytes = %lu\n", (unsigned long) c->shm_size);
     pa_strbuf_printf(s, "log-meta = %s\n", pa_yes_no(c->log_meta));
     pa_strbuf_printf(s, "log-time = %s\n", pa_yes_no(c->log_time));

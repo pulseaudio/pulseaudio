@@ -86,6 +86,6 @@ ifelse(@HAVE_SYS_RESOURCE_H@, 1, [dnl
 ; default-fragments = 4
 ; default-fragment-size-msec = 25
 
-; enable-sync-volume = yes
-; sync-volume-safety-margin-usec = 8000
-; sync-volume-extra-delay-usec = 0
+; enable-deferred-volume = yes
+; deferred-volume-safety-margin-usec = 8000
+; deferred-volume-extra-delay-usec = 0

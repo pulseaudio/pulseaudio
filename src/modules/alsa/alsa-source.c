@@ -116,7 +116,7 @@ struct userdata {
     char *device_name;  /* name of the PCM device */
     char *control_device; /* name of the control device */
 
-    pa_bool_t use_mmap:1, use_tsched:1, sync_volume:1;
+    pa_bool_t use_mmap:1, use_tsched:1, deferred_volume:1;
 
     pa_bool_t first;
 
@@ -1129,7 +1129,7 @@ static void source_set_volume_cb(pa_source *s) {
     struct userdata *u = s->userdata;
     pa_cvolume r;
     char vol_str_pcnt[PA_CVOLUME_SNPRINT_MAX];
-    pa_bool_t sync_volume = !!(s->flags & PA_SOURCE_SYNC_VOLUME);
+    pa_bool_t deferred_volume = !!(s->flags & PA_SOURCE_DEFERRED_VOLUME);
 
     pa_assert(u);
     pa_assert(u->mixer_path);
@@ -1138,7 +1138,7 @@ static void source_set_volume_cb(pa_source *s) {
     /* Shift up by the base volume */
     pa_sw_cvolume_divide_scalar(&r, &s->real_volume, s->base_volume);
 
-    if (pa_alsa_path_set_volume(u->mixer_path, u->mixer_handle, &s->channel_map, &r, sync_volume, !sync_volume) < 0)
+    if (pa_alsa_path_set_volume(u->mixer_path, u->mixer_handle, &s->channel_map, &r, deferred_volume, !deferred_volume) < 0)
         return;
 
     /* Shift down by the base volume, so that 0dB becomes maximum volume */
@@ -1190,7 +1190,7 @@ static void source_write_volume_cb(pa_source *s) {
     pa_assert(u);
     pa_assert(u->mixer_path);
     pa_assert(u->mixer_handle);
-    pa_assert(s->flags & PA_SOURCE_SYNC_VOLUME);
+    pa_assert(s->flags & PA_SOURCE_DEFERRED_VOLUME);
 
     /* Shift up by the base volume */
     pa_sw_cvolume_divide_scalar(&hw_vol, &hw_vol, s->base_volume);
@@ -1262,7 +1262,7 @@ static void mixer_volume_init(struct userdata *u) {
         pa_source_set_get_volume_callback(u->source, source_get_volume_cb);
         pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
 
-        if (u->mixer_path->has_dB && u->sync_volume) {
+        if (u->mixer_path->has_dB && u->deferred_volume) {
             pa_source_set_write_volume_callback(u->source, source_write_volume_cb);
             pa_log_info("Successfully enabled synchronous volume.");
         } else
@@ -1405,7 +1405,7 @@ static void thread_func(void *userdata) {
             }
         }
 
-        if (u->source->flags & PA_SOURCE_SYNC_VOLUME) {
+        if (u->source->flags & PA_SOURCE_DEFERRED_VOLUME) {
             pa_usec_t volume_sleep;
             pa_source_volume_change_apply(u->source, &volume_sleep);
             if (volume_sleep > 0)
@@ -1421,7 +1421,7 @@ static void thread_func(void *userdata) {
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
             goto fail;
 
-        if (u->source->flags & PA_SOURCE_SYNC_VOLUME)
+        if (u->source->flags & PA_SOURCE_DEFERRED_VOLUME)
             pa_source_volume_change_apply(u->source, NULL);
 
         if (ret == 0)
@@ -1593,7 +1593,7 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB) {
 
     if (need_mixer_callback) {
         int (*mixer_callback)(snd_mixer_elem_t *, unsigned int);
-        if (u->source->flags & PA_SOURCE_SYNC_VOLUME) {
+        if (u->source->flags & PA_SOURCE_DEFERRED_VOLUME) {
             u->mixer_pd = pa_alsa_mixer_pdata_new();
             mixer_callback = io_mixer_callback;
 
@@ -1629,7 +1629,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark;
     snd_pcm_uframes_t period_frames, buffer_frames, tsched_frames;
     size_t frame_size;
-    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE, namereg_fail = FALSE, sync_volume = FALSE;
+    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE, namereg_fail = FALSE, deferred_volume = FALSE;
     pa_source_new_data data;
     pa_alsa_profile_set *profile_set = NULL;
 
@@ -1682,9 +1682,9 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         goto fail;
     }
 
-    sync_volume = m->core->sync_volume;
-    if (pa_modargs_get_value_boolean(ma, "sync_volume", &sync_volume) < 0) {
-        pa_log("Failed to parse sync_volume argument.");
+    deferred_volume = m->core->deferred_volume;
+    if (pa_modargs_get_value_boolean(ma, "deferred_volume", &deferred_volume) < 0) {
+        pa_log("Failed to parse deferred_volume argument.");
         goto fail;
     }
 
@@ -1695,7 +1695,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     u->module = m;
     u->use_mmap = use_mmap;
     u->use_tsched = use_tsched;
-    u->sync_volume = sync_volume;
+    u->deferred_volume = deferred_volume;
     u->first = TRUE;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
@@ -1851,15 +1851,15 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         goto fail;
     }
 
-    if (pa_modargs_get_value_u32(ma, "sync_volume_safety_margin",
+    if (pa_modargs_get_value_u32(ma, "deferred_volume_safety_margin",
                                  &u->source->thread_info.volume_change_safety_margin) < 0) {
-        pa_log("Failed to parse sync_volume_safety_margin parameter");
+        pa_log("Failed to parse deferred_volume_safety_margin parameter");
         goto fail;
     }
 
-    if (pa_modargs_get_value_s32(ma, "sync_volume_extra_delay",
+    if (pa_modargs_get_value_s32(ma, "deferred_volume_extra_delay",
                                  &u->source->thread_info.volume_change_extra_delay) < 0) {
-        pa_log("Failed to parse sync_volume_extra_delay parameter");
+        pa_log("Failed to parse deferred_volume_extra_delay parameter");
         goto fail;
     }
 

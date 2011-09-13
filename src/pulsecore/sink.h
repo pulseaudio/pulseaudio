@@ -139,12 +139,12 @@ struct pa_sink {
      * (using pa_sink_set_soft_volume()) to match the current hardware
      * volume.
      *
-     * If PA_SINK_SYNC_VOLUME is not set, then this is called from the
+     * If PA_SINK_DEFERRED_VOLUME is not set, then this is called from the
      * main thread before sending PA_SINK_MESSAGE_GET_VOLUME, so in
      * this case the driver can choose whether to read the volume from
      * the hardware in the main thread or in the IO thread.
      *
-     * If PA_SINK_SYNC_VOLUME is set, then this is called from the IO
+     * If PA_SINK_DEFERRED_VOLUME is set, then this is called from the IO
      * thread within the default handler for
      * PA_SINK_MESSAGE_GET_VOLUME (the main thread is waiting while
      * the message is being processed), so there's no choice of where
@@ -159,14 +159,14 @@ struct pa_sink {
      * callback. This is called when the hardware volume needs to be
      * updated.
      *
-     * If PA_SINK_SYNC_VOLUME is not set, then this is called from the
+     * If PA_SINK_DEFERRED_VOLUME is not set, then this is called from the
      * main thread. The callback implementation must set the hardware
      * volume according to s->real_volume. If the driver can't set the
      * hardware volume to the exact requested value, it has to update
      * s->real_volume and/or s->soft_volume so that they together
      * match the actual hardware volume that was set.
      *
-     * If PA_SINK_SYNC_VOLUME is set, then this is called from the IO
+     * If PA_SINK_DEFERRED_VOLUME is set, then this is called from the IO
      * thread. The callback implementation must not actually set the
      * hardware volume yet, but it must check how close to the
      * requested volume the hardware volume can be set, and update
@@ -178,9 +178,9 @@ struct pa_sink {
      * set this callback. */
     pa_sink_cb_t set_volume; /* may be NULL */
 
-    /* Sink drivers that set PA_SINK_SYNC_VOLUME must provide this
+    /* Sink drivers that set PA_SINK_DEFERRED_VOLUME must provide this
      * callback. This callback is not used with sinks that do not set
-     * PA_SINK_SYNC_VOLUME. This is called from the IO thread when a
+     * PA_SINK_DEFERRED_VOLUME. This is called from the IO thread when a
      * pending hardware volume change has to be written to the
      * hardware. The requested volume is passed to the callback
      * implementation in s->thread_info.current_hw_volume.
@@ -195,7 +195,7 @@ struct pa_sink {
     pa_sink_cb_t write_volume; /* may be NULL */
 
     /* Called when the mute setting is queried. A PA_SINK_MESSAGE_GET_MUTE
-     * message will also be sent. Called from IO thread if PA_SINK_SYNC_VOLUME
+     * message will also be sent. Called from IO thread if PA_SINK_DEFERRED_VOLUME
      * flag is set otherwise from main loop context. If refresh_mute is FALSE
      * neither this function is called nor a message is sent.
      *
@@ -204,7 +204,7 @@ struct pa_sink {
     pa_sink_cb_t get_mute; /* may be NULL */
 
     /* Called when the mute setting shall be changed. A PA_SINK_MESSAGE_SET_MUTE
-     * message will also be sent. Called from IO thread if PA_SINK_SYNC_VOLUME
+     * message will also be sent. Called from IO thread if PA_SINK_DEFERRED_VOLUME
      * flag is set otherwise from main loop context.
      *
      * You must use the function pa_sink_set_set_mute_callback() to
@@ -278,7 +278,7 @@ struct pa_sink {
         PA_LLIST_HEAD(pa_sink_volume_change, volume_changes);
         pa_sink_volume_change *volume_changes_tail;
         /* This value is updated in pa_sink_volume_change_apply() and
-         * used only by sinks with PA_SINK_SYNC_VOLUME. */
+         * used only by sinks with PA_SINK_DEFERRED_VOLUME. */
         pa_cvolume current_hw_volume;
 
         /* The amount of usec volume up events are delayed and volume

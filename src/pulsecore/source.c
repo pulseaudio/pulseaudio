@@ -307,8 +307,8 @@ pa_source* pa_source_new(
     PA_LLIST_HEAD_INIT(pa_source_volume_change, s->thread_info.volume_changes);
     s->thread_info.volume_changes_tail = NULL;
     pa_sw_cvolume_multiply(&s->thread_info.current_hw_volume, &s->soft_volume, &s->real_volume);
-    s->thread_info.volume_change_safety_margin = core->sync_volume_safety_margin_usec;
-    s->thread_info.volume_change_extra_delay = core->sync_volume_extra_delay_usec;
+    s->thread_info.volume_change_safety_margin = core->deferred_volume_safety_margin_usec;
+    s->thread_info.volume_change_extra_delay = core->deferred_volume_extra_delay_usec;
 
     /* FIXME: This should probably be moved to pa_source_put() */
     pa_assert_se(pa_idxset_put(core->sources, s, &s->index) >= 0);
@@ -426,9 +426,9 @@ void pa_source_set_write_volume_callback(pa_source *s, pa_source_cb_t cb) {
     flags = s->flags;
 
     if (cb)
-        s->flags |= PA_SOURCE_SYNC_VOLUME;
+        s->flags |= PA_SOURCE_DEFERRED_VOLUME;
     else
-        s->flags &= ~PA_SOURCE_SYNC_VOLUME;
+        s->flags &= ~PA_SOURCE_DEFERRED_VOLUME;
 
     /* If the flags have changed after init, let any clients know via a change event */
     if (s->state != PA_SOURCE_INIT && flags != s->flags)
@@ -526,7 +526,7 @@ void pa_source_put(pa_source *s) {
      * Note: All of these flags set here can change over the life time
      * of the source. */
     pa_assert(!(s->flags & PA_SOURCE_HW_VOLUME_CTRL) || s->set_volume);
-    pa_assert(!(s->flags & PA_SOURCE_SYNC_VOLUME) || s->write_volume);
+    pa_assert(!(s->flags & PA_SOURCE_DEFERRED_VOLUME) || s->write_volume);
     pa_assert(!(s->flags & PA_SOURCE_HW_MUTE_CTRL) || s->set_mute);
 
     /* XXX: Currently decibel volume is disabled for all sources that use volume
@@ -1452,7 +1452,7 @@ void pa_source_set_volume(
          * apply one to root_source->soft_volume */
 
         pa_cvolume_reset(&root_source->soft_volume, root_source->sample_spec.channels);
-        if (!(root_source->flags & PA_SOURCE_SYNC_VOLUME))
+        if (!(root_source->flags & PA_SOURCE_DEFERRED_VOLUME))
             root_source->set_volume(root_source);
 
     } else
@@ -1472,7 +1472,7 @@ void pa_source_set_soft_volume(pa_source *s, const pa_cvolume *volume) {
     pa_source_assert_ref(s);
     pa_assert(!(s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER));
 
-    if (s->flags & PA_SOURCE_SYNC_VOLUME)
+    if (s->flags & PA_SOURCE_DEFERRED_VOLUME)
         pa_source_assert_io_context(s);
     else
         pa_assert_ctl_context();
@@ -1482,7 +1482,7 @@ void pa_source_set_soft_volume(pa_source *s, const pa_cvolume *volume) {
     else
         s->soft_volume = *volume;
 
-    if (PA_SOURCE_IS_LINKED(s->state) && !(s->flags & PA_SOURCE_SYNC_VOLUME))
+    if (PA_SOURCE_IS_LINKED(s->state) && !(s->flags & PA_SOURCE_DEFERRED_VOLUME))
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_VOLUME, NULL, 0, NULL) == 0);
     else
         s->thread_info.soft_volume = s->soft_volume;
@@ -1575,7 +1575,7 @@ const pa_cvolume *pa_source_get_volume(pa_source *s, pa_bool_t force_refresh) {
 
         old_real_volume = s->real_volume;
 
-        if (!(s->flags & PA_SOURCE_SYNC_VOLUME) && s->get_volume)
+        if (!(s->flags & PA_SOURCE_DEFERRED_VOLUME) && s->get_volume)
             s->get_volume(s);
 
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_VOLUME, NULL, 0, NULL) == 0);
@@ -1616,7 +1616,7 @@ void pa_source_set_mute(pa_source *s, pa_bool_t mute, pa_bool_t save) {
     s->muted = mute;
     s->save_muted = (old_muted == s->muted && s->save_muted) || save;
 
-    if (!(s->flags & PA_SOURCE_SYNC_VOLUME) && s->set_mute)
+    if (!(s->flags & PA_SOURCE_DEFERRED_VOLUME) && s->set_mute)
         s->set_mute(s);
 
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_MUTE, NULL, 0, NULL) == 0);
@@ -1635,7 +1635,7 @@ pa_bool_t pa_source_get_mute(pa_source *s, pa_bool_t force_refresh) {
     if (s->refresh_muted || force_refresh) {
         pa_bool_t old_muted = s->muted;
 
-        if (!(s->flags & PA_SOURCE_SYNC_VOLUME) && s->get_mute)
+        if (!(s->flags & PA_SOURCE_DEFERRED_VOLUME) && s->get_mute)
             s->get_mute(s);
 
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_MUTE, NULL, 0, NULL) == 0);
@@ -1885,7 +1885,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
         case PA_SOURCE_MESSAGE_SET_VOLUME_SYNCED:
 
-            if (s->flags & PA_SOURCE_SYNC_VOLUME) {
+            if (s->flags & PA_SOURCE_DEFERRED_VOLUME) {
                 s->set_volume(s);
                 pa_source_volume_change_push(s);
             }
@@ -1905,7 +1905,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
         case PA_SOURCE_MESSAGE_GET_VOLUME:
 
-            if ((s->flags & PA_SOURCE_SYNC_VOLUME) && s->get_volume) {
+            if ((s->flags & PA_SOURCE_DEFERRED_VOLUME) && s->get_volume) {
                 s->get_volume(s);
                 pa_source_volume_change_flush(s);
                 pa_sw_cvolume_divide(&s->thread_info.current_hw_volume, &s->real_volume, &s->soft_volume);
@@ -1924,14 +1924,14 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
                 s->thread_info.soft_muted = s->muted;
             }
 
-            if (s->flags & PA_SOURCE_SYNC_VOLUME && s->set_mute)
+            if (s->flags & PA_SOURCE_DEFERRED_VOLUME && s->set_mute)
                 s->set_mute(s);
 
             return 0;
 
         case PA_SOURCE_MESSAGE_GET_MUTE:
 
-            if (s->flags & PA_SOURCE_SYNC_VOLUME && s->get_mute)
+            if (s->flags & PA_SOURCE_DEFERRED_VOLUME && s->get_mute)
                 s->get_mute(s);
 
             return 0;
@@ -2423,7 +2423,7 @@ int pa_source_set_port(pa_source *s, const char *name, pa_bool_t save) {
         return 0;
     }
 
-    if (s->flags & PA_SOURCE_SYNC_VOLUME) {
+    if (s->flags & PA_SOURCE_DEFERRED_VOLUME) {
         struct source_message_set_port msg = { .port = port, .ret = 0 };
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_PORT, &msg, 0, NULL) == 0);
         ret = msg.ret;

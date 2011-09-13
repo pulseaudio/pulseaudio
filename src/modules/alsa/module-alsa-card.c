@@ -65,7 +65,7 @@ PA_MODULE_USAGE(
         "tsched_buffer_watermark=<lower fill watermark> "
         "profile=<profile name> "
         "ignore_dB=<ignore dB information from the device?> "
-        "sync_volume=<syncronize sw and hw voluchanges in IO-thread?> "
+        "deferred_volume=<Synchronize software and hardware volume changes to avoid momentary jumps?> "
         "profile_set=<profile set configuration file> ");
 
 static const char* const valid_modargs[] = {
@@ -88,7 +88,7 @@ static const char* const valid_modargs[] = {
     "tsched_buffer_watermark",
     "profile",
     "ignore_dB",
-    "sync_volume",
+    "deferred_volume",
     "profile_set",
     NULL
 };

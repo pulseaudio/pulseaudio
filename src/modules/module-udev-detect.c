@@ -46,7 +46,7 @@ PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
         "tsched=<enable system timer based scheduling mode?> "
         "ignore_dB=<ignore dB information from the device?> "
-        "sync_volume=<syncronize sw and hw volume changes in IO-thread?>");
+        "deferred_volume=<syncronize sw and hw volume changes in IO-thread?>");
 
 struct device {
     char *path;
@@ -63,7 +63,7 @@ struct userdata {
 
     pa_bool_t use_tsched:1;
     pa_bool_t ignore_dB:1;
-    pa_bool_t sync_volume:1;
+    pa_bool_t deferred_volume:1;
 
     struct udev* udev;
     struct udev_monitor *monitor;
@@ -76,7 +76,7 @@ struct userdata {
 static const char* const valid_modargs[] = {
     "tsched",
     "ignore_dB",
-    "sync_volume",
+    "deferred_volume",
     NULL
 };
 
@@ -389,14 +389,14 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
                                 "namereg_fail=false "
                                 "tsched=%s "
                                 "ignore_dB=%s "
-                                "sync_volume=%s "
+                                "deferred_volume=%s "
                                 "card_properties=\"module-udev-detect.discovered=1\"",
                                 path_get_card_id(path),
                                 n,
                                 d->card_name,
                                 pa_yes_no(u->use_tsched),
                                 pa_yes_no(u->ignore_dB),
-                                pa_yes_no(u->sync_volume));
+                                pa_yes_no(u->deferred_volume));
     pa_xfree(n);
 
     pa_hashmap_put(u->devices, d->path, d);
@@ -665,7 +665,7 @@ int pa__init(pa_module *m) {
     struct udev_enumerate *enumerate = NULL;
     struct udev_list_entry *item = NULL, *first = NULL;
     int fd;
-    pa_bool_t use_tsched = TRUE, ignore_dB = FALSE, sync_volume = m->core->sync_volume;
+    pa_bool_t use_tsched = TRUE, ignore_dB = FALSE, deferred_volume = m->core->deferred_volume;
 
 
     pa_assert(m);
@@ -692,11 +692,11 @@ int pa__init(pa_module *m) {
     }
     u->ignore_dB = ignore_dB;
 
-    if (pa_modargs_get_value_boolean(ma, "sync_volume", &sync_volume) < 0) {
-        pa_log("Failed to parse sync_volume= argument.");
+    if (pa_modargs_get_value_boolean(ma, "deferred_volume", &deferred_volume) < 0) {
+        pa_log("Failed to parse deferred_volume= argument.");
         goto fail;
     }
-    u->sync_volume = sync_volume;
+    u->deferred_volume = deferred_volume;
 
     if (!(u->udev = udev_new())) {
         pa_log("Failed to initialize udev library.");

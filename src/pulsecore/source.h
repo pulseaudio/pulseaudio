@@ -133,9 +133,9 @@ struct pa_source {
      * set this callback. */
     pa_source_cb_t set_volume; /* may be NULL */
 
-    /* Source drivers that set PA_SOURCE_SYNC_VOLUME must provide this
+    /* Source drivers that set PA_SOURCE_DEFERRED_VOLUME must provide this
      * callback. This callback is not used with source that do not set
-     * PA_SOURCE_SYNC_VOLUME. This is called from the IO thread when a
+     * PA_SOURCE_DEFERRED_VOLUME. This is called from the IO thread when a
      * pending hardware volume change has to be written to the
      * hardware. The requested volume is passed to the callback
      * implementation in s->thread_info.current_hw_volume.
@@ -207,7 +207,7 @@ struct pa_source {
         PA_LLIST_HEAD(pa_source_volume_change, volume_changes);
         pa_source_volume_change *volume_changes_tail;
         /* This value is updated in pa_source_volume_change_apply() and
-         * used only by sources with PA_SOURCE_SYNC_VOLUME. */
+         * used only by sources with PA_SOURCE_DEFERRED_VOLUME. */
         pa_cvolume current_hw_volume;
 
         /* The amount of usec volume up events are delayed and volume
