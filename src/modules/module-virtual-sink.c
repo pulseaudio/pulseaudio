@@ -482,7 +482,7 @@ int pa__init(pa_module*m) {
     pa_sink *master=NULL;
     pa_sink_input_new_data sink_input_data;
     pa_sink_new_data sink_data;
-    pa_bool_t use_volume_sharing = FALSE;
+    pa_bool_t use_volume_sharing = TRUE;
     pa_bool_t force_flat_volume = FALSE;
     pa_memchunk silence;
 

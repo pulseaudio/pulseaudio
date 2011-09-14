@@ -497,7 +497,7 @@ int pa__init(pa_module*m) {
     pa_source *master=NULL;
     pa_source_output_new_data source_output_data;
     pa_source_new_data source_data;
-    pa_bool_t use_volume_sharing = FALSE;
+    pa_bool_t use_volume_sharing = TRUE;
     pa_bool_t force_flat_volume = FALSE;
 
     /* optional for uplink_sink */
