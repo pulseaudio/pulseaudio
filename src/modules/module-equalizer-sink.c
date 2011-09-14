@@ -81,6 +81,7 @@ PA_MODULE_USAGE(
           "channels=<number of channels> "
           "channel_map=<channel map> "
           "autoloaded=<set if this module is being loaded automatically> "
+          "use_volume_sharing=<yes or no> "
          ));
 
 #define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
@@ -139,6 +140,7 @@ static const char* const valid_modargs[] = {
     "channels",
     "channel_map",
     "autoloaded",
+    "use_volume_sharing",
     NULL
 };
 
@@ -1083,6 +1085,7 @@ int pa__init(pa_module*m) {
     unsigned c;
     float *H;
     unsigned a_i;
+    pa_bool_t use_volume_sharing = TRUE;
 
     pa_assert(m);
 
@@ -1105,6 +1108,11 @@ int pa__init(pa_module*m) {
     }
 
     fs = pa_frame_size(&ss);
+
+    if (pa_modargs_get_value_boolean(ma, "use_volume_sharing", &use_volume_sharing) < 0) {
+        pa_log("use_volume_sharing= expects a boolean argument");
+        goto fail;
+    }
 
     u = pa_xnew0(struct userdata, 1);
     u->module = m;
@@ -1179,8 +1187,8 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->sink = pa_sink_new(m->core, &sink_data,
-                          (master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY)));
+    u->sink = pa_sink_new(m->core, &sink_data, (master->flags & (PA_SINK_LATENCY | PA_SINK_DYNAMIC_LATENCY))
+                                               | (use_volume_sharing ? PA_SINK_SHARE_VOLUME_WITH_MASTER : 0));
     pa_sink_new_data_done(&sink_data);
 
     if (!u->sink) {
@@ -1192,9 +1200,11 @@ int pa__init(pa_module*m) {
     u->sink->set_state = sink_set_state_cb;
     u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->request_rewind = sink_request_rewind_cb;
-    pa_sink_enable_decibel_volume(u->sink, TRUE);
-    pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
     pa_sink_set_set_mute_callback(u->sink, sink_set_mute_cb);
+    if (!use_volume_sharing) {
+        pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
+        pa_sink_enable_decibel_volume(u->sink, TRUE);
+    }
     u->sink->userdata = u;
 
     u->input_q = pa_memblockq_new(0,  MEMBLOCKQ_MAXLENGTH, 0, fs, 1, 1, 0, &u->sink->silence);
@@ -1235,7 +1245,8 @@ int pa__init(pa_module*m) {
     u->sink_input->state_change = sink_input_state_change_cb;
     u->sink_input->may_move_to = sink_input_may_move_to_cb;
     u->sink_input->moving = sink_input_moving_cb;
-    u->sink_input->volume_changed = sink_input_volume_changed_cb;
+    if (!use_volume_sharing)
+        u->sink_input->volume_changed = sink_input_volume_changed_cb;
     u->sink_input->mute_changed = sink_input_mute_changed_cb;
     u->sink_input->userdata = u;
 
