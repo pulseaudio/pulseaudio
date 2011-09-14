@@ -4,19 +4,19 @@ WEB SITE:
 	http://pulseaudio.org/
 
 GIT:
-	git://git.0pointer.de/pulseaudio.git
+	git://anongit.freedesktop.org/pulseaudio/pulseaudio
 
-GITWEB:
-	http://git.0pointer.de/?p=pulseaudio.git;a=summary
+GITWEB/CGIT:
+	http://cgit.freedesktop.org/pulseaudio/pulseaudio/
 
 MAILING LIST:
-	https://tango.0pointer.de/mailman/listinfo/pulseaudio-discuss
+	http://lists.freedesktop.org/mailman/listinfo/pulseaudio-discuss
 
 GIT COMMITS MAILING LIST:
 	https://tango.0pointer.de/mailman/listinfo/pulseaudio-commits
 
-TRAC TICKET CHANGES MAILING LIST:
-	https://tango.0pointer.de/mailman/listinfo/pulseaudio-tickets
+TRAC/BUGZILLA TICKET CHANGES MAILING LIST:
+	http://lists.freedesktop.org/mailman/listinfo/pulseaudio-bugs
 
 IRC:
 	#pulseaudio on irc.freenode.org
