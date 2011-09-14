@@ -753,24 +753,26 @@ typedef enum pa_sink_flags {
     /**< The latency can be adjusted dynamically depending on the
      * needs of the connected streams. \since 0.9.15 */
 
-    PA_SINK_DEFERRED_VOLUME = 0x0100U,
-    /**< The HW volume changes are syncronized with SW volume.
-     * \since 1.0 */
+    PA_SINK_SET_FORMATS = 0x0100U,
+    /**< The sink allows setting what formats are supported by the connected
+     * hardware. The actual functionality to do this might be provided by an
+     * extension. \since 1.0 */
 
+#ifdef __INCLUDED_FROM_PULSE_AUDIO
 /** \cond fulldocs */
     /* PRIVATE: Server-side values -- do not try to use these at client-side.
      * The server will filter out these flags anyway, so you should never see
      * these flags in sinks. */
 
-    PA_SINK_SHARE_VOLUME_WITH_MASTER = 0x0200U,
+    PA_SINK_SHARE_VOLUME_WITH_MASTER = 0x1000000U,
     /**< This sink shares the volume with the master sink (used by some filter
      * sinks). */
-/** \endcond */
 
-    PA_SINK_SET_FORMATS = 0x0400U,
-    /**< The sink allows setting what formats are supported by the connected
-     * hardware. The actual functionality to do this might be provided by an
-     * extension. \since 1.0 */
+    PA_SINK_DEFERRED_VOLUME = 0x2000000U,
+    /**< The HW volume changes are syncronized with SW volume. */
+/** \endcond */
+#endif
+
 } pa_sink_flags_t;
 
 /** \cond fulldocs */
@@ -782,9 +784,10 @@ typedef enum pa_sink_flags {
 #define PA_SINK_DECIBEL_VOLUME PA_SINK_DECIBEL_VOLUME
 #define PA_SINK_FLAT_VOLUME PA_SINK_FLAT_VOLUME
 #define PA_SINK_DYNAMIC_LATENCY PA_SINK_DYNAMIC_LATENCY
-#define PA_SINK_DEFERRED_VOLUME PA_SINK_DEFERRED_VOLUME
-#define PA_SINK_SHARE_VOLUME_WITH_MASTER PA_SINK_SHARE_VOLUME_WITH_MASTER
 #define PA_SINK_SET_FORMATS PA_SINK_SET_FORMATS
+#ifdef __INCLUDED_FROM_PULSE_AUDIO
+#define PA_SINK_CLIENT_FLAGS_MASK 0xFFFFFF
+#endif
 
 /** \endcond */
 
@@ -869,18 +872,19 @@ typedef enum pa_source_flags {
     /**< This source is in flat volume mode, i.e. always the maximum of
      * the volume of all connected outputs. \since 1.0 */
 
-    PA_SOURCE_DEFERRED_VOLUME = 0x0100U,
-    /**< The HW volume changes are syncronized with SW volume.
-     * \since 1.0 */
-
+#ifdef __INCLUDED_FROM_PULSE_AUDIO
 /** \cond fulldocs */
     /* PRIVATE: Server-side values -- do not try to use these at client-side.
      * The server will filter out these flags anyway, so you should never see
      * these flags in sources. */
 
-    PA_SOURCE_SHARE_VOLUME_WITH_MASTER = 0x0200U,
+    PA_SOURCE_SHARE_VOLUME_WITH_MASTER = 0x1000000U,
     /**< This source shares the volume with the master source (used by some filter
      * sources). */
+
+    PA_SOURCE_DEFERRED_VOLUME = 0x2000000U,
+    /**< The HW volume changes are syncronized with SW volume. */
+#endif
 } pa_source_flags_t;
 
 /** \cond fulldocs */
@@ -892,8 +896,9 @@ typedef enum pa_source_flags {
 #define PA_SOURCE_DECIBEL_VOLUME PA_SOURCE_DECIBEL_VOLUME
 #define PA_SOURCE_DYNAMIC_LATENCY PA_SOURCE_DYNAMIC_LATENCY
 #define PA_SOURCE_FLAT_VOLUME PA_SOURCE_FLAT_VOLUME
-#define PA_SOURCE_DEFERRED_VOLUME PA_SOURCE_DEFERRED_VOLUME
-#define PA_SOURCE_SHARE_VOLUME_WITH_MASTER PA_SOURCE_SHARE_VOLUME_WITH_MASTER
+#ifdef __INCLUDED_FROM_PULSE_AUDIO
+#define PA_SOURCE_CLIENT_FLAGS_MASK 0xFFFFFF
+#endif
 
 /** \endcond */
 

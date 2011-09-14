@@ -3066,7 +3066,7 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
         PA_TAG_STRING, sink->monitor_source ? sink->monitor_source->name : NULL,
         PA_TAG_USEC, pa_sink_get_latency(sink),
         PA_TAG_STRING, sink->driver,
-        PA_TAG_U32, sink->flags & ~PA_SINK_SHARE_VOLUME_WITH_MASTER,
+        PA_TAG_U32, sink->flags & PA_SINK_CLIENT_FLAGS_MASK,
         PA_TAG_INVALID);
 
     if (c->version >= 13) {
@@ -3136,7 +3136,7 @@ static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
         PA_TAG_STRING, source->monitor_of ? source->monitor_of->name : NULL,
         PA_TAG_USEC, pa_source_get_latency(source),
         PA_TAG_STRING, source->driver,
-        PA_TAG_U32, source->flags,
+        PA_TAG_U32, source->flags & PA_SOURCE_CLIENT_FLAGS_MASK,
         PA_TAG_INVALID);
 
     if (c->version >= 13) {
