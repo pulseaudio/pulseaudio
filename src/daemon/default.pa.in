@@ -98,11 +98,6 @@ load-module module-esound-protocol-unix
 .endif
 load-module module-native-protocol-unix
 ])dnl
-ifelse(@HAVE_DBUS@, 1, [dnl
-.ifexists module-dbus-protocol@PA_SOEXT@
-load-module module-dbus-protocol
-.endif
-])dnl
 
 ### Network access (may be configured with paprefs, so leave this commented
 ### here if you plan to use paprefs)
@@ -129,7 +124,10 @@ load-module module-gconf
 .fail
 .endif
 
-### Automatically restore the default sink/source when changed by the user during runtime
+### Automatically restore the default sink/source when changed by the user
+### during runtime
+### NOTE: This should be loaded as early as possible so that subsequent modules
+### that look up the default sink/source get the right value
 load-module module-default-device-restore
 
 ### Automatically move streams to the default sink if the sink they are
@@ -163,6 +161,13 @@ load-module module-cork-music-on-phone
 ### loading modules and rerouting streams.
 load-module module-filter-heuristics
 load-module module-filter-apply
+])dnl
+
+ifelse(@HAVE_DBUS@, 1, [dnl
+### Load DBus protocol
+.ifexists module-dbus-protocol@PA_SOEXT@
+load-module module-dbus-protocol
+.endif
 ])dnl
 
 ifelse(@HAVE_X11@, 1, [dnl

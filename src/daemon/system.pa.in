@@ -40,18 +40,22 @@ load-module module-detect
 .ifexists module-esound-protocol-unix@PA_SOEXT@
 load-module module-esound-protocol-unix
 .endif
-.ifexists module-dbus-protocol@PA_SOEXT@
-### If you want to allow TCP connections, set access to "remote" or "local,remote".
-load-module module-dbus-protocol access=local
-.endif
 load-module module-native-protocol-unix
 
 ### Automatically restore the volume of streams and devices
 load-module module-stream-restore
 load-module module-device-restore
 
-### Automatically restore the default sink/source when changed by the user during runtime
+### Automatically restore the default sink/source when changed by the user
+### during runtime
+### NOTE: This should be loaded as early as possible so that subsequent modules
+### that look up the default sink/source get the right value
 load-module module-default-device-restore
+
+.ifexists module-dbus-protocol@PA_SOEXT@
+### If you want to allow TCP connections, set access to "remote" or "local,remote".
+load-module module-dbus-protocol access=local
+.endif
 
 ### Automatically move streams to the default sink if the sink they are
 ### connected to dies, similar for sources
