@@ -83,6 +83,9 @@ typedef enum {
     PA_ECHO_CANCELLER_INVALID = -1,
     PA_ECHO_CANCELLER_SPEEX = 0,
     PA_ECHO_CANCELLER_ADRIAN,
+#ifdef HAVE_WEBRTC
+    PA_ECHO_CANCELLER_WEBRTC,
+#endif
 } pa_echo_canceller_method_t;
 
 #define DEFAULT_ECHO_CANCELLER "speex"
@@ -100,6 +103,14 @@ static const pa_echo_canceller ec_table[] = {
         .run                    = pa_adrian_ec_run,
         .done                   = pa_adrian_ec_done,
     },
+#ifdef HAVE_WEBRTC
+    {
+        /* WebRTC's audio processing engine */
+        .init                   = pa_webrtc_ec_init,
+        .run                    = pa_webrtc_ec_run,
+        .done                   = pa_webrtc_ec_done,
+    },
+#endif
 };
 
 #define DEFAULT_RATE 32000
@@ -1340,6 +1351,10 @@ static pa_echo_canceller_method_t get_ec_method_from_string(const char *method) 
         return PA_ECHO_CANCELLER_SPEEX;
     else if (pa_streq(method, "adrian"))
         return PA_ECHO_CANCELLER_ADRIAN;
+#ifdef HAVE_WEBRTC
+    else if (pa_streq(method, "webrtc"))
+        return PA_ECHO_CANCELLER_WEBRTC;
+#endif
     else
         return PA_ECHO_CANCELLER_INVALID;
 }

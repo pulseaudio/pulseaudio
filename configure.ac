@@ -78,6 +78,9 @@ AC_PROG_MKDIR_P
 AC_PROG_CC
 AC_PROG_CC_C99
 AM_PROG_CC_C_O
+# Only required if you want the WebRTC canceller -- no runtime dep on
+# libstdc++ otherwise
+AC_PROG_CXX
 AC_PROG_GCC_TRADITIONAL
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -1139,6 +1142,20 @@ if test "x$os_is_darwin" = "x1" ; then
     fi
 fi
 
+AC_ARG_ENABLE([webrtc-aec],
+    AS_HELP_STRING([--enable-webrtc-aec], [Enable the optional WebRTC-based echo canceller]))
+
+AS_IF([test "x$enable_webrtc_aec" != "xno"],
+    [PKG_CHECK_MODULES(WEBRTC, [ webrtc-audio-processing ], [HAVE_WEBRTC=1], [HAVE_WEBRTC=0])],
+    [HAVE_WEBRTC=0])
+
+AS_IF([test "x$enable_webrtc_aec" = "xyes" && test "x$HAVE_WEBRTC" = "x0"],
+    [AC_MSG_ERROR([*** webrtc-audio-processing library not found])])
+
+AC_SUBST(WEBRTC_CFLAGS)
+AC_SUBST(WEBRTC_LIBS)
+AM_CONDITIONAL([HAVE_WEBRTC], [test "x$HAVE_WEBRTC" = "x1"])
+
 
 ###################################
 #            Output               #
@@ -1275,6 +1292,7 @@ AS_IF([test "x$HAVE_IPV6" = "x1"], ENABLE_IPV6=yes, ENABLE_IPV6=no)
 AS_IF([test "x$HAVE_OPENSSL" = "x1"], ENABLE_OPENSSL=yes, ENABLE_OPENSSL=no)
 AS_IF([test "x$HAVE_FFTW" = "x1"], ENABLE_FFTW=yes, ENABLE_FFTW=no)
 AS_IF([test "x$HAVE_ORC" = "xyes"], ENABLE_ORC=yes, ENABLE_ORC=no)
+AS_IF([test "x$HAVE_WEBRTC" = "x1"], ENABLE_WEBRTC=yes, ENABLE_WEBRTC=no)
 AS_IF([test "x$HAVE_TDB" = "x1"], ENABLE_TDB=yes, ENABLE_TDB=no)
 AS_IF([test "x$HAVE_GDBM" = "x1"], ENABLE_GDBM=yes, ENABLE_GDBM=no)
 AS_IF([test "x$HAVE_SIMPLEDB" = "x1"], ENABLE_SIMPLEDB=yes, ENABLE_SIMPLEDB=no)
@@ -1321,6 +1339,7 @@ echo "
     Enable OpenSSL (for Airtunes): ${ENABLE_OPENSSL}
     Enable fftw:                   ${ENABLE_FFTW}
     Enable orc:                    ${ENABLE_ORC}
+    Enable WebRTC echo canceller:  ${ENABLE_WEBRTC}
     Database
       tdb:                         ${ENABLE_TDB}
       gdbm:                        ${ENABLE_GDBM}

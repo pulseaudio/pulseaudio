@@ -48,6 +48,7 @@ AM_CFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
 	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\"
+AM_CXXFLAGS = $(AM_CFLAGS)
 SERVER_CFLAGS = -D__INCLUDED_FROM_PULSE_AUDIO
 
 AM_LIBADD = $(PTHREAD_LIBS) $(INTLLIBS)
@@ -523,6 +524,7 @@ echo_cancel_test_SOURCES = $(module_echo_cancel_la_SOURCES)
 nodist_echo_cancel_test_SOURCES = $(nodist_module_echo_cancel_la_SOURCES)
 echo_cancel_test_LDADD = $(module_echo_cancel_la_LIBADD)
 echo_cancel_test_CFLAGS = $(module_echo_cancel_la_CFLAGS) -DECHO_CANCEL_TEST=1
+echo_cancel_test_CXXFLAGS = $(module_echo_cancel_la_CXXFLAGS) -DECHO_CANCEL_TEST=1
 echo_cancel_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
@@ -1752,6 +1754,12 @@ nodist_module_echo_cancel_la_SOURCES = \
 		modules/echo-cancel/adrian-aec-orc-gen.h
 module_echo_cancel_la_LIBADD += $(ORC_LIBS)
 module_echo_cancel_la_CFLAGS += $(ORC_CFLAGS) -I$(top_builddir)/src/modules/echo-cancel
+endif
+if HAVE_WEBRTC
+module_echo_cancel_la_SOURCES += modules/echo-cancel/webrtc.cc
+module_echo_cancel_la_CFLAGS += -DHAVE_WEBRTC=1
+module_echo_cancel_la_CXXFLAGS = $(AM_CXXFLAGS) $(SERVER_CFLAGS) $(WEBRTC_CFLAGS) -DHAVE_WEBRTC=1
+module_echo_cancel_la_LIBADD += $(WEBRTC_LIBS)
 endif
 
 # RTP modules
