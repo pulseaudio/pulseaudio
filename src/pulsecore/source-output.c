@@ -1218,12 +1218,14 @@ static void update_volume_due_to_moving(pa_source_output *o, pa_source *dest) {
     pa_assert(o->source); /* The destination source should already be set. */
 
     if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)) {
-        pa_source *root_source = o->source;
+        pa_source *root_source;
         pa_source_output *destination_source_output;
         uint32_t idx;
 
-        while (root_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)
-            root_source = root_source->output_from_master->source;
+        root_source = pa_source_get_master(o->source);
+
+        if (PA_UNLIKELY(!root_source))
+            return;
 
         if (pa_source_flat_volume_enabled(o->source)) {
             /* Ok, so the origin source uses volume sharing, and flat volume is

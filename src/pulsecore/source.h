@@ -339,6 +339,9 @@ int pa_source_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t caus
 /* Use this instead of checking s->flags & PA_SOURCE_FLAT_VOLUME directly. */
 pa_bool_t pa_source_flat_volume_enabled(pa_source *s);
 
+/* Get the master source when sharing volumes */
+pa_source *pa_source_get_master(pa_source *s);
+
 /* Is the source in passthrough mode? (that is, is this a monitor source for a sink
  * that has a passthrough sink input connected to it. */
 pa_bool_t pa_source_is_passthrough(pa_source *s);

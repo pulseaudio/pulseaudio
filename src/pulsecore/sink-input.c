@@ -1438,12 +1438,12 @@ static void update_volume_due_to_moving(pa_sink_input *i, pa_sink *dest) {
     pa_assert(i->sink); /* The destination sink should already be set. */
 
     if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)) {
-        pa_sink *root_sink = i->sink;
+        pa_sink *root_sink = pa_sink_get_master(i->sink);
         pa_sink_input *origin_sink_input;
         uint32_t idx;
 
-        while (root_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)
-            root_sink = root_sink->input_to_master->sink;
+        if (PA_UNLIKELY(!root_sink))
+            return;
 
         if (pa_sink_flat_volume_enabled(i->sink)) {
             /* Ok, so the origin sink uses volume sharing, and flat volume is

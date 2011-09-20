@@ -419,6 +419,9 @@ int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause)
 /* Use this instead of checking s->flags & PA_SINK_FLAT_VOLUME directly. */
 pa_bool_t pa_sink_flat_volume_enabled(pa_sink *s);
 
+/* Get the master sink when sharing volumes */
+pa_sink *pa_sink_get_master(pa_sink *s);
+
 /* Is the sink in passthrough mode? (that is, is there a passthrough sink input
  * connected to this sink? */
 pa_bool_t pa_sink_is_passthrough(pa_sink *s);

@@ -549,10 +549,9 @@ void pa_source_put(pa_source *s) {
         enable_flat_volume(s, TRUE);
 
     if (s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER) {
-        pa_source *root_source = s->output_from_master->source;
+        pa_source *root_source = pa_source_get_master(s);
 
-        while (root_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)
-            root_source = root_source->output_from_master->source;
+        pa_assert(PA_LIKELY(root_source));
 
         s->reference_volume = root_source->reference_volume;
         pa_cvolume_remap(&s->reference_volume, &root_source->channel_map, &s->channel_map);
@@ -963,10 +962,27 @@ pa_usec_t pa_source_get_latency_within_thread(pa_source *s) {
 pa_bool_t pa_source_flat_volume_enabled(pa_source *s) {
     pa_source_assert_ref(s);
 
-    while (s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)
-        s = s->output_from_master->source;
+    s = pa_source_get_master(s);
 
-    return (s->flags & PA_SOURCE_FLAT_VOLUME);
+    if (PA_LIKELY(s))
+        return (s->flags & PA_SOURCE_FLAT_VOLUME);
+    else
+        return FALSE;
+}
+
+/* Called from the main thread (and also from the IO thread while the main
+ * thread is waiting). */
+pa_source *pa_source_get_master(pa_source *s) {
+    pa_source_assert_ref(s);
+
+    while (s && (s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)) {
+        if (PA_UNLIKELY(!s->output_from_master))
+            return NULL;
+
+        s = s->output_from_master->source;
+    }
+
+    return s;
 }
 
 /* Called from main context */
@@ -1380,7 +1396,7 @@ void pa_source_set_volume(
         pa_bool_t save) {
 
     pa_cvolume new_reference_volume;
-    pa_source *root_source = s;
+    pa_source *root_source;
 
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
@@ -1398,8 +1414,10 @@ void pa_source_set_volume(
 
     /* In case of volume sharing, the volume is set for the root source first,
      * from which it's then propagated to the sharing sources. */
-    while (root_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)
-        root_source = root_source->output_from_master->source;
+    root_source = pa_source_get_master(s);
+
+    if (PA_UNLIKELY(!root_source))
+        return;
 
     /* As a special exception we accept mono volumes on all sources --
      * even on those with more complex channel maps */
@@ -1877,12 +1895,11 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
         }
 
         case PA_SOURCE_MESSAGE_SET_SHARED_VOLUME: {
-            pa_source *root_source = s;
+            pa_source *root_source = pa_source_get_master(s);
 
-            while (root_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)
-                root_source = root_source->output_from_master->source;
+            if (PA_LIKELY(root_source))
+                set_shared_volume_within_thread(root_source);
 
-            set_shared_volume_within_thread(root_source);
             return 0;
         }
 
