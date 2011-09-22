@@ -594,10 +594,12 @@ void pa__done(pa_module *m) {
     if (u->core_iface)
         pa_dbusiface_core_free(u->core_iface);
 
-    while ((c = pa_idxset_steal_first(u->connections, NULL)))
-        connection_free(c);
+    if (u->connections) {
+        while ((c = pa_idxset_steal_first(u->connections, NULL)))
+            connection_free(c);
 
-    pa_idxset_free(u->connections, NULL, NULL);
+        pa_idxset_free(u->connections, NULL, NULL);
+    }
 
     /* This must not be called before the connections are freed, because if
      * there are any connections left, they will emit the
