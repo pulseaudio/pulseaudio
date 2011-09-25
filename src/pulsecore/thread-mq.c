@@ -42,7 +42,7 @@ static void asyncmsgq_read_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io
     pa_assert(events == PA_IO_EVENT_INPUT);
 
     pa_asyncmsgq_ref(aq = q->outq);
-    pa_asyncmsgq_write_after_poll(aq);
+    pa_asyncmsgq_read_after_poll(aq);
 
     for (;;) {
         pa_msgobject *object;
