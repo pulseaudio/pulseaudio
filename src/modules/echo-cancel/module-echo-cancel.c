@@ -1322,6 +1322,37 @@ static pa_echo_canceller_method_t get_ec_method_from_string(const char *method) 
         return PA_ECHO_CANCELLER_INVALID;
 }
 
+/* Common initialisation bits between module-echo-cancel and the standalone test program */
+static int init_common(pa_modargs *ma, struct userdata *u, pa_sample_spec *source_ss, pa_channel_map *source_map) {
+    pa_echo_canceller_method_t ec_method;
+
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, source_ss, source_map, PA_CHANNEL_MAP_DEFAULT) < 0) {
+        pa_log("Invalid sample format specification or channel map");
+        goto fail;
+    }
+
+    u->ec = pa_xnew0(pa_echo_canceller, 1);
+    if (!u->ec) {
+        pa_log("Failed to alloc echo canceller");
+        goto fail;
+    }
+
+    if ((ec_method = get_ec_method_from_string(pa_modargs_get_value(ma, "aec_method", DEFAULT_ECHO_CANCELLER))) < 0) {
+        pa_log("Invalid echo canceller implementation");
+        goto fail;
+    }
+
+    u->ec->init = ec_table[ec_method].init;
+    u->ec->run = ec_table[ec_method].run;
+    u->ec->done = ec_table[ec_method].done;
+
+    return 0;
+
+fail:
+    return -1;
+}
+
+
 int pa__init(pa_module*m) {
     struct userdata *u;
     pa_sample_spec source_ss, sink_ss;
@@ -1334,7 +1365,6 @@ int pa__init(pa_module*m) {
     pa_source_new_data source_data;
     pa_sink_new_data sink_data;
     pa_memchunk silence;
-    pa_echo_canceller_method_t ec_method;
     uint32_t adjust_time_sec;
     pa_bool_t use_volume_sharing = TRUE;
 
@@ -1366,10 +1396,6 @@ int pa__init(pa_module*m) {
     source_ss.rate = DEFAULT_RATE;
     source_ss.channels = DEFAULT_CHANNELS;
     pa_channel_map_init_auto(&source_map, source_ss.channels, PA_CHANNEL_MAP_DEFAULT);
-    if (pa_modargs_get_sample_spec_and_channel_map(ma, &source_ss, &source_map, PA_CHANNEL_MAP_DEFAULT) < 0) {
-        pa_log("Invalid sample format specification or channel map");
-        goto fail;
-    }
 
     sink_ss = sink_master->sample_spec;
     sink_map = sink_master->channel_map;
@@ -1388,21 +1414,6 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->dead = FALSE;
-
-    u->ec = pa_xnew0(pa_echo_canceller, 1);
-    if (!u->ec) {
-        pa_log("Failed to alloc echo canceller");
-        goto fail;
-    }
-
-    if ((ec_method = get_ec_method_from_string(pa_modargs_get_value(ma, "aec_method", DEFAULT_ECHO_CANCELLER))) < 0) {
-        pa_log("Invalid echo canceller implementation");
-        goto fail;
-    }
-
-    u->ec->init = ec_table[ec_method].init;
-    u->ec->run = ec_table[ec_method].run;
-    u->ec->done = ec_table[ec_method].done;
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
     if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
@@ -1427,8 +1438,12 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    if (init_common(ma, u, &source_ss, &source_map))
+        goto fail;
+
     u->asyncmsgq = pa_asyncmsgq_new(0);
     u->need_realign = TRUE;
+
     if (u->ec->init) {
         if (!u->ec->init(u->core, u->ec, &source_ss, &source_map, &sink_ss, &sink_map, &u->blocksize, pa_modargs_get_value(ma, "aec_args", NULL))) {
             pa_log("Failed to init AEC engine");
@@ -1725,3 +1740,108 @@ void pa__done(pa_module*m) {
 
     pa_xfree(u);
 }
+
+#ifdef ECHO_CANCEL_TEST
+/*
+ * Stand-alone test program for running in the canceller on pre-recorded files.
+ */
+int main(int argc, char* argv[]) {
+    struct userdata u;
+    pa_sample_spec source_ss, sink_ss;
+    pa_channel_map source_map, sink_map;
+    pa_modargs *ma = NULL;
+    uint8_t *rdata = NULL, *pdata = NULL, *cdata = NULL;
+    int ret = 0, unused;
+
+    pa_memzero(&u, sizeof(u));
+
+    if (argc < 4 || argc > 6) {
+        goto usage;
+    }
+
+    u.ec = pa_xnew0(pa_echo_canceller, 1);
+    if (!u.ec) {
+        pa_log("Failed to alloc echo canceller");
+        goto fail;
+    }
+
+    u.captured_file = fopen(argv[2], "r");
+    if (u.captured_file == NULL) {
+        perror ("fopen failed");
+        goto fail;
+    }
+    u.played_file = fopen(argv[1], "r");
+    if (u.played_file == NULL) {
+        perror ("fopen failed");
+        goto fail;
+    }
+    u.canceled_file = fopen(argv[3], "wb");
+    if (u.canceled_file == NULL) {
+        perror ("fopen failed");
+        goto fail;
+    }
+
+    u.core = pa_xnew0(pa_core, 1);
+    u.core->cpu_info.cpu_type = PA_CPU_X86;
+    u.core->cpu_info.flags.x86 |= PA_CPU_X86_SSE;
+
+    if (!(ma = pa_modargs_new(argc > 4 ? argv[4] : NULL, valid_modargs))) {
+        pa_log("Failed to parse module arguments.");
+        goto fail;
+    }
+
+    source_ss.format = PA_SAMPLE_S16LE;
+    source_ss.rate = DEFAULT_RATE;
+    source_ss.channels = DEFAULT_CHANNELS;
+    pa_channel_map_init_auto(&source_map, source_ss.channels, PA_CHANNEL_MAP_DEFAULT);
+
+    init_common(ma, &u, &source_ss, &source_map);
+
+    if (!u.ec->init(u.core, u.ec, &source_ss, &source_map, &sink_ss, &sink_map, &u.blocksize,
+                     (argc > 4) ? argv[5] : NULL )) {
+        pa_log("Failed to init AEC engine");
+        goto fail;
+    }
+
+    rdata = pa_xmalloc(u.blocksize);
+    pdata = pa_xmalloc(u.blocksize);
+    cdata = pa_xmalloc(u.blocksize);
+
+    while (fread(rdata, u.blocksize, 1, u.captured_file) > 0) {
+        if (fread(pdata, u.blocksize, 1, u.played_file) == 0) {
+            perror("played file ended before captured file");
+            break;
+        }
+
+        u.ec->run(u.ec, rdata, pdata, cdata);
+
+        unused = fwrite(cdata, u.blocksize, 1, u.canceled_file);
+    }
+
+    u.ec->done(u.ec);
+
+    fclose(u.captured_file);
+    fclose(u.played_file);
+    fclose(u.canceled_file);
+
+out:
+    pa_xfree(rdata);
+    pa_xfree(pdata);
+    pa_xfree(cdata);
+
+    pa_xfree(u.ec);
+    pa_xfree(u.core);
+
+    if (ma)
+        pa_modargs_free(ma);
+
+    return ret;
+
+usage:
+    pa_log("Usage: %s play_file rec_file out_file [module args] [aec_args]",argv[0]);
+
+fail:
+    ret = -1;
+    goto out;
+}
+#endif /* ECHO_CANCEL_TEST */

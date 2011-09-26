@@ -253,7 +253,8 @@ TESTS_norun = \
 		flist-test \
 		rtstutter \
 		stripnul \
-		connect-stress
+		connect-stress \
+		echo-cancel-test
 
 if !OS_IS_WIN32
 TESTS += \
@@ -518,6 +519,11 @@ connect_stress_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 connect_stress_CFLAGS = $(AM_CFLAGS)
 connect_stress_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
+echo_cancel_test_SOURCES = $(module_echo_cancel_la_SOURCES)
+nodist_echo_cancel_test_SOURCES = $(nodist_module_echo_cancel_la_SOURCES)
+echo_cancel_test_LDADD = $(module_echo_cancel_la_LIBADD)
+echo_cancel_test_CFLAGS = $(module_echo_cancel_la_CFLAGS) -DECHO_CANCEL_TEST=1
+echo_cancel_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
 #         Common library          #
