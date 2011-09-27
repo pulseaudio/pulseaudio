@@ -2575,18 +2575,20 @@ static void pa_source_volume_change_flush(pa_source *s) {
 
 /* Called from the IO thread. */
 pa_bool_t pa_source_volume_change_apply(pa_source *s, pa_usec_t *usec_to_next) {
-    pa_usec_t now = pa_rtclock_now();
+    pa_usec_t now;
     pa_bool_t ret = FALSE;
 
     pa_assert(s);
 
-    if (!PA_SOURCE_IS_LINKED(s->state)) {
+    if (!s->thread_info.volume_changes || !PA_SOURCE_IS_LINKED(s->state)) {
         if (usec_to_next)
             *usec_to_next = 0;
         return ret;
     }
 
     pa_assert(s->write_volume);
+
+    now = pa_rtclock_now();
 
     while (s->thread_info.volume_changes && now >= s->thread_info.volume_changes->at) {
         pa_source_volume_change *c = s->thread_info.volume_changes;
@@ -2598,7 +2600,7 @@ pa_bool_t pa_source_volume_change_apply(pa_source *s, pa_usec_t *usec_to_next) {
         pa_source_volume_change_free(c);
     }
 
-    if (s->write_volume && ret)
+    if (ret)
         s->write_volume(s);
 
     if (s->thread_info.volume_changes) {
