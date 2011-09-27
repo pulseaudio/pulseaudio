@@ -32,7 +32,7 @@
 
 PA_C_DECL_BEGIN
 
-/**< Represents the type of encoding used in a stream or accepted by a sink. \since 1.0 */
+/** Represents the type of encoding used in a stream or accepted by a sink. \since 1.0 */
 typedef enum pa_encoding {
     PA_ENCODING_ANY,
     /**< Any encoding format, PCM or compressed */
@@ -65,7 +65,7 @@ const char *pa_encoding_to_string(pa_encoding_t e) PA_GCC_CONST;
 /** Converts a string of the form returned by \a pa_encoding_to_string() back to a \a pa_encoding_t. \since 1.0 */
 pa_encoding_t pa_encoding_from_string(const char *encoding);
 
-/**< Represents the format of data provided in a stream or processed by a sink. \since 1.0 */
+/** Represents the format of data provided in a stream or processed by a sink. \since 1.0 */
 typedef struct pa_format_info {
     pa_encoding_t encoding;
     /**< The encoding used for the format */
@@ -74,13 +74,13 @@ typedef struct pa_format_info {
     /**< Additional encoding-specific properties such as sample rate, bitrate, etc. */
 } pa_format_info;
 
-/**< Allocates a new \a pa_format_info structure. Clients must initialise at least the encoding field themselves. */
+/** Allocates a new \a pa_format_info structure. Clients must initialise at least the encoding field themselves. */
 pa_format_info* pa_format_info_new(void);
 
-/**< Returns a new \a pa_format_info struct and representing the same format as \a src */
+/** Returns a new \a pa_format_info struct and representing the same format as \a src */
 pa_format_info* pa_format_info_copy(const pa_format_info *src);
 
-/**< Frees a \a pa_format_info structure */
+/** Frees a \a pa_format_info structure */
 void pa_format_info_free(pa_format_info *f);
 
 /** Returns non-zero when the format info structure is valid */

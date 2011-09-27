@@ -357,7 +357,7 @@ pa_stream* pa_stream_new_with_proplist(
         const pa_channel_map *map         /**< The desired channel map, or NULL for default */,
         pa_proplist *p                    /**< The initial property list */);
 
-/* Create a new, unconnected stream with the specified name, the set of formats
+/** Create a new, unconnected stream with the specified name, the set of formats
  * this client can provide, and an initial list of properties. While
  * connecting, the server will select the most appropriate format which the
  * client must then provide. \since 1.0 */
