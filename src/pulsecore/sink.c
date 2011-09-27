@@ -3400,18 +3400,20 @@ static void pa_sink_volume_change_flush(pa_sink *s) {
 
 /* Called from the IO thread. */
 pa_bool_t pa_sink_volume_change_apply(pa_sink *s, pa_usec_t *usec_to_next) {
-    pa_usec_t now = pa_rtclock_now();
+    pa_usec_t now;
     pa_bool_t ret = FALSE;
 
     pa_assert(s);
 
-    if (!PA_SINK_IS_LINKED(s->state)) {
+    if (!s->thread_info.volume_changes || !PA_SINK_IS_LINKED(s->state)) {
         if (usec_to_next)
             *usec_to_next = 0;
         return ret;
     }
 
     pa_assert(s->write_volume);
+
+    now = pa_rtclock_now();
 
     while (s->thread_info.volume_changes && now >= s->thread_info.volume_changes->at) {
         pa_sink_volume_change *c = s->thread_info.volume_changes;
@@ -3423,7 +3425,7 @@ pa_bool_t pa_sink_volume_change_apply(pa_sink *s, pa_usec_t *usec_to_next) {
         pa_sink_volume_change_free(c);
     }
 
-    if (s->write_volume && ret)
+    if (ret)
         s->write_volume(s);
 
     if (s->thread_info.volume_changes) {
