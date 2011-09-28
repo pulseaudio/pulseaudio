@@ -153,7 +153,7 @@ static void pa_volume_s16ne_mmx(int16_t *samples, int32_t *volumes, unsigned cha
 
         : "+r" (samples), "+r" (volumes), "+r" (length), "=D" (channel), "=&r" (temp)
 #if defined (__i386__)
-        : "m" ((pa_reg_x86)channels)
+        : "m" (channels)
 #else
         : "r" ((pa_reg_x86)channels)
 #endif
@@ -232,7 +232,7 @@ static void pa_volume_s16re_mmx(int16_t *samples, int32_t *volumes, unsigned cha
 
         : "+r" (samples), "+r" (volumes), "+r" (length), "=D" (channel), "=&r" (temp)
 #if defined (__i386__)
-        : "m" ((pa_reg_x86)channels)
+        : "m" (channels)
 #else
         : "r" ((pa_reg_x86)channels)
 #endif
