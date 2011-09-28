@@ -293,10 +293,7 @@ pa_sink *pa_namereg_get_default_sink(pa_core *c) {
             if (!best || s->priority > best->priority)
                 best = s;
 
-    if (best)
-        return pa_namereg_set_default_sink(c, best);
-
-    return NULL;
+    return best;
 }
 
 pa_source *pa_namereg_get_default_source(pa_core *c) {
@@ -316,7 +313,7 @@ pa_source *pa_namereg_get_default_source(pa_core *c) {
                 best = s;
 
     if (best)
-        return pa_namereg_set_default_source(c, best);
+        return best;
 
     /* Then, fallback to a monitor */
     PA_IDXSET_FOREACH(s, c->sources, idx)
@@ -329,8 +326,5 @@ pa_source *pa_namereg_get_default_source(pa_core *c) {
                  s->monitor_of->priority > best->monitor_of->priority))
                 best = s;
 
-    if (best)
-        return pa_namereg_set_default_source(c, best);
-
-    return NULL;
+    return best;
 }
