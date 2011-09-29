@@ -2403,6 +2403,46 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 pa_usec_t usec = 0;
                 size_t sink_nbytes, total_nbytes;
 
+                /* The old sink probably has some audio from this
+                 * stream in its buffer. We want to "take it back" as
+                 * much as possible and play it to the new sink. We
+                 * don't know at this point how much the old sink can
+                 * rewind. We have to pick something, and that
+                 * something is the full latency of the old sink here.
+                 * So we rewind the stream buffer by the sink latency
+                 * amount, which may be more than what we should
+                 * rewind. This can result in a chunk of audio being
+                 * played both to the old sink and the new sink.
+                 *
+                 * FIXME: Fix this code so that we don't have to make
+                 * guesses about how much the sink will actually be
+                 * able to rewind. If someone comes up with a solution
+                 * for this, something to note is that the part of the
+                 * latency that the old sink couldn't rewind should
+                 * ideally be compensated after the stream has moved
+                 * to the new sink by adding silence. The new sink
+                 * most likely can't start playing the moved stream
+                 * immediately, and that gap should be removed from
+                 * the "compensation silence" (at least at the time of
+                 * writing this, the move finish code will actually
+                 * already take care of dropping the new sink's
+                 * unrewindable latency, so taking into account the
+                 * unrewindable latency of the old sink is the only
+                 * problem).
+                 *
+                 * The render_memblockq contents are discarded,
+                 * because when the sink changes, the format of the
+                 * audio stored in the render_memblockq may change
+                 * too, making the stored audio invalid. FIXME:
+                 * However, the read and write indices are moved back
+                 * the same amount, so if they are not the same now,
+                 * they won't be the same after the rewind either. If
+                 * the write index of the render_memblockq is ahead of
+                 * the read index, then the render_memblockq will feed
+                 * the new sink some silence first, which it shouldn't
+                 * do. The write index should be flushed to be the
+                 * same as the read index. */
+
                 /* Get the latency of the sink */
                 usec = pa_sink_get_latency_within_thread(s);
                 sink_nbytes = pa_usec_to_bytes(usec, &s->sample_spec);
@@ -2455,6 +2495,24 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             if (i->thread_info.state != PA_SINK_INPUT_CORKED) {
                 pa_usec_t usec = 0;
                 size_t nbytes;
+
+                /* In the ideal case the new sink would start playing
+                 * the stream immediately. That requires the sink to
+                 * be able to rewind all of its latency, which usually
+                 * isn't possible, so there will probably be some gap
+                 * before the moved stream becomes audible. We then
+                 * have two possibilities: 1) start playing the stream
+                 * from where it is now, or 2) drop the unrewindable
+                 * latency of the sink from the stream. With option 1
+                 * we won't lose any audio but the stream will have a
+                 * pause. With option 2 we may lose some audio but the
+                 * stream time will be somewhat in sync with the wall
+                 * clock. Lennart seems to have chosen option 2 (one
+                 * of the reasons might have been that option 1 is
+                 * actually much harder to implement), so we drop the
+                 * latency of the new sink from the moved stream and
+                 * hope that the sink will undo most of that in the
+                 * rewind. */
 
                 /* Get the latency of the sink */
                 usec = pa_sink_get_latency_within_thread(s);
