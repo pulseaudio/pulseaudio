@@ -166,7 +166,6 @@ struct userdata {
     pa_bool_t need_realign;
 
     /* to wakeup the source I/O thread */
-    pa_bool_t in_push;
     pa_asyncmsgq *asyncmsgq;
     pa_rtpoll_item *rtpoll_item_read, *rtpoll_item_write;
 
@@ -653,11 +652,9 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         return;
     }
 
-    /* handle queued messages */
-    u->in_push = TRUE;
+    /* handle queued messages, do any message sending of our own */
     while (pa_asyncmsgq_process_one(u->asyncmsgq) > 0)
         ;
-    u->in_push = FALSE;
 
     if (pa_atomic_cmpxchg (&u->request_resync, 1, 0)) {
         do_resync(u);
