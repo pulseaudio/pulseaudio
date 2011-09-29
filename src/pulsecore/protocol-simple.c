@@ -560,10 +560,11 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
         l = (size_t) ((double) pa_bytes_per_second(&o->sample_spec)*PLAYBACK_BUFFER_SECONDS);
         pa_sink_input_get_silence(c->sink_input, &silence);
         c->input_memblockq = pa_memblockq_new(
+                "simple protocol connection input_memblockq",
                 0,
                 l,
                 l,
-                pa_frame_size(&o->sample_spec),
+                &o->sample_spec,
                 (size_t) -1,
                 l/PLAYBACK_BUFFER_FRAGMENTS,
                 0,
@@ -611,10 +612,11 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
 
         l = (size_t) (pa_bytes_per_second(&o->sample_spec)*RECORD_BUFFER_SECONDS);
         c->output_memblockq = pa_memblockq_new(
+                "simple protocol connection output_memblockq",
                 0,
                 l,
                 0,
-                pa_frame_size(&o->sample_spec),
+                &o->sample_spec,
                 1,
                 0,
                 0,

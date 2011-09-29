@@ -584,10 +584,11 @@ static void handle_listen_prefix(struct connection *c, const char *source_name) 
 
     l = (size_t) (pa_bytes_per_second(&ss)*RECORD_BUFFER_SECONDS);
     c->output_memblockq = pa_memblockq_new(
+            "http protocol connection output_memblockq",
             0,
             l,
             0,
-            pa_frame_size(&ss),
+            &ss,
             1,
             0,
             0,

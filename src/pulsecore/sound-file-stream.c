@@ -320,7 +320,7 @@ int pa_play_file(
     u->sink_input->userdata = u;
 
     pa_sink_input_get_silence(u->sink_input, &silence);
-    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, &silence);
+    u->memblockq = pa_memblockq_new("sound-file-stream memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0, &ss, 1, 1, 0, &silence);
     pa_memblock_unref(silence.memblock);
 
     pa_sink_input_put(u->sink_input);

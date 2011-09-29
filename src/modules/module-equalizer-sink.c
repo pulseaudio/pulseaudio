@@ -1207,8 +1207,8 @@ int pa__init(pa_module*m) {
     }
     u->sink->userdata = u;
 
-    u->input_q = pa_memblockq_new(0,  MEMBLOCKQ_MAXLENGTH, 0, fs, 1, 1, 0, &u->sink->silence);
-    u->output_q = pa_memblockq_new(0,  MEMBLOCKQ_MAXLENGTH, 0, fs, 1, 1, 0, NULL);
+    u->input_q = pa_memblockq_new("module-equalizer-sink input_q", 0, MEMBLOCKQ_MAXLENGTH, 0, &ss, 1, 1, 0, &u->sink->silence);
+    u->output_q = pa_memblockq_new("module-equalizer-sink output_q", 0, MEMBLOCKQ_MAXLENGTH, 0, &ss, 1, 1, 0, NULL);
     u->output_buffer = NULL;
     u->output_buffer_length = 0;
     u->output_buffer_max_length = 0;

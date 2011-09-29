@@ -54,13 +54,16 @@ struct pa_memblockq {
     pa_memchunk silence;
     pa_mcalign *mcalign;
     int64_t missing, requested;
+    char *name;
+    pa_sample_spec sample_spec;
 };
 
 pa_memblockq* pa_memblockq_new(
+        const char *name,
         int64_t idx,
         size_t maxlength,
         size_t tlength,
-        size_t base,
+        const pa_sample_spec *sample_spec,
         size_t prebuf,
         size_t minreq,
         size_t maxrewind,
@@ -68,18 +71,21 @@ pa_memblockq* pa_memblockq_new(
 
     pa_memblockq* bq;
 
-    pa_assert(base > 0);
+    pa_assert(sample_spec);
+    pa_assert(name);
 
     bq = pa_xnew(pa_memblockq, 1);
+    bq->name = pa_xstrdup(name);
     bq->blocks = bq->blocks_tail = NULL;
     bq->current_read = bq->current_write = NULL;
     bq->n_blocks = 0;
 
-    bq->base = base;
+    bq->sample_spec = *sample_spec;
+    bq->base = pa_frame_size(sample_spec);
     bq->read_index = bq->write_index = idx;
 
     pa_log_debug("memblockq requested: maxlength=%lu, tlength=%lu, base=%lu, prebuf=%lu, minreq=%lu maxrewind=%lu",
-                 (unsigned long) maxlength, (unsigned long) tlength, (unsigned long) base, (unsigned long) prebuf, (unsigned long) minreq, (unsigned long) maxrewind);
+                 (unsigned long) maxlength, (unsigned long) tlength, (unsigned long) bq->base, (unsigned long) prebuf, (unsigned long) minreq, (unsigned long) maxrewind);
 
     bq->missing = bq->requested = 0;
     bq->maxlength = bq->tlength = bq->prebuf = bq->minreq = bq->maxrewind = 0;
@@ -116,6 +122,7 @@ void pa_memblockq_free(pa_memblockq* bq) {
     if (bq->mcalign)
         pa_mcalign_free(bq->mcalign);
 
+    pa_xfree(bq->name);
     pa_xfree(bq);
 }
 

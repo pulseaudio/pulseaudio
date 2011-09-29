@@ -76,6 +76,11 @@ int main(int argc, char *argv[]) {
     pa_memblockq *bq;
     pa_memchunk chunk1, chunk2, chunk3, chunk4;
     pa_memchunk silence;
+    pa_sample_spec ss = {
+        .format = PA_SAMPLE_S16LE,
+        .rate = 48000,
+        .channels = 1
+    };
 
     pa_log_set_level(PA_LOG_DEBUG);
 
@@ -86,7 +91,7 @@ int main(int argc, char *argv[]) {
     silence.index = 0;
     silence.length = pa_memblock_get_length(silence.memblock);
 
-    bq = pa_memblockq_new(0, 200, 10, 2, 4, 4, 40, &silence);
+    bq = pa_memblockq_new("test memblockq", 0, 200, 10, &ss, 4, 4, 40, &silence);
     assert(bq);
 
     chunk1.memblock = pa_memblock_new_fixed(p, (char*) "11", 2, 1);

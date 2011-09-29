@@ -646,6 +646,7 @@ static record_stream* record_stream_new(
     record_stream *s;
     pa_source_output *source_output = NULL;
     pa_source_output_new_data data;
+    char *memblockq_name;
 
     pa_assert(c);
     pa_assert(ss);
@@ -708,15 +709,18 @@ static record_stream* record_stream_new(
 
     fix_record_buffer_attr_pre(s);
 
+    memblockq_name = pa_sprintf_malloc("native protocol record stream memblockq [%u]", s->source_output->index);
     s->memblockq = pa_memblockq_new(
+            memblockq_name,
             0,
             s->buffer_attr.maxlength,
             0,
-            pa_frame_size(&source_output->sample_spec),
+            &source_output->sample_spec,
             1,
             0,
             0,
             NULL);
+    pa_xfree(memblockq_name);
 
     pa_memblockq_get_attr(s->memblockq, &s->buffer_attr);
     fix_record_buffer_attr_post(s);
@@ -1068,6 +1072,7 @@ static playback_stream* playback_stream_new(
     uint32_t idx;
     int64_t start_index;
     pa_sink_input_new_data data;
+    char *memblockq_name;
 
     pa_assert(c);
     pa_assert(ss);
@@ -1163,15 +1168,18 @@ static playback_stream* playback_stream_new(
     fix_playback_buffer_attr(s);
 
     pa_sink_input_get_silence(sink_input, &silence);
+    memblockq_name = pa_sprintf_malloc("native protocol playback stream memblockq [%u]", s->sink_input->index);
     s->memblockq = pa_memblockq_new(
+            memblockq_name,
             start_index,
             s->buffer_attr.maxlength,
             s->buffer_attr.tlength,
-            pa_frame_size(&sink_input->sample_spec),
+            &sink_input->sample_spec,
             s->buffer_attr.prebuf,
             s->buffer_attr.minreq,
             0,
             &silence);
+    pa_xfree(memblockq_name);
     pa_memblock_unref(silence.memblock);
 
     pa_memblockq_get_attr(s->memblockq, &s->buffer_attr);

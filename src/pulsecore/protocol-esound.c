@@ -436,10 +436,11 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
     l = (size_t) ((double) pa_bytes_per_second(&ss)*PLAYBACK_BUFFER_SECONDS);
     pa_sink_input_get_silence(c->sink_input, &silence);
     c->input_memblockq = pa_memblockq_new(
+            "esound protocol connection input_memblockq",
             0,
             l,
             l,
-            pa_frame_size(&ss),
+            &ss,
             (size_t) -1,
             l/PLAYBACK_BUFFER_FRAGMENTS,
             0,
@@ -534,10 +535,11 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
 
     l = (size_t) (pa_bytes_per_second(&ss)*RECORD_BUFFER_SECONDS);
     c->output_memblockq = pa_memblockq_new(
+            "esound protocol connection output_memblockq",
             0,
             l,
             l,
-            pa_frame_size(&ss),
+            &ss,
             1,
             0,
             0,

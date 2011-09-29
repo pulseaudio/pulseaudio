@@ -443,10 +443,11 @@ int pa_source_output_new(
     o->thread_info.direct_on_input = o->direct_on_input;
 
     o->thread_info.delay_memblockq = pa_memblockq_new(
+            "source output delay_memblockq",
             0,
             MEMBLOCKQ_MAXLENGTH,
             0,
-            pa_frame_size(&o->source->sample_spec),
+            &o->source->sample_spec,
             0,
             1,
             0,
@@ -1433,10 +1434,11 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
         pa_memblockq_free(o->thread_info.delay_memblockq);
 
         o->thread_info.delay_memblockq = pa_memblockq_new(
+                "source output delay_memblockq",
                 0,
                 MEMBLOCKQ_MAXLENGTH,
                 0,
-                pa_frame_size(&o->source->sample_spec),
+                &o->source->sample_spec,
                 0,
                 1,
                 0,

@@ -897,10 +897,11 @@ static struct output *output_new(struct userdata *u, pa_sink *sink) {
     o->outq = pa_asyncmsgq_new(0);
     o->sink = sink;
     o->memblockq = pa_memblockq_new(
+            "module-combine-sink output memblockq",
             0,
             MEMBLOCKQ_MAXLENGTH,
             MEMBLOCKQ_MAXLENGTH,
-            pa_frame_size(&u->sink->sample_spec),
+            &u->sink->sample_spec,
             1,
             0,
             0,

@@ -529,7 +529,7 @@ int pa__init(pa_module*m) {
     u = pa_xnew0(struct userdata, 1);
     u->module = m;
     m->userdata = u;
-    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, NULL);
+    u->memblockq = pa_memblockq_new("module-ladspa-sink memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0, &ss, 1, 1, 0, NULL);
     u->max_ladspaport_count = 1; /*to avoid division by zero etc. in pa__done when failing before this value has been set*/
     u->channels = 0;
     u->input = NULL;

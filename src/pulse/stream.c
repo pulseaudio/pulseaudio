@@ -1140,10 +1140,11 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
         pa_assert(!s->record_memblockq);
 
         s->record_memblockq = pa_memblockq_new(
+                "client side record memblockq",
                 0,
                 s->buffer_attr.maxlength,
                 0,
-                pa_frame_size(&s->sample_spec),
+                &s->sample_spec,
                 1,
                 0,
                 0,

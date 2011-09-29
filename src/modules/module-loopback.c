@@ -806,10 +806,11 @@ int pa__init(pa_module *m) {
 
     pa_sink_input_get_silence(u->sink_input, &silence);
     u->memblockq = pa_memblockq_new(
+            "module-loopback memblockq",
             0,                      /* idx */
             MEMBLOCKQ_MAXLENGTH,    /* maxlength */
             MEMBLOCKQ_MAXLENGTH,    /* tlength */
-            pa_frame_size(&ss),     /* base */
+            &ss,                    /* sample_spec */
             0,                      /* prebuf */
             0,                      /* minreq */
             0,                      /* maxrewind */

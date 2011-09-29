@@ -548,7 +548,7 @@ int pa__init(pa_module*m) {
     }
     u->module = m;
     m->userdata = u;
-    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, NULL);
+    u->memblockq = pa_memblockq_new("module-virtual-source memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0, &ss, 1, 1, 0, NULL);
     if (!u->memblockq) {
         pa_log("Failed to create source memblockq.");
         goto fail;
@@ -659,7 +659,7 @@ int pa__init(pa_module*m) {
             pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Uplink Sink %s on %s", sink_data.name, z ? z : master->name);
         }
 
-        u->sink_memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, NULL);
+        u->sink_memblockq = pa_memblockq_new("module-virtual-source sink_memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0, &ss, 1, 1, 0, NULL);
         if (!u->sink_memblockq) {
             pa_sink_new_data_done(&sink_data);
             pa_log("Failed to create sink memblockq.");

@@ -1608,10 +1608,10 @@ int pa__init(pa_module*m) {
 
     pa_sink_input_get_silence(u->sink_input, &silence);
 
-    u->source_memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0,
-        pa_frame_size(&source_ss), 1, 1, 0, &silence);
-    u->sink_memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0,
-        pa_frame_size(&sink_ss), 1, 1, 0, &silence);
+    u->source_memblockq = pa_memblockq_new("module-echo-cancel source_memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0,
+        &source_ss, 1, 1, 0, &silence);
+    u->sink_memblockq = pa_memblockq_new("module-echo-cancel sink_memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0,
+        &sink_ss, 1, 1, 0, &silence);
 
     pa_memblock_unref(silence.memblock);
 

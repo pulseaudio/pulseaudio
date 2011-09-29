@@ -242,6 +242,7 @@ int pa_sink_input_new(
     pa_channel_map original_cm;
     int r;
     char *pt;
+    char *memblockq_name;
     pa_sample_spec ss;
     pa_channel_map map;
 
@@ -481,21 +482,24 @@ int pa_sink_input_new(
     i->thread_info.playing_for = 0;
     i->thread_info.direct_outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
-    i->thread_info.render_memblockq = pa_memblockq_new(
-            0,
-            MEMBLOCKQ_MAXLENGTH,
-            0,
-            pa_frame_size(&i->sink->sample_spec),
-            0,
-            1,
-            0,
-            &i->sink->silence);
-
     pa_assert_se(pa_idxset_put(core->sink_inputs, i, &i->index) == 0);
     pa_assert_se(pa_idxset_put(i->sink->inputs, pa_sink_input_ref(i), NULL) == 0);
 
     if (i->client)
         pa_assert_se(pa_idxset_put(i->client->sink_inputs, i, NULL) >= 0);
+
+    memblockq_name = pa_sprintf_malloc("sink input render_memblockq [%u]", i->index);
+    i->thread_info.render_memblockq = pa_memblockq_new(
+            memblockq_name,
+            0,
+            MEMBLOCKQ_MAXLENGTH,
+            0,
+            &i->sink->sample_spec,
+            0,
+            1,
+            0,
+            &i->sink->silence);
+    pa_xfree(memblockq_name);
 
     pt = pa_proplist_to_string_sep(i->proplist, "\n    ");
     pa_log_info("Created input %u \"%s\" on %s with sample spec %s and channel map %s\n    %s",
@@ -1643,6 +1647,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
 
     /* Replace resampler and render queue */
     if (new_resampler != i->thread_info.resampler) {
+        char *memblockq_name;
 
         if (i->thread_info.resampler)
             pa_resampler_free(i->thread_info.resampler);
@@ -1650,15 +1655,18 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
 
         pa_memblockq_free(i->thread_info.render_memblockq);
 
+        memblockq_name = pa_sprintf_malloc("sink input render_memblockq [%u]", i->index);
         i->thread_info.render_memblockq = pa_memblockq_new(
+                memblockq_name,
                 0,
                 MEMBLOCKQ_MAXLENGTH,
                 0,
-                pa_frame_size(&i->sink->sample_spec),
+                &i->sink->sample_spec,
                 0,
                 1,
                 0,
                 &i->sink->silence);
+        pa_xfree(memblockq_name);
         i->actual_resample_method = new_resampler ? pa_resampler_get_method(new_resampler) : PA_RESAMPLER_INVALID;
     }
 
