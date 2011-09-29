@@ -244,7 +244,6 @@ TESTS = \
 
 TESTS_norun = \
 		mcalign-test \
-		once-test \
 		pacat-simple \
 		parec-simple \
 		extended-test \
@@ -260,6 +259,11 @@ if !OS_IS_WIN32
 TESTS += \
 		sigbus-test \
 		usergroup-test
+endif
+
+if !OS_IS_DARWIN
+TESTS_norun += \
+		once-test
 endif
 
 if HAVE_SIGXCPU
