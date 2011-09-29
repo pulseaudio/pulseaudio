@@ -656,6 +656,11 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         return;
     }
 
+    if (PA_UNLIKELY(u->source->thread_info.state != PA_SOURCE_RUNNING)) {
+        pa_source_post(u->source, chunk);
+        return;
+    }
+
     /* handle queued messages, do any message sending of our own */
     while (pa_asyncmsgq_process_one(u->asyncmsgq) > 0)
         ;
@@ -852,7 +857,7 @@ static int source_output_process_msg_cb(pa_msgobject *obj, int code, void *data,
 
             pa_source_output_assert_io_context(u->source_output);
 
-            if (PA_SOURCE_IS_OPENED(u->source_output->source->thread_info.state))
+            if (u->source_output->source->thread_info.state == PA_SOURCE_RUNNING)
                 pa_memblockq_push_align(u->sink_memblockq, chunk);
             else
                 pa_memblockq_flush_write(u->sink_memblockq, TRUE);
