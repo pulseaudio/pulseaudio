@@ -1,0 +1,13 @@
+# This is an example fallback table file for module-stream-restore.
+# Lines starting with '#' or ';' are regarded as comments and ignored.
+# Empty lines are allowed.
+#
+# Each non-comment and non-empty line defines the default volume
+# for one stream-restore database key. For example:
+
+sink-input-by-media-role:phone -4.2
+
+# That line sets the volume of sink inputs with media role "phone"
+# to -4.2 dB (relative to the sink volume), if the
+# "sink-input-by-media-role:phone" key doesn't already exist in the
+# stream-restore database. Positive dB values are not allowed.
