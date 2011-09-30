@@ -315,6 +315,8 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    pa_sink_set_latency_range(u->sink, 0, BLOCK_USEC);
+
     pa_sink_put(u->sink);
 
     pa_modargs_free(ma);
