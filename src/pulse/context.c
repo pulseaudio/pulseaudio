@@ -1281,7 +1281,7 @@ pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_su
 }
 
 const char* pa_get_library_version(void) {
-    return PACKAGE_VERSION;
+    return pa_get_headers_version();
 }
 
 const char* pa_context_get_server(pa_context *c) {
