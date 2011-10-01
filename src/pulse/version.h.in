@@ -35,7 +35,7 @@ PA_C_DECL_BEGIN
 /** Return the version of the header files. Keep in mind that this is
 a macro and not a function, so it is impossible to get the pointer of
 it. */
-#define pa_get_headers_version() ("@PACKAGE_VERSION@")
+#define pa_get_headers_version() ("@PA_MAJOR@.@PA_MINOR@.0")
 
 /** Return the version of the library the current application is
  * linked to. */
