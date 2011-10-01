@@ -68,10 +68,16 @@ PA_MODULE_USAGE(
         "restore_volume=<Save/restore volumes?> "
         "restore_muted=<Save/restore muted states?> "
         "on_hotplug=<When new device becomes available, recheck streams?> "
-        "on_rescue=<When device becomes unavailable, recheck streams?>");
+        "on_rescue=<When device becomes unavailable, recheck streams?> "
+        "fallback_table=<filename>");
 
 #define SAVE_INTERVAL (10 * PA_USEC_PER_SEC)
 #define IDENTIFICATION_PROPERTY "module-stream-restore.id"
+
+#define DEFAULT_FALLBACK_FILE PA_DEFAULT_CONFIG_DIR"/stream-restore.table"
+#define DEFAULT_FALLBACK_FILE_USER "stream-restore.table"
+
+#define WHITESPACE "\n\r \t"
 
 static const char* const valid_modargs[] = {
     "restore_device",
@@ -79,6 +85,7 @@ static const char* const valid_modargs[] = {
     "restore_muted",
     "on_hotplug",
     "on_rescue",
+    "fallback_table",
     NULL
 };
 
@@ -1800,7 +1807,88 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
     return PA_HOOK_OK;
 }
 
-#define EXT_VERSION 1
+static int fill_db(struct userdata *u, const char *filename) {
+    FILE *f;
+    int n = 0;
+    int ret = -1;
+    char *fn = NULL;
+
+    pa_assert(u);
+
+    if (filename)
+        f = fopen(fn = pa_xstrdup(filename), "r");
+    else
+        f = pa_open_config_file(DEFAULT_FALLBACK_FILE, DEFAULT_FALLBACK_FILE_USER, NULL, &fn);
+
+    if (!f) {
+        if (filename)
+            pa_log("Failed to open %s: %s", filename, pa_cstrerror(errno));
+        else
+            ret = 0;
+
+        goto finish;
+    }
+
+    while (!feof(f)) {
+        char ln[256];
+        char *d, *v;
+        double db;
+
+        if (!fgets(ln, sizeof(ln), f))
+            break;
+
+        n++;
+
+        pa_strip_nl(ln);
+
+        if (!*ln || ln[0] == '#' || ln[0] == ';')
+            continue;
+
+        d = ln+strcspn(ln, WHITESPACE);
+        v = d+strspn(d, WHITESPACE);
+
+        if (!*v) {
+            pa_log("[%s:%u] failed to parse line - too few words", fn, n);
+            goto finish;
+        }
+
+        *d = 0;
+        if (pa_atod(v, &db) >= 0) {
+            if (db <= 0.0) {
+                pa_datum key, data;
+                struct entry e;
+
+                pa_zero(e);
+                e.version = ENTRY_VERSION;
+                e.volume_valid = TRUE;
+                pa_cvolume_set(&e.volume, 1, pa_sw_volume_from_dB(db));
+                pa_channel_map_init_mono(&e.channel_map);
+
+                key.data = (void *) ln;
+                key.size = strlen(ln);
+
+                data.data = (void *) &e;
+                data.size = sizeof(e);
+
+                if (pa_database_set(u->database, &key, &data, FALSE) == 0)
+                    pa_log_debug("Setting %s to %0.2f dB.", ln, db);
+            } else
+                pa_log_warn("[%s:%u] Positive dB values are not allowed, not setting entry %s.", fn, n, ln);
+        } else
+            pa_log_warn("[%s:%u] Couldn't parse '%s' as a double, not setting entry %s.", fn, n, v, ln);
+    }
+
+    trigger_save(u);
+    ret = 0;
+
+finish:
+    if (f)
+        fclose(f);
+
+    pa_xfree(fn);
+
+    return ret;
+}
 
 static void entry_apply(struct userdata *u, const char *name, struct entry *e) {
     pa_sink_input *si;
@@ -1941,6 +2029,8 @@ PA_GCC_UNUSED static void stream_restore_dump_database(struct userdata *u) {
     }
 }
 #endif
+
+#define EXT_VERSION 1
 
 static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connection *c, uint32_t tag, pa_tagstruct *t) {
     struct userdata *u;
@@ -2279,6 +2369,9 @@ int pa__init(pa_module*m) {
 
     pa_log_info("Successfully opened database file '%s'.", fname);
     pa_xfree(fname);
+
+    if (fill_db(u, pa_modargs_get_value(ma, "fallback_table", NULL)) < 0)
+        goto fail;
 
 #ifdef HAVE_DBUS
     u->dbus_protocol = pa_dbus_protocol_get(u->core);
