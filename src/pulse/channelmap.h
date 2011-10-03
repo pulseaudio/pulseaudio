@@ -77,9 +77,9 @@ typedef enum pa_channel_position {
     PA_CHANNEL_POSITION_INVALID = -1,
     PA_CHANNEL_POSITION_MONO = 0,
 
-    PA_CHANNEL_POSITION_FRONT_LEFT,               /* Apple, Dolby call this 'Left' */
-    PA_CHANNEL_POSITION_FRONT_RIGHT,              /* Apple, Dolby call this 'Right' */
-    PA_CHANNEL_POSITION_FRONT_CENTER,             /* Apple, Dolby call this 'Center' */
+    PA_CHANNEL_POSITION_FRONT_LEFT,               /**< Apple, Dolby call this 'Left' */
+    PA_CHANNEL_POSITION_FRONT_RIGHT,              /**< Apple, Dolby call this 'Right' */
+    PA_CHANNEL_POSITION_FRONT_CENTER,             /**< Apple, Dolby call this 'Center' */
 
 /** \cond fulldocs */
     PA_CHANNEL_POSITION_LEFT = PA_CHANNEL_POSITION_FRONT_LEFT,
@@ -87,20 +87,20 @@ typedef enum pa_channel_position {
     PA_CHANNEL_POSITION_CENTER = PA_CHANNEL_POSITION_FRONT_CENTER,
 /** \endcond */
 
-    PA_CHANNEL_POSITION_REAR_CENTER,              /* Microsoft calls this 'Back Center', Apple calls this 'Center Surround', Dolby calls this 'Surround Rear Center' */
-    PA_CHANNEL_POSITION_REAR_LEFT,                /* Microsoft calls this 'Back Left', Apple calls this 'Left Surround' (!), Dolby calls this 'Surround Rear Left'  */
-    PA_CHANNEL_POSITION_REAR_RIGHT,               /* Microsoft calls this 'Back Right', Apple calls this 'Right Surround' (!), Dolby calls this 'Surround Rear Right'  */
+    PA_CHANNEL_POSITION_REAR_CENTER,              /**< Microsoft calls this 'Back Center', Apple calls this 'Center Surround', Dolby calls this 'Surround Rear Center' */
+    PA_CHANNEL_POSITION_REAR_LEFT,                /**< Microsoft calls this 'Back Left', Apple calls this 'Left Surround' (!), Dolby calls this 'Surround Rear Left'  */
+    PA_CHANNEL_POSITION_REAR_RIGHT,               /**< Microsoft calls this 'Back Right', Apple calls this 'Right Surround' (!), Dolby calls this 'Surround Rear Right'  */
 
-    PA_CHANNEL_POSITION_LFE,                      /* Microsoft calls this 'Low Frequency', Apple calls this 'LFEScreen' */
+    PA_CHANNEL_POSITION_LFE,                      /**< Microsoft calls this 'Low Frequency', Apple calls this 'LFEScreen' */
 /** \cond fulldocs */
     PA_CHANNEL_POSITION_SUBWOOFER = PA_CHANNEL_POSITION_LFE,
 /** \endcond */
 
-    PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER,     /* Apple, Dolby call this 'Left Center' */
-    PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER,    /* Apple, Dolby call this 'Right Center */
+    PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER,     /**< Apple, Dolby call this 'Left Center' */
+    PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER,    /**< Apple, Dolby call this 'Right Center */
 
-    PA_CHANNEL_POSITION_SIDE_LEFT,                /* Apple calls this 'Left Surround Direct', Dolby calls this 'Surround Left' (!) */
-    PA_CHANNEL_POSITION_SIDE_RIGHT,               /* Apple calls this 'Right Surround Direct', Dolby calls this 'Surround Right' (!) */
+    PA_CHANNEL_POSITION_SIDE_LEFT,                /**< Apple calls this 'Left Surround Direct', Dolby calls this 'Surround Left' (!) */
+    PA_CHANNEL_POSITION_SIDE_RIGHT,               /**< Apple calls this 'Right Surround Direct', Dolby calls this 'Surround Right' (!) */
 
     PA_CHANNEL_POSITION_AUX0,
     PA_CHANNEL_POSITION_AUX1,
@@ -135,15 +135,15 @@ typedef enum pa_channel_position {
     PA_CHANNEL_POSITION_AUX30,
     PA_CHANNEL_POSITION_AUX31,
 
-    PA_CHANNEL_POSITION_TOP_CENTER,               /* Apple calls this 'Top Center Surround' */
+    PA_CHANNEL_POSITION_TOP_CENTER,               /**< Apple calls this 'Top Center Surround' */
 
-    PA_CHANNEL_POSITION_TOP_FRONT_LEFT,           /* Apple calls this 'Vertical Height Left' */
-    PA_CHANNEL_POSITION_TOP_FRONT_RIGHT,          /* Apple calls this 'Vertical Height Right' */
-    PA_CHANNEL_POSITION_TOP_FRONT_CENTER,         /* Apple calls this 'Vertical Height Center' */
+    PA_CHANNEL_POSITION_TOP_FRONT_LEFT,           /**< Apple calls this 'Vertical Height Left' */
+    PA_CHANNEL_POSITION_TOP_FRONT_RIGHT,          /**< Apple calls this 'Vertical Height Right' */
+    PA_CHANNEL_POSITION_TOP_FRONT_CENTER,         /**< Apple calls this 'Vertical Height Center' */
 
-    PA_CHANNEL_POSITION_TOP_REAR_LEFT,            /* Microsoft and Apple call this 'Top Back Left' */
-    PA_CHANNEL_POSITION_TOP_REAR_RIGHT,           /* Microsoft and Apple call this 'Top Back Right' */
-    PA_CHANNEL_POSITION_TOP_REAR_CENTER,          /* Microsoft and Apple call this 'Top Back Center' */
+    PA_CHANNEL_POSITION_TOP_REAR_LEFT,            /**< Microsoft and Apple call this 'Top Back Left' */
+    PA_CHANNEL_POSITION_TOP_REAR_RIGHT,           /**< Microsoft and Apple call this 'Top Back Right' */
+    PA_CHANNEL_POSITION_TOP_REAR_CENTER,          /**< Microsoft and Apple call this 'Top Back Center' */
 
     PA_CHANNEL_POSITION_MAX
 } pa_channel_position_t;
