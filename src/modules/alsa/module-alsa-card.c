@@ -294,6 +294,7 @@ int pa__init(pa_module *m) {
     struct userdata *u;
     pa_reserve_wrapper *reserve = NULL;
     const char *description;
+    const char *profile = NULL;
     char *fn = NULL;
     pa_bool_t namereg_fail = FALSE;
 
@@ -389,6 +390,9 @@ int pa__init(pa_module *m) {
         pa_card_new_data_done(&data);
         goto fail;
     }
+
+    if ((profile = pa_modargs_get_value(ma, "profile", NULL)))
+        pa_card_new_data_set_profile(&data, profile);
 
     u->card = pa_card_new(m->core, &data);
     pa_card_new_data_done(&data);
