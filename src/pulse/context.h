@@ -265,7 +265,7 @@ pa_time_event* pa_context_rttime_new(pa_context *c, pa_usec_t usec, pa_time_even
  * mainloop->time_restart). \since 0.9.16 */
 void pa_context_rttime_restart(pa_context *c, pa_time_event *e, pa_usec_t usec);
 
-/* Return the optimal block size for passing around audio buffers. It
+/** Return the optimal block size for passing around audio buffers. It
  * is recommended to allocate buffers of the size returned here when
  * writing audio data to playback streams, if the latency constraints
  * permit this. It is not recommended writing larger blocks than this
