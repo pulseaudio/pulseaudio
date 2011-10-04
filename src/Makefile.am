@@ -233,12 +233,11 @@ TESTS = \
 		asyncmsgq-test \
 		queue-test \
 		rtpoll-test \
-		sig2str-test \
 		resampler-test \
 		smoother-test \
+		thread-test \
 		volume-test \
 		mix-test \
-		remix-test \
 		proplist-test \
 		lock-autospawn-test \
 		prioq-test
@@ -250,9 +249,10 @@ TESTS_norun = \
 		extended-test \
 		sync-playback \
 		interpol-test \
-		thread-test \
 		flist-test \
+		remix-test \
 		rtstutter \
+		sig2str-test \
 		stripnul \
 		connect-stress \
 		echo-cancel-test
@@ -264,7 +264,7 @@ TESTS += \
 endif
 
 if !OS_IS_DARWIN
-TESTS_norun += \
+TESTS += \
 		once-test
 endif
 
