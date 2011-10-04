@@ -34,6 +34,7 @@
 #include "a2dp-codecs.h"
 
 #define HFP_AG_ENDPOINT "/MediaEndpoint/HFPAG"
+#define HFP_HS_ENDPOINT "/MediaEndpoint/HFPHS"
 #define A2DP_SOURCE_ENDPOINT "/MediaEndpoint/A2DPSource"
 #define A2DP_SINK_ENDPOINT "/MediaEndpoint/A2DPSink"
 
@@ -628,7 +629,7 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
 
     pa_dbus_append_basic_variant_dict_entry(&d, "Codec", DBUS_TYPE_BYTE, &codec);
 
-    if (pa_streq(uuid, HFP_AG_UUID)) {
+    if (pa_streq(uuid, HFP_AG_UUID) || pa_streq(uuid, HFP_HS_UUID)) {
         uint8_t capability = 0;
         pa_dbus_append_basic_array_variant_dict_entry(&d, "Capabilities", DBUS_TYPE_BYTE, &capability, 1);
     } else {
@@ -660,6 +661,7 @@ static void found_adapter(pa_bluetooth_discovery *y, const char *path) {
     send_and_add_to_pending(y, m, list_devices_reply, NULL);
 
     register_endpoint(y, path, HFP_AG_ENDPOINT, HFP_AG_UUID);
+    register_endpoint(y, path, HFP_HS_ENDPOINT, HFP_HS_UUID);
     register_endpoint(y, path, A2DP_SOURCE_ENDPOINT, A2DP_SOURCE_UUID);
     register_endpoint(y, path, A2DP_SINK_ENDPOINT, A2DP_SINK_UUID);
 }
@@ -1158,6 +1160,8 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
 
     if (dbus_message_has_path(m, HFP_AG_ENDPOINT))
         p = PROFILE_HSP;
+    else if (dbus_message_has_path(m, HFP_HS_ENDPOINT))
+        p = PROFILE_HFGW;
     else if (dbus_message_has_path(m, A2DP_SOURCE_ENDPOINT))
         p = PROFILE_A2DP;
     else
@@ -1288,7 +1292,7 @@ static DBusMessage *endpoint_select_configuration(DBusConnection *c, DBusMessage
         goto fail;
     }
 
-    if (dbus_message_has_path(m, HFP_AG_ENDPOINT))
+    if (dbus_message_has_path(m, HFP_AG_ENDPOINT) || dbus_message_has_path(m, HFP_HS_ENDPOINT))
         goto done;
 
     pa_assert(size == sizeof(config));
@@ -1401,7 +1405,7 @@ static DBusHandlerResult endpoint_handler(DBusConnection *c, DBusMessage *m, voi
     path = dbus_message_get_path(m);
     dbus_error_init(&e);
 
-    if (!pa_streq(path, A2DP_SOURCE_ENDPOINT) && !pa_streq(path, A2DP_SINK_ENDPOINT) && !pa_streq(path, HFP_AG_ENDPOINT))
+    if (!pa_streq(path, A2DP_SOURCE_ENDPOINT) && !pa_streq(path, A2DP_SINK_ENDPOINT) && !pa_streq(path, HFP_AG_ENDPOINT) && !pa_streq(path, HFP_HS_ENDPOINT))
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
     if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
@@ -1482,6 +1486,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     }
 
     pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(y->connection), HFP_AG_ENDPOINT, &vtable_endpoint, y));
+    pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(y->connection), HFP_HS_ENDPOINT, &vtable_endpoint, y));
     pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(y->connection), A2DP_SOURCE_ENDPOINT, &vtable_endpoint, y));
     pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(y->connection), A2DP_SINK_ENDPOINT, &vtable_endpoint, y));
 
@@ -1524,6 +1529,7 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
     if (y->connection) {
         dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), HFP_AG_ENDPOINT);
+        dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), HFP_HS_ENDPOINT);
         dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), A2DP_SOURCE_ENDPOINT);
         dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), A2DP_SINK_ENDPOINT);
         pa_dbus_remove_matches(pa_dbus_connection_get(y->connection),

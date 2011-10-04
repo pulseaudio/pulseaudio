@@ -77,7 +77,7 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
     if (!d->dead && d->device_connected > 0 &&
         (d->audio_state >= PA_BT_AUDIO_STATE_CONNECTED ||
          d->audio_source_state >= PA_BT_AUDIO_STATE_CONNECTED ||
-         d->hfgw_state > PA_BT_AUDIO_STATE_CONNECTED)) {
+         d->hfgw_state >= PA_BT_AUDIO_STATE_CONNECTED)) {
 
         if (!mi) {
             pa_module *m = NULL;
@@ -110,7 +110,7 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
             if (d->audio_source_state >= PA_BT_AUDIO_STATE_CONNECTED)
                 args = pa_sprintf_malloc("%s profile=\"a2dp_source\" auto_connect=no", args);
 
-            if (d->hfgw_state > PA_BT_AUDIO_STATE_CONNECTED)
+            if (d->hfgw_state >= PA_BT_AUDIO_STATE_CONNECTED)
                 args = pa_sprintf_malloc("%s profile=\"hfgw\"", args);
 
             pa_log_debug("Loading module-bluetooth-device %s", args);
