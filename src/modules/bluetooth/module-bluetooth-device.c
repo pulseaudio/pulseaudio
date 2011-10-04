@@ -3057,6 +3057,7 @@ void pa__done(pa_module *m) {
             mike = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='MicrophoneGainChanged',path='%s'", u->path);
 
             pa_dbus_remove_matches(pa_dbus_connection_get(u->connection), speaker, mike,
+                "type='signal',sender='org.bluez',interface='org.bluez.MediaTransport',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.HandsfreeGateway',member='PropertyChanged'",
                 NULL);
 
