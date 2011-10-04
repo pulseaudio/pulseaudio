@@ -1357,6 +1357,11 @@ int pa__init(pa_module*m) {
     }
     pa_assert(sink_master);
 
+    if (source_master->monitor_of == sink_master) {
+        pa_log("Can't cancel echo between a sink and its monitor");
+        goto fail;
+    }
+
     source_ss = source_master->sample_spec;
     source_ss.rate = DEFAULT_RATE;
     source_ss.channels = DEFAULT_CHANNELS;
