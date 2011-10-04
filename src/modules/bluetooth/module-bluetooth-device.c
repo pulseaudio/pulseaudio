@@ -2564,6 +2564,13 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     }
 
     stop_thread(u);
+
+    if (u->profile != PROFILE_OFF && u->transport) {
+        bt_transport_release(u);
+        pa_xfree(u->transport);
+        u->transport = NULL;
+    }
+
     shutdown_bt(u);
 
     if (USE_SCO_OVER_PCM(u))
