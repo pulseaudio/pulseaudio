@@ -2895,7 +2895,7 @@ int pa__init(pa_module* m) {
     struct userdata *u;
     const char *address, *path;
     DBusError err;
-    char *mike, *speaker, *transport;
+    char *mike, *speaker;
     const pa_bluetooth_device *device;
 
     pa_assert(m);
@@ -2978,19 +2978,17 @@ int pa__init(pa_module* m) {
 
     speaker = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='SpeakerGainChanged',path='%s'", u->path);
     mike = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='MicrophoneGainChanged',path='%s'", u->path);
-    transport = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.MediaTransport',member='PropertyChanged'");
 
     if (pa_dbus_add_matches(
                 pa_dbus_connection_get(u->connection), &err,
                 speaker,
                 mike,
-                transport,
+                "type='signal',sender='org.bluez',interface='org.bluez.MediaTransport',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.HandsfreeGateway',member='PropertyChanged'",
                 NULL) < 0) {
 
         pa_xfree(speaker);
         pa_xfree(mike);
-        pa_xfree(transport);
 
         pa_log("Failed to add D-Bus matches: %s", err.message);
         goto fail;
@@ -2998,7 +2996,6 @@ int pa__init(pa_module* m) {
 
     pa_xfree(speaker);
     pa_xfree(mike);
-    pa_xfree(transport);
 
     /* Connect to the BT service */
     init_bt(u);
