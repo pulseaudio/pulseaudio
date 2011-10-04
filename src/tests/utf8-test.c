@@ -13,11 +13,11 @@ int main(int argc, char *argv[]) {
     assert(pa_utf8_valid("hallo\n"));
     assert(pa_utf8_valid("hÃ¼pfburg\n"));
 
-    printf("LATIN1: %s\n", c = pa_utf8_filter("hüpfburg"));
+    fprintf(stderr, "LATIN1: %s\n", c = pa_utf8_filter("hüpfburg"));
     pa_xfree(c);
-    printf("UTF8: %sx\n", c = pa_utf8_filter("hÃ¼pfburg"));
+    fprintf(stderr, "UTF8: %sx\n", c = pa_utf8_filter("hÃ¼pfburg"));
     pa_xfree(c);
-    printf("LATIN1: %sx\n", c = pa_utf8_filter("üxknärzmörzeltörszß³§dsjkfh"));
+    fprintf(stderr, "LATIN1: %sx\n", c = pa_utf8_filter("üxknärzmörzeltörszß³§dsjkfh"));
     pa_xfree(c);
 
     return 0;

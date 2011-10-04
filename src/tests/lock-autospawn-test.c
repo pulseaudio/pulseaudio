@@ -103,7 +103,5 @@ int main(int argc, char**argv) {
     pa_thread_free(c);
     pa_thread_free(d);
 
-    pa_log("End");
-
     return 0;
 }

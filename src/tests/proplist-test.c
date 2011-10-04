@@ -36,6 +36,9 @@ int main(int argc, char*argv[]) {
     const char *text;
     const char *x[] = { "foo", NULL };
 
+    if (!getenv("MAKE_CHECK"))
+        pa_log_set_level(PA_LOG_DEBUG);
+
     a = pa_proplist_new();
     pa_assert_se(pa_proplist_sets(a, PA_PROP_MEDIA_TITLE, "Brandenburgische Konzerte") == 0);
     pa_assert_se(pa_proplist_sets(a, PA_PROP_MEDIA_ARTIST, "Johann Sebastian Bach") == 0);
@@ -48,12 +51,12 @@ int main(int argc, char*argv[]) {
 
     pa_assert_se(!pa_proplist_gets(a, PA_PROP_MEDIA_ICON));
 
-    printf("%s\n", pa_strnull(pa_proplist_gets(a, PA_PROP_MEDIA_TITLE)));
+    pa_log_debug("%s", pa_strnull(pa_proplist_gets(a, PA_PROP_MEDIA_TITLE)));
     pa_assert_se(pa_proplist_unset(b, PA_PROP_MEDIA_TITLE) == 0);
 
     s = pa_proplist_to_string(a);
     t = pa_proplist_to_string(b);
-    printf("---\n%s---\n%s", s, t);
+    pa_log_debug("---\n%s---\n%s", s, t);
 
     c = pa_proplist_from_string(s);
     u = pa_proplist_to_string(c);
@@ -69,16 +72,16 @@ int main(int argc, char*argv[]) {
 
     text = "  eins = zwei drei = \"\\\"vier\\\"\" fuenf=sechs sieben ='\\a\\c\\h\\t\\'\\\"' neun= hex:0123456789abCDef ";
 
-    printf("%s\n", text);
+    pa_log_debug("%s", text);
     d = pa_proplist_from_string(text);
     v = pa_proplist_to_string(d);
     pa_proplist_free(d);
-    printf("%s\n", v);
+    pa_log_debug("%s", v);
     d = pa_proplist_from_string(v);
     pa_xfree(v);
     v = pa_proplist_to_string(d);
     pa_proplist_free(d);
-    printf("%s\n", v);
+    pa_log_debug("%s", v);
     pa_xfree(v);
 
     pa_assert_se(ma = pa_modargs_new("foo='foobar=waldo foo2=\"lj\\\"dhflh\" foo3=\"kjlskj\\'\"'", x));
@@ -86,7 +89,7 @@ int main(int argc, char*argv[]) {
 
     pa_assert_se(pa_modargs_get_proplist(ma, "foo", a, PA_UPDATE_REPLACE) >= 0);
 
-    printf("%s\n", v = pa_proplist_to_string(a));
+    pa_log_debug("%s", v = pa_proplist_to_string(a));
     pa_xfree(v);
 
     pa_proplist_free(a);

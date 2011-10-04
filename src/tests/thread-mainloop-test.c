@@ -67,8 +67,6 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "waiting 5s (sleep)\n");
     pa_msleep(5000);
 
-    fprintf(stderr, "shutting down\n");
-
     pa_threaded_mainloop_stop(m);
 
     pa_threaded_mainloop_free(m);

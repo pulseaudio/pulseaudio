@@ -36,12 +36,12 @@ static void producer(void *_q) {
     int i;
 
     for (i = 0; i < 1000; i++) {
-        printf("pushing %i\n", i);
+        pa_log_debug("pushing %i", i);
         pa_asyncq_push(q, PA_UINT_TO_PTR(i+1), 1);
     }
 
     pa_asyncq_push(q, PA_UINT_TO_PTR(-1), TRUE);
-    printf("pushed end\n");
+    pa_log_debug("pushed end");
 }
 
 static void consumer(void *_q) {
@@ -59,15 +59,18 @@ static void consumer(void *_q) {
 
         pa_assert(p == PA_UINT_TO_PTR(i+1));
 
-        printf("popped %i\n", i);
+        pa_log_debug("popped %i", i);
     }
 
-    printf("popped end\n");
+    pa_log_debug("popped end");
 }
 
 int main(int argc, char *argv[]) {
     pa_asyncq *q;
     pa_thread *t1, *t2;
+
+    if (!getenv("MAKE_CHECK"))
+        pa_log_set_level(PA_LOG_DEBUG);
 
     pa_assert_se(q = pa_asyncq_new(0));
 

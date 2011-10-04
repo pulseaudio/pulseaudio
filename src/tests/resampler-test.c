@@ -32,6 +32,7 @@
 #include <pulse/volume.h>
 
 #include <pulsecore/i18n.h>
+#include <pulsecore/log.h>
 #include <pulsecore/resampler.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/endianmacros.h>
@@ -39,9 +40,13 @@
 #include <pulsecore/sample-util.h>
 #include <pulsecore/core-util.h>
 
-static void dump_block(const pa_sample_spec *ss, const pa_memchunk *chunk) {
+static void dump_block(const char *label, const pa_sample_spec *ss, const pa_memchunk *chunk) {
     void *d;
     unsigned i;
+
+    if (getenv("MAKE_CHECK"))
+        return;
+    printf("%s:  \t", label);
 
     d = pa_memblock_acquire(chunk->memblock);
 
@@ -296,7 +301,7 @@ static void dump_resample_methods(void) {
 int main(int argc, char *argv[]) {
     pa_mempool *pool = NULL;
     pa_sample_spec a, b;
-    int ret = 1, verbose = 0, c;
+    int ret = 1, c;
     pa_bool_t all_formats = TRUE;
     pa_resample_method_t method;
     int seconds;
@@ -320,7 +325,9 @@ int main(int argc, char *argv[]) {
     setlocale(LC_ALL, "");
     bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
 
-    pa_log_set_level(PA_LOG_DEBUG);
+    pa_log_set_level(PA_LOG_WARN);
+    if (!getenv("MAKE_CHECK"))
+        pa_log_set_level(PA_LOG_INFO);
 
     pa_assert_se(pool = pa_mempool_new(FALSE, 0));
 
@@ -341,7 +348,6 @@ int main(int argc, char *argv[]) {
 
             case 'v':
                 pa_log_set_level(PA_LOG_DEBUG);
-                verbose = 1;
                 break;
 
             case ARG_VERSION:
@@ -407,16 +413,14 @@ int main(int argc, char *argv[]) {
         pa_memchunk i, j;
         pa_usec_t ts;
 
-        if (verbose) {
-            printf(_("Compilation CFLAGS: %s\n"), PA_CFLAGS);
-            printf(_("=== %d seconds: %d Hz %d ch (%s) -> %d Hz %d ch (%s)\n"), seconds,
+        pa_log_debug(_("Compilation CFLAGS: %s"), PA_CFLAGS);
+        pa_log_debug(_("=== %d seconds: %d Hz %d ch (%s) -> %d Hz %d ch (%s)"), seconds,
                    a.rate, a.channels, pa_sample_format_to_string(a.format),
                    b.rate, b.channels, pa_sample_format_to_string(b.format));
-        }
 
         ts = pa_rtclock_now();
         pa_assert_se(resampler = pa_resampler_new(pool, &a, NULL, &b, NULL, method, 0));
-        printf("init: %llu\n", (long long unsigned)(pa_rtclock_now() - ts));
+        pa_log_info("init: %llu", (long long unsigned)(pa_rtclock_now() - ts));
 
         i.memblock = pa_memblock_new(pool, pa_usec_to_bytes(1*PA_USEC_PER_SEC, &a));
 
@@ -427,7 +431,7 @@ int main(int argc, char *argv[]) {
             pa_resampler_run(resampler, &i, &j);
             pa_memblock_unref(j.memblock);
         }
-        printf("resampling: %llu\n", (long long unsigned)(pa_rtclock_now() - ts));
+        pa_log_info("resampling: %llu", (long long unsigned)(pa_rtclock_now() - ts));
         pa_memblock_unref(i.memblock);
 
         pa_resampler_free(resampler);
@@ -440,8 +444,7 @@ int main(int argc, char *argv[]) {
             pa_resampler *forth, *back;
             pa_memchunk i, j, k;
 
-            if (verbose)
-                printf("=== %s -> %s -> %s -> /2\n",
+            pa_log_debug("=== %s -> %s -> %s -> /2",
                        pa_sample_format_to_string(a.format),
                        pa_sample_format_to_string(b.format),
                        pa_sample_format_to_string(a.format));
@@ -455,12 +458,9 @@ int main(int argc, char *argv[]) {
             pa_resampler_run(forth, &i, &j);
             pa_resampler_run(back, &j, &k);
 
-            printf("before:  ");
-            dump_block(&a, &i);
-            printf("after :  ");
-            dump_block(&b, &j);
-            printf("reverse: ");
-            dump_block(&a, &k);
+            dump_block("before", &a, &i);
+            dump_block("after", &b, &j);
+            dump_block("reverse", &a, &k);
 
             pa_memblock_unref(i.memblock);
             pa_memblock_unref(j.memblock);

@@ -61,7 +61,7 @@ static void thread_func(void *data) {
     pa_assert_se(pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask) == 0);
 #endif
 
-    /* pa_log("started up: %s", data); */
+    pa_log_debug("started up: %s", (char *) data);
 
     r = pthread_barrier_wait(&barrier);
     pa_assert(r == 0 || r == PTHREAD_BARRIER_SERIAL_THREAD);
@@ -72,6 +72,9 @@ static void thread_func(void *data) {
 
 int main(int argc, char *argv[]) {
     unsigned n, i;
+
+    if (!getenv("MAKE_CHECK"))
+        pa_log_set_level(PA_LOG_DEBUG);
 
     n_cpu = pa_ncpus();
 
@@ -92,7 +95,7 @@ int main(int argc, char *argv[]) {
             pa_thread_join(threads[i]);
 
         pa_assert(n_run == 1);
-        pa_log("ran by %s", ran_by);
+        pa_log_info("ran by %s", ran_by);
 
         for (i = 0; i < N_THREADS; i++) {
             pa_xfree(pa_thread_get_data(threads[i]));

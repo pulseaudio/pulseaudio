@@ -24,33 +24,35 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include <pulsecore/memblock.h>
-#include <pulsecore/macro.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/log.h>
+#include <pulsecore/memblock.h>
+#include <pulsecore/macro.h>
+
 static void release_cb(pa_memimport *i, uint32_t block_id, void *userdata) {
-    printf("%s: Imported block %u is released.\n", (char*) userdata, block_id);
+    pa_log("%s: Imported block %u is released.", (char*) userdata, block_id);
 }
 
 static void revoke_cb(pa_memexport *e, uint32_t block_id, void *userdata) {
-    printf("%s: Exported block %u is revoked.\n", (char*) userdata, block_id);
+    pa_log("%s: Exported block %u is revoked.", (char*) userdata, block_id);
 }
 
 static void print_stats(pa_mempool *p, const char *text) {
     const pa_mempool_stat*s = pa_mempool_get_stat(p);
 
-    printf("%s = {\n"
-           "n_allocated = %u\n"
-           "n_accumulated = %u\n"
-           "n_imported = %u\n"
-           "n_exported = %u\n"
-           "allocated_size = %u\n"
-           "accumulated_size = %u\n"
-           "imported_size = %u\n"
-           "exported_size = %u\n"
-           "n_too_large_for_pool = %u\n"
-           "n_pool_full = %u\n"
-           "}\n",
+    pa_log_debug("%s = {\n"
+                 "\tn_allocated = %u\n"
+                 "\tn_accumulated = %u\n"
+                 "\tn_imported = %u\n"
+                 "\tn_exported = %u\n"
+                 "\tallocated_size = %u\n"
+                 "\taccumulated_size = %u\n"
+                 "\timported_size = %u\n"
+                 "\texported_size = %u\n"
+                 "\tn_too_large_for_pool = %u\n"
+                 "\tn_pool_full = %u\n"
+                 "}",
            text,
            (unsigned) pa_atomic_load(&s->n_allocated),
            (unsigned) pa_atomic_load(&s->n_accumulated),
@@ -78,6 +80,9 @@ int main(int argc, char *argv[]) {
 
     const char txt[] = "This is a test!";
 
+    if (!getenv("MAKE_CHECK"))
+        pa_log_set_level(PA_LOG_DEBUG);
+
     pool_a = pa_mempool_new(TRUE, 0);
     pool_b = pa_mempool_new(TRUE, 0);
     pool_c = pa_mempool_new(TRUE, 0);
@@ -104,7 +109,7 @@ int main(int argc, char *argv[]) {
     blocks[4] = NULL;
 
     for (i = 0; blocks[i]; i++) {
-        printf("Memory block %u\n", i);
+        pa_log("Memory block %u", i);
 
         mb_a = blocks[i];
         pa_assert(mb_a);
@@ -123,7 +128,7 @@ int main(int argc, char *argv[]) {
         pa_assert(r >= 0);
         pa_assert(shm_id == id_a);
 
-        printf("A: Memory block exported as %u\n", id);
+        pa_log("A: Memory block exported as %u", id);
 
         mb_b = pa_memimport_get(import_b, id, shm_id, offset, size);
         pa_assert(mb_b);
@@ -132,12 +137,12 @@ int main(int argc, char *argv[]) {
         pa_assert(shm_id == id_a || shm_id == id_b);
         pa_memblock_unref(mb_b);
 
-        printf("B: Memory block exported as %u\n", id);
+        pa_log("B: Memory block exported as %u", id);
 
         mb_c = pa_memimport_get(import_c, id, shm_id, offset, size);
         pa_assert(mb_c);
         x = pa_memblock_acquire(mb_c);
-        printf("1 data=%s\n", x);
+        pa_log_debug("1 data=%s", x);
         pa_memblock_release(mb_c);
 
         print_stats(pool_a, "A");
@@ -146,7 +151,7 @@ int main(int argc, char *argv[]) {
 
         pa_memexport_free(export_b);
         x = pa_memblock_acquire(mb_c);
-        printf("2 data=%s\n", x);
+        pa_log_debug("2 data=%s", x);
         pa_memblock_release(mb_c);
         pa_memblock_unref(mb_c);
 
@@ -158,13 +163,13 @@ int main(int argc, char *argv[]) {
         pa_memexport_free(export_a);
     }
 
-    printf("vacuuming...\n");
+    pa_log("vacuuming...");
 
     pa_mempool_vacuum(pool_a);
     pa_mempool_vacuum(pool_b);
     pa_mempool_vacuum(pool_c);
 
-    printf("vacuuming done...\n");
+    pa_log("vacuuming done...");
 
     pa_mempool_free(pool_a);
     pa_mempool_free(pool_b);

@@ -35,6 +35,9 @@ static void dump_block(const pa_sample_spec *ss, const pa_memchunk *chunk) {
     void *d;
     unsigned i;
 
+    if (getenv("MAKE_CHECK"))
+        return;
+
     d = pa_memblock_acquire(chunk->memblock);
 
     switch (ss->format) {
@@ -202,7 +205,8 @@ int main(int argc, char *argv[]) {
     pa_sample_spec a;
     pa_cvolume v;
 
-    pa_log_set_level(PA_LOG_DEBUG);
+    if (!getenv("MAKE_CHECK"))
+        pa_log_set_level(PA_LOG_DEBUG);
 
     pa_assert_se(pool = pa_mempool_new(FALSE, 0));
 
@@ -217,7 +221,7 @@ int main(int argc, char *argv[]) {
         pa_mix_info m[2];
         void *ptr;
 
-        printf("=== mixing: %s\n", pa_sample_format_to_string(a.format));
+        pa_log_debug("=== mixing: %s\n", pa_sample_format_to_string(a.format));
 
         /* Generate block */
         i.memblock = generate_block(pool, &a);

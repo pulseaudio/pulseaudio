@@ -38,7 +38,7 @@ static void dump_chunk(const pa_memchunk *chunk) {
 
     q = pa_memblock_acquire(chunk->memblock);
     for (e = (char*) q + chunk->index, n = 0; n < chunk->length; n++, e++)
-        printf("%c", *e);
+        fprintf(stderr, "%c", *e);
     pa_memblock_release(chunk->memblock);
 }
 
@@ -48,14 +48,14 @@ static void dump(pa_memblockq *bq) {
     pa_assert(bq);
 
     /* First let's dump this as fixed block */
-    printf("FIXED >");
+    fprintf(stderr, "FIXED >");
     pa_memblockq_peek_fixed_size(bq, 64, &out);
     dump_chunk(&out);
     pa_memblock_unref(out.memblock);
-    printf("<\n");
+    fprintf(stderr, "<\n");
 
     /* Then let's dump the queue manually */
-    printf("MANUAL>");
+    fprintf(stderr, "MANUAL>");
 
     for (;;) {
         if (pa_memblockq_peek(bq, &out) < 0)
@@ -66,7 +66,7 @@ static void dump(pa_memblockq *bq) {
         pa_memblockq_drop(bq, out.length);
     }
 
-    printf("<\n");
+    fprintf(stderr, "<\n");
 }
 
 int main(int argc, char *argv[]) {

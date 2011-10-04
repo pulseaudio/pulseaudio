@@ -289,6 +289,8 @@ TESTS_norun += \
 		alsa-time-test
 endif
 
+TESTS_ENVIRONMENT=MAKE_CHECK=1
+
 if BUILD_TESTS_DEFAULT
 noinst_PROGRAMS = $(TESTS) $(TESTS_norun)
 else

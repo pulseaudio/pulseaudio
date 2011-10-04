@@ -24,8 +24,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <pulsecore/time-smoother.h>
 #include <pulse/timeval.h>
+
+#include <pulsecore/log.h>
+#include <pulsecore/time-smoother.h>
 
 int main(int argc, char*argv[]) {
     pa_usec_t x;
@@ -45,7 +47,8 @@ int main(int argc, char*argv[]) {
 
     srand(0);
 
-    pa_log_set_level(PA_LOG_DEBUG);
+    if (!getenv("MAKE_CHECK"))
+        pa_log_set_level(PA_LOG_DEBUG);
 
     for (m = 0, u = 0; u < PA_ELEMENTSOF(msec); u+= 2) {
 
@@ -67,13 +70,13 @@ int main(int argc, char*argv[]) {
 
         while (u < PA_ELEMENTSOF(msec) && (pa_usec_t) msec[u]*PA_USEC_PER_MSEC < x) {
             pa_smoother_put(s, (pa_usec_t) msec[u] * PA_USEC_PER_MSEC, (pa_usec_t) msec[u+1] * PA_USEC_PER_MSEC);
-            printf("%i\t\t%i\n", msec[u],  msec[u+1]);
+            pa_log_debug("%i\t\t%i", msec[u],  msec[u+1]);
             u += 2;
 
             pa_smoother_resume(s, (pa_usec_t) msec[u] * PA_USEC_PER_MSEC, TRUE);
         }
 
-        printf("%llu\t%llu\n", (unsigned long long) (x/PA_USEC_PER_MSEC), (unsigned long long) (pa_smoother_get(s, x)/PA_USEC_PER_MSEC));
+        pa_log_debug("%llu\t%llu", (unsigned long long) (x/PA_USEC_PER_MSEC), (unsigned long long) (pa_smoother_get(s, x)/PA_USEC_PER_MSEC));
     }
 
     pa_smoother_free(s);
