@@ -219,7 +219,6 @@ TESTS = \
 		mainloop-test \
 		strlist-test \
 		close-test \
-		voltest \
 		vector-test \
 		memblockq-test \
 		channelmap-test \
@@ -237,6 +236,7 @@ TESTS = \
 		sig2str-test \
 		resampler-test \
 		smoother-test \
+		volume-test \
 		mix-test \
 		remix-test \
 		proplist-test \
@@ -402,10 +402,10 @@ close_test_CFLAGS = $(AM_CFLAGS)
 close_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 close_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-voltest_SOURCES = tests/voltest.c
-voltest_CFLAGS = $(AM_CFLAGS)
-voltest_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-voltest_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+volume_test_SOURCES = tests/volume-test.c
+volume_test_CFLAGS = $(AM_CFLAGS)
+volume_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+volume_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 vector_test_SOURCES = tests/vector-test.c
 vector_test_CFLAGS = $(AM_CFLAGS)
