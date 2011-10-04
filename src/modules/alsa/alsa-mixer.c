@@ -271,7 +271,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     struct pollfd *p;
     unsigned n_fds;
     unsigned short revents = 0;
-    int err;
+    int err, ret = 0;
 
     pd = pa_rtpoll_item_get_userdata(i);
     pa_assert_fp(pd);
@@ -281,17 +281,33 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
     if ((err = snd_mixer_poll_descriptors_revents(pd->mixer, p, n_fds, &revents)) < 0) {
         pa_log_error("Unable to get poll revent: %s", pa_alsa_strerror(err));
-        pa_rtpoll_item_free(i);
-        return -1;
+        ret = -1;
+        goto fail;
     }
 
     if (revents) {
-        snd_mixer_handle_events(pd->mixer);
-        pa_rtpoll_item_free(i);
-        pa_alsa_set_mixer_rtpoll(pd, pd->mixer, pd->rtpoll);
+        err = snd_mixer_handle_events(pd->mixer);
+
+        if (PA_UNLIKELY(err == -ENODEV)) {
+            /* The card has been disconnected, stop polling */
+            goto fail;
+        } else {
+            /* Success, or at least an error we're likely to recover from */
+            pa_rtpoll_item_free(i);
+            pa_alsa_set_mixer_rtpoll(pd, pd->mixer, pd->rtpoll);
+        }
     }
 
-    return 0;
+    return ret;
+
+fail:
+    pa_rtpoll_item_free(i);
+
+    pd->poll_item = NULL;
+    pd->rtpoll = NULL;
+    pd->mixer = NULL;
+
+    return ret;
 }
 
 int pa_alsa_set_mixer_rtpoll(struct pa_alsa_mixer_pdata *pd, snd_mixer_t *mixer, pa_rtpoll *rtp) {
