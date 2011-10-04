@@ -76,7 +76,7 @@ struct pa_bluetooth_discovery {
 static void get_properties_reply(DBusPendingCall *pending, void *userdata);
 static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, DBusMessage *m, DBusPendingCallNotifyFunction func, void *call_data);
 
-static pa_bt_audio_state_t pa_bt_audio_state_from_string(const char* value) {
+pa_bt_audio_state_t pa_bt_audio_state_from_string(const char* value) {
     pa_assert(value);
 
     if (pa_streq(value, "disconnected"))
