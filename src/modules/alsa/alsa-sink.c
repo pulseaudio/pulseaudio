@@ -1534,8 +1534,20 @@ static pa_bool_t sink_set_formats(pa_sink *s, pa_idxset *formats) {
     pa_idxset_free(u->formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
     u->formats = pa_idxset_new(NULL, NULL);
 
+    /* Note: the logic below won't apply if we're using software encoding.
+     * This is fine for now since we don't support that via the passthrough
+     * framework, but this must be changed if we do. */
+
+    /* First insert non-PCM formats since we prefer those. */
     PA_IDXSET_FOREACH(f, formats, idx) {
-        pa_idxset_put(u->formats, pa_format_info_copy(f), NULL);
+        if (!pa_format_info_is_pcm(f))
+            pa_idxset_put(u->formats, pa_format_info_copy(f), NULL);
+    }
+
+    /* Now add any PCM formats */
+    PA_IDXSET_FOREACH(f, formats, idx) {
+        if (pa_format_info_is_pcm(f))
+            pa_idxset_put(u->formats, pa_format_info_copy(f), NULL);
     }
 
     return TRUE;
