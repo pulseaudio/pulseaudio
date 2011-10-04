@@ -286,15 +286,24 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     }
 
     if (revents) {
+        if (revents & (POLLNVAL | POLLERR)) {
+            pa_log_debug("Device disconnected, stopping poll on mixer");
+            goto fail;
+        } else if (revents & POLLERR) {
+            /* This shouldn't happen. */
+            pa_log_error("Got a POLLERR (revents = %04x), stopping poll on mixer", revents);
+            goto fail;
+        }
+
         err = snd_mixer_handle_events(pd->mixer);
 
-        if (PA_UNLIKELY(err == -ENODEV)) {
-            /* The card has been disconnected, stop polling */
-            goto fail;
-        } else {
-            /* Success, or at least an error we're likely to recover from */
+        if (PA_LIKELY(err >= 0)) {
             pa_rtpoll_item_free(i);
             pa_alsa_set_mixer_rtpoll(pd, pd->mixer, pd->rtpoll);
+        } else {
+            pa_log_error("Error handling mixer event: %s", pa_alsa_strerror(err));
+            ret = -1;
+            goto fail;
         }
     }
 
