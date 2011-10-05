@@ -231,7 +231,6 @@ int pa__init(pa_module *m) {
         pa_log("Failed to parse connect= argument.");
         goto fail;
     }
-    pa_modargs_free(ma);
 
     if (!(connection = pa_dbus_bus_get(m->core, DBUS_BUS_SESSION, &error)) || dbus_error_is_set(&error)) {
 
@@ -259,6 +258,7 @@ int pa__init(pa_module *m) {
 
     check_service_started(u);
 
+    pa_modargs_free(ma);
     return 0;
 
 fail:
