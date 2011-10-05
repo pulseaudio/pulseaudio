@@ -645,7 +645,8 @@ static void do_resync(struct userdata *u) {
 /* Called from input thread context */
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk) {
     struct userdata *u;
-    size_t rlen, plen;
+    size_t rlen, plen, to_skip;
+    pa_memchunk rchunk, pchunk;
 
     pa_source_output_assert_ref(o);
     pa_source_output_assert_io_context(o);
@@ -674,36 +675,59 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     if (rlen < u->blocksize)
         return;
 
+    /* See if we need to drop samples in order to sync */
     if (pa_atomic_cmpxchg (&u->request_resync, 1, 0)) {
         do_resync(u);
     }
 
-    while (rlen >= u->blocksize) {
-        pa_memchunk rchunk, pchunk;
+    /* Okay, skip cancellation for skipped source samples if needed. */
+    if (PA_UNLIKELY(u->source_skip)) {
+        /* The slightly tricky bit here is that we drop all but modulo
+         * blocksize bytes and then adjust for that last bit on the sink side.
+         * We do this because the source data is coming at a fixed rate, which
+         * means the only way to try to catch up is drop sink samples and let
+         * the canceller cope up with this. */
+        to_skip = rlen >= u->source_skip ? u->source_skip : rlen;
+        to_skip -= to_skip % u->blocksize;
 
+        if (to_skip) {
+            pa_memblockq_peek_fixed_size(u->source_memblockq, to_skip, &rchunk);
+            pa_source_post(u->source, &rchunk);
+
+            pa_memblock_unref(rchunk.memblock);
+            pa_memblockq_drop(u->source_memblockq, u->blocksize);
+
+            rlen -= to_skip;
+            u->source_skip -= to_skip;
+        }
+
+        if (rlen && u->source_skip % u->blocksize) {
+            u->sink_skip += u->blocksize - (u->source_skip % u->blocksize);
+            u->source_skip -= (u->source_skip % u->blocksize);
+        }
+    }
+
+    /* And for the sink, these samples have been played back already, so we can
+     * just drop them and get on with it. */
+    if (PA_UNLIKELY(u->sink_skip)) {
+        to_skip = plen >= u->sink_skip ? u->sink_skip : plen;
+
+        pa_memblockq_drop(u->sink_memblockq, to_skip);
+
+        plen -= to_skip;
+        u->sink_skip -= to_skip;
+    }
+
+    while (rlen >= u->blocksize) {
         /* take fixed block from recorded samples */
         pa_memblockq_peek_fixed_size(u->source_memblockq, u->blocksize, &rchunk);
 
-        if (plen > u->blocksize && u->source_skip == 0) {
+        if (plen > u->blocksize) {
             uint8_t *rdata, *pdata, *cdata;
             pa_memchunk cchunk;
             int unused;
 
-            if (u->sink_skip) {
-                size_t to_skip;
-
-                if (u->sink_skip > plen)
-                    to_skip = plen;
-                else
-                    to_skip = u->sink_skip;
-
-                pa_memblockq_drop(u->sink_memblockq, to_skip);
-                plen -= to_skip;
-
-                u->sink_skip -= to_skip;
-            }
-
-            if (plen > u->blocksize && u->sink_skip == 0) {
+            if (plen > u->blocksize) {
                 /* take fixed block from played samples */
                 pa_memblockq_peek_fixed_size(u->sink_memblockq, u->blocksize, &pchunk);
 
@@ -755,16 +779,6 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
 
         pa_memblockq_drop(u->source_memblockq, u->blocksize);
         rlen -= u->blocksize;
-
-        if (u->source_skip) {
-            if (u->source_skip > u->blocksize) {
-                u->source_skip -= u->blocksize;
-            }
-            else {
-                u->sink_skip += (u->blocksize - u->source_skip);
-                u->source_skip = 0;
-            }
-        }
     }
 }
 
