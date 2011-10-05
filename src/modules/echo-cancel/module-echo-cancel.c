@@ -665,14 +665,18 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     while (pa_asyncmsgq_process_one(u->asyncmsgq) > 0)
         ;
 
-    if (pa_atomic_cmpxchg (&u->request_resync, 1, 0)) {
-        do_resync(u);
-    }
-
     pa_memblockq_push_align(u->source_memblockq, chunk);
 
     rlen = pa_memblockq_get_length(u->source_memblockq);
     plen = pa_memblockq_get_length(u->sink_memblockq);
+
+    /* Let's not do anything else till we have enough data to process */
+    if (rlen < u->blocksize)
+        return;
+
+    if (pa_atomic_cmpxchg (&u->request_resync, 1, 0)) {
+        do_resync(u);
+    }
 
     while (rlen >= u->blocksize) {
         pa_memchunk rchunk, pchunk;
