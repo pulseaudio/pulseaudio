@@ -66,6 +66,7 @@ PA_MODULE_USAGE(
           "sink_properties=<properties for the sink> "
           "sink_master=<name of sink to filter> "
           "adjust_time=<how often to readjust rates in s> "
+          "adjust_threshold=<how much drift to readjust after in ms> "
           "format=<sample format> "
           "rate=<sample rate> "
           "channels=<number of channels> "
@@ -104,6 +105,7 @@ static const pa_echo_canceller ec_table[] = {
 #define DEFAULT_RATE 32000
 #define DEFAULT_CHANNELS 1
 #define DEFAULT_ADJUST_TIME_USEC (1*PA_USEC_PER_SEC)
+#define DEFAULT_ADJUST_TOLERANCE (5*PA_USEC_PER_MSEC)
 #define DEFAULT_SAVE_AEC FALSE
 #define DEFAULT_AUTOLOADED FALSE
 
@@ -188,6 +190,7 @@ struct userdata {
     int active_mask;
     pa_time_event *time_event;
     pa_usec_t adjust_time;
+    int adjust_threshold;
 
     FILE *captured_file;
     FILE *played_file;
@@ -204,6 +207,7 @@ static const char* const valid_modargs[] = {
     "sink_properties",
     "sink_master",
     "adjust_time",
+    "adjust_threshold",
     "format",
     "rate",
     "channels",
@@ -297,7 +301,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
         new_rate = base_rate;
     }
     else {
-        if (diff_time > 1000) {
+        if (diff_time > u->adjust_threshold) {
             /* diff too big, quickly adjust */
             pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_APPLY_DIFF_TIME,
                 NULL, diff_time, NULL, NULL);
@@ -1362,7 +1366,7 @@ int pa__init(pa_module*m) {
     pa_source_new_data source_data;
     pa_sink_new_data sink_data;
     pa_memchunk silence;
-    uint32_t adjust_time_sec;
+    uint32_t temp;
     pa_bool_t use_volume_sharing = TRUE;
 
     pa_assert(m);
@@ -1412,16 +1416,27 @@ int pa__init(pa_module*m) {
     m->userdata = u;
     u->dead = FALSE;
 
-    adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
-    if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
+    temp = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
+    if (pa_modargs_get_value_u32(ma, "adjust_time", &temp) < 0) {
         pa_log("Failed to parse adjust_time value");
         goto fail;
     }
 
-    if (adjust_time_sec != DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC)
-        u->adjust_time = adjust_time_sec * PA_USEC_PER_SEC;
+    if (temp != DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC)
+        u->adjust_time = temp * PA_USEC_PER_SEC;
     else
         u->adjust_time = DEFAULT_ADJUST_TIME_USEC;
+
+    temp = DEFAULT_ADJUST_TOLERANCE / PA_USEC_PER_MSEC;
+    if (pa_modargs_get_value_u32(ma, "adjust_threshold", &temp) < 0) {
+        pa_log("Failed to parse adjust_threshold value");
+        goto fail;
+    }
+
+    if (temp != DEFAULT_ADJUST_TOLERANCE / PA_USEC_PER_MSEC)
+        u->adjust_threshold = temp * PA_USEC_PER_MSEC;
+    else
+        u->adjust_threshold = DEFAULT_ADJUST_TOLERANCE;
 
     u->save_aec = DEFAULT_SAVE_AEC;
     if (pa_modargs_get_value_boolean(ma, "save_aec", &u->save_aec) < 0) {
