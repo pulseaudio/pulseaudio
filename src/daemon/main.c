@@ -1107,14 +1107,14 @@ int main(int argc, char *argv[]) {
 
 #ifdef HAVE_DBUS
     if (!conf->system_instance) {
-        if (!(server_lookup = pa_dbusobj_server_lookup_new(c)))
-            goto finish;
-        if (!(lookup_service_bus = register_dbus_name(c, DBUS_BUS_SESSION, "org.PulseAudio1")))
-            goto finish;
+        if ((server_lookup = pa_dbusobj_server_lookup_new(c))) {
+            if (!(lookup_service_bus = register_dbus_name(c, DBUS_BUS_SESSION, "org.PulseAudio1")))
+                goto finish;
+        }
     }
 
-    if (start_server && !(server_bus = register_dbus_name(c, conf->system_instance ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION, "org.pulseaudio.Server")))
-        goto finish;
+    if (start_server)
+        server_bus = register_dbus_name(c, conf->system_instance ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION, "org.pulseaudio.Server");
 #endif
 
 #ifdef HAVE_FORK
