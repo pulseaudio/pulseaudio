@@ -405,7 +405,7 @@ static int source_set_state_cb(pa_source *s, pa_source_state_t state) {
     if (state == PA_SOURCE_RUNNING) {
         /* restart timer when both sink and source are active */
         u->active_mask |= 1;
-        if (u->active_mask == 3)
+        if (u->active_mask == 3 && u->adjust_time)
             pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
 
         pa_atomic_store(&u->request_resync, 1);
@@ -433,7 +433,7 @@ static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
     if (state == PA_SINK_RUNNING) {
         /* restart timer when both sink and source are active */
         u->active_mask |= 2;
-        if (u->active_mask == 3)
+        if (u->active_mask == 3 && u->adjust_time)
             pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
 
         pa_atomic_store(&u->request_resync, 1);
