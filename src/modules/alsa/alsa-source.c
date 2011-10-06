@@ -90,6 +90,7 @@ struct userdata {
 
     snd_pcm_t *pcm_handle;
 
+    char *paths_dir;
     pa_alsa_fdlist *mixer_fdl;
     pa_alsa_mixer_pdata *mixer_pd;
     snd_mixer_t *mixer_handle;
@@ -1563,7 +1564,7 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
         pa_alsa_path_dump(u->mixer_path);
     } else {
 
-        if (!(u->mixer_path_set = pa_alsa_path_set_new(mapping, PA_ALSA_DIRECTION_INPUT)))
+        if (!(u->mixer_path_set = pa_alsa_path_set_new(mapping, PA_ALSA_DIRECTION_INPUT, u->paths_dir)))
             goto fail;
 
         pa_alsa_path_set_probe(u->mixer_path_set, u->mixer_handle, ignore_dB);
@@ -1760,6 +1761,8 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     dev_id = pa_modargs_get_value(
             ma, "device_id",
             pa_modargs_get_value(ma, "device", DEFAULT_DEVICE));
+
+    u->paths_dir = pa_xstrdup(pa_modargs_get_value(ma, "paths_dir", NULL));
 
     if (reserve_init(u, dev_id) < 0)
         goto fail;
@@ -2041,6 +2044,7 @@ static void userdata_free(struct userdata *u) {
 
     pa_xfree(u->device_name);
     pa_xfree(u->control_device);
+    pa_xfree(u->paths_dir);
     pa_xfree(u);
 }
 

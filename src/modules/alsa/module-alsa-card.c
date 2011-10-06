@@ -66,7 +66,9 @@ PA_MODULE_USAGE(
         "profile=<profile name> "
         "ignore_dB=<ignore dB information from the device?> "
         "deferred_volume=<Synchronize software and hardware volume changes to avoid momentary jumps?> "
-        "profile_set=<profile set configuration file> ");
+        "profile_set=<profile set configuration file> "
+        "paths_dir=<directory containing the path configuration files> "
+);
 
 static const char* const valid_modargs[] = {
     "name",
@@ -90,6 +92,7 @@ static const char* const valid_modargs[] = {
     "ignore_dB",
     "deferred_volume",
     "profile_set",
+    "paths_dir",
     NULL
 };
 

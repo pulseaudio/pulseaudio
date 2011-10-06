@@ -2338,7 +2338,14 @@ static int path_verify(pa_alsa_path *p) {
     return 0;
 }
 
-pa_alsa_path* pa_alsa_path_new(const char *fname, pa_alsa_direction_t direction) {
+static const char *get_default_paths_dir(void) {
+    if (pa_run_from_build_tree())
+        return PA_BUILDDIR "/modules/alsa/mixer/paths/";
+    else
+        return PA_ALSA_PATHS_DIR;
+}
+
+pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa_direction_t direction) {
     pa_alsa_path *p;
     char *fn;
     int r;
@@ -2381,9 +2388,10 @@ pa_alsa_path* pa_alsa_path_new(const char *fname, pa_alsa_direction_t direction)
     items[1].data = &p->description;
     items[2].data = &p->name;
 
-    fn = pa_maybe_prefix_path(fname,
-                              pa_run_from_build_tree() ? PA_BUILDDIR "/modules/alsa/mixer/paths/" :
-                              PA_ALSA_PATHS_DIR);
+    if (!paths_dir)
+        paths_dir = get_default_paths_dir();
+
+    fn = pa_maybe_prefix_path(fname, paths_dir);
 
     r = pa_config_parse(fn, NULL, items, p);
     pa_xfree(fn);
@@ -2768,7 +2776,7 @@ void pa_alsa_path_set_set_callback(pa_alsa_path_set *ps, snd_mixer_t *m, snd_mix
         pa_alsa_path_set_callback(p, m, cb, userdata);
 }
 
-pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t direction) {
+pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t direction, const char *paths_dir) {
     pa_alsa_path_set *ps;
     char **pn = NULL, **en = NULL, **ie;
     pa_alsa_decibel_fix *db_fix;
@@ -2809,7 +2817,7 @@ pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t d
 
             fn = pa_sprintf_malloc("%s.conf", *in);
 
-            if ((p = pa_alsa_path_new(fn, direction))) {
+            if ((p = pa_alsa_path_new(paths_dir, fn, direction))) {
                 p->path_set = ps;
                 PA_LLIST_INSERT_AFTER(pa_alsa_path, ps->paths, ps->last_path, p);
                 ps->last_path = p;
