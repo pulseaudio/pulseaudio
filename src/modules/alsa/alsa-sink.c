@@ -115,6 +115,7 @@ struct userdata {
         fragment_size,
         hwbuf_size,
         tsched_watermark,
+        tsched_watermark_ref,
         hwbuf_unused,
         min_sleep,
         min_wakeup,
@@ -125,6 +126,7 @@ struct userdata {
         rewind_safeguard;
 
     pa_usec_t watermark_dec_not_before;
+    pa_usec_t min_latency_ref;
 
     pa_memchunk memchunk;
 
@@ -984,6 +986,41 @@ static int update_sw_params(struct userdata *u) {
     return 0;
 }
 
+/* Called from IO Context on unsuspend or from main thread when creating sink */
+static void reset_watermark(struct userdata *u, size_t tsched_watermark, pa_sample_spec *ss,
+                            pa_bool_t in_thread)
+{
+    u->tsched_watermark = pa_usec_to_bytes_round_up(pa_bytes_to_usec_round_up(tsched_watermark, ss),
+                                                    &u->sink->sample_spec);
+
+    u->watermark_inc_step = pa_usec_to_bytes(TSCHED_WATERMARK_INC_STEP_USEC, &u->sink->sample_spec);
+    u->watermark_dec_step = pa_usec_to_bytes(TSCHED_WATERMARK_DEC_STEP_USEC, &u->sink->sample_spec);
+
+    u->watermark_inc_threshold = pa_usec_to_bytes_round_up(TSCHED_WATERMARK_INC_THRESHOLD_USEC, &u->sink->sample_spec);
+    u->watermark_dec_threshold = pa_usec_to_bytes_round_up(TSCHED_WATERMARK_DEC_THRESHOLD_USEC, &u->sink->sample_spec);
+
+    fix_min_sleep_wakeup(u);
+    fix_tsched_watermark(u);
+
+    if (in_thread)
+        pa_sink_set_latency_range_within_thread(u->sink,
+                                                u->min_latency_ref,
+                                                pa_bytes_to_usec(u->hwbuf_size, ss));
+    else {
+        pa_sink_set_latency_range(u->sink,
+                                  0,
+                                  pa_bytes_to_usec(u->hwbuf_size, ss));
+
+        /* work-around assert in pa_sink_set_latency_within_thead,
+           keep track of min_latency and reuse it when
+           this routine is called from IO context */
+        u->min_latency_ref = u->sink->thread_info.min_latency;
+    }
+
+    pa_log_info("Time scheduling watermark is %0.2fms",
+                (double) pa_bytes_to_usec(u->tsched_watermark, ss) / PA_USEC_PER_MSEC);
+}
+
 /* Called from IO context */
 static int unsuspend(struct userdata *u) {
     pa_sample_spec ss;
@@ -1056,6 +1093,10 @@ static int unsuspend(struct userdata *u) {
 
     u->first = TRUE;
     u->since_start = 0;
+
+    /* reset the watermark to the value defined when sink was created */
+    if (u->use_tsched)
+        reset_watermark(u, u->tsched_watermark_ref, &u->sink->sample_spec, TRUE);
 
     pa_log_info("Resumed successfully...");
 
@@ -1928,7 +1969,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     struct userdata *u = NULL;
     const char *dev_id = NULL;
-    pa_sample_spec ss, requested_ss;
+    pa_sample_spec ss;
     pa_channel_map map;
     uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark, rewind_safeguard;
     snd_pcm_uframes_t period_frames, buffer_frames, tsched_frames;
@@ -1947,7 +1988,6 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         goto fail;
     }
 
-    requested_ss = ss;
     frame_size = pa_frame_size(&ss);
 
     nfrags = m->core->default_n_fragments;
@@ -2209,23 +2249,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     }
 
     if (u->use_tsched) {
-        u->tsched_watermark = pa_usec_to_bytes_round_up(pa_bytes_to_usec_round_up(tsched_watermark, &requested_ss), &u->sink->sample_spec);
-
-        u->watermark_inc_step = pa_usec_to_bytes(TSCHED_WATERMARK_INC_STEP_USEC, &u->sink->sample_spec);
-        u->watermark_dec_step = pa_usec_to_bytes(TSCHED_WATERMARK_DEC_STEP_USEC, &u->sink->sample_spec);
-
-        u->watermark_inc_threshold = pa_usec_to_bytes_round_up(TSCHED_WATERMARK_INC_THRESHOLD_USEC, &u->sink->sample_spec);
-        u->watermark_dec_threshold = pa_usec_to_bytes_round_up(TSCHED_WATERMARK_DEC_THRESHOLD_USEC, &u->sink->sample_spec);
-
-        fix_min_sleep_wakeup(u);
-        fix_tsched_watermark(u);
-
-        pa_sink_set_latency_range(u->sink,
-                                  0,
-                                  pa_bytes_to_usec(u->hwbuf_size, &ss));
-
-        pa_log_info("Time scheduling watermark is %0.2fms",
-                    (double) pa_bytes_to_usec(u->tsched_watermark, &ss) / PA_USEC_PER_MSEC);
+        u->tsched_watermark_ref = tsched_watermark;
+        reset_watermark(u, u->tsched_watermark_ref, &ss, FALSE);
     } else
         pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(u->hwbuf_size, &ss));
 
