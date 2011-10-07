@@ -47,6 +47,7 @@ PA_C_DECL_END
 #define DEFAULT_MOBILE FALSE
 #define DEFAULT_ROUTING_MODE "speakerphone"
 #define DEFAULT_COMFORT_NOISE TRUE
+#define DEFAULT_DRIFT_COMPENSATION FALSE
 
 static const char* const valid_modargs[] = {
     "high_pass_filter",
@@ -56,6 +57,7 @@ static const char* const valid_modargs[] = {
     "mobile",
     "routing_mode",
     "comfort_noise",
+    "drift_compensation",
     NULL
 };
 
@@ -125,7 +127,18 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         goto fail;
     }
 
+    ec->params.drift_compensation = DEFAULT_DRIFT_COMPENSATION;
+    if (pa_modargs_get_value_boolean(ma, "drift_compensation", &ec->params.drift_compensation) < 0) {
+        pa_log("Failed to parse drift_compensation value");
+        goto fail;
+    }
+
     if (mobile) {
+        if (ec->params.drift_compensation) {
+            pa_log("Can't use drift_compensation in mobile mode");
+            goto fail;
+        }
+
         if ((rm = routing_mode_from_string(pa_modargs_get_value(ma, "routing_mode", DEFAULT_ROUTING_MODE))) < 0) {
             pa_log("Failed to parse routing_mode value");
             goto fail;
@@ -160,7 +173,13 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         apm->high_pass_filter()->Enable(true);
 
     if (!mobile) {
-        apm->echo_cancellation()->enable_drift_compensation(false);
+        if (ec->params.drift_compensation) {
+            apm->echo_cancellation()->set_device_sample_rate_hz(source_ss->rate);
+            apm->echo_cancellation()->enable_drift_compensation(true);
+        } else {
+            apm->echo_cancellation()->enable_drift_compensation(false);
+        }
+
         apm->echo_cancellation()->Enable(true);
     } else {
         apm->echo_control_mobile()->set_routing_mode(static_cast<webrtc::EchoControlMobile::RoutingMode>(rm));
@@ -204,9 +223,9 @@ fail:
     return FALSE;
 }
 
-void pa_webrtc_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {
+void pa_webrtc_ec_play(pa_echo_canceller *ec, const uint8_t *play) {
     webrtc::AudioProcessing *apm = (webrtc::AudioProcessing*)ec->params.priv.webrtc.apm;
-    webrtc::AudioFrame play_frame, out_frame;
+    webrtc::AudioFrame play_frame;
     const pa_sample_spec *ss = &ec->params.priv.webrtc.sample_spec;
 
     play_frame._audioChannel = ss->channels;
@@ -214,16 +233,35 @@ void pa_webrtc_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *
     play_frame._payloadDataLengthInSamples = ec->params.priv.webrtc.blocksize / pa_frame_size(ss);
     memcpy(play_frame._payloadData, play, ec->params.priv.webrtc.blocksize);
 
+    apm->AnalyzeReverseStream(&play_frame);
+}
+
+void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out) {
+    webrtc::AudioProcessing *apm = (webrtc::AudioProcessing*)ec->params.priv.webrtc.apm;
+    webrtc::AudioFrame out_frame;
+    const pa_sample_spec *ss = &ec->params.priv.webrtc.sample_spec;
+
     out_frame._audioChannel = ss->channels;
     out_frame._frequencyInHz = ss->rate;
     out_frame._payloadDataLengthInSamples = ec->params.priv.webrtc.blocksize / pa_frame_size(ss);
     memcpy(out_frame._payloadData, rec, ec->params.priv.webrtc.blocksize);
 
-    apm->AnalyzeReverseStream(&play_frame);
     apm->set_stream_delay_ms(0);
     apm->ProcessStream(&out_frame);
 
     memcpy(out, out_frame._payloadData, ec->params.priv.webrtc.blocksize);
+}
+
+void pa_webrtc_ec_set_drift(pa_echo_canceller *ec, float drift) {
+    webrtc::AudioProcessing *apm = (webrtc::AudioProcessing*)ec->params.priv.webrtc.apm;
+    const pa_sample_spec *ss = &ec->params.priv.webrtc.sample_spec;
+
+    apm->echo_cancellation()->set_stream_drift_samples(drift * ec->params.priv.webrtc.blocksize / pa_frame_size(ss));
+}
+
+void pa_webrtc_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {
+    pa_webrtc_ec_play(ec, play);
+    pa_webrtc_ec_record(ec, rec, out);
 }
 
 void pa_webrtc_ec_done(pa_echo_canceller *ec) {
