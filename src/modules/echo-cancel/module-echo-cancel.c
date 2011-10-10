@@ -217,6 +217,7 @@ struct userdata {
     FILE *captured_file;
     FILE *played_file;
     FILE *canceled_file;
+    FILE *drift_file;
 };
 
 static void source_output_snapshot_within_thread(struct userdata *u, struct snapshot *snapshot);
@@ -669,6 +670,7 @@ static void do_push_drift_comp(struct userdata *u) {
     pa_memchunk rchunk, pchunk, cchunk;
     uint8_t *rdata, *pdata, *cdata;
     float drift;
+    int unused;
 
     rlen = pa_memblockq_get_length(u->source_memblockq);
     plen = pa_memblockq_get_length(u->sink_memblockq);
@@ -690,6 +692,11 @@ static void do_push_drift_comp(struct userdata *u) {
     /* Now let the canceller work its drift compensation magic */
     u->ec->set_drift(u->ec, drift);
 
+    if (u->save_aec) {
+        if (u->drift_file)
+            fprintf(u->drift_file, "d %a\n", drift);
+    }
+
     /* Send in the playback samples first */
     while (plen >= u->blocksize) {
         pa_memblockq_peek_fixed_size(u->sink_memblockq, u->blocksize, &pchunk);
@@ -697,6 +704,13 @@ static void do_push_drift_comp(struct userdata *u) {
         pdata += pchunk.index;
 
         u->ec->play(u->ec, pdata);
+
+        if (u->save_aec) {
+            if (u->drift_file)
+                fprintf(u->drift_file, "p %d\n", u->blocksize);
+            if (u->played_file)
+                unused = fwrite(pdata, 1, u->blocksize, u->played_file);
+        }
 
         pa_memblock_release(pchunk.memblock);
         pa_memblockq_drop(u->sink_memblockq, u->blocksize);
@@ -718,6 +732,15 @@ static void do_push_drift_comp(struct userdata *u) {
         cdata = pa_memblock_acquire(cchunk.memblock);
 
         u->ec->record(u->ec, rdata, cdata);
+
+        if (u->save_aec) {
+            if (u->drift_file)
+                fprintf(u->drift_file, "c %d\n", u->blocksize);
+            if (u->captured_file)
+                unused = fwrite(rdata, 1, u->blocksize, u->captured_file);
+            if (u->canceled_file)
+                unused = fwrite(cdata, 1, u->blocksize, u->canceled_file);
+        }
 
         pa_memblock_release(cchunk.memblock);
         pa_memblock_release(rchunk.memblock);
@@ -1811,6 +1834,11 @@ int pa__init(pa_module*m) {
         u->canceled_file = fopen("/tmp/aec_out.sw", "wb");
         if (u->canceled_file == NULL)
             perror ("fopen failed");
+        if (u->ec->params.drift_compensation) {
+            u->drift_file = fopen("/tmp/aec_drift.txt", "w");
+            if (u->drift_file == NULL)
+                perror ("fopen failed");
+        }
     }
 
     pa_sink_put(u->sink);
@@ -1899,6 +1927,8 @@ void pa__done(pa_module*m) {
             fclose(u->captured_file);
         if (u->canceled_file)
             fclose(u->canceled_file);
+        if (u->drift_file)
+            fclose(u->drift_file);
     }
 
     pa_xfree(u);
@@ -1914,11 +1944,13 @@ int main(int argc, char* argv[]) {
     pa_channel_map source_map, sink_map;
     pa_modargs *ma = NULL;
     uint8_t *rdata = NULL, *pdata = NULL, *cdata = NULL;
-    int ret = 0, unused;
+    int ret = 0, unused, i;
+    char c;
+    float drift;
 
     pa_memzero(&u, sizeof(u));
 
-    if (argc < 4 || argc > 6) {
+    if (argc < 4 || argc > 7) {
         goto usage;
     }
 
@@ -1966,19 +1998,86 @@ int main(int argc, char* argv[]) {
         goto fail;
     }
 
+    if (u.ec->params.drift_compensation) {
+        if (argc < 7) {
+            pa_log("Drift compensation enabled but drift file not specified");
+            goto fail;
+        }
+
+        u.drift_file = fopen(argv[6], "r");
+
+        if (u.drift_file == NULL) {
+            perror ("fopen failed");
+            goto fail;
+        }
+    }
+
     rdata = pa_xmalloc(u.blocksize);
     pdata = pa_xmalloc(u.blocksize);
     cdata = pa_xmalloc(u.blocksize);
 
-    while (fread(rdata, u.blocksize, 1, u.captured_file) > 0) {
-        if (fread(pdata, u.blocksize, 1, u.played_file) == 0) {
-            perror("played file ended before captured file");
-            break;
+    if (!u.ec->params.drift_compensation) {
+        while (fread(rdata, u.blocksize, 1, u.captured_file) > 0) {
+            if (fread(pdata, u.blocksize, 1, u.played_file) == 0) {
+                perror("Played file ended before captured file");
+                goto fail;
+            }
+
+            u.ec->run(u.ec, rdata, pdata, cdata);
+
+            unused = fwrite(cdata, u.blocksize, 1, u.canceled_file);
+        }
+    } else {
+        while (fscanf(u.drift_file, "%c", &c) > 0) {
+            switch (c) {
+                case 'd':
+                    if (!fscanf(u.drift_file, "%a", &drift)) {
+                        perror("Drift file incomplete");
+                        goto fail;
+                    }
+
+                    u.ec->set_drift(u.ec, drift);
+
+                    break;
+
+                case 'c':
+                    if (!fscanf(u.drift_file, "%d", &i)) {
+                        perror("Drift file incomplete");
+                        goto fail;
+                    }
+
+                    if (fread(rdata, i, 1, u.captured_file) <= 0) {
+                        perror("Captured file ended prematurely");
+                        goto fail;
+                    }
+
+                    u.ec->record(u.ec, rdata, cdata);
+
+                    unused = fwrite(cdata, i, 1, u.canceled_file);
+
+                    break;
+
+                case 'p':
+                    if (!fscanf(u.drift_file, "%d", &i)) {
+                        perror("Drift file incomplete");
+                        goto fail;
+                    }
+
+                    if (fread(pdata, i, 1, u.played_file) <= 0) {
+                        perror("Played file ended prematurely");
+                        goto fail;
+                    }
+
+                    u.ec->play(u.ec, pdata);
+
+                    break;
+            }
         }
 
-        u.ec->run(u.ec, rdata, pdata, cdata);
-
-        unused = fwrite(cdata, u.blocksize, 1, u.canceled_file);
+        if (fread(rdata, i, 1, u.captured_file) > 0)
+            pa_log("All capture data was not consumed");
+        if (fread(pdata, i, 1, u.played_file) > 0)
+            pa_log("All playback data was not consumed");
     }
 
     u.ec->done(u.ec);
@@ -1986,6 +2085,8 @@ int main(int argc, char* argv[]) {
     fclose(u.captured_file);
     fclose(u.played_file);
     fclose(u.canceled_file);
+    if (u.drift_file)
+        fclose(u.drift_file);
 
 out:
     pa_xfree(rdata);
@@ -2001,7 +2102,7 @@ out:
     return ret;
 
 usage:
-    pa_log("Usage: %s play_file rec_file out_file [module args] [aec_args]",argv[0]);
+    pa_log("Usage: %s play_file rec_file out_file [module args] [aec_args] [drift_file]", argv[0]);
 
 fail:
     ret = -1;
