@@ -22,12 +22,11 @@ try:
     from PyQt4 import QtGui,QtCore
     import dbus.mainloop.qt
     import dbus
-except ImportError,e:
-    print 'There was an error importing need libraries'
-    print 'Make sure you haveqt4 and dbus forthon installed'
-    print 'The error that occured was'
-    print '\t%s' %(str(e))
-    import sys
+except ImportError as e:
+    sys.stderr.write('There was an error importing need libraries\n'
+                     'Make sure you haveqt4 and dbus forthon installed\n'
+                     'The error that occured was:\n'
+                     '\t%s\n' % (str(e)))
     sys.exit(-1)
 
 from functools import partial
@@ -47,10 +46,10 @@ def connect():
             server_lookup = bus.get_object('org.PulseAudio1', '/org/pulseaudio/server_lookup1')
             address = server_lookup.Get('org.PulseAudio.ServerLookup1', 'Address', dbus_interface='org.freedesktop.DBus.Properties')
         return dbus.connection.Connection(address)
-    except Exception,e:
-        print 'There was an error connecting to pulseaudio, please make sure you have the pulseaudio dbus'
-        print 'and equalizer modules loaded, exiting...'
-        import sys
+    except Exception as e:
+        sys.stderr.write('There was an error connecting to pulseaudio, '
+                         'please make sure you have the pulseaudio dbus '
+                         'and equalizer modules loaded, exiting...\n')
         sys.exit(-1)
 
 
@@ -148,7 +147,7 @@ class QPaeq(QtGui.QWidget):
 
         self.channel_box.clear()
         self.channel_box.addItem('All',self.filter_state.channels)
-        for i in xrange(self.filter_state.channels):
+        for i in range(self.filter_state.channels):
             self.channel_box.addItem('%d' %(i+1,),i)
         self.setMinimumSize(self.sizeHint())
 
@@ -221,7 +220,7 @@ class QPaeq(QtGui.QWidget):
         self.filter_state.readback()
 
     #TODO: add back in preamp!
-    #print frequencies
+    #print(frequencies)
     #main_layout.addLayout(self.create_slider(partial(self.update_coefficient,0),
     #    'Preamp')[0]
     #)
@@ -243,7 +242,7 @@ class QPaeq(QtGui.QWidget):
         self.update_profiles()
         self.update_sinks()
     def update_profiles(self):
-        #print 'update profiles called!'
+        #print('update profiles called!')
         manager_props=dbus.Interface(self.manager_obj,dbus_interface=prop_iface)
         self.profiles=manager_props.Get(self.manager_iface,'Profiles')
         self.profile_box.blockSignals(True)
@@ -262,7 +261,7 @@ class QPaeq(QtGui.QWidget):
         self.sink_box.blockSignals(False)
         self.sink_box.setMinimumSize(self.sink_box.sizeHint())
     def read_filter(self):
-        #print self.filter_frequencies
+        #print(self.filter_frequencies)
         self.filter_state.readback()
     def reset(self):
         coefs=dbus.Array([1/math.sqrt(2.0)]*(self.filter_state.filter_rate//2+1))
@@ -480,18 +479,16 @@ class FilterState(QtCore.QObject):
         return [0]+xs+[self.sample_rate//2]
     def _set_frequency_values(self,freqs):
         self.frequencies=freqs
-        #print 'base',self.frequencies
-        self.filter_frequencies=map(lambda x: int(round(x)), \
-                self.translate_rates(self.filter_rate,self.sample_rate,
-                    self.frequencies) \
-                )
+        #print('base',self.frequencies)
+        self.filter_frequencies=[int(round(x)) for x in self.translate_rates(self.filter_rate,self.sample_rate,
+                    self.frequencies)]
         self.coefficients=[0.0]*len(self.frequencies)
         self.preamp=1.0
     def set_frequency_values(self,freqs):
         self._set_frequency_values(self.freq_proper(freqs))
     @staticmethod
     def translate_rates(dst,src,rates):
-        return list(map(lambda x: x*dst/src,rates))
+        return list([x*dst/src for x in rates])
     def seed(self):
         self.sink.SeedFilter(self.channel,self.filter_frequencies,self.coefficients,self.preamp)
         self.sync_timer.start(SYNC_TIMEOUT)
@@ -504,7 +501,7 @@ class FilterState(QtCore.QObject):
         self.sink.SetFilter(self.channel,dbus.Array(coefs),self.preamp)
         self.sync_timer.start(SYNC_TIMEOUT)
     def save_state(self):
-        print 'saving state'
+        print('saving state')
         self.sink.SaveState()
     def load_profile(self,profile):
         self.sink.LoadProfile(self.channel,dbus.String(profile))
@@ -540,8 +537,8 @@ def subdivide(xs, t_points):
     p_drop=len(xs)-t_points
     p_drop_left=p_drop//2
     p_drop_right=p_drop-p_drop_left
-    #print 'xs',xs
-    #print 'dropping %d, %d left, %d right' %(p_drop,p_drop_left,p_drop_right)
+    #print('xs',xs)
+    #print('dropping %d, %d left, %d right' %(p_drop,p_drop_left,p_drop_right))
     c=len(xs)//2
     left=xs[0:p_drop_left*2:2]+xs[p_drop_left*2:c]
     right=list(reversed(xs[c:]))
