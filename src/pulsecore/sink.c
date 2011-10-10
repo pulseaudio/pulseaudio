@@ -1380,8 +1380,8 @@ pa_bool_t pa_sink_update_rate(pa_sink *s, uint32_t rate, pa_bool_t passthrough)
 
         if (s->update_rate(s, desired_rate) == TRUE) {
             /* update monitor source as well */
-            if (s->monitor_source)
-                pa_source_update_rate(s->monitor_source, desired_rate);
+            if (s->monitor_source && !passthrough)
+                pa_source_update_rate(s->monitor_source, desired_rate, FALSE);
             pa_log_info("Changed sampling rate successfully");
             return TRUE;
         }

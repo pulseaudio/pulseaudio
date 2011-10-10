@@ -921,9 +921,8 @@ void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *
 }
 
 /* Called from main thread */
-pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate)
+pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrough)
 {
-
     if (s->update_rate) {
         uint32_t desired_rate = rate;
         uint32_t default_rate = s->default_sample_rate;
@@ -933,30 +932,38 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate)
         if (PA_SOURCE_IS_RUNNING(s->state)) {
             pa_log_info("Cannot update rate, SOURCE_IS_RUNNING, will keep using %u kHz",
                         s->sample_spec.rate);
-            return FALSE; /* cannot reconfigure a RUNNING source without glitches */
+            return FALSE;
         }
 
         if (PA_UNLIKELY (desired_rate < 8000 ||
                          desired_rate > PA_RATE_MAX))
             return FALSE;
 
-        pa_assert(default_rate % 4000 || default_rate % 11025);
-        pa_assert(alternate_rate % 4000 || alternate_rate % 11025);
+        if (!passthrough) {
+            pa_assert(default_rate % 4000 || default_rate % 11025);
+            pa_assert(alternate_rate % 4000 || alternate_rate % 11025);
 
-        if (default_rate % 4000) {
-            /* default is a 11025 multiple */
-            if ((alternate_rate % 4000 == 0) && (desired_rate % 4000 == 0))
-                use_alternate=TRUE;
+            if (default_rate % 4000) {
+                /* default is a 11025 multiple */
+                if ((alternate_rate % 4000 == 0) && (desired_rate % 4000 == 0))
+                    use_alternate=TRUE;
+            } else {
+                /* default is 4000 multiple */
+                if ((alternate_rate % 11025 == 0) && (desired_rate % 11025 == 0))
+                    use_alternate=TRUE;
+            }
+
+            if (use_alternate)
+                desired_rate = alternate_rate;
+            else
+                desired_rate = default_rate;
         } else {
-            /* default is 4000 multiple */
-            if ((alternate_rate % 11025 == 0) && (desired_rate % 11025 == 0))
-                use_alternate=TRUE;
+            desired_rate = rate; /* use stream sampling rate, discard default/alternate settings */
         }
 
-        if (use_alternate)
-            desired_rate = alternate_rate;
-        else
-            desired_rate = default_rate;
+        if (passthrough || pa_source_used_by(s) == 0) {
+            pa_source_suspend(s, TRUE, PA_SUSPEND_IDLE); /* needed before rate update, will be resumed automatically */
+        }
 
         if (s->update_rate(s, desired_rate) == TRUE) {
             pa_log_info("Changed sampling rate successfully ");

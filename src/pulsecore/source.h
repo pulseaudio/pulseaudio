@@ -367,7 +367,7 @@ pa_bool_t pa_source_get_mute(pa_source *source, pa_bool_t force_refresh);
 pa_bool_t pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist *p);
 
 int pa_source_set_port(pa_source *s, const char *name, pa_bool_t save);
-pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate);
+pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrough);
 
 unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
 unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */
