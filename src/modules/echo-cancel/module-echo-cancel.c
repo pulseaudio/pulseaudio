@@ -1773,6 +1773,15 @@ void pa__done(pa_module*m) {
     if (u->asyncmsgq)
         pa_asyncmsgq_unref(u->asyncmsgq);
 
+    if (u->save_aec) {
+        if (u->played_file)
+            fclose(u->played_file);
+        if (u->captured_file)
+            fclose(u->captured_file);
+        if (u->canceled_file)
+            fclose(u->canceled_file);
+    }
+
     pa_xfree(u);
 }
 
