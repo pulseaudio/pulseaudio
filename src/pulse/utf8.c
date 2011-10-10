@@ -249,11 +249,16 @@ char* pa_locale_to_utf8 (const char *str) {
 
 char* pa_utf8_to_locale (const char *str) {
     pa_assert(str);
-    return NULL;
+
+    return pa_ascii_filter(str);
 }
 
 char* pa_locale_to_utf8 (const char *str) {
     pa_assert(str);
+
+    if (pa_utf8_valid(str))
+        return pa_xstrdup(str);
+
     return NULL;
 }
 
