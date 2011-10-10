@@ -1103,6 +1103,11 @@ int main(int argc, char *argv[]) {
         if ((t = filename) ||
             (t = pa_proplist_gets(proplist, PA_PROP_APPLICATION_NAME)))
             pa_proplist_sets(proplist, PA_PROP_MEDIA_NAME, t);
+
+        if (!pa_proplist_contains(proplist, PA_PROP_MEDIA_NAME)) {
+            pa_log(_("Failed to set media name."));
+            goto quit;
+        }
     }
 
     /* Set up a new main loop */
