@@ -776,6 +776,7 @@ AS_IF([test "x$enable_glib2" = "xyes" && test "x$HAVE_GLIB20" = "x0"],
 
 AC_SUBST(GLIB20_CFLAGS)
 AC_SUBST(GLIB20_LIBS)
+AC_SUBST(HAVE_GLIB20)
 AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
 AS_IF([test "x$HAVE_GLIB20" = "x1"], AC_DEFINE([HAVE_GLIB], 1, [Have GLIB?]))
 
@@ -1245,6 +1246,16 @@ AC_CONFIG_FILES([src/default.pa:src/daemon/default.pa.in],
     [m4 src/default.pa > src/default.pa.gen && mv src/default.pa.gen src/default.pa])
 AC_CONFIG_FILES([src/system.pa:src/daemon/system.pa.in],
     [m4 src/system.pa > src/system.pa.gen && mv src/system.pa.gen src/system.pa])
+
+# CMake related ProjectConfig files
+PA_LIBDIR="$libdir"
+AX_DEFINE_DIR(PA_LIBDIR, PA_LIBDIR, [PulseAudio library dir])
+PA_INCDIR="$includedir"
+AX_DEFINE_DIR(PA_INCDIR, PA_INCDIR, [PulseAudio include dir])
+
+AC_CONFIG_FILES([PulseAudioConfig.cmake:PulseAudioConfig.cmake.in],
+    [m4 PulseAudioConfig.cmake > PulseAudioConfig.cmake.gen && mv PulseAudioConfig.cmake.gen PulseAudioConfig.cmake])
+AC_CONFIG_FILES([PulseAudioConfigVersion.cmake])
 
 AC_OUTPUT
 
