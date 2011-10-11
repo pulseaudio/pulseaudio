@@ -51,6 +51,9 @@ pkgconfig_DATA += \
 	 libpulse-mainloop-glib.pc
 endif
 
+cmakedir = $(libdir)/cmake/PulseAudio
+cmake_DATA = PulseAudioConfig.cmake PulseAudioConfigVersion.cmake
+
 homepage: all dist doxygen
 	test -d $$HOME/homepage/private
 	mkdir -p $$HOME/homepage/private/projects/pulseaudio $$HOME/homepage/private/projects/pulseaudio/doxygen
