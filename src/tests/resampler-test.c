@@ -296,7 +296,6 @@ static void dump_resample_methods(void) {
 int main(int argc, char *argv[]) {
     pa_mempool *pool = NULL;
     pa_sample_spec a, b;
-    pa_cvolume v;
     int ret = 1, verbose = 0, c;
     pa_bool_t all_formats = TRUE;
     pa_resample_method_t method;
@@ -328,8 +327,6 @@ int main(int argc, char *argv[]) {
     a.channels = b.channels = 1;
     a.rate = b.rate = 44100;
     a.format = b.format = PA_SAMPLE_S16LE;
-    v.channels = a.channels;
-    v.values[0] = pa_sw_volume_from_linear(0.5);
 
     method = PA_RESAMPLER_AUTO;
     seconds = 60;
@@ -421,7 +418,7 @@ int main(int argc, char *argv[]) {
         pa_assert_se(resampler = pa_resampler_new(pool, &a, NULL, &b, NULL, method, 0));
         printf("init: %llu\n", (long long unsigned)(pa_rtclock_now() - ts));
 
-        i.memblock = pa_memblock_new(pool, pa_usec_to_bytes(1*PA_USEC_PER_SEC, &a) / pa_frame_size(&a));
+        i.memblock = pa_memblock_new(pool, pa_usec_to_bytes(1*PA_USEC_PER_SEC, &a));
 
         ts = pa_rtclock_now();
         i.length = pa_memblock_get_length(i.memblock);
@@ -465,14 +462,9 @@ int main(int argc, char *argv[]) {
             printf("reverse: ");
             dump_block(&a, &k);
 
+            pa_memblock_unref(i.memblock);
             pa_memblock_unref(j.memblock);
             pa_memblock_unref(k.memblock);
-
-            pa_volume_memchunk(&i, &a, &v);
-            printf("volume:  ");
-            dump_block(&a, &i);
-
-            pa_memblock_unref(i.memblock);
 
             pa_resampler_free(forth);
             pa_resampler_free(back);
