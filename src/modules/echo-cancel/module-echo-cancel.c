@@ -657,7 +657,8 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         return;
     }
 
-    if (PA_UNLIKELY(u->source->thread_info.state != PA_SOURCE_RUNNING)) {
+    if (PA_UNLIKELY(u->source->thread_info.state != PA_SOURCE_RUNNING ||
+                    u->sink->thread_info.state != PA_SINK_RUNNING)) {
         pa_source_post(u->source, chunk);
         return;
     }
