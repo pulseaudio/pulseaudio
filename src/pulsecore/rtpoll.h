@@ -34,13 +34,7 @@
  * yet another wrapper around poll(). However it has certain
  * advantages over pa_mainloop and suchlike:
  *
- * 1) It uses timer_create() and POSIX real time signals to guarantee
- * optimal high-resolution timing. Starting with Linux 2.6.21 hrtimers
- * are available, and since right now only nanosleep() and the POSIX
- * clock and timer interfaces have been ported to hrtimers (and not
- * ppoll/pselect!) we have to combine ppoll() with timer_create(). The
- * fact that POSIX timers and POSIX rt signals are used internally is
- * completely hidden.
+ * 1) High resolution timers are used
  *
  * 2) It allows raw access to the pollfd data to users
  *
