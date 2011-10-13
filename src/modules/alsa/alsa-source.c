@@ -1452,8 +1452,12 @@ static void thread_func(void *userdata) {
         if (u->source->flags & PA_SOURCE_DEFERRED_VOLUME) {
             pa_usec_t volume_sleep;
             pa_source_volume_change_apply(u->source, &volume_sleep);
-            if (volume_sleep > 0)
-                rtpoll_sleep = PA_MIN(volume_sleep, rtpoll_sleep);
+            if (volume_sleep > 0) {
+                if (rtpoll_sleep > 0)
+                    rtpoll_sleep = PA_MIN(volume_sleep, rtpoll_sleep);
+                else
+                    rtpoll_sleep = volume_sleep;
+            }
         }
 
         if (rtpoll_sleep > 0)
