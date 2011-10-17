@@ -109,6 +109,8 @@ struct userdata {
 
     pa_cvolume hardware_volume;
 
+    unsigned int *rates;
+
     size_t
         frame_size,
         fragment_size,
@@ -1509,8 +1511,8 @@ static pa_idxset* sink_get_formats(pa_sink *s) {
 
 static pa_bool_t sink_set_formats(pa_sink *s, pa_idxset *formats) {
     struct userdata *u = s->userdata;
-    pa_format_info *f;
-    uint32_t idx;
+    pa_format_info *f, *g;
+    uint32_t idx, n;
 
     pa_assert(u);
 
@@ -1528,16 +1530,26 @@ static pa_bool_t sink_set_formats(pa_sink *s, pa_idxset *formats) {
      * This is fine for now since we don't support that via the passthrough
      * framework, but this must be changed if we do. */
 
+    /* Count how many sample rates we support */
+    for (idx = 0, n = 0; u->rates[idx]; idx++)
+        n++;
+
     /* First insert non-PCM formats since we prefer those. */
     PA_IDXSET_FOREACH(f, formats, idx) {
-        if (!pa_format_info_is_pcm(f))
-            pa_idxset_put(u->formats, pa_format_info_copy(f), NULL);
+        if (!pa_format_info_is_pcm(f)) {
+            g = pa_format_info_copy(f);
+            pa_format_info_set_prop_int_array(g, PA_PROP_FORMAT_RATE, (int *) u->rates, n);
+            pa_idxset_put(u->formats, g, NULL);
+        }
     }
 
     /* Now add any PCM formats */
     PA_IDXSET_FOREACH(f, formats, idx) {
-        if (pa_format_info_is_pcm(f))
+        if (pa_format_info_is_pcm(f)) {
+            /* We don't set rates here since we'll just tack on a resampler for
+             * unsupported rates */
             pa_idxset_put(u->formats, pa_format_info_copy(f), NULL);
+        }
     }
 
     return TRUE;
@@ -1546,13 +1558,29 @@ static pa_bool_t sink_set_formats(pa_sink *s, pa_idxset *formats) {
 static pa_bool_t sink_update_rate_cb(pa_sink *s, uint32_t rate)
 {
     struct userdata *u = s->userdata;
+    int i;
+    pa_bool_t supported = FALSE;
+
     pa_assert(u);
+
+    for (i = 0; u->rates[i]; i++) {
+        if (u->rates[i] == rate) {
+            supported = TRUE;
+            break;
+        }
+    }
+
+    if (!supported) {
+        pa_log_info("Sink does not support sample rate of %d Hz", rate);
+        return FALSE;
+    }
 
     if (!PA_SINK_IS_OPENED(s->state)) {
         pa_log_info("Updating rate for device %s, new rate is %d",u->device_name, rate);
         u->sink->sample_spec.rate = rate;
         return TRUE;
     }
+
     return FALSE;
 }
 
@@ -2121,6 +2149,12 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     if (is_iec958(u) || is_hdmi(u))
         set_formats = TRUE;
 
+    u->rates = pa_alsa_get_supported_rates(u->pcm_handle);
+    if (!u->rates) {
+        pa_log_error("Failed to find any supported sample rates.");
+        goto fail;
+    }
+
     /* ALSA might tweak the sample spec, so recalculate the frame size */
     frame_size = pa_frame_size(&ss);
 
@@ -2349,6 +2383,9 @@ static void userdata_free(struct userdata *u) {
 
     if (u->formats)
         pa_idxset_free(u->formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+
+    if (u->rates)
+        pa_xfree(u->rates);
 
     reserve_done(u);
     monitor_done(u);

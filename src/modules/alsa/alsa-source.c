@@ -99,6 +99,8 @@ struct userdata {
 
     pa_cvolume hardware_volume;
 
+    unsigned int *rates;
+
     size_t
         frame_size,
         fragment_size,
@@ -1385,13 +1387,29 @@ static void source_update_requested_latency_cb(pa_source *s) {
 static pa_bool_t source_update_rate_cb(pa_source *s, uint32_t rate)
 {
     struct userdata *u = s->userdata;
+    int i;
+    pa_bool_t supported = FALSE;
+
     pa_assert(u);
+
+    for (i = 0; u->rates[i]; i++) {
+        if (u->rates[i] == rate) {
+            supported = TRUE;
+            break;
+        }
+    }
+
+    if (!supported) {
+        pa_log_info("Sink does not support sample rate of %d Hz", rate);
+        return FALSE;
+    }
 
     if (!PA_SOURCE_IS_OPENED(s->state)) {
         pa_log_info("Updating rate for device %s, new rate is %d", u->device_name, rate);
         u->source->sample_spec.rate = rate;
         return TRUE;
     }
+
     return FALSE;
 }
 
@@ -1862,6 +1880,12 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     if (u->use_tsched)
         pa_log_info("Successfully enabled timer-based scheduling mode.");
 
+    u->rates = pa_alsa_get_supported_rates(u->pcm_handle);
+    if (!u->rates) {
+        pa_log_error("Failed to find any supported sample rates.");
+        goto fail;
+    }
+
     /* ALSA might tweak the sample spec, so recalculate the frame size */
     frame_size = pa_frame_size(&ss);
 
@@ -2061,6 +2085,9 @@ static void userdata_free(struct userdata *u) {
 
     if (u->smoother)
         pa_smoother_free(u->smoother);
+
+    if (u->rates)
+        pa_xfree(u->rates);
 
     reserve_done(u);
     monitor_done(u);
