@@ -524,7 +524,9 @@ echo_cancel_test_SOURCES = $(module_echo_cancel_la_SOURCES)
 nodist_echo_cancel_test_SOURCES = $(nodist_module_echo_cancel_la_SOURCES)
 echo_cancel_test_LDADD = $(module_echo_cancel_la_LIBADD)
 echo_cancel_test_CFLAGS = $(module_echo_cancel_la_CFLAGS) -DECHO_CANCEL_TEST=1
+if HAVE_WEBRTC
 echo_cancel_test_CXXFLAGS = $(module_echo_cancel_la_CXXFLAGS) -DECHO_CANCEL_TEST=1
+endif
 echo_cancel_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
