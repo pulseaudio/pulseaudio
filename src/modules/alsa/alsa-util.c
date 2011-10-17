@@ -1328,7 +1328,12 @@ char *pa_alsa_get_reserve_name(const char *device) {
 }
 
 unsigned int *pa_alsa_get_supported_rates(snd_pcm_t *pcm) {
-    static unsigned int all_rates[] = { 8000, 11025, 16000, 22050, 32000, 44100, 48000, 88200, 96000, 176400, 192000, 384000 };
+    static unsigned int all_rates[] = { 8000, 11025, 12000,
+                                        16000, 22050, 24000,
+                                        32000, 44100, 48000,
+                                        64000, 88200, 96000,
+                                        128000, 176400, 192000,
+                                        384000 };
     pa_bool_t supported[PA_ELEMENTSOF(all_rates)] = { FALSE, };
     snd_pcm_hw_params_t *hwparams;
     unsigned int i, j, n, *rates = NULL;
