@@ -111,6 +111,10 @@ static const pa_echo_canceller ec_table[] = {
 
 #define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
 
+/* Can only be used in main context */
+#define IS_ACTIVE(u) ((pa_source_get_state((u)->source) == PA_SOURCE_RUNNING) && \
+                      (pa_sink_get_state((u)->sink) == PA_SINK_RUNNING))
+
 /* This module creates a new (virtual) source and sink.
  *
  * The data sent to the new sink is kept in a memblockq before being
@@ -187,7 +191,6 @@ struct userdata {
 
     pa_atomic_t request_resync;
 
-    int active_mask;
     pa_time_event *time_event;
     pa_usec_t adjust_time;
     int adjust_threshold;
@@ -278,7 +281,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
     pa_assert(u->time_event == e);
     pa_assert_ctl_context();
 
-    if (u->active_mask != 3)
+    if (!IS_ACTIVE(u))
         return;
 
     /* update our snapshots */
@@ -403,20 +406,17 @@ static int source_set_state_cb(pa_source *s, pa_source_state_t state) {
         !PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output)))
         return 0;
 
-    pa_log_debug("Source state %d %d", state, u->active_mask);
-
     if (state == PA_SOURCE_RUNNING) {
         /* restart timer when both sink and source are active */
-        u->active_mask |= 1;
-        if (u->active_mask == 3 && u->adjust_time)
+        if (IS_ACTIVE(u) && u->adjust_time)
             pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
 
         pa_atomic_store(&u->request_resync, 1);
         pa_source_output_cork(u->source_output, FALSE);
     } else if (state == PA_SOURCE_SUSPENDED) {
-        u->active_mask &= ~1;
         pa_source_output_cork(u->source_output, TRUE);
     }
+
     return 0;
 }
 
@@ -431,20 +431,17 @@ static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
         !PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(u->sink_input)))
         return 0;
 
-    pa_log_debug("Sink state %d %d", state, u->active_mask);
-
     if (state == PA_SINK_RUNNING) {
         /* restart timer when both sink and source are active */
-        u->active_mask |= 2;
-        if (u->active_mask == 3 && u->adjust_time)
+        if (IS_ACTIVE(u) && u->adjust_time)
             pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
 
         pa_atomic_store(&u->request_resync, 1);
         pa_sink_input_cork(u->sink_input, FALSE);
     } else if (state == PA_SINK_SUSPENDED) {
-        u->active_mask &= ~2;
         pa_sink_input_cork(u->sink_input, TRUE);
     }
+
     return 0;
 }
 
@@ -1675,9 +1672,6 @@ int pa__init(pa_module*m) {
         pa_log("Failed to create memblockq.");
         goto fail;
     }
-
-    /* our source and sink are not suspended when we create them */
-    u->active_mask = 3;
 
     if (u->adjust_time > 0)
         u->time_event = pa_core_rttime_new(m->core, pa_rtclock_now() + u->adjust_time, time_callback, u);
