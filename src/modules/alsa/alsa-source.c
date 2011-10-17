@@ -1939,7 +1939,8 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         u->source->update_requested_latency = source_update_requested_latency_cb;
     u->source->set_state = source_set_state_cb;
     u->source->set_port = source_set_port_cb;
-    u->source->update_rate = source_update_rate_cb;
+    if (u->source->alternate_sample_rate)
+        u->source->update_rate = source_update_rate_cb;
     u->source->userdata = u;
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);

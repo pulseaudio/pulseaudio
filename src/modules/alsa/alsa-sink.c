@@ -2201,7 +2201,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->set_state = sink_set_state_cb;
     u->sink->set_port = sink_set_port_cb;
-    u->sink->update_rate = sink_update_rate_cb;
+    if (u->sink->alternate_sample_rate)
+        u->sink->update_rate = sink_update_rate_cb;
     u->sink->userdata = u;
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);

@@ -420,7 +420,8 @@ USA.
       default-rate-rate value or this alternate value, typically 44.1
       or 48kHz. Switching between default and alternate values is
       enabled only when the sinks/sources are suspended. This option
-      is ignored in passthrough mode where the stream rate will be used.</p>
+      is ignored in passthrough mode where the stream rate will be used.
+      If set to zero, this feature is disabled.</p>
     </option>
 
   </section>
