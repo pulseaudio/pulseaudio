@@ -251,11 +251,17 @@ pa_source* pa_source_new(
 
     s->sample_spec = data->sample_spec;
     s->channel_map = data->channel_map;
+    s->default_sample_rate = s->sample_spec.rate;
+
     if (data->alternate_sample_rate_is_set)
         s->alternate_sample_rate = data->alternate_sample_rate;
     else
         s->alternate_sample_rate = s->core->alternate_sample_rate;
-    s->default_sample_rate = s->sample_spec.rate;
+
+    if (s->sample_spec.rate == s->alternate_sample_rate) {
+        pa_log_warn("Default and alternate sample rates are the same.");
+        s->alternate_sample_rate = 0;
+    }
 
     s->outputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
@@ -928,6 +934,11 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrou
         uint32_t default_rate = s->default_sample_rate;
         uint32_t alternate_rate = s->alternate_sample_rate;
         pa_bool_t use_alternate = FALSE;
+
+        if (PA_UNLIKELY(default_rate == alternate_rate)) {
+            pa_log_warn("Default and alternate sample rates are the same.");
+            return FALSE;
+        }
 
         if (PA_SOURCE_IS_RUNNING(s->state)) {
             pa_log_info("Cannot update rate, SOURCE_IS_RUNNING, will keep using %u kHz",
