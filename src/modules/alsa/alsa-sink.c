@@ -109,8 +109,6 @@ struct userdata {
 
     pa_cvolume hardware_volume;
 
-    uint32_t old_rate;
-
     size_t
         frame_size,
         fragment_size,
