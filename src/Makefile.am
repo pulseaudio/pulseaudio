@@ -1623,7 +1623,7 @@ module_zeroconf_discover_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
 module_bonjour_publish_la_SOURCES = modules/macosx/module-bonjour-publish.c
 module_bonjour_publish_la_LDFLAGS = $(MODULE_LDFLAGS) \
 			-Wl,-framework -Wl,CoreFoundation -framework CoreFoundation
-module_bonjour_publish_la_LIBADD = $(MODULE_LIBADD)
+module_bonjour_publish_la_LIBADD = $(MODULE_LIBADD) libprotocol-native.la
 
 # LIRC
 
