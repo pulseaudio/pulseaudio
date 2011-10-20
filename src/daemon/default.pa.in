@@ -81,7 +81,9 @@ load-module module-detect
 
 ### Automatically connect sink and source if JACK server is present
 .ifexists module-jackdbus-detect@PA_SOEXT@
+.nofail
 load-module module-jackdbus-detect
+.fail
 .endif
 
 ifelse(@HAVE_BLUEZ@, 1, [dnl
