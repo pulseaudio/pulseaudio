@@ -526,7 +526,7 @@ static void source_set_volume(pa_source *s) {
     if (u->fd >= 0) {
         AUDIO_INITINFO(&info);
 
-        info.play.gain = pa_cvolume_max(&s->volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
+        info.play.gain = pa_cvolume_max(&s->real_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
         assert(info.play.gain <= AUDIO_MAX_GAIN);
 
         if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
@@ -548,7 +548,7 @@ static void source_get_volume(pa_source *s) {
         if (ioctl(u->fd, AUDIO_GETINFO, &info) < 0)
             pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
         else
-            pa_cvolume_set(&s->volume, s->sample_spec.channels, info.play.gain * PA_VOLUME_NORM / AUDIO_MAX_GAIN);
+            pa_cvolume_set(&s->real_volume, s->sample_spec.channels, info.play.gain * PA_VOLUME_NORM / AUDIO_MAX_GAIN);
     }
 }
 
