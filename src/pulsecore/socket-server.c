@@ -45,7 +45,16 @@
 
 #ifdef HAVE_LIBWRAP
 #include <tcpd.h>
+
+/* Solaris requires that the allow_severity and deny_severity variables be
+ * defined in the client program. */
+#ifdef __sun
+#include <syslog.h>
+int allow_severity = LOG_INFO;
+int deny_severity = LOG_WARNING;
 #endif
+
+#endif /* HAVE_LIBWRAP */
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
