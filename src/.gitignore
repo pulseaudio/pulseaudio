@@ -23,7 +23,7 @@ cpulimit-test
 cpulimit-test2
 daemon.conf
 default.pa
-system.pa
+echo-cancel-test
 esdcompat
 flist-test
 gconf-helper
@@ -57,6 +57,7 @@ smoother-test
 stripnul
 strlist-test
 sync-playback
+system.pa
 thread-mainloop-test
 thread-test
 utf8-test

@@ -8,6 +8,8 @@ intltool-update.in
 *~
 *.tar.gz
 *.pc
+PulseAudioConfig.cmake
+PulseAudioConfigVersion.cmake
 Makefile
 Makefile.in
 aclocal.m4
