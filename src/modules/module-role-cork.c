@@ -39,14 +39,21 @@ PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Mute & cork streams with certain roles while others exist");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_USAGE(
+        "trigger_roles=<Comma separated list of roles which will trigger a cork> "
+        "cork_roles=<Comma separated list of roles which will be corked>");
 
 static const char* const valid_modargs[] = {
+    "trigger_roles",
+    "cork_roles",
     NULL
 };
 
 struct userdata {
     pa_core *core;
     pa_hashmap *cork_state;
+    pa_idxset *trigger_roles;
+    pa_idxset *cork_roles;
     pa_hook_slot
         *sink_input_put_slot,
         *sink_input_unlink_slot,
@@ -54,9 +61,12 @@ struct userdata {
         *sink_input_move_finish_slot;
 };
 
-static pa_bool_t shall_cork(pa_sink *s, pa_sink_input *ignore) {
+static pa_bool_t shall_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore) {
     pa_sink_input *j;
-    uint32_t idx;
+    uint32_t idx, role_idx;
+    const char *trigger_role;
+
+    pa_assert(u);
     pa_sink_assert_ref(s);
 
     for (j = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); j; j = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
@@ -68,9 +78,11 @@ static pa_bool_t shall_cork(pa_sink *s, pa_sink_input *ignore) {
         if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
             continue;
 
-        if (pa_streq(role, "phone")) {
-            pa_log_debug("Found a phone stream that will trigger the auto-cork.");
-            return TRUE;
+        PA_IDXSET_FOREACH(trigger_role, u->trigger_roles, role_idx) {
+            if (pa_streq(role, trigger_role)) {
+                pa_log_debug("Found a '%s' stream that will trigger the auto-cork.", trigger_role);
+                return TRUE;
+            }
         }
     }
 
@@ -79,7 +91,9 @@ static pa_bool_t shall_cork(pa_sink *s, pa_sink_input *ignore) {
 
 static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa_bool_t cork) {
     pa_sink_input *j;
-    uint32_t idx;
+    uint32_t idx, role_idx;
+    const char *cork_role;
+    pa_bool_t trigger = FALSE;
 
     pa_assert(u);
     pa_sink_assert_ref(s);
@@ -94,8 +108,11 @@ static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa
         if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
             continue;
 
-        if (!pa_streq(role, "video") &&
-            !pa_streq(role, "music"))
+        PA_IDXSET_FOREACH(cork_role, u->cork_roles, role_idx) {
+            if ((trigger = pa_streq(role, cork_role)))
+                break;
+        }
+        if (!trigger)
             continue;
 
         corked = (pa_sink_input_get_state(j) == PA_SINK_INPUT_CORKED);
@@ -103,7 +120,7 @@ static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa
         corked_here = !!pa_hashmap_get(u->cork_state, j);
 
         if (cork && !corked && !muted) {
-            pa_log_debug("Found a music/video stream that should be corked/muted.");
+            pa_log_debug("Found a '%s' stream that should be corked/muted.", cork_role);
             if (!corked_here)
                 pa_hashmap_put(u->cork_state, j, PA_INT_TO_PTR(1));
             pa_sink_input_set_mute(j, TRUE, FALSE);
@@ -112,7 +129,7 @@ static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa
             pa_hashmap_remove(u->cork_state, j);
 
             if (corked_here && (corked || muted)) {
-                pa_log_debug("Found a music/video stream that should be uncorked/unmuted.");
+                pa_log_debug("Found a '%s' stream that should be uncorked/unmuted.", cork_role);
                 if (muted)
                     pa_sink_input_set_mute(j, FALSE, FALSE);
                 if (corked)
@@ -135,15 +152,10 @@ static pa_hook_result_t process(struct userdata *u, pa_sink_input *i, pa_bool_t 
     if (!(role = pa_proplist_gets(i->proplist, PA_PROP_MEDIA_ROLE)))
         return PA_HOOK_OK;
 
-    if (!pa_streq(role, "phone") &&
-        !pa_streq(role, "music") &&
-        !pa_streq(role, "video"))
-        return PA_HOOK_OK;
-
     if (!i->sink)
         return PA_HOOK_OK;
 
-    cork = shall_cork(i->sink, create ? NULL : i);
+    cork = shall_cork(u, i->sink, create ? NULL : i);
     apply_cork(u, i->sink, create ? NULL : i, cork);
 
     return PA_HOOK_OK;
@@ -179,6 +191,7 @@ static pa_hook_result_t sink_input_move_finish_cb(pa_core *core, pa_sink_input *
 int pa__init(pa_module *m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
+    const char *roles;
 
     pa_assert(m);
 
@@ -191,6 +204,35 @@ int pa__init(pa_module *m) {
 
     u->core = m->core;
     u->cork_state = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+
+    u->trigger_roles = pa_idxset_new(NULL, NULL);
+    roles = pa_modargs_get_value(ma, "trigger_roles", NULL);
+    if (roles) {
+        const char *split_state = NULL;
+        char *n = NULL;
+        while ((n = pa_split(roles, ",", &split_state)))
+            if (n[0] != '\0')
+                pa_idxset_put(u->trigger_roles, pa_xstrdup(n), NULL);
+    }
+    if (pa_idxset_isempty(u->trigger_roles)) {
+        pa_log_debug("Using role 'phone' as trigger role.");
+        pa_idxset_put(u->trigger_roles, pa_xstrdup("phone"), NULL);
+    }
+
+    u->cork_roles = pa_idxset_new(NULL, NULL);
+    roles = pa_modargs_get_value(ma, "cork_roles", NULL);
+    if (roles) {
+        const char *split_state = NULL;
+        char *n = NULL;
+        while ((n = pa_split(roles, ",", &split_state)))
+            if (n[0] != '\0')
+                pa_idxset_put(u->cork_roles, pa_xstrdup(n), NULL);
+    }
+    if (pa_idxset_isempty(u->cork_roles)) {
+        pa_log_debug("Using roles 'music' and 'video' as cork roles.");
+        pa_idxset_put(u->cork_roles, pa_xstrdup("music"), NULL);
+        pa_idxset_put(u->cork_roles, pa_xstrdup("video"), NULL);
+    }
 
     u->sink_input_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_put_cb, u);
     u->sink_input_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_unlink_cb, u);
@@ -214,11 +256,23 @@ fail:
 
 void pa__done(pa_module *m) {
     struct userdata* u;
+    char *role;
 
     pa_assert(m);
 
     if (!(u = m->userdata))
         return;
+
+    if (u->trigger_roles) {
+        while ((role = pa_idxset_steal_first(u->trigger_roles, NULL)))
+            pa_xfree(role);
+        pa_idxset_free(u->trigger_roles, NULL, NULL);
+    }
+    if (u->trigger_roles) {
+        while ((role = pa_idxset_steal_first(u->cork_roles, NULL)))
+            pa_xfree(role);
+        pa_idxset_free(u->cork_roles, NULL, NULL);
+    }
 
     if (u->sink_input_put_slot)
         pa_hook_slot_free(u->sink_input_put_slot);
