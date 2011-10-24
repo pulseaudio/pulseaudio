@@ -41,11 +41,13 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
         "trigger_roles=<Comma separated list of roles which will trigger a cork> "
-        "cork_roles=<Comma separated list of roles which will be corked>");
+        "cork_roles=<Comma separated list of roles which will be corked> "
+        "global=<Should we operate globally or only inside the same device?>");
 
 static const char* const valid_modargs[] = {
     "trigger_roles",
     "cork_roles",
+    "global",
     NULL
 };
 
@@ -54,6 +56,7 @@ struct userdata {
     pa_hashmap *cork_state;
     pa_idxset *trigger_roles;
     pa_idxset *cork_roles;
+    pa_bool_t global:1;
     pa_hook_slot
         *sink_input_put_slot,
         *sink_input_unlink_slot,
@@ -89,7 +92,7 @@ static pa_bool_t shall_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignor
     return FALSE;
 }
 
-static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa_bool_t cork) {
+static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa_bool_t cork) {
     pa_sink_input *j;
     uint32_t idx, role_idx;
     const char *cork_role;
@@ -137,6 +140,17 @@ static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa
             }
         }
     }
+}
+
+static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa_bool_t cork) {
+    pa_assert(u);
+
+    if (u->global) {
+        uint32_t idx;
+        PA_IDXSET_FOREACH(s, u->core->sinks, idx)
+            apply_cork_to_sink(u, s, ignore, cork);
+    } else
+        apply_cork_to_sink(u, s, ignore, cork);
 }
 
 static pa_hook_result_t process(struct userdata *u, pa_sink_input *i, pa_bool_t create) {
@@ -192,6 +206,7 @@ int pa__init(pa_module *m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     const char *roles;
+    pa_bool_t global = FALSE;
 
     pa_assert(m);
 
@@ -233,6 +248,12 @@ int pa__init(pa_module *m) {
         pa_idxset_put(u->cork_roles, pa_xstrdup("music"), NULL);
         pa_idxset_put(u->cork_roles, pa_xstrdup("video"), NULL);
     }
+
+    if (pa_modargs_get_value_boolean(ma, "global", &global) < 0) {
+        pa_log("Invalid boolean parameter: global");
+        goto fail;
+    }
+    u->global = global;
 
     u->sink_input_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_put_cb, u);
     u->sink_input_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_unlink_cb, u);
