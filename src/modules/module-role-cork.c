@@ -33,10 +33,10 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/modargs.h>
 
-#include "module-cork-music-on-phone-symdef.h"
+#include "module-role-cork-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
-PA_MODULE_DESCRIPTION("Mute or cork music while a phone stream exists");
+PA_MODULE_DESCRIPTION("Mute & cork streams with certain roles while others exist");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 

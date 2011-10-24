@@ -1006,7 +1006,7 @@ modlibexec_LTLIBRARIES += \
 		module-tunnel-source.la \
 		module-position-event-sounds.la \
 		module-augment-properties.la \
-		module-cork-music-on-phone.la \
+		module-role-cork.la \
 		module-loopback.la \
 		module-virtual-sink.la \
 		module-virtual-source.la \
@@ -1298,7 +1298,7 @@ SYMDEF_FILES = \
 		module-gconf-symdef.h \
 		module-position-event-sounds-symdef.h \
 		module-augment-properties-symdef.h \
-		module-cork-music-on-phone-symdef.h \
+		module-role-cork-symdef.h \
 		module-console-kit-symdef.h \
 		module-dbus-protocol-symdef.h \
 		module-loopback-symdef.h \
@@ -1670,11 +1670,11 @@ module_augment_properties_la_LIBADD = $(MODULE_LIBADD)
 #module_augment_properties_la_CFLAGS = $(AM_CFLAGS) -DDESKTOPFILEDIR=\"$(datadir)/applications\"
 module_augment_properties_la_CFLAGS = $(AM_CFLAGS) -DDESKTOPFILEDIR=\"/usr/share/applications\"
 
-# Cork music streams while a phone stream is active
-module_cork_music_on_phone_la_SOURCES = modules/module-cork-music-on-phone.c
-module_cork_music_on_phone_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_cork_music_on_phone_la_LIBADD = $(MODULE_LIBADD)
-module_cork_music_on_phone_la_CFLAGS = $(AM_CFLAGS)
+# Cork certain streams while others are active (e.g. cork music when phone streams appear)
+module_role_cork_la_SOURCES = modules/module-role-cork.c
+module_role_cork_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_role_cork_la_LIBADD = $(MODULE_LIBADD)
+module_role_cork_la_CFLAGS = $(AM_CFLAGS)
 
 # Device description restore module
 module_device_manager_la_SOURCES = modules/module-device-manager.c
