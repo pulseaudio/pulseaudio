@@ -255,7 +255,7 @@ int pa_alsa_set_hw_params(
         /* try to disable period wakeups if hardware can do so */
         if (snd_pcm_hw_params_can_disable_period_wakeup(hwparams)) {
 
-            if (snd_pcm_hw_params_set_period_wakeup(pcm_handle, hwparams, FALSE) < 0)
+            if ((ret = snd_pcm_hw_params_set_period_wakeup(pcm_handle, hwparams, FALSE)) < 0)
                 /* don't bail, keep going with default mode with period wakeups */
                 pa_log_debug("snd_pcm_hw_params_set_period_wakeup() failed: %s", pa_alsa_strerror(ret));
             else
