@@ -204,6 +204,7 @@ void pa_unset_env_recorded(void);
 pa_bool_t pa_in_system_mode(void);
 
 #define pa_streq(a,b) (!strcmp((a),(b)))
+pa_bool_t pa_str_in_list_spaces(const char *needle, const char *haystack);
 
 char *pa_get_host_name_malloc(void);
 char *pa_get_user_name_malloc(void);

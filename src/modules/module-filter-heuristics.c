@@ -55,27 +55,6 @@ struct userdata {
         *source_output_move_finish_slot;
 };
 
-static pa_bool_t role_match(pa_proplist *proplist, const char *role) {
-    const char *ir;
-    char *r;
-    const char *state = NULL;
-
-    if (!(ir = pa_proplist_gets(proplist, PA_PROP_DEVICE_INTENDED_ROLES)))
-        return FALSE;
-
-    while ((r = pa_split_spaces(ir, &state))) {
-
-        if (pa_streq(role, r)) {
-            pa_xfree(r);
-            return TRUE;
-        }
-
-        pa_xfree(r);
-    }
-
-    return FALSE;
-}
-
 static pa_hook_result_t process(struct userdata *u, pa_object *o, pa_bool_t is_sink_input) {
     const char *want;
     pa_proplist *pl, *parent_pl;
@@ -93,7 +72,7 @@ static pa_hook_result_t process(struct userdata *u, pa_object *o, pa_bool_t is_s
         return PA_HOOK_OK;
 
     /* On phone sinks, make sure we're not applying echo cancellation */
-    if (role_match(parent_pl, "phone")) {
+    if (pa_str_in_list_spaces(pa_proplist_gets(parent_pl, PA_PROP_DEVICE_INTENDED_ROLES), "phone")) {
         const char *apply = pa_proplist_gets(pl, PA_PROP_FILTER_APPLY);
 
         if (apply && pa_streq(apply, "echo-cancel")) {

@@ -2627,6 +2627,26 @@ pa_bool_t pa_in_system_mode(void) {
     return !!atoi(e);
 }
 
+/* Checks a whitespace-separated list of words in haystack for needle */
+pa_bool_t pa_str_in_list_spaces(const char *haystack, const char *needle) {
+    char *s;
+    const char *state = NULL;
+
+    if (!haystack || !needle)
+        return FALSE;
+
+    while ((s = pa_split_spaces(haystack, &state))) {
+        if (pa_streq(needle, s)) {
+            pa_xfree(s);
+            return TRUE;
+        }
+
+        pa_xfree(s);
+    }
+
+    return FALSE;
+}
+
 char *pa_get_user_name_malloc(void) {
     ssize_t k;
     char *u;

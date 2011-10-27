@@ -66,24 +66,7 @@ struct userdata {
 };
 
 static pa_bool_t role_match(pa_proplist *proplist, const char *role) {
-    const char *ir;
-    char *r;
-    const char *state = NULL;
-
-    if (!(ir = pa_proplist_gets(proplist, PA_PROP_DEVICE_INTENDED_ROLES)))
-        return FALSE;
-
-    while ((r = pa_split_spaces(ir, &state))) {
-
-        if (pa_streq(role, r)) {
-            pa_xfree(r);
-            return TRUE;
-        }
-
-        pa_xfree(r);
-    }
-
-    return FALSE;
+    return pa_str_in_list_spaces(pa_proplist_gets(proplist, PA_PROP_DEVICE_INTENDED_ROLES), role);
 }
 
 static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_new_data *new_data, struct userdata *u) {
