@@ -236,7 +236,7 @@ PA_C_DECL_BEGIN
 /** For devices: profile identifier for the profile this devices is in. e.g. "analog-stereo", "analog-surround-40", "iec958-stereo", ...*/
 #define PA_PROP_DEVICE_PROFILE_NAME            "device.profile.name"
 
-/** For devices: intended use. A comma separated list of roles (see PA_PROP_MEDIA_ROLE) this device is particularly well suited for, due to latency, quality or form factor. \since 0.9.16 */
+/** For devices: intended use. A space separated list of roles (see PA_PROP_MEDIA_ROLE) this device is particularly well suited for, due to latency, quality or form factor. \since 0.9.16 */
 #define PA_PROP_DEVICE_INTENDED_ROLES          "device.intended_roles"
 
 /** For devices: human readable one-line description of the profile this device is in. e.g. "Analog Stereo", ... */
