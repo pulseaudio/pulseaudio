@@ -43,12 +43,12 @@ int main(int argc, char *argv[]) {
         if (strlen(exename) < allocated - 1) {
             printf("%s\n", exename);
             pa_xfree(exename);
-            break;
+            return 0;
         }
 
         pa_xfree(exename);
         allocated *= 2;
     }
 
-    return 0;
+    return 1;
 }

@@ -21,12 +21,13 @@
 #include <config.h>
 #endif
 
+#include <pulse/xmalloc.h>
 #include <pulsecore/thread.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/mutex.h>
 #include <pulsecore/once.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
-#include <pulse/xmalloc.h>
 
 static pa_mutex *mutex = NULL;
 static pa_cond *cond1 = NULL, *cond2 = NULL;
@@ -100,8 +101,7 @@ int main(int argc, char *argv[]) {
     tls = pa_tls_new(pa_xfree);
 
     for (i = 0; i < THREADS_MAX; i++) {
-        t[i] = pa_thread_new("test", thread_func, pa_sprintf_malloc("Thread #%i", i+1));
-        assert(t[i]);
+        pa_assert_se(t[i] = pa_thread_new("test", thread_func, pa_sprintf_malloc("Thread #%i", i+1)));
     }
 
     pa_mutex_lock(mutex);
@@ -109,8 +109,7 @@ int main(int argc, char *argv[]) {
     pa_log("loop-init");
 
     for (k = 0; k < 100; k++) {
-        assert(magic_number == 0);
-
+        pa_assert(magic_number == 0);
 
         magic_number = (int) rand() % 0x10000;
 

@@ -5,7 +5,6 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <assert.h>
 #include <string.h>
 
 #ifdef HAVE_NETINET_IN_H
@@ -27,12 +26,12 @@ static void do_ip_acl_check(const char *s, int fd, int expected) {
     pa_ip_acl *acl;
     int result;
 
-    acl = pa_ip_acl_new(s);
-    assert(acl);
+    pa_assert_se(acl = pa_ip_acl_new(s));
     result = pa_ip_acl_check(acl, fd);
     pa_ip_acl_free(acl);
 
     printf("%-20s result=%u (should be %u)\n", s, result, expected);
+    pa_assert(result == expected);
 }
 
 int main(int argc, char *argv[]) {
@@ -44,14 +43,14 @@ int main(int argc, char *argv[]) {
     int r;
 
     fd = socket(PF_INET, SOCK_STREAM, 0);
-    assert(fd >= 0);
+    pa_assert(fd >= 0);
 
     sa.sin_family = AF_INET;
     sa.sin_port = htons(22);
     sa.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     r = connect(fd, (struct sockaddr*) &sa, sizeof(sa));
-    assert(r >= 0);
+    pa_assert(r >= 0);
 
     do_ip_acl_check("127.0.0.1", fd, 1);
     do_ip_acl_check("127.0.0.2/0", fd, 1);
@@ -76,7 +75,7 @@ int main(int argc, char *argv[]) {
     pa_assert_se(inet_pton(AF_INET6, "::1", &sa6.sin6_addr) == 1);
 
     r = connect(fd, (struct sockaddr*) &sa6, sizeof(sa6));
-    assert(r >= 0);
+    pa_assert(r >= 0);
 
     do_ip_acl_check("::1", fd, 1);
     do_ip_acl_check("::1/9", fd, 1);

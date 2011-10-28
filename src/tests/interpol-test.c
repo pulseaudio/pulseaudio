@@ -25,13 +25,13 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <pulse/pulseaudio.h>
 #include <pulse/mainloop.h>
 
+#include <pulsecore/macro.h>
 #include <pulsecore/thread.h>
 
 #define INTERPOLATE
@@ -87,7 +87,7 @@ static void stream_latency_cb(pa_stream *p, void *userdata) {
 
 /* This is called whenever the context status changes */
 static void context_state_callback(pa_context *c, void *userdata) {
-    assert(c);
+    pa_assert(c);
 
     switch (pa_context_get_state(c)) {
         case PA_CONTEXT_CONNECTING:

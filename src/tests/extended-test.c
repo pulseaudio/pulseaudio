@@ -156,7 +156,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
 int main(int argc, char *argv[]) {
     pa_mainloop* m = NULL;
-    int i, ret = 0;
+    int i, ret = 1;
 
     for (i = 0; i < SAMPLE_HZ; i++)
         data[i] = (float) sin(((double) i/SAMPLE_HZ)*2*M_PI*SINE_HZ)/2;
