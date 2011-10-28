@@ -23,6 +23,18 @@
 #include <pulsecore/ipacl.h>
 #include <pulsecore/arpa-inet.h>
 
+static void do_ip_acl_check(const char *s, int fd, int expected) {
+    pa_ip_acl *acl;
+    int result;
+
+    acl = pa_ip_acl_new(s);
+    assert(acl);
+    result = pa_ip_acl_check(acl, fd);
+    pa_ip_acl_free(acl);
+
+    printf("%-20s result=%u (should be %u)\n", s, result, expected);
+}
+
 int main(int argc, char *argv[]) {
     struct sockaddr_in sa;
 #ifdef HAVE_IPV6
@@ -30,7 +42,6 @@ int main(int argc, char *argv[]) {
 #endif
     int fd;
     int r;
-    pa_ip_acl *acl;
 
     fd = socket(PF_INET, SOCK_STREAM, 0);
     assert(fd >= 0);
@@ -42,45 +53,14 @@ int main(int argc, char *argv[]) {
     r = connect(fd, (struct sockaddr*) &sa, sizeof(sa));
     assert(r >= 0);
 
-    acl = pa_ip_acl_new("127.0.0.1");
-    assert(acl);
-    printf("result=%u (should be 1)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
-
-    acl = pa_ip_acl_new("127.0.0.2/0");
-    assert(acl);
-    printf("result=%u (should be 1)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
-
-    acl = pa_ip_acl_new("127.0.0.1/32");
-    assert(acl);
-    printf("result=%u (should be 1)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
-
-    acl = pa_ip_acl_new("127.0.0.1/7");
-    assert(acl);
-    printf("result=%u (should be 1)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
-
-    acl = pa_ip_acl_new("127.0.0.2");
-    assert(acl);
-    printf("result=%u (should be 0)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
-
-    acl = pa_ip_acl_new("127.0.0.0/8;0.0.0.0/32");
-    assert(acl);
-    printf("result=%u (should be 1)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
-
-    acl = pa_ip_acl_new("128.0.0.2/9");
-    assert(acl);
-    printf("result=%u (should be 0)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
-
-    acl = pa_ip_acl_new("::1/9");
-    assert(acl);
-    printf("result=%u (should be 0)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
+    do_ip_acl_check("127.0.0.1", fd, 1);
+    do_ip_acl_check("127.0.0.2/0", fd, 1);
+    do_ip_acl_check("127.0.0.1/32", fd, 1);
+    do_ip_acl_check("127.0.0.1/7", fd, 1);
+    do_ip_acl_check("127.0.0.2", fd, 0);
+    do_ip_acl_check("127.0.0.0/8;0.0.0.0/32", fd, 1);
+    do_ip_acl_check("128.0.0.2/9", fd, 0);
+    do_ip_acl_check("::1/9", fd, 0);
 
     close(fd);
 
@@ -98,35 +78,12 @@ int main(int argc, char *argv[]) {
     r = connect(fd, (struct sockaddr*) &sa6, sizeof(sa6));
     assert(r >= 0);
 
-    acl = pa_ip_acl_new("::1");
-    assert(acl);
-    printf("result=%u (should be 1)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
-
-    acl = pa_ip_acl_new("::1/9");
-    assert(acl);
-    printf("result=%u (should be 1)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
-
-    acl = pa_ip_acl_new("::/0");
-    assert(acl);
-    printf("result=%u (should be 1)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
-
-    acl = pa_ip_acl_new("::2/128");
-    assert(acl);
-    printf("result=%u (should be 0)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
-
-    acl = pa_ip_acl_new("::2/127");
-    assert(acl);
-    printf("result=%u (should be 0)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
-
-    acl = pa_ip_acl_new("::2/126");
-    assert(acl);
-    printf("result=%u (should be 1)\n", pa_ip_acl_check(acl, fd));
-    pa_ip_acl_free(acl);
+    do_ip_acl_check("::1", fd, 1);
+    do_ip_acl_check("::1/9", fd, 1);
+    do_ip_acl_check("::/0", fd, 1);
+    do_ip_acl_check("::2/128", fd, 0);
+    do_ip_acl_check("::2/127", fd, 0);
+    do_ip_acl_check("::2/126", fd, 1);
 
     close(fd);
 #endif
