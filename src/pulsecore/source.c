@@ -1508,13 +1508,7 @@ void pa_source_set_volume(
         }
 
         pa_cvolume_remap(&new_reference_volume, &s->channel_map, &root_source->channel_map);
-    }
 
-    /* If volume is NULL we synchronize the source's real and reference
-     * volumes with the stream volumes. If it is not NULL we update
-     * the reference_volume with it. */
-
-    if (volume) {
         if (update_reference_volume(root_source, &new_reference_volume, &root_source->channel_map, save)) {
             if (pa_source_flat_volume_enabled(root_source)) {
                 /* OK, propagate this volume change back to the outputs */
@@ -1527,6 +1521,9 @@ void pa_source_set_volume(
         }
 
     } else {
+        /* If volume is NULL we synchronize the source's real and
+         * reference volumes with the stream volumes. */
+
         pa_assert(pa_source_flat_volume_enabled(root_source));
 
         /* Ok, let's determine the new real volume */

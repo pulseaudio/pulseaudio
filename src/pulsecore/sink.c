@@ -1943,13 +1943,7 @@ void pa_sink_set_volume(
         }
 
         pa_cvolume_remap(&new_reference_volume, &s->channel_map, &root_sink->channel_map);
-    }
 
-    /* If volume is NULL we synchronize the sink's real and reference
-     * volumes with the stream volumes. If it is not NULL we update
-     * the reference_volume with it. */
-
-    if (volume) {
         if (update_reference_volume(root_sink, &new_reference_volume, &root_sink->channel_map, save)) {
             if (pa_sink_flat_volume_enabled(root_sink)) {
                 /* OK, propagate this volume change back to the inputs */
@@ -1962,6 +1956,9 @@ void pa_sink_set_volume(
         }
 
     } else {
+        /* If volume is NULL we synchronize the sink's real and
+         * reference volumes with the stream volumes. */
+
         pa_assert(pa_sink_flat_volume_enabled(root_sink));
 
         /* Ok, let's determine the new real volume */
