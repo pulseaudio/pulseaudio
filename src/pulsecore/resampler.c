@@ -1443,9 +1443,9 @@ static int trivial_init(pa_resampler*r) {
 
 static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
     size_t fz;
-    unsigned o_index;
+    unsigned c, o_index = 0;
+    unsigned i, i_end = 0;
     void *src, *dst;
-    unsigned start = 0;
 
     pa_assert(r);
     pa_assert(input);
@@ -1457,25 +1457,20 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
     src = (uint8_t*) pa_memblock_acquire(input->memblock) + input->index;
     dst = (uint8_t*) pa_memblock_acquire(output->memblock) + output->index;
 
-    for (o_index = 0;; o_index++, r->peaks.o_counter++) {
-        unsigned j;
+    i = ((r->peaks.o_counter * r->i_ss.rate) / r->o_ss.rate);
+    i = i > r->peaks.i_counter ? i - r->peaks.i_counter : 0;
 
-        j = ((r->peaks.o_counter * r->i_ss.rate) / r->o_ss.rate);
-
-        if (j > r->peaks.i_counter)
-            j -= r->peaks.i_counter;
-        else
-            j = 0;
+    while (i_end < in_n_frames) {
+        i_end = (((r->peaks.o_counter+1) * r->i_ss.rate) / r->o_ss.rate);
+        i_end = i_end > r->peaks.i_counter ? i_end - r->peaks.i_counter : 0;
 
         pa_assert(o_index * fz < pa_memblock_get_length(output->memblock));
 
         if (r->work_format == PA_SAMPLE_S16NE) {
-            unsigned i, c;
-            int16_t *s = (int16_t*) ((uint8_t*) src + fz * start);
+            int16_t *s = (int16_t*) ((uint8_t*) src + fz * i);
             int16_t *d = (int16_t*) ((uint8_t*) dst + fz * o_index);
 
-            for (i = start; i <= j && i < in_n_frames; i++)
-
+            for (; i < i_end && i < in_n_frames; i++)
                 for (c = 0; c < r->o_ss.channels; c++, s++) {
                     int16_t n;
 
@@ -1485,22 +1480,20 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
                         r->peaks.max_i[c] = n;
                 }
 
-            if (i >= in_n_frames)
-                break;
-
-            for (c = 0; c < r->o_ss.channels; c++, d++) {
-                *d = r->peaks.max_i[c];
-                r->peaks.max_i[c] = 0;
+            if (i == i_end) {
+                for (c = 0; c < r->o_ss.channels; c++, d++) {
+                    *d = r->peaks.max_i[c];
+                    r->peaks.max_i[c] = 0;
+                }
+                o_index++, r->peaks.o_counter++;
             }
-
         } else {
-            unsigned i, c;
-            float *s = (float*) ((uint8_t*) src + fz * start);
+            float *s = (float*) ((uint8_t*) src + fz * i);
             float *d = (float*) ((uint8_t*) dst + fz * o_index);
 
             pa_assert(r->work_format == PA_SAMPLE_FLOAT32NE);
 
-            for (i = start; i <= j && i < in_n_frames; i++)
+            for (; i < i_end && i < in_n_frames; i++)
                 for (c = 0; c < r->o_ss.channels; c++, s++) {
                     float n = fabsf(*s);
 
@@ -1508,16 +1501,14 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
                         r->peaks.max_f[c] = n;
                 }
 
-            if (i >= in_n_frames)
-                break;
-
-            for (c = 0; c < r->o_ss.channels; c++, d++) {
-                *d = r->peaks.max_f[c];
-                r->peaks.max_f[c] = 0;
+            if (i == i_end) {
+                for (c = 0; c < r->o_ss.channels; c++, d++) {
+                    *d = r->peaks.max_f[c];
+                    r->peaks.max_f[c] = 0;
+                }
+                o_index++, r->peaks.o_counter++;
             }
         }
-
-        start = j;
     }
 
     pa_memblock_release(input->memblock);
