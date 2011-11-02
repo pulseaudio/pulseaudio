@@ -1451,6 +1451,8 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
     pa_assert(input);
     pa_assert(output);
     pa_assert(out_n_frames);
+    pa_assert(r->i_ss.rate >= r->o_ss.rate);
+    pa_assert(r->work_format == PA_SAMPLE_S16NE || r->work_format == PA_SAMPLE_FLOAT32NE);
 
     fz = r->w_sz * r->o_ss.channels;
 
@@ -1464,19 +1466,34 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
         i_end = (((r->peaks.o_counter+1) * r->i_ss.rate) / r->o_ss.rate);
         i_end = i_end > r->peaks.i_counter ? i_end - r->peaks.i_counter : 0;
 
-        pa_assert(o_index * fz < pa_memblock_get_length(output->memblock));
+        pa_assert_fp(o_index * fz < pa_memblock_get_length(output->memblock));
 
-        if (r->work_format == PA_SAMPLE_S16NE) {
+        /* 1ch float is treated separately, because that is the common case */
+        if (r->o_ss.channels == 1 && r->work_format == PA_SAMPLE_FLOAT32NE) {
+            float *s = (float*) src + i;
+            float *d = (float*) dst + o_index;
+
+            for (; i < i_end && i < in_n_frames; i++) {
+                float n = fabsf(*s++);
+
+                if (n > r->peaks.max_f[0])
+                    r->peaks.max_f[0] = n;
+            }
+
+            if (i == i_end) {
+                *d = r->peaks.max_f[0];
+                r->peaks.max_f[0] = 0;
+                o_index++, r->peaks.o_counter++;
+            }
+        } else if (r->work_format == PA_SAMPLE_S16NE) {
             int16_t *s = (int16_t*) ((uint8_t*) src + fz * i);
             int16_t *d = (int16_t*) ((uint8_t*) dst + fz * o_index);
 
             for (; i < i_end && i < in_n_frames; i++)
-                for (c = 0; c < r->o_ss.channels; c++, s++) {
-                    int16_t n;
+                for (c = 0; c < r->o_ss.channels; c++) {
+                    int16_t n = abs(*s++);
 
-                    n = (int16_t) (*s < 0 ? -*s : *s);
-
-                    if (PA_UNLIKELY(n > r->peaks.max_i[c]))
+                    if (n > r->peaks.max_i[c])
                         r->peaks.max_i[c] = n;
                 }
 
@@ -1491,11 +1508,9 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
             float *s = (float*) ((uint8_t*) src + fz * i);
             float *d = (float*) ((uint8_t*) dst + fz * o_index);
 
-            pa_assert(r->work_format == PA_SAMPLE_FLOAT32NE);
-
             for (; i < i_end && i < in_n_frames; i++)
-                for (c = 0; c < r->o_ss.channels; c++, s++) {
-                    float n = fabsf(*s);
+                for (c = 0; c < r->o_ss.channels; c++) {
+                    float n = fabsf(*s++);
 
                     if (n > r->peaks.max_f[c])
                         r->peaks.max_f[c] = n;
