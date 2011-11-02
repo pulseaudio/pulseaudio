@@ -244,7 +244,7 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
     }
 
 #ifdef SO_REUSEADDR
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const void *) &on, sizeof(on)) < 0)
         pa_log("setsockopt(): %s", pa_cstrerror(errno));
 #endif
 
@@ -307,13 +307,13 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
 
 #ifdef IPV6_V6ONLY
     on = 1;
-    if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0)
+    if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, (const void *) &on, sizeof(on)) < 0)
         pa_log("setsockopt(IPPROTO_IPV6, IPV6_V6ONLY): %s", pa_cstrerror(errno));
 #endif
 
 #ifdef SO_REUSEADDR
     on = 1;
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const void *) &on, sizeof(on)) < 0)
         pa_log("setsockopt(SOL_SOCKET, SO_REUSEADDR, 1): %s", pa_cstrerror(errno));
 #endif
 

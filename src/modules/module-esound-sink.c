@@ -377,7 +377,7 @@ static int do_write(struct userdata *u) {
 
         pa_make_tcp_socket_low_delay(u->fd);
 
-        if (getsockopt(u->fd, SOL_SOCKET, SO_SNDBUF, &so_sndbuf, &sl) < 0)
+        if (getsockopt(u->fd, SOL_SOCKET, SO_SNDBUF, (void *) &so_sndbuf, &sl) < 0)
             pa_log_warn("getsockopt(SO_SNDBUF) failed: %s", pa_cstrerror(errno));
         else {
             pa_log_debug("SO_SNDBUF is %zu.", (size_t) so_sndbuf);

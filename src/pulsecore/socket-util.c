@@ -63,7 +63,9 @@
 #include "socket-util.h"
 
 void pa_socket_peer_to_string(int fd, char *c, size_t l) {
+#ifndef OS_IS_WIN32
     struct stat st;
+#endif
 
     pa_assert(fd >= 0);
     pa_assert(c);
@@ -139,7 +141,7 @@ void pa_make_socket_low_delay(int fd) {
     pa_assert(fd >= 0);
 
     priority = 6;
-    if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &priority, sizeof(priority)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, (const void *) &priority, sizeof(priority)) < 0)
         pa_log_warn("SO_PRIORITY failed: %s", pa_cstrerror(errno));
 #endif
 }
@@ -153,9 +155,9 @@ void pa_make_tcp_socket_low_delay(int fd) {
     {
         int on = 1;
 #if defined(SOL_TCP)
-        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
+        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, (const void *) &on, sizeof(on)) < 0)
 #else
-        if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
+        if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (const void *) &on, sizeof(on)) < 0)
 #endif
             pa_log_warn("TCP_NODELAY failed: %s", pa_cstrerror(errno));
     }
@@ -165,9 +167,9 @@ void pa_make_tcp_socket_low_delay(int fd) {
     {
         int tos = IPTOS_LOWDELAY;
 #ifdef SOL_IP
-        if (setsockopt(fd, SOL_IP, IP_TOS, &tos, sizeof(tos)) < 0)
+        if (setsockopt(fd, SOL_IP, IP_TOS, (const void *) &tos, sizeof(tos)) < 0)
 #else
-        if (setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos)) < 0)
+        if (setsockopt(fd, IPPROTO_IP, IP_TOS, (const void *) &tos, sizeof(tos)) < 0)
 #endif
             pa_log_warn("IP_TOS failed: %s", pa_cstrerror(errno));
     }
@@ -183,9 +185,9 @@ void pa_make_udp_socket_low_delay(int fd) {
     {
         int tos = IPTOS_LOWDELAY;
 #ifdef SOL_IP
-        if (setsockopt(fd, SOL_IP, IP_TOS, &tos, sizeof(tos)) < 0)
+        if (setsockopt(fd, SOL_IP, IP_TOS, (const void *) &tos, sizeof(tos)) < 0)
 #else
-        if (setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos)) < 0)
+        if (setsockopt(fd, IPPROTO_IP, IP_TOS, (const void *) &tos, sizeof(tos)) < 0)
 #endif
             pa_log_warn("IP_TOS failed: %s", pa_cstrerror(errno));
     }
@@ -197,7 +199,7 @@ int pa_socket_set_rcvbuf(int fd, size_t l) {
 
     pa_assert(fd >= 0);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &bufsz, sizeof(bufsz)) < 0) {
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (const void *) &bufsz, sizeof(bufsz)) < 0) {
         pa_log_warn("SO_RCVBUF: %s", pa_cstrerror(errno));
         return -1;
     }
@@ -210,7 +212,7 @@ int pa_socket_set_sndbuf(int fd, size_t l) {
 
     pa_assert(fd >= 0);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &bufsz, sizeof(bufsz)) < 0) {
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (const void *) &bufsz, sizeof(bufsz)) < 0) {
         pa_log_warn("SO_SNDBUF: %s", pa_cstrerror(errno));
         return -1;
     }
