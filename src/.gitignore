@@ -69,5 +69,4 @@ thread-mainloop-test
 thread-test
 usergroup-test
 utf8-test
-vector-test
 volume-test
