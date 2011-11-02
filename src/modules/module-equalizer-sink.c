@@ -1081,7 +1081,7 @@ int pa__init(pa_module*m) {
     pa_sink *master;
     pa_sink_input_new_data sink_input_data;
     pa_sink_new_data sink_data;
-    size_t fs, i;
+    size_t i;
     unsigned c;
     float *H;
     unsigned a_i;
@@ -1107,7 +1107,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    fs = pa_frame_size(&ss);
+    //fs = pa_frame_size(&ss);
 
     if (pa_modargs_get_value_boolean(ma, "use_volume_sharing", &use_volume_sharing) < 0) {
         pa_log("use_volume_sharing= expects a boolean argument");

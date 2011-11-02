@@ -693,7 +693,7 @@ static void do_push_drift_comp(struct userdata *u) {
     pa_memchunk rchunk, pchunk, cchunk;
     uint8_t *rdata, *pdata, *cdata;
     float drift;
-    int unused;
+    int unused PA_GCC_UNUSED;
 
     rlen = pa_memblockq_get_length(u->source_memblockq);
     plen = pa_memblockq_get_length(u->sink_memblockq);
@@ -785,7 +785,7 @@ static void do_push(struct userdata *u) {
     size_t rlen, plen;
     pa_memchunk rchunk, pchunk, cchunk;
     uint8_t *rdata, *pdata, *cdata;
-    int unused;
+    int unused PA_GCC_UNUSED;
 
     rlen = pa_memblockq_get_length(u->source_memblockq);
     plen = pa_memblockq_get_length(u->sink_memblockq);
@@ -2017,7 +2017,8 @@ int main(int argc, char* argv[]) {
     pa_channel_map source_map, sink_map;
     pa_modargs *ma = NULL;
     uint8_t *rdata = NULL, *pdata = NULL, *cdata = NULL;
-    int ret = 0, unused, i;
+    int unused PA_GCC_UNUSED;
+    int ret = 0, i;
     char c;
     float drift;
 
