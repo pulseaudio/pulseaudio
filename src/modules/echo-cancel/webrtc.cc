@@ -111,7 +111,7 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     }
 
     dgc = DEFAULT_DIGITAL_GAIN_CONTROL;
-    if (pa_modargs_get_value_boolean(ma, "analog_gain_control", &dgc) < 0) {
+    if (pa_modargs_get_value_boolean(ma, "digital_gain_control", &dgc) < 0) {
         pa_log("Failed to parse digital_gain_control value");
         goto fail;
     }
@@ -203,6 +203,8 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
             pa_log("Analog gain control isn't implemented yet -- using ditital gain control.");
             apm->gain_control()->set_mode(webrtc::GainControl::kAdaptiveDigital);
         }
+
+        apm->gain_control()->Enable(true);
     }
 
     apm->voice_detection()->Enable(true);
