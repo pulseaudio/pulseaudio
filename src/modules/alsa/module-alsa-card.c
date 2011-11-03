@@ -64,6 +64,7 @@ PA_MODULE_USAGE(
         "tsched_buffer_size=<buffer size when using timer based scheduling> "
         "tsched_buffer_watermark=<lower fill watermark> "
         "profile=<profile name> "
+        "fixed_latency_range=<disable latency range changes on underrun?> "
         "ignore_dB=<ignore dB information from the device?> "
         "deferred_volume=<Synchronize software and hardware volume changes to avoid momentary jumps?> "
         "profile_set=<profile set configuration file> "
@@ -88,6 +89,7 @@ static const char* const valid_modargs[] = {
     "tsched",
     "tsched_buffer_size",
     "tsched_buffer_watermark",
+    "fixed_latency_range",
     "profile",
     "ignore_dB",
     "deferred_volume",
