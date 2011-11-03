@@ -121,7 +121,7 @@ struct userdata {
     char *device_name;  /* name of the PCM device */
     char *control_device; /* name of the control device */
 
-    pa_bool_t use_mmap:1, use_tsched:1, deferred_volume:1;
+    pa_bool_t use_mmap:1, use_tsched:1, deferred_volume:1, fixed_latency_range:1;
 
     pa_bool_t first;
 
@@ -306,7 +306,12 @@ static void increase_watermark(struct userdata *u) {
         return;
     }
 
-    /* Hmm, we cannot increase the watermark any further, hence let's raise the latency */
+    /* Hmm, we cannot increase the watermark any further, hence let's
+     raise the latency unless doing so was disabled in
+     configuration */
+    if (u->fixed_latency_range)
+        return;
+
     old_min_latency = u->source->thread_info.min_latency;
     new_min_latency = PA_MIN(old_min_latency * 2, old_min_latency + TSCHED_WATERMARK_INC_STEP_USEC);
     new_min_latency = PA_MIN(new_min_latency, u->source->thread_info.max_latency);
@@ -1710,7 +1715,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark;
     snd_pcm_uframes_t period_frames, buffer_frames, tsched_frames;
     size_t frame_size;
-    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE, namereg_fail = FALSE, deferred_volume = FALSE;
+    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE, namereg_fail = FALSE, deferred_volume = FALSE, fixed_latency_range = FALSE;
     pa_source_new_data data;
     pa_alsa_profile_set *profile_set = NULL;
 
@@ -1774,6 +1779,11 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         goto fail;
     }
 
+    if (pa_modargs_get_value_boolean(ma, "fixed_latency_range", &fixed_latency_range) < 0) {
+        pa_log("Failed to parse fixed_latency_range argument.");
+        goto fail;
+    }
+
     use_tsched = pa_alsa_may_tsched(use_tsched);
 
     u = pa_xnew0(struct userdata, 1);
@@ -1782,6 +1792,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     u->use_mmap = use_mmap;
     u->use_tsched = use_tsched;
     u->deferred_volume = deferred_volume;
+    u->fixed_latency_range = fixed_latency_range;
     u->first = TRUE;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
@@ -1877,8 +1888,11 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     if (u->use_mmap)
         pa_log_info("Successfully enabled mmap() mode.");
 
-    if (u->use_tsched)
+    if (u->use_tsched) {
         pa_log_info("Successfully enabled timer-based scheduling mode.");
+        if (u->fixed_latency_range)
+            pa_log_info("Disabling latency range changes on overrun");
+    }
 
     u->rates = pa_alsa_get_supported_rates(u->pcm_handle);
     if (!u->rates) {

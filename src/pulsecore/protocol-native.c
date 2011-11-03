@@ -1008,6 +1008,10 @@ static void fix_playback_buffer_attr(playback_stream *s) {
             tlength_usec -= s->configured_sink_latency;
     }
 
+    pa_log_debug("Requested latency=%0.2f ms, Received latency=%0.2f ms",
+                 (double) sink_usec / PA_USEC_PER_MSEC,
+                 (double) s->configured_sink_latency / PA_USEC_PER_MSEC);
+
     /* FIXME: This is actually larger than necessary, since not all of
      * the sink latency is actually rewritable. */
     if (tlength_usec < s->configured_sink_latency + 2*minreq_usec)

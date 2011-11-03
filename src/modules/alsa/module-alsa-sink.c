@@ -59,7 +59,8 @@ PA_MODULE_USAGE(
         "rewind_safeguard=<number of bytes that cannot be rewound> "
         "deferred_volume=<Synchronize software and hardware volume changes to avoid momentary jumps?> "
         "deferred_volume_safety_margin=<usec adjustment depending on volume direction> "
-        "deferred_volume_extra_delay=<usec adjustment to HW volume changes>");
+        "deferred_volume_extra_delay=<usec adjustment to HW volume changes> "
+        "fixed_latency_range=<disable latency range changes on underrun?>");
 
 static const char* const valid_modargs[] = {
     "name",
@@ -85,6 +86,7 @@ static const char* const valid_modargs[] = {
     "deferred_volume",
     "deferred_volume_safety_margin",
     "deferred_volume_extra_delay",
+    "fixed_latency_range",
     NULL
 };
 
