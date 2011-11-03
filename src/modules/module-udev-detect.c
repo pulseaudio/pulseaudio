@@ -45,6 +45,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
         "tsched=<enable system timer based scheduling mode?> "
+        "fixed_latency_range=<disable latency range changes on underrun?> "
         "ignore_dB=<ignore dB information from the device?> "
         "deferred_volume=<syncronize sw and hw volume changes in IO-thread?>");
 
@@ -62,6 +63,7 @@ struct userdata {
     pa_hashmap *devices;
 
     pa_bool_t use_tsched:1;
+    pa_bool_t fixed_latency_range:1;
     pa_bool_t ignore_dB:1;
     pa_bool_t deferred_volume:1;
 
@@ -75,6 +77,7 @@ struct userdata {
 
 static const char* const valid_modargs[] = {
     "tsched",
+    "fixed_latency_range",
     "ignore_dB",
     "deferred_volume",
     NULL
@@ -388,6 +391,7 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
                                 "card_name=\"%s\" "
                                 "namereg_fail=false "
                                 "tsched=%s "
+                                "fixed_latency_range=%s "
                                 "ignore_dB=%s "
                                 "deferred_volume=%s "
                                 "card_properties=\"module-udev-detect.discovered=1\"",
@@ -395,6 +399,7 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
                                 n,
                                 d->card_name,
                                 pa_yes_no(u->use_tsched),
+                                pa_yes_no(u->fixed_latency_range),
                                 pa_yes_no(u->ignore_dB),
                                 pa_yes_no(u->deferred_volume));
     pa_xfree(n);
@@ -665,7 +670,7 @@ int pa__init(pa_module *m) {
     struct udev_enumerate *enumerate = NULL;
     struct udev_list_entry *item = NULL, *first = NULL;
     int fd;
-    pa_bool_t use_tsched = TRUE, ignore_dB = FALSE, deferred_volume = m->core->deferred_volume;
+    pa_bool_t use_tsched = TRUE, fixed_latency_range = FALSE, ignore_dB = FALSE, deferred_volume = m->core->deferred_volume;
 
 
     pa_assert(m);
@@ -685,6 +690,12 @@ int pa__init(pa_module *m) {
         goto fail;
     }
     u->use_tsched = use_tsched;
+
+    if (pa_modargs_get_value_boolean(ma, "fixed_latency_range", &fixed_latency_range) < 0) {
+        pa_log("Failed to parse fixed_latency_range= argument.");
+        goto fail;
+    }
+    u->fixed_latency_range = fixed_latency_range;
 
     if (pa_modargs_get_value_boolean(ma, "ignore_dB", &ignore_dB) < 0) {
         pa_log("Failed to parse ignore_dB= argument.");
