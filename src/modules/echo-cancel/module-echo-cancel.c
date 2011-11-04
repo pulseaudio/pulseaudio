@@ -159,6 +159,16 @@ static const pa_echo_canceller ec_table[] = {
  *    don't give enough accuracy to be able to do that right now.
  */
 
+struct userdata;
+
+struct pa_echo_canceller_msg {
+    pa_msgobject parent;
+    struct userdata *userdata;
+};
+
+PA_DEFINE_PRIVATE_CLASS(pa_echo_canceller_msg, pa_msgobject);
+#define PA_ECHO_CANCELLER_MSG(o) (pa_echo_canceller_msg_cast(o))
+
 struct snapshot {
     pa_usec_t sink_now;
     pa_usec_t sink_latency;
@@ -218,6 +228,12 @@ struct userdata {
     FILE *played_file;
     FILE *canceled_file;
     FILE *drift_file;
+
+    pa_bool_t use_volume_sharing;
+
+    struct {
+        pa_cvolume current_volume;
+    } thread_info;
 };
 
 static void source_output_snapshot_within_thread(struct userdata *u, struct snapshot *snapshot);
@@ -252,6 +268,10 @@ enum {
 
 enum {
     SINK_INPUT_MESSAGE_LATENCY_SNAPSHOT
+};
+
+enum {
+    ECHO_CANCELLER_MESSAGE_SET_VOLUME,
 };
 
 static int64_t calc_diff(struct userdata *u, struct snapshot *snapshot) {
@@ -378,6 +398,9 @@ static int source_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t 
 
             return 0;
 
+        case PA_SOURCE_MESSAGE_SET_VOLUME_SYNCED:
+            u->thread_info.current_volume = u->source->reference_volume;
+            break;
     }
 
     return pa_source_process_msg(o, code, data, offset, chunk);
@@ -1466,6 +1489,51 @@ static void sink_input_mute_changed_cb(pa_sink_input *i) {
     pa_sink_mute_changed(u->sink, i->muted);
 }
 
+/* Called from main context */
+static int canceller_process_msg_cb(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
+    struct pa_echo_canceller_msg *msg;
+    struct userdata *u;
+
+    pa_assert(o);
+
+    msg = PA_ECHO_CANCELLER_MSG(o);
+    u = msg->userdata;
+
+    switch (code) {
+        case ECHO_CANCELLER_MESSAGE_SET_VOLUME: {
+            pa_cvolume *v = (pa_cvolume *) userdata;
+
+            if (u->use_volume_sharing)
+                pa_source_set_volume(u->source, v, TRUE, FALSE);
+            else
+                pa_source_output_set_volume(u->source_output, v, FALSE, TRUE);
+
+            break;
+        }
+
+        default:
+            pa_assert_not_reached();
+            break;
+    }
+
+    return 0;
+}
+
+/* Called by the canceller, so thread context */
+void pa_echo_canceller_get_capture_volume(pa_echo_canceller *ec, pa_cvolume *v) {
+    *v = ec->msg->userdata->thread_info.current_volume;
+}
+
+/* Called by the canceller, so thread context */
+void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_cvolume *v) {
+    if (!pa_cvolume_equal(&ec->msg->userdata->thread_info.current_volume, v)) {
+        pa_cvolume *vol = pa_xnewdup(pa_cvolume, v, 1);
+
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(ec->msg), ECHO_CANCELLER_MESSAGE_SET_VOLUME, vol, 0, NULL,
+                pa_xfree);
+    }
+}
+
 static pa_echo_canceller_method_t get_ec_method_from_string(const char *method) {
     if (pa_streq(method, "speex"))
         return PA_ECHO_CANCELLER_SPEEX;
@@ -1526,7 +1594,6 @@ int pa__init(pa_module*m) {
     pa_sink_new_data sink_data;
     pa_memchunk silence;
     uint32_t temp;
-    pa_bool_t use_volume_sharing = TRUE;
 
     pa_assert(m);
 
@@ -1560,11 +1627,6 @@ int pa__init(pa_module*m) {
     sink_ss = sink_master->sample_spec;
     sink_map = sink_master->channel_map;
 
-    if (pa_modargs_get_value_boolean(ma, "use_volume_sharing", &use_volume_sharing) < 0) {
-        pa_log("use_volume_sharing= expects a boolean argument");
-        goto fail;
-    }
-
     u = pa_xnew0(struct userdata, 1);
     if (!u) {
         pa_log("Failed to alloc userdata");
@@ -1574,6 +1636,12 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->dead = FALSE;
+
+    u->use_volume_sharing = TRUE;
+    if (pa_modargs_get_value_boolean(ma, "use_volume_sharing", &u->use_volume_sharing) < 0) {
+        pa_log("use_volume_sharing= expects a boolean argument");
+        goto fail;
+    }
 
     temp = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
     if (pa_modargs_get_value_u32(ma, "adjust_time", &temp) < 0) {
@@ -1653,7 +1721,7 @@ int pa__init(pa_module*m) {
     }
 
     u->source = pa_source_new(m->core, &source_data, (source_master->flags & (PA_SOURCE_LATENCY | PA_SOURCE_DYNAMIC_LATENCY))
-                                                     | (use_volume_sharing ? PA_SOURCE_SHARE_VOLUME_WITH_MASTER : 0));
+                                                     | (u->use_volume_sharing ? PA_SOURCE_SHARE_VOLUME_WITH_MASTER : 0));
     pa_source_new_data_done(&source_data);
 
     if (!u->source) {
@@ -1666,7 +1734,7 @@ int pa__init(pa_module*m) {
     u->source->update_requested_latency = source_update_requested_latency_cb;
     pa_source_set_get_mute_callback(u->source, source_get_mute_cb);
     pa_source_set_set_mute_callback(u->source, source_set_mute_cb);
-    if (!use_volume_sharing) {
+    if (!u->use_volume_sharing) {
         pa_source_set_get_volume_callback(u->source, source_get_volume_cb);
         pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
         pa_source_enable_decibel_volume(u->source, TRUE);
@@ -1703,7 +1771,7 @@ int pa__init(pa_module*m) {
     }
 
     u->sink = pa_sink_new(m->core, &sink_data, (sink_master->flags & (PA_SINK_LATENCY | PA_SINK_DYNAMIC_LATENCY))
-                                               | (use_volume_sharing ? PA_SINK_SHARE_VOLUME_WITH_MASTER : 0));
+                                               | (u->use_volume_sharing ? PA_SINK_SHARE_VOLUME_WITH_MASTER : 0));
     pa_sink_new_data_done(&sink_data);
 
     if (!u->sink) {
@@ -1716,7 +1784,7 @@ int pa__init(pa_module*m) {
     u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->request_rewind = sink_request_rewind_cb;
     pa_sink_set_set_mute_callback(u->sink, sink_set_mute_cb);
-    if (!use_volume_sharing) {
+    if (!u->use_volume_sharing) {
         pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
         pa_sink_enable_decibel_volume(u->sink, TRUE);
     }
@@ -1793,7 +1861,7 @@ int pa__init(pa_module*m) {
     u->sink_input->state_change = sink_input_state_change_cb;
     u->sink_input->may_move_to = sink_input_may_move_to_cb;
     u->sink_input->moving = sink_input_moving_cb;
-    if (!use_volume_sharing)
+    if (!u->use_volume_sharing)
         u->sink_input->volume_changed = sink_input_volume_changed_cb;
     u->sink_input->mute_changed = sink_input_mute_changed_cb;
     u->sink_input->userdata = u;
@@ -1841,12 +1909,17 @@ int pa__init(pa_module*m) {
         }
     }
 
+    u->ec->msg = pa_msgobject_new(pa_echo_canceller_msg);
+    u->ec->msg->parent.process_msg = canceller_process_msg_cb;
+    u->ec->msg->userdata = u;
+
+    u->thread_info.current_volume = u->source->reference_volume;
+
     pa_sink_put(u->sink);
     pa_source_put(u->source);
 
     pa_sink_input_put(u->sink_input);
     pa_source_output_put(u->source_output);
-
     pa_modargs_free(ma);
 
     return 0;

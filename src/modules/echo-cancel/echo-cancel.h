@@ -37,6 +37,8 @@
 
 /* Common data structures */
 
+typedef struct pa_echo_canceller_msg pa_echo_canceller_msg;
+
 typedef struct pa_echo_canceller_params pa_echo_canceller_params;
 
 struct pa_echo_canceller_params {
@@ -109,7 +111,14 @@ struct pa_echo_canceller {
 
     /* Structure with common and engine-specific canceller parameters. */
     pa_echo_canceller_params params;
+
+    /* msgobject that can be used to send messages back to the main thread */
+    pa_echo_canceller_msg *msg;
 };
+
+/* Functions to be used by the canceller analog gain control routines */
+void pa_echo_canceller_get_capture_volume(pa_echo_canceller *ec, pa_cvolume *v);
+void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_cvolume *v);
 
 /* Speex canceller functions */
 pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
