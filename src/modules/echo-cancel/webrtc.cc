@@ -110,7 +110,7 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         goto fail;
     }
 
-    dgc = DEFAULT_DIGITAL_GAIN_CONTROL;
+    dgc = agc ? FALSE : DEFAULT_DIGITAL_GAIN_CONTROL;
     if (pa_modargs_get_value_boolean(ma, "digital_gain_control", &dgc) < 0) {
         pa_log("Failed to parse digital_gain_control value");
         goto fail;
@@ -193,15 +193,20 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     }
 
     if (agc || dgc) {
-        if (mobile && rm <= webrtc::EchoControlMobile::kEarpiece)
+        if (mobile && rm <= webrtc::EchoControlMobile::kEarpiece) {
             /* Maybe this should be a knob, but we've got a lot of knobs already */
             apm->gain_control()->set_mode(webrtc::GainControl::kFixedDigital);
-        else if (dgc)
+            ec->params.priv.webrtc.agc = FALSE;
+        } else if (dgc) {
             apm->gain_control()->set_mode(webrtc::GainControl::kAdaptiveDigital);
-        else {
-            /* FIXME: Hook up for analog AGC */
-            pa_log("Analog gain control isn't implemented yet -- using ditital gain control.");
-            apm->gain_control()->set_mode(webrtc::GainControl::kAdaptiveDigital);
+            ec->params.priv.webrtc.agc = FALSE;
+        } else {
+            apm->gain_control()->set_mode(webrtc::GainControl::kAdaptiveAnalog);
+            if (apm->gain_control()->set_analog_level_limits(0, PA_VOLUME_NORM-1) != apm->kNoError) {
+                pa_log("Failed to initialise AGC");
+                goto fail;
+            }
+            ec->params.priv.webrtc.agc = TRUE;
         }
 
         apm->gain_control()->Enable(true);
@@ -242,14 +247,26 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
     webrtc::AudioProcessing *apm = (webrtc::AudioProcessing*)ec->params.priv.webrtc.apm;
     webrtc::AudioFrame out_frame;
     const pa_sample_spec *ss = &ec->params.priv.webrtc.sample_spec;
+    pa_cvolume v;
 
     out_frame._audioChannel = ss->channels;
     out_frame._frequencyInHz = ss->rate;
     out_frame._payloadDataLengthInSamples = ec->params.priv.webrtc.blocksize / pa_frame_size(ss);
     memcpy(out_frame._payloadData, rec, ec->params.priv.webrtc.blocksize);
 
+    if (ec->params.priv.webrtc.agc) {
+        pa_cvolume_init(&v);
+        pa_echo_canceller_get_capture_volume(ec, &v);
+        apm->gain_control()->set_stream_analog_level(pa_cvolume_avg(&v));
+    }
+
     apm->set_stream_delay_ms(0);
     apm->ProcessStream(&out_frame);
+
+    if (ec->params.priv.webrtc.agc) {
+        pa_cvolume_set(&v, ss->channels, apm->gain_control()->stream_analog_level());
+        pa_echo_canceller_set_capture_volume(ec, &v);
+    }
 
     memcpy(out, out_frame._payloadData, ec->params.priv.webrtc.blocksize);
 }

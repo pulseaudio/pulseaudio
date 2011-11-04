@@ -58,6 +58,7 @@ struct pa_echo_canceller_params {
             void *apm;
             uint32_t blocksize;
             pa_sample_spec sample_spec;
+            pa_bool_t agc;
         } webrtc;
 #endif
         /* each canceller-specific structure goes here */
