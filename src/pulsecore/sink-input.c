@@ -1596,8 +1596,6 @@ static void update_volume_due_to_moving(pa_sink_input *i, pa_sink *dest) {
 
 /* Called from main context */
 int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
-    pa_resampler *new_resampler;
-
     pa_sink_input_assert_ref(i);
     pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
@@ -1633,34 +1631,6 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
                         dest->sample_spec.rate);
     }
 
-    if (i->thread_info.resampler &&
-        pa_sample_spec_equal(pa_resampler_output_sample_spec(i->thread_info.resampler), &dest->sample_spec) &&
-        pa_channel_map_equal(pa_resampler_output_channel_map(i->thread_info.resampler), &dest->channel_map))
-
-        /* Try to reuse the old resampler if possible */
-        new_resampler = i->thread_info.resampler;
-
-    else if (!pa_sink_input_is_passthrough(i) &&
-             ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ||
-              !pa_sample_spec_equal(&i->sample_spec, &dest->sample_spec) ||
-              !pa_channel_map_equal(&i->channel_map, &dest->channel_map))) {
-
-        /* Okay, we need a new resampler for the new sink */
-
-        if (!(new_resampler = pa_resampler_new(
-                      i->core->mempool,
-                      &i->sample_spec, &i->channel_map,
-                      &dest->sample_spec, &dest->channel_map,
-                      i->requested_resample_method,
-                      ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
-                      ((i->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
-                      (i->core->disable_remixing || (i->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0)))) {
-            pa_log_warn("Unsupported resampling operation.");
-            return -PA_ERR_NOTSUPPORTED;
-        }
-    } else
-        new_resampler = NULL;
-
     if (i->moving)
         i->moving(i, dest);
 
@@ -1673,30 +1643,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
         i->sink->n_corked++;
 
-    /* Replace resampler and render queue */
-    if (new_resampler != i->thread_info.resampler) {
-        char *memblockq_name;
-
-        if (i->thread_info.resampler)
-            pa_resampler_free(i->thread_info.resampler);
-        i->thread_info.resampler = new_resampler;
-
-        pa_memblockq_free(i->thread_info.render_memblockq);
-
-        memblockq_name = pa_sprintf_malloc("sink input render_memblockq [%u]", i->index);
-        i->thread_info.render_memblockq = pa_memblockq_new(
-                memblockq_name,
-                0,
-                MEMBLOCKQ_MAXLENGTH,
-                0,
-                &i->sink->sample_spec,
-                0,
-                1,
-                0,
-                &i->sink->silence);
-        pa_xfree(memblockq_name);
-        i->actual_resample_method = new_resampler ? pa_resampler_get_method(new_resampler) : PA_RESAMPLER_INVALID;
-    }
+    pa_sink_input_update_rate(i);
 
     pa_sink_update_status(dest);
 
@@ -2042,4 +1989,70 @@ void pa_sink_input_send_event(pa_sink_input *i, const char *event, pa_proplist *
 finish:
     if (pl)
         pa_proplist_free(pl);
+}
+
+/* Called from main context */
+/* Updates the sink input's resampler with whatever the current sink requires
+ * -- useful when the underlying sink's rate might have changed */
+int pa_sink_input_update_rate(pa_sink_input *i) {
+    pa_resampler *new_resampler;
+    char *memblockq_name;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
+
+    if (i->thread_info.resampler &&
+        pa_sample_spec_equal(pa_resampler_output_sample_spec(i->thread_info.resampler), &i->sink->sample_spec) &&
+        pa_channel_map_equal(pa_resampler_output_channel_map(i->thread_info.resampler), &i->sink->channel_map))
+
+        new_resampler = i->thread_info.resampler;
+
+    else if (!pa_sink_input_is_passthrough(i) &&
+        ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ||
+         !pa_sample_spec_equal(&i->sample_spec, &i->sink->sample_spec) ||
+         !pa_channel_map_equal(&i->channel_map, &i->sink->channel_map))) {
+
+        new_resampler = pa_resampler_new(i->core->mempool,
+                                     &i->sample_spec, &i->channel_map,
+                                     &i->sink->sample_spec, &i->sink->channel_map,
+                                     i->requested_resample_method,
+                                     ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
+                                     ((i->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
+                                     (i->core->disable_remixing || (i->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0));
+
+        if (!new_resampler) {
+            pa_log_warn("Unsupported resampling operation.");
+            return -PA_ERR_NOTSUPPORTED;
+        }
+    } else
+        new_resampler = NULL;
+
+    if (new_resampler == i->thread_info.resampler)
+        return 0;
+
+    if (i->thread_info.resampler)
+        pa_resampler_free(i->thread_info.resampler);
+
+    i->thread_info.resampler = new_resampler;
+
+    pa_memblockq_free(i->thread_info.render_memblockq);
+
+    memblockq_name = pa_sprintf_malloc("sink input render_memblockq [%u]", i->index);
+    i->thread_info.render_memblockq = pa_memblockq_new(
+            memblockq_name,
+            0,
+            MEMBLOCKQ_MAXLENGTH,
+            0,
+            &i->sink->sample_spec,
+            0,
+            1,
+            0,
+            &i->sink->silence);
+    pa_xfree(memblockq_name);
+
+    i->actual_resample_method = new_resampler ? pa_resampler_get_method(new_resampler) : PA_RESAMPLER_INVALID;
+
+    pa_log_debug("Updated resmpler for sink input %d", i->index);
+
+    return 0;
 }

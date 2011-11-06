@@ -1376,8 +1376,6 @@ static void update_volume_due_to_moving(pa_source_output *o, pa_source *dest) {
 
 /* Called from main context */
 int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t save) {
-    pa_resampler *new_resampler;
-
     pa_source_output_assert_ref(o);
     pa_assert_ctl_context();
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
@@ -1413,34 +1411,6 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
                         dest->sample_spec.rate);
     }
 
-    if (o->thread_info.resampler &&
-        pa_sample_spec_equal(pa_resampler_input_sample_spec(o->thread_info.resampler), &dest->sample_spec) &&
-        pa_channel_map_equal(pa_resampler_input_channel_map(o->thread_info.resampler), &dest->channel_map))
-
-        /* Try to reuse the old resampler if possible */
-        new_resampler = o->thread_info.resampler;
-
-    else if (!pa_source_output_is_passthrough(o) &&
-             ((o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ||
-              !pa_sample_spec_equal(&o->sample_spec, &dest->sample_spec) ||
-              !pa_channel_map_equal(&o->channel_map, &dest->channel_map))) {
-
-        /* Okay, we need a new resampler for the new source */
-
-        if (!(new_resampler = pa_resampler_new(
-                      o->core->mempool,
-                      &dest->sample_spec, &dest->channel_map,
-                      &o->sample_spec, &o->channel_map,
-                      o->requested_resample_method,
-                      ((o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
-                      ((o->flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
-                      (o->core->disable_remixing || (o->flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0)))) {
-            pa_log_warn("Unsupported resampling operation.");
-            return -PA_ERR_NOTSUPPORTED;
-        }
-    } else
-        new_resampler = NULL;
-
     if (o->moving)
         o->moving(o, dest);
 
@@ -1453,27 +1423,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
     if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
         o->source->n_corked++;
 
-    /* Replace resampler */
-    if (new_resampler != o->thread_info.resampler) {
-
-        if (o->thread_info.resampler)
-            pa_resampler_free(o->thread_info.resampler);
-        o->thread_info.resampler = new_resampler;
-
-        pa_memblockq_free(o->thread_info.delay_memblockq);
-
-        o->thread_info.delay_memblockq = pa_memblockq_new(
-                "source output delay_memblockq",
-                0,
-                MEMBLOCKQ_MAXLENGTH,
-                0,
-                &o->source->sample_spec,
-                0,
-                1,
-                0,
-                &o->source->silence);
-        o->actual_resample_method = new_resampler ? pa_resampler_get_method(new_resampler) : PA_RESAMPLER_INVALID;
-    }
+    pa_source_output_update_rate(o);
 
     pa_source_update_status(dest);
 
@@ -1645,4 +1595,70 @@ void pa_source_output_send_event(pa_source_output *o, const char *event, pa_prop
 finish:
     if (pl)
         pa_proplist_free(pl);
+}
+
+/* Called from main context */
+/* Updates the source output's resampler with whatever the current source
+ * requires -- useful when the underlying source's rate might have changed */
+int pa_source_output_update_rate(pa_source_output *o) {
+    pa_resampler *new_resampler;
+    char *memblockq_name;
+
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+
+    if (o->thread_info.resampler &&
+        pa_sample_spec_equal(pa_resampler_input_sample_spec(o->thread_info.resampler), &o->source->sample_spec) &&
+        pa_channel_map_equal(pa_resampler_input_channel_map(o->thread_info.resampler), &o->source->channel_map))
+
+        new_resampler = o->thread_info.resampler;
+
+    else if (!pa_source_output_is_passthrough(o) &&
+        ((o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ||
+         !pa_sample_spec_equal(&o->sample_spec, &o->source->sample_spec) ||
+         !pa_channel_map_equal(&o->channel_map, &o->source->channel_map))) {
+
+        new_resampler = pa_resampler_new(o->core->mempool,
+                                     &o->source->sample_spec, &o->source->channel_map,
+                                     &o->sample_spec, &o->channel_map,
+                                     o->requested_resample_method,
+                                     ((o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
+                                     ((o->flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
+                                     (o->core->disable_remixing || (o->flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0));
+
+        if (!new_resampler) {
+            pa_log_warn("Unsupported resampling operation.");
+            return -PA_ERR_NOTSUPPORTED;
+        }
+    } else
+        new_resampler = NULL;
+
+    if (new_resampler == o->thread_info.resampler)
+        return 0;
+
+    if (o->thread_info.resampler)
+        pa_resampler_free(o->thread_info.resampler);
+
+    o->thread_info.resampler = new_resampler;
+
+    pa_memblockq_free(o->thread_info.delay_memblockq);
+
+    memblockq_name = pa_sprintf_malloc("source output delay_memblockq [%u]", o->index);
+    o->thread_info.delay_memblockq = pa_memblockq_new(
+            memblockq_name,
+            0,
+            MEMBLOCKQ_MAXLENGTH,
+            0,
+            &o->source->sample_spec,
+            0,
+            1,
+            0,
+            &o->source->silence);
+    pa_xfree(memblockq_name);
+
+    o->actual_resample_method = new_resampler ? pa_resampler_get_method(new_resampler) : PA_RESAMPLER_INVALID;
+
+    pa_log_debug("Updated resmpler for source output %d", o->index);
+
+    return 0;
 }
