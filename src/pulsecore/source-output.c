@@ -515,6 +515,12 @@ static void source_output_set_state(pa_source_output *o, pa_source_output_state_
     if (o->state == state)
         return;
 
+    if (o->state == PA_SOURCE_OUTPUT_CORKED && state == PA_SOURCE_OUTPUT_RUNNING && pa_source_used_by(o->source) == 0) {
+        /* We were uncorked and the source was not playing anything -- let's try
+         * to update the sample rate to avoid resampling */
+        pa_source_update_rate(o->source, o->sample_spec.rate, pa_source_output_is_passthrough(o));
+    }
+
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) == 0);
 
     update_n_corked(o, state);
