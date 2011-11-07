@@ -972,9 +972,10 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrou
             desired_rate = rate; /* use stream sampling rate, discard default/alternate settings */
         }
 
-        if (passthrough || pa_source_linked_by(s) == 0) {
-            pa_source_suspend(s, TRUE, PA_SUSPEND_IDLE); /* needed before rate update, will be resumed automatically */
-        }
+        if (!passthrough && pa_source_linked_by(s) > 0)
+            return FALSE;
+
+        pa_source_suspend(s, TRUE, PA_SUSPEND_IDLE); /* needed before rate update, will be resumed automatically */
 
         if (s->update_rate(s, desired_rate) == TRUE) {
             pa_log_info("Changed sampling rate successfully ");

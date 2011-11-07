@@ -1385,9 +1385,10 @@ pa_bool_t pa_sink_update_rate(pa_sink *s, uint32_t rate, pa_bool_t passthrough)
             desired_rate = rate; /* use stream sampling rate, discard default/alternate settings */
         }
 
-        if (passthrough || pa_sink_linked_by(s) == 0) {
-            pa_sink_suspend(s, TRUE, PA_SUSPEND_IDLE); /* needed before rate update, will be resumed automatically */
-        }
+        if (!passthrough && pa_sink_linked_by(s) > 0)
+            return FALSE;
+
+        pa_sink_suspend(s, TRUE, PA_SUSPEND_IDLE); /* needed before rate update, will be resumed automatically */
 
         if (s->update_rate(s, desired_rate) == TRUE) {
             /* update monitor source as well */
