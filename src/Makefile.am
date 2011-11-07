@@ -215,7 +215,7 @@ pax11publish_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 #         Test programs           #
 ###################################
 
-TESTS = \
+TESTS_default = \
 		mainloop-test \
 		strlist-test \
 		close-test \
@@ -248,23 +248,26 @@ TESTS_norun = \
 		parec-simple \
 		extended-test \
 		sync-playback \
-		interpol-test \
 		flist-test \
 		remix-test \
 		rtstutter \
 		sig2str-test \
 		stripnul \
-		connect-stress \
 		echo-cancel-test
 
+# These tests need a running pulseaudio daemon
+TESTS_daemon = \
+		connect-stress \
+		interpol-test
+
 if !OS_IS_WIN32
-TESTS += \
+TESTS_default += \
 		sigbus-test \
 		usergroup-test
 endif
 
 if !OS_IS_DARWIN
-TESTS += \
+TESTS_default += \
 		once-test
 endif
 
@@ -275,7 +278,7 @@ TESTS_norun += \
 endif
 
 if HAVE_GLIB20
-TESTS += \
+TESTS_default += \
 		mainloop-test-glib
 endif
 
@@ -290,12 +293,16 @@ TESTS_norun += \
 endif
 
 TESTS_ENVIRONMENT=MAKE_CHECK=1
+TESTS = $(TESTS_default)
 
 if BUILD_TESTS_DEFAULT
-noinst_PROGRAMS = $(TESTS) $(TESTS_norun)
+noinst_PROGRAMS = $(TESTS_default) $(TESTS_norun) $(TESTS_daemon)
 else
-check_PROGRAMS = $(TESTS) $(TESTS_norun)
+check_PROGRAMS = $(TESTS_default) $(TESTS_norun) $(TESTS_daemon)
 endif
+
+check-daemon:
+	$(MAKE) check TESTS="$(TESTS_daemon)"
 
 mainloop_test_SOURCES = tests/mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)
