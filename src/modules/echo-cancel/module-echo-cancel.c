@@ -89,7 +89,7 @@ typedef enum {
 #endif
 } pa_echo_canceller_method_t;
 
-#define DEFAULT_ECHO_CANCELLER "speex"
+#define DEFAULT_ECHO_CANCELLER "webrtc"
 
 static const pa_echo_canceller ec_table[] = {
     {
