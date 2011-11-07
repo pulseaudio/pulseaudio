@@ -933,6 +933,8 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrou
         uint32_t desired_rate = rate;
         uint32_t default_rate = s->default_sample_rate;
         uint32_t alternate_rate = s->alternate_sample_rate;
+        uint32_t idx;
+        pa_source_output *o;
         pa_bool_t use_alternate = FALSE;
 
         if (PA_UNLIKELY(default_rate == alternate_rate)) {
@@ -972,13 +974,18 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrou
             desired_rate = rate; /* use stream sampling rate, discard default/alternate settings */
         }
 
-        if (!passthrough && pa_source_linked_by(s) > 0)
+        if (!passthrough && pa_source_used_by(s) > 0)
             return FALSE;
 
         pa_source_suspend(s, TRUE, PA_SUSPEND_IDLE); /* needed before rate update, will be resumed automatically */
 
         if (s->update_rate(s, desired_rate) == TRUE) {
             pa_log_info("Changed sampling rate successfully ");
+
+            PA_IDXSET_FOREACH(o, s->outputs, idx) {
+                if (o->state == PA_SOURCE_OUTPUT_CORKED)
+                    pa_source_output_update_rate(o);
+            }
             return TRUE;
         }
     }
