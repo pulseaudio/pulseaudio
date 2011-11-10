@@ -60,6 +60,8 @@
 
 #include "protocol-native.h"
 
+/* #define PROTOCOL_NATIVE_DEBUG */
+
 /* Kick a client if it doesn't authenticate within this time */
 #define AUTH_TIMEOUT (60 * PA_USEC_PER_SEC)
 
@@ -812,14 +814,18 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
             pa_tagstruct_putu32(t, (uint32_t) l);
             pa_pstream_send_tagstruct(s->connection->pstream, t);
 
-/*             pa_log("Requesting %lu bytes", (unsigned long) l); */
+#ifdef PROTOCOL_NATIVE_DEBUG
+            pa_log("Requesting %lu bytes", (unsigned long) l);
+#endif
             break;
         }
 
         case PLAYBACK_STREAM_MESSAGE_UNDERFLOW: {
             pa_tagstruct *t;
 
-/*             pa_log("signalling underflow"); */
+#ifdef PROTOCOL_NATIVE_DEBUG
+            pa_log("signalling underflow");
+#endif
 
             /* Report that we're empty */
             t = pa_tagstruct_new(NULL, 0);
@@ -895,17 +901,19 @@ static void fix_playback_buffer_attr(playback_stream *s) {
 
     pa_assert(s);
 
-    /* pa_log("Client requested: maxlength=%li bytes tlength=%li bytes minreq=%li bytes prebuf=%li bytes", */
-    /*        (long) s->buffer_attr.maxlength, */
-    /*        (long) s->buffer_attr.tlength, */
-    /*        (long) s->buffer_attr.minreq, */
-    /*        (long) s->buffer_attr.prebuf); */
+#ifdef PROTOCOL_NATIVE_DEBUG
+    pa_log("Client requested: maxlength=%li bytes tlength=%li bytes minreq=%li bytes prebuf=%li bytes",
+           (long) s->buffer_attr.maxlength,
+           (long) s->buffer_attr.tlength,
+           (long) s->buffer_attr.minreq,
+           (long) s->buffer_attr.prebuf);
 
-    /* pa_log("Client requested: maxlength=%lu ms tlength=%lu ms minreq=%lu ms prebuf=%lu ms", */
-    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.maxlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC), */
-    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.tlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC), */
-    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.minreq, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC), */
-    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.prebuf, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC)); */
+    pa_log("Client requested: maxlength=%lu ms tlength=%lu ms minreq=%lu ms prebuf=%lu ms",
+           (unsigned long) (pa_bytes_to_usec(s->buffer_attr.maxlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC),
+           (unsigned long) (pa_bytes_to_usec(s->buffer_attr.tlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC),
+           (unsigned long) (pa_bytes_to_usec(s->buffer_attr.minreq, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC),
+           (unsigned long) (pa_bytes_to_usec(s->buffer_attr.prebuf, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC));
+#endif
 
     /* This function will be called from the main thread, before as
      * well as after the sink input has been activated using
@@ -1039,11 +1047,13 @@ static void fix_playback_buffer_attr(playback_stream *s) {
         s->buffer_attr.prebuf > max_prebuf)
         s->buffer_attr.prebuf = max_prebuf;
 
-    /* pa_log("Client accepted: maxlength=%lu ms tlength=%lu ms minreq=%lu ms prebuf=%lu ms", */
-    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.maxlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC), */
-    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.tlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC), */
-    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.minreq, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC), */
-    /*        (unsigned long) (pa_bytes_to_usec(s->buffer_attr.prebuf, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC)); */
+#ifdef PROTOCOL_NATIVE_DEBUG
+    pa_log("Client accepted: maxlength=%lu ms tlength=%lu ms minreq=%lu ms prebuf=%lu ms",
+           (unsigned long) (pa_bytes_to_usec(s->buffer_attr.maxlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC),
+           (unsigned long) (pa_bytes_to_usec(s->buffer_attr.tlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC),
+           (unsigned long) (pa_bytes_to_usec(s->buffer_attr.minreq, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC),
+           (unsigned long) (pa_bytes_to_usec(s->buffer_attr.prebuf, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC));
+#endif
 }
 
 /* Called from main context */
@@ -1190,7 +1200,9 @@ static playback_stream* playback_stream_new(
 
     *missing = (uint32_t) pa_memblockq_pop_missing(s->memblockq);
 
-    /* pa_log("missing original: %li", (long int) *missing); */
+#ifdef PROTOCOL_NATIVE_DEBUG
+    pa_log("missing original: %li", (long int) *missing);
+#endif
 
     *ss = s->sink_input->sample_spec;
     *map = s->sink_input->channel_map;
@@ -1231,7 +1243,9 @@ static void playback_stream_request_bytes(playback_stream *s) {
     if (m <= 0)
         return;
 
-/*     pa_log("request_bytes(%lu)", (unsigned long) m); */
+#ifdef PROTOCOL_NATIVE_DEBUG
+    pa_log("request_bytes(%lu)", (unsigned long) m);
+#endif
 
     previous_missing = pa_atomic_add(&s->missing, (int) m);
     minreq = pa_memblockq_get_minreq(s->memblockq);
@@ -1565,7 +1579,9 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     playback_stream_assert_ref(s);
     pa_assert(chunk);
 
-/*     pa_log("%s, pop(): %lu", pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME), (unsigned long) pa_memblockq_get_length(s->memblockq)); */
+#ifdef PROTOCOL_NATIVE_DEBUG
+    pa_log("%s, pop(): %lu", pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME), (unsigned long) pa_memblockq_get_length(s->memblockq));
+#endif
 
     if (pa_memblockq_is_readable(s->memblockq))
         s->is_underrun = FALSE;
@@ -2127,7 +2143,9 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
     pa_tagstruct_putu32(reply, s->sink_input->index);
     pa_tagstruct_putu32(reply, missing);
 
-/*     pa_log("initial request is %u", missing); */
+#ifdef PROTOCOL_NATIVE_DEBUG
+    pa_log("initial request is %u", missing);
+#endif
 
     if (c->version >= 9) {
         /* Since 0.9.0 we support sending the buffer metrics back to the client */
@@ -4713,7 +4731,9 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
         return;
     }
 
-/*     pa_log("got %lu bytes", (unsigned long) chunk->length); */
+#ifdef PROTOCOL_NATIVE_DEBUG
+    pa_log("got %lu bytes from client", (unsigned long) chunk->length);
+#endif
 
     if (playback_stream_isinstance(stream)) {
         playback_stream *ps = PLAYBACK_STREAM(stream);

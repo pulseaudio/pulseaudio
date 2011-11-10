@@ -41,6 +41,8 @@
 
 #include "sink-input.h"
 
+/* #define SINK_INPUT_DEBUG */
+
 #define MEMBLOCKQ_MAXLENGTH (32*1024*1024)
 #define CONVERT_BUFFER_LENGTH (PA_PAGE_SIZE)
 
@@ -791,7 +793,9 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
     pa_assert(chunk);
     pa_assert(volume);
 
-/*     pa_log_debug("peek"); */
+#ifdef SINK_INPUT_DEBUG
+    pa_log_debug("peek");
+#endif
 
     block_size_max_sink_input = i->thread_info.resampler ?
         pa_resampler_max_block_size(i->thread_info.resampler) :
@@ -897,7 +901,9 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
                 pa_memchunk rchunk;
                 pa_resampler_run(i->thread_info.resampler, &wchunk, &rchunk);
 
-/*                 pa_log_debug("pushing %lu", (unsigned long) rchunk.length); */
+#ifdef SINK_INPUT_DEBUG
+                pa_log_debug("pushing %lu", (unsigned long) rchunk.length);
+#endif
 
                 if (rchunk.memblock) {
 
@@ -925,7 +931,9 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
     pa_assert(chunk->length > 0);
     pa_assert(chunk->memblock);
 
-/*     pa_log_debug("peeking %lu", (unsigned long) chunk->length); */
+#ifdef SINK_INPUT_DEBUG
+    pa_log_debug("peeking %lu", (unsigned long) chunk->length);
+#endif
 
     if (chunk->length > block_size_max_sink)
         chunk->length = block_size_max_sink;
@@ -952,7 +960,9 @@ void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec *
     pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
     pa_assert(nbytes > 0);
 
-/*     pa_log_debug("dropping %lu", (unsigned long) nbytes); */
+#ifdef SINK_INPUT_DEBUG
+    pa_log_debug("dropping %lu", (unsigned long) nbytes);
+#endif
 
     pa_memblockq_drop(i->thread_info.render_memblockq, nbytes);
 }
@@ -967,7 +977,9 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->thread_info.state));
     pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
 
-/*     pa_log_debug("rewind(%lu, %lu)", (unsigned long) nbytes, (unsigned long) i->thread_info.rewrite_nbytes); */
+#ifdef SINK_INPUT_DEBUG
+    pa_log_debug("rewind(%lu, %lu)", (unsigned long) nbytes, (unsigned long) i->thread_info.rewrite_nbytes);
+#endif
 
     lbq = pa_memblockq_get_length(i->thread_info.render_memblockq);
 
@@ -1896,7 +1908,9 @@ void pa_sink_input_request_rewind(
 
     nbytes = PA_MAX(i->thread_info.rewrite_nbytes, nbytes);
 
-    /* pa_log_debug("request rewrite %zu", nbytes); */
+#ifdef SINK_INPUT_DEBUG
+    pa_log_debug("request rewrite %zu", nbytes);
+#endif
 
     /* Calculate how much we can rewind locally without having to
      * touch the sink */

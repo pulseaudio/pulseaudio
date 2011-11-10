@@ -36,6 +36,8 @@
 
 #include "memblockq.h"
 
+/* #define MEMBLOCKQ_DEBUG */
+
 struct list_item {
     struct list_item *next, *prev;
     int64_t index;
@@ -262,7 +264,9 @@ static void write_index_changed(pa_memblockq *bq, int64_t old_write_index, pa_bo
     else
         bq->missing -= delta;
 
-    /* pa_log("pushed/seeked %lli: requested counter at %lli, account=%i", (long long) delta, (long long) bq->requested, account); */
+#ifdef MEMBLOCKQ_DEBUG
+     pa_log("[%s] pushed/seeked %lli: requested counter at %lli, account=%i", bq->name, (long long) delta, (long long) bq->requested, account);
+#endif
 }
 
 static void read_index_changed(pa_memblockq *bq, int64_t old_read_index) {
@@ -273,7 +277,9 @@ static void read_index_changed(pa_memblockq *bq, int64_t old_read_index) {
     delta = bq->read_index - old_read_index;
     bq->missing += delta;
 
-    /* pa_log("popped %lli: missing counter at %lli", (long long) delta, (long long) bq->missing); */
+#ifdef MEMBLOCKQ_DEBUG
+    pa_log("[%s] popped %lli: missing counter at %lli", bq->name, (long long) delta, (long long) bq->missing);
+#endif
 }
 
 int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
@@ -832,7 +838,9 @@ size_t pa_memblockq_pop_missing(pa_memblockq *bq) {
 
     pa_assert(bq);
 
-/*     pa_log("pop: %lli", bq->missing); */
+#ifdef MEMBLOCKQ_DEBUG
+    pa_log("[%s] pop: %lli", bq->name, (long long) bq->missing);
+#endif
 
     if (bq->missing <= 0)
         return 0;
@@ -842,7 +850,9 @@ size_t pa_memblockq_pop_missing(pa_memblockq *bq) {
     bq->requested += bq->missing;
     bq->missing = 0;
 
-    /* pa_log("sent %lli: request counter is at %lli", (long long) l, (long long) bq->requested); */
+#ifdef MEMBLOCKQ_DEBUG
+    pa_log("[%s] sent %lli: request counter is at %lli", bq->name, (long long) l, (long long) bq->requested);
+#endif
 
     return l;
 }
