@@ -246,8 +246,6 @@ TESTS_norun = \
 		mcalign-test \
 		pacat-simple \
 		parec-simple \
-		extended-test \
-		sync-playback \
 		flist-test \
 		remix-test \
 		rtstutter \
@@ -258,7 +256,9 @@ TESTS_norun = \
 # These tests need a running pulseaudio daemon
 TESTS_daemon = \
 		connect-stress \
-		interpol-test
+		extended-test \
+		interpol-test \
+		sync-playback
 
 if !OS_IS_WIN32
 TESTS_default += \
