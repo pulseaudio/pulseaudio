@@ -258,7 +258,7 @@ static void stream_unlink(pa_stream *s) {
         pa_pdispatch_unregister_reply(s->context->pdispatch, s);
 
     if (s->channel_valid) {
-        pa_hashmap_remove((s->direction == PA_STREAM_PLAYBACK) ? s->context->playback_streams : s->context->record_streams, PA_UINT32_TO_PTR(s->channel));
+        pa_hashmap_remove((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, PA_UINT32_TO_PTR(s->channel));
         s->channel = 0;
         s->channel_valid = FALSE;
     }
