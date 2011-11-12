@@ -457,7 +457,7 @@ static size_t check_left_to_play(struct userdata *u, size_t n_bytes, pa_bool_t o
         left_to_play = 0;
         underrun = TRUE;
 
-#ifdef DEBUG_TIMING
+#if 0
         PA_DEBUG_TRAP;
 #endif
 
@@ -1727,13 +1727,17 @@ static void thread_func(void *userdata) {
 
                 /* OK, the playback buffer is now full, let's
                  * calculate when to wake up next */
-/*                 pa_log_debug("Waking up in %0.2fms (sound card clock).", (double) sleep_usec / PA_USEC_PER_MSEC); */
+#ifdef DEBUG_TIMING
+                pa_log_debug("Waking up in %0.2fms (sound card clock).", (double) sleep_usec / PA_USEC_PER_MSEC);
+#endif
 
                 /* Convert from the sound card time domain to the
                  * system time domain */
                 cusec = pa_smoother_translate(u->smoother, pa_rtclock_now(), sleep_usec);
 
-/*                 pa_log_debug("Waking up in %0.2fms (system clock).", (double) cusec / PA_USEC_PER_MSEC); */
+#ifdef DEBUG_TIMING
+                pa_log_debug("Waking up in %0.2fms (system clock).", (double) cusec / PA_USEC_PER_MSEC);
+#endif
 
                 /* We don't trust the conversion, so we wake up whatever comes first */
                 rtpoll_sleep = PA_MIN(sleep_usec, cusec);
