@@ -50,8 +50,10 @@ pa_mutex* pa_mutex_new(pa_bool_t recursive, pa_bool_t inherit_priority) {
         pa_assert_se(pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE) == 0);
 
 #ifdef HAVE_PTHREAD_PRIO_INHERIT
-    if (inherit_priority)
-        pa_assert_se(pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT) == 0);
+    if (inherit_priority) {
+        r = pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
+        pa_assert(r == 0 || r == ENOTSUP);
+    }
 #endif
 
     m = pa_xnew(pa_mutex, 1);
