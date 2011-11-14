@@ -2717,7 +2717,8 @@ char *pa_machine_id(void) {
      * since it fits perfectly our needs and is not as volatile as the
      * hostname which might be set from dhcp. */
 
-    if ((f = pa_fopen_cloexec(PA_MACHINE_ID, "r"))) {
+    if ((f = pa_fopen_cloexec(PA_MACHINE_ID, "r")) ||
+        (f = pa_fopen_cloexec(PA_MACHINE_ID_FALLBACK, "r"))) {
         char ln[34] = "", *r;
 
         r = fgets(ln, sizeof(ln)-1, f);

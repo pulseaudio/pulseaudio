@@ -935,6 +935,9 @@ AS_IF([test "x$HAVE_DBUS" = "x1"], AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.]))
 
 PA_MACHINE_ID="${localstatedir}/lib/dbus/machine-id"
 AX_DEFINE_DIR(PA_MACHINE_ID, PA_MACHINE_ID, [D-Bus machine-id file])
+PA_MACHINE_ID_FALLBACK="${sysconfdir}/machine-id"
+AX_DEFINE_DIR(PA_MACHINE_ID_FALLBACK, PA_MACHINE_ID_FALLBACK,
+	      [Fallback machine-id file])
 
 #### HAL support (optional), dependant on D-Bus ####
 
