@@ -278,14 +278,14 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct 
     }
 
     for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm))
-        if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP) {
+        if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SCM_TIMESTAMP) {
             memcpy(tstamp, CMSG_DATA(cm), sizeof(struct timeval));
             found_tstamp = TRUE;
             break;
         }
 
     if (!found_tstamp) {
-        pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
+        pa_log_warn("Couldn't find SCM_TIMESTAMP data in auxiliary recvmsg() data!");
         memset(tstamp, 0, sizeof(tstamp));
     }
 
