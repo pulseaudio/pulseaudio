@@ -47,8 +47,9 @@ int main(int argc, char*argv[]) {
     int fd = -1;
     int ret = 1, i;
     struct sockaddr_un sa;
-    char ibuf[PIPE_BUF], obuf[PIPE_BUF];
-    size_t ibuf_index, ibuf_length, obuf_index, obuf_length;
+    char *ibuf = NULL;
+    char *obuf = NULL;
+    size_t ibuf_size, ibuf_index, ibuf_length, obuf_size, obuf_index, obuf_length;
     char *cli;
     pa_bool_t ibuf_eof, obuf_eof, ibuf_closed, obuf_closed;
     struct pollfd pollfd[3];
@@ -104,6 +105,11 @@ int main(int argc, char*argv[]) {
         goto fail;
     }
 
+    i = pa_pipe_buf(fd);
+    ibuf_size = PA_MIN(i, pa_pipe_buf(STDIN_FILENO));
+    ibuf = pa_xmalloc(ibuf_size);
+    obuf_size = PA_MIN(i, pa_pipe_buf(STDOUT_FILENO));
+    obuf = pa_xmalloc(obuf_size);
     ibuf_index = ibuf_length = obuf_index = obuf_length = 0;
     ibuf_eof = obuf_eof = ibuf_closed = obuf_closed = FALSE;
 
@@ -111,11 +117,11 @@ int main(int argc, char*argv[]) {
         for (i = 1; i < argc; i++) {
             size_t k;
 
-            k = PA_MIN(sizeof(ibuf) - ibuf_length, strlen(argv[i]));
+            k = PA_MIN(ibuf_size - ibuf_length, strlen(argv[i]));
             memcpy(ibuf + ibuf_length, argv[i], k);
             ibuf_length += k;
 
-            if (ibuf_length < sizeof(ibuf)) {
+            if (ibuf_length < ibuf_size) {
                 ibuf[ibuf_length] = i < argc-1 ? ' ' : '\n';
                 ibuf_length++;
             }
@@ -184,7 +190,7 @@ int main(int argc, char*argv[]) {
                 ssize_t r;
                 pa_assert(ibuf_length <= 0);
 
-                if ((r = pa_read(STDIN_FILENO, ibuf, sizeof(ibuf), &stdin_type)) <= 0) {
+                if ((r = pa_read(STDIN_FILENO, ibuf, ibuf_size, &stdin_type)) <= 0) {
                     if (r < 0) {
                         pa_log(_("read(): %s"), strerror(errno));
                         goto fail;
@@ -204,7 +210,7 @@ int main(int argc, char*argv[]) {
                 ssize_t r;
                 pa_assert(obuf_length <= 0);
 
-                if ((r = pa_read(fd, obuf, sizeof(obuf), &fd_type)) <= 0) {
+                if ((r = pa_read(fd, obuf, obuf_size, &fd_type)) <= 0) {
                     if (r < 0) {
                         pa_log(_("read(): %s"), strerror(errno));
                         goto fail;
@@ -261,6 +267,9 @@ int main(int argc, char*argv[]) {
 fail:
     if (fd >= 0)
         pa_close(fd);
+
+    pa_xfree(obuf);
+    pa_xfree(ibuf);
 
     return ret;
 }
