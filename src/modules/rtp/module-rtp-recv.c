@@ -428,11 +428,16 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
 
     pa_make_udp_socket_low_delay(fd);
 
+#ifdef SO_TIMESTAMP
     one = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_TIMESTAMP, &one, sizeof(one)) < 0) {
         pa_log("SO_TIMESTAMP failed: %s", pa_cstrerror(errno));
         goto fail;
     }
+#else
+    pa_log("SO_TIMESTAMP unsupported on this platform");
+    goto fail;
+#endif
 
     one = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
