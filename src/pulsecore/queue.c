@@ -52,13 +52,13 @@ pa_queue* pa_queue_new(void) {
     return q;
 }
 
-void pa_queue_free(pa_queue* q, pa_free2_cb_t free_func, void *userdata) {
+void pa_queue_free(pa_queue *q, pa_free_cb_t free_func) {
     void *data;
     pa_assert(q);
 
     while ((data = pa_queue_pop(q)))
         if (free_func)
-            free_func(data, userdata);
+            free_func(data);
 
     pa_assert(!q->front);
     pa_assert(!q->back);

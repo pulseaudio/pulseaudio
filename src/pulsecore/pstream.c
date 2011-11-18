@@ -279,7 +279,7 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     return p;
 }
 
-static void item_free(void *item, void *q) {
+static void item_free(void *item) {
     struct item_info *i = item;
     pa_assert(i);
 
@@ -300,10 +300,10 @@ static void pstream_free(pa_pstream *p) {
 
     pa_pstream_unlink(p);
 
-    pa_queue_free(p->send_queue, item_free, NULL);
+    pa_queue_free(p->send_queue, item_free);
 
     if (p->write.current)
-        item_free(p->write.current, NULL);
+        item_free(p->write.current);
 
     if (p->write.memchunk.memblock)
         pa_memblock_unref(p->write.memchunk.memblock);
@@ -607,7 +607,7 @@ static int do_write(pa_pstream *p) {
 
     if (p->write.index >= PA_PSTREAM_DESCRIPTOR_SIZE + ntohl(p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH])) {
         pa_assert(p->write.current);
-        item_free(p->write.current, NULL);
+        item_free(p->write.current);
         p->write.current = NULL;
 
         if (p->write.memchunk.memblock)

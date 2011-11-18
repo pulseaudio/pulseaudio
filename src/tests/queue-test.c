@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     pa_queue_push(q, (void*) "sechs");
     pa_queue_push(q, (void*) "sieben");
 
-    pa_queue_free(q, NULL, NULL);
+    pa_queue_free(q, NULL);
 
     return 0;
 }

@@ -863,7 +863,7 @@ void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, pa_bool_t save) {
         pa_sink_input_unref(i);
     }
 
-    pa_queue_free(q, NULL, NULL);
+    pa_queue_free(q, NULL);
 }
 
 /* Called from main context */
@@ -878,7 +878,7 @@ void pa_sink_move_all_fail(pa_queue *q) {
         pa_sink_input_unref(i);
     }
 
-    pa_queue_free(q, NULL, NULL);
+    pa_queue_free(q, NULL);
 }
 
 /* Called from IO thread context */

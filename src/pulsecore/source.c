@@ -800,7 +800,7 @@ void pa_source_move_all_finish(pa_source *s, pa_queue *q, pa_bool_t save) {
         pa_source_output_unref(o);
     }
 
-    pa_queue_free(q, NULL, NULL);
+    pa_queue_free(q, NULL);
 }
 
 /* Called from main context */
@@ -815,7 +815,7 @@ void pa_source_move_all_fail(pa_queue *q) {
         pa_source_output_unref(o);
     }
 
-    pa_queue_free(q, NULL, NULL);
+    pa_queue_free(q, NULL);
 }
 
 /* Called from IO thread context */

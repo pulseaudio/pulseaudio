@@ -22,7 +22,7 @@
   USA.
 ***/
 
-#include <pulsecore/idxset.h>
+#include <pulse/def.h>
 
 typedef struct pa_queue pa_queue;
 
@@ -33,7 +33,7 @@ pa_queue* pa_queue_new(void);
 
 /* Free the queue and run the specified callback function for every
  * remaining entry. The callback function may be NULL. */
-void pa_queue_free(pa_queue* q, pa_free2_cb_t free_func, void *userdata);
+void pa_queue_free(pa_queue *q, pa_free_cb_t free_func);
 
 void pa_queue_push(pa_queue *q, void *p);
 void* pa_queue_pop(pa_queue *q);
