@@ -22,7 +22,7 @@
   USA.
 ***/
 
-#include <pulsecore/idxset.h>
+#include <pulse/def.h>
 
 typedef struct pa_dynarray pa_dynarray;
 
@@ -34,7 +34,7 @@ pa_dynarray* pa_dynarray_new(void);
 
 /* Free the array calling the specified function for every entry in
  * the array. The function may be NULL. */
-void pa_dynarray_free(pa_dynarray* a, pa_free2_cb_t free_func, void *userdata);
+void pa_dynarray_free(pa_dynarray *a, pa_free_cb_t free_func);
 
 /* Store p at position i in the array */
 void pa_dynarray_put(pa_dynarray*a, unsigned i, void *p);

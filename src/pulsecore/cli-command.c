@@ -1800,7 +1800,7 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
                             sorted_files = pa_xnew(char*, count);
                             for (i = 0; i < count; ++i)
                                 sorted_files[i] = pa_dynarray_get(files, i);
-                            pa_dynarray_free(files, NULL, NULL);
+                            pa_dynarray_free(files, NULL);
 
                             for (i = 0; i < count; ++i) {
                                 for (unsigned j = 0; j < count; ++j) {

@@ -50,14 +50,14 @@ pa_dynarray* pa_dynarray_new(void) {
     return a;
 }
 
-void pa_dynarray_free(pa_dynarray* a, pa_free2_cb_t free_func, void *userdata) {
+void pa_dynarray_free(pa_dynarray *a, pa_free_cb_t free_func) {
     unsigned i;
     pa_assert(a);
 
     if (free_func)
         for (i = 0; i < a->n_entries; i++)
             if (a->data[i])
-                free_func(a->data[i], userdata);
+                free_func(a->data[i]);
 
     pa_xfree(a->data);
     pa_xfree(a);
