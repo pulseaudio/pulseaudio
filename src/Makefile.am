@@ -238,8 +238,7 @@ TESTS_default = \
 		volume-test \
 		mix-test \
 		proplist-test \
-		lock-autospawn-test \
-		prioq-test
+		lock-autospawn-test
 
 TESTS_norun = \
 		mcalign-test \
@@ -493,11 +492,6 @@ lock_autospawn_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse
 lock_autospawn_test_CFLAGS = $(AM_CFLAGS)
 lock_autospawn_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-prioq_test_SOURCES = tests/prioq-test.c
-prioq_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-prioq_test_CFLAGS = $(AM_CFLAGS)
-prioq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
-
 sigbus_test_SOURCES = tests/sigbus-test.c
 sigbus_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 sigbus_test_CFLAGS = $(AM_CFLAGS)
@@ -584,7 +578,6 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/pid.c pulsecore/pid.h \
 		pulsecore/pipe.c pulsecore/pipe.h \
 		pulsecore/poll.c pulsecore/poll.h \
-		pulsecore/prioq.c pulsecore/prioq.h \
 		pulsecore/memtrap.c pulsecore/memtrap.h \
 		pulsecore/aupdate.c pulsecore/aupdate.h \
 		pulsecore/proplist-util.c pulsecore/proplist-util.h \

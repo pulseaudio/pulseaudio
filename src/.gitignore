@@ -51,7 +51,6 @@ mix-test
 once-test
 pacat-simple
 parec-simple
-prioq-test
 proplist-test
 queue-test
 remix-test
