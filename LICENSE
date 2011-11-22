@@ -2,16 +2,16 @@ All PulseAudio source files are licensed under the GNU Lesser General Public
 License. (see file LGPL for details)
 
 However, the server side has optional GPL dependencies.  These include the
-libsamplerate (for core libraries) and bluez (for the bluetooth proximity helper
-program) libraries, although others may also be included in the future.  If
-PulseAudio is compiled with these optional components, this effectively
-downgrades the license of the server part to GPL (see file GPL for details),
-exercising section 3 of the LGPL. In such circumstances, you should treat the
-client library (libpulse) of PulseAudio as being LGPL licensed and the server
-part (libpulsecore) as being GPL licensed. Since the PulseAudio daemon, tests,
-various utilities/helpers and the modules link to libpulsecore and/or the
-afore mentioned optional GPL dependencies they are of course also GPL licensed
-also in this scenario.
+libsamplerate and gdbm (core libraries), LIRC (lirc module), FFTW (equalizer
+module) and bluez (bluetooth proximity helper program) libraries, although
+others may also be included in the future.  If PulseAudio is compiled with these
+optional components, this effectively downgrades the license of the server part
+to GPL (see the file GPL for details), exercising section 3 of the LGPL.  In
+such circumstances, you should treat the client library (libpulse) of PulseAudio
+as being LGPL licensed and the server part (libpulsecore) as being GPL licensed.
+Since the PulseAudio daemon, tests, various utilities/helpers and the modules
+link to libpulsecore and/or the afore mentioned optional GPL dependencies they
+are of course also GPL licensed also in this scenario.
 
 Andre Adrian's echo cancellation implementation is licensed under a less
 restrictive license - see src/modules/echo-cancel/adrian-license.txt for
