@@ -37,7 +37,6 @@
 #include <pulsecore/socket.h>
 #include <pulsecore/queue.h>
 #include <pulsecore/log.h>
-#include <pulsecore/core-scache.h>
 #include <pulsecore/creds.h>
 #include <pulsecore/refcnt.h>
 #include <pulsecore/flist.h>
@@ -74,7 +73,11 @@ enum {
 typedef uint32_t pa_pstream_descriptor[PA_PSTREAM_DESCRIPTOR_MAX];
 
 #define PA_PSTREAM_DESCRIPTOR_SIZE (PA_PSTREAM_DESCRIPTOR_MAX*sizeof(uint32_t))
-#define FRAME_SIZE_MAX_ALLOW PA_SCACHE_ENTRY_SIZE_MAX /* allow uploading a single sample in one frame at max */
+
+/* To allow uploading a single sample in one frame, this value should be the
+ * same size (16 MB) as PA_SCACHE_ENTRY_SIZE_MAX from pulsecore/core-scache.h.
+ */
+#define FRAME_SIZE_MAX_ALLOW (1024*1024*16)
 
 PA_STATIC_FLIST_DECLARE(items, 0, pa_xfree);
 
