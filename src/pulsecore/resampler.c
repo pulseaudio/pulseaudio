@@ -1369,7 +1369,7 @@ static int speex_init(pa_resampler *r) {
 
 static void trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
     size_t fz;
-    unsigned o_index;
+    unsigned i_index, o_index;
     void *src, *dst;
 
     pa_assert(r);
@@ -1383,18 +1383,15 @@ static void trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned
     dst = (uint8_t*) pa_memblock_acquire(output->memblock) + output->index;
 
     for (o_index = 0;; o_index++, r->trivial.o_counter++) {
-        unsigned j;
+        i_index = (r->trivial.o_counter * r->i_ss.rate) / r->o_ss.rate;
+        i_index = i_index > r->trivial.i_counter ? i_index - r->trivial.i_counter : 0;
 
-        j = ((r->trivial.o_counter * r->i_ss.rate) / r->o_ss.rate);
-        j = j > r->trivial.i_counter ? j - r->trivial.i_counter : 0;
-
-        if (j >= in_n_frames)
+        if (i_index >= in_n_frames)
             break;
 
         pa_assert_fp(o_index * fz < pa_memblock_get_length(output->memblock));
 
-        memcpy((uint8_t*) dst + fz * o_index,
-                   (uint8_t*) src + fz * j, (int) fz);
+        memcpy((uint8_t*) dst + fz * o_index, (uint8_t*) src + fz * i_index, (int) fz);
     }
 
     pa_memblock_release(input->memblock);
