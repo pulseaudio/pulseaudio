@@ -484,7 +484,7 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
                     goto finish;
 
             }  else if (dbus_message_has_interface(p->message, "org.bluez.HandsfreeGateway")) {
-                if (parse_audio_property(y, &d->hfgw_state, &arg_i) < 0)
+                if (parse_audio_property(y, &d->hfgw_state, &dict_i) < 0)
                     goto finish;
 
             }
