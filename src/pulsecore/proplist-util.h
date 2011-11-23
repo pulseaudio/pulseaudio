@@ -25,5 +25,6 @@
 #include <pulse/proplist.h>
 
 void pa_init_proplist(pa_proplist *p);
+char *pa_proplist_get_stream_group(pa_proplist *pl, const char *prefix, const char *cache);
 
 #endif

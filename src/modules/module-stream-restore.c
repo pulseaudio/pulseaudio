@@ -51,6 +51,7 @@
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/database.h>
 #include <pulsecore/tagstruct.h>
+#include <pulsecore/proplist-util.h>
 
 #ifdef HAVE_DBUS
 #include <pulsecore/dbus-util.h>
@@ -971,31 +972,6 @@ static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct
     pa_log_info("Synced.");
 }
 
-static char *get_name(pa_proplist *p, const char *prefix) {
-    const char *r;
-    char *t;
-
-    if (!p)
-        return NULL;
-
-    if ((r = pa_proplist_gets(p, IDENTIFICATION_PROPERTY)))
-        return pa_xstrdup(r);
-
-    if ((r = pa_proplist_gets(p, PA_PROP_MEDIA_ROLE)))
-        t = pa_sprintf_malloc("%s-by-media-role:%s", prefix, r);
-    else if ((r = pa_proplist_gets(p, PA_PROP_APPLICATION_ID)))
-        t = pa_sprintf_malloc("%s-by-application-id:%s", prefix, r);
-    else if ((r = pa_proplist_gets(p, PA_PROP_APPLICATION_NAME)))
-        t = pa_sprintf_malloc("%s-by-application-name:%s", prefix, r);
-    else if ((r = pa_proplist_gets(p, PA_PROP_MEDIA_NAME)))
-        t = pa_sprintf_malloc("%s-by-media-name:%s", prefix, r);
-    else
-        t = pa_sprintf_malloc("%s-fallback:%s", prefix, r);
-
-    pa_proplist_sets(p, IDENTIFICATION_PROPERTY, t);
-    return t;
-}
-
 static struct entry* entry_new(void) {
     struct entry *r = pa_xnew0(struct entry, 1);
     r->version = ENTRY_VERSION;
@@ -1300,7 +1276,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!(sink_input = pa_idxset_get_by_index(c->sink_inputs, idx)))
             return;
 
-        if (!(name = get_name(sink_input->proplist, "sink-input")))
+        if (!(name = pa_proplist_get_stream_group(sink_input->proplist, "sink-input", IDENTIFICATION_PROPERTY)))
             return;
 
         if ((old = entry_read(u, name))) {
@@ -1350,7 +1326,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!(source_output = pa_idxset_get_by_index(c->source_outputs, idx)))
             return;
 
-        if (!(name = get_name(source_output->proplist, "source-output")))
+        if (!(name = pa_proplist_get_stream_group(source_output->proplist, "source-output", IDENTIFICATION_PROPERTY)))
             return;
 
         if ((old = entry_read(u, name))) {
@@ -1443,7 +1419,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
     pa_assert(u);
     pa_assert(u->restore_device);
 
-    if (!(name = get_name(new_data->proplist, "sink-input")))
+    if (!(name = pa_proplist_get_stream_group(new_data->proplist, "sink-input", IDENTIFICATION_PROPERTY)))
         return PA_HOOK_OK;
 
     if (new_data->sink)
@@ -1485,7 +1461,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
     pa_assert(u);
     pa_assert(u->restore_volume || u->restore_muted);
 
-    if (!(name = get_name(new_data->proplist, "sink-input")))
+    if (!(name = pa_proplist_get_stream_group(new_data->proplist, "sink-input", IDENTIFICATION_PROPERTY)))
         return PA_HOOK_OK;
 
     if ((e = entry_read(u, name))) {
@@ -1539,7 +1515,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     if (new_data->direct_on_input)
         return PA_HOOK_OK;
 
-    if (!(name = get_name(new_data->proplist, "source-output")))
+    if (!(name = pa_proplist_get_stream_group(new_data->proplist, "source-output", IDENTIFICATION_PROPERTY)))
         return PA_HOOK_OK;
 
     if (new_data->source)
@@ -1582,7 +1558,7 @@ static pa_hook_result_t source_output_fixate_hook_callback(pa_core *c, pa_source
     pa_assert(u);
     pa_assert(u->restore_volume || u->restore_muted);
 
-    if (!(name = get_name(new_data->proplist, "source-output")))
+    if (!(name = pa_proplist_get_stream_group(new_data->proplist, "source-output", IDENTIFICATION_PROPERTY)))
         return PA_HOOK_OK;
 
     if ((e = entry_read(u, name))) {
@@ -1654,7 +1630,7 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct
         if (!PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(si)))
             continue;
 
-        if (!(name = get_name(si->proplist, "sink-input")))
+        if (!(name = pa_proplist_get_stream_group(si->proplist, "sink-input", IDENTIFICATION_PROPERTY)))
             continue;
 
         if ((e = entry_read(u, name))) {
@@ -1702,7 +1678,7 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
         if (!PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(so)))
             continue;
 
-        if (!(name = get_name(so->proplist, "source-output")))
+        if (!(name = pa_proplist_get_stream_group(so->proplist, "source-output", IDENTIFICATION_PROPERTY)))
             continue;
 
         if ((e = entry_read(u, name))) {
@@ -1738,7 +1714,7 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
         if (!si->sink)
             continue;
 
-        if (!(name = get_name(si->proplist, "sink-input")))
+        if (!(name = pa_proplist_get_stream_group(si->proplist, "sink-input", IDENTIFICATION_PROPERTY)))
             continue;
 
         if ((e = entry_read(u, name))) {
@@ -1784,7 +1760,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
         if (!so->source)
             continue;
 
-        if (!(name = get_name(so->proplist, "source-output")))
+        if (!(name = pa_proplist_get_stream_group(so->proplist, "source-output", IDENTIFICATION_PROPERTY)))
             continue;
 
         if ((e = entry_read(u, name))) {
@@ -1903,7 +1879,7 @@ static void entry_apply(struct userdata *u, const char *name, struct entry *e) {
         char *n;
         pa_sink *s;
 
-        if (!(n = get_name(si->proplist, "sink-input")))
+        if (!(n = pa_proplist_get_stream_group(si->proplist, "sink-input", IDENTIFICATION_PROPERTY)))
             continue;
 
         if (!pa_streq(name, n)) {
@@ -1951,7 +1927,7 @@ static void entry_apply(struct userdata *u, const char *name, struct entry *e) {
         char *n;
         pa_source *s;
 
-        if (!(n = get_name(so->proplist, "source-output")))
+        if (!(n = pa_proplist_get_stream_group(so->proplist, "source-output", IDENTIFICATION_PROPERTY)))
             continue;
 
         if (!pa_streq(name, n)) {
