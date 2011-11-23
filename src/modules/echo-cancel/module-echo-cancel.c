@@ -1399,7 +1399,7 @@ static pa_bool_t source_output_may_move_to_cb(pa_source_output *o, pa_source *de
     pa_assert_ctl_context();
     pa_assert_se(u = o->userdata);
 
-    if (u->dead)
+    if (u->dead || u->autoloaded)
         return FALSE;
 
     return (u->source != dest) && (u->sink != dest->monitor_of);
@@ -1412,7 +1412,7 @@ static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (u->dead)
+    if (u->dead || u->autoloaded)
         return FALSE;
 
     return u->sink != dest;
