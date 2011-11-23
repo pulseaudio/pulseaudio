@@ -1376,6 +1376,7 @@ static void trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned
     pa_assert(input);
     pa_assert(output);
     pa_assert(out_n_frames);
+    pa_assert(r->i_ss.channels == r->o_ss.channels);
 
     fz = r->w_sz * r->o_ss.channels;
 
@@ -1391,7 +1392,16 @@ static void trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned
 
         pa_assert_fp(o_index * fz < pa_memblock_get_length(output->memblock));
 
-        memcpy((uint8_t*) dst + fz * o_index, (uint8_t*) src + fz * i_index, (int) fz);
+        /* Directly assign some common sample sizes, use memcpy as fallback */
+        if (r->w_sz == 2) {
+            for (unsigned c = 0; c < r->o_ss.channels; c++)
+                ((uint16_t *) dst)[o_index+c] = ((uint16_t *) src)[i_index+c];
+        } else if (r->w_sz == 4) {
+            for (unsigned c = 0; c < r->o_ss.channels; c++)
+                ((uint32_t *) dst)[o_index+c] = ((uint32_t *) src)[i_index+c];
+        } else {
+            memcpy((uint8_t *) dst + fz * o_index, (uint8_t *) src + fz * i_index, (int) fz);
+        }
     }
 
     pa_memblock_release(input->memblock);
