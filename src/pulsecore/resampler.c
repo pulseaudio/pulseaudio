@@ -1391,7 +1391,7 @@ static void trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned
         if (j >= in_n_frames)
             break;
 
-        pa_assert(o_index * fz < pa_memblock_get_length(output->memblock));
+        pa_assert_fp(o_index * fz < pa_memblock_get_length(output->memblock));
 
         memcpy((uint8_t*) dst + fz * o_index,
                    (uint8_t*) src + fz * j, (int) fz);
