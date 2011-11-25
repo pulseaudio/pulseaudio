@@ -43,6 +43,7 @@ typedef struct pa_source_volume_change pa_source_volume_change;
 #include <pulsecore/msgobject.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/card.h>
+#include <pulsecore/device-port.h>
 #include <pulsecore/queue.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/source-output.h>

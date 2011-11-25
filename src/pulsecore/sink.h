@@ -24,7 +24,6 @@
 ***/
 
 typedef struct pa_sink pa_sink;
-typedef struct pa_device_port pa_device_port;
 typedef struct pa_sink_volume_change pa_sink_volume_change;
 
 #include <inttypes.h>
@@ -43,6 +42,7 @@ typedef struct pa_sink_volume_change pa_sink_volume_change;
 #include <pulsecore/asyncmsgq.h>
 #include <pulsecore/msgobject.h>
 #include <pulsecore/rtpoll.h>
+#include <pulsecore/device-port.h>
 #include <pulsecore/card.h>
 #include <pulsecore/queue.h>
 #include <pulsecore/thread-mq.h>
@@ -54,18 +54,6 @@ typedef struct pa_sink_volume_change pa_sink_volume_change;
 static inline pa_bool_t PA_SINK_IS_LINKED(pa_sink_state_t x) {
     return x == PA_SINK_RUNNING || x == PA_SINK_IDLE || x == PA_SINK_SUSPENDED;
 }
-
-struct pa_device_port {
-    char *name;
-    char *description;
-
-    unsigned priority;
-    pa_port_available_t available;         /* PA_PORT_AVAILABLE_UNKNOWN, PA_PORT_AVAILABLE_NO or PA_PORT_AVAILABLE_YES */
-
-    /* .. followed by some implementation specific data */
-};
-
-#define PA_DEVICE_PORT_DATA(d) ((void*) ((uint8_t*) d + PA_ALIGN(sizeof(pa_device_port))))
 
 /* A generic definition for void callback functions */
 typedef void(*pa_sink_cb_t)(pa_sink *s);
@@ -499,9 +487,6 @@ void pa_sink_request_rewind(pa_sink*s, size_t nbytes);
 void pa_sink_invalidate_requested_latency(pa_sink *s, pa_bool_t dynamic);
 
 pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s);
-
-pa_device_port *pa_device_port_new(const char *name, const char *description, size_t extra);
-void pa_device_port_free(pa_device_port *p);
 
 /* Verify that we called in IO context (aka 'thread context), or that
  * the sink is not yet set up, i.e. the thread not set up yet. See

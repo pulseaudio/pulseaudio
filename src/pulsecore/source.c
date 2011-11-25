@@ -131,14 +131,8 @@ void pa_source_new_data_done(pa_source_new_data *data) {
 
     pa_proplist_free(data->proplist);
 
-    if (data->ports) {
-        pa_device_port *p;
-
-        while ((p = pa_hashmap_steal_first(data->ports)))
-            pa_device_port_free(p);
-
-        pa_hashmap_free(data->ports, NULL, NULL);
-    }
+    if (data->ports)
+        pa_device_port_hashmap_free(data->ports);
 
     pa_xfree(data->name);
     pa_xfree(data->active_port);
@@ -671,14 +665,8 @@ static void source_free(pa_object *o) {
     if (s->proplist)
         pa_proplist_free(s->proplist);
 
-    if (s->ports) {
-        pa_device_port *p;
-
-        while ((p = pa_hashmap_steal_first(s->ports)))
-            pa_device_port_free(p);
-
-        pa_hashmap_free(s->ports, NULL, NULL);
-    }
+    if (s->ports)
+        pa_device_port_hashmap_free(s->ports);
 
     pa_xfree(s);
 }

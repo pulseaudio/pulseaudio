@@ -826,6 +826,7 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/shared.c pulsecore/shared.h \
 		pulsecore/sink-input.c pulsecore/sink-input.h \
 		pulsecore/sink.c pulsecore/sink.h \
+		pulsecore/device-port.c pulsecore/device-port.h \
 		pulsecore/sioman.c pulsecore/sioman.h \
 		pulsecore/sound-file-stream.c pulsecore/sound-file-stream.h \
 		pulsecore/sound-file.c pulsecore/sound-file.h \
