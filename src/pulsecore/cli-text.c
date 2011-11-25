@@ -102,6 +102,33 @@ char *pa_client_list_to_string(pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
+static const char *port_available_to_string(pa_port_available_t a) {
+    switch (a) {
+        case PA_PORT_AVAILABLE_UNKNOWN:
+            return "unknown";
+        case PA_PORT_AVAILABLE_NO:
+            return "no";
+        case PA_PORT_AVAILABLE_YES:
+            return "yes";
+        default:
+            return "invalid"; /* Should never happen! */
+    }
+}
+
+static void append_port_list(pa_strbuf *s, pa_hashmap *ports)
+{
+    pa_device_port *p;
+    void *state;
+
+    if (!ports)
+        return;
+
+    pa_strbuf_puts(s, "\tports:\n");
+    PA_HASHMAP_FOREACH(p, ports, state)
+        pa_strbuf_printf(s, "\t\t%s: %s (priority %u, available: %s)\n",
+            p->name, p->description, p->priority, port_available_to_string(p->available));
+}
+
 char *pa_card_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_card *card;
@@ -160,6 +187,8 @@ char *pa_card_list_to_string(pa_core *c) {
             for (source = pa_idxset_first(card->sources, &sidx); source; source = pa_idxset_next(card->sources, &sidx))
                 pa_strbuf_printf(s, "\t\t%s/#%u: %s\n", source->name, source->index, pa_strna(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
         }
+
+        append_port_list(s, card->ports);
     }
 
     return pa_strbuf_tostring_free(s);
@@ -306,15 +335,7 @@ char *pa_sink_list_to_string(pa_core *c) {
         pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
 
-        if (sink->ports) {
-            pa_device_port *p;
-            void *state;
-
-            pa_strbuf_puts(s, "\tports:\n");
-            PA_HASHMAP_FOREACH(p, sink->ports, state)
-                pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
-        }
-
+        append_port_list(s, sink->ports);
 
         if (sink->active_port)
             pa_strbuf_printf(
@@ -429,14 +450,7 @@ char *pa_source_list_to_string(pa_core *c) {
         pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
 
-        if (source->ports) {
-            pa_device_port *p;
-            void *state;
-
-            pa_strbuf_puts(s, "\tports:\n");
-            PA_HASHMAP_FOREACH(p, source->ports, state)
-                pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
-        }
+        append_port_list(s, source->ports);
 
         if (source->active_port)
             pa_strbuf_printf(
