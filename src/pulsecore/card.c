@@ -34,6 +34,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/namereg.h>
+#include <pulsecore/device-port.h>
 
 #include "card.h"
 
@@ -66,7 +67,7 @@ pa_card_new_data* pa_card_new_data_init(pa_card_new_data *data) {
 
     memset(data, 0, sizeof(*data));
     data->proplist = pa_proplist_new();
-
+    data->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     return data;
 }
 
@@ -98,6 +99,9 @@ void pa_card_new_data_done(pa_card_new_data *data) {
 
         pa_hashmap_free(data->profiles, NULL, NULL);
     }
+
+    if (data->ports)
+        pa_device_port_hashmap_free(data->ports);
 
     pa_xfree(data->name);
     pa_xfree(data->active_profile);
@@ -139,6 +143,8 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
      * copying it here */
     c->profiles = data->profiles;
     data->profiles = NULL;
+    c->ports = data->ports;
+    data->ports = NULL;
 
     c->active_profile = NULL;
     c->save_profile = FALSE;
@@ -194,6 +200,8 @@ void pa_card_free(pa_card *c) {
     pa_idxset_free(c->sinks, NULL, NULL);
     pa_assert(pa_idxset_isempty(c->sources));
     pa_idxset_free(c->sources, NULL, NULL);
+
+    pa_device_port_hashmap_free(c->ports);
 
     if (c->profiles) {
         pa_card_profile *p;

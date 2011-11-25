@@ -63,6 +63,8 @@ struct pa_card {
     pa_hashmap *profiles;
     pa_card_profile *active_profile;
 
+    pa_hashmap *ports;
+
     pa_bool_t save_profile:1;
 
     void *userdata;
@@ -79,6 +81,8 @@ typedef struct pa_card_new_data {
 
     pa_hashmap *profiles;
     char *active_profile;
+
+    pa_hashmap *ports;
 
     pa_bool_t namereg_fail:1;
 

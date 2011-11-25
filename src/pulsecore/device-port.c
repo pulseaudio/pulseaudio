@@ -32,6 +32,8 @@ static void device_port_free(pa_object *o) {
     pa_assert(p);
     pa_assert(pa_device_port_refcnt(p) == 0);
 
+    if (p->profiles)
+        pa_hashmap_free(p->profiles, NULL, NULL);
     pa_xfree(p->name);
     pa_xfree(p->description);
     pa_xfree(p);
@@ -50,6 +52,9 @@ pa_device_port *pa_device_port_new(const char *name, const char *description, si
     p->description = pa_xstrdup(description);
     p->priority = 0;
     p->available = PA_PORT_AVAILABLE_UNKNOWN;
+    p->profiles = NULL;
+    p->is_input = FALSE;
+    p->is_output = FALSE;
 
     return p;
 }
