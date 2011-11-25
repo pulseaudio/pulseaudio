@@ -1598,22 +1598,14 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
 
         pa_log_debug("Probed mixer path %s:", u->mixer_path->name);
         pa_alsa_path_dump(u->mixer_path);
-    } else {
-
-        if (!(u->mixer_path_set = pa_alsa_path_set_new(mapping, PA_ALSA_DIRECTION_INPUT, u->paths_dir)))
-            goto fail;
-
-        pa_alsa_path_set_probe(u->mixer_path_set, u->mixer_handle, ignore_dB);
-    }
+    } else if (!(u->mixer_path_set = mapping->input_path_set))
+        goto fail;
 
     return;
 
 fail:
 
-    if (u->mixer_path_set) {
-        pa_alsa_path_set_free(u->mixer_path_set);
-        u->mixer_path_set = NULL;
-    } else if (u->mixer_path) {
+    if (u->mixer_path) {
         pa_alsa_path_free(u->mixer_path);
         u->mixer_path = NULL;
     }
@@ -1649,7 +1641,7 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB) {
     } else {
 
         if (!u->mixer_path && u->mixer_path_set)
-            u->mixer_path = u->mixer_path_set->paths;
+            u->mixer_path = pa_hashmap_first(u->mixer_path_set->paths);
 
         if (u->mixer_path) {
             /* Hmm, we have only a single path, then let's activate it */
@@ -1667,8 +1659,9 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB) {
     /* Will we need to register callbacks? */
     if (u->mixer_path_set && u->mixer_path_set->paths) {
         pa_alsa_path *p;
+        void *state;
 
-        PA_LLIST_FOREACH(p, u->mixer_path_set->paths) {
+        PA_HASHMAP_FOREACH(p, u->mixer_path_set->paths, state) {
             if (p->has_volume || p->has_mute)
                 need_mixer_callback = TRUE;
         }
@@ -1950,7 +1943,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     }
 
     if (u->mixer_path_set)
-        pa_alsa_add_ports(u->core, &data.ports, u->mixer_path_set);
+        pa_alsa_add_ports(&data.ports, u->mixer_path_set, card);
 
     u->source = pa_source_new(m->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY|(u->use_tsched ? PA_SOURCE_DYNAMIC_LATENCY : 0));
     pa_source_new_data_done(&data);
@@ -2089,9 +2082,7 @@ static void userdata_free(struct userdata *u) {
     if (u->mixer_fdl)
         pa_alsa_fdlist_free(u->mixer_fdl);
 
-    if (u->mixer_path_set)
-        pa_alsa_path_set_free(u->mixer_path_set);
-    else if (u->mixer_path)
+    if (u->mixer_path && !u->mixer_path_set)
         pa_alsa_path_free(u->mixer_path);
 
     if (u->mixer_handle)

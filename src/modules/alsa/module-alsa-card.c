@@ -117,7 +117,7 @@ struct profile_data {
     pa_alsa_profile *profile;
 };
 
-static void add_profiles(struct userdata *u, pa_hashmap *h) {
+static void add_profiles(struct userdata *u, pa_hashmap *h, pa_hashmap *ports) {
     pa_alsa_profile *ap;
     void *state;
 
@@ -136,17 +136,21 @@ static void add_profiles(struct userdata *u, pa_hashmap *h) {
         if (ap->output_mappings) {
             cp->n_sinks = pa_idxset_size(ap->output_mappings);
 
-            PA_IDXSET_FOREACH(m, ap->output_mappings, idx)
+            PA_IDXSET_FOREACH(m, ap->output_mappings, idx) {
+                pa_alsa_path_set_add_ports(m->output_path_set, cp, ports, NULL, u->core);
                 if (m->channel_map.channels > cp->max_sink_channels)
                     cp->max_sink_channels = m->channel_map.channels;
+            }
         }
 
         if (ap->input_mappings) {
             cp->n_sources = pa_idxset_size(ap->input_mappings);
 
-            PA_IDXSET_FOREACH(m, ap->input_mappings, idx)
+            PA_IDXSET_FOREACH(m, ap->input_mappings, idx) {
+                pa_alsa_path_set_add_ports(m->input_path_set, cp, ports, NULL, u->core);
                 if (m->channel_map.channels > cp->max_source_channels)
                     cp->max_source_channels = m->channel_map.channels;
+            }
         }
 
         d = PA_CARD_PROFILE_DATA(cp);
@@ -293,6 +297,7 @@ int pa__init(pa_module *m) {
     pa_card_new_data data;
     pa_modargs *ma;
     int alsa_card_index;
+    pa_bool_t ignore_dB = FALSE;
     struct userdata *u;
     pa_reserve_wrapper *reserve = NULL;
     const char *description;
@@ -306,6 +311,11 @@ int pa__init(pa_module *m) {
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_boolean(ma, "ignore_dB", &ignore_dB) < 0) {
+        pa_log("Failed to parse ignore_dB argument.");
         goto fail;
     }
 
@@ -344,6 +354,8 @@ int pa__init(pa_module *m) {
     u->profile_set = pa_alsa_profile_set_new(fn, &u->core->default_channel_map);
     pa_xfree(fn);
 
+    u->profile_set->ignore_dB = ignore_dB;
+
     if (!u->profile_set)
         goto fail;
 
@@ -377,7 +389,7 @@ int pa__init(pa_module *m) {
             pa_reserve_wrapper_set_application_device_name(reserve, description);
 
     data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    add_profiles(u, data.profiles);
+    add_profiles(u, data.profiles, data.ports);
 
     if (pa_hashmap_isempty(data.profiles)) {
         pa_log("Failed to find a working profile.");

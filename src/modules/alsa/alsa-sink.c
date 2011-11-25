@@ -1860,22 +1860,14 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
 
         pa_log_debug("Probed mixer path %s:", u->mixer_path->name);
         pa_alsa_path_dump(u->mixer_path);
-    } else {
-
-        if (!(u->mixer_path_set = pa_alsa_path_set_new(mapping, PA_ALSA_DIRECTION_OUTPUT, u->paths_dir)))
-            goto fail;
-
-        pa_alsa_path_set_probe(u->mixer_path_set, u->mixer_handle, ignore_dB);
-    }
+    } else if (!(u->mixer_path_set = mapping->output_path_set))
+        goto fail;
 
     return;
 
 fail:
 
-    if (u->mixer_path_set) {
-        pa_alsa_path_set_free(u->mixer_path_set);
-        u->mixer_path_set = NULL;
-    } else if (u->mixer_path) {
+    if (u->mixer_path) {
         pa_alsa_path_free(u->mixer_path);
         u->mixer_path = NULL;
     }
@@ -1912,7 +1904,7 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB) {
     } else {
 
         if (!u->mixer_path && u->mixer_path_set)
-            u->mixer_path = u->mixer_path_set->paths;
+            u->mixer_path = pa_hashmap_first(u->mixer_path_set->paths);
 
         if (u->mixer_path) {
             /* Hmm, we have only a single path, then let's activate it */
@@ -1930,8 +1922,9 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB) {
     /* Will we need to register callbacks? */
     if (u->mixer_path_set && u->mixer_path_set->paths) {
         pa_alsa_path *p;
+        void *state;
 
-        PA_LLIST_FOREACH(p, u->mixer_path_set->paths) {
+        PA_HASHMAP_FOREACH(p, u->mixer_path_set->paths, state) {
             if (p->has_volume || p->has_mute)
                 need_mixer_callback = TRUE;
         }
@@ -2224,7 +2217,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     }
 
     if (u->mixer_path_set)
-        pa_alsa_add_ports(u->core, &data.ports, u->mixer_path_set);
+        pa_alsa_add_ports(&data.ports, u->mixer_path_set, card);
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE | PA_SINK_LATENCY | (u->use_tsched ? PA_SINK_DYNAMIC_LATENCY : 0) |
                           (set_formats ? PA_SINK_SET_FORMATS : 0));
@@ -2389,9 +2382,7 @@ static void userdata_free(struct userdata *u) {
     if (u->mixer_fdl)
         pa_alsa_fdlist_free(u->mixer_fdl);
 
-    if (u->mixer_path_set)
-        pa_alsa_path_set_free(u->mixer_path_set);
-    else if (u->mixer_path)
+    if (u->mixer_path && !u->mixer_path_set)
         pa_alsa_path_free(u->mixer_path);
 
     if (u->mixer_handle)

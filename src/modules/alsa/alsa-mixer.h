@@ -158,9 +158,6 @@ struct pa_alsa_element {
  * used to control it as if it had a single volume slider, a single
  * mute switch and a single list of selectable options. */
 struct pa_alsa_path {
-    pa_alsa_path_set *path_set;
-    PA_LLIST_FIELDS(pa_alsa_path);
-
     pa_alsa_direction_t direction;
 
     char *name;
@@ -192,13 +189,9 @@ struct pa_alsa_path {
 /* A path set is simply a set of paths that are applicable to a
  * device */
 struct pa_alsa_path_set {
-    PA_LLIST_HEAD(pa_alsa_path, paths);
+    pa_hashmap *paths;
     pa_alsa_direction_t direction;
     pa_bool_t probed:1;
-
-    /* This is used during parsing only, as a shortcut so that we
-     * don't have to iterate the list all the time */
-    pa_alsa_path *last_path;
 };
 
 int pa_alsa_setting_select(pa_alsa_setting *s, snd_mixer_t *m);
@@ -242,6 +235,8 @@ struct pa_alsa_mapping {
     char **output_path_names;
     char **input_element; /* list of fallbacks */
     char **output_element;
+    pa_alsa_path_set *input_path_set;
+    pa_alsa_path_set *output_path_set;
 
     unsigned supported;
 
@@ -289,8 +284,11 @@ struct pa_alsa_profile_set {
     pa_hashmap *mappings;
     pa_hashmap *profiles;
     pa_hashmap *decibel_fixes;
+    pa_hashmap *input_paths;
+    pa_hashmap *output_paths;
 
     pa_bool_t auto_profiles;
+    pa_bool_t ignore_dB:1;
     pa_bool_t probed:1;
 };
 
@@ -323,6 +321,7 @@ struct pa_alsa_port_data {
     pa_alsa_setting *setting;
 };
 
-void pa_alsa_add_ports(pa_core *c, pa_hashmap **p, pa_alsa_path_set *ps);
+void pa_alsa_add_ports(pa_hashmap **p, pa_alsa_path_set *ps, pa_card *card);
+void pa_alsa_path_set_add_ports(pa_alsa_path_set *ps, pa_card_profile *cp, pa_hashmap *ports, pa_hashmap *extra, pa_core *core);
 
 #endif
