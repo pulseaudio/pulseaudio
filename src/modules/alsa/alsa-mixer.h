@@ -323,6 +323,6 @@ struct pa_alsa_port_data {
     pa_alsa_setting *setting;
 };
 
-void pa_alsa_add_ports(pa_hashmap **p, pa_alsa_path_set *ps);
+void pa_alsa_add_ports(pa_core *c, pa_hashmap **p, pa_alsa_path_set *ps);
 
 #endif

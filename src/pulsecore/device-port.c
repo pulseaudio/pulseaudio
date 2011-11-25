@@ -21,10 +21,48 @@
   USA.
 ***/
 
-
 #include "device-port.h"
+#include <pulsecore/card.h>
 
 PA_DEFINE_PUBLIC_CLASS(pa_device_port, pa_object);
+
+void pa_device_port_set_available(pa_device_port *p, pa_port_available_t status)
+{
+    uint32_t state;
+    pa_card *card;
+/*    pa_source *source;
+    pa_sink *sink; */
+    pa_core *core;
+
+    pa_assert(p);
+
+    if (p->available == status)
+        return;
+
+    pa_assert(status != PA_PORT_AVAILABLE_UNKNOWN);
+
+    p->available = status;
+    pa_log_debug("Setting port %s to status %s", p->name, status == PA_PORT_AVAILABLE_YES ? "yes" : "no");
+
+    /* Post subscriptions to the card which owns us */
+    pa_assert_se(core = p->core);
+    PA_IDXSET_FOREACH(card, core->cards, state)
+        if (p == pa_hashmap_get(card->ports, p->name))
+            pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, card->index);
+#if 0
+/* This stuff is temporarily commented out while figuring out whether to actually do this */
+    if (p->is_output)
+        PA_IDXSET_FOREACH(sink, core->sinks, state)
+            if (p == pa_hashmap_get(sink->ports, p->name))
+                pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, sink->index);
+    if (p->is_input)
+        PA_IDXSET_FOREACH(source, core->sources, state)
+            if (p == pa_hashmap_get(source->ports, p->name))
+                pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, source->index);
+#endif
+
+    pa_hook_fire(&core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED], p);
+}
 
 static void device_port_free(pa_object *o) {
     pa_device_port *p = PA_DEVICE_PORT(o);
@@ -40,7 +78,7 @@ static void device_port_free(pa_object *o) {
 }
 
 
-pa_device_port *pa_device_port_new(const char *name, const char *description, size_t extra) {
+pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *description, size_t extra) {
     pa_device_port *p;
 
     pa_assert(name);
@@ -50,6 +88,7 @@ pa_device_port *pa_device_port_new(const char *name, const char *description, si
 
     p->name = pa_xstrdup(name);
     p->description = pa_xstrdup(description);
+    p->core = c;
     p->priority = 0;
     p->available = PA_PORT_AVAILABLE_UNKNOWN;
     p->profiles = NULL;

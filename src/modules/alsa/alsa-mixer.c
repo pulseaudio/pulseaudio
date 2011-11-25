@@ -4286,9 +4286,10 @@ void pa_alsa_profile_set_dump(pa_alsa_profile_set *ps) {
         pa_alsa_decibel_fix_dump(db_fix);
 }
 
-void pa_alsa_add_ports(pa_hashmap **p, pa_alsa_path_set *ps) {
+void pa_alsa_add_ports(pa_core *c, pa_hashmap **p, pa_alsa_path_set *ps) {
     pa_alsa_path *path;
 
+    pa_assert(c);
     pa_assert(p);
     pa_assert(!*p);
     pa_assert(ps);
@@ -4313,7 +4314,7 @@ void pa_alsa_add_ports(pa_hashmap **p, pa_alsa_path_set *ps) {
             pa_device_port *port;
             pa_alsa_port_data *data;
 
-            port = pa_device_port_new(s->name, s->description, sizeof(pa_alsa_port_data));
+            port = pa_device_port_new(c, s->name, s->description, sizeof(pa_alsa_port_data));
             port->priority = s->priority;
 
             data = PA_DEVICE_PORT_DATA(port);
@@ -4338,7 +4339,7 @@ void pa_alsa_add_ports(pa_hashmap **p, pa_alsa_path_set *ps) {
                 /* If there is no or just one setting we only need a
                  * single entry */
 
-                port = pa_device_port_new(path->name, path->description, sizeof(pa_alsa_port_data));
+                port = pa_device_port_new(c, path->name, path->description, sizeof(pa_alsa_port_data));
                 port->priority = path->priority * 100;
 
 
@@ -4362,7 +4363,7 @@ void pa_alsa_add_ports(pa_hashmap **p, pa_alsa_path_set *ps) {
                     else
                         d = pa_xstrdup(path->description);
 
-                    port = pa_device_port_new(n, d, sizeof(pa_alsa_port_data));
+                    port = pa_device_port_new(c, n, d, sizeof(pa_alsa_port_data));
                     port->priority = path->priority * 100 + s->priority;
 
                     pa_xfree(n);

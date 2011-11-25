@@ -1950,7 +1950,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     }
 
     if (u->mixer_path_set)
-        pa_alsa_add_ports(&data.ports, u->mixer_path_set);
+        pa_alsa_add_ports(u->core, &data.ports, u->mixer_path_set);
 
     u->source = pa_source_new(m->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY|(u->use_tsched ? PA_SOURCE_DYNAMIC_LATENCY : 0));
     pa_source_new_data_done(&data);

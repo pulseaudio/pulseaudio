@@ -36,7 +36,7 @@ AC_SUBST(PA_MINOR, pa_minor)
 AC_SUBST(PA_MAJORMINOR, pa_major.pa_minor)
 
 AC_SUBST(PA_API_VERSION, 12)
-AC_SUBST(PA_PROTOCOL_VERSION, 24)
+AC_SUBST(PA_PROTOCOL_VERSION, 25)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z
