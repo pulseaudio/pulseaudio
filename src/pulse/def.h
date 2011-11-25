@@ -977,6 +977,21 @@ typedef void (*pa_free_cb_t)(void *p);
  * playback, \since 1.0 */
 #define PA_STREAM_EVENT_FORMAT_LOST "format-lost"
 
+/** Port availability / jack detection status
+ * \since 2.0 */
+typedef enum pa_port_available {
+    PA_PORT_AVAILABLE_UNKNOWN = 0, /**< This port does not support jack detection \since 2.0 */
+    PA_PORT_AVAILABLE_NO = 1,      /**< This port is not available, likely because the jack is not plugged in. \since 2.0 */
+    PA_PORT_AVAILABLE_YES = 2,     /**< This port is available, likely because the jack is plugged in. \since 2.0 */
+} pa_port_available_t;
+
+/** \cond fulldocs */
+#define PA_PORT_AVAILABLE_UNKNOWN PA_PORT_AVAILABLE_UNKNOWN
+#define PA_PORT_AVAILABLE_NO PA_PORT_AVAILABLE_NO
+#define PA_PORT_AVAILABLE_YES PA_PORT_AVAILABLE_YES
+
+/** \endcond */
+
 PA_C_DECL_END
 
 #endif

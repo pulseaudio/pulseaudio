@@ -3124,6 +3124,8 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
                 pa_tagstruct_puts(t, p->name);
                 pa_tagstruct_puts(t, p->description);
                 pa_tagstruct_putu32(t, p->priority);
+                if (c->version >= 24)
+                    pa_tagstruct_putu32(t, p->available);
             }
         }
 
@@ -3195,6 +3197,8 @@ static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
                 pa_tagstruct_puts(t, p->name);
                 pa_tagstruct_puts(t, p->description);
                 pa_tagstruct_putu32(t, p->priority);
+                if (c->version >= 24)
+                    pa_tagstruct_putu32(t, p->available);
             }
         }
 

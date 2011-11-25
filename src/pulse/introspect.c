@@ -211,6 +211,14 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                             goto fail;
                         }
 
+                        i.ports[0][j].available = PA_PORT_AVAILABLE_UNKNOWN;
+                        if (o->context->version >= 24) {
+                            uint32_t av;
+                            if (pa_tagstruct_getu32(t, &av) < 0 || av > PA_PORT_AVAILABLE_YES)
+                                goto fail;
+                            i.ports[0][j].available = av;
+                        }
+
                         i.ports[j] = &i.ports[0][j];
                     }
 
@@ -474,6 +482,14 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                             pa_tagstruct_getu32(t, &i.ports[0][j].priority) < 0) {
 
                             goto fail;
+                        }
+
+                        i.ports[0][j].available = PA_PORT_AVAILABLE_UNKNOWN;
+                        if (o->context->version >= 24) {
+                            uint32_t av;
+                            if (pa_tagstruct_getu32(t, &av) < 0 || av > PA_PORT_AVAILABLE_YES)
+                                goto fail;
+                            i.ports[0][j].available = av;
                         }
 
                         i.ports[j] = &i.ports[0][j];

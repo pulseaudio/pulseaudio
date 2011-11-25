@@ -996,6 +996,41 @@ fail:
     pa_module_unload_request(u->module, TRUE);
 }
 
+static int read_ports(struct userdata *u, pa_tagstruct *t)
+{
+    if (u->version >= 16) {
+        uint32_t n_ports;
+        const char *s;
+
+        if (pa_tagstruct_getu32(t, &n_ports)) {
+            pa_log("Parse failure");
+            return -PA_ERR_PROTOCOL;
+        }
+
+        for (uint32_t j = 0; j < n_ports; j++) {
+            uint32_t priority;
+
+            if (pa_tagstruct_gets(t, &s) < 0 || /* name */
+                pa_tagstruct_gets(t, &s) < 0 || /* description */
+                pa_tagstruct_getu32(t, &priority) < 0) {
+
+                pa_log("Parse failure");
+                return -PA_ERR_PROTOCOL;
+            }
+            if (u->version >= 24 && pa_tagstruct_getu32(t, &priority) < 0) { /* available */
+                pa_log("Parse failure");
+                return -PA_ERR_PROTOCOL;
+            }
+        }
+
+        if (pa_tagstruct_gets(t, &s) < 0) { /* active port */
+            pa_log("Parse failure");
+            return -PA_ERR_PROTOCOL;
+        }
+    }
+    return 0;
+}
+
 #ifdef TUNNEL_SINK
 
 /* Called from main context */
@@ -1066,32 +1101,8 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
         }
     }
 
-    if (u->version >= 16) {
-        uint32_t n_ports;
-        const char *s;
-
-        if (pa_tagstruct_getu32(t, &n_ports)) {
-            pa_log("Parse failure");
-            goto fail;
-        }
-
-        for (uint32_t j = 0; j < n_ports; j++) {
-            uint32_t priority;
-
-            if (pa_tagstruct_gets(t, &s) < 0 || /* name */
-                pa_tagstruct_gets(t, &s) < 0 || /* description */
-                pa_tagstruct_getu32(t, &priority) < 0) {
-
-                pa_log("Parse failure");
-                goto fail;
-            }
-        }
-
-        if (pa_tagstruct_gets(t, &s) < 0) { /* active port */
-            pa_log("Parse failure");
-            goto fail;
-        }
-    }
+    if (read_ports(u, t) < 0)
+        goto fail;
 
     if (u->version >= 21) {
         uint8_t n_formats;
@@ -1318,32 +1329,8 @@ static void source_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
         }
     }
 
-    if (u->version >= 16) {
-        uint32_t n_ports;
-        const char *s;
-
-        if (pa_tagstruct_getu32(t, &n_ports)) {
-            pa_log("Parse failure");
-            goto fail;
-        }
-
-        for (uint32_t j = 0; j < n_ports; j++) {
-            uint32_t priority;
-
-            if (pa_tagstruct_gets(t, &s) < 0 || /* name */
-                pa_tagstruct_gets(t, &s) < 0 || /* description */
-                pa_tagstruct_getu32(t, &priority) < 0) {
-
-                pa_log("Parse failure");
-                goto fail;
-            }
-        }
-
-        if (pa_tagstruct_gets(t, &s) < 0) { /* active port */
-            pa_log("Parse failure");
-            goto fail;
-        }
-    }
+    if (read_ports(u, t) < 0)
+        goto fail;
 
     if (!pa_tagstruct_eof(t)) {
         pa_log("Packet too long");

@@ -202,6 +202,7 @@ typedef struct pa_sink_port_info {
     const char *name;                   /**< Name of this port */
     const char *description;            /**< Description of this port */
     uint32_t priority;                  /**< The higher this value is the more useful this port is as a default */
+    int available;                      /**< A \link pa_port_available_t, indicating availability status of this port. \since 2.0 */
 } pa_sink_port_info;
 
 /** Stores information about sinks. Please note that this structure
@@ -281,6 +282,7 @@ typedef struct pa_source_port_info {
     const char *name;                   /**< Name of this port */
     const char *description;            /**< Description of this port */
     uint32_t priority;                  /**< The higher this value is the more useful this port is as a default */
+    int available;                      /**< A \link pa_port_available_t, indicating availability status of this port. \since 2.0 */
 } pa_source_port_info;
 
 /** Stores information about sources. Please note that this structure

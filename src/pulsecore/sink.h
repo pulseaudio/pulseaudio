@@ -60,6 +60,7 @@ struct pa_device_port {
     char *description;
 
     unsigned priority;
+    pa_port_available_t available;         /* PA_PORT_AVAILABLE_UNKNOWN, PA_PORT_AVAILABLE_NO or PA_PORT_AVAILABLE_YES */
 
     /* .. followed by some implementation specific data */
 };
