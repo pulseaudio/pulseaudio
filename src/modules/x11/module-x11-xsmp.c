@@ -96,7 +96,7 @@ static void ice_io_cb(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_fla
 }
 
 static void new_ice_connection(IceConn connection, IcePointer client_data, Bool opening, IcePointer *watch_data) {
-    struct pa_core *c = client_data;
+    pa_core *c = client_data;
 
     if (opening)
         *watch_data = c->mainloop->io_new(
