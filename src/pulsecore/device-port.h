@@ -63,8 +63,6 @@ pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *des
 
 void pa_device_port_hashmap_free(pa_hashmap *h);
 
-#include <pulsecore/core.h>
-
 /* The port's available status has changed */
 void pa_device_port_set_available(pa_device_port *p, pa_port_available_t available);
 
