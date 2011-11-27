@@ -176,7 +176,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, pa_bool_t shared, mode_t mode) {
         pa_assert_se(pa_close(fd) == 0);
         m->do_unlink = TRUE;
 #else
-        return -1;
+        goto fail;
 #endif
     }
 
