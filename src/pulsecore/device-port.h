@@ -24,6 +24,7 @@
   USA.
 ***/
 
+typedef struct pa_device_port pa_device_port;
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -34,16 +35,11 @@
 #include <pulse/def.h>
 #include <pulsecore/object.h>
 #include <pulsecore/hashmap.h>
-
-/* Note: Including core.h here leads to circular references
-   (device-port.h -> core.h -> sink.h -> device-port.h), hence the line below instead */
-struct pa_core;
-
-typedef struct pa_device_port pa_device_port;
+#include <pulsecore/core.h>
 
 struct pa_device_port {
     pa_object parent; /* Needed for reference counting */
-    struct pa_core *core;
+    pa_core *core;
 
     char *name;
     char *description;
@@ -63,7 +59,7 @@ PA_DECLARE_PUBLIC_CLASS(pa_device_port);
 
 #define PA_DEVICE_PORT_DATA(d) ((void*) ((uint8_t*) d + PA_ALIGN(sizeof(pa_device_port))))
 
-pa_device_port *pa_device_port_new(struct pa_core *c, const char *name, const char *description, size_t extra);
+pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *description, size_t extra);
 
 void pa_device_port_hashmap_free(pa_hashmap *h);
 
