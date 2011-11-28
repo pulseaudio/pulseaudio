@@ -1442,7 +1442,6 @@ static int trivial_init(pa_resampler*r) {
 /* Peak finder implementation */
 
 static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
-    size_t fz;
     unsigned c, o_index = 0;
     unsigned i, i_end = 0;
     void *src, *dst;
@@ -1452,21 +1451,20 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
     pa_assert(output);
     pa_assert(out_n_frames);
     pa_assert(r->i_ss.rate >= r->o_ss.rate);
+    pa_assert(r->i_ss.channels == r->o_ss.channels);
     pa_assert(r->work_format == PA_SAMPLE_S16NE || r->work_format == PA_SAMPLE_FLOAT32NE);
-
-    fz = r->w_sz * r->o_ss.channels;
 
     src = (uint8_t*) pa_memblock_acquire(input->memblock) + input->index;
     dst = (uint8_t*) pa_memblock_acquire(output->memblock) + output->index;
 
-    i = ((r->peaks.o_counter * r->i_ss.rate) / r->o_ss.rate);
+    i = (r->peaks.o_counter * r->i_ss.rate) / r->o_ss.rate;
     i = i > r->peaks.i_counter ? i - r->peaks.i_counter : 0;
 
     while (i_end < in_n_frames) {
-        i_end = (((r->peaks.o_counter+1) * r->i_ss.rate) / r->o_ss.rate);
+        i_end = ((r->peaks.o_counter+1) * r->i_ss.rate) / r->o_ss.rate;
         i_end = i_end > r->peaks.i_counter ? i_end - r->peaks.i_counter : 0;
 
-        pa_assert_fp(o_index * fz < pa_memblock_get_length(output->memblock));
+        pa_assert_fp(o_index * r->w_sz * r->o_ss.channels < pa_memblock_get_length(output->memblock));
 
         /* 1ch float is treated separately, because that is the common case */
         if (r->o_ss.channels == 1 && r->work_format == PA_SAMPLE_FLOAT32NE) {
@@ -1486,8 +1484,8 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
                 o_index++, r->peaks.o_counter++;
             }
         } else if (r->work_format == PA_SAMPLE_S16NE) {
-            int16_t *s = (int16_t*) ((uint8_t*) src + fz * i);
-            int16_t *d = (int16_t*) ((uint8_t*) dst + fz * o_index);
+            int16_t *s = (int16_t*) src + r->i_ss.channels * i;
+            int16_t *d = (int16_t*) dst + r->o_ss.channels * o_index;
 
             for (; i < i_end && i < in_n_frames; i++)
                 for (c = 0; c < r->o_ss.channels; c++) {
@@ -1505,8 +1503,8 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
                 o_index++, r->peaks.o_counter++;
             }
         } else {
-            float *s = (float*) ((uint8_t*) src + fz * i);
-            float *d = (float*) ((uint8_t*) dst + fz * o_index);
+            float *s = (float*) src + r->i_ss.channels * i;
+            float *d = (float*) dst + r->o_ss.channels * o_index;
 
             for (; i < i_end && i < in_n_frames; i++)
                 for (c = 0; c < r->o_ss.channels; c++) {
