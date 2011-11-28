@@ -2036,12 +2036,6 @@ int main(int argc, char* argv[]) {
         goto usage;
     }
 
-    u.ec = pa_xnew0(pa_echo_canceller, 1);
-    if (!u.ec) {
-        pa_log("Failed to alloc echo canceller");
-        goto fail;
-    }
-
     u.captured_file = fopen(argv[2], "r");
     if (u.captured_file == NULL) {
         perror ("fopen failed");
