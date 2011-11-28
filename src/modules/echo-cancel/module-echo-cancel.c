@@ -89,7 +89,7 @@ typedef enum {
 #endif
 } pa_echo_canceller_method_t;
 
-#if HAVE_WEBRTC
+#ifdef HAVE_WEBRTC
 #define DEFAULT_ECHO_CANCELLER "webrtc"
 #else
 #define DEFAULT_ECHO_CANCELLER "speex"
