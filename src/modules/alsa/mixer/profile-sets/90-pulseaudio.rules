@@ -20,6 +20,7 @@ SUBSYSTEM!="sound", GOTO="pulseaudio_end"
 ACTION!="change", GOTO="pulseaudio_end"
 KERNEL!="card*", GOTO="pulseaudio_end"
 
+SUBSYSTEMS=="platform", DRIVERS=="thinkpad_acpi", ENV{PULSE_IGNORE}="1"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="1978", ENV{PULSE_PROFILE_SET}="native-instruments-audio8dj.conf"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="0839", ENV{PULSE_PROFILE_SET}="native-instruments-audio4dj.conf"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="baff", ENV{PULSE_PROFILE_SET}="native-instruments-traktorkontrol-s4.conf"
