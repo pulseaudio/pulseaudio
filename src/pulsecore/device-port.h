@@ -47,6 +47,7 @@ struct pa_device_port {
     unsigned priority;
     pa_port_available_t available;         /* PA_PORT_AVAILABLE_UNKNOWN, PA_PORT_AVAILABLE_NO or PA_PORT_AVAILABLE_YES */
 
+    pa_proplist *proplist;
     pa_hashmap *profiles; /* Can be NULL. Does not own the profiles */
     pa_bool_t is_input:1;
     pa_bool_t is_output:1;

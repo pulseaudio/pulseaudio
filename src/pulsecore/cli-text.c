@@ -124,9 +124,13 @@ static void append_port_list(pa_strbuf *s, pa_hashmap *ports)
         return;
 
     pa_strbuf_puts(s, "\tports:\n");
-    PA_HASHMAP_FOREACH(p, ports, state)
+    PA_HASHMAP_FOREACH(p, ports, state) {
+        char *t = pa_proplist_to_string_sep(p->proplist, "\n\t\t\t\t");
         pa_strbuf_printf(s, "\t\t%s: %s (priority %u, available: %s)\n",
             p->name, p->description, p->priority, port_available_to_string(p->available));
+        pa_strbuf_printf(s, "\t\t\tproperties:\n\t\t\t\t%s\n", t);
+        pa_xfree(t);
+    }
 }
 
 char *pa_card_list_to_string(pa_core *c) {

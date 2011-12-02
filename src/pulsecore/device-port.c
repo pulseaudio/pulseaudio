@@ -70,6 +70,8 @@ static void device_port_free(pa_object *o) {
     pa_assert(p);
     pa_assert(pa_device_port_refcnt(p) == 0);
 
+    if (p->proplist)
+        pa_proplist_free(p->proplist);
     if (p->profiles)
         pa_hashmap_free(p->profiles, NULL, NULL);
     pa_xfree(p->name);
@@ -94,6 +96,7 @@ pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *des
     p->profiles = NULL;
     p->is_input = FALSE;
     p->is_output = FALSE;
+    p->proplist = pa_proplist_new();
 
     return p;
 }
