@@ -4151,6 +4151,76 @@ fail:
     return NULL;
 }
 
+static void profile_finalize_probing(pa_alsa_profile *to_be_finalized, pa_alsa_profile *next) {
+    pa_alsa_mapping *m;
+    uint32_t idx;
+
+    if (!to_be_finalized)
+        return;
+
+    if (to_be_finalized->output_mappings)
+        PA_IDXSET_FOREACH(m, to_be_finalized->output_mappings, idx) {
+
+            if (!m->output_pcm)
+                continue;
+
+            if (to_be_finalized->supported)
+                m->supported++;
+
+            /* If this mapping is also in the next profile, we won't close the
+             * pcm handle here, because it would get immediately reopened
+             * anyway. */
+            if (next && next->output_mappings && pa_idxset_get_by_data(next->output_mappings, m, NULL))
+                continue;
+
+            snd_pcm_close(m->output_pcm);
+            m->output_pcm = NULL;
+        }
+
+    if (to_be_finalized->input_mappings)
+        PA_IDXSET_FOREACH(m, to_be_finalized->input_mappings, idx) {
+
+            if (!m->input_pcm)
+                continue;
+
+            if (to_be_finalized->supported)
+                m->supported++;
+
+            /* If this mapping is also in the next profile, we won't close the
+             * pcm handle here, because it would get immediately reopened
+             * anyway. */
+            if (next && next->input_mappings && pa_idxset_get_by_data(next->input_mappings, m, NULL))
+                continue;
+
+            snd_pcm_close(m->input_pcm);
+            m->input_pcm = NULL;
+        }
+}
+
+static snd_pcm_t* mapping_open_pcm(pa_alsa_mapping *m,
+                                   const pa_sample_spec *ss,
+                                   const char *dev_id,
+                                   int mode,
+                                   unsigned default_n_fragments,
+                                   unsigned default_fragment_size_msec) {
+
+    pa_sample_spec try_ss = *ss;
+    pa_channel_map try_map = m->channel_map;
+    snd_pcm_uframes_t try_period_size, try_buffer_size;
+
+    try_ss.channels = try_map.channels;
+
+    try_period_size =
+        pa_usec_to_bytes(default_fragment_size_msec * PA_USEC_PER_MSEC, &try_ss) /
+        pa_frame_size(&try_ss);
+    try_buffer_size = default_n_fragments * try_period_size;
+
+    return pa_alsa_open_by_template(
+                              m->device_strings, dev_id, NULL, &try_ss,
+                              &try_map, mode, &try_period_size,
+                              &try_buffer_size, 0, NULL, NULL, TRUE);
+}
+
 void pa_alsa_profile_set_probe(
         pa_alsa_profile_set *ps,
         const char *dev_id,
@@ -4170,115 +4240,54 @@ void pa_alsa_profile_set_probe(
         return;
 
     PA_HASHMAP_FOREACH(p, ps->profiles, state) {
-        pa_sample_spec try_ss;
-        pa_channel_map try_map;
-        snd_pcm_uframes_t try_period_size, try_buffer_size;
         uint32_t idx;
 
-        /* Is this already marked that it is supported? (i.e. from the config file) */
-        if (p->supported)
-            goto probe_paths;
+        /* Skip if this is already marked that it is supported (i.e. from the config file) */
+        if (!p->supported) {
 
-        pa_log_debug("Looking at profile %s", p->name);
+            pa_log_debug("Looking at profile %s", p->name);
+            profile_finalize_probing(last, p);
+            p->supported = TRUE;
 
-        /* Close PCMs from the last iteration we don't need anymore */
-        if (last && last->output_mappings)
-            PA_IDXSET_FOREACH(m, last->output_mappings, idx) {
+            /* Check if we can open all new ones */
+            if (p->output_mappings)
+                PA_IDXSET_FOREACH(m, p->output_mappings, idx) {
 
-                if (!m->output_pcm)
-                    break;
+                    if (m->output_pcm)
+                        continue;
 
-                if (last->supported)
-                    m->supported++;
-
-                if (!p->output_mappings || !pa_idxset_get_by_data(p->output_mappings, m, NULL)) {
-                    snd_pcm_close(m->output_pcm);
-                    m->output_pcm = NULL;
+                    pa_log_debug("Checking for playback on %s (%s)", m->description, m->name);
+                    if (!(m->output_pcm = mapping_open_pcm(m, ss, dev_id,
+                                                           SND_PCM_STREAM_PLAYBACK,
+                                                           default_n_fragments,
+                                                           default_fragment_size_msec))) {
+                        p->supported = FALSE;
+                        break;
+                    }
                 }
-            }
 
-        if (last && last->input_mappings)
-            PA_IDXSET_FOREACH(m, last->input_mappings, idx) {
+            if (p->input_mappings && p->supported)
+                PA_IDXSET_FOREACH(m, p->input_mappings, idx) {
 
-                if (!m->input_pcm)
-                    break;
+                    if (m->input_pcm)
+                        continue;
 
-                if (last->supported)
-                    m->supported++;
-
-                if (!p->input_mappings || !pa_idxset_get_by_data(p->input_mappings, m, NULL)) {
-                    snd_pcm_close(m->input_pcm);
-                    m->input_pcm = NULL;
+                    pa_log_debug("Checking for recording on %s (%s)", m->description, m->name);
+                    if (!(m->input_pcm = mapping_open_pcm(m, ss, dev_id,
+                                                          SND_PCM_STREAM_CAPTURE,
+                                                          default_n_fragments,
+                                                          default_fragment_size_msec))) {
+                        p->supported = FALSE;
+                        break;
+                    }
                 }
-            }
 
-        p->supported = TRUE;
+            last = p;
 
-        /* Check if we can open all new ones */
-        if (p->output_mappings)
-            PA_IDXSET_FOREACH(m, p->output_mappings, idx) {
+            if (!p->supported)
+                continue;
+        }
 
-                if (m->output_pcm)
-                    continue;
-
-                pa_log_debug("Checking for playback on %s (%s)", m->description, m->name);
-                try_map = m->channel_map;
-                try_ss = *ss;
-                try_ss.channels = try_map.channels;
-
-                try_period_size =
-                    pa_usec_to_bytes(default_fragment_size_msec * PA_USEC_PER_MSEC, &try_ss) /
-                    pa_frame_size(&try_ss);
-                try_buffer_size = default_n_fragments * try_period_size;
-
-                if (!(m ->output_pcm = pa_alsa_open_by_template(
-                              m->device_strings,
-                              dev_id,
-                              NULL,
-                              &try_ss, &try_map,
-                              SND_PCM_STREAM_PLAYBACK,
-                              &try_period_size, &try_buffer_size, 0, NULL, NULL,
-                              TRUE))) {
-                    p->supported = FALSE;
-                    break;
-                }
-            }
-
-        if (p->input_mappings && p->supported)
-            PA_IDXSET_FOREACH(m, p->input_mappings, idx) {
-
-                if (m->input_pcm)
-                    continue;
-
-                pa_log_debug("Checking for recording on %s (%s)", m->description, m->name);
-                try_map = m->channel_map;
-                try_ss = *ss;
-                try_ss.channels = try_map.channels;
-
-                try_period_size =
-                    pa_usec_to_bytes(default_fragment_size_msec*PA_USEC_PER_MSEC, &try_ss) /
-                    pa_frame_size(&try_ss);
-                try_buffer_size = default_n_fragments * try_period_size;
-
-                if (!(m ->input_pcm = pa_alsa_open_by_template(
-                              m->device_strings,
-                              dev_id,
-                              NULL,
-                              &try_ss, &try_map,
-                              SND_PCM_STREAM_CAPTURE,
-                              &try_period_size, &try_buffer_size, 0, NULL, NULL,
-                              TRUE))) {
-                    p->supported = FALSE;
-                    break;
-                }
-            }
-
-        last = p;
-
-        if (!p->supported)
-            continue;
-
-probe_paths:
         pa_log_debug("Profile %s supported.", p->name);
 
         if (p->output_mappings)
@@ -4290,35 +4299,10 @@ probe_paths:
             PA_IDXSET_FOREACH(m, p->input_mappings, idx)
                 if (m->input_pcm)
                     mapping_paths_probe(m, p, PA_ALSA_DIRECTION_INPUT);
-
     }
 
     /* Clean up */
-    if (last) {
-        uint32_t idx;
-
-        if (last->output_mappings)
-            PA_IDXSET_FOREACH(m, last->output_mappings, idx)
-                if (m->output_pcm) {
-
-                    if (last->supported)
-                        m->supported++;
-
-                    snd_pcm_close(m->output_pcm);
-                    m->output_pcm = NULL;
-                }
-
-        if (last->input_mappings)
-            PA_IDXSET_FOREACH(m, last->input_mappings, idx)
-                if (m->input_pcm) {
-
-                    if (last->supported)
-                        m->supported++;
-
-                    snd_pcm_close(m->input_pcm);
-                    m->input_pcm = NULL;
-                }
-    }
+    profile_finalize_probing(last, NULL);
 
     PA_HASHMAP_FOREACH(p, ps->profiles, state)
         if (!p->supported) {
