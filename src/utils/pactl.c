@@ -212,6 +212,15 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
     complete_action();
 }
 
+static const char* get_available_str_ynonly(int available)
+{
+    switch (available) {
+        case PA_PORT_AVAILABLE_YES: return ", available";
+        case PA_PORT_AVAILABLE_NO: return ", not available";
+    }
+    return "";
+}
+
 static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
 
     static const char *state_table[] = {
@@ -308,7 +317,8 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
 
         printf(_("\tPorts:\n"));
         for (p = i->ports; *p; p++)
-            printf("\t\t%s: %s (priority. %u)\n", (*p)->name, (*p)->description, (*p)->priority);
+            printf("\t\t%s: %s (priority: %u%s)\n", (*p)->name, (*p)->description, (*p)->priority,
+                get_available_str_ynonly((*p)->available));
     }
 
     if (i->active_port)
@@ -419,7 +429,8 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
 
         printf(_("\tPorts:\n"));
         for (p = i->ports; *p; p++)
-            printf("\t\t%s: %s (priority. %u)\n", (*p)->name, (*p)->description, (*p)->priority);
+            printf("\t\t%s: %s (priority: %u%s)\n", (*p)->name, (*p)->description, (*p)->priority,
+                get_available_str_ynonly((*p)->available));
     }
 
     if (i->active_port)
