@@ -191,7 +191,6 @@ struct pa_alsa_path {
 struct pa_alsa_path_set {
     pa_hashmap *paths;
     pa_alsa_direction_t direction;
-    pa_bool_t probed:1;
 };
 
 int pa_alsa_setting_select(pa_alsa_setting *s, snd_mixer_t *m);

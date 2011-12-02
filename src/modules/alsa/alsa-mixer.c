@@ -2903,10 +2903,9 @@ void pa_alsa_path_set_dump(pa_alsa_path_set *ps) {
     void *state;
     pa_assert(ps);
 
-    pa_log_debug("Path Set %p, direction=%i, probed=%s",
+    pa_log_debug("Path Set %p, direction=%i",
                  (void*) ps,
-                 ps->direction,
-                 pa_yes_no(ps->probed));
+                 ps->direction);
 
     PA_HASHMAP_FOREACH(p, ps->paths, state)
         pa_alsa_path_dump(p);
@@ -3726,8 +3725,12 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
     pa_assert(pcm_handle);
 
     mixer_handle = pa_alsa_open_mixer_for_pcm(pcm_handle, NULL);
-    if (!mixer_handle)
-        return; /* Cannot open mixer :-( */
+    if (!mixer_handle) {
+         /* Cannot open mixer, remove all entries */
+        while (pa_hashmap_steal_first(ps->paths));
+        return;
+    }
+
 
     PA_HASHMAP_FOREACH(p, ps->paths, state) {
         if (pa_alsa_path_probe(p, mixer_handle, m->profile_set->ignore_dB) < 0) {
@@ -3737,7 +3740,6 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
 
     path_set_condense(ps, mixer_handle);
     path_set_make_paths_unique(ps);
-    ps->probed = TRUE;
 
     if (mixer_handle)
         snd_mixer_close(mixer_handle);
@@ -4175,7 +4177,7 @@ void pa_alsa_profile_set_probe(
 
         /* Is this already marked that it is supported? (i.e. from the config file) */
         if (p->supported)
-            continue;
+            goto probe_paths;
 
         pa_log_debug("Looking at profile %s", p->name);
 
@@ -4276,6 +4278,7 @@ void pa_alsa_profile_set_probe(
         if (!p->supported)
             continue;
 
+probe_paths:
         pa_log_debug("Profile %s supported.", p->name);
 
         if (p->output_mappings)
