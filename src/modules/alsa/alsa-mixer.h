@@ -213,7 +213,6 @@ void pa_alsa_path_set_callback(pa_alsa_path *p, snd_mixer_t *m, snd_mixer_elem_c
 void pa_alsa_path_free(pa_alsa_path *p);
 
 pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t direction, const char *paths_dir);
-void pa_alsa_path_set_probe(pa_alsa_path_set *s, snd_mixer_t *m, pa_bool_t ignore_dB);
 void pa_alsa_path_set_dump(pa_alsa_path_set *s);
 void pa_alsa_path_set_set_callback(pa_alsa_path_set *ps, snd_mixer_t *m, snd_mixer_elem_callback_t cb, void *userdata);
 void pa_alsa_path_set_free(pa_alsa_path_set *s);
