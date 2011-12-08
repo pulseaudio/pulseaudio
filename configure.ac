@@ -739,6 +739,13 @@ AC_SUBST(HAVE_ALSA)
 AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
 AS_IF([test "x$HAVE_ALSA" = "x1"], AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?]))
 
+#### EsounD support (optional) ####
+
+AC_ARG_ENABLE([esound],
+    AS_HELP_STRING([--disable-esound],[Disable optional EsounD support]))
+AM_CONDITIONAL([HAVE_ESOUND], [test "x$enable_esound" != "xno"])
+AS_IF([test "x$enable_esound" != "xno"], [HAVE_ESOUND=1])
+
 #### Solaris audio support (optional) ####
 
 AC_ARG_ENABLE([solaris],
@@ -1342,7 +1349,8 @@ AS_IF([test "x$HAVE_WEBRTC" = "x1"], ENABLE_WEBRTC=yes, ENABLE_WEBRTC=no)
 AS_IF([test "x$HAVE_TDB" = "x1"], ENABLE_TDB=yes, ENABLE_TDB=no)
 AS_IF([test "x$HAVE_GDBM" = "x1"], ENABLE_GDBM=yes, ENABLE_GDBM=no)
 AS_IF([test "x$HAVE_SIMPLEDB" = "x1"], ENABLE_SIMPLEDB=yes, ENABLE_SIMPLEDB=no)
-AS_IF([test "x$USE_PER_USER_ESOUND_SOCKET" = "x1"], ENABLE_PER_USER_ESOUND_SOCKET=yes, ENABLE_PER_USER_ESOUND_SOCKET=no)
+AS_IF([test "x$HAVE_ESOUND" = "x1"], ENABLE_ESOUND=yes, ENABLE_ESOUND=no)
+AS_IF([test "x$HAVE_ESOUND" = "x1" -a "x$USE_PER_USER_ESOUND_SOCKET" = "x1"], ENABLE_PER_USER_ESOUND_SOCKET=yes, ENABLE_PER_USER_ESOUND_SOCKET=no)
 AS_IF([test "x$enable_legacy_runtime_dir" != "xno"], ENABLE_LEGACY_RUNTIME_DIR=yes, ENABLE_LEGACY_RUNTIME_DIR=no)
 AS_IF([test "x$enable_legacy_database_entry_format" != "xno"], ENABLE_LEGACY_DATABASE_ENTRY_FORMAT=yes, ENABLE_LEGACY_DATABASE_ENTRY_FORMAT=no)
 
@@ -1363,6 +1371,7 @@ echo "
     Enable X11:                    ${ENABLE_X11}
     Enable OSS Output:             ${ENABLE_OSS_OUTPUT}
     Enable OSS Wrapper:            ${ENABLE_OSS_WRAPPER}
+    Enable EsounD:                 ${ENABLE_ESOUND}
     Enable Alsa:                   ${ENABLE_ALSA}
     Enable CoreAudio:              ${ENABLE_COREAUDIO}
     Enable Solaris:                ${ENABLE_SOLARIS}

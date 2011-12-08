@@ -900,8 +900,12 @@ modlibexec_LTLIBRARIES = \
 		libprotocol-cli.la \
 		libprotocol-simple.la \
 		libprotocol-http.la \
-		libprotocol-native.la \
+		libprotocol-native.la
+
+if HAVE_ESOUND
+modlibexec_LTLIBRARIES += \
 		libprotocol-esound.la
+endif
 
 # We need to emulate sendmsg/recvmsg to support this on Win32
 if !OS_IS_WIN32
@@ -939,9 +943,11 @@ libprotocol_native_la_CFLAGS += $(DBUS_CFLAGS)
 libprotocol_native_la_LIBADD += $(DBUS_LIBS)
 endif
 
+if HAVE_ESOUND
 libprotocol_esound_la_SOURCES = pulsecore/protocol-esound.c pulsecore/protocol-esound.h pulsecore/esound.h
 libprotocol_esound_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libprotocol_esound_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
+endif
 
 librtp_la_SOURCES = \
 		modules/rtp/rtp.c modules/rtp/rtp.h \
@@ -998,12 +1004,10 @@ modlibexec_LTLIBRARIES += \
 		module-sine.la \
 		module-native-protocol-tcp.la \
 		module-native-protocol-fd.la \
-		module-esound-protocol-tcp.la \
 		module-combine.la \
 		module-combine-sink.la \
 		module-remap-sink.la \
 		module-ladspa-sink.la \
-		module-esound-sink.la \
 		module-tunnel-sink.la \
 		module-tunnel-source.la \
 		module-position-event-sounds.la \
@@ -1015,6 +1019,12 @@ modlibexec_LTLIBRARIES += \
 		module-switch-on-connect.la \
 		module-filter-apply.la \
 		module-filter-heuristics.la
+
+if HAVE_ESOUND
+modlibexec_LTLIBRARIES += \
+		module-esound-protocol-tcp.la \
+		module-esound-sink.la
+endif
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -1028,8 +1038,11 @@ modlibexec_LTLIBRARIES += \
 		module-cli-protocol-unix.la \
 		module-simple-protocol-unix.la \
 		module-http-protocol-unix.la \
-		module-native-protocol-unix.la \
+		module-native-protocol-unix.la
+if HAVE_ESOUND
+modlibexec_LTLIBRARIES += \
 		module-esound-protocol-unix.la
+endif
 endif
 
 if HAVE_MKFIFO
@@ -1039,9 +1052,11 @@ modlibexec_LTLIBRARIES += \
 endif
 
 if !OS_IS_WIN32
+if HAVE_ESOUND
 modlibexec_LTLIBRARIES += \
 		module-esound-compat-spawnfd.la \
 		module-esound-compat-spawnpid.la
+endif
 endif
 
 if HAVE_REGEX
@@ -1233,8 +1248,6 @@ SYMDEF_FILES = \
 		module-pipe-source-symdef.h \
 		module-simple-protocol-tcp-symdef.h \
 		module-simple-protocol-unix-symdef.h \
-		module-esound-protocol-tcp-symdef.h \
-		module-esound-protocol-unix-symdef.h \
 		module-native-protocol-tcp-symdef.h \
 		module-native-protocol-unix-symdef.h \
 		module-native-protocol-fd-symdef.h \
@@ -1244,15 +1257,12 @@ SYMDEF_FILES = \
 		module-remap-sink-symdef.h \
 		module-ladspa-sink-symdef.h \
 		module-equalizer-sink-symdef.h \
-		module-esound-compat-spawnfd-symdef.h \
-		module-esound-compat-spawnpid-symdef.h \
 		module-match-symdef.h \
 		module-tunnel-sink-symdef.h \
 		module-tunnel-source-symdef.h \
 		module-null-sink-symdef.h \
 		module-null-source-symdef.h \
 		module-sine-source-symdef.h \
-		module-esound-sink-symdef.h \
 		module-zeroconf-publish-symdef.h \
 		module-zeroconf-discover-symdef.h \
 		module-bonjour-publish-symdef.h \
@@ -1309,6 +1319,15 @@ SYMDEF_FILES = \
 		module-switch-on-connect-symdef.h \
 		module-filter-apply-symdef.h \
 		module-filter-heuristics-symdef.h
+
+if HAVE_ESOUND
+SYMDEF_FILES += \
+		module-esound-protocol-tcp-symdef.h \
+		module-esound-protocol-unix-symdef.h \
+		module-esound-compat-spawnfd-symdef.h \
+		module-esound-compat-spawnpid-symdef.h \
+		module-esound-sink-symdef.h
+endif
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES) builddirs
@@ -1398,6 +1417,7 @@ module_native_protocol_fd_la_LIBADD = $(MODULE_LIBADD) libprotocol-native.la
 
 # EsounD protocol
 
+if HAVE_ESOUND
 module_esound_protocol_tcp_la_SOURCES = modules/module-protocol-stub.c
 module_esound_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
 module_esound_protocol_tcp_la_LDFLAGS = $(MODULE_LDFLAGS)
@@ -1419,6 +1439,7 @@ module_esound_compat_spawnpid_la_LIBADD = $(MODULE_LIBADD)
 module_esound_sink_la_SOURCES = modules/module-esound-sink.c
 module_esound_sink_la_LDFLAGS = $(MODULE_LDFLAGS) $(WINSOCK_LIBS)
 module_esound_sink_la_LIBADD = $(MODULE_LIBADD)
+endif
 
 # Pipes
 
