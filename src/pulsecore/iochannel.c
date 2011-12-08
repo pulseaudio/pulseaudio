@@ -255,7 +255,9 @@ ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
 pa_bool_t pa_iochannel_creds_supported(pa_iochannel *io) {
     struct {
         struct sockaddr sa;
+#ifdef HAVE_SYS_UN_H
         struct sockaddr_un un;
+#endif
         struct sockaddr_storage storage;
     } sa;
 
