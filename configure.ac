@@ -168,8 +168,8 @@ AS_CASE([" $CFLAGS "], [*" -O0 "*], [], [AX_APPEND_FLAG(["-DFASTPATH"], [CPPFLAG
 # Check whether the linker supports the -version-script option.
 # The Make variable $(srcdir) needs to be in the LDFLAGS in that form,
 # so that it is expanded the right way in every subdir.
-AX_CHECK_LINK_FLAG(["-Wl,-version-script=${srcdir}/src/map-file"],
-    [VERSIONING_LDFLAGS='-Wl,-version-script=$(srcdir)/map-file'])
+AX_CHECK_LINK_FLAG(["-Wl,-version-script=${abs_top_srcdir}/src/map-file"],
+    [VERSIONING_LDFLAGS='-Wl,-version-script=$(abs_top_srcdir)/map-file'])
 AC_SUBST([VERSIONING_LDFLAGS])
 
 # Use immediate (now) bindings; avoids the funky re-call in itself.
