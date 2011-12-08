@@ -95,6 +95,7 @@ PKG_PROG_PKG_CONFIG
 
 # gettext
 
+if test "x$enable_nls" != "xno"; then
 IT_PROG_INTLTOOL([0.35.0])
 GETTEXT_PACKAGE=pulseaudio
 AC_SUBST([GETTEXT_PACKAGE])
@@ -103,6 +104,7 @@ AM_GLIB_GNU_GETTEXT
 
 pulselocaledir='${prefix}/${DATADIRNAME}/locale'
 AX_DEFINE_DIR(PULSE_LOCALEDIR, pulselocaledir, [Gettext locale dir])
+fi
 
 
 #### Determine host OS ####
