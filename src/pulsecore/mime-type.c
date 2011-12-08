@@ -145,6 +145,7 @@ void pa_sample_spec_mimefy(pa_sample_spec *ss, pa_channel_map *cm) {
 
 char *pa_sample_spec_to_mime_type(const pa_sample_spec *ss, const pa_channel_map *cm) {
     pa_assert(pa_channel_map_compatible(cm, ss));
+    pa_assert(pa_sample_spec_valid(ss));
 
     if (!pa_sample_spec_is_mime(ss, cm))
         return NULL;
@@ -168,8 +169,6 @@ char *pa_sample_spec_to_mime_type(const pa_sample_spec *ss, const pa_channel_map
         default:
             pa_assert_not_reached();
     }
-
-    pa_assert(pa_sample_spec_valid(ss));
 }
 
 char *pa_sample_spec_to_mime_type_mimefy(const pa_sample_spec *_ss, const pa_channel_map *_cm) {
