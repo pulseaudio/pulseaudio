@@ -752,7 +752,9 @@ int main(int argc, char *argv[]) {
     };
 
     setlocale(LC_ALL, "");
+#ifdef ENABLE_NLS
     bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
+#endif
 
     bn = pa_path_get_filename(argv[0]);
 

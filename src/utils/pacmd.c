@@ -57,7 +57,9 @@ int main(int argc, char*argv[]) {
     int stdin_type = 0, stdout_type = 0, fd_type = 0;
 
     setlocale(LC_ALL, "");
+#ifdef ENABLE_NLS
     bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
+#endif
 
     if (pa_pid_file_check_running(&pid, "pulseaudio") < 0) {
         pa_log(_("No PulseAudio daemon running, or not running as session daemon."));
