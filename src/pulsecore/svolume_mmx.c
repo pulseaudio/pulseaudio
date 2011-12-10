@@ -107,7 +107,7 @@ static void pa_volume_s16ne_mmx(int16_t *samples, int32_t *volumes, unsigned cha
         " test $1, %2                   \n\t" /* check for odd samples */
         " je 2f                         \n\t"
 
-        " movd (%1, %3, 4), %%mm0       \n\t" /* |  v0h  |  v0l  | */
+        " movd (%q1, %3, 4), %%mm0      \n\t" /* |  v0h  |  v0l  | */
         " movw (%0), %w4                \n\t" /*     ..  |  p0   | */
         " movd %4, %%mm1                \n\t"
         VOLUME_32x16 (%%mm1, %%mm0)
@@ -122,7 +122,7 @@ static void pa_volume_s16ne_mmx(int16_t *samples, int32_t *volumes, unsigned cha
         " je 4f                         \n\t"
 
         "3:                             \n\t" /* do samples in groups of 2 */
-        " movq (%1, %3, 4), %%mm0       \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
+        " movq (%q1, %3, 4), %%mm0      \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
         " movd (%0), %%mm1              \n\t" /*              .. |   p1  |  p0   | */
         VOLUME_32x16 (%%mm1, %%mm0)
         " movd %%mm0, (%0)              \n\t" /*              .. | p1*v1 | p0*v0 | */
@@ -135,8 +135,8 @@ static void pa_volume_s16ne_mmx(int16_t *samples, int32_t *volumes, unsigned cha
         " je 6f                         \n\t"
 
         "5:                             \n\t" /* do samples in groups of 4 */
-        " movq (%1, %3, 4), %%mm0       \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
-        " movq 8(%1, %3, 4), %%mm2      \n\t" /* |  v3h  |  v3l  |  v2h  |  v2l  | */
+        " movq (%q1, %3, 4), %%mm0      \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
+        " movq 8(%q1, %3, 4), %%mm2     \n\t" /* |  v3h  |  v3l  |  v2h  |  v2l  | */
         " movd (%0), %%mm1              \n\t" /*              .. |   p1  |  p0   | */
         " movd 4(%0), %%mm3             \n\t" /*              .. |   p3  |  p2   | */
         VOLUME_32x16 (%%mm1, %%mm0)
@@ -180,7 +180,7 @@ static void pa_volume_s16re_mmx(int16_t *samples, int32_t *volumes, unsigned cha
         " test $1, %2                   \n\t" /* check for odd samples */
         " je 2f                         \n\t"
 
-        " movd (%1, %3, 4), %%mm0       \n\t" /* |  v0h  |  v0l  | */
+        " movd (%q1, %3, 4), %%mm0      \n\t" /* |  v0h  |  v0l  | */
         " movw (%0), %w4                \n\t" /*     ..  |  p0   | */
         " rorw $8, %w4                  \n\t"
         " movd %4, %%mm1                \n\t"
@@ -197,7 +197,7 @@ static void pa_volume_s16re_mmx(int16_t *samples, int32_t *volumes, unsigned cha
         " je 4f                         \n\t"
 
         "3:                             \n\t" /* do samples in groups of 2 */
-        " movq (%1, %3, 4), %%mm0       \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
+        " movq (%q1, %3, 4), %%mm0      \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
         " movd (%0), %%mm1              \n\t" /*              .. |   p1  |  p0   | */
         SWAP_16 (%%mm1)
         VOLUME_32x16 (%%mm1, %%mm0)
@@ -212,8 +212,8 @@ static void pa_volume_s16re_mmx(int16_t *samples, int32_t *volumes, unsigned cha
         " je 6f                         \n\t"
 
         "5:                             \n\t" /* do samples in groups of 4 */
-        " movq (%1, %3, 4), %%mm0       \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
-        " movq 8(%1, %3, 4), %%mm2      \n\t" /* |  v3h  |  v3l  |  v2h  |  v2l  | */
+        " movq (%q1, %3, 4), %%mm0      \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
+        " movq 8(%q1, %3, 4), %%mm2     \n\t" /* |  v3h  |  v3l  |  v2h  |  v2l  | */
         " movd (%0), %%mm1              \n\t" /*              .. |   p1  |  p0   | */
         " movd 4(%0), %%mm3             \n\t" /*              .. |   p3  |  p2   | */
         SWAP_16_2 (%%mm1, %%mm3)

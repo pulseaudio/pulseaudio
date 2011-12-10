@@ -92,7 +92,7 @@ static void pa_volume_s16ne_sse2(int16_t *samples, int32_t *volumes, unsigned ch
         " test $1, %2                   \n\t" /* check for odd samples */
         " je 2f                         \n\t"
 
-        " movd (%1, %3, 4), %%xmm0      \n\t" /* |  v0h  |  v0l  | */
+        " movd (%q1, %3, 4), %%xmm0     \n\t" /* |  v0h  |  v0l  | */
         " movw (%0), %w4                \n\t" /*     ..  |   p0  | */
         " movd %4, %%xmm1               \n\t"
         VOLUME_32x16 (%%xmm1, %%xmm0)
@@ -107,7 +107,7 @@ static void pa_volume_s16ne_sse2(int16_t *samples, int32_t *volumes, unsigned ch
         " je 4f                         \n\t"
 
         "3:                             \n\t" /* do samples in groups of 2 */
-        " movq (%1, %3, 4), %%xmm0      \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
+        " movq (%q1, %3, 4), %%xmm0     \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
         " movd (%0), %%xmm1             \n\t" /*              .. |   p1  |  p0   | */
         VOLUME_32x16 (%%xmm1, %%xmm0)
         " movd %%xmm0, (%0)             \n\t" /*              .. | p1*v1 | p0*v0 | */
@@ -123,7 +123,7 @@ static void pa_volume_s16ne_sse2(int16_t *samples, int32_t *volumes, unsigned ch
          * that the array is 16 bytes aligned, we probably have to do the odd values
          * after this then. */
         "5:                             \n\t" /* do samples in groups of 4 */
-        " movdqu (%1, %3, 4), %%xmm0    \n\t" /* |  v3h  |  v3l  ..  v0h  |  v0l  | */
+        " movdqu (%q1, %3, 4), %%xmm0   \n\t" /* |  v3h  |  v3l  ..  v0h  |  v0l  | */
         " movq (%0), %%xmm1             \n\t" /*              .. |   p3  ..  p0   | */
         VOLUME_32x16 (%%xmm1, %%xmm0)
         " movq %%xmm0, (%0)             \n\t" /*              .. | p3*v3 .. p0*v0 | */
@@ -136,8 +136,8 @@ static void pa_volume_s16ne_sse2(int16_t *samples, int32_t *volumes, unsigned ch
         " je 8f                         \n\t"
 
         "7:                             \n\t" /* do samples in groups of 8 */
-        " movdqu (%1, %3, 4), %%xmm0    \n\t" /* |  v3h  |  v3l  ..  v0h  |  v0l  | */
-        " movdqu 16(%1, %3, 4), %%xmm2  \n\t" /* |  v7h  |  v7l  ..  v4h  |  v4l  | */
+        " movdqu (%q1, %3, 4), %%xmm0   \n\t" /* |  v3h  |  v3l  ..  v0h  |  v0l  | */
+        " movdqu 16(%q1, %3, 4), %%xmm2 \n\t" /* |  v7h  |  v7l  ..  v4h  |  v4l  | */
         " movq (%0), %%xmm1             \n\t" /*              .. |   p3  ..  p0   | */
         " movq 8(%0), %%xmm3            \n\t" /*              .. |   p7  ..  p4   | */
         VOLUME_32x16 (%%xmm1, %%xmm0)
@@ -176,7 +176,7 @@ static void pa_volume_s16re_sse2(int16_t *samples, int32_t *volumes, unsigned ch
         " test $1, %2                   \n\t" /* check for odd samples */
         " je 2f                         \n\t"
 
-        " movd (%1, %3, 4), %%xmm0      \n\t" /* |  v0h  |  v0l  | */
+        " movd (%q1, %3, 4), %%xmm0     \n\t" /* |  v0h  |  v0l  | */
         " movw (%0), %w4                \n\t" /*     ..  |   p0  | */
         " rorw $8, %w4                  \n\t"
         " movd %4, %%xmm1               \n\t"
@@ -193,7 +193,7 @@ static void pa_volume_s16re_sse2(int16_t *samples, int32_t *volumes, unsigned ch
         " je 4f                         \n\t"
 
         "3:                             \n\t" /* do samples in groups of 2 */
-        " movq (%1, %3, 4), %%xmm0      \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
+        " movq (%q1, %3, 4), %%xmm0     \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
         " movd (%0), %%xmm1             \n\t" /*              .. |   p1  |  p0   | */
         SWAP_16 (%%xmm1)
         VOLUME_32x16 (%%xmm1, %%xmm0)
@@ -211,7 +211,7 @@ static void pa_volume_s16re_sse2(int16_t *samples, int32_t *volumes, unsigned ch
          * that the array is 16 bytes aligned, we probably have to do the odd values
          * after this then. */
         "5:                             \n\t" /* do samples in groups of 4 */
-        " movdqu (%1, %3, 4), %%xmm0    \n\t" /* |  v3h  |  v3l  ..  v0h  |  v0l  | */
+        " movdqu (%q1, %3, 4), %%xmm0   \n\t" /* |  v3h  |  v3l  ..  v0h  |  v0l  | */
         " movq (%0), %%xmm1             \n\t" /*              .. |   p3  ..  p0   | */
         SWAP_16 (%%xmm1)
         VOLUME_32x16 (%%xmm1, %%xmm0)
@@ -226,8 +226,8 @@ static void pa_volume_s16re_sse2(int16_t *samples, int32_t *volumes, unsigned ch
         " je 8f                         \n\t"
 
         "7:                             \n\t" /* do samples in groups of 8 */
-        " movdqu (%1, %3, 4), %%xmm0    \n\t" /* |  v3h  |  v3l  ..  v0h  |  v0l  | */
-        " movdqu 16(%1, %3, 4), %%xmm2  \n\t" /* |  v7h  |  v7l  ..  v4h  |  v4l  | */
+        " movdqu (%q1, %3, 4), %%xmm0   \n\t" /* |  v3h  |  v3l  ..  v0h  |  v0l  | */
+        " movdqu 16(%q1, %3, 4), %%xmm2 \n\t" /* |  v7h  |  v7l  ..  v4h  |  v4l  | */
         " movq (%0), %%xmm1             \n\t" /*              .. |   p3  ..  p0   | */
         " movq 8(%0), %%xmm3            \n\t" /*              .. |   p7  ..  p4   | */
         SWAP_16_2 (%%xmm1, %%xmm3)

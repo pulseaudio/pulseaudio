@@ -54,8 +54,8 @@ static void pa_sconv_s16le_from_f32ne_sse(unsigned n, const float *a, int16_t *b
         " je 2f                         \n\t"
 
         "1:                             \n\t"
-        " movups (%2, %0, 2), %%xmm0    \n\t" /* read 8 floats */
-        " movups 16(%2, %0, 2), %%xmm2  \n\t"
+        " movups (%q2, %0, 2), %%xmm0   \n\t" /* read 8 floats */
+        " movups 16(%q2, %0, 2), %%xmm2 \n\t"
         " minps  %%xmm5, %%xmm0         \n\t" /* clamp to 1.0 */
         " minps  %%xmm5, %%xmm2         \n\t"
         " maxps  %%xmm6, %%xmm0         \n\t" /* clamp to -1.0 */
@@ -72,8 +72,8 @@ static void pa_sconv_s16le_from_f32ne_sse(unsigned n, const float *a, int16_t *b
 
         " packssdw %%mm1, %%mm0         \n\t" /* pack parts */
         " packssdw %%mm3, %%mm2         \n\t"
-        " movq     %%mm0, (%3, %0)      \n\t"
-        " movq    %%mm2, 8(%3, %0)     \n\t"
+        " movq     %%mm0, (%q3, %0)     \n\t"
+        " movq    %%mm2, 8(%q3, %0)     \n\t"
 
         " add $16, %0                   \n\t"
         " dec %1                        \n\t"
@@ -85,12 +85,12 @@ static void pa_sconv_s16le_from_f32ne_sse(unsigned n, const float *a, int16_t *b
         " je 4f                         \n\t"
 
         "3:                             \n\t"
-        " movss (%2, %0, 2), %%xmm0     \n\t"
+        " movss (%q2, %0, 2), %%xmm0    \n\t"
         " minss  %%xmm5, %%xmm0         \n\t"
         " maxss  %%xmm6, %%xmm0         \n\t"
         " mulss  %%xmm7, %%xmm0         \n\t"
         " cvtss2si %%xmm0, %4           \n\t"
-        " movw  %w4, (%3, %0)           \n\t"
+        " movw  %w4, (%q3, %0)          \n\t"
         " add $2, %0                    \n\t"
         " dec %1                        \n\t"
         " jne 3b                        \n\t"
@@ -119,8 +119,8 @@ static void pa_sconv_s16le_from_f32ne_sse2(unsigned n, const float *a, int16_t *
         " je 2f                         \n\t"
 
         "1:                             \n\t"
-        " movups (%2, %0, 2), %%xmm0    \n\t" /* read 8 floats */
-        " movups 16(%2, %0, 2), %%xmm2  \n\t"
+        " movups (%q2, %0, 2), %%xmm0   \n\t" /* read 8 floats */
+        " movups 16(%q2, %0, 2), %%xmm2 \n\t"
         " minps  %%xmm5, %%xmm0         \n\t" /* clamp to 1.0 */
         " minps  %%xmm5, %%xmm2         \n\t"
         " maxps  %%xmm6, %%xmm0         \n\t" /* clamp to -1.0 */
@@ -132,7 +132,7 @@ static void pa_sconv_s16le_from_f32ne_sse2(unsigned n, const float *a, int16_t *
         " cvtps2dq %%xmm2, %%xmm2       \n\t"
 
         " packssdw %%xmm2, %%xmm0       \n\t"
-        " movdqu   %%xmm0, (%3, %0)     \n\t"
+        " movdqu   %%xmm0, (%q3, %0)    \n\t"
 
         " add $16, %0                   \n\t"
         " dec %1                        \n\t"
@@ -144,12 +144,12 @@ static void pa_sconv_s16le_from_f32ne_sse2(unsigned n, const float *a, int16_t *
         " je 4f                         \n\t"
 
         "3:                             \n\t"
-        " movss (%2, %0, 2), %%xmm0     \n\t"
+        " movss (%q2, %0, 2), %%xmm0    \n\t"
         " minss  %%xmm5, %%xmm0         \n\t"
         " maxss  %%xmm6, %%xmm0         \n\t"
         " mulss  %%xmm7, %%xmm0         \n\t"
         " cvtss2si %%xmm0, %4           \n\t"
-        " movw  %w4, (%3, %0)           \n\t"
+        " movw  %w4, (%q3, %0)          \n\t"
         " add $2, %0                    \n\t"
         " dec %1                        \n\t"
         " jne 3b                        \n\t"
