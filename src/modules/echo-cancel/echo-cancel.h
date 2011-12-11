@@ -52,10 +52,12 @@ struct pa_echo_canceller_params {
             SpeexPreprocessState *pp_state;
         } speex;
 #endif
+#ifdef HAVE_ADRIAN_EC
         struct {
             uint32_t blocksize;
             AEC *aec;
         } adrian;
+#endif
 #ifdef HAVE_WEBRTC
         struct {
             /* This is a void* so that we don't have to convert this whole file
@@ -136,6 +138,7 @@ void pa_speex_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *p
 void pa_speex_ec_done(pa_echo_canceller *ec);
 #endif
 
+#ifdef HAVE_ADRIAN_EC
 /* Adrian Andre's echo canceller */
 pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
@@ -143,6 +146,7 @@ pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
                            uint32_t *blocksize, const char *args);
 void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_adrian_ec_done(pa_echo_canceller *ec);
+#endif
 
 #ifdef HAVE_WEBRTC
 /* WebRTC canceller functions */

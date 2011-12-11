@@ -1744,12 +1744,15 @@ module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
 
 # echo-cancel module
 module_echo_cancel_la_SOURCES = \
-		modules/echo-cancel/module-echo-cancel.c modules/echo-cancel/echo-cancel.h \
-		modules/echo-cancel/adrian-aec.c modules/echo-cancel/adrian-aec.h \
-		modules/echo-cancel/adrian.c modules/echo-cancel/adrian.h
+		modules/echo-cancel/module-echo-cancel.c modules/echo-cancel/echo-cancel.h
 module_echo_cancel_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_echo_cancel_la_LIBADD = $(MODULE_LIBADD) $(LIBSPEEX_LIBS)
 module_echo_cancel_la_CFLAGS = $(AM_CFLAGS) $(SERVER_CFLAGS) $(LIBSPEEX_CFLAGS)
+if HAVE_ADRIAN_EC
+module_echo_cancel_la_SOURCES += \
+		modules/echo-cancel/adrian-aec.c modules/echo-cancel/adrian-aec.h \
+		modules/echo-cancel/adrian.c modules/echo-cancel/adrian.h
+module_echo_cancel_la_CFLAGS += -DHAVE_ADRIAN_EC=1
 if HAVE_ORC
 ORC_SOURCE += modules/echo-cancel/adrian-aec
 nodist_module_echo_cancel_la_SOURCES = \
@@ -1757,6 +1760,7 @@ nodist_module_echo_cancel_la_SOURCES = \
 		modules/echo-cancel/adrian-aec-orc-gen.h
 module_echo_cancel_la_LIBADD += $(ORC_LIBS)
 module_echo_cancel_la_CFLAGS += $(ORC_CFLAGS) -I$(top_builddir)/src/modules/echo-cancel
+endif
 endif
 if HAVE_SPEEX
 module_echo_cancel_la_SOURCES += modules/echo-cancel/speex.c

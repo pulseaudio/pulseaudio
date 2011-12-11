@@ -85,7 +85,9 @@ typedef enum {
 #ifdef HAVE_SPEEX
     PA_ECHO_CANCELLER_SPEEX,
 #endif
+#ifdef HAVE_ADRIAN_EC
     PA_ECHO_CANCELLER_ADRIAN,
+#endif
 #ifdef HAVE_WEBRTC
     PA_ECHO_CANCELLER_WEBRTC,
 #endif
@@ -106,12 +108,14 @@ static const pa_echo_canceller ec_table[] = {
         .done                   = pa_speex_ec_done,
     },
 #endif
+#ifdef HAVE_ADRIAN_EC
     {
         /* Adrian Andre's NLMS implementation */
         .init                   = pa_adrian_ec_init,
         .run                    = pa_adrian_ec_run,
         .done                   = pa_adrian_ec_done,
     },
+#endif
 #ifdef HAVE_WEBRTC
     {
         /* WebRTC's audio processing engine */
@@ -1549,8 +1553,10 @@ static pa_echo_canceller_method_t get_ec_method_from_string(const char *method) 
     if (pa_streq(method, "speex"))
         return PA_ECHO_CANCELLER_SPEEX;
 #endif
+#ifdef HAVE_ADRIAN_EC
     if (pa_streq(method, "adrian"))
         return PA_ECHO_CANCELLER_ADRIAN;
+#endif
 #ifdef HAVE_WEBRTC
     if (pa_streq(method, "webrtc"))
         return PA_ECHO_CANCELLER_WEBRTC;

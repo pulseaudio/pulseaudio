@@ -1178,6 +1178,13 @@ AC_SUBST(WEBRTC_CFLAGS)
 AC_SUBST(WEBRTC_LIBS)
 AM_CONDITIONAL([HAVE_WEBRTC], [test "x$HAVE_WEBRTC" = "x1"])
 
+AC_ARG_ENABLE([adrian-aec],
+    AS_HELP_STRING([--enable-adrian-aec], [Enable Adrian's optional echo canceller]))
+AS_IF([test "x$enable_adrian_aec" != "xno"],
+    [HAVE_ADRIAN_EC=1])
+AM_CONDITIONAL([HAVE_ADRIAN_EC], [test "x$HAVE_ADRIAN_EC" = "x1"])
+
+
 
 ###################################
 #            Output               #
@@ -1324,6 +1331,7 @@ AS_IF([test "x$HAVE_IPV6" = "x1"], ENABLE_IPV6=yes, ENABLE_IPV6=no)
 AS_IF([test "x$HAVE_OPENSSL" = "x1"], ENABLE_OPENSSL=yes, ENABLE_OPENSSL=no)
 AS_IF([test "x$HAVE_FFTW" = "x1"], ENABLE_FFTW=yes, ENABLE_FFTW=no)
 AS_IF([test "x$HAVE_ORC" = "xyes"], ENABLE_ORC=yes, ENABLE_ORC=no)
+AS_IF([test "x$HAVE_ADRIAN_EC" = "x1"], ENABLE_ADRIAN_EC=yes, ENABLE_ADRIAN_EC=no)
 AS_IF([test "x$HAVE_SPEEX" = "x1"], ENABLE_SPEEX=yes, ENABLE_SPEEX=no)
 AS_IF([test "x$HAVE_WEBRTC" = "x1"], ENABLE_WEBRTC=yes, ENABLE_WEBRTC=no)
 AS_IF([test "x$HAVE_TDB" = "x1"], ENABLE_TDB=yes, ENABLE_TDB=no)
@@ -1372,7 +1380,8 @@ echo "
     Enable OpenSSL (for Airtunes): ${ENABLE_OPENSSL}
     Enable fftw:                   ${ENABLE_FFTW}
     Enable orc:                    ${ENABLE_ORC}
-    Enable speex:                  ${ENABLE_SPEEX}
+    Enable Adrian echo canceller:  ${ENABLE_ADRIAN_EC}
+    Enable speex (resampler, AEC): ${ENABLE_SPEEX}
     Enable WebRTC echo canceller:  ${ENABLE_WEBRTC}
     Database
       tdb:                         ${ENABLE_TDB}
@@ -1389,6 +1398,10 @@ echo "
     Legacy Runtime Dir Support:    ${ENABLE_LEGACY_RUNTIME_DIR}
     Legacy Database Entry Support: ${ENABLE_LEGACY_DATABASE_ENTRY_FORMAT}
 "
+
+if test "${ENABLE_SPEEX}" = "no" && test "${ENABLE_WEBRTC}" = "no" && test "${ENABLE_ADRIAN_EC}" = "no" ; then
+AC_MSG_ERROR([At least one echo canceller implementation must be available.])
+fi
 
 if test "${ENABLE_DBUS}" = "no" && test "x$os_is_win32" != "x1" ; then
    echo "
