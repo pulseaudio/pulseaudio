@@ -586,10 +586,6 @@ PKG_CHECK_MODULES(LIBSNDFILE, [ sndfile >= 1.0.20 ])
 AC_SUBST(LIBSNDFILE_CFLAGS)
 AC_SUBST(LIBSNDFILE_LIBS)
 
-PKG_CHECK_MODULES(LIBSPEEX, [ speexdsp >= 1.2 ])
-AC_SUBST(LIBSPEEX_CFLAGS)
-AC_SUBST(LIBSPEEX_LIBS)
-
 #### atomic-ops ####
 
 AC_MSG_CHECKING([whether we need libatomic_ops])
@@ -1053,6 +1049,24 @@ AS_IF([test "x$with_fftw" = "xyes" && test "x$HAVE_FFTW" = "x0"],
 
 AM_CONDITIONAL([HAVE_FFTW], [test "x$HAVE_FFTW" = "x1"])
 
+#### speex (optional) ####
+
+AC_ARG_WITH([speex],
+    AS_HELP_STRING([--without-speex],[Omit speex (resampling, AEC)]))
+
+AS_IF([test "x$with_speex" != "xno"],
+    [PKG_CHECK_MODULES(LIBSPEEX, [ speexdsp >= 1.2 ], HAVE_SPEEX=1, HAVE_SPEEX=0)],
+    HAVE_SPEEX=0)
+
+AS_IF([test "x$with_speex" = "xyes" && test "x$HAVE_SPEEX" = "x0"],
+    [AC_MSG_ERROR([*** speex support not found])])
+
+AM_CONDITIONAL([HAVE_SPEEX], [test "x$HAVE_SPEEX" = "x1"])
+AS_IF([test "x$HAVE_SPEEX" = "x1"], AC_DEFINE([HAVE_SPEEX], 1, [Have speex]))
+
+AC_SUBST(LIBSPEEX_CFLAGS)
+AC_SUBST(LIBSPEEX_LIBS)
+
 #### ORC (optional) ####
 
 ORC_CHECK([0.4.11])
@@ -1310,6 +1324,7 @@ AS_IF([test "x$HAVE_IPV6" = "x1"], ENABLE_IPV6=yes, ENABLE_IPV6=no)
 AS_IF([test "x$HAVE_OPENSSL" = "x1"], ENABLE_OPENSSL=yes, ENABLE_OPENSSL=no)
 AS_IF([test "x$HAVE_FFTW" = "x1"], ENABLE_FFTW=yes, ENABLE_FFTW=no)
 AS_IF([test "x$HAVE_ORC" = "xyes"], ENABLE_ORC=yes, ENABLE_ORC=no)
+AS_IF([test "x$HAVE_SPEEX" = "x1"], ENABLE_SPEEX=yes, ENABLE_SPEEX=no)
 AS_IF([test "x$HAVE_WEBRTC" = "x1"], ENABLE_WEBRTC=yes, ENABLE_WEBRTC=no)
 AS_IF([test "x$HAVE_TDB" = "x1"], ENABLE_TDB=yes, ENABLE_TDB=no)
 AS_IF([test "x$HAVE_GDBM" = "x1"], ENABLE_GDBM=yes, ENABLE_GDBM=no)
@@ -1357,6 +1372,7 @@ echo "
     Enable OpenSSL (for Airtunes): ${ENABLE_OPENSSL}
     Enable fftw:                   ${ENABLE_FFTW}
     Enable orc:                    ${ENABLE_ORC}
+    Enable speex:                  ${ENABLE_SPEEX}
     Enable WebRTC echo canceller:  ${ENABLE_WEBRTC}
     Database
       tdb:                         ${ENABLE_TDB}
@@ -1394,6 +1410,17 @@ You do not have udev support enabled. It is strongly recommended
 that you enable udev support if your platform supports it as it is
 the primary method used to detect hardware audio devices (on Linux)
 and is thus a critical part of PulseAudio on that platform.
+===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
+"
+fi
+
+if test "${ENABLE_SPEEX}" = "no" && test "x$os_is_win32" != "x1" ; then
+   echo "
+===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
+You do not have speex support enabled. It is strongly recommended
+that you enable speex support if your platform supports it as it is
+the primary method used for audio resampling and is thus a critical
+part of PulseAudio on that platform.
 ===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
 "
 fi

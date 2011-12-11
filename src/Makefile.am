@@ -1745,7 +1745,6 @@ module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
 # echo-cancel module
 module_echo_cancel_la_SOURCES = \
 		modules/echo-cancel/module-echo-cancel.c modules/echo-cancel/echo-cancel.h \
-		modules/echo-cancel/speex.c \
 		modules/echo-cancel/adrian-aec.c modules/echo-cancel/adrian-aec.h \
 		modules/echo-cancel/adrian.c modules/echo-cancel/adrian.h
 module_echo_cancel_la_LDFLAGS = $(MODULE_LDFLAGS)
@@ -1758,6 +1757,9 @@ nodist_module_echo_cancel_la_SOURCES = \
 		modules/echo-cancel/adrian-aec-orc-gen.h
 module_echo_cancel_la_LIBADD += $(ORC_LIBS)
 module_echo_cancel_la_CFLAGS += $(ORC_CFLAGS) -I$(top_builddir)/src/modules/echo-cancel
+endif
+if HAVE_SPEEX
+module_echo_cancel_la_SOURCES += modules/echo-cancel/speex.c
 endif
 if HAVE_WEBRTC
 module_echo_cancel_la_SOURCES += modules/echo-cancel/webrtc.cc

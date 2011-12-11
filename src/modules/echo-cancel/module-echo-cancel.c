@@ -82,7 +82,9 @@ PA_MODULE_USAGE(
 /* NOTE: Make sure the enum and ec_table are maintained in the correct order */
 typedef enum {
     PA_ECHO_CANCELLER_INVALID = -1,
-    PA_ECHO_CANCELLER_SPEEX = 0,
+#ifdef HAVE_SPEEX
+    PA_ECHO_CANCELLER_SPEEX,
+#endif
     PA_ECHO_CANCELLER_ADRIAN,
 #ifdef HAVE_WEBRTC
     PA_ECHO_CANCELLER_WEBRTC,
@@ -96,12 +98,14 @@ typedef enum {
 #endif
 
 static const pa_echo_canceller ec_table[] = {
+#ifdef HAVE_SPEEX
     {
         /* Speex */
         .init                   = pa_speex_ec_init,
         .run                    = pa_speex_ec_run,
         .done                   = pa_speex_ec_done,
     },
+#endif
     {
         /* Adrian Andre's NLMS implementation */
         .init                   = pa_adrian_ec_init,
@@ -1541,16 +1545,17 @@ void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_cvolume *v) 
 }
 
 static pa_echo_canceller_method_t get_ec_method_from_string(const char *method) {
+#ifdef HAVE_SPEEX
     if (pa_streq(method, "speex"))
         return PA_ECHO_CANCELLER_SPEEX;
-    else if (pa_streq(method, "adrian"))
+#endif
+    if (pa_streq(method, "adrian"))
         return PA_ECHO_CANCELLER_ADRIAN;
 #ifdef HAVE_WEBRTC
-    else if (pa_streq(method, "webrtc"))
+    if (pa_streq(method, "webrtc"))
         return PA_ECHO_CANCELLER_WEBRTC;
 #endif
-    else
-        return PA_ECHO_CANCELLER_INVALID;
+    return PA_ECHO_CANCELLER_INVALID;
 }
 
 /* Common initialisation bits between module-echo-cancel and the standalone test program */

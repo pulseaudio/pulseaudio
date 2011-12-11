@@ -31,8 +31,11 @@
 #include <pulsecore/core.h>
 #include <pulsecore/macro.h>
 
+#ifdef HAVE_SPEEX
 #include <speex/speex_echo.h>
 #include <speex/speex_preprocess.h>
+#endif
+
 #include "adrian.h"
 
 /* Common data structures */
@@ -43,10 +46,12 @@ typedef struct pa_echo_canceller_params pa_echo_canceller_params;
 
 struct pa_echo_canceller_params {
     union {
+#ifdef HAVE_SPEEX
         struct {
             SpeexEchoState *state;
             SpeexPreprocessState *pp_state;
         } speex;
+#endif
         struct {
             uint32_t blocksize;
             AEC *aec;
@@ -121,6 +126,7 @@ struct pa_echo_canceller {
 void pa_echo_canceller_get_capture_volume(pa_echo_canceller *ec, pa_cvolume *v);
 void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_cvolume *v);
 
+#ifdef HAVE_SPEEX
 /* Speex canceller functions */
 pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
@@ -128,6 +134,7 @@ pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
                            uint32_t *blocksize, const char *args);
 void pa_speex_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_speex_ec_done(pa_echo_canceller *ec);
+#endif
 
 /* Adrian Andre's echo canceller */
 pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,

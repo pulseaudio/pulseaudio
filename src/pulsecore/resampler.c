@@ -29,7 +29,9 @@
 #include <samplerate.h>
 #endif
 
+#ifdef HAVE_SPEEX
 #include <speex/speex_resampler.h>
+#endif
 
 #include <pulse/xmalloc.h>
 #include <pulsecore/sconv.h>
@@ -90,9 +92,11 @@ struct pa_resampler {
     } src;
 #endif
 
+#ifdef HAVE_SPEEX
     struct { /* data specific to speex */
         SpeexResamplerState* state;
     } speex;
+#endif
 
     struct { /* data specific to ffmpeg */
         struct AVResampleContext *state;
@@ -102,7 +106,9 @@ struct pa_resampler {
 
 static int copy_init(pa_resampler *r);
 static int trivial_init(pa_resampler*r);
+#ifdef HAVE_SPEEX
 static int speex_init(pa_resampler*r);
+#endif
 static int ffmpeg_init(pa_resampler*r);
 static int peaks_init(pa_resampler*r);
 #ifdef HAVE_LIBSAMPLERATE
@@ -126,6 +132,7 @@ static int (* const init_table[])(pa_resampler*r) = {
     [PA_RESAMPLER_SRC_LINEAR]              = NULL,
 #endif
     [PA_RESAMPLER_TRIVIAL]                 = trivial_init,
+#ifdef HAVE_SPEEX
     [PA_RESAMPLER_SPEEX_FLOAT_BASE+0]      = speex_init,
     [PA_RESAMPLER_SPEEX_FLOAT_BASE+1]      = speex_init,
     [PA_RESAMPLER_SPEEX_FLOAT_BASE+2]      = speex_init,
@@ -148,6 +155,30 @@ static int (* const init_table[])(pa_resampler*r) = {
     [PA_RESAMPLER_SPEEX_FIXED_BASE+8]      = speex_init,
     [PA_RESAMPLER_SPEEX_FIXED_BASE+9]      = speex_init,
     [PA_RESAMPLER_SPEEX_FIXED_BASE+10]     = speex_init,
+#else
+    [PA_RESAMPLER_SPEEX_FLOAT_BASE+0]      = NULL,
+    [PA_RESAMPLER_SPEEX_FLOAT_BASE+1]      = NULL,
+    [PA_RESAMPLER_SPEEX_FLOAT_BASE+2]      = NULL,
+    [PA_RESAMPLER_SPEEX_FLOAT_BASE+3]      = NULL,
+    [PA_RESAMPLER_SPEEX_FLOAT_BASE+4]      = NULL,
+    [PA_RESAMPLER_SPEEX_FLOAT_BASE+5]      = NULL,
+    [PA_RESAMPLER_SPEEX_FLOAT_BASE+6]      = NULL,
+    [PA_RESAMPLER_SPEEX_FLOAT_BASE+7]      = NULL,
+    [PA_RESAMPLER_SPEEX_FLOAT_BASE+8]      = NULL,
+    [PA_RESAMPLER_SPEEX_FLOAT_BASE+9]      = NULL,
+    [PA_RESAMPLER_SPEEX_FLOAT_BASE+10]     = NULL,
+    [PA_RESAMPLER_SPEEX_FIXED_BASE+0]      = NULL,
+    [PA_RESAMPLER_SPEEX_FIXED_BASE+1]      = NULL,
+    [PA_RESAMPLER_SPEEX_FIXED_BASE+2]      = NULL,
+    [PA_RESAMPLER_SPEEX_FIXED_BASE+3]      = NULL,
+    [PA_RESAMPLER_SPEEX_FIXED_BASE+4]      = NULL,
+    [PA_RESAMPLER_SPEEX_FIXED_BASE+5]      = NULL,
+    [PA_RESAMPLER_SPEEX_FIXED_BASE+6]      = NULL,
+    [PA_RESAMPLER_SPEEX_FIXED_BASE+7]      = NULL,
+    [PA_RESAMPLER_SPEEX_FIXED_BASE+8]      = NULL,
+    [PA_RESAMPLER_SPEEX_FIXED_BASE+9]      = NULL,
+    [PA_RESAMPLER_SPEEX_FIXED_BASE+10]     = NULL,
+#endif
     [PA_RESAMPLER_FFMPEG]                  = ffmpeg_init,
     [PA_RESAMPLER_AUTO]                    = NULL,
     [PA_RESAMPLER_COPY]                    = copy_init,
@@ -195,8 +226,13 @@ pa_resampler* pa_resampler_new(
         method = PA_RESAMPLER_AUTO;
     }
 
-    if (method == PA_RESAMPLER_AUTO)
+    if (method == PA_RESAMPLER_AUTO) {
+#ifdef HAVE_SPEEX
         method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
+#else
+        method = PA_RESAMPLER_FFMPEG;
+#endif
+    }
 
     r = pa_xnew(pa_resampler, 1);
     r->mempool = pool;
@@ -473,6 +509,13 @@ int pa_resample_method_supported(pa_resample_method_t m) {
 
 #ifndef HAVE_LIBSAMPLERATE
     if (m <= PA_RESAMPLER_SRC_LINEAR)
+        return 0;
+#endif
+
+#ifndef HAVE_SPEEX
+    if (m >= PA_RESAMPLER_SPEEX_FLOAT_BASE && m <= PA_RESAMPLER_SPEEX_FLOAT_MAX)
+        return 0;
+    if (m >= PA_RESAMPLER_SPEEX_FIXED_BASE && m <= PA_RESAMPLER_SPEEX_FIXED_MAX)
         return 0;
 #endif
 
@@ -1271,6 +1314,7 @@ static int libsamplerate_init(pa_resampler *r) {
 }
 #endif
 
+#ifdef HAVE_SPEEX
 /*** speex based implementation ***/
 
 static void speex_resample_float(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
@@ -1364,6 +1408,7 @@ static int speex_init(pa_resampler *r) {
 
     return 0;
 }
+#endif
 
 /* Trivial implementation */
 
