@@ -143,7 +143,7 @@ static pa_stream *pa_stream_new_with_proplist_internal(
     s->requested_bytes = 0;
     memset(&s->buffer_attr, 0, sizeof(s->buffer_attr));
 
-    /* We initialize der target length here, so that if the user
+    /* We initialize the target length here, so that if the user
      * passes no explicit buffering metrics the default is similar to
      * what older PA versions provided. */
 
@@ -245,7 +245,7 @@ static void stream_unlink(pa_stream *s) {
 
     /* Detach from context */
 
-    /* Unref all operation object that point to us */
+    /* Unref all operation objects that point to us */
     for (o = s->context->operations; o; o = n) {
         n = o->next;
 
@@ -472,7 +472,7 @@ static void check_smoother_status(pa_stream *s, pa_bool_t aposteriori, pa_bool_t
              * indications when audio really starts/stops playing, if
              * we don't have any timing info yet -- instead of trying
              * to be smart and guessing the server time. Otherwise the
-             * unknown transport delay add too much noise to our time
+             * unknown transport delay adds too much noise to our time
              * calculations. */
 
             return;
