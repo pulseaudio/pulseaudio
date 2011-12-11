@@ -339,7 +339,7 @@ typedef enum pa_stream_flags {
 /** Playback and record buffer metrics */
 typedef struct pa_buffer_attr {
     uint32_t maxlength;
-    /**< Maximum length of the buffer. Setting this to (uint32_t) -1
+    /**< Maximum length of the buffer in bytes. Setting this to (uint32_t) -1
      * will initialize this to the maximum value supported by server,
      * which is recommended. */
 
