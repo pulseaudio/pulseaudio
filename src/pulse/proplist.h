@@ -28,6 +28,9 @@
 #include <pulse/gccmacro.h>
 #include <pulse/version.h>
 
+/** \file
+ * Property list constants and functions */
+
 PA_C_DECL_BEGIN
 
 /** For streams: localized media name, formatted as UTF-8. e.g. "Guns'N'Roses: Civil War".*/
