@@ -28,7 +28,7 @@
 #include <pulse/version.h>
 
 /** \file
- * UTF8 Validation functions
+ * UTF-8 validation functions
  */
 
 PA_C_DECL_BEGIN
