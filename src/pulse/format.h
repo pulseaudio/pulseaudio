@@ -77,7 +77,7 @@ typedef struct pa_format_info {
 /** Allocates a new \a pa_format_info structure. Clients must initialise at least the encoding field themselves. */
 pa_format_info* pa_format_info_new(void);
 
-/** Returns a new \a pa_format_info struct and representing the same format as \a src */
+/** Returns a new \a pa_format_info struct and representing the same format as \a src. */
 pa_format_info* pa_format_info_copy(const pa_format_info *src);
 
 /** Frees a \a pa_format_info structure */
@@ -86,7 +86,7 @@ void pa_format_info_free(pa_format_info *f);
 /** Returns non-zero when the format info structure is valid */
 int pa_format_info_valid(const pa_format_info *f);
 
-/** Returns non-zero when the format info structure represents a PCM (i.e. uncompressed data) format */
+/** Returns non-zero when the format info structure represents a PCM (i.e.\ uncompressed data) format. */
 int pa_format_info_is_pcm(const pa_format_info *f);
 
 /** Returns non-zero if the format represented by \a first is a subset of
