@@ -155,7 +155,7 @@ PA_C_DECL_BEGIN
  * deal with that.
  *
  * The functions will not dead lock because the wait function will release
- * the lock before waiting and then regrab it once it has been signaled.
+ * the lock before waiting and then regrab it once it has been signalled.
  * For those of you familiar with threads, the behaviour is that of a
  * condition variable.
  *
@@ -207,10 +207,10 @@ PA_C_DECL_BEGIN
  * copy the contents of success, but for larger data structures this can be
  * wasteful.
  *
- * The difference here compared to the basic callback is the 1 sent to
- * pa_threaded_mainloop_signal() and the call to
+ * The difference here compared to the basic callback is the value 1 passed
+ * to pa_threaded_mainloop_signal() and the call to
  * pa_threaded_mainloop_accept(). What will happen is that
- * pa_threaded_mainloop_signal() will signal the main function and then stop.
+ * pa_threaded_mainloop_signal() will signal the main function and then wait.
  * The main function is then free to use the data in the callback until
  * pa_threaded_mainloop_accept() is called, which will allow the callback
  * to continue.
@@ -223,10 +223,10 @@ PA_C_DECL_BEGIN
  * \subsection async_subsec Asynchronous callbacks
  *
  * PulseAudio also has callbacks that are completely asynchronous, meaning
- * that they can be called at any time. The threading main loop API provides
+ * that they can be called at any time. The threaded main loop API provides
  * the locking mechanism to handle concurrent accesses, but nothing else.
  * Applications will have to handle communication from the callback to the
- * main program through some own system.
+ * main program through its own mechanisms.
  *
  * The callbacks that are completely asynchronous are:
  *
@@ -277,13 +277,13 @@ void pa_threaded_mainloop_unlock(pa_threaded_mainloop *m);
 
 /** Wait for an event to be signalled by the event loop thread. You
  * can use this to pass data from the event loop thread to the main
- * thread in synchronized fashion. This function may not be called
+ * thread in a synchronized fashion. This function may not be called
  * inside the event loop thread. Prior to this call the event loop
  * object needs to be locked using pa_threaded_mainloop_lock(). While
- * waiting the lock will be released, immediately before returning it
+ * waiting the lock will be released. Immediately before returning it
  * will be acquired again. This function may spuriously wake up even
- * without _signal() being called. You need to make sure to handle
- * that! */
+ * without pa_threaded_mainloop_signal() being called. You need to
+ * make sure to handle that! */
 void pa_threaded_mainloop_wait(pa_threaded_mainloop *m);
 
 /** Signal all threads waiting for a signalling event in
@@ -299,15 +299,16 @@ void pa_threaded_mainloop_signal(pa_threaded_mainloop *m, int wait_for_accept);
  * wait_for_accept value.  */
 void pa_threaded_mainloop_accept(pa_threaded_mainloop *m);
 
-/** Return the return value as specified with the main loop's quit() routine. */
+/** Return the return value as specified with the main loop's
+ * pa_mainloop_quit() routine. */
 int pa_threaded_mainloop_get_retval(pa_threaded_mainloop *m);
 
-/** Return the abstract main loop abstraction layer vtable for this
-    main loop. No need to free the API as it is owned by the loop
-    and is destroyed when the loop is freed. */
+/** Return the main loop abstraction layer vtable for this main loop.
+ * There is no need to free this object as it is owned by the loop
+ * and is destroyed when the loop is freed. */
 pa_mainloop_api* pa_threaded_mainloop_get_api(pa_threaded_mainloop*m);
 
-/** Returns non-zero when called from withing the event loop thread. \since 0.9.7 */
+/** Returns non-zero when called from within the event loop thread. \since 0.9.7 */
 int pa_threaded_mainloop_in_thread(pa_threaded_mainloop *m);
 
 PA_C_DECL_END
