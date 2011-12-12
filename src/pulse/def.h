@@ -399,7 +399,7 @@ typedef struct pa_buffer_attr {
 } pa_buffer_attr;
 
 /** Error values as used by pa_context_errno(). Use pa_strerror() to convert these values to human readable strings */
-enum {
+typedef enum pa_error_code {
     PA_OK = 0,                     /**< No error */
     PA_ERR_ACCESS,                 /**< Access failure */
     PA_ERR_COMMAND,                /**< Unknown command */
@@ -428,7 +428,7 @@ enum {
     PA_ERR_IO,                     /**< An IO error happened. \since 0.9.16 */
     PA_ERR_BUSY,                   /**< Device or resource busy. \since 0.9.17 */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
-};
+} pa_error_code_t;
 
 /** \cond fulldocs */
 #define PA_OK PA_OK
