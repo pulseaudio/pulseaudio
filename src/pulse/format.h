@@ -89,8 +89,8 @@ int pa_format_info_valid(const pa_format_info *f);
 /** Returns non-zero when the format info structure represents a PCM (i.e. uncompressed data) format */
 int pa_format_info_is_pcm(const pa_format_info *f);
 
-/** Returns non-zero if the format represented \a first is a subset of
- * the format represented by \second. This means that \a second must
+/** Returns non-zero if the format represented by \a first is a subset of
+ * the format represented by \a second. This means that \a second must
  * have all the fields that \a first does, but the reverse need not
  * be true. This is typically expected to be used to check if a
  * stream's format is compatible with a given sink. In such a case,
