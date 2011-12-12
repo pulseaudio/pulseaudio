@@ -30,6 +30,9 @@
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 
+/** \file
+ * Utility functions for handling a stream or sink format */
+
 PA_C_DECL_BEGIN
 
 /** Represents the type of encoding used in a stream or accepted by a sink. \since 1.0 */
