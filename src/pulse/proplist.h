@@ -322,7 +322,7 @@ int pa_proplist_get(pa_proplist *p, const char *key, const void **data, size_t *
 typedef enum pa_update_mode {
     PA_UPDATE_SET
     /**< Replace the entire property list with the new one. Don't keep
-     *  any of the old data around */,
+     *  any of the old data around. */,
 
     PA_UPDATE_MERGE
     /**< Merge new property list into the existing one, not replacing
@@ -350,9 +350,9 @@ void pa_proplist_update(pa_proplist *p, pa_update_mode_t mode, pa_proplist *othe
 int pa_proplist_unset(pa_proplist *p, const char *key);
 
 /** Similar to pa_proplist_unset() but takes an array of keys to
- * remove. The array should be terminated by a NULL pointer. Return -1
+ * remove. The array should be terminated by a NULL pointer. Returns -1
  * on failure, otherwise the number of entries actually removed (which
- * might even be 0, if there where no matching entries to
+ * might even be 0, if there were no matching entries to
  * remove). \since 0.9.11 */
 int pa_proplist_unset_many(pa_proplist *p, const char * const keys[]);
 
@@ -361,8 +361,8 @@ int pa_proplist_unset_many(pa_proplist *p, const char * const keys[]);
  * to this variable should then be passed to pa_proplist_iterate()
  * which should be called in a loop until it returns NULL which
  * signifies EOL. The property list should not be modified during
- * iteration through the list -- except for deleting the current
- * looked at entry. On each invocation this function will return the
+ * iteration through the list -- with the exception of deleting the
+ * current entry. On each invocation this function will return the
  * key string for the next entry. The keys in the property list do not
  * have any particular order. \since 0.9.11 */
 const char *pa_proplist_iterate(pa_proplist *p, void **state);
@@ -393,7 +393,7 @@ void pa_proplist_clear(pa_proplist *p);
  * the specific list. \since 0.9.11 */
 pa_proplist* pa_proplist_copy(pa_proplist *t);
 
-/** Return the number of entries on the property list. \since 0.9.15 */
+/** Return the number of entries in the property list. \since 0.9.15 */
 unsigned pa_proplist_size(pa_proplist *t);
 
 /** Returns 0 when the proplist is empty, positive otherwise \since 0.9.15 */
