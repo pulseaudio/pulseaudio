@@ -1826,9 +1826,9 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     u->pdispatch = pa_pdispatch_new(u->core->mainloop, TRUE, command_table, PA_COMMAND_MAX);
 
     pa_pstream_set_die_callback(u->pstream, pstream_die_callback, u);
-    pa_pstream_set_recieve_packet_callback(u->pstream, pstream_packet_callback, u);
+    pa_pstream_set_receive_packet_callback(u->pstream, pstream_packet_callback, u);
 #ifndef TUNNEL_SINK
-    pa_pstream_set_recieve_memblock_callback(u->pstream, pstream_memblock_callback, u);
+    pa_pstream_set_receive_memblock_callback(u->pstream, pstream_memblock_callback, u);
 #endif
 
     t = pa_tagstruct_new(NULL, 0);

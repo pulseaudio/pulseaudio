@@ -4937,8 +4937,8 @@ void pa_native_protocol_connect(pa_native_protocol *p, pa_iochannel *io, pa_nati
     c->client->userdata = c;
 
     c->pstream = pa_pstream_new(p->core->mainloop, io, p->core->mempool);
-    pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);
-    pa_pstream_set_recieve_memblock_callback(c->pstream, pstream_memblock_callback, c);
+    pa_pstream_set_receive_packet_callback(c->pstream, pstream_packet_callback, c);
+    pa_pstream_set_receive_memblock_callback(c->pstream, pstream_memblock_callback, c);
     pa_pstream_set_die_callback(c->pstream, pstream_die_callback, c);
     pa_pstream_set_drain_callback(c->pstream, pstream_drain_callback, c);
     pa_pstream_set_revoke_callback(c->pstream, pstream_revoke_callback, c);

@@ -518,8 +518,8 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     c->pstream = pa_pstream_new(c->mainloop, io, c->mempool);
 
     pa_pstream_set_die_callback(c->pstream, pstream_die_callback, c);
-    pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);
-    pa_pstream_set_recieve_memblock_callback(c->pstream, pstream_memblock_callback, c);
+    pa_pstream_set_receive_packet_callback(c->pstream, pstream_packet_callback, c);
+    pa_pstream_set_receive_memblock_callback(c->pstream, pstream_memblock_callback, c);
 
     pa_assert(!c->pdispatch);
     c->pdispatch = pa_pdispatch_new(c->mainloop, c->use_rtclock, command_table, PA_COMMAND_MAX);
