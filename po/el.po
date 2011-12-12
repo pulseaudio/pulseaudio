@@ -974,7 +974,7 @@ msgid "Invalid server"
 msgstr ""
 
 #: ../src/pulse/error.c:57
-msgid "Module initalization failed"
+msgid "Module initialization failed"
 msgstr ""
 
 #: ../src/pulse/error.c:58

@@ -1069,7 +1069,7 @@ msgid "Invalid server"
 msgstr "చెల్లని సేవిక"
 
 #: ../src/pulse/error.c:57
-msgid "Module initalization failed"
+msgid "Module initialization failed"
 msgstr "మాడ్యూల్ సిద్దీకరణ విఫలమైంది"
 
 #: ../src/pulse/error.c:58

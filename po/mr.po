@@ -1069,7 +1069,7 @@ msgid "Invalid server"
 msgstr "अवैध सर्वर"
 
 #: ../src/pulse/error.c:57
-msgid "Module initalization failed"
+msgid "Module initialization failed"
 msgstr "घटक प्रारंभ अपयशी"
 
 #: ../src/pulse/error.c:58

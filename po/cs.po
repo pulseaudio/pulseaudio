@@ -1076,7 +1076,7 @@ msgid "Invalid server"
 msgstr "Neplatný server"
 
 #: ../src/pulse/error.c:57
-msgid "Module initalization failed"
+msgid "Module initialization failed"
 msgstr "Spuštění modulu selhalo"
 
 #: ../src/pulse/error.c:58

@@ -1093,7 +1093,7 @@ msgid "Invalid server"
 msgstr "தவறான புரவலன்"
 
 #: ../src/pulse/error.c:57
-msgid "Module initalization failed"
+msgid "Module initialization failed"
 msgstr "தொகுதியை துவக்க முடியவில்லை"
 
 #: ../src/pulse/error.c:58

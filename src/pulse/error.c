@@ -51,7 +51,7 @@ const char*pa_strerror(int error) {
         [PA_ERR_CONNECTIONTERMINATED] = N_("Connection terminated"),
         [PA_ERR_KILLED] = N_("Entity killed"),
         [PA_ERR_INVALIDSERVER] = N_("Invalid server"),
-        [PA_ERR_MODINITFAILED] = N_("Module initalization failed"),
+        [PA_ERR_MODINITFAILED] = N_("Module initialization failed"),
         [PA_ERR_BADSTATE] = N_("Bad state"),
         [PA_ERR_NODATA] = N_("No data"),
         [PA_ERR_VERSION] = N_("Incompatible protocol version"),

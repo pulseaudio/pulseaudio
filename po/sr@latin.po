@@ -1086,7 +1086,7 @@ msgid "Invalid server"
 msgstr "Server neispravan"
 
 #: ../src/pulse/error.c:57
-msgid "Module initalization failed"
+msgid "Module initialization failed"
 msgstr "Inicijalizacija modula nije uspela"
 
 #: ../src/pulse/error.c:58

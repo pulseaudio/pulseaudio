@@ -1066,7 +1066,7 @@ msgid "Invalid server"
 msgstr "തെറ്റായ സര്‍വര്‍"
 
 #: ../src/pulse/error.c:57
-msgid "Module initalization failed"
+msgid "Module initialization failed"
 msgstr "ഘടകം ആരംഭിക്കുന്നതില്‍ പരാജയപ്പെട്ടു"
 
 #: ../src/pulse/error.c:58

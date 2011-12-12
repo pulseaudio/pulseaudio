@@ -1082,7 +1082,7 @@ msgid "Invalid server"
 msgstr "ಅಮಾನ್ಯವಾದ ಪರಿಚಾರಕ"
 
 #: ../src/pulse/error.c:57
-msgid "Module initalization failed"
+msgid "Module initialization failed"
 msgstr "ಘಟಕವನ್ನು ಆರಂಭಿಸುವಲ್ಲಿ ವಿಫಲಗೊಂಡಿದೆ"
 
 #: ../src/pulse/error.c:58

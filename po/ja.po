@@ -1081,7 +1081,7 @@ msgid "Invalid server"
 msgstr "無効なサーバー"
 
 #: ../src/pulse/error.c:57
-msgid "Module initalization failed"
+msgid "Module initialization failed"
 msgstr "モジュール初期化失敗"
 
 #: ../src/pulse/error.c:58

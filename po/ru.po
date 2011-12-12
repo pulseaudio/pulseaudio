@@ -1075,7 +1075,7 @@ msgid "Invalid server"
 msgstr "Неверный сервер"
 
 #: ../src/pulse/error.c:57
-msgid "Module initalization failed"
+msgid "Module initialization failed"
 msgstr "Инициализация модуля не удалась"
 
 #: ../src/pulse/error.c:58

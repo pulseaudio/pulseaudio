@@ -1080,7 +1080,7 @@ msgid "Invalid server"
 msgstr "সার্ভার বৈধ নয়"
 
 #: ../src/pulse/error.c:57
-msgid "Module initalization failed"
+msgid "Module initialization failed"
 msgstr "মডিউল আরম্ভ করতে ব্যর্থ"
 
 #: ../src/pulse/error.c:58

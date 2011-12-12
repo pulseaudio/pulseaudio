@@ -1045,7 +1045,7 @@ msgid "Invalid server"
 msgstr "无效服务器"
 
 #: ../src/pulse/error.c:57
-msgid "Module initalization failed"
+msgid "Module initialization failed"
 msgstr "模块初始化失败"
 
 #: ../src/pulse/error.c:58
