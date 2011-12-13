@@ -438,10 +438,7 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
     }
 
     if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
-
-        if (!dbus_message_is_error(r, DBUS_ERROR_UNKNOWN_METHOD))
-            pa_log("Error from GetProperties reply: %s", dbus_message_get_error_name(r));
-
+        pa_log("%s.GetProperties() failed: %s: %s", dbus_message_get_interface(p->message), dbus_message_get_error_name(r), pa_dbus_get_error_message(r));
         goto finish;
     }
 
@@ -548,7 +545,7 @@ static void register_endpoint_reply(DBusPendingCall *pending, void *userdata) {
     }
 
     if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
-        pa_log("Error from RegisterEndpoint reply: %s", dbus_message_get_error_name(r));
+        pa_log("org.bluez.Media.RegisterEndpoint() failed: %s: %s", dbus_message_get_error_name(r), pa_dbus_get_error_message(r));
         goto finish;
     }
 
@@ -584,7 +581,7 @@ static void list_devices_reply(DBusPendingCall *pending, void *userdata) {
     }
 
     if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
-        pa_log("Error from ListDevices reply: %s", dbus_message_get_error_name(r));
+        pa_log("org.bluez.Adapter.ListDevices() failed: %s: %s", dbus_message_get_error_name(r), pa_dbus_get_error_message(r));
         goto finish;
     }
 
@@ -689,7 +686,7 @@ static void list_adapters_reply(DBusPendingCall *pending, void *userdata) {
     }
 
     if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
-        pa_log("Error from ListAdapters reply: %s", dbus_message_get_error_name(r));
+        pa_log("org.bluez.Manager.ListAdapters() failed: %s: %s", dbus_message_get_error_name(r), pa_dbus_get_error_message(r));
         goto finish;
     }
 
