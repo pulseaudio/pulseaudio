@@ -310,7 +310,7 @@ static int64_t calc_diff(struct userdata *u, struct snapshot *snapshot) {
     diff_time = (snapshot->sink_now + snapshot->sink_latency - buffer_latency) -
           (snapshot->source_now - snapshot->source_latency);
 
-    pa_log_debug("diff %lld (%lld - %lld + %lld) %lld %lld %lld %lld", (long long) diff_time,
+    pa_log_debug("Diff %lld (%lld - %lld + %lld) %lld %lld %lld %lld", (long long) diff_time,
         (long long) snapshot->sink_latency,
         (long long) buffer_latency, (long long) snapshot->source_latency,
         (long long) snapshot->source_delay, (long long) snapshot->sink_delay,
@@ -668,7 +668,7 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
         diff = pa_usec_to_bytes(diff_time, &u->source_output->sample_spec);
 
         if (diff > 0) {
-            pa_log("playback too far ahead (%lld), drop source %lld", (long long) diff_time, (long long) diff);
+            pa_log("Playback too far ahead (%lld), drop source %lld", (long long) diff_time, (long long) diff);
 
             u->source_skip = diff;
             u->sink_skip = 0;
@@ -873,7 +873,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     pa_assert_se(u = o->userdata);
 
     if (!PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output))) {
-        pa_log("push when no link?");
+        pa_log("Push when no link?");
         return;
     }
 
@@ -1168,7 +1168,7 @@ static void source_output_update_source_requested_latency_cb(pa_source_output *o
 
     latency = pa_source_get_requested_latency_within_thread(o->source);
 
-    pa_log_debug("source output update requested latency %lld", (long long) latency);
+    pa_log_debug("Source output update requested latency %lld", (long long) latency);
 }
 
 /* Called from I/O thread context */
