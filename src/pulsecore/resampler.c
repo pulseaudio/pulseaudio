@@ -1421,7 +1421,6 @@ static void trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned
     pa_assert(input);
     pa_assert(output);
     pa_assert(out_n_frames);
-    pa_assert(r->i_ss.channels == r->o_ss.channels);
 
     fz = r->w_sz * r->o_ss.channels;
 
@@ -1496,7 +1495,6 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
     pa_assert(output);
     pa_assert(out_n_frames);
     pa_assert(r->i_ss.rate >= r->o_ss.rate);
-    pa_assert(r->i_ss.channels == r->o_ss.channels);
     pa_assert(r->work_format == PA_SAMPLE_S16NE || r->work_format == PA_SAMPLE_FLOAT32NE);
 
     src = (uint8_t*) pa_memblock_acquire(input->memblock) + input->index;
