@@ -452,6 +452,20 @@ void pa_dbus_free_pending_list(pa_dbus_pending **p) {
     }
 }
 
+const char *pa_dbus_get_error_message(DBusMessage *m) {
+    const char *message;
+
+    pa_assert(m);
+    pa_assert(dbus_message_get_type(m) == DBUS_MESSAGE_TYPE_ERROR);
+
+    if (dbus_message_get_signature(m)[0] != 's')
+        return "<no explanation>";
+
+    pa_assert_se(dbus_message_get_args(m, NULL, DBUS_TYPE_STRING, &message, DBUS_TYPE_INVALID));
+
+    return message;
+}
+
 void pa_dbus_send_error(DBusConnection *c, DBusMessage *in_reply_to, const char *name, const char *format, ...) {
     va_list ap;
     char *message;
