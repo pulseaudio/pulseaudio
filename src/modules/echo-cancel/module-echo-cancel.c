@@ -1694,7 +1694,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (init_common(ma, u, &source_ss, &source_map))
+    if (init_common(ma, u, &source_ss, &source_map) < 0)
         goto fail;
 
     u->asyncmsgq = pa_asyncmsgq_new(0);
@@ -2077,7 +2077,8 @@ int main(int argc, char* argv[]) {
     source_ss.channels = DEFAULT_CHANNELS;
     pa_channel_map_init_auto(&source_map, source_ss.channels, PA_CHANNEL_MAP_DEFAULT);
 
-    init_common(ma, &u, &source_ss, &source_map);
+    if (init_common(ma, &u, &source_ss, &source_map) < 0)
+        goto fail;
 
     if (!u.ec->init(u.core, u.ec, &source_ss, &source_map, &sink_ss, &sink_map, &u.blocksize,
                      (argc > 4) ? argv[5] : NULL )) {
@@ -2169,13 +2170,16 @@ int main(int argc, char* argv[]) {
 
     u.ec->done(u.ec);
 
-    fclose(u.captured_file);
-    fclose(u.played_file);
-    fclose(u.canceled_file);
+out:
+    if (u.captured_file)
+        fclose(u.captured_file);
+    if (u.played_file)
+        fclose(u.played_file);
+    if (u.canceled_file)
+        fclose(u.canceled_file);
     if (u.drift_file)
         fclose(u.drift_file);
 
-out:
     pa_xfree(rdata);
     pa_xfree(pdata);
     pa_xfree(cdata);
