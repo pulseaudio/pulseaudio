@@ -23,8 +23,8 @@ try:
     import dbus.mainloop.qt
     import dbus
 except ImportError as e:
-    sys.stderr.write('There was an error importing need libraries\n'
-                     'Make sure you haveqt4 and dbus forthon installed\n'
+    sys.stderr.write('There was an error importing needed libraries\n'
+                     'Make sure you have qt4 and dbus-python installed\n'
                      'The error that occured was:\n'
                      '\t%s\n' % (str(e)))
     sys.exit(-1)
