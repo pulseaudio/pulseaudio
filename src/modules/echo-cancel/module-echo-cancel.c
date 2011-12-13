@@ -2047,12 +2047,12 @@ int main(int argc, char* argv[]) {
         goto usage;
     }
 
-    u.captured_file = fopen(argv[2], "r");
+    u.captured_file = fopen(argv[2], "rb");
     if (u.captured_file == NULL) {
         perror ("fopen failed");
         goto fail;
     }
-    u.played_file = fopen(argv[1], "r");
+    u.played_file = fopen(argv[1], "rb");
     if (u.played_file == NULL) {
         perror ("fopen failed");
         goto fail;
@@ -2091,7 +2091,7 @@ int main(int argc, char* argv[]) {
             goto fail;
         }
 
-        u.drift_file = fopen(argv[6], "r");
+        u.drift_file = fopen(argv[6], "rt");
 
         if (u.drift_file == NULL) {
             perror ("fopen failed");
