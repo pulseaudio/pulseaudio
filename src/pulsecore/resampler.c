@@ -1494,8 +1494,6 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
     pa_assert(input);
     pa_assert(output);
     pa_assert(out_n_frames);
-    pa_assert(r->i_ss.rate >= r->o_ss.rate);
-    pa_assert(r->work_format == PA_SAMPLE_S16NE || r->work_format == PA_SAMPLE_FLOAT32NE);
 
     src = (uint8_t*) pa_memblock_acquire(input->memblock) + input->index;
     dst = (uint8_t*) pa_memblock_acquire(output->memblock) + output->index;
@@ -1592,6 +1590,8 @@ static void peaks_update_rates_or_reset(pa_resampler *r) {
 
 static int peaks_init(pa_resampler*r) {
     pa_assert(r);
+    pa_assert(r->i_ss.rate >= r->o_ss.rate);
+    pa_assert(r->work_format == PA_SAMPLE_S16NE || r->work_format == PA_SAMPLE_FLOAT32NE);
 
     r->peaks.o_counter = r->peaks.i_counter = 0;
     memset(r->peaks.max_i, 0, sizeof(r->peaks.max_i));
