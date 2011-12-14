@@ -5145,8 +5145,8 @@ int pa_native_options_parse(pa_native_options *o, pa_core *c, pa_modargs *ma) {
     }
 
     enabled = TRUE;
-    if (pa_modargs_get_value_boolean(ma, "auth-group-enabled", &enabled) < 0) {
-        pa_log("auth-group-enabled= expects a boolean argument.");
+    if (pa_modargs_get_value_boolean(ma, "auth-group-enable", &enabled) < 0) {
+        pa_log("auth-group-enable= expects a boolean argument.");
         return -1;
     }
 
