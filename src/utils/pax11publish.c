@@ -48,7 +48,9 @@ int main(int argc, char *argv[]) {
     enum { DUMP, EXPORT, IMPORT, REMOVE } mode = DUMP;
 
     setlocale(LC_ALL, "");
+#ifdef ENABLE_NLS
     bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
+#endif
 
     while ((c = getopt(argc, argv, "deiD:S:O:I:c:hr")) != -1) {
         switch (c) {
