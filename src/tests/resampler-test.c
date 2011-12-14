@@ -323,7 +323,9 @@ int main(int argc, char *argv[]) {
     };
 
     setlocale(LC_ALL, "");
+#ifdef ENABLE_NLS
     bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
+#endif
 
     pa_log_set_level(PA_LOG_WARN);
     if (!getenv("MAKE_CHECK"))
