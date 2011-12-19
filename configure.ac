@@ -104,6 +104,11 @@ AM_GLIB_GNU_GETTEXT
 
 pulselocaledir='${prefix}/${DATADIRNAME}/locale'
 AX_DEFINE_DIR(PULSE_LOCALEDIR, pulselocaledir, [Gettext locale dir])
+else
+# workaround till an intltool m4 bug is fixed upstream
+# (https://bugs.launchpad.net/intltool/+bug/904647)
+USE_NLS=no
+AC_SUBST(USE_NLS)
 fi
 
 
