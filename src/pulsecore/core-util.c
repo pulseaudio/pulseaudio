@@ -1982,8 +1982,10 @@ static char *get_path(const char *fn, pa_bool_t prependmid, pa_bool_t rt) {
     if (fn) {
         char *r;
 
-        if (pa_is_path_absolute(fn))
+        if (pa_is_path_absolute(fn)) {
+            pa_xfree(rtp);
             return pa_xstrdup(fn);
+        }
 
         if (!rtp)
             return NULL;
