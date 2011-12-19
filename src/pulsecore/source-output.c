@@ -1664,7 +1664,7 @@ int pa_source_output_update_rate(pa_source_output *o) {
 
     o->actual_resample_method = new_resampler ? pa_resampler_get_method(new_resampler) : PA_RESAMPLER_INVALID;
 
-    pa_log_debug("Updated resmpler for source output %d", o->index);
+    pa_log_debug("Updated resampler for source output %d", o->index);
 
     return 0;
 }

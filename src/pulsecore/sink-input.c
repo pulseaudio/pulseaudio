@@ -2072,7 +2072,7 @@ int pa_sink_input_update_rate(pa_sink_input *i) {
 
     i->actual_resample_method = new_resampler ? pa_resampler_get_method(new_resampler) : PA_RESAMPLER_INVALID;
 
-    pa_log_debug("Updated resmpler for sink input %d", i->index);
+    pa_log_debug("Updated resampler for sink input %d", i->index);
 
     return 0;
 }
