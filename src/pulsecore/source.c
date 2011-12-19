@@ -1481,7 +1481,7 @@ void pa_source_set_volume(
     /* make sure we don't change the volume in PASSTHROUGH mode ...
      * ... *except* if we're being invoked to reset the volume to ensure 0 dB gain */
     if (pa_source_is_passthrough(s) && (!volume || !pa_cvolume_is_norm(volume))) {
-        pa_log_warn("Cannot change volume, Source is monitor of a PASSTHROUGH sink");
+        pa_log_warn("Cannot change volume, source is monitor of a PASSTHROUGH sink");
         return;
     }
 
