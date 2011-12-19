@@ -1316,7 +1316,7 @@ pa_bool_t pa_sink_update_rate(pa_sink *s, uint32_t rate, pa_bool_t passthrough)
         }
 
         if (PA_SINK_IS_RUNNING(s->state)) {
-            pa_log_info("Cannot update rate, SINK_IS_RUNNING, will keep using %u kHz",
+            pa_log_info("Cannot update rate, SINK_IS_RUNNING, will keep using %u Hz",
                         s->sample_spec.rate);
             return FALSE;
         }

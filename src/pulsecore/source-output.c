@@ -355,10 +355,10 @@ int pa_source_output_new(
 
         pa_log_info("Trying to change sample rate");
         if (pa_source_update_rate(data->source, data->sample_spec.rate, pa_source_output_new_data_is_passthrough(data)) == TRUE)
-            pa_log_info("Rate changed to %u kHz",
+            pa_log_info("Rate changed to %u Hz",
                         data->source->sample_spec.rate);
         else
-            pa_log_info("Resampling enabled to %u kHz", data->source->sample_spec.rate);
+            pa_log_info("Resampling enabled to %u Hz", data->source->sample_spec.rate);
     }
 
     if (data->resample_method == PA_RESAMPLER_INVALID)
@@ -1410,10 +1410,10 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
 
         pa_log_info("Trying to change sample rate");
         if (pa_source_update_rate(dest, o->sample_spec.rate, pa_source_output_is_passthrough(o)) == TRUE)
-            pa_log_info("Rate changed to %u kHz",
+            pa_log_info("Rate changed to %u Hz",
                         dest->sample_spec.rate);
         else
-            pa_log_info("Resampling enabled to %u kHz",
+            pa_log_info("Resampling enabled to %u Hz",
                         dest->sample_spec.rate);
     }
 

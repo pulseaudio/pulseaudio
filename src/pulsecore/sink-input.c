@@ -376,10 +376,10 @@ int pa_sink_input_new(
 
         pa_log_info("Trying to change sample rate");
         if (pa_sink_update_rate(data->sink, data->sample_spec.rate, pa_sink_input_new_data_is_passthrough(data)) == TRUE)
-            pa_log_info("Rate changed to %u kHz",
+            pa_log_info("Rate changed to %u Hz",
                         data->sink->sample_spec.rate);
         else
-            pa_log_info("Resampling enabled to %u kHz", data->sink->sample_spec.rate);
+            pa_log_info("Resampling enabled to %u Hz", data->sink->sample_spec.rate);
     }
 
     /* Due to the fixing of the sample spec the volume might not match anymore */
@@ -1642,10 +1642,10 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
 
         pa_log_info("Trying to change sample rate");
         if (pa_sink_update_rate(dest, i->sample_spec.rate, pa_sink_input_is_passthrough(i)) == TRUE)
-            pa_log_info("Rate changed to %u kHz",
+            pa_log_info("Rate changed to %u Hz",
                         dest->sample_spec.rate);
         else
-            pa_log_info("Resampling enabled to %u kHz",
+            pa_log_info("Resampling enabled to %u Hz",
                         dest->sample_spec.rate);
     }
 

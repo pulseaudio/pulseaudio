@@ -931,7 +931,7 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrou
         }
 
         if (PA_SOURCE_IS_RUNNING(s->state)) {
-            pa_log_info("Cannot update rate, SOURCE_IS_RUNNING, will keep using %u kHz",
+            pa_log_info("Cannot update rate, SOURCE_IS_RUNNING, will keep using %u Hz",
                         s->sample_spec.rate);
             return FALSE;
         }
