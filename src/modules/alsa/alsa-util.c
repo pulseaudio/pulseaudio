@@ -819,12 +819,12 @@ void pa_alsa_dump_status(snd_pcm_t *pcm) {
     }
 
     if ((err = snd_pcm_status_dump(status, out)) < 0) {
-        pa_log_debug("snd_pcm_dump(): %s", pa_alsa_strerror(err));
+        pa_log_debug("snd_pcm_status_dump(): %s", pa_alsa_strerror(err));
         goto finish;
     }
 
     snd_output_buffer_string(out, &s);
-    pa_log_debug("snd_pcm_dump():\n%s", pa_strnull(s));
+    pa_log_debug("snd_pcm_status_dump():\n%s", pa_strnull(s));
 
 finish:
 
