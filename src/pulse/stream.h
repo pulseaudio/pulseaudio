@@ -691,16 +691,18 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
  * see pa_stream_get_timing_info(). */
 int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec);
 
-/** Return the total stream latency. This function is based on
+/** Determine the total stream latency. This function is based on
  * pa_stream_get_time().
  *
- * In case the stream is a monitoring stream the result can be
- * negative, i.e. the captured samples are not yet played. In this
- * case \a *negative is set to 1.
+ * The latency is stored in \a *r_usec. In case the stream is a
+ * monitoring stream the result can be negative, i.e. the captured
+ * samples are not yet played. In this case \a *negative is set to 1.
  *
  * If no timing information has been received yet, this call will
- * return PA_ERR_NODATA. For more details see
- * pa_stream_get_timing_info() and pa_stream_get_time(). */
+ * return PA_ERR_NODATA. On success, it will return 0.
+ *
+ * For more details see pa_stream_get_timing_info() and
+ * pa_stream_get_time(). */
 int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative);
 
 /** Return the latest raw timing data structure. The returned pointer
