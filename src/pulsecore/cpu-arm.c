@@ -89,7 +89,7 @@ pa_bool_t pa_cpu_init_arm(pa_cpu_arm_flag_t *flags) {
      * space support to get the CPU features. This only works on linux AFAIK. */
     if (!(cpuinfo = get_cpuinfo())) {
         pa_log("Can't read cpuinfo");
-        return;
+        return FALSE;
     }
 
     *flags = 0;
