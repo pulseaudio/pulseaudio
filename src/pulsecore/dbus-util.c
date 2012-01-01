@@ -367,13 +367,8 @@ fail:
     va_end(ap);
     va_start(ap, error);
     for (; k > 0; k--) {
-        DBusError e;
-
         pa_assert_se(t = va_arg(ap, const char*));
-
-        dbus_error_init(&e);
-        dbus_bus_remove_match(c, t, &e);
-        dbus_error_free(&e);
+        dbus_bus_remove_match(c, t, NULL);
     }
     va_end(ap);
 
@@ -383,17 +378,12 @@ fail:
 void pa_dbus_remove_matches(DBusConnection *c, ...) {
     const char *t;
     va_list ap;
-    DBusError error;
 
     pa_assert(c);
 
-    dbus_error_init(&error);
-
     va_start(ap, c);
-    while ((t = va_arg(ap, const char*))) {
-        dbus_bus_remove_match(c, t, &error);
-        dbus_error_free(&error);
-    }
+    while ((t = va_arg(ap, const char*)))
+        dbus_bus_remove_match(c, t, NULL);
     va_end(ap);
 }
 
