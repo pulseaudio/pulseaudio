@@ -325,7 +325,7 @@ finish:
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
-static int add_matches(struct userdata *u, pa_bool_t add) {
+static int update_matches(struct userdata *u, pa_bool_t add) {
     char *filter1, *filter2;
     DBusError e;
     int r = -1;
@@ -401,7 +401,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (add_matches(u, TRUE) < 0)
+    if (update_matches(u, TRUE) < 0)
         goto fail;
 
     pa_assert_se(msg = dbus_message_new_method_call("org.bluez", u->hci_path, "org.bluez.Adapter", "ListBondings"));
@@ -476,7 +476,7 @@ void pa__done(pa_module*m) {
     }
 
     if (u->dbus_connection) {
-        add_matches(u, FALSE);
+        update_matches(u, FALSE);
         pa_dbus_connection_unref(u->dbus_connection);
     }
 
