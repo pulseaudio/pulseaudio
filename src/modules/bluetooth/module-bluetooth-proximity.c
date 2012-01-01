@@ -352,7 +352,7 @@ static int add_matches(struct userdata *u, pa_bool_t add) {
 
         if (dbus_error_is_set(&e)) {
             pa_log("dbus_bus_add_match(%s) failed: %s", filter2, e.message);
-            dbus_bus_remove_match(pa_dbus_connection_get(u->dbus_connection), filter2, NULL);
+            dbus_bus_remove_match(pa_dbus_connection_get(u->dbus_connection), filter1, NULL);
             goto finish;
         }
     } else
