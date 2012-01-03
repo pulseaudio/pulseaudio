@@ -188,13 +188,6 @@ USA.
     </option>
 
     <option>
-      <p><opt>--module-idle-time</opt><arg>=SECS</arg></p>
-
-      <optdesc><p>Unload autoloaded modules when idle and the
-      specified number of seconds passed.</p></optdesc>
-    </option>
-
-    <option>
       <p><opt>--scache-idle-time</opt><arg>=SECS</arg></p>
 
       <optdesc><p>Unload autoloaded samples from the cache when the

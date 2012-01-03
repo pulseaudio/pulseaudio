@@ -137,8 +137,6 @@ void pa_cmdline_help(const char *argv0) {
            "      --disallow-exit[=BOOL]            Disallow user requested exit\n"
            "      --exit-idle-time=SECS             Terminate the daemon when idle and this\n"
            "                                        time passed\n"
-           "      --module-idle-time=SECS           Unload autoloaded modules when idle and\n"
-           "                                        this time passed\n"
            "      --scache-idle-time=SECS           Unload autoloaded samples when idle and\n"
            "                                        this time passed\n"
            "      --log-level[=LEVEL]               Increase or set verbosity level\n"
