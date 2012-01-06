@@ -2460,22 +2460,14 @@ int pa__init(pa_module*m) {
         pa_datum next_key;
         char *name;
         struct dbus_entry *de;
-        struct entry *e;
-
-        done = !pa_database_next(u->database, &key, &next_key, NULL);
 
         name = pa_xstrndup(key.data, key.size);
-        pa_datum_free(&key);
-
-        /* Use entry_read() for checking that the entry is valid. */
-        if ((e = entry_read(u, name))) {
-            de = dbus_entry_new(u, name);
-            pa_assert_se(pa_hashmap_put(u->dbus_entries, de->entry_name, de) == 0);
-            entry_free(e);
-        }
-
+        de = dbus_entry_new(u, name);
+        pa_assert_se(pa_hashmap_put(u->dbus_entries, de->entry_name, de) == 0);
         pa_xfree(name);
 
+        done = !pa_database_next(u->database, &key, &next_key, NULL);
+        pa_datum_free(&key);
         key = next_key;
     }
 #endif
