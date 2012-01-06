@@ -1022,7 +1022,7 @@ static pa_bool_t entry_write(struct userdata *u, const char *name, const struct 
 #ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
 
 #define LEGACY_ENTRY_VERSION 3
-static struct entry* legacy_entry_read(struct userdata *u, pa_datum *data) {
+static struct entry *legacy_entry_read(struct userdata *u, const char *name) {
     struct legacy_entry {
         uint8_t version;
         pa_bool_t muted_valid:1, volume_valid:1, device_valid:1, card_valid:1;
@@ -1032,52 +1032,63 @@ static struct entry* legacy_entry_read(struct userdata *u, pa_datum *data) {
         char device[PA_NAME_MAX];
         char card[PA_NAME_MAX];
     } PA_GCC_PACKED;
+
+    pa_datum key;
+    pa_datum data;
     struct legacy_entry *le;
     struct entry *e;
 
     pa_assert(u);
-    pa_assert(data);
+    pa_assert(name);
 
-    if (data->size != sizeof(struct legacy_entry)) {
+    key.data = (char *) name;
+    key.size = strlen(name);
+
+    pa_zero(data);
+
+    if (!pa_database_get(u->database, &key, &data))
+        goto fail;
+
+    if (data.size != sizeof(struct legacy_entry)) {
         pa_log_debug("Size does not match.");
-        return NULL;
+        goto fail;
     }
 
-    le = (struct legacy_entry*)data->data;
+    le = (struct legacy_entry *) data.data;
 
     if (le->version != LEGACY_ENTRY_VERSION) {
         pa_log_debug("Version mismatch.");
-        return NULL;
+        goto fail;
     }
 
     if (!memchr(le->device, 0, sizeof(le->device))) {
         pa_log_warn("Device has missing NUL byte.");
-        return NULL;
+        goto fail;
     }
 
     if (!memchr(le->card, 0, sizeof(le->card))) {
         pa_log_warn("Card has missing NUL byte.");
-        return NULL;
+        goto fail;
     }
 
     if (le->device_valid && !pa_namereg_is_valid_name(le->device)) {
         pa_log_warn("Invalid device name stored in database for legacy stream");
-        return NULL;
+        goto fail;
     }
 
     if (le->card_valid && !pa_namereg_is_valid_name(le->card)) {
         pa_log_warn("Invalid card name stored in database for legacy stream");
-        return NULL;
+        goto fail;
     }
 
     if (le->volume_valid && !pa_channel_map_valid(&le->channel_map)) {
         pa_log_warn("Invalid channel map stored in database for legacy stream");
-        return NULL;
+        goto fail;
     }
 
     if (le->volume_valid && (!pa_cvolume_valid(&le->volume) || !pa_cvolume_compatible_with_channel_map(&le->volume, &le->channel_map))) {
         pa_log_warn("Invalid volume stored in database for legacy stream");
-        return NULL;
+        goto fail;
     }
 
     e = entry_new();
@@ -1091,6 +1102,11 @@ static struct entry* legacy_entry_read(struct userdata *u, pa_datum *data) {
     e->card_valid = le->card_valid;
     e->card = pa_xstrdup(le->card);
     return e;
+
+fail:
+    pa_datum_free(&data);
+
+    return NULL;
 }
 #endif
 
@@ -1161,25 +1177,10 @@ static struct entry *entry_read(struct userdata *u, const char *name) {
     return e;
 
 fail:
-
-    pa_log_debug("Database contains invalid data for key: %s (probably pre-v1.0 data)", name);
-
     if (e)
         entry_free(e);
     if (t)
         pa_tagstruct_free(t);
-
-#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
-    pa_log_debug("Attempting to load legacy (pre-v1.0) data for key: %s", name);
-    if ((e = legacy_entry_read(u, &data))) {
-        pa_log_debug("Success. Saving new format for key: %s", name);
-        if (entry_write(u, name, e, TRUE))
-            trigger_save(u);
-        pa_datum_free(&data);
-        return e;
-    } else
-        pa_log_debug("Unable to load legacy (pre-v1.0) data for key: %s. Ignoring.", name);
-#endif
 
     pa_datum_free(&data);
     return NULL;
@@ -2262,6 +2263,101 @@ static pa_hook_result_t connection_unlink_hook_cb(pa_native_protocol *p, pa_nati
     return PA_HOOK_OK;
 }
 
+static void clean_up_db(struct userdata *u) {
+    struct clean_up_item {
+        PA_LLIST_FIELDS(struct clean_up_item);
+        char *entry_name;
+        struct entry *entry;
+    };
+
+    PA_LLIST_HEAD(struct clean_up_item, to_be_removed);
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+    PA_LLIST_HEAD(struct clean_up_item, to_be_converted);
+#endif
+    pa_bool_t done = FALSE;
+    pa_datum key;
+    struct clean_up_item *item = NULL;
+    struct clean_up_item *next = NULL;
+
+    pa_assert(u);
+
+    /* It would be convenient to remove or replace the entries in the database
+     * in the same loop that iterates through the database, but modifying the
+     * database is not supported while iterating through it. That's why we
+     * collect the entries that need to be removed or replaced to these
+     * lists. */
+    PA_LLIST_HEAD_INIT(struct clean_up_item, to_be_removed);
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+    PA_LLIST_HEAD_INIT(struct clean_up_item, to_be_converted);
+#endif
+
+    done = !pa_database_first(u->database, &key, NULL);
+    while (!done) {
+        pa_datum next_key;
+        char *entry_name = NULL;
+        struct entry *e = NULL;
+
+        entry_name = pa_xstrndup(key.data, key.size);
+
+        /* Use entry_read() to check whether this entry is valid. */
+        if (!(e = entry_read(u, entry_name))) {
+            item = pa_xnew0(struct clean_up_item, 1);
+            PA_LLIST_INIT(struct clean_up_item, item);
+            item->entry_name = entry_name;
+
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+            /* entry_read() failed, but what about legacy_entry_read()? */
+            if (!(e = legacy_entry_read(u, entry_name)))
+                /* Not a legacy entry either, let's remove this. */
+                PA_LLIST_PREPEND(struct clean_up_item, to_be_removed, item);
+            else {
+                /* Yay, it's valid after all! Now let's convert the entry to the current format. */
+                item->entry = e;
+                PA_LLIST_PREPEND(struct clean_up_item, to_be_converted, item);
+            }
+#else
+            /* Invalid entry, let's remove this. */
+            PA_LLIST_PREPEND(struct clean_up_item, to_be_removed, item);
+#endif
+        } else {
+            pa_xfree(entry_name);
+            entry_free(e);
+        }
+
+        done = !pa_database_next(u->database, &key, &next_key, NULL);
+        pa_datum_free(&key);
+        key = next_key;
+    }
+
+    PA_LLIST_FOREACH_SAFE(item, next, to_be_removed) {
+        key.data = item->entry_name;
+        key.size = strlen(item->entry_name);
+
+        pa_log_debug("Removing an invalid entry: %s", item->entry_name);
+
+        pa_assert_se(pa_database_unset(u->database, &key) >= 0);
+        trigger_save(u);
+
+        PA_LLIST_REMOVE(struct clean_up_item, to_be_removed, item);
+        pa_xfree(item->entry_name);
+        pa_xfree(item);
+    }
+
+#ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
+    PA_LLIST_FOREACH_SAFE(item, next, to_be_converted) {
+        pa_log_debug("Upgrading a legacy entry to the current format: %s", item->entry_name);
+
+        pa_assert_se(entry_write(u, item->entry_name, item->entry, TRUE) >= 0);
+        trigger_save(u);
+
+        PA_LLIST_REMOVE(struct clean_up_item, to_be_converted, item);
+        pa_xfree(item->entry_name);
+        entry_free(item->entry);
+        pa_xfree(item);
+    }
+#endif
+}
+
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
@@ -2345,6 +2441,8 @@ int pa__init(pa_module*m) {
 
     pa_log_info("Successfully opened database file '%s'.", fname);
     pa_xfree(fname);
+
+    clean_up_db(u);
 
     if (fill_db(u, pa_modargs_get_value(ma, "fallback_table", NULL)) < 0)
         goto fail;
