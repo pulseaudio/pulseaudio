@@ -227,6 +227,25 @@ USA.
     </option>
 
     <option>
+      <p><opt>--log-meta</opt><arg>[=BOOL]</arg></p>
+
+      <optdesc><p>Show source code location in log messages.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--log-time</opt><arg>[=BOOL]</arg></p>
+
+      <optdesc><p>Show timestamps in log messages.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--log-backtrace</opt><arg>=FRAMES</arg></p>
+
+      <optdesc><p>When FRAMES is greater than 0, log for each message a
+      stack trace up to the number of specified stack frames.</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>--p | --dl-search-path</opt><arg>=PATH</arg></p>
 
       <optdesc><p>Set the search path for dynamic shared objects
