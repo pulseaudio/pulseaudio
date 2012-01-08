@@ -1019,6 +1019,7 @@ modlibexec_LTLIBRARIES += \
 		module-loopback.la \
 		module-virtual-sink.la \
 		module-virtual-source.la \
+		module-virtual-surround-sink.la \
 		module-switch-on-connect.la \
 		module-filter-apply.la \
 		module-filter-heuristics.la
@@ -1319,6 +1320,7 @@ SYMDEF_FILES = \
 		module-loopback-symdef.h \
 		module-virtual-sink-symdef.h \
 		module-virtual-source-symdef.h \
+		module-virtual-surround-sink-symdef.h \
 		module-switch-on-connect-symdef.h \
 		module-filter-apply-symdef.h \
 		module-filter-heuristics-symdef.h
@@ -1534,6 +1536,11 @@ module_virtual_source_la_SOURCES = modules/module-virtual-source.c
 module_virtual_source_la_CFLAGS = $(AM_CFLAGS) $(SERVER_CFLAGS)
 module_virtual_source_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_virtual_source_la_LIBADD = $(MODULE_LIBADD)
+
+module_virtual_surround_sink_la_SOURCES = modules/module-virtual-surround-sink.c
+module_virtual_surround_sink_la_CFLAGS = $(AM_CFLAGS) $(SERVER_CFLAGS)
+module_virtual_surround_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_virtual_surround_sink_la_LIBADD = $(MODULE_LIBADD)
 
 # X11
 
