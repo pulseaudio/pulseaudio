@@ -133,7 +133,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     }
 
     /* If there's no memblock, there's going to be data in the memblockq after
-     * a gap with length chunk->length. Drop the the gap and peek the actual
+     * a gap with length chunk->length. Drop the gap and peek the actual
      * data. There should always be some data coming - hence the assert. The
      * gap will occur if the memblockq is rewound beyond index 0.*/
     if (!chunk->memblock) {

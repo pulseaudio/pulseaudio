@@ -311,7 +311,7 @@ int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nb
  * the data before accessing the property list again. \since 0.9.11 */
 const char *pa_proplist_gets(pa_proplist *p, const char *key);
 
-/** Return the the value for the specified key. Will return a
+/** Return the value for the specified key. Will return a
  * NUL-terminated string for string entries. The pointer returned will
  * point to an internally allocated buffer. The caller should make a
  * copy of the data before the property list is accessed again. \since

@@ -312,7 +312,7 @@ USA.
 
     <option>
       <p><opt>log-backtrace=</opt> When greater than 0, with each
-      logged message log a code stack trace up the the specified
+      logged message log a code stack trace up the specified
       number of stack frames. Defaults to <opt>0</opt>.</p>
     </option>
 

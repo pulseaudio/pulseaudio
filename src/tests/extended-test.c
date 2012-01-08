@@ -47,7 +47,7 @@ static int n_streams_ready = 0;
 static const pa_buffer_attr buffer_attr = {
     .maxlength = SAMPLE_HZ*sizeof(float)*NSTREAMS, /* exactly space for the entire play time */
     .tlength = (uint32_t) -1,
-    .prebuf = 0, /* Setting prebuf to 0 guarantees us the the streams will run synchronously, no matter what */
+    .prebuf = 0, /* Setting prebuf to 0 guarantees us the streams will run synchronously, no matter what */
     .minreq = (uint32_t) -1,
     .fragsize = 0
 };

@@ -208,7 +208,7 @@ static pa_usec_t get_latency_us(pa_object *o) {
     AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, &total);
     total += v;
 
-    /* the the IOProc buffer size */
+    /* the IOProc buffer size */
     property_address.mSelector = kAudioDevicePropertyBufferFrameSize;
     size = sizeof(v);
     AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, &v);

@@ -174,7 +174,7 @@ typedef void (*pa_context_event_cb_t)(pa_context *c, const char *name, pa_propli
 pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name);
 
 /** Instantiate a new connection context with an abstract mainloop API
- * and an application name, and specify the the initial client property
+ * and an application name, and specify the initial client property
  * list. \since 0.9.11 */
 pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *name, pa_proplist *proplist);
 

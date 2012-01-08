@@ -176,7 +176,7 @@ static void process_render(struct userdata *u, pa_usec_t now) {
     queued. Hence: at maximum read this many bytes from the sink
     inputs. */
 
-    /* Fill the buffer up the the latency size */
+    /* Fill the buffer up the latency size */
     while (u->timestamp < now + u->block_usec) {
         pa_memchunk chunk;
 

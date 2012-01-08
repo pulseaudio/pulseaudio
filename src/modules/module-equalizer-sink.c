@@ -369,7 +369,7 @@ static void dsp_logic(
     for(size_t j = 0; j < u->window_size; ++j){
         dst[j] = X * W[j] * src[j];
     }
-    //zero pad the the remaining fft window
+    //zero pad the remaining fft window
     memset(dst + u->window_size, 0, (u->fft_size - u->window_size) * sizeof(float));
     //Processing is done here!
     //do fft
@@ -441,7 +441,7 @@ static void dsp_logic(
 //        d->v = x->v * w->v * s->v;
 //#endif
     }
-    //zero pad the the remaining fft window
+    //zero pad the remaining fft window
     memset(dst + u->window_size, 0, (u->fft_size - u->window_size) * sizeof(float));
 
     //Processing is done here!
