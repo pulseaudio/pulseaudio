@@ -182,7 +182,7 @@ static void run_test(void) {
     memset(samples, 0, sizeof(samples));
 
     for (i = 0; i < SAMPLES; i++) {
-        floats[i] = (rand()/(RAND_MAX+2.2)) - 1.1;
+        floats[i] = 2.1f * (rand()/(float) RAND_MAX - 0.5f);
     }
 
     func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
