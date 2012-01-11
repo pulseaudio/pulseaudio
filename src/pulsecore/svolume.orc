@@ -37,7 +37,7 @@
 #     else
 #             ml = |      0      |   (s*vl) >> 16  | (unsigned)
 #
-#             vh =               |      v >> 16    | (signed, but value is always signed
+#             vh =               |      v >> 16    | (signed, but sign bit is always zero
 #                                                     since PA_VOLUME_MAX is 0x0fffffff)
 #             mh = |         (s * vh) >> 16        | (signed)
 #             ml = |           ml + mh             | (signed)
