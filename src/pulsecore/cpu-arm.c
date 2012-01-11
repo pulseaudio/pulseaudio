@@ -138,7 +138,7 @@ pa_bool_t pa_cpu_init_arm(pa_cpu_arm_flag_t *flags) {
     return TRUE;
 
 #else /* defined (__linux__) */
-    pa_log ("ARM cpu features not yet supported on this OS");
+    pa_log("Reading ARM CPU features not yet supported on this OS");
 #endif /* defined (__linux__) */
 
 #else /* defined (__arm__) */
