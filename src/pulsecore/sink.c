@@ -3346,7 +3346,7 @@ pa_bool_t pa_device_init_description(pa_proplist *p) {
 
     if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_FORM_FACTOR)))
         if (pa_streq(s, "internal"))
-            d = _("Internal Audio");
+            d = _("Built-in Audio");
 
     if (!d)
         if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_CLASS)))

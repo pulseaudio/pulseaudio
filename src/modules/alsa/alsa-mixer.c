@@ -2219,8 +2219,8 @@ static int option_verify(pa_alsa_option *o) {
         { "input",                     N_("Input") },
         { "input-docking",             N_("Docking Station Input") },
         { "input-docking-microphone",  N_("Docking Station Microphone") },
-        { "input-docking-linein",      N_("Docking Station Line-In") },
-        { "input-linein",              N_("Line-In") },
+        { "input-docking-linein",      N_("Docking Station Line In") },
+        { "input-linein",              N_("Line In") },
         { "input-microphone",          N_("Microphone") },
         { "input-microphone-front",    N_("Front Microphone") },
         { "input-microphone-rear",     N_("Rear Microphone") },
@@ -2299,21 +2299,23 @@ static int element_verify(pa_alsa_element *e) {
 static int path_verify(pa_alsa_path *p) {
     static const struct description_map well_known_descriptions[] = {
         { "analog-input",               N_("Analog Input") },
-        { "analog-input-microphone",    N_("Analog Microphone") },
+        { "analog-input-microphone",    N_("Microphone") },
         { "analog-input-microphone-front",    N_("Front Microphone") },
         { "analog-input-microphone-rear",     N_("Rear Microphone") },
-        { "analog-input-microphone-dock",     N_("Docking Station Microphone") },
+        { "analog-input-microphone-dock",     N_("Dock Microphone") },
         { "analog-input-microphone-internal", N_("Internal Microphone") },
-        { "analog-input-linein",        N_("Analog Line-In") },
-        { "analog-input-radio",         N_("Analog Radio") },
-        { "analog-input-video",         N_("Analog Video") },
+        { "analog-input-linein",        N_("Line In") },
+        { "analog-input-radio",         N_("Radio") },
+        { "analog-input-video",         N_("Video") },
         { "analog-output",              N_("Analog Output") },
-        { "analog-output-headphones",   N_("Analog Headphones") },
-        { "analog-output-lfe-on-mono",  N_("Analog Output (LFE)") },
+        { "analog-output-headphones",   N_("Headphones") },
+        { "analog-output-lfe-on-mono",  N_("LFE on Separate Mono Output") },
+        { "analog-output-lineout",      N_("Line Out") },
         { "analog-output-mono",         N_("Analog Mono Output") },
-        { "analog-output-speaker",      N_("Analog Speakers") },
-        { "iec958-stereo-output",       N_("Digital Output (IEC958)") },
-        { "iec958-passthrough-output",  N_("Digital Passthrough (IEC958)") }
+        { "analog-output-speaker",      N_("Speakers") },
+        { "hdmi-output",                N_("HDMI / DisplayPort") },
+        { "iec958-stereo-output",       N_("Digital Output (S/PDIF)") },
+        { "iec958-passthrough-output",  N_("Digital Passthrough (S/PDIF)") }
     };
 
     pa_alsa_element *e;
@@ -3768,7 +3770,8 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
         { "iec958-passthrough",     N_("Digital Passthrough  (IEC958)") },
         { "iec958-ac3-surround-40", N_("Digital Surround 4.0 (IEC958/AC3)") },
         { "iec958-ac3-surround-51", N_("Digital Surround 5.1 (IEC958/AC3)") },
-        { "hdmi-stereo",            N_("Digital Stereo (HDMI)") }
+        { "hdmi-stereo",            N_("Digital Stereo (HDMI)") },
+        { "hdmi-surround-51",       N_("Digital Surround 5.1 (HDMI)") }
     };
 
     pa_assert(m);
