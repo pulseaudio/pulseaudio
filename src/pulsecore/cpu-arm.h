@@ -35,7 +35,7 @@ typedef enum pa_cpu_arm_flag {
     PA_CPU_ARM_VFPV3    = (1 << 5)
 } pa_cpu_arm_flag_t;
 
-pa_bool_t pa_cpu_init_arm (pa_cpu_arm_flag_t *flags);
+pa_bool_t pa_cpu_init_arm(pa_cpu_arm_flag_t *flags);
 
 /* some optimized functions */
 void pa_volume_func_init_arm(pa_cpu_arm_flag_t flags);
