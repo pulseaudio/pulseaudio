@@ -272,7 +272,7 @@ static void run_test(void) {
     memcpy(samples_orig, samples, sizeof(samples));
 
     for (i = 0; i < CHANNELS; i++)
-        volumes[i] = PA_CLAMP_VOLUME(rand() >> 1);
+        volumes[i] = PA_CLAMP_VOLUME(rand() >> 15);
         /* volumes[i] = 0x0000ffff; */
     for (padding = 0; padding < PADDING; padding++, i++)
         volumes[i] = volumes[padding];
