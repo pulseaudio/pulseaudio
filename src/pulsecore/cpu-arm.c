@@ -150,10 +150,12 @@ bool pa_cpu_init_arm(pa_cpu_arm_flag_t *flags) {
 
     if (*flags & PA_CPU_ARM_V6)
         pa_volume_func_init_arm(*flags);
+
 #ifdef HAVE_NEON
     if (*flags & PA_CPU_ARM_NEON) {
         pa_convert_func_init_neon(*flags);
         pa_mix_func_init_neon(*flags);
+        pa_remap_func_init_neon(*flags);
     }
 #endif
 

@@ -49,6 +49,7 @@ void pa_volume_func_init_arm(pa_cpu_arm_flag_t flags);
 #ifdef HAVE_NEON
 void pa_convert_func_init_neon(pa_cpu_arm_flag_t flags);
 void pa_mix_func_init_neon(pa_cpu_arm_flag_t flags);
+void pa_remap_func_init_neon(pa_cpu_arm_flag_t flags);
 #endif
 
 #endif /* foocpuarmhfoo */
