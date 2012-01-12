@@ -310,8 +310,8 @@ int pa_alsa_set_hw_params(
             pa_log_debug("Maximum hw buffer size is %lu ms", (long unsigned) (max_frames * PA_MSEC_PER_SEC / _ss.rate));
 
         /* Some ALSA drivers really don't like if we set the buffer
-         * size first and the number of periods second. (which would
-         * make a lot more sense to me) So, try a few combinations
+         * size first and the number of periods second (which would
+         * make a lot more sense to me). So, try a few combinations
          * before we give up. */
 
         if (_buffer_size > 0 && _period_size > 0) {
