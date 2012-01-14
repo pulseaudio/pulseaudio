@@ -258,7 +258,7 @@
  * by pa_stream_get_timing_info(). Hence the same rules for keeping
  * the timing data up-to-date apply here. In case the write or read
  * index is corrupted, these two functions will fail with
- * PA_ERR_NODATA set.
+ * -PA_ERR_NODATA set.
  *
  * Since updating the timing info structure usually requires a full
  * network round trip and some applications monitor the timing very
@@ -393,7 +393,7 @@ uint32_t pa_stream_get_index(pa_stream *s);
  *
  * Please note that streams may be moved between sinks/sources and thus
  * it is recommended to use pa_stream_set_moved_callback() to be notified
- * about this. This function will return with PA_ERR_NOTSUPPORTED when the
+ * about this. This function will return with -PA_ERR_NOTSUPPORTED when the
  * server is older than 0.9.8. \since 0.9.8 */
 uint32_t pa_stream_get_device_index(pa_stream *s);
 
@@ -404,13 +404,13 @@ uint32_t pa_stream_get_device_index(pa_stream *s);
  *
  * Please note that streams may be moved between sinks/sources and thus
  * it is recommended to use pa_stream_set_moved_callback() to be notified
- * about this. This function will return with PA_ERR_NOTSUPPORTED when the
+ * about this. This function will return with -PA_ERR_NOTSUPPORTED when the
  * server is older than 0.9.8. \since 0.9.8 */
 const char *pa_stream_get_device_name(pa_stream *s);
 
 /** Return 1 if the sink or source this stream is connected to has
  * been suspended. This will return 0 if not, and a negative value on
- * error. This function will return with PA_ERR_NOTSUPPORTED when the
+ * error. This function will return with -PA_ERR_NOTSUPPORTED when the
  * server is older than 0.9.8. \since 0.9.8 */
 int pa_stream_is_suspended(pa_stream *s);
 
@@ -687,7 +687,7 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
  * pa_stream_update_timing_info().
  *
  * If no timing information has been
- * received yet this call will return PA_ERR_NODATA. For more details
+ * received yet this call will return -PA_ERR_NODATA. For more details
  * see pa_stream_get_timing_info(). */
 int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec);
 
@@ -699,7 +699,7 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec);
  * samples are not yet played. In this case \a *negative is set to 1.
  *
  * If no timing information has been received yet, this call will
- * return PA_ERR_NODATA. On success, it will return 0.
+ * return -PA_ERR_NODATA. On success, it will return 0.
  *
  * For more details see pa_stream_get_timing_info() and
  * pa_stream_get_time(). */
@@ -714,7 +714,7 @@ int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative);
  * If no timing information has been received before (i.e. by
  * requesting pa_stream_update_timing_info() or by using
  * PA_STREAM_AUTO_TIMING_UPDATE), this function will fail with
- * PA_ERR_NODATA.
+ * -PA_ERR_NODATA.
  *
  * Please note that the write_index member field (and only this field)
  * is updated on each pa_stream_write() call, not just when a timing
