@@ -150,6 +150,22 @@ USA.
     </option>
 
     <option>
+      <p><opt>local-server-type=</opt> Please don't use this option if
+      you don't have to! This option is currently only useful when you
+      want D-Bus clients to use a remote server. This option may be
+      removed in future versions. If you only want to run Pulseaudio
+      in the system mode, use the <opt>system-instance</opt> option.
+      This option takes one of <opt>user</opt>, <opt>system</opt> or
+      <opt>none</opt> as the argument. This is essentially a duplicate
+      for the <opt>system-instance</opt> option. The difference is the
+      <opt>none</opt> option, which is useful when you want to use a
+      remote server with D-Bus clients. If both this and
+      <opt>system-instance</opt> are defined, this option takes
+      precedence. Defaults to whatever the <opt>system-instance</opt>
+      is set.</p>
+    </option>
+
+    <option>
       <p><opt>enable-shm=</opt> Enable data transfer via POSIX
       shared memory. Takes a boolean argument, defaults to
       <opt>yes</opt>. The <opt>--disable-shm</opt> command line
