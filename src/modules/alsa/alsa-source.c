@@ -1316,7 +1316,7 @@ static void mixer_volume_init(struct userdata *u) {
 
         if (u->mixer_path->has_dB && u->deferred_volume) {
             pa_source_set_write_volume_callback(u->source, source_write_volume_cb);
-            pa_log_info("Successfully enabled synchronous volume.");
+            pa_log_info("Successfully enabled deferred volume.");
         } else
             pa_source_set_write_volume_callback(u->source, NULL);
 
