@@ -4224,6 +4224,23 @@ static snd_pcm_t* mapping_open_pcm(pa_alsa_mapping *m,
                               &try_buffer_size, 0, NULL, NULL, TRUE);
 }
 
+static void paths_drop_unsupported(pa_hashmap* h) {
+
+    void* state = NULL;
+    const void* key;
+    pa_alsa_path* p;
+
+    pa_assert(h);
+    p = pa_hashmap_iterate(h, &state, &key);
+    while (p) {
+        if (p->supported <= 0) {
+            pa_hashmap_remove(h, key);
+            pa_alsa_path_free(p);
+        }
+        p = pa_hashmap_iterate(h, &state, &key);
+    }
+}
+
 void pa_alsa_profile_set_probe(
         pa_alsa_profile_set *ps,
         const char *dev_id,
@@ -4318,6 +4335,9 @@ void pa_alsa_profile_set_probe(
             pa_hashmap_remove(ps->mappings, m->name);
             mapping_free(m);
         }
+
+    paths_drop_unsupported(ps->input_paths);
+    paths_drop_unsupported(ps->output_paths);
 
     ps->probed = TRUE;
 }
