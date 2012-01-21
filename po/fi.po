@@ -2,13 +2,14 @@
 # Copyright (C) 2008 Timo Jyrinki
 # This file is distributed under the same license as the pulseaudio package.
 # Timo Jyrinki <timo.jyrinki@iki.fi>, 2008.
-# Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>, 2009.
+# Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>, 2009, 2012.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-12-23 23:45+0200\n"
+"PO-Revision-Date: 2012-01-30 09:53+0000\n"
 "Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
 "MIME-Version: 1.0\n"
@@ -36,8 +37,8 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
@@ -95,7 +96,7 @@ msgid "Null Output"
 msgstr "Tyhjä ulostulo"
 
 #: ../src/pulsecore/sink.c:2615
-msgid "Internal Audio"
+msgid "Built-in Audio"
 msgstr "Sisäinen äänentoisto"
 
 #: ../src/pulsecore/sink.c:2620
@@ -2499,14 +2500,14 @@ msgid "Docking Station Input"
 msgstr "Telakan sisääntulo"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
-msgid "Docking Station Microphone"
+msgid "Dock Microphone"
 msgstr "Telakan mikrofoni"
 
-#: ../src/modules/alsa/alsa-mixer.c:1704
-msgid "Line-In"
+#: ../src/modules/alsa/alsa-mixer.c:1704 ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Line In"
 msgstr "Linjasisääntulo"
 
-#: ../src/modules/alsa/alsa-mixer.c:1705
+#: ../src/modules/alsa/alsa-mixer.c:1705 ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Microphone"
 msgstr "Mikrofoni"
 
@@ -2518,11 +2519,11 @@ msgstr "Ulkoinen mikrofoni"
 msgid "Internal Microphone"
 msgstr "Sisäinen mikrofoni"
 
-#: ../src/modules/alsa/alsa-mixer.c:1708
+#: ../src/modules/alsa/alsa-mixer.c:1708 ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Radio"
 msgstr "Radio"
 
-#: ../src/modules/alsa/alsa-mixer.c:1709
+#: ../src/modules/alsa/alsa-mixer.c:1709 ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Video"
 msgstr "Video"
 
@@ -2564,8 +2565,7 @@ msgstr "Ei vahvistusta"
 msgid "Speaker"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:1719 ../src/modules/alsa/alsa-mixer.c:1783
 msgid "Headphones"
 msgstr "Analoginen kuulokeliitäntä"
 
@@ -2573,32 +2573,12 @@ msgstr "Analoginen kuulokeliitäntä"
 msgid "Analog Input"
 msgstr "Analoginen sisääntulo"
 
-#: ../src/modules/alsa/alsa-mixer.c:1778
-msgid "Analog Microphone"
-msgstr "Analoginen mikrofoni"
-
-#: ../src/modules/alsa/alsa-mixer.c:1779
-msgid "Analog Line-In"
-msgstr "Analoginen linjasisääntulo"
-
-#: ../src/modules/alsa/alsa-mixer.c:1780
-msgid "Analog Radio"
-msgstr "Analoginen radio"
-
-#: ../src/modules/alsa/alsa-mixer.c:1781
-msgid "Analog Video"
-msgstr "Analoginen video"
-
 #: ../src/modules/alsa/alsa-mixer.c:1782
 msgid "Analog Output"
 msgstr "Analoginen ulostulo"
 
-#: ../src/modules/alsa/alsa-mixer.c:1783
-msgid "Analog Headphones"
-msgstr "Analoginen kuulokeliitäntä"
-
 #: ../src/modules/alsa/alsa-mixer.c:1784
-msgid "Analog Output (LFE)"
+msgid "LFE on Separate Mono Output"
 msgstr "Analoginen ulostulo (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
@@ -2607,7 +2587,7 @@ msgstr "Analoginen monoulostulo"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
 #, fuzzy
-msgid "Analog Speakers"
+msgid "Speakers"
 msgstr "Analoginen stereo"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986

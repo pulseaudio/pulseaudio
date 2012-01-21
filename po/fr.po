@@ -7,13 +7,14 @@
 # Michaël Ughetto <telimektar esraonline com>, 2008.
 # Pablo Martin-Gomez <pablo.martin-gomez@laposte.net>, 2008.
 # Corentin Perard <corentin.perard@gmail.com>, 2009.
-# Thomas Canniot <mrtom@fedoraproject.org>, 2009.
+# Thomas Canniot <mrtom@fedoraproject.org>, 2009, 2012.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio trunk\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-12-09 21:40+0100\n"
+"PO-Revision-Date: 2012-01-30 09:53+0000\n"
 "Last-Translator: Thomas Canniot <mrtom@fedoraproject.org>\n"
 "Language-Team: French <fedora-trans-fr@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -43,8 +44,8 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
@@ -102,7 +103,7 @@ msgid "Null Output"
 msgstr "Sortie vide"
 
 #: ../src/pulsecore/sink.c:2615
-msgid "Internal Audio"
+msgid "Built-in Audio"
 msgstr "Audio interne"
 
 #: ../src/pulsecore/sink.c:2620
@@ -646,7 +647,8 @@ msgstr "--use-pid-file requiert un paramètre booléen"
 
 #: ../src/daemon/cmdline.c:321
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr "Cible du journal invalide : utilisez « syslog », « stderr » ou « auto »."
+msgstr ""
+"Cible du journal invalide : utilisez « syslog », « stderr » ou « auto »."
 
 #: ../src/daemon/cmdline.c:328
 msgid "--log-time expects boolean argument"
@@ -1607,8 +1609,8 @@ msgstr ""
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
-"Ouverture d'un flux %s avec une spécification d'échantillon « %s » et un plan "
-"des canaux « %s »."
+"Ouverture d'un flux %s avec une spécification d'échantillon « %s » et un "
+"plan des canaux « %s »."
 
 #: ../src/utils/pacat.c:1050
 msgid "recording"
@@ -2554,14 +2556,14 @@ msgid "Docking Station Input"
 msgstr "Entrée de la station d'accueil"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
-msgid "Docking Station Microphone"
+msgid "Dock Microphone"
 msgstr "Microphone de la station d'accueil"
 
-#: ../src/modules/alsa/alsa-mixer.c:1704
-msgid "Line-In"
+#: ../src/modules/alsa/alsa-mixer.c:1704 ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Line In"
 msgstr "Entrée-ligne"
 
-#: ../src/modules/alsa/alsa-mixer.c:1705
+#: ../src/modules/alsa/alsa-mixer.c:1705 ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Microphone"
 msgstr "Microphone"
 
@@ -2573,11 +2575,11 @@ msgstr "Microphone externe"
 msgid "Internal Microphone"
 msgstr "Microphone interne"
 
-#: ../src/modules/alsa/alsa-mixer.c:1708
+#: ../src/modules/alsa/alsa-mixer.c:1708 ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Radio"
 msgstr "Radio"
 
-#: ../src/modules/alsa/alsa-mixer.c:1709
+#: ../src/modules/alsa/alsa-mixer.c:1709 ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Video"
 msgstr "Vidéo"
 
@@ -2619,8 +2621,7 @@ msgstr "Pas de boost"
 msgid "Speaker"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:1719 ../src/modules/alsa/alsa-mixer.c:1783
 msgid "Headphones"
 msgstr "Casques analogiques"
 
@@ -2628,32 +2629,12 @@ msgstr "Casques analogiques"
 msgid "Analog Input"
 msgstr "Entrée analogique"
 
-#: ../src/modules/alsa/alsa-mixer.c:1778
-msgid "Analog Microphone"
-msgstr "Microphone analogique"
-
-#: ../src/modules/alsa/alsa-mixer.c:1779
-msgid "Analog Line-In"
-msgstr "Entrée-ligne analogique"
-
-#: ../src/modules/alsa/alsa-mixer.c:1780
-msgid "Analog Radio"
-msgstr "Radio analogique"
-
-#: ../src/modules/alsa/alsa-mixer.c:1781
-msgid "Analog Video"
-msgstr "Vidéo analogique"
-
 #: ../src/modules/alsa/alsa-mixer.c:1782
 msgid "Analog Output"
 msgstr "Sortie analogique"
 
-#: ../src/modules/alsa/alsa-mixer.c:1783
-msgid "Analog Headphones"
-msgstr "Casques analogiques"
-
 #: ../src/modules/alsa/alsa-mixer.c:1784
-msgid "Analog Output (LFE)"
+msgid "LFE on Separate Mono Output"
 msgstr "Sortie analogique (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
@@ -2662,7 +2643,7 @@ msgstr "Sortie mono analogique"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
 #, fuzzy
-msgid "Analog Speakers"
+msgid "Speakers"
 msgstr "Stéréo analogique"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
@@ -2811,8 +2792,8 @@ msgstr "Duplex stéréo numérique (IEC958)"
 #~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
 #~ "daemon"
 #~ msgstr ""
-#~ "Ordonnancement haute priorité (niveau Unix « nice » négatif) pour le démon "
-#~ "PulseAudio"
+#~ "Ordonnancement haute priorité (niveau Unix « nice » négatif) pour le "
+#~ "démon PulseAudio"
 
 #~ msgid "Real-time scheduling for the PulseAudio daemon"
 #~ msgstr "Ordonnancement en temps réel pour le démon PulseAudio"

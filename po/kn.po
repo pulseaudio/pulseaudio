@@ -1,14 +1,14 @@
 # translation of pulseaudio.master-tx.kn.po to Kannada
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
+# Shankar Prasad <svenkate@redhat.com>, 2009, 2012.
 #
-# Shankar Prasad <svenkate@redhat.com>, 2009.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.kn\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-12-08 11:50+0530\n"
+"PO-Revision-Date: 2012-01-30 09:54+0000\n"
 "Last-Translator: Shankar Prasad <svenkate@redhat.com>\n"
 "Language-Team: Kannada <kde-l10n-kn@kde.org>\n"
 "MIME-Version: 1.0\n"
@@ -37,8 +37,8 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
@@ -93,7 +93,7 @@ msgid "Null Output"
 msgstr "ಶೂನ್ಯ ಔಟ್‌ಪುಟ್"
 
 #: ../src/pulsecore/sink.c:2615
-msgid "Internal Audio"
+msgid "Built-in Audio"
 msgstr "ಆಂತರಿಕ ಆಡಿಯೊ"
 
 #: ../src/pulsecore/sink.c:2620
@@ -2491,14 +2491,14 @@ msgid "Docking Station Input"
 msgstr "ಡಾಕಿಂಗ್ ಸ್ಟೇಶನ್ ಇನ್‌ಪುಟ್"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
-msgid "Docking Station Microphone"
+msgid "Dock Microphone"
 msgstr "ಡಾಕಿಂಗ್ ಸ್ಟೇಶನ್ ಮೈಕ್ರೊಫೋನ್"
 
-#: ../src/modules/alsa/alsa-mixer.c:1704
-msgid "Line-In"
+#: ../src/modules/alsa/alsa-mixer.c:1704 ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Line In"
 msgstr "ಲೈನ್-ಇನ್"
 
-#: ../src/modules/alsa/alsa-mixer.c:1705
+#: ../src/modules/alsa/alsa-mixer.c:1705 ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Microphone"
 msgstr "ಮೈಕ್ರೊಫೋನ್"
 
@@ -2510,11 +2510,11 @@ msgstr "ಬಾಹ್ಯ ಮೈಕ್ರೊಫೋನ್"
 msgid "Internal Microphone"
 msgstr "ಆಂತರಿಕ  ಮೈಕ್ರೊಫೋನ್"
 
-#: ../src/modules/alsa/alsa-mixer.c:1708
+#: ../src/modules/alsa/alsa-mixer.c:1708 ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Radio"
 msgstr "ರೇಡಿಯೊ"
 
-#: ../src/modules/alsa/alsa-mixer.c:1709
+#: ../src/modules/alsa/alsa-mixer.c:1709 ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Video"
 msgstr "ವೀಡಿಯೊ"
 
@@ -2556,8 +2556,7 @@ msgstr "ಯಾವುದೆ ಬೂಸ್ಟ್ ಇಲ್ಲ"
 msgid "Speaker"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:1719 ../src/modules/alsa/alsa-mixer.c:1783
 msgid "Headphones"
 msgstr "ಅನಲಾಗ್ ಹೆಡ್‌ಫೋನ್‌ಗಳು"
 
@@ -2565,32 +2564,12 @@ msgstr "ಅನಲಾಗ್ ಹೆಡ್‌ಫೋನ್‌ಗಳು"
 msgid "Analog Input"
 msgstr "ಅನಲಾಗ್ ಇನ್‌ಪುಟ್"
 
-#: ../src/modules/alsa/alsa-mixer.c:1778
-msgid "Analog Microphone"
-msgstr "ಅನಲಾಗ್ ಮೈಕ್ರೊಫೋನ್"
-
-#: ../src/modules/alsa/alsa-mixer.c:1779
-msgid "Analog Line-In"
-msgstr "ಅನಲಾಗ್ ಲೈನ್-ಇನ್"
-
-#: ../src/modules/alsa/alsa-mixer.c:1780
-msgid "Analog Radio"
-msgstr "ಅನಲಾಗ್ ರೇಡಿಯೊ"
-
-#: ../src/modules/alsa/alsa-mixer.c:1781
-msgid "Analog Video"
-msgstr "ಅನಲಾಗ್ ವೀಡಿಯೊ"
-
 #: ../src/modules/alsa/alsa-mixer.c:1782
 msgid "Analog Output"
 msgstr "ಅನಲಾಗ್ ಔಟ್‌ಪುಟ್"
 
-#: ../src/modules/alsa/alsa-mixer.c:1783
-msgid "Analog Headphones"
-msgstr "ಅನಲಾಗ್ ಹೆಡ್‌ಫೋನ್‌ಗಳು"
-
 #: ../src/modules/alsa/alsa-mixer.c:1784
-msgid "Analog Output (LFE)"
+msgid "LFE on Separate Mono Output"
 msgstr "ಅನಲಾಗ್ ಔಟ್‌ಪುಟ್ (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
@@ -2599,7 +2578,7 @@ msgstr "ಅನಲಾಗ್ ಮೊನೊ ಔಟ್‌ಪುಟ್"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
 #, fuzzy
-msgid "Analog Speakers"
+msgid "Speakers"
 msgstr "ಅನಲಾಗ್ ಸ್ಟೀರಿಯೋ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986

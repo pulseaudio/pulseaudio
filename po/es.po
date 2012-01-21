@@ -3,14 +3,14 @@
 #
 # Domingo Becker <domingobecker@gmail.com>, 2009.
 # Héctor Daniel Cabrera <h.daniel.cabrera@gmail.com>, 2009.
+# Fernando Gonzalez Blanco <fgonz@fedoraproject.org>, 2009, 2012.
 #
-# Fernando Gonzalez Blanco <fgonz@fedoraproject.org>, 2009.
 msgid ""
 msgstr ""
 "Project-Id-Version: PulseAudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-10-04 21:16+0200\n"
+"PO-Revision-Date: 2012-01-30 09:53+0000\n"
 "Last-Translator: Fernando Gonzalez Blanco <fgonz@fedoraproject.org>\n"
 "Language-Team: Spanish <fedora-trans-es@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -40,8 +40,8 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
@@ -99,7 +99,7 @@ msgid "Null Output"
 msgstr "Salida Nula"
 
 #: ../src/pulsecore/sink.c:2615
-msgid "Internal Audio"
+msgid "Built-in Audio"
 msgstr "Audio Interno"
 
 #: ../src/pulsecore/sink.c:2620
@@ -1585,8 +1585,8 @@ msgstr "Aviso: Faló al escribir el mapeo del canal en el archivo."
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
-"Abriendo un flujo %s con especificación de muestra '%s' y mapeo de canal '%"
-"s'."
+"Abriendo un flujo %s con especificación de muestra '%s' y mapeo de canal "
+"'%s'."
 
 #: ../src/utils/pacat.c:1050
 msgid "recording"
@@ -2521,14 +2521,14 @@ msgid "Docking Station Input"
 msgstr "Estación dock de entrada"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
-msgid "Docking Station Microphone"
+msgid "Dock Microphone"
 msgstr "Micrófono de la estación Dock"
 
-#: ../src/modules/alsa/alsa-mixer.c:1704
-msgid "Line-In"
+#: ../src/modules/alsa/alsa-mixer.c:1704 ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Line In"
 msgstr "En línea"
 
-#: ../src/modules/alsa/alsa-mixer.c:1705
+#: ../src/modules/alsa/alsa-mixer.c:1705 ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Microphone"
 msgstr "Micrófono"
 
@@ -2540,11 +2540,11 @@ msgstr "Micrófono externo"
 msgid "Internal Microphone"
 msgstr "Micrófono interno"
 
-#: ../src/modules/alsa/alsa-mixer.c:1708
+#: ../src/modules/alsa/alsa-mixer.c:1708 ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Radio"
 msgstr "Radio"
 
-#: ../src/modules/alsa/alsa-mixer.c:1709
+#: ../src/modules/alsa/alsa-mixer.c:1709 ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Video"
 msgstr "Vídeo"
 
@@ -2586,8 +2586,7 @@ msgstr "Sin incremento de ganancia"
 msgid "Speaker"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:1719 ../src/modules/alsa/alsa-mixer.c:1783
 msgid "Headphones"
 msgstr "Auriculares analógicos"
 
@@ -2595,32 +2594,12 @@ msgstr "Auriculares analógicos"
 msgid "Analog Input"
 msgstr "Entrada analógica"
 
-#: ../src/modules/alsa/alsa-mixer.c:1778
-msgid "Analog Microphone"
-msgstr "Micrófono analógico"
-
-#: ../src/modules/alsa/alsa-mixer.c:1779
-msgid "Analog Line-In"
-msgstr "Entrada en línea analógica"
-
-#: ../src/modules/alsa/alsa-mixer.c:1780
-msgid "Analog Radio"
-msgstr "Radio analógico"
-
-#: ../src/modules/alsa/alsa-mixer.c:1781
-msgid "Analog Video"
-msgstr "Vídeo analógico"
-
 #: ../src/modules/alsa/alsa-mixer.c:1782
 msgid "Analog Output"
 msgstr "Salida analógica"
 
-#: ../src/modules/alsa/alsa-mixer.c:1783
-msgid "Analog Headphones"
-msgstr "Auriculares analógicos"
-
 #: ../src/modules/alsa/alsa-mixer.c:1784
-msgid "Analog Output (LFE)"
+msgid "LFE on Separate Mono Output"
 msgstr "Salida analógica (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
@@ -2629,7 +2608,7 @@ msgstr "Salida Mono analógica "
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
 #, fuzzy
-msgid "Analog Speakers"
+msgid "Speakers"
 msgstr "Estéreo Analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
@@ -2840,9 +2819,9 @@ msgstr "Estéreo Digital Duplex(IEC958)"
 #~ "necesario y no se puede aumentar los límites del recurso RLIMIT_NICE/"
 #~ "RLIMIT_RTPRIO.\n"
 #~ "Para habilitar la planifiación de tiempo real/alta prioridad por favor "
-#~ "adquiera los privilegios apropiados en PolicyKit, o hágase miembro de '%"
-#~ "s', o aumente los límites del recurso RLIMIT_NICE/RLIMIT_RTPRIO para este "
-#~ "usuario."
+#~ "adquiera los privilegios apropiados en PolicyKit, o hágase miembro de "
+#~ "'%s', o aumente los límites del recurso RLIMIT_NICE/RLIMIT_RTPRIO para "
+#~ "este usuario."
 
 #~ msgid ""
 #~ "High-priority scheduling enabled in configuration but not allowed by "

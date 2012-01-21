@@ -5,7 +5,6 @@
 # Xavier Conde Rueda <xavi.conde@gmail.com>, 2008.
 # Agustí Grau <fletxa@gmail.com>, 2009.
 # Judith Pintó Subirada <judithp@gmail.com>
-# Josep Torné Llavall <josep.torne@gmail.com>, 2009
 #
 # This file is translated according to the glossary and style guide of
 # Softcatalà. If you plan to modify this file, please read first the page
@@ -18,14 +17,14 @@
 # us plau la pàgina de catalanització del projecte Fedora a:
 # http://www.softcatala.org/projectes/fedora/
 # i contacteu l'anterior traductor/a.
-#
+# Josep Torné Llavall <josep.torne@gmail.com>, 2009, 2012.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-09-12 11:40+0100\n"
+"PO-Revision-Date: 2012-01-30 09:52+0000\n"
 "Last-Translator: Josep Torné Llavall <josep.torne@gmail.com>\n"
 "Language-Team: Catalan <fedora@softcatala.net>\n"
 "MIME-Version: 1.0\n"
@@ -53,8 +52,8 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
@@ -71,8 +70,8 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_mmap_begin() ha retornat un valor excepcionalment gran: %lu bytes (%"
-"lu ms).\n"
+"snd_pcm_mmap_begin() ha retornat un valor excepcionalment gran: %lu bytes "
+"(%lu ms).\n"
 "Probablement es tracta d'un error del controlador de l'ALSA '%s'. Informeu "
 "d'aquest incident als desenvolupadors de l'ALSA."
 
@@ -111,7 +110,7 @@ msgid "Null Output"
 msgstr "Sortida nul·la"
 
 #: ../src/pulsecore/sink.c:2615
-msgid "Internal Audio"
+msgid "Built-in Audio"
 msgstr "Audio intern"
 
 #: ../src/pulsecore/sink.c:2620
@@ -1272,8 +1271,8 @@ msgstr "Mètriques del búffer: maxlength=%u, fragsize=%u"
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'."
 msgstr ""
-"S'estan utilitzant les especificacions de mostreig '%s', mapejat del canal '%"
-"s'."
+"S'estan utilitzant les especificacions de mostreig '%s', mapejat del canal "
+"'%s'."
 
 #: ../src/utils/pacat.c:340
 #, c-format
@@ -2537,15 +2536,11 @@ msgid "Docking Station Input"
 msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
-msgid "Docking Station Microphone"
+msgid "Dock Microphone"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1704
-msgid "Line-In"
-msgstr ""
-
-#: ../src/modules/alsa/alsa-mixer.c:1705
-msgid "Microphone"
+#: ../src/modules/alsa/alsa-mixer.c:1704 ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Line In"
 msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1706
@@ -2556,14 +2551,6 @@ msgstr ""
 #, fuzzy
 msgid "Internal Microphone"
 msgstr "Audio intern"
-
-#: ../src/modules/alsa/alsa-mixer.c:1708
-msgid "Radio"
-msgstr ""
-
-#: ../src/modules/alsa/alsa-mixer.c:1709
-msgid "Video"
-msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
@@ -2601,7 +2588,7 @@ msgstr ""
 msgid "Speaker"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1719
+#: ../src/modules/alsa/alsa-mixer.c:1719 ../src/modules/alsa/alsa-mixer.c:1783
 #, fuzzy
 msgid "Headphones"
 msgstr "Mono analògic"
@@ -2613,22 +2600,17 @@ msgstr "Mono analògic"
 
 #: ../src/modules/alsa/alsa-mixer.c:1778
 #, fuzzy
-msgid "Analog Microphone"
-msgstr "Mono analògic"
-
-#: ../src/modules/alsa/alsa-mixer.c:1779
-#, fuzzy
-msgid "Analog Line-In"
+msgid "Microphone"
 msgstr "Mono analògic"
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
 #, fuzzy
-msgid "Analog Radio"
+msgid "Radio"
 msgstr "Mono analògic"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
 #, fuzzy
-msgid "Analog Video"
+msgid "Video"
 msgstr "Estèreo analògic"
 
 #: ../src/modules/alsa/alsa-mixer.c:1782
@@ -2636,13 +2618,8 @@ msgstr "Estèreo analògic"
 msgid "Analog Output"
 msgstr "Sortida nul·la"
 
-#: ../src/modules/alsa/alsa-mixer.c:1783
-#, fuzzy
-msgid "Analog Headphones"
-msgstr "Mono analògic"
-
 #: ../src/modules/alsa/alsa-mixer.c:1784
-msgid "Analog Output (LFE)"
+msgid "LFE on Separate Mono Output"
 msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
@@ -2652,7 +2629,7 @@ msgstr "Mono analògic"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
 #, fuzzy
-msgid "Analog Speakers"
+msgid "Speakers"
 msgstr "Estèreo analògic"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986

@@ -1,13 +1,14 @@
 # Czech translation of pulseaudio.
 # Copyright (C) 2008, 2009 the author(s) of pulseaudio.
 # This file is distributed under the same license as the pulseaudio package.
-# Petr Kovar <pknbe@volny.cz>, 2008, 2009.
+# Petr Kovar <pknbe@volny.cz>, 2008, 2009, 2012.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-10-17 17:08+0200\n"
+"PO-Revision-Date: 2012-01-30 09:52+0000\n"
 "Last-Translator: Petr Kovar <pknbe@volny.cz>\n"
 "Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -37,8 +38,8 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
@@ -55,8 +56,8 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_mmap_begin() navrátil hodnotu, která je nezvykle vysoká: %lu bajtů (%"
-"lu ms).\n"
+"snd_pcm_mmap_begin() navrátil hodnotu, která je nezvykle vysoká: %lu bajtů "
+"(%lu ms).\n"
 "S největší pravděpodobností se jedná o chybu v ovladači ALSA \"%s\". "
 "Nahlaste prosím tento problém vývojářům ALSA."
 
@@ -95,7 +96,7 @@ msgid "Null Output"
 msgstr "Výstup \"null\""
 
 #: ../src/pulsecore/sink.c:2615
-msgid "Internal Audio"
+msgid "Built-in Audio"
 msgstr "Vnitřní zvukový systém"
 
 #: ../src/pulsecore/sink.c:2620
@@ -2478,14 +2479,14 @@ msgid "Docking Station Input"
 msgstr "Vstup dokovací stanice"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
-msgid "Docking Station Microphone"
+msgid "Dock Microphone"
 msgstr "Mikrofon dokovací stanice"
 
-#: ../src/modules/alsa/alsa-mixer.c:1704
-msgid "Line-In"
+#: ../src/modules/alsa/alsa-mixer.c:1704 ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Line In"
 msgstr "Linkový vstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:1705
+#: ../src/modules/alsa/alsa-mixer.c:1705 ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Microphone"
 msgstr "Mikrofon"
 
@@ -2497,11 +2498,11 @@ msgstr "Externí mikrofon"
 msgid "Internal Microphone"
 msgstr "Interní mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:1708
+#: ../src/modules/alsa/alsa-mixer.c:1708 ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Radio"
 msgstr "Rádio"
 
-#: ../src/modules/alsa/alsa-mixer.c:1709
+#: ../src/modules/alsa/alsa-mixer.c:1709 ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Video"
 msgstr "Obraz"
 
@@ -2543,8 +2544,7 @@ msgstr "Bez zesílení"
 msgid "Speaker"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:1719 ../src/modules/alsa/alsa-mixer.c:1783
 msgid "Headphones"
 msgstr "Analogová sluchátka"
 
@@ -2552,32 +2552,12 @@ msgstr "Analogová sluchátka"
 msgid "Analog Input"
 msgstr "Analogový vstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:1778
-msgid "Analog Microphone"
-msgstr "Analogový mikrofon"
-
-#: ../src/modules/alsa/alsa-mixer.c:1779
-msgid "Analog Line-In"
-msgstr "Analogový linkový vstup"
-
-#: ../src/modules/alsa/alsa-mixer.c:1780
-msgid "Analog Radio"
-msgstr "Analogové rádio"
-
-#: ../src/modules/alsa/alsa-mixer.c:1781
-msgid "Analog Video"
-msgstr "Analogový obraz"
-
 #: ../src/modules/alsa/alsa-mixer.c:1782
 msgid "Analog Output"
 msgstr "Analogový výstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:1783
-msgid "Analog Headphones"
-msgstr "Analogová sluchátka"
-
 #: ../src/modules/alsa/alsa-mixer.c:1784
-msgid "Analog Output (LFE)"
+msgid "LFE on Separate Mono Output"
 msgstr "Analogový výstup (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
@@ -2586,7 +2566,7 @@ msgstr "Analogový výstup mono"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
 #, fuzzy
-msgid "Analog Speakers"
+msgid "Speakers"
 msgstr "Analogové stereo"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986

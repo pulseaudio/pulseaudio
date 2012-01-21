@@ -2,15 +2,14 @@
 # Copyright (C) 2009 THE pulseaudio.master-tx'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the pulseaudio.master-tx package.
 # Geert Warrink <geert.warrink@onsnet.nu>, 2009.
-# Reinout van Schouwen <reinout@gmail.com>, 2009
-#
+# Reinout van Schouwen <reinout@gmail.com>, 2009, 2012.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-10-14 11:00+0100\n"
+"PO-Revision-Date: 2012-01-30 09:54+0000\n"
 "Last-Translator: Reinout van Schouwen <reinout@gmail.com>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "MIME-Version: 1.0\n"
@@ -30,21 +29,21 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() gaf een waarde terug die uitzonderlijk groot is: %lu bytes (%"
-"lu ms).\n"
+"snd_pcm_avail() gaf een waarde terug die uitzonderlijk groot is: %lu bytes "
+"(%lu ms).\n"
 "Waarschijnlijk is dit een fout in het ALSA-stuurprogramma ‘%s’. Meld dit "
 "probleem alstublieft aan de ALSA-ontwikkelaars."
 
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_delay() gaf een waarde terug die uitzonderlijk groot is: %li bytes (%"
-"s%lu ms).\n"
+"snd_pcm_delay() gaf een waarde terug die uitzonderlijk groot is: %li bytes "
+"(%s%lu ms).\n"
 "Waarschijnlijk is dit een fout in het ALSA-stuurprogramma ‘%s’. Meld dit "
 "probleem alstublieft aan de ALSA-ontwikkelaars."
 
@@ -97,7 +96,7 @@ msgid "Null Output"
 msgstr "Null-uitvoer"
 
 #: ../src/pulsecore/sink.c:2615
-msgid "Internal Audio"
+msgid "Built-in Audio"
 msgstr "Intern geluid"
 
 #: ../src/pulsecore/sink.c:2620
@@ -2505,14 +2504,14 @@ msgid "Docking Station Input"
 msgstr "Docking station-invoer"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
-msgid "Docking Station Microphone"
+msgid "Dock Microphone"
 msgstr "Docking station-microfoon"
 
-#: ../src/modules/alsa/alsa-mixer.c:1704
-msgid "Line-In"
+#: ../src/modules/alsa/alsa-mixer.c:1704 ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Line In"
 msgstr "Lijn-in"
 
-#: ../src/modules/alsa/alsa-mixer.c:1705
+#: ../src/modules/alsa/alsa-mixer.c:1705 ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Microphone"
 msgstr "Microfoon"
 
@@ -2524,11 +2523,11 @@ msgstr "Externe microfoon"
 msgid "Internal Microphone"
 msgstr "Interne microfoon"
 
-#: ../src/modules/alsa/alsa-mixer.c:1708
+#: ../src/modules/alsa/alsa-mixer.c:1708 ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Radio"
 msgstr "Radio"
 
-#: ../src/modules/alsa/alsa-mixer.c:1709
+#: ../src/modules/alsa/alsa-mixer.c:1709 ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Video"
 msgstr "Video"
 
@@ -2570,8 +2569,7 @@ msgstr "Geen boostversterking"
 msgid "Speaker"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:1719 ../src/modules/alsa/alsa-mixer.c:1783
 msgid "Headphones"
 msgstr "Analoge koptelefoon"
 
@@ -2579,32 +2577,12 @@ msgstr "Analoge koptelefoon"
 msgid "Analog Input"
 msgstr "Analoge invoer"
 
-#: ../src/modules/alsa/alsa-mixer.c:1778
-msgid "Analog Microphone"
-msgstr "Analoge microfoon"
-
-#: ../src/modules/alsa/alsa-mixer.c:1779
-msgid "Analog Line-In"
-msgstr "Analoge lijn-in"
-
-#: ../src/modules/alsa/alsa-mixer.c:1780
-msgid "Analog Radio"
-msgstr "Analoge radio"
-
-#: ../src/modules/alsa/alsa-mixer.c:1781
-msgid "Analog Video"
-msgstr "Analoge video"
-
 #: ../src/modules/alsa/alsa-mixer.c:1782
 msgid "Analog Output"
 msgstr "Analoge output"
 
-#: ../src/modules/alsa/alsa-mixer.c:1783
-msgid "Analog Headphones"
-msgstr "Analoge koptelefoon"
-
 #: ../src/modules/alsa/alsa-mixer.c:1784
-msgid "Analog Output (LFE)"
+msgid "LFE on Separate Mono Output"
 msgstr "Analoge output (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
@@ -2613,7 +2591,7 @@ msgstr "Analoge mono-uitvoer"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
 #, fuzzy
-msgid "Analog Speakers"
+msgid "Speakers"
 msgstr "Analoog stereo"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986

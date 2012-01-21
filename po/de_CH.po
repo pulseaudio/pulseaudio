@@ -2,15 +2,15 @@
 # Copyright (C) 2008 pulseaudio
 # This file is distributed under the same license as the pulseaudio package.
 #
-# Fabian Affolter <fab@fedoraproject.org>, 2008-2009.
 # Micha Pietsch <barney@fedoraproject.org>, 2008, 2009.
+# Fabian Affolter <fab@fedoraproject.org>, 2008-2009, 2012.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-09-14 10:22+0100\n"
+"PO-Revision-Date: 2012-01-30 09:53+0000\n"
 "Last-Translator: Fabian Affolter <fab@fedoraproject.org>\n"
 "Language-Team: German <fedora-trans-de@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -40,8 +40,8 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
@@ -95,7 +95,7 @@ msgid "Null Output"
 msgstr "Ausgang %s"
 
 #: ../src/pulsecore/sink.c:2615
-msgid "Internal Audio"
+msgid "Built-in Audio"
 msgstr "Internes Audio"
 
 #: ../src/pulsecore/sink.c:2620
@@ -2444,14 +2444,14 @@ msgid "Docking Station Input"
 msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
-msgid "Docking Station Microphone"
+msgid "Dock Microphone"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1704
-msgid "Line-In"
+#: ../src/modules/alsa/alsa-mixer.c:1704 ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Line In"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1705
+#: ../src/modules/alsa/alsa-mixer.c:1705 ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Microphone"
 msgstr ""
 
@@ -2464,11 +2464,11 @@ msgstr ""
 msgid "Internal Microphone"
 msgstr "Internes Audio"
 
-#: ../src/modules/alsa/alsa-mixer.c:1708
+#: ../src/modules/alsa/alsa-mixer.c:1708 ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Radio"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1709
+#: ../src/modules/alsa/alsa-mixer.c:1709 ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Video"
 msgstr ""
 
@@ -2508,7 +2508,7 @@ msgstr ""
 msgid "Speaker"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1719
+#: ../src/modules/alsa/alsa-mixer.c:1719 ../src/modules/alsa/alsa-mixer.c:1783
 #, fuzzy
 msgid "Headphones"
 msgstr "Analog Mono"
@@ -2518,38 +2518,13 @@ msgstr "Analog Mono"
 msgid "Analog Input"
 msgstr "Analog Mono"
 
-#: ../src/modules/alsa/alsa-mixer.c:1778
-#, fuzzy
-msgid "Analog Microphone"
-msgstr "Analog Mono"
-
-#: ../src/modules/alsa/alsa-mixer.c:1779
-#, fuzzy
-msgid "Analog Line-In"
-msgstr "Analog Mono"
-
-#: ../src/modules/alsa/alsa-mixer.c:1780
-#, fuzzy
-msgid "Analog Radio"
-msgstr "Analog Mono"
-
-#: ../src/modules/alsa/alsa-mixer.c:1781
-#, fuzzy
-msgid "Analog Video"
-msgstr "Analog Stereo"
-
 #: ../src/modules/alsa/alsa-mixer.c:1782
 #, fuzzy
 msgid "Analog Output"
 msgstr "Ausgang %s"
 
-#: ../src/modules/alsa/alsa-mixer.c:1783
-#, fuzzy
-msgid "Analog Headphones"
-msgstr "Analog Mono"
-
 #: ../src/modules/alsa/alsa-mixer.c:1784
-msgid "Analog Output (LFE)"
+msgid "LFE on Separate Mono Output"
 msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
@@ -2559,7 +2534,7 @@ msgstr "Analog Mono"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
 #, fuzzy
-msgid "Analog Speakers"
+msgid "Speakers"
 msgstr "Analog Stereo"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986

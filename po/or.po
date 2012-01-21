@@ -1,14 +1,14 @@
 # translation of pulseaudio.master-tx.or.po to Oriya
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
+# Manoj Kumar Giri <mgiri@redhat.com>, 2009, 2012.
 #
-# Manoj Kumar Giri <mgiri@redhat.com>, 2009.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.or\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-11-14 15:33+0530\n"
+"PO-Revision-Date: 2012-01-30 09:55+0000\n"
 "Last-Translator: Manoj Kumar Giri <mgiri@redhat.com>\n"
 "Language-Team: Oriya <oriya-it@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
@@ -54,13 +54,13 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 
@@ -111,7 +111,7 @@ msgid "Null Output"
 msgstr "ଶୂନ୍ୟ ଫଳାଫଳ"
 
 #: ../src/pulsecore/sink.c:2615
-msgid "Internal Audio"
+msgid "Built-in Audio"
 msgstr "ଆଭ୍ୟନ୍ତରୀଣ ଧ୍ୱନି"
 
 #: ../src/pulsecore/sink.c:2620
@@ -2483,14 +2483,14 @@ msgid "Docking Station Input"
 msgstr "ଡକିଙ୍ଗ ଷ୍ଟେସନ ନିବେଶ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
-msgid "Docking Station Microphone"
+msgid "Dock Microphone"
 msgstr "ଡକିଙ୍ଗ ଷ୍ଟେସନ ମାଇକ୍ରୋଫୋନ"
 
-#: ../src/modules/alsa/alsa-mixer.c:1704
-msgid "Line-In"
+#: ../src/modules/alsa/alsa-mixer.c:1704 ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Line In"
 msgstr "ଲାଇନ-ଇନ"
 
-#: ../src/modules/alsa/alsa-mixer.c:1705
+#: ../src/modules/alsa/alsa-mixer.c:1705 ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Microphone"
 msgstr "ମାଇକ୍ରୋଫୋନ"
 
@@ -2502,11 +2502,11 @@ msgstr "ବାହ୍ୟ ମାଇକ୍ରୋଫୋନ"
 msgid "Internal Microphone"
 msgstr "ଆଭ୍ୟନ୍ତରୀଣ ମାଇକ୍ରୋଫୋନ"
 
-#: ../src/modules/alsa/alsa-mixer.c:1708
+#: ../src/modules/alsa/alsa-mixer.c:1708 ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Radio"
 msgstr "ରେଡିଓ"
 
-#: ../src/modules/alsa/alsa-mixer.c:1709
+#: ../src/modules/alsa/alsa-mixer.c:1709 ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Video"
 msgstr "ଭିଡ଼ିଓ"
 
@@ -2548,8 +2548,7 @@ msgstr "ବୃଦ୍ଧି ନାହିଁ"
 msgid "Speaker"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:1719 ../src/modules/alsa/alsa-mixer.c:1783
 msgid "Headphones"
 msgstr "ଏନାଲୋଗ ହେଡ଼ଫୋନଗୁଡ଼ିକ"
 
@@ -2557,32 +2556,12 @@ msgstr "ଏନାଲୋଗ ହେଡ଼ଫୋନଗୁଡ଼ିକ"
 msgid "Analog Input"
 msgstr "ଏନାଲୋଗ ନିବେଶ"
 
-#: ../src/modules/alsa/alsa-mixer.c:1778
-msgid "Analog Microphone"
-msgstr "ଏନାଲୋଗ ମାଇକ୍ରୋଫୋନ"
-
-#: ../src/modules/alsa/alsa-mixer.c:1779
-msgid "Analog Line-In"
-msgstr "ଏନାଲୋଗ ଲାଇନ-ଇନ"
-
-#: ../src/modules/alsa/alsa-mixer.c:1780
-msgid "Analog Radio"
-msgstr "ଏନାଲୋଗ ରେଡ଼ିଓ"
-
-#: ../src/modules/alsa/alsa-mixer.c:1781
-msgid "Analog Video"
-msgstr "ଏନାଲୋଗ ଭିଡ଼ିଓ"
-
 #: ../src/modules/alsa/alsa-mixer.c:1782
 msgid "Analog Output"
 msgstr "ଏନାଲୋଗ ଫଳାଫଳ"
 
-#: ../src/modules/alsa/alsa-mixer.c:1783
-msgid "Analog Headphones"
-msgstr "ଏନାଲୋଗ ହେଡ଼ଫୋନଗୁଡ଼ିକ"
-
 #: ../src/modules/alsa/alsa-mixer.c:1784
-msgid "Analog Output (LFE)"
+msgid "LFE on Separate Mono Output"
 msgstr "ଏନାଲୋଗ ଫଳାଫଳ (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
@@ -2591,7 +2570,7 @@ msgstr "ଏନାଲୋଗ ମୋନୋ ଫଳାଫଳ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
 #, fuzzy
-msgid "Analog Speakers"
+msgid "Speakers"
 msgstr "ଏନାଲୋଗ ଷ୍ଟେରିଓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986

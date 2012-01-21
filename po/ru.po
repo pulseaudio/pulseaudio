@@ -1,15 +1,14 @@
 # Russian translation of pulseaudio.
 # Copyright (C) 2010 pulseaudio
 # This file is distributed under the same license as the pulseaudio package.
-# Leonid Kurbatov <llenchikk@rambler.ru>, 2010.
-#
+# Leonid Kurbatov <llenchikk@rambler.ru>, 2010, 2012.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2010-01-31 15:49+0300\n"
+"PO-Revision-Date: 2012-01-30 09:55+0000\n"
 "Last-Translator: Leonid Kurbatov <llenchikk@rambler.ru>\n"
 "Language-Team: Russian <->\n"
 "MIME-Version: 1.0\n"
@@ -37,8 +36,8 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
@@ -97,7 +96,7 @@ msgid "Null Output"
 msgstr "Пустой выход"
 
 #: ../src/pulsecore/sink.c:2615
-msgid "Internal Audio"
+msgid "Built-in Audio"
 msgstr "Встроенное аудио"
 
 #: ../src/pulsecore/sink.c:2620
@@ -2491,14 +2490,14 @@ msgid "Docking Station Input"
 msgstr "Док-станция ввода"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
-msgid "Docking Station Microphone"
+msgid "Dock Microphone"
 msgstr "Док-станция микрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:1704
-msgid "Line-In"
+#: ../src/modules/alsa/alsa-mixer.c:1704 ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Line In"
 msgstr "Линейный вход"
 
-#: ../src/modules/alsa/alsa-mixer.c:1705
+#: ../src/modules/alsa/alsa-mixer.c:1705 ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Microphone"
 msgstr "Микрофон"
 
@@ -2510,11 +2509,11 @@ msgstr "Внешний микрофон"
 msgid "Internal Microphone"
 msgstr "Встроенный микрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:1708
+#: ../src/modules/alsa/alsa-mixer.c:1708 ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Radio"
 msgstr "Радио"
 
-#: ../src/modules/alsa/alsa-mixer.c:1709
+#: ../src/modules/alsa/alsa-mixer.c:1709 ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Video"
 msgstr "Видео"
 
@@ -2556,8 +2555,7 @@ msgstr "Нет усиления"
 msgid "Speaker"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:1719 ../src/modules/alsa/alsa-mixer.c:1783
 msgid "Headphones"
 msgstr "Аналоговые наушники"
 
@@ -2565,32 +2563,12 @@ msgstr "Аналоговые наушники"
 msgid "Analog Input"
 msgstr "Аналоговый ввод"
 
-#: ../src/modules/alsa/alsa-mixer.c:1778
-msgid "Analog Microphone"
-msgstr "Аналоговый микрофон"
-
-#: ../src/modules/alsa/alsa-mixer.c:1779
-msgid "Analog Line-In"
-msgstr "Аналоговый линейный вход"
-
-#: ../src/modules/alsa/alsa-mixer.c:1780
-msgid "Analog Radio"
-msgstr "Аналоговое радио"
-
-#: ../src/modules/alsa/alsa-mixer.c:1781
-msgid "Analog Video"
-msgstr "Аналоговое видео"
-
 #: ../src/modules/alsa/alsa-mixer.c:1782
 msgid "Analog Output"
 msgstr "Аналоговый вывод"
 
-#: ../src/modules/alsa/alsa-mixer.c:1783
-msgid "Analog Headphones"
-msgstr "Аналоговые наушники"
-
 #: ../src/modules/alsa/alsa-mixer.c:1784
-msgid "Analog Output (LFE)"
+msgid "LFE on Separate Mono Output"
 msgstr "Аналоговый вывод (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
@@ -2599,7 +2577,7 @@ msgstr "Аналоговый вывод моно"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
 #, fuzzy
-msgid "Analog Speakers"
+msgid "Speakers"
 msgstr "Аналоговое стерео"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986

@@ -2,21 +2,21 @@
 # Copyright (C) 2006 Lennart Poettering
 # This file is distributed under the same license as the pulseaudio package.
 # Igor Miletic (Igor Miletić) <grejigl-gnomeprevod@yahoo.ca>, 2009.
-# Miloš Komarčević <kmilos@gmail.com>, 2009.
+# Miloš Komarčević <kmilos@gmail.com>, 2009, 2012.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-21 21:15+0100\n"
-"PO-Revision-Date: 2009-10-30 22:51+0100\n"
+"PO-Revision-Date: 2012-01-30 09:55+0000\n"
 "Last-Translator: Miloš Komarčević <kmilos@gmail.com>\n"
 "Language-Team: Serbian (sr) <fedora-trans-sr@redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
-"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 
 #: ../src/modules/alsa/alsa-util.c:861 ../src/pulsecore/sink.c:2631
 #, c-format
@@ -39,13 +39,13 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1150
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_delay() je vratio vrednost koja je neobično velika: %li bajtova (%s%"
-"lu ms).\n"
+"snd_pcm_delay() je vratio vrednost koja je neobično velika: %li bajtova (%s"
+"%lu ms).\n"
 "Ovo je najverovatnije greška u „%s“ ALSA upravljačkom programu. Prijavite "
 "ovaj problem ALSA programerima."
 
@@ -97,7 +97,7 @@ msgid "Null Output"
 msgstr "Prazan izlaz"
 
 #: ../src/pulsecore/sink.c:2615
-msgid "Internal Audio"
+msgid "Built-in Audio"
 msgstr "Unutrašnji zvuk"
 
 #: ../src/pulsecore/sink.c:2620
@@ -2500,14 +2500,14 @@ msgid "Docking Station Input"
 msgstr "Ulaz priključne stanice"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
-msgid "Docking Station Microphone"
+msgid "Dock Microphone"
 msgstr "Mikrofon priključne stanice"
 
-#: ../src/modules/alsa/alsa-mixer.c:1704
-msgid "Line-In"
+#: ../src/modules/alsa/alsa-mixer.c:1704 ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Line In"
 msgstr "Linija u"
 
-#: ../src/modules/alsa/alsa-mixer.c:1705
+#: ../src/modules/alsa/alsa-mixer.c:1705 ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Microphone"
 msgstr "Mikrofon"
 
@@ -2519,11 +2519,11 @@ msgstr "Spoljni mikrofon"
 msgid "Internal Microphone"
 msgstr "Unutrašnji mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:1708
+#: ../src/modules/alsa/alsa-mixer.c:1708 ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Radio"
 msgstr "Radio"
 
-#: ../src/modules/alsa/alsa-mixer.c:1709
+#: ../src/modules/alsa/alsa-mixer.c:1709 ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Video"
 msgstr "Video"
 
@@ -2565,8 +2565,7 @@ msgstr "Bez podizanja"
 msgid "Speaker"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:1719
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:1719 ../src/modules/alsa/alsa-mixer.c:1783
 msgid "Headphones"
 msgstr "Analogne slušalice"
 
@@ -2574,32 +2573,12 @@ msgstr "Analogne slušalice"
 msgid "Analog Input"
 msgstr "Analogni ulaz"
 
-#: ../src/modules/alsa/alsa-mixer.c:1778
-msgid "Analog Microphone"
-msgstr "Analogni mikrofon"
-
-#: ../src/modules/alsa/alsa-mixer.c:1779
-msgid "Analog Line-In"
-msgstr "Analogna linija u"
-
-#: ../src/modules/alsa/alsa-mixer.c:1780
-msgid "Analog Radio"
-msgstr "Analogni radio"
-
-#: ../src/modules/alsa/alsa-mixer.c:1781
-msgid "Analog Video"
-msgstr "Analogni video"
-
 #: ../src/modules/alsa/alsa-mixer.c:1782
 msgid "Analog Output"
 msgstr "Analogni izlaz"
 
-#: ../src/modules/alsa/alsa-mixer.c:1783
-msgid "Analog Headphones"
-msgstr "Analogne slušalice"
-
 #: ../src/modules/alsa/alsa-mixer.c:1784
-msgid "Analog Output (LFE)"
+msgid "LFE on Separate Mono Output"
 msgstr "Analogni izlaz (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1785
@@ -2608,7 +2587,7 @@ msgstr "Analogni mono izlaz"
 
 #: ../src/modules/alsa/alsa-mixer.c:1786
 #, fuzzy
-msgid "Analog Speakers"
+msgid "Speakers"
 msgstr "Analogni stereo"
 
 #: ../src/modules/alsa/alsa-mixer.c:1986
