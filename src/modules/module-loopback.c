@@ -136,6 +136,7 @@ static void teardown(struct userdata *u) {
     pa_assert(u);
     pa_assert_ctl_context();
 
+    pa_asyncmsgq_flush(u->asyncmsgq, 0);
     if (u->sink_input)
         pa_sink_input_unlink(u->sink_input);
 
@@ -360,6 +361,8 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     pa_proplist *p;
     const char *n;
     struct userdata *u;
+    if (!dest)
+        return;
 
     pa_source_output_assert_ref(o);
     pa_assert_ctl_context();
