@@ -2525,10 +2525,10 @@ static pa_bool_t element_create_settings(pa_alsa_element *e, pa_alsa_setting *te
         if (template) {
             s = pa_xnewdup(pa_alsa_setting, template, 1);
             s->options = pa_idxset_copy(template->options);
-            s->name = pa_sprintf_malloc(_("%s+%s"), template->name, o->name);
+            s->name = pa_sprintf_malloc("%s+%s", template->name, o->name);
             s->description =
                 (template->description[0] && o->description[0])
-                ? pa_sprintf_malloc(_("%s / %s"), template->description, o->description)
+                ? pa_sprintf_malloc("%s / %s", template->description, o->description)
                 : (template->description[0]
                    ? pa_xstrdup(template->description)
                    : pa_xstrdup(o->description));
@@ -4418,7 +4418,7 @@ void pa_alsa_path_set_add_ports(
                 n = pa_sprintf_malloc("%s;%s", path->name, s->name);
 
                 if (s->description[0])
-                    d = pa_sprintf_malloc(_("%s / %s"), path->description, s->description);
+                    d = pa_sprintf_malloc("%s / %s", path->description, s->description);
                 else
                     d = pa_xstrdup(path->description);
 

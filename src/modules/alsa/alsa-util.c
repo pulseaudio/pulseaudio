@@ -882,7 +882,7 @@ pa_bool_t pa_alsa_init_description(pa_proplist *p) {
     k = pa_proplist_gets(p, PA_PROP_DEVICE_PROFILE_DESCRIPTION);
 
     if (d && k)
-        pa_proplist_setf(p, PA_PROP_DEVICE_DESCRIPTION, _("%s %s"), d, k);
+        pa_proplist_setf(p, PA_PROP_DEVICE_DESCRIPTION, "%s %s", d, k);
     else if (d)
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, d);
 
