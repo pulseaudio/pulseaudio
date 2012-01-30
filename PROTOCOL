@@ -250,6 +250,12 @@ New fields PA_COMMAND_CREATE_RECORD_STREAM:
     format_info format1
     ...
     format_info formatn
+    volume
+    bool muted
+    bool volume_set
+    bool muted_set
+    bool relative_volume
+    bool passthrough
 
 One new field in reply from PA_COMMAND_CREATE_RECORD_STREAM:
 
@@ -266,11 +272,11 @@ PA_COMMAND_GET_SOURCE_INFO_LIST)
 Five new fields in reply from PA_COMMAND_GET_SOURCE_OUTPUT_INFO (and thus
 PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST)
 
-    format_info format
     volume
     bool mute
     bool has_volume
     bool volume_writable
+    format_info format
 
 ## v23, implemented by >= 1.0
 
