@@ -3014,6 +3014,19 @@ static pa_bool_t element_is_subset(pa_alsa_element *a, pa_alsa_element *b, snd_m
             if (a_limit > b->volume_limit)
                 return FALSE;
         }
+
+        if (a->volume_use == PA_ALSA_VOLUME_MERGE) {
+            int s;
+            /* If override-maps are different, they're not subsets */
+            if (a->n_channels != b->n_channels)
+                return FALSE;
+            for (s = 0; s < SND_MIXER_SCHN_LAST; s++)
+                if (a->masks[s][a->n_channels-1] != b->masks[s][b->n_channels-1]) {
+                    pa_log_debug("Element %s is not a subset - mask a: 0x%lx, mask b: 0x%lx, at channel %d",
+                        a->alsa_name, a->masks[s][a->n_channels-1], b->masks[s][b->n_channels-1], s);
+                    return FALSE;
+               }
+        }
     }
 
     if (a->switch_use != PA_ALSA_SWITCH_IGNORE) {
