@@ -124,9 +124,23 @@ int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_chan
 
 /** Gets an integer property from the given format info. Returns 0 on success and a negative integer on failure. \since 2.0 */
 int pa_format_info_get_prop_int(pa_format_info *f, const char *key, int *v);
+/** Gets an integer range property from the given format info. Returns 0 on success and a negative integer on failure.
+ * \since 2.0 */
+int pa_format_info_get_prop_int_range(pa_format_info *f, const char *key, int *min, int *max);
+/** Gets an integer array property from the given format info. \a values contains the values and \a n_values contains the
+ * number of elements. The caller must free \a values using \ref pa_xfree. Returns 0 on success and a negative integer on
+ * failure. \since 2.0 */
+int pa_format_info_get_prop_int_array(pa_format_info *f, const char *key, int **values, int *n_values);
 /** Gets a string property from the given format info.  The caller must free the returned string using \ref pa_xfree. Returns
  * 0 on success and a negative integer on failure. \since 2.0 */
 int pa_format_info_get_prop_string(pa_format_info *f, const char *key, char **v);
+/** Gets a string array property from the given format info. \a values contains the values and \a n_values contains
+ * the number of elements. The caller must free \a values using \ref pa_format_info_free_string_array. Returns 0 on success and
+ * a negative integer on failure. \since 2.0 */
+int pa_format_info_get_prop_string_array(pa_format_info *f, const char *key, char ***values, int *n_values);
+
+/** Frees a string array returned by \ref pa_format_info_get_prop_string_array. \since 2.0 */
+void pa_format_info_free_string_array(char **values, int n_values);
 
 /** Sets an integer property on the given format info. \since 1.0 */
 void pa_format_info_set_prop_int(pa_format_info *f, const char *key, int value);

@@ -24,7 +24,9 @@
 #include <stdlib.h>
 
 #include <pulsecore/macro.h>
+#include <pulsecore/core-util.h>
 #include <pulse/format.h>
+#include <pulse/xmalloc.h>
 
 #define INIT(f) f = pa_format_info_new()
 #define DEINIT(f) pa_format_info_free(f);
@@ -32,8 +34,9 @@
 
 int main(int argc, char *argv[]) {
     pa_format_info *f1 = NULL, *f2 = NULL;
-    int rates1[] = { 32000, 44100, 48000 };
+    int rates1[] = { 32000, 44100, 48000 }, i, temp_int1 = -1, temp_int2 = -1, *temp_int_array;
     const char *strings[] = { "thing1", "thing2", "thing3" };
+    char *temp_str, **temp_str_array;
 
     /* 1. Simple fixed format int check */
     INIT(f1); INIT(f2);
@@ -98,6 +101,43 @@ int main(int argc, char *argv[]) {
     pa_format_info_set_prop_string(f2, "format.test_string", "thing5");
     pa_assert(!pa_format_info_is_compatible(f1, f2));
     pa_assert(!pa_format_info_is_compatible(f2, f1));
+
+    /* 9. Verify setting/getting an int */
+    REINIT(f1);
+    pa_format_info_set_prop_int(f1, "format.test_string", 42);
+    pa_assert(pa_format_info_get_prop_int(f1, "format.test_string", &temp_int1) == 0);
+    pa_assert(temp_int1 == 42);
+
+    /* 10. Verify setting/getting an int range */
+    REINIT(f1);
+    pa_format_info_set_prop_int_range(f1, "format.test_string", 0, 100);
+    pa_assert(pa_format_info_get_prop_int_range(f1, "format.test_string", &temp_int1, &temp_int2) == 0);
+    pa_assert(temp_int1 == 0 && temp_int2 == 100);
+
+    /* 11. Verify setting/getting an int array */
+    REINIT(f1);
+    pa_format_info_set_prop_int_array(f1, "format.test_string", rates1, PA_ELEMENTSOF(rates1));
+    pa_assert(pa_format_info_get_prop_int_array(f1, "format.test_string", &temp_int_array, &temp_int1) == 0);
+    pa_assert(temp_int1 == PA_ELEMENTSOF(rates1));
+    for (i = 0; i < temp_int1; i++)
+        pa_assert(temp_int_array[i] == rates1[i]);
+    pa_xfree(temp_int_array);
+
+    /* 12. Verify setting/getting a string */
+    REINIT(f1);
+    pa_format_info_set_prop_string(f1, "format.test_string", "foo");
+    pa_assert(pa_format_info_get_prop_string(f1, "format.test_string", &temp_str) == 0);
+    pa_assert(pa_streq(temp_str, "foo"));
+    pa_xfree(temp_str);
+
+    /* 13. Verify setting/getting an int array */
+    REINIT(f1);
+    pa_format_info_set_prop_string_array(f1, "format.test_string", strings, PA_ELEMENTSOF(strings));
+    pa_assert(pa_format_info_get_prop_string_array(f1, "format.test_string", &temp_str_array, &temp_int1) == 0);
+    pa_assert(temp_int1 == PA_ELEMENTSOF(strings));
+    for (i = 0; i < temp_int1; i++)
+        pa_assert(pa_streq(temp_str_array[i], strings[i]));
+    pa_format_info_free_string_array(temp_str_array, temp_int1);
 
     DEINIT(f1);
     DEINIT(f2);

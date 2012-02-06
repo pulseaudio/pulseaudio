@@ -327,6 +327,90 @@ int pa_format_info_get_prop_int(pa_format_info *f, const char *key, int *v) {
     return 0;
 }
 
+int pa_format_info_get_prop_int_range(pa_format_info *f, const char *key, int *min, int *max) {
+    const char *str;
+    json_object *o, *o1;
+    int ret = -PA_ERR_INVALID;
+
+    pa_assert(f);
+    pa_assert(key);
+    pa_assert(min);
+    pa_assert(max);
+
+    str = pa_proplist_gets(f->plist, key);
+    if (!str)
+        return -PA_ERR_NOENTITY;
+
+    o = json_tokener_parse(str);
+    if (is_error(o))
+        return -PA_ERR_INVALID;
+
+    if (json_object_get_type(o) != json_type_object)
+        goto out;
+
+    if (!(o1 = json_object_object_get(o, PA_JSON_MIN_KEY)))
+        goto out;
+
+    *min = json_object_get_int(o1);
+    json_object_put(o1);
+
+    if (!(o1 = json_object_object_get(o, PA_JSON_MAX_KEY)))
+        goto out;
+
+    *max = json_object_get_int(o1);
+    json_object_put(o1);
+
+    ret = 0;
+
+out:
+    json_object_put(o);
+    return ret;
+}
+
+int pa_format_info_get_prop_int_array(pa_format_info *f, const char *key, int **values, int *n_values)
+{
+    const char *str;
+    json_object *o, *o1;
+    int i, ret = -PA_ERR_INVALID;
+
+    pa_assert(f);
+    pa_assert(key);
+    pa_assert(values);
+    pa_assert(n_values);
+
+    str = pa_proplist_gets(f->plist, key);
+    if (!str)
+        return -PA_ERR_NOENTITY;
+
+    o = json_tokener_parse(str);
+    if (is_error(o))
+        return -PA_ERR_INVALID;
+
+    if (json_object_get_type(o) != json_type_array)
+        goto out;
+
+    *n_values = json_object_array_length(o);
+    *values = pa_xnew(int, *n_values);
+
+    for (i = 0; i < *n_values; i++) {
+        o1 = json_object_array_get_idx(o, i);
+
+        if (json_object_get_type(o1) != json_type_int) {
+            json_object_put(o1);
+            goto out;
+        }
+
+        (*values)[i] = json_object_get_int(o1);
+        json_object_put(o1);
+    }
+
+    ret = 0;
+
+out:
+    json_object_put(o);
+    return ret;
+}
+
 int pa_format_info_get_prop_string(pa_format_info *f, const char *key, char **v) {
     const char *str = NULL;
     json_object *o;
@@ -352,6 +436,59 @@ int pa_format_info_get_prop_string(pa_format_info *f, const char *key, char **v)
     json_object_put(o);
 
     return 0;
+}
+
+int pa_format_info_get_prop_string_array(pa_format_info *f, const char *key, char ***values, int *n_values)
+{
+    const char *str;
+    json_object *o, *o1;
+    int i, ret = -PA_ERR_INVALID;
+
+    pa_assert(f);
+    pa_assert(key);
+    pa_assert(values);
+    pa_assert(n_values);
+
+    str = pa_proplist_gets(f->plist, key);
+    if (!str)
+        return -PA_ERR_NOENTITY;
+
+    o = json_tokener_parse(str);
+    if (is_error(o))
+        return -PA_ERR_INVALID;
+
+    if (json_object_get_type(o) != json_type_array)
+        goto out;
+
+    *n_values = json_object_array_length(o);
+    *values = pa_xnew(char *, *n_values);
+
+    for (i = 0; i < *n_values; i++) {
+        o1 = json_object_array_get_idx(o, i);
+
+        if (json_object_get_type(o1) != json_type_string) {
+            json_object_put(o1);
+            goto out;
+        }
+
+        (*values)[i] = pa_xstrdup(json_object_get_string(o1));
+        json_object_put(o1);
+    }
+
+    ret = 0;
+
+out:
+    json_object_put(o);
+    return ret;
+}
+
+void pa_format_info_free_string_array(char **values, int n_values) {
+    int i;
+
+    for (i = 0; i < n_values; i++)
+        pa_xfree(values[i]);
+
+    pa_xfree(values);
 }
 
 void pa_format_info_set_prop_int(pa_format_info *f, const char *key, int value) {
