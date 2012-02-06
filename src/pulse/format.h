@@ -115,6 +115,13 @@ char *pa_format_info_snprint(char *s, size_t l, const pa_format_info *f);
  * \a pa_format_info_snprint() into a pa_format_info structure. \since 1.0 */
 pa_format_info* pa_format_info_from_string(const char *str);
 
+/** Utility function to take a \a pa_sample_spec and generate the corresponding \a pa_format_info. \since 2.0 */
+pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_map *map);
+
+/** Utility function to generate a \a pa_sample_spec and \a pa_channel_map corresponding to a given \a pa_format_info. Returns
+ * a negative integer if conversion failed and 0 on success. \since 2.0 */
+int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map);
+
 /** Gets an integer property from the given format info. Returns 0 on success and a negative integer on failure. \since 2.0 */
 int pa_format_info_get_prop_int(pa_format_info *f, const char *key, int *v);
 /** Gets a string property from the given format info.  The caller must free the returned string using \ref pa_xfree. Returns
