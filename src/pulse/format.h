@@ -31,7 +31,7 @@
 #include <pulse/channelmap.h>
 
 /** \file
- * Utility functions for handling a stream or sink format */
+ * Utility functions for handling a stream or sink format. */
 
 PA_C_DECL_BEGIN
 
@@ -77,19 +77,19 @@ typedef struct pa_format_info {
     /**< Additional encoding-specific properties such as sample rate, bitrate, etc. */
 } pa_format_info;
 
-/** Allocates a new \a pa_format_info structure. Clients must initialise at least the encoding field themselves. */
+/** Allocates a new \a pa_format_info structure. Clients must initialise at least the encoding field themselves. \since 1.0 */
 pa_format_info* pa_format_info_new(void);
 
-/** Returns a new \a pa_format_info struct and representing the same format as \a src. */
+/** Returns a new \a pa_format_info struct and representing the same format as \a src. \since 1.0 */
 pa_format_info* pa_format_info_copy(const pa_format_info *src);
 
-/** Frees a \a pa_format_info structure */
+/** Frees a \a pa_format_info structure. \since 1.0 */
 void pa_format_info_free(pa_format_info *f);
 
-/** Returns non-zero when the format info structure is valid */
+/** Returns non-zero when the format info structure is valid. \since 1.0 */
 int pa_format_info_valid(const pa_format_info *f);
 
-/** Returns non-zero when the format info structure represents a PCM (i.e.\ uncompressed data) format. */
+/** Returns non-zero when the format info structure represents a PCM (i.e.\ uncompressed data) format. \since 1.0 */
 int pa_format_info_is_pcm(const pa_format_info *f);
 
 /** Returns non-zero if the format represented by \a first is a subset of
@@ -98,7 +98,7 @@ int pa_format_info_is_pcm(const pa_format_info *f);
  * be true. This is typically expected to be used to check if a
  * stream's format is compatible with a given sink. In such a case,
  * \a first would be the sink's format and \a second would be the
- * stream's.*/
+ * stream's. \since 1.0 */
 int pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second);
 
 /** Maximum required string length for
@@ -115,24 +115,24 @@ char *pa_format_info_snprint(char *s, size_t l, const pa_format_info *f);
  * \a pa_format_info_snprint() into a pa_format_info structure. \since 1.0 */
 pa_format_info* pa_format_info_from_string(const char *str);
 
-/** Sets an integer property on the given format info */
+/** Sets an integer property on the given format info. \since 1.0 */
 void pa_format_info_set_prop_int(pa_format_info *f, const char *key, int value);
-/** Sets a property with a list of integer values on the given format info */
+/** Sets a property with a list of integer values on the given format info. \since 1.0 */
 void pa_format_info_set_prop_int_array(pa_format_info *f, const char *key, const int *values, int n_values);
-/** Sets a property which can have any value in a given integer range on the given format info */
+/** Sets a property which can have any value in a given integer range on the given format info. \since 1.0 */
 void pa_format_info_set_prop_int_range(pa_format_info *f, const char *key, int min, int max);
-/** Sets a string property on the given format info */
+/** Sets a string property on the given format info. \since 1.0 */
 void pa_format_info_set_prop_string(pa_format_info *f, const char *key, const char *value);
-/** Sets a property with a list of string values on the given format info */
+/** Sets a property with a list of string values on the given format info. \since 1.0 */
 void pa_format_info_set_prop_string_array(pa_format_info *f, const char *key, const char **values, int n_values);
 
-/** Convenience method to set the sample format as a property on the given format */
+/** Convenience method to set the sample format as a property on the given format. \since 1.0 */
 void pa_format_info_set_sample_format(pa_format_info *f, pa_sample_format_t sf);
-/** Convenience method to set the sampling rate as a property on the given format */
+/** Convenience method to set the sampling rate as a property on the given format. \since 1.0 */
 void pa_format_info_set_rate(pa_format_info *f, int rate);
-/** Convenience method to set the number of channels as a property on the given format */
+/** Convenience method to set the number of channels as a property on the given format. \since 1.0 */
 void pa_format_info_set_channels(pa_format_info *f, int channels);
-/** Convenience method to set the channel map as a property on the given format */
+/** Convenience method to set the channel map as a property on the given format. \since 1.0 */
 void pa_format_info_set_channel_map(pa_format_info *f, const pa_channel_map *map);
 
 PA_C_DECL_END
