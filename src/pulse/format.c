@@ -280,26 +280,6 @@ int pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss) {
     return 0;
 }
 
-void pa_format_info_set_sample_format(pa_format_info *f, pa_sample_format_t sf) {
-    pa_format_info_set_prop_string(f, PA_PROP_FORMAT_SAMPLE_FORMAT, pa_sample_format_to_string(sf));
-}
-
-void pa_format_info_set_rate(pa_format_info *f, int rate) {
-    pa_format_info_set_prop_int(f, PA_PROP_FORMAT_RATE, rate);
-}
-
-void pa_format_info_set_channels(pa_format_info *f, int channels) {
-    pa_format_info_set_prop_int(f, PA_PROP_FORMAT_CHANNELS, channels);
-}
-
-void pa_format_info_set_channel_map(pa_format_info *f, const pa_channel_map *map) {
-    char map_str[PA_CHANNEL_MAP_SNPRINT_MAX];
-
-    pa_channel_map_snprint(map_str, sizeof(map_str), map);
-
-    pa_format_info_set_prop_string(f, PA_PROP_FORMAT_CHANNEL_MAP, map_str);
-}
-
 int pa_format_info_get_prop_int(pa_format_info *f, const char *key, int *v) {
     const char *str;
     json_object *o;
@@ -489,6 +469,26 @@ void pa_format_info_free_string_array(char **values, int n_values) {
         pa_xfree(values[i]);
 
     pa_xfree(values);
+}
+
+void pa_format_info_set_sample_format(pa_format_info *f, pa_sample_format_t sf) {
+    pa_format_info_set_prop_string(f, PA_PROP_FORMAT_SAMPLE_FORMAT, pa_sample_format_to_string(sf));
+}
+
+void pa_format_info_set_rate(pa_format_info *f, int rate) {
+    pa_format_info_set_prop_int(f, PA_PROP_FORMAT_RATE, rate);
+}
+
+void pa_format_info_set_channels(pa_format_info *f, int channels) {
+    pa_format_info_set_prop_int(f, PA_PROP_FORMAT_CHANNELS, channels);
+}
+
+void pa_format_info_set_channel_map(pa_format_info *f, const pa_channel_map *map) {
+    char map_str[PA_CHANNEL_MAP_SNPRINT_MAX];
+
+    pa_channel_map_snprint(map_str, sizeof(map_str), map);
+
+    pa_format_info_set_prop_string(f, PA_PROP_FORMAT_CHANNEL_MAP, map_str);
 }
 
 void pa_format_info_set_prop_int(pa_format_info *f, const char *key, int value) {
