@@ -122,6 +122,30 @@ pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_m
  * a negative integer if conversion failed and 0 on success. \since 2.0 */
 int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map);
 
+/** Represents the type of value type of a property on a \ref pa_format_info. \since 2.0 */
+typedef enum pa_prop_type_t {
+    PA_PROP_TYPE_INT,
+    /**< Integer property */
+
+    PA_PROP_TYPE_INT_RANGE,
+    /**< Integer range property */
+
+    PA_PROP_TYPE_INT_ARRAY,
+    /**< Integer array property */
+
+    PA_PROP_TYPE_STRING,
+    /**< String property */
+
+    PA_PROP_TYPE_STRING_ARRAY,
+    /**< String array property */
+
+    PA_PROP_TYPE_INVALID = -1,
+    /**< Represents an invalid type */
+} pa_prop_type_t;
+
+/** Gets the type of property \a key in a given \ref pa_format_info. \since 2.0 */
+pa_prop_type_t pa_format_info_get_prop_type(pa_format_info *f, const char *key);
+
 /** Gets an integer property from the given format info. Returns 0 on success and a negative integer on failure. \since 2.0 */
 int pa_format_info_get_prop_int(pa_format_info *f, const char *key, int *v);
 /** Gets an integer range property from the given format info. Returns 0 on success and a negative integer on failure.

@@ -105,18 +105,21 @@ int main(int argc, char *argv[]) {
     /* 9. Verify setting/getting an int */
     REINIT(f1);
     pa_format_info_set_prop_int(f1, "format.test_string", 42);
+    pa_assert(pa_format_info_get_prop_type(f1, "format.test_string") == PA_PROP_TYPE_INT);
     pa_assert(pa_format_info_get_prop_int(f1, "format.test_string", &temp_int1) == 0);
     pa_assert(temp_int1 == 42);
 
     /* 10. Verify setting/getting an int range */
     REINIT(f1);
     pa_format_info_set_prop_int_range(f1, "format.test_string", 0, 100);
+    pa_assert(pa_format_info_get_prop_type(f1, "format.test_string") == PA_PROP_TYPE_INT_RANGE);
     pa_assert(pa_format_info_get_prop_int_range(f1, "format.test_string", &temp_int1, &temp_int2) == 0);
     pa_assert(temp_int1 == 0 && temp_int2 == 100);
 
     /* 11. Verify setting/getting an int array */
     REINIT(f1);
     pa_format_info_set_prop_int_array(f1, "format.test_string", rates1, PA_ELEMENTSOF(rates1));
+    pa_assert(pa_format_info_get_prop_type(f1, "format.test_string") == PA_PROP_TYPE_INT_ARRAY);
     pa_assert(pa_format_info_get_prop_int_array(f1, "format.test_string", &temp_int_array, &temp_int1) == 0);
     pa_assert(temp_int1 == PA_ELEMENTSOF(rates1));
     for (i = 0; i < temp_int1; i++)
@@ -126,6 +129,7 @@ int main(int argc, char *argv[]) {
     /* 12. Verify setting/getting a string */
     REINIT(f1);
     pa_format_info_set_prop_string(f1, "format.test_string", "foo");
+    pa_assert(pa_format_info_get_prop_type(f1, "format.test_string") == PA_PROP_TYPE_STRING);
     pa_assert(pa_format_info_get_prop_string(f1, "format.test_string", &temp_str) == 0);
     pa_assert(pa_streq(temp_str, "foo"));
     pa_xfree(temp_str);
@@ -133,6 +137,7 @@ int main(int argc, char *argv[]) {
     /* 13. Verify setting/getting an int array */
     REINIT(f1);
     pa_format_info_set_prop_string_array(f1, "format.test_string", strings, PA_ELEMENTSOF(strings));
+    pa_assert(pa_format_info_get_prop_type(f1, "format.test_string") == PA_PROP_TYPE_STRING_ARRAY);
     pa_assert(pa_format_info_get_prop_string_array(f1, "format.test_string", &temp_str_array, &temp_int1) == 0);
     pa_assert(temp_int1 == PA_ELEMENTSOF(strings));
     for (i = 0; i < temp_int1; i++)

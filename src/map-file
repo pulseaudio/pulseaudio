@@ -168,6 +168,7 @@ pa_format_info_free;
 pa_format_info_free2;
 pa_format_info_from_string;
 pa_format_info_from_sample_spec;
+pa_format_info_get_prop_type;
 pa_format_info_get_prop_int;
 pa_format_info_get_prop_int_range;
 pa_format_info_get_prop_int_array;

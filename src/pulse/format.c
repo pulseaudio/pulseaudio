@@ -280,6 +280,80 @@ int pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss) {
     return 0;
 }
 
+pa_prop_type_t pa_format_info_get_prop_type(pa_format_info *f, const char *key) {
+    const char *str;
+    json_object *o, *o1;
+    pa_prop_type_t type;
+
+    pa_assert(f);
+    pa_assert(key);
+
+    str = pa_proplist_gets(f->plist, key);
+    if (!str)
+        return PA_PROP_TYPE_INVALID;
+
+    o = json_tokener_parse(str);
+    if (is_error(o))
+        return PA_PROP_TYPE_INVALID;
+
+    switch (json_object_get_type(o)) {
+        case json_type_int:
+            type = PA_PROP_TYPE_INT;
+            break;
+
+        case json_type_string:
+            type = PA_PROP_TYPE_STRING;
+            break;
+
+        case json_type_array:
+            if (json_object_array_length(o) == 0) {
+                /* Unlikely, but let's account for this anyway. We need at
+                 * least one element to figure out the array type. */
+                type = PA_PROP_TYPE_INVALID;
+                break;
+            }
+
+            o1 = json_object_array_get_idx(o, 1);
+
+            if (json_object_get_type(o1) == json_type_int)
+                type = PA_PROP_TYPE_INT_ARRAY;
+            else if (json_object_get_type(o1) == json_type_string)
+                type = PA_PROP_TYPE_STRING_ARRAY;
+            else
+                type = PA_PROP_TYPE_INVALID;
+
+            json_object_put(o1);
+            break;
+
+        case json_type_object:
+            /* We actually know at this point that it's a int range, but let's
+             * confirm. */
+            o1 = json_object_object_get(o, PA_JSON_MIN_KEY);
+            if (!o1) {
+                type = PA_PROP_TYPE_INVALID;
+                break;
+            }
+            json_object_put(o1);
+
+            o1 = json_object_object_get(o, PA_JSON_MAX_KEY);
+            if (!o1) {
+                type = PA_PROP_TYPE_INVALID;
+                break;
+            }
+            json_object_put(o1);
+
+            type = PA_PROP_TYPE_INT_RANGE;
+            break;
+
+        default:
+            type = PA_PROP_TYPE_INVALID;
+            break;
+    }
+
+    json_object_put(o);
+    return type;
+}
+
 int pa_format_info_get_prop_int(pa_format_info *f, const char *key, int *v) {
     const char *str;
     json_object *o;
