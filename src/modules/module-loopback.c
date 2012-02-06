@@ -601,6 +601,8 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     struct userdata *u;
     pa_proplist *p;
     const char *n;
+    if (!dest)
+        return;
 
     pa_sink_input_assert_ref(i);
     pa_assert_ctl_context();
