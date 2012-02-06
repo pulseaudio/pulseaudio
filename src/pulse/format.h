@@ -115,6 +115,12 @@ char *pa_format_info_snprint(char *s, size_t l, const pa_format_info *f);
  * \a pa_format_info_snprint() into a pa_format_info structure. \since 1.0 */
 pa_format_info* pa_format_info_from_string(const char *str);
 
+/** Gets an integer property from the given format info. Returns 0 on success and a negative integer on failure. \since 2.0 */
+int pa_format_info_get_prop_int(pa_format_info *f, const char *key, int *v);
+/** Gets a string property from the given format info.  The caller must free the returned string using \ref pa_xfree. Returns
+ * 0 on success and a negative integer on failure. \since 2.0 */
+int pa_format_info_get_prop_string(pa_format_info *f, const char *key, char **v);
+
 /** Sets an integer property on the given format info. \since 1.0 */
 void pa_format_info_set_prop_int(pa_format_info *f, const char *key, int value);
 /** Sets a property with a list of integer values on the given format info. \since 1.0 */
