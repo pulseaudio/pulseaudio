@@ -361,6 +361,7 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     pa_proplist *p;
     const char *n;
     struct userdata *u;
+
     if (!dest)
         return;
 
@@ -601,6 +602,7 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     struct userdata *u;
     pa_proplist *p;
     const char *n;
+
     if (!dest)
         return;
 
