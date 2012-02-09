@@ -225,22 +225,21 @@ size_t pa_mix(
                     pa_mix_info *m = streams + i;
                     int32_t v, lo, hi, cv = m->linear[channel].i;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    /* Multiplying the 32bit volume factor with the
-                     * 16bit sample might result in an 48bit value. We
-                     * want to do without 64 bit integers and hence do
-                     * the multiplication independently for the HI and
-                     * LO part of the volume. */
+                        /* Multiplying the 32bit volume factor with the
+                         * 16bit sample might result in an 48bit value. We
+                         * want to do without 64 bit integers and hence do
+                         * the multiplication independently for the HI and
+                         * LO part of the volume. */
 
-                    hi = cv >> 16;
-                    lo = cv & 0xFFFF;
+                        hi = cv >> 16;
+                        lo = cv & 0xFFFF;
 
-                    v = *((int16_t*) m->ptr);
-                    v = ((v * lo) >> 16) + (v * hi);
-                    sum += v;
-
+                        v = *((int16_t*) m->ptr);
+                        v = ((v * lo) >> 16) + (v * hi);
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + sizeof(int16_t);
                 }
 
@@ -269,16 +268,15 @@ size_t pa_mix(
                     pa_mix_info *m = streams + i;
                     int32_t v, lo, hi, cv = m->linear[channel].i;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    hi = cv >> 16;
-                    lo = cv & 0xFFFF;
+                        hi = cv >> 16;
+                        lo = cv & 0xFFFF;
 
-                    v = PA_INT16_SWAP(*((int16_t*) m->ptr));
-                    v = ((v * lo) >> 16) + (v * hi);
-                    sum += v;
-
+                        v = PA_INT16_SWAP(*((int16_t*) m->ptr));
+                        v = ((v * lo) >> 16) + (v * hi);
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + sizeof(int16_t);
                 }
 
@@ -308,13 +306,12 @@ size_t pa_mix(
                     int32_t cv = m->linear[channel].i;
                     int64_t v;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    v = *((int32_t*) m->ptr);
-                    v = (v * cv) >> 16;
-                    sum += v;
-
+                        v = *((int32_t*) m->ptr);
+                        v = (v * cv) >> 16;
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + sizeof(int32_t);
                 }
 
@@ -344,13 +341,12 @@ size_t pa_mix(
                     int32_t cv = m->linear[channel].i;
                     int64_t v;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    v = PA_INT32_SWAP(*((int32_t*) m->ptr));
-                    v = (v * cv) >> 16;
-                    sum += v;
-
+                        v = PA_INT32_SWAP(*((int32_t*) m->ptr));
+                        v = (v * cv) >> 16;
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + sizeof(int32_t);
                 }
 
@@ -380,13 +376,12 @@ size_t pa_mix(
                     int32_t cv = m->linear[channel].i;
                     int64_t v;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    v = (int32_t) (PA_READ24NE(m->ptr) << 8);
-                    v = (v * cv) >> 16;
-                    sum += v;
-
+                        v = (int32_t) (PA_READ24NE(m->ptr) << 8);
+                        v = (v * cv) >> 16;
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + 3;
                 }
 
@@ -416,13 +411,12 @@ size_t pa_mix(
                     int32_t cv = m->linear[channel].i;
                     int64_t v;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    v = (int32_t) (PA_READ24RE(m->ptr) << 8);
-                    v = (v * cv) >> 16;
-                    sum += v;
-
+                        v = (int32_t) (PA_READ24RE(m->ptr) << 8);
+                        v = (v * cv) >> 16;
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + 3;
                 }
 
@@ -452,13 +446,12 @@ size_t pa_mix(
                     int32_t cv = m->linear[channel].i;
                     int64_t v;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    v = (int32_t) (*((uint32_t*)m->ptr) << 8);
-                    v = (v * cv) >> 16;
-                    sum += v;
-
+                        v = (int32_t) (*((uint32_t*)m->ptr) << 8);
+                        v = (v * cv) >> 16;
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + sizeof(int32_t);
                 }
 
@@ -488,13 +481,12 @@ size_t pa_mix(
                     int32_t cv = m->linear[channel].i;
                     int64_t v;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    v = (int32_t) (PA_UINT32_SWAP(*((uint32_t*) m->ptr)) << 8);
-                    v = (v * cv) >> 16;
-                    sum += v;
-
+                        v = (int32_t) (PA_UINT32_SWAP(*((uint32_t*) m->ptr)) << 8);
+                        v = (v * cv) >> 16;
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + 3;
                 }
 
@@ -523,13 +515,12 @@ size_t pa_mix(
                     pa_mix_info *m = streams + i;
                     int32_t v, cv = m->linear[channel].i;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    v = (int32_t) *((uint8_t*) m->ptr) - 0x80;
-                    v = (v * cv) >> 16;
-                    sum += v;
-
+                        v = (int32_t) *((uint8_t*) m->ptr) - 0x80;
+                        v = (v * cv) >> 16;
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + 1;
                 }
 
@@ -558,16 +549,15 @@ size_t pa_mix(
                     pa_mix_info *m = streams + i;
                     int32_t v, hi, lo, cv = m->linear[channel].i;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    hi = cv >> 16;
-                    lo = cv & 0xFFFF;
+                        hi = cv >> 16;
+                        lo = cv & 0xFFFF;
 
-                    v = (int32_t) st_ulaw2linear16(*((uint8_t*) m->ptr));
-                    v = ((v * lo) >> 16) + (v * hi);
-                    sum += v;
-
+                        v = (int32_t) st_ulaw2linear16(*((uint8_t*) m->ptr));
+                        v = ((v * lo) >> 16) + (v * hi);
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + 1;
                 }
 
@@ -596,16 +586,15 @@ size_t pa_mix(
                     pa_mix_info *m = streams + i;
                     int32_t v, hi, lo, cv = m->linear[channel].i;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    hi = cv >> 16;
-                    lo = cv & 0xFFFF;
+                        hi = cv >> 16;
+                        lo = cv & 0xFFFF;
 
-                    v = (int32_t) st_alaw2linear16(*((uint8_t*) m->ptr));
-                    v = ((v * lo) >> 16) + (v * hi);
-                    sum += v;
-
+                        v = (int32_t) st_alaw2linear16(*((uint8_t*) m->ptr));
+                        v = ((v * lo) >> 16) + (v * hi);
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + 1;
                 }
 
@@ -634,13 +623,12 @@ size_t pa_mix(
                     pa_mix_info *m = streams + i;
                     float v, cv = m->linear[channel].f;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    v = *((float*) m->ptr);
-                    v *= cv;
-                    sum += v;
-
+                        v = *((float*) m->ptr);
+                        v *= cv;
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + sizeof(float);
                 }
 
@@ -668,13 +656,12 @@ size_t pa_mix(
                     pa_mix_info *m = streams + i;
                     float v, cv = m->linear[channel].f;
 
-                    if (PA_UNLIKELY(cv <= 0))
-                        continue;
+                    if (PA_LIKELY(cv > 0)) {
 
-                    v = PA_FLOAT32_SWAP(*(float*) m->ptr);
-                    v *= cv;
-                    sum += v;
-
+                        v = PA_FLOAT32_SWAP(*(float*) m->ptr);
+                        v *= cv;
+                        sum += v;
+                    }
                     m->ptr = (uint8_t*) m->ptr + sizeof(float);
                 }
 
