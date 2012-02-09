@@ -657,7 +657,9 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     }
 
     if (i->sink) {
-        pa_sink_update_status(i->sink);
+        if (PA_SINK_IS_LINKED(pa_sink_get_state(i->sink)))
+            pa_sink_update_status(i->sink);
+
         i->sink = NULL;
     }
 
