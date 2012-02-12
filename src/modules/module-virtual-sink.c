@@ -20,9 +20,6 @@
     USA.
 ***/
 
-/* TODO: Some plugins cause latency, and some even report it by using a control
-   out port. We don't currently use the latency information. */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
