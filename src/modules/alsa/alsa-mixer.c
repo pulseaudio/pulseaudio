@@ -3783,6 +3783,7 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
         { "iec958-passthrough",     N_("Digital Passthrough  (IEC958)") },
         { "iec958-ac3-surround-40", N_("Digital Surround 4.0 (IEC958/AC3)") },
         { "iec958-ac3-surround-51", N_("Digital Surround 5.1 (IEC958/AC3)") },
+        { "iec958-dts-surround-51", N_("Digital Surround 5.1 (IEC958/DTS)") },
         { "hdmi-stereo",            N_("Digital Stereo (HDMI)") },
         { "hdmi-surround-51",       N_("Digital Surround 5.1 (HDMI)") }
     };
