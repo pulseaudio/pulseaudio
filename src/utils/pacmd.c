@@ -49,7 +49,7 @@ int main(int argc, char*argv[]) {
     struct sockaddr_un sa;
     char *ibuf = NULL;
     char *obuf = NULL;
-    size_t ibuf_size, ibuf_index, ibuf_length, obuf_size, obuf_index, obuf_length;
+    size_t buf_size, ibuf_size, ibuf_index, ibuf_length, obuf_size, obuf_index, obuf_length;
     char *cli;
     pa_bool_t ibuf_eof, obuf_eof, ibuf_closed, obuf_closed;
     struct pollfd pollfd[3];
@@ -105,10 +105,10 @@ int main(int argc, char*argv[]) {
         goto fail;
     }
 
-    i = pa_pipe_buf(fd);
-    ibuf_size = PA_MIN(i, pa_pipe_buf(STDIN_FILENO));
+    buf_size = pa_pipe_buf(fd);
+    ibuf_size = PA_MIN(buf_size, pa_pipe_buf(STDIN_FILENO));
     ibuf = pa_xmalloc(ibuf_size);
-    obuf_size = PA_MIN(i, pa_pipe_buf(STDOUT_FILENO));
+    obuf_size = PA_MIN(buf_size, pa_pipe_buf(STDOUT_FILENO));
     obuf = pa_xmalloc(obuf_size);
     ibuf_index = ibuf_length = obuf_index = obuf_length = 0;
     ibuf_eof = obuf_eof = ibuf_closed = obuf_closed = FALSE;
