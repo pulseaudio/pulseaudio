@@ -484,9 +484,11 @@ char *pa_source_output_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u source outputs(s) available.\n", pa_idxset_size(c->source_outputs));
 
     for (o = pa_idxset_first(c->source_outputs, &idx); o; o = pa_idxset_next(c->source_outputs, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t, clt[28];
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t, clt[28];
         pa_usec_t cl;
         const char *cmn;
+        pa_cvolume v;
+        char *volume_str = NULL;
 
         cmn = pa_channel_map_to_pretty_name(&o->channel_map);
 
@@ -497,6 +499,16 @@ char *pa_source_output_list_to_string(pa_core *c) {
 
         pa_assert(o->source);
 
+        if (pa_source_output_is_volume_readable(o)) {
+            pa_source_output_get_volume(o, &v, TRUE);
+            volume_str = pa_sprintf_malloc("%s\n\t        %s\n\t        balance %0.2f",
+                                           pa_cvolume_snprint(cv, sizeof(cv), &v),
+                                           pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &v),
+                                           pa_cvolume_get_balance(&v, &o->channel_map));
+        } else
+            volume_str = pa_xstrdup("n/a");
+
+
         pa_strbuf_printf(
             s,
             "    index: %u\n"
@@ -504,6 +516,8 @@ char *pa_source_output_list_to_string(pa_core *c) {
             "\tflags: %s%s%s%s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tsource: %u <%s>\n"
+            "\tvolume: %s\n"
+            "\tmuted: %s\n"
             "\tcurrent latency: %0.2f ms\n"
             "\trequested latency: %s\n"
             "\tsample spec: %s\n"
@@ -524,6 +538,8 @@ char *pa_source_output_list_to_string(pa_core *c) {
             o->flags & PA_SOURCE_OUTPUT_KILL_ON_SUSPEND ? "KILL_ON_SUSPEND " : "",
             state_table[pa_source_output_get_state(o)],
             o->source->index, o->source->name,
+            volume_str,
+            pa_yes_no(pa_source_output_get_mute(o)),
             (double) pa_source_output_get_latency(o, NULL) / PA_USEC_PER_MSEC,
             clt,
             pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec),
@@ -531,6 +547,9 @@ char *pa_source_output_list_to_string(pa_core *c) {
             cmn ? "\n\t             " : "",
             cmn ? cmn : "",
             pa_resample_method_to_string(pa_source_output_get_resample_method(o)));
+
+        pa_xfree(volume_str);
+
         if (o->module)
             pa_strbuf_printf(s, "\towner module: %u\n", o->module->index);
         if (o->client)
