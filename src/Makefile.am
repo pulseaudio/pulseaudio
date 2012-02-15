@@ -530,7 +530,7 @@ echo_cancel_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 #         Common library          #
 ###################################
 
-lib_LTLIBRARIES = \
+pkglib_LTLIBRARIES = \
 		libpulsecommon-@PA_MAJORMINOR@.la
 
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
@@ -694,7 +694,7 @@ pulseinclude_HEADERS = \
 		pulse/volume.h \
 		pulse/xmalloc.h
 
-lib_LTLIBRARIES += \
+lib_LTLIBRARIES = \
 		libpulse.la \
 		libpulse-simple.la
 
