@@ -87,7 +87,7 @@ EXTRA_DIST = \
 		daemon/esdcompat.in \
 		daemon/start-pulseaudio-x11.in \
 		daemon/start-pulseaudio-kde.in \
-		utils/padsp \
+		utils/padsp.in \
 		utils/qpaeq \
 		modules/module-defs.h.m4 \
 		daemon/pulseaudio.desktop.in \
@@ -762,8 +762,17 @@ libpulse_mainloop_glib_la_LDFLAGS = $(AM_LDFLAGS) $(VERSIONING_LDFLAGS) -version
 ###################################
 
 if HAVE_OSS_WRAPPER
-lib_LTLIBRARIES += libpulsedsp.la
+pkglib_LTLIBRARIES += libpulsedsp.la
 bin_SCRIPTS += utils/padsp
+
+edit = @sed \
+       -e "s|@pkglibdir[@]|$(pkglibdir)|g"
+
+utils/padsp: utils/padsp.in
+	$(edit) $< >$@
+
+CLEANFILES += utils/padsp
+
 endif
 
 libpulsedsp_la_SOURCES = utils/padsp.c
