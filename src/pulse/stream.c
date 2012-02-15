@@ -284,8 +284,9 @@ static void stream_free(pa_stream *s) {
     stream_unlink(s);
 
     if (s->write_memblock) {
-        pa_memblock_release(s->write_memblock);
-        pa_memblock_unref(s->write_data);
+        if (s->write_data)
+            pa_memblock_release(s->write_memblock);
+        pa_memblock_unref(s->write_memblock);
     }
 
     if (s->peek_memchunk.memblock) {
