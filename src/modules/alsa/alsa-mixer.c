@@ -4397,7 +4397,7 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports,
 
         p = pa_device_port_new(core, name, description, sizeof(pa_alsa_port_data));
         pa_assert(p);
-        pa_hashmap_put(ports, name, p);
+        pa_hashmap_put(ports, p->name, p);
         p->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
         data = PA_DEVICE_PORT_DATA(p);
@@ -4412,7 +4412,7 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports,
         pa_hashmap_put(p->profiles, cp->name, cp);
 
     if (extra) {
-        pa_hashmap_put(extra, name, p);
+        pa_hashmap_put(extra, p->name, p);
         pa_device_port_ref(p);
     }
 
