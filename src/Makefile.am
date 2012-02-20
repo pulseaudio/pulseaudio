@@ -764,15 +764,15 @@ libpulse_mainloop_glib_la_LDFLAGS = $(AM_LDFLAGS) $(VERSIONING_LDFLAGS) -version
 if HAVE_OSS_WRAPPER
 padsplibdir = $(pkglibdir)
 padsplib_LTLIBRARIES = libpulsedsp.la
-bin_SCRIPTS += utils/padsp
+bin_SCRIPTS += padsp
 
-edit = @sed \
+edit = @SED@ \
        -e "s|@pkglibdir[@]|$(pkglibdir)|g"
 
-utils/padsp: utils/padsp.in
-	$(edit) $< >$@
+padsp: utils/padsp.in
+	$(edit) $< > $@
 
-CLEANFILES += utils/padsp
+CLEANFILES += padsp
 
 endif
 
@@ -2011,4 +2011,4 @@ $(installmodlibexecLTLIBRARIES): install-pkglibLTLIBRARIES
 installpadsplibLTLIBRARIES = install-padsplibLTLIBRARIES
 $(installpadsplibLTLIBRARIES): install-libLTLIBRARIES
 
-.PHONY: utils/padsp massif update-all update-ffmpeg update-sbc update-map-file
+.PHONY: padsp massif update-all update-ffmpeg update-sbc update-map-file
