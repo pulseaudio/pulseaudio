@@ -268,11 +268,12 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
 
             if (dbus_message_iter_get_arg_type(&ai) == DBUS_TYPE_STRING &&
                 pa_streq(key, "UUIDs")) {
+                    DBusMessage *m;
+                    pa_bool_t has_audio = FALSE;
 
                 while (dbus_message_iter_get_arg_type(&ai) != DBUS_TYPE_INVALID) {
                     pa_bluetooth_uuid *node;
                     const char *value;
-                    DBusMessage *m;
 
                     dbus_message_iter_get_basic(&ai, &value);
                     node = uuid_new(value);
@@ -282,23 +283,29 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
                     if (strcasecmp(HSP_AG_UUID, value) == 0 || strcasecmp(HFP_AG_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.HandsfreeGateway", "GetProperties"));
                         send_and_add_to_pending(y, m, get_properties_reply, d);
+                        has_audio = TRUE;
                     } else if (strcasecmp(HSP_HS_UUID, value) == 0 || strcasecmp(HFP_HS_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.Headset", "GetProperties"));
                         send_and_add_to_pending(y, m, get_properties_reply, d);
+                        has_audio = TRUE;
                     } else if (strcasecmp(A2DP_SINK_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.AudioSink", "GetProperties"));
                         send_and_add_to_pending(y, m, get_properties_reply, d);
+                        has_audio = TRUE;
                     } else if (strcasecmp(A2DP_SOURCE_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.AudioSource", "GetProperties"));
                         send_and_add_to_pending(y, m, get_properties_reply, d);
+                        has_audio = TRUE;
                     }
-
-                    /* this might eventually be racy if .Audio is not there yet, but the State change will come anyway later, so this call is for cold-detection mostly */
-                    pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.Audio", "GetProperties"));
-                    send_and_add_to_pending(y, m, get_properties_reply, d);
 
                     if (!dbus_message_iter_next(&ai))
                         break;
+                }
+
+                /* this might eventually be racy if .Audio is not there yet, but the State change will come anyway later, so this call is for cold-detection mostly */
+                if (has_audio) {
+                    pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.Audio", "GetProperties"));
+                    send_and_add_to_pending(y, m, get_properties_reply, d);
                 }
             }
 
