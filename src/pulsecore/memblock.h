@@ -30,17 +30,17 @@
 #include <pulsecore/atomic.h>
 
 /* A pa_memblock is a reference counted memory block. PulseAudio
- * passed references to pa_memblocks around instead of copying
+ * passes references to pa_memblocks around instead of copying
  * data. See pa_memchunk for a structure that describes parts of
  * memory blocks. */
 
 /* The type of memory this block points to */
 typedef enum pa_memblock_type {
     PA_MEMBLOCK_POOL,             /* Memory is part of the memory pool */
-    PA_MEMBLOCK_POOL_EXTERNAL,    /* Data memory is part of the memory pool but the pa_memblock structure itself not */
-    PA_MEMBLOCK_APPENDED,         /* the data is appended to the memory block */
+    PA_MEMBLOCK_POOL_EXTERNAL,    /* Data memory is part of the memory pool but the pa_memblock structure itself is not */
+    PA_MEMBLOCK_APPENDED,         /* The data is appended to the memory block */
     PA_MEMBLOCK_USER,             /* User supplied memory, to be freed with free_cb */
-    PA_MEMBLOCK_FIXED,            /* data is a pointer to fixed memory that needs not to be freed */
+    PA_MEMBLOCK_FIXED,            /* Data is a pointer to fixed memory that needs not to be freed */
     PA_MEMBLOCK_IMPORTED,         /* Memory is imported from another process via shm */
     PA_MEMBLOCK_TYPE_MAX
 } pa_memblock_type_t;
