@@ -190,6 +190,8 @@ ifelse(@HAVE_X11@, 1, [dnl
 #.endif
 ])dnl
 
+load-module module-switch-on-port-available
+
 ### Make some devices default
 #set-default-sink output
 #set-default-source input
