@@ -1013,6 +1013,7 @@ modlibexec_LTLIBRARIES += \
 		module-virtual-source.la \
 		module-virtual-surround-sink.la \
 		module-switch-on-connect.la \
+		module-switch-on-port-available.la \
 		module-filter-apply.la \
 		module-filter-heuristics.la
 
@@ -1319,6 +1320,7 @@ SYMDEF_FILES = \
 		module-virtual-source-symdef.h \
 		module-virtual-surround-sink-symdef.h \
 		module-switch-on-connect-symdef.h \
+		module-switch-on-port-available-symdef.h \
 		module-filter-apply-symdef.h \
 		module-filter-heuristics-symdef.h
 
@@ -1484,6 +1486,10 @@ module_combine_sink_la_LIBADD = $(MODULE_LIBADD)
 module_switch_on_connect_la_SOURCES = modules/module-switch-on-connect.c
 module_switch_on_connect_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_switch_on_connect_la_LIBADD = $(MODULE_LIBADD)
+
+module_switch_on_port_available_la_SOURCES = modules/module-switch-on-port-available.c
+module_switch_on_port_available_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_switch_on_port_available_la_LIBADD = $(MODULE_LIBADD)
 
 module_filter_apply_la_SOURCES = modules/module-filter-apply.c
 module_filter_apply_la_LDFLAGS = $(MODULE_LDFLAGS)
