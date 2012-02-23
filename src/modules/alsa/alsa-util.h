@@ -142,4 +142,8 @@ const char* pa_alsa_strerror(int errnum);
 
 pa_bool_t pa_alsa_may_tsched(pa_bool_t want);
 
+snd_hctl_elem_t* pa_alsa_find_jack(snd_hctl_t *hctl, const char* jack_name);
+
+snd_mixer_t *pa_alsa_open_mixer(int alsa_card_index, char **ctl_device, snd_hctl_t **hctl);
+
 #endif

@@ -70,7 +70,7 @@
 ; [Element ...]                          # For each element that we shall control
 ; required = ignore | switch | volume | enumeration | any     # If set, require this element to be of this kind and available,
 ;                                                             # otherwise don't consider this path valid for the card
-; required-any = ignore | switch | volume | enumeration | any # If set, at least one of the elements with required-any in this
+; required-any = ignore | switch | volume | enumeration | any # If set, at least one of the elements or jacks with required-any in this
 ;                                                             # path must be present, otherwise this path is invalid for the card
 ; required-absent = ignore | switch | volume                  # If set, require this element to not be of this kind and not
 ;                                                             # available, otherwise don't consider this path valid for the card
@@ -100,6 +100,12 @@
 ;                                        # channel mask. A channel mask may either be the name of a single channel, or the words "all-left",
 ;                                        # "all-right", "all-center", "all-front", "all-rear", and "all" to encode a specific subset of
 ;                                        # channels in a mask
+; [Jack ...]                        # For each jack that we will use for jack detection
+;                                   # The name 'Jack Foo' must match ALSA's 'Foo Jack' control.
+; required = ignore | any           # If not set to ignore, make the path invalid if this jack control is not present.
+; required-absent = ignore | any    # If not set to ignore, make the path invalid if this jack control is present.
+; required-any = ignore | any       # If not set to ignore, make the path invalid if no jack controls and no elements with
+;                                   # the required-any are present.
 
 [Element PCM]
 switch = mute

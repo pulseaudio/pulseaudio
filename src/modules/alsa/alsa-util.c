@@ -1440,3 +1440,128 @@ pa_bool_t pa_alsa_may_tsched(pa_bool_t want) {
 
     return TRUE;
 }
+
+snd_hctl_elem_t* pa_alsa_find_jack(snd_hctl_t *hctl, const char* jack_name)
+{
+    snd_ctl_elem_id_t *id;
+
+    snd_ctl_elem_id_alloca(&id);
+    snd_ctl_elem_id_clear(id);
+    snd_ctl_elem_id_set_interface(id, SND_CTL_ELEM_IFACE_CARD);
+    snd_ctl_elem_id_set_name(id, jack_name);
+
+    return snd_hctl_find_elem(hctl, id);
+}
+
+static int prepare_mixer(snd_mixer_t *mixer, const char *dev, snd_hctl_t **hctl) {
+    int err;
+
+    pa_assert(mixer);
+    pa_assert(dev);
+
+    if ((err = snd_mixer_attach(mixer, dev)) < 0) {
+        pa_log_info("Unable to attach to mixer %s: %s", dev, pa_alsa_strerror(err));
+        return -1;
+    }
+
+    /* Note: The hctl handle returned should not be freed.
+       It is closed/freed by alsa-lib on snd_mixer_close/free */
+    if (hctl && (err = snd_mixer_get_hctl(mixer, dev, hctl)) < 0) {
+        pa_log_info("Unable to get hctl of mixer %s: %s", dev, pa_alsa_strerror(err));
+        return -1;
+    }
+
+    if ((err = snd_mixer_selem_register(mixer, NULL, NULL)) < 0) {
+        pa_log_warn("Unable to register mixer: %s", pa_alsa_strerror(err));
+        return -1;
+    }
+
+    if ((err = snd_mixer_load(mixer)) < 0) {
+        pa_log_warn("Unable to load mixer: %s", pa_alsa_strerror(err));
+        return -1;
+    }
+
+    pa_log_info("Successfully attached to mixer '%s'", dev);
+    return 0;
+}
+
+snd_mixer_t *pa_alsa_open_mixer(int alsa_card_index, char **ctl_device, snd_hctl_t **hctl) {
+    int err;
+    snd_mixer_t *m;
+    char *md;
+    snd_pcm_info_t* info;
+    snd_pcm_info_alloca(&info);
+
+    if ((err = snd_mixer_open(&m, 0)) < 0) {
+        pa_log("Error opening mixer: %s", pa_alsa_strerror(err));
+        return NULL;
+    }
+
+    /* Then, try by card index */
+    md = pa_sprintf_malloc("hw:%i", alsa_card_index);
+    if (prepare_mixer(m, md, hctl) >= 0) {
+
+        if (ctl_device)
+            *ctl_device = md;
+        else
+            pa_xfree(md);
+
+        return m;
+    }
+
+    pa_xfree(md);
+
+    snd_mixer_close(m);
+    return NULL;
+}
+
+snd_mixer_t *pa_alsa_open_mixer_for_pcm(snd_pcm_t *pcm, char **ctl_device, snd_hctl_t **hctl) {
+    int err;
+    snd_mixer_t *m;
+    const char *dev;
+    snd_pcm_info_t* info;
+    snd_pcm_info_alloca(&info);
+
+    pa_assert(pcm);
+
+    if ((err = snd_mixer_open(&m, 0)) < 0) {
+        pa_log("Error opening mixer: %s", pa_alsa_strerror(err));
+        return NULL;
+    }
+
+    /* First, try by name */
+    if ((dev = snd_pcm_name(pcm)))
+        if (prepare_mixer(m, dev, hctl) >= 0) {
+            if (ctl_device)
+                *ctl_device = pa_xstrdup(dev);
+
+            return m;
+        }
+
+    /* Then, try by card index */
+    if (snd_pcm_info(pcm, info) >= 0) {
+        char *md;
+        int card_idx;
+
+        if ((card_idx = snd_pcm_info_get_card(info)) >= 0) {
+
+            md = pa_sprintf_malloc("hw:%i", card_idx);
+
+            if (!dev || !pa_streq(dev, md))
+                if (prepare_mixer(m, md, hctl) >= 0) {
+
+                    if (ctl_device)
+                        *ctl_device = md;
+                    else
+                        pa_xfree(md);
+
+                    return m;
+                }
+
+            pa_xfree(md);
+        }
+    }
+
+    snd_mixer_close(m);
+    return NULL;
+}

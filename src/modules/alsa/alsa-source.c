@@ -1579,11 +1579,12 @@ static void set_source_name(pa_source_new_data *data, pa_modargs *ma, const char
 }
 
 static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char *element, pa_bool_t ignore_dB) {
+    snd_hctl_t *hctl;
 
     if (!mapping && !element)
         return;
 
-    if (!(u->mixer_handle = pa_alsa_open_mixer_for_pcm(u->pcm_handle, &u->control_device))) {
+    if (!(u->mixer_handle = pa_alsa_open_mixer_for_pcm(u->pcm_handle, &u->control_device, &hctl))) {
         pa_log_info("Failed to find a working mixer device.");
         return;
     }
@@ -1593,7 +1594,7 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
         if (!(u->mixer_path = pa_alsa_path_synthesize(element, PA_ALSA_DIRECTION_INPUT)))
             goto fail;
 
-        if (pa_alsa_path_probe(u->mixer_path, u->mixer_handle, ignore_dB) < 0)
+        if (pa_alsa_path_probe(u->mixer_path, u->mixer_handle, hctl, ignore_dB) < 0)
             goto fail;
 
         pa_log_debug("Probed mixer path %s:", u->mixer_path->name);
@@ -1683,7 +1684,7 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB) {
             u->mixer_fdl = pa_alsa_fdlist_new();
             mixer_callback = ctl_mixer_callback;
 
-            if (pa_alsa_fdlist_set_mixer(u->mixer_fdl, u->mixer_handle, u->core->mainloop) < 0) {
+            if (pa_alsa_fdlist_set_handle(u->mixer_fdl, u->mixer_handle, NULL, u->core->mainloop) < 0) {
                 pa_log("Failed to initialize file descriptor monitoring");
                 return -1;
             }

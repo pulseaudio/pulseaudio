@@ -38,6 +38,7 @@ typedef struct pa_alsa_mixer_pdata pa_alsa_mixer_pdata;
 typedef struct pa_alsa_setting pa_alsa_setting;
 typedef struct pa_alsa_option pa_alsa_option;
 typedef struct pa_alsa_element pa_alsa_element;
+typedef struct pa_alsa_jack pa_alsa_jack;
 typedef struct pa_alsa_path pa_alsa_path;
 typedef struct pa_alsa_path_set pa_alsa_path_set;
 typedef struct pa_alsa_mapping pa_alsa_mapping;
@@ -154,11 +155,27 @@ struct pa_alsa_element {
     pa_alsa_decibel_fix *db_fix;
 };
 
+struct pa_alsa_jack {
+    pa_alsa_path *path;
+    PA_LLIST_FIELDS(pa_alsa_jack);
+
+    char *name; /* E g "Headphone" */
+    char *alsa_name; /* E g "Headphone Jack" */
+    pa_bool_t has_control; /* is the jack itself present? */
+    pa_bool_t plugged_in; /* is this jack currently plugged in? */
+    snd_hctl_elem_t *hctl_elem; /* Jack detection handle */
+
+    pa_alsa_required_t required;
+    pa_alsa_required_t required_any;
+    pa_alsa_required_t required_absent;
+};
+
 /* A path wraps a series of elements into a single entity which can be
  * used to control it as if it had a single volume slider, a single
  * mute switch and a single list of selectable options. */
 struct pa_alsa_path {
     pa_alsa_direction_t direction;
+    pa_device_port* port;
 
     char *name;
     char *description;
@@ -181,9 +198,11 @@ struct pa_alsa_path {
     pa_alsa_element *last_element;
     pa_alsa_option *last_option;
     pa_alsa_setting *last_setting;
+    pa_alsa_jack *last_jack;
 
     PA_LLIST_HEAD(pa_alsa_element, elements);
     PA_LLIST_HEAD(pa_alsa_setting, settings);
+    PA_LLIST_HEAD(pa_alsa_jack, jacks);
 };
 
 /* A path set is simply a set of paths that are applicable to a
@@ -197,12 +216,12 @@ int pa_alsa_setting_select(pa_alsa_setting *s, snd_mixer_t *m);
 void pa_alsa_setting_dump(pa_alsa_setting *s);
 
 void pa_alsa_option_dump(pa_alsa_option *o);
-
+void pa_alsa_jack_dump(pa_alsa_jack *j);
 void pa_alsa_element_dump(pa_alsa_element *e);
 
 pa_alsa_path *pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa_direction_t direction);
 pa_alsa_path *pa_alsa_path_synthesize(const char *element, pa_alsa_direction_t direction);
-int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, pa_bool_t ignore_dB);
+int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, snd_hctl_t *hctl, pa_bool_t ignore_dB);
 void pa_alsa_path_dump(pa_alsa_path *p);
 int pa_alsa_path_get_volume(pa_alsa_path *p, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v);
 int pa_alsa_path_get_mute(pa_alsa_path *path, snd_mixer_t *m, pa_bool_t *muted);
@@ -299,11 +318,11 @@ void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, cons
 void pa_alsa_profile_set_free(pa_alsa_profile_set *s);
 void pa_alsa_profile_set_dump(pa_alsa_profile_set *s);
 
-snd_mixer_t *pa_alsa_open_mixer_for_pcm(snd_pcm_t *pcm, char **ctl_device);
+snd_mixer_t *pa_alsa_open_mixer_for_pcm(snd_pcm_t *pcm, char **ctl_device, snd_hctl_t **hctl);
 
 pa_alsa_fdlist *pa_alsa_fdlist_new(void);
 void pa_alsa_fdlist_free(pa_alsa_fdlist *fdl);
-int pa_alsa_fdlist_set_mixer(pa_alsa_fdlist *fdl, snd_mixer_t *mixer_handle, pa_mainloop_api* m);
+int pa_alsa_fdlist_set_handle(pa_alsa_fdlist *fdl, snd_mixer_t *mixer_handle, snd_hctl_t *hctl_handle, pa_mainloop_api* m);
 
 /* Alternative for handling alsa mixer events in io-thread. */
 
