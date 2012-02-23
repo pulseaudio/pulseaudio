@@ -164,6 +164,7 @@ struct pa_alsa_jack {
     pa_bool_t has_control; /* is the jack itself present? */
     pa_bool_t plugged_in; /* is this jack currently plugged in? */
     snd_hctl_elem_t *hctl_elem; /* Jack detection handle */
+    pa_port_available_t state_unplugged, state_plugged;
 
     pa_alsa_required_t required;
     pa_alsa_required_t required_any;

@@ -39,10 +39,11 @@ void pa_device_port_set_available(pa_device_port *p, pa_port_available_t status)
     if (p->available == status)
         return;
 
-    pa_assert(status != PA_PORT_AVAILABLE_UNKNOWN);
+/*    pa_assert(status != PA_PORT_AVAILABLE_UNKNOWN); */
 
     p->available = status;
-    pa_log_debug("Setting port %s to status %s", p->name, status == PA_PORT_AVAILABLE_YES ? "yes" : "no");
+    pa_log_debug("Setting port %s to status %s", p->name, status == PA_PORT_AVAILABLE_YES ? "yes" :
+       status == PA_PORT_AVAILABLE_NO ? "no" : "unknown");
 
     /* Post subscriptions to the card which owns us */
     pa_assert_se(core = p->core);

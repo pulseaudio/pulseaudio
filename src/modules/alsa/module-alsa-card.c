@@ -288,7 +288,7 @@ static void report_port_state(pa_device_port *p, struct userdata *u)
         if (p != jack->path->port)
             continue;
 
-        cpa = jack->plugged_in ? PA_PORT_AVAILABLE_YES : PA_PORT_AVAILABLE_NO;
+        cpa = jack->plugged_in ? jack->state_plugged : jack->state_unplugged;
 
         /* "Yes" and "no" trumphs "unknown" if we have more than one jack */
         if (cpa == PA_PORT_AVAILABLE_UNKNOWN)

@@ -1724,6 +1724,8 @@ static pa_alsa_jack* jack_get(pa_alsa_path *p, const char *section) {
             goto finish;
 
     j = pa_xnew0(pa_alsa_jack, 1);
+    j->state_unplugged = PA_PORT_AVAILABLE_NO;
+    j->state_plugged = PA_PORT_AVAILABLE_YES;
     j->path = p;
     j->name = pa_xstrdup(section);
     j->alsa_name = pa_sprintf_malloc("%s Jack", section);
@@ -2187,6 +2189,45 @@ static int element_parse_override_map(
     return 0;
 }
 
+static int jack_parse_state(
+        const char *filename,
+        unsigned line,
+        const char *section,
+        const char *lvalue,
+        const char *rvalue,
+        void *data,
+        void *userdata) {
+
+    pa_alsa_path *p = userdata;
+    pa_alsa_jack *j;
+    pa_port_available_t pa;
+
+    if (!(j = jack_get(p, section))) {
+        pa_log("[%s:%u] state makes no sense in '%s'", filename, line, section);
+        return -1;
+    }
+
+    if (!strcmp(rvalue,"yes"))
+	pa = PA_PORT_AVAILABLE_YES;
+    else if (!strcmp(rvalue,"no"))
+	pa = PA_PORT_AVAILABLE_NO;
+    else if (!strcmp(rvalue,"unknown"))
+	pa = PA_PORT_AVAILABLE_UNKNOWN;
+    else {
+        pa_log("[%s:%u] state must be 'yes','no' or 'unknown' in '%s'", filename, line, section);
+        return -1;
+    }
+
+    if (!strcmp(lvalue, "state.unplugged"))
+        j->state_unplugged = pa;
+    else {
+        j->state_plugged = pa;
+        pa_assert(!strcmp(lvalue, "state.plugged"));
+    }
+
+    return 0;
+}
+
 static int element_set_option(pa_alsa_element *e, snd_mixer_t *m, int alsa_idx) {
     snd_mixer_selem_id_t *sid;
     snd_mixer_elem_t *me;
@@ -2379,6 +2420,10 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
         /* [Option ...] */
         { "priority",            option_parse_priority,             NULL, NULL },
         { "name",                option_parse_name,                 NULL, NULL },
+
+        /* [Jack ...] */
+        { "state.plugged",       jack_parse_state,                  NULL, NULL },
+        { "state.unplugged",     jack_parse_state,                  NULL, NULL },
 
         /* [Element ...] */
         { "switch",              element_parse_switch,              NULL, NULL },

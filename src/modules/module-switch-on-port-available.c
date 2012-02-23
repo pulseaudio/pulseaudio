@@ -120,6 +120,9 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
     pa_source *source;
     pa_bool_t is_active_profile, is_active_port;
 
+    if (port->available == PA_PORT_AVAILABLE_UNKNOWN)
+        return PA_HOOK_OK;
+
     pa_log_debug("finding port %s", port->name);
 
     PA_IDXSET_FOREACH(card, c->cards, state)
