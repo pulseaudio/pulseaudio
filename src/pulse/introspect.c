@@ -763,9 +763,101 @@ pa_operation* pa_context_get_client_info_list(pa_context *c, pa_client_info_cb_t
 
 /*** Card info ***/
 
+static void card_info_free(pa_card_info* i)
+{
+    if (i->proplist)
+        pa_proplist_free(i->proplist);
+
+    pa_xfree(i->profiles);
+
+    if (i->ports) {
+        uint32_t j;
+
+        for (j = 0; j < i->n_ports; j++) {
+            if (i->ports[j]) {
+                if (i->ports[j]->profiles)
+                    pa_xfree(i->ports[j]->profiles);
+                if (i->ports[j]->proplist)
+                    pa_proplist_free(i->ports[j]->proplist);
+            }
+        }
+
+        pa_xfree(i->ports[0]);
+        pa_xfree(i->ports);
+    }
+}
+
+static int fill_card_port_info(pa_tagstruct* t, pa_card_info* i)
+{
+    uint32_t j, k, l;
+
+    if (pa_tagstruct_getu32(t, &i->n_ports) < 0)
+        return -PA_ERR_PROTOCOL;
+
+    if (i->n_ports == 0) {
+        i->ports = NULL;
+        return 0;
+    }
+
+    i->ports = pa_xnew0(pa_card_port_info*, i->n_ports+1);
+    i->ports[0] = pa_xnew0(pa_card_port_info, i->n_ports);
+
+    for (j = 0; j < i->n_ports; j++) {
+        uint8_t direction;
+        uint32_t available;
+        pa_card_port_info* port = i->ports[j] = &i->ports[0][j];
+
+        port->proplist = pa_proplist_new();
+
+        if (pa_tagstruct_gets(t, &port->name) < 0 ||
+            pa_tagstruct_gets(t, &port->description) < 0 ||
+            pa_tagstruct_getu32(t, &port->priority) < 0 ||
+            pa_tagstruct_getu32(t, &available) < 0 ||
+            pa_tagstruct_getu8(t, &direction) < 0 ||
+            pa_tagstruct_get_proplist(t, port->proplist) < 0 ||
+            pa_tagstruct_getu32(t, &port->n_profiles) < 0) {
+
+            return -PA_ERR_PROTOCOL;
+        }
+
+        if (available > PA_PORT_AVAILABLE_YES ||
+            direction > PA_DIRECTION_OUTPUT + PA_DIRECTION_INPUT) {
+
+            return -PA_ERR_PROTOCOL;
+        }
+
+        port->direction = direction;
+        port->available = available;
+
+        if (port->n_profiles > 0) {
+            port->profiles = pa_xnew0(pa_card_profile_info*, i->n_profiles+1);
+
+            for (k = 0; k < port->n_profiles; k++) {
+                const char* profilename;
+
+                if (pa_tagstruct_gets(t, &profilename) < 0)
+                    return -PA_ERR_PROTOCOL;
+
+                for (l = 0; l < i->n_profiles; l++) {
+                    if (pa_streq(i->profiles[l].name, profilename)) {
+                        port->profiles[k] = &i->profiles[l];
+                        break;
+                    }
+                }
+
+                if (l >= i->n_profiles)
+                    return -PA_ERR_PROTOCOL;
+            }
+        }
+    }
+
+    return 0;
+}
+
 static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int eol = 1;
+    pa_card_info i;
 
     pa_assert(pd);
     pa_assert(o);
@@ -782,7 +874,6 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
     } else {
 
         while (!pa_tagstruct_eof(t)) {
-            pa_card_info i;
             uint32_t j;
             const char*ap;
 
@@ -795,6 +886,7 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
                 pa_tagstruct_getu32(t, &i.n_profiles) < 0) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                card_info_free(&i);
                 goto finish;
             }
 
@@ -810,7 +902,7 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
                         pa_tagstruct_getu32(t, &i.profiles[j].priority) < 0) {
 
                         pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                        pa_xfree(i.profiles);
+                        card_info_free(&i);
                         goto finish;
                     }
                 }
@@ -826,8 +918,7 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
                 pa_tagstruct_get_proplist(t, i.proplist) < 0) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                pa_xfree(i.profiles);
-                pa_proplist_free(i.proplist);
+                card_info_free(&i);
                 goto finish;
             }
 
@@ -839,13 +930,20 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
                     }
             }
 
+            if (o->context->version >= 26) {
+                if (fill_card_port_info(t, &i) < 0) {
+                    pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                    card_info_free(&i);
+                    goto finish;
+                }
+            }
+
             if (o->callback) {
                 pa_card_info_cb_t cb = (pa_card_info_cb_t) o->callback;
                 cb(o->context, &i, 0, o->userdata);
             }
 
-            pa_proplist_free(i.proplist);
-            pa_xfree(i.profiles);
+            card_info_free(&i);
         }
     }
 

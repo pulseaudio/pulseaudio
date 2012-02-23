@@ -454,6 +454,20 @@ typedef struct pa_card_profile_info {
     uint32_t priority;                  /**< The higher this value is the more useful this profile is as a default */
 } pa_card_profile_info;
 
+/** Stores information about a specific port of a card.  Please
+ * note that this structure can be extended as part of evolutionary
+ * API updates at any time in any new release. \since 2.0 */
+typedef struct pa_card_port_info {
+    const char *name;                   /**< Name of this port */
+    const char *description;            /**< Description of this port */
+    uint32_t priority;                  /**< The higher this value is the more useful this port is as a default */
+    int available;                      /**< A \link pa_port_available_t, indicating availability status of this port. */
+    int direction;                      /**< This is a \link pa_direction_t enum, indicating the direction of this port. */
+    uint32_t n_profiles;                /**< Number of entries in profile array */
+    pa_card_profile_info** profiles;    /**< Array of pointers available profile, or NULL. Array is terminated by an entry set to NULL. */
+    pa_proplist *proplist;              /**< Property list */
+} pa_card_port_info;
+
 /** Stores information about cards. Please note that this structure
  * can be extended as part of evolutionary API updates at any time in
  * any new release.  \since 0.9.15 */
@@ -466,6 +480,8 @@ typedef struct pa_card_info {
     pa_card_profile_info* profiles;      /**< Array of available profile, or NULL. Array is terminated by an entry with name set to NULL. Number of entries is stored in n_profiles */
     pa_card_profile_info* active_profile; /**< Pointer to active profile in the array, or NULL */
     pa_proplist *proplist;               /**< Property list */
+    uint32_t n_ports;                    /**< Number of entries in port array */
+    pa_card_port_info **ports;           /**< Array of pointers to ports, or NULL. Array is terminated by an entry set to NULL. */
 } pa_card_info;
 
 /** Callback prototype for pa_context_get_card_info_...() \since 0.9.15 */

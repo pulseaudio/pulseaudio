@@ -299,6 +299,29 @@ The field is added once for every port.
 When port availability changes, send a subscription event for the
 owning card.
 
+## v26, implemented by >= 2.0
+
+In reply from PA_COMMAND_GET_CARD_INFO (and thus
+PA_COMMAND_GET_CARD_INFO_LIST), the following is added:
+
+    uint32_t n_ports
+
+...followed by n_ports extended port entries, which look like this:
+
+    string name
+    string description
+    uint32_t priority
+    uint32_t available
+    uint8_t direction
+    proplist
+    uint32_t n_profiles
+    string profile_name_1
+    ...
+    string profile_name_n
+
+Profile names must match earlier sent profile names for the same card.
+
+
 #### If you just changed the protocol, read this
 ## module-tunnel depends on the sink/source/sink-input/source-input protocol
 ## internals, so if you changed these, you might have broken module-tunnel.

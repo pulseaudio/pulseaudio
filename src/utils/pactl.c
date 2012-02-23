@@ -582,6 +582,25 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
         printf(_("\tActive Profile: %s\n"),
                i->active_profile->name);
 
+    if (i->ports) {
+        pa_card_port_info **p;
+
+        printf(_("\tPorts:\n"));
+        for (p = i->ports; *p; p++) {
+            pa_card_profile_info **pr = (*p)->profiles;
+            printf(_("\t\t%s: %s (priority %u)\n"), (*p)->name, (*p)->description, (*p)->priority);
+            if (pr) {
+                printf(_("\t\t\tPart of profile(s): %s"), pa_strnull((*pr)->name));
+                pr++;
+                while (*pr) {
+                    printf(", %s", pa_strnull((*pr)->name));
+                    pr++;
+                }
+                printf("\n");
+            }
+        }
+    }
+
     pa_xfree(pl);
 }
 

@@ -124,6 +124,20 @@ typedef enum pa_context_flags {
 #define PA_CONTEXT_NOFAIL PA_CONTEXT_NOFAIL
 /** \endcond */
 
+/** Direction bitfield - while we currently do not expose anything bidirectional,
+  one should test against the bit instead of the value (e g if (d & PA_DIRECTION_OUTPUT)),
+  because we might add bidirectional stuff in the future. \since 2.0
+*/
+typedef enum pa_direction {
+    PA_DIRECTION_OUTPUT = 0x0001U,  /**< Output direction */
+    PA_DIRECTION_INPUT = 0x0002U    /**< Input direction */
+} pa_direction_t;
+
+/** \cond fulldocs */
+#define PA_DIRECTION_OUTPUT PA_DIRECTION_OUTPUT
+#define PA_DIRECTION_INPUT PA_DIRECTION_INPUT
+/** \endcond */
+
 /** The type of device we are dealing with */
 typedef enum pa_device_type {
     PA_DEVICE_TYPE_SINK,     /**< Playback device */
