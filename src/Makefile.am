@@ -1091,6 +1091,7 @@ modlibexec_LTLIBRARIES += \
 
 dist_alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/default.conf \
+		modules/alsa/mixer/profile-sets/extra-hdmi.conf \
 		modules/alsa/mixer/profile-sets/maudio-fasttrack-pro.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf \
@@ -1128,7 +1129,11 @@ dist_alsapaths_DATA = \
 		modules/alsa/mixer/paths/analog-output-headphones-2.conf \
 		modules/alsa/mixer/paths/analog-output-lfe-on-mono.conf \
 		modules/alsa/mixer/paths/analog-output-mono.conf \
-		modules/alsa/mixer/paths/iec958-stereo-output.conf
+		modules/alsa/mixer/paths/iec958-stereo-output.conf \
+		modules/alsa/mixer/paths/hdmi-output-0.conf \
+		modules/alsa/mixer/paths/hdmi-output-1.conf \
+		modules/alsa/mixer/paths/hdmi-output-2.conf \
+		modules/alsa/mixer/paths/hdmi-output-3.conf
 
 endif
 
