@@ -1079,6 +1079,31 @@ AS_IF([test "x$HAVE_SPEEX" = "x1"], AC_DEFINE([HAVE_SPEEX], 1, [Have speex]))
 AC_SUBST(LIBSPEEX_CFLAGS)
 AC_SUBST(LIBSPEEX_LIBS)
 
+#### Xen support (optional) ####
+
+AC_ARG_ENABLE([xen],
+    AS_HELP_STRING([--disable-xen],[Disable optional Xen paravirtualized driver]))
+
+XEN_CFLAGS=
+XEN_LIBS=
+
+AS_IF([test "x$enable_xen" != "xno"],
+    [
+        HAVE_XEN=1
+        AC_CHECK_HEADER(xenctrl.h, [], [HAVE_XEN=0])
+        AC_CHECK_HEADER(xs.h, [], [HAVE_XEN=0])
+        AC_CHECK_LIB(xenctrl, xc_interface_open, [XEN_LIBS="$XEN_LIBS -lxenctrl"], [HAVE_XEN=0])
+        AC_CHECK_LIB(xenstore, xs_domain_open, [XEN_LIBS="$XEN_LIBS -lxenstore"], [HAVE_XEN=0])
+    ],
+    HAVE_XEN=0)
+
+AS_IF([test "x$enable_xen" = "xyes" && test "x$HAVE_XEN" = "x0"],
+    [AC_MSG_ERROR([*** Xen development headers or libraries not found])])
+
+AC_SUBST(XEN_CFLAGS)
+AC_SUBST(XEN_LIBS)
+AM_CONDITIONAL([HAVE_XEN], [test "x$HAVE_XEN" = x1])
+
 #### ORC (optional) ####
 
 ORC_CHECK([0.4.11])
@@ -1332,6 +1357,7 @@ AS_IF([test "x$HAVE_AVAHI" = "x1"], ENABLE_AVAHI=yes, ENABLE_AVAHI=no)
 AS_IF([test "x$HAVE_JACK" = "x1"], ENABLE_JACK=yes, ENABLE_JACK=no)
 AS_IF([test "x$HAVE_LIBASYNCNS" = "x1"], ENABLE_LIBASYNCNS=yes, ENABLE_LIBASYNCNS=no)
 AS_IF([test "x$HAVE_LIRC" = "x1"], ENABLE_LIRC=yes, ENABLE_LIRC=no)
+AS_IF([test "x$HAVE_XEN" = "x1"], ENABLE_XEN=yes, ENABLE_XEN=no)
 AS_IF([test "x$HAVE_DBUS" = "x1"], ENABLE_DBUS=yes, ENABLE_DBUS=no)
 AS_IF([test "x$HAVE_HAL" = "x1"], ENABLE_HAL=yes, ENABLE_HAL=no)
 AS_IF([test "x$HAVE_UDEV" = "x1"], ENABLE_UDEV=yes, ENABLE_UDEV=no)
@@ -1383,6 +1409,7 @@ echo "
     Enable Jack:                   ${ENABLE_JACK}
     Enable Async DNS:              ${ENABLE_LIBASYNCNS}
     Enable LIRC:                   ${ENABLE_LIRC}
+    Enable Xen PV driver:          ${ENABLE_XEN}
     Enable D-Bus:                  ${ENABLE_DBUS}
       Enable HAL:                  ${ENABLE_HAL}
       Enable BlueZ:                ${ENABLE_BLUEZ}
