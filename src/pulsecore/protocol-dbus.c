@@ -112,7 +112,7 @@ char *pa_get_dbus_address_from_server_type(pa_server_type_t server_type) {
     }
 
     pa_xfree(runtime_path);
-    pa_xfree(escaped_path);
+    dbus_free(escaped_path);
 
     return address;
 }
