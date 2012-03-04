@@ -3,6 +3,7 @@
 
   Copyright 2006-2008 Lennart Poettering
   Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
+  Copyright (C) 2012 Canonical Ltd.
 
   Contact: Jyri Sarha <Jyri.Sarha@nokia.com>
 
@@ -38,9 +39,15 @@
 
 #define FLIST_SIZE 128
 
+/* Atomic table indices contain
+   sign bit = if set, indicates empty/NULL value
+   tag bits (to avoid the ABA problem)
+   actual index bits
+*/
+
 /* Lock free single linked list element. */
 struct pa_flist_elem {
-    pa_atomic_ptr_t next;
+    pa_atomic_t next;
     pa_atomic_ptr_t ptr;
 };
 
@@ -49,34 +56,49 @@ typedef struct pa_flist_elem pa_flist_elem;
 struct pa_flist {
     const char *name;
     unsigned size;
+
+    pa_atomic_t current_tag;
+    int index_mask;
+    int tag_shift;
+    int tag_mask;
+
     /* Stack that contains pointers stored into free list */
-    pa_atomic_ptr_t stored;
+    pa_atomic_t stored;
     /* Stack that contains empty list elements */
-    pa_atomic_ptr_t empty;
+    pa_atomic_t empty;
     pa_flist_elem table[];
 };
 
 /* Lock free pop from linked list stack */
-static pa_flist_elem *stack_pop(pa_atomic_ptr_t *list) {
-    pa_flist_elem *poped;
+static pa_flist_elem *stack_pop(pa_flist *flist, pa_atomic_t *list) {
+    pa_flist_elem *popped;
+    int idx;
     pa_assert(list);
 
     do {
-        poped = (pa_flist_elem *) pa_atomic_ptr_load(list);
-    } while (poped != NULL && !pa_atomic_ptr_cmpxchg(list, poped, pa_atomic_ptr_load(&poped->next)));
+        idx = pa_atomic_load(list);
+        if (idx < 0)
+            return NULL;
+        popped = &flist->table[idx & flist->index_mask];
+    } while (!pa_atomic_cmpxchg(list, idx, pa_atomic_load(&popped->next)));
 
-    return poped;
+    return popped;
 }
 
 /* Lock free push to linked list stack */
-static void stack_push(pa_atomic_ptr_t *list, pa_flist_elem *new_elem) {
-    pa_flist_elem *next;
+static void stack_push(pa_flist *flist, pa_atomic_t *list, pa_flist_elem *new_elem) {
+    int tag, newindex, next;
     pa_assert(list);
 
+    tag = pa_atomic_inc(&flist->current_tag);
+    newindex = new_elem - flist->table;
+    pa_assert(newindex >= 0 && newindex < (int) flist->size);
+    newindex |= (tag << flist->tag_shift) & flist->tag_mask;
+
     do {
-        next = pa_atomic_ptr_load(list);
-        pa_atomic_ptr_store(&new_elem->next, next);
-    } while (!pa_atomic_ptr_cmpxchg(list, next, new_elem));
+        next = pa_atomic_load(list);
+        pa_atomic_store(&new_elem->next, next);
+    } while (!pa_atomic_cmpxchg(list, next, newindex));
 }
 
 pa_flist *pa_flist_new_with_name(unsigned size, const char *name) {
@@ -91,10 +113,16 @@ pa_flist *pa_flist_new_with_name(unsigned size, const char *name) {
 
     l->name = pa_xstrdup(name);
     l->size = size;
-    pa_atomic_ptr_store(&l->stored, NULL);
-    pa_atomic_ptr_store(&l->empty, NULL);
+
+    while (1 << l->tag_shift < (int) size)
+        l->tag_shift++;
+    l->index_mask = (1 << l->tag_shift) - 1;
+    l->tag_mask = INT_MAX - l->index_mask;
+
+    pa_atomic_store(&l->stored, -1);
+    pa_atomic_store(&l->empty, -1);
     for (i=0; i < size; i++) {
-        stack_push(&l->empty, &l->table[i]);
+        stack_push(l, &l->empty, &l->table[i]);
     }
     return l;
 }
@@ -109,7 +137,7 @@ void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb) {
 
     if (free_cb) {
         pa_flist_elem *elem;
-        while((elem = stack_pop(&l->stored)))
+        while((elem = stack_pop(l, &l->stored)))
             free_cb(pa_atomic_ptr_load(&elem->ptr));
     }
 
@@ -122,14 +150,14 @@ int pa_flist_push(pa_flist *l, void *p) {
     pa_assert(l);
     pa_assert(p);
 
-    elem = stack_pop(&l->empty);
+    elem = stack_pop(l, &l->empty);
     if (elem == NULL) {
         if (pa_log_ratelimit(PA_LOG_DEBUG))
             pa_log_debug("%s flist is full (don't worry)", l->name);
         return -1;
     }
     pa_atomic_ptr_store(&elem->ptr, p);
-    stack_push(&l->stored, elem);
+    stack_push(l, &l->stored, elem);
 
     return 0;
 }
@@ -139,13 +167,13 @@ void* pa_flist_pop(pa_flist *l) {
     void *ptr;
     pa_assert(l);
 
-    elem = stack_pop(&l->stored);
+    elem = stack_pop(l, &l->stored);
     if (elem == NULL)
         return NULL;
 
     ptr = pa_atomic_ptr_load(&elem->ptr);
 
-    stack_push(&l->empty, elem);
+    stack_push(l, &l->empty, elem);
 
     return ptr;
 }
