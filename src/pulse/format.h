@@ -118,8 +118,11 @@ pa_format_info* pa_format_info_from_string(const char *str);
 /** Utility function to take a \a pa_sample_spec and generate the corresponding \a pa_format_info. \since 2.0 */
 pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_map *map);
 
-/** Utility function to generate a \a pa_sample_spec and \a pa_channel_map corresponding to a given \a pa_format_info. Returns
- * a negative integer if conversion failed and 0 on success. \since 2.0 */
+/** Utility function to generate a \a pa_sample_spec and \a pa_channel_map corresponding to a given \a pa_format_info. The
+ * conversion for PCM formats is straight-forward. For non-PCM formats, if there is a fixed size-time conversion (i.e. all
+ * IEC61937-encapsulated formats), a "fake" sample spec whose size-time conversion corresponds to this format is provided and
+ * the channel map argument is ignored. For formats with variable size-time conversion, this function will fail. Returns a
+ * negative integer if conversion failed and 0 on success. \since 2.0 */
 int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map);
 
 /** Represents the type of value type of a property on a \ref pa_format_info. \since 2.0 */

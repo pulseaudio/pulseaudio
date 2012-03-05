@@ -292,15 +292,10 @@ int pa_sink_input_new(
 
     /* Now populate the sample spec and format according to the final
      * format that we've negotiated */
-    if (PA_LIKELY(data->format->encoding == PA_ENCODING_PCM)) {
-        pa_return_val_if_fail(pa_format_info_to_sample_spec(data->format, &ss, &map) == 0, -PA_ERR_INVALID);
-        pa_sink_input_new_data_set_sample_spec(data, &ss);
-        if (pa_channel_map_valid(&map))
-            pa_sink_input_new_data_set_channel_map(data, &map);
-    } else {
-        pa_return_val_if_fail(pa_format_info_to_sample_spec_fake(data->format, &ss) == 0, -PA_ERR_INVALID);
-        pa_sink_input_new_data_set_sample_spec(data, &ss);
-    }
+    pa_return_val_if_fail(pa_format_info_to_sample_spec(data->format, &ss, &map) == 0, -PA_ERR_INVALID);
+    pa_sink_input_new_data_set_sample_spec(data, &ss);
+    if (pa_format_info_is_pcm(data->format) && pa_channel_map_valid(&map))
+        pa_sink_input_new_data_set_channel_map(data, &map);
 
     pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
     pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED), -PA_ERR_INVALID);

@@ -218,6 +218,28 @@ pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_m
     return f;
 }
 
+/* For compressed streams */
+static int pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss) {
+    int rate;
+
+    pa_assert(f);
+    pa_assert(ss);
+
+    /* Note: When we add support for non-IEC61937 encapsulated compressed
+     * formats, this function should return a non-zero values for these. */
+
+    ss->format = PA_SAMPLE_S16LE;
+    ss->channels = 2;
+
+    pa_return_val_if_fail(pa_format_info_get_prop_int(f, PA_PROP_FORMAT_RATE, &rate) == 0, -PA_ERR_INVALID);
+    ss->rate = (uint32_t) rate;
+
+    if (f->encoding == PA_ENCODING_EAC3_IEC61937)
+        ss->rate *= 4;
+
+    return 0;
+}
+
 /* For PCM streams */
 int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
     char *sf = NULL, *m = NULL;
@@ -226,7 +248,9 @@ int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_chan
 
     pa_assert(f);
     pa_assert(ss);
-    pa_return_val_if_fail(f->encoding == PA_ENCODING_PCM, FALSE);
+
+    if (!pa_format_info_is_pcm(f))
+        return pa_format_info_to_sample_spec_fake(f, ss);
 
     if (pa_format_info_get_prop_string(f, PA_PROP_FORMAT_SAMPLE_FORMAT, &sf))
         goto out;
@@ -258,26 +282,6 @@ out:
         pa_xfree(m);
 
     return ret;
-}
-
-/* For compressed streams */
-int pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss) {
-    int rate;
-
-    pa_assert(f);
-    pa_assert(ss);
-    pa_return_val_if_fail(f->encoding != PA_ENCODING_PCM, -PA_ERR_INVALID);
-
-    ss->format = PA_SAMPLE_S16LE;
-    ss->channels = 2;
-
-    pa_return_val_if_fail(pa_format_info_get_prop_int(f, PA_PROP_FORMAT_RATE, &rate) == 0, -PA_ERR_INVALID);
-    ss->rate = (uint32_t) rate;
-
-    if (f->encoding == PA_ENCODING_EAC3_IEC61937)
-        ss->rate *= 4;
-
-    return 0;
 }
 
 pa_prop_type_t pa_format_info_get_prop_type(pa_format_info *f, const char *key) {

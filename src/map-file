@@ -189,7 +189,6 @@ pa_format_info_set_rate;
 pa_format_info_set_sample_format;
 pa_format_info_snprint;
 pa_format_info_to_sample_spec;
-pa_format_info_to_sample_spec_fake;
 pa_format_info_valid;
 pa_frame_size;
 pa_get_binary_name;

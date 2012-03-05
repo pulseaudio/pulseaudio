@@ -304,7 +304,6 @@ void pa_ext_device_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t)
 void pa_ext_stream_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
 
 void pa_format_info_free2(pa_format_info *f, void *userdata);
-int pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss);
 
 pa_bool_t pa_mainloop_is_our_api(pa_mainloop_api*m);
 
