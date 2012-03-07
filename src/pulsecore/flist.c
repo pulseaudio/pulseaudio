@@ -54,7 +54,7 @@ struct pa_flist_elem {
 typedef struct pa_flist_elem pa_flist_elem;
 
 struct pa_flist {
-    const char *name;
+    char *name;
     unsigned size;
 
     pa_atomic_t current_tag;
@@ -141,7 +141,7 @@ void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb) {
             free_cb(pa_atomic_ptr_load(&elem->ptr));
     }
 
-    pa_xfree((char *) l->name);
+    pa_xfree(l->name);
     pa_xfree(l);
 }
 
