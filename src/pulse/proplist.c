@@ -321,7 +321,7 @@ int pa_proplist_get(pa_proplist *p, const char *key, const void **data, size_t *
     return 0;
 }
 
-void pa_proplist_update(pa_proplist *p, pa_update_mode_t mode, pa_proplist *other) {
+void pa_proplist_update(pa_proplist *p, pa_update_mode_t mode, const pa_proplist *other) {
     struct property *prop;
     void *state = NULL;
 
@@ -332,6 +332,8 @@ void pa_proplist_update(pa_proplist *p, pa_update_mode_t mode, pa_proplist *othe
     if (mode == PA_UPDATE_SET)
         pa_proplist_clear(p);
 
+    /* MAKE_HASHMAP turns the const pointer into a non-const pointer, but
+     * that's ok, because we don't modify the hashmap contents. */
     while ((prop = pa_hashmap_iterate(MAKE_HASHMAP(other), &state, NULL))) {
 
         if (mode == PA_UPDATE_MERGE && pa_proplist_contains(p, prop->key))
@@ -658,7 +660,7 @@ void pa_proplist_clear(pa_proplist *p) {
         property_free(prop);
 }
 
-pa_proplist* pa_proplist_copy(pa_proplist *template) {
+pa_proplist* pa_proplist_copy(const pa_proplist *template) {
     pa_proplist *p;
 
     pa_assert_se(p = pa_proplist_new());

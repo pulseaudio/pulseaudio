@@ -343,7 +343,7 @@ typedef enum pa_update_mode {
 
 /** Merge property list "other" into "p", adhering the merge mode as
  * specified in "mode". \since 0.9.11 */
-void pa_proplist_update(pa_proplist *p, pa_update_mode_t mode, pa_proplist *other);
+void pa_proplist_update(pa_proplist *p, pa_update_mode_t mode, const pa_proplist *other);
 
 /** Removes a single entry from the property list, identified be the
  * specified key name. \since 0.9.11 */
@@ -391,7 +391,7 @@ void pa_proplist_clear(pa_proplist *p);
 
 /** Allocate a new property list and copy over every single entry from
  * the specific list. \since 0.9.11 */
-pa_proplist* pa_proplist_copy(pa_proplist *p);
+pa_proplist* pa_proplist_copy(const pa_proplist *p);
 
 /** Return the number of entries in the property list. \since 0.9.15 */
 unsigned pa_proplist_size(pa_proplist *p);
