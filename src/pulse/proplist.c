@@ -660,15 +660,15 @@ void pa_proplist_clear(pa_proplist *p) {
         property_free(prop);
 }
 
-pa_proplist* pa_proplist_copy(const pa_proplist *template) {
-    pa_proplist *p;
+pa_proplist* pa_proplist_copy(const pa_proplist *p) {
+    pa_proplist *copy;
 
-    pa_assert_se(p = pa_proplist_new());
+    pa_assert_se(copy = pa_proplist_new());
 
-    if (template)
-        pa_proplist_update(p, PA_UPDATE_REPLACE, template);
+    if (p)
+        pa_proplist_update(copy, PA_UPDATE_REPLACE, p);
 
-    return p;
+    return copy;
 }
 
 unsigned pa_proplist_size(pa_proplist *p) {
