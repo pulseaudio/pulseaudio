@@ -195,3 +195,4 @@ src/modules/echo-cancel/module-echo-cancel.c
 src/modules/module-equalizer-sink.c
 src/modules/module-filter-apply.c
 src/tests/resampler-test.c
+src/modules/module-virtual-surround-sink.c
