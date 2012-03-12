@@ -536,6 +536,14 @@ pkglib_LTLIBRARIES = \
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulse/client-conf.c pulse/client-conf.h \
 		pulse/fork-detect.c pulse/fork-detect.h \
+		pulse/xmalloc.c pulse/xmalloc.h \
+		pulse/proplist.c pulse/proplist.h \
+		pulse/utf8.c pulse/utf8.h \
+		pulse/channelmap.c pulse/channelmap.h \
+		pulse/sample.c pulse/sample.h \
+		pulse/util.c pulse/util.h \
+		pulse/timeval.c pulse/timeval.h \
+		pulse/rtclock.c pulse/rtclock.h \
 		pulsecore/atomic.h \
 		pulsecore/authkey.c pulsecore/authkey.h \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
