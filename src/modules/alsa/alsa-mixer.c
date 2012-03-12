@@ -3183,7 +3183,9 @@ static void path_set_condense(pa_alsa_path_set *ps, snd_mixer_t *m) {
                     continue;
 
                 PA_LLIST_FOREACH(jb, p2->jacks) {
-                    if (jb->has_control && !strcmp(jb->alsa_name, ja->alsa_name)) {
+                    if (jb->has_control && !strcmp(jb->alsa_name, ja->alsa_name) &&
+                       (ja->state_plugged == jb->state_plugged) &&
+                       (ja->state_unplugged == jb->state_unplugged)) {
                         exists = TRUE;
                         break;
                     }
