@@ -1066,6 +1066,8 @@ int main(int argc, char *argv[]) {
     buf = pa_strbuf_new();
 
 #ifdef HAVE_DBUS
+    pa_assert_se(dbus_threads_init_default());
+
     if (start_server) {
 #endif
         if (conf->load_default_script_file) {
