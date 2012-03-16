@@ -3236,7 +3236,7 @@ int pa_sink_set_port(pa_sink *s, const char *name, pa_bool_t save) {
         return -PA_ERR_NOTIMPLEMENTED;
     }
 
-    if (!s->ports)
+    if (!s->ports || !name)
         return -PA_ERR_NOENTITY;
 
     if (!(port = pa_hashmap_get(s->ports, name)))
