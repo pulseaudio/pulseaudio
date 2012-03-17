@@ -150,6 +150,9 @@ load-module module-suspend-on-idle
 .ifexists module-console-kit@PA_SOEXT@
 load-module module-console-kit
 .endif
+.ifexists module-systemd-login@PA_SOEXT@
+load-module module-systemd-login
+.endif
 
 ### Enable positioned event sounds
 load-module module-position-event-sounds

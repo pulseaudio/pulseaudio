@@ -1108,6 +1108,22 @@ AM_CONDITIONAL([HAVE_XEN], [test "x$HAVE_XEN" = x1])
 
 ORC_CHECK([0.4.11])
 
+#### systemd support (optional) ####
+
+AC_ARG_ENABLE([systemd],
+    AS_HELP_STRING([--disable-systemd],[Disable optional systemd support]))
+
+AS_IF([test "x$enable_systemd" != "xno"],
+    [PKG_CHECK_MODULES(SYSTEMD, [ libsystemd-login libsystemd-daemon ], HAVE_SYSTEMD=1, HAVE_SYSTEMD=0)],
+    HAVE_SYSTEMD=0)
+
+AS_IF([test "x$enable_systemd" = "xyes" && test "x$HAVE_SYSTEMD" = "x0"],
+    [AC_MSG_ERROR([*** Needed systemd support not found])])
+
+AC_SUBST(HAVE_SYSTEMD)
+AM_CONDITIONAL([HAVE_SYSTEMD], [test "x$HAVE_SYSTEMD" = x1])
+AS_IF([test "x$HAVE_SYSTEMD" = "x1"], AC_DEFINE([HAVE_SYSTEMD], 1, [Have SYSTEMD?]))
+
 #### Build and Install man pages ####
 
 AC_ARG_ENABLE([manpages],
@@ -1361,6 +1377,7 @@ AS_IF([test "x$HAVE_XEN" = "x1"], ENABLE_XEN=yes, ENABLE_XEN=no)
 AS_IF([test "x$HAVE_DBUS" = "x1"], ENABLE_DBUS=yes, ENABLE_DBUS=no)
 AS_IF([test "x$HAVE_HAL" = "x1"], ENABLE_HAL=yes, ENABLE_HAL=no)
 AS_IF([test "x$HAVE_UDEV" = "x1"], ENABLE_UDEV=yes, ENABLE_UDEV=no)
+AS_IF([test "x$HAVE_SYSTEMD" = "x1"], ENABLE_SYSTEMD=yes, ENABLE_SYSTEMD=no)
 AS_IF([test "x$HAVE_BLUEZ" = "x1"], ENABLE_BLUEZ=yes, ENABLE_BLUEZ=no)
 AS_IF([test "x$HAVE_HAL_COMPAT" = "x1"], ENABLE_HAL_COMPAT=yes, ENABLE_HAL_COMPAT=no)
 AS_IF([test "x$HAVE_TCPWRAP" = "x1"], ENABLE_TCPWRAP=yes, ENABLE_TCPWRAP=no)
@@ -1415,6 +1432,7 @@ echo "
       Enable BlueZ:                ${ENABLE_BLUEZ}
     Enable udev:                   ${ENABLE_UDEV}
       Enable HAL->udev compat:     ${ENABLE_HAL_COMPAT}
+    Enable systemd login:          ${ENABLE_SYSTEMD}
     Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
     Enable IPv6:                   ${ENABLE_IPV6}

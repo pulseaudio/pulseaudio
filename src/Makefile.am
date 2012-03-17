@@ -1218,6 +1218,11 @@ modlibexec_LTLIBRARIES += \
 		module-udev-detect.la
 endif
 
+if HAVE_SYSTEMD
+modlibexec_LTLIBRARIES += \
+		module-systemd-login.la
+endif
+
 if HAVE_DBUS
 modlibexec_LTLIBRARIES += \
 		module-rygel-media-server.la \
@@ -1319,6 +1324,7 @@ SYMDEF_FILES = \
 		module-echo-cancel-symdef.h \
 		module-hal-detect-symdef.h \
 		module-udev-detect-symdef.h \
+		module-systemd-login-symdef.h \
 		module-bluetooth-proximity-symdef.h \
 		module-bluetooth-discover-symdef.h \
 		module-bluetooth-device-symdef.h \
@@ -1876,8 +1882,13 @@ module_udev_detect_la_CFLAGS = $(AM_CFLAGS) $(UDEV_CFLAGS)
 
 module_console_kit_la_SOURCES = modules/module-console-kit.c
 module_console_kit_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_console_kit_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS)
-module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+module_console_kit_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) $(SYSTEMD_LIBS)
+module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) $(SYSTEMD_CFLAGS)
+
+module_systemd_login_la_SOURCES = modules/module-systemd-login.c
+module_systemd_login_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_systemd_login_la_LIBADD = $(MODULE_LIBADD) $(SYSTEMD_LIBS)
+module_systemd_login_la_CFLAGS = $(AM_CFLAGS) $(SYSTEMD_CFLAGS)
 
 # GConf support
 module_gconf_la_SOURCES = modules/gconf/module-gconf.c
