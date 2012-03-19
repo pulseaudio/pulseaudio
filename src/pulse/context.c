@@ -660,7 +660,11 @@ static int context_autospawn(pa_context *c) {
         goto fail;
     }
 
+#ifdef SA_NOCLDWAIT
     if ((sa.sa_flags & SA_NOCLDWAIT) || sa.sa_handler == SIG_IGN) {
+#else
+    if (sa.sa_handler == SIG_IGN) {
+#endif
         pa_log_debug("Process disabled waitpid(), cannot autospawn.");
         pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
         goto fail;
