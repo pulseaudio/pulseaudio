@@ -49,7 +49,7 @@ def connect():
     except Exception as e:
         sys.stderr.write('There was an error connecting to pulseaudio, '
                          'please make sure you have the pulseaudio dbus '
-                         'and equalizer modules loaded, exiting...\n')
+                         'module loaded, exiting...\n')
         sys.exit(-1)
 
 
@@ -67,6 +67,8 @@ class QPaeq(QtGui.QWidget):
     manager_iface='org.PulseAudio.Ext.Equalizing1.Manager'
     core_iface='org.PulseAudio.Core1'
     core_path='/org/pulseaudio/core1'
+    module_name='module-equalizer-sink'
+
     def __init__(self):
         QtGui.QWidget.__init__(self)
         self.setWindowTitle('qpaeq')
@@ -226,9 +228,25 @@ class QPaeq(QtGui.QWidget):
     #)
     def set_connection(self):
         self.connection=connect()
+
         self.manager_obj=self.connection.get_object(object_path=self.manager_path)
         manager_props=dbus.Interface(self.manager_obj,dbus_interface=prop_iface)
-        self.sinks=manager_props.Get(self.manager_iface,'EqualizedSinks')
+        try:
+            self.sinks=manager_props.Get(self.manager_iface,'EqualizedSinks')
+        except dbus.exceptions.DBusException:
+            # probably module not yet loaded, try to load it:
+            try:
+                core=self.connection.get_object(object_path=self.core_path)
+                core.LoadModule(self.module_name,{},dbus_interface=self.core_iface)
+                # yup, we don't need to re-create manager_obj and manager_props,
+                # these are late-bound
+                self.sinks=manager_props.Get(self.manager_iface,'EqualizedSinks')
+            except dbus.exceptions.DBusException:
+                sys.stderr.write('It seems that running pulseaudio does not support '
+                                 'equalizer features and loading %s module failed.\n'
+                                 'Exiting...\n' % self.module_name)
+                sys.exit(-1)
+
     def set_callbacks(self):
         manager=dbus.Interface(self.manager_obj,dbus_interface=self.manager_iface)
         manager.connect_to_signal('ProfilesChanged',self.update_profiles)
