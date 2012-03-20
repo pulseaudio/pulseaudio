@@ -137,6 +137,13 @@ static void teardown(struct userdata *u) {
     pa_assert_ctl_context();
 
     pa_asyncmsgq_flush(u->asyncmsgq, 0);
+
+    u->adjust_time = 0;
+    if (u->time_event) {
+        u->core->mainloop->time_free(u->time_event);
+        u->time_event = NULL;
+    }
+
     if (u->sink_input)
         pa_sink_input_unlink(u->sink_input);
 
@@ -859,9 +866,6 @@ void pa__done(pa_module*m) {
 
     if (u->asyncmsgq)
         pa_asyncmsgq_unref(u->asyncmsgq);
-
-    if (u->time_event)
-        u->core->mainloop->time_free(u->time_event);
 
     pa_xfree(u);
 }
