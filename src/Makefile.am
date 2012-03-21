@@ -2056,4 +2056,4 @@ $(installmodlibexecLTLIBRARIES): install-pkglibLTLIBRARIES
 installpadsplibLTLIBRARIES = install-padsplibLTLIBRARIES
 $(installpadsplibLTLIBRARIES): install-libLTLIBRARIES
 
-.PHONY: padsp massif update-all update-ffmpeg update-sbc update-map-file
+.PHONY: massif update-all update-ffmpeg update-sbc update-map-file
