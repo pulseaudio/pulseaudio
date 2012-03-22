@@ -188,6 +188,7 @@ struct pa_alsa_path {
     pa_bool_t has_mute:1;
     pa_bool_t has_volume:1;
     pa_bool_t has_dB:1;
+    bool mute_during_activation:1;
     /* These two are used during probing only */
     pa_bool_t has_req_any:1;
     pa_bool_t req_any_present:1;
@@ -229,7 +230,7 @@ int pa_alsa_path_get_volume(pa_alsa_path *p, snd_mixer_t *m, const pa_channel_ma
 int pa_alsa_path_get_mute(pa_alsa_path *path, snd_mixer_t *m, pa_bool_t *muted);
 int pa_alsa_path_set_volume(pa_alsa_path *path, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t deferred_volume, pa_bool_t write_to_hw);
 int pa_alsa_path_set_mute(pa_alsa_path *path, snd_mixer_t *m, pa_bool_t muted);
-int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m);
+int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m, bool device_is_muted);
 void pa_alsa_path_set_callback(pa_alsa_path *p, snd_mixer_t *m, snd_mixer_elem_callback_t cb, void *userdata);
 void pa_alsa_path_free(pa_alsa_path *p);
 

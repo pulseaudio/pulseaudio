@@ -56,6 +56,9 @@
 ; [General]
 ; priority = ...                         # Priority for this path
 ; description = ...
+; mute-during-activation = yes | no      # If this path supports hardware mute, should the hw mute be used while activating this
+;                                        # path? In some cases this can reduce extra noises during port switching, while in other
+;                                        # cases this can increase such noises. Default: no.
 ;
 ; [Properties]                           # Property list for this path. The list is merged into the port property list.
 ; <key> = <value>                        # Each property is defined on its own line.

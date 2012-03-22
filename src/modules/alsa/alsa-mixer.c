@@ -1196,7 +1196,7 @@ static int element_set_constant_volume(pa_alsa_element *e, snd_mixer_t *m) {
     return r;
 }
 
-int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m) {
+int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m, bool device_is_muted) {
     pa_alsa_element *e;
     int r = 0;
 
@@ -1205,6 +1205,19 @@ int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m) {
 
     pa_log_debug("Activating path %s", p->name);
     pa_alsa_path_dump(p);
+
+    /* First turn on hw mute if available, to avoid noise
+     * when setting the mixer controls. */
+    if (p->mute_during_activation) {
+        PA_LLIST_FOREACH(e, p->elements) {
+            if (e->switch_use == PA_ALSA_SWITCH_MUTE)
+                /* If the muting fails here, that's not a critical problem for
+                 * selecting a path, so we ignore the return value.
+                 * element_set_switch() will print a warning anyway, so this
+                 * won't be a silent failure either. */
+                (void) element_set_switch(e, m, FALSE);
+        }
+    }
 
     PA_LLIST_FOREACH(e, p->elements) {
 
@@ -1242,6 +1255,16 @@ int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m) {
 
         if (r < 0)
             return -1;
+    }
+
+    /* Finally restore hw mute to the device mute status. */
+    if (p->mute_during_activation) {
+        PA_LLIST_FOREACH(e, p->elements) {
+            if (e->switch_use == PA_ALSA_SWITCH_MUTE) {
+                if (element_set_switch(e, m, !device_is_muted) < 0)
+                    return -1;
+            }
+        }
     }
 
     return 0;
@@ -2353,12 +2376,14 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
     char *fn;
     int r;
     const char *n;
+    bool mute_during_activation = false;
 
     pa_config_item items[] = {
         /* [General] */
         { "priority",            pa_config_parse_unsigned,          NULL, "General" },
         { "description",         pa_config_parse_string,            NULL, "General" },
         { "name",                pa_config_parse_string,            NULL, "General" },
+        { "mute-during-activation", pa_config_parse_bool,           NULL, "General" },
 
         /* [Option ...] */
         { "priority",            option_parse_priority,             NULL, NULL },
@@ -2395,6 +2420,7 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
     items[0].data = &p->priority;
     items[1].data = &p->description;
     items[2].data = &p->name;
+    items[3].data = &mute_during_activation;
 
     if (!paths_dir)
         paths_dir = get_default_paths_dir();
@@ -2406,6 +2432,8 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
 
     if (r < 0)
         goto fail;
+
+    p->mute_during_activation = mute_during_activation;
 
     if (path_verify(p) < 0)
         goto fail;
