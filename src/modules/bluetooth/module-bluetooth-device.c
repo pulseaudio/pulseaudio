@@ -1465,7 +1465,6 @@ static int a2dp_process_push(struct userdata *u) {
         void *d;
         ssize_t l;
         size_t to_write, to_decode;
-        unsigned frame_count;
 
         a2dp_prepare_buffer(u);
 
@@ -1541,8 +1540,6 @@ static int a2dp_process_push(struct userdata *u) {
 
             d = (uint8_t*) d + written;
             to_write -= written;
-
-            frame_count++;
         }
 
         memchunk.length -= to_write;
