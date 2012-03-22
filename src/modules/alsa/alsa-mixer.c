@@ -50,6 +50,8 @@
 #include "alsa-mixer.h"
 #include "alsa-util.h"
 
+static int setting_select(pa_alsa_setting *s, snd_mixer_t *m);
+
 struct description_map {
     const char *name;
     const char *description;
@@ -1196,7 +1198,7 @@ static int element_set_constant_volume(pa_alsa_element *e, snd_mixer_t *m) {
     return r;
 }
 
-int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m, bool device_is_muted) {
+int pa_alsa_path_select(pa_alsa_path *p, pa_alsa_setting *s, snd_mixer_t *m, bool device_is_muted) {
     pa_alsa_element *e;
     int r = 0;
 
@@ -1256,6 +1258,9 @@ int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m, bool device_is_muted) {
         if (r < 0)
             return -1;
     }
+
+    if (s)
+        setting_select(s, m);
 
     /* Finally restore hw mute to the device mute status. */
     if (p->mute_during_activation) {
@@ -2228,7 +2233,7 @@ static int element_set_option(pa_alsa_element *e, snd_mixer_t *m, int alsa_idx) 
     return r;
 }
 
-int pa_alsa_setting_select(pa_alsa_setting *s, snd_mixer_t *m) {
+static int setting_select(pa_alsa_setting *s, snd_mixer_t *m) {
     pa_alsa_option *o;
     uint32_t idx;
 
