@@ -1463,10 +1463,10 @@ static int sink_set_port_cb(pa_sink *s, pa_device_port *p) {
     pa_assert_se(u->mixer_path = data->path);
     pa_alsa_path_select(u->mixer_path, u->mixer_handle, s->muted);
 
-    mixer_volume_init(u);
-
     if (data->setting)
         pa_alsa_setting_select(data->setting, u->mixer_handle);
+
+    mixer_volume_init(u);
 
     if (s->set_mute)
         s->set_mute(s);
