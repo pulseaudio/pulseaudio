@@ -2626,9 +2626,6 @@ void pa__done(pa_module *m) {
     if (u->card)
         pa_card_free(u->card);
 
-    if (u->read_smoother)
-        pa_smoother_free(u->read_smoother);
-
     if (u->a2dp.buffer)
         pa_xfree(u->a2dp.buffer);
 
