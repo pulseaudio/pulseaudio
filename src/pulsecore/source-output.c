@@ -1160,6 +1160,17 @@ pa_bool_t pa_source_output_may_move(pa_source_output *o) {
     return TRUE;
 }
 
+static pa_bool_t find_filter_source_output(pa_source_output *target, pa_source *s) {
+    int i = 0;
+    while (s && s->output_from_master) {
+        if (s->output_from_master == target)
+            return TRUE;
+        s = s->output_from_master->source;
+        pa_assert(i++ < 100);
+    }
+    return FALSE;
+}
+
 /* Called from main context */
 pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest) {
     pa_source_output_assert_ref(o);
@@ -1171,6 +1182,12 @@ pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest) {
 
     if (!pa_source_output_may_move(o))
         return FALSE;
+
+    /* Make sure we're not creating a filter source cycle */
+    if (find_filter_source_output(o, dest)) {
+        pa_log_debug("Can't connect output to %s, as that would create a cycle.", dest->name);
+        return FALSE;
+    }
 
     if (pa_idxset_size(dest->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
         pa_log_warn("Failed to move source output: too many outputs per source.");

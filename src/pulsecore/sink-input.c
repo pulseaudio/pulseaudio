@@ -1383,6 +1383,17 @@ pa_bool_t pa_sink_input_may_move(pa_sink_input *i) {
     return TRUE;
 }
 
+static pa_bool_t find_filter_sink_input(pa_sink_input *target, pa_sink *s) {
+    int i = 0;
+    while (s && s->input_to_master) {
+        if (s->input_to_master == target)
+            return TRUE;
+        s = s->input_to_master->sink;
+        pa_assert(i++ < 100);
+    }
+    return FALSE;
+}
+
 /* Called from main context */
 pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
     pa_sink_input_assert_ref(i);
@@ -1395,6 +1406,12 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
 
     if (!pa_sink_input_may_move(i))
         return FALSE;
+
+    /* Make sure we're not creating a filter sink cycle */
+    if (find_filter_sink_input(i, dest)) {
+        pa_log_debug("Can't connect input to %s, as that would create a cycle.", dest->name);
+        return FALSE;
+    }
 
     if (pa_idxset_size(dest->inputs) >= PA_MAX_INPUTS_PER_SINK) {
         pa_log_warn("Failed to move sink input: too many inputs per sink.");
