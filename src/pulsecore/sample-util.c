@@ -721,6 +721,7 @@ void pa_volume_memchunk(
 
     pa_assert(c);
     pa_assert(spec);
+    pa_assert(pa_sample_spec_valid(spec));
     pa_assert(pa_frame_aligned(c->length, spec));
     pa_assert(volume);
 
@@ -733,11 +734,6 @@ void pa_volume_memchunk(
     if (pa_cvolume_channels_equal_to(volume, PA_VOLUME_MUTED)) {
         pa_silence_memchunk(c, spec);
         return;
-    }
-
-    if (spec->format < 0 || spec->format >= PA_SAMPLE_MAX) {
-      pa_log_warn("Unable to change volume of format");
-      return;
     }
 
     do_volume = pa_get_volume_func(spec->format);
