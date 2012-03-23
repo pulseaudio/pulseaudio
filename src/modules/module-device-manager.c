@@ -1443,6 +1443,8 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             pa_xfree(devices[i]);
         }
 
+        pa_xfree(devices);
+
         if (!first) {
             trigger_save(u);
 
