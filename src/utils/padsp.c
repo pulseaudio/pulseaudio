@@ -1444,6 +1444,7 @@ static int sndstat_open(int flags, int *_errno) {
 
     unlink(fn);
     pa_xfree(fn);
+    fn = NULL;
 
     if (write(fd, sndstat, sizeof(sndstat) -1) != sizeof(sndstat)-1) {
         *_errno = errno;
