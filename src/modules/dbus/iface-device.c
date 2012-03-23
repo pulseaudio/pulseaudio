@@ -598,13 +598,17 @@ static void handle_get_latency(DBusConnection *conn, DBusMessage *msg, void *use
     pa_assert(msg);
     pa_assert(d);
 
-    if (d->type == PA_DEVICE_TYPE_SINK && !(d->sink->flags & PA_SINK_LATENCY))
+    if (d->type == PA_DEVICE_TYPE_SINK && !(d->sink->flags & PA_SINK_LATENCY)) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
                            "Sink %s doesn't support latency querying.", d->sink->name);
-    else if (d->type == PA_DEVICE_TYPE_SOURCE && !(d->source->flags & PA_SOURCE_LATENCY))
+        return;
+    }
+
+    if (d->type == PA_DEVICE_TYPE_SOURCE && !(d->source->flags & PA_SOURCE_LATENCY)) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
                            "Source %s doesn't support latency querying.", d->source->name);
-    return;
+        return;
+    }
 
     latency = (d->type == PA_DEVICE_TYPE_SINK) ? pa_sink_get_latency(d->sink) : pa_source_get_latency(d->source);
 
