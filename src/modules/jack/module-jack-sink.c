@@ -168,10 +168,12 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
             jack_nframes_t l, ft, d;
+            jack_latency_range_t r;
             size_t n;
 
             /* This is the "worst-case" latency */
-            l = jack_port_get_total_latency(u->client, u->port[0]) + u->frames_in_buffer;
+            jack_port_get_latency_range(u->port[0], JackPlaybackLatency, &r);
+            l = r.max + u->frames_in_buffer;
 
             if (u->saved_frame_time_valid) {
                 /* Adjust the worst case latency by the time that
@@ -296,6 +298,8 @@ int pa__init(pa_module*m) {
     unsigned i;
     const char **ports = NULL, **p;
     pa_sink_new_data data;
+    jack_latency_range_t r;
+    size_t n;
 
     pa_assert(m);
 
@@ -443,6 +447,9 @@ int pa__init(pa_module*m) {
         }
     }
 
+    jack_port_get_latency_range(u->port[0], JackPlaybackLatency, &r);
+    n = r.max * pa_frame_size(&u->sink->sample_spec);
+    pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(n, &u->sink->sample_spec));
     pa_sink_put(u->sink);
 
     if (ports)

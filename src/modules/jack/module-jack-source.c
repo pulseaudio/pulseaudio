@@ -124,11 +124,13 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             return 0;
 
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
+            jack_latency_range_t r;
             jack_nframes_t l, ft, d;
             size_t n;
 
             /* This is the "worst-case" latency */
-            l = jack_port_get_total_latency(u->client, u->port[0]);
+            jack_port_get_latency_range(u->port[0], JackCaptureLatency, &r);
+            l = r.max;
 
             if (u->saved_frame_time_valid) {
                 /* Adjust the worst case latency by the time that
@@ -249,6 +251,8 @@ int pa__init(pa_module*m) {
     unsigned i;
     const char **ports = NULL, **p;
     pa_source_new_data data;
+    jack_latency_range_t r;
+    size_t n;
 
     pa_assert(m);
 
@@ -388,6 +392,9 @@ int pa__init(pa_module*m) {
 
     }
 
+    jack_port_get_latency_range(u->port[0], JackCaptureLatency, &r);
+    n = r.max * pa_frame_size(&u->source->sample_spec);
+    pa_source_set_fixed_latency(u->source, pa_bytes_to_usec(n, &u->source->sample_spec));
     pa_source_put(u->source);
 
     if (ports)
