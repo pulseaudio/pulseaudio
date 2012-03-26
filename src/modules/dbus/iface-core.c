@@ -1401,7 +1401,7 @@ static void handle_upload_sample(DBusConnection *conn, DBusMessage *msg, void *u
         goto finish;
     }
 
-    sample = pa_idxset_get_by_index(c->core->scache, idx);
+    pa_assert_se(sample = pa_idxset_get_by_index(c->core->scache, idx));
 
     if (n_volume_entries > 0) {
         sample->volume.channels = n_channels;
