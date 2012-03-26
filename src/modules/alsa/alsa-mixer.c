@@ -1577,7 +1577,7 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
                          *
                          * The definition of e->masks is
                          *
-                         *     pa_channel_position_mask_t masks[SND_MIXER_SCHN_LAST][2];
+                         *     pa_channel_position_mask_t masks[SND_MIXER_SCHN_LAST + 1][2];
                          *
                          * Since the array size is fixed at 2, we obviously
                          * don't support elements with more than two
@@ -3105,7 +3105,7 @@ static pa_bool_t element_is_subset(pa_alsa_element *a, pa_alsa_element *b, snd_m
             /* If override-maps are different, they're not subsets */
             if (a->n_channels != b->n_channels)
                 return FALSE;
-            for (s = 0; s < SND_MIXER_SCHN_LAST; s++)
+            for (s = 0; s <= SND_MIXER_SCHN_LAST; s++)
                 if (a->masks[s][a->n_channels-1] != b->masks[s][b->n_channels-1]) {
                     pa_log_debug("Element %s is not a subset - mask a: 0x%" PRIx64 ", mask b: 0x%" PRIx64 ", at channel %d",
                         a->alsa_name, a->masks[s][a->n_channels-1], b->masks[s][b->n_channels-1], s);

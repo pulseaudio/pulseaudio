@@ -140,8 +140,6 @@ struct userdata {
 
     pa_rtpoll_item *alsa_rtpoll_item;
 
-    snd_mixer_selem_channel_id_t mixer_map[SND_MIXER_SCHN_LAST];
-
     pa_smoother *smoother;
     uint64_t write_count;
     uint64_t since_start;
