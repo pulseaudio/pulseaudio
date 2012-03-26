@@ -1999,15 +1999,15 @@ static int element_parse_required(
     else if (pa_streq(lvalue, "required-any")) {
         if (e) {
             e->required_any = req;
-            e->path->has_req_any = TRUE;
+            e->path->has_req_any |= (req != PA_ALSA_REQUIRED_IGNORE);
         }
         if (o) {
             o->required_any = req;
-            o->element->path->has_req_any = TRUE;
+            o->element->path->has_req_any |= (req != PA_ALSA_REQUIRED_IGNORE);
         }
         if (j) {
             j->required_any = req;
-            j->path->has_req_any = TRUE;
+            j->path->has_req_any |= (req != PA_ALSA_REQUIRED_IGNORE);
         }
 
     }
