@@ -112,7 +112,7 @@ static pa_stream *pa_stream_new_with_proplist_internal(
     if (ss)
         s->sample_spec = *ss;
     else
-        s->sample_spec.format = PA_SAMPLE_INVALID;
+        pa_sample_spec_init(&s->sample_spec);
 
     if (map)
         s->channel_map = *map;
