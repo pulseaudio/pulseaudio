@@ -1622,6 +1622,8 @@ int main(int argc, char *argv[]) {
                 module_name = argv[optind + 1];
 
         } else if (pa_streq(argv[optind], "suspend-sink")) {
+            int b;
+
             action = SUSPEND_SINK;
 
             if (argc > optind+3 || optind+1 >= argc) {
@@ -1629,12 +1631,19 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            suspend = pa_parse_boolean(argv[argc-1]);
+            if ((b = pa_parse_boolean(argv[argc-1])) < 0) {
+                pa_log(_("Invalid suspend specification."));
+                goto quit;
+            }
+
+            suspend = !!b;
 
             if (argc > optind+2)
                 sink_name = pa_xstrdup(argv[optind+1]);
 
         } else if (pa_streq(argv[optind], "suspend-source")) {
+            int b;
+
             action = SUSPEND_SOURCE;
 
             if (argc > optind+3 || optind+1 >= argc) {
@@ -1642,7 +1651,12 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            suspend = pa_parse_boolean(argv[argc-1]);
+            if ((b = pa_parse_boolean(argv[argc-1])) < 0) {
+                pa_log(_("Invalid suspend specification."));
+                goto quit;
+            }
+
+            suspend = !!b;
 
             if (argc > optind+2)
                 source_name = pa_xstrdup(argv[optind+1]);

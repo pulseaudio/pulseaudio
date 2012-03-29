@@ -1565,7 +1565,7 @@ static int pa_cli_command_log_level(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
 
 static int pa_cli_command_log_meta(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     const char *m;
-    pa_bool_t b;
+    int b;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -1589,7 +1589,7 @@ static int pa_cli_command_log_meta(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, 
 
 static int pa_cli_command_log_time(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     const char *m;
-    pa_bool_t b;
+    int b;
 
     pa_core_assert_ref(c);
     pa_assert(t);
