@@ -143,9 +143,17 @@ static void headers_read(pa_rtsp_client *c) {
 
         /* Now parse out the server port component of the response. */
         while ((token = pa_split(c->transport, delimiters, &token_state))) {
-            if ((pc = strstr(token, "="))) {
+            if ((pc = strchr(token, '='))) {
                 if (0 == strncmp(token, "server_port", 11)) {
-                    pa_atou(pc+1, (uint32_t*)(&c->rtp_port));
+                    uint32_t p;
+
+                    if (pa_atou(pc + 1, &p) < 0 || p <= 0 || p > 0xffff) {
+                        pa_log("Invalid SETUP response (invalid server_port).");
+                        pa_xfree(token);
+                        return;
+                    }
+
+                    c->rtp_port = p;
                     pa_xfree(token);
                     break;
                 }
