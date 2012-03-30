@@ -75,7 +75,8 @@ START_TEST (smoother_test) {
             pa_log_debug("%i\t\t%i", msec[u],  msec[u+1]);
             u += 2;
 
-            pa_smoother_resume(s, (pa_usec_t) msec[u] * PA_USEC_PER_MSEC, TRUE);
+            if (u < PA_ELEMENTSOF(msec))
+                pa_smoother_resume(s, (pa_usec_t) msec[u] * PA_USEC_PER_MSEC, TRUE);
         }
 
         pa_log_debug("%llu\t%llu", (unsigned long long) (x/PA_USEC_PER_MSEC), (unsigned long long) (pa_smoother_get(s, x)/PA_USEC_PER_MSEC));
