@@ -72,7 +72,8 @@ static void signal_handler(int sig) {
     signal(sig, signal_handler);
 #endif
 
-    pa_write(signal_pipe[1], &sig, sizeof(sig), NULL);
+    /* XXX: If writing fails, there's nothing we can do? */
+    (void) pa_write(signal_pipe[1], &sig, sizeof(sig), NULL);
 
     errno = saved_errno;
 }
