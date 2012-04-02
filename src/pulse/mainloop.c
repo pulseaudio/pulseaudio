@@ -770,7 +770,10 @@ void pa_mainloop_wakeup(pa_mainloop *m) {
     char c = 'W';
     pa_assert(m);
 
-    pa_write(m->wakeup_pipe[1], &c, sizeof(c), &m->wakeup_pipe_type);
+    if (pa_write(m->wakeup_pipe[1], &c, sizeof(c), &m->wakeup_pipe_type) < 0)
+        /* Not much options for recovering from the error. Let's at least log something. */
+        pa_log("pa_write() failed while trying to wake up the mainloop: %s", pa_cstrerror(errno));
+
     pa_atomic_store(&m->wakeup_requested, TRUE);
 }
 
