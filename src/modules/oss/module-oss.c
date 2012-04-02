@@ -157,13 +157,13 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static void trigger(struct userdata *u, pa_bool_t quick) {
+static int trigger(struct userdata *u, pa_bool_t quick) {
     int enable_bits = 0, zero = 0;
 
     pa_assert(u);
 
     if (u->fd < 0)
-        return;
+        return 0;
 
     pa_log_debug("trigger");
 
@@ -210,11 +210,19 @@ static void trigger(struct userdata *u, pa_bool_t quick) {
 
             if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
                 uint8_t *buf = pa_xnew(uint8_t, u->in_fragment_size);
-                pa_read(u->fd, buf, u->in_fragment_size, NULL);
+
+                if (pa_read(u->fd, buf, u->in_fragment_size, NULL) < 0) {
+                    pa_log("pa_read() failed: %s", pa_cstrerror(errno));
+                    pa_xfree(buf);
+                    return -1;
+                }
+
                 pa_xfree(buf);
             }
         }
     }
+
+    return 0;
 }
 
 static void mmap_fill_memblocks(struct userdata *u, unsigned n) {
@@ -714,8 +722,10 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
     ret = pa_sink_process_msg(o, code, data, offset, chunk);
 
-    if (do_trigger)
-        trigger(u, quick);
+    if (ret >= 0 && do_trigger) {
+        if (trigger(u, quick) < 0)
+            return -1;
+    }
 
     return ret;
 }
@@ -794,8 +804,10 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
     ret = pa_source_process_msg(o, code, data, offset, chunk);
 
-    if (do_trigger)
-        trigger(u, quick);
+    if (ret >= 0 && do_trigger) {
+        if (trigger(u, quick) < 0)
+            return -1;
+    }
 
     return ret;
 }
