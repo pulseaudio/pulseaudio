@@ -611,13 +611,11 @@ static void rebuild_pollfds(pa_mainloop *m) {
     m->n_pollfds = 0;
     p = m->pollfds;
 
-    if (m->wakeup_pipe[0] >= 0) {
-        m->pollfds[0].fd = m->wakeup_pipe[0];
-        m->pollfds[0].events = POLLIN;
-        m->pollfds[0].revents = 0;
-        p++;
-        m->n_pollfds++;
-    }
+    m->pollfds[0].fd = m->wakeup_pipe[0];
+    m->pollfds[0].events = POLLIN;
+    m->pollfds[0].revents = 0;
+    p++;
+    m->n_pollfds++;
 
     PA_LLIST_FOREACH(e, m->io_events) {
         if (e->dead) {
@@ -772,19 +770,14 @@ void pa_mainloop_wakeup(pa_mainloop *m) {
     char c = 'W';
     pa_assert(m);
 
-    if (m->wakeup_pipe[1] >= 0) {
-        pa_write(m->wakeup_pipe[1], &c, sizeof(c), &m->wakeup_pipe_type);
-        pa_atomic_store(&m->wakeup_requested, TRUE);
-    }
+    pa_write(m->wakeup_pipe[1], &c, sizeof(c), &m->wakeup_pipe_type);
+    pa_atomic_store(&m->wakeup_requested, TRUE);
 }
 
 static void clear_wakeup(pa_mainloop *m) {
     char c[10];
 
     pa_assert(m);
-
-    if (m->wakeup_pipe[0] < 0)
-        return;
 
     if (pa_atomic_cmpxchg(&m->wakeup_requested, TRUE, FALSE)) {
         while (pa_read(m->wakeup_pipe[0], &c, sizeof(c), &m->wakeup_pipe_type) == sizeof(c))
