@@ -772,7 +772,7 @@ void pa_mainloop_wakeup(pa_mainloop *m) {
     char c = 'W';
     pa_assert(m);
 
-    if (m->wakeup_pipe[1] >= 0 && m->state == STATE_POLLING) {
+    if (m->wakeup_pipe[1] >= 0) {
         pa_write(m->wakeup_pipe[1], &c, sizeof(c), &m->wakeup_pipe_type);
         pa_atomic_store(&m->wakeup_requested, TRUE);
     }
