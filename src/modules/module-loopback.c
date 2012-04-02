@@ -136,7 +136,8 @@ static void teardown(struct userdata *u) {
     pa_assert(u);
     pa_assert_ctl_context();
 
-    pa_asyncmsgq_flush(u->asyncmsgq, 0);
+    if (u->asyncmsgq)
+        pa_asyncmsgq_flush(u->asyncmsgq, 0);
 
     u->adjust_time = 0;
     if (u->time_event) {
