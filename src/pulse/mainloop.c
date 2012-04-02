@@ -114,7 +114,7 @@ struct pa_mainloop {
     int retval;
     pa_bool_t quit:1;
 
-    pa_bool_t wakeup_requested:1;
+    pa_atomic_t wakeup_requested;
     int wakeup_pipe[2];
     int wakeup_pipe_type;
 
@@ -774,7 +774,7 @@ void pa_mainloop_wakeup(pa_mainloop *m) {
 
     if (m->wakeup_pipe[1] >= 0 && m->state == STATE_POLLING) {
         pa_write(m->wakeup_pipe[1], &c, sizeof(c), &m->wakeup_pipe_type);
-        m->wakeup_requested++;
+        pa_atomic_store(&m->wakeup_requested, TRUE);
     }
 }
 
@@ -786,10 +786,9 @@ static void clear_wakeup(pa_mainloop *m) {
     if (m->wakeup_pipe[0] < 0)
         return;
 
-    if (m->wakeup_requested) {
+    if (pa_atomic_cmpxchg(&m->wakeup_requested, TRUE, FALSE)) {
         while (pa_read(m->wakeup_pipe[0], &c, sizeof(c), &m->wakeup_pipe_type) == sizeof(c))
             ;
-        m->wakeup_requested = 0;
     }
 }
 
