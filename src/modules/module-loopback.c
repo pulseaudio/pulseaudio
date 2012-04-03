@@ -152,11 +152,13 @@ static void teardown(struct userdata *u) {
         pa_source_output_unlink(u->source_output);
 
     if (u->sink_input) {
+        u->sink_input->parent.process_msg = pa_sink_input_process_msg;
         pa_sink_input_unref(u->sink_input);
         u->sink_input = NULL;
     }
 
     if (u->source_output) {
+        u->source_output->parent.process_msg = pa_source_output_process_msg;
         pa_source_output_unref(u->source_output);
         u->source_output = NULL;
     }
