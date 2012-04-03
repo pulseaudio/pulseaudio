@@ -1368,8 +1368,13 @@ static int source_set_port_cb(pa_source *s, pa_device_port *p) {
 
     if (s->set_mute)
         s->set_mute(s);
-    if (s->set_volume)
-        s->set_volume(s);
+    if (s->flags & PA_SOURCE_DEFERRED_VOLUME) {
+        if (s->write_volume)
+            s->write_volume(s);
+    } else {
+        if (s->set_volume)
+            s->set_volume(s);
+    }
 
     return 0;
 }
