@@ -248,6 +248,7 @@ pa_sink* pa_sink_new(
     s->flags = flags;
     s->priority = 0;
     s->suspend_cause = 0;
+    pa_sink_set_mixer_dirty(s, FALSE);
     s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);
     s->driver = pa_xstrdup(pa_path_get_filename(data->driver));
@@ -795,6 +796,12 @@ int pa_sink_update_status(pa_sink*s) {
     return sink_set_state(s, pa_sink_used_by(s) ? PA_SINK_RUNNING : PA_SINK_IDLE);
 }
 
+/* Called from any context - must be threadsafe */
+void pa_sink_set_mixer_dirty(pa_sink *s, pa_bool_t is_dirty)
+{
+    pa_atomic_store(&s->mixer_dirty, is_dirty ? 1 : 0);
+}
+
 /* Called from main context */
 int pa_sink_suspend(pa_sink *s, pa_bool_t suspend, pa_suspend_cause_t cause) {
     pa_sink_assert_ref(s);
@@ -808,6 +815,27 @@ int pa_sink_suspend(pa_sink *s, pa_bool_t suspend, pa_suspend_cause_t cause) {
     } else {
         s->suspend_cause &= ~cause;
         s->monitor_source->suspend_cause &= ~cause;
+    }
+
+    if (!(s->suspend_cause & PA_SUSPEND_SESSION) && (pa_atomic_load(&s->mixer_dirty) != 0)) {
+        /* This might look racy but isn't: If somebody sets mixer_dirty exactly here,
+           it'll be handled just fine. */
+        pa_sink_set_mixer_dirty(s, FALSE);
+        pa_log_debug("Mixer is now accessible. Updating alsa mixer settings.");
+        if (s->active_port && s->set_port) {
+            if (s->flags & PA_SINK_DEFERRED_VOLUME) {
+                struct sink_message_set_port msg = { .port = s->active_port, .ret = 0 };
+                pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_PORT, &msg, 0, NULL) == 0);
+            }
+            else
+                s->set_port(s, s->active_port);
+        }
+        else {
+            if (s->set_mute)
+                s->set_mute(s);
+            if (s->set_volume)
+                s->set_volume(s);
+        }
     }
 
     if ((pa_sink_get_state(s) == PA_SINK_SUSPENDED) == !!s->suspend_cause)

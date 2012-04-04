@@ -111,6 +111,7 @@ struct pa_sink {
 
     pa_hashmap *ports;
     pa_device_port *active_port;
+    pa_atomic_t mixer_dirty;
 
     unsigned priority;
 
@@ -438,6 +439,7 @@ pa_bool_t pa_sink_get_mute(pa_sink *sink, pa_bool_t force_refresh);
 pa_bool_t pa_sink_update_proplist(pa_sink *s, pa_update_mode_t mode, pa_proplist *p);
 
 int pa_sink_set_port(pa_sink *s, const char *name, pa_bool_t save);
+void pa_sink_set_mixer_dirty(pa_sink *s, pa_bool_t is_dirty);
 
 unsigned pa_sink_linked_by(pa_sink *s); /* Number of connected streams */
 unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are not corked */

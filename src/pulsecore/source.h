@@ -111,6 +111,7 @@ struct pa_source {
 
     pa_hashmap *ports;
     pa_device_port *active_port;
+    pa_atomic_t mixer_dirty;
 
     unsigned priority;
 
@@ -368,6 +369,8 @@ pa_bool_t pa_source_get_mute(pa_source *source, pa_bool_t force_refresh);
 pa_bool_t pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist *p);
 
 int pa_source_set_port(pa_source *s, const char *name, pa_bool_t save);
+void pa_source_set_mixer_dirty(pa_source *s, pa_bool_t is_dirty);
+
 pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrough);
 
 unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */

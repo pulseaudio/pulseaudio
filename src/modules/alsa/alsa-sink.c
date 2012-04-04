@@ -1210,8 +1210,10 @@ static int ctl_mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
     if (!PA_SINK_IS_LINKED(u->sink->state))
         return 0;
 
-    if (u->sink->suspend_cause & PA_SUSPEND_SESSION)
+    if (u->sink->suspend_cause & PA_SUSPEND_SESSION) {
+        pa_sink_set_mixer_dirty(u->sink, TRUE);
         return 0;
+    }
 
     if (mask & SND_CTL_EVENT_MASK_VALUE) {
         pa_sink_get_volume(u->sink, TRUE);
@@ -1230,8 +1232,10 @@ static int io_mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
     if (mask == SND_CTL_EVENT_MASK_REMOVE)
         return 0;
 
-    if (u->sink->suspend_cause & PA_SUSPEND_SESSION)
+    if (u->sink->suspend_cause & PA_SUSPEND_SESSION) {
+        pa_sink_set_mixer_dirty(u->sink, TRUE);
         return 0;
+    }
 
     if (mask & SND_CTL_EVENT_MASK_VALUE)
         pa_sink_update_volume_and_mute(u->sink);
