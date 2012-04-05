@@ -662,7 +662,7 @@ static record_stream* record_stream_new(
     data.module = c->options->module;
     data.client = c->client;
     if (source)
-        pa_source_output_new_data_set_source(&data, source, TRUE);
+        pa_source_output_new_data_set_source(&data, source, FALSE);
     if (pa_sample_spec_valid(ss))
         pa_source_output_new_data_set_sample_spec(&data, ss);
     if (pa_channel_map_valid(map))
@@ -673,11 +673,11 @@ static record_stream* record_stream_new(
     if (volume) {
         pa_source_output_new_data_set_volume(&data, volume);
         data.volume_is_absolute = !relative_volume;
-        data.save_volume = TRUE;
+        data.save_volume = FALSE;
     }
     if (muted_set) {
         pa_source_output_new_data_set_muted(&data, muted);
-        data.save_muted = TRUE;
+        data.save_muted = FALSE;
     }
     if (peak_detect)
         data.resample_method = PA_RESAMPLER_PEAKS;
@@ -1122,7 +1122,7 @@ static playback_stream* playback_stream_new(
     data.module = c->options->module;
     data.client = c->client;
     if (sink)
-        pa_sink_input_new_data_set_sink(&data, sink, TRUE);
+        pa_sink_input_new_data_set_sink(&data, sink, FALSE);
     if (pa_sample_spec_valid(ss))
         pa_sink_input_new_data_set_sample_spec(&data, ss);
     if (pa_channel_map_valid(map))
@@ -1135,11 +1135,11 @@ static playback_stream* playback_stream_new(
     if (volume) {
         pa_sink_input_new_data_set_volume(&data, volume);
         data.volume_is_absolute = !relative_volume;
-        data.save_volume = TRUE;
+        data.save_volume = FALSE;
     }
     if (muted_set) {
         pa_sink_input_new_data_set_muted(&data, muted);
-        data.save_muted = TRUE;
+        data.save_muted = FALSE;
     }
     data.sync_base = ssync ? ssync->sink_input : NULL;
     data.flags = flags;
