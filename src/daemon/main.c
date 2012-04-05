@@ -251,6 +251,8 @@ static int change_user(void) {
         return -1;
     }
 
+    pa_drop_caps();
+
     pa_set_env("USER", PA_SYSTEM_USER);
     pa_set_env("USERNAME", PA_SYSTEM_USER);
     pa_set_env("LOGNAME", PA_SYSTEM_USER);
@@ -266,7 +268,7 @@ static int change_user(void) {
     if (!getenv("PULSE_STATE_PATH"))
         pa_set_env("PULSE_STATE_PATH", PA_SYSTEM_STATE_PATH);
 
-    pa_log_info(_("Successfully dropped root privileges."));
+    pa_log_info(_("Successfully changed user to \"" PA_SYSTEM_USER "\"."));
 
     return 0;
 }

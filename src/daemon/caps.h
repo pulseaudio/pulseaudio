@@ -26,4 +26,6 @@
 
 void pa_drop_root(void);
 
+void pa_drop_caps(void);
+
 #endif

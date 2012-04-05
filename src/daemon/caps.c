@@ -36,10 +36,6 @@
 #include <sys/capability.h>
 #endif
 
-#ifdef HAVE_SYS_PRCTL_H
-#include <sys/prctl.h>
-#endif
-
 #include "caps.h"
 
 /* Glibc <= 2.2 has broken unistd.h */
@@ -78,17 +74,20 @@ void pa_drop_root(void) {
     pa_assert_se(getegid() == gid);
 #endif
 
-#ifdef HAVE_SYS_PRCTL_H
-    pa_assert_se(prctl(PR_SET_KEEPCAPS, 0, 0, 0, 0) == 0);
-#endif
+    if (uid != 0)
+        pa_drop_caps();
+}
 
+void pa_drop_caps(void) {
 #ifdef HAVE_SYS_CAPABILITY_H
-    if (uid != 0) {
-        cap_t caps;
-        pa_assert_se(caps = cap_init());
-        pa_assert_se(cap_clear(caps) == 0);
-        pa_assert_se(cap_set_proc(caps) == 0);
-        pa_assert_se(cap_free(caps) == 0);
-    }
+    cap_t caps;
+    pa_assert_se(caps = cap_init());
+    pa_assert_se(cap_clear(caps) == 0);
+    pa_assert_se(cap_set_proc(caps) == 0);
+    pa_assert_se(cap_free(caps) == 0);
+#else
+    pa_log_warn("Normally all extra capabilities would be dropped now, but "
+                "that's impossible because this Pulseaudio was built without "
+                "libcap support.");
 #endif
 }
