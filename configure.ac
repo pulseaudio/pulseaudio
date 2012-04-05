@@ -1330,6 +1330,7 @@ man/padsp.1.xml
 man/pulse-daemon.conf.5.xml
 man/pulse-client.conf.5.xml
 man/default.pa.5.xml
+man/pulse-cli-syntax.5.xml
 man/start-pulseaudio-kde.1.xml
 man/start-pulseaudio-x11.1.xml
 ])

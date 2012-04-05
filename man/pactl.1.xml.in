@@ -66,7 +66,7 @@ USA.
   <section name="Commands">
 
     <option>
-      <p><opt>stat</opt> [short]</p>
+      <p><opt>stat</opt> [<arg>short</arg>]</p>
       <optdesc><p>Dump a few statistics about the memory usage of the PulseAudio daemon. (Note: for backwards
       compatibility, we also show the output of the <arg>info</arg> command. In order to only show
       statistics, use the optional <arg>short</arg> argument. In a future version of PA we will
@@ -79,7 +79,7 @@ USA.
     </option>
 
     <option>
-      <p><opt>list</opt> [short] [<arg>TYPE</arg>]</p>
+      <p><opt>list</opt> [<arg>short</arg>] [<arg>TYPE</arg>]</p>
       <optdesc><p>Dump all currently loaded modules, available sinks, sources, streams, etc.  <arg>TYPE</arg> must be one of:
       modules, sinks, sources, sink-inputs, source-outputs, clients, samples, cards.  If not specified, all info is listed.  If
       short is given, output is in a tabular format, for easy parsing by scripts.</p></optdesc>
@@ -243,7 +243,8 @@ USA.
 
   <seealso>
     <p>
-      <manref name="pulseaudio" section="1"/>, <manref name="pacmd" section="1"/>
+      <manref name="pulseaudio" section="1"/>,
+      <manref name="pacmd" section="1"/>
     </p>
   </seealso>
 

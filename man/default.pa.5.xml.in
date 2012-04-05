@@ -34,7 +34,7 @@ USA.
     <file>~/.pulse/default.pa</file> on startup, and when that file
     doesn't exist <file>@PA_DEFAULT_CONFIG_DIR@/default.pa</file>. It
     should contain directives in the PulseAudio CLI languages, as
-    documented on <url href="http://pulseaudio.org/wiki/CLI"/>.</p>
+    documented in <manref name="pulse-cli-syntax" section="5"/>.</p>
 
     <p>The same commands can also be entered during runtime in the <manref name="pacmd"
       section="1"/> tool, allowing flexible runtime reconfiguration.</p>
@@ -47,9 +47,10 @@ USA.
 
   <section name="See also">
     <p>
-      <manref name="pulse-daemon.conf" section="5"/>, <manref
-      name="pulseaudio" section="1"/>, <manref name="pacmd"
-      section="1"/>
+      <manref name="pulse-cli-syntax" section="5"/>,
+      <manref name="pulse-daemon.conf" section="5"/>,
+      <manref name="pulseaudio" section="1"/>,
+      <manref name="pacmd" section="1"/>
     </p>
   </section>
 

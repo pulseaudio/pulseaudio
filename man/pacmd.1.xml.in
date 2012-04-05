@@ -34,7 +34,11 @@ USA.
     the commands also understood in the <file>default.pa</file>
     configuration scripts.</p>
 
-    <p>This program takes no command line options.</p>
+    <p>To exit the live shell, use ctrl+d. Note that the 'exit' command
+    inside the shell will tell the PulseAudio daemon itself to shutdown!</p>
+
+    <p>If any arguments are passed on the command line, they will be
+    passed into the live shell which will process the command and exit.</p>
   </description>
 
   <section name="Authors">
@@ -43,7 +47,10 @@ USA.
 
   <section name="See also">
     <p>
-      <manref name="pulseaudio" section="1"/>, <manref name="pactl" section="1"/>, <manref name="default.pa" section="5"/>
+      <manref name="pulse-cli-syntax" section="5"/>,
+      <manref name="pulseaudio" section="1"/>,
+      <manref name="pactl" section="1"/>,
+      <manref name="default.pa" section="5"/>
     </p>
   </section>
 

@@ -31,6 +31,7 @@ noinst_DATA = \
 	pulse-daemon.conf.5.xml \
 	pulse-client.conf.5.xml \
 	default.pa.5.xml \
+	pulse-cli-syntax.5.xml \
 	start-pulseaudio-kde.1.xml \
 	start-pulseaudio-x11.1.xml
 
@@ -54,6 +55,7 @@ dist_man_MANS = \
 	pulse-daemon.conf.5 \
 	pulse-client.conf.5 \
 	default.pa.5 \
+	pulse-cli-syntax.5 \
 	start-pulseaudio-kde.1 \
 	start-pulseaudio-x11.1
 
@@ -78,6 +80,7 @@ EXTRA_DIST = \
 	pulse-daemon.conf.5.xml.in \
 	pulse-client.conf.5.xml.in \
 	default.pa.5.xml.in \
+	pulse-cli-syntax.5.xml.in \
 	start-pulseaudio-kde.1.xml.in \
 	start-pulseaudio-x11.1.xml.in \
 	xmltoman \
