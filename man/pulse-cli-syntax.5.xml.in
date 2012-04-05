@@ -129,14 +129,14 @@ USA.
     </option>
 
     <option>
-      <p><opt>set-sink-input-volume</opt> <arg>index</arg> <arg>volume</arg></p>
-      <optdesc><p>Set the volume of a sink input specified
+      <p><opt>set-sink-input-volume|set-source-output-volume</opt> <arg>index</arg> <arg>volume</arg></p>
+      <optdesc><p>Set the volume of a sink input (resp. source output) specified
       by its index. The same volume rules apply as with set-sink-volume.</p></optdesc>
     </option>
 
     <option>
-      <p><opt>set-sink-input-mute</opt> <arg>index</arg> <arg>boolean</arg></p>
-      <optdesc><p>Mute or unmute a sink input specified
+      <p><opt>set-sink-input-mute|set-source-output-mute</opt> <arg>index</arg> <arg>boolean</arg></p>
+      <optdesc><p>Mute or unmute a sink input (resp. source output) specified
       by its index. The same mute rules apply as with set-sink-mute.</p></optdesc>
     </option>
   </section>

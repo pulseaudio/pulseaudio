@@ -96,10 +96,12 @@ static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa
 static int pa_cli_command_describe(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_source_output_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sink_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_source_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_source_output_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_source_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_kill_client(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
@@ -155,7 +157,9 @@ static const struct command commands[] = {
     { "set-sink-mute",           pa_cli_command_sink_mute,          "Set the mute switch of a sink (args: index|name, bool)", 3},
     { "set-source-mute",         pa_cli_command_source_mute,        "Set the mute switch of a source (args: index|name, bool)", 3},
     { "set-sink-input-volume",   pa_cli_command_sink_input_volume,  "Set the volume of a sink input (args: index, volume)", 3},
+    { "set-source-output-volume",pa_cli_command_source_output_volume,"Set the volume of a source output (args: index, volume)", 3},
     { "set-sink-input-mute",     pa_cli_command_sink_input_mute,    "Set the mute switch of a sink input (args: index, bool)", 3},
+    { "set-source-output-mute",  pa_cli_command_source_output_mute, "Set the mute switch of a source output (args: index, bool)", 3},
     { "set-default-sink",        pa_cli_command_sink_default,       "Set the default sink (args: index|name)", 2},
     { "set-default-source",      pa_cli_command_source_default,     "Set the default source (args: index|name)", 2},
     { "set-card-profile",        pa_cli_command_card_profile,       "Change the profile of a card (args: index|name, profile-name)", 3},
@@ -169,7 +173,7 @@ static const struct command commands[] = {
     { "update-sink-proplist",    pa_cli_command_update_sink_proplist, "Update the properties of a sink (args: index|name, properties)", 3},
     { "update-source-proplist",  pa_cli_command_update_source_proplist, "Update the properties of a source (args: index|name, properties)", 3},
     { "update-sink-input-proplist", pa_cli_command_update_sink_input_proplist, "Update the properties of a sink input (args: index, properties)", 3},
-    { "update-source-output-proplist", pa_cli_command_update_source_output_proplist, "Update the properties of a source_output (args: index, properties)", 3},
+    { "update-source-output-proplist", pa_cli_command_update_source_output_proplist, "Update the properties of a source output (args: index, properties)", 3},
     { "list-samples",            pa_cli_command_scache_list,        "List all entries in the sample cache", 1},
     { "play-sample",             pa_cli_command_scache_play,        "Play a sample from the sample cache (args: name, sink|index)", 3},
     { "remove-sample",           pa_cli_command_scache_remove,      "Remove a sample from the sample cache (args: name)", 2},
@@ -637,6 +641,58 @@ static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *
     return 0;
 }
 
+static int pa_cli_command_source_output_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *n, *v;
+    pa_source_output *so;
+    pa_volume_t volume;
+    pa_cvolume cvolume;
+    uint32_t idx;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a source output by its index.\n");
+        return -1;
+    }
+
+    if ((idx = parse_index(n)) == PA_IDXSET_INVALID) {
+        pa_strbuf_puts(buf, "Failed to parse index.\n");
+        return -1;
+    }
+
+    if (!(v = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x10000 is normal volume)\n");
+        return -1;
+    }
+
+    if (pa_atou(v, &volume) < 0) {
+        pa_strbuf_puts(buf, "Failed to parse volume.\n");
+        return -1;
+    }
+
+    if (!PA_VOLUME_IS_VALID(volume)) {
+        pa_strbuf_puts(buf, "Volume outside permissible range.\n");
+        return -1;
+    }
+
+    if (!(so = pa_idxset_get_by_index(c->source_outputs, idx))) {
+        pa_strbuf_puts(buf, "No source output found with this index.\n");
+        return -1;
+    }
+
+    if (!so->volume_writable) {
+        pa_strbuf_puts(buf, "This source output's volume can't be changed.\n");
+        return -1;
+    }
+
+    pa_cvolume_set(&cvolume, 1, volume);
+    pa_source_output_set_volume(so, &cvolume, TRUE, TRUE);
+    return 0;
+}
+
 static int pa_cli_command_sink_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     const char *n, *m;
     pa_sink *sink;
@@ -902,6 +958,46 @@ static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf
     }
 
     pa_sink_input_set_mute(si, mute, TRUE);
+    return 0;
+}
+
+static int pa_cli_command_source_output_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *n, *v;
+    pa_source_output *so;
+    uint32_t idx;
+    int mute;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a source output by its index.\n");
+        return -1;
+    }
+
+    if ((idx = parse_index(n)) == PA_IDXSET_INVALID) {
+        pa_strbuf_puts(buf, "Failed to parse index.\n");
+        return -1;
+    }
+
+    if (!(v = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a mute switch setting (0/1).\n");
+        return -1;
+    }
+
+    if ((mute = pa_parse_boolean(v)) < 0) {
+        pa_strbuf_puts(buf, "Failed to parse mute switch.\n");
+        return -1;
+    }
+
+    if (!(so = pa_idxset_get_by_index(c->source_outputs, (uint32_t) idx))) {
+        pa_strbuf_puts(buf, "No source output found with this index.\n");
+        return -1;
+    }
+
+    pa_source_output_set_mute(so, mute, TRUE);
     return 0;
 }
 
