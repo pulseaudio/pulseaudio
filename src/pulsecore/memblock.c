@@ -518,8 +518,8 @@ static void memblock_free(pa_memblock *b) {
 
         case PA_MEMBLOCK_APPENDED:
 
-            /* We could attached it unused_memblocks, but that would
-             * probably waste some considerable memory */
+            /* We could attach it to unused_memblocks, but that would
+             * probably waste some considerable amount of memory */
             pa_xfree(b);
             break;
 

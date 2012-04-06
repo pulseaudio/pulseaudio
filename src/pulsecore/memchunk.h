@@ -34,7 +34,7 @@ typedef struct pa_memchunk {
 } pa_memchunk;
 
 /* Make a memchunk writable, i.e. make sure that the caller may have
- * exclusive access to the memblock and it is not read_only. If needed
+ * exclusive access to the memblock and it is not read-only. If needed
  * the memblock in the structure is replaced by a copy. If min is not
  * 0 it is made sure that the returned memblock is at least of the
  * specified size, i.e. is enlarged if necessary. */
