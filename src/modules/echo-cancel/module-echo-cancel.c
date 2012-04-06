@@ -164,8 +164,8 @@ static const pa_echo_canceller ec_table[] = {
  *    samples (because else the echo canceler does not work) or when the
  *    playback pointer drifts too far away.
  *
- * 2) periodically check the difference between capture and playback. we use a
- *    low and high watermark for adjusting the alignment. playback should always
+ * 2) periodically check the difference between capture and playback. We use a
+ *    low and high watermark for adjusting the alignment. Playback should always
  *    be before capture and the difference should not be bigger than one frame
  *    size. We would ideally like to resample the sink_input but most driver
  *    don't give enough accuracy to be able to do that right now.
