@@ -2038,7 +2038,7 @@ update-map-file:
 update-all: update-ffmpeg update-sbc update-map-file
 
 # Force installation order of libraries. libtool relinks on install time, in
-# which case libpulsecommon has to be install before others, but the padsp
+# which case libpulsecommon has to be installed before others, but the padsp
 # preload library has to be done after the normal libraries (e.g. libpulse)
 # ...
 # Unfortunately automake behaviour means that rules without commands also
