@@ -48,7 +48,6 @@ PA_MODULE_USAGE(
         _("sink_name=<name for the sink> "
           "sink_properties=<properties for the sink> "
           "master=<name of sink to filter> "
-          "format=<sample format> "
           "rate=<sample rate> "
           "channels=<number of channels> "
           "channel_map=<channel map> "
@@ -77,7 +76,6 @@ static const char* const valid_modargs[] = {
     "sink_name",
     "sink_properties",
     "master",
-    "format",
     "rate",
     "channels",
     "channel_map",
