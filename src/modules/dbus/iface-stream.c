@@ -611,7 +611,7 @@ static void handle_move(DBusConnection *conn, DBusMessage *msg, void *userdata) 
     pa_assert(msg);
     pa_assert(s);
 
-    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &device, DBUS_TYPE_INVALID));
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_OBJECT_PATH, &device, DBUS_TYPE_INVALID));
 
     if (s->type == STREAM_TYPE_PLAYBACK) {
         pa_sink *sink = pa_dbusiface_core_get_sink(s->core, device);
