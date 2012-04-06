@@ -311,8 +311,8 @@ int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nb
  * the data before accessing the property list again. \since 0.9.11 */
 const char *pa_proplist_gets(pa_proplist *p, const char *key);
 
-/** Return the value for the specified key. Will return a
- * NUL-terminated string for string entries. The pointer returned will
+/** Store the value for the specified key in \a data. Will store a
+ * NUL-terminated string for string entries. The \a data pointer returned will
  * point to an internally allocated buffer. The caller should make a
  * copy of the data before the property list is accessed again. \since
  * 0.9.11 */
@@ -390,7 +390,7 @@ int pa_proplist_contains(pa_proplist *p, const char *key);
 void pa_proplist_clear(pa_proplist *p);
 
 /** Allocate a new property list and copy over every single entry from
- * the specific list. \since 0.9.11 */
+ * the specified list. \since 0.9.11 */
 pa_proplist* pa_proplist_copy(const pa_proplist *p);
 
 /** Return the number of entries in the property list. \since 0.9.15 */
