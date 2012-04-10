@@ -182,7 +182,7 @@ static pa_bool_t perportentry_write(struct userdata *u, const char *basekeyname,
 static void perportentry_free(struct perportentry* e);
 #endif
 
-static struct entry* entry_new() {
+static struct entry* entry_new(void) {
     struct entry *r = pa_xnew0(struct entry, 1);
     r->version = ENTRY_VERSION;
     return r;
@@ -239,7 +239,7 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
         goto fail;
 
     t = pa_tagstruct_new(data.data, data.size);
-    e = entry_new(FALSE);
+    e = entry_new();
 
     if (pa_tagstruct_getu8(t, &e->version) < 0 ||
         e->version > ENTRY_VERSION ||
