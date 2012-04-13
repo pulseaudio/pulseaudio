@@ -39,20 +39,8 @@
 #define WHITESPACE " \t\n"
 #define COMMENTS "#;\n"
 
-struct parser_state {
-    const char *filename;
-    unsigned lineno;
-    char *section;
-    const pa_config_item *item_table;
-    char buf[4096];
-    void *userdata;
-
-    char *lvalue;
-    char *rvalue;
-};
-
 /* Run the user supplied parser for an assignment */
-static int next_assignment(struct parser_state *state) {
+static int next_assignment(pa_config_parser_state *state) {
     const pa_config_item *item;
 
     pa_assert(state);
@@ -68,7 +56,9 @@ static int next_assignment(struct parser_state *state) {
         if (item->section && !pa_streq(state->section, item->section))
             continue;
 
-        return item->parse(state->filename, state->lineno, state->section, state->lvalue, state->rvalue, item->data, state->userdata);
+        state->data = item->data;
+
+        return item->parse(state);
     }
 
     pa_log("[%s:%u] Unknown lvalue '%s' in section '%s'.", state->filename, state->lineno, state->lvalue, pa_strna(state->section));
@@ -77,7 +67,7 @@ static int next_assignment(struct parser_state *state) {
 }
 
 /* Parse a variable assignment line */
-static int parse_line(struct parser_state *state) {
+static int parse_line(pa_config_parser_state *state) {
     char *c;
 
     state->lvalue = state->buf + strspn(state->buf, WHITESPACE);
@@ -141,7 +131,7 @@ static int parse_line(struct parser_state *state) {
 int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void *userdata) {
     int r = -1;
     pa_bool_t do_close = !f;
-    struct parser_state state;
+    pa_config_parser_state state;
 
     pa_assert(filename);
     pa_assert(t);
@@ -188,17 +178,16 @@ finish:
     return r;
 }
 
-int pa_config_parse_int(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
-    int *i = data;
+int pa_config_parse_int(pa_config_parser_state *state) {
+    int *i;
     int32_t k;
 
-    pa_assert(filename);
-    pa_assert(lvalue);
-    pa_assert(rvalue);
-    pa_assert(data);
+    pa_assert(state);
 
-    if (pa_atoi(rvalue, &k) < 0) {
-        pa_log("[%s:%u] Failed to parse numeric value: %s", filename, line, rvalue);
+    i = state->data;
+
+    if (pa_atoi(state->rvalue, &k) < 0) {
+        pa_log("[%s:%u] Failed to parse numeric value: %s", state->filename, state->lineno, state->rvalue);
         return -1;
     }
 
@@ -206,17 +195,16 @@ int pa_config_parse_int(const char *filename, unsigned line, const char *section
     return 0;
 }
 
-int pa_config_parse_unsigned(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
-    unsigned *u = data;
+int pa_config_parse_unsigned(pa_config_parser_state *state) {
+    unsigned *u;
     uint32_t k;
 
-    pa_assert(filename);
-    pa_assert(lvalue);
-    pa_assert(rvalue);
-    pa_assert(data);
+    pa_assert(state);
 
-    if (pa_atou(rvalue, &k) < 0) {
-        pa_log("[%s:%u] Failed to parse numeric value: %s", filename, line, rvalue);
+    u = state->data;
+
+    if (pa_atou(state->rvalue, &k) < 0) {
+        pa_log("[%s:%u] Failed to parse numeric value: %s", state->filename, state->lineno, state->rvalue);
         return -1;
     }
 
@@ -224,17 +212,16 @@ int pa_config_parse_unsigned(const char *filename, unsigned line, const char *se
     return 0;
 }
 
-int pa_config_parse_size(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
-    size_t *i = data;
+int pa_config_parse_size(pa_config_parser_state *state) {
+    size_t *i;
     uint32_t k;
 
-    pa_assert(filename);
-    pa_assert(lvalue);
-    pa_assert(rvalue);
-    pa_assert(data);
+    pa_assert(state);
 
-    if (pa_atou(rvalue, &k) < 0) {
-        pa_log("[%s:%u] Failed to parse numeric value: %s", filename, line, rvalue);
+    i = state->data;
+
+    if (pa_atou(state->rvalue, &k) < 0) {
+        pa_log("[%s:%u] Failed to parse numeric value: %s", state->filename, state->lineno, state->rvalue);
         return -1;
     }
 
@@ -242,17 +229,16 @@ int pa_config_parse_size(const char *filename, unsigned line, const char *sectio
     return 0;
 }
 
-int pa_config_parse_bool(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+int pa_config_parse_bool(pa_config_parser_state *state) {
     int k;
-    pa_bool_t *b = data;
+    pa_bool_t *b;
 
-    pa_assert(filename);
-    pa_assert(lvalue);
-    pa_assert(rvalue);
-    pa_assert(data);
+    pa_assert(state);
 
-    if ((k = pa_parse_boolean(rvalue)) < 0) {
-        pa_log("[%s:%u] Failed to parse boolean value: %s", filename, line, rvalue);
+    b = state->data;
+
+    if ((k = pa_parse_boolean(state->rvalue)) < 0) {
+        pa_log("[%s:%u] Failed to parse boolean value: %s", state->filename, state->lineno, state->rvalue);
         return -1;
     }
 
@@ -261,22 +247,16 @@ int pa_config_parse_bool(const char *filename, unsigned line, const char *sectio
     return 0;
 }
 
-int pa_config_parse_not_bool(
-        const char *filename, unsigned line,
-        const char *section,
-        const char *lvalue, const char *rvalue,
-        void *data, void *userdata) {
-
+int pa_config_parse_not_bool(pa_config_parser_state *state) {
     int k;
-    pa_bool_t *b = data;
+    pa_bool_t *b;
 
-    pa_assert(filename);
-    pa_assert(lvalue);
-    pa_assert(rvalue);
-    pa_assert(data);
+    pa_assert(state);
 
-    if ((k = pa_parse_boolean(rvalue)) < 0) {
-        pa_log("[%s:%u] Failed to parse boolean value: %s", filename, line, rvalue);
+    b = state->data;
+
+    if ((k = pa_parse_boolean(state->rvalue)) < 0) {
+        pa_log("[%s:%u] Failed to parse boolean value: %s", state->filename, state->lineno, state->rvalue);
         return -1;
     }
 
@@ -285,15 +265,14 @@ int pa_config_parse_not_bool(
     return 0;
 }
 
-int pa_config_parse_string(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
-    char **s = data;
+int pa_config_parse_string(pa_config_parser_state *state) {
+    char **s;
 
-    pa_assert(filename);
-    pa_assert(lvalue);
-    pa_assert(rvalue);
-    pa_assert(data);
+    pa_assert(state);
+
+    s = state->data;
 
     pa_xfree(*s);
-    *s = *rvalue ? pa_xstrdup(rvalue) : NULL;
+    *s = *state->rvalue ? pa_xstrdup(state->rvalue) : NULL;
     return 0;
 }

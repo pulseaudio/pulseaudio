@@ -27,7 +27,9 @@
 /* An abstract parser for simple, line based, shallow configuration
  * files consisting of variable assignments only. */
 
-typedef int (*pa_config_parser_cb_t)(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata);
+typedef struct pa_config_parser_state pa_config_parser_state;
+
+typedef int (*pa_config_parser_cb_t)(pa_config_parser_state *state);
 
 /* Wraps info for parsing a specific configuration variable */
 typedef struct pa_config_item {
@@ -37,17 +39,31 @@ typedef struct pa_config_item {
     const char *section;
 } pa_config_item;
 
+struct pa_config_parser_state {
+    const char *filename;
+    unsigned lineno;
+    char *section;
+    char *lvalue;
+    char *rvalue;
+    void *data; /* The data pointer of the current pa_config_item. */
+    void *userdata; /* The pointer that was given to pa_config_parse(). */
+
+    /* Private data to be used only by conf-parser.c. */
+    const pa_config_item *item_table;
+    char buf[4096];
+};
+
 /* The configuration file parsing routine. Expects a table of
  * pa_config_items in *t that is terminated by an item where lvalue is
  * NULL */
 int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void *userdata);
 
 /* Generic parsers for integers, size_t, booleans and strings */
-int pa_config_parse_int(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata);
-int pa_config_parse_unsigned(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata);
-int pa_config_parse_size(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata);
-int pa_config_parse_bool(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata);
-int pa_config_parse_not_bool(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata);
-int pa_config_parse_string(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata);
+int pa_config_parse_int(pa_config_parser_state *state);
+int pa_config_parse_unsigned(pa_config_parser_state *state);
+int pa_config_parse_size(pa_config_parser_state *state);
+int pa_config_parse_bool(pa_config_parser_state *state);
+int pa_config_parse_not_bool(pa_config_parser_state *state);
+int pa_config_parse_string(pa_config_parser_state *state);
 
 #endif

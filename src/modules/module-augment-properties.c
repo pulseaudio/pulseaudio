@@ -78,19 +78,15 @@ static void rule_free(struct rule *r) {
     pa_xfree(r);
 }
 
-static int parse_properties(
-        const char *filename,
-        unsigned line,
-        const char *section,
-        const char *lvalue,
-        const char *rvalue,
-        void *data,
-        void *userdata) {
-
-    struct rule *r = userdata;
+static int parse_properties(pa_config_parser_state *state) {
+    struct rule *r;
     pa_proplist *n;
 
-    if (!(n = pa_proplist_from_string(rvalue)))
+    pa_assert(state);
+
+    r = state->userdata;
+
+    if (!(n = pa_proplist_from_string(state->rvalue)))
         return -1;
 
     if (r->proplist) {
@@ -102,20 +98,16 @@ static int parse_properties(
     return 0;
 }
 
-static int parse_categories(
-        const char *filename,
-        unsigned line,
-        const char *section,
-        const char *lvalue,
-        const char *rvalue,
-        void *data,
-        void *userdata) {
-
-    struct rule *r = userdata;
-    const char *state = NULL;
+static int parse_categories(pa_config_parser_state *state) {
+    struct rule *r;
+    const char *split_state = NULL;
     char *c;
 
-    while ((c = pa_split(rvalue, ";", &state))) {
+    pa_assert(state);
+
+    r = state->userdata;
+
+    while ((c = pa_split(state->rvalue, ";", &split_state))) {
 
         if (pa_streq(c, "Game")) {
             pa_xfree(r->role);
@@ -131,27 +123,13 @@ static int parse_categories(
     return 0;
 }
 
-static int check_type(
-        const char *filename,
-        unsigned line,
-        const char *section,
-        const char *lvalue,
-        const char *rvalue,
-        void *data,
-        void *userdata) {
+static int check_type(pa_config_parser_state *state) {
+    pa_assert(state);
 
-    return pa_streq(rvalue, "Application") ? 0 : -1;
+    return pa_streq(state->rvalue, "Application") ? 0 : -1;
 }
 
-static int catch_all(
-        const char *filename,
-        unsigned line,
-        const char *section,
-        const char *lvalue,
-        const char *rvalue,
-        void *data,
-        void *userdata) {
-
+static int catch_all(pa_config_parser_state *state) {
     return 0;
 }
 
