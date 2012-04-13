@@ -602,7 +602,6 @@ int pa_tagstruct_get_proplist(pa_tagstruct *t, pa_proplist *p) {
     size_t saved_rindex;
 
     pa_assert(t);
-    pa_assert(p);
 
     if (t->rindex+1 > t->length)
         return -1;
@@ -624,6 +623,9 @@ int pa_tagstruct_get_proplist(pa_tagstruct *t, pa_proplist *p) {
         if (!k)
             break;
 
+        if (!pa_proplist_key_valid(k))
+            goto fail;
+
         if (pa_tagstruct_getu32(t, &length) < 0)
             goto fail;
 
@@ -633,8 +635,8 @@ int pa_tagstruct_get_proplist(pa_tagstruct *t, pa_proplist *p) {
         if (pa_tagstruct_get_arbitrary(t, &d, length) < 0)
             goto fail;
 
-        if (pa_proplist_set(p, k, d, length) < 0)
-            goto fail;
+        if (p)
+            pa_assert_se(pa_proplist_set(p, k, d, length) >= 0);
     }
 
     return 0;

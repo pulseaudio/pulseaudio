@@ -1065,12 +1065,9 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
     pa_cvolume volume;
     pa_bool_t mute;
     pa_usec_t latency;
-    pa_proplist *pl;
 
     pa_assert(pd);
     pa_assert(u);
-
-    pl = pa_proplist_new();
 
     if (command != PA_COMMAND_REPLY) {
         if (command == PA_COMMAND_ERROR)
@@ -1101,7 +1098,7 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
     if (u->version >= 13) {
         pa_usec_t configured_latency;
 
-        if (pa_tagstruct_get_proplist(t, pl) < 0 ||
+        if (pa_tagstruct_get_proplist(t, NULL) < 0 ||
             pa_tagstruct_get_usec(t, &configured_latency) < 0) {
 
             pa_log("Parse failure");
@@ -1134,8 +1131,6 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
         goto fail;
     }
 
-    pa_proplist_free(pl);
-
     if (!u->sink_name || !pa_streq(name, u->sink_name))
         return;
 
@@ -1148,7 +1143,6 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
 
 fail:
     pa_module_unload_request(u->module, TRUE);
-    pa_proplist_free(pl);
 }
 
 /* Called from main context */
@@ -1161,13 +1155,10 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
     pa_cvolume volume;
-    pa_proplist *pl;
     pa_bool_t b;
 
     pa_assert(pd);
     pa_assert(u);
-
-    pl = pa_proplist_new();
 
     if (command != PA_COMMAND_REPLY) {
         if (command == PA_COMMAND_ERROR)
@@ -1203,7 +1194,7 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
     }
 
     if (u->version >= 13) {
-        if (pa_tagstruct_get_proplist(t, pl) < 0) {
+        if (pa_tagstruct_get_proplist(t, NULL) < 0) {
 
             pa_log("Parse failure");
             goto fail;
@@ -1243,8 +1234,6 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
         goto fail;
     }
 
-    pa_proplist_free(pl);
-
     if (idx != u->device_index)
         return;
 
@@ -1263,7 +1252,6 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
 
 fail:
     pa_module_unload_request(u->module, TRUE);
-    pa_proplist_free(pl);
 }
 
 #else
@@ -1278,12 +1266,9 @@ static void source_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
     pa_cvolume volume;
     pa_bool_t mute;
     pa_usec_t latency, configured_latency;
-    pa_proplist *pl;
 
     pa_assert(pd);
     pa_assert(u);
-
-    pl = pa_proplist_new();
 
     if (command != PA_COMMAND_REPLY) {
         if (command == PA_COMMAND_ERROR)
@@ -1312,7 +1297,7 @@ static void source_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
     }
 
     if (u->version >= 13) {
-        if (pa_tagstruct_get_proplist(t, pl) < 0 ||
+        if (pa_tagstruct_get_proplist(t, NULL) < 0 ||
             pa_tagstruct_get_usec(t, &configured_latency) < 0) {
 
             pa_log("Parse failure");
@@ -1345,8 +1330,6 @@ static void source_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
         goto fail;
     }
 
-    pa_proplist_free(pl);
-
     if (!u->source_name || !pa_streq(name, u->source_name))
         return;
 
@@ -1359,7 +1342,6 @@ static void source_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
 
 fail:
     pa_module_unload_request(u->module, TRUE);
-    pa_proplist_free(pl);
 }
 
 #endif
