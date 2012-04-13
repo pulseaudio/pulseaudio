@@ -181,6 +181,7 @@ struct pa_alsa_path {
     char *name;
     char *description;
     unsigned priority;
+    pa_proplist *proplist;
 
     pa_bool_t probed:1;
     pa_bool_t supported:1;

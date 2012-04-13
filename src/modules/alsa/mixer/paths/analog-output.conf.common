@@ -57,6 +57,10 @@
 ; priority = ...                         # Priority for this path
 ; description = ...
 ;
+; [Properties]                           # Property list for this path. The list is merged into the port property list.
+; <key> = <value>                        # Each property is defined on its own line.
+; ...
+;
 ; [Option ...:...]                       # For each option of an enumeration or switch element
 ;                                        # that shall be exposed as a sink/source port. Needs to
 ;                                        # be named after the Element, followed by a colon, followed

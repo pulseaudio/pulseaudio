@@ -518,6 +518,7 @@ void pa_alsa_path_free(pa_alsa_path *p) {
         setting_free(s);
     }
 
+    pa_proplist_free(p->proplist);
     pa_xfree(p->name);
     pa_xfree(p->description);
     pa_xfree(p);
@@ -2388,6 +2389,7 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
     p = pa_xnew0(pa_alsa_path, 1);
     n = pa_path_get_filename(fname);
     p->name = pa_xstrndup(n, strcspn(n, "."));
+    p->proplist = pa_proplist_new();
     p->direction = direction;
 
     items[0].data = &p->priority;
@@ -2399,7 +2401,7 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
 
     fn = pa_maybe_prefix_path(fname, paths_dir);
 
-    r = pa_config_parse(fn, NULL, items, NULL, p);
+    r = pa_config_parse(fn, NULL, items, p->proplist, p);
     pa_xfree(fn);
 
     if (r < 0)
@@ -4380,13 +4382,19 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports,
     pa_hashmap *extra,
     pa_core *core) {
 
-    pa_device_port * p = pa_hashmap_get(ports, name);
+    pa_device_port *p;
+
+    pa_assert(path);
+
+    p = pa_hashmap_get(ports, name);
+
     if (!p) {
         pa_alsa_port_data *data;
 
         p = pa_device_port_new(core, name, description, sizeof(pa_alsa_port_data));
         pa_assert(p);
         pa_hashmap_put(ports, p->name, p);
+        pa_proplist_update(p->proplist, PA_UPDATE_REPLACE, path->proplist);
 
         data = PA_DEVICE_PORT_DATA(p);
         data->path = path;
