@@ -204,22 +204,22 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                     i.ports[0] = pa_xnew(pa_sink_port_info, i.n_ports);
 
                     for (j = 0; j < i.n_ports; j++) {
-                        if (pa_tagstruct_gets(t, &i.ports[0][j].name) < 0 ||
-                            pa_tagstruct_gets(t, &i.ports[0][j].description) < 0 ||
-                            pa_tagstruct_getu32(t, &i.ports[0][j].priority) < 0) {
+                        i.ports[j] = &i.ports[0][j];
+
+                        if (pa_tagstruct_gets(t, &i.ports[j]->name) < 0 ||
+                            pa_tagstruct_gets(t, &i.ports[j]->description) < 0 ||
+                            pa_tagstruct_getu32(t, &i.ports[j]->priority) < 0) {
 
                             goto fail;
                         }
 
-                        i.ports[0][j].available = PA_PORT_AVAILABLE_UNKNOWN;
+                        i.ports[j]->available = PA_PORT_AVAILABLE_UNKNOWN;
                         if (o->context->version >= 24) {
                             uint32_t av;
                             if (pa_tagstruct_getu32(t, &av) < 0 || av > PA_PORT_AVAILABLE_YES)
                                 goto fail;
-                            i.ports[0][j].available = av;
+                            i.ports[j]->available = av;
                         }
-
-                        i.ports[j] = &i.ports[0][j];
                     }
 
                     i.ports[j] = NULL;
@@ -477,22 +477,22 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                     i.ports[0] = pa_xnew(pa_source_port_info, i.n_ports);
 
                     for (j = 0; j < i.n_ports; j++) {
-                        if (pa_tagstruct_gets(t, &i.ports[0][j].name) < 0 ||
-                            pa_tagstruct_gets(t, &i.ports[0][j].description) < 0 ||
-                            pa_tagstruct_getu32(t, &i.ports[0][j].priority) < 0) {
+                        i.ports[j] = &i.ports[0][j];
+
+                        if (pa_tagstruct_gets(t, &i.ports[j]->name) < 0 ||
+                            pa_tagstruct_gets(t, &i.ports[j]->description) < 0 ||
+                            pa_tagstruct_getu32(t, &i.ports[j]->priority) < 0) {
 
                             goto fail;
                         }
 
-                        i.ports[0][j].available = PA_PORT_AVAILABLE_UNKNOWN;
+                        i.ports[j]->available = PA_PORT_AVAILABLE_UNKNOWN;
                         if (o->context->version >= 24) {
                             uint32_t av;
                             if (pa_tagstruct_getu32(t, &av) < 0 || av > PA_PORT_AVAILABLE_YES)
                                 goto fail;
-                            i.ports[0][j].available = av;
+                            i.ports[j]->available = av;
                         }
-
-                        i.ports[j] = &i.ports[0][j];
                     }
 
                     i.ports[j] = NULL;
