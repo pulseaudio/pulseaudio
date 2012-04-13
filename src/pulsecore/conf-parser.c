@@ -40,7 +40,7 @@
 #define COMMENTS "#;\n"
 
 /* Run the user supplied parser for an assignment */
-static int next_assignment(pa_config_parser_state *state) {
+static int normal_assignment(pa_config_parser_state *state) {
     const pa_config_item *item;
 
     pa_assert(state);
@@ -64,6 +64,19 @@ static int next_assignment(pa_config_parser_state *state) {
     pa_log("[%s:%u] Unknown lvalue '%s' in section '%s'.", state->filename, state->lineno, state->lvalue, pa_strna(state->section));
 
     return -1;
+}
+
+/* Parse a proplist entry. */
+static int proplist_assignment(pa_config_parser_state *state) {
+    pa_assert(state);
+    pa_assert(state->proplist);
+
+    if (pa_proplist_sets(state->proplist, state->lvalue, state->rvalue) < 0) {
+        pa_log("[%s:%u] Failed to parse a proplist entry: %s = %s", state->filename, state->lineno, state->lvalue, state->rvalue);
+        return -1;
+    }
+
+    return 0;
 }
 
 /* Parse a variable assignment line */
@@ -92,7 +105,7 @@ static int parse_line(pa_config_parser_state *state) {
             }
         }
 
-        r = pa_config_parse(fn, NULL, state->item_table, state->userdata);
+        r = pa_config_parse(fn, NULL, state->item_table, state->proplist, state->userdata);
         pa_xfree(path);
         return r;
     }
@@ -110,6 +123,17 @@ static int parse_line(pa_config_parser_state *state) {
 
         pa_xfree(state->section);
         state->section = pa_xstrndup(state->lvalue + 1, k-2);
+
+        if (pa_streq(state->section, "Properties")) {
+            if (!state->proplist) {
+                pa_log("[%s:%u] \"Properties\" section is not allowed in this file.", state->filename, state->lineno);
+                return -1;
+            }
+
+            state->in_proplist = TRUE;
+        } else
+            state->in_proplist = FALSE;
+
         return 0;
     }
 
@@ -124,11 +148,14 @@ static int parse_line(pa_config_parser_state *state) {
     state->lvalue = pa_strip(state->lvalue);
     state->rvalue = pa_strip(state->rvalue);
 
-    return next_assignment(state);
+    if (state->in_proplist)
+        return proplist_assignment(state);
+    else
+        return normal_assignment(state);
 }
 
 /* Go through the file and parse each line */
-int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void *userdata) {
+int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, pa_proplist *proplist, void *userdata) {
     int r = -1;
     pa_bool_t do_close = !f;
     pa_config_parser_state state;
@@ -152,6 +179,9 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
     state.item_table = t;
     state.userdata = userdata;
 
+    if (proplist)
+        state.proplist = pa_proplist_new();
+
     while (!feof(f)) {
         if (!fgets(state.buf, sizeof(state.buf), f)) {
             if (feof(f))
@@ -167,9 +197,15 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
             goto finish;
     }
 
+    if (proplist)
+        pa_proplist_update(proplist, PA_UPDATE_REPLACE, state.proplist);
+
     r = 0;
 
 finish:
+    if (state.proplist)
+        pa_proplist_free(state.proplist);
+
     pa_xfree(state.section);
 
     if (do_close && f)

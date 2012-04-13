@@ -206,7 +206,7 @@ static void update_rule(struct rule *r) {
     table[0].data = &r->application_name;
     table[1].data = &r->icon_name;
 
-    if (pa_config_parse(fn, NULL, table, r) < 0)
+    if (pa_config_parse(fn, NULL, table, NULL, r) < 0)
         pa_log_warn("Failed to parse .desktop file %s.", fn);
 
     pa_xfree(fn);

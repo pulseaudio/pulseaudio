@@ -127,7 +127,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
                 goto finish;
     }
 
-    r = f ? pa_config_parse(fn, f, table, NULL) : 0;
+    r = f ? pa_config_parse(fn, f, table, NULL, NULL) : 0;
 
     if (!r)
         r = pa_client_conf_load_cookie(c);

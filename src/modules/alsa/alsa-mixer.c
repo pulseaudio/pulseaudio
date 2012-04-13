@@ -2399,7 +2399,7 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
 
     fn = pa_maybe_prefix_path(fname, paths_dir);
 
-    r = pa_config_parse(fn, NULL, items, p);
+    r = pa_config_parse(fn, NULL, items, NULL, p);
     pa_xfree(fn);
 
     if (r < 0)
@@ -4128,7 +4128,7 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
                               pa_run_from_build_tree() ? PA_BUILDDIR "/modules/alsa/mixer/profile-sets/" :
                               PA_ALSA_PROFILE_SETS_DIR);
 
-    r = pa_config_parse(fn, NULL, items, ps);
+    r = pa_config_parse(fn, NULL, items, NULL, ps);
     pa_xfree(fn);
 
     if (r < 0)
