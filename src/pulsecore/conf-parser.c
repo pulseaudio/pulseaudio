@@ -39,104 +39,109 @@
 #define WHITESPACE " \t\n"
 #define COMMENTS "#;\n"
 
+struct parser_state {
+    const char *filename;
+    unsigned lineno;
+    char *section;
+    const pa_config_item *item_table;
+    char buf[4096];
+    void *userdata;
+
+    char *lvalue;
+    char *rvalue;
+};
+
 /* Run the user supplied parser for an assignment */
-static int next_assignment(
-        const char *filename,
-        unsigned line,
-        const char *section,
-        const pa_config_item *t,
-        const char *lvalue,
-        const char *rvalue,
-        void *userdata) {
+static int next_assignment(struct parser_state *state) {
+    const pa_config_item *item;
 
-    pa_assert(filename);
-    pa_assert(t);
-    pa_assert(lvalue);
-    pa_assert(rvalue);
+    pa_assert(state);
 
-    for (; t->parse; t++) {
+    for (item = state->item_table; item->parse; item++) {
 
-        if (t->lvalue && !pa_streq(lvalue, t->lvalue))
+        if (item->lvalue && !pa_streq(state->lvalue, item->lvalue))
             continue;
 
-        if (t->section && !section)
+        if (item->section && !state->section)
             continue;
 
-        if (t->section && !pa_streq(section, t->section))
+        if (item->section && !pa_streq(state->section, item->section))
             continue;
 
-        return t->parse(filename, line, section, lvalue, rvalue, t->data, userdata);
+        return item->parse(state->filename, state->lineno, state->section, state->lvalue, state->rvalue, item->data, state->userdata);
     }
 
-    pa_log("[%s:%u] Unknown lvalue '%s' in section '%s'.", filename, line, lvalue, pa_strna(section));
+    pa_log("[%s:%u] Unknown lvalue '%s' in section '%s'.", state->filename, state->lineno, state->lvalue, pa_strna(state->section));
 
     return -1;
 }
 
 /* Parse a variable assignment line */
-static int parse_line(const char *filename, unsigned line, char **section, const pa_config_item *t, char *l, void *userdata) {
-    char *e, *c, *b;
+static int parse_line(struct parser_state *state) {
+    char *c;
 
-    b = l+strspn(l, WHITESPACE);
+    state->lvalue = state->buf + strspn(state->buf, WHITESPACE);
 
-    if ((c = strpbrk(b, COMMENTS)))
+    if ((c = strpbrk(state->lvalue, COMMENTS)))
         *c = 0;
 
-    if (!*b)
+    if (!*state->lvalue)
         return 0;
 
-    if (pa_startswith(b, ".include ")) {
+    if (pa_startswith(state->lvalue, ".include ")) {
         char *path = NULL, *fn;
         int r;
 
-        fn = pa_strip(b+9);
+        fn = pa_strip(state->lvalue + 9);
         if (!pa_is_path_absolute(fn)) {
             const char *k;
-            if ((k = strrchr(filename, '/'))) {
-                char *dir = pa_xstrndup(filename, k-filename);
+            if ((k = strrchr(state->filename, '/'))) {
+                char *dir = pa_xstrndup(state->filename, k - state->filename);
                 fn = path = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", dir, fn);
                 pa_xfree(dir);
             }
         }
 
-        r = pa_config_parse(fn, NULL, t, userdata);
+        r = pa_config_parse(fn, NULL, state->item_table, state->userdata);
         pa_xfree(path);
         return r;
     }
 
-    if (*b == '[') {
+    if (*state->lvalue == '[') {
         size_t k;
 
-        k = strlen(b);
+        k = strlen(state->lvalue);
         pa_assert(k > 0);
 
-        if (b[k-1] != ']') {
-            pa_log("[%s:%u] Invalid section header.", filename, line);
+        if (state->lvalue[k-1] != ']') {
+            pa_log("[%s:%u] Invalid section header.", state->filename, state->lineno);
             return -1;
         }
 
-        pa_xfree(*section);
-        *section = pa_xstrndup(b+1, k-2);
+        pa_xfree(state->section);
+        state->section = pa_xstrndup(state->lvalue + 1, k-2);
         return 0;
     }
 
-    if (!(e = strchr(b, '='))) {
-        pa_log("[%s:%u] Missing '='.", filename, line);
+    if (!(state->rvalue = strchr(state->lvalue, '='))) {
+        pa_log("[%s:%u] Missing '='.", state->filename, state->lineno);
         return -1;
     }
 
-    *e = 0;
-    e++;
+    *state->rvalue = 0;
+    state->rvalue++;
 
-    return next_assignment(filename, line, *section, t, pa_strip(b), pa_strip(e), userdata);
+    state->lvalue = pa_strip(state->lvalue);
+    state->rvalue = pa_strip(state->rvalue);
+
+    return next_assignment(state);
 }
 
 /* Go through the file and parse each line */
 int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void *userdata) {
     int r = -1;
-    unsigned line = 0;
     pa_bool_t do_close = !f;
-    char *section = NULL;
+    struct parser_state state;
 
     pa_assert(filename);
     pa_assert(t);
@@ -152,10 +157,13 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
         goto finish;
     }
 
-    while (!feof(f)) {
-        char l[4096];
+    pa_zero(state);
+    state.filename = filename;
+    state.item_table = t;
+    state.userdata = userdata;
 
-        if (!fgets(l, sizeof(l), f)) {
+    while (!feof(f)) {
+        if (!fgets(state.buf, sizeof(state.buf), f)) {
             if (feof(f))
                 break;
 
@@ -163,14 +171,16 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
             goto finish;
         }
 
-        if (parse_line(filename, ++line, &section, t, l, userdata) < 0)
+        state.lineno++;
+
+        if (parse_line(&state) < 0)
             goto finish;
     }
 
     r = 0;
 
 finish:
-    pa_xfree(section);
+    pa_xfree(state.section);
 
     if (do_close && f)
         fclose(f);
