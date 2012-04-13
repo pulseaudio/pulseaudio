@@ -571,6 +571,8 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
            i->owner_module != PA_INVALID_INDEX ? t : _("n/a"),
            pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
+    pa_xfree(pl);
+
     if (i->profiles) {
         pa_card_profile_info *p;
 
@@ -592,6 +594,11 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
             printf(_("\t\t%s: %s (priority: %u%s)\n"), (*p)->name, (*p)->description, (*p)->priority,
                 get_available_str_ynonly((*p)->available));
 
+            if (!pa_proplist_isempty((*p)->proplist)) {
+                printf(_("\t\t\tProperties:\n\t\t\t\t%s\n"), pl = pa_proplist_to_string_sep((*p)->proplist, "\n\t\t\t\t"));
+                pa_xfree(pl);
+            }
+
             if (pr) {
                 printf(_("\t\t\tPart of profile(s): %s"), pa_strnull((*pr)->name));
                 pr++;
@@ -603,8 +610,6 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
             }
         }
     }
-
-    pa_xfree(pl);
 }
 
 static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info *i, int is_last, void *userdata) {
