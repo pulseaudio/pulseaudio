@@ -3264,7 +3264,6 @@ static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_car
 
     if (card->ports) {
         pa_device_port* port;
-        pa_proplist* proplist = pa_proplist_new(); /* For now - push an empty proplist */
 
         pa_tagstruct_putu32(t, pa_hashmap_size(card->ports));
 
@@ -3274,7 +3273,7 @@ static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_car
             pa_tagstruct_putu32(t, port->priority);
             pa_tagstruct_putu32(t, port->available);
             pa_tagstruct_putu8(t, /* FIXME: port->direction */ (port->is_input ? PA_DIRECTION_INPUT : 0) | (port->is_output ? PA_DIRECTION_OUTPUT : 0));
-            pa_tagstruct_put_proplist(t, proplist);
+            pa_tagstruct_put_proplist(t, port->proplist);
 
             if (port->profiles) {
                 void* state2;
@@ -3285,7 +3284,6 @@ static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_car
                 pa_tagstruct_putu32(t, 0);
         }
 
-        pa_proplist_free(proplist);
     } else
         pa_tagstruct_putu32(t, 0);
 }
