@@ -287,8 +287,8 @@ New field in PA_COMMAND_UNDERFLOW:
 ## v24, implemented by >= 2.0
 
 New field in all commands that send/receive port introspection data
-(PA_COMMAND_GET_(SOURCE|SINK)_OUTPUT_INFO,
-PA_COMMAND_GET_(SOURCE|SINK)_OUTPUT_INFO_LIST):
+(PA_COMMAND_GET_(SOURCE|SINK)_INFO,
+PA_COMMAND_GET_(SOURCE|SINK)_INFO_LIST):
 
     uint32_t available
 
