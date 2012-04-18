@@ -174,8 +174,8 @@ struct pa_source {
      * thread context. */
     pa_source_cb_t update_requested_latency; /* may be NULL */
 
-    /* Called whenever the port shall be changed. Called from main
-     * thread. */
+    /* Called whenever the port shall be changed. Called from IO
+     * thread if deferred volumes are enabled, and main thread otherwise. */
     int (*set_port)(pa_source *s, pa_device_port *port); /*ditto */
 
     /* Called to get the list of formats supported by the source, sorted
