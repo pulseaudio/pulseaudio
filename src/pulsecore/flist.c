@@ -37,7 +37,7 @@
 
 #include "flist.h"
 
-#define FLIST_SIZE 128
+#define FLIST_SIZE 256
 
 /* Atomic table indices contain
    sign bit = if set, indicates empty/NULL value
