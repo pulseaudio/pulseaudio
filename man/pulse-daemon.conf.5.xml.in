@@ -153,7 +153,7 @@ USA.
       <p><opt>local-server-type=</opt> Please don't use this option if
       you don't have to! This option is currently only useful when you
       want D-Bus clients to use a remote server. This option may be
-      removed in future versions. If you only want to run Pulseaudio
+      removed in future versions. If you only want to run PulseAudio
       in the system mode, use the <opt>system-instance</opt> option.
       This option takes one of <opt>user</opt>, <opt>system</opt> or
       <opt>none</opt> as the argument. This is essentially a duplicate

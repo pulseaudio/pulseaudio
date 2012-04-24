@@ -540,10 +540,10 @@ int pa__init(pa_module *m) {
     if (!pa_hashmap_isempty(u->profile_set->decibel_fixes))
         pa_log_warn("Card %s uses decibel fixes (i.e. overrides the decibel information for some alsa volume elements). "
                     "Please note that this feature is meant just as a help for figuring out the correct decibel values. "
-                    "Pulseaudio is not the correct place to maintain the decibel mappings! The fixed decibel values "
+                    "PulseAudio is not the correct place to maintain the decibel mappings! The fixed decibel values "
                     "should be sent to ALSA developers so that they can fix the driver. If it turns out that this feature "
                     "is abused (i.e. fixes are not pushed to ALSA), the decibel fix feature may be removed in some future "
-                    "Pulseaudio version.", u->card->name);
+                    "PulseAudio version.", u->card->name);
 
     return 0;
 

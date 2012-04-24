@@ -3,7 +3,7 @@
 
   This module is based off Lennart Poettering's LADSPA sink and swaps out
   LADSPA functionality for a dbus-aware STFT OLA based digital equalizer.
-  All new work is published under Pulseaudio's original license.
+  All new work is published under PulseAudio's original license.
 
   Copyright 2009 Jason Newton <nevion@gmail.com>
 
