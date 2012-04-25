@@ -916,7 +916,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
             pa_source_post(u->source, &rchunk);
 
             pa_memblock_unref(rchunk.memblock);
-            pa_memblockq_drop(u->source_memblockq, u->blocksize);
+            pa_memblockq_drop(u->source_memblockq, to_skip);
 
             rlen -= to_skip;
             u->source_skip -= to_skip;
