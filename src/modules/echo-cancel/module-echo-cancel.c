@@ -500,7 +500,7 @@ static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
     return 0;
 }
 
-/* Called from I/O thread context */
+/* Called from source I/O thread context */
 static void source_update_requested_latency_cb(pa_source *s) {
     struct userdata *u;
 
@@ -519,7 +519,7 @@ static void source_update_requested_latency_cb(pa_source *s) {
             pa_source_get_requested_latency_within_thread(s));
 }
 
-/* Called from I/O thread context */
+/* Called from sink I/O thread context */
 static void sink_update_requested_latency_cb(pa_sink *s) {
     struct userdata *u;
 
@@ -538,7 +538,7 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
             pa_sink_get_requested_latency_within_thread(s));
 }
 
-/* Called from I/O thread context */
+/* Called from sink I/O thread context */
 static void sink_request_rewind_cb(pa_sink *s) {
     struct userdata *u;
 
@@ -584,6 +584,7 @@ static void sink_set_volume_cb(pa_sink *s) {
     pa_sink_input_set_volume(u->sink_input, &s->real_volume, s->save_volume, TRUE);
 }
 
+/* Called from main context. */
 static void source_get_volume_cb(pa_source *s) {
     struct userdata *u;
     pa_cvolume v;
@@ -647,7 +648,7 @@ static void source_get_mute_cb(pa_source *s) {
     pa_source_output_get_mute(u->source_output);
 }
 
-/* must be called from the input thread context */
+/* Called from source I/O thread context. */
 static void apply_diff_time(struct userdata *u, int64_t diff_time) {
     int64_t diff;
 
@@ -676,7 +677,7 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
     }
 }
 
-/* must be called from the input thread */
+/* Called from source I/O thread context. */
 static void do_resync(struct userdata *u) {
     int64_t diff_time;
     struct snapshot latency_snapshot;
@@ -699,6 +700,8 @@ static void do_resync(struct userdata *u) {
  * 3. Push out capture samples in blocksize chunks
  * 4. ???
  * 5. Profit
+ *
+ * Called from source I/O thread context.
  */
 static void do_push_drift_comp(struct userdata *u) {
     size_t rlen, plen;
@@ -792,7 +795,9 @@ static void do_push_drift_comp(struct userdata *u) {
 
 /* This one's simpler than the drift compensation case -- we just iterate over
  * the capture buffer, and pass the canceller blocksize bytes of playback and
- * capture data. */
+ * capture data.
+ *
+ * Called from source I/O thread context. */
 static void do_push(struct userdata *u) {
     size_t rlen, plen;
     pa_memchunk rchunk, pchunk, cchunk;
@@ -860,7 +865,7 @@ static void do_push(struct userdata *u) {
     }
 }
 
-/* Called from input thread context */
+/* Called from source I/O thread context. */
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk) {
     struct userdata *u;
     size_t rlen, plen, to_skip;
@@ -944,7 +949,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         do_push(u);
 }
 
-/* Called from I/O thread context */
+/* Called from sink I/O thread context. */
 static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     struct userdata *u;
 
@@ -971,7 +976,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     return 0;
 }
 
-/* Called from input thread context */
+/* Called from source I/O thread context. */
 static void source_output_process_rewind_cb(pa_source_output *o, size_t nbytes) {
     struct userdata *u;
 
@@ -991,7 +996,7 @@ static void source_output_process_rewind_cb(pa_source_output *o, size_t nbytes) 
         (long long) pa_memblockq_get_length (u->source_memblockq));
 }
 
-/* Called from I/O thread context */
+/* Called from sink I/O thread context. */
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     struct userdata *u;
 
@@ -1006,6 +1011,7 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     u->send_counter -= nbytes;
 }
 
+/* Called from source I/O thread context. */
 static void source_output_snapshot_within_thread(struct userdata *u, struct snapshot *snapshot) {
     size_t delay, rlen, plen;
     pa_usec_t now, latency;
@@ -1026,8 +1032,7 @@ static void source_output_snapshot_within_thread(struct userdata *u, struct snap
     snapshot->plen = plen + u->source_skip;
 }
 
-
-/* Called from output thread context */
+/* Called from source I/O thread context. */
 static int source_output_process_msg_cb(pa_msgobject *obj, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE_OUTPUT(obj)->userdata;
 
@@ -1077,6 +1082,7 @@ static int source_output_process_msg_cb(pa_msgobject *obj, int code, void *data,
     return pa_source_output_process_msg(obj, code, data, offset, chunk);
 }
 
+/* Called from sink I/O thread context. */
 static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK_INPUT(obj)->userdata;
 
@@ -1106,7 +1112,7 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
     return pa_sink_input_process_msg(obj, code, data, offset, chunk);
 }
 
-/* Called from I/O thread context */
+/* Called from sink I/O thread context. */
 static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     struct userdata *u;
 
@@ -1119,7 +1125,7 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_sink_set_max_rewind_within_thread(u->sink, nbytes);
 }
 
-/* Called from I/O thread context */
+/* Called from source I/O thread context. */
 static void source_output_update_max_rewind_cb(pa_source_output *o, size_t nbytes) {
     struct userdata *u;
 
@@ -1131,7 +1137,7 @@ static void source_output_update_max_rewind_cb(pa_source_output *o, size_t nbyte
     pa_source_set_max_rewind_within_thread(u->source, nbytes);
 }
 
-/* Called from I/O thread context */
+/* Called from sink I/O thread context. */
 static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
     struct userdata *u;
 
@@ -1143,7 +1149,7 @@ static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
     pa_sink_set_max_request_within_thread(u->sink, nbytes);
 }
 
-/* Called from I/O thread context */
+/* Called from sink I/O thread context. */
 static void sink_input_update_sink_requested_latency_cb(pa_sink_input *i) {
     struct userdata *u;
     pa_usec_t latency;
@@ -1156,7 +1162,7 @@ static void sink_input_update_sink_requested_latency_cb(pa_sink_input *i) {
     pa_log_debug("Sink input update requested latency %lld", (long long) latency);
 }
 
-/* Called from I/O thread context */
+/* Called from source I/O thread context. */
 static void source_output_update_source_requested_latency_cb(pa_source_output *o) {
     struct userdata *u;
     pa_usec_t latency;
@@ -1169,7 +1175,7 @@ static void source_output_update_source_requested_latency_cb(pa_source_output *o
     pa_log_debug("Source output update requested latency %lld", (long long) latency);
 }
 
-/* Called from I/O thread context */
+/* Called from sink I/O thread context. */
 static void sink_input_update_sink_latency_range_cb(pa_sink_input *i) {
     struct userdata *u;
 
@@ -1183,7 +1189,7 @@ static void sink_input_update_sink_latency_range_cb(pa_sink_input *i) {
     pa_sink_set_latency_range_within_thread(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
 }
 
-/* Called from I/O thread context */
+/* Called from source I/O thread context. */
 static void source_output_update_source_latency_range_cb(pa_source_output *o) {
     struct userdata *u;
 
@@ -1197,7 +1203,7 @@ static void source_output_update_source_latency_range_cb(pa_source_output *o) {
     pa_source_set_latency_range_within_thread(u->source, o->source->thread_info.min_latency, o->source->thread_info.max_latency);
 }
 
-/* Called from I/O thread context */
+/* Called from sink I/O thread context. */
 static void sink_input_update_sink_fixed_latency_cb(pa_sink_input *i) {
     struct userdata *u;
 
@@ -1210,7 +1216,7 @@ static void sink_input_update_sink_fixed_latency_cb(pa_sink_input *i) {
     pa_sink_set_fixed_latency_within_thread(u->sink, i->sink->thread_info.fixed_latency);
 }
 
-/* Called from I/O thread context */
+/* Called from source I/O thread context. */
 static void source_output_update_source_fixed_latency_cb(pa_source_output *o) {
     struct userdata *u;
 
@@ -1223,7 +1229,7 @@ static void source_output_update_source_fixed_latency_cb(pa_source_output *o) {
     pa_source_set_fixed_latency_within_thread(u->source, o->source->thread_info.fixed_latency);
 }
 
-/* Called from output thread context */
+/* Called from source I/O thread context. */
 static void source_output_attach_cb(pa_source_output *o) {
     struct userdata *u;
 
@@ -1246,7 +1252,7 @@ static void source_output_attach_cb(pa_source_output *o) {
             u->asyncmsgq);
 }
 
-/* Called from I/O thread context */
+/* Called from sink I/O thread context. */
 static void sink_input_attach_cb(pa_sink_input *i) {
     struct userdata *u;
 
@@ -1277,7 +1283,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
 }
 
 
-/* Called from output thread context */
+/* Called from source I/O thread context. */
 static void source_output_detach_cb(pa_source_output *o) {
     struct userdata *u;
 
@@ -1296,7 +1302,7 @@ static void source_output_detach_cb(pa_source_output *o) {
     }
 }
 
-/* Called from I/O thread context */
+/* Called from sink I/O thread context. */
 static void sink_input_detach_cb(pa_sink_input *i) {
     struct userdata *u;
 
@@ -1315,7 +1321,7 @@ static void sink_input_detach_cb(pa_sink_input *i) {
     }
 }
 
-/* Called from output thread context */
+/* Called from source I/O thread context. */
 static void source_output_state_change_cb(pa_source_output *o, pa_source_output_state_t state) {
     struct userdata *u;
 
@@ -1326,7 +1332,7 @@ static void source_output_state_change_cb(pa_source_output *o, pa_source_output_
     pa_log_debug("Source output %d state %d", o->index, state);
 }
 
-/* Called from IO thread context */
+/* Called from sink I/O thread context. */
 static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t state) {
     struct userdata *u;
 
@@ -1344,7 +1350,7 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
     }
 }
 
-/* Called from main thread */
+/* Called from main context. */
 static void source_output_kill_cb(pa_source_output *o) {
     struct userdata *u;
 
@@ -1397,7 +1403,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_module_unload_request(u->module, TRUE);
 }
 
-/* Called from main thread */
+/* Called from main context. */
 static pa_bool_t source_output_may_move_to_cb(pa_source_output *o, pa_source *dest) {
     struct userdata *u;
 
@@ -1424,7 +1430,7 @@ static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
     return u->sink != dest;
 }
 
-/* Called from main thread */
+/* Called from main context. */
 static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     struct userdata *u;
 
@@ -1531,12 +1537,12 @@ static int canceller_process_msg_cb(pa_msgobject *o, int code, void *userdata, i
     return 0;
 }
 
-/* Called by the canceller, so thread context */
+/* Called by the canceller, so source I/O thread context. */
 void pa_echo_canceller_get_capture_volume(pa_echo_canceller *ec, pa_cvolume *v) {
     *v = ec->msg->userdata->thread_info.current_volume;
 }
 
-/* Called by the canceller, so thread context */
+/* Called by the canceller, so source I/O thread context. */
 void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_cvolume *v) {
     if (!pa_cvolume_equal(&ec->msg->userdata->thread_info.current_volume, v)) {
         pa_cvolume *vol = pa_xnewdup(pa_cvolume, v, 1);
@@ -1562,7 +1568,10 @@ static pa_echo_canceller_method_t get_ec_method_from_string(const char *method) 
     return PA_ECHO_CANCELLER_INVALID;
 }
 
-/* Common initialisation bits between module-echo-cancel and the standalone test program */
+/* Common initialisation bits between module-echo-cancel and the standalone
+ * test program.
+ *
+ * Called from main context. */
 static int init_common(pa_modargs *ma, struct userdata *u, pa_sample_spec *source_ss, pa_channel_map *source_map) {
     pa_echo_canceller_method_t ec_method;
 
@@ -1595,7 +1604,7 @@ fail:
     return -1;
 }
 
-
+/* Called from main context. */
 int pa__init(pa_module*m) {
     struct userdata *u;
     pa_sample_spec source_ss, sink_ss;
@@ -1950,6 +1959,7 @@ fail:
     return -1;
 }
 
+/* Called from main context. */
 int pa__get_n_used(pa_module *m) {
     struct userdata *u;
 
@@ -1959,6 +1969,7 @@ int pa__get_n_used(pa_module *m) {
     return pa_sink_linked_by(u->sink) + pa_source_linked_by(u->source);
 }
 
+/* Called from main context. */
 void pa__done(pa_module*m) {
     struct userdata *u;
 
