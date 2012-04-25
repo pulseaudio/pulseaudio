@@ -806,51 +806,49 @@ static void do_push(struct userdata *u) {
         /* take fixed block from recorded samples */
         pa_memblockq_peek_fixed_size(u->source_memblockq, u->blocksize, &rchunk);
 
-        if (plen > u->blocksize) {
-            if (plen > u->blocksize) {
-                /* take fixed block from played samples */
-                pa_memblockq_peek_fixed_size(u->sink_memblockq, u->blocksize, &pchunk);
+        if (plen >= u->blocksize) {
+            /* take fixed block from played samples */
+            pa_memblockq_peek_fixed_size(u->sink_memblockq, u->blocksize, &pchunk);
 
-                rdata = pa_memblock_acquire(rchunk.memblock);
-                rdata += rchunk.index;
-                pdata = pa_memblock_acquire(pchunk.memblock);
-                pdata += pchunk.index;
+            rdata = pa_memblock_acquire(rchunk.memblock);
+            rdata += rchunk.index;
+            pdata = pa_memblock_acquire(pchunk.memblock);
+            pdata += pchunk.index;
 
-                cchunk.index = 0;
-                cchunk.length = u->blocksize;
-                cchunk.memblock = pa_memblock_new(u->source->core->mempool, cchunk.length);
-                cdata = pa_memblock_acquire(cchunk.memblock);
+            cchunk.index = 0;
+            cchunk.length = u->blocksize;
+            cchunk.memblock = pa_memblock_new(u->source->core->mempool, cchunk.length);
+            cdata = pa_memblock_acquire(cchunk.memblock);
 
-                if (u->save_aec) {
-                    if (u->captured_file)
-                        unused = fwrite(rdata, 1, u->blocksize, u->captured_file);
-                    if (u->played_file)
-                        unused = fwrite(pdata, 1, u->blocksize, u->played_file);
-                }
-
-                /* perform echo cancellation */
-                u->ec->run(u->ec, rdata, pdata, cdata);
-
-                if (u->save_aec) {
-                    if (u->canceled_file)
-                        unused = fwrite(cdata, 1, u->blocksize, u->canceled_file);
-                }
-
-                pa_memblock_release(cchunk.memblock);
-                pa_memblock_release(pchunk.memblock);
-                pa_memblock_release(rchunk.memblock);
-
-                /* drop consumed sink samples */
-                pa_memblockq_drop(u->sink_memblockq, u->blocksize);
-                pa_memblock_unref(pchunk.memblock);
-
-                pa_memblock_unref(rchunk.memblock);
-                /* the filtered samples now become the samples from our
-                 * source */
-                rchunk = cchunk;
-
-                plen -= u->blocksize;
+            if (u->save_aec) {
+                if (u->captured_file)
+                    unused = fwrite(rdata, 1, u->blocksize, u->captured_file);
+                if (u->played_file)
+                    unused = fwrite(pdata, 1, u->blocksize, u->played_file);
             }
+
+            /* perform echo cancellation */
+            u->ec->run(u->ec, rdata, pdata, cdata);
+
+            if (u->save_aec) {
+                if (u->canceled_file)
+                    unused = fwrite(cdata, 1, u->blocksize, u->canceled_file);
+            }
+
+            pa_memblock_release(cchunk.memblock);
+            pa_memblock_release(pchunk.memblock);
+            pa_memblock_release(rchunk.memblock);
+
+            /* drop consumed sink samples */
+            pa_memblockq_drop(u->sink_memblockq, u->blocksize);
+            pa_memblock_unref(pchunk.memblock);
+
+            pa_memblock_unref(rchunk.memblock);
+            /* the filtered samples now become the samples from our
+             * source */
+            rchunk = cchunk;
+
+            plen -= u->blocksize;
         }
 
         /* forward the (echo-canceled) data to the virtual source */
