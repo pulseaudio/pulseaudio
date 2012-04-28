@@ -936,8 +936,8 @@ void pa_memblockq_apply_attr(pa_memblockq *bq, const pa_buffer_attr *a) {
 
     pa_memblockq_set_maxlength(bq, a->maxlength);
     pa_memblockq_set_tlength(bq, a->tlength);
-    pa_memblockq_set_prebuf(bq, a->prebuf);
     pa_memblockq_set_minreq(bq, a->minreq);
+    pa_memblockq_set_prebuf(bq, a->prebuf);
 }
 
 void pa_memblockq_get_attr(pa_memblockq *bq, pa_buffer_attr *a) {
