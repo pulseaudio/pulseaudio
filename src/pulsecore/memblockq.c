@@ -76,11 +76,8 @@ pa_memblockq* pa_memblockq_new(
     pa_assert(sample_spec);
     pa_assert(name);
 
-    bq = pa_xnew(pa_memblockq, 1);
+    bq = pa_xnew0(pa_memblockq, 1);
     bq->name = pa_xstrdup(name);
-    bq->blocks = bq->blocks_tail = NULL;
-    bq->current_read = bq->current_write = NULL;
-    bq->n_blocks = 0;
 
     bq->sample_spec = *sample_spec;
     bq->base = pa_frame_size(sample_spec);
@@ -89,8 +86,6 @@ pa_memblockq* pa_memblockq_new(
     pa_log_debug("memblockq requested: maxlength=%lu, tlength=%lu, base=%lu, prebuf=%lu, minreq=%lu maxrewind=%lu",
                  (unsigned long) maxlength, (unsigned long) tlength, (unsigned long) bq->base, (unsigned long) prebuf, (unsigned long) minreq, (unsigned long) maxrewind);
 
-    bq->missing = bq->requested = 0;
-    bq->maxlength = bq->tlength = bq->prebuf = bq->minreq = bq->maxrewind = 0;
     bq->in_prebuf = TRUE;
 
     pa_memblockq_set_maxlength(bq, maxlength);
@@ -105,8 +100,7 @@ pa_memblockq* pa_memblockq_new(
     if (silence) {
         bq->silence = *silence;
         pa_memblock_ref(bq->silence.memblock);
-    } else
-        pa_memchunk_reset(&bq->silence);
+    }
 
     bq->mcalign = pa_mcalign_new(bq->base);
 
