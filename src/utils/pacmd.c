@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/un.h>
+#include <getopt.h>
 #include <locale.h>
 
 #include <pulse/util.h>
@@ -41,6 +42,51 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/pid.h>
+
+static void help(const char *argv0) {
+    printf("%s %s\n",    argv0, "exit");
+    printf("%s %s\n",    argv0, "help");
+    printf("%s %s\n",    argv0, "list-(modules|sinks|sources|clients|cards|samples)");
+    printf("%s %s\n",    argv0, "list-(sink-inputs|source-outputs)");
+    printf("%s %s\n",    argv0, "stat");
+    printf("%s %s\n",    argv0, "info");
+    printf("%s %s %s\n", argv0, "load-module", _("NAME [ARGS ...]"));
+    printf("%s %s %s\n", argv0, "unload-module", _("#N"));
+    printf("%s %s %s\n", argv0, "describe-module", _("NAME"));
+    printf("%s %s %s\n", argv0, "set-(sink|source)-volume", _("NAME|#N VOLUME"));
+    printf("%s %s %s\n", argv0, "set-(sink-input|source-output)-volume", _("#N VOLUME"));
+    printf("%s %s %s\n", argv0, "set-(sink|source)-mute", _("NAME|#N 1|0"));
+    printf("%s %s %s\n", argv0, "set-(sink-input|source-output)-mute", _("#N 1|0"));
+    printf("%s %s %s\n", argv0, "update-(sink|source)-proplist", _("NAME|#N KEY=VALUE"));
+    printf("%s %s %s\n", argv0, "update-(sink-input|source-output)-proplist", _("#N KEY=VALUE"));
+    printf("%s %s %s\n", argv0, "set-default(sink|source)", _("NAME|#N"));
+    printf("%s %s %s\n", argv0, "kill-(client|sink-input|source-output)", _("#N"));
+    printf("%s %s %s\n", argv0, "play-sample", _("NAME SINK|#N"));
+    printf("%s %s %s\n", argv0, "remove-sample", _("NAME"));
+    printf("%s %s %s\n", argv0, "load-sample", _("NAME FILENAME"));
+    printf("%s %s %s\n", argv0, "load-sample-lazy", _("NAME FILENAME"));
+    printf("%s %s %s\n", argv0, "load-sample-dir-lazy", _("PATHNAME"));
+    printf("%s %s %s\n", argv0, "play-file", _("FILENAME SINK|#N"));
+    printf("%s %s\n",    argv0, "dump");
+    printf("%s %s %s\n", argv0, "move-(sink-input|source-output)", _("#N SINK|SOURCE"));
+    printf("%s %s %s\n", argv0, "suspend-(sink|source)", _("NAME|#N 1|0"));
+    printf("%s %s %s\n", argv0, "suspend", _("1|0"));
+    printf("%s %s %s\n", argv0, "set-card-profile", _("CARD PROFILE"));
+    printf("%s %s %s\n", argv0, "set-(sink|source)-port", _("NAME|#N PORT"));
+    printf("%s %s %s\n", argv0, "set-log-level", _("NUMERIC LEVEL"));
+    printf("%s %s %s\n", argv0, "set-log-meta", _("1|0"));
+    printf("%s %s %s\n", argv0, "set-log-time", _("1|0"));
+    printf("%s %s %s\n", argv0, "set-log-backtrace", _("FRAMES"));
+
+    printf(_("\n"
+         "  -h, --help                            Show this help\n"
+         "      --version                         Show version\n"
+         "When no command is given pacdm starts in the interactive mode\n" ));
+}
+
+enum {
+    ARG_VERSION = 256
+};
 
 int main(int argc, char*argv[]) {
     pid_t pid;
@@ -57,26 +103,57 @@ int main(int argc, char*argv[]) {
 
     int stdin_type = 0, stdout_type = 0, fd_type = 0;
 
+    char *bn = NULL;
+    int c;
+
+    static const struct option long_options[] = {
+        {"version",     0, NULL, ARG_VERSION},
+        {"help",        0, NULL, 'h'},
+        {NULL,          0, NULL, 0}
+    };
+
     setlocale(LC_ALL, "");
 #ifdef ENABLE_NLS
     bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
 #endif
 
+    bn = pa_path_get_filename(argv[0]);
+
+    while ((c = getopt_long(argc, argv, "h", long_options, NULL)) != -1) {
+        switch (c) {
+            case 'h' :
+                help(bn);
+                ret = 0;
+                goto quit;
+            case ARG_VERSION:
+                printf(_("pacmd %s\n"
+                         "Compiled with libpulse %s\n"
+                         "Linked with libpulse %s\n"),
+                       PACKAGE_VERSION,
+                       pa_get_headers_version(),
+                       pa_get_library_version());
+                ret = 0;
+                goto quit;
+            default:
+                goto quit;
+        }
+    }
+
     if (pa_pid_file_check_running(&pid, "pulseaudio") < 0) {
         pa_log(_("No PulseAudio daemon running, or not running as session daemon."));
-        goto fail;
+        goto quit;
     }
 
     if ((fd = pa_socket_cloexec(PF_UNIX, SOCK_STREAM, 0)) < 0) {
         pa_log(_("socket(PF_UNIX, SOCK_STREAM, 0): %s"), strerror(errno));
-        goto fail;
+        goto quit;
     }
 
     pa_zero(sa);
     sa.sun_family = AF_UNIX;
 
     if (!(cli = pa_runtime_path("cli")))
-        goto fail;
+        goto quit;
 
     pa_strlcpy(sa.sun_path, cli, sizeof(sa.sun_path));
     pa_xfree(cli);
@@ -86,15 +163,16 @@ int main(int argc, char*argv[]) {
 
         if ((r = connect(fd, (struct sockaddr*) &sa, sizeof(sa))) < 0 && (errno != ECONNREFUSED && errno != ENOENT)) {
             pa_log(_("connect(): %s"), strerror(errno));
-            goto fail;
+            goto quit;
         }
+
 
         if (r >= 0)
             break;
 
         if (pa_pid_file_kill(SIGUSR2, NULL, "pulseaudio") < 0) {
             pa_log(_("Failed to kill PulseAudio daemon."));
-            goto fail;
+            goto quit;
         }
 
         pa_msleep(300);
@@ -102,7 +180,7 @@ int main(int argc, char*argv[]) {
 
     if (i >= 5) {
         pa_log(_("Daemon not responding."));
-        goto fail;
+        goto quit;
     }
 
     buf_size = pa_pipe_buf(fd);
@@ -182,7 +260,7 @@ int main(int argc, char*argv[]) {
                 continue;
 
             pa_log(_("poll(): %s"), strerror(errno));
-            goto fail;
+            goto quit;
         }
 
         if (watch_stdin) {
@@ -193,7 +271,7 @@ int main(int argc, char*argv[]) {
                 if ((r = pa_read(STDIN_FILENO, ibuf, ibuf_size, &stdin_type)) <= 0) {
                     if (r < 0) {
                         pa_log(_("read(): %s"), strerror(errno));
-                        goto fail;
+                        goto quit;
                     }
 
                     ibuf_eof = TRUE;
@@ -213,7 +291,7 @@ int main(int argc, char*argv[]) {
                 if ((r = pa_read(fd, obuf, obuf_size, &fd_type)) <= 0) {
                     if (r < 0) {
                         pa_log(_("read(): %s"), strerror(errno));
-                        goto fail;
+                        goto quit;
                     }
 
                     obuf_eof = TRUE;
@@ -235,7 +313,7 @@ int main(int argc, char*argv[]) {
 
                 if ((r = pa_write(STDOUT_FILENO, obuf + obuf_index, obuf_length, &stdout_type)) < 0) {
                     pa_log(_("write(): %s"), strerror(errno));
-                    goto fail;
+                    goto quit;
                 }
 
                 obuf_length -= (size_t) r;
@@ -253,7 +331,7 @@ int main(int argc, char*argv[]) {
 
                 if ((r = pa_write(fd, ibuf + ibuf_index, ibuf_length, &fd_type)) < 0) {
                     pa_log(_("write(): %s"), strerror(errno));
-                    goto fail;
+                    goto quit;
                 }
 
                 ibuf_length -= (size_t) r;
@@ -264,7 +342,7 @@ int main(int argc, char*argv[]) {
 
     ret = 0;
 
-fail:
+quit:
     if (fd >= 0)
         pa_close(fd);
 
