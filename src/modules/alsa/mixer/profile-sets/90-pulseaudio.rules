@@ -26,6 +26,54 @@ SUBSYSTEMS=="platform", DRIVERS=="thinkpad_acpi", ENV{PULSE_IGNORE}="1"
 # NVidia and Intel HDAs often have more than one HDMI codec/port on the same card
 ATTRS{vendor}=="0x10de", ENV{PULSE_PROFILE_SET}="extra-hdmi.conf"
 ATTRS{vendor}=="0x8086", ENV{PULSE_PROFILE_SET}="extra-hdmi.conf"
+
+# Force enable speaker and internal mic for some laptops
+# This should only be necessary for kernels 3.3, 3.4 and 3.5 (as they are lacking the phantom jack kctls).
+# Acer AOA150
+ATTRS{subsystem_vendor}=="0x1025", ATTRS{subsystem_device}=="0x015b", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Acer Aspire 1810TZ
+ATTRS{subsystem_vendor}=="0x1025", ATTRS{subsystem_device}=="0x029b", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Acer AOD260 and AO532h
+ATTRS{subsystem_vendor}=="0x1025", ATTRS{subsystem_device}=="0x0349", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Dell MXC051
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x01b5", ENV{PULSE_PROFILE_SET}="force-speaker.conf"
+# Dell Inspiron 6400 and E1505
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x01bd", ENV{PULSE_PROFILE_SET}="force-speaker.conf"
+# Dell Latitude D620
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x01c2", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Dell Latitude D820
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x01cc", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Dell Latitude D520
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x01d4", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Dell Latitude D420
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x01d6", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Dell Inspiron 1525
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x022f", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Dell Inspiron 1011
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x02f4", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Dell XPS 14 (L401X)
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x0468", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Dell XPS 15 (L501X)
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x046e", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Dell XPS 15 (L502X)
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x050e", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Asus 904HA (1000H)
+ATTRS{subsystem_vendor}=="0x1043", ATTRS{subsystem_device}=="0x831a", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Asus T101MT
+ATTRS{subsystem_vendor}=="0x1043", ATTRS{subsystem_device}=="0x83ce", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Sony Vaio VGN-SR21M
+ATTRS{subsystem_vendor}=="0x104d", ATTRS{subsystem_device}=="0x9033", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Sony Vaio VPC-W115XG
+ATTRS{subsystem_vendor}=="0x104d", ATTRS{subsystem_device}=="0x9064", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Fujitsu Lifebook A530
+ATTRS{subsystem_vendor}=="0x10cf", ATTRS{subsystem_device}=="0x1531", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Toshiba A200
+ATTRS{subsystem_vendor}=="0x1179", ATTRS{subsystem_device}=="0xff00", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# MSI X360
+ATTRS{subsystem_vendor}=="0x1462", ATTRS{subsystem_device}=="0x1053", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Lenovo 3000 Y410
+ATTRS{subsystem_vendor}=="0x17aa", ATTRS{subsystem_device}=="0x384e", ENV{PULSE_PROFILE_SET}="force-speaker.conf"
+
 GOTO="pulseaudio_end"
 
 LABEL="pulseaudio_check_usb"
