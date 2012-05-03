@@ -1101,6 +1101,8 @@ modlibexec_LTLIBRARIES += \
 dist_alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/default.conf \
 		modules/alsa/mixer/profile-sets/extra-hdmi.conf \
+		modules/alsa/mixer/profile-sets/force-speaker.conf \
+		modules/alsa/mixer/profile-sets/force-speaker-and-int-mic.conf \
 		modules/alsa/mixer/profile-sets/maudio-fasttrack-pro.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf \
@@ -1125,6 +1127,7 @@ dist_alsapaths_DATA = \
 		modules/alsa/mixer/paths/analog-input-dock-mic.conf \
 		modules/alsa/mixer/paths/analog-input-front-mic.conf \
 		modules/alsa/mixer/paths/analog-input-internal-mic.conf \
+		modules/alsa/mixer/paths/analog-input-internal-mic-always.conf \
 		modules/alsa/mixer/paths/analog-input-rear-mic.conf \
 		modules/alsa/mixer/paths/analog-input-mic.conf.common \
 		modules/alsa/mixer/paths/analog-input-mic-line.conf \
@@ -1132,6 +1135,7 @@ dist_alsapaths_DATA = \
 		modules/alsa/mixer/paths/analog-input-video.conf \
 		modules/alsa/mixer/paths/analog-output.conf \
 		modules/alsa/mixer/paths/analog-output-speaker.conf \
+		modules/alsa/mixer/paths/analog-output-speaker-always.conf \
 		modules/alsa/mixer/paths/analog-output.conf.common \
 		modules/alsa/mixer/paths/analog-output-desktop-speaker.conf \
 		modules/alsa/mixer/paths/analog-output-headphones.conf \
