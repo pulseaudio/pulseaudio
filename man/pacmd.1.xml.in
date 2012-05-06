@@ -25,6 +25,8 @@ USA.
 
   <synopsis>
     <cmd>pacmd</cmd>
+    <cmd>pacmd <opt>--help</opt></cmd>
+    <cmd>pacmd <opt>--version</opt></cmd>
   </synopsis>
 
   <description>
@@ -40,6 +42,22 @@ USA.
     <p>If any arguments are passed on the command line, they will be
     passed into the live shell which will process the command and exit.</p>
   </description>
+
+  <options>
+
+    <option>
+      <p><opt>-h | --help</opt></p>
+
+      <optdesc><p>Show help.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--version</opt></p>
+
+      <optdesc><p>Show version information.</p></optdesc>
+    </option>
+
+  </options>
 
   <section name="Authors">
     <p>The PulseAudio Developers &lt;@PACKAGE_BUGREPORT@&gt;; PulseAudio is available from <url href="@PACKAGE_URL@"/></p>
