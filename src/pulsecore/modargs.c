@@ -453,8 +453,12 @@ int pa_modargs_get_sample_spec_and_channel_map(
     if (pa_modargs_get_channel_map(ma, NULL, &map) < 0)
         return -1;
 
-    if (map.channels != ss.channels)
-        return -1;
+    if (map.channels != ss.channels) {
+        if (!pa_modargs_get_value(ma, "channels", NULL))
+            ss.channels = map.channels;
+        else
+            return -1;
+    }
 
     *rmap = map;
     *rss = ss;
