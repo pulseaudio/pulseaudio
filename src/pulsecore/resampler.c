@@ -61,9 +61,10 @@ struct pa_resampler {
     pa_memchunk resample_buf;
     pa_memchunk from_work_format_buf;
     unsigned to_work_format_buf_samples;
-    unsigned remap_buf_samples;
+    size_t remap_buf_size;
     unsigned resample_buf_samples;
     unsigned from_work_format_buf_samples;
+    pa_bool_t remap_buf_contains_leftover_data;
 
     pa_sample_format_t work_format;
 
@@ -379,23 +380,39 @@ void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate) {
 size_t pa_resampler_request(pa_resampler *r, size_t out_length) {
     pa_assert(r);
 
-    /* Let's round up here */
-
+    /* Let's round up here to make it more likely that the caller will get at
+     * least out_length amount of data from pa_resampler_run().
+     *
+     * We don't take the leftover into account here. If we did, then it might
+     * be in theory possible that this function would return 0 and
+     * pa_resampler_run() would also return 0. That could lead to infinite
+     * loops. When the leftover is ignored here, such loops would eventually
+     * terminate, because the leftover would grow each round, finally
+     * surpassing the minimum input threshold of the resampler. */
     return (((((out_length + r->o_fz-1) / r->o_fz) * r->i_ss.rate) + r->o_ss.rate-1) / r->o_ss.rate) * r->i_fz;
 }
 
 size_t pa_resampler_result(pa_resampler *r, size_t in_length) {
+    size_t frames;
+
     pa_assert(r);
 
-    /* Let's round up here */
+    /* Let's round up here to ensure that the caller will always allocate big
+     * enough output buffer. */
 
-    return (((((in_length + r->i_fz-1) / r->i_fz) * r->o_ss.rate) + r->i_ss.rate-1) / r->i_ss.rate) * r->o_fz;
+    frames = (in_length + r->i_fz - 1) / r->i_fz;
+
+    if (r->remap_buf_contains_leftover_data)
+        frames += r->remap_buf.length / (r->w_sz * r->o_ss.channels);
+
+    return ((frames * r->o_ss.rate + r->i_ss.rate - 1) / r->i_ss.rate) * r->o_fz;
 }
 
 size_t pa_resampler_max_block_size(pa_resampler *r) {
     size_t block_size_max;
-    pa_sample_spec ss;
-    size_t fs;
+    pa_sample_spec max_ss;
+    size_t max_fs;
+    size_t frames;
 
     pa_assert(r);
 
@@ -403,17 +420,21 @@ size_t pa_resampler_max_block_size(pa_resampler *r) {
 
     /* We deduce the "largest" sample spec we're using during the
      * conversion */
-    ss.channels = (uint8_t) (PA_MAX(r->i_ss.channels, r->o_ss.channels));
+    max_ss.channels = (uint8_t) (PA_MAX(r->i_ss.channels, r->o_ss.channels));
 
     /* We silently assume that the format enum is ordered by size */
-    ss.format = PA_MAX(r->i_ss.format, r->o_ss.format);
-    ss.format = PA_MAX(ss.format, r->work_format);
+    max_ss.format = PA_MAX(r->i_ss.format, r->o_ss.format);
+    max_ss.format = PA_MAX(max_ss.format, r->work_format);
 
-    ss.rate = PA_MAX(r->i_ss.rate, r->o_ss.rate);
+    max_ss.rate = PA_MAX(r->i_ss.rate, r->o_ss.rate);
 
-    fs = pa_frame_size(&ss);
+    max_fs = pa_frame_size(&max_ss);
+    frames = block_size_max / max_fs - EXTRA_FRAMES;
 
-    return (((block_size_max/fs - EXTRA_FRAMES)*r->i_ss.rate)/ss.rate)*r->i_fz;
+    if (r->remap_buf_contains_leftover_data)
+        frames -= r->remap_buf.length / (r->w_sz * r->o_ss.channels);
+
+    return (frames * r->i_ss.rate / max_ss.rate) * r->i_fz;
 }
 
 void pa_resampler_reset(pa_resampler *r) {
@@ -421,6 +442,8 @@ void pa_resampler_reset(pa_resampler *r) {
 
     if (r->impl_reset)
         r->impl_reset(r);
+
+    r->remap_buf_contains_leftover_data = FALSE;
 }
 
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r) {
@@ -1101,41 +1124,74 @@ static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) 
 }
 
 static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
-    unsigned in_n_samples, out_n_samples, n_frames;
+    unsigned in_n_samples, out_n_samples, in_n_frames, out_n_frames;
     void *src, *dst;
-    pa_remap_t *remap;
+    size_t leftover_length = 0;
+    pa_bool_t have_leftover;
 
     pa_assert(r);
     pa_assert(input);
     pa_assert(input->memblock);
 
-    /* Remap channels and place the result in remap_buf. */
+    /* Remap channels and place the result in remap_buf. There may be leftover
+     * data in the beginning of remap_buf. The leftover data is already
+     * remapped, so it's not part of the input, it's part of the output. */
 
-    if (!r->map_required || !input->length)
+    have_leftover = r->remap_buf_contains_leftover_data;
+    r->remap_buf_contains_leftover_data = FALSE;
+
+    if (!have_leftover && (!r->map_required || input->length <= 0))
         return input;
+    else if (input->length <= 0)
+        return &r->remap_buf;
 
     in_n_samples = (unsigned) (input->length / r->w_sz);
-    n_frames = in_n_samples / r->i_ss.channels;
-    out_n_samples = n_frames * r->o_ss.channels;
+    in_n_frames = out_n_frames = in_n_samples / r->i_ss.channels;
 
-    r->remap_buf.index = 0;
-    r->remap_buf.length = r->w_sz * out_n_samples;
-
-    if (!r->remap_buf.memblock || r->remap_buf_samples < out_n_samples) {
-        if (r->remap_buf.memblock)
-            pa_memblock_unref(r->remap_buf.memblock);
-
-        r->remap_buf_samples = out_n_samples;
-        r->remap_buf.memblock = pa_memblock_new(r->mempool, r->remap_buf.length);
+    if (have_leftover) {
+        leftover_length = r->remap_buf.length;
+        out_n_frames += leftover_length / (r->w_sz * r->o_ss.channels);
     }
 
-    src = ((uint8_t*) pa_memblock_acquire(input->memblock) + input->index);
-    dst = pa_memblock_acquire(r->remap_buf.memblock);
+    out_n_samples = out_n_frames * r->o_ss.channels;
+    r->remap_buf.length = out_n_samples * r->w_sz;
 
-    remap = &r->remap;
+    if (have_leftover) {
+        if (r->remap_buf_size < r->remap_buf.length) {
+            pa_memblock *new_block = pa_memblock_new(r->mempool, r->remap_buf.length);
 
-    pa_assert(remap->do_remap);
-    remap->do_remap(remap, dst, src, n_frames);
+            src = pa_memblock_acquire(r->remap_buf.memblock);
+            dst = pa_memblock_acquire(new_block);
+            memcpy(dst, src, leftover_length);
+            pa_memblock_release(r->remap_buf.memblock);
+            pa_memblock_release(new_block);
+
+            pa_memblock_unref(r->remap_buf.memblock);
+            r->remap_buf.memblock = new_block;
+            r->remap_buf_size = r->remap_buf.length;
+        }
+
+    } else {
+        if (!r->remap_buf.memblock || r->remap_buf_size < r->remap_buf.length) {
+            if (r->remap_buf.memblock)
+                pa_memblock_unref(r->remap_buf.memblock);
+
+            r->remap_buf_size = r->remap_buf.length;
+            r->remap_buf.memblock = pa_memblock_new(r->mempool, r->remap_buf.length);
+        }
+    }
+
+    src = (uint8_t *) pa_memblock_acquire(input->memblock) + input->index;
+    dst = (uint8_t *) pa_memblock_acquire(r->remap_buf.memblock) + leftover_length;
+
+    if (r->map_required) {
+        pa_remap_t *remap = &r->remap;
+
+        pa_assert(remap->do_remap);
+        remap->do_remap(remap, dst, src, in_n_frames);
+
+    } else
+        memcpy(dst, src, input->length);
 
     pa_memblock_release(input->memblock);
     pa_memblock_release(r->remap_buf.memblock);
@@ -1243,6 +1299,32 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) 
         pa_memchunk_reset(out);
 }
 
+static void save_leftover(pa_resampler *r, void *buf, size_t len) {
+    void *dst;
+
+    pa_assert(r);
+    pa_assert(buf);
+    pa_assert(len > 0);
+
+    /* Store the leftover to remap_buf. */
+
+    r->remap_buf.length = len;
+
+    if (!r->remap_buf.memblock || r->remap_buf_size < r->remap_buf.length) {
+        if (r->remap_buf.memblock)
+            pa_memblock_unref(r->remap_buf.memblock);
+
+        r->remap_buf_size = r->remap_buf.length;
+        r->remap_buf.memblock = pa_memblock_new(r->mempool, r->remap_buf.length);
+    }
+
+    dst = pa_memblock_acquire(r->remap_buf.memblock);
+    memcpy(dst, buf, r->remap_buf.length);
+    pa_memblock_release(r->remap_buf.memblock);
+
+    r->remap_buf_contains_leftover_data = TRUE;
+}
+
 /*** libsamplerate based implementation ***/
 
 #ifdef HAVE_LIBSAMPLERATE
@@ -1266,7 +1348,13 @@ static void libsamplerate_resample(pa_resampler *r, const pa_memchunk *input, un
     data.end_of_input = 0;
 
     pa_assert_se(src_process(r->src.state, &data) == 0);
-    pa_assert((unsigned) data.input_frames_used == in_n_frames);
+
+    if (data.input_frames_used < in_n_frames) {
+        void *leftover_data = data.data_in + data.input_frames_used * r->o_ss.channels;
+        size_t leftover_length = (in_n_frames - data.input_frames_used) * sizeof(float) * r->o_ss.channels;
+
+        save_leftover(r, leftover_data, leftover_length);
+    }
 
     pa_memblock_release(input->memblock);
     pa_memblock_release(output->memblock);
@@ -1595,6 +1683,7 @@ static int peaks_init(pa_resampler*r) {
 
 static void ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
     unsigned used_frames = 0, c;
+    int previous_consumed_frames = -1;
 
     pa_assert(r);
     pa_assert(input);
@@ -1606,34 +1695,20 @@ static void ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsigned 
         pa_memblock *b, *w;
         int16_t *p, *t, *k, *q, *s;
         int consumed_frames;
-        unsigned in, l;
 
         /* Allocate a new block */
         b = pa_memblock_new(r->mempool, r->ffmpeg.buf[c].length + in_n_frames * sizeof(int16_t));
         p = pa_memblock_acquire(b);
 
-        /* Copy the remaining data into it */
-        l = (unsigned) r->ffmpeg.buf[c].length;
-        if (r->ffmpeg.buf[c].memblock) {
-            t = (int16_t*) ((uint8_t*) pa_memblock_acquire(r->ffmpeg.buf[c].memblock) + r->ffmpeg.buf[c].index);
-            memcpy(p, t, l);
-            pa_memblock_release(r->ffmpeg.buf[c].memblock);
-            pa_memblock_unref(r->ffmpeg.buf[c].memblock);
-            pa_memchunk_reset(&r->ffmpeg.buf[c]);
-        }
-
-        /* Now append the new data, splitting up channels */
+        /* Now copy the input data, splitting up channels */
         t = ((int16_t*) ((uint8_t*) pa_memblock_acquire(input->memblock) + input->index)) + c;
-        k = (int16_t*) ((uint8_t*) p + l);
+        k = (int16_t*) ((uint8_t*) p);
         for (u = 0; u < in_n_frames; u++) {
             *k = *t;
             t += r->o_ss.channels;
             k ++;
         }
         pa_memblock_release(input->memblock);
-
-        /* Calculate the resulting number of frames */
-        in = (unsigned) in_n_frames + l / (unsigned) sizeof(int16_t);
 
         /* Allocate buffer for the result */
         w = pa_memblock_new(r->mempool, *out_n_frames * sizeof(int16_t));
@@ -1643,19 +1718,15 @@ static void ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsigned 
         used_frames = (unsigned) av_resample(r->ffmpeg.state,
                                              q, p,
                                              &consumed_frames,
-                                             (int) in, (int) *out_n_frames,
+                                             (int) in_n_frames, (int) *out_n_frames,
                                              c >= (unsigned) (r->o_ss.channels-1));
 
         pa_memblock_release(b);
+        pa_memblock_unref(b);
 
-        /* Now store the remaining samples away */
-        pa_assert(consumed_frames <= (int) in);
-        if (consumed_frames < (int) in) {
-            r->ffmpeg.buf[c].memblock = b;
-            r->ffmpeg.buf[c].index = (size_t) consumed_frames * sizeof(int16_t);
-            r->ffmpeg.buf[c].length = (size_t) (in - (unsigned) consumed_frames) * sizeof(int16_t);
-        } else
-            pa_memblock_unref(b);
+        pa_assert(consumed_frames <= (int) in_n_frames);
+        pa_assert(previous_consumed_frames == -1 || consumed_frames == previous_consumed_frames);
+        previous_consumed_frames = consumed_frames;
 
         /* And place the results in the output buffer */
         s = (short*) ((uint8_t*) pa_memblock_acquire(output->memblock) + output->index) + c;
@@ -1667,6 +1738,14 @@ static void ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsigned 
         pa_memblock_release(output->memblock);
         pa_memblock_release(w);
         pa_memblock_unref(w);
+    }
+
+    if (previous_consumed_frames < (int) in_n_frames) {
+        void *leftover_data = (int16_t *) ((uint8_t *) pa_memblock_acquire(input->memblock) + output->index) + previous_consumed_frames * r->o_ss.channels;
+        size_t leftover_length = (in_n_frames - previous_consumed_frames) * r->o_ss.channels * sizeof(int16_t);
+
+        save_leftover(r, leftover_data, leftover_length);
+        pa_memblock_release(input->memblock);
     }
 
     *out_n_frames = used_frames;
