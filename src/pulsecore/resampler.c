@@ -56,8 +56,14 @@ struct pa_resampler {
     size_t i_fz, o_fz, w_sz;
     pa_mempool *mempool;
 
-    pa_memchunk buf1, buf2, buf3, buf4;
-    unsigned buf1_samples, buf2_samples, buf3_samples, buf4_samples;
+    pa_memchunk to_work_format_buf;
+    pa_memchunk remap_buf;
+    pa_memchunk resample_buf;
+    pa_memchunk from_work_format_buf;
+    unsigned to_work_format_buf_samples;
+    unsigned remap_buf_samples;
+    unsigned resample_buf_samples;
+    unsigned from_work_format_buf_samples;
 
     pa_sample_format_t work_format;
 
@@ -334,14 +340,14 @@ void pa_resampler_free(pa_resampler *r) {
     if (r->impl_free)
         r->impl_free(r);
 
-    if (r->buf1.memblock)
-        pa_memblock_unref(r->buf1.memblock);
-    if (r->buf2.memblock)
-        pa_memblock_unref(r->buf2.memblock);
-    if (r->buf3.memblock)
-        pa_memblock_unref(r->buf3.memblock);
-    if (r->buf4.memblock)
-        pa_memblock_unref(r->buf4.memblock);
+    if (r->to_work_format_buf.memblock)
+        pa_memblock_unref(r->to_work_format_buf.memblock);
+    if (r->remap_buf.memblock)
+        pa_memblock_unref(r->remap_buf.memblock);
+    if (r->resample_buf.memblock)
+        pa_memblock_unref(r->resample_buf.memblock);
+    if (r->from_work_format_buf.memblock)
+        pa_memblock_unref(r->from_work_format_buf.memblock);
 
     pa_xfree(r);
 }
@@ -1064,33 +1070,34 @@ static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) 
     pa_assert(input);
     pa_assert(input->memblock);
 
-    /* Convert the incoming sample into the work sample format and place them in buf1 */
+    /* Convert the incoming sample into the work sample format and place them
+     * in to_work_format_buf. */
 
     if (!r->to_work_format_func || !input->length)
         return input;
 
     n_samples = (unsigned) ((input->length / r->i_fz) * r->i_ss.channels);
 
-    r->buf1.index = 0;
-    r->buf1.length = r->w_sz * n_samples;
+    r->to_work_format_buf.index = 0;
+    r->to_work_format_buf.length = r->w_sz * n_samples;
 
-    if (!r->buf1.memblock || r->buf1_samples < n_samples) {
-        if (r->buf1.memblock)
-            pa_memblock_unref(r->buf1.memblock);
+    if (!r->to_work_format_buf.memblock || r->to_work_format_buf_samples < n_samples) {
+        if (r->to_work_format_buf.memblock)
+            pa_memblock_unref(r->to_work_format_buf.memblock);
 
-        r->buf1_samples = n_samples;
-        r->buf1.memblock = pa_memblock_new(r->mempool, r->buf1.length);
+        r->to_work_format_buf_samples = n_samples;
+        r->to_work_format_buf.memblock = pa_memblock_new(r->mempool, r->to_work_format_buf.length);
     }
 
     src = (uint8_t*) pa_memblock_acquire(input->memblock) + input->index;
-    dst = (uint8_t*) pa_memblock_acquire(r->buf1.memblock);
+    dst = (uint8_t*) pa_memblock_acquire(r->to_work_format_buf.memblock);
 
     r->to_work_format_func(n_samples, src, dst);
 
     pa_memblock_release(input->memblock);
-    pa_memblock_release(r->buf1.memblock);
+    pa_memblock_release(r->to_work_format_buf.memblock);
 
-    return &r->buf1;
+    return &r->to_work_format_buf;
 }
 
 static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
@@ -1102,7 +1109,7 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
     pa_assert(input);
     pa_assert(input->memblock);
 
-    /* Remap channels and place the result int buf2 */
+    /* Remap channels and place the result in remap_buf. */
 
     if (!r->map_required || !input->length)
         return input;
@@ -1111,19 +1118,19 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
     n_frames = in_n_samples / r->i_ss.channels;
     out_n_samples = n_frames * r->o_ss.channels;
 
-    r->buf2.index = 0;
-    r->buf2.length = r->w_sz * out_n_samples;
+    r->remap_buf.index = 0;
+    r->remap_buf.length = r->w_sz * out_n_samples;
 
-    if (!r->buf2.memblock || r->buf2_samples < out_n_samples) {
-        if (r->buf2.memblock)
-            pa_memblock_unref(r->buf2.memblock);
+    if (!r->remap_buf.memblock || r->remap_buf_samples < out_n_samples) {
+        if (r->remap_buf.memblock)
+            pa_memblock_unref(r->remap_buf.memblock);
 
-        r->buf2_samples = out_n_samples;
-        r->buf2.memblock = pa_memblock_new(r->mempool, r->buf2.length);
+        r->remap_buf_samples = out_n_samples;
+        r->remap_buf.memblock = pa_memblock_new(r->mempool, r->remap_buf.length);
     }
 
     src = ((uint8_t*) pa_memblock_acquire(input->memblock) + input->index);
-    dst = pa_memblock_acquire(r->buf2.memblock);
+    dst = pa_memblock_acquire(r->remap_buf.memblock);
 
     remap = &r->remap;
 
@@ -1131,9 +1138,9 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
     remap->do_remap(remap, dst, src, n_frames);
 
     pa_memblock_release(input->memblock);
-    pa_memblock_release(r->buf2.memblock);
+    pa_memblock_release(r->remap_buf.memblock);
 
-    return &r->buf2;
+    return &r->remap_buf;
 }
 
 static pa_memchunk *resample(pa_resampler *r, pa_memchunk *input) {
@@ -1143,7 +1150,7 @@ static pa_memchunk *resample(pa_resampler *r, pa_memchunk *input) {
     pa_assert(r);
     pa_assert(input);
 
-    /* Resample the data and place the result in buf3 */
+    /* Resample the data and place the result in resample_buf. */
 
     if (!r->impl_resample || !input->length)
         return input;
@@ -1154,21 +1161,21 @@ static pa_memchunk *resample(pa_resampler *r, pa_memchunk *input) {
     out_n_frames = ((in_n_frames*r->o_ss.rate)/r->i_ss.rate)+EXTRA_FRAMES;
     out_n_samples = out_n_frames * r->o_ss.channels;
 
-    r->buf3.index = 0;
-    r->buf3.length = r->w_sz * out_n_samples;
+    r->resample_buf.index = 0;
+    r->resample_buf.length = r->w_sz * out_n_samples;
 
-    if (!r->buf3.memblock || r->buf3_samples < out_n_samples) {
-        if (r->buf3.memblock)
-            pa_memblock_unref(r->buf3.memblock);
+    if (!r->resample_buf.memblock || r->resample_buf_samples < out_n_samples) {
+        if (r->resample_buf.memblock)
+            pa_memblock_unref(r->resample_buf.memblock);
 
-        r->buf3_samples = out_n_samples;
-        r->buf3.memblock = pa_memblock_new(r->mempool, r->buf3.length);
+        r->resample_buf_samples = out_n_samples;
+        r->resample_buf.memblock = pa_memblock_new(r->mempool, r->resample_buf.length);
     }
 
-    r->impl_resample(r, input, in_n_frames, &r->buf3, &out_n_frames);
-    r->buf3.length = out_n_frames * r->w_sz * r->o_ss.channels;
+    r->impl_resample(r, input, in_n_frames, &r->resample_buf, &out_n_frames);
+    r->resample_buf.length = out_n_frames * r->w_sz * r->o_ss.channels;
 
-    return &r->buf3;
+    return &r->resample_buf;
 }
 
 static pa_memchunk *convert_from_work_format(pa_resampler *r, pa_memchunk *input) {
@@ -1178,7 +1185,8 @@ static pa_memchunk *convert_from_work_format(pa_resampler *r, pa_memchunk *input
     pa_assert(r);
     pa_assert(input);
 
-    /* Convert the data into the correct sample type and place the result in buf4 */
+    /* Convert the data into the correct sample type and place the result in
+     * from_work_format_buf. */
 
     if (!r->from_work_format_func || !input->length)
         return input;
@@ -1186,26 +1194,26 @@ static pa_memchunk *convert_from_work_format(pa_resampler *r, pa_memchunk *input
     n_samples = (unsigned) (input->length / r->w_sz);
     n_frames = n_samples / r->o_ss.channels;
 
-    r->buf4.index = 0;
-    r->buf4.length = r->o_fz * n_frames;
+    r->from_work_format_buf.index = 0;
+    r->from_work_format_buf.length = r->o_fz * n_frames;
 
-    if (!r->buf4.memblock || r->buf4_samples < n_samples) {
-        if (r->buf4.memblock)
-            pa_memblock_unref(r->buf4.memblock);
+    if (!r->from_work_format_buf.memblock || r->from_work_format_buf_samples < n_samples) {
+        if (r->from_work_format_buf.memblock)
+            pa_memblock_unref(r->from_work_format_buf.memblock);
 
-        r->buf4_samples = n_samples;
-        r->buf4.memblock = pa_memblock_new(r->mempool, r->buf4.length);
+        r->from_work_format_buf_samples = n_samples;
+        r->from_work_format_buf.memblock = pa_memblock_new(r->mempool, r->from_work_format_buf.length);
     }
 
     src = (uint8_t*) pa_memblock_acquire(input->memblock) + input->index;
-    dst = pa_memblock_acquire(r->buf4.memblock);
+    dst = pa_memblock_acquire(r->from_work_format_buf.memblock);
     r->from_work_format_func(n_samples, src, dst);
     pa_memblock_release(input->memblock);
-    pa_memblock_release(r->buf4.memblock);
+    pa_memblock_release(r->from_work_format_buf.memblock);
 
-    r->buf4.length = r->o_fz * n_frames;
+    r->from_work_format_buf.length = r->o_fz * n_frames;
 
-    return &r->buf4;
+    return &r->from_work_format_buf;
 }
 
 void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) {
