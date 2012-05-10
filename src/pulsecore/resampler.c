@@ -234,15 +234,10 @@ pa_resampler* pa_resampler_new(
 #endif
     }
 
-    r = pa_xnew(pa_resampler, 1);
+    r = pa_xnew0(pa_resampler, 1);
     r->mempool = pool;
     r->method = method;
     r->flags = flags;
-
-    r->impl_free = NULL;
-    r->impl_update_rates = NULL;
-    r->impl_resample = NULL;
-    r->impl_reset = NULL;
 
     /* Fill sample specs */
     r->i_ss = *a;
@@ -265,13 +260,6 @@ pa_resampler* pa_resampler_new(
 
     r->i_fz = pa_frame_size(a);
     r->o_fz = pa_frame_size(b);
-
-    pa_memchunk_reset(&r->buf1);
-    pa_memchunk_reset(&r->buf2);
-    pa_memchunk_reset(&r->buf3);
-    pa_memchunk_reset(&r->buf4);
-
-    r->buf1_samples = r->buf2_samples = r->buf3_samples = r->buf4_samples = 0;
 
     calc_map_table(r);
 
@@ -306,26 +294,26 @@ pa_resampler* pa_resampler_new(
 
     r->w_sz = pa_sample_size_of_format(r->work_format);
 
-    if (r->i_ss.format == r->work_format)
-        r->to_work_format_func = NULL;
-    else if (r->work_format == PA_SAMPLE_FLOAT32NE) {
-        if (!(r->to_work_format_func = pa_get_convert_to_float32ne_function(r->i_ss.format)))
-            goto fail;
-    } else {
-        pa_assert(r->work_format == PA_SAMPLE_S16NE);
-        if (!(r->to_work_format_func = pa_get_convert_to_s16ne_function(r->i_ss.format)))
-            goto fail;
+    if (r->i_ss.format != r->work_format) {
+        if (r->work_format == PA_SAMPLE_FLOAT32NE) {
+            if (!(r->to_work_format_func = pa_get_convert_to_float32ne_function(r->i_ss.format)))
+                goto fail;
+        } else {
+            pa_assert(r->work_format == PA_SAMPLE_S16NE);
+            if (!(r->to_work_format_func = pa_get_convert_to_s16ne_function(r->i_ss.format)))
+                goto fail;
+        }
     }
 
-    if (r->o_ss.format == r->work_format)
-        r->from_work_format_func = NULL;
-    else if (r->work_format == PA_SAMPLE_FLOAT32NE) {
-        if (!(r->from_work_format_func = pa_get_convert_from_float32ne_function(r->o_ss.format)))
-            goto fail;
-    } else {
-        pa_assert(r->work_format == PA_SAMPLE_S16NE);
-        if (!(r->from_work_format_func = pa_get_convert_from_s16ne_function(r->o_ss.format)))
-            goto fail;
+    if (r->o_ss.format != r->work_format) {
+        if (r->work_format == PA_SAMPLE_FLOAT32NE) {
+            if (!(r->from_work_format_func = pa_get_convert_from_float32ne_function(r->o_ss.format)))
+                goto fail;
+        } else {
+            pa_assert(r->work_format == PA_SAMPLE_S16NE);
+            if (!(r->from_work_format_func = pa_get_convert_from_s16ne_function(r->o_ss.format)))
+                goto fail;
+        }
     }
 
     /* initialize implementation */
