@@ -753,7 +753,7 @@ int pa_bluetooth_transport_parse_property(pa_bluetooth_transport *t, DBusMessage
 
         case DBUS_TYPE_BOOLEAN: {
 
-            pa_bool_t *value;
+            dbus_bool_t value;
             dbus_message_iter_get_basic(&variant_i, &value);
 
             if (pa_streq(key, "NREC"))
@@ -1144,9 +1144,11 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
                 goto fail;
             dbus_message_iter_get_basic(&value, &dev_path);
         } else if (strcasecmp(key, "NREC") == 0) {
+            dbus_bool_t tmp_boolean;
             if (var != DBUS_TYPE_BOOLEAN)
                 goto fail;
-            dbus_message_iter_get_basic(&value, &nrec);
+            dbus_message_iter_get_basic(&value, &tmp_boolean);
+            nrec = tmp_boolean;
         } else if (strcasecmp(key, "Configuration") == 0) {
             DBusMessageIter array;
             if (var != DBUS_TYPE_ARRAY)
