@@ -510,7 +510,8 @@ static void source_output_set_state(pa_source_output *o, pa_source_output_state_
     if (o->state == state)
         return;
 
-    if (o->state == PA_SOURCE_OUTPUT_CORKED && state == PA_SOURCE_OUTPUT_RUNNING && pa_source_used_by(o->source) == 0) {
+    if (o->state == PA_SOURCE_OUTPUT_CORKED && state == PA_SOURCE_OUTPUT_RUNNING && pa_source_used_by(o->source) == 0 &&
+        !pa_sample_spec_equal(&o->sample_spec, &o->source->sample_spec)) {
         /* We were uncorked and the source was not playing anything -- let's try
          * to update the sample rate to avoid resampling */
         pa_source_update_rate(o->source, o->sample_spec.rate, pa_source_output_is_passthrough(o));

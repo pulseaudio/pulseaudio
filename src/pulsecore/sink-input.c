@@ -553,7 +553,8 @@ static void sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) 
     if (i->state == state)
         return;
 
-    if (i->state == PA_SINK_INPUT_CORKED && state == PA_SINK_INPUT_RUNNING && pa_sink_used_by(i->sink) == 0) {
+    if (i->state == PA_SINK_INPUT_CORKED && state == PA_SINK_INPUT_RUNNING && pa_sink_used_by(i->sink) == 0 &&
+        !pa_sample_spec_equal(&i->sample_spec, &i->sink->sample_spec)) {
         /* We were uncorked and the sink was not playing anything -- let's try
          * to update the sample rate to avoid resampling */
         pa_sink_update_rate(i->sink, i->sample_spec.rate, pa_sink_input_is_passthrough(i));
