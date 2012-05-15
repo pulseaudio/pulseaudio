@@ -4,8 +4,8 @@ TAGS
 *.la
 .deps
 .libs
-Makefile
-Makefile.in
+/Makefile
+/Makefile.in
 proximity-helper
 client.conf
 daemon.conf

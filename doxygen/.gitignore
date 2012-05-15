@@ -1,2 +1,4 @@
-doxygen.conf
-html
+/doxygen.conf
+/html/
+/Makefile
+/Makefile.in
