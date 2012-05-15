@@ -72,7 +72,7 @@ static int generate(int fd, void *ret_data, size_t length) {
 
 /* Load an authorization cookie from file fn and store it in data. If
  * the cookie file doesn't exist, create it */
-static int load(const char *fn, void *data, size_t length) {
+static int load(const char *fn, pa_bool_t create, void *data, size_t length) {
     int fd = -1;
     int writable = 1;
     int unlock = 0, ret = -1;
@@ -82,9 +82,9 @@ static int load(const char *fn, void *data, size_t length) {
     pa_assert(data);
     pa_assert(length > 0);
 
-    if ((fd = pa_open_cloexec(fn, O_RDWR|O_CREAT|O_BINARY, S_IRUSR|S_IWUSR)) < 0) {
+    if ((fd = pa_open_cloexec(fn, (create ? O_RDWR|O_CREAT : O_RDONLY)|O_BINARY, S_IRUSR|S_IWUSR)) < 0) {
 
-        if (errno != EACCES || (fd = open(fn, O_RDONLY|O_BINARY)) < 0) {
+        if (!create || errno != EACCES || (fd = open(fn, O_RDONLY|O_BINARY)) < 0) {
             pa_log_warn("Failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
             goto finish;
         } else
@@ -129,14 +129,14 @@ finish:
 }
 
 /* Load a cookie from a cookie file. If the file doesn't exist, create it. */
-int pa_authkey_load(const char *path, void *data, size_t length) {
+int pa_authkey_load(const char *path, pa_bool_t create, void *data, size_t length) {
     int ret;
 
     pa_assert(path);
     pa_assert(data);
     pa_assert(length > 0);
 
-    if ((ret = load(path, data, length)) < 0)
+    if ((ret = load(path, create, data, length)) < 0)
         pa_log_warn("Failed to load authorization key '%s': %s", path, (ret < 0) ? pa_cstrerror(errno) : "File corrupt");
 
     return ret;
@@ -169,7 +169,7 @@ static char *normalize_path(const char *fn) {
 
 /* Load a cookie from a file in the home directory. If the specified
  * path starts with /, use it as absolute path instead. */
-int pa_authkey_load_auto(const char *fn, void *data, size_t length) {
+int pa_authkey_load_auto(const char *fn, pa_bool_t create, void *data, size_t length) {
     char *p;
     int ret;
 
@@ -180,7 +180,7 @@ int pa_authkey_load_auto(const char *fn, void *data, size_t length) {
     if (!(p = normalize_path(fn)))
         return -2;
 
-    ret = pa_authkey_load(p, data, length);
+    ret = pa_authkey_load(p, create, data, length);
     pa_xfree(p);
 
     return ret;

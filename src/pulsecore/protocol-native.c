@@ -5215,11 +5215,23 @@ int pa_native_options_parse(pa_native_options *o, pa_core *c, pa_modargs *ma) {
 
         /* The new name for this is 'auth-cookie', for compat reasons
          * we check the old name too */
-        if (!(cn = pa_modargs_get_value(ma, "auth-cookie", NULL)))
-            if (!(cn = pa_modargs_get_value(ma, "cookie", NULL)))
-                cn = PA_NATIVE_COOKIE_FILE;
+        cn = pa_modargs_get_value(ma, "auth-cookie", NULL);
+        if (!cn)
+            cn = pa_modargs_get_value(ma, "cookie", NULL);
 
-        if (!(o->auth_cookie = pa_auth_cookie_get(c, cn, PA_NATIVE_COOKIE_LENGTH)))
+        if (cn)
+            o->auth_cookie = pa_auth_cookie_get(c, cn, TRUE, PA_NATIVE_COOKIE_LENGTH);
+        else {
+            o->auth_cookie = pa_auth_cookie_get(c, PA_NATIVE_COOKIE_FILE, FALSE, PA_NATIVE_COOKIE_LENGTH);
+            if (!o->auth_cookie) {
+                o->auth_cookie = pa_auth_cookie_get(c, PA_NATIVE_COOKIE_FILE_FALLBACK, FALSE, PA_NATIVE_COOKIE_LENGTH);
+
+                if (!o->auth_cookie)
+                    o->auth_cookie = pa_auth_cookie_get(c, PA_NATIVE_COOKIE_FILE, TRUE, PA_NATIVE_COOKIE_LENGTH);
+            }
+        }
+
+        if (!o->auth_cookie)
             return -1;
 
     } else

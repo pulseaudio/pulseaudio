@@ -71,7 +71,7 @@ pa_client_conf *pa_client_conf_new(void) {
 
     c->daemon_binary = pa_xstrdup(PA_BINARY);
     c->extra_arguments = pa_xstrdup("--log-target=syslog");
-    c->cookie_file = pa_xstrdup(PA_NATIVE_COOKIE_FILE);
+    c->cookie_file = NULL;
 
     return c;
 }
@@ -178,15 +178,27 @@ int pa_client_conf_env(pa_client_conf *c) {
 }
 
 int pa_client_conf_load_cookie(pa_client_conf* c) {
-    pa_assert(c);
+    int k;
 
-    if (!c->cookie_file)
-        return -1;
+    pa_assert(c);
 
     c->cookie_valid = FALSE;
 
-    if (pa_authkey_load_auto(c->cookie_file, c->cookie, sizeof(c->cookie)) < 0)
-        return -1;
+    if (c->cookie_file)
+        k = pa_authkey_load_auto(c->cookie_file, TRUE, c->cookie, sizeof(c->cookie));
+    else {
+        k = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE, FALSE, c->cookie, sizeof(c->cookie));
+
+        if (k < 0) {
+            k = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE_FALLBACK, FALSE, c->cookie, sizeof(c->cookie));
+
+            if (k < 0)
+                k = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE, TRUE, c->cookie, sizeof(c->cookie));
+        }
+    }
+
+    if (k < 0)
+        return k;
 
     c->cookie_valid = TRUE;
     return 0;

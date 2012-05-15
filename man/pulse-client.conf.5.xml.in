@@ -88,7 +88,7 @@ USA.
     <option>
       <p><opt>cookie-file=</opt> Specify the path to the PulseAudio
       authentication cookie. Defaults to
-      <file>~/.pulse-cookie</file>.</p>
+      <file>~/.config/pulse/cookie</file>.</p>
     </option>
 
     <option>

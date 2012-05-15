@@ -1711,7 +1711,7 @@ int pa_esound_options_parse(pa_esound_options *o, pa_core *c, pa_modargs *ma) {
             if (!(cn = pa_modargs_get_value(ma, "cookie", NULL)))
                 cn = DEFAULT_COOKIE_FILE;
 
-        if (!(o->auth_cookie = pa_auth_cookie_get(c, cn, ESD_KEY_LEN)))
+        if (!(o->auth_cookie = pa_auth_cookie_get(c, cn, TRUE, ESD_KEY_LEN)))
             return -1;
 
     } else

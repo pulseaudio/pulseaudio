@@ -73,7 +73,7 @@ USA.
       the <file>eval</file> shell command to set the $PULSE_SERVER,
       $PULSE_SINK, $PULSE_SOURCE environment variables. Also reads the
       authentication cookie from the root window and stores it in
-      <file>~/.pulse-cookie</file>. </p></optdesc>
+      <file>~/.config/pulse/cookie</file>. </p></optdesc>
     </option>
 
     <option>
@@ -88,7 +88,7 @@ USA.
       exist). If specific options are passed on the command line
       (<opt>-S</opt>, <opt>-O</opt>, <opt>-I</opt>, <opt>-c</opt>, see
       below), they take precedence. Also uploads the local
-      authentication cookie <file>~/.pulse-cookie</file> to the X11
+      authentication cookie <file>~/.config/pulse/cookie</file> to the X11
       server.</p></optdesc>
     </option>
 
@@ -133,7 +133,7 @@ USA.
 
       <optdesc><p>Only valid for <opt>-e</opt>: export the PulseAudio
       authentication cookie stored in the specified file to the X11
-      display instead of the one stored in <file>~/.pulse-cookie</file>.</p></optdesc>
+      display instead of the one stored in <file>~/.config/pulse/cookie</file>.</p></optdesc>
     </option>
 
   </options>

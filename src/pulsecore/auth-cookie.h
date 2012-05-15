@@ -26,7 +26,7 @@
 
 typedef struct pa_auth_cookie pa_auth_cookie;
 
-pa_auth_cookie* pa_auth_cookie_get(pa_core *c, const char *cn, size_t size);
+pa_auth_cookie* pa_auth_cookie_get(pa_core *c, const char *cn, pa_bool_t create, size_t size);
 pa_auth_cookie* pa_auth_cookie_ref(pa_auth_cookie *c);
 void pa_auth_cookie_unref(pa_auth_cookie *c);
 

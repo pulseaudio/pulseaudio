@@ -42,7 +42,7 @@ struct pa_auth_cookie {
     size_t size;
 };
 
-pa_auth_cookie* pa_auth_cookie_get(pa_core *core, const char *cn, size_t size) {
+pa_auth_cookie* pa_auth_cookie_get(pa_core *core, const char *cn, pa_bool_t create, size_t size) {
     pa_auth_cookie *c;
     char *t;
 
@@ -69,7 +69,7 @@ pa_auth_cookie* pa_auth_cookie_get(pa_core *core, const char *cn, size_t size) {
 
     pa_assert_se(pa_shared_set(core, t, c) >= 0);
 
-    if (pa_authkey_load_auto(cn, (uint8_t*) c + PA_ALIGN(sizeof(pa_auth_cookie)), size) < 0) {
+    if (pa_authkey_load_auto(cn, create, (uint8_t*) c + PA_ALIGN(sizeof(pa_auth_cookie)), size) < 0) {
         pa_auth_cookie_unref(c);
         return NULL;
     }
