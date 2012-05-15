@@ -5,6 +5,7 @@
 
 /***
   Copyright 2009 Lennart Poettering
+  Copyright 2010 David Henningsson <diwic@ubuntu.com>
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -54,6 +55,22 @@ int rtkit_make_realtime(DBusConnection *system_bus, pid_t thread, int priority);
  * used. The returned value is a negative errno style error code, or 0
  * on success.*/
 int rtkit_make_high_priority(DBusConnection *system_bus, pid_t thread, int nice_level);
+
+/* Return the maximum value of realtime priority available. Realtime requests
+ * above this value will fail. A negative value is an errno style error code.
+ */
+int rtkit_get_max_realtime_priority(DBusConnection *system_bus);
+
+/* Retreive the minimum value of nice level available. High prio requests
+ * below this value will fail. The returned value is a negative errno
+ * style error code, or 0 on success.*/
+int rtkit_get_min_nice_level(DBusConnection *system_bus, int* min_nice_level);
+
+/* Return the maximum value of RLIMIT_RTTIME to set before attempting a
+ * realtime request. A negative value is an errno style error code.
+ */
+long long rtkit_get_rttime_usec_max(DBusConnection *system_bus);
+
 
 #ifdef __cplusplus
 }
