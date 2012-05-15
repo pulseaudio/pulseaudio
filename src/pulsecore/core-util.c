@@ -2758,7 +2758,8 @@ char *pa_machine_id(void) {
 char *pa_session_id(void) {
     const char *e;
 
-    if (!(e = getenv("XDG_SESSION_COOKIE")))
+    e = getenv("XDG_SESSION_ID");
+    if (!e)
         return NULL;
 
     return pa_utf8_filter(e);
