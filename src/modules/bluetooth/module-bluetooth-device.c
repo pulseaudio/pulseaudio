@@ -187,7 +187,7 @@ struct userdata {
 };
 
 enum {
-    BLUETOOTH_MESSAGE_SET_PROFILE,
+    BLUETOOTH_MESSAGE_IO_THREAD_FAILED,
     BLUETOOTH_MESSAGE_MAX
 };
 
@@ -1135,12 +1135,14 @@ static int device_process_msg(pa_msgobject *obj, int code, void *data, int64_t o
     struct bluetooth_msg *u = BLUETOOTH_MSG(obj);
 
     switch (code) {
-        case BLUETOOTH_MESSAGE_SET_PROFILE: {
-            const char *profile = data;
-            pa_log_debug("Switch profile to %s requested", profile);
+        case BLUETOOTH_MESSAGE_IO_THREAD_FAILED: {
+            if (u->card->module->unload_requested)
+                break;
 
-            if (pa_card_set_profile(u->card, profile, FALSE) < 0)
-                pa_log_debug("Failed to switch profile to %s", profile);
+            pa_log_debug("Switching the profile to off due to IO thread failure.");
+
+            if (pa_card_set_profile(u->card, "off", FALSE) < 0)
+                pa_log_debug("Failed to switch profile to off");
             break;
         }
     }
@@ -1750,7 +1752,7 @@ static void thread_func(void *userdata) {
 fail:
     /* If this was no regular exit from the loop we have to continue processing messages until we receive PA_MESSAGE_SHUTDOWN */
     pa_log_debug("IO thread failed");
-    pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u->msg), BLUETOOTH_MESSAGE_SET_PROFILE, "off", 0, NULL, NULL);
+    pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u->msg), BLUETOOTH_MESSAGE_IO_THREAD_FAILED, NULL, 0, NULL, NULL);
     pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
 
 finish:
