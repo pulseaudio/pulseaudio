@@ -1203,11 +1203,6 @@ modlibexec_LTLIBRARIES += \
 		module-waveout.la
 endif
 
-if HAVE_HAL
-modlibexec_LTLIBRARIES += \
-		module-hal-detect.la
-endif
-
 if HAVE_HAL_COMPAT
 modlibexec_LTLIBRARIES += \
 		module-hal-detect.la
@@ -1624,12 +1619,6 @@ libalsa_util_la_LDFLAGS = -avoid-version
 libalsa_util_la_LIBADD = $(MODULE_LIBADD) $(ASOUNDLIB_LIBS)
 libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(SERVER_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
-if HAVE_HAL
-libalsa_util_la_SOURCES += modules/hal-util.h modules/hal-util.c
-libalsa_util_la_LIBADD += $(HAL_LIBS)
-libalsa_util_la_CFLAGS += $(HAL_CFLAGS)
-endif
-
 if HAVE_UDEV
 libalsa_util_la_SOURCES += modules/udev-util.h modules/udev-util.c
 libalsa_util_la_LIBADD += $(UDEV_LIBS)
@@ -1864,15 +1853,9 @@ module_jack_source_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_jack_source_la_LIBADD = $(MODULE_LIBADD) $(JACK_LIBS)
 module_jack_source_la_CFLAGS = $(AM_CFLAGS) $(JACK_CFLAGS)
 
-if HAVE_HAL_COMPAT
 module_hal_detect_la_SOURCES = modules/module-hal-detect-compat.c
 module_hal_detect_la_LIBADD = $(MODULE_LIBADD)
 module_hal_detect_la_CFLAGS = $(AM_CFLAGS)
-else
-module_hal_detect_la_SOURCES = modules/module-hal-detect.c
-module_hal_detect_la_LIBADD = $(MODULE_LIBADD) $(HAL_LIBS)
-module_hal_detect_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
-endif
 module_hal_detect_la_LDFLAGS = $(MODULE_LDFLAGS)
 
 module_udev_detect_la_SOURCES = modules/module-udev-detect.c

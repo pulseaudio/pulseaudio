@@ -951,25 +951,6 @@ PA_MACHINE_ID_FALLBACK="${localstatedir}/lib/dbus/machine-id"
 AX_DEFINE_DIR(PA_MACHINE_ID_FALLBACK, PA_MACHINE_ID_FALLBACK,
 	      [Fallback machine-id file])
 
-#### HAL support (optional), dependant on D-Bus ####
-
-AC_ARG_ENABLE([hal],
-    AS_HELP_STRING([--disable-hal],[Disable optional HAL support]))
-
-AS_IF([test "x$enable_hal" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \)],
-    [PKG_CHECK_MODULES(HAL, [ hal >= 0.5.11 ], HAVE_HAL=1, HAVE_HAL=0)],
-    HAVE_HAL=0)
-AS_IF([test "x$HAVE_DBUS" != "x1"], HAVE_HAL=0)
-
-AS_IF([test "x$enable_hal" = "xyes" && test "x$HAVE_HAL" = "x0"],
-    [AC_MSG_ERROR([*** HAL support not found (requires D-Bus)])])
-
-AC_SUBST(HAL_CFLAGS)
-AC_SUBST(HAL_LIBS)
-AC_SUBST(HAVE_HAL)
-AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
-AS_IF([test "x$HAVE_HAL" = "x1"], AC_DEFINE([HAVE_HAL], 1, [Have HAL.]))
-
 #### BlueZ support (optional, dependant on D-Bus) ####
 
 AC_ARG_ENABLE([bluez],
@@ -1012,11 +993,8 @@ AC_ARG_ENABLE([hal-compat],
     AS_HELP_STRING([--disable-hal-compat],[Disable optional HAL->udev transition compatibility support]))
 
 AS_IF([test "x$enable_hal_compat" != "xno"],
-    [AS_IF([test "x$HAVE_HAL" = "x0" -a "x$HAVE_UDEV" = "x1"], HAVE_HAL_COMPAT=1, HAVE_HAL_COMPAT=0)],
+    [AS_IF([test "x$HAVE_UDEV" = "x1"], HAVE_HAL_COMPAT=1, HAVE_HAL_COMPAT=0)],
     HAVE_HAL_COMPAT=0)
-
-AS_IF([test "x$enable_hal_compat" = "xyes" && test "x$HAVE_HAL_COMPAT" = "x0"],
-    [AC_MSG_ERROR([*** HAL-compat support requires UDEV and no HAL])])
 
 AM_CONDITIONAL([HAVE_HAL_COMPAT], [test "x$HAVE_HAL_COMPAT" = x1])
 AS_IF([test "x$HAVE_HAL_COMPAT" = "x1"], AC_DEFINE([HAVE_HAL_COMPAT], 1, [Have HAL compatibility.]))
@@ -1376,7 +1354,6 @@ AS_IF([test "x$HAVE_LIBASYNCNS" = "x1"], ENABLE_LIBASYNCNS=yes, ENABLE_LIBASYNCN
 AS_IF([test "x$HAVE_LIRC" = "x1"], ENABLE_LIRC=yes, ENABLE_LIRC=no)
 AS_IF([test "x$HAVE_XEN" = "x1"], ENABLE_XEN=yes, ENABLE_XEN=no)
 AS_IF([test "x$HAVE_DBUS" = "x1"], ENABLE_DBUS=yes, ENABLE_DBUS=no)
-AS_IF([test "x$HAVE_HAL" = "x1"], ENABLE_HAL=yes, ENABLE_HAL=no)
 AS_IF([test "x$HAVE_UDEV" = "x1"], ENABLE_UDEV=yes, ENABLE_UDEV=no)
 AS_IF([test "x$HAVE_SYSTEMD" = "x1"], ENABLE_SYSTEMD=yes, ENABLE_SYSTEMD=no)
 AS_IF([test "x$HAVE_BLUEZ" = "x1"], ENABLE_BLUEZ=yes, ENABLE_BLUEZ=no)
@@ -1429,7 +1406,6 @@ echo "
     Enable LIRC:                   ${ENABLE_LIRC}
     Enable Xen PV driver:          ${ENABLE_XEN}
     Enable D-Bus:                  ${ENABLE_DBUS}
-      Enable HAL:                  ${ENABLE_HAL}
       Enable BlueZ:                ${ENABLE_BLUEZ}
     Enable udev:                   ${ENABLE_UDEV}
       Enable HAL->udev compat:     ${ENABLE_HAL_COMPAT}
