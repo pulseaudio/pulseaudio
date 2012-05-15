@@ -1792,15 +1792,22 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         char *lfn;
         char *h;
 
-        if ((e = getenv("PULSE_CONFIG_PATH")))
+        if ((e = getenv("PULSE_CONFIG_PATH"))) {
             fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", e, local);
-        else if ((h = pa_get_home_dir_malloc())) {
+            f = pa_fopen_cloexec(fn, "r");
+        } else if ((h = pa_get_home_dir_malloc())) {
             fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse" PA_PATH_SEP "%s", h, local);
+            f = pa_fopen_cloexec(fn, "r");
+            if (!f) {
+                free(lfn);
+                fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP ".config/pulse" PA_PATH_SEP "%s", h, local);
+                f = pa_fopen_cloexec(fn, "r");
+            }
             pa_xfree(h);
         } else
             return NULL;
 
-        if ((f = pa_fopen_cloexec(fn, "r"))) {
+        if (f) {
             if (result)
                 *result = pa_xstrdup(fn);
 
