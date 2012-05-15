@@ -2726,9 +2726,9 @@ char *pa_machine_id(void) {
     /* The returned value is supposed be some kind of ascii identifier
      * that is unique and stable across reboots. */
 
-    /* First we try the D-Bus UUID, which is the best option we have,
-     * since it fits perfectly our needs and is not as volatile as the
-     * hostname which might be set from dhcp. */
+    /* First we try the /etc/machine-id, which is the best option we
+     * have, since it fits perfectly our needs and is not as volatile
+     * as the hostname which might be set from dhcp. */
 
     if ((f = pa_fopen_cloexec(PA_MACHINE_ID, "r")) ||
         (f = pa_fopen_cloexec(PA_MACHINE_ID_FALLBACK, "r"))) {
