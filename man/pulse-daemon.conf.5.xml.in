@@ -24,14 +24,14 @@ USA.
 <manpage name="pulse-daemon.conf" section="5" desc="PulseAudio daemon configuration file">
 
   <synopsis>
-    <p><file>~/.pulse/daemon.conf</file></p>
+    <p><file>~/.config/pulse/daemon.conf</file></p>
 
     <p><file>@PA_DEFAULT_CONFIG_DIR@/daemon.conf</file></p>
   </synopsis>
 
   <description>
     <p>The PulseAudio sound server reads configuration directives from
-    a file <file>~/.pulse/daemon.conf</file> on startup and when that
+    a file <file>~/.config/pulse/daemon.conf</file> on startup and when that
     file doesn't exist from
     <file>@PA_DEFAULT_CONFIG_DIR@/daemon.conf</file>. Please note that the
     server also reads a configuration script on startup
@@ -124,7 +124,7 @@ USA.
 
     <option>
       <p><opt>use-pid-file=</opt> Create a PID file in the runtime directory
-      (<file>$HOME/.pulse/*-runtime/pid</file>). If this is enabled you may
+      (<file>$XDG_RUNTIMEDIR/pulse/pid</file>). If this is enabled you may
       use commands like <opt>--kill</opt> or <opt>--check</opt>. If
       you are planning to start more than one PulseAudio process per
       user, you better disable this option since it effectively
@@ -276,7 +276,7 @@ USA.
       <p><opt>default-script-file=</opt> The default configuration
       script file to load. Specify an empty string for not loading a
       default script file. The default behaviour is to load
-      <file>~/.pulse/default.pa</file>, and if that file does not
+      <file>~/.config/pulse/default.pa</file>, and if that file does not
       exist fall back to the system wide installed version
       <file>@PA_DEFAULT_CONFIG_DIR@/default.pa</file>. If run in system-wide
       mode the file <file>@PA_DEFAULT_CONFIG_DIR@/system.pa</file> is used

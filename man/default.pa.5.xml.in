@@ -24,14 +24,14 @@ USA.
 <manpage name="default.pa" section="5" desc="PulseAudio Sound Server Startup Script">
 
   <synopsis>
-    <p><file>~/.pulse/default.pa</file></p>
+    <p><file>~/.config/pulse/default.pa</file></p>
 
     <p><file>@PA_DEFAULT_CONFIG_DIR@/default.pa</file></p>
   </synopsis>
 
   <description>
     <p>The PulseAudio sound server interprets the file
-    <file>~/.pulse/default.pa</file> on startup, and when that file
+    <file>~/.config/pulse/default.pa</file> on startup, and when that file
     doesn't exist <file>@PA_DEFAULT_CONFIG_DIR@/default.pa</file>. It
     should contain directives in the PulseAudio CLI languages, as
     documented in <manref name="pulse-cli-syntax" section="5"/>.</p>

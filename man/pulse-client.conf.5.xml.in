@@ -24,14 +24,14 @@ USA.
 <manpage name="pulse-client.conf" section="5" desc="PulseAudio client configuration file">
 
   <synopsis>
-    <p><file>~/.pulse/client.conf</file></p>
+    <p><file>~/.config/pulse/client.conf</file></p>
 
     <p><file>@PA_DEFAULT_CONFIG_DIR@/client.conf</file></p>
   </synopsis>
 
   <description>
     <p>The PulseAudio client library reads configuration directives from
-    a file <file>~/.pulse/client.conf</file> on startup and when that
+    a file <file>~/.config/pulse/client.conf</file> on startup and when that
     file doesn't exist from
     <file>@PA_DEFAULT_CONFIG_DIR@/client.conf</file>.</p>
 

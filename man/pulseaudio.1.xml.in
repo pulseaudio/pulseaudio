@@ -326,21 +326,21 @@ USA.
 
   <section name="Files">
 
-    <p><file>~/.pulse/daemon.conf</file>,
+    <p><file>~/.config/pulse/daemon.conf</file>,
     <file>@PA_DEFAULT_CONFIG_DIR@/daemon.conf</file>: configuration settings
     for the PulseAudio daemon. If the version in the user's home
     directory does not exist the global configuration file is
     loaded. See <manref name="pulse-daemon.conf" section="5"/> for
     more information.</p>
 
-    <p><file>~/.pulse/default.pa</file>,
+    <p><file>~/.config/pulse/default.pa</file>,
     <file>@PA_DEFAULT_CONFIG_DIR@/default.pa</file>: the default configuration
     script to execute when the PulseAudio daemon is started. If the
     version in the user's home directory does not exist the global
     configuration script is loaded. See <manref name="default.pa"
     section="5"/> for more information.</p>
 
-    <p><file>~/.pulse/client.conf</file>,
+    <p><file>~/.config/pulse/client.conf</file>,
     <file>@PA_DEFAULT_CONFIG_DIR@/client.conf</file>: configuration settings
     for PulseAudio client applications. If the version in the user's
     home directory does not exist the global configuration file is

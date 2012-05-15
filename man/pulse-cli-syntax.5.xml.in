@@ -24,7 +24,7 @@ USA.
 <manpage name="pulse-cli-syntax" section="5" desc="PulseAudio Command Line Interface Syntax">
 
   <synopsis>
-    <p><file>~/.pulse/default.pa</file></p>
+    <p><file>~/.config/pulse/default.pa</file></p>
     <p><file>@PA_DEFAULT_CONFIG_DIR@/default.pa</file></p>
     <p><file>@PA_DEFAULT_CONFIG_DIR@/system.pa</file></p>
   </synopsis>
