@@ -8,3 +8,4 @@ Terminal=false
 Type=Application
 Categories=
 GenericName=
+X-GNOME-Autostart-Phase=Initialization
