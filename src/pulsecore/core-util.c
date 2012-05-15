@@ -1572,12 +1572,15 @@ char *pa_get_runtime_dir(void) {
      * to be kept across reboots and is usually private to the user,
      * except in system mode, where it might be accessible by other
      * users, too. Since we need POSIX locking and UNIX sockets in
-     * this directory, we link it to a random subdir in /tmp, if it
-     * was not explicitly configured. */
+     * this directory, we try XDG_RUNTIME_DIR first, and if that isn't
+     * set create a directory in $HOME and link it to a random subdir
+     * in /tmp, if it was not explicitly configured. */
 
     m = pa_in_system_mode() ? 0755U : 0700U;
 
-    if ((d = getenv("PULSE_RUNTIME_PATH"))) {
+    /* Use the explicitly configured value if it is set */
+    d = getenv("PULSE_RUNTIME_PATH");
+    if (d) {
 
         if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0) {
             pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
@@ -1587,7 +1590,23 @@ char *pa_get_runtime_dir(void) {
         return pa_xstrdup(d);
     }
 
-    if (!(d = get_pulse_home()))
+    /* Use the XDG standard for the runtime directory. */
+    d = getenv("XDG_RUNTIME_DIR");
+    if (d) {
+        k = pa_sprintf_malloc("%s" PA_PATH_SEP "pulse", d);
+
+        if (pa_make_secure_dir(k, m, (uid_t) -1, (gid_t) -1) < 0) {
+            free(k);
+            pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
+            goto fail;
+        }
+
+        return k;
+    }
+
+    /* XDG_RUNTIME_DIR wasn't set, use the old legacy fallback */
+    d = get_pulse_home();
+    if (!d)
         goto fail;
 
     if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0) {
@@ -1596,7 +1615,8 @@ char *pa_get_runtime_dir(void) {
         goto fail;
     }
 
-    if (!(mid = pa_machine_id())) {
+    mid = pa_machine_id();
+    if (!mid) {
         pa_xfree(d);
         goto fail;
     }
@@ -1608,7 +1628,8 @@ char *pa_get_runtime_dir(void) {
     for (;;) {
         /* OK, first let's check if the "runtime" symlink already exists */
 
-        if (!(p = pa_readlink(k))) {
+        p = pa_readlink(k);
+        if (!p) {
 
             if (errno != ENOENT) {
                 pa_log_error("Failed to stat runtime directory %s: %s", k, pa_cstrerror(errno));
@@ -1630,7 +1651,7 @@ char *pa_get_runtime_dir(void) {
             }
 #else
             /* No symlink possible, so let's just create the runtime directly */
-            if (!mkdir(k))
+            if (mkdir(k) < 0)
                 goto fail;
 #endif
 
