@@ -1396,33 +1396,62 @@ int pa_unlock_lockfile(const char *fn, int fd) {
     return r;
 }
 
-static char *get_pulse_home(void) {
-    char *h;
-    struct stat st;
-    char *ret = NULL;
+static char *get_config_home(char *home) {
+    char *t;
 
-    if (!(h = pa_get_home_dir_malloc())) {
+    t = getenv("XDG_CONFIG_HOME");
+    if (t)
+        return pa_xstrdup(t);
+
+    return pa_sprintf_malloc("%s" PA_PATH_SEP ".config", home);
+}
+
+static int check_ours(const char *p) {
+    struct stat st;
+
+    pa_assert(p);
+
+    if (stat(p, &st) < 0)
+        return -errno;
+
+#ifdef HAVE_GETUID
+    if (st.st_uid != getuid())
+        return -EACCES;
+#endif
+
+    return 0;
+}
+
+static char *get_pulse_home(void) {
+    char *h, *ret, *config_home;
+    int t;
+
+    h = pa_get_home_dir_malloc();
+    if (!h) {
         pa_log_error("Failed to get home directory.");
         return NULL;
     }
 
-    if (stat(h, &st) < 0) {
-        pa_log_error("Failed to stat home directory %s: %s", h, pa_cstrerror(errno));
-        goto finish;
+    t = check_ours(h);
+    if (t < 0 && t != -ENOENT) {
+        pa_log_error("Home directory not accessible: %s", pa_cstrerror(-t));
+        pa_xfree(h);
+        return NULL;
     }
 
-#ifdef HAVE_GETUID
-    if (st.st_uid != getuid()) {
-        pa_log_error("Home directory %s not ours.", h);
-        errno = EACCES;
-        goto finish;
-    }
-#endif
-
+    /* If the old directory exists, use it. */
     ret = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse", h);
+    if (access(ret, F_OK) >= 0) {
+        free(h);
+        return ret;
+    }
+    free(ret);
 
-finish:
-    pa_xfree(h);
+    /* Otherwise go for the XDG compliant directory. */
+    config_home = get_config_home(h);
+    free(h);
+    ret = pa_sprintf_malloc("%s" PA_PATH_SEP "pulse", config_home);
+    free(config_home);
 
     return ret;
 }
