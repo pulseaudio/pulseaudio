@@ -2749,7 +2749,7 @@ char *pa_machine_id(void) {
 #ifndef OS_IS_WIN32
     /* If no hostname was set we use the POSIX hostid. It's usually
      * the IPv4 address.  Might not be that stable. */
-    return pa_sprintf_malloc("%08lx", (unsigned long) gethostid);
+    return pa_sprintf_malloc("%08lx", (unsigned long) gethostid());
 #else
     return NULL;
 #endif
