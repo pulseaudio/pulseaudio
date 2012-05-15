@@ -177,7 +177,7 @@ PA_C_DECL_BEGIN
 /** For clients/streams: the D-Bus host id the application runs on. e.g. "543679e7b01393ed3e3e650047d78f6e" */
 #define PA_PROP_APPLICATION_PROCESS_MACHINE_ID "application.process.machine_id"
 
-/** For clients/streams: an id for the login session the application runs in. On Unix the value of $XDG_SESSION_COOKIE. e.g. "543679e7b01393ed3e3e650047d78f6e-1235159798.76193-190367717" */
+/** For clients/streams: an id for the login session the application runs in. On Unix the value of $XDG_SESSION_ID. e.g. "5" */
 #define PA_PROP_APPLICATION_PROCESS_SESSION_ID "application.process.session_id"
 
 /** For devices: device string in the underlying audio layer's format. e.g. "surround51:0" */
