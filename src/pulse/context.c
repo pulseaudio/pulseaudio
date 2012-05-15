@@ -563,78 +563,8 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     pa_context_unref(c);
 }
 
-#ifdef ENABLE_LEGACY_RUNTIME_DIR
-static char *get_old_legacy_runtime_dir(void) {
-    char *p, u[128];
-    struct stat st;
-
-    if (!pa_get_user_name(u, sizeof(u)))
-        return NULL;
-
-    p = pa_sprintf_malloc("/tmp/pulse-%s", u);
-
-    if (stat(p, &st) < 0) {
-        pa_xfree(p);
-        return NULL;
-    }
-
-#ifdef HAVE_GETUID
-    if (st.st_uid != getuid()) {
-        pa_xfree(p);
-        return NULL;
-    }
-#endif
-
-    return p;
-}
-
-static char *get_very_old_legacy_runtime_dir(void) {
-    char *p, h[128];
-    struct stat st;
-
-    if (!pa_get_home_dir(h, sizeof(h)))
-        return NULL;
-
-    p = pa_sprintf_malloc("%s/.pulse", h);
-
-    if (stat(p, &st) < 0) {
-        pa_xfree(p);
-        return NULL;
-    }
-
-#ifdef HAVE_GETUID
-    if (st.st_uid != getuid()) {
-        pa_xfree(p);
-        return NULL;
-    }
-#endif
-
-    return p;
-}
-#endif
-
 static pa_strlist *prepend_per_user(pa_strlist *l) {
     char *ufn;
-
-#ifdef ENABLE_LEGACY_RUNTIME_DIR
-    char *legacy_dir;
-
-    /* The very old per-user instance path (< 0.9.11). This is supported only to ease upgrades */
-    if ((legacy_dir = get_very_old_legacy_runtime_dir())) {
-        char *p = pa_sprintf_malloc("%s" PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET, legacy_dir);
-        l = pa_strlist_prepend(l, p);
-        pa_xfree(p);
-        pa_xfree(legacy_dir);
-    }
-
-    /* The old per-user instance path (< 0.9.12). This is supported only to ease upgrades */
-    if ((legacy_dir = get_old_legacy_runtime_dir())) {
-        char *p = pa_sprintf_malloc("%s" PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET, legacy_dir);
-        l = pa_strlist_prepend(l, p);
-        pa_xfree(p);
-        pa_xfree(legacy_dir);
-    }
-#endif
 
     /* The per-user instance */
     if ((ufn = pa_runtime_path(PA_NATIVE_DEFAULT_UNIX_SOCKET))) {

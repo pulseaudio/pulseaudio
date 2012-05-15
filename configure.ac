@@ -1228,12 +1228,6 @@ AC_ARG_ENABLE([default-build-tests],
     AS_HELP_STRING([--disable-default-build-tests], [Build test programs only during make check]))
 AM_CONDITIONAL([BUILD_TESTS_DEFAULT], [test "x$enable_default_build_tests" != "xno"])
 
-AC_ARG_ENABLE([legacy-runtime-dir],
-        AS_HELP_STRING([--disable-legacy-runtime-dir], [Try to connect on legacy (< 0.9.12) socket paths.]))
-if test "x$enable_legacy_runtime_dir" != "xno" ; then
-        AC_DEFINE(ENABLE_LEGACY_RUNTIME_DIR, [1], [Legacy runtime dir])
-fi
-
 AC_ARG_ENABLE([legacy-database-entry-format],
         AS_HELP_STRING([--disable-legacy-database-entry-format], [Try to load legacy (< 1.0) database files (card, device and volume restore).]))
 if test "x$enable_legacy_database_entry_format" != "xno" ; then
@@ -1372,7 +1366,6 @@ AS_IF([test "x$HAVE_GDBM" = "x1"], ENABLE_GDBM=yes, ENABLE_GDBM=no)
 AS_IF([test "x$HAVE_SIMPLEDB" = "x1"], ENABLE_SIMPLEDB=yes, ENABLE_SIMPLEDB=no)
 AS_IF([test "x$HAVE_ESOUND" = "x1"], ENABLE_ESOUND=yes, ENABLE_ESOUND=no)
 AS_IF([test "x$HAVE_ESOUND" = "x1" -a "x$USE_PER_USER_ESOUND_SOCKET" = "x1"], ENABLE_PER_USER_ESOUND_SOCKET=yes, ENABLE_PER_USER_ESOUND_SOCKET=no)
-AS_IF([test "x$enable_legacy_runtime_dir" != "xno"], ENABLE_LEGACY_RUNTIME_DIR=yes, ENABLE_LEGACY_RUNTIME_DIR=no)
 AS_IF([test "x$enable_legacy_database_entry_format" != "xno"], ENABLE_LEGACY_DATABASE_ENTRY_FORMAT=yes, ENABLE_LEGACY_DATABASE_ENTRY_FORMAT=no)
 
 echo "
@@ -1431,7 +1424,6 @@ echo "
     Force preopen:                 ${FORCE_PREOPEN}
     Preopened modules:             ${PREOPEN_MODS}
 
-    Legacy Runtime Dir Support:    ${ENABLE_LEGACY_RUNTIME_DIR}
     Legacy Database Entry Support: ${ENABLE_LEGACY_DATABASE_ENTRY_FORMAT}
 "
 
