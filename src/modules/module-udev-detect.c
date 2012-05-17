@@ -123,7 +123,7 @@ static char *card_get_sysattr(const char *card_idx, const char *name) {
         goto finish;
     }
 
-    t = pa_sprintf_malloc("%s/class/sound/card%s", udev_get_sys_path(udev), card_idx);
+    t = pa_sprintf_malloc("/sys/class/sound/card%s", card_idx);
     card = udev_device_new_from_syspath(udev, t);
     pa_xfree(t);
 
@@ -282,7 +282,7 @@ static void verify_access(struct userdata *u, struct device *d) {
     pa_assert(u);
     pa_assert(d);
 
-    cd = pa_sprintf_malloc("%s/snd/controlC%s", udev_get_dev_path(u->udev), path_get_card_id(d->path));
+    cd = pa_sprintf_malloc("/dev/snd/controlC%s", path_get_card_id(d->path));
     accessible = access(cd, R_OK|W_OK) >= 0;
     pa_log_debug("%s is accessible: %s", cd, pa_yes_no(accessible));
 
@@ -621,7 +621,6 @@ fail:
 }
 
 static int setup_inotify(struct userdata *u) {
-    char *dev_snd;
     int r;
 
     if (u->inotify_fd >= 0)
@@ -632,9 +631,7 @@ static int setup_inotify(struct userdata *u) {
         return -1;
     }
 
-    dev_snd = pa_sprintf_malloc("%s/snd", udev_get_dev_path(u->udev));
-    r = inotify_add_watch(u->inotify_fd, dev_snd, IN_ATTRIB|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF);
-    pa_xfree(dev_snd);
+    r = inotify_add_watch(u->inotify_fd, "/dev/snd", IN_ATTRIB|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF);
 
     if (r < 0) {
         int saved_errno = errno;
