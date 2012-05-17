@@ -180,7 +180,7 @@ int pa_udev_get_info(int card_idx, pa_proplist *p) {
         goto finish;
     }
 
-    t = pa_sprintf_malloc("%s/class/sound/card%i", udev_get_sys_path(udev), card_idx);
+    t = pa_sprintf_malloc("/sys/class/sound/card%i", card_idx);
     card = udev_device_new_from_syspath(udev, t);
     pa_xfree(t);
 
@@ -277,7 +277,7 @@ char* pa_udev_get_property(int card_idx, const char *name) {
         goto finish;
     }
 
-    t = pa_sprintf_malloc("%s/class/sound/card%i", udev_get_sys_path(udev), card_idx);
+    t = pa_sprintf_malloc("/sys/class/sound/card%i", card_idx);
     card = udev_device_new_from_syspath(udev, t);
     pa_xfree(t);
 
