@@ -23,16 +23,16 @@
 ***/
 
 #include <pulsecore/atomic.h>
+#include <pulsecore/mutex.h>
 
 typedef struct pa_once {
-    pa_atomic_ptr_t mutex;
-    pa_atomic_t ref, done;
+    pa_static_mutex mutex;
+    pa_atomic_t done;
 } pa_once;
 
 #define PA_ONCE_INIT                                                    \
     {                                                                   \
-        .mutex = PA_ATOMIC_PTR_INIT(NULL),                              \
-        .ref = PA_ATOMIC_INIT(0),                                       \
+        .mutex = PA_STATIC_MUTEX_INIT,                                  \
         .done = PA_ATOMIC_INIT(0)                                       \
     }
 
