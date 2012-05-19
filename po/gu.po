@@ -94,7 +94,7 @@ msgstr ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> format=<sample format> rate=<sample rate> "
 "channels=<number of channels> channel_map=<channel map> plugin=<ladspa "
-"plugin name> label=<ladspa plugin label> control=<comma seperated list of "
+"plugin name> label=<ladspa plugin label> control=<comma separated list of "
 "input control values>"
 
 #: ../src/modules/module-null-sink.c:49
@@ -2856,7 +2856,7 @@ msgstr ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> format=<sample format> rate=<sample rate> "
 "channels=<number of channels> channel_map=<channel map> plugin=<ladspa "
-"plugin name> label=<ladspa plugin label> control=<comma seperated list of "
+"plugin name> label=<ladspa plugin label> control=<comma separated list of "
 "input control values>"
 
 #: ../src/modules/module-filter-apply.c:48
