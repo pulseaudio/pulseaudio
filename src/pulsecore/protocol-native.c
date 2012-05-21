@@ -4623,11 +4623,10 @@ static void command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, 
 
     if (idx != PA_INVALID_INDEX)
         m = pa_idxset_get_by_index(c->protocol->core->modules, idx);
-    else {
-        for (m = pa_idxset_first(c->protocol->core->modules, &idx); m; m = pa_idxset_next(c->protocol->core->modules, &idx))
-            if (strcmp(name, m->name) == 0)
+    else
+        PA_IDXSET_FOREACH(m, c->protocol->core->modules, idx)
+            if (pa_streq(name, m->name))
                 break;
-    }
 
     CHECK_VALIDITY(c->pstream, m, tag, PA_ERR_NOEXTENSION);
     CHECK_VALIDITY(c->pstream, m->load_once || idx != PA_INVALID_INDEX, tag, PA_ERR_INVALID);
