@@ -1731,11 +1731,18 @@ static void thread_func(void *userdata) {
             pollfd->events = (short) (((u->sink && PA_SINK_IS_LINKED(u->sink->thread_info.state) && !writable) ? POLLOUT : 0) |
                                       (u->source && PA_SOURCE_IS_LINKED(u->source->thread_info.state) ? POLLIN : 0));
 
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0) {
+            pa_log_debug("pa_rtpoll_run failed with: %d", ret);
             goto fail;
-
-        if (ret == 0)
+        }
+        if (ret == 0) {
+            pa_log_debug("IO thread shutdown requested, stopping cleanly");
+            if (u->transport)
+                bt_transport_release(u);
+            else
+                stop_stream_fd(u);
             goto finish;
+        }
 
         pollfd = u->rtpoll_item ? pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL) : NULL;
 
