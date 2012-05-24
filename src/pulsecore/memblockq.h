@@ -51,7 +51,7 @@ typedef struct pa_memblockq pa_memblockq;
 
    - ss:        Sample spec describing the queue contents. Only multiples
                 of the frame size as implied by the sample spec are
-                popped from the queue or should be pushed into it.
+                allowed into the queue or can be popped from it.
 
    - prebuf:    If the queue runs empty wait until this many bytes are in
                 queue again before passing the first byte out. If set
