@@ -208,7 +208,7 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
-int pa__init(pa_module*m) {
+int pa__init(pa_module *m) {
     struct userdata *u;
     struct stat st;
     pa_sample_spec ss;
@@ -220,14 +220,14 @@ int pa__init(pa_module*m) {
     pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log("failed to parse module arguments.");
+        pa_log("Failed to parse module arguments.");
         goto fail;
     }
 
     ss = m->core->default_sample_spec;
     map = m->core->default_channel_map;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
-        pa_log("invalid sample format specification or channel map");
+        pa_log("Invalid sample format specification or channel map");
         goto fail;
     }
 
@@ -249,7 +249,7 @@ int pa__init(pa_module*m) {
     pa_make_fd_nonblock(u->fd);
 
     if (fstat(u->fd, &st) < 0) {
-        pa_log("fstat('%s'): %s",u->filename, pa_cstrerror(errno));
+        pa_log("fstat('%s'): %s", u->filename, pa_cstrerror(errno));
         goto fail;
     }
 
@@ -322,7 +322,7 @@ int pa__get_n_used(pa_module *m) {
     return pa_source_linked_by(u->source);
 }
 
-void pa__done(pa_module*m) {
+void pa__done(pa_module *m) {
     struct userdata *u;
 
     pa_assert(m);

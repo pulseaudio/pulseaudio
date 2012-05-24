@@ -221,7 +221,7 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
-int pa__init(pa_module*m) {
+int pa__init(pa_module *m) {
     struct userdata *u;
     struct stat st;
     pa_sample_spec ss;
@@ -338,7 +338,7 @@ int pa__get_n_used(pa_module *m) {
     return pa_sink_linked_by(u->sink);
 }
 
-void pa__done(pa_module*m) {
+void pa__done(pa_module *m) {
     struct userdata *u;
 
     pa_assert(m);
