@@ -240,7 +240,10 @@ int pa__init(pa_module *m) {
 
     u->filename = pa_runtime_path(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
 
-    mkfifo(u->filename, 0666);
+    if (mkfifo(u->filename, 0666) < 0) {
+        pa_log("mkfifo('%s'): %s", u->filename, pa_cstrerror(errno));
+        goto fail;
+    }
     if ((u->fd = pa_open_cloexec(u->filename, O_RDWR, 0)) < 0) {
         pa_log("open('%s'): %s", u->filename, pa_cstrerror(errno));
         goto fail;
