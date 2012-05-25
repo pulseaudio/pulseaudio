@@ -33,6 +33,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <time.h>
+#include <fcntl.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/error.h>
@@ -121,6 +122,7 @@ static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa
 static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_log_target(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_log_level(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_log_meta(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_log_time(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
@@ -183,6 +185,7 @@ static const struct command commands[] = {
     { "kill-client",             pa_cli_command_kill_client,        "Kill a client (args: index)", 2},
     { "kill-sink-input",         pa_cli_command_kill_sink_input,    "Kill a sink input (args: index)", 2},
     { "kill-source-output",      pa_cli_command_kill_source_output, "Kill a source output (args: index)", 2},
+    { "set-log-target",          pa_cli_command_log_target,         "Change the log target (args: null,auto,syslog,stderr,file:PATH)", 2},
     { "set-log-level",           pa_cli_command_log_level,          "Change the log level (args: numeric level)", 2},
     { "set-log-meta",            pa_cli_command_log_meta,           "Show source code location in log messages (args: bool)", 2},
     { "set-log-time",            pa_cli_command_log_time,           "Show timestamps in log messages (args: bool)", 2},
@@ -1469,6 +1472,46 @@ static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, p
 
     if ((r = pa_source_suspend_all(c, suspend, PA_SUSPEND_USER)) < 0)
         pa_strbuf_printf(buf, "Failed to resume/suspend all sources: %s\n", pa_strerror(r));
+
+    return 0;
+}
+
+static int pa_cli_command_log_target(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *m;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(m = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a log target (null,auto,syslog,stderr,file:PATH).\n");
+        return -1;
+    }
+
+    if (pa_streq(m, "null"))
+        pa_log_set_target(PA_LOG_NULL);
+    else if (pa_streq(m, "syslog"))
+        pa_log_set_target(PA_LOG_SYSLOG);
+    else if (pa_streq(m, "stderr") || pa_streq(m, "auto")) {
+        /* 'auto' is actually the effect with 'stderr' */
+        pa_log_set_target(PA_LOG_STDERR);
+    } else if (pa_startswith(m, "file:")) {
+        const char *file_path = m + 5;
+        int log_fd;
+
+        /* Open target file with user rights */
+        if ((log_fd = open(file_path, O_RDWR|O_TRUNC|O_CREAT, S_IRUSR | S_IWUSR)) >= 0) {
+            pa_log_set_target(PA_LOG_FD);
+            pa_log_set_fd(log_fd);
+        } else {
+            pa_strbuf_printf(buf, "Failed to open target file %s, error : %s\n", file_path, pa_cstrerror(errno));
+            return -1;
+        }
+    } else {
+        pa_strbuf_puts(buf, "You need to specify a log target (null,auto,syslog,stderr,file:PATH).\n");
+        return -1;
+    }
 
     return 0;
 }
