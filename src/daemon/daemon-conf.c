@@ -180,12 +180,12 @@ int pa_daemon_conf_set_log_target(pa_daemon_conf *c, const char *string) {
     pa_assert(c);
     pa_assert(string);
 
-    if (!strcmp(string, "auto"))
+    if (pa_streq(string, "auto"))
         c->auto_log_target = 1;
-    else if (!strcmp(string, "syslog")) {
+    else if (pa_streq(string, "syslog")) {
         c->auto_log_target = 0;
         c->log_target = PA_LOG_SYSLOG;
-    } else if (!strcmp(string, "stderr")) {
+    } else if (pa_streq(string, "stderr")) {
         c->auto_log_target = 0;
         c->log_target = PA_LOG_STDERR;
     } else if (pa_startswith(string, "file:")) {
@@ -251,11 +251,11 @@ int pa_daemon_conf_set_local_server_type(pa_daemon_conf *c, const char *string) 
     pa_assert(c);
     pa_assert(string);
 
-    if (!strcmp(string, "user"))
+    if (pa_streq(string, "user"))
         c->local_server_type = PA_SERVER_TYPE_USER;
-    else if (!strcmp(string, "system")) {
+    else if (pa_streq(string, "system")) {
         c->local_server_type = PA_SERVER_TYPE_SYSTEM;
-    } else if (!strcmp(string, "none")) {
+    } else if (pa_streq(string, "none")) {
         c->local_server_type = PA_SERVER_TYPE_NONE;
     } else
         return -1;
