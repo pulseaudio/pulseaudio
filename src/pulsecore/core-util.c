@@ -3003,7 +3003,7 @@ char *pa_realpath(const char *path) {
         return NULL;
     }
 
-#if defined(__GLIBC__) || defined(__APPLE__)
+#if defined(__GLIBC__)
     {
         char *r;
 
