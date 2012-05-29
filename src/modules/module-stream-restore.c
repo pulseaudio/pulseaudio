@@ -1201,7 +1201,7 @@ static void trigger_save(struct userdata *u) {
     pa_native_connection *c;
     uint32_t idx;
 
-    for (c = pa_idxset_first(u->subscribed, &idx); c; c = pa_idxset_next(u->subscribed, &idx)) {
+    PA_IDXSET_FOREACH(c, u->subscribed, idx) {
         pa_tagstruct *t;
 
         t = pa_tagstruct_new(NULL, 0);

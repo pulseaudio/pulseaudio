@@ -328,7 +328,7 @@ int pa__init(pa_module*m) {
     pa_log_info("Successfully opened database file '%s'.", fname);
     pa_xfree(fname);
 
-    for (card = pa_idxset_first(m->core->cards, &idx); card; card = pa_idxset_next(m->core->cards, &idx))
+    PA_IDXSET_FOREACH(card, m->core->cards, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_NEW, card->index, u);
 
     pa_modargs_free(ma);

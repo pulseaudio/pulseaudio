@@ -439,10 +439,10 @@ int pa__init(pa_module*m) {
     u->timeout = timeout;
     u->device_infos = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
-    for (sink = pa_idxset_first(m->core->sinks, &idx); sink; sink = pa_idxset_next(m->core->sinks, &idx))
+    PA_IDXSET_FOREACH(sink, m->core->sinks, idx)
         device_new_hook_cb(m->core, PA_OBJECT(sink), u);
 
-    for (source = pa_idxset_first(m->core->sources, &idx); source; source = pa_idxset_next(m->core->sources, &idx))
+    PA_IDXSET_FOREACH(source, m->core->sources, idx)
         device_new_hook_cb(m->core, PA_OBJECT(source), u);
 
     u->sink_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_NORMAL, (pa_hook_cb_t) device_new_hook_cb, u);

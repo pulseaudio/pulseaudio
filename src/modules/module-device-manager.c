@@ -435,7 +435,7 @@ static void notify_subscribers(struct userdata *u) {
 
     pa_assert(u);
 
-    for (c = pa_idxset_first(u->subscribed, &idx); c; c = pa_idxset_next(u->subscribed, &idx)) {
+    PA_IDXSET_FOREACH(c, u->subscribed, idx) {
         pa_tagstruct *t;
 
         t = pa_tagstruct_new(NULL, 0);

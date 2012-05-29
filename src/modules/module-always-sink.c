@@ -67,7 +67,7 @@ static void load_null_sink_if_needed(pa_core *c, pa_sink *sink, struct userdata*
 
     /* Loop through all sinks and check to see if we have *any*
      * sinks. Ignore the sink passed in (if it's not null) */
-    for (target = pa_idxset_first(c->sinks, &idx); target; target = pa_idxset_next(c->sinks, &idx))
+    PA_IDXSET_FOREACH(target, c->sinks, idx)
         if (!sink || target != sink)
             break;
 
