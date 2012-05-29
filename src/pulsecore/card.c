@@ -263,14 +263,14 @@ int pa_card_suspend(pa_card *c, pa_bool_t suspend, pa_suspend_cause_t cause) {
     pa_assert(c);
     pa_assert(cause != 0);
 
-    for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx)) {
+    PA_IDXSET_FOREACH(sink, c->sinks, idx) {
         int r;
 
         if ((r = pa_sink_suspend(sink, suspend, cause)) < 0)
             ret = r;
     }
 
-    for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
+    PA_IDXSET_FOREACH(source, c->sources, idx) {
         int r;
 
         if ((r = pa_source_suspend(source, suspend, cause)) < 0)

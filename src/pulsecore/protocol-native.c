@@ -3558,7 +3558,7 @@ static void command_get_info_list(pa_pdispatch *pd, uint32_t command, uint32_t t
     }
 
     if (i) {
-        for (p = pa_idxset_first(i, &idx); p; p = pa_idxset_next(i, &idx)) {
+        PA_IDXSET_FOREACH(p, i, idx) {
             if (command == PA_COMMAND_GET_SINK_INFO_LIST)
                 sink_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_SOURCE_INFO_LIST)

@@ -50,7 +50,7 @@ char *pa_module_list_to_string(pa_core *c) {
 
     pa_strbuf_printf(s, "%u module(s) loaded.\n", pa_idxset_size(c->modules));
 
-    for (m = pa_idxset_first(c->modules, &idx); m; m = pa_idxset_next(c->modules, &idx)) {
+    PA_IDXSET_FOREACH(m, c->modules, idx) {
         char *t;
 
         pa_strbuf_printf(s, "    index: %u\n"
@@ -82,7 +82,7 @@ char *pa_client_list_to_string(pa_core *c) {
 
     pa_strbuf_printf(s, "%u client(s) logged in.\n", pa_idxset_size(c->clients));
 
-    for (client = pa_idxset_first(c->clients, &idx); client; client = pa_idxset_next(c->clients, &idx)) {
+    PA_IDXSET_FOREACH(client, c->clients, idx) {
         char *t;
         pa_strbuf_printf(
                 s,
@@ -143,7 +143,7 @@ char *pa_card_list_to_string(pa_core *c) {
 
     pa_strbuf_printf(s, "%u card(s) available.\n", pa_idxset_size(c->cards));
 
-    for (card = pa_idxset_first(c->cards, &idx); card; card = pa_idxset_next(c->cards, &idx)) {
+    PA_IDXSET_FOREACH(card, c->cards, idx) {
         char *t;
         pa_sink *sink;
         pa_source *source;
@@ -182,13 +182,13 @@ char *pa_card_list_to_string(pa_core *c) {
 
         if (!pa_idxset_isempty(card->sinks)) {
             pa_strbuf_puts(s, "\tsinks:\n");
-            for (sink = pa_idxset_first(card->sinks, &sidx); sink; sink = pa_idxset_next(card->sinks, &sidx))
+            PA_IDXSET_FOREACH(sink, card->sinks, sidx)
                 pa_strbuf_printf(s, "\t\t%s/#%u: %s\n", sink->name, sink->index, pa_strna(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
         }
 
         if (!pa_idxset_isempty(card->sources)) {
             pa_strbuf_puts(s, "\tsources:\n");
-            for (source = pa_idxset_first(card->sources, &sidx); source; source = pa_idxset_next(card->sources, &sidx))
+            PA_IDXSET_FOREACH(source, card->sources, sidx)
                 pa_strbuf_printf(s, "\t\t%s/#%u: %s\n", source->name, source->index, pa_strna(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
         }
 
@@ -242,7 +242,7 @@ char *pa_sink_list_to_string(pa_core *c) {
 
     pa_strbuf_printf(s, "%u sink(s) available.\n", pa_idxset_size(c->sinks));
 
-    for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx)) {
+    PA_IDXSET_FOREACH(sink, c->sinks, idx) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX],
             cv[PA_CVOLUME_SNPRINT_MAX],
             cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX],
@@ -361,7 +361,7 @@ char *pa_source_list_to_string(pa_core *c) {
 
     pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_size(c->sources));
 
-    for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
+    PA_IDXSET_FOREACH(source, c->sources, idx) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX],
             cv[PA_CVOLUME_SNPRINT_MAX],
             cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX],
@@ -483,7 +483,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
 
     pa_strbuf_printf(s, "%u source outputs(s) available.\n", pa_idxset_size(c->source_outputs));
 
-    for (o = pa_idxset_first(c->source_outputs, &idx); o; o = pa_idxset_next(c->source_outputs, &idx)) {
+    PA_IDXSET_FOREACH(o, c->source_outputs, idx) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t, clt[28];
         pa_usec_t cl;
         const char *cmn;
@@ -582,7 +582,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
 
     pa_strbuf_printf(s, "%u sink input(s) available.\n", pa_idxset_size(c->sink_inputs));
 
-    for (i = pa_idxset_first(c->sink_inputs, &idx); i; i = pa_idxset_next(c->sink_inputs, &idx)) {
+    PA_IDXSET_FOREACH(i, c->sink_inputs, idx) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t, clt[28];
         pa_usec_t cl;
         const char *cmn;
@@ -673,7 +673,7 @@ char *pa_scache_list_to_string(pa_core *c) {
         pa_scache_entry *e;
         uint32_t idx = PA_IDXSET_INVALID;
 
-        for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx)) {
+        PA_IDXSET_FOREACH(e, c->scache, idx) {
             double l = 0;
             char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a", cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX] = "n/a", *t;
             const char *cmn;

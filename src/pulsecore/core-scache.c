@@ -416,7 +416,7 @@ size_t pa_scache_total_size(pa_core *c) {
     if (!c->scache || !pa_idxset_size(c->scache))
         return 0;
 
-    for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx))
+    PA_IDXSET_FOREACH(e, c->scache, idx)
         if (e->memchunk.memblock)
             sum += e->memchunk.length;
 
@@ -435,7 +435,7 @@ void pa_scache_unload_unused(pa_core *c) {
 
     time(&now);
 
-    for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx)) {
+    PA_IDXSET_FOREACH(e, c->scache, idx) {
 
         if (!e->lazy || !e->memchunk.memblock)
             continue;
