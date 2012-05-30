@@ -119,8 +119,8 @@ USA.
     </option>
 
     <option>
-      <p><opt>unload-module</opt> <arg>ID</arg></p>
-      <optdesc><p>Unload the module instance identified by the specified numeric index.</p></optdesc>
+      <p><opt>unload-module</opt> <arg>ID|NAME</arg></p>
+      <optdesc><p>Unload the module instance identified by the specified numeric index or unload all modules by the specified name.</p></optdesc>
     </option>
 
     <option>

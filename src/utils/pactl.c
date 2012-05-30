@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <locale.h>
+#include <ctype.h>
 
 #include <sndfile.h>
 
@@ -844,6 +845,31 @@ static void volume_relative_adjust(pa_cvolume *cv) {
     }
 }
 
+static void unload_module_by_name_callback(pa_context *c, const pa_module_info *i, int is_last, void *userdata) {
+    static pa_bool_t unloaded = FALSE;
+
+    if (is_last < 0) {
+        pa_log(_("Failed to get module information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last) {
+        if (unloaded == FALSE)
+            pa_log(_("Failed to unload module: Module %s not loaded"), module_name);
+        complete_action();
+        return;
+    }
+
+    pa_assert(i);
+
+    if (pa_streq(module_name, i->name)) {
+        unloaded = TRUE;
+        actions++;
+        pa_operation_unref(pa_context_unload_module(c, i->index, simple_callback, NULL));
+    }
+}
+
 static void get_sink_volume_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
     pa_cvolume cv;
 
@@ -1152,7 +1178,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     break;
 
                 case UNLOAD_MODULE:
-                    pa_operation_unref(pa_context_unload_module(c, module_index, simple_callback, NULL));
+                    if (module_name)
+                        pa_operation_unref(pa_context_get_module_info_list(c, unload_module_by_name_callback, NULL));
+                    else
+                        pa_operation_unref(pa_context_unload_module(c, module_index, simple_callback, NULL));
                     break;
 
                 case SUSPEND_SINK:
@@ -1345,7 +1374,7 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "play-sample ", _("NAME [SINK]"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "remove-sample ", _("NAME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "load-module ", _("NAME [ARGS ...]"));
-    printf("%s %s %s %s\n", argv0, _("[options]"), "unload-module ", _("#N"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "unload-module ", _("NAME|#N"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "move-(sink-input|source-output)", _("#N SINK|SOURCE"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "suspend-(sink|source)", _("NAME|#N 1|0"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-card-profile ", _("CARD PROFILE"));
@@ -1568,11 +1597,12 @@ int main(int argc, char *argv[]) {
             action = UNLOAD_MODULE;
 
             if (argc != optind+2) {
-                pa_log(_("You have to specify a module index"));
+                pa_log(_("You have to specify a module index or name"));
                 goto quit;
             }
 
-            module_index = (uint32_t) atoi(argv[optind+1]);
+            if (pa_atou(argv[optind + 1], &module_index) < 0)
+                module_name = argv[optind + 1];
 
         } else if (pa_streq(argv[optind], "suspend-sink")) {
             action = SUSPEND_SINK;
