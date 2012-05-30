@@ -34,6 +34,7 @@
 #include <dirent.h>
 #include <time.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/error.h>
@@ -152,7 +153,7 @@ static const struct command commands[] = {
     { "ls",                      pa_cli_command_info,               NULL,                           1 },
     { "list",                    pa_cli_command_info,               NULL,                           1 },
     { "load-module",             pa_cli_command_load,               "Load a module (args: name, arguments)", 3},
-    { "unload-module",           pa_cli_command_unload,             "Unload a module (args: index)", 2},
+    { "unload-module",           pa_cli_command_unload,             "Unload a module (args: index|name)", 2},
     { "describe-module",         pa_cli_command_describe,           "Describe a module (arg: name)", 2},
     { "set-sink-volume",         pa_cli_command_sink_volume,        "Set the volume of a sink (args: index|name, volume)", 3},
     { "set-source-volume",       pa_cli_command_source_volume,      "Set the volume of a source (args: index|name, volume)", 3},
@@ -447,7 +448,7 @@ static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa
     pa_module *m;
     uint32_t idx;
     const char *i;
-    char *e;
+    pa_bool_t unloaded = FALSE;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -455,17 +456,31 @@ static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa
     pa_assert(fail);
 
     if (!(i = pa_tokenizer_get(t, 1))) {
-        pa_strbuf_puts(buf, "You need to specify the module index.\n");
+        pa_strbuf_puts(buf, "You need to specify the module index or name.\n");
         return -1;
     }
 
-    idx = (uint32_t) strtoul(i, &e, 10);
-    if (*e || !(m = pa_idxset_get_by_index(c->modules, idx))) {
-        pa_strbuf_puts(buf, "Invalid module index.\n");
-        return -1;
+    if (pa_atou(i, &idx) >= 0) {
+        if (!(m = pa_idxset_get_by_index(c->modules, idx))) {
+            pa_strbuf_puts(buf, "Invalid module index.\n");
+            return -1;
+        }
+
+        pa_module_unload_request(m, FALSE);
+
+    } else {
+        PA_IDXSET_FOREACH(m, c->modules, idx)
+            if (pa_streq(i, m->name)) {
+                unloaded = TRUE;
+                pa_module_unload_request(m, FALSE);
+            }
+
+        if (unloaded == FALSE) {
+            pa_strbuf_printf(buf, "Module %s not loaded.\n", i);
+            return -1;
+        }
     }
 
-    pa_module_unload_request(m, FALSE);
     return 0;
 }
 
