@@ -24,6 +24,7 @@
 #include <config.h>
 #endif
 
+#include <signal.h>
 #include <stdio.h>
 
 #include <asoundlib.h>
