@@ -289,7 +289,7 @@ TESTS_default += \
 		mainloop-test-glib
 endif
 
-if HAVE_GTK20
+if HAVE_GTK30
 TESTS_norun += \
 		gtk-test
 endif
@@ -536,8 +536,8 @@ sigbus_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 sigbus_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 gtk_test_SOURCES = tests/gtk-test.c
-gtk_test_LDADD = $(AM_LDADD) $(GTK20_LIBS) libpulse-mainloop-glib.la libpulse.la
-gtk_test_CFLAGS = $(AM_CFLAGS) $(GTK20_CFLAGS)
+gtk_test_LDADD = $(AM_LDADD) $(GTK30_LIBS) libpulse-mainloop-glib.la libpulse.la
+gtk_test_CFLAGS = $(AM_CFLAGS) $(GTK30_CFLAGS)
 gtk_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 alsa_time_test_SOURCES = tests/alsa-time-test.c
@@ -666,7 +666,7 @@ libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS += $(X11_LIBS)
 endif
 
 # proplist-util.h uses these header files, but not the library itself!
-libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += $(GLIB20_CFLAGS) $(GTK20_CFLAGS)
+libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += $(GLIB20_CFLAGS) $(GTK30_CFLAGS)
 
 ## Please note that libpulsecommon implicitly also depends on<
 ## libpulse! i.e. we have a cyclic dependancy here. Which is intended
