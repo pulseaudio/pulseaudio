@@ -94,7 +94,7 @@ pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *des
     p->core = c;
     p->priority = 0;
     p->available = PA_PORT_AVAILABLE_UNKNOWN;
-    p->profiles = NULL;
+    p->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     p->is_input = FALSE;
     p->is_output = FALSE;
     p->proplist = pa_proplist_new();

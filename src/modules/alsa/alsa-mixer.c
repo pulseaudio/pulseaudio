@@ -4509,7 +4509,6 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports,
         p = pa_device_port_new(core, name, description, sizeof(pa_alsa_port_data));
         pa_assert(p);
         pa_hashmap_put(ports, p->name, p);
-        p->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
         data = PA_DEVICE_PORT_DATA(p);
         data->path = path;
