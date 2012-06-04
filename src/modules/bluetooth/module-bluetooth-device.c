@@ -2073,6 +2073,61 @@ static pa_hook_result_t source_state_changed_cb(pa_core *c, pa_source *s, struct
     return PA_HOOK_OK;
 }
 
+static void connect_ports(struct userdata *u, void *sink_or_source_new_data, pa_direction_t direction) {
+    union {
+        pa_sink_new_data *sink_new_data;
+        pa_source_new_data *source_new_data;
+    } data;
+    pa_device_port *port;
+
+    if (direction == PA_DIRECTION_OUTPUT) {
+        data.sink_new_data = sink_or_source_new_data;
+        data.sink_new_data->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    } else {
+        data.source_new_data = sink_or_source_new_data;
+        data.source_new_data->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    }
+
+    switch (u->profile) {
+        case PROFILE_A2DP:
+            pa_assert_se(port = pa_hashmap_get(u->card->ports, "a2dp-output"));
+            pa_assert_se(pa_hashmap_put(data.sink_new_data->ports, port->name, port) >= 0);
+            pa_device_port_ref(port);
+            break;
+
+        case PROFILE_A2DP_SOURCE:
+            pa_assert_se(port = pa_hashmap_get(u->card->ports, "a2dp-input"));
+            pa_assert_se(pa_hashmap_put(data.source_new_data->ports, port->name, port) >= 0);
+            pa_device_port_ref(port);
+            break;
+
+        case PROFILE_HSP:
+            if (direction == PA_DIRECTION_OUTPUT) {
+                pa_assert_se(port = pa_hashmap_get(u->card->ports, "hsp-output"));
+                pa_assert_se(pa_hashmap_put(data.sink_new_data->ports, port->name, port) >= 0);
+            } else {
+                pa_assert_se(port = pa_hashmap_get(u->card->ports, "hsp-input"));
+                pa_assert_se(pa_hashmap_put(data.source_new_data->ports, port->name, port) >= 0);
+            }
+            pa_device_port_ref(port);
+            break;
+
+        case PROFILE_HFGW:
+            if (direction == PA_DIRECTION_OUTPUT) {
+                pa_assert_se(port = pa_hashmap_get(u->card->ports, "hfgw-output"));
+                pa_assert_se(pa_hashmap_put(data.sink_new_data->ports, port->name, port) >= 0);
+            } else {
+                pa_assert_se(port = pa_hashmap_get(u->card->ports, "hfgw-input"));
+                pa_assert_se(pa_hashmap_put(data.source_new_data->ports, port->name, port) >= 0);
+            }
+            pa_device_port_ref(port);
+            break;
+
+        default:
+            pa_assert_not_reached();
+        }
+}
+
 /* Run from main thread */
 static int add_sink(struct userdata *u) {
     char *k;
@@ -2109,6 +2164,7 @@ static int add_sink(struct userdata *u) {
             pa_sink_new_data_done(&data);
             return -1;
         }
+        connect_ports(u, &data, PA_DIRECTION_OUTPUT);
 
         u->sink = pa_sink_new(u->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
         pa_sink_new_data_done(&data);
@@ -2172,6 +2228,7 @@ static int add_source(struct userdata *u) {
             return -1;
         }
 
+        connect_ports(u, &data, PA_DIRECTION_INPUT);
         u->source = pa_source_new(u->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
         pa_source_new_data_done(&data);
 
@@ -2696,6 +2753,69 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     return 0;
 }
 
+static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_new_data, pa_card_profile *profile) {
+    pa_device_port *port;
+    enum profile *d;
+
+    d = PA_CARD_PROFILE_DATA(profile);
+
+    switch (*d) {
+        case PROFILE_A2DP:
+            pa_assert_se(port = pa_device_port_new(u->core, "a2dp-output", _("Bluetooth High Quality (A2DP)"), 0));
+            pa_assert_se(pa_hashmap_put(card_new_data->ports, port->name, port) >= 0);
+            port->is_output = 1;
+            port->is_input = 0;
+            port->priority = profile->priority * 100;
+            pa_hashmap_put(port->profiles, profile->name, profile);
+            break;
+
+        case PROFILE_A2DP_SOURCE:
+            pa_assert_se(port = pa_device_port_new(u->core, "a2dp-input", _("Bluetooth High Quality (A2DP)"), 0));
+            pa_assert_se(pa_hashmap_put(card_new_data->ports, port->name, port) >= 0);
+            port->is_output = 0;
+            port->is_input = 1;
+            port->priority = profile->priority * 100;
+            pa_hashmap_put(port->profiles, profile->name, profile);
+            break;
+
+        case PROFILE_HSP:
+            pa_assert_se(port = pa_device_port_new(u->core, "hsp-output", _("Bluetooth Telephony (HSP/HFP)"), 0));
+            pa_assert_se(pa_hashmap_put(card_new_data->ports, port->name, port) >= 0);
+            port->is_output = 1;
+            port->is_input = 0;
+            port->priority = profile->priority * 100;
+            pa_hashmap_put(port->profiles, profile->name, profile);
+
+            pa_assert_se(port = pa_device_port_new(u->core, "hsp-input", _("Bluetooth Telephony (HSP/HFP)"), 0));
+            pa_assert_se(pa_hashmap_put(card_new_data->ports, port->name, port) >= 0);
+            port->is_output = 0;
+            port->is_input = 1;
+            port->priority = profile->priority * 100;
+            pa_hashmap_put(port->profiles, profile->name, profile);
+            break;
+
+        case PROFILE_HFGW:
+            pa_assert_se(port = pa_device_port_new(u->core, "hfgw-output", _("Bluetooth Handsfree Gateway"), 0));
+            pa_assert_se(pa_hashmap_put(card_new_data->ports, port->name, port) >= 0);
+            port->is_output = 1;
+            port->is_input = 0;
+            port->priority = profile->priority * 100;
+            pa_hashmap_put(port->profiles, profile->name, profile);
+
+            pa_assert_se(port = pa_device_port_new(u->core, "hfgw-input", _("Bluetooth Handsfree Gateway"), 0));
+            pa_assert_se(pa_hashmap_put(card_new_data->ports, port->name, port) >= 0);
+            port->is_output = 0;
+            port->is_input = 1;
+            port->priority = profile->priority * 100;
+            pa_hashmap_put(port->profiles, profile->name, profile);
+            break;
+
+        default:
+            pa_assert_not_reached();
+    }
+
+}
+
 /* Run from main thread */
 static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
     pa_card_new_data data;
@@ -2750,6 +2870,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_A2DP;
+        create_ports_for_profile(u, &data, p);
 
         pa_hashmap_put(data.profiles, p->name, p);
     }
@@ -2764,6 +2885,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_A2DP_SOURCE;
+        create_ports_for_profile(u, &data, p);
 
         pa_hashmap_put(data.profiles, p->name, p);
     }
@@ -2779,6 +2901,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_HSP;
+        create_ports_for_profile(u, &data, p);
 
         pa_hashmap_put(data.profiles, p->name, p);
     }
@@ -2793,6 +2916,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_HFGW;
+        create_ports_for_profile(u, &data, p);
 
         pa_hashmap_put(data.profiles, p->name, p);
     }
