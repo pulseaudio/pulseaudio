@@ -106,7 +106,7 @@ static int is_preloaded(const char *name) {
         if ((e = strrchr(buf, '.')))
             *e = 0;
 
-        if (!strcmp(name, buf))
+        if (pa_streq(name, buf))
             return 1;
     }
 

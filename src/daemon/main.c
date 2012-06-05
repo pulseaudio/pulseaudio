@@ -199,7 +199,7 @@ static int change_user(void) {
         return -1;
     }
 
-    if (strcmp(pw->pw_dir, PA_SYSTEM_RUNTIME_PATH) != 0)
+    if (!pa_streq(pw->pw_dir, PA_SYSTEM_RUNTIME_PATH))
         pa_log_warn(_("Home directory of user '%s' is not '%s', ignoring."), PA_SYSTEM_USER, PA_SYSTEM_RUNTIME_PATH);
 
     if (pa_make_secure_dir(PA_SYSTEM_RUNTIME_PATH, 0755, pw->pw_uid, gr->gr_gid) < 0) {
