@@ -30,6 +30,7 @@
 #include <errno.h>
 
 #include <pulsecore/usergroup.h>
+#include <pulsecore/core-util.h>
 
 static int load_reference_structs(struct group **gr, struct passwd **pw) {
     setpwent();
@@ -46,12 +47,12 @@ static int load_reference_structs(struct group **gr, struct passwd **pw) {
 static int compare_group(const struct group *a, const struct group *b) {
     char **amem, **bmem;
 
-    if (strcmp(a->gr_name, b->gr_name)) {
+    if (!pa_streq(a->gr_name, b->gr_name)) {
         fprintf(stderr, "Group name mismatch: [%s] [%s]\n", a->gr_name, b->gr_name);
         return 1;
     }
 
-    if (strcmp(a->gr_passwd, b->gr_passwd)) {
+    if (!pa_streq(a->gr_passwd, b->gr_passwd)) {
         fprintf(stderr, "Group password mismatch: [%s] [%s]\n", a->gr_passwd, b->gr_passwd);
         return 1;
     }
@@ -63,7 +64,7 @@ static int compare_group(const struct group *a, const struct group *b) {
 
     /* XXX: Assuming the group ordering is identical. */
     for (amem = a->gr_mem, bmem = b->gr_mem; *amem && *bmem; ++amem, ++bmem) {
-        if (strcmp(*amem, *bmem)) {
+        if (!pa_streq(*amem, *bmem)) {
             fprintf(stderr, "Group member mismatch: [%s] [%s]\n", *amem, *bmem);
             return 1;
         }
@@ -78,12 +79,12 @@ static int compare_group(const struct group *a, const struct group *b) {
 }
 
 static int compare_passwd(const struct passwd *a, const struct passwd *b) {
-    if (strcmp(a->pw_name, b->pw_name)) {
+    if (!pa_streq(a->pw_name, b->pw_name)) {
         fprintf(stderr, "pw_name mismatch: [%s] [%s]\n", a->pw_name, b->pw_name);
         return 1;
     }
 
-    if (strcmp(a->pw_passwd, b->pw_passwd)) {
+    if (!pa_streq(a->pw_passwd, b->pw_passwd)) {
         fprintf(stderr, "pw_passwd mismatch: [%s] [%s]\n", a->pw_passwd, b->pw_passwd);
         return 1;
     }
@@ -98,17 +99,17 @@ static int compare_passwd(const struct passwd *a, const struct passwd *b) {
         return 1;
     }
 
-    if (strcmp(a->pw_gecos, b->pw_gecos)) {
+    if (!pa_streq(a->pw_gecos, b->pw_gecos)) {
         fprintf(stderr, "pw_gecos mismatch: [%s] [%s]\n", a->pw_gecos, b->pw_gecos);
         return 1;
     }
 
-    if (strcmp(a->pw_dir, b->pw_dir)) {
+    if (!pa_streq(a->pw_dir, b->pw_dir)) {
         fprintf(stderr, "pw_dir mismatch: [%s] [%s]\n", a->pw_dir, b->pw_dir);
         return 1;
     }
 
-    if (strcmp(a->pw_shell, b->pw_shell)) {
+    if (!pa_streq(a->pw_shell, b->pw_shell)) {
         fprintf(stderr, "pw_shell mismatch: [%s] [%s]\n", a->pw_shell, b->pw_shell);
         return 1;
     }
