@@ -168,7 +168,7 @@ char *pa_win32_get_toplevel(HANDLE handle) {
             *p = '\0';
 
         p = strrchr(toplevel, PA_PATH_SEP_CHAR);
-        if (p && (strcmp(p + 1, "bin") == 0))
+        if (p && pa_streq(p + 1, "bin"))
             *p = '\0';
     }
 
@@ -892,9 +892,9 @@ int pa_parse_boolean(const char *v) {
     pa_assert(v);
 
     /* First we check language independent */
-    if (!strcmp(v, "1") || v[0] == 'y' || v[0] == 'Y' || v[0] == 't' || v[0] == 'T' || !strcasecmp(v, "on"))
+    if (pa_streq(v, "1") || v[0] == 'y' || v[0] == 'Y' || v[0] == 't' || v[0] == 'T' || !strcasecmp(v, "on"))
         return 1;
-    else if (!strcmp(v, "0") || v[0] == 'n' || v[0] == 'N' || v[0] == 'f' || v[0] == 'F' || !strcasecmp(v, "off"))
+    else if (pa_streq(v, "0") || v[0] == 'n' || v[0] == 'N' || v[0] == 'f' || v[0] == 'F' || !strcasecmp(v, "off"))
         return 0;
 
 #ifdef HAVE_LANGINFO_H
@@ -1100,7 +1100,7 @@ static int is_group(gid_t gid, const char *name) {
         goto finish;
     }
 
-    r = strcmp(name, group->gr_name) == 0;
+    r = pa_streq(name, group->gr_name);
 
 finish:
     pa_getgrgid_free(group);
@@ -1998,7 +1998,7 @@ pa_bool_t pa_endswith(const char *s, const char *sfx) {
     l1 = strlen(s);
     l2 = strlen(sfx);
 
-    return l1 >= l2 && strcmp(s+l1-l2, sfx) == 0;
+    return l1 >= l2 && pa_streq(s + l1 - l2, sfx);
 }
 
 pa_bool_t pa_is_path_absolute(const char *fn) {

@@ -110,13 +110,13 @@ pa_bool_t pa_cpu_init_arm(pa_cpu_arm_flag_t *flags) {
         char *current;
 
         while ((current = pa_split_spaces(line, &state))) {
-            if (!strcmp(current, "vfp"))
+            if (pa_streq(current, "vfp"))
                 *flags |= PA_CPU_ARM_VFP;
-            else if (!strcmp(current, "edsp"))
+            else if (pa_streq(current, "edsp"))
                 *flags |= PA_CPU_ARM_EDSP;
-            else if (!strcmp(current, "neon"))
+            else if (pa_streq(current, "neon"))
                 *flags |= PA_CPU_ARM_NEON;
-            else if (!strcmp(current, "vfpv3"))
+            else if (pa_streq(current, "vfpv3"))
                 *flags |= PA_CPU_ARM_VFPV3;
 
             pa_xfree(current);

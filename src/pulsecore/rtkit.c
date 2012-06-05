@@ -35,23 +35,28 @@
 #define _GNU_SOURCE
 #endif
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <pulsecore/core-util.h>
 
 static pid_t _gettid(void) {
         return (pid_t) syscall(SYS_gettid);
 }
 
 static int translate_error(const char *name) {
-        if (strcmp(name, DBUS_ERROR_NO_MEMORY) == 0)
+        if (pa_streq(name, DBUS_ERROR_NO_MEMORY))
                 return -ENOMEM;
-        if (strcmp(name, DBUS_ERROR_SERVICE_UNKNOWN) == 0 ||
-            strcmp(name, DBUS_ERROR_NAME_HAS_NO_OWNER) == 0)
+        if (pa_streq(name, DBUS_ERROR_SERVICE_UNKNOWN) ||
+            pa_streq(name, DBUS_ERROR_NAME_HAS_NO_OWNER))
                 return -ENOENT;
-        if (strcmp(name, DBUS_ERROR_ACCESS_DENIED) == 0 ||
-            strcmp(name, DBUS_ERROR_AUTH_FAILED) == 0)
+        if (pa_streq(name, DBUS_ERROR_ACCESS_DENIED) ||
+            pa_streq(name, DBUS_ERROR_AUTH_FAILED))
                 return -EACCES;
 
         return -EIO;

@@ -64,7 +64,7 @@ static int add_key_value(pa_modargs *ma, char *key, char *value, const char* con
     if (valid_keys) {
         const char*const* v;
         for (v = valid_keys; *v; v++)
-            if (strcmp(*v, key) == 0)
+            if (pa_streq(*v, key))
                 break;
 
         if (!*v) {

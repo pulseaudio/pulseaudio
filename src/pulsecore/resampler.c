@@ -39,7 +39,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
 #include <pulsecore/remap.h>
-
+#include <pulsecore/core-util.h>
 #include "ffmpeg/avcodec.h"
 
 #include "resampler.h"
@@ -545,13 +545,13 @@ pa_resample_method_t pa_parse_resample_method(const char *string) {
     pa_assert(string);
 
     for (m = 0; m < PA_RESAMPLER_MAX; m++)
-        if (!strcmp(string, resample_methods[m]))
+        if (pa_streq(string, resample_methods[m]))
             return m;
 
-    if (!strcmp(string, "speex-fixed"))
+    if (pa_streq(string, "speex-fixed"))
         return PA_RESAMPLER_SPEEX_FIXED_BASE + 3;
 
-    if (!strcmp(string, "speex-float"))
+    if (pa_streq(string, "speex-float"))
         return PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
 
     return PA_RESAMPLER_INVALID;

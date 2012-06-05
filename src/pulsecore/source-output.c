@@ -1124,7 +1124,7 @@ void pa_source_output_set_name(pa_source_output *o, const char *name) {
 
     old = pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME);
 
-    if (old && name && !strcmp(old, name))
+    if (old && name && pa_streq(old, name))
         return;
 
     if (name)
