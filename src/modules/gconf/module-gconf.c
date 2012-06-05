@@ -173,8 +173,8 @@ static void load_module(
 
     if (!is_new) {
         if (m->items[i].index != PA_INVALID_INDEX &&
-            strcmp(m->items[i].name, name) == 0 &&
-            strcmp(m->items[i].args, args) == 0)
+            pa_streq(m->items[i].name, name) &&
+            pa_streq(m->items[i].args, args))
             return;
 
         unload_one_module(u, m, i);

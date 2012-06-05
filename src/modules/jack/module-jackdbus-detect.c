@@ -186,7 +186,7 @@ static DBusHandlerResult dbus_filter_handler(DBusConnection *c, DBusMessage *s, 
                                    DBUS_TYPE_STRING, &new,
                                    DBUS_TYPE_INVALID))
             goto finish;
-        if (strcmp(name, JACK_SERVICE_NAME))
+        if (!pa_streq(name, JACK_SERVICE_NAME))
             goto finish;
 
         ensure_ports_stopped(u);

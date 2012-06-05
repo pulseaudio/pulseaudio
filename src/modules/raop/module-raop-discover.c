@@ -166,7 +166,7 @@ static void resolver_cb(
             pa_assert_se(avahi_string_list_get_pair(l, &key, &value, NULL) == 0);
 
             pa_log_debug("Found key: '%s' with value: '%s'", key, value);
-            if (strcmp(key, "device") == 0) {
+            if (pa_streq(key, "device")) {
                 pa_xfree(device);
                 device = value;
                 value = NULL;

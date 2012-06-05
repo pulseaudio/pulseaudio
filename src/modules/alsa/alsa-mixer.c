@@ -2207,22 +2207,22 @@ static int jack_parse_state(
         return -1;
     }
 
-    if (!strcmp(rvalue,"yes"))
+    if (pa_streq(rvalue, "yes"))
 	pa = PA_PORT_AVAILABLE_YES;
-    else if (!strcmp(rvalue,"no"))
+    else if (pa_streq(rvalue, "no"))
 	pa = PA_PORT_AVAILABLE_NO;
-    else if (!strcmp(rvalue,"unknown"))
+    else if (pa_streq(rvalue, "unknown"))
 	pa = PA_PORT_AVAILABLE_UNKNOWN;
     else {
         pa_log("[%s:%u] state must be 'yes','no' or 'unknown' in '%s'", filename, line, section);
         return -1;
     }
 
-    if (!strcmp(lvalue, "state.unplugged"))
+    if (pa_streq(lvalue, "state.unplugged"))
         j->state_unplugged = pa;
     else {
         j->state_plugged = pa;
-        pa_assert(!strcmp(lvalue, "state.plugged"));
+        pa_assert(pa_streq(lvalue, "state.plugged"));
     }
 
     return 0;
@@ -3183,7 +3183,7 @@ static void path_set_condense(pa_alsa_path_set *ps, snd_mixer_t *m) {
                     continue;
 
                 PA_LLIST_FOREACH(jb, p2->jacks) {
-                    if (jb->has_control && !strcmp(jb->alsa_name, ja->alsa_name) &&
+                    if (jb->has_control && pa_streq(jb->alsa_name, ja->alsa_name) &&
                        (ja->state_plugged == jb->state_plugged) &&
                        (ja->state_unplugged == jb->state_unplugged)) {
                         exists = TRUE;

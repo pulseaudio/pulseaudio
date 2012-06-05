@@ -537,7 +537,7 @@ static uint32_t get_role_index(const char* role) {
     pa_assert(role);
 
     for (uint32_t i = ROLE_NONE; i < NUM_ROLES; ++i)
-        if (strcmp(role, role_names[i]) == 0)
+        if (pa_streq(role, role_names[i]))
             return i;
 
     return PA_INVALID_INDEX;
@@ -551,7 +551,7 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
     pa_assert(u);
     pa_assert(prefix);
 
-    sink_mode = (strcmp(prefix, "sink:") == 0);
+    sink_mode = pa_streq(prefix, "sink:");
 
     if (sink_mode)
         indexes = &u->preferred_sinks;
@@ -592,7 +592,7 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
                             PA_IDXSET_FOREACH(sink, u->core->sinks, idx) {
                                 if ((pa_sink*) ignore_device == sink)
                                     continue;
-                                if (strcmp(sink->name, device_name) == 0) {
+                                if (pa_streq(sink->name, device_name)) {
                                     found = TRUE;
                                     idx = sink->index; /* Is this needed? */
                                     break;
@@ -604,7 +604,7 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
                             PA_IDXSET_FOREACH(source, u->core->sources, idx) {
                                 if ((pa_source*) ignore_device == source)
                                     continue;
-                                if (strcmp(source->name, device_name) == 0) {
+                                if (pa_streq(source->name, device_name)) {
                                     found = TRUE;
                                     idx = source->index; /* Is this needed? */
                                     break;
@@ -1159,7 +1159,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             if ((device_name = get_name(name, "sink:"))) {
                 pa_sink* s;
                 PA_IDXSET_FOREACH(s, u->core->sinks, idx) {
-                    if (strcmp(s->name, device_name) == 0) {
+                    if (pa_streq(s->name, device_name)) {
                         found_index = s->index;
                         break;
                     }
@@ -1168,7 +1168,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             } else if ((device_name = get_name(name, "source:"))) {
                 pa_source* s;
                 PA_IDXSET_FOREACH(s, u->core->sources, idx) {
-                    if (strcmp(s->name, device_name) == 0) {
+                    if (pa_streq(s->name, device_name)) {
                         found_index = s->index;
                         break;
                     }

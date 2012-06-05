@@ -103,7 +103,7 @@ static pa_hook_result_t servers_changed_cb(void *hook_data, void *call_data, voi
     pa_assert(u);
 
     screen = DefaultScreen(pa_x11_wrapper_get_display(u->x11_wrapper));
-    if (!pa_x11_get_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), screen, "PULSE_ID", t, sizeof(t)) || strcmp(t, u->id)) {
+    if (!pa_x11_get_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), screen, "PULSE_ID", t, sizeof(t)) || !pa_streq(t, u->id)) {
         pa_log_warn("PulseAudio information vanished from X11!");
         return PA_HOOK_OK;
     }
@@ -217,7 +217,7 @@ void pa__done(pa_module*m) {
         int screen = DefaultScreen(pa_x11_wrapper_get_display(u->x11_wrapper));
 
         /* Yes, here is a race condition */
-        if (!pa_x11_get_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), screen, "PULSE_ID", t, sizeof(t)) || strcmp(t, u->id))
+        if (!pa_x11_get_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), screen, "PULSE_ID", t, sizeof(t)) || !pa_streq(t, u->id))
             pa_log_warn("PulseAudio information vanished from X11!");
         else {
             pa_x11_del_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), screen, "PULSE_ID");

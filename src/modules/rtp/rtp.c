@@ -398,13 +398,13 @@ const char* pa_rtp_format_to_string(pa_sample_format_t f) {
 pa_sample_format_t pa_rtp_string_to_format(const char *s) {
     pa_assert(s);
 
-    if (!(strcmp(s, "L16")))
+    if (pa_streq(s, "L16"))
         return PA_SAMPLE_S16BE;
-    else if (!strcmp(s, "L8"))
+    else if (pa_streq(s, "L8"))
         return PA_SAMPLE_U8;
-    else if (!strcmp(s, "PCMA"))
+    else if (pa_streq(s, "PCMA"))
         return PA_SAMPLE_ALAW;
-    else if (!strcmp(s, "PCMU"))
+    else if (pa_streq(s, "PCMU"))
         return PA_SAMPLE_ULAW;
     else
         return PA_SAMPLE_INVALID;

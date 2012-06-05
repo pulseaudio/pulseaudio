@@ -212,7 +212,7 @@ int pa_sap_recv(pa_sap_context *c, pa_bool_t *goodbye) {
     e = buf + k;
     size -= (int) k;
 
-    if ((unsigned) size >= sizeof(MIME_TYPE) && !strcmp(e, MIME_TYPE)) {
+    if ((unsigned) size >= sizeof(MIME_TYPE) && pa_streq(e, MIME_TYPE)) {
         e += sizeof(MIME_TYPE);
         size -= (int) sizeof(MIME_TYPE);
     } else if ((unsigned) size < sizeof(PA_SDP_HEADER)-1 || strncmp(e, PA_SDP_HEADER, sizeof(PA_SDP_HEADER)-1)) {

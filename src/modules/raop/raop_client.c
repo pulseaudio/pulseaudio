@@ -303,11 +303,11 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
                 while ((token = pa_split(aj, delimiters, &token_state))) {
                     if ((pc = strstr(token, "="))) {
                       *pc = 0;
-                      if (!strcmp(token, "type") && !strcmp(pc+1, "digital")) {
+                      if (pa_streq(token, "type") && pa_streq(pc+1, "digital")) {
                           c->jack_type = JACK_TYPE_DIGITAL;
                       }
                     } else {
-                        if (!strcmp(token,"connected"))
+                        if (pa_streq(token, "connected"))
                             c->jack_status = JACK_STATUS_CONNECTED;
                     }
                     pa_xfree(token);

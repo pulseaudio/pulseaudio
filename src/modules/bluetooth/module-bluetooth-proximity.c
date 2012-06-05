@@ -228,7 +228,7 @@ static struct bonding* bonding_new(struct userdata *u, const char *a) {
         goto fail;
     }
 
-    if (strcmp(class, "phone")) {
+    if (!pa_streq(class, "phone")) {
         pa_log_info("Found device '%s' of class '%s', ignoring.", a, class);
         goto fail;
     }

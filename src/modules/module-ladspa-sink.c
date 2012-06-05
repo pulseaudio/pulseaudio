@@ -562,7 +562,7 @@ int pa__init(pa_module*m) {
             goto fail;
         }
 
-        if (strcmp(d->Label, label) == 0)
+        if (pa_streq(d->Label, label))
             break;
     }
 
@@ -627,7 +627,7 @@ int pa__init(pa_module*m) {
 
 
             for (p = 0; p < d->PortCount; p++) {
-                if (strcmp(d->PortNames[p], pname) == 0) {
+                if (pa_streq(d->PortNames[p], pname)) {
                     if (LADSPA_IS_PORT_AUDIO(d->PortDescriptors[p]) && LADSPA_IS_PORT_INPUT(d->PortDescriptors[p])) {
                         input_ladspaport[c] = p;
                     } else {
@@ -653,7 +653,7 @@ int pa__init(pa_module*m) {
                 goto fail;
             }
             for (p = 0; p < d->PortCount; p++) {
-                if (strcmp(d->PortNames[p], pname) == 0) {
+                if (pa_streq(d->PortNames[p], pname)) {
                     if (LADSPA_IS_PORT_AUDIO(d->PortDescriptors[p]) && LADSPA_IS_PORT_OUTPUT(d->PortDescriptors[p])) {
                         output_ladspaport[c] = p;
                     } else {

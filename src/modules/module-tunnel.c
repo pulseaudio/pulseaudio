@@ -1136,7 +1136,7 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
 
     pa_proplist_free(pl);
 
-    if (!u->sink_name || strcmp(name, u->sink_name))
+    if (!u->sink_name || !pa_streq(name, u->sink_name))
         return;
 
     pa_xfree(u->device_description);
@@ -1347,7 +1347,7 @@ static void source_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
 
     pa_proplist_free(pl);
 
-    if (!u->source_name || strcmp(name, u->source_name))
+    if (!u->source_name || !pa_streq(name, u->source_name))
         return;
 
     pa_xfree(u->device_description);

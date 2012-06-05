@@ -359,7 +359,7 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
         line[strcspn(line, "\r\n")] = 0;
 
         if (!b) {
-            b = strcmp(line, "Audio devices:") == 0;
+            b = pa_streq(line, "Audio devices:");
             continue;
         }
 

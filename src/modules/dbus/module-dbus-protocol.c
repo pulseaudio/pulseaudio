@@ -491,13 +491,13 @@ static int get_access_arg(pa_modargs *ma, pa_bool_t *local_access, pa_bool_t *re
     if (!(value = pa_modargs_get_value(ma, "access", NULL)))
         return 0;
 
-    if (!strcmp(value, "local")) {
+    if (pa_streq(value, "local")) {
         *local_access = TRUE;
         *remote_access = FALSE;
-    } else if (!strcmp(value, "remote")) {
+    } else if (pa_streq(value, "remote")) {
         *local_access = FALSE;
         *remote_access = TRUE;
-    } else if (!strcmp(value, "local,remote")) {
+    } else if (pa_streq(value, "local,remote")) {
         *local_access = TRUE;
         *remote_access = TRUE;
     } else

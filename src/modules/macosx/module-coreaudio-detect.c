@@ -85,7 +85,7 @@ static int ca_device_added(struct pa_module *m, AudioObjectID id) {
     size = sizeof(tmp);
     err = AudioObjectGetPropertyData(id, &property_address, 0, NULL, &size, tmp);
 
-    if (!err && strcmp(tmp, "pulseaudio.org") == 0)
+    if (!err && pa_streq(tmp, "pulseaudio.org"))
         return 0;
 
     if (u->ioproc_frames)

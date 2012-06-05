@@ -183,8 +183,8 @@ static void update_rule(struct rule *r) {
         if ((desktopfiles_dir = opendir(DESKTOPFILEDIR))) {
             while ((dir = readdir(desktopfiles_dir))) {
                 if (dir->d_type != DT_DIR
-                    || strcmp(dir->d_name, ".") == 0
-                    || strcmp(dir->d_name, "..") == 0)
+                    || pa_streq(dir->d_name, ".")
+                    || pa_streq(dir->d_name, ".."))
                     continue;
 
                 pa_xfree(fn);

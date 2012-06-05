@@ -187,7 +187,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
         *s2p = '\0';
         s2p -= 1;
     }
-    if (c->waiting && 0 == strcmp("RTSP/1.0 200 OK", s2)) {
+    if (c->waiting && pa_streq(s2, "RTSP/1.0 200 OK")) {
         c->waiting = 0;
         if (c->response_headers)
             pa_headerlist_free(c->response_headers);
