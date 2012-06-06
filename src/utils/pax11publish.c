@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
 
             pa_client_conf_free(conf);
 
-            if (pa_authkey_load_auto(cookie_file, cookie, TRUE, sizeof(cookie)) < 0) {
+            if (pa_authkey_load_auto(cookie_file, TRUE, cookie, sizeof(cookie)) < 0) {
                 fprintf(stderr, _("Failed to load cookie data\n"));
                 goto finish;
             }
