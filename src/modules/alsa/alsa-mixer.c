@@ -4462,17 +4462,21 @@ void pa_alsa_path_set_add_ports(
     }
 }
 
-void pa_alsa_add_ports(pa_hashmap **p, pa_alsa_path_set *ps, pa_card *card) {
+void pa_alsa_add_ports(void *sink_or_source_new_data, pa_alsa_path_set *ps, pa_card *card) {
+    pa_hashmap *ports;
 
-    pa_assert(p);
-    pa_assert(!*p);
+    pa_assert(sink_or_source_new_data);
     pa_assert(ps);
+
+    if (ps->direction == PA_ALSA_DIRECTION_OUTPUT)
+        ports = ((pa_sink_new_data *) sink_or_source_new_data)->ports;
+    else
+        ports = ((pa_source_new_data *) sink_or_source_new_data)->ports;
 
     if (ps->paths && pa_hashmap_size(ps->paths) > 0) {
         pa_assert(card);
-        *p = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-        pa_alsa_path_set_add_ports(ps, NULL, card->ports, *p, card->core);
+        pa_alsa_path_set_add_ports(ps, NULL, card->ports, ports, card->core);
     }
 
-    pa_log_debug("Added %u ports", *p ? pa_hashmap_size(*p) : 0);
+    pa_log_debug("Added %u ports", pa_hashmap_size(ports));
 }

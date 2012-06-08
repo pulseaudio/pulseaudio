@@ -121,12 +121,12 @@ static void find_sink_and_source(pa_card *card, pa_device_port *port, pa_sink **
 
     if (port->is_output)
         PA_IDXSET_FOREACH(sink, card->sinks, state)
-            if (sink->ports && port == pa_hashmap_get(sink->ports, port->name))
+            if (port == pa_hashmap_get(sink->ports, port->name))
                 break;
 
     if (port->is_input)
         PA_IDXSET_FOREACH(source, card->sources, state)
-            if (source->ports && port == pa_hashmap_get(source->ports, port->name))
+            if (port == pa_hashmap_get(source->ports, port->name))
                 break;
 
     *si = sink;

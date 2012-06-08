@@ -3114,19 +3114,17 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
     }
 
     if (c->version >= 16) {
-        pa_tagstruct_putu32(t, sink->ports ? pa_hashmap_size(sink->ports) : 0);
+        void *state;
+        pa_device_port *p;
 
-        if (sink->ports) {
-            void *state;
-            pa_device_port *p;
+        pa_tagstruct_putu32(t, pa_hashmap_size(sink->ports));
 
-            PA_HASHMAP_FOREACH(p, sink->ports, state) {
-                pa_tagstruct_puts(t, p->name);
-                pa_tagstruct_puts(t, p->description);
-                pa_tagstruct_putu32(t, p->priority);
-                if (c->version >= 24)
-                    pa_tagstruct_putu32(t, p->available);
-            }
+        PA_HASHMAP_FOREACH(p, sink->ports, state) {
+            pa_tagstruct_puts(t, p->name);
+            pa_tagstruct_puts(t, p->description);
+            pa_tagstruct_putu32(t, p->priority);
+            if (c->version >= 24)
+                pa_tagstruct_putu32(t, p->available);
         }
 
         pa_tagstruct_puts(t, sink->active_port ? sink->active_port->name : NULL);
@@ -3186,20 +3184,17 @@ static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
     }
 
     if (c->version >= 16) {
+        void *state;
+        pa_device_port *p;
 
-        pa_tagstruct_putu32(t, source->ports ? pa_hashmap_size(source->ports) : 0);
+        pa_tagstruct_putu32(t, pa_hashmap_size(source->ports));
 
-        if (source->ports) {
-            void *state;
-            pa_device_port *p;
-
-            PA_HASHMAP_FOREACH(p, source->ports, state) {
-                pa_tagstruct_puts(t, p->name);
-                pa_tagstruct_puts(t, p->description);
-                pa_tagstruct_putu32(t, p->priority);
-                if (c->version >= 24)
-                    pa_tagstruct_putu32(t, p->available);
-            }
+        PA_HASHMAP_FOREACH(p, source->ports, state) {
+            pa_tagstruct_puts(t, p->name);
+            pa_tagstruct_puts(t, p->description);
+            pa_tagstruct_putu32(t, p->priority);
+            if (c->version >= 24)
+                pa_tagstruct_putu32(t, p->available);
         }
 
         pa_tagstruct_puts(t, source->active_port ? source->active_port->name : NULL);

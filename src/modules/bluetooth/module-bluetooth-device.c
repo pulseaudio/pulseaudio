@@ -2073,13 +2073,10 @@ static void connect_ports(struct userdata *u, void *sink_or_source_new_data, pa_
     } data;
     pa_device_port *port;
 
-    if (direction == PA_DIRECTION_OUTPUT) {
+    if (direction == PA_DIRECTION_OUTPUT)
         data.sink_new_data = sink_or_source_new_data;
-        data.sink_new_data->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    } else {
+    else
         data.source_new_data = sink_or_source_new_data;
-        data.source_new_data->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    }
 
     switch (u->profile) {
         case PROFILE_A2DP:
@@ -2118,7 +2115,7 @@ static void connect_ports(struct userdata *u, void *sink_or_source_new_data, pa_
 
         default:
             pa_assert_not_reached();
-        }
+    }
 }
 
 /* Run from main thread */

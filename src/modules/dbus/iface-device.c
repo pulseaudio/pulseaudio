@@ -1189,6 +1189,8 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
 pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_sink *sink) {
     pa_dbusiface_device *d = NULL;
+    pa_device_port *port;
+    void *state;
 
     pa_assert(core);
     pa_assert(sink);
@@ -1203,20 +1205,14 @@ pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_si
     d->sink_state = pa_sink_get_state(sink);
     d->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     d->next_port_index = 0;
-    d->active_port = NULL;
+    d->active_port = sink->active_port;
     d->proplist = pa_proplist_copy(sink->proplist);
     d->dbus_protocol = pa_dbus_protocol_get(sink->core);
     d->subscription = pa_subscription_new(sink->core, PA_SUBSCRIPTION_MASK_SINK, subscription_cb, d);
 
-    if (sink->ports) {
-        pa_device_port *port;
-        void *state = NULL;
-
-        PA_HASHMAP_FOREACH(port, sink->ports, state) {
-            pa_dbusiface_device_port *p = pa_dbusiface_device_port_new(d, sink->core, port, d->next_port_index++);
-            pa_hashmap_put(d->ports, pa_dbusiface_device_port_get_name(p), p);
-        }
-        pa_assert_se(d->active_port = sink->active_port);
+    PA_HASHMAP_FOREACH(port, sink->ports, state) {
+        pa_dbusiface_device_port *p = pa_dbusiface_device_port_new(d, sink->core, port, d->next_port_index++);
+        pa_hashmap_put(d->ports, pa_dbusiface_device_port_get_name(p), p);
     }
 
     pa_assert_se(pa_dbus_protocol_add_interface(d->dbus_protocol, d->path, &device_interface_info, d) >= 0);
@@ -1227,6 +1223,8 @@ pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_si
 
 pa_dbusiface_device *pa_dbusiface_device_new_source(pa_dbusiface_core *core, pa_source *source) {
     pa_dbusiface_device *d = NULL;
+    pa_device_port *port;
+    void *state;
 
     pa_assert(core);
     pa_assert(source);
@@ -1241,20 +1239,14 @@ pa_dbusiface_device *pa_dbusiface_device_new_source(pa_dbusiface_core *core, pa_
     d->source_state = pa_source_get_state(source);
     d->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     d->next_port_index = 0;
-    d->active_port = NULL;
+    d->active_port = source->active_port;
     d->proplist = pa_proplist_copy(source->proplist);
     d->dbus_protocol = pa_dbus_protocol_get(source->core);
     d->subscription = pa_subscription_new(source->core, PA_SUBSCRIPTION_MASK_SOURCE, subscription_cb, d);
 
-    if (source->ports) {
-        pa_device_port *port;
-        void *state = NULL;
-
-        PA_HASHMAP_FOREACH(port, source->ports, state) {
-            pa_dbusiface_device_port *p = pa_dbusiface_device_port_new(d, source->core, port, d->next_port_index++);
-            pa_hashmap_put(d->ports, pa_dbusiface_device_port_get_name(p), p);
-        }
-        pa_assert_se(d->active_port = source->active_port);
+    PA_HASHMAP_FOREACH(port, source->ports, state) {
+        pa_dbusiface_device_port *p = pa_dbusiface_device_port_new(d, source->core, port, d->next_port_index++);
+        pa_hashmap_put(d->ports, pa_dbusiface_device_port_get_name(p), p);
     }
 
     pa_assert_se(pa_dbus_protocol_add_interface(d->dbus_protocol, d->path, &device_interface_info, d) >= 0);

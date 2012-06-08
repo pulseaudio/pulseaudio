@@ -2226,7 +2226,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     }
 
     if (u->mixer_path_set)
-        pa_alsa_add_ports(&data.ports, u->mixer_path_set, card);
+        pa_alsa_add_ports(&data, u->mixer_path_set, card);
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE | PA_SINK_LATENCY | (u->use_tsched ? PA_SINK_DYNAMIC_LATENCY : 0) |
                           (set_formats ? PA_SINK_SET_FORMATS : 0));

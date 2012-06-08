@@ -73,6 +73,7 @@ pa_source_new_data* pa_source_new_data_init(pa_source_new_data *data) {
 
     pa_zero(*data);
     data->proplist = pa_proplist_new();
+    data->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     return data;
 }
@@ -283,11 +284,11 @@ pa_source* pa_source_new(
     s->active_port = NULL;
     s->save_port = FALSE;
 
-    if (data->active_port && s->ports)
+    if (data->active_port)
         if ((s->active_port = pa_hashmap_get(s->ports, data->active_port)))
             s->save_port = data->save_port;
 
-    if (!s->active_port && s->ports) {
+    if (!s->active_port) {
         void *state;
         pa_device_port *p;
 
@@ -2570,7 +2571,7 @@ int pa_source_set_port(pa_source *s, const char *name, pa_bool_t save) {
         return -PA_ERR_NOTIMPLEMENTED;
     }
 
-    if (!s->ports || !name)
+    if (!name)
         return -PA_ERR_NOENTITY;
 
     if (!(port = pa_hashmap_get(s->ports, name)))
