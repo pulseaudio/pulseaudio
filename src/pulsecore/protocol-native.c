@@ -3230,6 +3230,7 @@ static void client_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_c
 static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_card *card) {
     void *state = NULL;
     pa_card_profile *p;
+    pa_device_port *port;
 
     pa_assert(t);
     pa_assert(card);
@@ -3255,29 +3256,23 @@ static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_car
     if (c->version < 26)
         return;
 
-    if (card->ports) {
-        pa_device_port* port;
+    pa_tagstruct_putu32(t, pa_hashmap_size(card->ports));
 
-        pa_tagstruct_putu32(t, pa_hashmap_size(card->ports));
+    PA_HASHMAP_FOREACH(port, card->ports, state) {
+        void *state2;
 
-        PA_HASHMAP_FOREACH(port, card->ports, state) {
-            void *state2;
+        pa_tagstruct_puts(t, port->name);
+        pa_tagstruct_puts(t, port->description);
+        pa_tagstruct_putu32(t, port->priority);
+        pa_tagstruct_putu32(t, port->available);
+        pa_tagstruct_putu8(t, /* FIXME: port->direction */ (port->is_input ? PA_DIRECTION_INPUT : 0) | (port->is_output ? PA_DIRECTION_OUTPUT : 0));
+        pa_tagstruct_put_proplist(t, port->proplist);
 
-            pa_tagstruct_puts(t, port->name);
-            pa_tagstruct_puts(t, port->description);
-            pa_tagstruct_putu32(t, port->priority);
-            pa_tagstruct_putu32(t, port->available);
-            pa_tagstruct_putu8(t, /* FIXME: port->direction */ (port->is_input ? PA_DIRECTION_INPUT : 0) | (port->is_output ? PA_DIRECTION_OUTPUT : 0));
-            pa_tagstruct_put_proplist(t, port->proplist);
+        pa_tagstruct_putu32(t, pa_hashmap_size(port->profiles));
 
-            pa_tagstruct_putu32(t, pa_hashmap_size(port->profiles));
-
-            PA_HASHMAP_FOREACH(p, port->profiles, state2)
-                pa_tagstruct_puts(t, p->name);
-        }
-
-    } else
-        pa_tagstruct_putu32(t, 0);
+        PA_HASHMAP_FOREACH(p, port->profiles, state2)
+            pa_tagstruct_puts(t, p->name);
+    }
 }
 
 static void module_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_module *module) {

@@ -142,7 +142,7 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
     pa_log_debug("finding port %s", port->name);
 
     PA_IDXSET_FOREACH(card, c->cards, state)
-        if (card->ports && port == pa_hashmap_get(card->ports, port->name))
+        if (port == pa_hashmap_get(card->ports, port->name))
             break;
 
     if (!card) {
@@ -210,9 +210,6 @@ static void handle_all_unavailable(pa_core *core) {
     PA_IDXSET_FOREACH(card, core->cards, state) {
         pa_device_port *port;
         void *state2;
-
-        if (!card->ports)
-            continue;
 
         PA_HASHMAP_FOREACH(port, card->ports, state2) {
             if (port->available == PA_PORT_AVAILABLE_NO)

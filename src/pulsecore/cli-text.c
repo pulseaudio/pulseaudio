@@ -120,7 +120,9 @@ static void append_port_list(pa_strbuf *s, pa_hashmap *ports)
     pa_device_port *p;
     void *state;
 
-    if (!ports)
+    pa_assert(ports);
+
+    if (pa_hashmap_isempty(ports))
         return;
 
     pa_strbuf_puts(s, "\tports:\n");
