@@ -55,46 +55,46 @@ static pa_bool_t try_to_switch_profile(pa_card *card, pa_device_port *port) {
 
     pa_log_debug("Finding best profile");
 
-    if (port->profiles)
-        PA_HASHMAP_FOREACH(profile, port->profiles, state) {
-            if (best_profile && best_profile->priority >= profile->priority)
+    PA_HASHMAP_FOREACH(profile, port->profiles, state) {
+        if (best_profile && best_profile->priority >= profile->priority)
+            continue;
+
+        /* We make a best effort to keep other direction unchanged */
+        if (!port->is_input) {
+            if (card->active_profile->n_sources != profile->n_sources)
                 continue;
 
-
-            /* We make a best effort to keep other direction unchanged */
-            if (!port->is_input) {
-                if (card->active_profile->n_sources != profile->n_sources)
-                    continue;
-
-                if (card->active_profile->max_source_channels != profile->max_source_channels)
-                    continue;
-            }
-
-            if (!port->is_output) {
-                if (card->active_profile->n_sinks != profile->n_sinks)
-                    continue;
-
-                if (card->active_profile->max_sink_channels != profile->max_sink_channels)
-                    continue;
-            }
-
-            if (port->is_output) {
-                /* Try not to switch to HDMI sinks from analog when HDMI is becoming available */
-                uint32_t state2;
-                pa_sink *sink;
-                pa_bool_t found_active_port = FALSE;
-                PA_IDXSET_FOREACH(sink, card->sinks, state2) {
-                    if (!sink->active_port)
-                        continue;
-                    if (sink->active_port->available != PA_PORT_AVAILABLE_NO)
-                        found_active_port = TRUE;
-                }
-                if (found_active_port)
-                    continue;
-            }
-
-            best_profile = profile;
+            if (card->active_profile->max_source_channels != profile->max_source_channels)
+                continue;
         }
+
+        if (!port->is_output) {
+            if (card->active_profile->n_sinks != profile->n_sinks)
+                continue;
+
+            if (card->active_profile->max_sink_channels != profile->max_sink_channels)
+                continue;
+        }
+
+        if (port->is_output) {
+            /* Try not to switch to HDMI sinks from analog when HDMI is becoming available */
+            uint32_t state2;
+            pa_sink *sink;
+            pa_bool_t found_active_port = FALSE;
+
+            PA_IDXSET_FOREACH(sink, card->sinks, state2) {
+                if (!sink->active_port)
+                    continue;
+                if (sink->active_port->available != PA_PORT_AVAILABLE_NO)
+                    found_active_port = TRUE;
+            }
+
+            if (found_active_port)
+                continue;
+        }
+
+        best_profile = profile;
+    }
 
     if (!best_profile) {
         pa_log_debug("No suitable profile found");
@@ -152,8 +152,7 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
 
     find_sink_and_source(card, port, &sink, &source);
 
-    is_active_profile = port->profiles &&
-        card->active_profile == pa_hashmap_get(port->profiles, card->active_profile->name);
+    is_active_profile = card->active_profile == pa_hashmap_get(port->profiles, card->active_profile->name);
     is_active_port = (sink && sink->active_port == port) || (source && source->active_port == port);
 
     if (port->available == PA_PORT_AVAILABLE_NO && !is_active_port)
