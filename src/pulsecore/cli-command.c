@@ -1840,8 +1840,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
             nl = TRUE;
         }
 
-        if (card->active_profile)
-            pa_strbuf_printf(buf, "set-card-profile %s %s\n", card->name, card->active_profile->name);
+        pa_strbuf_printf(buf, "set-card-profile %s %s\n", card->name, card->active_profile->name);
     }
 
     nl = FALSE;

@@ -60,10 +60,6 @@ static pa_bool_t try_to_switch_profile(pa_card *card, pa_device_port *port) {
             if (best_profile && best_profile->priority >= profile->priority)
                 continue;
 
-            if (!card->active_profile) {
-                best_profile = profile;
-                continue;
-            }
 
             /* We make a best effort to keep other direction unchanged */
             if (!port->is_input) {
@@ -156,7 +152,7 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
 
     find_sink_and_source(card, port, &sink, &source);
 
-    is_active_profile = port->profiles && card->active_profile &&
+    is_active_profile = port->profiles &&
         card->active_profile == pa_hashmap_get(port->profiles, card->active_profile->name);
     is_active_port = (sink && sink->active_port == port) || (source && source->active_port == port);
 

@@ -3239,19 +3239,17 @@ static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_car
     pa_tagstruct_putu32(t, card->module ? card->module->index : PA_INVALID_INDEX);
     pa_tagstruct_puts(t, card->driver);
 
-    pa_tagstruct_putu32(t, card->profiles ? pa_hashmap_size(card->profiles) : 0);
+    pa_tagstruct_putu32(t, pa_hashmap_size(card->profiles));
 
-    if (card->profiles) {
-        while ((p = pa_hashmap_iterate(card->profiles, &state, NULL))) {
-            pa_tagstruct_puts(t, p->name);
-            pa_tagstruct_puts(t, p->description);
-            pa_tagstruct_putu32(t, p->n_sinks);
-            pa_tagstruct_putu32(t, p->n_sources);
-            pa_tagstruct_putu32(t, p->priority);
-        }
+    PA_HASHMAP_FOREACH(p, card->profiles, state) {
+        pa_tagstruct_puts(t, p->name);
+        pa_tagstruct_puts(t, p->description);
+        pa_tagstruct_putu32(t, p->n_sinks);
+        pa_tagstruct_putu32(t, p->n_sources);
+        pa_tagstruct_putu32(t, p->priority);
     }
 
-    pa_tagstruct_puts(t, card->active_profile ? card->active_profile->name : NULL);
+    pa_tagstruct_puts(t, card->active_profile->name);
     pa_tagstruct_put_proplist(t, card->proplist);
 
     if (c->version < 26)

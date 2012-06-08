@@ -253,7 +253,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         return;
 
     entry = entry_new();
-    entry->profile = pa_xstrdup(card->active_profile ? card->active_profile->name : "");
+    entry->profile = pa_xstrdup(card->active_profile->name);
 
     if ((old = entry_read(u, card->name))) {
 

@@ -149,6 +149,8 @@ char *pa_card_list_to_string(pa_core *c) {
         pa_sink *sink;
         pa_source *source;
         uint32_t sidx;
+        pa_card_profile *profile;
+        void *state;
 
         pa_strbuf_printf(
                 s,
@@ -166,20 +168,14 @@ char *pa_card_list_to_string(pa_core *c) {
         pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
 
-        if (card->profiles) {
-            pa_card_profile *p;
-            void *state;
+        pa_strbuf_puts(s, "\tprofiles:\n");
+        PA_HASHMAP_FOREACH(profile, card->profiles, state)
+            pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", profile->name, profile->description, profile->priority);
 
-            pa_strbuf_puts(s, "\tprofiles:\n");
-            PA_HASHMAP_FOREACH(p, card->profiles, state)
-                pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
-        }
-
-        if (card->active_profile)
-            pa_strbuf_printf(
-                    s,
-                    "\tactive profile: <%s>\n",
-                    card->active_profile->name);
+        pa_strbuf_printf(
+                s,
+                "\tactive profile: <%s>\n",
+                card->active_profile->name);
 
         if (!pa_idxset_isempty(card->sinks)) {
             pa_strbuf_puts(s, "\tsinks:\n");

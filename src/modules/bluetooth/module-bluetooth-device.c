@@ -2852,8 +2852,6 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
         return -1;
     }
 
-    data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-
     /* we base hsp/a2dp availability on UUIDs.
        Ideally, it would be based on "Connected" state, but
        we can't afford to wait for this information when

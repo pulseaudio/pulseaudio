@@ -67,6 +67,7 @@ pa_card_new_data* pa_card_new_data_init(pa_card_new_data *data) {
 
     memset(data, 0, sizeof(*data));
     data->proplist = pa_proplist_new();
+    data->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     data->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     return data;
 }
@@ -114,6 +115,8 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     pa_core_assert_ref(core);
     pa_assert(data);
     pa_assert(data->name);
+    pa_assert(data->profiles);
+    pa_assert(!pa_hashmap_isempty(data->profiles));
 
     c = pa_xnew(pa_card, 1);
 
@@ -149,11 +152,11 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     c->active_profile = NULL;
     c->save_profile = FALSE;
 
-    if (data->active_profile && c->profiles)
+    if (data->active_profile)
         if ((c->active_profile = pa_hashmap_get(c->profiles, data->active_profile)))
             c->save_profile = data->save_profile;
 
-    if (!c->active_profile && c->profiles) {
+    if (!c->active_profile) {
         void *state;
         pa_card_profile *p;
 
@@ -221,6 +224,7 @@ void pa_card_free(pa_card *c) {
 int pa_card_set_profile(pa_card *c, const char *name, pa_bool_t save) {
     pa_card_profile *profile;
     int r;
+
     pa_assert(c);
 
     if (!c->set_profile) {
@@ -228,7 +232,7 @@ int pa_card_set_profile(pa_card *c, const char *name, pa_bool_t save) {
         return -PA_ERR_NOTIMPLEMENTED;
     }
 
-    if (!c->profiles || !name)
+    if (!name)
         return -PA_ERR_NOENTITY;
 
     if (!(profile = pa_hashmap_get(c->profiles, name)))

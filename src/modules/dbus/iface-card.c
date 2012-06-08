@@ -309,16 +309,7 @@ static void handle_get_active_profile(DBusConnection *conn, DBusMessage *msg, vo
     pa_assert(msg);
     pa_assert(c);
 
-    if (!c->active_profile) {
-        pa_assert(pa_hashmap_isempty(c->profiles));
-
-        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
-                           "The card %s has no profiles, and therefore there's no active profile either.", c->card->name);
-        return;
-    }
-
     active_profile = pa_dbusiface_card_profile_get_path(pa_hashmap_get(c->profiles, c->active_profile->name));
-
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_OBJECT_PATH, &active_profile);
 }
 
@@ -332,15 +323,6 @@ static void handle_set_active_profile(DBusConnection *conn, DBusMessage *msg, DB
     pa_assert(msg);
     pa_assert(iter);
     pa_assert(c);
-
-    if (!c->active_profile) {
-        pa_assert(pa_hashmap_isempty(c->profiles));
-
-        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
-                           "The card %s has no profiles, and therefore there's no active profile either.",
-                           c->card->name);
-        return;
-    }
 
     dbus_message_iter_get_basic(iter, &new_active_path);
 
@@ -393,8 +375,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     sinks = get_sinks(c, &n_sinks);
     sources = get_sources(c, &n_sources);
     profiles = get_profiles(c, &n_profiles);
-    if (c->active_profile)
-        active_profile = pa_dbusiface_card_profile_get_path(pa_hashmap_get(c->profiles, c->active_profile->name));
+    active_profile = pa_dbusiface_card_profile_get_path(pa_hashmap_get(c->profiles, c->active_profile->name));
 
     pa_assert_se((reply = dbus_message_new_method_return(msg)));
 
@@ -411,9 +392,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_SINKS].property_name, DBUS_TYPE_OBJECT_PATH, sinks, n_sinks);
     pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_SOURCES].property_name, DBUS_TYPE_OBJECT_PATH, sources, n_sources);
     pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_PROFILES].property_name, DBUS_TYPE_OBJECT_PATH, profiles, n_profiles);
-
-    if (active_profile)
-        pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_ACTIVE_PROFILE].property_name, DBUS_TYPE_OBJECT_PATH, &active_profile);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_ACTIVE_PROFILE].property_name, DBUS_TYPE_OBJECT_PATH, &active_profile);
 
     pa_dbus_append_proplist_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_PROPERTY_LIST].property_name, c->proplist);
 
@@ -501,6 +480,8 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
 pa_dbusiface_card *pa_dbusiface_card_new(pa_dbusiface_core *core, pa_card *card) {
     pa_dbusiface_card *c = NULL;
+    pa_card_profile *profile;
+    void *state;
 
     pa_assert(core);
     pa_assert(card);
@@ -511,20 +492,14 @@ pa_dbusiface_card *pa_dbusiface_card_new(pa_dbusiface_core *core, pa_card *card)
     c->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, OBJECT_NAME, card->index);
     c->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     c->next_profile_index = 0;
-    c->active_profile = NULL;
+    c->active_profile = card->active_profile;
     c->proplist = pa_proplist_copy(card->proplist);
     c->dbus_protocol = pa_dbus_protocol_get(card->core);
     c->subscription = pa_subscription_new(card->core, PA_SUBSCRIPTION_MASK_CARD, subscription_cb, c);
 
-    if (card->profiles) {
-        pa_card_profile *profile;
-        void *state = NULL;
-
-        PA_HASHMAP_FOREACH(profile, card->profiles, state) {
-            pa_dbusiface_card_profile *p = pa_dbusiface_card_profile_new(c, card->core, profile, c->next_profile_index++);
-            pa_hashmap_put(c->profiles, pa_dbusiface_card_profile_get_name(p), p);
-        }
-        pa_assert_se(c->active_profile = card->active_profile);
+    PA_HASHMAP_FOREACH(profile, card->profiles, state) {
+        pa_dbusiface_card_profile *p = pa_dbusiface_card_profile_new(c, card->core, profile, c->next_profile_index++);
+        pa_hashmap_put(c->profiles, pa_dbusiface_card_profile_get_name(p), p);
     }
 
     pa_assert_se(pa_dbus_protocol_add_interface(c->dbus_protocol, c->path, &card_interface_info, c) >= 0);

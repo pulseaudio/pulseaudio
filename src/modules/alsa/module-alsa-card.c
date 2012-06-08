@@ -502,7 +502,6 @@ int pa__init(pa_module *m) {
         if ((description = pa_proplist_gets(data.proplist, PA_PROP_DEVICE_DESCRIPTION)))
             pa_reserve_wrapper_set_application_device_name(reserve, description);
 
-    data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     add_profiles(u, data.profiles, data.ports);
 
     if (pa_hashmap_isempty(data.profiles)) {
