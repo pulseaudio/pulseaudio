@@ -228,7 +228,7 @@ int pa_card_set_profile(pa_card *c, const char *name, pa_bool_t save) {
         return -PA_ERR_NOTIMPLEMENTED;
     }
 
-    if (!c->profiles)
+    if (!c->profiles || !name)
         return -PA_ERR_NOENTITY;
 
     if (!(profile = pa_hashmap_get(c->profiles, name)))
