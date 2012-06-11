@@ -82,6 +82,9 @@ static int load(const char *fn, pa_bool_t create, void *data, size_t length) {
     pa_assert(data);
     pa_assert(length > 0);
 
+    if (create)
+        pa_make_secure_parent_dir(fn, pa_in_system_mode() ? 0755U : 0700U, -1, -1);
+
     if ((fd = pa_open_cloexec(fn, (create ? O_RDWR|O_CREAT : O_RDONLY)|O_BINARY, S_IRUSR|S_IWUSR)) < 0) {
 
         if (!create || errno != EACCES || (fd = open(fn, O_RDONLY|O_BINARY)) < 0) {
