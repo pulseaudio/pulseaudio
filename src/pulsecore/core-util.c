@@ -220,9 +220,11 @@ void pa_make_fd_cloexec(int fd) {
 int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     struct stat st;
     int r, saved_errno;
+    pa_bool_t retry = TRUE;
 
     pa_assert(dir);
 
+again:
 #ifdef OS_IS_WIN32
     r = mkdir(dir);
 #else
@@ -233,6 +235,14 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     umask(u);
 }
 #endif
+
+    if (r < 0 && errno == ENOENT && retry) {
+        /* If a parent directory in the path doesn't exist, try to create that
+         * first, then try again. */
+        pa_make_secure_parent_dir(dir, m, uid, gid);
+        retry = FALSE;
+        goto again;
+    }
 
     if (r < 0 && errno != EEXIST)
         return -1;
