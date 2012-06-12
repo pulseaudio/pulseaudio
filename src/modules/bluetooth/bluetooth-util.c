@@ -138,7 +138,12 @@ static pa_bluetooth_device* device_new(const char *path) {
 }
 
 static void transport_free(pa_bluetooth_transport *t) {
+    unsigned i;
+
     pa_assert(t);
+
+    for (i = 0; i < PA_BLUETOOTH_TRANSPORT_HOOK_MAX; i++)
+        pa_hook_done(&t->hooks[i]);
 
     pa_xfree(t->path);
     pa_xfree(t->config);
@@ -756,8 +761,11 @@ int pa_bluetooth_transport_parse_property(pa_bluetooth_transport *t, DBusMessage
             dbus_bool_t value;
             dbus_message_iter_get_basic(&variant_i, &value);
 
-            if (pa_streq(key, "NREC"))
+            if (pa_streq(key, "NREC") && t->nrec != value) {
                 t->nrec = value;
+                pa_log_debug("Transport %s: Property 'NREC' changed to %s.", t->path, t->nrec ? "True" : "False");
+                pa_hook_fire(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_NREC_CHANGED], NULL);
+            }
 
             break;
          }
@@ -979,7 +987,7 @@ const pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_disco
     return NULL;
 }
 
-const pa_bluetooth_transport* pa_bluetooth_discovery_get_transport(pa_bluetooth_discovery *y, const char *path) {
+pa_bluetooth_transport* pa_bluetooth_discovery_get_transport(pa_bluetooth_discovery *y, const char *path) {
     pa_bluetooth_device *d;
     pa_bluetooth_transport *t;
     void *state = NULL;
@@ -1085,6 +1093,7 @@ static int setup_dbus(pa_bluetooth_discovery *y) {
 
 static pa_bluetooth_transport *transport_new(pa_bluetooth_discovery *y, const char *path, enum profile p, const uint8_t *config, int size) {
     pa_bluetooth_transport *t;
+    unsigned i;
 
     t = pa_xnew0(pa_bluetooth_transport, 1);
     t->y = y;
@@ -1096,6 +1105,9 @@ static pa_bluetooth_transport *transport_new(pa_bluetooth_discovery *y, const ch
         t->config = pa_xnew(uint8_t, size);
         memcpy(t->config, config, size);
     }
+
+    for (i = 0; i < PA_BLUETOOTH_TRANSPORT_HOOK_MAX; i++)
+        pa_hook_init(&t->hooks[i], t);
 
     return t;
 }

@@ -124,6 +124,7 @@ struct hsp_info {
     void (*sco_source_set_volume)(pa_source *s);
     pa_hook_slot *sink_state_changed_slot;
     pa_hook_slot *source_state_changed_slot;
+    pa_hook_slot *nrec_changed_slot;
 };
 
 struct bluetooth_msg {
@@ -1818,28 +1819,6 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 pa_source_volume_changed(u->source, &v);
             }
         }
-    } else if (dbus_message_is_signal(m, "org.bluez.MediaTransport", "PropertyChanged")) {
-        DBusMessageIter arg_i;
-        pa_bluetooth_transport *t;
-        pa_bool_t nrec;
-
-        t = (pa_bluetooth_transport *) pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
-        pa_assert(t);
-
-        if (!dbus_message_iter_init(m, &arg_i)) {
-            pa_log("Failed to parse PropertyChanged: %s", err.message);
-            goto fail;
-        }
-
-        nrec = t->nrec;
-
-        if (pa_bluetooth_transport_parse_property(t, &arg_i) < 0)
-            goto fail;
-
-        if (nrec != t->nrec) {
-            pa_log_debug("dbus: property 'NREC' changed to value '%s'", t->nrec ? "True" : "False");
-            pa_proplist_sets(u->source->proplist, "bluetooth.nrec", t->nrec ? "1" : "0");
-        }
     } else if (dbus_message_is_signal(m, "org.bluez.HandsfreeGateway", "PropertyChanged")) {
         const char *key;
         DBusMessageIter iter;
@@ -2073,6 +2052,20 @@ static pa_hook_result_t source_state_changed_cb(pa_core *c, pa_source *s, struct
     return PA_HOOK_OK;
 }
 
+static pa_hook_result_t nrec_changed_cb(pa_bluetooth_transport *t, void *call_data, struct userdata *u) {
+    pa_proplist *p;
+
+    pa_assert(t);
+    pa_assert(u);
+
+    p = pa_proplist_new();
+    pa_proplist_sets(p, "bluetooth.nrec", t->nrec ? "1" : "0");
+    pa_source_update_proplist(u->source, PA_UPDATE_REPLACE, p);
+    pa_proplist_free(p);
+
+    return PA_HOOK_OK;
+}
+
 static void connect_ports(struct userdata *u, void *sink_or_source_new_data, pa_direction_t direction) {
     union {
         pa_sink_new_data *sink_new_data;
@@ -2247,10 +2240,13 @@ static int add_source(struct userdata *u) {
 
     if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW)) {
         if (u->transport) {
-            const pa_bluetooth_transport *t;
+            pa_bluetooth_transport *t;
             t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
             pa_assert(t);
             pa_proplist_sets(u->source->proplist, "bluetooth.nrec", t->nrec ? "1" : "0");
+
+            if (!u->hsp.nrec_changed_slot)
+                u->hsp.nrec_changed_slot = pa_hook_connect(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_NREC_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) nrec_changed_cb, u);
         } else
             pa_proplist_sets(u->source->proplist, "bluetooth.nrec", (u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC) ? "1" : "0");
     }
@@ -2544,6 +2540,11 @@ static void stop_thread(struct userdata *u) {
     if (u->hsp.source_state_changed_slot) {
         pa_hook_slot_free(u->hsp.source_state_changed_slot);
         u->hsp.source_state_changed_slot = NULL;
+    }
+
+    if (u->hsp.nrec_changed_slot) {
+        pa_hook_slot_free(u->hsp.nrec_changed_slot);
+        u->hsp.nrec_changed_slot = NULL;
     }
 
     if (u->sink) {
