@@ -52,6 +52,7 @@ static int child_argc = 0;
 static pid_t child_pid = (pid_t) -1;
 static int child_ret = 0;
 static int dead = 1;
+static int fork_failed = 0;
 
 static void quit(int ret) {
     pa_assert(mainloop_api);
@@ -66,18 +67,22 @@ static void context_drain_complete(pa_context *c, void *userdata) {
 static void drain(void) {
     pa_operation *o;
 
-    if (!(o = pa_context_drain(context, context_drain_complete, NULL)))
-        pa_context_disconnect(context);
-    else
-        pa_operation_unref(o);
+    if (context) {
+        if (!(o = pa_context_drain(context, context_drain_complete, NULL)))
+            pa_context_disconnect(context);
+        else
+            pa_operation_unref(o);
+    } else
+        quit(0);
 }
 
-static void start_child(void) {
+static int start_child(void) {
 
     if ((child_pid = fork()) < 0) {
-
         fprintf(stderr, _("fork(): %s\n"), strerror(errno));
-        quit(1);
+        fork_failed = 1;
+
+        return -1;
 
     } else if (child_pid == 0) {
         /* Child */
@@ -96,21 +101,8 @@ static void start_child(void) {
         /* parent */
         dead = 0;
     }
-}
 
-static void suspend_complete(pa_context *c, int success, void *userdata) {
-    static int n = 0;
-
-    n++;
-
-    if (!success) {
-        fprintf(stderr, _("Failure to suspend: %s\n"), pa_strerror(pa_context_errno(c)));
-        quit(1);
-        return;
-    }
-
-    if (n >= 2)
-        start_child();
+    return 0;
 }
 
 static void resume_complete(pa_context *c, int success, void *userdata) {
@@ -128,6 +120,42 @@ static void resume_complete(pa_context *c, int success, void *userdata) {
         drain(); /* drain and quit */
 }
 
+static void resume(void) {
+    static int n = 0;
+
+    n++;
+
+    if (n > 1)
+        return;
+
+    if (context) {
+        if (pa_context_is_local(context)) {
+            pa_operation_unref(pa_context_suspend_sink_by_index(context, PA_INVALID_INDEX, 0, resume_complete, NULL));
+            pa_operation_unref(pa_context_suspend_source_by_index(context, PA_INVALID_INDEX, 0, resume_complete, NULL));
+        } else
+            drain();
+    } else {
+        quit(0);
+    }
+}
+
+static void suspend_complete(pa_context *c, int success, void *userdata) {
+    static int n = 0;
+
+    n++;
+
+    if (!success) {
+        fprintf(stderr, _("Failure to suspend: %s\n"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (n >= 2) {
+        if (start_child() < 0)
+            resume();
+    }
+}
+
 static void context_state_callback(pa_context *c, void *userdata) {
     pa_assert(c);
 
@@ -143,7 +171,8 @@ static void context_state_callback(pa_context *c, void *userdata) {
                 pa_operation_unref(pa_context_suspend_source_by_index(c, PA_INVALID_INDEX, 1, suspend_complete, NULL));
             } else {
                 fprintf(stderr, _("WARNING: Sound server is not local, not suspending.\n"));
-                start_child();
+                if (start_child() < 0)
+                    drain();
             }
 
             break;
@@ -159,10 +188,11 @@ static void context_state_callback(pa_context *c, void *userdata) {
             pa_context_unref(context);
             context = NULL;
 
-            if (child_pid == (pid_t) -1)
+            if (child_pid == (pid_t) -1) {
                 /* not started yet, then we do it now */
-                start_child();
-            else if (dead)
+                if (start_child() < 0)
+                    quit(1);
+            } else if (dead)
                 /* already started, and dead, so let's quit */
                 quit(1);
 
@@ -172,7 +202,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
 static void sigint_callback(pa_mainloop_api *m, pa_signal_event *e, int sig, void *userdata) {
     fprintf(stderr, _("Got SIGINT, exiting.\n"));
-    quit(0);
+    resume();
 }
 
 static void sigchld_callback(pa_mainloop_api *m, pa_signal_event *e, int sig, void *userdata) {
@@ -193,16 +223,7 @@ static void sigchld_callback(pa_mainloop_api *m, pa_signal_event *e, int sig, vo
         child_ret = 1;
     }
 
-    if (context) {
-        if (pa_context_is_local(context)) {
-            /* A context is around, so let's resume */
-            pa_operation_unref(pa_context_suspend_sink_by_index(context, PA_INVALID_INDEX, 0, resume_complete, NULL));
-            pa_operation_unref(pa_context_suspend_source_by_index(context, PA_INVALID_INDEX, 0, resume_complete, NULL));
-        } else
-            drain();
-    } else
-        /* Hmm, no context here, so let's terminate right away */
-        quit(0);
+    resume();
 }
 
 static void help(const char *argv0) {
@@ -302,6 +323,9 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, _("pa_mainloop_run() failed.\n"));
         goto quit;
     }
+
+    if (ret == 0 && fork_failed)
+        ret = 1;
 
 quit:
     if (context)
