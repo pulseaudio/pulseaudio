@@ -937,9 +937,11 @@ int pa_parse_boolean(const char *v) {
     pa_assert(v);
 
     /* First we check language independent */
-    if (pa_streq(v, "1") || v[0] == 'y' || v[0] == 'Y' || v[0] == 't' || v[0] == 'T' || !strcasecmp(v, "on"))
+    if (pa_streq(v, "1") || !strcasecmp(v, "y") || !strcasecmp(v, "t")
+            || !strcasecmp(v, "yes") || !strcasecmp(v, "true") || !strcasecmp(v, "on"))
         return 1;
-    else if (pa_streq(v, "0") || v[0] == 'n' || v[0] == 'N' || v[0] == 'f' || v[0] == 'F' || !strcasecmp(v, "off"))
+    else if (pa_streq(v, "0") || !strcasecmp(v, "n") || !strcasecmp(v, "f")
+                 || !strcasecmp(v, "no") || !strcasecmp(v, "false") || !strcasecmp(v, "off"))
         return 0;
 
 #ifdef HAVE_LANGINFO_H
