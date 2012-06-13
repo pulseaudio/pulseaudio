@@ -227,7 +227,7 @@ int pa__init(pa_module *m) {
         char *n = NULL;
         while ((n = pa_split(roles, ",", &split_state)))
             if (n[0] != '\0')
-                pa_idxset_put(u->trigger_roles, pa_xstrdup(n), NULL);
+                pa_idxset_put(u->trigger_roles, n, NULL);
     }
     if (pa_idxset_isempty(u->trigger_roles)) {
         pa_log_debug("Using role 'phone' as trigger role.");
@@ -241,7 +241,7 @@ int pa__init(pa_module *m) {
         char *n = NULL;
         while ((n = pa_split(roles, ",", &split_state)))
             if (n[0] != '\0')
-                pa_idxset_put(u->cork_roles, pa_xstrdup(n), NULL);
+                pa_idxset_put(u->cork_roles, n, NULL);
     }
     if (pa_idxset_isempty(u->cork_roles)) {
         pa_log_debug("Using roles 'music' and 'video' as cork roles.");
