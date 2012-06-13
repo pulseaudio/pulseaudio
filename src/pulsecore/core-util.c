@@ -937,6 +937,29 @@ char *pa_split(const char *c, const char *delimiter, const char**state) {
     return pa_xstrndup(current, l);
 }
 
+/* Split the specified string wherever one of the strings in delimiter
+ * occurs. Each time it is called returns a pointer to the substring within the
+ * string and the length in 'n'. Note that the resultant string cannot be used
+ * as-is without the length parameter, since it is merely pointing to a point
+ * within the original string. The variable state points to, should be
+ * initialized to NULL before the first call. */
+const char *pa_split_in_place(const char *c, const char *delimiter, int *n, const char**state) {
+    const char *current = *state ? *state : c;
+    size_t l;
+
+    if (!*current)
+        return NULL;
+
+    l = strcspn(current, delimiter);
+    *state = current+l;
+
+    if (**state)
+        (*state)++;
+
+    *n = l;
+    return current;
+}
+
 /* Split a string into words. Otherwise similar to pa_split(). */
 char *pa_split_spaces(const char *c, const char **state) {
     const char *current = *state ? *state : c;
