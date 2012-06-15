@@ -41,6 +41,11 @@
 #include <pulsecore/sample-util.h>
 #include <pulsecore/ltdl-helper.h>
 
+#ifdef HAVE_DBUS
+#include <pulsecore/protocol-dbus.h>
+#include <pulsecore/dbus-util.h>
+#endif
+
 #include "module-ladspa-sink-symdef.h"
 #include "ladspa.h"
 
@@ -79,12 +84,21 @@ struct userdata {
     LADSPA_Data **input, **output;
     size_t block_size;
     LADSPA_Data *control;
+    long unsigned n_control;
 
     /* This is a dummy buffer. Every port must be connected, but we don't care
     about control out ports. We connect them all to this single buffer. */
     LADSPA_Data control_out;
 
     pa_memblockq *memblockq;
+
+    pa_bool_t *use_default;
+    pa_sample_spec ss;
+
+#ifdef HAVE_DBUS
+    pa_dbus_protocol *dbus_protocol;
+    char *dbus_path;
+#endif
 
     pa_bool_t auto_desc;
 };
@@ -104,6 +118,218 @@ static const char* const valid_modargs[] = {
     "output_ladspaport_map",
     NULL
 };
+
+/* The PA_SINK_MESSAGE types that extend the predefined messages. */
+enum {
+   LADSPA_SINK_MESSAGE_UPDATE_PARAMETERS = PA_SINK_MESSAGE_MAX
+};
+
+static int write_control_parameters(struct userdata *u, double *control_values, pa_bool_t *use_default);
+static void connect_control_ports(struct userdata *u);
+
+#ifdef HAVE_DBUS
+
+#define LADSPA_IFACE "org.PulseAudio.Ext.Ladspa1"
+#define LADSPA_ALGORITHM_PARAMETERS "AlgorithmParameters"
+
+/* TODO: add a PropertyChanged signal to tell that the algorithm parameters have been changed */
+
+enum ladspa_handler_index {
+    LADSPA_HANDLER_ALGORITHM_PARAMETERS,
+    LADSPA_HANDLER_MAX
+};
+
+static void get_algorithm_parameters(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    struct userdata *u;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter, struct_iter;
+    unsigned long i;
+    double *control;
+    dbus_bool_t *use_default;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert_se(u = _u);
+
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+    dbus_message_iter_init_append(reply, &msg_iter);
+
+    dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_STRUCT, NULL, &struct_iter);
+
+    /* copying because of the D-Bus type mapping */
+    control = pa_xnew(double, u->n_control);
+    use_default = pa_xnew(dbus_bool_t, u->n_control);
+
+    for (i = 0; i < u->n_control; i++) {
+        control[i] = (double) u->control[i];
+        use_default[i] = u->use_default[i];
+    }
+
+    pa_dbus_append_basic_array(&struct_iter, DBUS_TYPE_DOUBLE, control, u->n_control);
+    pa_dbus_append_basic_array(&struct_iter, DBUS_TYPE_BOOLEAN, use_default, u->n_control);
+
+    dbus_message_iter_close_container(&msg_iter, &struct_iter);
+
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+
+    dbus_message_unref(reply);
+    pa_xfree(control);
+    pa_xfree(use_default);
+}
+
+static void set_algorithm_parameters(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *_u) {
+    struct userdata *u;
+    DBusMessageIter array_iter, struct_iter;
+    int n_control = 0, n_use_default;
+    unsigned n_dbus_control, n_dbus_use_default;
+    double *read_values = NULL;
+    dbus_bool_t *read_defaults = NULL;
+    pa_bool_t *use_defaults = NULL;
+    unsigned long i;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert_se(u = _u);
+
+    /* The property we are expecting has signature (adab), meaning that it's a
+       struct of two arrays, the first containing doubles and the second containing
+       booleans. The first array has the algorithm configuration values and the
+       second array has booleans indicating whether the matching algorithm
+       configuration value should use (or try to use) the default value provided by
+       the algorithm module. The PulseAudio D-Bus infrastructure will take care of
+       checking the argument types for us. */
+
+    dbus_message_iter_recurse(iter, &struct_iter);
+
+    dbus_message_iter_recurse(&struct_iter, &array_iter);
+    dbus_message_iter_get_fixed_array(&array_iter, &read_values, &n_control);
+
+    dbus_message_iter_next(&struct_iter);
+    dbus_message_iter_recurse(&struct_iter, &array_iter);
+    dbus_message_iter_get_fixed_array(&array_iter, &read_defaults, &n_use_default);
+
+    n_dbus_control = n_control; /* handle the unsignedness */
+    n_dbus_use_default = n_use_default;
+
+    if (n_dbus_control != u->n_control || n_dbus_use_default != u->n_control) {
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong number of array values (expected %lu)", u->n_control);
+        return;
+    }
+
+    use_defaults = pa_xnew(pa_bool_t, n_control);
+    for (i = 0; i < u->n_control; i++)
+        use_defaults[i] = read_defaults[i];
+
+    if (write_control_parameters(u, read_values, use_defaults) < 0) {
+        pa_log_warn("Failed writing control parameters");
+        goto error;
+    }
+
+    pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), LADSPA_SINK_MESSAGE_UPDATE_PARAMETERS, NULL, 0, NULL);
+
+    pa_dbus_send_empty_reply(conn, msg);
+
+    pa_xfree(use_defaults);
+    return;
+
+error:
+    pa_xfree(use_defaults);
+    pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED, "Internal error");
+}
+
+static pa_dbus_property_handler ladspa_property_handlers[LADSPA_HANDLER_MAX] = {
+    [LADSPA_HANDLER_ALGORITHM_PARAMETERS] = {
+        .property_name = LADSPA_ALGORITHM_PARAMETERS,
+        .type = "(adab)",
+        .get_cb = get_algorithm_parameters,
+        .set_cb = set_algorithm_parameters
+    }
+};
+
+static void ladspa_get_all(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    struct userdata *u;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter, dict_iter, dict_entry_iter, variant_iter, struct_iter;
+    const char *key = LADSPA_ALGORITHM_PARAMETERS;
+    double *control;
+    dbus_bool_t *use_default;
+    long unsigned i;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert_se(u = _u);
+
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+
+    /* Currently, on this interface, only a single property is returned. */
+
+    dbus_message_iter_init_append(reply, &msg_iter);
+    pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter));
+    pa_assert_se(dbus_message_iter_open_container(&dict_iter, DBUS_TYPE_DICT_ENTRY, NULL, &dict_entry_iter));
+    pa_assert_se(dbus_message_iter_append_basic(&dict_entry_iter, DBUS_TYPE_STRING, &key));
+
+    pa_assert_se(dbus_message_iter_open_container(&dict_entry_iter, DBUS_TYPE_VARIANT, "(adab)", &variant_iter));
+    pa_assert_se(dbus_message_iter_open_container(&variant_iter, DBUS_TYPE_STRUCT, NULL, &struct_iter));
+
+    control = pa_xnew(double, u->n_control);
+    use_default = pa_xnew(dbus_bool_t, u->n_control);
+
+    for (i = 0; i < u->n_control; i++) {
+        control[i] = (double) u->control[i];
+        use_default[i] = u->use_default[i];
+    }
+
+    pa_dbus_append_basic_array(&struct_iter, DBUS_TYPE_DOUBLE, control, u->n_control);
+    pa_dbus_append_basic_array(&struct_iter, DBUS_TYPE_BOOLEAN, use_default, u->n_control);
+
+    pa_assert_se(dbus_message_iter_close_container(&variant_iter, &struct_iter));
+    pa_assert_se(dbus_message_iter_close_container(&dict_entry_iter, &variant_iter));
+    pa_assert_se(dbus_message_iter_close_container(&dict_iter, &dict_entry_iter));
+    pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
+
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+    dbus_message_unref(reply);
+    pa_xfree(control);
+    pa_xfree(use_default);
+}
+
+static pa_dbus_interface_info ladspa_info = {
+    .name = LADSPA_IFACE,
+    .method_handlers = NULL,
+    .n_method_handlers = 0,
+    .property_handlers = ladspa_property_handlers,
+    .n_property_handlers = LADSPA_HANDLER_MAX,
+    .get_all_properties_cb = ladspa_get_all,
+    .signals = NULL,
+    .n_signals = 0
+};
+
+static void dbus_init(struct userdata *u) {
+    pa_assert_se(u);
+
+    u->dbus_protocol = pa_dbus_protocol_get(u->sink->core);
+    u->dbus_path = pa_sprintf_malloc("/org/pulseaudio/core1/sink%d", u->sink->index);
+
+    pa_dbus_protocol_add_interface(u->dbus_protocol, u->dbus_path, &ladspa_info, u);
+}
+
+static void dbus_done(struct userdata *u) {
+    pa_assert_se(u);
+
+    if (!u->dbus_protocol) {
+        pa_assert(!u->dbus_path);
+        return;
+    }
+
+    pa_dbus_protocol_remove_interface(u->dbus_protocol, u->dbus_path, ladspa_info.name);
+    pa_xfree(u->dbus_path);
+    pa_dbus_protocol_unref(u->dbus_protocol);
+
+    u->dbus_path = NULL;
+    u->dbus_protocol = NULL;
+}
+
+#endif /* HAVE_DBUS */
 
 /* Called from I/O thread context */
 static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
@@ -129,6 +355,18 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
 
             /* Add the latency internal to our sink input on top */
             pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec);
+
+        return 0;
+
+    case LADSPA_SINK_MESSAGE_UPDATE_PARAMETERS:
+
+        /* rewind the stream to throw away the previously rendered data */
+
+        pa_log_debug("Requesting rewind due to parameter update.");
+        pa_sink_request_rewind(u->sink, -1);
+
+        /* change the sink parameters */
+        connect_control_ports(u);
 
         return 0;
     }
@@ -469,6 +707,273 @@ static void sink_input_mute_changed_cb(pa_sink_input *i) {
     pa_sink_mute_changed(u->sink, i->muted);
 }
 
+static int parse_control_parameters(struct userdata *u, const char *cdata, double *read_values, pa_bool_t *use_default) {
+    unsigned long p = 0;
+    const char *state = NULL;
+    char *k;
+
+    pa_assert(read_values);
+    pa_assert(use_default);
+    pa_assert(u);
+
+    pa_log_debug("Trying to read %lu control values", u->n_control);
+
+    if (!cdata && u->n_control > 0)
+        return -1;
+
+    pa_log_debug("cdata: '%s'", cdata);
+
+    while ((k = pa_split(cdata, ",", &state)) && p < u->n_control) {
+        double f;
+
+        if (*k == 0) {
+            pa_log_debug("Read empty config value (p=%lu)", p);
+            use_default[p++] = TRUE;
+            pa_xfree(k);
+            continue;
+        }
+
+        if (pa_atod(k, &f) < 0) {
+            pa_log_debug("Failed to parse control value '%s' (p=%lu)", k, p);
+            pa_xfree(k);
+            goto fail;
+        }
+
+        pa_xfree(k);
+
+        pa_log_debug("Read config value %f (p=%lu)", f, p);
+
+        use_default[p] = FALSE;
+        read_values[p++] = f;
+    }
+
+    /* The previous loop doesn't take the last control value into account
+       if it is left empty, so we do it here. */
+    if (*cdata == 0 || cdata[strlen(cdata) - 1] == ',') {
+        if (p < u->n_control)
+            use_default[p] = TRUE;
+        p++;
+    }
+
+    if (p > u->n_control || k) {
+        pa_log("Too many control values passed, %lu expected.", u->n_control);
+        pa_xfree(k);
+        goto fail;
+    }
+
+    if (p < u->n_control) {
+        pa_log("Not enough control values passed, %lu expected, %lu passed.", u->n_control, p);
+        goto fail;
+    }
+
+    return 0;
+
+fail:
+    return -1;
+}
+
+static void connect_control_ports(struct userdata *u) {
+    unsigned long p = 0, h = 0, c;
+    const LADSPA_Descriptor *d;
+
+    pa_assert(u);
+    pa_assert_se(d = u->descriptor);
+
+    for (p = 0; p < d->PortCount; p++) {
+        if (!LADSPA_IS_PORT_CONTROL(d->PortDescriptors[p]))
+            continue;
+
+        if (LADSPA_IS_PORT_OUTPUT(d->PortDescriptors[p])) {
+            for (c = 0; c < (u->channels / u->max_ladspaport_count); c++)
+                d->connect_port(u->handle[c], p, &u->control_out);
+            continue;
+        }
+
+        /* input control port */
+
+        pa_log_debug("Binding %f to port %s", u->control[h], d->PortNames[p]);
+
+        for (c = 0; c < (u->channels / u->max_ladspaport_count); c++)
+            d->connect_port(u->handle[c], p, &u->control[h]);
+
+        h++;
+    }
+}
+
+static int validate_control_parameters(struct userdata *u, double *control_values, pa_bool_t *use_default) {
+    unsigned long p = 0, h = 0;
+    const LADSPA_Descriptor *d;
+    pa_sample_spec ss;
+
+    pa_assert(control_values);
+    pa_assert(use_default);
+    pa_assert(u);
+    pa_assert_se(d = u->descriptor);
+
+    ss = u->ss;
+
+    /* Iterate over all ports. Check for every control port that 1) it
+     * supports default values if a default value is provided and 2) the
+     * provided value is within the limits specified in the plugin. */
+
+    for (p = 0; p < d->PortCount; p++) {
+        LADSPA_PortRangeHintDescriptor hint = d->PortRangeHints[p].HintDescriptor;
+
+        if (!LADSPA_IS_PORT_CONTROL(d->PortDescriptors[p]))
+            continue;
+
+        if (LADSPA_IS_PORT_OUTPUT(d->PortDescriptors[p]))
+            continue;
+
+        if (use_default[h]) {
+            /* User wants to use default value. Check if the plugin
+             * provides it. */
+            if (!LADSPA_IS_HINT_HAS_DEFAULT(hint)) {
+                pa_log_warn("Control port value left empty but plugin defines no default.");
+                return -1;
+            }
+        }
+        else {
+            /* Check if the user-provided value is within the bounds. */
+            LADSPA_Data lower = d->PortRangeHints[p].LowerBound;
+            LADSPA_Data upper = d->PortRangeHints[p].UpperBound;
+
+            if (LADSPA_IS_HINT_SAMPLE_RATE(hint)) {
+                upper *= (LADSPA_Data) ss.rate;
+                lower *= (LADSPA_Data) ss.rate;
+            }
+
+            if (LADSPA_IS_HINT_BOUNDED_ABOVE(hint)) {
+                if (control_values[h] > upper) {
+                    pa_log_warn("Control value %lu over upper bound: %f (upper bound: %f)", h, control_values[h], upper);
+                    return -1;
+                }
+            }
+            if (LADSPA_IS_HINT_BOUNDED_BELOW(hint)) {
+                if (control_values[h] < lower) {
+                    pa_log_warn("Control value %lu below lower bound: %f (lower bound: %f)", h, control_values[h], lower);
+                    return -1;
+                }
+            }
+        }
+
+        h++;
+    }
+
+    return 0;
+}
+
+static int write_control_parameters(struct userdata *u, double *control_values, pa_bool_t *use_default) {
+    unsigned long p = 0, h = 0, c;
+    const LADSPA_Descriptor *d;
+    pa_sample_spec ss;
+
+    pa_assert(control_values);
+    pa_assert(use_default);
+    pa_assert(u);
+    pa_assert_se(d = u->descriptor);
+
+    ss = u->ss;
+
+    if (validate_control_parameters(u, control_values, use_default) < 0)
+        return -1;
+
+    /* p iterates over all ports, h is the control port iterator */
+
+    for (p = 0; p < d->PortCount; p++) {
+        LADSPA_PortRangeHintDescriptor hint = d->PortRangeHints[p].HintDescriptor;
+
+        if (!LADSPA_IS_PORT_CONTROL(d->PortDescriptors[p]))
+            continue;
+
+        if (LADSPA_IS_PORT_OUTPUT(d->PortDescriptors[p])) {
+            for (c = 0; c < (u->channels / u->max_ladspaport_count); c++)
+                d->connect_port(u->handle[c], p, &u->control_out);
+            continue;
+        }
+
+        if (use_default[h]) {
+
+            LADSPA_Data lower, upper;
+
+            lower = d->PortRangeHints[p].LowerBound;
+            upper = d->PortRangeHints[p].UpperBound;
+
+            if (LADSPA_IS_HINT_SAMPLE_RATE(hint)) {
+                lower *= (LADSPA_Data) ss.rate;
+                upper *= (LADSPA_Data) ss.rate;
+            }
+
+            switch (hint & LADSPA_HINT_DEFAULT_MASK) {
+
+            case LADSPA_HINT_DEFAULT_MINIMUM:
+                u->control[h] = lower;
+                break;
+
+            case LADSPA_HINT_DEFAULT_MAXIMUM:
+                u->control[h] = upper;
+                break;
+
+            case LADSPA_HINT_DEFAULT_LOW:
+                if (LADSPA_IS_HINT_LOGARITHMIC(hint))
+                    u->control[h] = (LADSPA_Data) exp(log(lower) * 0.75 + log(upper) * 0.25);
+                else
+                    u->control[h] = (LADSPA_Data) (lower * 0.75 + upper * 0.25);
+                break;
+
+            case LADSPA_HINT_DEFAULT_MIDDLE:
+                if (LADSPA_IS_HINT_LOGARITHMIC(hint))
+                    u->control[h] = (LADSPA_Data) exp(log(lower) * 0.5 + log(upper) * 0.5);
+                else
+                    u->control[h] = (LADSPA_Data) (lower * 0.5 + upper * 0.5);
+                break;
+
+            case LADSPA_HINT_DEFAULT_HIGH:
+                if (LADSPA_IS_HINT_LOGARITHMIC(hint))
+                    u->control[h] = (LADSPA_Data) exp(log(lower) * 0.25 + log(upper) * 0.75);
+                else
+                    u->control[h] = (LADSPA_Data) (lower * 0.25 + upper * 0.75);
+                break;
+
+            case LADSPA_HINT_DEFAULT_0:
+                u->control[h] = 0;
+                break;
+
+            case LADSPA_HINT_DEFAULT_1:
+                u->control[h] = 1;
+                break;
+
+            case LADSPA_HINT_DEFAULT_100:
+                u->control[h] = 100;
+                break;
+
+            case LADSPA_HINT_DEFAULT_440:
+                u->control[h] = 440;
+                break;
+
+            default:
+                pa_assert_not_reached();
+            }
+        }
+        else {
+            if (LADSPA_IS_HINT_INTEGER(hint)) {
+                u->control[h] = roundf(control_values[h]);
+            }
+            else {
+                u->control[h] = control_values[h];
+            }
+        }
+
+        h++;
+    }
+
+    /* set the use_default array to the user data */
+    memcpy(u->use_default, use_default, u->n_control * sizeof(u->use_default[0]));
+
+    return 0;
+}
+
+
 int pa__init(pa_module*m) {
     struct userdata *u;
     pa_sample_spec ss;
@@ -484,7 +989,6 @@ int pa__init(pa_module*m) {
     const char *e, *cdata;
     const LADSPA_Descriptor *d;
     unsigned long p, h, j, n_control, c;
-    pa_bool_t *use_default = NULL;
 
     pa_assert(m);
 
@@ -534,6 +1038,7 @@ int pa__init(pa_module*m) {
     u->channels = 0;
     u->input = NULL;
     u->output = NULL;
+    u->ss = ss;
 
     if (!(e = getenv("LADSPA_PATH")))
         e = LADSPA_PATH;
@@ -698,154 +1203,32 @@ int pa__init(pa_module*m) {
             d->connect_port(u->handle[h], output_ladspaport[c], u->output[c]);
     }
 
-    if (!cdata && n_control > 0) {
-        pa_log("This plugin requires specification of %lu control parameters.", n_control);
-        goto fail;
-    }
+    u->n_control = n_control;
 
-    if (n_control > 0) {
-        const char *state = NULL;
-        char *k;
+    if (u->n_control > 0) {
+        double *control_values;
+        pa_bool_t *use_default;
 
-        u->control = pa_xnew(LADSPA_Data, (unsigned) n_control);
-        use_default = pa_xnew(pa_bool_t, (unsigned) n_control);
-        p = 0;
+        /* temporary storage for parser */
+        control_values = pa_xnew(double, (unsigned) u->n_control);
+        use_default = pa_xnew(pa_bool_t, (unsigned) u->n_control);
 
-        while ((k = pa_split(cdata, ",", &state)) && p < n_control) {
-            double f;
+        /* real storage */
+        u->control = pa_xnew(LADSPA_Data, (unsigned) u->n_control);
+        u->use_default = pa_xnew(pa_bool_t, (unsigned) u->n_control);
 
-            if (*k == 0) {
-                use_default[p++] = TRUE;
-                pa_xfree(k);
-                continue;
-            }
+        if ((parse_control_parameters(u, cdata, control_values, use_default) < 0) ||
+            (write_control_parameters(u, control_values, use_default) < 0)) {
+            pa_xfree(control_values);
+            pa_xfree(use_default);
 
-            if (pa_atod(k, &f) < 0) {
-                pa_log("Failed to parse control value '%s'", k);
-                pa_xfree(k);
-                goto fail;
-            }
+            pa_log("Failed to parse, validate or set control parameters");
 
-            pa_xfree(k);
-
-            use_default[p] = FALSE;
-            u->control[p++] = (LADSPA_Data) f;
-        }
-
-        /* The previous loop doesn't take the last control value into account
-        if it is left empty, so we do it here. */
-        if (*cdata == 0 || cdata[strlen(cdata) - 1] == ',') {
-            if (p < n_control)
-                use_default[p] = TRUE;
-            p++;
-        }
-
-        if (p > n_control || k) {
-            pa_log("Too many control values passed, %lu expected.", n_control);
-            pa_xfree(k);
             goto fail;
         }
-
-        if (p < n_control) {
-            pa_log("Not enough control values passed, %lu expected, %lu passed.", n_control, p);
-            goto fail;
-        }
-
-        h = 0;
-        for (p = 0; p < d->PortCount; p++) {
-            LADSPA_PortRangeHintDescriptor hint = d->PortRangeHints[p].HintDescriptor;
-
-            if (!LADSPA_IS_PORT_CONTROL(d->PortDescriptors[p]))
-                continue;
-
-            if (LADSPA_IS_PORT_OUTPUT(d->PortDescriptors[p])) {
-                for (c = 0; c < (u->channels / u->max_ladspaport_count); c++)
-                    d->connect_port(u->handle[c], p, &u->control_out);
-                continue;
-            }
-
-            pa_assert(h < n_control);
-
-            if (use_default[h]) {
-                LADSPA_Data lower, upper;
-
-                if (!LADSPA_IS_HINT_HAS_DEFAULT(hint)) {
-                    pa_log("Control port value left empty but plugin defines no default.");
-                    goto fail;
-                }
-
-                lower = d->PortRangeHints[p].LowerBound;
-                upper = d->PortRangeHints[p].UpperBound;
-
-                if (LADSPA_IS_HINT_SAMPLE_RATE(hint)) {
-                    lower *= (LADSPA_Data) ss.rate;
-                    upper *= (LADSPA_Data) ss.rate;
-                }
-
-                switch (hint & LADSPA_HINT_DEFAULT_MASK) {
-
-                case LADSPA_HINT_DEFAULT_MINIMUM:
-                    u->control[h] = lower;
-                    break;
-
-                case LADSPA_HINT_DEFAULT_MAXIMUM:
-                    u->control[h] = upper;
-                    break;
-
-                case LADSPA_HINT_DEFAULT_LOW:
-                    if (LADSPA_IS_HINT_LOGARITHMIC(hint))
-                        u->control[h] = (LADSPA_Data) exp(log(lower) * 0.75 + log(upper) * 0.25);
-                    else
-                        u->control[h] = (LADSPA_Data) (lower * 0.75 + upper * 0.25);
-                    break;
-
-                case LADSPA_HINT_DEFAULT_MIDDLE:
-                    if (LADSPA_IS_HINT_LOGARITHMIC(hint))
-                        u->control[h] = (LADSPA_Data) exp(log(lower) * 0.5 + log(upper) * 0.5);
-                    else
-                        u->control[h] = (LADSPA_Data) (lower * 0.5 + upper * 0.5);
-                    break;
-
-                case LADSPA_HINT_DEFAULT_HIGH:
-                    if (LADSPA_IS_HINT_LOGARITHMIC(hint))
-                        u->control[h] = (LADSPA_Data) exp(log(lower) * 0.25 + log(upper) * 0.75);
-                    else
-                        u->control[h] = (LADSPA_Data) (lower * 0.25 + upper * 0.75);
-                    break;
-
-                case LADSPA_HINT_DEFAULT_0:
-                    u->control[h] = 0;
-                    break;
-
-                case LADSPA_HINT_DEFAULT_1:
-                    u->control[h] = 1;
-                    break;
-
-                case LADSPA_HINT_DEFAULT_100:
-                    u->control[h] = 100;
-                    break;
-
-                case LADSPA_HINT_DEFAULT_440:
-                    u->control[h] = 440;
-                    break;
-
-                default:
-                    pa_assert_not_reached();
-                }
-            }
-
-            if (LADSPA_IS_HINT_INTEGER(hint))
-                u->control[h] = roundf(u->control[h]);
-
-            pa_log_debug("Binding %f to port %s", u->control[h], d->PortNames[p]);
-
-            for (c = 0; c < (u->channels / u->max_ladspaport_count); c++)
-                d->connect_port(u->handle[c], p, &u->control[h]);
-
-            h++;
-        }
-
-        pa_assert(h == n_control);
+        connect_control_ports(u);
+        pa_xfree(control_values);
+        pa_xfree(use_default);
     }
 
     if (d->activate)
@@ -940,16 +1323,17 @@ int pa__init(pa_module*m) {
     pa_sink_put(u->sink);
     pa_sink_input_put(u->sink_input);
 
+#if HAVE_DBUS
+    dbus_init(u);
+#endif
+
     pa_modargs_free(ma);
-    pa_xfree(use_default);
 
     return 0;
 
 fail:
     if (ma)
         pa_modargs_free(ma);
-
-    pa_xfree(use_default);
 
     pa__done(m);
 
@@ -976,6 +1360,10 @@ void pa__done(pa_module*m) {
 
     /* See comments in sink_input_kill_cb() above regarding
     * destruction order! */
+
+#if HAVE_DBUS
+    dbus_done(u);
+#endif
 
     if (u->sink_input)
         pa_sink_input_unlink(u->sink_input);
@@ -1020,5 +1408,6 @@ void pa__done(pa_module*m) {
         pa_memblockq_free(u->memblockq);
 
     pa_xfree(u->control);
+    pa_xfree(u->use_default);
     pa_xfree(u);
 }
