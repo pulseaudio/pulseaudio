@@ -51,6 +51,7 @@ struct pa_device_port {
     pa_hashmap *profiles; /* Does not own the profiles */
     pa_bool_t is_input:1;
     pa_bool_t is_output:1;
+    pa_usec_t latency_offset;
 
     /* .. followed by some implementation specific data */
 };
@@ -66,5 +67,7 @@ void pa_device_port_hashmap_free(pa_hashmap *h);
 
 /* The port's available status has changed */
 void pa_device_port_set_available(pa_device_port *p, pa_port_available_t available);
+
+void pa_device_port_set_latency_offset(pa_device_port *p, pa_usec_t offset);
 
 #endif

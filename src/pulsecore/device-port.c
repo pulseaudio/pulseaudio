@@ -97,6 +97,7 @@ pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *des
     p->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     p->is_input = FALSE;
     p->is_output = FALSE;
+    p->latency_offset = 0;
     p->proplist = pa_proplist_new();
 
     return p;
@@ -111,4 +112,10 @@ void pa_device_port_hashmap_free(pa_hashmap *h) {
         pa_device_port_unref(p);
 
     pa_hashmap_free(h, NULL, NULL);
+}
+
+void pa_device_port_set_latency_offset(pa_device_port *p, pa_usec_t offset) {
+    pa_assert(p);
+
+    p->latency_offset = offset;
 }
