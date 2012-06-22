@@ -135,6 +135,7 @@ static int pa_cli_command_update_source_output_proplist(pa_core *c, pa_tokenizer
 static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sink_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_source_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_port_offset(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_dump_volumes(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 
 /* A method table for all available commands */
@@ -168,6 +169,7 @@ static const struct command commands[] = {
     { "set-card-profile",        pa_cli_command_card_profile,       "Change the profile of a card (args: index|name, profile-name)", 3},
     { "set-sink-port",           pa_cli_command_sink_port,          "Change the port of a sink (args: index|name, port-name)", 3},
     { "set-source-port",         pa_cli_command_source_port,        "Change the port of a source (args: index|name, port-name)", 3},
+    { "set-port-latency-offset", pa_cli_command_port_offset,        "Change the latency of a port (args: card-index|card-name, port-name, latency-offset)", 4},
     { "suspend-sink",            pa_cli_command_suspend_sink,       "Suspend sink (args: index|name, bool)", 3},
     { "suspend-source",          pa_cli_command_suspend_source,     "Suspend source (args: index|name, bool)", 3},
     { "suspend",                 pa_cli_command_suspend,            "Suspend all sinks and all sources (args: bool)", 2},
@@ -1719,6 +1721,52 @@ static int pa_cli_command_source_port(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         pa_strbuf_printf(buf, "Failed to set source port to '%s'.\n", p);
         return -1;
     }
+
+    return 0;
+}
+
+static int pa_cli_command_port_offset(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *n, *p, *l;
+    pa_device_port *port;
+    pa_card *card;
+    int32_t offset;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a card either by its name or its index.\n");
+        return -1;
+    }
+
+    if (!(p = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a port by its name.\n");
+        return -1;
+    }
+
+    if (!(l = pa_tokenizer_get(t, 3))) {
+        pa_strbuf_puts(buf, "You need to specify a latency offset.\n");
+        return -1;
+    }
+
+    if (pa_atoi(l, &offset) < 0) {
+        pa_strbuf_puts(buf, "Failed to parse the latency offset.\n");
+        return -1;
+    }
+
+    if (!(card = pa_namereg_get(c, n, PA_NAMEREG_CARD))) {
+        pa_strbuf_puts(buf, "No card found by this name or index.\n");
+        return -1;
+    }
+
+    if (!(port = pa_hashmap_get(card->ports, p))) {
+        pa_strbuf_puts(buf, "No port found by this name.\n");
+        return -1;
+    }
+
+    pa_device_port_set_latency_offset(port, (pa_usec_t) offset);
 
     return 0;
 }
