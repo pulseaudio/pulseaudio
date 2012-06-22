@@ -296,6 +296,11 @@ pa_source* pa_source_new(
                 s->active_port = p;
     }
 
+    if (s->active_port)
+        s->latency_offset = s->active_port->latency_offset;
+    else
+        s->latency_offset = 0;
+
     s->save_volume = data->save_volume;
     s->save_muted = data->save_muted;
 
@@ -323,6 +328,7 @@ pa_source* pa_source_new(
     pa_sw_cvolume_multiply(&s->thread_info.current_hw_volume, &s->soft_volume, &s->real_volume);
     s->thread_info.volume_change_safety_margin = core->deferred_volume_safety_margin_usec;
     s->thread_info.volume_change_extra_delay = core->deferred_volume_extra_delay_usec;
+    s->thread_info.latency_offset = s->latency_offset;
 
     /* FIXME: This should probably be moved to pa_source_put() */
     pa_assert_se(pa_idxset_put(core->sources, s, &s->index) >= 0);
@@ -1024,6 +1030,8 @@ pa_usec_t pa_source_get_latency(pa_source *s) {
 
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_LATENCY, &usec, 0, NULL) == 0);
 
+    usec += s->latency_offset;
+
     return usec;
 }
 
@@ -1050,6 +1058,8 @@ pa_usec_t pa_source_get_latency_within_thread(pa_source *s) {
 
     if (o->process_msg(o, PA_SOURCE_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
         return -1;
+
+    usec += s->thread_info.latency_offset;
 
     return usec;
 }
@@ -2168,6 +2178,10 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
             pa_source_get_mute(s, TRUE);
             return 0;
 
+        case PA_SOURCE_MESSAGE_SET_LATENCY_OFFSET:
+            s->thread_info.latency_offset = (pa_usec_t) offset;
+            return 0;
+
         case PA_SOURCE_MESSAGE_MAX:
             ;
     }
@@ -2505,6 +2519,18 @@ void pa_source_set_fixed_latency_within_thread(pa_source *s, pa_usec_t latency) 
     }
 
     pa_source_invalidate_requested_latency(s, FALSE);
+}
+
+/* Called from main thread */
+void pa_source_set_latency_offset(pa_source *s, pa_usec_t offset) {
+    pa_source_assert_ref(s);
+
+    s->latency_offset = offset;
+
+    if (PA_SOURCE_IS_LINKED(s->state))
+        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_LATENCY_OFFSET, NULL, (int64_t) offset, NULL) == 0);
+    else
+        s->thread_info.fixed_latency = offset;
 }
 
 /* Called from main thread */

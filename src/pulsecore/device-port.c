@@ -115,7 +115,28 @@ void pa_device_port_hashmap_free(pa_hashmap *h) {
 }
 
 void pa_device_port_set_latency_offset(pa_device_port *p, pa_usec_t offset) {
+    uint32_t state;
+
     pa_assert(p);
 
     p->latency_offset = offset;
+
+    if (p->is_output) {
+        pa_sink *sink;
+
+        PA_IDXSET_FOREACH(sink, p->core->sinks, state)
+            if (sink->active_port == p) {
+                pa_sink_set_latency_offset(sink, p->latency_offset);
+                break;
+            }
+
+    } else {
+        pa_source *source;
+
+        PA_IDXSET_FOREACH(source, p->core->sources, state)
+            if (source->active_port == p) {
+                pa_source_set_latency_offset(source, p->latency_offset);
+                break;
+            }
+    }
 }

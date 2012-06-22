@@ -308,6 +308,11 @@ pa_sink* pa_sink_new(
                 s->active_port = p;
     }
 
+    if (s->active_port)
+        s->latency_offset = s->active_port->latency_offset;
+    else
+        s->latency_offset = 0;
+
     s->save_volume = data->save_volume;
     s->save_muted = data->save_muted;
 
@@ -338,6 +343,7 @@ pa_sink* pa_sink_new(
     pa_sw_cvolume_multiply(&s->thread_info.current_hw_volume, &s->soft_volume, &s->real_volume);
     s->thread_info.volume_change_safety_margin = core->deferred_volume_safety_margin_usec;
     s->thread_info.volume_change_extra_delay = core->deferred_volume_extra_delay_usec;
+    s->thread_info.latency_offset = s->latency_offset;
 
     /* FIXME: This should probably be moved to pa_sink_put() */
     pa_assert_se(pa_idxset_put(core->sinks, s, &s->index) >= 0);
@@ -1422,6 +1428,8 @@ pa_usec_t pa_sink_get_latency(pa_sink *s) {
 
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) == 0);
 
+    usec += s->latency_offset;
+
     return usec;
 }
 
@@ -1448,6 +1456,8 @@ pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s) {
 
     if (o->process_msg(o, PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
         return -1;
+
+    usec += s->thread_info.latency_offset;
 
     return usec;
 }
@@ -2812,6 +2822,10 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             pa_sink_get_mute(s, TRUE);
             return 0;
 
+        case PA_SINK_MESSAGE_SET_LATENCY_OFFSET:
+            s->thread_info.latency_offset = (pa_usec_t) offset;
+            return 0;
+
         case PA_SINK_MESSAGE_GET_LATENCY:
         case PA_SINK_MESSAGE_MAX:
             ;
@@ -3224,6 +3238,18 @@ void pa_sink_set_fixed_latency_within_thread(pa_sink *s, pa_usec_t latency) {
 }
 
 /* Called from main context */
+void pa_sink_set_latency_offset(pa_sink *s, pa_usec_t offset) {
+    pa_sink_assert_ref(s);
+
+    s->latency_offset = offset;
+
+    if (PA_SINK_IS_LINKED(s->state))
+        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_LATENCY_OFFSET, NULL, (int64_t) offset, NULL) == 0);
+    else
+        s->thread_info.fixed_latency = offset;
+}
+
+/* Called from main context */
 size_t pa_sink_get_max_rewind(pa_sink *s) {
     size_t r;
     pa_assert_ctl_context();
@@ -3292,6 +3318,8 @@ int pa_sink_set_port(pa_sink *s, const char *name, pa_bool_t save) {
 
     s->active_port = port;
     s->save_port = save;
+
+    pa_sink_set_latency_offset(s, s->active_port->latency_offset);
 
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_PORT_CHANGED], s);
 
