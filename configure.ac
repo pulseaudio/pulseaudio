@@ -1082,6 +1082,26 @@ AC_SUBST(XEN_CFLAGS)
 AC_SUBST(XEN_LIBS)
 AM_CONDITIONAL([HAVE_XEN], [test "x$HAVE_XEN" = x1])
 
+#### gcov support (optional) #####
+
+AC_ARG_ENABLE([gcov],
+    AS_HELP_STRING([--enable-gcov],[Enable optional gcov coverage analysis]))
+
+GCOV_CFLAGS=
+GCOV_LIBS=" -lgcov"
+
+AS_IF([test "x$enable_gcov" = "xyes"],
+    [
+        HAVE_GCOV=1
+        GCOV_CFLAGS="$GCOV_CFLAGS -fprofile-arcs -ftest-coverage"
+        GCOV_LIBS="$GCOV_LIBS -fprofile-arcs"
+    ],
+    HAVE_GCOV=0)
+
+AC_SUBST(GCOV_CFLAGS)
+AC_SUBST(GCOV_LIBS)
+AM_CONDITIONAL([HAVE_GCOV], [test "x$HAVE_GCOV" = x1])
+
 #### ORC (optional) ####
 
 ORC_CHECK([0.4.11])
@@ -1366,6 +1386,7 @@ AS_IF([test "x$HAVE_GDBM" = "x1"], ENABLE_GDBM=yes, ENABLE_GDBM=no)
 AS_IF([test "x$HAVE_SIMPLEDB" = "x1"], ENABLE_SIMPLEDB=yes, ENABLE_SIMPLEDB=no)
 AS_IF([test "x$HAVE_ESOUND" = "x1"], ENABLE_ESOUND=yes, ENABLE_ESOUND=no)
 AS_IF([test "x$HAVE_ESOUND" = "x1" -a "x$USE_PER_USER_ESOUND_SOCKET" = "x1"], ENABLE_PER_USER_ESOUND_SOCKET=yes, ENABLE_PER_USER_ESOUND_SOCKET=no)
+AS_IF([test "x$HAVE_GCOV" = "x1"], ENABLE_GCOV=yes, ENABLE_GCOV=no)
 AS_IF([test "x$enable_legacy_database_entry_format" != "xno"], ENABLE_LEGACY_DATABASE_ENTRY_FORMAT=yes, ENABLE_LEGACY_DATABASE_ENTRY_FORMAT=no)
 
 echo "
@@ -1412,6 +1433,7 @@ echo "
     Enable Adrian echo canceller:  ${ENABLE_ADRIAN_EC}
     Enable speex (resampler, AEC): ${ENABLE_SPEEX}
     Enable WebRTC echo canceller:  ${ENABLE_WEBRTC}
+    Enable gcov coverage:          ${ENABLE_GCOV}
     Database
       tdb:                         ${ENABLE_TDB}
       gdbm:                        ${ENABLE_GDBM}
