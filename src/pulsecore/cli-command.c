@@ -1766,7 +1766,7 @@ static int pa_cli_command_port_offset(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    pa_device_port_set_latency_offset(port, (pa_usec_t) offset);
+    pa_device_port_set_latency_offset(port, offset);
 
     return 0;
 }

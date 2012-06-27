@@ -114,7 +114,7 @@ void pa_device_port_hashmap_free(pa_hashmap *h) {
     pa_hashmap_free(h, NULL, NULL);
 }
 
-void pa_device_port_set_latency_offset(pa_device_port *p, pa_usec_t offset) {
+void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
     uint32_t state;
 
     pa_assert(p);

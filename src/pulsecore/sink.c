@@ -1428,7 +1428,12 @@ pa_usec_t pa_sink_get_latency(pa_sink *s) {
 
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) == 0);
 
-    usec += s->latency_offset;
+    /* usec is unsigned, so check that the offset can be added to usec without
+     * underflowing. */
+    if (-s->latency_offset <= (int64_t) usec)
+        usec += s->latency_offset;
+    else
+        usec = 0;
 
     return usec;
 }
@@ -1457,7 +1462,12 @@ pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s) {
     if (o->process_msg(o, PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
         return -1;
 
-    usec += s->thread_info.latency_offset;
+    /* usec is unsigned, so check that the offset can be added to usec without
+     * underflowing. */
+    if (-s->thread_info.latency_offset <= (int64_t) usec)
+        usec += s->thread_info.latency_offset;
+    else
+        usec = 0;
 
     return usec;
 }
@@ -2823,7 +2833,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             return 0;
 
         case PA_SINK_MESSAGE_SET_LATENCY_OFFSET:
-            s->thread_info.latency_offset = (pa_usec_t) offset;
+            s->thread_info.latency_offset = offset;
             return 0;
 
         case PA_SINK_MESSAGE_GET_LATENCY:
@@ -3238,13 +3248,13 @@ void pa_sink_set_fixed_latency_within_thread(pa_sink *s, pa_usec_t latency) {
 }
 
 /* Called from main context */
-void pa_sink_set_latency_offset(pa_sink *s, pa_usec_t offset) {
+void pa_sink_set_latency_offset(pa_sink *s, int64_t offset) {
     pa_sink_assert_ref(s);
 
     s->latency_offset = offset;
 
     if (PA_SINK_IS_LINKED(s->state))
-        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_LATENCY_OFFSET, NULL, (int64_t) offset, NULL) == 0);
+        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_LATENCY_OFFSET, NULL, offset, NULL) == 0);
     else
         s->thread_info.fixed_latency = offset;
 }
