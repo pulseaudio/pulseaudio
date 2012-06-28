@@ -489,7 +489,7 @@ static gboolean prepare_func(GSource *source, gint *timeout) {
         t = find_next_time_event(g);
         g_assert(t);
 
-        g_source_get_current_time(source, &now);
+        g_get_current_time(&now);
         tvnow.tv_sec = now.tv_sec;
         tvnow.tv_usec = now.tv_usec;
 
@@ -520,7 +520,7 @@ static gboolean check_func(GSource *source) {
         t = find_next_time_event(g);
         g_assert(t);
 
-        g_source_get_current_time(source, &now);
+        g_get_current_time(&now);
         tvnow.tv_sec = now.tv_sec;
         tvnow.tv_usec = now.tv_usec;
 
@@ -565,7 +565,7 @@ static gboolean dispatch_func(GSource *source, GSourceFunc callback, gpointer us
         t = find_next_time_event(g);
         g_assert(t);
 
-        g_source_get_current_time(source, &now);
+        g_get_current_time(&now);
         tvnow.tv_sec = now.tv_sec;
         tvnow.tv_usec = now.tv_usec;
 
