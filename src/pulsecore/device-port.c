@@ -116,6 +116,8 @@ void pa_device_port_hashmap_free(pa_hashmap *h) {
 
 void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
     uint32_t state;
+    pa_core *core;
+    pa_card *card;
 
     pa_assert(p);
 
@@ -139,4 +141,9 @@ void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
                 break;
             }
     }
+
+    pa_assert_se(core = p->core);
+    PA_IDXSET_FOREACH(card, core->cards, state)
+        if (p == pa_hashmap_get(card->ports, p->name))
+            pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, card->index);
 }
