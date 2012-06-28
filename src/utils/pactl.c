@@ -67,6 +67,7 @@ static uint32_t
 
 static pa_bool_t short_list_format = FALSE;
 static uint32_t module_index;
+static int32_t latency_offset;
 static pa_bool_t suspend;
 static pa_bool_t mute;
 static pa_volume_t volume;
@@ -117,6 +118,7 @@ static enum {
     SET_SINK_INPUT_MUTE,
     SET_SOURCE_OUTPUT_MUTE,
     SET_SINK_FORMATS,
+    SET_PORT_LATENCY_OFFSET,
     SUBSCRIBE
 } action = NONE;
 
@@ -318,8 +320,8 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
 
         printf(_("\tPorts:\n"));
         for (p = i->ports; *p; p++)
-            printf("\t\t%s: %s (priority: %u%s)\n", (*p)->name, (*p)->description, (*p)->priority,
-                get_available_str_ynonly((*p)->available));
+            printf("\t\t%s: %s (priority: %u%s)\n", (*p)->name, (*p)->description,
+                    (*p)->priority, get_available_str_ynonly((*p)->available));
     }
 
     if (i->active_port)
@@ -430,8 +432,8 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
 
         printf(_("\tPorts:\n"));
         for (p = i->ports; *p; p++)
-            printf("\t\t%s: %s (priority: %u%s)\n", (*p)->name, (*p)->description, (*p)->priority,
-                get_available_str_ynonly((*p)->available));
+            printf("\t\t%s: %s (priority: %u%s)\n", (*p)->name, (*p)->description,
+                    (*p)->priority, get_available_str_ynonly((*p)->available));
     }
 
     if (i->active_port)
@@ -591,7 +593,8 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
         printf(_("\tPorts:\n"));
         for (p = i->ports; *p; p++) {
             pa_card_profile_info **pr = (*p)->profiles;
-            printf(_("\t\t%s: %s (priority: %u%s)\n"), (*p)->name, (*p)->description, (*p)->priority,
+            printf("\t\t%s: %s (priority: %u, latency offset: %" PRId64 " usec%s)\n", (*p)->name,
+                (*p)->description, (*p)->priority, (*p)->latency_offset,
                 get_available_str_ynonly((*p)->available));
 
             if (!pa_proplist_isempty((*p)->proplist)) {
@@ -1279,6 +1282,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     set_sink_formats(c, sink_idx, formats);
                     break;
 
+                case SET_PORT_LATENCY_OFFSET:
+                    pa_operation_unref(pa_context_set_port_latency_offset(c, card_name, port_name, latency_offset, simple_callback, NULL));
+                    break;
+
                 case SUBSCRIBE:
                     pa_context_set_subscribe_callback(c, context_subscribe_callback, NULL);
 
@@ -1393,6 +1400,7 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-mute", _("NAME|#N 1|0"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink-input|source-output)-mute", _("#N 1|0"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-sink-formats", _("#N FORMATS"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "set-port-latency-offset", _("CARD-NAME|CARD-#N PORT OFFSET"));
     printf("%s %s %s\n",    argv0, _("[options]"), "subscribe");
 
     printf(_("\n"
@@ -1820,6 +1828,21 @@ int main(int argc, char *argv[]) {
             sink_idx = tmp;
             action = SET_SINK_FORMATS;
             formats = pa_xstrdup(argv[optind+2]);
+
+        } else if (pa_streq(argv[optind], "set-port-latency-offset")) {
+            action = SET_PORT_LATENCY_OFFSET;
+
+            if (argc != optind+4) {
+                pa_log(_("You have to specify a card name/index, a port name and a latency offset"));
+                goto quit;
+            }
+
+            card_name = pa_xstrdup(argv[optind+1]);
+            port_name = pa_xstrdup(argv[optind+2]);
+            if (pa_atoi(argv[optind + 3], &latency_offset) < 0) {
+                pa_log(_("Could not parse latency offset"));
+                goto quit;
+            }
 
         } else if (pa_streq(argv[optind], "help")) {
             help(bn);

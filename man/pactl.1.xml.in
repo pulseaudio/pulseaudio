@@ -173,6 +173,12 @@ USA.
     </option>
 
     <option>
+      <p><opt>set-port-latency-offset</opt> <arg>CARD</arg> <arg>PORT</arg> <arg>OFFSET</arg></p>
+      <optdesc><p>Set a latency offset to a specified port (identified by its symbolic name) that belongs to a card (identified by its symbolic name or numerical index).
+      <arg>OFFSET</arg> is a number which represents the latency offset in microseconds</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>set-sink-volume</opt> <arg>SINK</arg> <arg>VOLUME</arg></p>
       <optdesc><p>Set the volume of the specified sink (identified by its symbolic name or numerical index).
       <arg>VOLUME</arg> can be specified as an integer (e.g. 2000, 16384), a linear factor (e.g. 0.4, 1.100), a percentage
