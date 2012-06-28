@@ -46,6 +46,10 @@ volume = off
 switch = off
 volume = off
 
+[Element Inverted Internal Mic]
+switch = off
+volume = off
+
 [Element Mic Jack Mode]
 enumeration = select
 
