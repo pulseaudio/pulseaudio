@@ -2540,7 +2540,7 @@ void pa_source_set_latency_offset(pa_source *s, int64_t offset) {
     if (PA_SOURCE_IS_LINKED(s->state))
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_LATENCY_OFFSET, NULL, offset, NULL) == 0);
     else
-        s->thread_info.fixed_latency = offset;
+        s->thread_info.latency_offset = offset;
 }
 
 /* Called from main thread */
