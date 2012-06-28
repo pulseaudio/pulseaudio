@@ -649,6 +649,7 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
              "\tSample Specification: %s\n"
              "\tChannel Map: %s\n"
              "\tFormat: %s\n"
+             "\tCorked: %s\n"
              "\tMute: %s\n"
              "\tVolume: %s\n"
              "\t        %s\n"
@@ -665,6 +666,7 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            pa_format_info_snprint(f, sizeof(f), i->format),
+           pa_yes_no(i->corked),
            pa_yes_no(i->mute),
            pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
            pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &i->volume),
@@ -720,6 +722,7 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
              "\tSample Specification: %s\n"
              "\tChannel Map: %s\n"
              "\tFormat: %s\n"
+             "\tCorked: %s\n"
              "\tMute: %s\n"
              "\tVolume: %s\n"
              "\t        %s\n"
@@ -736,6 +739,7 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            pa_format_info_snprint(f, sizeof(f), i->format),
+           pa_yes_no(i->corked),
            pa_yes_no(i->mute),
            pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
            pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &i->volume),
