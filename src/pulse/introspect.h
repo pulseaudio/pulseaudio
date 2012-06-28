@@ -466,6 +466,7 @@ typedef struct pa_card_port_info {
     uint32_t n_profiles;                /**< Number of entries in profile array */
     pa_card_profile_info** profiles;    /**< Array of pointers to available profiles, or NULL. Array is terminated by an entry set to NULL. */
     pa_proplist *proplist;              /**< Property list */
+    int64_t latency_offset;             /**< Latency offset of the port that gets added to the sink/source latency when the port is active. \since 3.0 */
 } pa_card_port_info;
 
 /** Stores information about cards. Please note that this structure
@@ -501,6 +502,9 @@ pa_operation* pa_context_set_card_profile_by_index(pa_context *c, uint32_t idx, 
 
 /** Change the profile of a card. \since 0.9.15 */
 pa_operation* pa_context_set_card_profile_by_name(pa_context *c, const char*name, const char*profile, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the latency offset of a port. \since 3.0 */
+pa_operation* pa_context_set_port_latency_offset(pa_context *c, const char *card_name, const char *port_name, int64_t offset, pa_context_success_cb_t cb, void *userdata);
 
 /** @} */
 

@@ -59,6 +59,7 @@ pa_context_get_source_info_by_name;
 pa_context_get_source_info_list;
 pa_context_get_source_output_info;
 pa_context_get_source_output_info_list;
+pa_context_set_port_latency_offset;
 pa_context_get_state;
 pa_context_get_tile_size;
 pa_context_is_local;

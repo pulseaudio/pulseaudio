@@ -321,6 +321,17 @@ PA_COMMAND_GET_CARD_INFO_LIST), the following is added:
 
 Profile names must match earlier sent profile names for the same card.
 
+## v27, implemented by >= 3.0
+
+New opcodes:
+    PA_COMMAND_SET_PORT_LATENCY_OFFSET
+
+New field in the card commands that send/receive port introspection data
+PA_COMMAND_GET_CARD_INFO(_LIST)):
+
+    int64_t latency_offset
+
+The field is added once for every port.
 
 #### If you just changed the protocol, read this
 ## module-tunnel depends on the sink/source/sink-input/source-input protocol

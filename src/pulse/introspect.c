@@ -763,8 +763,7 @@ pa_operation* pa_context_get_client_info_list(pa_context *c, pa_client_info_cb_t
 
 /*** Card info ***/
 
-static void card_info_free(pa_card_info* i)
-{
+static void card_info_free(pa_card_info* i) {
     if (i->proplist)
         pa_proplist_free(i->proplist);
 
@@ -787,8 +786,7 @@ static void card_info_free(pa_card_info* i)
     }
 }
 
-static int fill_card_port_info(pa_tagstruct* t, pa_card_info* i)
-{
+static int fill_card_port_info(pa_context *context, pa_tagstruct* t, pa_card_info* i) {
     uint32_t j, k, l;
 
     if (pa_tagstruct_getu32(t, &i->n_ports) < 0)
@@ -849,6 +847,11 @@ static int fill_card_port_info(pa_tagstruct* t, pa_card_info* i)
                     return -PA_ERR_PROTOCOL;
             }
         }
+        if (context->version >= 27) {
+            if (pa_tagstruct_gets64(t, &port->latency_offset) < 0)
+                return -PA_ERR_PROTOCOL;
+        } else
+            port->latency_offset = 0;
     }
 
     return 0;
@@ -931,7 +934,7 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
             }
 
             if (o->context->version >= 26) {
-                if (fill_card_port_info(t, &i) < 0) {
+                if (fill_card_port_info(o->context, t, &i) < 0) {
                     pa_context_fail(o->context, PA_ERR_PROTOCOL);
                     card_info_free(&i);
                     goto finish;
@@ -1866,6 +1869,33 @@ pa_operation* pa_context_load_module(pa_context *c, const char*name, const char 
 
 pa_operation* pa_context_unload_module(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata) {
     return command_kill(c, PA_COMMAND_UNLOAD_MODULE, idx, cb, userdata);
+}
+
+pa_operation* pa_context_set_port_latency_offset(pa_context *c, const char *card_name, const char *port_name, int64_t offset, pa_context_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, card_name && *card_name, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, port_name && *port_name, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 27, PA_ERR_NOTSUPPORTED);
+
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_PORT_LATENCY_OFFSET, &tag);
+    pa_tagstruct_putu32(t, PA_INVALID_INDEX);
+    pa_tagstruct_puts(t, card_name);
+    pa_tagstruct_puts(t, port_name);
+    pa_tagstruct_puts64(t, offset);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    return o;
 }
 
 /*** Autoload stuff ***/

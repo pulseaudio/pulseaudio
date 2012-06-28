@@ -173,6 +173,9 @@ enum {
     PA_COMMAND_SET_SOURCE_OUTPUT_VOLUME,
     PA_COMMAND_SET_SOURCE_OUTPUT_MUTE,
 
+    /* Supported since protocol v27 (3.0) */
+    PA_COMMAND_SET_PORT_LATENCY_OFFSET,
+
     PA_COMMAND_MAX
 };
 
