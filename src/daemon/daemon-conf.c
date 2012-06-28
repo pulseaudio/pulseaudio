@@ -176,6 +176,8 @@ void pa_daemon_conf_free(pa_daemon_conf *c) {
     pa_xfree(c);
 }
 
+#define PA_LOG_MAX_SUFFIX_NUMBER 100
+
 int pa_daemon_conf_set_log_target(pa_daemon_conf *c, const char *string) {
     pa_assert(c);
     pa_assert(string);
@@ -202,6 +204,37 @@ int pa_daemon_conf_set_log_target(pa_daemon_conf *c, const char *string) {
         } else {
             printf("Failed to open target file %s, error : %s\n", file_path, pa_cstrerror(errno));
             return -1;
+        }
+    } else if (pa_startswith(string, "newfile:")) {
+        char file_path[512];
+        int log_fd;
+        int version = 0;
+        int left_size;
+        char *p;
+
+        pa_strlcpy(file_path, string + 8, sizeof(file_path));
+
+        left_size = sizeof(file_path) - strlen(file_path);
+        p = file_path + strlen(file_path);
+
+        do {
+            memset(p, 0, left_size);
+
+            if (version > 0)
+                pa_snprintf(p, left_size, ".%d", version);
+        } while (++version <= PA_LOG_MAX_SUFFIX_NUMBER &&
+                 (log_fd = open(file_path, O_RDWR|O_TRUNC|O_CREAT|O_EXCL, S_IRUSR | S_IWUSR)) < 0);
+
+        if (version > PA_LOG_MAX_SUFFIX_NUMBER) {
+            memset(p, 0, left_size);
+            printf("Tried to open target files '%s', '%s.1', '%s.2' ... '%s.%d', but all failed.\n",
+                   file_path, file_path, file_path, file_path, PA_LOG_MAX_SUFFIX_NUMBER - 1);
+            return -1;
+        } else {
+            printf("Opened target file %s\n", file_path);
+            c->auto_log_target = 0;
+            c->log_target = PA_LOG_FD;
+            pa_log_set_fd(log_fd);
         }
     } else
         return -1;
