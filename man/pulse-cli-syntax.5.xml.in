@@ -161,6 +161,11 @@ USA.
     </option>
 
     <option>
+      <p><opt>set-port-latency-offset</opt> <arg>card-index|card-name</arg> <arg>port-name</arg> <arg>offset</arg> </p>
+      <optdesc><p>Change the latency offset of a port belonging to the specified card</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>suspend-sink|suspend-source</opt> <arg>index|name</arg> <arg>boolean</arg></p>
       <optdesc><p>Suspend (i.e. disconnect from the underlying hardware) a sink
       (resp. source).</p></optdesc>
