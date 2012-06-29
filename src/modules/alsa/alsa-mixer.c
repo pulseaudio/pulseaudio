@@ -2397,7 +2397,6 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
         { "priority",            pa_config_parse_unsigned,          NULL, "General" },
         { "description-key",     pa_config_parse_string,            NULL, "General" },
         { "description",         pa_config_parse_string,            NULL, "General" },
-        { "name",                pa_config_parse_string,            NULL, "General" },
         { "mute-during-activation", pa_config_parse_bool,           NULL, "General" },
         { "eld-device",          pa_config_parse_int,               NULL, "General" },
 
@@ -2437,9 +2436,8 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
     items[0].data = &p->priority;
     items[1].data = &p->description_key;
     items[2].data = &p->description;
-    items[3].data = &p->name;
-    items[4].data = &mute_during_activation;
-    items[5].data = &p->eld_device;
+    items[3].data = &mute_during_activation;
+    items[4].data = &p->eld_device;
 
     if (!paths_dir)
         paths_dir = get_default_paths_dir();
@@ -3216,52 +3214,48 @@ static void path_set_condense(pa_alsa_path_set *ps, snd_mixer_t *m) {
     }
 }
 
-static pa_alsa_path* path_set_find_path_by_name(pa_alsa_path_set *ps, const char* name, pa_alsa_path *ignore)
-{
+static pa_alsa_path* path_set_find_path_by_description(pa_alsa_path_set *ps, const char* description, pa_alsa_path *ignore) {
     pa_alsa_path* p;
     void *state;
 
     PA_HASHMAP_FOREACH(p, ps->paths, state)
-        if (p != ignore && pa_streq(p->name, name))
+        if (p != ignore && pa_streq(p->description, description))
             return p;
+
     return NULL;
 }
 
-static void path_set_make_paths_unique(pa_alsa_path_set *ps) {
+static void path_set_make_path_descriptions_unique(pa_alsa_path_set *ps) {
     pa_alsa_path *p, *q;
     void *state, *state2;
 
     PA_HASHMAP_FOREACH(p, ps->paths, state) {
         unsigned i;
-        char *m;
+        char *old_description;
 
-        q = path_set_find_path_by_name(ps, p->name, p);
+        q = path_set_find_path_by_description(ps, p->description, p);
 
         if (!q)
             continue;
 
-        m = pa_xstrdup(p->name);
+        old_description = pa_xstrdup(p->description);
 
-        /* OK, this name is not unique, hence let's rename */
+        /* OK, this description is not unique, hence let's rename */
         i = 1;
         PA_HASHMAP_FOREACH(q, ps->paths, state2) {
-            char *nn, *nd;
+            char *new_description;
 
-            if (!pa_streq(q->name, m))
+            if (!pa_streq(q->description, old_description))
                 continue;
 
-            nn = pa_sprintf_malloc("%s-%u", m, i);
-            pa_xfree(q->name);
-            q->name = nn;
-
-            nd = pa_sprintf_malloc("%s %u", q->description, i);
+            new_description = pa_sprintf_malloc("%s %u", q->description, i);
             pa_xfree(q->description);
-            q->description = nd;
+            q->description = new_description;
 
             i++;
         }
 
-        pa_xfree(m);
+        pa_xfree(old_description);
     }
 }
 
@@ -3764,7 +3758,7 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
     }
 
     path_set_condense(ps, mixer_handle);
-    path_set_make_paths_unique(ps);
+    path_set_make_path_descriptions_unique(ps);
 
     if (mixer_handle)
         snd_mixer_close(mixer_handle);
