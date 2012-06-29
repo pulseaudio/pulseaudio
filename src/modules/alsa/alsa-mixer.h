@@ -180,6 +180,7 @@ struct pa_alsa_path {
     pa_device_port* port;
 
     char *name;
+    char *description_key;
     char *description;
     unsigned priority;
     int eld_device;

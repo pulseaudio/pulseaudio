@@ -55,7 +55,13 @@
 
 ; [General]
 ; priority = ...                         # Priority for this path
-; description = ...
+; description-key = ...                  # The path description is looked up from a table in path_verify() in
+;                                        # src/modules/alsa/alsa-mixer.c. By default the path name (i.e. the file name
+;                                        # minus the ".conf" suffix) is used as the lookup key, but if this option is
+;                                        # set, then the given string is used as the key instead. In any case the
+;                                        # "description" option can be used to override the path description.
+; description = ...                      # Description for this path. Overrides the normal description lookup logic, as
+;                                        # described in the "description-key" documentation above.
 ; mute-during-activation = yes | no      # If this path supports hardware mute, should the hw mute be used while activating this
 ;                                        # path? In some cases this can reduce extra noises during port switching, while in other
 ;                                        # cases this can increase such noises. Default: no.

@@ -53,15 +53,18 @@
 static int setting_select(pa_alsa_setting *s, snd_mixer_t *m);
 
 struct description_map {
-    const char *name;
+    const char *key;
     const char *description;
 };
 
-static const char *lookup_description(const char *name, const struct description_map dm[], unsigned n) {
+static const char *lookup_description(const char *key, const struct description_map dm[], unsigned n) {
     unsigned i;
 
+    if (!key)
+        return NULL;
+
     for (i = 0; i < n; i++)
-        if (pa_streq(dm[i].name, name))
+        if (pa_streq(dm[i].key, key))
             return _(dm[i].description);
 
     return NULL;
@@ -2361,12 +2364,16 @@ static int path_verify(pa_alsa_path *p) {
             return -1;
 
     if (!p->description)
-        p->description = pa_xstrdup(lookup_description(p->name,
+        p->description = pa_xstrdup(lookup_description(p->description_key ? p->description_key : p->name,
                                                        well_known_descriptions,
                                                        PA_ELEMENTSOF(well_known_descriptions)));
 
-    if (!p->description)
+    if (!p->description) {
+        if (p->description_key)
+            pa_log_warn("Path %s: Unrecognized description key: %s", p->name, p->description_key);
+
         p->description = pa_xstrdup(p->name);
+    }
 
     return 0;
 }
@@ -2388,6 +2395,7 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
     pa_config_item items[] = {
         /* [General] */
         { "priority",            pa_config_parse_unsigned,          NULL, "General" },
+        { "description-key",     pa_config_parse_string,            NULL, "General" },
         { "description",         pa_config_parse_string,            NULL, "General" },
         { "name",                pa_config_parse_string,            NULL, "General" },
         { "mute-during-activation", pa_config_parse_bool,           NULL, "General" },
@@ -2427,10 +2435,11 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
     p->eld_device = -1;
 
     items[0].data = &p->priority;
-    items[1].data = &p->description;
-    items[2].data = &p->name;
-    items[3].data = &mute_during_activation;
-    items[4].data = &p->eld_device;
+    items[1].data = &p->description_key;
+    items[2].data = &p->description;
+    items[3].data = &p->name;
+    items[4].data = &mute_during_activation;
+    items[5].data = &p->eld_device;
 
     if (!paths_dir)
         paths_dir = get_default_paths_dir();
