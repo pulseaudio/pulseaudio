@@ -51,6 +51,42 @@ static pa_device_port* find_best_port(pa_hashmap *ports) {
     return result;
 }
 
+static bool profile_good_for_output(pa_card_profile *profile) {
+    pa_sink *sink;
+    uint32_t idx;
+
+    pa_assert(profile);
+
+    if (profile->card->active_profile->n_sources != profile->n_sources)
+        return false;
+
+    if (profile->card->active_profile->max_source_channels != profile->max_source_channels)
+        return false;
+
+    /* Try not to switch to HDMI sinks from analog when HDMI is becoming available */
+    PA_IDXSET_FOREACH(sink, profile->card->sinks, idx) {
+        if (!sink->active_port)
+            continue;
+
+        if (sink->active_port->available != PA_AVAILABLE_NO)
+            return false;
+    }
+
+    return true;
+}
+
+static bool profile_good_for_input(pa_card_profile *profile) {
+    pa_assert(profile);
+
+    if (profile->card->active_profile->n_sinks != profile->n_sinks)
+        return false;
+
+    if (profile->card->active_profile->max_sink_channels != profile->max_sink_channels)
+        return false;
+
+    return true;
+}
+
 static pa_bool_t try_to_switch_profile(pa_card *card, pa_device_port *port) {
     pa_card_profile *best_profile = NULL, *profile;
     void *state;
@@ -58,42 +94,25 @@ static pa_bool_t try_to_switch_profile(pa_card *card, pa_device_port *port) {
     pa_log_debug("Finding best profile");
 
     PA_HASHMAP_FOREACH(profile, port->profiles, state) {
+        pa_direction_t direction = port->is_output ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT;
+        bool good;
+
         if (best_profile && best_profile->priority >= profile->priority)
             continue;
 
         /* We make a best effort to keep other direction unchanged */
-        if (!port->is_input) {
-            if (card->active_profile->n_sources != profile->n_sources)
-                continue;
+        switch (direction) {
+            case PA_DIRECTION_OUTPUT:
+                good = profile_good_for_output(profile);
+                break;
 
-            if (card->active_profile->max_source_channels != profile->max_source_channels)
-                continue;
+            case PA_DIRECTION_INPUT:
+                good = profile_good_for_input(profile);
+                break;
         }
 
-        if (!port->is_output) {
-            if (card->active_profile->n_sinks != profile->n_sinks)
-                continue;
-
-            if (card->active_profile->max_sink_channels != profile->max_sink_channels)
-                continue;
-        }
-
-        if (port->is_output) {
-            /* Try not to switch to HDMI sinks from analog when HDMI is becoming available */
-            uint32_t state2;
-            pa_sink *sink;
-            pa_bool_t found_active_port = FALSE;
-
-            PA_IDXSET_FOREACH(sink, card->sinks, state2) {
-                if (!sink->active_port)
-                    continue;
-                if (sink->active_port->available != PA_AVAILABLE_NO)
-                    found_active_port = TRUE;
-            }
-
-            if (found_active_port)
-                continue;
-        }
+        if (!good)
+            continue;
 
         best_profile = profile;
     }
