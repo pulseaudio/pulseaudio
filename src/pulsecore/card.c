@@ -44,6 +44,7 @@ pa_card_profile *pa_card_profile_new(const char *name, const char *description, 
     pa_assert(name);
 
     c = pa_xmalloc(PA_ALIGN(sizeof(pa_card_profile)) + extra);
+    c->card = NULL;
     c->name = pa_xstrdup(name);
     c->description = pa_xstrdup(description);
 
@@ -56,6 +57,7 @@ pa_card_profile *pa_card_profile_new(const char *name, const char *description, 
 
 void pa_card_profile_free(pa_card_profile *c) {
     pa_assert(c);
+    pa_assert(!c->card); /* Card profiles shouldn't be freed before removing them from the card. */
 
     pa_xfree(c->name);
     pa_xfree(c->description);
@@ -85,6 +87,7 @@ void pa_card_add_profile(pa_card *c, pa_card_profile *profile) {
 
     /* take ownership of the profile */
     pa_assert_se(pa_hashmap_put(c->profiles, profile->name, profile) >= 0);
+    profile->card = c;
 
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
 
@@ -140,6 +143,8 @@ void pa_card_new_data_done(pa_card_new_data *data) {
 pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     pa_card *c;
     const char *name;
+    void *state;
+    pa_card_profile *profile;
 
     pa_core_assert_ref(core);
     pa_assert(data);
@@ -178,6 +183,11 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     c->ports = data->ports;
     data->ports = NULL;
 
+    if (c->profiles) {
+        PA_HASHMAP_FOREACH(profile, c->profiles, state)
+            profile->card = c;
+    }
+
     c->active_profile = NULL;
     c->save_profile = FALSE;
 
@@ -186,12 +196,9 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
             c->save_profile = data->save_profile;
 
     if (!c->active_profile) {
-        void *state;
-        pa_card_profile *p;
-
-        PA_HASHMAP_FOREACH(p, c->profiles, state)
-            if (!c->active_profile || p->priority > c->active_profile->priority)
-                c->active_profile = p;
+        PA_HASHMAP_FOREACH(profile, c->profiles, state)
+            if (!c->active_profile || profile->priority > c->active_profile->priority)
+                c->active_profile = profile;
     }
 
     c->userdata = NULL;
@@ -238,8 +245,10 @@ void pa_card_free(pa_card *c) {
     if (c->profiles) {
         pa_card_profile *p;
 
-        while ((p = pa_hashmap_steal_first(c->profiles)))
+        while ((p = pa_hashmap_steal_first(c->profiles))) {
+            p->card = NULL;
             pa_card_profile_free(p);
+        }
 
         pa_hashmap_free(c->profiles, NULL, NULL);
     }

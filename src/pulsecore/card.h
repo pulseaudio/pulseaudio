@@ -30,6 +30,7 @@ typedef struct pa_card pa_card;
 #include <pulsecore/idxset.h>
 
 typedef struct pa_card_profile {
+    pa_card *card;
     char *name;
     char *description;
 
