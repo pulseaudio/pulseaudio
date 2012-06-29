@@ -2140,16 +2140,12 @@ static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
     u->output_port_name = pa_sprintf_malloc("%s-output", name_prefix);
     u->input_port_name = pa_sprintf_malloc("%s-input", name_prefix);
 
-    pa_assert_se(port = pa_device_port_new(u->core, u->output_port_name, output_description, 0));
+    pa_assert_se(port = pa_device_port_new(u->core, u->output_port_name, output_description, PA_DIRECTION_OUTPUT, 0));
     pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
-    port->is_output = 1;
-    port->is_input = 0;
     port->available = get_port_availability(u, PA_DIRECTION_OUTPUT);
 
-    pa_assert_se(port = pa_device_port_new(u->core, u->input_port_name, input_description, 0));
+    pa_assert_se(port = pa_device_port_new(u->core, u->input_port_name, input_description, PA_DIRECTION_OUTPUT, 0));
     pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
-    port->is_output = 0;
-    port->is_input = 1;
     port->available = get_port_availability(u, PA_DIRECTION_INPUT);
 }
 

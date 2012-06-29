@@ -51,8 +51,7 @@ struct pa_device_port {
 
     pa_proplist *proplist;
     pa_hashmap *profiles; /* Does not own the profiles */
-    pa_bool_t is_input:1;
-    pa_bool_t is_output:1;
+    pa_direction_t direction;
     int64_t latency_offset;
 
     /* .. followed by some implementation specific data */
@@ -63,7 +62,7 @@ PA_DECLARE_PUBLIC_CLASS(pa_device_port);
 
 #define PA_DEVICE_PORT_DATA(d) ((void*) ((uint8_t*) d + PA_ALIGN(sizeof(pa_device_port))))
 
-pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *description, size_t extra);
+pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *description, pa_direction_t direction, size_t extra);
 
 /* The port's available status has changed */
 void pa_device_port_set_available(pa_device_port *p, pa_available_t available);

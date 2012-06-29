@@ -3302,7 +3302,7 @@ static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_car
         pa_tagstruct_puts(t, port->description);
         pa_tagstruct_putu32(t, port->priority);
         pa_tagstruct_putu32(t, port->available);
-        pa_tagstruct_putu8(t, /* FIXME: port->direction */ (port->is_input ? PA_DIRECTION_INPUT : 0) | (port->is_output ? PA_DIRECTION_OUTPUT : 0));
+        pa_tagstruct_putu8(t, port->direction);
         pa_tagstruct_put_proplist(t, port->proplist);
 
         pa_tagstruct_putu32(t, pa_hashmap_size(port->profiles));

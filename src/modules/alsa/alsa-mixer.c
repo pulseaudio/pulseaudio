@@ -2850,12 +2850,41 @@ void pa_alsa_path_set_set_callback(pa_alsa_path_set *ps, snd_mixer_t *m, snd_mix
         pa_alsa_path_set_callback(p, m, cb, userdata);
 }
 
+static pa_alsa_path *profile_set_get_path(pa_alsa_profile_set *ps, const char *path_name) {
+    pa_alsa_path *path;
+
+    pa_assert(ps);
+    pa_assert(path_name);
+
+    if ((path = pa_hashmap_get(ps->output_paths, path_name)))
+        return path;
+
+    return pa_hashmap_get(ps->input_paths, path_name);
+}
+
+static void profile_set_add_path(pa_alsa_profile_set *ps, pa_alsa_path *path) {
+    pa_assert(ps);
+    pa_assert(path);
+
+    switch (path->direction) {
+        case PA_ALSA_DIRECTION_OUTPUT:
+            pa_assert_se(pa_hashmap_put(ps->output_paths, path->name, path) >= 0);
+            break;
+
+        case PA_ALSA_DIRECTION_INPUT:
+            pa_assert_se(pa_hashmap_put(ps->input_paths, path->name, path) >= 0);
+            break;
+
+        default:
+            pa_assert_not_reached();
+    }
+}
+
 pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t direction, const char *paths_dir) {
     pa_alsa_path_set *ps;
     char **pn = NULL, **en = NULL, **ie;
     pa_alsa_decibel_fix *db_fix;
     void *state, *state2;
-    pa_hashmap *cache;
 
     pa_assert(m);
     pa_assert(m->profile_set);
@@ -2869,14 +2898,10 @@ pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t d
     ps->direction = direction;
     ps->paths = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
-    if (direction == PA_ALSA_DIRECTION_OUTPUT) {
+    if (direction == PA_ALSA_DIRECTION_OUTPUT)
         pn = m->output_path_names;
-        cache = m->profile_set->output_paths;
-    }
-    else if (direction == PA_ALSA_DIRECTION_INPUT) {
+    else
         pn = m->input_path_names;
-        cache = m->profile_set->input_paths;
-    }
 
     if (pn) {
         char **in;
@@ -2895,15 +2920,21 @@ pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t d
             if (duplicate)
                 continue;
 
-            p = pa_hashmap_get(cache, *in);
+            p = profile_set_get_path(m->profile_set, *in);
+
+            if (p && p->direction != direction) {
+                pa_log("Configuration error: Path %s is used both as an input and as an output path.", p->name);
+                goto fail;
+            }
+
             if (!p) {
                 char *fn = pa_sprintf_malloc("%s.conf", *in);
                 p = pa_alsa_path_new(paths_dir, fn, direction);
                 pa_xfree(fn);
                 if (p)
-                    pa_hashmap_put(cache, *in, p);
+                    profile_set_add_path(m->profile_set, p);
             }
-            pa_assert(pa_hashmap_get(cache, *in) == p);
+
             if (p)
                 pa_hashmap_put(ps->paths, p, p);
 
@@ -2914,13 +2945,11 @@ pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t d
 
     if (direction == PA_ALSA_DIRECTION_OUTPUT)
         en = m->output_element;
-    else if (direction == PA_ALSA_DIRECTION_INPUT)
+    else
         en = m->input_element;
 
-    if (!en) {
-        pa_alsa_path_set_free(ps);
-        return NULL;
-    }
+    if (!en)
+        goto fail;
 
     for (ie = en; *ie; ie++) {
         char **je;
@@ -2972,6 +3001,12 @@ finish:
     }
 
     return ps;
+
+fail:
+    if (ps)
+        pa_alsa_path_set_free(ps);
+
+    return NULL;
 }
 
 void pa_alsa_path_set_dump(pa_alsa_path_set *ps) {
@@ -4444,13 +4479,13 @@ void pa_alsa_profile_set_drop_unsupported(pa_alsa_profile_set *ps) {
     }
 }
 
-static pa_device_port* device_port_alsa_init(pa_hashmap *ports,
+static pa_device_port* device_port_alsa_init(pa_hashmap *ports, /* card ports */
     const char* name,
     const char* description,
     pa_alsa_path *path,
     pa_alsa_setting *setting,
     pa_card_profile *cp,
-    pa_hashmap *extra,
+    pa_hashmap *extra, /* sink/source ports */
     pa_core *core) {
 
     pa_device_port *p;
@@ -4461,8 +4496,11 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports,
 
     if (!p) {
         pa_alsa_port_data *data;
+        pa_direction_t direction;
 
-        p = pa_device_port_new(core, name, description, sizeof(pa_alsa_port_data));
+        direction = path->direction == PA_ALSA_DIRECTION_OUTPUT ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT;
+
+        p = pa_device_port_new(core, name, description, direction, sizeof(pa_alsa_port_data));
         pa_assert(p);
         pa_hashmap_put(ports, p->name, p);
         pa_proplist_update(p->proplist, PA_UPDATE_REPLACE, path->proplist);
@@ -4472,9 +4510,6 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports,
         data->setting = setting;
         path->port = p;
     }
-
-    p->is_input |= path->direction == PA_ALSA_DIRECTION_ANY || path->direction == PA_ALSA_DIRECTION_INPUT;
-    p->is_output |= path->direction == PA_ALSA_DIRECTION_ANY || path->direction == PA_ALSA_DIRECTION_OUTPUT;
 
     if (cp)
         pa_hashmap_put(p->profiles, cp->name, cp);
@@ -4490,8 +4525,8 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports,
 void pa_alsa_path_set_add_ports(
         pa_alsa_path_set *ps,
         pa_card_profile *cp,
-        pa_hashmap *ports,
-        pa_hashmap *extra,
+        pa_hashmap *ports, /* card ports */
+        pa_hashmap *extra, /* sink/source ports */
         pa_core *core) {
 
     pa_alsa_path *path;

@@ -94,14 +94,13 @@ static int try_to_switch_profile(pa_device_port *port) {
     pa_log_debug("Finding best profile");
 
     PA_HASHMAP_FOREACH(profile, port->profiles, state) {
-        pa_direction_t direction = port->is_output ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT;
         bool good;
 
         if (best_profile && best_profile->priority >= profile->priority)
             continue;
 
         /* We make a best effort to keep other direction unchanged */
-        switch (direction) {
+        switch (port->direction) {
             case PA_DIRECTION_OUTPUT:
                 good = profile_good_for_output(profile);
                 break;
@@ -136,15 +135,19 @@ static void find_sink_and_source(pa_card *card, pa_device_port *port, pa_sink **
     pa_source *source = NULL;
     uint32_t state;
 
-    if (port->is_output)
-        PA_IDXSET_FOREACH(sink, card->sinks, state)
-            if (port == pa_hashmap_get(sink->ports, port->name))
-                break;
+    switch (port->direction) {
+        case PA_DIRECTION_OUTPUT:
+            PA_IDXSET_FOREACH(sink, card->sinks, state)
+                if (port == pa_hashmap_get(sink->ports, port->name))
+                    break;
+            break;
 
-    if (port->is_input)
-        PA_IDXSET_FOREACH(source, card->sources, state)
-            if (port == pa_hashmap_get(source->ports, port->name))
-                break;
+        case PA_DIRECTION_INPUT:
+            PA_IDXSET_FOREACH(source, card->sources, state)
+                if (port == pa_hashmap_get(source->ports, port->name))
+                    break;
+            break;
+    }
 
     *si = sink;
     *so = source;

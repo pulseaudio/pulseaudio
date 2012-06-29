@@ -66,7 +66,7 @@ static void device_port_free(pa_object *o) {
 }
 
 
-pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *description, size_t extra) {
+pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *description, pa_direction_t direction, size_t extra) {
     pa_device_port *p;
 
     pa_assert(name);
@@ -74,6 +74,7 @@ pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *des
     p = PA_DEVICE_PORT(pa_object_new_internal(PA_ALIGN(sizeof(pa_device_port)) + extra, pa_device_port_type_id, pa_device_port_check_type));
     p->parent.free = device_port_free;
 
+    p->core = c;
     p->name = pa_xstrdup(name);
     p->description = pa_xstrdup(description);
     p->core = c;
@@ -81,8 +82,7 @@ pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *des
     p->priority = 0;
     p->available = PA_AVAILABLE_UNKNOWN;
     p->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    p->is_input = FALSE;
-    p->is_output = FALSE;
+    p->direction = direction;
     p->latency_offset = 0;
     p->proplist = pa_proplist_new();
 
@@ -100,23 +100,32 @@ void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
 
     p->latency_offset = offset;
 
-    if (p->is_output) {
-        pa_sink *sink;
+    switch (p->direction) {
+        case PA_DIRECTION_OUTPUT: {
+            pa_sink *sink;
 
-        PA_IDXSET_FOREACH(sink, p->core->sinks, state)
-            if (sink->active_port == p) {
-                pa_sink_set_latency_offset(sink, p->latency_offset);
-                break;
+            PA_IDXSET_FOREACH(sink, p->core->sinks, state) {
+                if (sink->active_port == p) {
+                    pa_sink_set_latency_offset(sink, p->latency_offset);
+                    break;
+                }
             }
 
-    } else {
-        pa_source *source;
+            break;
+        }
 
-        PA_IDXSET_FOREACH(source, p->core->sources, state)
-            if (source->active_port == p) {
-                pa_source_set_latency_offset(source, p->latency_offset);
-                break;
+        case PA_DIRECTION_INPUT: {
+            pa_source *source;
+
+            PA_IDXSET_FOREACH(source, p->core->sources, state) {
+                if (source->active_port == p) {
+                    pa_source_set_latency_offset(source, p->latency_offset);
+                    break;
+                }
             }
+
+            break;
+        }
     }
 
     pa_assert_se(core = p->core);

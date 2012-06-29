@@ -688,7 +688,7 @@ static void ucm_add_port_combination(
 
     port = pa_hashmap_get(ports, name);
     if (!port) {
-        port = pa_device_port_new(core, pa_strna(name), desc, 0);
+        port = pa_device_port_new(core, pa_strna(name), desc, is_sink ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT, 0);
         pa_assert(port);
 
         pa_hashmap_put(ports, port->name, port);
@@ -697,10 +697,6 @@ static void ucm_add_port_combination(
     }
 
     port->priority = priority;
-    if (is_sink)
-        port->is_output = TRUE;
-    else
-        port->is_input = TRUE;
 
     pa_xfree(name);
     pa_xfree(desc);
