@@ -163,6 +163,8 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, pa_p
     pa_assert(filename);
     pa_assert(t);
 
+    pa_zero(state);
+
     if (!f && !(f = pa_fopen_cloexec(filename, "r"))) {
         if (errno == ENOENT) {
             pa_log_debug("Failed to open configuration file '%s': %s", filename, pa_cstrerror(errno));
@@ -174,7 +176,6 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, pa_p
         goto finish;
     }
 
-    pa_zero(state);
     state.filename = filename;
     state.item_table = t;
     state.userdata = userdata;
