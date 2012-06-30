@@ -185,9 +185,6 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, pa_p
 
     while (!feof(f)) {
         if (!fgets(state.buf, sizeof(state.buf), f)) {
-            if (feof(f))
-                break;
-
             pa_log_warn("Failed to read configuration file '%s': %s", filename, pa_cstrerror(errno));
             goto finish;
         }
