@@ -223,6 +223,9 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
         goto fail;
     }
 
+    if (!profile)
+        profile = "";
+
     e->profile = pa_xstrdup(profile);
 
     if (e->version >= 2) {
