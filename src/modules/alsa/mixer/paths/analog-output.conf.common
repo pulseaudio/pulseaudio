@@ -104,12 +104,14 @@
 ;                                        # channel mask. A channel mask may either be the name of a single channel, or the words "all-left",
 ;                                        # "all-right", "all-center", "all-front", "all-rear", and "all" to encode a specific subset of
 ;                                        # channels in a mask
-; [Jack ...]                        # For each jack that we will use for jack detection
-;                                   # The name 'Jack Foo' must match ALSA's 'Foo Jack' control.
-; required = ignore | any           # If not set to ignore, make the path invalid if this jack control is not present.
-; required-absent = ignore | any    # If not set to ignore, make the path invalid if this jack control is present.
-; required-any = ignore | any       # If not set to ignore, make the path invalid if no jack controls and no elements with
-;                                   # the required-any are present.
+; [Jack ...]                           # For each jack that we will use for jack detection
+;                                      # The name 'Jack Foo' must match ALSA's 'Foo Jack' control.
+; required = ignore | any              # If not set to ignore, make the path invalid if this jack control is not present.
+; required-absent = ignore | any       # If not set to ignore, make the path invalid if this jack control is present.
+; required-any = ignore | any          # If not set to ignore, make the path invalid if no jack controls and no elements with
+;                                      # the required-any are present.
+; state.plugged = yes | no | unknown   # Normally a plugged jack would mean the port becomes available, and an unplugged means it's
+; state.unplugged = yes | no | unknown # unavailable, but the port status can be overridden by specifying state.plugged and/or state.unplugged.
 
 [Element PCM]
 switch = mute
