@@ -289,7 +289,7 @@ void pa__done(pa_module *m) {
             pa_xfree(role);
         pa_idxset_free(u->trigger_roles, NULL, NULL);
     }
-    if (u->trigger_roles) {
+    if (u->cork_roles) {
         while ((role = pa_idxset_steal_first(u->cork_roles, NULL)))
             pa_xfree(role);
         pa_idxset_free(u->cork_roles, NULL, NULL);
