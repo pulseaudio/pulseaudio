@@ -216,8 +216,10 @@ void pa_make_fd_cloexec(int fd) {
 
 }
 
-/** Creates a directory securely */
-int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
+/** Creates a directory securely. Will create parent directories recursively if
+ * required. This will not update permissions on parent directories if they
+ * already exist, however. */
+int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid, pa_bool_t update_perms) {
     struct stat st;
     int r, saved_errno;
     pa_bool_t retry = TRUE;
@@ -239,7 +241,7 @@ again:
     if (r < 0 && errno == ENOENT && retry) {
         /* If a parent directory in the path doesn't exist, try to create that
          * first, then try again. */
-        pa_make_secure_parent_dir(dir, m, uid, gid);
+        pa_make_secure_parent_dir(dir, m, uid, gid, FALSE);
         retry = FALSE;
         goto again;
     }
@@ -273,6 +275,9 @@ again:
         errno = EEXIST;
         goto fail;
     }
+
+    if (!update_perms)
+        return 0;
 
 #ifdef HAVE_FCHOWN
     if (uid == (uid_t) -1)
@@ -335,14 +340,14 @@ char *pa_parent_dir(const char *fn) {
 }
 
 /* Creates a the parent directory of the specified path securely */
-int pa_make_secure_parent_dir(const char *fn, mode_t m, uid_t uid, gid_t gid) {
+int pa_make_secure_parent_dir(const char *fn, mode_t m, uid_t uid, gid_t gid, pa_bool_t update_perms) {
     int ret = -1;
     char *dir;
 
     if (!(dir = pa_parent_dir(fn)))
         goto finish;
 
-    if (pa_make_secure_dir(dir, m, uid, gid) < 0)
+    if (pa_make_secure_dir(dir, m, uid, gid, update_perms) < 0)
         goto finish;
 
     ret = 0;
@@ -1502,7 +1507,7 @@ char *pa_get_state_dir(void) {
     /* If PULSE_STATE_PATH and PULSE_RUNTIME_PATH point to the same
      * dir then this will break. */
 
-    if (pa_make_secure_dir(d, 0700U, (uid_t) -1, (gid_t) -1) < 0) {
+    if (pa_make_secure_dir(d, 0700U, (uid_t) -1, (gid_t) -1, TRUE) < 0) {
         pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
         pa_xfree(d);
         return NULL;
@@ -1644,7 +1649,7 @@ char *pa_get_runtime_dir(void) {
     d = getenv("PULSE_RUNTIME_PATH");
     if (d) {
 
-        if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0) {
+        if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1, TRUE) < 0) {
             pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
             goto fail;
         }
@@ -1657,7 +1662,7 @@ char *pa_get_runtime_dir(void) {
     if (d) {
         k = pa_sprintf_malloc("%s" PA_PATH_SEP "pulse", d);
 
-        if (pa_make_secure_dir(k, m, (uid_t) -1, (gid_t) -1) < 0) {
+        if (pa_make_secure_dir(k, m, (uid_t) -1, (gid_t) -1, TRUE) < 0) {
             free(k);
             pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
             goto fail;
@@ -1671,7 +1676,7 @@ char *pa_get_runtime_dir(void) {
     if (!d)
         goto fail;
 
-    if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0) {
+    if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1, TRUE) < 0) {
         pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
         pa_xfree(d);
         goto fail;

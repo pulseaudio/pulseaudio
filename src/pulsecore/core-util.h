@@ -58,8 +58,8 @@ struct timeval;
 void pa_make_fd_nonblock(int fd);
 void pa_make_fd_cloexec(int fd);
 
-int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid);
-int pa_make_secure_parent_dir(const char *fn, mode_t, uid_t uid, gid_t gid);
+int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid, pa_bool_t update_perms);
+int pa_make_secure_parent_dir(const char *fn, mode_t, uid_t uid, gid_t gid, pa_bool_t update_perms);
 
 ssize_t pa_read(int fd, void *buf, size_t count, int *type);
 ssize_t pa_write(int fd, const void *buf, size_t count, int *type);
