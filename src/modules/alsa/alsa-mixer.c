@@ -3258,6 +3258,8 @@ static void mapping_free(pa_alsa_mapping *m) {
     pa_xfree(m->name);
     pa_xfree(m->description);
 
+    pa_proplist_free(m->proplist);
+
     pa_xstrfreev(m->device_strings);
     pa_xstrfreev(m->input_path_names);
     pa_xstrfreev(m->output_path_names);
@@ -3360,6 +3362,7 @@ pa_alsa_mapping *pa_alsa_mapping_get(pa_alsa_profile_set *ps, const char *name) 
     m->profile_set = ps;
     m->name = pa_xstrdup(name);
     pa_channel_map_init(&m->channel_map);
+    m->proplist = pa_proplist_new();
 
     pa_hashmap_put(ps->mappings, m->name, m);
 

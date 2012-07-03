@@ -1714,7 +1714,7 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB) {
 pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, pa_card *card, pa_alsa_mapping *mapping) {
 
     struct userdata *u = NULL;
-    const char *dev_id = NULL;
+    const char *dev_id = NULL, *key;
     pa_sample_spec ss;
     uint32_t alternate_sample_rate;
     pa_channel_map map;
@@ -1724,6 +1724,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE, namereg_fail = FALSE, deferred_volume = FALSE, fixed_latency_range = FALSE;
     pa_source_new_data data;
     pa_alsa_profile_set *profile_set = NULL;
+    void *state = NULL;
 
     pa_assert(m);
     pa_assert(ma);
@@ -1947,6 +1948,9 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     if (mapping) {
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_PROFILE_NAME, mapping->name);
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_PROFILE_DESCRIPTION, mapping->description);
+
+        while ((key = pa_proplist_iterate(mapping->proplist, &state)))
+            pa_proplist_sets(data.proplist, key, pa_proplist_gets(mapping->proplist, key));
     }
 
     pa_alsa_init_description(data.proplist);

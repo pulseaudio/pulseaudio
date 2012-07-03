@@ -246,6 +246,8 @@ struct pa_alsa_mapping {
     char *description;
     unsigned priority;
     pa_alsa_direction_t direction;
+    /* These are copied over to the resultant sink/source */
+    pa_proplist *proplist;
 
     pa_channel_map channel_map;
 
