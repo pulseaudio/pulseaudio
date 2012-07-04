@@ -1241,6 +1241,7 @@ modlibexec_LTLIBRARIES += \
 		module-bluetooth-discover.la \
 		libbluetooth-ipc.la \
 		libbluetooth-sbc.la \
+		module-bluetooth-policy.la \
 		module-bluetooth-device.la
 
 pulselibexec_PROGRAMS += \
@@ -1332,6 +1333,7 @@ SYMDEF_FILES = \
 		module-systemd-login-symdef.h \
 		module-bluetooth-proximity-symdef.h \
 		module-bluetooth-discover-symdef.h \
+		module-bluetooth-policy-symdef.h \
 		module-bluetooth-device-symdef.h \
 		module-raop-sink-symdef.h \
 		module-raop-discover-symdef.h \
@@ -1947,6 +1949,11 @@ module_bluetooth_device_la_SOURCES = modules/bluetooth/module-bluetooth-device.c
 module_bluetooth_device_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_bluetooth_device_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) libbluetooth-util.la libbluetooth-ipc.la libbluetooth-sbc.la
 module_bluetooth_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) -I$(top_srcdir)/src/modules/bluetooth/sbc
+
+module_bluetooth_policy_la_SOURCES = modules/bluetooth/module-bluetooth-policy.c
+module_bluetooth_policy_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_bluetooth_policy_la_LIBADD = $(MODULE_LIBADD)
+module_bluetooth_policy_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # Apple Airtunes/RAOP
 module_raop_sink_la_SOURCES = modules/raop/module-raop-sink.c
