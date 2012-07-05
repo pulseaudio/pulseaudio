@@ -80,10 +80,9 @@ static char *get_cpuinfo(void) {
 #endif /* defined (__arm__) && defined (__linux__) */
 
 void pa_cpu_get_arm_flags(pa_cpu_arm_flag_t *flags) {
-#if defined (__arm__)
-#if defined (__linux__)
+#if defined (__arm__) && defined (__linux__)
     char *cpuinfo, *line;
-    int arch;
+    int arch, part;
 
     /* We need to read the CPU flags from /proc/cpuinfo because there is no user
      * space support to get the CPU features. This only works on linux AFAIK. */
@@ -104,6 +103,7 @@ void pa_cpu_get_arm_flags(pa_cpu_arm_flag_t *flags) {
 
         pa_xfree(line);
     }
+
     /* get the CPU features */
     if ((line = get_cpuinfo_line(cpuinfo, "Features"))) {
         const char *state = NULL;
@@ -122,16 +122,24 @@ void pa_cpu_get_arm_flags(pa_cpu_arm_flag_t *flags) {
             pa_xfree(current);
         }
     }
+
+    /* get the CPU part number */
+    if ((line = get_cpuinfo_line(cpuinfo, "CPU part"))) {
+        part = strtoul(line, NULL, 0);
+        if (part == 0xc08)
+            *flags |= PA_CPU_ARM_CORTEX_A8;
+        pa_xfree(line);
+    }
     pa_xfree(cpuinfo);
 
-    pa_log_info("CPU flags: %s%s%s%s%s%s",
+    pa_log_info("CPU flags: %s%s%s%s%s%s%s",
           (*flags & PA_CPU_ARM_V6) ? "V6 " : "",
           (*flags & PA_CPU_ARM_V7) ? "V7 " : "",
           (*flags & PA_CPU_ARM_VFP) ? "VFP " : "",
           (*flags & PA_CPU_ARM_EDSP) ? "EDSP " : "",
           (*flags & PA_CPU_ARM_NEON) ? "NEON " : "",
-          (*flags & PA_CPU_ARM_VFPV3) ? "VFPV3 " : "");
-#endif
+          (*flags & PA_CPU_ARM_VFPV3) ? "VFPV3 " : "",
+          (*flags & PA_CPU_ARM_CORTEX_A8) ? "Cortex-A8 " : "");
 #endif
 }
 
