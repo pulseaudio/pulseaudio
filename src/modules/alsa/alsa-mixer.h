@@ -48,6 +48,7 @@ typedef struct pa_alsa_profile_set pa_alsa_profile_set;
 typedef struct pa_alsa_port_data pa_alsa_port_data;
 
 #include "alsa-util.h"
+#include "alsa-ucm.h"
 
 typedef enum pa_alsa_switch_use {
     PA_ALSA_SWITCH_IGNORE,
@@ -265,6 +266,9 @@ struct pa_alsa_mapping {
 
     pa_sink *sink;
     pa_source *source;
+
+    /* ucm device context*/
+    pa_alsa_ucm_mapping_context ucm_context;
 };
 
 struct pa_alsa_profile {
@@ -314,11 +318,13 @@ struct pa_alsa_profile_set {
 void pa_alsa_mapping_dump(pa_alsa_mapping *m);
 void pa_alsa_profile_dump(pa_alsa_profile *p);
 void pa_alsa_decibel_fix_dump(pa_alsa_decibel_fix *db_fix);
+pa_alsa_mapping *pa_alsa_mapping_get(pa_alsa_profile_set *ps, const char *name);
 
 pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel_map *bonus);
 void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, const pa_sample_spec *ss, unsigned default_n_fragments, unsigned default_fragment_size_msec);
 void pa_alsa_profile_set_free(pa_alsa_profile_set *s);
 void pa_alsa_profile_set_dump(pa_alsa_profile_set *s);
+void pa_alsa_profile_set_drop_unsupported(pa_alsa_profile_set *s);
 
 snd_mixer_t *pa_alsa_open_mixer_for_pcm(snd_pcm_t *pcm, char **ctl_device, snd_hctl_t **hctl);
 

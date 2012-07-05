@@ -37,6 +37,7 @@
 #endif
 
 #include "alsa-util.h"
+#include "alsa-ucm.h"
 #include "alsa-sink.h"
 #include "alsa-source.h"
 #include "module-alsa-card-symdef.h"
@@ -69,6 +70,7 @@ PA_MODULE_USAGE(
         "deferred_volume=<Synchronize software and hardware volume changes to avoid momentary jumps?> "
         "profile_set=<profile set configuration file> "
         "paths_dir=<directory containing the path configuration files> "
+        "use_ucm=<load use case manager> "
 );
 
 static const char* const valid_modargs[] = {
@@ -95,6 +97,7 @@ static const char* const valid_modargs[] = {
     "deferred_volume",
     "profile_set",
     "paths_dir",
+    "use_ucm",
     NULL
 };
 
@@ -117,6 +120,10 @@ struct userdata {
     pa_modargs *modargs;
 
     pa_alsa_profile_set *profile_set;
+
+    /* ucm stuffs */
+    pa_bool_t use_ucm;
+    pa_alsa_ucm_config ucm;
 };
 
 struct profile_data {
@@ -143,7 +150,10 @@ static void add_profiles(struct userdata *u, pa_hashmap *h, pa_hashmap *ports) {
             cp->n_sinks = pa_idxset_size(ap->output_mappings);
 
             PA_IDXSET_FOREACH(m, ap->output_mappings, idx) {
-                pa_alsa_path_set_add_ports(m->output_path_set, cp, ports, NULL, u->core);
+                if (u->use_ucm)
+                    pa_alsa_ucm_add_ports_combination(NULL, &m->ucm_context, TRUE, ports, cp, u->core);
+                else
+                    pa_alsa_path_set_add_ports(m->output_path_set, cp, ports, NULL, u->core);
                 if (m->channel_map.channels > cp->max_sink_channels)
                     cp->max_sink_channels = m->channel_map.channels;
             }
@@ -153,7 +163,10 @@ static void add_profiles(struct userdata *u, pa_hashmap *h, pa_hashmap *ports) {
             cp->n_sources = pa_idxset_size(ap->input_mappings);
 
             PA_IDXSET_FOREACH(m, ap->input_mappings, idx) {
-                pa_alsa_path_set_add_ports(m->input_path_set, cp, ports, NULL, u->core);
+                if (u->use_ucm)
+                    pa_alsa_ucm_add_ports_combination(NULL, &m->ucm_context, FALSE, ports, cp, u->core);
+                else
+                    pa_alsa_path_set_add_ports(m->input_path_set, cp, ports, NULL, u->core);
                 if (m->channel_map.channels > cp->max_source_channels)
                     cp->max_source_channels = m->channel_map.channels;
             }
@@ -222,6 +235,13 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
             am->source = NULL;
         }
 
+    /* if UCM is available for this card then update the verb */
+    if (u->use_ucm) {
+        if (pa_alsa_ucm_set_profile(&u->ucm, nd->profile ? nd->profile->name : NULL,
+                    od->profile ? od->profile->name : NULL) < 0)
+            return -1;
+    }
+
     if (nd->profile && nd->profile->output_mappings)
         PA_IDXSET_FOREACH(am, nd->profile->output_mappings, idx) {
 
@@ -259,10 +279,19 @@ static void init_profile(struct userdata *u) {
     uint32_t idx;
     pa_alsa_mapping *am;
     struct profile_data *d;
+    pa_alsa_ucm_config *ucm = &u->ucm;
 
     pa_assert(u);
 
     d = PA_CARD_PROFILE_DATA(u->card->active_profile);
+
+    if (d->profile && u->use_ucm) {
+        /* Set initial verb */
+        if (pa_alsa_ucm_set_profile(ucm, d->profile->name, NULL) < 0) {
+            pa_log("Failed to set ucm profile %s", d->profile->name);
+            return;
+        }
+    }
 
     if (d->profile && d->profile->output_mappings)
         PA_IDXSET_FOREACH(am, d->profile->output_mappings, idx)
@@ -439,6 +468,9 @@ int pa__init(pa_module *m) {
     u->device_id = pa_xstrdup(pa_modargs_get_value(ma, "device_id", DEFAULT_DEVICE_ID));
     u->modargs = ma;
 
+    u->use_ucm = TRUE;
+    u->ucm.core = m->core;
+
     if ((u->alsa_card_index = snd_card_get_index(u->device_id)) < 0) {
         pa_log("Card '%s' doesn't exist: %s", u->device_id, pa_alsa_strerror(u->alsa_card_index));
         goto fail;
@@ -456,17 +488,26 @@ int pa__init(pa_module *m) {
         }
     }
 
+    pa_modargs_get_value_boolean(ma, "use_ucm", &u->use_ucm);
+    if (u->use_ucm && !pa_alsa_ucm_query_profiles(&u->ucm, u->alsa_card_index)) {
+        pa_log_info("Found UCM profiles");
+
+        u->profile_set = pa_alsa_ucm_add_profile_set(&u->ucm, &u->core->default_channel_map);
+    }
+    else {
+        u->use_ucm = FALSE;
 #ifdef HAVE_UDEV
-    fn = pa_udev_get_property(u->alsa_card_index, "PULSE_PROFILE_SET");
+        fn = pa_udev_get_property(u->alsa_card_index, "PULSE_PROFILE_SET");
 #endif
 
-    if (pa_modargs_get_value(ma, "profile_set", NULL)) {
-        pa_xfree(fn);
-        fn = pa_xstrdup(pa_modargs_get_value(ma, "profile_set", NULL));
-    }
+        if (pa_modargs_get_value(ma, "profile_set", NULL)) {
+            pa_xfree(fn);
+            fn = pa_xstrdup(pa_modargs_get_value(ma, "profile_set", NULL));
+        }
 
-    u->profile_set = pa_alsa_profile_set_new(fn, &u->core->default_channel_map);
-    pa_xfree(fn);
+        u->profile_set = pa_alsa_profile_set_new(fn, &u->core->default_channel_map);
+        pa_xfree(fn);
+    }
 
     u->profile_set->ignore_dB = ignore_dB;
 
@@ -612,6 +653,8 @@ void pa__done(pa_module*m) {
 
     if (u->profile_set)
         pa_alsa_profile_set_free(u->profile_set);
+
+    pa_alsa_ucm_free(&u->ucm);
 
     pa_xfree(u->device_id);
     pa_xfree(u);

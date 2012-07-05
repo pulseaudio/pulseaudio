@@ -137,6 +137,9 @@ struct userdata {
     pa_hook_slot *reserve_slot;
     pa_reserve_monitor_wrapper *monitor;
     pa_hook_slot *monitor_slot;
+
+    /* ucm context */
+    pa_alsa_ucm_mapping_context *ucm_context;
 };
 
 static void userdata_free(struct userdata *u);
@@ -1353,6 +1356,16 @@ static void mixer_volume_init(struct userdata *u) {
     }
 }
 
+static int source_set_port_ucm_cb(pa_source *s, pa_device_port *p) {
+    struct userdata *u = s->userdata;
+
+    pa_assert(u);
+    pa_assert(p);
+    pa_assert(u->ucm_context);
+
+    return pa_alsa_ucm_set_port(u->ucm_context, p, FALSE);
+}
+
 static int source_set_port_cb(pa_source *s, pa_device_port *p) {
     struct userdata *u = s->userdata;
     pa_alsa_port_data *data;
@@ -1800,6 +1813,10 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
             TRUE);
     u->smoother_interval = SMOOTHER_MIN_INTERVAL;
 
+    /* use ucm */
+    if (mapping && mapping->ucm_context.ucm)
+        u->ucm_context = &mapping->ucm_context;
+
     dev_id = pa_modargs_get_value(
             ma, "device_id",
             pa_modargs_get_value(ma, "device", DEFAULT_DEVICE));
@@ -1896,7 +1913,8 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     /* ALSA might tweak the sample spec, so recalculate the frame size */
     frame_size = pa_frame_size(&ss);
 
-    find_mixer(u, mapping, pa_modargs_get_value(ma, "control", NULL), ignore_dB);
+    if (!u->ucm_context)
+        find_mixer(u, mapping, pa_modargs_get_value(ma, "control", NULL), ignore_dB);
 
     pa_source_new_data_init(&data);
     data.driver = driver;
@@ -1942,7 +1960,9 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         goto fail;
     }
 
-    if (u->mixer_path_set)
+    if (u->ucm_context)
+        pa_alsa_ucm_add_ports(&data.ports, data.proplist, u->ucm_context, FALSE, card);
+    else if (u->mixer_path_set)
         pa_alsa_add_ports(&data, u->mixer_path_set, card);
 
     u->source = pa_source_new(m->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY|(u->use_tsched ? PA_SOURCE_DYNAMIC_LATENCY : 0));
@@ -1969,7 +1989,10 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     if (u->use_tsched)
         u->source->update_requested_latency = source_update_requested_latency_cb;
     u->source->set_state = source_set_state_cb;
-    u->source->set_port = source_set_port_cb;
+    if (u->ucm_context)
+        u->source->set_port = source_set_port_ucm_cb;
+    else
+        u->source->set_port = source_set_port_cb;
     if (u->source->alternate_sample_rate)
         u->source->update_rate = source_update_rate_cb;
     u->source->userdata = u;
@@ -2001,7 +2024,10 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     if (update_sw_params(u) < 0)
         goto fail;
 
-    if (setup_mixer(u, ignore_dB) < 0)
+    if (u->ucm_context) {
+        if (u->source->active_port && pa_alsa_ucm_set_port(u->ucm_context, u->source->active_port, FALSE) < 0)
+            goto fail;
+    } else if (setup_mixer(u, ignore_dB) < 0)
         goto fail;
 
     pa_alsa_dump(PA_LOG_DEBUG, u->pcm_handle);

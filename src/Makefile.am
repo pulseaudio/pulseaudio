@@ -1628,6 +1628,7 @@ module_coreaudio_device_la_LIBADD = $(MODULE_LIBADD)
 
 libalsa_util_la_SOURCES = \
 		modules/alsa/alsa-util.c modules/alsa/alsa-util.h \
+		modules/alsa/alsa-ucm.c modules/alsa/alsa-ucm.h \
 		modules/alsa/alsa-mixer.c modules/alsa/alsa-mixer.h \
 		modules/alsa/alsa-sink.c modules/alsa/alsa-sink.h \
 		modules/alsa/alsa-source.c modules/alsa/alsa-source.h \

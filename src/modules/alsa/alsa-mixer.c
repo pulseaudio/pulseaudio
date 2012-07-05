@@ -3271,6 +3271,8 @@ static void mapping_free(pa_alsa_mapping *m) {
     pa_assert(!m->input_pcm);
     pa_assert(!m->output_pcm);
 
+    pa_alsa_ucm_mapping_context_free(&m->ucm_context);
+
     pa_xfree(m);
 }
 
@@ -3343,7 +3345,7 @@ void pa_alsa_profile_set_free(pa_alsa_profile_set *ps) {
     pa_xfree(ps);
 }
 
-static pa_alsa_mapping *mapping_get(pa_alsa_profile_set *ps, const char *name) {
+pa_alsa_mapping *pa_alsa_mapping_get(pa_alsa_profile_set *ps, const char *name) {
     pa_alsa_mapping *m;
 
     if (!pa_startswith(name, "Mapping "))
@@ -3412,7 +3414,7 @@ static int mapping_parse_device_strings(pa_config_parser_state *state) {
 
     ps = state->userdata;
 
-    if (!(m = mapping_get(ps, state->section))) {
+    if (!(m = pa_alsa_mapping_get(ps, state->section))) {
         pa_log("[%s:%u] %s invalid in section %s", state->filename, state->lineno, state->lvalue, state->section);
         return -1;
     }
@@ -3434,7 +3436,7 @@ static int mapping_parse_channel_map(pa_config_parser_state *state) {
 
     ps = state->userdata;
 
-    if (!(m = mapping_get(ps, state->section))) {
+    if (!(m = pa_alsa_mapping_get(ps, state->section))) {
         pa_log("[%s:%u] %s invalid in section %s", state->filename, state->lineno, state->lvalue, state->section);
         return -1;
     }
@@ -3455,7 +3457,7 @@ static int mapping_parse_paths(pa_config_parser_state *state) {
 
     ps = state->userdata;
 
-    if (!(m = mapping_get(ps, state->section))) {
+    if (!(m = pa_alsa_mapping_get(ps, state->section))) {
         pa_log("[%s:%u] %s invalid in section %s", state->filename, state->lineno, state->lvalue, state->section);
         return -1;
     }
@@ -3479,7 +3481,7 @@ static int mapping_parse_element(pa_config_parser_state *state) {
 
     ps = state->userdata;
 
-    if (!(m = mapping_get(ps, state->section))) {
+    if (!(m = pa_alsa_mapping_get(ps, state->section))) {
         pa_log("[%s:%u] %s invalid in section %s", state->filename, state->lineno, state->lvalue, state->section);
         return -1;
     }
@@ -3503,7 +3505,7 @@ static int mapping_parse_direction(pa_config_parser_state *state) {
 
     ps = state->userdata;
 
-    if (!(m = mapping_get(ps, state->section))) {
+    if (!(m = pa_alsa_mapping_get(ps, state->section))) {
         pa_log("[%s:%u] Section name %s invalid.", state->filename, state->lineno, state->section);
         return -1;
     }
@@ -3531,7 +3533,7 @@ static int mapping_parse_description(pa_config_parser_state *state) {
 
     ps = state->userdata;
 
-    if ((m = mapping_get(ps, state->section))) {
+    if ((m = pa_alsa_mapping_get(ps, state->section))) {
         pa_xfree(m->description);
         m->description = pa_xstrdup(state->rvalue);
     } else if ((p = profile_get(ps, state->section))) {
@@ -3560,7 +3562,7 @@ static int mapping_parse_priority(pa_config_parser_state *state) {
         return -1;
     }
 
-    if ((m = mapping_get(ps, state->section)))
+    if ((m = pa_alsa_mapping_get(ps, state->section)))
         m->priority = prio;
     else if ((p = profile_get(ps, state->section)))
         p->priority = prio;
@@ -4361,17 +4363,7 @@ void pa_alsa_profile_set_probe(
     /* Clean up */
     profile_finalize_probing(last, NULL);
 
-    PA_HASHMAP_FOREACH(p, ps->profiles, state)
-        if (!p->supported) {
-            pa_hashmap_remove(ps->profiles, p->name);
-            profile_free(p);
-        }
-
-    PA_HASHMAP_FOREACH(m, ps->mappings, state)
-        if (m->supported <= 0) {
-            pa_hashmap_remove(ps->mappings, m->name);
-            mapping_free(m);
-        }
+    pa_alsa_profile_set_drop_unsupported(ps);
 
     paths_drop_unsupported(ps->input_paths);
     paths_drop_unsupported(ps->output_paths);
@@ -4404,6 +4396,26 @@ void pa_alsa_profile_set_dump(pa_alsa_profile_set *ps) {
 
     PA_HASHMAP_FOREACH(db_fix, ps->decibel_fixes, state)
         pa_alsa_decibel_fix_dump(db_fix);
+}
+
+void pa_alsa_profile_set_drop_unsupported(pa_alsa_profile_set *ps) {
+    pa_alsa_profile *p;
+    pa_alsa_mapping *m;
+    void *state;
+
+    PA_HASHMAP_FOREACH(p, ps->profiles, state) {
+        if (!p->supported) {
+            pa_hashmap_remove(ps->profiles, p->name);
+            profile_free(p);
+        }
+    }
+
+    PA_HASHMAP_FOREACH(m, ps->mappings, state) {
+        if (m->supported <= 0) {
+            pa_hashmap_remove(ps->mappings, m->name);
+            mapping_free(m);
+        }
+    }
 }
 
 static pa_device_port* device_port_alsa_init(pa_hashmap *ports,
