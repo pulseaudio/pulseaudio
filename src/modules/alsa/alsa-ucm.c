@@ -1112,6 +1112,27 @@ static int ucm_create_mapping(
     return ret;
 }
 
+static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, const char *dev_name, const char *pre_tag) {
+    pa_alsa_jack *j;
+    char *name = pa_sprintf_malloc("%s%s", pre_tag, dev_name);
+
+    PA_LLIST_FOREACH(j, ucm->jacks)
+        if (pa_streq(j->name, name))
+            goto out;
+
+    j = pa_xnew0(pa_alsa_jack, 1);
+    j->state_unplugged = PA_PORT_AVAILABLE_NO;
+    j->state_plugged = PA_PORT_AVAILABLE_YES;
+    j->name = pa_xstrdup(name);
+    j->alsa_name = pa_sprintf_malloc("%s Jack", dev_name);
+
+    PA_LLIST_PREPEND(pa_alsa_jack, ucm->jacks, j);
+
+out:
+    pa_xfree(name);
+    return j;
+}
+
 static int ucm_create_profile(
         pa_alsa_ucm_config *ucm,
         pa_alsa_profile_set *ps,
@@ -1169,6 +1190,11 @@ static int ucm_create_profile(
         source = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_SOURCE);
 
         ucm_create_mapping(ucm, ps, p, dev, verb_name, name, sink, source);
+
+        if (sink)
+            dev->output_jack = ucm_get_jack(ucm, name, PA_UCM_PRE_TAG_OUTPUT);
+        if (source)
+            dev->input_jack = ucm_get_jack(ucm, name, PA_UCM_PRE_TAG_INPUT);
     }
 
     pa_alsa_profile_dump(p);
@@ -1230,6 +1256,30 @@ static void profile_finalize_probing(pa_alsa_profile *p) {
     }
 }
 
+static void ucm_mapping_jack_probe(pa_alsa_mapping *m) {
+    snd_pcm_t *pcm_handle;
+    snd_mixer_t *mixer_handle;
+    snd_hctl_t *hctl_handle;
+    pa_alsa_ucm_mapping_context *context = &m->ucm_context;
+    pa_alsa_ucm_device *dev;
+    uint32_t idx;
+
+    pcm_handle = m->direction == PA_ALSA_DIRECTION_OUTPUT ? m->output_pcm : m->input_pcm;
+    mixer_handle = pa_alsa_open_mixer_for_pcm(pcm_handle, NULL, &hctl_handle);
+    if (!mixer_handle || !hctl_handle)
+        return;
+
+    PA_IDXSET_FOREACH(dev, context->ucm_devices, idx) {
+        pa_alsa_jack *jack;
+        jack = m->direction == PA_ALSA_DIRECTION_OUTPUT ? dev->output_jack : dev->input_jack;
+        pa_assert (jack);
+        jack->has_control = pa_alsa_find_jack(hctl_handle, jack->alsa_name) != NULL;
+        pa_log_info("UCM jack %s has_control=%d", jack->name, jack->has_control);
+    }
+
+    snd_mixer_close(mixer_handle);
+}
+
 static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *ps) {
     void *state;
     pa_alsa_profile *p;
@@ -1267,6 +1317,12 @@ static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *
         }
 
         pa_log_debug("Profile %s supported.", p->name);
+
+        PA_IDXSET_FOREACH(m, p->output_mappings, idx)
+            ucm_mapping_jack_probe(m);
+
+        PA_IDXSET_FOREACH(m, p->input_mappings, idx)
+            ucm_mapping_jack_probe(m);
 
         profile_finalize_probing(p);
     }
@@ -1337,10 +1393,17 @@ static void free_verb(pa_alsa_ucm_verb *verb) {
 
 void pa_alsa_ucm_free(pa_alsa_ucm_config *ucm) {
     pa_alsa_ucm_verb *vi, *vn;
+    pa_alsa_jack *ji, *jn;
 
     PA_LLIST_FOREACH_SAFE(vi, vn, ucm->verbs) {
         PA_LLIST_REMOVE(pa_alsa_ucm_verb, ucm->verbs, vi);
         free_verb(vi);
+    }
+    PA_LLIST_FOREACH_SAFE(ji, jn, ucm->jacks) {
+        PA_LLIST_REMOVE(pa_alsa_jack, ucm->jacks, ji);
+        pa_xfree(ji->alsa_name);
+        pa_xfree(ji->name);
+        pa_xfree(ji);
     }
     if (ucm->ucm_mgr) {
         snd_use_case_mgr_close(ucm->ucm_mgr);

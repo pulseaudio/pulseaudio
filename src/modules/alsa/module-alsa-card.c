@@ -307,14 +307,21 @@ static void report_port_state(pa_device_port *p, struct userdata *u)
     void *state;
     pa_alsa_jack *jack;
     pa_port_available_t pa = PA_PORT_AVAILABLE_UNKNOWN;
+    pa_device_port *port;
 
     PA_HASHMAP_FOREACH(jack, u->jacks, state) {
         pa_port_available_t cpa;
 
-        if (!jack->path)
-            continue;
+        if (u->use_ucm)
+            port = pa_hashmap_get(u->card->ports, jack->name);
+        else {
+            if (jack->path)
+                port = jack->path->port;
+            else
+                continue;
+        }
 
-        if (p != jack->path->port)
+        if (p != port)
             continue;
 
         cpa = jack->plugged_in ? jack->state_plugged : jack->state_unplugged;
@@ -340,6 +347,7 @@ static int report_jack_state(snd_hctl_elem_t *elem, unsigned int mask)
     pa_bool_t plugged_in;
     void *state;
     pa_alsa_jack *jack;
+    pa_device_port *port;
 
     pa_assert(u);
 
@@ -359,8 +367,16 @@ static int report_jack_state(snd_hctl_elem_t *elem, unsigned int mask)
     PA_HASHMAP_FOREACH(jack, u->jacks, state)
         if (jack->hctl_elem == elem) {
             jack->plugged_in = plugged_in;
-            pa_assert(jack->path && jack->path->port);
-            report_port_state(jack->path->port, u);
+            if (u->use_ucm) {
+                pa_assert(u->card->ports);
+                port = pa_hashmap_get(u->card->ports, jack->name);
+                pa_assert(port);
+            }
+            else {
+                pa_assert(jack->path && jack->path->port);
+                port = jack->path->port;
+            }
+            report_port_state(port, u);
         }
     return 0;
 }
@@ -372,18 +388,24 @@ static void init_jacks(struct userdata *u) {
 
     u->jacks = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
-    /* See if we have any jacks */
-    if (u->profile_set->output_paths)
-        PA_HASHMAP_FOREACH(path, u->profile_set->output_paths, state)
-            PA_LLIST_FOREACH(jack, path->jacks)
-                if (jack->has_control)
-                    pa_hashmap_put(u->jacks, jack, jack);
+    if (u->use_ucm) {
+        PA_LLIST_FOREACH(jack, u->ucm.jacks)
+            if (jack->has_control)
+                pa_hashmap_put(u->jacks, jack, jack);
+    } else {
+        /* See if we have any jacks */
+        if (u->profile_set->output_paths)
+            PA_HASHMAP_FOREACH(path, u->profile_set->output_paths, state)
+                PA_LLIST_FOREACH(jack, path->jacks)
+                    if (jack->has_control)
+                        pa_hashmap_put(u->jacks, jack, jack);
 
-    if (u->profile_set->input_paths)
-        PA_HASHMAP_FOREACH(path, u->profile_set->input_paths, state)
-            PA_LLIST_FOREACH(jack, path->jacks)
-                if (jack->has_control)
-                    pa_hashmap_put(u->jacks, jack, jack);
+        if (u->profile_set->input_paths)
+            PA_HASHMAP_FOREACH(path, u->profile_set->input_paths, state)
+                PA_LLIST_FOREACH(jack, path->jacks)
+                    if (jack->has_control)
+                        pa_hashmap_put(u->jacks, jack, jack);
+    }
 
     pa_log_debug("Found %d jacks.", pa_hashmap_size(u->jacks));
 

@@ -121,6 +121,9 @@ struct pa_alsa_ucm_device {
 
     pa_idxset *conflicting_devices;
     pa_idxset *supported_devices;
+
+    pa_alsa_jack *input_jack;
+    pa_alsa_jack *output_jack;
 };
 
 struct pa_alsa_ucm_modifier {
@@ -154,6 +157,7 @@ struct pa_alsa_ucm_config {
     pa_alsa_ucm_verb *active_verb;
 
     PA_LLIST_HEAD(pa_alsa_ucm_verb, verbs);
+    PA_LLIST_HEAD(pa_alsa_jack, jacks);
 };
 
 struct pa_alsa_ucm_mapping_context {
