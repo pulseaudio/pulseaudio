@@ -2,6 +2,7 @@
   This file is part of PulseAudio.
 
   Copyright 2008-2009 Joao Paulo Rechi Vita
+  Copyright 2011-2012 BMW Car IT GmbH.
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -168,7 +169,6 @@ struct userdata {
 
     pa_sample_spec sample_spec, requested_sample_spec;
 
-    int service_fd;
     int stream_fd;
 
     size_t link_mtu;
@@ -182,7 +182,6 @@ struct userdata {
     pa_modargs *modargs;
 
     int stream_write_type;
-    int service_write_type, service_read_type;
 
     pa_bool_t filter_added;
 };
@@ -201,562 +200,7 @@ enum {
 
 #define USE_SCO_OVER_PCM(u) (u->profile == PROFILE_HSP && (u->hsp.sco_sink && u->hsp.sco_source))
 
-static int init_bt(struct userdata *u);
 static int init_profile(struct userdata *u);
-
-static int service_send(struct userdata *u, const bt_audio_msg_header_t *msg) {
-    ssize_t r;
-
-    pa_assert(u);
-    pa_assert(msg);
-    pa_assert(msg->length > 0);
-
-    if (u->service_fd < 0) {
-        pa_log_warn("Service not connected");
-        return -1;
-    }
-
-    pa_log_debug("Sending %s -> %s",
-                 pa_strnull(bt_audio_strtype(msg->type)),
-                 pa_strnull(bt_audio_strname(msg->name)));
-
-    if ((r = pa_loop_write(u->service_fd, msg, msg->length, &u->service_write_type)) == (ssize_t) msg->length)
-        return 0;
-
-    if (r < 0)
-        pa_log_error("Error sending data to audio service: %s", pa_cstrerror(errno));
-    else
-        pa_log_error("Short write()");
-
-    return -1;
-}
-
-static int service_recv(struct userdata *u, bt_audio_msg_header_t *msg, size_t room) {
-    ssize_t r;
-
-    pa_assert(u);
-    pa_assert(u->service_fd >= 0);
-    pa_assert(msg);
-    pa_assert(room >= sizeof(*msg));
-
-    pa_log_debug("Trying to receive message from audio service...");
-
-    /* First, read the header */
-    if ((r = pa_loop_read(u->service_fd, msg, sizeof(*msg), &u->service_read_type)) != sizeof(*msg))
-        goto read_fail;
-
-    if (msg->length < sizeof(*msg)) {
-        pa_log_error("Invalid message size.");
-        return -1;
-    }
-
-    if (msg->length > room) {
-        pa_log_error("Not enough room.");
-        return -1;
-    }
-
-    /* Secondly, read the payload */
-    if (msg->length > sizeof(*msg)) {
-
-        size_t remains = msg->length - sizeof(*msg);
-
-        if ((r = pa_loop_read(u->service_fd,
-                              (uint8_t*) msg + sizeof(*msg),
-                              remains,
-                              &u->service_read_type)) != (ssize_t) remains)
-            goto read_fail;
-    }
-
-    pa_log_debug("Received %s <- %s",
-                 pa_strnull(bt_audio_strtype(msg->type)),
-                 pa_strnull(bt_audio_strname(msg->name)));
-
-    return 0;
-
-read_fail:
-
-    if (r < 0)
-        pa_log_error("Error receiving data from audio service: %s", pa_cstrerror(errno));
-    else
-        pa_log_error("Short read()");
-
-    return -1;
-}
-
-static ssize_t service_expect(struct userdata*u, bt_audio_msg_header_t *rsp, size_t room, uint8_t expected_name, size_t expected_size) {
-    int r;
-
-    pa_assert(u);
-    pa_assert(u->service_fd >= 0);
-    pa_assert(rsp);
-
-    if ((r = service_recv(u, rsp, room)) < 0)
-        return r;
-
-    if ((rsp->type != BT_INDICATION && rsp->type != BT_RESPONSE) ||
-        rsp->name != expected_name ||
-        (expected_size > 0 && rsp->length != expected_size)) {
-
-        if (rsp->type == BT_ERROR && rsp->length == sizeof(bt_audio_error_t))
-            pa_log_error("Received error condition: %s", pa_cstrerror(((bt_audio_error_t*) rsp)->posix_errno));
-        else
-            pa_log_error("Bogus message %s received while %s was expected",
-                         pa_strnull(bt_audio_strname(rsp->name)),
-                         pa_strnull(bt_audio_strname(expected_name)));
-        return -1;
-    }
-
-    return 0;
-}
-
-/* Run from main thread */
-static int parse_caps(struct userdata *u, uint8_t seid, const struct bt_get_capabilities_rsp *rsp) {
-    uint16_t bytes_left;
-    const codec_capabilities_t *codec;
-
-    pa_assert(u);
-    pa_assert(rsp);
-
-    bytes_left = rsp->h.length - sizeof(*rsp);
-
-    if (bytes_left < sizeof(codec_capabilities_t)) {
-        pa_log_error("Packet too small to store codec information.");
-        return -1;
-    }
-
-    codec = (codec_capabilities_t *) rsp->data; /** ALIGNMENT? **/
-
-    pa_log_debug("Payload size is %lu %lu", (unsigned long) bytes_left, (unsigned long) sizeof(*codec));
-
-    if (((u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) && codec->transport != BT_CAPABILITIES_TRANSPORT_A2DP) ||
-        ((u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) && codec->transport != BT_CAPABILITIES_TRANSPORT_SCO)) {
-        pa_log_error("Got capabilities for wrong codec.");
-        return -1;
-    }
-
-    if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) {
-
-        if (bytes_left <= 0 || codec->length != sizeof(u->hsp.pcm_capabilities))
-            return -1;
-
-        pa_assert(codec->type == BT_HFP_CODEC_PCM);
-
-        if (codec->configured && seid == 0)
-            return codec->seid;
-
-        memcpy(&u->hsp.pcm_capabilities, codec, sizeof(u->hsp.pcm_capabilities));
-
-    } else if (u->profile == PROFILE_A2DP) {
-
-        while (bytes_left > 0) {
-            if ((codec->type == BT_A2DP_SBC_SINK) && !codec->lock)
-                break;
-
-            bytes_left -= codec->length;
-            codec = (const codec_capabilities_t*) ((const uint8_t*) codec + codec->length);
-        }
-
-        if (bytes_left <= 0 || codec->length != sizeof(u->a2dp.sbc_capabilities))
-            return -1;
-
-        pa_assert(codec->type == BT_A2DP_SBC_SINK);
-
-        if (codec->configured && seid == 0)
-            return codec->seid;
-
-        memcpy(&u->a2dp.sbc_capabilities, codec, sizeof(u->a2dp.sbc_capabilities));
-
-    } else if (u->profile == PROFILE_A2DP_SOURCE) {
-
-        while (bytes_left > 0) {
-            if ((codec->type == BT_A2DP_SBC_SOURCE) && !codec->lock)
-                break;
-
-            bytes_left -= codec->length;
-            codec = (const codec_capabilities_t*) ((const uint8_t*) codec + codec->length);
-        }
-
-        if (bytes_left <= 0 || codec->length != sizeof(u->a2dp.sbc_capabilities))
-            return -1;
-
-        pa_assert(codec->type == BT_A2DP_SBC_SOURCE);
-
-        if (codec->configured && seid == 0)
-            return codec->seid;
-
-        memcpy(&u->a2dp.sbc_capabilities, codec, sizeof(u->a2dp.sbc_capabilities));
-    }
-
-    return 0;
-}
-
-/* Run from main thread */
-static int get_caps(struct userdata *u, uint8_t seid) {
-    union {
-        struct bt_get_capabilities_req getcaps_req;
-        struct bt_get_capabilities_rsp getcaps_rsp;
-        bt_audio_error_t error;
-        uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
-    } msg;
-    int ret;
-
-    pa_assert(u);
-
-    memset(&msg, 0, sizeof(msg));
-    msg.getcaps_req.h.type = BT_REQUEST;
-    msg.getcaps_req.h.name = BT_GET_CAPABILITIES;
-    msg.getcaps_req.h.length = sizeof(msg.getcaps_req);
-    msg.getcaps_req.seid = seid;
-
-    pa_strlcpy(msg.getcaps_req.object, u->path, sizeof(msg.getcaps_req.object));
-    if (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE)
-        msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_A2DP;
-    else {
-        pa_assert(u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW);
-        msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_SCO;
-    }
-    msg.getcaps_req.flags = u->auto_connect ? BT_FLAG_AUTOCONNECT : 0;
-
-    if (service_send(u, &msg.getcaps_req.h) < 0)
-        return -1;
-
-    if (service_expect(u, &msg.getcaps_rsp.h, sizeof(msg), BT_GET_CAPABILITIES, 0) < 0)
-        return -1;
-
-    ret = parse_caps(u, seid, &msg.getcaps_rsp);
-    if (ret <= 0)
-        return ret;
-
-    return get_caps(u, ret);
-}
-
-/* Run from main thread */
-static uint8_t a2dp_default_bitpool(uint8_t freq, uint8_t mode) {
-
-    switch (freq) {
-        case BT_SBC_SAMPLING_FREQ_16000:
-        case BT_SBC_SAMPLING_FREQ_32000:
-            return 53;
-
-        case BT_SBC_SAMPLING_FREQ_44100:
-
-            switch (mode) {
-                case BT_A2DP_CHANNEL_MODE_MONO:
-                case BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL:
-                    return 31;
-
-                case BT_A2DP_CHANNEL_MODE_STEREO:
-                case BT_A2DP_CHANNEL_MODE_JOINT_STEREO:
-                    return 53;
-
-                default:
-                    pa_log_warn("Invalid channel mode %u", mode);
-                    return 53;
-            }
-
-        case BT_SBC_SAMPLING_FREQ_48000:
-
-            switch (mode) {
-                case BT_A2DP_CHANNEL_MODE_MONO:
-                case BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL:
-                    return 29;
-
-                case BT_A2DP_CHANNEL_MODE_STEREO:
-                case BT_A2DP_CHANNEL_MODE_JOINT_STEREO:
-                    return 51;
-
-                default:
-                    pa_log_warn("Invalid channel mode %u", mode);
-                    return 51;
-            }
-
-        default:
-            pa_log_warn("Invalid sampling freq %u", freq);
-            return 53;
-    }
-}
-
-/* Run from main thread */
-static int setup_a2dp(struct userdata *u) {
-    sbc_capabilities_t *cap;
-    int i;
-
-    static const struct {
-        uint32_t rate;
-        uint8_t cap;
-    } freq_table[] = {
-        { 16000U, BT_SBC_SAMPLING_FREQ_16000 },
-        { 32000U, BT_SBC_SAMPLING_FREQ_32000 },
-        { 44100U, BT_SBC_SAMPLING_FREQ_44100 },
-        { 48000U, BT_SBC_SAMPLING_FREQ_48000 }
-    };
-
-    pa_assert(u);
-    pa_assert(u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE);
-
-    cap = &u->a2dp.sbc_capabilities;
-
-    /* Find the lowest freq that is at least as high as the requested
-     * sampling rate */
-    for (i = 0; (unsigned) i < PA_ELEMENTSOF(freq_table); i++)
-        if (freq_table[i].rate >= u->sample_spec.rate && (cap->frequency & freq_table[i].cap)) {
-            u->sample_spec.rate = freq_table[i].rate;
-            cap->frequency = freq_table[i].cap;
-            break;
-        }
-
-    if ((unsigned) i == PA_ELEMENTSOF(freq_table)) {
-        for (--i; i >= 0; i--) {
-            if (cap->frequency & freq_table[i].cap) {
-                u->sample_spec.rate = freq_table[i].rate;
-                cap->frequency = freq_table[i].cap;
-                break;
-            }
-        }
-
-        if (i < 0) {
-            pa_log("Not suitable sample rate");
-            return -1;
-        }
-    }
-
-    pa_assert((unsigned) i < PA_ELEMENTSOF(freq_table));
-
-    if (cap->capability.configured)
-        return 0;
-
-    if (u->sample_spec.channels <= 1) {
-        if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_MONO) {
-            cap->channel_mode = BT_A2DP_CHANNEL_MODE_MONO;
-            u->sample_spec.channels = 1;
-        } else
-            u->sample_spec.channels = 2;
-    }
-
-    if (u->sample_spec.channels >= 2) {
-        u->sample_spec.channels = 2;
-
-        if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_JOINT_STEREO)
-            cap->channel_mode = BT_A2DP_CHANNEL_MODE_JOINT_STEREO;
-        else if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_STEREO)
-            cap->channel_mode = BT_A2DP_CHANNEL_MODE_STEREO;
-        else if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL)
-            cap->channel_mode = BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL;
-        else if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_MONO) {
-            cap->channel_mode = BT_A2DP_CHANNEL_MODE_MONO;
-            u->sample_spec.channels = 1;
-        } else {
-            pa_log("No supported channel modes");
-            return -1;
-        }
-    }
-
-    if (cap->block_length & BT_A2DP_BLOCK_LENGTH_16)
-        cap->block_length = BT_A2DP_BLOCK_LENGTH_16;
-    else if (cap->block_length & BT_A2DP_BLOCK_LENGTH_12)
-        cap->block_length = BT_A2DP_BLOCK_LENGTH_12;
-    else if (cap->block_length & BT_A2DP_BLOCK_LENGTH_8)
-        cap->block_length = BT_A2DP_BLOCK_LENGTH_8;
-    else if (cap->block_length & BT_A2DP_BLOCK_LENGTH_4)
-        cap->block_length = BT_A2DP_BLOCK_LENGTH_4;
-    else {
-        pa_log_error("No supported block lengths");
-        return -1;
-    }
-
-    if (cap->subbands & BT_A2DP_SUBBANDS_8)
-        cap->subbands = BT_A2DP_SUBBANDS_8;
-    else if (cap->subbands & BT_A2DP_SUBBANDS_4)
-        cap->subbands = BT_A2DP_SUBBANDS_4;
-    else {
-        pa_log_error("No supported subbands");
-        return -1;
-    }
-
-    if (cap->allocation_method & BT_A2DP_ALLOCATION_LOUDNESS)
-        cap->allocation_method = BT_A2DP_ALLOCATION_LOUDNESS;
-    else if (cap->allocation_method & BT_A2DP_ALLOCATION_SNR)
-        cap->allocation_method = BT_A2DP_ALLOCATION_SNR;
-
-    cap->min_bitpool = (uint8_t) PA_MAX(MIN_BITPOOL, cap->min_bitpool);
-    cap->max_bitpool = (uint8_t) PA_MIN(a2dp_default_bitpool(cap->frequency, cap->channel_mode), cap->max_bitpool);
-
-    return 0;
-}
-
-/* Run from main thread */
-static void setup_sbc(struct a2dp_info *a2dp, enum profile p) {
-    sbc_capabilities_t *active_capabilities;
-
-    pa_assert(a2dp);
-
-    active_capabilities = &a2dp->sbc_capabilities;
-
-    if (a2dp->sbc_initialized)
-        sbc_reinit(&a2dp->sbc, 0);
-    else
-        sbc_init(&a2dp->sbc, 0);
-    a2dp->sbc_initialized = TRUE;
-
-    switch (active_capabilities->frequency) {
-        case BT_SBC_SAMPLING_FREQ_16000:
-            a2dp->sbc.frequency = SBC_FREQ_16000;
-            break;
-        case BT_SBC_SAMPLING_FREQ_32000:
-            a2dp->sbc.frequency = SBC_FREQ_32000;
-            break;
-        case BT_SBC_SAMPLING_FREQ_44100:
-            a2dp->sbc.frequency = SBC_FREQ_44100;
-            break;
-        case BT_SBC_SAMPLING_FREQ_48000:
-            a2dp->sbc.frequency = SBC_FREQ_48000;
-            break;
-        default:
-            pa_assert_not_reached();
-    }
-
-    switch (active_capabilities->channel_mode) {
-        case BT_A2DP_CHANNEL_MODE_MONO:
-            a2dp->sbc.mode = SBC_MODE_MONO;
-            break;
-        case BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL:
-            a2dp->sbc.mode = SBC_MODE_DUAL_CHANNEL;
-            break;
-        case BT_A2DP_CHANNEL_MODE_STEREO:
-            a2dp->sbc.mode = SBC_MODE_STEREO;
-            break;
-        case BT_A2DP_CHANNEL_MODE_JOINT_STEREO:
-            a2dp->sbc.mode = SBC_MODE_JOINT_STEREO;
-            break;
-        default:
-            pa_assert_not_reached();
-    }
-
-    switch (active_capabilities->allocation_method) {
-        case BT_A2DP_ALLOCATION_SNR:
-            a2dp->sbc.allocation = SBC_AM_SNR;
-            break;
-        case BT_A2DP_ALLOCATION_LOUDNESS:
-            a2dp->sbc.allocation = SBC_AM_LOUDNESS;
-            break;
-        default:
-            pa_assert_not_reached();
-    }
-
-    switch (active_capabilities->subbands) {
-        case BT_A2DP_SUBBANDS_4:
-            a2dp->sbc.subbands = SBC_SB_4;
-            break;
-        case BT_A2DP_SUBBANDS_8:
-            a2dp->sbc.subbands = SBC_SB_8;
-            break;
-        default:
-            pa_assert_not_reached();
-    }
-
-    switch (active_capabilities->block_length) {
-        case BT_A2DP_BLOCK_LENGTH_4:
-            a2dp->sbc.blocks = SBC_BLK_4;
-            break;
-        case BT_A2DP_BLOCK_LENGTH_8:
-            a2dp->sbc.blocks = SBC_BLK_8;
-            break;
-        case BT_A2DP_BLOCK_LENGTH_12:
-            a2dp->sbc.blocks = SBC_BLK_12;
-            break;
-        case BT_A2DP_BLOCK_LENGTH_16:
-            a2dp->sbc.blocks = SBC_BLK_16;
-            break;
-        default:
-            pa_assert_not_reached();
-    }
-
-    a2dp->min_bitpool = active_capabilities->min_bitpool;
-    a2dp->max_bitpool = active_capabilities->max_bitpool;
-
-    /* Set minimum bitpool for source to get the maximum possible block_size */
-    a2dp->sbc.bitpool = p == PROFILE_A2DP ? a2dp->max_bitpool : a2dp->min_bitpool;
-    a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
-    a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
-}
-
-/* Run from main thread */
-static int set_conf(struct userdata *u) {
-    union {
-        struct bt_open_req open_req;
-        struct bt_open_rsp open_rsp;
-        struct bt_set_configuration_req setconf_req;
-        struct bt_set_configuration_rsp setconf_rsp;
-        bt_audio_error_t error;
-        uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
-    } msg;
-
-    memset(&msg, 0, sizeof(msg));
-    msg.open_req.h.type = BT_REQUEST;
-    msg.open_req.h.name = BT_OPEN;
-    msg.open_req.h.length = sizeof(msg.open_req);
-
-    pa_strlcpy(msg.open_req.object, u->path, sizeof(msg.open_req.object));
-    msg.open_req.seid = (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) ? u->a2dp.sbc_capabilities.capability.seid : BT_A2DP_SEID_RANGE + 1;
-    msg.open_req.lock = (u->profile == PROFILE_A2DP) ? BT_WRITE_LOCK : BT_READ_LOCK | BT_WRITE_LOCK;
-
-    if (service_send(u, &msg.open_req.h) < 0)
-        return -1;
-
-    if (service_expect(u, &msg.open_rsp.h, sizeof(msg), BT_OPEN, sizeof(msg.open_rsp)) < 0)
-        return -1;
-
-    if (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) {
-        u->sample_spec.format = PA_SAMPLE_S16LE;
-
-        if (setup_a2dp(u) < 0)
-            return -1;
-    } else {
-        pa_assert(u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW);
-
-        u->sample_spec.format = PA_SAMPLE_S16LE;
-        u->sample_spec.channels = 1;
-        u->sample_spec.rate = 8000;
-    }
-
-    memset(&msg, 0, sizeof(msg));
-    msg.setconf_req.h.type = BT_REQUEST;
-    msg.setconf_req.h.name = BT_SET_CONFIGURATION;
-    msg.setconf_req.h.length = sizeof(msg.setconf_req);
-
-    if (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) {
-        memcpy(&msg.setconf_req.codec, &u->a2dp.sbc_capabilities, sizeof(u->a2dp.sbc_capabilities));
-    } else {
-        msg.setconf_req.codec.transport = BT_CAPABILITIES_TRANSPORT_SCO;
-        msg.setconf_req.codec.seid = BT_A2DP_SEID_RANGE + 1;
-        msg.setconf_req.codec.length = sizeof(pcm_capabilities_t);
-    }
-    msg.setconf_req.h.length += msg.setconf_req.codec.length - sizeof(msg.setconf_req.codec);
-
-    if (service_send(u, &msg.setconf_req.h) < 0)
-        return -1;
-
-    if (service_expect(u, &msg.setconf_rsp.h, sizeof(msg), BT_SET_CONFIGURATION, sizeof(msg.setconf_rsp)) < 0)
-        return -1;
-
-    u->link_mtu = msg.setconf_rsp.link_mtu;
-
-    /* setup SBC encoder now we agree on parameters */
-    if (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) {
-        setup_sbc(&u->a2dp, u->profile);
-
-        u->block_size =
-            ((u->link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
-            / u->a2dp.frame_length
-            * u->a2dp.codesize);
-
-        pa_log_info("SBC parameters:\n\tallocation=%u\n\tsubbands=%u\n\tblocks=%u\n\tbitpool=%u\n",
-                    u->a2dp.sbc.allocation, u->a2dp.sbc.subbands, u->a2dp.sbc.blocks, u->a2dp.sbc.bitpool);
-    } else
-        u->block_size = u->link_mtu;
-
-    return 0;
-}
 
 /* from IO thread */
 static void a2dp_set_bitpool(struct userdata *u, uint8_t bitpool)
@@ -828,84 +272,6 @@ static int setup_stream(struct userdata *u) {
                 TRUE);
 
     return 0;
-}
-
-static int start_stream_fd(struct userdata *u) {
-    union {
-        bt_audio_msg_header_t rsp;
-        struct bt_start_stream_req start_req;
-        struct bt_start_stream_rsp start_rsp;
-        struct bt_new_stream_ind streamfd_ind;
-        bt_audio_error_t error;
-        uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
-    } msg;
-
-    pa_assert(u);
-    pa_assert(u->rtpoll);
-    pa_assert(!u->rtpoll_item);
-    pa_assert(u->stream_fd < 0);
-
-    memset(msg.buf, 0, BT_SUGGESTED_BUFFER_SIZE);
-    msg.start_req.h.type = BT_REQUEST;
-    msg.start_req.h.name = BT_START_STREAM;
-    msg.start_req.h.length = sizeof(msg.start_req);
-
-    if (service_send(u, &msg.start_req.h) < 0)
-        return -1;
-
-    if (service_expect(u, &msg.rsp, sizeof(msg), BT_START_STREAM, sizeof(msg.start_rsp)) < 0)
-        return -1;
-
-    if (service_expect(u, &msg.rsp, sizeof(msg), BT_NEW_STREAM, sizeof(msg.streamfd_ind)) < 0)
-        return -1;
-
-    if ((u->stream_fd = bt_audio_service_get_data_fd(u->service_fd)) < 0) {
-        pa_log("Failed to get stream fd from audio service.");
-        return -1;
-    }
-
-    return setup_stream(u);
-}
-
-/* from IO thread */
-static int stop_stream_fd(struct userdata *u) {
-    union {
-        bt_audio_msg_header_t rsp;
-        struct bt_stop_stream_req start_req;
-        struct bt_stop_stream_rsp start_rsp;
-        bt_audio_error_t error;
-        uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
-    } msg;
-    int r = 0;
-
-    pa_assert(u);
-    pa_assert(u->rtpoll);
-
-    if (u->rtpoll_item) {
-        pa_rtpoll_item_free(u->rtpoll_item);
-        u->rtpoll_item = NULL;
-    }
-
-    if (u->stream_fd >= 0) {
-        memset(msg.buf, 0, BT_SUGGESTED_BUFFER_SIZE);
-        msg.start_req.h.type = BT_REQUEST;
-        msg.start_req.h.name = BT_STOP_STREAM;
-        msg.start_req.h.length = sizeof(msg.start_req);
-
-        if (service_send(u, &msg.start_req.h) < 0 ||
-            service_expect(u, &msg.rsp, sizeof(msg), BT_STOP_STREAM, sizeof(msg.start_rsp)) < 0)
-            r = -1;
-
-        pa_close(u->stream_fd);
-        u->stream_fd = -1;
-    }
-
-    if (u->read_smoother) {
-        pa_smoother_free(u->read_smoother);
-        u->read_smoother = NULL;
-    }
-
-    return r;
 }
 
 static void bt_transport_release(struct userdata *u) {
@@ -984,6 +350,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     int r;
 
     pa_assert(u->sink == PA_SINK(o));
+    pa_assert(u->transport);
 
     switch (code) {
 
@@ -995,15 +362,11 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                     pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
                     /* Stop the device if the source is suspended as well */
-                    if (!u->source || u->source->state == PA_SOURCE_SUSPENDED) {
+                    if (!u->source || u->source->state == PA_SOURCE_SUSPENDED)
                         /* We deliberately ignore whether stopping
                          * actually worked. Since the stream_fd is
                          * closed it doesn't really matter */
-                        if (u->transport)
-                            bt_transport_release(u);
-                        else
-                            stop_stream_fd(u);
-                    }
+                        bt_transport_release(u);
 
                     break;
 
@@ -1014,10 +377,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                     /* Resume the device if the source was suspended as well */
                     if (!u->source || u->source->state == PA_SOURCE_SUSPENDED) {
-                        if (u->transport) {
-                            if (bt_transport_acquire(u, TRUE) < 0)
-                                failed = TRUE;
-                        } else if (start_stream_fd(u) < 0)
+                        if (bt_transport_acquire(u, TRUE) < 0)
                             failed = TRUE;
                     }
                     break;
@@ -1064,6 +424,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
     int r;
 
     pa_assert(u->source == PA_SOURCE(o));
+    pa_assert(u->transport);
 
     switch (code) {
 
@@ -1075,12 +436,8 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                     pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
 
                     /* Stop the device if the sink is suspended as well */
-                    if (!u->sink || u->sink->state == PA_SINK_SUSPENDED) {
-                        if (u->transport)
-                            bt_transport_release(u);
-                        else
-                            stop_stream_fd(u);
-                    }
+                    if (!u->sink || u->sink->state == PA_SINK_SUSPENDED)
+                        bt_transport_release(u);
 
                     if (u->read_smoother)
                         pa_smoother_pause(u->read_smoother, pa_rtclock_now());
@@ -1093,10 +450,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
                     /* Resume the device if the sink was suspended as well */
                     if (!u->sink || u->sink->thread_info.state == PA_SINK_SUSPENDED) {
-                        if (u->transport) {
-                            if (bt_transport_acquire(u, TRUE) < 0)
-                            failed = TRUE;
-                        } else if (start_stream_fd(u) < 0)
+                        if (bt_transport_acquire(u, TRUE) < 0)
                             failed = TRUE;
                     }
                     /* We don't resume the smoother here. Instead we
@@ -1587,6 +941,7 @@ static void thread_func(void *userdata) {
     pa_bool_t writable = FALSE;
 
     pa_assert(u);
+    pa_assert(u->transport);
 
     pa_log_debug("IO Thread starting up");
 
@@ -1595,10 +950,7 @@ static void thread_func(void *userdata) {
 
     pa_thread_mq_install(&u->thread_mq);
 
-    if (u->transport) {
-        if (bt_transport_acquire(u, TRUE) < 0)
-            goto fail;
-    } else if (start_stream_fd(u) < 0)
+    if (bt_transport_acquire(u, TRUE) < 0)
         goto fail;
 
     for (;;) {
@@ -1738,10 +1090,7 @@ static void thread_func(void *userdata) {
         }
         if (ret == 0) {
             pa_log_debug("IO thread shutdown requested, stopping cleanly");
-            if (u->transport)
-                bt_transport_release(u);
-            else
-                stop_stream_fd(u);
+            bt_transport_release(u);
             goto finish;
         }
 
@@ -1989,10 +1338,8 @@ static int sco_over_pcm_state_update(struct userdata *u, pa_bool_t changed) {
     if (PA_SINK_IS_OPENED(pa_sink_get_state(u->hsp.sco_sink)) ||
         PA_SOURCE_IS_OPENED(pa_source_get_state(u->hsp.sco_source))) {
 
-        if (u->service_fd >= 0 && u->stream_fd >= 0)
+        if (u->stream_fd >= 0)
             return 0;
-
-        init_bt(u);
 
         pa_log_debug("Resuming SCO over PCM");
         if (init_profile(u) < 0) {
@@ -2000,27 +1347,16 @@ static int sco_over_pcm_state_update(struct userdata *u, pa_bool_t changed) {
             return -1;
         }
 
-        if (u->transport)
-            return bt_transport_acquire(u, TRUE);
-
-        return start_stream_fd(u);
+        return bt_transport_acquire(u, TRUE);
     }
 
     if (changed) {
-        if (u->service_fd < 0 && u->stream_fd < 0)
+        if (u->stream_fd < 0)
             return 0;
 
         pa_log_debug("Closing SCO over PCM");
 
-        if (u->transport)
-            bt_transport_release(u);
-        else if (u->stream_fd >= 0)
-            stop_stream_fd(u);
-
-        if (u->service_fd >= 0) {
-            pa_close(u->service_fd);
-            u->service_fd = -1;
-        }
+        bt_transport_release(u);
     }
 
     return 0;
@@ -2236,16 +1572,13 @@ static int add_source(struct userdata *u) {
     }
 
     if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW)) {
-        if (u->transport) {
-            pa_bluetooth_transport *t;
-            t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
-            pa_assert(t);
-            pa_proplist_sets(u->source->proplist, "bluetooth.nrec", t->nrec ? "1" : "0");
+        pa_bluetooth_transport *t;
+        t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
+        pa_assert(t);
+        pa_proplist_sets(u->source->proplist, "bluetooth.nrec", t->nrec ? "1" : "0");
 
-            if (!u->hsp.nrec_changed_slot)
-                u->hsp.nrec_changed_slot = pa_hook_connect(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_NREC_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) nrec_changed_cb, u);
-        } else
-            pa_proplist_sets(u->source->proplist, "bluetooth.nrec", (u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC) ? "1" : "0");
+        if (!u->hsp.nrec_changed_slot)
+            u->hsp.nrec_changed_slot = pa_hook_connect(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_NREC_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) nrec_changed_cb, u);
     }
 
     if (u->profile == PROFILE_HSP) {
@@ -2258,30 +1591,6 @@ static int add_source(struct userdata *u) {
     }
 
     return 0;
-}
-
-/* Run from main thread */
-static void shutdown_bt(struct userdata *u) {
-    pa_assert(u);
-
-    if (u->stream_fd >= 0) {
-        pa_close(u->stream_fd);
-        u->stream_fd = -1;
-
-        u->stream_write_type = 0;
-    }
-
-    if (u->service_fd >= 0) {
-        pa_close(u->service_fd);
-        u->service_fd = -1;
-        u->service_write_type = 0;
-        u->service_read_type = 0;
-    }
-
-    if (u->write_memchunk.memblock) {
-        pa_memblock_unref(u->write_memchunk.memblock);
-        pa_memchunk_reset(&u->write_memchunk);
-    }
 }
 
 static int bt_transport_config_a2dp(struct userdata *u) {
@@ -2415,34 +1724,6 @@ static int bt_transport_config(struct userdata *u) {
 }
 
 /* Run from main thread */
-static int bt_transport_open(struct userdata *u) {
-    if (bt_transport_acquire(u, FALSE) < 0)
-        return -1;
-
-    return bt_transport_config(u);
-}
-
-/* Run from main thread */
-static int init_bt(struct userdata *u) {
-    pa_assert(u);
-
-    shutdown_bt(u);
-
-    u->stream_write_type = 0;
-    u->service_write_type = 0;
-    u->service_read_type = 0;
-
-    if ((u->service_fd = bt_audio_service_open()) < 0) {
-        pa_log_warn("Bluetooth audio service not available");
-        return -1;
-    }
-
-    pa_log_debug("Connected to the bluetooth audio service");
-
-    return 0;
-}
-
-/* Run from main thread */
 static int setup_bt(struct userdata *u) {
     const pa_bluetooth_device *d;
     const pa_bluetooth_transport *t;
@@ -2463,29 +1744,17 @@ static int setup_bt(struct userdata *u) {
 
     /* check if profile has a transport */
     t = pa_bluetooth_device_get_transport(d, u->profile);
-    if (t) {
-        u->transport = pa_xstrdup(t->path);
-        return bt_transport_open(u);
+    if (t == NULL) {
+        pa_log_warn("Profile has no transport");
+        return -1;
     }
 
-    if (get_caps(u, 0) < 0)
+    u->transport = pa_xstrdup(t->path);
+
+    if (bt_transport_acquire(u, FALSE) < 0)
         return -1;
 
-    pa_log_debug("Got device capabilities");
-
-    if (set_conf(u) < 0)
-        return -1;
-
-    pa_log_debug("Connection to the device configured");
-
-    if (USE_SCO_OVER_PCM(u)) {
-        pa_log_debug("Configured to use SCO over PCM");
-        return 0;
-    }
-
-    pa_log_debug("Got the stream socket");
-
-    return 0;
+    return bt_transport_config(u);
 }
 
 /* Run from main thread */
@@ -2715,8 +1984,6 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
         u->transport = NULL;
     }
 
-    shutdown_bt(u);
-
     if (USE_SCO_OVER_PCM(u))
         restore_sco_volume_callbacks(u);
 
@@ -2725,8 +1992,6 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     if (USE_SCO_OVER_PCM(u))
         save_sco_volume_callbacks(u);
-
-    init_bt(u);
 
     if (u->profile != PROFILE_OFF)
         init_profile(u);
@@ -3036,7 +2301,6 @@ int pa__init(pa_module* m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
     u->core = m->core;
-    u->service_fd = -1;
     u->stream_fd = -1;
     u->sample_spec = m->core->default_sample_spec;
     u->modargs = ma;
@@ -3123,9 +2387,6 @@ int pa__init(pa_module* m) {
     pa_xfree(speaker);
     pa_xfree(mike);
 
-    /* Connect to the BT service */
-    init_bt(u);
-
     if (u->profile != PROFILE_OFF)
         if (init_profile(u) < 0)
             goto fail;
@@ -3205,8 +2466,6 @@ void pa__done(pa_module *m) {
 
     if (u->read_smoother)
         pa_smoother_free(u->read_smoother);
-
-    shutdown_bt(u);
 
     if (u->a2dp.buffer)
         pa_xfree(u->a2dp.buffer);
