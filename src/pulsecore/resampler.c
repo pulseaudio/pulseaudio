@@ -389,7 +389,7 @@ size_t pa_resampler_request(pa_resampler *r, size_t out_length) {
      * loops. When the leftover is ignored here, such loops would eventually
      * terminate, because the leftover would grow each round, finally
      * surpassing the minimum input threshold of the resampler. */
-    return (((((out_length + r->o_fz-1) / r->o_fz) * r->i_ss.rate) + r->o_ss.rate-1) / r->o_ss.rate) * r->i_fz;
+    return ((((uint64_t) ((out_length + r->o_fz-1) / r->o_fz) * r->i_ss.rate) + r->o_ss.rate-1) / r->o_ss.rate) * r->i_fz;
 }
 
 size_t pa_resampler_result(pa_resampler *r, size_t in_length) {
@@ -405,7 +405,7 @@ size_t pa_resampler_result(pa_resampler *r, size_t in_length) {
     if (r->remap_buf_contains_leftover_data)
         frames += r->remap_buf.length / (r->w_sz * r->o_ss.channels);
 
-    return ((frames * r->o_ss.rate + r->i_ss.rate - 1) / r->i_ss.rate) * r->o_fz;
+    return (((uint64_t) frames * r->o_ss.rate + r->i_ss.rate - 1) / r->i_ss.rate) * r->o_fz;
 }
 
 size_t pa_resampler_max_block_size(pa_resampler *r) {
@@ -434,7 +434,7 @@ size_t pa_resampler_max_block_size(pa_resampler *r) {
     if (r->remap_buf_contains_leftover_data)
         frames -= r->remap_buf.length / (r->w_sz * r->o_ss.channels);
 
-    return (frames * r->i_ss.rate / max_ss.rate) * r->i_fz;
+    return ((uint64_t) frames * r->i_ss.rate / max_ss.rate) * r->i_fz;
 }
 
 void pa_resampler_reset(pa_resampler *r) {
@@ -1519,7 +1519,7 @@ static void trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned
     dst = pa_memblock_acquire_chunk(output);
 
     for (o_index = 0;; o_index++, r->trivial.o_counter++) {
-        i_index = (r->trivial.o_counter * r->i_ss.rate) / r->o_ss.rate;
+        i_index = ((uint64_t) r->trivial.o_counter * r->i_ss.rate) / r->o_ss.rate;
         i_index = i_index > r->trivial.i_counter ? i_index - r->trivial.i_counter : 0;
 
         if (i_index >= in_n_frames)
@@ -1580,11 +1580,11 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
     src = pa_memblock_acquire_chunk(input);
     dst = pa_memblock_acquire_chunk(output);
 
-    i = (r->peaks.o_counter * r->i_ss.rate) / r->o_ss.rate;
+    i = ((uint64_t) r->peaks.o_counter * r->i_ss.rate) / r->o_ss.rate;
     i = i > r->peaks.i_counter ? i - r->peaks.i_counter : 0;
 
     while (i_end < in_n_frames) {
-        i_end = ((r->peaks.o_counter+1) * r->i_ss.rate) / r->o_ss.rate;
+        i_end = ((uint64_t) (r->peaks.o_counter + 1) * r->i_ss.rate) / r->o_ss.rate;
         i_end = i_end > r->peaks.i_counter ? i_end - r->peaks.i_counter : 0;
 
         pa_assert_fp(o_index * r->w_sz * r->o_ss.channels < pa_memblock_get_length(output->memblock));
