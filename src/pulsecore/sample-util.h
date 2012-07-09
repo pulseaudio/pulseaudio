@@ -88,7 +88,7 @@ void pa_memchunk_dump_to_file(pa_memchunk *c, const char *fn);
 
 void pa_memchunk_sine(pa_memchunk *c, pa_mempool *pool, unsigned rate, unsigned freq);
 
-typedef void (*pa_do_volume_func_t) (void *samples, void *volumes, unsigned channels, unsigned length);
+typedef void (*pa_do_volume_func_t) (void *samples, const void *volumes, unsigned channels, unsigned length);
 
 pa_do_volume_func_t pa_get_volume_func(pa_sample_format_t f);
 void pa_set_volume_func(pa_sample_format_t f, pa_do_volume_func_t func);

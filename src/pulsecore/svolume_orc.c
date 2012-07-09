@@ -34,7 +34,7 @@
 pa_do_volume_func_t fallback;
 
 static void
-pa_volume_s16ne_orc(int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
+pa_volume_s16ne_orc(int16_t *samples, const int32_t *volumes, unsigned channels, unsigned length)
 {
     if (channels == 2) {
         int64_t v = (int64_t)volumes[1] << 32 | volumes[0];

@@ -76,7 +76,7 @@
 
 static int channel_overread_table[8] = {8,8,8,12,8,10,12,14};
 
-static void pa_volume_s16ne_sse2(int16_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
+static void pa_volume_s16ne_sse2(int16_t *samples, const int32_t *volumes, unsigned channels, unsigned length) {
     pa_reg_x86 channel, temp;
 
     /* Channels must be at least 8 and always a multiple of the original number.
@@ -160,7 +160,7 @@ static void pa_volume_s16ne_sse2(int16_t *samples, int32_t *volumes, unsigned ch
     );
 }
 
-static void pa_volume_s16re_sse2(int16_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
+static void pa_volume_s16re_sse2(int16_t *samples, const int32_t *volumes, unsigned channels, unsigned length) {
     pa_reg_x86 channel, temp;
 
     /* Channels must be at least 8 and always a multiple of the original number.

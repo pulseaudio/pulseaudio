@@ -92,7 +92,7 @@
       " por %%mm4, "#s1"             \n\t" /* .. |  l  h |  */ \
       " por %%mm5, "#s2"             \n\t"
 
-static void pa_volume_s16ne_mmx(int16_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
+static void pa_volume_s16ne_mmx(int16_t *samples, const int32_t *volumes, unsigned channels, unsigned length) {
     pa_reg_x86 channel, temp;
 
     /* Channels must be at least 4, and always a multiple of the original number.
@@ -161,7 +161,7 @@ static void pa_volume_s16ne_mmx(int16_t *samples, int32_t *volumes, unsigned cha
     );
 }
 
-static void pa_volume_s16re_mmx(int16_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
+static void pa_volume_s16re_mmx(int16_t *samples, const int32_t *volumes, unsigned channels, unsigned length) {
     pa_reg_x86 channel, temp;
 
     /* Channels must be at least 4, and always a multiple of the original number.

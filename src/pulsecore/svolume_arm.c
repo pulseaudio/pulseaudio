@@ -40,7 +40,7 @@
     " addcs r0, %1                  \n\t" \
     " movcs r6, r0                  \n\t"
 
-static void pa_volume_s16ne_arm(int16_t *samples, int32_t *volumes, unsigned channels, unsigned length) {
+static void pa_volume_s16ne_arm(int16_t *samples, const int32_t *volumes, unsigned channels, unsigned length) {
     int32_t *ve;
 
     /* Channels must be at least 4, and always a multiple of the original number.
