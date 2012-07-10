@@ -1508,7 +1508,7 @@ char *pa_get_state_dir(void) {
      * dir then this will break. */
 
     if (pa_make_secure_dir(d, 0700U, (uid_t) -1, (gid_t) -1, TRUE) < 0) {
-        pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
+        pa_log_error("Failed to create secure directory (%s): %s", d, pa_cstrerror(errno));
         pa_xfree(d);
         return NULL;
     }
@@ -1650,7 +1650,7 @@ char *pa_get_runtime_dir(void) {
     if (d) {
 
         if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1, TRUE) < 0) {
-            pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
+            pa_log_error("Failed to create secure directory (%s): %s", d, pa_cstrerror(errno));
             goto fail;
         }
 
@@ -1664,7 +1664,7 @@ char *pa_get_runtime_dir(void) {
 
         if (pa_make_secure_dir(k, m, (uid_t) -1, (gid_t) -1, TRUE) < 0) {
             free(k);
-            pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
+            pa_log_error("Failed to create secure directory (%s): %s", k, pa_cstrerror(errno));
             goto fail;
         }
 
@@ -1677,7 +1677,7 @@ char *pa_get_runtime_dir(void) {
         goto fail;
 
     if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1, TRUE) < 0) {
-        pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
+        pa_log_error("Failed to create secure directory (%s): %s", d, pa_cstrerror(errno));
         pa_xfree(d);
         goto fail;
     }
