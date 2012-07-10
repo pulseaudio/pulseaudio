@@ -320,14 +320,9 @@ esac
 
 #### libtool stuff ####
 
-LT_PREREQ(2.2)
+LT_PREREQ(2.4)
 LT_INIT([dlopen win32-dll disable-static])
 
-dnl Unfortunately, even up to libtool 2.2.6a there is no way to know
-dnl exactly which version of libltdl is present in the system, so we
-dnl just assume that it's a working version as long as we have the
-dnl library and the header files.
-dnl
 dnl As an extra safety device, check for lt_dladvise_init() which is
 dnl only implemented in libtool 2.x, and refine as we go if we have
 dnl refined requirements.
@@ -345,7 +340,7 @@ AC_CHECK_HEADER([ltdl.h],
     [LIBLTDL=])
 
 AS_IF([test "x$LIBLTDL" = "x"],
-    [AC_MSG_ERROR([Unable to find libltdl version 2. Makes sure you have libtool 2.2 or later installed.])])
+    [AC_MSG_ERROR([Unable to find libltdl version 2. Makes sure you have libtool 2.4 or later installed.])])
 AC_SUBST([LIBLTDL])
 
 
