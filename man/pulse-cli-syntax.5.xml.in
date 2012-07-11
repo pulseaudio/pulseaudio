@@ -263,6 +263,11 @@ USA.
     </option>
 
     <option>
+      <p><opt>set-log-target</opt> <arg>target</arg></p>
+      <optdesc><p>Change the log target (null, auto, syslog, stderr, file:PATH).</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>set-log-time</opt> <arg>boolean</arg></p>
       <optdesc><p>Show timestamps in log messages.</p></optdesc>
     </option>
