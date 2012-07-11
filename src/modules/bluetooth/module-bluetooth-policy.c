@@ -65,7 +65,7 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
     if (!s)
         return PA_HOOK_OK;
 
-    if pa_streq(s, "a2dp_source")
+    if (pa_streq(s, "a2dp_source"))
         role = "music";
     else {
         pa_log_debug("Profile %s cannot be selected for loopback", s);
