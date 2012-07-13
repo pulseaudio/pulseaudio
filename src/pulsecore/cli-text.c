@@ -512,7 +512,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
             s,
             "    index: %u\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s%s%s%s%s%s%s%s\n"
+            "\tflags: %s%s%s%s%s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tsource: %u <%s>\n"
             "\tvolume: %s\n"
@@ -535,6 +535,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
             o->flags & PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND ? "DONT_INHIBIT_AUTO_SUSPEND " : "",
             o->flags & PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND ? "NO_CREATE_ON_SUSPEND " : "",
             o->flags & PA_SOURCE_OUTPUT_KILL_ON_SUSPEND ? "KILL_ON_SUSPEND " : "",
+            o->flags & PA_SOURCE_OUTPUT_PASSTHROUGH ? "PASSTHROUGH " : "",
             state_table[pa_source_output_get_state(o)],
             o->source->index, o->source->name,
             volume_str,
@@ -610,7 +611,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             s,
             "    index: %u\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s%s%s%s%s%s%s%s\n"
+            "\tflags: %s%s%s%s%s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tsink: %u <%s>\n"
             "\tvolume: %s\n"
@@ -633,6 +634,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             i->flags & PA_SINK_INPUT_DONT_INHIBIT_AUTO_SUSPEND ? "DONT_INHIBIT_AUTO_SUSPEND " : "",
             i->flags & PA_SINK_INPUT_NO_CREATE_ON_SUSPEND ? "NO_CREATE_SUSPEND " : "",
             i->flags & PA_SINK_INPUT_KILL_ON_SUSPEND ? "KILL_ON_SUSPEND " : "",
+            i->flags & PA_SINK_INPUT_PASSTHROUGH ? "PASSTHROUGH " : "",
             state_table[pa_sink_input_get_state(i)],
             i->sink->index, i->sink->name,
             volume_str,
