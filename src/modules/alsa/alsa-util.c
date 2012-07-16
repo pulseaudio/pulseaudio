@@ -627,7 +627,7 @@ snd_pcm_t *pa_alsa_open_by_device_id_mapping(
             tsched_size,
             use_mmap,
             use_tsched,
-            TRUE);
+            pa_channel_map_valid(&m->channel_map) /* Query the channel count if we don't know what we want */);
 
     if (!pcm_handle)
         return NULL;
