@@ -73,6 +73,9 @@
 /** For devices: Quality of Service */
 #define PA_ALSA_PROP_UCM_QOS                        "alsa.ucm.qos"
 
+/** For devices: The modifier (if any) that this device corresponds to */
+#define PA_ALSA_PROP_UCM_MODIFIER "alsa.ucm.modifier"
+
 typedef struct pa_alsa_ucm_verb pa_alsa_ucm_verb;
 typedef struct pa_alsa_ucm_modifier pa_alsa_ucm_modifier;
 typedef struct pa_alsa_ucm_device pa_alsa_ucm_device;
@@ -140,6 +143,10 @@ struct pa_alsa_ucm_modifier {
     pa_direction_t action_direction;
 
     char *media_role;
+
+    /* Non-NULL if the modifier has its own PlaybackPCM/CapturePCM */
+    pa_alsa_mapping *playback_mapping;
+    pa_alsa_mapping *capture_mapping;
 };
 
 struct pa_alsa_ucm_verb {

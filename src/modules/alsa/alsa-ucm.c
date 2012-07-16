@@ -64,6 +64,7 @@
         if (PA_UCM_PLAYBACK_PRIORITY_UNSET(device)) (device)->playback_priority = (priority);   \
         if (PA_UCM_CAPTURE_PRIORITY_UNSET(device))  (device)->capture_priority = (priority);    \
     } while (0)
+#define PA_UCM_IS_MODIFIER_MAPPING(m) ((pa_proplist_gets((m)->proplist, PA_ALSA_PROP_UCM_MODIFIER)) != NULL)
 
 struct ucm_items {
     const char *id;
@@ -1033,6 +1034,50 @@ static void alsa_mapping_add_ucm_device(pa_alsa_mapping *m, pa_alsa_ucm_device *
         device->capture_mapping = m;
 }
 
+static void alsa_mapping_add_ucm_modifier(pa_alsa_mapping *m, pa_alsa_ucm_modifier *modifier) {
+    char *cur_desc;
+    const char *new_desc, *mod_name, *channel_str;
+    uint32_t channels = 0;
+
+    pa_idxset_put(m->ucm_context.ucm_modifiers, modifier, NULL);
+
+    new_desc = pa_proplist_gets(modifier->proplist, PA_ALSA_PROP_UCM_DESCRIPTION);
+    cur_desc = m->description;
+    if (cur_desc)
+        m->description = pa_sprintf_malloc("%s + %s", cur_desc, new_desc);
+    else
+        m->description = pa_xstrdup(new_desc);
+    pa_xfree(cur_desc);
+
+    if (!m->description)
+        pa_xstrdup("");
+
+    /* Modifier sinks should not be routed to by default */
+    m->priority = 0;
+
+    mod_name = pa_proplist_gets(modifier->proplist, PA_ALSA_PROP_UCM_NAME);
+    pa_proplist_sets(m->proplist, PA_ALSA_PROP_UCM_MODIFIER, mod_name);
+
+    /* save mapping to ucm modifier */
+    if (m->direction == PA_ALSA_DIRECTION_OUTPUT) {
+        modifier->playback_mapping = m;
+        channel_str = pa_proplist_gets(modifier->proplist, PA_ALSA_PROP_UCM_PLAYBACK_CHANNELS);
+    } else {
+        modifier->capture_mapping = m;
+        channel_str = pa_proplist_gets(modifier->proplist, PA_ALSA_PROP_UCM_CAPTURE_CHANNELS);
+    }
+
+    if (channel_str) {
+        pa_assert_se(pa_atou(channel_str, &channels) == 0 && channels < PA_CHANNELS_MAX);
+        pa_log_debug("Got channel count %" PRIu32 " for modifier", channels);
+    }
+
+    if (channels)
+        pa_channel_map_init_extend(&m->channel_map, channels, PA_CHANNEL_MAP_ALSA);
+    else
+        pa_channel_map_init(&m->channel_map);
+}
+
 static int ucm_create_mapping_direction(
         pa_alsa_ucm_config *ucm,
         pa_alsa_profile_set *ps,
@@ -1083,6 +1128,51 @@ static int ucm_create_mapping_direction(
         pa_channel_map_init_extend(&m->channel_map, channels, PA_CHANNEL_MAP_ALSA);
 
     alsa_mapping_add_ucm_device(m, device);
+
+    return 0;
+}
+
+static int ucm_create_mapping_for_modifier(
+        pa_alsa_ucm_config *ucm,
+        pa_alsa_profile_set *ps,
+        pa_alsa_profile *p,
+        pa_alsa_ucm_modifier *modifier,
+        const char *verb_name,
+        const char *mod_name,
+        const char *device_str,
+        bool is_sink) {
+
+    pa_alsa_mapping *m;
+    char *mapping_name;
+
+    mapping_name = pa_sprintf_malloc("Mapping %s: %s: %s", verb_name, device_str, is_sink ? "sink" : "source");
+
+    m = pa_alsa_mapping_get(ps, mapping_name);
+    if (!m) {
+        pa_log("no mapping for %s", mapping_name);
+        pa_xfree(mapping_name);
+        return -1;
+    }
+    pa_log_info("ucm mapping: %s modifier %s", mapping_name, mod_name);
+    pa_xfree(mapping_name);
+
+    if (!m->ucm_context.ucm_devices && !m->ucm_context.ucm_modifiers) {   /* new mapping */
+        m->ucm_context.ucm_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+        m->ucm_context.ucm_modifiers = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+        m->ucm_context.ucm = ucm;
+        m->ucm_context.direction = is_sink ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT;
+
+        m->device_strings = pa_xnew0(char*, 2);
+        m->device_strings[0] = pa_xstrdup(device_str);
+        m->direction = is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT;
+        /* Modifier sinks should not be routed to by default */
+        m->priority = 0;
+
+        ucm_add_mapping(p, m);
+    } else if (!m->ucm_context.ucm_modifiers) /* share pcm with device */
+        m->ucm_context.ucm_modifiers = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+
+    alsa_mapping_add_ucm_modifier(m, modifier);
 
     return 0;
 }
@@ -1142,6 +1232,7 @@ static int ucm_create_profile(
 
     pa_alsa_profile *p;
     pa_alsa_ucm_device *dev;
+    pa_alsa_ucm_modifier *mod;
     int i = 0;
     const char *name, *sink, *source;
     char *verb_cmp, *c;
@@ -1197,6 +1288,20 @@ static int ucm_create_profile(
             dev->input_jack = ucm_get_jack(ucm, name, PA_UCM_PRE_TAG_INPUT);
     }
 
+    /* Now find modifiers that have their own PlaybackPCM and create
+     * separate sinks for them. */
+    PA_LLIST_FOREACH(mod, verb->modifiers) {
+        name = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_NAME);
+
+        sink = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_SINK);
+        source = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_SOURCE);
+
+        if (sink)
+            ucm_create_mapping_for_modifier(ucm, ps, p, mod, verb_name, name, sink, TRUE);
+        else if (source)
+            ucm_create_mapping_for_modifier(ucm, ps, p, mod, verb_name, name, source, FALSE);
+    }
+
     pa_alsa_profile_dump(p);
 
     return 0;
@@ -1234,22 +1339,22 @@ static void profile_finalize_probing(pa_alsa_profile *p) {
     uint32_t idx;
 
     PA_IDXSET_FOREACH(m, p->output_mappings, idx) {
-        if (!m->output_pcm)
-            continue;
-
         if (p->supported)
             m->supported++;
+
+        if (!m->output_pcm)
+            continue;
 
         snd_pcm_close(m->output_pcm);
         m->output_pcm = NULL;
     }
 
     PA_IDXSET_FOREACH(m, p->input_mappings, idx) {
-        if (!m->input_pcm)
-            continue;
-
         if (p->supported)
             m->supported++;
+
+        if (!m->input_pcm)
+            continue;
 
         snd_pcm_close(m->input_pcm);
         m->input_pcm = NULL;
@@ -1289,20 +1394,35 @@ static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *
     PA_HASHMAP_FOREACH(p, ps->profiles, state) {
         /* change verb */
         pa_log_info("Set ucm verb to %s", p->name);
+
         if ((snd_use_case_set(ucm->ucm_mgr, "_verb", p->name)) < 0) {
             pa_log("Failed to set verb %s", p->name);
             p->supported = FALSE;
             continue;
         }
+
         PA_IDXSET_FOREACH(m, p->output_mappings, idx) {
+            if (PA_UCM_IS_MODIFIER_MAPPING(m)) {
+                /* Skip jack probing on modifier PCMs since we expect this to
+                 * only be controlled on the main device/verb PCM. */
+                continue;
+            }
+
             m->output_pcm = mapping_open_pcm(ucm, m, SND_PCM_STREAM_PLAYBACK);
             if (!m->output_pcm) {
                 p->supported = FALSE;
                 break;
             }
         }
+
         if (p->supported) {
             PA_IDXSET_FOREACH(m, p->input_mappings, idx) {
+                if (PA_UCM_IS_MODIFIER_MAPPING(m)) {
+                    /* Skip jack probing on modifier PCMs since we expect this to
+                     * only be controlled on the main device/verb PCM. */
+                    continue;
+                }
+
                 m->input_pcm = mapping_open_pcm(ucm, m, SND_PCM_STREAM_CAPTURE);
                 if (!m->input_pcm) {
                     p->supported = FALSE;
@@ -1319,10 +1439,12 @@ static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *
         pa_log_debug("Profile %s supported.", p->name);
 
         PA_IDXSET_FOREACH(m, p->output_mappings, idx)
-            ucm_mapping_jack_probe(m);
+            if (!PA_UCM_IS_MODIFIER_MAPPING(m))
+                ucm_mapping_jack_probe(m);
 
         PA_IDXSET_FOREACH(m, p->input_mappings, idx)
-            ucm_mapping_jack_probe(m);
+            if (!PA_UCM_IS_MODIFIER_MAPPING(m))
+                ucm_mapping_jack_probe(m);
 
         profile_finalize_probing(p);
     }
@@ -1413,6 +1535,7 @@ void pa_alsa_ucm_free(pa_alsa_ucm_config *ucm) {
 
 void pa_alsa_ucm_mapping_context_free(pa_alsa_ucm_mapping_context *context) {
     pa_alsa_ucm_device *dev;
+    pa_alsa_ucm_modifier *mod;
     uint32_t idx;
 
     if (context->ucm_devices) {
@@ -1428,6 +1551,13 @@ void pa_alsa_ucm_mapping_context_free(pa_alsa_ucm_mapping_context *context) {
     }
 
     if (context->ucm_modifiers) {
+        PA_IDXSET_FOREACH(mod, context->ucm_modifiers, idx) {
+            if (context->direction == PA_DIRECTION_OUTPUT)
+                mod->playback_mapping = NULL;
+            else
+                mod->capture_mapping = NULL;
+        }
+
         pa_idxset_free(context->ucm_modifiers, NULL, NULL);
     }
 }

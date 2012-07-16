@@ -836,6 +836,8 @@ static int build_pollfd(struct userdata *u) {
 
 /* Called from IO context */
 static int suspend(struct userdata *u) {
+    const char *mod_name;
+
     pa_assert(u);
     pa_assert(u->pcm_handle);
 
@@ -844,6 +846,13 @@ static int suspend(struct userdata *u) {
     /* Let's suspend */
     snd_pcm_close(u->pcm_handle);
     u->pcm_handle = NULL;
+
+    if ((mod_name = pa_proplist_gets(u->source->proplist, PA_ALSA_PROP_UCM_MODIFIER))) {
+        pa_log_info("Disable ucm modifier %s", mod_name);
+
+        if (snd_use_case_set(u->ucm_context->ucm->ucm_mgr, "_dismod", mod_name) < 0)
+            pa_log("Failed to disable ucm modifier %s", mod_name);
+    }
 
     if (u->alsa_rtpoll_item) {
         pa_rtpoll_item_free(u->alsa_rtpoll_item);
@@ -949,11 +958,19 @@ static int unsuspend(struct userdata *u) {
     int err;
     pa_bool_t b, d;
     snd_pcm_uframes_t period_size, buffer_size;
+    const char *mod_name;
 
     pa_assert(u);
     pa_assert(!u->pcm_handle);
 
     pa_log_info("Trying resume...");
+
+    if ((mod_name = pa_proplist_gets(u->source->proplist, PA_ALSA_PROP_UCM_MODIFIER))) {
+        pa_log_info("Enable ucm modifier %s", mod_name);
+
+        if (snd_use_case_set(u->ucm_context->ucm->ucm_mgr, "_enamod", mod_name) < 0)
+            pa_log("Failed to enable ucm modifier %s", mod_name);
+    }
 
     if ((err = snd_pcm_open(&u->pcm_handle, u->device_name, SND_PCM_STREAM_CAPTURE,
                             SND_PCM_NONBLOCK|
@@ -1714,7 +1731,7 @@ static int setup_mixer(struct userdata *u, pa_bool_t ignore_dB) {
 pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, pa_card *card, pa_alsa_mapping *mapping) {
 
     struct userdata *u = NULL;
-    const char *dev_id = NULL, *key;
+    const char *dev_id = NULL, *key, *mod_name;
     pa_sample_spec ss;
     uint32_t alternate_sample_rate;
     pa_channel_map map;
@@ -1838,6 +1855,13 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         if (!(dev_id = pa_modargs_get_value(ma, "device_id", NULL))) {
             pa_log("device_id= not set");
             goto fail;
+        }
+
+        if ((mod_name = pa_proplist_gets(mapping->proplist, PA_ALSA_PROP_UCM_MODIFIER))) {
+            if (snd_use_case_set(u->ucm_context->ucm->ucm_mgr, "_enamod", mod_name) < 0)
+                pa_log("Failed to enable ucm modifier %s", mod_name);
+            else
+                pa_log_debug("Enabled ucm modifier %s", mod_name);
         }
 
         if (!(u->pcm_handle = pa_alsa_open_by_device_id_mapping(
