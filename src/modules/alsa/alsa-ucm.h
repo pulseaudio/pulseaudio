@@ -106,6 +106,9 @@ int pa_alsa_ucm_set_port(pa_alsa_ucm_mapping_context *context, pa_device_port *p
 void pa_alsa_ucm_free(pa_alsa_ucm_config *ucm);
 void pa_alsa_ucm_mapping_context_free(pa_alsa_ucm_mapping_context *context);
 
+void pa_alsa_ucm_roled_stream_begin(pa_alsa_ucm_config *ucm, const char *role, pa_direction_t dir);
+void pa_alsa_ucm_roled_stream_end(pa_alsa_ucm_config *ucm, const char *role, pa_direction_t dir);
+
 /* UCM - Use Case Manager is available on some audio cards */
 
 struct pa_alsa_ucm_device {
@@ -147,6 +150,9 @@ struct pa_alsa_ucm_modifier {
     /* Non-NULL if the modifier has its own PlaybackPCM/CapturePCM */
     pa_alsa_mapping *playback_mapping;
     pa_alsa_mapping *capture_mapping;
+
+    /* Count how many role matched streams are running */
+    int enabled_counter;
 };
 
 struct pa_alsa_ucm_verb {

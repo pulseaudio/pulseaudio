@@ -124,6 +124,13 @@ struct userdata {
     /* ucm stuffs */
     pa_bool_t use_ucm;
     pa_alsa_ucm_config ucm;
+
+    /* hooks for modifier action */
+    pa_hook_slot
+        *sink_input_put_hook_slot,
+        *source_output_put_hook_slot,
+        *sink_input_unlink_hook_slot,
+        *source_output_unlink_hook_slot;
 };
 
 struct profile_data {
@@ -459,6 +466,66 @@ static void set_card_name(pa_card_new_data *data, pa_modargs *ma, const char *de
     pa_xfree(t);
 }
 
+static pa_hook_result_t sink_input_put_hook_callback(pa_core *c, pa_sink_input *sink_input, struct userdata *u) {
+    const char *role;
+    pa_sink *sink = sink_input->sink;
+
+    pa_assert(sink);
+
+    role = pa_proplist_gets(sink_input->proplist, PA_PROP_MEDIA_ROLE);
+
+    /* new sink input linked to sink of this card */
+    if (role && sink->card == u->card)
+        pa_alsa_ucm_roled_stream_begin(&u->ucm, role, PA_DIRECTION_OUTPUT);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_put_hook_callback(pa_core *c, pa_source_output *source_output, struct userdata *u) {
+    const char *role;
+    pa_source *source = source_output->source;
+
+    pa_assert(source);
+
+    role = pa_proplist_gets(source_output->proplist, PA_PROP_MEDIA_ROLE);
+
+    /* new source output linked to source of this card */
+    if (role && source->card == u->card)
+        pa_alsa_ucm_roled_stream_begin(&u->ucm, role, PA_DIRECTION_INPUT);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t sink_input_unlink_hook_callback(pa_core *c, pa_sink_input *sink_input, struct userdata *u) {
+    const char *role;
+    pa_sink *sink = sink_input->sink;
+
+    pa_assert(sink);
+
+    role = pa_proplist_gets(sink_input->proplist, PA_PROP_MEDIA_ROLE);
+
+    /* new sink input unlinked from sink of this card */
+    if (role && sink->card == u->card)
+        pa_alsa_ucm_roled_stream_end(&u->ucm, role, PA_DIRECTION_OUTPUT);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_unlink_hook_callback(pa_core *c, pa_source_output *source_output, struct userdata *u) {
+    const char *role;
+    pa_source *source = source_output->source;
+
+    pa_assert(source);
+
+    role = pa_proplist_gets(source_output->proplist, PA_PROP_MEDIA_ROLE);
+
+    /* new source output unlinked from source of this card */
+    if (role && source->card == u->card)
+        pa_alsa_ucm_roled_stream_end(&u->ucm, role, PA_DIRECTION_INPUT);
+
+    return PA_HOOK_OK;
+}
+
 int pa__init(pa_module *m) {
     pa_card_new_data data;
     pa_modargs *ma;
@@ -515,6 +582,20 @@ int pa__init(pa_module *m) {
         pa_log_info("Found UCM profiles");
 
         u->profile_set = pa_alsa_ucm_add_profile_set(&u->ucm, &u->core->default_channel_map);
+
+        /* hook start of sink input/source output to enable modifiers */
+        /* A little bit later than module-role-cork */
+        u->sink_input_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE+10,
+                (pa_hook_cb_t) sink_input_put_hook_callback, u);
+        u->source_output_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], PA_HOOK_LATE+10,
+                (pa_hook_cb_t) source_output_put_hook_callback, u);
+
+        /* hook end of sink input/source output to disable modifiers */
+        /* A little bit later than module-role-cork */
+        u->sink_input_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_LATE+10,
+                (pa_hook_cb_t) sink_input_unlink_hook_callback, u);
+        u->source_output_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], PA_HOOK_LATE+10,
+                (pa_hook_cb_t) source_output_unlink_hook_callback, u);
     }
     else {
         u->use_ucm = FALSE;
@@ -645,6 +726,18 @@ void pa__done(pa_module*m) {
 
     if (!(u = m->userdata))
         goto finish;
+
+    if (u->sink_input_put_hook_slot)
+        pa_hook_slot_free(u->sink_input_put_hook_slot);
+
+    if (u->sink_input_unlink_hook_slot)
+        pa_hook_slot_free(u->sink_input_unlink_hook_slot);
+
+    if (u->source_output_put_hook_slot)
+        pa_hook_slot_free(u->source_output_put_hook_slot);
+
+    if (u->source_output_unlink_hook_slot)
+        pa_hook_slot_free(u->source_output_unlink_hook_slot);
 
     if (u->mixer_fdl)
         pa_alsa_fdlist_free(u->mixer_fdl);

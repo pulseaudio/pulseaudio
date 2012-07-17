@@ -1561,3 +1561,52 @@ void pa_alsa_ucm_mapping_context_free(pa_alsa_ucm_mapping_context *context) {
         pa_idxset_free(context->ucm_modifiers, NULL, NULL);
     }
 }
+
+/* Enable the modifier when the first stream with matched role starts */
+void pa_alsa_ucm_roled_stream_begin(pa_alsa_ucm_config *ucm, const char *role, pa_direction_t dir) {
+    pa_alsa_ucm_modifier *mod;
+
+    if (!ucm->active_verb)
+        return;
+
+    PA_LLIST_FOREACH(mod, ucm->active_verb->modifiers) {
+        if ((mod->action_direction == dir) && (pa_streq(mod->media_role, role))) {
+            if (mod->enabled_counter == 0) {
+                const char *mod_name = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_NAME);
+
+                pa_log_info("Enable ucm modifier %s", mod_name);
+                if (snd_use_case_set(ucm->ucm_mgr, "_enamod", mod_name) < 0) {
+                    pa_log("Failed to enable ucm modifier %s", mod_name);
+                }
+            }
+
+            mod->enabled_counter++;
+            break;
+        }
+    }
+}
+
+/* Disable the modifier when the last stream with matched role ends */
+void pa_alsa_ucm_roled_stream_end(pa_alsa_ucm_config *ucm, const char *role, pa_direction_t dir) {
+    pa_alsa_ucm_modifier *mod;
+
+    if (!ucm->active_verb)
+        return;
+
+    PA_LLIST_FOREACH(mod, ucm->active_verb->modifiers) {
+        if ((mod->action_direction == dir) && (pa_streq(mod->media_role, role))) {
+
+            mod->enabled_counter--;
+            if (mod->enabled_counter == 0) {
+                const char *mod_name = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_NAME);
+
+                pa_log_info("Disable ucm modifier %s", mod_name);
+                if (snd_use_case_set(ucm->ucm_mgr, "_dismod", mod_name) < 0) {
+                    pa_log("Failed to disable ucm modifier %s", mod_name);
+                }
+            }
+
+            break;
+        }
+    }
+}
