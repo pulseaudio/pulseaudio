@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <assert.h>
+#include <check.h>
 
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
@@ -67,7 +68,7 @@ static void tcb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *tv, v
 #endif
 }
 
-int main(int argc, char *argv[]) {
+START_TEST (mainloop_test) {
     pa_mainloop_api *a;
     pa_io_event *ioe;
     pa_time_event *te;
@@ -77,28 +78,28 @@ int main(int argc, char *argv[]) {
     pa_glib_mainloop *g;
 
     glib_main_loop = g_main_loop_new(NULL, FALSE);
-    assert(glib_main_loop);
+    fail_if(!glib_main_loop);
 
     g = pa_glib_mainloop_new(NULL);
-    assert(g);
+    fail_if(!g);
 
     a = pa_glib_mainloop_get_api(g);
-    assert(a);
+    fail_if(!a);
 #else /* GLIB_MAIN_LOOP */
     pa_mainloop *m;
 
     m = pa_mainloop_new();
-    assert(m);
+    fail_if(!m);
 
     a = pa_mainloop_get_api(m);
-    assert(a);
+    fail_if(!a);
 #endif /* GLIB_MAIN_LOOP */
 
     ioe = a->io_new(a, 0, PA_IO_EVENT_INPUT, iocb, NULL);
-    assert(ioe);
+    fail_if(!ioe);
 
     de = a->defer_new(a, dcb, NULL);
-    assert(de);
+    fail_if(!de);
 
     te = a->time_new(a, pa_timeval_rtstore(&tv, pa_rtclock_now() + 2 * PA_USEC_PER_SEC, TRUE), tcb, NULL);
 
@@ -118,6 +119,24 @@ int main(int argc, char *argv[]) {
 #else
     pa_mainloop_free(m);
 #endif
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    s = suite_create("MainLoop");
+    tc = tcase_create("mainloop");
+    tcase_add_test(tc, mainloop_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

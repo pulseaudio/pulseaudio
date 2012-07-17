@@ -310,9 +310,9 @@ check-daemon:
 	$(MAKE) check TESTS="$(TESTS_daemon)"
 
 mainloop_test_SOURCES = tests/mainloop-test.c
-mainloop_test_CFLAGS = $(AM_CFLAGS)
+mainloop_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 mainloop_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 thread_mainloop_test_SOURCES = tests/thread-mainloop-test.c
 thread_mainloop_test_CFLAGS = $(AM_CFLAGS)
@@ -435,9 +435,9 @@ cpulimit_test2_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la l
 cpulimit_test2_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mainloop_test_glib_SOURCES = $(mainloop_test_SOURCES)
-mainloop_test_glib_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB20_CFLAGS) -DGLIB_MAIN_LOOP
+mainloop_test_glib_CFLAGS = $(mainloop_test_CFLAGS) $(LIBCHECK_CFLAGS) $(GLIB20_CFLAGS) -DGLIB_MAIN_LOOP
 mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpulse-mainloop-glib.la
-mainloop_test_glib_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+mainloop_test_glib_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 memblockq_test_SOURCES = tests/memblockq-test.c
 memblockq_test_CFLAGS = $(AM_CFLAGS)
