@@ -1573,6 +1573,7 @@ static pa_echo_canceller_method_t get_ec_method_from_string(const char *method) 
  *
  * Called from main context. */
 static int init_common(pa_modargs *ma, struct userdata *u, pa_sample_spec *source_ss, pa_channel_map *source_map) {
+    const char *ec_string;
     pa_echo_canceller_method_t ec_method;
 
     if (pa_modargs_get_sample_spec_and_channel_map(ma, source_ss, source_map, PA_CHANNEL_MAP_DEFAULT) < 0) {
@@ -1586,10 +1587,13 @@ static int init_common(pa_modargs *ma, struct userdata *u, pa_sample_spec *sourc
         goto fail;
     }
 
-    if ((ec_method = get_ec_method_from_string(pa_modargs_get_value(ma, "aec_method", DEFAULT_ECHO_CANCELLER))) < 0) {
+    ec_string = pa_modargs_get_value(ma, "aec_method", DEFAULT_ECHO_CANCELLER);
+    if ((ec_method = get_ec_method_from_string(ec_string)) < 0) {
         pa_log("Invalid echo canceller implementation");
         goto fail;
     }
+
+    pa_log_info("Using AEC engine: %s", ec_string);
 
     u->ec->init = ec_table[ec_method].init;
     u->ec->play = ec_table[ec_method].play;
