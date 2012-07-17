@@ -244,6 +244,7 @@ TESTS_default = \
 		volume-test \
 		mix-test \
 		proplist-test \
+		cpu-test \
 		lock-autospawn-test
 
 TESTS_norun = \
@@ -482,6 +483,11 @@ proplist_test_SOURCES = tests/proplist-test.c
 proplist_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 proplist_test_CFLAGS = $(AM_CFLAGS)
 proplist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+cpu_test_SOURCES = tests/cpu-test.c
+cpu_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+cpu_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+cpu_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 rtstutter_SOURCES = tests/rtstutter.c
 rtstutter_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la

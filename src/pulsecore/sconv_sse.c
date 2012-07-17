@@ -162,64 +162,10 @@ static void pa_sconv_s16le_from_f32ne_sse2(unsigned n, const float *a, int16_t *
     );
 }
 
-#undef RUN_TEST
-
-#ifdef RUN_TEST
-#define SAMPLES 1019
-#define TIMES 1000
-
-static void run_test(void) {
-    int16_t samples[SAMPLES];
-    int16_t samples_ref[SAMPLES];
-    float floats[SAMPLES];
-    int i;
-    pa_usec_t start, stop;
-    pa_convert_func_t func;
-
-    printf("checking SSE %zd\n", sizeof(samples));
-
-    memset(samples_ref, 0, sizeof(samples_ref));
-    memset(samples, 0, sizeof(samples));
-
-    for (i = 0; i < SAMPLES; i++) {
-        floats[i] = 2.1f * (rand()/(float) RAND_MAX - 0.5f);
-    }
-
-    func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
-    func(SAMPLES, floats, samples_ref);
-    pa_sconv_s16le_from_f32ne_sse2(SAMPLES, floats, samples);
-
-    for (i = 0; i < SAMPLES; i++) {
-        if (samples[i] != samples_ref[i]) {
-            printf ("%d: %04x != %04x (%f)\n", i, samples[i], samples_ref[i],
-                      floats[i]);
-        }
-    }
-
-    start = pa_rtclock_now();
-    for (i = 0; i < TIMES; i++) {
-        pa_sconv_s16le_from_f32ne_sse2(SAMPLES, floats, samples);
-    }
-    stop = pa_rtclock_now();
-    pa_log_info("SSE: %llu usec.", (long long unsigned int)(stop - start));
-
-    start = pa_rtclock_now();
-    for (i = 0; i < TIMES; i++) {
-        func(SAMPLES, floats, samples_ref);
-    }
-    stop = pa_rtclock_now();
-    pa_log_info("ref: %llu usec.", (long long unsigned int)(stop - start));
-}
-#endif
 #endif /* defined (__i386__) || defined (__amd64__) */
-
 
 void pa_convert_func_init_sse(pa_cpu_x86_flag_t flags) {
 #if !defined(__APPLE__) && defined (__i386__) || defined (__amd64__)
-
-#ifdef RUN_TEST
-    run_test();
-#endif
 
     if (flags & PA_CPU_X86_SSE2) {
         pa_log_info("Initialising SSE2 optimized conversions.");
