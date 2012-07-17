@@ -405,9 +405,9 @@ extended_test_CFLAGS = $(AM_CFLAGS)
 extended_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 strlist_test_SOURCES = tests/strlist-test.c
-strlist_test_CFLAGS = $(AM_CFLAGS)
+strlist_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 strlist_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-strlist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+strlist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 close_test_SOURCES = tests/close-test.c
 close_test_CFLAGS = $(AM_CFLAGS)
