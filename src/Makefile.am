@@ -465,8 +465,8 @@ resampler_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mix_test_SOURCES = tests/mix-test.c
 mix_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-mix_test_CFLAGS = $(AM_CFLAGS)
-mix_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+mix_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+mix_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 remix_test_SOURCES = tests/remix-test.c
 remix_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
