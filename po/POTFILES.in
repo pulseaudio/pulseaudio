@@ -21,7 +21,6 @@ src/modules/bluetooth/module-bluetooth-proximity.c
 src/modules/module-detect.c
 src/modules/module-always-sink.c
 src/modules/module-lirc.c
-src/modules/module-hal-detect.c
 src/modules/module-sine.c
 src/modules/module-zeroconf-publish.c
 src/modules/jack/module-jack-source.c
