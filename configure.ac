@@ -579,6 +579,12 @@ fi
 
 AC_CHECK_HEADERS_ONCE([valgrind/memcheck.h])
 
+#### check test framework ####
+
+PKG_CHECK_MODULES(LIBCHECK, [ check ])
+AC_SUBST(LIBCHECK_CFLAGS)
+AC_SUBST(LIBCHECK_LIBS)
+
 #### json parsing ####
 
 PKG_CHECK_MODULES(LIBJSON, [ json >= 0.9 ])
