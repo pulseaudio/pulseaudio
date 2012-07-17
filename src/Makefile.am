@@ -1834,10 +1834,17 @@ if HAVE_SPEEX
 module_echo_cancel_la_SOURCES += modules/echo-cancel/speex.c
 endif
 if HAVE_WEBRTC
-module_echo_cancel_la_SOURCES += modules/echo-cancel/webrtc.cc
+# The webrtc code is split off into a helper library to avoid having automake
+# link module-echo-cancel with C++ (which it does if there are any C++ deps,
+# even conditional ones).
+modlibexec_LTLIBRARIES += libwebrtc-util.la
+
+libwebrtc_util_la_SOURCES = modules/echo-cancel/webrtc.cc
+libwebrtc_util_la_CXXFLAGS = $(AM_CXXFLAGS) $(SERVER_CFLAGS) $(WEBRTC_CFLAGS) -DHAVE_WEBRTC=1
+libwebrtc_util_la_LIBADD = $(WEBRTC_LIBS)
+
 module_echo_cancel_la_CFLAGS += -DHAVE_WEBRTC=1
-module_echo_cancel_la_CXXFLAGS = $(AM_CXXFLAGS) $(SERVER_CFLAGS) $(WEBRTC_CFLAGS) -DHAVE_WEBRTC=1
-module_echo_cancel_la_LIBADD += $(WEBRTC_LIBS)
+module_echo_cancel_la_LIBADD += libwebrtc-util.la
 endif
 
 # RTP modules
