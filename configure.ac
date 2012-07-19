@@ -500,7 +500,10 @@ if test "x$os_is_darwin" = "x1" ; then
     # How do I check a framework "library" - AC_CHECK_LIB prob. won't work??, just assign LIBS & hope
     AC_CHECK_HEADER([/Developer/Headers/FlatCarbon/CoreServices.h],
         [LIBS="$LIBS -framework CoreServices"],
-        [AC_MSG_ERROR([CoreServices.h header file not found])]
+        [AC_CHECK_HEADERS([/System/Library/Frameworks/CoreServices.framework/Headers/CoreServices.h],
+            [LIBS="$LIBS -framework CoreServices"],
+            [AC_MSG_ERROR([CoreServices.h header file not found])]
+        )]
     )
 
     AC_MSG_RESULT([ok])
