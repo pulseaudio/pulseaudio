@@ -195,3 +195,4 @@ src/modules/module-equalizer-sink.c
 src/modules/module-filter-apply.c
 src/tests/resampler-test.c
 src/modules/module-virtual-surround-sink.c
+src/modules/macosx/module-coreaudio-device.c
