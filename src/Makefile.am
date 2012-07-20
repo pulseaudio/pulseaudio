@@ -2066,4 +2066,22 @@ $(installmodlibexecLTLIBRARIES): install-pkglibLTLIBRARIES
 installpadsplibLTLIBRARIES = install-padsplibLTLIBRARIES
 $(installpadsplibLTLIBRARIES): install-libLTLIBRARIES
 
-.PHONY: massif update-all update-ffmpeg update-sbc update-map-file
+if HAVE_GCOV
+coverage:
+	@echo ""
+	@echo "Don't forget to run 'make check' before generating coverage stats."
+	@echo ""
+	lcov --capture --directory . --output-file $(builddir)/gcov-all.info
+	-rm -r $(builddir)/coverage
+	genhtml --output-directory $(builddir)/coverage gcov-all.info
+	@echo ""
+	@echo "Coverage data now available at: $(abs_builddir)/coverage/index.html"
+else
+coverage:
+	@echo ""
+	@echo "To generate coverage stats, rerun configure with '--enable-gcov',"
+	@echo "and don't forget to disable it again for regular builds."
+	@echo ""
+endif
+
+.PHONY: massif update-all update-ffmpeg update-sbc update-map-file coverage
