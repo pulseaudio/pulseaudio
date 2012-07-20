@@ -917,6 +917,10 @@ modlibexec_LTLIBRARIES = \
 		libprotocol-http.la \
 		libprotocol-native.la
 
+if HAVE_WEBRTC
+modlibexec_LTLIBRARIES += libwebrtc-util.la
+endif
+
 if HAVE_ESOUND
 modlibexec_LTLIBRARIES += \
 		libprotocol-esound.la
@@ -1848,7 +1852,6 @@ if HAVE_WEBRTC
 # The webrtc code is split off into a helper library to avoid having automake
 # link module-echo-cancel with C++ (which it does if there are any C++ deps,
 # even conditional ones).
-modlibexec_LTLIBRARIES += libwebrtc-util.la
 
 libwebrtc_util_la_SOURCES = modules/echo-cancel/webrtc.cc
 libwebrtc_util_la_CXXFLAGS = $(AM_CXXFLAGS) $(SERVER_CFLAGS) $(WEBRTC_CFLAGS) -DHAVE_WEBRTC=1
