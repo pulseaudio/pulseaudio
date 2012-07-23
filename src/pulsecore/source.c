@@ -970,6 +970,8 @@ void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *
 /* Called from main thread */
 pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrough)
 {
+    pa_bool_t ret = FALSE;
+
     if (s->update_rate) {
         uint32_t desired_rate = rate;
         uint32_t default_rate = s->default_sample_rate;
@@ -1022,7 +1024,7 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrou
             return FALSE;
 
         pa_log_debug("Suspending source %s due to changing the sample rate.", s->name);
-        pa_source_suspend(s, TRUE, PA_SUSPEND_IDLE); /* needed before rate update, will be resumed automatically */
+        pa_source_suspend(s, TRUE, PA_SUSPEND_INTERNAL);
 
         if (s->update_rate(s, desired_rate) == TRUE) {
             pa_log_info("Changed sampling rate successfully ");
@@ -1031,10 +1033,13 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrou
                 if (o->state == PA_SOURCE_OUTPUT_CORKED)
                     pa_source_output_update_rate(o);
             }
-            return TRUE;
+            ret = TRUE;
         }
+
+        pa_source_suspend(s, FALSE, PA_SUSPEND_INTERNAL);
     }
-    return FALSE;
+
+    return ret;
 }
 
 /* Called from main thread */

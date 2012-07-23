@@ -1380,6 +1380,8 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
 /* Called from main thread */
 pa_bool_t pa_sink_update_rate(pa_sink *s, uint32_t rate, pa_bool_t passthrough)
 {
+    pa_bool_t ret = FALSE;
+
     if (s->update_rate) {
         uint32_t desired_rate = rate;
         uint32_t default_rate = s->default_sample_rate;
@@ -1439,7 +1441,7 @@ pa_bool_t pa_sink_update_rate(pa_sink *s, uint32_t rate, pa_bool_t passthrough)
             return FALSE;
 
         pa_log_debug("Suspending sink %s due to changing the sample rate.", s->name);
-        pa_sink_suspend(s, TRUE, PA_SUSPEND_IDLE); /* needed before rate update, will be resumed automatically */
+        pa_sink_suspend(s, TRUE, PA_SUSPEND_INTERNAL);
 
         if (s->update_rate(s, desired_rate) == TRUE) {
             /* update monitor source as well */
@@ -1452,10 +1454,13 @@ pa_bool_t pa_sink_update_rate(pa_sink *s, uint32_t rate, pa_bool_t passthrough)
                     pa_sink_input_update_rate(i);
             }
 
-            return TRUE;
+            ret = TRUE;
         }
+
+        pa_sink_suspend(s, FALSE, PA_SUSPEND_INTERNAL);
     }
-    return FALSE;
+
+    return ret ;
 }
 
 /* Called from main thread */
