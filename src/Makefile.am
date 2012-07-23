@@ -303,11 +303,11 @@ TESTS = $(TESTS_default)
 if BUILD_TESTS_DEFAULT
 noinst_PROGRAMS = $(TESTS_default) $(TESTS_norun) $(TESTS_daemon)
 else
-check_PROGRAMS = $(TESTS_default) $(TESTS_norun) $(TESTS_daemon)
+check_PROGRAMS = $(TESTS_default) $(TESTS_norun)
 endif
 
-check-daemon:
-	$(MAKE) check TESTS="$(TESTS_daemon)"
+check-daemon: $(TESTS_daemon)
+	PATH=$(builddir):${PATH} $(top_srcdir)/src/tests/test-daemon.sh $(TESTS_daemon)
 
 mainloop_test_SOURCES = tests/mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
