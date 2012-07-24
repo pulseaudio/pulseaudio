@@ -26,7 +26,7 @@
 
 /* Orc-optimised bits */
 
-void pa_cpu_init_orc(pa_cpu_info cpu_info);
+pa_bool_t pa_cpu_init_orc(pa_cpu_info cpu_info);
 
 void pa_volume_func_init_orc(void);
 

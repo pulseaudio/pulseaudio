@@ -25,14 +25,18 @@
 
 #include "cpu-orc.h"
 
-void pa_cpu_init_orc(pa_cpu_info cpu_info)
+pa_bool_t pa_cpu_init_orc(pa_cpu_info cpu_info)
 {
 #ifndef DISABLE_ORC
     /* Update these as we test on more architectures */
     pa_cpu_x86_flag_t x86_want_flags = PA_CPU_X86_MMX | PA_CPU_X86_SSE | PA_CPU_X86_SSE2 | PA_CPU_X86_SSE3 | PA_CPU_X86_SSSE3 | PA_CPU_X86_SSE4_1 | PA_CPU_X86_SSE4_2;
 
     /* Enable Orc svolume optimizations */
-    if ((cpu_info.cpu_type == PA_CPU_X86) && (cpu_info.flags.x86 & x86_want_flags))
+    if ((cpu_info.cpu_type == PA_CPU_X86) && (cpu_info.flags.x86 & x86_want_flags)) {
         pa_volume_func_init_orc();
+        return TRUE;
+    }
 #endif
+
+    return FALSE;
 }

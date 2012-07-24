@@ -8,30 +8,90 @@
 
 #include <pulse/rtclock.h>
 #include <pulsecore/cpu-x86.h>
+#include <pulsecore/cpu-orc.h>
 #include <pulsecore/random.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/endianmacros.h>
 #include <pulsecore/sconv.h>
 #include <pulsecore/sample-util.h>
 
-START_TEST (svolume_mmx_test) {
+/* Common defines for svolume tests */
 #define CHANNELS 2
 #define SAMPLES 1022
 #define TIMES 1000
 #define TIMES2 100
 #define PADDING 16
 
+static void run_volume_test(pa_do_volume_func_t func, pa_do_volume_func_t orig_func) {
     int16_t samples[SAMPLES];
     int16_t samples_ref[SAMPLES];
     int16_t samples_orig[SAMPLES];
     int32_t volumes[CHANNELS + PADDING];
     int i, j, padding;
-    pa_do_volume_func_t orig_func, mmx_func;
     pa_usec_t start, stop;
     int k;
     pa_usec_t min = INT_MAX, max = 0;
     double s1 = 0, s2 = 0;
 
+
+    pa_random(samples, sizeof(samples));
+    memcpy(samples_ref, samples, sizeof(samples));
+    memcpy(samples_orig, samples, sizeof(samples));
+
+    for (i = 0; i < CHANNELS; i++)
+        volumes[i] = PA_CLAMP_VOLUME((pa_volume_t)(rand() >> 15));
+    for (padding = 0; padding < PADDING; padding++, i++)
+        volumes[i] = volumes[padding];
+
+    orig_func(samples_ref, volumes, CHANNELS, sizeof(samples));
+    func(samples, volumes, CHANNELS, sizeof(samples));
+    for (i = 0; i < SAMPLES; i++) {
+        if (samples[i] != samples_ref[i]) {
+            printf("%d: %04x != %04x (%04x * %08x)\n", i, samples[i], samples_ref[i],
+                  samples_orig[i], volumes[i % CHANNELS]);
+            fail();
+        }
+    }
+
+    for (k = 0; k < TIMES2; k++) {
+        start = pa_rtclock_now();
+        for (j = 0; j < TIMES; j++) {
+            memcpy(samples, samples_orig, sizeof(samples));
+            func(samples, volumes, CHANNELS, sizeof(samples));
+        }
+        stop = pa_rtclock_now();
+
+        if (min > (stop - start)) min = stop - start;
+        if (max < (stop - start)) max = stop - start;
+        s1 += stop - start;
+        s2 += (stop - start) * (stop - start);
+    }
+    pa_log_info("func: %llu usec (min = %llu, max = %llu, stddev = %g).", (long long unsigned int)s1,
+            (long long unsigned int)min, (long long unsigned int)max, sqrt(times2 * s2 - s1 * s1) / times2);
+
+    min = INT_MAX; max = 0;
+    s1 = s2 = 0;
+    for (k = 0; k < TIMES2; k++) {
+        start = pa_rtclock_now();
+        for (j = 0; j < TIMES; j++) {
+            memcpy(samples_ref, samples_orig, sizeof(samples));
+            orig_func(samples_ref, volumes, CHANNELS, sizeof(samples));
+        }
+        stop = pa_rtclock_now();
+
+        if (min > (stop - start)) min = stop - start;
+        if (max < (stop - start)) max = stop - start;
+        s1 += stop - start;
+        s2 += (stop - start) * (stop - start);
+    }
+    pa_log_info("orig: %llu usec (min = %llu, max = %llu, stddev = %g).", (long long unsigned int)s1,
+            (long long unsigned int)min, (long long unsigned int)max, sqrt(times2 * s2 - s1 * s1) / times2);
+
+    fail_unless(memcmp(samples_ref, samples, sizeof(samples)) == 0);
+}
+
+START_TEST (svolume_mmx_test) {
+    pa_do_volume_func_t orig_func, mmx_func;
     pa_cpu_x86_flag_t flags = 0;
 
     pa_cpu_get_x86_flags(&flags);
@@ -45,88 +105,13 @@ START_TEST (svolume_mmx_test) {
     pa_volume_func_init_mmx(flags);
     mmx_func = pa_get_volume_func(PA_SAMPLE_S16NE);
 
-    pa_log_debug("Checking MMX svolume (%zd)\n", sizeof(samples));
-
-    pa_random(samples, sizeof(samples));
-    memcpy(samples_ref, samples, sizeof(samples));
-    memcpy(samples_orig, samples, sizeof(samples));
-
-    for (i = 0; i < CHANNELS; i++)
-        volumes[i] = PA_CLAMP_VOLUME((pa_volume_t)(rand() >> 15));
-    for (padding = 0; padding < PADDING; padding++, i++)
-        volumes[i] = volumes[padding];
-
-    orig_func(samples_ref, volumes, CHANNELS, sizeof(samples));
-    mmx_func(samples, volumes, CHANNELS, sizeof(samples));
-    for (i = 0; i < SAMPLES; i++) {
-        if (samples[i] != samples_ref[i]) {
-            printf("%d: %04x != %04x (%04x * %08x)\n", i, samples[i], samples_ref[i],
-                  samples_orig[i], volumes[i % CHANNELS]);
-            fail();
-        }
-    }
-
-    for (k = 0; k < TIMES2; k++) {
-        start = pa_rtclock_now();
-        for (j = 0; j < TIMES; j++) {
-            memcpy(samples, samples_orig, sizeof(samples));
-            mmx_func(samples, volumes, CHANNELS, sizeof(samples));
-        }
-        stop = pa_rtclock_now();
-
-        if (min > (stop - start)) min = stop - start;
-        if (max < (stop - start)) max = stop - start;
-        s1 += stop - start;
-        s2 += (stop - start) * (stop - start);
-    }
-    pa_log_info("MMX: %llu usec (min = %llu, max = %llu, stddev = %g).", (long long unsigned int)s1,
-            (long long unsigned int)min, (long long unsigned int)max, sqrt(TIMES2 * s2 - s1 * s1) / TIMES2);
-
-    min = INT_MAX; max = 0;
-    s1 = s2 = 0;
-    for (k = 0; k < TIMES2; k++) {
-        start = pa_rtclock_now();
-        for (j = 0; j < TIMES; j++) {
-            memcpy(samples_ref, samples_orig, sizeof(samples));
-            orig_func(samples_ref, volumes, CHANNELS, sizeof(samples));
-        }
-        stop = pa_rtclock_now();
-
-        if (min > (stop - start)) min = stop - start;
-        if (max < (stop - start)) max = stop - start;
-        s1 += stop - start;
-        s2 += (stop - start) * (stop - start);
-    }
-    pa_log_info("ref: %llu usec (min = %llu, max = %llu, stddev = %g).", (long long unsigned int)s1,
-            (long long unsigned int)min, (long long unsigned int)max, sqrt(TIMES2 * s2 - s1 * s1) / TIMES2);
-
-    fail_unless(memcmp(samples_ref, samples, sizeof(samples)) == 0);
-
-#undef CHANNELS
-#undef SAMPLES
-#undef TIMES
-#undef TIMES2
-#undef PADDING
+    pa_log_debug("Checking MMX svolume");
+    run_volume_test(mmx_func, orig_func);
 }
 END_TEST
 
 START_TEST (svolume_sse_test) {
-#define CHANNELS 2
-#define SAMPLES 1022
-#define TIMES 1000
-#define TIMES2 100
-#define PADDING 16
-
-    int16_t samples[SAMPLES];
-    int16_t samples_ref[SAMPLES];
-    int16_t samples_orig[SAMPLES];
-    int32_t volumes[CHANNELS + PADDING];
-    int i, j, padding;
     pa_do_volume_func_t orig_func, sse_func;
-    pa_usec_t start, stop;
-    int k;
-    pa_usec_t min = INT_MAX, max = 0;
-    double s1 = 0, s2 = 0;
     pa_cpu_x86_flag_t flags = 0;
 
     pa_cpu_get_x86_flags(&flags);
@@ -140,70 +125,39 @@ START_TEST (svolume_sse_test) {
     pa_volume_func_init_sse(flags);
     sse_func = pa_get_volume_func(PA_SAMPLE_S16NE);
 
-    pa_log_debug("Checking SSE2 svolume (%zd)\n", sizeof(samples));
+    pa_log_debug("Checking SSE2 svolume");
+    run_volume_test(sse_func, orig_func);
+}
+END_TEST
 
-    pa_random(samples, sizeof(samples));
-    memcpy(samples_ref, samples, sizeof(samples));
-    memcpy(samples_orig, samples, sizeof(samples));
+START_TEST (svolume_orc_test) {
+    pa_do_volume_func_t orig_func, orc_func;
+    pa_cpu_info cpu_info;
 
-    for (i = 0; i < CHANNELS; i++)
-        volumes[i] = PA_CLAMP_VOLUME((pa_volume_t)(rand() >> 15));
-    for (padding = 0; padding < PADDING; padding++, i++)
-        volumes[i] = volumes[padding];
+#if defined (__i386__) || defined (__amd64__)
+    pa_zero(cpu_info);
+    cpu_info.cpu_type = PA_CPU_X86;
+    pa_cpu_get_x86_flags(&cpu_info.flags.x86);
+#endif
 
-    orig_func(samples_ref, volumes, CHANNELS, sizeof(samples));
-    sse_func(samples, volumes, CHANNELS, sizeof(samples));
-    for (i = 0; i < SAMPLES; i++) {
-        if (samples[i] != samples_ref[i]) {
-            printf ("%d: %04x != %04x (%04x * %04x)\n", i, samples[i], samples_ref[i],
-                      samples_orig[i], volumes[i % CHANNELS]);
-            fail();
-        }
+    orig_func = pa_get_volume_func(PA_SAMPLE_S16NE);
+
+    if (!pa_cpu_init_orc(cpu_info)) {
+        pa_log_info("Orc not supported. Skipping");
+        return;
     }
 
-    for (k = 0; k < TIMES2; k++) {
-        start = pa_rtclock_now();
-        for (j = 0; j < TIMES; j++) {
-            memcpy(samples, samples_orig, sizeof(samples));
-            sse_func(samples, volumes, CHANNELS, sizeof(samples));
-        }
-        stop = pa_rtclock_now();
+    orc_func = pa_get_volume_func(PA_SAMPLE_S16NE);
 
-        if (min > (stop - start)) min = stop - start;
-        if (max < (stop - start)) max = stop - start;
-        s1 += stop - start;
-        s2 += (stop - start) * (stop - start);
-    }
-    pa_log_info("SSE: %llu usec (min = %llu, max = %llu, stddev = %g).", (long long unsigned int)s1,
-            (long long unsigned int)min, (long long unsigned int)max, sqrt(TIMES2 * s2 - s1 * s1) / TIMES2);
-
-    min = INT_MAX; max = 0;
-    s1 = s2 = 0;
-    for (k = 0; k < TIMES2; k++) {
-        start = pa_rtclock_now();
-        for (j = 0; j < TIMES; j++) {
-            memcpy(samples_ref, samples_orig, sizeof(samples));
-            orig_func(samples_ref, volumes, CHANNELS, sizeof(samples));
-        }
-        stop = pa_rtclock_now();
-
-        if (min > (stop - start)) min = stop - start;
-        if (max < (stop - start)) max = stop - start;
-        s1 += stop - start;
-        s2 += (stop - start) * (stop - start);
-    }
-    pa_log_info("ref: %llu usec (min = %llu, max = %llu, stddev = %g).", (long long unsigned int)s1,
-            (long long unsigned int)min, (long long unsigned int)max, sqrt(TIMES2 * s2 - s1 * s1) / TIMES2);
-
-    fail_unless(memcmp(samples_ref, samples, sizeof(samples)) == 0);
+    pa_log_debug("Checking SSE2 svolume");
+    run_volume_test(orc_func, orig_func, CHANNELS, SAMPLES, TIMES, TIMES2, PADDING);
 
 #undef CHANNELS
 #undef SAMPLES
 #undef TIMES
 #undef TIMES2
 #undef PADDING
-}
-END_TEST
+/* End svolume tests */
 
 START_TEST (sconv_sse_test) {
 #define SAMPLES 1019
@@ -280,6 +234,7 @@ int main(int argc, char *argv[]) {
     tc = tcase_create("x86");
     tcase_add_test(tc, svolume_mmx_test);
     tcase_add_test(tc, svolume_sse_test);
+    tcase_add_test(tc, svolume_orc_test);
     tcase_add_test(tc, sconv_sse_test);
     suite_add_tcase(s, tc);
 
