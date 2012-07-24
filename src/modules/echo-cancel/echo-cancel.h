@@ -128,6 +128,14 @@ struct pa_echo_canceller {
 void pa_echo_canceller_get_capture_volume(pa_echo_canceller *ec, pa_cvolume *v);
 void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_cvolume *v);
 
+/* Null canceller functions */
+pa_bool_t pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
+                           pa_sample_spec *source_ss, pa_channel_map *source_map,
+                           pa_sample_spec *sink_ss, pa_channel_map *sink_map,
+                           uint32_t *blocksize, const char *args);
+void pa_null_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
+void pa_null_ec_done(pa_echo_canceller *ec);
+
 #ifdef HAVE_SPEEX
 /* Speex canceller functions */
 pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,

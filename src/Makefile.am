@@ -1815,7 +1815,9 @@ module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
 
 # echo-cancel module
 module_echo_cancel_la_SOURCES = \
-		modules/echo-cancel/module-echo-cancel.c modules/echo-cancel/echo-cancel.h
+		modules/echo-cancel/module-echo-cancel.c \
+		modules/echo-cancel/null.c \
+		modules/echo-cancel/echo-cancel.h
 module_echo_cancel_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_echo_cancel_la_LIBADD = $(MODULE_LIBADD) $(LIBSPEEX_LIBS)
 module_echo_cancel_la_CFLAGS = $(AM_CFLAGS) $(SERVER_CFLAGS) $(LIBSPEEX_CFLAGS)

@@ -82,6 +82,7 @@ PA_MODULE_USAGE(
 /* NOTE: Make sure the enum and ec_table are maintained in the correct order */
 typedef enum {
     PA_ECHO_CANCELLER_INVALID = -1,
+    PA_ECHO_CANCELLER_NULL,
 #ifdef HAVE_SPEEX
     PA_ECHO_CANCELLER_SPEEX,
 #endif
@@ -100,6 +101,12 @@ typedef enum {
 #endif
 
 static const pa_echo_canceller ec_table[] = {
+    {
+        /* Null, Dummy echo canceller (just copies data) */
+        .init                   = pa_null_ec_init,
+        .run                    = pa_null_ec_run,
+        .done                   = pa_null_ec_done,
+    },
 #ifdef HAVE_SPEEX
     {
         /* Speex */
@@ -1553,6 +1560,8 @@ void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_cvolume *v) 
 }
 
 static pa_echo_canceller_method_t get_ec_method_from_string(const char *method) {
+    if (pa_streq(method, "null"))
+        return PA_ECHO_CANCELLER_NULL;
 #ifdef HAVE_SPEEX
     if (pa_streq(method, "speex"))
         return PA_ECHO_CANCELLER_SPEEX;
