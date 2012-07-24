@@ -66,8 +66,8 @@ static void run_volume_test(pa_do_volume_func_t func, pa_do_volume_func_t orig_f
         s1 += stop - start;
         s2 += (stop - start) * (stop - start);
     }
-    pa_log_info("func: %llu usec (min = %llu, max = %llu, stddev = %g).", (long long unsigned int)s1,
-            (long long unsigned int)min, (long long unsigned int)max, sqrt(times2 * s2 - s1 * s1) / times2);
+    pa_log_debug("func: %llu usec (min = %llu, max = %llu, stddev = %g).", (long long unsigned int)s1,
+            (long long unsigned int)min, (long long unsigned int)max, sqrt(TIMES2 * s2 - s1 * s1) / TIMES2);
 
     min = INT_MAX; max = 0;
     s1 = s2 = 0;
@@ -84,8 +84,8 @@ static void run_volume_test(pa_do_volume_func_t func, pa_do_volume_func_t orig_f
         s1 += stop - start;
         s2 += (stop - start) * (stop - start);
     }
-    pa_log_info("orig: %llu usec (min = %llu, max = %llu, stddev = %g).", (long long unsigned int)s1,
-            (long long unsigned int)min, (long long unsigned int)max, sqrt(times2 * s2 - s1 * s1) / times2);
+    pa_log_debug("orig: %llu usec (min = %llu, max = %llu, stddev = %g).", (long long unsigned int)s1,
+            (long long unsigned int)min, (long long unsigned int)max, sqrt(TIMES2 * s2 - s1 * s1) / TIMES2);
 
     fail_unless(memcmp(samples_ref, samples, sizeof(samples)) == 0);
 }
@@ -149,8 +149,10 @@ START_TEST (svolume_orc_test) {
 
     orc_func = pa_get_volume_func(PA_SAMPLE_S16NE);
 
-    pa_log_debug("Checking SSE2 svolume");
-    run_volume_test(orc_func, orig_func, CHANNELS, SAMPLES, TIMES, TIMES2, PADDING);
+    pa_log_debug("Checking Orc svolume");
+    run_volume_test(orc_func, orig_func);
+}
+END_TEST
 
 #undef CHANNELS
 #undef SAMPLES
@@ -207,14 +209,14 @@ START_TEST (sconv_sse_test) {
         sse_func(SAMPLES, floats, samples);
     }
     stop = pa_rtclock_now();
-    pa_log_info("SSE: %llu usec.", (long long unsigned int)(stop - start));
+    pa_log_debug("SSE: %llu usec.", (long long unsigned int)(stop - start));
 
     start = pa_rtclock_now();
     for (i = 0; i < TIMES; i++) {
         orig_func(SAMPLES, floats, samples_ref);
     }
     stop = pa_rtclock_now();
-    pa_log_info("ref: %llu usec.", (long long unsigned int)(stop - start));
+    pa_log_debug("ref: %llu usec.", (long long unsigned int)(stop - start));
 
 #undef SAMPLES
 #undef TIMES
