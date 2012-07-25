@@ -184,30 +184,41 @@ static pa_bool_t device_is_audio(pa_bluetooth_device *d) {
           d->headset_state != PA_BT_AUDIO_STATE_INVALID)));
 }
 
-static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device *d, DBusMessageIter *i) {
+static const char *check_variant_property(DBusMessageIter *i) {
     const char *key;
-    DBusMessageIter variant_i;
 
-    pa_assert(y);
-    pa_assert(d);
     pa_assert(i);
 
     if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_STRING) {
         pa_log("Property name not a string.");
-        return -1;
+        return NULL;
     }
 
     dbus_message_iter_get_basic(i, &key);
 
     if (!dbus_message_iter_next(i)) {
         pa_log("Property value missing");
-        return -1;
+        return NULL;
     }
 
     if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_VARIANT) {
         pa_log("Property value not a variant.");
-        return -1;
+        return NULL;
     }
+
+    return key;
+}
+
+static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device *d, DBusMessageIter *i) {
+    const char *key;
+    DBusMessageIter variant_i;
+
+    pa_assert(y);
+    pa_assert(d);
+
+    key = check_variant_property(i);
+    if (key == NULL)
+        return -1;
 
     dbus_message_iter_recurse(i, &variant_i);
 
@@ -327,24 +338,10 @@ static int parse_audio_property(pa_bluetooth_discovery *u, int *state, DBusMessa
 
     pa_assert(u);
     pa_assert(state);
-    pa_assert(i);
 
-    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_STRING) {
-        pa_log("Property name not a string.");
+    key = check_variant_property(i);
+    if (key == NULL)
         return -1;
-    }
-
-    dbus_message_iter_get_basic(i, &key);
-
-    if (!dbus_message_iter_next(i)) {
-        pa_log("Property value missing");
-        return -1;
-    }
-
-    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_VARIANT) {
-        pa_log("Property value not a variant.");
-        return -1;
-    }
 
     dbus_message_iter_recurse(i, &variant_i);
 
@@ -735,22 +732,9 @@ int pa_bluetooth_transport_parse_property(pa_bluetooth_transport *t, DBusMessage
     const char *key;
     DBusMessageIter variant_i;
 
-    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_STRING) {
-        pa_log("Property name not a string.");
+    key = check_variant_property(i);
+    if (key == NULL)
         return -1;
-    }
-
-    dbus_message_iter_get_basic(i, &key);
-
-    if (!dbus_message_iter_next(i))  {
-        pa_log("Property value missing");
-        return -1;
-    }
-
-    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_VARIANT) {
-        pa_log("Property value not a variant.");
-        return -1;
-    }
 
     dbus_message_iter_recurse(i, &variant_i);
 
