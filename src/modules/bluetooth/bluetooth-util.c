@@ -396,8 +396,7 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
                         has_audio = TRUE;
                     }
 
-                    if (!dbus_message_iter_next(&ai))
-                        break;
+                    dbus_message_iter_next(&ai);
                 }
 
                 /* this might eventually be racy if .Audio is not there yet, but the State change will come anyway later, so this call is for cold-detection mostly */
@@ -589,8 +588,7 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
             }
         }
 
-        if (!dbus_message_iter_next(&element_i))
-            break;
+        dbus_message_iter_next(&element_i);
     }
 
 finish:
