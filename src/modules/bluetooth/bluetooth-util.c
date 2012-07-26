@@ -75,6 +75,7 @@ struct pa_bluetooth_discovery {
 
 static void get_properties_reply(DBusPendingCall *pending, void *userdata);
 static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, DBusMessage *m, DBusPendingCallNotifyFunction func, void *call_data);
+static void found_adapter(pa_bluetooth_discovery *y, const char *path);
 
 pa_bt_audio_state_t pa_bt_audio_state_from_string(const char* value) {
     pa_assert(value);
@@ -207,6 +208,46 @@ static const char *check_variant_property(DBusMessageIter *i) {
     }
 
     return key;
+}
+
+static int parse_manager_property(pa_bluetooth_discovery *y, DBusMessageIter *i) {
+    const char *key;
+    DBusMessageIter variant_i;
+
+    pa_assert(y);
+
+    key = check_variant_property(i);
+    if (key == NULL)
+        return -1;
+
+    dbus_message_iter_recurse(i, &variant_i);
+
+    switch (dbus_message_iter_get_arg_type(&variant_i)) {
+
+        case DBUS_TYPE_ARRAY: {
+
+            DBusMessageIter ai;
+            dbus_message_iter_recurse(&variant_i, &ai);
+
+            if (dbus_message_iter_get_arg_type(&ai) == DBUS_TYPE_OBJECT_PATH &&
+                pa_streq(key, "Adapters")) {
+
+                while (dbus_message_iter_get_arg_type(&ai) != DBUS_TYPE_INVALID) {
+                    const char *value;
+
+                    dbus_message_iter_get_basic(&ai, &value);
+
+                    found_adapter(y, value);
+
+                    dbus_message_iter_next(&ai);
+                }
+            }
+
+            break;
+        }
+    }
+
+    return 0;
 }
 
 static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device *d, DBusMessageIter *i) {
@@ -430,8 +471,10 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
     /* We don't use p->call_data here right-away since the device
      * might already be invalidated at this point */
 
-    if (!(d = pa_hashmap_get(y->devices, dbus_message_get_path(p->message))))
-        return;
+    if (dbus_message_has_interface(p->message, "org.bluez.Manager"))
+        d = NULL;
+    else
+        d = pa_hashmap_get(y->devices, dbus_message_get_path(p->message));
 
     pa_assert(p->call_data == d);
 
@@ -469,7 +512,11 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
 
             dbus_message_iter_recurse(&element_i, &dict_i);
 
-            if (dbus_message_has_interface(p->message, "org.bluez.Device")) {
+            if (dbus_message_has_interface(p->message, "org.bluez.Manager")) {
+                if (parse_manager_property(y, &dict_i) < 0)
+                    goto finish;
+
+            } else if (dbus_message_has_interface(p->message, "org.bluez.Device")) {
                 if (parse_device_property(y, d, &dict_i) < 0)
                     goto finish;
 
@@ -501,7 +548,8 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
     }
 
 finish:
-    run_callback(y, d, FALSE);
+    if (d != NULL)
+        run_callback(y, d, FALSE);
 
 finish2:
     dbus_message_unref(r);
@@ -672,59 +720,12 @@ static void found_adapter(pa_bluetooth_discovery *y, const char *path) {
     register_endpoint(y, path, A2DP_SINK_ENDPOINT, A2DP_SINK_UUID);
 }
 
-static void list_adapters_reply(DBusPendingCall *pending, void *userdata) {
-    DBusError e;
-    DBusMessage *r;
-    char **paths = NULL;
-    int num = -1;
-    pa_dbus_pending *p;
-    pa_bluetooth_discovery *y;
-
-    pa_assert(pending);
-
-    dbus_error_init(&e);
-
-    pa_assert_se(p = userdata);
-    pa_assert_se(y = p->context_data);
-    pa_assert_se(r = dbus_pending_call_steal_reply(pending));
-
-    if (dbus_message_is_error(r, DBUS_ERROR_SERVICE_UNKNOWN)) {
-        pa_log_debug("Bluetooth daemon is apparently not available.");
-        remove_all_devices(y);
-        goto finish;
-    }
-
-    if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
-        pa_log("org.bluez.Manager.ListAdapters() failed: %s: %s", dbus_message_get_error_name(r), pa_dbus_get_error_message(r));
-        goto finish;
-    }
-
-    if (!dbus_message_get_args(r, &e, DBUS_TYPE_ARRAY, DBUS_TYPE_OBJECT_PATH, &paths, &num, DBUS_TYPE_INVALID)) {
-        pa_log("org.bluez.Manager.ListAdapters returned an error: %s", e.message);
-        dbus_error_free(&e);
-    } else {
-        int i;
-
-        for (i = 0; i < num; ++i)
-            found_adapter(y, paths[i]);
-    }
-
-finish:
-    if (paths)
-        dbus_free_string_array(paths);
-
-    dbus_message_unref(r);
-
-    PA_LLIST_REMOVE(pa_dbus_pending, y->pending, p);
-    pa_dbus_pending_free(p);
-}
-
 static void list_adapters(pa_bluetooth_discovery *y) {
     DBusMessage *m;
     pa_assert(y);
 
-    pa_assert_se(m = dbus_message_new_method_call("org.bluez", "/", "org.bluez.Manager", "ListAdapters"));
-    send_and_add_to_pending(y, m, list_adapters_reply, NULL);
+    pa_assert_se(m = dbus_message_new_method_call("org.bluez", "/", "org.bluez.Manager", "GetProperties"));
+    send_and_add_to_pending(y, m, get_properties_reply, NULL);
 }
 
 int pa_bluetooth_transport_parse_property(pa_bluetooth_transport *t, DBusMessageIter *i)
