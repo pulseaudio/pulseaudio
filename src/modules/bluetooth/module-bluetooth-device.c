@@ -227,8 +227,8 @@ static void a2dp_set_bitpool(struct userdata *u, uint8_t bitpool)
     pa_log_debug("Bitpool has changed to %u", a2dp->sbc.bitpool);
 
     u->block_size =
-            (u->link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
-            / a2dp->frame_length * a2dp->codesize;
+        (u->link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+        / a2dp->frame_length * a2dp->codesize;
 
     pa_sink_set_max_request_within_thread(u->sink, u->block_size);
     pa_sink_set_fixed_latency_within_thread(u->sink,
@@ -1701,9 +1701,8 @@ static int bt_transport_config_a2dp(struct userdata *u) {
     a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
 
     u->block_size =
-        ((u->link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
-        / a2dp->frame_length
-        * a2dp->codesize);
+        (u->link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+        / a2dp->frame_length * a2dp->codesize;
 
     pa_log_info("SBC parameters:\n\tallocation=%u\n\tsubbands=%u\n\tblocks=%u\n\tbitpool=%u\n",
                 a2dp->sbc.allocation, a2dp->sbc.subbands, a2dp->sbc.blocks, a2dp->sbc.bitpool);
