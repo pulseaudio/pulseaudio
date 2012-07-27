@@ -171,8 +171,11 @@ struct userdata {
 
     int stream_fd;
 
-    size_t link_mtu;
-    size_t block_size;
+    size_t read_link_mtu;
+    size_t read_block_size;
+
+    size_t write_link_mtu;
+    size_t write_block_size;
 
     struct a2dp_info a2dp;
     struct hsp_info hsp;
@@ -226,13 +229,17 @@ static void a2dp_set_bitpool(struct userdata *u, uint8_t bitpool)
 
     pa_log_debug("Bitpool has changed to %u", a2dp->sbc.bitpool);
 
-    u->block_size =
-        (u->link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+    u->read_block_size =
+        (u->read_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
         / a2dp->frame_length * a2dp->codesize;
 
-    pa_sink_set_max_request_within_thread(u->sink, u->block_size);
+    u->write_block_size =
+        (u->write_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+        / a2dp->frame_length * a2dp->codesize;
+
+    pa_sink_set_max_request_within_thread(u->sink, u->write_block_size);
     pa_sink_set_fixed_latency_within_thread(u->sink,
-            FIXED_LATENCY_PLAYBACK_A2DP + pa_bytes_to_usec(u->block_size, &u->sample_spec));
+            FIXED_LATENCY_PLAYBACK_A2DP + pa_bytes_to_usec(u->write_block_size, &u->sample_spec));
 }
 
 /* from IO thread, except in SCO over PCM */
@@ -327,8 +334,7 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
         return -1;
     }
 
-    /* FIXME: Handle in/out MTU properly when unix socket is not longer supported */
-    u->stream_fd = pa_bluetooth_transport_acquire(t, accesstype, NULL, &u->link_mtu);
+    u->stream_fd = pa_bluetooth_transport_acquire(t, accesstype, &u->read_link_mtu, &u->write_link_mtu);
     if (u->stream_fd < 0)
         return -1;
 
@@ -395,7 +401,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 pa_usec_t wi, ri;
 
                 ri = pa_smoother_get(u->read_smoother, pa_rtclock_now());
-                wi = pa_bytes_to_usec(u->write_index + u->block_size, &u->sample_spec);
+                wi = pa_bytes_to_usec(u->write_index + u->write_block_size, &u->sample_spec);
 
                 *((pa_usec_t*) data) = wi > ri ? wi - ri : 0;
             } else {
@@ -514,9 +520,9 @@ static int hsp_process_render(struct userdata *u) {
 
     /* First, render some data */
     if (!u->write_memchunk.memblock)
-        pa_sink_render_full(u->sink, u->block_size, &u->write_memchunk);
+        pa_sink_render_full(u->sink, u->write_block_size, &u->write_memchunk);
 
-    pa_assert(u->write_memchunk.length == u->block_size);
+    pa_assert(u->write_memchunk.length == u->write_block_size);
 
     for (;;) {
         ssize_t l;
@@ -578,7 +584,7 @@ static int hsp_process_push(struct userdata *u) {
     pa_assert(u->source);
     pa_assert(u->read_smoother);
 
-    memchunk.memblock = pa_memblock_new(u->core->mempool, u->block_size);
+    memchunk.memblock = pa_memblock_new(u->core->mempool, u->read_block_size);
     memchunk.index = memchunk.length = 0;
 
     for (;;) {
@@ -645,7 +651,7 @@ static int hsp_process_push(struct userdata *u) {
 
         pa_source_post(u->source, &memchunk);
 
-        ret = 1;
+        ret = l;
         break;
     }
 
@@ -656,12 +662,14 @@ static int hsp_process_push(struct userdata *u) {
 
 /* Run from IO thread */
 static void a2dp_prepare_buffer(struct userdata *u) {
+    size_t min_buffer_size = PA_MAX(u->read_link_mtu, u->write_link_mtu);
+
     pa_assert(u);
 
-    if (u->a2dp.buffer_size >= u->link_mtu)
+    if (u->a2dp.buffer_size >= min_buffer_size)
         return;
 
-    u->a2dp.buffer_size = 2 * u->link_mtu;
+    u->a2dp.buffer_size = 2 * min_buffer_size;
     pa_xfree(u->a2dp.buffer);
     u->a2dp.buffer = pa_xmalloc(u->a2dp.buffer_size);
 }
@@ -684,9 +692,9 @@ static int a2dp_process_render(struct userdata *u) {
 
     /* First, render some data */
     if (!u->write_memchunk.memblock)
-        pa_sink_render_full(u->sink, u->block_size, &u->write_memchunk);
+        pa_sink_render_full(u->sink, u->write_block_size, &u->write_memchunk);
 
-    pa_assert(u->write_memchunk.length == u->block_size);
+    pa_assert(u->write_memchunk.length == u->write_block_size);
 
     a2dp_prepare_buffer(u);
 
@@ -809,7 +817,7 @@ static int a2dp_process_push(struct userdata *u) {
     pa_assert(u->source);
     pa_assert(u->read_smoother);
 
-    memchunk.memblock = pa_memblock_new(u->core->mempool, u->block_size);
+    memchunk.memblock = pa_memblock_new(u->core->mempool, u->read_block_size);
     memchunk.index = memchunk.length = 0;
 
     for (;;) {
@@ -905,7 +913,7 @@ static int a2dp_process_push(struct userdata *u) {
 
         pa_source_post(u->source, &memchunk);
 
-        ret = 1;
+        ret = l;
         break;
     }
 
@@ -938,6 +946,7 @@ static void a2dp_reduce_bitpool(struct userdata *u)
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     unsigned do_write = 0;
+    unsigned pending_read_bytes = 0;
     pa_bool_t writable = FALSE;
 
     pa_assert(u);
@@ -980,7 +989,9 @@ static void thread_func(void *userdata) {
                     goto fail;
 
                 /* We just read something, so we are supposed to write something, too */
-                do_write += n_read;
+                pending_read_bytes += n_read;
+                do_write += pending_read_bytes / u->write_block_size;
+                pending_read_bytes = pending_read_bytes % u->write_block_size;
             }
         }
 
@@ -1031,6 +1042,7 @@ static void thread_func(void *userdata) {
                         }
 
                         do_write = 1;
+                        pending_read_bytes = 0;
                     }
                 }
 
@@ -1503,10 +1515,10 @@ static int add_sink(struct userdata *u) {
         u->sink->userdata = u;
         u->sink->parent.process_msg = sink_process_msg;
 
-        pa_sink_set_max_request(u->sink, u->block_size);
+        pa_sink_set_max_request(u->sink, u->write_block_size);
         pa_sink_set_fixed_latency(u->sink,
                                   (u->profile == PROFILE_A2DP ? FIXED_LATENCY_PLAYBACK_A2DP : FIXED_LATENCY_PLAYBACK_HSP) +
-                                  pa_bytes_to_usec(u->block_size, &u->sample_spec));
+                                  pa_bytes_to_usec(u->write_block_size, &u->sample_spec));
     }
 
     if (u->profile == PROFILE_HSP) {
@@ -1568,7 +1580,7 @@ static int add_source(struct userdata *u) {
 
         pa_source_set_fixed_latency(u->source,
                                     (u->profile == PROFILE_A2DP_SOURCE ? FIXED_LATENCY_RECORD_A2DP : FIXED_LATENCY_RECORD_HSP) +
-                                    pa_bytes_to_usec(u->block_size, &u->sample_spec));
+                                    pa_bytes_to_usec(u->read_block_size, &u->sample_spec));
     }
 
     if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW)) {
@@ -1700,8 +1712,12 @@ static int bt_transport_config_a2dp(struct userdata *u) {
     a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
     a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
 
-    u->block_size =
-        (u->link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+    u->read_block_size =
+        (u->read_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+        / a2dp->frame_length * a2dp->codesize;
+
+    u->write_block_size =
+        (u->write_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
         / a2dp->frame_length * a2dp->codesize;
 
     pa_log_info("SBC parameters:\n\tallocation=%u\n\tsubbands=%u\n\tblocks=%u\n\tbitpool=%u\n",
@@ -1712,7 +1728,8 @@ static int bt_transport_config_a2dp(struct userdata *u) {
 
 static int bt_transport_config(struct userdata *u) {
     if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) {
-        u->block_size = u->link_mtu;
+        u->read_block_size = u->read_link_mtu;
+        u->write_block_size = u->write_link_mtu;
         u->sample_spec.format = PA_SAMPLE_S16LE;
         u->sample_spec.channels = 1;
         u->sample_spec.rate = 8000;
