@@ -29,6 +29,8 @@
 #include <grp.h>
 #include <errno.h>
 
+#include <check.h>
+
 #include <pulsecore/usergroup.h>
 #include <pulsecore/core-util.h>
 
@@ -117,40 +119,51 @@ static int compare_passwd(const struct passwd *a, const struct passwd *b) {
     return 0;
 }
 
-int main(int argc, char *argv[]) {
+START_TEST (usergroup_test) {
     struct group *gr;
     struct passwd *pw;
-    int err;
     struct group *reference_group = NULL;
     struct passwd *reference_passwd = NULL;
 
-    err = load_reference_structs(&reference_group, &reference_passwd);
-    if (err)
-        return 77;
+    fail_if(load_reference_structs(&reference_group, &reference_passwd));
 
     errno = 0;
     gr = pa_getgrgid_malloc(reference_group->gr_gid);
-    if (compare_group(reference_group, gr))
-        return 1;
+    fail_if(compare_group(reference_group, gr));
     pa_getgrgid_free(gr);
 
     errno = 0;
     gr = pa_getgrnam_malloc(reference_group->gr_name);
-    if (compare_group(reference_group, gr))
-        return 1;
+    fail_if(compare_group(reference_group, gr));
     pa_getgrnam_free(gr);
 
     errno = 0;
     pw = pa_getpwuid_malloc(reference_passwd->pw_uid);
-    if (compare_passwd(reference_passwd, pw))
-        return 1;
+    fail_if(compare_passwd(reference_passwd, pw));
     pa_getpwuid_free(pw);
 
     errno = 0;
     pw = pa_getpwnam_malloc(reference_passwd->pw_name);
-    if (compare_passwd(reference_passwd, pw))
-        return 1;
+    fail_if(compare_passwd(reference_passwd, pw));
     pa_getpwnam_free(pw);
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    s = suite_create("Usergroup");
+    tc = tcase_create("usergroup");
+    tcase_add_test(tc, usergroup_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

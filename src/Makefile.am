@@ -521,8 +521,8 @@ alsa_time_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 usergroup_test_SOURCES = tests/usergroup-test.c
 usergroup_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-usergroup_test_CFLAGS = $(AM_CFLAGS)
-usergroup_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+usergroup_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+usergroup_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 connect_stress_SOURCES = tests/connect-stress.c
 connect_stress_LDADD = $(AM_LDADD) libpulse.la
