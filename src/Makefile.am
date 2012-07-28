@@ -526,8 +526,8 @@ usergroup_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 connect_stress_SOURCES = tests/connect-stress.c
 connect_stress_LDADD = $(AM_LDADD) libpulse.la
-connect_stress_CFLAGS = $(AM_CFLAGS)
-connect_stress_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+connect_stress_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+connect_stress_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 echo_cancel_test_SOURCES = $(module_echo_cancel_la_SOURCES)
 nodist_echo_cancel_test_SOURCES = $(nodist_module_echo_cancel_la_SOURCES)

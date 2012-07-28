@@ -29,6 +29,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <check.h>
+
 #include <pulse/pulseaudio.h>
 #include <pulse/mainloop.h>
 
@@ -47,6 +49,7 @@
 static pa_context *context = NULL;
 static pa_stream *streams[NSTREAMS];
 static pa_threaded_mainloop *mainloop = NULL;
+static char *bname;
 
 static const pa_sample_spec sample_spec = {
     .format = PA_SAMPLE_FLOAT32,
@@ -62,29 +65,29 @@ static void connect(const char *name, int *try) {
 
     /* Set up a new main loop */
     mainloop = pa_threaded_mainloop_new();
-    assert(mainloop);
+    fail_unless(mainloop != NULL);
 
     api = pa_threaded_mainloop_get_api(mainloop);
     context = pa_context_new(api, name);
-    assert(context);
+    fail_unless(context != NULL);
 
     pa_context_set_state_callback(context, context_state_callback, try);
 
     /* Connect the context */
     if (pa_context_connect(context, NULL, 0, NULL) < 0) {
         fprintf(stderr, "pa_context_connect() failed.\n");
-        abort();
+        fail();
     }
 
     ret = pa_threaded_mainloop_start(mainloop);
-    assert(ret == 0);
+    fail_unless(ret == 0);
 }
 
 static void disconnect(void) {
     int i;
 
-    assert(mainloop);
-    assert(context);
+    fail_unless(mainloop != NULL);
+    fail_unless(context != NULL);
 
     pa_threaded_mainloop_lock(mainloop);
 
@@ -125,7 +128,7 @@ static void stream_write_callback(pa_stream *stream, size_t nbytes, void *userda
 }
 
 static void stream_state_callback(pa_stream *s, void *userdata) {
-    assert(s);
+    fail_unless(s != NULL);
 
     switch (pa_stream_get_state(s)) {
         case PA_STREAM_UNCONNECTED:
@@ -137,15 +140,15 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
         default:
         case PA_STREAM_FAILED:
             fprintf(stderr, "Stream error: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
-            abort();
+            fail();
     }
 }
 
 static void context_state_callback(pa_context *c, void *userdata) {
     int *try;
 
-    assert(c);
-    assert(userdata);
+    fail_unless(c != NULL);
+    fail_unless(userdata != NULL);
 
     try = (int*)userdata;
 
@@ -165,7 +168,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
                 snprintf(name, sizeof(name), "stream #%i", i);
                 streams[i] = pa_stream_new(c, name, &sample_spec, NULL);
-                assert(streams[i]);
+                fail_unless(streams[i] != NULL);
                 pa_stream_set_state_callback(streams[i], stream_state_callback, NULL);
                 pa_stream_set_write_callback(streams[i], stream_write_callback, NULL);
                 pa_stream_connect_playback(streams[i], NULL, &buffer_attr, 0, NULL, NULL);
@@ -183,24 +186,45 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_FAILED:
         default:
             fprintf(stderr, "Context error: %s\n", pa_strerror(pa_context_errno(c)));
-            abort();
+            fail();
     }
 }
 
-int main(int argc, char *argv[]) {
+START_TEST (connect_stress_test) {
     int i;
 
     for (i = 0; i < NSTREAMS; i++)
         streams[i] = NULL;
 
     for (i = 0; i < NTESTS; i++) {
-        connect(argv[0], &i);
+        connect(bname, &i);
         usleep(rand() % 500000);
         disconnect();
         usleep(rand() % 500000);
     }
 
     fprintf(stderr, "Done.\n");
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    bname = argv[0];
+
+    s = suite_create("Connect Stress");
+    tc = tcase_create("connectstress");
+    tcase_add_test(tc, connect_stress_test);
+    tcase_set_timeout(tc, 20 * 60);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
