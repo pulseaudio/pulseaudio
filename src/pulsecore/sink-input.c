@@ -783,6 +783,7 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
     pa_bool_t volume_is_norm;
     size_t block_size_max_sink, block_size_max_sink_input;
     size_t ilength;
+    size_t ilength_full;
 
     pa_sink_input_assert_ref(i);
     pa_sink_input_assert_io_context(i);
@@ -816,6 +817,10 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
     } else
         ilength = slength;
 
+    /* Length corresponding to slength (without limiting to
+     * block_size_max_sink_input). */
+    ilength_full = ilength;
+
     if (ilength > block_size_max_sink_input)
         ilength = block_size_max_sink_input;
 
@@ -843,7 +848,7 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
             pa_memblockq_seek(i->thread_info.render_memblockq, (int64_t) slength, PA_SEEK_RELATIVE, TRUE);
             i->thread_info.playing_for = 0;
             if (i->thread_info.underrun_for != (uint64_t) -1)
-                i->thread_info.underrun_for += ilength;
+                i->thread_info.underrun_for += ilength_full;
             break;
         }
 
