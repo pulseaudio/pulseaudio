@@ -355,9 +355,9 @@ thread_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libp
 thread_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 once_test_SOURCES = tests/once-test.c
-once_test_CFLAGS = $(AM_CFLAGS)
+once_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 once_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-once_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+once_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 flist_test_SOURCES = tests/flist-test.c
 flist_test_CFLAGS = $(AM_CFLAGS)

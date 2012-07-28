@@ -25,6 +25,8 @@
 #include <pthread.h>
 #endif
 
+#include <check.h>
+
 #include <pulsecore/thread.h>
 #include <pulsecore/once.h>
 #include <pulsecore/log.h>
@@ -58,23 +60,20 @@ static void thread_func(void *data) {
 
     CPU_ZERO(&mask);
     CPU_SET((size_t) (pa_atomic_inc(&i_cpu) % n_cpu), &mask);
-    pa_assert_se(pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask) == 0);
+    fail_unless(pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask) == 0);
 #endif
 
     pa_log_debug("started up: %s", (char *) data);
 
     r = pthread_barrier_wait(&barrier);
-    pa_assert(r == 0 || r == PTHREAD_BARRIER_SERIAL_THREAD);
+    fail_unless(r == 0 || r == PTHREAD_BARRIER_SERIAL_THREAD);
 #endif /* HAVE_PTHREAD */
 
     pa_run_once(&once, once_func);
 }
 
-int main(int argc, char *argv[]) {
+START_TEST (once_test) {
     unsigned n, i;
-
-    if (!getenv("MAKE_CHECK"))
-        pa_log_set_level(PA_LOG_DEBUG);
 
     n_cpu = pa_ncpus();
 
@@ -82,7 +81,7 @@ int main(int argc, char *argv[]) {
         pa_thread* threads[N_THREADS];
 
 #ifdef HAVE_PTHREAD
-        pa_assert_se(pthread_barrier_init(&barrier, NULL, N_THREADS) == 0);
+        fail_unless(pthread_barrier_init(&barrier, NULL, N_THREADS) == 0);
 #endif
 
         /* Yes, kinda ugly */
@@ -94,7 +93,7 @@ int main(int argc, char *argv[]) {
         for (i = 0; i < N_THREADS; i++)
             pa_thread_join(threads[i]);
 
-        pa_assert(n_run == 1);
+        fail_unless(n_run == 1);
         pa_log_info("ran by %s", ran_by);
 
         for (i = 0; i < N_THREADS; i++) {
@@ -106,9 +105,34 @@ int main(int argc, char *argv[]) {
         ran_by = NULL;
 
 #ifdef HAVE_PTHREAD
-        pa_assert_se(pthread_barrier_destroy(&barrier) == 0);
+        fail_unless(pthread_barrier_destroy(&barrier) == 0);
 #endif
     }
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    if (!getenv("MAKE_CHECK"))
+        pa_log_set_level(PA_LOG_DEBUG);
+
+    s = suite_create("Once");
+    tc = tcase_create("once");
+    tcase_add_test(tc, once_test);
+    /* the default timeout is too small,
+     * set it to a reasonable large one.
+     */
+    tcase_set_timeout(tc, 60 * 60);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
