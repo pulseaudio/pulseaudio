@@ -6,7 +6,12 @@
 #include <inttypes.h>
 #include <time.h>
 
+#include <check.h>
+
 #include <alsa/asoundlib.h>
+
+static const char *dev;
+static int cap;
 
 static uint64_t timespec_us(const struct timespec *ts) {
     return
@@ -14,9 +19,8 @@ static uint64_t timespec_us(const struct timespec *ts) {
         ts->tv_nsec / 1000LLU;
 }
 
-int main(int argc, char *argv[]) {
-    const char *dev;
-    int r, cap;
+START_TEST (alsa_time_test) {
+    int r;
     snd_pcm_hw_params_t *hwparams;
     snd_pcm_sw_params_t *swparams;
     snd_pcm_status_t *status;
@@ -37,100 +41,97 @@ int main(int argc, char *argv[]) {
     snd_pcm_status_alloca(&status);
 
     r = clock_gettime(CLOCK_MONOTONIC, &start);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     start_us = timespec_us(&start);
-
-    dev = argc > 1 ? argv[1] : "front:AudioPCI";
-    cap = argc > 2 ? atoi(argv[2]) : 0;
 
     if (cap == 0)
       r = snd_pcm_open(&pcm, dev, SND_PCM_STREAM_PLAYBACK, 0);
     else
       r = snd_pcm_open(&pcm, dev, SND_PCM_STREAM_CAPTURE, 0);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_hw_params_any(pcm, hwparams);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_hw_params_set_rate_resample(pcm, hwparams, 0);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_hw_params_set_access(pcm, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_hw_params_set_format(pcm, hwparams, SND_PCM_FORMAT_S16_LE);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_hw_params_set_rate_near(pcm, hwparams, &rate, NULL);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_hw_params_set_channels(pcm, hwparams, 2);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_hw_params_set_periods_integer(pcm, hwparams);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_hw_params_set_periods_near(pcm, hwparams, &periods, &dir);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_hw_params_set_buffer_size_near(pcm, hwparams, &buffer_size);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_hw_params(pcm, hwparams);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_hw_params_current(pcm, hwparams);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_sw_params_current(pcm, swparams);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     if (cap == 0)
       r = snd_pcm_sw_params_set_avail_min(pcm, swparams, 1);
     else
       r = snd_pcm_sw_params_set_avail_min(pcm, swparams, 0);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_sw_params_set_period_event(pcm, swparams, 0);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_hw_params_get_buffer_size(hwparams, &buffer_size);
-    assert(r == 0);
+    fail_unless(r == 0);
     r = snd_pcm_sw_params_set_start_threshold(pcm, swparams, buffer_size);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_sw_params_get_boundary(swparams, &boundary);
-    assert(r == 0);
+    fail_unless(r == 0);
     r = snd_pcm_sw_params_set_stop_threshold(pcm, swparams, boundary);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_sw_params_set_tstamp_mode(pcm, swparams, SND_PCM_TSTAMP_ENABLE);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_sw_params(pcm, swparams);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_prepare(pcm);
-    assert(r == 0);
+    fail_unless(r == 0);
 
     r = snd_pcm_sw_params_current(pcm, swparams);
-    assert(r == 0);
+    fail_unless(r == 0);
 
-/*     assert(snd_pcm_hw_params_is_monotonic(hwparams) > 0); */
+/*     fail_unless(snd_pcm_hw_params_is_monotonic(hwparams) > 0); */
 
     n_pollfd = snd_pcm_poll_descriptors_count(pcm);
-    assert(n_pollfd > 0);
+    fail_unless(n_pollfd > 0);
 
     pollfds = malloc(sizeof(struct pollfd) * n_pollfd);
-    assert(pollfds);
+    fail_unless(pollfds != NULL);
 
     r = snd_pcm_poll_descriptors(pcm, pollfds, n_pollfd);
-    assert(r == n_pollfd);
+    fail_unless(r == n_pollfd);
 
     if (cap) {
       r = snd_pcm_start(pcm);
-      assert(r == 0);
+      fail_unless(r == 0);
     }
 
     for (;;) {
@@ -143,24 +144,24 @@ int main(int argc, char *argv[]) {
         unsigned long long pos;
 
         r = poll(pollfds, n_pollfd, 0);
-        assert(r >= 0);
+        fail_unless(r >= 0);
 
         r = snd_pcm_poll_descriptors_revents(pcm, pollfds, n_pollfd, &revents);
-        assert(r == 0);
+        fail_unless(r == 0);
 
         if (cap == 0)
-          assert((revents & ~POLLOUT) == 0);
+          fail_unless((revents & ~POLLOUT) == 0);
         else
-          assert((revents & ~POLLIN) == 0);
+          fail_unless((revents & ~POLLIN) == 0);
 
         avail = snd_pcm_avail(pcm);
-        assert(avail >= 0);
+        fail_unless(avail >= 0);
 
         r = snd_pcm_status(pcm, status);
-        assert(r == 0);
+        fail_unless(r == 0);
 
         /* This assertion fails from time to time. ALSA seems to be broken */
-/*         assert(avail == (snd_pcm_sframes_t) snd_pcm_status_get_avail(status)); */
+/*         fail_unless(avail == (snd_pcm_sframes_t) snd_pcm_status_get_avail(status)); */
 /*         printf("%lu %lu\n", (unsigned long) avail, (unsigned long) snd_pcm_status_get_avail(status)); */
 
         snd_pcm_status_get_htstamp(status, &timestamp);
@@ -168,9 +169,9 @@ int main(int argc, char *argv[]) {
         state = snd_pcm_status_get_state(status);
 
         r = clock_gettime(CLOCK_MONOTONIC, &now);
-        assert(r == 0);
+        fail_unless(r == 0);
 
-        assert(!revents || avail > 0);
+        fail_unless(!revents || avail > 0);
 
         if ((!cap && avail) || (cap && (unsigned)avail >= buffer_size)) {
             snd_pcm_sframes_t sframes;
@@ -181,7 +182,7 @@ int main(int argc, char *argv[]) {
               sframes = snd_pcm_writei(pcm, psamples, 1);
             else
               sframes = snd_pcm_readi(pcm, csamples, 1);
-            assert(sframes == 1);
+            fail_unless(sframes == 1);
 
             handled = 1;
             sample_count++;
@@ -215,14 +216,35 @@ int main(int argc, char *argv[]) {
                state);
 
         if (cap == 0)
-          /** When this assert is hit, most likely something bad
+          /** When this fail_unless is hit, most likely something bad
            * happened, i.e. the avail jumped suddenly. */
-          assert((unsigned) avail <= buffer_size);
+          fail_unless((unsigned) avail <= buffer_size);
 
         last_avail = avail;
         last_delay = delay;
         last_timestamp = timestamp;
     }
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    dev = argc > 1 ? argv[1] : "front:AudioPCI";
+    cap = argc > 2 ? atoi(argv[2]) : 0;
+
+    s = suite_create("ALSA Time");
+    tc = tcase_create("alsatime");
+    tcase_add_test(tc, alsa_time_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
