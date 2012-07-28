@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <check.h>
+
 #include <pulse/xmalloc.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/macro.h>
@@ -91,7 +93,7 @@ quit:
     pa_log_info("thread_func() for %s done...", (char*) pa_tls_get(tls));
 }
 
-int main(int argc, char *argv[]) {
+START_TEST (thread_test) {
     int i, k;
     pa_thread* t[THREADS_MAX];
 
@@ -104,7 +106,8 @@ int main(int argc, char *argv[]) {
     tls = pa_tls_new(pa_xfree);
 
     for (i = 0; i < THREADS_MAX; i++) {
-        pa_assert_se(t[i] = pa_thread_new("test", thread_func, pa_sprintf_malloc("Thread #%i", i+1)));
+        t[i] = pa_thread_new("test", thread_func, pa_sprintf_malloc("Thread #%i", i+1));
+        fail_unless(t[i] != 0);
     }
 
     pa_mutex_lock(mutex);
@@ -137,6 +140,24 @@ int main(int argc, char *argv[]) {
     pa_cond_free(cond1);
     pa_cond_free(cond2);
     pa_tls_free(tls);
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    s = suite_create("Thread");
+    tc = tcase_create("thread");
+    tcase_add_test(tc, thread_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
