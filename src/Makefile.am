@@ -440,9 +440,9 @@ mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpulse-mainlo
 mainloop_test_glib_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 memblockq_test_SOURCES = tests/memblockq-test.c
-memblockq_test_CFLAGS = $(AM_CFLAGS)
+memblockq_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 memblockq_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-memblockq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+memblockq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 sync_playback_SOURCES = tests/sync-playback.c
 sync_playback_LDADD = $(AM_LDADD) libpulse.la

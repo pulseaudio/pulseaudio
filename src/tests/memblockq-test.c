@@ -25,51 +25,77 @@
 #include <stdio.h>
 #include <signal.h>
 
+#include <check.h>
+
 #include <pulsecore/memblockq.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/strbuf.h>
+#include <pulsecore/core-util.h>
 
-static void dump_chunk(const pa_memchunk *chunk) {
+#include <pulse/xmalloc.h>
+
+static const char *fixed[] = {
+    "1122444411441144__22__11______3333______________________________",
+    "__________________3333__________________________________________"
+};
+static const char *manual[] = {
+    "1122444411441144__22__11______3333______________________________",
+    "__________________3333______________________________"
+};
+
+static void dump_chunk(const pa_memchunk *chunk, pa_strbuf *buf) {
     size_t n;
     void *q;
     char *e;
 
-    pa_assert(chunk);
+    fail_unless(chunk != NULL);
 
     q = pa_memblock_acquire(chunk->memblock);
-    for (e = (char*) q + chunk->index, n = 0; n < chunk->length; n++, e++)
+    for (e = (char*) q + chunk->index, n = 0; n < chunk->length; n++, e++) {
         fprintf(stderr, "%c", *e);
+        pa_strbuf_putc(buf, *e);
+    }
     pa_memblock_release(chunk->memblock);
 }
 
-static void dump(pa_memblockq *bq) {
+static void dump(pa_memblockq *bq, int n) {
     pa_memchunk out;
+    pa_strbuf *buf;
+    char *str;
 
     pa_assert(bq);
 
     /* First let's dump this as fixed block */
     fprintf(stderr, "FIXED >");
     pa_memblockq_peek_fixed_size(bq, 64, &out);
-    dump_chunk(&out);
+    buf = pa_strbuf_new();
+    dump_chunk(&out, buf);
     pa_memblock_unref(out.memblock);
+    str = pa_strbuf_tostring_free(buf);
+    fail_unless(pa_streq(str, fixed[n]));
+    pa_xfree(str);
     fprintf(stderr, "<\n");
 
     /* Then let's dump the queue manually */
     fprintf(stderr, "MANUAL>");
 
+    buf = pa_strbuf_new();
     for (;;) {
         if (pa_memblockq_peek(bq, &out) < 0)
             break;
 
-        dump_chunk(&out);
+        dump_chunk(&out, buf);
         pa_memblock_unref(out.memblock);
         pa_memblockq_drop(bq, out.length);
     }
-
+    str = pa_strbuf_tostring_free(buf);
+    fail_unless(pa_streq(str, manual[n]));
+    pa_xfree(str);
     fprintf(stderr, "<\n");
 }
 
-int main(int argc, char *argv[]) {
+START_TEST (memblockq_test) {
     int ret;
 
     pa_mempool *p;
@@ -86,85 +112,96 @@ int main(int argc, char *argv[]) {
 
     p = pa_mempool_new(FALSE, 0);
 
-    pa_assert_se(silence.memblock = pa_memblock_new_fixed(p, (char*) "__", 2, 1));
+    silence.memblock = pa_memblock_new_fixed(p, (char*) "__", 2, 1);
+    fail_unless(silence.memblock != NULL);
+
     silence.index = 0;
     silence.length = pa_memblock_get_length(silence.memblock);
 
-    pa_assert_se(bq = pa_memblockq_new("test memblockq", 0, 200, 10, &ss, 4, 4, 40, &silence));
+    bq = pa_memblockq_new("test memblockq", 0, 200, 10, &ss, 4, 4, 40, &silence);
+    fail_unless(bq != NULL);
 
-    pa_assert_se(chunk1.memblock = pa_memblock_new_fixed(p, (char*) "11", 2, 1));
+    chunk1.memblock = pa_memblock_new_fixed(p, (char*) "11", 2, 1);
+    fail_unless(chunk1.memblock != NULL);
+
     chunk1.index = 0;
     chunk1.length = 2;
 
-    pa_assert_se(chunk2.memblock = pa_memblock_new_fixed(p, (char*) "XX22", 4, 1));
+    chunk2.memblock = pa_memblock_new_fixed(p, (char*) "XX22", 4, 1);
+    fail_unless(chunk2.memblock != NULL);
+
     chunk2.index = 2;
     chunk2.length = 2;
 
-    pa_assert_se(chunk3.memblock = pa_memblock_new_fixed(p, (char*) "3333", 4, 1));
+    chunk3.memblock = pa_memblock_new_fixed(p, (char*) "3333", 4, 1);
+    fail_unless(chunk3.memblock != NULL);
+
     chunk3.index = 0;
     chunk3.length = 4;
 
-    pa_assert_se(chunk4.memblock = pa_memblock_new_fixed(p, (char*) "44444444", 8, 1));
+    chunk4.memblock = pa_memblock_new_fixed(p, (char*) "44444444", 8, 1);
+    fail_unless(chunk4.memblock != NULL);
+
     chunk4.index = 0;
     chunk4.length = 8;
 
     ret = pa_memblockq_push(bq, &chunk1);
-    assert(ret == 0);
+    fail_unless(ret == 0);
 
     ret = pa_memblockq_push(bq, &chunk2);
-    assert(ret == 0);
+    fail_unless(ret == 0);
 
     ret = pa_memblockq_push(bq, &chunk3);
-    assert(ret == 0);
+    fail_unless(ret == 0);
 
     ret = pa_memblockq_push(bq, &chunk4);
-    assert(ret == 0);
+    fail_unless(ret == 0);
 
     pa_memblockq_seek(bq, -6, 0, TRUE);
     ret = pa_memblockq_push(bq, &chunk3);
-    assert(ret == 0);
+    fail_unless(ret == 0);
 
     pa_memblockq_seek(bq, -2, 0, TRUE);
     ret = pa_memblockq_push(bq, &chunk1);
-    assert(ret == 0);
+    fail_unless(ret == 0);
 
     pa_memblockq_seek(bq, -10, 0, TRUE);
     ret = pa_memblockq_push(bq, &chunk4);
-    assert(ret == 0);
+    fail_unless(ret == 0);
 
     pa_memblockq_seek(bq, 10, 0, TRUE);
 
     ret = pa_memblockq_push(bq, &chunk1);
-    assert(ret == 0);
+    fail_unless(ret == 0);
 
     pa_memblockq_seek(bq, -6, 0, TRUE);
     ret = pa_memblockq_push(bq, &chunk2);
-    assert(ret == 0);
+    fail_unless(ret == 0);
 
     /* Test splitting */
     pa_memblockq_seek(bq, -12, 0, TRUE);
     ret = pa_memblockq_push(bq, &chunk1);
-    assert(ret == 0);
+    fail_unless(ret == 0);
 
     pa_memblockq_seek(bq, 20, 0, TRUE);
 
     /* Test merging */
     ret = pa_memblockq_push(bq, &chunk3);
-    assert(ret == 0);
+    fail_unless(ret == 0);
     pa_memblockq_seek(bq, -2, 0, TRUE);
 
     chunk3.index += 2;
     chunk3.length -= 2;
     ret = pa_memblockq_push(bq, &chunk3);
-    assert(ret == 0);
+    fail_unless(ret == 0);
 
     pa_memblockq_seek(bq, 30, PA_SEEK_RELATIVE, TRUE);
 
-    dump(bq);
+    dump(bq, 0);
 
     pa_memblockq_rewind(bq, 52);
 
-    dump(bq);
+    dump(bq, 1);
 
     pa_memblockq_free(bq);
     pa_memblock_unref(silence.memblock);
@@ -174,6 +211,24 @@ int main(int argc, char *argv[]) {
     pa_memblock_unref(chunk4.memblock);
 
     pa_mempool_free(p);
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    s = suite_create("Memblock Queue");
+    tc = tcase_create("memblockq");
+    tcase_add_test(tc, memblockq_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
