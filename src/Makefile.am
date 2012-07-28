@@ -451,8 +451,8 @@ sync_playback_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 interpol_test_SOURCES = tests/interpol-test.c
 interpol_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-interpol_test_CFLAGS = $(AM_CFLAGS)
-interpol_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+interpol_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+interpol_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 sig2str_test_SOURCES = tests/sig2str-test.c
 sig2str_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
