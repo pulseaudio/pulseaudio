@@ -970,6 +970,15 @@ void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec *
     pa_memblockq_drop(i->thread_info.render_memblockq, nbytes);
 }
 
+static void subtract_helper(size_t *p, size_t amount)
+{
+    if (*p == (size_t) -1)
+        return;
+    if (*p < amount)
+        *p = 0;
+    *p -= amount;
+}
+
 /* Called from thread context */
 void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sample spec */) {
     size_t lbq;
@@ -996,8 +1005,12 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
         /* We were asked to drop all buffered data, and rerequest new
          * data from implementor the next time peek() is called */
 
+        size_t s = pa_memblockq_get_length(i->thread_info.render_memblockq);
+        if (i->thread_info.resampler)
+            s = pa_resampler_request(i->thread_info.resampler, s);
         pa_memblockq_flush_write(i->thread_info.render_memblockq, TRUE);
-
+        subtract_helper(&i->thread_info.underrun_for, s);
+        subtract_helper(&i->thread_info.playing_for, s);
     } else if (i->thread_info.rewrite_nbytes > 0) {
         size_t max_rewrite, amount;
 
@@ -1012,6 +1025,8 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
         amount = PA_MIN(i->thread_info.rewrite_nbytes, max_rewrite);
 
         if (amount > 0) {
+            size_t samount = amount;
+
             pa_log_debug("Have to rewind %lu bytes on implementor.", (unsigned long) amount);
 
             /* Tell the implementor */
@@ -1021,11 +1036,14 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
 
             /* Convert back to to sink domain */
             if (i->thread_info.resampler)
-                amount = pa_resampler_result(i->thread_info.resampler, amount);
+                samount = pa_resampler_result(i->thread_info.resampler, amount);
 
-            if (amount > 0)
+            if (samount > 0) {
                 /* Ok, now update the write pointer */
-                pa_memblockq_seek(i->thread_info.render_memblockq, - ((int64_t) amount), PA_SEEK_RELATIVE, TRUE);
+                pa_memblockq_seek(i->thread_info.render_memblockq, - ((int64_t) samount), PA_SEEK_RELATIVE, TRUE);
+                subtract_helper(&i->thread_info.underrun_for, amount);
+                subtract_helper(&i->thread_info.playing_for, amount);
+            }
 
             if (i->thread_info.rewrite_flush)
                 pa_memblockq_silence(i->thread_info.render_memblockq);
