@@ -345,9 +345,9 @@ hook_list_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la l
 hook_list_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 memblock_test_SOURCES = tests/memblock-test.c
-memblock_test_CFLAGS = $(AM_CFLAGS)
+memblock_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 memblock_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-memblock_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+memblock_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 thread_test_SOURCES = tests/thread-test.c
 thread_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)

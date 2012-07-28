@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <check.h>
+
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/log.h>
@@ -66,7 +68,7 @@ static void print_stats(pa_mempool *p, const char *text) {
            (unsigned) pa_atomic_load(&s->n_pool_full));
 }
 
-int main(int argc, char *argv[]) {
+START_TEST (memblock_test) {
     pa_mempool *pool_a, *pool_b, *pool_c;
     unsigned id_a, id_b, id_c;
     pa_memexport *export_a, *export_b;
@@ -80,18 +82,16 @@ int main(int argc, char *argv[]) {
 
     const char txt[] = "This is a test!";
 
-    if (!getenv("MAKE_CHECK"))
-        pa_log_set_level(PA_LOG_DEBUG);
-
     pool_a = pa_mempool_new(TRUE, 0);
+    fail_unless(pool_a != NULL);
     pool_b = pa_mempool_new(TRUE, 0);
+    fail_unless(pool_b != NULL);
     pool_c = pa_mempool_new(TRUE, 0);
+    fail_unless(pool_c != NULL);
 
     pa_mempool_get_shm_id(pool_a, &id_a);
     pa_mempool_get_shm_id(pool_b, &id_b);
     pa_mempool_get_shm_id(pool_c, &id_c);
-
-    pa_assert(pool_a && pool_b && pool_c);
 
     blocks[0] = pa_memblock_new_fixed(pool_a, (void*) txt, sizeof(txt), 1);
 
@@ -112,35 +112,35 @@ int main(int argc, char *argv[]) {
         pa_log("Memory block %u", i);
 
         mb_a = blocks[i];
-        pa_assert(mb_a);
+        fail_unless(mb_a != NULL);
 
         export_a = pa_memexport_new(pool_a, revoke_cb, (void*) "A");
+        fail_unless(export_a != NULL);
         export_b = pa_memexport_new(pool_b, revoke_cb, (void*) "B");
-
-        pa_assert(export_a && export_b);
+        fail_unless(export_b != NULL);
 
         import_b = pa_memimport_new(pool_b, release_cb, (void*) "B");
+        fail_unless(import_b != NULL);
         import_c = pa_memimport_new(pool_c, release_cb, (void*) "C");
-
-        pa_assert(import_b && import_c);
+        fail_unless(import_b != NULL);
 
         r = pa_memexport_put(export_a, mb_a, &id, &shm_id, &offset, &size);
-        pa_assert(r >= 0);
-        pa_assert(shm_id == id_a);
+        fail_unless(r >= 0);
+        fail_unless(shm_id == id_a);
 
         pa_log("A: Memory block exported as %u", id);
 
         mb_b = pa_memimport_get(import_b, id, shm_id, offset, size);
-        pa_assert(mb_b);
+        fail_unless(mb_b != NULL);
         r = pa_memexport_put(export_b, mb_b, &id, &shm_id, &offset, &size);
-        pa_assert(r >= 0);
-        pa_assert(shm_id == id_a || shm_id == id_b);
+        fail_unless(r >= 0);
+        fail_unless(shm_id == id_a || shm_id == id_b);
         pa_memblock_unref(mb_b);
 
         pa_log("B: Memory block exported as %u", id);
 
         mb_c = pa_memimport_get(import_c, id, shm_id, offset, size);
-        pa_assert(mb_c);
+        fail_unless(mb_c != NULL);
         x = pa_memblock_acquire(mb_c);
         pa_log_debug("1 data=%s", x);
         pa_memblock_release(mb_c);
@@ -174,6 +174,27 @@ int main(int argc, char *argv[]) {
     pa_mempool_free(pool_a);
     pa_mempool_free(pool_b);
     pa_mempool_free(pool_c);
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    if (!getenv("MAKE_CHECK"))
+        pa_log_set_level(PA_LOG_DEBUG);
+
+    s = suite_create("Memblock");
+    tc = tcase_create("memblock");
+    tcase_add_test(tc, memblock_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
