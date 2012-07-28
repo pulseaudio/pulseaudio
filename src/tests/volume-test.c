@@ -24,12 +24,14 @@
 #include <stdio.h>
 #include <math.h>
 
+#include <check.h>
+
 #include <pulse/volume.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 
-int main(int argc, char *argv[]) {
+START_TEST (volume_test) {
     pa_volume_t v;
     pa_cvolume cv;
     float b;
@@ -95,8 +97,8 @@ int main(int argc, char *argv[]) {
         pa_volume_t r = pa_sw_volume_from_dB(db);
         pa_volume_t w;
 
-        pa_assert(k == v);
-        pa_assert(r == v);
+        fail_unless(k == v);
+        fail_unless(r == v);
 
         for (w = PA_VOLUME_MUTED; w < PA_VOLUME_NORM*2; w += 37) {
 
@@ -127,8 +129,26 @@ int main(int argc, char *argv[]) {
 
     pa_log("max deviation: %lu n=%lu", (unsigned long) md, (unsigned long) mdn);
 
-    pa_assert(md <= 1);
-    pa_assert(mdn <= 251);
+    fail_unless(md <= 1);
+    fail_unless(mdn <= 251);
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    s = suite_create("Volume");
+    tc = tcase_create("volume");
+    tcase_add_test(tc, volume_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

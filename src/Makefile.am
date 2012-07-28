@@ -415,9 +415,9 @@ close_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS) libpulsecore-@PA_MAJORMINOR@.la l
 close_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 volume_test_SOURCES = tests/volume-test.c
-volume_test_CFLAGS = $(AM_CFLAGS)
+volume_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 volume_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-volume_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+volume_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 channelmap_test_SOURCES = tests/channelmap-test.c
 channelmap_test_CFLAGS = $(AM_CFLAGS)
