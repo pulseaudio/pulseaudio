@@ -476,8 +476,8 @@ remix_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 smoother_test_SOURCES = tests/smoother-test.c
 smoother_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-smoother_test_CFLAGS = $(AM_CFLAGS)
-smoother_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+smoother_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+smoother_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 proplist_test_SOURCES = tests/proplist-test.c
 proplist_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la

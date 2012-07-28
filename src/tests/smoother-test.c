@@ -24,12 +24,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <check.h>
+
 #include <pulse/timeval.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/time-smoother.h>
 
-int main(int argc, char*argv[]) {
+START_TEST (smoother_test) {
     pa_usec_t x;
     unsigned u = 0;
     pa_smoother *s;
@@ -80,6 +82,24 @@ int main(int argc, char*argv[]) {
     }
 
     pa_smoother_free(s);
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    s = suite_create("Smoother");
+    tc = tcase_create("smoother");
+    tcase_add_test(tc, smoother_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
