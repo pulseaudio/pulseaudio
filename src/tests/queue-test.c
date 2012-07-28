@@ -25,21 +25,24 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <check.h>
+
 #include <pulsecore/queue.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 
-int main(int argc, char *argv[]) {
+START_TEST (queue_test) {
     pa_queue *q;
 
-    pa_assert_se(q = pa_queue_new());
+    q = pa_queue_new();
+    fail_unless(q != NULL);
 
-    pa_assert(pa_queue_isempty(q));
+    fail_unless(pa_queue_isempty(q));
 
     pa_queue_push(q, (void*) "eins");
     pa_log("%s\n", (char*) pa_queue_pop(q));
 
-    pa_assert(pa_queue_isempty(q));
+    fail_unless(pa_queue_isempty(q));
 
     pa_queue_push(q, (void*) "zwei");
     pa_queue_push(q, (void*) "drei");
@@ -53,12 +56,30 @@ int main(int argc, char *argv[]) {
     pa_log("%s\n", (char*) pa_queue_pop(q));
     pa_log("%s\n", (char*) pa_queue_pop(q));
 
-    pa_assert(pa_queue_isempty(q));
+    fail_unless(pa_queue_isempty(q));
 
     pa_queue_push(q, (void*) "sechs");
     pa_queue_push(q, (void*) "sieben");
 
     pa_queue_free(q, NULL);
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    s = suite_create("Queue");
+    tc = tcase_create("queue");
+    tcase_add_test(tc, queue_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
