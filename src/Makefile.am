@@ -365,9 +365,9 @@ flist_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpu
 flist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 asyncq_test_SOURCES = tests/asyncq-test.c
-asyncq_test_CFLAGS = $(AM_CFLAGS)
+asyncq_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 asyncq_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-asyncq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+asyncq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 asyncmsgq_test_SOURCES = tests/asyncmsgq-test.c
 asyncmsgq_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
