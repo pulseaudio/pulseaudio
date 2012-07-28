@@ -501,8 +501,8 @@ stripnul_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 lock_autospawn_test_SOURCES = tests/lock-autospawn-test.c
 lock_autospawn_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-lock_autospawn_test_CFLAGS = $(AM_CFLAGS)
-lock_autospawn_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+lock_autospawn_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+lock_autospawn_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 sigbus_test_SOURCES = tests/sigbus-test.c
 sigbus_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
