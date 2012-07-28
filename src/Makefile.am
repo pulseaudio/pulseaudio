@@ -456,8 +456,8 @@ interpol_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 sig2str_test_SOURCES = tests/sig2str-test.c
 sig2str_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-sig2str_test_CFLAGS = $(AM_CFLAGS)
-sig2str_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+sig2str_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+sig2str_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 resampler_test_SOURCES = tests/resampler-test.c
 resampler_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
