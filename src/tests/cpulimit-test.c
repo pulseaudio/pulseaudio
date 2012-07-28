@@ -27,6 +27,8 @@
 #include <stdio.h>
 #include <signal.h>
 
+#include <check.h>
+
 #include <pulse/mainloop.h>
 
 #ifdef TEST2
@@ -48,17 +50,18 @@ static void func(pa_mainloop_api *m, pa_signal_event *e, int sig, void *userdata
     if ((now - start) >= 30) {
         m->quit(m, 1);
         fprintf(stderr, "Test failed\n");
+        fail();
     } else
         raise(SIGUSR1);
 }
 
 #endif
 
-int main(int argc, char *argv[]) {
+START_TEST (cpulimit_test) {
     pa_mainloop *m;
 
     m = pa_mainloop_new();
-    assert(m);
+    fail_unless(m != NULL);
 
     pa_cpu_limit_init(pa_mainloop_get_api(m));
 
@@ -77,6 +80,7 @@ int main(int argc, char *argv[]) {
 
         if ((now - start) >= 30) {
             fprintf(stderr, "Test failed\n");
+            fail();
             break;
         }
     }
@@ -85,6 +89,24 @@ int main(int argc, char *argv[]) {
     pa_cpu_limit_done();
 
     pa_mainloop_free(m);
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    s = suite_create("CPU Limit");
+    tc = tcase_create("cpulimit");
+    tcase_add_test(tc, cpulimit_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

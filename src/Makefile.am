@@ -425,14 +425,14 @@ channelmap_test_LDADD = $(AM_LDADD) libpulse.la
 channelmap_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 cpulimit_test_SOURCES = tests/cpulimit-test.c daemon/cpulimit.c daemon/cpulimit.h
-cpulimit_test_CFLAGS = $(AM_CFLAGS)
+cpulimit_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 cpulimit_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-cpulimit_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+cpulimit_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 cpulimit_test2_SOURCES = tests/cpulimit-test.c daemon/cpulimit.c daemon/cpulimit.h
-cpulimit_test2_CFLAGS = $(AM_CFLAGS) -DTEST2
+cpulimit_test2_CFLAGS = $(AM_CFLAGS) -DTEST2 $(LIBCHECK_CFLAGS)
 cpulimit_test2_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-cpulimit_test2_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+cpulimit_test2_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 mainloop_test_glib_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib_CFLAGS = $(mainloop_test_CFLAGS) $(LIBCHECK_CFLAGS) $(GLIB20_CFLAGS) -DGLIB_MAIN_LOOP
