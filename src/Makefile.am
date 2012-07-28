@@ -380,9 +380,9 @@ queue_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpu
 queue_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 rtpoll_test_SOURCES = tests/rtpoll-test.c
-rtpoll_test_CFLAGS = $(AM_CFLAGS)
+rtpoll_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 rtpoll_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-rtpoll_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+rtpoll_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)

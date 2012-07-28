@@ -21,6 +21,7 @@
 #include <config.h>
 #endif
 
+#include <check.h>
 #include <signal.h>
 
 #include <pulsecore/poll.h>
@@ -41,7 +42,7 @@ static int worker(pa_rtpoll_item *w) {
     return 0;
 }
 
-int main(int argc, char *argv[]) {
+START_TEST (rtpoll_test) {
     pa_rtpoll *p;
     pa_rtpoll_item *i, *w;
     struct pollfd *pollfd;
@@ -80,6 +81,28 @@ int main(int argc, char *argv[]) {
     pa_rtpoll_item_free(w);
 
     pa_rtpoll_free(p);
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    s = suite_create("RT Poll");
+    tc = tcase_create("rtpoll");
+    tcase_add_test(tc, rtpoll_test);
+    /* the default timeout is too small,
+     * set it to a reasonable large one.
+     */
+    tcase_set_timeout(tc, 60 * 60);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
