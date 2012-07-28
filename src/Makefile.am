@@ -420,9 +420,9 @@ volume_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 volume_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 channelmap_test_SOURCES = tests/channelmap-test.c
-channelmap_test_CFLAGS = $(AM_CFLAGS)
+channelmap_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 channelmap_test_LDADD = $(AM_LDADD) libpulse.la
-channelmap_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+channelmap_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 cpulimit_test_SOURCES = tests/cpulimit-test.c daemon/cpulimit.c daemon/cpulimit.h
 cpulimit_test_CFLAGS = $(AM_CFLAGS)
