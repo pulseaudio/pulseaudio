@@ -315,9 +315,9 @@ mainloop_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 thread_mainloop_test_SOURCES = tests/thread-mainloop-test.c
-thread_mainloop_test_CFLAGS = $(AM_CFLAGS)
+thread_mainloop_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 thread_mainloop_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-thread_mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+thread_mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 utf8_test_SOURCES = tests/utf8-test.c
 utf8_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
