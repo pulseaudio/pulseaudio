@@ -24,12 +24,14 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <check.h>
+
 #include <pulse/util.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/log.h>
 
-int main(int argc, char *argv[]) {
+START_TEST (getbinaryname_test) {
     char *exename;
     size_t allocated = 128;
 
@@ -39,18 +41,36 @@ int main(int argc, char *argv[]) {
         if (!pa_get_binary_name(exename, allocated)) {
             pa_log_error("failed to read binary name");
             pa_xfree(exename);
-            break;
+            fail();
         }
 
         if (strlen(exename) < allocated - 1) {
             pa_log("%s", exename);
             pa_xfree(exename);
-            return 0;
+            return;
         }
 
         pa_xfree(exename);
         allocated *= 2;
     }
+}
+END_TEST
 
-    return 1;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    s = suite_create("Binary Name");
+    tc = tcase_create("getbinaryname");
+    tcase_add_test(tc, getbinaryname_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
