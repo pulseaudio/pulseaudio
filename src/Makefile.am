@@ -370,9 +370,9 @@ asyncq_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libp
 asyncq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 asyncmsgq_test_SOURCES = tests/asyncmsgq-test.c
-asyncmsgq_test_CFLAGS = $(AM_CFLAGS)
+asyncmsgq_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 asyncmsgq_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-asyncmsgq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+asyncmsgq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 queue_test_SOURCES = tests/queue-test.c
 queue_test_CFLAGS = $(AM_CFLAGS)

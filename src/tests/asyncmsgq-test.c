@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <check.h>
+
 #include <pulsecore/asyncmsgq.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/log.h>
@@ -71,13 +73,15 @@ static void the_thread(void *_q) {
     } while (!quit);
 }
 
-int main(int argc, char *argv[]) {
+START_TEST (asyncmsgq_test) {
     pa_asyncmsgq *q;
     pa_thread *t;
 
-    pa_assert_se(q = pa_asyncmsgq_new(0));
+    q = pa_asyncmsgq_new(0);
+    fail_unless(q != NULL);
 
-    pa_assert_se(t = pa_thread_new("test", the_thread, q));
+    t = pa_thread_new("test", the_thread, q);
+    fail_unless(t != NULL);
 
     pa_log_info("Operation A post");
     pa_asyncmsgq_post(q, NULL, OPERATION_A, NULL, 0, NULL, NULL);
@@ -100,6 +104,24 @@ int main(int argc, char *argv[]) {
     pa_thread_free(t);
 
     pa_asyncmsgq_unref(q);
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    s = suite_create("Async Message Queue");
+    tc = tcase_create("asyncmsgq");
+    tcase_add_test(tc, asyncmsgq_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
