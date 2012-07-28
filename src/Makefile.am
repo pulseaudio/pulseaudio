@@ -401,8 +401,8 @@ parec_simple_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 extended_test_SOURCES = tests/extended-test.c
 extended_test_LDADD = $(AM_LDADD) libpulse.la
-extended_test_CFLAGS = $(AM_CFLAGS)
-extended_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+extended_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+extended_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 strlist_test_SOURCES = tests/strlist-test.c
 strlist_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
