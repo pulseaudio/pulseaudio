@@ -506,8 +506,8 @@ lock_autospawn_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 sigbus_test_SOURCES = tests/sigbus-test.c
 sigbus_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-sigbus_test_CFLAGS = $(AM_CFLAGS)
-sigbus_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+sigbus_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+sigbus_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 gtk_test_SOURCES = tests/gtk-test.c
 gtk_test_LDADD = $(AM_LDADD) $(GTK20_LIBS) libpulse-mainloop-glib.la libpulse.la

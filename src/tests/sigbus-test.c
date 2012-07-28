@@ -26,10 +26,12 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
+#include <check.h>
+
 #include <pulsecore/memtrap.h>
 #include <pulsecore/core-util.h>
 
-int main(int argc, char *argv[]) {
+START_TEST (sigbus_test) {
     void *p;
     int fd;
     pa_memtrap *m;
@@ -38,10 +40,10 @@ int main(int argc, char *argv[]) {
     pa_memtrap_install();
 
     /* Create the memory map */
-    pa_assert_se((fd = open("sigbus-test-map", O_RDWR|O_TRUNC|O_CREAT, 0660)) >= 0);
-    pa_assert_se(unlink("sigbus-test-map") == 0);
-    pa_assert_se(ftruncate(fd, PA_PAGE_SIZE) >= 0);
-    pa_assert_se((p = mmap(NULL, PA_PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)) != MAP_FAILED);
+    fail_unless((fd = open("sigbus-test-map", O_RDWR|O_TRUNC|O_CREAT, 0660)) >= 0);
+    fail_unless(unlink("sigbus-test-map") == 0);
+    fail_unless(ftruncate(fd, PA_PAGE_SIZE) >= 0);
+    fail_unless((p = mmap(NULL, PA_PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)) != MAP_FAILED);
 
     /* Register memory map */
     m = pa_memtrap_add(p, PA_PAGE_SIZE);
@@ -54,7 +56,7 @@ int main(int argc, char *argv[]) {
     pa_log("And memtrap says it is good: %s", pa_yes_no(pa_memtrap_is_good(m)));
 
     /* Invalidate mapping */
-    pa_assert_se(ftruncate(fd, 0) >= 0);
+    fail_unless(ftruncate(fd, 0) >= 0);
 
     /* Use memory map */
     pa_snprintf(p, PA_PAGE_SIZE, "This is a test that should fail but get caught.");
@@ -65,6 +67,24 @@ int main(int argc, char *argv[]) {
 
     pa_memtrap_remove(m);
     munmap(p, PA_PAGE_SIZE);
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    s = suite_create("Sig Bus");
+    tc = tcase_create("sigbus");
+    tcase_add_test(tc, sigbus_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
