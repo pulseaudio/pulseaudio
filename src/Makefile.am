@@ -340,9 +340,9 @@ ipacl_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpu
 ipacl_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 hook_list_test_SOURCES = tests/hook-list-test.c
-hook_list_test_CFLAGS = $(AM_CFLAGS)
+hook_list_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 hook_list_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-hook_list_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+hook_list_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 memblock_test_SOURCES = tests/memblock-test.c
 memblock_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
