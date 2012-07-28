@@ -446,8 +446,8 @@ memblockq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 sync_playback_SOURCES = tests/sync-playback.c
 sync_playback_LDADD = $(AM_LDADD) libpulse.la
-sync_playback_CFLAGS = $(AM_CFLAGS)
-sync_playback_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+sync_playback_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+sync_playback_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 interpol_test_SOURCES = tests/interpol-test.c
 interpol_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la

@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <check.h>
+
 #include <pulse/pulseaudio.h>
 #include <pulse/mainloop.h>
 
@@ -39,6 +41,7 @@
 static pa_context *context = NULL;
 static pa_stream *streams[NSTREAMS];
 static pa_mainloop_api *mainloop_api = NULL;
+static const char *bname = NULL;
 
 static float data[SAMPLE_HZ]; /* one second space */
 
@@ -73,7 +76,7 @@ static void underflow_cb(struct pa_stream *s, void *userdata) {
 
 /* This routine is called whenever the stream state changes */
 static void stream_state_callback(pa_stream *s, void *userdata) {
-    assert(s);
+    fail_unless(s != NULL);
 
     switch (pa_stream_get_state(s)) {
         case PA_STREAM_UNCONNECTED:
@@ -88,7 +91,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
             fprintf(stderr, "Writing data to stream %i.\n", i);
 
             r = pa_stream_write(s, data, sizeof(data), nop_free_cb, (int64_t) sizeof(data) * (int64_t) i, PA_SEEK_ABSOLUTE);
-            assert(r == 0);
+            fail_unless(r == 0);
 
             /* Be notified when this stream is drained */
             pa_stream_set_underflow_callback(s, underflow_cb, userdata);
@@ -105,13 +108,13 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
         default:
         case PA_STREAM_FAILED:
             fprintf(stderr, "Stream error: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
-            abort();
+            fail();
     }
 }
 
 /* This is called whenever the context status changes */
 static void context_state_callback(pa_context *c, void *userdata) {
-    assert(c);
+    fail_unless(c != NULL);
 
     switch (pa_context_get_state(c)) {
         case PA_CONTEXT_CONNECTING:
@@ -132,7 +135,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
                 snprintf(name, sizeof(name), "stream #%i", i);
 
                 streams[i] = pa_stream_new(c, name, &sample_spec, NULL);
-                assert(streams[i]);
+                fail_unless(streams[i] != NULL);
                 pa_stream_set_state_callback(streams[i], stream_state_callback, (void*) (long) i);
                 pa_stream_connect_playback(streams[i], NULL, &buffer_attr, PA_STREAM_START_CORKED, NULL, i == 0 ? NULL : streams[0]);
             }
@@ -147,11 +150,11 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_FAILED:
         default:
             fprintf(stderr, "Context error: %s\n", pa_strerror(pa_context_errno(c)));
-            abort();
+            fail();
     }
 }
 
-int main(int argc, char *argv[]) {
+START_TEST (sync_playback_test) {
     pa_mainloop* m = NULL;
     int i, ret = 0;
 
@@ -163,12 +166,12 @@ int main(int argc, char *argv[]) {
 
     /* Set up a new main loop */
     m = pa_mainloop_new();
-    assert(m);
+    fail_unless(m != NULL);
 
     mainloop_api = pa_mainloop_get_api(m);
 
-    context = pa_context_new(mainloop_api, argv[0]);
-    assert(context);
+    context = pa_context_new(mainloop_api, bname);
+    fail_unless(context != NULL);
 
     pa_context_set_state_callback(context, context_state_callback, NULL);
 
@@ -190,5 +193,28 @@ quit:
 
     pa_mainloop_free(m);
 
-    return ret;
+    fail_unless(ret == 0);
+}
+END_TEST
+
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    bname = argv[0];
+
+    s = suite_create("Sync Playback");
+    tc = tcase_create("syncplayback");
+    tcase_add_test(tc, sync_playback_test);
+    tcase_set_timeout(tc, 5 * 60);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
