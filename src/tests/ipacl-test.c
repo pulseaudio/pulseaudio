@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <check.h>
+
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -27,15 +29,16 @@ static void do_ip_acl_check(const char *s, int fd, int expected) {
     pa_ip_acl *acl;
     int result;
 
-    pa_assert_se(acl = pa_ip_acl_new(s));
+    acl = pa_ip_acl_new(s);
+    fail_unless(acl != NULL);
     result = pa_ip_acl_check(acl, fd);
     pa_ip_acl_free(acl);
 
     pa_log_info("%-20s result=%u (should be %u)", s, result, expected);
-    pa_assert(result == expected);
+    fail_unless(result == expected);
 }
 
-int main(int argc, char *argv[]) {
+START_TEST (ipacl_test) {
     struct sockaddr_in sa;
 #ifdef HAVE_IPV6
     struct sockaddr_in6 sa6;
@@ -43,18 +46,15 @@ int main(int argc, char *argv[]) {
     int fd;
     int r;
 
-    if (!getenv("MAKE_CHECK"))
-        pa_log_set_level(PA_LOG_DEBUG);
-
     fd = socket(PF_INET, SOCK_STREAM, 0);
-    pa_assert(fd >= 0);
+    fail_unless(fd >= 0);
 
     sa.sin_family = AF_INET;
     sa.sin_port = htons(22);
     sa.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     r = connect(fd, (struct sockaddr*) &sa, sizeof(sa));
-    pa_assert(r >= 0);
+    fail_unless(r >= 0);
 
     do_ip_acl_check("127.0.0.1", fd, 1);
     do_ip_acl_check("127.0.0.2/0", fd, 1);
@@ -70,16 +70,16 @@ int main(int argc, char *argv[]) {
 #ifdef HAVE_IPV6
     if ( (fd = socket(PF_INET6, SOCK_STREAM, 0)) < 0 ) {
       pa_log_error("Unable to open IPv6 socket, IPv6 tests ignored");
-      return 0;
+      return;
     }
 
     memset(&sa6, 0, sizeof(sa6));
     sa6.sin6_family = AF_INET6;
     sa6.sin6_port = htons(22);
-    pa_assert_se(inet_pton(AF_INET6, "::1", &sa6.sin6_addr) == 1);
+    fail_unless(inet_pton(AF_INET6, "::1", &sa6.sin6_addr) == 1);
 
     r = connect(fd, (struct sockaddr*) &sa6, sizeof(sa6));
-    pa_assert(r >= 0);
+    fail_unless(r >= 0);
 
     do_ip_acl_check("::1", fd, 1);
     do_ip_acl_check("::1/9", fd, 1);
@@ -90,6 +90,27 @@ int main(int argc, char *argv[]) {
 
     close(fd);
 #endif
+}
+END_TEST
 
-    return 0;
+int main(int argc, char *argv[]) {
+    int failed = 0;
+    Suite *s;
+    TCase *tc;
+    SRunner *sr;
+
+    if (!getenv("MAKE_CHECK"))
+        pa_log_set_level(PA_LOG_DEBUG);
+
+    s = suite_create("IP ACL");
+    tc = tcase_create("ipacl");
+    tcase_add_test(tc, ipacl_test);
+    suite_add_tcase(s, tc);
+
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

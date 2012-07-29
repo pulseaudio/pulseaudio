@@ -335,9 +335,9 @@ get_binary_name_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMIN
 get_binary_name_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 ipacl_test_SOURCES = tests/ipacl-test.c
-ipacl_test_CFLAGS = $(AM_CFLAGS)
+ipacl_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 ipacl_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-ipacl_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+ipacl_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 hook_list_test_SOURCES = tests/hook-list-test.c
 hook_list_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
