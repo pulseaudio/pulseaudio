@@ -825,6 +825,7 @@ static void update_smoother(struct userdata *u) {
     int err;
     pa_usec_t now1 = 0, now2;
     snd_pcm_status_t *status;
+    snd_htimestamp_t htstamp = { 0, 0 };
 
     snd_pcm_status_alloca(&status);
 
@@ -833,18 +834,13 @@ static void update_smoother(struct userdata *u) {
 
     /* Let's update the time smoother */
 
-    if (PA_UNLIKELY((err = pa_alsa_safe_delay(u->pcm_handle, &delay, u->hwbuf_size, &u->sink->sample_spec, FALSE)) < 0)) {
+    if (PA_UNLIKELY((err = pa_alsa_safe_delay(u->pcm_handle, status, &delay, u->hwbuf_size, &u->sink->sample_spec, FALSE)) < 0)) {
         pa_log_warn("Failed to query DSP status data: %s", pa_alsa_strerror(err));
         return;
     }
 
-    if (PA_UNLIKELY((err = snd_pcm_status(u->pcm_handle, status)) < 0))
-        pa_log_warn("Failed to get timestamp: %s", pa_alsa_strerror(err));
-    else {
-        snd_htimestamp_t htstamp = { 0, 0 };
-        snd_pcm_status_get_htstamp(status, &htstamp);
-        now1 = pa_timespec_load(&htstamp);
-    }
+    snd_pcm_status_get_htstamp(status, &htstamp);
+    now1 = pa_timespec_load(&htstamp);
 
     /* Hmm, if the timestamp is 0, then it wasn't set and we take the current time */
     if (now1 <= 0)

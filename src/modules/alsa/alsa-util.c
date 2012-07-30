@@ -1141,10 +1141,11 @@ snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa
     return n;
 }
 
-int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_sframes_t *delay, size_t hwbuf_size, const pa_sample_spec *ss, pa_bool_t capture) {
+int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_status_t *status, snd_pcm_sframes_t *delay, size_t hwbuf_size, const pa_sample_spec *ss,
+                       pa_bool_t capture) {
     ssize_t k;
     size_t abs_k;
-    int r;
+    int err;
     snd_pcm_sframes_t avail = 0;
 
     pa_assert(pcm);
@@ -1154,10 +1155,16 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_sframes_t *delay, size_t hwbuf_si
 
     /* Some ALSA driver expose weird bugs, let's inform the user about
      * what is going on. We're going to get both the avail and delay values so
-     * that we can compare and check them for capture */
+     * that we can compare and check them for capture.
+     * This is done with snd_pcm_status() which provides
+     * avail, delay and timestamp values in a single kernel call to improve
+     * timer-based scheduling */
 
-    if ((r = snd_pcm_avail_delay(pcm, &avail, delay)) < 0)
-        return r;
+    if ((err = snd_pcm_status(pcm, status)) < 0)
+        return err;
+
+    avail = snd_pcm_status_get_avail(status);
+    *delay = snd_pcm_status_get_delay(status);
 
     k = (ssize_t) *delay * (ssize_t) pa_frame_size(ss);
 
