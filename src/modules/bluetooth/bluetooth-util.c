@@ -30,7 +30,6 @@
 #include <pulsecore/dbus-shared.h>
 
 #include "bluetooth-util.h"
-#include "ipc.h"
 #include "a2dp-codecs.h"
 
 #define HFP_AG_ENDPOINT "/MediaEndpoint/HFPAG"
@@ -686,14 +685,14 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
     } else {
         a2dp_sbc_t capabilities;
 
-        capabilities.channel_mode = BT_A2DP_CHANNEL_MODE_MONO | BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL |
-                                    BT_A2DP_CHANNEL_MODE_STEREO | BT_A2DP_CHANNEL_MODE_JOINT_STEREO;
-        capabilities.frequency = BT_SBC_SAMPLING_FREQ_16000 | BT_SBC_SAMPLING_FREQ_32000 |
-                                 BT_SBC_SAMPLING_FREQ_44100 | BT_SBC_SAMPLING_FREQ_48000;
-        capabilities.allocation_method = BT_A2DP_ALLOCATION_SNR | BT_A2DP_ALLOCATION_LOUDNESS;
-        capabilities.subbands = BT_A2DP_SUBBANDS_4 | BT_A2DP_SUBBANDS_8;
-        capabilities.block_length = BT_A2DP_BLOCK_LENGTH_4 | BT_A2DP_BLOCK_LENGTH_8 |
-                                    BT_A2DP_BLOCK_LENGTH_12 | BT_A2DP_BLOCK_LENGTH_16;
+        capabilities.channel_mode = SBC_CHANNEL_MODE_MONO | SBC_CHANNEL_MODE_DUAL_CHANNEL |
+                                    SBC_CHANNEL_MODE_STEREO | SBC_CHANNEL_MODE_JOINT_STEREO;
+        capabilities.frequency = SBC_SAMPLING_FREQ_16000 | SBC_SAMPLING_FREQ_32000 |
+                                 SBC_SAMPLING_FREQ_44100 | SBC_SAMPLING_FREQ_48000;
+        capabilities.allocation_method = SBC_ALLOCATION_SNR | SBC_ALLOCATION_LOUDNESS;
+        capabilities.subbands = SBC_SUBBANDS_4 | SBC_SUBBANDS_8;
+        capabilities.block_length = SBC_BLOCK_LENGTH_4 | SBC_BLOCK_LENGTH_8 |
+                                    SBC_BLOCK_LENGTH_12 | SBC_BLOCK_LENGTH_16;
         capabilities.min_bitpool = MIN_BITPOOL;
         capabilities.max_bitpool = MAX_BITPOOL;
 
@@ -1223,19 +1222,19 @@ fail:
 static uint8_t a2dp_default_bitpool(uint8_t freq, uint8_t mode) {
 
     switch (freq) {
-        case BT_SBC_SAMPLING_FREQ_16000:
-        case BT_SBC_SAMPLING_FREQ_32000:
+        case SBC_SAMPLING_FREQ_16000:
+        case SBC_SAMPLING_FREQ_32000:
             return 53;
 
-        case BT_SBC_SAMPLING_FREQ_44100:
+        case SBC_SAMPLING_FREQ_44100:
 
             switch (mode) {
-                case BT_A2DP_CHANNEL_MODE_MONO:
-                case BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL:
+                case SBC_CHANNEL_MODE_MONO:
+                case SBC_CHANNEL_MODE_DUAL_CHANNEL:
                     return 31;
 
-                case BT_A2DP_CHANNEL_MODE_STEREO:
-                case BT_A2DP_CHANNEL_MODE_JOINT_STEREO:
+                case SBC_CHANNEL_MODE_STEREO:
+                case SBC_CHANNEL_MODE_JOINT_STEREO:
                     return 53;
 
                 default:
@@ -1243,15 +1242,15 @@ static uint8_t a2dp_default_bitpool(uint8_t freq, uint8_t mode) {
                     return 53;
             }
 
-        case BT_SBC_SAMPLING_FREQ_48000:
+        case SBC_SAMPLING_FREQ_48000:
 
             switch (mode) {
-                case BT_A2DP_CHANNEL_MODE_MONO:
-                case BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL:
+                case SBC_CHANNEL_MODE_MONO:
+                case SBC_CHANNEL_MODE_DUAL_CHANNEL:
                     return 29;
 
-                case BT_A2DP_CHANNEL_MODE_STEREO:
-                case BT_A2DP_CHANNEL_MODE_JOINT_STEREO:
+                case SBC_CHANNEL_MODE_STEREO:
+                case SBC_CHANNEL_MODE_JOINT_STEREO:
                     return 51;
 
                 default:
@@ -1277,10 +1276,10 @@ static DBusMessage *endpoint_select_configuration(DBusConnection *c, DBusMessage
         uint32_t rate;
         uint8_t cap;
     } freq_table[] = {
-        { 16000U, BT_SBC_SAMPLING_FREQ_16000 },
-        { 32000U, BT_SBC_SAMPLING_FREQ_32000 },
-        { 44100U, BT_SBC_SAMPLING_FREQ_44100 },
-        { 48000U, BT_SBC_SAMPLING_FREQ_48000 }
+        { 16000U, SBC_SAMPLING_FREQ_16000 },
+        { 32000U, SBC_SAMPLING_FREQ_32000 },
+        { 44100U, SBC_SAMPLING_FREQ_44100 },
+        { 48000U, SBC_SAMPLING_FREQ_48000 }
     };
 
     dbus_error_init(&e);
@@ -1323,51 +1322,51 @@ static DBusMessage *endpoint_select_configuration(DBusConnection *c, DBusMessage
     pa_assert((unsigned) i < PA_ELEMENTSOF(freq_table));
 
     if (y->core->default_sample_spec.channels <= 1) {
-        if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_MONO)
-            config.channel_mode = BT_A2DP_CHANNEL_MODE_MONO;
+        if (cap->channel_mode & SBC_CHANNEL_MODE_MONO)
+            config.channel_mode = SBC_CHANNEL_MODE_MONO;
     }
 
     if (y->core->default_sample_spec.channels >= 2) {
-        if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_JOINT_STEREO)
-            config.channel_mode = BT_A2DP_CHANNEL_MODE_JOINT_STEREO;
-        else if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_STEREO)
-            config.channel_mode = BT_A2DP_CHANNEL_MODE_STEREO;
-        else if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL)
-            config.channel_mode = BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL;
-        else if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_MONO) {
-            config.channel_mode = BT_A2DP_CHANNEL_MODE_MONO;
+        if (cap->channel_mode & SBC_CHANNEL_MODE_JOINT_STEREO)
+            config.channel_mode = SBC_CHANNEL_MODE_JOINT_STEREO;
+        else if (cap->channel_mode & SBC_CHANNEL_MODE_STEREO)
+            config.channel_mode = SBC_CHANNEL_MODE_STEREO;
+        else if (cap->channel_mode & SBC_CHANNEL_MODE_DUAL_CHANNEL)
+            config.channel_mode = SBC_CHANNEL_MODE_DUAL_CHANNEL;
+        else if (cap->channel_mode & SBC_CHANNEL_MODE_MONO) {
+            config.channel_mode = SBC_CHANNEL_MODE_MONO;
         } else {
             pa_log("No supported channel modes");
             goto fail;
         }
     }
 
-    if (cap->block_length & BT_A2DP_BLOCK_LENGTH_16)
-        config.block_length = BT_A2DP_BLOCK_LENGTH_16;
-    else if (cap->block_length & BT_A2DP_BLOCK_LENGTH_12)
-        config.block_length = BT_A2DP_BLOCK_LENGTH_12;
-    else if (cap->block_length & BT_A2DP_BLOCK_LENGTH_8)
-        config.block_length = BT_A2DP_BLOCK_LENGTH_8;
-    else if (cap->block_length & BT_A2DP_BLOCK_LENGTH_4)
-        config.block_length = BT_A2DP_BLOCK_LENGTH_4;
+    if (cap->block_length & SBC_BLOCK_LENGTH_16)
+        config.block_length = SBC_BLOCK_LENGTH_16;
+    else if (cap->block_length & SBC_BLOCK_LENGTH_12)
+        config.block_length = SBC_BLOCK_LENGTH_12;
+    else if (cap->block_length & SBC_BLOCK_LENGTH_8)
+        config.block_length = SBC_BLOCK_LENGTH_8;
+    else if (cap->block_length & SBC_BLOCK_LENGTH_4)
+        config.block_length = SBC_BLOCK_LENGTH_4;
     else {
         pa_log_error("No supported block lengths");
         goto fail;
     }
 
-    if (cap->subbands & BT_A2DP_SUBBANDS_8)
-        config.subbands = BT_A2DP_SUBBANDS_8;
-    else if (cap->subbands & BT_A2DP_SUBBANDS_4)
-        config.subbands = BT_A2DP_SUBBANDS_4;
+    if (cap->subbands & SBC_SUBBANDS_8)
+        config.subbands = SBC_SUBBANDS_8;
+    else if (cap->subbands & SBC_SUBBANDS_4)
+        config.subbands = SBC_SUBBANDS_4;
     else {
         pa_log_error("No supported subbands");
         goto fail;
     }
 
-    if (cap->allocation_method & BT_A2DP_ALLOCATION_LOUDNESS)
-        config.allocation_method = BT_A2DP_ALLOCATION_LOUDNESS;
-    else if (cap->allocation_method & BT_A2DP_ALLOCATION_SNR)
-        config.allocation_method = BT_A2DP_ALLOCATION_SNR;
+    if (cap->allocation_method & SBC_ALLOCATION_LOUDNESS)
+        config.allocation_method = SBC_ALLOCATION_LOUDNESS;
+    else if (cap->allocation_method & SBC_ALLOCATION_SNR)
+        config.allocation_method = SBC_ALLOCATION_SNR;
 
     config.min_bitpool = (uint8_t) PA_MAX(MIN_BITPOOL, cap->min_bitpool);
     config.max_bitpool = (uint8_t) PA_MIN(a2dp_default_bitpool(config.frequency, config.channel_mode), cap->max_bitpool);

@@ -53,7 +53,6 @@
 #include <sbc/sbc.h>
 
 #include "module-bluetooth-device-symdef.h"
-#include "ipc.h"
 #include "a2dp-codecs.h"
 #include "rtp.h"
 #include "bluetooth-util.h"
@@ -105,7 +104,6 @@ static const char* const valid_modargs[] = {
 };
 
 struct a2dp_info {
-    sbc_capabilities_t sbc_capabilities;
     sbc_t sbc;                           /* Codec data */
     pa_bool_t sbc_initialized;           /* Keep track if the encoder is initialized */
     size_t codesize, frame_length;       /* SBC Codesize, frame_length. We simply cache those values here */
@@ -119,7 +117,6 @@ struct a2dp_info {
 };
 
 struct hsp_info {
-    pcm_capabilities_t pcm_capabilities;
     pa_sink *sco_sink;
     void (*sco_sink_set_volume)(pa_sink *s);
     pa_source *sco_source;
@@ -1877,19 +1874,19 @@ static void bt_transport_config_a2dp(struct userdata *u) {
     a2dp->sbc_initialized = TRUE;
 
     switch (config->frequency) {
-        case BT_SBC_SAMPLING_FREQ_16000:
+        case SBC_SAMPLING_FREQ_16000:
             a2dp->sbc.frequency = SBC_FREQ_16000;
             u->sample_spec.rate = 16000U;
             break;
-        case BT_SBC_SAMPLING_FREQ_32000:
+        case SBC_SAMPLING_FREQ_32000:
             a2dp->sbc.frequency = SBC_FREQ_32000;
             u->sample_spec.rate = 32000U;
             break;
-        case BT_SBC_SAMPLING_FREQ_44100:
+        case SBC_SAMPLING_FREQ_44100:
             a2dp->sbc.frequency = SBC_FREQ_44100;
             u->sample_spec.rate = 44100U;
             break;
-        case BT_SBC_SAMPLING_FREQ_48000:
+        case SBC_SAMPLING_FREQ_48000:
             a2dp->sbc.frequency = SBC_FREQ_48000;
             u->sample_spec.rate = 48000U;
             break;
@@ -1898,19 +1895,19 @@ static void bt_transport_config_a2dp(struct userdata *u) {
     }
 
     switch (config->channel_mode) {
-        case BT_A2DP_CHANNEL_MODE_MONO:
+        case SBC_CHANNEL_MODE_MONO:
             a2dp->sbc.mode = SBC_MODE_MONO;
             u->sample_spec.channels = 1;
             break;
-        case BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL:
+        case SBC_CHANNEL_MODE_DUAL_CHANNEL:
             a2dp->sbc.mode = SBC_MODE_DUAL_CHANNEL;
             u->sample_spec.channels = 2;
             break;
-        case BT_A2DP_CHANNEL_MODE_STEREO:
+        case SBC_CHANNEL_MODE_STEREO:
             a2dp->sbc.mode = SBC_MODE_STEREO;
             u->sample_spec.channels = 2;
             break;
-        case BT_A2DP_CHANNEL_MODE_JOINT_STEREO:
+        case SBC_CHANNEL_MODE_JOINT_STEREO:
             a2dp->sbc.mode = SBC_MODE_JOINT_STEREO;
             u->sample_spec.channels = 2;
             break;
@@ -1919,10 +1916,10 @@ static void bt_transport_config_a2dp(struct userdata *u) {
     }
 
     switch (config->allocation_method) {
-        case BT_A2DP_ALLOCATION_SNR:
+        case SBC_ALLOCATION_SNR:
             a2dp->sbc.allocation = SBC_AM_SNR;
             break;
-        case BT_A2DP_ALLOCATION_LOUDNESS:
+        case SBC_ALLOCATION_LOUDNESS:
             a2dp->sbc.allocation = SBC_AM_LOUDNESS;
             break;
         default:
@@ -1930,10 +1927,10 @@ static void bt_transport_config_a2dp(struct userdata *u) {
     }
 
     switch (config->subbands) {
-        case BT_A2DP_SUBBANDS_4:
+        case SBC_SUBBANDS_4:
             a2dp->sbc.subbands = SBC_SB_4;
             break;
-        case BT_A2DP_SUBBANDS_8:
+        case SBC_SUBBANDS_8:
             a2dp->sbc.subbands = SBC_SB_8;
             break;
         default:
@@ -1941,16 +1938,16 @@ static void bt_transport_config_a2dp(struct userdata *u) {
     }
 
     switch (config->block_length) {
-        case BT_A2DP_BLOCK_LENGTH_4:
+        case SBC_BLOCK_LENGTH_4:
             a2dp->sbc.blocks = SBC_BLK_4;
             break;
-        case BT_A2DP_BLOCK_LENGTH_8:
+        case SBC_BLOCK_LENGTH_8:
             a2dp->sbc.blocks = SBC_BLK_8;
             break;
-        case BT_A2DP_BLOCK_LENGTH_12:
+        case SBC_BLOCK_LENGTH_12:
             a2dp->sbc.blocks = SBC_BLK_12;
             break;
-        case BT_A2DP_BLOCK_LENGTH_16:
+        case SBC_BLOCK_LENGTH_16:
             a2dp->sbc.blocks = SBC_BLK_16;
             break;
         default:
