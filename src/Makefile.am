@@ -321,7 +321,7 @@ thread_mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 utf8_test_SOURCES = tests/utf8-test.c
 utf8_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
-utf8_test_LDADD = $(AM_LDADD) libpulse.la
+utf8_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 utf8_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 format_test_SOURCES = tests/format-test.c
