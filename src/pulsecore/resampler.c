@@ -716,7 +716,7 @@ static void calc_map_table(pa_resampler *r) {
              *
              * 2) Mono Handling:
              *    S:Mono: Copy into all D:channels
-             *    D:Mono: Copy in all S:channels
+             *    D:Mono: Avg all S:channels
              *
              * 3) Mix D:Left, D:Right:
              *    D:Left: If not connected, avg all S:Left
@@ -759,8 +759,15 @@ static void calc_map_table(pa_resampler *r) {
              * best to pass it to L+R.
              */
 
-            if (a == b || a == PA_CHANNEL_POSITION_MONO || b == PA_CHANNEL_POSITION_MONO) {
+            if (a == b || a == PA_CHANNEL_POSITION_MONO) {
                 m->map_table_f[oc][ic] = 1.0;
+
+                oc_connected = TRUE;
+                ic_connected[ic] = TRUE;
+            }
+            else if (b == PA_CHANNEL_POSITION_MONO) {
+                if (n_ic)
+                    m->map_table_f[oc][ic] = 1.0f / (float) n_ic;
 
                 oc_connected = TRUE;
                 ic_connected[ic] = TRUE;
