@@ -373,7 +373,7 @@ pa_cvolume* pa_cvolume_inc_clamp(pa_cvolume *v, pa_volume_t inc, pa_volume_t lim
  * the channels are kept. \since 0.9.16 */
 pa_cvolume* pa_cvolume_inc(pa_cvolume *v, pa_volume_t inc);
 
-/** Increase the volume passed in by 'inc'. The proportions between
+/** Decrease the volume passed in by 'dec'. The proportions between
  * the channels are kept. \since 0.9.16 */
 pa_cvolume* pa_cvolume_dec(pa_cvolume *v, pa_volume_t dec);
 
