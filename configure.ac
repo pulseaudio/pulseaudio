@@ -583,11 +583,22 @@ fi
 
 AC_CHECK_HEADERS_ONCE([valgrind/memcheck.h])
 
-#### check test framework ####
+#### check unit tests ####
 
-PKG_CHECK_MODULES(LIBCHECK, [ check ])
+AC_ARG_ENABLE([tests],
+    AS_HELP_STRING([--disable-tests],[Disable unit tests]))
+
+AS_IF([test "x$enable_tests" != "xno"],
+    [PKG_CHECK_MODULES(LIBCHECK, [ check ], HAVE_LIBCHECK=1, HAVE_LIBCHECK=0)],
+    HAVE_LIBCHECK=0)
+
 AC_SUBST(LIBCHECK_CFLAGS)
 AC_SUBST(LIBCHECK_LIBS)
+
+AS_IF([test "x$enable_tests" = "xyes" && test "x$HAVE_LIBCHECK" = "x0"],
+    [AC_MSG_ERROR([*** check library not found])])
+
+AM_CONDITIONAL([HAVE_TESTS], [test "x$HAVE_LIBCHECK" = x1])
 
 #### json parsing ####
 
@@ -1400,6 +1411,7 @@ AS_IF([test "x$HAVE_SIMPLEDB" = "x1"], ENABLE_SIMPLEDB=yes, ENABLE_SIMPLEDB=no)
 AS_IF([test "x$HAVE_ESOUND" = "x1"], ENABLE_ESOUND=yes, ENABLE_ESOUND=no)
 AS_IF([test "x$HAVE_ESOUND" = "x1" -a "x$USE_PER_USER_ESOUND_SOCKET" = "x1"], ENABLE_PER_USER_ESOUND_SOCKET=yes, ENABLE_PER_USER_ESOUND_SOCKET=no)
 AS_IF([test "x$HAVE_GCOV" = "x1"], ENABLE_GCOV=yes, ENABLE_GCOV=no)
+AS_IF([test "x$HAVE_LIBCHECK" = "x1"], ENABLE_TESTS=yes, ENABLE_TESTS=no)
 AS_IF([test "x$enable_legacy_database_entry_format" != "xno"], ENABLE_LEGACY_DATABASE_ENTRY_FORMAT=yes, ENABLE_LEGACY_DATABASE_ENTRY_FORMAT=no)
 
 echo "
@@ -1447,6 +1459,7 @@ echo "
     Enable speex (resampler, AEC): ${ENABLE_SPEEX}
     Enable WebRTC echo canceller:  ${ENABLE_WEBRTC}
     Enable gcov coverage:          ${ENABLE_GCOV}
+    Enable unit tests:             ${ENABLE_TESTS}
     Database
       tdb:                         ${ENABLE_TDB}
       gdbm:                        ${ENABLE_GDBM}

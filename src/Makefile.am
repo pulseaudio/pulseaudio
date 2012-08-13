@@ -297,6 +297,7 @@ TESTS_norun += \
 		alsa-time-test
 endif
 
+if HAVE_TESTS
 TESTS_ENVIRONMENT=MAKE_CHECK=1
 TESTS = $(TESTS_default)
 
@@ -308,6 +309,19 @@ endif
 
 check-daemon: $(TESTS_daemon)
 	PATH=$(builddir):${PATH} $(top_srcdir)/src/tests/test-daemon.sh $(TESTS_daemon)
+
+else
+TESTS_ENVIRONMENT=
+TESTS =
+noinst_PROGRAMS =
+check_PROGRAMS =
+
+check-daemon:
+	@echo "Tests are disabled!"
+	@echo "Pass option \"--enable-tests\" to configure and install \"check\" library properly!"
+	false
+
+endif
 
 mainloop_test_SOURCES = tests/mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
