@@ -845,6 +845,11 @@ int pa__init(pa_module *m) {
     if (!u->sink_input)
         goto fail;
 
+    /* If format, rate or channels were originally unset, they are set now
+     * after the pa_sink_input_new() call. */
+    ss = u->sink_input->sample_spec;
+    map = u->sink_input->channel_map;
+
     u->sink_input->parent.process_msg = sink_input_process_msg_cb;
     u->sink_input->pop = sink_input_pop_cb;
     u->sink_input->process_rewind = sink_input_process_rewind_cb;
