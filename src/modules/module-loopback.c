@@ -887,15 +887,6 @@ int pa__init(pa_module *m) {
     if (!remix)
         source_output_data.flags |= PA_SOURCE_OUTPUT_NO_REMIX;
 
-    if (!format_set)
-        source_output_data.flags |= PA_SOURCE_OUTPUT_FIX_FORMAT;
-
-    if (!rate_set)
-        source_output_data.flags |= PA_SOURCE_OUTPUT_FIX_RATE;
-
-    if (!channels_set)
-        source_output_data.flags |= PA_SOURCE_OUTPUT_FIX_CHANNELS;
-
     source_dont_move = FALSE;
     if (pa_modargs_get_value_boolean(ma, "source_dont_move", &source_dont_move) < 0) {
         pa_log("source_dont_move= expects a boolean argument.");
