@@ -79,7 +79,7 @@ static inline pa_object* pa_object_cast(void *o) {
         return (c*) o;                                                  \
     }                                                                   \
     static inline c* c##_ref(c *o) {                                    \
-        return (c*) pa_object_ref(PA_OBJECT(o));                        \
+        return (c *) ((void *) pa_object_ref(PA_OBJECT(o)));            \
     }                                                                   \
     static inline void c##_unref(c* o) {                                \
         pa_object_unref(PA_OBJECT(o));                                  \
