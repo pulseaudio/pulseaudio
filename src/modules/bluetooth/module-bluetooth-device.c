@@ -1968,12 +1968,10 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     if (device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) {
         pa_log_warn("HSP is not connected, refused to switch profile");
         return -PA_ERR_IO;
-    }
-    else if (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
+    } else if (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
         pa_log_warn("A2DP is not connected, refused to switch profile");
         return -PA_ERR_IO;
-    }
-    else if (device->hfgw_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HFGW) {
+    } else if (device->hfgw_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HFGW) {
         pa_log_warn("HandsfreeGateway is not connected, refused to switch profile");
         return -PA_ERR_IO;
     }
