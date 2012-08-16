@@ -1969,7 +1969,10 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
         pa_log_warn("HSP is not connected, refused to switch profile");
         return -PA_ERR_IO;
     } else if (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
-        pa_log_warn("A2DP is not connected, refused to switch profile");
+        pa_log_warn("A2DP Sink is not connected, refused to switch profile");
+        return -PA_ERR_IO;
+    } else if (device->audio_source_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP_SOURCE) {
+        pa_log_warn("A2DP Source is not connected, refused to switch profile");
         return -PA_ERR_IO;
     } else if (device->hfgw_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HFGW) {
         pa_log_warn("HandsfreeGateway is not connected, refused to switch profile");
@@ -2225,6 +2228,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
     if ((device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) ||
         (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) ||
+        (device->audio_source_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP_SOURCE) ||
         (device->hfgw_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HFGW)) {
         pa_log_warn("Default profile not connected, selecting off profile");
         u->card->active_profile = pa_hashmap_get(u->card->profiles, "off");
