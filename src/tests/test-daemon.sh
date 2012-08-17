@@ -3,7 +3,7 @@
 # This script is modified from dbus's run-with-temp-session-bus.sh.
 #
 
-SCRIPTNAME=$0
+SCRIPTNAME="$0"
 
 die()
 {
@@ -44,6 +44,7 @@ pulseaudio -n \
         --load="module-suspend-on-idle" \
         --load="module-native-protocol-unix" \
         --load="module-cli-protocol-unix" \
+        --dl-search-path="$(dirname $SCRIPTNAME)/.libs/" \
         &
 
 # wait a few seconds to let the daemon start!
