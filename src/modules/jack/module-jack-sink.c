@@ -133,7 +133,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                 pa_sink_render_full(u->sink, nbytes, &chunk);
 
-                p = (uint8_t*) pa_memblock_acquire(chunk.memblock) + chunk.index;
+                p = pa_memblock_acquire_chunk(&chunk);
                 pa_deinterleave(p, u->buffer, u->channels, sizeof(float), (unsigned) offset);
                 pa_memblock_release(chunk.memblock);
 

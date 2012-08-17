@@ -252,8 +252,8 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
     pa_memblockq_drop(u->memblockq, n * u->sink_fs);
 
-    src = (float*) ((uint8_t*) pa_memblock_acquire(tchunk.memblock) + tchunk.index);
-    dst = (float*) pa_memblock_acquire(chunk->memblock);
+    src = pa_memblock_acquire_chunk(&tchunk);
+    dst = pa_memblock_acquire(chunk->memblock);
 
     for (l = 0; l < n; l++) {
         memcpy(((char*) u->input_buffer) + u->input_buffer_offset * u->sink_fs, ((char *) src) + l * u->sink_fs, u->sink_fs);

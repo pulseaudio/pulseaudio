@@ -23,11 +23,14 @@
   USA.
 ***/
 
+typedef struct pa_memblock pa_memblock;
+
 #include <sys/types.h>
 #include <inttypes.h>
 
 #include <pulse/def.h>
 #include <pulsecore/atomic.h>
+#include <pulsecore/memchunk.h>
 
 /* A pa_memblock is a reference counted memory block. PulseAudio
  * passes references to pa_memblocks around instead of copying
@@ -45,7 +48,6 @@ typedef enum pa_memblock_type {
     PA_MEMBLOCK_TYPE_MAX
 } pa_memblock_type_t;
 
-typedef struct pa_memblock pa_memblock;
 typedef struct pa_mempool pa_mempool;
 typedef struct pa_mempool_stat pa_mempool_stat;
 typedef struct pa_memimport_segment pa_memimport_segment;
@@ -108,7 +110,9 @@ pa_bool_t pa_memblock_ref_is_one(pa_memblock *b);
 void pa_memblock_set_is_silence(pa_memblock *b, pa_bool_t v);
 
 void* pa_memblock_acquire(pa_memblock *b);
+void *pa_memblock_acquire_chunk(const pa_memchunk *c);
 void pa_memblock_release(pa_memblock *b);
+
 size_t pa_memblock_get_length(pa_memblock *b);
 pa_mempool * pa_memblock_get_pool(pa_memblock *b);
 

@@ -575,7 +575,7 @@ static void process_samples(struct userdata *u){
 static void input_buffer(struct userdata *u, pa_memchunk *in){
     size_t fs = pa_frame_size(&(u->sink->sample_spec));
     size_t samples = in->length/fs;
-    float *src = (float*) ((uint8_t*) pa_memblock_acquire(in->memblock) + in->index);
+    float *src = pa_memblock_acquire_chunk(in);
     pa_assert(u->samples_gathered + samples <= u->input_buffer_max);
     for(size_t c = 0; c < u->channels; c++) {
         //buffer with an offset after the overlap from previous

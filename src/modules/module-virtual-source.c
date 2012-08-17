@@ -311,8 +311,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         pa_assert( target_chunk.memblock );
 
         /* get target pointer */
-        target = (void*)((uint8_t*)pa_memblock_acquire(target_chunk.memblock)
-                         + target_chunk.index);
+        target = pa_memblock_acquire_chunk(&target_chunk);
 
         /* set-up mixing structure
            volume was taken care of in sink and source already */

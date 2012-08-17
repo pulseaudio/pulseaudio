@@ -488,8 +488,8 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
     pa_memblockq_drop(u->memblockq, chunk->length);
 
-    src = (float*) ((uint8_t*) pa_memblock_acquire(tchunk.memblock) + tchunk.index);
-    dst = (float*) pa_memblock_acquire(chunk->memblock);
+    src = pa_memblock_acquire_chunk(&tchunk);
+    dst = pa_memblock_acquire(chunk->memblock);
 
     for (h = 0; h < (u->channels / u->max_ladspaport_count); h++) {
         for (c = 0; c < u->input_count; c++)

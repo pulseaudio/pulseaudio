@@ -450,7 +450,7 @@ START_TEST (mix_test) {
         k.length = i.length;
         k.index = 0;
 
-        ptr = (uint8_t*) pa_memblock_acquire(k.memblock) + k.index;
+        ptr = pa_memblock_acquire_chunk(&k);
         pa_mix(m, 2, ptr, k.length, &a, NULL, FALSE);
         pa_memblock_release(k.memblock);
 

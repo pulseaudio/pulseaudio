@@ -532,7 +532,7 @@ static int hsp_process_render(struct userdata *u) {
          * SEQPACKET, and we generated the data of the MTU size, so this
          * should just work. */
 
-        p = (const uint8_t*) pa_memblock_acquire(u->write_memchunk.memblock) + u->write_memchunk.index;
+        p = (const uint8_t *) pa_memblock_acquire_chunk(&u->write_memchunk);
         l = pa_write(u->stream_fd, p, u->write_memchunk.length, &u->stream_write_type);
         pa_memblock_release(u->write_memchunk.memblock);
 
@@ -706,7 +706,7 @@ static int a2dp_process_render(struct userdata *u) {
 
     /* Try to create a packet of the full MTU */
 
-    p = (const uint8_t*) pa_memblock_acquire(u->write_memchunk.memblock) + u->write_memchunk.index;
+    p = (const uint8_t *) pa_memblock_acquire_chunk(&u->write_memchunk);
     to_encode = u->write_memchunk.length;
 
     d = (uint8_t*) a2dp->buffer + sizeof(*header) + sizeof(*payload);

@@ -22,16 +22,18 @@
   USA.
 ***/
 
+typedef struct pa_memchunk pa_memchunk;
+
 #include <pulsecore/memblock.h>
 
 /* A memchunk describes a part of a memblock. In contrast to the memblock, a
  * memchunk is not allocated dynamically or reference counted, instead
  * it is usually stored on the stack and copied around */
 
-typedef struct pa_memchunk {
+struct pa_memchunk {
     pa_memblock *memblock;
     size_t index, length;
-} pa_memchunk;
+};
 
 /* Make a memchunk writable, i.e. make sure that the caller may have
  * exclusive access to the memblock and it is not read-only. If needed

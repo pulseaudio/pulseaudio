@@ -577,7 +577,7 @@ static int do_write(pa_pstream *p) {
         if (p->write.data)
             d = p->write.data;
         else {
-            d = (uint8_t*) pa_memblock_acquire(p->write.memchunk.memblock) + p->write.memchunk.index;
+            d = pa_memblock_acquire_chunk(&p->write.memchunk);
             release_memblock = p->write.memchunk.memblock;
         }
 

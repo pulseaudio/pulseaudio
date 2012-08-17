@@ -88,7 +88,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
 
             pa_assert(chunk.memblock);
 
-            iov[iov_idx].iov_base = ((uint8_t*) pa_memblock_acquire(chunk.memblock) + chunk.index);
+            iov[iov_idx].iov_base = pa_memblock_acquire_chunk(&chunk);
             iov[iov_idx].iov_len = k;
             mb[iov_idx] = chunk.memblock;
             iov_idx ++;
@@ -203,7 +203,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct 
     chunk->memblock = pa_memblock_ref(c->memchunk.memblock);
     chunk->index = c->memchunk.index;
 
-    iov.iov_base = (uint8_t*) pa_memblock_acquire(chunk->memblock) + chunk->index;
+    iov.iov_base = pa_memblock_acquire_chunk(chunk);
     iov.iov_len = (size_t) size;
 
     m.msg_name = NULL;

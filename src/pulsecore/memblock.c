@@ -459,6 +459,13 @@ void* pa_memblock_acquire(pa_memblock *b) {
     return pa_atomic_ptr_load(&b->data);
 }
 
+/* No lock necessary */
+void *pa_memblock_acquire_chunk(const pa_memchunk *c) {
+    pa_assert(c);
+
+    return (uint8_t *) pa_memblock_acquire(c->memblock) + c->index;
+}
+
 /* No lock necessary, in corner cases locks by its own */
 void pa_memblock_release(pa_memblock *b) {
     int r;

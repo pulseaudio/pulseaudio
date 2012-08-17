@@ -202,7 +202,7 @@ size_t pa_mix(
     }
 
     for (k = 0; k < nstreams; k++)
-        streams[k].ptr = (uint8_t*) pa_memblock_acquire(streams[k].chunk.memblock) + streams[k].chunk.index;
+        streams[k].ptr = pa_memblock_acquire_chunk(&streams[k].chunk);
 
     for (z = 0; z < nstreams; z++)
         if (length > streams[z].chunk.length)
@@ -741,7 +741,7 @@ void pa_volume_memchunk(
 
     calc_volume_table[spec->format] ((void *)linear, volume);
 
-    ptr = (uint8_t*) pa_memblock_acquire(c->memblock) + c->index;
+    ptr = pa_memblock_acquire_chunk(c);
 
     do_volume (ptr, (void *)linear, spec->channels, c->length);
 
