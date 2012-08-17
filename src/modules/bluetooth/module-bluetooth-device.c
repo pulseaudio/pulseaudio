@@ -50,9 +50,10 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/dbus-shared.h>
 
+#include <sbc/sbc.h>
+
 #include "module-bluetooth-device-symdef.h"
 #include "ipc.h"
-#include "sbc.h"
 #include "a2dp-codecs.h"
 #include "rtp.h"
 #include "bluetooth-util.h"

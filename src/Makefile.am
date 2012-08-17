@@ -1250,7 +1250,6 @@ modlibexec_LTLIBRARIES += \
 		libbluetooth-util.la \
 		module-bluetooth-proximity.la \
 		module-bluetooth-discover.la \
-		libbluetooth-sbc.la \
 		module-bluetooth-policy.la \
 		module-bluetooth-device.la
 
@@ -1938,19 +1937,6 @@ module_bluetooth_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_bluetooth_discover_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) libbluetooth-util.la
 module_bluetooth_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
-libbluetooth_sbc_la_SOURCES = \
-		modules/bluetooth/sbc/sbc.c modules/bluetooth/sbc/sbc.h \
-		modules/bluetooth/sbc/sbc_primitives.c modules/bluetooth/sbc/sbc_primitives.h \
-		modules/bluetooth/sbc/sbc_primitives_armv6.h modules/bluetooth/sbc/sbc_primitives_armv6.c \
-		modules/bluetooth/sbc/sbc_primitives_iwmmxt.h modules/bluetooth/sbc/sbc_primitives_iwmmxt.c \
-		modules/bluetooth/sbc/sbc_primitives_mmx.c modules/bluetooth/sbc/sbc_primitives_mmx.h \
-		modules/bluetooth/sbc/sbc_primitives_neon.c modules/bluetooth/sbc/sbc_primitives_neon.h \
-		modules/bluetooth/sbc/sbc_math.h \
-		modules/bluetooth/sbc/sbc_tables.h
-libbluetooth_sbc_la_LDFLAGS = -avoid-version
-libbluetooth_sbc_la_LIBADD = $(MODULE_LIBADD)
-libbluetooth_sbc_la_CFLAGS = $(AM_CFLAGS) -I$(top_srcdir)/src/modules/bluetooth/sbc
-BLUETOOTH_SBC_FILES = $(subst modules/bluetooth/,,$(libbluetooth_sbc_la_SOURCES))
 
 libbluetooth_util_la_SOURCES = modules/bluetooth/bluetooth-util.c modules/bluetooth/bluetooth-util.h
 libbluetooth_util_la_LDFLAGS = -avoid-version
@@ -1959,8 +1945,8 @@ libbluetooth_util_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 module_bluetooth_device_la_SOURCES = modules/bluetooth/module-bluetooth-device.c modules/bluetooth/rtp.h
 module_bluetooth_device_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_bluetooth_device_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) libbluetooth-util.la libbluetooth-sbc.la
-module_bluetooth_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) -I$(top_srcdir)/src/modules/bluetooth/sbc
+module_bluetooth_device_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) $(SBC_LIBS) libbluetooth-util.la
+module_bluetooth_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) $(SBC_CFLAGS)
 
 module_bluetooth_policy_la_SOURCES = modules/bluetooth/module-bluetooth-policy.c
 module_bluetooth_policy_la_LDFLAGS = $(MODULE_LDFLAGS)
@@ -2022,13 +2008,6 @@ massif: pulseaudio
 update-ffmpeg:
 	wget -O pulsecore/ffmpeg/resample2.c http://svn.mplayerhq.hu/ffmpeg/trunk/libavcodec/resample2.c?view=co
 
-# We get things twice here, because sometimes gitweb will us just give a "Generating..." otherwise.
-update-sbc:
-	for i in $(BLUETOOTH_SBC_FILES) ; do \
-		wget -O /dev/null http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=$$i ; \
-		wget -O $(top_srcdir)/src/modules/bluetooth/$$i http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=$$i ; \
-	done
-
 update-reserve:
 	for i in reserve.c reserve.h reserve-monitor.c reserve-monitor.h ; do \
 		wget -O $(top_srcdir)/src/modules/$$i http://git.0pointer.de/\?p=reserve.git\;a=blob_plain\;f=$$i\;hb=master ; \
@@ -2048,7 +2027,7 @@ update-map-file:
 	  echo "*;" ; \
 	  echo "};" ) > $(srcdir)/map-file
 
-update-all: update-ffmpeg update-sbc update-map-file
+update-all: update-ffmpeg update-map-file
 
 # Force installation order of libraries. libtool relinks on install time, in
 # which case libpulsecommon has to be installed before others, but the padsp
@@ -2087,4 +2066,4 @@ coverage:
 	@echo ""
 endif
 
-.PHONY: massif update-all update-ffmpeg update-sbc update-map-file coverage
+.PHONY: massif update-all update-ffmpeg update-map-file coverage
