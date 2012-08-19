@@ -1128,6 +1128,8 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
 
     pa_log_debug("Sink input update max rewind %lld", (long long) nbytes);
 
+    /* FIXME: Too small max_rewind:
+     * https://bugs.freedesktop.org/show_bug.cgi?id=53709 */
     pa_memblockq_set_maxrewind(u->sink_memblockq, nbytes);
     pa_sink_set_max_rewind_within_thread(u->sink, nbytes);
 }
@@ -1277,6 +1279,9 @@ static void sink_input_attach_cb(pa_sink_input *i) {
      * pa_sink_input_get_max_request(i) UP TO MULTIPLES OF IT
      * HERE. SEE (6) */
     pa_sink_set_max_request_within_thread(u->sink, pa_sink_input_get_max_request(i));
+
+    /* FIXME: Too small max_rewind:
+     * https://bugs.freedesktop.org/show_bug.cgi?id=53709 */
     pa_sink_set_max_rewind_within_thread(u->sink, pa_sink_input_get_max_rewind(i));
 
     pa_log_debug("Sink input %d attach", i->index);
