@@ -1129,6 +1129,10 @@ int main(int argc, char *argv[]) {
     pa_disable_sigpipe();
 
     if (raw) {
+#ifdef OS_IS_WIN32
+        /* need to turn on binary mode for stdio io. Windows, meh */
+        setmode(mode == PLAYBACK ? STDIN_FILENO : STDOUT_FILENO, O_BINARY);
+#endif
         if (!(stdio_event = mainloop_api->io_new(mainloop_api,
                                                  mode == PLAYBACK ? STDIN_FILENO : STDOUT_FILENO,
                                                  mode == PLAYBACK ? PA_IO_EVENT_INPUT : PA_IO_EVENT_OUTPUT,
