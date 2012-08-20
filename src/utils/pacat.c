@@ -539,7 +539,7 @@ static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_even
 
     buffer = pa_xmalloc(l);
 
-    if ((r = read(fd, buffer, l)) <= 0) {
+    if ((r = pa_read(fd, buffer, l, userdata)) <= 0) {
         if (r == 0) {
             if (verbose)
                 pa_log(_("Got EOF."));
@@ -578,7 +578,7 @@ static void stdout_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_eve
 
     pa_assert(buffer_length);
 
-    if ((r = write(fd, (uint8_t*) buffer+buffer_index, buffer_length)) <= 0) {
+    if ((r = pa_write(fd, (uint8_t*) buffer+buffer_index, buffer_length, userdata)) <= 0) {
         pa_log(_("write() failed: %s"), strerror(errno));
         quit(1);
 
@@ -718,6 +718,8 @@ int main(int argc, char *argv[]) {
     char *bn, *server = NULL;
     pa_time_event *time_event = NULL;
     const char *filename = NULL;
+    /* type for pa_read/_write. passed as userdata to the callbacks */
+    unsigned long type = 0;
 
     static const struct option long_options[] = {
         {"record",       0, NULL, 'r'},
@@ -1136,7 +1138,7 @@ int main(int argc, char *argv[]) {
         if (!(stdio_event = mainloop_api->io_new(mainloop_api,
                                                  mode == PLAYBACK ? STDIN_FILENO : STDOUT_FILENO,
                                                  mode == PLAYBACK ? PA_IO_EVENT_INPUT : PA_IO_EVENT_OUTPUT,
-                                                 mode == PLAYBACK ? stdin_callback : stdout_callback, NULL))) {
+                                                 mode == PLAYBACK ? stdin_callback : stdout_callback, &type))) {
             pa_log(_("io_new() failed."));
             goto quit;
         }
