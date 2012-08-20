@@ -63,8 +63,9 @@ const char* pa_cstrerror(int errnum) {
     original = strerror(errnum);
 #endif
 
-    if (!original) {
-        pa_snprintf(errbuf, sizeof(errbuf), "Unknown error %i", errnum);
+    /* The second condition is a Windows-ism */
+    if (!original || !strcasecmp(original, "Unknown error")) {
+        pa_snprintf(errbuf, sizeof(errbuf), "Unknown error %d", errnum);
         original = errbuf;
     }
 
