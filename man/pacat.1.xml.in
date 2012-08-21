@@ -116,7 +116,7 @@ USA.
       <opt>float32le</opt>, <opt>float32be</opt>, <opt>ulaw</opt>,
       <opt>alaw</opt>, <opt>s32le</opt>, <opt>s32be</opt>,
       <opt>s24le</opt>, <opt>s24be</opt>, <opt>s24-32le</opt>,
-      <opt>s24-32be</opt>. Depending on the endianess of the CPU the
+      <opt>s24-32be</opt>. Depending on the endianness of the CPU the
       formats <opt>s16ne</opt>, <opt>s16re</opt>, <opt>s32ne</opt>,
       <opt>s32re</opt>, <opt>float32ne</opt>, <opt>float32re</opt>,
       <opt>s32ne</opt>, <opt>s32re</opt>, <opt>s24ne</opt>,

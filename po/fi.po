@@ -252,7 +252,7 @@ msgstr ""
 #: ../src/daemon/main.c:721
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
-"Suoritetaan järjestelmätilassa, mutta -disallow-module-loading ei ole "
+"Suoritetaan järjestelmätilassa, mutta --disallow-module-loading ei ole "
 "asetettuna!"
 
 #: ../src/daemon/main.c:724
