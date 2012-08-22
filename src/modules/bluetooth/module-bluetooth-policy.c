@@ -44,7 +44,7 @@ struct userdata {
 };
 
 /* When a source is created, loopback it to default sink */
-static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, void* userdata) {
+static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, void *userdata) {
     const char *s;
     const char *role;
     char *args;
@@ -80,7 +80,7 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
     return PA_HOOK_OK;
 }
 
-int pa__init(pa_module*m) {
+int pa__init(pa_module *m) {
     struct userdata *u;
 
     pa_assert(m);
@@ -92,7 +92,7 @@ int pa__init(pa_module*m) {
     return 0;
 }
 
-void pa__done(pa_module*m) {
+void pa__done(pa_module *m) {
     struct userdata *u;
 
     pa_assert(m);
