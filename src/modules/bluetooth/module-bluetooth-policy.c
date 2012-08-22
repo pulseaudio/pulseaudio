@@ -28,6 +28,7 @@
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core.h>
+#include <pulsecore/modargs.h>
 #include <pulsecore/source-output.h>
 #include <pulsecore/source.h>
 #include <pulsecore/core-util.h>
@@ -35,16 +36,25 @@
 #include "module-bluetooth-policy-symdef.h"
 
 PA_MODULE_AUTHOR("Frédéric Dalleau");
-PA_MODULE_DESCRIPTION("When an A2DP source is added, load module-loopback");
+PA_MODULE_DESCRIPTION("When a bluetooth sink or source is added, load module-loopback");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_USAGE(
+        "a2dp_source=<Handle a2dp_source card profile (sink role)?>");
+
+static const char* const valid_modargs[] = {
+    "a2dp_source",
+    NULL
+};
 
 struct userdata {
-     pa_hook_slot *source_put_slot;
+    bool enable_a2dp_source;
+    pa_hook_slot *source_put_slot;
 };
 
 /* When a source is created, loopback it to default sink */
 static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, void *userdata) {
+    struct userdata *u = userdata;
     const char *s;
     const char *role;
     char *args;
@@ -60,12 +70,11 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
     if (!pa_streq(s, "bluetooth"))
         return PA_HOOK_OK;
 
-    /* Restrict to A2DP profile (sink role) */
     s = pa_proplist_gets(source->proplist, "bluetooth.protocol");
     if (!s)
         return PA_HOOK_OK;
 
-    if (pa_streq(s, "a2dp_source"))
+    if (u->enable_a2dp_source && pa_streq(s, "a2dp_source")) /* A2DP profile (we're doing sink role) */
         role = "music";
     else {
         pa_log_debug("Profile %s cannot be selected for loopback", s);
@@ -81,15 +90,32 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
 }
 
 int pa__init(pa_module *m) {
+    pa_modargs *ma;
     struct userdata *u;
 
     pa_assert(m);
 
+    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
+        pa_log_error("Failed to parse module arguments");
+        return -1;
+    }
+
     m->userdata = u = pa_xnew(struct userdata, 1);
+
+    u->enable_a2dp_source = TRUE;
+    if (pa_modargs_get_value_boolean(ma, "a2dp_source", &u->enable_a2dp_source) < 0) {
+        pa_log("Failed to parse a2dp_source argument.");
+        goto fail;
+    }
 
     u->source_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_NORMAL, (pa_hook_cb_t) source_put_hook_callback, u);
 
+    pa_modargs_free(ma);
     return 0;
+
+fail:
+    pa_modargs_free(ma);
+    return -1;
 }
 
 void pa__done(pa_module *m) {
