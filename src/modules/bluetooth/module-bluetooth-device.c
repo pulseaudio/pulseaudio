@@ -1466,6 +1466,21 @@ static void connect_ports(struct userdata *u, void *sink_or_source_new_data, pa_
     }
 }
 
+static const char *profile_to_string(enum profile profile) {
+    switch(profile) {
+        case PROFILE_A2DP:
+            return "a2dp";
+        case PROFILE_A2DP_SOURCE:
+            return "a2dp_source";
+        case PROFILE_HSP:
+            return "hsp";
+        case PROFILE_HFGW:
+            return "hfgw";
+        default:
+            pa_assert_not_reached();
+    }
+}
+
 /* Run from main thread */
 static int add_sink(struct userdata *u) {
     char *k;
@@ -1475,7 +1490,7 @@ static int add_sink(struct userdata *u) {
 
         u->sink = u->hsp.sco_sink;
         p = pa_proplist_new();
-        pa_proplist_sets(p, "bluetooth.protocol", "sco");
+        pa_proplist_sets(p, "bluetooth.protocol", profile_to_string(u->profile));
         pa_proplist_update(u->sink->proplist, PA_UPDATE_MERGE, p);
         pa_proplist_free(p);
 
@@ -1490,7 +1505,7 @@ static int add_sink(struct userdata *u) {
         data.driver = __FILE__;
         data.module = u->module;
         pa_sink_new_data_set_sample_spec(&data, &u->sample_spec);
-        pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "sco");
+        pa_proplist_sets(data.proplist, "bluetooth.protocol", profile_to_string(u->profile));
         if (u->profile == PROFILE_HSP)
             pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
         data.card = u->card;
@@ -1539,7 +1554,7 @@ static int add_source(struct userdata *u) {
 
     if (USE_SCO_OVER_PCM(u)) {
         u->source = u->hsp.sco_source;
-        pa_proplist_sets(u->source->proplist, "bluetooth.protocol", "hsp");
+        pa_proplist_sets(u->source->proplist, "bluetooth.protocol", profile_to_string(u->profile));
 
         if (!u->hsp.source_state_changed_slot)
             u->hsp.source_state_changed_slot = pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) source_state_changed_cb, u);
@@ -1552,7 +1567,7 @@ static int add_source(struct userdata *u) {
         data.driver = __FILE__;
         data.module = u->module;
         pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
-        pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP_SOURCE ? "a2dp_source" : "hsp");
+        pa_proplist_sets(data.proplist, "bluetooth.protocol", profile_to_string(u->profile));
         if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW))
             pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
 
