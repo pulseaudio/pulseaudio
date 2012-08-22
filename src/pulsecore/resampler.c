@@ -237,7 +237,10 @@ pa_resampler* pa_resampler_new(
 #ifdef HAVE_SPEEX
         method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
 #else
-        method = PA_RESAMPLER_FFMPEG;
+        if (flags & PA_RESAMPLER_VARIABLE_RATE)
+            method = PA_RESAMPLER_TRIVIAL;
+        else
+            method = PA_RESAMPLER_FFMPEG;
 #endif
     }
 
