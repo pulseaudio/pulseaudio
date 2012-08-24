@@ -2426,8 +2426,16 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             pa_sink_input_set_state_within_thread(i, i->state);
 
-            /* The requested latency of the sink input needs to be
-             * fixed up and then configured on the sink */
+            /* The requested latency of the sink input needs to be fixed up and
+             * then configured on the sink. If this causes the sink latency to
+             * go down, the sink implementor is responsible for doing a rewind
+             * in the update_requested_latency() callback to ensure that the
+             * sink buffer doesn't contain more data than what the new latency
+             * allows.
+             *
+             * XXX: Does it really make sense to push this responsibility to
+             * the sink implementors? Wouldn't it be better to do it once in
+             * the core than many times in the modules? */
 
             if (i->thread_info.requested_sink_latency != (pa_usec_t) -1)
                 pa_sink_input_set_requested_latency_within_thread(i, i->thread_info.requested_sink_latency);
@@ -2438,19 +2446,11 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             /* We don't rewind here automatically. This is left to the
              * sink input implementor because some sink inputs need a
              * slow start, i.e. need some time to buffer client
-             * samples before beginning streaming. */
-
-            /* FIXME: Actually rewinding should be requested before
-             * updating the sink requested latency, because updating
-             * the requested latency updates also max_rewind of the
-             * sink. Now consider this: a sink has a 10 s buffer and
-             * nobody has requested anything less. Then a new stream
-             * appears while the sink buffer is full. The new stream
-             * requests e.g. 100 ms latency. That request is forwarded
-             * to the sink, so now max_rewind is 100 ms. When a rewind
-             * is requested, the sink will only rewind 100 ms, and the
-             * new stream will have to wait about 10 seconds before it
-             * becomes audible. */
+             * samples before beginning streaming.
+             *
+             * XXX: Does it really make sense to push this functionality to
+             * the sink implementors? Wouldn't it be better to do it once in
+             * the core than many times in the modules? */
 
             /* In flat volume mode we need to update the volume as
              * well */
