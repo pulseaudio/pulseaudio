@@ -989,7 +989,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
     if (i->thread_info.rewrite_nbytes == (size_t) -1) {
 
         /* We were asked to drop all buffered data, and rerequest new
-         * data from implementor the next time push() is called */
+         * data from implementor the next time peek() is called */
 
         pa_memblockq_flush_write(i->thread_info.render_memblockq, TRUE);
 
