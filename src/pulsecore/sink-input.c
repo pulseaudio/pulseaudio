@@ -1965,6 +1965,7 @@ void pa_sink_input_request_rewind(
         i->thread_info.dont_rewind_render ||
         dont_rewind_render;
 
+    /* nbytes is -1 if some earlier rewind request had rewrite == false. */
     if (nbytes != (size_t) -1) {
 
         /* Transform to sink domain */
