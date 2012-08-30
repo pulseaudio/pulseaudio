@@ -136,11 +136,11 @@ static void process_rewind(struct userdata *u, pa_usec_t now) {
 
     pa_assert(u);
 
-    /* Figure out how much we shall rewind and reset the counter */
     rewind_nbytes = u->sink->thread_info.rewind_nbytes;
-    u->sink->thread_info.rewind_nbytes = 0;
 
-    pa_assert(rewind_nbytes > 0);
+    if (!PA_SINK_IS_OPENED(u->sink->thread_info.state) || rewind_nbytes <= 0)
+        goto do_nothing;
+
     pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
 
     if (u->timestamp <= now)
@@ -207,21 +207,17 @@ static void thread_func(void *userdata) {
     u->timestamp = pa_rtclock_now();
 
     for (;;) {
+        pa_usec_t now = 0;
         int ret;
+
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
+            now = pa_rtclock_now();
+
+        if (u->sink->thread_info.rewind_requested)
+            process_rewind(u, now);
 
         /* Render some data and drop it immediately */
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
-            pa_usec_t now;
-
-            now = pa_rtclock_now();
-
-            if (u->sink->thread_info.rewind_requested) {
-                if (u->sink->thread_info.rewind_nbytes > 0)
-                    process_rewind(u, now);
-                else
-                    pa_sink_process_rewind(u->sink, 0);
-            }
-
             if (u->timestamp <= now)
                 process_render(u, now);
 

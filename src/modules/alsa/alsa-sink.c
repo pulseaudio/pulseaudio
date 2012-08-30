@@ -1602,6 +1602,11 @@ static int process_rewind(struct userdata *u) {
     size_t rewind_nbytes, unused_nbytes, limit_nbytes;
     pa_assert(u);
 
+    if (!PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
+        pa_sink_process_rewind(u->sink, 0);
+        return 0;
+    }
+
     /* Figure out how much we shall rewind and reset the counter */
     rewind_nbytes = u->sink->thread_info.rewind_nbytes;
 
@@ -1681,15 +1686,16 @@ static void thread_func(void *userdata) {
         pa_log_debug("Loop");
 #endif
 
+        if (PA_UNLIKELY(u->sink->thread_info.rewind_requested)) {
+            if (process_rewind(u) < 0)
+                goto fail;
+        }
+
         /* Render some data and write it to the dsp */
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
             int work_done;
             pa_usec_t sleep_usec = 0;
             pa_bool_t on_timeout = pa_rtpoll_timer_elapsed(u->rtpoll);
-
-            if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
-                if (process_rewind(u) < 0)
-                        goto fail;
 
             if (u->use_mmap)
                 work_done = mmap_write(u, &sleep_usec, revents & POLLOUT, on_timeout);

@@ -698,9 +698,8 @@ static void thread_func(void *userdata) {
         int ret;
 
 #ifdef TUNNEL_SINK
-        if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
-            if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
-                pa_sink_process_rewind(u->sink, 0);
+        if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
+            pa_sink_process_rewind(u->sink, 0);
 #endif
 
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
