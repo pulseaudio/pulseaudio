@@ -305,9 +305,8 @@ static void thread_func(void *userdata) {
     for (;;) {
         int ret;
 
-        if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
-            if (u->sink->thread_info.rewind_requested)
-                pa_sink_process_rewind(u->sink, 0);
+        if (u->sink->thread_info.rewind_requested)
+            pa_sink_process_rewind(u->sink, 0);
 
         /* If no outputs are connected, render some data and drop it immediately. */
         if (u->sink->thread_info.state == PA_SINK_RUNNING && !u->thread_info.active_outputs) {

@@ -938,9 +938,6 @@ void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     s->thread_info.rewind_nbytes = 0;
     s->thread_info.rewind_requested = FALSE;
 
-    if (s->thread_info.state == PA_SINK_SUSPENDED)
-        return;
-
     if (nbytes > 0) {
         pa_log_debug("Processing rewind...");
         if (s->flags & PA_SINK_DEFERRED_VOLUME)
@@ -2928,9 +2925,6 @@ void pa_sink_request_rewind(pa_sink*s, size_t nbytes) {
     pa_sink_assert_ref(s);
     pa_sink_assert_io_context(s);
     pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
-
-    if (s->thread_info.state == PA_SINK_SUSPENDED)
-        return;
 
     if (nbytes == (size_t) -1)
         nbytes = s->thread_info.max_rewind;

@@ -587,9 +587,12 @@ static void process_rewind(struct userdata *u) {
 
     pa_assert(u);
 
-    /* Figure out how much we shall rewind and reset the counter */
+    if (!PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
+        pa_sink_process_rewind(u->sink, 0);
+        return;
+    }
+
     rewind_nbytes = u->sink->thread_info.rewind_nbytes;
-    u->sink->thread_info.rewind_nbytes = 0;
 
     if (rewind_nbytes > 0) {
         pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
@@ -625,12 +628,12 @@ static void thread_func(void *userdata) {
     for (;;) {
         /* Render some data and write it to the dsp */
 
+        if (u->sink->thread_info.rewind_requested)
+            process_rewind(u);
+
         if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
             pa_usec_t xtime0, ysleep_interval, xsleep_interval;
             uint64_t buffered_bytes;
-
-            if (u->sink->thread_info.rewind_requested)
-                process_rewind(u);
 
             err = ioctl(u->fd, AUDIO_GETINFO, &info);
             if (err < 0) {

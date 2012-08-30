@@ -255,13 +255,16 @@ static void thread_func(void *userdata) {
         int ret;
         pa_bool_t need_timer = FALSE;
 
-        if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
+        if (u->sink) {
             if (u->sink->thread_info.rewind_requested)
                 pa_sink_process_rewind(u->sink, 0);
 
-            do_write(u);
-            need_timer = TRUE;
+            if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
+                do_write(u);
+                need_timer = TRUE;
+            }
         }
+
         if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
             do_read(u);
             need_timer = TRUE;

@@ -280,9 +280,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 pa_assert(sink);
 
                 if (PA_SINK_IS_OPENED(sink->pa_sink->thread_info.state)) {
-                    if (sink->pa_sink->thread_info.rewind_requested)
-                        pa_sink_process_rewind(sink->pa_sink, 0);
-
                     audio_chunk.memblock = pa_memblock_new_fixed(u->module->core->mempool, buf->mData, buf->mDataByteSize, FALSE);
                     audio_chunk.length = buf->mDataByteSize;
                     audio_chunk.index = 0;
@@ -664,7 +661,13 @@ static void thread_func(void *userdata) {
     pa_thread_mq_install(&u->thread_mq);
 
     for (;;) {
+        coreaudio_sink *ca_sink;
         int ret;
+
+        PA_LLIST_FOREACH(ca_sink, u->sinks) {
+            if (ca_sink->pa_sink->thread_info.rewind_requested)
+                pa_sink_process_rewind(ca_sink->pa_sink, 0);
+        }
 
         ret = pa_rtpoll_run(u->rtpoll, TRUE);
 

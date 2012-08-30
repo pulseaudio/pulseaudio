@@ -229,9 +229,8 @@ static void thread_func(void *userdata) {
     for (;;) {
         int ret;
 
-        if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
-            if (u->sink->thread_info.rewind_requested)
-                pa_sink_process_rewind(u->sink, 0);
+        if (u->sink->thread_info.rewind_requested)
+            pa_sink_process_rewind(u->sink, 0);
 
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
             goto fail;
