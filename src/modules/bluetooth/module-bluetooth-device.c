@@ -1515,6 +1515,14 @@ static const char *profile_to_string(enum profile profile) {
     }
 }
 
+static int sink_set_port_cb(pa_sink *s, pa_device_port *p) {
+    return 0;
+}
+
+static int source_set_port_cb(pa_source *s, pa_device_port *p) {
+    return 0;
+}
+
 /* Run from main thread */
 static int add_sink(struct userdata *u) {
     char *k;
@@ -1563,6 +1571,7 @@ static int add_sink(struct userdata *u) {
 
         u->sink->userdata = u;
         u->sink->parent.process_msg = sink_process_msg;
+        u->sink->set_port = sink_set_port_cb;
 
         pa_sink_set_max_request(u->sink, u->write_block_size);
         pa_sink_set_fixed_latency(u->sink,
@@ -1626,6 +1635,7 @@ static int add_source(struct userdata *u) {
 
         u->source->userdata = u;
         u->source->parent.process_msg = source_process_msg;
+        u->source->set_port = source_set_port_cb;
 
         pa_source_set_fixed_latency(u->source,
                                     (u->profile == PROFILE_A2DP_SOURCE ? FIXED_LATENCY_RECORD_A2DP : FIXED_LATENCY_RECORD_HSP) +
