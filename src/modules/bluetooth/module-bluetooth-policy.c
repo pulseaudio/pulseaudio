@@ -143,7 +143,7 @@ int pa__init(pa_module *m) {
         return -1;
     }
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
 
     u->enable_a2dp_source = TRUE;
     if (pa_modargs_get_value_boolean(ma, "a2dp_source", &u->enable_a2dp_source) < 0) {
