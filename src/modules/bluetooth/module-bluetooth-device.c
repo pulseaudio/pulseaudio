@@ -1736,7 +1736,18 @@ static int add_sink(struct userdata *u) {
         connect_ports(u, &data, PA_DIRECTION_OUTPUT);
 
         if (!bt_transport_is_acquired(u))
-            data.suspend_cause = PA_SUSPEND_USER;
+            switch (u->profile) {
+                case PROFILE_A2DP:
+                case PROFILE_HSP:
+                    data.suspend_cause = PA_SUSPEND_IDLE;
+                    break;
+                case PROFILE_HFGW:
+                    data.suspend_cause = PA_SUSPEND_USER;
+                    break;
+                case PROFILE_A2DP_SOURCE:
+                case PROFILE_OFF:
+                    pa_assert_not_reached();
+            }
 
         u->sink = pa_sink_new(u->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
         pa_sink_new_data_done(&data);
@@ -1799,7 +1810,18 @@ static int add_source(struct userdata *u) {
         connect_ports(u, &data, PA_DIRECTION_INPUT);
 
         if (!bt_transport_is_acquired(u))
-            data.suspend_cause = PA_SUSPEND_USER;
+            switch (u->profile) {
+                case PROFILE_HSP:
+                    data.suspend_cause = PA_SUSPEND_IDLE;
+                    break;
+                case PROFILE_A2DP_SOURCE:
+                case PROFILE_HFGW:
+                    data.suspend_cause = PA_SUSPEND_USER;
+                    break;
+                case PROFILE_A2DP:
+                case PROFILE_OFF:
+                    pa_assert_not_reached();
+            }
 
         u->source = pa_source_new(u->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
         pa_source_new_data_done(&data);
