@@ -54,6 +54,7 @@ struct userdata {
     bool enable_hfgw;
     pa_hook_slot *source_put_slot;
     pa_hook_slot *sink_put_slot;
+    pa_hook_slot *port_available_changed_slot;
 };
 
 /* When a source is created, loopback it to default sink */
@@ -132,6 +133,89 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void *
     return PA_HOOK_OK;
 }
 
+static pa_device_port* find_best_port(pa_hashmap *ports) {
+    void *state;
+    pa_device_port *port;
+    pa_device_port *result = NULL;
+
+    PA_HASHMAP_FOREACH(port, ports, state) {
+        if (port->available != PA_PORT_AVAILABLE_YES)
+            continue;
+
+        if (result == NULL || port->priority > result->priority)
+            result = port;
+    }
+
+    return result;
+}
+
+static void set_port_profile(pa_card *card, pa_device_port *port) {
+    void *state;
+    pa_card_profile *profile;
+
+    PA_HASHMAP_FOREACH(profile, port->profiles, state) {
+        if (card->active_profile == profile)
+            return;
+
+        pa_log_debug("Setting card '%s' to profile '%s'", card->name, profile->name);
+
+        if (pa_card_set_profile(card, profile->name, FALSE) != 0)
+            pa_log_warn("Could not set profile '%s'", profile->name);
+
+        return;
+    }
+}
+
+static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port *port, void *userdata) {
+    pa_card *card;
+    const char *s;
+    uint32_t state;
+    pa_bool_t is_active_profile;
+    pa_device_port *port2;
+
+    PA_IDXSET_FOREACH(card, c->cards, state)
+        if (port == pa_hashmap_get(card->ports, port->name))
+            break;
+
+    if (!card) {
+        pa_log_warn("Did not find port %s in array of cards", port->name);
+        return PA_HOOK_OK;
+    }
+
+    /* Only consider bluetooth cards */
+    s = pa_proplist_gets(card->proplist, PA_PROP_DEVICE_BUS);
+    if (!s || !pa_streq(s, "bluetooth"))
+        return PA_HOOK_OK;
+
+    is_active_profile = card->active_profile == pa_hashmap_get(port->profiles, card->active_profile->name);
+
+    if (is_active_profile && port->available == PA_PORT_AVAILABLE_YES)
+        return PA_HOOK_OK;
+
+    if (!is_active_profile && port->available != PA_PORT_AVAILABLE_YES)
+        return PA_HOOK_OK;
+
+    if ((port2 = find_best_port(card->ports)) == NULL)
+        return PA_HOOK_OK;
+
+    set_port_profile(card, port2);
+
+    return PA_HOOK_OK;
+}
+
+static void handle_all_ports(pa_core *core) {
+    pa_card *card;
+    uint32_t state;
+
+    PA_IDXSET_FOREACH(card, core->cards, state) {
+        pa_device_port *port;
+        void *state2;
+
+        PA_HASHMAP_FOREACH(port, card->ports, state2)
+            port_available_hook_callback(core, port, NULL);
+    }
+}
+
 int pa__init(pa_module *m) {
     pa_modargs *ma;
     struct userdata *u;
@@ -161,6 +245,11 @@ int pa__init(pa_module *m) {
 
     u->sink_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_put_hook_callback, u);
 
+    u->port_available_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED],
+                                       PA_HOOK_NORMAL, (pa_hook_cb_t) port_available_hook_callback, u);
+
+    handle_all_ports(m->core);
+
     pa_modargs_free(ma);
     return 0;
 
@@ -182,6 +271,9 @@ void pa__done(pa_module *m) {
 
     if (u->sink_put_slot)
         pa_hook_slot_free(u->sink_put_slot);
+
+    if (u->port_available_changed_slot)
+        pa_hook_slot_free(u->port_available_changed_slot);
 
     pa_xfree(u);
 }
