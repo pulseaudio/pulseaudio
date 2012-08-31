@@ -235,7 +235,7 @@ pa_source* pa_source_new(
     s->state = PA_SOURCE_INIT;
     s->flags = flags;
     s->priority = 0;
-    s->suspend_cause = 0;
+    s->suspend_cause = data->suspend_cause;
     pa_source_set_mixer_dirty(s, FALSE);
     s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);
@@ -595,7 +595,10 @@ void pa_source_put(pa_source *s) {
     pa_assert(!(s->flags & PA_SOURCE_DECIBEL_VOLUME) || s->n_volume_steps == PA_VOLUME_NORM+1);
     pa_assert(!(s->flags & PA_SOURCE_DYNAMIC_LATENCY) == (s->thread_info.fixed_latency != 0));
 
-    pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
+    if (s->suspend_cause)
+        pa_assert_se(source_set_state(s, PA_SOURCE_SUSPENDED) == 0);
+    else
+        pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PUT], s);

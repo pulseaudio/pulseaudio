@@ -381,7 +381,9 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
 
                 case PA_SINK_SUSPENDED:
-                    pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
+                    /* Ignore if transition is PA_SINK_INIT->PA_SINK_SUSPENDED */
+                    if (!PA_SINK_IS_OPENED(u->sink->thread_info.state))
+                        break;
 
                     /* Stop the device if the source is suspended as well */
                     if (!u->source || u->source->state == PA_SOURCE_SUSPENDED)
@@ -455,7 +457,9 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
 
                 case PA_SOURCE_SUSPENDED:
-                    pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
+                    /* Ignore if transition is PA_SOURCE_INIT->PA_SOURCE_SUSPENDED */
+                    if (!PA_SOURCE_IS_OPENED(u->source->thread_info.state))
+                        break;
 
                     /* Stop the device if the sink is suspended as well */
                     if (!u->sink || u->sink->state == PA_SINK_SUSPENDED)

@@ -328,6 +328,8 @@ typedef enum pa_sink_message {
 } pa_sink_message_t;
 
 typedef struct pa_sink_new_data {
+    pa_suspend_cause_t suspend_cause;
+
     char *name;
     pa_proplist *proplist;
 

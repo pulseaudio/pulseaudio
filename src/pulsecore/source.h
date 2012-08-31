@@ -265,6 +265,8 @@ typedef enum pa_source_message {
 } pa_source_message_t;
 
 typedef struct pa_source_new_data {
+    pa_suspend_cause_t suspend_cause;
+
     char *name;
     pa_proplist *proplist;
 

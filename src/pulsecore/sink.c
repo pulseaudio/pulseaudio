@@ -248,7 +248,7 @@ pa_sink* pa_sink_new(
     s->state = PA_SINK_INIT;
     s->flags = flags;
     s->priority = 0;
-    s->suspend_cause = 0;
+    s->suspend_cause = data->suspend_cause;
     pa_sink_set_mixer_dirty(s, FALSE);
     s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);
@@ -650,7 +650,10 @@ void pa_sink_put(pa_sink* s) {
     pa_assert(s->monitor_source->thread_info.min_latency == s->thread_info.min_latency);
     pa_assert(s->monitor_source->thread_info.max_latency == s->thread_info.max_latency);
 
-    pa_assert_se(sink_set_state(s, PA_SINK_IDLE) == 0);
+    if (s->suspend_cause)
+        pa_assert_se(sink_set_state(s, PA_SINK_SUSPENDED) == 0);
+    else
+        pa_assert_se(sink_set_state(s, PA_SINK_IDLE) == 0);
 
     pa_source_put(s->monitor_source);
 
