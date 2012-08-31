@@ -1129,6 +1129,52 @@ finish:
     pa_log_debug("IO thread shutting down");
 }
 
+static pa_bt_audio_state_t parse_state_property_change(DBusMessage *m) {
+    DBusMessageIter iter;
+    DBusMessageIter variant;
+    const char *key;
+    const char *value;
+    pa_bt_audio_state_t state;
+
+    if (!dbus_message_iter_init(m, &iter)) {
+        pa_log("Failed to parse PropertyChanged");
+        return PA_BT_AUDIO_STATE_INVALID;
+    }
+
+    if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) {
+        pa_log("Property name not a string");
+        return PA_BT_AUDIO_STATE_INVALID;
+    }
+
+    dbus_message_iter_get_basic(&iter, &key);
+
+    if (!pa_streq(key, "State"))
+        return PA_BT_AUDIO_STATE_INVALID;
+
+    if (!dbus_message_iter_next(&iter)) {
+        pa_log("Property value missing");
+        return PA_BT_AUDIO_STATE_INVALID;
+    }
+
+    dbus_message_iter_recurse(&iter, &variant);
+
+    if (dbus_message_iter_get_arg_type(&variant) != DBUS_TYPE_STRING) {
+        pa_log("Property value not a string");
+        return PA_BT_AUDIO_STATE_INVALID;
+    }
+
+    dbus_message_iter_get_basic(&variant, &value);
+
+    pa_log_debug("dbus: %s property 'State' changed to value '%s'", dbus_message_get_interface(m), value);
+
+    state = pa_bt_audio_state_from_string(value);
+
+    if (state == PA_BT_AUDIO_STATE_INVALID)
+        pa_log("Unexpected value for property 'State': '%s'", value);
+
+    return state;
+}
+
 /* Run from main thread */
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *userdata) {
     DBusError err;
@@ -1182,39 +1228,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             }
         }
     } else if (dbus_message_is_signal(m, "org.bluez.HandsfreeGateway", "PropertyChanged")) {
-        const char *key;
-        DBusMessageIter iter;
-        DBusMessageIter variant;
-        pa_bt_audio_state_t state = PA_BT_AUDIO_STATE_INVALID;
-
-        if (!dbus_message_iter_init(m, &iter)) {
-            pa_log("Failed to parse PropertyChanged: %s", err.message);
-            goto fail;
-        }
-
-        if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) {
-            pa_log("Property name not a string.");
-            goto fail;
-        }
-
-        dbus_message_iter_get_basic(&iter, &key);
-
-        if (!dbus_message_iter_next(&iter)) {
-            pa_log("Property value missing");
-            goto fail;
-        }
-
-        dbus_message_iter_recurse(&iter, &variant);
-
-        if (dbus_message_iter_get_arg_type(&variant) == DBUS_TYPE_STRING) {
-            const char *value;
-            dbus_message_iter_get_basic(&variant, &value);
-
-            if (pa_streq(key, "State")) {
-                pa_log_debug("dbus: HSHFAG property 'State' changed to value '%s'", value);
-                state = pa_bt_audio_state_from_string(value);
-            }
-        }
+        pa_bt_audio_state_t state = parse_state_property_change(m);
 
         switch(state) {
             case PA_BT_AUDIO_STATE_INVALID:
