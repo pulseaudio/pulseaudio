@@ -1360,22 +1360,6 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
     } else if (dbus_message_is_signal(m, "org.bluez.HandsfreeGateway", "PropertyChanged")) {
         pa_bt_audio_state_t state = parse_state_property_change(m);
 
-        switch(state) {
-            case PA_BT_AUDIO_STATE_INVALID:
-            case PA_BT_AUDIO_STATE_DISCONNECTED:
-            case PA_BT_AUDIO_STATE_CONNECTED:
-            case PA_BT_AUDIO_STATE_CONNECTING:
-                goto fail;
-
-            case PA_BT_AUDIO_STATE_PLAYING:
-                if (u->card) {
-                    pa_log_debug("Changing profile to hfgw");
-                    if (pa_card_set_profile(u->card, "hfgw", FALSE) < 0)
-                        pa_log("Failed to change profile to hfgw");
-                }
-                break;
-        }
-
         if (state != PA_BT_AUDIO_STATE_INVALID) {
             pa_device_port *port;
             pa_port_available_t available = audio_state_to_availability(state);
