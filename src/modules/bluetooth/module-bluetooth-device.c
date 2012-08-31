@@ -365,8 +365,26 @@ static void bt_transport_release(struct userdata *u) {
     teardown_stream(u);
 }
 
+static pa_bt_audio_state_t get_profile_audio_state(const struct userdata *u, const pa_bluetooth_device *d) {
+    switch(u->profile) {
+        case PROFILE_HSP:
+            return d->headset_state;
+        case PROFILE_A2DP:
+            return d->audio_sink_state;
+        case PROFILE_A2DP_SOURCE:
+            return d->audio_source_state;
+        case PROFILE_HFGW:
+            return d->hfgw_state;
+        case PROFILE_OFF:
+            break;
+    }
+
+    pa_assert_not_reached();
+}
+
 static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
     const char *accesstype = "rw";
+    const pa_bluetooth_device *d;
     const pa_bluetooth_transport *t;
 
     if (u->transport == NULL) {
@@ -382,12 +400,32 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
 
     pa_log_debug("Acquiring transport %s", u->transport);
 
+    d = pa_bluetooth_discovery_get_by_path(u->discovery, u->path);
+    if (!d) {
+        pa_log_error("Failed to get device object.");
+        return -1;
+    }
+
     t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
     if (!t) {
         pa_log("Transport %s no longer available", u->transport);
         pa_xfree(u->transport);
         u->transport = NULL;
         return -1;
+    }
+
+    if (!start) {
+        /* FIXME: we are trying to acquire the transport only if the stream is
+           playing, without actually initiating the stream request from our side
+           (which is typically undesireable specially for hfgw use-cases.
+           However this approach is racy, since the stream could have been
+           suspended in the meantime, so we can't really guarantee that the
+           stream will not be requested until BlueZ's API supports this
+           atomically. */
+        if (get_profile_audio_state(u, d) < PA_BT_AUDIO_STATE_PLAYING) {
+            pa_log_info("Failed optional acquire of transport %s", u->transport);
+            return -1;
+        }
     }
 
     u->stream_fd = pa_bluetooth_transport_acquire(t, accesstype, &u->read_link_mtu, &u->write_link_mtu);
