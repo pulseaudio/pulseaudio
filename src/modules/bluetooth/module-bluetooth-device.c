@@ -244,10 +244,46 @@ static void a2dp_set_bitpool(struct userdata *u, uint8_t bitpool)
 }
 
 /* from IO thread, except in SCO over PCM */
+static void bt_transport_config_mtu(struct userdata *u) {
+    /* Calculate block sizes */
+    if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) {
+        u->read_block_size = u->read_link_mtu;
+        u->write_block_size = u->write_link_mtu;
+    } else {
+        u->read_block_size =
+            (u->read_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+            / u->a2dp.frame_length * u->a2dp.codesize;
+
+        u->write_block_size =
+            (u->write_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+            / u->a2dp.frame_length * u->a2dp.codesize;
+    }
+
+    if (USE_SCO_OVER_PCM(u))
+        return;
+
+    if (u->sink) {
+        pa_sink_set_max_request_within_thread(u->sink, u->write_block_size);
+        pa_sink_set_fixed_latency_within_thread(u->sink,
+                                                (u->profile == PROFILE_A2DP ?
+                                                 FIXED_LATENCY_PLAYBACK_A2DP : FIXED_LATENCY_PLAYBACK_HSP) +
+                                                pa_bytes_to_usec(u->write_block_size, &u->sample_spec));
+    }
+
+    if (u->source)
+        pa_source_set_fixed_latency_within_thread(u->source,
+                                                  (u->profile == PROFILE_A2DP_SOURCE ?
+                                                   FIXED_LATENCY_RECORD_A2DP : FIXED_LATENCY_RECORD_HSP) +
+                                                  pa_bytes_to_usec(u->read_block_size, &u->sample_spec));
+}
+
+/* from IO thread, except in SCO over PCM */
 
 static void setup_stream(struct userdata *u) {
     struct pollfd *pollfd;
     int one;
+
+    bt_transport_config_mtu(u);
 
     pa_make_fd_nonblock(u->stream_fd);
     pa_make_socket_low_delay(u->stream_fd);
@@ -1572,11 +1608,6 @@ static int add_sink(struct userdata *u) {
         u->sink->userdata = u;
         u->sink->parent.process_msg = sink_process_msg;
         u->sink->set_port = sink_set_port_cb;
-
-        pa_sink_set_max_request(u->sink, u->write_block_size);
-        pa_sink_set_fixed_latency(u->sink,
-                                  (u->profile == PROFILE_A2DP ? FIXED_LATENCY_PLAYBACK_A2DP : FIXED_LATENCY_PLAYBACK_HSP) +
-                                  pa_bytes_to_usec(u->write_block_size, &u->sample_spec));
     }
 
     if (u->profile == PROFILE_HSP) {
@@ -1636,10 +1667,6 @@ static int add_source(struct userdata *u) {
         u->source->userdata = u;
         u->source->parent.process_msg = source_process_msg;
         u->source->set_port = source_set_port_cb;
-
-        pa_source_set_fixed_latency(u->source,
-                                    (u->profile == PROFILE_A2DP_SOURCE ? FIXED_LATENCY_RECORD_A2DP : FIXED_LATENCY_RECORD_HSP) +
-                                    pa_bytes_to_usec(u->read_block_size, &u->sample_spec));
     }
 
     if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW)) {
@@ -1771,22 +1798,12 @@ static void bt_transport_config_a2dp(struct userdata *u) {
     a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
     a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
 
-    u->read_block_size =
-        (u->read_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
-        / a2dp->frame_length * a2dp->codesize;
-
-    u->write_block_size =
-        (u->write_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
-        / a2dp->frame_length * a2dp->codesize;
-
     pa_log_info("SBC parameters:\n\tallocation=%u\n\tsubbands=%u\n\tblocks=%u\n\tbitpool=%u\n",
                 a2dp->sbc.allocation, a2dp->sbc.subbands, a2dp->sbc.blocks, a2dp->sbc.bitpool);
 }
 
 static void bt_transport_config(struct userdata *u) {
     if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) {
-        u->read_block_size = u->read_link_mtu;
-        u->write_block_size = u->write_link_mtu;
         u->sample_spec.format = PA_SAMPLE_S16LE;
         u->sample_spec.channels = 1;
         u->sample_spec.rate = 8000;
