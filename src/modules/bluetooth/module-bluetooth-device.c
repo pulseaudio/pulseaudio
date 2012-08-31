@@ -1230,6 +1230,15 @@ static pa_bt_audio_state_t parse_state_property_change(DBusMessage *m) {
     return state;
 }
 
+static pa_port_available_t audio_state_to_availability(pa_bt_audio_state_t state) {
+    if (state < PA_BT_AUDIO_STATE_CONNECTED)
+        return PA_PORT_AVAILABLE_NO;
+    else if (state >= PA_BT_AUDIO_STATE_PLAYING)
+        return PA_PORT_AVAILABLE_YES;
+    else
+        return PA_PORT_AVAILABLE_UNKNOWN;
+}
+
 /* Run from main thread */
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *userdata) {
     DBusError err;
@@ -1299,6 +1308,50 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                         pa_log("Failed to change profile to hfgw");
                 }
                 break;
+        }
+
+        if (state != PA_BT_AUDIO_STATE_INVALID) {
+            pa_device_port *port;
+            pa_port_available_t available = audio_state_to_availability(state);
+
+            pa_assert_se(port = pa_hashmap_get(u->card->ports, "hfgw-output"));
+            pa_device_port_set_available(port, available);
+
+            pa_assert_se(port = pa_hashmap_get(u->card->ports, "hfgw-input"));
+            pa_device_port_set_available(port, available);
+        }
+    } else if (dbus_message_is_signal(m, "org.bluez.Headset", "PropertyChanged")) {
+        pa_bt_audio_state_t state = parse_state_property_change(m);
+
+        if (state != PA_BT_AUDIO_STATE_INVALID) {
+            pa_device_port *port;
+            pa_port_available_t available = audio_state_to_availability(state);
+
+            pa_assert_se(port = pa_hashmap_get(u->card->ports, "hsp-output"));
+            pa_device_port_set_available(port, available);
+
+            pa_assert_se(port = pa_hashmap_get(u->card->ports, "hsp-input"));
+            pa_device_port_set_available(port, available);
+        }
+    } else if (dbus_message_is_signal(m, "org.bluez.AudioSource", "PropertyChanged")) {
+        pa_bt_audio_state_t state = parse_state_property_change(m);
+
+        if (state != PA_BT_AUDIO_STATE_INVALID) {
+            pa_device_port *port;
+            pa_port_available_t available = audio_state_to_availability(state);
+
+            pa_assert_se(port = pa_hashmap_get(u->card->ports, "a2dp-input"));
+            pa_device_port_set_available(port, available);
+        }
+    } else if (dbus_message_is_signal(m, "org.bluez.AudioSink", "PropertyChanged")) {
+        pa_bt_audio_state_t state = parse_state_property_change(m);
+
+        if (state != PA_BT_AUDIO_STATE_INVALID) {
+            pa_device_port *port;
+            pa_port_available_t available = audio_state_to_availability(state);
+
+            pa_assert_se(port = pa_hashmap_get(u->card->ports, "a2dp-output"));
+            pa_device_port_set_available(port, available);
         }
     }
 
@@ -2107,7 +2160,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     return 0;
 }
 
-static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_new_data, pa_card_profile *profile) {
+static void create_ports_for_profile(struct userdata *u, const pa_bluetooth_device *device, pa_card_new_data *card_new_data, pa_card_profile *profile) {
     pa_device_port *port;
     enum profile *d;
 
@@ -2120,6 +2173,7 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
             port->is_output = 1;
             port->is_input = 0;
             port->priority = profile->priority * 100;
+            port->available = audio_state_to_availability(device->audio_sink_state);
             pa_hashmap_put(port->profiles, profile->name, profile);
             break;
 
@@ -2129,6 +2183,7 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
             port->is_output = 0;
             port->is_input = 1;
             port->priority = profile->priority * 100;
+            port->available = audio_state_to_availability(device->audio_source_state);
             pa_hashmap_put(port->profiles, profile->name, profile);
             break;
 
@@ -2138,6 +2193,7 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
             port->is_output = 1;
             port->is_input = 0;
             port->priority = profile->priority * 100;
+            port->available = audio_state_to_availability(device->headset_state);
             pa_hashmap_put(port->profiles, profile->name, profile);
 
             pa_assert_se(port = pa_device_port_new(u->core, "hsp-input", _("Bluetooth Telephony (HSP/HFP)"), 0));
@@ -2145,6 +2201,7 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
             port->is_output = 0;
             port->is_input = 1;
             port->priority = profile->priority * 100;
+            port->available = audio_state_to_availability(device->headset_state);
             pa_hashmap_put(port->profiles, profile->name, profile);
             break;
 
@@ -2154,6 +2211,7 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
             port->is_output = 1;
             port->is_input = 0;
             port->priority = profile->priority * 100;
+            port->available = audio_state_to_availability(device->hfgw_state);
             pa_hashmap_put(port->profiles, profile->name, profile);
 
             pa_assert_se(port = pa_device_port_new(u->core, "hfgw-input", _("Bluetooth Handsfree Gateway"), 0));
@@ -2161,6 +2219,7 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
             port->is_output = 0;
             port->is_input = 1;
             port->priority = profile->priority * 100;
+            port->available = audio_state_to_availability(device->hfgw_state);
             pa_hashmap_put(port->profiles, profile->name, profile);
             break;
 
@@ -2222,7 +2281,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_A2DP;
-        create_ports_for_profile(u, &data, p);
+        create_ports_for_profile(u, device, &data, p);
 
         pa_hashmap_put(data.profiles, p->name, p);
     }
@@ -2237,7 +2296,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_A2DP_SOURCE;
-        create_ports_for_profile(u, &data, p);
+        create_ports_for_profile(u, device, &data, p);
 
         pa_hashmap_put(data.profiles, p->name, p);
     }
@@ -2253,7 +2312,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_HSP;
-        create_ports_for_profile(u, &data, p);
+        create_ports_for_profile(u, device, &data, p);
 
         pa_hashmap_put(data.profiles, p->name, p);
     }
@@ -2268,7 +2327,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_HFGW;
-        create_ports_for_profile(u, &data, p);
+        create_ports_for_profile(u, device, &data, p);
 
         pa_hashmap_put(data.profiles, p->name, p);
     }
@@ -2467,6 +2526,9 @@ int pa__init(pa_module* m) {
                 mike,
                 "type='signal',sender='org.bluez',interface='org.bluez.MediaTransport',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.HandsfreeGateway',member='PropertyChanged'",
+                "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged'",
+                "type='signal',sender='org.bluez',interface='org.bluez.AudioSource',member='PropertyChanged'",
+                "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'",
                 NULL) < 0) {
 
         pa_xfree(speaker);
