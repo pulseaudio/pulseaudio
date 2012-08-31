@@ -280,12 +280,22 @@ static void setup_stream(struct userdata *u) {
                 TRUE);
 }
 
+static bool bt_transport_is_acquired(struct userdata *u) {
+    if (u->accesstype == NULL) {
+        pa_assert(u->stream_fd < 0);
+        return FALSE;
+    } else {
+        pa_assert(u->stream_fd >= 0);
+        return TRUE;
+    }
+}
+
 static void bt_transport_release(struct userdata *u) {
     const char *accesstype = "rw";
     const pa_bluetooth_transport *t;
 
     /* Ignore if already released */
-    if (!u->accesstype)
+    if (!bt_transport_is_acquired(u))
         return;
 
     pa_log_debug("Releasing transport %s", u->transport);
@@ -317,7 +327,7 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
     const char *accesstype = "rw";
     const pa_bluetooth_transport *t;
 
-    if (u->accesstype) {
+    if (bt_transport_is_acquired(u)) {
         if (start)
             goto done;
         return 0;
