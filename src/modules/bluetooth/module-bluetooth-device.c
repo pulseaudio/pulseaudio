@@ -1621,7 +1621,7 @@ static int add_source(struct userdata *u) {
     return 0;
 }
 
-static int bt_transport_config_a2dp(struct userdata *u) {
+static void bt_transport_config_a2dp(struct userdata *u) {
     const pa_bluetooth_transport *t;
     struct a2dp_info *a2dp = &u->a2dp;
     a2dp_sbc_t *config;
@@ -1738,21 +1738,17 @@ static int bt_transport_config_a2dp(struct userdata *u) {
 
     pa_log_info("SBC parameters:\n\tallocation=%u\n\tsubbands=%u\n\tblocks=%u\n\tbitpool=%u\n",
                 a2dp->sbc.allocation, a2dp->sbc.subbands, a2dp->sbc.blocks, a2dp->sbc.bitpool);
-
-    return 0;
 }
 
-static int bt_transport_config(struct userdata *u) {
+static void bt_transport_config(struct userdata *u) {
     if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) {
         u->read_block_size = u->read_link_mtu;
         u->write_block_size = u->write_link_mtu;
         u->sample_spec.format = PA_SAMPLE_S16LE;
         u->sample_spec.channels = 1;
         u->sample_spec.rate = 8000;
-        return 0;
-    }
-
-    return bt_transport_config_a2dp(u);
+    } else
+        bt_transport_config_a2dp(u);
 }
 
 /* Run from main thread */
@@ -1786,7 +1782,9 @@ static int setup_bt(struct userdata *u) {
     if (bt_transport_acquire(u, FALSE) < 0)
         return -1;
 
-    return bt_transport_config(u);
+    bt_transport_config(u);
+
+    return 0;
 }
 
 /* Run from main thread */
