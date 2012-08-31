@@ -1593,7 +1593,7 @@ static int add_source(struct userdata *u) {
         data.module = u->module;
         pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
         pa_proplist_sets(data.proplist, "bluetooth.protocol", profile_to_string(u->profile));
-        if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW))
+        if (u->profile == PROFILE_HSP)
             pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
 
         data.card = u->card;
