@@ -321,9 +321,28 @@ static bool bt_transport_is_acquired(struct userdata *u) {
         pa_assert(u->stream_fd < 0);
         return FALSE;
     } else {
-        pa_assert(u->stream_fd >= 0);
+        /* During IO thread HUP stream_fd can be -1 */
         return TRUE;
     }
+}
+
+static void teardown_stream(struct userdata *u) {
+    if (u->rtpoll_item) {
+        pa_rtpoll_item_free(u->rtpoll_item);
+        u->rtpoll_item = NULL;
+    }
+
+    if (u->stream_fd >= 0) {
+        pa_close(u->stream_fd);
+        u->stream_fd = -1;
+    }
+
+    if (u->read_smoother) {
+        pa_smoother_free(u->read_smoother);
+        u->read_smoother = NULL;
+    }
+
+    pa_log_debug("Audio stream torn down");
 }
 
 static void bt_transport_release(struct userdata *u) {
@@ -343,20 +362,7 @@ static void bt_transport_release(struct userdata *u) {
     pa_xfree(u->accesstype);
     u->accesstype = NULL;
 
-    if (u->rtpoll_item) {
-        pa_rtpoll_item_free(u->rtpoll_item);
-        u->rtpoll_item = NULL;
-    }
-
-    if (u->stream_fd >= 0) {
-        pa_close(u->stream_fd);
-        u->stream_fd = -1;
-    }
-
-    if (u->read_smoother) {
-        pa_smoother_free(u->read_smoother);
-        u->read_smoother = NULL;
-    }
+    teardown_stream(u);
 }
 
 static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
@@ -385,8 +391,14 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
     }
 
     u->stream_fd = pa_bluetooth_transport_acquire(t, accesstype, &u->read_link_mtu, &u->write_link_mtu);
-    if (u->stream_fd < 0)
+    if (u->stream_fd < 0) {
+        if (start)
+            pa_log("Failed to acquire transport %s", u->transport);
+        else
+            pa_log_info("Failed optional acquire of transport %s", u->transport);
+
         return -1;
+    }
 
     u->accesstype = pa_xstrdup(accesstype);
     pa_log_info("Transport %s acquired: fd %d", u->transport, u->stream_fd);
@@ -1015,8 +1027,9 @@ static void thread_func(void *userdata) {
 
     pa_thread_mq_install(&u->thread_mq);
 
-    if (bt_transport_acquire(u, TRUE) < 0)
-        goto fail;
+    /* Setup the stream only if the transport was already acquired */
+    if (bt_transport_is_acquired(u))
+        bt_transport_acquire(u, TRUE);
 
     for (;;) {
         struct pollfd *pollfd;
@@ -1042,7 +1055,7 @@ static void thread_func(void *userdata) {
                     n_read = a2dp_process_push(u);
 
                 if (n_read < 0)
-                    goto fail;
+                    goto io_fail;
 
                 /* We just read something, so we are supposed to write something, too */
                 pending_read_bytes += n_read;
@@ -1110,10 +1123,10 @@ static void thread_func(void *userdata) {
 
                     if (u->profile == PROFILE_A2DP) {
                         if ((n_written = a2dp_process_render(u)) < 0)
-                            goto fail;
+                            goto io_fail;
                     } else {
                         if ((n_written = hsp_process_render(u)) < 0)
-                            goto fail;
+                            goto io_fail;
                     }
 
                     if (n_written == 0)
@@ -1170,8 +1183,21 @@ static void thread_func(void *userdata) {
                         pollfd->revents & POLLHUP ? "POLLHUP " :"",
                         pollfd->revents & POLLPRI ? "POLLPRI " :"",
                         pollfd->revents & POLLNVAL ? "POLLNVAL " :"");
-            goto fail;
+            goto io_fail;
         }
+
+        continue;
+
+io_fail:
+        /* In case of HUP, just tear down the streams */
+        if (!pollfd || (pollfd->revents & POLLHUP) == 0)
+            goto fail;
+
+        do_write = 0;
+        pending_read_bytes = 0;
+        writable = FALSE;
+
+        teardown_stream(u);
     }
 
 fail:
@@ -1650,6 +1676,9 @@ static int add_sink(struct userdata *u) {
         }
         connect_ports(u, &data, PA_DIRECTION_OUTPUT);
 
+        if (!bt_transport_is_acquired(u))
+            data.suspend_cause = PA_SUSPEND_USER;
+
         u->sink = pa_sink_new(u->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
         pa_sink_new_data_done(&data);
 
@@ -1709,6 +1738,10 @@ static int add_source(struct userdata *u) {
         }
 
         connect_ports(u, &data, PA_DIRECTION_INPUT);
+
+        if (!bt_transport_is_acquired(u))
+            data.suspend_cause = PA_SUSPEND_USER;
+
         u->source = pa_source_new(u->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
         pa_source_new_data_done(&data);
 
@@ -1892,8 +1925,7 @@ static int setup_bt(struct userdata *u) {
 
     u->transport = pa_xstrdup(t->path);
 
-    if (bt_transport_acquire(u, FALSE) < 0)
-        return -1;
+    bt_transport_acquire(u, FALSE);
 
     bt_transport_config(u);
 

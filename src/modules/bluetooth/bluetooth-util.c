@@ -1014,7 +1014,6 @@ int pa_bluetooth_transport_acquire(const pa_bluetooth_transport *t, const char *
     r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->y->connection), m, -1, &err);
 
     if (dbus_error_is_set(&err) || !r) {
-        pa_log("Failed to acquire transport fd: %s", err.message);
         dbus_error_free(&err);
         return -1;
     }
