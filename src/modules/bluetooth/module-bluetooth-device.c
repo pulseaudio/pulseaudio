@@ -327,6 +327,11 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
     const char *accesstype = "rw";
     const pa_bluetooth_transport *t;
 
+    if (u->transport == NULL) {
+        pa_log("Transport no longer available.");
+        return -1;
+    }
+
     if (bt_transport_is_acquired(u)) {
         if (start)
             goto done;
