@@ -1963,8 +1963,7 @@ void pa_sink_input_request_rewind(
     }
 
     i->thread_info.rewrite_flush =
-        i->thread_info.rewrite_flush ||
-        (flush && i->thread_info.rewrite_nbytes != 0);
+        i->thread_info.rewrite_flush || flush;
 
     i->thread_info.dont_rewind_render =
         i->thread_info.dont_rewind_render ||
