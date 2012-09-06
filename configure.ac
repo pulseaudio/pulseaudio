@@ -963,10 +963,7 @@ AC_ARG_ENABLE([bluez],
     AS_HELP_STRING([--disable-bluez],[Disable optional BlueZ support]))
 
 AS_IF([test "x$enable_bluez" != "xno"],
-    [PKG_CHECK_MODULES(BLUEZ, [ bluez >= 3.0 ], HAVE_BLUEZ=1, HAVE_BLUEZ=0)],
-    HAVE_BLUEZ=0)
-AS_IF([test "x$enable_bluez" != "xno"],
-    [PKG_CHECK_MODULES(SBC, [ sbc >= 1.0 ], HAVE_BLUEZ=1, HAVE_BLUEZ=0)],
+    [PKG_CHECK_MODULES(BLUEZ, [ bluez >= 3.0 sbc >= 1.0 ], HAVE_BLUEZ=1, HAVE_BLUEZ=0)],
     HAVE_BLUEZ=0)
 AS_IF([test "x$HAVE_DBUS" != "x1"], HAVE_BLUEZ=0)
 
