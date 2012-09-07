@@ -34,6 +34,7 @@ close-test
 connect-stress
 cpulimit-test
 cpulimit-test2
+cpu-test
 extended-test
 flist-test
 format-test
