@@ -131,6 +131,8 @@ enum {
     SOURCE_OUTPUT_MESSAGE_LATENCY_SNAPSHOT
 };
 
+static void enable_adjust_timer(struct userdata *u, bool enable);
+
 /* Called from main context */
 static void teardown(struct userdata *u) {
     pa_assert(u);
@@ -140,10 +142,7 @@ static void teardown(struct userdata *u) {
         pa_asyncmsgq_flush(u->asyncmsgq, 0);
 
     u->adjust_time = 0;
-    if (u->time_event) {
-        u->core->mainloop->time_free(u->time_event);
-        u->time_event = NULL;
-    }
+    enable_adjust_timer(u, false);
 
     if (u->sink_input)
         pa_sink_input_unlink(u->sink_input);
@@ -234,6 +233,30 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
     pa_assert(u->time_event == e);
 
     adjust_rates(u);
+}
+
+/* Called from main context */
+static void enable_adjust_timer(struct userdata *u, bool enable) {
+    if (enable) {
+        if (u->time_event || u->adjust_time <= 0)
+            return;
+
+        u->time_event = pa_core_rttime_new(u->module->core, pa_rtclock_now() + u->adjust_time, time_callback, u);
+    } else {
+        if (!u->time_event)
+            return;
+
+        u->core->mainloop->time_free(u->time_event);
+        u->time_event = NULL;
+    }
+}
+
+/* Called from main context */
+static void update_adjust_timer(struct userdata *u) {
+    if (u->sink_input->state == PA_SINK_INPUT_CORKED || u->source_output->state == PA_SOURCE_OUTPUT_CORKED)
+        enable_adjust_timer(u, false);
+    else
+        enable_adjust_timer(u, true);
 }
 
 /* Called from input thread context */
@@ -398,6 +421,8 @@ static void source_output_suspend_cb(pa_source_output *o, pa_bool_t suspended) {
     pa_assert_se(u = o->userdata);
 
     pa_sink_input_cork(u->sink_input, suspended);
+
+    update_adjust_timer(u);
 }
 
 /* Called from output thread context */
@@ -540,7 +565,7 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
 
             pa_assert_ctl_context();
 
-            if (u->adjust_time > 0)
+            if (u->time_event)
                 adjust_rates(u);
             return 0;
         }
@@ -664,6 +689,8 @@ static void sink_input_suspend_cb(pa_sink_input *i, pa_bool_t suspended) {
     pa_assert_se(u = i->userdata);
 
     pa_source_output_cork(u->source_output, suspended);
+
+    update_adjust_timer(u);
 }
 
 int pa__init(pa_module *m) {
@@ -933,8 +960,7 @@ int pa__init(pa_module *m) {
     if (pa_sink_get_state(u->sink_input->sink) != PA_SINK_SUSPENDED)
 	    pa_source_output_cork(u->source_output, FALSE);
 
-    if (u->adjust_time > 0)
-        u->time_event = pa_core_rttime_new(m->core, pa_rtclock_now() + u->adjust_time, time_callback, u);
+    update_adjust_timer(u);
 
     pa_modargs_free(ma);
     return 0;
