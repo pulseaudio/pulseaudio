@@ -655,6 +655,17 @@ static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
     return dest != u->source_output->source->monitor_of;
 }
 
+/* Called from main thread */
+static void sink_input_suspend_cb(pa_sink_input *i, pa_bool_t suspended) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
+    pa_assert_se(u = i->userdata);
+
+    pa_source_output_cork(u->source_output, suspended);
+}
+
 int pa__init(pa_module *m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
@@ -817,6 +828,7 @@ int pa__init(pa_module *m) {
     u->sink_input->update_max_request = sink_input_update_max_request_cb;
     u->sink_input->may_move_to = sink_input_may_move_to_cb;
     u->sink_input->moving = sink_input_moving_cb;
+    u->sink_input->suspend = sink_input_suspend_cb;
     u->sink_input->userdata = u;
 
     pa_sink_input_set_requested_latency(u->sink_input, u->latency/3);
@@ -838,6 +850,7 @@ int pa__init(pa_module *m) {
 
     pa_source_output_new_data_set_sample_spec(&source_output_data, &ss);
     pa_source_output_new_data_set_channel_map(&source_output_data, &map);
+    source_output_data.flags = PA_SOURCE_OUTPUT_START_CORKED;
 
     if (!remix)
         source_output_data.flags |= PA_SOURCE_OUTPUT_NO_REMIX;
@@ -916,6 +929,9 @@ int pa__init(pa_module *m) {
 
     if (pa_source_get_state(u->source_output->source) != PA_SOURCE_SUSPENDED)
 	    pa_sink_input_cork(u->sink_input, FALSE);
+
+    if (pa_sink_get_state(u->sink_input->sink) != PA_SINK_SUSPENDED)
+	    pa_source_output_cork(u->source_output, FALSE);
 
     if (u->adjust_time > 0)
         u->time_event = pa_core_rttime_new(m->core, pa_rtclock_now() + u->adjust_time, time_callback, u);
