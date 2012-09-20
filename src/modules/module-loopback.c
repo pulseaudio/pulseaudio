@@ -389,6 +389,17 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     pa_proplist_free(p);
 }
 
+/* Called from main thread */
+static void source_output_suspend_cb(pa_source_output *o, pa_bool_t suspended) {
+    struct userdata *u;
+
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+    pa_assert_se(u = o->userdata);
+
+    pa_sink_input_cork(u->sink_input, suspended);
+}
+
 /* Called from output thread context */
 static void update_min_memblockq_length(struct userdata *u) {
     size_t length;
@@ -767,7 +778,7 @@ int pa__init(pa_module *m) {
 
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
-    sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE;
+    sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE | PA_SINK_INPUT_START_CORKED;
 
     if (!remix)
         sink_input_data.flags |= PA_SINK_INPUT_NO_REMIX;
@@ -864,6 +875,7 @@ int pa__init(pa_module *m) {
     u->source_output->state_change = source_output_state_change_cb;
     u->source_output->may_move_to = source_output_may_move_to_cb;
     u->source_output->moving = source_output_moving_cb;
+    u->source_output->suspend = source_output_suspend_cb;
     u->source_output->userdata = u;
 
     pa_source_output_set_requested_latency(u->source_output, u->latency/3);
@@ -901,6 +913,9 @@ int pa__init(pa_module *m) {
 
     pa_sink_input_put(u->sink_input);
     pa_source_output_put(u->source_output);
+
+    if (pa_source_get_state(u->source_output->source) != PA_SOURCE_SUSPENDED)
+	    pa_sink_input_cork(u->sink_input, FALSE);
 
     if (u->adjust_time > 0)
         u->time_event = pa_core_rttime_new(m->core, pa_rtclock_now() + u->adjust_time, time_callback, u);
