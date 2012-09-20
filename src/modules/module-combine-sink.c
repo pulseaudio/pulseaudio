@@ -257,11 +257,9 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
 
 static void process_render_null(struct userdata *u, pa_usec_t now) {
     size_t ate = 0;
-    pa_assert(u);
 
-    /* If we are not running, we cannot produce any data */
-    if (!pa_atomic_load(&u->thread_info.running))
-        return;
+    pa_assert(u);
+    pa_assert(u->sink->thread_info.state == PA_SINK_RUNNING);
 
     if (u->thread_info.in_null_mode)
         u->thread_info.timestamp = now;
@@ -312,7 +310,7 @@ static void thread_func(void *userdata) {
                 pa_sink_process_rewind(u->sink, 0);
 
         /* If no outputs are connected, render some data and drop it immediately. */
-        if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && !u->thread_info.active_outputs) {
+        if (u->sink->thread_info.state == PA_SINK_RUNNING && !u->thread_info.active_outputs) {
             pa_usec_t now;
 
             now = pa_rtclock_now();
