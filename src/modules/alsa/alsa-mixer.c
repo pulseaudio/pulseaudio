@@ -2347,6 +2347,7 @@ static int path_verify(pa_alsa_path *p) {
         { "analog-output-speaker",      N_("Speakers") },
         { "hdmi-output",                N_("HDMI / DisplayPort") },
         { "iec958-stereo-output",       N_("Digital Output (S/PDIF)") },
+        { "iec958-stereo-input",        N_("Digital Input (S/PDIF)") },
         { "iec958-passthrough-output",  N_("Digital Passthrough (S/PDIF)") }
     };
 
