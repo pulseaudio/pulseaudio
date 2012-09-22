@@ -1007,8 +1007,9 @@ AS_IF([test "x$enable_bluez" != "xno"],
     [PKG_CHECK_MODULES(BLUEZ, [ bluez >= 4.99 ], HAVE_BLUEZ=1, HAVE_BLUEZ=0)],
     HAVE_BLUEZ=0)
 AS_IF([test "x$enable_bluez" != "xno"],
-    [PKG_CHECK_MODULES(SBC, [ sbc >= 1.0 ], HAVE_BLUEZ=1, HAVE_BLUEZ=0)],
-    HAVE_BLUEZ=0)
+    [PKG_CHECK_MODULES(SBC, [ sbc >= 1.0 ], HAVE_SBC=1, HAVE_SBC=0)],
+    HAVE_SBC=0)
+AS_IF([test "x$HAVE_SBC" != "x1"], HAVE_BLUEZ=0)
 AS_IF([test "x$HAVE_DBUS" != "x1"], HAVE_BLUEZ=0)
 
 AS_IF([test "x$enable_bluez" = "xyes" && test "x$HAVE_BLUEZ" = "x0"],
