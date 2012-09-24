@@ -849,8 +849,8 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;
 
-    pa_sink_unref(u->sink);
-    u->sink = NULL;
+    /* Leave u->sink alone for now, it will be cleaned up on module
+     * unload (and it is needed during unload as well). */
 
     pa_module_unload_request(u->module, TRUE);
 }
