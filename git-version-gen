@@ -1,6 +1,6 @@
 #!/bin/sh
 # Print a version string.
-scriptversion=2008-04-08.07.01
+scriptversion=2012-09-25.20
 
 # Copyright (C) 2007-2008 Free Software Foundation
 #
@@ -93,6 +93,15 @@ then
 	&& echo "$0: WARNING: $tarball_version_file seems to be damaged" 1>&2
 fi
 
+# This is presently used by the GNOME-OSTree build system; it
+# helps support the case where the meta-build system has already
+# determined the git revision, but we may not be able to run "git describe"
+# because we're inside a chroot.
+if test -n "$GIT_DESCRIBE_FOR_BUILD";
+then
+    v=$GIT_DESCRIBE_FOR_BUILD
+fi
+
 if test -n "$v"
 then
     : # use $v
@@ -133,7 +142,8 @@ then
 #    v=`echo "$v" | sed 's/-/./;s/\(.*\)-g/\1-/'`;
     :
 else
-    v=UNKNOWN
+    echo 1>&2 "$0: Failed to determine git revision"
+    exit 1
 fi
 
 v=`echo "$v" |sed 's/^v//'`
