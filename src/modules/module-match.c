@@ -80,7 +80,7 @@ struct rule {
 struct userdata {
     struct rule *rules;
     char *property_key;
-    pa_hook_slot *sink_input_new_hook_slot;
+    pa_hook_slot *sink_input_fixate_hook_slot;
 };
 
 static int load_rules(struct userdata *u, const char *filename) {
@@ -213,7 +213,7 @@ finish:
     return ret;
 }
 
-static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_new_data *si, struct userdata *u) {
+static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_input_new_data *si, struct userdata *u) {
     struct rule *r;
     const char *n;
 
@@ -264,7 +264,7 @@ int pa__init(pa_module*m) {
         goto fail;
 
     /* hook EARLY - 1, to match before stream-restore */
-    u->sink_input_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], PA_HOOK_EARLY - 1, (pa_hook_cb_t) sink_input_new_hook_callback, u);
+    u->sink_input_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], PA_HOOK_EARLY - 1, (pa_hook_cb_t) sink_input_fixate_hook_callback, u);
 
     pa_modargs_free(ma);
     return 0;
@@ -286,8 +286,8 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->sink_input_new_hook_slot)
-        pa_hook_slot_free(u->sink_input_new_hook_slot);
+    if (u->sink_input_fixate_hook_slot)
+        pa_hook_slot_free(u->sink_input_fixate_hook_slot);
 
     if (u->property_key)
         pa_xfree(u->property_key);
