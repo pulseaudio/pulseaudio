@@ -2033,6 +2033,12 @@ static void stop_thread(struct userdata *u) {
 
     pa_assert(u);
 
+    if (u->sink && !USE_SCO_OVER_PCM(u))
+        pa_sink_unlink(u->sink);
+
+    if (u->source && !USE_SCO_OVER_PCM(u))
+        pa_source_unlink(u->source);
+
     if (u->thread) {
         pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
         pa_thread_free(u->thread);
@@ -2213,19 +2219,11 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
         }
     }
 
-    if (u->sink) {
+    if (u->sink)
         inputs = pa_sink_move_all_start(u->sink, NULL);
 
-        if (!USE_SCO_OVER_PCM(u))
-            pa_sink_unlink(u->sink);
-    }
-
-    if (u->source) {
+    if (u->source)
         outputs = pa_source_move_all_start(u->source, NULL);
-
-        if (!USE_SCO_OVER_PCM(u))
-            pa_source_unlink(u->source);
-    }
 
     stop_thread(u);
 
@@ -2679,12 +2677,6 @@ void pa__done(pa_module *m) {
 
     if (!(u = m->userdata))
         return;
-
-    if (u->sink && !USE_SCO_OVER_PCM(u))
-        pa_sink_unlink(u->sink);
-
-    if (u->source && !USE_SCO_OVER_PCM(u))
-        pa_source_unlink(u->source);
 
     stop_thread(u);
 
