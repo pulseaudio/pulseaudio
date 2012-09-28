@@ -1976,7 +1976,7 @@ static void bt_transport_config(struct userdata *u) {
 }
 
 /* Run from main thread */
-static int setup_bt(struct userdata *u) {
+static int setup_transport(struct userdata *u) {
     const pa_bluetooth_device *d;
     const pa_bluetooth_transport *t;
 
@@ -2016,7 +2016,7 @@ static int init_profile(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->profile != PROFILE_OFF);
 
-    if (setup_bt(u) < 0)
+    if (setup_transport(u) < 0)
         return -1;
 
     if (u->profile == PROFILE_A2DP ||
