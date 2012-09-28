@@ -1987,13 +1987,6 @@ static int setup_transport(struct userdata *u) {
         return -1;
     }
 
-    /* release transport if exist */
-    if (u->transport) {
-        bt_transport_release(u);
-        pa_xfree(u->transport);
-        u->transport = NULL;
-    }
-
     /* check if profile has a transport */
     t = pa_bluetooth_device_get_transport(d, u->profile);
     if (t == NULL) {
@@ -2064,6 +2057,12 @@ static void stop_thread(struct userdata *u) {
     if (u->hsp.nrec_changed_slot) {
         pa_hook_slot_free(u->hsp.nrec_changed_slot);
         u->hsp.nrec_changed_slot = NULL;
+    }
+
+    if (u->transport) {
+        bt_transport_release(u);
+        pa_xfree(u->transport);
+        u->transport = NULL;
     }
 
     if (u->sink) {
@@ -2229,12 +2228,6 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     }
 
     stop_thread(u);
-
-    if (u->profile != PROFILE_OFF && u->transport) {
-        bt_transport_release(u);
-        pa_xfree(u->transport);
-        u->transport = NULL;
-    }
 
     if (USE_SCO_OVER_PCM(u))
         restore_sco_volume_callbacks(u);
@@ -2739,11 +2732,6 @@ void pa__done(pa_module *m) {
 
     pa_xfree(u->address);
     pa_xfree(u->path);
-
-    if (u->transport) {
-        bt_transport_release(u);
-        pa_xfree(u->transport);
-    }
 
     if (u->discovery)
         pa_bluetooth_discovery_unref(u->discovery);
