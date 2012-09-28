@@ -862,22 +862,6 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
-    } else if (dbus_message_is_signal(m, "org.bluez.Device", "DisconnectRequested")) {
-        pa_bluetooth_device *d;
-
-        if ((d = pa_hashmap_get(y->devices, dbus_message_get_path(m)))) {
-            /* Device will disconnect in 2 sec */
-            d->audio_state = PA_BT_AUDIO_STATE_DISCONNECTED;
-            d->audio_sink_state = PA_BT_AUDIO_STATE_DISCONNECTED;
-            d->audio_source_state = PA_BT_AUDIO_STATE_DISCONNECTED;
-            d->headset_state = PA_BT_AUDIO_STATE_DISCONNECTED;
-            d->hfgw_state = PA_BT_AUDIO_STATE_DISCONNECTED;
-
-            run_callback(y, d, FALSE);
-        }
-
-        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
-
     } else if (dbus_message_is_signal(m, "org.freedesktop.DBus", "NameOwnerChanged")) {
         const char *name, *old_owner, *new_owner;
 
@@ -1471,7 +1455,6 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
                 "type='signal',sender='org.bluez',interface='org.bluez.Adapter',member='DeviceRemoved'",
                 "type='signal',sender='org.bluez',interface='org.bluez.Adapter',member='DeviceCreated'",
                 "type='signal',sender='org.bluez',interface='org.bluez.Device',member='PropertyChanged'",
-                "type='signal',sender='org.bluez',interface='org.bluez.Device',member='DisconnectRequested'",
                 "type='signal',sender='org.bluez',interface='org.bluez.Audio',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'",
@@ -1537,7 +1520,6 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
                                "type='signal',sender='org.bluez',interface='org.bluez.Adapter',member='DeviceRemoved'",
                                "type='signal',sender='org.bluez',interface='org.bluez.Adapter',member='DeviceCreated'",
                                "type='signal',sender='org.bluez',interface='org.bluez.Device',member='PropertyChanged'",
-                               "type='signal',sender='org.bluez',interface='org.bluez.Device',member='DisconnectRequested'",
                                "type='signal',sender='org.bluez',interface='org.bluez.Audio',member='PropertyChanged'",
                                "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged'",
                                "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'",
