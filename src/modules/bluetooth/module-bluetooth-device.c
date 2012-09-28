@@ -2184,7 +2184,6 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     struct userdata *u;
     enum profile *d;
     pa_queue *inputs = NULL, *outputs = NULL;
-    const pa_bluetooth_device *device;
 
     pa_assert(c);
     pa_assert(new_profile);
@@ -2192,28 +2191,27 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     d = PA_CARD_PROFILE_DATA(new_profile);
 
-    if (!(device = pa_bluetooth_discovery_get_by_path(u->discovery, u->path))) {
-        pa_log_error("Failed to get device object.");
-        return -PA_ERR_IO;
-    }
+    if (*d != PROFILE_OFF) {
+        const pa_bluetooth_device *device;
 
-    /* The state signal is sent by bluez, so it is racy to check
-       strictly for CONNECTED, we should also accept STREAMING state
-       as being good enough. However, if the profile is used
-       concurrently (which is unlikely), ipc will fail later on, and
-       module will be unloaded. */
-    if (device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) {
-        pa_log_warn("HSP is not connected, refused to switch profile");
-        return -PA_ERR_IO;
-    } else if (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
-        pa_log_warn("A2DP Sink is not connected, refused to switch profile");
-        return -PA_ERR_IO;
-    } else if (device->audio_source_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP_SOURCE) {
-        pa_log_warn("A2DP Source is not connected, refused to switch profile");
-        return -PA_ERR_IO;
-    } else if (device->hfgw_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HFGW) {
-        pa_log_warn("HandsfreeGateway is not connected, refused to switch profile");
-        return -PA_ERR_IO;
+        if (!(device = pa_bluetooth_discovery_get_by_path(u->discovery, u->path))) {
+            pa_log_error("Failed to get device object.");
+            return -PA_ERR_IO;
+        }
+
+        if (device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) {
+            pa_log_warn("HSP is not connected, refused to switch profile");
+            return -PA_ERR_IO;
+        } else if (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
+            pa_log_warn("A2DP Sink is not connected, refused to switch profile");
+            return -PA_ERR_IO;
+        } else if (device->audio_source_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP_SOURCE) {
+            pa_log_warn("A2DP Source is not connected, refused to switch profile");
+            return -PA_ERR_IO;
+        } else if (device->hfgw_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HFGW) {
+            pa_log_warn("HandsfreeGateway is not connected, refused to switch profile");
+            return -PA_ERR_IO;
+        }
     }
 
     if (u->sink) {
