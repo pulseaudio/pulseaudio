@@ -1357,7 +1357,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
     } else if (dbus_message_is_signal(m, "org.bluez.HandsfreeGateway", "PropertyChanged")) {
         pa_bt_audio_state_t state = parse_state_property_change(m);
 
-        if (state != PA_BT_AUDIO_STATE_INVALID) {
+        if (state != PA_BT_AUDIO_STATE_INVALID && pa_hashmap_get(u->card->profiles, "hfgw")) {
             pa_device_port *port;
             pa_port_available_t available = audio_state_to_availability(state);
 
@@ -1373,7 +1373,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
     } else if (dbus_message_is_signal(m, "org.bluez.Headset", "PropertyChanged")) {
         pa_bt_audio_state_t state = parse_state_property_change(m);
 
-        if (state != PA_BT_AUDIO_STATE_INVALID) {
+        if (state != PA_BT_AUDIO_STATE_INVALID && pa_hashmap_get(u->card->profiles, "hsp")) {
             pa_device_port *port;
             pa_port_available_t available = audio_state_to_availability(state);
 
@@ -1389,7 +1389,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
     } else if (dbus_message_is_signal(m, "org.bluez.AudioSource", "PropertyChanged")) {
         pa_bt_audio_state_t state = parse_state_property_change(m);
 
-        if (state != PA_BT_AUDIO_STATE_INVALID) {
+        if (state != PA_BT_AUDIO_STATE_INVALID && pa_hashmap_get(u->card->profiles, "a2dp_source")) {
             pa_device_port *port;
             pa_port_available_t available = audio_state_to_availability(state);
 
@@ -1402,7 +1402,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
     } else if (dbus_message_is_signal(m, "org.bluez.AudioSink", "PropertyChanged")) {
         pa_bt_audio_state_t state = parse_state_property_change(m);
 
-        if (state != PA_BT_AUDIO_STATE_INVALID) {
+        if (state != PA_BT_AUDIO_STATE_INVALID && pa_hashmap_get(u->card->profiles, "a2dp")) {
             pa_device_port *port;
             pa_port_available_t available = audio_state_to_availability(state);
 
