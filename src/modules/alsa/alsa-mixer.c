@@ -3921,6 +3921,16 @@ static void profile_set_add_auto(pa_alsa_profile_set *ps) {
 
     pa_assert(ps);
 
+    /* The order is important here:
+       1) try single inputs and outputs before trying their
+          combination, because if the half-duplex test failed, we don't have
+          to try full duplex.
+       2) try the output right before the input combinations with
+          that output, because then the output_pcm is not closed between tests.
+    */
+    PA_HASHMAP_FOREACH(n, ps->mappings, n_state)
+        profile_set_add_auto_pair(ps, NULL, n);
+
     PA_HASHMAP_FOREACH(m, ps->mappings, m_state) {
         profile_set_add_auto_pair(ps, m, NULL);
 
@@ -3928,8 +3938,6 @@ static void profile_set_add_auto(pa_alsa_profile_set *ps) {
             profile_set_add_auto_pair(ps, m, n);
     }
 
-    PA_HASHMAP_FOREACH(n, ps->mappings, n_state)
-        profile_set_add_auto_pair(ps, NULL, n);
 }
 
 static int profile_verify(pa_alsa_profile *p) {
@@ -4294,6 +4302,7 @@ void pa_alsa_profile_set_probe(
     void *state;
     pa_alsa_profile *p, *last = NULL;
     pa_alsa_mapping *m;
+    pa_hashmap *broken_inputs, *broken_outputs;
 
     pa_assert(ps);
     pa_assert(dev_id);
@@ -4302,18 +4311,43 @@ void pa_alsa_profile_set_probe(
     if (ps->probed)
         return;
 
+    broken_inputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    broken_outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+
     PA_HASHMAP_FOREACH(p, ps->profiles, state) {
         uint32_t idx;
 
         /* Skip if this is already marked that it is supported (i.e. from the config file) */
         if (!p->supported) {
 
-            pa_log_debug("Looking at profile %s", p->name);
             profile_finalize_probing(last, p);
             p->supported = TRUE;
 
+            if (p->output_mappings) {
+                PA_IDXSET_FOREACH(m, p->output_mappings, idx) {
+                    if (pa_hashmap_get(broken_outputs, m) == m) {
+                        pa_log_debug("Skipping profile %s - will not be able to open output:%s", p->name, m->name);
+                        p->supported = FALSE;
+                        break;
+                    }
+                }
+            }
+
+            if (p->input_mappings && p->supported) {
+                PA_IDXSET_FOREACH(m, p->input_mappings, idx) {
+                    if (pa_hashmap_get(broken_inputs, m) == m) {
+                        pa_log_debug("Skipping profile %s - will not be able to open input:%s", p->name, m->name);
+                        p->supported = FALSE;
+                        break;
+                    }
+                }
+            }
+
+            if (p->supported)
+                pa_log_debug("Looking at profile %s", p->name);
+
             /* Check if we can open all new ones */
-            if (p->output_mappings)
+            if (p->output_mappings && p->supported)
                 PA_IDXSET_FOREACH(m, p->output_mappings, idx) {
 
                     if (m->output_pcm)
@@ -4325,6 +4359,11 @@ void pa_alsa_profile_set_probe(
                                                            default_n_fragments,
                                                            default_fragment_size_msec))) {
                         p->supported = FALSE;
+                        if (pa_idxset_size(p->output_mappings) == 1 &&
+                            ((!p->input_mappings) || pa_idxset_size(p->input_mappings) == 0)) {
+                            pa_log_debug("Caching failure to open output:%s", m->name);
+                            pa_hashmap_put(broken_outputs, m, m);
+                        }
                         break;
                     }
                 }
@@ -4341,6 +4380,11 @@ void pa_alsa_profile_set_probe(
                                                           default_n_fragments,
                                                           default_fragment_size_msec))) {
                         p->supported = FALSE;
+                        if (pa_idxset_size(p->input_mappings) == 1 &&
+                            ((!p->output_mappings) || pa_idxset_size(p->output_mappings) == 0)) {
+                            pa_log_debug("Caching failure to open input:%s", m->name);
+                            pa_hashmap_put(broken_inputs, m, m);
+                        }
                         break;
                     }
                 }
@@ -4371,6 +4415,8 @@ void pa_alsa_profile_set_probe(
 
     paths_drop_unsupported(ps->input_paths);
     paths_drop_unsupported(ps->output_paths);
+    pa_hashmap_free(broken_inputs, NULL, NULL);
+    pa_hashmap_free(broken_outputs, NULL, NULL);
 
     ps->probed = TRUE;
 }
