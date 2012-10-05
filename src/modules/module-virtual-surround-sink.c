@@ -724,6 +724,11 @@ int pa__init(pa_module*m) {
                                  PA_RESAMPLER_SRC_SINC_BEST_QUALITY, PA_RESAMPLER_NO_REMAP);
 
     u->hrir_samples = hrir_temp_chunk.length / pa_frame_size(&hrir_temp_ss) * hrir_ss.rate / hrir_temp_ss.rate;
+    if (u->hrir_samples > 64) {
+        u->hrir_samples = 64;
+        pa_log("The (resampled) hrir contains more than 64 samples. Only the first 64 samples will be used to limit processor usage.");
+    }
+
     hrir_total_length = u->hrir_samples * pa_frame_size(&hrir_ss);
     u->hrir_channels = hrir_ss.channels;
 
