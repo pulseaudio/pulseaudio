@@ -550,10 +550,13 @@ int pa__init(pa_module*m) {
     pa_channel_map hrir_map;
 
     pa_sample_spec hrir_temp_ss;
-    pa_memchunk hrir_temp_chunk;
+    pa_memchunk hrir_temp_chunk, hrir_temp_chunk_resampled;
     pa_resampler *resampler;
 
+    size_t hrir_copied_length, hrir_total_length;
+
     hrir_temp_chunk.memblock = NULL;
+    hrir_temp_chunk_resampled.memblock = NULL;
 
     pa_assert(m);
 
@@ -719,17 +722,40 @@ int pa__init(pa_module*m) {
     /* resample hrir */
     resampler = pa_resampler_new(u->sink->core->mempool, &hrir_temp_ss, &hrir_map, &hrir_ss, &hrir_map,
                                  PA_RESAMPLER_SRC_SINC_BEST_QUALITY, PA_RESAMPLER_NO_REMAP);
-    pa_resampler_run(resampler, &hrir_temp_chunk, &hrir_temp_chunk);
-    pa_resampler_free(resampler);
 
-    u->hrir_samples =  hrir_temp_chunk.length / pa_frame_size(&hrir_ss);
+    u->hrir_samples = hrir_temp_chunk.length / pa_frame_size(&hrir_temp_ss) * hrir_ss.rate / hrir_temp_ss.rate;
+    hrir_total_length = u->hrir_samples * pa_frame_size(&hrir_ss);
     u->hrir_channels = hrir_ss.channels;
 
-    /* copy hrir data */
-    hrir_data = (float *) pa_memblock_acquire(hrir_temp_chunk.memblock);
-    u->hrir_data = (float *) pa_xmalloc(hrir_temp_chunk.length);
-    memcpy(u->hrir_data, hrir_data, hrir_temp_chunk.length);
-    pa_memblock_release(hrir_temp_chunk.memblock);
+    u->hrir_data = (float *) pa_xmalloc(hrir_total_length);
+    hrir_copied_length = 0;
+
+    /* add silence to the hrir until we get enough samples out of the resampler */
+    while (hrir_copied_length < hrir_total_length) {
+        pa_resampler_run(resampler, &hrir_temp_chunk, &hrir_temp_chunk_resampled);
+        /* Silence input block */
+        pa_silence_memblock(hrir_temp_chunk.memblock, &hrir_temp_ss);
+
+        if (hrir_temp_chunk_resampled.memblock) {
+            /* Copy hrir data */
+            hrir_data = (float *) pa_memblock_acquire(hrir_temp_chunk_resampled.memblock);
+
+            if (hrir_total_length - hrir_copied_length >= hrir_temp_chunk_resampled.length) {
+                memcpy(u->hrir_data + hrir_copied_length, hrir_data, hrir_temp_chunk_resampled.length);
+                hrir_copied_length += hrir_temp_chunk_resampled.length;
+            } else {
+                memcpy(u->hrir_data + hrir_copied_length, hrir_data, hrir_total_length - hrir_copied_length);
+                hrir_copied_length = hrir_total_length;
+            }
+
+            pa_memblock_release(hrir_temp_chunk_resampled.memblock);
+            pa_memblock_unref(hrir_temp_chunk_resampled.memblock);
+            hrir_temp_chunk_resampled.memblock = NULL;
+        }
+    }
+
+    pa_resampler_free(resampler);
+
     pa_memblock_unref(hrir_temp_chunk.memblock);
     hrir_temp_chunk.memblock = NULL;
 
@@ -796,6 +822,9 @@ int pa__init(pa_module*m) {
 fail:
     if (hrir_temp_chunk.memblock)
         pa_memblock_unref(hrir_temp_chunk.memblock);
+
+    if (hrir_temp_chunk_resampled.memblock)
+        pa_memblock_unref(hrir_temp_chunk_resampled.memblock);
 
     if (ma)
         pa_modargs_free(ma);
