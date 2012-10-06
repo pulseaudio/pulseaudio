@@ -26,6 +26,7 @@ EXTRA_DIST = \
 	doxygen/Makefile.am \
 	doxygen/Makefile.in \
 	doxygen/doxygen.conf.in \
+	PROTOCOL \
 	README \
 	todo \
 	vala/libpulse.deps \
