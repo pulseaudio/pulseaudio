@@ -1960,7 +1960,10 @@ module_bluetooth_discover_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) libbluetooth
 module_bluetooth_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 
-libbluetooth_util_la_SOURCES = modules/bluetooth/bluetooth-util.c modules/bluetooth/bluetooth-util.h
+libbluetooth_util_la_SOURCES = \
+		modules/bluetooth/a2dp-codecs.h \
+		modules/bluetooth/bluetooth-util.c \
+		modules/bluetooth/bluetooth-util.h
 libbluetooth_util_la_LDFLAGS = -avoid-version
 libbluetooth_util_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS)
 libbluetooth_util_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
