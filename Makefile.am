@@ -31,7 +31,15 @@ EXTRA_DIST = \
 	vala/libpulse.deps \
 	vala/libpulse.vapi \
 	vala/libpulse-mainloop-glib.deps \
-	vala/libpulse-mainloop-glib.vapi
+	vala/libpulse-mainloop-glib.vapi \
+	.gitignore \
+	doxygen/.gitignore \
+	m4/.gitignore \
+	man/.gitignore \
+	po/.gitignore \
+	src/.gitignore \
+	src/daemon/.gitignore \
+	src/pulse/.gitignore
 
 SUBDIRS = src doxygen man po
 
