@@ -336,6 +336,20 @@ int pa_modargs_get_value_boolean(pa_modargs *ma, const char *key, pa_bool_t *val
     return 0;
 }
 
+int pa_modargs_get_value_double(pa_modargs *ma, const char *key, double *value) {
+    const char *v;
+
+    pa_assert(value);
+
+    if (!(v = pa_modargs_get_value(ma, key, NULL)))
+        return 0;
+
+    if (pa_atod(v, value) < 0)
+        return -1;
+
+    return 0;
+}
+
 int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *rss) {
     const char *format;
     uint32_t channels;

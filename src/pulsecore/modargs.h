@@ -45,6 +45,9 @@ int pa_modargs_get_value_u32(pa_modargs *ma, const char *key, uint32_t *value);
 int pa_modargs_get_value_s32(pa_modargs *ma, const char *key, int32_t *value);
 int pa_modargs_get_value_boolean(pa_modargs *ma, const char *key, pa_bool_t *value);
 
+/* Return a module argument as double value in *value */
+int pa_modargs_get_value_double(pa_modargs *ma, const char *key, double *value);
+
 /* Return sample spec data from the three arguments "rate", "format" and "channels" */
 int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *ss);
 
