@@ -90,6 +90,7 @@ static void run_volume_test(pa_do_volume_func_t func, pa_do_volume_func_t orig_f
     fail_unless(memcmp(samples_ref, samples, sizeof(samples)) == 0);
 }
 
+#if defined (__i386__) || defined (__amd64__)
 START_TEST (svolume_mmx_test) {
     pa_do_volume_func_t orig_func, mmx_func;
     pa_cpu_x86_flag_t flags = 0;
@@ -129,6 +130,29 @@ START_TEST (svolume_sse_test) {
     run_volume_test(sse_func, orig_func);
 }
 END_TEST
+#endif /* defined (__i386__) || defined (__amd64__) */
+
+#if defined (__arm__) && defined (__linux__)
+START_TEST (svolume_arm_test) {
+    pa_do_volume_func_t orig_func, arm_func;
+    pa_cpu_arm_flag_t flags = 0;
+
+    pa_cpu_get_arm_flags(&flags);
+
+    if (!(flags & PA_CPU_ARM_V6)) {
+        pa_log_info("ARMv6 instructions not supported. Skipping");
+        return;
+    }
+
+    orig_func = pa_get_volume_func(PA_SAMPLE_S16NE);
+    pa_volume_func_init_arm(flags);
+    arm_func = pa_get_volume_func(PA_SAMPLE_S16NE);
+
+    pa_log_debug("Checking ARM svolume");
+    run_volume_test(arm_func, orig_func);
+}
+END_TEST
+#endif /* defined (__arm__) && defined (__linux__) */
 
 START_TEST (svolume_orc_test) {
     pa_do_volume_func_t orig_func, orc_func;
@@ -161,6 +185,8 @@ END_TEST
 #undef PADDING
 /* End svolume tests */
 
+/* Start conversion tests */
+#if defined (__i386__) || defined (__amd64__)
 START_TEST (sconv_sse_test) {
 #define SAMPLES 1019
 #define TIMES 1000
@@ -222,6 +248,8 @@ START_TEST (sconv_sse_test) {
 #undef TIMES
 }
 END_TEST
+#endif /* defined (__i386__) || defined (__amd64__) */
+/* End conversion tests */
 
 int main(int argc, char *argv[]) {
     int failed = 0;
@@ -234,10 +262,21 @@ int main(int argc, char *argv[]) {
 
     s = suite_create("CPU");
     tc = tcase_create("x86");
+
+    /* Volume tests */
+#if defined (__i386__) || defined (__amd64__)
     tcase_add_test(tc, svolume_mmx_test);
     tcase_add_test(tc, svolume_sse_test);
+#endif
+#if defined (__arm__) && defined (__linux__)
+    tcase_add_test(tc, svolume_arm_test);
+#endif
     tcase_add_test(tc, svolume_orc_test);
+
+    /* Converstion tests */
+#if defined (__i386__) || defined (__amd64__)
     tcase_add_test(tc, sconv_sse_test);
+#endif
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);
