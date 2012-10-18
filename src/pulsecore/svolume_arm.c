@@ -50,19 +50,19 @@ static void pa_volume_s16ne_arm(int16_t *samples, const int32_t *volumes, unsign
     ve = volumes + channels;
 
     __asm__ __volatile__ (
-        " mov r6, %1                      \n\t"
+        " mov r6, %1                      \n\t" /* r6 = volumes */
         " mov %3, %3, LSR #1              \n\t" /* length /= sizeof (int16_t) */
         " tst %3, #1                      \n\t" /* check for odd samples */
         " beq  2f                         \n\t"
 
-        "1:                               \n\t"
-        " ldr  r0, [r6], #4               \n\t" /* odd samples volumes */
-        " ldrh r2, [%0]                   \n\t"
+        "1:                               \n\t" /* odd samples volumes */
+        " ldr  r0, [r6], #4               \n\t" /* r0 = volume */
+        " ldrh r2, [%0]                   \n\t" /* r2 = sample */
 
-        " smulwb r0, r0, r2               \n\t"
-        " ssat r0, #16, r0                \n\t"
+        " smulwb r0, r0, r2               \n\t" /* r0 = (r0 * r2) >> 16 */
+        " ssat r0, #16, r0                \n\t" /* r0 = PA_CLAMP(r0, 0x7FFF) */
 
-        " strh r0, [%0], #2               \n\t"
+        " strh r0, [%0], #2               \n\t" /* sample = r0 */
 
         MOD_INC()
 
