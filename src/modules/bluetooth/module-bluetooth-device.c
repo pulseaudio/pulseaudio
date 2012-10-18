@@ -2188,7 +2188,6 @@ static void restore_sco_volume_callbacks(struct userdata *u) {
 static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     struct userdata *u;
     enum profile *d;
-    pa_queue *inputs = NULL, *outputs = NULL;
 
     pa_assert(c);
     pa_assert(new_profile);
@@ -2219,12 +2218,6 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
         }
     }
 
-    if (u->sink)
-        inputs = pa_sink_move_all_start(u->sink, NULL);
-
-    if (u->source)
-        outputs = pa_source_move_all_start(u->source, NULL);
-
     stop_thread(u);
 
     if (USE_SCO_OVER_PCM(u))
@@ -2241,20 +2234,6 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     if (u->sink || u->source)
         start_thread(u);
-
-    if (inputs) {
-        if (u->sink)
-            pa_sink_move_all_finish(u->sink, inputs, FALSE);
-        else
-            pa_sink_move_all_fail(inputs);
-    }
-
-    if (outputs) {
-        if (u->source)
-            pa_source_move_all_finish(u->source, outputs, FALSE);
-        else
-            pa_source_move_all_fail(outputs);
-    }
 
     return 0;
 }
