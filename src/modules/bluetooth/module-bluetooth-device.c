@@ -2229,12 +2229,20 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
         save_sco_volume_callbacks(u);
 
     if (u->profile != PROFILE_OFF)
-        init_profile(u);
+        if (init_profile(u) < 0)
+            goto off;
 
     if (u->sink || u->source)
         start_thread(u);
 
     return 0;
+
+off:
+    stop_thread(u);
+
+    pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
+
+    return -PA_ERR_IO;
 }
 
 static void create_ports_for_profile(struct userdata *u, const pa_bluetooth_device *device, pa_card_new_data *card_new_data, pa_card_profile *profile) {
