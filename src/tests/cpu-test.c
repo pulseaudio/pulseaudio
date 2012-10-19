@@ -261,9 +261,9 @@ int main(int argc, char *argv[]) {
         pa_log_set_level(PA_LOG_DEBUG);
 
     s = suite_create("CPU");
-    tc = tcase_create("x86");
 
     /* Volume tests */
+    tc = tcase_create("svolume");
 #if defined (__i386__) || defined (__amd64__)
     tcase_add_test(tc, svolume_mmx_test);
     tcase_add_test(tc, svolume_sse_test);
@@ -272,8 +272,10 @@ int main(int argc, char *argv[]) {
     tcase_add_test(tc, svolume_arm_test);
 #endif
     tcase_add_test(tc, svolume_orc_test);
+    suite_add_tcase(s, tc);
 
     /* Converstion tests */
+    tc = tcase_create("sconv");
 #if defined (__i386__) || defined (__amd64__)
     tcase_add_test(tc, sconv_sse_test);
 #endif
