@@ -605,8 +605,7 @@ static int device_process_msg(pa_msgobject *obj, int code, void *data, int64_t o
 
             pa_log_debug("Switching the profile to off due to IO thread failure.");
 
-            if (pa_card_set_profile(u->card, "off", FALSE) < 0)
-                pa_log_debug("Failed to switch profile to off");
+            pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
             break;
         }
     }
