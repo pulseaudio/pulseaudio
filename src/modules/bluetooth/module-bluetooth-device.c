@@ -2142,7 +2142,6 @@ static int start_thread(struct userdata *u) {
 
     if (!(u->thread = pa_thread_new("bluetooth", thread_func, u))) {
         pa_log_error("Failed to create IO thread");
-        stop_thread(u);
         return -1;
     }
 
@@ -2233,7 +2232,8 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
             goto off;
 
     if (u->sink || u->source)
-        start_thread(u);
+        if (start_thread(u) < 0)
+            goto off;
 
     return 0;
 
