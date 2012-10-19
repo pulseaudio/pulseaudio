@@ -141,7 +141,7 @@ struct userdata {
 
     char *address;
     char *path;
-    char *transport;
+    pa_bluetooth_transport *transport;
     char *accesstype;
     pa_hook_slot *transport_removed_slot;
 
@@ -344,18 +344,15 @@ static void teardown_stream(struct userdata *u) {
 }
 
 static void bt_transport_release(struct userdata *u) {
-    const char *accesstype = "rw";
-    pa_bluetooth_transport *t;
+    pa_assert(u->transport);
 
     /* Ignore if already released */
     if (!bt_transport_is_acquired(u))
         return;
 
-    pa_log_debug("Releasing transport %s", u->transport);
+    pa_log_debug("Releasing transport %s", u->transport->path);
 
-    t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
-    if (t)
-        pa_bluetooth_transport_release(t, accesstype);
+    pa_bluetooth_transport_release(u->transport, u->accesstype);
 
     pa_xfree(u->accesstype);
     u->accesstype = NULL;
@@ -383,12 +380,8 @@ static pa_bt_audio_state_t get_profile_audio_state(const struct userdata *u, con
 static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
     const char *accesstype = "rw";
     const pa_bluetooth_device *d;
-    pa_bluetooth_transport *t;
 
-    if (u->transport == NULL) {
-        pa_log("Transport no longer available.");
-        return -1;
-    }
+    pa_assert(u->transport);
 
     if (bt_transport_is_acquired(u)) {
         if (start)
@@ -396,19 +389,11 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
         return 0;
     }
 
-    pa_log_debug("Acquiring transport %s", u->transport);
+    pa_log_debug("Acquiring transport %s", u->transport->path);
 
     d = pa_bluetooth_discovery_get_by_path(u->discovery, u->path);
     if (!d) {
         pa_log_error("Failed to get device object.");
-        return -1;
-    }
-
-    t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
-    if (!t) {
-        pa_log("Transport %s no longer available", u->transport);
-        pa_xfree(u->transport);
-        u->transport = NULL;
         return -1;
     }
 
@@ -421,29 +406,29 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
            stream will not be requested until BlueZ's API supports this
            atomically. */
         if (get_profile_audio_state(u, d) < PA_BT_AUDIO_STATE_PLAYING) {
-            pa_log_info("Failed optional acquire of transport %s", u->transport);
+            pa_log_info("Failed optional acquire of transport %s", u->transport->path);
             return -1;
         }
     }
 
-    u->stream_fd = pa_bluetooth_transport_acquire(t, accesstype, &u->read_link_mtu, &u->write_link_mtu);
+    u->stream_fd = pa_bluetooth_transport_acquire(u->transport, accesstype, &u->read_link_mtu, &u->write_link_mtu);
     if (u->stream_fd < 0) {
         if (start)
-            pa_log("Failed to acquire transport %s", u->transport);
+            pa_log("Failed to acquire transport %s", u->transport->path);
         else
-            pa_log_info("Failed optional acquire of transport %s", u->transport);
+            pa_log_info("Failed optional acquire of transport %s", u->transport->path);
 
         return -1;
     }
 
     u->accesstype = pa_xstrdup(accesstype);
-    pa_log_info("Transport %s acquired: fd %d", u->transport, u->stream_fd);
+    pa_log_info("Transport %s acquired: fd %d", u->transport->path, u->stream_fd);
 
     if (!start)
         return 0;
 
 done:
-    pa_log_info("Transport %s resuming", u->transport);
+    pa_log_info("Transport %s resuming", u->transport->path);
     setup_stream(u);
 
     return 0;
@@ -1318,7 +1303,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                  dbus_message_get_path(m),
                  dbus_message_get_member(m));
 
-    if (!dbus_message_has_path(m, u->path) && !dbus_message_has_path(m, u->transport))
+    if (!dbus_message_has_path(m, u->path) && (!u->transport || !dbus_message_has_path(m, u->transport->path)))
         goto fail;
 
     if (dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged") ||
@@ -1698,6 +1683,8 @@ static int source_set_port_cb(pa_source *s, pa_device_port *p) {
 static int add_sink(struct userdata *u) {
     char *k;
 
+    pa_assert(u->transport);
+
     if (USE_SCO_OVER_PCM(u)) {
         pa_proplist *p;
 
@@ -1775,6 +1762,8 @@ static int add_sink(struct userdata *u) {
 static int add_source(struct userdata *u) {
     char *k;
 
+    pa_assert(u->transport);
+
     if (USE_SCO_OVER_PCM(u)) {
         u->source = u->hsp.sco_source;
         pa_proplist_sets(u->source->proplist, "bluetooth.protocol", profile_to_string(u->profile));
@@ -1834,9 +1823,7 @@ static int add_source(struct userdata *u) {
     }
 
     if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW)) {
-        pa_bluetooth_transport *t;
-        t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
-        pa_assert(t);
+        pa_bluetooth_transport *t = u->transport;
         pa_proplist_sets(u->source->proplist, "bluetooth.nrec", t->nrec ? "1" : "0");
 
         if (!u->hsp.nrec_changed_slot)
@@ -1860,7 +1847,7 @@ static void bt_transport_config_a2dp(struct userdata *u) {
     struct a2dp_info *a2dp = &u->a2dp;
     a2dp_sbc_t *config;
 
-    t = pa_bluetooth_discovery_get_transport(u->discovery, u->transport);
+    t = u->transport;
     pa_assert(t);
 
     config = (a2dp_sbc_t *) t->config;
@@ -1991,6 +1978,7 @@ static int setup_transport(struct userdata *u) {
     pa_bluetooth_transport *t;
 
     pa_assert(u);
+    pa_assert(!u->transport);
 
     if (!(d = pa_bluetooth_discovery_get_by_path(u->discovery, u->path))) {
         pa_log_error("Failed to get device object.");
@@ -2004,7 +1992,7 @@ static int setup_transport(struct userdata *u) {
         return -1;
     }
 
-    u->transport = pa_xstrdup(t->path);
+    u->transport = t;
 
     u->transport_removed_slot = pa_hook_connect(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED], PA_HOOK_NORMAL,
                                                 (pa_hook_cb_t) transport_removed_cb, u);
@@ -2024,6 +2012,8 @@ static int init_profile(struct userdata *u) {
 
     if (setup_transport(u) < 0)
         return -1;
+
+    pa_assert(u->transport);
 
     if (u->profile == PROFILE_A2DP ||
         u->profile == PROFILE_HSP ||
@@ -2085,7 +2075,6 @@ static void stop_thread(struct userdata *u) {
 
     if (u->transport) {
         bt_transport_release(u);
-        pa_xfree(u->transport);
         u->transport = NULL;
     }
 
