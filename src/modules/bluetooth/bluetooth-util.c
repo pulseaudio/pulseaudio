@@ -968,7 +968,7 @@ pa_bluetooth_transport* pa_bluetooth_discovery_get_transport(pa_bluetooth_discov
     return NULL;
 }
 
-const pa_bluetooth_transport* pa_bluetooth_device_get_transport(const pa_bluetooth_device *d, enum profile profile) {
+pa_bluetooth_transport* pa_bluetooth_device_get_transport(const pa_bluetooth_device *d, enum profile profile) {
     pa_bluetooth_transport *t;
     void *state = NULL;
 
@@ -981,7 +981,7 @@ const pa_bluetooth_transport* pa_bluetooth_device_get_transport(const pa_bluetoo
     return NULL;
 }
 
-int pa_bluetooth_transport_acquire(const pa_bluetooth_transport *t, const char *accesstype, size_t *imtu, size_t *omtu) {
+int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, const char *accesstype, size_t *imtu, size_t *omtu) {
     DBusMessage *m, *r;
     DBusError err;
     int ret;
@@ -1019,7 +1019,7 @@ fail:
     return ret;
 }
 
-void pa_bluetooth_transport_release(const pa_bluetooth_transport *t, const char *accesstype) {
+void pa_bluetooth_transport_release(pa_bluetooth_transport *t, const char *accesstype) {
     DBusMessage *m;
     DBusError err;
 

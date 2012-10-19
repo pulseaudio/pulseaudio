@@ -344,7 +344,7 @@ static void teardown_stream(struct userdata *u) {
 
 static void bt_transport_release(struct userdata *u) {
     const char *accesstype = "rw";
-    const pa_bluetooth_transport *t;
+    pa_bluetooth_transport *t;
 
     /* Ignore if already released */
     if (!bt_transport_is_acquired(u))
@@ -382,7 +382,7 @@ static pa_bt_audio_state_t get_profile_audio_state(const struct userdata *u, con
 static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
     const char *accesstype = "rw";
     const pa_bluetooth_device *d;
-    const pa_bluetooth_transport *t;
+    pa_bluetooth_transport *t;
 
     if (u->transport == NULL) {
         pa_log("Transport no longer available.");
@@ -1977,7 +1977,7 @@ static void bt_transport_config(struct userdata *u) {
 /* Run from main thread */
 static int setup_transport(struct userdata *u) {
     const pa_bluetooth_device *d;
-    const pa_bluetooth_transport *t;
+    pa_bluetooth_transport *t;
 
     pa_assert(u);
 
