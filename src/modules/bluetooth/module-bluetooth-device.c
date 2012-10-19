@@ -143,6 +143,7 @@ struct userdata {
     char *path;
     char *transport;
     char *accesstype;
+    pa_hook_slot *transport_removed_slot;
 
     pa_bluetooth_discovery *discovery;
     pa_bool_t auto_connect;
@@ -1975,6 +1976,16 @@ static void bt_transport_config(struct userdata *u) {
 }
 
 /* Run from main thread */
+static pa_hook_result_t transport_removed_cb(pa_bluetooth_transport *t, void *call_data, struct userdata *u) {
+    pa_assert(t);
+    pa_assert(u);
+
+    pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
+
+    return PA_HOOK_OK;
+}
+
+/* Run from main thread */
 static int setup_transport(struct userdata *u) {
     const pa_bluetooth_device *d;
     pa_bluetooth_transport *t;
@@ -1994,6 +2005,9 @@ static int setup_transport(struct userdata *u) {
     }
 
     u->transport = pa_xstrdup(t->path);
+
+    u->transport_removed_slot = pa_hook_connect(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED], PA_HOOK_NORMAL,
+                                                (pa_hook_cb_t) transport_removed_cb, u);
 
     bt_transport_acquire(u, FALSE);
 
@@ -2062,6 +2076,11 @@ static void stop_thread(struct userdata *u) {
     if (u->hsp.nrec_changed_slot) {
         pa_hook_slot_free(u->hsp.nrec_changed_slot);
         u->hsp.nrec_changed_slot = NULL;
+    }
+
+    if (u->transport_removed_slot) {
+        pa_hook_slot_free(u->transport_removed_slot);
+        u->transport_removed_slot = NULL;
     }
 
     if (u->transport) {
