@@ -2647,11 +2647,18 @@ int pa__init(pa_module* m) {
 
     if (u->profile != PROFILE_OFF)
         if (init_profile(u) < 0)
-            goto fail;
+            goto off;
 
     if (u->sink || u->source)
         if (start_thread(u) < 0)
-            goto fail;
+            goto off;
+
+    return 0;
+
+off:
+    stop_thread(u);
+
+    pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
 
     return 0;
 
