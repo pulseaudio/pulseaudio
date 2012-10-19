@@ -66,6 +66,7 @@ enum profile {
 /* Hook data: pa_bluetooth_transport pointer. */
 typedef enum pa_bluetooth_transport_hook {
     PA_BLUETOOTH_TRANSPORT_HOOK_NREC_CHANGED, /* Call data: NULL. */
+    PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED, /* Call data: NULL. */
     PA_BLUETOOTH_TRANSPORT_HOOK_MAX
 } pa_bluetooth_transport_hook_t;
 

@@ -157,8 +157,10 @@ static void device_free(pa_bluetooth_device *d) {
 
     pa_assert(d);
 
-    while ((t = pa_hashmap_steal_first(d->transports)))
+    while ((t = pa_hashmap_steal_first(d->transports))) {
+        pa_hook_fire(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED], NULL);
         transport_free(t);
+    }
 
     pa_hashmap_free(d->transports, NULL, NULL);
 
@@ -1188,6 +1190,7 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *c, DBusMessage 
         if ((t = pa_hashmap_get(d->transports, path))) {
             pa_log_debug("Clearing transport %s profile %d", t->path, t->profile);
             pa_hashmap_remove(d->transports, t->path);
+            pa_hook_fire(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED], NULL);
             transport_free(t);
             break;
         }
