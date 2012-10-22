@@ -139,6 +139,7 @@ struct userdata {
     pa_core *core;
     pa_module *module;
 
+    pa_bluetooth_device *device;
     char *address;
     char *path;
     pa_bluetooth_transport *transport;
@@ -380,7 +381,6 @@ static pa_bt_audio_state_t get_profile_audio_state(const struct userdata *u, con
 
 static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
     const char *accesstype = "rw";
-    pa_bluetooth_device *d;
 
     pa_assert(u->transport);
 
@@ -392,12 +392,6 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
 
     pa_log_debug("Acquiring transport %s", u->transport->path);
 
-    d = pa_bluetooth_discovery_get_by_path(u->discovery, u->path);
-    if (!d) {
-        pa_log_error("Failed to get device object.");
-        return -1;
-    }
-
     if (!start) {
         /* FIXME: we are trying to acquire the transport only if the stream is
            playing, without actually initiating the stream request from our side
@@ -406,7 +400,7 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
            suspended in the meantime, so we can't really guarantee that the
            stream will not be requested until BlueZ's API supports this
            atomically. */
-        if (get_profile_audio_state(u, d) < PA_BT_AUDIO_STATE_PLAYING) {
+        if (get_profile_audio_state(u, u->device) < PA_BT_AUDIO_STATE_PLAYING) {
             pa_log_info("Failed optional acquire of transport %s", u->transport->path);
             return -1;
         }
@@ -1975,19 +1969,13 @@ static pa_hook_result_t transport_removed_cb(pa_bluetooth_transport *t, void *ca
 
 /* Run from main thread */
 static int setup_transport(struct userdata *u) {
-    pa_bluetooth_device *d;
     pa_bluetooth_transport *t;
 
     pa_assert(u);
     pa_assert(!u->transport);
 
-    if (!(d = pa_bluetooth_discovery_get_by_path(u->discovery, u->path))) {
-        pa_log_error("Failed to get device object.");
-        return -1;
-    }
-
     /* check if profile has a transport */
-    t = pa_bluetooth_device_get_transport(d, u->profile);
+    t = pa_bluetooth_device_get_transport(u->device, u->profile);
     if (t == NULL) {
         pa_log_warn("Profile has no transport");
         return -1;
@@ -2203,12 +2191,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     d = PA_CARD_PROFILE_DATA(new_profile);
 
     if (*d != PROFILE_OFF) {
-        const pa_bluetooth_device *device;
-
-        if (!(device = pa_bluetooth_discovery_get_by_path(u->discovery, u->path))) {
-            pa_log_error("Failed to get device object.");
-            return -PA_ERR_IO;
-        }
+        const pa_bluetooth_device *device = u->device;
 
         if (device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) {
             pa_log_warn("HSP is not connected, refused to switch profile");
@@ -2254,7 +2237,8 @@ off:
     return -PA_ERR_IO;
 }
 
-static void create_ports_for_profile(struct userdata *u, const pa_bluetooth_device *device, pa_card_new_data *card_new_data, pa_card_profile *profile) {
+static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_new_data, pa_card_profile *profile) {
+    pa_bluetooth_device *device = u->device;
     pa_device_port *port;
     enum profile *d;
 
@@ -2324,7 +2308,7 @@ static void create_ports_for_profile(struct userdata *u, const pa_bluetooth_devi
 }
 
 /* Run from main thread */
-static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
+static int add_card(struct userdata *u) {
     pa_card_new_data data;
     pa_bool_t b;
     pa_card_profile *p;
@@ -2332,6 +2316,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
     const char *ff;
     char *n;
     const char *default_profile;
+    const pa_bluetooth_device *device = u->device;
 
     pa_assert(u);
     pa_assert(device);
@@ -2375,7 +2360,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_A2DP;
-        create_ports_for_profile(u, device, &data, p);
+        create_ports_for_profile(u, &data, p);
 
         pa_hashmap_put(data.profiles, p->name, p);
     }
@@ -2390,7 +2375,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_A2DP_SOURCE;
-        create_ports_for_profile(u, device, &data, p);
+        create_ports_for_profile(u, &data, p);
 
         pa_hashmap_put(data.profiles, p->name, p);
     }
@@ -2406,7 +2391,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_HSP;
-        create_ports_for_profile(u, device, &data, p);
+        create_ports_for_profile(u, &data, p);
 
         pa_hashmap_put(data.profiles, p->name, p);
     }
@@ -2421,7 +2406,7 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_HFGW;
-        create_ports_for_profile(u, device, &data, p);
+        create_ports_for_profile(u, &data, p);
 
         pa_hashmap_put(data.profiles, p->name, p);
     }
@@ -2609,8 +2594,10 @@ int pa__init(pa_module* m) {
     u->device_removed_slot = pa_hook_connect(&device->hooks[PA_BLUETOOTH_DEVICE_HOOK_REMOVED], PA_HOOK_NORMAL,
                                              (pa_hook_cb_t) device_removed_cb, u);
 
+    u->device = device;
+
     /* Add the card structure. This will also initialize the default profile */
-    if (add_card(u, device) < 0)
+    if (add_card(u) < 0)
         goto fail;
 
     if (!(u->msg = pa_msgobject_new(bluetooth_msg)))
