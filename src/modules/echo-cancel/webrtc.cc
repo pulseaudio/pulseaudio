@@ -83,7 +83,7 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
 {
     webrtc::AudioProcessing *apm = NULL;
     pa_bool_t hpf, ns, agc, dgc, mobile, cn;
-    int rm;
+    int rm = -1;
     pa_modargs *ma;
 
     if (!(ma = pa_modargs_new(args, valid_modargs))) {
