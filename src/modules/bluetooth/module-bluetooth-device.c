@@ -2237,7 +2237,7 @@ off:
     return -PA_ERR_IO;
 }
 
-static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_new_data, pa_card_profile *profile) {
+static void create_ports_for_profile(struct userdata *u, pa_hashmap *ports, pa_card_profile *profile) {
     pa_bluetooth_device *device = u->device;
     pa_device_port *port;
     enum profile *d;
@@ -2247,7 +2247,7 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
     switch (*d) {
         case PROFILE_A2DP:
             pa_assert_se(port = pa_device_port_new(u->core, "a2dp-output", _("Bluetooth High Quality (A2DP)"), 0));
-            pa_assert_se(pa_hashmap_put(card_new_data->ports, port->name, port) >= 0);
+            pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
             port->is_output = 1;
             port->is_input = 0;
             port->priority = profile->priority * 100;
@@ -2257,7 +2257,7 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
 
         case PROFILE_A2DP_SOURCE:
             pa_assert_se(port = pa_device_port_new(u->core, "a2dp-input", _("Bluetooth High Quality (A2DP)"), 0));
-            pa_assert_se(pa_hashmap_put(card_new_data->ports, port->name, port) >= 0);
+            pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
             port->is_output = 0;
             port->is_input = 1;
             port->priority = profile->priority * 100;
@@ -2267,7 +2267,7 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
 
         case PROFILE_HSP:
             pa_assert_se(port = pa_device_port_new(u->core, "hsp-output", _("Bluetooth Telephony (HSP/HFP)"), 0));
-            pa_assert_se(pa_hashmap_put(card_new_data->ports, port->name, port) >= 0);
+            pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
             port->is_output = 1;
             port->is_input = 0;
             port->priority = profile->priority * 100;
@@ -2275,7 +2275,7 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
             pa_hashmap_put(port->profiles, profile->name, profile);
 
             pa_assert_se(port = pa_device_port_new(u->core, "hsp-input", _("Bluetooth Telephony (HSP/HFP)"), 0));
-            pa_assert_se(pa_hashmap_put(card_new_data->ports, port->name, port) >= 0);
+            pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
             port->is_output = 0;
             port->is_input = 1;
             port->priority = profile->priority * 100;
@@ -2285,7 +2285,7 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
 
         case PROFILE_HFGW:
             pa_assert_se(port = pa_device_port_new(u->core, "hfgw-output", _("Bluetooth Handsfree Gateway"), 0));
-            pa_assert_se(pa_hashmap_put(card_new_data->ports, port->name, port) >= 0);
+            pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
             port->is_output = 1;
             port->is_input = 0;
             port->priority = profile->priority * 100;
@@ -2293,7 +2293,7 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
             pa_hashmap_put(port->profiles, profile->name, profile);
 
             pa_assert_se(port = pa_device_port_new(u->core, "hfgw-input", _("Bluetooth Handsfree Gateway"), 0));
-            pa_assert_se(pa_hashmap_put(card_new_data->ports, port->name, port) >= 0);
+            pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
             port->is_output = 0;
             port->is_input = 1;
             port->priority = profile->priority * 100;
@@ -2409,7 +2409,7 @@ static int add_card(struct userdata *u) {
         }
 
         pa_hashmap_put(data.profiles, p->name, p);
-        create_ports_for_profile(u, &data, p);
+        create_ports_for_profile(u, data.ports, p);
     }
 
     pa_assert(!pa_hashmap_isempty(data.profiles));
