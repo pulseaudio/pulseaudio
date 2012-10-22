@@ -919,7 +919,7 @@ fail:
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
-const pa_bluetooth_device* pa_bluetooth_discovery_get_by_address(pa_bluetooth_discovery *y, const char* address) {
+pa_bluetooth_device* pa_bluetooth_discovery_get_by_address(pa_bluetooth_discovery *y, const char* address) {
     pa_bluetooth_device *d;
     void *state = NULL;
 
@@ -937,7 +937,7 @@ const pa_bluetooth_device* pa_bluetooth_discovery_get_by_address(pa_bluetooth_di
     return NULL;
 }
 
-const pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *y, const char* path) {
+pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *y, const char* path) {
     pa_bluetooth_device *d;
 
     pa_assert(y);
@@ -970,7 +970,7 @@ pa_bluetooth_transport* pa_bluetooth_discovery_get_transport(pa_bluetooth_discov
     return NULL;
 }
 
-pa_bluetooth_transport* pa_bluetooth_device_get_transport(const pa_bluetooth_device *d, enum profile profile) {
+pa_bluetooth_transport* pa_bluetooth_device_get_transport(pa_bluetooth_device *d, enum profile profile) {
     pa_bluetooth_transport *t;
     void *state = NULL;
 

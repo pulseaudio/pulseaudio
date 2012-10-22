@@ -379,7 +379,7 @@ static pa_bt_audio_state_t get_profile_audio_state(const struct userdata *u, con
 
 static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
     const char *accesstype = "rw";
-    const pa_bluetooth_device *d;
+    pa_bluetooth_device *d;
 
     pa_assert(u->transport);
 
@@ -1974,7 +1974,7 @@ static pa_hook_result_t transport_removed_cb(pa_bluetooth_transport *t, void *ca
 
 /* Run from main thread */
 static int setup_transport(struct userdata *u) {
-    const pa_bluetooth_device *d;
+    pa_bluetooth_device *d;
     pa_bluetooth_transport *t;
 
     pa_assert(u);
@@ -2471,8 +2471,8 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 }
 
 /* Run from main thread */
-static const pa_bluetooth_device* find_device(struct userdata *u, const char *address, const char *path) {
-    const pa_bluetooth_device *d = NULL;
+static pa_bluetooth_device* find_device(struct userdata *u, const char *address, const char *path) {
+    pa_bluetooth_device *d = NULL;
 
     pa_assert(u);
 
@@ -2531,7 +2531,7 @@ int pa__init(pa_module* m) {
     const char *address, *path;
     DBusError err;
     char *mike, *speaker;
-    const pa_bluetooth_device *device;
+    pa_bluetooth_device *device;
 
     pa_assert(m);
 
