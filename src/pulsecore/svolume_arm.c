@@ -41,13 +41,10 @@
     " movcs r6, r0                  \n\t"
 
 static void pa_volume_s16ne_arm(int16_t *samples, const int32_t *volumes, unsigned channels, unsigned length) {
-    int32_t *ve;
-
     /* Channels must be at least 4, and always a multiple of the original number.
      * This is also the max amount we overread the volume array, which should
      * have enough padding. */
-    channels = channels == 3 ? 6 : PA_MAX (4U, channels);
-    ve = volumes + channels;
+    const int32_t *ve = volumes + (channels == 3 ? 6 : PA_MAX (4U, channels));
 
     __asm__ __volatile__ (
         " mov r6, %1                      \n\t" /* r6 = volumes */
