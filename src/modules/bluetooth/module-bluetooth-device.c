@@ -144,6 +144,7 @@ struct userdata {
     pa_bluetooth_transport *transport;
     char *accesstype;
     pa_hook_slot *transport_removed_slot;
+    pa_hook_slot *device_removed_slot;
 
     pa_bluetooth_discovery *discovery;
     pa_bool_t auto_connect;
@@ -2524,6 +2525,17 @@ static int setup_dbus(struct userdata *u) {
     return 0;
 }
 
+/* Run from main thread */
+static pa_hook_result_t device_removed_cb(pa_bluetooth_device *d, void *call_data, struct userdata *u) {
+    pa_assert(d);
+    pa_assert(u);
+
+    pa_log_debug("Device %s removed: unloading module", d->path);
+    pa_module_unload(u->core, u->module, TRUE);
+
+    return PA_HOOK_OK;
+}
+
 int pa__init(pa_module* m) {
     pa_modargs *ma;
     uint32_t channels;
@@ -2593,6 +2605,9 @@ int pa__init(pa_module* m) {
 
     if (!(device = find_device(u, address, path)))
         goto fail;
+
+    u->device_removed_slot = pa_hook_connect(&device->hooks[PA_BLUETOOTH_DEVICE_HOOK_REMOVED], PA_HOOK_NORMAL,
+                                             (pa_hook_cb_t) device_removed_cb, u);
 
     /* Add the card structure. This will also initialize the default profile */
     if (add_card(u, device) < 0)
@@ -2680,6 +2695,11 @@ void pa__done(pa_module *m) {
         return;
 
     stop_thread(u);
+
+    if (u->device_removed_slot) {
+        pa_hook_slot_free(u->device_removed_slot);
+        u->device_removed_slot = NULL;
+    }
 
     if (USE_SCO_OVER_PCM(u))
         restore_sco_volume_callbacks(u);

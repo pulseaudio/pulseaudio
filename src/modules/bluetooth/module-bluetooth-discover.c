@@ -116,11 +116,9 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
 
         if (mi) {
 
-            /* Hmm, disconnection? Then let's unload our module */
+            /* Hmm, disconnection? Then the module unloads itself */
 
-            pa_log_debug("Unloading module for %s", d->path);
-            pa_module_unload_request_by_index(u->core, mi->module, TRUE);
-
+            pa_log_debug("Unregistering module for %s", d->path);
             pa_hashmap_remove(u->hashmap, mi->path);
             pa_xfree(mi->path);
             pa_xfree(mi);
