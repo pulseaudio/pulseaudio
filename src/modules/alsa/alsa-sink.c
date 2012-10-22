@@ -1685,7 +1685,7 @@ static void thread_func(void *userdata) {
 
     for (;;) {
         int ret;
-        pa_usec_t rtpoll_sleep = 0;
+        pa_usec_t rtpoll_sleep = 0, real_sleep;
 
 #ifdef DEBUG_TIMING
         pa_log_debug("Loop");
@@ -1776,14 +1776,28 @@ static void thread_func(void *userdata) {
             }
         }
 
-        if (rtpoll_sleep > 0)
+        if (rtpoll_sleep > 0) {
             pa_rtpoll_set_timer_relative(u->rtpoll, rtpoll_sleep);
+            real_sleep = pa_rtclock_now();
+        }
         else
             pa_rtpoll_set_timer_disabled(u->rtpoll);
 
         /* Hmm, nothing to do. Let's sleep */
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
             goto fail;
+
+        if (rtpoll_sleep > 0) {
+            real_sleep = pa_rtclock_now() - real_sleep;
+#ifdef DEBUG_TIMING
+            pa_log_debug("Expected sleep: %0.2fms, real sleep: %0.2fms (diff %0.2f ms)",
+                (double) rtpoll_sleep / PA_USEC_PER_MSEC, (double) real_sleep / PA_USEC_PER_MSEC,
+                (double) ((int64_t) real_sleep - (int64_t) rtpoll_sleep) / PA_USEC_PER_MSEC);
+#endif
+            if (u->use_tsched && real_sleep > rtpoll_sleep + u->tsched_watermark)
+                pa_log_info("Scheduling delay of %0.2fms, you might want to investigate this to improve latency...",
+                    (double) (real_sleep - rtpoll_sleep) / PA_USEC_PER_MSEC);
+        }
 
         if (u->sink->flags & PA_SINK_DEFERRED_VOLUME)
             pa_sink_volume_change_apply(u->sink, NULL);
