@@ -111,6 +111,7 @@ static void uuid_free(pa_bluetooth_uuid *u) {
 
 static pa_bluetooth_device* device_new(const char *path) {
     pa_bluetooth_device *d;
+    unsigned i;
 
     d = pa_xnew(pa_bluetooth_device, 1);
 
@@ -135,6 +136,9 @@ static pa_bluetooth_device* device_new(const char *path) {
     d->headset_state = PA_BT_AUDIO_STATE_INVALID;
     d->hfgw_state = PA_BT_AUDIO_STATE_INVALID;
 
+    for (i = 0; i < PA_BLUETOOTH_DEVICE_HOOK_MAX; i++)
+        pa_hook_init(&d->hooks[i], d);
+
     return d;
 }
 
@@ -154,6 +158,7 @@ static void transport_free(pa_bluetooth_transport *t) {
 static void device_free(pa_bluetooth_device *d) {
     pa_bluetooth_uuid *u;
     pa_bluetooth_transport *t;
+    unsigned i;
 
     pa_assert(d);
 
@@ -163,6 +168,9 @@ static void device_free(pa_bluetooth_device *d) {
     }
 
     pa_hashmap_free(d->transports, NULL, NULL);
+
+    for (i = 0; i < PA_BLUETOOTH_DEVICE_HOOK_MAX; i++)
+        pa_hook_done(&d->hooks[i]);
 
     while ((u = d->uuids)) {
         PA_LLIST_REMOVE(pa_bluetooth_uuid, d->uuids, u);
@@ -465,6 +473,7 @@ static void remove_all_devices(pa_bluetooth_discovery *y) {
     pa_assert(y);
 
     while ((d = pa_hashmap_steal_first(y->devices))) {
+        pa_hook_fire(&d->hooks[PA_BLUETOOTH_DEVICE_HOOK_REMOVED], NULL);
         run_callback(y, d, TRUE);
         device_free(d);
     }
@@ -785,6 +794,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
         pa_log_debug("Device %s removed", path);
 
         if ((d = pa_hashmap_remove(y->devices, path))) {
+            pa_hook_fire(&d->hooks[PA_BLUETOOTH_DEVICE_HOOK_REMOVED], NULL);
             run_callback(y, d, TRUE);
             device_free(d);
         }

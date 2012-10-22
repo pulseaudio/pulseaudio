@@ -91,6 +91,12 @@ typedef enum pa_bt_audio_state {
     PA_BT_AUDIO_STATE_PLAYING
 } pa_bt_audio_state_t;
 
+/* Hook data: pa_bluetooth_device pointer. */
+typedef enum pa_bluetooth_device_hook {
+    PA_BLUETOOTH_DEVICE_HOOK_REMOVED, /* Call data: NULL. */
+    PA_BLUETOOTH_DEVICE_HOOK_MAX
+} pa_bluetooth_device_hook_t;
+
 struct pa_bluetooth_device {
     pa_bool_t dead;
 
@@ -122,6 +128,8 @@ struct pa_bluetooth_device {
 
     /* HandsfreeGateway state */
     pa_bt_audio_state_t hfgw_state;
+
+    pa_hook hooks[PA_BLUETOOTH_DEVICE_HOOK_MAX];
 };
 
 pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core);
