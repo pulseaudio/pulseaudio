@@ -2308,6 +2308,56 @@ static void create_ports_for_profile(struct userdata *u, pa_card_new_data *card_
 }
 
 /* Run from main thread */
+static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid) {
+    pa_card_profile *p = NULL;
+    enum profile *d;
+
+    if (pa_streq(uuid, A2DP_SINK_UUID)) {
+        p = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP)"), sizeof(enum profile));
+        p->priority = 10;
+        p->n_sinks = 1;
+        p->n_sources = 0;
+        p->max_sink_channels = 2;
+        p->max_source_channels = 0;
+
+        d = PA_CARD_PROFILE_DATA(p);
+        *d = PROFILE_A2DP;
+    } else if (pa_streq(uuid, A2DP_SOURCE_UUID)) {
+        p = pa_card_profile_new("a2dp_source", _("High Fidelity Capture (A2DP)"), sizeof(enum profile));
+        p->priority = 10;
+        p->n_sinks = 0;
+        p->n_sources = 1;
+        p->max_sink_channels = 0;
+        p->max_source_channels = 2;
+
+        d = PA_CARD_PROFILE_DATA(p);
+        *d = PROFILE_A2DP_SOURCE;
+    } else if (pa_streq(uuid, HSP_HS_UUID) || pa_streq(uuid, HFP_HS_UUID)) {
+        p = pa_card_profile_new("hsp", _("Telephony Duplex (HSP/HFP)"), sizeof(enum profile));
+        p->priority = 20;
+        p->n_sinks = 1;
+        p->n_sources = 1;
+        p->max_sink_channels = 1;
+        p->max_source_channels = 1;
+
+        d = PA_CARD_PROFILE_DATA(p);
+        *d = PROFILE_HSP;
+    } else if (pa_streq(uuid, HFP_AG_UUID)) {
+        p = pa_card_profile_new("hfgw", _("Handsfree Gateway"), sizeof(enum profile));
+        p->priority = 20;
+        p->n_sinks = 1;
+        p->n_sources = 1;
+        p->max_sink_channels = 1;
+        p->max_source_channels = 1;
+
+        d = PA_CARD_PROFILE_DATA(p);
+        *d = PROFILE_HFGW;
+    }
+
+    return p;
+}
+
+/* Run from main thread */
 static int add_card(struct userdata *u) {
     pa_card_new_data data;
     pa_bool_t b;
@@ -2317,6 +2367,7 @@ static int add_card(struct userdata *u) {
     char *n;
     const char *default_profile;
     const pa_bluetooth_device *device = u->device;
+    const pa_bluetooth_uuid *uuid;
 
     pa_assert(u);
     pa_assert(device);
@@ -2346,69 +2397,19 @@ static int add_card(struct userdata *u) {
         return -1;
     }
 
-    /* we base hsp/a2dp availability on UUIDs.
-       Ideally, it would be based on "Connected" state, but
-       we can't afford to wait for this information when
-       we are loaded with profile="hsp", for instance */
-    if (pa_bluetooth_uuid_has(device->uuids, A2DP_SINK_UUID)) {
-        p = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP)"), sizeof(enum profile));
-        p->priority = 10;
-        p->n_sinks = 1;
-        p->n_sources = 0;
-        p->max_sink_channels = 2;
-        p->max_source_channels = 0;
+    PA_LLIST_FOREACH(uuid, device->uuids) {
+        p = create_card_profile(u, uuid->uuid);
 
-        d = PA_CARD_PROFILE_DATA(p);
-        *d = PROFILE_A2DP;
-        create_ports_for_profile(u, &data, p);
+        if (!p)
+            continue;
+
+        if (pa_hashmap_get(data.profiles, p->name)) {
+            pa_card_profile_free(p);
+            continue;
+        }
 
         pa_hashmap_put(data.profiles, p->name, p);
-    }
-
-    if (pa_bluetooth_uuid_has(device->uuids, A2DP_SOURCE_UUID)) {
-        p = pa_card_profile_new("a2dp_source", _("High Fidelity Capture (A2DP)"), sizeof(enum profile));
-        p->priority = 10;
-        p->n_sinks = 0;
-        p->n_sources = 1;
-        p->max_sink_channels = 0;
-        p->max_source_channels = 2;
-
-        d = PA_CARD_PROFILE_DATA(p);
-        *d = PROFILE_A2DP_SOURCE;
         create_ports_for_profile(u, &data, p);
-
-        pa_hashmap_put(data.profiles, p->name, p);
-    }
-
-    if (pa_bluetooth_uuid_has(device->uuids, HSP_HS_UUID) ||
-        pa_bluetooth_uuid_has(device->uuids, HFP_HS_UUID)) {
-        p = pa_card_profile_new("hsp", _("Telephony Duplex (HSP/HFP)"), sizeof(enum profile));
-        p->priority = 20;
-        p->n_sinks = 1;
-        p->n_sources = 1;
-        p->max_sink_channels = 1;
-        p->max_source_channels = 1;
-
-        d = PA_CARD_PROFILE_DATA(p);
-        *d = PROFILE_HSP;
-        create_ports_for_profile(u, &data, p);
-
-        pa_hashmap_put(data.profiles, p->name, p);
-    }
-
-    if (pa_bluetooth_uuid_has(device->uuids, HFP_AG_UUID)) {
-        p = pa_card_profile_new("hfgw", _("Handsfree Gateway"), sizeof(enum profile));
-        p->priority = 20;
-        p->n_sinks = 1;
-        p->n_sources = 1;
-        p->max_sink_channels = 1;
-        p->max_source_channels = 1;
-
-        d = PA_CARD_PROFILE_DATA(p);
-        *d = PROFILE_HFGW;
-        create_ports_for_profile(u, &data, p);
-
-        pa_hashmap_put(data.profiles, p->name, p);
     }
 
     pa_assert(!pa_hashmap_isempty(data.profiles));
