@@ -451,13 +451,14 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
         mr4.imr_multiaddr = ((const struct sockaddr_in*) sa)->sin_addr;
         r = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mr4, sizeof(mr4));
 #ifdef HAVE_IPV6
-    } else {
+    } else if (af == AF_INET6) {
         struct ipv6_mreq mr6;
         memset(&mr6, 0, sizeof(mr6));
         mr6.ipv6mr_multiaddr = ((const struct sockaddr_in6*) sa)->sin6_addr;
         r = setsockopt(fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mr6, sizeof(mr6));
 #endif
-    }
+    } else
+        pa_assert_not_reached();
 
     if (r < 0) {
         pa_log_info("Joining mcast group failed: %s", pa_cstrerror(errno));
