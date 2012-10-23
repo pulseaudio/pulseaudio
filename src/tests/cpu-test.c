@@ -34,6 +34,31 @@
 #include <pulsecore/sconv.h>
 #include <pulsecore/sample-util.h>
 
+#define PA_CPU_TEST_RUN_START(l, t1, t2)                        \
+{                                                               \
+    int _j, _k;                                                 \
+    int _times = (t1), _times2 = (t2);                          \
+    pa_usec_t _start, _stop;                                    \
+    pa_usec_t _min = INT_MAX, _max = 0;                         \
+    double _s1 = 0, _s2 = 0;                                    \
+    const char *_label = (l);                                   \
+                                                                \
+    for (_k = 0; _k < _times2; _k++) {                          \
+        _start = pa_rtclock_now();                              \
+        for (_j = 0; _j < _times; _j++)
+
+#define PA_CPU_TEST_RUN_STOP                                    \
+        _stop = pa_rtclock_now();                               \
+                                                                \
+        if (_min > (_stop - _start)) _min = _stop - _start;     \
+        if (_max < (_stop - _start)) _max = _stop - _start;     \
+        _s1 += _stop - _start;                                  \
+        _s2 += (_stop - _start) * (_stop - _start);             \
+    }                                                           \
+    pa_log_debug("%s: %llu usec (min = %llu, max = %llu, stddev = %g).", _label, (long long unsigned int)_s1,           \
+            (long long unsigned int)_min, (long long unsigned int)_max, sqrt(_times2 * _s2 - _s1 * _s1) / _times2);     \
+}
+
 /* Common defines for svolume tests */
 #define CHANNELS 2
 #define SAMPLES 1022
@@ -46,12 +71,7 @@ static void run_volume_test(pa_do_volume_func_t func, pa_do_volume_func_t orig_f
     int16_t samples_ref[SAMPLES];
     int16_t samples_orig[SAMPLES];
     int32_t volumes[CHANNELS + PADDING];
-    int i, j, padding;
-    pa_usec_t start, stop;
-    int k;
-    pa_usec_t min = INT_MAX, max = 0;
-    double s1 = 0, s2 = 0;
-
+    int i, padding;
 
     pa_random(samples, sizeof(samples));
     memcpy(samples_ref, samples, sizeof(samples));
@@ -72,39 +92,15 @@ static void run_volume_test(pa_do_volume_func_t func, pa_do_volume_func_t orig_f
         }
     }
 
-    for (k = 0; k < TIMES2; k++) {
-        start = pa_rtclock_now();
-        for (j = 0; j < TIMES; j++) {
-            memcpy(samples, samples_orig, sizeof(samples));
-            func(samples, volumes, CHANNELS, sizeof(samples));
-        }
-        stop = pa_rtclock_now();
+    PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
+        memcpy(samples, samples_orig, sizeof(samples));
+        func(samples, volumes, CHANNELS, sizeof(samples));
+    } PA_CPU_TEST_RUN_STOP
 
-        if (min > (stop - start)) min = stop - start;
-        if (max < (stop - start)) max = stop - start;
-        s1 += stop - start;
-        s2 += (stop - start) * (stop - start);
-    }
-    pa_log_debug("func: %llu usec (min = %llu, max = %llu, stddev = %g).", (long long unsigned int)s1,
-            (long long unsigned int)min, (long long unsigned int)max, sqrt(TIMES2 * s2 - s1 * s1) / TIMES2);
-
-    min = INT_MAX; max = 0;
-    s1 = s2 = 0;
-    for (k = 0; k < TIMES2; k++) {
-        start = pa_rtclock_now();
-        for (j = 0; j < TIMES; j++) {
-            memcpy(samples_ref, samples_orig, sizeof(samples));
-            orig_func(samples_ref, volumes, CHANNELS, sizeof(samples));
-        }
-        stop = pa_rtclock_now();
-
-        if (min > (stop - start)) min = stop - start;
-        if (max < (stop - start)) max = stop - start;
-        s1 += stop - start;
-        s2 += (stop - start) * (stop - start);
-    }
-    pa_log_debug("orig: %llu usec (min = %llu, max = %llu, stddev = %g).", (long long unsigned int)s1,
-            (long long unsigned int)min, (long long unsigned int)max, sqrt(TIMES2 * s2 - s1 * s1) / TIMES2);
+    PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
+        memcpy(samples_ref, samples_orig, sizeof(samples));
+        orig_func(samples_ref, volumes, CHANNELS, sizeof(samples));
+    } PA_CPU_TEST_RUN_STOP
 
     fail_unless(memcmp(samples_ref, samples, sizeof(samples)) == 0);
 }
@@ -206,14 +202,14 @@ END_TEST
 
 /* Start conversion tests */
 #define SAMPLES 1022
-#define TIMES 10000
+#define TIMES 1000
+#define TIMES2 100
 
 static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t orig_func) {
     int16_t samples[SAMPLES];
     int16_t samples_ref[SAMPLES];
     float floats[SAMPLES];
     int i;
-    pa_usec_t start, stop;
 
     memset(samples_ref, 0, sizeof(samples_ref));
     memset(samples, 0, sizeof(samples));
@@ -233,19 +229,13 @@ static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t
         }
     }
 
-    start = pa_rtclock_now();
-    for (i = 0; i < TIMES; i++) {
+    PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
         func(SAMPLES, floats, samples);
-    }
-    stop = pa_rtclock_now();
-    pa_log_debug("func: %llu usec.", (long long unsigned int)(stop - start));
+    } PA_CPU_TEST_RUN_STOP
 
-    start = pa_rtclock_now();
-    for (i = 0; i < TIMES; i++) {
+    PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
         orig_func(SAMPLES, floats, samples_ref);
-    }
-    stop = pa_rtclock_now();
-    pa_log_debug("ref: %llu usec.", (long long unsigned int)(stop - start));
+    } PA_CPU_TEST_RUN_STOP
 }
 
 #if defined (__i386__) || defined (__amd64__)
