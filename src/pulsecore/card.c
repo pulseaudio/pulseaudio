@@ -91,6 +91,23 @@ void pa_card_add_profile(pa_card *c, pa_card_profile *profile) {
     pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_ADDED], profile);
 }
 
+void pa_card_add_ports(pa_card *c, pa_hashmap *ports) {
+    pa_device_port *p;
+    void *state;
+
+    pa_assert(c);
+    pa_assert(ports);
+
+    /* take ownership of the ports */
+    PA_HASHMAP_FOREACH(p, ports, state)
+        pa_assert_se(pa_hashmap_put(c->ports, p->name, p) >= 0);
+
+    pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
+
+    while ((p = pa_hashmap_steal_first(ports)) != NULL)
+        pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_PORT_ADDED], p);
+}
+
 void pa_card_new_data_set_profile(pa_card_new_data *data, const char *profile) {
     pa_assert(data);
 
