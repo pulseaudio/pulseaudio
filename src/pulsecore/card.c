@@ -79,6 +79,18 @@ void pa_card_new_data_set_name(pa_card_new_data *data, const char *name) {
     data->name = pa_xstrdup(name);
 }
 
+void pa_card_add_profile(pa_card *c, pa_card_profile *profile) {
+    pa_assert(c);
+    pa_assert(profile);
+
+    /* take ownership of the profile */
+    pa_assert_se(pa_hashmap_put(c->profiles, profile->name, profile) >= 0);
+
+    pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
+
+    pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_ADDED], profile);
+}
+
 void pa_card_new_data_set_profile(pa_card_new_data *data, const char *profile) {
     pa_assert(data);
 
