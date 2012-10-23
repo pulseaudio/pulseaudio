@@ -205,27 +205,15 @@ END_TEST
 /* End svolume tests */
 
 /* Start conversion tests */
-#if defined (__i386__) || defined (__amd64__)
-START_TEST (sconv_sse_test) {
-#define SAMPLES 1019
-#define TIMES 1000
+#define SAMPLES 1022
+#define TIMES 10000
 
+static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t orig_func) {
     int16_t samples[SAMPLES];
     int16_t samples_ref[SAMPLES];
     float floats[SAMPLES];
     int i;
     pa_usec_t start, stop;
-    pa_convert_func_t orig_func, sse_func;
-    pa_cpu_x86_flag_t flags = 0;
-
-    pa_cpu_get_x86_flags(&flags);
-
-    if (!(flags & PA_CPU_X86_SSE2)) {
-        pa_log_info("SSE2 not supported. Skipping");
-        return;
-    }
-
-    pa_log_debug("Checking SSE sconv (%zd)\n", sizeof(samples));
 
     memset(samples_ref, 0, sizeof(samples_ref));
     memset(samples, 0, sizeof(samples));
@@ -234,12 +222,8 @@ START_TEST (sconv_sse_test) {
         floats[i] = 2.1f * (rand()/(float) RAND_MAX - 0.5f);
     }
 
-    orig_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
-    pa_convert_func_init_sse(flags);
-    sse_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
-
     orig_func(SAMPLES, floats, samples_ref);
-    sse_func(SAMPLES, floats, samples);
+    func(SAMPLES, floats, samples);
 
     for (i = 0; i < SAMPLES; i++) {
         if (samples[i] != samples_ref[i]) {
@@ -251,10 +235,10 @@ START_TEST (sconv_sse_test) {
 
     start = pa_rtclock_now();
     for (i = 0; i < TIMES; i++) {
-        sse_func(SAMPLES, floats, samples);
+        func(SAMPLES, floats, samples);
     }
     stop = pa_rtclock_now();
-    pa_log_debug("SSE: %llu usec.", (long long unsigned int)(stop - start));
+    pa_log_debug("func: %llu usec.", (long long unsigned int)(stop - start));
 
     start = pa_rtclock_now();
     for (i = 0; i < TIMES; i++) {
@@ -262,12 +246,32 @@ START_TEST (sconv_sse_test) {
     }
     stop = pa_rtclock_now();
     pa_log_debug("ref: %llu usec.", (long long unsigned int)(stop - start));
+}
 
-#undef SAMPLES
-#undef TIMES
+#if defined (__i386__) || defined (__amd64__)
+START_TEST (sconv_sse_test) {
+    pa_cpu_x86_flag_t flags = 0;
+    pa_convert_func_t orig_func, sse_func;
+
+    pa_cpu_get_x86_flags(&flags);
+
+    if (!(flags & PA_CPU_X86_SSE2)) {
+        pa_log_info("SSE2 not supported. Skipping");
+        return;
+    }
+
+    orig_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
+    pa_convert_func_init_sse(flags);
+    sse_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
+
+    pa_log_debug("Checking SSE sconv (s16 -> float)");
+    run_conv_test_float_to_s16(sse_func, orig_func);
 }
 END_TEST
 #endif /* defined (__i386__) || defined (__amd64__) */
+
+#undef SAMPLES
+#undef TIMES
 /* End conversion tests */
 
 int main(int argc, char *argv[]) {
