@@ -317,6 +317,34 @@ case $host in
   ;;
 esac
 
+#### NEON optimisations ####
+AC_ARG_ENABLE([neon-opt],
+    AS_HELP_STRING([--enable-neon-opt], [Enable NEON optimisations on ARM CPUs that support it]))
+
+AS_IF([test "x$enable_neon_opt" != "xno"],
+    [save_CFLAGS="$CFLAGS"; CFLAGS="$CFLAGS -mfpu=neon"
+     AC_COMPILE_IFELSE(
+        AC_LANG_PROGRAM([], []),
+        [
+         HAVE_NEON=1
+         NEON_CFLAGS="-mfpu=neon"
+        ],
+        [
+         HAVE_NEON=0
+         NEON_CFLAGS=
+        ])
+     CFLAGS="$save_CFLAGS"
+    ],
+    [HAVE_NEON=0])
+
+AS_IF([test "x$enable_neon_opt" = "xyes" && test "x$HAVE_NEON" = "x0"],
+      [AC_MSG_ERROR([*** Compiler does not support -mfpu=neon])])
+
+AC_SUBST(HAVE_NEON)
+AC_SUBST(NEON_CFLAGS)
+AM_CONDITIONAL([HAVE_NEON], [test "x$HAVE_NEON" = x1])
+AS_IF([test "x$HAVE_NEON" = "x1"], AC_DEFINE([HAVE_NEON], 1, [Have NEON support?]))
+
 
 #### libtool stuff ####
 

@@ -282,6 +282,35 @@ START_TEST (sconv_sse_test) {
 END_TEST
 #endif /* defined (__i386__) || defined (__amd64__) */
 
+#if defined (__arm__) && defined (__linux__)
+START_TEST (sconv_neon_test) {
+    pa_cpu_arm_flag_t flags = 0;
+    pa_convert_func_t orig_func, neon_func;
+
+    pa_cpu_get_arm_flags(&flags);
+
+    if (!(flags & PA_CPU_ARM_NEON)) {
+        pa_log_info("NEON not supported. Skipping");
+        return;
+    }
+
+    orig_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
+    pa_convert_func_init_neon(flags);
+    neon_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
+
+    pa_log_debug("Checking NEON sconv (s16 -> float)");
+    run_conv_test_float_to_s16(neon_func, orig_func, 0, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_func, orig_func, 1, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_func, orig_func, 2, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_func, orig_func, 3, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_func, orig_func, 4, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_func, orig_func, 5, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_func, orig_func, 6, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_func, orig_func, 7, TRUE, TRUE);
+}
+END_TEST
+#endif /* defined (__arm__) && defined (__linux__) */
+
 #undef SAMPLES
 #undef TIMES
 /* End conversion tests */
@@ -313,6 +342,11 @@ int main(int argc, char *argv[]) {
     tc = tcase_create("sconv");
 #if defined (__i386__) || defined (__amd64__)
     tcase_add_test(tc, sconv_sse_test);
+#endif
+#if defined (__arm__) && defined (__linux__)
+#if HAVE_NEON
+    tcase_add_test(tc, sconv_neon_test);
+#endif
 #endif
     suite_add_tcase(s, tc);
 

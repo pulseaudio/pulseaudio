@@ -813,6 +813,7 @@ libpulsedsp_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version -disable-static
 ###################################
 
 lib_LTLIBRARIES += libpulsecore-@PA_MAJORMINOR@.la
+noinst_LTLIBRARIES =
 
 # Pure core stuff
 libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
@@ -870,6 +871,13 @@ libpulsecore_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(SERVER_CFLAGS) $(LIBSAMP
 libpulsecore_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libpulsecore_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSPEEX_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINOR@.la libpulse.la libpulsecore-foreign.la
 
+if HAVE_NEON
+noinst_LTLIBRARIES += libpulsecore_sconv_neon.la
+libpulsecore_sconv_neon_la_SOURCES = pulsecore/sconv_neon.c
+libpulsecore_sconv_neon_la_CFLAGS = $(AM_CFLAGS) $(NEON_CFLAGS)
+libpulsecore_@PA_MAJORMINOR@_la_LIBADD += libpulsecore_sconv_neon.la
+endif
+
 if HAVE_ORC
 ORC_SOURCE += pulsecore/svolume
 libpulsecore_@PA_MAJORMINOR@_la_SOURCES += pulsecore/svolume_orc.c
@@ -909,7 +917,7 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES += pulsecore/database-simple.c
 endif
 
 # We split the foreign code off to not be annoyed by warnings we don't care about
-noinst_LTLIBRARIES = libpulsecore-foreign.la
+noinst_LTLIBRARIES += libpulsecore-foreign.la
 
 libpulsecore_foreign_la_SOURCES = \
 		pulsecore/ffmpeg/resample2.c pulsecore/ffmpeg/avcodec.h pulsecore/ffmpeg/dsputil.h

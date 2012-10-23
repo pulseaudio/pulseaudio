@@ -26,6 +26,10 @@
 #include <stdint.h>
 #include <pulsecore/macro.h>
 
+#ifndef PACKAGE
+#error "Please include config.h before including this file!"
+#endif
+
 typedef enum pa_cpu_arm_flag {
     PA_CPU_ARM_V6       = (1 << 0),
     PA_CPU_ARM_V7       = (1 << 1),
@@ -40,5 +44,9 @@ pa_bool_t pa_cpu_init_arm(pa_cpu_arm_flag_t *flags);
 
 /* some optimized functions */
 void pa_volume_func_init_arm(pa_cpu_arm_flag_t flags);
+
+#ifdef HAVE_NEON
+void pa_convert_func_init_neon(pa_cpu_arm_flag_t flags);
+#endif
 
 #endif /* foocpuarmhfoo */
