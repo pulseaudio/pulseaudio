@@ -236,6 +236,8 @@ static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t
     PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
         orig_func(SAMPLES, floats, samples_ref);
     } PA_CPU_TEST_RUN_STOP
+
+    fail_unless(memcmp(samples_ref, samples, sizeof(samples)) == 0);
 }
 
 #if defined (__i386__) || defined (__amd64__)
