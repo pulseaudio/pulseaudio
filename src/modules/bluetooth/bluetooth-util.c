@@ -383,8 +383,16 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
                     const char *value;
 
                     dbus_message_iter_get_basic(&ai, &value);
+
+                    if (pa_bluetooth_uuid_has(d->uuids, value)) {
+                        dbus_message_iter_next(&ai);
+                        continue;
+                    }
+
                     node = uuid_new(value);
                     PA_LLIST_PREPEND(pa_bluetooth_uuid, d->uuids, node);
+
+                    pa_hook_fire(&d->hooks[PA_BLUETOOTH_DEVICE_HOOK_UUID_ADDED], (char *) value);
 
                     /* Vudentz said the interfaces are here when the UUIDs are announced */
                     if (strcasecmp(HSP_AG_UUID, value) == 0 || strcasecmp(HFP_AG_UUID, value) == 0) {

@@ -94,6 +94,7 @@ typedef enum pa_bt_audio_state {
 /* Hook data: pa_bluetooth_device pointer. */
 typedef enum pa_bluetooth_device_hook {
     PA_BLUETOOTH_DEVICE_HOOK_REMOVED, /* Call data: NULL. */
+    PA_BLUETOOTH_DEVICE_HOOK_UUID_ADDED, /* Call data: const char *uuid. */
     PA_BLUETOOTH_DEVICE_HOOK_MAX
 } pa_bluetooth_device_hook_t;
 
