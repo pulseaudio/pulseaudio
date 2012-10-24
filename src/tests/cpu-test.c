@@ -201,43 +201,56 @@ END_TEST
 /* End svolume tests */
 
 /* Start conversion tests */
-#define SAMPLES 1022
+#define SAMPLES 1028
 #define TIMES 1000
 #define TIMES2 100
 
-static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t orig_func) {
-    int16_t samples[SAMPLES];
-    int16_t samples_ref[SAMPLES];
-    float floats[SAMPLES];
-    int i;
+static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t orig_func, int align, pa_bool_t correct,
+        pa_bool_t perf) {
+    PA_DECLARE_ALIGNED(8, int16_t, s[SAMPLES]) = { 0 };
+    PA_DECLARE_ALIGNED(8, int16_t, s_ref[SAMPLES]) = { 0 };
+    PA_DECLARE_ALIGNED(8, float, f[SAMPLES]);
+    int16_t *samples, *samples_ref;
+    float *floats;
+    int i, nsamples;
 
-    memset(samples_ref, 0, sizeof(samples_ref));
-    memset(samples, 0, sizeof(samples));
+    /* Force sample alignment as requested */
+    samples = s + (8 - align);
+    samples_ref = s_ref + (8 - align);
+    floats = f + (8 - align);
+    nsamples = SAMPLES - (8 - align);
 
-    for (i = 0; i < SAMPLES; i++) {
+    for (i = 0; i < nsamples; i++) {
         floats[i] = 2.1f * (rand()/(float) RAND_MAX - 0.5f);
     }
 
-    orig_func(SAMPLES, floats, samples_ref);
-    func(SAMPLES, floats, samples);
+    if (correct) {
+        pa_log_debug("Testing sconv correctness with %d byte alignment", align);
 
-    for (i = 0; i < SAMPLES; i++) {
-        if (samples[i] != samples_ref[i]) {
-            printf ("%d: %04x != %04x (%f)\n", i, samples[i], samples_ref[i],
-                      floats[i]);
-            fail();
+        orig_func(nsamples, floats, samples_ref);
+        func(nsamples, floats, samples);
+
+        for (i = 0; i < nsamples; i++) {
+            if (samples[i] != samples_ref[i]) {
+                pa_log_debug("%d: %04x != %04x (%f)\n", i, samples[i], samples_ref[i], floats[i]);
+                fail();
+            }
         }
     }
 
-    PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
-        func(SAMPLES, floats, samples);
-    } PA_CPU_TEST_RUN_STOP
+    if (perf) {
+        pa_log_debug("Testing sconv performance with %d byte alignment", align);
 
-    PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
-        orig_func(SAMPLES, floats, samples_ref);
-    } PA_CPU_TEST_RUN_STOP
+        PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
+            func(nsamples, floats, samples);
+        } PA_CPU_TEST_RUN_STOP
 
-    fail_unless(memcmp(samples_ref, samples, sizeof(samples)) == 0);
+        PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
+            orig_func(nsamples, floats, samples_ref);
+        } PA_CPU_TEST_RUN_STOP
+
+        fail_unless(memcmp(samples_ref, samples, sizeof(nsamples)) == 0);
+    }
 }
 
 #if defined (__i386__) || defined (__amd64__)
@@ -257,7 +270,14 @@ START_TEST (sconv_sse_test) {
     sse_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
 
     pa_log_debug("Checking SSE sconv (s16 -> float)");
-    run_conv_test_float_to_s16(sse_func, orig_func);
+    run_conv_test_float_to_s16(sse_func, orig_func, 0, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse_func, orig_func, 1, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse_func, orig_func, 2, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse_func, orig_func, 3, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse_func, orig_func, 4, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse_func, orig_func, 5, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse_func, orig_func, 6, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse_func, orig_func, 7, TRUE, TRUE);
 }
 END_TEST
 #endif /* defined (__i386__) || defined (__amd64__) */
