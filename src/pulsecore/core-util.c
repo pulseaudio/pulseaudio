@@ -960,6 +960,48 @@ int pa_parse_boolean(const char *v) {
     return -1;
 }
 
+/* Try to parse a volume string to pa_volume_t. The allowed formats are:
+ * db, % and unsigned integer */
+int pa_parse_volume(const char *v, pa_volume_t *volume) {
+    int len, ret = -1;
+    uint32_t i;
+    double d;
+    char str[64];
+
+    pa_assert(v);
+    pa_assert(volume);
+
+    len = strlen(v);
+
+    if (len >= 64)
+        return -1;
+
+    memcpy(str, v, len + 1);
+
+    if (str[len - 1] == '%') {
+        str[len - 1] = '\0';
+        if (pa_atou(str, &i) == 0) {
+            *volume = PA_CLAMP_VOLUME((uint64_t) PA_VOLUME_NORM * i / 100);
+            ret = 0;
+        }
+    } else if (len > 2 && (str[len - 1] == 'b' || str[len - 1] == 'B') &&
+               (str[len - 2] == 'd' || str[len - 2] == 'D')) {
+        str[len - 2] = '\0';
+        if (pa_atod(str, &d) == 0) {
+            *volume = pa_sw_volume_from_dB(d);
+            ret = 0;
+        }
+    } else {
+        if (pa_atou(v, &i) == 0) {
+            *volume= PA_CLAMP_VOLUME(i);
+            ret = 0;
+        }
+
+    }
+
+    return ret;
+}
+
 /* Split the specified string wherever one of the strings in delimiter
  * occurs. Each time it is called returns a newly allocated string
  * with pa_xmalloc(). The variable state points to, should be
