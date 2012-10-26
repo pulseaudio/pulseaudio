@@ -108,15 +108,18 @@ static pa_dbus_method_handler method_handlers[METHOD_HANDLER_MAX] = {
 
 enum signal_index {
     SIGNAL_ACTIVE_PROFILE_UPDATED,
+    SIGNAL_NEW_PROFILE,
     SIGNAL_PROPERTY_LIST_UPDATED,
     SIGNAL_MAX
 };
 
 static pa_dbus_arg_info active_profile_updated_args[] = { { "profile",       "o",      NULL } };
+static pa_dbus_arg_info new_profile_args[] =            { { "profile",       "o",      NULL } };
 static pa_dbus_arg_info property_list_updated_args[] =  { { "property_list", "a{say}", NULL } };
 
 static pa_dbus_signal_info signals[SIGNAL_MAX] = {
     [SIGNAL_ACTIVE_PROFILE_UPDATED] = { .name = "ActiveProfileUpdated", .arguments = active_profile_updated_args, .n_arguments = 1 },
+    [SIGNAL_NEW_PROFILE]            = { .name = "NewProfile",           .arguments = new_profile_args,            .n_arguments = 1 },
     [SIGNAL_PROPERTY_LIST_UPDATED]  = { .name = "PropertyListUpdated",  .arguments = property_list_updated_args,  .n_arguments = 1 }
 };
 
@@ -485,12 +488,25 @@ static pa_hook_result_t card_profile_added_cb(void *hook_data, void *call_data, 
     pa_dbusiface_card *c = slot_data;
     pa_card_profile *profile = call_data;
     pa_dbusiface_card_profile *p;
+    const char *object_path;
+    DBusMessage *signal_msg;
 
     if (profile->card != c->card)
         return PA_HOOK_OK;
 
     p = pa_dbusiface_card_profile_new(c, core, profile, c->next_profile_index++);
     pa_assert_se(pa_hashmap_put(c->profiles, pa_dbusiface_card_profile_get_name(p), p) >= 0);
+
+    /* Send D-Bus signal */
+    object_path = pa_dbusiface_card_profile_get_path(p);
+
+    pa_assert_se(signal_msg = dbus_message_new_signal(c->path,
+                                                      PA_DBUSIFACE_CARD_INTERFACE,
+                                                      signals[SIGNAL_NEW_PROFILE].name));
+    pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
+
+    pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
+    dbus_message_unref(signal_msg);
 
     return PA_HOOK_OK;
 }
