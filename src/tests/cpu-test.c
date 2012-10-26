@@ -403,6 +403,7 @@ int main(int argc, char *argv[]) {
     tcase_add_test(tc, sconv_neon_test);
 #endif
 #endif
+    tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);
