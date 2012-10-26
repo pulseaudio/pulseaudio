@@ -60,6 +60,8 @@ struct pa_dbusiface_card {
     pa_card_profile *active_profile;
     pa_proplist *proplist;
 
+    pa_hook_slot *card_profile_added_slot;
+
     pa_dbus_protocol *dbus_protocol;
     pa_subscription *subscription;
 };
@@ -478,6 +480,21 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
     }
 }
 
+static pa_hook_result_t card_profile_added_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_core *core = hook_data;
+    pa_dbusiface_card *c = slot_data;
+    pa_card_profile *profile = call_data;
+    pa_dbusiface_card_profile *p;
+
+    if (profile->card != c->card)
+        return PA_HOOK_OK;
+
+    p = pa_dbusiface_card_profile_new(c, core, profile, c->next_profile_index++);
+    pa_assert_se(pa_hashmap_put(c->profiles, pa_dbusiface_card_profile_get_name(p), p) >= 0);
+
+    return PA_HOOK_OK;
+}
+
 pa_dbusiface_card *pa_dbusiface_card_new(pa_dbusiface_core *core, pa_card *card) {
     pa_dbusiface_card *c = NULL;
     pa_card_profile *profile;
@@ -504,6 +521,9 @@ pa_dbusiface_card *pa_dbusiface_card_new(pa_dbusiface_core *core, pa_card *card)
 
     pa_assert_se(pa_dbus_protocol_add_interface(c->dbus_protocol, c->path, &card_interface_info, c) >= 0);
 
+    c->card_profile_added_slot = pa_hook_connect(&card->core->hooks[PA_CORE_HOOK_CARD_PROFILE_ADDED], PA_HOOK_NORMAL,
+                                                 card_profile_added_cb, c);
+
     return c;
 }
 
@@ -519,6 +539,8 @@ void pa_dbusiface_card_free(pa_dbusiface_card *c) {
     pa_assert(c);
 
     pa_assert_se(pa_dbus_protocol_remove_interface(c->dbus_protocol, c->path, card_interface_info.name) >= 0);
+
+    pa_hook_slot_free(c->card_profile_added_slot);
 
     pa_hashmap_free(c->profiles, profile_free_cb, NULL);
     pa_proplist_free(c->proplist);
