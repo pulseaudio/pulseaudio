@@ -231,8 +231,8 @@ static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t
         func(nsamples, floats, samples);
 
         for (i = 0; i < nsamples; i++) {
-            if (samples[i] != samples_ref[i]) {
-                pa_log_debug("%d: %04x != %04x (%f)\n", i, samples[i], samples_ref[i], floats[i]);
+            if (abs(samples[i] - samples_ref[i]) > 1) {
+                pa_log_debug("%d: %04x != %04x (%.24f)\n", i, samples[i], samples_ref[i], floats[i]);
                 fail();
             }
         }
@@ -248,8 +248,6 @@ static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t
         PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
             orig_func(nsamples, floats, samples_ref);
         } PA_CPU_TEST_RUN_STOP
-
-        fail_unless(memcmp(samples_ref, samples, sizeof(nsamples)) == 0);
     }
 }
 
@@ -277,8 +275,8 @@ static void run_conv_test_s16_to_float(pa_convert_func_t func, pa_convert_func_t
         func(nsamples, samples, floats);
 
         for (i = 0; i < nsamples; i++) {
-            if (floats[i] != floats_ref[i]) {
-                pa_log_debug("%d: %f != %f (%d)\n", i, floats[i], floats_ref[i], samples[i]);
+            if (abs(floats[i] - floats_ref[i]) > 1) {
+                pa_log_debug("%d: %.24f != %.24f (%d)\n", i, floats[i], floats_ref[i], samples[i]);
                 fail();
             }
         }
@@ -294,8 +292,6 @@ static void run_conv_test_s16_to_float(pa_convert_func_t func, pa_convert_func_t
         PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
             orig_func(nsamples, samples, floats_ref);
         } PA_CPU_TEST_RUN_STOP
-
-        fail_unless(memcmp(floats_ref, floats, nsamples * sizeof(float)) == 0);
     }
 }
 
