@@ -40,18 +40,14 @@ static void pa_sconv_s16le_from_f32ne_neon(unsigned n, const float *src, int16_t
         "vneg.f32   q3, q2                  \n\t"
         "vdup.f32   q4, %[scale]            \n\t"
         "vdup.u32   q5, %[mask]             \n\t"
-        "vdup.f32   q6, %[half]             \n\t"
 
         "1:                                 \n\t"
         "vld1.32    {q0}, [%[src]]!         \n\t"
         "vmin.f32   q0, q0, q2              \n\t" /* clamp */
         "vmax.f32   q0, q0, q3              \n\t"
         "vmul.f32   q0, q0, q4              \n\t" /* scale */
-        "vand.u32   q1, q0, q5              \n\t"
-        "vorr.u32   q1, q1, q6              \n\t" /* round */
-        "vadd.f32   q0, q0, q1              \n\t"
-        "vcvt.s32.f32 q0, q0                \n\t" /* narrow */
-        "vmovn.i32  d0, q0                  \n\t"
+        "vcvt.s32.f32 q0, q0, #16           \n\t" /* narrow */
+        "vrshrn.s32  d0, q0, #16            \n\t"
         "subs       %[n], %[n], #1          \n\t"
         "vst1.16    {d0}, [%[dst]]!         \n\t"
         "bgt        1b                      \n\t"
@@ -59,7 +55,7 @@ static void pa_sconv_s16le_from_f32ne_neon(unsigned n, const float *src, int16_t
         "2:                                 \n\t"
 
         : [dst] "+r" (dst), [src] "+r" (src), [n] "+r" (n) /* output operands (or input operands that get modified) */
-        : [plusone] "r" (1.0f), [scale] "r" (32767.0f), [half] "r" (0.5f), [mask] "r" (0x80000000) /* input operands */
+        : [plusone] "r" (1.0f), [scale] "r" (32767.0f), [mask] "r" (0x80000000) /* input operands */
         : "memory", "cc", "q0", "q1", "q2", "q3", "q4", "q5", "q6" /* clobber list */
     );
 
