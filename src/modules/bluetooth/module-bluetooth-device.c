@@ -140,6 +140,7 @@ struct userdata {
     pa_module *module;
 
     pa_bluetooth_device *device;
+    pa_hook_slot *uuid_added_slot;
     char *address;
     char *path;
     pa_bluetooth_transport *transport;
@@ -2536,6 +2537,38 @@ static pa_bluetooth_device* find_device(struct userdata *u, const char *address,
 }
 
 /* Run from main thread */
+static pa_hook_result_t uuid_added_cb(pa_bluetooth_device *d, const char *uuid, struct userdata *u) {
+    pa_card_profile *p;
+    pa_hashmap *new_ports;
+
+    pa_assert(d);
+    pa_assert(uuid);
+    pa_assert(u);
+
+    p = create_card_profile(u, uuid);
+
+    if (!p)
+        return PA_HOOK_OK;
+
+    if (pa_hashmap_get(u->card->profiles, p->name)) {
+        pa_card_profile_free(p);
+        return PA_HOOK_OK;
+    }
+
+    pa_card_add_profile(u->card, p);
+
+    new_ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+
+    create_ports_for_profile(u, new_ports, p);
+
+    pa_card_add_ports(u->card, new_ports);
+
+    pa_device_port_hashmap_free(new_ports);
+
+    return PA_HOOK_OK;
+}
+
+/* Run from main thread */
 static int setup_dbus(struct userdata *u) {
     DBusError err;
 
@@ -2658,6 +2691,9 @@ int pa__init(pa_module* m) {
 
     u->device = device;
 
+    u->uuid_added_slot = pa_hook_connect(&device->hooks[PA_BLUETOOTH_DEVICE_HOOK_UUID_ADDED], PA_HOOK_NORMAL,
+                                         (pa_hook_cb_t) uuid_added_cb, u);
+
     /* Add the card structure. This will also initialize the default profile */
     if (add_card(u) < 0)
         goto fail;
@@ -2775,6 +2811,9 @@ void pa__done(pa_module *m) {
 
         pa_dbus_connection_unref(u->connection);
     }
+
+    if (u->uuid_added_slot)
+        pa_hook_slot_free(u->uuid_added_slot);
 
     if (u->msg)
         pa_xfree(u->msg);
