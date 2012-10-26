@@ -269,7 +269,7 @@ START_TEST (sconv_sse_test) {
     pa_convert_func_init_sse(flags);
     sse_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
 
-    pa_log_debug("Checking SSE sconv (s16 -> float)");
+    pa_log_debug("Checking SSE sconv (float -> s16)");
     run_conv_test_float_to_s16(sse_func, orig_func, 0, TRUE, FALSE);
     run_conv_test_float_to_s16(sse_func, orig_func, 1, TRUE, FALSE);
     run_conv_test_float_to_s16(sse_func, orig_func, 2, TRUE, FALSE);
@@ -298,7 +298,7 @@ START_TEST (sconv_neon_test) {
     pa_convert_func_init_neon(flags);
     neon_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
 
-    pa_log_debug("Checking NEON sconv (s16 -> float)");
+    pa_log_debug("Checking NEON sconv (float -> s16)");
     run_conv_test_float_to_s16(neon_func, orig_func, 0, TRUE, FALSE);
     run_conv_test_float_to_s16(neon_func, orig_func, 1, TRUE, FALSE);
     run_conv_test_float_to_s16(neon_func, orig_func, 2, TRUE, FALSE);
