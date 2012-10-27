@@ -253,6 +253,52 @@ static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t
     }
 }
 
+static void run_conv_test_s16_to_float(pa_convert_func_t func, pa_convert_func_t orig_func, int align, pa_bool_t correct,
+        pa_bool_t perf) {
+    PA_DECLARE_ALIGNED(8, float, f[SAMPLES]) = { 0 };
+    PA_DECLARE_ALIGNED(8, float, f_ref[SAMPLES]) = { 0 };
+    PA_DECLARE_ALIGNED(8, int16_t, s[SAMPLES]);
+    float *floats, *floats_ref;
+    int16_t *samples;
+    int i, nsamples;
+
+    /* Force sample alignment as requested */
+    floats = f + (8 - align);
+    floats_ref = f_ref + (8 - align);
+    samples = s + (8 - align);
+    nsamples = SAMPLES - (8 - align);
+
+    pa_random(samples, nsamples * sizeof(int16_t));
+
+    if (correct) {
+        pa_log_debug("Testing sconv correctness with %d byte alignment", align);
+
+        orig_func(nsamples, samples, floats_ref);
+        func(nsamples, samples, floats);
+
+        for (i = 0; i < nsamples; i++) {
+            if (floats[i] != floats_ref[i]) {
+                pa_log_debug("%d: %f != %f (%d)\n", i, floats[i], floats_ref[i], samples[i]);
+                fail();
+            }
+        }
+    }
+
+    if (perf) {
+        pa_log_debug("Testing sconv performance with %d byte alignment", align);
+
+        PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
+            func(nsamples, samples, floats);
+        } PA_CPU_TEST_RUN_STOP
+
+        PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
+            orig_func(nsamples, samples, floats_ref);
+        } PA_CPU_TEST_RUN_STOP
+
+        fail_unless(memcmp(floats_ref, floats, nsamples * sizeof(float)) == 0);
+    }
+}
+
 #if defined (__i386__) || defined (__amd64__)
 START_TEST (sconv_sse_test) {
     pa_cpu_x86_flag_t flags = 0;
@@ -285,7 +331,8 @@ END_TEST
 #if defined (__arm__) && defined (__linux__)
 START_TEST (sconv_neon_test) {
     pa_cpu_arm_flag_t flags = 0;
-    pa_convert_func_t orig_func, neon_func;
+    pa_convert_func_t orig_from_func, neon_from_func;
+    pa_convert_func_t orig_to_func, neon_to_func;
 
     pa_cpu_get_arm_flags(&flags);
 
@@ -294,19 +341,31 @@ START_TEST (sconv_neon_test) {
         return;
     }
 
-    orig_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
+    orig_from_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
+    orig_to_func = pa_get_convert_to_float32ne_function(PA_SAMPLE_S16LE);
     pa_convert_func_init_neon(flags);
-    neon_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
+    neon_from_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
+    neon_to_func = pa_get_convert_to_float32ne_function(PA_SAMPLE_S16LE);
 
     pa_log_debug("Checking NEON sconv (float -> s16)");
-    run_conv_test_float_to_s16(neon_func, orig_func, 0, TRUE, FALSE);
-    run_conv_test_float_to_s16(neon_func, orig_func, 1, TRUE, FALSE);
-    run_conv_test_float_to_s16(neon_func, orig_func, 2, TRUE, FALSE);
-    run_conv_test_float_to_s16(neon_func, orig_func, 3, TRUE, FALSE);
-    run_conv_test_float_to_s16(neon_func, orig_func, 4, TRUE, FALSE);
-    run_conv_test_float_to_s16(neon_func, orig_func, 5, TRUE, FALSE);
-    run_conv_test_float_to_s16(neon_func, orig_func, 6, TRUE, FALSE);
-    run_conv_test_float_to_s16(neon_func, orig_func, 7, TRUE, TRUE);
+    run_conv_test_float_to_s16(neon_from_func, orig_from_func, 0, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_from_func, orig_from_func, 1, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_from_func, orig_from_func, 2, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_from_func, orig_from_func, 3, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_from_func, orig_from_func, 4, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_from_func, orig_from_func, 5, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_from_func, orig_from_func, 6, TRUE, FALSE);
+    run_conv_test_float_to_s16(neon_from_func, orig_from_func, 7, TRUE, TRUE);
+
+    pa_log_debug("Checking NEON sconv (s16 -> float)");
+    run_conv_test_s16_to_float(neon_to_func, orig_to_func, 0, TRUE, FALSE);
+    run_conv_test_s16_to_float(neon_to_func, orig_to_func, 1, TRUE, FALSE);
+    run_conv_test_s16_to_float(neon_to_func, orig_to_func, 2, TRUE, FALSE);
+    run_conv_test_s16_to_float(neon_to_func, orig_to_func, 3, TRUE, FALSE);
+    run_conv_test_s16_to_float(neon_to_func, orig_to_func, 4, TRUE, FALSE);
+    run_conv_test_s16_to_float(neon_to_func, orig_to_func, 5, TRUE, FALSE);
+    run_conv_test_s16_to_float(neon_to_func, orig_to_func, 6, TRUE, FALSE);
+    run_conv_test_s16_to_float(neon_to_func, orig_to_func, 7, TRUE, TRUE);
 }
 END_TEST
 #endif /* defined (__arm__) && defined (__linux__) */
