@@ -415,9 +415,11 @@ ssize_t pa_write(int fd, const void *buf, size_t count, int *type) {
 
     if (!type || *type == 0) {
         ssize_t r;
+#ifdef OS_IS_WIN32
         int err;
 
 retry:
+#endif
         for (;;) {
             if ((r = send(fd, buf, count, MSG_NOSIGNAL)) < 0) {
 
