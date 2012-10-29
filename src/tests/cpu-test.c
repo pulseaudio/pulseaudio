@@ -255,6 +255,9 @@ static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t
     }
 }
 
+/* This test is currently only run under NEON */
+#if defined (__arm__) && defined (__linux__)
+#ifdef HAVE_NEON
 static void run_conv_test_s16_to_float(pa_convert_func_t func, pa_convert_func_t orig_func, int align, pa_bool_t correct,
         pa_bool_t perf) {
     PA_DECLARE_ALIGNED(8, float, f[SAMPLES]) = { 0 };
@@ -298,6 +301,8 @@ static void run_conv_test_s16_to_float(pa_convert_func_t func, pa_convert_func_t
         } PA_CPU_TEST_RUN_STOP
     }
 }
+#endif /* HAVE_NEON */
+#endif /* defined (__arm__) && defined (__linux__) */
 
 #if defined (__i386__) || defined (__amd64__)
 START_TEST (sconv_sse_test) {
@@ -329,6 +334,7 @@ END_TEST
 #endif /* defined (__i386__) || defined (__amd64__) */
 
 #if defined (__arm__) && defined (__linux__)
+#ifdef HAVE_NEON
 START_TEST (sconv_neon_test) {
     pa_cpu_arm_flag_t flags = 0;
     pa_convert_func_t orig_from_func, neon_from_func;
@@ -368,6 +374,7 @@ START_TEST (sconv_neon_test) {
     run_conv_test_s16_to_float(neon_to_func, orig_to_func, 7, TRUE, TRUE);
 }
 END_TEST
+#endif /* HAVE_NEON */
 #endif /* defined (__arm__) && defined (__linux__) */
 
 #undef SAMPLES
