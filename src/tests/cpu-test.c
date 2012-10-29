@@ -55,8 +55,12 @@
         _s1 += _stop - _start;                                  \
         _s2 += (_stop - _start) * (_stop - _start);             \
     }                                                           \
-    pa_log_debug("%s: %llu usec (min = %llu, max = %llu, stddev = %g).", _label, (long long unsigned int)_s1,           \
-            (long long unsigned int)_min, (long long unsigned int)_max, sqrt(_times2 * _s2 - _s1 * _s1) / _times2);     \
+    pa_log_debug("%s: %llu usec (avg: %g, min = %llu, max = %llu, stddev = %g).", _label, \
+            (long long unsigned int)_s1,                        \
+            ((double)_s1 / _times2),                            \
+            (long long unsigned int)_min,                       \
+            (long long unsigned int)_max,                       \
+            sqrt(_times2 * _s2 - _s1 * _s1) / _times2);         \
 }
 
 /* Common defines for svolume tests */
