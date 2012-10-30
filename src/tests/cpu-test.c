@@ -83,7 +83,8 @@ static void run_volume_test(pa_do_volume_func_t func, pa_do_volume_func_t orig_f
     samples_ref = s_ref + (8 - align);
     samples_orig = s_orig + (8 - align);
     nsamples = SAMPLES - (8 - align);
-    nsamples += nsamples % channels;
+    if (nsamples % channels)
+        nsamples += nsamples % channels;
     size = nsamples * sizeof(*samples);
 
     pa_random(samples, size);
