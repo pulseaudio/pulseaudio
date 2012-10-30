@@ -110,7 +110,7 @@ static void run_volume_test(pa_do_volume_func_t func, pa_do_volume_func_t orig_f
     }
 
     if (perf) {
-        pa_log_debug("Testing svolume %dch performance with %d byte alignment", channels, align);
+        pa_log_debug("Testing svolume %dch performance with %d sample alignment", channels, align);
 
         PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
             memcpy(samples, samples_orig, size);
@@ -285,7 +285,7 @@ static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t
     }
 
     if (perf) {
-        pa_log_debug("Testing sconv performance with %d byte alignment", align);
+        pa_log_debug("Testing sconv performance with %d sample alignment", align);
 
         PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
             func(nsamples, floats, samples);
@@ -331,7 +331,7 @@ static void run_conv_test_s16_to_float(pa_convert_func_t func, pa_convert_func_t
     }
 
     if (perf) {
-        pa_log_debug("Testing sconv performance with %d byte alignment", align);
+        pa_log_debug("Testing sconv performance with %d sample alignment", align);
 
         PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
             func(nsamples, samples, floats);
