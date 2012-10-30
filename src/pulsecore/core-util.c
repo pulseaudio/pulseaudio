@@ -1789,8 +1789,9 @@ char *pa_get_runtime_dir(void) {
                 goto fail;
             }
 #else
-            /* No symlink possible, so let's just create the runtime directly */
-            if (mkdir(k) < 0)
+            /* No symlink possible, so let's just create the runtime directly
+             * Do not check again if it exists since it cannot be a symlink */
+            if (mkdir(k) < 0 && errno != EEXIST)
                 goto fail;
 #endif
 
