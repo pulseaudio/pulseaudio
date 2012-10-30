@@ -97,14 +97,13 @@ static void run_volume_test(pa_do_volume_func_t func, pa_do_volume_func_t orig_f
         volumes[i] = volumes[padding];
 
     if (correct) {
-        pa_log_debug("Testing svolume correctness with %d byte alignment", align);
-
         orig_func(samples_ref, volumes, CHANNELS, size);
         func(samples, volumes, CHANNELS, size);
 
         for (i = 0; i < nsamples; i++) {
             if (samples[i] != samples_ref[i]) {
-                printf("%d: %04x != %04x (%04x * %08x)\n", i, samples[i], samples_ref[i],
+                pa_log_debug("Correctness test failed: align=%d", align);
+                pa_log_debug("%d: %04x != %04x (%04x * %08x)\n", i, samples[i], samples_ref[i],
                         samples_orig[i], volumes[i % CHANNELS]);
                 fail();
             }
@@ -276,13 +275,12 @@ static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t
     }
 
     if (correct) {
-        pa_log_debug("Testing sconv correctness with %d byte alignment", align);
-
         orig_func(nsamples, floats, samples_ref);
         func(nsamples, floats, samples);
 
         for (i = 0; i < nsamples; i++) {
             if (abs(samples[i] - samples_ref[i]) > 1) {
+                pa_log_debug("Correctness test failed: align=%d", align);
                 pa_log_debug("%d: %04x != %04x (%.24f)\n", i, samples[i], samples_ref[i], floats[i]);
                 fail();
             }
@@ -323,13 +321,12 @@ static void run_conv_test_s16_to_float(pa_convert_func_t func, pa_convert_func_t
     pa_random(samples, nsamples * sizeof(int16_t));
 
     if (correct) {
-        pa_log_debug("Testing sconv correctness with %d byte alignment", align);
-
         orig_func(nsamples, samples, floats_ref);
         func(nsamples, samples, floats);
 
         for (i = 0; i < nsamples; i++) {
             if (abs(floats[i] - floats_ref[i]) > 1) {
+                pa_log_debug("Correctness test failed: align=%d", align);
                 pa_log_debug("%d: %.24f != %.24f (%d)\n", i, floats[i], floats_ref[i], samples[i]);
                 fail();
             }
