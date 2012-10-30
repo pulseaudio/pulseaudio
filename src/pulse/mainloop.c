@@ -175,24 +175,6 @@ static pa_io_event* mainloop_io_new(
     e->callback = callback;
     e->userdata = userdata;
 
-#ifdef OS_IS_WIN32
-    {
-        fd_set xset;
-        struct timeval tv;
-
-        tv.tv_sec = 0;
-        tv.tv_usec = 0;
-
-        FD_ZERO (&xset);
-        FD_SET (fd, &xset);
-
-        if ((select(fd, NULL, NULL, &xset, &tv) == -1) && (WSAGetLastError() == WSAENOTSOCK)) {
-            pa_log_warn("Cannot monitor non-socket file descriptors.");
-            e->dead = TRUE;
-        }
-    }
-#endif
-
     PA_LLIST_PREPEND(pa_io_event, m->io_events, e);
     m->rebuild_pollfds = TRUE;
     m->n_io_events ++;

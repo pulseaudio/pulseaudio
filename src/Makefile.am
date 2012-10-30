@@ -604,7 +604,6 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/pdispatch.c pulsecore/pdispatch.h \
 		pulsecore/pid.c pulsecore/pid.h \
 		pulsecore/pipe.c pulsecore/pipe.h \
-		pulsecore/poll.c pulsecore/poll.h \
 		pulsecore/memtrap.c pulsecore/memtrap.h \
 		pulsecore/aupdate.c pulsecore/aupdate.h \
 		pulsecore/proplist-util.c pulsecore/proplist-util.h \
@@ -626,6 +625,12 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/usergroup.c pulsecore/usergroup.h \
 		pulsecore/sndfile-util.c pulsecore/sndfile-util.h \
 		pulsecore/socket.h
+
+if OS_IS_WIN32
+libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += pulsecore/poll-win32.c pulsecore/poll.h
+else
+libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += pulsecore/poll-posix.c pulsecore/poll.h
+endif
 
 libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
