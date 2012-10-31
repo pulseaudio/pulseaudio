@@ -113,8 +113,8 @@ USA.
     </option>
 
     <option>
-      <p><opt>enable-lfe-remixing=</opt> if disabeld when upmixing or
-      downmixing ignore LFE channels. When this option is dsabled the
+      <p><opt>enable-lfe-remixing=</opt> If disabled when upmixing or
+      downmixing ignore LFE channels. When this option is disabled the
       output LFE channel will only get a signal when an input LFE
       channel is available as well. If no input LFE channel is
       available the output LFE channel will always be 0. If no output
