@@ -114,7 +114,8 @@ src/pulsecore/hashmap.c
 src/pulsecore/avahi-wrap.c
 src/pulsecore/authkey.c
 src/pulsecore/namereg.c
-src/pulsecore/poll.c
+src/pulsecore/poll-posix.c
+src/pulsecore/poll-win32.c
 src/pulsecore/tokenizer.c
 src/pulsecore/semaphore-posix.c
 src/pulsecore/cli-text.c
