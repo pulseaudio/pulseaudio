@@ -559,6 +559,11 @@ echo_cancel_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 pkglib_LTLIBRARIES = \
 		libpulsecommon-@PA_MAJORMINOR@.la
 
+# We duplicate files from pulse/ in this to allow as-needed linking. If we did
+# not do this, in situations where code in libpulsecommon uses code in
+# libpulse, we would then need to link libpulsecommon to libpulse (in addition
+# to the existing libpulse being linked to libpulsecommon). Duplicating the
+# code allows us to prevent this circular linking.
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulse/client-conf.c pulse/client-conf.h \
 		pulse/fork-detect.c pulse/fork-detect.h \
