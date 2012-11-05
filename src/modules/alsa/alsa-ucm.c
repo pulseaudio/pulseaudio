@@ -535,7 +535,7 @@ int pa_alsa_ucm_query_profiles(pa_alsa_ucm_config *ucm, int card_index)
 
     err = snd_use_case_mgr_open(&ucm->ucm_mgr, card_name);
     if (err < 0) {
-        pa_log("UCM not available for card %s", card_name);
+        pa_log_info("UCM not available for card %s", card_name);
         goto ucm_mgr_fail;
     }
 
