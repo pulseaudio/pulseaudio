@@ -534,11 +534,21 @@ int pa_stream_write(
         pa_seek_mode_t seek      /**< Seek mode, must be PA_SEEK_RELATIVE for upload streams */);
 
 /** Read the next fragment from the buffer (for recording streams).
- * \a data will point to the actual data and \a nbytes will contain the size
- * of the data in bytes (which can be less or more than a complete
- * fragment). Use pa_stream_drop() to actually remove the data from
- * the buffer. If no data is available this will return a NULL
- * pointer. */
+ * If there is data at the current read index, \a data will point to
+ * the actual data and \a nbytes will contain the size of the data in
+ * bytes (which can be less or more than a complete fragment).
+ *
+ * If there is no data at the current read index, it means that either
+ * the buffer is empty or it contains a hole (that is, the write index
+ * is ahead of the read index but there's no data where the read index
+ * points at). If the buffer is empty, \a data will be NULL and
+ * \a nbytes will be 0. If there is a hole, \a data will be NULL and
+ * \a nbytes will contain the length of the hole.
+ *
+ * Use pa_stream_drop() to actually remove the data from the buffer
+ * and move the read index forward. pa_stream_drop() should not be
+ * called if the buffer is empty, but it should be called if there is
+ * a hole. */
 int pa_stream_peek(
         pa_stream *p                 /**< The stream to use */,
         const void **data            /**< Pointer to pointer that will point to data */,

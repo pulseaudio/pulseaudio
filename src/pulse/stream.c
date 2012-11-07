@@ -1593,8 +1593,16 @@ int pa_stream_peek(pa_stream *s, const void **data, size_t *length) {
     if (!s->peek_memchunk.memblock) {
 
         if (pa_memblockq_peek(s->record_memblockq, &s->peek_memchunk) < 0) {
+            /* record_memblockq is empty. */
             *data = NULL;
             *length = 0;
+            return 0;
+
+        } else if (!s->peek_memchunk.memblock) {
+            /* record_memblockq isn't empty, but it doesn't have any data at
+             * the current read index. */
+            *data = NULL;
+            *length = s->peek_memchunk.length;
             return 0;
         }
 
@@ -1614,7 +1622,7 @@ int pa_stream_drop(pa_stream *s) {
     PA_CHECK_VALIDITY(s->context, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, s->direction == PA_STREAM_RECORD, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY(s->context, s->peek_memchunk.memblock, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(s->context, s->peek_memchunk.length > 0, PA_ERR_BADSTATE);
 
     pa_memblockq_drop(s->record_memblockq, s->peek_memchunk.length);
 
@@ -1622,9 +1630,13 @@ int pa_stream_drop(pa_stream *s) {
     if (s->timing_info_valid && !s->timing_info.read_index_corrupt)
         s->timing_info.read_index += (int64_t) s->peek_memchunk.length;
 
-    pa_assert(s->peek_data);
-    pa_memblock_release(s->peek_memchunk.memblock);
-    pa_memblock_unref(s->peek_memchunk.memblock);
+    if (s->peek_memchunk.memblock) {
+        pa_assert(s->peek_data);
+        s->peek_data = NULL;
+        pa_memblock_release(s->peek_memchunk.memblock);
+        pa_memblock_unref(s->peek_memchunk.memblock);
+    }
+
     pa_memchunk_reset(&s->peek_memchunk);
 
     return 0;
