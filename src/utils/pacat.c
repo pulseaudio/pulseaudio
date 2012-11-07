@@ -45,6 +45,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/sndfile-util.h>
+#include <pulsecore/sample-util.h>
 
 #define TIME_EVENT_USEC 50000
 
@@ -58,6 +59,9 @@ static pa_mainloop_api *mainloop_api = NULL;
 
 static void *buffer = NULL;
 static size_t buffer_length = 0, buffer_index = 0;
+
+static void *silence_buffer = NULL;
+static size_t silence_buffer_length = 0;
 
 static pa_io_event* stdio_event = NULL;
 
@@ -257,18 +261,18 @@ static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
                 return;
             }
 
-            pa_assert(data);
             pa_assert(length > 0);
 
-            if (buffer) {
+            /* If there is a hole in the stream, we generate silence, except
+             * if it's a passthrough stream in which case we skip the hole. */
+            if (data || !(flags & PA_STREAM_PASSTHROUGH)) {
                 buffer = pa_xrealloc(buffer, buffer_length + length);
-                memcpy((uint8_t*) buffer + buffer_length, data, length);
+                if (data)
+                    memcpy((uint8_t *) buffer + buffer_length, data, length);
+                else
+                    pa_silence_memory((uint8_t *) buffer + buffer_length, length, &sample_spec);
+
                 buffer_length += length;
-            } else {
-                buffer = pa_xmalloc(length);
-                memcpy(buffer, data, length);
-                buffer_length = length;
-                buffer_index = 0;
             }
 
             pa_stream_drop(s);
@@ -287,17 +291,27 @@ static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
                 return;
             }
 
-            pa_assert(data);
             pa_assert(length > 0);
+
+            if (!data && (flags & PA_STREAM_PASSTHROUGH)) {
+                pa_stream_drop(s);
+                continue;
+            }
+
+            if (!data && length > silence_buffer_length) {
+                silence_buffer = pa_xrealloc(silence_buffer, length);
+                pa_silence_memory((uint8_t *) silence_buffer + silence_buffer_length, length - silence_buffer_length, &sample_spec);
+                silence_buffer_length = length;
+            }
 
             if (writef_function) {
                 size_t k = pa_frame_size(&sample_spec);
 
-                if ((bytes = writef_function(sndfile, data, (sf_count_t) (length/k))) > 0)
+                if ((bytes = writef_function(sndfile, data ? data : silence_buffer, (sf_count_t) (length/k))) > 0)
                     bytes *= (sf_count_t) k;
 
             } else
-                bytes = sf_write_raw(sndfile, data, (sf_count_t) length);
+                bytes = sf_write_raw(sndfile, data ? data : silence_buffer, (sf_count_t) length);
 
             if (bytes < (sf_count_t) length)
                 quit(1);
@@ -1193,6 +1207,7 @@ quit:
         pa_mainloop_free(m);
     }
 
+    pa_xfree(silence_buffer);
     pa_xfree(buffer);
 
     pa_xfree(server);

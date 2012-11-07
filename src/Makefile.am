@@ -586,6 +586,7 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/dynarray.c pulsecore/dynarray.h \
 		pulsecore/endianmacros.h \
 		pulsecore/flist.c pulsecore/flist.h \
+		pulsecore/g711.c pulsecore/g711.h \
 		pulsecore/hashmap.c pulsecore/hashmap.h \
 		pulsecore/i18n.c pulsecore/i18n.h \
 		pulsecore/idxset.c pulsecore/idxset.h \
@@ -617,6 +618,7 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/queue.c pulsecore/queue.h \
 		pulsecore/random.c pulsecore/random.h \
 		pulsecore/refcnt.h \
+		pulsecore/sample-util.c pulsecore/sample-util.h \
 		pulsecore/shm.c pulsecore/shm.h \
 		pulsecore/bitset.c pulsecore/bitset.h \
 		pulsecore/socket-client.c pulsecore/socket-client.h \
@@ -624,6 +626,8 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/socket-util.c pulsecore/socket-util.h \
 		pulsecore/strbuf.c pulsecore/strbuf.h \
 		pulsecore/strlist.c pulsecore/strlist.h \
+		pulsecore/svolume_c.c pulsecore/svolume_arm.c \
+		pulsecore/svolume_mmx.c pulsecore/svolume_sse.c \
 		pulsecore/tagstruct.c pulsecore/tagstruct.h \
 		pulsecore/time-smoother.c pulsecore/time-smoother.h \
 		pulsecore/tokenizer.c pulsecore/tokenizer.h \
@@ -838,7 +842,6 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/core-subscribe.c pulsecore/core-subscribe.h \
 		pulsecore/core.c pulsecore/core.h \
 		pulsecore/fdsem.c pulsecore/fdsem.h \
-		pulsecore/g711.c pulsecore/g711.h \
 		pulsecore/hook-list.c pulsecore/hook-list.h \
 		pulsecore/ltdl-helper.c pulsecore/ltdl-helper.h \
 		pulsecore/modargs.c pulsecore/modargs.h \
@@ -853,13 +856,10 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/remap_mmx.c pulsecore/remap_sse.c \
 		pulsecore/resampler.c pulsecore/resampler.h \
 		pulsecore/rtpoll.c pulsecore/rtpoll.h \
-		pulsecore/sample-util.c pulsecore/sample-util.h \
 		pulsecore/cpu.h \
 		pulsecore/cpu-arm.c pulsecore/cpu-arm.h \
 		pulsecore/cpu-x86.c pulsecore/cpu-x86.h \
 		pulsecore/cpu-orc.c pulsecore/cpu-orc.h \
-		pulsecore/svolume_c.c pulsecore/svolume_arm.c \
-		pulsecore/svolume_mmx.c pulsecore/svolume_sse.c \
 		pulsecore/sconv-s16be.c pulsecore/sconv-s16be.h \
 		pulsecore/sconv-s16le.c pulsecore/sconv-s16le.h \
 		pulsecore/sconv_sse.c \
