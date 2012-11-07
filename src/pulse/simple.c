@@ -331,9 +331,14 @@ int pa_simple_read(pa_simple *p, void*data, size_t length, int *rerror) {
             r = pa_stream_peek(p->stream, &p->read_data, &p->read_length);
             CHECK_SUCCESS_GOTO(p, rerror, r == 0, unlock_and_fail);
 
-            if (!p->read_data) {
+            if (p->read_length <= 0) {
                 pa_threaded_mainloop_wait(p->mainloop);
                 CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
+            } else if (!p->read_data) {
+                /* There's a hole in the stream, skip it. We could generate
+                 * silence, but that wouldn't work for compressed streams. */
+                r = pa_stream_drop(p->stream);
+                CHECK_SUCCESS_GOTO(p, rerror, r == 0, unlock_and_fail);
             } else
                 p->read_index = 0;
         }
