@@ -5,6 +5,8 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <time.h>
+#include <unistd.h>
+#include <pthread.h>
 
 #include <alsa/asoundlib.h>
 
@@ -16,7 +18,7 @@ static uint64_t timespec_us(const struct timespec *ts) {
 
 int main(int argc, char *argv[]) {
     const char *dev;
-    int r, cap;
+    int r, cap, count = 0;
     snd_pcm_hw_params_t *hwparams;
     snd_pcm_sw_params_t *swparams;
     snd_pcm_status_t *status;
@@ -26,11 +28,20 @@ int main(int argc, char *argv[]) {
     snd_pcm_uframes_t boundary, buffer_size = 44100/10; /* 100s */
     int dir = 1;
     struct timespec start, last_timestamp = { 0, 0 };
-    uint64_t start_us;
+    uint64_t start_us, last_us = 0;
     snd_pcm_sframes_t last_avail = 0, last_delay = 0;
     struct pollfd *pollfds;
     int n_pollfd;
     int64_t sample_count = 0;
+    struct sched_param sp;
+
+    r = -1;
+#ifdef _POSIX_PRIORITY_SCHEDULING
+    sp.sched_priority = 5;
+    r = pthread_setschedparam(pthread_self(), SCHED_RR, &sp);
+#endif
+    if (r)
+        printf("Could not get RT prio. :(\n");
 
     snd_pcm_hw_params_alloca(&hwparams);
     snd_pcm_sw_params_alloca(&swparams);
@@ -128,6 +139,8 @@ int main(int argc, char *argv[]) {
     r = snd_pcm_poll_descriptors(pcm, pollfds, n_pollfd);
     assert(r == n_pollfd);
 
+    printf("Starting. Buffer size is %u frames\n", (unsigned int) buffer_size);
+
     if (cap) {
       r = snd_pcm_start(pcm);
       assert(r == 0);
@@ -203,7 +216,11 @@ int main(int argc, char *argv[]) {
         else
             pos = (unsigned long long) ((sample_count - handled + delay) * 1000000LU / 44100);
 
-        printf("%llu\t%llu\t%llu\t%llu\t%li\t%li\t%i\t%i\t%i\n",
+        if (count++ % 50 == 0)
+            printf("Elapsed\tCPU\tALSA\tPos\tSamples\tavail\tdelay\trevents\thandled\tstate\n");
+
+        printf("%llu\t%llu\t%llu\t%llu\t%llu\t%li\t%li\t%i\t%i\t%i\n",
+               (unsigned long long) (now_us - last_us),
                (unsigned long long) (now_us - start_us),
                (unsigned long long) (timestamp_us ? timestamp_us - start_us : 0),
                pos,
@@ -222,6 +239,7 @@ int main(int argc, char *argv[]) {
         last_avail = avail;
         last_delay = delay;
         last_timestamp = timestamp;
+        last_us = now_us;
     }
 
     return 0;
