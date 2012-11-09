@@ -31,6 +31,10 @@ ATTRS{vendor}=="0x8086", ENV{PULSE_PROFILE_SET}="extra-hdmi.conf"
 # This should only be necessary for kernels 3.3, 3.4 and 3.5 (as they are lacking the phantom jack kctls).
 # Acer AOA150
 ATTRS{subsystem_vendor}=="0x1025", ATTRS{subsystem_device}=="0x015b", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Acer Aspire 4810TZ
+ATTRS{subsystem_vendor}=="0x1025", ATTRS{subsystem_device}=="0x022a", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Packard bell dot m/a
+ATTRS{subsystem_vendor}=="0x1025", ATTRS{subsystem_device}=="0x028c", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
 # Acer Aspire 1810TZ
 ATTRS{subsystem_vendor}=="0x1025", ATTRS{subsystem_device}=="0x029b", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
 # Acer AOD260 and AO532h
@@ -65,6 +69,8 @@ ATTRS{subsystem_vendor}=="0x1043", ATTRS{subsystem_device}=="0x83ce", ENV{PULSE_
 ATTRS{subsystem_vendor}=="0x104d", ATTRS{subsystem_device}=="0x9033", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
 # Sony Vaio VPC-W115XG
 ATTRS{subsystem_vendor}=="0x104d", ATTRS{subsystem_device}=="0x9064", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Fujitsu Lifebook S7110
+ATTRS{subsystem_vendor}=="0x10cf", ATTRS{subsystem_device}=="0x1397", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
 # Fujitsu Lifebook A530
 ATTRS{subsystem_vendor}=="0x10cf", ATTRS{subsystem_device}=="0x1531", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
 # Toshiba A200
