@@ -72,6 +72,7 @@ typedef enum pa_bluetooth_transport_hook {
 
 struct pa_bluetooth_transport {
     pa_bluetooth_discovery *y;
+    char *owner;
     char *path;
     enum profile profile;
     uint8_t codec;
