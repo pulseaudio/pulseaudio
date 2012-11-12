@@ -437,7 +437,8 @@ USA.
       or 48kHz. Switching between default and alternate values is
       enabled only when the sinks/sources are suspended. This option
       is ignored in passthrough mode where the stream rate will be used.
-      If set to zero, this feature is disabled.</p>
+      If set to the same as the default sample rate, this feature is
+      disabled.</p>
     </option>
 
   </section>
