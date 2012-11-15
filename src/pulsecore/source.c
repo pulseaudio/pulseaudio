@@ -1000,6 +1000,9 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrou
             desired_rate = rate; /* use stream sampling rate, discard default/alternate settings */
         }
 
+        if (desired_rate == s->sample_spec.rate)
+            return FALSE;
+
         if (!passthrough && pa_source_used_by(s) > 0)
             return FALSE;
 
