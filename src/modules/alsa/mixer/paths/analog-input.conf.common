@@ -235,11 +235,11 @@ name = input-linein
 [Element Digital Input Source]
 enumeration = select
 
-[Option Digital Input Source:Analog Inputs]
-name = input
-
 [Option Digital Input Source:Digital Mic 1]
 name = input-microphone
+
+[Option Digital Input Source:Analog Inputs]
+name = input
 
 [Option Digital Input Source:Digital Mic 2]
 name = input-microphone
