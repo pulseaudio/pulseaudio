@@ -1422,11 +1422,15 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
     if (acquire)
         if (bt_transport_acquire(u, FALSE) >= 0) {
-            if (u->source)
+            if (u->source) {
+                pa_log_debug("Resuming source %s, because the bluetooth audio state changed to 'playing'.", u->source->name);
                 pa_source_suspend(u->source, FALSE, PA_SUSPEND_IDLE|PA_SUSPEND_USER);
+            }
 
-            if (u->sink)
+            if (u->sink) {
+                pa_log_debug("Resuming sink %s, because the bluetooth audio state changed to 'playing'.", u->sink->name);
                 pa_sink_suspend(u->sink, FALSE, PA_SUSPEND_IDLE|PA_SUSPEND_USER);
+            }
         }
 
     if (release && bt_transport_is_acquired(u)) {
@@ -1436,11 +1440,15 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
            in that case we would just mark the transport as released */
 
         /* Remote side closed the stream so we consider it PA_SUSPEND_USER */
-        if (u->source)
+        if (u->source) {
+            pa_log_debug("Suspending source %s, because the remote end closed the stream.", u->source->name);
             pa_source_suspend(u->source, TRUE, PA_SUSPEND_USER);
+        }
 
-        if (u->sink)
+        if (u->sink) {
+            pa_log_debug("Suspending sink %s, because the remote end closed the stream.", u->sink->name);
             pa_sink_suspend(u->sink, TRUE, PA_SUSPEND_USER);
+        }
     }
 
 fail:

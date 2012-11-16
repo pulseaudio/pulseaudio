@@ -4552,6 +4552,9 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
 
             CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
 
+            pa_log_debug("%s of sink %s requested by client %" PRIu32 ".",
+                         b ? "Suspending" : "Resuming", sink->name, c->client->index);
+
             if (pa_sink_suspend(sink, b, PA_SUSPEND_USER) < 0) {
                 pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
                 return;
@@ -4579,6 +4582,9 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
                 source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE);
 
             CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
+
+            pa_log_debug("%s of source %s requested by client %" PRIu32 ".",
+                         b ? "Suspending" : "Resuming", source->name, c->client->index);
 
             if (pa_source_suspend(source, b, PA_SUSPEND_USER) < 0) {
                 pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);

@@ -173,6 +173,8 @@ static pa_hook_result_t reserve_cb(pa_reserve_wrapper *r, void *forced, struct u
     pa_assert(r);
     pa_assert(u);
 
+    pa_log_debug("Suspending sink %s, because another application requested us to release the device.", u->sink->name);
+
     if (pa_sink_suspend(u->sink, TRUE, PA_SUSPEND_APPLICATION) < 0)
         return PA_HOOK_CANCEL;
 
@@ -235,14 +237,17 @@ static int reserve_init(struct userdata *u, const char *dname) {
 }
 
 static pa_hook_result_t monitor_cb(pa_reserve_monitor_wrapper *w, void* busy, struct userdata *u) {
-    pa_bool_t b;
-
     pa_assert(w);
     pa_assert(u);
 
-    b = PA_PTR_TO_UINT(busy) && !u->reserve;
+    if (PA_PTR_TO_UINT(busy) && !u->reserve) {
+        pa_log_debug("Suspending sink %s, because another application is blocking the access to the device.", u->sink->name);
+        pa_sink_suspend(u->sink, true, PA_SUSPEND_APPLICATION);
+    } else {
+        pa_log_debug("Resuming sink %s, because other applications aren't blocking access to the device any more.", u->sink->name);
+        pa_sink_suspend(u->sink, false, PA_SUSPEND_APPLICATION);
+    }
 
-    pa_sink_suspend(u->sink, b, PA_SUSPEND_APPLICATION);
     return PA_HOOK_OK;
 }
 

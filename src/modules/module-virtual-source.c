@@ -126,6 +126,7 @@ static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
 
     if (state == PA_SINK_RUNNING) {
         /* need to wake-up source if it was suspended */
+        pa_log_debug("Resuming source %s, because its uplink sink became active.", u->source->name);
         pa_source_suspend(u->source, FALSE, PA_SUSPEND_ALL);
 
         /* FIXME: if there's no client connected, the source will suspend

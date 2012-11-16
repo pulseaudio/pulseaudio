@@ -1423,6 +1423,8 @@ static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *b
         return -1;
     }
 
+    pa_log_debug("%s of sink %s requested via CLI.", suspend ? "Suspending" : "Resuming", sink->name);
+
     if ((r = pa_sink_suspend(sink, suspend, PA_SUSPEND_USER)) < 0)
         pa_strbuf_printf(buf, "Failed to resume/suspend sink: %s\n", pa_strerror(r));
 
@@ -1459,6 +1461,8 @@ static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf 
         return -1;
     }
 
+    pa_log_debug("%s of source %s requested via CLI.", suspend ? "Suspending" : "Resuming", source->name);
+
     if ((r = pa_source_suspend(source, suspend, PA_SUSPEND_USER)) < 0)
         pa_strbuf_printf(buf, "Failed to resume/suspend source: %s\n", pa_strerror(r));
 
@@ -1483,6 +1487,8 @@ static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, p
         pa_strbuf_puts(buf, "Failed to parse suspend switch.\n");
         return -1;
     }
+
+    pa_log_debug("%s of all sinks and sources requested via CLI.", suspend ? "Suspending" : "Resuming");
 
     if ((r = pa_sink_suspend_all(c, suspend, PA_SUSPEND_USER)) < 0)
         pa_strbuf_printf(buf, "Failed to resume/suspend all sinks: %s\n", pa_strerror(r));

@@ -1395,6 +1395,7 @@ pa_bool_t pa_sink_update_rate(pa_sink *s, uint32_t rate, pa_bool_t passthrough)
         if (!passthrough && pa_sink_used_by(s) > 0)
             return FALSE;
 
+        pa_log_debug("Suspending sink %s due to changing the sample rate.", s->name);
         pa_sink_suspend(s, TRUE, PA_SUSPEND_IDLE); /* needed before rate update, will be resumed automatically */
 
         if (s->update_rate(s, desired_rate) == TRUE) {
@@ -1531,8 +1532,10 @@ void pa_sink_enter_passthrough(pa_sink *s) {
     pa_cvolume volume;
 
     /* disable the monitor in passthrough mode */
-    if (s->monitor_source)
+    if (s->monitor_source) {
+        pa_log_debug("Suspending monitor source %s, because the sink is entering the passthrough mode.", s->monitor_source->name);
         pa_source_suspend(s->monitor_source, TRUE, PA_SUSPEND_PASSTHROUGH);
+    }
 
     /* set the volume to NORM */
     s->saved_volume = *pa_sink_get_volume(s, TRUE);
@@ -1545,8 +1548,10 @@ void pa_sink_enter_passthrough(pa_sink *s) {
 /* Called from main context */
 void pa_sink_leave_passthrough(pa_sink *s) {
     /* Unsuspend monitor */
-    if (s->monitor_source)
+    if (s->monitor_source) {
+        pa_log_debug("Resuming monitor source %s, because the sink is leaving the passthrough mode.", s->monitor_source->name);
         pa_source_suspend(s->monitor_source, FALSE, PA_SUSPEND_PASSTHROUGH);
+    }
 
     /* Restore sink volume to what it was before we entered passthrough mode */
     pa_sink_set_volume(s, &s->saved_volume, TRUE, s->saved_save_volume);

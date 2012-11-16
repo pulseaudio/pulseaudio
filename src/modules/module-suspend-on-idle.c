@@ -128,15 +128,13 @@ static void resume(struct device_info *d) {
     d->userdata->core->mainloop->time_restart(d->time_event, NULL);
 
     if (d->sink) {
+        pa_log_debug("Sink %s becomes busy, resuming.", d->sink->name);
         pa_sink_suspend(d->sink, FALSE, PA_SUSPEND_IDLE);
-
-        pa_log_debug("Sink %s becomes busy.", d->sink->name);
     }
 
     if (d->source) {
+        pa_log_debug("Source %s becomes busy, resuming.", d->source->name);
         pa_source_suspend(d->source, FALSE, PA_SUSPEND_IDLE);
-
-        pa_log_debug("Source %s becomes busy.", d->source->name);
     }
 }
 

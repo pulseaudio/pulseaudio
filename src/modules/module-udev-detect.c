@@ -350,8 +350,10 @@ static void verify_access(struct userdata *u, struct device *d) {
         /* If we are already loaded update suspend status with
          * accessible boolean */
 
-        if ((card = pa_namereg_get(u->core, d->card_name, PA_NAMEREG_CARD)))
+        if ((card = pa_namereg_get(u->core, d->card_name, PA_NAMEREG_CARD))) {
+            pa_log_debug("%s all sinks and sources of card %s.", accessible ? "Resuming" : "Suspending", d->card_name);
             pa_card_suspend(card, !accessible, PA_SUSPEND_SESSION);
+        }
     }
 }
 

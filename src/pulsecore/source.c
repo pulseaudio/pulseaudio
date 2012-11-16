@@ -1006,6 +1006,7 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrou
         if (!passthrough && pa_source_used_by(s) > 0)
             return FALSE;
 
+        pa_log_debug("Suspending source %s due to changing the sample rate.", s->name);
         pa_source_suspend(s, TRUE, PA_SUSPEND_IDLE); /* needed before rate update, will be resumed automatically */
 
         if (s->update_rate(s, desired_rate) == TRUE) {
