@@ -949,11 +949,13 @@ static int esd_proto_standby_or_resume(connection *c, esd_proto_t request, const
     connection_write_prepare(c, sizeof(int32_t) * 2);
     connection_write(c, &ok, sizeof(int32_t));
 
-    if (request == ESD_PROTO_STANDBY)
-        ok = pa_sink_suspend_all(c->protocol->core, TRUE, PA_SUSPEND_USER) >= 0;
-    else {
+    if (request == ESD_PROTO_STANDBY) {
+        ok = pa_sink_suspend_all(c->protocol->core, true, PA_SUSPEND_USER) >= 0;
+        ok &= pa_source_suspend_all(c->protocol->core, true, PA_SUSPEND_USER) >= 0;
+    } else {
         pa_assert(request == ESD_PROTO_RESUME);
-        ok = pa_sink_suspend_all(c->protocol->core, FALSE, PA_SUSPEND_USER) >= 0;
+        ok = pa_sink_suspend_all(c->protocol->core, false, PA_SUSPEND_USER) >= 0;
+        ok &= pa_source_suspend_all(c->protocol->core, false, PA_SUSPEND_USER) >= 0;
     }
 
     connection_write(c, &ok, sizeof(int32_t));
