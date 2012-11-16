@@ -180,7 +180,7 @@ static void thread_func(void *userdata) {
 
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
-        if (u->sink->thread_info.rewind_requested)
+        if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
             pa_sink_process_rewind(u->sink, 0);
 
         /* Render some data and write it to the fifo */

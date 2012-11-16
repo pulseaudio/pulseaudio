@@ -256,7 +256,7 @@ static void thread_func(void *userdata) {
         pa_bool_t need_timer = FALSE;
 
         if (u->sink) {
-            if (u->sink->thread_info.rewind_requested)
+            if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
                 pa_sink_process_rewind(u->sink, 0);
 
             if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {

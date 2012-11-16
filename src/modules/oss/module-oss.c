@@ -891,7 +891,7 @@ static void thread_func(void *userdata) {
 
 /*        pa_log("loop");    */
 
-        if (u->sink && u->sink->thread_info.rewind_requested)
+        if (PA_UNLIKELY(u->sink && u->sink->thread_info.rewind_requested))
             pa_sink_process_rewind(u->sink, 0);
 
         /* Render some data and write it to the dsp */

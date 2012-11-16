@@ -665,7 +665,7 @@ static void thread_func(void *userdata) {
         int ret;
 
         PA_LLIST_FOREACH(ca_sink, u->sinks) {
-            if (ca_sink->pa_sink->thread_info.rewind_requested)
+            if (PA_UNLIKELY(ca_sink->pa_sink->thread_info.rewind_requested))
                 pa_sink_process_rewind(ca_sink->pa_sink, 0);
         }
 

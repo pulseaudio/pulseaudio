@@ -229,7 +229,7 @@ static void thread_func(void *userdata) {
     for (;;) {
         int ret;
 
-        if (u->sink->thread_info.rewind_requested)
+        if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
             pa_sink_process_rewind(u->sink, 0);
 
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)

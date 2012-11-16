@@ -628,7 +628,7 @@ static void thread_func(void *userdata) {
     for (;;) {
         /* Render some data and write it to the dsp */
 
-        if (u->sink->thread_info.rewind_requested)
+        if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
             process_rewind(u);
 
         if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state)) {

@@ -1081,7 +1081,7 @@ static void thread_func(void *userdata) {
 
         if (u->sink && PA_SINK_IS_LINKED(u->sink->thread_info.state)) {
 
-            if (u->sink->thread_info.rewind_requested)
+            if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
                 pa_sink_process_rewind(u->sink, 0);
 
             if (pollfd) {

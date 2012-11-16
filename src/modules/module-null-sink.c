@@ -213,7 +213,7 @@ static void thread_func(void *userdata) {
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
             now = pa_rtclock_now();
 
-        if (u->sink->thread_info.rewind_requested)
+        if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
             process_rewind(u, now);
 
         /* Render some data and drop it immediately */

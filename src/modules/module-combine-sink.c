@@ -305,7 +305,7 @@ static void thread_func(void *userdata) {
     for (;;) {
         int ret;
 
-        if (u->sink->thread_info.rewind_requested)
+        if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
             pa_sink_process_rewind(u->sink, 0);
 
         /* If no outputs are connected, render some data and drop it immediately. */
