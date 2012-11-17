@@ -83,11 +83,6 @@ fedora-snapshot: dist
 	cp $(distdir).tar.gz $$HOME/git.fedora/pulseaudio/$(distdir).tar.gz
 
 dist-hook:
-	if test -d .git ; then \
-		test -z $$USE_GIT || git pull ; \
-		test -f ${distdir}/ChangeLog && chmod u+w ${distdir}/ChangeLog ; \
-		( git-changelog.perl || echo "git-changelog.perl failed." ) > ${distdir}/ChangeLog 2>&1 ; \
-	fi
 	echo $(VERSION) > $(distdir)/.tarball-version
 	echo $(VERSION) > $(distdir)/.version
 
