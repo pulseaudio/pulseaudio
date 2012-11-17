@@ -63,7 +63,7 @@ PA_MODULE_USAGE(
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
-        "destination=<destination IP address> "
+        "destination_ip=<destination IP address> "
         "port=<port number> "
         "mtu=<maximum transfer unit> "
         "loop=<loopback to local host?> "
@@ -73,7 +73,7 @@ PA_MODULE_USAGE(
 #define DEFAULT_PORT 46000
 #define DEFAULT_TTL 1
 #define SAP_PORT 9875
-#define DEFAULT_DESTINATION "224.0.0.56"
+#define DEFAULT_DESTINATION_IP "224.0.0.56"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
 #define DEFAULT_MTU 1280
 #define SAP_INTERVAL (5*PA_USEC_PER_SEC)
@@ -83,7 +83,8 @@ static const char* const valid_modargs[] = {
     "format",
     "channels",
     "rate",
-    "destination",
+    "destination", /* Compatbility */
+    "destination_ip",
     "port",
     "mtu" ,
     "loop",
@@ -241,7 +242,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    dst_addr = pa_modargs_get_value(ma, "destination", DEFAULT_DESTINATION);
+    dst_addr = pa_modargs_get_value(ma, "destination", NULL);
+    if (dst_addr == NULL)
+        dst_addr = pa_modargs_get_value(ma, "destination_ip", DEFAULT_DESTINATION_IP);
 
     if (inet_pton(AF_INET, dst_addr, &dst_sa4.sin_addr) > 0) {
         dst_sa4.sin_family = af = AF_INET;
