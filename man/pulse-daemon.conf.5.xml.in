@@ -100,7 +100,7 @@ USA.
       desktop CPUs the float point resampler is a lot faster, and it
       also offers slightly better quality. See the output of
       <opt>dump-resample-methods</opt> for a complete list of all
-      available resamplers. Defaults to <opt>speex-float-3</opt>. The
+      available resamplers. Defaults to <opt>speex-float-1</opt>. The
       <opt>--resample-method</opt> command line option takes precedence.
       Note that some modules overwrite or allow overwriting of the
       resampler to use.</p>

@@ -141,7 +141,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size) {
     c->disable_remixing = FALSE;
     c->disable_lfe_remixing = FALSE;
     c->deferred_volume = TRUE;
-    c->resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
+    c->resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 1;
 
     for (j = 0; j < PA_CORE_HOOK_MAX; j++)
         pa_hook_init(&c->hooks[j], c);

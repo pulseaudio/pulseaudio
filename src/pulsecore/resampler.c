@@ -236,7 +236,7 @@ pa_resampler* pa_resampler_new(
 
     if (method == PA_RESAMPLER_AUTO) {
 #ifdef HAVE_SPEEX
-        method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
+        method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 1;
 #else
         if (flags & PA_RESAMPLER_VARIABLE_RATE)
             method = PA_RESAMPLER_TRIVIAL;
@@ -565,10 +565,10 @@ pa_resample_method_t pa_parse_resample_method(const char *string) {
             return m;
 
     if (pa_streq(string, "speex-fixed"))
-        return PA_RESAMPLER_SPEEX_FIXED_BASE + 3;
+        return PA_RESAMPLER_SPEEX_FIXED_BASE + 1;
 
     if (pa_streq(string, "speex-float"))
-        return PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
+        return PA_RESAMPLER_SPEEX_FLOAT_BASE + 1;
 
     return PA_RESAMPLER_INVALID;
 }
