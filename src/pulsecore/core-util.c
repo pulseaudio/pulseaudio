@@ -1735,7 +1735,6 @@ char *pa_get_runtime_dir(void) {
         k = pa_sprintf_malloc("%s" PA_PATH_SEP "pulse", d);
 
         if (pa_make_secure_dir(k, m, (uid_t) -1, (gid_t) -1, TRUE) < 0) {
-            free(k);
             pa_log_error("Failed to create secure directory (%s): %s", k, pa_cstrerror(errno));
             goto fail;
         }
