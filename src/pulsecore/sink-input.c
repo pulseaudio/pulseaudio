@@ -374,6 +374,14 @@ int pa_sink_input_new(
             pa_log_info("Rate changed to %u Hz", data->sink->sample_spec.rate);
     }
 
+    if (pa_sink_input_new_data_is_passthrough(data) &&
+        !pa_sample_spec_equal(&data->sample_spec, &data->sink->sample_spec)) {
+        /* rate update failed, or other parts of sample spec didn't match */
+
+        pa_log_debug("Could not update sink sample spec to match passthrough stream");
+        return -PA_ERR_NOTSUPPORTED;
+    }
+
     /* Due to the fixing of the sample spec the volume might not match anymore */
     pa_cvolume_remap(&data->volume, &original_cm, &data->channel_map);
 
