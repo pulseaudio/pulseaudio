@@ -99,6 +99,7 @@ typedef enum pa_bluetooth_device_hook {
 } pa_bluetooth_device_hook_t;
 
 struct pa_bluetooth_device {
+    pa_bluetooth_discovery *discovery;
     pa_bool_t dead;
 
     int device_info_valid;      /* 0: no results yet; 1: good results; -1: bad results ... */

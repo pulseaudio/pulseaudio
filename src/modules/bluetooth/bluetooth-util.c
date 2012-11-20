@@ -109,12 +109,16 @@ static void uuid_free(pa_bluetooth_uuid *u) {
     pa_xfree(u);
 }
 
-static pa_bluetooth_device* device_new(const char *path) {
+static pa_bluetooth_device* device_new(pa_bluetooth_discovery *discovery, const char *path) {
     pa_bluetooth_device *d;
     unsigned i;
 
+    pa_assert(discovery);
+    pa_assert(path);
+
     d = pa_xnew(pa_bluetooth_device, 1);
 
+    d->discovery = discovery;
     d->dead = FALSE;
 
     d->device_info_valid = 0;
@@ -300,11 +304,10 @@ static int parse_adapter_property(pa_bluetooth_discovery *y, DBusMessageIter *i)
     return 0;
 }
 
-static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device *d, DBusMessageIter *i) {
+static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i) {
     const char *key;
     DBusMessageIter variant_i;
 
-    pa_assert(y);
     pa_assert(d);
 
     key = check_variant_property(i);
@@ -397,19 +400,19 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
                     /* Vudentz said the interfaces are here when the UUIDs are announced */
                     if (strcasecmp(HSP_AG_UUID, value) == 0 || strcasecmp(HFP_AG_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.HandsfreeGateway", "GetProperties"));
-                        send_and_add_to_pending(y, m, get_properties_reply, d);
+                        send_and_add_to_pending(d->discovery, m, get_properties_reply, d);
                         has_audio = TRUE;
                     } else if (strcasecmp(HSP_HS_UUID, value) == 0 || strcasecmp(HFP_HS_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.Headset", "GetProperties"));
-                        send_and_add_to_pending(y, m, get_properties_reply, d);
+                        send_and_add_to_pending(d->discovery, m, get_properties_reply, d);
                         has_audio = TRUE;
                     } else if (strcasecmp(A2DP_SINK_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.AudioSink", "GetProperties"));
-                        send_and_add_to_pending(y, m, get_properties_reply, d);
+                        send_and_add_to_pending(d->discovery, m, get_properties_reply, d);
                         has_audio = TRUE;
                     } else if (strcasecmp(A2DP_SOURCE_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.AudioSource", "GetProperties"));
-                        send_and_add_to_pending(y, m, get_properties_reply, d);
+                        send_and_add_to_pending(d->discovery, m, get_properties_reply, d);
                         has_audio = TRUE;
                     }
 
@@ -419,7 +422,7 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
                 /* this might eventually be racy if .Audio is not there yet, but the State change will come anyway later, so this call is for cold-detection mostly */
                 if (has_audio) {
                     pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.Audio", "GetProperties"));
-                    send_and_add_to_pending(y, m, get_properties_reply, d);
+                    send_and_add_to_pending(d->discovery, m, get_properties_reply, d);
                 }
             }
 
@@ -464,15 +467,14 @@ static int parse_audio_property(pa_bluetooth_discovery *u, int *state, DBusMessa
     return 0;
 }
 
-static void run_callback(pa_bluetooth_discovery *y, pa_bluetooth_device *d, pa_bool_t dead) {
-    pa_assert(y);
+static void run_callback(pa_bluetooth_device *d, pa_bool_t dead) {
     pa_assert(d);
 
     if (!device_is_audio(d))
         return;
 
     d->dead = dead;
-    pa_hook_fire(&y->hook, d);
+    pa_hook_fire(&d->discovery->hook, d);
 }
 
 static void remove_all_devices(pa_bluetooth_discovery *y) {
@@ -482,7 +484,7 @@ static void remove_all_devices(pa_bluetooth_discovery *y) {
 
     while ((d = pa_hashmap_steal_first(y->devices))) {
         pa_hook_fire(&d->hooks[PA_BLUETOOTH_DEVICE_HOOK_REMOVED], NULL);
-        run_callback(y, d, TRUE);
+        run_callback(d, TRUE);
         device_free(d);
     }
 }
@@ -498,7 +500,7 @@ static pa_bluetooth_device *found_device(pa_bluetooth_discovery *y, const char* 
     if (d)
         return d;
 
-    d = device_new(path);
+    d = device_new(y, path);
 
     pa_hashmap_put(y->devices, d->path, d);
 
@@ -580,7 +582,7 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
                     goto finish;
 
             } else if (dbus_message_has_interface(p->message, "org.bluez.Device")) {
-                if (parse_device_property(y, d, &dict_i) < 0)
+                if (parse_device_property(d, &dict_i) < 0)
                     goto finish;
 
             } else if (dbus_message_has_interface(p->message, "org.bluez.Audio")) {
@@ -611,7 +613,7 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
 
 finish:
     if (d != NULL)
-        run_callback(y, d, FALSE);
+        run_callback(d, FALSE);
 
 finish2:
     dbus_message_unref(r);
@@ -803,7 +805,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
         if ((d = pa_hashmap_remove(y->devices, path))) {
             pa_hook_fire(&d->hooks[PA_BLUETOOTH_DEVICE_HOOK_REMOVED], NULL);
-            run_callback(y, d, TRUE);
+            run_callback(d, TRUE);
             device_free(d);
         }
 
@@ -853,7 +855,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             }
 
             if (dbus_message_has_interface(m, "org.bluez.Device")) {
-                if (parse_device_property(y, d, &arg_i) < 0)
+                if (parse_device_property(d, &arg_i) < 0)
                     goto fail;
 
             } else if (dbus_message_has_interface(m, "org.bluez.Audio")) {
@@ -877,7 +879,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                     goto fail;
             }
 
-            run_callback(y, d, FALSE);
+            run_callback(d, FALSE);
         }
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
