@@ -230,11 +230,12 @@ enum entry_method_handler_index {
     ENTRY_METHOD_HANDLER_MAX
 };
 
-static pa_dbus_arg_info add_entry_args[] = { { "name",   "s",     "in" },
-                                             { "device", "s",     "in" },
-                                             { "volume", "a(uu)", "in" },
-                                             { "mute",   "b",     "in" },
-                                             { "entry",  "o",     "out" } };
+static pa_dbus_arg_info add_entry_args[] = { { "name",              "s",     "in" },
+                                             { "device",            "s",     "in" },
+                                             { "volume",            "a(uu)", "in" },
+                                             { "mute",              "b",     "in" },
+                                             { "apply_immediately", "b",     "in" },
+                                             { "entry",             "o",     "out" } };
 static pa_dbus_arg_info get_entry_by_name_args[] = { { "name", "s", "in" }, { "entry", "o", "out" } };
 
 static pa_dbus_method_handler method_handlers[METHOD_HANDLER_MAX] = {
