@@ -110,7 +110,6 @@ struct pa_bluetooth_device {
     pa_hashmap *transports;
     int paired;
     char *alias;
-    int device_connected;
     PA_LLIST_HEAD(pa_bluetooth_uuid, uuids);
     char *address;
     int class;

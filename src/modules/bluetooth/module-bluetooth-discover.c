@@ -74,7 +74,7 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
 
     mi = pa_hashmap_get(u->hashmap, d->path);
 
-    if (!d->dead && d->device_connected > 0 &&
+    if (!d->dead &&
         (d->audio_state >= PA_BT_AUDIO_STATE_CONNECTED ||
          d->audio_source_state >= PA_BT_AUDIO_STATE_CONNECTED ||
          d->hfgw_state >= PA_BT_AUDIO_STATE_CONNECTED)) {

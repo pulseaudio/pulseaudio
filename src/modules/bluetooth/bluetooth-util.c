@@ -128,7 +128,6 @@ static pa_bluetooth_device* device_new(pa_bluetooth_discovery *discovery, const 
     d->transports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     d->paired = -1;
     d->alias = NULL;
-    d->device_connected = -1;
     PA_LLIST_HEAD_INIT(pa_bluetooth_uuid, d->uuids);
     d->address = NULL;
     d->class = -1;
@@ -348,8 +347,6 @@ static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i) {
 
             if (pa_streq(key, "Paired"))
                 d->paired = !!value;
-            else if (pa_streq(key, "Connected"))
-                d->device_connected = !!value;
             else if (pa_streq(key, "Trusted"))
                 d->trusted = !!value;
 
