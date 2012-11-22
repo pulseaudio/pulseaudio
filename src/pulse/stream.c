@@ -44,6 +44,8 @@
 #include "internal.h"
 #include "stream.h"
 
+/* #define STREAM_DEBUG */
+
 #define AUTO_TIMING_INTERVAL_START_USEC (10*PA_USEC_PER_MSEC)
 #define AUTO_TIMING_INTERVAL_END_USEC (1500*PA_USEC_PER_MSEC)
 
@@ -385,7 +387,9 @@ static void request_auto_timing_update(pa_stream *s, pa_bool_t force) {
         (force || !s->auto_timing_update_requested)) {
         pa_operation *o;
 
-/*         pa_log("Automatically requesting new timing data"); */
+#ifdef STREAM_DEBUG
+        pa_log_debug("Automatically requesting new timing data");
+#endif
 
         if ((o = pa_stream_update_timing_info(s, NULL, NULL))) {
             pa_operation_unref(o);
@@ -836,7 +840,9 @@ void pa_command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tag
 
     s->requested_bytes += bytes;
 
-    /* pa_log("got request for %lli, now at %lli", (long long) bytes, (long long) s->requested_bytes); */
+#ifdef STREAM_DEBUG
+    pa_log_debug("got request for %lli, now at %lli", (long long) bytes, (long long) s->requested_bytes);
+#endif
 
     if (s->requested_bytes > 0 && s->write_callback)
         s->write_callback(s, (size_t) s->requested_bytes, s->write_userdata);
@@ -912,7 +918,9 @@ static void invalidate_indexes(pa_stream *s, pa_bool_t r, pa_bool_t w) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
-/*     pa_log("invalidate r:%u w:%u tag:%u", r, w, s->context->ctag); */
+#ifdef STREAM_DEBUG
+    pa_log_debug("invalidate r:%u w:%u tag:%u", r, w, s->context->ctag);
+#endif
 
     if (s->state != PA_STREAM_READY)
         return;
@@ -923,7 +931,9 @@ static void invalidate_indexes(pa_stream *s, pa_bool_t r, pa_bool_t w) {
         if (s->timing_info_valid)
             s->timing_info.write_index_corrupt = TRUE;
 
-/*         pa_log("write_index invalidated"); */
+#ifdef STREAM_DEBUG
+        pa_log_debug("write_index invalidated");
+#endif
     }
 
     if (r) {
@@ -932,7 +942,9 @@ static void invalidate_indexes(pa_stream *s, pa_bool_t r, pa_bool_t w) {
         if (s->timing_info_valid)
             s->timing_info.read_index_corrupt = TRUE;
 
-/*         pa_log("read_index invalidated"); */
+#ifdef STREAM_DEBUG
+        pa_log_debug("read_index invalidated");
+#endif
     }
 
     request_auto_timing_update(s, TRUE);
@@ -1542,7 +1554,9 @@ int pa_stream_write(
      * that's OK, the server side applies the same error */
     s->requested_bytes -= (seek == PA_SEEK_RELATIVE ? offset : 0) + (int64_t) length;
 
-    /* pa_log("wrote %lli, now at %lli", (long long) length, (long long) s->requested_bytes); */
+#ifdef STREAM_DEBUG
+    pa_log_debug("wrote %lli, now at %lli", (long long) length, (long long) s->requested_bytes);
+#endif
 
     if (s->direction == PA_STREAM_PLAYBACK) {
 
