@@ -1000,6 +1000,31 @@ pa_bluetooth_transport* pa_bluetooth_device_get_transport(pa_bluetooth_device *d
     return NULL;
 }
 
+bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d) {
+    pa_assert(d);
+
+    if (d->dead || !device_is_audio_ready(d))
+        return false;
+
+    /* Deliberately ignore audio_sink_state and headset_state since they are
+     * reflected in audio_state. This is actually very important in order to
+     * make module-card-restore work well with headsets: if the headset
+     * supports both HSP and A2DP, one of those profiles is connected first and
+     * then the other, and lastly the Audio interface becomes connected.
+     * Checking only audio_state means that this function will return false at
+     * the time when only the first connection has been made. This is good,
+     * because otherwise, if the first connection is for HSP and we would
+     * already load a new device module instance, and module-card-restore tries
+     * to restore the A2DP profile, that would fail because A2DP is not yet
+     * connected. Waiting until the Audio interface gets connected means that
+     * both headset profiles will be connected when the device module is
+     * loaded. */
+    return
+        d->audio_state >= PA_BT_AUDIO_STATE_CONNECTED ||
+        d->audio_source_state >= PA_BT_AUDIO_STATE_CONNECTED ||
+        d->hfgw_state >= PA_BT_AUDIO_STATE_CONNECTED;
+}
+
 int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, const char *accesstype, size_t *imtu, size_t *omtu) {
     DBusMessage *m, *r;
     DBusError err;
