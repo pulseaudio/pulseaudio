@@ -1824,8 +1824,9 @@ static void thread_func(void *userdata) {
                 (double) ((int64_t) real_sleep - (int64_t) rtpoll_sleep) / PA_USEC_PER_MSEC);
 #endif
             if (u->use_tsched && real_sleep > rtpoll_sleep + u->tsched_watermark)
-                pa_log_info("Scheduling delay of %0.2fms, you might want to investigate this to improve latency...",
-                    (double) (real_sleep - rtpoll_sleep) / PA_USEC_PER_MSEC);
+                pa_log_info("Scheduling delay of %0.2fms > %0.2fms, you might want to investigate this to improve latency...",
+                    (double) (real_sleep - rtpoll_sleep) / PA_USEC_PER_MSEC,
+                    (double) (u->tsched_watermark) / PA_USEC_PER_MSEC);
         }
 
         if (u->sink->flags & PA_SINK_DEFERRED_VOLUME)
