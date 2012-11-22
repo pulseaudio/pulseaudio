@@ -146,6 +146,7 @@ struct userdata {
     char *accesstype;
     pa_hook_slot *transport_removed_slot;
     pa_hook_slot *device_removed_slot;
+    pa_hook_slot *discovery_slot;
 
     pa_bluetooth_discovery *discovery;
     pa_bool_t auto_connect;
@@ -2522,6 +2523,23 @@ static pa_hook_result_t device_removed_cb(pa_bluetooth_device *d, void *call_dat
     return PA_HOOK_OK;
 }
 
+/* Run from main thread */
+static pa_hook_result_t discovery_hook_cb(pa_bluetooth_discovery *y, const pa_bluetooth_device *d, struct userdata *u) {
+    pa_assert(u);
+    pa_assert(d);
+
+    if (d != u->device)
+        return PA_HOOK_OK;
+
+    if (pa_bluetooth_device_any_audio_connected(d))
+        return PA_HOOK_OK;
+
+    pa_log_debug("Unloading module, because device %s doesn't have any audio profiles connected anymore.", d->path);
+    pa_module_unload(u->core, u->module, true);
+
+    return PA_HOOK_OK;
+}
+
 int pa__init(pa_module* m) {
     pa_modargs *ma;
     uint32_t channels;
@@ -2594,6 +2612,9 @@ int pa__init(pa_module* m) {
 
     u->device_removed_slot = pa_hook_connect(&device->hooks[PA_BLUETOOTH_DEVICE_HOOK_REMOVED], PA_HOOK_NORMAL,
                                              (pa_hook_cb_t) device_removed_cb, u);
+
+    u->discovery_slot = pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery), PA_HOOK_NORMAL,
+                                        (pa_hook_cb_t) discovery_hook_cb, u);
 
     u->device = device;
 
@@ -2684,10 +2705,11 @@ void pa__done(pa_module *m) {
 
     stop_thread(u);
 
-    if (u->device_removed_slot) {
+    if (u->discovery_slot)
+        pa_hook_slot_free(u->discovery_slot);
+
+    if (u->device_removed_slot)
         pa_hook_slot_free(u->device_removed_slot);
-        u->device_removed_slot = NULL;
-    }
 
     if (USE_SCO_OVER_PCM(u))
         restore_sco_volume_callbacks(u);
