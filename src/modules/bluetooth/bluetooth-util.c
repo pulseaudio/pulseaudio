@@ -187,7 +187,7 @@ static void device_free(pa_bluetooth_device *d) {
     pa_xfree(d);
 }
 
-static pa_bool_t device_is_audio(pa_bluetooth_device *d) {
+static pa_bool_t device_is_audio_ready(const pa_bluetooth_device *d) {
     pa_assert(d);
 
     return
@@ -467,7 +467,7 @@ static int parse_audio_property(pa_bluetooth_discovery *u, int *state, DBusMessa
 static void run_callback(pa_bluetooth_device *d, pa_bool_t dead) {
     pa_assert(d);
 
-    if (!device_is_audio(d))
+    if (!device_is_audio_ready(d))
         return;
 
     d->dead = dead;
@@ -949,7 +949,7 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_by_address(pa_bluetooth_discover
 
     while ((d = pa_hashmap_iterate(y->devices, &state, NULL)))
         if (pa_streq(d->address, address))
-            return device_is_audio(d) ? d : NULL;
+            return device_is_audio_ready(d) ? d : NULL;
 
     return NULL;
 }
@@ -965,7 +965,7 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *
         pa_bluetooth_discovery_sync(y);
 
     if ((d = pa_hashmap_get(y->devices, path)))
-        if (device_is_audio(d))
+        if (device_is_audio_ready(d))
             return d;
 
     return NULL;
