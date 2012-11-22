@@ -516,6 +516,7 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
     pa_bluetooth_device *d;
     pa_bluetooth_discovery *y;
     int valid;
+    bool old_any_connected;
 
     pa_assert_se(p = userdata);
     pa_assert_se(y = p->context_data);
@@ -535,6 +536,9 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
         d = pa_hashmap_get(y->devices, dbus_message_get_path(p->message));
 
     pa_assert(p->call_data == d);
+
+    if (d != NULL)
+        old_any_connected = pa_bluetooth_device_any_audio_connected(d);
 
     valid = dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR ? -1 : 1;
 
@@ -609,7 +613,7 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
     }
 
 finish:
-    if (d != NULL)
+    if (d != NULL && old_any_connected != pa_bluetooth_device_any_audio_connected(d))
         run_callback(d, FALSE);
 
 finish2:
@@ -845,6 +849,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
         if ((d = pa_hashmap_get(y->devices, dbus_message_get_path(m)))) {
             DBusMessageIter arg_i;
+            bool old_any_connected = pa_bluetooth_device_any_audio_connected(d);
 
             if (!dbus_message_iter_init(m, &arg_i)) {
                 pa_log("Failed to parse PropertyChanged: %s", err.message);
@@ -876,7 +881,8 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                     goto fail;
             }
 
-            run_callback(d, FALSE);
+            if (old_any_connected != pa_bluetooth_device_any_audio_connected(d))
+                run_callback(d, FALSE);
         }
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
