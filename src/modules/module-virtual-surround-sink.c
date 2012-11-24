@@ -738,8 +738,10 @@ int pa__init(pa_module*m) {
     /* add silence to the hrir until we get enough samples out of the resampler */
     while (hrir_copied_length < hrir_total_length) {
         pa_resampler_run(resampler, &hrir_temp_chunk, &hrir_temp_chunk_resampled);
-        /* Silence input block */
-        pa_silence_memblock(hrir_temp_chunk.memblock, &hrir_temp_ss);
+        if (hrir_temp_chunk.memblock != hrir_temp_chunk_resampled.memblock) {
+            /* Silence input block */
+            pa_silence_memblock(hrir_temp_chunk.memblock, &hrir_temp_ss);
+        }
 
         if (hrir_temp_chunk_resampled.memblock) {
             /* Copy hrir data */
