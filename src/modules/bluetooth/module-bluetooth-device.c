@@ -1281,6 +1281,15 @@ static pa_port_available_t audio_state_to_availability(pa_bt_audio_state_t state
         return PA_PORT_AVAILABLE_UNKNOWN;
 }
 
+static pa_port_available_t audio_state_to_availability_merged(pa_bt_audio_state_t state1, pa_bt_audio_state_t state2) {
+    if (state1 < PA_BT_AUDIO_STATE_CONNECTED && state2 < PA_BT_AUDIO_STATE_CONNECTED)
+        return PA_PORT_AVAILABLE_NO;
+    else if (state1 >= PA_BT_AUDIO_STATE_PLAYING || state2 >= PA_BT_AUDIO_STATE_PLAYING)
+        return PA_PORT_AVAILABLE_YES;
+    else
+        return PA_PORT_AVAILABLE_UNKNOWN;
+}
+
 /* Run from main thread */
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *userdata) {
     DBusError err;
@@ -1356,9 +1365,14 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
         if (state != PA_BT_AUDIO_STATE_INVALID && pa_hashmap_get(u->card->profiles, "hsp")) {
             pa_device_port *port;
-            pa_port_available_t available = audio_state_to_availability(state);
+            pa_port_available_t available;
 
-            pa_assert_se(port = pa_hashmap_get(u->card->ports, "hsp-output"));
+            if (pa_hashmap_get(u->card->profiles, "a2dp") == NULL)
+                available = audio_state_to_availability(state);
+            else
+                available = audio_state_to_availability_merged(state, u->device->audio_sink_state);
+
+            pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
             pa_device_port_set_available(port, available);
 
             pa_assert_se(port = pa_hashmap_get(u->card->ports, "hsp-input"));
@@ -1385,9 +1399,14 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
         if (state != PA_BT_AUDIO_STATE_INVALID && pa_hashmap_get(u->card->profiles, "a2dp")) {
             pa_device_port *port;
-            pa_port_available_t available = audio_state_to_availability(state);
+            pa_port_available_t available;
 
-            pa_assert_se(port = pa_hashmap_get(u->card->ports, "a2dp-output"));
+            if (pa_hashmap_get(u->card->profiles, "hsp") == NULL)
+                available = audio_state_to_availability(state);
+            else
+                available = audio_state_to_availability_merged(state, u->device->headset_state);
+
+            pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
             pa_device_port_set_available(port, available);
 
             acquire = (available == PA_PORT_AVAILABLE_YES && u->profile == PROFILE_A2DP);
@@ -1614,7 +1633,7 @@ static void connect_ports(struct userdata *u, void *sink_or_source_new_data, pa_
 
     switch (u->profile) {
         case PROFILE_A2DP:
-            pa_assert_se(port = pa_hashmap_get(u->card->ports, "a2dp-output"));
+            pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
             pa_assert_se(pa_hashmap_put(data.sink_new_data->ports, port->name, port) >= 0);
             pa_device_port_ref(port);
             break;
@@ -1627,7 +1646,7 @@ static void connect_ports(struct userdata *u, void *sink_or_source_new_data, pa_
 
         case PROFILE_HSP:
             if (direction == PA_DIRECTION_OUTPUT) {
-                pa_assert_se(port = pa_hashmap_get(u->card->ports, "hsp-output"));
+                pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
                 pa_assert_se(pa_hashmap_put(data.sink_new_data->ports, port->name, port) >= 0);
             } else {
                 pa_assert_se(port = pa_hashmap_get(u->card->ports, "hsp-input"));
@@ -2247,13 +2266,20 @@ static void create_ports_for_profile(struct userdata *u, pa_hashmap *ports, pa_c
 
     switch (*d) {
         case PROFILE_A2DP:
-            pa_assert_se(port = pa_device_port_new(u->core, "a2dp-output", _("Bluetooth High Quality (A2DP)"), 0));
-            pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
-            port->is_output = 1;
-            port->is_input = 0;
-            port->priority = profile->priority * 100;
-            port->available = audio_state_to_availability(device->audio_sink_state);
-            pa_hashmap_put(port->profiles, profile->name, profile);
+            if ((port = pa_hashmap_get(ports, "bluetooth-output")) != NULL) {
+                port->priority = PA_MAX(port->priority, profile->priority * 100);
+                port->available = audio_state_to_availability_merged(device->headset_state, device->audio_sink_state);
+                pa_hashmap_put(port->profiles, profile->name, profile);
+            } else {
+                pa_assert_se(port = pa_device_port_new(u->core, "bluetooth-output", _("Bluetooth Output"), 0));
+                pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
+                port->is_output = 1;
+                port->is_input = 0;
+                port->priority = profile->priority * 100;
+                port->available = audio_state_to_availability(device->audio_sink_state);
+                pa_hashmap_put(port->profiles, profile->name, profile);
+            }
+
             break;
 
         case PROFILE_A2DP_SOURCE:
@@ -2267,13 +2293,19 @@ static void create_ports_for_profile(struct userdata *u, pa_hashmap *ports, pa_c
             break;
 
         case PROFILE_HSP:
-            pa_assert_se(port = pa_device_port_new(u->core, "hsp-output", _("Bluetooth Telephony (HSP/HFP)"), 0));
-            pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
-            port->is_output = 1;
-            port->is_input = 0;
-            port->priority = profile->priority * 100;
-            port->available = audio_state_to_availability(device->headset_state);
-            pa_hashmap_put(port->profiles, profile->name, profile);
+            if ((port = pa_hashmap_get(ports, "bluetooth-output")) != NULL) {
+                port->priority = PA_MAX(port->priority, profile->priority * 100);
+                port->available = audio_state_to_availability_merged(device->headset_state, device->audio_sink_state);
+                pa_hashmap_put(port->profiles, profile->name, profile);
+            } else {
+                pa_assert_se(port = pa_device_port_new(u->core, "bluetooth-output", _("Bluetooth Output"), 0));
+                pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
+                port->is_output = 1;
+                port->is_input = 0;
+                port->priority = profile->priority * 100;
+                port->available = audio_state_to_availability(device->headset_state);
+                pa_hashmap_put(port->profiles, profile->name, profile);
+            }
 
             pa_assert_se(port = pa_device_port_new(u->core, "hsp-input", _("Bluetooth Telephony (HSP/HFP)"), 0));
             pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
