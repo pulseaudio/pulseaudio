@@ -84,6 +84,10 @@ load-module module-jackdbus-detect
 
 ifelse(@HAVE_BLUEZ@, 1, [dnl
 ### Automatically load driver modules for Bluetooth hardware
+.ifexists module-bluetooth-policy@PA_SOEXT@
+load-module module-bluetooth-policy
+.endif
+
 .ifexists module-bluetooth-discover@PA_SOEXT@
 load-module module-bluetooth-discover
 .endif
