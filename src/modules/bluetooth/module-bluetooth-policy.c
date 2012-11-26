@@ -187,6 +187,10 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
     if (!s || !pa_streq(s, "bluetooth"))
         return PA_HOOK_OK;
 
+    /* Do not automatically switch profiles for headsets, just in case */
+    if (pa_hashmap_get(port->profiles, "hsp") || pa_hashmap_get(port->profiles, "a2dp"))
+        return PA_HOOK_OK;
+
     is_active_profile = card->active_profile == pa_hashmap_get(port->profiles, card->active_profile->name);
 
     if (is_active_profile && port->available == PA_PORT_AVAILABLE_YES)
