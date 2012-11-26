@@ -907,16 +907,16 @@ static void fix_playback_buffer_attr(playback_stream *s) {
 
 #ifdef PROTOCOL_NATIVE_DEBUG
     pa_log("Client requested: maxlength=%li bytes tlength=%li bytes minreq=%li bytes prebuf=%li bytes",
-           (long) s->buffer_attr.maxlength,
-           (long) s->buffer_attr.tlength,
-           (long) s->buffer_attr.minreq,
-           (long) s->buffer_attr.prebuf);
+           (long) s->buffer_attr_req.maxlength,
+           (long) s->buffer_attr_req.tlength,
+           (long) s->buffer_attr_req.minreq,
+           (long) s->buffer_attr_req.prebuf);
 
     pa_log("Client requested: maxlength=%lu ms tlength=%lu ms minreq=%lu ms prebuf=%lu ms",
-           (unsigned long) (pa_bytes_to_usec(s->buffer_attr.maxlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC),
-           (unsigned long) (pa_bytes_to_usec(s->buffer_attr.tlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC),
-           (unsigned long) (pa_bytes_to_usec(s->buffer_attr.minreq, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC),
-           (unsigned long) (pa_bytes_to_usec(s->buffer_attr.prebuf, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC));
+           (unsigned long) (pa_bytes_to_usec(s->buffer_attr_req.maxlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC),
+           (unsigned long) (pa_bytes_to_usec(s->buffer_attr_req.tlength, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC),
+           (unsigned long) (pa_bytes_to_usec(s->buffer_attr_req.minreq, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC),
+           (unsigned long) (pa_bytes_to_usec(s->buffer_attr_req.prebuf, &s->sink_input->sample_spec) / PA_USEC_PER_MSEC));
 #endif
 
     /* This function will be called from the main thread, before as
