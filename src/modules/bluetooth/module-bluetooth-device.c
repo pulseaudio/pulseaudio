@@ -470,7 +470,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                         break;
 
                     /* Resume the device if the source was suspended as well */
-                    if (!u->source || u->source->state == PA_SOURCE_SUSPENDED) {
+                    if (!u->source || !PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
                         if (bt_transport_acquire(u, TRUE) < 0)
                             failed = TRUE;
                     }
@@ -545,7 +545,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                         break;
 
                     /* Resume the device if the sink was suspended as well */
-                    if (!u->sink || u->sink->thread_info.state == PA_SINK_SUSPENDED) {
+                    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
                         if (bt_transport_acquire(u, TRUE) < 0)
                             failed = TRUE;
                     }
