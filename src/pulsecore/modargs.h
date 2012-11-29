@@ -26,6 +26,7 @@
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 #include <pulse/proplist.h>
+#include <pulse/volume.h>
 #include <pulsecore/macro.h>
 
 typedef struct pa_modargs pa_modargs;
@@ -47,6 +48,9 @@ int pa_modargs_get_value_boolean(pa_modargs *ma, const char *key, pa_bool_t *val
 
 /* Return a module argument as double value in *value */
 int pa_modargs_get_value_double(pa_modargs *ma, const char *key, double *value);
+
+/* Return a module argument as pa_volume_t value in *value */
+int pa_modargs_get_value_volume(pa_modargs *ma, const char *key, pa_volume_t *value);
 
 /* Return sample spec data from the three arguments "rate", "format" and "channels" */
 int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *ss);
