@@ -100,10 +100,19 @@ struct pa_sink_input {
     pa_cvolume volume;             /* The volume clients are informed about */
     pa_cvolume reference_ratio;    /* The ratio of the stream's volume to the sink's reference volume */
     pa_cvolume real_ratio;         /* The ratio of the stream's volume to the sink's real volume */
-    pa_cvolume volume_factor;      /* An internally used volume factor that can be used by modules to apply effects and suchlike without having that visible to the outside */
-    pa_cvolume soft_volume;        /* The internal software volume we apply to all PCM data while it passes through. Usually calculated as real_ratio * volume_factor */
+    /* volume_factor is an internally used "additional volume" that can be used
+     * by modules without having the volume visible to clients. volume_factor
+     * calculated by merging all the individual items in volume_factor_items.
+     * Modules must not modify these variables directly, instead
+     * pa_sink_input_add/remove_volume_factor() have to be used to add and
+     * remove items, or pa_sink_input_new_data_add_volume_factor() during input
+     * creation time. */
+    pa_cvolume volume_factor;
+    pa_hashmap *volume_factor_items;
+    pa_cvolume soft_volume;          /* The internal software volume we apply to all PCM data while it passes through. Usually calculated as real_ratio * volume_factor */
 
-    pa_cvolume volume_factor_sink; /* A second volume factor in format of the sink this stream is connected to */
+    pa_cvolume volume_factor_sink; /* A second volume factor in format of the sink this stream is connected to. */
+    pa_hashmap *volume_factor_sink_items;
 
     pa_bool_t volume_writable:1;
 
@@ -284,13 +293,14 @@ typedef struct pa_sink_input_new_data {
     pa_idxset *req_formats;
     pa_idxset *nego_formats;
 
-    pa_cvolume volume, volume_factor, volume_factor_sink;
+    pa_cvolume volume;
     pa_bool_t muted:1;
+    pa_hashmap *volume_factor_items, *volume_factor_sink_items;
 
     pa_bool_t sample_spec_is_set:1;
     pa_bool_t channel_map_is_set:1;
 
-    pa_bool_t volume_is_set:1, volume_factor_is_set:1, volume_factor_sink_is_set:1;
+    pa_bool_t volume_is_set:1;
     pa_bool_t muted_is_set:1;
 
     pa_bool_t volume_is_absolute:1;
@@ -305,8 +315,8 @@ void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const 
 void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const pa_channel_map *map);
 pa_bool_t pa_sink_input_new_data_is_passthrough(pa_sink_input_new_data *data);
 void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume);
-void pa_sink_input_new_data_apply_volume_factor(pa_sink_input_new_data *data, const pa_cvolume *volume_factor);
-void pa_sink_input_new_data_apply_volume_factor_sink(pa_sink_input_new_data *data, const pa_cvolume *volume_factor);
+void pa_sink_input_new_data_add_volume_factor(pa_sink_input_new_data *data, const char *key, const pa_cvolume *volume_factor);
+void pa_sink_input_new_data_add_volume_factor_sink(pa_sink_input_new_data *data, const char *key, const pa_cvolume *volume_factor);
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute);
 pa_bool_t pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, pa_bool_t save);
 pa_bool_t pa_sink_input_new_data_set_formats(pa_sink_input_new_data *data, pa_idxset *formats);
@@ -354,6 +364,8 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i, pa_usec_t *sink_latency);
 pa_bool_t pa_sink_input_is_passthrough(pa_sink_input *i);
 pa_bool_t pa_sink_input_is_volume_readable(pa_sink_input *i);
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute);
+void pa_sink_input_add_volume_factor(pa_sink_input *i, const char *key, const pa_cvolume *volume_factor);
+void pa_sink_input_remove_volume_factor(pa_sink_input *i, const char *key);
 pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i, pa_cvolume *volume, pa_bool_t absolute);
 
 void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute, pa_bool_t save);

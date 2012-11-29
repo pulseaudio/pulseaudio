@@ -52,6 +52,7 @@ static const char* const valid_modargs[] = {
 
 struct userdata {
     pa_hook_slot *sink_input_fixate_hook_slot;
+    const char *name;
 };
 
 static int parse_pos(const char *pos, double *f) {
@@ -132,7 +133,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_i
     }
 
     pa_log_debug("Final volume factor %s.", pa_cvolume_snprint(t, sizeof(t), &v));
-    pa_sink_input_new_data_apply_volume_factor_sink(data, &v);
+    pa_sink_input_new_data_add_volume_factor_sink(data, u->name, &v);
 
     return PA_HOOK_OK;
 }
@@ -152,6 +153,7 @@ int pa__init(pa_module*m) {
     u->sink_input_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_fixate_hook_callback, u);
 
     pa_modargs_free(ma);
+    u->name = m->name;
 
     return 0;
 

@@ -48,6 +48,45 @@
 
 PA_DEFINE_PUBLIC_CLASS(pa_sink_input, pa_msgobject);
 
+struct volume_factor_entry {
+    char *key;
+    pa_cvolume volume;
+};
+
+static struct volume_factor_entry *volume_factor_entry_new(const char *key, const pa_cvolume *volume) {
+    struct volume_factor_entry *entry;
+
+    pa_assert(key);
+    pa_assert(volume);
+
+    entry = pa_xnew(struct volume_factor_entry, 1);
+    entry->key = pa_xstrdup(key);
+
+    entry->volume = *volume;
+
+    return entry;
+}
+
+static void volume_factor_entry_free(struct volume_factor_entry *volume_entry) {
+    pa_assert(volume_entry);
+
+    pa_xfree(volume_entry->key);
+    pa_xfree(volume_entry);
+}
+
+static void volume_factor_entry_free2(struct volume_factor_entry *volume_entry, void *userdarta) {
+    volume_factor_entry_free(volume_entry);
+}
+
+static void volume_factor_from_hashmap(pa_cvolume *v, pa_hashmap *items, uint8_t channels) {
+    struct volume_factor_entry *entry;
+    void *state = NULL;
+
+    pa_cvolume_reset(v, channels);
+    PA_HASHMAP_FOREACH(entry, items, state)
+        pa_sw_cvolume_multiply(v, v, &entry->volume);
+}
+
 static void sink_input_free(pa_object *o);
 static void set_real_ratio(pa_sink_input *i, const pa_cvolume *v);
 
@@ -73,6 +112,9 @@ pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data
     data->resample_method = PA_RESAMPLER_INVALID;
     data->proplist = pa_proplist_new();
     data->volume_writable = TRUE;
+
+    data->volume_factor_items = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    data->volume_factor_sink_items = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     return data;
 }
@@ -111,28 +153,26 @@ void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cv
         data->volume = *volume;
 }
 
-void pa_sink_input_new_data_apply_volume_factor(pa_sink_input_new_data *data, const pa_cvolume *volume_factor) {
+void pa_sink_input_new_data_add_volume_factor(pa_sink_input_new_data *data, const char *key, const pa_cvolume *volume_factor) {
+    struct volume_factor_entry *v;
+
     pa_assert(data);
+    pa_assert(key);
     pa_assert(volume_factor);
 
-    if (data->volume_factor_is_set)
-        pa_sw_cvolume_multiply(&data->volume_factor, &data->volume_factor, volume_factor);
-    else {
-        data->volume_factor_is_set = TRUE;
-        data->volume_factor = *volume_factor;
-    }
+    v = volume_factor_entry_new(key, volume_factor);
+    pa_assert_se(pa_hashmap_put(data->volume_factor_items, v->key, v) >= 0);
 }
 
-void pa_sink_input_new_data_apply_volume_factor_sink(pa_sink_input_new_data *data, const pa_cvolume *volume_factor) {
+void pa_sink_input_new_data_add_volume_factor_sink(pa_sink_input_new_data *data, const char *key, const pa_cvolume *volume_factor) {
+    struct volume_factor_entry *v;
+
     pa_assert(data);
+    pa_assert(key);
     pa_assert(volume_factor);
 
-    if (data->volume_factor_sink_is_set)
-        pa_sw_cvolume_multiply(&data->volume_factor_sink, &data->volume_factor_sink, volume_factor);
-    else {
-        data->volume_factor_sink_is_set = TRUE;
-        data->volume_factor_sink = *volume_factor;
-    }
+    v = volume_factor_entry_new(key, volume_factor);
+    pa_assert_se(pa_hashmap_put(data->volume_factor_sink_items, v->key, v) >= 0);
 }
 
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute) {
@@ -203,6 +243,12 @@ void pa_sink_input_new_data_done(pa_sink_input_new_data *data) {
 
     if (data->format)
         pa_format_info_free(data->format);
+
+    if (data->volume_factor_items)
+        pa_hashmap_free(data->volume_factor_items, (pa_free2_cb_t) volume_factor_entry_free2, NULL);
+
+    if (data->volume_factor_sink_items)
+        pa_hashmap_free(data->volume_factor_sink_items, (pa_free2_cb_t) volume_factor_entry_free2, NULL);
 
     pa_proplist_free(data->proplist);
 }
@@ -335,16 +381,6 @@ int pa_sink_input_new(
 
     pa_return_val_if_fail(pa_cvolume_compatible(&data->volume, &data->sample_spec), -PA_ERR_INVALID);
 
-    if (!data->volume_factor_is_set)
-        pa_cvolume_reset(&data->volume_factor, data->sample_spec.channels);
-
-    pa_return_val_if_fail(pa_cvolume_compatible(&data->volume_factor, &data->sample_spec), -PA_ERR_INVALID);
-
-    if (!data->volume_factor_sink_is_set)
-        pa_cvolume_reset(&data->volume_factor_sink, data->sink->sample_spec.channels);
-
-    pa_return_val_if_fail(pa_cvolume_compatible(&data->volume_factor_sink, &data->sink->sample_spec), -PA_ERR_INVALID);
-
     if (!data->muted_is_set)
         data->muted = FALSE;
 
@@ -455,8 +491,14 @@ int pa_sink_input_new(
     } else
         i->volume = data->volume;
 
-    i->volume_factor = data->volume_factor;
-    i->volume_factor_sink = data->volume_factor_sink;
+    i->volume_factor_items = data->volume_factor_items;
+    data->volume_factor_items = NULL;
+    volume_factor_from_hashmap(&i->volume_factor, i->volume_factor_items, i->sample_spec.channels);
+
+    i->volume_factor_sink_items = data->volume_factor_sink_items;
+    data->volume_factor_sink_items = NULL;
+    volume_factor_from_hashmap(&i->volume_factor_sink, i->volume_factor_sink_items, i->sample_spec.channels);
+
     i->real_ratio = i->reference_ratio = data->volume;
     pa_cvolume_reset(&i->soft_volume, i->sample_spec.channels);
     pa_cvolume_reset(&i->real_ratio, i->sample_spec.channels);
@@ -704,6 +746,11 @@ static void sink_input_free(pa_object *o) {
 
     if (i->thread_info.direct_outputs)
         pa_hashmap_free(i->thread_info.direct_outputs, NULL, NULL);
+
+    if (i->volume_factor_items)
+        pa_hashmap_free(i->volume_factor_items, (pa_free2_cb_t) volume_factor_entry_free2, NULL);
+    if (i->volume_factor_sink_items)
+        pa_hashmap_free(i->volume_factor_sink_items, (pa_free2_cb_t) volume_factor_entry_free2, NULL);
 
     pa_xfree(i->driver);
     pa_xfree(i);
@@ -1214,6 +1261,62 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 }
 
+void pa_sink_input_add_volume_factor(pa_sink_input *i, const char *key, const pa_cvolume *volume_factor) {
+    struct volume_factor_entry *v;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
+    pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
+    pa_assert(volume_factor);
+    pa_assert(key);
+    pa_assert(pa_cvolume_valid(volume_factor));
+    pa_assert(volume_factor->channels == 1 || pa_cvolume_compatible(volume_factor, &i->sample_spec));
+
+    v = volume_factor_entry_new(key, volume_factor);
+    if (!pa_cvolume_compatible(volume_factor, &i->sample_spec))
+        pa_cvolume_set(&v->volume, i->sample_spec.channels, volume_factor->values[0]);
+
+    pa_assert_se(pa_hashmap_put(i->volume_factor_items, v->key, v) >= 0);
+    if (pa_hashmap_size(i->volume_factor_items) == 1)
+        i->volume_factor = v->volume;
+    else
+        pa_sw_cvolume_multiply(&i->volume_factor, &i->volume_factor, &v->volume);
+
+    pa_sw_cvolume_multiply(&i->soft_volume, &i->real_ratio, &i->volume_factor);
+
+    /* Copy the new soft_volume to the thread_info struct */
+    pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_SOFT_VOLUME, NULL, 0, NULL) == 0);
+}
+
+void pa_sink_input_remove_volume_factor(pa_sink_input *i, const char *key) {
+    struct volume_factor_entry *v;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert(key);
+    pa_assert_ctl_context();
+    pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
+
+    pa_assert_se(v = pa_hashmap_remove(i->volume_factor_items, key));
+    volume_factor_entry_free(v);
+
+    switch (pa_hashmap_size(i->volume_factor_items)) {
+        case 0:
+            pa_cvolume_reset(&i->volume_factor, i->sample_spec.channels);
+            break;
+        case 1:
+            v = pa_hashmap_first(i->volume_factor_items);
+            i->volume_factor = v->volume;
+            break;
+        default:
+            volume_factor_from_hashmap(&i->volume_factor, i->volume_factor_items, i->volume_factor.channels);
+    }
+
+    pa_sw_cvolume_multiply(&i->soft_volume, &i->real_ratio, &i->volume_factor);
+
+    /* Copy the new soft_volume to the thread_info struct */
+    pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_SOFT_VOLUME, NULL, 0, NULL) == 0);
+}
+
 /* Called from main context */
 static void set_real_ratio(pa_sink_input *i, const pa_cvolume *v) {
     pa_sink_input_assert_ref(i);
@@ -1442,6 +1545,8 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
 /* Called from main context */
 int pa_sink_input_start_move(pa_sink_input *i) {
     pa_source_output *o, *p = NULL;
+    struct volume_factor_entry *v;
+    void *state = NULL;
     int r;
 
     pa_sink_input_assert_ref(i);
@@ -1479,7 +1584,12 @@ int pa_sink_input_start_move(pa_sink_input *i) {
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_START_MOVE, i, 0, NULL) == 0);
 
     pa_sink_update_status(i->sink);
+
+    PA_HASHMAP_FOREACH(v, i->volume_factor_sink_items, state)
+        pa_cvolume_remap(&v->volume, &i->sink->channel_map, &i->channel_map);
+
     pa_cvolume_remap(&i->volume_factor_sink, &i->sink->channel_map, &i->channel_map);
+
     i->sink = NULL;
 
     pa_sink_input_unref(i);
@@ -1639,6 +1749,9 @@ static void update_volume_due_to_moving(pa_sink_input *i, pa_sink *dest) {
 
 /* Called from main context */
 int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
+    struct volume_factor_entry *v;
+    void *state = NULL;
+
     pa_sink_input_assert_ref(i);
     pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
@@ -1676,6 +1789,9 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     i->sink = dest;
     i->save_sink = save;
     pa_idxset_put(dest->inputs, pa_sink_input_ref(i), NULL);
+
+    PA_HASHMAP_FOREACH(v, i->volume_factor_sink_items, state)
+        pa_cvolume_remap(&v->volume, &i->channel_map, &i->sink->channel_map);
 
     pa_cvolume_remap(&i->volume_factor_sink, &i->channel_map, &i->sink->channel_map);
 
