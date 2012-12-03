@@ -284,6 +284,8 @@ static void setup_stream(struct userdata *u) {
     struct pollfd *pollfd;
     int one;
 
+    pa_log_info("Transport %s resuming", u->transport->path);
+
     bt_transport_config_mtu(u);
 
     pa_make_fd_nonblock(u->stream_fd);
@@ -424,7 +426,6 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
         return 0;
 
 done:
-    pa_log_info("Transport %s resuming", u->transport->path);
     setup_stream(u);
 
     return 0;
@@ -1045,7 +1046,7 @@ static void thread_func(void *userdata) {
 
     /* Setup the stream only if the transport was already acquired */
     if (bt_transport_is_acquired(u))
-        bt_transport_acquire(u, TRUE);
+        setup_stream(u);
 
     for (;;) {
         struct pollfd *pollfd;
