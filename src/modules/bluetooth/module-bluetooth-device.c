@@ -426,6 +426,10 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
         return 0;
 
 done:
+    /* If thread is still about to start, the stream will be set up in the beginning of thread_func() */
+    if (u->thread == NULL)
+        return 0;
+
     setup_stream(u);
 
     return 0;
