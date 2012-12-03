@@ -1743,7 +1743,7 @@ static int add_sink(struct userdata *u) {
             switch (u->profile) {
                 case PROFILE_A2DP:
                 case PROFILE_HSP:
-                    data.suspend_cause = PA_SUSPEND_IDLE;
+                    pa_assert_not_reached(); /* Profile switch should have failed */
                     break;
                 case PROFILE_HFGW:
                     data.suspend_cause = PA_SUSPEND_USER;
@@ -1818,7 +1818,7 @@ static int add_source(struct userdata *u) {
         if (!bt_transport_is_acquired(u))
             switch (u->profile) {
                 case PROFILE_HSP:
-                    data.suspend_cause = PA_SUSPEND_IDLE;
+                    pa_assert_not_reached(); /* Profile switch should have failed */
                     break;
                 case PROFILE_A2DP_SOURCE:
                 case PROFILE_HFGW:
@@ -2011,7 +2011,10 @@ static int setup_transport(struct userdata *u) {
     u->transport_removed_slot = pa_hook_connect(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED], PA_HOOK_NORMAL,
                                                 (pa_hook_cb_t) transport_removed_cb, u);
 
-    bt_transport_acquire(u, FALSE);
+    if (u->profile == PROFILE_A2DP_SOURCE || u->profile == PROFILE_HFGW)
+        bt_transport_acquire(u, FALSE); /* In case of error, the sink/sources will be created suspended */
+    else if (bt_transport_acquire(u, TRUE) < 0)
+        return -1; /* We need to fail here until the interactions with module-suspend-on-idle and alike get improved */
 
     bt_transport_config(u);
 
