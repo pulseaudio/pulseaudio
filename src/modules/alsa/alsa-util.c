@@ -1326,7 +1326,7 @@ char *pa_alsa_get_reserve_name(const char *device) {
     return pa_sprintf_malloc("Audio%i", i);
 }
 
-unsigned int *pa_alsa_get_supported_rates(snd_pcm_t *pcm) {
+unsigned int *pa_alsa_get_supported_rates(snd_pcm_t *pcm, unsigned int fallback_rate) {
     static unsigned int all_rates[] = { 8000, 11025, 12000,
                                         16000, 22050, 24000,
                                         32000, 44100, 48000,
@@ -1352,17 +1352,27 @@ unsigned int *pa_alsa_get_supported_rates(snd_pcm_t *pcm) {
         }
     }
 
-    if (n == 0)
-        return NULL;
+    if (n > 0) {
+        rates = pa_xnew(unsigned int, n + 1);
 
-    rates = pa_xnew(unsigned int, n + 1);
+        for (i = 0, j = 0; i < PA_ELEMENTSOF(all_rates); i++) {
+            if (supported[i])
+                rates[j++] = all_rates[i];
+        }
 
-    for (i = 0, j = 0; i < PA_ELEMENTSOF(all_rates); i++) {
-        if (supported[i])
-            rates[j++] = all_rates[i];
+        rates[j] = 0;
+    } else {
+        rates = pa_xnew(unsigned int, 2);
+
+        rates[0] = fallback_rate;
+        if ((ret = snd_pcm_hw_params_set_rate_near(pcm, hwparams, &rates[0], NULL)) < 0) {
+            pa_log_debug("snd_pcm_hw_params_set_rate_near() failed: %s", pa_alsa_strerror(ret));
+            pa_xfree(rates);
+            return NULL;
+        }
+
+        rates[1] = 0;
     }
-
-    rates[j] = 0;
 
     return rates;
 }

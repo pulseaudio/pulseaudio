@@ -2202,7 +2202,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     if (is_iec958(u) || is_hdmi(u))
         set_formats = TRUE;
 
-    u->rates = pa_alsa_get_supported_rates(u->pcm_handle);
+    u->rates = pa_alsa_get_supported_rates(u->pcm_handle, ss.rate);
     if (!u->rates) {
         pa_log_error("Failed to find any supported sample rates.");
         goto fail;

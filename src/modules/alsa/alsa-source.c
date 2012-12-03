@@ -1922,7 +1922,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
             pa_log_info("Disabling latency range changes on overrun");
     }
 
-    u->rates = pa_alsa_get_supported_rates(u->pcm_handle);
+    u->rates = pa_alsa_get_supported_rates(u->pcm_handle, ss.rate);
     if (!u->rates) {
         pa_log_error("Failed to find any supported sample rates.");
         goto fail;
