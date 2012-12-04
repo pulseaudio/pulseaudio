@@ -32,6 +32,8 @@ pa_bool_t pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
     unsigned framelen = 256;
 
     source_ss->format = PA_SAMPLE_S16NE;
+    source_ss->channels = 1;
+
     *sink_ss = *source_ss;
     *sink_map = *source_map;
 
