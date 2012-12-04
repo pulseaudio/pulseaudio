@@ -660,12 +660,12 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
     int64_t diff;
 
     if (diff_time < 0) {
-        diff = pa_usec_to_bytes(-diff_time, &u->source_output->sample_spec);
+        diff = pa_usec_to_bytes(-diff_time, &u->sink_input->sample_spec);
 
         if (diff > 0) {
             /* add some extra safety samples to compensate for jitter in the
              * timings */
-            diff += 10 * pa_frame_size (&u->source_output->sample_spec);
+            diff += 10 * pa_frame_size (&u->sink_input->sample_spec);
 
             pa_log("Playback after capture (%lld), drop sink %lld", (long long) diff_time, (long long) diff);
 
