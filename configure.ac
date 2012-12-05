@@ -44,7 +44,7 @@ AC_SUBST(PA_PROTOCOL_VERSION, 27)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z
-AC_SUBST(LIBPULSE_VERSION_INFO, [15:1:15])
+AC_SUBST(LIBPULSE_VERSION_INFO, [15:2:15])
 
 # A simplified, synchronous, ABI-stable interface for client
 # applications, for the version info x:y:z always will hold y=z
