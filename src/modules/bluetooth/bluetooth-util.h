@@ -149,7 +149,6 @@ bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d);
 
 int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, const char *accesstype, size_t *imtu, size_t *omtu);
 void pa_bluetooth_transport_release(pa_bluetooth_transport *t, const char *accesstype);
-int pa_bluetooth_transport_parse_property(pa_bluetooth_transport *t, DBusMessageIter *i);
 
 pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *d);
 

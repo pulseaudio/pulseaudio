@@ -747,8 +747,7 @@ static void list_adapters(pa_bluetooth_discovery *y) {
     send_and_add_to_pending(y, m, get_properties_reply, NULL);
 }
 
-int pa_bluetooth_transport_parse_property(pa_bluetooth_transport *t, DBusMessageIter *i)
-{
+static int pa_bluetooth_transport_parse_property(pa_bluetooth_transport *t, DBusMessageIter *i) {
     const char *key;
     DBusMessageIter variant_i;
 
