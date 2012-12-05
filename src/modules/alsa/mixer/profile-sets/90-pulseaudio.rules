@@ -61,6 +61,14 @@ ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x0468", ENV{PULSE_
 ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x046e", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
 # Dell XPS 15 (L502X)
 ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x050e", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Dell Inspiron 3420
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x0553", ENV{PULSE_PROFILE_SET}="force-speaker.conf"
+# Dell Inspiron 3520
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x0555", ENV{PULSE_PROFILE_SET}="force-speaker.conf"
+# Dell Vostro 2420
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x0556", ENV{PULSE_PROFILE_SET}="force-speaker.conf"
+# Dell Vostro 2520
+ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x0558", ENV{PULSE_PROFILE_SET}="force-speaker.conf"
 # Asus 904HA (1000H)
 ATTRS{subsystem_vendor}=="0x1043", ATTRS{subsystem_device}=="0x831a", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
 # Asus T101MT
