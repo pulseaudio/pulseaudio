@@ -1022,13 +1022,14 @@ int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, const char *access
     uint16_t i, o;
 
     pa_assert(t);
-    pa_assert(t->y);
+    pa_assert(t->device);
+    pa_assert(t->device->discovery);
 
     dbus_error_init(&err);
 
     pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.bluez.MediaTransport", "Acquire"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_STRING, &accesstype, DBUS_TYPE_INVALID));
-    r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->y->connection), m, -1, &err);
+    r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
 
     if (dbus_error_is_set(&err) || !r) {
         dbus_error_free(&err);
@@ -1058,13 +1059,14 @@ void pa_bluetooth_transport_release(pa_bluetooth_transport *t, const char *acces
     DBusError err;
 
     pa_assert(t);
-    pa_assert(t->y);
+    pa_assert(t->device);
+    pa_assert(t->device->discovery);
 
     dbus_error_init(&err);
 
     pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.bluez.MediaTransport", "Release"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_STRING, &accesstype, DBUS_TYPE_INVALID));
-    dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->y->connection), m, -1, &err);
+    dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
 
     if (dbus_error_is_set(&err)) {
         pa_log("Failed to release transport %s: %s", t->path, err.message);
@@ -1089,12 +1091,13 @@ static int setup_dbus(pa_bluetooth_discovery *y) {
     return 0;
 }
 
-static pa_bluetooth_transport *transport_new(pa_bluetooth_discovery *y, const char *owner, const char *path, enum profile p, const uint8_t *config, int size) {
+static pa_bluetooth_transport *transport_new(pa_bluetooth_device *d, const char *owner, const char *path, enum profile p,
+                                             const uint8_t *config, int size) {
     pa_bluetooth_transport *t;
     unsigned i;
 
     t = pa_xnew0(pa_bluetooth_transport, 1);
-    t->y = y;
+    t->device = d;
     t->owner = pa_xstrdup(owner);
     t->path = pa_xstrdup(path);
     t->profile = p;
@@ -1186,7 +1189,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
 
     sender = dbus_message_get_sender(m);
 
-    t = transport_new(y, sender, path, p, config, size);
+    t = transport_new(d, sender, path, p, config, size);
     if (nrec)
         t->nrec = nrec;
     pa_hashmap_put(d->transports, t->path, t);
