@@ -192,11 +192,11 @@ static pa_bool_t device_is_audio_ready(const pa_bluetooth_device *d) {
     pa_assert(d);
 
     return
-        d->device_info_valid && (d->hfgw_state != PA_BT_AUDIO_STATE_INVALID ||
-        (d->audio_state != PA_BT_AUDIO_STATE_INVALID &&
-         (d->audio_sink_state != PA_BT_AUDIO_STATE_INVALID ||
-          d->audio_source_state != PA_BT_AUDIO_STATE_INVALID ||
-          d->headset_state != PA_BT_AUDIO_STATE_INVALID)));
+        d->device_info_valid && d->audio_state != PA_BT_AUDIO_STATE_INVALID &&
+        (d->audio_sink_state != PA_BT_AUDIO_STATE_INVALID ||
+         d->audio_source_state != PA_BT_AUDIO_STATE_INVALID ||
+         d->headset_state != PA_BT_AUDIO_STATE_INVALID ||
+         d->hfgw_state != PA_BT_AUDIO_STATE_INVALID);
 }
 
 static const char *check_variant_property(DBusMessageIter *i) {
