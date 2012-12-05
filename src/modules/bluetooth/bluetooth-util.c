@@ -977,22 +977,6 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *
     return NULL;
 }
 
-pa_bluetooth_transport* pa_bluetooth_discovery_get_transport(pa_bluetooth_discovery *y, const char *path) {
-    pa_bluetooth_device *d;
-    pa_bluetooth_transport *t;
-    void *state = NULL;
-
-    pa_assert(y);
-    pa_assert(PA_REFCNT_VALUE(y) > 0);
-    pa_assert(path);
-
-    while ((d = pa_hashmap_iterate(y->devices, &state, NULL)))
-        if ((t = pa_hashmap_get(d->transports, path)))
-            return t;
-
-    return NULL;
-}
-
 pa_bluetooth_transport* pa_bluetooth_device_get_transport(pa_bluetooth_device *d, enum profile profile) {
     pa_bluetooth_transport *t;
     void *state = NULL;
