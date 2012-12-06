@@ -2522,15 +2522,20 @@ static pa_bluetooth_device* find_device(struct userdata *u, const char *address,
 }
 
 /* Run from main thread */
-static pa_hook_result_t uuid_added_cb(pa_bluetooth_device *d, const char *uuid, struct userdata *u) {
+static pa_hook_result_t uuid_added_cb(pa_bluetooth_discovery *y, const struct pa_bluetooth_hook_uuid_data *data,
+                                      struct userdata *u) {
     pa_card_profile *p;
     pa_hashmap *new_ports;
 
-    pa_assert(d);
-    pa_assert(uuid);
+    pa_assert(data);
+    pa_assert(data->device);
+    pa_assert(data->uuid);
     pa_assert(u);
 
-    p = create_card_profile(u, uuid);
+    if (data->device != u->device)
+        return PA_HOOK_OK;
+
+    p = create_card_profile(u, data->uuid);
 
     if (!p)
         return PA_HOOK_OK;
@@ -2666,8 +2671,9 @@ int pa__init(pa_module* m) {
         pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED),
                         PA_HOOK_NORMAL, (pa_hook_cb_t) discovery_hook_cb, u);
 
-    u->uuid_added_slot = pa_hook_connect(&device->hooks[PA_BLUETOOTH_DEVICE_HOOK_UUID_ADDED], PA_HOOK_NORMAL,
-                                         (pa_hook_cb_t) uuid_added_cb, u);
+    u->uuid_added_slot =
+        pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_DEVICE_UUID_ADDED),
+                        PA_HOOK_NORMAL, (pa_hook_cb_t) uuid_added_cb, u);
 
     /* Add the card structure. This will also initialize the default profile */
     if (add_card(u) < 0)

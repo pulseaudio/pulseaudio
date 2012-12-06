@@ -65,9 +65,15 @@ enum profile {
 
 #define PA_BLUETOOTH_PROFILE_COUNT PROFILE_OFF
 
+struct pa_bluetooth_hook_uuid_data {
+    pa_bluetooth_device *device;
+    const char *uuid;
+};
+
 /* Hook data: pa_bluetooth_discovery pointer. */
 typedef enum pa_bluetooth_hook {
     PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED, /* Call data: pa_bluetooth_device */
+    PA_BLUETOOTH_HOOK_DEVICE_UUID_ADDED, /* Call data: pa_bluetooth_hook_uuid_data */
     PA_BLUETOOTH_HOOK_MAX
 } pa_bluetooth_hook_t;
 
@@ -100,13 +106,6 @@ typedef enum pa_bt_audio_state {
     PA_BT_AUDIO_STATE_PLAYING
 } pa_bt_audio_state_t;
 
-/* Hook data: pa_bluetooth_device pointer. */
-typedef enum pa_bluetooth_device_hook {
-    PA_BLUETOOTH_DEVICE_HOOK_REMOVED, /* Call data: NULL. */
-    PA_BLUETOOTH_DEVICE_HOOK_UUID_ADDED, /* Call data: const char *uuid. */
-    PA_BLUETOOTH_DEVICE_HOOK_MAX
-} pa_bluetooth_device_hook_t;
-
 struct pa_bluetooth_device {
     pa_bluetooth_discovery *discovery;
     pa_bool_t dead;
@@ -138,8 +137,6 @@ struct pa_bluetooth_device {
 
     /* HandsfreeGateway state */
     pa_bt_audio_state_t hfgw_state;
-
-    pa_hook hooks[PA_BLUETOOTH_DEVICE_HOOK_MAX];
 };
 
 pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core);
