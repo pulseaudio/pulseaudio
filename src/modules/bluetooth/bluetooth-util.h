@@ -63,6 +63,8 @@ enum profile {
     PROFILE_OFF
 };
 
+#define PA_BLUETOOTH_PROFILE_COUNT PROFILE_OFF
+
 /* Hook data: pa_bluetooth_transport pointer. */
 typedef enum pa_bluetooth_transport_hook {
     PA_BLUETOOTH_TRANSPORT_HOOK_NREC_CHANGED, /* Call data: NULL. */
@@ -108,7 +110,7 @@ struct pa_bluetooth_device {
     /* Device information */
     char *name;
     char *path;
-    pa_hashmap *transports;
+    pa_bluetooth_transport *transports[PA_BLUETOOTH_PROFILE_COUNT];
     int paired;
     char *alias;
     PA_LLIST_HEAD(pa_bluetooth_uuid, uuids);

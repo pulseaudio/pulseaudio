@@ -117,7 +117,7 @@ static pa_bluetooth_device* device_new(pa_bluetooth_discovery *discovery, const 
     pa_assert(discovery);
     pa_assert(path);
 
-    d = pa_xnew(pa_bluetooth_device, 1);
+    d = pa_xnew0(pa_bluetooth_device, 1);
 
     d->discovery = discovery;
     d->dead = FALSE;
@@ -126,7 +126,6 @@ static pa_bluetooth_device* device_new(pa_bluetooth_discovery *discovery, const 
 
     d->name = NULL;
     d->path = pa_xstrdup(path);
-    d->transports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     d->paired = -1;
     d->alias = NULL;
     PA_LLIST_HEAD_INIT(pa_bluetooth_uuid, d->uuids);
@@ -167,13 +166,15 @@ static void device_free(pa_bluetooth_device *d) {
 
     pa_assert(d);
 
-    while ((t = pa_hashmap_steal_first(d->transports))) {
+    for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++) {
+        if (!(t = d->transports[i]))
+            continue;
+
+        d->transports[i] = NULL;
         pa_hashmap_remove(d->discovery->transports, t->path);
         pa_hook_fire(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED], NULL);
         transport_free(t);
     }
-
-    pa_hashmap_free(d->transports, NULL, NULL);
 
     for (i = 0; i < PA_BLUETOOTH_DEVICE_HOOK_MAX; i++)
         pa_hook_done(&d->hooks[i]);
@@ -974,16 +975,12 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *
 }
 
 pa_bluetooth_transport* pa_bluetooth_device_get_transport(pa_bluetooth_device *d, enum profile profile) {
-    pa_bluetooth_transport *t;
-    void *state = NULL;
-
     pa_assert(d);
 
-    while ((t = pa_hashmap_iterate(d->transports, &state, NULL)))
-        if (t->profile == profile)
-            return t;
+    if (profile == PROFILE_OFF)
+        return NULL;
 
-    return NULL;
+    return d->transports[profile];
 }
 
 bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d) {
@@ -1183,12 +1180,18 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     else
         p = PROFILE_A2DP_SOURCE;
 
+    if (d->transports[p] != NULL) {
+        pa_log("Cannot configure transport %s because profile %d is already used", path, p);
+        goto fail;
+    }
+
     sender = dbus_message_get_sender(m);
 
     t = transport_new(d, sender, path, p, config, size);
     if (nrec)
         t->nrec = nrec;
-    pa_hashmap_put(d->transports, t->path, t);
+
+    d->transports[p] = t;
     pa_hashmap_put(y->transports, t->path, t);
 
     pa_log_debug("Transport %s profile %d available", t->path, t->profile);
@@ -1221,7 +1224,7 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *c, DBusMessage 
 
     if ((t = pa_hashmap_get(y->transports, path))) {
         pa_log_debug("Clearing transport %s profile %d", t->path, t->profile);
-        pa_hashmap_remove(t->device->transports, t->path);
+        t->device->transports[t->profile] = NULL;
         pa_hashmap_remove(y->transports, t->path);
         pa_hook_fire(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED], NULL);
         transport_free(t);
