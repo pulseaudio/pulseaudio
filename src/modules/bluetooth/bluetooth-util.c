@@ -1113,6 +1113,12 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     dbus_message_iter_init(m, &args);
 
     dbus_message_iter_get_basic(&args, &path);
+
+    if (pa_hashmap_get(y->transports, path)) {
+        pa_log("org.bluez.MediaEndpoint.SetConfiguration: Transport %s is already configured.", path);
+        goto fail;
+    }
+
     if (!dbus_message_iter_next(&args))
         goto fail;
 
@@ -1183,7 +1189,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
         t->nrec = nrec;
 
     d->transports[p] = t;
-    pa_hashmap_put(y->transports, t->path, t);
+    pa_assert_se(pa_hashmap_put(y->transports, t->path, t) >= 0);
 
     pa_log_debug("Transport %s profile %d available", t->path, t->profile);
 
