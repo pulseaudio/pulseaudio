@@ -974,15 +974,6 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *
     return NULL;
 }
 
-pa_bluetooth_transport* pa_bluetooth_device_get_transport(pa_bluetooth_device *d, enum profile profile) {
-    pa_assert(d);
-
-    if (profile == PROFILE_OFF)
-        return NULL;
-
-    return d->transports[profile];
-}
-
 bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d) {
     pa_assert(d);
 

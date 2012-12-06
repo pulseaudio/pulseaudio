@@ -1984,9 +1984,10 @@ static int setup_transport(struct userdata *u) {
 
     pa_assert(u);
     pa_assert(!u->transport);
+    pa_assert(u->profile != PROFILE_OFF);
 
     /* check if profile has a transport */
-    t = pa_bluetooth_device_get_transport(u->device, u->profile);
+    t = u->device->transports[u->profile];
     if (t == NULL) {
         pa_log_warn("Profile has no transport");
         return -1;

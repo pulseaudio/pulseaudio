@@ -145,7 +145,6 @@ void pa_bluetooth_discovery_sync(pa_bluetooth_discovery *d);
 pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *d, const char* path);
 pa_bluetooth_device* pa_bluetooth_discovery_get_by_address(pa_bluetooth_discovery *d, const char* address);
 
-pa_bluetooth_transport* pa_bluetooth_device_get_transport(pa_bluetooth_device *d, enum profile profile);
 bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d);
 
 int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, const char *accesstype, size_t *imtu, size_t *omtu);
