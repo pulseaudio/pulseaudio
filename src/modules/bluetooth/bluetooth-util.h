@@ -126,17 +126,8 @@ struct pa_bluetooth_device {
     /* Audio state */
     pa_bt_audio_state_t audio_state;
 
-    /* AudioSink state */
-    pa_bt_audio_state_t audio_sink_state;
-
-    /* AudioSource state */
-    pa_bt_audio_state_t audio_source_state;
-
-    /* Headset state */
-    pa_bt_audio_state_t headset_state;
-
-    /* HandsfreeGateway state */
-    pa_bt_audio_state_t hfgw_state;
+    /* AudioSink, AudioSource, Headset and HandsfreeGateway states */
+    pa_bt_audio_state_t profile_state[PA_BLUETOOTH_PROFILE_COUNT];
 };
 
 pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core);

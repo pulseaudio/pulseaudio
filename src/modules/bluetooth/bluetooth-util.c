@@ -93,6 +93,27 @@ pa_bt_audio_state_t pa_bt_audio_state_from_string(const char* value) {
     return PA_BT_AUDIO_STATE_INVALID;
 }
 
+static int profile_from_interface(const char *interface, enum profile *p) {
+    pa_assert(interface);
+    pa_assert(p);
+
+    if (pa_streq(interface, "org.bluez.AudioSink")) {
+        *p = PROFILE_A2DP;
+        return 0;
+    } else if (pa_streq(interface, "org.bluez.AudioSource")) {
+        *p = PROFILE_A2DP_SOURCE;
+        return 0;
+    } else if (pa_streq(interface, "org.bluez.Headset")) {
+        *p = PROFILE_HSP;
+        return 0;
+    } else if (pa_streq(interface, "org.bluez.HandsfreeGateway")) {
+        *p = PROFILE_HFGW;
+        return 0;
+    }
+
+    return -1;
+}
+
 static pa_bluetooth_uuid *uuid_new(const char *uuid) {
     pa_bluetooth_uuid *u;
 
@@ -112,6 +133,7 @@ static void uuid_free(pa_bluetooth_uuid *u) {
 
 static pa_bluetooth_device* device_new(pa_bluetooth_discovery *discovery, const char *path) {
     pa_bluetooth_device *d;
+    unsigned i;
 
     pa_assert(discovery);
     pa_assert(path);
@@ -133,10 +155,9 @@ static pa_bluetooth_device* device_new(pa_bluetooth_discovery *discovery, const 
     d->trusted = -1;
 
     d->audio_state = PA_BT_AUDIO_STATE_INVALID;
-    d->audio_sink_state = PA_BT_AUDIO_STATE_INVALID;
-    d->audio_source_state = PA_BT_AUDIO_STATE_INVALID;
-    d->headset_state = PA_BT_AUDIO_STATE_INVALID;
-    d->hfgw_state = PA_BT_AUDIO_STATE_INVALID;
+
+    for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++)
+        d->profile_state[i] = PA_BT_AUDIO_STATE_INVALID;
 
     return d;
 }
@@ -185,14 +206,18 @@ static void device_free(pa_bluetooth_device *d) {
 }
 
 static pa_bool_t device_is_audio_ready(const pa_bluetooth_device *d) {
+    unsigned i;
+
     pa_assert(d);
 
-    return
-        d->device_info_valid && d->audio_state != PA_BT_AUDIO_STATE_INVALID &&
-        (d->audio_sink_state != PA_BT_AUDIO_STATE_INVALID ||
-         d->audio_source_state != PA_BT_AUDIO_STATE_INVALID ||
-         d->headset_state != PA_BT_AUDIO_STATE_INVALID ||
-         d->hfgw_state != PA_BT_AUDIO_STATE_INVALID);
+    if (!d->device_info_valid || d->audio_state == PA_BT_AUDIO_STATE_INVALID)
+        return FALSE;
+
+    for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++)
+        if (d->profile_state[i] != PA_BT_AUDIO_STATE_INVALID)
+            return TRUE;
+
+    return FALSE;
 }
 
 static const char *check_variant_property(DBusMessageIter *i) {
@@ -570,6 +595,7 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
 
         if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
             DBusMessageIter dict_i;
+            enum profile profile;
 
             dbus_message_iter_recurse(&element_i, &dict_i);
 
@@ -589,22 +615,13 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
                 if (parse_audio_property(y, &d->audio_state, &dict_i) < 0)
                     goto finish;
 
-            } else if (dbus_message_has_interface(p->message, "org.bluez.Headset")) {
-                if (parse_audio_property(y, &d->headset_state, &dict_i) < 0)
+            } else if (profile_from_interface(dbus_message_get_interface(p->message), &profile) >= 0) {
+                pa_bt_audio_state_t state;
+
+                if (parse_audio_property(y, &state, &dict_i) < 0)
                     goto finish;
 
-            }  else if (dbus_message_has_interface(p->message, "org.bluez.AudioSink")) {
-                if (parse_audio_property(y, &d->audio_sink_state, &dict_i) < 0)
-                    goto finish;
-
-            }  else if (dbus_message_has_interface(p->message, "org.bluez.AudioSource")) {
-                if (parse_audio_property(y, &d->audio_source_state, &dict_i) < 0)
-                    goto finish;
-
-            }  else if (dbus_message_has_interface(p->message, "org.bluez.HandsfreeGateway")) {
-                if (parse_audio_property(y, &d->hfgw_state, &dict_i) < 0)
-                    goto finish;
-
+                d->profile_state[profile] = state;
             }
         }
 
@@ -846,6 +863,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
         if ((d = pa_hashmap_get(y->devices, dbus_message_get_path(m)))) {
             DBusMessageIter arg_i;
+            enum profile profile;
             bool old_any_connected = pa_bluetooth_device_any_audio_connected(d);
 
             if (!dbus_message_iter_init(m, &arg_i)) {
@@ -861,21 +879,13 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 if (parse_audio_property(y, &d->audio_state, &arg_i) < 0)
                     goto fail;
 
-            } else if (dbus_message_has_interface(m, "org.bluez.Headset")) {
-                if (parse_audio_property(y, &d->headset_state, &arg_i) < 0)
+            } else if (profile_from_interface(dbus_message_get_interface(m), &profile) >= 0) {
+                pa_bt_audio_state_t state;
+
+                if (parse_audio_property(y, &state, &arg_i) < 0)
                     goto fail;
 
-            }  else if (dbus_message_has_interface(m, "org.bluez.AudioSink")) {
-                if (parse_audio_property(y, &d->audio_sink_state, &arg_i) < 0)
-                    goto fail;
-
-            }  else if (dbus_message_has_interface(m, "org.bluez.AudioSource")) {
-                if (parse_audio_property(y, &d->audio_source_state, &arg_i) < 0)
-                    goto fail;
-
-            }  else if (dbus_message_has_interface(m, "org.bluez.HandsfreeGateway")) {
-                if (parse_audio_property(y, &d->hfgw_state, &arg_i) < 0)
-                    goto fail;
+                d->profile_state[profile] = state;
             }
 
             if (old_any_connected != pa_bluetooth_device_any_audio_connected(d))
@@ -989,8 +999,8 @@ bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d) {
      * loaded. */
     return
         d->audio_state >= PA_BT_AUDIO_STATE_CONNECTED ||
-        d->audio_source_state >= PA_BT_AUDIO_STATE_CONNECTED ||
-        d->hfgw_state >= PA_BT_AUDIO_STATE_CONNECTED;
+        d->profile_state[PROFILE_A2DP_SOURCE] >= PA_BT_AUDIO_STATE_CONNECTED ||
+        d->profile_state[PROFILE_HFGW] >= PA_BT_AUDIO_STATE_CONNECTED;
 }
 
 int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, const char *accesstype, size_t *imtu, size_t *omtu) {
