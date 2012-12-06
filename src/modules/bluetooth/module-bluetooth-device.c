@@ -26,6 +26,7 @@
 
 #include <string.h>
 #include <errno.h>
+#include <math.h>
 #include <linux/sockios.h>
 #include <arpa/inet.h>
 
@@ -1330,21 +1331,13 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
         if (u->profile == PROFILE_HSP) {
             if (u->sink && dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged")) {
-                pa_volume_t volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
-
-                /* increment volume by one to correct rounding errors */
-                if (volume < PA_VOLUME_NORM)
-                    volume++;
+                pa_volume_t volume = (pa_volume_t) round((double) gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
 
                 pa_cvolume_set(&v, u->sample_spec.channels, volume);
                 pa_sink_volume_changed(u->sink, &v);
 
             } else if (u->source && dbus_message_is_signal(m, "org.bluez.Headset", "MicrophoneGainChanged")) {
-                pa_volume_t volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
-
-                /* increment volume by one to correct rounding errors */
-                if (volume < PA_VOLUME_NORM)
-                    volume++;
+                pa_volume_t volume = (pa_volume_t) round((double) gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
 
                 pa_cvolume_set(&v, u->sample_spec.channels, volume);
                 pa_source_volume_changed(u->source, &v);
@@ -1476,16 +1469,8 @@ static void sink_set_volume_cb(pa_sink *s) {
     pa_assert(u->sink == s);
     pa_assert(u->profile == PROFILE_HSP);
 
-    gain = (pa_cvolume_max(&s->real_volume) * HSP_MAX_GAIN) / PA_VOLUME_NORM;
-
-    if (gain > HSP_MAX_GAIN)
-        gain = HSP_MAX_GAIN;
-
-    volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
-
-    /* increment volume by one to correct rounding errors */
-    if (volume < PA_VOLUME_NORM)
-        volume++;
+    gain = (dbus_uint16_t) round((double) pa_cvolume_max(&s->real_volume) * HSP_MAX_GAIN / PA_VOLUME_NORM);
+    volume = (pa_volume_t) round((double) gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
 
     pa_cvolume_set(&s->real_volume, u->sample_spec.channels, volume);
 
@@ -1514,16 +1499,8 @@ static void source_set_volume_cb(pa_source *s) {
     pa_assert(u->source == s);
     pa_assert(u->profile == PROFILE_HSP);
 
-    gain = (pa_cvolume_max(&s->real_volume) * HSP_MAX_GAIN) / PA_VOLUME_NORM;
-
-    if (gain > HSP_MAX_GAIN)
-        gain = HSP_MAX_GAIN;
-
-    volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
-
-    /* increment volume by one to correct rounding errors */
-    if (volume < PA_VOLUME_NORM)
-        volume++;
+    gain = (dbus_uint16_t) round((double) pa_cvolume_max(&s->real_volume) * HSP_MAX_GAIN / PA_VOLUME_NORM);
+    volume = (pa_volume_t) round((double) gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
 
     pa_cvolume_set(&s->real_volume, u->sample_spec.channels, volume);
 
