@@ -2660,10 +2660,11 @@ int pa__init(pa_module* m) {
     if (!(device = find_device(u, address, path)))
         goto fail;
 
-    u->discovery_slot = pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery), PA_HOOK_NORMAL,
-                                        (pa_hook_cb_t) discovery_hook_cb, u);
-
     u->device = device;
+
+    u->discovery_slot =
+        pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED),
+                        PA_HOOK_NORMAL, (pa_hook_cb_t) discovery_hook_cb, u);
 
     u->uuid_added_slot = pa_hook_connect(&device->hooks[PA_BLUETOOTH_DEVICE_HOOK_UUID_ADDED], PA_HOOK_NORMAL,
                                          (pa_hook_cb_t) uuid_added_cb, u);

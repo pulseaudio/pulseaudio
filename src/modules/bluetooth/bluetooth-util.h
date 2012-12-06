@@ -65,6 +65,12 @@ enum profile {
 
 #define PA_BLUETOOTH_PROFILE_COUNT PROFILE_OFF
 
+/* Hook data: pa_bluetooth_discovery pointer. */
+typedef enum pa_bluetooth_hook {
+    PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED, /* Call data: pa_bluetooth_device */
+    PA_BLUETOOTH_HOOK_MAX
+} pa_bluetooth_hook_t;
+
 /* Hook data: pa_bluetooth_transport pointer. */
 typedef enum pa_bluetooth_transport_hook {
     PA_BLUETOOTH_TRANSPORT_HOOK_NREC_CHANGED, /* Call data: NULL. */
@@ -150,7 +156,7 @@ bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d);
 int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, const char *accesstype, size_t *imtu, size_t *omtu);
 void pa_bluetooth_transport_release(pa_bluetooth_transport *t, const char *accesstype);
 
-pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *d);
+pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook);
 
 const char* pa_bluetooth_get_form_factor(uint32_t class);
 

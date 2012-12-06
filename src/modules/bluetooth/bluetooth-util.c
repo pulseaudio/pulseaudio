@@ -69,7 +69,7 @@ struct pa_bluetooth_discovery {
     PA_LLIST_HEAD(pa_dbus_pending, pending);
     pa_hashmap *devices;
     pa_hashmap *transports;
-    pa_hook hook;
+    pa_hook hooks[PA_BLUETOOTH_HOOK_MAX];
     pa_bool_t filter_added;
 };
 
@@ -475,7 +475,7 @@ static void run_callback(pa_bluetooth_device *d, pa_bool_t dead) {
         return;
 
     d->dead = dead;
-    pa_hook_fire(&d->discovery->hook, d);
+    pa_hook_fire(&d->discovery->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED], d);
 }
 
 static void remove_all_devices(pa_bluetooth_discovery *y) {
@@ -947,7 +947,7 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_by_address(pa_bluetooth_discover
     pa_assert(PA_REFCNT_VALUE(y) > 0);
     pa_assert(address);
 
-    if (!pa_hook_is_firing(&y->hook))
+    if (!pa_hook_is_firing(&y->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED]))
         pa_bluetooth_discovery_sync(y);
 
     while ((d = pa_hashmap_iterate(y->devices, &state, NULL)))
@@ -964,7 +964,7 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *
     pa_assert(PA_REFCNT_VALUE(y) > 0);
     pa_assert(path);
 
-    if (!pa_hook_is_firing(&y->hook))
+    if (!pa_hook_is_firing(&y->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED]))
         pa_bluetooth_discovery_sync(y);
 
     if ((d = pa_hashmap_get(y->devices, path)))
@@ -1453,6 +1453,7 @@ static DBusHandlerResult endpoint_handler(DBusConnection *c, DBusMessage *m, voi
 pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     DBusError err;
     pa_bluetooth_discovery *y;
+    unsigned i;
     static const DBusObjectPathVTable vtable_endpoint = {
         .message_function = endpoint_handler,
     };
@@ -1470,7 +1471,10 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     y->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     y->transports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     PA_LLIST_HEAD_INIT(pa_dbus_pending, y->pending);
-    pa_hook_init(&y->hook, y);
+
+    for (i = 0; i < PA_BLUETOOTH_HOOK_MAX; i++)
+        pa_hook_init(&y->hooks[i], y);
+
     pa_shared_set(c, "bluetooth-discovery", y);
 
     if (setup_dbus(y) < 0)
@@ -1530,6 +1534,8 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_ref(pa_bluetooth_discovery *y) {
 }
 
 void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
+    unsigned i;
+
     pa_assert(y);
     pa_assert(PA_REFCNT_VALUE(y) > 0);
 
@@ -1574,7 +1580,8 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
         pa_dbus_connection_unref(y->connection);
     }
 
-    pa_hook_done(&y->hook);
+    for (i = 0; i < PA_BLUETOOTH_HOOK_MAX; i++)
+        pa_hook_done(&y->hooks[i]);
 
     if (y->core)
         pa_shared_remove(y->core, "bluetooth-discovery");
@@ -1589,11 +1596,11 @@ void pa_bluetooth_discovery_sync(pa_bluetooth_discovery *y) {
     pa_dbus_sync_pending_list(&y->pending);
 }
 
-pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y) {
+pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook) {
     pa_assert(y);
     pa_assert(PA_REFCNT_VALUE(y) > 0);
 
-    return &y->hook;
+    return &y->hooks[hook];
 }
 
 const char*pa_bluetooth_get_form_factor(uint32_t class) {

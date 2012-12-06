@@ -152,7 +152,8 @@ int pa__init(pa_module* m) {
     if (!(u->discovery = pa_bluetooth_discovery_get(u->core)))
         goto fail;
 
-    u->slot = pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery), PA_HOOK_NORMAL, (pa_hook_cb_t) load_module_for_device, u);
+    u->slot = pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED),
+                              PA_HOOK_NORMAL, (pa_hook_cb_t) load_module_for_device, u);
 
     if (!async)
         pa_bluetooth_discovery_sync(u->discovery);
