@@ -68,6 +68,7 @@ struct pa_bluetooth_discovery {
     pa_dbus_connection *connection;
     PA_LLIST_HEAD(pa_dbus_pending, pending);
     pa_hashmap *devices;
+    pa_hashmap *transports;
     pa_hook hook;
     pa_bool_t filter_added;
 };
@@ -167,6 +168,7 @@ static void device_free(pa_bluetooth_device *d) {
     pa_assert(d);
 
     while ((t = pa_hashmap_steal_first(d->transports))) {
+        pa_hashmap_remove(d->discovery->transports, t->path);
         pa_hook_fire(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED], NULL);
         transport_free(t);
     }
@@ -913,16 +915,10 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
     } else if (dbus_message_is_signal(m, "org.bluez.MediaTransport", "PropertyChanged")) {
-        pa_bluetooth_device *d;
-        pa_bluetooth_transport *t = NULL;
-        void *state = NULL;
+        pa_bluetooth_transport *t;
         DBusMessageIter arg_i;
 
-        while ((d = pa_hashmap_iterate(y->devices, &state, NULL)))
-            if ((t = pa_hashmap_get(d->transports, dbus_message_get_path(m))))
-                break;
-
-        if (!t)
+        if (!(t = pa_hashmap_get(y->transports, dbus_message_get_path(m))))
             goto fail;
 
         if (!dbus_message_iter_init(m, &arg_i)) {
@@ -1193,6 +1189,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     if (nrec)
         t->nrec = nrec;
     pa_hashmap_put(d->transports, t->path, t);
+    pa_hashmap_put(y->transports, t->path, t);
 
     pa_log_debug("Transport %s profile %d available", t->path, t->profile);
 
@@ -1209,9 +1206,7 @@ fail:
 
 static DBusMessage *endpoint_clear_configuration(DBusConnection *c, DBusMessage *m, void *userdata) {
     pa_bluetooth_discovery *y = userdata;
-    pa_bluetooth_device *d;
     pa_bluetooth_transport *t;
-    void *state = NULL;
     DBusMessage *r;
     DBusError e;
     const char *path;
@@ -1224,14 +1219,12 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *c, DBusMessage 
         goto fail;
     }
 
-    while ((d = pa_hashmap_iterate(y->devices, &state, NULL))) {
-        if ((t = pa_hashmap_get(d->transports, path))) {
-            pa_log_debug("Clearing transport %s profile %d", t->path, t->profile);
-            pa_hashmap_remove(d->transports, t->path);
-            pa_hook_fire(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED], NULL);
-            transport_free(t);
-            break;
-        }
+    if ((t = pa_hashmap_get(y->transports, path))) {
+        pa_log_debug("Clearing transport %s profile %d", t->path, t->profile);
+        pa_hashmap_remove(t->device->transports, t->path);
+        pa_hashmap_remove(y->transports, t->path);
+        pa_hook_fire(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED], NULL);
+        transport_free(t);
     }
 
     pa_assert_se(r = dbus_message_new_method_return(m));
@@ -1475,6 +1468,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     PA_REFCNT_INIT(y);
     y->core = c;
     y->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    y->transports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     PA_LLIST_HEAD_INIT(pa_dbus_pending, y->pending);
     pa_hook_init(&y->hook, y);
     pa_shared_set(c, "bluetooth-discovery", y);
@@ -1547,6 +1541,11 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
     if (y->devices) {
         remove_all_devices(y);
         pa_hashmap_free(y->devices, NULL, NULL);
+    }
+
+    if (y->transports) {
+        pa_assert(pa_hashmap_isempty(y->transports));
+        pa_hashmap_free(y->transports, NULL, NULL);
     }
 
     if (y->connection) {
