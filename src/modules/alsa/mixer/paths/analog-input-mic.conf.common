@@ -18,6 +18,9 @@
 ;
 ; See analog-output.conf.common for an explanation on the directives
 
+[Properties]
+device.icon_name = audio-input-microphone
+
 [Element Line]
 switch = off
 volume = off
