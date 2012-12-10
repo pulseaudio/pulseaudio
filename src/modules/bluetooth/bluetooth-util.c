@@ -455,12 +455,19 @@ static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i) {
     return 0;
 }
 
-static int parse_audio_property(pa_bluetooth_discovery *u, int *state, DBusMessageIter *i) {
+static int parse_audio_property(pa_bluetooth_device *d, const char *interface, DBusMessageIter *i) {
     const char *key;
     DBusMessageIter variant_i;
+    bool is_audio_interface;
+    enum profile p = PROFILE_OFF;
 
-    pa_assert(u);
-    pa_assert(state);
+    pa_assert(d);
+    pa_assert(interface);
+    pa_assert(i);
+
+    if (!(is_audio_interface = pa_streq(interface, "org.bluez.Audio")))
+        if (profile_from_interface(interface, &p) < 0)
+            return 0; /* Interface not known so silently ignore property */
 
     key = check_variant_property(i);
     if (key == NULL)
@@ -478,8 +485,21 @@ static int parse_audio_property(pa_bluetooth_discovery *u, int *state, DBusMessa
             dbus_message_iter_get_basic(&variant_i, &value);
 
             if (pa_streq(key, "State")) {
-                *state = pa_bt_audio_state_from_string(value);
-                pa_log_debug("dbus: property 'State' changed to value '%s'", value);
+                pa_bt_audio_state_t state = pa_bt_audio_state_from_string(value);
+
+                pa_log_debug("Device %s interface %s property 'State' changed to value '%s'", d->path, interface, value);
+
+                if (state == PA_BT_AUDIO_STATE_INVALID)
+                    return -1;
+
+                if (is_audio_interface) {
+                    d->audio_state = state;
+                    break;
+                }
+
+                pa_assert(p != PROFILE_OFF);
+
+                d->profile_state[p] = state;
             }
 
             break;
@@ -595,7 +615,6 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
 
         if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
             DBusMessageIter dict_i;
-            enum profile profile;
 
             dbus_message_iter_recurse(&element_i, &dict_i);
 
@@ -611,18 +630,9 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
                 if (parse_device_property(d, &dict_i) < 0)
                     goto finish;
 
-            } else if (dbus_message_has_interface(p->message, "org.bluez.Audio")) {
-                if (parse_audio_property(y, &d->audio_state, &dict_i) < 0)
-                    goto finish;
+            } else if (parse_audio_property(d, dbus_message_get_interface(p->message), &dict_i) < 0)
+                goto finish;
 
-            } else if (profile_from_interface(dbus_message_get_interface(p->message), &profile) >= 0) {
-                pa_bt_audio_state_t state;
-
-                if (parse_audio_property(y, &state, &dict_i) < 0)
-                    goto finish;
-
-                d->profile_state[profile] = state;
-            }
         }
 
         dbus_message_iter_next(&element_i);
@@ -863,7 +873,6 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
         if ((d = pa_hashmap_get(y->devices, dbus_message_get_path(m)))) {
             DBusMessageIter arg_i;
-            enum profile profile;
             bool old_any_connected = pa_bluetooth_device_any_audio_connected(d);
 
             if (!dbus_message_iter_init(m, &arg_i)) {
@@ -875,18 +884,8 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 if (parse_device_property(d, &arg_i) < 0)
                     goto fail;
 
-            } else if (dbus_message_has_interface(m, "org.bluez.Audio")) {
-                if (parse_audio_property(y, &d->audio_state, &arg_i) < 0)
-                    goto fail;
-
-            } else if (profile_from_interface(dbus_message_get_interface(m), &profile) >= 0) {
-                pa_bt_audio_state_t state;
-
-                if (parse_audio_property(y, &state, &arg_i) < 0)
-                    goto fail;
-
-                d->profile_state[profile] = state;
-            }
+            } else if (parse_audio_property(d, dbus_message_get_interface(m), &arg_i) < 0)
+                goto fail;
 
             if (old_any_connected != pa_bluetooth_device_any_audio_connected(d))
                 run_callback(d, FALSE);
