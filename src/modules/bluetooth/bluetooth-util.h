@@ -84,6 +84,12 @@ typedef enum pa_bluetooth_transport_hook {
     PA_BLUETOOTH_TRANSPORT_HOOK_MAX
 } pa_bluetooth_transport_hook_t;
 
+typedef enum pa_bluetooth_transport_state {
+    PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED,
+    PA_BLUETOOTH_TRANSPORT_STATE_IDLE, /* Connected but not playing */
+    PA_BLUETOOTH_TRANSPORT_STATE_PLAYING
+} pa_bluetooth_transport_state_t;
+
 struct pa_bluetooth_transport {
     pa_bluetooth_device *device;
     char *owner;
@@ -92,6 +98,8 @@ struct pa_bluetooth_transport {
     uint8_t codec;
     uint8_t *config;
     int config_size;
+
+    pa_bluetooth_transport_state_t state;
     pa_bool_t nrec;
 
     pa_hook hooks[PA_BLUETOOTH_TRANSPORT_HOOK_MAX];

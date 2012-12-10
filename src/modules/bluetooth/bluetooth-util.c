@@ -114,6 +114,21 @@ static int profile_from_interface(const char *interface, enum profile *p) {
     return -1;
 }
 
+static pa_bluetooth_transport_state_t pa_bt_audio_state_to_transport_state(pa_bt_audio_state_t state) {
+    switch (state) {
+        case PA_BT_AUDIO_STATE_INVALID: /* Typically if state hasn't been received yet */
+        case PA_BT_AUDIO_STATE_DISCONNECTED:
+        case PA_BT_AUDIO_STATE_CONNECTING:
+            return PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED;
+        case PA_BT_AUDIO_STATE_CONNECTED:
+            return PA_BLUETOOTH_TRANSPORT_STATE_IDLE;
+        case PA_BT_AUDIO_STATE_PLAYING:
+            return PA_BLUETOOTH_TRANSPORT_STATE_PLAYING;
+    }
+
+    pa_assert_not_reached();
+}
+
 static pa_bluetooth_uuid *uuid_new(const char *uuid) {
     pa_bluetooth_uuid *u;
 
@@ -456,6 +471,7 @@ static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i) {
 }
 
 static int parse_audio_property(pa_bluetooth_device *d, const char *interface, DBusMessageIter *i) {
+    pa_bluetooth_transport *transport;
     const char *key;
     DBusMessageIter variant_i;
     bool is_audio_interface;
@@ -472,6 +488,8 @@ static int parse_audio_property(pa_bluetooth_device *d, const char *interface, D
     key = check_variant_property(i);
     if (key == NULL)
         return -1;
+
+    transport = p == PROFILE_OFF ? NULL : d->transports[p];
 
     dbus_message_iter_recurse(i, &variant_i);
 
@@ -500,6 +518,11 @@ static int parse_audio_property(pa_bluetooth_device *d, const char *interface, D
                 pa_assert(p != PROFILE_OFF);
 
                 d->profile_state[p] = state;
+
+                if (!transport)
+                    break;
+
+                transport->state = pa_bt_audio_state_to_transport_state(state);
             }
 
             break;
@@ -1094,6 +1117,8 @@ static pa_bluetooth_transport *transport_new(pa_bluetooth_device *d, const char 
         t->config = pa_xnew(uint8_t, size);
         memcpy(t->config, config, size);
     }
+
+    t->state = pa_bt_audio_state_to_transport_state(d->profile_state[p]);
 
     for (i = 0; i < PA_BLUETOOTH_TRANSPORT_HOOK_MAX; i++)
         pa_hook_init(&t->hooks[i], t);
