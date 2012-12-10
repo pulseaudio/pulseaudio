@@ -74,6 +74,8 @@ struct pa_bluetooth_hook_uuid_data {
 typedef enum pa_bluetooth_hook {
     PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED, /* Call data: pa_bluetooth_device */
     PA_BLUETOOTH_HOOK_DEVICE_UUID_ADDED, /* Call data: pa_bluetooth_hook_uuid_data */
+    PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED, /* Call data: pa_bluetooth_transport */
+    PA_BLUETOOTH_HOOK_TRANSPORT_NREC_CHANGED, /* Call data: pa_bluetooth_transport */
     PA_BLUETOOTH_HOOK_MAX
 } pa_bluetooth_hook_t;
 

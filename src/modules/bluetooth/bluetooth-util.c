@@ -204,6 +204,8 @@ static void device_free(pa_bluetooth_device *d) {
 
         d->transports[i] = NULL;
         pa_hashmap_remove(d->discovery->transports, t->path);
+        t->state = PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED;
+        pa_hook_fire(&d->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], t);
         pa_hook_fire(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED], NULL);
         transport_free(t);
     }
@@ -504,6 +506,7 @@ static int parse_audio_property(pa_bluetooth_device *d, const char *interface, D
 
             if (pa_streq(key, "State")) {
                 pa_bt_audio_state_t state = pa_bt_audio_state_from_string(value);
+                pa_bluetooth_transport_state_t old_state;
 
                 pa_log_debug("Device %s interface %s property 'State' changed to value '%s'", d->path, interface, value);
 
@@ -522,7 +525,11 @@ static int parse_audio_property(pa_bluetooth_device *d, const char *interface, D
                 if (!transport)
                     break;
 
+                old_state = transport->state;
                 transport->state = pa_bt_audio_state_to_transport_state(state);
+
+                if (transport->state != old_state)
+                    pa_hook_fire(&d->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], transport);
             }
 
             break;
@@ -815,6 +822,7 @@ static int pa_bluetooth_transport_parse_property(pa_bluetooth_transport *t, DBus
             if (pa_streq(key, "NREC") && t->nrec != value) {
                 t->nrec = value;
                 pa_log_debug("Transport %s: Property 'NREC' changed to %s.", t->path, t->nrec ? "True" : "False");
+                pa_hook_fire(&t->device->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_NREC_CHANGED], t);
                 pa_hook_fire(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_NREC_CHANGED], NULL);
             }
 
@@ -1251,6 +1259,8 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *c, DBusMessage 
         pa_log_debug("Clearing transport %s profile %d", t->path, t->profile);
         t->device->transports[t->profile] = NULL;
         pa_hashmap_remove(y->transports, t->path);
+        t->state = PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED;
+        pa_hook_fire(&y->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], t);
         pa_hook_fire(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED], NULL);
         transport_free(t);
     }
