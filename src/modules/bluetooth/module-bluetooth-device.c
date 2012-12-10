@@ -124,7 +124,6 @@ struct hsp_info {
     void (*sco_source_set_volume)(pa_source *s);
     pa_hook_slot *sink_state_changed_slot;
     pa_hook_slot *source_state_changed_slot;
-    pa_hook_slot *nrec_changed_slot;
 };
 
 struct bluetooth_msg {
@@ -148,6 +147,7 @@ struct userdata {
     char *accesstype;
     pa_hook_slot *discovery_slot;
     pa_hook_slot *transport_state_changed_slot;
+    pa_hook_slot *transport_nrec_changed_slot;
 
     pa_bluetooth_discovery *discovery;
     pa_bool_t auto_connect;
@@ -1578,11 +1578,14 @@ static pa_hook_result_t source_state_changed_cb(pa_core *c, pa_source *s, struct
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t nrec_changed_cb(pa_bluetooth_transport *t, void *call_data, struct userdata *u) {
+static pa_hook_result_t transport_nrec_changed_cb(pa_bluetooth_discovery *y, pa_bluetooth_transport *t, struct userdata *u) {
     pa_proplist *p;
 
     pa_assert(t);
     pa_assert(u);
+
+    if (t != u->transport)
+        return PA_HOOK_OK;
 
     p = pa_proplist_new();
     pa_proplist_sets(p, "bluetooth.nrec", t->nrec ? "1" : "0");
@@ -1813,9 +1816,6 @@ static int add_source(struct userdata *u) {
     if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW)) {
         pa_bluetooth_transport *t = u->transport;
         pa_proplist_sets(u->source->proplist, "bluetooth.nrec", t->nrec ? "1" : "0");
-
-        if (!u->hsp.nrec_changed_slot)
-            u->hsp.nrec_changed_slot = pa_hook_connect(&t->hooks[PA_BLUETOOTH_TRANSPORT_HOOK_NREC_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) nrec_changed_cb, u);
     }
 
     if (u->profile == PROFILE_HSP) {
@@ -2045,11 +2045,6 @@ static void stop_thread(struct userdata *u) {
     if (u->hsp.source_state_changed_slot) {
         pa_hook_slot_free(u->hsp.source_state_changed_slot);
         u->hsp.source_state_changed_slot = NULL;
-    }
-
-    if (u->hsp.nrec_changed_slot) {
-        pa_hook_slot_free(u->hsp.nrec_changed_slot);
-        u->hsp.nrec_changed_slot = NULL;
     }
 
     if (u->transport) {
@@ -2645,6 +2640,10 @@ int pa__init(pa_module* m) {
         pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED),
                         PA_HOOK_NORMAL, (pa_hook_cb_t) transport_state_changed_cb, u);
 
+    u->transport_nrec_changed_slot =
+        pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_NREC_CHANGED),
+                        PA_HOOK_NORMAL, (pa_hook_cb_t) transport_nrec_changed_cb, u);
+
     /* Add the card structure. This will also initialize the default profile */
     if (add_card(u) < 0)
         goto fail;
@@ -2737,6 +2736,9 @@ void pa__done(pa_module *m) {
 
     if (u->transport_state_changed_slot)
         pa_hook_slot_free(u->transport_state_changed_slot);
+
+    if (u->transport_nrec_changed_slot)
+        pa_hook_slot_free(u->transport_nrec_changed_slot);
 
     if (USE_SCO_OVER_PCM(u))
         restore_sco_volume_callbacks(u);
