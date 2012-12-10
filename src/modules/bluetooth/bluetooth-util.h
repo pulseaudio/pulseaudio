@@ -79,13 +79,6 @@ typedef enum pa_bluetooth_hook {
     PA_BLUETOOTH_HOOK_MAX
 } pa_bluetooth_hook_t;
 
-/* Hook data: pa_bluetooth_transport pointer. */
-typedef enum pa_bluetooth_transport_hook {
-    PA_BLUETOOTH_TRANSPORT_HOOK_NREC_CHANGED, /* Call data: NULL. */
-    PA_BLUETOOTH_TRANSPORT_HOOK_REMOVED, /* Call data: NULL. */
-    PA_BLUETOOTH_TRANSPORT_HOOK_MAX
-} pa_bluetooth_transport_hook_t;
-
 typedef enum pa_bluetooth_transport_state {
     PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED,
     PA_BLUETOOTH_TRANSPORT_STATE_IDLE, /* Connected but not playing */
@@ -103,8 +96,6 @@ struct pa_bluetooth_transport {
 
     pa_bluetooth_transport_state_t state;
     pa_bool_t nrec;
-
-    pa_hook hooks[PA_BLUETOOTH_TRANSPORT_HOOK_MAX];
 };
 
 /* This enum is shared among Audio, Headset, AudioSink, and AudioSource, although not all values are acceptable in all profiles */
