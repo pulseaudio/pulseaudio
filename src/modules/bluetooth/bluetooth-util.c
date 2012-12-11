@@ -114,7 +114,7 @@ static int profile_from_interface(const char *interface, enum profile *p) {
     return -1;
 }
 
-static pa_bluetooth_transport_state_t pa_bt_audio_state_to_transport_state(pa_bt_audio_state_t state) {
+static pa_bluetooth_transport_state_t audio_state_to_transport_state(pa_bt_audio_state_t state) {
     switch (state) {
         case PA_BT_AUDIO_STATE_INVALID: /* Typically if state hasn't been received yet */
         case PA_BT_AUDIO_STATE_DISCONNECTED:
@@ -520,7 +520,7 @@ static int parse_audio_property(pa_bluetooth_device *d, const char *interface, D
                     break;
 
                 old_state = transport->state;
-                transport->state = pa_bt_audio_state_to_transport_state(state);
+                transport->state = audio_state_to_transport_state(state);
 
                 if (transport->state != old_state)
                     pa_hook_fire(&d->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], transport);
@@ -796,7 +796,7 @@ static void list_adapters(pa_bluetooth_discovery *y) {
     send_and_add_to_pending(y, m, get_properties_reply, NULL);
 }
 
-static int pa_bluetooth_transport_parse_property(pa_bluetooth_transport *t, DBusMessageIter *i) {
+static int transport_parse_property(pa_bluetooth_transport *t, DBusMessageIter *i) {
     const char *key;
     DBusMessageIter variant_i;
 
@@ -954,7 +954,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             goto fail;
         }
 
-        if (pa_bluetooth_transport_parse_property(t, &arg_i) < 0)
+        if (transport_parse_property(t, &arg_i) < 0)
             goto fail;
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
@@ -1118,7 +1118,7 @@ static pa_bluetooth_transport *transport_new(pa_bluetooth_device *d, const char 
         memcpy(t->config, config, size);
     }
 
-    t->state = pa_bt_audio_state_to_transport_state(d->profile_state[p]);
+    t->state = audio_state_to_transport_state(d->profile_state[p]);
 
     return t;
 }
