@@ -122,8 +122,6 @@ struct hsp_info {
     void (*sco_sink_set_volume)(pa_sink *s);
     pa_source *sco_source;
     void (*sco_source_set_volume)(pa_source *s);
-    pa_hook_slot *sink_state_changed_slot;
-    pa_hook_slot *source_state_changed_slot;
 };
 
 struct bluetooth_msg {
@@ -146,6 +144,8 @@ struct userdata {
     pa_bluetooth_transport *transport;
     char *accesstype;
     pa_hook_slot *discovery_slot;
+    pa_hook_slot *sink_state_changed_slot;
+    pa_hook_slot *source_state_changed_slot;
     pa_hook_slot *transport_state_changed_slot;
     pa_hook_slot *transport_nrec_changed_slot;
 
@@ -1557,7 +1557,7 @@ static pa_hook_result_t sink_state_changed_cb(pa_core *c, pa_sink *s, struct use
     pa_sink_assert_ref(s);
     pa_assert(u);
 
-    if (s != u->hsp.sco_sink)
+    if (!USE_SCO_OVER_PCM(u) || s != u->hsp.sco_sink)
         return PA_HOOK_OK;
 
     sco_over_pcm_state_update(u, TRUE);
@@ -1570,7 +1570,7 @@ static pa_hook_result_t source_state_changed_cb(pa_core *c, pa_source *s, struct
     pa_source_assert_ref(s);
     pa_assert(u);
 
-    if (s != u->hsp.sco_source)
+    if (!USE_SCO_OVER_PCM(u) || s != u->hsp.sco_source)
         return PA_HOOK_OK;
 
     sco_over_pcm_state_update(u, TRUE);
@@ -1684,10 +1684,6 @@ static int add_sink(struct userdata *u) {
         pa_proplist_sets(p, "bluetooth.protocol", profile_to_string(u->profile));
         pa_proplist_update(u->sink->proplist, PA_UPDATE_MERGE, p);
         pa_proplist_free(p);
-
-        if (!u->hsp.sink_state_changed_slot)
-            u->hsp.sink_state_changed_slot = pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_state_changed_cb, u);
-
     } else {
         pa_sink_new_data data;
         pa_bool_t b;
@@ -1758,10 +1754,6 @@ static int add_source(struct userdata *u) {
     if (USE_SCO_OVER_PCM(u)) {
         u->source = u->hsp.sco_source;
         pa_proplist_sets(u->source->proplist, "bluetooth.protocol", profile_to_string(u->profile));
-
-        if (!u->hsp.source_state_changed_slot)
-            u->hsp.source_state_changed_slot = pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) source_state_changed_cb, u);
-
     } else {
         pa_source_new_data data;
         pa_bool_t b;
@@ -2035,16 +2027,6 @@ static void stop_thread(struct userdata *u) {
     if (u->rtpoll_item) {
         pa_rtpoll_item_free(u->rtpoll_item);
         u->rtpoll_item = NULL;
-    }
-
-    if (u->hsp.sink_state_changed_slot) {
-        pa_hook_slot_free(u->hsp.sink_state_changed_slot);
-        u->hsp.sink_state_changed_slot = NULL;
-    }
-
-    if (u->hsp.source_state_changed_slot) {
-        pa_hook_slot_free(u->hsp.source_state_changed_slot);
-        u->hsp.source_state_changed_slot = NULL;
     }
 
     if (u->transport) {
@@ -2636,6 +2618,14 @@ int pa__init(pa_module* m) {
         pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_DEVICE_UUID_ADDED),
                         PA_HOOK_NORMAL, (pa_hook_cb_t) uuid_added_cb, u);
 
+    u->sink_state_changed_slot =
+        pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED],
+                        PA_HOOK_NORMAL, (pa_hook_cb_t) sink_state_changed_cb, u);
+
+    u->source_state_changed_slot =
+        pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED],
+                        PA_HOOK_NORMAL, (pa_hook_cb_t) source_state_changed_cb, u);
+
     u->transport_state_changed_slot =
         pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED),
                         PA_HOOK_NORMAL, (pa_hook_cb_t) transport_state_changed_cb, u);
@@ -2734,6 +2724,15 @@ void pa__done(pa_module *m) {
     if (u->discovery_slot)
         pa_hook_slot_free(u->discovery_slot);
 
+    if (u->uuid_added_slot)
+        pa_hook_slot_free(u->uuid_added_slot);
+
+    if (u->sink_state_changed_slot)
+        pa_hook_slot_free(u->sink_state_changed_slot);
+
+    if (u->source_state_changed_slot)
+        pa_hook_slot_free(u->source_state_changed_slot);
+
     if (u->transport_state_changed_slot)
         pa_hook_slot_free(u->transport_state_changed_slot);
 
@@ -2764,9 +2763,6 @@ void pa__done(pa_module *m) {
 
         pa_dbus_connection_unref(u->connection);
     }
-
-    if (u->uuid_added_slot)
-        pa_hook_slot_free(u->uuid_added_slot);
 
     if (u->msg)
         pa_xfree(u->msg);
