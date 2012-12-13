@@ -2138,9 +2138,9 @@ char *pa_make_path_absolute(const char *p) {
     return r;
 }
 
-/* if fn is null return the PulseAudio run time path in s (~/.pulse)
- * if fn is non-null and starts with / return fn
- * otherwise append fn to the run time path and return it */
+/* If fn is NULL, return the PulseAudio runtime or state dir (depending on the
+ * rt parameter). If fn is non-NULL and starts with /, return fn. Otherwise,
+ * append fn to the runtime/state dir and return it. */
 static char *get_path(const char *fn, pa_bool_t prependmid, pa_bool_t rt) {
     char *rtp;
 
