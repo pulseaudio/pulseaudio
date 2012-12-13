@@ -1072,7 +1072,8 @@ modlibexec_LTLIBRARIES += \
 		module-switch-on-connect.la \
 		module-switch-on-port-available.la \
 		module-filter-apply.la \
-		module-filter-heuristics.la
+		module-filter-heuristics.la \
+		module-role-ducking.la
 
 if HAVE_ESOUND
 modlibexec_LTLIBRARIES += \
@@ -1380,6 +1381,7 @@ SYMDEF_FILES = \
 		module-raop-discover-symdef.h \
 		module-gconf-symdef.h \
 		module-position-event-sounds-symdef.h \
+		module-role-ducking-symdef.h \
 		module-augment-properties-symdef.h \
 		module-role-cork-symdef.h \
 		module-console-kit-symdef.h \
@@ -1776,6 +1778,12 @@ module_position_event_sounds_la_SOURCES = modules/module-position-event-sounds.c
 module_position_event_sounds_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_position_event_sounds_la_LIBADD = $(MODULE_LIBADD)
 module_position_event_sounds_la_CFLAGS = $(AM_CFLAGS)
+
+# Ducking effect based on stream roles
+module_role_ducking_la_SOURCES = modules/module-role-ducking.c
+module_role_ducking_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_role_ducking_la_LIBADD = $(MODULE_LIBADD)
+module_role_ducking_la_CFLAGS = $(AM_CFLAGS)
 
 # Augment properties from XDG .desktop files
 module_augment_properties_la_SOURCES = modules/module-augment-properties.c
