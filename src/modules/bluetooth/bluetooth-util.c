@@ -1087,7 +1087,8 @@ bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d) {
         d->profile_state[PROFILE_HFGW] >= PA_BT_AUDIO_STATE_CONNECTED;
 }
 
-int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, const char *accesstype, size_t *imtu, size_t *omtu) {
+int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu) {
+    const char *accesstype = "rw";
     DBusMessage *m, *r;
     DBusError err;
     int ret;
@@ -1096,6 +1097,20 @@ int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, const char *access
     pa_assert(t);
     pa_assert(t->device);
     pa_assert(t->device->discovery);
+
+    if (optional) {
+        /* FIXME: we are trying to acquire the transport only if the stream is
+           playing, without actually initiating the stream request from our side
+           (which is typically undesireable specially for hfgw use-cases.
+           However this approach is racy, since the stream could have been
+           suspended in the meantime, so we can't really guarantee that the
+           stream will not be requested until BlueZ's API supports this
+           atomically. */
+        if (t->state < PA_BLUETOOTH_TRANSPORT_STATE_PLAYING) {
+            pa_log_info("Failed optional acquire of transport %s", t->path);
+            return -1;
+        }
+    }
 
     dbus_error_init(&err);
 
@@ -1126,7 +1141,8 @@ fail:
     return ret;
 }
 
-void pa_bluetooth_transport_release(pa_bluetooth_transport *t, const char *accesstype) {
+void pa_bluetooth_transport_release(pa_bluetooth_transport *t) {
+    const char *accesstype = "rw";
     DBusMessage *m;
     DBusError err;
 

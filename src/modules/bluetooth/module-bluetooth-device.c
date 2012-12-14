@@ -141,7 +141,7 @@ struct userdata {
     char *address;
     char *path;
     pa_bluetooth_transport *transport;
-    char *accesstype;
+    bool transport_acquired;
     pa_hook_slot *discovery_slot;
     pa_hook_slot *sink_state_changed_slot;
     pa_hook_slot *source_state_changed_slot;
@@ -322,7 +322,7 @@ static void setup_stream(struct userdata *u) {
 }
 
 static bool bt_transport_is_acquired(struct userdata *u) {
-    if (u->accesstype == NULL) {
+    if (!u->transport_acquired) {
         pa_assert(u->stream_fd < 0);
         return FALSE;
     } else {
@@ -359,17 +359,14 @@ static void bt_transport_release(struct userdata *u) {
 
     pa_log_debug("Releasing transport %s", u->transport->path);
 
-    pa_bluetooth_transport_release(u->transport, u->accesstype);
+    pa_bluetooth_transport_release(u->transport);
 
-    pa_xfree(u->accesstype);
-    u->accesstype = NULL;
+    u->transport_acquired = false;
 
     teardown_stream(u);
 }
 
 static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
-    const char *accesstype = "rw";
-
     pa_assert(u->transport);
 
     if (bt_transport_is_acquired(u)) {
@@ -380,21 +377,7 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
 
     pa_log_debug("Acquiring transport %s", u->transport->path);
 
-    if (!start) {
-        /* FIXME: we are trying to acquire the transport only if the stream is
-           playing, without actually initiating the stream request from our side
-           (which is typically undesireable specially for hfgw use-cases.
-           However this approach is racy, since the stream could have been
-           suspended in the meantime, so we can't really guarantee that the
-           stream will not be requested until BlueZ's API supports this
-           atomically. */
-        if (u->device->profile_state[u->profile] < PA_BT_AUDIO_STATE_PLAYING) {
-            pa_log_info("Failed optional acquire of transport %s", u->transport->path);
-            return -1;
-        }
-    }
-
-    u->stream_fd = pa_bluetooth_transport_acquire(u->transport, accesstype, &u->read_link_mtu, &u->write_link_mtu);
+    u->stream_fd = pa_bluetooth_transport_acquire(u->transport, !start, &u->read_link_mtu, &u->write_link_mtu);
     if (u->stream_fd < 0) {
         if (start)
             pa_log("Failed to acquire transport %s", u->transport->path);
@@ -404,7 +387,7 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
         return -1;
     }
 
-    u->accesstype = pa_xstrdup(accesstype);
+    u->transport_acquired = true;
     pa_log_info("Transport %s acquired: fd %d", u->transport->path, u->stream_fd);
 
     if (!start)

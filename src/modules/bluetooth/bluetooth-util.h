@@ -148,8 +148,8 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_by_address(pa_bluetooth_discover
 
 bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d);
 
-int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, const char *accesstype, size_t *imtu, size_t *omtu);
-void pa_bluetooth_transport_release(pa_bluetooth_transport *t, const char *accesstype);
+int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu);
+void pa_bluetooth_transport_release(pa_bluetooth_transport *t);
 
 void pa_bluetooth_transport_set_microphone_gain(pa_bluetooth_transport *t, uint16_t value);
 void pa_bluetooth_transport_set_speaker_gain(pa_bluetooth_transport *t, uint16_t value);
