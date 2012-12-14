@@ -549,6 +549,21 @@ static int parse_audio_property(pa_bluetooth_device *d, const char *interface, D
 
                 transport->microphone_gain = gain;
                 pa_hook_fire(&d->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_MICROPHONE_GAIN_CHANGED], transport);
+            } else if (pa_streq(key, "SpeakerGain")) {
+                uint16_t gain;
+
+                pa_log_debug("dbus: property '%s' changed to value '%u'", key, value);
+
+                if (!transport) {
+                    pa_log("Volume change does not have an associated transport");
+                    return -1;
+                }
+
+                if ((gain = PA_MIN(value, HSP_MAX_GAIN)) == transport->speaker_gain)
+                    break;
+
+                transport->speaker_gain = gain;
+                pa_hook_fire(&d->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_SPEAKER_GAIN_CHANGED], transport);
             }
 
             break;
@@ -1139,6 +1154,16 @@ void pa_bluetooth_transport_set_microphone_gain(pa_bluetooth_transport *t, uint1
 
     set_property(t->device->discovery, "org.bluez", t->device->path, "org.bluez.Headset",
                  "MicrophoneGain", DBUS_TYPE_UINT16, &gain);
+}
+
+void pa_bluetooth_transport_set_speaker_gain(pa_bluetooth_transport *t, uint16_t value) {
+    dbus_uint16_t gain = PA_MIN(value, HSP_MAX_GAIN);
+
+    pa_assert(t);
+    pa_assert(t->profile == PROFILE_HSP);
+
+    set_property(t->device->discovery, "org.bluez", t->device->path, "org.bluez.Headset",
+                 "SpeakerGain", DBUS_TYPE_UINT16, &gain);
 }
 
 static int setup_dbus(pa_bluetooth_discovery *y) {

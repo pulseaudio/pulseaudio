@@ -79,6 +79,7 @@ typedef enum pa_bluetooth_hook {
     PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED, /* Call data: pa_bluetooth_transport */
     PA_BLUETOOTH_HOOK_TRANSPORT_NREC_CHANGED, /* Call data: pa_bluetooth_transport */
     PA_BLUETOOTH_HOOK_TRANSPORT_MICROPHONE_GAIN_CHANGED, /* Call data: pa_bluetooth_transport */
+    PA_BLUETOOTH_HOOK_TRANSPORT_SPEAKER_GAIN_CHANGED, /* Call data: pa_bluetooth_transport */
     PA_BLUETOOTH_HOOK_MAX
 } pa_bluetooth_hook_t;
 
@@ -100,6 +101,7 @@ struct pa_bluetooth_transport {
     pa_bluetooth_transport_state_t state;
     pa_bool_t nrec;
     uint16_t microphone_gain; /* Used for HSP/HFP */
+    uint16_t speaker_gain; /* Used for HSP/HFP */
 };
 
 /* This enum is shared among Audio, Headset, AudioSink, and AudioSource, although not all values are acceptable in all profiles */
@@ -150,6 +152,7 @@ int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, const char *access
 void pa_bluetooth_transport_release(pa_bluetooth_transport *t, const char *accesstype);
 
 void pa_bluetooth_transport_set_microphone_gain(pa_bluetooth_transport *t, uint16_t value);
+void pa_bluetooth_transport_set_speaker_gain(pa_bluetooth_transport *t, uint16_t value);
 
 pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook);
 
