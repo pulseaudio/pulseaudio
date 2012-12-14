@@ -351,7 +351,7 @@ static void bt_transport_release(struct userdata *u) {
     teardown_stream(u);
 }
 
-static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
+static int bt_transport_acquire(struct userdata *u, pa_bool_t optional) {
     pa_assert(u->transport);
 
     if (u->transport_acquired)
@@ -359,9 +359,9 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
 
     pa_log_debug("Acquiring transport %s", u->transport->path);
 
-    u->stream_fd = pa_bluetooth_transport_acquire(u->transport, !start, &u->read_link_mtu, &u->write_link_mtu);
+    u->stream_fd = pa_bluetooth_transport_acquire(u->transport, optional, &u->read_link_mtu, &u->write_link_mtu);
     if (u->stream_fd < 0) {
-        if (start)
+        if (!optional)
             pa_log("Failed to acquire transport %s", u->transport->path);
         else
             pa_log_info("Failed optional acquire of transport %s", u->transport->path);
@@ -411,7 +411,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                     /* Resume the device if the source was suspended as well */
                     if (!u->source || !PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
-                        if (bt_transport_acquire(u, TRUE) < 0)
+                        if (bt_transport_acquire(u, false) < 0)
                             failed = TRUE;
                         else
                             setup_stream(u);
@@ -488,7 +488,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
                     /* Resume the device if the sink was suspended as well */
                     if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
-                        if (bt_transport_acquire(u, TRUE) < 0)
+                        if (bt_transport_acquire(u, false) < 0)
                             failed = TRUE;
                         else
                             setup_stream(u);
@@ -1286,7 +1286,7 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
     }
 
     if (acquire)
-        if (bt_transport_acquire(u, FALSE) >= 0) {
+        if (bt_transport_acquire(u, true) >= 0) {
             if (u->source) {
                 pa_log_debug("Resuming source %s, because the bluetooth audio state changed to 'playing'.", u->source->name);
                 pa_source_suspend(u->source, FALSE, PA_SUSPEND_IDLE|PA_SUSPEND_USER);
@@ -1416,7 +1416,7 @@ static int sco_over_pcm_state_update(struct userdata *u, pa_bool_t changed) {
             return -1;
         }
 
-        if (bt_transport_acquire(u, TRUE) < 0)
+        if (bt_transport_acquire(u, false) < 0)
             return -1;
 
         setup_stream(u);
@@ -1880,8 +1880,8 @@ static int setup_transport(struct userdata *u) {
     u->transport = t;
 
     if (u->profile == PROFILE_A2DP_SOURCE || u->profile == PROFILE_HFGW)
-        bt_transport_acquire(u, FALSE); /* In case of error, the sink/sources will be created suspended */
-    else if (bt_transport_acquire(u, TRUE) < 0)
+        bt_transport_acquire(u, true); /* In case of error, the sink/sources will be created suspended */
+    else if (bt_transport_acquire(u, false) < 0)
         return -1; /* We need to fail here until the interactions with module-suspend-on-idle and alike get improved */
 
     bt_transport_config(u);
