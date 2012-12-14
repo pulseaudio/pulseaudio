@@ -60,7 +60,6 @@
 
 #define BITPOOL_DEC_LIMIT 32
 #define BITPOOL_DEC_STEP 5
-#define HSP_MAX_GAIN 15
 
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Bluetooth audio sink and source");

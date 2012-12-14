@@ -43,6 +43,8 @@
 #define A2DP_SOURCE_UUID        "0000110a-0000-1000-8000-00805f9b34fb"
 #define A2DP_SINK_UUID          "0000110b-0000-1000-8000-00805f9b34fb"
 
+#define HSP_MAX_GAIN 15
+
 typedef struct pa_bluetooth_uuid pa_bluetooth_uuid;
 typedef struct pa_bluetooth_device pa_bluetooth_device;
 typedef struct pa_bluetooth_discovery pa_bluetooth_discovery;
@@ -76,6 +78,7 @@ typedef enum pa_bluetooth_hook {
     PA_BLUETOOTH_HOOK_DEVICE_UUID_ADDED, /* Call data: pa_bluetooth_hook_uuid_data */
     PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED, /* Call data: pa_bluetooth_transport */
     PA_BLUETOOTH_HOOK_TRANSPORT_NREC_CHANGED, /* Call data: pa_bluetooth_transport */
+    PA_BLUETOOTH_HOOK_TRANSPORT_MICROPHONE_GAIN_CHANGED, /* Call data: pa_bluetooth_transport */
     PA_BLUETOOTH_HOOK_MAX
 } pa_bluetooth_hook_t;
 
@@ -96,6 +99,7 @@ struct pa_bluetooth_transport {
 
     pa_bluetooth_transport_state_t state;
     pa_bool_t nrec;
+    uint16_t microphone_gain; /* Used for HSP/HFP */
 };
 
 /* This enum is shared among Audio, Headset, AudioSink, and AudioSource, although not all values are acceptable in all profiles */
@@ -144,6 +148,8 @@ bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d);
 
 int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, const char *accesstype, size_t *imtu, size_t *omtu);
 void pa_bluetooth_transport_release(pa_bluetooth_transport *t, const char *accesstype);
+
+void pa_bluetooth_transport_set_microphone_gain(pa_bluetooth_transport *t, uint16_t value);
 
 pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook);
 
