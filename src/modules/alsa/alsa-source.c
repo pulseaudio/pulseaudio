@@ -1731,6 +1731,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     struct userdata *u = NULL;
     const char *dev_id = NULL, *key, *mod_name;
     pa_sample_spec ss;
+    char *thread_name = NULL;
     uint32_t alternate_sample_rate;
     pa_channel_map map;
     uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark;
@@ -2058,10 +2059,13 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
 
     pa_alsa_dump(PA_LOG_DEBUG, u->pcm_handle);
 
-    if (!(u->thread = pa_thread_new("alsa-source", thread_func, u))) {
+    thread_name = pa_sprintf_malloc("alsa-source-%s", pa_strnull(pa_proplist_gets(u->source->proplist, "alsa.id")));
+    if (!(u->thread = pa_thread_new(thread_name, thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
     }
+    pa_xfree(thread_name);
+    thread_name = NULL;
 
     /* Get initial mixer settings */
     if (data.volume_is_set) {
@@ -2091,6 +2095,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     return u->source;
 
 fail:
+    pa_xfree(thread_name);
 
     if (u)
         userdata_free(u);
