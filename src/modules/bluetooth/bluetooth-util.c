@@ -93,6 +93,23 @@ pa_bt_audio_state_t pa_bt_audio_state_from_string(const char* value) {
     return PA_BT_AUDIO_STATE_INVALID;
 }
 
+const char *pa_bt_profile_to_string(enum profile profile) {
+    switch(profile) {
+        case PROFILE_A2DP:
+            return "a2dp";
+        case PROFILE_A2DP_SOURCE:
+            return "a2dp_source";
+        case PROFILE_HSP:
+            return "hsp";
+        case PROFILE_HFGW:
+            return "hfgw";
+        case PROFILE_OFF:
+            pa_assert_not_reached();
+    }
+
+    pa_assert_not_reached();
+}
+
 static int profile_from_interface(const char *interface, enum profile *p) {
     pa_assert(interface);
     pa_assert(p);

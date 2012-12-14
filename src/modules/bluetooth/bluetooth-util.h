@@ -162,5 +162,6 @@ char *pa_bluetooth_cleanup_name(const char *name);
 
 pa_bool_t pa_bluetooth_uuid_has(pa_bluetooth_uuid *uuids, const char *uuid);
 pa_bt_audio_state_t pa_bt_audio_state_from_string(const char* value);
+const char *pa_bt_profile_to_string(enum profile profile);
 
 #endif
