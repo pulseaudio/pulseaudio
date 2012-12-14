@@ -539,8 +539,12 @@ static int parse_audio_property(pa_bluetooth_device *d, const char *interface, D
                 old_state = transport->state;
                 transport->state = audio_state_to_transport_state(state);
 
-                if (transport->state != old_state)
+                if (transport->state != old_state) {
+                    pa_log_debug("profile=%s, transport=%s, new_state=%d", pa_bt_profile_to_string(transport->profile),
+                                 transport->path, transport->state);
+
                     pa_hook_fire(&d->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], transport);
+                }
             }
 
             break;

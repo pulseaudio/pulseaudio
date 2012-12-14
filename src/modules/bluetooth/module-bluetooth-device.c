@@ -1216,77 +1216,37 @@ finish:
     pa_log_debug("IO thread shutting down");
 }
 
-static pa_bt_audio_state_t parse_state_property_change(DBusMessage *m) {
-    DBusMessageIter iter;
-    DBusMessageIter variant;
-    const char *key;
-    const char *value;
-    pa_bt_audio_state_t state;
-
-    if (!dbus_message_iter_init(m, &iter)) {
-        pa_log("Failed to parse PropertyChanged");
-        return PA_BT_AUDIO_STATE_INVALID;
-    }
-
-    if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) {
-        pa_log("Property name not a string");
-        return PA_BT_AUDIO_STATE_INVALID;
-    }
-
-    dbus_message_iter_get_basic(&iter, &key);
-
-    if (!pa_streq(key, "State"))
-        return PA_BT_AUDIO_STATE_INVALID;
-
-    if (!dbus_message_iter_next(&iter)) {
-        pa_log("Property value missing");
-        return PA_BT_AUDIO_STATE_INVALID;
-    }
-
-    dbus_message_iter_recurse(&iter, &variant);
-
-    if (dbus_message_iter_get_arg_type(&variant) != DBUS_TYPE_STRING) {
-        pa_log("Property value not a string");
-        return PA_BT_AUDIO_STATE_INVALID;
-    }
-
-    dbus_message_iter_get_basic(&variant, &value);
-
-    pa_log_debug("dbus: %s property 'State' changed to value '%s'", dbus_message_get_interface(m), value);
-
-    state = pa_bt_audio_state_from_string(value);
-
-    if (state == PA_BT_AUDIO_STATE_INVALID)
-        pa_log("Unexpected value for property 'State': '%s'", value);
-
-    return state;
-}
-
-static pa_port_available_t audio_state_to_availability(pa_bt_audio_state_t state) {
-    if (state < PA_BT_AUDIO_STATE_CONNECTED)
+static pa_port_available_t transport_state_to_availability(pa_bluetooth_transport_state_t state) {
+    if (state == PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
         return PA_PORT_AVAILABLE_NO;
-    else if (state >= PA_BT_AUDIO_STATE_PLAYING)
+    else if (state >= PA_BLUETOOTH_TRANSPORT_STATE_PLAYING)
         return PA_PORT_AVAILABLE_YES;
     else
         return PA_PORT_AVAILABLE_UNKNOWN;
 }
 
-static pa_port_available_t audio_state_to_availability_merged(pa_bt_audio_state_t state1, pa_bt_audio_state_t state2) {
-    if (state1 < PA_BT_AUDIO_STATE_CONNECTED && state2 < PA_BT_AUDIO_STATE_CONNECTED)
+static pa_port_available_t transport_state_to_availability_merged(pa_bluetooth_transport_state_t state1,
+                                                                  pa_bluetooth_transport_state_t state2) {
+    if (state1 == PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED && state2 == PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
         return PA_PORT_AVAILABLE_NO;
-    else if (state1 >= PA_BT_AUDIO_STATE_PLAYING || state2 >= PA_BT_AUDIO_STATE_PLAYING)
+    else if (state1 >= PA_BLUETOOTH_TRANSPORT_STATE_PLAYING || state2 >= PA_BLUETOOTH_TRANSPORT_STATE_PLAYING)
         return PA_PORT_AVAILABLE_YES;
     else
         return PA_PORT_AVAILABLE_UNKNOWN;
 }
 
 /* Run from main thread */
-static void handle_profile_state_change(struct userdata *u, enum profile profile, pa_bt_audio_state_t state) {
+static void handle_transport_state_change(struct userdata *u, struct pa_bluetooth_transport *transport) {
     bool acquire = FALSE;
     bool release = FALSE;
+    enum profile profile;
+    pa_bluetooth_transport_state_t state;
 
     pa_assert(u);
-    pa_assert(state != PA_BT_AUDIO_STATE_INVALID);
+    pa_assert(transport);
+
+    profile = transport->profile;
+    state = transport->state;
 
     if (!pa_hashmap_get(u->card->profiles, pa_bt_profile_to_string(profile)))
         return;
@@ -1294,7 +1254,7 @@ static void handle_profile_state_change(struct userdata *u, enum profile profile
     switch (profile) {
         case PROFILE_HFGW: {
             pa_device_port *port;
-            pa_port_available_t available = audio_state_to_availability(state);
+            pa_port_available_t available = transport_state_to_availability(state);
 
             pa_assert_se(port = pa_hashmap_get(u->card->ports, "hfgw-output"));
             pa_device_port_set_available(port, available);
@@ -1311,11 +1271,12 @@ static void handle_profile_state_change(struct userdata *u, enum profile profile
         case PROFILE_HSP: {
             pa_device_port *port;
             pa_port_available_t available;
+            pa_bluetooth_transport *other = u->device->transports[PROFILE_A2DP];
 
-            if (pa_hashmap_get(u->card->profiles, "a2dp") == NULL)
-                available = audio_state_to_availability(state);
+            if (!other)
+                available = transport_state_to_availability(state);
             else
-                available = audio_state_to_availability_merged(state, u->device->profile_state[PROFILE_A2DP]);
+                available = transport_state_to_availability_merged(state, other->state);
 
             pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
             pa_device_port_set_available(port, available);
@@ -1331,7 +1292,7 @@ static void handle_profile_state_change(struct userdata *u, enum profile profile
 
         case PROFILE_A2DP_SOURCE: {
             pa_device_port *port;
-            pa_port_available_t available = audio_state_to_availability(state);
+            pa_port_available_t available = transport_state_to_availability(state);
 
             pa_assert_se(port = pa_hashmap_get(u->card->ports, "a2dp-input"));
             pa_device_port_set_available(port, available);
@@ -1345,11 +1306,12 @@ static void handle_profile_state_change(struct userdata *u, enum profile profile
         case PROFILE_A2DP: {
             pa_device_port *port;
             pa_port_available_t available;
+            pa_bluetooth_transport *other = u->device->transports[PROFILE_HSP];
 
-            if (pa_hashmap_get(u->card->profiles, "hsp") == NULL)
-                available = audio_state_to_availability(state);
+            if (!other)
+                available = transport_state_to_availability(state);
             else
-                available = audio_state_to_availability_merged(state, u->device->profile_state[PROFILE_HSP]);
+                available = transport_state_to_availability_merged(state, other->state);
 
             pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
             pa_device_port_set_available(port, available);
@@ -1399,8 +1361,6 @@ static void handle_profile_state_change(struct userdata *u, enum profile profile
 /* Run from main thread */
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *userdata) {
     struct userdata *u;
-    enum profile profile;
-    pa_bt_audio_state_t state;
 
     pa_assert(bus);
     pa_assert(m);
@@ -1410,25 +1370,6 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                  dbus_message_get_interface(m),
                  dbus_message_get_path(m),
                  dbus_message_get_member(m));
-
-    if (!dbus_message_has_path(m, u->path) && (!u->transport || !dbus_message_has_path(m, u->transport->path)))
-        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
-
-    if (dbus_message_is_signal(m, "org.bluez.HandsfreeGateway", "PropertyChanged"))
-        profile = PROFILE_HFGW;
-    else if (dbus_message_is_signal(m, "org.bluez.Headset", "PropertyChanged"))
-        profile = PROFILE_HSP;
-    else if (dbus_message_is_signal(m, "org.bluez.AudioSource", "PropertyChanged"))
-        profile = PROFILE_A2DP_SOURCE;
-    else if (dbus_message_is_signal(m, "org.bluez.AudioSink", "PropertyChanged"))
-        profile = PROFILE_A2DP;
-    else
-        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
-
-    if ((state = parse_state_property_change(m)) == PA_BT_AUDIO_STATE_INVALID)
-        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
-
-    handle_profile_state_change(u, profile, state);
 
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
@@ -1967,6 +1908,9 @@ static pa_hook_result_t transport_state_changed_cb(pa_bluetooth_discovery *y, pa
     if (t == u->transport && t->state == PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
         pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
 
+    if (t->device == u->device)
+        handle_transport_state_change(u, t);
+
     return PA_HOOK_OK;
 }
 
@@ -2216,15 +2160,24 @@ static void create_ports_for_profile(struct userdata *u, pa_hashmap *ports, pa_c
     pa_bluetooth_device *device = u->device;
     pa_device_port *port;
     enum profile *d;
+    pa_bluetooth_transport *transport;
+    pa_bluetooth_transport_state_t transport_state;
 
     d = PA_CARD_PROFILE_DATA(profile);
+
+    pa_assert(*d != PROFILE_OFF);
+
+    transport = device->transports[*d];
+    transport_state = transport ? transport->state : PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED;
 
     switch (*d) {
         case PROFILE_A2DP:
             if ((port = pa_hashmap_get(ports, "bluetooth-output")) != NULL) {
+                pa_bluetooth_transport *other = device->transports[PROFILE_HSP];
+                pa_bluetooth_transport_state_t other_state = other ? other->state : PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED;
+
                 port->priority = PA_MAX(port->priority, profile->priority * 100);
-                port->available = audio_state_to_availability_merged(device->profile_state[PROFILE_HSP],
-                                                                     device->profile_state[PROFILE_A2DP]);
+                port->available = transport_state_to_availability_merged(transport_state, other_state);
                 pa_hashmap_put(port->profiles, profile->name, profile);
             } else {
                 pa_assert_se(port = pa_device_port_new(u->core, "bluetooth-output", _("Bluetooth Output"), 0));
@@ -2232,7 +2185,7 @@ static void create_ports_for_profile(struct userdata *u, pa_hashmap *ports, pa_c
                 port->is_output = 1;
                 port->is_input = 0;
                 port->priority = profile->priority * 100;
-                port->available = audio_state_to_availability(device->profile_state[*d]);
+                port->available = transport_state_to_availability(transport_state);
                 pa_hashmap_put(port->profiles, profile->name, profile);
             }
 
@@ -2244,15 +2197,17 @@ static void create_ports_for_profile(struct userdata *u, pa_hashmap *ports, pa_c
             port->is_output = 0;
             port->is_input = 1;
             port->priority = profile->priority * 100;
-            port->available = audio_state_to_availability(device->profile_state[*d]);
+            port->available = transport_state_to_availability(transport_state);
             pa_hashmap_put(port->profiles, profile->name, profile);
             break;
 
         case PROFILE_HSP:
             if ((port = pa_hashmap_get(ports, "bluetooth-output")) != NULL) {
+                pa_bluetooth_transport *other = device->transports[PROFILE_A2DP];
+                pa_bluetooth_transport_state_t other_state = other ? other->state : PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED;
+
                 port->priority = PA_MAX(port->priority, profile->priority * 100);
-                port->available = audio_state_to_availability_merged(device->profile_state[PROFILE_HSP],
-                                                                     device->profile_state[PROFILE_A2DP]);
+                port->available = transport_state_to_availability_merged(transport_state, other_state);
                 pa_hashmap_put(port->profiles, profile->name, profile);
             } else {
                 pa_assert_se(port = pa_device_port_new(u->core, "bluetooth-output", _("Bluetooth Output"), 0));
@@ -2260,7 +2215,7 @@ static void create_ports_for_profile(struct userdata *u, pa_hashmap *ports, pa_c
                 port->is_output = 1;
                 port->is_input = 0;
                 port->priority = profile->priority * 100;
-                port->available = audio_state_to_availability(device->profile_state[*d]);
+                port->available = transport_state_to_availability(transport_state);
                 pa_hashmap_put(port->profiles, profile->name, profile);
             }
 
@@ -2269,7 +2224,7 @@ static void create_ports_for_profile(struct userdata *u, pa_hashmap *ports, pa_c
             port->is_output = 0;
             port->is_input = 1;
             port->priority = profile->priority * 100;
-            port->available = audio_state_to_availability(device->profile_state[*d]);
+            port->available = transport_state_to_availability(transport_state);
             pa_hashmap_put(port->profiles, profile->name, profile);
             break;
 
@@ -2279,7 +2234,7 @@ static void create_ports_for_profile(struct userdata *u, pa_hashmap *ports, pa_c
             port->is_output = 1;
             port->is_input = 0;
             port->priority = profile->priority * 100;
-            port->available = audio_state_to_availability(device->profile_state[*d]);
+            port->available = transport_state_to_availability(transport_state);
             pa_hashmap_put(port->profiles, profile->name, profile);
 
             pa_assert_se(port = pa_device_port_new(u->core, "hfgw-input", _("Bluetooth Handsfree Gateway"), 0));
@@ -2287,7 +2242,7 @@ static void create_ports_for_profile(struct userdata *u, pa_hashmap *ports, pa_c
             port->is_output = 0;
             port->is_input = 1;
             port->priority = profile->priority * 100;
-            port->available = audio_state_to_availability(device->profile_state[*d]);
+            port->available = transport_state_to_availability(transport_state);
             pa_hashmap_put(port->profiles, profile->name, profile);
             break;
 
