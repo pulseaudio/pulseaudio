@@ -2094,7 +2094,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     if (*d != PROFILE_OFF) {
         const pa_bluetooth_device *device = u->device;
 
-        if (device->profile_state[*d] < PA_BT_AUDIO_STATE_CONNECTED) {
+        if (!device->transports[*d]) {
             pa_log_warn("Profile not connected, refused to switch profile to %s", new_profile->name);
             return -PA_ERR_IO;
         }
@@ -2357,7 +2357,7 @@ static int add_card(struct userdata *u) {
 
     d = PA_CARD_PROFILE_DATA(u->card->active_profile);
 
-    if (*d != PROFILE_OFF && (device->profile_state[*d] < PA_BT_AUDIO_STATE_CONNECTED)) {
+    if (*d != PROFILE_OFF && !device->transports[*d]) {
         pa_log_warn("Default profile not connected, selecting off profile");
         u->card->active_profile = pa_hashmap_get(u->card->profiles, "off");
         u->card->save_profile = FALSE;

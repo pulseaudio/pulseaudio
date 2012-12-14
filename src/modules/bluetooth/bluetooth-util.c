@@ -1087,7 +1087,7 @@ bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d) {
         return false;
 
     for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++)
-        if (d->profile_state[i] >= PA_BT_AUDIO_STATE_CONNECTED)
+        if (d->transports[i])
             return true;
 
     return false;
@@ -1257,6 +1257,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     enum profile p;
     DBusMessageIter args, props;
     DBusMessage *r;
+    bool old_any_connected;
 
     dbus_message_iter_init(m, &args);
 
@@ -1330,6 +1331,8 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
         goto fail;
     }
 
+    old_any_connected = pa_bluetooth_device_any_audio_connected(d);
+
     sender = dbus_message_get_sender(m);
 
     t = transport_new(d, sender, path, p, config, size);
@@ -1342,6 +1345,9 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     pa_log_debug("Transport %s profile %d available", t->path, t->profile);
 
     pa_assert_se(r = dbus_message_new_method_return(m));
+
+    if (old_any_connected != pa_bluetooth_device_any_audio_connected(d))
+        run_callback(d, FALSE);
 
     return r;
 
@@ -1368,12 +1374,17 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *c, DBusMessage 
     }
 
     if ((t = pa_hashmap_get(y->transports, path))) {
+        bool old_any_connected = t->device ? pa_bluetooth_device_any_audio_connected(t->device) : false;
+
         pa_log_debug("Clearing transport %s profile %d", t->path, t->profile);
         t->device->transports[t->profile] = NULL;
         pa_hashmap_remove(y->transports, t->path);
         t->state = PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED;
         pa_hook_fire(&y->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], t);
         transport_free(t);
+
+        if (t->device && old_any_connected != pa_bluetooth_device_any_audio_connected(t->device))
+            run_callback(t->device, FALSE);
     }
 
     pa_assert_se(r = dbus_message_new_method_return(m));
