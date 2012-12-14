@@ -321,16 +321,6 @@ static void setup_stream(struct userdata *u) {
                 TRUE);
 }
 
-static bool bt_transport_is_acquired(struct userdata *u) {
-    if (!u->transport_acquired) {
-        pa_assert(u->stream_fd < 0);
-        return FALSE;
-    } else {
-        /* During IO thread HUP stream_fd can be -1 */
-        return TRUE;
-    }
-}
-
 static void teardown_stream(struct userdata *u) {
     if (u->rtpoll_item) {
         pa_rtpoll_item_free(u->rtpoll_item);
@@ -354,7 +344,7 @@ static void bt_transport_release(struct userdata *u) {
     pa_assert(u->transport);
 
     /* Ignore if already released */
-    if (!bt_transport_is_acquired(u))
+    if (!u->transport_acquired)
         return;
 
     pa_log_debug("Releasing transport %s", u->transport->path);
@@ -369,7 +359,7 @@ static void bt_transport_release(struct userdata *u) {
 static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
     pa_assert(u->transport);
 
-    if (bt_transport_is_acquired(u)) {
+    if (u->transport_acquired) {
         if (start)
             goto done;
         return 0;
@@ -1017,7 +1007,7 @@ static void thread_func(void *userdata) {
     pa_thread_mq_install(&u->thread_mq);
 
     /* Setup the stream only if the transport was already acquired */
-    if (bt_transport_is_acquired(u))
+    if (u->transport_acquired)
         setup_stream(u);
 
     for (;;) {
@@ -1322,7 +1312,7 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
             }
         }
 
-    if (release && bt_transport_is_acquired(u)) {
+    if (release && u->transport_acquired) {
         /* FIXME: this release is racy, since the audio stream might have
            been set up again in the meantime (but not processed yet by PA).
            BlueZ should probably release the transport automatically, and
@@ -1647,7 +1637,7 @@ static int add_sink(struct userdata *u) {
         }
         connect_ports(u, &data, PA_DIRECTION_OUTPUT);
 
-        if (!bt_transport_is_acquired(u))
+        if (!u->transport_acquired)
             switch (u->profile) {
                 case PROFILE_A2DP:
                 case PROFILE_HSP:
@@ -1719,7 +1709,7 @@ static int add_source(struct userdata *u) {
 
         connect_ports(u, &data, PA_DIRECTION_INPUT);
 
-        if (!bt_transport_is_acquired(u))
+        if (!u->transport_acquired)
             switch (u->profile) {
                 case PROFILE_HSP:
                     pa_assert_not_reached(); /* Profile switch should have failed */
