@@ -100,9 +100,9 @@ USA.
     </option>
 
     <option>
-      <p><opt>unload-module</opt> <arg>index</arg></p>
-      <optdesc><p>Unload a module specified by its index in the module list as
-      returned by list-modules.</p></optdesc>
+      <p><opt>unload-module</opt> <arg>index|name</arg></p>
+      <optdesc><p>Unload a module, specified either by its index in the module
+      list or its name.</p></optdesc>
     </option>
 
     <option>
