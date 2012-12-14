@@ -1281,30 +1281,18 @@ static pa_port_available_t audio_state_to_availability_merged(pa_bt_audio_state_
 }
 
 /* Run from main thread */
-static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *userdata) {
-    DBusError err;
-    struct userdata *u;
+static void handle_profile_state_change(struct userdata *u, enum profile profile, pa_bt_audio_state_t state) {
     bool acquire = FALSE;
     bool release = FALSE;
 
-    pa_assert(bus);
-    pa_assert(m);
-    pa_assert_se(u = userdata);
+    pa_assert(u);
+    pa_assert(state != PA_BT_AUDIO_STATE_INVALID);
 
-    dbus_error_init(&err);
+    if (!pa_hashmap_get(u->card->profiles, pa_bt_profile_to_string(profile)))
+        return;
 
-    pa_log_debug("dbus: interface=%s, path=%s, member=%s\n",
-                 dbus_message_get_interface(m),
-                 dbus_message_get_path(m),
-                 dbus_message_get_member(m));
-
-    if (!dbus_message_has_path(m, u->path) && (!u->transport || !dbus_message_has_path(m, u->transport->path)))
-        goto fail;
-
-    if (dbus_message_is_signal(m, "org.bluez.HandsfreeGateway", "PropertyChanged")) {
-        pa_bt_audio_state_t state = parse_state_property_change(m);
-
-        if (state != PA_BT_AUDIO_STATE_INVALID && pa_hashmap_get(u->card->profiles, "hfgw")) {
+    switch (profile) {
+        case PROFILE_HFGW: {
             pa_device_port *port;
             pa_port_available_t available = audio_state_to_availability(state);
 
@@ -1316,11 +1304,11 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
             acquire = (available == PA_PORT_AVAILABLE_YES && u->profile == PROFILE_HFGW);
             release = (available != PA_PORT_AVAILABLE_YES && u->profile == PROFILE_HFGW);
-        }
-    } else if (dbus_message_is_signal(m, "org.bluez.Headset", "PropertyChanged")) {
-        pa_bt_audio_state_t state = parse_state_property_change(m);
 
-        if (state != PA_BT_AUDIO_STATE_INVALID && pa_hashmap_get(u->card->profiles, "hsp")) {
+            break;
+        }
+
+        case PROFILE_HSP: {
             pa_device_port *port;
             pa_port_available_t available;
 
@@ -1337,11 +1325,11 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
             acquire = (available == PA_PORT_AVAILABLE_YES && u->profile == PROFILE_HSP);
             release = (available != PA_PORT_AVAILABLE_YES && u->profile == PROFILE_HSP);
-        }
-    } else if (dbus_message_is_signal(m, "org.bluez.AudioSource", "PropertyChanged")) {
-        pa_bt_audio_state_t state = parse_state_property_change(m);
 
-        if (state != PA_BT_AUDIO_STATE_INVALID && pa_hashmap_get(u->card->profiles, "a2dp_source")) {
+            break;
+        }
+
+        case PROFILE_A2DP_SOURCE: {
             pa_device_port *port;
             pa_port_available_t available = audio_state_to_availability(state);
 
@@ -1350,11 +1338,11 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
             acquire = (available == PA_PORT_AVAILABLE_YES && u->profile == PROFILE_A2DP_SOURCE);
             release = (available != PA_PORT_AVAILABLE_YES && u->profile == PROFILE_A2DP_SOURCE);
-        }
-    } else if (dbus_message_is_signal(m, "org.bluez.AudioSink", "PropertyChanged")) {
-        pa_bt_audio_state_t state = parse_state_property_change(m);
 
-        if (state != PA_BT_AUDIO_STATE_INVALID && pa_hashmap_get(u->card->profiles, "a2dp")) {
+            break;
+        }
+
+        case PROFILE_A2DP: {
             pa_device_port *port;
             pa_port_available_t available;
 
@@ -1368,7 +1356,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
             acquire = (available == PA_PORT_AVAILABLE_YES && u->profile == PROFILE_A2DP);
             release = (available != PA_PORT_AVAILABLE_YES && u->profile == PROFILE_A2DP);
+
+            break;
         }
+
+        case PROFILE_OFF:
+            pa_assert_not_reached();
     }
 
     if (acquire)
@@ -1401,9 +1394,41 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             pa_sink_suspend(u->sink, TRUE, PA_SUSPEND_USER);
         }
     }
+}
 
-fail:
-    dbus_error_free(&err);
+/* Run from main thread */
+static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *userdata) {
+    struct userdata *u;
+    enum profile profile;
+    pa_bt_audio_state_t state;
+
+    pa_assert(bus);
+    pa_assert(m);
+    pa_assert_se(u = userdata);
+
+    pa_log_debug("dbus: interface=%s, path=%s, member=%s\n",
+                 dbus_message_get_interface(m),
+                 dbus_message_get_path(m),
+                 dbus_message_get_member(m));
+
+    if (!dbus_message_has_path(m, u->path) && (!u->transport || !dbus_message_has_path(m, u->transport->path)))
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+
+    if (dbus_message_is_signal(m, "org.bluez.HandsfreeGateway", "PropertyChanged"))
+        profile = PROFILE_HFGW;
+    else if (dbus_message_is_signal(m, "org.bluez.Headset", "PropertyChanged"))
+        profile = PROFILE_HSP;
+    else if (dbus_message_is_signal(m, "org.bluez.AudioSource", "PropertyChanged"))
+        profile = PROFILE_A2DP_SOURCE;
+    else if (dbus_message_is_signal(m, "org.bluez.AudioSink", "PropertyChanged"))
+        profile = PROFILE_A2DP;
+    else
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+
+    if ((state = parse_state_property_change(m)) == PA_BT_AUDIO_STATE_INVALID)
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+
+    handle_profile_state_change(u, profile, state);
 
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
