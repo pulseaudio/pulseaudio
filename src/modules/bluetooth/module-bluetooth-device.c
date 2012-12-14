@@ -354,11 +354,8 @@ static void bt_transport_release(struct userdata *u) {
 static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
     pa_assert(u->transport);
 
-    if (u->transport_acquired) {
-        if (start)
-            goto done;
+    if (u->transport_acquired)
         return 0;
-    }
 
     pa_log_debug("Acquiring transport %s", u->transport->path);
 
@@ -374,16 +371,6 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t start) {
 
     u->transport_acquired = true;
     pa_log_info("Transport %s acquired: fd %d", u->transport->path, u->stream_fd);
-
-    if (!start)
-        return 0;
-
-done:
-    /* If thread is still about to start, the stream will be set up in the beginning of thread_func() */
-    if (u->thread == NULL)
-        return 0;
-
-    setup_stream(u);
 
     return 0;
 }
@@ -426,6 +413,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                     if (!u->source || !PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
                         if (bt_transport_acquire(u, TRUE) < 0)
                             failed = TRUE;
+                        else
+                            setup_stream(u);
                     }
                     break;
 
@@ -501,6 +490,8 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                     if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
                         if (bt_transport_acquire(u, TRUE) < 0)
                             failed = TRUE;
+                        else
+                            setup_stream(u);
                     }
                     /* We don't resume the smoother here. Instead we
                      * wait until the first packet arrives */
@@ -1425,7 +1416,12 @@ static int sco_over_pcm_state_update(struct userdata *u, pa_bool_t changed) {
             return -1;
         }
 
-        return bt_transport_acquire(u, TRUE);
+        if (bt_transport_acquire(u, TRUE) < 0)
+            return -1;
+
+        setup_stream(u);
+
+        return 0;
     }
 
     if (changed) {
