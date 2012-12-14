@@ -49,7 +49,6 @@
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/namereg.h>
-#include <pulsecore/dbus-shared.h>
 
 #include <sbc/sbc.h>
 
@@ -153,8 +152,6 @@ struct userdata {
     pa_bluetooth_discovery *discovery;
     pa_bool_t auto_connect;
 
-    pa_dbus_connection *connection;
-
     pa_card *card;
     pa_sink *sink;
     pa_source *source;
@@ -189,8 +186,6 @@ struct userdata {
     pa_modargs *modargs;
 
     int stream_write_type;
-
-    pa_bool_t filter_added;
 };
 
 enum {
@@ -1332,24 +1327,8 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
 }
 
 /* Run from main thread */
-static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *userdata) {
-    struct userdata *u;
-
-    pa_assert(bus);
-    pa_assert(m);
-    pa_assert_se(u = userdata);
-
-    pa_log_debug("dbus: interface=%s, path=%s, member=%s\n",
-                 dbus_message_get_interface(m),
-                 dbus_message_get_path(m),
-                 dbus_message_get_member(m));
-
-    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
-}
-
-/* Run from main thread */
 static void sink_set_volume_cb(pa_sink *s) {
-    dbus_uint16_t gain;
+    uint16_t gain;
     pa_volume_t volume;
     struct userdata *u;
     char *k;
@@ -1376,7 +1355,7 @@ static void sink_set_volume_cb(pa_sink *s) {
 
 /* Run from main thread */
 static void source_set_volume_cb(pa_source *s) {
-    dbus_uint16_t gain;
+    uint16_t gain;
     pa_volume_t volume;
     struct userdata *u;
     char *k;
@@ -2447,23 +2426,6 @@ static pa_hook_result_t uuid_added_cb(pa_bluetooth_discovery *y, const struct pa
 }
 
 /* Run from main thread */
-static int setup_dbus(struct userdata *u) {
-    DBusError err;
-
-    dbus_error_init(&err);
-
-    u->connection = pa_dbus_bus_get(u->core, DBUS_BUS_SYSTEM, &err);
-
-    if (dbus_error_is_set(&err) || !u->connection) {
-        pa_log("Failed to get D-Bus connection: %s", err.message);
-        dbus_error_free(&err);
-        return -1;
-    }
-
-    return 0;
-}
-
-/* Run from main thread */
 static pa_hook_result_t discovery_hook_cb(pa_bluetooth_discovery *y, const pa_bluetooth_device *d, struct userdata *u) {
     pa_assert(u);
     pa_assert(d);
@@ -2488,13 +2450,9 @@ int pa__init(pa_module* m) {
     uint32_t channels;
     struct userdata *u;
     const char *address, *path;
-    DBusError err;
-    char *mike, *speaker;
     pa_bluetooth_device *device;
 
     pa_assert(m);
-
-    dbus_error_init(&err);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log_error("Failed to parse module arguments");
@@ -2543,9 +2501,6 @@ int pa__init(pa_module* m) {
 
     address = pa_modargs_get_value(ma, "address", NULL);
     path = pa_modargs_get_value(ma, "path", NULL);
-
-    if (setup_dbus(u) < 0)
-        goto fail;
 
     if (!(u->discovery = pa_bluetooth_discovery_get(m->core)))
         goto fail;
@@ -2597,36 +2552,6 @@ int pa__init(pa_module* m) {
     u->msg->parent.process_msg = device_process_msg;
     u->msg->card = u->card;
 
-    if (!dbus_connection_add_filter(pa_dbus_connection_get(u->connection), filter_cb, u, NULL)) {
-        pa_log_error("Failed to add filter function");
-        goto fail;
-    }
-    u->filter_added = TRUE;
-
-    speaker = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='SpeakerGainChanged',path='%s'", u->path);
-    mike = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='MicrophoneGainChanged',path='%s'", u->path);
-
-    if (pa_dbus_add_matches(
-                pa_dbus_connection_get(u->connection), &err,
-                speaker,
-                mike,
-                "type='signal',sender='org.bluez',interface='org.bluez.MediaTransport',member='PropertyChanged'",
-                "type='signal',sender='org.bluez',interface='org.bluez.HandsfreeGateway',member='PropertyChanged'",
-                "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged'",
-                "type='signal',sender='org.bluez',interface='org.bluez.AudioSource',member='PropertyChanged'",
-                "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'",
-                NULL) < 0) {
-
-        pa_xfree(speaker);
-        pa_xfree(mike);
-
-        pa_log("Failed to add D-Bus matches: %s", err.message);
-        goto fail;
-    }
-
-    pa_xfree(speaker);
-    pa_xfree(mike);
-
     if (u->profile != PROFILE_OFF)
         if (init_profile(u) < 0)
             goto off;
@@ -2647,8 +2572,6 @@ off:
 fail:
 
     pa__done(m);
-
-    dbus_error_free(&err);
 
     return -1;
 }
@@ -2700,28 +2623,6 @@ void pa__done(pa_module *m) {
 
     if (USE_SCO_OVER_PCM(u))
         restore_sco_volume_callbacks(u);
-
-    if (u->connection) {
-
-        if (u->path) {
-            char *speaker, *mike;
-            speaker = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='SpeakerGainChanged',path='%s'", u->path);
-            mike = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='MicrophoneGainChanged',path='%s'", u->path);
-
-            pa_dbus_remove_matches(pa_dbus_connection_get(u->connection), speaker, mike,
-                "type='signal',sender='org.bluez',interface='org.bluez.MediaTransport',member='PropertyChanged'",
-                "type='signal',sender='org.bluez',interface='org.bluez.HandsfreeGateway',member='PropertyChanged'",
-                NULL);
-
-            pa_xfree(speaker);
-            pa_xfree(mike);
-        }
-
-        if (u->filter_added)
-            dbus_connection_remove_filter(pa_dbus_connection_get(u->connection), filter_cb, u);
-
-        pa_dbus_connection_unref(u->connection);
-    }
 
     if (u->msg)
         pa_xfree(u->msg);
