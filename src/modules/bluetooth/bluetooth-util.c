@@ -1063,13 +1063,15 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *
 }
 
 bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d) {
+    unsigned i;
+
     pa_assert(d);
 
     if (d->dead || !device_is_audio_ready(d))
         return false;
 
-    /* Deliberately ignore audio_sink_state and headset_state since they are
-     * reflected in audio_state. This is actually very important in order to
+    /* Make sure audio_state is *not* in CONNECTING state before we fire the hook
+     * to report the new device state. This is actually very important in order to
      * make module-card-restore work well with headsets: if the headset
      * supports both HSP and A2DP, one of those profiles is connected first and
      * then the other, and lastly the Audio interface becomes connected.
@@ -1081,10 +1083,14 @@ bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d) {
      * connected. Waiting until the Audio interface gets connected means that
      * both headset profiles will be connected when the device module is
      * loaded. */
-    return
-        d->audio_state >= PA_BT_AUDIO_STATE_CONNECTED ||
-        d->profile_state[PROFILE_A2DP_SOURCE] >= PA_BT_AUDIO_STATE_CONNECTED ||
-        d->profile_state[PROFILE_HFGW] >= PA_BT_AUDIO_STATE_CONNECTED;
+    if (d->audio_state == PA_BT_AUDIO_STATE_CONNECTING)
+        return false;
+
+    for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++)
+        if (d->profile_state[i] >= PA_BT_AUDIO_STATE_CONNECTED)
+            return true;
+
+    return false;
 }
 
 int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu) {
