@@ -483,6 +483,19 @@ static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i) {
     return 0;
 }
 
+static const char *transport_state_to_string(pa_bluetooth_transport_state_t state) {
+    switch (state) {
+        case PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED:
+            return "disconnected";
+        case PA_BLUETOOTH_TRANSPORT_STATE_IDLE:
+            return "idle";
+        case PA_BLUETOOTH_TRANSPORT_STATE_PLAYING:
+            return "playing";
+    }
+
+    pa_assert_not_reached();
+}
+
 static int parse_audio_property(pa_bluetooth_device *d, const char *interface, DBusMessageIter *i) {
     pa_bluetooth_transport *transport;
     const char *key;
@@ -540,8 +553,9 @@ static int parse_audio_property(pa_bluetooth_device *d, const char *interface, D
                 transport->state = audio_state_to_transport_state(state);
 
                 if (transport->state != old_state) {
-                    pa_log_debug("profile=%s, transport=%s, new_state=%d", pa_bt_profile_to_string(transport->profile),
-                                 transport->path, transport->state);
+                    pa_log_debug("Transport %s (profile %s) changed state from %s to %s.", transport->path,
+                                 pa_bt_profile_to_string(transport->profile), transport_state_to_string(old_state),
+                                 transport_state_to_string(transport->state));
 
                     pa_hook_fire(&d->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], transport);
                 }
