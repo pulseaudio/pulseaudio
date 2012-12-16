@@ -78,7 +78,7 @@ static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, DBusM
 static void found_adapter(pa_bluetooth_discovery *y, const char *path);
 static pa_bluetooth_device *found_device(pa_bluetooth_discovery *y, const char* path);
 
-pa_bt_audio_state_t pa_bt_audio_state_from_string(const char* value) {
+static pa_bt_audio_state_t audio_state_from_string(const char* value) {
     pa_assert(value);
 
     if (pa_streq(value, "disconnected"))
@@ -529,7 +529,7 @@ static int parse_audio_property(pa_bluetooth_device *d, const char *interface, D
             dbus_message_iter_get_basic(&variant_i, &value);
 
             if (pa_streq(key, "State")) {
-                pa_bt_audio_state_t state = pa_bt_audio_state_from_string(value);
+                pa_bt_audio_state_t state = audio_state_from_string(value);
                 pa_bluetooth_transport_state_t old_state;
 
                 pa_log_debug("Device %s interface %s property 'State' changed to value '%s'", d->path, interface, value);
