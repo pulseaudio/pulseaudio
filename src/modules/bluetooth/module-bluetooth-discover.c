@@ -40,15 +40,14 @@
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Detect available bluetooth audio devices and load bluetooth audio drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_USAGE("async=<Asynchronous initialization?> "
-                "sco_sink=<name of sink> "
+PA_MODULE_USAGE("sco_sink=<name of sink> "
                 "sco_source=<name of source> ");
 PA_MODULE_LOAD_ONCE(TRUE);
 
 static const char* const valid_modargs[] = {
     "sco_sink",
     "sco_source",
-    "async",
+    "async", /* deprecated */
     NULL
 };
 
@@ -128,7 +127,6 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
 int pa__init(pa_module* m) {
     struct userdata *u;
     pa_modargs *ma = NULL;
-    pa_bool_t async = FALSE;
 
     pa_assert(m);
 
@@ -137,10 +135,8 @@ int pa__init(pa_module* m) {
         goto fail;
     }
 
-    if (pa_modargs_get_value_boolean(ma, "async", &async) < 0) {
-        pa_log("Failed to parse async argument.");
-        goto fail;
-    }
+    if (pa_modargs_get_value(ma, "async", NULL))
+        pa_log_warn("The 'async' argument is deprecated and does nothing.");
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
@@ -154,9 +150,6 @@ int pa__init(pa_module* m) {
 
     u->slot = pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED),
                               PA_HOOK_NORMAL, (pa_hook_cb_t) load_module_for_device, u);
-
-    if (!async)
-        pa_bluetooth_discovery_sync(u->discovery);
 
     return 0;
 

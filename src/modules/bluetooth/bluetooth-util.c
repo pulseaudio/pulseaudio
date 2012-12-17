@@ -1049,9 +1049,6 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_by_address(pa_bluetooth_discover
     pa_assert(PA_REFCNT_VALUE(y) > 0);
     pa_assert(address);
 
-    if (!pa_hook_is_firing(&y->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED]))
-        pa_bluetooth_discovery_sync(y);
-
     while ((d = pa_hashmap_iterate(y->devices, &state, NULL)))
         if (pa_streq(d->address, address))
             return device_is_audio_ready(d) ? d : NULL;
@@ -1065,9 +1062,6 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *
     pa_assert(y);
     pa_assert(PA_REFCNT_VALUE(y) > 0);
     pa_assert(path);
-
-    if (!pa_hook_is_firing(&y->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED]))
-        pa_bluetooth_discovery_sync(y);
 
     if ((d = pa_hashmap_get(y->devices, path)))
         if (device_is_audio_ready(d))
@@ -1762,13 +1756,6 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
         pa_shared_remove(y->core, "bluetooth-discovery");
 
     pa_xfree(y);
-}
-
-void pa_bluetooth_discovery_sync(pa_bluetooth_discovery *y) {
-    pa_assert(y);
-    pa_assert(PA_REFCNT_VALUE(y) > 0);
-
-    pa_dbus_sync_pending_list(&y->pending);
 }
 
 pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook) {
