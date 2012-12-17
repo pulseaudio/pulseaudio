@@ -297,12 +297,15 @@ USA.
 
     <option>
       <p><opt>log-target=</opt> The default log target. Use either
-      <opt>stderr</opt>, <opt>syslog</opt> or <opt>auto</opt>. The
-      latter is equivalent to <opt>sylog</opt> in case
-      <opt>daemonize</opt> is enabled, otherwise to
-      <opt>stderr</opt>. Defaults to <opt>auto</opt>. The
-      <opt>--log-target</opt> command line option takes
-      precedence.</p>
+      <opt>stderr</opt>, <opt>syslog</opt>, <opt>auto</opt>,
+      <opt>file:PATH</opt> or <opt>newfile:PATH</opt>. <opt>auto</opt> is
+      equivalent to <opt>sylog</opt> in case <opt>daemonize</opt> is enabled,
+      otherwise to <opt>stderr</opt>. If set to <opt>file:PATH</opt>, logging
+      is directed to the file indicated by PATH. <opt>newfile:PATH</opt> is
+      otherwise the same as <opt>file:PATH</opt>, but existing files are never
+      overwritten. If the specified file already exists, a suffix is added to
+      the file name to avoid overwriting. Defaults to <opt>auto</opt>. The
+      <opt>--log-target</opt> command line option takes precedence.</p>
     </option>
 
     <option>

@@ -217,13 +217,16 @@ USA.
     </option>
 
     <option>
-      <p><opt>--log-target</opt><arg>={auto,syslog,stderr,file:PATH}</arg></p>
+      <p><opt>--log-target</opt><arg>={auto,syslog,stderr,file:PATH,newfile:PATH}</arg></p>
 
       <optdesc><p>Specify the log target. If set to <arg>auto</arg>
       (which is the default), then logging is directed to syslog when
       <opt>--daemonize</opt> is passed, otherwise to
       STDERR. If set to <arg>file:PATH</arg>, logging is directed to
-      the file indicated by PATH.</p></optdesc>
+      the file indicated by PATH. <arg>newfile:PATH</arg> is otherwise
+      the same as file:PATH, but existing files are never overwritten.
+      If the specified file already exists, a suffix is added to the
+      file name to avoid overwriting.</p></optdesc>
     </option>
 
     <option>
