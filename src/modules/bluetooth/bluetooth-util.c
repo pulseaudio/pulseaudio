@@ -1388,17 +1388,18 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *c, DBusMessage 
     }
 
     if ((t = pa_hashmap_get(y->transports, path))) {
-        bool old_any_connected = t->device ? pa_bluetooth_device_any_audio_connected(t->device) : false;
+        bool old_any_connected = pa_bluetooth_device_any_audio_connected(t->device);
 
         pa_log_debug("Clearing transport %s profile %d", t->path, t->profile);
         t->device->transports[t->profile] = NULL;
         pa_hashmap_remove(y->transports, t->path);
         t->state = PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED;
         pa_hook_fire(&y->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], t);
-        transport_free(t);
 
-        if (t->device && old_any_connected != pa_bluetooth_device_any_audio_connected(t->device))
+        if (old_any_connected != pa_bluetooth_device_any_audio_connected(t->device))
             run_callback(t->device, FALSE);
+
+        transport_free(t);
     }
 
     pa_assert_se(r = dbus_message_new_method_return(m));
