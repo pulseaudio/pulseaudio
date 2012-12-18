@@ -294,34 +294,38 @@ enum {
 };
 
 static int64_t calc_diff(struct userdata *u, struct snapshot *snapshot) {
-    int64_t buffer, diff_time, buffer_latency;
+    int64_t diff_time, buffer_latency;
+    pa_usec_t plen, rlen, source_delay, sink_delay, recv_counter, send_counter;
 
-    /* get the number of samples between capture and playback */
-    if (snapshot->plen > snapshot->rlen)
-        buffer = snapshot->plen - snapshot->rlen;
+    /* get latency difference between playback and record */
+    plen = pa_bytes_to_usec(snapshot->plen, &u->sink_input->sample_spec);
+    rlen = pa_bytes_to_usec(snapshot->rlen, &u->source_output->sample_spec);
+    if (plen > rlen)
+        buffer_latency = plen - rlen;
     else
-        buffer = 0;
+        buffer_latency = 0;
 
-    buffer += snapshot->source_delay + snapshot->sink_delay;
+    source_delay = pa_bytes_to_usec(snapshot->source_delay, &u->source_output->sample_spec);
+    sink_delay = pa_bytes_to_usec(snapshot->sink_delay, &u->sink_input->sample_spec);
+    buffer_latency += source_delay + sink_delay;
 
-    /* add the amount of samples not yet transferred to the source context */
-    if (snapshot->recv_counter <= snapshot->send_counter)
-        buffer += (int64_t) (snapshot->send_counter - snapshot->recv_counter);
+    /* add the latency difference due to samples not yet transferred */
+    send_counter = pa_bytes_to_usec(snapshot->send_counter, &u->sink_input->sample_spec);
+    recv_counter = pa_bytes_to_usec(snapshot->recv_counter, &u->source_output->sample_spec);
+    if (recv_counter <= send_counter)
+        buffer_latency += (int64_t) (send_counter - recv_counter);
     else
-        buffer += PA_CLIP_SUB(buffer, (int64_t) (snapshot->recv_counter - snapshot->send_counter));
+        buffer_latency += PA_CLIP_SUB(buffer_latency, (int64_t) (recv_counter - send_counter));
 
-    /* convert to time */
-    buffer_latency = pa_bytes_to_usec(buffer, &u->source_output->sample_spec);
-
-    /* capture and playback samples are perfectly aligned when diff_time is 0 */
+    /* capture and playback are perfectly aligned when diff_time is 0 */
     diff_time = (snapshot->sink_now + snapshot->sink_latency - buffer_latency) -
           (snapshot->source_now - snapshot->source_latency);
 
     pa_log_debug("Diff %lld (%lld - %lld + %lld) %lld %lld %lld %lld", (long long) diff_time,
         (long long) snapshot->sink_latency,
         (long long) buffer_latency, (long long) snapshot->source_latency,
-        (long long) snapshot->source_delay, (long long) snapshot->sink_delay,
-        (long long) (snapshot->send_counter - snapshot->recv_counter),
+        (long long) source_delay, (long long) sink_delay,
+        (long long) (send_counter - recv_counter),
         (long long) (snapshot->sink_now - snapshot->source_now));
 
     return diff_time;
