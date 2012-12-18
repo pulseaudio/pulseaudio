@@ -2108,7 +2108,7 @@ int main(int argc, char* argv[]) {
         goto fail;
 
     if (!u.ec->init(u.core, u.ec, &source_ss, &source_map, &sink_ss, &sink_map, &u.blocksize,
-                     (argc > 4) ? argv[5] : NULL )) {
+                     (argc > 5) ? argv[5] : NULL )) {
         pa_log("Failed to init AEC engine");
         goto fail;
     }
