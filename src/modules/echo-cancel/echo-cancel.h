@@ -46,6 +46,9 @@ typedef struct pa_echo_canceller_params pa_echo_canceller_params;
 
 struct pa_echo_canceller_params {
     union {
+        struct {
+            pa_sample_spec source_ss;
+        } null;
 #ifdef HAVE_SPEEX
         struct {
             SpeexEchoState *state;

@@ -29,22 +29,23 @@ pa_bool_t pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
                            uint32_t *nframes, const char *args) {
+    char strss_source[PA_SAMPLE_SPEC_SNPRINT_MAX];
+    char strss_sink[PA_SAMPLE_SPEC_SNPRINT_MAX];
+
     *nframes = 256;
+    ec->params.priv.null.source_ss = *source_ss;
 
-    source_ss->format = PA_SAMPLE_S16NE;
-    source_ss->channels = 1;
-
-    *sink_ss = *source_ss;
-    *sink_map = *source_map;
-
-    pa_log_debug("null AEC: nframes %u, channels %d, rate %d", *nframes, source_ss->channels, source_ss->rate);
+    pa_log_debug("null AEC: nframes=%u, sample spec source=%s, sample spec sink=%s", *nframes,
+            pa_sample_spec_snprint(strss_source, sizeof(strss_source), source_ss),
+            pa_sample_spec_snprint(strss_sink, sizeof(strss_sink), sink_ss));
 
     return TRUE;
 }
 
 void pa_null_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {
-    // blocksize is nframes * frame-size
-    memcpy(out, rec, 256 * 2);
+    /* The null implementation simply copies the recorded buffer to the output
+       buffer and ignores the play buffer. */
+    memcpy(out, rec, 256 * pa_frame_size(&ec->params.priv.null.source_ss));
 }
 
 void pa_null_ec_done(pa_echo_canceller *ec) {
