@@ -57,9 +57,9 @@ static void pa_adrian_ec_fixate_spec(pa_sample_spec *source_ss, pa_channel_map *
 pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                           uint32_t *blocksize, const char *args)
+                           uint32_t *nframes, const char *args)
 {
-    int framelen, rate, have_vector = 0;
+    int rate, have_vector = 0;
     uint32_t frame_size_ms;
     pa_modargs *ma;
 
@@ -77,11 +77,10 @@ pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
     pa_adrian_ec_fixate_spec(source_ss, source_map, sink_ss, sink_map);
 
     rate = source_ss->rate;
-    framelen = (rate * frame_size_ms) / 1000;
+    *nframes = (rate * frame_size_ms) / 1000;
+    ec->params.priv.adrian.blocksize = (*nframes) * pa_frame_size(source_ss);
 
-    *blocksize = ec->params.priv.adrian.blocksize = framelen * pa_frame_size (source_ss);
-
-    pa_log_debug ("Using framelen %d, blocksize %u, channels %d, rate %d", framelen, ec->params.priv.adrian.blocksize, source_ss->channels, source_ss->rate);
+    pa_log_debug ("Using nframes %d, blocksize %u, channels %d, rate %d", *nframes, ec->params.priv.adrian.blocksize, source_ss->channels, source_ss->rate);
 
     /* For now we only support SSE */
     if (c->cpu_info.cpu_type == PA_CPU_X86 && (c->cpu_info.flags.x86 & PA_CPU_X86_SSE))

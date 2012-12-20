@@ -28,8 +28,8 @@ PA_C_DECL_END
 pa_bool_t pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                           uint32_t *blocksize, const char *args) {
-    unsigned framelen = 256;
+                           uint32_t *nframes, const char *args) {
+    *nframes = 256;
 
     source_ss->format = PA_SAMPLE_S16NE;
     source_ss->channels = 1;
@@ -37,14 +37,13 @@ pa_bool_t pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
     *sink_ss = *source_ss;
     *sink_map = *source_map;
 
-    *blocksize = framelen * pa_frame_size(source_ss);
-
-    pa_log_debug("null AEC: framelen %u, blocksize %u, channels %d, rate %d", framelen, *blocksize, source_ss->channels, source_ss->rate);
+    pa_log_debug("null AEC: nframes %u, channels %d, rate %d", *nframes, source_ss->channels, source_ss->rate);
 
     return TRUE;
 }
 
 void pa_null_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {
+    // blocksize is nframes * frame-size
     memcpy(out, rec, 256 * 2);
 }
 

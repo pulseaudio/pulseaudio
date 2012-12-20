@@ -58,7 +58,7 @@ static void pa_speex_ec_fixate_spec(pa_sample_spec *source_ss, pa_channel_map *s
     *sink_map = *source_map;
 }
 
-static pa_bool_t pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_spec *source_ss, uint32_t blocksize, pa_modargs *ma) {
+static pa_bool_t pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_spec *source_ss, uint32_t nframes, pa_modargs *ma) {
     pa_bool_t agc;
     pa_bool_t denoise;
     pa_bool_t echo_suppress;
@@ -111,7 +111,7 @@ static pa_bool_t pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_
             goto fail;
         }
 
-        ec->params.priv.speex.pp_state = speex_preprocess_state_init(blocksize / pa_frame_size(source_ss), source_ss->rate);
+        ec->params.priv.speex.pp_state = speex_preprocess_state_init(nframes, source_ss->rate);
 
         tmp = agc;
         speex_preprocess_ctl(ec->params.priv.speex.pp_state, SPEEX_PREPROCESS_SET_AGC, &tmp);
@@ -148,10 +148,10 @@ fail:
 pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                           uint32_t *blocksize, const char *args)
+                           uint32_t *nframes, const char *args)
 {
-    int framelen, y, rate;
-    uint32_t frame_size_ms, filter_size_ms;
+    int rate;
+    uint32_t y, frame_size_ms, filter_size_ms;
     pa_modargs *ma;
 
     if (!(ma = pa_modargs_new(args, valid_modargs))) {
@@ -174,25 +174,23 @@ pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
     pa_speex_ec_fixate_spec(source_ss, source_map, sink_ss, sink_map);
 
     rate = source_ss->rate;
-    framelen = (rate * frame_size_ms) / 1000;
-    /* framelen should be a power of 2, round down to nearest power of two */
-    y = 1 << ((8 * sizeof (int)) - 2);
-    while (y > framelen)
+    *nframes = (rate * frame_size_ms) / 1000;
+    /* nframes should be a power of 2, round down to nearest power of two */
+    y = 1 << ((8 * sizeof (uint32_t)) - 2);
+    while (y > *nframes)
       y >>= 1;
-    framelen = y;
+    *nframes = y;
 
-    *blocksize = framelen * pa_frame_size (source_ss);
+    pa_log_debug ("Using nframes %d, channels %d, rate %d", *nframes, source_ss->channels, source_ss->rate);
 
-    pa_log_debug ("Using framelen %d, blocksize %u, channels %d, rate %d", framelen, *blocksize, source_ss->channels, source_ss->rate);
-
-    ec->params.priv.speex.state = speex_echo_state_init_mc (framelen, (rate * filter_size_ms) / 1000, source_ss->channels, source_ss->channels);
+    ec->params.priv.speex.state = speex_echo_state_init_mc (*nframes, (rate * filter_size_ms) / 1000, source_ss->channels, source_ss->channels);
 
     if (!ec->params.priv.speex.state)
         goto fail;
 
     speex_echo_ctl(ec->params.priv.speex.state, SPEEX_ECHO_SET_SAMPLING_RATE, &rate);
 
-    if (!pa_speex_ec_preprocessor_init(ec, source_ss, *blocksize, ma))
+    if (!pa_speex_ec_preprocessor_init(ec, source_ss, *nframes, ma))
         goto fail;
 
     pa_modargs_free(ma);

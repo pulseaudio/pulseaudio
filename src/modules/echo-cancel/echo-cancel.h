@@ -86,7 +86,7 @@ struct pa_echo_canceller {
                                          pa_channel_map *source_map,
                                          pa_sample_spec *sink_ss,
                                          pa_channel_map *sink_map,
-                                         uint32_t *blocksize,
+                                         uint32_t *nframes,
                                          const char *args);
 
     /* You should have only one of play()+record() or run() set. The first
@@ -94,13 +94,13 @@ struct pa_echo_canceller {
      * samples yourself. If you set run(), module-echo-cancel will handle
      * synchronising the playback and record streams. */
 
-    /* Feed the engine 'blocksize' playback bytes.. */
+    /* Feed the engine 'nframes' playback frames. */
     void        (*play)                 (pa_echo_canceller *ec, const uint8_t *play);
-    /* Feed the engine 'blocksize' record bytes. blocksize processed bytes are
+    /* Feed the engine 'nframes' record frames. nframes processed frames are
      * returned in out. */
     void        (*record)               (pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out);
-    /* Feed the engine blocksize playback and record streams, with a reasonable
-     * effort at keeping the two in sync. blocksize processed bytes are
+    /* Feed the engine nframes playback and record frames, with a reasonable
+     * effort at keeping the two in sync. nframes processed frames are
      * returned in out. */
     void        (*run)                  (pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 
@@ -132,7 +132,7 @@ void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_cvolume *v);
 pa_bool_t pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                           uint32_t *blocksize, const char *args);
+                           uint32_t *nframes, const char *args);
 void pa_null_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_null_ec_done(pa_echo_canceller *ec);
 
@@ -141,7 +141,7 @@ void pa_null_ec_done(pa_echo_canceller *ec);
 pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                           uint32_t *blocksize, const char *args);
+                           uint32_t *nframes, const char *args);
 void pa_speex_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_speex_ec_done(pa_echo_canceller *ec);
 #endif
@@ -151,7 +151,7 @@ void pa_speex_ec_done(pa_echo_canceller *ec);
 pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                           uint32_t *blocksize, const char *args);
+                           uint32_t *nframes, const char *args);
 void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_adrian_ec_done(pa_echo_canceller *ec);
 #endif
@@ -162,7 +162,7 @@ PA_C_DECL_BEGIN
 pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
                             pa_sample_spec *source_ss, pa_channel_map *source_map,
                             pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                            uint32_t *blocksize, const char *args);
+                            uint32_t *nframes, const char *args);
 void pa_webrtc_ec_play(pa_echo_canceller *ec, const uint8_t *play);
 void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out);
 void pa_webrtc_ec_set_drift(pa_echo_canceller *ec, float drift);

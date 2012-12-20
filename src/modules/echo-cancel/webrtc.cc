@@ -79,7 +79,7 @@ static int routing_mode_from_string(const char *rmode) {
 pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
                             pa_sample_spec *source_ss, pa_channel_map *source_map,
                             pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                            uint32_t *blocksize, const char *args)
+                            uint32_t *nframes, const char *args)
 {
     webrtc::AudioProcessing *apm = NULL;
     pa_bool_t hpf, ns, agc, dgc, mobile, cn;
@@ -216,7 +216,8 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
 
     ec->params.priv.webrtc.apm = apm;
     ec->params.priv.webrtc.sample_spec = *source_ss;
-    ec->params.priv.webrtc.blocksize = *blocksize = (uint64_t)pa_bytes_per_second(source_ss) * BLOCK_SIZE_US / PA_USEC_PER_SEC;
+    ec->params.priv.webrtc.blocksize = (uint64_t)pa_bytes_per_second(source_ss) * BLOCK_SIZE_US / PA_USEC_PER_SEC;
+    *nframes = ec->params.priv.webrtc.blocksize / pa_frame_size(source_ss);
 
     pa_modargs_free(ma);
     return TRUE;
