@@ -40,7 +40,9 @@ PA_MODULE_AUTHOR("David Henningsson");
 PA_MODULE_DESCRIPTION("Adds JACK sink/source ports when JACK is started");
 PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_USAGE("connect=<connect ports?>");
+PA_MODULE_USAGE(
+    "channels=<number of channels> "
+    "connect=<connect ports?>");
 
 #define JACK_SERVICE_NAME "org.jackaudio.service"
 #define JACK_INTERFACE_NAME "org.jackaudio.JackControl"
@@ -60,6 +62,7 @@ PA_MODULE_USAGE("connect=<connect ports?>");
 	"member='" _a "'"
 
 static const char* const valid_modargs[] = {
+    "channels",
     "connect",
     NULL
 };
@@ -81,6 +84,7 @@ struct userdata {
     pa_bool_t filter_added, match_added;
     pa_bool_t is_service_started;
     pa_bool_t autoconnect_ports;
+    uint32_t channels;
     /* Using index here protects us from module unloading without us knowing */
     int jack_module_index[JACK_SS_COUNT];
 };
@@ -106,7 +110,11 @@ static void ensure_ports_started(struct userdata* u) {
         if (!u->jack_module_index[i]) {
             char* args;
             pa_module* m;
-            args = pa_sprintf_malloc("connect=%s", pa_yes_no(u->autoconnect_ports));
+            if (u->channels > 0) {
+                args = pa_sprintf_malloc("connect=%s channels=%" PRIu32, pa_yes_no(u->autoconnect_ports), u->channels);
+            } else {
+                args = pa_sprintf_malloc("connect=%s", pa_yes_no(u->autoconnect_ports));
+            }
             m = pa_module_load(u->core, modnames[i], args);
             pa_xfree(args);
 
@@ -226,9 +234,17 @@ int pa__init(pa_module *m) {
     u->core = m->core;
     u->module = m;
     u->autoconnect_ports = TRUE;
+    u->channels = 0;
 
     if (pa_modargs_get_value_boolean(ma, "connect", &u->autoconnect_ports) < 0) {
         pa_log("Failed to parse connect= argument.");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_u32(ma, "channels", &u->channels) < 0 ||
+        u->channels <= 0 ||
+        u->channels > PA_CHANNELS_MAX) {
+        pa_log("Failed to parse channels= argument.");
         goto fail;
     }
 
