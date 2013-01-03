@@ -270,7 +270,7 @@ static void help(const char *argv0) {
              "back and forth.\n"
              "\n"
              "Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, alaw,\n"
-             "32le, s32be (defaults to s16ne)\n"
+             "s24le, s24be, s24-32le, s24-32be, s32le, s32be (defaults to s16ne)\n"
              "\n"
              "See --dump-resample-methods for possible values of resample methods.\n"),
              argv0);
