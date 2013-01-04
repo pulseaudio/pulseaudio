@@ -351,7 +351,7 @@ static int suspend(struct userdata *u) {
 
     pa_log_info("Suspending...");
 
-    ioctl(u->fd, AUDIO_DRAIN, NULL);
+    ioctl(u->fd, I_FLUSH, FLUSHRW);
     pa_close(u->fd);
     u->fd = -1;
 
