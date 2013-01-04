@@ -68,8 +68,13 @@
  * /dev/shm. We can use that information to list all blocks and
  * cleanup unused ones */
 #define SHM_PATH "/dev/shm/"
+#define SHM_ID_LEN 10
+#elif defined(__sun)
+#define SHM_PATH "/tmp"
+#define SHM_ID_LEN 15
 #else
 #undef SHM_PATH
+#undef SHM_ID_LEN
 #endif
 
 #define SHM_MARKER ((int) 0xbeefcafe)
@@ -359,10 +364,14 @@ int pa_shm_cleanup(void) {
         char fn[128];
         struct shm_marker *m;
 
-        if (strncmp(de->d_name, "pulse-shm-", 10))
+#if defined(__sun)
+        if (strncmp(de->d_name, ".SHMDpulse-shm-", SHM_ID_LEN))
+#else
+        if (strncmp(de->d_name, "pulse-shm-", SHM_ID_LEN))
+#endif
             continue;
 
-        if (pa_atou(de->d_name + 10, &id) < 0)
+        if (pa_atou(de->d_name + SHM_ID_LEN, &id) < 0)
             continue;
 
         if (pa_shm_attach_ro(&seg, id) < 0)
