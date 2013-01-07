@@ -34,6 +34,9 @@ PA_C_DECL_BEGIN
 /** An asynchronous operation object */
 typedef struct pa_operation pa_operation;
 
+/** A callback for operation state changes */
+typedef void (*pa_operation_notify_cb_t) (pa_operation *o, void *userdata);
+
 /** Increase the reference count by one */
 pa_operation *pa_operation_ref(pa_operation *o);
 
@@ -49,6 +52,10 @@ void pa_operation_cancel(pa_operation *o);
 
 /** Return the current status of the operation */
 pa_operation_state_t pa_operation_get_state(pa_operation *o);
+
+/** Set the callback function that is called when the operation
+ * is canceled due to disconnection. \since 4.0 */
+void pa_operation_set_state_callback(pa_operation *o, pa_operation_notify_cb_t cb, void *userdata);
 
 PA_C_DECL_END
 

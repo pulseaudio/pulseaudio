@@ -234,6 +234,8 @@ struct pa_operation {
     pa_operation_state_t state;
     void *userdata;
     pa_operation_cb_t callback;
+    void *state_userdata;
+    pa_operation_notify_cb_t state_callback;
 
     void *private; /* some operations might need this */
 };

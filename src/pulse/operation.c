@@ -26,6 +26,7 @@
 #include <pulse/xmalloc.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/flist.h>
+#include <pulse/fork-detect.h>
 
 #include "internal.h"
 #include "operation.h"
@@ -91,6 +92,8 @@ static void operation_unlink(pa_operation *o) {
     o->stream = NULL;
     o->callback = NULL;
     o->userdata = NULL;
+    o->state_callback = NULL;
+    o->state_userdata = NULL;
 }
 
 static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
@@ -103,6 +106,9 @@ static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
     pa_operation_ref(o);
 
     o->state = st;
+
+    if (o->state_callback)
+        o->state_callback(o, o->state_userdata);
 
     if ((o->state == PA_OPERATION_DONE) || (o->state == PA_OPERATION_CANCELED))
         operation_unlink(o);
@@ -129,4 +135,18 @@ pa_operation_state_t pa_operation_get_state(pa_operation *o) {
     pa_assert(PA_REFCNT_VALUE(o) >= 1);
 
     return o->state;
+}
+
+void pa_operation_set_state_callback(pa_operation *o, pa_operation_notify_cb_t cb, void *userdata) {
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+
+    if (pa_detect_fork())
+        return;
+
+    if (o->state == PA_OPERATION_DONE || o->state == PA_OPERATION_CANCELED)
+        return;
+
+    o->state_callback = cb;
+    o->state_userdata = userdata;
 }

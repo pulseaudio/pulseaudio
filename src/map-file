@@ -220,6 +220,7 @@ pa_msleep;
 pa_operation_cancel;
 pa_operation_get_state;
 pa_operation_ref;
+pa_operation_set_state_callback;
 pa_operation_unref;
 pa_parse_sample_format;
 pa_path_get_filename;
