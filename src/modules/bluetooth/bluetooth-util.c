@@ -1277,17 +1277,19 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     DBusMessage *r;
     bool old_any_connected;
 
-    dbus_message_iter_init(m, &args);
+    if (!dbus_message_iter_init(m, &args) || !pa_streq(dbus_message_get_signature(m), "oa{sv}")) {
+        pa_log("Invalid signature for method SetConfiguration");
+        goto fail2;
+    }
 
     dbus_message_iter_get_basic(&args, &path);
 
     if (pa_hashmap_get(y->transports, path)) {
         pa_log("org.bluez.MediaEndpoint.SetConfiguration: Transport %s is already configured.", path);
-        goto fail;
+        goto fail2;
     }
 
-    if (!dbus_message_iter_next(&args))
-        goto fail;
+    pa_assert_se(dbus_message_iter_next(&args));
 
     dbus_message_iter_recurse(&args, &props);
     if (dbus_message_iter_get_arg_type(&props) != DBUS_TYPE_DICT_ENTRY)
@@ -1351,7 +1353,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
 
     if (d->transports[p] != NULL) {
         pa_log("Cannot configure transport %s because profile %d is already used", path, p);
-        goto fail;
+        goto fail2;
     }
 
     old_any_connected = pa_bluetooth_device_any_audio_connected(d);
@@ -1376,6 +1378,8 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
 
 fail:
     pa_log("org.bluez.MediaEndpoint.SetConfiguration: invalid arguments");
+
+fail2:
     pa_assert_se(r = dbus_message_new_error(m, "org.bluez.MediaEndpoint.Error.InvalidArguments",
                                             "Unable to set configuration"));
     return r;
