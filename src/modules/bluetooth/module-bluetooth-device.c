@@ -63,7 +63,7 @@
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Bluetooth audio sink and source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "name=<name for the card/sink/source, to be prefixed> "
         "card_name=<name for the card> "
@@ -309,11 +309,11 @@ static void setup_stream(struct userdata *u) {
         u->read_smoother = pa_smoother_new(
                 PA_USEC_PER_SEC,
                 PA_USEC_PER_SEC*2,
-                TRUE,
-                TRUE,
+                true,
+                true,
                 10,
                 pa_rtclock_now(),
-                TRUE);
+                true);
 }
 
 static void teardown_stream(struct userdata *u) {
@@ -378,7 +378,7 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t optional) {
 /* Run from IO thread */
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
-    pa_bool_t failed = FALSE;
+    pa_bool_t failed = false;
     int r;
 
     pa_assert(u->sink == PA_SINK(o));
@@ -412,7 +412,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                     /* Resume the device if the source was suspended as well */
                     if (!u->source || !PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
                         if (bt_transport_acquire(u, false) < 0)
-                            failed = TRUE;
+                            failed = true;
                         else
                             setup_stream(u);
                     }
@@ -456,7 +456,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 /* Run from IO thread */
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE(o)->userdata;
-    pa_bool_t failed = FALSE;
+    pa_bool_t failed = false;
     int r;
 
     pa_assert(u->source == PA_SOURCE(o));
@@ -489,7 +489,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                     /* Resume the device if the sink was suspended as well */
                     if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
                         if (bt_transport_acquire(u, false) < 0)
-                            failed = TRUE;
+                            failed = true;
                         else
                             setup_stream(u);
                     }
@@ -627,7 +627,7 @@ static int hsp_process_push(struct userdata *u) {
         struct cmsghdr *cm;
         uint8_t aux[1024];
         struct iovec iov;
-        pa_bool_t found_tstamp = FALSE;
+        pa_bool_t found_tstamp = false;
         pa_usec_t tstamp;
 
         memset(&m, 0, sizeof(m));
@@ -670,7 +670,7 @@ static int hsp_process_push(struct userdata *u) {
                 struct timeval *tv = (struct timeval*) CMSG_DATA(cm);
                 pa_rtclock_from_wallclock(tv);
                 tstamp = pa_timeval_load(tv);
-                found_tstamp = TRUE;
+                found_tstamp = true;
                 break;
             }
 
@@ -680,7 +680,7 @@ static int hsp_process_push(struct userdata *u) {
         }
 
         pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->sample_spec));
-        pa_smoother_resume(u->read_smoother, tstamp, TRUE);
+        pa_smoother_resume(u->read_smoother, tstamp, true);
 
         pa_source_post(u->source, &memchunk);
 
@@ -854,7 +854,7 @@ static int a2dp_process_push(struct userdata *u) {
     memchunk.index = memchunk.length = 0;
 
     for (;;) {
-        pa_bool_t found_tstamp = FALSE;
+        pa_bool_t found_tstamp = false;
         pa_usec_t tstamp;
         struct a2dp_info *a2dp;
         struct rtp_header *header;
@@ -898,7 +898,7 @@ static int a2dp_process_push(struct userdata *u) {
         }
 
         pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->sample_spec));
-        pa_smoother_resume(u->read_smoother, tstamp, TRUE);
+        pa_smoother_resume(u->read_smoother, tstamp, true);
 
         p = (uint8_t*) a2dp->buffer + sizeof(*header) + sizeof(*payload);
         to_decode = l - sizeof(*header) - sizeof(*payload);
@@ -980,7 +980,7 @@ static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     unsigned do_write = 0;
     unsigned pending_read_bytes = 0;
-    pa_bool_t writable = FALSE;
+    pa_bool_t writable = false;
 
     pa_assert(u);
     pa_assert(u->transport);
@@ -999,7 +999,7 @@ static void thread_func(void *userdata) {
     for (;;) {
         struct pollfd *pollfd;
         int ret;
-        pa_bool_t disable_timer = TRUE;
+        pa_bool_t disable_timer = true;
 
         pollfd = u->rtpoll_item ? pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL) : NULL;
 
@@ -1036,7 +1036,7 @@ static void thread_func(void *userdata) {
 
             if (pollfd) {
                 if (pollfd->revents & POLLOUT)
-                    writable = TRUE;
+                    writable = true;
 
                 if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && do_write <= 0 && writable) {
                     pa_usec_t time_passed;
@@ -1098,7 +1098,7 @@ static void thread_func(void *userdata) {
                         pa_log("Broken kernel: we got EAGAIN on write() after POLLOUT!");
 
                     do_write -= n_written;
-                    writable = FALSE;
+                    writable = false;
                 }
 
                 if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && do_write <= 0) {
@@ -1117,7 +1117,7 @@ static void thread_func(void *userdata) {
                         sleep_for = PA_USEC_PER_MSEC * 500;
 
                     pa_rtpoll_set_timer_relative(u->rtpoll, sleep_for);
-                    disable_timer = FALSE;
+                    disable_timer = false;
                 }
             }
         }
@@ -1130,7 +1130,7 @@ static void thread_func(void *userdata) {
             pollfd->events = (short) (((u->sink && PA_SINK_IS_LINKED(u->sink->thread_info.state) && !writable) ? POLLOUT : 0) |
                                       (u->source && PA_SOURCE_IS_LINKED(u->source->thread_info.state) ? POLLIN : 0));
 
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0) {
+        if ((ret = pa_rtpoll_run(u->rtpoll, true)) < 0) {
             pa_log_debug("pa_rtpoll_run failed with: %d", ret);
             goto fail;
         }
@@ -1160,7 +1160,7 @@ io_fail:
 
         do_write = 0;
         pending_read_bytes = 0;
-        writable = FALSE;
+        writable = false;
 
         teardown_stream(u);
     }
@@ -1196,8 +1196,8 @@ static pa_port_available_t transport_state_to_availability_merged(pa_bluetooth_t
 
 /* Run from main thread */
 static void handle_transport_state_change(struct userdata *u, struct pa_bluetooth_transport *transport) {
-    bool acquire = FALSE;
-    bool release = FALSE;
+    pa_bool_t acquire = false;
+    pa_bool_t release = false;
     enum profile profile;
     pa_bluetooth_transport_state_t state;
 
@@ -1289,12 +1289,12 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
         if (bt_transport_acquire(u, true) >= 0) {
             if (u->source) {
                 pa_log_debug("Resuming source %s, because the bluetooth audio state changed to 'playing'.", u->source->name);
-                pa_source_suspend(u->source, FALSE, PA_SUSPEND_IDLE|PA_SUSPEND_USER);
+                pa_source_suspend(u->source, false, PA_SUSPEND_IDLE|PA_SUSPEND_USER);
             }
 
             if (u->sink) {
                 pa_log_debug("Resuming sink %s, because the bluetooth audio state changed to 'playing'.", u->sink->name);
-                pa_sink_suspend(u->sink, FALSE, PA_SUSPEND_IDLE|PA_SUSPEND_USER);
+                pa_sink_suspend(u->sink, false, PA_SUSPEND_IDLE|PA_SUSPEND_USER);
             }
         }
 
@@ -1307,12 +1307,12 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
         /* Remote side closed the stream so we consider it PA_SUSPEND_USER */
         if (u->source) {
             pa_log_debug("Suspending source %s, because the remote end closed the stream.", u->source->name);
-            pa_source_suspend(u->source, TRUE, PA_SUSPEND_USER);
+            pa_source_suspend(u->source, true, PA_SUSPEND_USER);
         }
 
         if (u->sink) {
             pa_log_debug("Suspending sink %s, because the remote end closed the stream.", u->sink->name);
-            pa_sink_suspend(u->sink, TRUE, PA_SUSPEND_USER);
+            pa_sink_suspend(u->sink, true, PA_SUSPEND_USER);
         }
     }
 }
@@ -1386,15 +1386,15 @@ static char *get_name(const char *type, pa_modargs *ma, const char *device_id, p
     pa_xfree(t);
 
     if (n) {
-        *namereg_fail = TRUE;
+        *namereg_fail = true;
         return pa_xstrdup(n);
     }
 
     if ((n = pa_modargs_get_value(ma, "name", NULL)))
-        *namereg_fail = TRUE;
+        *namereg_fail = true;
     else {
         n = device_id;
-        *namereg_fail = FALSE;
+        *namereg_fail = false;
     }
 
     return pa_sprintf_malloc("bluez_%s.%s", type, n);
@@ -1444,7 +1444,7 @@ static pa_hook_result_t sink_state_changed_cb(pa_core *c, pa_sink *s, struct use
     if (!USE_SCO_OVER_PCM(u) || s != u->hsp.sco_sink)
         return PA_HOOK_OK;
 
-    sco_over_pcm_state_update(u, TRUE);
+    sco_over_pcm_state_update(u, true);
 
     return PA_HOOK_OK;
 }
@@ -1457,7 +1457,7 @@ static pa_hook_result_t source_state_changed_cb(pa_core *c, pa_source *s, struct
     if (!USE_SCO_OVER_PCM(u) || s != u->hsp.sco_source)
         return PA_HOOK_OK;
 
-    sco_over_pcm_state_update(u, TRUE);
+    sco_over_pcm_state_update(u, true);
 
     return PA_HOOK_OK;
 }
@@ -1744,7 +1744,7 @@ static void bt_transport_config_a2dp(struct userdata *u) {
         sbc_reinit(&a2dp->sbc, 0);
     else
         sbc_init(&a2dp->sbc, 0);
-    a2dp->sbc_initialized = TRUE;
+    a2dp->sbc_initialized = true;
 
     switch (config->frequency) {
         case SBC_SAMPLING_FREQ_16000:
@@ -1989,7 +1989,7 @@ static int start_thread(struct userdata *u) {
     pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
 
     if (USE_SCO_OVER_PCM(u)) {
-        if (sco_over_pcm_state_update(u, FALSE) < 0) {
+        if (sco_over_pcm_state_update(u, false) < 0) {
             char *k;
 
             if (u->sink) {
@@ -2335,7 +2335,7 @@ static int add_card(struct userdata *u) {
     if (*d != PROFILE_OFF && !device->transports[*d]) {
         pa_log_warn("Default profile not connected, selecting off profile");
         u->card->active_profile = pa_hashmap_get(u->card->profiles, "off");
-        u->card->save_profile = FALSE;
+        u->card->save_profile = false;
     }
 
     d = PA_CARD_PROFILE_DATA(u->card->active_profile);
@@ -2480,7 +2480,7 @@ int pa__init(pa_module* m) {
         goto fail;
     }
 
-    u->auto_connect = TRUE;
+    u->auto_connect = true;
     if (pa_modargs_get_value_boolean(ma, "auto_connect", &u->auto_connect)) {
         pa_log("Failed to parse auto_connect= argument");
         goto fail;

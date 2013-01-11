@@ -42,7 +42,7 @@ PA_MODULE_DESCRIPTION("Detect available bluetooth audio devices and load bluetoo
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE("sco_sink=<name of sink> "
                 "sco_source=<name of source> ");
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 
 static const char* const valid_modargs[] = {
     "sco_sink",

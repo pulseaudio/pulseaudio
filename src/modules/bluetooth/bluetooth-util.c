@@ -174,7 +174,7 @@ static pa_bluetooth_device* device_new(pa_bluetooth_discovery *discovery, const 
     d = pa_xnew0(pa_bluetooth_device, 1);
 
     d->discovery = discovery;
-    d->dead = FALSE;
+    d->dead = false;
 
     d->device_info_valid = 0;
 
@@ -240,13 +240,13 @@ static pa_bool_t device_is_audio_ready(const pa_bluetooth_device *d) {
     pa_assert(d);
 
     if (!d->device_info_valid || d->audio_state == PA_BT_AUDIO_STATE_INVALID)
-        return FALSE;
+        return false;
 
     for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++)
         if (d->profile_state[i] != PA_BT_AUDIO_STATE_INVALID)
-            return TRUE;
+            return true;
 
-    return FALSE;
+    return false;
 }
 
 static const char *check_variant_property(DBusMessageIter *i) {
@@ -426,7 +426,7 @@ static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i) {
 
             if (dbus_message_iter_get_arg_type(&ai) == DBUS_TYPE_STRING && pa_streq(key, "UUIDs")) {
                 DBusMessage *m;
-                pa_bool_t has_audio = FALSE;
+                pa_bool_t has_audio = false;
 
                 while (dbus_message_iter_get_arg_type(&ai) != DBUS_TYPE_INVALID) {
                     pa_bluetooth_uuid *node;
@@ -452,22 +452,22 @@ static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.HandsfreeGateway",
                                                                       "GetProperties"));
                         send_and_add_to_pending(d->discovery, m, get_properties_reply, d);
-                        has_audio = TRUE;
+                        has_audio = true;
                     } else if (strcasecmp(HSP_HS_UUID, value) == 0 || strcasecmp(HFP_HS_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.Headset",
                                                                       "GetProperties"));
                         send_and_add_to_pending(d->discovery, m, get_properties_reply, d);
-                        has_audio = TRUE;
+                        has_audio = true;
                     } else if (strcasecmp(A2DP_SINK_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.AudioSink",
                                                                       "GetProperties"));
                         send_and_add_to_pending(d->discovery, m, get_properties_reply, d);
-                        has_audio = TRUE;
+                        has_audio = true;
                     } else if (strcasecmp(A2DP_SOURCE_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.AudioSource",
                                                                       "GetProperties"));
                         send_and_add_to_pending(d->discovery, m, get_properties_reply, d);
-                        has_audio = TRUE;
+                        has_audio = true;
                     }
 
                     dbus_message_iter_next(&ai);
@@ -630,7 +630,7 @@ static void remove_all_devices(pa_bluetooth_discovery *y) {
     pa_assert(y);
 
     while ((d = pa_hashmap_steal_first(y->devices))) {
-        run_callback(d, TRUE);
+        run_callback(d, true);
         device_free(d);
     }
 }
@@ -746,7 +746,7 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
 
 finish:
     if (d != NULL && old_any_connected != pa_bluetooth_device_any_audio_connected(d))
-        run_callback(d, FALSE);
+        run_callback(d, false);
 
 finish2:
     dbus_message_unref(r);
@@ -938,7 +938,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
         pa_log_debug("Device %s removed", path);
 
         if ((d = pa_hashmap_remove(y->devices, path))) {
-            run_callback(d, TRUE);
+            run_callback(d, true);
             device_free(d);
         }
 
@@ -996,7 +996,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 goto fail;
 
             if (old_any_connected != pa_bluetooth_device_any_audio_connected(d))
-                run_callback(d, FALSE);
+                run_callback(d, false);
         }
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
@@ -1271,7 +1271,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     const char *sender, *path, *dev_path = NULL, *uuid = NULL;
     uint8_t *config = NULL;
     int size = 0;
-    pa_bool_t nrec = FALSE;
+    pa_bool_t nrec = false;
     enum profile p;
     DBusMessageIter args, props;
     DBusMessage *r;
@@ -1372,7 +1372,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     pa_assert_se(r = dbus_message_new_method_return(m));
 
     if (old_any_connected != pa_bluetooth_device_any_audio_connected(d))
-        run_callback(d, FALSE);
+        run_callback(d, false);
 
     return r;
 
@@ -1410,7 +1410,7 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *c, DBusMessage 
         pa_hook_fire(&y->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], t);
 
         if (old_any_connected != pa_bluetooth_device_any_audio_connected(t->device))
-            run_callback(t->device, FALSE);
+            run_callback(t->device, false);
 
         transport_free(t);
     }
@@ -1678,7 +1678,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
         goto fail;
     }
 
-    y->filter_added = TRUE;
+    y->filter_added = true;
 
     if (pa_dbus_add_matches(
                 conn, &err,
@@ -1822,7 +1822,7 @@ const char*pa_bluetooth_get_form_factor(uint32_t class) {
 
 char *pa_bluetooth_cleanup_name(const char *name) {
     char *t, *s, *d;
-    pa_bool_t space = FALSE;
+    pa_bool_t space = false;
 
     pa_assert(name);
 
@@ -1834,13 +1834,13 @@ char *pa_bluetooth_cleanup_name(const char *name) {
     for (s = d = t; *s; s++) {
 
         if (*s <= 32 || *s >= 127 || *s == '_') {
-            space = TRUE;
+            space = true;
             continue;
         }
 
         if (space) {
             *(d++) = ' ';
-            space = FALSE;
+            space = false;
         }
 
         *(d++) = *s;
@@ -1856,10 +1856,10 @@ pa_bool_t pa_bluetooth_uuid_has(pa_bluetooth_uuid *uuids, const char *uuid) {
 
     while (uuids) {
         if (strcasecmp(uuids->uuid, uuid) == 0)
-            return TRUE;
+            return true;
 
         uuids = uuids->next;
     }
 
-    return FALSE;
+    return false;
 }
