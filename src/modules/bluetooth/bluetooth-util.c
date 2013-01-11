@@ -235,18 +235,12 @@ static void device_free(pa_bluetooth_device *d) {
 }
 
 static pa_bool_t device_is_audio_ready(const pa_bluetooth_device *d) {
-    unsigned i;
-
     pa_assert(d);
 
     if (!d->device_info_valid || d->audio_state == PA_BT_AUDIO_STATE_INVALID)
         return false;
 
-    for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++)
-        if (d->profile_state[i] != PA_BT_AUDIO_STATE_INVALID)
-            return true;
-
-    return false;
+    return true;
 }
 
 static const char *check_variant_property(DBusMessageIter *i) {
