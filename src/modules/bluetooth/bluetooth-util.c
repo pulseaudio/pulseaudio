@@ -1129,7 +1129,7 @@ int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, bool optional, siz
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_STRING, &accesstype, DBUS_TYPE_INVALID));
     r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
 
-    if (dbus_error_is_set(&err) || !r) {
+    if (!r) {
         dbus_error_free(&err);
         return -1;
     }
@@ -1220,9 +1220,7 @@ static int setup_dbus(pa_bluetooth_discovery *y) {
 
     dbus_error_init(&err);
 
-    y->connection = pa_dbus_bus_get(y->core, DBUS_BUS_SYSTEM, &err);
-
-    if (dbus_error_is_set(&err) || !y->connection) {
+    if (!(y->connection = pa_dbus_bus_get(y->core, DBUS_BUS_SYSTEM, &err))) {
         pa_log("Failed to get D-Bus connection: %s", err.message);
         dbus_error_free(&err);
         return -1;
