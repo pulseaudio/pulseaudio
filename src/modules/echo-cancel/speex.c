@@ -199,8 +199,14 @@ pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
 fail:
     if (ma)
         pa_modargs_free(ma);
-    if (ec->params.priv.speex.state)
+    if (ec->params.priv.speex.pp_state) {
         speex_preprocess_state_destroy(ec->params.priv.speex.pp_state);
+        ec->params.priv.speex.pp_state = NULL;
+    }
+    if (ec->params.priv.speex.state) {
+        speex_echo_state_destroy(ec->params.priv.speex.state);
+        ec->params.priv.speex.state = NULL;
+    }
     return FALSE;
 }
 
