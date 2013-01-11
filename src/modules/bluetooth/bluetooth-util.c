@@ -975,7 +975,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             bool old_any_connected = pa_bluetooth_device_any_audio_connected(d);
 
             if (!dbus_message_iter_init(m, &arg_i)) {
-                pa_log("Failed to parse PropertyChanged: %s", err.message);
+                pa_log("Failed to parse PropertyChanged for device %s", d->path);
                 goto fail;
             }
 
@@ -1025,7 +1025,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             goto fail;
 
         if (!dbus_message_iter_init(m, &arg_i)) {
-            pa_log("Failed to parse PropertyChanged: %s", err.message);
+            pa_log("Failed to parse PropertyChanged for transport %s", t->path);
             goto fail;
         }
 
