@@ -49,7 +49,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Bluetooth Proximity Volume Control");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "sink=<sink name> "
         "hci=<hci device> "
@@ -91,8 +91,8 @@ struct userdata {
     unsigned n_found;
     unsigned n_unknown;
 
-    pa_bool_t muted:1;
-    pa_bool_t filter_added:1;
+    bool muted:1;
+    bool filter_added:1;
 };
 
 static void update_volume(struct userdata *u) {
@@ -101,7 +101,7 @@ static void update_volume(struct userdata *u) {
     if (u->muted && u->n_found > 0) {
         pa_sink *s;
 
-        u->muted = FALSE;
+        u->muted = false;
 
         if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK))) {
             pa_log_warn("Sink device '%s' not available for unmuting.", pa_strnull(u->sink_name));
@@ -109,12 +109,12 @@ static void update_volume(struct userdata *u) {
         }
 
         pa_log_info("Found %u BT devices, unmuting.", u->n_found);
-        pa_sink_set_mute(s, FALSE, FALSE);
+        pa_sink_set_mute(s, false, false);
 
     } else if (!u->muted && (u->n_found+u->n_unknown) <= 0) {
         pa_sink *s;
 
-        u->muted = TRUE;
+        u->muted = true;
 
         if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK))) {
             pa_log_warn("Sink device '%s' not available for muting.", pa_strnull(u->sink_name));
@@ -122,7 +122,7 @@ static void update_volume(struct userdata *u) {
         }
 
         pa_log_info("No BT devices found, muting.");
-        pa_sink_set_mute(s, TRUE, FALSE);
+        pa_sink_set_mute(s, true, false);
 
     } else
         pa_log_info("%u devices now active, %u with unknown state.", u->n_found, u->n_unknown);
@@ -325,7 +325,7 @@ finish:
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
-static int update_matches(struct userdata *u, pa_bool_t add) {
+static int update_matches(struct userdata *u, bool add) {
     char *filter1, *filter2;
     DBusError e;
     int r = -1;
@@ -360,7 +360,7 @@ static int update_matches(struct userdata *u, pa_bool_t add) {
 
     if (add) {
         pa_assert_se(dbus_connection_add_filter(pa_dbus_connection_get(u->dbus_connection), filter_func, u, NULL));
-        u->filter_added = TRUE;
+        u->filter_added = true;
     } else if (u->filter_added)
         dbus_connection_remove_filter(pa_dbus_connection_get(u->dbus_connection), filter_func, u);
 
@@ -401,7 +401,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (update_matches(u, TRUE) < 0)
+    if (update_matches(u, true) < 0)
         goto fail;
 
     pa_assert_se(msg = dbus_message_new_method_call("org.bluez", u->hci_path, "org.bluez.Adapter", "ListBondings"));
@@ -476,7 +476,7 @@ void pa__done(pa_module*m) {
     }
 
     if (u->dbus_connection) {
-        update_matches(u, FALSE);
+        update_matches(u, false);
         pa_dbus_connection_unref(u->dbus_connection);
     }
 

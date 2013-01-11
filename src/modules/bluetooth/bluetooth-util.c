@@ -70,7 +70,7 @@ struct pa_bluetooth_discovery {
     pa_hashmap *devices;
     pa_hashmap *transports;
     pa_hook hooks[PA_BLUETOOTH_HOOK_MAX];
-    pa_bool_t filter_added;
+    bool filter_added;
 };
 
 static void get_properties_reply(DBusPendingCall *pending, void *userdata);
@@ -411,7 +411,7 @@ static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i) {
 
             if (dbus_message_iter_get_arg_type(&ai) == DBUS_TYPE_STRING && pa_streq(key, "UUIDs")) {
                 DBusMessage *m;
-                pa_bool_t has_audio = false;
+                bool has_audio = false;
 
                 while (dbus_message_iter_get_arg_type(&ai) != DBUS_TYPE_INVALID) {
                     pa_bluetooth_uuid *node;
@@ -599,7 +599,7 @@ static int parse_audio_property(pa_bluetooth_device *d, const char *interface, D
     return 0;
 }
 
-static void run_callback(pa_bluetooth_device *d, pa_bool_t dead) {
+static void run_callback(pa_bluetooth_device *d, bool dead) {
     pa_assert(d);
 
     if (d->device_info_valid != 1)
@@ -1257,7 +1257,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     const char *sender, *path, *dev_path = NULL, *uuid = NULL;
     uint8_t *config = NULL;
     int size = 0;
-    pa_bool_t nrec = false;
+    bool nrec = false;
     enum profile p;
     DBusMessageIter args, props;
     DBusMessage *r;
@@ -1808,7 +1808,7 @@ const char*pa_bluetooth_get_form_factor(uint32_t class) {
 
 char *pa_bluetooth_cleanup_name(const char *name) {
     char *t, *s, *d;
-    pa_bool_t space = false;
+    bool space = false;
 
     pa_assert(name);
 
@@ -1837,7 +1837,7 @@ char *pa_bluetooth_cleanup_name(const char *name) {
     return t;
 }
 
-pa_bool_t pa_bluetooth_uuid_has(pa_bluetooth_uuid *uuids, const char *uuid) {
+bool pa_bluetooth_uuid_has(pa_bluetooth_uuid *uuids, const char *uuid) {
     pa_assert(uuid);
 
     while (uuids) {

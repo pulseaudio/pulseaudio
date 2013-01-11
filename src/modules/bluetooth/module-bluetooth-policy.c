@@ -38,7 +38,7 @@
 PA_MODULE_AUTHOR("Frédéric Dalleau");
 PA_MODULE_DESCRIPTION("When a bluetooth sink or source is added, load module-loopback");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "a2dp_source=<Handle a2dp_source card profile (sink role)?> "
         "hfgw=<Handle hfgw card profile (headset role)?>");
@@ -159,7 +159,7 @@ static void set_port_profile(pa_card *card, pa_device_port *port) {
 
         pa_log_debug("Setting card '%s' to profile '%s'", card->name, profile->name);
 
-        if (pa_card_set_profile(card, profile->name, FALSE) != 0)
+        if (pa_card_set_profile(card, profile->name, false) != 0)
             pa_log_warn("Could not set profile '%s'", profile->name);
 
         return;
@@ -170,7 +170,7 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
     pa_card *card;
     const char *s;
     uint32_t state;
-    pa_bool_t is_active_profile;
+    bool is_active_profile;
     pa_device_port *port2;
 
     PA_IDXSET_FOREACH(card, c->cards, state)
@@ -233,13 +233,13 @@ int pa__init(pa_module *m) {
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
 
-    u->enable_a2dp_source = TRUE;
+    u->enable_a2dp_source = true;
     if (pa_modargs_get_value_boolean(ma, "a2dp_source", &u->enable_a2dp_source) < 0) {
         pa_log("Failed to parse a2dp_source argument.");
         goto fail;
     }
 
-    u->enable_hfgw = TRUE;
+    u->enable_hfgw = true;
     if (pa_modargs_get_value_boolean(ma, "hfgw", &u->enable_hfgw) < 0) {
         pa_log("Failed to parse hfgw argument.");
         goto fail;

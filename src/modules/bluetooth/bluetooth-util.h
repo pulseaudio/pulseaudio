@@ -99,7 +99,7 @@ struct pa_bluetooth_transport {
     int config_size;
 
     pa_bluetooth_transport_state_t state;
-    pa_bool_t nrec;
+    bool nrec;
     uint16_t microphone_gain; /* Used for HSP/HFP */
     uint16_t speaker_gain; /* Used for HSP/HFP */
 };
@@ -115,7 +115,7 @@ typedef enum pa_bt_audio_state {
 
 struct pa_bluetooth_device {
     pa_bluetooth_discovery *discovery;
-    pa_bool_t dead;
+    bool dead;
 
     int device_info_valid;      /* 0: no results yet; 1: good results; -1: bad results ... */
 
@@ -158,7 +158,7 @@ const char* pa_bluetooth_get_form_factor(uint32_t class);
 
 char *pa_bluetooth_cleanup_name(const char *name);
 
-pa_bool_t pa_bluetooth_uuid_has(pa_bluetooth_uuid *uuids, const char *uuid);
+bool pa_bluetooth_uuid_has(pa_bluetooth_uuid *uuids, const char *uuid);
 const char *pa_bt_profile_to_string(enum profile profile);
 
 #endif

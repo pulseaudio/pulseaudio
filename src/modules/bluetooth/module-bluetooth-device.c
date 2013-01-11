@@ -104,7 +104,7 @@ static const char* const valid_modargs[] = {
 
 struct a2dp_info {
     sbc_t sbc;                           /* Codec data */
-    pa_bool_t sbc_initialized;           /* Keep track if the encoder is initialized */
+    bool sbc_initialized;                /* Keep track if the encoder is initialized */
     size_t codesize, frame_length;       /* SBC Codesize, frame_length. We simply cache those values here */
 
     void* buffer;                        /* Codec transfer buffer */
@@ -150,7 +150,7 @@ struct userdata {
     pa_hook_slot *transport_speaker_changed_slot;
 
     pa_bluetooth_discovery *discovery;
-    pa_bool_t auto_connect;
+    bool auto_connect;
 
     pa_card *card;
     pa_sink *sink;
@@ -351,7 +351,7 @@ static void bt_transport_release(struct userdata *u) {
     teardown_stream(u);
 }
 
-static int bt_transport_acquire(struct userdata *u, pa_bool_t optional) {
+static int bt_transport_acquire(struct userdata *u, bool optional) {
     pa_assert(u->transport);
 
     if (u->transport_acquired)
@@ -378,7 +378,7 @@ static int bt_transport_acquire(struct userdata *u, pa_bool_t optional) {
 /* Run from IO thread */
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
-    pa_bool_t failed = false;
+    bool failed = false;
     int r;
 
     pa_assert(u->sink == PA_SINK(o));
@@ -456,7 +456,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 /* Run from IO thread */
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE(o)->userdata;
-    pa_bool_t failed = false;
+    bool failed = false;
     int r;
 
     pa_assert(u->source == PA_SOURCE(o));
@@ -627,7 +627,7 @@ static int hsp_process_push(struct userdata *u) {
         struct cmsghdr *cm;
         uint8_t aux[1024];
         struct iovec iov;
-        pa_bool_t found_tstamp = false;
+        bool found_tstamp = false;
         pa_usec_t tstamp;
 
         memset(&m, 0, sizeof(m));
@@ -854,7 +854,7 @@ static int a2dp_process_push(struct userdata *u) {
     memchunk.index = memchunk.length = 0;
 
     for (;;) {
-        pa_bool_t found_tstamp = false;
+        bool found_tstamp = false;
         pa_usec_t tstamp;
         struct a2dp_info *a2dp;
         struct rtp_header *header;
@@ -980,7 +980,7 @@ static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     unsigned do_write = 0;
     unsigned pending_read_bytes = 0;
-    pa_bool_t writable = false;
+    bool writable = false;
 
     pa_assert(u);
     pa_assert(u->transport);
@@ -999,7 +999,7 @@ static void thread_func(void *userdata) {
     for (;;) {
         struct pollfd *pollfd;
         int ret;
-        pa_bool_t disable_timer = true;
+        bool disable_timer = true;
 
         pollfd = u->rtpoll_item ? pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL) : NULL;
 
@@ -1196,8 +1196,8 @@ static pa_port_available_t transport_state_to_availability_merged(pa_bluetooth_t
 
 /* Run from main thread */
 static void handle_transport_state_change(struct userdata *u, struct pa_bluetooth_transport *transport) {
-    pa_bool_t acquire = false;
-    pa_bool_t release = false;
+    bool acquire = false;
+    bool release = false;
     enum profile profile;
     pa_bluetooth_transport_state_t state;
 
@@ -1372,7 +1372,7 @@ static void source_set_volume_cb(pa_source *s) {
 }
 
 /* Run from main thread */
-static char *get_name(const char *type, pa_modargs *ma, const char *device_id, pa_bool_t *namereg_fail) {
+static char *get_name(const char *type, pa_modargs *ma, const char *device_id, bool *namereg_fail) {
     char *t;
     const char *n;
 
@@ -1400,7 +1400,7 @@ static char *get_name(const char *type, pa_modargs *ma, const char *device_id, p
     return pa_sprintf_malloc("bluez_%s.%s", type, n);
 }
 
-static int sco_over_pcm_state_update(struct userdata *u, pa_bool_t changed) {
+static int sco_over_pcm_state_update(struct userdata *u, bool changed) {
     pa_assert(u);
     pa_assert(USE_SCO_OVER_PCM(u));
 
@@ -1592,7 +1592,7 @@ static int add_sink(struct userdata *u) {
         pa_proplist_free(p);
     } else {
         pa_sink_new_data data;
-        pa_bool_t b;
+        bool b;
 
         pa_sink_new_data_init(&data);
         data.driver = __FILE__;
@@ -1662,7 +1662,7 @@ static int add_source(struct userdata *u) {
         pa_proplist_sets(u->source->proplist, "bluetooth.protocol", pa_bt_profile_to_string(u->profile));
     } else {
         pa_source_new_data data;
-        pa_bool_t b;
+        bool b;
 
         pa_source_new_data_init(&data);
         data.driver = __FILE__;
@@ -2253,7 +2253,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
 /* Run from main thread */
 static int add_card(struct userdata *u) {
     pa_card_new_data data;
-    pa_bool_t b;
+    bool b;
     pa_card_profile *p;
     enum profile *d;
     const char *ff;
