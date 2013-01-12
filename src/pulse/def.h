@@ -93,9 +93,14 @@ static inline int PA_STREAM_IS_GOOD(pa_stream_state_t x) {
 
 /** The state of an operation */
 typedef enum pa_operation_state {
-    PA_OPERATION_RUNNING,      /**< The operation is still running */
-    PA_OPERATION_DONE,         /**< The operation has been completed */
-    PA_OPERATION_CANCELLED     /**< The operation has been cancelled. Before 0.9.18 this was called PA_OPERATION_CANCELED. That name is still available for compatibility. */
+    PA_OPERATION_RUNNING,
+    /**< The operation is still running */
+    PA_OPERATION_DONE,
+    /**< The operation has been completed */
+    PA_OPERATION_CANCELLED
+    /**< The operation has been cancelled. Operations may get cancelled by the
+     * application, or as a result of the context getting disconneted while the
+     * operation is pending. */
 } pa_operation_state_t;
 
 /** \cond fulldocs */

@@ -53,8 +53,12 @@ void pa_operation_cancel(pa_operation *o);
 /** Return the current status of the operation */
 pa_operation_state_t pa_operation_get_state(pa_operation *o);
 
-/** Set the callback function that is called when the operation
- * is canceled due to disconnection. \since 4.0 */
+/** Set the callback function that is called when the operation state
+ * changes. Usually this is not necessary, since the functions that
+ * create pa_operation objects already take a callback that is called
+ * when the operation finishes. Registering a state change callback is
+ * mainly useful, if you want to get called back also if the operation
+ * gets cancelled. \since 4.0 */
 void pa_operation_set_state_callback(pa_operation *o, pa_operation_notify_cb_t cb, void *userdata);
 
 PA_C_DECL_END
