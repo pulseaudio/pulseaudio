@@ -40,10 +40,11 @@ pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t cb
     if (!(o = pa_flist_pop(PA_STATIC_FLIST_GET(operations))))
         o = pa_xnew(pa_operation, 1);
 
+    pa_zero(*o);
+
     PA_REFCNT_INIT(o);
     o->context = c;
     o->stream = s;
-    o->private = NULL;
 
     o->state = PA_OPERATION_RUNNING;
     o->callback = cb;
