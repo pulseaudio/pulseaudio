@@ -59,6 +59,23 @@ struct rm_monitor {
 	"member='NameOwnerChanged',"		\
 	"arg0='%s'"
 
+static unsigned get_busy(
+	DBusConnection *c,
+	const char *name_owner) {
+
+	const char *un;
+
+	if (!name_owner || !*name_owner)
+		return FALSE;
+
+	/* If we ourselves own the device, then don't consider this 'busy' */
+	if ((un = dbus_bus_get_unique_name(c)))
+		if (strcmp(name_owner, un) == 0)
+			return FALSE;
+
+	return TRUE;
+}
+
 static DBusHandlerResult filter_handler(
 	DBusConnection *c,
 	DBusMessage *s,
@@ -87,16 +104,7 @@ static DBusHandlerResult filter_handler(
 		if (strcmp(name, m->service_name) == 0) {
 			unsigned old_busy = m->busy;
 
-			m->busy = !!(new && *new);
-
-			/* If we ourselves own the device, then don't consider this 'busy' */
-			if (m->busy) {
-				const char *un;
-
-				if ((un = dbus_bus_get_unique_name(c)))
-					if (strcmp(new, un) == 0)
-						m->busy = FALSE;
-			}
+			m->busy = get_busy(c, new);
 
 			if (m->busy != old_busy && m->change_cb) {
 				m->ref++;
@@ -112,14 +120,71 @@ invalid:
 	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
+static int get_name_owner(
+	DBusConnection *connection,
+	const char *name,
+	char **name_owner,
+	DBusError *error) {
+
+	DBusMessage *msg, *reply;
+	int r;
+
+	*name_owner = NULL;
+
+	if (!(msg = dbus_message_new_method_call(DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS, "GetNameOwner"))) {
+		r = -ENOMEM;
+		goto fail;
+	}
+
+	if (!dbus_message_append_args(msg, DBUS_TYPE_STRING, &name, DBUS_TYPE_INVALID)) {
+		r = -ENOMEM;
+		goto fail;
+	}
+
+	reply = dbus_connection_send_with_reply_and_block(connection, msg, DBUS_TIMEOUT_USE_DEFAULT, error);
+	dbus_message_unref(msg);
+	msg = NULL;
+
+	if (reply) {
+		if (!dbus_message_get_args(reply, error, DBUS_TYPE_STRING, name_owner, DBUS_TYPE_INVALID)) {
+			dbus_message_unref(reply);
+			r = -EIO;
+			goto fail;
+		}
+
+		*name_owner = strdup(*name_owner);
+		dbus_message_unref(reply);
+
+		if (!*name_owner) {
+			r = -ENOMEM;
+			goto fail;
+		}
+
+	} else if (dbus_error_has_name(error, "org.freedesktop.DBus.Error.NameHasNoOwner"))
+		dbus_error_free(error);
+	else {
+		r = -EIO;
+		goto fail;
+	}
+
+	return 0;
+
+fail:
+	if (msg)
+		dbus_message_unref(msg);
+
+	return r;
+}
+
 int rm_watch(
 	rm_monitor **_m,
 	DBusConnection *connection,
-	const char*device_name,
+	const char *device_name,
 	rm_change_cb_t change_cb,
 	DBusError *error)  {
 
 	rm_monitor *m = NULL;
+	char *name_owner;
 	int r;
 	DBusError _error;
 
@@ -178,12 +243,11 @@ int rm_watch(
 
 	m->matching = 1;
 
-	m->busy = dbus_bus_name_has_owner(m->connection, m->service_name, error);
-
-	if (dbus_error_is_set(error)) {
-		r = -EIO;
+	if ((r = get_name_owner(m->connection, m->service_name, &name_owner, error)) < 0)
 		goto fail;
-	}
+
+	m->busy = get_busy(m->connection, name_owner);
+	free(name_owner);
 
 	*_m = m;
 	return 0;
