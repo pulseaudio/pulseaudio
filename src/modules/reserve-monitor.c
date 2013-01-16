@@ -85,6 +85,8 @@ static DBusHandlerResult filter_handler(
 			goto invalid;
 
 		if (strcmp(name, m->service_name) == 0) {
+			unsigned old_busy = m->busy;
+
 			m->busy = !!(new && *new);
 
 			/* If we ourselves own the device, then don't consider this 'busy' */
@@ -96,7 +98,7 @@ static DBusHandlerResult filter_handler(
 						m->busy = FALSE;
 			}
 
-			if (m->change_cb) {
+			if (m->busy != old_busy && m->change_cb) {
 				m->ref++;
 				m->change_cb(m);
 				rm_release(m);
