@@ -127,4 +127,5 @@ void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
 
     pa_assert_se(core = p->core);
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, p->card->index);
+    pa_hook_fire(&core->hooks[PA_CORE_HOOK_PORT_LATENCY_OFFSET_CHANGED], p);
 }
