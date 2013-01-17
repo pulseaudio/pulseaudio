@@ -92,6 +92,7 @@ pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *des
     p->name = pa_xstrdup(name);
     p->description = pa_xstrdup(description);
     p->core = c;
+    p->card = NULL;
     p->priority = 0;
     p->available = PA_PORT_AVAILABLE_UNKNOWN;
     p->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);

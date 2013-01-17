@@ -102,8 +102,10 @@ void pa_card_add_ports(pa_card *c, pa_hashmap *ports) {
     pa_assert(ports);
 
     /* take ownership of the ports */
-    PA_HASHMAP_FOREACH(p, ports, state)
+    PA_HASHMAP_FOREACH(p, ports, state) {
+        p->card = c;
         pa_assert_se(pa_hashmap_put(c->ports, p->name, p) >= 0);
+    }
 
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
 
@@ -145,6 +147,7 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     const char *name;
     void *state;
     pa_card_profile *profile;
+    pa_device_port *port;
 
     pa_core_assert_ref(core);
     pa_assert(data);
@@ -186,6 +189,11 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     if (c->profiles) {
         PA_HASHMAP_FOREACH(profile, c->profiles, state)
             profile->card = c;
+    }
+
+    if (c->ports) {
+        PA_HASHMAP_FOREACH(port, c->ports, state)
+            port->card = c;
     }
 
     c->active_profile = NULL;
