@@ -28,9 +28,6 @@ PA_DEFINE_PUBLIC_CLASS(pa_device_port, pa_object);
 
 void pa_device_port_set_available(pa_device_port *p, pa_port_available_t status)
 {
-/*    uint32_t state;
-    pa_source *source;
-    pa_sink *sink; */
     pa_core *core;
 
     pa_assert(p);
@@ -47,17 +44,6 @@ void pa_device_port_set_available(pa_device_port *p, pa_port_available_t status)
     /* Post subscriptions to the card which owns us */
     pa_assert_se(core = p->core);
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, p->card->index);
-#if 0
-/* This stuff is temporarily commented out while figuring out whether to actually do this */
-    if (p->is_output)
-        PA_IDXSET_FOREACH(sink, core->sinks, state)
-            if (p == pa_hashmap_get(sink->ports, p->name))
-                pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, sink->index);
-    if (p->is_input)
-        PA_IDXSET_FOREACH(source, core->sources, state)
-            if (p == pa_hashmap_get(source->ports, p->name))
-                pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, source->index);
-#endif
 
     pa_hook_fire(&core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED], p);
 }
