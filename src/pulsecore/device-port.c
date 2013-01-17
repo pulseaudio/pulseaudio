@@ -28,9 +28,8 @@ PA_DEFINE_PUBLIC_CLASS(pa_device_port, pa_object);
 
 void pa_device_port_set_available(pa_device_port *p, pa_port_available_t status)
 {
-    uint32_t state;
-    pa_card *card;
-/*    pa_source *source;
+/*    uint32_t state;
+    pa_source *source;
     pa_sink *sink; */
     pa_core *core;
 
@@ -47,9 +46,7 @@ void pa_device_port_set_available(pa_device_port *p, pa_port_available_t status)
 
     /* Post subscriptions to the card which owns us */
     pa_assert_se(core = p->core);
-    PA_IDXSET_FOREACH(card, core->cards, state)
-        if (p == pa_hashmap_get(card->ports, p->name))
-            pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, card->index);
+    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, p->card->index);
 #if 0
 /* This stuff is temporarily commented out while figuring out whether to actually do this */
     if (p->is_output)
@@ -118,7 +115,6 @@ void pa_device_port_hashmap_free(pa_hashmap *h) {
 void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
     uint32_t state;
     pa_core *core;
-    pa_card *card;
 
     pa_assert(p);
 
@@ -144,7 +140,5 @@ void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
     }
 
     pa_assert_se(core = p->core);
-    PA_IDXSET_FOREACH(card, core->cards, state)
-        if (p == pa_hashmap_get(card->ports, p->name))
-            pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, card->index);
+    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, p->card->index);
 }
