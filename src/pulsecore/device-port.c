@@ -104,6 +104,9 @@ void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
 
     pa_assert(p);
 
+    if (offset == p->latency_offset)
+        return;
+
     p->latency_offset = offset;
 
     if (p->is_output) {
