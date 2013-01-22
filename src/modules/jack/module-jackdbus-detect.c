@@ -241,9 +241,7 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    if (pa_modargs_get_value_u32(ma, "channels", &u->channels) < 0 ||
-        u->channels <= 0 ||
-        u->channels > PA_CHANNELS_MAX) {
+    if (pa_modargs_get_value_u32(ma, "channels", &u->channels) < 0 || u->channels > PA_CHANNELS_MAX) {
         pa_log("Failed to parse channels= argument.");
         goto fail;
     }
