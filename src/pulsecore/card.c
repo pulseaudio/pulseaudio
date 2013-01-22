@@ -181,20 +181,16 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
 
     /* As a minor optimization we just steal the list instead of
      * copying it here */
-    c->profiles = data->profiles;
+    pa_assert_se(c->profiles = data->profiles);
     data->profiles = NULL;
-    c->ports = data->ports;
+    pa_assert_se(c->ports = data->ports);
     data->ports = NULL;
 
-    if (c->profiles) {
-        PA_HASHMAP_FOREACH(profile, c->profiles, state)
-            profile->card = c;
-    }
+    PA_HASHMAP_FOREACH(profile, c->profiles, state)
+        profile->card = c;
 
-    if (c->ports) {
-        PA_HASHMAP_FOREACH(port, c->ports, state)
-            port->card = c;
-    }
+    PA_HASHMAP_FOREACH(port, c->ports, state)
+        port->card = c;
 
     c->active_profile = NULL;
     c->save_profile = FALSE;
