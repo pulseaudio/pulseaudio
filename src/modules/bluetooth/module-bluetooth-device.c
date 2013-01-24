@@ -332,6 +332,11 @@ static void teardown_stream(struct userdata *u) {
         u->read_smoother = NULL;
     }
 
+    if (u->write_memchunk.memblock) {
+        pa_memblock_unref(u->write_memchunk.memblock);
+        pa_memchunk_reset(&u->write_memchunk);
+    }
+
     pa_log_debug("Audio stream torn down");
 }
 
