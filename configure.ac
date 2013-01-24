@@ -975,7 +975,7 @@ AS_IF([test "x$enable_dbus" != "xno"],
     HAVE_DBUS=0)
 
 AS_IF([test "x$enable_dbus" = "xyes" && test "x$HAVE_DBUS" = "x0"],
-    [AC_MSG_ERROR([*** D-Bus (1.3.0+) support not found])])
+    [AC_MSG_ERROR([*** D-Bus not available or too old version])])
 
 AS_IF([test "x$HAVE_DBUS" = "x1"],
     [
