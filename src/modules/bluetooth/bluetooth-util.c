@@ -1356,11 +1356,13 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     pa_log_debug("Transport %s profile %d available", t->path, t->profile);
 
     pa_assert_se(r = dbus_message_new_method_return(m));
+    pa_assert_se(dbus_connection_send(pa_dbus_connection_get(y->connection), r, NULL));
+    dbus_message_unref(r);
 
     if (old_any_connected != pa_bluetooth_device_any_audio_connected(d))
         run_callback(d, false);
 
-    return r;
+    return NULL;
 
 fail:
     pa_log("org.bluez.MediaEndpoint.SetConfiguration: invalid arguments");
