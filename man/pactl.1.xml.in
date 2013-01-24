@@ -209,22 +209,22 @@ USA.
     </option>
 
     <option>
-      <p><opt>set-sink-mute</opt> <arg>SINK</arg> <arg>1|0</arg></p>
+      <p><opt>set-sink-mute</opt> <arg>SINK</arg> <arg>1|0|toggle</arg></p>
       <optdesc><p>Set the mute status of the specified sink (identified by its symbolic name or numerical index).</p></optdesc>
     </option>
 
     <option>
-      <p><opt>set-source-mute</opt> <arg>SOURCE</arg> <arg>1|0</arg></p>
+      <p><opt>set-source-mute</opt> <arg>SOURCE</arg> <arg>1|0|toggle</arg></p>
       <optdesc><p>Set the mute status of the specified source (identified by its symbolic name or numerical index).</p></optdesc>
     </option>
 
     <option>
-      <p><opt>set-sink-input-mute</opt> <arg>INPUT</arg> <arg>1|0</arg></p>
+      <p><opt>set-sink-input-mute</opt> <arg>INPUT</arg> <arg>1|0|toggle</arg></p>
       <optdesc><p>Set the mute status of the specified sink input (identified by its numerical index).</p></optdesc>
     </option>
 
     <option>
-      <p><opt>set-source-output-mute</opt> <arg>INPUT</arg> <arg>1|0</arg></p>
+      <p><opt>set-source-output-mute</opt> <arg>INPUT</arg> <arg>1|0|toggle</arg></p>
       <optdesc><p>Set the mute status of the specified source output (identified by its numerical index).</p></optdesc>
     </option>
 

@@ -69,7 +69,6 @@ static pa_bool_t short_list_format = FALSE;
 static uint32_t module_index;
 static int32_t latency_offset;
 static pa_bool_t suspend;
-static pa_bool_t mute;
 static pa_volume_t volume;
 static enum volume_flags {
     VOL_UINT     = 0,
@@ -79,6 +78,13 @@ static enum volume_flags {
     VOL_ABSOLUTE = 0 << 4,
     VOL_RELATIVE = 1 << 4,
 } volume_flags;
+
+static enum mute_flags {
+    INVALID_MUTE = -1,
+    UNMUTE = 0,
+    MUTE = 1,
+    TOGGLE_MUTE = 2
+} mute = INVALID_MUTE;
 
 static pa_proplist *proplist = NULL;
 
@@ -958,6 +964,66 @@ static void get_source_output_volume_callback(pa_context *c, const pa_source_out
     pa_operation_unref(pa_context_set_source_output_volume(c, source_output_idx, &cv, simple_callback, NULL));
 }
 
+static void sink_toggle_mute_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
+    if (is_last < 0) {
+        pa_log(_("Failed to get sink information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(i);
+
+    pa_operation_unref(pa_context_set_sink_mute_by_name(c, i->name, !i->mute, simple_callback, NULL));
+}
+
+static void source_toggle_mute_callback(pa_context *c, const pa_source_info *o, int is_last, void *userdata) {
+    if (is_last < 0) {
+        pa_log(_("Failed to get source information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(o);
+
+    pa_operation_unref(pa_context_set_source_mute_by_name(c, o->name, !o->mute, simple_callback, NULL));
+}
+
+static void sink_input_toggle_mute_callback(pa_context *c, const pa_sink_input_info *i, int is_last, void *userdata) {
+    if (is_last < 0) {
+        pa_log(_("Failed to get sink input information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(i);
+
+    pa_operation_unref(pa_context_set_sink_input_mute(c, i->index, !i->mute, simple_callback, NULL));
+}
+
+static void source_output_toggle_mute_callback(pa_context *c, const pa_source_output_info *o, int is_last, void *userdata) {
+    if (is_last < 0) {
+        pa_log(_("Failed to get source output information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(o);
+
+    pa_operation_unref(pa_context_set_source_output_mute(c, o->index, !o->mute, simple_callback, NULL));
+}
+
 /* PA_MAX_FORMATS is defined in internal.h so we just define a sane value here */
 #define MAX_FORMATS 256
 
@@ -1223,19 +1289,31 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     break;
 
                 case SET_SINK_MUTE:
-                    pa_operation_unref(pa_context_set_sink_mute_by_name(c, sink_name, mute, simple_callback, NULL));
+                    if (mute == TOGGLE_MUTE)
+                        pa_operation_unref(pa_context_get_sink_info_by_name(c, sink_name, sink_toggle_mute_callback, NULL));
+                    else
+                        pa_operation_unref(pa_context_set_sink_mute_by_name(c, sink_name, mute, simple_callback, NULL));
                     break;
 
                 case SET_SOURCE_MUTE:
-                    pa_operation_unref(pa_context_set_source_mute_by_name(c, source_name, mute, simple_callback, NULL));
+                    if (mute == TOGGLE_MUTE)
+                        pa_operation_unref(pa_context_get_source_info_by_name(c, source_name, source_toggle_mute_callback, NULL));
+                    else
+                        pa_operation_unref(pa_context_set_source_mute_by_name(c, source_name, mute, simple_callback, NULL));
                     break;
 
                 case SET_SINK_INPUT_MUTE:
-                    pa_operation_unref(pa_context_set_sink_input_mute(c, sink_input_idx, mute, simple_callback, NULL));
+                    if (mute == TOGGLE_MUTE)
+                        pa_operation_unref(pa_context_get_sink_input_info(c, sink_input_idx, sink_input_toggle_mute_callback, NULL));
+                    else
+                        pa_operation_unref(pa_context_set_sink_input_mute(c, sink_input_idx, mute, simple_callback, NULL));
                     break;
 
                 case SET_SOURCE_OUTPUT_MUTE:
-                    pa_operation_unref(pa_context_set_source_output_mute(c, source_output_idx, mute, simple_callback, NULL));
+                    if (mute == TOGGLE_MUTE)
+                        pa_operation_unref(pa_context_get_source_output_info(c, source_output_idx, source_output_toggle_mute_callback, NULL));
+                    else
+                        pa_operation_unref(pa_context_set_source_output_mute(c, source_output_idx, mute, simple_callback, NULL));
                     break;
 
                 case SET_SINK_VOLUME:
@@ -1380,6 +1458,25 @@ static int parse_volume(const char *vol_spec, pa_volume_t *vol, enum volume_flag
     return 0;
 }
 
+static enum mute_flags parse_mute(const char *mute_text) {
+    int b;
+
+    pa_assert(mute_text);
+
+    if (pa_streq("toggle", mute_text))
+        return TOGGLE_MUTE;
+
+    b = pa_parse_boolean(mute_text);
+    switch (b) {
+        case 0:
+            return UNMUTE;
+        case 1:
+            return MUTE;
+        default:
+            return INVALID_MUTE;
+    }
+}
+
 static void help(const char *argv0) {
 
     printf("%s %s %s\n",    argv0, _("[options]"), "stat [short]");
@@ -1397,8 +1494,8 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-port", _("NAME|#N PORT"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-volume", _("NAME|#N VOLUME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink-input|source-output)-volume", _("#N VOLUME"));
-    printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-mute", _("NAME|#N 1|0"));
-    printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink-input|source-output)-mute", _("#N 1|0"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-mute", _("NAME|#N 1|0|toggle"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink-input|source-output)-mute", _("#N 1|0|toggle"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-sink-formats", _("#N FORMATS"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-port-latency-offset", _("CARD-NAME|CARD-#N PORT OFFSET"));
     printf("%s %s %s\n",    argv0, _("[options]"), "subscribe");
@@ -1752,7 +1849,6 @@ int main(int argc, char *argv[]) {
                 goto quit;
 
         } else if (pa_streq(argv[optind], "set-sink-mute")) {
-            int b;
             action = SET_SINK_MUTE;
 
             if (argc != optind+3) {
@@ -1760,16 +1856,14 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
+            if ((mute = parse_mute(argv[optind+2])) == INVALID_MUTE) {
                 pa_log(_("Invalid mute specification"));
                 goto quit;
             }
 
             sink_name = pa_xstrdup(argv[optind+1]);
-            mute = b;
 
         } else if (pa_streq(argv[optind], "set-source-mute")) {
-            int b;
             action = SET_SOURCE_MUTE;
 
             if (argc != optind+3) {
@@ -1777,16 +1871,14 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
+            if ((mute = parse_mute(argv[optind+2])) == INVALID_MUTE) {
                 pa_log(_("Invalid mute specification"));
                 goto quit;
             }
 
             source_name = pa_xstrdup(argv[optind+1]);
-            mute = b;
 
         } else if (pa_streq(argv[optind], "set-sink-input-mute")) {
-            int b;
             action = SET_SINK_INPUT_MUTE;
 
             if (argc != optind+3) {
@@ -1799,15 +1891,12 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
+            if ((mute = parse_mute(argv[optind+2])) == INVALID_MUTE) {
                 pa_log(_("Invalid mute specification"));
                 goto quit;
             }
 
-            mute = b;
-
         } else if (pa_streq(argv[optind], "set-source-output-mute")) {
-            int b;
             action = SET_SOURCE_OUTPUT_MUTE;
 
             if (argc != optind+3) {
@@ -1820,12 +1909,10 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
+            if ((mute = parse_mute(argv[optind+2])) == INVALID_MUTE) {
                 pa_log(_("Invalid mute specification"));
                 goto quit;
             }
-
-            mute = b;
 
         } else if (pa_streq(argv[optind], "subscribe"))
 
