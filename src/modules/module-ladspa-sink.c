@@ -1132,9 +1132,9 @@ int pa__init(pa_module*m) {
         while ((pname = pa_split(input_ladspaport_map, ",", &state))) {
             if (c == u->input_count) {
                 pa_log("Too many ports in input ladspa port map");
+                pa_xfree(pname);
                 goto fail;
             }
-
 
             for (p = 0; p < d->PortCount; p++) {
                 if (pa_streq(d->PortNames[p], pname)) {
@@ -1160,6 +1160,7 @@ int pa__init(pa_module*m) {
         while ((pname = pa_split(output_ladspaport_map, ",", &state))) {
             if (c == u->output_count) {
                 pa_log("Too many ports in output ladspa port map");
+                pa_xfree(pname);
                 goto fail;
             }
             for (p = 0; p < d->PortCount; p++) {
