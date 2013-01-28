@@ -667,6 +667,17 @@ static int hsp_process_push(struct userdata *u) {
 
         pa_assert((size_t) l <= pa_memblock_get_length(memchunk.memblock));
 
+        /* In some rare occasions, we might receive packets of a very strange
+         * size. This could potentially be possible if the SCO packet was
+         * received partially over-the-air, or more probably due to hardware
+         * issues in our Bluetooth adapter. In these cases, in order to avoid
+         * an assertion failure due to unaligned data, just discard the whole
+         * packet */
+        if (!pa_frame_aligned(l, &u->sample_spec)) {
+            pa_log_warn("SCO packet received of unaligned size: %zu", l);
+            break;
+        }
+
         memchunk.length = (size_t) l;
         u->read_index += (uint64_t) l;
 
