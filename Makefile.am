@@ -86,6 +86,9 @@ dist-hook:
 	echo $(VERSION) > $(distdir)/.tarball-version
 	echo $(VERSION) > $(distdir)/.version
 
+check-daemon:
+	$(MAKE) -C src check-daemon
+
 .PHONY: homepage distcleancheck doxygen
 
 # see git-version-gen
