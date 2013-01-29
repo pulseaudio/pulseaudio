@@ -259,7 +259,7 @@ static const char *check_variant_property(DBusMessageIter *i) {
     return key;
 }
 
-static int parse_manager_property(pa_bluetooth_discovery *y, DBusMessageIter *i) {
+static int parse_manager_property(pa_bluetooth_discovery *y, DBusMessageIter *i, bool is_property_change) {
     const char *key;
     DBusMessageIter variant_i;
 
@@ -299,7 +299,7 @@ static int parse_manager_property(pa_bluetooth_discovery *y, DBusMessageIter *i)
     return 0;
 }
 
-static int parse_adapter_property(pa_bluetooth_discovery *y, DBusMessageIter *i) {
+static int parse_adapter_property(pa_bluetooth_discovery *y, DBusMessageIter *i, bool is_property_change) {
     const char *key;
     DBusMessageIter variant_i;
 
@@ -339,7 +339,7 @@ static int parse_adapter_property(pa_bluetooth_discovery *y, DBusMessageIter *i)
     return 0;
 }
 
-static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i) {
+static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, bool is_property_change) {
     const char *key;
     DBusMessageIter variant_i;
 
@@ -487,7 +487,7 @@ static const char *transport_state_to_string(pa_bluetooth_transport_state_t stat
     pa_assert_not_reached();
 }
 
-static int parse_audio_property(pa_bluetooth_device *d, const char *interface, DBusMessageIter *i) {
+static int parse_audio_property(pa_bluetooth_device *d, const char *interface, DBusMessageIter *i, bool is_property_change) {
     pa_bluetooth_transport *transport;
     const char *key;
     DBusMessageIter variant_i;
@@ -710,18 +710,18 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
             dbus_message_iter_recurse(&element_i, &dict_i);
 
             if (dbus_message_has_interface(p->message, "org.bluez.Manager")) {
-                if (parse_manager_property(y, &dict_i) < 0)
+                if (parse_manager_property(y, &dict_i, false) < 0)
                     goto finish;
 
             } else if (dbus_message_has_interface(p->message, "org.bluez.Adapter")) {
-                if (parse_adapter_property(y, &dict_i) < 0)
+                if (parse_adapter_property(y, &dict_i, false) < 0)
                     goto finish;
 
             } else if (dbus_message_has_interface(p->message, "org.bluez.Device")) {
-                if (parse_device_property(d, &dict_i) < 0)
+                if (parse_device_property(d, &dict_i, false) < 0)
                     goto finish;
 
-            } else if (parse_audio_property(d, dbus_message_get_interface(p->message), &dict_i) < 0)
+            } else if (parse_audio_property(d, dbus_message_get_interface(p->message), &dict_i, false) < 0)
                 goto finish;
 
         }
@@ -974,10 +974,10 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             }
 
             if (dbus_message_has_interface(m, "org.bluez.Device")) {
-                if (parse_device_property(d, &arg_i) < 0)
+                if (parse_device_property(d, &arg_i, true) < 0)
                     goto fail;
 
-            } else if (parse_audio_property(d, dbus_message_get_interface(m), &arg_i) < 0)
+            } else if (parse_audio_property(d, dbus_message_get_interface(m), &arg_i, true) < 0)
                 goto fail;
 
             if (old_any_connected != pa_bluetooth_device_any_audio_connected(d))
