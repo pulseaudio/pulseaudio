@@ -52,8 +52,10 @@ sleep 5
 
 unset DISPLAY
 
+EXIT_CODE=0
+
 for ONE_TEST in $@; do
-    ${ONE_TEST}
+    ${ONE_TEST} || EXIT_CODE=1
 done
 
 # terminate the designated pulseaudio daemon
@@ -68,4 +70,4 @@ sleep 2
 ## be sure it really died
 kill -9 $DBUS_SESSION_BUS_PID > /dev/null 2>&1 || true
 
-exit 0
+exit $EXIT_CODE
