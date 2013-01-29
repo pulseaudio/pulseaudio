@@ -367,6 +367,11 @@ static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, boo
                 pa_xfree(d->alias);
                 d->alias = pa_xstrdup(value);
             } else if (pa_streq(key, "Address")) {
+                if (is_property_change) {
+                    pa_log("Device property 'Address' expected to be constant but changed for %s", d->path);
+                    return -1;
+                }
+
                 pa_xfree(d->address);
                 d->address = pa_xstrdup(value);
             }
