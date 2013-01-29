@@ -1510,6 +1510,8 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-sink-formats", _("#N FORMATS"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-port-latency-offset", _("CARD-NAME|CARD-#N PORT OFFSET"));
     printf("%s %s %s\n",    argv0, _("[options]"), "subscribe");
+    printf(_("\nThe special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
+             "can be used to specify the default sink, source and monitor.\n"));
 
     printf(_("\n"
              "  -h, --help                            Show this help\n"
