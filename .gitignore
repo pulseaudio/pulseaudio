@@ -23,6 +23,7 @@ config.rpath
 config.status
 config.sub
 configure
+pulse-daemon.log
 depcomp
 install-sh
 libltdl
