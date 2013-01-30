@@ -32,6 +32,7 @@
 #include <assert.h>
 
 #include "reserve-monitor.h"
+#include "reserve.h"
 
 struct rm_monitor {
 	int ref;
@@ -120,62 +121,6 @@ invalid:
 	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
-static int get_name_owner(
-	DBusConnection *connection,
-	const char *name,
-	char **name_owner,
-	DBusError *error) {
-
-	DBusMessage *msg, *reply;
-	int r;
-
-	*name_owner = NULL;
-
-	if (!(msg = dbus_message_new_method_call(DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS, "GetNameOwner"))) {
-		r = -ENOMEM;
-		goto fail;
-	}
-
-	if (!dbus_message_append_args(msg, DBUS_TYPE_STRING, &name, DBUS_TYPE_INVALID)) {
-		r = -ENOMEM;
-		goto fail;
-	}
-
-	reply = dbus_connection_send_with_reply_and_block(connection, msg, DBUS_TIMEOUT_USE_DEFAULT, error);
-	dbus_message_unref(msg);
-	msg = NULL;
-
-	if (reply) {
-		if (!dbus_message_get_args(reply, error, DBUS_TYPE_STRING, name_owner, DBUS_TYPE_INVALID)) {
-			dbus_message_unref(reply);
-			r = -EIO;
-			goto fail;
-		}
-
-		*name_owner = strdup(*name_owner);
-		dbus_message_unref(reply);
-
-		if (!*name_owner) {
-			r = -ENOMEM;
-			goto fail;
-		}
-
-	} else if (dbus_error_has_name(error, "org.freedesktop.DBus.Error.NameHasNoOwner"))
-		dbus_error_free(error);
-	else {
-		r = -EIO;
-		goto fail;
-	}
-
-	return 0;
-
-fail:
-	if (msg)
-		dbus_message_unref(msg);
-
-	return r;
-}
-
 int rm_watch(
 	rm_monitor **_m,
 	DBusConnection *connection,
@@ -243,7 +188,7 @@ int rm_watch(
 
 	m->matching = 1;
 
-	if ((r = get_name_owner(m->connection, m->service_name, &name_owner, error)) < 0)
+	if ((r = rd_dbus_get_name_owner(m->connection, m->service_name, &name_owner, error)) < 0)
 		goto fail;
 
 	m->busy = get_busy(m->connection, name_owner);

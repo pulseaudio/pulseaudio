@@ -606,3 +606,59 @@ void* rd_get_userdata(rd_device *d) {
 
 	return d->userdata;
 }
+
+int rd_dbus_get_name_owner(
+	DBusConnection *connection,
+	const char *name,
+	char **name_owner,
+	DBusError *error) {
+
+	DBusMessage *msg, *reply;
+	int r;
+
+	*name_owner = NULL;
+
+	if (!(msg = dbus_message_new_method_call(DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS, "GetNameOwner"))) {
+		r = -ENOMEM;
+		goto fail;
+	}
+
+	if (!dbus_message_append_args(msg, DBUS_TYPE_STRING, &name, DBUS_TYPE_INVALID)) {
+		r = -ENOMEM;
+		goto fail;
+	}
+
+	reply = dbus_connection_send_with_reply_and_block(connection, msg, DBUS_TIMEOUT_USE_DEFAULT, error);
+	dbus_message_unref(msg);
+	msg = NULL;
+
+	if (reply) {
+		if (!dbus_message_get_args(reply, error, DBUS_TYPE_STRING, name_owner, DBUS_TYPE_INVALID)) {
+			dbus_message_unref(reply);
+			r = -EIO;
+			goto fail;
+		}
+
+		*name_owner = strdup(*name_owner);
+		dbus_message_unref(reply);
+
+		if (!*name_owner) {
+			r = -ENOMEM;
+			goto fail;
+		}
+
+	} else if (dbus_error_has_name(error, "org.freedesktop.DBus.Error.NameHasNoOwner"))
+		dbus_error_free(error);
+	else {
+		r = -EIO;
+		goto fail;
+	}
+
+	return 0;
+
+fail:
+	if (msg)
+		dbus_message_unref(msg);
+
+	return r;
+}
