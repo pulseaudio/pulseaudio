@@ -447,7 +447,7 @@ int main(int argc, char *argv[]) {
     tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);
 
-    /* Converstion tests */
+    /* Conversion tests */
     tc = tcase_create("sconv");
 #if defined (__i386__) || defined (__amd64__)
     tcase_add_test(tc, sconv_sse_test);
