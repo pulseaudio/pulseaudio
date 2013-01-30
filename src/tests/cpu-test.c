@@ -110,7 +110,7 @@ static void run_volume_test(
         for (i = 0; i < nsamples; i++) {
             if (samples[i] != samples_ref[i]) {
                 pa_log_debug("Correctness test failed: align=%d, channels=%d", align, channels);
-                pa_log_debug("%d: %04x != %04x (%04x * %08x)\n", i, samples[i], samples_ref[i],
+                pa_log_debug("%d: %04hx != %04hx (%04hx * %08x)\n", i, samples[i], samples_ref[i],
                         samples_orig[i], volumes[i % channels]);
                 fail();
             }
@@ -291,7 +291,7 @@ static void run_conv_test_float_to_s16(
         for (i = 0; i < nsamples; i++) {
             if (abs(samples[i] - samples_ref[i]) > 1) {
                 pa_log_debug("Correctness test failed: align=%d", align);
-                pa_log_debug("%d: %04x != %04x (%.24f)\n", i, samples[i], samples_ref[i], floats[i]);
+                pa_log_debug("%d: %04hx != %04hx (%.24f)\n", i, samples[i], samples_ref[i], floats[i]);
                 fail();
             }
         }
@@ -340,7 +340,7 @@ static void run_conv_test_s16_to_float(
         func(nsamples, samples, floats);
 
         for (i = 0; i < nsamples; i++) {
-            if (abs(floats[i] - floats_ref[i]) > 1) {
+            if (fabsf(floats[i] - floats_ref[i]) > 0.0001) {
                 pa_log_debug("Correctness test failed: align=%d", align);
                 pa_log_debug("%d: %.24f != %.24f (%d)\n", i, floats[i], floats_ref[i], samples[i]);
                 fail();
