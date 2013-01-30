@@ -32,6 +32,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/endianmacros.h>
 #include <pulsecore/sconv.h>
+#include <pulsecore/remap.h>
 #include <pulsecore/sample-util.h>
 
 #define PA_CPU_TEST_RUN_START(l, t1, t2)                        \
@@ -450,6 +451,223 @@ END_TEST
 #undef TIMES
 /* End conversion tests */
 
+/* Start remap tests */
+#define SAMPLES 1028
+#define TIMES 1000
+#define TIMES2 100
+
+ static void run_remap_test_mono_stereo_float(pa_remap_t *remap,
+    pa_do_remap_func_t func, pa_do_remap_func_t orig_func,
+    int align, pa_bool_t correct, pa_bool_t perf) {
+    PA_DECLARE_ALIGNED(8, float, s_ref[SAMPLES*2]) = { 0 };
+    PA_DECLARE_ALIGNED(8, float, s[SAMPLES*2]) = { 0 };
+    PA_DECLARE_ALIGNED(8, float, m[SAMPLES]);
+    float *stereo, *stereo_ref;
+    float *mono;
+    int i, nsamples;
+
+    /* Force sample alignment as requested */
+    stereo = s + (8 - align);
+    stereo_ref = s_ref + (8 - align);
+    mono = m + (8 - align);
+    nsamples = SAMPLES - (8 - align);
+
+    for (i = 0; i < nsamples; i++)
+        mono[i] = 2.1f * (rand()/(float) RAND_MAX - 0.5f);
+
+    if (correct) {
+        orig_func(remap, stereo_ref, mono, nsamples);
+        func(remap, stereo, mono, nsamples);
+
+        for (i = 0; i < nsamples * 2; i++) {
+            if (fabsf(stereo[i] - stereo_ref[i]) > 0.0001) {
+                pa_log_debug("Correctness test failed: align=%d", align);
+                pa_log_debug("%d: %.24f != %.24f (%.24f)\n", i, stereo[i], stereo_ref[i], mono[i]);
+                fail();
+            }
+        }
+    }
+
+    if (perf) {
+        pa_log_debug("Testing remap performance with %d sample alignment", align);
+
+        PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
+            func(remap, stereo, mono, nsamples);
+        } PA_CPU_TEST_RUN_STOP
+
+        PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
+            orig_func(remap, stereo_ref, mono, nsamples);
+        } PA_CPU_TEST_RUN_STOP
+    }
+}
+
+ static void run_remap_test_mono_stereo_s16(pa_remap_t *remap,
+    pa_do_remap_func_t func, pa_do_remap_func_t orig_func,
+    int align, pa_bool_t correct, pa_bool_t perf) {
+    PA_DECLARE_ALIGNED(8, int16_t, s_ref[SAMPLES*2]) = { 0 };
+    PA_DECLARE_ALIGNED(8, int16_t, s[SAMPLES*2]) = { 0 };
+    PA_DECLARE_ALIGNED(8, int16_t, m[SAMPLES]);
+    int16_t *stereo, *stereo_ref;
+    int16_t *mono;
+    int i, nsamples;
+
+    /* Force sample alignment as requested */
+    stereo = s + (8 - align);
+    stereo_ref = s_ref + (8 - align);
+    mono = m + (8 - align);
+    nsamples = SAMPLES - (8 - align);
+
+    pa_random(mono, nsamples * sizeof(int16_t));
+
+    if (correct) {
+        orig_func(remap, stereo_ref, mono, nsamples);
+        func(remap, stereo, mono, nsamples);
+
+        for (i = 0; i < nsamples * 2; i++) {
+            if (abs(stereo[i] - stereo_ref[i]) > 1) {
+                pa_log_debug("Correctness test failed: align=%d", align);
+                pa_log_debug("%d: %d != %d (%d)\n", i, stereo[i], stereo_ref[i], mono[i]);
+                fail();
+            }
+        }
+    }
+
+    if (perf) {
+        pa_log_debug("Testing remap performance with %d sample alignment", align);
+
+        PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
+            func(remap, stereo, mono, nsamples);
+        } PA_CPU_TEST_RUN_STOP
+
+        PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
+            orig_func(remap, stereo_ref, mono, nsamples);
+        } PA_CPU_TEST_RUN_STOP
+    }
+}
+
+static void remap_test_mono_stereo_float(pa_init_remap_func_t init_func,
+    pa_init_remap_func_t orig_init_func) {
+    pa_sample_format_t sf;
+    pa_remap_t remap;
+    pa_sample_spec iss, oss;
+    pa_do_remap_func_t orig_func, func;
+
+    iss.format = oss.format = sf = PA_SAMPLE_FLOAT32NE;
+    iss.channels = 1;
+    oss.channels = 2;
+    remap.format = &sf;
+    remap.i_ss = &iss;
+    remap.o_ss = &oss;
+    remap.map_table_f[0][0] = 1.0;
+    remap.map_table_f[1][0] = 1.0;
+    remap.map_table_i[0][0] = 0x10000;
+    remap.map_table_i[1][0] = 0x10000;
+    orig_init_func(&remap);
+    orig_func = remap.do_remap;
+    if (!orig_func) {
+        pa_log_warn("No reference remapping function, abort test");
+        return;
+    }
+
+    init_func(&remap);
+    func = remap.do_remap;
+    if (!func || func == orig_func) {
+        pa_log_warn("No remapping function, abort test");
+        return;
+    }
+
+    run_remap_test_mono_stereo_float(&remap, func, orig_func, 0, TRUE, FALSE);
+    run_remap_test_mono_stereo_float(&remap, func, orig_func, 1, TRUE, FALSE);
+    run_remap_test_mono_stereo_float(&remap, func, orig_func, 2, TRUE, FALSE);
+    run_remap_test_mono_stereo_float(&remap, func, orig_func, 3, TRUE, TRUE);
+}
+
+static void remap_test_mono_stereo_s16(pa_init_remap_func_t init_func,
+    pa_init_remap_func_t orig_init_func) {
+    pa_sample_format_t sf;
+    pa_remap_t remap;
+    pa_sample_spec iss, oss;
+    pa_do_remap_func_t orig_func, func;
+
+    iss.format = oss.format = sf = PA_SAMPLE_S16NE;
+    iss.channels = 1;
+    oss.channels = 2;
+    remap.format = &sf;
+    remap.i_ss = &iss;
+    remap.o_ss = &oss;
+    remap.map_table_f[0][0] = 1.0;
+    remap.map_table_f[1][0] = 1.0;
+    remap.map_table_i[0][0] = 0x10000;
+    remap.map_table_i[1][0] = 0x10000;
+    orig_init_func(&remap);
+    orig_func = remap.do_remap;
+    if (!orig_func) {
+        pa_log_warn("No reference remapping function, abort test");
+        return;
+    }
+
+    init_func(&remap);
+    func = remap.do_remap;
+    if (!func || func == orig_func) {
+        pa_log_warn("No remapping function, abort test");
+        return;
+    }
+
+    run_remap_test_mono_stereo_s16(&remap, func, orig_func, 0, TRUE, FALSE);
+    run_remap_test_mono_stereo_s16(&remap, func, orig_func, 1, TRUE, FALSE);
+    run_remap_test_mono_stereo_s16(&remap, func, orig_func, 2, TRUE, FALSE);
+    run_remap_test_mono_stereo_s16(&remap, func, orig_func, 3, TRUE, TRUE);
+}
+
+#if defined (__i386__) || defined (__amd64__)
+START_TEST (remap_mmx_test) {
+    pa_cpu_x86_flag_t flags = 0;
+    pa_init_remap_func_t init_func, orig_init_func;
+
+    pa_cpu_get_x86_flags(&flags);
+    if (!(flags & PA_CPU_X86_MMX)) {
+        pa_log_info("MMX not supported. Skipping");
+        return;
+    }
+
+    pa_log_debug("Checking MMX remap (float, mono->stereo)");
+    orig_init_func = pa_get_init_remap_func();
+    pa_remap_func_init_mmx(flags);
+    init_func = pa_get_init_remap_func();
+    remap_test_mono_stereo_float(init_func, orig_init_func);
+
+    pa_log_debug("Checking MMX remap (s16, mono->stereo)");
+    remap_test_mono_stereo_s16(init_func, orig_init_func);
+}
+END_TEST
+
+START_TEST (remap_sse2_test) {
+    pa_cpu_x86_flag_t flags = 0;
+    pa_init_remap_func_t init_func, orig_init_func;
+
+    pa_cpu_get_x86_flags(&flags);
+    if (!(flags & PA_CPU_X86_SSE2)) {
+        pa_log_info("SSE2 not supported. Skipping");
+        return;
+    }
+
+    pa_log_debug("Checking SSE2 remap (float, mono->stereo)");
+    orig_init_func = pa_get_init_remap_func();
+    pa_remap_func_init_sse(flags);
+    init_func = pa_get_init_remap_func();
+    remap_test_mono_stereo_float(init_func, orig_init_func);
+
+    pa_log_debug("Checking SSE2 remap (s16, mono->stereo)");
+    remap_test_mono_stereo_s16(init_func, orig_init_func);
+}
+END_TEST
+#endif /* defined (__i386__) || defined (__amd64__) */
+
+#undef SAMPLES
+#undef TIMES
+#undef TIMES2
+/* End remap tests */
+
 int main(int argc, char *argv[]) {
     int failed = 0;
     Suite *s;
@@ -484,6 +702,15 @@ int main(int argc, char *argv[]) {
 #if HAVE_NEON
     tcase_add_test(tc, sconv_neon_test);
 #endif
+#endif
+    tcase_set_timeout(tc, 120);
+    suite_add_tcase(s, tc);
+
+    /* Remap tests */
+    tc = tcase_create("remap");
+#if defined (__i386__) || defined (__amd64__)
+    tcase_add_test(tc, remap_mmx_test);
+    tcase_add_test(tc, remap_sse2_test);
 #endif
     tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);
