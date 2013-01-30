@@ -1277,8 +1277,6 @@ static pa_memchunk *convert_from_work_format(pa_resampler *r, pa_memchunk *input
     pa_memblock_release(input->memblock);
     pa_memblock_release(r->from_work_format_buf.memblock);
 
-    r->from_work_format_buf.length = r->o_fz * n_frames;
-
     return &r->from_work_format_buf;
 }
 
