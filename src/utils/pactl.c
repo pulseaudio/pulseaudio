@@ -114,7 +114,9 @@ static enum {
     SUSPEND_SOURCE,
     SET_CARD_PROFILE,
     SET_SINK_PORT,
+    SET_DEFAULT_SINK,
     SET_SOURCE_PORT,
+    SET_DEFAULT_SOURCE,
     SET_SINK_VOLUME,
     SET_SOURCE_VOLUME,
     SET_SINK_INPUT_VOLUME,
@@ -1284,8 +1286,16 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     pa_operation_unref(pa_context_set_sink_port_by_name(c, sink_name, port_name, simple_callback, NULL));
                     break;
 
+                case SET_DEFAULT_SINK:
+                    pa_operation_unref(pa_context_set_default_sink(c, sink_name, simple_callback, NULL));
+                    break;
+
                 case SET_SOURCE_PORT:
                     pa_operation_unref(pa_context_set_source_port_by_name(c, source_name, port_name, simple_callback, NULL));
+                    break;
+
+                case SET_DEFAULT_SOURCE:
+                    pa_operation_unref(pa_context_set_default_source(c, source_name, simple_callback, NULL));
                     break;
 
                 case SET_SINK_MUTE:
@@ -1491,6 +1501,7 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "move-(sink-input|source-output)", _("#N SINK|SOURCE"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "suspend-(sink|source)", _("NAME|#N 1|0"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-card-profile ", _("CARD PROFILE"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "set-default-(sink|source)", _("NAME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-port", _("NAME|#N PORT"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-volume", _("NAME|#N VOLUME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink-input|source-output)-volume", _("#N VOLUME"));
@@ -1779,6 +1790,16 @@ int main(int argc, char *argv[]) {
             sink_name = pa_xstrdup(argv[optind+1]);
             port_name = pa_xstrdup(argv[optind+2]);
 
+        } else if (pa_streq(argv[optind], "set-default-sink")) {
+            action = SET_DEFAULT_SINK;
+
+            if (argc != optind+2) {
+                pa_log(_("You have to specify a sink name"));
+                goto quit;
+            }
+
+            sink_name = pa_xstrdup(argv[optind+1]);
+
         } else if (pa_streq(argv[optind], "set-source-port")) {
             action = SET_SOURCE_PORT;
 
@@ -1789,6 +1810,16 @@ int main(int argc, char *argv[]) {
 
             source_name = pa_xstrdup(argv[optind+1]);
             port_name = pa_xstrdup(argv[optind+2]);
+
+        } else if (pa_streq(argv[optind], "set-default-source")) {
+            action = SET_DEFAULT_SOURCE;
+
+            if (argc != optind+2) {
+                pa_log(_("You have to specify a source name"));
+                goto quit;
+            }
+
+            source_name = pa_xstrdup(argv[optind+1]);
 
         } else if (pa_streq(argv[optind], "set-sink-volume")) {
             action = SET_SINK_VOLUME;
