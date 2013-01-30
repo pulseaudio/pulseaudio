@@ -293,6 +293,7 @@ static DBusHandlerResult filter_handler(
 
 	rd_device *d;
 	DBusError error;
+	char *name_owner = NULL;
 
 	dbus_error_init(&error);
 
@@ -310,6 +311,21 @@ static DBusHandlerResult filter_handler(
 			goto invalid;
 
 		if (strcmp(name, d->service_name) == 0 && d->owning) {
+			/* Verify the actual owner of the name to avoid leaked NameLost
+			 * signals from previous reservations. The D-Bus daemon will send
+			 * all messages asynchronously in the correct order, but we could
+			 * potentially process them too late due to the pseudo-blocking
+			 * call mechanism used during both acquisition and release. This
+			 * can happen if we release the device and immediately after
+			 * reacquire it before NameLost is processed. */
+			if (!d->gave_up) {
+				const char *un;
+
+				if ((un = dbus_bus_get_unique_name(c)) && rd_dbus_get_name_owner(c, d->service_name, &name_owner, &error) == 0)
+					if (strcmp(name_owner, un) == 0)
+						goto invalid; /* Name still owned by us */
+			}
+
 			d->owning = 0;
 
 			if (!d->gave_up)  {
@@ -326,6 +342,7 @@ static DBusHandlerResult filter_handler(
 	}
 
 invalid:
+	free(name_owner);
 	dbus_error_free(&error);
 
 	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
