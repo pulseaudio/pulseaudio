@@ -347,9 +347,9 @@ static void run_conv_test_s16_to_float(pa_convert_func_t func, pa_convert_func_t
 #endif /* defined (__arm__) && defined (__linux__) */
 
 #if defined (__i386__) || defined (__amd64__)
-START_TEST (sconv_sse_test) {
+START_TEST (sconv_sse2_test) {
     pa_cpu_x86_flag_t flags = 0;
-    pa_convert_func_t orig_func, sse_func;
+    pa_convert_func_t orig_func, sse2_func;
 
     pa_cpu_get_x86_flags(&flags);
 
@@ -359,7 +359,34 @@ START_TEST (sconv_sse_test) {
     }
 
     orig_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
-    pa_convert_func_init_sse(flags);
+    pa_convert_func_init_sse(PA_CPU_X86_SSE2);
+    sse2_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
+
+    pa_log_debug("Checking SSE2 sconv (float -> s16)");
+    run_conv_test_float_to_s16(sse2_func, orig_func, 0, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse2_func, orig_func, 1, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse2_func, orig_func, 2, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse2_func, orig_func, 3, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse2_func, orig_func, 4, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse2_func, orig_func, 5, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse2_func, orig_func, 6, TRUE, FALSE);
+    run_conv_test_float_to_s16(sse2_func, orig_func, 7, TRUE, TRUE);
+}
+END_TEST
+
+START_TEST (sconv_sse_test) {
+    pa_cpu_x86_flag_t flags = 0;
+    pa_convert_func_t orig_func, sse_func;
+
+    pa_cpu_get_x86_flags(&flags);
+
+    if (!(flags & PA_CPU_X86_SSE)) {
+        pa_log_info("SSE not supported. Skipping");
+        return;
+    }
+
+    orig_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
+    pa_convert_func_init_sse(PA_CPU_X86_SSE);
     sse_func = pa_get_convert_from_float32ne_function(PA_SAMPLE_S16LE);
 
     pa_log_debug("Checking SSE sconv (float -> s16)");
@@ -450,6 +477,7 @@ int main(int argc, char *argv[]) {
     /* Conversion tests */
     tc = tcase_create("sconv");
 #if defined (__i386__) || defined (__amd64__)
+    tcase_add_test(tc, sconv_sse2_test);
     tcase_add_test(tc, sconv_sse_test);
 #endif
 #if defined (__arm__) && defined (__linux__)
