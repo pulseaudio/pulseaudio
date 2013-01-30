@@ -34,6 +34,7 @@ EXTRA_DIST = \
 	vala/libpulse-mainloop-glib.deps \
 	vala/libpulse-mainloop-glib.vapi \
 	shell-completion/pulseaudio-zsh-completion.zsh \
+	shell-completion/pulseaudio-bash-completion.sh \
 	.gitignore \
 	doxygen/.gitignore \
 	m4/.gitignore \
