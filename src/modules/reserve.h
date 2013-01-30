@@ -72,6 +72,15 @@ void rd_set_userdata(rd_device *d, void *userdata);
  * userdata was set. */
 void* rd_get_userdata(rd_device *d);
 
+/* Helper function to get the unique connection name owning a given
+ * name. Returns 0 on success, a negative errno style return value on
+ * error. */
+int rd_dbus_get_name_owner(
+	DBusConnection *connection,
+	const char *name,
+	char **name_owner,
+	DBusError *error);
+
 #ifdef __cplusplus
 }
 #endif
