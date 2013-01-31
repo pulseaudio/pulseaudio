@@ -372,7 +372,11 @@ static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, boo
                     return -1;
                 }
 
-                pa_xfree(d->address);
+                if (d->address) {
+                    pa_log("Device %s: Received a duplicate Address property.", d->path);
+                    return -1;
+                }
+
                 d->address = pa_xstrdup(value);
             }
 
