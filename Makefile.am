@@ -34,7 +34,6 @@ EXTRA_DIST = \
 	vala/libpulse-mainloop-glib.deps \
 	vala/libpulse-mainloop-glib.vapi \
 	shell-completion/pulseaudio-zsh-completion.zsh \
-	shell-completion/pulseaudio-bash-completion.sh \
 	.gitignore \
 	doxygen/.gitignore \
 	m4/.gitignore \
@@ -64,6 +63,9 @@ endif
 
 cmakedir = $(libdir)/cmake/PulseAudio
 cmake_DATA = PulseAudioConfig.cmake PulseAudioConfigVersion.cmake
+
+bashcompletiondir=$(sysconfdir)/bash_completion.d
+dist_bashcompletion_DATA = shell-completion/pulseaudio-bash-completion.sh
 
 homepage: all dist doxygen
 	test -d $$HOME/homepage/private
