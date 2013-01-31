@@ -29,10 +29,6 @@ EXTRA_DIST = \
 	PROTOCOL \
 	README \
 	todo \
-	vala/libpulse.deps \
-	vala/libpulse.vapi \
-	vala/libpulse-mainloop-glib.deps \
-	vala/libpulse-mainloop-glib.vapi \
 	shell-completion/pulseaudio-zsh-completion.zsh \
 	.gitignore \
 	doxygen/.gitignore \
@@ -49,7 +45,7 @@ MAINTAINERCLEANFILES =
 noinst_DATA =
 
 vapidir = $(datadir)/vala/vapi
-vapi_DATA = \
+dist_vapi_DATA = \
 		vala/libpulse.deps vala/libpulse.vapi \
 		vala/libpulse-mainloop-glib.deps vala/libpulse-mainloop-glib.vapi
 
