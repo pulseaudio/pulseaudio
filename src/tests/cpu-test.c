@@ -70,8 +70,14 @@
 #define TIMES2 100
 #define PADDING 16
 
-static void run_volume_test(pa_do_volume_func_t func, pa_do_volume_func_t orig_func, int align, int channels,
-        pa_bool_t correct, pa_bool_t perf) {
+static void run_volume_test(
+        pa_do_volume_func_t func,
+        pa_do_volume_func_t orig_func,
+        int align,
+        int channels,
+        pa_bool_t correct,
+        pa_bool_t perf) {
+
     PA_DECLARE_ALIGNED(8, int16_t, s[SAMPLES]) = { 0 };
     PA_DECLARE_ALIGNED(8, int16_t, s_ref[SAMPLES]) = { 0 };
     PA_DECLARE_ALIGNED(8, int16_t, s_orig[SAMPLES]) = { 0 };
@@ -254,8 +260,13 @@ END_TEST
 #define TIMES 1000
 #define TIMES2 100
 
-static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t orig_func, int align, pa_bool_t correct,
+static void run_conv_test_float_to_s16(
+        pa_convert_func_t func,
+        pa_convert_func_t orig_func,
+        int align,
+        pa_bool_t correct,
         pa_bool_t perf) {
+
     PA_DECLARE_ALIGNED(8, int16_t, s[SAMPLES]) = { 0 };
     PA_DECLARE_ALIGNED(8, int16_t, s_ref[SAMPLES]) = { 0 };
     PA_DECLARE_ALIGNED(8, float, f[SAMPLES]);
@@ -302,8 +313,13 @@ static void run_conv_test_float_to_s16(pa_convert_func_t func, pa_convert_func_t
 /* This test is currently only run under NEON */
 #if defined (__arm__) && defined (__linux__)
 #ifdef HAVE_NEON
-static void run_conv_test_s16_to_float(pa_convert_func_t func, pa_convert_func_t orig_func, int align, pa_bool_t correct,
+static void run_conv_test_s16_to_float(
+        pa_convert_func_t func,
+        pa_convert_func_t orig_func,
+        int align,
+        pa_bool_t correct,
         pa_bool_t perf) {
+
     PA_DECLARE_ALIGNED(8, float, f[SAMPLES]) = { 0 };
     PA_DECLARE_ALIGNED(8, float, f_ref[SAMPLES]) = { 0 };
     PA_DECLARE_ALIGNED(8, int16_t, s[SAMPLES]);
@@ -456,9 +472,14 @@ END_TEST
 #define TIMES 1000
 #define TIMES2 100
 
- static void run_remap_test_mono_stereo_float(pa_remap_t *remap,
-    pa_do_remap_func_t func, pa_do_remap_func_t orig_func,
-    int align, pa_bool_t correct, pa_bool_t perf) {
+static void run_remap_test_mono_stereo_float(
+        pa_remap_t *remap,
+        pa_do_remap_func_t func,
+        pa_do_remap_func_t orig_func,
+        int align,
+        pa_bool_t correct,
+        pa_bool_t perf) {
+
     PA_DECLARE_ALIGNED(8, float, s_ref[SAMPLES*2]) = { 0 };
     PA_DECLARE_ALIGNED(8, float, s[SAMPLES*2]) = { 0 };
     PA_DECLARE_ALIGNED(8, float, m[SAMPLES]);
@@ -501,9 +522,14 @@ END_TEST
     }
 }
 
- static void run_remap_test_mono_stereo_s16(pa_remap_t *remap,
-    pa_do_remap_func_t func, pa_do_remap_func_t orig_func,
-    int align, pa_bool_t correct, pa_bool_t perf) {
+static void run_remap_test_mono_stereo_s16(
+        pa_remap_t *remap,
+        pa_do_remap_func_t func,
+        pa_do_remap_func_t orig_func,
+        int align,
+        pa_bool_t correct,
+        pa_bool_t perf) {
+
     PA_DECLARE_ALIGNED(8, int16_t, s_ref[SAMPLES*2]) = { 0 };
     PA_DECLARE_ALIGNED(8, int16_t, s[SAMPLES*2]) = { 0 };
     PA_DECLARE_ALIGNED(8, int16_t, m[SAMPLES]);
@@ -545,8 +571,10 @@ END_TEST
     }
 }
 
-static void remap_test_mono_stereo_float(pa_init_remap_func_t init_func,
-    pa_init_remap_func_t orig_init_func) {
+static void remap_test_mono_stereo_float(
+        pa_init_remap_func_t init_func,
+        pa_init_remap_func_t orig_init_func) {
+
     pa_sample_format_t sf;
     pa_remap_t remap;
     pa_sample_spec iss, oss;
@@ -582,8 +610,10 @@ static void remap_test_mono_stereo_float(pa_init_remap_func_t init_func,
     run_remap_test_mono_stereo_float(&remap, func, orig_func, 3, TRUE, TRUE);
 }
 
-static void remap_test_mono_stereo_s16(pa_init_remap_func_t init_func,
-    pa_init_remap_func_t orig_init_func) {
+static void remap_test_mono_stereo_s16(
+        pa_init_remap_func_t init_func,
+        pa_init_remap_func_t orig_init_func) {
+
     pa_sample_format_t sf;
     pa_remap_t remap;
     pa_sample_spec iss, oss;
