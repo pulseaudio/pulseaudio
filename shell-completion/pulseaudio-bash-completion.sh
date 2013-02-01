@@ -174,6 +174,7 @@ _pactl() {
             _known_hosts_real "$cur"
             ;;
     esac
+    [[ $COMPREPLY ]] && return 0
 
     case $prev in
         list) COMPREPLY=($(compgen -W '${list_types[*]}' -- "$cur")) ;;
@@ -234,6 +235,7 @@ _pactl() {
         -s)
             _known_hosts_real "$cur" ;;
     esac
+    [[ $COMPREPLY ]] && return 0
 
     case $cur in
         --server=*)
@@ -316,6 +318,7 @@ _pacmd() {
     esac
 
     case $prev in
+        list-*) ;;
         describe-module|load-module)
             comps=$(__all_modules)
             COMPREPLY=($(compgen -W '${comps[*]}' -- "$cur"))
