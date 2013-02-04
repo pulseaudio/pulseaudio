@@ -36,18 +36,13 @@ static void pa_sconv_s16le_from_f32ne_neon(unsigned n, const float *src, int16_t
         "movs       %[n], %[n], lsr #2      \n\t"
         "beq        2f                      \n\t"
 
-        "vdup.f32   q2, %[plusone]          \n\t"
-        "vneg.f32   q3, q2                  \n\t"
-        "vdup.f32   q4, %[scale]            \n\t"
-        "vdup.u32   q5, %[mask]             \n\t"
+        "vdup.f32   q1, %[scale]            \n\t"
 
         "1:                                 \n\t"
         "vld1.32    {q0}, [%[src]]!         \n\t"
-        "vmin.f32   q0, q0, q2              \n\t" /* clamp */
-        "vmax.f32   q0, q0, q3              \n\t"
-        "vmul.f32   q0, q0, q4              \n\t" /* scale */
-        "vcvt.s32.f32 q0, q0, #16           \n\t" /* narrow */
-        "vrshrn.s32  d0, q0, #16            \n\t"
+        "vmul.f32   q0, q0, q1              \n\t" /* scale */
+        "vcvt.s32.f32 q0, q0, #16           \n\t" /* s32<-f32 as 16:16 fixed-point */
+        "vqrshrn.s32 d0, q0, #16            \n\t" /* shift, round, narrow */
         "subs       %[n], %[n], #1          \n\t"
         "vst1.16    {d0}, [%[dst]]!         \n\t"
         "bgt        1b                      \n\t"
@@ -55,13 +50,13 @@ static void pa_sconv_s16le_from_f32ne_neon(unsigned n, const float *src, int16_t
         "2:                                 \n\t"
 
         : [dst] "+r" (dst), [src] "+r" (src), [n] "+r" (n) /* output operands (or input operands that get modified) */
-        : [plusone] "r" (1.0f), [scale] "r" (32767.0f), [mask] "r" (0x80000000) /* input operands */
-        : "memory", "cc", "q0", "q1", "q2", "q3", "q4", "q5", "q6" /* clobber list */
+        : [scale] "r" (32768.0f) /* input operands */
+        : "memory", "cc", "q0", "q1" /* clobber list */
     );
 
     /* leftovers */
     while (i--) {
-        *dst++ = (int16_t) lrintf(PA_CLAMP_UNLIKELY(*src, -1.0f, 1.0f) * 0x7FFF);
+        *dst++ = (int16_t) PA_CLAMP_UNLIKELY(lrintf(*src * (1 << 15)), -0x8000, 0x7FFF);
         src++;
     }
 }
@@ -69,7 +64,7 @@ static void pa_sconv_s16le_from_f32ne_neon(unsigned n, const float *src, int16_t
 static void pa_sconv_s16le_to_f32ne_neon(unsigned n, const int16_t *src, float *dst) {
     unsigned i = n & 3;
 
-    const float invscale = 1.0f / 0x7FFF;
+    const float invscale = 1.0f / (1 << 15);
 
     __asm__ __volatile__ (
         "movs        %[n], %[n], lsr #2     \n\t"
@@ -79,8 +74,8 @@ static void pa_sconv_s16le_to_f32ne_neon(unsigned n, const int16_t *src, float *
 
         "1:                                 \n\t"
         "vld1.16    {d0}, [%[src]]!         \n\t"
-        "vmovl.s16  q0, d0                  \n\t"
-        "vcvt.f32.s32 q0, q0                \n\t"
+        "vmovl.s16  q0, d0                  \n\t" /* widen */
+        "vcvt.f32.s32 q0, q0                \n\t" /* f32<-s32 */
         "vmul.f32   q0, q0, q1              \n\t"
         "subs       %[n], %[n], #1          \n\t"
         "vst1.32    {q0}, [%[dst]]!         \n\t"
