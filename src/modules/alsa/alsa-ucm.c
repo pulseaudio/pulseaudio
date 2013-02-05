@@ -247,7 +247,12 @@ static int ucm_get_device_property(
         }
     }
 
-    pa_assert(device->playback_channels || device->capture_channels);
+    if (device->playback_channels == 0 && device->capture_channels == 0) {
+        pa_log_warn("UCM file does not specify 'PlaybackChannels' or 'CaptureChannels'"
+                    "for device %s, assuming stereo duplex.", device_name);
+        device->playback_channels = 2;
+        device->capture_channels = 2;
+    }
 
     /* get priority of device */
     if (device->playback_channels) { /* sink device */
