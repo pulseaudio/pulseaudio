@@ -47,7 +47,8 @@ PA_MODULE_USAGE(
         "tsched=<enable system timer based scheduling mode?> "
         "fixed_latency_range=<disable latency range changes on underrun?> "
         "ignore_dB=<ignore dB information from the device?> "
-        "deferred_volume=<syncronize sw and hw volume changes in IO-thread?>");
+        "deferred_volume=<syncronize sw and hw volume changes in IO-thread?> "
+        "use_ucm=<use ALSA UCM for card configuration?>");
 
 struct device {
     char *path;
@@ -66,6 +67,7 @@ struct userdata {
     pa_bool_t fixed_latency_range:1;
     pa_bool_t ignore_dB:1;
     pa_bool_t deferred_volume:1;
+    bool use_ucm:1;
 
     struct udev* udev;
     struct udev_monitor *monitor;
@@ -80,6 +82,7 @@ static const char* const valid_modargs[] = {
     "fixed_latency_range",
     "ignore_dB",
     "deferred_volume",
+    "use_ucm",
     NULL
 };
 
@@ -396,6 +399,7 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
                                 "fixed_latency_range=%s "
                                 "ignore_dB=%s "
                                 "deferred_volume=%s "
+                                "use_ucm=%s "
                                 "card_properties=\"module-udev-detect.discovered=1\"",
                                 path_get_card_id(path),
                                 n,
@@ -403,7 +407,8 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
                                 pa_yes_no(u->use_tsched),
                                 pa_yes_no(u->fixed_latency_range),
                                 pa_yes_no(u->ignore_dB),
-                                pa_yes_no(u->deferred_volume));
+                                pa_yes_no(u->deferred_volume),
+                                pa_yes_no(u->use_ucm));
     pa_xfree(n);
 
     pa_hashmap_put(u->devices, d->path, d);
@@ -670,7 +675,7 @@ int pa__init(pa_module *m) {
     struct udev_list_entry *item = NULL, *first = NULL;
     int fd;
     pa_bool_t use_tsched = TRUE, fixed_latency_range = FALSE, ignore_dB = FALSE, deferred_volume = m->core->deferred_volume;
-
+    bool use_ucm = true;
 
     pa_assert(m);
 
@@ -707,6 +712,12 @@ int pa__init(pa_module *m) {
         goto fail;
     }
     u->deferred_volume = deferred_volume;
+
+    if (pa_modargs_get_value_boolean(ma, "use_ucm", &use_ucm) < 0) {
+        pa_log("Failed to parse use_ucm= argument.");
+        goto fail;
+    }
+    u->use_ucm = use_ucm;
 
     if (!(u->udev = udev_new())) {
         pa_log("Failed to initialize udev library.");
