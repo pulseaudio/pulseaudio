@@ -117,6 +117,7 @@ static void client_kill_cb(pa_client *c) {
     pa_assert(c->userdata);
 
     conn = c->userdata;
+    pa_idxset_remove_by_data(conn->server->userdata->connections, conn, NULL);
     connection_free(conn);
     c->userdata = NULL;
 
