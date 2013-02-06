@@ -1051,7 +1051,7 @@ void pa_dbus_protocol_remove_signal_listener(pa_dbus_protocol *p, DBusConnection
     pa_assert_se((conn_entry = pa_hashmap_get(p->connections, conn)));
 
     if (signal_name) {
-        if ((signal_paths_entry = pa_hashmap_get(conn_entry->listening_signals, signal_name)))
+        if ((signal_paths_entry = pa_hashmap_remove(conn_entry->listening_signals, signal_name)))
             signal_paths_entry_free(signal_paths_entry);
 
     } else {
