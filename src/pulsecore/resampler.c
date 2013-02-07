@@ -668,228 +668,206 @@ static void calc_map_table(pa_resampler *r) {
     memset(m->map_table_i, 0, sizeof(m->map_table_i));
 
     memset(ic_connected, 0, sizeof(ic_connected));
-    remix = (r->flags & (PA_RESAMPLER_NO_REMAP|PA_RESAMPLER_NO_REMIX)) == 0;
+    remix = (r->flags & (PA_RESAMPLER_NO_REMAP | PA_RESAMPLER_NO_REMIX)) == 0;
 
-    for (oc = 0; oc < n_oc; oc++) {
-        bool oc_connected = false;
-        pa_channel_position_t b = r->o_cm.map[oc];
+    if (r->flags & PA_RESAMPLER_NO_REMAP) {
+        pa_assert(!remix);
 
-        for (ic = 0; ic < n_ic; ic++) {
-            pa_channel_position_t a = r->i_cm.map[ic];
+        for (oc = 0; oc < PA_MIN(n_ic, n_oc); oc++)
+            m->map_table_f[oc][oc] = 1.0f;
 
-            if (r->flags & PA_RESAMPLER_NO_REMAP) {
-                /* We shall not do any remapping. Hence, just check by index */
+    } else if (r->flags & PA_RESAMPLER_NO_REMIX) {
+        pa_assert(!remix);
+        for (oc = 0; oc < n_oc; oc++) {
+            pa_channel_position_t b = r->o_cm.map[oc];
 
-                if (ic == oc)
-                    m->map_table_f[oc][ic] = 1.0;
+            for (ic = 0; ic < n_ic; ic++) {
+                pa_channel_position_t a = r->i_cm.map[ic];
 
-                continue;
-            }
-
-            if (r->flags & PA_RESAMPLER_NO_REMIX) {
                 /* We shall not do any remixing. Hence, just check by name */
-
                 if (a == b)
-                    m->map_table_f[oc][ic] = 1.0;
-
-                continue;
-            }
-
-            pa_assert(remix);
-
-            /* OK, we shall do the full monty: upmixing and
-             * downmixing. Our algorithm is relatively simple, does
-             * not do spacialization, delay elements or apply lowpass
-             * filters for LFE. Patches are always welcome,
-             * though. Oh, and it doesn't do any matrix
-             * decoding. (Which probably wouldn't make any sense
-             * anyway.)
-             *
-             * This code is not idempotent: downmixing an upmixed
-             * stereo stream is not identical to the original. The
-             * volume will not match, and the two channels will be a
-             * linear combination of both.
-             *
-             * This is loosely based on random suggestions found on the
-             * Internet, such as this:
-             * http://www.halfgaar.net/surround-sound-in-linux and the
-             * alsa upmix plugin.
-             *
-             * The algorithm works basically like this:
-             *
-             * 1) Connect all channels with matching names.
-             *
-             * 2) Mono Handling:
-             *    S:Mono: Copy into all D:channels
-             *    D:Mono: Avg all S:channels
-             *
-             * 3) Mix D:Left, D:Right:
-             *    D:Left: If not connected, avg all S:Left
-             *    D:Right: If not connected, avg all S:Right
-             *
-             * 4) Mix D:Center
-             *       If not connected, avg all S:Center
-             *       If still not connected, avg all S:Left, S:Right
-             *
-             * 5) Mix D:LFE
-             *       If not connected, avg all S:*
-             *
-             * 6) Make sure S:Left/S:Right is used: S:Left/S:Right: If
-             *    not connected, mix into all D:left and all D:right
-             *    channels. Gain is 0.1, the current left and right
-             *    should be multiplied by 0.9.
-             *
-             * 7) Make sure S:Center, S:LFE is used:
-             *
-             *    S:Center, S:LFE: If not connected, mix into all
-             *    D:left, all D:right, all D:center channels, gain is
-             *    0.375. The current (as result of 1..6) factors
-             *    should be multiplied by 0.75. (Alt. suggestion: 0.25
-             *    vs. 0.5) If C-front is only mixed into
-             *    L-front/R-front if available, otherwise into all L/R
-             *    channels. Similarly for C-rear.
-             *
-             * S: and D: shall relate to the source resp. destination channels.
-             *
-             * Rationale: 1, 2 are probably obvious. For 3: this
-             * copies front to rear if needed. For 4: we try to find
-             * some suitable C source for C, if we don't find any, we
-             * avg L and R. For 5: LFE is mixed from all channels. For
-             * 6: the rear channels should not be dropped entirely,
-             * however have only minimal impact. For 7: movies usually
-             * encode speech on the center channel. Thus we have to
-             * make sure this channel is distributed to L and R if not
-             * available in the output. Also, LFE is used to achieve a
-             * greater dynamic range, and thus we should try to do our
-             * best to pass it to L+R.
-             */
-
-            if (a == b || a == PA_CHANNEL_POSITION_MONO) {
-                m->map_table_f[oc][ic] = 1.0;
-
-                oc_connected = true;
-                ic_connected[ic] = true;
-            }
-            else if (b == PA_CHANNEL_POSITION_MONO) {
-                if (n_ic)
-                    m->map_table_f[oc][ic] = 1.0f / (float) n_ic;
-
-                oc_connected = true;
-                ic_connected[ic] = true;
+                    m->map_table_f[oc][ic] = 1.0f;
             }
         }
+    } else {
 
-        if (!oc_connected && remix) {
-            /* OK, we shall remix */
+        /* OK, we shall do the full monty: upmixing and downmixing. Our
+         * algorithm is relatively simple, does not do spacialization, delay
+         * elements or apply lowpass filters for LFE. Patches are always
+         * welcome, though. Oh, and it doesn't do any matrix decoding. (Which
+         * probably wouldn't make any sense anyway.)
+         *
+         * This code is not idempotent: downmixing an upmixed stereo stream is
+         * not identical to the original. The volume will not match, and the
+         * two channels will be a linear combination of both.
+         *
+         * This is loosely based on random suggestions found on the Internet,
+         * such as this:
+         * http://www.halfgaar.net/surround-sound-in-linux and the alsa upmix
+         * plugin.
+         *
+         * The algorithm works basically like this:
+         *
+         * 1) Connect all channels with matching names.
+         *
+         * 2) Mono Handling:
+         *    S:Mono: Copy into all D:channels
+         *    D:Mono: Avg all S:channels
+         *
+         * 3) Mix D:Left, D:Right:
+         *    D:Left: If not connected, avg all S:Left
+         *    D:Right: If not connected, avg all S:Right
+         *
+         * 4) Mix D:Center
+         *    If not connected, avg all S:Center
+         *    If still not connected, avg all S:Left, S:Right
+         *
+         * 5) Mix D:LFE
+         *    If not connected, avg all S:*
+         *
+         * 6) Make sure S:Left/S:Right is used: S:Left/S:Right: If not
+         *    connected, mix into all D:left and all D:right channels. Gain is
+         *    0.1, the current left and right should be multiplied by 0.9.
+         *
+         * 7) Make sure S:Center, S:LFE is used:
+         *
+         *    S:Center, S:LFE: If not connected, mix into all D:left, all
+         *    D:right, all D:center channels, gain is 0.375. The current (as
+         *    result of 1..6) factors should be multiplied by 0.75. (Alt.
+         *    suggestion: 0.25 vs. 0.5) If C-front is only mixed into
+         *    L-front/R-front if available, otherwise into all L/R channels.
+         *    Similarly for C-rear.
+         *
+         * S: and D: shall relate to the source resp. destination channels.
+         *
+         * Rationale: 1, 2 are probably obvious. For 3: this copies front to
+         * rear if needed. For 4: we try to find some suitable C source for C,
+         * if we don't find any, we avg L and R. For 5: LFE is mixed from all
+         * channels. For 6: the rear channels should not be dropped entirely,
+         * however have only minimal impact. For 7: movies usually encode
+         * speech on the center channel. Thus we have to make sure this channel
+         * is distributed to L and R if not available in the output. Also, LFE
+         * is used to achieve a greater dynamic range, and thus we should try
+         * to do our best to pass it to L+R.
+         */
 
-            /* Try to find matching input ports for this output port */
-
-            if (on_left(b)) {
-                unsigned n = 0;
-
-                /* We are not connected and on the left side, let's
-                 * average all left side input channels. */
-
-                for (ic = 0; ic < n_ic; ic++)
-                    if (on_left(r->i_cm.map[ic]))
-                        n++;
-
-                if (n > 0)
-                    for (ic = 0; ic < n_ic; ic++)
-                        if (on_left(r->i_cm.map[ic])) {
-                            m->map_table_f[oc][ic] = 1.0f / (float) n;
-                            ic_connected[ic] = true;
-                        }
-
-                /* We ignore the case where there is no left input
-                 * channel. Something is really wrong in this case
-                 * anyway. */
-
-            } else if (on_right(b)) {
-                unsigned n = 0;
-
-                /* We are not connected and on the right side, let's
-                 * average all right side input channels. */
-
-                for (ic = 0; ic < n_ic; ic++)
-                    if (on_right(r->i_cm.map[ic]))
-                        n++;
-
-                if (n > 0)
-                    for (ic = 0; ic < n_ic; ic++)
-                        if (on_right(r->i_cm.map[ic])) {
-                            m->map_table_f[oc][ic] = 1.0f / (float) n;
-                            ic_connected[ic] = true;
-                        }
-
-                /* We ignore the case where there is no right input
-                 * channel. Something is really wrong in this case
-                 * anyway. */
-
-            } else if (on_center(b)) {
-                unsigned n = 0;
-
-                /* We are not connected and at the center. Let's
-                 * average all center input channels. */
-
-                for (ic = 0; ic < n_ic; ic++)
-                    if (on_center(r->i_cm.map[ic]))
-                        n++;
-
-                if (n > 0) {
-                    for (ic = 0; ic < n_ic; ic++)
-                        if (on_center(r->i_cm.map[ic])) {
-                            m->map_table_f[oc][ic] = 1.0f / (float) n;
-                            ic_connected[ic] = true;
-                        }
-                } else {
-
-                    /* Hmm, no center channel around, let's synthesize
-                     * it by mixing L and R.*/
-
-                    n = 0;
-
-                    for (ic = 0; ic < n_ic; ic++)
-                        if (on_left(r->i_cm.map[ic]) || on_right(r->i_cm.map[ic]))
-                            n++;
-
-                    if (n > 0)
-                        for (ic = 0; ic < n_ic; ic++)
-                            if (on_left(r->i_cm.map[ic]) || on_right(r->i_cm.map[ic])) {
-                                m->map_table_f[oc][ic] = 1.0f / (float) n;
-                                ic_connected[ic] = true;
-                            }
-
-                    /* We ignore the case where there is not even a
-                     * left or right input channel. Something is
-                     * really wrong in this case anyway. */
-                }
-
-            } else if (on_lfe(b)) {
-
-                /* We are not connected and an LFE. Let's average all
-                 * channels for LFE. */
-
-                for (ic = 0; ic < n_ic; ic++) {
-
-                    if (!(r->flags & PA_RESAMPLER_NO_LFE))
-                        m->map_table_f[oc][ic] = 1.0f / (float) n_ic;
-                    else
-                        m->map_table_f[oc][ic] = 0;
-
-                    /* Please note that a channel connected to LFE
-                     * doesn't really count as connected. */
-                }
-            }
-        }
-    }
-
-    if (remix) {
         unsigned
+            ic_left = 0,
+            ic_right = 0,
+            ic_center = 0,
             ic_unconnected_left = 0,
             ic_unconnected_right = 0,
             ic_unconnected_center = 0,
             ic_unconnected_lfe = 0;
+
+        pa_assert(remix);
+
+        for (ic = 0; ic < n_ic; ic++) {
+            if (on_left(r->i_cm.map[ic]))
+                ic_left++;
+            if (on_right(r->i_cm.map[ic]))
+                ic_right++;
+            if (on_center(r->i_cm.map[ic]))
+                ic_center++;
+        }
+
+        for (oc = 0; oc < n_oc; oc++) {
+            bool oc_connected = false;
+            pa_channel_position_t b = r->o_cm.map[oc];
+
+            for (ic = 0; ic < n_ic; ic++) {
+                pa_channel_position_t a = r->i_cm.map[ic];
+
+                if (a == b || a == PA_CHANNEL_POSITION_MONO) {
+                    m->map_table_f[oc][ic] = 1.0f;
+
+                    oc_connected = true;
+                    ic_connected[ic] = true;
+                }
+                else if (b == PA_CHANNEL_POSITION_MONO) {
+                    m->map_table_f[oc][ic] = 1.0f / (float) n_ic;
+
+                    oc_connected = true;
+                    ic_connected[ic] = true;
+                }
+            }
+
+            if (!oc_connected) {
+                /* Try to find matching input ports for this output port */
+
+                if (on_left(b)) {
+
+                    /* We are not connected and on the left side, let's
+                     * average all left side input channels. */
+
+                    if (ic_left > 0)
+                        for (ic = 0; ic < n_ic; ic++)
+                            if (on_left(r->i_cm.map[ic])) {
+                                m->map_table_f[oc][ic] = 1.0f / (float) ic_left;
+                                ic_connected[ic] = true;
+                            }
+
+                    /* We ignore the case where there is no left input channel.
+                     * Something is really wrong in this case anyway. */
+
+                } else if (on_right(b)) {
+
+                    /* We are not connected and on the right side, let's
+                     * average all right side input channels. */
+
+                    if (ic_right > 0)
+                        for (ic = 0; ic < n_ic; ic++)
+                            if (on_right(r->i_cm.map[ic])) {
+                                m->map_table_f[oc][ic] = 1.0f / (float) ic_right;
+                                ic_connected[ic] = true;
+                            }
+
+                    /* We ignore the case where there is no right input
+                     * channel. Something is really wrong in this case anyway.
+                     * */
+
+                } else if (on_center(b)) {
+
+                    if (ic_center > 0) {
+
+                        /* We are not connected and at the center. Let's average
+                         * all center input channels. */
+
+                        for (ic = 0; ic < n_ic; ic++)
+                            if (on_center(r->i_cm.map[ic])) {
+                                m->map_table_f[oc][ic] = 1.0f / (float) ic_center;
+                                ic_connected[ic] = true;
+                            }
+
+                    } else if (ic_left + ic_right > 0) {
+
+                        /* Hmm, no center channel around, let's synthesize it
+                         * by mixing L and R.*/
+
+                        for (ic = 0; ic < n_ic; ic++)
+                            if (on_left(r->i_cm.map[ic]) || on_right(r->i_cm.map[ic])) {
+                                m->map_table_f[oc][ic] = 1.0f / (float) (ic_left + ic_right);
+                                ic_connected[ic] = true;
+                            }
+                    }
+
+                    /* We ignore the case where there is not even a left or
+                     * right input channel. Something is really wrong in this
+                     * case anyway. */
+
+                } else if (on_lfe(b) && !(r->flags & PA_RESAMPLER_NO_LFE)) {
+
+                    /* We are not connected and an LFE. Let's average all
+                     * channels for LFE. */
+
+                    for (ic = 0; ic < n_ic; ic++)
+                        m->map_table_f[oc][ic] = 1.0f / (float) n_ic;
+
+                    /* Please note that a channel connected to LFE doesn't
+                     * really count as connected. */
+                }
+            }
+        }
 
         for (ic = 0; ic < n_ic; ic++) {
             pa_channel_position_t a = r->i_cm.map[ic];
@@ -909,10 +887,9 @@ static void calc_map_table(pa_resampler *r) {
 
         if (ic_unconnected_left > 0) {
 
-            /* OK, so there are unconnected input channels on the
-             * left. Let's multiply all already connected channels on
-             * the left side by .9 and add in our averaged unconnected
-             * channels multiplied by .1 */
+            /* OK, so there are unconnected input channels on the left. Let's
+             * multiply all already connected channels on the left side by .9
+             * and add in our averaged unconnected channels multiplied by .1 */
 
             for (oc = 0; oc < n_oc; oc++) {
 
@@ -934,10 +911,9 @@ static void calc_map_table(pa_resampler *r) {
 
         if (ic_unconnected_right > 0) {
 
-            /* OK, so there are unconnected input channels on the
-             * right. Let's multiply all already connected channels on
-             * the right side by .9 and add in our averaged unconnected
-             * channels multiplied by .1 */
+            /* OK, so there are unconnected input channels on the right. Let's
+             * multiply all already connected channels on the right side by .9
+             * and add in our averaged unconnected channels multiplied by .1 */
 
             for (oc = 0; oc < n_oc; oc++) {
 
@@ -960,10 +936,9 @@ static void calc_map_table(pa_resampler *r) {
         if (ic_unconnected_center > 0) {
             bool mixed_in = false;
 
-            /* OK, so there are unconnected input channels on the
-             * center. Let's multiply all already connected channels on
-             * the center side by .9 and add in our averaged unconnected
-             * channels multiplied by .1 */
+            /* OK, so there are unconnected input channels on the center. Let's
+             * multiply all already connected channels on the center side by .9
+             * and add in our averaged unconnected channels multiplied by .1 */
 
             for (oc = 0; oc < n_oc; oc++) {
 
@@ -992,9 +967,8 @@ static void calc_map_table(pa_resampler *r) {
                 memset(found_frs, 0, sizeof(found_frs));
 
                 /* Hmm, as it appears there was no center channel we
-                   could mix our center channel in. In this case, mix
-                   it into left and right. Using .375 and 0.75 as
-                   factors. */
+                   could mix our center channel in. In this case, mix it into
+                   left and right. Using .375 and 0.75 as factors. */
 
                 for (ic = 0; ic < n_ic; ic++) {
 
@@ -1052,8 +1026,8 @@ static void calc_map_table(pa_resampler *r) {
 
         if (ic_unconnected_lfe > 0 && !(r->flags & PA_RESAMPLER_NO_LFE)) {
 
-            /* OK, so there is an unconnected LFE channel. Let's mix
-             * it into all channels, with factor 0.375 */
+            /* OK, so there is an unconnected LFE channel. Let's mix it into
+             * all channels, with factor 0.375 */
 
             for (ic = 0; ic < n_ic; ic++) {
 
@@ -1065,6 +1039,7 @@ static void calc_map_table(pa_resampler *r) {
             }
         }
     }
+
     /* make an 16:16 int version of the matrix */
     for (oc = 0; oc < n_oc; oc++)
         for (ic = 0; ic < n_ic; ic++)
