@@ -64,7 +64,7 @@ struct pa_resampler {
     size_t remap_buf_size;
     unsigned resample_buf_samples;
     unsigned from_work_format_buf_samples;
-    pa_bool_t remap_buf_contains_leftover_data;
+    bool remap_buf_contains_leftover_data;
 
     pa_sample_format_t work_format;
 
@@ -72,7 +72,7 @@ struct pa_resampler {
     pa_convert_func_t from_work_format_func;
 
     pa_remap_t remap;
-    pa_bool_t map_required;
+    bool map_required;
 
     void (*impl_free)(pa_resampler *r);
     void (*impl_update_rates)(pa_resampler *r);
@@ -448,7 +448,7 @@ void pa_resampler_reset(pa_resampler *r) {
     if (r->impl_reset)
         r->impl_reset(r);
 
-    r->remap_buf_contains_leftover_data = FALSE;
+    r->remap_buf_contains_leftover_data = false;
 }
 
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r) {
@@ -562,7 +562,7 @@ pa_resample_method_t pa_parse_resample_method(const char *string) {
     return PA_RESAMPLER_INVALID;
 }
 
-static pa_bool_t on_left(pa_channel_position_t p) {
+static bool on_left(pa_channel_position_t p) {
 
     return
         p == PA_CHANNEL_POSITION_FRONT_LEFT ||
@@ -573,7 +573,7 @@ static pa_bool_t on_left(pa_channel_position_t p) {
         p == PA_CHANNEL_POSITION_TOP_REAR_LEFT;
 }
 
-static pa_bool_t on_right(pa_channel_position_t p) {
+static bool on_right(pa_channel_position_t p) {
 
     return
         p == PA_CHANNEL_POSITION_FRONT_RIGHT ||
@@ -584,7 +584,7 @@ static pa_bool_t on_right(pa_channel_position_t p) {
         p == PA_CHANNEL_POSITION_TOP_REAR_RIGHT;
 }
 
-static pa_bool_t on_center(pa_channel_position_t p) {
+static bool on_center(pa_channel_position_t p) {
 
     return
         p == PA_CHANNEL_POSITION_FRONT_CENTER ||
@@ -594,12 +594,12 @@ static pa_bool_t on_center(pa_channel_position_t p) {
         p == PA_CHANNEL_POSITION_TOP_REAR_CENTER;
 }
 
-static pa_bool_t on_lfe(pa_channel_position_t p) {
+static bool on_lfe(pa_channel_position_t p) {
     return
         p == PA_CHANNEL_POSITION_LFE;
 }
 
-static pa_bool_t on_front(pa_channel_position_t p) {
+static bool on_front(pa_channel_position_t p) {
     return
         p == PA_CHANNEL_POSITION_FRONT_LEFT ||
         p == PA_CHANNEL_POSITION_FRONT_RIGHT ||
@@ -611,7 +611,7 @@ static pa_bool_t on_front(pa_channel_position_t p) {
         p == PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER;
 }
 
-static pa_bool_t on_rear(pa_channel_position_t p) {
+static bool on_rear(pa_channel_position_t p) {
     return
         p == PA_CHANNEL_POSITION_REAR_LEFT ||
         p == PA_CHANNEL_POSITION_REAR_RIGHT ||
@@ -621,7 +621,7 @@ static pa_bool_t on_rear(pa_channel_position_t p) {
         p == PA_CHANNEL_POSITION_TOP_REAR_CENTER;
 }
 
-static pa_bool_t on_side(pa_channel_position_t p) {
+static bool on_side(pa_channel_position_t p) {
     return
         p == PA_CHANNEL_POSITION_SIDE_LEFT ||
         p == PA_CHANNEL_POSITION_SIDE_RIGHT ||
@@ -648,8 +648,8 @@ static int front_rear_side(pa_channel_position_t p) {
 static void calc_map_table(pa_resampler *r) {
     unsigned oc, ic;
     unsigned n_oc, n_ic;
-    pa_bool_t ic_connected[PA_CHANNELS_MAX];
-    pa_bool_t remix;
+    bool ic_connected[PA_CHANNELS_MAX];
+    bool remix;
     pa_strbuf *s;
     char *t;
     pa_remap_t *m;
@@ -671,7 +671,7 @@ static void calc_map_table(pa_resampler *r) {
     remix = (r->flags & (PA_RESAMPLER_NO_REMAP|PA_RESAMPLER_NO_REMIX)) == 0;
 
     for (oc = 0; oc < n_oc; oc++) {
-        pa_bool_t oc_connected = FALSE;
+        bool oc_connected = false;
         pa_channel_position_t b = r->o_cm.map[oc];
 
         for (ic = 0; ic < n_ic; ic++) {
@@ -767,15 +767,15 @@ static void calc_map_table(pa_resampler *r) {
             if (a == b || a == PA_CHANNEL_POSITION_MONO) {
                 m->map_table_f[oc][ic] = 1.0;
 
-                oc_connected = TRUE;
-                ic_connected[ic] = TRUE;
+                oc_connected = true;
+                ic_connected[ic] = true;
             }
             else if (b == PA_CHANNEL_POSITION_MONO) {
                 if (n_ic)
                     m->map_table_f[oc][ic] = 1.0f / (float) n_ic;
 
-                oc_connected = TRUE;
-                ic_connected[ic] = TRUE;
+                oc_connected = true;
+                ic_connected[ic] = true;
             }
         }
 
@@ -798,7 +798,7 @@ static void calc_map_table(pa_resampler *r) {
                     for (ic = 0; ic < n_ic; ic++)
                         if (on_left(r->i_cm.map[ic])) {
                             m->map_table_f[oc][ic] = 1.0f / (float) n;
-                            ic_connected[ic] = TRUE;
+                            ic_connected[ic] = true;
                         }
 
                 /* We ignore the case where there is no left input
@@ -819,7 +819,7 @@ static void calc_map_table(pa_resampler *r) {
                     for (ic = 0; ic < n_ic; ic++)
                         if (on_right(r->i_cm.map[ic])) {
                             m->map_table_f[oc][ic] = 1.0f / (float) n;
-                            ic_connected[ic] = TRUE;
+                            ic_connected[ic] = true;
                         }
 
                 /* We ignore the case where there is no right input
@@ -840,7 +840,7 @@ static void calc_map_table(pa_resampler *r) {
                     for (ic = 0; ic < n_ic; ic++)
                         if (on_center(r->i_cm.map[ic])) {
                             m->map_table_f[oc][ic] = 1.0f / (float) n;
-                            ic_connected[ic] = TRUE;
+                            ic_connected[ic] = true;
                         }
                 } else {
 
@@ -857,7 +857,7 @@ static void calc_map_table(pa_resampler *r) {
                         for (ic = 0; ic < n_ic; ic++)
                             if (on_left(r->i_cm.map[ic]) || on_right(r->i_cm.map[ic])) {
                                 m->map_table_f[oc][ic] = 1.0f / (float) n;
-                                ic_connected[ic] = TRUE;
+                                ic_connected[ic] = true;
                             }
 
                     /* We ignore the case where there is not even a
@@ -958,7 +958,7 @@ static void calc_map_table(pa_resampler *r) {
         }
 
         if (ic_unconnected_center > 0) {
-            pa_bool_t mixed_in = FALSE;
+            bool mixed_in = false;
 
             /* OK, so there are unconnected input channels on the
              * center. Let's multiply all already connected channels on
@@ -979,14 +979,14 @@ static void calc_map_table(pa_resampler *r) {
 
                     if (on_center(r->i_cm.map[ic])) {
                         m->map_table_f[oc][ic] = .1f / (float) ic_unconnected_center;
-                        mixed_in = TRUE;
+                        mixed_in = true;
                     }
                 }
             }
 
             if (!mixed_in) {
                 unsigned ncenter[PA_CHANNELS_MAX];
-                pa_bool_t found_frs[PA_CHANNELS_MAX];
+                bool found_frs[PA_CHANNELS_MAX];
 
                 memset(ncenter, 0, sizeof(ncenter));
                 memset(found_frs, 0, sizeof(found_frs));
@@ -1010,7 +1010,7 @@ static void calc_map_table(pa_resampler *r) {
                             continue;
 
                         if (front_rear_side(r->i_cm.map[ic]) == front_rear_side(r->o_cm.map[oc])) {
-                            found_frs[ic] = TRUE;
+                            found_frs[ic] = true;
                             break;
                         }
                     }
@@ -1139,7 +1139,7 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
     unsigned in_n_samples, out_n_samples, in_n_frames, out_n_frames;
     void *src, *dst;
     size_t leftover_length = 0;
-    pa_bool_t have_leftover;
+    bool have_leftover;
 
     pa_assert(r);
     pa_assert(input);
@@ -1150,7 +1150,7 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
      * remapped, so it's not part of the input, it's part of the output. */
 
     have_leftover = r->remap_buf_contains_leftover_data;
-    r->remap_buf_contains_leftover_data = FALSE;
+    r->remap_buf_contains_leftover_data = false;
 
     if (!have_leftover && (!r->map_required || input->length <= 0))
         return input;
@@ -1332,7 +1332,7 @@ static void save_leftover(pa_resampler *r, void *buf, size_t len) {
     memcpy(dst, buf, r->remap_buf.length);
     pa_memblock_release(r->remap_buf.memblock);
 
-    r->remap_buf_contains_leftover_data = TRUE;
+    r->remap_buf_contains_leftover_data = true;
 }
 
 /*** libsamplerate based implementation ***/
