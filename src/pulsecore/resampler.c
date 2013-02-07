@@ -727,16 +727,17 @@ static void calc_map_table(pa_resampler *r) {
          *
          * 6) Make sure S:Left/S:Right is used: S:Left/S:Right: If not
          *    connected, mix into all D:left and all D:right channels. Gain is
-         *    0.1, the current left and right should be multiplied by 0.9.
+         *    1/9.
          *
          * 7) Make sure S:Center, S:LFE is used:
          *
          *    S:Center, S:LFE: If not connected, mix into all D:left, all
-         *    D:right, all D:center channels, gain is 0.375. The current (as
-         *    result of 1..6) factors should be multiplied by 0.75. (Alt.
-         *    suggestion: 0.25 vs. 0.5) If C-front is only mixed into
-         *    L-front/R-front if available, otherwise into all L/R channels.
-         *    Similarly for C-rear.
+         *    D:right, all D:center channels. Gain is 0.5 for center and 0.375
+         *    for LFE. C-front is only mixed into L-front/R-front if available,
+         *    otherwise into all L/R channels. Similarly for C-rear.
+         *
+         * 8) Normalize each row in the matrix such that the sum for each row is
+         *    not larger than 1.0 in order to avoid clipping.
          *
          * S: and D: shall relate to the source resp. destination channels.
          *
@@ -759,6 +760,7 @@ static void calc_map_table(pa_resampler *r) {
             ic_unconnected_right = 0,
             ic_unconnected_center = 0,
             ic_unconnected_lfe = 0;
+        bool ic_unconnected_center_mixed_in = 0;
 
         pa_assert(remix);
 
@@ -885,117 +887,57 @@ static void calc_map_table(pa_resampler *r) {
                 ic_unconnected_lfe++;
         }
 
-        if (ic_unconnected_left > 0) {
+        for (ic = 0; ic < n_ic; ic++) {
+            pa_channel_position_t a = r->i_cm.map[ic];
 
-            /* OK, so there are unconnected input channels on the left. Let's
-             * multiply all already connected channels on the left side by .9
-             * and add in our averaged unconnected channels multiplied by .1 */
+            if (ic_connected[ic])
+                continue;
 
             for (oc = 0; oc < n_oc; oc++) {
+                pa_channel_position_t b = r->o_cm.map[oc];
 
-                if (!on_left(r->o_cm.map[oc]))
-                    continue;
+                if (on_left(a) && on_left(b))
+                    m->map_table_f[oc][ic] = (1.f/9.f) / (float) ic_unconnected_left;
 
-                for (ic = 0; ic < n_ic; ic++) {
+                else if (on_right(a) && on_right(b))
+                    m->map_table_f[oc][ic] = (1.f/9.f) / (float) ic_unconnected_right;
 
-                    if (ic_connected[ic]) {
-                        m->map_table_f[oc][ic] *= .9f;
-                        continue;
-                    }
+                else if (on_center(a) && on_center(b)) {
+                    m->map_table_f[oc][ic] = (1.f/9.f) / (float) ic_unconnected_center;
+                    ic_unconnected_center_mixed_in = true;
 
-                    if (on_left(r->i_cm.map[ic]))
-                        m->map_table_f[oc][ic] = .1f / (float) ic_unconnected_left;
-                }
+                } else if (on_lfe(a) && !(r->flags & PA_RESAMPLER_NO_LFE))
+                    m->map_table_f[oc][ic] = .375f / (float) ic_unconnected_lfe;
             }
         }
 
-        if (ic_unconnected_right > 0) {
+        if (ic_unconnected_center > 0 && !ic_unconnected_center_mixed_in) {
+            unsigned ncenter[PA_CHANNELS_MAX];
+            bool found_frs[PA_CHANNELS_MAX];
 
-            /* OK, so there are unconnected input channels on the right. Let's
-             * multiply all already connected channels on the right side by .9
-             * and add in our averaged unconnected channels multiplied by .1 */
+            memset(ncenter, 0, sizeof(ncenter));
+            memset(found_frs, 0, sizeof(found_frs));
 
-            for (oc = 0; oc < n_oc; oc++) {
+            /* Hmm, as it appears there was no center channel we
+               could mix our center channel in. In this case, mix it into
+               left and right. Using .5 as the factor. */
 
-                if (!on_right(r->o_cm.map[oc]))
+            for (ic = 0; ic < n_ic; ic++) {
+
+                if (ic_connected[ic])
                     continue;
 
-                for (ic = 0; ic < n_ic; ic++) {
-
-                    if (ic_connected[ic]) {
-                        m->map_table_f[oc][ic] *= .9f;
-                        continue;
-                    }
-
-                    if (on_right(r->i_cm.map[ic]))
-                        m->map_table_f[oc][ic] = .1f / (float) ic_unconnected_right;
-                }
-            }
-        }
-
-        if (ic_unconnected_center > 0) {
-            bool mixed_in = false;
-
-            /* OK, so there are unconnected input channels on the center. Let's
-             * multiply all already connected channels on the center side by .9
-             * and add in our averaged unconnected channels multiplied by .1 */
-
-            for (oc = 0; oc < n_oc; oc++) {
-
-                if (!on_center(r->o_cm.map[oc]))
+                if (!on_center(r->i_cm.map[ic]))
                     continue;
 
-                for (ic = 0; ic < n_ic; ic++) {
+                for (oc = 0; oc < n_oc; oc++) {
 
-                    if (ic_connected[ic]) {
-                        m->map_table_f[oc][ic] *= .9f;
-                        continue;
-                    }
-
-                    if (on_center(r->i_cm.map[ic])) {
-                        m->map_table_f[oc][ic] = .1f / (float) ic_unconnected_center;
-                        mixed_in = true;
-                    }
-                }
-            }
-
-            if (!mixed_in) {
-                unsigned ncenter[PA_CHANNELS_MAX];
-                bool found_frs[PA_CHANNELS_MAX];
-
-                memset(ncenter, 0, sizeof(ncenter));
-                memset(found_frs, 0, sizeof(found_frs));
-
-                /* Hmm, as it appears there was no center channel we
-                   could mix our center channel in. In this case, mix it into
-                   left and right. Using .375 and 0.75 as factors. */
-
-                for (ic = 0; ic < n_ic; ic++) {
-
-                    if (ic_connected[ic])
+                    if (!on_left(r->o_cm.map[oc]) && !on_right(r->o_cm.map[oc]))
                         continue;
 
-                    if (!on_center(r->i_cm.map[ic]))
-                        continue;
-
-                    for (oc = 0; oc < n_oc; oc++) {
-
-                        if (!on_left(r->o_cm.map[oc]) && !on_right(r->o_cm.map[oc]))
-                            continue;
-
-                        if (front_rear_side(r->i_cm.map[ic]) == front_rear_side(r->o_cm.map[oc])) {
-                            found_frs[ic] = true;
-                            break;
-                        }
-                    }
-
-                    for (oc = 0; oc < n_oc; oc++) {
-
-                        if (!on_left(r->o_cm.map[oc]) && !on_right(r->o_cm.map[oc]))
-                            continue;
-
-                        if (!found_frs[ic] || front_rear_side(r->i_cm.map[ic]) == front_rear_side(r->o_cm.map[oc]))
-                            ncenter[oc]++;
+                    if (front_rear_side(r->i_cm.map[ic]) == front_rear_side(r->o_cm.map[oc])) {
+                        found_frs[ic] = true;
+                        break;
                     }
                 }
 
@@ -1004,40 +946,39 @@ static void calc_map_table(pa_resampler *r) {
                     if (!on_left(r->o_cm.map[oc]) && !on_right(r->o_cm.map[oc]))
                         continue;
 
-                    if (ncenter[oc] <= 0)
+                    if (!found_frs[ic] || front_rear_side(r->i_cm.map[ic]) == front_rear_side(r->o_cm.map[oc]))
+                        ncenter[oc]++;
+                }
+            }
+
+            for (oc = 0; oc < n_oc; oc++) {
+
+                if (!on_left(r->o_cm.map[oc]) && !on_right(r->o_cm.map[oc]))
+                    continue;
+
+                if (ncenter[oc] <= 0)
+                    continue;
+
+                for (ic = 0; ic < n_ic; ic++) {
+
+                    if (!on_center(r->i_cm.map[ic]))
                         continue;
 
-                    for (ic = 0; ic < n_ic; ic++) {
-
-                        if (ic_connected[ic]) {
-                            m->map_table_f[oc][ic] *= .75f;
-                            continue;
-                        }
-
-                        if (!on_center(r->i_cm.map[ic]))
-                            continue;
-
-                        if (!found_frs[ic] || front_rear_side(r->i_cm.map[ic]) == front_rear_side(r->o_cm.map[oc]))
-                            m->map_table_f[oc][ic] = .375f / (float) ncenter[oc];
-                    }
+                    if (!found_frs[ic] || front_rear_side(r->i_cm.map[ic]) == front_rear_side(r->o_cm.map[oc]))
+                        m->map_table_f[oc][ic] = .5f / (float) ncenter[oc];
                 }
             }
         }
+    }
 
-        if (ic_unconnected_lfe > 0 && !(r->flags & PA_RESAMPLER_NO_LFE)) {
+    for (oc = 0; oc < n_oc; oc++) {
+        float sum = 0.0f;
+        for (ic = 0; ic < n_ic; ic++)
+            sum += m->map_table_f[oc][ic];
 
-            /* OK, so there is an unconnected LFE channel. Let's mix it into
-             * all channels, with factor 0.375 */
-
-            for (ic = 0; ic < n_ic; ic++) {
-
-                if (!on_lfe(r->i_cm.map[ic]))
-                    continue;
-
-                for (oc = 0; oc < n_oc; oc++)
-                    m->map_table_f[oc][ic] = 0.375f / (float) ic_unconnected_lfe;
-            }
-        }
+        if (sum > 1.0f)
+            for (ic = 0; ic < n_ic; ic++)
+                m->map_table_f[oc][ic] /= sum;
     }
 
     /* make an 16:16 int version of the matrix */
