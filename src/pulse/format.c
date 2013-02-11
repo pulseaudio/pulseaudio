@@ -47,6 +47,7 @@ static const char* const _encoding_str_table[]= {
     [PA_ENCODING_EAC3_IEC61937] = "eac3-iec61937",
     [PA_ENCODING_MPEG_IEC61937] = "mpeg-iec61937",
     [PA_ENCODING_DTS_IEC61937] = "dts-iec61937",
+    [PA_ENCODING_MPEG2_AAC_IEC61937] = "mpeg2-aac-iec61937",
     [PA_ENCODING_ANY] = "any",
 };
 

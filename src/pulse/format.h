@@ -55,6 +55,9 @@ typedef enum pa_encoding {
     PA_ENCODING_DTS_IEC61937,
     /**< DTS data encapsulated in IEC 61937 header/padding */
 
+    PA_ENCODING_MPEG2_AAC_IEC61937,
+    /**< MPEG-2 AAC data encapsulated in IEC 61937 header/padding. \since 4.0 */
+
     PA_ENCODING_MAX,
     /**< Valid encoding types must be less than this value */
 
