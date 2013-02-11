@@ -2092,6 +2092,9 @@ int main(int argc, char* argv[]) {
     float drift;
     uint32_t nframes;
 
+    if (!getenv("MAKE_CHECK"))
+        pa_log_set_level(PA_LOG_DEBUG);
+
     pa_memzero(&u, sizeof(u));
 
     if (argc < 4 || argc > 7) {
