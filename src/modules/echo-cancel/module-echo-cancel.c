@@ -2103,17 +2103,17 @@ int main(int argc, char* argv[]) {
 
     u.captured_file = fopen(argv[2], "rb");
     if (u.captured_file == NULL) {
-        perror ("fopen failed");
+        perror ("Could not open capture file");
         goto fail;
     }
     u.played_file = fopen(argv[1], "rb");
     if (u.played_file == NULL) {
-        perror ("fopen failed");
+        perror ("Could not open play file");
         goto fail;
     }
     u.canceled_file = fopen(argv[3], "wb");
     if (u.canceled_file == NULL) {
-        perror ("fopen failed");
+        perror ("Could not open canceled file");
         goto fail;
     }
 
@@ -2156,7 +2156,7 @@ int main(int argc, char* argv[]) {
         u.drift_file = fopen(argv[5], "rt");
 
         if (u.drift_file == NULL) {
-            perror ("fopen failed");
+            perror ("Could not open drift file");
             goto fail;
         }
     }
