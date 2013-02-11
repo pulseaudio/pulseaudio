@@ -2140,7 +2140,7 @@ int main(int argc, char* argv[]) {
         goto fail;
 
     if (!u.ec->init(u.core, u.ec, &source_ss, &source_map, &sink_ss, &sink_map, &nframes,
-                     (argc > 5) ? argv[5] : NULL )) {
+                     pa_modargs_get_value(ma, "aec_args", NULL))) {
         pa_log("Failed to init AEC engine");
         goto fail;
     }
@@ -2148,12 +2148,12 @@ int main(int argc, char* argv[]) {
     u.sink_blocksize = nframes * pa_frame_size(&sink_ss);
 
     if (u.ec->params.drift_compensation) {
-        if (argc < 7) {
+        if (argc < 6) {
             pa_log("Drift compensation enabled but drift file not specified");
             goto fail;
         }
 
-        u.drift_file = fopen(argv[6], "rt");
+        u.drift_file = fopen(argv[5], "rt");
 
         if (u.drift_file == NULL) {
             perror ("fopen failed");
@@ -2254,7 +2254,7 @@ out:
     return ret;
 
 usage:
-    pa_log("Usage: %s play_file rec_file out_file [module args] [aec_args] [drift_file]", argv[0]);
+    pa_log("Usage: %s play_file rec_file out_file [module args] [drift_file]", argv[0]);
 
 fail:
     ret = -1;
