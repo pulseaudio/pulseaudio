@@ -786,7 +786,7 @@ void pa_http_protocol_unref(pa_http_protocol *p) {
     while ((c = pa_idxset_first(p->connections, NULL)))
         connection_unlink(c);
 
-    pa_idxset_free(p->connections, NULL, NULL);
+    pa_idxset_free(p->connections, NULL);
 
     pa_strlist_free(p->servers);
 

@@ -198,12 +198,12 @@ pa_bool_t pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink 
             data->sink = s;
             data->save_sink = save;
             if (data->nego_formats)
-                pa_idxset_free(data->nego_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+                pa_idxset_free(data->nego_formats, (pa_free_cb_t) pa_format_info_free);
             data->nego_formats = formats;
         } else {
             /* Sink doesn't support any of the formats requested by the client */
             if (formats)
-                pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+                pa_idxset_free(formats, (pa_free_cb_t) pa_format_info_free);
             ret = FALSE;
         }
     }
@@ -216,7 +216,7 @@ pa_bool_t pa_sink_input_new_data_set_formats(pa_sink_input_new_data *data, pa_id
     pa_assert(formats);
 
     if (data->req_formats)
-        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(formats, (pa_free_cb_t) pa_format_info_free);
 
     data->req_formats = formats;
 
@@ -232,10 +232,10 @@ void pa_sink_input_new_data_done(pa_sink_input_new_data *data) {
     pa_assert(data);
 
     if (data->req_formats)
-        pa_idxset_free(data->req_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(data->req_formats, (pa_free_cb_t) pa_format_info_free);
 
     if (data->nego_formats)
-        pa_idxset_free(data->nego_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(data->nego_formats, (pa_free_cb_t) pa_format_info_free);
 
     if (data->format)
         pa_format_info_free(data->format);
@@ -738,7 +738,7 @@ static void sink_input_free(pa_object *o) {
         pa_proplist_free(i->proplist);
 
     if (i->direct_outputs)
-        pa_idxset_free(i->direct_outputs, NULL, NULL);
+        pa_idxset_free(i->direct_outputs, NULL);
 
     if (i->thread_info.direct_outputs)
         pa_hashmap_free(i->thread_info.direct_outputs, NULL);

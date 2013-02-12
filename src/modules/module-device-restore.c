@@ -351,7 +351,7 @@ static struct perportentry* perportentry_new(pa_bool_t add_pcm_format) {
 static void perportentry_free(struct perportentry* e) {
     pa_assert(e);
 
-    pa_idxset_free(e->formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+    pa_idxset_free(e->formats, (pa_free_cb_t) pa_format_info_free);
     pa_xfree(e);
 }
 
@@ -1151,7 +1151,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 e = perportentry_new(FALSE);
             else {
                 /* Clean out any saved formats */
-                pa_idxset_free(e->formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+                pa_idxset_free(e->formats, (pa_free_cb_t) pa_format_info_free);
                 e->formats = pa_idxset_new(NULL, NULL);
             }
 
@@ -1338,7 +1338,7 @@ void pa__done(pa_module*m) {
     }
 
     if (u->subscribed)
-        pa_idxset_free(u->subscribed, NULL, NULL);
+        pa_idxset_free(u->subscribed, NULL);
 
     pa_xfree(u);
 }

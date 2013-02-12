@@ -25,6 +25,8 @@
 
 #include <inttypes.h>
 
+#include <pulse/def.h>
+
 #include <pulsecore/macro.h>
 
 /* A combination of a set and a dynamic array. Entries are indexable
@@ -34,9 +36,6 @@
 
 /* A special index value denoting the invalid index. */
 #define PA_IDXSET_INVALID ((uint32_t) -1)
-
-/* Similar to pa_free_cb_t, but takes a userdata argument */
-typedef void (*pa_free2_cb_t)(void *p, void *userdata);
 
 /* Generic implementations for hash and comparison functions. Just
  * compares the pointer or calculates the hash value directly from the
@@ -57,7 +56,7 @@ typedef struct pa_idxset pa_idxset;
 pa_idxset* pa_idxset_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func);
 
 /* Free the idxset. When the idxset is not empty the specified function is called for every entry contained */
-void pa_idxset_free(pa_idxset *s, pa_free2_cb_t free_cb, void *userdata);
+void pa_idxset_free(pa_idxset *s, pa_free_cb_t free_cb);
 
 /* Store a new item in the idxset. The index of the item is returned in *idx */
 int pa_idxset_put(pa_idxset*s, void *p, uint32_t *idx);

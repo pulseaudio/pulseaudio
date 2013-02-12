@@ -143,12 +143,12 @@ pa_bool_t pa_source_output_new_data_set_source(pa_source_output_new_data *data, 
             data->source = s;
             data->save_source = save;
             if (data->nego_formats)
-                pa_idxset_free(data->nego_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+                pa_idxset_free(data->nego_formats, (pa_free_cb_t) pa_format_info_free);
             data->nego_formats = formats;
         } else {
             /* Source doesn't support any of the formats requested by the client */
             if (formats)
-                pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+                pa_idxset_free(formats, (pa_free_cb_t) pa_format_info_free);
             ret = FALSE;
         }
     }
@@ -161,7 +161,7 @@ pa_bool_t pa_source_output_new_data_set_formats(pa_source_output_new_data *data,
     pa_assert(formats);
 
     if (data->req_formats)
-        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(formats, (pa_free_cb_t) pa_format_info_free);
 
     data->req_formats = formats;
 
@@ -177,10 +177,10 @@ void pa_source_output_new_data_done(pa_source_output_new_data *data) {
     pa_assert(data);
 
     if (data->req_formats)
-        pa_idxset_free(data->req_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(data->req_formats, (pa_free_cb_t) pa_format_info_free);
 
     if (data->nego_formats)
-        pa_idxset_free(data->nego_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(data->nego_formats, (pa_free_cb_t) pa_format_info_free);
 
     if (data->format)
         pa_format_info_free(data->format);

@@ -171,7 +171,7 @@ void pa_dbus_protocol_unref(pa_dbus_protocol *p) {
 
     pa_hashmap_free(p->objects, NULL);
     pa_hashmap_free(p->connections, NULL);
-    pa_idxset_free(p->extensions, NULL, NULL);
+    pa_idxset_free(p->extensions, NULL);
 
     for (i = 0; i < PA_DBUS_PROTOCOL_HOOK_MAX; ++i)
         pa_hook_done(&p->hooks[i]);
@@ -928,22 +928,15 @@ static struct signal_paths_entry *signal_paths_entry_new(const char *signal_name
 }
 
 static void signal_paths_entry_free(struct signal_paths_entry *e) {
-    char *path = NULL;
-
     pa_assert(e);
 
     pa_xfree(e->signal);
-
-    while ((path = pa_idxset_steal_first(e->paths, NULL)))
-        pa_xfree(path);
-
-    pa_idxset_free(e->paths, NULL, NULL);
+    pa_idxset_free(e->paths, pa_xfree);
     pa_xfree(e);
 }
 
 int pa_dbus_protocol_unregister_connection(pa_dbus_protocol *p, DBusConnection *conn) {
     struct connection_entry *conn_entry = NULL;
-    char *object_path = NULL;
 
     pa_assert(p);
     pa_assert(conn);
@@ -954,12 +947,7 @@ int pa_dbus_protocol_unregister_connection(pa_dbus_protocol *p, DBusConnection *
     unregister_all_objects(p, conn);
 
     dbus_connection_unref(conn_entry->connection);
-
-    while ((object_path = pa_idxset_steal_first(conn_entry->all_signals_objects, NULL)))
-        pa_xfree(object_path);
-
-    pa_idxset_free(conn_entry->all_signals_objects, NULL, NULL);
-
+    pa_idxset_free(conn_entry->all_signals_objects, pa_xfree);
     pa_hashmap_free(conn_entry->listening_signals, (pa_free_cb_t) signal_paths_entry_free);
     pa_xfree(conn_entry);
 

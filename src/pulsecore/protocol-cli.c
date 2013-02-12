@@ -134,7 +134,7 @@ void pa_cli_protocol_unref(pa_cli_protocol *p) {
     while ((c = pa_idxset_first(p->connections, NULL)))
         cli_unlink(p, c);
 
-    pa_idxset_free(p->connections, NULL, NULL);
+    pa_idxset_free(p->connections, NULL);
 
     pa_assert_se(pa_shared_remove(p->core, "cli-protocol") >= 0);
 

@@ -1222,7 +1222,7 @@ static playback_stream* playback_stream_new(
 
 out:
     if (formats)
-        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(formats, (pa_free_cb_t) pa_format_info_free);
 
     return s;
 }
@@ -1340,8 +1340,8 @@ static void native_connection_free(pa_object *o) {
 
     native_connection_unlink(c);
 
-    pa_idxset_free(c->record_streams, NULL, NULL);
-    pa_idxset_free(c->output_streams, NULL, NULL);
+    pa_idxset_free(c->record_streams, NULL);
+    pa_idxset_free(c->output_streams, NULL);
 
     pa_pdispatch_unref(c->pdispatch);
     pa_pstream_unref(c->pstream);
@@ -2193,7 +2193,7 @@ finish:
     if (p)
         pa_proplist_free(p);
     if (formats)
-        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(formats, (pa_free_cb_t) pa_format_info_free);
 }
 
 static void command_delete_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -2508,7 +2508,7 @@ finish:
     if (p)
         pa_proplist_free(p);
     if (formats)
-        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(formats, (pa_free_cb_t) pa_format_info_free);
 }
 
 static void command_exit(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -3143,7 +3143,7 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
             pa_tagstruct_put_format_info(t, f);
         }
 
-        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(formats, (pa_free_cb_t) pa_format_info_free);
     }
 }
 
@@ -3213,7 +3213,7 @@ static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
             pa_tagstruct_put_format_info(t, f);
         }
 
-        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(formats, (pa_free_cb_t) pa_format_info_free);
     }
 }
 
@@ -5093,7 +5093,7 @@ void pa_native_protocol_unref(pa_native_protocol *p) {
     while ((c = pa_idxset_first(p->connections, NULL)))
         native_connection_unlink(c);
 
-    pa_idxset_free(p->connections, NULL, NULL);
+    pa_idxset_free(p->connections, NULL);
 
     pa_strlist_free(p->servers);
 

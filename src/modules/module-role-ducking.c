@@ -286,28 +286,23 @@ fail:
 void pa__done(pa_module *m) {
     struct userdata* u;
     pa_sink_input *i;
-    char *role;
 
     pa_assert(m);
 
     if (!(u = m->userdata))
         return;
 
-    if (u->trigger_roles) {
-        while ((role = pa_idxset_steal_first(u->trigger_roles, NULL)))
-            pa_xfree(role);
-        pa_idxset_free(u->trigger_roles, NULL, NULL);
-    }
-    if (u->ducking_roles) {
-        while ((role = pa_idxset_steal_first(u->ducking_roles, NULL)))
-            pa_xfree(role);
-        pa_idxset_free(u->ducking_roles, NULL, NULL);
-    }
+    if (u->trigger_roles)
+        pa_idxset_free(u->trigger_roles, pa_xfree);
+
+    if (u->ducking_roles)
+        pa_idxset_free(u->ducking_roles, pa_xfree);
+
     if (u->ducked_inputs) {
         while ((i = pa_idxset_steal_first(u->ducked_inputs, NULL)))
             pa_sink_input_remove_volume_factor(i, u->name);
 
-        pa_idxset_free(u->ducked_inputs, NULL, NULL);
+        pa_idxset_free(u->ducked_inputs, NULL);
     }
 
     if (u->sink_input_put_slot)

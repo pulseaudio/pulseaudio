@@ -1547,7 +1547,7 @@ static pa_bool_t sink_set_formats(pa_sink *s, pa_idxset *formats) {
             return FALSE;
     }
 
-    pa_idxset_free(u->formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+    pa_idxset_free(u->formats, (pa_free_cb_t) pa_format_info_free);
     u->formats = pa_idxset_new(NULL, NULL);
 
     /* Note: the logic below won't apply if we're using software encoding.
@@ -2455,7 +2455,7 @@ static void userdata_free(struct userdata *u) {
         pa_smoother_free(u->smoother);
 
     if (u->formats)
-        pa_idxset_free(u->formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(u->formats, (pa_free_cb_t) pa_format_info_free);
 
     if (u->rates)
         pa_xfree(u->rates);

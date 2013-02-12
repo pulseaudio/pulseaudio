@@ -103,9 +103,9 @@ void pa_client_free(pa_client *c) {
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
 
     pa_assert(pa_idxset_isempty(c->sink_inputs));
-    pa_idxset_free(c->sink_inputs, NULL, NULL);
+    pa_idxset_free(c->sink_inputs, NULL);
     pa_assert(pa_idxset_isempty(c->source_outputs));
-    pa_idxset_free(c->source_outputs, NULL, NULL);
+    pa_idxset_free(c->source_outputs, NULL);
 
     pa_proplist_free(c->proplist);
     pa_xfree(c->driver);

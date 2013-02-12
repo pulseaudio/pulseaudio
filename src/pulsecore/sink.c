@@ -730,7 +730,7 @@ static void sink_free(pa_object *o) {
         s->monitor_source = NULL;
     }
 
-    pa_idxset_free(s->inputs, NULL, NULL);
+    pa_idxset_free(s->inputs, NULL);
     pa_hashmap_free(s->thread_info.inputs, (pa_free_cb_t) pa_sink_input_unref);
 
     if (s->silence.memblock)
@@ -3734,7 +3734,7 @@ pa_bool_t pa_sink_check_format(pa_sink *s, pa_format_info *f)
             }
         }
 
-        pa_idxset_free(formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(formats, (pa_free_cb_t) pa_format_info_free);
     }
 
     return ret;
@@ -3764,7 +3764,7 @@ pa_idxset* pa_sink_check_formats(pa_sink *s, pa_idxset *in_formats) {
 
 done:
     if (sink_formats)
-        pa_idxset_free(sink_formats, (pa_free2_cb_t) pa_format_info_free2, NULL);
+        pa_idxset_free(sink_formats, (pa_free_cb_t) pa_format_info_free);
 
     return out_formats;
 }

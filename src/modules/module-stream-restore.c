@@ -2549,7 +2549,7 @@ void pa__done(pa_module*m) {
     }
 
     if (u->subscribed)
-        pa_idxset_free(u->subscribed, NULL, NULL);
+        pa_idxset_free(u->subscribed, NULL);
 
     pa_xfree(u);
 }

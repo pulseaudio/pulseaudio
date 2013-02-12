@@ -139,7 +139,7 @@ static void remove_entry(pa_idxset *s, struct idxset_entry *e) {
     s->n_entries--;
 }
 
-void pa_idxset_free(pa_idxset *s, pa_free2_cb_t free_cb, void *userdata) {
+void pa_idxset_free(pa_idxset *s, pa_free_cb_t free_cb) {
     pa_assert(s);
 
     while (s->iterate_list_head) {
@@ -148,7 +148,7 @@ void pa_idxset_free(pa_idxset *s, pa_free2_cb_t free_cb, void *userdata) {
         remove_entry(s, s->iterate_list_head);
 
         if (free_cb)
-            free_cb(data, userdata);
+            free_cb(data);
     }
 
     pa_xfree(s);

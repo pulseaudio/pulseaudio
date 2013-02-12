@@ -283,23 +283,17 @@ fail:
 
 void pa__done(pa_module *m) {
     struct userdata* u;
-    char *role;
 
     pa_assert(m);
 
     if (!(u = m->userdata))
         return;
 
-    if (u->trigger_roles) {
-        while ((role = pa_idxset_steal_first(u->trigger_roles, NULL)))
-            pa_xfree(role);
-        pa_idxset_free(u->trigger_roles, NULL, NULL);
-    }
-    if (u->cork_roles) {
-        while ((role = pa_idxset_steal_first(u->cork_roles, NULL)))
-            pa_xfree(role);
-        pa_idxset_free(u->cork_roles, NULL, NULL);
-    }
+    if (u->trigger_roles)
+        pa_idxset_free(u->trigger_roles, pa_xfree);
+
+    if (u->cork_roles)
+        pa_idxset_free(u->cork_roles, pa_xfree);
 
     if (u->sink_input_put_slot)
         pa_hook_slot_free(u->sink_input_put_slot);

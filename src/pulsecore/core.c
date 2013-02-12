@@ -170,28 +170,28 @@ static void core_free(pa_object *o) {
      * we get here */
 
     pa_assert(pa_idxset_isempty(c->scache));
-    pa_idxset_free(c->scache, NULL, NULL);
+    pa_idxset_free(c->scache, NULL);
 
     pa_assert(pa_idxset_isempty(c->modules));
-    pa_idxset_free(c->modules, NULL, NULL);
+    pa_idxset_free(c->modules, NULL);
 
     pa_assert(pa_idxset_isempty(c->clients));
-    pa_idxset_free(c->clients, NULL, NULL);
+    pa_idxset_free(c->clients, NULL);
 
     pa_assert(pa_idxset_isempty(c->cards));
-    pa_idxset_free(c->cards, NULL, NULL);
+    pa_idxset_free(c->cards, NULL);
 
     pa_assert(pa_idxset_isempty(c->sinks));
-    pa_idxset_free(c->sinks, NULL, NULL);
+    pa_idxset_free(c->sinks, NULL);
 
     pa_assert(pa_idxset_isempty(c->sources));
-    pa_idxset_free(c->sources, NULL, NULL);
+    pa_idxset_free(c->sources, NULL);
 
     pa_assert(pa_idxset_isempty(c->source_outputs));
-    pa_idxset_free(c->source_outputs, NULL, NULL);
+    pa_idxset_free(c->source_outputs, NULL);
 
     pa_assert(pa_idxset_isempty(c->sink_inputs));
-    pa_idxset_free(c->sink_inputs, NULL, NULL);
+    pa_idxset_free(c->sink_inputs, NULL);
 
     pa_assert(pa_hashmap_isempty(c->namereg));
     pa_hashmap_free(c->namereg, NULL);

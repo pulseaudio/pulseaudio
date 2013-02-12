@@ -449,7 +449,7 @@ static void setting_free(pa_alsa_setting *s) {
     pa_assert(s);
 
     if (s->options)
-        pa_idxset_free(s->options, NULL, NULL);
+        pa_idxset_free(s->options, NULL);
 
     pa_xfree(s->name);
     pa_xfree(s->description);
@@ -3289,10 +3289,10 @@ static void profile_free(pa_alsa_profile *p) {
     pa_xstrfreev(p->output_mapping_names);
 
     if (p->input_mappings)
-        pa_idxset_free(p->input_mappings, NULL, NULL);
+        pa_idxset_free(p->input_mappings, NULL);
 
     if (p->output_mappings)
-        pa_idxset_free(p->output_mappings, NULL, NULL);
+        pa_idxset_free(p->output_mappings, NULL);
 
     pa_xfree(p);
 }

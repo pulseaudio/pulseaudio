@@ -550,6 +550,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_assert_se(o = i->userdata);
 
     pa_module_unload_request(o->userdata->module, TRUE);
+    pa_idxset_remove_by_data(o->userdata->outputs, o, NULL);
     output_free(o);
 }
 
@@ -1107,6 +1108,7 @@ static pa_hook_result_t sink_unlink_hook_cb(pa_core *c, pa_sink *s, struct userd
     if (!u->automatic)
         u->unlinked_slaves = pa_strlist_prepend(u->unlinked_slaves, s->name);
 
+    pa_idxset_remove_by_data(u->outputs, o, NULL);
     output_free(o);
 
     return PA_HOOK_OK;
@@ -1368,7 +1370,6 @@ fail:
 
 void pa__done(pa_module*m) {
     struct userdata *u;
-    struct output *o;
 
     pa_assert(m);
 
@@ -1386,12 +1387,8 @@ void pa__done(pa_module*m) {
     if (u->sink_state_changed_slot)
         pa_hook_slot_free(u->sink_state_changed_slot);
 
-    if (u->outputs) {
-        while ((o = pa_idxset_first(u->outputs, NULL)))
-            output_free(o);
-
-        pa_idxset_free(u->outputs, NULL, NULL);
-    }
+    if (u->outputs)
+        pa_idxset_free(u->outputs, (pa_free_cb_t) output_free);
 
     if (u->sink)
         pa_sink_unlink(u->sink);

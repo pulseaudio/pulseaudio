@@ -690,7 +690,7 @@ void pa_simple_protocol_unref(pa_simple_protocol *p) {
     while ((c = pa_idxset_first(p->connections, NULL)))
         connection_unlink(c);
 
-    pa_idxset_free(p->connections, NULL, NULL);
+    pa_idxset_free(p->connections, NULL);
 
     pa_assert_se(pa_shared_remove(p->core, "simple-protocol") >= 0);
 
