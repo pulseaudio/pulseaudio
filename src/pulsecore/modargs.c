@@ -247,7 +247,7 @@ fail:
     return NULL;
 }
 
-static void free_func(void *p, void*userdata) {
+static void free_func(void *p) {
     struct entry *e = p;
     pa_assert(e);
 
@@ -259,8 +259,8 @@ static void free_func(void *p, void*userdata) {
 void pa_modargs_free(pa_modargs*ma) {
     pa_assert(ma);
 
-    pa_hashmap_free(ma->raw, free_func, NULL);
-    pa_hashmap_free(ma->unescaped, free_func, NULL);
+    pa_hashmap_free(ma->raw, free_func);
+    pa_hashmap_free(ma->unescaped, free_func);
     pa_xfree(ma);
 }
 

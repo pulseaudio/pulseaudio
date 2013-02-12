@@ -347,19 +347,14 @@ fail:
 
 void pa__done(pa_module *m) {
     struct userdata *u;
-    struct session *session;
 
     pa_assert(m);
 
     if (!(u = m->userdata))
         return;
 
-    if (u->sessions) {
-        while ((session = pa_hashmap_steal_first(u->sessions)))
-            free_session(session);
-
-        pa_hashmap_free(u->sessions, NULL, NULL);
-    }
+    if (u->sessions)
+        pa_hashmap_free(u->sessions, (pa_free_cb_t) free_session);
 
     if (u->connection) {
         pa_dbus_remove_matches(

@@ -74,10 +74,6 @@ static void volume_factor_entry_free(struct volume_factor_entry *volume_entry) {
     pa_xfree(volume_entry);
 }
 
-static void volume_factor_entry_free2(struct volume_factor_entry *volume_entry, void *userdarta) {
-    volume_factor_entry_free(volume_entry);
-}
-
 static void volume_factor_from_hashmap(pa_cvolume *v, pa_hashmap *items, uint8_t channels) {
     struct volume_factor_entry *entry;
     void *state = NULL;
@@ -245,10 +241,10 @@ void pa_sink_input_new_data_done(pa_sink_input_new_data *data) {
         pa_format_info_free(data->format);
 
     if (data->volume_factor_items)
-        pa_hashmap_free(data->volume_factor_items, (pa_free2_cb_t) volume_factor_entry_free2, NULL);
+        pa_hashmap_free(data->volume_factor_items, (pa_free_cb_t) volume_factor_entry_free);
 
     if (data->volume_factor_sink_items)
-        pa_hashmap_free(data->volume_factor_sink_items, (pa_free2_cb_t) volume_factor_entry_free2, NULL);
+        pa_hashmap_free(data->volume_factor_sink_items, (pa_free_cb_t) volume_factor_entry_free);
 
     pa_proplist_free(data->proplist);
 }
@@ -745,12 +741,13 @@ static void sink_input_free(pa_object *o) {
         pa_idxset_free(i->direct_outputs, NULL, NULL);
 
     if (i->thread_info.direct_outputs)
-        pa_hashmap_free(i->thread_info.direct_outputs, NULL, NULL);
+        pa_hashmap_free(i->thread_info.direct_outputs, NULL);
 
     if (i->volume_factor_items)
-        pa_hashmap_free(i->volume_factor_items, (pa_free2_cb_t) volume_factor_entry_free2, NULL);
+        pa_hashmap_free(i->volume_factor_items, (pa_free_cb_t) volume_factor_entry_free);
+
     if (i->volume_factor_sink_items)
-        pa_hashmap_free(i->volume_factor_sink_items, (pa_free2_cb_t) volume_factor_entry_free2, NULL);
+        pa_hashmap_free(i->volume_factor_sink_items, (pa_free_cb_t) volume_factor_entry_free);
 
     pa_xfree(i->driver);
     pa_xfree(i);

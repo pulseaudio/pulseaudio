@@ -743,7 +743,7 @@ void pa__done(pa_module *m) {
             filter_free(f);
         }
 
-        pa_hashmap_free(u->filters, NULL, NULL);
+        pa_hashmap_free(u->filters, NULL);
     }
 
     pa_xfree(u);

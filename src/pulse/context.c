@@ -241,9 +241,9 @@ static void context_free(pa_context *c) {
 #endif
 
     if (c->record_streams)
-        pa_hashmap_free(c->record_streams, NULL, NULL);
+        pa_hashmap_free(c->record_streams, NULL);
     if (c->playback_streams)
-        pa_hashmap_free(c->playback_streams, NULL, NULL);
+        pa_hashmap_free(c->playback_streams, NULL);
 
     if (c->mempool)
         pa_mempool_free(c->mempool);

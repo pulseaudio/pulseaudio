@@ -56,12 +56,7 @@ pa_headerlist* pa_headerlist_new(void) {
 }
 
 void pa_headerlist_free(pa_headerlist* p) {
-    struct header *hdr;
-
-    while ((hdr = pa_hashmap_steal_first(MAKE_HASHMAP(p))))
-        header_free(hdr);
-
-    pa_hashmap_free(MAKE_HASHMAP(p), NULL, NULL);
+    pa_hashmap_free(MAKE_HASHMAP(p), (pa_free_cb_t) header_free);
 }
 
 int pa_headerlist_puts(pa_headerlist *p, const char *key, const char *value) {

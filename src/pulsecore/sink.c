@@ -715,7 +715,6 @@ void pa_sink_unlink(pa_sink* s) {
 /* Called from main context */
 static void sink_free(pa_object *o) {
     pa_sink *s = PA_SINK(o);
-    pa_sink_input *i;
 
     pa_assert(s);
     pa_assert_ctl_context();
@@ -732,11 +731,7 @@ static void sink_free(pa_object *o) {
     }
 
     pa_idxset_free(s->inputs, NULL, NULL);
-
-    while ((i = pa_hashmap_steal_first(s->thread_info.inputs)))
-        pa_sink_input_unref(i);
-
-    pa_hashmap_free(s->thread_info.inputs, NULL, NULL);
+    pa_hashmap_free(s->thread_info.inputs, (pa_free_cb_t) pa_sink_input_unref);
 
     if (s->silence.memblock)
         pa_memblock_unref(s->silence.memblock);

@@ -57,7 +57,6 @@ pa_card_profile *pa_card_profile_new(const char *name, const char *description, 
 
 void pa_card_profile_free(pa_card_profile *c) {
     pa_assert(c);
-    pa_assert(!c->card); /* Card profiles shouldn't be freed before removing them from the card. */
 
     pa_xfree(c->name);
     pa_xfree(c->description);
@@ -126,14 +125,8 @@ void pa_card_new_data_done(pa_card_new_data *data) {
 
     pa_proplist_free(data->proplist);
 
-    if (data->profiles) {
-        pa_card_profile *c;
-
-        while ((c = pa_hashmap_steal_first(data->profiles)))
-            pa_card_profile_free(c);
-
-        pa_hashmap_free(data->profiles, NULL, NULL);
-    }
+    if (data->profiles)
+        pa_hashmap_free(data->profiles, (pa_free_cb_t) pa_card_profile_free);
 
     if (data->ports)
         pa_device_port_hashmap_free(data->ports);
@@ -246,16 +239,8 @@ void pa_card_free(pa_card *c) {
 
     pa_device_port_hashmap_free(c->ports);
 
-    if (c->profiles) {
-        pa_card_profile *p;
-
-        while ((p = pa_hashmap_steal_first(c->profiles))) {
-            p->card = NULL;
-            pa_card_profile_free(p);
-        }
-
-        pa_hashmap_free(c->profiles, NULL, NULL);
-    }
+    if (c->profiles)
+        pa_hashmap_free(c->profiles, (pa_free_cb_t) pa_card_profile_free);
 
     pa_proplist_free(c->proplist);
     pa_xfree(c->driver);

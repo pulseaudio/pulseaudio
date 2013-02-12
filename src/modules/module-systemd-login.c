@@ -222,15 +222,8 @@ void pa__done(pa_module *m) {
         return;
 
     if (u->sessions) {
-        while ((session = pa_hashmap_steal_first(u->sessions)))
-            free_session(session);
-
-        pa_hashmap_free(u->sessions, NULL, NULL);
-
-        while ((session = pa_hashmap_steal_first(u->previous_sessions)))
-            free_session(session);
-
-        pa_hashmap_free(u->previous_sessions, NULL, NULL);
+        pa_hashmap_free(u->sessions, (pa_free_cb_t) free_session);
+        pa_hashmap_free(u->previous_sessions, (pa_free_cb_t) free_session);
     }
 
     if (u->io)

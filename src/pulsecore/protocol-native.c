@@ -5100,7 +5100,7 @@ void pa_native_protocol_unref(pa_native_protocol *p) {
     for (h = 0; h < PA_NATIVE_HOOK_MAX; h++)
         pa_hook_done(&p->hooks[h]);
 
-    pa_hashmap_free(p->extensions, NULL, NULL);
+    pa_hashmap_free(p->extensions, NULL);
 
     pa_assert_se(pa_shared_remove(p->core, "native-protocol") >= 0);
 

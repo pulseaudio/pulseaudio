@@ -817,14 +817,8 @@ void pa__done(pa_module *m) {
     if (u->inotify_fd >= 0)
         pa_close(u->inotify_fd);
 
-    if (u->devices) {
-        struct device *d;
-
-        while ((d = pa_hashmap_steal_first(u->devices)))
-            device_free(d);
-
-        pa_hashmap_free(u->devices, NULL, NULL);
-    }
+    if (u->devices)
+        pa_hashmap_free(u->devices, (pa_free_cb_t) device_free);
 
     pa_xfree(u);
 }

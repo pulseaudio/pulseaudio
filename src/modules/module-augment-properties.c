@@ -347,14 +347,8 @@ void pa__done(pa_module *m) {
     if (u->client_proplist_changed_slot)
         pa_hook_slot_free(u->client_proplist_changed_slot);
 
-    if (u->cache) {
-        struct rule *r;
-
-        while ((r = pa_hashmap_steal_first(u->cache)))
-            rule_free(r);
-
-        pa_hashmap_free(u->cache, NULL, NULL);
-    }
+    if (u->cache)
+        pa_hashmap_free(u->cache, (pa_free_cb_t) rule_free);
 
     pa_xfree(u);
 }

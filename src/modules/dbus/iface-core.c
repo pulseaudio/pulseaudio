@@ -2089,54 +2089,6 @@ pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core) {
     return c;
 }
 
-static void free_card_cb(void *p, void *userdata) {
-    pa_dbusiface_card *c = p;
-
-    pa_assert(c);
-
-    pa_dbusiface_card_free(c);
-}
-
-static void free_device_cb(void *p, void *userdata) {
-    pa_dbusiface_device *d = p;
-
-    pa_assert(d);
-
-    pa_dbusiface_device_free(d);
-}
-
-static void free_stream_cb(void *p, void *userdata) {
-    pa_dbusiface_stream *s = p;
-
-    pa_assert(s);
-
-    pa_dbusiface_stream_free(s);
-}
-
-static void free_sample_cb(void *p, void *userdata) {
-    pa_dbusiface_sample *s = p;
-
-    pa_assert(s);
-
-    pa_dbusiface_sample_free(s);
-}
-
-static void free_module_cb(void *p, void *userdata) {
-    pa_dbusiface_module *m = p;
-
-    pa_assert(m);
-
-    pa_dbusiface_module_free(m);
-}
-
-static void free_client_cb(void *p, void *userdata) {
-    pa_dbusiface_client *c = p;
-
-    pa_assert(c);
-
-    pa_dbusiface_client_free(c);
-}
-
 void pa_dbusiface_core_free(pa_dbusiface_core *c) {
     pa_assert(c);
 
@@ -2145,16 +2097,16 @@ void pa_dbusiface_core_free(pa_dbusiface_core *c) {
     /* Note that the order of freeing is important below.
      * Do not change it for the sake of tidiness without checking! */
     pa_subscription_free(c->subscription);
-    pa_hashmap_free(c->cards, free_card_cb, NULL);
-    pa_hashmap_free(c->sinks_by_path, NULL, NULL);
-    pa_hashmap_free(c->sinks_by_index, free_device_cb, NULL);
-    pa_hashmap_free(c->sources_by_path, NULL, NULL);
-    pa_hashmap_free(c->sources_by_index, free_device_cb, NULL);
-    pa_hashmap_free(c->playback_streams, free_stream_cb, NULL);
-    pa_hashmap_free(c->record_streams, free_stream_cb, NULL);
-    pa_hashmap_free(c->samples, free_sample_cb, NULL);
-    pa_hashmap_free(c->modules, free_module_cb, NULL);
-    pa_hashmap_free(c->clients, free_client_cb, NULL);
+    pa_hashmap_free(c->cards, (pa_free_cb_t) pa_dbusiface_card_free);
+    pa_hashmap_free(c->sinks_by_path, NULL);
+    pa_hashmap_free(c->sinks_by_index, (pa_free_cb_t) pa_dbusiface_device_free);
+    pa_hashmap_free(c->sources_by_path, NULL);
+    pa_hashmap_free(c->sources_by_index, (pa_free_cb_t) pa_dbusiface_device_free);
+    pa_hashmap_free(c->playback_streams, (pa_free_cb_t) pa_dbusiface_stream_free);
+    pa_hashmap_free(c->record_streams, (pa_free_cb_t) pa_dbusiface_stream_free);
+    pa_hashmap_free(c->samples, (pa_free_cb_t) pa_dbusiface_sample_free);
+    pa_hashmap_free(c->modules, (pa_free_cb_t) pa_dbusiface_module_free);
+    pa_hashmap_free(c->clients, (pa_free_cb_t) pa_dbusiface_client_free);
     pa_hook_slot_free(c->sink_put_slot);
     pa_hook_slot_free(c->sink_unlink_slot);
     pa_hook_slot_free(c->source_put_slot);

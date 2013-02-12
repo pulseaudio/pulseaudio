@@ -744,7 +744,7 @@ void pa__done(pa_module*m) {
     if (u->mixer_handle)
         snd_mixer_close(u->mixer_handle);
     if (u->jacks)
-        pa_hashmap_free(u->jacks, NULL, NULL);
+        pa_hashmap_free(u->jacks, NULL);
 
     if (u->card && u->card->sinks) {
         pa_sink *s;

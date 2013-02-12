@@ -474,7 +474,6 @@ fail:
 
 void pa__done(pa_module*m) {
     struct userdata *u;
-    struct device_info *d;
 
     pa_assert(m);
 
@@ -519,10 +518,7 @@ void pa__done(pa_module*m) {
     if (u->source_output_state_changed_slot)
         pa_hook_slot_free(u->source_output_state_changed_slot);
 
-    while ((d = pa_hashmap_steal_first(u->device_infos)))
-        device_info_free(d);
-
-    pa_hashmap_free(u->device_infos, NULL, NULL);
+    pa_hashmap_free(u->device_infos, (pa_free_cb_t) device_info_free);
 
     pa_xfree(u);
 }

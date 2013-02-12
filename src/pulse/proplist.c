@@ -70,8 +70,7 @@ pa_proplist* pa_proplist_new(void) {
 void pa_proplist_free(pa_proplist* p) {
     pa_assert(p);
 
-    pa_proplist_clear(p);
-    pa_hashmap_free(MAKE_HASHMAP(p), NULL, NULL);
+    pa_hashmap_free(MAKE_HASHMAP(p), (pa_free_cb_t) property_free);
 }
 
 /** Will accept only valid UTF-8 */

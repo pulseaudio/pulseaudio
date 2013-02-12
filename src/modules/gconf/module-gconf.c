@@ -200,7 +200,7 @@ static void load_module(
     m->items[i].index = mod->index;
 }
 
-static void module_info_free(void *p, void *userdata) {
+static void module_info_free(void *p) {
     struct module_info *m = p;
 
     pa_assert(m);
@@ -291,7 +291,7 @@ static int handle_event(struct userdata *u) {
 
                 if ((m = pa_hashmap_get(u->module_infos, name))) {
                     pa_hashmap_remove(u->module_infos, name);
-                    module_info_free(m, u);
+                    module_info_free(m);
                 }
 
                 pa_xfree(name);
@@ -401,7 +401,7 @@ void pa__done(pa_module*m) {
         pa_close(u->fd);
 
     if (u->module_infos)
-        pa_hashmap_free(u->module_infos, module_info_free, NULL);
+        pa_hashmap_free(u->module_infos, (pa_free_cb_t) module_info_free);
 
     pa_xfree(u);
 }

@@ -648,7 +648,6 @@ void pa_source_unlink(pa_source *s) {
 
 /* Called from main context */
 static void source_free(pa_object *o) {
-    pa_source_output *so;
     pa_source *s = PA_SOURCE(o);
 
     pa_assert(s);
@@ -661,11 +660,7 @@ static void source_free(pa_object *o) {
     pa_log_info("Freeing source %u \"%s\"", s->index, s->name);
 
     pa_idxset_free(s->outputs, NULL, NULL);
-
-    while ((so = pa_hashmap_steal_first(s->thread_info.outputs)))
-        pa_source_output_unref(so);
-
-    pa_hashmap_free(s->thread_info.outputs, NULL, NULL);
+    pa_hashmap_free(s->thread_info.outputs, (pa_free_cb_t) pa_source_output_unref);
 
     if (s->silence.memblock)
         pa_memblock_unref(s->silence.memblock);

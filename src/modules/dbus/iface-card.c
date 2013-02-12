@@ -543,14 +543,6 @@ pa_dbusiface_card *pa_dbusiface_card_new(pa_dbusiface_core *core, pa_card *card)
     return c;
 }
 
-static void profile_free_cb(void *p, void *userdata) {
-    pa_dbusiface_card_profile *profile = p;
-
-    pa_assert(profile);
-
-    pa_dbusiface_card_profile_free(profile);
-}
-
 void pa_dbusiface_card_free(pa_dbusiface_card *c) {
     pa_assert(c);
 
@@ -558,7 +550,7 @@ void pa_dbusiface_card_free(pa_dbusiface_card *c) {
 
     pa_hook_slot_free(c->card_profile_added_slot);
 
-    pa_hashmap_free(c->profiles, profile_free_cb, NULL);
+    pa_hashmap_free(c->profiles, (pa_free_cb_t) pa_dbusiface_card_profile_free);
     pa_proplist_free(c->proplist);
     pa_dbus_protocol_unref(c->dbus_protocol);
     pa_subscription_free(c->subscription);

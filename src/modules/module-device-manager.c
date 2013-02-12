@@ -1302,7 +1302,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                     pa_xfree(device);
                 }
 
-                pa_hashmap_free(h, NULL, NULL);
+                pa_hashmap_free(h, NULL);
                 pa_log_error("Protocol error on reorder");
                 goto fail;
             }
@@ -1314,7 +1314,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                     pa_xfree(device);
                 }
 
-                pa_hashmap_free(h, NULL, NULL);
+                pa_hashmap_free(h, NULL);
                 pa_log_error("Client specified an unknown device in it's reorder list.");
                 goto fail;
             }
@@ -1329,7 +1329,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                     pa_xfree(device);
                 }
 
-                pa_hashmap_free(h, NULL, NULL);
+                pa_hashmap_free(h, NULL);
                 pa_log_error("Attempted to reorder mixed devices (sinks and sources)");
                 goto fail;
             }
@@ -1402,7 +1402,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         while ((device = pa_hashmap_steal_first(h))) {
             devices[idx++] = device;
         }
-        pa_hashmap_free(h, NULL, NULL);
+        pa_hashmap_free(h, NULL);
 
         /* Simple bubble sort */
         for (i = 0; i < n_devices; ++i) {

@@ -56,8 +56,10 @@ static void device_port_free(pa_object *o) {
 
     if (p->proplist)
         pa_proplist_free(p->proplist);
+
     if (p->profiles)
-        pa_hashmap_free(p->profiles, NULL, NULL);
+        pa_hashmap_free(p->profiles, NULL);
+
     pa_xfree(p->name);
     pa_xfree(p->description);
     pa_xfree(p);
@@ -88,14 +90,9 @@ pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *des
 }
 
 void pa_device_port_hashmap_free(pa_hashmap *h) {
-    pa_device_port *p;
-
     pa_assert(h);
 
-    while ((p = pa_hashmap_steal_first(h)))
-        pa_device_port_unref(p);
-
-    pa_hashmap_free(h, NULL, NULL);
+    pa_hashmap_free(h, (pa_free_cb_t) pa_device_port_unref);
 }
 
 void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {

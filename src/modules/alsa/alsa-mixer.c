@@ -530,7 +530,7 @@ void pa_alsa_path_set_free(pa_alsa_path_set *ps) {
     pa_assert(ps);
 
     if (ps->paths)
-        pa_hashmap_free(ps->paths, NULL, NULL);
+        pa_hashmap_free(ps->paths, NULL);
 
     pa_xfree(ps);
 }
@@ -3300,50 +3300,20 @@ static void profile_free(pa_alsa_profile *p) {
 void pa_alsa_profile_set_free(pa_alsa_profile_set *ps) {
     pa_assert(ps);
 
-    if (ps->input_paths) {
-        pa_alsa_path *p;
+    if (ps->input_paths)
+        pa_hashmap_free(ps->input_paths, (pa_free_cb_t) pa_alsa_path_free);
 
-        while ((p = pa_hashmap_steal_first(ps->input_paths)))
-            pa_alsa_path_free(p);
+    if (ps->output_paths)
+        pa_hashmap_free(ps->output_paths, (pa_free_cb_t) pa_alsa_path_free);
 
-        pa_hashmap_free(ps->input_paths, NULL, NULL);
-    }
+    if (ps->profiles)
+        pa_hashmap_free(ps->profiles, (pa_free_cb_t) profile_free);
 
-    if (ps->output_paths) {
-        pa_alsa_path *p;
+    if (ps->mappings)
+        pa_hashmap_free(ps->mappings, (pa_free_cb_t) mapping_free);
 
-        while ((p = pa_hashmap_steal_first(ps->output_paths)))
-            pa_alsa_path_free(p);
-
-        pa_hashmap_free(ps->output_paths, NULL, NULL);
-    }
-
-    if (ps->profiles) {
-        pa_alsa_profile *p;
-
-        while ((p = pa_hashmap_steal_first(ps->profiles)))
-            profile_free(p);
-
-        pa_hashmap_free(ps->profiles, NULL, NULL);
-    }
-
-    if (ps->mappings) {
-        pa_alsa_mapping *m;
-
-        while ((m = pa_hashmap_steal_first(ps->mappings)))
-            mapping_free(m);
-
-        pa_hashmap_free(ps->mappings, NULL, NULL);
-    }
-
-    if (ps->decibel_fixes) {
-        pa_alsa_decibel_fix *db_fix;
-
-        while ((db_fix = pa_hashmap_steal_first(ps->decibel_fixes)))
-            decibel_fix_free(db_fix);
-
-        pa_hashmap_free(ps->decibel_fixes, NULL, NULL);
-    }
+    if (ps->decibel_fixes)
+        pa_hashmap_free(ps->decibel_fixes, (pa_free_cb_t) decibel_fix_free);
 
     pa_xfree(ps);
 }
@@ -4415,8 +4385,8 @@ void pa_alsa_profile_set_probe(
 
     paths_drop_unsupported(ps->input_paths);
     paths_drop_unsupported(ps->output_paths);
-    pa_hashmap_free(broken_inputs, NULL, NULL);
-    pa_hashmap_free(broken_outputs, NULL, NULL);
+    pa_hashmap_free(broken_inputs, NULL);
+    pa_hashmap_free(broken_outputs, NULL);
 
     ps->probed = TRUE;
 }

@@ -186,6 +186,7 @@ static void sink_input_kill(pa_sink_input* i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(s = i->userdata);
 
+    pa_hashmap_remove(s->userdata->by_origin, s->sdp_info.origin);
     session_free(s);
 }
 
@@ -606,7 +607,6 @@ static void session_free(struct session *s) {
     PA_LLIST_REMOVE(struct session, s->userdata->sessions, s);
     pa_assert(s->userdata->n_sessions >= 1);
     s->userdata->n_sessions--;
-    pa_hashmap_remove(s->userdata->by_origin, s->sdp_info.origin);
 
     pa_memblockq_free(s->memblockq);
     pa_sdp_info_destroy(&s->sdp_info);
@@ -635,7 +635,7 @@ static void sap_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
 
     if (goodbye) {
 
-        if ((s = pa_hashmap_get(u->by_origin, info.origin)))
+        if ((s = pa_hashmap_remove(u->by_origin, info.origin)))
             session_free(s);
 
         pa_sdp_info_destroy(&info);
@@ -674,8 +674,10 @@ static void check_death_event_cb(pa_mainloop_api *m, pa_time_event *t, const str
 
         k = pa_atomic_load(&s->timestamp);
 
-        if (k + DEATH_TIMEOUT < now.tv_sec)
+        if (k + DEATH_TIMEOUT < now.tv_sec) {
+            pa_hashmap_remove(u->by_origin, s->sdp_info.origin);
             session_free(s);
+        }
     }
 
     /* Restart timer */
@@ -753,7 +755,6 @@ fail:
 
 void pa__done(pa_module*m) {
     struct userdata *u;
-    struct session *s;
 
     pa_assert(m);
 
@@ -768,12 +769,8 @@ void pa__done(pa_module*m) {
 
     pa_sap_context_destroy(&u->sap_context);
 
-    if (u->by_origin) {
-        while ((s = pa_hashmap_first(u->by_origin)))
-            session_free(s);
-
-        pa_hashmap_free(u->by_origin, NULL, NULL);
-    }
+    if (u->by_origin)
+        pa_hashmap_free(u->by_origin, (pa_free_cb_t) session_free);
 
     pa_xfree(u->sink_name);
     pa_xfree(u);

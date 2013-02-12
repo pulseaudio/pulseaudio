@@ -264,10 +264,9 @@ void pa_database_close(pa_database *database) {
     pa_assert(db);
 
     pa_database_sync(database);
-    pa_database_clear(database);
     pa_xfree(db->filename);
     pa_xfree(db->tmp_filename);
-    pa_hashmap_free(db->map, NULL, NULL);
+    pa_hashmap_free(db->map, (pa_free_cb_t) free_entry);
     pa_xfree(db);
 }
 

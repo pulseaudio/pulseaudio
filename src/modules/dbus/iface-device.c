@@ -1266,14 +1266,6 @@ pa_dbusiface_device *pa_dbusiface_device_new_source(pa_dbusiface_core *core, pa_
     return d;
 }
 
-static void port_free_cb(void *p, void *userdata) {
-    pa_dbusiface_device_port *port = p;
-
-    pa_assert(port);
-
-    pa_dbusiface_device_port_free(port);
-}
-
 void pa_dbusiface_device_free(pa_dbusiface_device *d) {
     pa_assert(d);
 
@@ -1287,7 +1279,7 @@ void pa_dbusiface_device_free(pa_dbusiface_device *d) {
         pa_assert_se(pa_dbus_protocol_remove_interface(d->dbus_protocol, d->path, source_interface_info.name) >= 0);
         pa_source_unref(d->source);
     }
-    pa_hashmap_free(d->ports, port_free_cb, NULL);
+    pa_hashmap_free(d->ports, (pa_free_cb_t) pa_dbusiface_device_port_free);
     pa_proplist_free(d->proplist);
     pa_dbus_protocol_unref(d->dbus_protocol);
     pa_subscription_free(d->subscription);

@@ -101,7 +101,7 @@ static void remove_entry(pa_hashmap *h, struct hashmap_entry *e) {
     h->n_entries--;
 }
 
-void pa_hashmap_free(pa_hashmap*h, pa_free2_cb_t free_cb, void *userdata) {
+void pa_hashmap_free(pa_hashmap *h, pa_free_cb_t free_cb) {
     pa_assert(h);
 
     while (h->iterate_list_head) {
@@ -110,7 +110,7 @@ void pa_hashmap_free(pa_hashmap*h, pa_free2_cb_t free_cb, void *userdata) {
         remove_entry(h, h->iterate_list_head);
 
         if (free_cb)
-            free_cb(data, userdata);
+            free_cb(data);
     }
 
     pa_xfree(h);

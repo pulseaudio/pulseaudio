@@ -490,7 +490,7 @@ void pa__done(pa_module*m) {
     unpublish_all_services(u);
 
     if (u->services)
-        pa_hashmap_free(u->services, NULL, NULL);
+        pa_hashmap_free(u->services, NULL);
 
     if (u->sink_new_slot)
         pa_hook_slot_free(u->sink_new_slot);

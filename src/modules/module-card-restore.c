@@ -136,7 +136,7 @@ static void port_info_update(struct port_info *p_info, pa_device_port *port) {
     p_info->offset = port->latency_offset;
 }
 
-static void port_info_free(struct port_info *p_info, void *userdata) {
+static void port_info_free(struct port_info *p_info) {
     pa_assert(p_info);
 
     pa_xfree(p_info->name);
@@ -147,7 +147,7 @@ static void entry_free(struct entry* e) {
     pa_assert(e);
 
     pa_xfree(e->profile);
-    pa_hashmap_free(e->ports, (pa_free2_cb_t) port_info_free, NULL);
+    pa_hashmap_free(e->ports, (pa_free_cb_t) port_info_free);
 
     pa_xfree(e);
 }

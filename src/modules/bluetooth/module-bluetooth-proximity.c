@@ -466,14 +466,8 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->bondings) {
-        struct bonding *b;
-
-        while ((b = pa_hashmap_steal_first(u->bondings)))
-            bonding_free(b);
-
-        pa_hashmap_free(u->bondings, NULL, NULL);
-    }
+    if (u->bondings)
+        pa_hashmap_free(u->bondings, (pa_free_cb_t) bonding_free);
 
     if (u->dbus_connection) {
         update_matches(u, false);
