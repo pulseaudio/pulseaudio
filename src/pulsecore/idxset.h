@@ -73,6 +73,9 @@ void* pa_idxset_remove_by_index(pa_idxset*s, uint32_t idx);
 /* Similar to pa_idxset_get_by_data(), but removes the entry from the idxset */
 void* pa_idxset_remove_by_data(pa_idxset*s, const void *p, uint32_t *idx);
 
+/* If free_cb is not NULL, it's called for each entry. */
+void pa_idxset_remove_all(pa_idxset *s, pa_free_cb_t free_cb);
+
 /* This may be used to iterate through all entries. When called with
    an invalid index value it returns the first entry, otherwise the
    next following. The function is best called with *idx =

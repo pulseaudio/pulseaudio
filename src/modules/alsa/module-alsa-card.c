@@ -746,19 +746,11 @@ void pa__done(pa_module*m) {
     if (u->jacks)
         pa_hashmap_free(u->jacks, NULL);
 
-    if (u->card && u->card->sinks) {
-        pa_sink *s;
+    if (u->card && u->card->sinks)
+        pa_idxset_remove_all(u->card->sinks, (pa_free_cb_t) pa_alsa_sink_free);
 
-        while ((s = pa_idxset_steal_first(u->card->sinks, NULL)))
-            pa_alsa_sink_free(s);
-    }
-
-    if (u->card && u->card->sources) {
-        pa_source *s;
-
-        while ((s = pa_idxset_steal_first(u->card->sources, NULL)))
-            pa_alsa_source_free(s);
-    }
+    if (u->card && u->card->sources)
+        pa_idxset_remove_all(u->card->sources, (pa_free_cb_t) pa_alsa_source_free);
 
     if (u->card)
         pa_card_free(u->card);

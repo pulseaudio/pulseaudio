@@ -974,7 +974,6 @@ void pa_dbus_protocol_add_signal_listener(
         unsigned n_objects) {
     struct connection_entry *conn_entry = NULL;
     struct signal_paths_entry *signal_paths_entry = NULL;
-    char *object_path = NULL;
     unsigned i = 0;
 
     pa_assert(p);
@@ -986,8 +985,7 @@ void pa_dbus_protocol_add_signal_listener(
     /* all_signals_objects will either be emptied or replaced with new objects,
      * so we empty it here unconditionally. If listening_for_all_signals is
      * currently FALSE, the idxset is empty already so this does nothing. */
-    while ((object_path = pa_idxset_steal_first(conn_entry->all_signals_objects, NULL)))
-        pa_xfree(object_path);
+    pa_idxset_remove_all(conn_entry->all_signals_objects, pa_xfree);
 
     if (signal_name) {
         conn_entry->listening_for_all_signals = FALSE;
@@ -1029,13 +1027,8 @@ void pa_dbus_protocol_remove_signal_listener(pa_dbus_protocol *p, DBusConnection
             signal_paths_entry_free(signal_paths_entry);
 
     } else {
-        char *object_path;
-
         conn_entry->listening_for_all_signals = FALSE;
-
-        while ((object_path = pa_idxset_steal_first(conn_entry->all_signals_objects, NULL)))
-            pa_xfree(object_path);
-
+        pa_idxset_remove_all(conn_entry->all_signals_objects, pa_xfree);
         pa_hashmap_remove_all(conn_entry->listening_signals, (pa_free_cb_t) signal_paths_entry_free);
     }
 }

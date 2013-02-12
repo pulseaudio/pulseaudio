@@ -142,15 +142,7 @@ static void remove_entry(pa_idxset *s, struct idxset_entry *e) {
 void pa_idxset_free(pa_idxset *s, pa_free_cb_t free_cb) {
     pa_assert(s);
 
-    while (s->iterate_list_head) {
-        void *data = s->iterate_list_head->data;
-
-        remove_entry(s, s->iterate_list_head);
-
-        if (free_cb)
-            free_cb(data);
-    }
-
+    pa_idxset_remove_all(s, free_cb);
     pa_xfree(s);
 }
 
@@ -306,6 +298,19 @@ void* pa_idxset_remove_by_data(pa_idxset*s, const void *data, uint32_t *idx) {
     remove_entry(s, e);
 
     return r;
+}
+
+void pa_idxset_remove_all(pa_idxset *s, pa_free_cb_t free_cb) {
+    pa_assert(s);
+
+    while (s->iterate_list_head) {
+        void *data = s->iterate_list_head->data;
+
+        remove_entry(s, s->iterate_list_head);
+
+        if (free_cb)
+            free_cb(data);
+    }
 }
 
 void* pa_idxset_rrobin(pa_idxset *s, uint32_t *idx) {

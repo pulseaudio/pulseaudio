@@ -282,12 +282,9 @@ int pa_scache_remove_item(pa_core *c, const char *name) {
 }
 
 void pa_scache_free_all(pa_core *c) {
-    pa_scache_entry *e;
-
     pa_assert(c);
 
-    while ((e = pa_idxset_steal_first(c->scache, NULL)))
-        free_entry(e);
+    pa_idxset_remove_all(c->scache, (pa_free_cb_t) free_entry);
 
     if (c->scache_auto_unload_event) {
         c->mainloop->time_free(c->scache_auto_unload_event);

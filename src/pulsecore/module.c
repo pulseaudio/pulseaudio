@@ -203,11 +203,9 @@ void pa_module_unload_by_index(pa_core *c, uint32_t idx, pa_bool_t force) {
 }
 
 void pa_module_unload_all(pa_core *c) {
-    pa_module *m;
     pa_assert(c);
 
-    while ((m = pa_idxset_steal_first(c->modules, NULL)))
-        pa_module_free(m);
+    pa_idxset_remove_all(c->modules, (pa_free_cb_t) pa_module_free);
 
     if (c->module_defer_unload_event) {
         c->mainloop->defer_free(c->module_defer_unload_event);
