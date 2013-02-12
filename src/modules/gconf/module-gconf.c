@@ -50,6 +50,8 @@ PA_MODULE_LOAD_ONCE(TRUE);
 #define MAX_MODULES 10
 #define BUF_MAX 2048
 
+struct userdata;
+
 struct module_item {
     char *name;
     char *args;
@@ -57,6 +59,7 @@ struct module_item {
 };
 
 struct module_info {
+    struct userdata *userdata;
     char *name;
 
     struct module_item items[MAX_MODULES];
@@ -233,6 +236,7 @@ static int handle_event(struct userdata *u) {
 
                 if (!(m = pa_hashmap_get(u->module_infos, name))) {
                     m = pa_xnew(struct module_info, 1);
+                    m->userdata = u;
                     m->name = name;
                     m->n_items = 0;
                     pa_hashmap_put(u->module_infos, m->name, m);
