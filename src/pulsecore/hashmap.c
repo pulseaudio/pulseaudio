@@ -104,15 +104,7 @@ static void remove_entry(pa_hashmap *h, struct hashmap_entry *e) {
 void pa_hashmap_free(pa_hashmap *h, pa_free_cb_t free_cb) {
     pa_assert(h);
 
-    while (h->iterate_list_head) {
-        void *data;
-        data = h->iterate_list_head->value;
-        remove_entry(h, h->iterate_list_head);
-
-        if (free_cb)
-            free_cb(data);
-    }
-
+    pa_hashmap_remove_all(h, free_cb);
     pa_xfree(h);
 }
 
@@ -200,6 +192,19 @@ void* pa_hashmap_remove(pa_hashmap *h, const void *key) {
     remove_entry(h, e);
 
     return data;
+}
+
+void pa_hashmap_remove_all(pa_hashmap *h, pa_free_cb_t free_cb) {
+    pa_assert(h);
+
+    while (h->iterate_list_head) {
+        void *data;
+        data = h->iterate_list_head->value;
+        remove_entry(h, h->iterate_list_head);
+
+        if (free_cb)
+            free_cb(data);
+    }
 }
 
 void *pa_hashmap_iterate(pa_hashmap *h, void **state, const void **key) {

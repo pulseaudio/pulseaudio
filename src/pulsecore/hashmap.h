@@ -48,6 +48,9 @@ void* pa_hashmap_get(pa_hashmap *h, const void *key);
 /* Returns the data of the entry while removing */
 void* pa_hashmap_remove(pa_hashmap *h, const void *key);
 
+/* If free_cb is not NULL, it's called for each entry. */
+void pa_hashmap_remove_all(pa_hashmap *h, pa_free_cb_t free_cb);
+
 /* Return the current number of entries of the hashmap */
 unsigned pa_hashmap_size(pa_hashmap *h);
 

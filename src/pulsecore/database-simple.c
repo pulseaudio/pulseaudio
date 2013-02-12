@@ -339,12 +339,10 @@ int pa_database_unset(pa_database *database, const pa_datum *key) {
 
 int pa_database_clear(pa_database *database) {
     simple_data *db = (simple_data*)database;
-    entry *e;
 
     pa_assert(db);
 
-    while ((e = pa_hashmap_steal_first(db->map)))
-        free_entry(e);
+    pa_hashmap_remove_all(db->map, (pa_free_cb_t) free_entry);
 
     return 0;
 }

@@ -141,8 +141,7 @@ static int get_session_list(struct userdata *u) {
         free(sessions);
     }
 
-    while ((o = pa_hashmap_steal_first(u->previous_sessions)))
-        free_session(o);
+    pa_hashmap_remove_all(u->previous_sessions, (pa_free_cb_t) free_session);
 
     return 0;
 }

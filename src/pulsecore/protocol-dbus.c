@@ -1008,8 +1008,7 @@ void pa_dbus_protocol_add_signal_listener(
 
         /* We're not interested in individual signals anymore, so let's empty
          * listening_signals. */
-        while ((signal_paths_entry = pa_hashmap_steal_first(conn_entry->listening_signals)))
-            signal_paths_entry_free(signal_paths_entry);
+        pa_hashmap_remove_all(conn_entry->listening_signals, (pa_free_cb_t) signal_paths_entry_free);
 
         for (i = 0; i < n_objects; ++i)
             pa_idxset_put(conn_entry->all_signals_objects, pa_xstrdup(objects[i]), NULL);
@@ -1037,8 +1036,7 @@ void pa_dbus_protocol_remove_signal_listener(pa_dbus_protocol *p, DBusConnection
         while ((object_path = pa_idxset_steal_first(conn_entry->all_signals_objects, NULL)))
             pa_xfree(object_path);
 
-        while ((signal_paths_entry = pa_hashmap_steal_first(conn_entry->listening_signals)))
-            signal_paths_entry_free(signal_paths_entry);
+        pa_hashmap_remove_all(conn_entry->listening_signals, (pa_free_cb_t) signal_paths_entry_free);
     }
 }
 
