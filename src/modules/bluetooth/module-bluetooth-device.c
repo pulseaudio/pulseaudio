@@ -2432,7 +2432,7 @@ static pa_hook_result_t uuid_added_cb(pa_bluetooth_discovery *y, const struct pa
 
     pa_card_add_ports(u->card, new_ports);
 
-    pa_device_port_hashmap_free(new_ports);
+    pa_hashmap_free(new_ports, (pa_free_cb_t) pa_device_port_unref);
 
     return PA_HOOK_OK;
 }

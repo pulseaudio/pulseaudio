@@ -129,7 +129,7 @@ void pa_card_new_data_done(pa_card_new_data *data) {
         pa_hashmap_free(data->profiles, (pa_free_cb_t) pa_card_profile_free);
 
     if (data->ports)
-        pa_device_port_hashmap_free(data->ports);
+        pa_hashmap_free(data->ports, (pa_free_cb_t) pa_device_port_unref);
 
     pa_xfree(data->name);
     pa_xfree(data->active_profile);
@@ -237,7 +237,7 @@ void pa_card_free(pa_card *c) {
     pa_assert(pa_idxset_isempty(c->sources));
     pa_idxset_free(c->sources, NULL, NULL);
 
-    pa_device_port_hashmap_free(c->ports);
+    pa_hashmap_free(c->ports, (pa_free_cb_t) pa_device_port_unref);
 
     if (c->profiles)
         pa_hashmap_free(c->profiles, (pa_free_cb_t) pa_card_profile_free);

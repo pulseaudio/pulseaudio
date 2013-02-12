@@ -89,12 +89,6 @@ pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *des
     return p;
 }
 
-void pa_device_port_hashmap_free(pa_hashmap *h) {
-    pa_assert(h);
-
-    pa_hashmap_free(h, (pa_free_cb_t) pa_device_port_unref);
-}
-
 void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
     uint32_t state;
     pa_core *core;

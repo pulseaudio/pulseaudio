@@ -142,7 +142,7 @@ void pa_sink_new_data_done(pa_sink_new_data *data) {
     pa_proplist_free(data->proplist);
 
     if (data->ports)
-        pa_device_port_hashmap_free(data->ports);
+        pa_hashmap_free(data->ports, (pa_free_cb_t) pa_device_port_unref);
 
     pa_xfree(data->name);
     pa_xfree(data->active_port);
@@ -743,7 +743,7 @@ static void sink_free(pa_object *o) {
         pa_proplist_free(s->proplist);
 
     if (s->ports)
-        pa_device_port_hashmap_free(s->ports);
+        pa_hashmap_free(s->ports, (pa_free_cb_t) pa_device_port_unref);
 
     pa_xfree(s);
 }
