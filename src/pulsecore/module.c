@@ -203,8 +203,29 @@ void pa_module_unload_by_index(pa_core *c, uint32_t idx, pa_bool_t force) {
 }
 
 void pa_module_unload_all(pa_core *c) {
-    pa_assert(c);
+    pa_module *m;
+    uint32_t *indices;
+    uint32_t state;
+    int i;
 
+    pa_assert(c);
+    pa_assert(c->modules);
+
+    /* Unload modules in reverse order by default */
+    indices = pa_xnew(uint32_t, pa_idxset_size(c->modules));
+    i = 0;
+    PA_IDXSET_FOREACH(m, c->modules, state)
+        indices[i++] = state;
+    pa_assert(i == (int) pa_idxset_size(c->modules));
+    i--;
+    for (; i >= 0; i--) {
+        m = pa_idxset_remove_by_index(c->modules, indices[i]);
+        if (m)
+            pa_module_free(m);
+    }
+    pa_xfree(indices);
+
+    /* Just in case module unloading caused more modules to load */
     pa_idxset_remove_all(c->modules, (pa_free_cb_t) pa_module_free);
 
     if (c->module_defer_unload_event) {
