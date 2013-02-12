@@ -1954,6 +1954,13 @@ static void stop_thread(struct userdata *u) {
         u->rtpoll_item = NULL;
     }
 
+    if (u->rtpoll) {
+        pa_thread_mq_done(&u->thread_mq);
+
+        pa_rtpoll_free(u->rtpoll);
+        u->rtpoll = NULL;
+    }
+
     if (u->transport) {
         bt_transport_release(u);
         u->transport = NULL;
@@ -1979,13 +1986,6 @@ static void stop_thread(struct userdata *u) {
 
         pa_source_unref(u->source);
         u->source = NULL;
-    }
-
-    if (u->rtpoll) {
-        pa_thread_mq_done(&u->thread_mq);
-
-        pa_rtpoll_free(u->rtpoll);
-        u->rtpoll = NULL;
     }
 
     if (u->read_smoother) {
