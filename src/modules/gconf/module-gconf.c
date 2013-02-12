@@ -131,10 +131,13 @@ static char *read_string(struct userdata *u) {
     }
 }
 
-static void unload_one_module(struct userdata *u, struct module_info*m, unsigned i) {
-    pa_assert(u);
+static void unload_one_module(struct module_info *m, unsigned i) {
+    struct userdata *u;
+
     pa_assert(m);
     pa_assert(i < m->n_items);
+
+    u = m->userdata;
 
     if (m->items[i].index == PA_INVALID_INDEX)
         return;
@@ -147,32 +150,32 @@ static void unload_one_module(struct userdata *u, struct module_info*m, unsigned
     m->items[i].name = m->items[i].args = NULL;
 }
 
-static void unload_all_modules(struct userdata *u, struct module_info*m) {
+static void unload_all_modules(struct module_info *m) {
     unsigned i;
 
-    pa_assert(u);
     pa_assert(m);
 
     for (i = 0; i < m->n_items; i++)
-        unload_one_module(u, m, i);
+        unload_one_module(m, i);
 
     m->n_items = 0;
 }
 
 static void load_module(
-        struct userdata *u,
         struct module_info *m,
         unsigned i,
         const char *name,
         const char *args,
         pa_bool_t is_new) {
 
+    struct userdata *u;
     pa_module *mod;
 
-    pa_assert(u);
     pa_assert(m);
     pa_assert(name);
     pa_assert(args);
+
+    u = m->userdata;
 
     if (!is_new) {
         if (m->items[i].index != PA_INVALID_INDEX &&
@@ -180,7 +183,7 @@ static void load_module(
             pa_streq(m->items[i].args, args))
             return;
 
-        unload_one_module(u, m, i);
+        unload_one_module(m, i);
     }
 
     pa_log_debug("Loading module '%s' with args '%s' due to GConf configuration.", name, args);
@@ -199,12 +202,10 @@ static void load_module(
 
 static void module_info_free(void *p, void *userdata) {
     struct module_info *m = p;
-    struct userdata *u = userdata;
 
     pa_assert(m);
-    pa_assert(u);
 
-    unload_all_modules(u, m);
+    unload_all_modules(m);
     pa_xfree(m->name);
     pa_xfree(m);
 }
@@ -264,7 +265,7 @@ static int handle_event(struct userdata *u) {
                         goto fail;
                     }
 
-                    load_module(u, m, i, module, args, i >= m->n_items);
+                    load_module(m, i, module, args, i >= m->n_items);
 
                     i++;
 
@@ -274,7 +275,7 @@ static int handle_event(struct userdata *u) {
 
                 /* Unload all removed modules */
                 for (j = i; j < m->n_items; j++)
-                    unload_one_module(u, m, j);
+                    unload_one_module(m, j);
 
                 m->n_items = i;
 
@@ -400,7 +401,7 @@ void pa__done(pa_module*m) {
         pa_close(u->fd);
 
     if (u->module_infos)
-        pa_hashmap_free(u->module_infos, module_info_free, u);
+        pa_hashmap_free(u->module_infos, module_info_free, NULL);
 
     pa_xfree(u);
 }
