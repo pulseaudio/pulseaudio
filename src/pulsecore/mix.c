@@ -123,14 +123,16 @@ static const pa_calc_stream_volumes_func_t calc_stream_volumes_table[] = {
 };
 
 /* special case: mix 2 s16ne streams, 1 channel each */
-static void pa_mix2_ch1_s16ne(pa_mix_info streams[], int16_t *data, int16_t *end) {
+static void pa_mix2_ch1_s16ne(pa_mix_info streams[], int16_t *data, unsigned length) {
     const int16_t *ptr0 = streams[0].ptr;
     const int16_t *ptr1 = streams[1].ptr;
 
     const int32_t cv0 = streams[0].linear[0].i;
     const int32_t cv1 = streams[1].linear[0].i;
 
-    while (data < end) {
+    length /= sizeof(int16_t);
+
+    for (; length > 0; length--) {
         int32_t sum;
 
         sum = pa_mult_s16_volume(*ptr0++, cv0);
@@ -142,11 +144,13 @@ static void pa_mix2_ch1_s16ne(pa_mix_info streams[], int16_t *data, int16_t *end
 }
 
 /* special case: mix 2 s16ne streams, 2 channels each */
-static void pa_mix2_ch2_s16ne(pa_mix_info streams[], int16_t *data, int16_t *end) {
+static void pa_mix2_ch2_s16ne(pa_mix_info streams[], int16_t *data, unsigned length) {
     const int16_t *ptr0 = streams[0].ptr;
     const int16_t *ptr1 = streams[1].ptr;
 
-    while (data < end) {
+    length /= sizeof(int16_t) * 2;
+
+    for (; length > 0; length--) {
         int32_t sum;
 
         sum = pa_mult_s16_volume(*ptr0++, streams[0].linear[0].i);
@@ -164,12 +168,14 @@ static void pa_mix2_ch2_s16ne(pa_mix_info streams[], int16_t *data, int16_t *end
 }
 
 /* special case: mix 2 s16ne streams */
-static void pa_mix2_s16ne(pa_mix_info streams[], unsigned channels, int16_t *data, int16_t *end) {
+static void pa_mix2_s16ne(pa_mix_info streams[], unsigned channels, int16_t *data, unsigned length) {
     const int16_t *ptr0 = streams[0].ptr;
     const int16_t *ptr1 = streams[1].ptr;
     unsigned channel = 0;
 
-    while (data < end) {
+    length /= sizeof(int16_t);
+
+    for (; length > 0; length--) {
         int32_t sum;
 
         sum = pa_mult_s16_volume(*ptr0++, streams[0].linear[channel].i);
@@ -184,8 +190,11 @@ static void pa_mix2_s16ne(pa_mix_info streams[], unsigned channels, int16_t *dat
 }
 
 /* special case: mix s16ne streams, 2 channels each */
-static void pa_mix_ch2_s16ne(pa_mix_info streams[], unsigned nstreams, int16_t *data, int16_t *end) {
-    while (data < end) {
+static void pa_mix_ch2_s16ne(pa_mix_info streams[], unsigned nstreams, int16_t *data, unsigned length) {
+
+    length /= sizeof(int16_t) * 2;
+
+    for (; length > 0; length--) {
         int32_t sum0 = 0, sum1 = 0;
         unsigned i;
 
@@ -206,10 +215,12 @@ static void pa_mix_ch2_s16ne(pa_mix_info streams[], unsigned nstreams, int16_t *
     }
 }
 
-static void pa_mix_generic_s16ne(pa_mix_info streams[], unsigned nstreams, unsigned channels, int16_t *data, int16_t *end) {
+static void pa_mix_generic_s16ne(pa_mix_info streams[], unsigned nstreams, unsigned channels, int16_t *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    length /= sizeof(int16_t);
+
+    for (; length > 0; length--) {
         int32_t sum = 0;
         unsigned i;
 
@@ -223,32 +234,32 @@ static void pa_mix_generic_s16ne(pa_mix_info streams[], unsigned nstreams, unsig
         }
 
         sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
-        *data = sum;
-
-        data++;
+        *data++ = sum;
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
 }
 
-static void pa_mix_s16ne_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_s16ne_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, int16_t *data, unsigned length) {
     if (nstreams == 2 && channels == 1)
-        pa_mix2_ch1_s16ne(streams, data, end);
+        pa_mix2_ch1_s16ne(streams, data, length);
     else if (nstreams == 2 && channels == 2)
-        pa_mix2_ch2_s16ne(streams, data, end);
+        pa_mix2_ch2_s16ne(streams, data, length);
     else if (nstreams == 2)
-        pa_mix2_s16ne(streams, channels, data, end);
+        pa_mix2_s16ne(streams, channels, data, length);
     else if (channels == 2)
-        pa_mix_ch2_s16ne(streams, channels, data, end);
+        pa_mix_ch2_s16ne(streams, channels, data, length);
     else
-        pa_mix_generic_s16ne(streams, nstreams, channels, data, end);
+        pa_mix_generic_s16ne(streams, nstreams, channels, data, length);
 }
 
-static void pa_mix_s16re_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_s16re_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, int16_t *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    length /= sizeof(int16_t);
+
+    for (; length > 0; length--, data++) {
         int32_t sum = 0;
         unsigned i;
 
@@ -262,19 +273,19 @@ static void pa_mix_s16re_c(pa_mix_info streams[], unsigned nstreams, unsigned ch
         }
 
         sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
-        *((int16_t*) data) = PA_INT16_SWAP((int16_t) sum);
-
-        data = (uint8_t*) data + sizeof(int16_t);
+        *data = PA_INT16_SWAP((int16_t) sum);
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
 }
 
-static void pa_mix_s32ne_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_s32ne_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, int32_t *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    length /= sizeof(int32_t);
+
+    for (; length > 0; length--, data++) {
         int64_t sum = 0;
         unsigned i;
 
@@ -292,19 +303,19 @@ static void pa_mix_s32ne_c(pa_mix_info streams[], unsigned nstreams, unsigned ch
         }
 
         sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
-        *((int32_t*) data) = (int32_t) sum;
-
-        data = (uint8_t*) data + sizeof(int32_t);
+        *data = (int32_t) sum;
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
 }
 
-static void pa_mix_s32re_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_s32re_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, int32_t *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    length /= sizeof(int32_t);
+
+    for (; length > 0; length--, data++) {
         int64_t sum = 0;
         unsigned i;
 
@@ -322,19 +333,17 @@ static void pa_mix_s32re_c(pa_mix_info streams[], unsigned nstreams, unsigned ch
         }
 
         sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
-        *((int32_t*) data) = PA_INT32_SWAP((int32_t) sum);
-
-        data = (uint8_t*) data + sizeof(int32_t);
+        *data = PA_INT32_SWAP((int32_t) sum);
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
 }
 
-static void pa_mix_s24ne_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_s24ne_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, uint8_t *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    for (; length > 0; length -= 3, data += 3) {
         int64_t sum = 0;
         unsigned i;
 
@@ -354,17 +363,15 @@ static void pa_mix_s24ne_c(pa_mix_info streams[], unsigned nstreams, unsigned ch
         sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
         PA_WRITE24NE(data, ((uint32_t) sum) >> 8);
 
-        data = (uint8_t*) data + 3;
-
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
 }
 
-static void pa_mix_s24re_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_s24re_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, uint8_t *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    for (; length > 0; length -= 3, data += 3) {
         int64_t sum = 0;
         unsigned i;
 
@@ -384,17 +391,17 @@ static void pa_mix_s24re_c(pa_mix_info streams[], unsigned nstreams, unsigned ch
         sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
         PA_WRITE24RE(data, ((uint32_t) sum) >> 8);
 
-        data = (uint8_t*) data + 3;
-
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
 }
 
-static void pa_mix_s24_32ne_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_s24_32ne_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, uint32_t *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    length /= sizeof(uint32_t);
+
+    for (; length > 0; length--, data++) {
         int64_t sum = 0;
         unsigned i;
 
@@ -412,19 +419,19 @@ static void pa_mix_s24_32ne_c(pa_mix_info streams[], unsigned nstreams, unsigned
         }
 
         sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
-        *((uint32_t*) data) = ((uint32_t) (int32_t) sum) >> 8;
-
-        data = (uint8_t*) data + sizeof(uint32_t);
+        *data = ((uint32_t) (int32_t) sum) >> 8;
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
 }
 
-static void pa_mix_s24_32re_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_s24_32re_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, uint32_t *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    length /= sizeof(uint32_t);
+
+    for (; length > 0; length--, data++) {
         int64_t sum = 0;
         unsigned i;
 
@@ -442,19 +449,19 @@ static void pa_mix_s24_32re_c(pa_mix_info streams[], unsigned nstreams, unsigned
         }
 
         sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
-        *((uint32_t*) data) = PA_INT32_SWAP(((uint32_t) (int32_t) sum) >> 8);
-
-        data = (uint8_t*) data + sizeof(uint32_t);
+        *data = PA_INT32_SWAP(((uint32_t) (int32_t) sum) >> 8);
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
 }
 
-static void pa_mix_u8_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_u8_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, uint8_t *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    length /= sizeof(uint8_t);
+
+    for (; length > 0; length--, data++) {
         int32_t sum = 0;
         unsigned i;
 
@@ -471,19 +478,19 @@ static void pa_mix_u8_c(pa_mix_info streams[], unsigned nstreams, unsigned chann
         }
 
         sum = PA_CLAMP_UNLIKELY(sum, -0x80, 0x7F);
-        *((uint8_t*) data) = (uint8_t) (sum + 0x80);
-
-        data = (uint8_t*) data + 1;
+        *data = (uint8_t) (sum + 0x80);
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
 }
 
-static void pa_mix_ulaw_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_ulaw_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, uint8_t *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    length /= sizeof(uint8_t);
+
+    for (; length > 0; length--, data++) {
         int32_t sum = 0;
         unsigned i;
 
@@ -497,19 +504,19 @@ static void pa_mix_ulaw_c(pa_mix_info streams[], unsigned nstreams, unsigned cha
         }
 
         sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
-        *((uint8_t*) data) = (uint8_t) st_14linear2ulaw((int16_t) sum >> 2);
-
-        data = (uint8_t*) data + 1;
+        *data = (uint8_t) st_14linear2ulaw((int16_t) sum >> 2);
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
 }
 
-static void pa_mix_alaw_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_alaw_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, uint8_t *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    length /= sizeof(uint8_t);
+
+    for (; length > 0; length--, data++) {
         int32_t sum = 0;
         unsigned i;
 
@@ -523,19 +530,19 @@ static void pa_mix_alaw_c(pa_mix_info streams[], unsigned nstreams, unsigned cha
         }
 
         sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
-        *((uint8_t*) data) = (uint8_t) st_13linear2alaw((int16_t) sum >> 3);
-
-        data = (uint8_t*) data + 1;
+        *data = (uint8_t) st_13linear2alaw((int16_t) sum >> 3);
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
 }
 
-static void pa_mix_float32ne_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_float32ne_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, float *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    length /= sizeof(float);
+
+    for (; length > 0; length--, data++) {
         float sum = 0;
         unsigned i;
 
@@ -551,19 +558,19 @@ static void pa_mix_float32ne_c(pa_mix_info streams[], unsigned nstreams, unsigne
             m->ptr = (uint8_t*) m->ptr + sizeof(float);
         }
 
-        *((float*) data) = sum;
-
-        data = (uint8_t*) data + sizeof(float);
+        *data = sum;
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
 }
 
-static void pa_mix_float32re_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+static void pa_mix_float32re_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, float *data, unsigned length) {
     unsigned channel = 0;
 
-    while (data < end) {
+    length /= sizeof(float);
+
+    for (; length > 0; length--, data++) {
         float sum = 0;
         unsigned i;
 
@@ -579,9 +586,7 @@ static void pa_mix_float32re_c(pa_mix_info streams[], unsigned nstreams, unsigne
             m->ptr = (uint8_t*) m->ptr + sizeof(float);
         }
 
-        *((float*) data) = PA_FLOAT32_SWAP(sum);
-
-        data = (uint8_t*) data + sizeof(float);
+        *data = PA_FLOAT32_SWAP(sum);
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
@@ -615,7 +620,6 @@ size_t pa_mix(
 
     pa_cvolume full_volume;
     unsigned k;
-    void *end;
 
     pa_assert(streams);
     pa_assert(data);
@@ -636,10 +640,8 @@ size_t pa_mix(
             length = streams[k].chunk.length;
     }
 
-    end = (uint8_t*) data + length;
-
     calc_stream_volumes_table[spec->format](streams, nstreams, volume, spec);
-    do_mix_table[spec->format](streams, nstreams, spec->channels, data, end);
+    do_mix_table[spec->format](streams, nstreams, spec->channels, data, length);
 
     for (k = 0; k < nstreams; k++)
         pa_memblock_release(streams[k].chunk.memblock);
