@@ -106,6 +106,17 @@ AEC* AEC_init(int RATE, int have_vector)
   return a;
 }
 
+void AEC_done(AEC *a) {
+    pa_assert(a);
+
+    pa_xfree(a->Fx);
+    pa_xfree(a->Fe);
+    pa_xfree(a->acMic);
+    pa_xfree(a->acSpk);
+    pa_xfree(a->cutoff);
+    pa_xfree(a);
+}
+
 // Adrian soft decision DTD
 // (Dual Average Near-End to Far-End signal Ratio DTD)
 // This algorithm uses exponential smoothing with differnt

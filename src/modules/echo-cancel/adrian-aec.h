@@ -351,7 +351,8 @@ static  void AEC_leaky(AEC *a);
  */
 static  REAL AEC_nlms_pw(AEC *a, REAL d, REAL x_, float stepsize);
 
-  AEC* AEC_init(int RATE, int have_vector);
+AEC* AEC_init(int RATE, int have_vector);
+void AEC_done(AEC *a);
 
 /* Acoustic Echo Cancellation and Suppression of one sample
  * in   d:  microphone signal with echo

@@ -111,6 +111,8 @@ void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *
 }
 
 void pa_adrian_ec_done(pa_echo_canceller *ec) {
-    pa_xfree(ec->params.priv.adrian.aec);
-    ec->params.priv.adrian.aec = NULL;
+    if (ec->params.priv.adrian.aec) {
+        AEC_done(ec->params.priv.adrian.aec);
+        ec->params.priv.adrian.aec = NULL;
+    }
 }
