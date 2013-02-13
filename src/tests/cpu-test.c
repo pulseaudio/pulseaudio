@@ -34,6 +34,7 @@
 #include <pulsecore/sconv.h>
 #include <pulsecore/remap.h>
 #include <pulsecore/sample-util.h>
+#include <pulsecore/mix.h>
 
 #define PA_CPU_TEST_RUN_START(l, t1, t2)                        \
 {                                                               \
@@ -698,6 +699,156 @@ END_TEST
 #undef TIMES2
 /* End remap tests */
 
+/* Start mix tests */
+
+/* Only ARM NEON has mix tests, so disable the related functions for other
+ * architectures for now to avoid compiler warnings about unused functions. */
+#if defined (__arm__) && defined (__linux__)
+#ifdef HAVE_NEON
+
+#define SAMPLES 1028
+#define TIMES 1000
+#define TIMES2 100
+
+static void acquire_mix_streams(pa_mix_info streams[], unsigned nstreams) {
+    unsigned i;
+
+    for (i = 0; i < nstreams; i++)
+        streams[i].ptr = pa_memblock_acquire_chunk(&streams[i].chunk);
+}
+
+static void release_mix_streams(pa_mix_info streams[], unsigned nstreams) {
+    unsigned i;
+
+    for (i = 0; i < nstreams; i++)
+        pa_memblock_release(streams[i].chunk.memblock);
+}
+
+static void run_mix_test(
+        pa_do_mix_func_t func,
+        pa_do_mix_func_t orig_func,
+        int align,
+        int channels,
+        pa_bool_t correct,
+        pa_bool_t perf) {
+
+    PA_DECLARE_ALIGNED(8, int16_t, in0[SAMPLES * 4]) = { 0 };
+    PA_DECLARE_ALIGNED(8, int16_t, in1[SAMPLES * 4]) = { 0 };
+    PA_DECLARE_ALIGNED(8, int16_t, out[SAMPLES * 4]) = { 0 };
+    PA_DECLARE_ALIGNED(8, int16_t, out_ref[SAMPLES * 4]) = { 0 };
+    int16_t *samples0, *samples1;
+    int16_t *samples, *samples_ref;
+    int nsamples;
+    pa_mempool *pool;
+    pa_memchunk c0, c1;
+    pa_mix_info m[2];
+    int i;
+
+    pa_assert(channels == 1 || channels == 2 || channels == 4);
+
+    /* Force sample alignment as requested */
+    samples0 = in0 + (8 - align);
+    samples1 = in1 + (8 - align);
+    samples = out + (8 - align);
+    samples_ref = out_ref + (8 - align);
+    nsamples = channels * (SAMPLES - (8 - align));
+
+    fail_unless((pool = pa_mempool_new(FALSE, 0)) != NULL, NULL);
+
+    pa_random(samples0, nsamples * sizeof(int16_t));
+    c0.memblock = pa_memblock_new_fixed(pool, samples0, nsamples * sizeof(int16_t), FALSE);
+    c0.length = pa_memblock_get_length(c0.memblock);
+    c0.index = 0;
+
+    pa_random(samples1, nsamples * sizeof(int16_t));
+    c1.memblock = pa_memblock_new_fixed(pool, samples1, nsamples * sizeof(int16_t), FALSE);
+    c1.length = pa_memblock_get_length(c1.memblock);
+    c1.index = 0;
+
+    m[0].chunk = c0;
+    m[0].volume.channels = channels;
+    for (i = 0; i < channels; i++) {
+        m[0].volume.values[i] = PA_VOLUME_NORM;
+        m[0].linear[i].i = 0x5555;
+    }
+
+    m[1].chunk = c1;
+    m[1].volume.channels = channels;
+    for (i = 0; i < channels; i++) {
+        m[1].volume.values[i] = PA_VOLUME_NORM;
+        m[1].linear[i].i = 0x6789;
+    }
+
+    if (correct) {
+        acquire_mix_streams(m, 2);
+        orig_func(m, 2, channels, samples_ref, nsamples * sizeof(int16_t));
+        release_mix_streams(m, 2);
+
+        acquire_mix_streams(m, 2);
+        func(m, 2, channels, samples, nsamples * sizeof(int16_t));
+        release_mix_streams(m, 2);
+
+        for (i = 0; i < nsamples; i++) {
+            if (samples[i] != samples_ref[i]) {
+                pa_log_debug("Correctness test failed: align=%d, channels=%d", align, channels);
+                pa_log_debug("%d: %hd != %04hd (%hd + %hd)\n",
+                    i,
+                    samples[i], samples_ref[i],
+                    samples0[i], samples1[i]);
+                fail();
+            }
+        }
+    }
+
+    if (perf) {
+        pa_log_debug("Testing %d-channel mixing performance with %d sample alignment", channels, align);
+
+        PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
+            acquire_mix_streams(m, 2);
+            func(m, 2, channels, samples, nsamples * sizeof(int16_t));
+            release_mix_streams(m, 2);
+        } PA_CPU_TEST_RUN_STOP
+
+        PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
+            acquire_mix_streams(m, 2);
+            orig_func(m, 2, channels, samples_ref, nsamples * sizeof(int16_t));
+            release_mix_streams(m, 2);
+        } PA_CPU_TEST_RUN_STOP
+    }
+
+    pa_memblock_unref(c0.memblock);
+    pa_memblock_unref(c1.memblock);
+
+    pa_mempool_free(pool);
+}
+#endif /* HAVE_NEON */
+#endif /* defined (__arm__) && defined (__linux__) */
+
+#if defined (__arm__) && defined (__linux__)
+#ifdef HAVE_NEON
+START_TEST (mix_neon_test) {
+    pa_do_mix_func_t orig_func, neon_func;
+    pa_cpu_arm_flag_t flags = 0;
+
+    pa_cpu_get_arm_flags(&flags);
+
+    if (!(flags & PA_CPU_ARM_NEON)) {
+        pa_log_info("NEON not supported. Skipping");
+        return;
+    }
+
+    orig_func = pa_get_mix_func(PA_SAMPLE_S16NE);
+    pa_mix_func_init_neon(flags);
+    neon_func = pa_get_mix_func(PA_SAMPLE_S16NE);
+
+    pa_log_debug("Checking NEON mix");
+    run_mix_test(neon_func, orig_func, 7, 2, TRUE, TRUE);
+}
+END_TEST
+#endif /* HAVE_NEON */
+#endif /* defined (__arm__) && defined (__linux__) */
+/* End mix tests */
+
 int main(int argc, char *argv[]) {
     int failed = 0;
     Suite *s;
@@ -741,6 +892,15 @@ int main(int argc, char *argv[]) {
 #if defined (__i386__) || defined (__amd64__)
     tcase_add_test(tc, remap_mmx_test);
     tcase_add_test(tc, remap_sse2_test);
+#endif
+    tcase_set_timeout(tc, 120);
+    suite_add_tcase(s, tc);
+    /* Mix tests */
+    tc = tcase_create("mix");
+#if defined (__arm__) && defined (__linux__)
+#if HAVE_NEON
+    tcase_add_test(tc, mix_neon_test);
+#endif
 #endif
     tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);
