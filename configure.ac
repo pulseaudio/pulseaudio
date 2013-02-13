@@ -774,11 +774,11 @@ AC_ARG_ENABLE([alsa],
     AS_HELP_STRING([--disable-alsa],[Disable optional ALSA support]))
 
 AS_IF([test "x$enable_alsa" != "xno"],
-    [PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.19 ], HAVE_ALSA=1, HAVE_ALSA=0)],
+    [PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.24 ], HAVE_ALSA=1, HAVE_ALSA=0)],
     HAVE_ALSA=0)
 
 AS_IF([test "x$enable_alsa" = "xyes" && test "x$HAVE_ALSA" = "x0"],
-    [AC_MSG_ERROR([*** Needed alsa >= 1.0.19 support not found])])
+    [AC_MSG_ERROR([*** Needed alsa >= 1.0.24 support not found])])
 
 AC_SUBST(ASOUNDLIB_CFLAGS)
 AC_SUBST(ASOUNDLIB_LIBS)
