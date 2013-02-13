@@ -1623,7 +1623,7 @@ static int init_common(pa_modargs *ma, struct userdata *u, pa_sample_spec *sourc
 
     ec_string = pa_modargs_get_value(ma, "aec_method", DEFAULT_ECHO_CANCELLER);
     if ((ec_method = get_ec_method_from_string(ec_string)) < 0) {
-        pa_log("Invalid echo canceller implementation");
+        pa_log("Invalid echo canceller implementation '%s'", ec_string);
         goto fail;
     }
 
