@@ -889,10 +889,12 @@ libpulsecore_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libpulsecore_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSPEEX_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINOR@.la libpulse.la libpulsecore-foreign.la
 
 if HAVE_NEON
-noinst_LTLIBRARIES += libpulsecore_sconv_neon.la
+noinst_LTLIBRARIES += libpulsecore_sconv_neon.la libpulsecore_mix_neon.la
 libpulsecore_sconv_neon_la_SOURCES = pulsecore/sconv_neon.c
 libpulsecore_sconv_neon_la_CFLAGS = $(AM_CFLAGS) $(NEON_CFLAGS)
-libpulsecore_@PA_MAJORMINOR@_la_LIBADD += libpulsecore_sconv_neon.la
+libpulsecore_mix_neon_la_SOURCES = pulsecore/mix_neon.c
+libpulsecore_mix_neon_la_CFLAGS = $(AM_CFLAGS) $(NEON_CFLAGS)
+libpulsecore_@PA_MAJORMINOR@_la_LIBADD += libpulsecore_sconv_neon.la libpulsecore_mix_neon.la
 endif
 
 if HAVE_ORC
