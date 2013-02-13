@@ -24,7 +24,6 @@
 #include <config.h>
 #endif
 
-
 #include <pulsecore/macro.h>
 #include <pulsecore/g711.h>
 #include <pulsecore/endianmacros.h>
@@ -35,13 +34,8 @@ static void pa_volume_u8_c(uint8_t *samples, const int32_t *volumes, unsigned ch
     unsigned channel;
 
     for (channel = 0; length; length--) {
-        int32_t t, hi, lo;
+        int32_t t = pa_mult_s16_volume(*samples - 0x80, volumes[channel]);
 
-        hi = volumes[channel] >> 16;
-        lo = volumes[channel] & 0xFFFF;
-
-        t = (int32_t) *samples - 0x80;
-        t = ((t * lo) >> 16) + (t * hi);
         t = PA_CLAMP_UNLIKELY(t, -0x80, 0x7F);
         *samples++ = (uint8_t) (t + 0x80);
 
@@ -54,13 +48,8 @@ static void pa_volume_alaw_c(uint8_t *samples, const int32_t *volumes, unsigned 
     unsigned channel;
 
     for (channel = 0; length; length--) {
-        int32_t t, hi, lo;
+        int32_t t = pa_mult_s16_volume(st_alaw2linear16(*samples), volumes[channel]);
 
-        hi = volumes[channel] >> 16;
-        lo = volumes[channel] & 0xFFFF;
-
-        t = (int32_t) st_alaw2linear16(*samples);
-        t = ((t * lo) >> 16) + (t * hi);
         t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
         *samples++ = (uint8_t) st_13linear2alaw((int16_t) t >> 3);
 
@@ -73,13 +62,8 @@ static void pa_volume_ulaw_c(uint8_t *samples, const int32_t *volumes, unsigned 
     unsigned channel;
 
     for (channel = 0; length; length--) {
-        int32_t t, hi, lo;
+        int32_t t = pa_mult_s16_volume(st_ulaw2linear16(*samples), volumes[channel]);
 
-        hi = volumes[channel] >> 16;
-        lo = volumes[channel] & 0xFFFF;
-
-        t = (int32_t) st_ulaw2linear16(*samples);
-        t = ((t * lo) >> 16) + (t * hi);
         t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
         *samples++ = (uint8_t) st_14linear2ulaw((int16_t) t >> 2);
 
@@ -94,19 +78,8 @@ static void pa_volume_s16ne_c(int16_t *samples, const int32_t *volumes, unsigned
     length /= sizeof(int16_t);
 
     for (channel = 0; length; length--) {
-        int32_t t, hi, lo;
+        int32_t t = pa_mult_s16_volume(*samples, volumes[channel]);
 
-        /* Multiplying the 32bit volume factor with the 16bit
-         * sample might result in an 48bit value. We want to
-         * do without 64 bit integers and hence do the
-         * multiplication independently for the HI and LO part
-         * of the volume. */
-
-        hi = volumes[channel] >> 16;
-        lo = volumes[channel] & 0xFFFF;
-
-        t = (int32_t)(*samples);
-        t = ((t * lo) >> 16) + (t * hi);
         t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
         *samples++ = (int16_t) t;
 
@@ -121,13 +94,8 @@ static void pa_volume_s16re_c(int16_t *samples, const int32_t *volumes, unsigned
     length /= sizeof(int16_t);
 
     for (channel = 0; length; length--) {
-        int32_t t, hi, lo;
+        int32_t t = pa_mult_s16_volume(PA_INT16_SWAP(*samples), volumes[channel]);
 
-        hi = volumes[channel] >> 16;
-        lo = volumes[channel] & 0xFFFF;
-
-        t = (int32_t) PA_INT16_SWAP(*samples);
-        t = ((t * lo) >> 16) + (t * hi);
         t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
         *samples++ = PA_INT16_SWAP((int16_t) t);
 
