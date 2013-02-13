@@ -104,6 +104,24 @@ static void calc_linear_float_stream_volumes(pa_mix_info streams[], unsigned nst
     }
 }
 
+typedef void (*pa_calc_stream_volumes_func_t) (pa_mix_info streams[], unsigned nstreams, const pa_cvolume *volume, const pa_sample_spec *spec);
+
+static const pa_calc_stream_volumes_func_t calc_stream_volumes_table[] = {
+  [PA_SAMPLE_U8]        = (pa_calc_stream_volumes_func_t) calc_linear_integer_stream_volumes,
+  [PA_SAMPLE_ALAW]      = (pa_calc_stream_volumes_func_t) calc_linear_integer_stream_volumes,
+  [PA_SAMPLE_ULAW]      = (pa_calc_stream_volumes_func_t) calc_linear_integer_stream_volumes,
+  [PA_SAMPLE_S16LE]     = (pa_calc_stream_volumes_func_t) calc_linear_integer_stream_volumes,
+  [PA_SAMPLE_S16BE]     = (pa_calc_stream_volumes_func_t) calc_linear_integer_stream_volumes,
+  [PA_SAMPLE_FLOAT32LE] = (pa_calc_stream_volumes_func_t) calc_linear_float_stream_volumes,
+  [PA_SAMPLE_FLOAT32BE] = (pa_calc_stream_volumes_func_t) calc_linear_float_stream_volumes,
+  [PA_SAMPLE_S32LE]     = (pa_calc_stream_volumes_func_t) calc_linear_integer_stream_volumes,
+  [PA_SAMPLE_S32BE]     = (pa_calc_stream_volumes_func_t) calc_linear_integer_stream_volumes,
+  [PA_SAMPLE_S24LE]     = (pa_calc_stream_volumes_func_t) calc_linear_integer_stream_volumes,
+  [PA_SAMPLE_S24BE]     = (pa_calc_stream_volumes_func_t) calc_linear_integer_stream_volumes,
+  [PA_SAMPLE_S24_32LE]  = (pa_calc_stream_volumes_func_t) calc_linear_integer_stream_volumes,
+  [PA_SAMPLE_S24_32BE]  = (pa_calc_stream_volumes_func_t) calc_linear_integer_stream_volumes
+};
+
 size_t pa_mix(
         pa_mix_info streams[],
         unsigned nstreams,
@@ -140,12 +158,12 @@ size_t pa_mix(
 
     end = (uint8_t*) data + length;
 
+    calc_stream_volumes_table[spec->format](streams, nstreams, volume, spec);
+
     switch (spec->format) {
 
         case PA_SAMPLE_S16NE:{
             unsigned channel = 0;
-
-            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
 
             while (data < end) {
                 int32_t sum = 0;
@@ -188,8 +206,6 @@ size_t pa_mix(
         case PA_SAMPLE_S16RE:{
             unsigned channel = 0;
 
-            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
-
             while (data < end) {
                 int32_t sum = 0;
                 unsigned i;
@@ -225,8 +241,6 @@ size_t pa_mix(
         case PA_SAMPLE_S32NE:{
             unsigned channel = 0;
 
-            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
-
             while (data < end) {
                 int64_t sum = 0;
                 unsigned i;
@@ -259,8 +273,6 @@ size_t pa_mix(
 
         case PA_SAMPLE_S32RE:{
             unsigned channel = 0;
-
-            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
 
             while (data < end) {
                 int64_t sum = 0;
@@ -295,8 +307,6 @@ size_t pa_mix(
         case PA_SAMPLE_S24NE: {
             unsigned channel = 0;
 
-            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
-
             while (data < end) {
                 int64_t sum = 0;
                 unsigned i;
@@ -329,8 +339,6 @@ size_t pa_mix(
 
         case PA_SAMPLE_S24RE: {
             unsigned channel = 0;
-
-            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
 
             while (data < end) {
                 int64_t sum = 0;
@@ -365,8 +373,6 @@ size_t pa_mix(
         case PA_SAMPLE_S24_32NE: {
             unsigned channel = 0;
 
-            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
-
             while (data < end) {
                 int64_t sum = 0;
                 unsigned i;
@@ -399,8 +405,6 @@ size_t pa_mix(
 
         case PA_SAMPLE_S24_32RE: {
             unsigned channel = 0;
-
-            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
 
             while (data < end) {
                 int64_t sum = 0;
@@ -435,8 +439,6 @@ size_t pa_mix(
         case PA_SAMPLE_U8: {
             unsigned channel = 0;
 
-            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
-
             while (data < end) {
                 int32_t sum = 0;
                 unsigned i;
@@ -468,8 +470,6 @@ size_t pa_mix(
 
         case PA_SAMPLE_ULAW: {
             unsigned channel = 0;
-
-            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
 
             while (data < end) {
                 int32_t sum = 0;
@@ -506,8 +506,6 @@ size_t pa_mix(
         case PA_SAMPLE_ALAW: {
             unsigned channel = 0;
 
-            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
-
             while (data < end) {
                 int32_t sum = 0;
                 unsigned i;
@@ -543,8 +541,6 @@ size_t pa_mix(
         case PA_SAMPLE_FLOAT32NE: {
             unsigned channel = 0;
 
-            calc_linear_float_stream_volumes(streams, nstreams, volume, spec);
-
             while (data < end) {
                 float sum = 0;
                 unsigned i;
@@ -575,8 +571,6 @@ size_t pa_mix(
 
         case PA_SAMPLE_FLOAT32RE: {
             unsigned channel = 0;
-
-            calc_linear_float_stream_volumes(streams, nstreams, volume, spec);
 
             while (data < end) {
                 float sum = 0;
