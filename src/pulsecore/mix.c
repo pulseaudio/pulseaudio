@@ -534,8 +534,6 @@ static void pa_mix_float32re_c(pa_mix_info streams[], unsigned nstreams, unsigne
     }
 }
 
-typedef void (*pa_do_mix_func_t) (pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end);
-
 static pa_do_mix_func_t do_mix_table[] = {
     [PA_SAMPLE_U8]        = (pa_do_mix_func_t) pa_mix_u8_c,
     [PA_SAMPLE_ALAW]      = (pa_do_mix_func_t) pa_mix_alaw_c,
@@ -595,6 +593,20 @@ size_t pa_mix(
         pa_memblock_release(streams[k].chunk.memblock);
 
     return length;
+}
+
+pa_do_mix_func_t pa_get_mix_func(pa_sample_format_t f) {
+    pa_assert(f >= 0);
+    pa_assert(f < PA_SAMPLE_MAX);
+
+    return do_mix_table[f];
+}
+
+void pa_set_mix_func(pa_sample_format_t f, pa_do_mix_func_t func) {
+    pa_assert(f >= 0);
+    pa_assert(f < PA_SAMPLE_MAX);
+
+    do_mix_table[f] = func;
 }
 
 typedef union {

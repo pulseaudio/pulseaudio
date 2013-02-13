@@ -51,6 +51,11 @@ size_t pa_mix(
     const pa_cvolume *volume,
     pa_bool_t mute);
 
+typedef void (*pa_do_mix_func_t) (pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end);
+
+pa_do_mix_func_t pa_get_mix_func(pa_sample_format_t f);
+void pa_set_mix_func(pa_sample_format_t f, pa_do_mix_func_t func);
+
 void pa_volume_memchunk(
     pa_memchunk*c,
     const pa_sample_spec *spec,
