@@ -122,7 +122,91 @@ static const pa_calc_stream_volumes_func_t calc_stream_volumes_table[] = {
   [PA_SAMPLE_S24_32BE]  = (pa_calc_stream_volumes_func_t) calc_linear_integer_stream_volumes
 };
 
-static void pa_mix_s16ne_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+/* special case: mix 2 s16ne streams, 1 channel each */
+static void pa_mix2_ch1_s16ne(pa_mix_info streams[], int16_t *data, int16_t *end) {
+    const int16_t *ptr0 = streams[0].ptr;
+    const int16_t *ptr1 = streams[1].ptr;
+
+    const int32_t cv0 = streams[0].linear[0].i;
+    const int32_t cv1 = streams[1].linear[0].i;
+
+    while (data < end) {
+        int32_t sum;
+
+        sum = pa_mult_s16_volume(*ptr0++, cv0);
+        sum += pa_mult_s16_volume(*ptr1++, cv1);
+
+        sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
+        *data++ = sum;
+    }
+}
+
+/* special case: mix 2 s16ne streams, 2 channels each */
+static void pa_mix2_ch2_s16ne(pa_mix_info streams[], int16_t *data, int16_t *end) {
+    const int16_t *ptr0 = streams[0].ptr;
+    const int16_t *ptr1 = streams[1].ptr;
+
+    while (data < end) {
+        int32_t sum;
+
+        sum = pa_mult_s16_volume(*ptr0++, streams[0].linear[0].i);
+        sum += pa_mult_s16_volume(*ptr1++, streams[1].linear[0].i);
+
+        sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
+        *data++ = sum;
+
+        sum = pa_mult_s16_volume(*ptr0++, streams[0].linear[1].i);
+        sum += pa_mult_s16_volume(*ptr1++, streams[1].linear[1].i);
+
+        sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
+        *data++ = sum;
+    }
+}
+
+/* special case: mix 2 s16ne streams */
+static void pa_mix2_s16ne(pa_mix_info streams[], unsigned channels, int16_t *data, int16_t *end) {
+    const int16_t *ptr0 = streams[0].ptr;
+    const int16_t *ptr1 = streams[1].ptr;
+    unsigned channel = 0;
+
+    while (data < end) {
+        int32_t sum;
+
+        sum = pa_mult_s16_volume(*ptr0++, streams[0].linear[channel].i);
+        sum += pa_mult_s16_volume(*ptr1++, streams[1].linear[channel].i);
+
+        sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
+        *data++ = sum;
+
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
+}
+
+/* special case: mix s16ne streams, 2 channels each */
+static void pa_mix_ch2_s16ne(pa_mix_info streams[], unsigned nstreams, int16_t *data, int16_t *end) {
+    while (data < end) {
+        int32_t sum0 = 0, sum1 = 0;
+        unsigned i;
+
+        for (i = 0; i < nstreams; i++) {
+            pa_mix_info *m = streams + i;
+            int32_t cv0 = m->linear[0].i;
+            int32_t cv1 = m->linear[1].i;
+
+            sum0 += pa_mult_s16_volume(*((int16_t*) m->ptr), cv0);
+            m->ptr = (uint8_t*) m->ptr + sizeof(int16_t);
+
+            sum1 += pa_mult_s16_volume(*((int16_t*) m->ptr), cv1);
+            m->ptr = (uint8_t*) m->ptr + sizeof(int16_t);
+        }
+
+        *data++ = PA_CLAMP_UNLIKELY(sum0, -0x8000, 0x7FFF);
+        *data++ = PA_CLAMP_UNLIKELY(sum1, -0x8000, 0x7FFF);
+    }
+}
+
+static void pa_mix_generic_s16ne(pa_mix_info streams[], unsigned nstreams, unsigned channels, int16_t *data, int16_t *end) {
     unsigned channel = 0;
 
     while (data < end) {
@@ -134,18 +218,31 @@ static void pa_mix_s16ne_c(pa_mix_info streams[], unsigned nstreams, unsigned ch
             int32_t cv = m->linear[channel].i;
 
             if (PA_LIKELY(cv > 0))
-                sum += pa_mult_s16_volume(*((int16_t*) m->ptr), m->linear[channel].i);
+                sum += pa_mult_s16_volume(*((int16_t*) m->ptr), cv);
             m->ptr = (uint8_t*) m->ptr + sizeof(int16_t);
         }
 
         sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
-        *((int16_t*) data) = (int16_t) sum;
+        *data = sum;
 
-        data = (uint8_t*) data + sizeof(int16_t);
+        data++;
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;
     }
+}
+
+static void pa_mix_s16ne_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
+    if (nstreams == 2 && channels == 1)
+        pa_mix2_ch1_s16ne(streams, data, end);
+    else if (nstreams == 2 && channels == 2)
+        pa_mix2_ch2_s16ne(streams, data, end);
+    else if (nstreams == 2)
+        pa_mix2_s16ne(streams, channels, data, end);
+    else if (channels == 2)
+        pa_mix_ch2_s16ne(streams, channels, data, end);
+    else
+        pa_mix_generic_s16ne(streams, nstreams, channels, data, end);
 }
 
 static void pa_mix_s16re_c(pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, void *end) {
