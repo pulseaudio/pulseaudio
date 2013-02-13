@@ -33,7 +33,7 @@
 /* Vector Dot Product */
 static REAL dotp(REAL a[], REAL b[])
 {
-  REAL sum0 = 0.0, sum1 = 0.0;
+  REAL sum0 = 0.0f, sum1 = 0.0f;
   int j;
 
   for (j = 0; j < NLMS_LEN; j += 2) {
@@ -138,11 +138,11 @@ static float AEC_dtd(AEC *a, REAL d, REAL x)
   a->xslow += ALPHASLOW * (fabsf(x) - a->xslow);
 
   if (a->xfast < M70dB_PCM) {
-    return 0.0;   // no Spk signal
+    return 0.0f;   // no Spk signal
   }
 
   if (a->dfast < M70dB_PCM) {
-    return 0.0;   // no Mic signal
+    return 0.0f;   // no Mic signal
   }
 
   // ratio of NFRs
@@ -206,7 +206,7 @@ static REAL AEC_nlms_pw(AEC *a, REAL d, REAL x_, float stepsize)
   // optimize: iterative dotp(xf, xf)
   a->dotp_xf_xf += (a->xf[a->j] * a->xf[a->j] - a->xf[a->j + NLMS_LEN - 1] * a->xf[a->j + NLMS_LEN - 1]);
 
-  if (stepsize > 0.0) {
+  if (stepsize > 0.0f) {
     // calculate variable step size
     REAL mikro_ef = stepsize * ef / a->dotp_xf_xf;
 
