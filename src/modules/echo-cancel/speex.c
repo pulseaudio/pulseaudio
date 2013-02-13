@@ -151,7 +151,7 @@ pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
                            uint32_t *nframes, const char *args)
 {
     int rate;
-    uint32_t y, frame_size_ms, filter_size_ms;
+    uint32_t frame_size_ms, filter_size_ms;
     pa_modargs *ma;
 
     if (!(ma = pa_modargs_new(args, valid_modargs))) {
@@ -174,16 +174,10 @@ pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
     pa_speex_ec_fixate_spec(source_ss, source_map, sink_ss, sink_map);
 
     rate = source_ss->rate;
-    *nframes = (rate * frame_size_ms) / 1000;
-    /* nframes should be a power of 2, round down to nearest power of two */
-    y = 1 << ((8 * sizeof (uint32_t)) - 2);
-    while (y > *nframes)
-      y >>= 1;
-    *nframes = y;
+    *nframes = pa_echo_canceller_blocksize_power2(rate, frame_size_ms);
 
     pa_log_debug ("Using nframes %d, channels %d, rate %d", *nframes, source_ss->channels, source_ss->rate);
-
-    ec->params.priv.speex.state = speex_echo_state_init_mc (*nframes, (rate * filter_size_ms) / 1000, source_ss->channels, source_ss->channels);
+    ec->params.priv.speex.state = speex_echo_state_init_mc(*nframes, (rate * filter_size_ms) / 1000, source_ss->channels, source_ss->channels);
 
     if (!ec->params.priv.speex.state)
         goto fail;

@@ -131,6 +131,10 @@ struct pa_echo_canceller {
 void pa_echo_canceller_get_capture_volume(pa_echo_canceller *ec, pa_cvolume *v);
 void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_cvolume *v);
 
+/* Computes EC block size in frames (rounded down to nearest power-of-2) based
+ * on sample rate and milliseconds. */
+uint32_t pa_echo_canceller_blocksize_power2(unsigned rate, unsigned ms);
+
 /* Null canceller functions */
 pa_bool_t pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
                            pa_sample_spec *source_ss, pa_channel_map *source_map,
