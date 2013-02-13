@@ -1329,7 +1329,7 @@ int pa__init(pa_module*m) {
     pa_sink_put(u->sink);
     pa_sink_input_put(u->sink_input);
 
-#if HAVE_DBUS
+#ifdef HAVE_DBUS
     dbus_init(u);
 #endif
 
@@ -1367,7 +1367,7 @@ void pa__done(pa_module*m) {
     /* See comments in sink_input_kill_cb() above regarding
     * destruction order! */
 
-#if HAVE_DBUS
+#ifdef HAVE_DBUS
     dbus_done(u);
 #endif
 
