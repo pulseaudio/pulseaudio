@@ -561,7 +561,6 @@ size_t pa_mix(
 
     pa_cvolume full_volume;
     unsigned k;
-    unsigned z;
     void *end;
 
     pa_assert(streams);
@@ -577,12 +576,11 @@ size_t pa_mix(
         return length;
     }
 
-    for (k = 0; k < nstreams; k++)
+    for (k = 0; k < nstreams; k++) {
         streams[k].ptr = pa_memblock_acquire_chunk(&streams[k].chunk);
-
-    for (z = 0; z < nstreams; z++)
-        if (length > streams[z].chunk.length)
-            length = streams[z].chunk.length;
+        if (length > streams[k].chunk.length)
+            length = streams[k].chunk.length;
+    }
 
     end = (uint8_t*) data + length;
 
