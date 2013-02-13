@@ -71,3 +71,4 @@ thread-test
 usergroup-test
 utf8-test
 volume-test
+mult-s16-test

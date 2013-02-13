@@ -245,7 +245,8 @@ TESTS_default = \
 		mix-test \
 		proplist-test \
 		cpu-test \
-		lock-autospawn-test
+		lock-autospawn-test \
+		mult-s16-test
 
 TESTS_norun = \
 		mcalign-test \
@@ -502,6 +503,11 @@ cpu_test_SOURCES = tests/cpu-test.c
 cpu_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 cpu_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 cpu_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
+
+mult_s16_test_SOURCES = tests/mult-s16-test.c
+mult_s16_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+mult_s16_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+mult_s16_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 rtstutter_SOURCES = tests/rtstutter.c
 rtstutter_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
