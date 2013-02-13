@@ -39,6 +39,7 @@
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/ltdl-helper.h>
+#include <pulsecore/mix.h>
 
 #include "module-virtual-source-symdef.h"
 

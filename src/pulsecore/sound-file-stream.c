@@ -39,6 +39,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/mix.h>
 #include <pulsecore/sndfile-util.h>
 
 #include "sound-file-stream.h"

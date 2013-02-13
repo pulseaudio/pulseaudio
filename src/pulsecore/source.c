@@ -40,7 +40,7 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
-#include <pulsecore/sample-util.h>
+#include <pulsecore/mix.h>
 #include <pulsecore/flist.h>
 
 #include "source.h"

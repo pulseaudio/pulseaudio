@@ -32,7 +32,7 @@
 #include <pulse/util.h>
 #include <pulse/internal.h>
 
-#include <pulsecore/sample-util.h>
+#include <pulsecore/mix.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
 #include <pulsecore/namereg.h>

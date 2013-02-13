@@ -44,34 +44,6 @@ pa_memblock* pa_silence_memblock(pa_memblock *b, const pa_sample_spec *spec);
 
 pa_memchunk* pa_silence_memchunk_get(pa_silence_cache *cache, pa_mempool *pool, pa_memchunk* ret, const pa_sample_spec *spec, size_t length);
 
-typedef struct pa_mix_info {
-    pa_memchunk chunk;
-    pa_cvolume volume;
-    void *userdata;
-
-    /* The following fields are used internally by pa_mix(), should
-     * not be initialised by the caller of pa_mix(). */
-    void *ptr;
-    union {
-        int32_t i;
-        float f;
-    } linear[PA_CHANNELS_MAX];
-} pa_mix_info;
-
-size_t pa_mix(
-    pa_mix_info channels[],
-    unsigned nchannels,
-    void *data,
-    size_t length,
-    const pa_sample_spec *spec,
-    const pa_cvolume *volume,
-    pa_bool_t mute);
-
-void pa_volume_memchunk(
-    pa_memchunk*c,
-    const pa_sample_spec *spec,
-    const pa_cvolume *volume);
-
 size_t pa_frame_align(size_t l, const pa_sample_spec *ss) PA_GCC_PURE;
 
 pa_bool_t pa_frame_aligned(size_t l, const pa_sample_spec *ss) PA_GCC_PURE;

@@ -33,6 +33,7 @@
 #include <pulsecore/endianmacros.h>
 #include <pulsecore/memblock.h>
 #include <pulsecore/sample-util.h>
+#include <pulsecore/mix.h>
 
 
 /* PA_SAMPLE_U8 */
