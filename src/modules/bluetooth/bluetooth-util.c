@@ -1806,7 +1806,7 @@ const char*pa_bluetooth_get_form_factor(uint32_t class) {
     if (((class >> 8) & 31) != 4)
         return NULL;
 
-    if ((i = (class >> 2) & 63) > PA_ELEMENTSOF(table))
+    if ((i = (class >> 2) & 63) >= PA_ELEMENTSOF(table))
         r =  NULL;
     else
         r = table[i];
