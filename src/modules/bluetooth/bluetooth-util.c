@@ -1101,7 +1101,7 @@ bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d) {
         return false;
 
     for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++)
-        if (d->transports[i])
+        if (d->transports[i] && d->transports[i]->state != PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
             return true;
 
     return false;
