@@ -95,7 +95,7 @@ AEC* AEC_init(int RATE, int have_vector)
 
   if (have_vector) {
       /* Get a 16-byte aligned location */
-      a->w = (REAL *) (((uintptr_t) a->w_arr) + (((uintptr_t) a->w_arr) % 16));
+      a->w = (REAL *) (((uintptr_t) a->w_arr) - (((uintptr_t) a->w_arr) % 16) + 16);
       a->dotp = dotp_sse;
   } else {
       /* We don't care about alignment, just use the array as-is */
