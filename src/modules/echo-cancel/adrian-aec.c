@@ -70,13 +70,8 @@ static REAL dotp_sse(REAL a[], REAL b[])
 
 AEC* AEC_init(int RATE, int have_vector)
 {
-  AEC *a = pa_xnew(AEC, 1);
-  a->hangover = 0;
-  memset(a->x, 0, sizeof(a->x));
-  memset(a->xf, 0, sizeof(a->xf));
-  memset(a->w_arr, 0, sizeof(a->w_arr));
+  AEC *a = pa_xnew0(AEC, 1);
   a->j = NLMS_EXT;
-  a->delta = 0.0f;
   AEC_setambient(a, NoiseFloor);
   a->dfast = a->dslow = M75dB_PCM;
   a->xfast = a->xslow = M80dB_PCM;
@@ -90,8 +85,6 @@ AEC* AEC_init(int RATE, int have_vector)
   a->aes_y2 = M0dB;
 
   a->fdwdisplay = -1;
-  a->dumpcnt = 0;
-  memset(a->ws, 0, sizeof(a->ws));
 
   if (have_vector) {
       /* Get a 16-byte aligned location */
