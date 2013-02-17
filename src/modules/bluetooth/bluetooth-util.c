@@ -67,6 +67,7 @@ struct pa_bluetooth_discovery {
     pa_core *core;
     pa_dbus_connection *connection;
     PA_LLIST_HEAD(pa_dbus_pending, pending);
+    bool adapters_listed;
     pa_hashmap *devices;
     pa_hashmap *transports;
     pa_hook hooks[PA_BLUETOOTH_HOOK_MAX];
@@ -278,8 +279,11 @@ static int parse_manager_property(pa_bluetooth_discovery *y, DBusMessageIter *i,
             DBusMessageIter ai;
             dbus_message_iter_recurse(&variant_i, &ai);
 
-            if (dbus_message_iter_get_arg_type(&ai) == DBUS_TYPE_OBJECT_PATH &&
-                pa_streq(key, "Adapters")) {
+            if (pa_streq(key, "Adapters")) {
+                y->adapters_listed = true;
+
+                if (dbus_message_iter_get_arg_type(&ai) != DBUS_TYPE_OBJECT_PATH)
+                    break;
 
                 while (dbus_message_iter_get_arg_type(&ai) != DBUS_TYPE_INVALID) {
                     const char *value;
@@ -959,6 +963,11 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             goto fail;
         }
 
+        if (!y->adapters_listed) {
+            pa_log_debug("Ignoring 'AdapterAdded' because initial adapter list has not been received yet.");
+            return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+        }
+
         pa_log_debug("Adapter %s created", path);
 
         found_adapter(y, path);
@@ -1011,6 +1020,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             if (old_owner && *old_owner) {
                 pa_log_debug("Bluetooth daemon disappeared.");
                 remove_all_devices(y);
+                y->adapters_listed = false;
             }
 
             if (new_owner && *new_owner) {
