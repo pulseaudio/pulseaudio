@@ -1200,14 +1200,51 @@ static pa_available_t transport_state_to_availability(pa_bluetooth_transport_sta
         return PA_AVAILABLE_UNKNOWN;
 }
 
-static pa_available_t transport_state_to_availability_merged(pa_bluetooth_transport_state_t state1,
-                                                                  pa_bluetooth_transport_state_t state2) {
-    if (state1 == PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED && state2 == PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
-        return PA_AVAILABLE_NO;
-    else if (state1 >= PA_BLUETOOTH_TRANSPORT_STATE_PLAYING || state2 >= PA_BLUETOOTH_TRANSPORT_STATE_PLAYING)
-        return PA_AVAILABLE_YES;
-    else
-        return PA_AVAILABLE_UNKNOWN;
+static pa_direction_t get_profile_direction(enum profile p) {
+    static const pa_direction_t profile_direction[] = {
+        [PROFILE_A2DP] = PA_DIRECTION_OUTPUT,
+        [PROFILE_A2DP_SOURCE] = PA_DIRECTION_INPUT,
+        [PROFILE_HSP] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PROFILE_HFGW] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PROFILE_OFF] = 0
+    };
+
+    return profile_direction[p];
+}
+
+/* Run from main thread */
+static pa_available_t get_port_availability(struct userdata *u, pa_direction_t direction) {
+    pa_available_t result = PA_AVAILABLE_NO;
+    unsigned i;
+
+    pa_assert(u);
+    pa_assert(u->device);
+
+    for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++) {
+        pa_bluetooth_transport *transport;
+
+        if (!(get_profile_direction(i) & direction))
+            continue;
+
+        if (!(transport = u->device->transports[i]))
+            continue;
+
+        switch(transport->state) {
+            case PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED:
+                continue;
+
+            case PA_BLUETOOTH_TRANSPORT_STATE_IDLE:
+                if (result == PA_AVAILABLE_NO)
+                    result = PA_AVAILABLE_UNKNOWN;
+
+                break;
+
+            case PA_BLUETOOTH_TRANSPORT_STATE_PLAYING:
+                return PA_AVAILABLE_YES;
+        }
+    }
+
+    return result;
 }
 
 /* Run from main thread */
@@ -1217,6 +1254,7 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
     enum profile profile;
     pa_card_profile *cp;
     pa_bluetooth_transport_state_t state;
+    pa_device_port *port;
 
     pa_assert(u);
     pa_assert(transport);
@@ -1231,82 +1269,16 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
     pa_card_profile_set_available(cp, transport_state_to_availability(state));
 
     /* Update port availability */
-    switch (profile) {
-        case PROFILE_HFGW: {
-            pa_device_port *port;
-            pa_available_t available = transport_state_to_availability(state);
+    pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
+    pa_device_port_set_available(port, get_port_availability(u, PA_DIRECTION_OUTPUT));
 
-            pa_assert_se(port = pa_hashmap_get(u->card->ports, "hfgw-output"));
-            pa_device_port_set_available(port, available);
-
-            pa_assert_se(port = pa_hashmap_get(u->card->ports, "hfgw-input"));
-            pa_device_port_set_available(port, available);
-
-            acquire = (available == PA_AVAILABLE_YES && u->profile == PROFILE_HFGW);
-            release = (available != PA_AVAILABLE_YES && u->profile == PROFILE_HFGW);
-
-            break;
-        }
-
-        case PROFILE_HSP: {
-            pa_device_port *port;
-            pa_available_t available;
-            pa_bluetooth_transport *other = u->device->transports[PROFILE_A2DP];
-
-            if (!other)
-                available = transport_state_to_availability(state);
-            else
-                available = transport_state_to_availability_merged(state, other->state);
-
-            pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
-            pa_device_port_set_available(port, available);
-
-            pa_assert_se(port = pa_hashmap_get(u->card->ports, "hsp-input"));
-            pa_device_port_set_available(port, available);
-
-            acquire = (available == PA_AVAILABLE_YES && u->profile == PROFILE_HSP);
-            release = (available != PA_AVAILABLE_YES && u->profile == PROFILE_HSP);
-
-            break;
-        }
-
-        case PROFILE_A2DP_SOURCE: {
-            pa_device_port *port;
-            pa_available_t available = transport_state_to_availability(state);
-
-            pa_assert_se(port = pa_hashmap_get(u->card->ports, "a2dp-input"));
-            pa_device_port_set_available(port, available);
-
-            acquire = (available == PA_AVAILABLE_YES && u->profile == PROFILE_A2DP_SOURCE);
-            release = (available != PA_AVAILABLE_YES && u->profile == PROFILE_A2DP_SOURCE);
-
-            break;
-        }
-
-        case PROFILE_A2DP: {
-            pa_device_port *port;
-            pa_available_t available;
-            pa_bluetooth_transport *other = u->device->transports[PROFILE_HSP];
-
-            if (!other)
-                available = transport_state_to_availability(state);
-            else
-                available = transport_state_to_availability_merged(state, other->state);
-
-            pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
-            pa_device_port_set_available(port, available);
-
-            acquire = (available == PA_AVAILABLE_YES && u->profile == PROFILE_A2DP);
-            release = (available != PA_AVAILABLE_YES && u->profile == PROFILE_A2DP);
-
-            break;
-        }
-
-        case PROFILE_OFF:
-            pa_assert_not_reached();
-    }
+    pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-input"));
+    pa_device_port_set_available(port, get_port_availability(u, PA_DIRECTION_INPUT));
 
     /* Acquire or release transport as needed */
+    acquire = (state == PA_BLUETOOTH_TRANSPORT_STATE_PLAYING && u->profile == profile);
+    release = (state != PA_BLUETOOTH_TRANSPORT_STATE_PLAYING && u->profile == profile);
+
     if (acquire)
         if (bt_transport_acquire(u, true) >= 0) {
             if (u->source) {
@@ -1539,54 +1511,20 @@ static pa_hook_result_t transport_speaker_gain_changed_cb(pa_bluetooth_discovery
 }
 
 static void connect_ports(struct userdata *u, void *sink_or_source_new_data, pa_direction_t direction) {
-    union {
-        pa_sink_new_data *sink_new_data;
-        pa_source_new_data *source_new_data;
-    } data;
     pa_device_port *port;
 
-    if (direction == PA_DIRECTION_OUTPUT)
-        data.sink_new_data = sink_or_source_new_data;
-    else
-        data.source_new_data = sink_or_source_new_data;
+    if (direction == PA_DIRECTION_OUTPUT) {
+        pa_sink_new_data *sink_new_data = sink_or_source_new_data;
 
-    switch (u->profile) {
-        case PROFILE_A2DP:
-            pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
-            pa_assert_se(pa_hashmap_put(data.sink_new_data->ports, port->name, port) >= 0);
-            pa_device_port_ref(port);
-            break;
+        pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
+        pa_assert_se(pa_hashmap_put(sink_new_data->ports, port->name, port) >= 0);
+        pa_device_port_ref(port);
+    } else {
+        pa_source_new_data *source_new_data = sink_or_source_new_data;
 
-        case PROFILE_A2DP_SOURCE:
-            pa_assert_se(port = pa_hashmap_get(u->card->ports, "a2dp-input"));
-            pa_assert_se(pa_hashmap_put(data.source_new_data->ports, port->name, port) >= 0);
-            pa_device_port_ref(port);
-            break;
-
-        case PROFILE_HSP:
-            if (direction == PA_DIRECTION_OUTPUT) {
-                pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
-                pa_assert_se(pa_hashmap_put(data.sink_new_data->ports, port->name, port) >= 0);
-            } else {
-                pa_assert_se(port = pa_hashmap_get(u->card->ports, "hsp-input"));
-                pa_assert_se(pa_hashmap_put(data.source_new_data->ports, port->name, port) >= 0);
-            }
-            pa_device_port_ref(port);
-            break;
-
-        case PROFILE_HFGW:
-            if (direction == PA_DIRECTION_OUTPUT) {
-                pa_assert_se(port = pa_hashmap_get(u->card->ports, "hfgw-output"));
-                pa_assert_se(pa_hashmap_put(data.sink_new_data->ports, port->name, port) >= 0);
-            } else {
-                pa_assert_se(port = pa_hashmap_get(u->card->ports, "hfgw-input"));
-                pa_assert_se(pa_hashmap_put(data.source_new_data->ports, port->name, port) >= 0);
-            }
-            pa_device_port_ref(port);
-            break;
-
-        default:
-            pa_assert_not_reached();
+        pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-input"));
+        pa_assert_se(pa_hashmap_put(source_new_data->ports, port->name, port) >= 0);
+        pa_device_port_ref(port);
     }
 }
 
@@ -2126,100 +2064,24 @@ off:
     return -PA_ERR_IO;
 }
 
-static void create_ports_for_profile(struct userdata *u, pa_hashmap *ports, pa_card_profile *profile) {
-    pa_bluetooth_device *device = u->device;
+/* Run from main thread */
+static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
     pa_device_port *port;
-    enum profile *d;
-    pa_bluetooth_transport *transport;
-    pa_bluetooth_transport_state_t transport_state;
 
-    d = PA_CARD_PROFILE_DATA(profile);
+    pa_assert(u);
+    pa_assert(ports);
 
-    pa_assert(*d != PROFILE_OFF);
+    pa_assert_se(port = pa_device_port_new(u->core, "bluetooth-output", _("Bluetooth Output"), 0));
+    pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
+    port->is_output = 1;
+    port->is_input = 0;
+    port->available = get_port_availability(u, PA_DIRECTION_OUTPUT);
 
-    transport = device->transports[*d];
-    transport_state = transport ? transport->state : PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED;
-
-    switch (*d) {
-        case PROFILE_A2DP:
-            if ((port = pa_hashmap_get(ports, "bluetooth-output")) != NULL) {
-                pa_bluetooth_transport *other = device->transports[PROFILE_HSP];
-                pa_bluetooth_transport_state_t other_state = other ? other->state : PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED;
-
-                port->priority = PA_MAX(port->priority, profile->priority * 100);
-                port->available = transport_state_to_availability_merged(transport_state, other_state);
-                pa_hashmap_put(port->profiles, profile->name, profile);
-            } else {
-                pa_assert_se(port = pa_device_port_new(u->core, "bluetooth-output", _("Bluetooth Output"), 0));
-                pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
-                port->is_output = 1;
-                port->is_input = 0;
-                port->priority = profile->priority * 100;
-                port->available = transport_state_to_availability(transport_state);
-                pa_hashmap_put(port->profiles, profile->name, profile);
-            }
-
-            break;
-
-        case PROFILE_A2DP_SOURCE:
-            pa_assert_se(port = pa_device_port_new(u->core, "a2dp-input", _("Bluetooth High Quality (A2DP)"), 0));
-            pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
-            port->is_output = 0;
-            port->is_input = 1;
-            port->priority = profile->priority * 100;
-            port->available = transport_state_to_availability(transport_state);
-            pa_hashmap_put(port->profiles, profile->name, profile);
-            break;
-
-        case PROFILE_HSP:
-            if ((port = pa_hashmap_get(ports, "bluetooth-output")) != NULL) {
-                pa_bluetooth_transport *other = device->transports[PROFILE_A2DP];
-                pa_bluetooth_transport_state_t other_state = other ? other->state : PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED;
-
-                port->priority = PA_MAX(port->priority, profile->priority * 100);
-                port->available = transport_state_to_availability_merged(transport_state, other_state);
-                pa_hashmap_put(port->profiles, profile->name, profile);
-            } else {
-                pa_assert_se(port = pa_device_port_new(u->core, "bluetooth-output", _("Bluetooth Output"), 0));
-                pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
-                port->is_output = 1;
-                port->is_input = 0;
-                port->priority = profile->priority * 100;
-                port->available = transport_state_to_availability(transport_state);
-                pa_hashmap_put(port->profiles, profile->name, profile);
-            }
-
-            pa_assert_se(port = pa_device_port_new(u->core, "hsp-input", _("Bluetooth Telephony (HSP/HFP)"), 0));
-            pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
-            port->is_output = 0;
-            port->is_input = 1;
-            port->priority = profile->priority * 100;
-            port->available = transport_state_to_availability(transport_state);
-            pa_hashmap_put(port->profiles, profile->name, profile);
-            break;
-
-        case PROFILE_HFGW:
-            pa_assert_se(port = pa_device_port_new(u->core, "hfgw-output", _("Bluetooth Handsfree Gateway"), 0));
-            pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
-            port->is_output = 1;
-            port->is_input = 0;
-            port->priority = profile->priority * 100;
-            port->available = transport_state_to_availability(transport_state);
-            pa_hashmap_put(port->profiles, profile->name, profile);
-
-            pa_assert_se(port = pa_device_port_new(u->core, "hfgw-input", _("Bluetooth Handsfree Gateway"), 0));
-            pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
-            port->is_output = 0;
-            port->is_input = 1;
-            port->priority = profile->priority * 100;
-            port->available = transport_state_to_availability(transport_state);
-            pa_hashmap_put(port->profiles, profile->name, profile);
-            break;
-
-        default:
-            pa_assert_not_reached();
-    }
-
+    pa_assert_se(port = pa_device_port_new(u->core, "bluetooth-input", _("Bluetooth Input"), 0));
+    pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
+    port->is_output = 0;
+    port->is_input = 1;
+    port->available = get_port_availability(u, PA_DIRECTION_INPUT);
 }
 
 /* Run from main thread */
@@ -2331,10 +2193,11 @@ static int add_card(struct userdata *u) {
         }
 
         pa_hashmap_put(data.profiles, p->name, p);
-        create_ports_for_profile(u, data.ports, p);
     }
 
     pa_assert(!pa_hashmap_isempty(data.profiles));
+
+    create_card_ports(u, data.ports);
 
     p = pa_card_profile_new("off", _("Off"), sizeof(enum profile));
     p->available = PA_AVAILABLE_YES;
@@ -2419,7 +2282,6 @@ static pa_bluetooth_device* find_device(struct userdata *u, const char *address,
 static pa_hook_result_t uuid_added_cb(pa_bluetooth_discovery *y, const struct pa_bluetooth_hook_uuid_data *data,
                                       struct userdata *u) {
     pa_card_profile *p;
-    pa_hashmap *new_ports;
 
     pa_assert(data);
     pa_assert(data->device);
@@ -2440,14 +2302,6 @@ static pa_hook_result_t uuid_added_cb(pa_bluetooth_discovery *y, const struct pa
     }
 
     pa_card_add_profile(u->card, p);
-
-    new_ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-
-    create_ports_for_profile(u, new_ports, p);
-
-    pa_card_add_ports(u->card, new_ports);
-
-    pa_hashmap_free(new_ports, (pa_free_cb_t) pa_device_port_unref);
 
     return PA_HOOK_OK;
 }
