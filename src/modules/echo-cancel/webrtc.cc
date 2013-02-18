@@ -77,8 +77,9 @@ static int routing_mode_from_string(const char *rmode) {
 }
 
 pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
-                            pa_sample_spec *source_ss, pa_channel_map *source_map,
-                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
+                            pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                            pa_sample_spec *play_ss, pa_channel_map *play_map,
+                            pa_sample_spec *out_ss, pa_channel_map *out_map,
                             uint32_t *nframes, const char *args)
 {
     webrtc::AudioProcessing *apm = NULL;
@@ -158,23 +159,25 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
 
     apm = webrtc::AudioProcessing::Create(0);
 
-    source_ss->format = PA_SAMPLE_S16NE;
-    *sink_ss = *source_ss;
+    out_ss->format = PA_SAMPLE_S16NE;
+    *play_ss = *out_ss;
     /* FIXME: the implementation actually allows a different number of
      * source/sink channels. Do we want to support that? */
-    *sink_map = *source_map;
+    *play_map = *out_map;
+    *rec_ss = *out_ss;
+    *rec_map = *out_map;
 
-    apm->set_sample_rate_hz(source_ss->rate);
+    apm->set_sample_rate_hz(out_ss->rate);
 
-    apm->set_num_channels(source_ss->channels, source_ss->channels);
-    apm->set_num_reverse_channels(sink_ss->channels);
+    apm->set_num_channels(out_ss->channels, out_ss->channels);
+    apm->set_num_reverse_channels(play_ss->channels);
 
     if (hpf)
         apm->high_pass_filter()->Enable(true);
 
     if (!mobile) {
         if (ec->params.drift_compensation) {
-            apm->echo_cancellation()->set_device_sample_rate_hz(source_ss->rate);
+            apm->echo_cancellation()->set_device_sample_rate_hz(out_ss->rate);
             apm->echo_cancellation()->enable_drift_compensation(true);
         } else {
             apm->echo_cancellation()->enable_drift_compensation(false);
@@ -215,9 +218,9 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     apm->voice_detection()->Enable(true);
 
     ec->params.priv.webrtc.apm = apm;
-    ec->params.priv.webrtc.sample_spec = *source_ss;
-    ec->params.priv.webrtc.blocksize = (uint64_t)pa_bytes_per_second(source_ss) * BLOCK_SIZE_US / PA_USEC_PER_SEC;
-    *nframes = ec->params.priv.webrtc.blocksize / pa_frame_size(source_ss);
+    ec->params.priv.webrtc.sample_spec = *out_ss;
+    ec->params.priv.webrtc.blocksize = (uint64_t)pa_bytes_per_second(out_ss) * BLOCK_SIZE_US / PA_USEC_PER_SEC;
+    *nframes = ec->params.priv.webrtc.blocksize / pa_frame_size(out_ss);
 
     pa_modargs_free(ma);
     return TRUE;

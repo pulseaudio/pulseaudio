@@ -26,18 +26,22 @@ PA_C_DECL_BEGIN
 PA_C_DECL_END
 
 pa_bool_t pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
-                           pa_sample_spec *source_ss, pa_channel_map *source_map,
-                           pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                           uint32_t *nframes, const char *args) {
+                          pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                          pa_sample_spec *play_ss, pa_channel_map *play_map,
+                          pa_sample_spec *out_ss, pa_channel_map *out_map,
+                          uint32_t *nframes, const char *args) {
     char strss_source[PA_SAMPLE_SPEC_SNPRINT_MAX];
     char strss_sink[PA_SAMPLE_SPEC_SNPRINT_MAX];
 
     *nframes = 256;
-    ec->params.priv.null.source_ss = *source_ss;
+    ec->params.priv.null.out_ss = *out_ss;
+
+    *rec_ss = *out_ss;
+    *rec_map = *out_map;
 
     pa_log_debug("null AEC: nframes=%u, sample spec source=%s, sample spec sink=%s", *nframes,
-            pa_sample_spec_snprint(strss_source, sizeof(strss_source), source_ss),
-            pa_sample_spec_snprint(strss_sink, sizeof(strss_sink), sink_ss));
+                 pa_sample_spec_snprint(strss_source, sizeof(strss_source), out_ss),
+                 pa_sample_spec_snprint(strss_sink, sizeof(strss_sink), play_ss));
 
     return TRUE;
 }
@@ -45,7 +49,7 @@ pa_bool_t pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
 void pa_null_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {
     /* The null implementation simply copies the recorded buffer to the output
        buffer and ignores the play buffer. */
-    memcpy(out, rec, 256 * pa_frame_size(&ec->params.priv.null.source_ss));
+    memcpy(out, rec, 256 * pa_frame_size(&ec->params.priv.null.out_ss));
 }
 
 void pa_null_ec_done(pa_echo_canceller *ec) {

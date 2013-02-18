@@ -43,21 +43,25 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static void pa_adrian_ec_fixate_spec(pa_sample_spec *source_ss, pa_channel_map *source_map,
-                                    pa_sample_spec *sink_ss, pa_channel_map *sink_map)
+static void pa_adrian_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                                     pa_sample_spec *play_ss, pa_channel_map *play_map,
+                                     pa_sample_spec *out_ss, pa_channel_map *out_map)
 {
-    source_ss->format = PA_SAMPLE_S16NE;
-    source_ss->channels = 1;
-    pa_channel_map_init_mono(source_map);
+    out_ss->format = PA_SAMPLE_S16NE;
+    out_ss->channels = 1;
+    pa_channel_map_init_mono(out_map);
 
-    *sink_ss = *source_ss;
-    *sink_map = *source_map;
+    *play_ss = *out_ss;
+    *play_map = *out_map;
+    *rec_ss = *out_ss;
+    *rec_map = *out_map;
 }
 
 pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
-                           pa_sample_spec *source_ss, pa_channel_map *source_map,
-                           pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                           uint32_t *nframes, const char *args)
+                            pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                            pa_sample_spec *play_ss, pa_channel_map *play_map,
+                            pa_sample_spec *out_ss, pa_channel_map *out_map,
+                            uint32_t *nframes, const char *args)
 {
     int rate, have_vector = 0;
     uint32_t frame_size_ms;
@@ -74,13 +78,13 @@ pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
         goto fail;
     }
 
-    pa_adrian_ec_fixate_spec(source_ss, source_map, sink_ss, sink_map);
+    pa_adrian_ec_fixate_spec(rec_ss, rec_map, play_ss, play_map, out_ss, out_map);
 
-    rate = source_ss->rate;
+    rate = out_ss->rate;
     *nframes = (rate * frame_size_ms) / 1000;
-    ec->params.priv.adrian.blocksize = (*nframes) * pa_frame_size(source_ss);
+    ec->params.priv.adrian.blocksize = (*nframes) * pa_frame_size(out_ss);
 
-    pa_log_debug ("Using nframes %d, blocksize %u, channels %d, rate %d", *nframes, ec->params.priv.adrian.blocksize, source_ss->channels, source_ss->rate);
+    pa_log_debug ("Using nframes %d, blocksize %u, channels %d, rate %d", *nframes, ec->params.priv.adrian.blocksize, out_ss->channels, out_ss->rate);
 
     /* For now we only support SSE */
     if (c->cpu_info.cpu_type == PA_CPU_X86 && (c->cpu_info.flags.x86 & PA_CPU_X86_SSE))

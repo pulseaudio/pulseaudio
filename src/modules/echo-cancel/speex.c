@@ -49,16 +49,19 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static void pa_speex_ec_fixate_spec(pa_sample_spec *source_ss, pa_channel_map *source_map,
-                                    pa_sample_spec *sink_ss, pa_channel_map *sink_map)
+static void pa_speex_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                                    pa_sample_spec *play_ss, pa_channel_map *play_map,
+                                    pa_sample_spec *out_ss, pa_channel_map *out_map)
 {
-    source_ss->format = PA_SAMPLE_S16NE;
+    out_ss->format = PA_SAMPLE_S16NE;
 
-    *sink_ss = *source_ss;
-    *sink_map = *source_map;
+    *play_ss = *out_ss;
+    *play_map = *out_map;
+    *rec_ss = *out_ss;
+    *rec_map = *out_map;
 }
 
-static pa_bool_t pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_spec *source_ss, uint32_t nframes, pa_modargs *ma) {
+static pa_bool_t pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_spec *out_ss, uint32_t nframes, pa_modargs *ma) {
     pa_bool_t agc;
     pa_bool_t denoise;
     pa_bool_t echo_suppress;
@@ -106,12 +109,12 @@ static pa_bool_t pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_
     if (agc || denoise || echo_suppress) {
         spx_int32_t tmp;
 
-        if (source_ss->channels != 1) {
+        if (out_ss->channels != 1) {
             pa_log("AGC, denoising and echo suppression only work with channels=1");
             goto fail;
         }
 
-        ec->params.priv.speex.pp_state = speex_preprocess_state_init(nframes, source_ss->rate);
+        ec->params.priv.speex.pp_state = speex_preprocess_state_init(nframes, out_ss->rate);
 
         tmp = agc;
         speex_preprocess_ctl(ec->params.priv.speex.pp_state, SPEEX_PREPROCESS_SET_AGC, &tmp);
@@ -146,8 +149,9 @@ fail:
 
 
 pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
-                           pa_sample_spec *source_ss, pa_channel_map *source_map,
-                           pa_sample_spec *sink_ss, pa_channel_map *sink_map,
+                           pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                           pa_sample_spec *play_ss, pa_channel_map *play_map,
+                           pa_sample_spec *out_ss, pa_channel_map *out_map,
                            uint32_t *nframes, const char *args)
 {
     int rate;
@@ -171,20 +175,20 @@ pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
         goto fail;
     }
 
-    pa_speex_ec_fixate_spec(source_ss, source_map, sink_ss, sink_map);
+    pa_speex_ec_fixate_spec(rec_ss, rec_map, play_ss, play_map, out_ss, out_map);
 
-    rate = source_ss->rate;
+    rate = out_ss->rate;
     *nframes = pa_echo_canceller_blocksize_power2(rate, frame_size_ms);
 
-    pa_log_debug ("Using nframes %d, channels %d, rate %d", *nframes, source_ss->channels, source_ss->rate);
-    ec->params.priv.speex.state = speex_echo_state_init_mc(*nframes, (rate * filter_size_ms) / 1000, source_ss->channels, source_ss->channels);
+    pa_log_debug ("Using nframes %d, channels %d, rate %d", *nframes, out_ss->channels, out_ss->rate);
+    ec->params.priv.speex.state = speex_echo_state_init_mc(*nframes, (rate * filter_size_ms) / 1000, out_ss->channels, out_ss->channels);
 
     if (!ec->params.priv.speex.state)
         goto fail;
 
     speex_echo_ctl(ec->params.priv.speex.state, SPEEX_ECHO_SET_SAMPLING_RATE, &rate);
 
-    if (!pa_speex_ec_preprocessor_init(ec, source_ss, *nframes, ma))
+    if (!pa_speex_ec_preprocessor_init(ec, out_ss, *nframes, ma))
         goto fail;
 
     pa_modargs_free(ma);

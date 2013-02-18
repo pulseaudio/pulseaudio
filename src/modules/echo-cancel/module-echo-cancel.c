@@ -211,6 +211,7 @@ struct userdata {
     pa_bool_t save_aec;
 
     pa_echo_canceller *ec;
+    uint32_t source_output_blocksize;
     uint32_t source_blocksize;
     uint32_t sink_blocksize;
 
@@ -418,7 +419,7 @@ static int source_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t 
                 /* Add the latency internal to our source output on top */
                 pa_bytes_to_usec(pa_memblockq_get_length(u->source_output->thread_info.delay_memblockq), &u->source_output->source->sample_spec) +
                 /* and the buffering we do on the source */
-                pa_bytes_to_usec(u->source_blocksize, &u->source_output->source->sample_spec);
+                pa_bytes_to_usec(u->source_output_blocksize, &u->source_output->source->sample_spec);
 
             return 0;
 
@@ -737,7 +738,7 @@ static void do_push_drift_comp(struct userdata *u) {
      */
     drift = ((float)(plen - u->sink_rem) - (rlen - u->source_rem)) / ((float)(rlen - u->source_rem));
     u->sink_rem = plen % u->sink_blocksize;
-    u->source_rem = rlen % u->source_blocksize;
+    u->source_rem = rlen % u->source_output_blocksize;
 
     /* Now let the canceller work its drift compensation magic */
     u->ec->set_drift(u->ec, drift);
@@ -770,14 +771,14 @@ static void do_push_drift_comp(struct userdata *u) {
     }
 
     /* And now the capture samples */
-    while (rlen >= u->source_blocksize) {
-        pa_memblockq_peek_fixed_size(u->source_memblockq, u->source_blocksize, &rchunk);
+    while (rlen >= u->source_output_blocksize) {
+        pa_memblockq_peek_fixed_size(u->source_memblockq, u->source_output_blocksize, &rchunk);
 
         rdata = pa_memblock_acquire(rchunk.memblock);
         rdata += rchunk.index;
 
         cchunk.index = 0;
-        cchunk.length = u->source_blocksize;
+        cchunk.length = u->source_output_blocksize;
         cchunk.memblock = pa_memblock_new(u->source->core->mempool, cchunk.length);
         cdata = pa_memblock_acquire(cchunk.memblock);
 
@@ -785,11 +786,11 @@ static void do_push_drift_comp(struct userdata *u) {
 
         if (u->save_aec) {
             if (u->drift_file)
-                fprintf(u->drift_file, "c %d\n", u->source_blocksize);
+                fprintf(u->drift_file, "c %d\n", u->source_output_blocksize);
             if (u->captured_file)
-                unused = fwrite(rdata, 1, u->source_blocksize, u->captured_file);
+                unused = fwrite(rdata, 1, u->source_output_blocksize, u->captured_file);
             if (u->canceled_file)
-                unused = fwrite(cdata, 1, u->source_blocksize, u->canceled_file);
+                unused = fwrite(cdata, 1, u->source_output_blocksize, u->canceled_file);
         }
 
         pa_memblock_release(cchunk.memblock);
@@ -800,8 +801,8 @@ static void do_push_drift_comp(struct userdata *u) {
         pa_source_post(u->source, &cchunk);
         pa_memblock_unref(cchunk.memblock);
 
-        pa_memblockq_drop(u->source_memblockq, u->source_blocksize);
-        rlen -= u->source_blocksize;
+        pa_memblockq_drop(u->source_memblockq, u->source_output_blocksize);
+        rlen -= u->source_output_blocksize;
     }
 }
 
@@ -819,10 +820,10 @@ static void do_push(struct userdata *u) {
     rlen = pa_memblockq_get_length(u->source_memblockq);
     plen = pa_memblockq_get_length(u->sink_memblockq);
 
-    while (rlen >= u->source_blocksize) {
+    while (rlen >= u->source_output_blocksize) {
 
         /* take fixed blocks from recorded and played samples */
-        pa_memblockq_peek_fixed_size(u->source_memblockq, u->source_blocksize, &rchunk);
+        pa_memblockq_peek_fixed_size(u->source_memblockq, u->source_output_blocksize, &rchunk);
         pa_memblockq_peek_fixed_size(u->sink_memblockq, u->sink_blocksize, &pchunk);
 
         /* we ran out of played data and pchunk has been filled with silence bytes */
@@ -841,7 +842,7 @@ static void do_push(struct userdata *u) {
 
         if (u->save_aec) {
             if (u->captured_file)
-                unused = fwrite(rdata, 1, u->source_blocksize, u->captured_file);
+                unused = fwrite(rdata, 1, u->source_output_blocksize, u->captured_file);
             if (u->played_file)
                 unused = fwrite(pdata, 1, u->sink_blocksize, u->played_file);
         }
@@ -859,9 +860,9 @@ static void do_push(struct userdata *u) {
         pa_memblock_release(rchunk.memblock);
 
         /* drop consumed source samples */
-        pa_memblockq_drop(u->source_memblockq, u->source_blocksize);
+        pa_memblockq_drop(u->source_memblockq, u->source_output_blocksize);
         pa_memblock_unref(rchunk.memblock);
-        rlen -= u->source_blocksize;
+        rlen -= u->source_output_blocksize;
 
         /* drop consumed sink samples */
         pa_memblockq_drop(u->sink_memblockq, u->sink_blocksize);
@@ -909,7 +910,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     plen = pa_memblockq_get_length(u->sink_memblockq);
 
     /* Let's not do anything else till we have enough data to process */
-    if (rlen < u->source_blocksize)
+    if (rlen < u->source_output_blocksize)
         return;
 
     /* See if we need to drop samples in order to sync */
@@ -925,7 +926,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
          * means the only way to try to catch up is drop sink samples and let
          * the canceller cope up with this. */
         to_skip = rlen >= u->source_skip ? u->source_skip : rlen;
-        to_skip -= to_skip % u->source_blocksize;
+        to_skip -= to_skip % u->source_output_blocksize;
 
         if (to_skip) {
             pa_memblockq_peek_fixed_size(u->source_memblockq, to_skip, &rchunk);
@@ -938,9 +939,9 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
             u->source_skip -= to_skip;
         }
 
-        if (rlen && u->source_skip % u->source_blocksize) {
-            u->sink_skip += (uint64_t) (u->source_blocksize - (u->source_skip % u->source_blocksize)) * u->sink_blocksize / u->source_blocksize;
-            u->source_skip -= (u->source_skip % u->source_blocksize);
+        if (rlen && u->source_skip % u->source_output_blocksize) {
+            u->sink_skip += (uint64_t) (u->source_output_blocksize - (u->source_skip % u->source_output_blocksize)) * u->sink_blocksize / u->source_output_blocksize;
+            u->source_skip -= (u->source_skip % u->source_output_blocksize);
         }
     }
 
@@ -1646,8 +1647,8 @@ fail:
 /* Called from main context. */
 int pa__init(pa_module*m) {
     struct userdata *u;
-    pa_sample_spec source_ss, sink_ss;
-    pa_channel_map source_map, sink_map;
+    pa_sample_spec source_output_ss, source_ss, sink_ss;
+    pa_channel_map source_output_map, source_map, sink_map;
     pa_modargs *ma;
     pa_source *source_master=NULL;
     pa_sink *sink_master=NULL;
@@ -1747,12 +1748,24 @@ int pa__init(pa_module*m) {
     u->asyncmsgq = pa_asyncmsgq_new(0);
     u->need_realign = TRUE;
 
+    source_output_ss = source_ss;
+    source_output_map = source_map;
+
+    if (sink_ss.rate != source_ss.rate) {
+        pa_log_info("Sample rates of play and out stream differ. Adjusting rate of play stream.");
+        sink_ss.rate = source_ss.rate;
+    }
+
     pa_assert(u->ec->init);
-    if (!u->ec->init(u->core, u->ec, &source_ss, &source_map, &sink_ss, &sink_map, &nframes, pa_modargs_get_value(ma, "aec_args", NULL))) {
+    if (!u->ec->init(u->core, u->ec, &source_output_ss, &source_output_map, &sink_ss, &sink_map, &source_ss, &source_map, &nframes, pa_modargs_get_value(ma, "aec_args", NULL))) {
         pa_log("Failed to init AEC engine");
         goto fail;
     }
 
+    pa_assert(source_output_ss.rate == source_ss.rate);
+    pa_assert(sink_ss.rate == source_ss.rate);
+
+    u->source_output_blocksize = nframes * pa_frame_size(&source_output_ss);
     u->source_blocksize = nframes * pa_frame_size(&source_ss);
     u->sink_blocksize = nframes * pa_frame_size(&sink_ss);
 
@@ -1871,8 +1884,8 @@ int pa__init(pa_module*m) {
 
     pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_NAME, "Echo-Cancel Source Stream");
     pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
-    pa_source_output_new_data_set_sample_spec(&source_output_data, &source_ss);
-    pa_source_output_new_data_set_channel_map(&source_output_data, &source_map);
+    pa_source_output_new_data_set_sample_spec(&source_output_data, &source_output_ss);
+    pa_source_output_new_data_set_channel_map(&source_output_data, &source_output_map);
 
     pa_source_output_new(&u->source_output, m->core, &source_output_data);
     pa_source_output_new_data_done(&source_output_data);
@@ -1939,7 +1952,7 @@ int pa__init(pa_module*m) {
     pa_sink_input_get_silence(u->sink_input, &silence);
 
     u->source_memblockq = pa_memblockq_new("module-echo-cancel source_memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0,
-        &source_ss, 1, 1, 0, &silence);
+        &source_output_ss, 1, 1, 0, &silence);
     u->sink_memblockq = pa_memblockq_new("module-echo-cancel sink_memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0,
         &sink_ss, 0, 1, 0, &silence);
 
@@ -2083,8 +2096,8 @@ void pa__done(pa_module*m) {
  */
 int main(int argc, char* argv[]) {
     struct userdata u;
-    pa_sample_spec source_ss, sink_ss;
-    pa_channel_map source_map, sink_map;
+    pa_sample_spec source_output_ss, source_ss, sink_ss;
+    pa_channel_map source_output_map, source_map, sink_map;
     pa_modargs *ma = NULL;
     uint8_t *rdata = NULL, *pdata = NULL, *cdata = NULL;
     int unused PA_GCC_UNUSED;
@@ -2140,11 +2153,15 @@ int main(int argc, char* argv[]) {
     if (init_common(ma, &u, &source_ss, &source_map) < 0)
         goto fail;
 
-    if (!u.ec->init(u.core, u.ec, &source_ss, &source_map, &sink_ss, &sink_map, &nframes,
+    source_output_ss = source_ss;
+    source_output_map = source_map;
+
+    if (!u.ec->init(u.core, u.ec, &source_output_ss, &source_output_map, &sink_ss, &sink_map, &source_ss, &source_map, &nframes,
                      pa_modargs_get_value(ma, "aec_args", NULL))) {
         pa_log("Failed to init AEC engine");
         goto fail;
     }
+    u.source_output_blocksize = nframes * pa_frame_size(&source_output_ss);
     u.source_blocksize = nframes * pa_frame_size(&source_ss);
     u.sink_blocksize = nframes * pa_frame_size(&sink_ss);
 
@@ -2162,12 +2179,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    rdata = pa_xmalloc(u.source_blocksize);
+    rdata = pa_xmalloc(u.source_output_blocksize);
     pdata = pa_xmalloc(u.sink_blocksize);
     cdata = pa_xmalloc(u.source_blocksize);
 
     if (!u.ec->params.drift_compensation) {
-        while (fread(rdata, u.source_blocksize, 1, u.captured_file) > 0) {
+        while (fread(rdata, u.source_output_blocksize, 1, u.captured_file) > 0) {
             if (fread(pdata, u.sink_blocksize, 1, u.played_file) == 0) {
                 perror("Played file ended before captured file");
                 goto fail;

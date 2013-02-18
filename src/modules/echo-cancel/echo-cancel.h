@@ -47,7 +47,7 @@ typedef struct pa_echo_canceller_params pa_echo_canceller_params;
 struct pa_echo_canceller_params {
     union {
         struct {
-            pa_sample_spec source_ss;
+            pa_sample_spec out_ss;
         } null;
 #ifdef HAVE_SPEEX
         struct {
@@ -85,10 +85,12 @@ struct pa_echo_canceller {
     /* Initialise canceller engine. */
     pa_bool_t   (*init)                 (pa_core *c,
                                          pa_echo_canceller *ec,
-                                         pa_sample_spec *source_ss,
-                                         pa_channel_map *source_map,
-                                         pa_sample_spec *sink_ss,
-                                         pa_channel_map *sink_map,
+                                         pa_sample_spec *rec_ss,
+                                         pa_channel_map *rec_map,
+                                         pa_sample_spec *play_ss,
+                                         pa_channel_map *play_map,
+                                         pa_sample_spec *out_ss,
+                                         pa_channel_map *out_map,
                                          uint32_t *nframes,
                                          const char *args);
 
@@ -137,17 +139,19 @@ uint32_t pa_echo_canceller_blocksize_power2(unsigned rate, unsigned ms);
 
 /* Null canceller functions */
 pa_bool_t pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
-                           pa_sample_spec *source_ss, pa_channel_map *source_map,
-                           pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                           uint32_t *nframes, const char *args);
+                          pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                          pa_sample_spec *play_ss, pa_channel_map *play_map,
+                          pa_sample_spec *out_ss, pa_channel_map *out_map,
+                          uint32_t *nframes, const char *args);
 void pa_null_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_null_ec_done(pa_echo_canceller *ec);
 
 #ifdef HAVE_SPEEX
 /* Speex canceller functions */
 pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
-                           pa_sample_spec *source_ss, pa_channel_map *source_map,
-                           pa_sample_spec *sink_ss, pa_channel_map *sink_map,
+                           pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                           pa_sample_spec *play_ss, pa_channel_map *play_map,
+                           pa_sample_spec *out_ss, pa_channel_map *out_map,
                            uint32_t *nframes, const char *args);
 void pa_speex_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_speex_ec_done(pa_echo_canceller *ec);
@@ -156,9 +160,10 @@ void pa_speex_ec_done(pa_echo_canceller *ec);
 #ifdef HAVE_ADRIAN_EC
 /* Adrian Andre's echo canceller */
 pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
-                           pa_sample_spec *source_ss, pa_channel_map *source_map,
-                           pa_sample_spec *sink_ss, pa_channel_map *sink_map,
-                           uint32_t *nframes, const char *args);
+                            pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                            pa_sample_spec *play_ss, pa_channel_map *play_map,
+                            pa_sample_spec *out_ss, pa_channel_map *out_map,
+                            uint32_t *nframes, const char *args);
 void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_adrian_ec_done(pa_echo_canceller *ec);
 #endif
@@ -167,8 +172,9 @@ void pa_adrian_ec_done(pa_echo_canceller *ec);
 /* WebRTC canceller functions */
 PA_C_DECL_BEGIN
 pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
-                            pa_sample_spec *source_ss, pa_channel_map *source_map,
-                            pa_sample_spec *sink_ss, pa_channel_map *sink_map,
+                            pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                            pa_sample_spec *play_ss, pa_channel_map *play_map,
+                            pa_sample_spec *out_ss, pa_channel_map *out_map,
                             uint32_t *nframes, const char *args);
 void pa_webrtc_ec_play(pa_echo_canceller *ec, const uint8_t *play);
 void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out);
