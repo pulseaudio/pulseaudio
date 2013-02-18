@@ -1215,6 +1215,7 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
     bool acquire = false;
     bool release = false;
     enum profile profile;
+    pa_card_profile *cp;
     pa_bluetooth_transport_state_t state;
 
     pa_assert(u);
@@ -1223,9 +1224,13 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
     profile = transport->profile;
     state = transport->state;
 
-    if (!pa_hashmap_get(u->card->profiles, pa_bt_profile_to_string(profile)))
+    /* Update profile availability */
+    if (!(cp = pa_hashmap_get(u->card->profiles, pa_bt_profile_to_string(profile))))
         return;
 
+    pa_card_profile_set_available(cp, transport_state_to_availability(state));
+
+    /* Update port availability */
     switch (profile) {
         case PROFILE_HFGW: {
             pa_device_port *port;
@@ -1301,6 +1306,7 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
             pa_assert_not_reached();
     }
 
+    /* Acquire or release transport as needed */
     if (acquire)
         if (bt_transport_acquire(u, true) >= 0) {
             if (u->source) {
@@ -2263,6 +2269,13 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         *d = PROFILE_HFGW;
     }
 
+    if (p) {
+        pa_bluetooth_transport *t;
+
+        if ((t = u->device->transports[*d]))
+            p->available = transport_state_to_availability(t->state);
+    }
+
     return p;
 }
 
@@ -2324,6 +2337,7 @@ static int add_card(struct userdata *u) {
     pa_assert(!pa_hashmap_isempty(data.profiles));
 
     p = pa_card_profile_new("off", _("Off"), sizeof(enum profile));
+    p->available = PA_AVAILABLE_YES;
     d = PA_CARD_PROFILE_DATA(p);
     *d = PROFILE_OFF;
     pa_hashmap_put(data.profiles, p->name, p);
