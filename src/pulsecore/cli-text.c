@@ -103,13 +103,13 @@ char *pa_client_list_to_string(pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
-static const char *port_available_to_string(pa_port_available_t a) {
+static const char *port_available_to_string(pa_available_t a) {
     switch (a) {
-        case PA_PORT_AVAILABLE_UNKNOWN:
+        case PA_AVAILABLE_UNKNOWN:
             return "unknown";
-        case PA_PORT_AVAILABLE_NO:
+        case PA_AVAILABLE_NO:
             return "no";
-        case PA_PORT_AVAILABLE_YES:
+        case PA_AVAILABLE_YES:
             return "yes";
         default:
             return "invalid"; /* Should never happen! */

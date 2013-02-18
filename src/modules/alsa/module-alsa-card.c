@@ -313,11 +313,11 @@ static void report_port_state(pa_device_port *p, struct userdata *u)
 {
     void *state;
     pa_alsa_jack *jack;
-    pa_port_available_t pa = PA_PORT_AVAILABLE_UNKNOWN;
+    pa_available_t pa = PA_AVAILABLE_UNKNOWN;
     pa_device_port *port;
 
     PA_HASHMAP_FOREACH(jack, u->jacks, state) {
-        pa_port_available_t cpa;
+        pa_available_t cpa;
 
         if (u->use_ucm)
             port = pa_hashmap_get(u->card->ports, jack->name);
@@ -334,11 +334,11 @@ static void report_port_state(pa_device_port *p, struct userdata *u)
         cpa = jack->plugged_in ? jack->state_plugged : jack->state_unplugged;
 
         /* "Yes" and "no" trumphs "unknown" if we have more than one jack */
-        if (cpa == PA_PORT_AVAILABLE_UNKNOWN)
+        if (cpa == PA_AVAILABLE_UNKNOWN)
             continue;
 
-        if ((cpa == PA_PORT_AVAILABLE_NO && pa == PA_PORT_AVAILABLE_YES) ||
-            (pa == PA_PORT_AVAILABLE_NO && cpa == PA_PORT_AVAILABLE_YES))
+        if ((cpa == PA_AVAILABLE_NO && pa == PA_AVAILABLE_YES) ||
+            (pa == PA_AVAILABLE_NO && cpa == PA_AVAILABLE_YES))
             pa_log_warn("Availability of port '%s' is inconsistent!", p->name);
         else
             pa = cpa;

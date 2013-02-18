@@ -139,7 +139,7 @@ static pa_device_port* find_best_port(pa_hashmap *ports) {
     pa_device_port *result = NULL;
 
     PA_HASHMAP_FOREACH(port, ports, state) {
-        if (port->available != PA_PORT_AVAILABLE_YES)
+        if (port->available != PA_AVAILABLE_YES)
             continue;
 
         if (result == NULL || port->priority > result->priority)
@@ -193,10 +193,10 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
 
     is_active_profile = card->active_profile == pa_hashmap_get(port->profiles, card->active_profile->name);
 
-    if (is_active_profile && port->available == PA_PORT_AVAILABLE_YES)
+    if (is_active_profile && port->available == PA_AVAILABLE_YES)
         return PA_HOOK_OK;
 
-    if (!is_active_profile && port->available != PA_PORT_AVAILABLE_YES)
+    if (!is_active_profile && port->available != PA_AVAILABLE_YES)
         return PA_HOOK_OK;
 
     if ((port2 = find_best_port(card->ports)) == NULL)

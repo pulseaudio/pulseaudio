@@ -29,6 +29,14 @@ typedef struct pa_card pa_card;
 #include <pulsecore/module.h>
 #include <pulsecore/idxset.h>
 
+/* This enum replaces pa_port_available_t (defined in pulse/def.h) for
+ * internal use, so make sure both enum types stay in sync. */
+typedef enum pa_available {
+    PA_AVAILABLE_UNKNOWN = 0,
+    PA_AVAILABLE_NO = 1,
+    PA_AVAILABLE_YES = 2,
+} pa_available_t;
+
 typedef struct pa_card_profile {
     pa_card *card;
     char *name;

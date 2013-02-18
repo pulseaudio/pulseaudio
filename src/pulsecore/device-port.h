@@ -47,7 +47,7 @@ struct pa_device_port {
     char *description;
 
     unsigned priority;
-    pa_port_available_t available;         /* PA_PORT_AVAILABLE_UNKNOWN, PA_PORT_AVAILABLE_NO or PA_PORT_AVAILABLE_YES */
+    pa_available_t available;         /* PA_AVAILABLE_UNKNOWN, PA_AVAILABLE_NO or PA_AVAILABLE_YES */
 
     pa_proplist *proplist;
     pa_hashmap *profiles; /* Does not own the profiles */
@@ -66,7 +66,7 @@ PA_DECLARE_PUBLIC_CLASS(pa_device_port);
 pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *description, size_t extra);
 
 /* The port's available status has changed */
-void pa_device_port_set_available(pa_device_port *p, pa_port_available_t available);
+void pa_device_port_set_available(pa_device_port *p, pa_available_t available);
 
 void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset);
 

@@ -991,6 +991,7 @@ typedef void (*pa_free_cb_t)(void *p);
  * playback, \since 1.0 */
 #define PA_STREAM_EVENT_FORMAT_LOST "format-lost"
 
+#ifndef __INCLUDED_FROM_PULSE_AUDIO
 /** Port availability / jack detection status
  * \since 2.0 */
 typedef enum pa_port_available {
@@ -1005,6 +1006,7 @@ typedef enum pa_port_available {
 #define PA_PORT_AVAILABLE_YES PA_PORT_AVAILABLE_YES
 
 /** \endcond */
+#endif
 
 PA_C_DECL_END
 

@@ -1753,8 +1753,8 @@ static pa_alsa_jack* jack_get(pa_alsa_path *p, const char *section) {
             goto finish;
 
     j = pa_xnew0(pa_alsa_jack, 1);
-    j->state_unplugged = PA_PORT_AVAILABLE_NO;
-    j->state_plugged = PA_PORT_AVAILABLE_YES;
+    j->state_unplugged = PA_AVAILABLE_NO;
+    j->state_plugged = PA_AVAILABLE_YES;
     j->path = p;
     j->name = pa_xstrdup(section);
     j->alsa_name = pa_sprintf_malloc("%s Jack", section);
@@ -2167,7 +2167,7 @@ static int element_parse_override_map(pa_config_parser_state *state) {
 static int jack_parse_state(pa_config_parser_state *state) {
     pa_alsa_path *p;
     pa_alsa_jack *j;
-    pa_port_available_t pa;
+    pa_available_t pa;
 
     pa_assert(state);
 
@@ -2179,11 +2179,11 @@ static int jack_parse_state(pa_config_parser_state *state) {
     }
 
     if (pa_streq(state->rvalue, "yes"))
-	pa = PA_PORT_AVAILABLE_YES;
+	pa = PA_AVAILABLE_YES;
     else if (pa_streq(state->rvalue, "no"))
-	pa = PA_PORT_AVAILABLE_NO;
+	pa = PA_AVAILABLE_NO;
     else if (pa_streq(state->rvalue, "unknown"))
-	pa = PA_PORT_AVAILABLE_UNKNOWN;
+	pa = PA_AVAILABLE_UNKNOWN;
     else {
         pa_log("[%s:%u] state must be 'yes', 'no' or 'unknown' in '%s'", state->filename, state->lineno, state->section);
         return -1;

@@ -1216,8 +1216,8 @@ static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, const char *dev_name,
             goto out;
 
     j = pa_xnew0(pa_alsa_jack, 1);
-    j->state_unplugged = PA_PORT_AVAILABLE_NO;
-    j->state_plugged = PA_PORT_AVAILABLE_YES;
+    j->state_unplugged = PA_AVAILABLE_NO;
+    j->state_plugged = PA_AVAILABLE_YES;
     j->name = pa_xstrdup(name);
     j->alsa_name = pa_sprintf_malloc("%s Jack", dev_name);
 

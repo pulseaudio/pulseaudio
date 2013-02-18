@@ -26,7 +26,7 @@
 
 PA_DEFINE_PUBLIC_CLASS(pa_device_port, pa_object);
 
-void pa_device_port_set_available(pa_device_port *p, pa_port_available_t status)
+void pa_device_port_set_available(pa_device_port *p, pa_available_t status)
 {
     pa_core *core;
 
@@ -35,11 +35,11 @@ void pa_device_port_set_available(pa_device_port *p, pa_port_available_t status)
     if (p->available == status)
         return;
 
-/*    pa_assert(status != PA_PORT_AVAILABLE_UNKNOWN); */
+/*    pa_assert(status != PA_AVAILABLE_UNKNOWN); */
 
     p->available = status;
-    pa_log_debug("Setting port %s to status %s", p->name, status == PA_PORT_AVAILABLE_YES ? "yes" :
-       status == PA_PORT_AVAILABLE_NO ? "no" : "unknown");
+    pa_log_debug("Setting port %s to status %s", p->name, status == PA_AVAILABLE_YES ? "yes" :
+       status == PA_AVAILABLE_NO ? "no" : "unknown");
 
     /* Post subscriptions to the card which owns us */
     pa_assert_se(core = p->core);
@@ -79,7 +79,7 @@ pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *des
     p->core = c;
     p->card = NULL;
     p->priority = 0;
-    p->available = PA_PORT_AVAILABLE_UNKNOWN;
+    p->available = PA_AVAILABLE_UNKNOWN;
     p->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     p->is_input = FALSE;
     p->is_output = FALSE;

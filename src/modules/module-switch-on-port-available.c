@@ -40,8 +40,8 @@ static pa_device_port* find_best_port(pa_hashmap *ports) {
 
     PA_HASHMAP_FOREACH(port, ports, state) {
         if (result == NULL ||
-            result->available == PA_PORT_AVAILABLE_NO ||
-            (port->available != PA_PORT_AVAILABLE_NO && port->priority > result->priority)) {
+            result->available == PA_AVAILABLE_NO ||
+            (port->available != PA_AVAILABLE_NO && port->priority > result->priority)) {
             result = port;
         }
     }
@@ -85,7 +85,7 @@ static pa_bool_t try_to_switch_profile(pa_card *card, pa_device_port *port) {
             PA_IDXSET_FOREACH(sink, card->sinks, state2) {
                 if (!sink->active_port)
                     continue;
-                if (sink->active_port->available != PA_PORT_AVAILABLE_NO)
+                if (sink->active_port->available != PA_AVAILABLE_NO)
                     found_active_port = TRUE;
             }
 
@@ -136,7 +136,7 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
     pa_source *source;
     pa_bool_t is_active_profile, is_active_port;
 
-    if (port->available == PA_PORT_AVAILABLE_UNKNOWN)
+    if (port->available == PA_AVAILABLE_UNKNOWN)
         return PA_HOOK_OK;
 
     pa_log_debug("finding port %s", port->name);
@@ -155,10 +155,10 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
     is_active_profile = card->active_profile == pa_hashmap_get(port->profiles, card->active_profile->name);
     is_active_port = (sink && sink->active_port == port) || (source && source->active_port == port);
 
-    if (port->available == PA_PORT_AVAILABLE_NO && !is_active_port)
+    if (port->available == PA_AVAILABLE_NO && !is_active_port)
         return PA_HOOK_OK;
 
-    if (port->available == PA_PORT_AVAILABLE_YES) {
+    if (port->available == PA_AVAILABLE_YES) {
         if (is_active_port)
             return PA_HOOK_OK;
 
@@ -178,11 +178,11 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
             pa_sink_set_port(sink, port->name, FALSE);
     }
 
-    if (port->available == PA_PORT_AVAILABLE_NO) {
+    if (port->available == PA_AVAILABLE_NO) {
         if (sink) {
             pa_device_port *p2 = find_best_port(sink->ports);
 
-            if (p2 && p2->available != PA_PORT_AVAILABLE_NO)
+            if (p2 && p2->available != PA_AVAILABLE_NO)
                 pa_sink_set_port(sink, p2->name, FALSE);
             else {
                 /* Maybe try to switch to another profile? */
@@ -192,7 +192,7 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
         if (source) {
             pa_device_port *p2 = find_best_port(source->ports);
 
-            if (p2 && p2->available != PA_PORT_AVAILABLE_NO)
+            if (p2 && p2->available != PA_AVAILABLE_NO)
                 pa_source_set_port(source, p2->name, FALSE);
             else {
                 /* Maybe try to switch to another profile? */
@@ -212,7 +212,7 @@ static void handle_all_unavailable(pa_core *core) {
         void *state2;
 
         PA_HASHMAP_FOREACH(port, card->ports, state2) {
-            if (port->available == PA_PORT_AVAILABLE_NO)
+            if (port->available == PA_AVAILABLE_NO)
                 port_available_hook_callback(core, port, NULL);
         }
     }
