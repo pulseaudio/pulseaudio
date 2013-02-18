@@ -103,7 +103,7 @@ char *pa_client_list_to_string(pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
-static const char *port_available_to_string(pa_available_t a) {
+static const char *available_to_string(pa_available_t a) {
     switch (a) {
         case PA_AVAILABLE_UNKNOWN:
             return "unknown";
@@ -131,7 +131,7 @@ static void append_port_list(pa_strbuf *s, pa_hashmap *ports)
         char *t = pa_proplist_to_string_sep(p->proplist, "\n\t\t\t\t");
         pa_strbuf_printf(s, "\t\t%s: %s (priority %u, latency offset %" PRId64 " usec, available: %s)\n",
             p->name, p->description, p->priority, p->latency_offset,
-            port_available_to_string(p->available));
+            available_to_string(p->available));
         pa_strbuf_printf(s, "\t\t\tproperties:\n\t\t\t\t%s\n", t);
         pa_xfree(t);
     }
@@ -173,7 +173,8 @@ char *pa_card_list_to_string(pa_core *c) {
 
         pa_strbuf_puts(s, "\tprofiles:\n");
         PA_HASHMAP_FOREACH(profile, card->profiles, state)
-            pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", profile->name, profile->description, profile->priority);
+            pa_strbuf_printf(s, "\t\t%s: %s (priority %u, available: %s)\n", profile->name, profile->description,
+                             profile->priority, available_to_string(profile->available));
 
         pa_strbuf_printf(
                 s,
