@@ -63,6 +63,26 @@ void pa_card_profile_free(pa_card_profile *c) {
     pa_xfree(c);
 }
 
+void pa_card_profile_set_available(pa_card_profile *c, pa_available_t available) {
+    pa_core *core;
+
+    pa_assert(c);
+    pa_assert(c->card); /* Modify member variable directly during creation instead of using this function */
+
+    if (c->available == available)
+        return;
+
+    c->available = available;
+    pa_log_debug("Setting card %s profile %s to availability status %s", c->card->name, c->name,
+                 available == PA_AVAILABLE_YES ? "yes" : available == PA_AVAILABLE_NO ? "no" : "unknown");
+
+    /* Post subscriptions to the card which owns us */
+    pa_assert_se(core = c->card->core);
+    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->card->index);
+
+    pa_hook_fire(&core->hooks[PA_CORE_HOOK_CARD_PROFILE_AVAILABLE_CHANGED], c);
+}
+
 pa_card_new_data* pa_card_new_data_init(pa_card_new_data *data) {
     pa_assert(data);
 

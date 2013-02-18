@@ -43,6 +43,7 @@ typedef struct pa_card_profile {
     char *description;
 
     unsigned priority;
+    pa_available_t available; /* PA_AVAILABLE_UNKNOWN, PA_AVAILABLE_NO or PA_AVAILABLE_YES */
 
     /* We probably want to have different properties later on here */
     unsigned n_sinks;
@@ -100,6 +101,9 @@ typedef struct pa_card_new_data {
 
 pa_card_profile *pa_card_profile_new(const char *name, const char *description, size_t extra);
 void pa_card_profile_free(pa_card_profile *c);
+
+/* The profile's available status has changed */
+void pa_card_profile_set_available(pa_card_profile *c, pa_available_t available);
 
 pa_card_new_data *pa_card_new_data_init(pa_card_new_data *data);
 void pa_card_new_data_set_name(pa_card_new_data *data, const char *name);
