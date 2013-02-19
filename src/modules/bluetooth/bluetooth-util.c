@@ -679,8 +679,10 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
     if (dbus_message_has_interface(p->message, "org.bluez.Manager") ||
         dbus_message_has_interface(p->message, "org.bluez.Adapter"))
         d = NULL;
-    else
-        d = pa_hashmap_get(y->devices, dbus_message_get_path(p->message));
+    else if (!(d = pa_hashmap_get(y->devices, dbus_message_get_path(p->message)))) {
+        pa_log_warn("Received GetProperties() reply from unknown device: %s (device removed?)", dbus_message_get_path(p->message));
+        goto finish2;
+    }
 
     pa_assert(p->call_data == d);
 
