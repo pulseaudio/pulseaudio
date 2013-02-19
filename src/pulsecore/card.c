@@ -51,6 +51,7 @@ pa_card_profile *pa_card_profile_new(const char *name, const char *description, 
     c->priority = 0;
     c->n_sinks = c->n_sources = 0;
     c->max_sink_channels = c->max_source_channels = 0;
+    c->available = PA_AVAILABLE_UNKNOWN;
 
     return c;
 }
