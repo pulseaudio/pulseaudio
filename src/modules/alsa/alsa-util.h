@@ -143,7 +143,15 @@ const char* pa_alsa_strerror(int errnum);
 pa_bool_t pa_alsa_may_tsched(pa_bool_t want);
 
 snd_hctl_elem_t* pa_alsa_find_jack(snd_hctl_t *hctl, const char* jack_name);
+snd_hctl_elem_t* pa_alsa_find_eld_ctl(snd_hctl_t *hctl, int device);
 
 snd_mixer_t *pa_alsa_open_mixer(int alsa_card_index, char **ctl_device, snd_hctl_t **hctl);
+
+typedef struct pa_hdmi_eld pa_hdmi_eld;
+struct pa_hdmi_eld {
+    char monitor_name[17];
+};
+
+int pa_alsa_get_hdmi_eld(snd_hctl_t *hctl, int device, pa_hdmi_eld *eld);
 
 #endif

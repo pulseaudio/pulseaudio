@@ -1462,6 +1462,20 @@ snd_hctl_elem_t* pa_alsa_find_jack(snd_hctl_t *hctl, const char* jack_name)
     return snd_hctl_find_elem(hctl, id);
 }
 
+snd_hctl_elem_t* pa_alsa_find_eld_ctl(snd_hctl_t *hctl, int device) {
+    snd_ctl_elem_id_t *id;
+
+    /* See if we can find the ELD control */
+    snd_ctl_elem_id_alloca(&id);
+    snd_ctl_elem_id_clear(id);
+    snd_ctl_elem_id_set_interface(id, SND_CTL_ELEM_IFACE_PCM);
+    snd_ctl_elem_id_set_name(id, "ELD");
+    snd_ctl_elem_id_set_device(id, device);
+
+    return snd_hctl_find_elem(hctl, id);
+}
+
+
 static int prepare_mixer(snd_mixer_t *mixer, const char *dev, snd_hctl_t **hctl) {
     int err;
 
@@ -1573,4 +1587,58 @@ snd_mixer_t *pa_alsa_open_mixer_for_pcm(snd_pcm_t *pcm, char **ctl_device, snd_h
 
     snd_mixer_close(m);
     return NULL;
+}
+
+int pa_alsa_get_hdmi_eld(snd_hctl_t *hctl, int device, pa_hdmi_eld *eld) {
+
+    /* The ELD format is specific to HDA Intel sound cards and defined in the
+       HDA specification: http://www.intel.com/content/www/us/en/standards/high-definition-audio-specification.html */
+    int err;
+    snd_hctl_elem_t *elem;
+    snd_ctl_elem_info_t *info;
+    snd_ctl_elem_value_t *value;
+    uint8_t *elddata;
+    unsigned int eldsize, mnl;
+
+    pa_assert(eld != NULL);
+
+    /* See if we can find the ELD control */
+    elem = pa_alsa_find_eld_ctl(hctl, device);
+    if (elem == NULL) {
+        pa_log_debug("No ELD info control found (for device=%d)", device);
+        return -1;
+    }
+
+    /* Does it have any contents? */
+    snd_ctl_elem_info_alloca(&info);
+    snd_ctl_elem_value_alloca(&value);
+    if ((err = snd_hctl_elem_info(elem, info)) < 0 ||
+       (err = snd_hctl_elem_read(elem, value)) < 0) {
+        pa_log_warn("Accessing ELD control failed with error %s", snd_strerror(err));
+        return -1;
+    }
+
+    eldsize = snd_ctl_elem_info_get_count(info);
+    elddata = (unsigned char *) snd_ctl_elem_value_get_bytes(value);
+    if (elddata == NULL || eldsize == 0) {
+        pa_log_debug("ELD info empty (for device=%d)", device);
+        return -1;
+    }
+    if (eldsize < 20 || eldsize > 256) {
+        pa_log_debug("ELD info has wrong size (for device=%d)", device);
+        return -1;
+    }
+
+    /* Try to fetch monitor name */
+    mnl = elddata[4] & 0x1f;
+    if (mnl == 0 || mnl > 16 || 20 + mnl > eldsize) {
+        pa_log_debug("No monitor name in ELD info (for device=%d)", device);
+        mnl = 0;
+    }
+    memcpy(eld->monitor_name, &elddata[20], mnl);
+    eld->monitor_name[mnl] = '\0';
+    if (mnl)
+        pa_log_debug("Monitor name in ELD info is '%s' (for device=%d)", eld->monitor_name, device);
+
+    return 0;
 }
