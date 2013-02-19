@@ -2390,6 +2390,7 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
         { "description",         pa_config_parse_string,            NULL, "General" },
         { "name",                pa_config_parse_string,            NULL, "General" },
         { "mute-during-activation", pa_config_parse_bool,           NULL, "General" },
+        { "eld-device",          pa_config_parse_int,               NULL, "General" },
 
         /* [Option ...] */
         { "priority",            option_parse_priority,             NULL, NULL },
@@ -2422,11 +2423,13 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
     p->name = pa_xstrndup(n, strcspn(n, "."));
     p->proplist = pa_proplist_new();
     p->direction = direction;
+    p->eld_device = -1;
 
     items[0].data = &p->priority;
     items[1].data = &p->description;
     items[2].data = &p->name;
     items[3].data = &mute_during_activation;
+    items[4].data = &p->eld_device;
 
     if (!paths_dir)
         paths_dir = get_default_paths_dir();

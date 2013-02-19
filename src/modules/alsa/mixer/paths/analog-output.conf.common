@@ -59,6 +59,8 @@
 ; mute-during-activation = yes | no      # If this path supports hardware mute, should the hw mute be used while activating this
 ;                                        # path? In some cases this can reduce extra noises during port switching, while in other
 ;                                        # cases this can increase such noises. Default: no.
+; eld-device = ...                       # If this is an HDMI port, here's where to specify the device number for the ELD mixer
+;                                        # control. The default is to not make use of ELD information.
 ;
 ; [Properties]                           # Property list for this path. The list is merged into the port property list.
 ; <key> = <value>                        # Each property is defined on its own line.
