@@ -388,6 +388,77 @@ static int report_jack_state(snd_hctl_elem_t *elem, unsigned int mask)
     return 0;
 }
 
+static pa_device_port* find_port_with_eld_device(pa_hashmap *ports, int device) {
+    void *state;
+    pa_device_port *p;
+
+    PA_HASHMAP_FOREACH(p, ports, state) {
+        pa_alsa_port_data *data = PA_DEVICE_PORT_DATA(p);
+        pa_assert(data->path);
+        if (device == data->path->eld_device)
+            return p;
+    }
+    return NULL;
+}
+
+static int hdmi_eld_changed(snd_hctl_elem_t *elem, unsigned int mask) {
+    struct userdata *u = snd_hctl_elem_get_callback_private(elem);
+    int device = snd_hctl_elem_get_device(elem);
+    const char *old_monitor_name;
+    pa_device_port *p;
+    pa_hdmi_eld eld;
+    bool changed = false;
+
+    p = find_port_with_eld_device(u->card->ports, device);
+    if (p == NULL) {
+        pa_log_error("Invalid device changed in ALSA: %d", device);
+        return 0;
+    }
+
+    if (pa_alsa_get_hdmi_eld(u->hctl_handle, device, &eld) < 0)
+        memset(&eld, 0, sizeof(eld));
+
+    old_monitor_name = pa_proplist_gets(p->proplist, PA_PROP_DEVICE_PRODUCT_NAME);
+    if (eld.monitor_name[0] == '\0') {
+        changed |= old_monitor_name != NULL;
+        pa_proplist_unset(p->proplist, PA_PROP_DEVICE_PRODUCT_NAME);
+    } else {
+        changed |= (old_monitor_name == NULL) || (strcmp(old_monitor_name, eld.monitor_name) != 0);
+        pa_proplist_sets(p->proplist, PA_PROP_DEVICE_PRODUCT_NAME, eld.monitor_name);
+    }
+
+    if (changed && mask != 0)
+        pa_subscription_post(u->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, u->card->index);
+
+    return 0;
+}
+
+static void init_eld_ctls(struct userdata *u) {
+    void *state;
+    pa_device_port *port;
+
+    PA_HASHMAP_FOREACH(port, u->card->ports, state) {
+        pa_alsa_port_data *data = PA_DEVICE_PORT_DATA(port);
+        snd_hctl_elem_t* hctl_elem;
+        int device;
+
+        pa_assert(data->path);
+        device = data->path->eld_device;
+        if (device < 0)
+            continue;
+
+        hctl_elem = pa_alsa_find_eld_ctl(u->hctl_handle, device);
+        if (!hctl_elem) {
+            pa_log_debug("No ELD device found for port %s.", port->name);
+            continue;
+        }
+
+        snd_hctl_elem_set_callback_private(hctl_elem, u);
+        snd_hctl_elem_set_callback(hctl_elem, hdmi_eld_changed);
+        hdmi_eld_changed(hctl_elem, 0);
+    }
+}
+
 static void init_jacks(struct userdata *u) {
     void *state;
     pa_alsa_path* path;
@@ -676,6 +747,7 @@ int pa__init(pa_module *m) {
 
     init_profile(u);
     init_jacks(u);
+    init_eld_ctls(u);
 
     if (reserve)
         pa_reserve_wrapper_unref(reserve);
