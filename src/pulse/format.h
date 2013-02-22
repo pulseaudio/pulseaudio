@@ -65,6 +65,18 @@ typedef enum pa_encoding {
     /**< Represents an invalid encoding */
 } pa_encoding_t;
 
+/** \cond fulldocs */
+#define PA_ENCODING_ANY PA_ENCODING_ANY
+#define PA_ENCODING_PCM PA_ENCODING_PCM
+#define PA_ENCODING_AC3_IEC61937 PA_ENCODING_AC3_IEC61937
+#define PA_ENCODING_EAC3_IEC61937 PA_ENCODING_EAC3_IEC61937
+#define PA_ENCODING_MPEG_IEC61937 PA_ENCODING_MPEG_IEC61937
+#define PA_ENCODING_DTS_IEC61937 PA_ENCODING_DTS_IEC61937
+#define PA_ENCODING_MPEG2_AAC_IEC61937 PA_ENCODING_MPEG2_AAC_IEC61937
+#define PA_ENCODING_MAX PA_ENCODING_MAX
+#define PA_ENCODING_INVALID PA_ENCODING_INVALID
+/** \endcond */
+
 /** Returns a printable string representing the given encoding type. \since 1.0 */
 const char *pa_encoding_to_string(pa_encoding_t e) PA_GCC_CONST;
 
@@ -148,6 +160,15 @@ typedef enum pa_prop_type_t {
     PA_PROP_TYPE_INVALID = -1,
     /**< Represents an invalid type */
 } pa_prop_type_t;
+
+/** \cond fulldocs */
+#define PA_PROP_TYPE_INT PA_PROP_TYPE_INT
+#define PA_PROP_TYPE_INT_RANGE PA_PROP_TYPE_INT_RANGE
+#define PA_PROP_TYPE_INT_ARRAY PA_PROP_TYPE_INT_ARRAY
+#define PA_PROP_TYPE_STRING PA_PROP_TYPE_STRING
+#define PA_PROP_TYPE_STRING_ARRAY PA_PROP_TYPE_STRING_ARRAY
+#define PA_PROP_TYPE_INVALID PA_PROP_TYPE_INVALID
+/** \endcond */
 
 /** Gets the type of property \a key in a given \ref pa_format_info. \since 2.0 */
 pa_prop_type_t pa_format_info_get_prop_type(pa_format_info *f, const char *key);
