@@ -333,6 +333,15 @@ PA_COMMAND_GET_CARD_INFO(_LIST)):
 
 The field is added once for every port.
 
+## v28, implemented by >= 4.0
+
+New value for encoding format type in format_info
+PA_COMMAND_CREATE_(PLAYBACK|RECORDING)_STREAM and its reply,
+In reply from PA_COMMAND_GET_(SOURCE|SOURCE_OUTPUT|SINK|SINK_INPUT)_INFO[_LIST],
+SUBCOMMAND_SAVE_FORMATS, in reply from SUBCOMMAND_READ_FORMATS[_ALL]
+
+    (uint8_t ) PA_ENCODING_MPEG2_AAC_IEC61937 := 6
+
 #### If you just changed the protocol, read this
 ## module-tunnel depends on the sink/source/sink-input/source-input protocol
 ## internals, so if you changed these, you might have broken module-tunnel.
