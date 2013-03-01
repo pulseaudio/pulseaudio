@@ -508,7 +508,7 @@ static size_t check_left_to_play(struct userdata *u, size_t n_bytes, pa_bool_t o
 static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled, pa_bool_t on_timeout) {
     pa_bool_t work_done = FALSE;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
-    size_t left_to_play;
+    size_t left_to_play, input_underrun;
     unsigned j = 0;
 
     pa_assert(u);
@@ -600,6 +600,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
             const snd_pcm_channel_area_t *areas;
             snd_pcm_uframes_t offset, frames;
             snd_pcm_sframes_t sframes;
+            size_t written;
 
             frames = (snd_pcm_uframes_t) (n_bytes / u->frame_size);
 /*             pa_log_debug("%lu frames to write", (unsigned long) frames); */
@@ -635,7 +636,8 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
 
             p = (uint8_t*) areas[0].addr + (offset * u->frame_size);
 
-            chunk.memblock = pa_memblock_new_fixed(u->core->mempool, p, frames * u->frame_size, TRUE);
+            written = frames * u->frame_size;
+            chunk.memblock = pa_memblock_new_fixed(u->core->mempool, p, written, TRUE);
             chunk.length = pa_memblock_get_length(chunk.memblock);
             chunk.index = 0;
 
@@ -655,21 +657,25 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
 
             work_done = TRUE;
 
-            u->write_count += frames * u->frame_size;
-            u->since_start += frames * u->frame_size;
+            u->write_count += written;
+            u->since_start += written;
 
 #ifdef DEBUG_TIMING
-            pa_log_debug("Wrote %lu bytes (of possible %lu bytes)", (unsigned long) (frames * u->frame_size), (unsigned long) n_bytes);
+            pa_log_debug("Wrote %lu bytes (of possible %lu bytes)", (unsigned long) written, (unsigned long) n_bytes);
 #endif
 
-            if ((size_t) frames * u->frame_size >= n_bytes)
+            if (written >= n_bytes)
                 break;
 
-            n_bytes -= (size_t) frames * u->frame_size;
+            n_bytes -= written;
         }
     }
 
+    input_underrun = pa_sink_process_input_underruns(u->sink, left_to_play);
+
     if (u->use_tsched) {
+        pa_usec_t underrun_sleep = pa_bytes_to_usec_round_up(input_underrun, &u->sink->sample_spec);
+
         *sleep_usec = pa_bytes_to_usec(left_to_play, &u->sink->sample_spec);
         process_usec = pa_bytes_to_usec(u->tsched_watermark, &u->sink->sample_spec);
 
@@ -677,6 +683,8 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
             *sleep_usec -= process_usec;
         else
             *sleep_usec = 0;
+
+        *sleep_usec = PA_MIN(*sleep_usec, underrun_sleep);
     } else
         *sleep_usec = 0;
 
@@ -686,7 +694,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
 static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled, pa_bool_t on_timeout) {
     pa_bool_t work_done = FALSE;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
-    size_t left_to_play;
+    size_t left_to_play, input_underrun;
     unsigned j = 0;
 
     pa_assert(u);
@@ -710,6 +718,12 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
         }
 
         n_bytes = (size_t) n * u->frame_size;
+
+
+#ifdef DEBUG_TIMING
+        pa_log_debug("avail: %lu", (unsigned long) n_bytes);
+#endif
+
         left_to_play = check_left_to_play(u, n_bytes, on_timeout);
         on_timeout = FALSE;
 
@@ -754,6 +768,7 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
         for (;;) {
             snd_pcm_sframes_t frames;
             void *p;
+            size_t written;
 
 /*         pa_log_debug("%lu frames to write", (unsigned long) frames); */
 
@@ -788,8 +803,9 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
             pa_assert(frames > 0);
             after_avail = FALSE;
 
-            u->memchunk.index += (size_t) frames * u->frame_size;
-            u->memchunk.length -= (size_t) frames * u->frame_size;
+            written = frames * u->frame_size;
+            u->memchunk.index += written;
+            u->memchunk.length -= written;
 
             if (u->memchunk.length <= 0) {
                 pa_memblock_unref(u->memchunk.memblock);
@@ -798,19 +814,23 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
 
             work_done = TRUE;
 
-            u->write_count += frames * u->frame_size;
-            u->since_start += frames * u->frame_size;
+            u->write_count += written;
+            u->since_start += written;
 
 /*         pa_log_debug("wrote %lu frames", (unsigned long) frames); */
 
-            if ((size_t) frames * u->frame_size >= n_bytes)
+            if (written >= n_bytes)
                 break;
 
-            n_bytes -= (size_t) frames * u->frame_size;
+            n_bytes -= written;
         }
     }
 
+    input_underrun = pa_sink_process_input_underruns(u->sink, left_to_play);
+
     if (u->use_tsched) {
+        pa_usec_t underrun_sleep = pa_bytes_to_usec_round_up(input_underrun, &u->sink->sample_spec);
+
         *sleep_usec = pa_bytes_to_usec(left_to_play, &u->sink->sample_spec);
         process_usec = pa_bytes_to_usec(u->tsched_watermark, &u->sink->sample_spec);
 
@@ -818,6 +838,8 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
             *sleep_usec -= process_usec;
         else
             *sleep_usec = 0;
+
+        *sleep_usec = PA_MIN(*sleep_usec, underrun_sleep);
     } else
         *sleep_usec = 0;
 

@@ -135,6 +135,11 @@ struct pa_sink_input {
      * the full block. */
     int (*pop) (pa_sink_input *i, size_t request_nbytes, pa_memchunk *chunk); /* may NOT be NULL */
 
+    /* This is called when the playback buffer has actually played back
+       all available data. Return true unless there is more data to play back.
+       Called from IO context. */
+    bool (*process_underrun) (pa_sink_input *i);
+
     /* Rewind the queue by the specified number of bytes. Called just
      * before peek() if it is called at all. Only called if the sink
      * input driver ever plans to call
@@ -232,6 +237,7 @@ struct pa_sink_input {
         pa_bool_t rewrite_flush:1, dont_rewind_render:1;
         size_t rewrite_nbytes;
         uint64_t underrun_for, playing_for;
+        uint64_t underrun_for_sink; /* Like underrun_for, but in sink sample spec */
 
         pa_sample_spec sample_spec;
 
@@ -407,6 +413,8 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
 pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa_usec_t usec);
 
 pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i);
+bool pa_sink_input_process_underrun(pa_sink_input *i);
+
 
 pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret);
 

@@ -532,6 +532,7 @@ int pa_sink_input_new(
     i->thread_info.rewrite_flush = FALSE;
     i->thread_info.dont_rewind_render = FALSE;
     i->thread_info.underrun_for = (uint64_t) -1;
+    i->thread_info.underrun_for_sink = 0;
     i->thread_info.playing_for = 0;
     i->thread_info.direct_outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
@@ -827,7 +828,7 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i, pa_usec_t *sink_latency) {
 }
 
 /* Called from thread context */
-void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa_memchunk *chunk, pa_cvolume *volume) {
+void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink bytes */, pa_memchunk *chunk, pa_cvolume *volume) {
     pa_bool_t do_volume_adj_here, need_volume_factor_sink;
     pa_bool_t volume_is_norm;
     size_t block_size_max_sink, block_size_max_sink_input;
@@ -896,8 +897,10 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
 
             pa_memblockq_seek(i->thread_info.render_memblockq, (int64_t) slength, PA_SEEK_RELATIVE, TRUE);
             i->thread_info.playing_for = 0;
-            if (i->thread_info.underrun_for != (uint64_t) -1)
+            if (i->thread_info.underrun_for != (uint64_t) -1) {
                 i->thread_info.underrun_for += ilength_full;
+                i->thread_info.underrun_for_sink += slength;
+            }
             break;
         }
 
@@ -907,6 +910,7 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
         pa_assert(tchunk.memblock);
 
         i->thread_info.underrun_for = 0;
+        i->thread_info.underrun_for_sink = 0;
         i->thread_info.playing_for += tchunk.length;
 
         while (tchunk.length > 0) {
@@ -1018,6 +1022,23 @@ void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec *
 
     pa_memblockq_drop(i->thread_info.render_memblockq, nbytes);
 }
+
+/* Called from thread context */
+bool pa_sink_input_process_underrun(pa_sink_input *i) {
+    pa_sink_input_assert_ref(i);
+    pa_sink_input_assert_io_context(i);
+
+    if (pa_memblockq_is_readable(i->thread_info.render_memblockq))
+        return false;
+
+    if (i->process_underrun && i->process_underrun(i)) {
+        /* All valid data has been played back, so we can empty this queue. */
+        pa_memblockq_silence(i->thread_info.render_memblockq);
+        return true;
+    }
+    return false;
+}
+
 
 /* Called from thread context */
 void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sample spec */) {
@@ -1903,6 +1924,7 @@ void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state
         pa_log_debug("Requesting rewind due to uncorking");
 
         i->thread_info.underrun_for = (uint64_t) -1;
+        i->thread_info.underrun_for_sink = 0;
         i->thread_info.playing_for = 0;
 
         /* Set the uncorked state *before* requesting rewind */

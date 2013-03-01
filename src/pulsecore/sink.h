@@ -492,6 +492,8 @@ void pa_sink_update_volume_and_mute(pa_sink *s);
 
 pa_bool_t pa_sink_volume_change_apply(pa_sink *s, pa_usec_t *usec_to_next);
 
+size_t pa_sink_process_input_underruns(pa_sink *s, size_t left_to_play);
+
 /*** To be called exclusively by sink input drivers, from IO context */
 
 void pa_sink_request_rewind(pa_sink*s, size_t nbytes);

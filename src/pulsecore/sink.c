@@ -915,6 +915,32 @@ void pa_sink_move_all_fail(pa_queue *q) {
     pa_queue_free(q, NULL);
 }
 
+ /* Called from IO thread context */
+size_t pa_sink_process_input_underruns(pa_sink *s, size_t left_to_play) {
+    pa_sink_input *i;
+    void *state = NULL;
+    size_t result = 0;
+
+    pa_sink_assert_ref(s);
+    pa_sink_assert_io_context(s);
+
+    PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state) {
+        size_t uf = i->thread_info.underrun_for_sink;
+        if (uf == 0)
+            continue;
+        if (uf >= left_to_play) {
+            if (pa_sink_input_process_underrun(i))
+                continue;
+        }
+        else if (uf > result)
+            result = uf;
+    }
+
+    if (result > 0)
+        pa_log_debug("Found underrun %ld bytes ago (%ld bytes ahead in playback buffer)", (long) result, (long) left_to_play - result);
+    return left_to_play - result;
+}
+
 /* Called from IO thread context */
 void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     pa_sink_input *i;
