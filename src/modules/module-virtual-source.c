@@ -368,14 +368,6 @@ static void source_output_process_rewind_cb(pa_source_output *o, size_t nbytes) 
 }
 
 /* Called from output thread context */
-static int source_output_process_msg_cb(pa_msgobject *obj, int code, void *data, int64_t offset, pa_memchunk *chunk) {
-
-    /* FIXME, nothing to do here ? */
-
-    return pa_source_output_process_msg(obj, code, data, offset, chunk);
-}
-
-/* Called from output thread context */
 static void source_output_attach_cb(pa_source_output *o) {
     struct userdata *u;
 
@@ -543,10 +535,6 @@ int pa__init(pa_module*m) {
     }
 
     u = pa_xnew0(struct userdata, 1);
-    if (!u) {
-        pa_log("Failed to alloc userdata");
-        goto fail;
-    }
     u->module = m;
     m->userdata = u;
     u->memblockq = pa_memblockq_new("module-virtual-source memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0, &ss, 1, 1, 0, NULL);
@@ -626,7 +614,6 @@ int pa__init(pa_module*m) {
     if (!u->source_output)
         goto fail;
 
-    u->source_output->parent.process_msg = source_output_process_msg_cb;
     u->source_output->push = source_output_push_cb;
     u->source_output->process_rewind = source_output_process_rewind_cb;
     u->source_output->kill = source_output_kill_cb;
