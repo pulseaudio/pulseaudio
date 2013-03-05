@@ -1074,6 +1074,7 @@ modlibexec_LTLIBRARIES += \
 		module-combine.la \
 		module-combine-sink.la \
 		module-remap-sink.la \
+		module-remap-source.la \
 		module-ladspa-sink.la \
 		module-tunnel-sink.la \
 		module-tunnel-source.la \
@@ -1339,6 +1340,7 @@ SYMDEF_FILES = \
 		module-combine-symdef.h \
 		module-combine-sink-symdef.h \
 		module-remap-sink-symdef.h \
+		module-remap-source-symdef.h \
 		module-ladspa-sink-symdef.h \
 		module-equalizer-sink-symdef.h \
 		module-match-symdef.h \
@@ -1588,6 +1590,10 @@ module_filter_heuristics_la_LIBADD = $(MODULE_LIBADD)
 module_remap_sink_la_SOURCES = modules/module-remap-sink.c
 module_remap_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_remap_sink_la_LIBADD = $(MODULE_LIBADD)
+
+module_remap_source_la_SOURCES = modules/module-remap-source.c
+module_remap_source_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_remap_source_la_LIBADD = $(MODULE_LIBADD)
 
 module_ladspa_sink_la_SOURCES = modules/module-ladspa-sink.c modules/ladspa.h
 module_ladspa_sink_la_CFLAGS = -DLADSPA_PATH=\"$(libdir)/ladspa:/usr/local/lib/ladspa:/usr/lib/ladspa:/usr/local/lib64/ladspa:/usr/lib64/ladspa\" $(AM_CFLAGS)
