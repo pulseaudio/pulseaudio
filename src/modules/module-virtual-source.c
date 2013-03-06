@@ -440,20 +440,6 @@ static void source_output_kill_cb(pa_source_output *o) {
 }
 
 /* Called from main thread */
-static pa_bool_t source_output_may_move_to_cb(pa_source_output *o, pa_source *dest) {
-    struct userdata *u;
-
-    pa_source_output_assert_ref(o);
-    pa_assert_ctl_context();
-    pa_assert_se(u = o->userdata);
-
-    /* FIXME */
-    //return dest != u->source_input->source->monitor_source;
-
-    return TRUE;
-}
-
-/* Called from main thread */
 static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     struct userdata *u;
 
@@ -618,7 +604,6 @@ int pa__init(pa_module*m) {
     u->source_output->attach = source_output_attach_cb;
     u->source_output->detach = source_output_detach_cb;
     u->source_output->state_change = source_output_state_change_cb;
-    u->source_output->may_move_to = source_output_may_move_to_cb;
     u->source_output->moving = source_output_moving_cb;
     u->source_output->userdata = u;
 
