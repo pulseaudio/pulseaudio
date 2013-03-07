@@ -154,7 +154,20 @@ void pa_bluetooth_transport_set_speaker_gain(pa_bluetooth_transport *t, uint16_t
 
 pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook);
 
-const char* pa_bluetooth_get_form_factor(uint32_t class);
+typedef enum pa_bt_form_factor {
+    PA_BT_FORM_FACTOR_UNKNOWN,
+    PA_BT_FORM_FACTOR_HEADSET,
+    PA_BT_FORM_FACTOR_HANDSFREE,
+    PA_BT_FORM_FACTOR_MICROPHONE,
+    PA_BT_FORM_FACTOR_SPEAKER,
+    PA_BT_FORM_FACTOR_HEADPHONE,
+    PA_BT_FORM_FACTOR_PORTABLE,
+    PA_BT_FORM_FACTOR_CAR,
+    PA_BT_FORM_FACTOR_HIFI,
+} pa_bt_form_factor_t;
+
+pa_bt_form_factor_t pa_bluetooth_get_form_factor(uint32_t class);
+const char *pa_bt_form_factor_to_string(pa_bt_form_factor_t ff);
 
 char *pa_bluetooth_cleanup_name(const char *name);
 

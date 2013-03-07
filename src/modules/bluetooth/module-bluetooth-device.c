@@ -2147,7 +2147,7 @@ static int add_card(struct userdata *u) {
     bool b;
     pa_card_profile *p;
     enum profile *d;
-    const char *ff;
+    pa_bt_form_factor_t ff;
     char *n;
     const char *default_profile;
     const pa_bluetooth_device *device = u->device;
@@ -2167,8 +2167,10 @@ static int add_card(struct userdata *u) {
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "bluez");
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CLASS, "sound");
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_BUS, "bluetooth");
-    if ((ff = pa_bluetooth_get_form_factor(device->class)))
-        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_FORM_FACTOR, ff);
+
+    if ((ff = pa_bluetooth_get_form_factor(device->class)) != PA_BT_FORM_FACTOR_UNKNOWN)
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_FORM_FACTOR, pa_bt_form_factor_to_string(ff));
+
     pa_proplist_sets(data.proplist, "bluez.path", device->path);
     pa_proplist_setf(data.proplist, "bluez.class", "0x%06x", (unsigned) device->class);
     pa_proplist_sets(data.proplist, "bluez.name", device->name);

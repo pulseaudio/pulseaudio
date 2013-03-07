@@ -1800,26 +1800,26 @@ pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hoo
     return &y->hooks[hook];
 }
 
-const char*pa_bluetooth_get_form_factor(uint32_t class) {
+pa_bt_form_factor_t pa_bluetooth_get_form_factor(uint32_t class) {
     unsigned i;
-    const char *r;
+    pa_bt_form_factor_t r;
 
-    static const char * const table[] = {
-        [1] = "headset",
-        [2] = "hands-free",
-        [4] = "microphone",
-        [5] = "speaker",
-        [6] = "headphone",
-        [7] = "portable",
-        [8] = "car",
-        [10] = "hifi"
+    static const pa_bt_form_factor_t table[] = {
+        [1] = PA_BT_FORM_FACTOR_HEADSET,
+        [2] = PA_BT_FORM_FACTOR_HANDSFREE,
+        [4] = PA_BT_FORM_FACTOR_MICROPHONE,
+        [5] = PA_BT_FORM_FACTOR_SPEAKER,
+        [6] = PA_BT_FORM_FACTOR_HEADPHONE,
+        [7] = PA_BT_FORM_FACTOR_PORTABLE,
+        [8] = PA_BT_FORM_FACTOR_CAR,
+        [10] = PA_BT_FORM_FACTOR_HIFI
     };
 
     if (((class >> 8) & 31) != 4)
-        return NULL;
+        return PA_BT_FORM_FACTOR_UNKNOWN;
 
     if ((i = (class >> 2) & 63) >= PA_ELEMENTSOF(table))
-        r =  NULL;
+        r =  PA_BT_FORM_FACTOR_UNKNOWN;
     else
         r = table[i];
 
@@ -1827,6 +1827,31 @@ const char*pa_bluetooth_get_form_factor(uint32_t class) {
         pa_log_debug("Unknown Bluetooth minor device class %u", i);
 
     return r;
+}
+
+const char *pa_bt_form_factor_to_string(pa_bt_form_factor_t ff) {
+    switch (ff) {
+        case PA_BT_FORM_FACTOR_UNKNOWN:
+            return "unknown";
+        case PA_BT_FORM_FACTOR_HEADSET:
+            return "headset";
+        case PA_BT_FORM_FACTOR_HANDSFREE:
+            return "hands-free";
+        case PA_BT_FORM_FACTOR_MICROPHONE:
+            return "microphone";
+        case PA_BT_FORM_FACTOR_SPEAKER:
+            return "speaker";
+        case PA_BT_FORM_FACTOR_HEADPHONE:
+            return "headphone";
+        case PA_BT_FORM_FACTOR_PORTABLE:
+            return "portable";
+        case PA_BT_FORM_FACTOR_CAR:
+            return "car";
+        case PA_BT_FORM_FACTOR_HIFI:
+            return "hifi";
+    }
+
+    pa_assert_not_reached();
 }
 
 char *pa_bluetooth_cleanup_name(const char *name) {
