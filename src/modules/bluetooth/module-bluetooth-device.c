@@ -152,6 +152,9 @@ struct userdata {
     pa_bluetooth_discovery *discovery;
     bool auto_connect;
 
+    char *output_port_name;
+    char *input_port_name;
+
     pa_card *card;
     pa_sink *sink;
     pa_source *source;
@@ -1269,10 +1272,10 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
     pa_card_profile_set_available(cp, transport_state_to_availability(state));
 
     /* Update port availability */
-    pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
+    pa_assert_se(port = pa_hashmap_get(u->card->ports, u->output_port_name));
     pa_device_port_set_available(port, get_port_availability(u, PA_DIRECTION_OUTPUT));
 
-    pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-input"));
+    pa_assert_se(port = pa_hashmap_get(u->card->ports, u->input_port_name));
     pa_device_port_set_available(port, get_port_availability(u, PA_DIRECTION_INPUT));
 
     /* Acquire or release transport as needed */
@@ -1516,13 +1519,13 @@ static void connect_ports(struct userdata *u, void *sink_or_source_new_data, pa_
     if (direction == PA_DIRECTION_OUTPUT) {
         pa_sink_new_data *sink_new_data = sink_or_source_new_data;
 
-        pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-output"));
+        pa_assert_se(port = pa_hashmap_get(u->card->ports, u->output_port_name));
         pa_assert_se(pa_hashmap_put(sink_new_data->ports, port->name, port) >= 0);
         pa_device_port_ref(port);
     } else {
         pa_source_new_data *source_new_data = sink_or_source_new_data;
 
-        pa_assert_se(port = pa_hashmap_get(u->card->ports, "bluetooth-input"));
+        pa_assert_se(port = pa_hashmap_get(u->card->ports, u->input_port_name));
         pa_assert_se(pa_hashmap_put(source_new_data->ports, port->name, port) >= 0);
         pa_device_port_ref(port);
     }
@@ -2067,17 +2070,83 @@ off:
 /* Run from main thread */
 static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
     pa_device_port *port;
+    const char *name_prefix = NULL;
+    const char *input_description = NULL;
+    const char *output_description = NULL;
 
     pa_assert(u);
     pa_assert(ports);
+    pa_assert(u->device);
 
-    pa_assert_se(port = pa_device_port_new(u->core, "bluetooth-output", _("Bluetooth Output"), 0));
+    switch (pa_bluetooth_get_form_factor(u->device->class)) {
+        case PA_BT_FORM_FACTOR_UNKNOWN:
+            break;
+
+        case PA_BT_FORM_FACTOR_HEADSET:
+            name_prefix = "headset";
+            input_description = output_description = _("Headset");
+            break;
+
+        case PA_BT_FORM_FACTOR_HANDSFREE:
+            name_prefix = "handsfree";
+            input_description = output_description = _("Handsfree");
+            break;
+
+        case PA_BT_FORM_FACTOR_MICROPHONE:
+            name_prefix = "microphone";
+            input_description = output_description = _("Microphone");
+            break;
+
+        case PA_BT_FORM_FACTOR_SPEAKER:
+            name_prefix = "speaker";
+            input_description = output_description = _("Speaker");
+            break;
+
+        case PA_BT_FORM_FACTOR_HEADPHONE:
+            name_prefix = "headphone";
+            input_description = output_description = _("Headphone");
+            break;
+
+        case PA_BT_FORM_FACTOR_PORTABLE:
+            name_prefix = "portable";
+            input_description = output_description = _("Portable");
+            break;
+
+        case PA_BT_FORM_FACTOR_CAR:
+            name_prefix = "car";
+            input_description = output_description = _("Car");
+            break;
+
+        case PA_BT_FORM_FACTOR_HIFI:
+            name_prefix = "hifi";
+            input_description = output_description = _("HiFi");
+            break;
+
+        case PA_BT_FORM_FACTOR_PHONE:
+            name_prefix = "phone";
+            input_description = output_description = _("Phone");
+            break;
+    }
+
+    if (!name_prefix)
+        name_prefix = "unknown";
+
+    if (!output_description)
+        output_description = _("Bluetooth Output");
+
+    if (!input_description)
+        input_description = _("Bluetooth Input");
+
+    u->output_port_name = pa_sprintf_malloc("%s-output", name_prefix);
+    u->input_port_name = pa_sprintf_malloc("%s-input", name_prefix);
+
+    pa_assert_se(port = pa_device_port_new(u->core, u->output_port_name, output_description, 0));
     pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
     port->is_output = 1;
     port->is_input = 0;
     port->available = get_port_availability(u, PA_DIRECTION_OUTPUT);
 
-    pa_assert_se(port = pa_device_port_new(u->core, "bluetooth-input", _("Bluetooth Input"), 0));
+    pa_assert_se(port = pa_device_port_new(u->core, u->input_port_name, input_description, 0));
     pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
     port->is_output = 0;
     port->is_input = 1;
@@ -2520,6 +2589,9 @@ void pa__done(pa_module *m) {
 
     if (u->modargs)
         pa_modargs_free(u->modargs);
+
+    pa_xfree(u->output_port_name);
+    pa_xfree(u->input_port_name);
 
     pa_xfree(u->address);
     pa_xfree(u->path);
