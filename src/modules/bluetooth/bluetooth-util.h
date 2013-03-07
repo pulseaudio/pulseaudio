@@ -164,6 +164,7 @@ typedef enum pa_bt_form_factor {
     PA_BT_FORM_FACTOR_PORTABLE,
     PA_BT_FORM_FACTOR_CAR,
     PA_BT_FORM_FACTOR_HIFI,
+    PA_BT_FORM_FACTOR_PHONE,
 } pa_bt_form_factor_t;
 
 pa_bt_form_factor_t pa_bluetooth_get_form_factor(uint32_t class);

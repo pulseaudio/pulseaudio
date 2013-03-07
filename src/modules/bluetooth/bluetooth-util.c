@@ -1801,7 +1801,7 @@ pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hoo
 }
 
 pa_bt_form_factor_t pa_bluetooth_get_form_factor(uint32_t class) {
-    unsigned i;
+    unsigned major, minor;
     pa_bt_form_factor_t r;
 
     static const pa_bt_form_factor_t table[] = {
@@ -1815,16 +1815,27 @@ pa_bt_form_factor_t pa_bluetooth_get_form_factor(uint32_t class) {
         [10] = PA_BT_FORM_FACTOR_HIFI
     };
 
-    if (((class >> 8) & 31) != 4)
-        return PA_BT_FORM_FACTOR_UNKNOWN;
+    /*
+     * See Bluetooth Assigned Numbers:
+     * https://www.bluetooth.org/Technical/AssignedNumbers/baseband.htm
+     */
+    major = (class >> 8) & 0x1F;
+    minor = (class >> 2) & 0x3F;
 
-    if ((i = (class >> 2) & 63) >= PA_ELEMENTSOF(table))
-        r =  PA_BT_FORM_FACTOR_UNKNOWN;
-    else
-        r = table[i];
+    switch (major) {
+        case 2:
+            return PA_BT_FORM_FACTOR_PHONE;
+        case 4:
+            break;
+        default:
+            pa_log_debug("Unknown Bluetooth major device class %u", major);
+            return PA_BT_FORM_FACTOR_UNKNOWN;
+    }
+
+    r = minor < PA_ELEMENTSOF(table) ? table[minor] : PA_BT_FORM_FACTOR_UNKNOWN;
 
     if (!r)
-        pa_log_debug("Unknown Bluetooth minor device class %u", i);
+        pa_log_debug("Unknown Bluetooth minor device class %u", minor);
 
     return r;
 }
@@ -1849,6 +1860,8 @@ const char *pa_bt_form_factor_to_string(pa_bt_form_factor_t ff) {
             return "car";
         case PA_BT_FORM_FACTOR_HIFI:
             return "hifi";
+        case PA_BT_FORM_FACTOR_PHONE:
+            return "phone";
     }
 
     pa_assert_not_reached();
