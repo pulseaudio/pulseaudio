@@ -114,7 +114,6 @@ pa_card *pa_card_new(pa_core *c, pa_card_new_data *data);
 void pa_card_free(pa_card *c);
 
 void pa_card_add_profile(pa_card *c, pa_card_profile *profile);
-void pa_card_add_ports(pa_card *c, pa_hashmap *ports);
 
 int pa_card_set_profile(pa_card *c, const char *name, pa_bool_t save);
 

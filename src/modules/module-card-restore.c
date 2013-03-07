@@ -65,7 +65,6 @@ struct userdata {
     pa_hook_slot *card_new_hook_slot;
     pa_hook_slot *card_put_hook_slot;
     pa_hook_slot *card_profile_hook_slot;
-    pa_hook_slot *port_new_hook_slot;
     pa_hook_slot *port_offset_hook_slot;
     pa_time_event *save_time_event;
     pa_database *database;
@@ -125,15 +124,6 @@ static struct port_info *port_info_new(pa_device_port *port) {
         p_info = pa_xnew0(struct port_info, 1);
 
     return p_info;
-}
-
-static void port_info_update(struct port_info *p_info, pa_device_port *port) {
-    pa_assert(p_info);
-    pa_assert(port);
-
-    pa_xfree(p_info->name);
-    p_info->name = pa_xstrdup(port->name);
-    p_info->offset = port->latency_offset;
 }
 
 static void port_info_free(struct port_info *p_info) {
@@ -413,37 +403,6 @@ static pa_hook_result_t card_profile_change_callback(pa_core *c, pa_card *card, 
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t card_port_add_callback(pa_core *c, pa_device_port *port, struct userdata *u) {
-    struct entry *entry;
-    pa_card *card;
-
-    pa_assert(port);
-    card = port->card;
-
-    if ((entry = entry_read(u, card->name))) {
-        struct port_info *p_info;
-
-        if ((p_info = pa_hashmap_get(entry->ports, port->name)))
-            port_info_update(p_info, port);
-        else {
-            p_info = port_info_new(port);
-            pa_assert_se(pa_hashmap_put(entry->ports, p_info->name, p_info) >= 0);
-        }
-
-        pa_log_info("Storing port info for port %s on card %s.", port->name, card->name);
-
-    } else {
-        entry = entry_from_card(card);
-        show_full_info(card);
-    }
-
-    if (entry_write(u, card->name, entry))
-        trigger_save(u);
-
-    entry_free(entry);
-    return PA_HOOK_OK;
-}
-
 static pa_hook_result_t port_offset_change_callback(pa_core *c, pa_device_port *port, struct userdata *u) {
     struct entry *entry;
     pa_card *card;
@@ -529,7 +488,6 @@ int pa__init(pa_module*m) {
     u->card_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_CARD_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) card_new_hook_callback, u);
     u->card_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_CARD_PUT], PA_HOOK_NORMAL, (pa_hook_cb_t) card_put_hook_callback, u);
     u->card_profile_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) card_profile_change_callback, u);
-    u->port_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_PORT_ADDED], PA_HOOK_NORMAL, (pa_hook_cb_t) card_port_add_callback, u);
     u->port_offset_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_PORT_LATENCY_OFFSET_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) port_offset_change_callback, u);
     u->hooks_connected = true;
 
@@ -569,7 +527,6 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->card_new_hook_slot);
         pa_hook_slot_free(u->card_put_hook_slot);
         pa_hook_slot_free(u->card_profile_hook_slot);
-        pa_hook_slot_free(u->port_new_hook_slot);
         pa_hook_slot_free(u->port_offset_hook_slot);
     }
 
