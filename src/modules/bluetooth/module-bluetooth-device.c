@@ -2094,17 +2094,17 @@ static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
 
         case PA_BT_FORM_FACTOR_MICROPHONE:
             name_prefix = "microphone";
-            input_description = output_description = _("Microphone");
+            input_description = _("Microphone");
             break;
 
         case PA_BT_FORM_FACTOR_SPEAKER:
             name_prefix = "speaker";
-            input_description = output_description = _("Speaker");
+            output_description = _("Speaker");
             break;
 
         case PA_BT_FORM_FACTOR_HEADPHONE:
             name_prefix = "headphone";
-            input_description = output_description = _("Headphone");
+            output_description = _("Headphone");
             break;
 
         case PA_BT_FORM_FACTOR_PORTABLE:
