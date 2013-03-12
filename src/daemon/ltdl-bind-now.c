@@ -74,6 +74,7 @@ static lt_module bind_now_open(lt_user_data d, const char *fname, lt_dladvise ad
     pa_assert(fname);
 
     if (!(m = dlopen(fname, PA_BIND_NOW))) {
+        pa_log(_("Failed to open module %s: %s"), fname, dlerror());
         lt_dlseterror(LT_ERROR_CANNOT_OPEN);
         return NULL;
     }
