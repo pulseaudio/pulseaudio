@@ -66,7 +66,13 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     m->proplist = pa_proplist_new();
 
     if (!(m->dl = lt_dlopenext(name))) {
-        pa_log("Failed to open module \"%s\": %s", name, lt_dlerror());
+        /* We used to print the error that is returned by lt_dlerror(), but
+         * lt_dlerror() is useless. It returns pretty much always "file not
+         * found". That's because if there are any problems with loading the
+         * module with normal loaders, libltdl falls back to the "preload"
+         * loader, which never finds anything, and therefore says "file not
+         * found". */
+        pa_log("Failed to open module \"%s\".", name);
         goto fail;
     }
 
