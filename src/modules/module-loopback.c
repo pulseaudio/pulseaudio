@@ -379,12 +379,15 @@ static void source_output_kill_cb(pa_source_output *o) {
 }
 
 /* Called from main thread */
-static pa_bool_t source_output_may_move_to_cb(pa_source_output *o, pa_source *dest) {
+static bool source_output_may_move_to_cb(pa_source_output *o, pa_source *dest) {
     struct userdata *u;
 
     pa_source_output_assert_ref(o);
     pa_assert_ctl_context();
     pa_assert_se(u = o->userdata);
+
+    if (!u->sink_input || !u->sink_input->sink)
+        return true;
 
     return dest != u->sink_input->sink->monitor_source;
 }
@@ -667,15 +670,15 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
 }
 
 /* Called from main thread */
-static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
+static bool sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
     struct userdata *u;
 
     pa_sink_input_assert_ref(i);
     pa_assert_ctl_context();
     pa_assert_se(u = i->userdata);
 
-    if (!u->source_output->source->monitor_of)
-        return TRUE;
+    if (!u->source_output || !u->source_output->source)
+        return true;
 
     return dest != u->source_output->source->monitor_of;
 }
