@@ -470,8 +470,9 @@ _pacat_completion() {
         '--property=[set the specified property]:property' \
         '--raw[record/play raw PCM data]' \
         '--passthrough[passtrough data]' \
-        '--file-format[record/play formatted PCM data]:format:_pacat_file_formats' \
+        '--file-format=[record/play formatted PCM data]:format:_pacat_file_formats' \
         '--list-file-formats[list available formats]' \
+        '::files:_files' \
 }
 
 # TODO log-target file completion
