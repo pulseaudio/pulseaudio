@@ -2,7 +2,7 @@
 
 _devices() {
     local -a _device_list
-    local cmd _device _device_description
+    local cmd _device _device_description _remote_cmd
 
     if [[ $service == pactl  || $service == pacmd ]]; then
         case $words[$((CURRENT - 1))] in
@@ -38,8 +38,15 @@ _devices() {
         cmd=('sources')
     fi
 
+    for (( i = 0; i < ${#words[@]}; i++ )) do
+        if [[ ${words[$i]} == -s ]]; then
+            _remote_cmd="-s ${words[$i+1]}"
+            break;
+        fi
+    done
+
     for target in $cmd; do
-        for device_info in ${(ps:\n\n:)"$(_call_program card_tag "pactl list $target")"}; do
+        for device_info in ${(ps:\n\n:)"$(_call_program device_tag "pactl $_remote_cmd list $target 2> /dev/null")"}; do
             for line in ${(f)device_info}; do
                 if [[ $target == (sink-inputs|source-outputs) ]]; then
                     if [[ $line == (Sink*Input|Source*Output)* ]]; then
@@ -74,11 +81,18 @@ _devices() {
 
 _profiles() {
     local -a _profile_list
-    local _current_card _raw_profiles _profile_name _profile_description
+    local _current_card _raw_profiles _profile_name _profile_description _remote_cmd
 
     _current_card=$words[$((CURRENT - 1))]
 
-    for card in ${(ps:\n\n:)"$(_call_program card_tag "pactl list cards")"}; do
+    for (( i = 0; i < ${#words[@]}; i++ )) do
+        if [[ ${words[$i]} == -s ]]; then
+            _remote_cmd="-s ${words[$i+1]}"
+            break;
+        fi
+    done
+
+    for card in ${(ps:\n\n:)"$(_call_program profiles_tag "pactl $_remote_cmd list cards 2> /dev/null")"}; do
         if [[ $card == *$_current_card* ]]; then
             _raw_profiles=${card##*Profiles:}
             _raw_profiles=${_raw_profiles%%Active Profile:*}
@@ -99,7 +113,7 @@ _profiles() {
 
 _ports() {
     local -a _port_list
-    local _raw_ports _port_name _port_description _current_device
+    local _raw_ports _port_name _port_description _current_device _remote_cmd
 
     case $words[$((CURRENT - 2))] in
         set-sink-port) cmd="sinks";;
@@ -109,7 +123,14 @@ _ports() {
 
     _current_device=$words[$((CURRENT - 1))]
 
-    for device in ${(ps:\n\n:)"$(_call_program card_tag "pactl list $cmd")"}; do
+    for (( i = 0; i < ${#words[@]}; i++ )) do
+        if [[ ${words[$i]} == -s ]]; then
+            _remote_cmd="-s ${words[$i+1]}"
+            break;
+        fi
+    done
+
+    for device in ${(ps:\n\n:)"$(_call_program port_tag "pactl $_remote_cmd list $cmd 2> /dev/null")"}; do
         if [[ $device == *Ports:* && $device == *$_current_device* ]]; then
             _raw_ports=${device##*Ports:}
             _raw_ports=${_raw_ports%%Active Port:*}
@@ -130,8 +151,16 @@ _ports() {
 
 _cards(){
     local -a _card_list
-    local _card _cad_name
-    for card_info in ${(ps:\n\n:)"$(_call_program card_tag "pactl list cards")"}; do
+    local _card _cad_name _remote_cmd
+
+    for (( i = 0; i < ${#words[@]}; i++ )) do
+        if [[ ${words[$i]} == -s ]]; then
+            _remote_cmd="-s ${words[$i+1]}"
+            break;
+        fi
+    done
+
+    for card_info in ${(ps:\n\n:)"$(_call_program card_tag "pactl $_remote_cmd list cards 2> /dev/null")"}; do
         for line in ${(f)card_info}; do
             if [[ $line == *Name:* ]]; then
                 _card=${line#*: }
@@ -148,15 +177,23 @@ _cards(){
 
 _all_modules(){
     local -a _all_modules_list
-    for module in ${(f)"$(_call_program modules_tag "pulseaudio --dump-modules")"}; do
+    for module in ${(f)"$(_call_program modules_tag "pulseaudio --dump-modules 2> /dev/null")"}; do
         _all_modules_list+=${module%% *}
     done
     _describe 'module list' _all_modules_list
 }
 
 _loaded_modules(){
-    local -a _loaded_modules_list
-    for module in ${(f)"$(_call_program modules_tag "pactl list modules short")"}; do
+    local -a _loaded_modules_list _remote_cmd
+
+    for (( i = 0; i < ${#words[@]}; i++ )) do
+        if [[ ${words[$i]} == -s ]]; then
+            _remote_cmd="-s ${words[$i+1]}"
+            break;
+        fi
+    done
+
+    for module in ${(f)"$(_call_program modules_tag "pactl $_remote_cmd list modules short 2> /dev/null")"}; do
         _loaded_modules_list+=(${${(ps:\t:)module}[1]}:${${(ps:\t:)module}[2]})
     done
     _describe 'module list' _loaded_modules_list
@@ -164,7 +201,7 @@ _loaded_modules(){
 
 _resample_methods() {
     local -a _resample_method_list
-    for method in ${(f)"$(_call_program modules_tag "pulseaudio --dump-resample-methods")"}; do
+    for method in ${(f)"$(_call_program modules_tag "pulseaudio --dump-resample-methods 2> /dev/null")"}; do
         _resample_method_list+=$method
     done
     _describe 'resample method list' _resample_method_list
@@ -172,8 +209,16 @@ _resample_methods() {
 
 _clients() {
     local -a _client_list
-    local _client _client_description
-    for client_info in ${(ps:\n\n:)"$(_call_program card_tag "pactl list clients")"}; do
+    local _client _client_description _remote_cmd
+
+    for (( i = 0; i < ${#words[@]}; i++ )) do
+        if [[ ${words[$i]} == -s ]]; then
+            _remote_cmd="-s ${words[$i+1]}"
+            break;
+        fi
+    done
+
+    for client_info in ${(ps:\n\n:)"$(_call_program clients_tag "pactl $_remote_cmd list clients 2> /dev/null")"}; do
         for line in ${(f)client_info}; do
             if [[ $line == Client[[:space:]]#* ]]; then
                 _client=${line#*\#}
@@ -188,7 +233,7 @@ _clients() {
 
 _pacat_file_formats() {
     local -a _file_format_list
-    for format in ${(f)"$(_call_program modules_tag "pacat --list-file-formats")"}; do
+    for format in ${(f)"$(_call_program fformats_tag "pacat --list-file-formats")"}; do
         _file_format_list+=(${${(ps:\t:)format}[1]}:${${(ps:\t:)format}[2]})
     done
     _describe 'file format list' _file_format_list
