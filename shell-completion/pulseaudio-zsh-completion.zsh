@@ -257,6 +257,8 @@ _pactl_completion() {
             'suspend-sink: suspend or resume a sink'
             'suspend-source: suspend or resume a source'
             'set-card-profile: set a card profile:cards:_cards'
+            'set-sink-default: set the default sink'
+            'set-source-default: set the default source'
             'set-sink-port: set the sink port of a sink'
             'set-source-port: set the source port of a source'
             'set-port-latency-offset: set a latency offset on a port'
@@ -313,7 +315,7 @@ _pactl_completion() {
         set-card-profile) _profiles;;
         set-(sink|source)-port) _ports;;
         set-port-latency-offset) _ports;;
-        set-*-mute) compadd true false;;
+        set-*-mute) compadd true false toggle;;
         suspend-*) compadd true false;;
         list) compadd short;;
         move-*) _devices;;
