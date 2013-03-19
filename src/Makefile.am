@@ -231,7 +231,6 @@ TESTS_default = \
 		utf8-test \
 		format-test \
 		get-binary-name-test \
-		ipacl-test \
 		hook-list-test \
 		memblock-test \
 		asyncq-test \
@@ -250,6 +249,7 @@ TESTS_default = \
 		mix-special-test
 
 TESTS_norun = \
+		ipacl-test \
 		mcalign-test \
 		pacat-simple \
 		parec-simple \
