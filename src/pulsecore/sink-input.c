@@ -254,6 +254,7 @@ static void reset_callbacks(pa_sink_input *i) {
     pa_assert(i);
 
     i->pop = NULL;
+    i->process_underrun = NULL;
     i->process_rewind = NULL;
     i->update_max_rewind = NULL;
     i->update_max_request = NULL;
