@@ -1971,8 +1971,8 @@ module_udev_detect_la_CFLAGS = $(AM_CFLAGS) $(UDEV_CFLAGS)
 
 module_console_kit_la_SOURCES = modules/module-console-kit.c
 module_console_kit_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_console_kit_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) $(SYSTEMD_LIBS)
-module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) $(SYSTEMD_CFLAGS)
+module_console_kit_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS)
+module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 module_systemd_login_la_SOURCES = modules/module-systemd-login.c
 module_systemd_login_la_LDFLAGS = $(MODULE_LDFLAGS)

@@ -30,11 +30,6 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#ifdef HAVE_SYSTEMD
-#include <systemd/sd-login.h>
-#include <systemd/sd-daemon.h>
-#endif
-
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/module.h>
@@ -285,12 +280,10 @@ int pa__init(pa_module*m) {
 
     dbus_error_init(&error);
 
-#ifdef HAVE_SYSTEMD
-    /* If systemd support is enabled and we boot on systemd we
-       shouldn't watch ConsoleKit but systemd's logind service. */
-    if (sd_booted() > 0)
+    /* If systemd's logind service is running, we shouldn't watch ConsoleKit
+     * but login */
+    if (access("/run/systemd/seats/", F_OK) >= 0)
         return 0;
-#endif
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");

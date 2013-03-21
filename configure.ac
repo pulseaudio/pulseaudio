@@ -1163,7 +1163,7 @@ AC_ARG_ENABLE([systemd],
     AS_HELP_STRING([--disable-systemd],[Disable optional systemd support]))
 
 AS_IF([test "x$enable_systemd" != "xno"],
-    [PKG_CHECK_MODULES(SYSTEMD, [ libsystemd-login libsystemd-daemon ], HAVE_SYSTEMD=1, HAVE_SYSTEMD=0)],
+    [PKG_CHECK_MODULES(SYSTEMD, [ libsystemd-login ], HAVE_SYSTEMD=1, HAVE_SYSTEMD=0)],
     HAVE_SYSTEMD=0)
 
 AS_IF([test "x$enable_systemd" = "xyes" && test "x$HAVE_SYSTEMD" = "x0"],
