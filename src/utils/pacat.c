@@ -783,7 +783,7 @@ int main(int argc, char *argv[]) {
     } else if (strstr(bn, "cat")) {
         mode = PLAYBACK;
         raw = TRUE;
-    } if (strstr(bn, "rec") || strstr(bn, "mon")) {
+    } else if (strstr(bn, "rec") || strstr(bn, "mon")) {
         mode = RECORD;
         raw = TRUE;
     }
