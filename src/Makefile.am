@@ -297,6 +297,8 @@ endif
 if HAVE_ALSA
 TESTS_norun += \
 		alsa-time-test
+TESTS_default += \
+		alsa-mixer-path-test
 endif
 
 if HAVE_TESTS
@@ -544,6 +546,11 @@ alsa_time_test_SOURCES = tests/alsa-time-test.c
 alsa_time_test_LDADD = $(AM_LDADD) $(ASOUNDLIB_LIBS)
 alsa_time_test_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 alsa_time_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+alsa_mixer_path_test_SOURCES = tests/alsa-mixer-path-test.c
+alsa_mixer_path_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS) $(ASOUNDLIB_CFLAGS)
+alsa_mixer_path_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la libalsa-util.la
+alsa_mixer_path_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 usergroup_test_SOURCES = tests/usergroup-test.c
 usergroup_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
