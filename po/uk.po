@@ -1,24 +1,24 @@
 # Copyright (C) 2009 Free Software Foundation, Inc.
 # This file is distributed under the same license as the pulseaudio.master-tx package.
 #
-# Yuri Chornoivan <yurchor@ukr.net>, 2009, 2012.
+# Yuri Chornoivan <yurchor@ukr.net>, 2009, 2012, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-02 17:50+0200\n"
-"PO-Revision-Date: 2012-03-02 17:57+0200\n"
+"POT-Creation-Date: 2013-03-23 15:06+0200\n"
+"PO-Revision-Date: 2013-03-23 16:01+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation@linux.org.ua>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 1.2\n"
+"X-Generator: Lokalize 1.5\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: ../src/modules/alsa/alsa-util.c:1136 ../src/modules/alsa/alsa-util.c:1204
+#: ../src/modules/alsa/alsa-util.c:1128 ../src/modules/alsa/alsa-util.c:1203
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -31,7 +31,7 @@ msgstr ""
 "Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1179
+#: ../src/modules/alsa/alsa-util.c:1178
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
@@ -44,7 +44,7 @@ msgstr ""
 "Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1220
+#: ../src/modules/alsa/alsa-util.c:1219
 #, c-format
 msgid ""
 "snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
@@ -57,7 +57,7 @@ msgstr ""
 "Ймовірно, це пов’язано з вадою у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1263
+#: ../src/modules/alsa/alsa-util.c:1262
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -80,11 +80,11 @@ msgstr ""
 msgid "Dummy Output"
 msgstr "Тестове відтворення"
 
-#: ../src/modules/module-ladspa-sink.c:48
+#: ../src/modules/module-ladspa-sink.c:53
 msgid "Virtual LADSPA sink"
 msgstr "Віртуальний приймач LADSPA"
 
-#: ../src/modules/module-ladspa-sink.c:52
+#: ../src/modules/module-ladspa-sink.c:57
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> format=<sample format> rate=<sample rate> "
@@ -107,30 +107,35 @@ msgstr ""
 msgid "Clocked NULL sink"
 msgstr "NULL-приймач з годинником"
 
-#: ../src/modules/module-null-sink.c:284
+#: ../src/modules/module-null-sink.c:280
 msgid "Null Output"
 msgstr "Нуль-відтворення"
 
-#: ../src/pulsecore/sink.c:3349
+#: ../src/pulsecore/sink.c:3443
 msgid "Built-in Audio"
 msgstr "Вбудоване аудіо"
 
-#: ../src/pulsecore/sink.c:3354
+#: ../src/pulsecore/sink.c:3448
 msgid "Modem"
 msgstr "Модем"
 
-#: ../src/daemon/ltdl-bind-now.c:127
+#: ../src/daemon/ltdl-bind-now.c:77
+#, c-format
+msgid "Failed to open module %s: %s"
+msgstr "Не вдалося відкрити модуль %s: %s"
+
+#: ../src/daemon/ltdl-bind-now.c:128
 msgid "Failed to find original lt_dlopen loader."
 msgstr ""
 "Спроба знайти початковий інструмент завантаження lt_dlopen зазнала невдачі."
 
-#: ../src/daemon/ltdl-bind-now.c:132
+#: ../src/daemon/ltdl-bind-now.c:133
 msgid "Failed to allocate new dl loader."
 msgstr ""
 "Спроба виділення пам’яті для нового інструменту завантаження dl зазнала "
 "невдачі."
 
-#: ../src/daemon/ltdl-bind-now.c:145
+#: ../src/daemon/ltdl-bind-now.c:146
 msgid "Failed to add bind-now-loader."
 msgstr "Не вдалося додати bind-now-loader."
 
@@ -188,24 +193,24 @@ msgstr "Не вдалося змінити GID: %s"
 msgid "Failed to change UID: %s"
 msgstr "Не вдалося змінити UID: %s"
 
-#: ../src/daemon/main.c:269
-msgid "Successfully dropped root privileges."
-msgstr "Програма успішно позбулася прав доступу користувача root."
+#: ../src/daemon/main.c:271
+msgid "Successfully changed user to \""
+msgstr "Користувача успішно змінено на «"
 
-#: ../src/daemon/main.c:277
+#: ../src/daemon/main.c:279
 msgid "System wide mode unsupported on this platform."
 msgstr "Загальносистемний режим не підтримується на цій платформі."
 
-#: ../src/daemon/main.c:295
+#: ../src/daemon/main.c:297
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "Спроба виконати setrlimit(%s, (%u, %u)) була невдалою: %s"
 
-#: ../src/daemon/main.c:496
+#: ../src/daemon/main.c:498
 msgid "Failed to parse command line."
 msgstr "Не вдалося обробити рядок команди."
 
-#: ../src/daemon/main.c:529
+#: ../src/daemon/main.c:531
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
@@ -213,21 +218,21 @@ msgstr ""
 "Запуск у системному режимі для неадміністративного користувача неможливий. "
 "Буде запущено лише службу виявлення пристроїв сервера D-Bus."
 
-#: ../src/daemon/main.c:611
+#: ../src/daemon/main.c:613
 msgid "Daemon not running"
 msgstr "Фонову службу не запущено"
 
-#: ../src/daemon/main.c:613
+#: ../src/daemon/main.c:615
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Фонову службу запущено як PID %u"
 
-#: ../src/daemon/main.c:628
+#: ../src/daemon/main.c:630
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Не вдалося завершити роботу фонової служби: %s"
 
-#: ../src/daemon/main.c:657
+#: ../src/daemon/main.c:659
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -235,23 +240,23 @@ msgstr ""
 "Цю програму не призначено для запуску від імені користувача root (якщо не "
 "вказано параметра --system)."
 
-#: ../src/daemon/main.c:660
+#: ../src/daemon/main.c:662
 msgid "Root privileges required."
 msgstr "Потрібні права доступу користувача root."
 
-#: ../src/daemon/main.c:667
+#: ../src/daemon/main.c:669
 msgid "--start not supported for system instances."
 msgstr ""
 "Параметр --start не підтримується для загальносистемних екземплярів програми."
 
-#: ../src/daemon/main.c:707
+#: ../src/daemon/main.c:709
 #, c-format
 msgid "User-configured server at %s, refusing to start/autospawn."
 msgstr ""
 "Налаштований користувачем сервер на %s, не вдалося запустити/автоматично "
 "відновити роботу."
 
-#: ../src/daemon/main.c:713
+#: ../src/daemon/main.c:715
 #, c-format
 msgid ""
 "User-configured server at %s, which appears to be local. Probing deeper."
@@ -259,162 +264,162 @@ msgstr ""
 "Налаштований користувачем сервер на %s, який, здається, є локальним. "
 "Виконуємо докладнішу діагностику."
 
-#: ../src/daemon/main.c:718
+#: ../src/daemon/main.c:720
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
 "Запуск у загальносистемному режимі, але не встановлено --disallow-exit!"
 
-#: ../src/daemon/main.c:721
+#: ../src/daemon/main.c:723
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Запуск у загальносистемному режимі, але не встановлено --disallow-module-"
 "loading!"
 
-#: ../src/daemon/main.c:724
+#: ../src/daemon/main.c:726
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "Запуск у загальносистемному режимі, примусове вимикання режиму SHM!"
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:731
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Запуск у загальносистемному режимі, примусове вимикання режиму параметрів "
 "часу виходу за відсутності активності!"
 
-#: ../src/daemon/main.c:757
+#: ../src/daemon/main.c:759
 msgid "Failed to acquire stdio."
 msgstr "Не вдалося отримати stdio."
 
-#: ../src/daemon/main.c:763 ../src/daemon/main.c:828
+#: ../src/daemon/main.c:765 ../src/daemon/main.c:830
 #, c-format
 msgid "pipe() failed: %s"
 msgstr "Спроба виконання pipe() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:768 ../src/daemon/main.c:833
+#: ../src/daemon/main.c:770 ../src/daemon/main.c:835
 #, c-format
 msgid "fork() failed: %s"
 msgstr "Спроба виконання fork() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:783 ../src/daemon/main.c:848 ../src/utils/pacat.c:550
+#: ../src/daemon/main.c:785 ../src/daemon/main.c:850 ../src/utils/pacat.c:564
 #, c-format
 msgid "read() failed: %s"
 msgstr "Спроба виконання read() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:789
+#: ../src/daemon/main.c:791
 msgid "Daemon startup failed."
 msgstr "Спроба запуску фонової служби завершилася невдало."
 
-#: ../src/daemon/main.c:791
+#: ../src/daemon/main.c:793
 msgid "Daemon startup successful."
 msgstr "Фонову службу успішно запущено."
 
-#: ../src/daemon/main.c:816
+#: ../src/daemon/main.c:818
 #, c-format
 msgid "setsid() failed: %s"
 msgstr "Спроба виконання setsid() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:901
+#: ../src/daemon/main.c:903
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Це PulseAudio %s"
 
-#: ../src/daemon/main.c:902
+#: ../src/daemon/main.c:904
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Вузол збирання: %s"
 
-#: ../src/daemon/main.c:903 ../src/tests/resampler-test.c:418
+#: ../src/daemon/main.c:905 ../src/tests/resampler-test.c:418
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "CFLAGS збирання: %s"
 
-#: ../src/daemon/main.c:906
+#: ../src/daemon/main.c:908
 #, c-format
 msgid "Running on host: %s"
 msgstr "Запущено на вузлі: %s"
 
-#: ../src/daemon/main.c:909
+#: ../src/daemon/main.c:911
 #, c-format
 msgid "Found %u CPUs."
 msgstr "Знайдено %u процесорів."
 
-#: ../src/daemon/main.c:911
+#: ../src/daemon/main.c:913
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Розмір сторінки дорівнює %lu байтам"
 
-#: ../src/daemon/main.c:914
+#: ../src/daemon/main.c:916
 msgid "Compiled with Valgrind support: yes"
 msgstr "Зібрано з підтримкою Valgrind: так"
 
-#: ../src/daemon/main.c:916
+#: ../src/daemon/main.c:918
 msgid "Compiled with Valgrind support: no"
 msgstr "Зібрано з підтримкою Valgrind: ні"
 
-#: ../src/daemon/main.c:919
+#: ../src/daemon/main.c:921
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Запуск у режимі valgrind: %s"
 
-#: ../src/daemon/main.c:921
+#: ../src/daemon/main.c:923
 #, c-format
 msgid "Running in VM: %s"
 msgstr "Запущено у віртуальній машині: %s"
 
-#: ../src/daemon/main.c:924
+#: ../src/daemon/main.c:926
 msgid "Optimized build: yes"
 msgstr "Зібрано з оптимізацією: так"
 
-#: ../src/daemon/main.c:926
+#: ../src/daemon/main.c:928
 msgid "Optimized build: no"
 msgstr "Зібрано з оптимізацією: ні"
 
-#: ../src/daemon/main.c:930
+#: ../src/daemon/main.c:932
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "Визначено NDEBUG, всі додавання вимкнено."
 
-#: ../src/daemon/main.c:932
+#: ../src/daemon/main.c:934
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "Визначено FASTPATH, вимкнено лише додавання швидких шляхів."
 
-#: ../src/daemon/main.c:934
+#: ../src/daemon/main.c:936
 msgid "All asserts enabled."
 msgstr "Увімкнено всі додавання."
 
-#: ../src/daemon/main.c:938
+#: ../src/daemon/main.c:940
 msgid "Failed to get machine ID"
 msgstr "Спроба отримати ідентифікатор системи завершилася невдало"
 
-#: ../src/daemon/main.c:941
+#: ../src/daemon/main.c:943
 #, c-format
 msgid "Machine ID is %s."
 msgstr "Ідентифікатор системи %s."
 
-#: ../src/daemon/main.c:945
+#: ../src/daemon/main.c:947
 #, c-format
 msgid "Session ID is %s."
 msgstr "Ідентифікатор сеансу — %s."
 
-#: ../src/daemon/main.c:951
+#: ../src/daemon/main.c:953
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Каталог запуску: %s."
 
-#: ../src/daemon/main.c:956
+#: ../src/daemon/main.c:958
 #, c-format
 msgid "Using state directory %s."
 msgstr "Каталог стану: %s."
 
-#: ../src/daemon/main.c:959
+#: ../src/daemon/main.c:961
 #, c-format
 msgid "Using modules directory %s."
 msgstr "Каталог модулів: %s."
 
-#: ../src/daemon/main.c:961
+#: ../src/daemon/main.c:963
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Запуску у загальносистемному режимі: %s"
 
-#: ../src/daemon/main.c:964
+#: ../src/daemon/main.c:966
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -431,15 +436,15 @@ msgstr ""
 "WhatIsWrongWithSystemMode, щоб дізнатися про те, чому не варто "
 "використовувати системний режим."
 
-#: ../src/daemon/main.c:981
+#: ../src/daemon/main.c:983
 msgid "pa_pid_file_create() failed."
 msgstr "Спроба виконання pa_pid_file_create() зазнала невдачі."
 
-#: ../src/daemon/main.c:991
+#: ../src/daemon/main.c:993
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Доступні свіжі високоточні таймери! Смачного!"
 
-#: ../src/daemon/main.c:993
+#: ../src/daemon/main.c:995
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -447,29 +452,29 @@ msgstr ""
 "Чувак, твоє ядро — лайно! Круті пацани рекомендують Linux з увімкненими "
 "високоточними таймерами!"
 
-#: ../src/daemon/main.c:1011
+#: ../src/daemon/main.c:1013
 msgid "pa_core_new() failed."
 msgstr "Спроба виконання pa_core_new() зазнала невдачі."
 
-#: ../src/daemon/main.c:1087
+#: ../src/daemon/main.c:1091
 msgid "Failed to initialize daemon."
 msgstr "Не вдалося ініціалізувати фонову службу."
 
-#: ../src/daemon/main.c:1092
+#: ../src/daemon/main.c:1096
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Запуск фонової служби без жодного завантаженого модуля, служба не буде "
 "працездатною."
 
-#: ../src/daemon/main.c:1130
+#: ../src/daemon/main.c:1134
 msgid "Daemon startup complete."
 msgstr "Запуск фонової служби завершено."
 
-#: ../src/daemon/main.c:1136
+#: ../src/daemon/main.c:1140
 msgid "Daemon shutdown initiated."
 msgstr "Ініційовано завершення роботи фонової служби."
 
-#: ../src/daemon/main.c:1167
+#: ../src/daemon/main.c:1171
 msgid "Daemon terminated."
 msgstr "Виконання фонової служби перервано."
 
@@ -516,7 +521,7 @@ msgid ""
 "                                        this time passed\n"
 "      --log-level[=LEVEL]               Increase or set verbosity level\n"
 "  -v                                    Increase the verbosity level\n"
-"      --log-target={auto,syslog,stderr,file:PATH}\n"
+"      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
 "                                        Specify the log target\n"
 "      --log-meta[=BOOL]                 Include code location in log "
 "messages\n"
@@ -592,7 +597,7 @@ msgstr ""
 "      --log-level[=РІВЕНЬ]              Підвищити або встановити рівень "
 "докладності виводу\n"
 "  -v                                    Підвищити рівень докладності виводу\n"
-"      --log-target={auto,syslog,stderr,file:ШЛЯХ}\n"
+"      --log-target={auto,syslog,stderr,file:ШЛЯХ,newfile:ШЛЯХ}\n"
 "                                        Вказати журнал\n"
 "      --log-meta[=BOOL]                 Додати повідомлення про місце у коді "
 "до повідомлень журналу\n"
@@ -627,15 +632,15 @@ msgstr ""
 "  -n                                    Не завантажувати типовий файл "
 "скрипту\n"
 
-#: ../src/daemon/cmdline.c:244
+#: ../src/daemon/cmdline.c:245
 msgid "--daemonize expects boolean argument"
 msgstr "Для параметра --daemonize слід вказувати булівський аргумент"
 
-#: ../src/daemon/cmdline.c:251
+#: ../src/daemon/cmdline.c:253
 msgid "--fail expects boolean argument"
 msgstr "Для параметра --fail слід вказувати булівський аргумент"
 
-#: ../src/daemon/cmdline.c:261
+#: ../src/daemon/cmdline.c:264
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
@@ -644,57 +649,57 @@ msgstr ""
 "(числове у діапазоні 0..4 або одне зі значень debug, info, notice, warn, "
 "error)."
 
-#: ../src/daemon/cmdline.c:273
+#: ../src/daemon/cmdline.c:276
 msgid "--high-priority expects boolean argument"
 msgstr "Для параметра --high-priority слід вказувати булівський аргумент"
 
-#: ../src/daemon/cmdline.c:280
+#: ../src/daemon/cmdline.c:284
 msgid "--realtime expects boolean argument"
 msgstr "Для параметра --realtime слід вказувати булівський аргумент"
 
-#: ../src/daemon/cmdline.c:287
+#: ../src/daemon/cmdline.c:292
 msgid "--disallow-module-loading expects boolean argument"
 msgstr ""
 "Для параметра --disallow-module-loading слід вказувати булівський аргумент"
 
-#: ../src/daemon/cmdline.c:294
+#: ../src/daemon/cmdline.c:300
 msgid "--disallow-exit expects boolean argument"
 msgstr "Для параметра --disallow-exit слід вказувати булівський аргумент"
 
-#: ../src/daemon/cmdline.c:301
+#: ../src/daemon/cmdline.c:308
 msgid "--use-pid-file expects boolean argument"
 msgstr "Для параметра --use-pid-file слід вказувати булівський аргумент"
 
-#: ../src/daemon/cmdline.c:318
+#: ../src/daemon/cmdline.c:326
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
-"name 'file:<path>'."
+"name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"Журнал вказано неправильно: можливі варіанти «syslog», «stderr» і «auto» або "
-"чинну назву файла «file:<шлях>»."
+"Журнал вказано неправильно: можливі варіанти «syslog», «stderr», «auto» і "
+"чинна назва файла «file:<шлях>» або «newfile:<шлях>»."
 
-#: ../src/daemon/cmdline.c:325
+#: ../src/daemon/cmdline.c:333
 msgid "--log-time expects boolean argument"
 msgstr "Для параметра --log-time слід вказувати булівський аргумент"
 
-#: ../src/daemon/cmdline.c:332
+#: ../src/daemon/cmdline.c:341
 msgid "--log-meta expects boolean argument"
 msgstr "Для параметра --log-meta слід вказувати булівський аргумент"
 
-#: ../src/daemon/cmdline.c:351
+#: ../src/daemon/cmdline.c:361
 #, c-format
 msgid "Invalid resample method '%s'."
 msgstr "Некоректний метод зміни частотних характеристик «%s»."
 
-#: ../src/daemon/cmdline.c:358
+#: ../src/daemon/cmdline.c:368
 msgid "--system expects boolean argument"
 msgstr "Для параметра --system слід вказувати булівський аргумент"
 
-#: ../src/daemon/cmdline.c:365
+#: ../src/daemon/cmdline.c:376
 msgid "--no-cpu-limit expects boolean argument"
 msgstr "Для параметра --no-cpu-limit слід вказувати булівський аргумент"
 
-#: ../src/daemon/cmdline.c:372
+#: ../src/daemon/cmdline.c:384
 msgid "--disable-shm expects boolean argument"
 msgstr "Для параметра --disable-shm слід вказувати булівський аргумент"
 
@@ -743,72 +748,72 @@ msgstr "ПОПЕРЕДЖЕННЯ ПРО ЗАСТАРІЛІСТЬ: %s\n"
 msgid "Path: %s\n"
 msgstr "Шлях: %s\n"
 
-#: ../src/daemon/daemon-conf.c:275
+#: ../src/daemon/daemon-conf.c:307
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] Некоректний журнал «%s»."
 
-#: ../src/daemon/daemon-conf.c:291
+#: ../src/daemon/daemon-conf.c:322
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] Некоректний рівень журналювання «%s»."
 
-#: ../src/daemon/daemon-conf.c:307
+#: ../src/daemon/daemon-conf.c:337
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] Некоректний метод зміни частотних характеристик «%s»."
 
-#: ../src/daemon/daemon-conf.c:330
+#: ../src/daemon/daemon-conf.c:359
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] Некоректне значення rlimit «%s»."
 
-#: ../src/daemon/daemon-conf.c:351
+#: ../src/daemon/daemon-conf.c:379
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Некоректний формат фрагмента «%s»."
 
-#: ../src/daemon/daemon-conf.c:370 ../src/daemon/daemon-conf.c:389
+#: ../src/daemon/daemon-conf.c:397 ../src/daemon/daemon-conf.c:415
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] Некоректна частота вибірки «%s»."
 
-#: ../src/daemon/daemon-conf.c:413
+#: ../src/daemon/daemon-conf.c:438
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Некоректні канали фрагмента «%s»."
 
-#: ../src/daemon/daemon-conf.c:431
+#: ../src/daemon/daemon-conf.c:455
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
 msgstr "[%s:%u] Некоректна карта каналів «%s»'."
 
-#: ../src/daemon/daemon-conf.c:449
+#: ../src/daemon/daemon-conf.c:472
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] Некоректна кількість фрагментів «%s»."
 
-#: ../src/daemon/daemon-conf.c:467
+#: ../src/daemon/daemon-conf.c:489
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] Некоректний розмір фрагмента «%s»."
 
-#: ../src/daemon/daemon-conf.c:485
+#: ../src/daemon/daemon-conf.c:506
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Некоректний рівень nice «%s»."
 
-#: ../src/daemon/daemon-conf.c:528
+#: ../src/daemon/daemon-conf.c:549
 #, c-format
 msgid "[%s:%u] Invalid server type '%s'."
 msgstr "[%s:%u] Некоректний тип сервера «%s»."
 
-#: ../src/daemon/daemon-conf.c:641
+#: ../src/daemon/daemon-conf.c:662
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Не вдалося відкрити файл налаштувань: %s"
 
-#: ../src/daemon/daemon-conf.c:657
+#: ../src/daemon/daemon-conf.c:678
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -816,12 +821,12 @@ msgstr ""
 "У вказаній типовій карті каналів визначається інша кількість каналів, ніж "
 "типова кількість каналів."
 
-#: ../src/daemon/daemon-conf.c:743
+#: ../src/daemon/daemon-conf.c:764
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Прочитано з файла налаштувань: %s ###\n"
 
-#: ../src/daemon/caps.c:58
+#: ../src/daemon/caps.c:54
 msgid "Cleaning up privileges."
 msgstr "Позбуваємося прав доступу."
 
@@ -1048,7 +1053,7 @@ msgstr "Верхній задній правий"
 #: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:169
 #: ../src/pulse/volume.c:297 ../src/pulse/volume.c:323
 #: ../src/pulse/volume.c:343 ../src/pulse/volume.c:373
-#: ../src/pulse/format.c:125
+#: ../src/pulse/format.c:122
 msgid "(invalid)"
 msgstr "(некоректний)"
 
@@ -1231,196 +1236,196 @@ msgid "No cookie loaded. Attempting to connect without."
 msgstr ""
 "Куків не завантажено. Буде виконано спробу з’єднання за їх відсутності."
 
-#: ../src/pulse/context.c:675
+#: ../src/pulse/context.c:609
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:730
+#: ../src/pulse/context.c:664
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1431
+#: ../src/pulse/context.c:1365
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Отримано повідомлення про невідомий додаток «%s»"
 
-#: ../src/utils/pacat.c:112
+#: ../src/utils/pacat.c:116
 #, c-format
 msgid "Failed to drain stream: %s"
 msgstr "Не вдалося створити тунель для потоку: %s"
 
-#: ../src/utils/pacat.c:117
+#: ../src/utils/pacat.c:121
 msgid "Playback stream drained."
 msgstr "Потік відтворення тунельовано."
 
-#: ../src/utils/pacat.c:128
+#: ../src/utils/pacat.c:132
 msgid "Draining connection to server."
 msgstr "Тунельне з’єднання з сервером."
 
-#: ../src/utils/pacat.c:141
+#: ../src/utils/pacat.c:145
 #, c-format
 msgid "pa_stream_drain(): %s"
 msgstr "pa_stream_drain(): %s"
 
-#: ../src/utils/pacat.c:164
+#: ../src/utils/pacat.c:168
 #, c-format
 msgid "pa_stream_write() failed: %s"
 msgstr "Спроба виконання pa_stream_write() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:205
+#: ../src/utils/pacat.c:209
 #, c-format
 msgid "pa_stream_begin_write() failed: %s"
 msgstr "Спроба виконання pa_stream_write() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:255 ../src/utils/pacat.c:285
+#: ../src/utils/pacat.c:259 ../src/utils/pacat.c:289
 #, c-format
 msgid "pa_stream_peek() failed: %s"
 msgstr "Спроба виконання pa_stream_peek() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:325
+#: ../src/utils/pacat.c:339
 msgid "Stream successfully created."
 msgstr "Потік було успішно створено."
 
-#: ../src/utils/pacat.c:328
+#: ../src/utils/pacat.c:342
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
 msgstr "Спроба виконання pa_stream_get_buffer_attr() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:332
+#: ../src/utils/pacat.c:346
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 msgstr "Метрика буфера: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 
-#: ../src/utils/pacat.c:335
+#: ../src/utils/pacat.c:349
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
 msgstr "Метрика буфера: maxlength=%u, fragsize=%u"
 
-#: ../src/utils/pacat.c:339
+#: ../src/utils/pacat.c:353
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'."
 msgstr "Використання частотної специфікації «%s», карта каналів «%s»."
 
-#: ../src/utils/pacat.c:343
+#: ../src/utils/pacat.c:357
 #, c-format
 msgid "Connected to device %s (%u, %ssuspended)."
 msgstr "З’єднано з пристроєм %s (%u, %s призупинено)."
 
-#: ../src/utils/pacat.c:353
+#: ../src/utils/pacat.c:367
 #, c-format
 msgid "Stream error: %s"
 msgstr "Помилка потоку: %s"
 
-#: ../src/utils/pacat.c:363
+#: ../src/utils/pacat.c:377
 #, c-format
 msgid "Stream device suspended.%s"
 msgstr "Призупинено пристрій потоку. %s"
 
-#: ../src/utils/pacat.c:365
+#: ../src/utils/pacat.c:379
 #, c-format
 msgid "Stream device resumed.%s"
 msgstr "Відновлено пристрій потоку. %s"
 
-#: ../src/utils/pacat.c:373
+#: ../src/utils/pacat.c:387
 #, c-format
 msgid "Stream underrun.%s"
 msgstr "Недовантаження потоку. %s"
 
-#: ../src/utils/pacat.c:380
+#: ../src/utils/pacat.c:394
 #, c-format
 msgid "Stream overrun.%s"
 msgstr "Перевантаження потоку. %s"
 
-#: ../src/utils/pacat.c:387
+#: ../src/utils/pacat.c:401
 #, c-format
 msgid "Stream started.%s"
 msgstr "Потік запущено. %s"
 
-#: ../src/utils/pacat.c:394
+#: ../src/utils/pacat.c:408
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
 msgstr "Потік пересунуто на пристрій %s (%u, %s призупинено). %s"
 
-#: ../src/utils/pacat.c:394
+#: ../src/utils/pacat.c:408
 msgid "not "
 msgstr "не "
 
-#: ../src/utils/pacat.c:401
+#: ../src/utils/pacat.c:415
 #, c-format
 msgid "Stream buffer attributes changed.%s"
 msgstr "Недовантаження потоку. %s"
 
-#: ../src/utils/pacat.c:416
+#: ../src/utils/pacat.c:430
 msgid "Cork request stack is empty: corking stream"
 msgstr "Стос запитів щодо блокування порожній: блокуємо потік"
 
-#: ../src/utils/pacat.c:422
+#: ../src/utils/pacat.c:436
 msgid "Cork request stack is empty: uncorking stream"
 msgstr "Стос запитів щодо блокування порожній: розблоковуємо потік"
 
-#: ../src/utils/pacat.c:426
+#: ../src/utils/pacat.c:440
 msgid "Warning: Received more uncork requests than cork requests!"
 msgstr ""
 "Попередження: отримано більше запитів щодо розблокування, ніж запитів щодо "
 "блокування!"
 
-#: ../src/utils/pacat.c:451
+#: ../src/utils/pacat.c:465
 #, c-format
 msgid "Connection established.%s"
 msgstr "Встановлено з’єднання. %s"
 
-#: ../src/utils/pacat.c:454
+#: ../src/utils/pacat.c:468
 #, c-format
 msgid "pa_stream_new() failed: %s"
 msgstr "Спроба виконання pa_stream_new() зазнала невдачі: %s"
 
-#: ../src/utils/pacat.c:492
+#: ../src/utils/pacat.c:506
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
 msgstr "Спроба виконання pa_stream_connect_playback() зазнала невдачі: %s"
 
-#: ../src/utils/pacat.c:498
+#: ../src/utils/pacat.c:512
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "Спроба виконання pa_stream_connect_record() зазнала невдачі: %s"
 
-#: ../src/utils/pacat.c:512 ../src/utils/pactl.c:1252
+#: ../src/utils/pacat.c:526 ../src/utils/pactl.c:1406
 #, c-format
 msgid "Connection failure: %s"
 msgstr "Спроба встановлення з’єднання зазнала невдачі: %s"
 
-#: ../src/utils/pacat.c:545
+#: ../src/utils/pacat.c:559
 msgid "Got EOF."
 msgstr "Отримано EOF."
 
-#: ../src/utils/pacat.c:582
+#: ../src/utils/pacat.c:596
 #, c-format
 msgid "write() failed: %s"
 msgstr "Спроба виконання write() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:603
+#: ../src/utils/pacat.c:617
 msgid "Got signal, exiting."
 msgstr "Отримано сигнал, завершення роботи."
 
-#: ../src/utils/pacat.c:617
+#: ../src/utils/pacat.c:631
 #, c-format
 msgid "Failed to get latency: %s"
 msgstr "Не вдалося отримати латентність: %s"
 
-#: ../src/utils/pacat.c:622
+#: ../src/utils/pacat.c:636
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
 msgstr "Час: %0.3f сек.; Латентність: %0.0f мкс."
 
-#: ../src/utils/pacat.c:643
+#: ../src/utils/pacat.c:657
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
 msgstr ""
 "Спроба виконання pa_stream_update_timing_info() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:653
+#: ../src/utils/pacat.c:667
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -1547,7 +1552,7 @@ msgstr ""
 "      --list-file-formats               Показати список можливих форматів "
 "даних.\n"
 
-#: ../src/utils/pacat.c:786
+#: ../src/utils/pacat.c:802
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1558,68 +1563,68 @@ msgstr ""
 "Зібрано з libpulse %s\n"
 "З’єднано з libpulse %s\n"
 
-#: ../src/utils/pacat.c:819 ../src/utils/pactl.c:1400
+#: ../src/utils/pacat.c:835 ../src/utils/pactl.c:1577
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "Некоректна назва клієнта «%s»"
 
-#: ../src/utils/pacat.c:834
+#: ../src/utils/pacat.c:850
 #, c-format
 msgid "Invalid stream name '%s'"
 msgstr "Некоректна назва потоку «%s»"
 
-#: ../src/utils/pacat.c:871
+#: ../src/utils/pacat.c:887
 #, c-format
 msgid "Invalid channel map '%s'"
 msgstr "Некоректна карта каналів «%s»"
 
-#: ../src/utils/pacat.c:900 ../src/utils/pacat.c:914
+#: ../src/utils/pacat.c:916 ../src/utils/pacat.c:930
 #, c-format
 msgid "Invalid latency specification '%s'"
 msgstr "Некоректна специфікація латентності «%s»"
 
-#: ../src/utils/pacat.c:907 ../src/utils/pacat.c:921
+#: ../src/utils/pacat.c:923 ../src/utils/pacat.c:937
 #, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "Некоректна часова специфікація «%s»"
 
-#: ../src/utils/pacat.c:933
+#: ../src/utils/pacat.c:949
 #, c-format
 msgid "Invalid property '%s'"
 msgstr "Некоректна властивість «%s»"
 
-#: ../src/utils/pacat.c:952
+#: ../src/utils/pacat.c:968
 #, c-format
 msgid "Unknown file format %s."
 msgstr "Невідомий формат файлів %s."
 
-#: ../src/utils/pacat.c:971
+#: ../src/utils/pacat.c:987
 msgid "Invalid sample specification"
 msgstr "Некоректна частотна специфікація"
 
-#: ../src/utils/pacat.c:981
+#: ../src/utils/pacat.c:997
 #, c-format
 msgid "open(): %s"
 msgstr "open(): %s"
 
-#: ../src/utils/pacat.c:986
+#: ../src/utils/pacat.c:1002
 #, c-format
 msgid "dup2(): %s"
 msgstr "dup2(): %s"
 
-#: ../src/utils/pacat.c:993
+#: ../src/utils/pacat.c:1009
 msgid "Too many arguments."
 msgstr "Забагато аргументів."
 
-#: ../src/utils/pacat.c:1004
+#: ../src/utils/pacat.c:1020
 msgid "Failed to generate sample specification for file."
 msgstr "Не вдалося створити частотну специфікацію для файла."
 
-#: ../src/utils/pacat.c:1030
+#: ../src/utils/pacat.c:1046
 msgid "Failed to open audio file."
 msgstr "Не вдалося відкрити звуковий файл."
 
-#: ../src/utils/pacat.c:1036
+#: ../src/utils/pacat.c:1052
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
@@ -1627,63 +1632,63 @@ msgstr ""
 "Попередження: вказану частотну специфікацію буде перезаписано специфікацією "
 "з файла."
 
-#: ../src/utils/pacat.c:1039 ../src/utils/pactl.c:1467
+#: ../src/utils/pacat.c:1055 ../src/utils/pactl.c:1644
 msgid "Failed to determine sample specification from file."
 msgstr "Не вдалося отримати дані щодо частотної специфікації з файла."
 
-#: ../src/utils/pacat.c:1048
+#: ../src/utils/pacat.c:1064
 msgid "Warning: Failed to determine channel map from file."
 msgstr "Попередження: не вдалося отримати дані щодо карти каналів з файла."
 
-#: ../src/utils/pacat.c:1059
+#: ../src/utils/pacat.c:1075
 msgid "Channel map doesn't match sample specification"
 msgstr "Карта каналів не відповідає частотній специфікації"
 
-#: ../src/utils/pacat.c:1070
+#: ../src/utils/pacat.c:1086
 msgid "Warning: failed to write channel map to file."
 msgstr "Попередження: не вдалося записати карту каналів до файла."
 
-#: ../src/utils/pacat.c:1085
+#: ../src/utils/pacat.c:1101
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 "Відкриття потоку %s з частотною специфікацією «%s» і картою каналів «%s»."
 
-#: ../src/utils/pacat.c:1086
+#: ../src/utils/pacat.c:1102
 msgid "recording"
 msgstr "запис"
 
-#: ../src/utils/pacat.c:1086
+#: ../src/utils/pacat.c:1102
 msgid "playback"
 msgstr "відтворення"
 
-#: ../src/utils/pacat.c:1110
+#: ../src/utils/pacat.c:1126
 msgid "Failed to set media name."
 msgstr "Не вдалося встановити назву носія даних."
 
-#: ../src/utils/pacat.c:1117 ../src/utils/pactl.c:1777
+#: ../src/utils/pacat.c:1133 ../src/utils/pactl.c:1994
 msgid "pa_mainloop_new() failed."
 msgstr "Спроба виконання pa_mainloop_new() завершилася невдало."
 
-#: ../src/utils/pacat.c:1136
+#: ../src/utils/pacat.c:1156
 msgid "io_new() failed."
 msgstr "Спроба виконання io_new() завершилася невдало."
 
-#: ../src/utils/pacat.c:1143 ../src/utils/pactl.c:1789
+#: ../src/utils/pacat.c:1163 ../src/utils/pactl.c:2006
 msgid "pa_context_new() failed."
 msgstr "Спроба виконання pa_context_new() завершилася невдало."
 
-#: ../src/utils/pacat.c:1151 ../src/utils/pactl.c:1795
+#: ../src/utils/pacat.c:1171 ../src/utils/pactl.c:2012
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "Спроба виконання pa_context_connect() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:1157
+#: ../src/utils/pacat.c:1177
 msgid "pa_context_rttime_new() failed."
 msgstr "Спроба виконання pa_context_new() завершилася невдало."
 
-#: ../src/utils/pacat.c:1164 ../src/utils/pactl.c:1800
+#: ../src/utils/pacat.c:1184 ../src/utils/pactl.c:2017
 msgid "pa_mainloop_run() failed."
 msgstr "Спроба виконання pa_mainloop_run() завершилася невдало."
 
@@ -1769,38 +1774,38 @@ msgstr "Спроба виконання pa_mainloop_new() завершилася
 msgid "pa_context_new() failed.\n"
 msgstr "Спроба виконання pa_context_new() завершилася невдало.\n"
 
-#: ../src/utils/pasuspender.c:298
+#: ../src/utils/pasuspender.c:302
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
 msgstr "Спроба виконання pa_mainloop_run() завершилася невдало.\n"
 
-#: ../src/utils/pactl.c:150
+#: ../src/utils/pactl.c:161
 #, c-format
 msgid "Failed to get statistics: %s"
 msgstr "Не вдалося отримати статистичні дані: %s"
 
-#: ../src/utils/pactl.c:156
+#: ../src/utils/pactl.c:167
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
 msgstr "Зараз використано: %u блоків, що містять загалом %s байтів.\n"
 
-#: ../src/utils/pactl.c:159
+#: ../src/utils/pactl.c:170
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
 msgstr ""
 "Виділено протягом виконання загалом: %u блоків, що містять %s байтів.\n"
 
-#: ../src/utils/pactl.c:162
+#: ../src/utils/pactl.c:173
 #, c-format
 msgid "Sample cache size: %s\n"
 msgstr "Розмір кешу фрагментів: %s\n"
 
-#: ../src/utils/pactl.c:171
+#: ../src/utils/pactl.c:182
 #, c-format
 msgid "Failed to get server information: %s"
 msgstr "Не вдалося отримати дані щодо сервера: %s"
 
-#: ../src/utils/pactl.c:176
+#: ../src/utils/pactl.c:187
 #, c-format
 msgid ""
 "Server String: %s\n"
@@ -1817,7 +1822,7 @@ msgstr ""
 "Номер клієнта: %u\n"
 "Розмір фрагмента: %zu\n"
 
-#: ../src/utils/pactl.c:192
+#: ../src/utils/pactl.c:203
 #, c-format
 msgid ""
 "User Name: %s\n"
@@ -1840,12 +1845,12 @@ msgstr ""
 "Типове джерело: %s\n"
 "Кука: %04x:%04x\n"
 
-#: ../src/utils/pactl.c:244 ../src/utils/pactl.c:830
+#: ../src/utils/pactl.c:255 ../src/utils/pactl.c:897 ../src/utils/pactl.c:971
 #, c-format
 msgid "Failed to get sink information: %s"
 msgstr "Не вдалося отримати дані щодо приймача: %s"
 
-#: ../src/utils/pactl.c:270
+#: ../src/utils/pactl.c:281
 #, c-format
 msgid ""
 "Sink #%u\n"
@@ -1884,27 +1889,27 @@ msgstr ""
 "\tВластивості:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:318 ../src/utils/pactl.c:430
+#: ../src/utils/pactl.c:329 ../src/utils/pactl.c:441 ../src/utils/pactl.c:601
 #, c-format
 msgid "\tPorts:\n"
 msgstr "\tПорти:\n"
 
-#: ../src/utils/pactl.c:325 ../src/utils/pactl.c:437
+#: ../src/utils/pactl.c:336 ../src/utils/pactl.c:448
 #, c-format
 msgid "\tActive Port: %s\n"
 msgstr "\tАктивний порт: %s\n"
 
-#: ../src/utils/pactl.c:331 ../src/utils/pactl.c:443
+#: ../src/utils/pactl.c:342 ../src/utils/pactl.c:454
 #, c-format
 msgid "\tFormats:\n"
 msgstr "\tФормати:\n"
 
-#: ../src/utils/pactl.c:357 ../src/utils/pactl.c:849
+#: ../src/utils/pactl.c:368 ../src/utils/pactl.c:916 ../src/utils/pactl.c:986
 #, c-format
 msgid "Failed to get source information: %s"
 msgstr "Не вдалося отримати дані щодо джерела: %s"
 
-#: ../src/utils/pactl.c:383
+#: ../src/utils/pactl.c:394
 #, c-format
 msgid ""
 "Source #%u\n"
@@ -1943,20 +1948,20 @@ msgstr ""
 "\tВластивості:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:415 ../src/utils/pactl.c:485 ../src/utils/pactl.c:528
-#: ../src/utils/pactl.c:570 ../src/utils/pactl.c:640 ../src/utils/pactl.c:641
-#: ../src/utils/pactl.c:652 ../src/utils/pactl.c:711 ../src/utils/pactl.c:712
-#: ../src/utils/pactl.c:723 ../src/utils/pactl.c:775 ../src/utils/pactl.c:776
-#: ../src/utils/pactl.c:783
+#: ../src/utils/pactl.c:426 ../src/utils/pactl.c:496 ../src/utils/pactl.c:539
+#: ../src/utils/pactl.c:581 ../src/utils/pactl.c:679 ../src/utils/pactl.c:680
+#: ../src/utils/pactl.c:692 ../src/utils/pactl.c:752 ../src/utils/pactl.c:753
+#: ../src/utils/pactl.c:765 ../src/utils/pactl.c:817 ../src/utils/pactl.c:818
+#: ../src/utils/pactl.c:825
 msgid "n/a"
 msgstr "н/д"
 
-#: ../src/utils/pactl.c:454
+#: ../src/utils/pactl.c:465 ../src/utils/pactl.c:872
 #, c-format
 msgid "Failed to get module information: %s"
 msgstr "Не вдалося отримати дані щодо модуля: %s"
 
-#: ../src/utils/pactl.c:477
+#: ../src/utils/pactl.c:488
 #, c-format
 msgid ""
 "Module #%u\n"
@@ -1973,12 +1978,12 @@ msgstr ""
 "\tВластивості:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:496
+#: ../src/utils/pactl.c:507
 #, c-format
 msgid "Failed to get client information: %s"
 msgstr "Не вдалося отримати дані щодо клієнта: %s"
 
-#: ../src/utils/pactl.c:522
+#: ../src/utils/pactl.c:533
 #, c-format
 msgid ""
 "Client #%u\n"
@@ -1993,12 +1998,12 @@ msgstr ""
 "\tВластивості:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:539
+#: ../src/utils/pactl.c:550
 #, c-format
 msgid "Failed to get card information: %s"
 msgstr "Не вдалося отримати дані щодо карти: %s"
 
-#: ../src/utils/pactl.c:562
+#: ../src/utils/pactl.c:573
 #, c-format
 msgid ""
 "Card #%u\n"
@@ -2015,22 +2020,36 @@ msgstr ""
 "\tВластивості:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:576
+#: ../src/utils/pactl.c:589
 #, c-format
 msgid "\tProfiles:\n"
 msgstr "\tПрофілі:\n"
 
-#: ../src/utils/pactl.c:582
+#: ../src/utils/pactl.c:595
 #, c-format
 msgid "\tActive Profile: %s\n"
 msgstr "\tАктивний профіль: %s\n"
 
-#: ../src/utils/pactl.c:593 ../src/utils/pactl.c:868
+#: ../src/utils/pactl.c:609
+#, c-format
+msgid ""
+"\t\t\tProperties:\n"
+"\t\t\t\t%s\n"
+msgstr ""
+"\t\t\tВластивості:\n"
+"\t\t\t\t%s\n"
+
+#: ../src/utils/pactl.c:614
+#, c-format
+msgid "\t\t\tPart of profile(s): %s"
+msgstr "\t\t\tЧастина профілів: %s"
+
+#: ../src/utils/pactl.c:631 ../src/utils/pactl.c:935 ../src/utils/pactl.c:1001
 #, c-format
 msgid "Failed to get sink input information: %s"
 msgstr "Не вдалося отримати відомостей щодо приймача: %s"
 
-#: ../src/utils/pactl.c:622
+#: ../src/utils/pactl.c:660
 #, c-format
 msgid ""
 "Sink Input #%u\n"
@@ -2041,6 +2060,7 @@ msgid ""
 "\tSample Specification: %s\n"
 "\tChannel Map: %s\n"
 "\tFormat: %s\n"
+"\tCorked: %s\n"
 "\tMute: %s\n"
 "\tVolume: %s\n"
 "\t        %s\n"
@@ -2059,6 +2079,7 @@ msgstr ""
 "\tЧастотна специфікація: %s\n"
 "\tКарта каналів: %s\n"
 "\tФормат: %s\n"
+"\tСтан призупинення: %s\n"
 "\tСтан вимикання: %s\n"
 "\tГучність: %s\n"
 "\t        %s\n"
@@ -2069,12 +2090,12 @@ msgstr ""
 "\tВластивості:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:663 ../src/utils/pactl.c:887
+#: ../src/utils/pactl.c:703 ../src/utils/pactl.c:954 ../src/utils/pactl.c:1016
 #, c-format
 msgid "Failed to get source output information: %s"
 msgstr "Не вдалося отримати дані щодо відтворення джерела: %s"
 
-#: ../src/utils/pactl.c:693
+#: ../src/utils/pactl.c:733
 #, c-format
 msgid ""
 "Source Output #%u\n"
@@ -2085,6 +2106,7 @@ msgid ""
 "\tSample Specification: %s\n"
 "\tChannel Map: %s\n"
 "\tFormat: %s\n"
+"\tCorked: %s\n"
 "\tMute: %s\n"
 "\tVolume: %s\n"
 "\t        %s\n"
@@ -2103,6 +2125,7 @@ msgstr ""
 "\tЧастотна специфікація: %s\n"
 "\tКарта каналів: %s\n"
 "\tФормат: %s\n"
+"\tСтан призупинення: %s\n"
 "\tСтан вимикання: %s\n"
 "\tГучність: %s\n"
 "\t %s\n"
@@ -2113,12 +2136,12 @@ msgstr ""
 "\tВластивості:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:734
+#: ../src/utils/pactl.c:776
 #, c-format
 msgid "Failed to get sample information: %s"
 msgstr "Не вдалося отримати дані щодо фрагмента: %s"
 
-#: ../src/utils/pactl.c:761
+#: ../src/utils/pactl.c:803
 #, c-format
 msgid ""
 "Sample #%u\n"
@@ -2149,160 +2172,186 @@ msgstr ""
 "\tВластивості:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:791 ../src/utils/pactl.c:801
+#: ../src/utils/pactl.c:833 ../src/utils/pactl.c:843
 #, c-format
 msgid "Failure: %s"
 msgstr "Помилка: %s"
 
-#: ../src/utils/pactl.c:915
+#: ../src/utils/pactl.c:879
+#, c-format
+msgid "Failed to unload module: Module %s not loaded"
+msgstr "Не вдалося вивантажити модуль: модуль %s не завантажено"
+
+#: ../src/utils/pactl.c:1042
 #, c-format
 msgid "Failed to set format: invalid format string %s"
 msgstr "Не вдалося встановити формат: некоректний рядок формату %s"
 
-#: ../src/utils/pactl.c:954
+#: ../src/utils/pactl.c:1081
 #, c-format
 msgid "Failed to upload sample: %s"
 msgstr "Не вдалося вивантажити зразок: %s"
 
-#: ../src/utils/pactl.c:971
+#: ../src/utils/pactl.c:1098
 msgid "Premature end of file"
 msgstr "Передчасне завершення файла"
 
-#: ../src/utils/pactl.c:991
+#: ../src/utils/pactl.c:1118
 msgid "new"
 msgstr "створити"
 
-#: ../src/utils/pactl.c:994
+#: ../src/utils/pactl.c:1121
 msgid "change"
 msgstr "змінити"
 
-#: ../src/utils/pactl.c:997
+#: ../src/utils/pactl.c:1124
 msgid "remove"
 msgstr "вилучити"
 
-#: ../src/utils/pactl.c:1000 ../src/utils/pactl.c:1035
+#: ../src/utils/pactl.c:1127 ../src/utils/pactl.c:1162
 msgid "unknown"
 msgstr "невідомий"
 
-#: ../src/utils/pactl.c:1008
+#: ../src/utils/pactl.c:1135
 msgid "sink"
 msgstr "приймач"
 
-#: ../src/utils/pactl.c:1011
+#: ../src/utils/pactl.c:1138
 msgid "source"
 msgstr "джерело"
 
-#: ../src/utils/pactl.c:1014
+#: ../src/utils/pactl.c:1141
 msgid "sink-input"
 msgstr "вхід приймача"
 
-#: ../src/utils/pactl.c:1017
+#: ../src/utils/pactl.c:1144
 msgid "source-output"
 msgstr "відтворення джерела"
 
-#: ../src/utils/pactl.c:1020
+#: ../src/utils/pactl.c:1147
 msgid "module"
 msgstr "модуль"
 
-#: ../src/utils/pactl.c:1023
+#: ../src/utils/pactl.c:1150
 msgid "client"
 msgstr "клієнт"
 
-#: ../src/utils/pactl.c:1026
+#: ../src/utils/pactl.c:1153
 msgid "sample-cache"
 msgstr "кеш семплів"
 
-#: ../src/utils/pactl.c:1029 ../src/utils/pactl.c:1032
+#: ../src/utils/pactl.c:1156 ../src/utils/pactl.c:1159
 msgid "server"
 msgstr "сервер"
 
-#: ../src/utils/pactl.c:1041
+#: ../src/utils/pactl.c:1168
 #, c-format
 msgid "Event '%s' on %s #%u\n"
 msgstr "Подія «%s» на %s №%u\n"
 
-#: ../src/utils/pactl.c:1258
+#: ../src/utils/pactl.c:1412
 msgid "Got SIGINT, exiting."
 msgstr "Отримано сигнал SIGINT, завершення роботи."
 
-#: ../src/utils/pactl.c:1285
+#: ../src/utils/pactl.c:1439
 msgid "Invalid volume specification"
 msgstr "Некоректна специфікація гучності"
 
-#: ../src/utils/pactl.c:1308
+#: ../src/utils/pactl.c:1462
 msgid "Volume outside permissible range.\n"
 msgstr "Гучність поза межами дозволеного діапазону.\n"
 
-#: ../src/utils/pactl.c:1319 ../src/utils/pactl.c:1320
-#: ../src/utils/pactl.c:1321 ../src/utils/pactl.c:1322
-#: ../src/utils/pactl.c:1323 ../src/utils/pactl.c:1324
-#: ../src/utils/pactl.c:1325 ../src/utils/pactl.c:1326
-#: ../src/utils/pactl.c:1327 ../src/utils/pactl.c:1328
-#: ../src/utils/pactl.c:1329 ../src/utils/pactl.c:1330
-#: ../src/utils/pactl.c:1331 ../src/utils/pactl.c:1332
-#: ../src/utils/pactl.c:1333 ../src/utils/pactl.c:1334
-#: ../src/utils/pactl.c:1335 ../src/utils/pactl.c:1336
-#: ../src/utils/pactl.c:1337
+#: ../src/utils/pactl.c:1492 ../src/utils/pactl.c:1493
+#: ../src/utils/pactl.c:1494 ../src/utils/pactl.c:1495
+#: ../src/utils/pactl.c:1496 ../src/utils/pactl.c:1497
+#: ../src/utils/pactl.c:1498 ../src/utils/pactl.c:1499
+#: ../src/utils/pactl.c:1500 ../src/utils/pactl.c:1501
+#: ../src/utils/pactl.c:1502 ../src/utils/pactl.c:1503
+#: ../src/utils/pactl.c:1504 ../src/utils/pactl.c:1505
+#: ../src/utils/pactl.c:1506 ../src/utils/pactl.c:1507
+#: ../src/utils/pactl.c:1508 ../src/utils/pactl.c:1509
+#: ../src/utils/pactl.c:1510 ../src/utils/pactl.c:1511
+#: ../src/utils/pactl.c:1512
 msgid "[options]"
 msgstr "[параметри]"
 
-#: ../src/utils/pactl.c:1321
+#: ../src/utils/pactl.c:1494
 msgid "[TYPE]"
 msgstr "[ТИП]"
 
-#: ../src/utils/pactl.c:1323
+#: ../src/utils/pactl.c:1496
 msgid "FILENAME [NAME]"
 msgstr "НАЗВА_ФАЙЛА [НАЗВА]"
 
-#: ../src/utils/pactl.c:1324
+#: ../src/utils/pactl.c:1497
 msgid "NAME [SINK]"
 msgstr "НАЗВА [ПРИЙМАЧ]"
 
-#: ../src/utils/pactl.c:1325
+#: ../src/utils/pactl.c:1498 ../src/utils/pactl.c:1504 ../src/utils/pacmd.c:55
+#: ../src/utils/pacmd.c:65
 msgid "NAME"
 msgstr "НАЗВА"
 
-#: ../src/utils/pactl.c:1326
+#: ../src/utils/pactl.c:1499 ../src/utils/pacmd.c:53
 msgid "NAME [ARGS ...]"
 msgstr "НАЗВА [АРГУМЕНТИ...]"
 
-#: ../src/utils/pactl.c:1327
-msgid "#N"
-msgstr "НОМЕР"
+#: ../src/utils/pactl.c:1500 ../src/utils/pacmd.c:54 ../src/utils/pacmd.c:62
+msgid "NAME|#N"
+msgstr "НАЗВА|НОМЕР"
 
-#: ../src/utils/pactl.c:1328
+#: ../src/utils/pactl.c:1501 ../src/utils/pacmd.c:71
 msgid "#N SINK|SOURCE"
 msgstr "НОМЕР ПРИЙМАЧ|ДЖЕРЕЛО"
 
-#: ../src/utils/pactl.c:1329 ../src/utils/pactl.c:1334
+#: ../src/utils/pactl.c:1502 ../src/utils/pacmd.c:58 ../src/utils/pacmd.c:72
 msgid "NAME|#N 1|0"
 msgstr "НАЗВА|НОМЕР 1|0"
 
-#: ../src/utils/pactl.c:1330
+#: ../src/utils/pactl.c:1503 ../src/utils/pacmd.c:74
 msgid "CARD PROFILE"
 msgstr "ПРОФІЛЬ КАРТКИ"
 
-#: ../src/utils/pactl.c:1331
+#: ../src/utils/pactl.c:1505 ../src/utils/pacmd.c:75
 msgid "NAME|#N PORT"
 msgstr "НАЗВА|НОМЕР ПОРТУ"
 
-#: ../src/utils/pactl.c:1332
+#: ../src/utils/pactl.c:1506 ../src/utils/pacmd.c:56
 msgid "NAME|#N VOLUME"
 msgstr "НАЗВА|НОМЕР ГУЧНІСТЬ"
 
-#: ../src/utils/pactl.c:1333
+#: ../src/utils/pactl.c:1507 ../src/utils/pacmd.c:57
 msgid "#N VOLUME"
 msgstr "НОМЕР ГУЧНІСТЬ"
 
-#: ../src/utils/pactl.c:1335
-msgid "#N 1|0"
-msgstr "НОМЕР 1|0"
+#: ../src/utils/pactl.c:1508
+msgid "NAME|#N 1|0|toggle"
+msgstr "НАЗВА|НОМЕР 1|0|toggle"
 
-#: ../src/utils/pactl.c:1336
+#: ../src/utils/pactl.c:1509
+msgid "#N 1|0|toggle"
+msgstr "НОМЕР 1|0|toggle"
+
+#: ../src/utils/pactl.c:1510
 msgid "#N FORMATS"
 msgstr "НОМЕР ФОРМАТИ"
 
-#: ../src/utils/pactl.c:1339
+#: ../src/utils/pactl.c:1511 ../src/utils/pacmd.c:76
+msgid "CARD-NAME|CARD-#N PORT OFFSET"
+msgstr "НАЗВА-КАРТКИ|№КАРТКИ ПОРТ ЗСУВ"
+
+#: ../src/utils/pactl.c:1513
+#, c-format
+msgid ""
+"\n"
+"The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
+"can be used to specify the default sink, source and monitor.\n"
+msgstr ""
+"\n"
+"Спеціальними назвами, @DEFAULT_SINK@, @DEFAULT_SOURCE@ та @DEFAULT_MONITOR@,\n"
+"можна скористатися для визначення типового приймача, джерела та монітора.\n"
+
+#: ../src/utils/pactl.c:1516
 #, c-format
 msgid ""
 "\n"
@@ -2321,7 +2370,7 @@ msgstr ""
 "з’єднатися\n"
 "  -n, --client-name=НАЗВА               Назва цього клієнта на сервері\n"
 
-#: ../src/utils/pactl.c:1380
+#: ../src/utils/pactl.c:1557
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -2332,56 +2381,60 @@ msgstr ""
 "Зібрано з libpulse %s\n"
 "З’єднано з libpulse %s\n"
 
-#: ../src/utils/pactl.c:1439
+#: ../src/utils/pactl.c:1616
 #, c-format
 msgid "Specify nothing, or one of: %s"
 msgstr "Нічого не вказуйте або вкажіть один з варіантів: %s"
 
-#: ../src/utils/pactl.c:1449
+#: ../src/utils/pactl.c:1626
 msgid "Please specify a sample file to load"
 msgstr "Будь ласка, вкажіть зразковий файл для завантаження"
 
-#: ../src/utils/pactl.c:1462
+#: ../src/utils/pactl.c:1639
 msgid "Failed to open sound file."
 msgstr "Не вдалося відкрити звуковий файл."
 
-#: ../src/utils/pactl.c:1474
+#: ../src/utils/pactl.c:1651
 msgid "Warning: Failed to determine sample specification from file."
 msgstr ""
 "Попередження: не вдалося отримати дані щодо частотної специфікації з файла."
 
-#: ../src/utils/pactl.c:1484
+#: ../src/utils/pactl.c:1661
 msgid "You have to specify a sample name to play"
 msgstr "Вам слід вказати назву зразкового файла, який слід відтворити"
 
-#: ../src/utils/pactl.c:1496
+#: ../src/utils/pactl.c:1673
 msgid "You have to specify a sample name to remove"
 msgstr "Вам слід вказати назву зразкового файла, який слід вилучити"
 
-#: ../src/utils/pactl.c:1505
+#: ../src/utils/pactl.c:1682
 msgid "You have to specify a sink input index and a sink"
 msgstr "Вам слід вказати індекс приймача даних і приймач"
 
-#: ../src/utils/pactl.c:1515
+#: ../src/utils/pactl.c:1692
 msgid "You have to specify a source output index and a source"
 msgstr "Вам слід вказати індекс джерела відтворення і джерело"
 
-#: ../src/utils/pactl.c:1530
+#: ../src/utils/pactl.c:1707
 msgid "You have to specify a module name and arguments."
 msgstr "Вам слід вказати назву модуля і аргументи."
 
-#: ../src/utils/pactl.c:1550
-msgid "You have to specify a module index"
-msgstr "Вам слід вказати індекс модуля"
+#: ../src/utils/pactl.c:1727
+msgid "You have to specify a module index or name"
+msgstr "Вам слід вказати індекс або назву модуля"
 
-#: ../src/utils/pactl.c:1560
+#: ../src/utils/pactl.c:1740
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
 "Не можна вказувати більше одного приймача. Вам слід вказати булівське "
 "значення."
 
-#: ../src/utils/pactl.c:1573
+#: ../src/utils/pactl.c:1745 ../src/utils/pactl.c:1765
+msgid "Invalid suspend specification."
+msgstr "Некоректна специфікація призупинення."
+
+#: ../src/utils/pactl.c:1760
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
@@ -2389,76 +2442,84 @@ msgstr ""
 "Не можна вказувати більше одного джерела. Вам слід вказати булівське "
 "значення."
 
-#: ../src/utils/pactl.c:1585
+#: ../src/utils/pactl.c:1777
 msgid "You have to specify a card name/index and a profile name"
 msgstr "Вам слід вказати назву/індекс карти і назву профілю"
 
-#: ../src/utils/pactl.c:1596
+#: ../src/utils/pactl.c:1788
 msgid "You have to specify a sink name/index and a port name"
 msgstr "Вам слід вказати назву/індекс приймача і назву порту"
 
-#: ../src/utils/pactl.c:1607
+#: ../src/utils/pactl.c:1799
+msgid "You have to specify a sink name"
+msgstr "Вам слід вказати назву приймача"
+
+#: ../src/utils/pactl.c:1809
 msgid "You have to specify a source name/index and a port name"
 msgstr "Вам слід вказати назву/індекс джерела і назву порту"
 
-#: ../src/utils/pactl.c:1618
+#: ../src/utils/pactl.c:1820
+msgid "You have to specify a source name"
+msgstr "Вам слід вказати назву джерела"
+
+#: ../src/utils/pactl.c:1830
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Вам слід вказати назву/індекс приймача і гучність"
 
-#: ../src/utils/pactl.c:1631
+#: ../src/utils/pactl.c:1843
 msgid "You have to specify a source name/index and a volume"
 msgstr "Вам слід вказати назву/індекс джерела і гучність"
 
-#: ../src/utils/pactl.c:1644
+#: ../src/utils/pactl.c:1856
 msgid "You have to specify a sink input index and a volume"
 msgstr "Вам слід вказати індекс приймача даних і гучність"
 
-#: ../src/utils/pactl.c:1649
+#: ../src/utils/pactl.c:1861
 msgid "Invalid sink input index"
 msgstr "Некоректний індекс вхідних даних приймача"
 
-#: ../src/utils/pactl.c:1660
+#: ../src/utils/pactl.c:1872
 msgid "You have to specify a source output index and a volume"
 msgstr "Вам слід вказати номер каналу відтворення і гучність"
 
-#: ../src/utils/pactl.c:1665
+#: ../src/utils/pactl.c:1877
 msgid "Invalid source output index"
 msgstr "Некоректний номер джерела відтворення"
 
-#: ../src/utils/pactl.c:1677
+#: ../src/utils/pactl.c:1888
 msgid "You have to specify a sink name/index and a mute boolean"
 msgstr ""
 "Вам слід вказати назву/індекс приймача і булеве значення вимикання звуку"
 
-#: ../src/utils/pactl.c:1682 ../src/utils/pactl.c:1699
-#: ../src/utils/pactl.c:1721 ../src/utils/pactl.c:1742
+#: ../src/utils/pactl.c:1893 ../src/utils/pactl.c:1908
+#: ../src/utils/pactl.c:1928 ../src/utils/pactl.c:1946
 msgid "Invalid mute specification"
 msgstr "Некоректна специфікація вимикання звуку"
 
-#: ../src/utils/pactl.c:1694
+#: ../src/utils/pactl.c:1903
 msgid "You have to specify a source name/index and a mute boolean"
 msgstr ""
 "Вам слід вказати назву/індекс джерела і булеве значення вимикання звуку"
 
-#: ../src/utils/pactl.c:1711
+#: ../src/utils/pactl.c:1918
 msgid "You have to specify a sink input index and a mute boolean"
 msgstr ""
 "Вам слід вказати індекс приймача даних і булеве значення вимикання звуку"
 
-#: ../src/utils/pactl.c:1716
+#: ../src/utils/pactl.c:1923
 msgid "Invalid sink input index specification"
 msgstr "Некоректна специфікація індексу приймача даних"
 
-#: ../src/utils/pactl.c:1732
+#: ../src/utils/pactl.c:1936
 msgid "You have to specify a source output index and a mute boolean"
 msgstr ""
 "Вам слід вказати номер джерела відтворення і булеве значення вимикання звуку"
 
-#: ../src/utils/pactl.c:1737
+#: ../src/utils/pactl.c:1941
 msgid "Invalid source output index specification"
 msgstr "Некоректна специфікація номера джерела відтворення"
 
-#: ../src/utils/pactl.c:1756
+#: ../src/utils/pactl.c:1958
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
@@ -2466,7 +2527,15 @@ msgstr ""
 "Вам слід вказати номер приймача та список підтримуваних каналів, "
 "відокремлених комами"
 
-#: ../src/utils/pactl.c:1772
+#: ../src/utils/pactl.c:1970
+msgid "You have to specify a card name/index, a port name and a latency offset"
+msgstr "Вам слід вказати назву/індекс карти, назву порту і зсув латентності"
+
+#: ../src/utils/pactl.c:1977
+msgid "Could not parse latency offset"
+msgstr "Не вдалося обробити дані щодо зсуву латентності"
+
+#: ../src/utils/pactl.c:1989
 msgid "No valid command specified."
 msgstr "Не вказано коректної команди."
 
@@ -2551,42 +2620,114 @@ msgstr "Не вдалося завантажити дані куки\n"
 msgid "Not yet implemented.\n"
 msgstr "Ще не реалізовано.\n"
 
-#: ../src/utils/pacmd.c:66
+#: ../src/utils/pacmd.c:59
+msgid "#N 1|0"
+msgstr "НОМЕР 1|0"
+
+#: ../src/utils/pacmd.c:60
+msgid "NAME|#N KEY=VALUE"
+msgstr "НАЗВА|НОМЕР КЛЮЧ=ЗНАЧЕННЯ"
+
+#: ../src/utils/pacmd.c:61
+msgid "#N KEY=VALUE"
+msgstr "НОМЕР КЛЮЧ=ЗНАЧЕННЯ"
+
+#: ../src/utils/pacmd.c:63
+msgid "#N"
+msgstr "НОМЕР"
+
+#: ../src/utils/pacmd.c:64
+msgid "NAME SINK|#N"
+msgstr "НАЗВА ПРИЙМАЧ|НОМЕР"
+
+#: ../src/utils/pacmd.c:66 ../src/utils/pacmd.c:67
+msgid "NAME FILENAME"
+msgstr "НАЗВА ФАЙЛ"
+
+#: ../src/utils/pacmd.c:68
+msgid "PATHNAME"
+msgstr "ШЛЯХ"
+
+#: ../src/utils/pacmd.c:69
+msgid "FILENAME SINK|#N"
+msgstr "НАЗВА_ФАЙЛА ПРИЙМАЧ|#N"
+
+#: ../src/utils/pacmd.c:73 ../src/utils/pacmd.c:79 ../src/utils/pacmd.c:80
+msgid "1|0"
+msgstr "1|0"
+
+#: ../src/utils/pacmd.c:77
+msgid "TARGET"
+msgstr "ПРИЗНАЧЕННЯ"
+
+#: ../src/utils/pacmd.c:78
+msgid "NUMERIC LEVEL"
+msgstr "ЧИСЛОВИЙ РІВЕНЬ"
+
+#: ../src/utils/pacmd.c:81
+msgid "FRAMES"
+msgstr "БЛОКИ"
+
+#: ../src/utils/pacmd.c:83
+#, c-format
+msgid ""
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"When no command is given pacdm starts in the interactive mode\n"
+msgstr ""
+"\n"
+"  -h, --help                            Показати цю довідку\n"
+"      --version                         Показати відомості щодо версії\n"
+"Якщо команду не буде вказано, pacmd буде запущено у інтерактивному режимі\n"
+
+#: ../src/utils/pacmd.c:131
+#, c-format
+msgid ""
+"pacmd %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pacmd %s\n"
+"Зібрано з libpulse %s\n"
+"З’єднано з libpulse %s\n"
+
+#: ../src/utils/pacmd.c:145
 msgid "No PulseAudio daemon running, or not running as session daemon."
 msgstr ""
 "Фонову службу PulseAudio не запущено, або цю службу не запущено як фонову "
 "службу сеансу."
 
-#: ../src/utils/pacmd.c:71
+#: ../src/utils/pacmd.c:150
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 
-#: ../src/utils/pacmd.c:88
+#: ../src/utils/pacmd.c:167
 #, c-format
 msgid "connect(): %s"
 msgstr "connect(): %s"
 
-#: ../src/utils/pacmd.c:96
+#: ../src/utils/pacmd.c:176
 msgid "Failed to kill PulseAudio daemon."
 msgstr ""
 "Спроба завершення роботи фонової служби PulseAudio завершилася невдало."
 
-#: ../src/utils/pacmd.c:104
+#: ../src/utils/pacmd.c:184
 msgid "Daemon not responding."
 msgstr "Фонова служба не відповідає."
 
-#: ../src/utils/pacmd.c:184
+#: ../src/utils/pacmd.c:264
 #, c-format
 msgid "poll(): %s"
 msgstr "poll(): %s"
 
-#: ../src/utils/pacmd.c:195 ../src/utils/pacmd.c:215
+#: ../src/utils/pacmd.c:275 ../src/utils/pacmd.c:295
 #, c-format
 msgid "read(): %s"
 msgstr "read(): %s"
 
-#: ../src/utils/pacmd.c:237 ../src/utils/pacmd.c:255
+#: ../src/utils/pacmd.c:317 ../src/utils/pacmd.c:335
 #, c-format
 msgid "write(): %s"
 msgstr "write(): %s"
@@ -2595,7 +2736,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "Не вдалося зняти блокування автоматичного розгалуження."
 
-#: ../src/modules/alsa/alsa-sink.c:560 ../src/modules/alsa/alsa-sink.c:726
+#: ../src/modules/alsa/alsa-sink.c:567 ../src/modules/alsa/alsa-sink.c:747
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2612,7 +2753,7 @@ msgstr ""
 "Службу було викликано зі встановленим POLLOUT, але наступний виклик "
 "snd_pcm_avail() повернув 0 або інше значення < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:519 ../src/modules/alsa/alsa-source.c:672
+#: ../src/modules/alsa/alsa-source.c:526 ../src/modules/alsa/alsa-source.c:679
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2629,25 +2770,71 @@ msgstr ""
 "Службу було викликано зі встановленим POLLIN, але наступний виклик "
 "snd_pcm_avail() повернув 0 або інше значення < min_avail."
 
-#: ../src/modules/alsa/module-alsa-card.c:167
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2796
-#: ../src/modules/alsa/alsa-mixer.c:3912
+#: ../src/modules/alsa/module-alsa-card.c:193
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2273
+#: ../src/modules/alsa/alsa-mixer.c:3922
 msgid "Off"
 msgstr "Вимкнено"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2738
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2087
+msgid "Headset"
+msgstr "Гарнітура"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2092
+msgid "Handsfree"
+msgstr "Пристрій гучного зв’язку"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2097
+#: ../src/modules/alsa/alsa-mixer.c:2256 ../src/modules/alsa/alsa-mixer.c:2334
+msgid "Microphone"
+msgstr "Мікрофон"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2102
+#: ../src/modules/alsa/alsa-mixer.c:2271
+msgid "Speaker"
+msgstr "Гучномовець"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2107
+msgid "Headphone"
+msgstr "Навушники"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2112
+msgid "Portable"
+msgstr "Портативна система"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2117
+msgid "Car"
+msgstr "Автомобільна система"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2122
+msgid "HiFi"
+msgstr "HiFi"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2127
+msgid "Phone"
+msgstr "Телефон"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2135
+msgid "Bluetooth Output"
+msgstr "Bluetooth (відтворення)"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2138
+msgid "Bluetooth Input"
+msgstr "Bluetooth (вхід)"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2162
 msgid "High Fidelity Playback (A2DP)"
 msgstr "Високоточне відтворення (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2752
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2172
 msgid "High Fidelity Capture (A2DP)"
 msgstr "Високоточне захоплення (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2767
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2182
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Телефонний дуплекс (HSP/HFP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2781
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2192
 msgid "Handsfree Gateway"
 msgstr "Пристрій гучного зв’язку"
 
@@ -2671,232 +2858,232 @@ msgstr "Пристрої отримання"
 msgid "Audio on @HOSTNAME@"
 msgstr "Звук на @НАЗВАВУЗЛА@"
 
-#: ../src/modules/alsa/alsa-mixer.c:2219
+#: ../src/modules/alsa/alsa-mixer.c:2251
 msgid "Input"
 msgstr "Вхід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2220
+#: ../src/modules/alsa/alsa-mixer.c:2252
 msgid "Docking Station Input"
 msgstr "Вхідний канал стикувальної станції"
 
-#: ../src/modules/alsa/alsa-mixer.c:2221
+#: ../src/modules/alsa/alsa-mixer.c:2253
 msgid "Docking Station Microphone"
 msgstr "Мікрофон стикувальної станції"
 
-#: ../src/modules/alsa/alsa-mixer.c:2222
+#: ../src/modules/alsa/alsa-mixer.c:2254
 msgid "Docking Station Line In"
 msgstr "Вхід зарядної станції"
 
-#: ../src/modules/alsa/alsa-mixer.c:2223 ../src/modules/alsa/alsa-mixer.c:2307
+#: ../src/modules/alsa/alsa-mixer.c:2255 ../src/modules/alsa/alsa-mixer.c:2339
 msgid "Line In"
 msgstr "Лінійний вхід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2224 ../src/modules/alsa/alsa-mixer.c:2302
-msgid "Microphone"
-msgstr "Мікрофон"
-
-#: ../src/modules/alsa/alsa-mixer.c:2225 ../src/modules/alsa/alsa-mixer.c:2303
+#: ../src/modules/alsa/alsa-mixer.c:2257 ../src/modules/alsa/alsa-mixer.c:2335
 msgid "Front Microphone"
 msgstr "Передній мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2226 ../src/modules/alsa/alsa-mixer.c:2304
+#: ../src/modules/alsa/alsa-mixer.c:2258 ../src/modules/alsa/alsa-mixer.c:2336
 msgid "Rear Microphone"
 msgstr "Задній мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2227
+#: ../src/modules/alsa/alsa-mixer.c:2259
 msgid "External Microphone"
 msgstr "Зовнішній мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2228 ../src/modules/alsa/alsa-mixer.c:2306
+#: ../src/modules/alsa/alsa-mixer.c:2260 ../src/modules/alsa/alsa-mixer.c:2338
 msgid "Internal Microphone"
 msgstr "Вбудований мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2229 ../src/modules/alsa/alsa-mixer.c:2308
+#: ../src/modules/alsa/alsa-mixer.c:2261 ../src/modules/alsa/alsa-mixer.c:2340
 msgid "Radio"
 msgstr "Радіо"
 
-#: ../src/modules/alsa/alsa-mixer.c:2230 ../src/modules/alsa/alsa-mixer.c:2309
+#: ../src/modules/alsa/alsa-mixer.c:2262 ../src/modules/alsa/alsa-mixer.c:2341
 msgid "Video"
 msgstr "Відео"
 
-#: ../src/modules/alsa/alsa-mixer.c:2231
+#: ../src/modules/alsa/alsa-mixer.c:2263
 msgid "Automatic Gain Control"
 msgstr "Автоматичне керування підсиленням"
 
-#: ../src/modules/alsa/alsa-mixer.c:2232
+#: ../src/modules/alsa/alsa-mixer.c:2264
 msgid "No Automatic Gain Control"
 msgstr "Без автоматичного керування підсиленням"
 
-#: ../src/modules/alsa/alsa-mixer.c:2233
+#: ../src/modules/alsa/alsa-mixer.c:2265
 msgid "Boost"
 msgstr "Підсилення"
 
-#: ../src/modules/alsa/alsa-mixer.c:2234
+#: ../src/modules/alsa/alsa-mixer.c:2266
 msgid "No Boost"
 msgstr "Без пісилення"
 
-#: ../src/modules/alsa/alsa-mixer.c:2235
+#: ../src/modules/alsa/alsa-mixer.c:2267
 msgid "Amplifier"
 msgstr "Підсилювач"
 
-#: ../src/modules/alsa/alsa-mixer.c:2236
+#: ../src/modules/alsa/alsa-mixer.c:2268
 msgid "No Amplifier"
 msgstr "Без підсилювача"
 
-#: ../src/modules/alsa/alsa-mixer.c:2237
+#: ../src/modules/alsa/alsa-mixer.c:2269
 msgid "Bass Boost"
 msgstr "Підсилення басів"
 
-#: ../src/modules/alsa/alsa-mixer.c:2238
+#: ../src/modules/alsa/alsa-mixer.c:2270
 msgid "No Bass Boost"
 msgstr "Без підсилення"
 
-#: ../src/modules/alsa/alsa-mixer.c:2239
-msgid "Speaker"
-msgstr "Гучномовець"
-
-#: ../src/modules/alsa/alsa-mixer.c:2240 ../src/modules/alsa/alsa-mixer.c:2311
+#: ../src/modules/alsa/alsa-mixer.c:2272 ../src/modules/alsa/alsa-mixer.c:2343
 msgid "Headphones"
 msgstr "Аналогові навушники"
 
-#: ../src/modules/alsa/alsa-mixer.c:2301
+#: ../src/modules/alsa/alsa-mixer.c:2333
 msgid "Analog Input"
 msgstr "Аналогових вхід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2305
+#: ../src/modules/alsa/alsa-mixer.c:2337
 msgid "Dock Microphone"
 msgstr "Мікрофон стикувальної станції"
 
-#: ../src/modules/alsa/alsa-mixer.c:2310
+#: ../src/modules/alsa/alsa-mixer.c:2342
 msgid "Analog Output"
 msgstr "Аналогове відтворення"
 
-#: ../src/modules/alsa/alsa-mixer.c:2312
+#: ../src/modules/alsa/alsa-mixer.c:2344
 msgid "LFE on Separate Mono Output"
 msgstr "Аналоговий вихід (сабвуфер)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2313
+#: ../src/modules/alsa/alsa-mixer.c:2345
 msgid "Line Out"
 msgstr "Лінійний вихід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2314
+#: ../src/modules/alsa/alsa-mixer.c:2346
 msgid "Analog Mono Output"
 msgstr "Аналоговий моно-вихід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2315
+#: ../src/modules/alsa/alsa-mixer.c:2347
 msgid "Speakers"
 msgstr "Гучномовці"
 
-#: ../src/modules/alsa/alsa-mixer.c:2316
+#: ../src/modules/alsa/alsa-mixer.c:2348
 msgid "HDMI / DisplayPort"
 msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2317
+#: ../src/modules/alsa/alsa-mixer.c:2349
 msgid "Digital Output (S/PDIF)"
 msgstr "Цифровий вихід (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2318
+#: ../src/modules/alsa/alsa-mixer.c:2350
+msgid "Digital Input (S/PDIF)"
+msgstr "Цифровий вхід (S/PDIF)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2351
 msgid "Digital Passthrough (S/PDIF)"
 msgstr "Цифрове передавання (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3769
+#: ../src/modules/alsa/alsa-mixer.c:3770
 msgid "Analog Mono"
 msgstr "Аналогове моно"
 
-#: ../src/modules/alsa/alsa-mixer.c:3770
+#: ../src/modules/alsa/alsa-mixer.c:3771
 msgid "Analog Stereo"
 msgstr "Аналогове стерео"
 
-#: ../src/modules/alsa/alsa-mixer.c:3771
+#: ../src/modules/alsa/alsa-mixer.c:3772
 msgid "Analog Surround 2.1"
 msgstr "Аналоговий об'ємний 2.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3772
+#: ../src/modules/alsa/alsa-mixer.c:3773
 msgid "Analog Surround 3.0"
 msgstr "Аналоговий об'ємний 3.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3773
+#: ../src/modules/alsa/alsa-mixer.c:3774
 msgid "Analog Surround 3.1"
 msgstr "Аналоговий об'ємний 3.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3774
+#: ../src/modules/alsa/alsa-mixer.c:3775
 msgid "Analog Surround 4.0"
 msgstr "Аналоговий об'ємний 4.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3775
+#: ../src/modules/alsa/alsa-mixer.c:3776
 msgid "Analog Surround 4.1"
 msgstr "Аналоговий об'ємний 4.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3776
+#: ../src/modules/alsa/alsa-mixer.c:3777
 msgid "Analog Surround 5.0"
 msgstr "Аналоговий об'ємний 5.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3777
+#: ../src/modules/alsa/alsa-mixer.c:3778
 msgid "Analog Surround 5.1"
 msgstr "Аналоговий об'ємний 5.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3778
+#: ../src/modules/alsa/alsa-mixer.c:3779
 msgid "Analog Surround 6.0"
 msgstr "Аналоговий об'ємний 6.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3779
+#: ../src/modules/alsa/alsa-mixer.c:3780
 msgid "Analog Surround 6.1"
 msgstr "Аналоговий об'ємний 6.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3780
+#: ../src/modules/alsa/alsa-mixer.c:3781
 msgid "Analog Surround 7.0"
 msgstr "Аналоговий об'ємний 7.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3781
+#: ../src/modules/alsa/alsa-mixer.c:3782
 msgid "Analog Surround 7.1"
 msgstr "Аналоговий об'ємний 7.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3782
+#: ../src/modules/alsa/alsa-mixer.c:3783
+msgid "Analog 4-channel Input"
+msgstr "Аналогових 4-канальний вхід"
+
+#: ../src/modules/alsa/alsa-mixer.c:3784
 msgid "Digital Stereo (IEC958)"
 msgstr "Цифрове стерео (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3783
+#: ../src/modules/alsa/alsa-mixer.c:3785
 msgid "Digital Passthrough  (IEC958)"
 msgstr "Цифрове передавання (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3784
+#: ../src/modules/alsa/alsa-mixer.c:3786
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Цифровий об’ємний 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3785
+#: ../src/modules/alsa/alsa-mixer.c:3787
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Цифровий об’ємний 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3786
+#: ../src/modules/alsa/alsa-mixer.c:3788
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr "Цифровий об’ємний 5.1 (IEC958/DTS)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3787
+#: ../src/modules/alsa/alsa-mixer.c:3789
 msgid "Digital Stereo (HDMI)"
 msgstr "Цифровий стерео (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3788
+#: ../src/modules/alsa/alsa-mixer.c:3790
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr "Цифровий об’ємний 5.1 (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3909
+#: ../src/modules/alsa/alsa-mixer.c:3919
 msgid "Analog Mono Duplex"
 msgstr "Аналогове двобічне моно"
 
-#: ../src/modules/alsa/alsa-mixer.c:3910
+#: ../src/modules/alsa/alsa-mixer.c:3920
 msgid "Analog Stereo Duplex"
 msgstr "Аналогове двобічне стерео"
 
-#: ../src/modules/alsa/alsa-mixer.c:3911
+#: ../src/modules/alsa/alsa-mixer.c:3921
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Цифрове двобічне стерео (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4011
+#: ../src/modules/alsa/alsa-mixer.c:4021
 #, c-format
 msgid "%s Output"
 msgstr "вихід %s"
 
-#: ../src/modules/alsa/alsa-mixer.c:4019
+#: ../src/modules/alsa/alsa-mixer.c:4029
 #, c-format
 msgid "%s Input"
 msgstr "вхід %s"
@@ -2917,9 +3104,9 @@ msgstr ""
 "source_master=<назва джерелад для фільтрування> sink_name=<назва приймача> "
 "sink_properties=<властивості приймача> sink_master=<назва приймача для "
 "фільтрування> adjust_time=<частота коригування швидкостей у секундах> "
-"adjust_threshold=<тривалість зсуву у мс, яку слід узгодити> "
-"format=<формат даних> rate=<частота дискретизації> channels=<кількість "
-"каналів> channel_map=<карта каналів> aec_method=<реалізація обробки> "
+"adjust_threshold=<тривалість зсуву у мс, яку слід узгодити> format=<формат "
+"даних> rate=<частота дискретизації> channels=<кількість каналів> "
+"channel_map=<карта каналів> aec_method=<реалізація обробки> "
 "aec_args=<параметри рушія AEC> save_aec=<чи слід зберігати дані AEC у /tmp> "
 "autoloaded=<визначити, чи слід завантажувати модуль у автоматичному режимі> "
 "use_volume_sharing=<yes або no> "
@@ -2970,7 +3157,7 @@ msgid ""
 "\n"
 "Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, "
 "alaw,\n"
-"32le, s32be (defaults to s16ne)\n"
+"s24le, s24be, s24-32le, s24-32be, s32le, s32be (defaults to s16ne)\n"
 "\n"
 "See --dump-resample-methods for possible values of resample methods.\n"
 msgstr ""
@@ -2999,7 +3186,7 @@ msgstr ""
 "у обох напрямках.\n"
 "\n"
 "Можливі формати даних: s16le, s16be, u8, float32le, float32be, ulaw, alaw,\n"
-"32le, s32be (типовим є s16ne)\n"
+"s24le, s24be, s24-32le, s24-32be, s32le, s32be (типовим є s16ne)\n"
 "\n"
 "Перелік можливих значень способів зміни частоти можна отримати за допомогою "
 "параметра--dump-resample-methods.\n"
@@ -3013,6 +3200,32 @@ msgstr "%s %s\n"
 #, c-format
 msgid "=== %d seconds: %d Hz %d ch (%s) -> %d Hz %d ch (%s)"
 msgstr "=== %d секунд: %d Гц %d кан. (%s) -> %d Гц %d кан. (%s)"
+
+#: ../src/modules/module-virtual-surround-sink.c:49
+msgid "Virtual surround sink"
+msgstr "Віртуальний навколишній приймач"
+
+#: ../src/modules/module-virtual-surround-sink.c:53
+msgid ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> "
+"use_volume_sharing=<yes or no> force_flat_volume=<yes or no> hrir=/path/to/"
+"left_hrir.wav "
+msgstr ""
+"sink_name=<назва приймача> sink_properties=<властивості приймача> "
+"master=<назва приймача для фільтрування> format=<формат семплу> rate=<частота "
+"вибірки> channels=<кількість каналів> "
+"channel_map=<карта каналів> use_volume_sharing=<yes або no> "
+"force_flat_volume=<yes або no> hrir=/шлях/до/лівого_hrir.wav "
+
+#. add on profile
+#: ../src/modules/macosx/module-coreaudio-device.c:747
+msgid "On"
+msgstr "Увімкнено"
+
+#~ msgid "Successfully dropped root privileges."
+#~ msgstr "Програма успішно позбулася прав доступу користувача root."
 
 #~ msgid "[%s:%u] rlimit not supported on this platform."
 #~ msgstr "[%s:%u] rlimit не підтримується на цій платформі."
