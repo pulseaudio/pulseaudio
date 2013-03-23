@@ -41,13 +41,14 @@ endif
 #     Compiler/linker flags       #
 ###################################
 
-AM_CFLAGS = \
+AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/modules \
 	-I$(top_builddir)/src/modules \
-	$(PTHREAD_CFLAGS) \
 	-DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
 	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\"
+AM_CFLAGS = \
+	$(PTHREAD_CFLAGS)
 AM_CXXFLAGS = $(AM_CFLAGS)
 SERVER_CFLAGS = -D__INCLUDED_FROM_PULSE_AUDIO
 
