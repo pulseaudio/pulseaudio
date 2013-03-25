@@ -936,6 +936,8 @@ static void fix_playback_buffer_attr(playback_stream *s) {
         s->buffer_attr.tlength = (uint32_t) pa_usec_to_bytes_round_up(DEFAULT_TLENGTH_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
     if (s->buffer_attr.tlength <= 0)
         s->buffer_attr.tlength = (uint32_t) frame_size;
+    if (s->buffer_attr.tlength > s->buffer_attr.maxlength)
+        s->buffer_attr.tlength = s->buffer_attr.maxlength;
 
     if (s->buffer_attr.minreq == (uint32_t) -1)
         s->buffer_attr.minreq = (uint32_t) pa_usec_to_bytes_round_up(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
