@@ -939,8 +939,14 @@ static void fix_playback_buffer_attr(playback_stream *s) {
     if (s->buffer_attr.tlength > s->buffer_attr.maxlength)
         s->buffer_attr.tlength = s->buffer_attr.maxlength;
 
-    if (s->buffer_attr.minreq == (uint32_t) -1)
-        s->buffer_attr.minreq = (uint32_t) pa_usec_to_bytes_round_up(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
+    if (s->buffer_attr.minreq == (uint32_t) -1) {
+        uint32_t process = (uint32_t) pa_usec_to_bytes_round_up(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
+        /* With low-latency, tlength/4 gives a decent default in all of traditional, adjust latency and early request modes. */
+        uint32_t m = s->buffer_attr.tlength / 4;
+        if (frame_size)
+            m -= m % frame_size;
+        s->buffer_attr.minreq = PA_MIN(process, m);
+    }
     if (s->buffer_attr.minreq <= 0)
         s->buffer_attr.minreq = (uint32_t) frame_size;
 
