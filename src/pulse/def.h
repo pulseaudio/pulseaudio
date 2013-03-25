@@ -360,7 +360,13 @@ typedef struct pa_buffer_attr {
     uint32_t maxlength;
     /**< Maximum length of the buffer in bytes. Setting this to (uint32_t) -1
      * will initialize this to the maximum value supported by server,
-     * which is recommended. */
+     * which is recommended.
+     *
+     * In strict low-latency playback scenarios you might want to set this to
+     * a lower value, likely together with the PA_STREAM_ADJUST_LATENCY flag.
+     * If you do so, you ensure that the latency doesn't grow beyond what is
+     * acceptable for the use case, at the cost of getting more underruns if
+     * the latency is lower than what the server can reliably handle. */
 
     uint32_t tlength;
     /**< Playback only: target length of the buffer. The server tries
