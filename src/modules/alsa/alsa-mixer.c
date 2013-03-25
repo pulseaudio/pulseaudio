@@ -3152,14 +3152,14 @@ static void path_set_condense(pa_alsa_path_set *ps, snd_mixer_t *m) {
         PA_HASHMAP_FOREACH(p2, ps->paths, state2) {
             pa_alsa_element *ea, *eb;
             pa_alsa_jack *ja, *jb;
-            pa_bool_t is_subset = TRUE;
+            bool is_subset = true;
 
             if (p == p2)
                 continue;
 
             /* If a has a jack that b does not have, a is not a subset */
             PA_LLIST_FOREACH(ja, p->jacks) {
-                pa_bool_t exists = FALSE;
+                bool exists = false;
 
                 if (!ja->has_control)
                     continue;
@@ -3168,35 +3168,34 @@ static void path_set_condense(pa_alsa_path_set *ps, snd_mixer_t *m) {
                     if (jb->has_control && pa_streq(jb->alsa_name, ja->alsa_name) &&
                        (ja->state_plugged == jb->state_plugged) &&
                        (ja->state_unplugged == jb->state_unplugged)) {
-                        exists = TRUE;
+                        exists = true;
                         break;
                     }
                 }
 
                 if (!exists) {
-                    is_subset = FALSE;
+                    is_subset = false;
                     break;
                 }
             }
 
             /* Compare the elements of each set... */
-            pa_assert_se(ea = p->elements);
-            pa_assert_se(eb = p2->elements);
+            ea = p->elements;
+            eb = p2->elements;
 
             while (is_subset) {
-                if (pa_streq(ea->alsa_name, eb->alsa_name)) {
+                if (!ea && !eb)
+                    break;
+                else if ((ea && !eb) || (!ea && eb))
+                    is_subset = false;
+                else if (pa_streq(ea->alsa_name, eb->alsa_name)) {
                     if (element_is_subset(ea, eb, m)) {
                         ea = ea->next;
                         eb = eb->next;
-                        if ((ea && !eb) || (!ea && eb))
-                            is_subset = FALSE;
-                        else if (!ea && !eb)
-                            break;
                     } else
-                        is_subset = FALSE;
-
+                        is_subset = false;
                 } else
-                    is_subset = FALSE;
+                    is_subset = false;
             }
 
             if (is_subset) {
