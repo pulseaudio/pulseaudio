@@ -26,6 +26,7 @@ start-pulseaudio-kde
 *-symdef.h
 *-orc-gen.[ch]
 # tests
+alsa-mixer-path-test
 alsa-time-test
 asyncmsgq-test
 asyncq-test
