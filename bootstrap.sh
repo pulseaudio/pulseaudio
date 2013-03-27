@@ -68,7 +68,6 @@ if ! pkg-config --version &>/dev/null; then
 fi
 
 # Other necessary programs
-glib-gettextize --version >/dev/null || DIE=1
 intltoolize --version >/dev/null || DIE=1
 $LIBTOOLIZE --version >/dev/null || DIE=1
 test "$DIE" = 1 && exit 1
@@ -85,7 +84,7 @@ else
     rm -f config.cache
 
     rm -f Makefile.am~ configure.ac~
-    glib-gettextize --copy --force
+    autopoint --force
     test -f Makefile.am~ && mv Makefile.am~ Makefile.am
     test -f configure.ac~ && mv configure.ac~ configure.ac
 

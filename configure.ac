@@ -97,10 +97,13 @@ PKG_PROG_PKG_CONFIG
 
 if test "x$enable_nls" != "xno"; then
 IT_PROG_INTLTOOL([0.35.0])
+
+AM_GNU_GETTEXT_VERSION([0.18.1])
+AM_GNU_GETTEXT([external])
+
 GETTEXT_PACKAGE=pulseaudio
 AC_SUBST([GETTEXT_PACKAGE])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
-AM_GLIB_GNU_GETTEXT
 
 pulselocaledir='${prefix}/${DATADIRNAME}/locale'
 AX_DEFINE_DIR(PULSE_LOCALEDIR, pulselocaledir, [Gettext locale dir])

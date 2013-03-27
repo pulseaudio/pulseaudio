@@ -19,6 +19,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST = \
 	bootstrap.sh \
+	config.rpath \
 	git-version-gen \
 	LICENSE \
 	GPL \
