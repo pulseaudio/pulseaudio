@@ -87,7 +87,7 @@ static bool profile_good_for_input(pa_card_profile *profile) {
     return true;
 }
 
-static pa_bool_t try_to_switch_profile(pa_device_port *port) {
+static int try_to_switch_profile(pa_device_port *port) {
     pa_card_profile *best_profile = NULL, *profile;
     void *state;
 
@@ -119,15 +119,15 @@ static pa_bool_t try_to_switch_profile(pa_device_port *port) {
 
     if (!best_profile) {
         pa_log_debug("No suitable profile found");
-        return FALSE;
+        return -1;
     }
 
     if (pa_card_set_profile(port->card, best_profile->name, FALSE) != 0) {
         pa_log_debug("Could not set profile %s", best_profile->name);
-        return FALSE;
+        return -1;
     }
 
-    return TRUE;
+    return 0;
 }
 
 static void find_sink_and_source(pa_card *card, pa_device_port *port, pa_sink **si, pa_source **so)
@@ -184,7 +184,7 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
             return PA_HOOK_OK;
 
         if (!is_active_profile) {
-            if (!try_to_switch_profile(port))
+            if (try_to_switch_profile(port) < 0)
                 return PA_HOOK_OK;
 
             pa_assert(card->active_profile == pa_hashmap_get(port->profiles, card->active_profile->name));
