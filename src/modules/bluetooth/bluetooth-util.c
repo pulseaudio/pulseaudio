@@ -1631,11 +1631,11 @@ static DBusHandlerResult endpoint_handler(DBusConnection *c, DBusMessage *m, voi
                                  DBUS_TYPE_STRING, &xml,
                                  DBUS_TYPE_INVALID));
 
-    } else if (dbus_message_is_method_call(m, "org.bluez.MediaEndpoint", "SetConfiguration")) {
+    } else if (dbus_message_is_method_call(m, "org.bluez.MediaEndpoint", "SetConfiguration"))
         r = endpoint_set_configuration(c, m, userdata);
-    } else if (dbus_message_is_method_call(m, "org.bluez.MediaEndpoint", "SelectConfiguration")) {
+    else if (dbus_message_is_method_call(m, "org.bluez.MediaEndpoint", "SelectConfiguration"))
         r = endpoint_select_configuration(c, m, userdata);
-    } else if (dbus_message_is_method_call(m, "org.bluez.MediaEndpoint", "ClearConfiguration"))
+    else if (dbus_message_is_method_call(m, "org.bluez.MediaEndpoint", "ClearConfiguration"))
         r = endpoint_clear_configuration(c, m, userdata);
     else
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
