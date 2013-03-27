@@ -1606,16 +1606,16 @@ static DBusHandlerResult endpoint_handler(DBusConnection *c, DBusMessage *m, voi
     struct pa_bluetooth_discovery *y = userdata;
     DBusMessage *r = NULL;
     DBusError e;
-    const char *path;
+    const char *path, *interface, *member;
 
     pa_assert(y);
 
-    pa_log_debug("dbus: interface=%s, path=%s, member=%s\n",
-            dbus_message_get_interface(m),
-            dbus_message_get_path(m),
-            dbus_message_get_member(m));
-
     path = dbus_message_get_path(m);
+    interface = dbus_message_get_interface(m);
+    member = dbus_message_get_member(m);
+
+    pa_log_debug("dbus: path=%s, interface=%s, member=%s", path, interface, member);
+
     dbus_error_init(&e);
 
     if (!pa_streq(path, A2DP_SOURCE_ENDPOINT) && !pa_streq(path, A2DP_SINK_ENDPOINT) && !pa_streq(path, HFP_AG_ENDPOINT) &&
@@ -1626,10 +1626,7 @@ static DBusHandlerResult endpoint_handler(DBusConnection *c, DBusMessage *m, voi
         const char *xml = ENDPOINT_INTROSPECT_XML;
 
         pa_assert_se(r = dbus_message_new_method_return(m));
-        pa_assert_se(dbus_message_append_args(
-                                 r,
-                                 DBUS_TYPE_STRING, &xml,
-                                 DBUS_TYPE_INVALID));
+        pa_assert_se(dbus_message_append_args(r, DBUS_TYPE_STRING, &xml, DBUS_TYPE_INVALID));
 
     } else if (dbus_message_is_method_call(m, "org.bluez.MediaEndpoint", "SetConfiguration"))
         r = endpoint_set_configuration(c, m, userdata);
