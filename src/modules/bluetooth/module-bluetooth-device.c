@@ -2070,6 +2070,8 @@ off:
 /* Run from main thread */
 static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
     pa_device_port *port;
+    pa_device_port_new_data port_data;
+
     const char *name_prefix = NULL;
     const char *input_description = NULL;
     const char *output_description = NULL;
@@ -2140,13 +2142,23 @@ static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
     u->output_port_name = pa_sprintf_malloc("%s-output", name_prefix);
     u->input_port_name = pa_sprintf_malloc("%s-input", name_prefix);
 
-    pa_assert_se(port = pa_device_port_new(u->core, u->output_port_name, output_description, PA_DIRECTION_OUTPUT, 0));
+    pa_device_port_new_data_init(&port_data);
+    pa_device_port_new_data_set_name(&port_data, u->output_port_name);
+    pa_device_port_new_data_set_description(&port_data, output_description);
+    pa_device_port_new_data_set_direction(&port_data, PA_DIRECTION_OUTPUT);
+    pa_device_port_new_data_set_available(&port_data, get_port_availability(u, PA_DIRECTION_OUTPUT));
+    pa_assert_se(port = pa_device_port_new(u->core, &port_data, 0));
     pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
-    port->available = get_port_availability(u, PA_DIRECTION_OUTPUT);
+    pa_device_port_new_data_done(&port_data);
 
-    pa_assert_se(port = pa_device_port_new(u->core, u->input_port_name, input_description, PA_DIRECTION_OUTPUT, 0));
+    pa_device_port_new_data_init(&port_data);
+    pa_device_port_new_data_set_name(&port_data, u->input_port_name);
+    pa_device_port_new_data_set_description(&port_data, output_description);
+    pa_device_port_new_data_set_direction(&port_data, PA_DIRECTION_INPUT);
+    pa_device_port_new_data_set_available(&port_data, get_port_availability(u, PA_DIRECTION_INPUT));
+    pa_assert_se(port = pa_device_port_new(u->core, &port_data, 0));
     pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
-    port->available = get_port_availability(u, PA_DIRECTION_INPUT);
+    pa_device_port_new_data_done(&port_data);
 }
 
 /* Run from main thread */

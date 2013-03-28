@@ -26,6 +26,47 @@
 
 PA_DEFINE_PUBLIC_CLASS(pa_device_port, pa_object);
 
+pa_device_port_new_data *pa_device_port_new_data_init(pa_device_port_new_data *data) {
+    pa_assert(data);
+
+    pa_zero(*data);
+    data->available = PA_AVAILABLE_UNKNOWN;
+    return data;
+}
+
+void pa_device_port_new_data_set_name(pa_device_port_new_data *data, const char *name) {
+    pa_assert(data);
+
+    pa_xfree(data->name);
+    data->name = pa_xstrdup(name);
+}
+
+void pa_device_port_new_data_set_description(pa_device_port_new_data *data, const char *description) {
+    pa_assert(data);
+
+    pa_xfree(data->description);
+    data->description = pa_xstrdup(description);
+}
+
+void pa_device_port_new_data_set_available(pa_device_port_new_data *data, pa_available_t available) {
+    pa_assert(data);
+
+    data->available = available;
+}
+
+void pa_device_port_new_data_set_direction(pa_device_port_new_data *data, pa_direction_t direction) {
+    pa_assert(data);
+
+    data->direction = direction;
+}
+
+void pa_device_port_new_data_done(pa_device_port_new_data *data) {
+    pa_assert(data);
+
+    pa_xfree(data->name);
+    pa_xfree(data->description);
+}
+
 void pa_device_port_set_available(pa_device_port *p, pa_available_t status)
 {
     pa_core *core;
@@ -66,23 +107,27 @@ static void device_port_free(pa_object *o) {
 }
 
 
-pa_device_port *pa_device_port_new(pa_core *c, const char *name, const char *description, pa_direction_t direction, size_t extra) {
+pa_device_port *pa_device_port_new(pa_core *c, pa_device_port_new_data *data, size_t extra) {
     pa_device_port *p;
 
-    pa_assert(name);
+    pa_assert(data);
+    pa_assert(data->name);
+    pa_assert(data->direction == PA_DIRECTION_OUTPUT || data->direction == PA_DIRECTION_INPUT);
 
     p = PA_DEVICE_PORT(pa_object_new_internal(PA_ALIGN(sizeof(pa_device_port)) + extra, pa_device_port_type_id, pa_device_port_check_type));
     p->parent.free = device_port_free;
 
-    p->core = c;
-    p->name = pa_xstrdup(name);
-    p->description = pa_xstrdup(description);
+    p->name = data->name;
+    data->name = NULL;
+    p->description = data->description;
+    data->description = NULL;
     p->core = c;
     p->card = NULL;
     p->priority = 0;
-    p->available = PA_AVAILABLE_UNKNOWN;
+    p->available = data->available;
     p->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    p->direction = direction;
+    p->direction = data->direction;
+
     p->latency_offset = 0;
     p->proplist = pa_proplist_new();
 

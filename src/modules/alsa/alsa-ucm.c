@@ -688,7 +688,15 @@ static void ucm_add_port_combination(
 
     port = pa_hashmap_get(ports, name);
     if (!port) {
-        port = pa_device_port_new(core, pa_strna(name), desc, is_sink ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT, 0);
+        pa_device_port_new_data port_data;
+
+        pa_device_port_new_data_init(&port_data);
+        pa_device_port_new_data_set_name(&port_data, pa_strna(name));
+        pa_device_port_new_data_set_description(&port_data, desc);
+        pa_device_port_new_data_set_direction(&port_data, is_sink ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT);
+
+        port = pa_device_port_new(core, &port_data, 0);
+        pa_device_port_new_data_done(&port_data);
         pa_assert(port);
 
         pa_hashmap_put(ports, port->name, port);

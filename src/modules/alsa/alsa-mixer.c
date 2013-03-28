@@ -4496,11 +4496,15 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports, /* card ports */
 
     if (!p) {
         pa_alsa_port_data *data;
-        pa_direction_t direction;
+        pa_device_port_new_data port_data;
 
-        direction = path->direction == PA_ALSA_DIRECTION_OUTPUT ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT;
+        pa_device_port_new_data_init(&port_data);
+        pa_device_port_new_data_set_name(&port_data, name);
+        pa_device_port_new_data_set_description(&port_data, description);
+        pa_device_port_new_data_set_direction(&port_data, path->direction == PA_ALSA_DIRECTION_OUTPUT ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT);
 
-        p = pa_device_port_new(core, name, description, direction, sizeof(pa_alsa_port_data));
+        p = pa_device_port_new(core, &port_data, sizeof(pa_alsa_port_data));
+        pa_device_port_new_data_done(&port_data);
         pa_assert(p);
         pa_hashmap_put(ports, p->name, p);
         pa_proplist_update(p->proplist, PA_UPDATE_REPLACE, path->proplist);
