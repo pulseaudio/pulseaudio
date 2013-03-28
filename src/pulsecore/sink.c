@@ -784,6 +784,9 @@ void pa_sink_update_flags(pa_sink *s, pa_sink_flags_t mask, pa_sink_flags_t valu
         pa_log_debug("Sink %s: DYNAMIC_LATENCY flag %s.",
                      s->name, (s->flags & PA_SINK_DYNAMIC_LATENCY) ? "enabled" : "disabled");
 
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_FLAGS_CHANGED], s);
+
     if (s->monitor_source)
         pa_source_update_flags(s->monitor_source,
                                ((mask & PA_SINK_LATENCY) ? PA_SOURCE_LATENCY : 0) |

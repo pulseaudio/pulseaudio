@@ -710,6 +710,9 @@ void pa_source_update_flags(pa_source *s, pa_source_flags_t mask, pa_source_flag
         pa_log_debug("Source %s: DYNAMIC_LATENCY flag %s.",
                      s->name, (s->flags & PA_SOURCE_DYNAMIC_LATENCY) ? "enabled" : "disabled");
 
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_FLAGS_CHANGED], s);
+
     PA_IDXSET_FOREACH(output, s->outputs, idx) {
         if (output->destination_source)
             pa_source_update_flags(output->destination_source, mask, value);
