@@ -776,7 +776,7 @@ void pa_sink_update_flags(pa_sink *s, pa_sink_flags_t mask, pa_sink_flags_t valu
                            ((mask & PA_SINK_LATENCY) ? PA_SOURCE_LATENCY : 0) |
                            ((mask & PA_SINK_DYNAMIC_LATENCY) ? PA_SOURCE_DYNAMIC_LATENCY : 0),
                            ((value & PA_SINK_LATENCY) ? PA_SOURCE_LATENCY : 0) |
-                           ((value & PA_SINK_DYNAMIC_LATENCY) ? PA_SINK_DYNAMIC_LATENCY : 0));
+                           ((value & PA_SINK_DYNAMIC_LATENCY) ? PA_SOURCE_DYNAMIC_LATENCY : 0));
 }
 
 /* Called from IO context, or before _put() from main context */
