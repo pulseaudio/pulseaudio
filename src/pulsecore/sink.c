@@ -3268,6 +3268,11 @@ void pa_sink_set_fixed_latency_within_thread(pa_sink *s, pa_usec_t latency) {
 
     if (s->flags & PA_SINK_DYNAMIC_LATENCY) {
         pa_assert(latency == 0);
+        s->thread_info.fixed_latency = 0;
+
+        if (s->monitor_source)
+            pa_source_set_fixed_latency_within_thread(s->monitor_source, 0);
+
         return;
     }
 

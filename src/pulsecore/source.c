@@ -2528,6 +2528,8 @@ void pa_source_set_fixed_latency_within_thread(pa_source *s, pa_usec_t latency) 
 
     if (s->flags & PA_SOURCE_DYNAMIC_LATENCY) {
         pa_assert(latency == 0);
+        s->thread_info.fixed_latency = 0;
+
         return;
     }
 
