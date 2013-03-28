@@ -321,9 +321,9 @@ AC_ARG_ENABLE([neon-opt],
     AS_HELP_STRING([--enable-neon-opt], [Enable NEON optimisations on ARM CPUs that support it]))
 
 AS_IF([test "x$enable_neon_opt" != "xno"],
-    [save_CFLAGS="$CFLAGS"; CFLAGS="$CFLAGS -mfpu=neon"
+    [save_CFLAGS="$CFLAGS"; CFLAGS="-mfpu=neon $CFLAGS"
      AC_COMPILE_IFELSE(
-        AC_LANG_PROGRAM([], []),
+        AC_LANG_PROGRAM([[#include <arm_neon.h>]], []),
         [
          HAVE_NEON=1
          NEON_CFLAGS="-mfpu=neon"
@@ -337,7 +337,7 @@ AS_IF([test "x$enable_neon_opt" != "xno"],
     [HAVE_NEON=0])
 
 AS_IF([test "x$enable_neon_opt" = "xyes" && test "x$HAVE_NEON" = "x0"],
-      [AC_MSG_ERROR([*** Compiler does not support -mfpu=neon])])
+      [AC_MSG_ERROR([*** Compiler does not support -mfpu=neon or CFLAGS override -mfpu])])
 
 AC_SUBST(HAVE_NEON)
 AC_SUBST(NEON_CFLAGS)
