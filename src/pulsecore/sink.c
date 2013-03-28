@@ -761,22 +761,40 @@ void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q) {
 
 /* Called from main context, and not while the IO thread is active, please */
 void pa_sink_update_flags(pa_sink *s, pa_sink_flags_t mask, pa_sink_flags_t value) {
+    pa_sink_flags_t old_flags;
+    pa_sink_input *input;
+    uint32_t idx;
+
     pa_sink_assert_ref(s);
     pa_assert_ctl_context();
-
-    if (mask == 0)
-        return;
 
     /* For now, allow only a minimal set of flags to be changed. */
     pa_assert((mask & ~(PA_SINK_DYNAMIC_LATENCY|PA_SINK_LATENCY)) == 0);
 
+    old_flags = s->flags;
     s->flags = (s->flags & ~mask) | (value & mask);
 
-    pa_source_update_flags(s->monitor_source,
-                           ((mask & PA_SINK_LATENCY) ? PA_SOURCE_LATENCY : 0) |
-                           ((mask & PA_SINK_DYNAMIC_LATENCY) ? PA_SOURCE_DYNAMIC_LATENCY : 0),
-                           ((value & PA_SINK_LATENCY) ? PA_SOURCE_LATENCY : 0) |
-                           ((value & PA_SINK_DYNAMIC_LATENCY) ? PA_SOURCE_DYNAMIC_LATENCY : 0));
+    if (s->flags == old_flags)
+        return;
+
+    if ((s->flags & PA_SINK_LATENCY) != (old_flags & PA_SINK_LATENCY))
+        pa_log_debug("Sink %s: LATENCY flag %s.", s->name, (s->flags & PA_SINK_LATENCY) ? "enabled" : "disabled");
+
+    if ((s->flags & PA_SINK_DYNAMIC_LATENCY) != (old_flags & PA_SINK_DYNAMIC_LATENCY))
+        pa_log_debug("Sink %s: DYNAMIC_LATENCY flag %s.",
+                     s->name, (s->flags & PA_SINK_DYNAMIC_LATENCY) ? "enabled" : "disabled");
+
+    if (s->monitor_source)
+        pa_source_update_flags(s->monitor_source,
+                               ((mask & PA_SINK_LATENCY) ? PA_SOURCE_LATENCY : 0) |
+                               ((mask & PA_SINK_DYNAMIC_LATENCY) ? PA_SOURCE_DYNAMIC_LATENCY : 0),
+                               ((value & PA_SINK_LATENCY) ? PA_SOURCE_LATENCY : 0) |
+                               ((value & PA_SINK_DYNAMIC_LATENCY) ? PA_SOURCE_DYNAMIC_LATENCY : 0));
+
+    PA_IDXSET_FOREACH(input, s->inputs, idx) {
+        if (input->origin_sink)
+            pa_sink_update_flags(input->origin_sink, mask, value);
+    }
 }
 
 /* Called from IO context, or before _put() from main context */

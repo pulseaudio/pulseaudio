@@ -687,16 +687,33 @@ void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q) {
 
 /* Called from main context, and not while the IO thread is active, please */
 void pa_source_update_flags(pa_source *s, pa_source_flags_t mask, pa_source_flags_t value) {
+    pa_source_flags_t old_flags;
+    pa_source_output *output;
+    uint32_t idx;
+
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
-
-    if (mask == 0)
-        return;
 
     /* For now, allow only a minimal set of flags to be changed. */
     pa_assert((mask & ~(PA_SOURCE_DYNAMIC_LATENCY|PA_SOURCE_LATENCY)) == 0);
 
+    old_flags = s->flags;
     s->flags = (s->flags & ~mask) | (value & mask);
+
+    if (s->flags == old_flags)
+        return;
+
+    if ((s->flags & PA_SOURCE_LATENCY) != (old_flags & PA_SOURCE_LATENCY))
+        pa_log_debug("Source %s: LATENCY flag %s.", s->name, (s->flags & PA_SOURCE_LATENCY) ? "enabled" : "disabled");
+
+    if ((s->flags & PA_SOURCE_DYNAMIC_LATENCY) != (old_flags & PA_SOURCE_DYNAMIC_LATENCY))
+        pa_log_debug("Source %s: DYNAMIC_LATENCY flag %s.",
+                     s->name, (s->flags & PA_SOURCE_DYNAMIC_LATENCY) ? "enabled" : "disabled");
+
+    PA_IDXSET_FOREACH(output, s->outputs, idx) {
+        if (output->destination_source)
+            pa_source_update_flags(output->destination_source, mask, value);
+    }
 }
 
 /* Called from IO context, or before _put() from main context */
