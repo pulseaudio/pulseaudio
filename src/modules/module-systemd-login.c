@@ -211,7 +211,6 @@ fail:
 
 void pa__done(pa_module *m) {
     struct userdata *u;
-    struct session *session;
 
     pa_assert(m);
 
