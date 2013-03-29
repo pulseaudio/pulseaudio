@@ -691,7 +691,7 @@ static void ucm_add_port_combination(
         pa_device_port_new_data port_data;
 
         pa_device_port_new_data_init(&port_data);
-        pa_device_port_new_data_set_name(&port_data, pa_strna(name));
+        pa_device_port_new_data_set_name(&port_data, name);
         pa_device_port_new_data_set_description(&port_data, desc);
         pa_device_port_new_data_set_direction(&port_data, is_sink ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT);
 
