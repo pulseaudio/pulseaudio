@@ -40,7 +40,7 @@ HACKING:
 	  ./autogen.sh
 	  CFLAGS="-ggdb3 -O0" LDFLAGS="-ggdb3" ./configure
 	  make
-	  ./src/pulseaudio -n -F src/default.pa -p $(pwd)/src/.libs/
+	  ./src/pulseaudio -n -F src/default.pa -p $(pwd)/src/
 
 SPELLING:
         PulseAudio
