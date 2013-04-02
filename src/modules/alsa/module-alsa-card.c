@@ -437,6 +437,9 @@ static void init_eld_ctls(struct userdata *u) {
     void *state;
     pa_device_port *port;
 
+    if (!u->hctl_handle)
+        return;
+
     PA_HASHMAP_FOREACH(port, u->card->ports, state) {
         pa_alsa_port_data *data = PA_DEVICE_PORT_DATA(port);
         snd_hctl_elem_t* hctl_elem;
