@@ -242,10 +242,8 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
 
     char
         s[PA_SAMPLE_SPEC_SNPRINT_MAX],
-        cv[PA_CVOLUME_SNPRINT_MAX],
-        cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX],
-        v[PA_VOLUME_SNPRINT_MAX],
-        vdb[PA_SW_VOLUME_SNPRINT_DB_MAX],
+        cv[PA_CVOLUME_SNPRINT_VERBOSE_MAX],
+        v[PA_VOLUME_SNPRINT_VERBOSE_MAX],
         cm[PA_CHANNEL_MAP_SNPRINT_MAX],
         f[PA_FORMAT_INFO_SNPRINT_MAX];
     char *pl;
@@ -286,9 +284,9 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
              "\tChannel Map: %s\n"
              "\tOwner Module: %u\n"
              "\tMute: %s\n"
-             "\tVolume: %s%s%s\n"
+             "\tVolume: %s\n"
              "\t        balance %0.2f\n"
-             "\tBase Volume: %s%s%s\n"
+             "\tBase Volume: %s\n"
              "\tMonitor Source: %s\n"
              "\tLatency: %0.0f usec, configured %0.0f usec\n"
              "\tFlags: %s%s%s%s%s%s%s\n"
@@ -302,13 +300,9 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            i->owner_module,
            pa_yes_no(i->mute),
-           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
-           i->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t        " : "",
-           i->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &i->volume) : "",
+           pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, i->flags & PA_SINK_DECIBEL_VOLUME),
            pa_cvolume_get_balance(&i->volume, &i->channel_map),
-           pa_volume_snprint(v, sizeof(v), i->base_volume),
-           i->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t             " : "",
-           i->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), i->base_volume) : "",
+           pa_volume_snprint_verbose(v, sizeof(v), i->base_volume, i->flags & PA_SINK_DECIBEL_VOLUME),
            pa_strnull(i->monitor_source_name),
            (double) i->latency, (double) i->configured_latency,
            i->flags & PA_SINK_HARDWARE ? "HARDWARE " : "",
@@ -355,10 +349,8 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
 
     char
         s[PA_SAMPLE_SPEC_SNPRINT_MAX],
-        cv[PA_CVOLUME_SNPRINT_MAX],
-        cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX],
-        v[PA_VOLUME_SNPRINT_MAX],
-        vdb[PA_SW_VOLUME_SNPRINT_DB_MAX],
+        cv[PA_CVOLUME_SNPRINT_VERBOSE_MAX],
+        v[PA_VOLUME_SNPRINT_VERBOSE_MAX],
         cm[PA_CHANNEL_MAP_SNPRINT_MAX],
         f[PA_FORMAT_INFO_SNPRINT_MAX];
     char *pl;
@@ -399,9 +391,9 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
              "\tChannel Map: %s\n"
              "\tOwner Module: %u\n"
              "\tMute: %s\n"
-             "\tVolume: %s%s%s\n"
+             "\tVolume: %s\n"
              "\t        balance %0.2f\n"
-             "\tBase Volume: %s%s%s\n"
+             "\tBase Volume: %s\n"
              "\tMonitor of Sink: %s\n"
              "\tLatency: %0.0f usec, configured %0.0f usec\n"
              "\tFlags: %s%s%s%s%s%s\n"
@@ -415,13 +407,9 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            i->owner_module,
            pa_yes_no(i->mute),
-           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
-           i->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t        " : "",
-           i->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &i->volume) : "",
+           pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, i->flags & PA_SOURCE_DECIBEL_VOLUME),
            pa_cvolume_get_balance(&i->volume, &i->channel_map),
-           pa_volume_snprint(v, sizeof(v), i->base_volume),
-           i->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t             " : "",
-           i->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), i->base_volume) : "",
+           pa_volume_snprint_verbose(v, sizeof(v), i->base_volume, i->flags & PA_SOURCE_DECIBEL_VOLUME),
            i->monitor_of_sink_name ? i->monitor_of_sink_name : _("n/a"),
            (double) i->latency, (double) i->configured_latency,
            i->flags & PA_SOURCE_HARDWARE ? "HARDWARE " : "",
@@ -623,7 +611,7 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
 }
 
 static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info *i, int is_last, void *userdata) {
-    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], f[PA_FORMAT_INFO_SNPRINT_MAX];
+    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_VERBOSE_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], f[PA_FORMAT_INFO_SNPRINT_MAX];
     char *pl;
 
     if (is_last < 0) {
@@ -667,7 +655,6 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
              "\tCorked: %s\n"
              "\tMute: %s\n"
              "\tVolume: %s\n"
-             "\t        %s\n"
              "\t        balance %0.2f\n"
              "\tBuffer Latency: %0.0f usec\n"
              "\tSink Latency: %0.0f usec\n"
@@ -683,8 +670,7 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
            pa_format_info_snprint(f, sizeof(f), i->format),
            pa_yes_no(i->corked),
            pa_yes_no(i->mute),
-           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
-           pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &i->volume),
+           pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
            pa_cvolume_get_balance(&i->volume, &i->channel_map),
            (double) i->buffer_usec,
            (double) i->sink_usec,
@@ -695,7 +681,7 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
 }
 
 static void get_source_output_info_callback(pa_context *c, const pa_source_output_info *i, int is_last, void *userdata) {
-    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], f[PA_FORMAT_INFO_SNPRINT_MAX];
+    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_VERBOSE_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], f[PA_FORMAT_INFO_SNPRINT_MAX];
     char *pl;
 
     if (is_last < 0) {
@@ -739,7 +725,6 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
              "\tCorked: %s\n"
              "\tMute: %s\n"
              "\tVolume: %s\n"
-             "\t        %s\n"
              "\t        balance %0.2f\n"
              "\tBuffer Latency: %0.0f usec\n"
              "\tSource Latency: %0.0f usec\n"
@@ -755,8 +740,7 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
            pa_format_info_snprint(f, sizeof(f), i->format),
            pa_yes_no(i->corked),
            pa_yes_no(i->mute),
-           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
-           pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &i->volume),
+           pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
            pa_cvolume_get_balance(&i->volume, &i->channel_map),
            (double) i->buffer_usec,
            (double) i->source_usec,
@@ -767,7 +751,7 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
 }
 
 static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int is_last, void *userdata) {
-    char t[PA_BYTES_SNPRINT_MAX], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    char t[PA_BYTES_SNPRINT_MAX], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_VERBOSE_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     char *pl;
 
     if (is_last < 0) {
@@ -803,7 +787,6 @@ static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int
              "\tSample Specification: %s\n"
              "\tChannel Map: %s\n"
              "\tVolume: %s\n"
-             "\t        %s\n"
              "\t        balance %0.2f\n"
              "\tDuration: %0.1fs\n"
              "\tSize: %s\n"
@@ -814,8 +797,7 @@ static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int
            i->name,
            pa_sample_spec_valid(&i->sample_spec) ? pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec) : _("n/a"),
            pa_sample_spec_valid(&i->sample_spec) ? pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map) : _("n/a"),
-           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
-           pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &i->volume),
+           pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
            pa_cvolume_get_balance(&i->volume, &i->channel_map),
            (double) i->duration/1000000.0,
            t,

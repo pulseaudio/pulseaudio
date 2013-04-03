@@ -266,7 +266,7 @@ static void sink_set_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     pa_cvolume hw;
     pa_volume_t v;
-    char t[PA_CVOLUME_SNPRINT_MAX];
+    char t[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
 
     pa_assert(u);
 
@@ -285,9 +285,10 @@ static void sink_set_volume_cb(pa_sink *s) {
     /* Perform any software manipulation of the volume needed */
     pa_sw_cvolume_divide(&s->soft_volume, &s->real_volume, &hw);
 
-    pa_log_debug("Requested volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->real_volume));
-    pa_log_debug("Got hardware volume: %s", pa_cvolume_snprint(t, sizeof(t), &hw));
-    pa_log_debug("Calculated software volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->soft_volume));
+    pa_log_debug("Requested volume: %s", pa_cvolume_snprint_verbose(t, sizeof(t), &s->real_volume, &s->channel_map, false));
+    pa_log_debug("Got hardware volume: %s", pa_cvolume_snprint_verbose(t, sizeof(t), &hw, &s->channel_map, false));
+    pa_log_debug("Calculated software volume: %s",
+                 pa_cvolume_snprint_verbose(t, sizeof(t), &s->soft_volume, &s->channel_map, true));
 
     /* Any necessary software volume manipulation is done so set
        our hw volume (or v as a single value) on the device */

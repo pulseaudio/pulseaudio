@@ -249,7 +249,7 @@ int pa_oss_set_fragments(int fd, int nfrags, int frag_size) {
 }
 
 int pa_oss_get_volume(int fd, unsigned long mixer, const pa_sample_spec *ss, pa_cvolume *volume) {
-    char cv[PA_CVOLUME_SNPRINT_MAX];
+    char cv[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
     unsigned vol;
 
     pa_assert(fd >= 0);
@@ -266,7 +266,7 @@ int pa_oss_get_volume(int fd, unsigned long mixer, const pa_sample_spec *ss, pa_
     if (volume->channels >= 2)
         volume->values[1] = PA_CLAMP_VOLUME((((vol >> 8) & 0xFF) * PA_VOLUME_NORM) / 100);
 
-    pa_log_debug("Read mixer settings: %s", pa_cvolume_snprint(cv, sizeof(cv), volume));
+    pa_log_debug("Read mixer settings: %s", pa_cvolume_snprint_verbose(cv, sizeof(cv), volume, NULL, false));
     return 0;
 }
 

@@ -775,13 +775,13 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
 
             if (!new_data->volume_is_set) {
                 pa_cvolume v;
-                char buf[PA_CVOLUME_SNPRINT_MAX];
+                char buf[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
 
-                pa_log_info("Restoring volume for sink %s.", new_data->name);
                 v = e->volume;
                 pa_cvolume_remap(&v, &e->channel_map, &new_data->channel_map);
                 pa_sink_new_data_set_volume(new_data, &v);
-                pa_log_info("Restored volume: %s", pa_cvolume_snprint(buf, PA_CVOLUME_SNPRINT_MAX, &new_data->volume));
+                pa_log_info("Restoring volume for sink %s: %s", new_data->name,
+                            pa_cvolume_snprint_verbose(buf, sizeof(buf), &new_data->volume, &new_data->channel_map, false));
 
                 new_data->save_volume = true;
             } else
@@ -821,13 +821,11 @@ static pa_hook_result_t sink_port_hook_callback(pa_core *c, pa_sink *sink, struc
 
         if (u->restore_volume && e->volume_valid) {
             pa_cvolume v;
-            char buf[PA_CVOLUME_SNPRINT_MAX];
 
             pa_log_info("Restoring volume for sink %s.", sink->name);
             v = e->volume;
             pa_cvolume_remap(&v, &e->channel_map, &sink->channel_map);
             pa_sink_set_volume(sink, &v, true, false);
-            pa_log_info("Restored volume: %s", pa_cvolume_snprint(buf, PA_CVOLUME_SNPRINT_MAX, &sink->reference_volume));
 
             sink->save_volume = true;
         }
@@ -918,13 +916,13 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
 
             if (!new_data->volume_is_set) {
                 pa_cvolume v;
-                char buf[PA_CVOLUME_SNPRINT_MAX];
+                char buf[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
 
-                pa_log_info("Restoring volume for source %s.", new_data->name);
                 v = e->volume;
                 pa_cvolume_remap(&v, &e->channel_map, &new_data->channel_map);
                 pa_source_new_data_set_volume(new_data, &v);
-                pa_log_info("Restored volume: %s", pa_cvolume_snprint(buf, PA_CVOLUME_SNPRINT_MAX, &new_data->volume));
+                pa_log_info("Restoring volume for source %s: %s", new_data->name,
+                            pa_cvolume_snprint_verbose(buf, sizeof(buf), &new_data->volume, &new_data->channel_map, false));
 
                 new_data->save_volume = true;
             } else
@@ -964,13 +962,11 @@ static pa_hook_result_t source_port_hook_callback(pa_core *c, pa_source *source,
 
         if (u->restore_volume && e->volume_valid) {
             pa_cvolume v;
-            char buf[PA_CVOLUME_SNPRINT_MAX];
 
             pa_log_info("Restoring volume for source %s.", source->name);
             v = e->volume;
             pa_cvolume_remap(&v, &e->channel_map, &source->channel_map);
             pa_source_set_volume(source, &v, true, false);
-            pa_log_info("Restored volume: %s", pa_cvolume_snprint(buf, PA_CVOLUME_SNPRINT_MAX, &source->reference_volume));
 
             source->save_volume = true;
         }

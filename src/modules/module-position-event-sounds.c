@@ -74,7 +74,7 @@ static int parse_pos(const char *pos, double *f) {
 static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_input_new_data *data, struct userdata *u) {
     const char *hpos, *vpos, *role, *id;
     double f;
-    char t[PA_CVOLUME_SNPRINT_MAX];
+    char t[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
     pa_cvolume v;
 
     pa_assert(data);
@@ -132,7 +132,12 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_i
         }
     }
 
-    pa_log_debug("Final volume factor %s.", pa_cvolume_snprint(t, sizeof(t), &v));
+    pa_log_debug("Final volume factor %s.",
+                 pa_cvolume_snprint_verbose(t,
+                                            sizeof(t),
+                                            &v,
+                                            &data->sink->channel_map,
+                                            data->sink->flags & PA_SINK_DECIBEL_VOLUME));
     pa_sink_input_new_data_add_volume_factor_sink(data, u->name, &v);
 
     return PA_HOOK_OK;

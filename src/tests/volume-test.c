@@ -54,39 +54,47 @@ START_TEST (volume_test) {
                v, (v*100)/PA_VOLUME_NORM, dB, f, pa_sw_volume_from_dB(dB), pa_sw_volume_from_linear(f));
     }
 
-    for (v = PA_VOLUME_MUTED; v <= PA_VOLUME_NORM*2; v += 256) {
-        char s[PA_CVOLUME_SNPRINT_MAX], t[PA_SW_CVOLUME_SNPRINT_DB_MAX];
-
-        pa_cvolume_set(&cv, 2, v);
-
-        pa_log_debug("Volume: %3i [%s] [%s]", v, pa_cvolume_snprint(s, sizeof(s), &cv), pa_sw_cvolume_snprint_dB(t, sizeof(t), &cv));
-    }
-
     map.channels = cv.channels = 2;
     map.map[0] = PA_CHANNEL_POSITION_LEFT;
     map.map[1] = PA_CHANNEL_POSITION_RIGHT;
 
+    for (v = PA_VOLUME_MUTED; v <= PA_VOLUME_NORM*2; v += 256) {
+        char s[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
+
+        pa_cvolume_set(&cv, 2, v);
+
+        pa_log_debug("Volume: %3i [%s]", v, pa_cvolume_snprint_verbose(s, sizeof(s), &cv, &map, true));
+    }
+
     for (cv.values[0] = PA_VOLUME_MUTED; cv.values[0] <= PA_VOLUME_NORM*2; cv.values[0] += 4096)
         for (cv.values[1] = PA_VOLUME_MUTED; cv.values[1] <= PA_VOLUME_NORM*2; cv.values[1] += 4096) {
-            char s[PA_CVOLUME_SNPRINT_MAX];
+            char s[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
 
-            pa_log_debug("Volume: [%s]; balance: %2.1f", pa_cvolume_snprint(s, sizeof(s), &cv), pa_cvolume_get_balance(&cv, &map));
+            pa_log_debug("Volume: [%s]; balance: %2.1f",
+                         pa_cvolume_snprint_verbose(s, sizeof(s), &cv, &map, true),
+                         pa_cvolume_get_balance(&cv, &map));
         }
 
     for (cv.values[0] = PA_VOLUME_MUTED+4096; cv.values[0] <= PA_VOLUME_NORM*2; cv.values[0] += 4096)
         for (cv.values[1] = PA_VOLUME_MUTED; cv.values[1] <= PA_VOLUME_NORM*2; cv.values[1] += 4096)
             for (b = -1.0f; b <= 1.0f; b += 0.2f) {
-                char s[PA_CVOLUME_SNPRINT_MAX];
+                char s[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
                 pa_cvolume r;
                 float k;
 
-                pa_log_debug("Before: volume: [%s]; balance: %2.1f", pa_cvolume_snprint(s, sizeof(s), &cv), pa_cvolume_get_balance(&cv, &map));
+                pa_log_debug("Before: volume: [%s]; balance: %2.1f",
+                             pa_cvolume_snprint_verbose(s, sizeof(s), &cv, &map, true),
+                             pa_cvolume_get_balance(&cv, &map));
 
                 r = cv;
                 pa_cvolume_set_balance(&r, &map,b);
 
                 k = pa_cvolume_get_balance(&r, &map);
-                pa_log_debug("After: volume: [%s]; balance: %2.1f (intended: %2.1f) %s", pa_cvolume_snprint(s, sizeof(s), &r), k, b, k < b-.05 || k > b+.5 ? "MISMATCH" : "");
+                pa_log_debug("After: volume: [%s]; balance: %2.1f (intended: %2.1f) %s",
+                             pa_cvolume_snprint_verbose(s, sizeof(s), &r, &map, true),
+                             k,
+                             b,
+                             k < b - .05 || k > b + .5 ? "MISMATCH" : "");
             }
 
     for (v = PA_VOLUME_MUTED; v <= PA_VOLUME_NORM*2; v += 51) {

@@ -1995,7 +1995,9 @@ PA_GCC_UNUSED static void stream_restore_dump_database(struct userdata *u) {
             pa_log("name=%s", name);
             pa_log("device=%s %s", e->device, pa_yes_no(e->device_valid));
             pa_log("channel_map=%s", pa_channel_map_snprint(t, sizeof(t), &e->channel_map));
-            pa_log("volume=%s %s", pa_cvolume_snprint(t, sizeof(t), &e->volume), pa_yes_no(e->volume_valid));
+            pa_log("volume=%s %s",
+                   pa_cvolume_snprint_verbose(t, sizeof(t), &e->volume, &e->channel_map, true),
+                   pa_yes_no(e->volume_valid));
             pa_log("mute=%s %s", pa_yes_no(e->muted), pa_yes_no(e->volume_valid));
             entry_free(e);
         }
