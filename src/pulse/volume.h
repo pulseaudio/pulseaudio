@@ -174,6 +174,18 @@ char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c);
 /** Pretty print a volume structure but show dB values. \since 0.9.13 */
 char *pa_sw_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c);
 
+/** Maximum length of the strings returned by pa_cvolume_snprint_verbose().
+ * Please note that this value can change with any release without warning and
+ * without being considered API or ABI breakage. You should not use this
+ * definition anywhere where it might become part of an ABI. \since 5.0 */
+#define PA_CVOLUME_SNPRINT_VERBOSE_MAX 1984
+
+/** Pretty print a volume structure in a verbose way. The volume for each
+ * channel is printed in several formats: the raw pa_volume_t value,
+ * percentage, and if print_dB is non-zero, also the dB value. If map is not
+ * NULL, the channel names will be printed. \since 5.0 */
+char *pa_cvolume_snprint_verbose(char *s, size_t l, const pa_cvolume *c, const pa_channel_map *map, int print_dB);
+
 /** Maximum length of the strings returned by
  * pa_volume_snprint(). Please note that this value can change with
  * any release without warning and without being considered API or ABI
@@ -193,6 +205,17 @@ char *pa_volume_snprint(char *s, size_t l, pa_volume_t v);
 
 /** Pretty print a volume but show dB values. \since 0.9.15 */
 char *pa_sw_volume_snprint_dB(char *s, size_t l, pa_volume_t v);
+
+/** Maximum length of the strings returned by pa_volume_snprint_verbose().
+ * Please note that this value can change with any release without warning and
+ * withou being considered API or ABI breakage. You should not use this
+ * definition anywhere where it might become part of an ABI. \since 5.0 */
+#define PA_VOLUME_SNPRINT_VERBOSE_MAX 35
+
+/** Pretty print a volume in a verbose way. The volume is printed in several
+ * formats: the raw pa_volume_t value, percentage, and if print_dB is non-zero,
+ * also the dB value. \since 5.0 */
+char *pa_volume_snprint_verbose(char *s, size_t l, pa_volume_t v, int print_dB);
 
 /** Return the average volume of all channels */
 pa_volume_t pa_cvolume_avg(const pa_cvolume *a) PA_GCC_PURE;

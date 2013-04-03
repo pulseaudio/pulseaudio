@@ -361,6 +361,48 @@ char *pa_sw_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c) {
     return s;
 }
 
+char *pa_cvolume_snprint_verbose(char *s, size_t l, const pa_cvolume *c, const pa_channel_map *map, int print_dB) {
+    char *current = s;
+    bool first = true;
+
+    pa_assert(s);
+    pa_assert(l > 0);
+    pa_assert(c);
+
+    pa_init_i18n();
+
+    if (!pa_cvolume_valid(c)) {
+        pa_snprintf(s, l, _("(invalid)"));
+        return s;
+    }
+
+    pa_assert(!map || (map->channels == c->channels));
+    pa_assert(!map || pa_channel_map_valid(map));
+
+    current[0] = 0;
+
+    for (unsigned channel = 0; channel < c->channels && l > 1; channel++) {
+        char channel_position[32];
+        size_t bytes_printed;
+        char buf[PA_VOLUME_SNPRINT_VERBOSE_MAX];
+
+        if (map)
+            pa_snprintf(channel_position, sizeof(channel_position), "%s", pa_channel_position_to_string(map->map[channel]));
+        else
+            pa_snprintf(channel_position, sizeof(channel_position), "%u", channel);
+
+        bytes_printed = pa_snprintf(current, l, "%s%s: %s",
+                                    first ? "" : ",   ",
+                                    channel_position,
+                                    pa_volume_snprint_verbose(buf, sizeof(buf), c->values[channel], print_dB));
+        l -= bytes_printed;
+        current += bytes_printed;
+        first = false;
+    }
+
+    return s;
+}
+
 char *pa_sw_volume_snprint_dB(char *s, size_t l, pa_volume_t v) {
     double f;
 
@@ -376,6 +418,28 @@ char *pa_sw_volume_snprint_dB(char *s, size_t l, pa_volume_t v) {
 
     f = pa_sw_volume_to_dB(v);
     pa_snprintf(s, l, "%0.2f dB", isinf(f) < 0 || f <= PA_DECIBEL_MININFTY ? -INFINITY : f);
+
+    return s;
+}
+
+char *pa_volume_snprint_verbose(char *s, size_t l, pa_volume_t v, int print_dB) {
+    char dB[PA_SW_VOLUME_SNPRINT_DB_MAX];
+
+    pa_assert(s);
+    pa_assert(l > 0);
+
+    pa_init_i18n();
+
+    if (!PA_VOLUME_IS_VALID(v)) {
+        pa_snprintf(s, l, _("(invalid)"));
+        return s;
+    }
+
+    pa_snprintf(s, l, "%" PRIu32 " / %3u%%%s%s",
+                v,
+                (v * 100 + PA_VOLUME_NORM / 2) / PA_VOLUME_NORM,
+                print_dB ? " / " : "",
+                print_dB ? pa_sw_volume_snprint_dB(dB, sizeof(dB), v) : "");
 
     return s;
 }
