@@ -1289,6 +1289,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, bool s
         /* OK, we are in normal volume mode. The volume only affects
          * ourselves */
         set_real_ratio(i, volume);
+        i->reference_ratio = i->volume;
 
         /* Copy the new soft_volume to the thread_info struct */
         pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_SOFT_VOLUME, NULL, 0, NULL) == 0);
