@@ -74,6 +74,8 @@ typedef uint32_t pa_pstream_descriptor[PA_PSTREAM_DESCRIPTOR_MAX];
 
 #define PA_PSTREAM_DESCRIPTOR_SIZE (PA_PSTREAM_DESCRIPTOR_MAX*sizeof(uint32_t))
 
+#define MINIBUF_SIZE (256)
+
 /* To allow uploading a single sample in one frame, this value should be the
  * same size (16 MB) as PA_SCACHE_ENTRY_SIZE_MAX from pulsecore/core-scache.h.
  */
@@ -118,11 +120,14 @@ struct pa_pstream {
     pa_bool_t dead;
 
     struct {
-        pa_pstream_descriptor descriptor;
+        union {
+            uint8_t minibuf[MINIBUF_SIZE];
+            pa_pstream_descriptor descriptor;
+        };
         struct item_info* current;
-        uint32_t shm_info[PA_PSTREAM_SHM_MAX];
         void *data;
         size_t index;
+        int minibuf_validsize;
         pa_memchunk memchunk;
     } write;
 
@@ -469,9 +474,9 @@ static void prepare_next_write_item(pa_pstream *p) {
 
     if (!p->write.current)
         return;
-
     p->write.index = 0;
     p->write.data = NULL;
+    p->write.minibuf_validsize = 0;
     pa_memchunk_reset(&p->write.memchunk);
 
     p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = 0;
@@ -485,6 +490,11 @@ static void prepare_next_write_item(pa_pstream *p) {
         pa_assert(p->write.current->packet);
         p->write.data = p->write.current->packet->data;
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl((uint32_t) p->write.current->packet->length);
+
+        if (p->write.current->packet->length <= MINIBUF_SIZE - PA_PSTREAM_DESCRIPTOR_SIZE) {
+            memcpy(&p->write.minibuf[PA_PSTREAM_DESCRIPTOR_SIZE], p->write.data, p->write.current->packet->length);
+            p->write.minibuf_validsize = PA_PSTREAM_DESCRIPTOR_SIZE + p->write.current->packet->length;
+        }
 
     } else if (p->write.current->type == PA_PSTREAM_ITEM_SHMRELEASE) {
 
@@ -512,6 +522,8 @@ static void prepare_next_write_item(pa_pstream *p) {
         if (p->use_shm) {
             uint32_t block_id, shm_id;
             size_t offset, length;
+            uint32_t *shm_info = (uint32_t *) &p->write.minibuf[PA_PSTREAM_DESCRIPTOR_SIZE];
+            size_t shm_size = sizeof(uint32_t) * PA_PSTREAM_SHM_MAX;
 
             pa_assert(p->export);
 
@@ -525,13 +537,13 @@ static void prepare_next_write_item(pa_pstream *p) {
                 flags |= PA_FLAG_SHMDATA;
                 send_payload = FALSE;
 
-                p->write.shm_info[PA_PSTREAM_SHM_BLOCKID] = htonl(block_id);
-                p->write.shm_info[PA_PSTREAM_SHM_SHMID] = htonl(shm_id);
-                p->write.shm_info[PA_PSTREAM_SHM_INDEX] = htonl((uint32_t) (offset + p->write.current->chunk.index));
-                p->write.shm_info[PA_PSTREAM_SHM_LENGTH] = htonl((uint32_t) p->write.current->chunk.length);
+                shm_info[PA_PSTREAM_SHM_BLOCKID] = htonl(block_id);
+                shm_info[PA_PSTREAM_SHM_SHMID] = htonl(shm_id);
+                shm_info[PA_PSTREAM_SHM_INDEX] = htonl((uint32_t) (offset + p->write.current->chunk.index));
+                shm_info[PA_PSTREAM_SHM_LENGTH] = htonl((uint32_t) p->write.current->chunk.length);
 
-                p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl(sizeof(p->write.shm_info));
-                p->write.data = p->write.shm_info;
+                p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl(shm_size);
+                p->write.minibuf_validsize = PA_PSTREAM_DESCRIPTOR_SIZE + shm_size;
             }
 /*             else */
 /*                 pa_log_warn("Failed to export memory block."); */
@@ -568,7 +580,10 @@ static int do_write(pa_pstream *p) {
     if (!p->write.current)
         return 0;
 
-    if (p->write.index < PA_PSTREAM_DESCRIPTOR_SIZE) {
+    if (p->write.minibuf_validsize > 0) {
+        d = p->write.minibuf + p->write.index;
+        l = p->write.minibuf_validsize - p->write.index;
+    } else if (p->write.index < PA_PSTREAM_DESCRIPTOR_SIZE) {
         d = (uint8_t*) p->write.descriptor + p->write.index;
         l = PA_PSTREAM_DESCRIPTOR_SIZE - p->write.index;
     } else {
