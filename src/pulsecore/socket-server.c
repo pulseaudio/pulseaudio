@@ -133,9 +133,9 @@ static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, pa_io_ev
 
     /* There should be a check for socket type here */
     if (s->type == SOCKET_SERVER_IPV4)
-        pa_make_tcp_socket_low_delay(fd);
+        pa_make_tcp_socket_low_delay(nfd);
     else
-        pa_make_socket_low_delay(fd);
+        pa_make_socket_low_delay(nfd);
 
     pa_assert_se(io = pa_iochannel_new(s->mainloop, nfd, nfd));
     s->on_connection(s, io, s->userdata);
