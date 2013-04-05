@@ -168,7 +168,7 @@ struct pa_pstream {
 static int do_write(pa_pstream *p);
 static int do_read(pa_pstream *p);
 
-static void do_something(pa_pstream *p) {
+static void do_pstream_read_write(pa_pstream *p) {
     pa_assert(p);
     pa_assert(PA_REFCNT_VALUE(p) > 0);
 
@@ -206,7 +206,7 @@ static void io_callback(pa_iochannel*io, void *userdata) {
     pa_assert(PA_REFCNT_VALUE(p) > 0);
     pa_assert(p->io == io);
 
-    do_something(p);
+    do_pstream_read_write(p);
 }
 
 static void defer_callback(pa_mainloop_api *m, pa_defer_event *e, void*userdata) {
@@ -217,7 +217,7 @@ static void defer_callback(pa_mainloop_api *m, pa_defer_event *e, void*userdata)
     pa_assert(p->defer_event == e);
     pa_assert(p->mainloop == m);
 
-    do_something(p);
+    do_pstream_read_write(p);
 }
 
 static void memimport_release_cb(pa_memimport *i, uint32_t block_id, void *userdata);
