@@ -249,7 +249,7 @@ static void pa_mix_s16ne_c(pa_mix_info streams[], unsigned nstreams, unsigned ch
     else if (nstreams == 2)
         pa_mix2_s16ne(streams, channels, data, length);
     else if (channels == 2)
-        pa_mix_ch2_s16ne(streams, channels, data, length);
+        pa_mix_ch2_s16ne(streams, nstreams, data, length);
     else
         pa_mix_generic_s16ne(streams, nstreams, channels, data, length);
 }
