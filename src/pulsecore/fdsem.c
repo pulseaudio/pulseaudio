@@ -52,14 +52,14 @@ struct pa_fdsem {
 #ifdef HAVE_SYS_EVENTFD_H
     int efd;
 #endif
-
+    int write_type;
     pa_fdsem_data *data;
 };
 
 pa_fdsem *pa_fdsem_new(void) {
     pa_fdsem *f;
 
-    f = pa_xmalloc(PA_ALIGN(sizeof(pa_fdsem)) + PA_ALIGN(sizeof(pa_fdsem_data)));
+    f = pa_xmalloc0(PA_ALIGN(sizeof(pa_fdsem)) + PA_ALIGN(sizeof(pa_fdsem_data)));
 
 #ifdef HAVE_SYS_EVENTFD_H
     if ((f->efd = eventfd(0, EFD_CLOEXEC)) >= 0)
@@ -89,7 +89,7 @@ pa_fdsem *pa_fdsem_open_shm(pa_fdsem_data *data, int event_fd) {
     pa_assert(event_fd >= 0);
 
 #ifdef HAVE_SYS_EVENTFD_H
-    f = pa_xnew(pa_fdsem, 1);
+    f = pa_xnew0(pa_fdsem, 1);
 
     f->efd = event_fd;
     pa_make_fd_cloexec(f->efd);
@@ -108,7 +108,7 @@ pa_fdsem *pa_fdsem_new_shm(pa_fdsem_data *data, int* event_fd) {
 
 #ifdef HAVE_SYS_EVENTFD_H
 
-    f = pa_xnew(pa_fdsem, 1);
+    f = pa_xnew0(pa_fdsem, 1);
 
     if ((f->efd = eventfd(0, EFD_CLOEXEC)) < 0) {
         pa_xfree(f);
@@ -196,7 +196,7 @@ void pa_fdsem_post(pa_fdsem *f) {
                 if (f->efd >= 0) {
                     uint64_t u = 1;
 
-                    if ((r = pa_write(f->efd, &u, sizeof(u), NULL)) != sizeof(u)) {
+                    if ((r = pa_write(f->efd, &u, sizeof(u), &f->write_type)) != sizeof(u)) {
                         if (r >= 0 || errno != EINTR) {
                             pa_log_error("Invalid write to eventfd: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
                             pa_assert_not_reached();
@@ -207,7 +207,7 @@ void pa_fdsem_post(pa_fdsem *f) {
                 } else
 #endif
 
-                if ((r = pa_write(f->fds[1], &x, 1, NULL)) != 1) {
+                if ((r = pa_write(f->fds[1], &x, 1, &f->write_type)) != 1) {
                     if (r >= 0 || errno != EINTR) {
                         pa_log_error("Invalid write to pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
                         pa_assert_not_reached();
