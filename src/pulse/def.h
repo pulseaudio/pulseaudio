@@ -96,7 +96,7 @@ typedef enum pa_operation_state {
     PA_OPERATION_RUNNING,
     /**< The operation is still running */
     PA_OPERATION_DONE,
-    /**< The operation has been completed */
+    /**< The operation has completed */
     PA_OPERATION_CANCELLED
     /**< The operation has been cancelled. Operations may get cancelled by the
      * application, or as a result of the context getting disconneted while the
@@ -130,7 +130,7 @@ typedef enum pa_context_flags {
 /** \endcond */
 
 /** Direction bitfield - while we currently do not expose anything bidirectional,
-  one should test against the bit instead of the value (e g if (d & PA_DIRECTION_OUTPUT)),
+  one should test against the bit instead of the value (e.g.\ if (d & PA_DIRECTION_OUTPUT)),
   because we might add bidirectional stuff in the future. \since 2.0
 */
 typedef enum pa_direction {
@@ -771,7 +771,7 @@ typedef enum pa_sink_flags {
      * \since 0.9.11 */
 
     PA_SINK_FLAT_VOLUME = 0x0040U,
-    /**< This sink is in flat volume mode, i.e. always the maximum of
+    /**< This sink is in flat volume mode, i.e.\ always the maximum of
      * the volume of all connected inputs. \since 0.9.15 */
 
     PA_SINK_DYNAMIC_LATENCY = 0x0080U,
@@ -899,7 +899,7 @@ typedef enum pa_source_flags {
      * needs of the connected streams. \since 0.9.15 */
 
     PA_SOURCE_FLAT_VOLUME = 0x0080U,
-    /**< This source is in flat volume mode, i.e. always the maximum of
+    /**< This source is in flat volume mode, i.e.\ always the maximum of
      * the volume of all connected outputs. \since 1.0 */
 
 #ifdef __INCLUDED_FROM_PULSE_AUDIO
@@ -987,7 +987,7 @@ typedef void (*pa_free_cb_t)(void *p);
 
 /** A stream policy/meta event requesting that an application should
  * cork a specific stream. See pa_stream_event_cb_t for more
- * information, \since 0.9.15 */
+ * information. \since 0.9.15 */
 #define PA_STREAM_EVENT_REQUEST_CORK "request-cork"
 
 /** A stream policy/meta event requesting that an application should
@@ -999,7 +999,7 @@ typedef void (*pa_free_cb_t)(void *p);
  * disconnected because the underlying sink changed and no longer
  * supports the format that was originally negotiated. Clients need
  * to connect a new stream to renegotiate a format and continue
- * playback, \since 1.0 */
+ * playback. \since 1.0 */
 #define PA_STREAM_EVENT_FORMAT_LOST "format-lost"
 
 #ifndef __INCLUDED_FROM_PULSE_AUDIO
