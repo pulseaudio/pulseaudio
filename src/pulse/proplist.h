@@ -33,25 +33,25 @@
 
 PA_C_DECL_BEGIN
 
-/** For streams: localized media name, formatted as UTF-8. e.g. "Guns'N'Roses: Civil War".*/
+/** For streams: localized media name, formatted as UTF-8. E.g. "Guns'N'Roses: Civil War".*/
 #define PA_PROP_MEDIA_NAME                     "media.name"
 
-/** For streams: localized media title if applicable, formatted as UTF-8. e.g. "Civil War" */
+/** For streams: localized media title if applicable, formatted as UTF-8. E.g. "Civil War" */
 #define PA_PROP_MEDIA_TITLE                    "media.title"
 
-/** For streams: localized media artist if applicable, formatted as UTF-8. e.g. "Guns'N'Roses" */
+/** For streams: localized media artist if applicable, formatted as UTF-8. E.g. "Guns'N'Roses" */
 #define PA_PROP_MEDIA_ARTIST                   "media.artist"
 
-/** For streams: localized media copyright string if applicable, formatted as UTF-8. e.g. "Evil Record Corp." */
+/** For streams: localized media copyright string if applicable, formatted as UTF-8. E.g. "Evil Record Corp." */
 #define PA_PROP_MEDIA_COPYRIGHT                "media.copyright"
 
-/** For streams: localized media generator software string if applicable, formatted as UTF-8. e.g. "Foocrop AudioFrobnicator" */
+/** For streams: localized media generator software string if applicable, formatted as UTF-8. E.g. "Foocrop AudioFrobnicator" */
 #define PA_PROP_MEDIA_SOFTWARE                 "media.software"
 
-/** For streams: media language if applicable, in standard POSIX format. e.g. "de_DE" */
+/** For streams: media language if applicable, in standard POSIX format. E.g. "de_DE" */
 #define PA_PROP_MEDIA_LANGUAGE                 "media.language"
 
-/** For streams: source filename if applicable, in URI format or local path. e.g. "/home/lennart/music/foobar.ogg" */
+/** For streams: source filename if applicable, in URI format or local path. E.g. "/home/lennart/music/foobar.ogg" */
 #define PA_PROP_MEDIA_FILENAME                 "media.filename"
 
 /** \cond fulldocs */
@@ -59,46 +59,46 @@ PA_C_DECL_BEGIN
 #define PA_PROP_MEDIA_ICON                     "media.icon"
 /** \endcond */
 
-/** For streams: an XDG icon name for the media. e.g. "audio-x-mp3" */
+/** For streams: an XDG icon name for the media. E.g. "audio-x-mp3" */
 #define PA_PROP_MEDIA_ICON_NAME                "media.icon_name"
 
 /** For streams: logic role of this media. One of the strings "video", "music", "game", "event", "phone", "animation", "production", "a11y", "test" */
 #define PA_PROP_MEDIA_ROLE                     "media.role"
 
-/** For streams: the name of a filter that is desired, e.g. "echo-cancel" or "equalizer-sink". PulseAudio may choose to not apply the filter if it does not make sense (for example, applying echo-cancellation on a Bluetooth headset probably does not make sense. \since 1.0 */
+/** For streams: the name of a filter that is desired, e.g.\ "echo-cancel" or "equalizer-sink". PulseAudio may choose to not apply the filter if it does not make sense (for example, applying echo-cancellation on a Bluetooth headset probably does not make sense. \since 1.0 */
 #define PA_PROP_FILTER_WANT                    "filter.want"
 
-/** For streams: the name of a filter that is desired, e.g. "echo-cancel" or "equalizer-sink". Differs from PA_PROP_FILTER_WANT in that it forces PulseAudio to apply the filter, regardless of whether PulseAudio thinks it makes sense to do so or not. If this is set, PA_PROP_FILTER_WANT is ignored. In other words, you almost certainly do not want to use this. \since 1.0 */
+/** For streams: the name of a filter that is desired, e.g.\ "echo-cancel" or "equalizer-sink". Differs from PA_PROP_FILTER_WANT in that it forces PulseAudio to apply the filter, regardless of whether PulseAudio thinks it makes sense to do so or not. If this is set, PA_PROP_FILTER_WANT is ignored. In other words, you almost certainly do not want to use this. \since 1.0 */
 #define PA_PROP_FILTER_APPLY                   "filter.apply"
 
-/** For streams: the name of a filter that should specifically suppressed (i.e. overrides PA_PROP_FILTER_WANT). Useful for the times that PA_PROP_FILTER_WANT is automatically added (e.g. echo-cancellation for phone streams when $VOIP_APP does it's own, internal AEC) \since 1.0 */
+/** For streams: the name of a filter that should specifically suppressed (i.e.\ overrides PA_PROP_FILTER_WANT). Useful for the times that PA_PROP_FILTER_WANT is automatically added (e.g. echo-cancellation for phone streams when $VOIP_APP does it's own, internal AEC) \since 1.0 */
 #define PA_PROP_FILTER_SUPPRESS                "filter.suppress"
 
-/** For event sound streams: XDG event sound name. e.g. "message-new-email" (Event sound streams are those with media.role set to "event") */
+/** For event sound streams: XDG event sound name. e.g.\ "message-new-email" (Event sound streams are those with media.role set to "event") */
 #define PA_PROP_EVENT_ID                       "event.id"
 
-/** For event sound streams: localized human readable one-line description of the event, formatted as UTF-8. e.g. "Email from lennart@example.com received." */
+/** For event sound streams: localized human readable one-line description of the event, formatted as UTF-8. E.g. "Email from lennart@example.com received." */
 #define PA_PROP_EVENT_DESCRIPTION              "event.description"
 
-/** For event sound streams: absolute horizontal mouse position on the screen if the event sound was triggered by a mouse click, integer formatted as text string. e.g. "865" */
+/** For event sound streams: absolute horizontal mouse position on the screen if the event sound was triggered by a mouse click, integer formatted as text string. E.g. "865" */
 #define PA_PROP_EVENT_MOUSE_X                  "event.mouse.x"
 
-/** For event sound streams: absolute vertical mouse position on the screen if the event sound was triggered by a mouse click, integer formatted as text string. e.g. "432" */
+/** For event sound streams: absolute vertical mouse position on the screen if the event sound was triggered by a mouse click, integer formatted as text string. E.g. "432" */
 #define PA_PROP_EVENT_MOUSE_Y                  "event.mouse.y"
 
-/** For event sound streams: relative horizontal mouse position on the screen if the event sound was triggered by a mouse click, float formatted as text string, ranging from 0.0 (left side of the screen) to 1.0 (right side of the screen). e.g. "0.65" */
+/** For event sound streams: relative horizontal mouse position on the screen if the event sound was triggered by a mouse click, float formatted as text string, ranging from 0.0 (left side of the screen) to 1.0 (right side of the screen). E.g. "0.65" */
 #define PA_PROP_EVENT_MOUSE_HPOS               "event.mouse.hpos"
 
-/** For event sound streams: relative vertical mouse position on the screen if the event sound was triggered by a mouse click, float formatted as text string, ranging from 0.0 (top of the screen) to 1.0 (bottom of the screen). e.g. "0.43" */
+/** For event sound streams: relative vertical mouse position on the screen if the event sound was triggered by a mouse click, float formatted as text string, ranging from 0.0 (top of the screen) to 1.0 (bottom of the screen). E.g. "0.43" */
 #define PA_PROP_EVENT_MOUSE_VPOS               "event.mouse.vpos"
 
-/** For event sound streams: mouse button that triggered the event if applicable, integer formatted as string with 0=left, 1=middle, 2=right. e.g. "0" */
+/** For event sound streams: mouse button that triggered the event if applicable, integer formatted as string with 0=left, 1=middle, 2=right. E.g. "0" */
 #define PA_PROP_EVENT_MOUSE_BUTTON             "event.mouse.button"
 
-/** For streams that belong to a window on the screen: localized window title. e.g. "Totem Music Player" */
+/** For streams that belong to a window on the screen: localized window title. E.g. "Totem Music Player" */
 #define PA_PROP_WINDOW_NAME                    "window.name"
 
-/** For streams that belong to a window on the screen: a textual id for identifying a window logically. e.g. "org.gnome.Totem.MainWindow" */
+/** For streams that belong to a window on the screen: a textual id for identifying a window logically. E.g. "org.gnome.Totem.MainWindow" */
 #define PA_PROP_WINDOW_ID                      "window.id"
 
 /** \cond fulldocs */
@@ -106,49 +106,49 @@ PA_C_DECL_BEGIN
 #define PA_PROP_WINDOW_ICON                    "window.icon"
 /** \endcond */
 
-/** For streams that belong to a window on the screen: an XDG icon name for the window. e.g. "totem" */
+/** For streams that belong to a window on the screen: an XDG icon name for the window. E.g. "totem" */
 #define PA_PROP_WINDOW_ICON_NAME               "window.icon_name"
 
-/** For streams that belong to a window on the screen: absolute horizontal window position on the screen, integer formatted as text string. e.g. "865". \since 0.9.17 */
+/** For streams that belong to a window on the screen: absolute horizontal window position on the screen, integer formatted as text string. E.g. "865". \since 0.9.17 */
 #define PA_PROP_WINDOW_X                       "window.x"
 
-/** For streams that belong to a window on the screen: absolute vertical window position on the screen, integer formatted as text string. e.g. "343". \since 0.9.17 */
+/** For streams that belong to a window on the screen: absolute vertical window position on the screen, integer formatted as text string. E.g. "343". \since 0.9.17 */
 #define PA_PROP_WINDOW_Y                       "window.y"
 
 /** For streams that belong to a window on the screen: window width on the screen, integer formatted as text string. e.g. "365". \since 0.9.17 */
 #define PA_PROP_WINDOW_WIDTH                   "window.width"
 
-/** For streams that belong to a window on the screen: window height on the screen, integer formatted as text string. e.g. "643". \since 0.9.17 */
+/** For streams that belong to a window on the screen: window height on the screen, integer formatted as text string. E.g. "643". \since 0.9.17 */
 #define PA_PROP_WINDOW_HEIGHT                  "window.height"
 
-/** For streams that belong to a window on the screen: relative position of the window center on the screen, float formatted as text string, ranging from 0.0 (left side of the screen) to 1.0 (right side of the screen). e.g. "0.65". \since 0.9.17 */
+/** For streams that belong to a window on the screen: relative position of the window center on the screen, float formatted as text string, ranging from 0.0 (left side of the screen) to 1.0 (right side of the screen). E.g. "0.65". \since 0.9.17 */
 #define PA_PROP_WINDOW_HPOS                    "window.hpos"
 
-/** For streams that belong to a window on the screen: relative position of the window center on the screen, float formatted as text string, ranging from 0.0 (top of the screen) to 1.0 (bottom of the screen). e.g. "0.43". \since 0.9.17 */
+/** For streams that belong to a window on the screen: relative position of the window center on the screen, float formatted as text string, ranging from 0.0 (top of the screen) to 1.0 (bottom of the screen). E.g. "0.43". \since 0.9.17 */
 #define PA_PROP_WINDOW_VPOS                    "window.vpos"
 
-/** For streams that belong to a window on the screen: if the windowing system supports multiple desktops, a comma separated list of indexes of the desktops this window is visible on. If this property is an empty string, it is visible on all desktops (i.e. 'sticky'). The first desktop is 0. e.g. "0,2,3" \since 0.9.18 */
+/** For streams that belong to a window on the screen: if the windowing system supports multiple desktops, a comma separated list of indexes of the desktops this window is visible on. If this property is an empty string, it is visible on all desktops (i.e. 'sticky'). The first desktop is 0. E.g. "0,2,3" \since 0.9.18 */
 #define PA_PROP_WINDOW_DESKTOP                 "window.desktop"
 
-/** For streams that belong to an X11 window on the screen: the X11 display string. e.g. ":0.0" */
+/** For streams that belong to an X11 window on the screen: the X11 display string. E.g. ":0.0" */
 #define PA_PROP_WINDOW_X11_DISPLAY             "window.x11.display"
 
-/** For streams that belong to an X11 window on the screen: the X11 screen the window is on, an integer formatted as string. e.g. "0" */
+/** For streams that belong to an X11 window on the screen: the X11 screen the window is on, an integer formatted as string. E.g. "0" */
 #define PA_PROP_WINDOW_X11_SCREEN              "window.x11.screen"
 
-/** For streams that belong to an X11 window on the screen: the X11 monitor the window is on, an integer formatted as string. e.g. "0" */
+/** For streams that belong to an X11 window on the screen: the X11 monitor the window is on, an integer formatted as string. E.g. "0" */
 #define PA_PROP_WINDOW_X11_MONITOR             "window.x11.monitor"
 
-/** For streams that belong to an X11 window on the screen: the window XID, an integer formatted as string. e.g. "25632" */
+/** For streams that belong to an X11 window on the screen: the window XID, an integer formatted as string. E.g. "25632" */
 #define PA_PROP_WINDOW_X11_XID                 "window.x11.xid"
 
-/** For clients/streams: localized human readable application name. e.g. "Totem Music Player" */
+/** For clients/streams: localized human readable application name. E.g. "Totem Music Player" */
 #define PA_PROP_APPLICATION_NAME               "application.name"
 
-/** For clients/streams: a textual id for identifying an application logically. e.g. "org.gnome.Totem" */
+/** For clients/streams: a textual id for identifying an application logically. E.g. "org.gnome.Totem" */
 #define PA_PROP_APPLICATION_ID                 "application.id"
 
-/** For clients/streams: a version string e.g. "0.6.88" */
+/** For clients/streams: a version string, e.g.\ "0.6.88" */
 #define PA_PROP_APPLICATION_VERSION            "application.version"
 
 /** \cond fulldocs */
@@ -156,55 +156,55 @@ PA_C_DECL_BEGIN
 #define PA_PROP_APPLICATION_ICON               "application.icon"
 /** \endcond */
 
-/** For clients/streams: an XDG icon name for the application. e.g. "totem" */
+/** For clients/streams: an XDG icon name for the application. E.g. "totem" */
 #define PA_PROP_APPLICATION_ICON_NAME          "application.icon_name"
 
-/** For clients/streams: application language if applicable, in standard POSIX format. e.g. "de_DE" */
+/** For clients/streams: application language if applicable, in standard POSIX format. E.g. "de_DE" */
 #define PA_PROP_APPLICATION_LANGUAGE           "application.language"
 
-/** For clients/streams on UNIX: application process PID, an integer formatted as string. e.g. "4711" */
+/** For clients/streams on UNIX: application process PID, an integer formatted as string. E.g. "4711" */
 #define PA_PROP_APPLICATION_PROCESS_ID         "application.process.id"
 
-/** For clients/streams: application process name. e.g. "totem" */
+/** For clients/streams: application process name. E.g. "totem" */
 #define PA_PROP_APPLICATION_PROCESS_BINARY     "application.process.binary"
 
-/** For clients/streams: application user name. e.g. "lennart" */
+/** For clients/streams: application user name. E.g. "lennart" */
 #define PA_PROP_APPLICATION_PROCESS_USER       "application.process.user"
 
-/** For clients/streams: host name the application runs on. e.g. "omega" */
+/** For clients/streams: host name the application runs on. E.g. "omega" */
 #define PA_PROP_APPLICATION_PROCESS_HOST       "application.process.host"
 
-/** For clients/streams: the D-Bus host id the application runs on. e.g. "543679e7b01393ed3e3e650047d78f6e" */
+/** For clients/streams: the D-Bus host id the application runs on. E.g. "543679e7b01393ed3e3e650047d78f6e" */
 #define PA_PROP_APPLICATION_PROCESS_MACHINE_ID "application.process.machine_id"
 
-/** For clients/streams: an id for the login session the application runs in. On Unix the value of $XDG_SESSION_ID. e.g. "5" */
+/** For clients/streams: an id for the login session the application runs in. On Unix the value of $XDG_SESSION_ID. E.g. "5" */
 #define PA_PROP_APPLICATION_PROCESS_SESSION_ID "application.process.session_id"
 
-/** For devices: device string in the underlying audio layer's format. e.g. "surround51:0" */
+/** For devices: device string in the underlying audio layer's format. E.g. "surround51:0" */
 #define PA_PROP_DEVICE_STRING                  "device.string"
 
-/** For devices: API this device is access with. e.g. "alsa" */
+/** For devices: API this device is access with. E.g. "alsa" */
 #define PA_PROP_DEVICE_API                     "device.api"
 
-/** For devices: localized human readable device one-line description, e.g. "Foobar Industries USB Headset 2000+ Ultra" */
+/** For devices: localized human readable device one-line description. E.g. "Foobar Industries USB Headset 2000+ Ultra" */
 #define PA_PROP_DEVICE_DESCRIPTION             "device.description"
 
-/** For devices: bus path to the device in the OS' format. e.g. "/sys/bus/pci/devices/0000:00:1f.2" */
+/** For devices: bus path to the device in the OS' format. E.g. "/sys/bus/pci/devices/0000:00:1f.2" */
 #define PA_PROP_DEVICE_BUS_PATH                "device.bus_path"
 
-/** For devices: serial number if applicable. e.g. "4711-0815-1234" */
+/** For devices: serial number if applicable. E.g. "4711-0815-1234" */
 #define PA_PROP_DEVICE_SERIAL                  "device.serial"
 
-/** For devices: vendor ID if applicable. e.g. 1274 */
+/** For devices: vendor ID if applicable. E.g. 1274 */
 #define PA_PROP_DEVICE_VENDOR_ID               "device.vendor.id"
 
-/** For devices: vendor name if applicable. e.g. "Foocorp Heavy Industries" */
+/** For devices: vendor name if applicable. E.g. "Foocorp Heavy Industries" */
 #define PA_PROP_DEVICE_VENDOR_NAME             "device.vendor.name"
 
-/** For devices: product ID if applicable. e.g. 4565 */
+/** For devices: product ID if applicable. E.g. 4565 */
 #define PA_PROP_DEVICE_PRODUCT_ID              "device.product.id"
 
-/** For devices: product name if applicable. e.g. "SuperSpeakers 2000 Pro" */
+/** For devices: product name if applicable. E.g. "SuperSpeakers 2000 Pro" */
 #define PA_PROP_DEVICE_PRODUCT_NAME            "device.product.name"
 
 /** For devices: device class. One of "sound", "modem", "monitor", "filter" */
@@ -221,7 +221,7 @@ PA_C_DECL_BEGIN
 #define PA_PROP_DEVICE_ICON                    "device.icon"
 /** \endcond */
 
-/** For devices: an XDG icon name for the device. e.g. "sound-card-speakers-usb" */
+/** For devices: an XDG icon name for the device. E.g. "sound-card-speakers-usb" */
 #define PA_PROP_DEVICE_ICON_NAME               "device.icon_name"
 
 /** For devices: access mode of the device if applicable. One of "mmap", "mmap_rewrite", "serial" */
@@ -236,25 +236,25 @@ PA_C_DECL_BEGIN
 /** For devices: fragment size in bytes, integer formatted as string. */
 #define PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE "device.buffering.fragment_size"
 
-/** For devices: profile identifier for the profile this devices is in. e.g. "analog-stereo", "analog-surround-40", "iec958-stereo", ...*/
+/** For devices: profile identifier for the profile this devices is in. E.g. "analog-stereo", "analog-surround-40", "iec958-stereo", ...*/
 #define PA_PROP_DEVICE_PROFILE_NAME            "device.profile.name"
 
 /** For devices: intended use. A space separated list of roles (see PA_PROP_MEDIA_ROLE) this device is particularly well suited for, due to latency, quality or form factor. \since 0.9.16 */
 #define PA_PROP_DEVICE_INTENDED_ROLES          "device.intended_roles"
 
-/** For devices: human readable one-line description of the profile this device is in. e.g. "Analog Stereo", ... */
+/** For devices: human readable one-line description of the profile this device is in. E.g. "Analog Stereo", ... */
 #define PA_PROP_DEVICE_PROFILE_DESCRIPTION     "device.profile.description"
 
-/** For modules: the author's name, formatted as UTF-8 string. e.g. "Lennart Poettering" */
+/** For modules: the author's name, formatted as UTF-8 string. E.g. "Lennart Poettering" */
 #define PA_PROP_MODULE_AUTHOR                  "module.author"
 
-/** For modules: a human readable one-line description of the module's purpose formatted as UTF-8. e.g. "Frobnicate sounds with a flux compensator" */
+/** For modules: a human readable one-line description of the module's purpose formatted as UTF-8. E.g. "Frobnicate sounds with a flux compensator" */
 #define PA_PROP_MODULE_DESCRIPTION             "module.description"
 
 /** For modules: a human readable usage description of the module's arguments formatted as UTF-8. */
 #define PA_PROP_MODULE_USAGE                   "module.usage"
 
-/** For modules: a version string for the module. e.g. "0.9.15" */
+/** For modules: a version string for the module. E.g. "0.9.15" */
 #define PA_PROP_MODULE_VERSION                 "module.version"
 
 /** For PCM formats: the sample format used as returned by pa_sample_format_to_string() \since 1.0 */

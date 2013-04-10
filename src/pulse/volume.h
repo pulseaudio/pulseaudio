@@ -318,14 +318,14 @@ float pa_cvolume_get_balance(const pa_cvolume *v, const pa_channel_map *map) PA_
  * pa_channel_map_can_balance(). \since 0.9.15 */
 pa_cvolume* pa_cvolume_set_balance(pa_cvolume *v, const pa_channel_map *map, float new_balance);
 
-/** Calculate a 'fade' value (i.e. 'balance' between front and rear)
+/** Calculate a 'fade' value (i.e.\ 'balance' between front and rear)
  * for the specified volume with the specified channel map. The return
  * value will range from -1.0f (rear) to +1.0f (left). If no fade
  * value is applicable to this channel map the return value will
  * always be 0.0f. See pa_channel_map_can_fade(). \since 0.9.15 */
 float pa_cvolume_get_fade(const pa_cvolume *v, const pa_channel_map *map) PA_GCC_PURE;
 
-/** Adjust the 'fade' value (i.e. 'balance' between front and rear)
+/** Adjust the 'fade' value (i.e.\ 'balance' between front and rear)
  * for the specified volume with the specified channel map. v will be
  * modified in place and returned. The balance is a value between
  * -1.0f and +1.0f. This operation might not be reversible! Also,

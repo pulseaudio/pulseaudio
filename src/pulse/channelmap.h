@@ -331,23 +331,23 @@ int pa_channel_map_compatible(const pa_channel_map *map, const pa_sample_spec *s
 int pa_channel_map_superset(const pa_channel_map *a, const pa_channel_map *b) PA_GCC_PURE;
 
 /** Returns non-zero if it makes sense to apply a volume 'balance'
- * with this mapping, i.e. if there are left/right channels
+ * with this mapping, i.e.\ if there are left/right channels
  * available. \since 0.9.15 */
 int pa_channel_map_can_balance(const pa_channel_map *map) PA_GCC_PURE;
 
 /** Returns non-zero if it makes sense to apply a volume 'fade'
- * (i.e. 'balance' between front and rear) with this mapping, i.e. if
+ * (i.e.\ 'balance' between front and rear) with this mapping, i.e.\ if
  * there are front/rear channels available. \since 0.9.15 */
 int pa_channel_map_can_fade(const pa_channel_map *map) PA_GCC_PURE;
 
 /** Tries to find a well-known channel mapping name for this channel
- * mapping. I.e. "stereo", "surround-71" and so on. If the channel
+ * mapping, i.e.\ "stereo", "surround-71" and so on. If the channel
  * mapping is unknown NULL will be returned. This name can be parsed
  * with pa_channel_map_parse() \since 0.9.15 */
 const char* pa_channel_map_to_name(const pa_channel_map *map) PA_GCC_PURE;
 
 /** Tries to find a human readable text label for this channel
-mapping. I.e. "Stereo", "Surround 7.1" and so on. If the channel
+mapping, i.e.\ "Stereo", "Surround 7.1" and so on. If the channel
 mapping is unknown NULL will be returned. \since 0.9.15 */
 const char* pa_channel_map_to_pretty_name(const pa_channel_map *map) PA_GCC_PURE;
 
