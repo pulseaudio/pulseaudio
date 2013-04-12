@@ -446,7 +446,13 @@ USA.
     <p>The PulseAudio client libraries check for the existence of the
     following environment variables and change their local configuration accordingly:</p>
 
-    <p><arg>$PULSE_SERVER</arg>: the server string specifying the server to connect to when a client asks for a sound server connection and doesn't explicitly ask for a specific server.</p>
+    <p><arg>$PULSE_SERVER</arg>: the server string specifying the server
+    to connect to when a client asks for a sound server connection and doesn't
+    explicitly ask for a specific server. The server string is a list of
+    server addresses separated by whitespace which are tried in turn. A server
+    address consists of an optional address type specifier (unix:, tcp:, tcp4:,
+    tcp6:), followed by a path or host address. A host address may include an
+    optional port number.</p>
 
     <p><arg>$PULSE_SINK</arg>: the symbolic name of the sink to connect to when a client creates a playback stream and doesn't explicitly ask for a specific sink.</p>
 
