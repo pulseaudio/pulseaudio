@@ -64,6 +64,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     m->argument = pa_xstrdup(argument);
     m->load_once = FALSE;
     m->proplist = pa_proplist_new();
+    m->index = PA_IDXSET_INVALID;
 
     if (!(m->dl = lt_dlopenext(name))) {
         /* We used to print the error that is returned by lt_dlerror(), but
