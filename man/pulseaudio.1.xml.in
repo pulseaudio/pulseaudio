@@ -456,6 +456,9 @@ USA.
 
     <p><arg>$PULSE_CLIENTCONFIG</arg>: path of file that shall be read instead of <file>client.conf</file> (see above) for client configuration.</p>
 
+    <p><arg>$PULSE_COOKIE</arg>: path of file that contains the PulseAudio
+    authentication cookie. Defaults to <file>~/.config/pulse/cookie</file>.</p>
+
     <p>These environment settings take precedence -- if set -- over the configuration settings from <file>client.conf</file> (see above).</p>
 
   </section>
