@@ -83,7 +83,7 @@ static void help(const char *argv0) {
     printf(_("\n"
          "  -h, --help                            Show this help\n"
          "      --version                         Show version\n"
-         "When no command is given pacdm starts in the interactive mode\n" ));
+         "When no command is given pacmd starts in the interactive mode\n" ));
 }
 
 enum {

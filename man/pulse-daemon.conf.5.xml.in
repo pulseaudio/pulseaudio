@@ -67,7 +67,7 @@ USA.
     <option>
       <p><opt>allow-module-loading=</opt> Allow/disallow module
       loading after startup. This is a security feature that if
-      dsabled makes sure that no further modules may be loaded into
+      disabled makes sure that no further modules may be loaded into
       the PulseAudio server after startup completed. It is recommended
       to disable this when <opt>system-instance</opt> is
       enabled. Please note that certain features like automatic
@@ -144,7 +144,7 @@ USA.
 
     <option>
       <p><opt>system-instance=</opt> Run the daemon as system-wide
-      instance, requires root priviliges. Takes a boolean argument,
+      instance, requires root privileges. Takes a boolean argument,
       defaults to <opt>no</opt>. The <opt>--system</opt> command line
       argument takes precedence.</p>
     </option>
@@ -473,8 +473,8 @@ USA.
     <p>With the flat volume feature enabled, the sink HW volume is set
     to the same level as the highest volume input stream. Any other streams
     (with lower volumes) have the appropriate adjustment applied in SW to
-    bring them to the correct overall level. Sadly hadware mixer changes
-    cannot be timed accurately and thus this change of volumes can somtimes
+    bring them to the correct overall level. Sadly hardware mixer changes
+    cannot be timed accurately and thus this change of volumes can sometimes
     cause the resulting output sound to be momentarily too loud or too soft.
     So to ensure SW and HW volumes are applied concurrently without any
     glitches, their application needs to be synchronized. The sink

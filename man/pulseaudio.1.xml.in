@@ -276,7 +276,7 @@ USA.
       support it. By default, PulseAudio will terminate itself when it
       notices that it takes up too much CPU time. This is useful as a
       protection against system lockups when real-time scheduling is
-      used (see below). Disabling this meachnism is useful when
+      used (see below). Disabling this mechanism is useful when
       debugging PulseAudio with tools like <manref name="valgrind"
       section="1"/> which slow down execution.</p></optdesc>
     </option>
@@ -385,7 +385,7 @@ USA.
 
     <p>User <arg>pulse</arg>, group <arg>pulse</arg>: if PulseAudio is running as a system
     daemon (see <opt>--system</opt> above) and is started as root the
-    daemon will drop priviliges and become a normal user process using
+    daemon will drop privileges and become a normal user process using
     this user and group. If PulseAudio is running as a user daemon
     this user and group has no meaning.</p>
   </section>
@@ -399,7 +399,7 @@ USA.
     when it needs it to refill the hardware playback
     buffers. Unfortunately this is a security risk on most systems,
     since PulseAudio runs as user process, and giving realtime
-    scheduling priviliges to a user process always comes with the risk
+    scheduling privileges to a user process always comes with the risk
     that the user misuses it to lock up the system -- which is
     possible since making a process real-time effectively disables
     preemption.</p>
@@ -409,7 +409,7 @@ USA.
     on trusted systems. To do that start PulseAudio with
     <opt>--realtime</opt> (see above) or enabled the appropriate option in
     <file>daemon.conf</file>. Since acquiring realtime scheduling is a
-    priviliged operation on most systems, some special changes to the
+    privileged operation on most systems, some special changes to the
     system configuration need to be made to allow them to the calling
     user. Two options are available:</p>
 
@@ -420,12 +420,12 @@ USA.
     <file>/etc/security/limits.conf</file>, a resource limit of 9 is recommended.</p>
 
     <p>Alternatively, the SUID root bit can be set for the PulseAudio
-    binary. Then, the daemon will drop root priviliges immediately on
+    binary. Then, the daemon will drop root privileges immediately on
     startup, however retain the CAP_NICE capability (on systems that
     support it), but only if the calling user is a member of the
     <arg>pulse-rt</arg> group (see above). For all other users all
-    capababilities are dropped immediately. The advantage of this
-    solution is that the real-time priviliges are only granted to the
+    capabilities are dropped immediately. The advantage of this
+    solution is that the real-time privileges are only granted to the
     PulseAudio daemon -- not to all the user's processes.</p>
 
     <p>Alternatively, if the risk of locking up the machine is
@@ -433,7 +433,7 @@ USA.
     scheduling can be enabled instead (i.e. negative nice level). This
     can be enabled by passing <opt>--high-priority</opt> (see above)
     when starting PulseAudio and may also be enabled with the
-    approriate option in <file>daemon.conf</file>. Negative nice
+    appropriate option in <file>daemon.conf</file>. Negative nice
     levels can only be enabled when the appropriate resource limit
     RLIMIT_NICE is set (see <manref name="setrlimit" section="2"/> for
     more information), possibly configured in
@@ -443,7 +443,7 @@ USA.
 
   <section name="Environment variables">
 
-    <p>The PulseAudio client libraries check for the existance of the
+    <p>The PulseAudio client libraries check for the existence of the
     following environment variables and change their local configuration accordingly:</p>
 
     <p><arg>$PULSE_SERVER</arg>: the server string specifying the server to connect to when a client asks for a sound server connection and doesn't explicitly ask for a specific server.</p>

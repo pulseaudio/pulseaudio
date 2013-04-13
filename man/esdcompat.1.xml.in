@@ -30,7 +30,7 @@ USA.
   </synopsis>
 
   <description>
-    <p><file>esdcompat</file> is a compatiblity script that takes the
+    <p><file>esdcompat</file> is a compatibility script that takes the
     same arguments as the ESD sound daemon <manref name="esd"
     section="1"/>, but uses them to start a the PulseAudio sound server with the appropriate parameters. It is
     required to make PulseAudio a drop-in replacement for esd, i.e. it

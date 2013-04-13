@@ -189,7 +189,7 @@ USA.
     <option>
       <p><opt>--latency-msec</opt><arg>=MSEC</arg></p>
       <optdesc><p>Explicitly configure the latency, with a time
-      specified in miliseconds. If left out the server will pick the
+      specified in milliseconds. If left out the server will pick the
       latency, usually relatively high for power saving reasons. Use
       either this option or <opt>--latency</opt>, but not
       both.</p></optdesc>
