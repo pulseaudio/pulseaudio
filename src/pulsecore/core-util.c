@@ -3207,8 +3207,6 @@ void pa_reset_personality(void) {
 
 }
 
-#if defined(__linux__) && !defined(__OPTIMIZE__)
-
 pa_bool_t pa_run_from_build_tree(void) {
     char *rp;
     pa_bool_t b = FALSE;
@@ -3220,8 +3218,6 @@ pa_bool_t pa_run_from_build_tree(void) {
 
     return b;
 }
-
-#endif
 
 const char *pa_get_temp_dir(void) {
     const char *t;
