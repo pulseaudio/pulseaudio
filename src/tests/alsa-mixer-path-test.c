@@ -16,7 +16,7 @@
 /* This function was copied from alsa-mixer.c */
 static const char *get_default_paths_dir(void) {
     if (pa_run_from_build_tree())
-        return PA_BUILDDIR "/modules/alsa/mixer/paths/";
+        return PA_SRCDIR "/modules/alsa/mixer/paths/";
     else
         return PA_ALSA_PATHS_DIR;
 }

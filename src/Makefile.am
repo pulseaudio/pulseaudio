@@ -48,7 +48,9 @@ AM_CPPFLAGS = \
 	-DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
 	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\"
 AM_CFLAGS = \
-	$(PTHREAD_CFLAGS)
+	$(PTHREAD_CFLAGS) \
+	-DPA_SRCDIR=\"$(abs_srcdir)\" \
+	-DPA_BUILDDIR=\"$(abs_builddir)\"
 AM_CXXFLAGS = $(AM_CFLAGS)
 SERVER_CFLAGS = -D__INCLUDED_FROM_PULSE_AUDIO
 
