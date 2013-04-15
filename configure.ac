@@ -44,15 +44,11 @@ AC_SUBST(PA_PROTOCOL_VERSION, 28)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z
-AC_SUBST(LIBPULSE_VERSION_INFO, [15:3:15])
+AC_SUBST(LIBPULSE_VERSION_INFO, [16:0:16])
 
 # A simplified, synchronous, ABI-stable interface for client
 # applications, for the version info x:y:z always will hold y=z
-AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [0:3:0])
-
-# The ABI-stable network browsing interface for client applications,
-# for the version info x:y:z always will hold y=z
-AC_SUBST(LIBPULSE_BROWSE_VERSION_INFO, [1:1:1])
+AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [0:4:0])
 
 # The ABI-stable GLib adapter for client applications, for the version
 # info x:y:z always will hold y=z
