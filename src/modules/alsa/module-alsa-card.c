@@ -409,6 +409,9 @@ static int hdmi_eld_changed(snd_hctl_elem_t *elem, unsigned int mask) {
     pa_hdmi_eld eld;
     bool changed = false;
 
+    if (mask == SND_CTL_EVENT_MASK_REMOVE)
+        return 0;
+
     p = find_port_with_eld_device(u->card->ports, device);
     if (p == NULL) {
         pa_log_error("Invalid device changed in ALSA: %d", device);
