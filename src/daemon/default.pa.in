@@ -44,6 +44,9 @@ load-module module-card-restore
 ### stored in /usr/share/application
 load-module module-augment-properties
 
+### Should be after module-*-restore but before module-*-detect
+load-module module-switch-on-port-available
+
 ### Load audio drivers statically
 ### (it's probably better to not load these drivers manually, but instead
 ### use module-udev-detect -- see below -- for doing this automatically)
@@ -192,8 +195,6 @@ ifelse(@HAVE_X11@, 1, [dnl
 #.fail
 #.endif
 ])dnl
-
-load-module module-switch-on-port-available
 
 ### Make some devices default
 #set-default-sink output
