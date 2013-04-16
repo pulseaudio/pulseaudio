@@ -1424,7 +1424,7 @@ static pa_bool_t source_update_rate_cb(pa_source *s, uint32_t rate)
     }
 
     if (!supported) {
-        pa_log_info("Sink does not support sample rate of %d Hz", rate);
+        pa_log_info("Source does not support sample rate of %d Hz", rate);
         return FALSE;
     }
 
