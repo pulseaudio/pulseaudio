@@ -748,8 +748,8 @@ int pa__init(pa_module *m) {
     u->card->userdata = u;
     u->card->set_profile = card_set_profile;
 
-    init_profile(u);
     init_jacks(u);
+    init_profile(u);
     init_eld_ctls(u);
 
     if (reserve)
