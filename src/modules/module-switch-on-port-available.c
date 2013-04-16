@@ -31,7 +31,9 @@
 #include "module-switch-on-port-available-symdef.h"
 
 struct userdata {
-     pa_hook_slot *callback_slot;
+     pa_hook_slot *available_slot;
+     pa_hook_slot *sink_new_slot;
+     pa_hook_slot *source_new_slot;
 };
 
 static pa_device_port* find_best_port(pa_hashmap *ports) {
@@ -218,6 +220,52 @@ static void handle_all_unavailable(pa_core *core) {
     }
 }
 
+static pa_device_port *new_sink_source(pa_hashmap *ports, const char *name) {
+
+    void *state;
+    pa_device_port *i, *p = NULL;
+
+    if (!ports)
+        return NULL;
+    if (name)
+        p = pa_hashmap_get(ports, name);
+    if (!p)
+        PA_HASHMAP_FOREACH(i, ports, state)
+            if (!p || i->priority > p->priority)
+                p = i;
+    if (!p)
+        return NULL;
+    if (p->available != PA_AVAILABLE_NO)
+        return NULL;
+
+    pa_assert_se(p = find_best_port(ports));
+    return p;
+}
+
+static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new_data, struct userdata *u) {
+
+    pa_device_port *p = new_sink_source(new_data->ports, new_data->active_port);
+
+    if (p) {
+        pa_log_debug("Switching initial port for sink '%s' to '%s'", new_data->name, p->name);
+        pa_sink_new_data_set_port(new_data, p->name);
+    }
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data *new_data, struct userdata *u) {
+
+    pa_device_port *p = new_sink_source(new_data->ports, new_data->active_port);
+
+    if (p) {
+        pa_log_debug("Switching initial port for source '%s' to '%s'", new_data->name,
+                     new_data->active_port);
+        pa_source_new_data_set_port(new_data, p->name);
+    }
+    return PA_HOOK_OK;
+}
+
+
 int pa__init(pa_module*m) {
     struct userdata *u;
 
@@ -225,8 +273,13 @@ int pa__init(pa_module*m) {
 
     m->userdata = u = pa_xnew(struct userdata, 1);
 
-    u->callback_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED],
-                                       PA_HOOK_LATE, (pa_hook_cb_t) port_available_hook_callback, u);
+    /* Make sure we are after module-device-restore, so we can overwrite that suggestion if necessary */
+    u->sink_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_NEW],
+                                       PA_HOOK_NORMAL, (pa_hook_cb_t) sink_new_hook_callback, u);
+    u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_NEW],
+                                         PA_HOOK_NORMAL, (pa_hook_cb_t) source_new_hook_callback, u);
+    u->available_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED],
+                                        PA_HOOK_LATE, (pa_hook_cb_t) port_available_hook_callback, u);
 
     handle_all_unavailable(m->core);
 
@@ -241,8 +294,12 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->callback_slot)
-        pa_hook_slot_free(u->callback_slot);
+    if (u->available_slot)
+        pa_hook_slot_free(u->available_slot);
+    if (u->sink_new_slot)
+        pa_hook_slot_free(u->sink_new_slot);
+    if (u->source_new_slot)
+        pa_hook_slot_free(u->source_new_slot);
 
     pa_xfree(u);
 }
