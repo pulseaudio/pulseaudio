@@ -4147,7 +4147,7 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
         fname = "default.conf";
 
     fn = pa_maybe_prefix_path(fname,
-                              pa_run_from_build_tree() ? PA_BUILDDIR "/modules/alsa/mixer/profile-sets/" :
+                              pa_run_from_build_tree() ? PA_SRCDIR "/modules/alsa/mixer/profile-sets/" :
                               PA_ALSA_PROFILE_SETS_DIR);
 
     r = pa_config_parse(fn, NULL, items, NULL, ps);
