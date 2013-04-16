@@ -167,7 +167,7 @@ static void fix_filter(float *H, size_t fft_size){
         H[i] /= fft_size;
 }
 
-static void interpolate(float *signal, size_t length, uint32_t *xs, float *ys, size_t n_points){
+static void interpolate(float *samples, size_t length, uint32_t *xs, float *ys, size_t n_points){
     /* Note that xs must be monotonically increasing! */
     float x_range_lower, x_range_upper, c0;
 
@@ -189,12 +189,12 @@ static void interpolate(float *signal, size_t length, uint32_t *xs, float *ys, s
         c0 = (x-x_range_lower) / (x_range_upper-x_range_lower);
         pa_assert(c0 >= 0 && c0 <= 1.0);
 
-        signal[x] = ((1.0f - c0) * ys[x_range_lower_i] + c0 * ys[x_range_lower_i + 1]);
+        samples[x] = ((1.0f - c0) * ys[x_range_lower_i] + c0 * ys[x_range_lower_i + 1]);
         while(x >= xs[x_range_lower_i + 1])
             x_range_lower_i++;
     }
 
-    signal[length-1] = ys[n_points-1];
+    samples[length-1] = ys[n_points-1];
 }
 
 static pa_bool_t is_monotonic(const uint32_t *xs, size_t length) {
@@ -1581,7 +1581,7 @@ static pa_dbus_interface_info equalizer_info={
 
 void dbus_init(struct userdata *u){
     uint32_t dummy;
-    DBusMessage *signal = NULL;
+    DBusMessage *message = NULL;
     pa_idxset *sink_list = NULL;
     u->dbus_protocol=pa_dbus_protocol_get(u->sink->core);
     u->dbus_path=pa_sprintf_malloc("/org/pulseaudio/core1/sink%d", u->sink->index);
@@ -1602,21 +1602,21 @@ void dbus_init(struct userdata *u){
     }
     pa_idxset_put(sink_list, u, &dummy);
 
-    pa_assert_se((signal = dbus_message_new_signal(MANAGER_PATH, MANAGER_IFACE, manager_signals[MANAGER_SIGNAL_SINK_ADDED].name)));
-    dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &u->dbus_path, DBUS_TYPE_INVALID);
-    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
-    dbus_message_unref(signal);
+    pa_assert_se((message = dbus_message_new_signal(MANAGER_PATH, MANAGER_IFACE, manager_signals[MANAGER_SIGNAL_SINK_ADDED].name)));
+    dbus_message_append_args(message, DBUS_TYPE_OBJECT_PATH, &u->dbus_path, DBUS_TYPE_INVALID);
+    pa_dbus_protocol_send_signal(u->dbus_protocol, message);
+    dbus_message_unref(message);
 }
 
 void dbus_done(struct userdata *u){
     pa_idxset *sink_list;
     uint32_t dummy;
 
-    DBusMessage *signal = NULL;
-    pa_assert_se((signal = dbus_message_new_signal(MANAGER_PATH, MANAGER_IFACE, manager_signals[MANAGER_SIGNAL_SINK_REMOVED].name)));
-    dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &u->dbus_path, DBUS_TYPE_INVALID);
-    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
-    dbus_message_unref(signal);
+    DBusMessage *message = NULL;
+    pa_assert_se((message = dbus_message_new_signal(MANAGER_PATH, MANAGER_IFACE, manager_signals[MANAGER_SIGNAL_SINK_REMOVED].name)));
+    dbus_message_append_args(message, DBUS_TYPE_OBJECT_PATH, &u->dbus_path, DBUS_TYPE_INVALID);
+    pa_dbus_protocol_send_signal(u->dbus_protocol, message);
+    dbus_message_unref(message);
 
     pa_assert_se(sink_list=pa_shared_get(u->sink->core,SINKLIST));
     pa_idxset_remove_by_data(sink_list,u,&dummy);
@@ -1636,7 +1636,7 @@ void dbus_done(struct userdata *u){
 void manager_handle_remove_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
     DBusError error;
     pa_core *c = (pa_core *)_u;
-    DBusMessage *signal = NULL;
+    DBusMessage *message = NULL;
     pa_dbus_protocol *dbus_protocol;
     char *name;
     pa_assert(conn);
@@ -1653,11 +1653,11 @@ void manager_handle_remove_profile(DBusConnection *conn, DBusMessage *msg, void 
     remove_profile(c,name);
     pa_dbus_send_empty_reply(conn, msg);
 
-    pa_assert_se((signal = dbus_message_new_signal(MANAGER_PATH, MANAGER_IFACE, manager_signals[MANAGER_SIGNAL_PROFILES_CHANGED].name)));
+    pa_assert_se((message = dbus_message_new_signal(MANAGER_PATH, MANAGER_IFACE, manager_signals[MANAGER_SIGNAL_PROFILES_CHANGED].name)));
     dbus_protocol = pa_dbus_protocol_get(c);
-    pa_dbus_protocol_send_signal(dbus_protocol, signal);
+    pa_dbus_protocol_send_signal(dbus_protocol, message);
     pa_dbus_protocol_unref(dbus_protocol);
-    dbus_message_unref(signal);
+    dbus_message_unref(message);
 }
 
 void manager_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u){
@@ -1785,7 +1785,7 @@ void manager_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
 void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *_u) {
     struct userdata *u = _u;
     DBusError error;
-    DBusMessage *signal = NULL;
+    DBusMessage *message = NULL;
     float *ys;
     uint32_t *xs, channel, r_channel;
     double *_ys, preamp;
@@ -1859,9 +1859,9 @@ void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *
 
     pa_dbus_send_empty_reply(conn, msg);
 
-    pa_assert_se((signal = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
-    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
-    dbus_message_unref(signal);
+    pa_assert_se((message = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
+    pa_dbus_protocol_send_signal(u->dbus_protocol, message);
+    dbus_message_unref(message);
 }
 
 void equalizer_handle_get_filter_points(DBusConnection *conn, DBusMessage *msg, void *_u) {
@@ -2012,7 +2012,7 @@ void equalizer_handle_set_filter(DBusConnection *conn, DBusMessage *msg, void *_
     double *H, preamp;
     uint32_t channel;
     unsigned _n_coefs;
-    DBusMessage *signal = NULL;
+    DBusMessage *message = NULL;
     DBusError error;
     pa_assert_se(u = (struct userdata *) _u);
     pa_assert(conn);
@@ -2041,16 +2041,16 @@ void equalizer_handle_set_filter(DBusConnection *conn, DBusMessage *msg, void *_
 
     pa_dbus_send_empty_reply(conn, msg);
 
-    pa_assert_se((signal = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
-    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
-    dbus_message_unref(signal);
+    pa_assert_se((message = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
+    pa_dbus_protocol_send_signal(u->dbus_protocol, message);
+    dbus_message_unref(message);
 }
 
 void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
     struct userdata *u = (struct userdata *) _u;
     char *name;
     uint32_t channel, r_channel;
-    DBusMessage *signal = NULL;
+    DBusMessage *message = NULL;
     DBusError error;
     pa_assert(conn);
     pa_assert(msg);
@@ -2074,9 +2074,9 @@ void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void 
     save_profile(u, r_channel, name);
     pa_dbus_send_empty_reply(conn, msg);
 
-    pa_assert_se((signal = dbus_message_new_signal(MANAGER_PATH, MANAGER_IFACE, manager_signals[MANAGER_SIGNAL_PROFILES_CHANGED].name)));
-    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
-    dbus_message_unref(signal);
+    pa_assert_se((message = dbus_message_new_signal(MANAGER_PATH, MANAGER_IFACE, manager_signals[MANAGER_SIGNAL_PROFILES_CHANGED].name)));
+    pa_dbus_protocol_send_signal(u->dbus_protocol, message);
+    dbus_message_unref(message);
 }
 
 void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
@@ -2085,7 +2085,7 @@ void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void 
     DBusError error;
     uint32_t channel, r_channel;
     const char *err_msg = NULL;
-    DBusMessage *signal = NULL;
+    DBusMessage *message = NULL;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -2120,9 +2120,9 @@ void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void 
     }
     pa_dbus_send_empty_reply(conn, msg);
 
-    pa_assert_se((signal = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
-    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
-    dbus_message_unref(signal);
+    pa_assert_se((message = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
+    pa_dbus_protocol_send_signal(u->dbus_protocol, message);
+    dbus_message_unref(message);
 }
 
 void equalizer_handle_save_state(DBusConnection *conn, DBusMessage *msg, void *_u) {
