@@ -32,16 +32,15 @@ USA.
   <description>
     <p>
       PulseAudio provides a simple command line language used by configuration
-      scripts and the pacmd interactive shell, and the modules module-cli and
+      scripts, the pacmd interactive shell, and the modules module-cli and
       module-cli-protocol-{unix,tcp}. Empty lines and lines beginning with a
       hashmark (#) are silently ignored. Several commands are supported.
     </p>
 
     <p>
-      Note that any boolean arguments can be given positively as '1', 'on' or any
-      word starting with the letters 't' or 'y'. Likewise, negative values can be
-      given as '0', 'off' or any word starting with the letters 'f' or 'n'.
-      Case is ignored.
+      Note that any boolean arguments can be given positively as '1', 't', 'y',
+      'true', 'yes' or 'on'. Likewise, negative values can be given as '0',
+      'f', 'n', 'false', 'no' or 'off'. Case is ignored.
     </p>
   </description>
 
