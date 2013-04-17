@@ -2,6 +2,7 @@ TAGS
 *.lo
 *.o
 *.la
+*.gcno
 .deps
 .libs
 /Makefile
