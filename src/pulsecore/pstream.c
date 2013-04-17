@@ -754,7 +754,7 @@ static int do_read(pa_pstream *p) {
             if ((flags & PA_FLAG_SHMMASK) == PA_FLAG_SHMDATA) {
 
                 if (length != sizeof(p->read.shm_info)) {
-                    pa_log_warn("Received SHM memblock frame with Invalid frame length.");
+                    pa_log_warn("Received SHM memblock frame with invalid frame length.");
                     return -1;
                 }
 
