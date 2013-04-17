@@ -307,7 +307,7 @@ USA.
 
   <section name="Meta Commands">
     <p>
-      In addition the commands described above there a few meta directives
+      In addition to the commands described above there are a few meta directives
       supported by the command line interpreter.
     </p>
     <option>
