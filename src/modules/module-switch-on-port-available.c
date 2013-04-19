@@ -94,7 +94,7 @@ static int try_to_switch_profile(pa_device_port *port) {
     pa_log_debug("Finding best profile");
 
     PA_HASHMAP_FOREACH(profile, port->profiles, state) {
-        bool good;
+        bool good = false;
 
         if (best_profile && best_profile->priority >= profile->priority)
             continue;
