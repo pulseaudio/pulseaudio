@@ -134,6 +134,7 @@ PA_MODULE_USAGE("display_name=<UPnP Media Server name>");
     " <interface name=\"org.gnome.UPnP.MediaItem2\">"                   \
     "  <property name=\"URLs\" type=\"as\" access=\"read\"/>"           \
     "  <property name=\"MIMEType\" type=\"s\" access=\"read\"/>"        \
+    "  <property name=\"DLNAProfile\" type=\"s\" access=\"read\"/>"        \
     " </interface>"                                                     \
     " <interface name=\"org.gnome.UPnP.MediaObject2\">"                 \
     "  <property name=\"Parent\" type=\"s\" access=\"read\"/>"          \
@@ -587,6 +588,7 @@ static void append_sink_or_source_item_properties(
         append_sink_or_source_item_mediaobject2_properties(r, &sub, path, sink, source);
         append_property_dict_entry_urls(r, &sub, user_data, sink, source);
         append_property_dict_entry_mime_type(r, &sub, sink, source);
+        append_property_dict_entry_string(r, &sub, "DLNAProfile", "LPCM");
     }
     else {
         for (int i = 0; i < filter_len; ++i) {
@@ -608,6 +610,9 @@ static void append_sink_or_source_item_properties(
             }
             else if (pa_streq(property_name, "MIMEType")) {
                 append_property_dict_entry_mime_type(r, &sub, sink, source);
+            }
+            else if (pa_streq(property_name, "DLNAProfile")) {
+                append_property_dict_entry_string(r, &sub, "DLNAProfile", "LPCM");
             }
         }
     }
@@ -988,6 +993,10 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_mime_type(r, NULL, sink, source);
 
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaItem2", "DLNAProfile")) {
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            append_variant_string(r, NULL, "LPCM");
+
         } else if (message_is_property_get(m, "org.gnome.UPnP.MediaItem2", "URLs")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_urls(r, NULL, u, sink, source);
@@ -1001,6 +1010,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
 
             append_property_dict_entry_mime_type(r, &sub, sink, source);
+            append_property_dict_entry_string(r, &sub, "DLNAProfile", "LPCM");
             append_property_dict_entry_urls(r, &sub, u, sink, source);
 
             pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
