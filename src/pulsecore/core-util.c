@@ -3209,12 +3209,14 @@ void pa_reset_personality(void) {
 
 pa_bool_t pa_run_from_build_tree(void) {
     char *rp;
-    pa_bool_t b = FALSE;
+    static pa_bool_t b = FALSE;
 
-    if ((rp = pa_readlink("/proc/self/exe"))) {
-        b = pa_startswith(rp, PA_BUILDDIR);
-        pa_xfree(rp);
-    }
+    PA_ONCE_BEGIN {
+        if ((rp = pa_readlink("/proc/self/exe"))) {
+            b = pa_startswith(rp, PA_BUILDDIR);
+            pa_xfree(rp);
+        }
+    } PA_ONCE_END;
 
     return b;
 }
