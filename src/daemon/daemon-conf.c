@@ -156,7 +156,7 @@ pa_daemon_conf *pa_daemon_conf_new(void) {
 #else
     if (pa_run_from_build_tree()) {
         pa_log_notice("Detected that we are run from the build tree, fixing search path.");
-        c->dl_search_path = pa_xstrdup(PA_BUILDDIR "/.libs/");
+        c->dl_search_path = pa_xstrdup(PA_BUILDDIR);
     } else
         c->dl_search_path = pa_xstrdup(PA_DLSEARCHPATH);
 #endif

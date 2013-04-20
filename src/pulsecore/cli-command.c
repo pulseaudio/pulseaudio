@@ -2062,11 +2062,21 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
                             char *pathname;
 
                             pathname = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", p, filename);
-                            pa_xfree(p);
 
                             *ifstate = access(pathname, F_OK) == 0 ? IFSTATE_TRUE : IFSTATE_FALSE;
                             pa_log_debug("Checking for existence of '%s': %s", pathname, *ifstate == IFSTATE_TRUE ? "success" : "failure");
 
+                            if (PA_UNLIKELY(pa_run_from_build_tree())) {
+                                /* If run from the build tree, search in <path>/.libs as well */
+                                char *ltpathname = pa_sprintf_malloc("%s" PA_PATH_SEP ".libs" PA_PATH_SEP "%s", p, filename);
+
+                                *ifstate = access(ltpathname, F_OK) == 0 ? IFSTATE_TRUE : IFSTATE_FALSE;
+                                pa_log_debug("Checking for existence of '%s': %s", ltpathname, *ifstate == IFSTATE_TRUE ? "success" : "failure");
+
+                                pa_xfree(ltpathname);
+                            }
+
+                            pa_xfree(p);
                             pa_xfree(pathname);
 
                             if (*ifstate == IFSTATE_TRUE)
