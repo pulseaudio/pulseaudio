@@ -312,8 +312,8 @@ static int64_t calc_diff(struct userdata *u, struct snapshot *snapshot) {
     buffer_latency += source_delay + sink_delay;
 
     /* add the latency difference due to samples not yet transferred */
-    send_counter = pa_bytes_to_usec(snapshot->send_counter, &u->sink_input->sample_spec);
-    recv_counter = pa_bytes_to_usec(snapshot->recv_counter, &u->source_output->sample_spec);
+    send_counter = pa_bytes_to_usec(snapshot->send_counter, &u->sink->sample_spec);
+    recv_counter = pa_bytes_to_usec(snapshot->recv_counter, &u->sink->sample_spec);
     if (recv_counter <= send_counter)
         buffer_latency += (int64_t) (send_counter - recv_counter);
     else
