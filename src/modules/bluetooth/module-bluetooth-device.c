@@ -2263,6 +2263,7 @@ static int add_card(struct userdata *u) {
     pa_proplist_sets(data.proplist, "bluez.path", device->path);
     pa_proplist_setf(data.proplist, "bluez.class", "0x%06x", (unsigned) device->class);
     pa_proplist_sets(data.proplist, "bluez.name", device->name);
+    pa_proplist_sets(data.proplist, "bluez.alias", device->alias);
     data.name = get_name("card", u->modargs, device->address, &b);
     data.namereg_fail = b;
 
