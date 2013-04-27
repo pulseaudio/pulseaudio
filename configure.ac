@@ -624,7 +624,8 @@ AM_CONDITIONAL([HAVE_TESTS], [test "x$HAVE_LIBCHECK" = x1])
 
 #### json parsing ####
 
-PKG_CHECK_MODULES(LIBJSON, [ json >= 0.9 ])
+PKG_CHECK_MODULES(LIBJSON, [ json-c >= 0.11 ], [],
+		  [PKG_CHECK_MODULES(LIBJSON, [ json >= 0.9 ])])
 AC_SUBST(LIBJSON_CFLAGS)
 AC_SUBST(LIBJSON_LIBS)
 
