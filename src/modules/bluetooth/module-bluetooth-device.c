@@ -2249,7 +2249,7 @@ static int add_card(struct userdata *u) {
     data.driver = __FILE__;
     data.module = u->module;
 
-    n = pa_bluetooth_cleanup_name(device->name);
+    n = pa_bluetooth_cleanup_name(device->alias);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, n);
     pa_xfree(n);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, device->address);
