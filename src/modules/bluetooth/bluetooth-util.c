@@ -834,8 +834,7 @@ static void register_endpoint_reply(DBusPendingCall *pending, void *userdata) {
     }
 
     if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
-        pa_log("org.bluez.Media.RegisterEndpoint() failed: %s: %s", dbus_message_get_error_name(r),
-               pa_dbus_get_error_message(r));
+        pa_log("RegisterEndpoint() failed: %s: %s", dbus_message_get_error_name(r), pa_dbus_get_error_message(r));
         goto finish;
     }
 
@@ -852,10 +851,11 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
     DBusMessage *m;
     DBusMessageIter i, d;
     uint8_t codec = 0;
+    const char *interface = y->version == BLUEZ_VERSION_4 ? "org.bluez.Media" : "org.bluez.Media1";
 
     pa_log_debug("Registering %s on adapter %s.", endpoint, path);
 
-    pa_assert_se(m = dbus_message_new_method_call("org.bluez", path, "org.bluez.Media", "RegisterEndpoint"));
+    pa_assert_se(m = dbus_message_new_method_call("org.bluez", path, interface, "RegisterEndpoint"));
 
     dbus_message_iter_init_append(m, &i);
 
