@@ -113,13 +113,13 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     m->core = c;
     m->unload_requested = FALSE;
 
+    pa_assert_se(pa_idxset_put(c->modules, m, &m->index) >= 0);
+    pa_assert(m->index != PA_IDXSET_INVALID);
+
     if (m->init(m) < 0) {
         pa_log_error("Failed to load module \"%s\" (argument: \"%s\"): initialization failed.", name, argument ? argument : "");
         goto fail;
     }
-
-    pa_assert_se(pa_idxset_put(c->modules, m, &m->index) >= 0);
-    pa_assert(m->index != PA_IDXSET_INVALID);
 
     pa_log_info("Loaded \"%s\" (index: #%u; argument: \"%s\").", m->name, m->index, m->argument ? m->argument : "");
 
@@ -144,6 +144,9 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
 fail:
 
     if (m) {
+        if (m->index != PA_IDXSET_INVALID)
+            pa_idxset_remove_by_index(c->modules, m->index);
+
         if (m->proplist)
             pa_proplist_free(m->proplist);
 
