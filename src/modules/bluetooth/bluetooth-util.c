@@ -61,6 +61,30 @@
     " </interface>"                                                     \
     "</node>"
 
+#define MEDIA_ENDPOINT_1_INTROSPECT_XML                                 \
+    DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE                           \
+    "<node>"                                                            \
+    " <interface name=\"org.bluez.MediaEndpoint1\">"                    \
+    "  <method name=\"SetConfiguration\">"                              \
+    "   <arg name=\"transport\" direction=\"in\" type=\"o\"/>"          \
+    "   <arg name=\"configuration\" direction=\"in\" type=\"ay\"/>"     \
+    "  </method>"                                                       \
+    "  <method name=\"SelectConfiguration\">"                           \
+    "   <arg name=\"capabilities\" direction=\"in\" type=\"ay\"/>"      \
+    "   <arg name=\"configuration\" direction=\"out\" type=\"ay\"/>"    \
+    "  </method>"                                                       \
+    "  <method name=\"ClearConfiguration\">"                            \
+    "  </method>"                                                       \
+    "  <method name=\"Release\">"                                       \
+    "  </method>"                                                       \
+    " </interface>"                                                     \
+    " <interface name=\"org.freedesktop.DBus.Introspectable\">"         \
+    "  <method name=\"Introspect\">"                                    \
+    "   <arg name=\"data\" type=\"s\" direction=\"out\"/>"              \
+    "  </method>"                                                       \
+    " </interface>"                                                     \
+    "</node>"
+
 typedef enum pa_bluez_version {
     BLUEZ_VERSION_UNKNOWN,
     BLUEZ_VERSION_4,
@@ -1453,7 +1477,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     dbus_message_iter_get_basic(&args, &path);
 
     if (pa_hashmap_get(y->transports, path)) {
-        pa_log("org.bluez.MediaEndpoint.SetConfiguration: Transport %s is already configured.", path);
+        pa_log("Endpoint SetConfiguration: Transport %s is already configured.", path);
         goto fail2;
     }
 
@@ -1547,11 +1571,10 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     return NULL;
 
 fail:
-    pa_log("org.bluez.MediaEndpoint.SetConfiguration: invalid arguments");
+    pa_log("Endpoint SetConfiguration: invalid arguments");
 
 fail2:
-    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.MediaEndpoint.Error.InvalidArguments",
-                                            "Unable to set configuration"));
+    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.Error.InvalidArguments", "Unable to set configuration"));
     return r;
 }
 
@@ -1565,7 +1588,7 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *c, DBusMessage 
     dbus_error_init(&e);
 
     if (!dbus_message_get_args(m, &e, DBUS_TYPE_OBJECT_PATH, &path, DBUS_TYPE_INVALID)) {
-        pa_log("org.bluez.MediaEndpoint.ClearConfiguration: %s", e.message);
+        pa_log("Endpoint ClearConfiguration: %s", e.message);
         dbus_error_free(&e);
         goto fail;
     }
@@ -1590,8 +1613,7 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *c, DBusMessage 
     return r;
 
 fail:
-    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.MediaEndpoint.Error.InvalidArguments",
-                                            "Unable to clear configuration"));
+    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.Error.InvalidArguments", "Unable to clear configuration"));
     return r;
 }
 
@@ -1661,7 +1683,7 @@ static DBusMessage *endpoint_select_configuration(DBusConnection *c, DBusMessage
     dbus_error_init(&e);
 
     if (!dbus_message_get_args(m, &e, DBUS_TYPE_ARRAY, DBUS_TYPE_BYTE, &cap, &size, DBUS_TYPE_INVALID)) {
-        pa_log("org.bluez.MediaEndpoint.SelectConfiguration: %s", e.message);
+        pa_log("Endpoint SelectConfiguration: %s", e.message);
         dbus_error_free(&e);
         goto fail;
     }
@@ -1758,8 +1780,7 @@ done:
     return r;
 
 fail:
-    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.MediaEndpoint.Error.InvalidArguments",
-                                            "Unable to select configuration"));
+    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.Error.InvalidArguments", "Unable to select configuration"));
     return r;
 }
 
@@ -1783,17 +1804,19 @@ static DBusHandlerResult endpoint_handler(DBusConnection *c, DBusMessage *m, voi
         !pa_streq(path, HFP_HS_ENDPOINT))
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
+    interface = y->version == BLUEZ_VERSION_4 ? "org.bluez.MediaEndpoint" : "org.bluez.MediaEndpoint1";
+
     if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
-        const char *xml = ENDPOINT_INTROSPECT_XML;
+        const char *xml = y->version == BLUEZ_VERSION_4 ? ENDPOINT_INTROSPECT_XML : MEDIA_ENDPOINT_1_INTROSPECT_XML;
 
         pa_assert_se(r = dbus_message_new_method_return(m));
         pa_assert_se(dbus_message_append_args(r, DBUS_TYPE_STRING, &xml, DBUS_TYPE_INVALID));
 
-    } else if (dbus_message_is_method_call(m, "org.bluez.MediaEndpoint", "SetConfiguration"))
+    } else if (dbus_message_is_method_call(m, interface, "SetConfiguration"))
         r = endpoint_set_configuration(c, m, userdata);
-    else if (dbus_message_is_method_call(m, "org.bluez.MediaEndpoint", "SelectConfiguration"))
+    else if (dbus_message_is_method_call(m, interface, "SelectConfiguration"))
         r = endpoint_select_configuration(c, m, userdata);
-    else if (dbus_message_is_method_call(m, "org.bluez.MediaEndpoint", "ClearConfiguration"))
+    else if (dbus_message_is_method_call(m, interface, "ClearConfiguration"))
         r = endpoint_clear_configuration(c, m, userdata);
     else
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
