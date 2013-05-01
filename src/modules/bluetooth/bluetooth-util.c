@@ -910,7 +910,7 @@ static int parse_device_properties(pa_bluetooth_device *d, DBusMessageIter *i, b
 
         dbus_message_iter_recurse(&element_i, &dict_i);
 
-        if (parse_device_property(d, &dict_i, is_property_change))
+        if (parse_device_property(d, &dict_i, is_property_change) < 0)
             ret = -1;
 
         dbus_message_iter_next(&element_i);
