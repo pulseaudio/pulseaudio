@@ -1169,6 +1169,7 @@ static void context_subscribe_callback(pa_context *c, pa_subscription_event_type
            subscription_event_type_to_string(t),
            subscription_event_facility_to_string(t),
            idx);
+    fflush(stdout);
 }
 
 static void context_state_callback(pa_context *c, void *userdata) {
