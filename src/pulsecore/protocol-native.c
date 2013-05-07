@@ -1555,7 +1555,13 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 
             windex = pa_memblockq_get_write_index(s->memblockq);
 
-            pa_memblockq_prebuf_force(s->memblockq);
+            /* We enable prebuffering so that after CORKED -> RUNNING
+             * transitions we don't have trouble with underruns in case the
+             * buffer has too little data. This must not be done when draining
+             * has been requested, however, otherwise the buffered audio would
+             * never play. */
+            if (!s->drain_request)
+                pa_memblockq_prebuf_force(s->memblockq);
 
             handle_seek(s, windex);
 
