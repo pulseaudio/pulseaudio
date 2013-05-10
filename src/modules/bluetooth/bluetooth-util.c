@@ -1233,6 +1233,62 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             goto fail;
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+    } else if (dbus_message_is_signal(m, "org.freedesktop.DBus.ObjectManager", "InterfacesAdded")) {
+        DBusMessageIter arg_i;
+
+        if (y->version != BLUEZ_VERSION_5)
+            return DBUS_HANDLER_RESULT_NOT_YET_HANDLED; /* No reply received yet from GetManagedObjects */
+
+        if (!dbus_message_iter_init(m, &arg_i) || !pa_streq(dbus_message_get_signature(m), "oa{sa{sv}}")) {
+            pa_log("Invalid signature found in InterfacesAdded");
+            goto fail;
+        }
+
+        if (parse_interfaces_and_properties(y, &arg_i) < 0)
+            goto fail;
+
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+    } else if (dbus_message_is_signal(m, "org.freedesktop.DBus.ObjectManager", "InterfacesRemoved")) {
+        const char *path;
+        DBusMessageIter arg_i;
+        DBusMessageIter element_i;
+
+        if (y->version != BLUEZ_VERSION_5)
+            return DBUS_HANDLER_RESULT_NOT_YET_HANDLED; /* No reply received yet from GetManagedObjects */
+
+        if (!dbus_message_iter_init(m, &arg_i) || !pa_streq(dbus_message_get_signature(m), "oas")) {
+            pa_log("Invalid signature found in InterfacesRemoved");
+            goto fail;
+        }
+
+        dbus_message_iter_get_basic(&arg_i, &path);
+
+        pa_assert_se(dbus_message_iter_next(&arg_i));
+        pa_assert(dbus_message_iter_get_arg_type(&arg_i) == DBUS_TYPE_ARRAY);
+
+        dbus_message_iter_recurse(&arg_i, &element_i);
+
+        while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_STRING) {
+            const char *interface;
+
+            dbus_message_iter_get_basic(&element_i, &interface);
+
+            if (pa_streq(interface, "org.bluez.Device1")) {
+                pa_bluetooth_device *d;
+
+                if (!(d = pa_hashmap_remove(y->devices, path)))
+                    pa_log_warn("Unknown device removed %s", path);
+                else {
+                    pa_log_debug("Device %s removed", path);
+                    run_callback(d, true);
+                    device_free(d);
+                }
+            }
+
+            dbus_message_iter_next(&element_i);
+        }
+
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
     }
 
 fail:
@@ -1890,6 +1946,8 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
                 "type='signal',sender='org.bluez',interface='org.bluez.AudioSource',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.HandsfreeGateway',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.MediaTransport',member='PropertyChanged'",
+                "type='signal',sender='org.bluez',interface='org.freedesktop.DBus.ObjectManager',member='InterfacesAdded'",
+                "type='signal',sender='org.bluez',interface='org.freedesktop.DBus.ObjectManager',member='InterfacesRemoved'",
                 NULL) < 0) {
         pa_log("Failed to add D-Bus matches: %s", err.message);
         goto fail;
@@ -1963,6 +2021,8 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
             "type='signal',sender='org.bluez',interface='org.bluez.AudioSource',member='PropertyChanged'",
             "type='signal',sender='org.bluez',interface='org.bluez.HandsfreeGateway',member='PropertyChanged'",
             "type='signal',sender='org.bluez',interface='org.bluez.MediaTransport',member='PropertyChanged'",
+            "type='signal',sender='org.bluez',interface='org.freedesktop.DBus.ObjectManager',member='InterfacesAdded'",
+            "type='signal',sender='org.bluez',interface='org.freedesktop.DBus.ObjectManager',member='InterfacesRemoved'",
             NULL);
 
         if (y->filter_added)
