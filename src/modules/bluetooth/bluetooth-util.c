@@ -1094,6 +1094,24 @@ static int transport_parse_property(pa_bluetooth_transport *t, DBusMessageIter *
     return 0;
 }
 
+static int parse_transport_properties(pa_bluetooth_transport *t, DBusMessageIter *i) {
+    DBusMessageIter element_i;
+
+    dbus_message_iter_recurse(i, &element_i);
+
+    while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
+        DBusMessageIter dict_i;
+
+        dbus_message_iter_recurse(&element_i, &dict_i);
+
+        transport_parse_property(t, &dict_i);
+
+        dbus_message_iter_next(&element_i);
+    }
+
+    return 0;
+}
+
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *userdata) {
     DBusError err;
     pa_bluetooth_discovery *y;
@@ -1315,6 +1333,13 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             }
 
             parse_device_properties(d, &arg_i, true);
+        } else if (pa_streq(interface, "org.bluez.MediaTransport1")) {
+            pa_bluetooth_transport *t;
+
+            if (!(t = pa_hashmap_get(y->transports, dbus_message_get_path(m))))
+                return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+
+            parse_transport_properties(t, &arg_i);
         }
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
@@ -1979,6 +2004,8 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
                 "type='signal',sender='org.bluez',interface='org.freedesktop.DBus.ObjectManager',member='InterfacesRemoved'",
                 "type='signal',sender='org.bluez',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"
                 ",arg0='org.bluez.Device1'",
+                "type='signal',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"
+                ",arg0='org.bluez.MediaTransport1'",
                 NULL) < 0) {
         pa_log("Failed to add D-Bus matches: %s", err.message);
         goto fail;
@@ -2056,6 +2083,8 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
             "type='signal',sender='org.bluez',interface='org.freedesktop.DBus.ObjectManager',member='InterfacesRemoved'",
             "type='signal',sender='org.bluez',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"
             ",arg0='org.bluez.Device1'",
+            "type='signal',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"
+            ",arg0='org.bluez.MediaTransport1'",
             NULL);
 
         if (y->filter_added)
