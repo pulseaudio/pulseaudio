@@ -1538,6 +1538,12 @@ void pa_bluetooth_transport_release(pa_bluetooth_transport *t) {
         pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_STRING, &accesstype, DBUS_TYPE_INVALID));
     } else {
         pa_assert(t->device->discovery->version == BLUEZ_VERSION_5);
+
+        if (t->state <= PA_BLUETOOTH_TRANSPORT_STATE_IDLE) {
+            pa_log_info("Transport %s auto-released by BlueZ or already released", t->path);
+            return;
+        }
+
         pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.bluez.MediaTransport1", "Release"));
     }
 
