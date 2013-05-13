@@ -327,17 +327,26 @@ int pa_source_output_new(
     if (!data->muted_is_set)
         data->muted = FALSE;
 
-    if (data->flags & PA_SOURCE_OUTPUT_FIX_FORMAT)
+    if (data->flags & PA_SOURCE_OUTPUT_FIX_FORMAT) {
+        pa_return_val_if_fail(pa_format_info_is_pcm(data->format), -PA_ERR_INVALID);
         data->sample_spec.format = data->source->sample_spec.format;
+        pa_format_info_set_sample_format(data->format, data->sample_spec.format);
+    }
 
-    if (data->flags & PA_SOURCE_OUTPUT_FIX_RATE)
+    if (data->flags & PA_SOURCE_OUTPUT_FIX_RATE) {
+        pa_return_val_if_fail(pa_format_info_is_pcm(data->format), -PA_ERR_INVALID);
+        pa_format_info_set_rate(data->format, data->sample_spec.rate);
         data->sample_spec.rate = data->source->sample_spec.rate;
+    }
 
     original_cm = data->channel_map;
 
     if (data->flags & PA_SOURCE_OUTPUT_FIX_CHANNELS) {
+        pa_return_val_if_fail(pa_format_info_is_pcm(data->format), -PA_ERR_INVALID);
         data->sample_spec.channels = data->source->sample_spec.channels;
         data->channel_map = data->source->channel_map;
+        pa_format_info_set_channels(data->format, data->sample_spec.channels);
+        pa_format_info_set_channel_map(data->format, &data->channel_map);
     }
 
     pa_assert(pa_sample_spec_valid(&data->sample_spec));
