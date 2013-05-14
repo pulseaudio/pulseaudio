@@ -689,10 +689,10 @@ int pa__init(pa_module *m) {
         pa_xfree(fn);
     }
 
-    u->profile_set->ignore_dB = ignore_dB;
-
     if (!u->profile_set)
         goto fail;
+
+    u->profile_set->ignore_dB = ignore_dB;
 
     pa_alsa_profile_set_probe(u->profile_set, u->device_id, &m->core->default_sample_spec, m->core->default_n_fragments, m->core->default_fragment_size_msec);
     pa_alsa_profile_set_dump(u->profile_set);
