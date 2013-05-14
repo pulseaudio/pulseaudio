@@ -420,7 +420,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:981
 msgid "pa_pid_file_create() failed."
-msgstr "A „pa_pid_file_create()” függvényhívás meghiúsult: %s"
+msgstr "A „pa_pid_file_create()” függvényhívás meghiúsult."
 
 #: ../src/daemon/main.c:991
 msgid "Fresh high-resolution timers available! Bon appetit!"
