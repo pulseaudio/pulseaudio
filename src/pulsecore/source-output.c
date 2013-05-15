@@ -309,6 +309,9 @@ int pa_source_output_new(
         data->save_volume = FALSE;
     }
 
+    if (!data->volume_writable)
+        data->save_volume = false;
+
     pa_return_val_if_fail(pa_cvolume_compatible(&data->volume, &data->sample_spec), -PA_ERR_INVALID);
 
     if (!data->volume_factor_is_set)
