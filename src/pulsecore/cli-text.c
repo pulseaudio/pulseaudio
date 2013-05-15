@@ -486,7 +486,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
 
     s = pa_strbuf_new();
 
-    pa_strbuf_printf(s, "%u source outputs(s) available.\n", pa_idxset_size(c->source_outputs));
+    pa_strbuf_printf(s, "%u source output(s) available.\n", pa_idxset_size(c->source_outputs));
 
     PA_IDXSET_FOREACH(o, c->source_outputs, idx) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t, clt[28];
