@@ -36,7 +36,7 @@
 #include "module-intended-roles-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
-PA_MODULE_DESCRIPTION("Automatically set device of streams based of intended roles of devices");
+PA_MODULE_DESCRIPTION("Automatically set device of streams based on intended roles of devices");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
