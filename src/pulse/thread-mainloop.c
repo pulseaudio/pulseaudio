@@ -50,6 +50,8 @@ struct pa_threaded_mainloop {
     pa_thread* thread;
     pa_mutex* mutex;
     pa_cond* cond, *accept_cond;
+
+    char *name;
 };
 
 static inline int in_worker(pa_threaded_mainloop *m) {
@@ -106,6 +108,7 @@ pa_threaded_mainloop *pa_threaded_mainloop_new(void) {
     m->cond = pa_cond_new();
     m->accept_cond = pa_cond_new();
     m->thread = NULL;
+    m->name = NULL;
 
     pa_mainloop_set_poll_func(m->real_mainloop, poll_func, m->mutex);
 
@@ -132,6 +135,7 @@ void pa_threaded_mainloop_free(pa_threaded_mainloop* m) {
     pa_cond_free(m->cond);
     pa_cond_free(m->accept_cond);
 
+    pa_xfree(m->name);
     pa_xfree(m);
 }
 
@@ -140,7 +144,7 @@ int pa_threaded_mainloop_start(pa_threaded_mainloop *m) {
 
     pa_assert(!m->thread || !pa_thread_is_running(m->thread));
 
-    if (!(m->thread = pa_thread_new("threaded-ml", thread, m)))
+    if (!(m->thread = pa_thread_new(m->name ? m->name : "threaded-ml", thread, m)))
         return -1;
 
     return 0;
@@ -238,4 +242,14 @@ int pa_threaded_mainloop_in_thread(pa_threaded_mainloop *m) {
     pa_assert(m);
 
     return m->thread && pa_thread_self() == m->thread;
+}
+
+void pa_threaded_mainloop_set_name(pa_threaded_mainloop *m, const char *name) {
+    pa_assert(m);
+    pa_assert(name);
+
+    m->name = pa_xstrdup(name);
+
+    if (m->thread)
+        pa_thread_set_name(m->thread, m->name);
 }

@@ -343,6 +343,7 @@ pa_threaded_mainloop_get_retval;
 pa_threaded_mainloop_in_thread;
 pa_threaded_mainloop_lock;
 pa_threaded_mainloop_new;
+pa_threaded_mainloop_set_name;
 pa_threaded_mainloop_signal;
 pa_threaded_mainloop_start;
 pa_threaded_mainloop_stop;
