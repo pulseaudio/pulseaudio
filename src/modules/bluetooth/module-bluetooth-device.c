@@ -2154,9 +2154,15 @@ static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
 }
 
 /* Run from main thread */
-static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid) {
+static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid, pa_hashmap *ports) {
+    pa_device_port *input_port, *output_port;
     pa_card_profile *p = NULL;
     enum profile *d;
+
+    pa_assert(u->input_port_name);
+    pa_assert(u->output_port_name);
+    pa_assert_se(input_port = pa_hashmap_get(ports, u->input_port_name));
+    pa_assert_se(output_port = pa_hashmap_get(ports, u->output_port_name));
 
     if (pa_streq(uuid, A2DP_SINK_UUID)) {
         p = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP)"), sizeof(enum profile));
@@ -2165,6 +2171,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         p->n_sources = 0;
         p->max_sink_channels = 2;
         p->max_source_channels = 0;
+        pa_hashmap_put(output_port->profiles, p->name, p);
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_A2DP;
@@ -2175,6 +2182,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         p->n_sources = 1;
         p->max_sink_channels = 0;
         p->max_source_channels = 2;
+        pa_hashmap_put(input_port->profiles, p->name, p);
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_A2DP_SOURCE;
@@ -2185,6 +2193,8 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         p->n_sources = 1;
         p->max_sink_channels = 1;
         p->max_source_channels = 1;
+        pa_hashmap_put(input_port->profiles, p->name, p);
+        pa_hashmap_put(output_port->profiles, p->name, p);
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_HSP;
@@ -2195,6 +2205,8 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         p->n_sources = 1;
         p->max_sink_channels = 1;
         p->max_source_channels = 1;
+        pa_hashmap_put(input_port->profiles, p->name, p);
+        pa_hashmap_put(output_port->profiles, p->name, p);
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_HFGW;
@@ -2255,7 +2267,7 @@ static int add_card(struct userdata *u) {
     create_card_ports(u, data.ports);
 
     PA_LLIST_FOREACH(uuid, device->uuids) {
-        p = create_card_profile(u, uuid->uuid);
+        p = create_card_profile(u, uuid->uuid, data.ports);
 
         if (!p)
             continue;
@@ -2362,7 +2374,7 @@ static pa_hook_result_t uuid_added_cb(pa_bluetooth_discovery *y, const struct pa
     if (data->device != u->device)
         return PA_HOOK_OK;
 
-    p = create_card_profile(u, data->uuid);
+    p = create_card_profile(u, data->uuid, u->card->ports);
 
     if (!p)
         return PA_HOOK_OK;
