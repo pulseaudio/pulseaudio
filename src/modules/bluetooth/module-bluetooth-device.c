@@ -2252,6 +2252,8 @@ static int add_card(struct userdata *u) {
         return -1;
     }
 
+    create_card_ports(u, data.ports);
+
     PA_LLIST_FOREACH(uuid, device->uuids) {
         p = create_card_profile(u, uuid->uuid);
 
@@ -2267,8 +2269,6 @@ static int add_card(struct userdata *u) {
     }
 
     pa_assert(!pa_hashmap_isempty(data.profiles));
-
-    create_card_ports(u, data.ports);
 
     p = pa_card_profile_new("off", _("Off"), sizeof(enum profile));
     p->available = PA_AVAILABLE_YES;
