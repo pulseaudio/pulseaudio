@@ -261,7 +261,8 @@ TESTS_norun = \
 		rtstutter \
 		sig2str-test \
 		stripnul \
-		echo-cancel-test
+		echo-cancel-test \
+		lo-latency-test
 
 # These tests need a running pulseaudio daemon
 TESTS_daemon = \
@@ -573,6 +574,11 @@ if HAVE_WEBRTC
 echo_cancel_test_CXXFLAGS = $(module_echo_cancel_la_CXXFLAGS) -DECHO_CANCEL_TEST=1
 endif
 echo_cancel_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+lo_latency_test_SOURCES = tests/lo-latency-test.c
+lo_latency_test_LDADD = $(AM_LDADD) libpulse.la
+lo_latency_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+lo_latency_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 ###################################
 #         Common library          #
