@@ -329,6 +329,7 @@ _pacmd_completion() {
         _pacmd_commands=(
             'help: show help and exit'
             'list-modules: list modules'
+            'list-cards: list cards'
             'list-sinks: list sinks'
             'list-sources: list sources'
             'list-clients: list clients'
