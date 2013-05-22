@@ -158,7 +158,7 @@ static void read_cb(pa_stream *s, size_t nbytes, void *userdata) {
          * straddle the 0->1 transition, raising the average power. We keep the
          * definition of 1 tight in this case and detect the transition in the
          * next round. */
-        if (last < 0.5f && cur > 0.8f) {
+        if (cur - last > 0.4f) {
             pa_gettimeofday(&tv_in);
             fprintf(stderr, "Latency %llu\n", (unsigned long long) pa_timeval_diff(&tv_in, &tv_out));
         }
@@ -234,8 +234,8 @@ static void calibrate_read_cb(pa_stream *s, size_t nbytes, void *userdata) {
 
     switch (cal_state) {
         case CALIBRATION_ONE:
-            /* Try to detect the sine wave */
-            if (rms(in, nsamp) < 0.8f) {
+            /* Try to detect the sine wave. RMS is 0.5, */
+            if (rms(in, nsamp) < 0.40f) {
                 confirm = 0;
                 v += 0.02f;
 
