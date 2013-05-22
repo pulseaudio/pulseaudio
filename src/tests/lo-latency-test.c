@@ -39,6 +39,9 @@
 #include <pulse/pulseaudio.h>
 #include <pulse/mainloop.h>
 
+/* for pa_make_realtime */
+#include <pulsecore/core-util.h>
+
 #define SAMPLE_HZ 44100
 #define CHANNELS 2
 #define N_OUT (SAMPLE_HZ * 1)
@@ -327,6 +330,8 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
         case PA_CONTEXT_READY: {
             pa_buffer_attr buffer_attr;
+
+            pa_make_realtime(4);
 
             /* Create playback stream */
             buffer_attr.maxlength = -1;
