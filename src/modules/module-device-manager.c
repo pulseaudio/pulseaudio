@@ -889,7 +889,7 @@ static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new
     name = pa_sprintf_malloc("sink:%s", new_data->name);
 
     if ((e = entry_read(u, name))) {
-        if (e->user_set_description && strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
+        if (e->user_set_description && !pa_safe_streq(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION))) {
             pa_log_info("Restoring description for sink %s.", new_data->name);
             pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
         }
@@ -913,7 +913,7 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
     name = pa_sprintf_malloc("source:%s", new_data->name);
 
     if ((e = entry_read(u, name))) {
-        if (e->user_set_description && strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
+        if (e->user_set_description && !pa_safe_streq(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION))) {
             /* NB, We cannot detect if we are a monitor here... this could mess things up a bit... */
             pa_log_info("Restoring description for source %s.", new_data->name);
             pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
