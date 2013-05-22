@@ -286,7 +286,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct 
 
     if (!found_tstamp) {
         pa_log_warn("Couldn't find SCM_TIMESTAMP data in auxiliary recvmsg() data!");
-        memset(tstamp, 0, sizeof(tstamp));
+        pa_zero(*tstamp);
     }
 
     return 0;
