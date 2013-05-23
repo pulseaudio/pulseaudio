@@ -223,6 +223,7 @@ pax11publish_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 ###################################
 #         Test programs           #
 ###################################
+noinst_LTLIBRARIES =
 
 TESTS_default = \
 		mainloop-test \
@@ -575,8 +576,13 @@ echo_cancel_test_CXXFLAGS = $(module_echo_cancel_la_CXXFLAGS) -DECHO_CANCEL_TEST
 endif
 echo_cancel_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
+liblo_test_util_la_SOURCES = tests/lo-test-util.h tests/lo-test-util.c
+liblo_test_util_la_LIBADD = libpulsecore-@PA_MAJORMINOR@.la
+liblo_test_util_la_LDFLAGS = -avoid-version
+noinst_LTLIBRARIES += liblo-test-util.la
+
 lo_latency_test_SOURCES = tests/lo-latency-test.c
-lo_latency_test_LDADD = $(AM_LDADD) libpulse.la
+lo_latency_test_LDADD = $(AM_LDADD) libpulse.la liblo-test-util.la
 lo_latency_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 lo_latency_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
@@ -855,7 +861,6 @@ libpulsedsp_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version -disable-static
 ###################################
 
 lib_LTLIBRARIES += libpulsecore-@PA_MAJORMINOR@.la
-noinst_LTLIBRARIES =
 
 # Pure core stuff
 libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
