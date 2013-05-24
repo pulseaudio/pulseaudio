@@ -2147,7 +2147,7 @@ static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
 
     pa_device_port_new_data_init(&port_data);
     pa_device_port_new_data_set_name(&port_data, u->input_port_name);
-    pa_device_port_new_data_set_description(&port_data, output_description);
+    pa_device_port_new_data_set_description(&port_data, input_description);
     pa_device_port_new_data_set_direction(&port_data, PA_DIRECTION_INPUT);
     pa_device_port_new_data_set_available(&port_data, get_port_availability(u, PA_DIRECTION_INPUT));
     pa_assert_se(port = pa_device_port_new(u->core, &port_data, 0));
