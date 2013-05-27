@@ -54,12 +54,17 @@ static void nop_free_cb(void *p) {
 static void write_cb(pa_stream *s, size_t nbytes, void *userdata) {
     pa_lo_test_context *ctx = (pa_lo_test_context *) userdata;
     static int ppos = 0;
-    int r, nsamp = nbytes / ctx->fs;
+    int r, nsamp;
+
+    /* Get the real requested bytes since the last write might have been
+     * incomplete if it caused a wrap around */
+    nbytes = pa_stream_writable_size(s);
+    nsamp = nbytes / ctx->fs;
 
     if (ppos + nsamp > N_OUT) {
-        r = pa_stream_write(s, &out[ppos][0], (N_OUT - ppos) * ctx->fs, nop_free_cb, 0, PA_SEEK_RELATIVE);
-        nbytes -= (N_OUT - ppos) * ctx->fs;
-        ppos = 0;
+        /* Wrap-around, write to end and exit. Next iteration will fill up the
+         * rest */
+        nbytes = (N_OUT - ppos) * ctx->fs;
     }
 
     if (ppos == 0)
