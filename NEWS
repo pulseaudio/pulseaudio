@@ -1,0 +1,55 @@
+PulseAudio 4.0
+
+Changes at a glance:
+
+  * Better handling of low latency requests
+  * Optimisations while mixing (generic, ARM NEON)
+  * Default resampler is now speex-float-1 (lower CPU usage)
+  * Major Bluetooth refactoring for better reliability and easier maintenance
+  * Fixes for graceful hand-off to/from JACK
+  * New module to apply ducking based on stream roles
+  * Echo canceller infrastructure fixes
+  * Bash and zsh completion for command line tools
+  * Solaris and OS X fixes
+  * Lots of other enhancements, bug fixes, and documenation and i18n updates
+
+Detailed change log:
+
+  http://www.freedesktop.org/wiki/Software/PulseAudio/Notes/4.0
+
+Contributors:
+
+  Akihiro Tsukada
+  Albert Zeyer
+  Arun Raghavan
+  Christoph Gysin
+  David Henningsson
+  Flavio Ceolin
+  Jarkko Suontausta
+  Javier Jardón
+  João Paulo Rechi Vita
+  Jyri Sarha
+  Luiz Augusto von Dentz
+  Maarten Lankhorst
+  Marc-Antoine Perennou
+  Martin Pitt
+  Matěj Laitl
+  Mikel Astiz
+  Paul Meng
+  Peter Meerwald
+  Peter Nelson
+  Piotr Drąg
+  poljar (Damir Jelić)
+  Robin H. Johnson
+  Stefan Huber
+  Ștefan Săftescu
+  Tanu Kaskinen
+  Vadim Troshchinskiy
+  Wang Xingchao
+  Yuri Chornoivan
+
+----
+
+Change logs for previous versions can be seen at:
+
+  http://www.freedesktop.org/wiki/Software/PulseAudio/Notes
