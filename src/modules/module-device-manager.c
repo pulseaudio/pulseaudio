@@ -304,6 +304,11 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
         goto fail;
     }
 
+    if (e->user_set_description && !description) {
+        pa_log("Entry has user_set_description set, but the description is NULL.");
+        goto fail;
+    }
+
     e->description = pa_xstrdup(description);
     e->icon = pa_xstrdup(icon);
 
