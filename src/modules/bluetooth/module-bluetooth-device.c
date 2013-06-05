@@ -2233,11 +2233,13 @@ static int add_card(struct userdata *u) {
     pa_bt_form_factor_t ff;
     char *n;
     const char *default_profile;
-    const pa_bluetooth_device *device = u->device;
+    const pa_bluetooth_device *device;
     const pa_bluetooth_uuid *uuid;
 
     pa_assert(u);
-    pa_assert(device);
+    pa_assert(u->device);
+
+    device = u->device;
 
     pa_card_new_data_init(&data);
     data.driver = __FILE__;
