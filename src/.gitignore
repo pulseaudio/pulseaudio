@@ -46,6 +46,7 @@ hook-list-test
 interpol-test
 ipacl-test
 lock-autospawn-test
+lo-latency-test
 mainloop-test
 mainloop-test-glib
 mcalign-test
