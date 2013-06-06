@@ -581,8 +581,6 @@ AS_IF([test "x$enable_x11" != "xno"],
 AS_IF([test "x$enable_x11" = "xyes" && test "x$HAVE_X11" = "x0"],
     [AC_MSG_ERROR([*** X11 not found])])
 
-AC_SUBST(X11_CFLAGS)
-AC_SUBST(X11_LIBS)
 AC_SUBST(HAVE_X11)
 AM_CONDITIONAL([HAVE_X11], [test "x$HAVE_X11" = x1])
 AS_IF([test "x$HAVE_X11" = "x1"], AC_DEFINE([HAVE_X11], 1, [Have X11?]))
@@ -618,9 +616,6 @@ AS_IF([test "x$enable_tests" != "xno"],
     [PKG_CHECK_MODULES(LIBCHECK, [ check ], HAVE_LIBCHECK=1, HAVE_LIBCHECK=0)],
     HAVE_LIBCHECK=0)
 
-AC_SUBST(LIBCHECK_CFLAGS)
-AC_SUBST(LIBCHECK_LIBS)
-
 AS_IF([test "x$enable_tests" = "xyes" && test "x$HAVE_LIBCHECK" = "x0"],
     [AC_MSG_ERROR([*** check library not found])])
 
@@ -630,14 +625,10 @@ AM_CONDITIONAL([HAVE_TESTS], [test "x$HAVE_LIBCHECK" = x1])
 
 PKG_CHECK_MODULES(LIBJSON, [ json-c >= 0.11 ], [],
 		  [PKG_CHECK_MODULES(LIBJSON, [ json >= 0.9 ])])
-AC_SUBST(LIBJSON_CFLAGS)
-AC_SUBST(LIBJSON_LIBS)
 
 #### Sound file ####
 
 PKG_CHECK_MODULES(LIBSNDFILE, [ sndfile >= 1.0.20 ])
-AC_SUBST(LIBSNDFILE_CFLAGS)
-AC_SUBST(LIBSNDFILE_LIBS)
 
 #### atomic-ops ####
 
@@ -666,8 +657,6 @@ AS_IF([test "x$enable_samplerate" != "xno"],
 AS_IF([test "x$enable_samplerate" = "xyes" && test "x$HAVE_LIBSAMPLERATE" = "x0"],
     [AC_MSG_ERROR([*** Libsamplerate not found])])
 
-AC_SUBST(LIBSAMPLERATE_CFLAGS)
-AC_SUBST(LIBSAMPLERATE_LIBS)
 AM_CONDITIONAL([HAVE_LIBSAMPLERATE], [test "x$HAVE_LIBSAMPLERATE" = x1])
 AS_IF([test "x$HAVE_LIBSAMPLERATE" = "x1"], AC_DEFINE([HAVE_LIBSAMPLERATE], 1, [Have libsamplerate?]))
 
@@ -713,8 +702,6 @@ AS_IF([test "x$HAVE_TDB" != x1 -a "x$HAVE_GDBM" != x1 -a "x$HAVE_SIMPLEDB" != x1
     AC_MSG_ERROR([*** missing database backend]))
 
 
-AC_SUBST(TDB_CFLAGS)
-AC_SUBST(TDB_LIBS)
 AM_CONDITIONAL([HAVE_TDB], [test "x$HAVE_TDB" = x1])
 AS_IF([test "x$HAVE_TDB" = "x1"], AC_DEFINE([HAVE_TDB], 1, [Have tdb?]))
 
@@ -781,8 +768,6 @@ AS_IF([test "x$enable_alsa" != "xno"],
 AS_IF([test "x$enable_alsa" = "xyes" && test "x$HAVE_ALSA" = "x0"],
     [AC_MSG_ERROR([*** Needed alsa >= 1.0.24 support not found])])
 
-AC_SUBST(ASOUNDLIB_CFLAGS)
-AC_SUBST(ASOUNDLIB_LIBS)
 AC_SUBST(HAVE_ALSA)
 AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
 AS_IF([test "x$HAVE_ALSA" = "x1"], AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?]))
@@ -837,8 +822,6 @@ AS_IF([test "x$enable_glib2" != "xno"],
 AS_IF([test "x$enable_glib2" = "xyes" && test "x$HAVE_GLIB20" = "x0"],
     [AC_MSG_ERROR([*** GLib 2 support not found])])
 
-AC_SUBST(GLIB20_CFLAGS)
-AC_SUBST(GLIB20_LIBS)
 AC_SUBST(HAVE_GLIB20)
 AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
 AS_IF([test "x$HAVE_GLIB20" = "x1"], AC_DEFINE([HAVE_GLIB], 1, [Have GLIB?]))
@@ -855,8 +838,6 @@ AS_IF([test "x$enable_gtk3" != "xno"],
 AS_IF([test "x$enable_gtk3" = "xyes" && test "x$HAVE_GTK30" = "x0"],
     [AC_MSG_ERROR([*** Gtk+ 3 support not found])])
 
-AC_SUBST(GTK30_CFLAGS)
-AC_SUBST(GTK30_LIBS)
 AM_CONDITIONAL([HAVE_GTK30], [test "x$HAVE_GTK30" = x1])
 AS_IF([test "x$HAVE_GTK30" = "x1"], AC_DEFINE([HAVE_GTK], 1, [Have GTK?]))
 
@@ -872,8 +853,6 @@ AS_IF([test "x$enable_gconf" != "xno"],
 AS_IF([test "x$enable_gconf" = "xyes" && test "x$HAVE_GCONF" = "x0"],
     [AC_MSG_ERROR([*** GConf support not found])])
 
-AC_SUBST(GCONF_CFLAGS)
-AC_SUBST(GCONF_LIBS)
 AM_CONDITIONAL([HAVE_GCONF], [test "x$HAVE_GCONF" = x1])
 
 #### Avahi support (optional) ####
@@ -888,8 +867,6 @@ AS_IF([test "x$enable_avahi" != "xno"],
 AS_IF([test "x$enable_avahi" = "xyes" && test "x$HAVE_AVAHI" = "x0"],
     [AC_MSG_ERROR([*** Avahi support not found])])
 
-AC_SUBST(AVAHI_CFLAGS)
-AC_SUBST(AVAHI_LIBS)
 AC_SUBST(HAVE_AVAHI)
 AM_CONDITIONAL([HAVE_AVAHI], [test "x$HAVE_AVAHI" = x1])
 
@@ -905,8 +882,6 @@ AS_IF([test "x$enable_jack" != "xno"],
 AS_IF([test "x$enable_jack" = "xyes" && test "x$HAVE_JACK" = "x0"],
     [AC_MSG_ERROR([*** JACK support not found])])
 
-AC_SUBST(JACK_CFLAGS)
-AC_SUBST(JACK_LIBS)
 AM_CONDITIONAL([HAVE_JACK], [test "x$HAVE_JACK" = x1])
 
 #### Async DNS support (optional) ####
@@ -921,8 +896,6 @@ AS_IF([test "x$enable_asyncns" != "xno"],
 AS_IF([test "x$enable_asyncns" = "xyes" && test "x$HAVE_LIBASYNCNS" = "x0"],
     [AC_MSG_ERROR([*** Async DNS support not found])])
 
-AC_SUBST(LIBASYNCNS_CFLAGS)
-AC_SUBST(LIBASYNCNS_LIBS)
 AM_CONDITIONAL([HAVE_LIBASYNCNS], [test "x$HAVE_LIBASYNCNS" = x1])
 AS_IF([test "x$HAVE_LIBASYNCNS" = "x1"], AC_DEFINE([HAVE_LIBASYNCNS], 1, [Have libasyncns?]))
 
@@ -987,8 +960,6 @@ AS_IF([test "x$HAVE_DBUS" = "x1"],
         LIBS="$save_LIBS"
     ])
 
-AC_SUBST(DBUS_CFLAGS)
-AC_SUBST(DBUS_LIBS)
 AC_SUBST(HAVE_DBUS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 AS_IF([test "x$HAVE_DBUS" = "x1"], AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.]))
@@ -1016,8 +987,6 @@ AS_IF([test "x$HAVE_DBUS" != "x1"], HAVE_BLUEZ=0)
 AS_IF([test "x$enable_bluez" = "xyes" && test "x$HAVE_BLUEZ" = "x0"],
     [AC_MSG_ERROR([*** BLUEZ support not found (requires BlueZ, sbc, and D-Bus)])])
 
-AC_SUBST(BLUEZ_CFLAGS)
-AC_SUBST(BLUEZ_LIBS)
 AC_SUBST(HAVE_BLUEZ)
 AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
 
@@ -1033,8 +1002,6 @@ AS_IF([test "x$enable_udev" != "xno" -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" 
 AS_IF([test "x$enable_udev" = "xyes" && test "x$HAVE_UDEV" = "x0"],
     [AC_MSG_ERROR([*** UDEV support not found])])
 
-AC_SUBST(UDEV_CFLAGS)
-AC_SUBST(UDEV_LIBS)
 AC_SUBST(HAVE_UDEV)
 AM_CONDITIONAL([HAVE_UDEV], [test "x$HAVE_UDEV" = x1])
 AS_IF([test "x$HAVE_UDEV" = "x1"], AC_DEFINE([HAVE_UDEV], 1, [Have UDEV.]))
@@ -1072,8 +1039,6 @@ AS_IF([test "x$enable_openssl" != "xno"],
 AS_IF([test "x$enable_openssl" = "xyes" && test "x$HAVE_OPENSSL" = "x0"],
     [AC_MSG_ERROR([*** OpenSSL support not found])])
 
-AC_SUBST(OPENSSL_CFLAGS)
-AC_SUBST(OPENSSL_LIBS)
 AM_CONDITIONAL([HAVE_OPENSSL], [test "x$HAVE_OPENSSL" = x1])
 AS_IF([test "x$HAVE_OPENSSL" = "x1"], AC_DEFINE([HAVE_OPENSSL], 1, [Have OpenSSL]))
 
@@ -1105,9 +1070,6 @@ AS_IF([test "x$with_speex" = "xyes" && test "x$HAVE_SPEEX" = "x0"],
 
 AM_CONDITIONAL([HAVE_SPEEX], [test "x$HAVE_SPEEX" = "x1"])
 AS_IF([test "x$HAVE_SPEEX" = "x1"], AC_DEFINE([HAVE_SPEEX], 1, [Have speex]))
-
-AC_SUBST(LIBSPEEX_CFLAGS)
-AC_SUBST(LIBSPEEX_LIBS)
 
 #### Xen support (optional) ####
 
@@ -1275,8 +1237,6 @@ AS_IF([test "x$enable_webrtc_aec" != "xno"],
 AS_IF([test "x$enable_webrtc_aec" = "xyes" && test "x$HAVE_WEBRTC" = "x0"],
     [AC_MSG_ERROR([*** webrtc-audio-processing library not found])])
 
-AC_SUBST(WEBRTC_CFLAGS)
-AC_SUBST(WEBRTC_LIBS)
 AM_CONDITIONAL([HAVE_WEBRTC], [test "x$HAVE_WEBRTC" = "x1"])
 
 AC_ARG_ENABLE([adrian-aec],
