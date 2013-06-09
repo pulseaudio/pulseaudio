@@ -684,6 +684,10 @@ static int set_scheduler(int rtprio) {
     struct sched_param sp;
 #ifdef HAVE_DBUS
     int r;
+    long long rttime;
+#ifdef HAVE_SYS_RESOURCE_H
+    struct rlimit rl;
+#endif
     DBusError error;
     DBusConnection *bus;
 
@@ -721,16 +725,36 @@ static int set_scheduler(int rtprio) {
      * https://bugs.freedesktop.org/show_bug.cgi?id=16924 */
     dbus_connection_set_exit_on_disconnect(bus, FALSE);
 
-    r = rtkit_make_realtime(bus, 0, rtprio);
-    dbus_connection_close(bus);
-    dbus_connection_unref(bus);
+    rttime = rtkit_get_rttime_usec_max(bus);
+    if (rttime >= 0) {
+#ifdef HAVE_SYS_RESOURCE_H
+        r = getrlimit(RLIMIT_RTTIME, &rl);
 
-    if (r >= 0) {
-        pa_log_debug("RealtimeKit worked.");
-        return 0;
+        if (r >= 0 && (long long) rl.rlim_max > rttime) {
+            pa_log_warn("Clamping rlimit-rttime to %lld for RealtimeKit\n", rttime);
+            rl.rlim_cur = rl.rlim_max = rttime;
+            r = setrlimit(RLIMIT_RTTIME, &rl);
+
+            if (r < 0)
+                pa_log_info("setrlimit() failed: %s", pa_cstrerror(errno));
+        }
+#endif
+        r = rtkit_make_realtime(bus, 0, rtprio);
+        dbus_connection_close(bus);
+        dbus_connection_unref(bus);
+
+        if (r >= 0) {
+            pa_log_debug("RealtimeKit worked.");
+            return 0;
+        }
+
+        errno = -r;
+    } else {
+        dbus_connection_close(bus);
+        dbus_connection_unref(bus);
+        errno = -rttime;
     }
 
-    errno = -r;
 #else
     errno = 0;
 #endif
