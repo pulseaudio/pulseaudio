@@ -418,36 +418,36 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT = \
-    ../src/pulse/channelmap.h \
-    ../src/pulse/context.h \
-    ../src/pulse/def.h \
-    ../src/pulse/error.h \
-    ../src/pulse/ext-stream-restore.h \
-    ../src/pulse/ext-device-manager.h \
-    ../src/pulse/ext-device-restore.h \
-    ../src/pulse/format.h \
-    ../src/pulse/gccmacro.h \
-    ../src/pulse/glib-mainloop.h \
-    ../src/pulse/introspect.h \
-    ../src/pulse/mainloop-api.h \
-    ../src/pulse/mainloop-signal.h \
-    ../src/pulse/mainloop.h \
-    ../src/pulse/operation.h \
-    ../src/pulse/proplist.h \
-    ../src/pulse/pulseaudio.h \
-    ../src/pulse/rtclock.h \
-    ../src/pulse/sample.h \
-    ../src/pulse/scache.h \
-    ../src/pulse/simple.h \
-    ../src/pulse/stream.h \
-    ../src/pulse/subscribe.h \
-    ../src/pulse/thread-mainloop.h \
-    ../src/pulse/timeval.h \
-    ../src/pulse/utf8.h \
-    ../src/pulse/util.h \
-    ../src/pulse/version.h \
-    ../src/pulse/volume.h \
-    ../src/pulse/xmalloc.h \
+    @srcdir@/../src/pulse/channelmap.h \
+    @srcdir@/../src/pulse/context.h \
+    @srcdir@/../src/pulse/def.h \
+    @srcdir@/../src/pulse/error.h \
+    @srcdir@/../src/pulse/ext-stream-restore.h \
+    @srcdir@/../src/pulse/ext-device-manager.h \
+    @srcdir@/../src/pulse/ext-device-restore.h \
+    @srcdir@/../src/pulse/format.h \
+    @srcdir@/../src/pulse/gccmacro.h \
+    @srcdir@/../src/pulse/glib-mainloop.h \
+    @srcdir@/../src/pulse/introspect.h \
+    @srcdir@/../src/pulse/mainloop-api.h \
+    @srcdir@/../src/pulse/mainloop-signal.h \
+    @srcdir@/../src/pulse/mainloop.h \
+    @srcdir@/../src/pulse/operation.h \
+    @srcdir@/../src/pulse/proplist.h \
+    @srcdir@/../src/pulse/pulseaudio.h \
+    @srcdir@/../src/pulse/rtclock.h \
+    @srcdir@/../src/pulse/sample.h \
+    @srcdir@/../src/pulse/scache.h \
+    @srcdir@/../src/pulse/simple.h \
+    @srcdir@/../src/pulse/stream.h \
+    @srcdir@/../src/pulse/subscribe.h \
+    @srcdir@/../src/pulse/thread-mainloop.h \
+    @srcdir@/../src/pulse/timeval.h \
+    @srcdir@/../src/pulse/utf8.h \
+    @srcdir@/../src/pulse/util.h \
+    @srcdir@/../src/pulse/version.h \
+    @srcdir@/../src/pulse/volume.h \
+    @srcdir@/../src/pulse/xmalloc.h \
 
 # If the value of the INPUT tag contains directories, you can use the
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp
@@ -485,7 +485,7 @@ EXCLUDE_PATTERNS       =
 # directories that contain example code fragments that are included (see
 # the \include command).
 
-EXAMPLE_PATH           = ../src/utils ../src/tests
+EXAMPLE_PATH           = @srcdir@/../src/utils @srcdir@/../src/tests
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp
