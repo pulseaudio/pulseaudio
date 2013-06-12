@@ -118,6 +118,7 @@ struct userdata {
 
     pa_usec_t watermark_dec_not_before;
     pa_usec_t min_latency_ref;
+    pa_usec_t tsched_watermark_usec;
 
     char *device_name;  /* name of the PCM device */
     char *control_device; /* name of the control device */
@@ -293,6 +294,8 @@ static void fix_tsched_watermark(struct userdata *u) {
 
     if (u->tsched_watermark < u->min_wakeup)
         u->tsched_watermark = u->min_wakeup;
+
+   u->tsched_watermark_usec = pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec);
 }
 
 static void increase_watermark(struct userdata *u) {
@@ -309,7 +312,7 @@ static void increase_watermark(struct userdata *u) {
 
     if (old_watermark != u->tsched_watermark) {
         pa_log_info("Increasing wakeup watermark to %0.2f ms",
-                    (double) pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec) / PA_USEC_PER_MSEC);
+                    (double) u->tsched_watermark_usec / PA_USEC_PER_MSEC);
         return;
     }
 
@@ -359,7 +362,7 @@ static void decrease_watermark(struct userdata *u) {
 
     if (old_watermark != u->tsched_watermark)
         pa_log_info("Decreasing wakeup watermark to %0.2f ms",
-                    (double) pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec) / PA_USEC_PER_MSEC);
+                    (double) u->tsched_watermark_usec / PA_USEC_PER_MSEC);
 
     /* We don't change the latency range*/
 
@@ -381,7 +384,7 @@ static void hw_sleep_time(struct userdata *u, pa_usec_t *sleep_usec, pa_usec_t*p
     if (usec == (pa_usec_t) -1)
         usec = pa_bytes_to_usec(u->hwbuf_size, &u->source->sample_spec);
 
-    wm = pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec);
+    wm = u->tsched_watermark_usec;
 
     if (wm > usec)
         wm = usec/2;
@@ -625,7 +628,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
     if (u->use_tsched) {
         *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec);
-        process_usec = pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec);
+        process_usec = u->tsched_watermark_usec;
 
         if (*sleep_usec > process_usec)
             *sleep_usec -= process_usec;
@@ -755,7 +758,7 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
     if (u->use_tsched) {
         *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec);
-        process_usec = pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec);
+        process_usec = u->tsched_watermark_usec;
 
         if (*sleep_usec > process_usec)
             *sleep_usec -= process_usec;
@@ -941,7 +944,7 @@ static void reset_watermark(struct userdata *u, size_t tsched_watermark, pa_samp
     }
 
     pa_log_info("Time scheduling watermark is %0.2fms",
-                (double) pa_bytes_to_usec(u->tsched_watermark, ss) / PA_USEC_PER_MSEC);
+                (double) u->tsched_watermark_usec / PA_USEC_PER_MSEC);
 }
 
 /* Called from IO context */
@@ -1534,9 +1537,10 @@ static void thread_func(void *userdata) {
                 (double) rtpoll_sleep / PA_USEC_PER_MSEC, (double) real_sleep / PA_USEC_PER_MSEC,
                 (double) ((int64_t) real_sleep - (int64_t) rtpoll_sleep) / PA_USEC_PER_MSEC);
 #endif
-            if (u->use_tsched && real_sleep > rtpoll_sleep + u->tsched_watermark)
-                pa_log_info("Scheduling delay of %0.2fms, you might want to investigate this to improve latency...",
-                    (double) (real_sleep - rtpoll_sleep) / PA_USEC_PER_MSEC);
+            if (u->use_tsched && real_sleep > rtpoll_sleep + u->tsched_watermark_usec)
+                pa_log_info("Scheduling delay of %0.2f ms > %0.2f ms, you might want to investigate this to improve latency...",
+                    (double) (real_sleep - rtpoll_sleep) / PA_USEC_PER_MSEC,
+                    (double) (u->tsched_watermark_usec) / PA_USEC_PER_MSEC);
         }
 
         if (u->source->flags & PA_SOURCE_DEFERRED_VOLUME)
