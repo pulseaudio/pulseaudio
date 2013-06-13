@@ -223,10 +223,21 @@ ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l) {
     pa_assert(l);
     pa_assert(io->ofd >= 0);
 
-    if ((r = pa_write(io->ofd, data, l, &io->ofd_type)) >= 0) {
-        io->writable = io->hungup = FALSE;
-        enable_events(io);
+    r = pa_write(io->ofd, data, l, &io->ofd_type);
+
+    if ((size_t) r == l)
+        return r; /* Fast path - we almost always successfully write everything */
+
+    if (r < 0) {
+        if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
+            r = 0;
+        else
+            return r;
     }
+
+    /* Partial write - let's get a notification when we can write more */
+    io->writable = io->hungup = FALSE;
+    enable_events(io);
 
     return r;
 }

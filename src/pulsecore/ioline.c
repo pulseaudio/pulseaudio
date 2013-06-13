@@ -351,12 +351,9 @@ static int do_write(pa_ioline *l) {
 
     while (l->io && !l->dead && pa_iochannel_is_writable(l->io) && l->wbuf_valid_length > 0) {
 
-        if ((r = pa_iochannel_write(l->io, l->wbuf+l->wbuf_index, l->wbuf_valid_length)) <= 0) {
+        if ((r = pa_iochannel_write(l->io, l->wbuf+l->wbuf_index, l->wbuf_valid_length)) < 0) {
 
-            if (r < 0 && errno == EAGAIN)
-                break;
-
-            if (r < 0 && errno != EPIPE)
+            if (errno != EPIPE)
                 pa_log("write(): %s", pa_cstrerror(errno));
 
             failure(l, FALSE);

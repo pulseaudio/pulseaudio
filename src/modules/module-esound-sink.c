@@ -345,7 +345,7 @@ static int do_write(struct userdata *u) {
     if (u->write_data) {
         pa_assert(u->write_index < u->write_length);
 
-        if ((r = pa_iochannel_write(u->io, (uint8_t*) u->write_data + u->write_index, u->write_length - u->write_index)) <= 0) {
+        if ((r = pa_iochannel_write(u->io, (uint8_t*) u->write_data + u->write_index, u->write_length - u->write_index)) < 0) {
             pa_log("write() failed: %s", pa_cstrerror(errno));
             return -1;
         }

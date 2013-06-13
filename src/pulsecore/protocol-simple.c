@@ -229,10 +229,6 @@ static int do_write(connection *c) {
     pa_memblock_unref(chunk.memblock);
 
     if (r < 0) {
-
-        if (errno == EINTR || errno == EAGAIN)
-            return 0;
-
         pa_log("write(): %s", pa_cstrerror(errno));
         return -1;
     }
