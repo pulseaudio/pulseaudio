@@ -48,6 +48,8 @@ channel specify -1 for the other direction. */
 pa_iochannel* pa_iochannel_new(pa_mainloop_api*m, int ifd, int ofd);
 void pa_iochannel_free(pa_iochannel*io);
 
+/* Returns: length written on success, 0 if a retry is needed, negative value
+ * on error. */
 ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l);
 ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l);
 
