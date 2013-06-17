@@ -187,9 +187,12 @@ static void do_pstream_read_write(pa_pstream *p) {
     } else if (!p->dead && pa_iochannel_is_hungup(p->io))
         goto fail;
 
-    if (!p->dead && pa_iochannel_is_writable(p->io)) {
-        if (do_write(p) < 0)
+    while (!p->dead && pa_iochannel_is_writable(p->io)) {
+        int r = do_write(p);
+        if (r < 0)
             goto fail;
+        if (r == 0)
+            break;
     }
 
     pa_pstream_unref(p);
@@ -634,7 +637,7 @@ static int do_write(pa_pstream *p) {
             p->drain_callback(p, p->drain_callback_userdata);
     }
 
-    return 0;
+    return (size_t) r == l ? 1 : 0;
 
 fail:
 
