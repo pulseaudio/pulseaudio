@@ -456,8 +456,11 @@ static pa_hook_result_t device_new_or_changed_cb(pa_core *c, pa_object *o, struc
     pa_assert(c);
     pa_object_assert_ref(o);
 
-    if (!shall_ignore(o))
+    if (!shall_ignore(o)) {
+        pa_threaded_mainloop_lock(u->mainloop);
         pa_mainloop_api_once(u->api, publish_service, get_service(u, o));
+        pa_threaded_mainloop_unlock(u->mainloop);
+    }
 
     return PA_HOOK_OK;
 }
@@ -575,12 +578,18 @@ static int publish_all_services(struct userdata *u) {
     pa_log_debug("Publishing services in Zeroconf");
 
     for (sink = PA_SINK(pa_idxset_first(u->core->sinks, &idx)); sink; sink = PA_SINK(pa_idxset_next(u->core->sinks, &idx)))
-        if (!shall_ignore(PA_OBJECT(sink)))
+        if (!shall_ignore(PA_OBJECT(sink))) {
+            pa_threaded_mainloop_lock(u->mainloop);
             pa_mainloop_api_once(u->api, publish_service, get_service(u, PA_OBJECT(sink)));
+            pa_threaded_mainloop_unlock(u->mainloop);
+        }
 
     for (source = PA_SOURCE(pa_idxset_first(u->core->sources, &idx)); source; source = PA_SOURCE(pa_idxset_next(u->core->sources, &idx)))
-        if (!shall_ignore(PA_OBJECT(source)))
+        if (!shall_ignore(PA_OBJECT(source))) {
+            pa_threaded_mainloop_lock(u->mainloop);
             pa_mainloop_api_once(u->api, publish_service, get_service(u, PA_OBJECT(source)));
+            pa_threaded_mainloop_unlock(u->mainloop);
+        }
 
     if (publish_main_service(u) < 0)
         goto fail;
@@ -755,7 +764,10 @@ int pa__init(pa_module*m) {
 
     pa_threaded_mainloop_set_name(u->mainloop, "avahi-ml");
     pa_threaded_mainloop_start(u->mainloop);
+
+    pa_threaded_mainloop_lock(u->mainloop);
     pa_mainloop_api_once(u->api, create_client, u);
+    pa_threaded_mainloop_unlock(u->mainloop);
 
     pa_modargs_free(ma);
 
