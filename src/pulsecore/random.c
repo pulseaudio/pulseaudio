@@ -55,7 +55,7 @@ static int random_proper(void *ret_data, size_t length) {
     pa_assert(length > 0);
 
     if (CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
-        if(CryptGenRandom(hCryptProv, length, ret_data))
+        if (CryptGenRandom(hCryptProv, length, ret_data))
             ret = 0;
         CryptReleaseContext(hCryptProv, 0);
     }

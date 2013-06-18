@@ -530,7 +530,7 @@ static void process_samples(struct userdata *u){
     pa_assert(u->samples_gathered >= u->window_size);
     iterations = (u->samples_gathered - u->overlap_size) / u->R;
     //make sure there is enough buffer memory allocated
-    if(iterations * u->R * fs > u->output_buffer_max_length){
+    if (iterations * u->R * fs > u->output_buffer_max_length){
         u->output_buffer_max_length = iterations * u->R * fs;
         pa_xfree(u->output_buffer);
         u->output_buffer = pa_xmalloc(u->output_buffer_max_length);
@@ -554,7 +554,7 @@ static void process_samples(struct userdata *u){
                 u
             );
             pa_aupdate_read_end(u->a_H[c]);
-            if(u->first_iteration){
+            if (u->first_iteration){
                 /* The windowing function will make the audio ramped in, as a cheap fix we can
                  * undo the windowing (for non-zero window values)
                  */
@@ -564,7 +564,7 @@ static void process_samples(struct userdata *u){
             }
             pa_sample_clamp(PA_SAMPLE_FLOAT32NE, (uint8_t *) (((float *)u->output_buffer) + c) + offset, fs, u->work_buffer, sizeof(float), u->R);
         }
-        if(u->first_iteration){
+        if (u->first_iteration){
             u->first_iteration = FALSE;
         }
         u->samples_gathered -= u->R;
@@ -608,7 +608,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
     fs = pa_frame_size(&(u->sink->sample_spec));
     mbs = pa_mempool_block_size_max(u->sink->core->mempool);
-    if(pa_memblockq_get_length(u->output_q) > 0){
+    if (pa_memblockq_get_length(u->output_q) > 0){
         //pa_log_debug("qsize is %ld", pa_memblockq_get_length(u->output_q));
         goto END;
     }
@@ -619,7 +619,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     //mbs = PA_MAX(mbs, u->R);
     //target_samples = PA_MAX(target_samples, mbs);
     //pa_log_debug("target samples: %ld", target_samples);
-    if(u->first_iteration){
+    if (u->first_iteration){
         //allocate request_size
         target_samples = PA_MAX(target_samples, u->window_size);
     }else{
@@ -927,7 +927,7 @@ static void save_profile(struct userdata *u, size_t channel, char *name){
     data.size = profile_size;
     pa_database_set(u->database, &key, &data, TRUE);
     pa_database_sync(u->database);
-    if(u->base_profiles[channel]){
+    if (u->base_profiles[channel]){
         pa_xfree(u->base_profiles[channel]);
     }
     u->base_profiles[channel] = pa_xstrdup(name);
@@ -989,8 +989,8 @@ static const char* load_profile(struct userdata *u, size_t channel, char *name){
     const size_t profile_size = CHANNEL_PROFILE_SIZE(u) * sizeof(float);
     key.data = name;
     key.size = strlen(key.data);
-    if(pa_database_get(u->database, &key, &value) != NULL){
-        if(value.size == profile_size){
+    if (pa_database_get(u->database, &key, &value) != NULL){
+        if (value.size == profile_size){
             float *profile = (float *) value.data;
             a_i = pa_aupdate_write_begin(u->a_H[channel]);
             u->Xs[channel][a_i] = profile[0];
@@ -1018,7 +1018,7 @@ static void load_state(struct userdata *u){
     pa_assert_se(dbname = pa_state_path(EQ_STATE_DB, FALSE));
     database = pa_database_open(dbname, FALSE);
     pa_xfree(dbname);
-    if(!database){
+    if (!database){
         pa_log("No resume state");
         return;
     }
@@ -1026,8 +1026,8 @@ static void load_state(struct userdata *u){
     key.data = u->sink->name;
     key.size = strlen(key.data);
 
-    if(pa_database_get(database, &key, &value) != NULL){
-        if(value.size > FILTER_STATE_SIZE(u) * sizeof(float) + sizeof(uint16_t)){
+    if (pa_database_get(database, &key, &value) != NULL){
+        if (value.size > FILTER_STATE_SIZE(u) * sizeof(float) + sizeof(uint16_t)){
             float *state = (float *) value.data;
             size_t n_profs;
             char **names;
@@ -1589,7 +1589,7 @@ void dbus_init(struct userdata *u){
     pa_dbus_protocol_add_interface(u->dbus_protocol, u->dbus_path, &equalizer_info, u);
     sink_list = pa_shared_get(u->sink->core, SINKLIST);
     u->database = pa_shared_get(u->sink->core, EQDB);
-    if(sink_list == NULL){
+    if (sink_list == NULL){
         char *dbname;
         sink_list=pa_idxset_new(&pa_idxset_trivial_hash_func, &pa_idxset_trivial_compare_func);
         pa_shared_set(u->sink->core, SINKLIST, sink_list);
@@ -1620,7 +1620,7 @@ void dbus_done(struct userdata *u){
 
     pa_assert_se(sink_list=pa_shared_get(u->sink->core,SINKLIST));
     pa_idxset_remove_by_data(sink_list,u,&dummy);
-    if(pa_idxset_size(sink_list)==0){
+    if (pa_idxset_size(sink_list)==0){
         pa_dbus_protocol_unregister_extension(u->dbus_protocol, EXTNAME);
         pa_dbus_protocol_remove_interface(u->dbus_protocol, MANAGER_PATH, manager_info.name);
         pa_shared_remove(u->sink->core, EQDB);
@@ -1643,7 +1643,7 @@ void manager_handle_remove_profile(DBusConnection *conn, DBusMessage *msg, void 
     pa_assert(msg);
     pa_assert(c);
     dbus_error_init(&error);
-    if(!dbus_message_get_args(msg, &error,
+    if (!dbus_message_get_args(msg, &error,
                  DBUS_TYPE_STRING, &name,
                 DBUS_TYPE_INVALID)){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
@@ -1799,7 +1799,7 @@ void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *
 
     dbus_error_init(&error);
 
-    if(!dbus_message_get_args(msg, &error,
+    if (!dbus_message_get_args(msg, &error,
                 DBUS_TYPE_UINT32, &channel,
                 DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32, &xs, &x_npoints,
                 DBUS_TYPE_ARRAY, DBUS_TYPE_DOUBLE, &_ys, &y_npoints,
@@ -1809,26 +1809,26 @@ void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *
         dbus_error_free(&error);
         return;
     }
-    if(channel > u->channels){
+    if (channel > u->channels){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
         dbus_error_free(&error);
         return;
     }
     for(size_t i = 0; i < x_npoints; ++i){
-        if(xs[i] >= FILTER_SIZE(u)){
+        if (xs[i] >= FILTER_SIZE(u)){
             points_good = FALSE;
             break;
         }
     }
-    if(!is_monotonic(xs, x_npoints) || !points_good){
+    if (!is_monotonic(xs, x_npoints) || !points_good){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs must be monotonic and 0<=x<=%zd", u->fft_size / 2);
         dbus_error_free(&error);
         return;
-    }else if(x_npoints != y_npoints || x_npoints < 2 || x_npoints > FILTER_SIZE(u)){
+    }else if (x_npoints != y_npoints || x_npoints < 2 || x_npoints > FILTER_SIZE(u)){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs and ys must be the same length and 2<=l<=%zd!", FILTER_SIZE(u));
         dbus_error_free(&error);
         return;
-    }else if(xs[0] != 0 || xs[x_npoints - 1] != u->fft_size / 2){
+    }else if (xs[0] != 0 || xs[x_npoints - 1] != u->fft_size / 2){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs[0] must be 0 and xs[-1]=fft_size/2");
         dbus_error_free(&error);
         return;
@@ -1844,7 +1844,7 @@ void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *
     u->Xs[r_channel][a_i] = preamp;
     interpolate(H, FILTER_SIZE(u), xs, ys, x_npoints);
     fix_filter(H, u->fft_size);
-    if(channel == u->channels){
+    if (channel == u->channels){
         for(size_t c = 1; c < u->channels; ++c){
             unsigned b_i = pa_aupdate_write_begin(u->a_H[c]);
             float *H_p = u->Hs[c][b_i];
@@ -1880,7 +1880,7 @@ void equalizer_handle_get_filter_points(DBusConnection *conn, DBusMessage *msg, 
     pa_assert(u);
 
     dbus_error_init(&error);
-    if(!dbus_message_get_args(msg, &error,
+    if (!dbus_message_get_args(msg, &error,
                 DBUS_TYPE_UINT32, &channel,
                 DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32, &xs, &x_npoints,
                 DBUS_TYPE_INVALID)){
@@ -1888,20 +1888,20 @@ void equalizer_handle_get_filter_points(DBusConnection *conn, DBusMessage *msg, 
         dbus_error_free(&error);
         return;
     }
-    if(channel > u->channels){
+    if (channel > u->channels){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
         dbus_error_free(&error);
         return;
     }
 
     for(size_t i = 0; i < x_npoints; ++i){
-        if(xs[i] >= FILTER_SIZE(u)){
+        if (xs[i] >= FILTER_SIZE(u)){
             points_good=FALSE;
             break;
         }
     }
 
-    if(x_npoints > FILTER_SIZE(u) || !points_good){
+    if (x_npoints > FILTER_SIZE(u) || !points_good){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs indices/length must be <= %zd!", FILTER_SIZE(u));
         dbus_error_free(&error);
         return;
@@ -1956,14 +1956,14 @@ void equalizer_handle_get_filter(DBusConnection *conn, DBusMessage *msg, void *_
     pa_assert(msg);
 
     dbus_error_init(&error);
-    if(!dbus_message_get_args(msg, &error,
+    if (!dbus_message_get_args(msg, &error,
                 DBUS_TYPE_UINT32, &channel,
                 DBUS_TYPE_INVALID)){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
         dbus_error_free(&error);
         return;
     }
-    if(channel > u->channels){
+    if (channel > u->channels){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
         dbus_error_free(&error);
         return;
@@ -1996,7 +1996,7 @@ static void set_filter(struct userdata *u, size_t channel, double *H_, double pr
         H[i] = (float) H_[i];
     }
     fix_filter(H, u->fft_size);
-    if(channel == u->channels){
+    if (channel == u->channels){
         for(size_t c = 1; c < u->channels; ++c){
             unsigned b_i = pa_aupdate_write_begin(u->a_H[c]);
             u->Xs[c][b_i] = u->Xs[r_channel][a_i];
@@ -2019,7 +2019,7 @@ void equalizer_handle_set_filter(DBusConnection *conn, DBusMessage *msg, void *_
     pa_assert(msg);
 
     dbus_error_init(&error);
-    if(!dbus_message_get_args(msg, &error,
+    if (!dbus_message_get_args(msg, &error,
                 DBUS_TYPE_UINT32, &channel,
                 DBUS_TYPE_ARRAY, DBUS_TYPE_DOUBLE, &H, &_n_coefs,
                 DBUS_TYPE_DOUBLE, &preamp,
@@ -2028,12 +2028,12 @@ void equalizer_handle_set_filter(DBusConnection *conn, DBusMessage *msg, void *_
         dbus_error_free(&error);
         return;
     }
-    if(channel > u->channels){
+    if (channel > u->channels){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
         dbus_error_free(&error);
         return;
     }
-    if(_n_coefs != FILTER_SIZE(u)){
+    if (_n_coefs != FILTER_SIZE(u)){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "This filter takes exactly %zd coefficients, you gave %d", FILTER_SIZE(u), _n_coefs);
         return;
     }
@@ -2057,7 +2057,7 @@ void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void 
     pa_assert(u);
     dbus_error_init(&error);
 
-    if(!dbus_message_get_args(msg, &error,
+    if (!dbus_message_get_args(msg, &error,
                 DBUS_TYPE_UINT32, &channel,
                 DBUS_TYPE_STRING, &name,
                 DBUS_TYPE_INVALID)){
@@ -2065,7 +2065,7 @@ void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void 
         dbus_error_free(&error);
         return;
     }
-    if(channel > u->channels){
+    if (channel > u->channels){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
         dbus_error_free(&error);
         return;
@@ -2092,7 +2092,7 @@ void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void 
     pa_assert(u);
     dbus_error_init(&error);
 
-    if(!dbus_message_get_args(msg, &error,
+    if (!dbus_message_get_args(msg, &error,
                 DBUS_TYPE_UINT32, &channel,
                 DBUS_TYPE_STRING, &name,
                 DBUS_TYPE_INVALID)){
@@ -2100,7 +2100,7 @@ void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void 
         dbus_error_free(&error);
         return;
     }
-    if(channel > u->channels){
+    if (channel > u->channels){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
         dbus_error_free(&error);
         return;
@@ -2108,12 +2108,12 @@ void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void 
     r_channel = channel == u->channels ? 0 : channel;
 
     err_msg = load_profile(u, r_channel, name);
-    if(err_msg != NULL){
+    if (err_msg != NULL){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED, "error loading profile %s: %s", name, err_msg);
         dbus_error_free(&error);
         return;
     }
-    if(channel == u->channels){
+    if (channel == u->channels){
         for(uint32_t c = 1; c < u->channels; ++c){
             load_profile(u, c, name);
         }
@@ -2145,14 +2145,14 @@ void equalizer_handle_get_profile_name(DBusConnection *conn, DBusMessage *msg, v
     pa_assert(u);
     dbus_error_init(&error);
 
-    if(!dbus_message_get_args(msg, &error,
+    if (!dbus_message_get_args(msg, &error,
                 DBUS_TYPE_UINT32, &channel,
                 DBUS_TYPE_INVALID)){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
         dbus_error_free(&error);
         return;
     }
-    if(channel > u->channels){
+    if (channel > u->channels){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
         dbus_error_free(&error);
         return;

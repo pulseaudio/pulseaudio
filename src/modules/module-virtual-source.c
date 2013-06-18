@@ -275,7 +275,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
 
     /* if uplink sink exists, pull data from there; simplify by using
        same length as chunk provided by source */
-    if(u->sink && (pa_sink_get_state(u->sink) == PA_SINK_RUNNING)) {
+    if (u->sink && (pa_sink_get_state(u->sink) == PA_SINK_RUNNING)) {
         pa_memchunk tchunk;
         size_t nbytes = chunk->length;
         pa_mix_info streams[2];

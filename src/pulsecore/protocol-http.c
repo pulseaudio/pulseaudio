@@ -596,7 +596,7 @@ static void handle_listen_prefix(struct connection *c, const char *source_name) 
     http_response(c, 200, "OK", t);
     pa_xfree(t);
 
-    if(c->method == METHOD_HEAD) {
+    if (c->method == METHOD_HEAD) {
         connection_unlink(c);
         return;
     }

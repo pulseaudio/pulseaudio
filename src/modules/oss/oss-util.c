@@ -50,7 +50,7 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
     pa_assert(mode);
     pa_assert(*mode == O_RDWR || *mode == O_RDONLY || *mode == O_WRONLY);
 
-    if(!pcaps)
+    if (!pcaps)
         pcaps = &caps;
 
     if (*mode == O_RDWR) {

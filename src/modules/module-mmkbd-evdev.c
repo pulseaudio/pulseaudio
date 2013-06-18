@@ -203,7 +203,7 @@ int pa__init(pa_module*m) {
 
     pa_log_info("evdev driver version %i.%i.%i", version >> 16, (version >> 8) & 0xff, version & 0xff);
 
-    if(ioctl(u->fd, EVIOCGID, &input_id)) {
+    if (ioctl(u->fd, EVIOCGID, &input_id)) {
         pa_log("EVIOCGID failed: %s", pa_cstrerror(errno));
         goto fail;
     }
