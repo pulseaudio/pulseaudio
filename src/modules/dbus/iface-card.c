@@ -457,8 +457,8 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
         object_path = pa_dbusiface_card_profile_get_path(pa_hashmap_get(c->profiles, c->active_profile->name));
 
         pa_assert_se(signal_msg = dbus_message_new_signal(c->path,
-							  PA_DBUSIFACE_CARD_INTERFACE,
-							  signals[SIGNAL_ACTIVE_PROFILE_UPDATED].name));
+                              PA_DBUSIFACE_CARD_INTERFACE,
+                              signals[SIGNAL_ACTIVE_PROFILE_UPDATED].name));
         pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
 
         pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
@@ -472,8 +472,8 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
         pa_proplist_update(c->proplist, PA_UPDATE_SET, c->card->proplist);
 
         pa_assert_se(signal_msg = dbus_message_new_signal(c->path,
-							  PA_DBUSIFACE_CARD_INTERFACE,
-							  signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
+                              PA_DBUSIFACE_CARD_INTERFACE,
+                              signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
         dbus_message_iter_init_append(signal_msg, &msg_iter);
         pa_dbus_append_proplist(&msg_iter, c->proplist);
 

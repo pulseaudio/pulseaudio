@@ -2182,11 +2182,11 @@ static int jack_parse_state(pa_config_parser_state *state) {
     }
 
     if (pa_streq(state->rvalue, "yes"))
-	pa = PA_AVAILABLE_YES;
+    pa = PA_AVAILABLE_YES;
     else if (pa_streq(state->rvalue, "no"))
-	pa = PA_AVAILABLE_NO;
+    pa = PA_AVAILABLE_NO;
     else if (pa_streq(state->rvalue, "unknown"))
-	pa = PA_AVAILABLE_UNKNOWN;
+    pa = PA_AVAILABLE_UNKNOWN;
     else {
         pa_log("[%s:%u] state must be 'yes', 'no' or 'unknown' in '%s'", state->filename, state->lineno, state->section);
         return -1;

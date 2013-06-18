@@ -288,8 +288,8 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
         pa_proplist_update(m->proplist, PA_UPDATE_SET, m->module->proplist);
 
         pa_assert_se(signal_msg = dbus_message_new_signal(m->path,
-							  PA_DBUSIFACE_MODULE_INTERFACE,
-							  signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
+                              PA_DBUSIFACE_MODULE_INTERFACE,
+                              signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
         dbus_message_iter_init_append(signal_msg, &msg_iter);
         pa_dbus_append_proplist(&msg_iter, m->proplist);
 

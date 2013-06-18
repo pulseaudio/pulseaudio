@@ -48,18 +48,18 @@ PA_MODULE_USAGE(
 #define JACK_INTERFACE_NAME "org.jackaudio.JackControl"
 #define JACK_INTERFACE_PATH "/org/jackaudio/Controller"
 
-#define SERVICE_FILTER				\
-	"type='signal',"			\
-	"sender='" DBUS_SERVICE_DBUS "',"	\
-	"interface='" DBUS_INTERFACE_DBUS "',"	\
-	"member='NameOwnerChanged',"		\
-	"arg0='" JACK_SERVICE_NAME "'"
+#define SERVICE_FILTER                \
+    "type='signal',"            \
+    "sender='" DBUS_SERVICE_DBUS "',"    \
+    "interface='" DBUS_INTERFACE_DBUS "',"    \
+    "member='NameOwnerChanged',"        \
+    "arg0='" JACK_SERVICE_NAME "'"
 
-#define RUNNING_FILTER(_a)			\
-	"type='signal',"			\
-	"sender='" JACK_SERVICE_NAME "',"	\
-	"interface='" JACK_INTERFACE_NAME "',"	\
-	"member='" _a "'"
+#define RUNNING_FILTER(_a)            \
+    "type='signal',"            \
+    "sender='" JACK_SERVICE_NAME "',"    \
+    "interface='" JACK_INTERFACE_NAME "',"    \
+    "member='" _a "'"
 
 static const char* const valid_modargs[] = {
     "channels",

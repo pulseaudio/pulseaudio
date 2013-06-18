@@ -76,15 +76,15 @@ PA_MODULE_USAGE(
 
 int device_id = -1;
 enum xenbus_state {
-	XenbusStateUnknown      = 0,
-	XenbusStateInitialising = 1,
-	XenbusStateInitWait     = 2,
-	XenbusStateInitialised  = 3,
-	XenbusStateConnected    = 4,
-	XenbusStateClosing      = 5,
-	XenbusStateClosed       = 6,
-	XenbusStateReconfiguring = 7,
-	XenbusStateReconfigured  = 8
+    XenbusStateUnknown      = 0,
+    XenbusStateInitialising = 1,
+    XenbusStateInitWait     = 2,
+    XenbusStateInitialised  = 3,
+    XenbusStateConnected    = 4,
+    XenbusStateClosing      = 5,
+    XenbusStateClosed       = 6,
+    XenbusStateReconfiguring = 7,
+    XenbusStateReconfigured  = 8
 };
 
 static const char* xenbus_names[] = {
@@ -291,7 +291,7 @@ static int process_render(struct userdata *u) {
         void *p;
 
         p = pa_memblock_acquire(u->memchunk.memblock);
-	    /* xen: write data to ring buffer & notify backend */
+        /* xen: write data to ring buffer & notify backend */
         l = ring_write(ioring, (uint8_t*)p + u->memchunk.index, u->memchunk.length);
 
         pa_memblock_release(u->memchunk.memblock);
@@ -759,7 +759,7 @@ static int wait_for_backend_state_change() {
 
     int xs_fd;
     struct timeval tv;
-	fd_set watch_fdset;
+    fd_set watch_fdset;
     int start, now;
 
     backend_state = STATE_UNDEFINED;
@@ -771,11 +771,11 @@ static int wait_for_backend_state_change() {
 
     /*XXX: hardcoded */
     seconds = 10;
-	do {
-		tv.tv_usec = 0;
-		tv.tv_sec = (start + seconds) - now;
-		FD_ZERO(&watch_fdset);
-		FD_SET(xs_fd, &watch_fdset);
+    do {
+        tv.tv_usec = 0;
+        tv.tv_sec = (start + seconds) - now;
+        FD_ZERO(&watch_fdset);
+        FD_SET(xs_fd, &watch_fdset);
         ret=select(xs_fd + 1, &watch_fdset, NULL, NULL, &tv);
 
         if (ret==-1)
@@ -783,8 +783,8 @@ static int wait_for_backend_state_change() {
             return -1;
         else if (ret) {
 
-			/* Read the watch to drain the buffer */
-			vec = xs_read_watch(xsh, &len);
+            /* Read the watch to drain the buffer */
+            vec = xs_read_watch(xsh, &len);
 
             buf = xs_read(xsh, XBT_NULL, vec[0], &len);
             if (buf == 0) {
@@ -795,9 +795,9 @@ static int wait_for_backend_state_change() {
 
             free(buf);
             free(vec);
-		}
+        }
         /* else: timeout */
-	} while (backend_state == STATE_UNDEFINED && \
+    } while (backend_state == STATE_UNDEFINED && \
             (now = time(NULL)) < start + seconds);
 
     return backend_state;

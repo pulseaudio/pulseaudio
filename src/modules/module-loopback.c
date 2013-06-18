@@ -972,10 +972,10 @@ int pa__init(pa_module *m) {
     pa_source_output_put(u->source_output);
 
     if (pa_source_get_state(u->source_output->source) != PA_SOURCE_SUSPENDED)
-	    pa_sink_input_cork(u->sink_input, FALSE);
+        pa_sink_input_cork(u->sink_input, FALSE);
 
     if (pa_sink_get_state(u->sink_input->sink) != PA_SINK_SUSPENDED)
-	    pa_source_output_cork(u->source_output, FALSE);
+        pa_source_output_cork(u->source_output, FALSE);
 
     update_adjust_timer(u);
 
