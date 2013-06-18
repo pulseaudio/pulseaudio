@@ -422,8 +422,7 @@ out:
     return ret;
 }
 
-int pa_format_info_get_prop_int_array(pa_format_info *f, const char *key, int **values, int *n_values)
-{
+int pa_format_info_get_prop_int_array(pa_format_info *f, const char *key, int **values, int *n_values) {
     const char *str;
     json_object *o, *o1;
     int i, ret = -PA_ERR_INVALID;
@@ -493,8 +492,7 @@ int pa_format_info_get_prop_string(pa_format_info *f, const char *key, char **v)
     return 0;
 }
 
-int pa_format_info_get_prop_string_array(pa_format_info *f, const char *key, char ***values, int *n_values)
-{
+int pa_format_info_get_prop_string_array(pa_format_info *f, const char *key, char ***values, int *n_values) {
     const char *str;
     json_object *o, *o1;
     int i, ret = -PA_ERR_INVALID;
@@ -642,8 +640,7 @@ void pa_format_info_set_prop_string_array(pa_format_info *f, const char *key, co
     json_object_put(o);
 }
 
-static pa_bool_t pa_json_is_fixed_type(json_object *o)
-{
+static pa_bool_t pa_json_is_fixed_type(json_object *o) {
     switch(json_object_get_type(o)) {
         case json_type_object:
         case json_type_array:

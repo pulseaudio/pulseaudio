@@ -45,8 +45,7 @@ static const char* const valid_modargs[] = {
 
 static void pa_adrian_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
                                      pa_sample_spec *play_ss, pa_channel_map *play_map,
-                                     pa_sample_spec *out_ss, pa_channel_map *out_map)
-{
+                                     pa_sample_spec *out_ss, pa_channel_map *out_map) {
     out_ss->format = PA_SAMPLE_S16NE;
     out_ss->channels = 1;
     pa_channel_map_init_mono(out_map);
@@ -61,8 +60,7 @@ pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
                             pa_sample_spec *rec_ss, pa_channel_map *rec_map,
                             pa_sample_spec *play_ss, pa_channel_map *play_map,
                             pa_sample_spec *out_ss, pa_channel_map *out_map,
-                            uint32_t *nframes, const char *args)
-{
+                            uint32_t *nframes, const char *args) {
     int rate, have_vector = 0;
     uint32_t frame_size_ms;
     pa_modargs *ma;

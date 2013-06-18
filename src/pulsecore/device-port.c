@@ -67,8 +67,7 @@ void pa_device_port_new_data_done(pa_device_port_new_data *data) {
     pa_xfree(data->description);
 }
 
-void pa_device_port_set_available(pa_device_port *p, pa_available_t status)
-{
+void pa_device_port_set_available(pa_device_port *p, pa_available_t status) {
     pa_core *core;
 
     pa_assert(p);

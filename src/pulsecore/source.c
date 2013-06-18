@@ -740,8 +740,7 @@ int pa_source_update_status(pa_source*s) {
 }
 
 /* Called from any context - must be threadsafe */
-void pa_source_set_mixer_dirty(pa_source *s, pa_bool_t is_dirty)
-{
+void pa_source_set_mixer_dirty(pa_source *s, pa_bool_t is_dirty) {
     pa_atomic_store(&s->mixer_dirty, is_dirty ? 1 : 0);
 }
 
@@ -968,8 +967,7 @@ void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *
 }
 
 /* Called from main thread */
-pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrough)
-{
+pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrough) {
     pa_bool_t ret = FALSE;
 
     if (s->update_rate) {
@@ -2807,8 +2805,7 @@ pa_idxset* pa_source_get_formats(pa_source *s) {
 
 /* Called from the main thread */
 /* Checks if the source can accept this format */
-pa_bool_t pa_source_check_format(pa_source *s, pa_format_info *f)
-{
+pa_bool_t pa_source_check_format(pa_source *s, pa_format_info *f) {
     pa_idxset *formats = NULL;
     pa_bool_t ret = FALSE;
 

@@ -914,8 +914,7 @@ static int update_sw_params(struct userdata *u) {
 
 /* Called from IO Context on unsuspend or from main thread when creating source */
 static void reset_watermark(struct userdata *u, size_t tsched_watermark, pa_sample_spec *ss,
-                            pa_bool_t in_thread)
-{
+                            pa_bool_t in_thread) {
     u->tsched_watermark = pa_usec_to_bytes_round_up(pa_bytes_to_usec_round_up(tsched_watermark, ss),
                                                     &u->source->sample_spec);
 
@@ -1411,8 +1410,7 @@ static void source_update_requested_latency_cb(pa_source *s) {
     update_sw_params(u);
 }
 
-static pa_bool_t source_update_rate_cb(pa_source *s, uint32_t rate)
-{
+static pa_bool_t source_update_rate_cb(pa_source *s, uint32_t rate) {
     struct userdata *u = s->userdata;
     int i;
     pa_bool_t supported = FALSE;

@@ -1590,8 +1590,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 }
 
 
-static bool handle_input_underrun(playback_stream *s, bool force)
-{
+static bool handle_input_underrun(playback_stream *s, bool force) {
     bool send_drain;
 
     if (pa_memblockq_is_readable(s->memblockq))

@@ -210,8 +210,7 @@ pa_bool_t pa_in_system_mode(void);
 #define pa_streq(a,b) (!strcmp((a),(b)))
 
 /* Like pa_streq, but does not blow up on NULL pointers. */
-static inline bool pa_safe_streq(const char *a, const char *b)
-{
+static inline bool pa_safe_streq(const char *a, const char *b) {
     if (a == NULL || b == NULL)
         return a == b;
     return pa_streq(a, b);

@@ -824,8 +824,7 @@ int pa_sink_update_status(pa_sink*s) {
 }
 
 /* Called from any context - must be threadsafe */
-void pa_sink_set_mixer_dirty(pa_sink *s, pa_bool_t is_dirty)
-{
+void pa_sink_set_mixer_dirty(pa_sink *s, pa_bool_t is_dirty) {
     pa_atomic_store(&s->mixer_dirty, is_dirty ? 1 : 0);
 }
 
@@ -1378,8 +1377,7 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
 }
 
 /* Called from main thread */
-pa_bool_t pa_sink_update_rate(pa_sink *s, uint32_t rate, pa_bool_t passthrough)
-{
+pa_bool_t pa_sink_update_rate(pa_sink *s, uint32_t rate, pa_bool_t passthrough) {
     pa_bool_t ret = FALSE;
 
     if (s->update_rate) {
@@ -3770,8 +3768,7 @@ pa_bool_t pa_sink_set_formats(pa_sink *s, pa_idxset *formats) {
 
 /* Called from the main thread */
 /* Checks if the sink can accept this format */
-pa_bool_t pa_sink_check_format(pa_sink *s, pa_format_info *f)
-{
+pa_bool_t pa_sink_check_format(pa_sink *s, pa_format_info *f) {
     pa_idxset *formats = NULL;
     pa_bool_t ret = FALSE;
 

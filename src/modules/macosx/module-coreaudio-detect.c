@@ -186,8 +186,7 @@ scan_removed:
 
 static OSStatus property_listener_proc(AudioObjectID objectID, UInt32 numberAddresses,
                                        const AudioObjectPropertyAddress inAddresses[],
-                                       void *clientData)
-{
+                                       void *clientData) {
     struct userdata *u = clientData;
     char dummy = 1;
 

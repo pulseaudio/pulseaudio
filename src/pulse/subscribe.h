@@ -53,8 +53,7 @@
  *
 @verbatim
 void my_subscription_callback(pa_context *c, pa_subscription_event_type_t t,
-                              uint32_t idx, void *userdata)
-{
+                              uint32_t idx, void *userdata) {
     if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE) {
         if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
             ... a source was added, let's do stuff! ...

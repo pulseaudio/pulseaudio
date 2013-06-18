@@ -1022,8 +1022,7 @@ static int update_sw_params(struct userdata *u) {
 
 /* Called from IO Context on unsuspend or from main thread when creating sink */
 static void reset_watermark(struct userdata *u, size_t tsched_watermark, pa_sample_spec *ss,
-                            pa_bool_t in_thread)
-{
+                            pa_bool_t in_thread) {
     u->tsched_watermark = pa_usec_to_bytes_round_up(pa_bytes_to_usec_round_up(tsched_watermark, ss),
                                                     &u->sink->sample_spec);
 
@@ -1604,8 +1603,7 @@ static pa_bool_t sink_set_formats(pa_sink *s, pa_idxset *formats) {
     return TRUE;
 }
 
-static pa_bool_t sink_update_rate_cb(pa_sink *s, uint32_t rate)
-{
+static pa_bool_t sink_update_rate_cb(pa_sink *s, uint32_t rate) {
     struct userdata *u = s->userdata;
     int i;
     pa_bool_t supported = FALSE;

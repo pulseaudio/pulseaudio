@@ -1450,8 +1450,7 @@ pa_bool_t pa_alsa_may_tsched(pa_bool_t want) {
     return TRUE;
 }
 
-snd_hctl_elem_t* pa_alsa_find_jack(snd_hctl_t *hctl, const char* jack_name)
-{
+snd_hctl_elem_t* pa_alsa_find_jack(snd_hctl_t *hctl, const char* jack_name) {
     snd_ctl_elem_id_t *id;
 
     snd_ctl_elem_id_alloca(&id);

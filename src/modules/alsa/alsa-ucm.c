@@ -525,8 +525,7 @@ static void append_lost_relationship(pa_alsa_ucm_device *dev) {
     }
 }
 
-int pa_alsa_ucm_query_profiles(pa_alsa_ucm_config *ucm, int card_index)
-{
+int pa_alsa_ucm_query_profiles(pa_alsa_ucm_config *ucm, int card_index) {
     char *card_name;
     const char **verb_list;
     int num_verbs, i, err = 0;

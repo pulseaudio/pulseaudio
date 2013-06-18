@@ -995,8 +995,7 @@ fail:
     pa_module_unload_request(u->module, TRUE);
 }
 
-static int read_ports(struct userdata *u, pa_tagstruct *t)
-{
+static int read_ports(struct userdata *u, pa_tagstruct *t) {
     if (u->version >= 16) {
         uint32_t n_ports;
         const char *s;

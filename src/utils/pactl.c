@@ -223,8 +223,7 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
     complete_action();
 }
 
-static const char* get_available_str_ynonly(int available)
-{
+static const char* get_available_str_ynonly(int available) {
     switch (available) {
         case PA_PORT_AVAILABLE_YES: return ", available";
         case PA_PORT_AVAILABLE_NO: return ", not available";

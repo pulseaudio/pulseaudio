@@ -208,8 +208,7 @@ enum {
 static int init_profile(struct userdata *u);
 
 /* from IO thread */
-static void a2dp_set_bitpool(struct userdata *u, uint8_t bitpool)
-{
+static void a2dp_set_bitpool(struct userdata *u, uint8_t bitpool) {
     struct a2dp_info *a2dp;
 
     pa_assert(u);
@@ -968,8 +967,7 @@ static int a2dp_process_push(struct userdata *u) {
     return ret;
 }
 
-static void a2dp_reduce_bitpool(struct userdata *u)
-{
+static void a2dp_reduce_bitpool(struct userdata *u) {
     struct a2dp_info *a2dp;
     uint8_t bitpool;
 

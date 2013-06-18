@@ -137,8 +137,7 @@ static OSStatus io_render_proc (AudioDeviceID          device,
                                 const AudioTimeStamp  *inputTime,
                                 AudioBufferList       *outputData,
                                 const AudioTimeStamp  *outputTime,
-                                void                  *clientData)
-{
+                                void                  *clientData) {
     struct userdata *u = clientData;
 
     pa_assert(u);
@@ -161,8 +160,7 @@ static OSStatus io_render_proc (AudioDeviceID          device,
 static OSStatus ca_stream_format_changed(AudioObjectID objectID,
                                          UInt32 numberAddresses,
                                          const AudioObjectPropertyAddress addresses[],
-                                         void *clientData)
-{
+                                         void *clientData) {
     struct userdata *u = clientData;
     UInt32 i;
 
@@ -354,8 +352,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
     return pa_source_process_msg(o, code, data, offset, chunk);;
 }
 
-static int ca_sink_set_state(pa_sink *s, pa_sink_state_t state)
-{
+static int ca_sink_set_state(pa_sink *s, pa_sink_state_t state) {
     coreaudio_sink *sink = s->userdata;
 
     switch (state) {
@@ -473,8 +470,7 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
     return 0;
 }
 
-static int ca_source_set_state(pa_source *s, pa_source_state_t state)
-{
+static int ca_source_set_state(pa_source *s, pa_source_state_t state) {
     coreaudio_source *source = s->userdata;
 
     switch (state) {

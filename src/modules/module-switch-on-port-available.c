@@ -129,8 +129,7 @@ static int try_to_switch_profile(pa_device_port *port) {
     return 0;
 }
 
-static void find_sink_and_source(pa_card *card, pa_device_port *port, pa_sink **si, pa_source **so)
-{
+static void find_sink_and_source(pa_card *card, pa_device_port *port, pa_sink **si, pa_source **so) {
     pa_sink *sink = NULL;
     pa_source *source = NULL;
     uint32_t state;

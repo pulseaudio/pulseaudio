@@ -116,8 +116,7 @@ static const char *available_to_string(pa_available_t a) {
     }
 }
 
-static void append_port_list(pa_strbuf *s, pa_hashmap *ports)
-{
+static void append_port_list(pa_strbuf *s, pa_hashmap *ports) {
     pa_device_port *p;
     void *state;
 

@@ -309,8 +309,7 @@ static void init_profile(struct userdata *u) {
             am->source = pa_alsa_source_new(u->module, u->modargs, __FILE__, u->card, am);
 }
 
-static void report_port_state(pa_device_port *p, struct userdata *u)
-{
+static void report_port_state(pa_device_port *p, struct userdata *u) {
     void *state;
     pa_alsa_jack *jack;
     pa_available_t pa = PA_AVAILABLE_UNKNOWN;
@@ -347,8 +346,7 @@ static void report_port_state(pa_device_port *p, struct userdata *u)
     pa_device_port_set_available(p, pa);
 }
 
-static int report_jack_state(snd_hctl_elem_t *elem, unsigned int mask)
-{
+static int report_jack_state(snd_hctl_elem_t *elem, unsigned int mask) {
     struct userdata *u = snd_hctl_elem_get_callback_private(elem);
     snd_ctl_elem_value_t *elem_value;
     pa_bool_t plugged_in;
