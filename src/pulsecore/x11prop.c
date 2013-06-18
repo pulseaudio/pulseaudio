@@ -100,7 +100,6 @@ char* pa_x11_get_prop(xcb_connection_t *xcb, int screen, const char *name, char 
     pa_assert(name);
     pa_assert(p);
 
-
     xs = screen_of_display(xcb, screen);
     /*
      * Also try and get the settings from the first screen.

@@ -278,10 +278,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 static int process_render(struct userdata *u) {
     pa_assert(u);
 
-
     if (u->memchunk.length <= 0)
         pa_sink_render(u->sink, ioring->usable_buffer_space, &u->memchunk);
-
 
     pa_assert(u->memchunk.length > 0);
 
@@ -583,7 +581,6 @@ void pa__done(pa_module*m) {
 
 }
 
-
 static int alloc_gref(struct ioctl_gntalloc_alloc_gref *gref_, void **addr) {
     int alloc_fd, dev_fd, rv;
 
@@ -701,7 +698,6 @@ static char* read_param(const char *paramname) {
     return xs_read(xsh, 0, keybuf, &len);
 }
 
-
 static int publish_spec(pa_sample_spec *sample_spec) {
     /* Publish spec and set state to XenbusStateInitWait*/
     int ret;
@@ -712,7 +708,6 @@ static int publish_spec(pa_sample_spec *sample_spec) {
 
     return ret;
 }
-
 
 static int read_backend_default_spec(pa_sample_spec *sample_spec) {
     /* Read spec from backend */

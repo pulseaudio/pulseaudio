@@ -76,7 +76,6 @@ int main(int argc, char *argv[]) {
             pa_resampler_free(r);
         }
 
-
     pa_mempool_free(pool);
 
     return 0;

@@ -144,7 +144,6 @@ int pa_sndfile_write_sample_spec(SF_INFO *sfi, pa_sample_spec *ss) {
             break;
     }
 
-
     if (!pa_sample_spec_valid(ss))
         return -1;
 
@@ -417,7 +416,6 @@ pa_sndfile_writef_t pa_sndfile_writef_function(const pa_sample_spec *ss) {
 
 int pa_sndfile_format_from_string(const char *name) {
     int i, count = 0;
-
 
     if (!name[0])
         return -1;

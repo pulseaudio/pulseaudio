@@ -1368,7 +1368,6 @@ finish:
     pa_context_unref(c);
 }
 
-
 void pa_command_client_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
     pa_proplist *pl = NULL;
@@ -1427,7 +1426,6 @@ void pa_context_rttime_restart(pa_context *c, pa_time_event *e, pa_usec_t usec) 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
     pa_assert(c->mainloop);
-
 
     if (usec == PA_USEC_INVALID)
         c->mainloop->time_restart(e, NULL);

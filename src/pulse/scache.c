@@ -167,7 +167,6 @@ finish:
     pa_operation_unref(o);
 }
 
-
 pa_operation *pa_context_play_sample(pa_context *c, const char *name, const char *dev, pa_volume_t volume, pa_context_success_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;

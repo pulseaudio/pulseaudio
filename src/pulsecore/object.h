@@ -116,5 +116,4 @@ static inline pa_object* pa_object_cast(void *o) {
     }                                                                   \
     struct __stupid_useless_struct_to_allow_trailing_semicolon
 
-
 #endif

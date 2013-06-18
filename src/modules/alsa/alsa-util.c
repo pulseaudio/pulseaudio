@@ -1474,7 +1474,6 @@ snd_hctl_elem_t* pa_alsa_find_eld_ctl(snd_hctl_t *hctl, int device) {
     return snd_hctl_find_elem(hctl, id);
 }
 
-
 static int prepare_mixer(snd_mixer_t *mixer, const char *dev, snd_hctl_t **hctl) {
     int err;
 

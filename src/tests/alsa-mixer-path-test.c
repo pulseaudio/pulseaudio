@@ -53,7 +53,6 @@ static pa_strlist *load_makefile() {
     return result;
 }
 
-
 START_TEST (mixer_path_test) {
     DIR *dir;
     struct dirent *ent;

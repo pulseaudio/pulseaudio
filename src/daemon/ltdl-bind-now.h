@@ -22,7 +22,6 @@
   USA.
 ***/
 
-
 void pa_ltdl_init(void);
 void pa_ltdl_done(void);
 

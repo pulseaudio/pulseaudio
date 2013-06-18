@@ -168,7 +168,6 @@ int main(int argc, char*argv[]) {
             goto quit;
         }
 
-
         if (r >= 0)
             break;
 

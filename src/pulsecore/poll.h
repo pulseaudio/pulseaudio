@@ -49,7 +49,6 @@ struct pollfd {
     short int revents;          /* Types of events that actually occurred.  */
 };
 
-
 /* Poll the file descriptors described by the NFDS structures starting at
    FDS.  If TIMEOUT is nonzero and not -1, allow TIMEOUT milliseconds for
    an event to occur; if TIMEOUT is -1, block until an event occurs.

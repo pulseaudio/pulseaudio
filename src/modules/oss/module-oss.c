@@ -175,7 +175,6 @@ static int trigger(struct userdata *u, pa_bool_t quick) {
 
     pa_log_debug("trigger: %i", enable_bits);
 
-
     if (u->use_mmap) {
 
         if (!quick)

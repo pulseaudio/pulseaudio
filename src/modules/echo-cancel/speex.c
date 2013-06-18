@@ -146,7 +146,6 @@ fail:
     return FALSE;
 }
 
-
 pa_bool_t pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
                            pa_sample_spec *rec_ss, pa_channel_map *rec_map,
                            pa_sample_spec *play_ss, pa_channel_map *play_map,

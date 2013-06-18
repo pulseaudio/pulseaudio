@@ -134,7 +134,6 @@ void pa_smoother_free(pa_smoother* s) {
         x = ((x)+1) % HISTORY_MAX;              \
     } while(FALSE)
 
-
 static void drop_old(pa_smoother *s, pa_usec_t x) {
 
     /* Drop items from history which are too old, but make sure to

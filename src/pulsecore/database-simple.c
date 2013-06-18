@@ -37,7 +37,6 @@
 
 #include "database.h"
 
-
 typedef struct simple_data {
     char *filename;
     char *tmp_filename;

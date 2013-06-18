@@ -22,7 +22,6 @@
   USA.
 ***/
 
-
 #include <pulse/proplist.h>
 
 int pa_udev_get_info(int card_idx, pa_proplist *p);

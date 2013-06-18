@@ -110,7 +110,6 @@ typedef struct pa_dbus_interface_info {
     unsigned n_signals;
 } pa_dbus_interface_info;
 
-
 /* The following functions may only be called from the main thread. */
 
 /* Registers the given interface to the given object path. It doesn't matter

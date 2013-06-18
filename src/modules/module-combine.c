@@ -56,7 +56,6 @@ int pa__init(pa_module*m) {
     return module ? 0 : -1;
 }
 
-
 void pa__done(pa_module*m) {
     struct userdata *u;
 

@@ -274,7 +274,6 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
-
 /* Called from main context */
 static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
     struct userdata *u;
@@ -1855,7 +1854,6 @@ void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *
     }
     pa_aupdate_write_end(u->a_H[r_channel]);
     pa_xfree(ys);
-
 
     pa_dbus_send_empty_reply(conn, msg);
 

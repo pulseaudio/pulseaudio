@@ -1215,7 +1215,6 @@ static int create_stream(
                                               PA_STREAM_RELATIVE_VOLUME|
                                               PA_STREAM_PASSTHROUGH)), PA_ERR_INVALID);
 
-
     PA_CHECK_VALIDITY(s->context, s->context->version >= 12 || !(flags & PA_STREAM_VARIABLE_RATE), PA_ERR_NOTSUPPORTED);
     PA_CHECK_VALIDITY(s->context, s->context->version >= 13 || !(flags & PA_STREAM_PEAK_DETECT), PA_ERR_NOTSUPPORTED);
     PA_CHECK_VALIDITY(s->context, s->context->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -1815,7 +1814,6 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
-
 
         if (!pa_tagstruct_eof(t)) {
             pa_context_fail(o->context, PA_ERR_PROTOCOL);
@@ -2632,7 +2630,6 @@ finish:
     pa_operation_unref(o);
 }
 
-
 pa_operation* pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr, pa_stream_success_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
@@ -2778,7 +2775,6 @@ finish:
     pa_operation_done(o);
     pa_operation_unref(o);
 }
-
 
 pa_operation *pa_stream_update_sample_rate(pa_stream *s, uint32_t rate, pa_stream_success_cb_t cb, void *userdata) {
     pa_operation *o;

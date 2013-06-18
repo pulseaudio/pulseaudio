@@ -91,7 +91,6 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         goto fail;
     }
 
-
     hpf = DEFAULT_HIGH_PASS_FILTER;
     if (pa_modargs_get_value_boolean(ma, "high_pass_filter", &hpf) < 0) {
         pa_log("Failed to parse high_pass_filter value");

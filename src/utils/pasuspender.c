@@ -59,7 +59,6 @@ static void quit(int ret) {
     mainloop_api->quit(mainloop_api, ret);
 }
 
-
 static void context_drain_complete(pa_context *c, void *userdata) {
     pa_context_disconnect(c);
 }

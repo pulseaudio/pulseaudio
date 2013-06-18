@@ -46,7 +46,6 @@
 #define _Y do { } while(0)
 #endif
 
-
 struct pa_shmasyncq {
     pa_fdsem *read_fdsem, *write_fdsem;
     pa_shmasyncq_data *data;

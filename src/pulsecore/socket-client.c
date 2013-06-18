@@ -226,7 +226,6 @@ pa_socket_client* pa_socket_client_new_ipv4(pa_mainloop_api *m, uint32_t address
     return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
 }
 
-
 pa_socket_client* pa_socket_client_new_unix(pa_mainloop_api *m, const char *filename) {
 #ifdef HAVE_SYS_UN_H
     struct sockaddr_un sa;

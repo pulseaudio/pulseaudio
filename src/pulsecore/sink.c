@@ -148,7 +148,6 @@ void pa_sink_new_data_done(pa_sink_new_data *data) {
     pa_xfree(data->active_port);
 }
 
-
 /* Called from main context */
 static void reset_callbacks(pa_sink *s) {
     pa_assert(s);

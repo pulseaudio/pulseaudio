@@ -286,7 +286,6 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
     return PA_HOOK_OK;
 }
 
-
 int pa__init(pa_module*m) {
     struct userdata *u;
 

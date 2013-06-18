@@ -76,7 +76,6 @@ static const char* const modnames[JACK_SS_COUNT] = {
     "module-jack-source"
 };
 
-
 struct userdata {
     pa_module *module;
     pa_core *core;
@@ -88,7 +87,6 @@ struct userdata {
     /* Using index here protects us from module unloading without us knowing */
     int jack_module_index[JACK_SS_COUNT];
 };
-
 
 static void ensure_ports_stopped(struct userdata* u) {
     int i;
@@ -126,7 +124,6 @@ static void ensure_ports_started(struct userdata* u) {
                 pa_log_info("Failed to start %s.", modnames[i]);
         }
 }
-
 
 static pa_bool_t check_service_started(struct userdata* u) {
     DBusError error;

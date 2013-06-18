@@ -280,7 +280,6 @@ int pa_unix_socket_remove_stale(const char *fn) {
 
 #endif /* HAVE_SYS_UN_H */
 
-
 pa_bool_t pa_socket_address_is_local(const struct sockaddr *sa) {
     pa_assert(sa);
 

@@ -255,7 +255,6 @@ char *pa_sink_list_to_string(pa_core *c) {
 
         cmn = pa_channel_map_to_pretty_name(&sink->channel_map);
 
-
         pa_strbuf_printf(
             s,
             "  %c index: %u\n"
@@ -470,7 +469,6 @@ char *pa_source_list_to_string(pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
-
 char *pa_source_output_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_source_output *o;
@@ -511,7 +509,6 @@ char *pa_source_output_list_to_string(pa_core *c) {
                                            pa_cvolume_get_balance(&v, &o->channel_map));
         } else
             volume_str = pa_xstrdup("n/a");
-
 
         pa_strbuf_printf(
             s,

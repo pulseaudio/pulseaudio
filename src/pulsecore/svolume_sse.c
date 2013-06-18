@@ -73,7 +73,6 @@
       " por %%xmm4, "#s1"            \n\t" /* .. |  l  h |  */ \
       " por %%xmm5, "#s2"            \n\t"
 
-
 static int channel_overread_table[8] = {8,8,8,12,8,10,12,14};
 
 static void pa_volume_s16ne_sse2(int16_t *samples, const int32_t *volumes, unsigned channels, unsigned length) {

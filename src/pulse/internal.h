@@ -275,7 +275,6 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
             return -pa_context_set_error((context), (error)); \
     } while(FALSE)
 
-
 #define PA_CHECK_VALIDITY_RETURN_ANY(context, expression, error, value) \
     do {                                                                \
         if (!(expression)) {                                            \

@@ -275,7 +275,6 @@ struct pa_alsa_mixer_pdata {
     snd_mixer_t *mixer;
 };
 
-
 struct pa_alsa_mixer_pdata *pa_alsa_mixer_pdata_new(void) {
     struct pa_alsa_mixer_pdata *pd;
 
@@ -382,8 +381,6 @@ int pa_alsa_set_mixer_rtpoll(struct pa_alsa_mixer_pdata *pd, snd_mixer_t *mixer,
 
     return 0;
 }
-
-
 
 static const snd_mixer_selem_channel_id_t alsa_channel_ids[PA_CHANNEL_POSITION_MAX] = {
     [PA_CHANNEL_POSITION_MONO] = SND_MIXER_SCHN_MONO, /* The ALSA name is just an alias! */
@@ -1768,7 +1765,6 @@ finish:
     return j;
 }
 
-
 static pa_alsa_option* option_get(pa_alsa_path *p, const char *section) {
     char *en;
     const char *on;
@@ -3022,7 +3018,6 @@ void pa_alsa_path_set_dump(pa_alsa_path_set *ps) {
         pa_alsa_path_dump(p);
 }
 
-
 static pa_bool_t options_have_option(pa_alsa_option *options, const char *alsa_name) {
     pa_alsa_option *o;
 
@@ -3784,7 +3779,6 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
         pa_hashmap_remove_all(ps->paths, NULL);
         return;
     }
-
 
     PA_HASHMAP_FOREACH(p, ps->paths, state) {
         if (pa_alsa_path_probe(p, mixer_handle, hctl_handle, m->profile_set->ignore_dB) < 0) {

@@ -944,7 +944,6 @@ static int write_control_parameters(struct userdata *u, double *control_values, 
     return 0;
 }
 
-
 int pa__init(pa_module*m) {
     struct userdata *u;
     pa_sample_spec ss;
@@ -1144,7 +1143,6 @@ int pa__init(pa_module*m) {
             pa_xfree(pname);
         }
     }
-
 
     u->block_size = pa_frame_align(pa_mempool_block_size_max(m->core->mempool), &ss);
 

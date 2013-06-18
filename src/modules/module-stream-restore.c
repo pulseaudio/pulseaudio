@@ -144,7 +144,6 @@ enum {
     SUBCOMMAND_EVENT
 };
 
-
 static struct entry* entry_new(void);
 static void entry_free(struct entry *e);
 static struct entry *entry_read(struct userdata *u, const char *name);

@@ -35,7 +35,6 @@
 #include <pulsecore/sample-util.h>
 #include <pulsecore/mix.h>
 
-
 /* PA_SAMPLE_U8 */
 static const uint8_t u8_result[3][10] = {
 { 0x00, 0xff, 0x7f, 0x80, 0x9f, 0x3f, 0x01, 0xf0, 0x20, 0x21 },

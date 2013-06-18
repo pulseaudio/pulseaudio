@@ -160,7 +160,6 @@ PA_MODULE_USAGE("display_name=<UPnP Media Server name>");
     " </interface>"                                                     \
     "</node>"
 
-
 static const char* const valid_modargs[] = {
     "display_name",
     NULL

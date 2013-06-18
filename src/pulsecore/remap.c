@@ -178,7 +178,6 @@ static void init_remap_c(pa_remap_t *m) {
     }
 }
 
-
 /* default C implementation */
 static pa_init_remap_func_t remap_func = init_remap_c;
 

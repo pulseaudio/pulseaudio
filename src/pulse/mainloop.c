@@ -568,7 +568,6 @@ static void cleanup_defer_events(pa_mainloop *m, pa_bool_t force) {
     pa_assert(m->defer_events_please_scan == 0);
 }
 
-
 void pa_mainloop_free(pa_mainloop *m) {
     pa_assert(m);
 

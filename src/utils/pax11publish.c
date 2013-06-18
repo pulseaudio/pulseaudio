@@ -40,7 +40,6 @@
 #include <pulsecore/native-common.h>
 #include <pulsecore/x11prop.h>
 
-
 int main(int argc, char *argv[]) {
     const char *dname = NULL, *sink = NULL, *source = NULL, *server = NULL, *cookie_file = PA_NATIVE_COOKIE_FILE;
     int c, ret = 1, screen = 0;

@@ -1589,7 +1589,6 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
     return pa_sink_input_process_msg(o, code, userdata, offset, chunk);
 }
 
-
 static bool handle_input_underrun(playback_stream *s, bool force) {
     bool send_drain;
 
@@ -1624,7 +1623,6 @@ static bool sink_input_process_underrun_cb(pa_sink_input *i) {
 
     return handle_input_underrun(s, true);
 }
-
 
 /* Called from thread context */
 static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
@@ -2454,7 +2452,6 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
             CHECK_VALIDITY_GOTO(c->pstream, pa_format_info_valid(format), tag, PA_ERR_INVALID, finish);
         }
     }
-
 
     if (!pa_tagstruct_eof(t)) {
         protocol_error(c);

@@ -149,13 +149,11 @@ enum {
     SUBCOMMAND_EVENT
 };
 
-
 /* Forward declarations */
 #ifdef DUMP_DATABASE
 static void dump_database(struct userdata *);
 #endif
 static void notify_subscribers(struct userdata *);
-
 
 static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
     struct userdata *u = userdata;
@@ -631,7 +629,6 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
     }
 }
 
-
 static void route_sink_input(struct userdata *u, pa_sink_input *si) {
     const char *role;
     uint32_t role_index, device_index;
@@ -1003,7 +1000,6 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     return PA_HOOK_OK;
 }
 
-
 static pa_hook_result_t sink_put_hook_callback(pa_core *c, PA_GCC_UNUSED pa_sink *sink, struct userdata *u) {
     pa_assert(c);
     pa_assert(u);
@@ -1058,7 +1054,6 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
     return route_source_outputs(u, source);
 }
 
-
 static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
     uint32_t idx;
     char *n;
@@ -1100,7 +1095,6 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
         pa_xfree(n);
     }
 }
-
 
 #define EXT_VERSION 1
 
@@ -1599,7 +1593,6 @@ int pa__init(pa_module*m) {
         /* Register it */
         for (uint32_t j = 0; j < i; ++j)
             subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_NEW, p_i[j].index, u);
-
 
         /* We cycle over all the available sources so that they are added to our database if they are not in it yet */
         i = 0;

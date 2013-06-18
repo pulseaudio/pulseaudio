@@ -462,7 +462,6 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
-
 /* Called from main context */
 static int source_set_state_cb(pa_source *s, pa_source_state_t state) {
     struct userdata *u;
@@ -1300,7 +1299,6 @@ static void sink_input_attach_cb(pa_sink_input *i) {
 
     pa_sink_attach_within_thread(u->sink);
 }
-
 
 /* Called from source I/O thread context. */
 static void source_output_detach_cb(pa_source_output *o) {

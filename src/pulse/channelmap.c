@@ -392,7 +392,6 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, p
                     return NULL;
             }
 
-
         default:
             pa_assert_not_reached();
     }

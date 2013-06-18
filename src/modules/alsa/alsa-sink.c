@@ -580,7 +580,6 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
             break;
         }
 
-
         if (++j > 10) {
 #ifdef DEBUG_TIMING
             pa_log_debug("Not filling up, because already too many iterations.");
@@ -721,7 +720,6 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
         }
 
         n_bytes = (size_t) n * u->frame_size;
-
 
 #ifdef DEBUG_TIMING
         pa_log_debug("avail: %lu", (unsigned long) n_bytes);

@@ -1838,7 +1838,6 @@ static void context_index_callback(pa_pdispatch *pd, uint32_t command, uint32_t 
         cb(o->context, idx, o->userdata);
     }
 
-
 finish:
     pa_operation_done(o);
     pa_operation_unref(o);

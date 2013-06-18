@@ -1282,7 +1282,6 @@ static int pa_cli_command_play_file(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
         return -1;
     }
 
-
     return pa_play_file(sink, fname, NULL);
 }
 

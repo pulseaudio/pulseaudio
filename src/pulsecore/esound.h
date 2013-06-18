@@ -24,7 +24,6 @@
 
 /* Most of the following is blatantly stolen from esound. */
 
-
 /* path and name of the default EsounD domain socket */
 #define ESD_UNIX_SOCKET_DIR     "/tmp/.esd"
 #define ESD_UNIX_SOCKET_NAME    "/tmp/.esd/socket"
@@ -50,7 +49,6 @@
 #define ESD_ENDIAN_KEY ((uint32_t) (('E' << 24) + ('N' << 16) + ('D' << 8) + ('N')))
 
 #define ESD_VOLUME_BASE (256)
-
 
 /*************************************/
 /* what can we do to/with the EsounD */
@@ -204,6 +202,5 @@ typedef int esd_client_state_t;
 /* and matches ESD_ENDIAN_KEY (ENDN), then the endianness of the */
 /* server and the client match; if it's SWAP_ENDIAN_KEY, swap data */
 #define ESD_SWAP_ENDIAN_KEY (PA_UINT32_SWAP(ESD_ENDIAN_KEY))
-
 
 #endif

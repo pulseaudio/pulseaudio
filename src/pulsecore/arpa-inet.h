@@ -1,7 +1,6 @@
 #ifndef fooarpa_inethfoo
 #define fooarpa_inethfoo
 
-
 #if defined(HAVE_ARPA_INET_H)
 
 #include <arpa/inet.h>
@@ -18,6 +17,5 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt);
 int inet_pton(int af, const char *src, void *dst);
 
 #endif
-
 
 #endif

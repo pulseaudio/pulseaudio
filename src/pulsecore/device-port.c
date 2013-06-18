@@ -105,7 +105,6 @@ static void device_port_free(pa_object *o) {
     pa_xfree(p);
 }
 
-
 pa_device_port *pa_device_port_new(pa_core *c, pa_device_port_new_data *data, size_t extra) {
     pa_device_port *p;
 

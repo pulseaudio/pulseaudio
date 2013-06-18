@@ -715,7 +715,6 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
         printf("\n");
     nl = TRUE;
 
-
     pa_snprintf(t, sizeof(t), "%u", i->owner_module);
     pa_snprintf(k, sizeof(k), "%u", i->client);
 

@@ -28,7 +28,6 @@
 
 /* Similar to pa_asyncq, but stores data in a shared memory segment */
 
-
 struct pa_shmasyncq_data {
     unsigned n_elements;
     size_t element_size;

@@ -50,5 +50,4 @@ int pa_fdsem_get(pa_fdsem *f);
 int pa_fdsem_before_poll(pa_fdsem *f);
 int pa_fdsem_after_poll(pa_fdsem *f);
 
-
 #endif

@@ -346,7 +346,6 @@ static int update_matches(struct userdata *u, bool add) {
     } else
         dbus_bus_remove_match(pa_dbus_connection_get(u->dbus_connection), filter1, NULL);
 
-
     if (add) {
         dbus_bus_add_match(pa_dbus_connection_get(u->dbus_connection), filter2, &e);
 

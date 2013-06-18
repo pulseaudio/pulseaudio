@@ -153,7 +153,6 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
 
 }
 
-
 /* Called from I/O thread context */
 static void sink_request_rewind_cb(pa_sink *s) {
     struct userdata *u;
@@ -349,7 +348,6 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         pa_source_post(u->source, chunk);
     }
 
-
 }
 
 /* Called from input thread context */
@@ -466,7 +464,6 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
         pa_proplist_free(pl);
     }
 }
-
 
 int pa__init(pa_module*m) {
     struct userdata *u;

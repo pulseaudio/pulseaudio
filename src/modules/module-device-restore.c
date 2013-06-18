@@ -111,7 +111,6 @@ enum {
     SUBCOMMAND_SAVE_FORMATS
 };
 
-
 #define ENTRY_VERSION 1
 
 struct entry {
@@ -172,7 +171,6 @@ static void trigger_save(struct userdata *u, pa_device_type_t type, uint32_t sin
 
     u->save_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, save_time_callback, u);
 }
-
 
 #ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
 /* Some forward declarations */
@@ -685,7 +683,6 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         }
     }
 
-
     pa_assert(e);
 
     if (olde) {
@@ -705,7 +702,6 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         entry_free(e);
     }
-
 
     pa_assert(ppe);
 

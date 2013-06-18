@@ -517,12 +517,10 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             return 0;
 
-
         case SINK_MESSAGE_REMOTE_SUSPEND:
 
             stream_suspend_within_thread(u, !!PA_PTR_TO_UINT(data));
             return 0;
-
 
         case SINK_MESSAGE_UPDATE_LATENCY: {
             pa_usec_t y;
@@ -1028,7 +1026,6 @@ static int read_ports(struct userdata *u, pa_tagstruct *t) {
     }
     return 0;
 }
-
 
 static int read_formats(struct userdata *u, pa_tagstruct *t) {
     uint8_t n_formats;

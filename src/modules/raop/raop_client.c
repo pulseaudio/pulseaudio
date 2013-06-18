@@ -70,7 +70,6 @@
 
 #define RAOP_PORT 5000
 
-
 struct pa_raop_client {
     pa_core *core;
     char *host;
@@ -392,7 +391,6 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char* host) {
     return c;
 }
 
-
 void pa_raop_client_free(pa_raop_client* c) {
     pa_assert(c);
 
@@ -403,7 +401,6 @@ void pa_raop_client_free(pa_raop_client* c) {
     pa_xfree(c->host);
     pa_xfree(c);
 }
-
 
 int pa_raop_connect(pa_raop_client* c) {
     char *sci;
@@ -438,14 +435,12 @@ int pa_raop_connect(pa_raop_client* c) {
     return pa_rtsp_connect(c->rtsp);
 }
 
-
 int pa_raop_flush(pa_raop_client* c) {
     pa_assert(c);
 
     pa_rtsp_flush(c->rtsp, c->seq, c->rtptime);
     return 0;
 }
-
 
 int pa_raop_client_set_volume(pa_raop_client* c, pa_volume_t volume) {
     int rv;
@@ -467,7 +462,6 @@ int pa_raop_client_set_volume(pa_raop_client* c, pa_volume_t volume) {
     pa_xfree(param);
     return rv;
 }
-
 
 int pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw, pa_memchunk* encoded) {
     uint16_t len;
@@ -549,7 +543,6 @@ int pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw, pa_memchun
 
     return 0;
 }
-
 
 void pa_raop_client_set_callback(pa_raop_client* c, pa_raop_client_cb_t callback, void *userdata) {
     pa_assert(c);

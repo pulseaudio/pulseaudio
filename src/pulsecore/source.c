@@ -2779,7 +2779,6 @@ pa_bool_t pa_source_volume_change_apply(pa_source *s, pa_usec_t *usec_to_next) {
     return ret;
 }
 
-
 /* Called from the main thread */
 /* Gets the list of formats supported by the source. The members and idxset must
  * be freed by the caller. */

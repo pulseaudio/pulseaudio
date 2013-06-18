@@ -37,7 +37,6 @@
 
 typedef struct pa_memblockq pa_memblockq;
 
-
 /* Parameters:
 
    - name:      name for debugging purposes

@@ -194,7 +194,6 @@ static void pa_mix_generic_s16ne(pa_mix_info streams[], unsigned nstreams, unsig
     }
 }
 
-
 #define SAMPLES 1028
 #define TIMES 1000
 #define TIMES2 100
