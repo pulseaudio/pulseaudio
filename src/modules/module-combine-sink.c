@@ -923,8 +923,6 @@ static void output_free(struct output *o) {
     pa_assert(o);
 
     output_disable(o);
-
-    pa_assert_se(pa_idxset_remove_by_data(o->userdata->outputs, o, NULL));
     update_description(o->userdata);
 
     if (o->inq_rtpoll_item_read)
