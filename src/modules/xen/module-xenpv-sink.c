@@ -332,7 +332,7 @@ static void thread_func(void *userdata) {
 
     pa_thread_mq_install(&u->thread_mq);
 
-    for(;;){
+    for(;;) {
         struct pollfd *pollfd;
         int ret;
 

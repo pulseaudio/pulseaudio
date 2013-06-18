@@ -904,7 +904,7 @@ pa_cvolume* pa_cvolume_inc_clamp(pa_cvolume *v, pa_volume_t inc, pa_volume_t lim
     return pa_cvolume_scale(v, m);
 }
 
-pa_cvolume* pa_cvolume_inc(pa_cvolume *v, pa_volume_t inc){
+pa_cvolume* pa_cvolume_inc(pa_cvolume *v, pa_volume_t inc) {
     return pa_cvolume_inc_clamp(v, inc, PA_VOLUME_MAX);
 }
 

@@ -86,7 +86,7 @@ static int bind_now_close(lt_user_data d, lt_module m) {
 
     pa_assert(m);
 
-    if (dlclose(m) != 0){
+    if (dlclose(m) != 0) {
         lt_dlseterror(LT_ERROR_CANNOT_CLOSE);
         return 1;
     }

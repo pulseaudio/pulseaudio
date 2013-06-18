@@ -61,7 +61,7 @@ struct userdata {
     pa_x11_wrapper *x11;
 };
 
-static void die_cb(SmcConn connection, SmPointer client_data){
+static void die_cb(SmcConn connection, SmPointer client_data) {
     struct userdata *u = client_data;
     pa_assert(u);
 

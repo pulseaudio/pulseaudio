@@ -1605,7 +1605,7 @@ int main(int argc, char *argv[]) {
         else if (pa_streq(argv[optind], "list")) {
             action = LIST;
 
-            for (int i = optind+1; i < argc; i++){
+            for (int i = optind+1; i < argc; i++) {
                 if (pa_streq(argv[i], "modules") || pa_streq(argv[i], "clients") ||
                     pa_streq(argv[i], "sinks")   || pa_streq(argv[i], "sink-inputs") ||
                     pa_streq(argv[i], "sources") || pa_streq(argv[i], "source-outputs") ||

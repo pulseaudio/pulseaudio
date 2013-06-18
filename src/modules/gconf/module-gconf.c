@@ -215,7 +215,7 @@ static int handle_event(struct userdata *u) {
     int ret = 0;
 
     do {
-        if ((opcode = read_byte(u)) < 0){
+        if ((opcode = read_byte(u)) < 0) {
             if (errno == EINTR || errno == EAGAIN)
                 break;
             goto fail;

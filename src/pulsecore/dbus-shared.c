@@ -73,7 +73,7 @@ pa_dbus_connection* pa_dbus_bus_get(pa_core *c, DBusBusType type, DBusError *err
     return dbus_connection_new(c, conn, prop_name[type]);
 }
 
-DBusConnection* pa_dbus_connection_get(pa_dbus_connection *c){
+DBusConnection* pa_dbus_connection_get(pa_dbus_connection *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) > 0);
     pa_assert(c->connection);
