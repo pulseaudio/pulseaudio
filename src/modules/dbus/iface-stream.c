@@ -692,8 +692,8 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
             new_device_path = pa_dbusiface_core_get_sink_path(s->core, new_sink);
 
             pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
-                                  PA_DBUSIFACE_STREAM_INTERFACE,
-                                  signals[SIGNAL_DEVICE_UPDATED].name));
+                                                              PA_DBUSIFACE_STREAM_INTERFACE,
+                                                              signals[SIGNAL_DEVICE_UPDATED].name));
             pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &new_device_path, DBUS_TYPE_INVALID));
 
             pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
@@ -710,8 +710,8 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
             new_device_path = pa_dbusiface_core_get_source_path(s->core, new_source);
 
             pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
-                                  PA_DBUSIFACE_STREAM_INTERFACE,
-                                  signals[SIGNAL_DEVICE_UPDATED].name));
+                                                              PA_DBUSIFACE_STREAM_INTERFACE,
+                                                              signals[SIGNAL_DEVICE_UPDATED].name));
             pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &new_device_path, DBUS_TYPE_INVALID));
 
             pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
@@ -726,8 +726,8 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
         s->sample_rate = new_sample_rate;
 
         pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
-                              PA_DBUSIFACE_STREAM_INTERFACE,
-                              signals[SIGNAL_SAMPLE_RATE_UPDATED].name));
+                                                          PA_DBUSIFACE_STREAM_INTERFACE,
+                                                          signals[SIGNAL_SAMPLE_RATE_UPDATED].name));
         pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_UINT32, &s->sample_rate, DBUS_TYPE_INVALID));
 
         pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
@@ -771,8 +771,8 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
             s->mute = new_mute;
 
             pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
-                                  PA_DBUSIFACE_STREAM_INTERFACE,
-                                  signals[SIGNAL_MUTE_UPDATED].name));
+                                                              PA_DBUSIFACE_STREAM_INTERFACE,
+                                                              signals[SIGNAL_MUTE_UPDATED].name));
             pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_BOOLEAN, &s->mute, DBUS_TYPE_INVALID));
 
             pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
@@ -789,8 +789,8 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
         pa_proplist_update(s->proplist, PA_UPDATE_SET, new_proplist);
 
         pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
-                              PA_DBUSIFACE_STREAM_INTERFACE,
-                              signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
+                                                          PA_DBUSIFACE_STREAM_INTERFACE,
+                                                          signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
         dbus_message_iter_init_append(signal_msg, &msg_iter);
         pa_dbus_append_proplist(&msg_iter, s->proplist);
 
@@ -829,8 +829,8 @@ static pa_hook_result_t send_event_cb(void *hook_data, void *call_data, void *sl
     }
 
     pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
-                              PA_DBUSIFACE_STREAM_INTERFACE,
-                              signals[SIGNAL_STREAM_EVENT].name));
+                                                      PA_DBUSIFACE_STREAM_INTERFACE,
+                                                      signals[SIGNAL_STREAM_EVENT].name));
     dbus_message_iter_init_append(signal_msg, &msg_iter);
     pa_assert_se(dbus_message_iter_append_basic(&msg_iter, DBUS_TYPE_STRING, &name));
     pa_dbus_append_proplist(&msg_iter, property_list);

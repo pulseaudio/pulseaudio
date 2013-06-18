@@ -796,7 +796,7 @@ static int wait_for_backend_state_change() {
             free(buf);
             free(vec);
         }
-        /* else: timeout */
+    /* else: timeout */
     } while (backend_state == STATE_UNDEFINED && \
             (now = time(NULL)) < start + seconds);
 
