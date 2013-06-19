@@ -110,6 +110,7 @@ pa_device_port *pa_device_port_new(pa_core *c, pa_device_port_new_data *data, si
 
     pa_assert(data);
     pa_assert(data->name);
+    pa_assert(data->description);
     pa_assert(data->direction == PA_DIRECTION_OUTPUT || data->direction == PA_DIRECTION_INPUT);
 
     p = PA_DEVICE_PORT(pa_object_new_internal(PA_ALIGN(sizeof(pa_device_port)) + extra, pa_device_port_type_id, pa_device_port_check_type));
