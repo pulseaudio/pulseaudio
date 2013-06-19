@@ -80,12 +80,11 @@ typedef struct pa_daemon_conf {
     pa_server_type_t local_server_type;
     int exit_idle_time,
         scache_idle_time,
-        auto_log_target,
         realtime_priority,
         nice_level,
         resample_method;
     char *script_commands, *dl_search_path, *default_script_file;
-    pa_log_target_t log_target;
+    pa_log_target *log_target;
     pa_log_level_t log_level;
     unsigned log_backtrace;
     char *config_file;

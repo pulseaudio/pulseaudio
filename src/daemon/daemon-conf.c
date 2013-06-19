@@ -73,12 +73,11 @@ static const pa_daemon_conf default_conf = {
     .flat_volumes = TRUE,
     .exit_idle_time = 20,
     .scache_idle_time = 20,
-    .auto_log_target = 1,
     .script_commands = NULL,
     .dl_search_path = NULL,
     .load_default_script_file = TRUE,
     .default_script_file = NULL,
-    .log_target = PA_LOG_SYSLOG,
+    .log_target = NULL,
     .log_level = PA_LOG_NOTICE,
     .log_backtrace = 0,
     .log_meta = FALSE,
@@ -167,77 +166,31 @@ pa_daemon_conf *pa_daemon_conf_new(void) {
 void pa_daemon_conf_free(pa_daemon_conf *c) {
     pa_assert(c);
 
-    pa_log_set_fd(-1);
-
     pa_xfree(c->script_commands);
     pa_xfree(c->dl_search_path);
     pa_xfree(c->default_script_file);
+
+    if (c->log_target)
+        pa_log_target_free(c->log_target);
+
     pa_xfree(c->config_file);
     pa_xfree(c);
 }
 
-#define PA_LOG_MAX_SUFFIX_NUMBER 100
-
 int pa_daemon_conf_set_log_target(pa_daemon_conf *c, const char *string) {
+    pa_log_target *log_target = NULL;
+
     pa_assert(c);
     pa_assert(string);
 
-    if (pa_streq(string, "auto"))
-        c->auto_log_target = 1;
-    else if (pa_streq(string, "syslog")) {
-        c->auto_log_target = 0;
-        c->log_target = PA_LOG_SYSLOG;
-    } else if (pa_streq(string, "stderr")) {
-        c->auto_log_target = 0;
-        c->log_target = PA_LOG_STDERR;
-    } else if (pa_startswith(string, "file:")) {
-        char file_path[512];
-        int log_fd;
+    if (!pa_streq(string, "auto")) {
+        log_target = pa_log_parse_target(string);
 
-        pa_strlcpy(file_path, string + 5, sizeof(file_path));
-
-        /* Open target file with user rights */
-        if ((log_fd = open(file_path, O_RDWR|O_TRUNC|O_CREAT, S_IRUSR | S_IWUSR)) >= 0) {
-             c->auto_log_target = 0;
-             c->log_target = PA_LOG_FD;
-             pa_log_set_fd(log_fd);
-        } else {
-            printf("Failed to open target file %s, error : %s\n", file_path, pa_cstrerror(errno));
+        if (!log_target)
             return -1;
-        }
-    } else if (pa_startswith(string, "newfile:")) {
-        char file_path[512];
-        int log_fd;
-        int version = 0;
-        int left_size;
-        char *p;
+    }
 
-        pa_strlcpy(file_path, string + 8, sizeof(file_path));
-
-        left_size = sizeof(file_path) - strlen(file_path);
-        p = file_path + strlen(file_path);
-
-        do {
-            memset(p, 0, left_size);
-
-            if (version > 0)
-                pa_snprintf(p, left_size, ".%d", version);
-        } while (++version <= PA_LOG_MAX_SUFFIX_NUMBER &&
-                 (log_fd = open(file_path, O_RDWR|O_TRUNC|O_CREAT|O_EXCL, S_IRUSR | S_IWUSR)) < 0);
-
-        if (version > PA_LOG_MAX_SUFFIX_NUMBER) {
-            memset(p, 0, left_size);
-            printf("Tried to open target files '%s', '%s.1', '%s.2' ... '%s.%d', but all failed.\n",
-                   file_path, file_path, file_path, file_path, PA_LOG_MAX_SUFFIX_NUMBER - 1);
-            return -1;
-        } else {
-            printf("Opened target file %s\n", file_path);
-            c->auto_log_target = 0;
-            c->log_target = PA_LOG_FD;
-            pa_log_set_fd(log_fd);
-        }
-    } else
-        return -1;
+    c->log_target = log_target;
 
     return 0;
 }
@@ -755,6 +708,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
 
     pa_strbuf *s;
     char cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    char *log_target = NULL;
 
     pa_assert(c);
 
@@ -764,6 +718,9 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
         pa_strbuf_printf(s, _("### Read from configuration file: %s ###\n"), c->config_file);
 
     pa_assert(c->log_level < PA_LOG_LEVEL_MAX);
+
+    if (c->log_target)
+        log_target = pa_log_target_to_string(c->log_target);
 
     pa_strbuf_printf(s, "daemonize = %s\n", pa_yes_no(c->daemonize));
     pa_strbuf_printf(s, "fail = %s\n", pa_yes_no(c->fail));
@@ -787,7 +744,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "dl-search-path = %s\n", pa_strempty(c->dl_search_path));
     pa_strbuf_printf(s, "default-script-file = %s\n", pa_strempty(pa_daemon_conf_get_default_script_file(c)));
     pa_strbuf_printf(s, "load-default-script-file = %s\n", pa_yes_no(c->load_default_script_file));
-    pa_strbuf_printf(s, "log-target = %s\n", c->auto_log_target ? "auto" : (c->log_target == PA_LOG_SYSLOG ? "syslog" : "stderr"));
+    pa_strbuf_printf(s, "log-target = %s\n", pa_strempty(log_target));
     pa_strbuf_printf(s, "log-level = %s\n", log_level_to_string[c->log_level]);
     pa_strbuf_printf(s, "resample-method = %s\n", pa_resample_method_to_string(c->resample_method));
     pa_strbuf_printf(s, "enable-remixing = %s\n", pa_yes_no(!c->disable_remixing));
@@ -845,6 +802,8 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "rlimit-rttime = %li\n", c->rlimit_rttime.is_set ? (long int) c->rlimit_rttime.value : -1);
 #endif
 #endif
+
+    pa_xfree(log_target);
 
     return pa_strbuf_tostring_free(s);
 }

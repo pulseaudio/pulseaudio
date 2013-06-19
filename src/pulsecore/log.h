@@ -32,13 +32,13 @@
 /* A simple logging subsystem */
 
 /* Where to log to */
-typedef enum pa_log_target {
-    PA_LOG_STDERR,  /* default */
+typedef enum pa_log_target_type {
+    PA_LOG_STDERR,      /* default */
     PA_LOG_SYSLOG,
-    PA_LOG_NULL,    /* to /dev/null */
-    PA_LOG_FD,      /* to a file descriptor, e.g. a char device */
-    PA_LOG_TARGET_MAX
-} pa_log_target_t;
+    PA_LOG_NULL,        /* to /dev/null */
+    PA_LOG_FILE,        /* to a user specified file */
+    PA_LOG_NEWFILE,     /* with an automatic suffix to avoid overwriting anything */
+} pa_log_target_type_t;
 
 typedef enum pa_log_level {
     PA_LOG_ERROR  = 0,    /* Error messages */
@@ -63,11 +63,16 @@ typedef enum pa_log_merge {
     PA_LOG_RESET
 } pa_log_merge_t;
 
+typedef struct {
+    pa_log_target_type_t type;
+    char *file;
+} pa_log_target;
+
 /* Set an identification for the current daemon. Used when logging to syslog. */
 void pa_log_set_ident(const char *p);
 
 /* Set a log target. */
-void pa_log_set_target(pa_log_target_t t);
+int pa_log_set_target(pa_log_target *t);
 
 /* Maximal log level */
 void pa_log_set_level(pa_log_level_t l);
@@ -108,6 +113,14 @@ void pa_log_levelv(
         pa_log_level_t level,
         const char *format,
         va_list ap);
+
+pa_log_target *pa_log_target_new(pa_log_target_type_t type, const char *file);
+
+void pa_log_target_free(pa_log_target *t);
+
+pa_log_target *pa_log_parse_target(const char *string);
+
+char *pa_log_target_to_string(const pa_log_target *t);
 
 #if __STDC_VERSION__ >= 199901L
 

@@ -188,7 +188,7 @@ static const struct command commands[] = {
     { "kill-client",             pa_cli_command_kill_client,        "Kill a client (args: index)", 2},
     { "kill-sink-input",         pa_cli_command_kill_sink_input,    "Kill a sink input (args: index)", 2},
     { "kill-source-output",      pa_cli_command_kill_source_output, "Kill a source output (args: index)", 2},
-    { "set-log-target",          pa_cli_command_log_target,         "Change the log target (args: null,auto,syslog,stderr,file:PATH)", 2},
+    { "set-log-target",          pa_cli_command_log_target,         "Change the log target (args: null|auto|syslog|stderr|file:PATH|newfile:PATH)", 2},
     { "set-log-level",           pa_cli_command_log_level,          "Change the log level (args: numeric level)", 2},
     { "set-log-meta",            pa_cli_command_log_meta,           "Show source code location in log messages (args: bool)", 2},
     { "set-log-time",            pa_cli_command_log_time,           "Show timestamps in log messages (args: bool)", 2},
@@ -1501,6 +1501,7 @@ static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, p
 
 static int pa_cli_command_log_target(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     const char *m;
+    pa_log_target *log_target = NULL;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -1508,33 +1509,29 @@ static int pa_cli_command_log_target(pa_core *c, pa_tokenizer *t, pa_strbuf *buf
     pa_assert(fail);
 
     if (!(m = pa_tokenizer_get(t, 1))) {
-        pa_strbuf_puts(buf, "You need to specify a log target (null,auto,syslog,stderr,file:PATH).\n");
+        pa_strbuf_puts(buf, "You need to specify a log target (null|auto|syslog|stderr|file:PATH|newfile:PATH).\n");
         return -1;
     }
 
-    if (pa_streq(m, "null"))
-        pa_log_set_target(PA_LOG_NULL);
-    else if (pa_streq(m, "syslog"))
-        pa_log_set_target(PA_LOG_SYSLOG);
-    else if (pa_streq(m, "stderr") || pa_streq(m, "auto")) {
-        /* 'auto' is actually the effect with 'stderr' */
-        pa_log_set_target(PA_LOG_STDERR);
-    } else if (pa_startswith(m, "file:")) {
-        const char *file_path = m + 5;
-        int log_fd;
+    /* 'auto' is actually the effect with 'stderr' */
+    if (pa_streq(m, "auto"))
+        log_target = pa_log_target_new(PA_LOG_STDERR, NULL);
+    else {
+        log_target = pa_log_parse_target(m);
 
-        /* Open target file with user rights */
-        if ((log_fd = open(file_path, O_RDWR|O_TRUNC|O_CREAT, S_IRUSR | S_IWUSR)) >= 0) {
-            pa_log_set_target(PA_LOG_FD);
-            pa_log_set_fd(log_fd);
-        } else {
-            pa_strbuf_printf(buf, "Failed to open target file %s, error : %s\n", file_path, pa_cstrerror(errno));
+        if (!log_target) {
+            pa_strbuf_puts(buf, "Invalid log target.\n");
             return -1;
         }
-    } else {
-        pa_strbuf_puts(buf, "You need to specify a log target (null,auto,syslog,stderr,file:PATH).\n");
+    }
+
+    if (pa_log_set_target(log_target) < 0) {
+        pa_strbuf_puts(buf, "Failed to set log target.\n");
+        pa_log_target_free(log_target);
         return -1;
     }
+
+    pa_log_target_free(log_target);
 
     return 0;
 }

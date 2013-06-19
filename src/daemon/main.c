@@ -499,8 +499,14 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 
+    if (conf->log_target)
+        pa_log_set_target(conf->log_target);
+    else {
+        pa_log_target target = { .type = PA_LOG_STDERR, .file = NULL };
+        pa_log_set_target(&target);
+    }
+
     pa_log_set_level(conf->log_level);
-    pa_log_set_target(conf->auto_log_target ? PA_LOG_STDERR : conf->log_target);
     if (conf->log_meta)
         pa_log_set_flags(PA_LOG_PRINT_META, PA_LOG_SET);
     if (conf->log_time)
@@ -810,8 +816,10 @@ int main(int argc, char *argv[]) {
         daemon_pipe[0] = -1;
 #endif
 
-        if (conf->auto_log_target)
-            pa_log_set_target(PA_LOG_SYSLOG);
+        if (!conf->log_target) {
+            pa_log_target target = { .type = PA_LOG_SYSLOG, .file = NULL };
+            pa_log_set_target(&target);
+        }
 
 #ifdef HAVE_SETSID
         if (setsid() < 0) {
@@ -1042,7 +1050,7 @@ int main(int argc, char *argv[]) {
             c->cpu_info.cpu_type = PA_CPU_X86;
         if (pa_cpu_init_arm(&(c->cpu_info.flags.arm)))
             c->cpu_info.cpu_type = PA_CPU_ARM;
-	pa_cpu_init_orc(c->cpu_info);
+        pa_cpu_init_orc(c->cpu_info);
     }
 
     pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);
