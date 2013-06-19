@@ -40,7 +40,7 @@ pa_object *pa_object_new_internal(size_t size, const char *type_id, pa_bool_t (*
     pa_assert(check_type(type_id));
     pa_assert(check_type(pa_object_type_id));
 
-    o = pa_xmalloc(size);
+    o = pa_xmalloc0(size);
     PA_REFCNT_INIT(o);
     o->type_id = type_id;
     o->free = pa_object_free;
