@@ -466,12 +466,23 @@ void pa_log_levelv_meta(
 
             case PA_LOG_FILE:
             case PA_LOG_NEWFILE: {
+                char *local_t;
+
+                if ((local_t = pa_utf8_to_locale(t)))
+                    t = local_t;
+
                 if (log_fd >= 0) {
                     char metadata[256];
 
-                    pa_snprintf(metadata, sizeof(metadata), "\n%c %s %s", level_to_char[level], timestamp, location);
+                    if (_flags & PA_LOG_PRINT_LEVEL)
+                        pa_snprintf(metadata, sizeof(metadata), "%s%c: %s", timestamp, level_to_char[level], location);
+                    else
+                        pa_snprintf(metadata, sizeof(metadata), "%s%s", timestamp, location);
 
-                    if ((pa_write(log_fd, metadata, strlen(metadata), &write_type) < 0) || (pa_write(log_fd, t, strlen(t), &write_type) < 0)) {
+                    if ((pa_write(log_fd, metadata, strlen(metadata), &write_type) < 0)
+                            || (pa_write(log_fd, t, strlen(t), &write_type) < 0)
+                            || (bt && pa_write(log_fd, bt, strlen(bt), &write_type) < 0)
+                            || (pa_write(log_fd, "\n", 1, &write_type) < 0)) {
                         pa_log_target new_target = { .type = PA_LOG_STDERR, .file = NULL };
                         saved_errno = errno;
                         fprintf(stderr, "%s\n", "Error writing logs to a file descriptor. Redirect log messages to console.");
@@ -479,6 +490,8 @@ void pa_log_levelv_meta(
                         pa_log_set_target(&new_target);
                     }
                 }
+
+                pa_xfree(local_t);
 
                 break;
             }
