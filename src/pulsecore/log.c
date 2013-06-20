@@ -77,6 +77,7 @@ static unsigned show_backtrace = 0, show_backtrace_override = 0, skip_backtrace 
 static pa_log_flags_t flags = 0, flags_override = 0;
 static bool no_rate_limit = false;
 static int log_fd = -1;
+static int write_type = 0;
 
 #ifdef HAVE_SYSLOG_H
 static const int level_to_syslog[] = {
@@ -470,7 +471,7 @@ void pa_log_levelv_meta(
 
                     pa_snprintf(metadata, sizeof(metadata), "\n%c %s %s", level_to_char[level], timestamp, location);
 
-                    if ((write(log_fd, metadata, strlen(metadata)) < 0) || (write(log_fd, t, strlen(t)) < 0)) {
+                    if ((pa_write(log_fd, metadata, strlen(metadata), &write_type) < 0) || (pa_write(log_fd, t, strlen(t), &write_type) < 0)) {
                         pa_log_target new_target = { .type = PA_LOG_STDERR, .file = NULL };
                         saved_errno = errno;
                         fprintf(stderr, "%s\n", "Error writing logs to a file descriptor. Redirect log messages to console.");
