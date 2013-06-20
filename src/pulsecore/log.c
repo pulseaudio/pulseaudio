@@ -155,7 +155,7 @@ int pa_log_set_target(pa_log_target *t) {
 
             if (version > LOG_MAX_SUFFIX_NUMBER) {
                 pa_log(_("Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."),
-                        file_path, file_path, file_path, file_path, LOG_MAX_SUFFIX_NUMBER);
+                        t->file, t->file, t->file, t->file, LOG_MAX_SUFFIX_NUMBER);
                 pa_xfree(file_path);
                 return -1;
             } else
