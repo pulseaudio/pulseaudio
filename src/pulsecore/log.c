@@ -190,15 +190,6 @@ void pa_log_set_flags(pa_log_flags_t _flags, pa_log_merge_t merge) {
         flags = _flags;
 }
 
-void pa_log_set_fd(int fd) {
-    if (fd >= 0)
-        log_fd = fd;
-    else if (log_fd >= 0) {
-        pa_close(log_fd);
-        log_fd = -1;
-    }
-}
-
 void pa_log_set_show_backtrace(unsigned nlevels) {
     show_backtrace = nlevels;
 }
@@ -482,7 +473,6 @@ void pa_log_levelv_meta(
                     if ((write(log_fd, metadata, strlen(metadata)) < 0) || (write(log_fd, t, strlen(t)) < 0)) {
                         pa_log_target new_target = { .type = PA_LOG_STDERR, .file = NULL };
                         saved_errno = errno;
-                        pa_log_set_fd(-1);
                         fprintf(stderr, "%s\n", "Error writing logs to a file descriptor. Redirect log messages to console.");
                         fprintf(stderr, "%s %s\n", metadata, t);
                         pa_log_set_target(&new_target);
