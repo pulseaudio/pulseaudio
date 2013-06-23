@@ -731,12 +731,12 @@ static int set_scheduler(int rtprio) {
         r = getrlimit(RLIMIT_RTTIME, &rl);
 
         if (r >= 0 && (long long) rl.rlim_max > rttime) {
-            pa_log_warn("Clamping rlimit-rttime to %lld for RealtimeKit\n", rttime);
+            pa_log_info("Clamping rlimit-rttime to %lld for RealtimeKit\n", rttime);
             rl.rlim_cur = rl.rlim_max = rttime;
             r = setrlimit(RLIMIT_RTTIME, &rl);
 
             if (r < 0)
-                pa_log_info("setrlimit() failed: %s", pa_cstrerror(errno));
+                pa_log("setrlimit() failed: %s", pa_cstrerror(errno));
         }
 #endif
         r = rtkit_make_realtime(bus, 0, rtprio);
