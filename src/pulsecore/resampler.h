@@ -28,6 +28,15 @@
 #include <pulsecore/memchunk.h>
 
 typedef struct pa_resampler pa_resampler;
+typedef struct pa_resampler_impl pa_resampler_impl;
+
+struct pa_resampler_impl {
+    void (*free)(pa_resampler *r);
+    void (*update_rates)(pa_resampler *r);
+    void (*resample)(pa_resampler *r, const pa_memchunk *in, unsigned in_samples, pa_memchunk *out, unsigned *out_samples);
+    void (*reset)(pa_resampler *r);
+    void *data;
+};
 
 typedef enum pa_resample_method {
     PA_RESAMPLER_INVALID                 = -1,
