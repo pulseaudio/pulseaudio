@@ -235,7 +235,7 @@ static int do_write(connection *c) {
 
     pa_memblockq_drop(c->output_memblockq, (size_t) r);
 
-    return 0;
+    return 1;
 }
 
 static void do_work(connection *c) {
@@ -251,9 +251,13 @@ static void do_work(connection *c) {
     if (!c->sink_input && pa_iochannel_is_hungup(c->io))
         goto fail;
 
-    if (pa_iochannel_is_writable(c->io))
-        if (do_write(c) < 0)
+    while (pa_iochannel_is_writable(c->io)) {
+        int r = do_write(c);
+        if (r < 0)
             goto fail;
+        if (r == 0)
+            break;
+    }
 
     return;
 

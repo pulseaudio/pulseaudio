@@ -1196,10 +1196,6 @@ static int do_write(connection *c) {
 
         pa_assert(c->write_data_index < c->write_data_length);
         if ((r = pa_iochannel_write(c->io, (uint8_t*) c->write_data+c->write_data_index, c->write_data_length-c->write_data_index)) < 0) {
-
-            if (r < 0 && (errno == EINTR || errno == EAGAIN))
-                return 0;
-
             pa_log("write(): %s", pa_cstrerror(errno));
             return -1;
         }
@@ -1207,6 +1203,8 @@ static int do_write(connection *c) {
         c->write_data_index += (size_t) r;
         if (c->write_data_index >= c->write_data_length)
             c->write_data_length = c->write_data_index = 0;
+
+        return 1;
 
     } else if (c->state == ESD_STREAMING_DATA && c->source_output) {
         pa_memchunk chunk;
@@ -1231,6 +1229,7 @@ static int do_write(connection *c) {
         }
 
         pa_memblockq_drop(c->output_memblockq, (size_t) r);
+        return 1;
     }
 
     return 0;
@@ -1254,9 +1253,13 @@ static void do_work(connection *c) {
          * here, instead of simply waiting for read() to return 0. */
         goto fail;
 
-    if (pa_iochannel_is_writable(c->io))
-        if (do_write(c) < 0)
+    while (pa_iochannel_is_writable(c->io)) {
+        int r = do_write(c);
+        if (r < 0)
             goto fail;
+        if (r == 0)
+            break;
+    }
 
     return;
 
