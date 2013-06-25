@@ -13,6 +13,13 @@ Since the PulseAudio daemon, tests, various utilities/helpers and the modules
 link to libpulsecore and/or the afore mentioned optional GPL dependencies they
 are of course also GPL licensed also in this scenario.
 
+In addition to this, if D-Bus support is enabled, the PulseAudio client library
+(libpulse) MAY need to be licensed under the GPL, depending on the license
+adopted for libdbus. libdbus is licensed under either of the Academic Free
+License 2.1 or GPL 2.0 or above. Which of these applies is your choice, and the
+result affects the licensing of libpulse and thus, potentially, all programs
+that link to libpulse.
+
 Andre Adrian's echo cancellation implementation is licensed under a less
 restrictive license - see src/modules/echo-cancel/adrian-license.txt for
 details.
