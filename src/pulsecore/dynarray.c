@@ -31,82 +31,65 @@
 
 #include "dynarray.h"
 
-/* If the array becomes to small, increase its size by 25 entries */
-#define INCREASE_BY 25
-
 struct pa_dynarray {
     void **data;
     unsigned n_allocated, n_entries;
+    pa_free_cb_t free_cb;
 };
 
-pa_dynarray* pa_dynarray_new(void) {
-    pa_dynarray *a;
+pa_dynarray* pa_dynarray_new(pa_free_cb_t free_cb) {
+    pa_dynarray *array;
 
-    a = pa_xnew(pa_dynarray, 1);
-    a->data = NULL;
-    a->n_entries = 0;
-    a->n_allocated = 0;
+    array = pa_xnew0(pa_dynarray, 1);
+    array->free_cb = free_cb;
 
-    return a;
+    return array;
 }
 
-void pa_dynarray_free(pa_dynarray *a, pa_free_cb_t free_func) {
+void pa_dynarray_free(pa_dynarray *array) {
     unsigned i;
-    pa_assert(a);
+    pa_assert(array);
 
-    if (free_func)
-        for (i = 0; i < a->n_entries; i++)
-            if (a->data[i])
-                free_func(a->data[i]);
+    if (array->free_cb)
+        for (i = 0; i < array->n_entries; i++)
+            array->free_cb(array->data[i]);
 
-    pa_xfree(a->data);
-    pa_xfree(a);
+    pa_xfree(array->data);
+    pa_xfree(array);
 }
 
-void pa_dynarray_put(pa_dynarray*a, unsigned i, void *p) {
-    pa_assert(a);
+void pa_dynarray_append(pa_dynarray *array, void *p) {
+    pa_assert(array);
+    pa_assert(p);
 
-    if (i >= a->n_allocated) {
-        unsigned n;
+    if (array->n_entries == array->n_allocated) {
+        unsigned n = PA_MAX(array->n_allocated * 2, 25U);
 
-        if (!p)
-            return;
-
-        n = i+INCREASE_BY;
-        a->data = pa_xrealloc(a->data, sizeof(void*)*n);
-        memset(a->data+a->n_allocated, 0, sizeof(void*)*(n-a->n_allocated));
-        a->n_allocated = n;
+        array->data = pa_xrealloc(array->data, sizeof(void *) * n);
+        array->n_allocated = n;
     }
 
-    a->data[i] = p;
-
-    if (i >= a->n_entries)
-        a->n_entries = i+1;
+    array->data[array->n_entries++] = p;
 }
 
-unsigned pa_dynarray_append(pa_dynarray*a, void *p) {
-    unsigned i;
+void *pa_dynarray_get(pa_dynarray *array, unsigned i) {
+    pa_assert(array);
+    pa_assert(i < array->n_entries);
 
-    pa_assert(a);
-
-    i = a->n_entries;
-    pa_dynarray_put(a, i, p);
-
-    return i;
+    return array->data[i];
 }
 
-void *pa_dynarray_get(pa_dynarray*a, unsigned i) {
-    pa_assert(a);
+void *pa_dynarray_steal_last(pa_dynarray *array) {
+    pa_assert(array);
 
-    if (i >= a->n_entries)
+    if (array->n_entries > 0)
+        return array->data[--array->n_entries];
+    else
         return NULL;
-
-    pa_assert(a->data);
-    return a->data[i];
 }
 
-unsigned pa_dynarray_size(pa_dynarray*a) {
-    pa_assert(a);
+unsigned pa_dynarray_size(pa_dynarray *array) {
+    pa_assert(array);
 
-    return a->n_entries;
+    return array->n_entries;
 }

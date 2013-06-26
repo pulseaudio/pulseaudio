@@ -1983,7 +1983,7 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
                             char **sorted_files;
                             struct dirent *de;
                             pa_bool_t failed = FALSE;
-                            pa_dynarray *files = pa_dynarray_new();
+                            pa_dynarray *files = pa_dynarray_new(NULL);
 
                             while ((de = readdir(d))) {
                                 char *extn;
@@ -2003,7 +2003,7 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
                             sorted_files = pa_xnew(char*, count);
                             for (i = 0; i < count; ++i)
                                 sorted_files[i] = pa_dynarray_get(files, i);
-                            pa_dynarray_free(files, NULL);
+                            pa_dynarray_free(files);
 
                             for (i = 0; i < count; ++i) {
                                 for (unsigned j = 0; j < count; ++j) {

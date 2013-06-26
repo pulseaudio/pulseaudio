@@ -63,7 +63,7 @@ static void parse(pa_dynarray*a, const char *s, unsigned args) {
 pa_tokenizer* pa_tokenizer_new(const char *s, unsigned args) {
     pa_dynarray *a;
 
-    a = pa_dynarray_new();
+    a = pa_dynarray_new(pa_xfree);
     parse(a, s, args);
     return (pa_tokenizer*) a;
 }
@@ -72,12 +72,16 @@ void pa_tokenizer_free(pa_tokenizer *t) {
     pa_dynarray *a = (pa_dynarray*) t;
 
     pa_assert(a);
-    pa_dynarray_free(a, pa_xfree);
+    pa_dynarray_free(a);
 }
 
 const char *pa_tokenizer_get(pa_tokenizer *t, unsigned i) {
     pa_dynarray *a = (pa_dynarray*) t;
 
     pa_assert(a);
+
+    if (i >= pa_dynarray_size(a))
+        return NULL;
+
     return pa_dynarray_get(a, i);
 }

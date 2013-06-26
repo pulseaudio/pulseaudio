@@ -26,26 +26,33 @@
 
 typedef struct pa_dynarray pa_dynarray;
 
-/* Implementation of a simple dynamically sized array. The array
- * expands if required, but doesn't shrink if possible. Memory
- * management of the array's entries is the user's job. */
+/* Implementation of a simple dynamically sized array for storing pointers.
+ *
+ * When the array is created, a free callback can be provided, which will be
+ * then used when removing items from the array and when freeing the array. If
+ * the free callback is not provided, the memory management of the stored items
+ * is the responsibility of the array user. If there is need to remove items
+ * from the array without freeing them, while also having the free callback
+ * set, the functions with "steal" in their name can be used.
+ *
+ * Removing items from the middle of the array causes the subsequent items to
+ * be moved to fill the gap, so it's not efficient with large arrays. If the
+ * order of the array is not important, however, functions with "fast" in their
+ * name can be used, in which case the gap is filled by moving only the last
+ * item(s). XXX: Currently there are no functions with "fast" in their name,
+ * but such functions will be added if they are ever needed.
+ *
+ * The array doesn't support storing NULL pointers. */
 
-pa_dynarray* pa_dynarray_new(void);
+pa_dynarray* pa_dynarray_new(pa_free_cb_t free_cb);
+void pa_dynarray_free(pa_dynarray *array);
 
-/* Free the array calling the specified function for every entry in
- * the array. The function may be NULL. */
-void pa_dynarray_free(pa_dynarray *a, pa_free_cb_t free_func);
+void pa_dynarray_append(pa_dynarray *array, void *p);
+void *pa_dynarray_get(pa_dynarray *array, unsigned i);
 
-/* Store p at position i in the array */
-void pa_dynarray_put(pa_dynarray*a, unsigned i, void *p);
+/* Returns the removed item, or NULL if the array is empty. */
+void *pa_dynarray_steal_last(pa_dynarray *array);
 
-/* Store p a the first free position in the array. Returns the index
- * of that entry. If entries are removed from the array their position
- * are not filled any more by this function. */
-unsigned pa_dynarray_append(pa_dynarray*a, void *p);
-
-void *pa_dynarray_get(pa_dynarray*a, unsigned i);
-
-unsigned pa_dynarray_size(pa_dynarray*a);
+unsigned pa_dynarray_size(pa_dynarray *array);
 
 #endif
