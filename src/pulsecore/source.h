@@ -229,7 +229,7 @@ struct pa_source {
         uint32_t volume_change_safety_margin;
         /* Usec delay added to all volume change events, may be negative. */
         int32_t volume_change_extra_delay;
-} thread_info;
+    } thread_info;
 
     void *userdata;
 };
