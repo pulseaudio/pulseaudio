@@ -244,6 +244,48 @@ static pa_resample_method_t pa_resampler_fix_method(
     return method;
 }
 
+static pa_sample_format_t pa_resampler_choose_work_format(
+                    pa_resample_method_t method,
+                    pa_sample_format_t a,
+                    pa_sample_format_t b,
+                    bool map_required) {
+    pa_sample_format_t work_format;
+
+    pa_assert(a >= 0 && a < PA_SAMPLE_MAX);
+    pa_assert(b >= 0 && b < PA_SAMPLE_MAX);
+    pa_assert(method >= 0);
+    pa_assert(method < PA_RESAMPLER_MAX);
+
+    if ((method >= PA_RESAMPLER_SPEEX_FIXED_BASE && method <= PA_RESAMPLER_SPEEX_FIXED_MAX) ||
+        (method == PA_RESAMPLER_FFMPEG))
+        work_format = PA_SAMPLE_S16NE;
+    else if (method == PA_RESAMPLER_TRIVIAL || method == PA_RESAMPLER_COPY || method == PA_RESAMPLER_PEAKS) {
+
+        if (map_required || a != b || method == PA_RESAMPLER_PEAKS) {
+
+            if (a == PA_SAMPLE_S16NE || b == PA_SAMPLE_S16NE)
+                work_format = PA_SAMPLE_S16NE;
+            else if (a == PA_SAMPLE_S32NE || a == PA_SAMPLE_S32RE ||
+                a == PA_SAMPLE_FLOAT32NE || a == PA_SAMPLE_FLOAT32RE ||
+                a == PA_SAMPLE_S24NE || a == PA_SAMPLE_S24RE ||
+                a == PA_SAMPLE_S24_32NE || a == PA_SAMPLE_S24_32RE ||
+                b == PA_SAMPLE_S32NE || b == PA_SAMPLE_S32RE ||
+                b == PA_SAMPLE_FLOAT32NE || b == PA_SAMPLE_FLOAT32RE ||
+                b == PA_SAMPLE_S24NE || b == PA_SAMPLE_S24RE ||
+                b == PA_SAMPLE_S24_32NE || b == PA_SAMPLE_S24_32RE)
+                work_format = PA_SAMPLE_FLOAT32NE;
+            else
+                work_format = PA_SAMPLE_S16NE;
+
+        } else
+            work_format = a;
+
+    } else
+        work_format = PA_SAMPLE_FLOAT32NE;
+
+    return work_format;
+}
+
 pa_resampler* pa_resampler_new(
         pa_mempool *pool,
         const pa_sample_spec *a,
@@ -296,32 +338,7 @@ pa_resampler* pa_resampler_new(
 
     pa_log_info("Using resampler '%s'", pa_resample_method_to_string(method));
 
-    if ((method >= PA_RESAMPLER_SPEEX_FIXED_BASE && method <= PA_RESAMPLER_SPEEX_FIXED_MAX) ||
-        (method == PA_RESAMPLER_FFMPEG))
-        r->work_format = PA_SAMPLE_S16NE;
-    else if (method == PA_RESAMPLER_TRIVIAL || method == PA_RESAMPLER_COPY || method == PA_RESAMPLER_PEAKS) {
-
-        if (r->map_required || a->format != b->format || method == PA_RESAMPLER_PEAKS) {
-
-            if (a->format == PA_SAMPLE_S16NE || b->format == PA_SAMPLE_S16NE)
-                r->work_format = PA_SAMPLE_S16NE;
-            else if (a->format == PA_SAMPLE_S32NE || a->format == PA_SAMPLE_S32RE ||
-                a->format == PA_SAMPLE_FLOAT32NE || a->format == PA_SAMPLE_FLOAT32RE ||
-                a->format == PA_SAMPLE_S24NE || a->format == PA_SAMPLE_S24RE ||
-                a->format == PA_SAMPLE_S24_32NE || a->format == PA_SAMPLE_S24_32RE ||
-                b->format == PA_SAMPLE_S32NE || b->format == PA_SAMPLE_S32RE ||
-                b->format == PA_SAMPLE_FLOAT32NE || b->format == PA_SAMPLE_FLOAT32RE ||
-                b->format == PA_SAMPLE_S24NE || b->format == PA_SAMPLE_S24RE ||
-                b->format == PA_SAMPLE_S24_32NE || b->format == PA_SAMPLE_S24_32RE)
-                r->work_format = PA_SAMPLE_FLOAT32NE;
-            else
-                r->work_format = PA_SAMPLE_S16NE;
-
-        } else
-            r->work_format = a->format;
-
-    } else
-        r->work_format = PA_SAMPLE_FLOAT32NE;
+    r->work_format = pa_resampler_choose_work_format(method, a->format, b->format, r->map_required);
 
     pa_log_info("Using %s as working format.", pa_sample_format_to_string(r->work_format));
 
