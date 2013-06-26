@@ -213,14 +213,21 @@ static pa_resample_method_t pa_resampler_fix_method(
         method = PA_RESAMPLER_AUTO;
     }
 
-    if (method == PA_RESAMPLER_FFMPEG && (flags & PA_RESAMPLER_VARIABLE_RATE)) {
-        pa_log_info("Resampler 'ffmpeg' cannot do variable rate, reverting to resampler 'auto'.");
-        method = PA_RESAMPLER_AUTO;
-    }
-
-    if (method == PA_RESAMPLER_COPY && ((flags & PA_RESAMPLER_VARIABLE_RATE) || a->rate != b->rate)) {
-        pa_log_info("Resampler 'copy' cannot change sampling rate, reverting to resampler 'auto'.");
-        method = PA_RESAMPLER_AUTO;
+    switch (method) {
+        case PA_RESAMPLER_COPY:
+            if (rate_a != rate_b) {
+                pa_log_info("Resampler 'copy' cannot change sampling rate, reverting to resampler 'auto'.");
+                break;
+            }
+                                     /* Else fall through */
+        case PA_RESAMPLER_FFMPEG:
+            if (flags & PA_RESAMPLER_VARIABLE_RATE) {
+                pa_log_info("Resampler '%s' cannot do variable rate, reverting to resampler 'auto'.", pa_resample_method_to_string(method));
+                method = PA_RESAMPLER_AUTO;
+            }
+            break;
+        default:
+            break;
     }
 
     if (method == PA_RESAMPLER_AUTO) {
