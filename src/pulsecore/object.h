@@ -70,7 +70,7 @@ static inline pa_object* pa_object_cast(void *o) {
 #define PA_OBJECT(o) pa_object_cast(o)
 
 #define PA_DECLARE_CLASS_COMMON(c)                                      \
-    static inline bool c##_isinstance(void *o) {                   \
+    static inline bool c##_isinstance(void *o) {                        \
         pa_object *obj = (pa_object*) o;                                \
         return obj ? obj->check_type(c##_type_id) : true;               \
     }                                                                   \
@@ -99,7 +99,7 @@ static inline pa_object* pa_object_cast(void *o) {
 
 #define PA_DEFINE_PUBLIC_CLASS(c, parent)                               \
     const char c##_type_id[] = #c;                                      \
-    bool c##_check_type(const char *type_id) {                     \
+    bool c##_check_type(const char *type_id) {                          \
         if (type_id == c##_type_id)                                     \
             return true;                                                \
         return parent##_check_type(type_id);                            \
@@ -109,7 +109,7 @@ static inline pa_object* pa_object_cast(void *o) {
 #define PA_DEFINE_PRIVATE_CLASS(c, parent)                              \
     static const char c##_type_id[] = #c;                               \
     PA_DECLARE_CLASS_COMMON(c);                                         \
-    static bool c##_check_type(const char *type_id) {              \
+    static bool c##_check_type(const char *type_id) {                   \
         if (type_id == c##_type_id)                                     \
             return true;                                                \
         return parent##_check_type(type_id);                            \

@@ -77,10 +77,10 @@ static int routing_mode_from_string(const char *rmode) {
 }
 
 bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
-                            pa_sample_spec *rec_ss, pa_channel_map *rec_map,
-                            pa_sample_spec *play_ss, pa_channel_map *play_map,
-                            pa_sample_spec *out_ss, pa_channel_map *out_map,
-                            uint32_t *nframes, const char *args) {
+                       pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                       pa_sample_spec *play_ss, pa_channel_map *play_map,
+                       pa_sample_spec *out_ss, pa_channel_map *out_map,
+                       uint32_t *nframes, const char *args) {
     webrtc::AudioProcessing *apm = NULL;
     bool hpf, ns, agc, dgc, mobile, cn;
     int rm = -1;

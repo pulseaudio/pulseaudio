@@ -26,10 +26,10 @@ PA_C_DECL_BEGIN
 PA_C_DECL_END
 
 bool pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
-                          pa_sample_spec *rec_ss, pa_channel_map *rec_map,
-                          pa_sample_spec *play_ss, pa_channel_map *play_map,
-                          pa_sample_spec *out_ss, pa_channel_map *out_map,
-                          uint32_t *nframes, const char *args) {
+                     pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                     pa_sample_spec *play_ss, pa_channel_map *play_map,
+                     pa_sample_spec *out_ss, pa_channel_map *out_map,
+                     uint32_t *nframes, const char *args) {
     char strss_source[PA_SAMPLE_SPEC_SNPRINT_MAX];
     char strss_sink[PA_SAMPLE_SPEC_SNPRINT_MAX];
 

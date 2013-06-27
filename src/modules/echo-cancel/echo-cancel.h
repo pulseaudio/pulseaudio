@@ -83,7 +83,7 @@ typedef struct pa_echo_canceller pa_echo_canceller;
 
 struct pa_echo_canceller {
     /* Initialise canceller engine. */
-    bool   (*init)                 (pa_core *c,
+    bool   (*init)                      (pa_core *c,
                                          pa_echo_canceller *ec,
                                          pa_sample_spec *rec_ss,
                                          pa_channel_map *rec_map,
@@ -139,20 +139,20 @@ uint32_t pa_echo_canceller_blocksize_power2(unsigned rate, unsigned ms);
 
 /* Null canceller functions */
 bool pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
-                          pa_sample_spec *rec_ss, pa_channel_map *rec_map,
-                          pa_sample_spec *play_ss, pa_channel_map *play_map,
-                          pa_sample_spec *out_ss, pa_channel_map *out_map,
-                          uint32_t *nframes, const char *args);
+                     pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                     pa_sample_spec *play_ss, pa_channel_map *play_map,
+                     pa_sample_spec *out_ss, pa_channel_map *out_map,
+                     uint32_t *nframes, const char *args);
 void pa_null_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_null_ec_done(pa_echo_canceller *ec);
 
 #ifdef HAVE_SPEEX
 /* Speex canceller functions */
 bool pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
-                           pa_sample_spec *rec_ss, pa_channel_map *rec_map,
-                           pa_sample_spec *play_ss, pa_channel_map *play_map,
-                           pa_sample_spec *out_ss, pa_channel_map *out_map,
-                           uint32_t *nframes, const char *args);
+                      pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                      pa_sample_spec *play_ss, pa_channel_map *play_map,
+                      pa_sample_spec *out_ss, pa_channel_map *out_map,
+                      uint32_t *nframes, const char *args);
 void pa_speex_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_speex_ec_done(pa_echo_canceller *ec);
 #endif
@@ -160,10 +160,10 @@ void pa_speex_ec_done(pa_echo_canceller *ec);
 #ifdef HAVE_ADRIAN_EC
 /* Adrian Andre's echo canceller */
 bool pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
-                            pa_sample_spec *rec_ss, pa_channel_map *rec_map,
-                            pa_sample_spec *play_ss, pa_channel_map *play_map,
-                            pa_sample_spec *out_ss, pa_channel_map *out_map,
-                            uint32_t *nframes, const char *args);
+                       pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                       pa_sample_spec *play_ss, pa_channel_map *play_map,
+                       pa_sample_spec *out_ss, pa_channel_map *out_map,
+                       uint32_t *nframes, const char *args);
 void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out);
 void pa_adrian_ec_done(pa_echo_canceller *ec);
 #endif
@@ -172,10 +172,10 @@ void pa_adrian_ec_done(pa_echo_canceller *ec);
 /* WebRTC canceller functions */
 PA_C_DECL_BEGIN
 bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
-                            pa_sample_spec *rec_ss, pa_channel_map *rec_map,
-                            pa_sample_spec *play_ss, pa_channel_map *play_map,
-                            pa_sample_spec *out_ss, pa_channel_map *out_map,
-                            uint32_t *nframes, const char *args);
+                       pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                       pa_sample_spec *play_ss, pa_channel_map *play_map,
+                       pa_sample_spec *out_ss, pa_channel_map *out_map,
+                       uint32_t *nframes, const char *args);
 void pa_webrtc_ec_play(pa_echo_canceller *ec, const uint8_t *play);
 void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out);
 void pa_webrtc_ec_set_drift(pa_echo_canceller *ec, float drift);
