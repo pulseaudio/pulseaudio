@@ -114,7 +114,7 @@ int pa_cond_wait(pa_cond *c, pa_mutex *m) {
     assert(c);
     assert(m);
 
-    event = CreateEvent(NULL, false, false, NULL);
+    event = CreateEvent(NULL, FALSE, FALSE, NULL);
     assert(event);
 
     pa_hashmap_put(c->wait_events, event, event);
