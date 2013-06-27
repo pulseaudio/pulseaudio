@@ -714,7 +714,7 @@ static void ucm_add_port_combination(
     pa_log_debug("Port %s direction %s, priority %d", port->name, direction, priority);
 
     if (cp) {
-        pa_log_debug("Adding port %s to profile %s", port->name, cp->name);
+        pa_log_debug("Adding profile %s to port %s.", cp->name, port->name);
         pa_hashmap_put(port->profiles, cp->name, cp);
     }
 
