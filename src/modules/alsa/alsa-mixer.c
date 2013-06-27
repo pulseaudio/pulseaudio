@@ -4530,10 +4530,9 @@ void pa_alsa_path_set_add_ports(
     pa_alsa_path *path;
     void *state;
 
+    pa_assert(ps);
     pa_assert(ports);
-
-    if (!ps)
-        return;
+    pa_assert(core);
 
     PA_HASHMAP_FOREACH(path, ps->paths, state) {
         if (!path->settings || !path->settings->next) {
