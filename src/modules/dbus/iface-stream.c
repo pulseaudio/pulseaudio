@@ -427,7 +427,7 @@ static void handle_get_mute(DBusConnection *conn, DBusMessage *msg, void *userda
 
 static void handle_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_stream *s = userdata;
-    dbus_bool_t mute = false;
+    dbus_bool_t mute = FALSE;
 
     pa_assert(conn);
     pa_assert(msg);

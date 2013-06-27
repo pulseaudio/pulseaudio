@@ -365,7 +365,7 @@ static dbus_bool_t get_is_local(DBusConnection *conn) {
     pa_assert(conn);
 
     if (!dbus_connection_get_socket(conn, &conn_fd))
-        return false;
+        return FALSE;
 
     return pa_socket_is_local(conn_fd);
 }

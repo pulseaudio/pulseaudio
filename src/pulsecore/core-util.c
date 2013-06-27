@@ -723,7 +723,7 @@ static int set_scheduler(int rtprio) {
     /* We need to disable exit on disconnect because otherwise
      * dbus_shutdown will kill us. See
      * https://bugs.freedesktop.org/show_bug.cgi?id=16924 */
-    dbus_connection_set_exit_on_disconnect(bus, false);
+    dbus_connection_set_exit_on_disconnect(bus, FALSE);
 
     rttime = rtkit_get_rttime_usec_max(bus);
     if (rttime >= 0) {
@@ -860,7 +860,7 @@ static int set_nice(int nice_level) {
     /* We need to disable exit on disconnect because otherwise
      * dbus_shutdown will kill us. See
      * https://bugs.freedesktop.org/show_bug.cgi?id=16924 */
-    dbus_connection_set_exit_on_disconnect(bus, false);
+    dbus_connection_set_exit_on_disconnect(bus, FALSE);
 
     r = rtkit_make_high_priority(bus, 0, nice_level);
     dbus_connection_unref(bus);

@@ -152,7 +152,7 @@ static void client_send_event_cb(pa_client *c, const char *name, pa_proplist *da
 static dbus_bool_t user_check_cb(DBusConnection *connection, unsigned long uid, void *data) {
     pa_log_debug("Allowing connection by user %lu.", uid);
 
-    return true;
+    return TRUE;
 }
 
 static DBusHandlerResult disconnection_filter_cb(DBusConnection *connection, DBusMessage *message, void *user_data) {
@@ -198,7 +198,7 @@ static void connection_new_cb(DBusServer *dbus_server, DBusConnection *new_conne
         /* FIXME: Here we allow anyone from anywhere to access the server,
          * anonymously. Access control should be configurable. */
         dbus_connection_set_unix_user_function(new_connection, user_check_cb, NULL, NULL);
-        dbus_connection_set_allow_anonymous(new_connection, true);
+        dbus_connection_set_allow_anonymous(new_connection, TRUE);
     }
 
     c = pa_xnew(struct connection, 1);
@@ -302,7 +302,7 @@ static dbus_bool_t watch_add_cb(DBusWatch *watch, void *data) {
 
     dbus_watch_set_data(watch, ev, NULL);
 
-    return true;
+    return TRUE;
 }
 
 /* Called by D-Bus when a D-Bus fd watch event is removed. */
@@ -342,7 +342,7 @@ static dbus_bool_t timeout_add_cb(DBusTimeout *timeout, void *data) {
     pa_assert(s);
 
     if (!dbus_timeout_get_enabled(timeout))
-        return false;
+        return FALSE;
 
     mainloop = s->userdata->module->core->mainloop;
 
@@ -353,7 +353,7 @@ static dbus_bool_t timeout_add_cb(DBusTimeout *timeout, void *data) {
 
     dbus_timeout_set_data(timeout, ev, NULL);
 
-    return true;
+    return TRUE;
 }
 
 /* Called by D-Bus when a D-Bus timer event is removed. */

@@ -528,7 +528,7 @@ static void append_sink_or_source_container_properties(
     if (filter_len == 1 && (*filter)[0] == '*' && (*filter)[1] == '\0') {
         append_sink_or_source_container_mediaobject2_properties(r, &sub, path);
         append_property_dict_entry_unsigned(r, &sub, "ChildCount", get_sinks_or_sources_count(path, user_data));
-        append_property_dict_entry_boolean(r, &sub, "Searchable", false);
+        append_property_dict_entry_boolean(r, &sub, "Searchable", FALSE);
     }
     else {
         for (int i = 0; i < filter_len; ++i) {
@@ -552,7 +552,7 @@ static void append_sink_or_source_container_properties(
                 append_property_dict_entry_unsigned(r, &sub, "ChildCount", get_sinks_or_sources_count(path, user_data));
             }
             else if (pa_streq(property_name, "Searchable")) {
-                append_property_dict_entry_boolean(r, &sub, "Searchable", false);
+                append_property_dict_entry_boolean(r, &sub, "Searchable", FALSE);
             }
         }
     }
@@ -642,7 +642,7 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
 
     } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer2", "Searchable")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
-        append_variant_boolean(r, NULL, false);
+        append_variant_boolean(r, NULL, FALSE);
 
     } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaContainer2")) {
         DBusMessageIter iter, sub;
@@ -654,7 +654,7 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
         append_property_dict_entry_unsigned(r, &sub, "ChildCount", PA_ELEMENTSOF(array_root_containers));
         append_property_dict_entry_unsigned(r, &sub, "ItemCount", PA_ELEMENTSOF(array_no_children));
         append_property_dict_entry_unsigned(r, &sub, "ContainerCount", PA_ELEMENTSOF(array_root_containers));
-        append_property_dict_entry_boolean(r, &sub, "Searchable", false);
+        append_property_dict_entry_boolean(r, &sub, "Searchable", FALSE);
         pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
     } else if (dbus_message_is_method_call(m, "org.gnome.UPnP.MediaContainer2", "ListChildren")
@@ -803,7 +803,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
         } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer2", "Searchable")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
-            append_variant_boolean(r, NULL, false);
+            append_variant_boolean(r, NULL, FALSE);
 
         } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaContainer2")) {
             DBusMessageIter iter, sub;
@@ -819,7 +819,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             append_property_dict_entry_unsigned(r, &sub, "ChildCount", item_count);
             append_property_dict_entry_unsigned(r, &sub, "ItemCount", item_count);
             append_property_dict_entry_unsigned(r, &sub, "ContainerCount", 0);
-            append_property_dict_entry_boolean(r, &sub, "Searchable", false);
+            append_property_dict_entry_boolean(r, &sub, "Searchable", FALSE);
 
             pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 

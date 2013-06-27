@@ -164,7 +164,7 @@ static dbus_bool_t add_watch(DBusWatch *watch, void *data) {
 
     dbus_watch_set_data(watch, ev, NULL);
 
-    return true;
+    return TRUE;
 }
 
 /* DBusRemoveWatchFunction callback for pa mainloop */
@@ -208,7 +208,7 @@ static dbus_bool_t add_timeout(DBusTimeout *timeout, void *data) {
     pa_assert(c);
 
     if (!dbus_timeout_get_enabled(timeout))
-        return false;
+        return FALSE;
 
     d = pa_xnew(struct timeout_data, 1);
     d->connection = c;
@@ -218,7 +218,7 @@ static dbus_bool_t add_timeout(DBusTimeout *timeout, void *data) {
 
     dbus_timeout_set_data(timeout, ev, NULL);
 
-    return true;
+    return TRUE;
 }
 
 /* DBusRemoveTimeoutFunction callback for pa mainloop */
@@ -276,7 +276,7 @@ pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *m, bool us
     pconn->connection = conn;
     pconn->use_rtclock = use_rtclock;
 
-    dbus_connection_set_exit_on_disconnect(conn, false);
+    dbus_connection_set_exit_on_disconnect(conn, FALSE);
     dbus_connection_set_dispatch_status_function(conn, dispatch_status, pconn, NULL);
     dbus_connection_set_watch_functions(conn, add_watch, remove_watch, toggle_watch, pconn, NULL);
     dbus_connection_set_timeout_functions(conn, add_timeout, remove_timeout, toggle_timeout, pconn, NULL);
@@ -308,7 +308,7 @@ pa_dbus_wrap_connection* pa_dbus_wrap_connection_new_from_existing(
     pconn->connection = dbus_connection_ref(conn);
     pconn->use_rtclock = use_rtclock;
 
-    dbus_connection_set_exit_on_disconnect(conn, false);
+    dbus_connection_set_exit_on_disconnect(conn, FALSE);
     dbus_connection_set_dispatch_status_function(conn, dispatch_status, pconn, NULL);
     dbus_connection_set_watch_functions(conn, add_watch, remove_watch, toggle_watch, pconn, NULL);
     dbus_connection_set_timeout_functions(conn, add_timeout, remove_timeout, toggle_timeout, pconn, NULL);

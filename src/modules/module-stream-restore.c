@@ -603,8 +603,8 @@ static void handle_add_entry(DBusConnection *conn, DBusMessage *msg, void *userd
     const char *device = NULL;
     pa_channel_map map;
     pa_cvolume vol;
-    dbus_bool_t muted = false;
-    dbus_bool_t apply_immediately = false;
+    dbus_bool_t muted = FALSE;
+    dbus_bool_t apply_immediately = FALSE;
     struct dbus_entry *dbus_entry = NULL;
     struct entry *e = NULL;
 
@@ -847,7 +847,7 @@ static void handle_entry_get_mute(DBusConnection *conn, DBusMessage *msg, void *
 
     pa_assert_se(e = entry_read(de->userdata, de->entry_name));
 
-    mute = e->muted_valid ? e->muted : false;
+    mute = e->muted_valid ? e->muted : FALSE;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &mute);
 
@@ -904,7 +904,7 @@ static void handle_entry_get_all(DBusConnection *conn, DBusMessage *msg, void *u
     pa_assert_se(e = entry_read(de->userdata, de->entry_name));
 
     device = e->device_valid ? e->device : "";
-    mute = e->muted_valid ? e->muted : false;
+    mute = e->muted_valid ? e->muted : FALSE;
 
     pa_assert_se((reply = dbus_message_new_method_return(msg)));
 
