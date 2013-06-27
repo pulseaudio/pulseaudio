@@ -365,7 +365,7 @@ static dbus_bool_t get_is_local(DBusConnection *conn) {
     pa_assert(conn);
 
     if (!dbus_connection_get_socket(conn, &conn_fd))
-        return FALSE;
+        return false;
 
     return pa_socket_is_local(conn_fd);
 }
@@ -1407,9 +1407,9 @@ static void handle_upload_sample(DBusConnection *conn, DBusMessage *msg, void *u
         sample->volume.channels = n_channels;
         for (i = 0; i < n_volume_entries; ++i)
             sample->volume.values[i] = default_volume[i];
-        sample->volume_is_set = TRUE;
+        sample->volume_is_set = true;
     } else {
-        sample->volume_is_set = FALSE;
+        sample->volume_is_set = false;
     }
 
     dbus_sample = pa_dbusiface_sample_new(c, sample);
@@ -1427,17 +1427,17 @@ finish:
         pa_memblock_unref(chunk.memblock);
 }
 
-static pa_bool_t contains_space(const char *string) {
+static bool contains_space(const char *string) {
     const char *p;
 
     pa_assert(string);
 
     for (p = string; *p; ++p) {
         if (isspace(*p))
-            return TRUE;
+            return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 static void handle_load_module(DBusConnection *conn, DBusMessage *msg, void *userdata) {
@@ -1530,7 +1530,7 @@ static void handle_exit(DBusConnection *conn, DBusMessage *msg, void *userdata) 
 
     pa_dbus_send_empty_reply(conn, msg);
 
-    pa_core_exit(c->core, FALSE, 0);
+    pa_core_exit(c->core, false, 0);
 }
 
 static void handle_listen_for_signal(DBusConnection *conn, DBusMessage *msg, void *userdata) {

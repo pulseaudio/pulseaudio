@@ -44,7 +44,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Position event sounds between L and R depending on the position on screen of the widget triggering them.");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 
 static const char* const valid_modargs[] = {
     NULL

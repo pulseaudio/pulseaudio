@@ -45,7 +45,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Synthesize X11 media key events when cork/uncork is requested");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE("display=<X11 display>");
 
 static const char* const valid_modargs[] = {
@@ -79,7 +79,7 @@ static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
         u->x11_wrapper = NULL;
     }
 
-    pa_module_unload_request(u->module, TRUE);
+    pa_module_unload_request(u->module, true);
 }
 
 static pa_hook_result_t sink_input_send_event_hook_cb(

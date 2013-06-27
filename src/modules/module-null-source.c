@@ -48,7 +48,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering & Marc-Andre Lureau");
 PA_MODULE_DESCRIPTION("Clocked NULL source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "format=<sample format> "
         "channels=<number of channels> "
@@ -159,7 +159,7 @@ static void thread_func(void *userdata) {
             pa_rtpoll_set_timer_disabled(u->rtpoll);
 
         /* Hmm, nothing to do. Let's sleep */
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, true)) < 0)
             goto fail;
 
         if (ret == 0)

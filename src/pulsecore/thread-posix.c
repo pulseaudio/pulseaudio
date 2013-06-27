@@ -43,7 +43,7 @@ struct pa_thread {
     pa_thread_func_t thread_func;
     void *userdata;
     pa_atomic_t running;
-    pa_bool_t joined;
+    bool joined;
     char *name;
 };
 
@@ -134,7 +134,7 @@ int pa_thread_join(pa_thread *t) {
     if (t->joined)
         return -1;
 
-    t->joined = TRUE;
+    t->joined = true;
     return pthread_join(t->id, NULL);
 }
 
@@ -149,7 +149,7 @@ pa_thread* pa_thread_self(void) {
 
     t = pa_xnew0(pa_thread, 1);
     t->id = pthread_self();
-    t->joined = TRUE;
+    t->joined = true;
     pa_atomic_store(&t->running, 2);
 
     PA_STATIC_TLS_SET(current_thread, t);

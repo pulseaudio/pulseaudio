@@ -40,6 +40,6 @@ pa_reserve_monitor_wrapper* pa_reserve_monitor_wrapper_get(pa_core *c, const cha
 void pa_reserve_monitor_wrapper_unref(pa_reserve_monitor_wrapper *m);
 
 pa_hook* pa_reserve_monitor_wrapper_hook(pa_reserve_monitor_wrapper *m);
-pa_bool_t pa_reserve_monitor_wrapper_busy(pa_reserve_monitor_wrapper *m);
+bool pa_reserve_monitor_wrapper_busy(pa_reserve_monitor_wrapper *m);
 
 #endif

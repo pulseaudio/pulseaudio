@@ -215,7 +215,7 @@ struct pa_pdispatch {
     pa_pdispatch_drain_cb_t drain_callback;
     void *drain_userdata;
     const pa_creds *creds;
-    pa_bool_t use_rtclock;
+    bool use_rtclock;
 };
 
 static void reply_info_free(struct reply_info *r) {
@@ -232,7 +232,7 @@ static void reply_info_free(struct reply_info *r) {
         pa_xfree(r);
 }
 
-pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, pa_bool_t use_rtclock, const pa_pdispatch_cb_t *table, unsigned entries) {
+pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, bool use_rtclock, const pa_pdispatch_cb_t *table, unsigned entries) {
     pa_pdispatch *pd;
 
     pa_assert(mainloop);

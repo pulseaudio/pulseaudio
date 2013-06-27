@@ -44,7 +44,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Create a client for each ConsoleKit session of this user");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 
 static const char* const valid_modargs[] = {
     NULL
@@ -60,7 +60,7 @@ struct userdata {
     pa_core *core;
     pa_dbus_connection *connection;
     pa_hashmap *sessions;
-    pa_bool_t filter_added;
+    bool filter_added;
 };
 
 static void add_session(struct userdata *u, const char *id) {
@@ -310,7 +310,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->filter_added = TRUE;
+    u->filter_added = true;
 
     if (pa_dbus_add_matches(
                 pa_dbus_connection_get(connection), &error,

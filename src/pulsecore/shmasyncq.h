@@ -45,10 +45,10 @@ typedef struct pa_shmasyncq pa_shmasyncq;
 pa_shmasyncq *pa_shmasyncq_new(unsigned n_elements, size_t element_size, void *data, int fd[2]);
 void pa_shmasyncq_free(pa_shmasyncq* q, pa_free_cb_t free_cb);
 
-void* pa_shmasyncq_pop_begin(pa_shmasyncq *q, pa_bool_t wait);
+void* pa_shmasyncq_pop_begin(pa_shmasyncq *q, bool wait);
 void pa_shmasyncq_pop_commit(pa_shmasyncq *q);
 
-int* pa_shmasyncq_push_begin(pa_shmasyncq *q, pa_bool_t wait);
+int* pa_shmasyncq_push_begin(pa_shmasyncq *q, bool wait);
 void pa_shmasyncq_push_commit(pa_shmasyncq *q);
 
 int pa_shmasyncq_get_fd(pa_shmasyncq *q);

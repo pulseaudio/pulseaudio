@@ -61,15 +61,15 @@ void pa_rtpoll_free(pa_rtpoll *p);
  * struct pollfd. Returns negative on error, positive if the loop
  * should continue to run, 0 when the loop should be terminated
  * cleanly. */
-int pa_rtpoll_run(pa_rtpoll *f, pa_bool_t wait);
+int pa_rtpoll_run(pa_rtpoll *f, bool wait);
 
 void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, pa_usec_t usec);
 void pa_rtpoll_set_timer_relative(pa_rtpoll *p, pa_usec_t usec);
 void pa_rtpoll_set_timer_disabled(pa_rtpoll *p);
 
-/* Return TRUE when the elapsed timer was the reason for
+/* Return true when the elapsed timer was the reason for
  * the last pa_rtpoll_run() invocation to finish */
-pa_bool_t pa_rtpoll_timer_elapsed(pa_rtpoll *p);
+bool pa_rtpoll_timer_elapsed(pa_rtpoll *p);
 
 /* A new fd wakeup item for pa_rtpoll */
 pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, pa_rtpoll_priority_t prio, unsigned n_fds);

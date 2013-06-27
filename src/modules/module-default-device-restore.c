@@ -41,7 +41,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Automatically restore the default sink and source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 
 #define SAVE_INTERVAL (5 * PA_USEC_PER_SEC)
 
@@ -50,7 +50,7 @@ struct userdata {
     pa_subscription *subscription;
     pa_time_event *time_event;
     char *sink_filename, *source_filename;
-    pa_bool_t modified;
+    bool modified;
 };
 
 static void load(struct userdata *u) {
@@ -125,7 +125,7 @@ static void save(struct userdata *u) {
             pa_log("Failed to save default source: %s", pa_cstrerror(errno));
     }
 
-    u->modified = FALSE;
+    u->modified = false;
 }
 
 static void time_cb(pa_mainloop_api *a, pa_time_event *e, const struct timeval *t, void *userdata) {
@@ -145,7 +145,7 @@ static void subscribe_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t id
 
     pa_assert(u);
 
-    u->modified = TRUE;
+    u->modified = true;
 
     if (!u->time_event)
         u->time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, time_cb, u);
@@ -159,10 +159,10 @@ int pa__init(pa_module *m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
 
-    if (!(u->sink_filename = pa_state_path("default-sink", TRUE)))
+    if (!(u->sink_filename = pa_state_path("default-sink", true)))
         goto fail;
 
-    if (!(u->source_filename = pa_state_path("default-source", TRUE)))
+    if (!(u->source_filename = pa_state_path("default-source", true)))
         goto fail;
 
     load(u);

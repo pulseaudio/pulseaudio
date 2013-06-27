@@ -280,12 +280,12 @@ int pa_unix_socket_remove_stale(const char *fn) {
 
 #endif /* HAVE_SYS_UN_H */
 
-pa_bool_t pa_socket_address_is_local(const struct sockaddr *sa) {
+bool pa_socket_address_is_local(const struct sockaddr *sa) {
     pa_assert(sa);
 
     switch (sa->sa_family) {
         case AF_UNIX:
-            return TRUE;
+            return true;
 
         case AF_INET:
             return ((const struct sockaddr_in*) sa)->sin_addr.s_addr == INADDR_LOOPBACK;
@@ -296,11 +296,11 @@ pa_bool_t pa_socket_address_is_local(const struct sockaddr *sa) {
 #endif
 
         default:
-            return FALSE;
+            return false;
     }
 }
 
-pa_bool_t pa_socket_is_local(int fd) {
+bool pa_socket_is_local(int fd) {
 
     union {
         struct sockaddr_storage storage;
@@ -316,7 +316,7 @@ pa_bool_t pa_socket_is_local(int fd) {
     socklen_t sa_len = sizeof(sa);
 
     if (getpeername(fd, &sa.sa, &sa_len) < 0)
-        return FALSE;
+        return false;
 
     return pa_socket_address_is_local(&sa.sa);
 }

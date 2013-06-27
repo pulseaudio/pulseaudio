@@ -46,14 +46,14 @@ int pa_detect_fork(void) {
 
         /* First let's check whether the current pid matches the stored one */
         if (stored_pid == getpid())
-            return FALSE;
+            return false;
 
         /* Does it contain a different PID than ours? Then the process got forked. */
         if ((int) stored_pid != (int) -1)
-            return TRUE;
+            return true;
 
         /* Ok, it still contains no PID, then store it */
         if (pa_atomic_cmpxchg(&pid, (int) -1, (int) getpid()))
-            return FALSE;
+            return false;
     }
 }

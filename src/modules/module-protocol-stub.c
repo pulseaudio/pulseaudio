@@ -169,7 +169,7 @@
 #  error "Broken build system"
 #endif
 
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 
@@ -239,7 +239,7 @@ int pa__init(pa_module*m) {
 
 #if defined(USE_TCP_SOCKETS)
     uint32_t port = IPV4_PORT;
-    pa_bool_t port_fallback = TRUE;
+    bool port_fallback = true;
     const char *listen_on;
 #else
     int r;
@@ -289,7 +289,7 @@ int pa__init(pa_module*m) {
 #if defined(USE_TCP_SOCKETS)
 
     if (pa_in_system_mode() || pa_modargs_get_value(ma, "port", NULL))
-        port_fallback = FALSE;
+        port_fallback = false;
 
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
         pa_log("port= expects a numerical argument between 1 and 65535.");
@@ -337,7 +337,7 @@ int pa__init(pa_module*m) {
     /* This socket doesn't reside in our own runtime dir but in
      * /tmp/.esd/, hence we have to create the dir first */
 
-    if (pa_make_secure_parent_dir(u->socket_path, pa_in_system_mode() ? 0755U : 0700U, (uid_t)-1, (gid_t)-1, FALSE) < 0) {
+    if (pa_make_secure_parent_dir(u->socket_path, pa_in_system_mode() ? 0755U : 0700U, (uid_t)-1, (gid_t)-1, false) < 0) {
         pa_log("Failed to create socket directory '%s': %s\n", u->socket_path, pa_cstrerror(errno));
         goto fail;
     }

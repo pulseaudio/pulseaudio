@@ -35,21 +35,21 @@ struct pa_object {
     PA_REFCNT_DECLARE;
     const char *type_id;
     void (*free)(pa_object *o);
-    pa_bool_t (*check_type)(const char *type_name);
+    bool (*check_type)(const char *type_name);
 };
 
-pa_object *pa_object_new_internal(size_t size, const char *type_id, pa_bool_t (*check_type)(const char *type_id));
+pa_object *pa_object_new_internal(size_t size, const char *type_id, bool (*check_type)(const char *type_id));
 #define pa_object_new(type) ((type*) pa_object_new_internal(sizeof(type), type##_type_id, type##_check_type)
 
 #define pa_object_free ((void (*) (pa_object* _obj)) pa_xfree)
 
-pa_bool_t pa_object_check_type(const char *type_id);
+bool pa_object_check_type(const char *type_id);
 
 extern const char pa_object_type_id[];
 
-static inline pa_bool_t pa_object_isinstance(void *o) {
+static inline bool pa_object_isinstance(void *o) {
     pa_object *obj = (pa_object*) o;
-    return obj ? obj->check_type(pa_object_type_id) : TRUE;
+    return obj ? obj->check_type(pa_object_type_id) : true;
 }
 
 pa_object *pa_object_ref(pa_object *o);
@@ -70,9 +70,9 @@ static inline pa_object* pa_object_cast(void *o) {
 #define PA_OBJECT(o) pa_object_cast(o)
 
 #define PA_DECLARE_CLASS_COMMON(c)                                      \
-    static inline pa_bool_t c##_isinstance(void *o) {                   \
+    static inline bool c##_isinstance(void *o) {                   \
         pa_object *obj = (pa_object*) o;                                \
-        return obj ? obj->check_type(c##_type_id) : TRUE;               \
+        return obj ? obj->check_type(c##_type_id) : true;               \
     }                                                                   \
     static inline c* c##_cast(void *o) {                                \
         pa_assert(c##_isinstance(o));                                   \
@@ -95,13 +95,13 @@ static inline pa_object* pa_object_cast(void *o) {
 #define PA_DECLARE_PUBLIC_CLASS(c)                                      \
     extern const char c##_type_id[];                                    \
     PA_DECLARE_CLASS_COMMON(c);                                         \
-    pa_bool_t c##_check_type(const char *type_id)
+    bool c##_check_type(const char *type_id)
 
 #define PA_DEFINE_PUBLIC_CLASS(c, parent)                               \
     const char c##_type_id[] = #c;                                      \
-    pa_bool_t c##_check_type(const char *type_id) {                     \
+    bool c##_check_type(const char *type_id) {                     \
         if (type_id == c##_type_id)                                     \
-            return TRUE;                                                \
+            return true;                                                \
         return parent##_check_type(type_id);                            \
     }                                                                   \
     struct __stupid_useless_struct_to_allow_trailing_semicolon
@@ -109,9 +109,9 @@ static inline pa_object* pa_object_cast(void *o) {
 #define PA_DEFINE_PRIVATE_CLASS(c, parent)                              \
     static const char c##_type_id[] = #c;                               \
     PA_DECLARE_CLASS_COMMON(c);                                         \
-    static pa_bool_t c##_check_type(const char *type_id) {              \
+    static bool c##_check_type(const char *type_id) {              \
         if (type_id == c##_type_id)                                     \
-            return TRUE;                                                \
+            return true;                                                \
         return parent##_check_type(type_id);                            \
     }                                                                   \
     struct __stupid_useless_struct_to_allow_trailing_semicolon

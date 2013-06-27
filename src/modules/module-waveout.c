@@ -253,7 +253,7 @@ static void thread_func(void *userdata) {
 
     for (;;) {
         int ret;
-        pa_bool_t need_timer = FALSE;
+        bool need_timer = false;
 
         if (u->sink) {
             if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
@@ -261,13 +261,13 @@ static void thread_func(void *userdata) {
 
             if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
                 do_write(u);
-                need_timer = TRUE;
+                need_timer = true;
             }
         }
 
         if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
             do_read(u);
-            need_timer = TRUE;
+            need_timer = true;
         }
 
         if (need_timer)
@@ -276,7 +276,7 @@ static void thread_func(void *userdata) {
             pa_rtpoll_set_timer_disabled(u->rtpoll);
 
         /* Hmm, nothing to do. Let's sleep */
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, true)) < 0)
             goto fail;
 
         if (ret == 0)
@@ -499,7 +499,7 @@ int pa__init(pa_module *m) {
     WAVEOUTCAPS pwoc;
     MMRESULT result;
     int nfrags, frag_size;
-    pa_bool_t record = TRUE, playback = TRUE;
+    bool record = true, playback = true;
     unsigned int device;
     pa_sample_spec ss;
     pa_channel_map map;

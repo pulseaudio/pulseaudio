@@ -44,19 +44,19 @@ struct pa_module {
 
     void *userdata;
 
-    pa_bool_t load_once:1;
-    pa_bool_t unload_requested:1;
+    bool load_once:1;
+    bool unload_requested:1;
 
     pa_proplist *proplist;
 };
 
 pa_module* pa_module_load(pa_core *c, const char *name, const char*argument);
 
-void pa_module_unload(pa_core *c, pa_module *m, pa_bool_t force);
-void pa_module_unload_by_index(pa_core *c, uint32_t idx, pa_bool_t force);
+void pa_module_unload(pa_core *c, pa_module *m, bool force);
+void pa_module_unload_by_index(pa_core *c, uint32_t idx, bool force);
 
-void pa_module_unload_request(pa_module *m, pa_bool_t force);
-void pa_module_unload_request_by_index(pa_core *c, uint32_t idx, pa_bool_t force);
+void pa_module_unload_request(pa_module *m, bool force);
+void pa_module_unload_request_by_index(pa_core *c, uint32_t idx, bool force);
 
 void pa_module_unload_all(pa_core *c);
 
@@ -85,7 +85,7 @@ void pa_module_update_proplist(pa_module *m, pa_update_mode_t mode, pa_proplist 
     struct __stupid_useless_struct_to_allow_trailing_semicolon
 
 #define PA_MODULE_LOAD_ONCE(b)                                  \
-    pa_bool_t pa__load_once(void) { return b; }                 \
+    bool pa__load_once(void) { return b; }                 \
     struct __stupid_useless_struct_to_allow_trailing_semicolon
 
 #endif

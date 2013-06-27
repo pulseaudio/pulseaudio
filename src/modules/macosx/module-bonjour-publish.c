@@ -50,7 +50,7 @@
 PA_MODULE_AUTHOR("Daniel Mack");
 PA_MODULE_DESCRIPTION("Mac OS X Bonjour Service Publisher");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 
 #define SERVICE_TYPE_SINK "_pulse-sink._tcp"
 #define SERVICE_TYPE_SOURCE "_pulse-source._tcp"
@@ -330,7 +330,7 @@ static void service_free(struct service *s) {
     pa_xfree(s);
 }
 
-static pa_bool_t shall_ignore(pa_object *o) {
+static bool shall_ignore(pa_object *o) {
     pa_object_assert_ref(o);
 
     if (pa_sink_isinstance(o))

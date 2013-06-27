@@ -452,7 +452,7 @@ unsigned pa_idxset_size(pa_idxset*s) {
     return s->n_entries;
 }
 
-pa_bool_t pa_idxset_isempty(pa_idxset *s) {
+bool pa_idxset_isempty(pa_idxset *s) {
     pa_assert(s);
 
     return s->n_entries == 0;

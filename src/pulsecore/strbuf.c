@@ -188,7 +188,7 @@ size_t pa_strbuf_printf(pa_strbuf *sb, const char *format, ...) {
     }
 }
 
-pa_bool_t pa_strbuf_isempty(pa_strbuf *sb) {
+bool pa_strbuf_isempty(pa_strbuf *sb) {
     pa_assert(sb);
 
     return sb->length <= 0;

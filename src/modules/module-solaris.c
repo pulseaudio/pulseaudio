@@ -75,7 +75,7 @@ PA_MODULE_USAGE(
     "rate=<sample rate> "
     "buffer_length=<milliseconds> "
     "channel_map=<channel map>");
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 
 struct userdata {
     pa_core *core;
@@ -100,7 +100,7 @@ struct userdata {
     pa_rtpoll_item *rtpoll_item;
     pa_module *module;
 
-    pa_bool_t sink_suspended, source_suspended;
+    bool sink_suspended, source_suspended;
 
     uint32_t play_samples_msw, record_samples_msw;
     uint32_t prev_playback_samples, prev_record_samples;
@@ -404,14 +404,14 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                         if (suspend(u) < 0)
                             return -1;
                     }
-                    u->sink_suspended = TRUE;
+                    u->sink_suspended = true;
                     break;
 
                 case PA_SINK_IDLE:
                 case PA_SINK_RUNNING:
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
-                        pa_smoother_resume(u->smoother, pa_rtclock_now(), TRUE);
+                        pa_smoother_resume(u->smoother, pa_rtclock_now(), true);
 
                         if (!u->source || u->source_suspended) {
                             if (unsuspend(u) < 0)
@@ -419,7 +419,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                             u->sink->get_volume(u->sink);
                             u->sink->get_mute(u->sink);
                         }
-                        u->sink_suspended = FALSE;
+                        u->sink_suspended = false;
                     }
                     break;
 
@@ -456,7 +456,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                         if (suspend(u) < 0)
                             return -1;
                     }
-                    u->source_suspended = TRUE;
+                    u->source_suspended = true;
                     break;
 
                 case PA_SOURCE_IDLE:
@@ -468,7 +468,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                                 return -1;
                             u->source->get_volume(u->source);
                         }
-                        u->source_suspended = FALSE;
+                        u->source_suspended = false;
                     }
                     break;
 
@@ -652,7 +652,7 @@ static void thread_func(void *userdata) {
                 if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0)
                     pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
 
-                pa_smoother_reset(u->smoother, pa_rtclock_now(), TRUE);
+                pa_smoother_reset(u->smoother, pa_rtclock_now(), true);
             }
 
             for (;;) {
@@ -778,7 +778,7 @@ static void thread_func(void *userdata) {
         }
 
         /* Hmm, nothing to do. Let's sleep */
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, true)) < 0)
             goto fail;
 
         if (ret == 0)
@@ -817,17 +817,17 @@ static void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void 
     pa_log_debug("caught signal");
 
     if (u->sink) {
-        pa_sink_get_volume(u->sink, TRUE);
-        pa_sink_get_mute(u->sink, TRUE);
+        pa_sink_get_volume(u->sink, true);
+        pa_sink_get_mute(u->sink, true);
     }
 
     if (u->source)
-        pa_source_get_volume(u->source, TRUE);
+        pa_source_get_volume(u->source, true);
 }
 
 int pa__init(pa_module *m) {
     struct userdata *u = NULL;
-    pa_bool_t record = TRUE, playback = TRUE;
+    bool record = true, playback = true;
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
@@ -837,7 +837,7 @@ int pa__init(pa_module *m) {
     pa_source_new_data source_new_data;
     char const *name;
     char *name_buf;
-    pa_bool_t namereg_fail;
+    bool namereg_fail;
 
     pa_assert(m);
 
@@ -858,7 +858,7 @@ int pa__init(pa_module *m) {
 
     u = pa_xnew0(struct userdata, 1);
 
-    if (!(u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC * 2, TRUE, TRUE, 10, pa_rtclock_now(), TRUE)))
+    if (!(u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC * 2, true, true, 10, pa_rtclock_now(), true)))
         goto fail;
 
     /*
@@ -913,11 +913,11 @@ int pa__init(pa_module *m) {
 
     if (u->mode != O_WRONLY) {
         name_buf = NULL;
-        namereg_fail = TRUE;
+        namereg_fail = true;
 
         if (!(name = pa_modargs_get_value(ma, "source_name", NULL))) {
             name = name_buf = pa_sprintf_malloc("solaris_input.%s", pa_path_get_filename(u->device_name));
-            namereg_fail = FALSE;
+            namereg_fail = false;
         }
 
         pa_source_new_data_init(&source_new_data);
@@ -957,16 +957,16 @@ int pa__init(pa_module *m) {
 
         pa_source_set_get_volume_callback(u->source, source_get_volume);
         pa_source_set_set_volume_callback(u->source, source_set_volume);
-        u->source->refresh_volume = TRUE;
+        u->source->refresh_volume = true;
     } else
         u->source = NULL;
 
     if (u->mode != O_RDONLY) {
         name_buf = NULL;
-        namereg_fail = TRUE;
+        namereg_fail = true;
         if (!(name = pa_modargs_get_value(ma, "sink_name", NULL))) {
             name = name_buf = pa_sprintf_malloc("solaris_output.%s", pa_path_get_filename(u->device_name));
-            namereg_fail = FALSE;
+            namereg_fail = false;
         }
 
         pa_sink_new_data_init(&sink_new_data);
@@ -1004,7 +1004,7 @@ int pa__init(pa_module *m) {
         pa_sink_set_set_volume_callback(u->sink, sink_set_volume);
         pa_sink_set_get_mute_callback(u->sink, sink_get_mute);
         pa_sink_set_set_mute_callback(u->sink, sink_set_mute);
-        u->sink->refresh_volume = u->sink->refresh_muted = TRUE;
+        u->sink->refresh_volume = u->sink->refresh_muted = true;
     } else
         u->sink = NULL;
 

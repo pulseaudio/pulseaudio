@@ -47,7 +47,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Multimedia keyboard support via Linux evdev");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE("device=<evdev device> sink=<sink name> volume_limit=<volume limit> volume_step=<volume change step>");
 
 #define DEFAULT_DEVICE "/dev/input/event0"
@@ -118,21 +118,21 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK)))
                     pa_log("Failed to get sink '%s'", u->sink_name);
                 else {
-                    pa_cvolume cv = *pa_sink_get_volume(s, FALSE);
+                    pa_cvolume cv = *pa_sink_get_volume(s, false);
 
                     switch (volchange) {
                         case UP:
                             pa_cvolume_inc_clamp(&cv, u->volume_step, u->volume_limit);
-                            pa_sink_set_volume(s, &cv, TRUE, TRUE);
+                            pa_sink_set_volume(s, &cv, true, true);
                             break;
 
                         case DOWN:
                             pa_cvolume_dec(&cv, u->volume_step);
-                            pa_sink_set_volume(s, &cv, TRUE, TRUE);
+                            pa_sink_set_volume(s, &cv, true, true);
                             break;
 
                         case MUTE_TOGGLE:
-                            pa_sink_set_mute(s, !pa_sink_get_mute(s, FALSE), TRUE);
+                            pa_sink_set_mute(s, !pa_sink_get_mute(s, false), true);
                             break;
 
                         case INVALID:
@@ -149,7 +149,7 @@ fail:
     u->module->core->mainloop->io_free(u->io);
     u->io = NULL;
 
-    pa_module_unload_request(u->module, TRUE);
+    pa_module_unload_request(u->module, true);
 }
 
 #define test_bit(bit, array) (array[bit/8] & (1<<(bit%8)))

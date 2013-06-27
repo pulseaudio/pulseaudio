@@ -36,7 +36,7 @@
 
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("ESOUND compatibility module: -spawnfd emulation");
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE("fd=<file descriptor>");
 
@@ -66,7 +66,7 @@ int pa__init(pa_module*m) {
 
     pa_assert_se(pa_close(fd) == 0);
 
-    pa_module_unload_request(m, TRUE);
+    pa_module_unload_request(m, true);
 
     ret = 0;
 

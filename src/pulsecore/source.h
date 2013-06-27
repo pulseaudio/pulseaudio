@@ -51,7 +51,7 @@ typedef struct pa_source_volume_change pa_source_volume_change;
 #define PA_MAX_OUTPUTS_PER_SOURCE 32
 
 /* Returns true if source is linked: registered and accessible from client side. */
-static inline pa_bool_t PA_SOURCE_IS_LINKED(pa_source_state_t x) {
+static inline bool PA_SOURCE_IS_LINKED(pa_source_state_t x) {
     return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE || x == PA_SOURCE_SUSPENDED;
 }
 
@@ -93,17 +93,17 @@ struct pa_source {
     pa_cvolume real_volume;      /* The volume that the hardware is configured to  */
     pa_cvolume soft_volume;      /* The internal software volume we apply to all PCM data while it passes through */
 
-    pa_bool_t muted:1;
+    bool muted:1;
 
-    pa_bool_t refresh_volume:1;
-    pa_bool_t refresh_muted:1;
-    pa_bool_t save_port:1;
-    pa_bool_t save_volume:1;
-    pa_bool_t save_muted:1;
+    bool refresh_volume:1;
+    bool refresh_muted:1;
+    bool save_port:1;
+    bool save_volume:1;
+    bool save_muted:1;
 
     /* Saved volume state while we're in passthrough mode */
     pa_cvolume saved_volume;
-    pa_bool_t saved_save_volume:1;
+    bool saved_save_volume:1;
 
     pa_asyncmsgq *asyncmsgq;
 
@@ -126,7 +126,7 @@ struct pa_source {
     /* Called when the volume is queried. Called from main loop
      * context. If this is NULL a PA_SOURCE_MESSAGE_GET_VOLUME message
      * will be sent to the IO thread instead. If refresh_volume is
-     * FALSE neither this function is called nor a message is sent.
+     * false neither this function is called nor a message is sent.
      *
      * You must use the function pa_source_set_get_volume_callback() to
      * set this callback. */
@@ -159,7 +159,7 @@ struct pa_source {
     /* Called when the mute setting is queried. Called from main loop
      * context. If this is NULL a PA_SOURCE_MESSAGE_GET_MUTE message
      * will be sent to the IO thread instead. If refresh_mute is
-     * FALSE neither this function is called nor a message is sent.
+     * false neither this function is called nor a message is sent.
      *
      * You must use the function pa_source_set_get_mute_callback() to
      * set this callback. */
@@ -187,7 +187,7 @@ struct pa_source {
 
     /* Called whenever the sampling frequency shall be changed. Called from
      * main thread. */
-    pa_bool_t (*update_rate)(pa_source *s, uint32_t rate);
+    bool (*update_rate)(pa_source *s, uint32_t rate);
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
@@ -198,9 +198,9 @@ struct pa_source {
         pa_rtpoll *rtpoll;
 
         pa_cvolume soft_volume;
-        pa_bool_t soft_muted:1;
+        bool soft_muted:1;
 
-        pa_bool_t requested_latency_valid:1;
+        bool requested_latency_valid:1;
         pa_usec_t requested_latency;
 
         /* Then number of bytes this source will be rewound for at
@@ -281,19 +281,19 @@ typedef struct pa_source_new_data {
     pa_channel_map channel_map;
     uint32_t alternate_sample_rate;
     pa_cvolume volume;
-    pa_bool_t muted:1;
+    bool muted:1;
 
-    pa_bool_t volume_is_set:1;
-    pa_bool_t muted_is_set:1;
-    pa_bool_t sample_spec_is_set:1;
-    pa_bool_t channel_map_is_set:1;
-    pa_bool_t alternate_sample_rate_is_set:1;
+    bool volume_is_set:1;
+    bool muted_is_set:1;
+    bool sample_spec_is_set:1;
+    bool channel_map_is_set:1;
+    bool alternate_sample_rate_is_set:1;
 
-    pa_bool_t namereg_fail:1;
+    bool namereg_fail:1;
 
-    pa_bool_t save_port:1;
-    pa_bool_t save_volume:1;
-    pa_bool_t save_muted:1;
+    bool save_port:1;
+    bool save_volume:1;
+    bool save_muted:1;
 } pa_source_new_data;
 
 pa_source_new_data* pa_source_new_data_init(pa_source_new_data *data);
@@ -302,7 +302,7 @@ void pa_source_new_data_set_sample_spec(pa_source_new_data *data, const pa_sampl
 void pa_source_new_data_set_channel_map(pa_source_new_data *data, const pa_channel_map *map);
 void pa_source_new_data_set_alternate_sample_rate(pa_source_new_data *data, const uint32_t alternate_sample_rate);
 void pa_source_new_data_set_volume(pa_source_new_data *data, const pa_cvolume *volume);
-void pa_source_new_data_set_muted(pa_source_new_data *data, pa_bool_t mute);
+void pa_source_new_data_set_muted(pa_source_new_data *data, bool mute);
 void pa_source_new_data_set_port(pa_source_new_data *data, const char *port);
 void pa_source_new_data_done(pa_source_new_data *data);
 
@@ -318,7 +318,7 @@ void pa_source_set_set_volume_callback(pa_source *s, pa_source_cb_t cb);
 void pa_source_set_write_volume_callback(pa_source *s, pa_source_cb_t cb);
 void pa_source_set_get_mute_callback(pa_source *s, pa_source_cb_t cb);
 void pa_source_set_set_mute_callback(pa_source *s, pa_source_cb_t cb);
-void pa_source_enable_decibel_volume(pa_source *s, pa_bool_t enable);
+void pa_source_enable_decibel_volume(pa_source *s, bool enable);
 
 void pa_source_put(pa_source *s);
 void pa_source_unlink(pa_source *s);
@@ -336,7 +336,7 @@ void pa_source_attach(pa_source *s);
 
 void pa_source_set_soft_volume(pa_source *s, const pa_cvolume *volume);
 void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_volume);
-void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted);
+void pa_source_mute_changed(pa_source *s, bool new_muted);
 
 int pa_source_sync_suspend(pa_source *s);
 
@@ -355,34 +355,34 @@ pa_usec_t pa_source_get_fixed_latency(pa_source *s);
 size_t pa_source_get_max_rewind(pa_source *s);
 
 int pa_source_update_status(pa_source*s);
-int pa_source_suspend(pa_source *s, pa_bool_t suspend, pa_suspend_cause_t cause);
-int pa_source_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause);
+int pa_source_suspend(pa_source *s, bool suspend, pa_suspend_cause_t cause);
+int pa_source_suspend_all(pa_core *c, bool suspend, pa_suspend_cause_t cause);
 
 /* Use this instead of checking s->flags & PA_SOURCE_FLAT_VOLUME directly. */
-pa_bool_t pa_source_flat_volume_enabled(pa_source *s);
+bool pa_source_flat_volume_enabled(pa_source *s);
 
 /* Get the master source when sharing volumes */
 pa_source *pa_source_get_master(pa_source *s);
 
 /* Is the source in passthrough mode? (that is, is this a monitor source for a sink
  * that has a passthrough sink input connected to it. */
-pa_bool_t pa_source_is_passthrough(pa_source *s);
+bool pa_source_is_passthrough(pa_source *s);
 /* These should be called when a source enters/leaves passthrough mode */
 void pa_source_enter_passthrough(pa_source *s);
 void pa_source_leave_passthrough(pa_source *s);
 
-void pa_source_set_volume(pa_source *source, const pa_cvolume *volume, pa_bool_t sendmsg, pa_bool_t save);
-const pa_cvolume *pa_source_get_volume(pa_source *source, pa_bool_t force_refresh);
+void pa_source_set_volume(pa_source *source, const pa_cvolume *volume, bool sendmsg, bool save);
+const pa_cvolume *pa_source_get_volume(pa_source *source, bool force_refresh);
 
-void pa_source_set_mute(pa_source *source, pa_bool_t mute, pa_bool_t save);
-pa_bool_t pa_source_get_mute(pa_source *source, pa_bool_t force_refresh);
+void pa_source_set_mute(pa_source *source, bool mute, bool save);
+bool pa_source_get_mute(pa_source *source, bool force_refresh);
 
-pa_bool_t pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist *p);
+bool pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist *p);
 
-int pa_source_set_port(pa_source *s, const char *name, pa_bool_t save);
-void pa_source_set_mixer_dirty(pa_source *s, pa_bool_t is_dirty);
+int pa_source_set_port(pa_source *s, const char *name, bool save);
+void pa_source_set_mixer_dirty(pa_source *s, bool is_dirty);
 
-pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrough);
+bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough);
 
 unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
 unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */
@@ -391,11 +391,11 @@ unsigned pa_source_check_suspend(pa_source *s); /* Returns how many streams are 
 
 /* Moves all inputs away, and stores them in pa_queue */
 pa_queue *pa_source_move_all_start(pa_source *s, pa_queue *q);
-void pa_source_move_all_finish(pa_source *s, pa_queue *q, pa_bool_t save);
+void pa_source_move_all_finish(pa_source *s, pa_queue *q, bool save);
 void pa_source_move_all_fail(pa_queue *q);
 
 pa_idxset* pa_source_get_formats(pa_source *s);
-pa_bool_t pa_source_check_format(pa_source *s, pa_format_info *f);
+bool pa_source_check_format(pa_source *s, pa_format_info *f);
 pa_idxset* pa_source_check_formats(pa_source *s, pa_idxset *in_formats);
 
 /*** To be called exclusively by the source driver, from IO context */
@@ -418,11 +418,11 @@ void pa_source_set_fixed_latency_within_thread(pa_source *s, pa_usec_t latency);
 
 void pa_source_update_volume_and_mute(pa_source *s);
 
-pa_bool_t pa_source_volume_change_apply(pa_source *s, pa_usec_t *usec_to_next);
+bool pa_source_volume_change_apply(pa_source *s, pa_usec_t *usec_to_next);
 
 /*** To be called exclusively by source output drivers, from IO context */
 
-void pa_source_invalidate_requested_latency(pa_source *s, pa_bool_t dynamic);
+void pa_source_invalidate_requested_latency(pa_source *s, bool dynamic);
 pa_usec_t pa_source_get_latency_within_thread(pa_source *s);
 
 #define pa_source_assert_io_context(s) \

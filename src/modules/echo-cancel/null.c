@@ -25,7 +25,7 @@ PA_C_DECL_BEGIN
 #include "echo-cancel.h"
 PA_C_DECL_END
 
-pa_bool_t pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
+bool pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
                           pa_sample_spec *rec_ss, pa_channel_map *rec_map,
                           pa_sample_spec *play_ss, pa_channel_map *play_map,
                           pa_sample_spec *out_ss, pa_channel_map *out_map,
@@ -43,7 +43,7 @@ pa_bool_t pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
                  pa_sample_spec_snprint(strss_source, sizeof(strss_source), out_ss),
                  pa_sample_spec_snprint(strss_sink, sizeof(strss_sink), play_ss));
 
-    return TRUE;
+    return true;
 }
 
 void pa_null_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {

@@ -63,7 +63,7 @@ pa_hook_slot* pa_hook_connect(pa_hook *hook, pa_hook_priority_t prio, pa_hook_cb
 
     slot = pa_xnew(pa_hook_slot, 1);
     slot->hook = hook;
-    slot->dead = FALSE;
+    slot->dead = false;
     slot->callback = cb;
     slot->data = data;
     slot->priority = prio;
@@ -85,7 +85,7 @@ void pa_hook_slot_free(pa_hook_slot *slot) {
     pa_assert(!slot->dead);
 
     if (slot->hook->n_firing > 0) {
-        slot->dead = TRUE;
+        slot->dead = true;
         slot->hook->n_dead++;
     } else
         slot_free(slot->hook, slot);
@@ -124,7 +124,7 @@ pa_hook_result_t pa_hook_fire(pa_hook *hook, void *data) {
     return result;
 }
 
-pa_bool_t pa_hook_is_firing(pa_hook *hook) {
+bool pa_hook_is_firing(pa_hook *hook) {
     pa_assert(hook);
 
     return hook->n_firing > 0;

@@ -30,27 +30,27 @@
 /* See http://www.hpl.hp.com/research/linux/atomic_ops/example.php4 for the
  * reference algorithm used here. */
 
-pa_bool_t pa_once_begin(pa_once *control) {
+bool pa_once_begin(pa_once *control) {
     pa_mutex *m;
 
     pa_assert(control);
 
     if (pa_atomic_load(&control->done))
-        return FALSE;
+        return false;
 
     /* Caveat: We have to make sure that the once func has completed
      * before returning, even if the once func is not actually
      * executed by us. Hence the awkward locking. */
 
-    m = pa_static_mutex_get(&control->mutex, FALSE, FALSE);
+    m = pa_static_mutex_get(&control->mutex, false, false);
     pa_mutex_lock(m);
 
     if (pa_atomic_load(&control->done)) {
         pa_mutex_unlock(m);
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
 }
 
 void pa_once_end(pa_once *control) {
@@ -61,7 +61,7 @@ void pa_once_end(pa_once *control) {
     pa_assert(!pa_atomic_load(&control->done));
     pa_atomic_store(&control->done, 1);
 
-    m = pa_static_mutex_get(&control->mutex, FALSE, FALSE);
+    m = pa_static_mutex_get(&control->mutex, false, false);
     pa_mutex_unlock(m);
 }
 

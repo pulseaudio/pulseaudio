@@ -42,7 +42,7 @@ static void producer(void *_q) {
         pa_asyncq_push(q, PA_UINT_TO_PTR(i+1), 1);
     }
 
-    pa_asyncq_push(q, PA_UINT_TO_PTR(-1), TRUE);
+    pa_asyncq_push(q, PA_UINT_TO_PTR(-1), true);
     pa_log_debug("pushed end");
 }
 
@@ -54,7 +54,7 @@ static void consumer(void *_q) {
     pa_msleep(1000);
 
     for (i = 0;; i++) {
-        p = pa_asyncq_pop(q, TRUE);
+        p = pa_asyncq_pop(q, true);
 
         if (p == PA_UINT_TO_PTR(-1))
             break;

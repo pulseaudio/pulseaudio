@@ -25,7 +25,7 @@
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 
-pa_bool_t pa_sample_spec_is_mime(const pa_sample_spec *ss, const pa_channel_map *cm);
+bool pa_sample_spec_is_mime(const pa_sample_spec *ss, const pa_channel_map *cm);
 void pa_sample_spec_mimefy(pa_sample_spec *ss, pa_channel_map *cm);
 char *pa_sample_spec_to_mime_type(const pa_sample_spec *ss, const pa_channel_map *cm);
 char *pa_sample_spec_to_mime_type_mimefy(const pa_sample_spec *_ss, const pa_channel_map *_cm);

@@ -59,7 +59,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Automatically restore the volume/mute state of devices");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "restore_port=<Save/restore port?> "
         "restore_volume=<Save/restore volumes?> "
@@ -95,10 +95,10 @@ struct userdata {
     pa_native_protocol *protocol;
     pa_idxset *subscribed;
 
-    pa_bool_t restore_volume:1;
-    pa_bool_t restore_muted:1;
-    pa_bool_t restore_port:1;
-    pa_bool_t restore_formats:1;
+    bool restore_volume:1;
+    bool restore_muted:1;
+    bool restore_port:1;
+    bool restore_formats:1;
 };
 
 /* Protocol extension commands */
@@ -115,7 +115,7 @@ enum {
 
 struct entry {
     uint8_t version;
-    pa_bool_t port_valid;
+    bool port_valid;
     char *port;
 };
 
@@ -123,8 +123,8 @@ struct entry {
 
 struct perportentry {
     uint8_t version;
-    pa_bool_t muted_valid, volume_valid;
-    pa_bool_t muted;
+    bool muted_valid, volume_valid;
+    bool muted;
     pa_channel_map channel_map;
     pa_cvolume volume;
     pa_idxset *formats;
@@ -174,9 +174,9 @@ static void trigger_save(struct userdata *u, pa_device_type_t type, uint32_t sin
 
 #ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
 /* Some forward declarations */
-static pa_bool_t legacy_entry_read(struct userdata *u, pa_datum *data, struct entry **entry, struct perportentry **perportentry);
+static bool legacy_entry_read(struct userdata *u, pa_datum *data, struct entry **entry, struct perportentry **perportentry);
 static struct perportentry* perportentry_read(struct userdata *u, const char *basekeyname, const char *port);
-static pa_bool_t perportentry_write(struct userdata *u, const char *basekeyname, const char *port, const struct perportentry *e);
+static bool perportentry_write(struct userdata *u, const char *basekeyname, const char *port, const struct perportentry *e);
 static void perportentry_free(struct perportentry* e);
 #endif
 
@@ -193,10 +193,10 @@ static void entry_free(struct entry* e) {
     pa_xfree(e);
 }
 
-static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e) {
+static bool entry_write(struct userdata *u, const char *name, const struct entry *e) {
     pa_tagstruct *t;
     pa_datum key, data;
-    pa_bool_t r;
+    bool r;
 
     pa_assert(u);
     pa_assert(name);
@@ -212,7 +212,7 @@ static pa_bool_t entry_write(struct userdata *u, const char *name, const struct 
 
     data.data = (void*)pa_tagstruct_data(t, &data.size);
 
-    r = (pa_database_set(u->database, &key, &data, TRUE) == 0);
+    r = (pa_database_set(u->database, &key, &data, true) == 0);
 
     pa_tagstruct_free(t);
 
@@ -271,7 +271,7 @@ fail:
     struct perportentry *ppe;
     pa_log_debug("Attempting to load legacy (pre-v1.0) data for key: %s", name);
     if (legacy_entry_read(u, &data, &e, &ppe)) {
-        pa_bool_t written = FALSE;
+        bool written = false;
 
         pa_log_debug("Success. Saving new format for key: %s", name);
         written = entry_write(u, name, e);
@@ -323,18 +323,18 @@ static struct entry* entry_copy(const struct entry *e) {
     return r;
 }
 
-static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
+static bool entries_equal(const struct entry *a, const struct entry *b) {
 
     pa_assert(a && b);
 
     if (a->port_valid != b->port_valid ||
         (a->port_valid && !pa_streq(a->port, b->port)))
-        return FALSE;
+        return false;
 
-    return TRUE;
+    return true;
 }
 
-static struct perportentry* perportentry_new(pa_bool_t add_pcm_format) {
+static struct perportentry* perportentry_new(bool add_pcm_format) {
     struct perportentry *r = pa_xnew0(struct perportentry, 1);
     r->version = PERPORTENTRY_VERSION;
     r->formats = pa_idxset_new(NULL, NULL);
@@ -353,10 +353,10 @@ static void perportentry_free(struct perportentry* e) {
     pa_xfree(e);
 }
 
-static pa_bool_t perportentry_write(struct userdata *u, const char *basekeyname, const char *port, const struct perportentry *e) {
+static bool perportentry_write(struct userdata *u, const char *basekeyname, const char *port, const struct perportentry *e) {
     pa_tagstruct *t;
     pa_datum key, data;
-    pa_bool_t r;
+    bool r;
     uint32_t i;
     pa_format_info *f;
     uint8_t n_formats;
@@ -389,7 +389,7 @@ static pa_bool_t perportentry_write(struct userdata *u, const char *basekeyname,
 
     data.data = (void*)pa_tagstruct_data(t, &data.size);
 
-    r = (pa_database_set(u->database, &key, &data, TRUE) == 0);
+    r = (pa_database_set(u->database, &key, &data, true) == 0);
 
     pa_tagstruct_free(t);
     pa_xfree(name);
@@ -418,7 +418,7 @@ static struct perportentry* perportentry_read(struct userdata *u, const char *ba
         goto fail;
 
     t = pa_tagstruct_new(data.data, data.size);
-    e = perportentry_new(FALSE);
+    e = perportentry_new(false);
 
     if (pa_tagstruct_getu8(t, &e->version) < 0 ||
         e->version > PERPORTENTRY_VERSION ||
@@ -490,7 +490,7 @@ static struct perportentry* perportentry_copy(const struct perportentry *e) {
     pa_format_info *f;
 
     pa_assert(e);
-    r = perportentry_new(FALSE);
+    r = perportentry_new(false);
     r->version = e->version;
     r->muted_valid = e->muted_valid;
     r->volume_valid = e->volume_valid;
@@ -504,36 +504,36 @@ static struct perportentry* perportentry_copy(const struct perportentry *e) {
     return r;
 }
 
-static pa_bool_t perportentries_equal(const struct perportentry *a, const struct perportentry *b) {
+static bool perportentries_equal(const struct perportentry *a, const struct perportentry *b) {
     pa_cvolume t;
 
     pa_assert(a && b);
 
     if (a->muted_valid != b->muted_valid ||
         (a->muted_valid && (a->muted != b->muted)))
-        return FALSE;
+        return false;
 
     t = b->volume;
     if (a->volume_valid != b->volume_valid ||
         (a->volume_valid && !pa_cvolume_equal(pa_cvolume_remap(&t, &b->channel_map, &a->channel_map), &a->volume)))
-        return FALSE;
+        return false;
 
     if (pa_idxset_size(a->formats) != pa_idxset_size(b->formats))
-        return FALSE;
+        return false;
 
     /** TODO: Compare a bit better */
 
-    return TRUE;
+    return true;
 }
 
 #ifdef ENABLE_LEGACY_DATABASE_ENTRY_FORMAT
 
 #define LEGACY_ENTRY_VERSION 2
-static pa_bool_t legacy_entry_read(struct userdata *u, pa_datum *data, struct entry **entry, struct perportentry **perportentry) {
+static bool legacy_entry_read(struct userdata *u, pa_datum *data, struct entry **entry, struct perportentry **perportentry) {
     struct legacy_entry {
         uint8_t version;
-        pa_bool_t muted_valid:1, volume_valid:1, port_valid:1;
-        pa_bool_t muted:1;
+        bool muted_valid:1, volume_valid:1, port_valid:1;
+        bool muted:1;
         pa_channel_map channel_map;
         pa_cvolume volume;
         char port[PA_NAME_MAX];
@@ -547,43 +547,43 @@ static pa_bool_t legacy_entry_read(struct userdata *u, pa_datum *data, struct en
 
     if (data->size != sizeof(struct legacy_entry)) {
         pa_log_debug("Size does not match.");
-        return FALSE;
+        return false;
     }
 
     le = (struct legacy_entry*)data->data;
 
     if (le->version != LEGACY_ENTRY_VERSION) {
         pa_log_debug("Version mismatch.");
-        return FALSE;
+        return false;
     }
 
     if (!memchr(le->port, 0, sizeof(le->port))) {
         pa_log_warn("Port has missing NUL byte.");
-        return FALSE;
+        return false;
     }
 
     if (le->volume_valid && !pa_channel_map_valid(&le->channel_map)) {
         pa_log_warn("Invalid channel map.");
-        return FALSE;
+        return false;
     }
 
     if (le->volume_valid && (!pa_cvolume_valid(&le->volume) || !pa_cvolume_compatible_with_channel_map(&le->volume, &le->channel_map))) {
         pa_log_warn("Volume and channel map don't match.");
-        return FALSE;
+        return false;
     }
 
     *entry = entry_new();
     (*entry)->port_valid = le->port_valid;
     (*entry)->port = pa_xstrdup(le->port);
 
-    *perportentry = perportentry_new(TRUE);
+    *perportentry = perportentry_new(true);
     (*perportentry)->muted_valid = le->muted_valid;
     (*perportentry)->volume_valid = le->volume_valid;
     (*perportentry)->muted = le->muted;
     (*perportentry)->channel_map = le->channel_map;
     (*perportentry)->volume = le->volume;
 
-    return TRUE;
+    return true;
 }
 #endif
 
@@ -594,7 +594,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     char *name;
     const char *port = NULL;
     pa_device_type_t type;
-    pa_bool_t written = FALSE;
+    bool written = false;
 
     pa_assert(c);
     pa_assert(u);
@@ -624,23 +624,23 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (sink->save_port) {
             pa_xfree(e->port);
             e->port = pa_xstrdup(port ? port : "");
-            e->port_valid = TRUE;
+            e->port_valid = true;
         }
 
         if ((oldppe = perportentry_read(u, name, port)))
             ppe = perportentry_copy(oldppe);
         else
-            ppe = perportentry_new(TRUE);
+            ppe = perportentry_new(true);
 
         if (sink->save_volume) {
             ppe->channel_map = sink->channel_map;
-            ppe->volume = *pa_sink_get_volume(sink, FALSE);
-            ppe->volume_valid = TRUE;
+            ppe->volume = *pa_sink_get_volume(sink, false);
+            ppe->volume_valid = true;
         }
 
         if (sink->save_muted) {
-            ppe->muted = pa_sink_get_mute(sink, FALSE);
-            ppe->muted_valid = TRUE;
+            ppe->muted = pa_sink_get_mute(sink, false);
+            ppe->muted_valid = true;
         }
     } else {
         pa_source *source;
@@ -663,23 +663,23 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (source->save_port) {
             pa_xfree(e->port);
             e->port = pa_xstrdup(port ? port : "");
-            e->port_valid = TRUE;
+            e->port_valid = true;
         }
 
         if ((oldppe = perportentry_read(u, name, port)))
             ppe = perportentry_copy(oldppe);
         else
-            ppe = perportentry_new(TRUE);
+            ppe = perportentry_new(true);
 
         if (source->save_volume) {
             ppe->channel_map = source->channel_map;
-            ppe->volume = *pa_source_get_volume(source, FALSE);
-            ppe->volume_valid = TRUE;
+            ppe->volume = *pa_source_get_volume(source, false);
+            ppe->volume_valid = true;
         }
 
         if (source->save_muted) {
-            ppe->muted = pa_source_get_mute(source, FALSE);
-            ppe->muted_valid = TRUE;
+            ppe->muted = pa_source_get_mute(source, false);
+            ppe->muted_valid = true;
         }
     }
 
@@ -745,7 +745,7 @@ static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new
             if (!new_data->active_port) {
                 pa_log_info("Restoring port for sink %s.", name);
                 pa_sink_new_data_set_port(new_data, e->port);
-                new_data->save_port = TRUE;
+                new_data->save_port = true;
             } else
                 pa_log_debug("Not restoring port for sink %s, because already set.", name);
         }
@@ -783,7 +783,7 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
                 pa_sink_new_data_set_volume(new_data, &v);
                 pa_log_info("Restored volume: %s", pa_cvolume_snprint(buf, PA_CVOLUME_SNPRINT_MAX, &new_data->volume));
 
-                new_data->save_volume = TRUE;
+                new_data->save_volume = true;
             } else
                 pa_log_debug("Not restoring volume for sink %s, because already set.", new_data->name);
         }
@@ -793,7 +793,7 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
             if (!new_data->muted_is_set) {
                 pa_log_info("Restoring mute state for sink %s.", new_data->name);
                 pa_sink_new_data_set_muted(new_data, e->muted);
-                new_data->save_muted = TRUE;
+                new_data->save_muted = true;
             } else
                 pa_log_debug("Not restoring mute state for sink %s, because already set.", new_data->name);
         }
@@ -826,17 +826,17 @@ static pa_hook_result_t sink_port_hook_callback(pa_core *c, pa_sink *sink, struc
             pa_log_info("Restoring volume for sink %s.", sink->name);
             v = e->volume;
             pa_cvolume_remap(&v, &e->channel_map, &sink->channel_map);
-            pa_sink_set_volume(sink, &v, TRUE, FALSE);
+            pa_sink_set_volume(sink, &v, true, false);
             pa_log_info("Restored volume: %s", pa_cvolume_snprint(buf, PA_CVOLUME_SNPRINT_MAX, &sink->reference_volume));
 
-            sink->save_volume = TRUE;
+            sink->save_volume = true;
         }
 
         if (u->restore_muted && e->muted_valid) {
 
             pa_log_info("Restoring mute state for sink %s.", sink->name);
-            pa_sink_set_mute(sink, e->muted, FALSE);
-            sink->save_muted = TRUE;
+            pa_sink_set_mute(sink, e->muted, false);
+            sink->save_muted = true;
         }
 
         perportentry_free(e);
@@ -888,7 +888,7 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
             if (!new_data->active_port) {
                 pa_log_info("Restoring port for source %s.", name);
                 pa_source_new_data_set_port(new_data, e->port);
-                new_data->save_port = TRUE;
+                new_data->save_port = true;
             } else
                 pa_log_debug("Not restoring port for source %s, because already set.", name);
         }
@@ -926,7 +926,7 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
                 pa_source_new_data_set_volume(new_data, &v);
                 pa_log_info("Restored volume: %s", pa_cvolume_snprint(buf, PA_CVOLUME_SNPRINT_MAX, &new_data->volume));
 
-                new_data->save_volume = TRUE;
+                new_data->save_volume = true;
             } else
                 pa_log_debug("Not restoring volume for source %s, because already set.", new_data->name);
         }
@@ -936,7 +936,7 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
             if (!new_data->muted_is_set) {
                 pa_log_info("Restoring mute state for source %s.", new_data->name);
                 pa_source_new_data_set_muted(new_data, e->muted);
-                new_data->save_muted = TRUE;
+                new_data->save_muted = true;
             } else
                 pa_log_debug("Not restoring mute state for source %s, because already set.", new_data->name);
         }
@@ -969,17 +969,17 @@ static pa_hook_result_t source_port_hook_callback(pa_core *c, pa_source *source,
             pa_log_info("Restoring volume for source %s.", source->name);
             v = e->volume;
             pa_cvolume_remap(&v, &e->channel_map, &source->channel_map);
-            pa_source_set_volume(source, &v, TRUE, FALSE);
+            pa_source_set_volume(source, &v, true, false);
             pa_log_info("Restored volume: %s", pa_cvolume_snprint(buf, PA_CVOLUME_SNPRINT_MAX, &source->reference_volume));
 
-            source->save_volume = TRUE;
+            source->save_volume = true;
         }
 
         if (u->restore_muted && e->muted_valid) {
 
             pa_log_info("Restoring mute state for source %s.", source->name);
-            pa_source_set_mute(source, e->muted, FALSE);
-            source->save_muted = TRUE;
+            pa_source_set_mute(source, e->muted, false);
+            source->save_muted = true;
         }
 
         perportentry_free(e);
@@ -1057,7 +1057,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
         case SUBCOMMAND_SUBSCRIBE: {
 
-            pa_bool_t enabled;
+            bool enabled;
 
             if (pa_tagstruct_get_boolean(t, &enabled) < 0 ||
                 !pa_tagstruct_eof(t))
@@ -1144,7 +1144,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             /* Read or create an entry */
             name = pa_sprintf_malloc("sink:%s", sink->name);
             if (!(e = perportentry_read(u, name, (sink->active_port ? sink->active_port->name : NULL))))
-                e = perportentry_new(FALSE);
+                e = perportentry_new(false);
             else {
                 /* Clean out any saved formats */
                 pa_idxset_free(e->formats, (pa_free_cb_t) pa_format_info_free);
@@ -1210,7 +1210,7 @@ int pa__init(pa_module*m) {
     pa_sink *sink;
     pa_source *source;
     uint32_t idx;
-    pa_bool_t restore_volume = TRUE, restore_muted = TRUE, restore_port = TRUE, restore_formats = TRUE;
+    bool restore_volume = true, restore_muted = true, restore_port = true, restore_formats = true;
 
     pa_assert(m);
 
@@ -1263,10 +1263,10 @@ int pa__init(pa_module*m) {
     if (restore_formats)
         u->sink_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_EARLY, (pa_hook_cb_t) sink_put_hook_callback, u);
 
-    if (!(fname = pa_state_path("device-volumes", TRUE)))
+    if (!(fname = pa_state_path("device-volumes", true)))
         goto fail;
 
-    if (!(u->database = pa_database_open(fname, TRUE))) {
+    if (!(u->database = pa_database_open(fname, true))) {
         pa_log("Failed to open volume database '%s': %s", fname, pa_cstrerror(errno));
         pa_xfree(fname);
         goto fail;

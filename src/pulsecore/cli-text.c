@@ -295,15 +295,15 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->suspend_cause & PA_SUSPEND_IDLE ? "IDLE " : "",
             sink->suspend_cause & PA_SUSPEND_SESSION ? "SESSION" : "",
             sink->priority,
-            pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, FALSE)),
+            pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, false)),
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t        " : "",
-            sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_sink_get_volume(sink, FALSE)) : "",
-            pa_cvolume_get_balance(pa_sink_get_volume(sink, FALSE), &sink->channel_map),
+            sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_sink_get_volume(sink, false)) : "",
+            pa_cvolume_get_balance(pa_sink_get_volume(sink, false), &sink->channel_map),
             pa_volume_snprint(v, sizeof(v), sink->base_volume),
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t             " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), sink->base_volume) : "",
             sink->n_volume_steps,
-            pa_yes_no(pa_sink_get_mute(sink, FALSE)),
+            pa_yes_no(pa_sink_get_mute(sink, false)),
             (double) pa_sink_get_latency(sink) / (double) PA_USEC_PER_MSEC,
             (unsigned long) pa_sink_get_max_request(sink) / 1024,
             (unsigned long) pa_sink_get_max_rewind(sink) / 1024,
@@ -412,15 +412,15 @@ char *pa_source_list_to_string(pa_core *c) {
             source->suspend_cause & PA_SUSPEND_IDLE ? "IDLE " : "",
             source->suspend_cause & PA_SUSPEND_SESSION ? "SESSION" : "",
             source->priority,
-            pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source, FALSE)),
+            pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source, false)),
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t        " : "",
-            source->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_source_get_volume(source, FALSE)) : "",
-            pa_cvolume_get_balance(pa_source_get_volume(source, FALSE), &source->channel_map),
+            source->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_source_get_volume(source, false)) : "",
+            pa_cvolume_get_balance(pa_source_get_volume(source, false), &source->channel_map),
             pa_volume_snprint(v, sizeof(v), source->base_volume),
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t             " : "",
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), source->base_volume) : "",
             source->n_volume_steps,
-            pa_yes_no(pa_source_get_mute(source, FALSE)),
+            pa_yes_no(pa_source_get_mute(source, false)),
             (double) pa_source_get_latency(source) / PA_USEC_PER_MSEC,
             (unsigned long) pa_source_get_max_rewind(source) / 1024,
             pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
@@ -502,7 +502,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
         pa_assert(o->source);
 
         if (pa_source_output_is_volume_readable(o)) {
-            pa_source_output_get_volume(o, &v, TRUE);
+            pa_source_output_get_volume(o, &v, true);
             volume_str = pa_sprintf_malloc("%s\n\t        %s\n\t        balance %0.2f",
                                            pa_cvolume_snprint(cv, sizeof(cv), &v),
                                            pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &v),
@@ -601,7 +601,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
         pa_assert(i->sink);
 
         if (pa_sink_input_is_volume_readable(i)) {
-            pa_sink_input_get_volume(i, &v, TRUE);
+            pa_sink_input_get_volume(i, &v, true);
             volume_str = pa_sprintf_malloc("%s\n\t        %s\n\t        balance %0.2f",
                                            pa_cvolume_snprint(cv, sizeof(cv), &v),
                                            pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &v),

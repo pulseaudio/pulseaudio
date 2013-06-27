@@ -41,7 +41,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("X11 bell interceptor");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE("sink=<sink to connect to> sample=<sample name> display=<X11 display>");
 
 static const char* const valid_modargs[] = {
@@ -102,7 +102,7 @@ static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
     u->x11_client = NULL;
     u->x11_wrapper = NULL;
 
-    pa_module_unload_request(u->module, TRUE);
+    pa_module_unload_request(u->module, true);
 }
 
 int pa__init(pa_module*m) {

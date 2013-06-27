@@ -102,7 +102,7 @@ void pa_source_new_data_set_channel_map(pa_source_new_data *data, const pa_chann
 void pa_source_new_data_set_alternate_sample_rate(pa_source_new_data *data, const uint32_t alternate_sample_rate) {
     pa_assert(data);
 
-    data->alternate_sample_rate_is_set = TRUE;
+    data->alternate_sample_rate_is_set = true;
     data->alternate_sample_rate = alternate_sample_rate;
 }
 
@@ -113,10 +113,10 @@ void pa_source_new_data_set_volume(pa_source_new_data *data, const pa_cvolume *v
         data->volume = *volume;
 }
 
-void pa_source_new_data_set_muted(pa_source_new_data *data, pa_bool_t mute) {
+void pa_source_new_data_set_muted(pa_source_new_data *data, bool mute) {
     pa_assert(data);
 
-    data->muted_is_set = TRUE;
+    data->muted_is_set = true;
     data->muted = !!mute;
 }
 
@@ -206,20 +206,20 @@ pa_source* pa_source_new(
 
     if (!data->volume_is_set) {
         pa_cvolume_reset(&data->volume, data->sample_spec.channels);
-        data->save_volume = FALSE;
+        data->save_volume = false;
     }
 
     pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
     pa_return_null_if_fail(pa_cvolume_compatible(&data->volume, &data->sample_spec));
 
     if (!data->muted_is_set)
-        data->muted = FALSE;
+        data->muted = false;
 
     if (data->card)
         pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->card->proplist);
 
     pa_device_init_description(data->proplist);
-    pa_device_init_icon(data->proplist, FALSE);
+    pa_device_init_icon(data->proplist, false);
     pa_device_init_intended_roles(data->proplist);
 
     if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], data) < 0) {
@@ -236,7 +236,7 @@ pa_source* pa_source_new(
     s->flags = flags;
     s->priority = 0;
     s->suspend_cause = data->suspend_cause;
-    pa_source_set_mixer_dirty(s, FALSE);
+    pa_source_set_mixer_dirty(s, false);
     s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);
     s->driver = pa_xstrdup(pa_path_get_filename(data->driver));
@@ -269,7 +269,7 @@ pa_source* pa_source_new(
     s->base_volume = PA_VOLUME_NORM;
     s->n_volume_steps = PA_VOLUME_NORM+1;
     s->muted = data->muted;
-    s->refresh_volume = s->refresh_muted = FALSE;
+    s->refresh_volume = s->refresh_muted = false;
 
     reset_callbacks(s);
     s->userdata = NULL;
@@ -282,7 +282,7 @@ pa_source* pa_source_new(
     data->ports = NULL;
 
     s->active_port = NULL;
-    s->save_port = FALSE;
+    s->save_port = false;
 
     if (data->active_port)
         if ((s->active_port = pa_hashmap_get(s->ports, data->active_port)))
@@ -318,7 +318,7 @@ pa_source* pa_source_new(
     s->thread_info.soft_muted = s->muted;
     s->thread_info.state = s->state;
     s->thread_info.max_rewind = 0;
-    s->thread_info.requested_latency_valid = FALSE;
+    s->thread_info.requested_latency_valid = false;
     s->thread_info.requested_latency = 0;
     s->thread_info.min_latency = ABSOLUTE_MIN_LATENCY;
     s->thread_info.max_latency = ABSOLUTE_MAX_LATENCY;
@@ -352,7 +352,7 @@ pa_source* pa_source_new(
 /* Called from main context */
 static int source_set_state(pa_source *s, pa_source_state_t state) {
     int ret;
-    pa_bool_t suspend_change;
+    bool suspend_change;
     pa_source_state_t original_state;
 
     pa_assert(s);
@@ -482,7 +482,7 @@ void pa_source_set_set_mute_callback(pa_source *s, pa_source_cb_t cb) {
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
-static void enable_flat_volume(pa_source *s, pa_bool_t enable) {
+static void enable_flat_volume(pa_source *s, bool enable) {
     pa_source_flags_t flags;
 
     pa_assert(s);
@@ -503,7 +503,7 @@ static void enable_flat_volume(pa_source *s, pa_bool_t enable) {
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
-void pa_source_enable_decibel_volume(pa_source *s, pa_bool_t enable) {
+void pa_source_enable_decibel_volume(pa_source *s, bool enable) {
     pa_source_flags_t flags;
 
     pa_assert(s);
@@ -513,10 +513,10 @@ void pa_source_enable_decibel_volume(pa_source *s, pa_bool_t enable) {
 
     if (enable) {
         s->flags |= PA_SOURCE_DECIBEL_VOLUME;
-        enable_flat_volume(s, TRUE);
+        enable_flat_volume(s, true);
     } else {
         s->flags &= ~PA_SOURCE_DECIBEL_VOLUME;
-        enable_flat_volume(s, FALSE);
+        enable_flat_volume(s, false);
     }
 
     /* If the flags have changed after init, let any clients know via a change event */
@@ -562,12 +562,12 @@ void pa_source_put(pa_source *s) {
      *
      * Note: This flag can also change over the life time of the source. */
     if (!(s->flags & PA_SOURCE_HW_VOLUME_CTRL) && !(s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
-        pa_source_enable_decibel_volume(s, TRUE);
+        pa_source_enable_decibel_volume(s, true);
 
     /* If the source implementor support DB volumes by itself, we should always
      * try and enable flat volumes too */
     if ((s->flags & PA_SOURCE_DECIBEL_VOLUME))
-        enable_flat_volume(s, TRUE);
+        enable_flat_volume(s, true);
 
     if (s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER) {
         pa_source *root_source = pa_source_get_master(s);
@@ -606,7 +606,7 @@ void pa_source_put(pa_source *s) {
 
 /* Called from main context */
 void pa_source_unlink(pa_source *s) {
-    pa_bool_t linked;
+    bool linked;
     pa_source_output *o, *j = NULL;
 
     pa_assert(s);
@@ -740,12 +740,12 @@ int pa_source_update_status(pa_source*s) {
 }
 
 /* Called from any context - must be threadsafe */
-void pa_source_set_mixer_dirty(pa_source *s, pa_bool_t is_dirty) {
+void pa_source_set_mixer_dirty(pa_source *s, bool is_dirty) {
     pa_atomic_store(&s->mixer_dirty, is_dirty ? 1 : 0);
 }
 
 /* Called from main context */
-int pa_source_suspend(pa_source *s, pa_bool_t suspend, pa_suspend_cause_t cause) {
+int pa_source_suspend(pa_source *s, bool suspend, pa_suspend_cause_t cause) {
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
@@ -762,7 +762,7 @@ int pa_source_suspend(pa_source *s, pa_bool_t suspend, pa_suspend_cause_t cause)
     if (!(s->suspend_cause & PA_SUSPEND_SESSION) && (pa_atomic_load(&s->mixer_dirty) != 0)) {
         /* This might look racy but isn't: If somebody sets mixer_dirty exactly here,
            it'll be handled just fine. */
-        pa_source_set_mixer_dirty(s, FALSE);
+        pa_source_set_mixer_dirty(s, false);
         pa_log_debug("Mixer is now accessible. Updating alsa mixer settings.");
         if (s->active_port && s->set_port) {
             if (s->flags & PA_SOURCE_DEFERRED_VOLUME) {
@@ -837,7 +837,7 @@ pa_queue *pa_source_move_all_start(pa_source *s, pa_queue *q) {
 }
 
 /* Called from main context */
-void pa_source_move_all_finish(pa_source *s, pa_queue *q, pa_bool_t save) {
+void pa_source_move_all_finish(pa_source *s, pa_queue *q, bool save) {
     pa_source_output *o;
 
     pa_source_assert_ref(s);
@@ -967,8 +967,8 @@ void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *
 }
 
 /* Called from main thread */
-pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrough) {
-    pa_bool_t ret = FALSE;
+bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
+    bool ret = false;
 
     if (s->update_rate) {
         uint32_t desired_rate = rate;
@@ -976,22 +976,22 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrou
         uint32_t alternate_rate = s->alternate_sample_rate;
         uint32_t idx;
         pa_source_output *o;
-        pa_bool_t use_alternate = FALSE;
+        bool use_alternate = false;
 
         if (PA_UNLIKELY(default_rate == alternate_rate)) {
             pa_log_warn("Default and alternate sample rates are the same.");
-            return FALSE;
+            return false;
         }
 
         if (PA_SOURCE_IS_RUNNING(s->state)) {
             pa_log_info("Cannot update rate, SOURCE_IS_RUNNING, will keep using %u Hz",
                         s->sample_spec.rate);
-            return FALSE;
+            return false;
         }
 
         if (PA_UNLIKELY (desired_rate < 8000 ||
                          desired_rate > PA_RATE_MAX))
-            return FALSE;
+            return false;
 
         if (!passthrough) {
             pa_assert(default_rate % 4000 || default_rate % 11025);
@@ -1000,11 +1000,11 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrou
             if (default_rate % 4000) {
                 /* default is a 11025 multiple */
                 if ((alternate_rate % 4000 == 0) && (desired_rate % 4000 == 0))
-                    use_alternate=TRUE;
+                    use_alternate=true;
             } else {
                 /* default is 4000 multiple */
                 if ((alternate_rate % 11025 == 0) && (desired_rate % 11025 == 0))
-                    use_alternate=TRUE;
+                    use_alternate=true;
             }
 
             if (use_alternate)
@@ -1016,25 +1016,25 @@ pa_bool_t pa_source_update_rate(pa_source *s, uint32_t rate, pa_bool_t passthrou
         }
 
         if (desired_rate == s->sample_spec.rate)
-            return FALSE;
+            return false;
 
         if (!passthrough && pa_source_used_by(s) > 0)
-            return FALSE;
+            return false;
 
         pa_log_debug("Suspending source %s due to changing the sample rate.", s->name);
-        pa_source_suspend(s, TRUE, PA_SUSPEND_INTERNAL);
+        pa_source_suspend(s, true, PA_SUSPEND_INTERNAL);
 
-        if (s->update_rate(s, desired_rate) == TRUE) {
+        if (s->update_rate(s, desired_rate) == true) {
             pa_log_info("Changed sampling rate successfully ");
 
             PA_IDXSET_FOREACH(o, s->outputs, idx) {
                 if (o->state == PA_SOURCE_OUTPUT_CORKED)
                     pa_source_output_update_rate(o);
             }
-            ret = TRUE;
+            ret = true;
         }
 
-        pa_source_suspend(s, FALSE, PA_SUSPEND_INTERNAL);
+        pa_source_suspend(s, false, PA_SUSPEND_INTERNAL);
     }
 
     return ret;
@@ -1106,7 +1106,7 @@ pa_usec_t pa_source_get_latency_within_thread(pa_source *s) {
  * When a source uses volume sharing, it never has the PA_SOURCE_FLAT_VOLUME flag
  * set. Instead, flat volume mode is detected by checking whether the root source
  * has the flag set. */
-pa_bool_t pa_source_flat_volume_enabled(pa_source *s) {
+bool pa_source_flat_volume_enabled(pa_source *s) {
     pa_source_assert_ref(s);
 
     s = pa_source_get_master(s);
@@ -1114,7 +1114,7 @@ pa_bool_t pa_source_flat_volume_enabled(pa_source *s) {
     if (PA_LIKELY(s))
         return (s->flags & PA_SOURCE_FLAT_VOLUME);
     else
-        return FALSE;
+        return false;
 }
 
 /* Called from the main thread (and also from the IO thread while the main
@@ -1133,7 +1133,7 @@ pa_source *pa_source_get_master(pa_source *s) {
 }
 
 /* Called from main context */
-pa_bool_t pa_source_is_passthrough(pa_source *s) {
+bool pa_source_is_passthrough(pa_source *s) {
 
     pa_source_assert_ref(s);
 
@@ -1146,20 +1146,20 @@ void pa_source_enter_passthrough(pa_source *s) {
     pa_cvolume volume;
 
     /* set the volume to NORM */
-    s->saved_volume = *pa_source_get_volume(s, TRUE);
+    s->saved_volume = *pa_source_get_volume(s, true);
     s->saved_save_volume = s->save_volume;
 
     pa_cvolume_set(&volume, s->sample_spec.channels, PA_MIN(s->base_volume, PA_VOLUME_NORM));
-    pa_source_set_volume(s, &volume, TRUE, FALSE);
+    pa_source_set_volume(s, &volume, true, false);
 }
 
 /* Called from main context */
 void pa_source_leave_passthrough(pa_source *s) {
     /* Restore source volume to what it was before we entered passthrough mode */
-    pa_source_set_volume(s, &s->saved_volume, TRUE, s->saved_save_volume);
+    pa_source_set_volume(s, &s->saved_volume, true, s->saved_save_volume);
 
     pa_cvolume_init(&s->saved_volume);
-    s->saved_save_volume = FALSE;
+    s->saved_save_volume = false;
 }
 
 /* Called from main context. */
@@ -1357,7 +1357,7 @@ static void get_maximum_output_volume(pa_source *s, pa_cvolume *max_volume, cons
 
 /* Called from main thread. Only called for the root source in volume sharing
  * cases, except for internal recursive calls. */
-static pa_bool_t has_outputs(pa_source *s) {
+static bool has_outputs(pa_source *s) {
     pa_source_output *o;
     uint32_t idx;
 
@@ -1365,10 +1365,10 @@ static pa_bool_t has_outputs(pa_source *s) {
 
     PA_IDXSET_FOREACH(o, s->outputs, idx) {
         if (!o->destination_source || !(o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER) || has_outputs(o->destination_source))
-            return TRUE;
+            return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 /* Called from main thread. Only called for the root source in volume sharing
@@ -1490,9 +1490,9 @@ static void propagate_reference_volume(pa_source *s) {
 /* Called from main thread. Only called for the root source in volume sharing
  * cases, except for internal recursive calls. The return value indicates
  * whether any reference volume actually changed. */
-static pa_bool_t update_reference_volume(pa_source *s, const pa_cvolume *v, const pa_channel_map *channel_map, pa_bool_t save) {
+static bool update_reference_volume(pa_source *s, const pa_cvolume *v, const pa_channel_map *channel_map, bool save) {
     pa_cvolume volume;
-    pa_bool_t reference_volume_changed;
+    bool reference_volume_changed;
     pa_source_output *o;
     uint32_t idx;
 
@@ -1523,24 +1523,24 @@ static pa_bool_t update_reference_volume(pa_source *s, const pa_cvolume *v, cons
          * intermediate source that didn't change its volume. This theoretical
          * possibility is the reason why we have that !(s->flags &
          * PA_SOURCE_SHARE_VOLUME_WITH_MASTER) condition. Probably nobody would
-         * notice even if we returned here FALSE always if
-         * reference_volume_changed is FALSE. */
-        return FALSE;
+         * notice even if we returned here false always if
+         * reference_volume_changed is false. */
+        return false;
 
     PA_IDXSET_FOREACH(o, s->outputs, idx) {
         if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
-            update_reference_volume(o->destination_source, v, channel_map, FALSE);
+            update_reference_volume(o->destination_source, v, channel_map, false);
     }
 
-    return TRUE;
+    return true;
 }
 
 /* Called from main thread */
 void pa_source_set_volume(
         pa_source *s,
         const pa_cvolume *volume,
-        pa_bool_t send_msg,
-        pa_bool_t save) {
+        bool send_msg,
+        bool save) {
 
     pa_cvolume new_reference_volume;
     pa_source *root_source;
@@ -1674,7 +1674,7 @@ static void propagate_real_volume(pa_source *s, const pa_cvolume *old_real_volum
             return;
 
         /* 1. Make the real volume the reference volume */
-        update_reference_volume(s, &s->real_volume, &s->channel_map, TRUE);
+        update_reference_volume(s, &s->real_volume, &s->channel_map, true);
     }
 
     if (pa_source_flat_volume_enabled(s)) {
@@ -1716,7 +1716,7 @@ static void propagate_real_volume(pa_source *s, const pa_cvolume *old_real_volum
      * to save changed hw settings given that hw volume changes not
      * triggered by PA are almost certainly done by the user. */
     if (!(s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
-        s->save_volume = TRUE;
+        s->save_volume = true;
 }
 
 /* Called from io thread */
@@ -1728,7 +1728,7 @@ void pa_source_update_volume_and_mute(pa_source *s) {
 }
 
 /* Called from main thread */
-const pa_cvolume *pa_source_get_volume(pa_source *s, pa_bool_t force_refresh) {
+const pa_cvolume *pa_source_get_volume(pa_source *s, bool force_refresh) {
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
@@ -1770,8 +1770,8 @@ void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_real_volume) {
 }
 
 /* Called from main thread */
-void pa_source_set_mute(pa_source *s, pa_bool_t mute, pa_bool_t save) {
-    pa_bool_t old_muted;
+void pa_source_set_mute(pa_source *s, bool mute, bool save) {
+    bool old_muted;
 
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
@@ -1791,14 +1791,14 @@ void pa_source_set_mute(pa_source *s, pa_bool_t mute, pa_bool_t save) {
 }
 
 /* Called from main thread */
-pa_bool_t pa_source_get_mute(pa_source *s, pa_bool_t force_refresh) {
+bool pa_source_get_mute(pa_source *s, bool force_refresh) {
 
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
     if (s->refresh_muted || force_refresh) {
-        pa_bool_t old_muted = s->muted;
+        bool old_muted = s->muted;
 
         if (!(s->flags & PA_SOURCE_DEFERRED_VOLUME) && s->get_mute)
             s->get_mute(s);
@@ -1806,7 +1806,7 @@ pa_bool_t pa_source_get_mute(pa_source *s, pa_bool_t force_refresh) {
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_MUTE, NULL, 0, NULL) == 0);
 
         if (old_muted != s->muted) {
-            s->save_muted = TRUE;
+            s->save_muted = true;
 
             pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 
@@ -1819,7 +1819,7 @@ pa_bool_t pa_source_get_mute(pa_source *s, pa_bool_t force_refresh) {
 }
 
 /* Called from main thread */
-void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted) {
+void pa_source_mute_changed(pa_source *s, bool new_muted) {
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
@@ -1830,13 +1830,13 @@ void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted) {
         return;
 
     s->muted = new_muted;
-    s->save_muted = TRUE;
+    s->save_muted = true;
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 /* Called from main thread */
-pa_bool_t pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist *p) {
+bool pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist *p) {
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
 
@@ -1848,7 +1848,7 @@ pa_bool_t pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_prop
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
     }
 
-    return TRUE;
+    return true;
 }
 
 /* Called from main thread */
@@ -1952,7 +1952,7 @@ static void sync_output_volumes_within_thread(pa_source *s) {
             continue;
 
         o->thread_info.soft_volume = o->soft_volume;
-        //pa_source_output_request_rewind(o, 0, TRUE, FALSE, FALSE);
+        //pa_source_output_request_rewind(o, 0, true, false, false);
     }
 }
 
@@ -1990,7 +1990,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
             }
 
             pa_assert(!o->thread_info.attached);
-            o->thread_info.attached = TRUE;
+            o->thread_info.attached = true;
 
             if (o->attach)
                 o->attach(o);
@@ -2021,7 +2021,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
                 o->detach(o);
 
             pa_assert(o->thread_info.attached);
-            o->thread_info.attached = FALSE;
+            o->thread_info.attached = false;
 
             if (o->thread_info.direct_on_input) {
                 pa_hashmap_remove(o->thread_info.direct_on_input->thread_info.direct_outputs, PA_UINT32_TO_PTR(o->index));
@@ -2031,7 +2031,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
             if (pa_hashmap_remove(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index)))
                 pa_source_output_unref(o);
 
-            pa_source_invalidate_requested_latency(s, TRUE);
+            pa_source_invalidate_requested_latency(s, true);
 
             /* In flat volume mode we need to update the volume as
              * well */
@@ -2102,7 +2102,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
         case PA_SOURCE_MESSAGE_SET_STATE: {
 
-            pa_bool_t suspend_change =
+            bool suspend_change =
                 (s->thread_info.state == PA_SOURCE_SUSPENDED && PA_SOURCE_IS_OPENED(PA_PTR_TO_UINT(userdata))) ||
                 (PA_SOURCE_IS_OPENED(s->thread_info.state) && PA_PTR_TO_UINT(userdata) == PA_SOURCE_SUSPENDED);
 
@@ -2210,8 +2210,8 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
             if (!PA_SOURCE_IS_LINKED(s->state))
                 return 0;
 
-            pa_source_get_volume(s, TRUE);
-            pa_source_get_mute(s, TRUE);
+            pa_source_get_volume(s, true);
+            pa_source_get_mute(s, true);
             return 0;
 
         case PA_SOURCE_MESSAGE_SET_LATENCY_OFFSET:
@@ -2226,7 +2226,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 }
 
 /* Called from main thread */
-int pa_source_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause) {
+int pa_source_suspend_all(pa_core *c, bool suspend, pa_suspend_cause_t cause) {
     pa_source *source;
     uint32_t idx;
     int ret = 0;
@@ -2320,7 +2320,7 @@ pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s) {
     if (PA_SOURCE_IS_LINKED(s->thread_info.state)) {
         /* Only cache this if we are fully set up */
         s->thread_info.requested_latency = result;
-        s->thread_info.requested_latency_valid = TRUE;
+        s->thread_info.requested_latency_valid = true;
     }
 
     return result;
@@ -2372,7 +2372,7 @@ void pa_source_set_max_rewind(pa_source *s, size_t max_rewind) {
 }
 
 /* Called from IO thread */
-void pa_source_invalidate_requested_latency(pa_source *s, pa_bool_t dynamic) {
+void pa_source_invalidate_requested_latency(pa_source *s, bool dynamic) {
     pa_source_output *o;
     void *state = NULL;
 
@@ -2380,7 +2380,7 @@ void pa_source_invalidate_requested_latency(pa_source *s, pa_bool_t dynamic) {
     pa_source_assert_io_context(s);
 
     if ((s->flags & PA_SOURCE_DYNAMIC_LATENCY))
-        s->thread_info.requested_latency_valid = FALSE;
+        s->thread_info.requested_latency_valid = false;
     else if (dynamic)
         return;
 
@@ -2484,7 +2484,7 @@ void pa_source_set_latency_range_within_thread(pa_source *s, pa_usec_t min_laten
                 o->update_source_latency_range(o);
     }
 
-    pa_source_invalidate_requested_latency(s, FALSE);
+    pa_source_invalidate_requested_latency(s, false);
 }
 
 /* Called from main thread, before the source is put */
@@ -2556,7 +2556,7 @@ void pa_source_set_fixed_latency_within_thread(pa_source *s, pa_usec_t latency) 
                 o->update_source_fixed_latency(o);
     }
 
-    pa_source_invalidate_requested_latency(s, FALSE);
+    pa_source_invalidate_requested_latency(s, false);
 }
 
 /* Called from main thread */
@@ -2586,7 +2586,7 @@ size_t pa_source_get_max_rewind(pa_source *s) {
 }
 
 /* Called from main context */
-int pa_source_set_port(pa_source *s, const char *name, pa_bool_t save) {
+int pa_source_set_port(pa_source *s, const char *name, bool save) {
     pa_device_port *port;
     int ret;
 
@@ -2736,9 +2736,9 @@ static void pa_source_volume_change_flush(pa_source *s) {
 }
 
 /* Called from the IO thread. */
-pa_bool_t pa_source_volume_change_apply(pa_source *s, pa_usec_t *usec_to_next) {
+bool pa_source_volume_change_apply(pa_source *s, pa_usec_t *usec_to_next) {
     pa_usec_t now;
-    pa_bool_t ret = FALSE;
+    bool ret = false;
 
     pa_assert(s);
 
@@ -2757,7 +2757,7 @@ pa_bool_t pa_source_volume_change_apply(pa_source *s, pa_usec_t *usec_to_next) {
         PA_LLIST_REMOVE(pa_source_volume_change, s->thread_info.volume_changes, c);
         pa_log_debug("Volume change to %d at %llu was written %llu usec late",
                      pa_cvolume_avg(&c->hw_volume), (long long unsigned) c->at, (long long unsigned) (now - c->at));
-        ret = TRUE;
+        ret = true;
         s->thread_info.current_hw_volume = c->hw_volume;
         pa_source_volume_change_free(c);
     }
@@ -2804,9 +2804,9 @@ pa_idxset* pa_source_get_formats(pa_source *s) {
 
 /* Called from the main thread */
 /* Checks if the source can accept this format */
-pa_bool_t pa_source_check_format(pa_source *s, pa_format_info *f) {
+bool pa_source_check_format(pa_source *s, pa_format_info *f) {
     pa_idxset *formats = NULL;
-    pa_bool_t ret = FALSE;
+    bool ret = false;
 
     pa_assert(s);
     pa_assert(f);
@@ -2819,7 +2819,7 @@ pa_bool_t pa_source_check_format(pa_source *s, pa_format_info *f) {
 
         PA_IDXSET_FOREACH(finfo_device, formats, i) {
             if (pa_format_info_is_compatible(finfo_device, f)) {
-                ret = TRUE;
+                ret = true;
                 break;
             }
         }

@@ -284,7 +284,7 @@ double pa_sw_volume_to_linear(pa_volume_t v) {
 
 char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {
     unsigned channel;
-    pa_bool_t first = TRUE;
+    bool first = true;
     char *e;
 
     pa_assert(s);
@@ -307,7 +307,7 @@ char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {
                       (c->values[channel]*100+PA_VOLUME_NORM/2)/PA_VOLUME_NORM);
 
         e = strchr(e, 0);
-        first = FALSE;
+        first = false;
     }
 
     return s;
@@ -330,7 +330,7 @@ char *pa_volume_snprint(char *s, size_t l, pa_volume_t v) {
 
 char *pa_sw_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c) {
     unsigned channel;
-    pa_bool_t first = TRUE;
+    bool first = true;
     char *e;
 
     pa_assert(s);
@@ -355,7 +355,7 @@ char *pa_sw_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c) {
                          isinf(f) < 0 || f <= PA_DECIBEL_MININFTY ? -INFINITY : f);
 
         e = strchr(e, 0);
-        first = FALSE;
+        first = false;
     }
 
     return s;
@@ -479,27 +479,27 @@ int pa_cvolume_valid(const pa_cvolume *v) {
     return 1;
 }
 
-static pa_bool_t on_left(pa_channel_position_t p) {
+static bool on_left(pa_channel_position_t p) {
     return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_LEFT);
 }
 
-static pa_bool_t on_right(pa_channel_position_t p) {
+static bool on_right(pa_channel_position_t p) {
     return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_RIGHT);
 }
 
-static pa_bool_t on_center(pa_channel_position_t p) {
+static bool on_center(pa_channel_position_t p) {
     return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_CENTER);
 }
 
-static pa_bool_t on_lfe(pa_channel_position_t p) {
+static bool on_lfe(pa_channel_position_t p) {
     return p == PA_CHANNEL_POSITION_LFE;
 }
 
-static pa_bool_t on_front(pa_channel_position_t p) {
+static bool on_front(pa_channel_position_t p) {
     return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_FRONT);
 }
 
-static pa_bool_t on_rear(pa_channel_position_t p) {
+static bool on_rear(pa_channel_position_t p) {
     return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_REAR);
 }
 
@@ -828,7 +828,7 @@ pa_cvolume* pa_cvolume_set_position(
         pa_volume_t v) {
 
     unsigned c;
-    pa_bool_t good = FALSE;
+    bool good = false;
 
     pa_assert(cv);
     pa_assert(map);
@@ -840,7 +840,7 @@ pa_cvolume* pa_cvolume_set_position(
     for (c = 0; c < map->channels; c++)
         if (map->map[c] == t) {
             cv->values[c] = v;
-            good = TRUE;
+            good = true;
         }
 
     return good ? cv : NULL;

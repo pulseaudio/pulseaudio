@@ -64,7 +64,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Receive data from a network via RTP/SAP/SDP");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "sink=<name of the sink> "
         "sap_address=<multicast address to listen on> "
@@ -91,7 +91,7 @@ struct session {
     pa_sink_input *sink_input;
     pa_memblockq *memblockq;
 
-    pa_bool_t first_packet;
+    bool first_packet;
     uint32_t ssrc;
     uint32_t offset;
 
@@ -191,7 +191,7 @@ static void sink_input_kill(pa_sink_input* i) {
 }
 
 /* Called from IO context */
-static void sink_input_suspend_within_thread(pa_sink_input* i, pa_bool_t b) {
+static void sink_input_suspend_within_thread(pa_sink_input* i, bool b) {
     struct session *s;
     pa_sink_input_assert_ref(i);
     pa_assert_se(s = i->userdata);
@@ -199,7 +199,7 @@ static void sink_input_suspend_within_thread(pa_sink_input* i, pa_bool_t b) {
     if (b)
         pa_memblockq_flush_read(s->memblockq);
     else
-        s->first_packet = FALSE;
+        s->first_packet = false;
 }
 
 /* Called from I/O thread context */
@@ -234,7 +234,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     }
 
     if (!s->first_packet) {
-        s->first_packet = TRUE;
+        s->first_packet = true;
 
         s->ssrc = s->rtp_context.ssrc;
         s->offset = s->rtp_context.timestamp;
@@ -257,7 +257,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     else
         delta = j;
 
-    pa_memblockq_seek(s->memblockq, delta * (int64_t) s->rtp_context.frame_size, PA_SEEK_RELATIVE, TRUE);
+    pa_memblockq_seek(s->memblockq, delta * (int64_t) s->rtp_context.frame_size, PA_SEEK_RELATIVE, true);
 
     if (now.tv_sec == 0) {
         PA_ONCE_BEGIN {
@@ -269,7 +269,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
     if (pa_memblockq_push(s->memblockq, &chunk) < 0) {
         pa_log_warn("Queue overrun");
-        pa_memblockq_seek(s->memblockq, (int64_t) chunk.length, PA_SEEK_RELATIVE, TRUE);
+        pa_memblockq_seek(s->memblockq, (int64_t) chunk.length, PA_SEEK_RELATIVE, true);
     }
 
 /*     pa_log("blocks in q: %u", pa_memblockq_get_nblocks(s->memblockq)); */
@@ -378,7 +378,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         pa_log_debug("Requesting rewind due to end of underrun");
         pa_sink_input_request_rewind(s->sink_input,
                                      (size_t) (s->sink_input->thread_info.underrun_for == (uint64_t) -1 ? 0 : s->sink_input->thread_info.underrun_for),
-                                     FALSE, TRUE, FALSE);
+                                     false, true, false);
     }
 
     return 1;
@@ -505,7 +505,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
 
     s = pa_xnew0(struct session, 1);
     s->userdata = u;
-    s->first_packet = FALSE;
+    s->first_packet = false;
     s->sdp_info = *sdp_info;
     s->rtpoll_item = NULL;
     s->intended_latency = LATENCY_USEC;
@@ -519,7 +519,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
         goto fail;
 
     pa_sink_input_new_data_init(&data);
-    pa_sink_input_new_data_set_sink(&data, sink, FALSE);
+    pa_sink_input_new_data_set_sink(&data, sink, false);
     data.driver = __FILE__;
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_ROLE, "stream");
     pa_proplist_setf(data.proplist, PA_PROP_MEDIA_NAME,
@@ -617,7 +617,7 @@ static void session_free(struct session *s) {
 
 static void sap_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event_flags_t flags, void *userdata) {
     struct userdata *u = userdata;
-    pa_bool_t goodbye = FALSE;
+    bool goodbye = false;
     pa_sdp_info info;
     struct session *s;
 

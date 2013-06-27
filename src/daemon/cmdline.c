@@ -215,7 +215,7 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
 
             case ARG_START:
                 conf->cmd = PA_CMD_START;
-                conf->daemonize = TRUE;
+                conf->daemonize = true;
                 break;
 
             case ARG_CHECK:
@@ -318,7 +318,7 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                 break;
 
             case 'n':
-                conf->load_default_script_file = FALSE;
+                conf->load_default_script_file = false;
                 break;
 
             case ARG_LOG_TARGET:

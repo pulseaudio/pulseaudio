@@ -364,7 +364,7 @@ static void handle_remove_properties(DBusConnection *conn, DBusMessage *msg, voi
     pa_dbusiface_client *c = userdata;
     char **keys = NULL;
     int n_keys = 0;
-    pa_bool_t changed = FALSE;
+    bool changed = false;
     int i = 0;
 
     pa_assert(conn);

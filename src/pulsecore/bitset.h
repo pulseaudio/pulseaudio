@@ -30,8 +30,8 @@
 
 typedef uint32_t pa_bitset_t;
 
-void pa_bitset_set(pa_bitset_t *b, unsigned k, pa_bool_t v);
-pa_bool_t pa_bitset_get(const pa_bitset_t *b, unsigned k);
-pa_bool_t pa_bitset_equals(const pa_bitset_t *b, unsigned n, ...);
+void pa_bitset_set(pa_bitset_t *b, unsigned k, bool v);
+bool pa_bitset_get(const pa_bitset_t *b, unsigned k);
+bool pa_bitset_equals(const pa_bitset_t *b, unsigned n, ...);
 
 #endif

@@ -31,7 +31,7 @@
 int main(int argc, char *argv[]) {
     FILE *i, *o;
     size_t granularity;
-    pa_bool_t found = FALSE;
+    bool found = false;
     uint8_t *zero;
 
     pa_assert_se(argc >= 2);
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
             for (p = buffer; ((size_t) (p-buffer)/granularity) < k; p += granularity)
                 if (memcmp(p, zero, granularity)) {
                     size_t left;
-                    found = TRUE;
+                    found = true;
                     left = (size_t) (k - (size_t) (p-buffer)/granularity);
                     pa_assert_se(fwrite(p, granularity, left, o) == left);
                     break;

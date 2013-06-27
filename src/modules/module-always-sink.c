@@ -37,7 +37,7 @@
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION(_("Always keeps at least one sink loaded even if it's a null one"));
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "sink_name=<name of sink>");
 
@@ -51,7 +51,7 @@ static const char* const valid_modargs[] = {
 struct userdata {
     pa_hook_slot *put_slot, *unlink_slot;
     uint32_t null_module;
-    pa_bool_t ignore;
+    bool ignore;
     char *sink_name;
 };
 
@@ -76,7 +76,7 @@ static void load_null_sink_if_needed(pa_core *c, pa_sink *sink, struct userdata*
 
     pa_log_debug("Autoloading null-sink as no other sinks detected.");
 
-    u->ignore = TRUE;
+    u->ignore = true;
 
     t = pa_sprintf_malloc("sink_name=%s sink_properties='device.description=\"%s\"'", u->sink_name,
                           _("Dummy Output"));
@@ -84,7 +84,7 @@ static void load_null_sink_if_needed(pa_core *c, pa_sink *sink, struct userdata*
     u->null_module = m ? m->index : PA_INVALID_INDEX;
     pa_xfree(t);
 
-    u->ignore = FALSE;
+    u->ignore = false;
 
     if (!m)
         pa_log_warn("Unable to load module-null-sink");
@@ -115,7 +115,7 @@ static pa_hook_result_t put_hook_callback(pa_core *c, pa_sink *sink, void* userd
 
     pa_log_info("A new sink has been discovered. Unloading null-sink.");
 
-    pa_module_unload_request_by_index(c, u->null_module, TRUE);
+    pa_module_unload_request_by_index(c, u->null_module, true);
     u->null_module = PA_INVALID_INDEX;
 
     return PA_HOOK_OK;
@@ -160,7 +160,7 @@ int pa__init(pa_module*m) {
     u->put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) put_hook_callback, u);
     u->unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_EARLY, (pa_hook_cb_t) unlink_hook_callback, u);
     u->null_module = PA_INVALID_INDEX;
-    u->ignore = FALSE;
+    u->ignore = false;
 
     pa_modargs_free(ma);
 
@@ -182,7 +182,7 @@ void pa__done(pa_module*m) {
     if (u->unlink_slot)
         pa_hook_slot_free(u->unlink_slot);
     if (u->null_module != PA_INVALID_INDEX && m->core->state != PA_CORE_SHUTDOWN)
-        pa_module_unload_request_by_index(m->core, u->null_module, TRUE);
+        pa_module_unload_request_by_index(m->core, u->null_module, true);
 
     pa_xfree(u->sink_name);
     pa_xfree(u);

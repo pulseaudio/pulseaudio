@@ -44,7 +44,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("LIRC volume control");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE("config=<config file> sink=<sink name> appname=<lirc application name> volume_limit=<volume limit> volume_step=<volume change step>");
 
 static const char* const valid_modargs[] = {
@@ -123,29 +123,29 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK)))
                     pa_log("Failed to get sink '%s'", u->sink_name);
                 else {
-                    pa_cvolume cv = *pa_sink_get_volume(s, FALSE);
+                    pa_cvolume cv = *pa_sink_get_volume(s, false);
 
                     switch (volchange) {
                         case UP:
                             pa_cvolume_inc_clamp(&cv, u->volume_step, u->volume_limit);
-                            pa_sink_set_volume(s, &cv, TRUE, TRUE);
+                            pa_sink_set_volume(s, &cv, true, true);
                             break;
 
                         case DOWN:
                             pa_cvolume_dec(&cv, u->volume_step);
-                            pa_sink_set_volume(s, &cv, TRUE, TRUE);
+                            pa_sink_set_volume(s, &cv, true, true);
                             break;
 
                         case MUTE:
-                            pa_sink_set_mute(s, TRUE, TRUE);
+                            pa_sink_set_mute(s, true, true);
                             break;
 
                         case RESET:
-                            pa_sink_set_mute(s, FALSE, TRUE);
+                            pa_sink_set_mute(s, false, true);
                             break;
 
                         case MUTE_TOGGLE:
-                            pa_sink_set_mute(s, !pa_sink_get_mute(s, FALSE), TRUE);
+                            pa_sink_set_mute(s, !pa_sink_get_mute(s, false), true);
                             break;
 
                         case INVALID:
@@ -164,7 +164,7 @@ fail:
     u->module->core->mainloop->io_free(u->io);
     u->io = NULL;
 
-    pa_module_unload_request(u->module, TRUE);
+    pa_module_unload_request(u->module, true);
 
     pa_xfree(code);
 }

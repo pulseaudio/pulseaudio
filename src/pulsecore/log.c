@@ -71,11 +71,11 @@
 static char *ident = NULL; /* in local charset format */
 static pa_log_target target = { PA_LOG_STDERR, NULL };
 static pa_log_target_type_t target_override;
-static pa_bool_t target_override_set = FALSE;
+static bool target_override_set = false;
 static pa_log_level_t maximum_level = PA_LOG_ERROR, maximum_level_override = PA_LOG_ERROR;
 static unsigned show_backtrace = 0, show_backtrace_override = 0, skip_backtrace = 0;
 static pa_log_flags_t flags = 0, flags_override = 0;
-static pa_bool_t no_rate_limit = FALSE;
+static bool no_rate_limit = false;
 static int log_fd = -1;
 
 #ifdef HAVE_SYSLOG_H
@@ -280,7 +280,7 @@ static void init_defaults(void) {
 
         if (getenv(ENV_LOG_SYSLOG)) {
             target_override = PA_LOG_SYSLOG;
-            target_override_set = TRUE;
+            target_override_set = true;
         }
 
         if ((e = getenv(ENV_LOG_LEVEL))) {
@@ -320,7 +320,7 @@ static void init_defaults(void) {
         }
 
         if (getenv(ENV_LOG_NO_RATELIMIT))
-            no_rate_limit = TRUE;
+            no_rate_limit = true;
 
     } PA_ONCE_END;
 }
@@ -524,14 +524,14 @@ void pa_log_level(pa_log_level_t level, const char *format, ...) {
     va_end(ap);
 }
 
-pa_bool_t pa_log_ratelimit(pa_log_level_t level) {
+bool pa_log_ratelimit(pa_log_level_t level) {
     /* Not more than 10 messages every 5s */
     static PA_DEFINE_RATELIMIT(ratelimit, 5 * PA_USEC_PER_SEC, 10);
 
     init_defaults();
 
     if (no_rate_limit)
-        return TRUE;
+        return true;
 
     return pa_ratelimit_test(&ratelimit, level);
 }

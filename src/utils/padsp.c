@@ -1526,7 +1526,7 @@ int open(const char *filename, int flags, ...) {
     return real_open(filename, flags, mode);
 }
 
-static pa_bool_t is_audio_device_node(const char *path) {
+static bool is_audio_device_node(const char *path) {
     return
         pa_streq(path, "/dev/dsp") ||
         pa_streq(path, "/dev/adsp") ||

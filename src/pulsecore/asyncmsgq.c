@@ -66,7 +66,7 @@ pa_asyncmsgq *pa_asyncmsgq_new(unsigned size) {
 
     PA_REFCNT_INIT(a);
     pa_assert_se(a->asyncq = pa_asyncq_new(size));
-    pa_assert_se(a->mutex = pa_mutex_new(FALSE, TRUE));
+    pa_assert_se(a->mutex = pa_mutex_new(false, true));
     a->current = NULL;
 
     return a;
@@ -76,7 +76,7 @@ static void asyncmsgq_free(pa_asyncmsgq *a) {
     struct asyncmsgq_item *i;
     pa_assert(a);
 
-    while ((i = pa_asyncq_pop(a->asyncq, FALSE))) {
+    while ((i = pa_asyncq_pop(a->asyncq, false))) {
 
         pa_assert(!i->semaphore);
 
@@ -161,7 +161,7 @@ int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const voi
 
     /* This mutex makes the queue multiple-writer safe. This lock is only used on the writing side */
     pa_mutex_lock(a->mutex);
-    pa_assert_se(pa_asyncq_push(a->asyncq, &i, TRUE) == 0);
+    pa_assert_se(pa_asyncq_push(a->asyncq, &i, true) == 0);
     pa_mutex_unlock(a->mutex);
 
     pa_semaphore_wait(i.semaphore);
@@ -172,7 +172,7 @@ int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const voi
     return i.ret;
 }
 
-int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **userdata, int64_t *offset, pa_memchunk *chunk, pa_bool_t wait_op) {
+int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **userdata, int64_t *offset, pa_memchunk *chunk, bool wait_op) {
     pa_assert(PA_REFCNT_VALUE(a) > 0);
     pa_assert(!a->current);
 
@@ -246,7 +246,7 @@ int pa_asyncmsgq_wait_for(pa_asyncmsgq *a, int code) {
         pa_memchunk chunk;
         int ret;
 
-        if (pa_asyncmsgq_get(a, &o, &c, &data, &offset, &chunk, TRUE) < 0)
+        if (pa_asyncmsgq_get(a, &o, &c, &data, &offset, &chunk, true) < 0)
             return -1;
 
         ret = pa_asyncmsgq_dispatch(o, c, data, offset, &chunk);
@@ -269,7 +269,7 @@ int pa_asyncmsgq_process_one(pa_asyncmsgq *a) {
 
     pa_assert(PA_REFCNT_VALUE(a) > 0);
 
-    if (pa_asyncmsgq_get(a, &object, &code, &data, &offset, &chunk, FALSE) < 0)
+    if (pa_asyncmsgq_get(a, &object, &code, &data, &offset, &chunk, false) < 0)
         return 0;
 
     pa_asyncmsgq_ref(a);
@@ -324,7 +324,7 @@ int pa_asyncmsgq_dispatch(pa_msgobject *object, int code, void *userdata, int64_
     return 0;
 }
 
-void pa_asyncmsgq_flush(pa_asyncmsgq *a, pa_bool_t run) {
+void pa_asyncmsgq_flush(pa_asyncmsgq *a, bool run) {
     pa_assert(PA_REFCNT_VALUE(a) > 0);
 
     for (;;) {
@@ -335,7 +335,7 @@ void pa_asyncmsgq_flush(pa_asyncmsgq *a, pa_bool_t run) {
         pa_memchunk chunk;
         int ret;
 
-        if (pa_asyncmsgq_get(a, &object, &code, &data, &offset, &chunk, FALSE) < 0)
+        if (pa_asyncmsgq_get(a, &object, &code, &data, &offset, &chunk, false) < 0)
             return;
 
         if (!run) {
@@ -350,7 +350,7 @@ void pa_asyncmsgq_flush(pa_asyncmsgq *a, pa_bool_t run) {
     }
 }
 
-pa_bool_t pa_asyncmsgq_dispatching(pa_asyncmsgq *a) {
+bool pa_asyncmsgq_dispatching(pa_asyncmsgq *a) {
     pa_assert(PA_REFCNT_VALUE(a) > 0);
 
     return !!a->current;

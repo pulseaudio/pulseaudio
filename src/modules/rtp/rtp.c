@@ -170,7 +170,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct 
     unsigned cc;
     ssize_t r;
     uint8_t aux[1024];
-    pa_bool_t found_tstamp = FALSE;
+    bool found_tstamp = false;
 
     pa_assert(c);
     pa_assert(chunk);
@@ -280,7 +280,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct 
     for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm))
         if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SCM_TIMESTAMP) {
             memcpy(tstamp, CMSG_DATA(cm), sizeof(struct timeval));
-            found_tstamp = TRUE;
+            found_tstamp = true;
             break;
         }
 

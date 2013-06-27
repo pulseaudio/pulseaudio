@@ -49,7 +49,7 @@ size_t pa_mix(
     size_t length,
     const pa_sample_spec *spec,
     const pa_cvolume *volume,
-    pa_bool_t mute);
+    bool mute);
 
 typedef void (*pa_do_mix_func_t) (pa_mix_info streams[], unsigned nstreams, unsigned channels, void *data, unsigned length);
 

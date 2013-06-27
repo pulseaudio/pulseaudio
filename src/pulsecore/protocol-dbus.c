@@ -57,15 +57,15 @@ struct connection_entry {
     DBusConnection *connection;
     pa_client *client;
 
-    pa_bool_t listening_for_all_signals;
+    bool listening_for_all_signals;
 
     /* Contains object paths. If this is empty, then signals from all objects
-     * are accepted. Only used when listening_for_all_signals == TRUE. */
+     * are accepted. Only used when listening_for_all_signals == true. */
     pa_idxset *all_signals_objects;
 
     /* Signal name -> signal paths entry. The entries contain object paths. If
      * a path set is empty, then that signal is accepted from all objects. This
-     * variable is only used when listening_for_all_signals == FALSE. */
+     * variable is only used when listening_for_all_signals == false. */
     pa_hashmap *listening_signals;
 };
 
@@ -730,7 +730,7 @@ int pa_dbus_protocol_add_interface(pa_dbus_protocol *p,
                                    void *userdata) {
     struct object_entry *obj_entry;
     struct interface_entry *iface_entry;
-    pa_bool_t obj_entry_created = FALSE;
+    bool obj_entry_created = false;
 
     pa_assert(p);
     pa_assert(path);
@@ -748,7 +748,7 @@ int pa_dbus_protocol_add_interface(pa_dbus_protocol *p,
         obj_entry->introspection = NULL;
 
         pa_hashmap_put(p->objects, obj_entry->path, obj_entry);
-        obj_entry_created = TRUE;
+        obj_entry_created = true;
     }
 
     if (pa_hashmap_get(obj_entry->interfaces, info->name) != NULL)
@@ -895,7 +895,7 @@ int pa_dbus_protocol_register_connection(pa_dbus_protocol *p, DBusConnection *co
     conn_entry = pa_xnew(struct connection_entry, 1);
     conn_entry->connection = dbus_connection_ref(conn);
     conn_entry->client = client;
-    conn_entry->listening_for_all_signals = FALSE;
+    conn_entry->listening_for_all_signals = false;
     conn_entry->all_signals_objects = pa_idxset_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     conn_entry->listening_signals = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
@@ -984,11 +984,11 @@ void pa_dbus_protocol_add_signal_listener(
 
     /* all_signals_objects will either be emptied or replaced with new objects,
      * so we empty it here unconditionally. If listening_for_all_signals is
-     * currently FALSE, the idxset is empty already so this does nothing. */
+     * currently false, the idxset is empty already so this does nothing. */
     pa_idxset_remove_all(conn_entry->all_signals_objects, pa_xfree);
 
     if (signal_name) {
-        conn_entry->listening_for_all_signals = FALSE;
+        conn_entry->listening_for_all_signals = false;
 
         /* Replace the old signal paths entry for this signal with a new
          * one. */
@@ -1002,7 +1002,7 @@ void pa_dbus_protocol_add_signal_listener(
         pa_hashmap_put(conn_entry->listening_signals, signal_paths_entry->signal, signal_paths_entry);
 
     } else {
-        conn_entry->listening_for_all_signals = TRUE;
+        conn_entry->listening_for_all_signals = true;
 
         /* We're not interested in individual signals anymore, so let's empty
          * listening_signals. */
@@ -1027,7 +1027,7 @@ void pa_dbus_protocol_remove_signal_listener(pa_dbus_protocol *p, DBusConnection
             signal_paths_entry_free(signal_paths_entry);
 
     } else {
-        conn_entry->listening_for_all_signals = FALSE;
+        conn_entry->listening_for_all_signals = false;
         pa_idxset_remove_all(conn_entry->all_signals_objects, pa_xfree);
         pa_hashmap_remove_all(conn_entry->listening_signals, (pa_free_cb_t) signal_paths_entry_free);
     }

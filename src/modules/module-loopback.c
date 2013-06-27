@@ -43,7 +43,7 @@
 PA_MODULE_AUTHOR("Pierre-Louis Bossart");
 PA_MODULE_DESCRIPTION("Loopback from source to sink");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "source=<source to connect to> "
         "sink=<sink to connect to> "
@@ -86,7 +86,7 @@ struct userdata {
     size_t skip;
     pa_usec_t latency;
 
-    pa_bool_t in_pop;
+    bool in_pop;
     size_t min_memblockq_length;
 
     struct {
@@ -381,7 +381,7 @@ static void source_output_kill_cb(pa_source_output *o) {
     pa_assert_se(u = o->userdata);
 
     teardown(u);
-    pa_module_unload_request(u->module, TRUE);
+    pa_module_unload_request(u->module, true);
 }
 
 /* Called from main thread */
@@ -422,7 +422,7 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
 }
 
 /* Called from main thread */
-static void source_output_suspend_cb(pa_source_output *o, pa_bool_t suspended) {
+static void source_output_suspend_cb(pa_source_output *o, bool suspended) {
     struct userdata *u;
 
     pa_source_output_assert_ref(o);
@@ -457,10 +457,10 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert_se(u = i->userdata);
     pa_assert(chunk);
 
-    u->in_pop = TRUE;
+    u->in_pop = true;
     while (pa_asyncmsgq_process_one(u->asyncmsgq) > 0)
         ;
-    u->in_pop = FALSE;
+    u->in_pop = false;
 
     if (pa_memblockq_peek(u->memblockq, chunk) < 0) {
         pa_log_info("Could not peek into queue");
@@ -511,7 +511,7 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
             if (PA_SINK_IS_OPENED(u->sink_input->sink->thread_info.state))
                 pa_memblockq_push_align(u->memblockq, chunk);
             else
-                pa_memblockq_flush_write(u->memblockq, TRUE);
+                pa_memblockq_flush_write(u->memblockq, true);
 
             update_min_memblockq_length(u);
 
@@ -524,7 +524,7 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
                 pa_log_debug("Requesting rewind due to end of underrun.");
                 pa_sink_input_request_rewind(u->sink_input,
                                              (size_t) (u->sink_input->thread_info.underrun_for == (size_t) -1 ? 0 : u->sink_input->thread_info.underrun_for),
-                                             FALSE, TRUE, FALSE);
+                                             false, true, false);
             }
 
             u->recv_counter += (int64_t) chunk->length;
@@ -536,9 +536,9 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
             pa_sink_input_assert_io_context(u->sink_input);
 
             if (PA_SINK_IS_OPENED(u->sink_input->sink->thread_info.state))
-                pa_memblockq_seek(u->memblockq, -offset, PA_SEEK_RELATIVE, TRUE);
+                pa_memblockq_seek(u->memblockq, -offset, PA_SEEK_RELATIVE, true);
             else
-                pa_memblockq_flush_write(u->memblockq, TRUE);
+                pa_memblockq_flush_write(u->memblockq, true);
 
             u->recv_counter -= offset;
 
@@ -649,7 +649,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_assert_se(u = i->userdata);
 
     teardown(u);
-    pa_module_unload_request(u->module, TRUE);
+    pa_module_unload_request(u->module, true);
 }
 
 /* Called from the output thread context */
@@ -701,7 +701,7 @@ static bool sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
 }
 
 /* Called from main thread */
-static void sink_input_suspend_cb(pa_sink_input *i, pa_bool_t suspended) {
+static void sink_input_suspend_cb(pa_sink_input *i, bool suspended) {
     struct userdata *u;
 
     pa_sink_input_assert_ref(i);
@@ -718,10 +718,10 @@ int pa__init(pa_module *m) {
     struct userdata *u;
     pa_sink *sink = NULL;
     pa_sink_input_new_data sink_input_data;
-    pa_bool_t sink_dont_move;
+    bool sink_dont_move;
     pa_source *source = NULL;
     pa_source_output_new_data source_output_data;
-    pa_bool_t source_dont_move;
+    bool source_dont_move;
     uint32_t latency_msec;
     pa_sample_spec ss;
     pa_channel_map map;
@@ -731,7 +731,7 @@ int pa__init(pa_module *m) {
     pa_memchunk silence;
     uint32_t adjust_time_sec;
     const char *n;
-    pa_bool_t remix = TRUE;
+    bool remix = true;
 
     pa_assert(m);
 
@@ -823,7 +823,7 @@ int pa__init(pa_module *m) {
     sink_input_data.module = m;
 
     if (sink)
-        pa_sink_input_new_data_set_sink(&sink_input_data, sink, FALSE);
+        pa_sink_input_new_data_set_sink(&sink_input_data, sink, false);
 
     if (pa_modargs_get_proplist(ma, "sink_input_properties", sink_input_data.proplist, PA_UPDATE_REPLACE) < 0) {
         pa_log("Failed to parse the sink_input_properties value.");
@@ -850,7 +850,7 @@ int pa__init(pa_module *m) {
     if (!channels_set)
         sink_input_data.flags |= PA_SINK_INPUT_FIX_CHANNELS;
 
-    sink_dont_move = FALSE;
+    sink_dont_move = false;
     if (pa_modargs_get_value_boolean(ma, "sink_dont_move", &sink_dont_move) < 0) {
         pa_log("sink_dont_move= expects a boolean argument.");
         goto fail;
@@ -890,7 +890,7 @@ int pa__init(pa_module *m) {
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
     if (source)
-        pa_source_output_new_data_set_source(&source_output_data, source, FALSE);
+        pa_source_output_new_data_set_source(&source_output_data, source, false);
 
     if (pa_modargs_get_proplist(ma, "source_output_properties", source_output_data.proplist, PA_UPDATE_REPLACE) < 0) {
         pa_log("Failed to parse the source_output_properties value.");
@@ -908,7 +908,7 @@ int pa__init(pa_module *m) {
     if (!remix)
         source_output_data.flags |= PA_SOURCE_OUTPUT_NO_REMIX;
 
-    source_dont_move = FALSE;
+    source_dont_move = false;
     if (pa_modargs_get_value_boolean(ma, "source_dont_move", &source_dont_move) < 0) {
         pa_log("source_dont_move= expects a boolean argument.");
         goto fail;
@@ -972,10 +972,10 @@ int pa__init(pa_module *m) {
     pa_source_output_put(u->source_output);
 
     if (pa_source_get_state(u->source_output->source) != PA_SOURCE_SUSPENDED)
-        pa_sink_input_cork(u->sink_input, FALSE);
+        pa_sink_input_cork(u->sink_input, false);
 
     if (pa_sink_get_state(u->sink_input->sink) != PA_SINK_SUSPENDED)
-        pa_source_output_cork(u->source_output, FALSE);
+        pa_source_output_cork(u->source_output, false);
 
     update_adjust_timer(u);
 

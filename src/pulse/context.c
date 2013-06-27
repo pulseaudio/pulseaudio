@@ -175,7 +175,7 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     if (!(c->mempool = pa_mempool_new(!c->conf->disable_shm, c->conf->shm_size))) {
 
         if (!c->conf->disable_shm)
-            c->mempool = pa_mempool_new(FALSE, c->conf->shm_size);
+            c->mempool = pa_mempool_new(false, c->conf->shm_size);
 
         if (!c->mempool) {
             context_free(c);
@@ -353,10 +353,10 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     if ((s = pa_hashmap_get(c->record_streams, PA_UINT32_TO_PTR(channel)))) {
 
         if (chunk->memblock) {
-            pa_memblockq_seek(s->record_memblockq, offset, seek, TRUE);
+            pa_memblockq_seek(s->record_memblockq, offset, seek, true);
             pa_memblockq_push_align(s->record_memblockq, chunk);
         } else
-            pa_memblockq_seek(s->record_memblockq, offset+chunk->length, seek, TRUE);
+            pa_memblockq_seek(s->record_memblockq, offset+chunk->length, seek, true);
 
         if (s->read_callback) {
             size_t l;
@@ -369,7 +369,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     pa_context_unref(c);
 }
 
-int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t, pa_bool_t fail) {
+int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t, bool fail) {
     uint32_t err;
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
@@ -418,14 +418,14 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_context_ref(c);
 
     if (command != PA_COMMAND_REPLY) {
-        pa_context_handle_error(c, command, t, TRUE);
+        pa_context_handle_error(c, command, t, true);
         goto finish;
     }
 
     switch(c->state) {
         case PA_CONTEXT_AUTHORIZING: {
             pa_tagstruct *reply;
-            pa_bool_t shm_on_remote = FALSE;
+            bool shm_on_remote = false;
 
             if (pa_tagstruct_getu32(t, &c->version) < 0 ||
                 !pa_tagstruct_eof(t)) {
@@ -452,7 +452,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
             /* Enable shared memory support if possible */
             if (c->do_shm)
                 if (c->version < 10 || (c->version >= 13 && !shm_on_remote))
-                    c->do_shm = FALSE;
+                    c->do_shm = false;
 
             if (c->do_shm) {
 
@@ -463,7 +463,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 #ifdef HAVE_CREDS
                 const pa_creds *creds;
                 if (!(creds = pa_pdispatch_creds(pd)) || getuid() != creds->uid)
-                    c->do_shm = FALSE;
+                    c->do_shm = false;
 #endif
             }
 
@@ -707,7 +707,7 @@ static void track_pulseaudio_on_dbus(pa_context *c, DBusBusType type, pa_dbus_wr
         pa_log_warn("Failed to add filter function");
         goto fail;
     }
-    c->filter_added = TRUE;
+    c->filter_added = true;
 
     if (pa_dbus_add_matches(
                 pa_dbus_wrap_connection_get(*conn), &error,
@@ -751,7 +751,7 @@ static int try_next_connection(pa_context *c) {
                     goto finish;
 
                 /* Autospawn only once */
-                c->do_autospawn = FALSE;
+                c->do_autospawn = false;
 
                 /* Connect only to per-user sockets this time */
                 c->server_list = prepend_per_user(c->server_list);
@@ -830,7 +830,7 @@ finish:
 #ifdef HAVE_DBUS
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, void *userdata) {
     pa_context *c = userdata;
-    pa_bool_t is_session;
+    bool is_session;
 
     pa_assert(bus);
     pa_assert(message);
@@ -879,7 +879,7 @@ int pa_context_connect(
     PA_CHECK_VALIDITY(c, !server || *server, PA_ERR_INVALID);
 
     if (server)
-        c->conf->autospawn = FALSE;
+        c->conf->autospawn = false;
     else
         server = c->conf->default_server;
 
@@ -932,7 +932,7 @@ int pa_context_connect(
         if (getuid() == 0)
             pa_log_debug("Not doing autospawn since we are root.");
         else {
-            c->do_autospawn = TRUE;
+            c->do_autospawn = true;
 
             if (api)
                 c->spawn_api = *api;
@@ -1088,7 +1088,7 @@ void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         success = 0;

@@ -37,7 +37,7 @@ typedef struct pa_pdispatch pa_pdispatch;
 typedef void (*pa_pdispatch_cb_t)(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 typedef void (*pa_pdispatch_drain_cb_t)(pa_pdispatch *pd, void *userdata);
 
-pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *m, pa_bool_t use_rtclock, const pa_pdispatch_cb_t *table, unsigned entries);
+pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *m, bool use_rtclock, const pa_pdispatch_cb_t *table, unsigned entries);
 void pa_pdispatch_unref(pa_pdispatch *pd);
 pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd);
 

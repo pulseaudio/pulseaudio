@@ -28,7 +28,7 @@
 
 const char pa_object_type_id[] = "pa_object";
 
-pa_object *pa_object_new_internal(size_t size, const char *type_id, pa_bool_t (*check_type)(const char *type_id)) {
+pa_object *pa_object_new_internal(size_t size, const char *type_id, bool (*check_type)(const char *type_id)) {
     pa_object *o;
 
     pa_assert(size > sizeof(pa_object));
@@ -65,7 +65,7 @@ void pa_object_unref(pa_object *o) {
     }
 }
 
-pa_bool_t pa_object_check_type(const char *type_id) {
+bool pa_object_check_type(const char *type_id) {
     pa_assert(type_id);
 
     return type_id == pa_object_type_id;

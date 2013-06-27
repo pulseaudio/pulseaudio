@@ -54,8 +54,8 @@ void pa_hashmap_remove_all(pa_hashmap *h, pa_free_cb_t free_cb);
 /* Return the current number of entries of the hashmap */
 unsigned pa_hashmap_size(pa_hashmap *h);
 
-/* Return TRUE if the hashmap is empty */
-pa_bool_t pa_hashmap_isempty(pa_hashmap *h);
+/* Return true if the hashmap is empty */
+bool pa_hashmap_isempty(pa_hashmap *h);
 
 /* May be used to iterate through the hashmap. Initially the opaque
    pointer *state has to be set to NULL. The hashmap may not be

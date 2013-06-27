@@ -221,7 +221,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
 
     c->fd = pa_iochannel_get_send_fd(io);
 
-    pa_iochannel_set_noclose(io, TRUE);
+    pa_iochannel_set_noclose(io, true);
     pa_iochannel_free(io);
 
     pa_make_tcp_socket_low_delay(c->fd);
@@ -323,7 +323,7 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
             uint32_t port = pa_rtsp_serverport(c->rtsp);
             pa_log_debug("RAOP: RECORDED");
 
-            if (!(c->sc = pa_socket_client_new_string(c->core->mainloop, TRUE, c->host, port))) {
+            if (!(c->sc = pa_socket_client_new_string(c->core->mainloop, true, c->host, port))) {
                 pa_log("failed to connect to server '%s:%d'", c->host, port);
                 return;
             }

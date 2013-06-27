@@ -56,7 +56,7 @@ struct pa_simple {
                 *(rerror) = error;                                      \
             return (ret);                                               \
         }                                                               \
-    } while(FALSE);
+    } while(false);
 
 #define CHECK_SUCCESS_GOTO(p, rerror, expression, label)        \
     do {                                                        \
@@ -65,7 +65,7 @@ struct pa_simple {
                 *(rerror) = pa_context_errno((p)->context);     \
             goto label;                                         \
         }                                                       \
-    } while(FALSE);
+    } while(false);
 
 #define CHECK_DEAD_GOTO(p, rerror, label)                               \
     do {                                                                \
@@ -80,7 +80,7 @@ struct pa_simple {
                     *(rerror) = PA_ERR_BADSTATE;                        \
             goto label;                                                 \
         }                                                               \
-    } while(FALSE);
+    } while(false);
 
 static void context_state_cb(pa_context *c, void *userdata) {
     pa_simple *p = userdata;

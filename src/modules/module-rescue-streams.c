@@ -38,7 +38,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("When a sink/source is removed, try to move its streams to the default sink/source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 
 static const char* const valid_modargs[] = {
     NULL,
@@ -104,7 +104,7 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, voi
         if (!(target = find_evacuation_sink(c, i, sink)))
             continue;
 
-        if (pa_sink_input_move_to(i, target, FALSE) < 0)
+        if (pa_sink_input_move_to(i, target, false) < 0)
             pa_log_info("Failed to move sink input %u \"%s\" to %s.", i->index,
                         pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), target->name);
         else
@@ -128,7 +128,7 @@ static pa_hook_result_t sink_input_move_fail_hook_callback(pa_core *c, pa_sink_i
     if (!(target = find_evacuation_sink(c, i, NULL)))
         return PA_HOOK_OK;
 
-    if (pa_sink_input_finish_move(i, target, FALSE) < 0) {
+    if (pa_sink_input_finish_move(i, target, false) < 0) {
         pa_log_info("Failed to move sink input %u \"%s\" to %s.", i->index,
                         pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), target->name);
         return PA_HOOK_OK;
@@ -195,7 +195,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
         if (!(target = find_evacuation_source(c, o, source)))
             continue;
 
-        if (pa_source_output_move_to(o, target, FALSE) < 0)
+        if (pa_source_output_move_to(o, target, false) < 0)
             pa_log_info("Failed to move source output %u \"%s\" to %s.", o->index,
                         pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME)), target->name);
         else
@@ -219,7 +219,7 @@ static pa_hook_result_t source_output_move_fail_hook_callback(pa_core *c, pa_sou
     if (!(target = find_evacuation_source(c, i, NULL)))
         return PA_HOOK_OK;
 
-    if (pa_source_output_finish_move(i, target, FALSE) < 0) {
+    if (pa_source_output_finish_move(i, target, false) < 0) {
         pa_log_info("Failed to move source input %u \"%s\" to %s.", i->index,
                         pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), target->name);
         return PA_HOOK_OK;

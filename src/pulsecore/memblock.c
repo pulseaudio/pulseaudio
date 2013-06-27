@@ -70,8 +70,8 @@ struct pa_memblock {
 
     pa_memblock_type_t type;
 
-    pa_bool_t read_only:1;
-    pa_bool_t is_silence:1;
+    bool read_only:1;
+    bool is_silence:1;
 
     pa_atomic_ptr_t data;
     size_t length;
@@ -235,7 +235,7 @@ static pa_memblock *memblock_new_appended(pa_mempool *p, size_t length) {
     PA_REFCNT_INIT(b);
     b->pool = p;
     b->type = PA_MEMBLOCK_APPENDED;
-    b->read_only = b->is_silence = FALSE;
+    b->read_only = b->is_silence = false;
     pa_atomic_ptr_store(&b->data, (uint8_t*) b + PA_ALIGN(sizeof(pa_memblock)));
     b->length = length;
     pa_atomic_store(&b->n_acquired, 0);
@@ -351,7 +351,7 @@ pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
 
     PA_REFCNT_INIT(b);
     b->pool = p;
-    b->read_only = b->is_silence = FALSE;
+    b->read_only = b->is_silence = false;
     b->length = length;
     pa_atomic_store(&b->n_acquired, 0);
     pa_atomic_store(&b->please_signal, 0);
@@ -361,7 +361,7 @@ pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
 }
 
 /* No lock necessary */
-pa_memblock *pa_memblock_new_fixed(pa_mempool *p, void *d, size_t length, pa_bool_t read_only) {
+pa_memblock *pa_memblock_new_fixed(pa_mempool *p, void *d, size_t length, bool read_only) {
     pa_memblock *b;
 
     pa_assert(p);
@@ -376,7 +376,7 @@ pa_memblock *pa_memblock_new_fixed(pa_mempool *p, void *d, size_t length, pa_boo
     b->pool = p;
     b->type = PA_MEMBLOCK_FIXED;
     b->read_only = read_only;
-    b->is_silence = FALSE;
+    b->is_silence = false;
     pa_atomic_ptr_store(&b->data, d);
     b->length = length;
     pa_atomic_store(&b->n_acquired, 0);
@@ -387,7 +387,7 @@ pa_memblock *pa_memblock_new_fixed(pa_mempool *p, void *d, size_t length, pa_boo
 }
 
 /* No lock necessary */
-pa_memblock *pa_memblock_new_user(pa_mempool *p, void *d, size_t length, pa_free_cb_t free_cb, pa_bool_t read_only) {
+pa_memblock *pa_memblock_new_user(pa_mempool *p, void *d, size_t length, pa_free_cb_t free_cb, bool read_only) {
     pa_memblock *b;
 
     pa_assert(p);
@@ -403,7 +403,7 @@ pa_memblock *pa_memblock_new_user(pa_mempool *p, void *d, size_t length, pa_free
     b->pool = p;
     b->type = PA_MEMBLOCK_USER;
     b->read_only = read_only;
-    b->is_silence = FALSE;
+    b->is_silence = false;
     pa_atomic_ptr_store(&b->data, d);
     b->length = length;
     pa_atomic_store(&b->n_acquired, 0);
@@ -416,7 +416,7 @@ pa_memblock *pa_memblock_new_user(pa_mempool *p, void *d, size_t length, pa_free
 }
 
 /* No lock necessary */
-pa_bool_t pa_memblock_is_read_only(pa_memblock *b) {
+bool pa_memblock_is_read_only(pa_memblock *b) {
     pa_assert(b);
     pa_assert(PA_REFCNT_VALUE(b) > 0);
 
@@ -424,7 +424,7 @@ pa_bool_t pa_memblock_is_read_only(pa_memblock *b) {
 }
 
 /* No lock necessary */
-pa_bool_t pa_memblock_is_silence(pa_memblock *b) {
+bool pa_memblock_is_silence(pa_memblock *b) {
     pa_assert(b);
     pa_assert(PA_REFCNT_VALUE(b) > 0);
 
@@ -432,7 +432,7 @@ pa_bool_t pa_memblock_is_silence(pa_memblock *b) {
 }
 
 /* No lock necessary */
-void pa_memblock_set_is_silence(pa_memblock *b, pa_bool_t v) {
+void pa_memblock_set_is_silence(pa_memblock *b, bool v) {
     pa_assert(b);
     pa_assert(PA_REFCNT_VALUE(b) > 0);
 
@@ -440,7 +440,7 @@ void pa_memblock_set_is_silence(pa_memblock *b, pa_bool_t v) {
 }
 
 /* No lock necessary */
-pa_bool_t pa_memblock_ref_is_one(pa_memblock *b) {
+bool pa_memblock_ref_is_one(pa_memblock *b) {
     int r;
     pa_assert(b);
 
@@ -560,7 +560,7 @@ static void memblock_free(pa_memblock *b) {
         case PA_MEMBLOCK_POOL_EXTERNAL:
         case PA_MEMBLOCK_POOL: {
             struct mempool_slot *slot;
-            pa_bool_t call_free;
+            bool call_free;
 
             pa_assert_se(slot = mempool_slot_by_ptr(b->pool, pa_atomic_ptr_load(&b->data)));
 
@@ -638,7 +638,7 @@ static void memblock_make_local(pa_memblock *b) {
             pa_atomic_ptr_store(&b->data, new_data);
 
             b->type = PA_MEMBLOCK_POOL_EXTERNAL;
-            b->read_only = FALSE;
+            b->read_only = false;
 
             goto finish;
         }
@@ -649,7 +649,7 @@ static void memblock_make_local(pa_memblock *b) {
     pa_atomic_ptr_store(&b->data, pa_xmemdup(pa_atomic_ptr_load(&b->data), b->length));
 
     b->type = PA_MEMBLOCK_USER;
-    b->read_only = FALSE;
+    b->read_only = false;
 
 finish:
     pa_atomic_inc(&b->pool->stat.n_allocated_by_type[b->type]);
@@ -712,7 +712,7 @@ static void memblock_replace_import(pa_memblock *b) {
     pa_mutex_unlock(import->mutex);
 }
 
-pa_mempool* pa_mempool_new(pa_bool_t shared, size_t size) {
+pa_mempool* pa_mempool_new(bool shared, size_t size) {
     pa_mempool *p;
     char t1[PA_BYTES_SNPRINT_MAX], t2[PA_BYTES_SNPRINT_MAX];
 
@@ -749,7 +749,7 @@ pa_mempool* pa_mempool_new(pa_bool_t shared, size_t size) {
     PA_LLIST_HEAD_INIT(pa_memimport, p->imports);
     PA_LLIST_HEAD_INIT(pa_memexport, p->exports);
 
-    p->mutex = pa_mutex_new(TRUE, TRUE);
+    p->mutex = pa_mutex_new(true, true);
     p->semaphore = pa_semaphore_new(0);
 
     p->free_slots = pa_flist_new(p->n_blocks);
@@ -874,7 +874,7 @@ int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id) {
 }
 
 /* No lock necessary */
-pa_bool_t pa_mempool_is_shared(pa_mempool *p) {
+bool pa_mempool_is_shared(pa_mempool *p) {
     pa_assert(p);
 
     return !!p->memory.shared;
@@ -888,7 +888,7 @@ pa_memimport* pa_memimport_new(pa_mempool *p, pa_memimport_release_cb_t cb, void
     pa_assert(cb);
 
     i = pa_xnew(pa_memimport, 1);
-    i->mutex = pa_mutex_new(TRUE, TRUE);
+    i->mutex = pa_mutex_new(true, true);
     i->pool = p;
     i->segments = pa_hashmap_new(NULL, NULL);
     i->blocks = pa_hashmap_new(NULL, NULL);
@@ -1002,8 +1002,8 @@ pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_i
     PA_REFCNT_INIT(b);
     b->pool = i->pool;
     b->type = PA_MEMBLOCK_IMPORTED;
-    b->read_only = TRUE;
-    b->is_silence = FALSE;
+    b->read_only = true;
+    b->is_silence = false;
     pa_atomic_ptr_store(&b->data, (uint8_t*) seg->memory.ptr + offset);
     b->length = size;
     pa_atomic_store(&b->n_acquired, 0);
@@ -1054,7 +1054,7 @@ pa_memexport* pa_memexport_new(pa_mempool *p, pa_memexport_revoke_cb_t cb, void 
         return NULL;
 
     e = pa_xnew(pa_memexport, 1);
-    e->mutex = pa_mutex_new(TRUE, TRUE);
+    e->mutex = pa_mutex_new(true, true);
     e->pool = p;
     PA_LLIST_HEAD_INIT(struct memexport_slot, e->free_slots);
     PA_LLIST_HEAD_INIT(struct memexport_slot, e->used_slots);

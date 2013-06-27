@@ -57,13 +57,13 @@ typedef struct connection {
     pa_client *client;
     pa_memblockq *input_memblockq, *output_memblockq;
 
-    pa_bool_t dead;
+    bool dead;
 
     struct {
         pa_memblock *current_memblock;
         size_t memblock_index;
         pa_atomic_t missing;
-        pa_bool_t underrun;
+        bool underrun;
     } playback;
 } connection;
 
@@ -266,7 +266,7 @@ fail:
     if (c->sink_input) {
 
         /* If there is a sink input, we first drain what we already have read before shutting down the connection */
-        c->dead = TRUE;
+        c->dead = true;
 
         pa_iochannel_free(c->io);
         c->io = NULL;
@@ -323,7 +323,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 
             if (pa_memblockq_is_readable(c->input_memblockq) && c->playback.underrun) {
                 pa_log_debug("Requesting rewind due to end of underrun.");
-                pa_sink_input_request_rewind(c->sink_input, 0, FALSE, TRUE, FALSE);
+                pa_sink_input_request_rewind(c->sink_input, 0, false, true, false);
             }
 
 /*             pa_log("got data, %u", pa_memblockq_get_length(c->input_memblockq)); */
@@ -360,7 +360,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
 
     if (pa_memblockq_peek(c->input_memblockq, chunk) < 0) {
 
-        c->playback.underrun = TRUE;
+        c->playback.underrun = true;
 
         if (c->dead && pa_sink_input_safe_to_remove(i))
             pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_UNLINK_CONNECTION, NULL, 0, NULL, NULL);
@@ -371,7 +371,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
 
         chunk->length = PA_MIN(length, chunk->length);
 
-        c->playback.underrun = FALSE;
+        c->playback.underrun = false;
 
         pa_memblockq_drop(c->input_memblockq, chunk->length);
         m = pa_memblockq_pop_missing(c->input_memblockq);
@@ -502,8 +502,8 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
     c->options = pa_simple_options_ref(o);
     c->playback.current_memblock = NULL;
     c->playback.memblock_index = 0;
-    c->dead = FALSE;
-    c->playback.underrun = TRUE;
+    c->dead = false;
+    c->playback.underrun = true;
     pa_atomic_store(&c->playback.missing, 0);
 
     pa_client_new_data_init(&client_data);
@@ -536,7 +536,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
         data.driver = __FILE__;
         data.module = o->module;
         data.client = c->client;
-        pa_sink_input_new_data_set_sink(&data, sink, FALSE);
+        pa_sink_input_new_data_set_sink(&data, sink, false);
         pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
         pa_sink_input_new_data_set_sample_spec(&data, &o->sample_spec);
 
@@ -592,7 +592,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
         data.driver = __FILE__;
         data.module = o->module;
         data.client = c->client;
-        pa_source_output_new_data_set_source(&data, source, FALSE);
+        pa_source_output_new_data_set_source(&data, source, false);
         pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
         pa_source_output_new_data_set_sample_spec(&data, &o->sample_spec);
 
@@ -703,8 +703,8 @@ pa_simple_options* pa_simple_options_new(void) {
     o = pa_xnew0(pa_simple_options, 1);
     PA_REFCNT_INIT(o);
 
-    o->record = FALSE;
-    o->playback = TRUE;
+    o->record = false;
+    o->playback = true;
 
     return o;
 }
@@ -732,7 +732,7 @@ void pa_simple_options_unref(pa_simple_options *o) {
 }
 
 int pa_simple_options_parse(pa_simple_options *o, pa_core *c, pa_modargs *ma) {
-    pa_bool_t enabled;
+    bool enabled;
 
     pa_assert(o);
     pa_assert(PA_REFCNT_VALUE(o) >= 1);

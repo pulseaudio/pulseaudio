@@ -57,7 +57,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Read data from source and send it to the network via RTP/SAP/SDP");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "source=<name of the source> "
         "format=<sample format> "
@@ -145,7 +145,7 @@ static void source_output_kill(pa_source_output* o) {
     pa_source_output_assert_ref(o);
     pa_assert_se(u = o->userdata);
 
-    pa_module_unload_request(u->module, TRUE);
+    pa_module_unload_request(u->module, true);
 
     pa_source_output_unlink(u->source_output);
     pa_source_output_unref(u->source_output);
@@ -187,7 +187,7 @@ int pa__init(pa_module*m) {
     int r, j;
     socklen_t k;
     char hn[128], *n;
-    pa_bool_t loop = FALSE;
+    bool loop = false;
     pa_source_output_new_data data;
 
     pa_assert(m);
@@ -368,7 +368,7 @@ int pa__init(pa_module*m) {
     pa_proplist_setf(data.proplist, "rtp.ttl", "%lu", (unsigned long) ttl);
     data.driver = __FILE__;
     data.module = m;
-    pa_source_output_new_data_set_source(&data, s, FALSE);
+    pa_source_output_new_data_set_source(&data, s, false);
     pa_source_output_new_data_set_sample_spec(&data, &ss);
     pa_source_output_new_data_set_channel_map(&data, &cm);
     data.flags = PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND;

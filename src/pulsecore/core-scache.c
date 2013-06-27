@@ -109,7 +109,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     } else {
         e = pa_xnew(pa_scache_entry, 1);
 
-        if (!pa_namereg_register(c, name, PA_NAMEREG_SAMPLE, e, TRUE)) {
+        if (!pa_namereg_register(c, name, PA_NAMEREG_SAMPLE, e, true)) {
             pa_xfree(e);
             return NULL;
         }
@@ -126,13 +126,13 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     e->last_used_time = 0;
     pa_memchunk_reset(&e->memchunk);
     e->filename = NULL;
-    e->lazy = FALSE;
+    e->lazy = false;
     e->last_used_time = 0;
 
     pa_sample_spec_init(&e->sample_spec);
     pa_channel_map_init(&e->channel_map);
     pa_cvolume_init(&e->volume);
-    e->volume_is_set = FALSE;
+    e->volume_is_set = false;
 
     pa_proplist_sets(e->proplist, PA_PROP_MEDIA_ROLE, "event");
 
@@ -171,7 +171,7 @@ int pa_scache_add_item(
     pa_sample_spec_init(&e->sample_spec);
     pa_channel_map_init(&e->channel_map);
     pa_cvolume_init(&e->volume);
-    e->volume_is_set = FALSE;
+    e->volume_is_set = false;
 
     if (ss) {
         e->sample_spec = *ss;
@@ -249,7 +249,7 @@ int pa_scache_add_file_lazy(pa_core *c, const char *name, const char *filename, 
     if (!(e = scache_add_item(c, name)))
         return -1;
 
-    e->lazy = TRUE;
+    e->lazy = true;
     e->filename = pa_xstrdup(filename);
 
     pa_proplist_sets(e->proplist, PA_PROP_MEDIA_FILENAME, filename);
@@ -296,7 +296,7 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
     pa_scache_entry *e;
     pa_cvolume r;
     pa_proplist *merged;
-    pa_bool_t pass_volume;
+    bool pass_volume;
 
     pa_assert(c);
     pa_assert(name);
@@ -330,7 +330,7 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
 
     pa_log_debug("Playing sample \"%s\" on \"%s\"", name, sink->name);
 
-    pass_volume = TRUE;
+    pass_volume = true;
 
     if (e->volume_is_set && PA_VOLUME_IS_VALID(volume)) {
         pa_cvolume_set(&r, e->sample_spec.channels, volume);
@@ -340,7 +340,7 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
     else if (PA_VOLUME_IS_VALID(volume))
         pa_cvolume_set(&r, e->sample_spec.channels, volume);
     else
-        pass_volume = FALSE;
+        pass_volume = false;
 
     pa_proplist_update(merged, PA_UPDATE_REPLACE, e->proplist);
 

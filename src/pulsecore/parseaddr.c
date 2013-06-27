@@ -132,16 +132,16 @@ int pa_parse_address(const char *name, pa_parsed_address *ret_p) {
     return 0;
 }
 
-pa_bool_t pa_is_ip_address(const char *a) {
+bool pa_is_ip_address(const char *a) {
     char buf[INET6_ADDRSTRLEN];
 
     pa_assert(a);
 
     if (inet_pton(AF_INET6, a, buf) >= 1)
-        return TRUE;
+        return true;
 
     if (inet_pton(AF_INET, a, buf) >= 1)
-        return TRUE;
+        return true;
 
-    return FALSE;
+    return false;
 }

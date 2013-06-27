@@ -30,11 +30,11 @@ typedef struct pa_smoother pa_smoother;
 pa_smoother* pa_smoother_new(
         pa_usec_t x_adjust_time,
         pa_usec_t x_history_time,
-        pa_bool_t monotonic,
-        pa_bool_t smoothing,
+        bool monotonic,
+        bool smoothing,
         unsigned min_history,
         pa_usec_t x_offset,
-        pa_bool_t paused);
+        bool paused);
 
 void pa_smoother_free(pa_smoother* s);
 
@@ -50,9 +50,9 @@ pa_usec_t pa_smoother_translate(pa_smoother *s, pa_usec_t x, pa_usec_t y_delay);
 void pa_smoother_set_time_offset(pa_smoother *s, pa_usec_t x_offset);
 
 void pa_smoother_pause(pa_smoother *s, pa_usec_t x);
-void pa_smoother_resume(pa_smoother *s, pa_usec_t x, pa_bool_t abrupt);
+void pa_smoother_resume(pa_smoother *s, pa_usec_t x, bool abrupt);
 
-void pa_smoother_reset(pa_smoother *s, pa_usec_t time_offset, pa_bool_t paused);
+void pa_smoother_reset(pa_smoother *s, pa_usec_t time_offset, bool paused);
 
 void pa_smoother_fix_now(pa_smoother *s);
 

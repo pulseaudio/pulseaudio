@@ -57,7 +57,7 @@
 PA_MODULE_AUTHOR("Daniel Mack");
 PA_MODULE_DESCRIPTION("CoreAudio device");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE("object_id=<the CoreAudio device id> "
                 "ioproc_frames=<audio frames per IOProc call> ");
 
@@ -86,7 +86,7 @@ struct userdata {
 
     pa_module *module;
     pa_card *card;
-    pa_bool_t running;
+    bool running;
 
     char *device_name, *vendor_name;
 
@@ -105,7 +105,7 @@ struct coreaudio_sink {
 
     char *name;
     unsigned int channel_idx;
-    pa_bool_t active;
+    bool active;
 
     pa_channel_map map;
     pa_sample_spec ss;
@@ -119,7 +119,7 @@ struct coreaudio_source {
 
     char *name;
     unsigned int channel_idx;
-    pa_bool_t active;
+    bool active;
 
     pa_channel_map map;
     pa_sample_spec ss;
@@ -191,13 +191,13 @@ static pa_usec_t get_latency_us(pa_object *o) {
 
         u = sink->userdata;
         ss = &sink->ss;
-        is_source = FALSE;
+        is_source = false;
     } else if (pa_source_isinstance(o)) {
         coreaudio_source *source = PA_SOURCE(o)->userdata;
 
         u = source->userdata;
         ss = &source->ss;
-        is_source = TRUE;
+        is_source = true;
     } else
         pa_assert_not_reached();
 
@@ -256,17 +256,17 @@ static pa_usec_t get_latency_us(pa_object *o) {
 static void ca_device_check_device_state(struct userdata *u) {
     coreaudio_sink *ca_sink;
     coreaudio_source *ca_source;
-    pa_bool_t active = FALSE;
+    bool active = false;
 
     pa_assert(u);
 
     for (ca_sink = u->sinks; ca_sink; ca_sink = ca_sink->next)
         if (ca_sink->active)
-            active = TRUE;
+            active = true;
 
     for (ca_source = u->sources; ca_source; ca_source = ca_source->next)
         if (ca_source->active)
-            active = TRUE;
+            active = true;
 
     if (active && !u->running)
         AudioDeviceStart(u->object_id, u->proc_id);
@@ -291,7 +291,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 pa_assert(sink);
 
                 if (PA_SINK_IS_OPENED(sink->pa_sink->thread_info.state)) {
-                    audio_chunk.memblock = pa_memblock_new_fixed(u->module->core->mempool, buf->mData, buf->mDataByteSize, FALSE);
+                    audio_chunk.memblock = pa_memblock_new_fixed(u->module->core->mempool, buf->mData, buf->mDataByteSize, false);
                     audio_chunk.length = buf->mDataByteSize;
                     audio_chunk.index = 0;
 
@@ -329,7 +329,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                 pa_assert(source);
 
                 if (PA_SOURCE_IS_OPENED(source->pa_source->thread_info.state)) {
-                    audio_chunk.memblock = pa_memblock_new_fixed(u->module->core->mempool, buf->mData, buf->mDataByteSize, TRUE);
+                    audio_chunk.memblock = pa_memblock_new_fixed(u->module->core->mempool, buf->mData, buf->mDataByteSize, true);
                     audio_chunk.length = buf->mDataByteSize;
                     audio_chunk.index = 0;
 
@@ -358,11 +358,11 @@ static int ca_sink_set_state(pa_sink *s, pa_sink_state_t state) {
     switch (state) {
         case PA_SINK_SUSPENDED:
         case PA_SINK_IDLE:
-            sink->active = FALSE;
+            sink->active = false;
             break;
 
         case PA_SINK_RUNNING:
-            sink->active = TRUE;
+            sink->active = true;
             break;
 
         case PA_SINK_UNLINKED:
@@ -432,7 +432,7 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
     new_data.card = u->card;
     new_data.driver = __FILE__;
     new_data.module = u->module;
-    new_data.namereg_fail = FALSE;
+    new_data.namereg_fail = false;
     pa_sink_new_data_set_name(&new_data, ca_sink->name);
     pa_sink_new_data_set_channel_map(&new_data, &ca_sink->map);
     pa_sink_new_data_set_sample_spec(&new_data, &ca_sink->ss);
@@ -476,11 +476,11 @@ static int ca_source_set_state(pa_source *s, pa_source_state_t state) {
     switch (state) {
         case PA_SOURCE_SUSPENDED:
         case PA_SOURCE_IDLE:
-            source->active = FALSE;
+            source->active = false;
             break;
 
         case PA_SOURCE_RUNNING:
-            source->active = TRUE;
+            source->active = true;
             break;
 
         case PA_SOURCE_UNLINKED:
@@ -550,7 +550,7 @@ static int ca_device_create_source(pa_module *m, AudioBuffer *buf, int channel_i
     new_data.card = u->card;
     new_data.driver = __FILE__;
     new_data.module = u->module;
-    new_data.namereg_fail = FALSE;
+    new_data.namereg_fail = false;
     pa_source_new_data_set_name(&new_data, ca_source->name);
     pa_source_new_data_set_channel_map(&new_data, &ca_source->map);
     pa_source_new_data_set_sample_spec(&new_data, &ca_source->ss);
@@ -678,7 +678,7 @@ static void thread_func(void *userdata) {
                 pa_sink_process_rewind(ca_sink->pa_sink, 0);
         }
 
-        ret = pa_rtpoll_run(u->rtpoll, TRUE);
+        ret = pa_rtpoll_run(u->rtpoll, true);
 
         if (ret < 0)
             goto fail;
@@ -775,10 +775,10 @@ int pa__init(pa_module *m) {
     PA_LLIST_HEAD_INIT(coreaudio_sink, u->sinks);
 
     /* create sinks */
-    ca_device_create_streams(m, FALSE);
+    ca_device_create_streams(m, false);
 
     /* create sources */
-    ca_device_create_streams(m, TRUE);
+    ca_device_create_streams(m, true);
 
     /* create the message thread */
     if (!(u->thread = pa_thread_new(u->device_name, thread_func, u))) {

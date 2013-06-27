@@ -51,7 +51,7 @@ static void context_stat_callback(pa_pdispatch *pd, uint32_t command, uint32_t t
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         p = NULL;
@@ -95,7 +95,7 @@ static void context_get_server_info_callback(pa_pdispatch *pd, uint32_t command,
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         p = NULL;
@@ -151,14 +151,14 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         eol = -1;
     } else {
 
         while (!pa_tagstruct_eof(t)) {
-            pa_bool_t mute;
+            bool mute;
             uint32_t flags;
             uint32_t state;
             const char *ap = NULL;
@@ -167,7 +167,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
             i.proplist = pa_proplist_new();
             i.base_volume = PA_VOLUME_NORM;
             i.n_volume_steps = PA_VOLUME_NORM+1;
-            mute = FALSE;
+            mute = false;
             state = PA_SINK_INVALID_STATE;
             i.card = PA_INVALID_INDEX;
 
@@ -424,14 +424,14 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         eol = -1;
     } else {
 
         while (!pa_tagstruct_eof(t)) {
-            pa_bool_t mute;
+            bool mute;
             uint32_t flags;
             uint32_t state;
             const char *ap;
@@ -440,7 +440,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
             i.proplist = pa_proplist_new();
             i.base_volume = PA_VOLUME_NORM;
             i.n_volume_steps = PA_VOLUME_NORM+1;
-            mute = FALSE;
+            mute = false;
             state = PA_SOURCE_INVALID_STATE;
             i.card = PA_INVALID_INDEX;
 
@@ -692,7 +692,7 @@ static void context_get_client_info_callback(pa_pdispatch *pd, uint32_t command,
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         eol = -1;
@@ -870,7 +870,7 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         eol = -1;
@@ -1080,7 +1080,7 @@ static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command,
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         eol = -1;
@@ -1088,7 +1088,7 @@ static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command,
 
         while (!pa_tagstruct_eof(t)) {
             pa_module_info i;
-            pa_bool_t auto_unload = FALSE;
+            bool auto_unload = false;
 
             pa_zero(i);
             i.proplist = pa_proplist_new();
@@ -1165,7 +1165,7 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         eol = -1;
@@ -1173,7 +1173,7 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
 
         while (!pa_tagstruct_eof(t)) {
             pa_sink_input_info i;
-            pa_bool_t mute = FALSE, corked = FALSE, has_volume = FALSE, volume_writable = TRUE;
+            bool mute = false, corked = false, has_volume = false, volume_writable = true;
 
             pa_zero(i);
             i.proplist = pa_proplist_new();
@@ -1270,7 +1270,7 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         eol = -1;
@@ -1278,7 +1278,7 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
 
         while (!pa_tagstruct_eof(t)) {
             pa_source_output_info i;
-            pa_bool_t mute = FALSE, corked = FALSE, has_volume = FALSE, volume_writable = TRUE;
+            bool mute = false, corked = false, has_volume = false, volume_writable = true;
 
             pa_zero(i);
             i.proplist = pa_proplist_new();
@@ -1676,7 +1676,7 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         eol = -1;
@@ -1684,7 +1684,7 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
 
         while (!pa_tagstruct_eof(t)) {
             pa_sample_info i;
-            pa_bool_t lazy = FALSE;
+            bool lazy = false;
 
             pa_zero(i);
             i.proplist = pa_proplist_new();
@@ -1823,7 +1823,7 @@ static void context_index_callback(pa_pdispatch *pd, uint32_t command, uint32_t 
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         idx = PA_INVALID_INDEX;

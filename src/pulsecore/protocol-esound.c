@@ -82,12 +82,12 @@ typedef struct connection {
     pa_msgobject parent;
 
     uint32_t index;
-    pa_bool_t dead;
+    bool dead;
     pa_esound_protocol *protocol;
     pa_esound_options *options;
     pa_iochannel *io;
     pa_client *client;
-    pa_bool_t authorized, swap_byte_order;
+    bool authorized, swap_byte_order;
     void *write_data;
     size_t write_data_alloc, write_data_index, write_data_length;
     void *read_data;
@@ -105,7 +105,7 @@ typedef struct connection {
         pa_memblock *current_memblock;
         size_t memblock_index;
         pa_atomic_t missing;
-        pa_bool_t underrun;
+        bool underrun;
     } playback;
 
     struct {
@@ -306,7 +306,7 @@ static void connection_write(connection *c, const void *data, size_t length) {
     memcpy((uint8_t*) c->write_data + i, data, length);
 }
 
-static void format_esd2native(int format, pa_bool_t swap_bytes, pa_sample_spec *ss) {
+static void format_esd2native(int format, bool swap_bytes, pa_sample_spec *ss) {
     pa_assert(ss);
 
     ss->channels = (uint8_t) (((format & ESD_MASK_CHAN) == ESD_STEREO) ? 2 : 1);
@@ -347,7 +347,7 @@ static int esd_proto_connect(connection *c, esd_proto_t request, const void *dat
 
         if ((key = pa_auth_cookie_read(c->options->auth_cookie, ESD_KEY_LEN)))
             if (memcmp(data, key, ESD_KEY_LEN) == 0)
-                c->authorized = TRUE;
+                c->authorized = true;
     }
 
     if (!c->authorized) {
@@ -364,9 +364,9 @@ static int esd_proto_connect(connection *c, esd_proto_t request, const void *dat
 
     memcpy(&ekey, data, sizeof(uint32_t));
     if (ekey == ESD_ENDIAN_KEY)
-        c->swap_byte_order = FALSE;
+        c->swap_byte_order = false;
     else if (ekey == ESD_SWAP_ENDIAN_KEY)
-        c->swap_byte_order = TRUE;
+        c->swap_byte_order = true;
     else {
         pa_log_warn("Client sent invalid endian key");
         return -1;
@@ -425,7 +425,7 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
     sdata.module = c->options->module;
     sdata.client = c->client;
     if (sink)
-        pa_sink_input_new_data_set_sink(&sdata, sink, FALSE);
+        pa_sink_input_new_data_set_sink(&sdata, sink, false);
     pa_sink_input_new_data_set_sample_spec(&sdata, &ss);
 
     pa_sink_input_new(&c->sink_input, c->protocol->core, &sdata);
@@ -525,7 +525,7 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
     sdata.module = c->options->module;
     sdata.client = c->client;
     if (source)
-        pa_source_output_new_data_set_source(&sdata, source, FALSE);
+        pa_source_output_new_data_set_source(&sdata, source, false);
     pa_source_output_new_data_set_sample_spec(&sdata, &ss);
 
     pa_source_output_new(&c->source_output, c->protocol->core, &sdata);
@@ -643,7 +643,7 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
 
         if (conn->sink_input) {
             pa_cvolume volume;
-            pa_sink_input_get_volume(conn->sink_input, &volume, TRUE);
+            pa_sink_input_get_volume(conn->sink_input, &volume, true);
             rate = (int32_t) conn->sink_input->sample_spec.rate;
             lvolume = (int32_t) ((volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             rvolume = (int32_t) ((volume.values[volume.channels == 2 ? 1 : 0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
@@ -783,7 +783,7 @@ static int esd_proto_stream_pan(connection *c, esd_proto_t request, const void *
         volume.values[1] = (rvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
         volume.channels = conn->sink_input->sample_spec.channels;
 
-        pa_sink_input_set_volume(conn->sink_input, &volume, TRUE, TRUE);
+        pa_sink_input_set_volume(conn->sink_input, &volume, true, true);
         ok = 1;
     } else
         ok = 0;
@@ -823,7 +823,7 @@ static int esd_proto_sample_pan(connection *c, esd_proto_t request, const void *
 
         pa_cvolume_remap(&volume, &stereo, &ce->channel_map);
         ce->volume = volume;
-        ce->volume_is_set = TRUE;
+        ce->volume_is_set = true;
         ok = 1;
     }
 
@@ -1266,7 +1266,7 @@ static void do_work(connection *c) {
 fail:
 
     if (c->state == ESD_STREAMING_DATA && c->sink_input) {
-        c->dead = TRUE;
+        c->dead = true;
 
         pa_iochannel_free(c->io);
         c->io = NULL;
@@ -1341,7 +1341,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 
             if (pa_memblockq_is_readable(c->input_memblockq) && c->playback.underrun) {
                 pa_log_debug("Requesting rewind due to end of underrun.");
-                pa_sink_input_request_rewind(c->sink_input, 0, FALSE, TRUE, FALSE);
+                pa_sink_input_request_rewind(c->sink_input, 0, false, true, false);
             }
 
 /*             pa_log("got data, %u", pa_memblockq_get_length(c->input_memblockq)); */
@@ -1378,7 +1378,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
 
     if (pa_memblockq_peek(c->input_memblockq, chunk) < 0) {
 
-        c->playback.underrun = TRUE;
+        c->playback.underrun = true;
 
         if (c->dead && pa_sink_input_safe_to_remove(i))
             pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_UNLINK_CONNECTION, NULL, 0, NULL, NULL);
@@ -1387,7 +1387,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
     } else {
         size_t m;
 
-        c->playback.underrun = FALSE;
+        c->playback.underrun = false;
 
         chunk->length = PA_MIN(length, chunk->length);
         pa_memblockq_drop(c->input_memblockq, chunk->length);
@@ -1516,9 +1516,9 @@ void pa_esound_protocol_connect(pa_esound_protocol *p, pa_iochannel *io, pa_esou
     c->client->userdata = c;
 
     c->options = pa_esound_options_ref(o);
-    c->authorized = FALSE;
-    c->swap_byte_order = FALSE;
-    c->dead = FALSE;
+    c->authorized = false;
+    c->swap_byte_order = false;
+    c->dead = false;
 
     c->read_data_length = 0;
     c->read_data = pa_xmalloc(c->read_data_alloc = proto_map[ESD_PROTO_CONNECT].data_length);
@@ -1537,7 +1537,7 @@ void pa_esound_protocol_connect(pa_esound_protocol *p, pa_iochannel *io, pa_esou
 
     c->playback.current_memblock = NULL;
     c->playback.memblock_index = 0;
-    c->playback.underrun = TRUE;
+    c->playback.underrun = true;
     pa_atomic_store(&c->playback.missing, 0);
 
     pa_memchunk_reset(&c->scache.memchunk);
@@ -1547,7 +1547,7 @@ void pa_esound_protocol_connect(pa_esound_protocol *p, pa_iochannel *io, pa_esou
 
     if (o->auth_anonymous) {
         pa_log_info("Client authenticated anonymously.");
-        c->authorized = TRUE;
+        c->authorized = true;
     }
 
     if (!c->authorized &&
@@ -1555,7 +1555,7 @@ void pa_esound_protocol_connect(pa_esound_protocol *p, pa_iochannel *io, pa_esou
         pa_ip_acl_check(o->auth_ip_acl, pa_iochannel_get_recv_fd(io)) > 0) {
 
         pa_log_info("Client authenticated by IP ACL.");
-        c->authorized = TRUE;
+        c->authorized = true;
     }
 
     if (!c->authorized)
@@ -1671,7 +1671,7 @@ void pa_esound_options_unref(pa_esound_options *o) {
 }
 
 int pa_esound_options_parse(pa_esound_options *o, pa_core *c, pa_modargs *ma) {
-    pa_bool_t enabled;
+    bool enabled;
     const char *acl;
 
     pa_assert(o);
@@ -1697,7 +1697,7 @@ int pa_esound_options_parse(pa_esound_options *o, pa_core *c, pa_modargs *ma) {
         o->auth_ip_acl = ipa;
     }
 
-    enabled = TRUE;
+    enabled = true;
     if (pa_modargs_get_value_boolean(ma, "auth-cookie-enabled", &enabled) < 0) {
         pa_log("auth-cookie-enabled= expects a boolean argument.");
         return -1;
@@ -1715,7 +1715,7 @@ int pa_esound_options_parse(pa_esound_options *o, pa_core *c, pa_modargs *ma) {
             if (!(cn = pa_modargs_get_value(ma, "cookie", NULL)))
                 cn = DEFAULT_COOKIE_FILE;
 
-        if (!(o->auth_cookie = pa_auth_cookie_get(c, cn, TRUE, ESD_KEY_LEN)))
+        if (!(o->auth_cookie = pa_auth_cookie_get(c, cn, true, ESD_KEY_LEN)))
             return -1;
 
     } else

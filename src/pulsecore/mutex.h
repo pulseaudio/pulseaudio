@@ -32,11 +32,11 @@ typedef struct pa_mutex pa_mutex;
  * good candidates for it. Don't use this blindly! Also, note that
  * only very few operating systems actually implement this, hence this
  * is merely a hint. */
-pa_mutex* pa_mutex_new(pa_bool_t recursive, pa_bool_t inherit_priority);
+pa_mutex* pa_mutex_new(bool recursive, bool inherit_priority);
 
 void pa_mutex_free(pa_mutex *m);
 void pa_mutex_lock(pa_mutex *m);
-pa_bool_t pa_mutex_try_lock(pa_mutex *m);
+bool pa_mutex_try_lock(pa_mutex *m);
 void pa_mutex_unlock(pa_mutex *m);
 
 typedef struct pa_cond pa_cond;
@@ -54,6 +54,6 @@ typedef struct pa_static_mutex {
 
 #define PA_STATIC_MUTEX_INIT { PA_ATOMIC_PTR_INIT(NULL) }
 
-pa_mutex* pa_static_mutex_get(pa_static_mutex *m, pa_bool_t recursive, pa_bool_t inherit_priority);
+pa_mutex* pa_static_mutex_get(pa_static_mutex *m, bool recursive, bool inherit_priority);
 
 #endif

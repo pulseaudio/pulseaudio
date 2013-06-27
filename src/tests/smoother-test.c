@@ -66,7 +66,7 @@ START_TEST (smoother_test) {
             msec[u+1] = 0;
     }
 
-    s = pa_smoother_new(700*PA_USEC_PER_MSEC, 2000*PA_USEC_PER_MSEC, FALSE, TRUE, 6, 0, TRUE);
+    s = pa_smoother_new(700*PA_USEC_PER_MSEC, 2000*PA_USEC_PER_MSEC, false, true, 6, 0, true);
 
     for (x = 0, u = 0; x < PA_USEC_PER_SEC * 10; x += PA_USEC_PER_MSEC) {
 
@@ -76,7 +76,7 @@ START_TEST (smoother_test) {
             u += 2;
 
             if (u < PA_ELEMENTSOF(msec))
-                pa_smoother_resume(s, (pa_usec_t) msec[u] * PA_USEC_PER_MSEC, TRUE);
+                pa_smoother_resume(s, (pa_usec_t) msec[u] * PA_USEC_PER_MSEC, true);
         }
 
         pa_log_debug("%llu\t%llu", (unsigned long long) (x/PA_USEC_PER_MSEC), (unsigned long long) (pa_smoother_get(s, x)/PA_USEC_PER_MSEC));

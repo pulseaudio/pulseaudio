@@ -96,13 +96,13 @@ static int ref(void) {
     pa_make_fd_nonblock(pipe_fd[1]);
     pa_make_fd_nonblock(pipe_fd[0]);
 
-    lock_fd_mutex = pa_mutex_new(FALSE, FALSE);
+    lock_fd_mutex = pa_mutex_new(false, false);
 
     n_ref = 1;
     return 0;
 }
 
-static void unref(pa_bool_t after_fork) {
+static void unref(bool after_fork) {
 
     pa_assert(n_ref > 0);
     pa_assert(pipe_fd[0] >= 0);
@@ -257,7 +257,7 @@ static int start_thread(void) {
 
 static void create_mutex(void) {
     PA_ONCE_BEGIN {
-        mutex = pa_mutex_new(FALSE, FALSE);
+        mutex = pa_mutex_new(false, false);
     } PA_ONCE_END;
 }
 
@@ -282,7 +282,7 @@ int pa_autospawn_lock_init(void) {
     return ret;
 }
 
-int pa_autospawn_lock_acquire(pa_bool_t block) {
+int pa_autospawn_lock_acquire(bool block) {
     int ret = -1;
 
     create_mutex();
@@ -345,7 +345,7 @@ void pa_autospawn_lock_release(void) {
     pa_mutex_unlock(mutex);
 }
 
-void pa_autospawn_lock_done(pa_bool_t after_fork) {
+void pa_autospawn_lock_done(bool after_fork) {
 
     create_mutex();
     pa_mutex_lock(mutex);

@@ -38,7 +38,7 @@ struct pa_cond {
     pa_hashmap *wait_events;
 };
 
-pa_mutex* pa_mutex_new(pa_bool_t recursive, pa_bool_t inherit_priority) {
+pa_mutex* pa_mutex_new(bool recursive, bool inherit_priority) {
     pa_mutex *m;
 
     m = pa_xnew(pa_mutex, 1);
@@ -114,7 +114,7 @@ int pa_cond_wait(pa_cond *c, pa_mutex *m) {
     assert(c);
     assert(m);
 
-    event = CreateEvent(NULL, FALSE, FALSE, NULL);
+    event = CreateEvent(NULL, false, false, NULL);
     assert(event);
 
     pa_hashmap_put(c->wait_events, event, event);
@@ -133,7 +133,7 @@ int pa_cond_wait(pa_cond *c, pa_mutex *m) {
 }
 
 /* This is a copy of the function in mutex-posix.c */
-pa_mutex* pa_static_mutex_get(pa_static_mutex *s, pa_bool_t recursive, pa_bool_t inherit_priority) {
+pa_mutex* pa_static_mutex_get(pa_static_mutex *s, bool recursive, bool inherit_priority) {
     pa_mutex *m;
 
     pa_assert(s);

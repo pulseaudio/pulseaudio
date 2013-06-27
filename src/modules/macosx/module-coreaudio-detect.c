@@ -40,7 +40,7 @@
 PA_MODULE_AUTHOR("Daniel Mack");
 PA_MODULE_DESCRIPTION("CoreAudio device detection");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE("ioproc_frames=<passed on to module-coreaudio-device> ");
 
 static const char* const valid_modargs[] = {
@@ -146,11 +146,11 @@ static int ca_update_device_list(struct pa_module *m) {
 
     /* scan for devices which are reported but not in our cached list */
     for (i = 0; i < num_devices; i++) {
-        bool found = FALSE;
+        bool found = false;
 
         PA_LLIST_FOREACH(dev, u->devices)
             if (dev->id == device_id[i]) {
-                found = TRUE;
+                found = true;
                 break;
             }
 
@@ -162,17 +162,17 @@ static int ca_update_device_list(struct pa_module *m) {
 scan_removed:
 
     PA_LLIST_FOREACH(dev, u->devices) {
-        bool found = FALSE;
+        bool found = false;
 
         for (i = 0; i < num_devices; i++)
             if (dev->id == device_id[i]) {
-                found = TRUE;
+                found = true;
                 break;
             }
 
         if (!found) {
             pa_log_debug("object id %d has been removed (module index %d) %p", (unsigned int) dev->id, dev->module_index, dev);
-            pa_module_unload_request_by_index(m->core, dev->module_index, TRUE);
+            pa_module_unload_request_by_index(m->core, dev->module_index, true);
             PA_LLIST_REMOVE(ca_device, u->devices, dev);
             pa_xfree(dev);
             /* the current list item pointer is not valid anymore, so start over. */
@@ -265,7 +265,7 @@ void pa__done(pa_module *m) {
     while (dev) {
         struct ca_device *next = dev->next;
 
-        pa_module_unload_request_by_index(m->core, dev->module_index, TRUE);
+        pa_module_unload_request_by_index(m->core, dev->module_index, true);
         pa_xfree(dev);
 
         dev = next;

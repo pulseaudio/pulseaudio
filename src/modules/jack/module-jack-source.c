@@ -51,7 +51,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("JACK Source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "source_name=<name for the source> "
         "source_properties=<properties for the source> "
@@ -81,7 +81,7 @@ struct userdata {
     pa_thread *thread;
 
     jack_nframes_t saved_frame_time;
-    pa_bool_t saved_frame_time_valid;
+    bool saved_frame_time_valid;
 };
 
 static const char* const valid_modargs[] = {
@@ -115,7 +115,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                 pa_source_post(u->source, chunk);
 
             u->saved_frame_time = (jack_nframes_t) offset;
-            u->saved_frame_time_valid = TRUE;
+            u->saved_frame_time_valid = true;
 
             return 0;
 
@@ -198,7 +198,7 @@ static void thread_func(void *userdata) {
     for (;;) {
         int ret;
 
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, true)) < 0)
             goto fail;
 
         if (ret == 0)
@@ -247,7 +247,7 @@ int pa__init(pa_module*m) {
     jack_status_t status;
     const char *server_name, *client_name;
     uint32_t channels = 0;
-    pa_bool_t do_connect = TRUE;
+    bool do_connect = true;
     unsigned i;
     const char **ports = NULL, **p;
     pa_source_new_data data;
@@ -274,7 +274,7 @@ int pa__init(pa_module*m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    u->saved_frame_time_valid = FALSE;
+    u->saved_frame_time_valid = false;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 

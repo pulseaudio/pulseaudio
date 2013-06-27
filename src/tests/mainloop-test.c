@@ -77,7 +77,7 @@ START_TEST (mainloop_test) {
 #ifdef GLIB_MAIN_LOOP
     pa_glib_mainloop *g;
 
-    glib_main_loop = g_main_loop_new(NULL, FALSE);
+    glib_main_loop = g_main_loop_new(NULL, false);
     fail_if(!glib_main_loop);
 
     g = pa_glib_mainloop_new(NULL);
@@ -101,7 +101,7 @@ START_TEST (mainloop_test) {
     de = a->defer_new(a, dcb, NULL);
     fail_if(!de);
 
-    te = a->time_new(a, pa_timeval_rtstore(&tv, pa_rtclock_now() + 2 * PA_USEC_PER_SEC, TRUE), tcb, NULL);
+    te = a->time_new(a, pa_timeval_rtstore(&tv, pa_rtclock_now() + 2 * PA_USEC_PER_SEC, true), tcb, NULL);
 
 #if defined(GLIB_MAIN_LOOP)
     g_main_loop_run(glib_main_loop);

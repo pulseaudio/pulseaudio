@@ -60,7 +60,7 @@
 
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("JACK Sink");
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
@@ -94,7 +94,7 @@ struct userdata {
 
     jack_nframes_t frames_in_buffer;
     jack_nframes_t saved_frame_time;
-    pa_bool_t saved_frame_time_valid;
+    bool saved_frame_time_valid;
 };
 
 static const char* const valid_modargs[] = {
@@ -154,7 +154,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             u->frames_in_buffer = (jack_nframes_t) offset;
             u->saved_frame_time = * (jack_nframes_t*) data;
-            u->saved_frame_time_valid = TRUE;
+            u->saved_frame_time_valid = true;
 
             return 0;
 
@@ -232,7 +232,7 @@ static void thread_func(void *userdata) {
         if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
             pa_sink_process_rewind(u->sink, 0);
 
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, true)) < 0)
             goto fail;
 
         if (ret == 0)
@@ -293,7 +293,7 @@ int pa__init(pa_module*m) {
     jack_status_t status;
     const char *server_name, *client_name;
     uint32_t channels = 0;
-    pa_bool_t do_connect = TRUE;
+    bool do_connect = true;
     unsigned i;
     const char **ports = NULL, **p;
     pa_sink_new_data data;
@@ -320,7 +320,7 @@ int pa__init(pa_module*m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    u->saved_frame_time_valid = FALSE;
+    u->saved_frame_time_valid = false;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 

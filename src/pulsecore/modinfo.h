@@ -31,7 +31,7 @@ typedef struct pa_modinfo {
     char *usage;
     char *version;
     char *deprecated;
-    pa_bool_t load_once;
+    bool load_once;
 } pa_modinfo;
 
 /* Read meta data from an libtool handle */

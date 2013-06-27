@@ -78,7 +78,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("OSS Sink/Source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
         "sink_properties=<properties for the sink> "
@@ -116,10 +116,10 @@ struct userdata {
 
     size_t frame_size;
     uint32_t in_fragment_size, out_fragment_size, in_nfrags, out_nfrags, in_hwbuf_size, out_hwbuf_size;
-    pa_bool_t use_getospace, use_getispace;
-    pa_bool_t use_getodelay;
+    bool use_getospace, use_getispace;
+    bool use_getodelay;
 
-    pa_bool_t sink_suspended, source_suspended;
+    bool sink_suspended, source_suspended;
 
     int fd;
     int mode;
@@ -129,7 +129,7 @@ struct userdata {
 
     int nfrags, frag_size, orig_frag_size;
 
-    pa_bool_t use_mmap;
+    bool use_mmap;
     unsigned out_mmap_current, in_mmap_current;
     void *in_mmap, *out_mmap;
     pa_memblock **in_mmap_memblocks, **out_mmap_memblocks;
@@ -157,7 +157,7 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static int trigger(struct userdata *u, pa_bool_t quick) {
+static int trigger(struct userdata *u, bool quick) {
     int enable_bits = 0, zero = 0;
 
     pa_assert(u);
@@ -647,7 +647,7 @@ fail:
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
     int ret;
-    pa_bool_t do_trigger = FALSE, quick = TRUE;
+    bool do_trigger = false, quick = true;
 
     switch (code) {
 
@@ -678,16 +678,16 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                             return -1;
                     }
 
-                    do_trigger = TRUE;
+                    do_trigger = true;
 
-                    u->sink_suspended = TRUE;
+                    u->sink_suspended = true;
                     break;
 
                 case PA_SINK_IDLE:
                 case PA_SINK_RUNNING:
 
                     if (u->sink->thread_info.state == PA_SINK_INIT) {
-                        do_trigger = TRUE;
+                        do_trigger = true;
                         quick = u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state);
                     }
 
@@ -696,15 +696,15 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                         if (!u->source || u->source_suspended) {
                             if (unsuspend(u) < 0)
                                 return -1;
-                            quick = FALSE;
+                            quick = false;
                         }
 
-                        do_trigger = TRUE;
+                        do_trigger = true;
 
                         u->out_mmap_current = 0;
                         u->out_mmap_saved_nfrags = 0;
 
-                        u->sink_suspended = FALSE;
+                        u->sink_suspended = false;
                     }
 
                     break;
@@ -732,7 +732,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE(o)->userdata;
     int ret;
-    int do_trigger = FALSE, quick = TRUE;
+    int do_trigger = false, quick = true;
 
     switch (code) {
 
@@ -761,16 +761,16 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                             return -1;
                     }
 
-                    do_trigger = TRUE;
+                    do_trigger = true;
 
-                    u->source_suspended = TRUE;
+                    u->source_suspended = true;
                     break;
 
                 case PA_SOURCE_IDLE:
                 case PA_SOURCE_RUNNING:
 
                     if (u->source->thread_info.state == PA_SOURCE_INIT) {
-                        do_trigger = TRUE;
+                        do_trigger = true;
                         quick = u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state);
                     }
 
@@ -779,15 +779,15 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                         if (!u->sink || u->sink_suspended) {
                             if (unsuspend(u) < 0)
                                 return -1;
-                            quick = FALSE;
+                            quick = false;
                         }
 
-                        do_trigger = TRUE;
+                        do_trigger = true;
 
                         u->in_mmap_current = 0;
                         u->in_mmap_saved_nfrags = 0;
 
-                        u->source_suspended = FALSE;
+                        u->source_suspended = false;
                     }
                     break;
 
@@ -921,7 +921,7 @@ static void thread_func(void *userdata) {
 
             } else {
                 ssize_t l;
-                pa_bool_t loop = FALSE, work_done = FALSE;
+                bool loop = false, work_done = false;
 
                 l = (ssize_t) u->out_fragment_size;
 
@@ -930,14 +930,14 @@ static void thread_func(void *userdata) {
 
                     if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) < 0) {
                         pa_log_info("Device doesn't support SNDCTL_DSP_GETOSPACE: %s", pa_cstrerror(errno));
-                        u->use_getospace = FALSE;
+                        u->use_getospace = false;
                     } else {
                         l = info.bytes;
 
                         /* We loop only if GETOSPACE worked and we
                          * actually *know* that we can write more than
                          * one fragment at a time */
-                        loop = TRUE;
+                        loop = true;
                     }
                 }
 
@@ -952,7 +952,7 @@ static void thread_func(void *userdata) {
                  * avoid spinning forever. */
                 if (l <= 0 && (revents & POLLOUT)) {
                     l = (ssize_t) u->out_fragment_size;
-                    loop = FALSE;
+                    loop = false;
                 }
 
                 while (l > 0) {
@@ -1001,7 +1001,7 @@ static void thread_func(void *userdata) {
                         l -= t;
 
                         revents &= ~POLLOUT;
-                        work_done = TRUE;
+                        work_done = true;
                     }
 
                     if (!loop)
@@ -1032,7 +1032,7 @@ static void thread_func(void *userdata) {
                 void *p;
                 ssize_t l;
                 pa_memchunk memchunk;
-                pa_bool_t loop = FALSE, work_done = FALSE;
+                bool loop = false, work_done = false;
 
                 l = (ssize_t) u->in_fragment_size;
 
@@ -1041,10 +1041,10 @@ static void thread_func(void *userdata) {
 
                     if (ioctl(u->fd, SNDCTL_DSP_GETISPACE, &info) < 0) {
                         pa_log_info("Device doesn't support SNDCTL_DSP_GETISPACE: %s", pa_cstrerror(errno));
-                        u->use_getispace = FALSE;
+                        u->use_getispace = false;
                     } else {
                         l = info.bytes;
-                        loop = TRUE;
+                        loop = true;
                     }
                 }
 
@@ -1052,7 +1052,7 @@ static void thread_func(void *userdata) {
 
                 if (l <= 0 && (revents & POLLIN)) {
                     l = (ssize_t) u->in_fragment_size;
-                    loop = FALSE;
+                    loop = false;
                 }
 
                 while (l > 0) {
@@ -1105,7 +1105,7 @@ static void thread_func(void *userdata) {
                         l -= t;
 
                         revents &= ~POLLIN;
-                        work_done = TRUE;
+                        work_done = true;
                     }
 
                     if (!loop)
@@ -1131,7 +1131,7 @@ static void thread_func(void *userdata) {
         }
 
         /* Hmm, nothing to do. Let's sleep */
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, true)) < 0)
             goto fail;
 
         if (ret == 0)
@@ -1170,13 +1170,13 @@ int pa__init(pa_module*m) {
     int fd = -1;
     int nfrags, orig_frag_size, frag_size;
     int mode, caps;
-    pa_bool_t record = TRUE, playback = TRUE, use_mmap = TRUE;
+    bool record = true, playback = true, use_mmap = true;
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
     char hwdesc[64];
     const char *name;
-    pa_bool_t namereg_fail;
+    bool namereg_fail;
     pa_sink_new_data sink_new_data;
     pa_source_new_data source_new_data;
 
@@ -1226,12 +1226,12 @@ int pa__init(pa_module*m) {
 
     if (use_mmap && (!(caps & DSP_CAP_MMAP) || !(caps & DSP_CAP_TRIGGER))) {
         pa_log_info("OSS device not mmap capable, falling back to UNIX read/write mode.");
-        use_mmap = FALSE;
+        use_mmap = false;
     }
 
     if (use_mmap && mode == O_WRONLY) {
         pa_log_info("Device opened for playback only, cannot do memory mapping, falling back to UNIX write() mode.");
-        use_mmap = FALSE;
+        use_mmap = false;
     }
 
     if (pa_oss_get_hw_description(dev, hwdesc, sizeof(hwdesc)) >= 0)
@@ -1262,8 +1262,8 @@ int pa__init(pa_module*m) {
     u->fd = fd;
     u->mixer_fd = -1;
     u->mixer_devmask = 0;
-    u->use_getospace = u->use_getispace = TRUE;
-    u->use_getodelay = TRUE;
+    u->use_getospace = u->use_getispace = true;
+    u->use_getodelay = true;
     u->mode = mode;
     u->frame_size = pa_frame_size(&ss);
     u->device_name = pa_xstrdup(dev);
@@ -1280,14 +1280,14 @@ int pa__init(pa_module*m) {
         pa_log_info("Input -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         u->in_fragment_size = (uint32_t) info.fragsize;
         u->in_nfrags = (uint32_t) info.fragstotal;
-        u->use_getispace = TRUE;
+        u->use_getispace = true;
     }
 
     if (ioctl(fd, SNDCTL_DSP_GETOSPACE, &info) >= 0) {
         pa_log_info("Output -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         u->out_fragment_size = (uint32_t) info.fragsize;
         u->out_nfrags = (uint32_t) info.fragstotal;
-        u->use_getospace = TRUE;
+        u->use_getospace = true;
     }
 
     u->in_hwbuf_size = u->in_nfrags * u->in_fragment_size;
@@ -1299,17 +1299,17 @@ int pa__init(pa_module*m) {
         if (use_mmap) {
             if ((u->in_mmap = mmap(NULL, u->in_hwbuf_size, PROT_READ, MAP_SHARED, fd, 0)) == MAP_FAILED) {
                 pa_log_warn("mmap(PROT_READ) failed, reverting to non-mmap mode: %s", pa_cstrerror(errno));
-                use_mmap = u->use_mmap = FALSE;
+                use_mmap = u->use_mmap = false;
                 u->in_mmap = NULL;
             } else
                 pa_log_debug("Successfully mmap()ed input buffer.");
         }
 
         if ((name = pa_modargs_get_value(ma, "source_name", NULL)))
-            namereg_fail = TRUE;
+            namereg_fail = true;
         else {
             name = name_buf = pa_sprintf_malloc("oss_input.%s", pa_path_get_filename(dev));
-            namereg_fail = FALSE;
+            namereg_fail = false;
         }
 
         pa_source_new_data_init(&source_new_data);
@@ -1347,7 +1347,7 @@ int pa__init(pa_module*m) {
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_rtpoll(u->source, u->rtpoll);
         pa_source_set_fixed_latency(u->source, pa_bytes_to_usec(u->in_hwbuf_size, &u->source->sample_spec));
-        u->source->refresh_volume = TRUE;
+        u->source->refresh_volume = true;
 
         if (use_mmap)
             u->in_mmap_memblocks = pa_xnew0(pa_memblock*, u->in_nfrags);
@@ -1364,7 +1364,7 @@ int pa__init(pa_module*m) {
                     goto go_on;
                 } else {
                     pa_log_warn("mmap(PROT_WRITE) failed, reverting to non-mmap mode: %s", pa_cstrerror(errno));
-                    u->use_mmap = use_mmap = FALSE;
+                    u->use_mmap = use_mmap = false;
                     u->out_mmap = NULL;
                 }
             } else {
@@ -1374,10 +1374,10 @@ int pa__init(pa_module*m) {
         }
 
         if ((name = pa_modargs_get_value(ma, "sink_name", NULL)))
-            namereg_fail = TRUE;
+            namereg_fail = true;
         else {
             name = name_buf = pa_sprintf_malloc("oss_output.%s", pa_path_get_filename(dev));
-            namereg_fail = FALSE;
+            namereg_fail = false;
         }
 
         pa_sink_new_data_init(&sink_new_data);
@@ -1415,7 +1415,7 @@ int pa__init(pa_module*m) {
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
         pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(u->out_hwbuf_size, &u->sink->sample_spec));
-        u->sink->refresh_volume = TRUE;
+        u->sink->refresh_volume = true;
 
         pa_sink_set_max_request(u->sink, u->out_hwbuf_size);
 
@@ -1424,7 +1424,7 @@ int pa__init(pa_module*m) {
     }
 
     if ((u->mixer_fd = pa_oss_open_mixer_for_device(u->device_name)) >= 0) {
-        pa_bool_t do_close = TRUE;
+        bool do_close = true;
 
         if (ioctl(fd, SOUND_MIXER_READ_DEVMASK, &u->mixer_devmask) < 0)
             pa_log_warn("SOUND_MIXER_READ_DEVMASK failed: %s", pa_cstrerror(errno));
@@ -1434,7 +1434,7 @@ int pa__init(pa_module*m) {
                 pa_sink_set_get_volume_callback(u->sink, sink_get_volume);
                 pa_sink_set_set_volume_callback(u->sink, sink_set_volume);
                 u->sink->n_volume_steps = 101;
-                do_close = FALSE;
+                do_close = false;
             }
 
             if (u->source && (u->mixer_devmask & (SOUND_MASK_RECLEV|SOUND_MASK_IGAIN))) {
@@ -1442,7 +1442,7 @@ int pa__init(pa_module*m) {
                 pa_source_set_get_volume_callback(u->source, source_get_volume);
                 pa_source_set_set_volume_callback(u->source, source_set_volume);
                 u->source->n_volume_steps = 101;
-                do_close = FALSE;
+                do_close = false;
             }
         }
 

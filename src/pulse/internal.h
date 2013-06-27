@@ -85,13 +85,13 @@ struct pa_context {
 
     pa_mempool *mempool;
 
-    pa_bool_t is_local:1;
-    pa_bool_t do_shm:1;
-    pa_bool_t server_specified:1;
-    pa_bool_t no_fail:1;
-    pa_bool_t do_autospawn:1;
-    pa_bool_t use_rtclock:1;
-    pa_bool_t filter_added:1;
+    bool is_local:1;
+    bool do_shm:1;
+    bool server_specified:1;
+    bool no_fail:1;
+    bool do_autospawn:1;
+    bool use_rtclock:1;
+    bool filter_added:1;
     pa_spawn_api spawn_api;
 
     pa_strlist *server_list;
@@ -122,9 +122,9 @@ struct pa_context {
 typedef struct pa_index_correction {
     uint32_t tag;
     int64_t value;
-    pa_bool_t valid:1;
-    pa_bool_t absolute:1;
-    pa_bool_t corrupt:1;
+    bool valid:1;
+    bool absolute:1;
+    bool corrupt:1;
 } pa_index_correction;
 
 #define PA_MAX_FORMATS (PA_ENCODING_MAX)
@@ -150,11 +150,11 @@ struct pa_stream {
 
     pa_proplist *proplist;
 
-    pa_bool_t channel_valid:1;
-    pa_bool_t suspended:1;
-    pa_bool_t corked:1;
-    pa_bool_t timing_info_valid:1;
-    pa_bool_t auto_timing_update_requested:1;
+    bool channel_valid:1;
+    bool suspended:1;
+    bool corked:1;
+    bool timing_info_valid:1;
+    bool auto_timing_update_requested:1;
 
     uint32_t channel;
     uint32_t syncid;
@@ -262,7 +262,7 @@ void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t 
 void pa_context_fail(pa_context *c, int error);
 int pa_context_set_error(pa_context *c, int error);
 void pa_context_set_state(pa_context *c, pa_context_state_t st);
-int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t, pa_bool_t fail);
+int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t, bool fail);
 pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, void (*internal_callback)(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata), void (*cb)(void), void *userdata);
 
 void pa_stream_set_state(pa_stream *s, pa_stream_state_t st);
@@ -273,7 +273,7 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
     do {                                                      \
         if (!(expression))                                    \
             return -pa_context_set_error((context), (error)); \
-    } while(FALSE)
+    } while(false)
 
 #define PA_CHECK_VALIDITY_RETURN_ANY(context, expression, error, value) \
     do {                                                                \
@@ -281,7 +281,7 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
             pa_context_set_error((context), (error));                   \
             return value;                                               \
         }                                                               \
-    } while(FALSE)
+    } while(false)
 
 #define PA_CHECK_VALIDITY_RETURN_NULL(context, expression, error)       \
     PA_CHECK_VALIDITY_RETURN_ANY(context, expression, error, NULL)
@@ -289,13 +289,13 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
 #define PA_FAIL(context, error)                                 \
     do {                                                        \
         return -pa_context_set_error((context), (error));       \
-    } while(FALSE)
+    } while(false)
 
 #define PA_FAIL_RETURN_ANY(context, error, value)      \
     do {                                               \
         pa_context_set_error((context), (error));      \
         return value;                                  \
-    } while(FALSE)
+    } while(false)
 
 #define PA_FAIL_RETURN_NULL(context, error)     \
     PA_FAIL_RETURN_ANY(context, error, NULL)
@@ -304,6 +304,6 @@ void pa_ext_device_manager_command(pa_context *c, uint32_t tag, pa_tagstruct *t)
 void pa_ext_device_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
 void pa_ext_stream_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
 
-pa_bool_t pa_mainloop_is_our_api(pa_mainloop_api*m);
+bool pa_mainloop_is_our_api(pa_mainloop_api*m);
 
 #endif

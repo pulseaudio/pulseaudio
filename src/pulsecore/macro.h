@@ -204,7 +204,7 @@ typedef int pa_bool_t;
             pa_log_debug("Assertion '%s' failed at %s:%u, function %s.\n", #expr , __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
             return;                                                     \
         }                                                               \
-    } while(FALSE)
+    } while(false)
 
 #define pa_return_val_if_fail(expr, val)                                \
     do {                                                                \
@@ -212,7 +212,7 @@ typedef int pa_bool_t;
             pa_log_debug("Assertion '%s' failed at %s:%u, function %s.\n", #expr , __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
             return (val);                                               \
         }                                                               \
-    } while(FALSE)
+    } while(false)
 
 #define pa_return_null_if_fail(expr) pa_return_val_if_fail(expr, NULL)
 
@@ -224,10 +224,10 @@ typedef int pa_bool_t;
             pa_log_error("Assertion '%s' failed at %s:%u, function %s(). Aborting.", #expr , __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
             abort();                                                    \
         }                                                               \
-    } while (FALSE)
+    } while (false)
 
 /* Does exactly nothing */
-#define pa_nop() do {} while (FALSE)
+#define pa_nop() do {} while (false)
 
 /* pa_assert() is an assert that may be optimized away by defining
  * NDEBUG. pa_assert_fp() is an assert that may be optimized away by
@@ -252,7 +252,7 @@ typedef int pa_bool_t;
     do {                                                                \
         pa_log_error("Code should not be reached at %s:%u, function %s(). Aborting.", __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
         abort();                                                        \
-    } while (FALSE)
+    } while (false)
 #endif
 
 /* A compile time assertion */
@@ -263,7 +263,7 @@ typedef int pa_bool_t;
             case !!(expr):                         \
                 ;                                  \
         }                                          \
-    } while (FALSE)
+    } while (false)
 
 #define PA_PTR_TO_UINT(p) ((unsigned int) ((uintptr_t) (p)))
 #define PA_UINT_TO_PTR(u) ((void*) ((uintptr_t) (u)))

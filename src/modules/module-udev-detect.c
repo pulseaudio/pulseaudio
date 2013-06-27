@@ -43,7 +43,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "tsched=<enable system timer based scheduling mode?> "
         "tsched_buffer_size=<buffer size when using timer based scheduling> "
@@ -54,7 +54,7 @@ PA_MODULE_USAGE(
 
 struct device {
     char *path;
-    pa_bool_t need_verify;
+    bool need_verify;
     char *card_name;
     char *args;
     uint32_t module;
@@ -65,11 +65,11 @@ struct userdata {
     pa_core *core;
     pa_hashmap *devices;
 
-    pa_bool_t use_tsched:1;
+    bool use_tsched:1;
     bool tsched_buffer_size_valid:1;
-    pa_bool_t fixed_latency_range:1;
-    pa_bool_t ignore_dB:1;
-    pa_bool_t deferred_volume:1;
+    bool fixed_latency_range:1;
+    bool ignore_dB:1;
+    bool deferred_volume:1;
     bool use_ucm:1;
 
     uint32_t tsched_buffer_size;
@@ -155,9 +155,9 @@ finish:
     return r;
 }
 
-static pa_bool_t pcm_is_modem(const char *card_idx, const char *pcm) {
+static bool pcm_is_modem(const char *card_idx, const char *pcm) {
     char *sysfs_path, *pcm_class;
-    pa_bool_t is_modem;
+    bool is_modem;
 
     pa_assert(card_idx);
     pa_assert(pcm);
@@ -175,13 +175,13 @@ static pa_bool_t pcm_is_modem(const char *card_idx, const char *pcm) {
     return is_modem;
 }
 
-static pa_bool_t is_card_busy(const char *id) {
+static bool is_card_busy(const char *id) {
     char *card_path = NULL, *pcm_path = NULL, *sub_status = NULL;
     DIR *card_dir = NULL, *pcm_dir = NULL;
     FILE *status_file = NULL;
     size_t len;
     struct dirent *space = NULL, *de;
-    pa_bool_t busy = FALSE;
+    bool busy = false;
     int r;
 
     pa_assert(id);
@@ -258,7 +258,7 @@ static pa_bool_t is_card_busy(const char *id) {
             }
 
             if (!pa_streq(line, "closed\n")) {
-                busy = TRUE;
+                busy = true;
                 break;
             }
         }
@@ -286,7 +286,7 @@ fail:
 static void verify_access(struct userdata *u, struct device *d) {
     char *cd;
     pa_card *card;
-    pa_bool_t accessible;
+    bool accessible;
 
     pa_assert(u);
     pa_assert(d);
@@ -303,7 +303,7 @@ static void verify_access(struct userdata *u, struct device *d) {
 
         if (accessible) {
             pa_module *m;
-            pa_bool_t busy;
+            bool busy;
 
             /* Check if any of the PCM devices that belong to this
              * card are currently busy. If they are, don't try to load
@@ -442,7 +442,7 @@ static void remove_card(struct userdata *u, struct udev_device *dev) {
     pa_log_info("Card %s removed.", d->path);
 
     if (d->module != PA_INVALID_INDEX)
-        pa_module_unload_request_by_index(u->core, d->module, TRUE);
+        pa_module_unload_request_by_index(u->core, d->module, true);
 
     device_free(d);
 }
@@ -521,12 +521,12 @@ fail:
     u->udev_io = NULL;
 }
 
-static pa_bool_t pcm_node_belongs_to_device(
+static bool pcm_node_belongs_to_device(
         struct device *d,
         const char *node) {
 
     char *cd;
-    pa_bool_t b;
+    bool b;
 
     cd = pa_sprintf_malloc("pcmC%sD", path_get_card_id(d->path));
     b = pa_startswith(node, cd);
@@ -535,12 +535,12 @@ static pa_bool_t pcm_node_belongs_to_device(
     return b;
 }
 
-static pa_bool_t control_node_belongs_to_device(
+static bool control_node_belongs_to_device(
         struct device *d,
         const char *node) {
 
     char *cd;
-    pa_bool_t b;
+    bool b;
 
     cd = pa_sprintf_malloc("controlC%s", path_get_card_id(d->path));
     b = pa_streq(node, cd);
@@ -562,7 +562,7 @@ static void inotify_cb(
     } buf;
     struct userdata *u = userdata;
     static int type = 0;
-    pa_bool_t deleted = FALSE;
+    bool deleted = false;
     struct device *d;
     void *state;
 
@@ -602,18 +602,18 @@ static void inotify_cb(
             if (((event->mask & IN_ATTRIB) && pa_startswith(event->name, "controlC")))
                 PA_HASHMAP_FOREACH(d, u->devices, state)
                     if (control_node_belongs_to_device(d, event->name))
-                        d->need_verify = TRUE;
+                        d->need_verify = true;
 
             /* ALSA doesn't really give us any guarantee on the closing
              * order, so let's simply hope */
             if (((event->mask & IN_CLOSE_WRITE) && pa_startswith(event->name, "pcmC")))
                 PA_HASHMAP_FOREACH(d, u->devices, state)
                     if (pcm_node_belongs_to_device(d, event->name))
-                        d->need_verify = TRUE;
+                        d->need_verify = true;
 
             /* /dev/snd/ might have been removed */
             if ((event->mask & (IN_DELETE_SELF|IN_MOVE_SELF)))
-                deleted = TRUE;
+                deleted = true;
 
             event = (struct inotify_event*) ((uint8_t*) event + len);
             r -= len;
@@ -622,7 +622,7 @@ static void inotify_cb(
 
     PA_HASHMAP_FOREACH(d, u->devices, state)
         if (d->need_verify) {
-            d->need_verify = FALSE;
+            d->need_verify = false;
             verify_access(u, d);
         }
 
@@ -688,7 +688,7 @@ int pa__init(pa_module *m) {
     struct udev_enumerate *enumerate = NULL;
     struct udev_list_entry *item = NULL, *first = NULL;
     int fd;
-    pa_bool_t use_tsched = TRUE, fixed_latency_range = FALSE, ignore_dB = FALSE, deferred_volume = m->core->deferred_volume;
+    bool use_tsched = true, fixed_latency_range = false, ignore_dB = false, deferred_volume = m->core->deferred_volume;
     bool use_ucm = true;
 
     pa_assert(m);

@@ -42,7 +42,7 @@ struct pa_auth_cookie {
     size_t size;
 };
 
-pa_auth_cookie* pa_auth_cookie_get(pa_core *core, const char *cn, pa_bool_t create, size_t size) {
+pa_auth_cookie* pa_auth_cookie_get(pa_core *core, const char *cn, bool create, size_t size) {
     pa_auth_cookie *c;
     char *t;
 

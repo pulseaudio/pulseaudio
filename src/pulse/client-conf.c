@@ -57,13 +57,13 @@ static const pa_client_conf default_conf = {
     .default_source = NULL,
     .default_server = NULL,
     .default_dbus_server = NULL,
-    .autospawn = TRUE,
-    .disable_shm = FALSE,
+    .autospawn = true,
+    .disable_shm = false,
     .cookie_file = NULL,
-    .cookie_valid = FALSE,
+    .cookie_valid = false,
     .shm_size = 0,
-    .auto_connect_localhost = FALSE,
-    .auto_connect_display = FALSE
+    .auto_connect_localhost = false,
+    .auto_connect_display = false
 };
 
 pa_client_conf *pa_client_conf_new(void) {
@@ -159,7 +159,7 @@ int pa_client_conf_env(pa_client_conf *c) {
         c->default_server = pa_xstrdup(e);
 
         /* We disable autospawning automatically if a specific server was set */
-        c->autospawn = FALSE;
+        c->autospawn = false;
     }
 
     if ((e = getenv(ENV_DAEMON_BINARY))) {
@@ -182,24 +182,24 @@ int pa_client_conf_load_cookie(pa_client_conf* c) {
 
     pa_assert(c);
 
-    c->cookie_valid = FALSE;
+    c->cookie_valid = false;
 
     if (c->cookie_file)
-        k = pa_authkey_load_auto(c->cookie_file, TRUE, c->cookie, sizeof(c->cookie));
+        k = pa_authkey_load_auto(c->cookie_file, true, c->cookie, sizeof(c->cookie));
     else {
-        k = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE, FALSE, c->cookie, sizeof(c->cookie));
+        k = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE, false, c->cookie, sizeof(c->cookie));
 
         if (k < 0) {
-            k = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE_FALLBACK, FALSE, c->cookie, sizeof(c->cookie));
+            k = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE_FALLBACK, false, c->cookie, sizeof(c->cookie));
 
             if (k < 0)
-                k = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE, TRUE, c->cookie, sizeof(c->cookie));
+                k = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE, true, c->cookie, sizeof(c->cookie));
         }
     }
 
     if (k < 0)
         return k;
 
-    c->cookie_valid = TRUE;
+    c->cookie_valid = true;
     return 0;
 }

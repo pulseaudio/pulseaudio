@@ -49,7 +49,7 @@
 
 pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
-    pa_bool_t (*load_once)(void);
+    bool (*load_once)(void);
     const char* (*get_deprecated)(void);
     pa_modinfo *mi;
 
@@ -62,7 +62,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     m = pa_xnew(pa_module, 1);
     m->name = pa_xstrdup(name);
     m->argument = pa_xstrdup(argument);
-    m->load_once = FALSE;
+    m->load_once = false;
     m->proplist = pa_proplist_new();
     m->index = PA_IDXSET_INVALID;
 
@@ -77,7 +77,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
         goto fail;
     }
 
-    if ((load_once = (pa_bool_t (*)(void)) pa_load_sym(m->dl, name, PA_SYMBOL_LOAD_ONCE))) {
+    if ((load_once = (bool (*)(void)) pa_load_sym(m->dl, name, PA_SYMBOL_LOAD_ONCE))) {
 
         m->load_once = load_once();
 
@@ -111,7 +111,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     m->get_n_used = (int (*)(pa_module*_m)) pa_load_sym(m->dl, name, PA_SYMBOL_GET_N_USED);
     m->userdata = NULL;
     m->core = c;
-    m->unload_requested = FALSE;
+    m->unload_requested = false;
 
     pa_assert_se(pa_idxset_put(c->modules, m, &m->index) >= 0);
     pa_assert(m->index != PA_IDXSET_INVALID);
@@ -185,7 +185,7 @@ static void pa_module_free(pa_module *m) {
     pa_xfree(m);
 }
 
-void pa_module_unload(pa_core *c, pa_module *m, pa_bool_t force) {
+void pa_module_unload(pa_core *c, pa_module *m, bool force) {
     pa_assert(c);
     pa_assert(m);
 
@@ -198,7 +198,7 @@ void pa_module_unload(pa_core *c, pa_module *m, pa_bool_t force) {
     pa_module_free(m);
 }
 
-void pa_module_unload_by_index(pa_core *c, uint32_t idx, pa_bool_t force) {
+void pa_module_unload_by_index(pa_core *c, uint32_t idx, bool force) {
     pa_module *m;
     pa_assert(c);
     pa_assert(idx != PA_IDXSET_INVALID);
@@ -254,16 +254,16 @@ static void defer_cb(pa_mainloop_api*api, pa_defer_event *e, void *userdata) {
 
     while ((m = pa_idxset_iterate(c->modules, &state, NULL)))
         if (m->unload_requested)
-            pa_module_unload(c, m, TRUE);
+            pa_module_unload(c, m, true);
 }
 
-void pa_module_unload_request(pa_module *m, pa_bool_t force) {
+void pa_module_unload_request(pa_module *m, bool force) {
     pa_assert(m);
 
     if (m->core->disallow_module_loading && !force)
         return;
 
-    m->unload_requested = TRUE;
+    m->unload_requested = true;
 
     if (!m->core->module_defer_unload_event)
         m->core->module_defer_unload_event = m->core->mainloop->defer_new(m->core->mainloop, defer_cb, m->core);
@@ -271,7 +271,7 @@ void pa_module_unload_request(pa_module *m, pa_bool_t force) {
     m->core->mainloop->defer_enable(m->core->module_defer_unload_event, 1);
 }
 
-void pa_module_unload_request_by_index(pa_core *c, uint32_t idx, pa_bool_t force) {
+void pa_module_unload_request_by_index(pa_core *c, uint32_t idx, bool force) {
     pa_module *m;
     pa_assert(c);
 

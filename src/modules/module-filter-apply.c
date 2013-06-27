@@ -44,7 +44,7 @@
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("Load filter sinks automatically when needed");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(_("autoclean=<automatically unload unused filters?>"));
 
 static const char* const valid_modargs[] = {
@@ -52,7 +52,7 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-#define DEFAULT_AUTOCLEAN TRUE
+#define DEFAULT_AUTOCLEAN true
 #define HOUSEKEEPING_INTERVAL (10 * PA_USEC_PER_SEC)
 
 struct filter {
@@ -78,7 +78,7 @@ struct userdata {
         *source_output_proplist_slot,
         *source_output_unlink_slot,
         *source_unlink_slot;
-    pa_bool_t autoclean;
+    bool autoclean;
     pa_time_event *housekeeping_time_event;
 };
 
@@ -128,7 +128,7 @@ static void filter_free(struct filter *f) {
     pa_xfree(f);
 }
 
-static const char* should_filter(pa_object *o, pa_bool_t is_sink_input) {
+static const char* should_filter(pa_object *o, bool is_sink_input) {
     const char *apply;
     pa_proplist *pl;
 
@@ -148,11 +148,11 @@ static const char* should_filter(pa_object *o, pa_bool_t is_sink_input) {
     return NULL;
 }
 
-static pa_bool_t should_group_filter(struct filter *filter) {
+static bool should_group_filter(struct filter *filter) {
     return pa_streq(filter->name, "echo-cancel");
 }
 
-static char* get_group(pa_object *o, pa_bool_t is_sink_input) {
+static char* get_group(pa_object *o, bool is_sink_input) {
     pa_proplist *pl;
 
     if (is_sink_input)
@@ -170,7 +170,7 @@ static char* get_group(pa_object *o, pa_bool_t is_sink_input) {
  * looking up streams that belong to the same stream group as the original
  * object. The idea is that streams from the sam group are always routed
  * together. */
-static pa_bool_t find_paired_master(struct userdata *u, struct filter *filter, pa_object *o, pa_bool_t is_sink_input) {
+static bool find_paired_master(struct userdata *u, struct filter *filter, pa_object *o, bool is_sink_input) {
     char *group;
 
     if ((group = get_group(o, is_sink_input))) {
@@ -182,7 +182,7 @@ static pa_bool_t find_paired_master(struct userdata *u, struct filter *filter, p
             pa_source_output *so;
 
             PA_IDXSET_FOREACH(so, u->core->source_outputs, idx) {
-                g = get_group(PA_OBJECT(so), FALSE);
+                g = get_group(PA_OBJECT(so), false);
 
                 if (pa_streq(g, group)) {
                     if (pa_streq(module_name, so->source->module->name)) {
@@ -203,7 +203,7 @@ static pa_bool_t find_paired_master(struct userdata *u, struct filter *filter, p
             pa_sink_input *si;
 
             PA_IDXSET_FOREACH(si, u->core->sink_inputs, idx) {
-                g = get_group(PA_OBJECT(si), TRUE);
+                g = get_group(PA_OBJECT(si), true);
 
                 if (pa_streq(g, group)) {
                     if (pa_streq(module_name, si->sink->module->name)) {
@@ -226,14 +226,14 @@ static pa_bool_t find_paired_master(struct userdata *u, struct filter *filter, p
         pa_xfree(module_name);
 
         if (!filter->sink_master || !filter->source_master)
-            return FALSE;
+            return false;
     }
 
-    return TRUE;
+    return true;
 }
 
-static pa_bool_t nothing_attached(struct filter *f) {
-    pa_bool_t no_si = TRUE, no_so = TRUE;
+static bool nothing_attached(struct filter *f) {
+    bool no_si = true, no_so = true;
 
     if (f->sink)
         no_si = pa_idxset_isempty(f->sink->inputs);
@@ -264,7 +264,7 @@ static void housekeeping_time_callback(pa_mainloop_api*a, pa_time_event* e, cons
             idx = filter->module_index;
             pa_hashmap_remove(u->filters, filter);
             filter_free(filter);
-            pa_module_unload_request_by_index(u->core, idx, TRUE);
+            pa_module_unload_request_by_index(u->core, idx, true);
         }
     }
 
@@ -283,14 +283,14 @@ static void trigger_housekeeping(struct userdata *u) {
     u->housekeeping_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + HOUSEKEEPING_INTERVAL, housekeeping_time_callback, u);
 }
 
-static int do_move(pa_object *obj, pa_object *parent, pa_bool_t restore, pa_bool_t is_input) {
+static int do_move(pa_object *obj, pa_object *parent, bool restore, bool is_input) {
     if (is_input)
         return pa_sink_input_move_to(PA_SINK_INPUT(obj), PA_SINK(parent), restore);
     else
         return pa_source_output_move_to(PA_SOURCE_OUTPUT(obj), PA_SOURCE(parent), restore);
 }
 
-static void move_object_for_filter(pa_object *o, struct filter* filter, pa_bool_t restore, pa_bool_t is_sink_input) {
+static void move_object_for_filter(pa_object *o, struct filter* filter, bool restore, bool is_sink_input) {
     pa_object *parent;
     pa_proplist *pl;
     const char *name;
@@ -314,7 +314,7 @@ static void move_object_for_filter(pa_object *o, struct filter* filter, pa_bool_
 
     pa_proplist_sets(pl, PA_PROP_FILTER_APPLY_MOVING, "1");
 
-    if (do_move(o, parent, FALSE, is_sink_input) < 0)
+    if (do_move(o, parent, false, is_sink_input) < 0)
         pa_log_info("Failed to move %s for \"%s\" to <%s>.", is_sink_input ? "sink-input" : "source-output",
                     pa_strnull(pa_proplist_gets(pl, PA_PROP_APPLICATION_NAME)), name);
     else
@@ -324,8 +324,8 @@ static void move_object_for_filter(pa_object *o, struct filter* filter, pa_bool_
     pa_proplist_unset(pl, PA_PROP_FILTER_APPLY_MOVING);
 }
 
-static void move_objects_for_filter(struct userdata *u, pa_object *o, struct filter* filter, pa_bool_t restore,
-        pa_bool_t is_sink_input) {
+static void move_objects_for_filter(struct userdata *u, pa_object *o, struct filter* filter, bool restore,
+        bool is_sink_input) {
 
     if (!should_group_filter(filter))
         move_object_for_filter(o, filter, restore, is_sink_input);
@@ -338,19 +338,19 @@ static void move_objects_for_filter(struct userdata *u, pa_object *o, struct fil
         group = get_group(o, is_sink_input);
 
         PA_IDXSET_FOREACH(so, u->core->source_outputs, idx) {
-            g = get_group(PA_OBJECT(so), FALSE);
+            g = get_group(PA_OBJECT(so), false);
 
             if (pa_streq(g, group))
-                move_object_for_filter(PA_OBJECT(so), filter, restore, FALSE);
+                move_object_for_filter(PA_OBJECT(so), filter, restore, false);
 
             pa_xfree(g);
         }
 
         PA_IDXSET_FOREACH(si, u->core->sink_inputs, idx) {
-            g = get_group(PA_OBJECT(si), TRUE);
+            g = get_group(PA_OBJECT(si), true);
 
             if (pa_streq(g, group))
-                move_object_for_filter(PA_OBJECT(si), filter, restore, TRUE);
+                move_object_for_filter(PA_OBJECT(si), filter, restore, true);
 
             pa_xfree(g);
         }
@@ -399,22 +399,22 @@ static void find_filters_for_module(struct userdata *u, pa_module *m, const char
     pa_hashmap_put(u->filters, fltr, fltr);
 }
 
-static pa_bool_t can_unload_module(struct userdata *u, uint32_t idx) {
+static bool can_unload_module(struct userdata *u, uint32_t idx) {
     void *state;
     struct filter *filter;
 
     /* Check if any other struct filters point to the same module */
     PA_HASHMAP_FOREACH(filter, u->filters, state) {
         if (filter->module_index == idx && !nothing_attached(filter))
-            return FALSE;
+            return false;
     }
 
-    return TRUE;
+    return true;
 }
 
-static pa_hook_result_t process(struct userdata *u, pa_object *o, pa_bool_t is_sink_input) {
+static pa_hook_result_t process(struct userdata *u, pa_object *o, bool is_sink_input) {
     const char *want;
-    pa_bool_t done_something = FALSE;
+    bool done_something = false;
     pa_sink *sink = NULL;
     pa_source *source = NULL;
     pa_module *module = NULL;
@@ -475,7 +475,7 @@ static pa_hook_result_t process(struct userdata *u, pa_object *o, pa_bool_t is_s
             if ((m = pa_module_load(u->core, module_name, args))) {
                 find_filters_for_module(u, m, want);
                 filter = pa_hashmap_get(u->filters, fltr);
-                done_something = TRUE;
+                done_something = true;
             }
             pa_xfree(args);
         }
@@ -492,8 +492,8 @@ static pa_hook_result_t process(struct userdata *u, pa_object *o, pa_bool_t is_s
         /* We can move the stream now as we know the destination. If this
          * isn't true, we will do it later when the sink appears. */
         if ((is_sink_input && filter->sink) || (!is_sink_input && filter->source)) {
-            move_objects_for_filter(u, o, filter, FALSE, is_sink_input);
-            done_something = TRUE;
+            move_objects_for_filter(u, o, filter, false, is_sink_input);
+            done_something = true;
         }
     } else {
         void *state;
@@ -503,8 +503,8 @@ static pa_hook_result_t process(struct userdata *u, pa_object *o, pa_bool_t is_s
          * This can happen if an input's proplist changes */
         PA_HASHMAP_FOREACH(filter, u->filters, state) {
             if ((is_sink_input && sink == filter->sink) || (!is_sink_input && source == filter->source)) {
-                move_objects_for_filter(u, o, filter, TRUE, is_sink_input);
-                done_something = TRUE;
+                move_objects_for_filter(u, o, filter, true, is_sink_input);
+                done_something = true;
                 break;
             }
         }
@@ -520,7 +520,7 @@ static pa_hook_result_t sink_input_put_cb(pa_core *core, pa_sink_input *i, struc
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    return process(u, PA_OBJECT(i), TRUE);
+    return process(u, PA_OBJECT(i), true);
 }
 
 static pa_hook_result_t sink_input_move_finish_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
@@ -530,14 +530,14 @@ static pa_hook_result_t sink_input_move_finish_cb(pa_core *core, pa_sink_input *
     if (pa_proplist_gets(i->proplist, PA_PROP_FILTER_APPLY_MOVING))
         return PA_HOOK_OK;
 
-    return process(u, PA_OBJECT(i), TRUE);
+    return process(u, PA_OBJECT(i), true);
 }
 
 static pa_hook_result_t sink_input_proplist_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    return process(u, PA_OBJECT(i), TRUE);
+    return process(u, PA_OBJECT(i), true);
 }
 
 static pa_hook_result_t sink_input_unlink_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
@@ -573,7 +573,7 @@ static pa_hook_result_t sink_unlink_cb(pa_core *core, pa_sink *sink, struct user
                 pa_sink_input *i;
 
                 PA_IDXSET_FOREACH(i, sink->inputs, idx)
-                    move_objects_for_filter(u, PA_OBJECT(i), filter, TRUE, TRUE);
+                    move_objects_for_filter(u, PA_OBJECT(i), filter, true, true);
             }
 
             idx = filter->module_index;
@@ -581,7 +581,7 @@ static pa_hook_result_t sink_unlink_cb(pa_core *core, pa_sink *sink, struct user
             filter_free(filter);
 
             if (can_unload_module(u, idx))
-                pa_module_unload_request_by_index(u->core, idx, TRUE);
+                pa_module_unload_request_by_index(u->core, idx, true);
         }
     }
 
@@ -592,7 +592,7 @@ static pa_hook_result_t source_output_put_cb(pa_core *core, pa_source_output *o,
     pa_core_assert_ref(core);
     pa_source_output_assert_ref(o);
 
-    return process(u, PA_OBJECT(o), FALSE);
+    return process(u, PA_OBJECT(o), false);
 }
 
 static pa_hook_result_t source_output_move_finish_cb(pa_core *core, pa_source_output *o, struct userdata *u) {
@@ -602,14 +602,14 @@ static pa_hook_result_t source_output_move_finish_cb(pa_core *core, pa_source_ou
     if (pa_proplist_gets(o->proplist, PA_PROP_FILTER_APPLY_MOVING))
         return PA_HOOK_OK;
 
-    return process(u, PA_OBJECT(o), FALSE);
+    return process(u, PA_OBJECT(o), false);
 }
 
 static pa_hook_result_t source_output_proplist_cb(pa_core *core, pa_source_output *o, struct userdata *u) {
     pa_core_assert_ref(core);
     pa_source_output_assert_ref(o);
 
-    return process(u, PA_OBJECT(o), FALSE);
+    return process(u, PA_OBJECT(o), false);
 }
 
 static pa_hook_result_t source_output_unlink_cb(pa_core *core, pa_source_output *o, struct userdata *u) {
@@ -645,7 +645,7 @@ static pa_hook_result_t source_unlink_cb(pa_core *core, pa_source *source, struc
                 pa_source_output *o;
 
                 PA_IDXSET_FOREACH(o, source->outputs, idx)
-                    move_objects_for_filter(u, PA_OBJECT(o), filter, TRUE, FALSE);
+                    move_objects_for_filter(u, PA_OBJECT(o), filter, true, false);
             }
 
             idx = filter->module_index;
@@ -653,7 +653,7 @@ static pa_hook_result_t source_unlink_cb(pa_core *core, pa_source *source, struc
             filter_free(filter);
 
             if (can_unload_module(u, idx))
-                pa_module_unload_request_by_index(u->core, idx, TRUE);
+                pa_module_unload_request_by_index(u->core, idx, true);
         }
     }
 
@@ -743,7 +743,7 @@ void pa__done(pa_module *m) {
         struct filter *f;
 
         while ((f = pa_hashmap_steal_first(u->filters))) {
-            pa_module_unload_request_by_index(u->core, f->module_index, TRUE);
+            pa_module_unload_request_by_index(u->core, f->module_index, true);
             filter_free(f);
         }
 

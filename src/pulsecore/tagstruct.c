@@ -47,7 +47,7 @@ struct pa_tagstruct {
     size_t length, allocated;
     size_t rindex;
 
-    pa_bool_t dynamic;
+    bool dynamic;
 };
 
 pa_tagstruct *pa_tagstruct_new(const uint8_t* data, size_t length) {
@@ -161,7 +161,7 @@ void pa_tagstruct_put_arbitrary(pa_tagstruct *t, const void *p, size_t length) {
     t->length += 5+length;
 }
 
-void pa_tagstruct_put_boolean(pa_tagstruct*t, pa_bool_t b) {
+void pa_tagstruct_put_boolean(pa_tagstruct*t, bool b) {
     pa_assert(t);
 
     extend(t, 1);
@@ -429,7 +429,7 @@ const uint8_t* pa_tagstruct_data(pa_tagstruct*t, size_t *l) {
     return t->data;
 }
 
-int pa_tagstruct_get_boolean(pa_tagstruct*t, pa_bool_t *b) {
+int pa_tagstruct_get_boolean(pa_tagstruct*t, bool *b) {
     pa_assert(t);
     pa_assert(b);
 
@@ -437,9 +437,9 @@ int pa_tagstruct_get_boolean(pa_tagstruct*t, pa_bool_t *b) {
         return -1;
 
     if (t->data[t->rindex] == PA_TAG_BOOLEAN_TRUE)
-        *b = TRUE;
+        *b = true;
     else if (t->data[t->rindex] == PA_TAG_BOOLEAN_FALSE)
-        *b = FALSE;
+        *b = false;
     else
         return -1;
 
@@ -799,7 +799,7 @@ int pa_tagstruct_get(pa_tagstruct *t, ...) {
 
             case PA_TAG_BOOLEAN_TRUE:
             case PA_TAG_BOOLEAN_FALSE:
-                ret = pa_tagstruct_get_boolean(t, va_arg(va, pa_bool_t*));
+                ret = pa_tagstruct_get_boolean(t, va_arg(va, bool*));
                 break;
 
             case PA_TAG_TIMEVAL:

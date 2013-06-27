@@ -451,10 +451,10 @@ static void add_media_role(const char *name, pa_alsa_ucm_device *list, const cha
 static char *modifier_name_to_role(const char *mod_name, bool *is_sink) {
     char *sub = NULL, *tmp;
 
-    *is_sink = FALSE;
+    *is_sink = false;
 
     if (pa_startswith(mod_name, "Play")) {
-        *is_sink = TRUE;
+        *is_sink = true;
         sub = pa_xstrdup(mod_name + 4);
     } else if (pa_startswith(mod_name, "Capture"))
         sub = pa_xstrdup(mod_name + 7);
@@ -476,7 +476,7 @@ static char *modifier_name_to_role(const char *mod_name, bool *is_sink) {
 
 static void ucm_set_media_roles(pa_alsa_ucm_modifier *modifier, pa_alsa_ucm_device *list, const char *mod_name) {
     int i;
-    bool is_sink = FALSE;
+    bool is_sink = false;
     char *sub = NULL;
     const char *role_name;
 
@@ -729,7 +729,7 @@ static int ucm_port_contains(const char *port_name, const char *dev_name, bool i
     int len;
 
     if (!port_name || !dev_name)
-        return FALSE;
+        return false;
 
     port_name += is_sink ? strlen(PA_UCM_PRE_TAG_OUTPUT) : strlen(PA_UCM_PRE_TAG_INPUT);
 
@@ -1203,9 +1203,9 @@ static int ucm_create_mapping(
     }
 
     if (sink)
-        ret = ucm_create_mapping_direction(ucm, ps, p, device, verb_name, device_name, sink, TRUE);
+        ret = ucm_create_mapping_direction(ucm, ps, p, device, verb_name, device_name, sink, true);
     if (ret == 0 && source)
-        ret = ucm_create_mapping_direction(ucm, ps, p, device, verb_name, device_name, source, FALSE);
+        ret = ucm_create_mapping_direction(ucm, ps, p, device, verb_name, device_name, source, false);
 
     return ret;
 }
@@ -1260,7 +1260,7 @@ static int ucm_create_profile(
     p->output_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     p->input_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
-    p->supported = TRUE;
+    p->supported = true;
     pa_hashmap_put(ps->profiles, p->name, p);
 
     /* TODO: get profile priority from ucm info or policy management */
@@ -1305,9 +1305,9 @@ static int ucm_create_profile(
         source = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_SOURCE);
 
         if (sink)
-            ucm_create_mapping_for_modifier(ucm, ps, p, mod, verb_name, name, sink, TRUE);
+            ucm_create_mapping_for_modifier(ucm, ps, p, mod, verb_name, name, sink, true);
         else if (source)
-            ucm_create_mapping_for_modifier(ucm, ps, p, mod, verb_name, name, source, FALSE);
+            ucm_create_mapping_for_modifier(ucm, ps, p, mod, verb_name, name, source, false);
     }
 
     pa_alsa_profile_dump(p);
@@ -1405,7 +1405,7 @@ static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *
 
         if ((snd_use_case_set(ucm->ucm_mgr, "_verb", p->name)) < 0) {
             pa_log("Failed to set verb %s", p->name);
-            p->supported = FALSE;
+            p->supported = false;
             continue;
         }
 
@@ -1418,7 +1418,7 @@ static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *
 
             m->output_pcm = mapping_open_pcm(ucm, m, SND_PCM_STREAM_PLAYBACK);
             if (!m->output_pcm) {
-                p->supported = FALSE;
+                p->supported = false;
                 break;
             }
         }
@@ -1433,7 +1433,7 @@ static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *
 
                 m->input_pcm = mapping_open_pcm(ucm, m, SND_PCM_STREAM_CAPTURE);
                 if (!m->input_pcm) {
-                    p->supported = FALSE;
+                    p->supported = false;
                     break;
                 }
             }
@@ -1488,7 +1488,7 @@ pa_alsa_profile_set* pa_alsa_ucm_add_profile_set(pa_alsa_ucm_config *ucm, pa_cha
     }
 
     ucm_probe_profile_set(ucm, ps);
-    ps->probed = TRUE;
+    ps->probed = true;
 
     return ps;
 }

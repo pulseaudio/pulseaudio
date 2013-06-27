@@ -102,8 +102,8 @@ void *pa_idxset_next(pa_idxset *s, uint32_t *idx);
 /* Return the current number of entries in the idxset */
 unsigned pa_idxset_size(pa_idxset*s);
 
-/* Return TRUE of the idxset is empty */
-pa_bool_t pa_idxset_isempty(pa_idxset *s);
+/* Return true of the idxset is empty */
+bool pa_idxset_isempty(pa_idxset *s);
 
 /* Duplicate the idxset. This will not copy the actual indexes */
 pa_idxset *pa_idxset_copy(pa_idxset *s);

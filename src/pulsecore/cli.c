@@ -52,7 +52,7 @@ struct pa_cli {
 
     pa_client *client;
 
-    pa_bool_t fail, kill_requested;
+    bool fail, kill_requested;
     int defer_kill;
 
     char *last_line;
@@ -95,7 +95,7 @@ pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m) {
     pa_ioline_set_callback(c->line, line_callback, c);
     pa_ioline_puts(c->line, "Welcome to PulseAudio! Use \"help\" for usage information.\n"PROMPT);
 
-    c->fail = c->kill_requested = FALSE;
+    c->fail = c->kill_requested = false;
     c->defer_kill = 0;
 
     c->last_line = NULL;
@@ -122,7 +122,7 @@ static void client_kill(pa_client *client) {
     pa_log_debug("CLI client killed.");
 
     if (c->defer_kill)
-        c->kill_requested = TRUE;
+        c->kill_requested = true;
     else if (c->eof_callback)
         c->eof_callback(c, c->userdata);
 }

@@ -52,7 +52,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION(_("Virtual LADSPA sink"));
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
     _("sink_name=<name for the sink> "
       "sink_properties=<properties for the sink> "
@@ -92,7 +92,7 @@ struct userdata {
 
     pa_memblockq *memblockq;
 
-    pa_bool_t *use_default;
+    bool *use_default;
     pa_sample_spec ss;
 
 #ifdef HAVE_DBUS
@@ -100,7 +100,7 @@ struct userdata {
     char *dbus_path;
 #endif
 
-    pa_bool_t auto_desc;
+    bool auto_desc;
 };
 
 static const char* const valid_modargs[] = {
@@ -124,7 +124,7 @@ enum {
    LADSPA_SINK_MESSAGE_UPDATE_PARAMETERS = PA_SINK_MESSAGE_MAX
 };
 
-static int write_control_parameters(struct userdata *u, double *control_values, pa_bool_t *use_default);
+static int write_control_parameters(struct userdata *u, double *control_values, bool *use_default);
 static void connect_control_ports(struct userdata *u);
 
 #ifdef HAVE_DBUS
@@ -184,7 +184,7 @@ static void set_algorithm_parameters(DBusConnection *conn, DBusMessage *msg, DBu
     unsigned n_dbus_control, n_dbus_use_default;
     double *read_values = NULL;
     dbus_bool_t *read_defaults = NULL;
-    pa_bool_t *use_defaults = NULL;
+    bool *use_defaults = NULL;
     unsigned long i;
 
     pa_assert(conn);
@@ -216,7 +216,7 @@ static void set_algorithm_parameters(DBusConnection *conn, DBusMessage *msg, DBu
         return;
     }
 
-    use_defaults = pa_xnew(pa_bool_t, n_control);
+    use_defaults = pa_xnew(bool, n_control);
     for (i = 0; i < u->n_control; i++)
         use_defaults[i] = read_defaults[i];
 
@@ -403,7 +403,7 @@ static void sink_request_rewind_cb(pa_sink *s) {
     /* Just hand this one over to the master sink */
     pa_sink_input_request_rewind(u->sink_input,
                                  s->thread_info.rewind_nbytes +
-                                 pa_memblockq_get_length(u->memblockq), TRUE, FALSE, FALSE);
+                                 pa_memblockq_get_length(u->memblockq), true, false, false);
 }
 
 /* Called from I/O thread context */
@@ -511,7 +511,7 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
         if (amount > 0) {
             unsigned c;
 
-            pa_memblockq_seek(u->memblockq, - (int64_t) amount, PA_SEEK_RELATIVE, TRUE);
+            pa_memblockq_seek(u->memblockq, - (int64_t) amount, PA_SEEK_RELATIVE, true);
 
             pa_log_debug("Resetting plugin");
 
@@ -622,7 +622,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_sink_unref(u->sink);
     u->sink = NULL;
 
-    pa_module_unload_request(u->module, TRUE);
+    pa_module_unload_request(u->module, true);
 }
 
 /* Called from IO thread context */
@@ -637,7 +637,7 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
     if (PA_SINK_INPUT_IS_LINKED(state) &&
             i->thread_info.state == PA_SINK_INPUT_INIT) {
         pa_log_debug("Requesting rewind due to state change.");
-        pa_sink_input_request_rewind(i, 0, FALSE, TRUE, TRUE);
+        pa_sink_input_request_rewind(i, 0, false, true, true);
     }
 }
 
@@ -678,7 +678,7 @@ static void sink_input_mute_changed_cb(pa_sink_input *i) {
     pa_sink_mute_changed(u->sink, i->muted);
 }
 
-static int parse_control_parameters(struct userdata *u, const char *cdata, double *read_values, pa_bool_t *use_default) {
+static int parse_control_parameters(struct userdata *u, const char *cdata, double *read_values, bool *use_default) {
     unsigned long p = 0;
     const char *state = NULL;
     char *k;
@@ -699,7 +699,7 @@ static int parse_control_parameters(struct userdata *u, const char *cdata, doubl
 
         if (*k == 0) {
             pa_log_debug("Read empty config value (p=%lu)", p);
-            use_default[p++] = TRUE;
+            use_default[p++] = true;
             pa_xfree(k);
             continue;
         }
@@ -714,7 +714,7 @@ static int parse_control_parameters(struct userdata *u, const char *cdata, doubl
 
         pa_log_debug("Read config value %f (p=%lu)", f, p);
 
-        use_default[p] = FALSE;
+        use_default[p] = false;
         read_values[p++] = f;
     }
 
@@ -722,7 +722,7 @@ static int parse_control_parameters(struct userdata *u, const char *cdata, doubl
        if it is left empty, so we do it here. */
     if (*cdata == 0 || cdata[strlen(cdata) - 1] == ',') {
         if (p < u->n_control)
-            use_default[p] = TRUE;
+            use_default[p] = true;
         p++;
     }
 
@@ -771,7 +771,7 @@ static void connect_control_ports(struct userdata *u) {
     }
 }
 
-static int validate_control_parameters(struct userdata *u, double *control_values, pa_bool_t *use_default) {
+static int validate_control_parameters(struct userdata *u, double *control_values, bool *use_default) {
     unsigned long p = 0, h = 0;
     const LADSPA_Descriptor *d;
     pa_sample_spec ss;
@@ -834,7 +834,7 @@ static int validate_control_parameters(struct userdata *u, double *control_value
     return 0;
 }
 
-static int write_control_parameters(struct userdata *u, double *control_values, pa_bool_t *use_default) {
+static int write_control_parameters(struct userdata *u, double *control_values, bool *use_default) {
     unsigned long p = 0, h = 0, c;
     const LADSPA_Descriptor *d;
     pa_sample_spec ss;
@@ -1177,15 +1177,15 @@ int pa__init(pa_module*m) {
 
     if (u->n_control > 0) {
         double *control_values;
-        pa_bool_t *use_default;
+        bool *use_default;
 
         /* temporary storage for parser */
         control_values = pa_xnew(double, (unsigned) u->n_control);
-        use_default = pa_xnew(pa_bool_t, (unsigned) u->n_control);
+        use_default = pa_xnew(bool, (unsigned) u->n_control);
 
         /* real storage */
         u->control = pa_xnew(LADSPA_Data, (unsigned) u->n_control);
-        u->use_default = pa_xnew(pa_bool_t, (unsigned) u->n_control);
+        u->use_default = pa_xnew(bool, (unsigned) u->n_control);
 
         if ((parse_control_parameters(u, cdata, control_values, use_default) < 0) ||
             (write_control_parameters(u, control_values, use_default) < 0)) {
@@ -1257,7 +1257,7 @@ int pa__init(pa_module*m) {
     pa_sink_input_new_data_init(&sink_input_data);
     sink_input_data.driver = __FILE__;
     sink_input_data.module = m;
-    pa_sink_input_new_data_set_sink(&sink_input_data, master, FALSE);
+    pa_sink_input_new_data_set_sink(&sink_input_data, master, false);
     sink_input_data.origin_sink = u->sink;
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "LADSPA Stream");
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");

@@ -302,7 +302,7 @@ int main(int argc, char *argv[]) {
     pa_mempool *pool = NULL;
     pa_sample_spec a, b;
     int ret = 1, c;
-    pa_bool_t all_formats = TRUE;
+    bool all_formats = true;
     pa_resample_method_t method;
     int seconds;
 
@@ -331,7 +331,7 @@ int main(int argc, char *argv[]) {
     if (!getenv("MAKE_CHECK"))
         pa_log_set_level(PA_LOG_INFO);
 
-    pa_assert_se(pool = pa_mempool_new(FALSE, 0));
+    pa_assert_se(pool = pa_mempool_new(false, 0));
 
     a.channels = b.channels = 1;
     a.rate = b.rate = 44100;
@@ -368,7 +368,7 @@ int main(int argc, char *argv[]) {
 
             case ARG_FROM_SAMPLEFORMAT:
                 a.format = pa_parse_sample_format(optarg);
-                all_formats = FALSE;
+                all_formats = false;
                 break;
 
             case ARG_FROM_SAMPLERATE:
@@ -381,7 +381,7 @@ int main(int argc, char *argv[]) {
 
             case ARG_TO_SAMPLEFORMAT:
                 b.format = pa_parse_sample_format(optarg);
-                all_formats = FALSE;
+                all_formats = false;
                 break;
 
             case ARG_TO_SAMPLERATE:
@@ -407,7 +407,7 @@ int main(int argc, char *argv[]) {
     }
 
     ret = 0;
-    pa_assert_se(pool = pa_mempool_new(FALSE, 0));
+    pa_assert_se(pool = pa_mempool_new(false, 0));
 
     if (!all_formats) {
 

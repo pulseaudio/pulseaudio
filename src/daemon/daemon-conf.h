@@ -52,14 +52,14 @@ typedef enum pa_daemon_conf_cmd {
 #ifdef HAVE_SYS_RESOURCE_H
 typedef struct pa_rlimit {
     rlim_t value;
-    pa_bool_t is_set;
+    bool is_set;
 } pa_rlimit;
 #endif
 
 /* A structure containing configuration data for the PulseAudio server . */
 typedef struct pa_daemon_conf {
     pa_daemon_conf_cmd_t cmd;
-    pa_bool_t daemonize,
+    bool daemonize,
         fail,
         high_priority,
         realtime_scheduling,

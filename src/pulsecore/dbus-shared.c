@@ -67,7 +67,7 @@ pa_dbus_connection* pa_dbus_bus_get(pa_core *c, DBusBusType type, DBusError *err
     if ((pconn = pa_shared_get(c, prop_name[type])))
         return pa_dbus_connection_ref(pconn);
 
-    if (!(conn = pa_dbus_wrap_connection_new(c->mainloop, TRUE, type, error)))
+    if (!(conn = pa_dbus_wrap_connection_new(c->mainloop, true, type, error)))
         return NULL;
 
     return dbus_connection_new(c, conn, prop_name[type]);

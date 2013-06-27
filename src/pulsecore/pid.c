@@ -147,7 +147,7 @@ static int proc_name_ours(pid_t pid, const char *procname) {
         return -1;
     } else {
         char *expected;
-        pa_bool_t good;
+        bool good;
         char stored[64];
 
         if (!(fgets(stored, sizeof(stored), f))) {
@@ -208,7 +208,7 @@ int pa_pid_file_create(const char *procname) {
         int ours = 1;
 
 #ifdef OS_IS_WIN32
-        if ((process = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid)) != NULL) {
+        if ((process = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid)) != NULL) {
             CloseHandle(process);
 #else
         if (kill(pid, 0) >= 0 || errno != ESRCH) {

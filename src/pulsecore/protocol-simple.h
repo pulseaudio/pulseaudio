@@ -39,8 +39,8 @@ typedef struct pa_simple_options {
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
-    pa_bool_t record:1;
-    pa_bool_t playback:1;
+    bool record:1;
+    bool playback:1;
 } pa_simple_options;
 
 pa_simple_protocol* pa_simple_protocol_get(pa_core*core);

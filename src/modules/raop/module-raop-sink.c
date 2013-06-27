@@ -63,7 +63,7 @@
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("RAOP Sink");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
         "sink_properties=<properties for the sink> "
@@ -186,7 +186,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 case PA_SINK_RUNNING:
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
-                        pa_smoother_resume(u->smoother, pa_rtclock_now(), TRUE);
+                        pa_smoother_resume(u->smoother, pa_rtclock_now(), true);
 
                         /* The connection can be closed when idle, so check to
                            see if we need to reestablish it */
@@ -253,7 +253,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 /* Question: is this valid here: or should we do some sort of:
                    return pa_sink_process_msg(PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL);
                    ?? */
-                pa_module_unload_request(u->module, TRUE);
+                pa_module_unload_request(u->module, true);
             }
             return 0;
         }
@@ -465,7 +465,7 @@ static void thread_func(void *userdata) {
             pollfd->events = POLLOUT; /*PA_SINK_IS_OPENED(u->sink->thread_info.state)  ? POLLOUT : 0;*/
         }
 
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, true)) < 0)
             goto fail;
 
         if (ret == 0)
@@ -537,11 +537,11 @@ int pa__init(pa_module*m) {
     u->smoother = pa_smoother_new(
             PA_USEC_PER_SEC,
             PA_USEC_PER_SEC*2,
-            TRUE,
-            TRUE,
+            true,
+            true,
             10,
             0,
-            FALSE);
+            false);
     pa_memchunk_reset(&u->raw_memchunk);
     pa_memchunk_reset(&u->encoded_memchunk);
     u->offset = 0;

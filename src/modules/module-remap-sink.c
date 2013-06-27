@@ -38,7 +38,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Virtual channel remapping sink");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
         "sink_properties=<properties for the sink> "
@@ -56,7 +56,7 @@ struct userdata {
     pa_sink *sink;
     pa_sink_input *sink_input;
 
-    pa_bool_t auto_desc;
+    bool auto_desc;
 };
 
 static const char* const valid_modargs[] = {
@@ -127,7 +127,7 @@ static void sink_request_rewind(pa_sink *s) {
         !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state))
         return;
 
-    pa_sink_input_request_rewind(u->sink_input, s->thread_info.rewind_nbytes, TRUE, FALSE, FALSE);
+    pa_sink_input_request_rewind(u->sink_input, s->thread_info.rewind_nbytes, true, false, false);
 }
 
 /* Called from I/O thread context */
@@ -270,7 +270,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_sink_unref(u->sink);
     u->sink = NULL;
 
-    pa_module_unload_request(u->module, TRUE);
+    pa_module_unload_request(u->module, true);
 }
 
 /* Called from IO thread context */
@@ -285,7 +285,7 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
     if (PA_SINK_INPUT_IS_LINKED(state) &&
         i->thread_info.state == PA_SINK_INPUT_INIT) {
         pa_log_debug("Requesting rewind due to state change.");
-        pa_sink_input_request_rewind(i, 0, FALSE, TRUE, TRUE);
+        pa_sink_input_request_rewind(i, 0, false, true, true);
     }
 }
 
@@ -323,7 +323,7 @@ int pa__init(pa_module*m) {
     pa_sink *master;
     pa_sink_input_new_data sink_input_data;
     pa_sink_new_data sink_data;
-    pa_bool_t remix = TRUE;
+    bool remix = true;
 
     pa_assert(m);
 
@@ -411,7 +411,7 @@ int pa__init(pa_module*m) {
     pa_sink_input_new_data_init(&sink_input_data);
     sink_input_data.driver = __FILE__;
     sink_input_data.module = m;
-    pa_sink_input_new_data_set_sink(&sink_input_data, master, FALSE);
+    pa_sink_input_new_data_set_sink(&sink_input_data, master, false);
     sink_input_data.origin_sink = u->sink;
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Remapped Stream");
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");

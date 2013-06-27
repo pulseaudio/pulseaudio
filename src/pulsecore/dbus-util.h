@@ -33,10 +33,10 @@
 /* A wrap connection is not shared or refcounted, it is available in client side */
 typedef struct pa_dbus_wrap_connection pa_dbus_wrap_connection;
 
-pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *mainloop, pa_bool_t use_rtclock, DBusBusType type, DBusError *error);
+pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *mainloop, bool use_rtclock, DBusBusType type, DBusError *error);
 pa_dbus_wrap_connection* pa_dbus_wrap_connection_new_from_existing(
         pa_mainloop_api *mainloop,
-        pa_bool_t use_rtclock,
+        bool use_rtclock,
         DBusConnection *conn);
 void pa_dbus_wrap_connection_free(pa_dbus_wrap_connection* conn);
 

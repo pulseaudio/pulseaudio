@@ -37,7 +37,7 @@ typedef struct pa_once {
     }
 
 /* Not to be called directly, use the macros defined below instead */
-pa_bool_t pa_once_begin(pa_once *o);
+bool pa_once_begin(pa_once *o);
 void pa_once_end(pa_once *o);
 
 #define PA_ONCE_BEGIN                                                   \

@@ -58,7 +58,7 @@ START_TEST (thread_mainloop_test) {
 
     fail_unless(!pa_threaded_mainloop_in_thread(m));
 
-    a->time_new(a, pa_timeval_rtstore(&tv, pa_rtclock_now() + 5 * PA_USEC_PER_SEC, TRUE), tcb, m);
+    a->time_new(a, pa_timeval_rtstore(&tv, pa_rtclock_now() + 5 * PA_USEC_PER_SEC, true), tcb, m);
 
     fprintf(stderr, "waiting 5s (signal)\n");
     pa_threaded_mainloop_wait(m);

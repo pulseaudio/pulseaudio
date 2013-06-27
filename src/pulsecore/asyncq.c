@@ -65,7 +65,7 @@ struct pa_asyncq {
 
     PA_LLIST_HEAD(struct localq, localq);
     struct localq *last_localq;
-    pa_bool_t waiting_for_post;
+    bool waiting_for_post;
 };
 
 PA_STATIC_FLIST_DECLARE(localq, 0, pa_xfree);
@@ -90,7 +90,7 @@ pa_asyncq *pa_asyncq_new(unsigned size) {
 
     PA_LLIST_HEAD_INIT(struct localq, l->localq);
     l->last_localq = NULL;
-    l->waiting_for_post = FALSE;
+    l->waiting_for_post = false;
 
     if (!(l->read_fdsem = pa_fdsem_new())) {
         pa_xfree(l);
@@ -132,7 +132,7 @@ void pa_asyncq_free(pa_asyncq *l, pa_free_cb_t free_cb) {
     pa_xfree(l);
 }
 
-static int push(pa_asyncq*l, void *p, pa_bool_t wait_op) {
+static int push(pa_asyncq*l, void *p, bool wait_op) {
     unsigned idx;
     pa_atomic_ptr_t *cells;
 
@@ -164,7 +164,7 @@ static int push(pa_asyncq*l, void *p, pa_bool_t wait_op) {
     return 0;
 }
 
-static pa_bool_t flush_postq(pa_asyncq *l, pa_bool_t wait_op) {
+static bool flush_postq(pa_asyncq *l, bool wait_op) {
     struct localq *q;
 
     pa_assert(l);
@@ -172,7 +172,7 @@ static pa_bool_t flush_postq(pa_asyncq *l, pa_bool_t wait_op) {
     while ((q = l->last_localq)) {
 
         if (push(l, q->data, wait_op) < 0)
-            return FALSE;
+            return false;
 
         l->last_localq = q->prev;
 
@@ -182,10 +182,10 @@ static pa_bool_t flush_postq(pa_asyncq *l, pa_bool_t wait_op) {
             pa_xfree(q);
     }
 
-    return TRUE;
+    return true;
 }
 
-int pa_asyncq_push(pa_asyncq*l, void *p, pa_bool_t wait_op) {
+int pa_asyncq_push(pa_asyncq*l, void *p, bool wait_op) {
     pa_assert(l);
 
     if (!flush_postq(l, wait_op))
@@ -200,8 +200,8 @@ void pa_asyncq_post(pa_asyncq*l, void *p) {
     pa_assert(l);
     pa_assert(p);
 
-    if (flush_postq(l, FALSE))
-        if (pa_asyncq_push(l, p, FALSE) >= 0)
+    if (flush_postq(l, false))
+        if (pa_asyncq_push(l, p, false) >= 0)
             return;
 
     /* OK, we couldn't push anything in the queue. So let's queue it
@@ -222,7 +222,7 @@ void pa_asyncq_post(pa_asyncq*l, void *p) {
     return;
 }
 
-void* pa_asyncq_pop(pa_asyncq*l, pa_bool_t wait_op) {
+void* pa_asyncq_pop(pa_asyncq*l, bool wait_op) {
     unsigned idx;
     void *ret;
     pa_atomic_ptr_t *cells;
@@ -302,11 +302,11 @@ void pa_asyncq_write_before_poll(pa_asyncq *l) {
 
     for (;;) {
 
-        if (flush_postq(l, FALSE))
+        if (flush_postq(l, false))
             break;
 
         if (pa_fdsem_before_poll(l->read_fdsem) >= 0) {
-            l->waiting_for_post = TRUE;
+            l->waiting_for_post = true;
             break;
         }
     }
@@ -317,6 +317,6 @@ void pa_asyncq_write_after_poll(pa_asyncq *l) {
 
     if (l->waiting_for_post) {
         pa_fdsem_after_poll(l->read_fdsem);
-        l->waiting_for_post = FALSE;
+        l->waiting_for_post = false;
     }
 }

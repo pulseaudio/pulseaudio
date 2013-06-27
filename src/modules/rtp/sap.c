@@ -72,7 +72,7 @@ void pa_sap_context_destroy(pa_sap_context *c) {
     pa_xfree(c->sdp_data);
 }
 
-int pa_sap_send(pa_sap_context *c, pa_bool_t goodbye) {
+int pa_sap_send(pa_sap_context *c, bool goodbye) {
     uint32_t header;
     struct sockaddr_storage sa_buf;
     struct sockaddr *sa = (struct sockaddr*) &sa_buf;
@@ -141,7 +141,7 @@ pa_sap_context* pa_sap_context_init_recv(pa_sap_context *c, int fd) {
     return c;
 }
 
-int pa_sap_recv(pa_sap_context *c, pa_bool_t *goodbye) {
+int pa_sap_recv(pa_sap_context *c, bool *goodbye) {
     struct msghdr m;
     struct iovec iov;
     int size;

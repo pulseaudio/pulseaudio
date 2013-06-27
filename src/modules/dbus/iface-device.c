@@ -440,29 +440,29 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessag
     }
 
     if (d->type == PA_DEVICE_TYPE_SINK)
-        pa_sink_set_volume(d->sink, &new_vol, TRUE, TRUE);
+        pa_sink_set_volume(d->sink, &new_vol, true, true);
     else
-        pa_source_set_volume(d->source, &new_vol, TRUE, TRUE);
+        pa_source_set_volume(d->source, &new_vol, true, true);
 
     pa_dbus_send_empty_reply(conn, msg);
 }
 
 static void handle_get_has_flat_volume(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device *d = userdata;
-    dbus_bool_t has_flat_volume = FALSE;
+    dbus_bool_t has_flat_volume = false;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(d);
 
-    has_flat_volume = (d->type == PA_DEVICE_TYPE_SINK) ? (d->sink->flags & PA_SINK_FLAT_VOLUME) : FALSE;
+    has_flat_volume = (d->type == PA_DEVICE_TYPE_SINK) ? (d->sink->flags & PA_SINK_FLAT_VOLUME) : false;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &has_flat_volume);
 }
 
 static void handle_get_has_convertible_to_decibel_volume(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device *d = userdata;
-    dbus_bool_t has_convertible_to_decibel_volume = FALSE;
+    dbus_bool_t has_convertible_to_decibel_volume = false;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -513,7 +513,7 @@ static void handle_get_mute(DBusConnection *conn, DBusMessage *msg, void *userda
 
 static void handle_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_device *d = userdata;
-    dbus_bool_t mute = FALSE;
+    dbus_bool_t mute = false;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -523,16 +523,16 @@ static void handle_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMessageI
     dbus_message_iter_get_basic(iter, &mute);
 
     if (d->type == PA_DEVICE_TYPE_SINK)
-        pa_sink_set_mute(d->sink, mute, TRUE);
+        pa_sink_set_mute(d->sink, mute, true);
     else
-        pa_source_set_mute(d->source, mute, TRUE);
+        pa_source_set_mute(d->source, mute, true);
 
     pa_dbus_send_empty_reply(conn, msg);
 }
 
 static void handle_get_has_hardware_volume(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device *d = userdata;
-    dbus_bool_t has_hardware_volume = FALSE;
+    dbus_bool_t has_hardware_volume = false;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -547,7 +547,7 @@ static void handle_get_has_hardware_volume(DBusConnection *conn, DBusMessage *ms
 
 static void handle_get_has_hardware_mute(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device *d = userdata;
-    dbus_bool_t has_hardware_mute = FALSE;
+    dbus_bool_t has_hardware_mute = false;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -577,7 +577,7 @@ static void handle_get_configured_latency(DBusConnection *conn, DBusMessage *msg
 
 static void handle_get_has_dynamic_latency(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device *d = userdata;
-    dbus_bool_t has_dynamic_latency = FALSE;
+    dbus_bool_t has_dynamic_latency = false;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -617,7 +617,7 @@ static void handle_get_latency(DBusConnection *conn, DBusMessage *msg, void *use
 
 static void handle_get_is_hardware_device(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device *d = userdata;
-    dbus_bool_t is_hardware_device = FALSE;
+    dbus_bool_t is_hardware_device = false;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -632,7 +632,7 @@ static void handle_get_is_hardware_device(DBusConnection *conn, DBusMessage *msg
 
 static void handle_get_is_network_device(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device *d = userdata;
-    dbus_bool_t is_network_device = FALSE;
+    dbus_bool_t is_network_device = false;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -753,13 +753,13 @@ static void handle_set_active_port(DBusConnection *conn, DBusMessage *msg, DBusM
     }
 
     if (d->type == PA_DEVICE_TYPE_SINK) {
-        if ((r = pa_sink_set_port(d->sink, pa_dbusiface_device_port_get_name(new_active), TRUE)) < 0) {
+        if ((r = pa_sink_set_port(d->sink, pa_dbusiface_device_port_get_name(new_active), true)) < 0) {
             pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED,
                                "Internal error in PulseAudio: pa_sink_set_port() failed with error code %i.", r);
             return;
         }
     } else {
-        if ((r = pa_source_set_port(d->source, pa_dbusiface_device_port_get_name(new_active), TRUE)) < 0) {
+        if ((r = pa_source_set_port(d->source, pa_dbusiface_device_port_get_name(new_active), true)) < 0) {
             pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED,
                                "Internal error in PulseAudio: pa_source_set_port() failed with error code %i.", r);
             return;
@@ -796,17 +796,17 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     pa_channel_map *channel_map = NULL;
     dbus_uint32_t channels[PA_CHANNELS_MAX];
     dbus_uint32_t volume[PA_CHANNELS_MAX];
-    dbus_bool_t has_flat_volume = FALSE;
-    dbus_bool_t has_convertible_to_decibel_volume = FALSE;
+    dbus_bool_t has_flat_volume = false;
+    dbus_bool_t has_convertible_to_decibel_volume = false;
     dbus_uint32_t base_volume = 0;
     dbus_uint32_t volume_steps = 0;
-    dbus_bool_t has_hardware_volume = FALSE;
-    dbus_bool_t has_hardware_mute = FALSE;
+    dbus_bool_t has_hardware_volume = false;
+    dbus_bool_t has_hardware_mute = false;
     dbus_uint64_t configured_latency = 0;
-    dbus_bool_t has_dynamic_latency = FALSE;
+    dbus_bool_t has_dynamic_latency = false;
     dbus_uint64_t latency = 0;
-    dbus_bool_t is_hardware_device = FALSE;
-    dbus_bool_t is_network_device = FALSE;
+    dbus_bool_t is_hardware_device = false;
+    dbus_bool_t is_network_device = false;
     dbus_uint32_t state = 0;
     const char **ports = NULL;
     unsigned n_ports = 0;
@@ -847,7 +847,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
         sample_format = d->source->sample_spec.format;
         sample_rate = d->source->sample_spec.rate;
         channel_map = &d->source->channel_map;
-        has_flat_volume = FALSE;
+        has_flat_volume = false;
         has_convertible_to_decibel_volume = d->source->flags & PA_SOURCE_DECIBEL_VOLUME;
         base_volume = d->source->base_volume;
         volume_steps = d->source->n_volume_steps;
@@ -922,7 +922,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
 
 static void handle_suspend(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device *d = userdata;
-    dbus_bool_t suspend = FALSE;
+    dbus_bool_t suspend = false;
     pa_client *client;
 
     pa_assert(conn);
@@ -1074,7 +1074,7 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
     pa_dbusiface_device *d = userdata;
     DBusMessage *signal_msg = NULL;
     const pa_cvolume *new_volume = NULL;
-    pa_bool_t new_mute = FALSE;
+    bool new_mute = false;
     pa_sink_state_t new_sink_state = 0;
     pa_source_state_t new_source_state = 0;
     pa_device_port *new_active_port = NULL;
@@ -1096,8 +1096,8 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
                    && ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE)));
 
     new_volume = (d->type == PA_DEVICE_TYPE_SINK)
-                 ? pa_sink_get_volume(d->sink, FALSE)
-                 : pa_source_get_volume(d->source, FALSE);
+                 ? pa_sink_get_volume(d->sink, false)
+                 : pa_source_get_volume(d->source, false);
 
     if (!pa_cvolume_equal(&d->volume, new_volume)) {
         dbus_uint32_t volume[PA_CHANNELS_MAX];
@@ -1120,7 +1120,7 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
         signal_msg = NULL;
     }
 
-    new_mute = (d->type == PA_DEVICE_TYPE_SINK) ? pa_sink_get_mute(d->sink, FALSE) : pa_source_get_mute(d->source, FALSE);
+    new_mute = (d->type == PA_DEVICE_TYPE_SINK) ? pa_sink_get_mute(d->sink, false) : pa_source_get_mute(d->source, false);
 
     if (d->mute != new_mute) {
         d->mute = new_mute;
@@ -1211,8 +1211,8 @@ pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_si
     d->sink = pa_sink_ref(sink);
     d->type = PA_DEVICE_TYPE_SINK;
     d->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, SINK_OBJECT_NAME, sink->index);
-    d->volume = *pa_sink_get_volume(sink, FALSE);
-    d->mute = pa_sink_get_mute(sink, FALSE);
+    d->volume = *pa_sink_get_volume(sink, false);
+    d->mute = pa_sink_get_mute(sink, false);
     d->sink_state = pa_sink_get_state(sink);
     d->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     d->next_port_index = 0;
@@ -1245,8 +1245,8 @@ pa_dbusiface_device *pa_dbusiface_device_new_source(pa_dbusiface_core *core, pa_
     d->source = pa_source_ref(source);
     d->type = PA_DEVICE_TYPE_SOURCE;
     d->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, SOURCE_OBJECT_NAME, source->index);
-    d->volume = *pa_source_get_volume(source, FALSE);
-    d->mute = pa_source_get_mute(source, FALSE);
+    d->volume = *pa_source_get_volume(source, false);
+    d->mute = pa_source_get_mute(source, false);
     d->source_state = pa_source_get_state(source);
     d->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     d->next_port_index = 0;

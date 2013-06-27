@@ -28,7 +28,7 @@
 
 PA_DEFINE_PUBLIC_CLASS(pa_msgobject, pa_object);
 
-pa_msgobject *pa_msgobject_new_internal(size_t size, const char *type_id, pa_bool_t (*check_type)(const char *type_name)) {
+pa_msgobject *pa_msgobject_new_internal(size_t size, const char *type_id, bool (*check_type)(const char *type_name)) {
     pa_msgobject *o;
 
     pa_assert(size >= sizeof(pa_msgobject));

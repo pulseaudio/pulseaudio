@@ -29,7 +29,7 @@
 
 #include "bitset.h"
 
-void pa_bitset_set(pa_bitset_t *b, unsigned k, pa_bool_t v) {
+void pa_bitset_set(pa_bitset_t *b, unsigned k, bool v) {
     pa_assert(b);
 
     if (v)
@@ -38,14 +38,14 @@ void pa_bitset_set(pa_bitset_t *b, unsigned k, pa_bool_t v) {
         b[k >> 5] &= ~((uint32_t) (1 << (k & 31)));
 }
 
-pa_bool_t pa_bitset_get(const pa_bitset_t *b, unsigned k) {
+bool pa_bitset_get(const pa_bitset_t *b, unsigned k) {
     return !!(b[k >> 5] & (1 << (k & 31)));
 }
 
-pa_bool_t pa_bitset_equals(const pa_bitset_t *b, unsigned n, ...) {
+bool pa_bitset_equals(const pa_bitset_t *b, unsigned n, ...) {
     va_list ap;
     pa_bitset_t *a;
-    pa_bool_t equal;
+    bool equal;
 
     a = pa_xnew0(pa_bitset_t, PA_BITSET_ELEMENTS(n));
 
@@ -56,7 +56,7 @@ pa_bool_t pa_bitset_equals(const pa_bitset_t *b, unsigned n, ...) {
         if (j < 0)
             break;
 
-        pa_bitset_set(a, j, TRUE);
+        pa_bitset_set(a, j, true);
     }
     va_end(ap);
 

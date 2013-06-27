@@ -61,7 +61,7 @@ static void allocate_aupdate(void) {
     } PA_ONCE_END;
 }
 
-pa_bool_t pa_memtrap_is_good(pa_memtrap *m) {
+bool pa_memtrap_is_good(pa_memtrap *m) {
     pa_assert(m);
 
     return !pa_atomic_load(&m->bad);
@@ -150,7 +150,7 @@ pa_memtrap* pa_memtrap_add(const void *start, size_t size) {
 
     allocate_aupdate();
 
-    mx = pa_static_mutex_get(&mutex, FALSE, TRUE);
+    mx = pa_static_mutex_get(&mutex, false, true);
     pa_mutex_lock(mx);
 
     j = pa_aupdate_write_begin(aupdate);
@@ -172,7 +172,7 @@ void pa_memtrap_remove(pa_memtrap *m) {
 
     allocate_aupdate();
 
-    mx = pa_static_mutex_get(&mutex, FALSE, TRUE);
+    mx = pa_static_mutex_get(&mutex, false, true);
     pa_mutex_lock(mx);
 
     j = pa_aupdate_write_begin(aupdate);
@@ -200,7 +200,7 @@ pa_memtrap *pa_memtrap_update(pa_memtrap *m, const void *start, size_t size) {
 
     allocate_aupdate();
 
-    mx = pa_static_mutex_get(&mutex, FALSE, TRUE);
+    mx = pa_static_mutex_get(&mutex, false, true);
     pa_mutex_lock(mx);
 
     j = pa_aupdate_write_begin(aupdate);

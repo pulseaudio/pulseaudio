@@ -29,9 +29,9 @@
 
 typedef struct pa_client_conf {
     char *daemon_binary, *extra_arguments, *default_sink, *default_source, *default_server, *default_dbus_server, *cookie_file;
-    pa_bool_t autospawn, disable_shm, auto_connect_localhost, auto_connect_display;
+    bool autospawn, disable_shm, auto_connect_localhost, auto_connect_display;
     uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
-    pa_bool_t cookie_valid; /* non-zero, when cookie is valid */
+    bool cookie_valid; /* non-zero, when cookie is valid */
     size_t shm_size;
 } pa_client_conf;
 

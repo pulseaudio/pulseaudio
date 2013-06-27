@@ -46,7 +46,7 @@
 PA_MODULE_AUTHOR("Pierre-Louis Bossart");
 PA_MODULE_DESCRIPTION("Virtual source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         _("source_name=<name for the source> "
           "source_properties=<properties for the source> "
@@ -67,14 +67,14 @@ struct userdata {
     pa_module *module;
 
     /* FIXME: Uncomment this and take "autoloaded" as a modarg if this is a filter */
-    /* pa_bool_t autoloaded; */
+    /* bool autoloaded; */
 
     pa_source *source;
     pa_source_output *source_output;
 
     pa_memblockq *memblockq;
 
-    pa_bool_t auto_desc;
+    bool auto_desc;
     unsigned channels;
 
     /* optional fields for uplink sink */
@@ -128,7 +128,7 @@ static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
     if (state == PA_SINK_RUNNING) {
         /* need to wake-up source if it was suspended */
         pa_log_debug("Resuming source %s, because its uplink sink became active.", u->source->name);
-        pa_source_suspend(u->source, FALSE, PA_SUSPEND_ALL);
+        pa_source_suspend(u->source, false, PA_SUSPEND_ALL);
 
         /* FIXME: if there's no client connected, the source will suspend
            and playback will be stuck. You'd want to prevent the source from
@@ -240,7 +240,7 @@ static void source_set_volume_cb(pa_source *s) {
         !PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output)))
         return;
 
-    pa_source_output_set_volume(u->source_output, &s->real_volume, s->save_volume, TRUE);
+    pa_source_output_set_volume(u->source_output, &s->real_volume, s->save_volume, true);
 }
 
 /* Called from main context */
@@ -333,7 +333,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
                chunk->length,          /* same length as input */
                (const pa_sample_spec *)&o->sample_spec, /* same sample spec for input and output */
                NULL,                   /* no volume information */
-               FALSE);                 /* no mute */
+               false);                 /* no mute */
 
         pa_memblock_release(target_chunk.memblock);
         pa_memblock_unref(tchunk.memblock); /* clean-up */
@@ -434,7 +434,7 @@ static void source_output_kill_cb(pa_source_output *o) {
     pa_source_unref(u->source);
     u->source = NULL;
 
-    pa_module_unload_request(u->module, TRUE);
+    pa_module_unload_request(u->module, true);
 }
 
 /* Called from main thread */
@@ -473,8 +473,8 @@ int pa__init(pa_module*m) {
     pa_source *master=NULL;
     pa_source_output_new_data source_output_data;
     pa_source_new_data source_data;
-    pa_bool_t use_volume_sharing = TRUE;
-    pa_bool_t force_flat_volume = FALSE;
+    bool use_volume_sharing = true;
+    bool force_flat_volume = false;
 
     /* optional for uplink_sink */
     pa_sink_new_data sink_data;
@@ -568,7 +568,7 @@ int pa__init(pa_module*m) {
     pa_source_set_set_mute_callback(u->source, source_set_mute_cb);
     if (!use_volume_sharing) {
         pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
-        pa_source_enable_decibel_volume(u->source, TRUE);
+        pa_source_enable_decibel_volume(u->source, true);
     }
     /* Normally this flag would be enabled automatically be we can force it. */
     if (force_flat_volume)
@@ -581,7 +581,7 @@ int pa__init(pa_module*m) {
     pa_source_output_new_data_init(&source_output_data);
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
-    pa_source_output_new_data_set_source(&source_output_data, master, FALSE);
+    pa_source_output_new_data_set_source(&source_output_data, master, false);
     source_output_data.destination_source = u->source;
 
     pa_proplist_setf(source_output_data.proplist, PA_PROP_MEDIA_NAME, "Virtual Source Stream of %s", pa_proplist_gets(u->source->proplist, PA_PROP_DEVICE_DESCRIPTION));

@@ -30,6 +30,6 @@ const char* pa__get_description(void);
 const char* pa__get_usage(void);
 const char* pa__get_version(void);
 const char* pa__get_deprecated(void);
-pa_bool_t pa__load_once(void);
+bool pa__load_once(void);
 
 #endif

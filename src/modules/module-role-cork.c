@@ -38,7 +38,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Mute & cork streams with certain roles while others exist");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "trigger_roles=<Comma separated list of roles which will trigger a cork> "
         "cork_roles=<Comma separated list of roles which will be corked> "
@@ -56,7 +56,7 @@ struct userdata {
     pa_hashmap *cork_state;
     pa_idxset *trigger_roles;
     pa_idxset *cork_roles;
-    pa_bool_t global:1;
+    bool global:1;
     pa_hook_slot
         *sink_input_put_slot,
         *sink_input_unlink_slot,
@@ -64,7 +64,7 @@ struct userdata {
         *sink_input_move_finish_slot;
 };
 
-static pa_bool_t shall_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore) {
+static bool shall_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore) {
     pa_sink_input *j;
     uint32_t idx, role_idx;
     const char *trigger_role;
@@ -84,25 +84,25 @@ static pa_bool_t shall_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignor
         PA_IDXSET_FOREACH(trigger_role, u->trigger_roles, role_idx) {
             if (pa_streq(role, trigger_role)) {
                 pa_log_debug("Found a '%s' stream that will trigger the auto-cork.", trigger_role);
-                return TRUE;
+                return true;
             }
         }
     }
 
-    return FALSE;
+    return false;
 }
 
-static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa_bool_t cork) {
+static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_input *ignore, bool cork) {
     pa_sink_input *j;
     uint32_t idx, role_idx;
     const char *cork_role;
-    pa_bool_t trigger = FALSE;
+    bool trigger = false;
 
     pa_assert(u);
     pa_sink_assert_ref(s);
 
     for (j = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); j; j = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
-        pa_bool_t corked, muted, corked_here;
+        bool corked, muted, corked_here;
         const char *role;
 
         if (j == ignore)
@@ -126,7 +126,7 @@ static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_in
             pa_log_debug("Found a '%s' stream that should be corked/muted.", cork_role);
             if (!corked_here)
                 pa_hashmap_put(u->cork_state, j, PA_INT_TO_PTR(1));
-            pa_sink_input_set_mute(j, TRUE, FALSE);
+            pa_sink_input_set_mute(j, true, false);
             pa_sink_input_send_event(j, PA_STREAM_EVENT_REQUEST_CORK, NULL);
         } else if (!cork) {
             pa_hashmap_remove(u->cork_state, j);
@@ -134,7 +134,7 @@ static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_in
             if (corked_here && (corked || muted)) {
                 pa_log_debug("Found a '%s' stream that should be uncorked/unmuted.", cork_role);
                 if (muted)
-                    pa_sink_input_set_mute(j, FALSE, FALSE);
+                    pa_sink_input_set_mute(j, false, false);
                 if (corked)
                     pa_sink_input_send_event(j, PA_STREAM_EVENT_REQUEST_UNCORK, NULL);
             }
@@ -142,7 +142,7 @@ static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_in
     }
 }
 
-static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa_bool_t cork) {
+static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, bool cork) {
     pa_assert(u);
 
     if (u->global) {
@@ -153,8 +153,8 @@ static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, pa
         apply_cork_to_sink(u, s, ignore, cork);
 }
 
-static pa_hook_result_t process(struct userdata *u, pa_sink_input *i, pa_bool_t create) {
-    pa_bool_t cork = FALSE;
+static pa_hook_result_t process(struct userdata *u, pa_sink_input *i, bool create) {
+    bool cork = false;
     const char *role;
 
     pa_assert(u);
@@ -179,34 +179,34 @@ static pa_hook_result_t sink_input_put_cb(pa_core *core, pa_sink_input *i, struc
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    return process(u, i, TRUE);
+    return process(u, i, true);
 }
 
 static pa_hook_result_t sink_input_unlink_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
     pa_sink_input_assert_ref(i);
 
-    return process(u, i, FALSE);
+    return process(u, i, false);
 }
 
 static pa_hook_result_t sink_input_move_start_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    return process(u, i, FALSE);
+    return process(u, i, false);
 }
 
 static pa_hook_result_t sink_input_move_finish_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    return process(u, i, TRUE);
+    return process(u, i, true);
 }
 
 int pa__init(pa_module *m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     const char *roles;
-    pa_bool_t global = FALSE;
+    bool global = false;
 
     pa_assert(m);
 

@@ -114,7 +114,7 @@ void pa_cpu_get_x86_flags(pa_cpu_x86_flag_t *flags) {
 #endif /* defined (__i386__) || defined (__amd64__) */
 }
 
-pa_bool_t pa_cpu_init_x86(pa_cpu_x86_flag_t *flags) {
+bool pa_cpu_init_x86(pa_cpu_x86_flag_t *flags) {
 #if defined (__i386__) || defined (__amd64__)
     pa_cpu_get_x86_flags(flags);
 
@@ -130,8 +130,8 @@ pa_bool_t pa_cpu_init_x86(pa_cpu_x86_flag_t *flags) {
         pa_convert_func_init_sse(*flags);
     }
 
-    return TRUE;
+    return true;
 #else /* defined (__i386__) || defined (__amd64__) */
-    return FALSE;
+    return false;
 #endif /* defined (__i386__) || defined (__amd64__) */
 }

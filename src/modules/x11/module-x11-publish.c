@@ -48,7 +48,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("X11 credential publisher");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "display=<X11 display> "
         "sink=<Sink to publish> "
@@ -128,7 +128,7 @@ static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
     u->x11_client = NULL;
     u->x11_wrapper = NULL;
 
-    pa_module_unload_request(u->module, TRUE);
+    pa_module_unload_request(u->module, true);
 }
 
 int pa__init(pa_module*m) {
@@ -157,7 +157,7 @@ int pa__init(pa_module*m) {
 
     u->hook_slot = pa_hook_connect(&pa_native_protocol_hooks(u->protocol)[PA_NATIVE_HOOK_SERVERS_CHANGED], PA_HOOK_NORMAL, servers_changed_cb, u);
 
-    if (!(u->auth_cookie = pa_auth_cookie_get(m->core, pa_modargs_get_value(ma, "cookie", PA_NATIVE_COOKIE_FILE), TRUE, PA_NATIVE_COOKIE_LENGTH)))
+    if (!(u->auth_cookie = pa_auth_cookie_get(m->core, pa_modargs_get_value(ma, "cookie", PA_NATIVE_COOKIE_FILE), true, PA_NATIVE_COOKIE_LENGTH)))
         goto fail;
 
     if (!(u->x11_wrapper = pa_x11_wrapper_get(m->core, pa_modargs_get_value(ma, "display", NULL))))

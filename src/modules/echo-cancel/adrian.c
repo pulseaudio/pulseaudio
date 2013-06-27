@@ -56,7 +56,7 @@ static void pa_adrian_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec
     *rec_map = *out_map;
 }
 
-pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
+bool pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
                             pa_sample_spec *rec_ss, pa_channel_map *rec_map,
                             pa_sample_spec *play_ss, pa_channel_map *play_map,
                             pa_sample_spec *out_ss, pa_channel_map *out_map,
@@ -93,12 +93,12 @@ pa_bool_t pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
         goto fail;
 
     pa_modargs_free(ma);
-    return TRUE;
+    return true;
 
 fail:
     if (ma)
         pa_modargs_free(ma);
-    return FALSE;
+    return false;
 }
 
 void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {

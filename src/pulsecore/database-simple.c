@@ -41,7 +41,7 @@ typedef struct simple_data {
     char *filename;
     char *tmp_filename;
     pa_hashmap *map;
-    pa_bool_t read_only;
+    bool read_only;
 } simple_data;
 
 typedef struct entry {
@@ -175,7 +175,7 @@ static int fill_data(simple_data *db, FILE *f) {
     pa_datum data;
     void *d = NULL;
     ssize_t l = 0;
-    pa_bool_t append = FALSE;
+    bool append = false;
     enum { FIELD_KEY = 0, FIELD_DATA } field = FIELD_KEY;
 
     pa_assert(db);
@@ -197,7 +197,7 @@ static int fill_data(simple_data *db, FILE *f) {
             case FIELD_DATA:
                 data.data = d;
                 data.size = l;
-                append = TRUE;
+                append = true;
                 break;
         }
 
@@ -208,7 +208,7 @@ static int fill_data(simple_data *db, FILE *f) {
             e->data.data = data.data;
             e->data.size = data.size;
             pa_hashmap_put(db->map, &e->key, e);
-            append = FALSE;
+            append = false;
             field = FIELD_KEY;
         }
     }
@@ -224,7 +224,7 @@ static int fill_data(simple_data *db, FILE *f) {
     return pa_hashmap_size(db->map);
 }
 
-pa_database* pa_database_open(const char *fn, pa_bool_t for_write) {
+pa_database* pa_database_open(const char *fn, bool for_write) {
     FILE *f;
     char *path;
     simple_data *db;
@@ -288,7 +288,7 @@ pa_datum* pa_database_get(pa_database *database, const pa_datum *key, pa_datum* 
     return data;
 }
 
-int pa_database_set(pa_database *database, const pa_datum *key, const pa_datum* data, pa_bool_t overwrite) {
+int pa_database_set(pa_database *database, const pa_datum *key, const pa_datum* data, bool overwrite) {
     simple_data *db = (simple_data*)database;
     entry *e;
     int ret = 0;
@@ -381,7 +381,7 @@ pa_datum* pa_database_next(pa_database *database, const pa_datum *key, pa_datum 
     entry *e;
     entry *search;
     void *state;
-    pa_bool_t pick_now;
+    bool pick_now;
 
     pa_assert(db);
     pa_assert(next);
@@ -392,14 +392,14 @@ pa_datum* pa_database_next(pa_database *database, const pa_datum *key, pa_datum 
     search = pa_hashmap_get(db->map, key);
 
     state = NULL;
-    pick_now = FALSE;
+    pick_now = false;
 
     while ((e = pa_hashmap_iterate(db->map, &state, NULL))) {
         if (pick_now)
             break;
 
         if (search == e)
-            pick_now = TRUE;
+            pick_now = true;
     }
 
     if (!pick_now || !e)

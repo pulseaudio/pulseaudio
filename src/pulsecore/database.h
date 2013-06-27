@@ -41,12 +41,12 @@ typedef struct pa_datum {
 void pa_datum_free(pa_datum *d);
 
 /* This will append a suffix to the filename */
-pa_database* pa_database_open(const char *fn, pa_bool_t for_write);
+pa_database* pa_database_open(const char *fn, bool for_write);
 void pa_database_close(pa_database *db);
 
 pa_datum* pa_database_get(pa_database *db, const pa_datum *key, pa_datum* data);
 
-int pa_database_set(pa_database *db, const pa_datum *key, const pa_datum* data, pa_bool_t overwrite);
+int pa_database_set(pa_database *db, const pa_datum *key, const pa_datum* data, bool overwrite);
 int pa_database_unset(pa_database *db, const pa_datum *key);
 
 int pa_database_clear(pa_database *db);

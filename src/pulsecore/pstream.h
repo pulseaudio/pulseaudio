@@ -61,9 +61,9 @@ void pa_pstream_set_die_callback(pa_pstream *p, pa_pstream_notify_cb_t cb, void 
 void pa_pstream_set_release_callback(pa_pstream *p, pa_pstream_block_id_cb_t cb, void *userdata);
 void pa_pstream_set_revoke_callback(pa_pstream *p, pa_pstream_block_id_cb_t cb, void *userdata);
 
-pa_bool_t pa_pstream_is_pending(pa_pstream *p);
+bool pa_pstream_is_pending(pa_pstream *p);
 
-void pa_pstream_enable_shm(pa_pstream *p, pa_bool_t enable);
-pa_bool_t pa_pstream_get_shm(pa_pstream *p);
+void pa_pstream_enable_shm(pa_pstream *p, bool enable);
+bool pa_pstream_get_shm(pa_pstream *p);
 
 #endif

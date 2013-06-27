@@ -170,14 +170,14 @@ struct pa_core {
 
     int exit_idle_time, scache_idle_time;
 
-    pa_bool_t flat_volumes:1;
-    pa_bool_t disallow_module_loading:1;
-    pa_bool_t disallow_exit:1;
-    pa_bool_t running_as_daemon:1;
-    pa_bool_t realtime_scheduling:1;
-    pa_bool_t disable_remixing:1;
-    pa_bool_t disable_lfe_remixing:1;
-    pa_bool_t deferred_volume:1;
+    bool flat_volumes:1;
+    bool disallow_module_loading:1;
+    bool disallow_exit:1;
+    bool running_as_daemon:1;
+    bool realtime_scheduling:1;
+    bool disable_remixing:1;
+    bool disable_lfe_remixing:1;
+    bool deferred_volume:1;
 
     pa_resample_method_t resample_method;
     int realtime_priority;
@@ -197,12 +197,12 @@ enum {
     PA_CORE_MESSAGE_MAX
 };
 
-pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size);
+pa_core* pa_core_new(pa_mainloop_api *m, bool shared, size_t shm_size);
 
 /* Check whether no one is connected to this core */
 void pa_core_check_idle(pa_core *c);
 
-int pa_core_exit(pa_core *c, pa_bool_t force, int retval);
+int pa_core_exit(pa_core *c, bool force, int retval);
 
 void pa_core_maybe_vacuum(pa_core *c);
 

@@ -39,7 +39,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("When a sink/source is idle for too long, suspend it");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE("timeout=<timeout>");
 
 static const char* const valid_modargs[] = {
@@ -89,13 +89,13 @@ static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval
 
     if (d->sink && pa_sink_check_suspend(d->sink) <= 0 && !(d->sink->suspend_cause & PA_SUSPEND_IDLE)) {
         pa_log_info("Sink %s idle for too long, suspending ...", d->sink->name);
-        pa_sink_suspend(d->sink, TRUE, PA_SUSPEND_IDLE);
+        pa_sink_suspend(d->sink, true, PA_SUSPEND_IDLE);
         pa_core_maybe_vacuum(d->userdata->core);
     }
 
     if (d->source && pa_source_check_suspend(d->source) <= 0 && !(d->source->suspend_cause & PA_SUSPEND_IDLE)) {
         pa_log_info("Source %s idle for too long, suspending ...", d->source->name);
-        pa_source_suspend(d->source, TRUE, PA_SUSPEND_IDLE);
+        pa_source_suspend(d->source, true, PA_SUSPEND_IDLE);
         pa_core_maybe_vacuum(d->userdata->core);
     }
 }
@@ -129,12 +129,12 @@ static void resume(struct device_info *d) {
 
     if (d->sink) {
         pa_log_debug("Sink %s becomes busy, resuming.", d->sink->name);
-        pa_sink_suspend(d->sink, FALSE, PA_SUSPEND_IDLE);
+        pa_sink_suspend(d->sink, false, PA_SUSPEND_IDLE);
     }
 
     if (d->source) {
         pa_log_debug("Source %s becomes busy, resuming.", d->source->name);
-        pa_source_suspend(d->source, FALSE, PA_SUSPEND_IDLE);
+        pa_source_suspend(d->source, false, PA_SUSPEND_IDLE);
     }
 }
 

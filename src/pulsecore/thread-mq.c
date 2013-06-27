@@ -104,7 +104,7 @@ void pa_thread_mq_done(pa_thread_mq *q) {
      * dispatching anyway. */
 
     if (!pa_asyncmsgq_dispatching(q->outq))
-        pa_asyncmsgq_flush(q->outq, TRUE);
+        pa_asyncmsgq_flush(q->outq, true);
 
     q->mainloop->io_free(q->read_event);
     q->mainloop->io_free(q->write_event);

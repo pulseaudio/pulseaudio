@@ -84,11 +84,11 @@ struct timeval *pa_rtclock_get(struct timeval *tv) {
 
 #ifdef CLOCK_MONOTONIC
     /* No locking or atomic ops for no_monotonic here */
-    static pa_bool_t no_monotonic = FALSE;
+    static bool no_monotonic = false;
 
     if (!no_monotonic)
         if (clock_gettime(CLOCK_MONOTONIC, &ts) < 0)
-            no_monotonic = TRUE;
+            no_monotonic = true;
 
     if (no_monotonic)
 #endif /* CLOCK_MONOTONIC */
@@ -116,7 +116,7 @@ struct timeval *pa_rtclock_get(struct timeval *tv) {
     return pa_gettimeofday(tv);
 }
 
-pa_bool_t pa_rtclock_hrtimer(void) {
+bool pa_rtclock_hrtimer(void) {
 
 #if defined (OS_IS_DARWIN)
     mach_timebase_info_data_t tbi;
@@ -148,7 +148,7 @@ pa_bool_t pa_rtclock_hrtimer(void) {
 
 #endif /* HAVE_CLOCK_GETTIME */
 
-    return FALSE;
+    return false;
 }
 
 #define TIMER_SLACK_NS (int) ((500 * PA_NSEC_PER_USEC))
@@ -252,7 +252,7 @@ static struct timeval* wallclock_from_rtclock(struct timeval *tv) {
     return tv;
 }
 
-struct timeval* pa_timeval_rtstore(struct timeval *tv, pa_usec_t v, pa_bool_t rtclock) {
+struct timeval* pa_timeval_rtstore(struct timeval *tv, pa_usec_t v, bool rtclock) {
     pa_assert(tv);
 
     if (v == PA_USEC_INVALID)

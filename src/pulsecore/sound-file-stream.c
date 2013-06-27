@@ -132,7 +132,7 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
      * we are heard right-away. */
     if (PA_SINK_INPUT_IS_LINKED(state) &&
         i->thread_info.state == PA_SINK_INPUT_INIT)
-        pa_sink_input_request_rewind(i, 0, FALSE, TRUE, TRUE);
+        pa_sink_input_request_rewind(i, 0, false, true, true);
 }
 
 /* Called from IO thread context */
@@ -298,7 +298,7 @@ int pa_play_file(
     u->readf_function = pa_sndfile_readf_function(&ss);
 
     pa_sink_input_new_data_init(&data);
-    pa_sink_input_new_data_set_sink(&data, sink, FALSE);
+    pa_sink_input_new_data_set_sink(&data, sink, false);
     data.driver = __FILE__;
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
     pa_sink_input_new_data_set_channel_map(&data, &cm);

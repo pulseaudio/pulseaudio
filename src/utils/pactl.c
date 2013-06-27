@@ -65,10 +65,10 @@ static uint32_t
     source_output_idx = PA_INVALID_INDEX,
     sink_idx = PA_INVALID_INDEX;
 
-static pa_bool_t short_list_format = FALSE;
+static bool short_list_format = false;
 static uint32_t module_index;
 static int32_t latency_offset;
-static pa_bool_t suspend;
+static bool suspend;
 static pa_volume_t volume;
 static enum volume_flags {
     VOL_UINT     = 0,
@@ -95,7 +95,7 @@ static pa_channel_map channel_map;
 static size_t sample_length = 0;
 static int actions = 1;
 
-static pa_bool_t nl = FALSE;
+static bool nl = false;
 
 static enum {
     NONE,
@@ -265,7 +265,7 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
 
     if (nl && !short_list_format)
         printf("\n");
-    nl = TRUE;
+    nl = true;
 
     if (short_list_format) {
         printf("%u\t%s\t%s\t%s\t%s\n",
@@ -378,7 +378,7 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
 
     if (nl && !short_list_format)
         printf("\n");
-    nl = TRUE;
+    nl = true;
 
     if (short_list_format) {
         printf("%u\t%s\t%s\t%s\t%s\n",
@@ -475,7 +475,7 @@ static void get_module_info_callback(pa_context *c, const pa_module_info *i, int
 
     if (nl && !short_list_format)
         printf("\n");
-    nl = TRUE;
+    nl = true;
 
     pa_snprintf(t, sizeof(t), "%u", i->n_used);
 
@@ -517,7 +517,7 @@ static void get_client_info_callback(pa_context *c, const pa_client_info *i, int
 
     if (nl && !short_list_format)
         printf("\n");
-    nl = TRUE;
+    nl = true;
 
     pa_snprintf(t, sizeof(t), "%u", i->owner_module);
 
@@ -560,7 +560,7 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
 
     if (nl && !short_list_format)
         printf("\n");
-    nl = TRUE;
+    nl = true;
 
     pa_snprintf(t, sizeof(t), "%u", i->owner_module);
 
@@ -641,7 +641,7 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
 
     if (nl && !short_list_format)
         printf("\n");
-    nl = TRUE;
+    nl = true;
 
     pa_snprintf(t, sizeof(t), "%u", i->owner_module);
     pa_snprintf(k, sizeof(k), "%u", i->client);
@@ -713,7 +713,7 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
 
     if (nl && !short_list_format)
         printf("\n");
-    nl = TRUE;
+    nl = true;
 
     pa_snprintf(t, sizeof(t), "%u", i->owner_module);
     pa_snprintf(k, sizeof(k), "%u", i->client);
@@ -785,7 +785,7 @@ static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int
 
     if (nl && !short_list_format)
         printf("\n");
-    nl = TRUE;
+    nl = true;
 
     pa_bytes_snprint(t, sizeof(t), i->bytes);
 
@@ -864,7 +864,7 @@ static void volume_relative_adjust(pa_cvolume *cv) {
 }
 
 static void unload_module_by_name_callback(pa_context *c, const pa_module_info *i, int is_last, void *userdata) {
-    static pa_bool_t unloaded = FALSE;
+    static bool unloaded = false;
 
     if (is_last < 0) {
         pa_log(_("Failed to get module information: %s"), pa_strerror(pa_context_errno(c)));
@@ -873,7 +873,7 @@ static void unload_module_by_name_callback(pa_context *c, const pa_module_info *
     }
 
     if (is_last) {
-        if (unloaded == FALSE)
+        if (unloaded == false)
             pa_log(_("Failed to unload module: Module %s not loaded"), module_name);
         complete_action();
         return;
@@ -882,7 +882,7 @@ static void unload_module_by_name_callback(pa_context *c, const pa_module_info *
     pa_assert(i);
 
     if (pa_streq(module_name, i->name)) {
-        unloaded = TRUE;
+        unloaded = true;
         actions++;
         pa_operation_unref(pa_context_unload_module(c, i->index, simple_callback, NULL));
     }
@@ -1590,9 +1590,9 @@ int main(int argc, char *argv[]) {
     if (optind < argc) {
         if (pa_streq(argv[optind], "stat")) {
             action = STAT;
-            short_list_format = FALSE;
+            short_list_format = false;
             if (optind+1 < argc && pa_streq(argv[optind+1], "short"))
-                short_list_format = TRUE;
+                short_list_format = true;
 
         } else if (pa_streq(argv[optind], "info"))
             action = INFO;
@@ -1610,7 +1610,7 @@ int main(int argc, char *argv[]) {
                     pa_streq(argv[i], "samples") || pa_streq(argv[i], "cards")) {
                     list_type = pa_xstrdup(argv[i]);
                 } else if (pa_streq(argv[i], "short")) {
-                    short_list_format = TRUE;
+                    short_list_format = true;
                 } else {
                     pa_log(_("Specify nothing, or one of: %s"), "modules, sinks, sources, sink-inputs, source-outputs, clients, samples, cards");
                     goto quit;

@@ -43,7 +43,7 @@ typedef enum pa_source_output_state {
     PA_SOURCE_OUTPUT_UNLINKED
 } pa_source_output_state_t;
 
-static inline pa_bool_t PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_state_t x) {
+static inline bool PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_state_t x) {
     return x == PA_SOURCE_OUTPUT_RUNNING || x == PA_SOURCE_OUTPUT_CORKED;
 }
 
@@ -96,15 +96,15 @@ struct pa_source_output {
 
     pa_cvolume volume_factor_source; /* A second volume factor in format of the source this stream is connected to */
 
-    pa_bool_t volume_writable:1;
+    bool volume_writable:1;
 
-    pa_bool_t muted:1;
+    bool muted:1;
 
-    /* if TRUE then the source we are connected to and/or the volume
+    /* if true then the source we are connected to and/or the volume
      * set is worth remembering, i.e. was explicitly chosen by the
      * user and not automatically. module-stream-restore looks for
      * this.*/
-    pa_bool_t save_source:1, save_volume:1, save_muted:1;
+    bool save_source:1, save_volume:1, save_muted:1;
 
     pa_resample_method_t requested_resample_method, actual_resample_method;
 
@@ -145,11 +145,11 @@ struct pa_source_output {
 
     /* If non-NULL called whenever the source this output is attached
      * to suspends or resumes. Called from main context */
-    void (*suspend) (pa_source_output *o, pa_bool_t b);   /* may be NULL */
+    void (*suspend) (pa_source_output *o, bool b);   /* may be NULL */
 
     /* If non-NULL called whenever the source this output is attached
      * to suspends or resumes. Called from IO context */
-    void (*suspend_within_thread) (pa_source_output *o, pa_bool_t b);   /* may be NULL */
+    void (*suspend_within_thread) (pa_source_output *o, bool b);   /* may be NULL */
 
     /* If non-NULL called whenever the source output is moved to a new
      * source. Called from main context after the source output has been
@@ -174,9 +174,9 @@ struct pa_source_output {
     void (*state_change) (pa_source_output *o, pa_source_output_state_t state); /* may be NULL */
 
     /* If non-NULL this function is called before this source output
-     * is moved to a source and if it returns FALSE the move
+     * is moved to a source and if it returns false the move
      * will not be allowed */
-    pa_bool_t (*may_move_to) (pa_source_output *o, pa_source *s); /* may be NULL */
+    bool (*may_move_to) (pa_source_output *o, pa_source *s); /* may be NULL */
 
     /* If non-NULL this function is used to dispatch asynchronous
      * control events. */
@@ -194,9 +194,9 @@ struct pa_source_output {
         pa_source_output_state_t state;
 
         pa_cvolume soft_volume;
-        pa_bool_t muted:1;
+        bool muted:1;
 
-        pa_bool_t attached:1; /* True only between ->attach() and ->detach() calls */
+        bool attached:1; /* True only between ->attach() and ->detach() calls */
 
         pa_sample_spec sample_spec;
 
@@ -257,31 +257,31 @@ typedef struct pa_source_output_new_data {
     pa_idxset *nego_formats;
 
     pa_cvolume volume, volume_factor, volume_factor_source;
-    pa_bool_t muted:1;
+    bool muted:1;
 
-    pa_bool_t sample_spec_is_set:1;
-    pa_bool_t channel_map_is_set:1;
+    bool sample_spec_is_set:1;
+    bool channel_map_is_set:1;
 
-    pa_bool_t volume_is_set:1, volume_factor_is_set:1, volume_factor_source_is_set:1;
-    pa_bool_t muted_is_set:1;
+    bool volume_is_set:1, volume_factor_is_set:1, volume_factor_source_is_set:1;
+    bool muted_is_set:1;
 
-    pa_bool_t volume_is_absolute:1;
+    bool volume_is_absolute:1;
 
-    pa_bool_t volume_writable:1;
+    bool volume_writable:1;
 
-    pa_bool_t save_source:1, save_volume:1, save_muted:1;
+    bool save_source:1, save_volume:1, save_muted:1;
 } pa_source_output_new_data;
 
 pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data);
 void pa_source_output_new_data_set_sample_spec(pa_source_output_new_data *data, const pa_sample_spec *spec);
 void pa_source_output_new_data_set_channel_map(pa_source_output_new_data *data, const pa_channel_map *map);
-pa_bool_t pa_source_output_new_data_is_passthrough(pa_source_output_new_data *data);
+bool pa_source_output_new_data_is_passthrough(pa_source_output_new_data *data);
 void pa_source_output_new_data_set_volume(pa_source_output_new_data *data, const pa_cvolume *volume);
 void pa_source_output_new_data_apply_volume_factor(pa_source_output_new_data *data, const pa_cvolume *volume_factor);
 void pa_source_output_new_data_apply_volume_factor_source(pa_source_output_new_data *data, const pa_cvolume *volume_factor);
-void pa_source_output_new_data_set_muted(pa_source_output_new_data *data, pa_bool_t mute);
-pa_bool_t pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_source *s, pa_bool_t save);
-pa_bool_t pa_source_output_new_data_set_formats(pa_source_output_new_data *data, pa_idxset *formats);
+void pa_source_output_new_data_set_muted(pa_source_output_new_data *data, bool mute);
+bool pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_source *s, bool save);
+bool pa_source_output_new_data_set_formats(pa_source_output_new_data *data, pa_idxset *formats);
 void pa_source_output_new_data_done(pa_source_output_new_data *data);
 
 /* To be called by the implementing module only */
@@ -298,7 +298,7 @@ void pa_source_output_set_name(pa_source_output *o, const char *name);
 
 pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t usec);
 
-void pa_source_output_cork(pa_source_output *o, pa_bool_t b);
+void pa_source_output_cork(pa_source_output *o, bool b);
 
 int pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
 int pa_source_output_update_rate(pa_source_output *o);
@@ -312,13 +312,13 @@ void pa_source_output_kill(pa_source_output*o);
 
 pa_usec_t pa_source_output_get_latency(pa_source_output *o, pa_usec_t *source_latency);
 
-pa_bool_t pa_source_output_is_volume_readable(pa_source_output *o);
-pa_bool_t pa_source_output_is_passthrough(pa_source_output *o);
-void pa_source_output_set_volume(pa_source_output *o, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute);
-pa_cvolume *pa_source_output_get_volume(pa_source_output *o, pa_cvolume *volume, pa_bool_t absolute);
+bool pa_source_output_is_volume_readable(pa_source_output *o);
+bool pa_source_output_is_passthrough(pa_source_output *o);
+void pa_source_output_set_volume(pa_source_output *o, const pa_cvolume *volume, bool save, bool absolute);
+pa_cvolume *pa_source_output_get_volume(pa_source_output *o, pa_cvolume *volume, bool absolute);
 
-void pa_source_output_set_mute(pa_source_output *o, pa_bool_t mute, pa_bool_t save);
-pa_bool_t pa_source_output_get_mute(pa_source_output *o);
+void pa_source_output_set_mute(pa_source_output *o, bool mute, bool save);
+bool pa_source_output_get_mute(pa_source_output *o);
 
 void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p);
 
@@ -326,15 +326,15 @@ pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
 
 void pa_source_output_send_event(pa_source_output *o, const char *name, pa_proplist *data);
 
-pa_bool_t pa_source_output_may_move(pa_source_output *o);
-pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest);
-int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t save);
+bool pa_source_output_may_move(pa_source_output *o);
+bool pa_source_output_may_move_to(pa_source_output *o, pa_source *dest);
+int pa_source_output_move_to(pa_source_output *o, pa_source *dest, bool save);
 
 /* The same as pa_source_output_move_to() but in two separate steps,
  * first the detaching from the old source, then the attaching to the
  * new source */
 int pa_source_output_start_move(pa_source_output *o);
-int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t save);
+int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, bool save);
 void pa_source_output_fail_move(pa_source_output *o);
 
 #define pa_source_output_get_state(o) ((o)->state)

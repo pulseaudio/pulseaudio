@@ -153,6 +153,6 @@ LOG_FUNC(error, PA_LOG_ERROR)
 
 #define pa_log pa_log_error
 
-pa_bool_t pa_log_ratelimit(pa_log_level_t level);
+bool pa_log_ratelimit(pa_log_level_t level);
 
 #endif

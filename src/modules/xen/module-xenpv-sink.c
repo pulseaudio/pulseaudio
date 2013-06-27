@@ -60,7 +60,7 @@
 PA_MODULE_AUTHOR("Giorgos Boutsioukis");
 PA_MODULE_DESCRIPTION("Xen PV audio sink");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
         "sink_properties=<properties for the sink> "
@@ -353,7 +353,7 @@ static void thread_func(void *userdata) {
 
         pollfd->events = (short) (u->sink->thread_info.state == PA_SINK_RUNNING ? POLLOUT : 0);
 
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, true)) < 0)
             goto fail;
 
         if (ret == 0)

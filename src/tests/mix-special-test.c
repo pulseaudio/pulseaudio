@@ -208,15 +208,15 @@ START_TEST (mix_special_1ch_test) {
     pa_mix_info m[2];
     unsigned nsamples = SAMPLES;
 
-    fail_unless((pool = pa_mempool_new(FALSE, 0)) != NULL, NULL);
+    fail_unless((pool = pa_mempool_new(false, 0)) != NULL, NULL);
 
     pa_random(samples0, nsamples * sizeof(int16_t));
-    c0.memblock = pa_memblock_new_fixed(pool, samples0, nsamples * sizeof(int16_t), FALSE);
+    c0.memblock = pa_memblock_new_fixed(pool, samples0, nsamples * sizeof(int16_t), false);
     c0.length = pa_memblock_get_length(c0.memblock);
     c0.index = 0;
 
     pa_random(samples1, nsamples * sizeof(int16_t));
-    c1.memblock = pa_memblock_new_fixed(pool, samples1, nsamples * sizeof(int16_t), FALSE);
+    c1.memblock = pa_memblock_new_fixed(pool, samples1, nsamples * sizeof(int16_t), false);
     c1.length = pa_memblock_get_length(c1.memblock);
     c1.index = 0;
 
@@ -262,15 +262,15 @@ START_TEST (mix_special_2ch_test) {
     pa_mix_info m[2];
     unsigned nsamples = SAMPLES * 2;
 
-    fail_unless((pool = pa_mempool_new(FALSE, 0)) != NULL, NULL);
+    fail_unless((pool = pa_mempool_new(false, 0)) != NULL, NULL);
 
     pa_random(samples0, nsamples * sizeof(int16_t));
-    c0.memblock = pa_memblock_new_fixed(pool, samples0, nsamples * sizeof(int16_t), FALSE);
+    c0.memblock = pa_memblock_new_fixed(pool, samples0, nsamples * sizeof(int16_t), false);
     c0.length = pa_memblock_get_length(c0.memblock);
     c0.index = 0;
 
     pa_random(samples1, nsamples * sizeof(int16_t));
-    c1.memblock = pa_memblock_new_fixed(pool, samples1, nsamples * sizeof(int16_t), FALSE);
+    c1.memblock = pa_memblock_new_fixed(pool, samples1, nsamples * sizeof(int16_t), false);
     c1.length = pa_memblock_get_length(c1.memblock);
     c1.index = 0;
 

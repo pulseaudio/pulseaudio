@@ -46,7 +46,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE("just-one=<boolean>");
 PA_MODULE_DEPRECATED("Please use module-udev-detect instead of module-detect!");
 
@@ -219,7 +219,7 @@ static int detect_waveout(pa_core *c, int just_one) {
 #endif
 
 int pa__init(pa_module*m) {
-    pa_bool_t just_one = FALSE;
+    bool just_one = false;
     int n = 0;
     pa_modargs *ma;
 
@@ -255,7 +255,7 @@ int pa__init(pa_module*m) {
     pa_log_info("loaded %i modules.", n);
 
     /* We were successful and can unload ourselves now. */
-    pa_module_unload_request(m, TRUE);
+    pa_module_unload_request(m, true);
 
     pa_modargs_free(ma);
 

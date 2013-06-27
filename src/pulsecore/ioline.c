@@ -61,8 +61,8 @@ struct pa_ioline {
     pa_ioline_drain_cb_t drain_callback;
     void *drain_userdata;
 
-    pa_bool_t dead:1;
-    pa_bool_t defer_close:1;
+    bool dead:1;
+    bool defer_close:1;
 };
 
 static void io_callback(pa_iochannel*io, void *userdata);
@@ -93,8 +93,8 @@ pa_ioline* pa_ioline_new(pa_iochannel *io) {
     l->defer_event = l->mainloop->defer_new(l->mainloop, defer_callback, l);
     l->mainloop->defer_enable(l->defer_event, 0);
 
-    l->dead = FALSE;
-    l->defer_close = FALSE;
+    l->dead = false;
+    l->defer_close = false;
 
     pa_iochannel_set_callback(io, io_callback, l);
 
@@ -135,7 +135,7 @@ void pa_ioline_close(pa_ioline *l) {
     pa_assert(l);
     pa_assert(PA_REFCNT_VALUE(l) >= 1);
 
-    l->dead = TRUE;
+    l->dead = true;
 
     if (l->io) {
         pa_iochannel_free(l->io);
@@ -220,7 +220,7 @@ void pa_ioline_set_drain_callback(pa_ioline*l, pa_ioline_drain_cb_t callback, vo
     l->drain_userdata = userdata;
 }
 
-static void failure(pa_ioline *l, pa_bool_t process_leftover) {
+static void failure(pa_ioline *l, bool process_leftover) {
     pa_assert(l);
     pa_assert(PA_REFCNT_VALUE(l) >= 1);
     pa_assert(!l->dead);
@@ -326,9 +326,9 @@ static int do_read(pa_ioline *l) {
 
             if (r < 0 && errno != ECONNRESET) {
                 pa_log("read(): %s", pa_cstrerror(errno));
-                failure(l, FALSE);
+                failure(l, false);
             } else
-                failure(l, TRUE);
+                failure(l, true);
 
             return -1;
         }
@@ -356,7 +356,7 @@ static int do_write(pa_ioline *l) {
             if (errno != EPIPE)
                 pa_log("write(): %s", pa_cstrerror(errno));
 
-            failure(l, FALSE);
+            failure(l, false);
 
             return -1;
         }
@@ -391,7 +391,7 @@ static void do_work(pa_ioline *l) {
         do_write(l);
 
     if (l->defer_close && !l->wbuf_valid_length)
-        failure(l, TRUE);
+        failure(l, true);
 
     pa_ioline_unref(l);
 }
@@ -421,7 +421,7 @@ void pa_ioline_defer_close(pa_ioline *l) {
     pa_assert(l);
     pa_assert(PA_REFCNT_VALUE(l) >= 1);
 
-    l->defer_close = TRUE;
+    l->defer_close = true;
 
     if (!l->wbuf_valid_length)
         l->mainloop->defer_enable(l->defer_event, 1);
@@ -458,7 +458,7 @@ pa_iochannel* pa_ioline_detach_iochannel(pa_ioline *l) {
     return r;
 }
 
-pa_bool_t pa_ioline_is_drained(pa_ioline *l) {
+bool pa_ioline_is_drained(pa_ioline *l) {
     pa_assert(l);
 
     return l->wbuf_valid_length <= 0;

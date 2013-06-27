@@ -37,6 +37,6 @@ void pa_strbuf_puts(pa_strbuf *sb, const char *t);
 void pa_strbuf_putsn(pa_strbuf *sb, const char *t, size_t m);
 void pa_strbuf_putc(pa_strbuf *sb, char c);
 
-pa_bool_t pa_strbuf_isempty(pa_strbuf *sb);
+bool pa_strbuf_isempty(pa_strbuf *sb);
 
 #endif

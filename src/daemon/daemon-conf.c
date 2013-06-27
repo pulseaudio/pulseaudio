@@ -62,39 +62,39 @@
 
 static const pa_daemon_conf default_conf = {
     .cmd = PA_CMD_DAEMON,
-    .daemonize = FALSE,
-    .fail = TRUE,
-    .high_priority = TRUE,
+    .daemonize = false,
+    .fail = true,
+    .high_priority = true,
     .nice_level = -11,
-    .realtime_scheduling = TRUE,
+    .realtime_scheduling = true,
     .realtime_priority = 5,  /* Half of JACK's default rtprio */
-    .disallow_module_loading = FALSE,
-    .disallow_exit = FALSE,
-    .flat_volumes = TRUE,
+    .disallow_module_loading = false,
+    .disallow_exit = false,
+    .flat_volumes = true,
     .exit_idle_time = 20,
     .scache_idle_time = 20,
     .script_commands = NULL,
     .dl_search_path = NULL,
-    .load_default_script_file = TRUE,
+    .load_default_script_file = true,
     .default_script_file = NULL,
     .log_target = NULL,
     .log_level = PA_LOG_NOTICE,
     .log_backtrace = 0,
-    .log_meta = FALSE,
-    .log_time = FALSE,
+    .log_meta = false,
+    .log_time = false,
     .resample_method = PA_RESAMPLER_AUTO,
-    .disable_remixing = FALSE,
-    .disable_lfe_remixing = TRUE,
+    .disable_remixing = false,
+    .disable_lfe_remixing = true,
     .config_file = NULL,
-    .use_pid_file = TRUE,
-    .system_instance = FALSE,
+    .use_pid_file = true,
+    .system_instance = false,
 #ifdef HAVE_DBUS
     .local_server_type = PA_SERVER_TYPE_UNSET, /* The actual default is _USER, but we have to detect when the user doesn't specify this option. */
 #endif
-    .no_cpu_limit = TRUE,
-    .disable_shm = FALSE,
-    .lock_memory = FALSE,
-    .deferred_volume = TRUE,
+    .no_cpu_limit = true,
+    .disable_shm = false,
+    .lock_memory = false,
+    .deferred_volume = true,
     .default_n_fragments = 4,
     .default_fragment_size_msec = 25,
     .deferred_volume_safety_margin_usec = 8000,
@@ -104,42 +104,42 @@ static const pa_daemon_conf default_conf = {
     .default_channel_map = { .channels = 2, .map = { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT } },
     .shm_size = 0
 #ifdef HAVE_SYS_RESOURCE_H
-   ,.rlimit_fsize = { .value = 0, .is_set = FALSE },
-    .rlimit_data = { .value = 0, .is_set = FALSE },
-    .rlimit_stack = { .value = 0, .is_set = FALSE },
-    .rlimit_core = { .value = 0, .is_set = FALSE }
+   ,.rlimit_fsize = { .value = 0, .is_set = false },
+    .rlimit_data = { .value = 0, .is_set = false },
+    .rlimit_stack = { .value = 0, .is_set = false },
+    .rlimit_core = { .value = 0, .is_set = false }
 #ifdef RLIMIT_RSS
-   ,.rlimit_rss = { .value = 0, .is_set = FALSE }
+   ,.rlimit_rss = { .value = 0, .is_set = false }
 #endif
 #ifdef RLIMIT_NPROC
-   ,.rlimit_nproc = { .value = 0, .is_set = FALSE }
+   ,.rlimit_nproc = { .value = 0, .is_set = false }
 #endif
 #ifdef RLIMIT_NOFILE
-   ,.rlimit_nofile = { .value = 256, .is_set = TRUE }
+   ,.rlimit_nofile = { .value = 256, .is_set = true }
 #endif
 #ifdef RLIMIT_MEMLOCK
-   ,.rlimit_memlock = { .value = 0, .is_set = FALSE }
+   ,.rlimit_memlock = { .value = 0, .is_set = false }
 #endif
 #ifdef RLIMIT_AS
-   ,.rlimit_as = { .value = 0, .is_set = FALSE }
+   ,.rlimit_as = { .value = 0, .is_set = false }
 #endif
 #ifdef RLIMIT_LOCKS
-   ,.rlimit_locks = { .value = 0, .is_set = FALSE }
+   ,.rlimit_locks = { .value = 0, .is_set = false }
 #endif
 #ifdef RLIMIT_SIGPENDING
-   ,.rlimit_sigpending = { .value = 0, .is_set = FALSE }
+   ,.rlimit_sigpending = { .value = 0, .is_set = false }
 #endif
 #ifdef RLIMIT_MSGQUEUE
-   ,.rlimit_msgqueue = { .value = 0, .is_set = FALSE }
+   ,.rlimit_msgqueue = { .value = 0, .is_set = false }
 #endif
 #ifdef RLIMIT_NICE
-   ,.rlimit_nice = { .value = 31, .is_set = TRUE }     /* nice level of -11 */
+   ,.rlimit_nice = { .value = 31, .is_set = true }     /* nice level of -11 */
 #endif
 #ifdef RLIMIT_RTPRIO
-   ,.rlimit_rtprio = { .value = 9, .is_set = TRUE }    /* One below JACK's default for the server */
+   ,.rlimit_rtprio = { .value = 9, .is_set = true }    /* One below JACK's default for the server */
 #endif
 #ifdef RLIMIT_RTTIME
-   ,.rlimit_rttime = { .value = PA_USEC_PER_SEC, .is_set = TRUE }
+   ,.rlimit_rttime = { .value = PA_USEC_PER_SEC, .is_set = true }
 #endif
 #endif
 };
@@ -375,8 +375,8 @@ static int parse_alternate_sample_rate(pa_config_parser_state *state) {
 
 struct channel_conf_info {
     pa_daemon_conf *conf;
-    pa_bool_t default_sample_spec_set;
-    pa_bool_t default_channel_map_set;
+    bool default_sample_spec_set;
+    bool default_channel_map_set;
 };
 
 static int parse_sample_channels(pa_config_parser_state *state) {
@@ -393,7 +393,7 @@ static int parse_sample_channels(pa_config_parser_state *state) {
     }
 
     i->conf->default_sample_spec.channels = (uint8_t) n;
-    i->default_sample_spec_set = TRUE;
+    i->default_sample_spec_set = true;
     return 0;
 }
 
@@ -409,7 +409,7 @@ static int parse_channel_map(pa_config_parser_state *state) {
         return -1;
     }
 
-    i->default_channel_map_set = TRUE;
+    i->default_channel_map_set = true;
     return 0;
 }
 
@@ -616,7 +616,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         goto finish;
     }
 
-    ci.default_channel_map_set = ci.default_sample_spec_set = FALSE;
+    ci.default_channel_map_set = ci.default_sample_spec_set = false;
     ci.conf = c;
 
     r = f ? pa_config_parse(c->config_file, f, table, NULL, NULL) : 0;

@@ -34,7 +34,7 @@
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("Compatibility module (module-combine rename)");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_DEPRECATED("Please use module-combine-sink instead of module-combine!");
 
 struct userdata {
@@ -65,7 +65,7 @@ void pa__done(pa_module*m) {
     u = m->userdata;
 
     if (u && PA_INVALID_INDEX != u->module_index)
-        pa_module_unload_by_index(m->core, u->module_index, TRUE);
+        pa_module_unload_by_index(m->core, u->module_index, true);
 
     pa_xfree(u);
 }

@@ -51,7 +51,7 @@ typedef struct pa_sink_volume_change pa_sink_volume_change;
 #define PA_MAX_INPUTS_PER_SINK 32
 
 /* Returns true if sink is linked: registered and accessible from client side. */
-static inline pa_bool_t PA_SINK_IS_LINKED(pa_sink_state_t x) {
+static inline bool PA_SINK_IS_LINKED(pa_sink_state_t x) {
     return x == PA_SINK_RUNNING || x == PA_SINK_IDLE || x == PA_SINK_SUSPENDED;
 }
 
@@ -93,17 +93,17 @@ struct pa_sink {
     pa_cvolume real_volume;      /* The volume that the hardware is configured to  */
     pa_cvolume soft_volume;      /* The internal software volume we apply to all PCM data while it passes through */
 
-    pa_bool_t muted:1;
+    bool muted:1;
 
-    pa_bool_t refresh_volume:1;
-    pa_bool_t refresh_muted:1;
-    pa_bool_t save_port:1;
-    pa_bool_t save_volume:1;
-    pa_bool_t save_muted:1;
+    bool refresh_volume:1;
+    bool refresh_muted:1;
+    bool save_port:1;
+    bool save_volume:1;
+    bool save_muted:1;
 
     /* Saved volume state while we're in passthrough mode */
     pa_cvolume saved_volume;
-    pa_bool_t saved_save_volume:1;
+    bool saved_save_volume:1;
 
     pa_asyncmsgq *asyncmsgq;
 
@@ -191,7 +191,7 @@ struct pa_sink {
 
     /* Called when the mute setting is queried. A PA_SINK_MESSAGE_GET_MUTE
      * message will also be sent. Called from IO thread if PA_SINK_DEFERRED_VOLUME
-     * flag is set otherwise from main loop context. If refresh_mute is FALSE
+     * flag is set otherwise from main loop context. If refresh_mute is false
      * neither this function is called nor a message is sent.
      *
      * You must use the function pa_sink_set_get_mute_callback() to
@@ -223,14 +223,14 @@ struct pa_sink {
     pa_idxset* (*get_formats)(pa_sink *s); /* may be NULL */
 
     /* Called to set the list of formats supported by the sink. Can be
-     * NULL if the sink does not support this. Returns TRUE on success,
-     * FALSE otherwise (for example when an unsupportable format is
+     * NULL if the sink does not support this. Returns true on success,
+     * false otherwise (for example when an unsupportable format is
      * set). Makes a copy of the formats passed in. */
-    pa_bool_t (*set_formats)(pa_sink *s, pa_idxset *formats); /* may be NULL */
+    bool (*set_formats)(pa_sink *s, pa_idxset *formats); /* may be NULL */
 
     /* Called whenever the sampling frequency shall be changed. Called from
      * main thread. */
-    pa_bool_t (*update_rate)(pa_sink *s, uint32_t rate);
+    bool (*update_rate)(pa_sink *s, uint32_t rate);
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
@@ -241,12 +241,12 @@ struct pa_sink {
         pa_rtpoll *rtpoll;
 
         pa_cvolume soft_volume;
-        pa_bool_t soft_muted:1;
+        bool soft_muted:1;
 
         /* The requested latency is used for dynamic latency
          * sinks. For fixed latency sinks it is always identical to
          * the fixed_latency. See below. */
-        pa_bool_t requested_latency_valid:1;
+        bool requested_latency_valid:1;
         pa_usec_t requested_latency;
 
         /* The number of bytes streams need to keep around as history to
@@ -259,7 +259,7 @@ struct pa_sink {
 
         /* Maximum of what clients requested to rewind in this cycle */
         size_t rewind_nbytes;
-        pa_bool_t rewind_requested;
+        bool rewind_requested;
 
         /* Both dynamic and fixed latencies will be clamped to this
          * range. */
@@ -344,19 +344,19 @@ typedef struct pa_sink_new_data {
     pa_channel_map channel_map;
     uint32_t alternate_sample_rate;
     pa_cvolume volume;
-    pa_bool_t muted :1;
+    bool muted :1;
 
-    pa_bool_t sample_spec_is_set:1;
-    pa_bool_t channel_map_is_set:1;
-    pa_bool_t alternate_sample_rate_is_set:1;
-    pa_bool_t volume_is_set:1;
-    pa_bool_t muted_is_set:1;
+    bool sample_spec_is_set:1;
+    bool channel_map_is_set:1;
+    bool alternate_sample_rate_is_set:1;
+    bool volume_is_set:1;
+    bool muted_is_set:1;
 
-    pa_bool_t namereg_fail:1;
+    bool namereg_fail:1;
 
-    pa_bool_t save_port:1;
-    pa_bool_t save_volume:1;
-    pa_bool_t save_muted:1;
+    bool save_port:1;
+    bool save_volume:1;
+    bool save_muted:1;
 } pa_sink_new_data;
 
 pa_sink_new_data* pa_sink_new_data_init(pa_sink_new_data *data);
@@ -365,7 +365,7 @@ void pa_sink_new_data_set_sample_spec(pa_sink_new_data *data, const pa_sample_sp
 void pa_sink_new_data_set_channel_map(pa_sink_new_data *data, const pa_channel_map *map);
 void pa_sink_new_data_set_alternate_sample_rate(pa_sink_new_data *data, const uint32_t alternate_sample_rate);
 void pa_sink_new_data_set_volume(pa_sink_new_data *data, const pa_cvolume *volume);
-void pa_sink_new_data_set_muted(pa_sink_new_data *data, pa_bool_t mute);
+void pa_sink_new_data_set_muted(pa_sink_new_data *data, bool mute);
 void pa_sink_new_data_set_port(pa_sink_new_data *data, const char *port);
 void pa_sink_new_data_done(pa_sink_new_data *data);
 
@@ -381,7 +381,7 @@ void pa_sink_set_set_volume_callback(pa_sink *s, pa_sink_cb_t cb);
 void pa_sink_set_write_volume_callback(pa_sink *s, pa_sink_cb_t cb);
 void pa_sink_set_get_mute_callback(pa_sink *s, pa_sink_cb_t cb);
 void pa_sink_set_set_mute_callback(pa_sink *s, pa_sink_cb_t cb);
-void pa_sink_enable_decibel_volume(pa_sink *s, pa_bool_t enable);
+void pa_sink_enable_decibel_volume(pa_sink *s, bool enable);
 
 void pa_sink_put(pa_sink *s);
 void pa_sink_unlink(pa_sink* s);
@@ -400,18 +400,18 @@ void pa_sink_attach(pa_sink *s);
 
 void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume);
 void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume);
-void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted);
+void pa_sink_mute_changed(pa_sink *s, bool new_muted);
 
 void pa_sink_update_flags(pa_sink *s, pa_sink_flags_t mask, pa_sink_flags_t value);
 
-pa_bool_t pa_device_init_description(pa_proplist *p);
-pa_bool_t pa_device_init_icon(pa_proplist *p, pa_bool_t is_sink);
-pa_bool_t pa_device_init_intended_roles(pa_proplist *p);
+bool pa_device_init_description(pa_proplist *p);
+bool pa_device_init_icon(pa_proplist *p, bool is_sink);
+bool pa_device_init_intended_roles(pa_proplist *p);
 unsigned pa_device_init_priority(pa_proplist *p);
 
 /**** May be called by everyone, from main context */
 
-pa_bool_t pa_sink_update_rate(pa_sink *s, uint32_t rate, pa_bool_t passthrough);
+bool pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough);
 void pa_sink_set_latency_offset(pa_sink *s, int64_t offset);
 
 /* The returned value is supposed to be in the time domain of the sound card! */
@@ -424,32 +424,32 @@ size_t pa_sink_get_max_rewind(pa_sink *s);
 size_t pa_sink_get_max_request(pa_sink *s);
 
 int pa_sink_update_status(pa_sink*s);
-int pa_sink_suspend(pa_sink *s, pa_bool_t suspend, pa_suspend_cause_t cause);
-int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause);
+int pa_sink_suspend(pa_sink *s, bool suspend, pa_suspend_cause_t cause);
+int pa_sink_suspend_all(pa_core *c, bool suspend, pa_suspend_cause_t cause);
 
 /* Use this instead of checking s->flags & PA_SINK_FLAT_VOLUME directly. */
-pa_bool_t pa_sink_flat_volume_enabled(pa_sink *s);
+bool pa_sink_flat_volume_enabled(pa_sink *s);
 
 /* Get the master sink when sharing volumes */
 pa_sink *pa_sink_get_master(pa_sink *s);
 
 /* Is the sink in passthrough mode? (that is, is there a passthrough sink input
  * connected to this sink? */
-pa_bool_t pa_sink_is_passthrough(pa_sink *s);
+bool pa_sink_is_passthrough(pa_sink *s);
 /* These should be called when a sink enters/leaves passthrough mode */
 void pa_sink_enter_passthrough(pa_sink *s);
 void pa_sink_leave_passthrough(pa_sink *s);
 
-void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume, pa_bool_t sendmsg, pa_bool_t save);
-const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_bool_t force_refresh);
+void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume, bool sendmsg, bool save);
+const pa_cvolume *pa_sink_get_volume(pa_sink *sink, bool force_refresh);
 
-void pa_sink_set_mute(pa_sink *sink, pa_bool_t mute, pa_bool_t save);
-pa_bool_t pa_sink_get_mute(pa_sink *sink, pa_bool_t force_refresh);
+void pa_sink_set_mute(pa_sink *sink, bool mute, bool save);
+bool pa_sink_get_mute(pa_sink *sink, bool force_refresh);
 
-pa_bool_t pa_sink_update_proplist(pa_sink *s, pa_update_mode_t mode, pa_proplist *p);
+bool pa_sink_update_proplist(pa_sink *s, pa_update_mode_t mode, pa_proplist *p);
 
-int pa_sink_set_port(pa_sink *s, const char *name, pa_bool_t save);
-void pa_sink_set_mixer_dirty(pa_sink *s, pa_bool_t is_dirty);
+int pa_sink_set_port(pa_sink *s, const char *name, bool save);
+void pa_sink_set_mixer_dirty(pa_sink *s, bool is_dirty);
 
 unsigned pa_sink_linked_by(pa_sink *s); /* Number of connected streams */
 unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are not corked */
@@ -458,12 +458,12 @@ unsigned pa_sink_check_suspend(pa_sink *s); /* Returns how many streams are acti
 
 /* Moves all inputs away, and stores them in pa_queue */
 pa_queue *pa_sink_move_all_start(pa_sink *s, pa_queue *q);
-void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, pa_bool_t save);
+void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, bool save);
 void pa_sink_move_all_fail(pa_queue *q);
 
 pa_idxset* pa_sink_get_formats(pa_sink *s);
-pa_bool_t pa_sink_set_formats(pa_sink *s, pa_idxset *formats);
-pa_bool_t pa_sink_check_format(pa_sink *s, pa_format_info *f);
+bool pa_sink_set_formats(pa_sink *s, pa_idxset *formats);
+bool pa_sink_check_format(pa_sink *s, pa_format_info *f);
 pa_idxset* pa_sink_check_formats(pa_sink *s, pa_idxset *in_formats);
 
 /*** To be called exclusively by the sink driver, from IO context */
@@ -490,7 +490,7 @@ void pa_sink_set_fixed_latency_within_thread(pa_sink *s, pa_usec_t latency);
 
 void pa_sink_update_volume_and_mute(pa_sink *s);
 
-pa_bool_t pa_sink_volume_change_apply(pa_sink *s, pa_usec_t *usec_to_next);
+bool pa_sink_volume_change_apply(pa_sink *s, pa_usec_t *usec_to_next);
 
 size_t pa_sink_process_input_underruns(pa_sink *s, size_t left_to_play);
 
@@ -498,7 +498,7 @@ size_t pa_sink_process_input_underruns(pa_sink *s, size_t left_to_play);
 
 void pa_sink_request_rewind(pa_sink*s, size_t nbytes);
 
-void pa_sink_invalidate_requested_latency(pa_sink *s, pa_bool_t dynamic);
+void pa_sink_invalidate_requested_latency(pa_sink *s, bool dynamic);
 
 pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s);
 

@@ -58,13 +58,13 @@
     do {                                        \
         pa_atomic_store(&(p)->_ref, 1);         \
         pa_log("REF: Init %p", p);              \
-    } while (FALSE)
+    } while (false)
 
 #define PA_REFCNT_INC(p)                        \
     do {                                        \
         pa_atomic_inc(&(p)->_ref);              \
         pa_log("REF: Inc %p", p);               \
-    } while (FALSE)                             \
+    } while (false)                             \
 
 #define PA_REFCNT_DEC(p)                        \
     ({                                          \

@@ -99,7 +99,7 @@ finish:
     return c;
 }
 
-pa_database* pa_database_open(const char *fn, pa_bool_t for_write) {
+pa_database* pa_database_open(const char *fn, bool for_write) {
     struct tdb_context *c;
     char *path;
 
@@ -140,7 +140,7 @@ pa_datum* pa_database_get(pa_database *db, const pa_datum *key, pa_datum* data) 
         NULL;
 }
 
-int pa_database_set(pa_database *db, const pa_datum *key, const pa_datum* data, pa_bool_t overwrite) {
+int pa_database_set(pa_database *db, const pa_datum *key, const pa_datum* data, bool overwrite) {
     TDB_DATA tdb_key, tdb_data;
 
     pa_assert(db);

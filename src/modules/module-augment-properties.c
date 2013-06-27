@@ -41,7 +41,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Augment the property sets of streams with additional static information");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 
 #define STAT_INTERVAL 30
 #define MAX_CACHE_SIZE 50
@@ -52,7 +52,7 @@ static const char* const valid_modargs[] = {
 
 struct rule {
     time_t timestamp;
-    pa_bool_t good;
+    bool good;
     time_t mtime;
     char *process_name;
     char *application_name;
@@ -145,13 +145,13 @@ static void update_rule(struct rule *r) {
         { NULL,  catch_all, NULL, NULL },
         { NULL, NULL, NULL, NULL },
     };
-    pa_bool_t found = FALSE;
+    bool found = false;
 
     pa_assert(r);
     fn = pa_sprintf_malloc(DESKTOPFILEDIR PA_PATH_SEP "%s.desktop", r->process_name);
 
     if (stat(fn, &st) == 0)
-        found = TRUE;
+        found = true;
     else {
 #ifdef DT_DIR
         DIR *desktopfiles_dir;
@@ -169,7 +169,7 @@ static void update_rule(struct rule *r) {
                 fn = pa_sprintf_malloc(DESKTOPFILEDIR PA_PATH_SEP "%s" PA_PATH_SEP "%s.desktop", dir->d_name, r->process_name);
 
                 if (stat(fn, &st) == 0) {
-                    found = TRUE;
+                    found = true;
                     break;
                 }
             }
@@ -178,7 +178,7 @@ static void update_rule(struct rule *r) {
 #endif
     }
     if (!found) {
-        r->good = FALSE;
+        r->good = false;
         pa_xfree(fn);
         return;
     }
@@ -194,7 +194,7 @@ static void update_rule(struct rule *r) {
     } else
         pa_log_debug("Found %s.", fn);
 
-    r->good = TRUE;
+    r->good = true;
     r->mtime = st.st_mtime;
     pa_xfree(r->application_name);
     pa_xfree(r->icon_name);

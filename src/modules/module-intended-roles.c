@@ -38,7 +38,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Automatically set device of streams based on intended roles of devices");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "on_hotplug=<When new device becomes available, recheck streams?> "
         "on_rescue=<When device becomes unavailable, recheck streams?>");
@@ -61,11 +61,11 @@ struct userdata {
         *sink_unlink_hook_slot,
         *source_unlink_hook_slot;
 
-    pa_bool_t on_hotplug:1;
-    pa_bool_t on_rescue:1;
+    bool on_hotplug:1;
+    bool on_rescue:1;
 };
 
-static pa_bool_t role_match(pa_proplist *proplist, const char *role) {
+static bool role_match(pa_proplist *proplist, const char *role) {
     return pa_str_in_list_spaces(pa_proplist_gets(proplist, PA_PROP_DEVICE_INTENDED_ROLES), role);
 }
 
@@ -95,7 +95,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
 
     /* Prefer the default sink over any other sink, just in case... */
     if ((def = pa_namereg_get_default_sink(c)))
-        if (role_match(def->proplist, role) && pa_sink_input_new_data_set_sink(new_data, def, FALSE))
+        if (role_match(def->proplist, role) && pa_sink_input_new_data_set_sink(new_data, def, false))
             return PA_HOOK_OK;
 
     /* @todo: favour the highest priority device, not the first one we find? */
@@ -106,7 +106,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         if (!PA_SINK_IS_LINKED(pa_sink_get_state(s)))
             continue;
 
-        if (role_match(s->proplist, role) && pa_sink_input_new_data_set_sink(new_data, s, FALSE))
+        if (role_match(s->proplist, role) && pa_sink_input_new_data_set_sink(new_data, s, false))
             return PA_HOOK_OK;
     }
 
@@ -140,7 +140,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     /* Prefer the default source over any other source, just in case... */
     if ((def = pa_namereg_get_default_source(c)))
         if (role_match(def->proplist, role)) {
-            pa_source_output_new_data_set_source(new_data, def, FALSE);
+            pa_source_output_new_data_set_source(new_data, def, false);
             return PA_HOOK_OK;
         }
 
@@ -156,7 +156,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
 
         /* @todo: favour the highest priority device, not the first one we find? */
         if (role_match(s->proplist, role)) {
-            pa_source_output_new_data_set_source(new_data, s, FALSE);
+            pa_source_output_new_data_set_source(new_data, s, false);
             return PA_HOOK_OK;
         }
     }
@@ -202,7 +202,7 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct
         if (!role_match(sink->proplist, role))
             continue;
 
-        pa_sink_input_move_to(si, sink, FALSE);
+        pa_sink_input_move_to(si, sink, false);
     }
 
     return PA_HOOK_OK;
@@ -252,7 +252,7 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
         if (!role_match(source->proplist, role))
             continue;
 
-        pa_source_output_move_to(so, source, FALSE);
+        pa_source_output_move_to(so, source, false);
     }
 
     return PA_HOOK_OK;
@@ -289,7 +289,7 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
 
         /* Would the default sink fit? If so, let's use it */
         if (def != sink && role_match(def->proplist, role))
-            if (pa_sink_input_move_to(si, def, FALSE) >= 0)
+            if (pa_sink_input_move_to(si, def, false) >= 0)
                 continue;
 
         /* Try to find some other fitting sink */
@@ -302,7 +302,7 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
                 continue;
 
             if (role_match(d->proplist, role))
-                if (pa_sink_input_move_to(si, d, FALSE) >= 0)
+                if (pa_sink_input_move_to(si, d, false) >= 0)
                     break;
         }
     }
@@ -344,7 +344,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
 
         /* Would the default source fit? If so, let's use it */
         if (def != source && role_match(def->proplist, role) && !source->monitor_of == !def->monitor_of) {
-            pa_source_output_move_to(so, def, FALSE);
+            pa_source_output_move_to(so, def, false);
             continue;
         }
 
@@ -359,7 +359,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
 
             /* If moving from a monitor, move to another monitor */
             if (!source->monitor_of == !d->monitor_of && role_match(d->proplist, role)) {
-                pa_source_output_move_to(so, d, FALSE);
+                pa_source_output_move_to(so, d, false);
                 break;
             }
         }
@@ -371,7 +371,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
-    pa_bool_t on_hotplug = TRUE, on_rescue = TRUE;
+    bool on_hotplug = true, on_rescue = true;
 
     pa_assert(m);
 

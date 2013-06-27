@@ -85,13 +85,13 @@ pa_memblock *pa_memblock_new(pa_mempool *, size_t length);
 pa_memblock *pa_memblock_new_pool(pa_mempool *, size_t length);
 
 /* Allocate a new memory block of type PA_MEMBLOCK_USER */
-pa_memblock *pa_memblock_new_user(pa_mempool *, void *data, size_t length, pa_free_cb_t free_cb, pa_bool_t read_only);
+pa_memblock *pa_memblock_new_user(pa_mempool *, void *data, size_t length, pa_free_cb_t free_cb, bool read_only);
 
 /* A special case of pa_memblock_new_user: take a memory buffer previously allocated with pa_xmalloc()  */
 #define pa_memblock_new_malloced(p,data,length) pa_memblock_new_user(p, data, length, pa_xfree, 0)
 
 /* Allocate a new memory block of type PA_MEMBLOCK_FIXED */
-pa_memblock *pa_memblock_new_fixed(pa_mempool *, void *data, size_t length, pa_bool_t read_only);
+pa_memblock *pa_memblock_new_fixed(pa_mempool *, void *data, size_t length, bool read_only);
 
 void pa_memblock_unref(pa_memblock*b);
 pa_memblock* pa_memblock_ref(pa_memblock*b);
@@ -104,10 +104,10 @@ function is not multiple caller safe, i.e. needs to be locked
 manually if called from more than one thread at the same time.  */
 void pa_memblock_unref_fixed(pa_memblock*b);
 
-pa_bool_t pa_memblock_is_read_only(pa_memblock *b);
-pa_bool_t pa_memblock_is_silence(pa_memblock *b);
-pa_bool_t pa_memblock_ref_is_one(pa_memblock *b);
-void pa_memblock_set_is_silence(pa_memblock *b, pa_bool_t v);
+bool pa_memblock_is_read_only(pa_memblock *b);
+bool pa_memblock_is_silence(pa_memblock *b);
+bool pa_memblock_ref_is_one(pa_memblock *b);
+void pa_memblock_set_is_silence(pa_memblock *b, bool v);
 
 void* pa_memblock_acquire(pa_memblock *b);
 void *pa_memblock_acquire_chunk(const pa_memchunk *c);
@@ -119,12 +119,12 @@ pa_mempool * pa_memblock_get_pool(pa_memblock *b);
 pa_memblock *pa_memblock_will_need(pa_memblock *b);
 
 /* The memory block manager */
-pa_mempool* pa_mempool_new(pa_bool_t shared, size_t size);
+pa_mempool* pa_mempool_new(bool shared, size_t size);
 void pa_mempool_free(pa_mempool *p);
 const pa_mempool_stat* pa_mempool_get_stat(pa_mempool *p);
 void pa_mempool_vacuum(pa_mempool *p);
 int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id);
-pa_bool_t pa_mempool_is_shared(pa_mempool *p);
+bool pa_mempool_is_shared(pa_mempool *p);
 size_t pa_mempool_block_size_max(pa_mempool *p);
 
 /* For receiving blocks from other nodes */

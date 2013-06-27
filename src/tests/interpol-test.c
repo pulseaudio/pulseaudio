@@ -43,7 +43,7 @@
 static pa_context *context = NULL;
 static pa_stream *stream = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
-static pa_bool_t playback = TRUE;
+static bool playback = true;
 static pa_usec_t latency = 0;
 static const char *bname = NULL;
 
@@ -156,7 +156,7 @@ START_TEST (interpol_test) {
     struct timeval start, last_info = { 0, 0 };
     pa_usec_t old_t = 0, old_rtc = 0;
 #ifdef CORK
-    pa_bool_t corked = FALSE;
+    bool corked = false;
 #endif
 
     /* Set up a new main loop */
@@ -181,10 +181,10 @@ START_TEST (interpol_test) {
 /*     for (k = 0; k < 2000; k++) */
 /* #endif */
     {
-        pa_bool_t success = FALSE, changed = FALSE;
+        bool success = false, changed = false;
         pa_usec_t t, rtc, d;
         struct timeval now, tv;
-        pa_bool_t playing = FALSE;
+        bool playing = false;
 
         pa_threaded_mainloop_lock(m);
 
@@ -193,15 +193,15 @@ START_TEST (interpol_test) {
 
             if (pa_stream_get_time(stream, &t) >= 0 &&
                 pa_stream_get_latency(stream, &d, NULL) >= 0)
-                success = TRUE;
+                success = true;
 
             if ((info = pa_stream_get_timing_info(stream))) {
                 if (memcmp(&last_info, &info->timestamp, sizeof(struct timeval))) {
-                    changed = TRUE;
+                    changed = true;
                     last_info = info->timestamp;
                 }
                 if (info->playing)
-                    playing = TRUE;
+                    playing = true;
             }
         }
 
@@ -211,7 +211,7 @@ START_TEST (interpol_test) {
 
         if (success) {
 #ifdef CORK
-            pa_bool_t cork_now;
+            bool cork_now;
 #endif
             rtc = pa_timeval_diff(&now, &start);
             pa_log_info("%i\t%llu\t%llu\t%llu\t%llu\t%lli\t%u\t%u\t%llu\t%llu\n", k,

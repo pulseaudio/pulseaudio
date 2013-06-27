@@ -51,7 +51,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Automatically restore profile of cards");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 
 #define SAVE_INTERVAL (10 * PA_USEC_PER_SEC)
 
@@ -184,10 +184,10 @@ static bool entrys_equal(struct entry *a, struct entry *b) {
     return true;
 }
 
-static pa_bool_t entry_write(struct userdata *u, const char *name, const struct entry *e) {
+static bool entry_write(struct userdata *u, const char *name, const struct entry *e) {
     pa_tagstruct *t;
     pa_datum key, data;
-    pa_bool_t r;
+    bool r;
     void *state;
     struct port_info *p_info;
 
@@ -210,7 +210,7 @@ static pa_bool_t entry_write(struct userdata *u, const char *name, const struct 
 
     data.data = (void*)pa_tagstruct_data(t, &data.size);
 
-    r = (pa_database_set(u->database, &key, &data, TRUE) == 0);
+    r = (pa_database_set(u->database, &key, &data, true) == 0);
 
     pa_tagstruct_free(t);
 
@@ -449,7 +449,7 @@ static pa_hook_result_t card_new_hook_callback(pa_core *c, pa_card_new_data *new
         if (!new_data->active_profile) {
             pa_card_new_data_set_profile(new_data, e->profile);
             pa_log_info("Restored profile '%s' for card %s.", new_data->active_profile, new_data->name);
-            new_data->save_profile = TRUE;
+            new_data->save_profile = true;
 
         } else
             pa_log_debug("Not restoring profile for card %s, because already set.", new_data->name);
@@ -491,10 +491,10 @@ int pa__init(pa_module*m) {
     u->port_offset_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_PORT_LATENCY_OFFSET_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) port_offset_change_callback, u);
     u->hooks_connected = true;
 
-    if (!(fname = pa_state_path("card-database", TRUE)))
+    if (!(fname = pa_state_path("card-database", true)))
         goto fail;
 
-    if (!(u->database = pa_database_open(fname, TRUE))) {
+    if (!(u->database = pa_database_open(fname, true))) {
         pa_log("Failed to open volume database '%s': %s", fname, pa_cstrerror(errno));
         pa_xfree(fname);
         goto fail;

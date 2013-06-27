@@ -40,14 +40,14 @@ PA_C_DECL_END
 
 #define BLOCK_SIZE_US 10000
 
-#define DEFAULT_HIGH_PASS_FILTER TRUE
-#define DEFAULT_NOISE_SUPPRESSION TRUE
-#define DEFAULT_ANALOG_GAIN_CONTROL TRUE
-#define DEFAULT_DIGITAL_GAIN_CONTROL FALSE
-#define DEFAULT_MOBILE FALSE
+#define DEFAULT_HIGH_PASS_FILTER true
+#define DEFAULT_NOISE_SUPPRESSION true
+#define DEFAULT_ANALOG_GAIN_CONTROL true
+#define DEFAULT_DIGITAL_GAIN_CONTROL false
+#define DEFAULT_MOBILE false
 #define DEFAULT_ROUTING_MODE "speakerphone"
-#define DEFAULT_COMFORT_NOISE TRUE
-#define DEFAULT_DRIFT_COMPENSATION FALSE
+#define DEFAULT_COMFORT_NOISE true
+#define DEFAULT_DRIFT_COMPENSATION false
 
 static const char* const valid_modargs[] = {
     "high_pass_filter",
@@ -76,13 +76,13 @@ static int routing_mode_from_string(const char *rmode) {
         return -1;
 }
 
-pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
+bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
                             pa_sample_spec *rec_ss, pa_channel_map *rec_map,
                             pa_sample_spec *play_ss, pa_channel_map *play_map,
                             pa_sample_spec *out_ss, pa_channel_map *out_map,
                             uint32_t *nframes, const char *args) {
     webrtc::AudioProcessing *apm = NULL;
-    pa_bool_t hpf, ns, agc, dgc, mobile, cn;
+    bool hpf, ns, agc, dgc, mobile, cn;
     int rm = -1;
     pa_modargs *ma;
 
@@ -109,7 +109,7 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         goto fail;
     }
 
-    dgc = agc ? FALSE : DEFAULT_DIGITAL_GAIN_CONTROL;
+    dgc = agc ? false : DEFAULT_DIGITAL_GAIN_CONTROL;
     if (pa_modargs_get_value_boolean(ma, "digital_gain_control", &dgc) < 0) {
         pa_log("Failed to parse digital_gain_control value");
         goto fail;
@@ -197,17 +197,17 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         if (mobile && rm <= webrtc::EchoControlMobile::kEarpiece) {
             /* Maybe this should be a knob, but we've got a lot of knobs already */
             apm->gain_control()->set_mode(webrtc::GainControl::kFixedDigital);
-            ec->params.priv.webrtc.agc = FALSE;
+            ec->params.priv.webrtc.agc = false;
         } else if (dgc) {
             apm->gain_control()->set_mode(webrtc::GainControl::kAdaptiveDigital);
-            ec->params.priv.webrtc.agc = FALSE;
+            ec->params.priv.webrtc.agc = false;
         } else {
             apm->gain_control()->set_mode(webrtc::GainControl::kAdaptiveAnalog);
             if (apm->gain_control()->set_analog_level_limits(0, PA_VOLUME_NORM-1) != apm->kNoError) {
                 pa_log("Failed to initialise AGC");
                 goto fail;
             }
-            ec->params.priv.webrtc.agc = TRUE;
+            ec->params.priv.webrtc.agc = true;
         }
 
         apm->gain_control()->Enable(true);
@@ -221,7 +221,7 @@ pa_bool_t pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     *nframes = ec->params.priv.webrtc.blocksize / pa_frame_size(out_ss);
 
     pa_modargs_free(ma);
-    return TRUE;
+    return true;
 
 fail:
     if (ma)
@@ -229,7 +229,7 @@ fail:
     if (apm)
         webrtc::AudioProcessing::Destroy(apm);
 
-    return FALSE;
+    return false;
 }
 
 void pa_webrtc_ec_play(pa_echo_canceller *ec, const uint8_t *play) {

@@ -470,7 +470,7 @@ int pa_channel_map_equal(const pa_channel_map *a, const pa_channel_map *b) {
 
 char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map) {
     unsigned channel;
-    pa_bool_t first = TRUE;
+    bool first = true;
     char *e;
 
     pa_assert(s);
@@ -492,7 +492,7 @@ char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map) {
                       pa_channel_position_to_string(map->map[channel]));
 
         e = strchr(e, 0);
-        first = FALSE;
+        first = false;
     }
 
     return s;
@@ -693,7 +693,7 @@ const char* pa_channel_map_to_name(const pa_channel_map *map) {
     memset(in_map, 0, sizeof(in_map));
 
     for (c = 0; c < map->channels; c++)
-        pa_bitset_set(in_map, map->map[c], TRUE);
+        pa_bitset_set(in_map, map->map[c], true);
 
     if (pa_bitset_equals(in_map, PA_CHANNEL_POSITION_MAX,
                          PA_CHANNEL_POSITION_MONO, -1))
@@ -747,7 +747,7 @@ const char* pa_channel_map_to_pretty_name(const pa_channel_map *map) {
     memset(in_map, 0, sizeof(in_map));
 
     for (c = 0; c < map->channels; c++)
-        pa_bitset_set(in_map, map->map[c], TRUE);
+        pa_bitset_set(in_map, map->map[c], true);
 
     pa_init_i18n();
 

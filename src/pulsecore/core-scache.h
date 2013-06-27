@@ -36,14 +36,14 @@ typedef struct pa_scache_entry {
     char *name;
 
     pa_cvolume volume;
-    pa_bool_t volume_is_set;
+    bool volume_is_set;
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
     pa_memchunk memchunk;
 
     char *filename;
 
-    pa_bool_t lazy;
+    bool lazy;
     time_t last_used_time;
 
     pa_proplist *proplist;

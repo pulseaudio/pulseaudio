@@ -41,14 +41,14 @@ int pa_alsa_set_hw_params(
         snd_pcm_uframes_t *period_size,    /* modified at return */
         snd_pcm_uframes_t *buffer_size,    /* modified at return */
         snd_pcm_uframes_t tsched_size,
-        pa_bool_t *use_mmap,               /* modified at return */
-        pa_bool_t *use_tsched,             /* modified at return */
-        pa_bool_t require_exact_channel_number);
+        bool *use_mmap,               /* modified at return */
+        bool *use_tsched,             /* modified at return */
+        bool require_exact_channel_number);
 
 int pa_alsa_set_sw_params(
         snd_pcm_t *pcm,
         snd_pcm_uframes_t avail_min,
-        pa_bool_t period_event);
+        bool period_event);
 
 /* Picks a working mapping from the profile set based on the specified ss/map */
 snd_pcm_t *pa_alsa_open_by_device_id_auto(
@@ -60,8 +60,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
         snd_pcm_uframes_t *period_size,   /* modified at return */
         snd_pcm_uframes_t *buffer_size,   /* modified at return */
         snd_pcm_uframes_t tsched_size,
-        pa_bool_t *use_mmap,              /* modified at return */
-        pa_bool_t *use_tsched,            /* modified at return */
+        bool *use_mmap,              /* modified at return */
+        bool *use_tsched,            /* modified at return */
         pa_alsa_profile_set *ps,
         pa_alsa_mapping **mapping);       /* modified at return */
 
@@ -75,8 +75,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_mapping(
         snd_pcm_uframes_t *period_size,   /* modified at return */
         snd_pcm_uframes_t *buffer_size,   /* modified at return */
         snd_pcm_uframes_t tsched_size,
-        pa_bool_t *use_mmap,              /* modified at return */
-        pa_bool_t *use_tsched,            /* modified at return */
+        bool *use_mmap,              /* modified at return */
+        bool *use_tsched,            /* modified at return */
         pa_alsa_mapping *mapping);
 
 /* Opens the explicit ALSA device */
@@ -89,9 +89,9 @@ snd_pcm_t *pa_alsa_open_by_device_string(
         snd_pcm_uframes_t *period_size,   /* modified at return */
         snd_pcm_uframes_t *buffer_size,   /* modified at return */
         snd_pcm_uframes_t tsched_size,
-        pa_bool_t *use_mmap,              /* modified at return */
-        pa_bool_t *use_tsched,            /* modified at return */
-        pa_bool_t require_exact_channel_number);
+        bool *use_mmap,              /* modified at return */
+        bool *use_tsched,            /* modified at return */
+        bool require_exact_channel_number);
 
 /* Opens the explicit ALSA device with a fallback list */
 snd_pcm_t *pa_alsa_open_by_template(
@@ -104,9 +104,9 @@ snd_pcm_t *pa_alsa_open_by_template(
         snd_pcm_uframes_t *period_size,   /* modified at return */
         snd_pcm_uframes_t *buffer_size,   /* modified at return */
         snd_pcm_uframes_t tsched_size,
-        pa_bool_t *use_mmap,              /* modified at return */
-        pa_bool_t *use_tsched,            /* modified at return */
-        pa_bool_t require_exact_channel_number);
+        bool *use_mmap,              /* modified at return */
+        bool *use_tsched,            /* modified at return */
+        bool require_exact_channel_number);
 
 void pa_alsa_dump(pa_log_level_t level, snd_pcm_t *pcm);
 void pa_alsa_dump_status(snd_pcm_t *pcm);
@@ -118,14 +118,14 @@ void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *
 void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card);
 void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm);
 void pa_alsa_init_proplist_ctl(pa_proplist *p, const char *name);
-pa_bool_t pa_alsa_init_description(pa_proplist *p);
+bool pa_alsa_init_description(pa_proplist *p);
 
 int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents);
 
 pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll);
 
 snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa_sample_spec *ss);
-int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_status_t *status, snd_pcm_sframes_t *delay, size_t hwbuf_size, const pa_sample_spec *ss, pa_bool_t capture);
+int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_status_t *status, snd_pcm_sframes_t *delay, size_t hwbuf_size, const pa_sample_spec *ss, bool capture);
 int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas, snd_pcm_uframes_t *offset, snd_pcm_uframes_t *frames, size_t hwbuf_size, const pa_sample_spec *ss);
 
 char *pa_alsa_get_driver_name(int card);
@@ -135,12 +135,12 @@ char *pa_alsa_get_reserve_name(const char *device);
 
 unsigned int *pa_alsa_get_supported_rates(snd_pcm_t *pcm, unsigned int fallback_rate);
 
-pa_bool_t pa_alsa_pcm_is_hw(snd_pcm_t *pcm);
-pa_bool_t pa_alsa_pcm_is_modem(snd_pcm_t *pcm);
+bool pa_alsa_pcm_is_hw(snd_pcm_t *pcm);
+bool pa_alsa_pcm_is_modem(snd_pcm_t *pcm);
 
 const char* pa_alsa_strerror(int errnum);
 
-pa_bool_t pa_alsa_may_tsched(pa_bool_t want);
+bool pa_alsa_may_tsched(bool want);
 
 snd_hctl_elem_t* pa_alsa_find_jack(snd_hctl_t *hctl, const char* jack_name);
 snd_hctl_elem_t* pa_alsa_find_eld_ctl(snd_hctl_t *hctl, int device);

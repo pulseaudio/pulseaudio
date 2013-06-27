@@ -44,7 +44,7 @@ struct namereg_entry {
     void *data;
 };
 
-static pa_bool_t is_valid_char(char c) {
+static bool is_valid_char(char c) {
     return
         (c >= 'a' && c <= 'z') ||
         (c >= 'A' && c <= 'Z') ||
@@ -54,41 +54,41 @@ static pa_bool_t is_valid_char(char c) {
         c == '_';
 }
 
-pa_bool_t pa_namereg_is_valid_name(const char *name) {
+bool pa_namereg_is_valid_name(const char *name) {
     const char *c;
 
     pa_assert(name);
 
     if (*name == 0)
-        return FALSE;
+        return false;
 
     for (c = name; *c && (c-name < PA_NAME_MAX); c++)
         if (!is_valid_char(*c))
-            return FALSE;
+            return false;
 
     if (*c)
-        return FALSE;
+        return false;
 
-    return TRUE;
+    return true;
 }
 
-pa_bool_t pa_namereg_is_valid_name_or_wildcard(const char *name, pa_namereg_type_t type) {
+bool pa_namereg_is_valid_name_or_wildcard(const char *name, pa_namereg_type_t type) {
 
     pa_assert(name);
 
     if (pa_namereg_is_valid_name(name))
-        return TRUE;
+        return true;
 
     if (type == PA_NAMEREG_SINK &&
         pa_streq(name, "@DEFAULT_SINK@"))
-        return TRUE;
+        return true;
 
     if (type == PA_NAMEREG_SOURCE &&
         (pa_streq(name, "@DEFAULT_SOURCE@") ||
          pa_streq(name, "@DEFAULT_MONITOR@")))
-        return TRUE;
+        return true;
 
-    return FALSE;
+    return false;
 }
 
 char* pa_namereg_make_valid_name(const char *name) {
@@ -108,7 +108,7 @@ char* pa_namereg_make_valid_name(const char *name) {
     return n;
 }
 
-const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t type, void *data, pa_bool_t fail) {
+const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t type, void *data, bool fail) {
     struct namereg_entry *e;
     char *n = NULL;
 

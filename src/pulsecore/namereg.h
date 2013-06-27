@@ -34,7 +34,7 @@ typedef enum pa_namereg_type {
     PA_NAMEREG_CARD
 } pa_namereg_type_t;
 
-const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t type, void *data, pa_bool_t fail);
+const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t type, void *data, bool fail);
 void pa_namereg_unregister(pa_core *c, const char *name);
 void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type);
 
@@ -44,8 +44,8 @@ pa_source* pa_namereg_set_default_source(pa_core*c, pa_source *s);
 pa_sink *pa_namereg_get_default_sink(pa_core *c);
 pa_source *pa_namereg_get_default_source(pa_core *c);
 
-pa_bool_t pa_namereg_is_valid_name(const char *name);
-pa_bool_t pa_namereg_is_valid_name_or_wildcard(const char *name, pa_namereg_type_t type);
+bool pa_namereg_is_valid_name(const char *name);
+bool pa_namereg_is_valid_name_or_wildcard(const char *name, pa_namereg_type_t type);
 char* pa_namereg_make_valid_name(const char *name);
 
 #endif

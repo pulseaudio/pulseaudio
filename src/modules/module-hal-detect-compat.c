@@ -35,7 +35,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Compatibility module");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_DEPRECATED("Please use module-udev-detect instead of module-hal-detect!");
 
 static const char* const valid_modargs[] = {
@@ -47,7 +47,7 @@ static const char* const valid_modargs[] = {
 
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
-    pa_bool_t tsched = TRUE;
+    bool tsched = true;
     pa_module *n;
     char *t;
 
@@ -70,7 +70,7 @@ int pa__init(pa_module*m) {
     pa_xfree(t);
 
     if (n)
-        pa_module_unload_request(m, TRUE);
+        pa_module_unload_request(m, true);
 
     pa_modargs_free(ma);
 

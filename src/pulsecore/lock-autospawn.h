@@ -25,8 +25,8 @@
 #include <pulsecore/macro.h>
 
 int pa_autospawn_lock_init(void);
-int pa_autospawn_lock_acquire(pa_bool_t block);
+int pa_autospawn_lock_acquire(bool block);
 void pa_autospawn_lock_release(void);
-void pa_autospawn_lock_done(pa_bool_t after_fork);
+void pa_autospawn_lock_done(bool after_fork);
 
 #endif

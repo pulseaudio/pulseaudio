@@ -28,7 +28,7 @@
 
 #include "mime-type.h"
 
-pa_bool_t pa_sample_spec_is_mime(const pa_sample_spec *ss, const pa_channel_map *cm) {
+bool pa_sample_spec_is_mime(const pa_sample_spec *ss, const pa_channel_map *cm) {
 
     pa_assert(pa_channel_map_compatible(cm, ss));
 
@@ -45,33 +45,33 @@ pa_bool_t pa_sample_spec_is_mime(const pa_sample_spec *ss, const pa_channel_map 
                 ss->rate != 32000 &&
                 ss->rate != 44100 &&
                 ss->rate != 48000)
-                return FALSE;
+                return false;
 
             if (ss->channels != 1 &&
                 ss->channels != 2)
-                return FALSE;
+                return false;
 
             if ((cm->channels == 1 && cm->map[0] != PA_CHANNEL_POSITION_MONO) ||
                 (cm->channels == 2 && (cm->map[0] != PA_CHANNEL_POSITION_LEFT || cm->map[1] != PA_CHANNEL_POSITION_RIGHT)))
-                return FALSE;
+                return false;
 
-            return TRUE;
+            return true;
 
         case PA_SAMPLE_ULAW:
 
             if (ss->rate != 8000)
-                return FALSE;
+                return false;
 
             if (ss->channels != 1)
-                return FALSE;
+                return false;
 
             if (cm->map[0] != PA_CHANNEL_POSITION_MONO)
-                return FALSE;
+                return false;
 
-            return TRUE;
+            return true;
 
         default:
-            return FALSE;
+            return false;
     }
 }
 

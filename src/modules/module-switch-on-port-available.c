@@ -121,7 +121,7 @@ static int try_to_switch_profile(pa_device_port *port) {
         return -1;
     }
 
-    if (pa_card_set_profile(port->card, best_profile->name, FALSE) != 0) {
+    if (pa_card_set_profile(port->card, best_profile->name, false) != 0) {
         pa_log_debug("Could not set profile %s", best_profile->name);
         return -1;
     }
@@ -157,7 +157,7 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
     pa_card* card;
     pa_sink *sink;
     pa_source *source;
-    pa_bool_t is_active_profile, is_active_port;
+    bool is_active_profile, is_active_port;
 
     if (port->available == PA_AVAILABLE_UNKNOWN)
         return PA_HOOK_OK;
@@ -196,9 +196,9 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
         }
 
         if (source)
-            pa_source_set_port(source, port->name, FALSE);
+            pa_source_set_port(source, port->name, false);
         if (sink)
-            pa_sink_set_port(sink, port->name, FALSE);
+            pa_sink_set_port(sink, port->name, false);
     }
 
     if (port->available == PA_AVAILABLE_NO) {
@@ -206,7 +206,7 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
             pa_device_port *p2 = find_best_port(sink->ports);
 
             if (p2 && p2->available != PA_AVAILABLE_NO)
-                pa_sink_set_port(sink, p2->name, FALSE);
+                pa_sink_set_port(sink, p2->name, false);
             else {
                 /* Maybe try to switch to another profile? */
             }
@@ -216,7 +216,7 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
             pa_device_port *p2 = find_best_port(source->ports);
 
             if (p2 && p2->available != PA_AVAILABLE_NO)
-                pa_source_set_port(source, p2->name, FALSE);
+                pa_source_set_port(source, p2->name, false);
             else {
                 /* Maybe try to switch to another profile? */
             }

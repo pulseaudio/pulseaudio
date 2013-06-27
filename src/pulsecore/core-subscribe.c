@@ -41,7 +41,7 @@
 
 struct pa_subscription {
     pa_core *core;
-    pa_bool_t dead;
+    bool dead;
 
     pa_subscription_cb_t callback;
     void *userdata;
@@ -71,7 +71,7 @@ pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask_t m, pa_su
 
     s = pa_xnew(pa_subscription, 1);
     s->core = c;
-    s->dead = FALSE;
+    s->dead = false;
     s->callback = callback;
     s->userdata = userdata;
     s->mask = m;
@@ -85,7 +85,7 @@ void pa_subscription_free(pa_subscription*s) {
     pa_assert(s);
     pa_assert(!s->dead);
 
-    s->dead = TRUE;
+    s->dead = true;
     sched_event(s->core);
 }
 

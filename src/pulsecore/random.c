@@ -41,7 +41,7 @@
 
 #include "random.h"
 
-static pa_bool_t has_whined = FALSE;
+static bool has_whined = false;
 
 static const char * const devices[] = { "/dev/urandom", "/dev/random", NULL };
 
@@ -102,7 +102,7 @@ void pa_random_seed(void) {
 
         if (!has_whined) {
             pa_log_warn("Failed to get proper entropy. Falling back to seeding with current time.");
-            has_whined = TRUE;
+            has_whined = true;
         }
 
         seed = (unsigned int) time(NULL);
@@ -123,7 +123,7 @@ void pa_random(void *ret_data, size_t length) {
 
     if (!has_whined) {
         pa_log_warn("Failed to get proper entropy. Falling back to unsecure pseudo RNG.");
-        has_whined = TRUE;
+        has_whined = true;
     }
 
     for (p = ret_data, l = length; l > 0; p++, l--)

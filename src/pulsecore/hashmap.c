@@ -311,7 +311,7 @@ unsigned pa_hashmap_size(pa_hashmap *h) {
     return h->n_entries;
 }
 
-pa_bool_t pa_hashmap_isempty(pa_hashmap *h) {
+bool pa_hashmap_isempty(pa_hashmap *h) {
     pa_assert(h);
 
     return h->n_entries == 0;

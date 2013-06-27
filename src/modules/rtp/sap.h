@@ -38,9 +38,9 @@ typedef struct pa_sap_context {
 pa_sap_context* pa_sap_context_init_send(pa_sap_context *c, int fd, char *sdp_data);
 void pa_sap_context_destroy(pa_sap_context *c);
 
-int pa_sap_send(pa_sap_context *c, pa_bool_t goodbye);
+int pa_sap_send(pa_sap_context *c, bool goodbye);
 
 pa_sap_context* pa_sap_context_init_recv(pa_sap_context *c, int fd);
-int pa_sap_recv(pa_sap_context *c, pa_bool_t *goodbye);
+int pa_sap_recv(pa_sap_context *c, bool *goodbye);
 
 #endif

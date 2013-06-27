@@ -54,7 +54,7 @@ struct pa_config_parser_state {
     const pa_config_item *item_table;
     char buf[4096];
     pa_proplist *proplist;
-    pa_bool_t in_proplist;
+    bool in_proplist;
 };
 
 /* The configuration file parsing routine. Expects a table of

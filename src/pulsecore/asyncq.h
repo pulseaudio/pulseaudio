@@ -45,8 +45,8 @@ typedef struct pa_asyncq pa_asyncq;
 pa_asyncq* pa_asyncq_new(unsigned size);
 void pa_asyncq_free(pa_asyncq* q, pa_free_cb_t free_cb);
 
-void* pa_asyncq_pop(pa_asyncq *q, pa_bool_t wait);
-int pa_asyncq_push(pa_asyncq *q, void *p, pa_bool_t wait);
+void* pa_asyncq_pop(pa_asyncq *q, bool wait);
+int pa_asyncq_push(pa_asyncq *q, void *p, bool wait);
 
 /* Similar to pa_asyncq_push(), but if the queue is full, postpone the
  * appending of the item locally and delay until

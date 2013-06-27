@@ -53,7 +53,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Publisher");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 
 #define SERVICE_TYPE_SINK "_pulse-sink._tcp"
 #define SERVICE_TYPE_SOURCE "_pulse-source._tcp"
@@ -150,7 +150,7 @@ static void get_service_data(struct service *s, pa_object *device) {
     if (pa_sink_isinstance(device)) {
         pa_sink *sink = PA_SINK(device);
 
-        s->is_sink = TRUE;
+        s->is_sink = true;
         s->service_type = SERVICE_TYPE_SINK;
         s->ss = sink->sample_spec;
         s->cm = sink->channel_map;
@@ -161,7 +161,7 @@ static void get_service_data(struct service *s, pa_object *device) {
     } else if (pa_source_isinstance(device)) {
         pa_source *source = PA_SOURCE(device);
 
-        s->is_sink = FALSE;
+        s->is_sink = false;
         s->service_type = SERVICE_TYPE_SOURCE;
         s->ss = source->sample_spec;
         s->cm = source->channel_map;
@@ -439,7 +439,7 @@ static void service_free(struct service *s) {
 }
 
 /* Runs in PA mainloop context */
-static pa_bool_t shall_ignore(pa_object *o) {
+static bool shall_ignore(pa_object *o) {
     pa_object_assert_ref(o);
 
     if (pa_sink_isinstance(o))
@@ -601,7 +601,7 @@ fail:
 }
 
 /* Runs in Avahi mainloop context */
-static void unpublish_all_services(struct userdata *u, pa_bool_t rem) {
+static void unpublish_all_services(struct userdata *u, bool rem) {
     void *state = NULL;
     struct service *s;
 
@@ -675,7 +675,7 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
 
         case AVAHI_CLIENT_S_COLLISION:
             pa_log_debug("Host name collision");
-            unpublish_all_services(u, FALSE);
+            unpublish_all_services(u, false);
             break;
 
         case AVAHI_CLIENT_FAILURE:
@@ -684,12 +684,12 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
 
                 pa_log_debug("Avahi daemon disconnected.");
 
-                unpublish_all_services(u, TRUE);
+                unpublish_all_services(u, true);
                 avahi_client_free(u->client);
 
                 if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error))) {
                     pa_log("avahi_client_new() failed: %s", avahi_strerror(error));
-                    pa_module_unload_request(u->module, TRUE);
+                    pa_module_unload_request(u->module, true);
                 }
             }
 

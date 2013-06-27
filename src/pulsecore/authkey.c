@@ -72,7 +72,7 @@ static int generate(int fd, void *ret_data, size_t length) {
 
 /* Load an authorization cookie from file fn and store it in data. If
  * the cookie file doesn't exist, create it */
-static int load(const char *fn, pa_bool_t create, void *data, size_t length) {
+static int load(const char *fn, bool create, void *data, size_t length) {
     int fd = -1;
     int writable = 1;
     int unlock = 0, ret = -1;
@@ -83,7 +83,7 @@ static int load(const char *fn, pa_bool_t create, void *data, size_t length) {
     pa_assert(length > 0);
 
     if (create)
-        pa_make_secure_parent_dir(fn, pa_in_system_mode() ? 0755U : 0700U, -1, -1, FALSE);
+        pa_make_secure_parent_dir(fn, pa_in_system_mode() ? 0755U : 0700U, -1, -1, false);
 
     if ((fd = pa_open_cloexec(fn, (create ? O_RDWR|O_CREAT : O_RDONLY)|O_BINARY, S_IRUSR|S_IWUSR)) < 0) {
 
@@ -132,7 +132,7 @@ finish:
 }
 
 /* Load a cookie from a cookie file. If the file doesn't exist, create it. */
-int pa_authkey_load(const char *path, pa_bool_t create, void *data, size_t length) {
+int pa_authkey_load(const char *path, bool create, void *data, size_t length) {
     int ret;
 
     pa_assert(path);
@@ -172,7 +172,7 @@ static char *normalize_path(const char *fn) {
 
 /* Load a cookie from a file in the home directory. If the specified
  * path starts with /, use it as absolute path instead. */
-int pa_authkey_load_auto(const char *fn, pa_bool_t create, void *data, size_t length) {
+int pa_authkey_load_auto(const char *fn, bool create, void *data, size_t length) {
     char *p;
     int ret;
 

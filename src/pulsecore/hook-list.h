@@ -45,7 +45,7 @@ typedef pa_hook_result_t (*pa_hook_cb_t)(
         void *slot_data);
 
 struct pa_hook_slot {
-    pa_bool_t dead;
+    bool dead;
     pa_hook *hook;
     pa_hook_priority_t priority;
     pa_hook_cb_t callback;
@@ -68,6 +68,6 @@ void pa_hook_slot_free(pa_hook_slot *slot);
 
 pa_hook_result_t pa_hook_fire(pa_hook *hook, void *data);
 
-pa_bool_t pa_hook_is_firing(pa_hook *hook);
+bool pa_hook_is_firing(pa_hook *hook);
 
 #endif

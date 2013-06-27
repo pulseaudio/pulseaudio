@@ -52,7 +52,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Combine multiple sinks to one");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
         "sink_properties=<properties for the sink> "
@@ -90,7 +90,7 @@ struct output {
 
     pa_sink *sink;
     pa_sink_input *sink_input;
-    pa_bool_t ignore_state_change;
+    bool ignore_state_change;
 
     pa_asyncmsgq *inq,    /* Message queue from the sink thread to this sink input */
                  *outq;   /* Message queue from this sink input to the sink thread */
@@ -121,8 +121,8 @@ struct userdata {
     pa_time_event *time_event;
     pa_usec_t adjust_time;
 
-    pa_bool_t automatic;
-    pa_bool_t auto_desc;
+    bool automatic;
+    bool auto_desc;
 
     pa_strlist *unlinked_slaves;
 
@@ -138,7 +138,7 @@ struct userdata {
         PA_LLIST_HEAD(struct output, active_outputs); /* managed in IO thread context */
         pa_atomic_t running;  /* we cache that value here, so that every thread can query it cheaply */
         pa_usec_t timestamp;
-        pa_bool_t in_null_mode;
+        bool in_null_mode;
         pa_smoother *smoother;
         uint64_t counter;
     } thread_info;
@@ -304,7 +304,7 @@ static void thread_func(void *userdata) {
     pa_thread_mq_install(&u->thread_mq);
 
     u->thread_info.timestamp = pa_rtclock_now();
-    u->thread_info.in_null_mode = FALSE;
+    u->thread_info.in_null_mode = false;
 
     for (;;) {
         int ret;
@@ -322,14 +322,14 @@ static void thread_func(void *userdata) {
                 process_render_null(u, now);
 
             pa_rtpoll_set_timer_absolute(u->rtpoll, u->thread_info.timestamp);
-            u->thread_info.in_null_mode = TRUE;
+            u->thread_info.in_null_mode = true;
         } else {
             pa_rtpoll_set_timer_disabled(u->rtpoll);
-            u->thread_info.in_null_mode = FALSE;
+            u->thread_info.in_null_mode = false;
         }
 
         /* Hmm, nothing to do. Let's sleep */
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0) {
+        if ((ret = pa_rtpoll_run(u->rtpoll, true)) < 0) {
             pa_log_info("pa_rtpoll_run() = %i", ret);
             goto fail;
         }
@@ -513,7 +513,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
             PA_RTPOLL_EARLY,
             o->outq);
 
-    pa_sink_input_request_rewind(i, 0, FALSE, TRUE, TRUE);
+    pa_sink_input_request_rewind(i, 0, false, true, true);
 
     pa_atomic_store(&o->max_request, (int) pa_sink_input_get_max_request(i));
 
@@ -549,7 +549,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(o = i->userdata);
 
-    pa_module_unload_request(o->userdata->module, TRUE);
+    pa_module_unload_request(o->userdata->module, true);
     pa_idxset_remove_by_data(o->userdata->outputs, o, NULL);
     output_free(o);
 }
@@ -575,7 +575,7 @@ static int sink_input_process_msg(pa_msgobject *obj, int code, void *data, int64
             if (PA_SINK_IS_OPENED(o->sink_input->sink->thread_info.state))
                 pa_memblockq_push_align(o->memblockq, chunk);
             else
-                pa_memblockq_flush_write(o->memblockq, TRUE);
+                pa_memblockq_flush_write(o->memblockq, true);
 
             return 0;
     }
@@ -740,12 +740,12 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     switch (code) {
 
         case PA_SINK_MESSAGE_SET_STATE: {
-            pa_bool_t running = (PA_PTR_TO_UINT(data) == PA_SINK_RUNNING);
+            bool running = (PA_PTR_TO_UINT(data) == PA_SINK_RUNNING);
 
             pa_atomic_store(&u->thread_info.running, running);
 
             if (running)
-                pa_smoother_resume(u->thread_info.smoother, pa_rtclock_now(), TRUE);
+                pa_smoother_resume(u->thread_info.smoother, pa_rtclock_now(), true);
             else
                 pa_smoother_pause(u->thread_info.smoother, pa_rtclock_now());
 
@@ -812,7 +812,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 }
 
 static void update_description(struct userdata *u) {
-    pa_bool_t first = TRUE;
+    bool first = true;
     char *t;
     struct output *o;
     uint32_t idx;
@@ -834,7 +834,7 @@ static void update_description(struct userdata *u) {
 
         if (first) {
             e = pa_sprintf_malloc("%s %s", t, pa_strnull(pa_proplist_gets(o->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
-            first = FALSE;
+            first = false;
         } else
             e = pa_sprintf_malloc("%s, %s", t, pa_strnull(pa_proplist_gets(o->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
 
@@ -855,7 +855,7 @@ static int output_create_sink_input(struct output *o) {
         return 0;
 
     pa_sink_input_new_data_init(&data);
-    pa_sink_input_new_data_set_sink(&data, o->sink, FALSE);
+    pa_sink_input_new_data_set_sink(&data, o->sink, false);
     data.driver = __FILE__;
     pa_proplist_setf(data.proplist, PA_PROP_MEDIA_NAME, "Simultaneous output on %s", pa_strnull(pa_proplist_gets(o->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_ROLE, "filter");
@@ -958,7 +958,7 @@ static void output_enable(struct output *o) {
      * of the sink might hence be called from here, which might then
      * cause us to be called in a loop. Make sure that state changes
      * for this output don't cause this loop by setting a flag here */
-    o->ignore_state_change = TRUE;
+    o->ignore_state_change = true;
 
     if (output_create_sink_input(o) >= 0) {
 
@@ -977,7 +977,7 @@ static void output_enable(struct output *o) {
             output_add_within_thread(o);
     }
 
-    o->ignore_state_change = FALSE;
+    o->ignore_state_change = false;
 }
 
 /* Called from main context */
@@ -1000,9 +1000,9 @@ static void output_disable(struct output *o) {
     o->sink_input = NULL;
 
     /* Finally, drop all queued data */
-    pa_memblockq_flush_write(o->memblockq, TRUE);
-    pa_asyncmsgq_flush(o->inq, FALSE);
-    pa_asyncmsgq_flush(o->outq, FALSE);
+    pa_memblockq_flush_write(o->memblockq, true);
+    pa_asyncmsgq_flush(o->inq, false);
+    pa_asyncmsgq_flush(o->outq, false);
 }
 
 /* Called from main context */
@@ -1016,25 +1016,25 @@ static void output_verify(struct output *o) {
 }
 
 /* Called from main context */
-static pa_bool_t is_suitable_sink(struct userdata *u, pa_sink *s) {
+static bool is_suitable_sink(struct userdata *u, pa_sink *s) {
     const char *t;
 
     pa_sink_assert_ref(s);
 
     if (s == u->sink)
-        return FALSE;
+        return false;
 
     if (!(s->flags & PA_SINK_HARDWARE))
-        return FALSE;
+        return false;
 
     if (!(s->flags & PA_SINK_LATENCY))
-        return FALSE;
+        return false;
 
     if ((t = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_CLASS)))
         if (!pa_streq(t, "sound"))
-            return FALSE;
+            return false;
 
-    return TRUE;
+    return true;
 }
 
 /* Called from main context */
@@ -1166,11 +1166,11 @@ int pa__init(pa_module*m) {
     u->thread_info.smoother = pa_smoother_new(
             PA_USEC_PER_SEC,
             PA_USEC_PER_SEC*2,
-            TRUE,
-            TRUE,
+            true,
+            true,
             10,
             pa_rtclock_now(),
-            TRUE);
+            true);
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
     if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
@@ -1195,7 +1195,7 @@ int pa__init(pa_module*m) {
         char *n = NULL;
         pa_sample_spec slaves_spec;
         pa_channel_map slaves_map;
-        pa_bool_t is_first_slave = TRUE;
+        bool is_first_slave = true;
 
         pa_sample_spec_init(&slaves_spec);
 
@@ -1213,7 +1213,7 @@ int pa__init(pa_module*m) {
             if (is_first_slave) {
                 slaves_spec = slave_sink->sample_spec;
                 slaves_map = slave_sink->channel_map;
-                is_first_slave = FALSE;
+                is_first_slave = false;
             } else {
                 if (slaves_spec.format != slave_sink->sample_spec.format)
                     slaves_spec.format = PA_SAMPLE_INVALID;
@@ -1245,7 +1245,7 @@ int pa__init(pa_module*m) {
     }
 
     pa_sink_new_data_init(&data);
-    data.namereg_fail = FALSE;
+    data.namereg_fail = false;
     data.driver = __FILE__;
     data.module = m;
     pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
@@ -1263,9 +1263,9 @@ int pa__init(pa_module*m) {
     }
 
     /* Check proplist for a description & fill in a default value if not */
-    u->auto_desc = FALSE;
+    u->auto_desc = false;
     if (NULL == pa_proplist_gets(data.proplist, PA_PROP_DEVICE_DESCRIPTION)) {
-        u->auto_desc = TRUE;
+        u->auto_desc = true;
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Simultaneous Output");
     }
 

@@ -178,7 +178,7 @@ int pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second) 
     pa_assert(second);
 
     if (first->encoding != second->encoding)
-        return FALSE;
+        return false;
 
     while ((key = pa_proplist_iterate(first->plist, &state))) {
         const char *value_one, *value_two;
@@ -187,10 +187,10 @@ int pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second) 
         value_two = pa_proplist_gets(second->plist, key);
 
         if (!value_two || !pa_format_info_prop_compatible(value_one, value_two))
-            return FALSE;
+            return false;
     }
 
-    return TRUE;
+    return true;
 }
 
 pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_map *map) {
@@ -640,14 +640,14 @@ void pa_format_info_set_prop_string_array(pa_format_info *f, const char *key, co
     json_object_put(o);
 }
 
-static pa_bool_t pa_json_is_fixed_type(json_object *o) {
+static bool pa_json_is_fixed_type(json_object *o) {
     switch(json_object_get_type(o)) {
         case json_type_object:
         case json_type_array:
-            return FALSE;
+            return false;
 
         default:
-            return TRUE;
+            return true;
     }
 }
 
@@ -669,7 +669,7 @@ static int pa_format_info_prop_compatible(const char *one, const char *two) {
         goto out;
 
     /* We don't deal with both values being non-fixed - just because there is no immediate need (FIXME) */
-    pa_return_val_if_fail(pa_json_is_fixed_type(o1) || pa_json_is_fixed_type(o2), FALSE);
+    pa_return_val_if_fail(pa_json_is_fixed_type(o1) || pa_json_is_fixed_type(o2), false);
 
     if (pa_json_is_fixed_type(o1) && pa_json_is_fixed_type(o2)) {
         ret = pa_json_value_equal(o1, o2);

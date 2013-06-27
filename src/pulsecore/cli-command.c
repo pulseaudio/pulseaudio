@@ -63,7 +63,7 @@
 
 struct command {
     const char *name;
-    int (*proc) (pa_core *c, pa_tokenizer*t, pa_strbuf *buf, pa_bool_t *fail);
+    int (*proc) (pa_core *c, pa_tokenizer*t, pa_strbuf *buf, bool *fail);
     const char *help;
     unsigned args;
 };
@@ -82,61 +82,61 @@ enum {
 };
 
 /* Prototypes for all available commands */
-static int pa_cli_command_exit(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_help(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_modules(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_clients(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_cards(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_sinks(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_sources(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_sink_inputs(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_source_outputs(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_info(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_describe(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_source_output_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_sink_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_source_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_source_output_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_source_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_kill_client(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_kill_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_kill_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_scache_play(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_scache_remove(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_scache_list(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_scache_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_scache_load_dir(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_play_file(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_list_shared_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_log_target(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_log_level(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_log_meta(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_log_time(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_log_backtrace(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_update_sink_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_update_source_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_update_sink_input_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_update_source_output_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_sink_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_source_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_port_offset(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_dump_volumes(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_exit(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_help(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_modules(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_clients(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_cards(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_sinks(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_sources(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_sink_inputs(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_source_outputs(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_info(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_describe(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_source_output_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_sink_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_source_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_source_output_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_source_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_kill_client(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_kill_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_kill_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_scache_play(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_scache_remove(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_scache_list(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_scache_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_scache_load_dir(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_play_file(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_list_shared_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_log_target(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_log_level(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_log_meta(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_log_time(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_log_backtrace(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_update_sink_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_update_source_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_update_sink_input_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_update_source_output_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_sink_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_source_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_port_offset(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_dump_volumes(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
 
 /* A method table for all available commands */
 
@@ -214,19 +214,19 @@ static uint32_t parse_index(const char *n) {
     return idx;
 }
 
-static int pa_cli_command_exit(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_exit(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     pa_core_assert_ref(c);
     pa_assert(t);
     pa_assert(buf);
     pa_assert(fail);
 
-    if (pa_core_exit(c, FALSE, 0) < 0)
+    if (pa_core_exit(c, false, 0) < 0)
         pa_strbuf_puts(buf, "Not allowed to terminate daemon.\n");
 
     return 0;
 }
 
-static int pa_cli_command_help(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_help(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const struct command*command;
 
     pa_core_assert_ref(c);
@@ -242,7 +242,7 @@ static int pa_cli_command_help(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     return 0;
 }
 
-static int pa_cli_command_modules(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_modules(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     char *s;
 
     pa_core_assert_ref(c);
@@ -256,7 +256,7 @@ static int pa_cli_command_modules(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, p
     return 0;
 }
 
-static int pa_cli_command_clients(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_clients(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     char *s;
 
     pa_core_assert_ref(c);
@@ -270,7 +270,7 @@ static int pa_cli_command_clients(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, p
     return 0;
 }
 
-static int pa_cli_command_cards(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_cards(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     char *s;
 
     pa_core_assert_ref(c);
@@ -284,7 +284,7 @@ static int pa_cli_command_cards(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_
     return 0;
 }
 
-static int pa_cli_command_sinks(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_sinks(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     char *s;
 
     pa_core_assert_ref(c);
@@ -298,7 +298,7 @@ static int pa_cli_command_sinks(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_
     return 0;
 }
 
-static int pa_cli_command_sources(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_sources(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     char *s;
 
     pa_core_assert_ref(c);
@@ -312,7 +312,7 @@ static int pa_cli_command_sources(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, p
     return 0;
 }
 
-static int pa_cli_command_sink_inputs(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_sink_inputs(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     char *s;
 
     pa_core_assert_ref(c);
@@ -326,7 +326,7 @@ static int pa_cli_command_sink_inputs(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     return 0;
 }
 
-static int pa_cli_command_source_outputs(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_source_outputs(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     char *s;
 
     pa_core_assert_ref(c);
@@ -340,7 +340,7 @@ static int pa_cli_command_source_outputs(pa_core *c, pa_tokenizer *t, pa_strbuf 
     return 0;
 }
 
-static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
     char cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     char bytes[PA_BYTES_SNPRINT_MAX];
@@ -407,7 +407,7 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     return 0;
 }
 
-static int pa_cli_command_info(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_info(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     pa_core_assert_ref(c);
     pa_assert(t);
     pa_assert(buf);
@@ -425,7 +425,7 @@ static int pa_cli_command_info(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     return 0;
 }
 
-static int pa_cli_command_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *name;
 
     pa_core_assert_ref(c);
@@ -446,11 +446,11 @@ static int pa_cli_command_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     return 0;
 }
 
-static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     pa_module *m;
     uint32_t idx;
     const char *i;
-    pa_bool_t unloaded = FALSE;
+    bool unloaded = false;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -468,16 +468,16 @@ static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa
             return -1;
         }
 
-        pa_module_unload_request(m, FALSE);
+        pa_module_unload_request(m, false);
 
     } else {
         PA_IDXSET_FOREACH(m, c->modules, idx)
             if (pa_streq(i, m->name)) {
-                unloaded = TRUE;
-                pa_module_unload_request(m, FALSE);
+                unloaded = true;
+                pa_module_unload_request(m, false);
             }
 
-        if (unloaded == FALSE) {
+        if (unloaded == false) {
             pa_strbuf_printf(buf, "Module %s not loaded.\n", i);
             return -1;
         }
@@ -486,7 +486,7 @@ static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa
     return 0;
 }
 
-static int pa_cli_command_describe(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_describe(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *name;
     pa_modinfo *i;
 
@@ -527,7 +527,7 @@ static int pa_cli_command_describe(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, 
     return 0;
 }
 
-static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *v;
     pa_sink *sink;
     uint32_t volume;
@@ -564,11 +564,11 @@ static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     }
 
     pa_cvolume_set(&cvolume, 1, volume);
-    pa_sink_set_volume(sink, &cvolume, TRUE, TRUE);
+    pa_sink_set_volume(sink, &cvolume, true, true);
     return 0;
 }
 
-static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *v;
     pa_sink_input *si;
     pa_volume_t volume;
@@ -616,11 +616,11 @@ static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strb
     }
 
     pa_cvolume_set(&cvolume, 1, volume);
-    pa_sink_input_set_volume(si, &cvolume, TRUE, TRUE);
+    pa_sink_input_set_volume(si, &cvolume, true, true);
     return 0;
 }
 
-static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *v;
     pa_source *source;
     uint32_t volume;
@@ -657,11 +657,11 @@ static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *
     }
 
     pa_cvolume_set(&cvolume, 1, volume);
-    pa_source_set_volume(source, &cvolume, TRUE, TRUE);
+    pa_source_set_volume(source, &cvolume, true, true);
     return 0;
 }
 
-static int pa_cli_command_source_output_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_source_output_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *v;
     pa_source_output *so;
     pa_volume_t volume;
@@ -709,11 +709,11 @@ static int pa_cli_command_source_output_volume(pa_core *c, pa_tokenizer *t, pa_s
     }
 
     pa_cvolume_set(&cvolume, 1, volume);
-    pa_source_output_set_volume(so, &cvolume, TRUE, TRUE);
+    pa_source_output_set_volume(so, &cvolume, true, true);
     return 0;
 }
 
-static int pa_cli_command_sink_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_sink_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *m;
     pa_sink *sink;
     int mute;
@@ -743,11 +743,11 @@ static int pa_cli_command_sink_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
         return -1;
     }
 
-    pa_sink_set_mute(sink, mute, TRUE);
+    pa_sink_set_mute(sink, mute, true);
     return 0;
 }
 
-static int pa_cli_command_source_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_source_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *m;
     pa_source *source;
     int mute;
@@ -777,11 +777,11 @@ static int pa_cli_command_source_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    pa_source_set_mute(source, mute, TRUE);
+    pa_source_set_mute(source, mute, true);
     return 0;
 }
 
-static int pa_cli_command_update_sink_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_update_sink_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *s;
     pa_sink *sink;
     pa_proplist *p;
@@ -818,7 +818,7 @@ static int pa_cli_command_update_sink_proplist(pa_core *c, pa_tokenizer *t, pa_s
     return 0;
 }
 
-static int pa_cli_command_update_source_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_update_source_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *s;
     pa_source *source;
     pa_proplist *p;
@@ -855,7 +855,7 @@ static int pa_cli_command_update_source_proplist(pa_core *c, pa_tokenizer *t, pa
     return 0;
 }
 
-static int pa_cli_command_update_sink_input_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_update_sink_input_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *s;
     pa_sink_input *si;
     uint32_t idx;
@@ -898,7 +898,7 @@ static int pa_cli_command_update_sink_input_proplist(pa_core *c, pa_tokenizer *t
     return 0;
 }
 
-static int pa_cli_command_update_source_output_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_update_source_output_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *s;
     pa_source_output *so;
     uint32_t idx;
@@ -941,7 +941,7 @@ static int pa_cli_command_update_source_output_proplist(pa_core *c, pa_tokenizer
     return 0;
 }
 
-static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *v;
     pa_sink_input *si;
     uint32_t idx;
@@ -977,11 +977,11 @@ static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf
         return -1;
     }
 
-    pa_sink_input_set_mute(si, mute, TRUE);
+    pa_sink_input_set_mute(si, mute, true);
     return 0;
 }
 
-static int pa_cli_command_source_output_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_source_output_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *v;
     pa_source_output *so;
     uint32_t idx;
@@ -1017,11 +1017,11 @@ static int pa_cli_command_source_output_mute(pa_core *c, pa_tokenizer *t, pa_str
         return -1;
     }
 
-    pa_source_output_set_mute(so, mute, TRUE);
+    pa_source_output_set_mute(so, mute, true);
     return 0;
 }
 
-static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n;
     pa_sink *s;
 
@@ -1043,7 +1043,7 @@ static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *b
     return 0;
 }
 
-static int pa_cli_command_source_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_source_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n;
     pa_source *s;
 
@@ -1064,7 +1064,7 @@ static int pa_cli_command_source_default(pa_core *c, pa_tokenizer *t, pa_strbuf 
     return 0;
 }
 
-static int pa_cli_command_kill_client(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_kill_client(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n;
     pa_client *client;
     uint32_t idx;
@@ -1093,7 +1093,7 @@ static int pa_cli_command_kill_client(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     return 0;
 }
 
-static int pa_cli_command_kill_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_kill_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n;
     pa_sink_input *sink_input;
     uint32_t idx;
@@ -1122,7 +1122,7 @@ static int pa_cli_command_kill_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf
     return 0;
 }
 
-static int pa_cli_command_kill_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_kill_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n;
     pa_source_output *source_output;
     uint32_t idx;
@@ -1151,7 +1151,7 @@ static int pa_cli_command_kill_source_output(pa_core *c, pa_tokenizer *t, pa_str
     return 0;
 }
 
-static int pa_cli_command_scache_list(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_scache_list(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     char *s;
 
     pa_core_assert_ref(c);
@@ -1166,7 +1166,7 @@ static int pa_cli_command_scache_list(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     return 0;
 }
 
-static int pa_cli_command_scache_play(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_scache_play(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *sink_name;
     pa_sink *sink;
     uint32_t idx;
@@ -1196,7 +1196,7 @@ static int pa_cli_command_scache_play(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     return 0;
 }
 
-static int pa_cli_command_scache_remove(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_scache_remove(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n;
 
     pa_core_assert_ref(c);
@@ -1217,7 +1217,7 @@ static int pa_cli_command_scache_remove(pa_core *c, pa_tokenizer *t, pa_strbuf *
     return 0;
 }
 
-static int pa_cli_command_scache_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_scache_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *fname, *n;
     int r;
 
@@ -1242,7 +1242,7 @@ static int pa_cli_command_scache_load(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     return 0;
 }
 
-static int pa_cli_command_scache_load_dir(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_scache_load_dir(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *pname;
 
     pa_core_assert_ref(c);
@@ -1263,7 +1263,7 @@ static int pa_cli_command_scache_load_dir(pa_core *c, pa_tokenizer *t, pa_strbuf
     return 0;
 }
 
-static int pa_cli_command_play_file(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_play_file(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *fname, *sink_name;
     pa_sink *sink;
 
@@ -1285,7 +1285,7 @@ static int pa_cli_command_play_file(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
     return pa_play_file(sink, fname, NULL);
 }
 
-static int pa_cli_command_list_shared_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_list_shared_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     pa_core_assert_ref(c);
     pa_assert(t);
     pa_assert(buf);
@@ -1295,7 +1295,7 @@ static int pa_cli_command_list_shared_props(pa_core *c, pa_tokenizer *t, pa_strb
     return 0;
 }
 
-static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     pa_core_assert_ref(c);
     pa_assert(t);
     pa_assert(buf);
@@ -1306,7 +1306,7 @@ static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa
     return 0;
 }
 
-static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *k;
     pa_sink_input *si;
     pa_sink *sink;
@@ -1342,14 +1342,14 @@ static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf
         return -1;
     }
 
-    if (pa_sink_input_move_to(si, sink, TRUE) < 0) {
+    if (pa_sink_input_move_to(si, sink, true) < 0) {
         pa_strbuf_puts(buf, "Moved failed.\n");
         return -1;
     }
     return 0;
 }
 
-static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *k;
     pa_source_output *so;
     pa_source *source;
@@ -1385,14 +1385,14 @@ static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_str
         return -1;
     }
 
-    if (pa_source_output_move_to(so, source, TRUE) < 0) {
+    if (pa_source_output_move_to(so, source, true) < 0) {
         pa_strbuf_puts(buf, "Moved failed.\n");
         return -1;
     }
     return 0;
 }
 
-static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *m;
     pa_sink *sink;
     int suspend, r;
@@ -1430,7 +1430,7 @@ static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *b
     return 0;
 }
 
-static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *m;
     pa_source *source;
     int suspend, r;
@@ -1468,7 +1468,7 @@ static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf 
     return 0;
 }
 
-static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *m;
     int suspend, r;
 
@@ -1498,7 +1498,7 @@ static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, p
     return 0;
 }
 
-static int pa_cli_command_log_target(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_log_target(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *m;
     pa_log_target *log_target = NULL;
 
@@ -1535,7 +1535,7 @@ static int pa_cli_command_log_target(pa_core *c, pa_tokenizer *t, pa_strbuf *buf
     return 0;
 }
 
-static int pa_cli_command_log_level(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_log_level(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *m;
     uint32_t level;
 
@@ -1559,7 +1559,7 @@ static int pa_cli_command_log_level(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
     return 0;
 }
 
-static int pa_cli_command_log_meta(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_log_meta(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *m;
     int b;
 
@@ -1583,7 +1583,7 @@ static int pa_cli_command_log_meta(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, 
     return 0;
 }
 
-static int pa_cli_command_log_time(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_log_time(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *m;
     int b;
 
@@ -1607,7 +1607,7 @@ static int pa_cli_command_log_time(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, 
     return 0;
 }
 
-static int pa_cli_command_log_backtrace(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_log_backtrace(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *m;
     uint32_t nframes;
 
@@ -1631,7 +1631,7 @@ static int pa_cli_command_log_backtrace(pa_core *c, pa_tokenizer *t, pa_strbuf *
     return 0;
 }
 
-static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *p;
     pa_card *card;
 
@@ -1655,7 +1655,7 @@ static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *b
         return -1;
     }
 
-    if (pa_card_set_profile(card, p, TRUE) < 0) {
+    if (pa_card_set_profile(card, p, true) < 0) {
         pa_strbuf_printf(buf, "Failed to set card profile to '%s'.\n", p);
         return -1;
     }
@@ -1663,7 +1663,7 @@ static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *b
     return 0;
 }
 
-static int pa_cli_command_sink_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_sink_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *p;
     pa_sink *sink;
 
@@ -1687,7 +1687,7 @@ static int pa_cli_command_sink_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
         return -1;
     }
 
-    if (pa_sink_set_port(sink, p, TRUE) < 0) {
+    if (pa_sink_set_port(sink, p, true) < 0) {
         pa_strbuf_printf(buf, "Failed to set sink port to '%s'.\n", p);
         return -1;
     }
@@ -1695,7 +1695,7 @@ static int pa_cli_command_sink_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
     return 0;
 }
 
-static int pa_cli_command_source_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_source_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *p;
     pa_source *source;
 
@@ -1719,7 +1719,7 @@ static int pa_cli_command_source_port(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    if (pa_source_set_port(source, p, TRUE) < 0) {
+    if (pa_source_set_port(source, p, true) < 0) {
         pa_strbuf_printf(buf, "Failed to set source port to '%s'.\n", p);
         return -1;
     }
@@ -1727,7 +1727,7 @@ static int pa_cli_command_source_port(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     return 0;
 }
 
-static int pa_cli_command_port_offset(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_port_offset(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *p, *l;
     pa_device_port *port;
     pa_card *card;
@@ -1773,12 +1773,12 @@ static int pa_cli_command_port_offset(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     return 0;
 }
 
-static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     pa_module *m;
     pa_sink *sink;
     pa_source *source;
     pa_card *card;
-    pa_bool_t nl;
+    bool nl;
     uint32_t idx;
     time_t now;
 #ifdef HAVE_CTIME_R
@@ -1808,48 +1808,48 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
         pa_strbuf_puts(buf, "\n");
     }
 
-    nl = FALSE;
+    nl = false;
     PA_IDXSET_FOREACH(sink, c->sinks, idx) {
 
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
-            nl = TRUE;
+            nl = true;
         }
 
-        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_max(pa_sink_get_volume(sink, FALSE)));
-        pa_strbuf_printf(buf, "set-sink-mute %s %s\n", sink->name, pa_yes_no(pa_sink_get_mute(sink, FALSE)));
+        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_max(pa_sink_get_volume(sink, false)));
+        pa_strbuf_printf(buf, "set-sink-mute %s %s\n", sink->name, pa_yes_no(pa_sink_get_mute(sink, false)));
         pa_strbuf_printf(buf, "suspend-sink %s %s\n", sink->name, pa_yes_no(pa_sink_get_state(sink) == PA_SINK_SUSPENDED));
     }
 
-    nl = FALSE;
+    nl = false;
     PA_IDXSET_FOREACH(source, c->sources, idx) {
 
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
-            nl = TRUE;
+            nl = true;
         }
 
-        pa_strbuf_printf(buf, "set-source-volume %s 0x%03x\n", source->name, pa_cvolume_max(pa_source_get_volume(source, FALSE)));
-        pa_strbuf_printf(buf, "set-source-mute %s %s\n", source->name, pa_yes_no(pa_source_get_mute(source, FALSE)));
+        pa_strbuf_printf(buf, "set-source-volume %s 0x%03x\n", source->name, pa_cvolume_max(pa_source_get_volume(source, false)));
+        pa_strbuf_printf(buf, "set-source-mute %s %s\n", source->name, pa_yes_no(pa_source_get_mute(source, false)));
         pa_strbuf_printf(buf, "suspend-source %s %s\n", source->name, pa_yes_no(pa_source_get_state(source) == PA_SOURCE_SUSPENDED));
     }
 
-    nl = FALSE;
+    nl = false;
     PA_IDXSET_FOREACH(card, c->cards, idx) {
 
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
-            nl = TRUE;
+            nl = true;
         }
 
         pa_strbuf_printf(buf, "set-card-profile %s %s\n", card->name, card->active_profile->name);
     }
 
-    nl = FALSE;
+    nl = false;
     if ((sink = pa_namereg_get_default_sink(c))) {
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
-            nl = TRUE;
+            nl = true;
         }
 
         pa_strbuf_printf(buf, "set-default-sink %s\n", sink->name);
@@ -1867,7 +1867,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     return 0;
 }
 
-static int pa_cli_command_dump_volumes(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_dump_volumes(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     pa_sink *s;
     pa_source *so;
     pa_sink_input *i;
@@ -1923,7 +1923,7 @@ static int pa_cli_command_dump_volumes(pa_core *c, pa_tokenizer *t, pa_strbuf *b
     return 0;
 }
 
-int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *buf, pa_bool_t *fail, int *ifstate) {
+int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *buf, bool *fail, int *ifstate) {
     const char *cs;
 
     pa_assert(c);
@@ -1955,9 +1955,9 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
         if (ifstate && *ifstate == IFSTATE_FALSE)
             return 0;
         if (!strcmp(cs, META_FAIL))
-            *fail = TRUE;
+            *fail = true;
         else if (!strcmp(cs, META_NOFAIL))
-            *fail = FALSE;
+            *fail = false;
         else {
             size_t l;
             l = strcspn(cs, whitespace);
@@ -1982,7 +1982,7 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
                             unsigned i, count;
                             char **sorted_files;
                             struct dirent *de;
-                            pa_bool_t failed = FALSE;
+                            bool failed = false;
                             pa_dynarray *files = pa_dynarray_new(NULL);
 
                             while ((de = readdir(d))) {
@@ -2018,7 +2018,7 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
                             for (i = 0; i < count; ++i) {
                                 if (!failed) {
                                     if (pa_cli_command_execute_file(c, sorted_files[i], buf, fail) < 0 && *fail)
-                                        failed = TRUE;
+                                        failed = true;
                                 }
 
                                 pa_xfree(sorted_files[i]);
@@ -2121,15 +2121,15 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
     return 0;
 }
 
-int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, pa_bool_t *fail) {
+int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, bool *fail) {
     return pa_cli_command_execute_line_stateful(c, s, buf, fail, NULL);
 }
 
-int pa_cli_command_execute_file_stream(pa_core *c, FILE *f, pa_strbuf *buf, pa_bool_t *fail) {
+int pa_cli_command_execute_file_stream(pa_core *c, FILE *f, pa_strbuf *buf, bool *fail) {
     char line[2048];
     int ifstate = IFSTATE_NONE;
     int ret = -1;
-    pa_bool_t _fail = TRUE;
+    bool _fail = true;
 
     pa_assert(c);
     pa_assert(f);
@@ -2152,10 +2152,10 @@ fail:
     return ret;
 }
 
-int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, pa_bool_t *fail) {
+int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, bool *fail) {
     FILE *f = NULL;
     int ret = -1;
-    pa_bool_t _fail = TRUE;
+    bool _fail = true;
 
     pa_assert(c);
     pa_assert(fn);
@@ -2181,10 +2181,10 @@ fail:
     return ret;
 }
 
-int pa_cli_command_execute(pa_core *c, const char *s, pa_strbuf *buf, pa_bool_t *fail) {
+int pa_cli_command_execute(pa_core *c, const char *s, pa_strbuf *buf, bool *fail) {
     const char *p;
     int ifstate = IFSTATE_NONE;
-    pa_bool_t _fail = TRUE;
+    bool _fail = true;
 
     pa_assert(c);
     pa_assert(s);

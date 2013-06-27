@@ -121,14 +121,14 @@ void pa_init_proplist(pa_proplist *p) {
             if (pa_startswith(*e, "PULSE_PROP_")) {
                 size_t kl, skip;
                 char *k;
-                pa_bool_t override;
+                bool override;
 
                 if (pa_startswith(*e, "PULSE_PROP_OVERRIDE_")) {
                     skip = 20;
-                    override = TRUE;
+                    override = true;
                 } else {
                     skip = 11;
-                    override = FALSE;
+                    override = false;
                 }
 
                 kl = strcspn(*e+skip, "=");

@@ -45,7 +45,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("GConf Adapter");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 
 #define MAX_MODULES 10
 #define BUF_MAX 2048
@@ -143,7 +143,7 @@ static void unload_one_module(struct module_info *m, unsigned i) {
         return;
 
     pa_log_debug("Unloading module #%i", m->items[i].index);
-    pa_module_unload_by_index(u->core, m->items[i].index, TRUE);
+    pa_module_unload_by_index(u->core, m->items[i].index, true);
     m->items[i].index = PA_INVALID_INDEX;
     pa_xfree(m->items[i].name);
     pa_xfree(m->items[i].args);
@@ -166,7 +166,7 @@ static void load_module(
         unsigned i,
         const char *name,
         const char *args,
-        pa_bool_t is_new) {
+        bool is_new) {
 
     struct userdata *u;
     pa_module *mod;
@@ -324,7 +324,7 @@ static void io_event_cb(
             u->io_event = NULL;
         }
 
-        pa_module_unload_request(u->module, TRUE);
+        pa_module_unload_request(u->module, true);
     }
 }
 

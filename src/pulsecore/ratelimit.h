@@ -50,8 +50,8 @@ typedef struct pa_ratelimit {
         r->n_printed = 0;                               \
         r->n_missed = 0;                                \
         r->begin = 0;                                   \
-    } while (FALSE);
+    } while (false);
 
-pa_bool_t pa_ratelimit_test(pa_ratelimit *r, pa_log_level_t t);
+bool pa_ratelimit_test(pa_ratelimit *r, pa_log_level_t t);
 
 #endif

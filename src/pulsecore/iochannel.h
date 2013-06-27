@@ -54,20 +54,20 @@ ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l);
 ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l);
 
 #ifdef HAVE_CREDS
-pa_bool_t pa_iochannel_creds_supported(pa_iochannel *io);
+bool pa_iochannel_creds_supported(pa_iochannel *io);
 int pa_iochannel_creds_enable(pa_iochannel *io);
 
 ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l, const pa_creds *ucred);
-ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_creds *ucred, pa_bool_t *creds_valid);
+ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_creds *ucred, bool *creds_valid);
 #endif
 
-pa_bool_t pa_iochannel_is_readable(pa_iochannel*io);
-pa_bool_t pa_iochannel_is_writable(pa_iochannel*io);
-pa_bool_t pa_iochannel_is_hungup(pa_iochannel*io);
+bool pa_iochannel_is_readable(pa_iochannel*io);
+bool pa_iochannel_is_writable(pa_iochannel*io);
+bool pa_iochannel_is_hungup(pa_iochannel*io);
 
 /* Don't close the file descriptors when the io channel is freed. By
  * default the file descriptors are closed. */
-void pa_iochannel_set_noclose(pa_iochannel*io, pa_bool_t b);
+void pa_iochannel_set_noclose(pa_iochannel*io, bool b);
 
 /* Set the callback function that is called whenever data becomes available for read or write */
 typedef void (*pa_iochannel_cb_t)(pa_iochannel*io, void *userdata);
@@ -80,7 +80,7 @@ void pa_iochannel_socket_peer_to_string(pa_iochannel*io, char*s, size_t l);
 int pa_iochannel_socket_set_rcvbuf(pa_iochannel*io, size_t l);
 int pa_iochannel_socket_set_sndbuf(pa_iochannel*io, size_t l);
 
-pa_bool_t pa_iochannel_socket_is_local(pa_iochannel *io);
+bool pa_iochannel_socket_is_local(pa_iochannel *io);
 
 pa_mainloop_api* pa_iochannel_get_mainloop_api(pa_iochannel *io);
 

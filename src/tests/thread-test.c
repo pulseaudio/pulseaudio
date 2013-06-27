@@ -100,7 +100,7 @@ START_TEST (thread_test) {
     if (!getenv("MAKE_CHECK"))
         pa_log_set_level(PA_LOG_DEBUG);
 
-    mutex = pa_mutex_new(FALSE, FALSE);
+    mutex = pa_mutex_new(false, false);
     cond1 = pa_cond_new();
     cond2 = pa_cond_new();
     tls = pa_tls_new(pa_xfree);

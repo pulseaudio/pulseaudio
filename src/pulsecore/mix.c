@@ -616,7 +616,7 @@ size_t pa_mix(
         size_t length,
         const pa_sample_spec *spec,
         const pa_cvolume *volume,
-        pa_bool_t mute) {
+        bool mute) {
 
     pa_cvolume full_volume;
     unsigned k;

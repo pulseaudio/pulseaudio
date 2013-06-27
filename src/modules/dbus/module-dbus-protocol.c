@@ -50,7 +50,7 @@ PA_MODULE_USAGE(
         "access=local|remote|local,remote "
         "tcp_port=<port number> "
         "tcp_listen=<hostname>");
-PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_AUTHOR("Tanu Kaskinen");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 
@@ -64,8 +64,8 @@ struct connection;
 
 struct userdata {
     pa_module *module;
-    pa_bool_t local_access;
-    pa_bool_t remote_access;
+    bool local_access;
+    bool remote_access;
     uint32_t tcp_port;
     char *tcp_listen;
 
@@ -152,7 +152,7 @@ static void client_send_event_cb(pa_client *c, const char *name, pa_proplist *da
 static dbus_bool_t user_check_cb(DBusConnection *connection, unsigned long uid, void *data) {
     pa_log_debug("Allowing connection by user %lu.", uid);
 
-    return TRUE;
+    return true;
 }
 
 static DBusHandlerResult disconnection_filter_cb(DBusConnection *connection, DBusMessage *message, void *user_data) {
@@ -198,12 +198,12 @@ static void connection_new_cb(DBusServer *dbus_server, DBusConnection *new_conne
         /* FIXME: Here we allow anyone from anywhere to access the server,
          * anonymously. Access control should be configurable. */
         dbus_connection_set_unix_user_function(new_connection, user_check_cb, NULL, NULL);
-        dbus_connection_set_allow_anonymous(new_connection, TRUE);
+        dbus_connection_set_allow_anonymous(new_connection, true);
     }
 
     c = pa_xnew(struct connection, 1);
     c->server = s;
-    c->wrap_conn = pa_dbus_wrap_connection_new_from_existing(s->userdata->module->core->mainloop, TRUE, new_connection);
+    c->wrap_conn = pa_dbus_wrap_connection_new_from_existing(s->userdata->module->core->mainloop, true, new_connection);
     c->client = client;
 
     c->client->kill = client_kill_cb;
@@ -302,7 +302,7 @@ static dbus_bool_t watch_add_cb(DBusWatch *watch, void *data) {
 
     dbus_watch_set_data(watch, ev, NULL);
 
-    return TRUE;
+    return true;
 }
 
 /* Called by D-Bus when a D-Bus fd watch event is removed. */
@@ -342,7 +342,7 @@ static dbus_bool_t timeout_add_cb(DBusTimeout *timeout, void *data) {
     pa_assert(s);
 
     if (!dbus_timeout_get_enabled(timeout))
-        return FALSE;
+        return false;
 
     mainloop = s->userdata->module->core->mainloop;
 
@@ -353,7 +353,7 @@ static dbus_bool_t timeout_add_cb(DBusTimeout *timeout, void *data) {
 
     dbus_timeout_set_data(timeout, ev, NULL);
 
-    return TRUE;
+    return true;
 }
 
 /* Called by D-Bus when a D-Bus timer event is removed. */
@@ -482,7 +482,7 @@ static struct server *start_tcp_server(struct userdata *u) {
     return s;
 }
 
-static int get_access_arg(pa_modargs *ma, pa_bool_t *local_access, pa_bool_t *remote_access) {
+static int get_access_arg(pa_modargs *ma, bool *local_access, bool *remote_access) {
     const char *value = NULL;
 
     pa_assert(ma);
@@ -493,14 +493,14 @@ static int get_access_arg(pa_modargs *ma, pa_bool_t *local_access, pa_bool_t *re
         return 0;
 
     if (pa_streq(value, "local")) {
-        *local_access = TRUE;
-        *remote_access = FALSE;
+        *local_access = true;
+        *remote_access = false;
     } else if (pa_streq(value, "remote")) {
-        *local_access = FALSE;
-        *remote_access = TRUE;
+        *local_access = false;
+        *remote_access = true;
     } else if (pa_streq(value, "local,remote")) {
-        *local_access = TRUE;
-        *remote_access = TRUE;
+        *local_access = true;
+        *remote_access = true;
     } else
         return -1;
 
@@ -536,8 +536,8 @@ int pa__init(pa_module *m) {
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
-    u->local_access = TRUE;
-    u->remote_access = FALSE;
+    u->local_access = true;
+    u->remote_access = false;
     u->tcp_port = PA_DBUS_DEFAULT_PORT;
 
     if (get_access_arg(ma, &u->local_access, &u->remote_access) < 0) {

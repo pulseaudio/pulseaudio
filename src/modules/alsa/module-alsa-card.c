@@ -45,7 +45,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("ALSA Card");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "name=<name for the card/sink/source, to be prefixed> "
         "card_name=<name for the card> "
@@ -122,7 +122,7 @@ struct userdata {
     pa_alsa_profile_set *profile_set;
 
     /* ucm stuffs */
-    pa_bool_t use_ucm;
+    bool use_ucm;
     pa_alsa_ucm_config ucm;
 
     /* hooks for modifier action */
@@ -158,7 +158,7 @@ static void add_profiles(struct userdata *u, pa_hashmap *h, pa_hashmap *ports) {
 
             PA_IDXSET_FOREACH(m, ap->output_mappings, idx) {
                 if (u->use_ucm)
-                    pa_alsa_ucm_add_ports_combination(NULL, &m->ucm_context, TRUE, ports, cp, u->core);
+                    pa_alsa_ucm_add_ports_combination(NULL, &m->ucm_context, true, ports, cp, u->core);
                 else
                     pa_alsa_path_set_add_ports(m->output_path_set, cp, ports, NULL, u->core);
                 if (m->channel_map.channels > cp->max_sink_channels)
@@ -171,7 +171,7 @@ static void add_profiles(struct userdata *u, pa_hashmap *h, pa_hashmap *ports) {
 
             PA_IDXSET_FOREACH(m, ap->input_mappings, idx) {
                 if (u->use_ucm)
-                    pa_alsa_ucm_add_ports_combination(NULL, &m->ucm_context, FALSE, ports, cp, u->core);
+                    pa_alsa_ucm_add_ports_combination(NULL, &m->ucm_context, false, ports, cp, u->core);
                 else
                     pa_alsa_path_set_add_ports(m->input_path_set, cp, ports, NULL, u->core);
                 if (m->channel_map.channels > cp->max_source_channels)
@@ -256,7 +256,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
                 am->sink = pa_alsa_sink_new(c->module, u->modargs, __FILE__, c, am);
 
             if (sink_inputs && am->sink) {
-                pa_sink_move_all_finish(am->sink, sink_inputs, FALSE);
+                pa_sink_move_all_finish(am->sink, sink_inputs, false);
                 sink_inputs = NULL;
             }
         }
@@ -268,7 +268,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
                 am->source = pa_alsa_source_new(c->module, u->modargs, __FILE__, c, am);
 
             if (source_outputs && am->source) {
-                pa_source_move_all_finish(am->source, source_outputs, FALSE);
+                pa_source_move_all_finish(am->source, source_outputs, false);
                 source_outputs = NULL;
             }
         }
@@ -349,7 +349,7 @@ static void report_port_state(pa_device_port *p, struct userdata *u) {
 static int report_jack_state(snd_hctl_elem_t *elem, unsigned int mask) {
     struct userdata *u = snd_hctl_elem_get_callback_private(elem);
     snd_ctl_elem_value_t *elem_value;
-    pa_bool_t plugged_in;
+    bool plugged_in;
     void *state;
     pa_alsa_jack *jack;
     pa_device_port *port;
@@ -502,7 +502,7 @@ static void init_jacks(struct userdata *u) {
             jack->hctl_elem = pa_alsa_find_jack(u->hctl_handle, jack->alsa_name);
             if (!jack->hctl_elem) {
                 pa_log_warn("Jack '%s' seems to have disappeared.", jack->alsa_name);
-                jack->has_control = FALSE;
+                jack->has_control = false;
                 continue;
             }
             snd_hctl_elem_set_callback_private(jack->hctl_elem, u);
@@ -525,15 +525,15 @@ static void set_card_name(pa_card_new_data *data, pa_modargs *ma, const char *de
 
     if ((n = pa_modargs_get_value(ma, "card_name", NULL))) {
         pa_card_new_data_set_name(data, n);
-        data->namereg_fail = TRUE;
+        data->namereg_fail = true;
         return;
     }
 
     if ((n = pa_modargs_get_value(ma, "name", NULL)))
-        data->namereg_fail = TRUE;
+        data->namereg_fail = true;
     else {
         n = device_id;
-        data->namereg_fail = FALSE;
+        data->namereg_fail = false;
     }
 
     t = pa_sprintf_malloc("alsa_card.%s", n);
@@ -604,13 +604,13 @@ static pa_hook_result_t source_output_unlink_hook_callback(pa_core *c, pa_source
 int pa__init(pa_module *m) {
     pa_card_new_data data;
     pa_modargs *ma;
-    pa_bool_t ignore_dB = FALSE;
+    bool ignore_dB = false;
     struct userdata *u;
     pa_reserve_wrapper *reserve = NULL;
     const char *description;
     const char *profile = NULL;
     char *fn = NULL;
-    pa_bool_t namereg_fail = FALSE;
+    bool namereg_fail = false;
 
     pa_alsa_refcnt_inc();
 
@@ -632,7 +632,7 @@ int pa__init(pa_module *m) {
     u->device_id = pa_xstrdup(pa_modargs_get_value(ma, "device_id", DEFAULT_DEVICE_ID));
     u->modargs = ma;
 
-    u->use_ucm = TRUE;
+    u->use_ucm = true;
     u->ucm.core = m->core;
 
     if ((u->alsa_card_index = snd_card_get_index(u->device_id)) < 0) {
@@ -673,7 +673,7 @@ int pa__init(pa_module *m) {
                 (pa_hook_cb_t) source_output_unlink_hook_callback, u);
     }
     else {
-        u->use_ucm = FALSE;
+        u->use_ucm = false;
 #ifdef HAVE_UDEV
         fn = pa_udev_get_property(u->alsa_card_index, "PULSE_PROFILE_SET");
 #endif

@@ -188,7 +188,7 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
         port->card = c;
 
     c->active_profile = NULL;
-    c->save_profile = FALSE;
+    c->save_profile = false;
 
     if (data->active_profile)
         if ((c->active_profile = pa_hashmap_get(c->profiles, data->active_profile)))
@@ -204,7 +204,7 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     c->set_profile = NULL;
 
     pa_device_init_description(c->proplist);
-    pa_device_init_icon(c->proplist, TRUE);
+    pa_device_init_icon(c->proplist, true);
     pa_device_init_intended_roles(c->proplist);
 
     pa_assert_se(pa_idxset_put(core->cards, c, &c->index) >= 0);
@@ -250,7 +250,7 @@ void pa_card_free(pa_card *c) {
     pa_xfree(c);
 }
 
-int pa_card_set_profile(pa_card *c, const char *name, pa_bool_t save) {
+int pa_card_set_profile(pa_card *c, const char *name, bool save) {
     pa_card_profile *profile;
     int r;
 
@@ -287,7 +287,7 @@ int pa_card_set_profile(pa_card *c, const char *name, pa_bool_t save) {
     return 0;
 }
 
-int pa_card_suspend(pa_card *c, pa_bool_t suspend, pa_suspend_cause_t cause) {
+int pa_card_suspend(pa_card *c, bool suspend, pa_suspend_cause_t cause) {
     pa_sink *sink;
     pa_source *source;
     uint32_t idx;

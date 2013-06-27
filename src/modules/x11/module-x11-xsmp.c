@@ -42,10 +42,10 @@
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("X11 session management");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE("session_manager=<session manager string> display=<X11 display>");
 
-static pa_bool_t ice_in_use = FALSE;
+static bool ice_in_use = false;
 
 static const char* const valid_modargs[] = {
     "session_manager",
@@ -72,7 +72,7 @@ static void die_cb(SmcConn connection, SmPointer client_data) {
     pa_x11_wrapper_unref(u->x11);
     u->x11 = NULL;
 
-    pa_module_unload_request(u->module, TRUE);
+    pa_module_unload_request(u->module, true);
 }
 
 static void save_complete_cb(SmcConn connection, SmPointer client_data) {
@@ -129,7 +129,7 @@ int pa__init(pa_module*m) {
     }
 
     IceAddConnectionWatch(new_ice_connection, m->core);
-    ice_in_use = TRUE;
+    ice_in_use = true;
 
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
@@ -244,6 +244,6 @@ void pa__done(pa_module*m) {
 
     if (ice_in_use) {
         IceRemoveConnectionWatch(new_ice_connection, m->core);
-        ice_in_use = FALSE;
+        ice_in_use = false;
     }
 }

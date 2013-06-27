@@ -61,7 +61,7 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
     }
 
     if (pa_x11_get_prop(xcb, screen, "PULSE_SERVER", t, sizeof(t))) {
-        pa_bool_t disable_autospawn = TRUE;
+        bool disable_autospawn = true;
 
         pa_xfree(c->default_server);
         c->default_server = pa_xstrdup(t);
@@ -71,13 +71,13 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
 
             if ((id = pa_session_id())) {
                 if (pa_streq(t, id))
-                    disable_autospawn = FALSE;
+                    disable_autospawn = false;
                 pa_xfree(id);
             }
         }
 
         if (disable_autospawn)
-            c->autospawn = FALSE;
+            c->autospawn = false;
     }
 
     if (pa_x11_get_prop(xcb, screen, "PULSE_SINK", t, sizeof(t))) {
@@ -101,7 +101,7 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
         pa_assert(sizeof(cookie) == sizeof(c->cookie));
         memcpy(c->cookie, cookie, sizeof(cookie));
 
-        c->cookie_valid = TRUE;
+        c->cookie_valid = true;
 
         pa_xfree(c->cookie_file);
         c->cookie_file = NULL;

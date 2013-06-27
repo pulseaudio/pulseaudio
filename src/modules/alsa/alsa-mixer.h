@@ -138,10 +138,10 @@ struct pa_alsa_element {
 
     long constant_volume;
 
-    pa_bool_t override_map:1;
-    pa_bool_t direction_try_other:1;
+    bool override_map:1;
+    bool direction_try_other:1;
 
-    pa_bool_t has_dB:1;
+    bool has_dB:1;
     long min_volume, max_volume;
     long volume_limit; /* -1 for no configured limit */
     double min_dB, max_dB;
@@ -162,8 +162,8 @@ struct pa_alsa_jack {
 
     char *name; /* E g "Headphone" */
     char *alsa_name; /* E g "Headphone Jack" */
-    pa_bool_t has_control; /* is the jack itself present? */
-    pa_bool_t plugged_in; /* is this jack currently plugged in? */
+    bool has_control; /* is the jack itself present? */
+    bool plugged_in; /* is this jack currently plugged in? */
     snd_hctl_elem_t *hctl_elem; /* Jack detection handle */
     pa_available_t state_unplugged, state_plugged;
 
@@ -186,15 +186,15 @@ struct pa_alsa_path {
     int eld_device;
     pa_proplist *proplist;
 
-    pa_bool_t probed:1;
-    pa_bool_t supported:1;
-    pa_bool_t has_mute:1;
-    pa_bool_t has_volume:1;
-    pa_bool_t has_dB:1;
+    bool probed:1;
+    bool supported:1;
+    bool has_mute:1;
+    bool has_volume:1;
+    bool has_dB:1;
     bool mute_during_activation:1;
     /* These two are used during probing only */
-    pa_bool_t has_req_any:1;
-    pa_bool_t req_any_present:1;
+    bool has_req_any:1;
+    bool req_any_present:1;
 
     long min_volume, max_volume;
     double min_dB, max_dB;
@@ -226,12 +226,12 @@ void pa_alsa_element_dump(pa_alsa_element *e);
 
 pa_alsa_path *pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa_direction_t direction);
 pa_alsa_path *pa_alsa_path_synthesize(const char *element, pa_alsa_direction_t direction);
-int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, snd_hctl_t *hctl, pa_bool_t ignore_dB);
+int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, snd_hctl_t *hctl, bool ignore_dB);
 void pa_alsa_path_dump(pa_alsa_path *p);
 int pa_alsa_path_get_volume(pa_alsa_path *p, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v);
-int pa_alsa_path_get_mute(pa_alsa_path *path, snd_mixer_t *m, pa_bool_t *muted);
-int pa_alsa_path_set_volume(pa_alsa_path *path, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, pa_bool_t deferred_volume, pa_bool_t write_to_hw);
-int pa_alsa_path_set_mute(pa_alsa_path *path, snd_mixer_t *m, pa_bool_t muted);
+int pa_alsa_path_get_mute(pa_alsa_path *path, snd_mixer_t *m, bool *muted);
+int pa_alsa_path_set_volume(pa_alsa_path *path, snd_mixer_t *m, const pa_channel_map *cm, pa_cvolume *v, bool deferred_volume, bool write_to_hw);
+int pa_alsa_path_set_mute(pa_alsa_path *path, snd_mixer_t *m, bool muted);
 int pa_alsa_path_select(pa_alsa_path *p, pa_alsa_setting *s, snd_mixer_t *m, bool device_is_muted);
 void pa_alsa_path_set_callback(pa_alsa_path *p, snd_mixer_t *m, snd_mixer_elem_callback_t cb, void *userdata);
 void pa_alsa_path_free(pa_alsa_path *p);
@@ -282,7 +282,7 @@ struct pa_alsa_profile {
     char *description;
     unsigned priority;
 
-    pa_bool_t supported:1;
+    bool supported:1;
 
     char **input_mapping_names;
     char **output_mapping_names;
@@ -314,9 +314,9 @@ struct pa_alsa_profile_set {
     pa_hashmap *input_paths;
     pa_hashmap *output_paths;
 
-    pa_bool_t auto_profiles;
-    pa_bool_t ignore_dB:1;
-    pa_bool_t probed:1;
+    bool auto_profiles;
+    bool ignore_dB:1;
+    bool probed:1;
 };
 
 void pa_alsa_mapping_dump(pa_alsa_mapping *m);

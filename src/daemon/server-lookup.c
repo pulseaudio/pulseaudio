@@ -42,7 +42,7 @@
 struct pa_dbusobj_server_lookup {
     pa_core *core;
     pa_dbus_connection *conn;
-    pa_bool_t path_registered;
+    bool path_registered;
 };
 
 static const char introspection[] =
@@ -82,7 +82,7 @@ static void unregister_cb(DBusConnection *conn, void *user_data) {
     pa_assert(sl);
     pa_assert(sl->path_registered);
 
-    sl->path_registered = FALSE;
+    sl->path_registered = false;
 }
 
 static DBusHandlerResult handle_introspect(DBusConnection *conn, DBusMessage *msg, pa_dbusobj_server_lookup *sl) {
@@ -482,7 +482,7 @@ pa_dbusobj_server_lookup *pa_dbusobj_server_lookup_new(pa_core *c) {
 
     sl = pa_xnew(pa_dbusobj_server_lookup, 1);
     sl->core = c;
-    sl->path_registered = FALSE;
+    sl->path_registered = false;
 
     if (!(sl->conn = pa_dbus_bus_get(c, DBUS_BUS_SESSION, &error)) || dbus_error_is_set(&error)) {
         pa_log_warn("Unable to contact D-Bus: %s: %s", error.name, error.message);
@@ -494,7 +494,7 @@ pa_dbusobj_server_lookup *pa_dbusobj_server_lookup_new(pa_core *c) {
         goto fail;
     }
 
-    sl->path_registered = TRUE;
+    sl->path_registered = true;
 
     return sl;
 

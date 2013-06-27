@@ -44,7 +44,7 @@ pa_memtrap *pa_memtrap_update(pa_memtrap *m, const void *start, size_t size);
 
 void pa_memtrap_remove(pa_memtrap *m);
 
-pa_bool_t pa_memtrap_is_good(pa_memtrap *m);
+bool pa_memtrap_is_good(pa_memtrap *m);
 
 void pa_memtrap_install(void);
 

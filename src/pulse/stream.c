@@ -138,7 +138,7 @@ static pa_stream *pa_stream_new_with_proplist_internal(
         pa_proplist_sets(s->proplist, PA_PROP_MEDIA_NAME, name);
 
     s->channel = 0;
-    s->channel_valid = FALSE;
+    s->channel_valid = false;
     s->syncid = c->csyncid++;
     s->stream_index = PA_INVALID_INDEX;
 
@@ -168,8 +168,8 @@ static pa_stream *pa_stream_new_with_proplist_internal(
 
     s->device_index = PA_INVALID_INDEX;
     s->device_name = NULL;
-    s->suspended = FALSE;
-    s->corked = FALSE;
+    s->suspended = false;
+    s->corked = false;
 
     s->write_memblock = NULL;
     s->write_data = NULL;
@@ -179,7 +179,7 @@ static pa_stream *pa_stream_new_with_proplist_internal(
     s->record_memblockq = NULL;
 
     memset(&s->timing_info, 0, sizeof(s->timing_info));
-    s->timing_info_valid = FALSE;
+    s->timing_info_valid = false;
 
     s->previous_time = 0;
     s->latest_underrun_at_index = -1;
@@ -191,7 +191,7 @@ static pa_stream *pa_stream_new_with_proplist_internal(
     s->current_write_index_correction = 0;
 
     s->auto_timing_update_event = NULL;
-    s->auto_timing_update_requested = FALSE;
+    s->auto_timing_update_requested = false;
     s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
 
     reset_callbacks(s);
@@ -262,7 +262,7 @@ static void stream_unlink(pa_stream *s) {
     if (s->channel_valid) {
         pa_hashmap_remove((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, PA_UINT32_TO_PTR(s->channel));
         s->channel = 0;
-        s->channel_valid = FALSE;
+        s->channel_valid = false;
     }
 
     PA_LLIST_REMOVE(pa_stream, s->context->streams, s);
@@ -376,7 +376,7 @@ void pa_stream_set_state(pa_stream *s, pa_stream_state_t st) {
     pa_stream_unref(s);
 }
 
-static void request_auto_timing_update(pa_stream *s, pa_bool_t force) {
+static void request_auto_timing_update(pa_stream *s, bool force) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
@@ -393,7 +393,7 @@ static void request_auto_timing_update(pa_stream *s, pa_bool_t force) {
 
         if ((o = pa_stream_update_timing_info(s, NULL, NULL))) {
             pa_operation_unref(o);
-            s->auto_timing_update_requested = TRUE;
+            s->auto_timing_update_requested = true;
         }
     }
 
@@ -445,7 +445,7 @@ finish:
     pa_context_unref(c);
 }
 
-static void check_smoother_status(pa_stream *s, pa_bool_t aposteriori, pa_bool_t force_start, pa_bool_t force_stop) {
+static void check_smoother_status(pa_stream *s, bool aposteriori, bool force_start, bool force_stop) {
     pa_usec_t x;
 
     pa_assert(s);
@@ -483,7 +483,7 @@ static void check_smoother_status(pa_stream *s, pa_bool_t aposteriori, pa_bool_t
             return;
         }
 
-        pa_smoother_resume(s->smoother, x, TRUE);
+        pa_smoother_resume(s->smoother, x, true);
     }
 
     /* Please note that we have no idea if playback actually started
@@ -497,7 +497,7 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
     pa_stream *s;
     uint32_t channel;
     const char *dn;
-    pa_bool_t suspended;
+    bool suspended;
     uint32_t di;
     pa_usec_t usec = 0;
     uint32_t maxlength = 0, fragsize = 0, minreq = 0, tlength = 0, prebuf = 0;
@@ -582,11 +582,11 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
     if ((s->flags & PA_STREAM_AUTO_TIMING_UPDATE) && !suspended && !s->auto_timing_update_event) {
         s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
         s->auto_timing_update_event = pa_context_rttime_new(s->context, pa_rtclock_now() + s->auto_timing_interval_usec, &auto_timing_update_callback, s);
-        request_auto_timing_update(s, TRUE);
+        request_auto_timing_update(s, true);
     }
 
-    check_smoother_status(s, TRUE, FALSE, FALSE);
-    request_auto_timing_update(s, TRUE);
+    check_smoother_status(s, true, false, false);
+    request_auto_timing_update(s, true);
 
     if (s->moved_callback)
         s->moved_callback(s, s->moved_userdata);
@@ -660,7 +660,7 @@ void pa_command_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, uint32_t 
     s->buffer_attr.prebuf = prebuf;
     s->buffer_attr.minreq = minreq;
 
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     if (s->buffer_attr_callback)
         s->buffer_attr_callback(s, s->buffer_attr_userdata);
@@ -673,7 +673,7 @@ void pa_command_stream_suspended(pa_pdispatch *pd, uint32_t command, uint32_t ta
     pa_context *c = userdata;
     pa_stream *s;
     uint32_t channel;
-    pa_bool_t suspended;
+    bool suspended;
 
     pa_assert(pd);
     pa_assert(command == PA_COMMAND_PLAYBACK_STREAM_SUSPENDED || command == PA_COMMAND_RECORD_STREAM_SUSPENDED);
@@ -706,11 +706,11 @@ void pa_command_stream_suspended(pa_pdispatch *pd, uint32_t command, uint32_t ta
     if ((s->flags & PA_STREAM_AUTO_TIMING_UPDATE) && !suspended && !s->auto_timing_update_event) {
         s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
         s->auto_timing_update_event = pa_context_rttime_new(s->context, pa_rtclock_now() + s->auto_timing_interval_usec, &auto_timing_update_callback, s);
-        request_auto_timing_update(s, TRUE);
+        request_auto_timing_update(s, true);
     }
 
-    check_smoother_status(s, TRUE, FALSE, FALSE);
-    request_auto_timing_update(s, TRUE);
+    check_smoother_status(s, true, false, false);
+    request_auto_timing_update(s, true);
 
     if (s->suspended_callback)
         s->suspended_callback(s, s->suspended_userdata);
@@ -749,8 +749,8 @@ void pa_command_stream_started(pa_pdispatch *pd, uint32_t command, uint32_t tag,
     if (s->state != PA_STREAM_READY)
         goto finish;
 
-    check_smoother_status(s, TRUE, TRUE, FALSE);
-    request_auto_timing_update(s, TRUE);
+    check_smoother_status(s, true, true, false);
+    request_auto_timing_update(s, true);
 
     if (s->started_callback)
         s->started_callback(s, s->started_userdata);
@@ -897,9 +897,9 @@ void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, uint32
         s->latest_underrun_at_index = offset;
 
     if (s->buffer_attr.prebuf > 0)
-        check_smoother_status(s, TRUE, FALSE, TRUE);
+        check_smoother_status(s, true, false, true);
 
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     if (command == PA_COMMAND_OVERFLOW) {
         if (s->overflow_callback)
@@ -913,7 +913,7 @@ finish:
     pa_context_unref(c);
 }
 
-static void invalidate_indexes(pa_stream *s, pa_bool_t r, pa_bool_t w) {
+static void invalidate_indexes(pa_stream *s, bool r, bool w) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
@@ -928,7 +928,7 @@ static void invalidate_indexes(pa_stream *s, pa_bool_t r, pa_bool_t w) {
         s->write_index_not_before = s->context->ctag;
 
         if (s->timing_info_valid)
-            s->timing_info.write_index_corrupt = TRUE;
+            s->timing_info.write_index_corrupt = true;
 
 #ifdef STREAM_DEBUG
         pa_log_debug("write_index invalidated");
@@ -939,14 +939,14 @@ static void invalidate_indexes(pa_stream *s, pa_bool_t r, pa_bool_t w) {
         s->read_index_not_before = s->context->ctag;
 
         if (s->timing_info_valid)
-            s->timing_info.read_index_corrupt = TRUE;
+            s->timing_info.read_index_corrupt = true;
 
 #ifdef STREAM_DEBUG
         pa_log_debug("read_index invalidated");
 #endif
     }
 
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 }
 
 static void auto_timing_update_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata) {
@@ -956,7 +956,7 @@ static void auto_timing_update_callback(pa_mainloop_api *m, pa_time_event *e, co
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
     pa_stream_ref(s);
-    request_auto_timing_update(s, FALSE);
+    request_auto_timing_update(s, false);
     pa_stream_unref(s);
 }
 
@@ -975,10 +975,10 @@ static void create_stream_complete(pa_stream *s) {
         pa_assert(!s->auto_timing_update_event);
         s->auto_timing_update_event = pa_context_rttime_new(s->context, pa_rtclock_now() + s->auto_timing_interval_usec, &auto_timing_update_callback, s);
 
-        request_auto_timing_update(s, TRUE);
+        request_auto_timing_update(s, true);
     }
 
-    check_smoother_status(s, TRUE, FALSE, FALSE);
+    check_smoother_status(s, true, false, false);
 }
 
 static void patch_buffer_attr(pa_stream *s, pa_buffer_attr *attr, pa_stream_flags_t *flags) {
@@ -1041,7 +1041,7 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
     pa_stream_ref(s);
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(s->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(s->context, command, t, false) < 0)
             goto finish;
 
         pa_stream_set_state(s, PA_STREAM_FAILED);
@@ -1080,7 +1080,7 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
         pa_sample_spec ss;
         pa_channel_map cm;
         const char *dn = NULL;
-        pa_bool_t suspended;
+        bool suspended;
 
         if (pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
             pa_tagstruct_get_channel_map(t, &cm) < 0 ||
@@ -1163,7 +1163,7 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
                 NULL);
     }
 
-    s->channel_valid = TRUE;
+    s->channel_valid = true;
     pa_hashmap_put((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, PA_UINT32_TO_PTR(s->channel), s);
 
     create_stream_complete(s);
@@ -1183,7 +1183,7 @@ static int create_stream(
 
     pa_tagstruct *t;
     uint32_t tag;
-    pa_bool_t volume_set = !!volume;
+    bool volume_set = !!volume;
     pa_cvolume cv;
     uint32_t i;
 
@@ -1252,10 +1252,10 @@ static int create_stream(
                 SMOOTHER_ADJUST_TIME,
                 SMOOTHER_HISTORY_TIME,
                 !(flags & PA_STREAM_NOT_MONOTONIC),
-                TRUE,
+                true,
                 SMOOTHER_MIN_HISTORY,
                 x,
-                TRUE);
+                true);
     }
 
     if (!dev)
@@ -1562,31 +1562,31 @@ int pa_stream_write(
         if (s->write_index_corrections[s->current_write_index_correction].valid) {
 
             if (seek == PA_SEEK_ABSOLUTE) {
-                s->write_index_corrections[s->current_write_index_correction].corrupt = FALSE;
-                s->write_index_corrections[s->current_write_index_correction].absolute = TRUE;
+                s->write_index_corrections[s->current_write_index_correction].corrupt = false;
+                s->write_index_corrections[s->current_write_index_correction].absolute = true;
                 s->write_index_corrections[s->current_write_index_correction].value = offset + (int64_t) length;
             } else if (seek == PA_SEEK_RELATIVE) {
                 if (!s->write_index_corrections[s->current_write_index_correction].corrupt)
                     s->write_index_corrections[s->current_write_index_correction].value += offset + (int64_t) length;
             } else
-                s->write_index_corrections[s->current_write_index_correction].corrupt = TRUE;
+                s->write_index_corrections[s->current_write_index_correction].corrupt = true;
         }
 
         /* Update the write index in the already available latency data */
         if (s->timing_info_valid) {
 
             if (seek == PA_SEEK_ABSOLUTE) {
-                s->timing_info.write_index_corrupt = FALSE;
+                s->timing_info.write_index_corrupt = false;
                 s->timing_info.write_index = offset + (int64_t) length;
             } else if (seek == PA_SEEK_RELATIVE) {
                 if (!s->timing_info.write_index_corrupt)
                     s->timing_info.write_index += offset + (int64_t) length;
             } else
-                s->timing_info.write_index_corrupt = TRUE;
+                s->timing_info.write_index_corrupt = true;
         }
 
         if (!s->timing_info_valid || s->timing_info.write_index_corrupt)
-            request_auto_timing_update(s, TRUE);
+            request_auto_timing_update(s, true);
     }
 
     return 0;
@@ -1691,7 +1691,7 @@ pa_operation * pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *us
     /* Ask for a timing update before we cork/uncork to get the best
      * accuracy for the transport latency suitable for the
      * check_smoother_status() call in the started callback */
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
 
@@ -1702,12 +1702,12 @@ pa_operation * pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *us
 
     /* This might cause the read index to continue again, hence
      * let's request a timing update */
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     return o;
 }
 
-static pa_usec_t calc_time(pa_stream *s, pa_bool_t ignore_transport) {
+static pa_usec_t calc_time(pa_stream *s, bool ignore_transport) {
     pa_usec_t usec;
 
     pa_assert(s);
@@ -1772,7 +1772,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
     pa_operation *o = userdata;
     struct timeval local, remote, now;
     pa_timing_info *i;
-    pa_bool_t playing = FALSE;
+    bool playing = false;
     uint64_t underrun_for = 0, playing_for = 0;
 
     pa_assert(pd);
@@ -1784,12 +1784,12 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
 
     i = &o->stream->timing_info;
 
-    o->stream->timing_info_valid = FALSE;
-    i->write_index_corrupt = TRUE;
-    i->read_index_corrupt = TRUE;
+    o->stream->timing_info_valid = false;
+    i->write_index_corrupt = true;
+    i->read_index_corrupt = true;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
     } else {
@@ -1819,9 +1819,9 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
             pa_context_fail(o->context, PA_ERR_PROTOCOL);
             goto finish;
         }
-        o->stream->timing_info_valid = TRUE;
-        i->write_index_corrupt = FALSE;
-        i->read_index_corrupt = FALSE;
+        o->stream->timing_info_valid = true;
+        i->write_index_corrupt = false;
+        i->read_index_corrupt = false;
 
         i->playing = (int) playing;
         i->since_underrun = (int64_t) (playing ? playing_for : underrun_for);
@@ -1837,22 +1837,22 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
             else
                 i->transport_usec = pa_timeval_diff(&now, &remote);
 
-            i->synchronized_clocks = TRUE;
+            i->synchronized_clocks = true;
             i->timestamp = remote;
         } else {
             /* clocks are not synchronized, let's estimate latency then */
             i->transport_usec = pa_timeval_diff(&now, &local)/2;
-            i->synchronized_clocks = FALSE;
+            i->synchronized_clocks = false;
             i->timestamp = local;
             pa_timeval_add(&i->timestamp, i->transport_usec);
         }
 
         /* Invalidate read and write indexes if necessary */
         if (tag < o->stream->read_index_not_before)
-            i->read_index_corrupt = TRUE;
+            i->read_index_corrupt = true;
 
         if (tag < o->stream->write_index_not_before)
-            i->write_index_corrupt = TRUE;
+            i->write_index_corrupt = true;
 
         if (o->stream->direction == PA_STREAM_PLAYBACK) {
             /* Write index correction */
@@ -1877,11 +1877,11 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                 /* Now fix the write index */
                 if (o->stream->write_index_corrections[j].corrupt) {
                     /* A corrupting seek was made */
-                    i->write_index_corrupt = TRUE;
+                    i->write_index_corrupt = true;
                 } else if (o->stream->write_index_corrections[j].absolute) {
                     /* An absolute seek was made */
                     i->write_index = o->stream->write_index_corrections[j].value;
-                    i->write_index_corrupt = FALSE;
+                    i->write_index_corrupt = false;
                 } else if (!i->write_index_corrupt) {
                     /* A relative seek was made */
                     i->write_index += o->stream->write_index_corrections[j].value;
@@ -1894,7 +1894,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                     continue;
 
                 if (o->stream->write_index_corrections[n].tag <= tag)
-                    o->stream->write_index_corrections[n].valid = FALSE;
+                    o->stream->write_index_corrections[n].valid = false;
             }
         }
 
@@ -1931,14 +1931,14 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
             /* Update the smoother */
             if ((o->stream->direction == PA_STREAM_PLAYBACK && !i->read_index_corrupt) ||
                 (o->stream->direction == PA_STREAM_RECORD && !i->write_index_corrupt))
-                pa_smoother_put(o->stream->smoother, u, calc_time(o->stream, TRUE));
+                pa_smoother_put(o->stream->smoother, u, calc_time(o->stream, true));
 
             if (i->playing)
-                pa_smoother_resume(o->stream->smoother, x, TRUE);
+                pa_smoother_resume(o->stream->smoother, x, true);
         }
     }
 
-    o->stream->auto_timing_update_requested = FALSE;
+    o->stream->auto_timing_update_requested = false;
 
     if (o->stream->latency_update_callback)
         o->stream->latency_update_callback(o->stream, o->stream->latency_update_userdata);
@@ -1992,9 +1992,9 @@ pa_operation* pa_stream_update_timing_info(pa_stream *s, pa_stream_success_cb_t 
 
         s->current_write_index_correction = cidx;
 
-        s->write_index_corrections[cidx].valid = TRUE;
-        s->write_index_corrections[cidx].absolute = FALSE;
-        s->write_index_corrections[cidx].corrupt = FALSE;
+        s->write_index_corrections[cidx].valid = true;
+        s->write_index_corrections[cidx].absolute = false;
+        s->write_index_corrections[cidx].corrupt = false;
         s->write_index_corrections[cidx].tag = tag;
         s->write_index_corrections[cidx].value = 0;
     }
@@ -2012,7 +2012,7 @@ void pa_stream_disconnect_callback(pa_pdispatch *pd, uint32_t command, uint32_t 
     pa_stream_ref(s);
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(s->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(s->context, command, t, false) < 0)
             goto finish;
 
         pa_stream_set_state(s, PA_STREAM_FAILED);
@@ -2220,7 +2220,7 @@ void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t 
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         success = 0;
@@ -2254,7 +2254,7 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
     /* Ask for a timing update before we cork/uncork to get the best
      * accuracy for the transport latency suitable for the
      * check_smoother_status() call in the started callback */
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     s->corked = b;
 
@@ -2269,11 +2269,11 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
-    check_smoother_status(s, FALSE, FALSE, FALSE);
+    check_smoother_status(s, false, false, false);
 
     /* This might cause the indexes to hang/start again, hence let's
      * request a timing update, after the cork/uncork, too */
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     return o;
 }
@@ -2312,7 +2312,7 @@ pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *use
     /* Ask for a timing update *before* the flush, so that the
      * transport usec is as up to date as possible when we get the
      * underflow message and update the smoother status*/
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     if (!(o = stream_send_simple_command(s, (uint32_t) (s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM), cb, userdata)))
         return NULL;
@@ -2320,19 +2320,19 @@ pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *use
     if (s->direction == PA_STREAM_PLAYBACK) {
 
         if (s->write_index_corrections[s->current_write_index_correction].valid)
-            s->write_index_corrections[s->current_write_index_correction].corrupt = TRUE;
+            s->write_index_corrections[s->current_write_index_correction].corrupt = true;
 
         if (s->buffer_attr.prebuf > 0)
-            check_smoother_status(s, FALSE, FALSE, TRUE);
+            check_smoother_status(s, false, false, true);
 
         /* This will change the write index, but leave the
          * read index untouched. */
-        invalidate_indexes(s, FALSE, TRUE);
+        invalidate_indexes(s, false, true);
 
     } else
         /* For record streams this has no influence on the write
          * index, but the read index might jump. */
-        invalidate_indexes(s, TRUE, FALSE);
+        invalidate_indexes(s, true, false);
 
     /* Note that we do not update requested_bytes here. This is
      * because we cannot really know how data actually was dropped
@@ -2356,14 +2356,14 @@ pa_operation* pa_stream_prebuf(pa_stream *s, pa_stream_success_cb_t cb, void *us
     /* Ask for a timing update before we cork/uncork to get the best
      * accuracy for the transport latency suitable for the
      * check_smoother_status() call in the started callback */
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     if (!(o = stream_send_simple_command(s, PA_COMMAND_PREBUF_PLAYBACK_STREAM, cb, userdata)))
         return NULL;
 
     /* This might cause the read index to hang again, hence
      * let's request a timing update */
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     return o;
 }
@@ -2382,14 +2382,14 @@ pa_operation* pa_stream_trigger(pa_stream *s, pa_stream_success_cb_t cb, void *u
     /* Ask for a timing update before we cork/uncork to get the best
      * accuracy for the transport latency suitable for the
      * check_smoother_status() call in the started callback */
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     if (!(o = stream_send_simple_command(s, PA_COMMAND_TRIGGER_PLAYBACK_STREAM, cb, userdata)))
         return NULL;
 
     /* This might cause the read index to start moving again, hence
      * let's request a timing update */
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     return o;
 }
@@ -2445,7 +2445,7 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
     if (s->smoother)
         usec = pa_smoother_get(s->smoother, pa_rtclock_now());
     else
-        usec = calc_time(s, FALSE);
+        usec = calc_time(s, false);
 
     /* Make sure the time runs monotonically */
     if (!(s->flags & PA_STREAM_NOT_MONOTONIC)) {
@@ -2579,7 +2579,7 @@ static void stream_set_buffer_attr_callback(pa_pdispatch *pd, uint32_t command, 
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         success = 0;
@@ -2648,7 +2648,7 @@ pa_operation* pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr
     /* Ask for a timing update before we cork/uncork to get the best
      * accuracy for the transport latency suitable for the
      * check_smoother_status() call in the started callback */
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
 
@@ -2685,7 +2685,7 @@ pa_operation* pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr
 
     /* This might cause changes in the read/write index, hence let's
      * request a timing update */
-    request_auto_timing_update(s, TRUE);
+    request_auto_timing_update(s, true);
 
     return o;
 }
@@ -2751,7 +2751,7 @@ static void stream_update_sample_rate_callback(pa_pdispatch *pd, uint32_t comman
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
+        if (pa_context_handle_error(o->context, command, t, false) < 0)
             goto finish;
 
         success = 0;

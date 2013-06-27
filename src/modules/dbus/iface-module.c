@@ -261,7 +261,7 @@ static void handle_unload(DBusConnection *conn, DBusMessage *msg, void *userdata
         return;
     }
 
-    pa_module_unload_request(m->module, FALSE);
+    pa_module_unload_request(m->module, false);
 
     pa_dbus_send_empty_reply(conn, msg);
 }

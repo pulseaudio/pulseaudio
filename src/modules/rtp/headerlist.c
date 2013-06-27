@@ -61,7 +61,7 @@ void pa_headerlist_free(pa_headerlist* p) {
 
 int pa_headerlist_puts(pa_headerlist *p, const char *key, const char *value) {
     struct header *hdr;
-    pa_bool_t add = FALSE;
+    bool add = false;
 
     pa_assert(p);
     pa_assert(key);
@@ -69,7 +69,7 @@ int pa_headerlist_puts(pa_headerlist *p, const char *key, const char *value) {
     if (!(hdr = pa_hashmap_get(MAKE_HASHMAP(p), key))) {
         hdr = pa_xnew(struct header, 1);
         hdr->key = pa_xstrdup(key);
-        add = TRUE;
+        add = true;
     } else
         pa_xfree(hdr->value);
 
@@ -84,7 +84,7 @@ int pa_headerlist_puts(pa_headerlist *p, const char *key, const char *value) {
 
 int pa_headerlist_putsappend(pa_headerlist *p, const char *key, const char *value) {
     struct header *hdr;
-    pa_bool_t add = FALSE;
+    bool add = false;
 
     pa_assert(p);
     pa_assert(key);
@@ -93,7 +93,7 @@ int pa_headerlist_putsappend(pa_headerlist *p, const char *key, const char *valu
         hdr = pa_xnew(struct header, 1);
         hdr->key = pa_xstrdup(key);
         hdr->value = pa_xstrdup(value);
-        add = TRUE;
+        add = true;
     } else {
         void *newval = pa_sprintf_malloc("%s%s", (char*)hdr->value, value);
         pa_xfree(hdr->value);
