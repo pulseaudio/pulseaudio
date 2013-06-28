@@ -244,6 +244,53 @@ static pa_resample_method_t pa_resampler_fix_method(
     return method;
 }
 
+/* Return true if a is a more precise sample format than b, else return false */
+static bool sample_format_more_precise(pa_sample_format_t a, pa_sample_format_t b) {
+    pa_assert(a >= 0 && a < PA_SAMPLE_MAX);
+    pa_assert(b >= 0 && b < PA_SAMPLE_MAX);
+
+    switch (a) {
+        case PA_SAMPLE_U8:
+        case PA_SAMPLE_ALAW:
+        case PA_SAMPLE_ULAW:
+            return false;
+            break;
+
+        case PA_SAMPLE_S16LE:
+        case PA_SAMPLE_S16BE:
+            if (b == PA_SAMPLE_ULAW || b == PA_SAMPLE_ALAW || b == PA_SAMPLE_U8)
+                return true;
+            else
+                return false;
+            break;
+
+        case PA_SAMPLE_S24LE:
+        case PA_SAMPLE_S24BE:
+        case PA_SAMPLE_S24_32LE:
+        case PA_SAMPLE_S24_32BE:
+            if (b == PA_SAMPLE_ULAW || b == PA_SAMPLE_ALAW || b == PA_SAMPLE_U8 ||
+                b == PA_SAMPLE_S16LE || b == PA_SAMPLE_S16BE)
+                return true;
+            else
+                return false;
+            break;
+
+        case PA_SAMPLE_FLOAT32LE:
+        case PA_SAMPLE_FLOAT32BE:
+        case PA_SAMPLE_S32LE:
+        case PA_SAMPLE_S32BE:
+            if (b == PA_SAMPLE_FLOAT32LE || b == PA_SAMPLE_FLOAT32BE ||
+                b == PA_SAMPLE_S32LE || b == PA_SAMPLE_FLOAT32BE)
+                return false;
+            else
+                return true;
+            break;
+
+        default:
+            return false;
+    }
+}
+
 static pa_sample_format_t pa_resampler_choose_work_format(
                     pa_resample_method_t method,
                     pa_sample_format_t a,
@@ -279,14 +326,8 @@ static pa_sample_format_t pa_resampler_choose_work_format(
         case PA_RESAMPLER_PEAKS:
             if (a == PA_SAMPLE_S16NE || b == PA_SAMPLE_S16NE)
                 work_format = PA_SAMPLE_S16NE;
-            else if (a == PA_SAMPLE_S32NE || a == PA_SAMPLE_S32RE ||
-                a == PA_SAMPLE_FLOAT32NE || a == PA_SAMPLE_FLOAT32RE ||
-                a == PA_SAMPLE_S24NE || a == PA_SAMPLE_S24RE ||
-                a == PA_SAMPLE_S24_32NE || a == PA_SAMPLE_S24_32RE ||
-                b == PA_SAMPLE_S32NE || b == PA_SAMPLE_S32RE ||
-                b == PA_SAMPLE_FLOAT32NE || b == PA_SAMPLE_FLOAT32RE ||
-                b == PA_SAMPLE_S24NE || b == PA_SAMPLE_S24RE ||
-                b == PA_SAMPLE_S24_32NE || b == PA_SAMPLE_S24_32RE)
+            else if (sample_format_more_precise(a, PA_SAMPLE_S16NE) ||
+                     sample_format_more_precise(b, PA_SAMPLE_S16NE))
                 work_format = PA_SAMPLE_FLOAT32NE;
             else
                 work_format = PA_SAMPLE_S16NE;
