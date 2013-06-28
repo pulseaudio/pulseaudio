@@ -226,6 +226,16 @@ static pa_resample_method_t pa_resampler_fix_method(
                 method = PA_RESAMPLER_AUTO;
             }
             break;
+
+        /* The Peaks resampler only supports downsampling.
+         * Revert to auto if we are upsampling */
+        case PA_RESAMPLER_PEAKS:
+            if (rate_a < rate_b) {
+                pa_log_warn("The 'peaks' resampler only supports downsampling, reverting to resampler 'auto'.");
+                method = PA_RESAMPLER_AUTO;
+            }
+            break;
+
         default:
             break;
     }
