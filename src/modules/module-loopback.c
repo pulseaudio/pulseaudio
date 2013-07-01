@@ -419,6 +419,13 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
 
     pa_sink_input_update_proplist(u->sink_input, PA_UPDATE_REPLACE, p);
     pa_proplist_free(p);
+
+    if (pa_source_get_state(dest) == PA_SOURCE_SUSPENDED)
+        pa_sink_input_cork(u->sink_input, true);
+    else
+        pa_sink_input_cork(u->sink_input, false);
+
+    update_adjust_timer(u);
 }
 
 /* Called from main thread */
@@ -684,6 +691,13 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
 
     pa_source_output_update_proplist(u->source_output, PA_UPDATE_REPLACE, p);
     pa_proplist_free(p);
+
+    if (pa_sink_get_state(dest) == PA_SINK_SUSPENDED)
+        pa_source_output_cork(u->source_output, true);
+    else
+        pa_source_output_cork(u->source_output, false);
+
+    update_adjust_timer(u);
 }
 
 /* Called from main thread */
