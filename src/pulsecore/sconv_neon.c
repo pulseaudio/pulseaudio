@@ -36,12 +36,9 @@ static void pa_sconv_s16le_from_f32ne_neon(unsigned n, const float *src, int16_t
         "movs       %[n], %[n], lsr #2      \n\t"
         "beq        2f                      \n\t"
 
-        "vdup.f32   q1, %[scale]            \n\t"
-
         "1:                                 \n\t"
         "vld1.32    {q0}, [%[src]]!         \n\t"
-        "vmul.f32   q0, q0, q1              \n\t" /* scale */
-        "vcvt.s32.f32 q0, q0, #16           \n\t" /* s32<-f32 as 16:16 fixed-point */
+        "vcvt.s32.f32 q0, q0, #31           \n\t" /* s32<-f32 as 16:16 fixed-point, with implicit multiplication by 32768 */
         "vqrshrn.s32 d0, q0, #16            \n\t" /* shift, round, narrow */
         "subs       %[n], %[n], #1          \n\t"
         "vst1.16    {d0}, [%[dst]]!         \n\t"
@@ -50,8 +47,8 @@ static void pa_sconv_s16le_from_f32ne_neon(unsigned n, const float *src, int16_t
         "2:                                 \n\t"
 
         : [dst] "+r" (dst), [src] "+r" (src), [n] "+r" (n) /* output operands (or input operands that get modified) */
-        : [scale] "r" (32768.0f) /* input operands */
-        : "memory", "cc", "q0", "q1" /* clobber list */
+        : /* input operands */
+        : "memory", "cc", "q0" /* clobber list */
     );
 
     /* leftovers */
