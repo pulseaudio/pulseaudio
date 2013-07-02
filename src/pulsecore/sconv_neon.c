@@ -61,19 +61,14 @@ static void pa_sconv_s16le_from_f32ne_neon(unsigned n, const float *src, int16_t
 static void pa_sconv_s16le_to_f32ne_neon(unsigned n, const int16_t *src, float *dst) {
     unsigned i = n & 3;
 
-    const float invscale = 1.0f / (1 << 15);
-
     __asm__ __volatile__ (
         "movs        %[n], %[n], lsr #2     \n\t"
         "beq        2f                      \n\t"
 
-        "vdup.f32   q1, %[invscale]         \n\t"
-
         "1:                                 \n\t"
         "vld1.16    {d0}, [%[src]]!         \n\t"
         "vmovl.s16  q0, d0                  \n\t" /* widen */
-        "vcvt.f32.s32 q0, q0                \n\t" /* f32<-s32 */
-        "vmul.f32   q0, q0, q1              \n\t"
+        "vcvt.f32.s32 q0, q0, #15           \n\t" /* f32<-s32 and divide by (1<<15) */
         "subs       %[n], %[n], #1          \n\t"
         "vst1.32    {q0}, [%[dst]]!         \n\t"
         "bgt        1b                      \n\t"
@@ -81,11 +76,12 @@ static void pa_sconv_s16le_to_f32ne_neon(unsigned n, const int16_t *src, float *
         "2:                                 \n\t"
 
         : [dst] "+r" (dst), [src] "+r" (src), [n] "+r" (n) /* output operands (or input operands that get modified) */
-        : [invscale] "r" (invscale) /* input operands */
-        : "memory", "cc", "q0", "q1" /* clobber list */
+        : /* input operands */
+        : "memory", "cc", "q0" /* clobber list */
     );
 
     /* leftovers */
+    const float invscale = 1.0f / (1 << 15);
     while (i--) {
         *dst++ = *src++ * invscale;
     }
