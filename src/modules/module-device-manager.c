@@ -263,6 +263,11 @@ static struct entry* legacy_entry_read(struct userdata *u, pa_datum *data) {
         return NULL;
     }
 
+    if (!le->description[0]) {
+        pa_log_warn("Description is empty.");
+        return NULL;
+    }
+
     if (!memchr(le->icon, 0, sizeof(le->icon))) {
         pa_log_warn("Icon has missing NUL byte.");
         return NULL;
@@ -306,6 +311,11 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
 
     if (e->user_set_description && !description) {
         pa_log("Entry has user_set_description set, but the description is NULL.");
+        goto fail;
+    }
+
+    if (e->user_set_description && !*description) {
+        pa_log("Entry has user_set_description set, but the description is empty.");
         goto fail;
     }
 
