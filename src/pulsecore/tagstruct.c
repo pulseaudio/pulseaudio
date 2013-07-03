@@ -304,6 +304,15 @@ void pa_tagstruct_put_format_info(pa_tagstruct *t, pa_format_info *f) {
     pa_tagstruct_put_proplist(t, f->plist);
 }
 
+void pa_tagstruct_put_direction(pa_tagstruct *t, pa_direction_t direction) {
+    pa_assert(t);
+
+    extend(t, 2);
+
+    t->data[t->length++] = PA_TAG_DIRECTION;
+    t->data[t->length++] = (uint8_t) direction;
+}
+
 int pa_tagstruct_gets(pa_tagstruct*t, const char **s) {
     int error = 0;
     size_t n;
@@ -675,6 +684,30 @@ int pa_tagstruct_get_format_info(pa_tagstruct *t, pa_format_info *f) {
 fail:
     t->rindex = saved_rindex;
     return -1;
+}
+
+int pa_tagstruct_get_direction(pa_tagstruct *t, pa_direction_t *direction) {
+    uint8_t u;
+    uint8_t mask = PA_DIRECTION_OUTPUT | PA_DIRECTION_INPUT;
+
+    pa_assert(t);
+    pa_assert(direction);
+
+    if (t->rindex + 2 > t->length)
+        return -1;
+
+    if (t->data[t->rindex] != PA_TAG_DIRECTION)
+        return -1;
+
+    u = t->data[t->rindex + 1];
+
+    if (!(u & mask) || (u & ~mask))
+        return -1;
+
+    *direction = (pa_direction_t) u;
+    t->rindex += 2;
+
+    return 0;
 }
 
 void pa_tagstruct_put(pa_tagstruct *t, ...) {
