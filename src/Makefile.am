@@ -882,6 +882,7 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/module.c pulsecore/module.h \
 		pulsecore/msgobject.c pulsecore/msgobject.h \
 		pulsecore/namereg.c pulsecore/namereg.h \
+		pulsecore/node.c pulsecore/node.h \
 		pulsecore/object.c pulsecore/object.h \
 		pulsecore/play-memblockq.c pulsecore/play-memblockq.h \
 		pulsecore/play-memchunk.c pulsecore/play-memchunk.h \

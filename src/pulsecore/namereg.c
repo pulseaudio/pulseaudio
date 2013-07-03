@@ -119,7 +119,7 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
     if (!*name)
         return NULL;
 
-    if ((type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE || type == PA_NAMEREG_CARD) &&
+    if ((type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE || type == PA_NAMEREG_CARD || type == PA_NAMEREG_NODE) &&
         !pa_namereg_is_valid_name(name)) {
 
         if (fail)

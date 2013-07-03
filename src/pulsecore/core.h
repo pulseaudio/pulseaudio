@@ -139,7 +139,7 @@ struct pa_core {
     pa_mainloop_api *mainloop;
 
     /* idxset of all kinds of entities */
-    pa_idxset *clients, *cards, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache;
+    pa_idxset *clients, *cards, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache, *nodes;
 
     /* Some hashmaps for all sorts of entities */
     pa_hashmap *namereg, *shared;

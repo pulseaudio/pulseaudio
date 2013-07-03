@@ -99,6 +99,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, size_t shm_size) {
     c->source_outputs = pa_idxset_new(NULL, NULL);
     c->modules = pa_idxset_new(NULL, NULL);
     c->scache = pa_idxset_new(NULL, NULL);
+    c->nodes = pa_idxset_new(NULL, NULL);
 
     c->namereg = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     c->shared = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);

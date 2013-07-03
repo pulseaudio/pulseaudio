@@ -31,7 +31,8 @@ typedef enum pa_namereg_type {
     PA_NAMEREG_SINK,
     PA_NAMEREG_SOURCE,
     PA_NAMEREG_SAMPLE,
-    PA_NAMEREG_CARD
+    PA_NAMEREG_CARD,
+    PA_NAMEREG_NODE
 } pa_namereg_type_t;
 
 const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t type, void *data, bool fail);
