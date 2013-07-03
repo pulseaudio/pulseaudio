@@ -248,12 +248,10 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
         pa_source_set_asyncmsgq(u->source, NULL);
 
     if (u->auto_desc && dest) {
-        const char *k;
         pa_proplist *pl;
 
         pl = pa_proplist_new();
-        k = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "Remapped %s", k ? k : dest->name);
+        pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "Remapped %s", pa_source_get_description(dest));
 
         pa_source_update_proplist(u->source, PA_UPDATE_REPLACE, pl);
         pa_proplist_free(pl);
@@ -329,12 +327,8 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if ((u->auto_desc = !pa_proplist_contains(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION))) {
-        const char *k;
-
-        k = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Remapped %s", k ? k : master->name);
-    }
+    if ((u->auto_desc = !pa_proplist_contains(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION)))
+        pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Remapped %s", pa_source_get_description(master));
 
     u->source = pa_source_new(m->core, &source_data, master->flags & (PA_SOURCE_LATENCY|PA_SOURCE_DYNAMIC_LATENCY));
     pa_source_new_data_done(&source_data);

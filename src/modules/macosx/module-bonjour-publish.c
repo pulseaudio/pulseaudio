@@ -297,13 +297,10 @@ static struct service *get_service(struct userdata *u, pa_object *device) {
     s->userdata = u;
     s->device = device;
 
-    if (pa_sink_isinstance(device)) {
-        if (!(n = pa_proplist_gets(PA_SINK(device)->proplist, PA_PROP_DEVICE_DESCRIPTION)))
-            n = PA_SINK(device)->name;
-    } else {
-        if (!(n = pa_proplist_gets(PA_SOURCE(device)->proplist, PA_PROP_DEVICE_DESCRIPTION)))
-            n = PA_SOURCE(device)->name;
-    }
+    if (pa_sink_isinstance(device))
+        n = pa_sink_get_description(PA_SINK(device));
+    else
+        n = pa_source_get_description(PA_SOURCE(device));
 
     hn = pa_get_host_name_malloc();
     un = pa_get_user_name_malloc();

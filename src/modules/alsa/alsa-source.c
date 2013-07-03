@@ -172,14 +172,12 @@ static void reserve_done(struct userdata *u) {
 }
 
 static void reserve_update(struct userdata *u) {
-    const char *description;
     pa_assert(u);
 
     if (!u->source || !u->reserve)
         return;
 
-    if ((description = pa_proplist_gets(u->source->proplist, PA_PROP_DEVICE_DESCRIPTION)))
-        pa_reserve_wrapper_set_application_device_name(u->reserve, description);
+    pa_reserve_wrapper_set_application_device_name(u->reserve, pa_source_get_description(u->source));
 }
 
 static int reserve_init(struct userdata *u, const char *dname) {

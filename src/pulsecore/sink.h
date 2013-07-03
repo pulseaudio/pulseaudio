@@ -411,6 +411,7 @@ unsigned pa_device_init_priority(pa_proplist *p);
 
 /**** May be called by everyone, from main context */
 
+const char *pa_sink_get_description(pa_sink *s);
 int pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough);
 void pa_sink_set_latency_offset(pa_sink *s, int64_t offset);
 

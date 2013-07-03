@@ -1084,7 +1084,6 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma;
-    const char *z;
     pa_sink *master;
     pa_sink_input_new_data sink_input_data;
     pa_sink_new_data sink_data;
@@ -1176,8 +1175,7 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_sample_spec(&sink_data, &ss);
     pa_sink_new_data_set_channel_map(&sink_data, &map);
 
-    z = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
-    pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "FFT based equalizer on %s", z ? z : master->name);
+    pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "FFT based equalizer on %s", pa_sink_get_description(master));
 
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");

@@ -431,13 +431,11 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
         pa_sink_set_asyncmsgq(u->sink, NULL);
 
     if (u->auto_desc && dest) {
-        const char *z;
         pa_proplist *pl;
 
         pl = pa_proplist_new();
-        z = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION);
         pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "Virtual Sink %s on %s",
-                         pa_proplist_gets(u->sink->proplist, "device.vsink.name"), z ? z : dest->name);
+                         pa_proplist_gets(u->sink->proplist, "device.vsink.name"), pa_sink_get_description(dest));
 
         pa_sink_update_proplist(u->sink, PA_UPDATE_REPLACE, pl);
         pa_proplist_free(pl);
@@ -536,12 +534,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if ((u->auto_desc = !pa_proplist_contains(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION))) {
-        const char *z;
-
-        z = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Virtual Sink %s on %s", sink_data.name, z ? z : master->name);
-    }
+    if ((u->auto_desc = !pa_proplist_contains(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION)))
+        pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION,
+                         "Virtual Sink %s on %s", sink_data.name, pa_sink_get_description(master));
 
     u->sink = pa_sink_new(m->core, &sink_data, (master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY))
                                                | (use_volume_sharing ? PA_SINK_SHARE_VOLUME_WITH_MASTER : 0));
@@ -574,7 +569,8 @@ int pa__init(pa_module*m) {
     sink_input_data.module = m;
     pa_sink_input_new_data_set_sink(&sink_input_data, master, false);
     sink_input_data.origin_sink = u->sink;
-    pa_proplist_setf(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Virtual Sink Stream from %s", pa_proplist_gets(u->sink->proplist, PA_PROP_DEVICE_DESCRIPTION));
+    pa_proplist_setf(sink_input_data.proplist, PA_PROP_MEDIA_NAME,
+                     "Virtual Sink Stream from %s", pa_sink_get_description(u->sink));
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);

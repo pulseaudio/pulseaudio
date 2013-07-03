@@ -2596,6 +2596,20 @@ void pa_source_set_fixed_latency_within_thread(pa_source *s, pa_usec_t latency) 
     pa_source_invalidate_requested_latency(s, false);
 }
 
+/* Called from the main thread. */
+const char *pa_source_get_description(pa_source *s) {
+    const char *description;
+
+    pa_assert(s);
+
+    description = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
+
+    if (!description || !*description)
+        description = s->name;
+
+    return description;
+}
+
 /* Called from main thread */
 void pa_source_set_latency_offset(pa_source *s, int64_t offset) {
     pa_source_assert_ref(s);

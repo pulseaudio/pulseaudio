@@ -183,13 +183,13 @@ char *pa_card_list_to_string(pa_core *c) {
         if (!pa_idxset_isempty(card->sinks)) {
             pa_strbuf_puts(s, "\tsinks:\n");
             PA_IDXSET_FOREACH(sink, card->sinks, sidx)
-                pa_strbuf_printf(s, "\t\t%s/#%u: %s\n", sink->name, sink->index, pa_strna(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+                pa_strbuf_printf(s, "\t\t%s/#%u: %s\n", sink->name, sink->index, pa_sink_get_description(sink));
         }
 
         if (!pa_idxset_isempty(card->sources)) {
             pa_strbuf_puts(s, "\tsources:\n");
             PA_IDXSET_FOREACH(source, card->sources, sidx)
-                pa_strbuf_printf(s, "\t\t%s/#%u: %s\n", source->name, source->index, pa_strna(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+                pa_strbuf_printf(s, "\t\t%s/#%u: %s\n", source->name, source->index, pa_source_get_description(source));
         }
 
         append_port_list(s, card->ports);

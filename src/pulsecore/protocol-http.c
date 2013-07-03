@@ -475,7 +475,7 @@ static void handle_listen(struct connection *c) {
     PA_IDXSET_FOREACH(sink, c->protocol->core->sinks, idx) {
         char *t, *m;
 
-        t = escape_html(pa_strna(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+        t = escape_html(pa_sink_get_description(sink));
         m = pa_sample_spec_to_mime_type_mimefy(&sink->sample_spec, &sink->channel_map);
 
         pa_ioline_printf(c->line,
@@ -497,7 +497,7 @@ static void handle_listen(struct connection *c) {
         if (source->monitor_of)
             continue;
 
-        t = escape_html(pa_strna(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+        t = escape_html(pa_source_get_description(source));
         m = pa_sample_spec_to_mime_type_mimefy(&source->sample_spec, &source->channel_map);
 
         pa_ioline_printf(c->line,

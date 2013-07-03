@@ -655,13 +655,11 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
         pa_sink_set_asyncmsgq(u->sink, NULL);
 
     if (u->auto_desc && dest) {
-        const char *z;
         pa_proplist *pl;
 
         pl = pa_proplist_new();
-        z = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION);
         pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "LADSPA Plugin %s on %s",
-                         pa_proplist_gets(u->sink->proplist, "device.ladspa.name"), z ? z : dest->name);
+                         pa_proplist_gets(u->sink->proplist, "device.ladspa.name"), pa_sink_get_description(dest));
 
         pa_sink_update_proplist(u->sink, PA_UPDATE_REPLACE, pl);
         pa_proplist_free(pl);
@@ -1228,12 +1226,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if ((u->auto_desc = !pa_proplist_contains(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION))) {
-        const char *z;
-
-        z = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "LADSPA Plugin %s on %s", d->Name, z ? z : master->name);
-    }
+    if ((u->auto_desc = !pa_proplist_contains(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION)))
+        pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION,
+                         "LADSPA Plugin %s on %s", d->Name, pa_sink_get_description(master));
 
     u->sink = pa_sink_new(m->core, &sink_data,
                           (master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY)) | PA_SINK_SHARE_VOLUME_WITH_MASTER);

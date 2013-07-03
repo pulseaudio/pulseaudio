@@ -412,7 +412,7 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     pa_assert_se(u = o->userdata);
 
     p = pa_proplist_new();
-    pa_proplist_setf(p, PA_PROP_MEDIA_NAME, "Loopback of %s", pa_strnull(pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+    pa_proplist_setf(p, PA_PROP_MEDIA_NAME, "Loopback of %s", pa_source_get_description(dest));
 
     if ((n = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_ICON_NAME)))
         pa_proplist_sets(p, PA_PROP_MEDIA_ICON_NAME, n);
@@ -684,7 +684,7 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     pa_assert_se(u = i->userdata);
 
     p = pa_proplist_new();
-    pa_proplist_setf(p, PA_PROP_MEDIA_NAME, "Loopback to %s", pa_strnull(pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+    pa_proplist_setf(p, PA_PROP_MEDIA_NAME, "Loopback to %s", pa_sink_get_description(dest));
 
     if ((n = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_ICON_NAME)))
         pa_proplist_sets(p, PA_PROP_MEDIA_ICON_NAME, n);
@@ -968,7 +968,7 @@ int pa__init(pa_module *m) {
 
     if (!pa_proplist_contains(u->source_output->proplist, PA_PROP_MEDIA_NAME))
         pa_proplist_setf(u->source_output->proplist, PA_PROP_MEDIA_NAME, "Loopback to %s",
-                         pa_strnull(pa_proplist_gets(u->sink_input->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+                         pa_sink_get_description(u->sink_input->sink));
 
     if (!pa_proplist_contains(u->source_output->proplist, PA_PROP_MEDIA_ICON_NAME)
             && (n = pa_proplist_gets(u->sink_input->sink->proplist, PA_PROP_DEVICE_ICON_NAME)))
@@ -976,7 +976,7 @@ int pa__init(pa_module *m) {
 
     if (!pa_proplist_contains(u->sink_input->proplist, PA_PROP_MEDIA_NAME))
         pa_proplist_setf(u->sink_input->proplist, PA_PROP_MEDIA_NAME, "Loopback from %s",
-                         pa_strnull(pa_proplist_gets(u->source_output->source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+                         pa_source_get_description(u->source_output->source));
 
     if (source && !pa_proplist_contains(u->sink_input->proplist, PA_PROP_MEDIA_ICON_NAME)
             && (n = pa_proplist_gets(u->source_output->source->proplist, PA_PROP_DEVICE_ICON_NAME)))

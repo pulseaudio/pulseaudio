@@ -377,7 +377,7 @@ static void append_variant_item_display_name(DBusMessage *m, DBusMessageIter *it
 
     pa_assert(sink || source);
 
-    display_name = pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION));
+    display_name = sink ? pa_sink_get_description(sink) : pa_source_get_description(source);
     append_variant_string(m, iter, display_name);
 }
 

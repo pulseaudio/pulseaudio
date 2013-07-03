@@ -452,13 +452,11 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
         pa_source_set_asyncmsgq(u->source, NULL);
 
     if (u->auto_desc && dest) {
-        const char *z;
         pa_proplist *pl;
 
         pl = pa_proplist_new();
-        z = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION);
         pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "Virtual Source %s on %s",
-                         pa_proplist_gets(u->source->proplist, "device.vsource.name"), z ? z : dest->name);
+                         pa_proplist_gets(u->source->proplist, "device.vsource.name"), pa_source_get_description(dest));
 
         pa_source_update_proplist(u->source, PA_UPDATE_REPLACE, pl);
         pa_proplist_free(pl);
@@ -545,12 +543,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if ((u->auto_desc = !pa_proplist_contains(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION))) {
-        const char *z;
-
-        z = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Virtual Source %s on %s", source_data.name, z ? z : master->name);
-    }
+    if ((u->auto_desc = !pa_proplist_contains(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION)))
+        pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION,
+                         "Virtual Source %s on %s", source_data.name, pa_source_get_description(master));
 
     u->source = pa_source_new(m->core, &source_data, (master->flags & (PA_SOURCE_LATENCY|PA_SOURCE_DYNAMIC_LATENCY))
                                                      | (use_volume_sharing ? PA_SOURCE_SHARE_VOLUME_WITH_MASTER : 0));
@@ -584,7 +579,8 @@ int pa__init(pa_module*m) {
     pa_source_output_new_data_set_source(&source_output_data, master, false);
     source_output_data.destination_source = u->source;
 
-    pa_proplist_setf(source_output_data.proplist, PA_PROP_MEDIA_NAME, "Virtual Source Stream of %s", pa_proplist_gets(u->source->proplist, PA_PROP_DEVICE_DESCRIPTION));
+    pa_proplist_setf(source_output_data.proplist, PA_PROP_MEDIA_NAME,
+                     "Virtual Source Stream of %s", pa_source_get_description(u->source));
     pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
     pa_source_output_new_data_set_sample_spec(&source_output_data, &ss);
     pa_source_output_new_data_set_channel_map(&source_output_data, &map);
@@ -620,12 +616,9 @@ int pa__init(pa_module*m) {
         pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "uplink sink");
         pa_proplist_sets(sink_data.proplist, "device.uplink_sink.name", sink_data.name);
 
-        if ((u->auto_desc = !pa_proplist_contains(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION))) {
-            const char *z;
-
-            z = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
-            pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Uplink Sink %s on %s", sink_data.name, z ? z : master->name);
-        }
+        if ((u->auto_desc = !pa_proplist_contains(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION)))
+            pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION,
+                             "Uplink Sink %s on %s", sink_data.name, pa_source_get_description(master));
 
         u->sink_memblockq = pa_memblockq_new("module-virtual-source sink_memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0, &ss, 1, 1, 0, NULL);
         if (!u->sink_memblockq) {

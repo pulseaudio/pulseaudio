@@ -367,13 +367,13 @@ static void dump_database_helper(struct userdata *u, uint32_t role_index, const 
     if (sink_mode) {
         pa_sink *s;
         if (PA_INVALID_INDEX != u->preferred_sinks[role_index] && (s = pa_idxset_get_by_index(u->core->sinks, u->preferred_sinks[role_index])))
-            pa_log_debug("   %s %s (%s)", human, pa_strnull(pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION)), s->name);
+            pa_log_debug("   %s %s (%s)", human, pa_sink_get_description(s), s->name);
         else
             pa_log_debug("   %s No sink specified", human);
     } else {
         pa_source *s;
         if (PA_INVALID_INDEX != u->preferred_sources[role_index] && (s = pa_idxset_get_by_index(u->core->sources, u->preferred_sources[role_index])))
-            pa_log_debug("   %s %s (%s)", human, pa_strnull(pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION)), s->name);
+            pa_log_debug("   %s %s (%s)", human, pa_source_get_description(s), s->name);
         else
             pa_log_debug("   %s No source specified", human);
     }
@@ -819,8 +819,8 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         if (!entry->user_set_description) {
             pa_xfree(entry->description);
-            entry->description = pa_xstrdup(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION));
-        } else if (!pa_streq(entry->description, pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION))) {
+            entry->description = pa_xstrdup(pa_sink_get_description(sink));
+        } else if (!pa_streq(entry->description, pa_sink_get_description(sink))) {
             /* Warning: If two modules fight over the description, this could cause an infinite loop.
                by changing the description here, we retrigger this subscription callback. The only thing stopping us from
                looping is the fact that the string comparison will fail on the second iteration. If another module tries to manage
@@ -849,8 +849,8 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         if (!entry->user_set_description) {
             pa_xfree(entry->description);
-            entry->description = pa_xstrdup(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION));
-        } else if (!pa_streq(entry->description, pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION))) {
+            entry->description = pa_xstrdup(pa_source_get_description(source));
+        } else if (!pa_streq(entry->description, pa_source_get_description(source))) {
             /* Warning: If two modules fight over the description, this could cause an infinite loop.
                by changing the description here, we retrigger this subscription callback. The only thing stopping us from
                looping is the fact that the string comparison will fail on the second iteration. If another module tries to manage

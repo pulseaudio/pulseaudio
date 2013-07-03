@@ -1462,14 +1462,11 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
         pa_source_set_asyncmsgq(u->source, NULL);
 
     if (u->source_auto_desc && dest) {
-        const char *y, *z;
         pa_proplist *pl;
 
         pl = pa_proplist_new();
-        y = pa_proplist_gets(u->sink_input->sink->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        z = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "%s (echo cancelled with %s)", z ? z : dest->name,
-                y ? y : u->sink_input->sink->name);
+        pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "%s (echo cancelled with %s)",
+                         pa_source_get_description(dest), pa_sink_get_description(u->sink_input->sink));
 
         pa_source_update_proplist(u->source, PA_UPDATE_REPLACE, pl);
         pa_proplist_free(pl);
@@ -1490,14 +1487,11 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
         pa_sink_set_asyncmsgq(u->sink, NULL);
 
     if (u->sink_auto_desc && dest) {
-        const char *y, *z;
         pa_proplist *pl;
 
         pl = pa_proplist_new();
-        y = pa_proplist_gets(u->source_output->source->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        z = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "%s (echo cancelled with %s)", z ? z : dest->name,
-                         y ? y : u->source_output->source->name);
+        pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "%s (echo cancelled with %s)", pa_sink_get_description(dest),
+                         pa_source_get_description(u->source_output->source));
 
         pa_sink_update_proplist(u->sink, PA_UPDATE_REPLACE, pl);
         pa_proplist_free(pl);
@@ -1789,14 +1783,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if ((u->source_auto_desc = !pa_proplist_contains(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION))) {
-        const char *y, *z;
-
-        y = pa_proplist_gets(sink_master->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        z = pa_proplist_gets(source_master->proplist, PA_PROP_DEVICE_DESCRIPTION);
+    if ((u->source_auto_desc = !pa_proplist_contains(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION)))
         pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "%s (echo cancelled with %s)",
-                z ? z : source_master->name, y ? y : sink_master->name);
-    }
+                pa_source_get_description(source_master), pa_sink_get_description(sink_master));
 
     u->source = pa_source_new(m->core, &source_data, (source_master->flags & (PA_SOURCE_LATENCY | PA_SOURCE_DYNAMIC_LATENCY))
                                                      | (u->use_volume_sharing ? PA_SOURCE_SHARE_VOLUME_WITH_MASTER : 0));
@@ -1840,14 +1829,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if ((u->sink_auto_desc = !pa_proplist_contains(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION))) {
-        const char *y, *z;
-
-        y = pa_proplist_gets(source_master->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        z = pa_proplist_gets(sink_master->proplist, PA_PROP_DEVICE_DESCRIPTION);
+    if ((u->sink_auto_desc = !pa_proplist_contains(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION)))
         pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "%s (echo cancelled with %s)",
-                z ? z : sink_master->name, y ? y : source_master->name);
-    }
+                pa_sink_get_description(sink_master), pa_source_get_description(source_master));
 
     u->sink = pa_sink_new(m->core, &sink_data, (sink_master->flags & (PA_SINK_LATENCY | PA_SINK_DYNAMIC_LATENCY))
                                                | (u->use_volume_sharing ? PA_SINK_SHARE_VOLUME_WITH_MASTER : 0));

@@ -344,6 +344,7 @@ void pa_source_update_flags(pa_source *s, pa_source_flags_t mask, pa_source_flag
 
 /*** May be called by everyone, from main context */
 
+const char *pa_source_get_description(pa_source *s);
 void pa_source_set_latency_offset(pa_source *s, int64_t offset);
 
 /* The returned value is supposed to be in the time domain of the sound card! */

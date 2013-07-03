@@ -833,10 +833,10 @@ static void update_description(struct userdata *u) {
         char *e;
 
         if (first) {
-            e = pa_sprintf_malloc("%s %s", t, pa_strnull(pa_proplist_gets(o->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+            e = pa_sprintf_malloc("%s %s", t, pa_sink_get_description(o->sink));
             first = false;
         } else
-            e = pa_sprintf_malloc("%s, %s", t, pa_strnull(pa_proplist_gets(o->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+            e = pa_sprintf_malloc("%s, %s", t, pa_sink_get_description(o->sink));
 
         pa_xfree(t);
         t = e;
@@ -857,7 +857,7 @@ static int output_create_sink_input(struct output *o) {
     pa_sink_input_new_data_init(&data);
     pa_sink_input_new_data_set_sink(&data, o->sink, false);
     data.driver = __FILE__;
-    pa_proplist_setf(data.proplist, PA_PROP_MEDIA_NAME, "Simultaneous output on %s", pa_strnull(pa_proplist_gets(o->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+    pa_proplist_setf(data.proplist, PA_PROP_MEDIA_NAME, "Simultaneous output on %s", pa_sink_get_description(o->sink));
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_ROLE, "filter");
     pa_sink_input_new_data_set_sample_spec(&data, &o->userdata->sink->sample_spec);
     pa_sink_input_new_data_set_channel_map(&data, &o->userdata->sink->channel_map);
