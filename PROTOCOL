@@ -343,13 +343,42 @@ SUBCOMMAND_SAVE_FORMATS, in reply from SUBCOMMAND_READ_FORMATS[_ALL]
     (uint8_t ) PA_ENCODING_MPEG2_AAC_IEC61937 := 6
 
 ## v29, implemented by >= 5.0
-#
+
 New field in all commands that send/receive profile introspection data
 (PA_COMMAND_GET_CARD_INFO)
 
     uint32 available
 
 The field is added once for every profile.
+
+New client->server commands:
+    GET_NODE_INFO
+    GET_NODE_INFO_LIST
+
+GET_NODE_INFO parameters:
+    uint32_t index
+    string name
+
+When getting the node info by index, the index parameter must not be
+PA_INVALID_INDEX and the name parameter must be NULL.
+
+When getting the node info by name, the index parameter must be
+PA_INVALID_INDEX and the name parameter must not be NULL or an empty string.
+
+GET_NODE_INFO_LIST doesn't have parameters.
+
+GET_NODE_INFO reply parameters:
+    uint32_t index
+    string name
+    string description
+    pa_direction_t direction
+
+The index must not be PA_INVALID_INDEX. The name must not be NULL or empty. The
+description must not be NULL or empty. The direction must be either OUTPUT or
+INPUT, not both.
+
+GET_NODE_INFO_LIST reply parameters are otherwise the same as with
+GET_NODE_INFO, but the parameter list is repeated for each node.
 
 #### If you just changed the protocol, read this
 ## module-tunnel depends on the sink/source/sink-input/source-input protocol

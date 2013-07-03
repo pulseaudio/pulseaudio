@@ -671,6 +671,47 @@ pa_operation* pa_context_get_sample_info_list(pa_context *c, pa_sample_info_cb_t
 
 /** @} */
 
+/** @{ \name Routing Nodes */
+
+/** Routing node information. Please note that this structure can be extended
+ * as part of evolutionary API updates at any time in any new release.
+ *
+ * \since 5.0 */
+typedef struct pa_node_info {
+    /** The index of this node. */
+    uint32_t index;
+
+    /** The name of this node. While one name can refer to only one node at any
+     * given time, the same name can still refer to multiple nodes over time,
+     * and the same node may have a different name e.g. after server restart.
+     * This means that nodes don't have any identifier that could be e.g. saved
+     * to disk for referring to the same node later. There may be some nodes in
+     * the future that have a fixed name, but currently there are none. */
+    const char *name;
+
+    /** The human-readable description of this node. This is localized and
+     * suitable to be shown in user interfaces as the label for this node. */
+    const char *description;
+
+    /** The direction of this node. */
+    pa_direction_t direction;
+} pa_node_info;
+
+/** Callback prototype for pa_context_get_node_info_by_name() and friends.
+ * \since 5.0 */
+typedef void (*pa_node_info_cb_t)(pa_context *c, const pa_node_info *info, int eol, void *userdata);
+
+/** Get information about a node by its name. \since 5.0 */
+pa_operation *pa_context_get_node_info_by_name(pa_context *c, const char *name, pa_node_info_cb_t cb, void *userdata);
+
+/** Get information about a node by its index. \since 5.0 */
+pa_operation *pa_context_get_node_info_by_index(pa_context *c, uint32_t idx, pa_node_info_cb_t cb, void *userdata);
+
+/** Get a list of all nodes. \since 5.0 */
+pa_operation *pa_context_get_node_info_list(pa_context *c, pa_node_info_cb_t cb, void *userdata);
+
+/** @} */
+
 /** \cond fulldocs */
 
 /** @{ \name Autoload Entries */

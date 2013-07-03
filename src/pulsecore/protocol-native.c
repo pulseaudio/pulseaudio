@@ -325,6 +325,7 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_GET_SINK_INPUT_INFO] = command_get_info,
     [PA_COMMAND_GET_SOURCE_OUTPUT_INFO] = command_get_info,
     [PA_COMMAND_GET_SAMPLE_INFO] = command_get_info,
+    [PA_COMMAND_GET_NODE_INFO] = command_get_info,
     [PA_COMMAND_GET_SINK_INFO_LIST] = command_get_info_list,
     [PA_COMMAND_GET_SOURCE_INFO_LIST] = command_get_info_list,
     [PA_COMMAND_GET_MODULE_INFO_LIST] = command_get_info_list,
@@ -333,6 +334,7 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_GET_SINK_INPUT_INFO_LIST] = command_get_info_list,
     [PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST] = command_get_info_list,
     [PA_COMMAND_GET_SAMPLE_INFO_LIST] = command_get_info_list,
+    [PA_COMMAND_GET_NODE_INFO_LIST] = command_get_info_list,
     [PA_COMMAND_GET_SERVER_INFO] = command_get_server_info,
     [PA_COMMAND_SUBSCRIBE] = command_subscribe,
 
@@ -3455,6 +3457,16 @@ static void scache_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
         pa_tagstruct_put_proplist(t, e->proplist);
 }
 
+static void node_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_node *node) {
+    pa_assert(t);
+    pa_assert(node);
+
+    pa_tagstruct_putu32(t, node->index);
+    pa_tagstruct_puts(t, node->name);
+    pa_tagstruct_puts(t, node->description);
+    pa_tagstruct_put_direction(t, node->direction);
+}
+
 static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     uint32_t idx;
@@ -3466,6 +3478,7 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
     pa_sink_input *si = NULL;
     pa_source_output *so = NULL;
     pa_scache_entry *sce = NULL;
+    pa_node *node = NULL;
     const char *name = NULL;
     pa_tagstruct *reply;
 
@@ -3519,15 +3532,20 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
         si = pa_idxset_get_by_index(c->protocol->core->sink_inputs, idx);
     else if (command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO)
         so = pa_idxset_get_by_index(c->protocol->core->source_outputs, idx);
-    else {
-        pa_assert(command == PA_COMMAND_GET_SAMPLE_INFO);
+    else if (command == PA_COMMAND_GET_SAMPLE_INFO) {
         if (idx != PA_INVALID_INDEX)
             sce = pa_idxset_get_by_index(c->protocol->core->scache, idx);
         else
             sce = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SAMPLE);
-    }
+    } else if (command == PA_COMMAND_GET_NODE_INFO) {
+        if (idx != PA_INVALID_INDEX)
+            node = pa_idxset_get_by_index(c->protocol->core->nodes, idx);
+        else
+            node = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_NODE);
+    } else
+        pa_assert_not_reached();
 
-    if (!sink && !source && !client && !card && !module && !si && !so && !sce) {
+    if (!sink && !source && !client && !card && !module && !si && !so && !sce && !node) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
         return;
     }
@@ -3547,8 +3565,10 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
         sink_input_fill_tagstruct(c, reply, si);
     else if (so)
         source_output_fill_tagstruct(c, reply, so);
-    else
+    else if (sce)
         scache_fill_tagstruct(c, reply, sce);
+    else if (node)
+        node_fill_tagstruct(c, reply, node);
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -3585,10 +3605,12 @@ static void command_get_info_list(pa_pdispatch *pd, uint32_t command, uint32_t t
         i = c->protocol->core->sink_inputs;
     else if (command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST)
         i = c->protocol->core->source_outputs;
-    else {
-        pa_assert(command == PA_COMMAND_GET_SAMPLE_INFO_LIST);
+    else if (command == PA_COMMAND_GET_SAMPLE_INFO_LIST)
         i = c->protocol->core->scache;
-    }
+    else if (command == PA_COMMAND_GET_NODE_INFO_LIST)
+        i = c->protocol->core->nodes;
+    else
+        pa_assert_not_reached();
 
     if (i) {
         PA_IDXSET_FOREACH(p, i, idx) {
@@ -3606,10 +3628,12 @@ static void command_get_info_list(pa_pdispatch *pd, uint32_t command, uint32_t t
                 sink_input_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST)
                 source_output_fill_tagstruct(c, reply, p);
-            else {
-                pa_assert(command == PA_COMMAND_GET_SAMPLE_INFO_LIST);
+            else if (command == PA_COMMAND_GET_SAMPLE_INFO_LIST)
                 scache_fill_tagstruct(c, reply, p);
-            }
+            else if (command == PA_COMMAND_GET_NODE_INFO_LIST)
+                node_fill_tagstruct(c, reply, p);
+            else
+                pa_assert_not_reached();
         }
     }
 
