@@ -172,33 +172,29 @@ pa_source* pa_source_new(
     pa_assert_ctl_context();
 
     s = pa_msgobject_new(pa_source);
+    s->state = PA_SOURCE_INIT;
+    s->parent.parent.free = source_free;
+    s->parent.process_msg = pa_source_process_msg;
+    s->core = core;
+    s->outputs = pa_idxset_new(NULL, NULL);
 
     if (!(name = pa_namereg_register(core, data->name, PA_NAMEREG_SOURCE, s, data->namereg_fail))) {
-        pa_log_debug("Failed to register name %s.", data->name);
-        pa_xfree(s);
-        return NULL;
+        pa_log("Failed to register name %s.", data->name);
+        goto fail;
     }
 
+    s->name = pa_xstrdup(name);
     pa_source_new_data_set_name(data, name);
 
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_NEW], data) < 0) {
-        pa_xfree(s);
-        pa_namereg_unregister(core, name);
-        return NULL;
-    }
+    pa_assert_se(pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_NEW], data) >= 0);
 
-    /* FIXME, need to free s here on failure */
-
-    pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
-    pa_return_null_if_fail(data->name && pa_utf8_valid(data->name) && data->name[0]);
-
-    pa_return_null_if_fail(data->sample_spec_is_set && pa_sample_spec_valid(&data->sample_spec));
+    pa_assert(data->sample_spec_is_set && pa_sample_spec_valid(&data->sample_spec));
 
     if (!data->channel_map_is_set)
-        pa_return_null_if_fail(pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT));
+        pa_assert_se(pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT));
 
-    pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
-    pa_return_null_if_fail(data->channel_map.channels == data->sample_spec.channels);
+    pa_assert(pa_channel_map_valid(&data->channel_map));
+    pa_assert(data->channel_map.channels == data->sample_spec.channels);
 
     /* FIXME: There should probably be a general function for checking whether
      * the source volume is allowed to be set, like there is for source outputs. */
@@ -209,8 +205,8 @@ pa_source* pa_source_new(
         data->save_volume = false;
     }
 
-    pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
-    pa_return_null_if_fail(pa_cvolume_compatible(&data->volume, &data->sample_spec));
+    pa_assert(pa_cvolume_valid(&data->volume));
+    pa_assert(pa_cvolume_compatible(&data->volume, &data->sample_spec));
 
     if (!data->muted_is_set)
         data->muted = false;
@@ -222,22 +218,12 @@ pa_source* pa_source_new(
     pa_device_init_icon(data->proplist, false);
     pa_device_init_intended_roles(data->proplist);
 
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], data) < 0) {
-        pa_xfree(s);
-        pa_namereg_unregister(core, name);
-        return NULL;
-    }
+    pa_assert_se(pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], data) >= 0);
 
-    s->parent.parent.free = source_free;
-    s->parent.process_msg = pa_source_process_msg;
-
-    s->core = core;
-    s->state = PA_SOURCE_INIT;
     s->flags = flags;
     s->priority = 0;
     s->suspend_cause = data->suspend_cause;
     pa_source_set_mixer_dirty(s, false);
-    s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);
     s->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     s->module = data->module;
@@ -259,7 +245,6 @@ pa_source* pa_source_new(
         s->alternate_sample_rate = 0;
     }
 
-    s->outputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
     s->monitor_of = NULL;
     s->output_from_master = NULL;
@@ -348,6 +333,12 @@ pa_source* pa_source_new(
     pa_xfree(pt);
 
     return s;
+
+fail:
+    pa_source_unlink(s);
+    pa_source_unref(s);
+
+    return NULL;
 }
 
 /* Called from main context */
@@ -621,8 +612,9 @@ void pa_source_unlink(pa_source *s) {
     if (linked)
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], s);
 
-    if (s->state != PA_SOURCE_UNLINKED)
+    if (s->state != PA_SOURCE_UNLINKED && s->name)
         pa_namereg_unregister(s->core, s->name);
+
     pa_idxset_remove_by_data(s->core->sources, s, NULL);
 
     if (s->card)
@@ -658,10 +650,14 @@ static void source_free(pa_object *o) {
     if (PA_SOURCE_IS_LINKED(s->state))
         pa_source_unlink(s);
 
-    pa_log_info("Freeing source %u \"%s\"", s->index, s->name);
+    if (s->state != PA_SOURCE_INIT)
+        pa_log_info("Freeing source %u \"%s\"", s->index, s->name);
 
-    pa_idxset_free(s->outputs, NULL);
-    pa_hashmap_free(s->thread_info.outputs);
+    if (s->outputs)
+        pa_idxset_free(s->outputs, NULL);
+
+    if (s->thread_info.outputs)
+        pa_hashmap_free(s->thread_info.outputs);
 
     if (s->silence.memblock)
         pa_memblock_unref(s->silence.memblock);

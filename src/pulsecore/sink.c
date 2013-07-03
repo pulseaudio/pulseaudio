@@ -185,33 +185,29 @@ pa_sink* pa_sink_new(
     pa_assert_ctl_context();
 
     s = pa_msgobject_new(pa_sink);
+    s->state = PA_SINK_INIT;
+    s->parent.parent.free = sink_free;
+    s->parent.process_msg = pa_sink_process_msg;
+    s->core = core;
+    s->inputs = pa_idxset_new(NULL, NULL);
 
     if (!(name = pa_namereg_register(core, data->name, PA_NAMEREG_SINK, s, data->namereg_fail))) {
-        pa_log_debug("Failed to register name %s.", data->name);
-        pa_xfree(s);
-        return NULL;
+        pa_log("Failed to register name %s.", data->name);
+        goto fail;
     }
 
+    s->name = pa_xstrdup(name);
     pa_sink_new_data_set_name(data, name);
 
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_NEW], data) < 0) {
-        pa_xfree(s);
-        pa_namereg_unregister(core, name);
-        return NULL;
-    }
+    pa_assert_se(pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_NEW], data) >= 0);
 
-    /* FIXME, need to free s here on failure */
-
-    pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
-    pa_return_null_if_fail(data->name && pa_utf8_valid(data->name) && data->name[0]);
-
-    pa_return_null_if_fail(data->sample_spec_is_set && pa_sample_spec_valid(&data->sample_spec));
+    pa_assert(data->sample_spec_is_set && pa_sample_spec_valid(&data->sample_spec));
 
     if (!data->channel_map_is_set)
-        pa_return_null_if_fail(pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT));
+        pa_assert_se(pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT));
 
-    pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
-    pa_return_null_if_fail(data->channel_map.channels == data->sample_spec.channels);
+    pa_assert(pa_channel_map_valid(&data->channel_map));
+    pa_assert(data->channel_map.channels == data->sample_spec.channels);
 
     /* FIXME: There should probably be a general function for checking whether
      * the sink volume is allowed to be set, like there is for sink inputs. */
@@ -222,8 +218,8 @@ pa_sink* pa_sink_new(
         data->save_volume = false;
     }
 
-    pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
-    pa_return_null_if_fail(pa_cvolume_compatible(&data->volume, &data->sample_spec));
+    pa_assert(pa_cvolume_valid(&data->volume));
+    pa_assert(pa_cvolume_compatible(&data->volume, &data->sample_spec));
 
     if (!data->muted_is_set)
         data->muted = false;
@@ -235,22 +231,12 @@ pa_sink* pa_sink_new(
     pa_device_init_icon(data->proplist, true);
     pa_device_init_intended_roles(data->proplist);
 
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_FIXATE], data) < 0) {
-        pa_xfree(s);
-        pa_namereg_unregister(core, name);
-        return NULL;
-    }
+    pa_assert_se(pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_FIXATE], data) >= 0);
 
-    s->parent.parent.free = sink_free;
-    s->parent.process_msg = pa_sink_process_msg;
-
-    s->core = core;
-    s->state = PA_SINK_INIT;
     s->flags = flags;
     s->priority = 0;
     s->suspend_cause = data->suspend_cause;
     pa_sink_set_mixer_dirty(s, false);
-    s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);
     s->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     s->module = data->module;
@@ -272,7 +258,6 @@ pa_sink* pa_sink_new(
         s->alternate_sample_rate = 0;
     }
 
-    s->inputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
     s->input_to_master = NULL;
 
@@ -353,15 +338,6 @@ pa_sink* pa_sink_new(
     if (s->card)
         pa_assert_se(pa_idxset_put(s->card->sinks, s, NULL) >= 0);
 
-    pt = pa_proplist_to_string_sep(s->proplist, "\n    ");
-    pa_log_info("Created sink %u \"%s\" with sample spec %s and channel map %s\n    %s",
-                s->index,
-                s->name,
-                pa_sample_spec_snprint(st, sizeof(st), &s->sample_spec),
-                pa_channel_map_snprint(cm, sizeof(cm), &s->channel_map),
-                pt);
-    pa_xfree(pt);
-
     pa_source_new_data_init(&source_data);
     pa_source_new_data_set_sample_spec(&source_data, &s->sample_spec);
     pa_source_new_data_set_channel_map(&source_data, &s->channel_map);
@@ -382,9 +358,8 @@ pa_sink* pa_sink_new(
     pa_source_new_data_done(&source_data);
 
     if (!s->monitor_source) {
-        pa_sink_unlink(s);
-        pa_sink_unref(s);
-        return NULL;
+        pa_log("Failed to create a monitor source for sink %s.", s->name);
+        goto fail;
     }
 
     s->monitor_source->monitor_of = s;
@@ -393,7 +368,22 @@ pa_sink* pa_sink_new(
     pa_source_set_fixed_latency(s->monitor_source, s->thread_info.fixed_latency);
     pa_source_set_max_rewind(s->monitor_source, s->thread_info.max_rewind);
 
+    pt = pa_proplist_to_string_sep(s->proplist, "\n    ");
+    pa_log_info("Created sink %u \"%s\" with sample spec %s and channel map %s\n    %s",
+                s->index,
+                s->name,
+                pa_sample_spec_snprint(st, sizeof(st), &s->sample_spec),
+                pa_channel_map_snprint(cm, sizeof(cm), &s->channel_map),
+                pt);
+    pa_xfree(pt);
+
     return s;
+
+fail:
+    pa_sink_unlink(s);
+    pa_sink_unref(s);
+
+    return NULL;
 }
 
 /* Called from main context */
@@ -683,8 +673,9 @@ void pa_sink_unlink(pa_sink* s) {
     if (linked)
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_UNLINK], s);
 
-    if (s->state != PA_SINK_UNLINKED)
+    if (s->state != PA_SINK_UNLINKED && s->name)
         pa_namereg_unregister(s->core, s->name);
+
     pa_idxset_remove_by_data(s->core->sinks, s, NULL);
 
     if (s->card)
@@ -723,15 +714,19 @@ static void sink_free(pa_object *o) {
     if (PA_SINK_IS_LINKED(s->state))
         pa_sink_unlink(s);
 
-    pa_log_info("Freeing sink %u \"%s\"", s->index, s->name);
+    if (s->state != PA_SINK_INIT)
+        pa_log_info("Freeing sink %u \"%s\"", s->index, s->name);
 
     if (s->monitor_source) {
         pa_source_unref(s->monitor_source);
         s->monitor_source = NULL;
     }
 
-    pa_idxset_free(s->inputs, NULL);
-    pa_hashmap_free(s->thread_info.inputs);
+    if (s->inputs)
+        pa_idxset_free(s->inputs, NULL);
+
+    if (s->thread_info.inputs)
+        pa_hashmap_free(s->thread_info.inputs);
 
     if (s->silence.memblock)
         pa_memblock_unref(s->silence.memblock);
