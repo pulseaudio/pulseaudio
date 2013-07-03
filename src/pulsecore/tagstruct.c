@@ -33,6 +33,7 @@
 #include <netinet/in.h>
 #endif
 
+#include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/socket.h>
@@ -344,6 +345,9 @@ int pa_tagstruct_gets(pa_tagstruct*t, const char **s) {
         }
 
     if (error)
+        return -1;
+
+    if (!pa_utf8_valid((char *) (t->data + t->rindex + 1)))
         return -1;
 
     *s = (char*) (t->data+t->rindex+1);

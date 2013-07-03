@@ -32,7 +32,6 @@
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/version.h>
-#include <pulse/utf8.h>
 #include <pulse/util.h>
 #include <pulse/xmalloc.h>
 #include <pulse/internal.h>
@@ -4363,7 +4362,7 @@ static void command_set_stream_name(pa_pdispatch *pd, uint32_t command, uint32_t
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name, tag, PA_ERR_INVALID);
 
     if (command == PA_COMMAND_SET_PLAYBACK_STREAM_NAME) {
         playback_stream *s;
@@ -4452,8 +4451,7 @@ static void command_load_module(pa_pdispatch *pd, uint32_t command, uint32_t tag
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name && *name && pa_utf8_valid(name) && !strchr(name, '/'), tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, !argument || pa_utf8_valid(argument), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && *name && !strchr(name, '/'), tag, PA_ERR_INVALID);
 
     if (!(m = pa_module_load(c->protocol->core, name, argument))) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_MODINITFAILED);
@@ -4656,7 +4654,6 @@ static void command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, 
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, !name || pa_utf8_valid(name), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx == PA_INVALID_INDEX || !name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !name || idx == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
