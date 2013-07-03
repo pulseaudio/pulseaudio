@@ -346,6 +346,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    pa_source_new_data_set_create_node(&data, true);
+    pa_node_new_data_set_fallback_name_prefix(&data.node_data, "jack");
+
     u->source = pa_source_new(m->core, &data, PA_SOURCE_LATENCY);
     pa_source_new_data_done(&data);
 

@@ -399,6 +399,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    pa_sink_new_data_set_create_node(&data, true);
+    pa_node_new_data_set_fallback_name_prefix(&data.node_data, "jack");
+
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY);
     pa_sink_new_data_done(&data);
 
