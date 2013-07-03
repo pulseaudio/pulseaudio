@@ -68,6 +68,8 @@ struct pa_source_output {
     uint32_t index;
     pa_core *core;
 
+    pa_node *node;
+
     pa_source_output_state_t state;
     pa_source_output_flags_t flags;
 
@@ -270,6 +272,9 @@ typedef struct pa_source_output_new_data {
     bool volume_writable:1;
 
     bool save_source:1, save_volume:1, save_muted:1;
+
+    bool create_node;
+    pa_node_new_data node_data;
 } pa_source_output_new_data;
 
 pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data);
@@ -282,6 +287,7 @@ void pa_source_output_new_data_apply_volume_factor_source(pa_source_output_new_d
 void pa_source_output_new_data_set_muted(pa_source_output_new_data *data, bool mute);
 bool pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_source *s, bool save);
 bool pa_source_output_new_data_set_formats(pa_source_output_new_data *data, pa_idxset *formats);
+void pa_source_output_new_data_set_create_node(pa_source_output_new_data *data, bool create);
 void pa_source_output_new_data_done(pa_source_output_new_data *data);
 
 /* To be called by the implementing module only */

@@ -70,6 +70,8 @@ struct pa_sink_input {
     uint32_t index;
     pa_core *core;
 
+    pa_node *node;
+
     /* Please note that this state should only be read with
      * pa_sink_input_get_state(). That function will transparently
      * merge the thread_info.drained value in. */
@@ -314,6 +316,9 @@ typedef struct pa_sink_input_new_data {
     bool volume_writable:1;
 
     bool save_sink:1, save_volume:1, save_muted:1;
+
+    bool create_node;
+    pa_node_new_data node_data;
 } pa_sink_input_new_data;
 
 pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data);
@@ -326,6 +331,7 @@ void pa_sink_input_new_data_add_volume_factor_sink(pa_sink_input_new_data *data,
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, bool mute);
 bool pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, bool save);
 bool pa_sink_input_new_data_set_formats(pa_sink_input_new_data *data, pa_idxset *formats);
+void pa_sink_input_new_data_set_create_node(pa_sink_input_new_data *data, bool create);
 void pa_sink_input_new_data_done(pa_sink_input_new_data *data);
 
 /* To be called by the implementing module only */

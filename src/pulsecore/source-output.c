@@ -55,6 +55,9 @@ pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_d
     data->resample_method = PA_RESAMPLER_INVALID;
     data->proplist = pa_proplist_new();
     data->volume_writable = true;
+    pa_node_new_data_init(&data->node_data);
+    pa_node_new_data_set_type(&data->node_data, PA_NODE_TYPE_SOURCE_OUTPUT);
+    pa_node_new_data_set_direction(&data->node_data, PA_DIRECTION_OUTPUT);
 
     return data;
 }
@@ -174,8 +177,16 @@ bool pa_source_output_new_data_set_formats(pa_source_output_new_data *data, pa_i
     return true;
 }
 
+void pa_source_output_new_data_set_create_node(pa_source_output_new_data *data, bool create) {
+    pa_assert(data);
+
+    data->create_node = create;
+}
+
 void pa_source_output_new_data_done(pa_source_output_new_data *data) {
     pa_assert(data);
+
+    pa_node_new_data_done(&data->node_data);
 
     if (data->req_formats)
         pa_idxset_free(data->req_formats, (pa_free_cb_t) pa_format_info_free);
@@ -219,7 +230,7 @@ int pa_source_output_new(
         pa_core *core,
         pa_source_output_new_data *data) {
 
-    pa_source_output *o;
+    pa_source_output *o = NULL;
     pa_resampler *resampler = NULL;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     pa_channel_map original_cm;
@@ -227,6 +238,7 @@ int pa_source_output_new(
     char *pt;
     pa_sample_spec ss;
     pa_channel_map map;
+    int ret = 0;
 
     pa_assert(_o);
     pa_assert(core);
@@ -497,6 +509,19 @@ int pa_source_output_new(
     if (o->direct_on_input)
         pa_assert_se(pa_idxset_put(o->direct_on_input->direct_outputs, o, NULL) == 0);
 
+    if (data->create_node) {
+        if (!data->node_data.description)
+            pa_node_new_data_set_description(&data->node_data, pa_source_output_get_description(o));
+
+        if (!(o->node = pa_node_new(o->core, &data->node_data))) {
+            pa_log("Failed to create a node for source output \"%s\".", pa_source_output_get_description(o));
+            ret = -PA_ERR_INTERNAL;
+            goto fail;
+        }
+
+        o->node->owner = o;
+    }
+
     pt = pa_proplist_to_string_sep(o->proplist, "\n    ");
     pa_log_info("Created output %u \"%s\" on %s with sample spec %s and channel map %s\n    %s",
                 o->index,
@@ -511,6 +536,14 @@ int pa_source_output_new(
 
     *_o = o;
     return 0;
+
+fail:
+    if (o) {
+        pa_source_output_unlink(o);
+        pa_source_output_unref(o);
+    }
+
+    return ret;
 }
 
 /* Called from main context */
@@ -574,6 +607,9 @@ void pa_source_output_unlink(pa_source_output*o) {
     if (linked)
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], o);
 
+    if (o->node)
+        pa_node_unlink(o->node);
+
     if (o->direct_on_input)
         pa_idxset_remove_by_data(o->direct_on_input->direct_outputs, o, NULL);
 
@@ -633,6 +669,9 @@ static void source_output_free(pa_object* mo) {
 
     pa_log_info("Freeing output %u \"%s\"", o->index, pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME)));
 
+    if (o->node)
+        pa_node_free(o->node);
+
     if (o->thread_info.delay_memblockq)
         pa_memblockq_free(o->thread_info.delay_memblockq);
 
@@ -686,6 +725,9 @@ void pa_source_output_put(pa_source_output *o) {
     o->thread_info.muted = o->muted;
 
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL) == 0);
+
+    if (o->node)
+        pa_node_put(o->node);
 
     pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
     pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], o);

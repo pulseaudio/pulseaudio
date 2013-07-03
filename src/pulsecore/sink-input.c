@@ -109,11 +109,13 @@ pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data
     data->resample_method = PA_RESAMPLER_INVALID;
     data->proplist = pa_proplist_new();
     data->volume_writable = true;
-
     data->volume_factor_items = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL,
                                                     (pa_free_cb_t) volume_factor_entry_free);
     data->volume_factor_sink_items = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL,
                                                          (pa_free_cb_t) volume_factor_entry_free);
+    pa_node_new_data_init(&data->node_data);
+    pa_node_new_data_set_type(&data->node_data, PA_NODE_TYPE_SINK_INPUT);
+    pa_node_new_data_set_direction(&data->node_data, PA_DIRECTION_INPUT);
 
     return data;
 }
@@ -231,8 +233,16 @@ bool pa_sink_input_new_data_set_formats(pa_sink_input_new_data *data, pa_idxset 
     return true;
 }
 
+void pa_sink_input_new_data_set_create_node(pa_sink_input_new_data *data, bool create) {
+    pa_assert(data);
+
+    data->create_node = create;
+}
+
 void pa_sink_input_new_data_done(pa_sink_input_new_data *data) {
     pa_assert(data);
+
+    pa_node_new_data_done(&data->node_data);
 
     if (data->req_formats)
         pa_idxset_free(data->req_formats, (pa_free_cb_t) pa_format_info_free);
@@ -284,7 +294,7 @@ int pa_sink_input_new(
         pa_core *core,
         pa_sink_input_new_data *data) {
 
-    pa_sink_input *i;
+    pa_sink_input *i = NULL;
     pa_resampler *resampler = NULL;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], fmt[PA_FORMAT_INFO_SNPRINT_MAX];
     pa_channel_map original_cm;
@@ -293,6 +303,7 @@ int pa_sink_input_new(
     char *memblockq_name;
     pa_sample_spec ss;
     pa_channel_map map;
+    int ret = 0;
 
     pa_assert(_i);
     pa_assert(core);
@@ -582,6 +593,19 @@ int pa_sink_input_new(
             &i->sink->silence);
     pa_xfree(memblockq_name);
 
+    if (data->create_node) {
+        if (!data->node_data.description)
+            pa_node_new_data_set_description(&data->node_data, pa_sink_input_get_description(i));
+
+        if (!(i->node = pa_node_new(i->core, &data->node_data))) {
+            pa_log("Failed to create a node for sink input \"%s\".", pa_sink_input_get_description(i));
+            ret = -PA_ERR_INTERNAL;
+            goto fail;
+        }
+
+        i->node->owner = i;
+    }
+
     pt = pa_proplist_to_string_sep(i->proplist, "\n    ");
     pa_log_info("Created input %u \"%s\" on %s with sample spec %s and channel map %s\n    %s",
                 i->index,
@@ -596,6 +620,14 @@ int pa_sink_input_new(
 
     *_i = i;
     return 0;
+
+fail:
+    if (i) {
+        pa_sink_input_unlink(i);
+        pa_sink_input_unref(i);
+    }
+
+    return ret;
 }
 
 /* Called from main context */
@@ -679,6 +711,9 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     if (linked)
         pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], i);
 
+    if (i->node)
+        pa_node_unlink(i->node);
+
     if (i->sync_prev)
         i->sync_prev->sync_next = i->sync_next;
     if (i->sync_next)
@@ -753,6 +788,9 @@ static void sink_input_free(pa_object *o) {
      * "half-moved" or are connected to sinks that have no asyncmsgq
      * and are hence half-destructed themselves! */
 
+    if (i->node)
+        pa_node_free(i->node);
+
     if (i->thread_info.render_memblockq)
         pa_memblockq_free(i->thread_info.render_memblockq);
 
@@ -819,6 +857,9 @@ void pa_sink_input_put(pa_sink_input *i) {
     i->thread_info.muted = i->muted;
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_ADD_INPUT, i, 0, NULL) == 0);
+
+    if (i->node)
+        pa_node_put(i->node);
 
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
     pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], i);
