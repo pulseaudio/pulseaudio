@@ -2060,8 +2060,9 @@ off:
 }
 
 /* Run from main thread */
-static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
-    pa_device_port *port;
+static int create_card_ports(struct userdata *u, pa_hashmap *ports) {
+    pa_device_port *output_port = NULL;
+    pa_device_port *input_port = NULL;
     pa_device_port_new_data port_data;
 
     const char *name_prefix = NULL;
@@ -2139,18 +2140,42 @@ static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
     pa_device_port_new_data_set_description(&port_data, output_description);
     pa_device_port_new_data_set_direction(&port_data, PA_DIRECTION_OUTPUT);
     pa_device_port_new_data_set_available(&port_data, get_port_availability(u, PA_DIRECTION_OUTPUT));
-    pa_assert_se(port = pa_device_port_new(u->core, &port_data, 0));
-    pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
+
+    output_port = pa_device_port_new(u->core, &port_data, 0);
     pa_device_port_new_data_done(&port_data);
+
+    if (!output_port) {
+        pa_log("Failed to create port %s.", u->output_port_name);
+        goto fail;
+    }
 
     pa_device_port_new_data_init(&port_data);
     pa_device_port_new_data_set_name(&port_data, u->input_port_name);
     pa_device_port_new_data_set_description(&port_data, input_description);
     pa_device_port_new_data_set_direction(&port_data, PA_DIRECTION_INPUT);
     pa_device_port_new_data_set_available(&port_data, get_port_availability(u, PA_DIRECTION_INPUT));
-    pa_assert_se(port = pa_device_port_new(u->core, &port_data, 0));
-    pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
+
+    input_port = pa_device_port_new(u->core, &port_data, 0);
     pa_device_port_new_data_done(&port_data);
+
+    if (!input_port) {
+        pa_log("Failed to create port %s.", u->input_port_name);
+        goto fail;
+    }
+
+    pa_assert_se(pa_hashmap_put(ports, output_port->name, output_port) >= 0);
+    pa_assert_se(pa_hashmap_put(ports, input_port->name, input_port) >= 0);
+
+    return 0;
+
+fail:
+    if (output_port)
+        pa_device_port_unref(output_port);
+
+    if (input_port)
+        pa_device_port_unref(input_port);
+
+    return -1;
 }
 
 /* Run from main thread */
@@ -2266,7 +2291,10 @@ static int add_card(struct userdata *u) {
         return -1;
     }
 
-    create_card_ports(u, data.ports);
+    if (create_card_ports(u, data.ports) < 0) {
+        pa_card_new_data_done(&data);
+        return -1;
+    }
 
     PA_LLIST_FOREACH(uuid, device->uuids) {
         p = create_card_profile(u, uuid->uuid, data.ports);
