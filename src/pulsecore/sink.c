@@ -2299,29 +2299,25 @@ bool pa_sink_update_proplist(pa_sink *s, pa_update_mode_t mode, pa_proplist *p) 
 }
 
 /* Called from main thread */
-/* FIXME -- this should be dropped and be merged into pa_sink_update_proplist() */
 void pa_sink_set_description(pa_sink *s, const char *description) {
     const char *old;
-    pa_sink_assert_ref(s);
-    pa_assert_ctl_context();
 
-    if (!description && !pa_proplist_contains(s->proplist, PA_PROP_DEVICE_DESCRIPTION))
-        return;
+    pa_sink_assert_ref(s);
+    pa_assert(description);
+    pa_assert(*description);
+    pa_assert_ctl_context();
 
     old = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
 
-    if (old && description && pa_streq(old, description))
+    if (old && pa_streq(old, description))
         return;
 
-    if (description)
-        pa_proplist_sets(s->proplist, PA_PROP_DEVICE_DESCRIPTION, description);
-    else
-        pa_proplist_unset(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
+    pa_proplist_sets(s->proplist, PA_PROP_DEVICE_DESCRIPTION, description);
 
     if (s->monitor_source) {
         char *n;
 
-        n = pa_sprintf_malloc("Monitor Source of %s", description ? description : s->name);
+        n = pa_sprintf_malloc("Monitor Source of %s", description);
         pa_source_set_description(s->monitor_source, n);
         pa_xfree(n);
     }

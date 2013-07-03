@@ -1893,24 +1893,20 @@ bool pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist 
 }
 
 /* Called from main thread */
-/* FIXME -- this should be dropped and be merged into pa_source_update_proplist() */
 void pa_source_set_description(pa_source *s, const char *description) {
     const char *old;
-    pa_source_assert_ref(s);
-    pa_assert_ctl_context();
 
-    if (!description && !pa_proplist_contains(s->proplist, PA_PROP_DEVICE_DESCRIPTION))
-        return;
+    pa_source_assert_ref(s);
+    pa_assert(description);
+    pa_assert(*description);
+    pa_assert_ctl_context();
 
     old = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
 
-    if (old && description && pa_streq(old, description))
+    if (old && pa_streq(old, description))
         return;
 
-    if (description)
-        pa_proplist_sets(s->proplist, PA_PROP_DEVICE_DESCRIPTION, description);
-    else
-        pa_proplist_unset(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
+    pa_proplist_sets(s->proplist, PA_PROP_DEVICE_DESCRIPTION, description);
 
     if (PA_SOURCE_IS_LINKED(s->state)) {
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
