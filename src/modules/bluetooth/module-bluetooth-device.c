@@ -2140,6 +2140,8 @@ static int create_card_ports(struct userdata *u, pa_hashmap *ports) {
     pa_device_port_new_data_set_description(&port_data, output_description);
     pa_device_port_new_data_set_direction(&port_data, PA_DIRECTION_OUTPUT);
     pa_device_port_new_data_set_available(&port_data, get_port_availability(u, PA_DIRECTION_OUTPUT));
+    pa_device_port_new_data_set_create_node(&port_data, true);
+    pa_node_new_data_set_fallback_name_prefix(&port_data.node_data, "bluetooth");
 
     output_port = pa_device_port_new(u->core, &port_data, 0);
     pa_device_port_new_data_done(&port_data);
@@ -2154,6 +2156,8 @@ static int create_card_ports(struct userdata *u, pa_hashmap *ports) {
     pa_device_port_new_data_set_description(&port_data, input_description);
     pa_device_port_new_data_set_direction(&port_data, PA_DIRECTION_INPUT);
     pa_device_port_new_data_set_available(&port_data, get_port_availability(u, PA_DIRECTION_INPUT));
+    pa_device_port_new_data_set_create_node(&port_data, true);
+    pa_node_new_data_set_fallback_name_prefix(&port_data.node_data, "bluetooth");
 
     input_port = pa_device_port_new(u->core, &port_data, 0);
     pa_device_port_new_data_done(&port_data);
