@@ -4500,7 +4500,12 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports, /* card ports */
 
         p = pa_device_port_new(core, &port_data, sizeof(pa_alsa_port_data));
         pa_device_port_new_data_done(&port_data);
-        pa_assert(p);
+
+        if (!p) {
+            pa_log("Failed to create port %s.", name);
+            goto fail;
+        }
+
         pa_hashmap_put(ports, p->name, p);
         pa_proplist_update(p->proplist, PA_UPDATE_REPLACE, path->proplist);
 
@@ -4519,6 +4524,9 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports, /* card ports */
     }
 
     return p;
+
+fail:
+    return NULL;
 }
 
 void pa_alsa_path_set_add_ports(
@@ -4542,6 +4550,10 @@ void pa_alsa_path_set_add_ports(
              * single entry */
             pa_device_port *port = device_port_alsa_init(ports, path->name,
                 path->description, path, path->settings, cp, extra, core);
+
+            if (!port)
+                continue;
+
             port->priority = path->priority * 100;
 
         } else {
@@ -4558,10 +4570,13 @@ void pa_alsa_path_set_add_ports(
                     d = pa_xstrdup(path->description);
 
                 port = device_port_alsa_init(ports, n, d, path, s, cp, extra, core);
-                port->priority = path->priority * 100 + s->priority;
-
                 pa_xfree(n);
                 pa_xfree(d);
+
+                if (!port)
+                    continue;
+
+                port->priority = path->priority * 100 + s->priority;
             }
         }
     }
