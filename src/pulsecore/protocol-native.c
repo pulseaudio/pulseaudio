@@ -686,6 +686,8 @@ static record_stream* record_stream_new(
     if (peak_detect)
         data.resample_method = PA_RESAMPLER_PEAKS;
     data.flags = flags;
+    pa_source_output_new_data_set_create_node(&data, true);
+    pa_node_new_data_set_fallback_name_prefix(&data.node_data, "native-protocol");
 
     *ret = -pa_source_output_new(&source_output, c->protocol->core, &data);
 
@@ -1155,6 +1157,8 @@ static playback_stream* playback_stream_new(
     }
     data.sync_base = ssync ? ssync->sink_input : NULL;
     data.flags = flags;
+    pa_sink_input_new_data_set_create_node(&data, true);
+    pa_node_new_data_set_fallback_name_prefix(&data.node_data, "native-protocol");
 
     *ret = -pa_sink_input_new(&sink_input, c->protocol->core, &data);
 
