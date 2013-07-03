@@ -1996,6 +1996,11 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     else if (u->mixer_path_set)
         pa_alsa_add_ports(&data, u->mixer_path_set, card);
 
+    if (pa_hashmap_isempty(data.ports)) {
+        pa_source_new_data_set_create_node(&data, true);
+        pa_node_new_data_set_fallback_name_prefix(&data.node_data, "alsa");
+    }
+
     u->source = pa_source_new(m->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY|(u->use_tsched ? PA_SOURCE_DYNAMIC_LATENCY : 0));
     pa_source_new_data_done(&data);
 

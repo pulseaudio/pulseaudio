@@ -729,6 +729,8 @@ static void ucm_add_port_combination(
         pa_device_port_new_data_set_name(&port_data, name);
         pa_device_port_new_data_set_description(&port_data, desc);
         pa_device_port_new_data_set_direction(&port_data, is_sink ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT);
+        pa_device_port_new_data_set_create_node(&port_data, true);
+        pa_node_new_data_set_fallback_name_prefix(&port_data.node_data, "alsa");
 
         port = pa_device_port_new(core, &port_data, 0);
         pa_device_port_new_data_done(&port_data);
