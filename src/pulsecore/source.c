@@ -74,6 +74,9 @@ pa_source_new_data* pa_source_new_data_init(pa_source_new_data *data) {
     pa_zero(*data);
     data->proplist = pa_proplist_new();
     data->ports = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) pa_device_port_unref);
+    pa_node_new_data_init(&data->node_data);
+    pa_node_new_data_set_type(&data->node_data, PA_NODE_TYPE_SOURCE);
+    pa_node_new_data_set_direction(&data->node_data, PA_DIRECTION_INPUT);
 
     return data;
 }
@@ -127,9 +130,16 @@ void pa_source_new_data_set_port(pa_source_new_data *data, const char *port) {
     data->active_port = pa_xstrdup(port);
 }
 
+void pa_source_new_data_set_create_node(pa_source_new_data *data, bool create) {
+    pa_assert(data);
+
+    data->create_node = create;
+}
+
 void pa_source_new_data_done(pa_source_new_data *data) {
     pa_assert(data);
 
+    pa_node_new_data_done(&data->node_data);
     pa_proplist_free(data->proplist);
 
     if (data->ports)
@@ -322,6 +332,18 @@ pa_source* pa_source_new(
 
     if (s->card)
         pa_assert_se(pa_idxset_put(s->card->sources, s, NULL) >= 0);
+
+    if (data->create_node) {
+        if (!data->node_data.description)
+            pa_node_new_data_set_description(&data->node_data, pa_source_get_description(s));
+
+        if (!(s->node = pa_node_new(s->core, &data->node_data))) {
+            pa_log("Failed to create a node for source %s.", s->name);
+            goto fail;
+        }
+
+        s->node->owner = s;
+    }
 
     pt = pa_proplist_to_string_sep(s->proplist, "\n    ");
     pa_log_info("Created source %u \"%s\" with sample spec %s and channel map %s\n    %s",
@@ -592,6 +614,9 @@ void pa_source_put(pa_source *s) {
     else
         pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
 
+    if (s->node)
+        pa_node_put(s->node);
+
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PUT], s);
 }
@@ -611,6 +636,9 @@ void pa_source_unlink(pa_source *s) {
 
     if (linked)
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], s);
+
+    if (s->node)
+        pa_node_unlink(s->node);
 
     if (s->state != PA_SOURCE_UNLINKED && s->name)
         pa_namereg_unregister(s->core, s->name);
@@ -652,6 +680,9 @@ static void source_free(pa_object *o) {
 
     if (s->state != PA_SOURCE_INIT)
         pa_log_info("Freeing source %u \"%s\"", s->index, s->name);
+
+    if (s->node)
+        pa_node_free(s->node);
 
     if (s->outputs)
         pa_idxset_free(s->outputs, NULL);

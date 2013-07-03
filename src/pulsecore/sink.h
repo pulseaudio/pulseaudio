@@ -37,6 +37,7 @@ typedef struct pa_sink_volume_change pa_sink_volume_change;
 #include <pulsecore/core.h>
 #include <pulsecore/idxset.h>
 #include <pulsecore/memchunk.h>
+#include <pulsecore/node.h>
 #include <pulsecore/source.h>
 #include <pulsecore/module.h>
 #include <pulsecore/asyncmsgq.h>
@@ -84,6 +85,7 @@ struct pa_sink {
     unsigned n_corked;
     pa_source *monitor_source;
     pa_sink_input *input_to_master;         /* non-NULL only for filter sinks */
+    pa_node *node;
 
     pa_volume_t base_volume; /* shall be constant */
     unsigned n_volume_steps; /* shall be constant */
@@ -357,6 +359,9 @@ typedef struct pa_sink_new_data {
     bool save_port:1;
     bool save_volume:1;
     bool save_muted:1;
+
+    bool create_node;
+    pa_node_new_data node_data;
 } pa_sink_new_data;
 
 pa_sink_new_data* pa_sink_new_data_init(pa_sink_new_data *data);
@@ -367,6 +372,7 @@ void pa_sink_new_data_set_alternate_sample_rate(pa_sink_new_data *data, const ui
 void pa_sink_new_data_set_volume(pa_sink_new_data *data, const pa_cvolume *volume);
 void pa_sink_new_data_set_muted(pa_sink_new_data *data, bool mute);
 void pa_sink_new_data_set_port(pa_sink_new_data *data, const char *port);
+void pa_sink_new_data_set_create_node(pa_sink_new_data *data, bool create);
 void pa_sink_new_data_done(pa_sink_new_data *data);
 
 /*** To be called exclusively by the sink driver, from main context */
