@@ -305,7 +305,9 @@ int pa_source_output_update_rate(pa_source_output *o);
 
 size_t pa_source_output_get_max_rewind(pa_source_output *o);
 
-/* Callable by everyone */
+/* Callable by everyone from the main thread. */
+
+const char *pa_source_output_get_description(pa_source_output *o);
 
 /* External code may request disconnection with this function */
 void pa_source_output_kill(pa_source_output*o);

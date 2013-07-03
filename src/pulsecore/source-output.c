@@ -32,6 +32,7 @@
 #include <pulse/util.h>
 #include <pulse/internal.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/mix.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
@@ -690,6 +691,20 @@ void pa_source_output_put(pa_source_output *o) {
     pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], o);
 
     pa_source_update_status(o->source);
+}
+
+/* Called from the main thread. */
+const char *pa_source_output_get_description(pa_source_output *o) {
+    const char *description;
+
+    pa_assert(o);
+
+    description = pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME);
+
+    if (!description)
+        description = _("(unnamed stream)");
+
+    return description;
 }
 
 /* Called from main context */

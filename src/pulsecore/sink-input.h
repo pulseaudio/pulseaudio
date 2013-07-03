@@ -362,6 +362,8 @@ size_t pa_sink_input_get_max_request(pa_sink_input *i);
 
 /* Callable by everyone from main thread*/
 
+const char *pa_sink_input_get_description(pa_sink_input *i);
+
 /* External code may request disconnection with this function */
 void pa_sink_input_kill(pa_sink_input*i);
 

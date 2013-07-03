@@ -32,6 +32,7 @@
 #include <pulse/util.h>
 #include <pulse/internal.h>
 
+#include <pulsecore/i18n.h>
 #include <pulsecore/mix.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
@@ -823,6 +824,20 @@ void pa_sink_input_put(pa_sink_input *i) {
     pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], i);
 
     pa_sink_update_status(i->sink);
+}
+
+/* Called from the main thread. */
+const char *pa_sink_input_get_description(pa_sink_input *i) {
+    const char *description;
+
+    pa_assert(i);
+
+    description = pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME);
+
+    if (!description)
+        description = _("(unnamed stream)");
+
+    return description;
 }
 
 /* Called from main context */
