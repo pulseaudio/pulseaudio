@@ -54,6 +54,8 @@ struct pa_device_port {
     pa_direction_t direction;
     int64_t latency_offset;
 
+    pa_node *node;
+
     /* .. followed by some implementation specific data */
 };
 
@@ -67,6 +69,9 @@ typedef struct pa_device_port_new_data {
     char *description;
     pa_available_t available;
     pa_direction_t direction;
+
+    bool create_node;
+    pa_node_new_data node_data;
 } pa_device_port_new_data;
 
 pa_device_port_new_data *pa_device_port_new_data_init(pa_device_port_new_data *data);
@@ -74,6 +79,7 @@ void pa_device_port_new_data_set_name(pa_device_port_new_data *data, const char 
 void pa_device_port_new_data_set_description(pa_device_port_new_data *data, const char *description);
 void pa_device_port_new_data_set_available(pa_device_port_new_data *data, pa_available_t available);
 void pa_device_port_new_data_set_direction(pa_device_port_new_data *data, pa_direction_t direction);
+void pa_device_port_new_data_set_create_node(pa_device_port_new_data *data, bool create);
 void pa_device_port_new_data_done(pa_device_port_new_data *data);
 
 pa_device_port *pa_device_port_new(pa_core *c, pa_device_port_new_data *data, size_t extra);

@@ -31,6 +31,9 @@ pa_device_port_new_data *pa_device_port_new_data_init(pa_device_port_new_data *d
 
     pa_zero(*data);
     data->available = PA_AVAILABLE_UNKNOWN;
+    pa_node_new_data_init(&data->node_data);
+    pa_node_new_data_set_type(&data->node_data, PA_NODE_TYPE_PORT);
+
     return data;
 }
 
@@ -58,11 +61,19 @@ void pa_device_port_new_data_set_direction(pa_device_port_new_data *data, pa_dir
     pa_assert(data);
 
     data->direction = direction;
+    pa_node_new_data_set_direction(&data->node_data, direction);
+}
+
+void pa_device_port_new_data_set_create_node(pa_device_port_new_data *data, bool create) {
+    pa_assert(data);
+
+    data->create_node = create;
 }
 
 void pa_device_port_new_data_done(pa_device_port_new_data *data) {
     pa_assert(data);
 
+    pa_node_new_data_done(&data->node_data);
     pa_xfree(data->name);
     pa_xfree(data->description);
 }
@@ -93,6 +104,9 @@ static void device_port_free(pa_object *o) {
 
     pa_assert(p);
     pa_assert(pa_device_port_refcnt(p) == 0);
+
+    if (p->node)
+        pa_node_free(p->node);
 
     if (p->proplist)
         pa_proplist_free(p->proplist);
@@ -130,7 +144,25 @@ pa_device_port *pa_device_port_new(pa_core *c, pa_device_port_new_data *data, si
     p->latency_offset = 0;
     p->proplist = pa_proplist_new();
 
+    if (data->create_node) {
+        if (!data->node_data.description)
+            pa_node_new_data_set_description(&data->node_data, p->description);
+
+        if (!(p->node = pa_node_new(p->core, &data->node_data))) {
+            pa_log("Failed to create a node for port %s.", p->name);
+            goto fail;
+        }
+
+        p->node->owner = p;
+        pa_node_put(p->node);
+    }
+
     return p;
+
+fail:
+    pa_device_port_unref(p);
+
+    return NULL;
 }
 
 void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
