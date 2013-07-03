@@ -809,6 +809,42 @@ static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int
     pa_xfree(pl);
 }
 
+static void get_node_info_callback(pa_context *c, const pa_node_info *info, int is_last, void *userdata) {
+    if (is_last < 0) {
+        pa_log(_("Failed to get node information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last) {
+        complete_action();
+        return;
+    }
+
+    pa_assert(info);
+
+    if (nl && !short_list_format)
+        printf("\n");
+    nl = true;
+
+    if (short_list_format) {
+        printf("%" PRIu32 "\t%s\t%s\n",
+               info->index,
+               info->name,
+               info->direction == PA_DIRECTION_OUTPUT ? "output" : "input");
+        return;
+    }
+
+    printf(_("Node #%" PRIu32 "\n"
+             "\tName: %s\n"
+             "\tDescription: %s\n"
+             "\tDirection: %s\n"),
+           info->index,
+           info->name,
+           info->description,
+           info->direction == PA_DIRECTION_OUTPUT ? "output" : "input");
+}
+
 static void simple_callback(pa_context *c, int success, void *userdata) {
     if (!success) {
         pa_log(_("Failure: %s"), pa_strerror(pa_context_errno(c)));
@@ -1212,10 +1248,12 @@ static void context_state_callback(pa_context *c, void *userdata) {
                             pa_operation_unref(pa_context_get_sample_info_list(c, get_sample_info_callback, NULL));
                         else if (pa_streq(list_type, "cards"))
                             pa_operation_unref(pa_context_get_card_info_list(c, get_card_info_callback, NULL));
+                        else if (pa_streq(list_type, "nodes"))
+                            pa_operation_unref(pa_context_get_node_info_list(c, get_node_info_callback, NULL));
                         else
                             pa_assert_not_reached();
                     } else {
-                        actions = 8;
+                        actions = 9;
                         pa_operation_unref(pa_context_get_module_info_list(c, get_module_info_callback, NULL));
                         pa_operation_unref(pa_context_get_sink_info_list(c, get_sink_info_callback, NULL));
                         pa_operation_unref(pa_context_get_source_info_list(c, get_source_info_callback, NULL));
@@ -1224,6 +1262,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
                         pa_operation_unref(pa_context_get_client_info_list(c, get_client_info_callback, NULL));
                         pa_operation_unref(pa_context_get_sample_info_list(c, get_sample_info_callback, NULL));
                         pa_operation_unref(pa_context_get_card_info_list(c, get_card_info_callback, NULL));
+                        pa_operation_unref(pa_context_get_node_info_list(c, get_node_info_callback, NULL));
                     }
                     break;
 
@@ -1590,12 +1629,13 @@ int main(int argc, char *argv[]) {
                 if (pa_streq(argv[i], "modules") || pa_streq(argv[i], "clients") ||
                     pa_streq(argv[i], "sinks")   || pa_streq(argv[i], "sink-inputs") ||
                     pa_streq(argv[i], "sources") || pa_streq(argv[i], "source-outputs") ||
-                    pa_streq(argv[i], "samples") || pa_streq(argv[i], "cards")) {
+                    pa_streq(argv[i], "samples") || pa_streq(argv[i], "cards") ||
+                    pa_streq(argv[i], "nodes")) {
                     list_type = pa_xstrdup(argv[i]);
                 } else if (pa_streq(argv[i], "short")) {
                     short_list_format = true;
                 } else {
-                    pa_log(_("Specify nothing, or one of: %s"), "modules, sinks, sources, sink-inputs, source-outputs, clients, samples, cards");
+                    pa_log(_("Specify nothing, or one of: %s"), "modules, sinks, sources, sink-inputs, source-outputs, clients, samples, cards, nodes");
                     goto quit;
                 }
             }
