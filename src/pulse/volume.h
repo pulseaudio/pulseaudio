@@ -224,7 +224,7 @@ pa_volume_t pa_cvolume_min(const pa_cvolume *a) PA_GCC_PURE;
  * \since 0.9.16 */
 pa_volume_t pa_cvolume_min_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) PA_GCC_PURE;
 
-/** Return true when the passed cvolume structure is valid, false otherwise */
+/** Return non-zero when the passed cvolume structure is valid */
 int pa_cvolume_valid(const pa_cvolume *v) PA_GCC_PURE;
 
 /** Return non-zero if the volume of all channels is equal to the specified value */
