@@ -77,7 +77,7 @@ START_TEST (mainloop_test) {
 #ifdef GLIB_MAIN_LOOP
     pa_glib_mainloop *g;
 
-    glib_main_loop = g_main_loop_new(NULL, false);
+    glib_main_loop = g_main_loop_new(NULL, FALSE);
     fail_if(!glib_main_loop);
 
     g = pa_glib_mainloop_new(NULL);
