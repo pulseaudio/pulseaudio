@@ -1526,7 +1526,7 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
                 o_index++, r->peaks.o_counter++;
             }
         } else if (r->work_format == PA_SAMPLE_S16NE) {
-            int16_t *s = (int16_t*) src + r->i_ss.channels * i;
+            int16_t *s = (int16_t*) src + r->o_ss.channels * i;
             int16_t *d = (int16_t*) dst + r->o_ss.channels * o_index;
 
             for (; i < i_end && i < in_n_frames; i++)
@@ -1545,7 +1545,7 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
                 o_index++, r->peaks.o_counter++;
             }
         } else {
-            float *s = (float*) src + r->i_ss.channels * i;
+            float *s = (float*) src + r->o_ss.channels * i;
             float *d = (float*) dst + r->o_ss.channels * o_index;
 
             for (; i < i_end && i < in_n_frames; i++)
