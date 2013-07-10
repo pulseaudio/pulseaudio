@@ -762,15 +762,24 @@ AC_ARG_ENABLE([alsa],
     AS_HELP_STRING([--disable-alsa],[Disable optional ALSA support]))
 
 AS_IF([test "x$enable_alsa" != "xno"],
-    [PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.24 ], HAVE_ALSA=1, HAVE_ALSA=0)],
+    [PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.19 ], HAVE_ALSA=1, HAVE_ALSA=0)],
     HAVE_ALSA=0)
 
 AS_IF([test "x$enable_alsa" = "xyes" && test "x$HAVE_ALSA" = "x0"],
-    [AC_MSG_ERROR([*** Needed alsa >= 1.0.24 support not found])])
+    [AC_MSG_ERROR([*** Needed alsa >= 1.0.19 support not found])])
+
+AS_IF([test "x$HAVE_ALSA" = "x1"],
+    [
+        save_CFLAGS="$CFLAGS"; CFLAGS="$CFLAGS $ASOUNDLIB_CFLAGS"
+        AC_CHECK_HEADERS([use-case.h], HAVE_ALSA_UCM=1, HAVE_ALSA_UCM=0)
+        CFLAGS="$save_CFLAGS"
+    ],
+    HAVE_ALSA_UCM=0)
 
 AC_SUBST(HAVE_ALSA)
 AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
 AS_IF([test "x$HAVE_ALSA" = "x1"], AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?]))
+AS_IF([test "x$HAVE_ALSA_UCM" = "x1"], AC_DEFINE([HAVE_ALSA_UCM], 1, [Have ALSA UCM?]))
 
 #### EsounD support (optional) ####
 

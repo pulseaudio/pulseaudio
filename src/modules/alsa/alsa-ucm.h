@@ -24,7 +24,11 @@
   USA.
 ***/
 
+#ifdef HAVE_ALSA_UCM
 #include <use-case.h>
+#else
+typedef void snd_use_case_mgr_t;
+#endif
 
 #include "alsa-mixer.h"
 

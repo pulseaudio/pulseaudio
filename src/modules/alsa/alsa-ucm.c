@@ -66,6 +66,8 @@
     } while (0)
 #define PA_UCM_IS_MODIFIER_MAPPING(m) ((pa_proplist_gets((m)->proplist, PA_ALSA_PROP_UCM_MODIFIER)) != NULL)
 
+#ifdef HAVE_ALSA_UCM
+
 struct ucm_items {
     const char *id;
     const char *property;
@@ -1618,3 +1620,59 @@ void pa_alsa_ucm_roled_stream_end(pa_alsa_ucm_config *ucm, const char *role, pa_
         }
     }
 }
+
+#else /* HAVE_ALSA_UCM */
+
+/* Dummy functions for systems without UCM support */
+
+int pa_alsa_ucm_query_profiles(pa_alsa_ucm_config *ucm, int card_index) {
+        pa_log_info("UCM not available.");
+        return -1;
+}
+
+pa_alsa_profile_set* pa_alsa_ucm_add_profile_set(pa_alsa_ucm_config *ucm, pa_channel_map *default_channel_map) {
+    return NULL;
+}
+
+int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, const char *new_profile, const char *old_profile) {
+    return -1;
+}
+
+int pa_alsa_ucm_get_verb(snd_use_case_mgr_t *uc_mgr, const char *verb_name, const char *verb_desc, pa_alsa_ucm_verb **p_verb) {
+    return -1;
+}
+
+void pa_alsa_ucm_add_ports(
+        pa_hashmap **hash,
+        pa_proplist *proplist,
+        pa_alsa_ucm_mapping_context *context,
+        bool is_sink,
+        pa_card *card) {
+}
+
+void pa_alsa_ucm_add_ports_combination(
+        pa_hashmap *hash,
+        pa_alsa_ucm_mapping_context *context,
+        bool is_sink,
+        pa_hashmap *ports,
+        pa_card_profile *cp,
+        pa_core *core) {
+}
+
+int pa_alsa_ucm_set_port(pa_alsa_ucm_mapping_context *context, pa_device_port *port, bool is_sink) {
+    return -1;
+}
+
+void pa_alsa_ucm_free(pa_alsa_ucm_config *ucm) {
+}
+
+void pa_alsa_ucm_mapping_context_free(pa_alsa_ucm_mapping_context *context) {
+}
+
+void pa_alsa_ucm_roled_stream_begin(pa_alsa_ucm_config *ucm, const char *role, pa_direction_t dir) {
+}
+
+void pa_alsa_ucm_roled_stream_end(pa_alsa_ucm_config *ucm, const char *role, pa_direction_t dir) {
+}
+
+#endif
