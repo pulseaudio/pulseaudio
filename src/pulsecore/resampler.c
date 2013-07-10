@@ -460,6 +460,7 @@ void pa_resampler_free(pa_resampler *r) {
 void pa_resampler_set_input_rate(pa_resampler *r, uint32_t rate) {
     pa_assert(r);
     pa_assert(rate > 0);
+    pa_assert(r->impl.update_rates);
 
     if (r->i_ss.rate == rate)
         return;
@@ -472,6 +473,7 @@ void pa_resampler_set_input_rate(pa_resampler *r, uint32_t rate) {
 void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate) {
     pa_assert(r);
     pa_assert(rate > 0);
+    pa_assert(r->impl.update_rates);
 
     if (r->o_ss.rate == rate)
         return;
