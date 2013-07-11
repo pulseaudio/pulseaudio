@@ -221,6 +221,9 @@ void pa_module_unload_all(pa_core *c) {
     pa_assert(c);
     pa_assert(c->modules);
 
+    if (pa_idxset_isempty(c->modules))
+        return;
+
     /* Unload modules in reverse order by default */
     indices = pa_xnew(uint32_t, pa_idxset_size(c->modules));
     i = 0;
