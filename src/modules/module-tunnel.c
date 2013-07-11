@@ -31,6 +31,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef HAVE_X11
+#include <xcb/xcb.h>
+#endif
+
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
@@ -54,6 +58,11 @@
 #include <pulsecore/proplist-util.h>
 #include <pulsecore/auth-cookie.h>
 #include <pulsecore/mcalign.h>
+#include <pulsecore/strlist.h>
+
+#ifdef HAVE_X11
+#include <pulsecore/x11prop.h>
+#endif
 
 #ifdef TUNNEL_SINK
 #include "module-tunnel-sink-symdef.h"
@@ -61,11 +70,17 @@
 #include "module-tunnel-source-symdef.h"
 #endif
 
+#define ENV_DEFAULT_SINK "PULSE_SINK"
+#define ENV_DEFAULT_SOURCE "PULSE_SOURCE"
+#define ENV_DEFAULT_SERVER "PULSE_SERVER"
+#define ENV_COOKIE_FILE "PULSE_COOKIE"
+
 #ifdef TUNNEL_SINK
 PA_MODULE_DESCRIPTION("Tunnel module for sinks");
 PA_MODULE_USAGE(
         "sink_name=<name for the local sink> "
         "sink_properties=<properties for the local sink> "
+        "auto=<determine server/sink/cookie automatically> "
         "server=<address> "
         "sink=<remote sink name> "
         "cookie=<filename> "
@@ -78,6 +93,7 @@ PA_MODULE_DESCRIPTION("Tunnel module for sources");
 PA_MODULE_USAGE(
         "source_name=<name for the local source> "
         "source_properties=<properties for the local source> "
+        "auto=<determine server/source/cookie automatically> "
         "server=<address> "
         "source=<remote source name> "
         "cookie=<filename> "
@@ -92,6 +108,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(false);
 
 static const char* const valid_modargs[] = {
+    "auto",
     "server",
     "cookie",
     "format",
@@ -1898,6 +1915,8 @@ static void sink_set_mute(pa_sink *sink) {
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u = NULL;
+    char *server = NULL;
+    pa_strlist *server_list = NULL;
     pa_sample_spec ss;
     pa_channel_map map;
     char *dn = NULL;
@@ -1906,6 +1925,11 @@ int pa__init(pa_module*m) {
 #else
     pa_source_new_data data;
 #endif
+    bool automatic;
+#ifdef HAVE_X11
+    xcb_connection_t *xcb = NULL;
+#endif
+    const char *cookie_path;
 
     pa_assert(m);
 
@@ -1948,12 +1972,119 @@ int pa__init(pa_module*m) {
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
-    if (!(u->auth_cookie = pa_auth_cookie_get(u->core, pa_modargs_get_value(ma, "cookie", PA_NATIVE_COOKIE_FILE), true, PA_NATIVE_COOKIE_LENGTH)))
+    if (pa_modargs_get_value_boolean(ma, "auto", &automatic) < 0) {
+        pa_log("Failed to parse argument \"auto\".");
         goto fail;
+    }
 
-    if (!(u->server_name = pa_xstrdup(pa_modargs_get_value(ma, "server", NULL)))) {
-        pa_log("No server specified.");
-        goto fail;
+    cookie_path = pa_modargs_get_value(ma, "cookie", NULL);
+    server = pa_xstrdup(pa_modargs_get_value(ma, "server", NULL));
+
+    if (automatic) {
+#ifdef HAVE_X11
+        /* Need an X11 connection to get root properties */
+        if (getenv("DISPLAY") != NULL) {
+            if (!(xcb = xcb_connect(getenv("DISPLAY"), NULL)))
+                pa_log("xcb_connect() failed");
+            else {
+                if (xcb_connection_has_error(xcb)) {
+                    pa_log("xcb_connection_has_error() returned true");
+                    xcb_disconnect(xcb);
+                    xcb = NULL;
+                }
+            }
+        }
+#endif
+
+        /* Figure out the cookie the same way a normal client would */
+        if (cookie_path)
+            cookie_path = getenv(ENV_COOKIE_FILE);
+
+#ifdef HAVE_X11
+        if (!cookie_path && xcb) {
+            char t[1024];
+            if (pa_x11_get_prop(xcb, 0, "PULSE_COOKIE", t, sizeof(t))) {
+                uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
+
+                if (pa_parsehex(t, cookie, sizeof(cookie)) != sizeof(cookie))
+                    pa_log("Failed to parse cookie data");
+                else {
+                    if (!(u->auth_cookie = pa_auth_cookie_create(u->core, cookie, sizeof(cookie))))
+                        goto fail;
+                }
+            }
+        }
+#endif
+
+        /* Same thing for the server name */
+        if (!server)
+            server = pa_xstrdup(getenv(ENV_DEFAULT_SERVER));
+
+#ifdef HAVE_X11
+        if (!server && xcb) {
+            char t[1024];
+            if (pa_x11_get_prop(xcb, 0, "PULSE_SERVER", t, sizeof(t)))
+                server = pa_xstrdup(t);
+        }
+#endif
+
+        /* Also determine the default sink/source on the other server */
+#ifdef TUNNEL_SINK
+        if (!u->sink_name)
+            u->sink_name = pa_xstrdup(getenv(ENV_DEFAULT_SINK));
+
+#ifdef HAVE_X11
+        if (!u->sink_name && xcb) {
+            char t[1024];
+            if (pa_x11_get_prop(xcb, 0, "PULSE_SINK", t, sizeof(t)))
+                u->sink_name = pa_xstrdup(t);
+        }
+#endif
+#else
+        if (!u->source_name)
+            u->source_name = pa_xstrdup(getenv(ENV_DEFAULT_SOURCE));
+
+#ifdef HAVE_X11
+        if (!u->source_name && xcb) {
+            char t[1024];
+            if (pa_x11_get_prop(xcb, 0, "PULSE_SOURCE", t, sizeof(t)))
+                u->source_name = pa_xstrdup(t);
+        }
+#endif
+#endif
+    }
+
+    if (!cookie_path && !u->auth_cookie)
+        cookie_path = PA_NATIVE_COOKIE_FILE;
+
+    if (cookie_path) {
+        if (!(u->auth_cookie = pa_auth_cookie_get(u->core, cookie_path, true, PA_NATIVE_COOKIE_LENGTH)))
+            goto fail;
+    }
+
+    if (server) {
+        if (!(server_list = pa_strlist_parse(server))) {
+            pa_log("Invalid server specified.");
+            goto fail;
+        }
+    } else {
+        char *ufn;
+
+        if (!automatic) {
+            pa_log("No server specified.");
+            goto fail;
+        }
+
+        pa_log("No server address found. Attempting default local sockets.");
+
+        /* The system wide instance via PF_LOCAL */
+        server_list = pa_strlist_prepend(server_list, PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET);
+
+        /* The user instance via PF_LOCAL */
+        if ((ufn = pa_runtime_path(PA_NATIVE_DEFAULT_UNIX_SOCKET))) {
+            server_list = pa_strlist_prepend(server_list, ufn);
+            pa_xfree(ufn);
+        }
     }
 
     ss = m->core->default_sample_spec;
@@ -1963,10 +2094,24 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (!(u->client = pa_socket_client_new_string(m->core->mainloop, true, u->server_name, PA_NATIVE_DEFAULT_PORT))) {
-        pa_log("Failed to connect to server '%s'", u->server_name);
-        goto fail;
-    }
+    for (;;) {
+        server_list = pa_strlist_pop(server_list, &u->server_name);
+
+        if (!u->server_name) {
+            pa_log("Failed to connect to server '%s'", server);
+            goto fail;
+        }
+
+        pa_log_debug("Trying to connect to %s...", u->server_name);
+
+        if (!(u->client = pa_socket_client_new_string(m->core->mainloop, true, u->server_name, PA_NATIVE_DEFAULT_PORT))) {
+            pa_xfree(u->server_name);
+            u->server_name = NULL;
+            continue;
+        }
+
+        break;
+     }
 
     pa_socket_client_set_callback(u->client, on_connection, u);
 
@@ -1978,7 +2123,7 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_init(&data);
     data.driver = __FILE__;
     data.module = m;
-    data.namereg_fail = true;
+    data.namereg_fail = false;
     pa_sink_new_data_set_name(&data, dn);
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_sink_new_data_set_channel_map(&data, &map);
@@ -2022,7 +2167,7 @@ int pa__init(pa_module*m) {
     pa_source_new_data_init(&data);
     data.driver = __FILE__;
     data.module = m;
-    data.namereg_fail = true;
+    data.namereg_fail = false;
     pa_source_new_data_set_name(&data, dn);
     pa_source_new_data_set_sample_spec(&data, &ss);
     pa_source_new_data_set_channel_map(&data, &map);
@@ -2079,12 +2224,34 @@ int pa__init(pa_module*m) {
     pa_source_put(u->source);
 #endif
 
+    if (server)
+        pa_xfree(server);
+
+    if (server_list)
+        pa_strlist_free(server_list);
+
+#ifdef HAVE_X11
+    if (xcb)
+        xcb_disconnect(xcb);
+#endif
+
     pa_modargs_free(ma);
 
     return 0;
 
 fail:
     pa__done(m);
+
+    if (server)
+        pa_xfree(server);
+
+    if (server_list)
+        pa_strlist_free(server_list);
+
+#ifdef HAVE_X11
+    if (xcb)
+        xcb_disconnect(xcb);
+#endif
 
     if (ma)
         pa_modargs_free(ma);
