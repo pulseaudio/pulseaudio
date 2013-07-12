@@ -2411,7 +2411,7 @@ static pa_hook_result_t discovery_hook_cb(pa_bluetooth_discovery *y, const pa_bl
     return PA_HOOK_OK;
 }
 
-int pa__init(pa_module* m) {
+int pa__init(pa_module *m) {
     pa_modargs *ma;
     uint32_t channels;
     struct userdata *u;
