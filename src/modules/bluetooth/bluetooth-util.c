@@ -821,16 +821,12 @@ static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, DBusM
 }
 
 static void register_endpoint_reply(DBusPendingCall *pending, void *userdata) {
-    DBusError e;
     DBusMessage *r;
     pa_dbus_pending *p;
     pa_bluetooth_discovery *y;
     char *endpoint;
 
     pa_assert(pending);
-
-    dbus_error_init(&e);
-
     pa_assert_se(p = userdata);
     pa_assert_se(y = p->context_data);
     pa_assert_se(endpoint = p->call_data);
