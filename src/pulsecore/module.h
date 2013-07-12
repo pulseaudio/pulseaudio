@@ -50,7 +50,7 @@ struct pa_module {
     pa_proplist *proplist;
 };
 
-pa_module* pa_module_load(pa_core *c, const char *name, const char*argument);
+pa_module* pa_module_load(pa_core *c, const char *name, const char *argument);
 
 void pa_module_unload(pa_core *c, pa_module *m, bool force);
 void pa_module_unload_by_index(pa_core *c, uint32_t idx, bool force);
