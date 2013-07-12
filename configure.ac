@@ -979,7 +979,7 @@ PA_MACHINE_ID_FALLBACK="${localstatedir}/lib/dbus/machine-id"
 AX_DEFINE_DIR(PA_MACHINE_ID_FALLBACK, PA_MACHINE_ID_FALLBACK,
 	      [Fallback machine-id file])
 
-#### BlueZ support (optional, dependant on D-Bus) ####
+#### BlueZ support (optional, dependent on D-Bus) ####
 
 AC_ARG_ENABLE([bluez],
     AS_HELP_STRING([--disable-bluez],[Disable optional BlueZ support]))
@@ -1015,7 +1015,7 @@ AC_SUBST(HAVE_UDEV)
 AM_CONDITIONAL([HAVE_UDEV], [test "x$HAVE_UDEV" = x1])
 AS_IF([test "x$HAVE_UDEV" = "x1"], AC_DEFINE([HAVE_UDEV], 1, [Have UDEV.]))
 
-#### HAL compat support (optional, dependant on UDEV) ####
+#### HAL compat support (optional, dependent on UDEV) ####
 
 AC_ARG_ENABLE([hal-compat],
     AS_HELP_STRING([--disable-hal-compat],[Disable optional HAL->udev transition compatibility support]))
