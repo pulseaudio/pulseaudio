@@ -72,10 +72,10 @@ void pa_drop_root(void) {
     pa_assert_se(geteuid() == uid);
     pa_assert_se(getgid() == gid);
     pa_assert_se(getegid() == gid);
-#endif
 
     if (uid != 0)
         pa_drop_caps();
+#endif
 }
 
 void pa_drop_caps(void) {
