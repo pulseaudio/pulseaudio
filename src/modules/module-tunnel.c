@@ -488,9 +488,9 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             /* First, change the state, because otherwise pa_sink_render() would fail */
             if ((r = pa_sink_process_msg(o, code, data, offset, chunk)) >= 0) {
 
-                stream_cork_within_thread(u, u->sink->state == PA_SINK_SUSPENDED);
+                stream_cork_within_thread(u, u->sink->thread_info.state == PA_SINK_SUSPENDED);
 
-                if (PA_SINK_IS_OPENED(u->sink->state))
+                if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
                     send_data(u);
             }
 
@@ -597,7 +597,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             int r;
 
             if ((r = pa_source_process_msg(o, code, data, offset, chunk)) >= 0)
-                stream_cork_within_thread(u, u->source->state == PA_SOURCE_SUSPENDED);
+                stream_cork_within_thread(u, u->source->thread_info.state == PA_SOURCE_SUSPENDED);
 
             return r;
         }
