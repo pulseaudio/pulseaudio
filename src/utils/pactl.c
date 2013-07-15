@@ -575,7 +575,8 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
 
         printf(_("\tProfiles:\n"));
         for (p = i->profiles; p->name; p++)
-            printf("\t\t%s: %s (sinks: %u, sources: %u, priority: %u)\n", p->name, p->description, p->n_sinks, p->n_sources, p->priority);
+            printf("\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n", p->name,
+                p->description, p->n_sinks, p->n_sources, p->priority, pa_yes_no(p->available));
     }
 
     if (i->active_profile)
