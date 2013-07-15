@@ -886,12 +886,8 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0 ||
-                pa_tagstruct_getu32(t, &i.n_profiles) < 0) {
-
-                pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                card_info_free(&i);
-                goto finish;
-            }
+                pa_tagstruct_getu32(t, &i.n_profiles) < 0)
+                    goto fail;
 
             if (i.n_profiles > 0) {
                 i.profiles = pa_xnew0(pa_card_profile_info, i.n_profiles+1);
@@ -902,11 +898,15 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
                         pa_tagstruct_gets(t, &i.profiles[j].description) < 0 ||
                         pa_tagstruct_getu32(t, &i.profiles[j].n_sinks) < 0 ||
                         pa_tagstruct_getu32(t, &i.profiles[j].n_sources) < 0 ||
-                        pa_tagstruct_getu32(t, &i.profiles[j].priority) < 0) {
+                        pa_tagstruct_getu32(t, &i.profiles[j].priority) < 0)
+                            goto fail;
 
-                        pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                        card_info_free(&i);
-                        goto finish;
+                    i.profiles[j].available = 1;
+                    if (o->context->version >= 29) {
+                        uint32_t av;
+                        if (pa_tagstruct_getu32(t, &av) < 0)
+                            goto fail;
+                        i.profiles[j].available = av;
                     }
                 }
 
@@ -934,11 +934,8 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
             }
 
             if (o->context->version >= 26) {
-                if (fill_card_port_info(o->context, t, &i) < 0) {
-                    pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                    card_info_free(&i);
-                    goto finish;
-                }
+                if (fill_card_port_info(o->context, t, &i) < 0)
+                    goto fail;
             }
 
             if (o->callback) {
@@ -958,6 +955,12 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
 finish:
     pa_operation_done(o);
     pa_operation_unref(o);
+    return;
+
+fail:
+    pa_context_fail(o->context, PA_ERR_PROTOCOL);
+    card_info_free(&i);
+    goto finish;
 }
 
 pa_operation* pa_context_get_card_info_by_index(pa_context *c, uint32_t idx, pa_card_info_cb_t cb, void *userdata) {

@@ -342,6 +342,15 @@ SUBCOMMAND_SAVE_FORMATS, in reply from SUBCOMMAND_READ_FORMATS[_ALL]
 
     (uint8_t ) PA_ENCODING_MPEG2_AAC_IEC61937 := 6
 
+## v29, implemented by >= 5.0
+#
+New field in all commands that send/receive profile introspection data
+(PA_COMMAND_GET_CARD_INFO)
+
+    uint32 available
+
+The field is added once for every profile.
+
 #### If you just changed the protocol, read this
 ## module-tunnel depends on the sink/source/sink-input/source-input protocol
 ## internals, so if you changed these, you might have broken module-tunnel.

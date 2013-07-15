@@ -3287,6 +3287,9 @@ static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_car
         pa_tagstruct_putu32(t, p->n_sinks);
         pa_tagstruct_putu32(t, p->n_sources);
         pa_tagstruct_putu32(t, p->priority);
+
+        if (c->version >= 29)
+            pa_tagstruct_putu32(t, (p->available != PA_AVAILABLE_NO));
     }
 
     pa_tagstruct_puts(t, card->active_profile->name);

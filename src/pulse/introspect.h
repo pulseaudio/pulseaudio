@@ -452,6 +452,12 @@ typedef struct pa_card_profile_info {
     uint32_t n_sinks;                   /**< Number of sinks this profile would create */
     uint32_t n_sources;                 /**< Number of sources this profile would create */
     uint32_t priority;                  /**< The higher this value is, the more useful this profile is as a default. */
+    int available;
+    /**< Is this profile available? If this is zero, meaning "unavailable",
+     * then it makes no sense to try to activate this profile. If this is
+     * non-zero, it's still not a guarantee that activating the profile will
+     * result in anything useful, it just means that the server isn't aware of
+     * any reason why the profile would definitely be useless. \since 5.0 */
 } pa_card_profile_info;
 
 /** Stores information about a specific port of a card.  Please
