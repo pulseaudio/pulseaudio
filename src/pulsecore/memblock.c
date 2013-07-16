@@ -657,7 +657,7 @@ finish:
     memblock_wait(b);
 }
 
-/* No lock necessary. This function is not multiple caller safe*/
+/* No lock necessary. This function is not multiple caller safe */
 void pa_memblock_unref_fixed(pa_memblock *b) {
     pa_assert(b);
     pa_assert(PA_REFCNT_VALUE(b) > 0);

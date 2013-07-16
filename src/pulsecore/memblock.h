@@ -99,9 +99,9 @@ pa_memblock* pa_memblock_ref(pa_memblock*b);
 /* This special unref function has to be called by the owner of the
 memory of a static memory block when he wants to release all
 references to the memory. This causes the memory to be copied and
-converted into a pool or malloc'ed memory block. Please note that this
+converted into a pool of malloc'ed memory block. Please note that this
 function is not multiple caller safe, i.e. needs to be locked
-manually if called from more than one thread at the same time.  */
+manually if called from more than one thread at the same time. */
 void pa_memblock_unref_fixed(pa_memblock*b);
 
 bool pa_memblock_is_read_only(pa_memblock *b);
