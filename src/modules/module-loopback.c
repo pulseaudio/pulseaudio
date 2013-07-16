@@ -811,7 +811,7 @@ int pa__init(pa_module *m) {
         channels_set = true;
 
     latency_msec = DEFAULT_LATENCY_MSEC;
-    if (pa_modargs_get_value_u32(ma, "latency_msec", &latency_msec) < 0 || latency_msec < 1 || latency_msec > 2000) {
+    if (pa_modargs_get_value_u32(ma, "latency_msec", &latency_msec) < 0 || latency_msec < 1 || latency_msec > 30000) {
         pa_log("Invalid latency specification");
         goto fail;
     }
