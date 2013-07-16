@@ -36,34 +36,7 @@
 #include <pulsecore/sample-util.h>
 #include <pulsecore/mix.h>
 
-#define PA_CPU_TEST_RUN_START(l, t1, t2)                        \
-{                                                               \
-    int _j, _k;                                                 \
-    int _times = (t1), _times2 = (t2);                          \
-    pa_usec_t _start, _stop;                                    \
-    pa_usec_t _min = INT_MAX, _max = 0;                         \
-    double _s1 = 0, _s2 = 0;                                    \
-    const char *_label = (l);                                   \
-                                                                \
-    for (_k = 0; _k < _times2; _k++) {                          \
-        _start = pa_rtclock_now();                              \
-        for (_j = 0; _j < _times; _j++)
-
-#define PA_CPU_TEST_RUN_STOP                                    \
-        _stop = pa_rtclock_now();                               \
-                                                                \
-        if (_min > (_stop - _start)) _min = _stop - _start;     \
-        if (_max < (_stop - _start)) _max = _stop - _start;     \
-        _s1 += _stop - _start;                                  \
-        _s2 += (_stop - _start) * (_stop - _start);             \
-    }                                                           \
-    pa_log_debug("%s: %llu usec (avg: %g, min = %llu, max = %llu, stddev = %g).", _label, \
-            (long long unsigned int)_s1,                        \
-            ((double)_s1 / _times2),                            \
-            (long long unsigned int)_min,                       \
-            (long long unsigned int)_max,                       \
-            sqrt(_times2 * _s2 - _s1 * _s1) / _times2);         \
-}
+#include "runtime-test-util.h"
 
 /* Common defines for svolume tests */
 #define SAMPLES 1028
@@ -121,15 +94,15 @@ static void run_volume_test(
     if (perf) {
         pa_log_debug("Testing svolume %dch performance with %d sample alignment", channels, align);
 
-        PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
+        PA_RUNTIME_TEST_RUN_START("func", TIMES, TIMES2) {
             memcpy(samples, samples_orig, size);
             func(samples, volumes, channels, size);
-        } PA_CPU_TEST_RUN_STOP
+        } PA_RUNTIME_TEST_RUN_STOP
 
-        PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
+        PA_RUNTIME_TEST_RUN_START("orig", TIMES, TIMES2) {
             memcpy(samples_ref, samples_orig, size);
             orig_func(samples_ref, volumes, channels, size);
-        } PA_CPU_TEST_RUN_STOP
+        } PA_RUNTIME_TEST_RUN_STOP
 
         fail_unless(memcmp(samples_ref, samples, size) == 0);
     }
@@ -301,13 +274,13 @@ static void run_conv_test_float_to_s16(
     if (perf) {
         pa_log_debug("Testing sconv performance with %d sample alignment", align);
 
-        PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
+        PA_RUNTIME_TEST_RUN_START("func", TIMES, TIMES2) {
             func(nsamples, floats, samples);
-        } PA_CPU_TEST_RUN_STOP
+        } PA_RUNTIME_TEST_RUN_STOP
 
-        PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
+        PA_RUNTIME_TEST_RUN_START("orig", TIMES, TIMES2) {
             orig_func(nsamples, floats, samples_ref);
-        } PA_CPU_TEST_RUN_STOP
+        } PA_RUNTIME_TEST_RUN_STOP
     }
 }
 
@@ -352,13 +325,13 @@ static void run_conv_test_s16_to_float(
     if (perf) {
         pa_log_debug("Testing sconv performance with %d sample alignment", align);
 
-        PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
+        PA_RUNTIME_TEST_RUN_START("func", TIMES, TIMES2) {
             func(nsamples, samples, floats);
-        } PA_CPU_TEST_RUN_STOP
+        } PA_RUNTIME_TEST_RUN_STOP
 
-        PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
+        PA_RUNTIME_TEST_RUN_START("orig", TIMES, TIMES2) {
             orig_func(nsamples, samples, floats_ref);
-        } PA_CPU_TEST_RUN_STOP
+        } PA_RUNTIME_TEST_RUN_STOP
     }
 }
 #endif /* HAVE_NEON */
@@ -513,13 +486,13 @@ static void run_remap_test_mono_stereo_float(
     if (perf) {
         pa_log_debug("Testing remap performance with %d sample alignment", align);
 
-        PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
+        PA_RUNTIME_TEST_RUN_START("func", TIMES, TIMES2) {
             func(remap, stereo, mono, nsamples);
-        } PA_CPU_TEST_RUN_STOP
+        } PA_RUNTIME_TEST_RUN_STOP
 
-        PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
+        PA_RUNTIME_TEST_RUN_START("orig", TIMES, TIMES2) {
             orig_func(remap, stereo_ref, mono, nsamples);
-        } PA_CPU_TEST_RUN_STOP
+        } PA_RUNTIME_TEST_RUN_STOP
     }
 }
 
@@ -562,13 +535,13 @@ static void run_remap_test_mono_stereo_s16(
     if (perf) {
         pa_log_debug("Testing remap performance with %d sample alignment", align);
 
-        PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
+        PA_RUNTIME_TEST_RUN_START("func", TIMES, TIMES2) {
             func(remap, stereo, mono, nsamples);
-        } PA_CPU_TEST_RUN_STOP
+        } PA_RUNTIME_TEST_RUN_STOP
 
-        PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
+        PA_RUNTIME_TEST_RUN_START("orig", TIMES, TIMES2) {
             orig_func(remap, stereo_ref, mono, nsamples);
-        } PA_CPU_TEST_RUN_STOP
+        } PA_RUNTIME_TEST_RUN_STOP
     }
 }
 
@@ -803,17 +776,17 @@ static void run_mix_test(
     if (perf) {
         pa_log_debug("Testing %d-channel mixing performance with %d sample alignment", channels, align);
 
-        PA_CPU_TEST_RUN_START("func", TIMES, TIMES2) {
+        PA_RUNTIME_TEST_RUN_START("func", TIMES, TIMES2) {
             acquire_mix_streams(m, 2);
             func(m, 2, channels, samples, nsamples * sizeof(int16_t));
             release_mix_streams(m, 2);
-        } PA_CPU_TEST_RUN_STOP
+        } PA_RUNTIME_TEST_RUN_STOP
 
-        PA_CPU_TEST_RUN_START("orig", TIMES, TIMES2) {
+        PA_RUNTIME_TEST_RUN_START("orig", TIMES, TIMES2) {
             acquire_mix_streams(m, 2);
             orig_func(m, 2, channels, samples_ref, nsamples * sizeof(int16_t));
             release_mix_streams(m, 2);
-        } PA_CPU_TEST_RUN_STOP
+        } PA_RUNTIME_TEST_RUN_STOP
     }
 
     pa_memblock_unref(c0.memblock);

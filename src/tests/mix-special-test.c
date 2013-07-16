@@ -32,34 +32,7 @@
 #include <pulsecore/mix.h>
 #include <pulsecore/sample-util.h>
 
-#define PA_CPU_TEST_RUN_START(l, t1, t2)                        \
-{                                                               \
-    int _j, _k;                                                 \
-    int _times = (t1), _times2 = (t2);                          \
-    pa_usec_t _start, _stop;                                    \
-    pa_usec_t _min = INT_MAX, _max = 0;                         \
-    double _s1 = 0, _s2 = 0;                                    \
-    const char *_label = (l);                                   \
-                                                                \
-    for (_k = 0; _k < _times2; _k++) {                          \
-        _start = pa_rtclock_now();                              \
-        for (_j = 0; _j < _times; _j++)
-
-#define PA_CPU_TEST_RUN_STOP                                    \
-        _stop = pa_rtclock_now();                               \
-                                                                \
-        if (_min > (_stop - _start)) _min = _stop - _start;     \
-        if (_max < (_stop - _start)) _max = _stop - _start;     \
-        _s1 += _stop - _start;                                  \
-        _s2 += (_stop - _start) * (_stop - _start);             \
-    }                                                           \
-    pa_log_debug("%s: %llu usec (avg: %g, min = %llu, max = %llu, stddev = %g).", _label, \
-            (long long unsigned int)_s1,                        \
-            ((double)_s1 / _times2),                            \
-            (long long unsigned int)_min,                       \
-            (long long unsigned int)_max,                       \
-            sqrt(_times2 * _s2 - _s1 * _s1) / _times2);         \
-}
+#include "runtime-test-util.h"
 
 static void acquire_mix_streams(pa_mix_info streams[], unsigned nstreams) {
     unsigned i;
@@ -230,17 +203,17 @@ START_TEST (mix_special_1ch_test) {
     m[1].volume.values[0] = PA_VOLUME_NORM;
     m[1].linear[0].i = 0x6789;
 
-    PA_CPU_TEST_RUN_START("mix s16 generic 1 channel", TIMES, TIMES2) {
+    PA_RUNTIME_TEST_RUN_START("mix s16 generic 1 channel", TIMES, TIMES2) {
         acquire_mix_streams(m, 2);
         pa_mix_generic_s16ne(m, 2, 1, out_ref, nsamples * sizeof(int16_t));
         release_mix_streams(m, 2);
-    } PA_CPU_TEST_RUN_STOP
+    } PA_RUNTIME_TEST_RUN_STOP
 
-    PA_CPU_TEST_RUN_START("mix s16 2 streams 1 channel", TIMES, TIMES2) {
+    PA_RUNTIME_TEST_RUN_START("mix s16 2 streams 1 channel", TIMES, TIMES2) {
         acquire_mix_streams(m, 2);
         pa_mix2_ch1_s16ne(m, out, nsamples * sizeof(int16_t));
         release_mix_streams(m, 2);
-    } PA_CPU_TEST_RUN_STOP
+    } PA_RUNTIME_TEST_RUN_STOP
 
     fail_unless(memcmp(out, out_ref, nsamples * sizeof(int16_t)) == 0);
 
@@ -288,33 +261,33 @@ START_TEST (mix_special_2ch_test) {
         m[1].linear[i].i = 0x6789;
     }
 
-    PA_CPU_TEST_RUN_START("mix s16 generic 2 channels", TIMES, TIMES2) {
+    PA_RUNTIME_TEST_RUN_START("mix s16 generic 2 channels", TIMES, TIMES2) {
         acquire_mix_streams(m, 2);
         pa_mix_generic_s16ne(m, 2, 2, out_ref, nsamples * sizeof(int16_t));
         release_mix_streams(m, 2);
-    } PA_CPU_TEST_RUN_STOP
+    } PA_RUNTIME_TEST_RUN_STOP
 
-    PA_CPU_TEST_RUN_START("mix s16 2 channels", TIMES, TIMES2) {
+    PA_RUNTIME_TEST_RUN_START("mix s16 2 channels", TIMES, TIMES2) {
         acquire_mix_streams(m, 2);
         pa_mix_ch2_s16ne(m, 2, out, nsamples * sizeof(int16_t));
         release_mix_streams(m, 2);
-    } PA_CPU_TEST_RUN_STOP
+    } PA_RUNTIME_TEST_RUN_STOP
 
     fail_unless(memcmp(out, out_ref, nsamples * sizeof(int16_t)) == 0);
 
-    PA_CPU_TEST_RUN_START("mix s16 2 streams", TIMES, TIMES2) {
+    PA_RUNTIME_TEST_RUN_START("mix s16 2 streams", TIMES, TIMES2) {
         acquire_mix_streams(m, 2);
         pa_mix2_s16ne(m, 2, out, nsamples * sizeof(int16_t));
         release_mix_streams(m, 2);
-    } PA_CPU_TEST_RUN_STOP
+    } PA_RUNTIME_TEST_RUN_STOP
 
     fail_unless(memcmp(out, out_ref, nsamples * sizeof(int16_t)) == 0);
 
-    PA_CPU_TEST_RUN_START("mix s16 2 streams 2 channels", TIMES, TIMES2) {
+    PA_RUNTIME_TEST_RUN_START("mix s16 2 streams 2 channels", TIMES, TIMES2) {
         acquire_mix_streams(m, 2);
         pa_mix2_ch2_s16ne(m, out, nsamples * sizeof(int16_t));
         release_mix_streams(m, 2);
-    } PA_CPU_TEST_RUN_STOP
+    } PA_RUNTIME_TEST_RUN_STOP
 
     fail_unless(memcmp(out, out_ref, nsamples * sizeof(int16_t)) == 0);
 

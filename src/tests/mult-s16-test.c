@@ -30,34 +30,7 @@
 #include <pulsecore/random.h>
 #include <pulsecore/macro.h>
 
-#define PA_CPU_TEST_RUN_START(l, t1, t2)                        \
-{                                                               \
-    int _j, _k;                                                 \
-    int _times = (t1), _times2 = (t2);                          \
-    pa_usec_t _start, _stop;                                    \
-    pa_usec_t _min = INT_MAX, _max = 0;                         \
-    double _s1 = 0, _s2 = 0;                                    \
-    const char *_label = (l);                                   \
-                                                                \
-    for (_k = 0; _k < _times2; _k++) {                          \
-        _start = pa_rtclock_now();                              \
-        for (_j = 0; _j < _times; _j++)
-
-#define PA_CPU_TEST_RUN_STOP                                    \
-        _stop = pa_rtclock_now();                               \
-                                                                \
-        if (_min > (_stop - _start)) _min = _stop - _start;     \
-        if (_max < (_stop - _start)) _max = _stop - _start;     \
-        _s1 += _stop - _start;                                  \
-        _s2 += (_stop - _start) * (_stop - _start);             \
-    }                                                           \
-    pa_log_debug("%s: %llu usec (avg: %g, min = %llu, max = %llu, stddev = %g).", _label, \
-            (long long unsigned int)_s1,                        \
-            ((double)_s1 / _times2),                            \
-            (long long unsigned int)_min,                       \
-            (long long unsigned int)_max,                       \
-            sqrt(_times2 * _s2 - _s1 * _s1) / _times2);         \
-}
+#include "runtime-test-util.h"
 
 static inline int32_t pa_mult_s16_volume_32(int16_t v, int32_t cv) {
     /* Multiplying the 32 bit volume factor with the
@@ -98,16 +71,16 @@ START_TEST (mult_s16_test) {
         }
     }
 
-    PA_CPU_TEST_RUN_START("32 bit mult", TIMES, TIMES2) {
+    PA_RUNTIME_TEST_RUN_START("32 bit mult", TIMES, TIMES2) {
         for (i = 0; i < SAMPLES; i++) {
             sum1 += pa_mult_s16_volume_32(samples[i], volumes[i]);
         }
-    } PA_CPU_TEST_RUN_STOP
+    } PA_RUNTIME_TEST_RUN_STOP
 
-    PA_CPU_TEST_RUN_START("64 bit mult", TIMES, TIMES2) {
+    PA_RUNTIME_TEST_RUN_START("64 bit mult", TIMES, TIMES2) {
         for (i = 0; i < SAMPLES; i++)
             sum2 += pa_mult_s16_volume_64(samples[i], volumes[i]);
-    } PA_CPU_TEST_RUN_STOP
+    } PA_RUNTIME_TEST_RUN_STOP
 
     fail_unless(sum1 == sum2);
 }
