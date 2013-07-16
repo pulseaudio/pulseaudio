@@ -1106,9 +1106,10 @@ static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned n, pa_memchunk *
         }
 
         if (m) {
-            if (m->chunk.memblock)
+            if (m->chunk.memblock) {
                 pa_memblock_unref(m->chunk.memblock);
                 pa_memchunk_reset(&m->chunk);
+            }
 
             pa_sink_input_unref(m->userdata);
             m->userdata = NULL;
