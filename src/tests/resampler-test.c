@@ -431,7 +431,8 @@ int main(int argc, char *argv[]) {
         i.index = 0;
         while (seconds--) {
             pa_resampler_run(resampler, &i, &j);
-            pa_memblock_unref(j.memblock);
+            if (j.memblock)
+                pa_memblock_unref(j.memblock);
         }
         pa_log_info("resampling: %llu", (long long unsigned)(pa_rtclock_now() - ts));
         pa_memblock_unref(i.memblock);
