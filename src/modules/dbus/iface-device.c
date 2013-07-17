@@ -455,7 +455,7 @@ static void handle_get_has_flat_volume(DBusConnection *conn, DBusMessage *msg, v
     pa_assert(msg);
     pa_assert(d);
 
-    has_flat_volume = (d->type == PA_DEVICE_TYPE_SINK) ? (d->sink->flags & PA_SINK_FLAT_VOLUME) : FALSE;
+    has_flat_volume = (d->type == PA_DEVICE_TYPE_SINK) ? !!(d->sink->flags & PA_SINK_FLAT_VOLUME) : FALSE;
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &has_flat_volume);
 }
@@ -469,8 +469,8 @@ static void handle_get_has_convertible_to_decibel_volume(DBusConnection *conn, D
     pa_assert(d);
 
     has_convertible_to_decibel_volume = (d->type == PA_DEVICE_TYPE_SINK)
-                                        ? (d->sink->flags & PA_SINK_DECIBEL_VOLUME)
-                                        : (d->source->flags & PA_SOURCE_DECIBEL_VOLUME);
+                                        ? !!(d->sink->flags & PA_SINK_DECIBEL_VOLUME)
+                                        : !!(d->source->flags & PA_SOURCE_DECIBEL_VOLUME);
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &has_convertible_to_decibel_volume);
 }
@@ -539,8 +539,8 @@ static void handle_get_has_hardware_volume(DBusConnection *conn, DBusMessage *ms
     pa_assert(d);
 
     has_hardware_volume = (d->type == PA_DEVICE_TYPE_SINK)
-                          ? (d->sink->flags & PA_SINK_HW_VOLUME_CTRL)
-                          : (d->source->flags & PA_SOURCE_HW_VOLUME_CTRL);
+                          ? !!(d->sink->flags & PA_SINK_HW_VOLUME_CTRL)
+                          : !!(d->source->flags & PA_SOURCE_HW_VOLUME_CTRL);
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &has_hardware_volume);
 }
@@ -554,8 +554,8 @@ static void handle_get_has_hardware_mute(DBusConnection *conn, DBusMessage *msg,
     pa_assert(d);
 
     has_hardware_mute = (d->type == PA_DEVICE_TYPE_SINK)
-                        ? (d->sink->flags & PA_SINK_HW_MUTE_CTRL)
-                        : (d->source->flags & PA_SOURCE_HW_MUTE_CTRL);
+                        ? !!(d->sink->flags & PA_SINK_HW_MUTE_CTRL)
+                        : !!(d->source->flags & PA_SOURCE_HW_MUTE_CTRL);
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &has_hardware_mute);
 }
@@ -584,8 +584,8 @@ static void handle_get_has_dynamic_latency(DBusConnection *conn, DBusMessage *ms
     pa_assert(d);
 
     has_dynamic_latency = (d->type == PA_DEVICE_TYPE_SINK)
-                          ? (d->sink->flags & PA_SINK_DYNAMIC_LATENCY)
-                          : (d->source->flags & PA_SOURCE_DYNAMIC_LATENCY);
+                          ? !!(d->sink->flags & PA_SINK_DYNAMIC_LATENCY)
+                          : !!(d->source->flags & PA_SOURCE_DYNAMIC_LATENCY);
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &has_dynamic_latency);
 }
@@ -624,8 +624,8 @@ static void handle_get_is_hardware_device(DBusConnection *conn, DBusMessage *msg
     pa_assert(d);
 
     is_hardware_device = (d->type == PA_DEVICE_TYPE_SINK)
-                         ? (d->sink->flags & PA_SINK_HARDWARE)
-                         : (d->source->flags & PA_SOURCE_HARDWARE);
+                         ? !!(d->sink->flags & PA_SINK_HARDWARE)
+                         : !!(d->source->flags & PA_SOURCE_HARDWARE);
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &is_hardware_device);
 }
@@ -639,8 +639,8 @@ static void handle_get_is_network_device(DBusConnection *conn, DBusMessage *msg,
     pa_assert(d);
 
     is_network_device = (d->type == PA_DEVICE_TYPE_SINK)
-                        ? (d->sink->flags & PA_SINK_NETWORK)
-                        : (d->source->flags & PA_SOURCE_NETWORK);
+                        ? !!(d->sink->flags & PA_SINK_NETWORK)
+                        : !!(d->source->flags & PA_SOURCE_NETWORK);
 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &is_network_device);
 }
@@ -826,17 +826,17 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
         sample_format = d->sink->sample_spec.format;
         sample_rate = d->sink->sample_spec.rate;
         channel_map = &d->sink->channel_map;
-        has_flat_volume = d->sink->flags & PA_SINK_FLAT_VOLUME;
-        has_convertible_to_decibel_volume = d->sink->flags & PA_SINK_DECIBEL_VOLUME;
+        has_flat_volume = !!(d->sink->flags & PA_SINK_FLAT_VOLUME);
+        has_convertible_to_decibel_volume = !!(d->sink->flags & PA_SINK_DECIBEL_VOLUME);
         base_volume = d->sink->base_volume;
         volume_steps = d->sink->n_volume_steps;
-        has_hardware_volume = d->sink->flags & PA_SINK_HW_VOLUME_CTRL;
-        has_hardware_mute = d->sink->flags & PA_SINK_HW_MUTE_CTRL;
+        has_hardware_volume = !!(d->sink->flags & PA_SINK_HW_VOLUME_CTRL);
+        has_hardware_mute = !!(d->sink->flags & PA_SINK_HW_MUTE_CTRL);
         configured_latency = pa_sink_get_requested_latency(d->sink);
-        has_dynamic_latency = d->sink->flags & PA_SINK_DYNAMIC_LATENCY;
+        has_dynamic_latency = !!(d->sink->flags & PA_SINK_DYNAMIC_LATENCY);
         latency = pa_sink_get_latency(d->sink);
-        is_hardware_device = d->sink->flags & PA_SINK_HARDWARE;
-        is_network_device = d->sink->flags & PA_SINK_NETWORK;
+        is_hardware_device = !!(d->sink->flags & PA_SINK_HARDWARE);
+        is_network_device = !!(d->sink->flags & PA_SINK_NETWORK);
         state = pa_sink_get_state(d->sink);
     } else {
         idx = d->source->index;
@@ -848,16 +848,16 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
         sample_rate = d->source->sample_spec.rate;
         channel_map = &d->source->channel_map;
         has_flat_volume = FALSE;
-        has_convertible_to_decibel_volume = d->source->flags & PA_SOURCE_DECIBEL_VOLUME;
+        has_convertible_to_decibel_volume = !!(d->source->flags & PA_SOURCE_DECIBEL_VOLUME);
         base_volume = d->source->base_volume;
         volume_steps = d->source->n_volume_steps;
-        has_hardware_volume = d->source->flags & PA_SOURCE_HW_VOLUME_CTRL;
-        has_hardware_mute = d->source->flags & PA_SOURCE_HW_MUTE_CTRL;
+        has_hardware_volume = !!(d->source->flags & PA_SOURCE_HW_VOLUME_CTRL);
+        has_hardware_mute = !!(d->source->flags & PA_SOURCE_HW_MUTE_CTRL);
         configured_latency = pa_source_get_requested_latency(d->source);
-        has_dynamic_latency = d->source->flags & PA_SOURCE_DYNAMIC_LATENCY;
+        has_dynamic_latency = !!(d->source->flags & PA_SOURCE_DYNAMIC_LATENCY);
         latency = pa_source_get_latency(d->source);
-        is_hardware_device = d->source->flags & PA_SOURCE_HARDWARE;
-        is_network_device = d->source->flags & PA_SOURCE_NETWORK;
+        is_hardware_device = !!(d->source->flags & PA_SOURCE_HARDWARE);
+        is_network_device = !!(d->source->flags & PA_SOURCE_NETWORK);
         state = pa_source_get_state(d->source);
     }
     if (owner_module)
