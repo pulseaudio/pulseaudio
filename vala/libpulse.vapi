@@ -340,6 +340,9 @@ namespace PulseAudio {
                 [CCode (cname="pa_cvolume_compatible_with_channel_map")]
                 public bool compatible_with_channel_map(ChannelMap cm);
 
+                [CCode (cname="pa_cvolume_set")]
+                public unowned CVolume? set(uint8 channels, Volume v);
+
                 [CCode (cname="pa_cvolume_get_balance")]
                 public float get_balance(ChannelMap map);
 
