@@ -655,6 +655,7 @@ static void ucm_add_port_combination(
     pa_device_port *port;
     int i;
     unsigned priority;
+    double prio2;
     char *name, *desc;
     const char *dev_name;
     const char *direction;
@@ -668,6 +669,7 @@ static void ucm_add_port_combination(
             : pa_sprintf_malloc("Combination port for %s", dev_name);
 
     priority = is_sink ? dev->playback_priority : dev->capture_priority;
+    prio2 = (priority == 0 ? 0 : 1.0/priority);
 
     for (i = 1; i < num; i++) {
         char *tmp;
@@ -683,9 +685,18 @@ static void ucm_add_port_combination(
         pa_xfree(desc);
         desc = tmp;
 
-        /* FIXME: Is this true? */
-        priority += (is_sink ? dev->playback_priority : dev->capture_priority);
+        priority = is_sink ? dev->playback_priority : dev->capture_priority;
+        if (priority != 0 && prio2 > 0)
+            prio2 += 1.0/priority;
     }
+
+    /* Make combination ports always have lower priority, and use the formula
+       1/p = 1/p1 + 1/p2 + ... 1/pn.
+       This way, the result will always be less than the individual components,
+       yet higher components will lead to higher result. */
+
+    if (num > 1)
+        priority = prio2 > 0 ? 1.0/prio2 : 0;
 
     port = pa_hashmap_get(ports, name);
     if (!port) {
