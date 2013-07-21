@@ -1243,9 +1243,36 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
     return &r->remap_buf;
 }
 
+static void save_leftover(pa_resampler *r, void *buf, size_t len) {
+    void *dst;
+
+    pa_assert(r);
+    pa_assert(buf);
+    pa_assert(len > 0);
+
+    /* Store the leftover to remap_buf. */
+
+    r->remap_buf.length = len;
+
+    if (!r->remap_buf.memblock || r->remap_buf_size < r->remap_buf.length) {
+        if (r->remap_buf.memblock)
+            pa_memblock_unref(r->remap_buf.memblock);
+
+        r->remap_buf_size = r->remap_buf.length;
+        r->remap_buf.memblock = pa_memblock_new(r->mempool, r->remap_buf.length);
+    }
+
+    dst = pa_memblock_acquire(r->remap_buf.memblock);
+    memcpy(dst, buf, r->remap_buf.length);
+    pa_memblock_release(r->remap_buf.memblock);
+
+    r->remap_buf_contains_leftover_data = true;
+}
+
 static pa_memchunk *resample(pa_resampler *r, pa_memchunk *input) {
     unsigned in_n_frames, in_n_samples;
     unsigned out_n_frames, out_n_samples;
+    unsigned leftover_n_frames;
 
     pa_assert(r);
     pa_assert(input);
@@ -1272,7 +1299,14 @@ static pa_memchunk *resample(pa_resampler *r, pa_memchunk *input) {
         r->resample_buf.memblock = pa_memblock_new(r->mempool, r->resample_buf.length);
     }
 
-    r->impl.resample(r, input, in_n_frames, &r->resample_buf, &out_n_frames);
+    leftover_n_frames = r->impl.resample(r, input, in_n_frames, &r->resample_buf, &out_n_frames);
+
+    if (leftover_n_frames > 0) {
+        void *leftover_data = (uint8_t *) pa_memblock_acquire_chunk(input) + (in_n_frames - leftover_n_frames) * r->w_fz;
+        save_leftover(r, leftover_data, leftover_n_frames * r->w_fz);
+        pa_memblock_release(input->memblock);
+    }
+
     r->resample_buf.length = out_n_frames * r->w_fz;
 
     return &r->resample_buf;
@@ -1341,32 +1375,6 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) 
         pa_memchunk_reset(out);
 }
 
-static void save_leftover(pa_resampler *r, void *buf, size_t len) {
-    void *dst;
-
-    pa_assert(r);
-    pa_assert(buf);
-    pa_assert(len > 0);
-
-    /* Store the leftover to remap_buf. */
-
-    r->remap_buf.length = len;
-
-    if (!r->remap_buf.memblock || r->remap_buf_size < r->remap_buf.length) {
-        if (r->remap_buf.memblock)
-            pa_memblock_unref(r->remap_buf.memblock);
-
-        r->remap_buf_size = r->remap_buf.length;
-        r->remap_buf.memblock = pa_memblock_new(r->mempool, r->remap_buf.length);
-    }
-
-    dst = pa_memblock_acquire(r->remap_buf.memblock);
-    memcpy(dst, buf, r->remap_buf.length);
-    pa_memblock_release(r->remap_buf.memblock);
-
-    r->remap_buf_contains_leftover_data = true;
-}
-
 /*** libsamplerate based implementation ***/
 
 #ifdef HAVE_LIBSAMPLERATE
@@ -1393,19 +1401,12 @@ static unsigned libsamplerate_resample(pa_resampler *r, const pa_memchunk *input
 
     pa_assert_se(src_process(state, &data) == 0);
 
-    if (data.input_frames_used < in_n_frames) {
-        void *leftover_data = data.data_in + data.input_frames_used * r->work_channels;
-        size_t leftover_length = (in_n_frames - data.input_frames_used) * r->w_fz;
-
-        save_leftover(r, leftover_data, leftover_length);
-    }
-
     pa_memblock_release(input->memblock);
     pa_memblock_release(output->memblock);
 
     *out_n_frames = (unsigned) data.output_frames_gen;
 
-    return 0;
+    return in_n_frames - data.input_frames_used;
 }
 
 static void libsamplerate_update_rates(pa_resampler *r) {
@@ -1832,17 +1833,9 @@ static unsigned ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsig
         pa_memblock_unref(w);
     }
 
-    if (previous_consumed_frames < (int) in_n_frames) {
-        void *leftover_data = (int16_t *) pa_memblock_acquire_chunk(input) + previous_consumed_frames * r->work_channels;
-        size_t leftover_length = (in_n_frames - previous_consumed_frames) * r->w_fz;
-
-        save_leftover(r, leftover_data, leftover_length);
-        pa_memblock_release(input->memblock);
-    }
-
     *out_n_frames = used_frames;
 
-    return 0;
+    return in_n_frames - previous_consumed_frames;
 }
 
 static void ffmpeg_free(pa_resampler *r) {
