@@ -64,7 +64,14 @@ struct pa_resampler {
     size_t remap_buf_size;
     size_t resample_buf_size;
     size_t from_work_format_buf_size;
-    bool remap_buf_contains_leftover_data;
+
+    /* points to buffer before resampling stage, remap */
+    pa_memchunk *leftover_buf;
+    size_t *leftover_buf_size;
+
+    /* have_leftover points to leftover_in_remap */
+    bool *have_leftover;
+    bool leftover_in_remap;
 
     pa_sample_format_t work_format;
     uint8_t work_channels;
@@ -421,6 +428,11 @@ pa_resampler* pa_resampler_new(
         }
     }
 
+    /* leftover buffer is the buffer before the resampling stage */
+    r->leftover_buf = &r->remap_buf;
+    r->leftover_buf_size = &r->remap_buf_size;
+    r->have_leftover = &r->leftover_in_remap;
+
     r->work_channels = r->o_ss.channels;
     r->w_fz = pa_sample_size_of_format(r->work_format) * r->work_channels;
 
@@ -506,9 +518,8 @@ size_t pa_resampler_result(pa_resampler *r, size_t in_length) {
      * enough output buffer. */
 
     frames = (in_length + r->i_fz - 1) / r->i_fz;
-
-    if (r->remap_buf_contains_leftover_data)
-        frames += r->remap_buf.length / r->w_fz;
+    if (*r->have_leftover)
+        frames += r->leftover_buf->length / r->w_fz;
 
     return (((uint64_t) frames * r->o_ss.rate + r->i_ss.rate - 1) / r->i_ss.rate) * r->o_fz;
 }
@@ -536,8 +547,9 @@ size_t pa_resampler_max_block_size(pa_resampler *r) {
     max_fs = pa_frame_size(&max_ss);
     frames = block_size_max / max_fs - EXTRA_FRAMES;
 
-    if (r->remap_buf_contains_leftover_data)
-        frames -= r->remap_buf.length / r->w_fz;
+    pa_assert(frames >= (r->leftover_buf->length / r->w_fz));
+    if (*r->have_leftover)
+        frames -= r->leftover_buf->length / r->w_fz;
 
     block_size_max = ((uint64_t) frames * r->i_ss.rate / max_ss.rate) * r->i_fz;
 
@@ -564,7 +576,7 @@ void pa_resampler_reset(pa_resampler *r) {
     if (r->impl.reset)
         r->impl.reset(r);
 
-    r->remap_buf_contains_leftover_data = false;
+    *r->have_leftover = false;
 }
 
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r) {
@@ -1185,8 +1197,8 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
      * data in the beginning of remap_buf. The leftover data is already
      * remapped, so it's not part of the input, it's part of the output. */
 
-    have_leftover = r->remap_buf_contains_leftover_data;
-    r->remap_buf_contains_leftover_data = false;
+    have_leftover = r->leftover_in_remap;
+    r->leftover_in_remap = false;
 
     if (!have_leftover && (!r->map_required || input->length <= 0))
         return input;
@@ -1218,7 +1230,6 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
             r->remap_buf.memblock = new_block;
             r->remap_buf_size = r->remap_buf.length;
         }
-
     } else
         r->remap_buf_size = fit_buf(r, &r->remap_buf, r->remap_buf_size);
 
@@ -1247,16 +1258,14 @@ static void save_leftover(pa_resampler *r, void *buf, size_t len) {
     pa_assert(buf);
     pa_assert(len > 0);
 
-    /* Store the leftover to remap_buf. */
+    /* Store the leftover data. */
+    r->leftover_buf->length = len;
+    *r->leftover_buf_size = fit_buf(r, r->leftover_buf, *r->leftover_buf_size);
+    *r->have_leftover = true;
 
-    r->remap_buf.length = len;
-    r->remap_buf_size = fit_buf(r, &r->remap_buf, r->remap_buf_size);
-
-    dst = pa_memblock_acquire(r->remap_buf.memblock);
-    memcpy(dst, buf, r->remap_buf.length);
-    pa_memblock_release(r->remap_buf.memblock);
-
-    r->remap_buf_contains_leftover_data = true;
+    dst = pa_memblock_acquire(r->leftover_buf->memblock);
+    memmove(dst, buf, len);
+    pa_memblock_release(r->leftover_buf->memblock);
 }
 
 static pa_memchunk *resample(pa_resampler *r, pa_memchunk *input) {
