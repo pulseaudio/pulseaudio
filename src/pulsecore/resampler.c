@@ -1370,7 +1370,7 @@ static void save_leftover(pa_resampler *r, void *buf, size_t len) {
 /*** libsamplerate based implementation ***/
 
 #ifdef HAVE_LIBSAMPLERATE
-static void libsamplerate_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
+static unsigned libsamplerate_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
     SRC_DATA data;
     SRC_STATE *state;
 
@@ -1404,6 +1404,8 @@ static void libsamplerate_resample(pa_resampler *r, const pa_memchunk *input, un
     pa_memblock_release(output->memblock);
 
     *out_n_frames = (unsigned) data.output_frames_gen;
+
+    return 0;
 }
 
 static void libsamplerate_update_rates(pa_resampler *r) {
@@ -1453,7 +1455,7 @@ static int libsamplerate_init(pa_resampler *r) {
 #ifdef HAVE_SPEEX
 /*** speex based implementation ***/
 
-static void speex_resample_float(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
+static unsigned speex_resample_float(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
     float *in, *out;
     uint32_t inf = in_n_frames, outf = *out_n_frames;
     SpeexResamplerState *state;
@@ -1475,9 +1477,11 @@ static void speex_resample_float(pa_resampler *r, const pa_memchunk *input, unsi
 
     pa_assert(inf == in_n_frames);
     *out_n_frames = outf;
+
+    return 0;
 }
 
-static void speex_resample_int(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
+static unsigned speex_resample_int(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
     int16_t *in, *out;
     uint32_t inf = in_n_frames, outf = *out_n_frames;
     SpeexResamplerState *state;
@@ -1499,6 +1503,8 @@ static void speex_resample_int(pa_resampler *r, const pa_memchunk *input, unsign
 
     pa_assert(inf == in_n_frames);
     *out_n_frames = outf;
+
+    return 0;
 }
 
 static void speex_update_rates(pa_resampler *r) {
@@ -1565,7 +1571,7 @@ static int speex_init(pa_resampler *r) {
 
 /* Trivial implementation */
 
-static void trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
+static unsigned trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
     unsigned i_index, o_index;
     void *src, *dst;
     struct trivial_data *trivial_data;
@@ -1606,6 +1612,8 @@ static void trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned
         trivial_data->i_counter -= r->i_ss.rate;
         trivial_data->o_counter -= r->o_ss.rate;
     }
+
+    return 0;
 }
 
 static void trivial_update_rates_or_reset(pa_resampler *r) {
@@ -1634,7 +1642,7 @@ static int trivial_init(pa_resampler*r) {
 
 /* Peak finder implementation */
 
-static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
+static unsigned peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
     unsigned c, o_index = 0;
     unsigned i, i_end = 0;
     void *src, *dst;
@@ -1730,6 +1738,8 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
         peaks_data->i_counter -= r->i_ss.rate;
         peaks_data->o_counter -= r->o_ss.rate;
     }
+
+    return 0;
 }
 
 static void peaks_update_rates_or_reset(pa_resampler *r) {
@@ -1760,7 +1770,7 @@ static int peaks_init(pa_resampler*r) {
 
 /*** ffmpeg based implementation ***/
 
-static void ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
+static unsigned ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
     unsigned used_frames = 0, c;
     int previous_consumed_frames = -1;
     struct ffmpeg_data *ffmpeg_data;
@@ -1831,6 +1841,8 @@ static void ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsigned 
     }
 
     *out_n_frames = used_frames;
+
+    return 0;
 }
 
 static void ffmpeg_free(pa_resampler *r) {
