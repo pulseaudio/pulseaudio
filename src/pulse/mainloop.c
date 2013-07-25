@@ -379,13 +379,15 @@ static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
         pa_mainloop_wakeup(e->mainloop);
     }
 
+    if (e->mainloop->cached_next_time_event == e)
+        e->mainloop->cached_next_time_event = NULL;
+
     if (e->mainloop->cached_next_time_event && e->enabled) {
         pa_assert(e->mainloop->cached_next_time_event->enabled);
 
         if (t < e->mainloop->cached_next_time_event->time)
             e->mainloop->cached_next_time_event = e;
-    } else if (e->mainloop->cached_next_time_event == e)
-        e->mainloop->cached_next_time_event = NULL;
+    }
 }
 
 static void mainloop_time_free(pa_time_event *e) {

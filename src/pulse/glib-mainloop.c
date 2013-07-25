@@ -328,13 +328,15 @@ static void glib_time_restart(pa_time_event*e, const struct timeval *tv) {
     if ((e->enabled = !!tv))
         e->timeval = *tv;
 
+    if (e->mainloop->cached_next_time_event == e)
+        e->mainloop->cached_next_time_event = NULL;
+
     if (e->mainloop->cached_next_time_event && e->enabled) {
         g_assert(e->mainloop->cached_next_time_event->enabled);
 
         if (pa_timeval_cmp(tv, &e->mainloop->cached_next_time_event->timeval) < 0)
             e->mainloop->cached_next_time_event = e;
-    } else if (e->mainloop->cached_next_time_event == e)
-        e->mainloop->cached_next_time_event = NULL;
+    }
 }
 
 static void glib_time_free(pa_time_event *e) {
