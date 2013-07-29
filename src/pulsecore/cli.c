@@ -55,6 +55,7 @@ struct pa_cli {
     bool fail, kill_requested;
     int defer_kill;
 
+    bool interactive;
     char *last_line;
 };
 
@@ -93,11 +94,11 @@ pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m) {
     c->client->userdata = c;
 
     pa_ioline_set_callback(c->line, line_callback, c);
-    pa_ioline_puts(c->line, "Welcome to PulseAudio! Use \"help\" for usage information.\n"PROMPT);
 
     c->fail = c->kill_requested = false;
     c->defer_kill = 0;
 
+    c->interactive = false;
     c->last_line = NULL;
 
     return c;
@@ -154,7 +155,13 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
 
     pa_assert_se(buf = pa_strbuf_new());
     c->defer_kill++;
-    pa_cli_command_execute_line(c->core, s, buf, &c->fail);
+    if (pa_streq(s, "hello")) {
+        pa_strbuf_printf(buf, "Welcome to PulseAudio %s! "
+            "Use \"help\" for usage information.\n", PACKAGE_VERSION);
+        c->interactive = true;
+    }
+    else
+        pa_cli_command_execute_line(c->core, s, buf, &c->fail);
     c->defer_kill--;
     pa_ioline_puts(line, p = pa_strbuf_tostring_free(buf));
     pa_xfree(p);
@@ -162,7 +169,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     if (c->kill_requested) {
         if (c->eof_callback)
             c->eof_callback(c, c->userdata);
-    } else
+    } else if (c->interactive)
         pa_ioline_puts(line, PROMPT);
 }
 
