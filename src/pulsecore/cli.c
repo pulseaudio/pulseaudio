@@ -82,24 +82,15 @@ pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m) {
     if (!client)
         return NULL;
 
-    c = pa_xnew(pa_cli, 1);
+    c = pa_xnew0(pa_cli, 1);
     c->core = core;
     c->client = client;
     pa_assert_se(c->line = pa_ioline_new(io));
-
-    c->userdata = NULL;
-    c->eof_callback = NULL;
 
     c->client->kill = client_kill;
     c->client->userdata = c;
 
     pa_ioline_set_callback(c->line, line_callback, c);
-
-    c->fail = c->kill_requested = false;
-    c->defer_kill = 0;
-
-    c->interactive = false;
-    c->last_line = NULL;
 
     return c;
 }
