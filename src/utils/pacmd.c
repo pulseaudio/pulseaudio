@@ -83,7 +83,7 @@ static void help(const char *argv0) {
     printf(_("\n"
          "  -h, --help                            Show this help\n"
          "      --version                         Show version\n"
-         "When no command is given pacmd starts in the interactive mode\n" ));
+         "When no command is given pacmd starts in the interactive mode.\n" ));
 }
 
 enum {
@@ -102,7 +102,6 @@ int main(int argc, char*argv[]) {
     bool ibuf_eof, obuf_eof, ibuf_closed, obuf_closed;
     struct pollfd pollfd[3];
     struct pollfd *watch_socket, *watch_stdin, *watch_stdout;
-
     int stdin_type = 0, stdout_type = 0, fd_type = 0;
 
     char *bn = NULL;
@@ -207,6 +206,14 @@ int main(int argc, char*argv[]) {
         }
 
         ibuf_eof = true;
+    }
+
+    if (!ibuf_eof && isatty(STDIN_FILENO)) {
+        /* send hello to enable interactive mode (welcome message, prompt) */
+        if (pa_write(fd, "hello\n", 6, &fd_type) < 0) {
+            pa_log(_("write(): %s"), strerror(errno));
+            goto quit;
+        }
     }
 
     for (;;) {
