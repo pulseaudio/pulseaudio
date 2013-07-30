@@ -120,7 +120,7 @@ PA_C_DECL_BEGIN
 #endif
 
 /* On Sparc, WORDS_BIGENDIAN needs to be set if _BIG_ENDIAN is defined. */
-#ifdef _BIG_ENDIAN
+#if defined(__sparc__) && defined(_BIG_ENDIAN)
 #define WORDS_BIGENDIAN
 #endif
 
