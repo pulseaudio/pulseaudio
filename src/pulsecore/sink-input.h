@@ -371,7 +371,7 @@ bool pa_sink_input_is_passthrough(pa_sink_input *i);
 bool pa_sink_input_is_volume_readable(pa_sink_input *i);
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, bool save, bool absolute);
 void pa_sink_input_add_volume_factor(pa_sink_input *i, const char *key, const pa_cvolume *volume_factor);
-void pa_sink_input_remove_volume_factor(pa_sink_input *i, const char *key);
+int pa_sink_input_remove_volume_factor(pa_sink_input *i, const char *key);
 pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i, pa_cvolume *volume, bool absolute);
 
 void pa_sink_input_set_mute(pa_sink_input *i, bool mute, bool save);

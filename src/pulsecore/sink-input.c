@@ -1330,7 +1330,9 @@ void pa_sink_input_add_volume_factor(pa_sink_input *i, const char *key, const pa
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_SOFT_VOLUME, NULL, 0, NULL) == 0);
 }
 
-void pa_sink_input_remove_volume_factor(pa_sink_input *i, const char *key) {
+/* Returns 0 if an entry was removed and -1 if no entry for the given key was
+ * found. */
+int pa_sink_input_remove_volume_factor(pa_sink_input *i, const char *key) {
     struct volume_factor_entry *v;
 
     pa_sink_input_assert_ref(i);
@@ -1338,7 +1340,11 @@ void pa_sink_input_remove_volume_factor(pa_sink_input *i, const char *key) {
     pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
-    pa_assert_se(v = pa_hashmap_remove(i->volume_factor_items, key));
+    v = pa_hashmap_remove(i->volume_factor_items, key);
+
+    if (!v)
+        return -1;
+
     volume_factor_entry_free(v);
 
     switch (pa_hashmap_size(i->volume_factor_items)) {
@@ -1357,6 +1363,8 @@ void pa_sink_input_remove_volume_factor(pa_sink_input *i, const char *key) {
 
     /* Copy the new soft_volume to the thread_info struct */
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_SOFT_VOLUME, NULL, 0, NULL) == 0);
+
+    return 0;
 }
 
 /* Called from main context */
