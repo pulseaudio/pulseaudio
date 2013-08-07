@@ -3368,6 +3368,7 @@ pa_alsa_mapping *pa_alsa_mapping_get(pa_alsa_profile_set *ps, const char *name) 
     m = pa_xnew0(pa_alsa_mapping, 1);
     m->profile_set = ps;
     m->name = pa_xstrdup(name);
+    pa_sample_spec_init(&m->sample_spec);
     pa_channel_map_init(&m->channel_map);
     m->proplist = pa_proplist_new();
 

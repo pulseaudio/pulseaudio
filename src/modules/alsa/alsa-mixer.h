@@ -251,6 +251,7 @@ struct pa_alsa_mapping {
     /* These are copied over to the resultant sink/source */
     pa_proplist *proplist;
 
+    pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
     char **device_strings;

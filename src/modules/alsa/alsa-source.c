@@ -1740,6 +1740,19 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
 
     ss = m->core->default_sample_spec;
     map = m->core->default_channel_map;
+
+    /* Pick sample spec overrides from the mapping, if any */
+    if (mapping->sample_spec.format != PA_SAMPLE_INVALID)
+        ss.format = mapping->sample_spec.format;
+    if (mapping->sample_spec.rate != 0)
+        ss.rate = mapping->sample_spec.rate;
+    if (mapping->sample_spec.channels != 0) {
+        ss.channels = mapping->sample_spec.channels;
+        if (pa_channel_map_valid(&mapping->channel_map))
+            pa_assert(pa_channel_map_compatible(&mapping->channel_map, &ss));
+    }
+
+    /* Override with modargs if provided */
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_ALSA) < 0) {
         pa_log("Failed to parse sample specification and channel map");
         goto fail;
