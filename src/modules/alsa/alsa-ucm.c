@@ -84,10 +84,12 @@ static struct ucm_items item[] = {
     {"PlaybackVolume", PA_ALSA_PROP_UCM_PLAYBACK_VOLUME},
     {"PlaybackSwitch", PA_ALSA_PROP_UCM_PLAYBACK_SWITCH},
     {"PlaybackPriority", PA_ALSA_PROP_UCM_PLAYBACK_PRIORITY},
+    {"PlaybackRate", PA_ALSA_PROP_UCM_PLAYBACK_RATE},
     {"PlaybackChannels", PA_ALSA_PROP_UCM_PLAYBACK_CHANNELS},
     {"CaptureVolume", PA_ALSA_PROP_UCM_CAPTURE_VOLUME},
     {"CaptureSwitch", PA_ALSA_PROP_UCM_CAPTURE_SWITCH},
     {"CapturePriority", PA_ALSA_PROP_UCM_CAPTURE_PRIORITY},
+    {"CaptureRate", PA_ALSA_PROP_UCM_CAPTURE_RATE},
     {"CaptureChannels", PA_ALSA_PROP_UCM_CAPTURE_CHANNELS},
     {"TQ", PA_ALSA_PROP_UCM_QOS},
     {NULL, NULL},
@@ -256,8 +258,18 @@ static int ucm_get_device_property(
         device->capture_channels = 2;
     }
 
-    /* get priority of device */
+    /* get rate and priority of device */
     if (device->playback_channels) { /* sink device */
+        /* get rate */
+        if ((value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_PLAYBACK_RATE)) ||
+            (value = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_PLAYBACK_RATE))) {
+            if (pa_atou(value, &ui) == 0 && ui < PA_RATE_MAX) {
+                pa_log_debug("UCM playback device %s rate %d", device_name, ui);
+                device->playback_rate = ui;
+            } else
+                pa_log_debug("UCM playback device %s has bad rate %s", device_name, value);
+        }
+
         value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_PLAYBACK_PRIORITY);
         if (value) {
             /* get priority from ucm config */
@@ -269,6 +281,16 @@ static int ucm_get_device_property(
     }
 
     if (device->capture_channels) { /* source device */
+        /* get rate */
+        if ((value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_CAPTURE_RATE)) ||
+            (value = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_CAPTURE_RATE))) {
+            if (pa_atou(value, &ui) == 0 && ui < PA_RATE_MAX) {
+                pa_log_debug("UCM capture device %s rate %d", device_name, ui);
+                device->capture_rate = ui;
+            } else
+                pa_log_debug("UCM capture device %s has bad rate %s", device_name, value);
+        }
+
         value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_CAPTURE_PRIORITY);
         if (value) {
             /* get priority from ucm config */
@@ -1111,7 +1133,7 @@ static int ucm_create_mapping_direction(
 
     pa_alsa_mapping *m;
     char *mapping_name;
-    unsigned priority, channels;
+    unsigned priority, rate, channels;
 
     mapping_name = pa_sprintf_malloc("Mapping %s: %s: %s", verb_name, device_str, is_sink ? "sink" : "source");
 
@@ -1125,6 +1147,7 @@ static int ucm_create_mapping_direction(
     pa_xfree(mapping_name);
 
     priority = is_sink ? device->playback_priority : device->capture_priority;
+    rate = is_sink ? device->playback_rate : device->capture_rate;
     channels = is_sink ? device->playback_channels : device->capture_channels;
 
     if (!m->ucm_context.ucm_devices) {   /* new mapping */
@@ -1137,6 +1160,8 @@ static int ucm_create_mapping_direction(
         m->direction = is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT;
 
         ucm_add_mapping(p, m);
+        if (rate)
+            m->sample_spec.rate = rate;
         pa_channel_map_init_extend(&m->channel_map, channels, PA_CHANNEL_MAP_ALSA);
     }
 

@@ -56,6 +56,9 @@ typedef void snd_use_case_mgr_t;
 /** For devices: Playback priority */
 #define PA_ALSA_PROP_UCM_PLAYBACK_PRIORITY          "alsa.ucm.playback.priority"
 
+/** For devices: Playback rate */
+#define PA_ALSA_PROP_UCM_PLAYBACK_RATE              "alsa.ucm.playback.rate"
+
 /** For devices: Playback channels */
 #define PA_ALSA_PROP_UCM_PLAYBACK_CHANNELS          "alsa.ucm.playback.channels"
 
@@ -70,6 +73,9 @@ typedef void snd_use_case_mgr_t;
 
 /** For devices: Capture priority */
 #define PA_ALSA_PROP_UCM_CAPTURE_PRIORITY           "alsa.ucm.capture.priority"
+
+/** For devices: Capture rate */
+#define PA_ALSA_PROP_UCM_CAPTURE_RATE               "alsa.ucm.capture.rate"
 
 /** For devices: Capture channels */
 #define PA_ALSA_PROP_UCM_CAPTURE_CHANNELS           "alsa.ucm.capture.channels"
@@ -122,6 +128,9 @@ struct pa_alsa_ucm_device {
 
     unsigned playback_priority;
     unsigned capture_priority;
+
+    unsigned playback_rate;
+    unsigned capture_rate;
 
     unsigned playback_channels;
     unsigned capture_channels;
