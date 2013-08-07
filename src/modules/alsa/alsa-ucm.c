@@ -135,7 +135,7 @@ static int ucm_get_property(pa_alsa_ucm_verb *verb, snd_use_case_mgr_t *uc_mgr, 
         id = pa_sprintf_malloc("=%s//%s", item[i].id, verb_name);
         err = snd_use_case_get(uc_mgr, id, &value);
         pa_xfree(id);
-        if (err < 0 )
+        if (err < 0)
             continue;
 
         pa_log_debug("Got %s for verb %s: %s", item[i].id, verb_name, value);
@@ -338,7 +338,7 @@ static int ucm_get_modifier_property(pa_alsa_ucm_modifier *modifier, snd_use_cas
         id = pa_sprintf_malloc("=%s/%s", item[i].id, modifier_name);
         err = snd_use_case_get(uc_mgr, id, &value);
         pa_xfree(id);
-        if (err < 0 )
+        if (err < 0)
             continue;
 
         pa_log_debug("Got %s for modifier %s: %s", item[i].id, modifier_name, value);
