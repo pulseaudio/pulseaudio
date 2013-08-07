@@ -176,6 +176,19 @@ static int (* const init_table[])(pa_resampler*r) = {
     [PA_RESAMPLER_PEAKS]                   = peaks_init,
 };
 
+static pa_resample_method_t choose_auto_resampler(pa_resample_flags_t flags) {
+    pa_resample_method_t method;
+
+    if (pa_resample_method_supported(PA_RESAMPLER_SPEEX_FLOAT_BASE + 1))
+        method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 1;
+    else if (flags & PA_RESAMPLER_VARIABLE_RATE)
+        method = PA_RESAMPLER_TRIVIAL;
+    else
+        method = PA_RESAMPLER_FFMPEG;
+
+    return method;
+}
+
 static pa_resample_method_t pa_resampler_fix_method(
                 pa_resample_flags_t flags,
                 pa_resample_method_t method,
@@ -224,16 +237,8 @@ static pa_resample_method_t pa_resampler_fix_method(
             break;
     }
 
-    if (method == PA_RESAMPLER_AUTO) {
-#ifdef HAVE_SPEEX
-        method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 1;
-#else
-        if (flags & PA_RESAMPLER_VARIABLE_RATE)
-            method = PA_RESAMPLER_TRIVIAL;
-        else
-            method = PA_RESAMPLER_FFMPEG;
-#endif
-    }
+    if (method == PA_RESAMPLER_AUTO)
+        method = choose_auto_resampler(flags);
 
     return method;
 }
