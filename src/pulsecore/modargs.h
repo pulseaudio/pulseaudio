@@ -53,6 +53,9 @@ int pa_modargs_get_value_double(pa_modargs *ma, const char *key, double *value);
 /* Return a module argument as pa_volume_t value in *value */
 int pa_modargs_get_value_volume(pa_modargs *ma, const char *key, pa_volume_t *value);
 
+/* Return sample rate from the "rate" argument */
+int pa_modargs_get_sample_rate(pa_modargs *ma, uint32_t *rate);
+
 /* Return sample spec data from the three arguments "rate", "format" and "channels" */
 int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *ss);
 

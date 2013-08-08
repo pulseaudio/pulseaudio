@@ -364,6 +364,21 @@ int pa_modargs_get_value_volume(pa_modargs *ma, const char *key, pa_volume_t *va
     return 0;
 }
 
+int pa_modargs_get_sample_rate(pa_modargs *ma, uint32_t *rate) {
+    uint32_t rate_local;
+
+    pa_assert(rate);
+
+    if ((pa_modargs_get_value_u32(ma, "rate", &rate_local)) < 0 ||
+        rate_local <= 0 ||
+        rate_local > PA_RATE_MAX)
+        return -1;
+
+    *rate = rate_local;
+
+    return 0;
+}
+
 int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *rss) {
     const char *format;
     uint32_t channels;
