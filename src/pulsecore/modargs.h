@@ -28,6 +28,7 @@
 #include <pulse/proplist.h>
 #include <pulse/volume.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/resampler.h>
 
 typedef struct pa_modargs pa_modargs;
 
@@ -57,6 +58,9 @@ int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *ss);
 
 /* Return channel map data from the argument "channel_map" if name is NULL, otherwise read from the specified argument */
 int pa_modargs_get_channel_map(pa_modargs *ma, const char *name, pa_channel_map *map);
+
+/* Return resample method from the argument "resample_method" */
+int pa_modargs_get_resample_method(pa_modargs *ma, pa_resample_method_t *method);
 
 /* Combination of pa_modargs_get_sample_spec() and
 pa_modargs_get_channel_map(). Not always suitable, since this routine

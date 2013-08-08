@@ -428,6 +428,24 @@ int pa_modargs_get_channel_map(pa_modargs *ma, const char *name, pa_channel_map 
     return 0;
 }
 
+int pa_modargs_get_resample_method(pa_modargs *ma, pa_resample_method_t *rmethod) {
+    const char *m;
+
+    pa_assert(ma);
+    pa_assert(rmethod);
+
+    if ((m = pa_modargs_get_value(ma, "resample_method", NULL))) {
+        pa_resample_method_t method = pa_parse_resample_method(m);
+
+        if (method == PA_RESAMPLER_INVALID)
+            return -1;
+
+        *rmethod = method;
+    }
+
+    return 0;
+}
+
 int pa_modargs_get_sample_spec_and_channel_map(
         pa_modargs *ma,
         pa_sample_spec *rss,
