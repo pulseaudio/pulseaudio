@@ -972,14 +972,12 @@ bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
     uint32_t desired_rate = rate;
     uint32_t default_rate = s->default_sample_rate;
     uint32_t alternate_rate = s->alternate_sample_rate;
-    uint32_t idx;
-    pa_source_output *o;
     bool use_alternate = false;
 
     if (rate == s->sample_spec.rate)
         return true;
 
-    if (!s->update_rate)
+    if (!s->update_rate && !s->monitor_of)
         return false;
 
     if (PA_UNLIKELY(default_rate == alternate_rate && !passthrough)) {
@@ -1027,14 +1025,24 @@ bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
     pa_log_debug("Suspending source %s due to changing the sample rate.", s->name);
     pa_source_suspend(s, true, PA_SUSPEND_INTERNAL);
 
-    if (s->update_rate(s, desired_rate) == true) {
-        pa_log_info("Changed sampling rate successfully ");
+    if (s->update_rate)
+        ret = s->update_rate(s, desired_rate);
+    else {
+        /* This is a monitor source. */
+        s->sample_spec.rate = desired_rate;
+        ret = true;
+    }
+
+    if (ret) {
+        uint32_t idx;
+        pa_source_output *o;
 
         PA_IDXSET_FOREACH(o, s->outputs, idx) {
             if (o->state == PA_SOURCE_OUTPUT_CORKED)
                 pa_source_output_update_rate(o);
         }
-        ret = true;
+
+        pa_log_info("Changed sampling rate successfully");
     }
 
     pa_source_suspend(s, false, PA_SUSPEND_INTERNAL);
