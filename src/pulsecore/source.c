@@ -969,73 +969,73 @@ void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *
 /* Called from main thread */
 bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
     bool ret = false;
+    uint32_t desired_rate = rate;
+    uint32_t default_rate = s->default_sample_rate;
+    uint32_t alternate_rate = s->alternate_sample_rate;
+    uint32_t idx;
+    pa_source_output *o;
+    bool use_alternate = false;
 
-    if (s->update_rate) {
-        uint32_t desired_rate = rate;
-        uint32_t default_rate = s->default_sample_rate;
-        uint32_t alternate_rate = s->alternate_sample_rate;
-        uint32_t idx;
-        pa_source_output *o;
-        bool use_alternate = false;
+    if (!s->update_rate)
+        return false;
 
-        if (PA_UNLIKELY(default_rate == alternate_rate)) {
-            pa_log_warn("Default and alternate sample rates are the same.");
-            return false;
-        }
-
-        if (PA_SOURCE_IS_RUNNING(s->state)) {
-            pa_log_info("Cannot update rate, SOURCE_IS_RUNNING, will keep using %u Hz",
-                        s->sample_spec.rate);
-            return false;
-        }
-
-        if (PA_UNLIKELY (desired_rate < 8000 ||
-                         desired_rate > PA_RATE_MAX))
-            return false;
-
-        if (!passthrough) {
-            pa_assert(default_rate % 4000 || default_rate % 11025);
-            pa_assert(alternate_rate % 4000 || alternate_rate % 11025);
-
-            if (default_rate % 4000) {
-                /* default is a 11025 multiple */
-                if ((alternate_rate % 4000 == 0) && (desired_rate % 4000 == 0))
-                    use_alternate=true;
-            } else {
-                /* default is 4000 multiple */
-                if ((alternate_rate % 11025 == 0) && (desired_rate % 11025 == 0))
-                    use_alternate=true;
-            }
-
-            if (use_alternate)
-                desired_rate = alternate_rate;
-            else
-                desired_rate = default_rate;
-        } else {
-            desired_rate = rate; /* use stream sampling rate, discard default/alternate settings */
-        }
-
-        if (desired_rate == s->sample_spec.rate)
-            return false;
-
-        if (!passthrough && pa_source_used_by(s) > 0)
-            return false;
-
-        pa_log_debug("Suspending source %s due to changing the sample rate.", s->name);
-        pa_source_suspend(s, true, PA_SUSPEND_INTERNAL);
-
-        if (s->update_rate(s, desired_rate) == true) {
-            pa_log_info("Changed sampling rate successfully ");
-
-            PA_IDXSET_FOREACH(o, s->outputs, idx) {
-                if (o->state == PA_SOURCE_OUTPUT_CORKED)
-                    pa_source_output_update_rate(o);
-            }
-            ret = true;
-        }
-
-        pa_source_suspend(s, false, PA_SUSPEND_INTERNAL);
+    if (PA_UNLIKELY(default_rate == alternate_rate)) {
+        pa_log_warn("Default and alternate sample rates are the same.");
+        return false;
     }
+
+    if (PA_SOURCE_IS_RUNNING(s->state)) {
+        pa_log_info("Cannot update rate, SOURCE_IS_RUNNING, will keep using %u Hz",
+                    s->sample_spec.rate);
+        return false;
+    }
+
+    if (PA_UNLIKELY (desired_rate < 8000 ||
+                     desired_rate > PA_RATE_MAX))
+        return false;
+
+    if (!passthrough) {
+        pa_assert(default_rate % 4000 || default_rate % 11025);
+        pa_assert(alternate_rate % 4000 || alternate_rate % 11025);
+
+        if (default_rate % 4000) {
+            /* default is a 11025 multiple */
+            if ((alternate_rate % 4000 == 0) && (desired_rate % 4000 == 0))
+                use_alternate=true;
+        } else {
+            /* default is 4000 multiple */
+            if ((alternate_rate % 11025 == 0) && (desired_rate % 11025 == 0))
+                use_alternate=true;
+        }
+
+        if (use_alternate)
+            desired_rate = alternate_rate;
+        else
+            desired_rate = default_rate;
+    } else {
+        desired_rate = rate; /* use stream sampling rate, discard default/alternate settings */
+    }
+
+    if (desired_rate == s->sample_spec.rate)
+        return false;
+
+    if (!passthrough && pa_source_used_by(s) > 0)
+        return false;
+
+    pa_log_debug("Suspending source %s due to changing the sample rate.", s->name);
+    pa_source_suspend(s, true, PA_SUSPEND_INTERNAL);
+
+    if (s->update_rate(s, desired_rate) == true) {
+        pa_log_info("Changed sampling rate successfully ");
+
+        PA_IDXSET_FOREACH(o, s->outputs, idx) {
+            if (o->state == PA_SOURCE_OUTPUT_CORKED)
+                pa_source_output_update_rate(o);
+        }
+        ret = true;
+    }
+
+    pa_source_suspend(s, false, PA_SUSPEND_INTERNAL);
 
     return ret;
 }
