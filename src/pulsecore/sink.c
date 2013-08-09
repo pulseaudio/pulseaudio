@@ -1415,8 +1415,7 @@ bool pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
         pa_assert((default_rate % 4000 == 0) || (default_rate % 11025 == 0));
         pa_assert((alternate_rate % 4000 == 0) || (alternate_rate % 11025 == 0));
 
-        if (default_rate % 4000) {
-            /* default is a 11025 multiple */
+        if (default_rate % 11025 == 0) {
             if ((alternate_rate % 4000 == 0) && (desired_rate % 4000 == 0))
                 use_alternate=true;
         } else {
