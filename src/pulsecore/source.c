@@ -976,6 +976,9 @@ bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
     pa_source_output *o;
     bool use_alternate = false;
 
+    if (rate == s->sample_spec.rate)
+        return true;
+
     if (!s->update_rate)
         return false;
 

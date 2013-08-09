@@ -1386,6 +1386,9 @@ bool pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
     pa_sink_input *i;
     bool use_alternate = false;
 
+    if (rate == s->sample_spec.rate)
+        return true;
+
     if (!s->update_rate)
         return false;
 
