@@ -979,8 +979,8 @@ bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
     if (!s->update_rate)
         return false;
 
-    if (PA_UNLIKELY(default_rate == alternate_rate)) {
-        pa_log_warn("Default and alternate sample rates are the same.");
+    if (PA_UNLIKELY(default_rate == alternate_rate && !passthrough)) {
+        pa_log_debug("Default and alternate sample rates are the same.");
         return false;
     }
 
