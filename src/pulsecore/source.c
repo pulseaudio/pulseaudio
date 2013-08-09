@@ -995,8 +995,8 @@ bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
         return false;
 
     if (!passthrough) {
-        pa_assert(default_rate % 4000 || default_rate % 11025);
-        pa_assert(alternate_rate % 4000 || alternate_rate % 11025);
+        pa_assert((default_rate % 4000 == 0) || (default_rate % 11025 == 0));
+        pa_assert((alternate_rate % 4000 == 0) || (alternate_rate % 11025 == 0));
 
         if (default_rate % 4000) {
             /* default is a 11025 multiple */
