@@ -991,6 +991,13 @@ bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
         return false;
     }
 
+    if (s->monitor_of) {
+        if (PA_SINK_IS_RUNNING(s->monitor_of->state)) {
+            pa_log_info("Cannot update rate, this is a monitor source and the sink is running.");
+            return false;
+        }
+    }
+
     if (PA_UNLIKELY (desired_rate < 8000 ||
                      desired_rate > PA_RATE_MAX))
         return false;
@@ -1029,8 +1036,31 @@ bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
         ret = s->update_rate(s, desired_rate);
     else {
         /* This is a monitor source. */
-        s->sample_spec.rate = desired_rate;
-        ret = true;
+
+        /* XXX: This code is written with non-passthrough streams in mind. I
+         * have no idea whether the behaviour with passthrough streams is
+         * sensible. */
+        if (!passthrough) {
+            uint32_t old_rate = s->sample_spec.rate;
+
+            s->sample_spec.rate = desired_rate;
+            ret = pa_sink_update_rate(s->monitor_of, desired_rate, false);
+
+            if (!ret) {
+                /* Changing the sink rate failed, roll back the old rate for
+                 * the monitor source. Why did we set the source rate before
+                 * calling pa_sink_update_rate(), you may ask. The reason is
+                 * that pa_sink_update_rate() tries to update the monitor
+                 * source rate, but we are already in the process of updating
+                 * the monitor source rate, so there's a risk of entering an
+                 * infinite loop. Setting the source rate before calling
+                 * pa_sink_update_rate() makes the rate == s->sample_spec.rate
+                 * check in the beginning of this function return early, so we
+                 * avoid looping. */
+                s->sample_spec.rate = old_rate;
+            }
+        } else
+            ret = false;
     }
 
     if (ret) {
