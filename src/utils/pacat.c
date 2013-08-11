@@ -95,6 +95,8 @@ static int32_t latency_msec = 0, process_time_msec = 0;
 static bool raw = true;
 static int file_format = -1;
 
+static uint32_t monitor_stream = PA_INVALID_INDEX;
+
 static uint32_t cork_requests = 0;
 
 /* A shortcut for terminating the application */
@@ -508,12 +510,15 @@ static void context_state_callback(pa_context *c, void *userdata) {
                 }
 
             } else {
+                if (monitor_stream != PA_INVALID_INDEX && (pa_stream_set_monitor_stream(stream, monitor_stream) < 0)) {
+                    pa_log(_("Failed to set monitor stream: %s"), pa_strerror(pa_context_errno(c)));
+                    goto fail;
+                }
                 if (pa_stream_connect_record(stream, device, &buffer_attr, flags) < 0) {
                     pa_log(_("pa_stream_connect_record() failed: %s"), pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
             }
-
             break;
         }
 
@@ -698,7 +703,8 @@ static void help(const char *argv0) {
              "      --raw                             Record/play raw PCM data.\n"
              "      --passthrough                     passthrough data \n"
              "      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
-             "      --list-file-formats               List available file formats.\n")
+             "      --list-file-formats               List available file formats.\n"
+             "      --monitor-stream=INDEX            Record from the sink input with index INDEX.\n")
            , argv0);
 }
 
@@ -723,7 +729,8 @@ enum {
     ARG_FILE_FORMAT,
     ARG_LIST_FILE_FORMATS,
     ARG_LATENCY_MSEC,
-    ARG_PROCESS_TIME_MSEC
+    ARG_PROCESS_TIME_MSEC,
+    ARG_MONITOR_STREAM,
 };
 
 int main(int argc, char *argv[]) {
@@ -764,6 +771,7 @@ int main(int argc, char *argv[]) {
         {"list-file-formats", 0, NULL, ARG_LIST_FILE_FORMATS},
         {"latency-msec", 1, NULL, ARG_LATENCY_MSEC},
         {"process-time-msec", 1, NULL, ARG_PROCESS_TIME_MSEC},
+        {"monitor-stream", 1, NULL, ARG_MONITOR_STREAM},
         {NULL,           0, NULL, 0}
     };
 
@@ -977,6 +985,13 @@ int main(int argc, char *argv[]) {
                 pa_sndfile_dump_formats();
                 ret = 0;
                 goto quit;
+
+            case ARG_MONITOR_STREAM:
+                if (pa_atou(optarg, &monitor_stream) < 0) {
+                    pa_log(_("Failed to parse the argument for --monitor-stream"));
+                    goto quit;
+                }
+                break;
 
             default:
                 goto quit;

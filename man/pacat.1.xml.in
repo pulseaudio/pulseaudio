@@ -84,6 +84,12 @@ USA.
     </option>
 
     <option>
+      <p><opt>--monitor-stream</opt><arg>=INDEX</arg></p>
+
+      <optdesc><p>Record from the sink input with index INDEX.</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>-n | --client-name</opt><arg>=NAME</arg></p>
 
       <optdesc><p>Specify the client name <file>paplay</file> shall pass to the server when connecting.</p></optdesc>
