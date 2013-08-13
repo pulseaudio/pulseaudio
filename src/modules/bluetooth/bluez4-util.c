@@ -1654,7 +1654,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
 
     dbus_error_init(&err);
 
-    if ((y = pa_shared_get(c, "bluetooth-discovery")))
+    if ((y = pa_shared_get(c, "bluez4-discovery")))
         return pa_bluetooth_discovery_ref(y);
 
     y = pa_xnew0(pa_bluetooth_discovery, 1);
@@ -1667,7 +1667,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     for (i = 0; i < PA_BLUETOOTH_HOOK_MAX; i++)
         pa_hook_init(&y->hooks[i], y);
 
-    pa_shared_set(c, "bluetooth-discovery", y);
+    pa_shared_set(c, "bluez4-discovery", y);
 
     if (setup_dbus(y) < 0)
         goto fail;
@@ -1781,7 +1781,7 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
         pa_hook_done(&y->hooks[i]);
 
     if (y->core)
-        pa_shared_remove(y->core, "bluetooth-discovery");
+        pa_shared_remove(y->core, "bluez4-discovery");
 
     pa_xfree(y);
 }
