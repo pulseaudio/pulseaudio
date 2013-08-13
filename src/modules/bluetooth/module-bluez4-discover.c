@@ -55,7 +55,7 @@ struct userdata {
     pa_module *module;
     pa_modargs *modargs;
     pa_core *core;
-    pa_bluetooth_discovery *discovery;
+    pa_bluez4_discovery *discovery;
     pa_hook_slot *slot;
     pa_hashmap *hashmap;
 };
@@ -65,7 +65,7 @@ struct module_info {
     uint32_t module;
 };
 
-static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const pa_bluetooth_device *d, struct userdata *u) {
+static pa_hook_result_t load_module_for_device(pa_bluez4_discovery *y, const pa_bluez4_device *d, struct userdata *u) {
     struct module_info *mi;
 
     pa_assert(u);
@@ -73,7 +73,7 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
 
     mi = pa_hashmap_get(u->hashmap, d->path);
 
-    if (pa_bluetooth_device_any_audio_connected(d)) {
+    if (pa_bluez4_device_any_audio_connected(d)) {
 
         if (!mi) {
             pa_module *m = NULL;
@@ -145,10 +145,10 @@ int pa__init(pa_module* m) {
     ma = NULL;
     u->hashmap = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    if (!(u->discovery = pa_bluetooth_discovery_get(u->core)))
+    if (!(u->discovery = pa_bluez4_discovery_get(u->core)))
         goto fail;
 
-    u->slot = pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED),
+    u->slot = pa_hook_connect(pa_bluez4_discovery_hook(u->discovery, PA_BLUEZ4_HOOK_DEVICE_CONNECTION_CHANGED),
                               PA_HOOK_NORMAL, (pa_hook_cb_t) load_module_for_device, u);
 
     return 0;
@@ -174,7 +174,7 @@ void pa__done(pa_module* m) {
         pa_hook_slot_free(u->slot);
 
     if (u->discovery)
-        pa_bluetooth_discovery_unref(u->discovery);
+        pa_bluez4_discovery_unref(u->discovery);
 
     if (u->hashmap) {
         struct module_info *mi;
