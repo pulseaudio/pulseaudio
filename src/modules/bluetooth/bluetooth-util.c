@@ -1302,7 +1302,6 @@ bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d) {
 
 int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu) {
     const char *accesstype = "rw";
-    const char *interface;
     DBusMessage *m, *r;
     DBusError err;
     int ret;
@@ -1311,8 +1310,6 @@ int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, bool optional, siz
     pa_assert(t);
     pa_assert(t->device);
     pa_assert(t->device->discovery);
-
-    interface = t->device->discovery->version == BLUEZ_VERSION_4 ? "org.bluez.MediaTransport" : "org.bluez.MediaTransport1";
 
     if (optional) {
         /* FIXME: we are trying to acquire the transport only if the stream is
@@ -1330,7 +1327,7 @@ int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, bool optional, siz
 
     dbus_error_init(&err);
 
-    pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, interface, "Acquire"));
+    pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.bluez.MediaTransport", "Acquire"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_STRING, &accesstype, DBUS_TYPE_INVALID));
     r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
 
@@ -1341,7 +1338,7 @@ int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, bool optional, siz
 
     if (!dbus_message_get_args(r, &err, DBUS_TYPE_UNIX_FD, &ret, DBUS_TYPE_UINT16, &i, DBUS_TYPE_UINT16, &o,
                                DBUS_TYPE_INVALID)) {
-        pa_log("Failed to parse the media transport Acquire() reply: %s", err.message);
+        pa_log("Failed to parse org.bluez.MediaTransport.Acquire(): %s", err.message);
         ret = -1;
         dbus_error_free(&err);
         goto fail;
@@ -1360,7 +1357,6 @@ fail:
 
 void pa_bluetooth_transport_release(pa_bluetooth_transport *t) {
     const char *accesstype = "rw";
-    const char *interface;
     DBusMessage *m;
     DBusError err;
 
@@ -1368,11 +1364,9 @@ void pa_bluetooth_transport_release(pa_bluetooth_transport *t) {
     pa_assert(t->device);
     pa_assert(t->device->discovery);
 
-    interface = t->device->discovery->version == BLUEZ_VERSION_4 ? "org.bluez.MediaTransport" : "org.bluez.MediaTransport1";
-
     dbus_error_init(&err);
 
-    pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, interface, "Release"));
+    pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.bluez.MediaTransport", "Release"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_STRING, &accesstype, DBUS_TYPE_INVALID));
     dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
 
