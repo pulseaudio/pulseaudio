@@ -34,8 +34,8 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/dbus-shared.h>
 
-#include "module-bluetooth-discover-symdef.h"
-#include "bluetooth-util.h"
+#include "module-bluez4-discover-symdef.h"
+#include "bluez4-util.h"
 
 PA_MODULE_AUTHOR("João Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Detect available BlueZ 4 Bluetooth audio devices and load BlueZ 4 Bluetooth audio drivers");
@@ -94,8 +94,8 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
                 args = tmp;
             }
 
-            pa_log_debug("Loading module-bluetooth-device %s", args);
-            m = pa_module_load(u->module->core, "module-bluetooth-device", args);
+            pa_log_debug("Loading module-bluez4-device %s", args);
+            m = pa_module_load(u->module->core, "module-bluez4-device", args);
             pa_xfree(args);
 
             if (m) {

@@ -52,10 +52,10 @@
 
 #include <sbc/sbc.h>
 
-#include "module-bluetooth-device-symdef.h"
+#include "module-bluez4-device-symdef.h"
 #include "a2dp-codecs.h"
 #include "rtp.h"
-#include "bluetooth-util.h"
+#include "bluez4-util.h"
 
 #define BITPOOL_DEC_LIMIT 32
 #define BITPOOL_DEC_STEP 5

@@ -1322,11 +1322,11 @@ endif
 
 if HAVE_BLUEZ
 modlibexec_LTLIBRARIES += \
-		libbluetooth-util.la \
 		module-bluetooth-proximity.la \
-		module-bluetooth-discover.la \
 		module-bluetooth-policy.la \
-		module-bluetooth-device.la
+		libbluez4-util.la \
+		module-bluez4-discover.la \
+		module-bluez4-device.la
 
 pulselibexec_PROGRAMS += \
 		proximity-helper
@@ -1419,9 +1419,9 @@ SYMDEF_FILES = \
 		module-udev-detect-symdef.h \
 		module-systemd-login-symdef.h \
 		module-bluetooth-proximity-symdef.h \
-		module-bluetooth-discover-symdef.h \
 		module-bluetooth-policy-symdef.h \
-		module-bluetooth-device-symdef.h \
+		module-bluez4-discover-symdef.h \
+		module-bluez4-device-symdef.h \
 		module-raop-sink-symdef.h \
 		module-raop-discover-symdef.h \
 		module-gconf-symdef.h \
@@ -2028,25 +2028,24 @@ proximity_helper_LDADD = $(AM_LDADD) $(BLUEZ_LIBS)
 proximity_helper_CFLAGS = $(AM_CFLAGS) $(BLUEZ_CFLAGS)
 proximity_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-# Bluetooth sink / source
-module_bluetooth_discover_la_SOURCES = modules/bluetooth/module-bluetooth-discover.c
-module_bluetooth_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_bluetooth_discover_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) libbluetooth-util.la
-module_bluetooth_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+# Bluetooth BlueZ 4 sink / source
+module_bluez4_discover_la_SOURCES = modules/bluetooth/module-bluez4-discover.c
+module_bluez4_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_bluez4_discover_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) libbluez4-util.la
+module_bluez4_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
-
-libbluetooth_util_la_SOURCES = \
+libbluez4_util_la_SOURCES = \
 		modules/bluetooth/a2dp-codecs.h \
-		modules/bluetooth/bluetooth-util.c \
-		modules/bluetooth/bluetooth-util.h
-libbluetooth_util_la_LDFLAGS = -avoid-version
-libbluetooth_util_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS)
-libbluetooth_util_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+		modules/bluetooth/bluez4-util.c \
+		modules/bluetooth/bluez4-util.h
+libbluez4_util_la_LDFLAGS = -avoid-version
+libbluez4_util_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS)
+libbluez4_util_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
-module_bluetooth_device_la_SOURCES = modules/bluetooth/module-bluetooth-device.c modules/bluetooth/rtp.h
-module_bluetooth_device_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_bluetooth_device_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) $(SBC_LIBS) libbluetooth-util.la
-module_bluetooth_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) $(SBC_CFLAGS)
+module_bluez4_device_la_SOURCES = modules/bluetooth/module-bluez4-device.c modules/bluetooth/rtp.h
+module_bluez4_device_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_bluez4_device_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) $(SBC_LIBS) libbluez4-util.la
+module_bluez4_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) $(SBC_CFLAGS)
 
 module_bluetooth_policy_la_SOURCES = modules/bluetooth/module-bluetooth-policy.c
 module_bluetooth_policy_la_LDFLAGS = $(MODULE_LDFLAGS)

@@ -29,7 +29,7 @@
 #include <pulsecore/shared.h>
 #include <pulsecore/dbus-shared.h>
 
-#include "bluetooth-util.h"
+#include "bluez4-util.h"
 #include "a2dp-codecs.h"
 
 #define HFP_AG_ENDPOINT "/MediaEndpoint/HFPAG"

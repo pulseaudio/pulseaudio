@@ -1,5 +1,5 @@
-#ifndef foobluetoothutilhfoo
-#define foobluetoothutilhfoo
+#ifndef foobluez4utilhfoo
+#define foobluez4utilhfoo
 
 /***
   This file is part of PulseAudio.
