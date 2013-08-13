@@ -126,20 +126,6 @@ static pa_bt_audio_state_t audio_state_from_string(const char* value) {
     return PA_BT_AUDIO_STATE_INVALID;
 }
 
-static int transport_state_from_string(const char* value, pa_bluetooth_transport_state_t *state) {
-    pa_assert(value);
-    pa_assert(state);
-
-    if (pa_streq(value, "idle"))
-        *state = PA_BLUETOOTH_TRANSPORT_STATE_IDLE;
-    else if (pa_streq(value, "pending") || pa_streq(value, "active")) /* We don't need such a separation */
-        *state = PA_BLUETOOTH_TRANSPORT_STATE_PLAYING;
-    else
-        return -1;
-
-    return 0;
-}
-
 const char *pa_bt_profile_to_string(enum profile profile) {
     switch(profile) {
         case PROFILE_A2DP:
@@ -1099,29 +1085,6 @@ static int transport_parse_property(pa_bluetooth_transport *t, DBusMessageIter *
 
             break;
          }
-
-        case DBUS_TYPE_STRING: {
-
-            const char *value;
-            dbus_message_iter_get_basic(&variant_i, &value);
-
-            if (pa_streq(key, "State")) { /* Added in BlueZ 5.0 */
-                bool old_any_connected = pa_bluetooth_device_any_audio_connected(t->device);
-
-                if (transport_state_from_string(value, &t->state) < 0) {
-                    pa_log("Transport %s has an invalid state: '%s'", t->path, value);
-                    return -1;
-                }
-
-                pa_log_debug("dbus: transport %s set to state '%s'", t->path, value);
-                pa_hook_fire(&t->device->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], t);
-
-                if (old_any_connected != pa_bluetooth_device_any_audio_connected(t->device))
-                    run_callback(t->device, old_any_connected);
-            }
-
-            break;
-        }
     }
 
     return 0;
@@ -1600,10 +1563,7 @@ static pa_bluetooth_transport *transport_new(pa_bluetooth_device *d, const char 
         memcpy(t->config, config, size);
     }
 
-    if (d->discovery->version == BLUEZ_VERSION_4)
-        t->state = audio_state_to_transport_state(d->profile_state[p]);
-    else
-        t->state = PA_BLUETOOTH_TRANSPORT_STATE_IDLE;
+    t->state = audio_state_to_transport_state(d->profile_state[p]);
 
     return t;
 }
