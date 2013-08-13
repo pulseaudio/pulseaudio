@@ -362,6 +362,8 @@ static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, boo
 
     dbus_message_iter_recurse(i, &variant_i);
 
+/*     pa_log_debug("Parsing property org.bluez.Device.%s", key); */
+
     switch (dbus_message_iter_get_arg_type(&variant_i)) {
 
         case DBUS_TYPE_STRING: {
@@ -449,11 +451,6 @@ static int parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, boo
                     uuiddata.device = d;
                     uuiddata.uuid = value;
                     pa_hook_fire(&d->discovery->hooks[PA_BLUETOOTH_HOOK_DEVICE_UUID_ADDED], &uuiddata);
-
-                    if (d->discovery->version >= BLUEZ_VERSION_5) {
-                        dbus_message_iter_next(&ai);
-                        continue;
-                    }
 
                     /* Vudentz said the interfaces are here when the UUIDs are announced */
                     if (strcasecmp(HSP_AG_UUID, value) == 0 || strcasecmp(HFP_AG_UUID, value) == 0) {
@@ -866,25 +863,16 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
     send_and_add_to_pending(y, m, register_endpoint_reply, pa_xstrdup(endpoint));
 }
 
-static void register_adapter_endpoints(pa_bluetooth_discovery *y, const char *path) {
-    register_endpoint(y, path, A2DP_SOURCE_ENDPOINT, A2DP_SOURCE_UUID);
-    register_endpoint(y, path, A2DP_SINK_ENDPOINT, A2DP_SINK_UUID);
-
-    /* For BlueZ 5, only A2DP is registered in the Media API */
-    if (y->version >= BLUEZ_VERSION_5)
-        return;
-
-    register_endpoint(y, path, HFP_AG_ENDPOINT, HFP_AG_UUID);
-    register_endpoint(y, path, HFP_HS_ENDPOINT, HFP_HS_UUID);
-}
-
 static void found_adapter(pa_bluetooth_discovery *y, const char *path) {
     DBusMessage *m;
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", path, "org.bluez.Adapter", "GetProperties"));
     send_and_add_to_pending(y, m, get_properties_reply, NULL);
 
-    register_adapter_endpoints(y, path);
+    register_endpoint(y, path, HFP_AG_ENDPOINT, HFP_AG_UUID);
+    register_endpoint(y, path, HFP_HS_ENDPOINT, HFP_HS_UUID);
+    register_endpoint(y, path, A2DP_SOURCE_ENDPOINT, A2DP_SOURCE_UUID);
+    register_endpoint(y, path, A2DP_SINK_ENDPOINT, A2DP_SINK_UUID);
 }
 
 static void list_adapters(pa_bluetooth_discovery *y) {
@@ -895,94 +883,10 @@ static void list_adapters(pa_bluetooth_discovery *y) {
     send_and_add_to_pending(y, m, get_properties_reply, NULL);
 }
 
-static int parse_device_properties(pa_bluetooth_device *d, DBusMessageIter *i, bool is_property_change) {
-    DBusMessageIter element_i;
-    int ret = 0;
-
-    dbus_message_iter_recurse(i, &element_i);
-
-    while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
-        DBusMessageIter dict_i;
-
-        dbus_message_iter_recurse(&element_i, &dict_i);
-
-        if (parse_device_property(d, &dict_i, is_property_change))
-            ret = -1;
-
-        dbus_message_iter_next(&element_i);
-    }
-
-    if (!d->address || !d->alias || d->paired < 0 || d->trusted < 0) {
-        pa_log_error("Non-optional information missing for device %s", d->path);
-        d->device_info_valid = -1;
-        return -1;
-    }
-
-    d->device_info_valid = 1;
-    return ret;
-}
-
-static int parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessageIter *dict_i) {
-    DBusMessageIter element_i;
-    const char *path;
-
-    pa_assert(dbus_message_iter_get_arg_type(dict_i) == DBUS_TYPE_OBJECT_PATH);
-    dbus_message_iter_get_basic(dict_i, &path);
-
-    pa_assert_se(dbus_message_iter_next(dict_i));
-    pa_assert(dbus_message_iter_get_arg_type(dict_i) == DBUS_TYPE_ARRAY);
-
-    dbus_message_iter_recurse(dict_i, &element_i);
-
-    while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
-        DBusMessageIter iface_i;
-        const char *interface;
-
-        dbus_message_iter_recurse(&element_i, &iface_i);
-
-        pa_assert(dbus_message_iter_get_arg_type(&iface_i) == DBUS_TYPE_STRING);
-        dbus_message_iter_get_basic(&iface_i, &interface);
-
-        pa_assert_se(dbus_message_iter_next(&iface_i));
-        pa_assert(dbus_message_iter_get_arg_type(&iface_i) == DBUS_TYPE_ARRAY);
-
-        if (pa_streq(interface, "org.bluez.Adapter1")) {
-            pa_log_debug("Adapter %s found", path);
-            register_adapter_endpoints(y, path);
-        } else if (pa_streq(interface, "org.bluez.Device1")) {
-            pa_bluetooth_device *d;
-
-            if (pa_hashmap_get(y->devices, path)) {
-                pa_log("Found duplicated D-Bus path for device %s", path);
-                return -1;
-            }
-
-            pa_log_debug("Device %s found", path);
-
-            d = device_new(y, path);
-            pa_hashmap_put(y->devices, d->path, d);
-
-            /* FIXME: BlueZ 5 doesn't support the old Audio interface, and thus
-               it's not possible to know if any audio profile is about to be
-               connected. This can introduce regressions with modules such as
-               module-card-restore */
-            d->audio_state = PA_BT_AUDIO_STATE_DISCONNECTED;
-
-            if (parse_device_properties(d, &iface_i, false) < 0)
-                return -1;
-        }
-
-        dbus_message_iter_next(&element_i);
-    }
-
-    return 0;
-}
-
 static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) {
     DBusMessage *r;
     pa_dbus_pending *p;
     pa_bluetooth_discovery *y;
-    DBusMessageIter arg_i, element_i;
 
     pa_assert_se(p = userdata);
     pa_assert_se(y = p->context_data);
@@ -1002,23 +906,6 @@ static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) 
 
     pa_log_info("D-Bus ObjectManager detected so assuming BlueZ version 5.");
     y->version = BLUEZ_VERSION_5;
-
-    if (!dbus_message_iter_init(r, &arg_i) || !pa_streq(dbus_message_get_signature(r), "a{oa{sa{sv}}}")) {
-        pa_log("Invalid reply signature for GetManagedObjects().");
-        goto finish;
-    }
-
-    dbus_message_iter_recurse(&arg_i, &element_i);
-    while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
-        DBusMessageIter dict_i;
-
-        dbus_message_iter_recurse(&element_i, &dict_i);
-
-        /* Ignore errors here and proceed with next object */
-        parse_interfaces_and_properties(y, &dict_i);
-
-        dbus_message_iter_next(&element_i);
-    }
 
 finish:
     dbus_message_unref(r);
