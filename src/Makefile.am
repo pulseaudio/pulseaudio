@@ -1332,6 +1332,11 @@ modlibexec_LTLIBRARIES += \
 		module-bluez4-device.la
 endif
 
+if HAVE_BLUEZ_5
+modlibexec_LTLIBRARIES += \
+		module-bluez5-discover.la
+endif
+
 if HAVE_OPENSSL
 modlibexec_LTLIBRARIES += \
 		libraop.la \
@@ -1421,6 +1426,7 @@ SYMDEF_FILES = \
 		module-bluetooth-policy-symdef.h \
 		module-bluez4-discover-symdef.h \
 		module-bluez4-device-symdef.h \
+		module-bluez5-discover-symdef.h \
 		module-raop-sink-symdef.h \
 		module-raop-discover-symdef.h \
 		module-gconf-symdef.h \
@@ -2040,6 +2046,12 @@ module_bluez4_device_la_SOURCES = modules/bluetooth/module-bluez4-device.c modul
 module_bluez4_device_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_bluez4_device_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) $(SBC_LIBS) libbluez4-util.la
 module_bluez4_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) $(SBC_CFLAGS)
+
+# Bluetooth BlueZ 5 sink / source
+module_bluez5_discover_la_SOURCES = modules/bluetooth/module-bluez5-discover.c
+module_bluez5_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_bluez5_discover_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS)
+module_bluez5_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # Apple Airtunes/RAOP
 module_raop_sink_la_SOURCES = modules/raop/module-raop-sink.c
