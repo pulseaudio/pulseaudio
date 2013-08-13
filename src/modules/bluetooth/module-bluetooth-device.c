@@ -367,8 +367,14 @@ static int bt_transport_acquire(struct userdata *u, bool optional) {
     pa_log_debug("Acquiring transport %s", u->transport->path);
 
     u->stream_fd = pa_bluetooth_transport_acquire(u->transport, optional, &u->read_link_mtu, &u->write_link_mtu);
-    if (u->stream_fd < 0)
+    if (u->stream_fd < 0) {
+        if (!optional)
+            pa_log("Failed to acquire transport %s", u->transport->path);
+        else
+            pa_log_info("Failed optional acquire of transport %s", u->transport->path);
+
         return -1;
+    }
 
     u->transport_acquired = true;
     pa_log_info("Transport %s acquired: fd %d", u->transport->path, u->stream_fd);

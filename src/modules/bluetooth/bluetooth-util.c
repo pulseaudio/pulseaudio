@@ -1448,52 +1448,40 @@ bool pa_bluetooth_device_any_audio_connected(const pa_bluetooth_device *d) {
 }
 
 int pa_bluetooth_transport_acquire(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu) {
+    const char *accesstype = "rw";
+    const char *interface;
     DBusMessage *m, *r;
     DBusError err;
     int ret;
     uint16_t i, o;
-    const char *method;
 
     pa_assert(t);
     pa_assert(t->device);
     pa_assert(t->device->discovery);
 
-    dbus_error_init(&err);
+    interface = t->device->discovery->version == BLUEZ_VERSION_4 ? "org.bluez.MediaTransport" : "org.bluez.MediaTransport1";
 
-    if (t->device->discovery->version == BLUEZ_VERSION_4) {
-        const char *accesstype = "rw";
-
-        if (optional) {
-            /* We are trying to acquire the transport only if the stream is
-               playing, without actually initiating the stream request from our side
-               (which is typically undesireable specially for hfgw use-cases.
-               However this approach is racy, since the stream could have been
-               suspended in the meantime, so we can't really guarantee that the
-               stream will not be requested with the API in BlueZ 4.x */
-            if (t->state < PA_BLUETOOTH_TRANSPORT_STATE_PLAYING) {
-                pa_log_info("Failed optional acquire of unavailable transport %s", t->path);
-                return -1;
-            }
+    if (optional) {
+        /* FIXME: we are trying to acquire the transport only if the stream is
+           playing, without actually initiating the stream request from our side
+           (which is typically undesireable specially for hfgw use-cases.
+           However this approach is racy, since the stream could have been
+           suspended in the meantime, so we can't really guarantee that the
+           stream will not be requested until BlueZ's API supports this
+           atomically. */
+        if (t->state < PA_BLUETOOTH_TRANSPORT_STATE_PLAYING) {
+            pa_log_info("Failed optional acquire of transport %s", t->path);
+            return -1;
         }
-
-        method = "Acquire";
-        pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.bluez.MediaTransport", method));
-        pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_STRING, &accesstype, DBUS_TYPE_INVALID));
-    } else {
-        pa_assert(t->device->discovery->version == BLUEZ_VERSION_5);
-
-        method = optional ? "TryAcquire" : "Acquire";
-        pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.bluez.MediaTransport1", method));
     }
 
+    dbus_error_init(&err);
+
+    pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, interface, "Acquire"));
+    pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_STRING, &accesstype, DBUS_TYPE_INVALID));
     r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
 
     if (!r) {
-        if (optional && pa_streq(err.name, "org.bluez.Error.NotAvailable"))
-            pa_log_info("Failed optional acquire of unavailable transport %s", t->path);
-        else
-            pa_log("Transport %s() failed for transport %s (%s)", method, t->path, err.message);
-
         dbus_error_free(&err);
         return -1;
     }
@@ -1518,6 +1506,8 @@ fail:
 }
 
 void pa_bluetooth_transport_release(pa_bluetooth_transport *t) {
+    const char *accesstype = "rw";
+    const char *interface;
     DBusMessage *m;
     DBusError err;
 
@@ -1525,18 +1515,12 @@ void pa_bluetooth_transport_release(pa_bluetooth_transport *t) {
     pa_assert(t->device);
     pa_assert(t->device->discovery);
 
+    interface = t->device->discovery->version == BLUEZ_VERSION_4 ? "org.bluez.MediaTransport" : "org.bluez.MediaTransport1";
+
     dbus_error_init(&err);
 
-    if (t->device->discovery->version == BLUEZ_VERSION_4) {
-        const char *accesstype = "rw";
-
-        pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.bluez.MediaTransport", "Release"));
-        pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_STRING, &accesstype, DBUS_TYPE_INVALID));
-    } else {
-        pa_assert(t->device->discovery->version == BLUEZ_VERSION_5);
-        pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.bluez.MediaTransport1", "Release"));
-    }
-
+    pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, interface, "Release"));
+    pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_STRING, &accesstype, DBUS_TYPE_INVALID));
     dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
 
     if (dbus_error_is_set(&err)) {
