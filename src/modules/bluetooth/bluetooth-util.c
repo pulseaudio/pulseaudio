@@ -61,19 +61,12 @@
     " </interface>"                                                     \
     "</node>"
 
-typedef enum pa_bluez_version {
-    BLUEZ_VERSION_UNKNOWN,
-    BLUEZ_VERSION_4,
-    BLUEZ_VERSION_5,
-} pa_bluez_version_t;
-
 struct pa_bluetooth_discovery {
     PA_REFCNT_DECLARE;
 
     pa_core *core;
     pa_dbus_connection *connection;
     PA_LLIST_HEAD(pa_dbus_pending, pending);
-    pa_bluez_version_t version;
     bool adapters_listed;
     pa_hashmap *devices;
     pa_hashmap *transports;
@@ -883,46 +876,6 @@ static void list_adapters(pa_bluetooth_discovery *y) {
     send_and_add_to_pending(y, m, get_properties_reply, NULL);
 }
 
-static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) {
-    DBusMessage *r;
-    pa_dbus_pending *p;
-    pa_bluetooth_discovery *y;
-
-    pa_assert_se(p = userdata);
-    pa_assert_se(y = p->context_data);
-    pa_assert_se(r = dbus_pending_call_steal_reply(pending));
-
-    if (dbus_message_is_error(r, DBUS_ERROR_UNKNOWN_METHOD)) {
-        pa_log_info("D-Bus ObjectManager not detected so falling back to BlueZ version 4 API.");
-        y->version = BLUEZ_VERSION_4;
-        list_adapters(y);
-        goto finish;
-    }
-
-    if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
-        pa_log("GetManagedObjects() failed: %s: %s", dbus_message_get_error_name(r), pa_dbus_get_error_message(r));
-        goto finish;
-    }
-
-    pa_log_info("D-Bus ObjectManager detected so assuming BlueZ version 5.");
-    y->version = BLUEZ_VERSION_5;
-
-finish:
-    dbus_message_unref(r);
-
-    PA_LLIST_REMOVE(pa_dbus_pending, y->pending, p);
-    pa_dbus_pending_free(p);
-}
-
-static void init_bluez(pa_bluetooth_discovery *y) {
-    DBusMessage *m;
-    pa_assert(y);
-
-    pa_assert_se(m = dbus_message_new_method_call("org.bluez", "/", "org.freedesktop.DBus.ObjectManager",
-                                                  "GetManagedObjects"));
-    send_and_add_to_pending(y, m, get_managed_objects_reply, NULL);
-}
-
 static int transport_parse_property(pa_bluetooth_transport *t, DBusMessageIter *i) {
     const char *key;
     DBusMessageIter variant_i;
@@ -1066,12 +1019,11 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 pa_log_debug("Bluetooth daemon disappeared.");
                 remove_all_devices(y);
                 y->adapters_listed = false;
-                y->version = BLUEZ_VERSION_UNKNOWN;
             }
 
             if (new_owner && *new_owner) {
                 pa_log_debug("Bluetooth daemon appeared.");
-                init_bluez(y);
+                list_adapters(y);
             }
         }
 
@@ -1754,7 +1706,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     pa_assert_se(dbus_connection_register_object_path(conn, A2DP_SOURCE_ENDPOINT, &vtable_endpoint, y));
     pa_assert_se(dbus_connection_register_object_path(conn, A2DP_SINK_ENDPOINT, &vtable_endpoint, y));
 
-    init_bluez(y);
+    list_adapters(y);
 
     return y;
 
