@@ -32,10 +32,10 @@
 #include "bluez4-util.h"
 #include "a2dp-codecs.h"
 
-#define HFP_AG_ENDPOINT "/MediaEndpoint/HFPAG"
-#define HFP_HS_ENDPOINT "/MediaEndpoint/HFPHS"
-#define A2DP_SOURCE_ENDPOINT "/MediaEndpoint/A2DPSource"
-#define A2DP_SINK_ENDPOINT "/MediaEndpoint/A2DPSink"
+#define ENDPOINT_PATH_HFP_AG "/MediaEndpoint/BlueZ4/HFPAG"
+#define ENDPOINT_PATH_HFP_HS "/MediaEndpoint/BlueZ4/HFPHS"
+#define ENDPOINT_PATH_A2DP_SOURCE "/MediaEndpoint/BlueZ4/A2DPSource"
+#define ENDPOINT_PATH_A2DP_SINK "/MediaEndpoint/BlueZ4/A2DPSink"
 
 #define ENDPOINT_INTROSPECT_XML                                         \
     DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE                           \
@@ -862,10 +862,10 @@ static void found_adapter(pa_bluez4_discovery *y, const char *path) {
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", path, "org.bluez.Adapter", "GetProperties"));
     send_and_add_to_pending(y, m, get_properties_reply, NULL);
 
-    register_endpoint(y, path, HFP_AG_ENDPOINT, HFP_AG_UUID);
-    register_endpoint(y, path, HFP_HS_ENDPOINT, HFP_HS_UUID);
-    register_endpoint(y, path, A2DP_SOURCE_ENDPOINT, A2DP_SOURCE_UUID);
-    register_endpoint(y, path, A2DP_SINK_ENDPOINT, A2DP_SINK_UUID);
+    register_endpoint(y, path, ENDPOINT_PATH_HFP_AG, HFP_AG_UUID);
+    register_endpoint(y, path, ENDPOINT_PATH_HFP_HS, HFP_HS_UUID);
+    register_endpoint(y, path, ENDPOINT_PATH_A2DP_SOURCE, A2DP_SOURCE_UUID);
+    register_endpoint(y, path, ENDPOINT_PATH_A2DP_SINK, A2DP_SINK_UUID);
 }
 
 static void list_adapters(pa_bluez4_discovery *y) {
@@ -1345,11 +1345,11 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     if (!d)
         goto fail;
 
-    if (dbus_message_has_path(m, HFP_AG_ENDPOINT))
+    if (dbus_message_has_path(m, ENDPOINT_PATH_HFP_AG))
         p = PROFILE_HSP;
-    else if (dbus_message_has_path(m, HFP_HS_ENDPOINT))
+    else if (dbus_message_has_path(m, ENDPOINT_PATH_HFP_HS))
         p = PROFILE_HFGW;
-    else if (dbus_message_has_path(m, A2DP_SOURCE_ENDPOINT))
+    else if (dbus_message_has_path(m, ENDPOINT_PATH_A2DP_SOURCE))
         p = PROFILE_A2DP;
     else
         p = PROFILE_A2DP_SOURCE;
@@ -1501,7 +1501,7 @@ static DBusMessage *endpoint_select_configuration(DBusConnection *c, DBusMessage
         goto fail;
     }
 
-    if (dbus_message_has_path(m, HFP_AG_ENDPOINT) || dbus_message_has_path(m, HFP_HS_ENDPOINT))
+    if (dbus_message_has_path(m, ENDPOINT_PATH_HFP_AG) || dbus_message_has_path(m, ENDPOINT_PATH_HFP_HS))
         goto done;
 
     pa_assert(size == sizeof(config));
@@ -1614,8 +1614,8 @@ static DBusHandlerResult endpoint_handler(DBusConnection *c, DBusMessage *m, voi
 
     dbus_error_init(&e);
 
-    if (!pa_streq(path, A2DP_SOURCE_ENDPOINT) && !pa_streq(path, A2DP_SINK_ENDPOINT) && !pa_streq(path, HFP_AG_ENDPOINT) &&
-        !pa_streq(path, HFP_HS_ENDPOINT))
+    if (!pa_streq(path, ENDPOINT_PATH_A2DP_SOURCE) && !pa_streq(path, ENDPOINT_PATH_A2DP_SINK)
+            && !pa_streq(path, ENDPOINT_PATH_HFP_AG) && !pa_streq(path, ENDPOINT_PATH_HFP_HS))
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
     if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
@@ -1701,10 +1701,10 @@ pa_bluez4_discovery* pa_bluez4_discovery_get(pa_core *c) {
         goto fail;
     }
 
-    pa_assert_se(dbus_connection_register_object_path(conn, HFP_AG_ENDPOINT, &vtable_endpoint, y));
-    pa_assert_se(dbus_connection_register_object_path(conn, HFP_HS_ENDPOINT, &vtable_endpoint, y));
-    pa_assert_se(dbus_connection_register_object_path(conn, A2DP_SOURCE_ENDPOINT, &vtable_endpoint, y));
-    pa_assert_se(dbus_connection_register_object_path(conn, A2DP_SINK_ENDPOINT, &vtable_endpoint, y));
+    pa_assert_se(dbus_connection_register_object_path(conn, ENDPOINT_PATH_HFP_AG, &vtable_endpoint, y));
+    pa_assert_se(dbus_connection_register_object_path(conn, ENDPOINT_PATH_HFP_HS, &vtable_endpoint, y));
+    pa_assert_se(dbus_connection_register_object_path(conn, ENDPOINT_PATH_A2DP_SOURCE, &vtable_endpoint, y));
+    pa_assert_se(dbus_connection_register_object_path(conn, ENDPOINT_PATH_A2DP_SINK, &vtable_endpoint, y));
 
     list_adapters(y);
 
@@ -1750,10 +1750,10 @@ void pa_bluez4_discovery_unref(pa_bluez4_discovery *y) {
     }
 
     if (y->connection) {
-        dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), HFP_AG_ENDPOINT);
-        dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), HFP_HS_ENDPOINT);
-        dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), A2DP_SOURCE_ENDPOINT);
-        dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), A2DP_SINK_ENDPOINT);
+        dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), ENDPOINT_PATH_HFP_AG);
+        dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), ENDPOINT_PATH_HFP_HS);
+        dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), ENDPOINT_PATH_A2DP_SOURCE);
+        dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), ENDPOINT_PATH_A2DP_SINK);
         pa_dbus_remove_matches(
             pa_dbus_connection_get(y->connection),
             "type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged'"
