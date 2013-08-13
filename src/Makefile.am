@@ -1334,6 +1334,7 @@ endif
 
 if HAVE_BLUEZ_5
 modlibexec_LTLIBRARIES += \
+		libbluez5-util.la \
 		module-bluez5-discover.la
 endif
 
@@ -2048,9 +2049,16 @@ module_bluez4_device_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) $(SBC_LIBS) libbl
 module_bluez4_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) $(SBC_CFLAGS)
 
 # Bluetooth BlueZ 5 sink / source
+libbluez5_util_la_SOURCES = \
+		modules/bluetooth/bluez5-util.c \
+		modules/bluetooth/bluez5-util.h
+libbluez5_util_la_LDFLAGS = -avoid-version
+libbluez5_util_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS)
+libbluez5_util_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+
 module_bluez5_discover_la_SOURCES = modules/bluetooth/module-bluez5-discover.c
 module_bluez5_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_bluez5_discover_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS)
+module_bluez5_discover_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) libbluez5-util.la
 module_bluez5_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # Apple Airtunes/RAOP

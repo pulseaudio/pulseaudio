@@ -23,54 +23,52 @@
 #include <config.h>
 #endif
 
+#include <pulse/xmalloc.h>
+
 #include <pulsecore/core.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/module.h>
+#include <pulsecore/refcnt.h>
+#include <pulsecore/shared.h>
 
 #include "bluez5-util.h"
 
-#include "module-bluez5-discover-symdef.h"
+struct pa_bluetooth_discovery {
+    PA_REFCNT_DECLARE;
 
-PA_MODULE_AUTHOR("João Paulo Rechi Vita");
-PA_MODULE_DESCRIPTION("Detect available BlueZ 5 Bluetooth audio devices and load BlueZ 5 Bluetooth audio drivers");
-PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_LOAD_ONCE(true);
-
-struct userdata {
-    pa_module *module;
     pa_core *core;
-    pa_bluetooth_discovery *discovery;
 };
 
-int pa__init(pa_module *m) {
-    struct userdata *u;
+pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
+    pa_bluetooth_discovery *y;
 
-    pa_assert(m);
+    if ((y = pa_shared_get(c, "bluetooth-discovery")))
+        return pa_bluetooth_discovery_ref(y);
 
-    m->userdata = u = pa_xnew0(struct userdata, 1);
-    u->module = m;
-    u->core = m->core;
+    y = pa_xnew0(pa_bluetooth_discovery, 1);
+    PA_REFCNT_INIT(y);
+    y->core = c;
 
-    if (!(u->discovery = pa_bluetooth_discovery_get(u->core)))
-        goto fail;
+    pa_shared_set(c, "bluetooth-discovery", y);
 
-    return 0;
-
-fail:
-    pa__done(m);
-    return -1;
+    return y;
 }
 
-void pa__done(pa_module *m) {
-    struct userdata *u;
+pa_bluetooth_discovery* pa_bluetooth_discovery_ref(pa_bluetooth_discovery *y) {
+    pa_assert(y);
+    pa_assert(PA_REFCNT_VALUE(y) > 0);
 
-    pa_assert(m);
+    PA_REFCNT_INC(y);
 
-    if (!(u = m->userdata))
+    return y;
+}
+
+void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
+    pa_assert(y);
+    pa_assert(PA_REFCNT_VALUE(y) > 0);
+
+    if (PA_REFCNT_DEC(y) > 0)
         return;
 
-    if (u->discovery)
-        pa_bluetooth_discovery_unref(u->discovery);
-
-    pa_xfree(u);
+    pa_shared_remove(y->core, "bluetooth-discovery");
+    pa_xfree(y);
 }
