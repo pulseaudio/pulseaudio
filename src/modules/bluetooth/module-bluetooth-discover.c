@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2008-2009 Joao Paulo Rechi Vita
+  Copyright 2008-2013 João Paulo Rechi Vita
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -37,8 +37,8 @@
 #include "module-bluetooth-discover-symdef.h"
 #include "bluetooth-util.h"
 
-PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
-PA_MODULE_DESCRIPTION("Detect available bluetooth audio devices and load bluetooth audio drivers");
+PA_MODULE_AUTHOR("João Paulo Rechi Vita");
+PA_MODULE_DESCRIPTION("Detect available BlueZ 4 Bluetooth audio devices and load BlueZ 4 Bluetooth audio drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE("sco_sink=<name of sink> "
                 "sco_source=<name of source> ");

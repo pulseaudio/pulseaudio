@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2008-2009 Joao Paulo Rechi Vita
+  Copyright 2008-2013 João Paulo Rechi Vita
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as

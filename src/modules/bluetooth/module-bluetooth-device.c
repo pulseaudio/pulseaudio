@@ -1,8 +1,8 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2008-2009 Joao Paulo Rechi Vita
-  Copyright 2011-2012 BMW Car IT GmbH.
+  Copyright 2008-2013 João Paulo Rechi Vita
+  Copyright 2011-2013 BMW Car IT GmbH.
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -60,8 +60,8 @@
 #define BITPOOL_DEC_LIMIT 32
 #define BITPOOL_DEC_STEP 5
 
-PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
-PA_MODULE_DESCRIPTION("Bluetooth audio sink and source");
+PA_MODULE_AUTHOR("João Paulo Rechi Vita");
+PA_MODULE_DESCRIPTION("BlueZ 4 Bluetooth audio sink and source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
