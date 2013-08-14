@@ -452,7 +452,7 @@ _pacat () {
         --device=*)
             cur=${cur#*=}
             comps=$(__sinks)
-            comps+=$(__sources)
+            comps+=" "$(__sources)
             COMPREPLY=($(compgen -W '${comps[*]}' -- "$cur"))
             ;;
 
@@ -481,7 +481,7 @@ _pacat () {
         -s) _known_hosts_real "$cur" ;;
         -d)
             comps=$(__sinks)
-            comps+=$(__sources)
+            comps+=" "$(__sources)
             COMPREPLY=($(compgen -W '${comps[*]}' -- "$cur"))
             ;;
     esac
