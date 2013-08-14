@@ -255,8 +255,16 @@ int pa_source_output_new(
     pa_return_val_if_fail(!data->driver || pa_utf8_valid(data->driver), -PA_ERR_INVALID);
 
     if (!data->source) {
-        pa_source *source = pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE);
-        pa_return_val_if_fail(source, -PA_ERR_NOENTITY);
+        pa_source *source;
+
+        if (data->direct_on_input) {
+            source = data->direct_on_input->sink->monitor_source;
+            pa_return_val_if_fail(source, -PA_ERR_INVALID);
+        } else {
+            source = pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE);
+            pa_return_val_if_fail(source, -PA_ERR_NOENTITY);
+        }
+
         pa_source_output_new_data_set_source(data, source, false);
     }
 
