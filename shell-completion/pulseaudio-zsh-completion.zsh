@@ -24,18 +24,34 @@ _devices() {
         esac
 
     elif [[ $service == (pacat|paplay|parecord) ]]; then
-        if [[ $words == *-r[[:space:]]* ]]; then
-            cmd=('sources')
-        elif [[ $words == *-p[[:space:]]* ]]; then
-            cmd=('sinks')
-        else
-            cmd=('sinks' 'sources')
-        fi
+        case $words[$((CURRENT))] in
+            --device=*)
+                if [[ $words == *(--playback|-p)[[:space:]]* ||
+                    $service == paplay ]]; then
+                    cmd=('sinks')
+                elif [[ $words == *(--record|-r)[[:space:]]* ||
+                    $service == parecord ]]; then
+                    cmd=('sources')
+                else
+                    cmd=('sinks' 'sources')
+                fi
+                ;;
+        esac
 
-    elif [[ $service == paplay ]]; then
-        cmd=('sinks')
-    elif [[ $service == parecord ]]; then
-        cmd=('sources')
+        case $words[$((CURRENT - 1))] in
+            -d)
+                if [[ $words == *(--playback|-p)[[:space:]]* ||
+                    $service == paplay ]]; then
+                    cmd=('sinks')
+                elif [[ $words == *(--record|-r)[[:space:]]* ||
+                    $service == parecord ]]; then
+                    cmd=('sources')
+                else
+                    cmd=('sinks' 'sources')
+                fi
+                ;;
+        esac
+
     fi
 
     for (( i = 0; i < ${#words[@]}; i++ )) do
