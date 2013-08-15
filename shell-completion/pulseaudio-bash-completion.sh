@@ -439,7 +439,7 @@ _pacat () {
                 --rate= --format= --channels= --channel-map= --fix-format --fix-rate
                 --fix-channels --no-remix --no-remap --latency= --process-time=
                 --latency-msec= --process-time-msec= --property= --raw --passthrough
-                --file-format= --list-file-formats'
+                --file-format= --list-file-formats --monitor-stream='
 
     _init_completion -n = || return
 
@@ -453,6 +453,12 @@ _pacat () {
             cur=${cur#*=}
             comps=$(__sinks)
             comps+=" "$(__sources)
+            COMPREPLY=($(compgen -W '${comps[*]}' -- "$cur"))
+            ;;
+
+        --monitor-stream=*)
+            cur=${cur#*=}
+            comps=$(__sink_inputs)
             COMPREPLY=($(compgen -W '${comps[*]}' -- "$cur"))
             ;;
 
