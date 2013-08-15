@@ -57,15 +57,15 @@ struct pa_bluez4_uuid {
     PA_LLIST_FIELDS(pa_bluez4_uuid);
 };
 
-enum profile {
-    PROFILE_A2DP,
-    PROFILE_A2DP_SOURCE,
-    PROFILE_HSP,
-    PROFILE_HFGW,
-    PROFILE_OFF
-};
+typedef enum pa_bluez4_profile {
+    PA_BLUEZ4_PROFILE_A2DP,
+    PA_BLUEZ4_PROFILE_A2DP_SOURCE,
+    PA_BLUEZ4_PROFILE_HSP,
+    PA_BLUEZ4_PROFILE_HFGW,
+    PA_BLUEZ4_PROFILE_OFF
+} pa_bluez4_profile_t;
 
-#define PA_BLUEZ4_PROFILE_COUNT PROFILE_OFF
+#define PA_BLUEZ4_PROFILE_COUNT PA_BLUEZ4_PROFILE_OFF
 
 struct pa_bluez4_hook_uuid_data {
     pa_bluez4_device *device;
@@ -93,7 +93,7 @@ struct pa_bluez4_transport {
     pa_bluez4_device *device;
     char *owner;
     char *path;
-    enum profile profile;
+    pa_bluez4_profile_t profile;
     uint8_t codec;
     uint8_t *config;
     int config_size;
@@ -173,6 +173,6 @@ const char *pa_bluez4_form_factor_to_string(pa_bluez4_form_factor_t ff);
 char *pa_bluez4_cleanup_name(const char *name);
 
 bool pa_bluez4_uuid_has(pa_bluez4_uuid *uuids, const char *uuid);
-const char *pa_bluez4_profile_to_string(enum profile profile);
+const char *pa_bluez4_profile_to_string(pa_bluez4_profile_t profile);
 
 #endif

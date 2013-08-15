@@ -184,7 +184,7 @@ struct userdata {
     struct a2dp_info a2dp;
     struct hsp_info hsp;
 
-    enum profile profile;
+    pa_bluez4_profile_t profile;
 
     pa_modargs *modargs;
 
@@ -203,7 +203,7 @@ enum {
 
 #define MAX_PLAYBACK_CATCH_UP_USEC (100*PA_USEC_PER_MSEC)
 
-#define USE_SCO_OVER_PCM(u) (u->profile == PROFILE_HSP && (u->hsp.sco_sink && u->hsp.sco_source))
+#define USE_SCO_OVER_PCM(u) (u->profile == PA_BLUEZ4_PROFILE_HSP && (u->hsp.sco_sink && u->hsp.sco_source))
 
 static int init_profile(struct userdata *u);
 
@@ -246,7 +246,7 @@ static void a2dp_set_bitpool(struct userdata *u, uint8_t bitpool) {
 /* from IO thread, except in SCO over PCM */
 static void bt_transport_config_mtu(struct userdata *u) {
     /* Calculate block sizes */
-    if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) {
+    if (u->profile == PA_BLUEZ4_PROFILE_HSP || u->profile == PA_BLUEZ4_PROFILE_HFGW) {
         u->read_block_size = u->read_link_mtu;
         u->write_block_size = u->write_link_mtu;
     } else {
@@ -265,14 +265,14 @@ static void bt_transport_config_mtu(struct userdata *u) {
     if (u->sink) {
         pa_sink_set_max_request_within_thread(u->sink, u->write_block_size);
         pa_sink_set_fixed_latency_within_thread(u->sink,
-                                                (u->profile == PROFILE_A2DP ?
+                                                (u->profile == PA_BLUEZ4_PROFILE_A2DP ?
                                                  FIXED_LATENCY_PLAYBACK_A2DP : FIXED_LATENCY_PLAYBACK_HSP) +
                                                 pa_bytes_to_usec(u->write_block_size, &u->sample_spec));
     }
 
     if (u->source)
         pa_source_set_fixed_latency_within_thread(u->source,
-                                                  (u->profile == PROFILE_A2DP_SOURCE ?
+                                                  (u->profile == PA_BLUEZ4_PROFILE_A2DP_SOURCE ?
                                                    FIXED_LATENCY_RECORD_A2DP : FIXED_LATENCY_RECORD_HSP) +
                                                   pa_bytes_to_usec(u->read_block_size, &u->sample_spec));
 }
@@ -296,7 +296,7 @@ static void setup_stream(struct userdata *u) {
 
     pa_log_debug("Stream properly set up, we're ready to roll!");
 
-    if (u->profile == PROFILE_A2DP)
+    if (u->profile == PA_BLUEZ4_PROFILE_A2DP)
         a2dp_set_bitpool(u, u->a2dp.max_bitpool);
 
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
@@ -555,7 +555,7 @@ static int hsp_process_render(struct userdata *u) {
     int ret = 0;
 
     pa_assert(u);
-    pa_assert(u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW);
+    pa_assert(u->profile == PA_BLUEZ4_PROFILE_HSP || u->profile == PA_BLUEZ4_PROFILE_HFGW);
     pa_assert(u->sink);
 
     /* First, render some data */
@@ -620,7 +620,7 @@ static int hsp_process_push(struct userdata *u) {
     pa_memchunk memchunk;
 
     pa_assert(u);
-    pa_assert(u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW);
+    pa_assert(u->profile == PA_BLUEZ4_PROFILE_HSP || u->profile == PA_BLUEZ4_PROFILE_HFGW);
     pa_assert(u->source);
     pa_assert(u->read_smoother);
 
@@ -738,7 +738,7 @@ static int a2dp_process_render(struct userdata *u) {
     int ret = 0;
 
     pa_assert(u);
-    pa_assert(u->profile == PROFILE_A2DP);
+    pa_assert(u->profile == PA_BLUEZ4_PROFILE_A2DP);
     pa_assert(u->sink);
 
     /* First, render some data */
@@ -864,7 +864,7 @@ static int a2dp_process_push(struct userdata *u) {
     pa_memchunk memchunk;
 
     pa_assert(u);
-    pa_assert(u->profile == PROFILE_A2DP_SOURCE);
+    pa_assert(u->profile == PA_BLUEZ4_PROFILE_A2DP_SOURCE);
     pa_assert(u->source);
     pa_assert(u->read_smoother);
 
@@ -1031,7 +1031,7 @@ static void thread_func(void *userdata) {
             if (pollfd && (pollfd->revents & POLLIN)) {
                 int n_read;
 
-                if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW)
+                if (u->profile == PA_BLUEZ4_PROFILE_HSP || u->profile == PA_BLUEZ4_PROFILE_HFGW)
                     n_read = hsp_process_push(u);
                 else
                     n_read = a2dp_process_push(u);
@@ -1087,7 +1087,7 @@ static void thread_func(void *userdata) {
                                 pa_memblock_unref(tmp.memblock);
                                 u->write_index += skip_bytes;
 
-                                if (u->profile == PROFILE_A2DP)
+                                if (u->profile == PA_BLUEZ4_PROFILE_A2DP)
                                     a2dp_reduce_bitpool(u);
                             }
                         }
@@ -1103,7 +1103,7 @@ static void thread_func(void *userdata) {
                     if (u->write_index <= 0)
                         u->started_at = pa_rtclock_now();
 
-                    if (u->profile == PROFILE_A2DP) {
+                    if (u->profile == PA_BLUEZ4_PROFILE_A2DP) {
                         if ((n_written = a2dp_process_render(u)) < 0)
                             goto io_fail;
                     } else {
@@ -1201,13 +1201,13 @@ static pa_available_t transport_state_to_availability(pa_bluez4_transport_state_
         return PA_AVAILABLE_UNKNOWN;
 }
 
-static pa_direction_t get_profile_direction(enum profile p) {
+static pa_direction_t get_profile_direction(pa_bluez4_profile_t p) {
     static const pa_direction_t profile_direction[] = {
-        [PROFILE_A2DP] = PA_DIRECTION_OUTPUT,
-        [PROFILE_A2DP_SOURCE] = PA_DIRECTION_INPUT,
-        [PROFILE_HSP] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
-        [PROFILE_HFGW] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
-        [PROFILE_OFF] = 0
+        [PA_BLUEZ4_PROFILE_A2DP] = PA_DIRECTION_OUTPUT,
+        [PA_BLUEZ4_PROFILE_A2DP_SOURCE] = PA_DIRECTION_INPUT,
+        [PA_BLUEZ4_PROFILE_HSP] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUEZ4_PROFILE_HFGW] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUEZ4_PROFILE_OFF] = 0
     };
 
     return profile_direction[p];
@@ -1252,7 +1252,7 @@ static pa_available_t get_port_availability(struct userdata *u, pa_direction_t d
 static void handle_transport_state_change(struct userdata *u, struct pa_bluez4_transport *transport) {
     bool acquire = false;
     bool release = false;
-    enum profile profile;
+    pa_bluez4_profile_t profile;
     pa_card_profile *cp;
     pa_bluez4_transport_state_t state;
     pa_device_port *port;
@@ -1328,7 +1328,7 @@ static void sink_set_volume_cb(pa_sink *s) {
 
     pa_assert(u);
     pa_assert(u->sink == s);
-    pa_assert(u->profile == PROFILE_HSP);
+    pa_assert(u->profile == PA_BLUEZ4_PROFILE_HSP);
     pa_assert(u->transport);
 
     gain = (dbus_uint16_t) round((double) pa_cvolume_max(&s->real_volume) * HSP_MAX_GAIN / PA_VOLUME_NORM);
@@ -1355,7 +1355,7 @@ static void source_set_volume_cb(pa_source *s) {
 
     pa_assert(u);
     pa_assert(u->source == s);
-    pa_assert(u->profile == PROFILE_HSP);
+    pa_assert(u->profile == PA_BLUEZ4_PROFILE_HSP);
     pa_assert(u->transport);
 
     gain = (dbus_uint16_t) round((double) pa_cvolume_max(&s->real_volume) * HSP_MAX_GAIN / PA_VOLUME_NORM);
@@ -1560,7 +1560,7 @@ static int add_sink(struct userdata *u) {
         data.module = u->module;
         pa_sink_new_data_set_sample_spec(&data, &u->sample_spec);
         pa_proplist_sets(data.proplist, "bluetooth.protocol", pa_bluez4_profile_to_string(u->profile));
-        if (u->profile == PROFILE_HSP)
+        if (u->profile == PA_BLUEZ4_PROFILE_HSP)
             pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
         data.card = u->card;
         data.name = get_name("sink", u->modargs, u->address, &b);
@@ -1575,15 +1575,15 @@ static int add_sink(struct userdata *u) {
 
         if (!u->transport_acquired)
             switch (u->profile) {
-                case PROFILE_A2DP:
-                case PROFILE_HSP:
+                case PA_BLUEZ4_PROFILE_A2DP:
+                case PA_BLUEZ4_PROFILE_HSP:
                     pa_assert_not_reached(); /* Profile switch should have failed */
                     break;
-                case PROFILE_HFGW:
+                case PA_BLUEZ4_PROFILE_HFGW:
                     data.suspend_cause = PA_SUSPEND_USER;
                     break;
-                case PROFILE_A2DP_SOURCE:
-                case PROFILE_OFF:
+                case PA_BLUEZ4_PROFILE_A2DP_SOURCE:
+                case PA_BLUEZ4_PROFILE_OFF:
                     pa_assert_not_reached();
             }
 
@@ -1600,7 +1600,7 @@ static int add_sink(struct userdata *u) {
         u->sink->set_port = sink_set_port_cb;
     }
 
-    if (u->profile == PROFILE_HSP) {
+    if (u->profile == PA_BLUEZ4_PROFILE_HSP) {
         pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
         u->sink->n_volume_steps = 16;
 
@@ -1630,7 +1630,7 @@ static int add_source(struct userdata *u) {
         data.module = u->module;
         pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
         pa_proplist_sets(data.proplist, "bluetooth.protocol", pa_bluez4_profile_to_string(u->profile));
-        if (u->profile == PROFILE_HSP)
+        if (u->profile == PA_BLUEZ4_PROFILE_HSP)
             pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
 
         data.card = u->card;
@@ -1647,15 +1647,15 @@ static int add_source(struct userdata *u) {
 
         if (!u->transport_acquired)
             switch (u->profile) {
-                case PROFILE_HSP:
+                case PA_BLUEZ4_PROFILE_HSP:
                     pa_assert_not_reached(); /* Profile switch should have failed */
                     break;
-                case PROFILE_A2DP_SOURCE:
-                case PROFILE_HFGW:
+                case PA_BLUEZ4_PROFILE_A2DP_SOURCE:
+                case PA_BLUEZ4_PROFILE_HFGW:
                     data.suspend_cause = PA_SUSPEND_USER;
                     break;
-                case PROFILE_A2DP:
-                case PROFILE_OFF:
+                case PA_BLUEZ4_PROFILE_A2DP:
+                case PA_BLUEZ4_PROFILE_OFF:
                     pa_assert_not_reached();
             }
 
@@ -1672,12 +1672,12 @@ static int add_source(struct userdata *u) {
         u->source->set_port = source_set_port_cb;
     }
 
-    if ((u->profile == PROFILE_HSP) || (u->profile == PROFILE_HFGW)) {
+    if ((u->profile == PA_BLUEZ4_PROFILE_HSP) || (u->profile == PA_BLUEZ4_PROFILE_HFGW)) {
         pa_bluez4_transport *t = u->transport;
         pa_proplist_sets(u->source->proplist, "bluetooth.nrec", t->nrec ? "1" : "0");
     }
 
-    if (u->profile == PROFILE_HSP) {
+    if (u->profile == PA_BLUEZ4_PROFILE_HSP) {
         pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
         u->source->n_volume_steps = 16;
 
@@ -1792,7 +1792,7 @@ static void bt_transport_config_a2dp(struct userdata *u) {
     a2dp->max_bitpool = config->max_bitpool;
 
     /* Set minimum bitpool for source to get the maximum possible block_size */
-    a2dp->sbc.bitpool = u->profile == PROFILE_A2DP ? a2dp->max_bitpool : a2dp->min_bitpool;
+    a2dp->sbc.bitpool = u->profile == PA_BLUEZ4_PROFILE_A2DP ? a2dp->max_bitpool : a2dp->min_bitpool;
     a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
     a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
 
@@ -1801,7 +1801,7 @@ static void bt_transport_config_a2dp(struct userdata *u) {
 }
 
 static void bt_transport_config(struct userdata *u) {
-    if (u->profile == PROFILE_HSP || u->profile == PROFILE_HFGW) {
+    if (u->profile == PA_BLUEZ4_PROFILE_HSP || u->profile == PA_BLUEZ4_PROFILE_HFGW) {
         u->sample_spec.format = PA_SAMPLE_S16LE;
         u->sample_spec.channels = 1;
         u->sample_spec.rate = 8000;
@@ -1829,7 +1829,7 @@ static int setup_transport(struct userdata *u) {
 
     pa_assert(u);
     pa_assert(!u->transport);
-    pa_assert(u->profile != PROFILE_OFF);
+    pa_assert(u->profile != PA_BLUEZ4_PROFILE_OFF);
 
     /* check if profile has a transport */
     t = u->device->transports[u->profile];
@@ -1840,7 +1840,7 @@ static int setup_transport(struct userdata *u) {
 
     u->transport = t;
 
-    if (u->profile == PROFILE_A2DP_SOURCE || u->profile == PROFILE_HFGW)
+    if (u->profile == PA_BLUEZ4_PROFILE_A2DP_SOURCE || u->profile == PA_BLUEZ4_PROFILE_HFGW)
         bt_transport_acquire(u, true); /* In case of error, the sink/sources will be created suspended */
     else if (bt_transport_acquire(u, false) < 0)
         return -1; /* We need to fail here until the interactions with module-suspend-on-idle and alike get improved */
@@ -1854,22 +1854,22 @@ static int setup_transport(struct userdata *u) {
 static int init_profile(struct userdata *u) {
     int r = 0;
     pa_assert(u);
-    pa_assert(u->profile != PROFILE_OFF);
+    pa_assert(u->profile != PA_BLUEZ4_PROFILE_OFF);
 
     if (setup_transport(u) < 0)
         return -1;
 
     pa_assert(u->transport);
 
-    if (u->profile == PROFILE_A2DP ||
-        u->profile == PROFILE_HSP ||
-        u->profile == PROFILE_HFGW)
+    if (u->profile == PA_BLUEZ4_PROFILE_A2DP ||
+        u->profile == PA_BLUEZ4_PROFILE_HSP ||
+        u->profile == PA_BLUEZ4_PROFILE_HFGW)
         if (add_sink(u) < 0)
             r = -1;
 
-    if (u->profile == PROFILE_HSP ||
-        u->profile == PROFILE_A2DP_SOURCE ||
-        u->profile == PROFILE_HFGW)
+    if (u->profile == PA_BLUEZ4_PROFILE_HSP ||
+        u->profile == PA_BLUEZ4_PROFILE_A2DP_SOURCE ||
+        u->profile == PA_BLUEZ4_PROFILE_HFGW)
         if (add_source(u) < 0)
             r = -1;
 
@@ -1912,7 +1912,7 @@ static void stop_thread(struct userdata *u) {
     }
 
     if (u->sink) {
-        if (u->profile == PROFILE_HSP) {
+        if (u->profile == PA_BLUEZ4_PROFILE_HSP) {
             k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->sink);
             pa_shared_remove(u->core, k);
             pa_xfree(k);
@@ -1923,7 +1923,7 @@ static void stop_thread(struct userdata *u) {
     }
 
     if (u->source) {
-        if (u->profile == PROFILE_HSP) {
+        if (u->profile == PA_BLUEZ4_PROFILE_HSP) {
             k = pa_sprintf_malloc("bluetooth-device@%p", (void*) u->source);
             pa_shared_remove(u->core, k);
             pa_xfree(k);
@@ -2019,7 +2019,7 @@ static void restore_sco_volume_callbacks(struct userdata *u) {
 /* Run from main thread */
 static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     struct userdata *u;
-    enum profile *d;
+    pa_bluez4_profile_t *d;
 
     pa_assert(c);
     pa_assert(new_profile);
@@ -2027,7 +2027,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     d = PA_CARD_PROFILE_DATA(new_profile);
 
-    if (*d != PROFILE_OFF) {
+    if (*d != PA_BLUEZ4_PROFILE_OFF) {
         const pa_bluez4_device *device = u->device;
 
         if (!device->transports[*d] || device->transports[*d]->state == PA_BLUEZ4_TRANSPORT_STATE_DISCONNECTED) {
@@ -2047,7 +2047,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     if (USE_SCO_OVER_PCM(u))
         save_sco_volume_callbacks(u);
 
-    if (u->profile != PROFILE_OFF)
+    if (u->profile != PA_BLUEZ4_PROFILE_OFF)
         if (init_profile(u) < 0)
             goto off;
 
@@ -2163,7 +2163,7 @@ static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
 static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid, pa_hashmap *ports) {
     pa_device_port *input_port, *output_port;
     pa_card_profile *p = NULL;
-    enum profile *d;
+    pa_bluez4_profile_t *d;
 
     pa_assert(u->input_port_name);
     pa_assert(u->output_port_name);
@@ -2171,7 +2171,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
     pa_assert_se(output_port = pa_hashmap_get(ports, u->output_port_name));
 
     if (pa_streq(uuid, A2DP_SINK_UUID)) {
-        p = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP)"), sizeof(enum profile));
+        p = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP)"), sizeof(pa_bluez4_profile_t));
         p->priority = 10;
         p->n_sinks = 1;
         p->n_sources = 0;
@@ -2180,9 +2180,9 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         pa_hashmap_put(output_port->profiles, p->name, p);
 
         d = PA_CARD_PROFILE_DATA(p);
-        *d = PROFILE_A2DP;
+        *d = PA_BLUEZ4_PROFILE_A2DP;
     } else if (pa_streq(uuid, A2DP_SOURCE_UUID)) {
-        p = pa_card_profile_new("a2dp_source", _("High Fidelity Capture (A2DP)"), sizeof(enum profile));
+        p = pa_card_profile_new("a2dp_source", _("High Fidelity Capture (A2DP)"), sizeof(pa_bluez4_profile_t));
         p->priority = 10;
         p->n_sinks = 0;
         p->n_sources = 1;
@@ -2191,9 +2191,9 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         pa_hashmap_put(input_port->profiles, p->name, p);
 
         d = PA_CARD_PROFILE_DATA(p);
-        *d = PROFILE_A2DP_SOURCE;
+        *d = PA_BLUEZ4_PROFILE_A2DP_SOURCE;
     } else if (pa_streq(uuid, HSP_HS_UUID) || pa_streq(uuid, HFP_HS_UUID)) {
-        p = pa_card_profile_new("hsp", _("Telephony Duplex (HSP/HFP)"), sizeof(enum profile));
+        p = pa_card_profile_new("hsp", _("Telephony Duplex (HSP/HFP)"), sizeof(pa_bluez4_profile_t));
         p->priority = 20;
         p->n_sinks = 1;
         p->n_sources = 1;
@@ -2203,9 +2203,9 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         pa_hashmap_put(output_port->profiles, p->name, p);
 
         d = PA_CARD_PROFILE_DATA(p);
-        *d = PROFILE_HSP;
+        *d = PA_BLUEZ4_PROFILE_HSP;
     } else if (pa_streq(uuid, HFP_AG_UUID)) {
-        p = pa_card_profile_new("hfgw", _("Handsfree Gateway"), sizeof(enum profile));
+        p = pa_card_profile_new("hfgw", _("Handsfree Gateway"), sizeof(pa_bluez4_profile_t));
         p->priority = 20;
         p->n_sinks = 1;
         p->n_sources = 1;
@@ -2215,7 +2215,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         pa_hashmap_put(output_port->profiles, p->name, p);
 
         d = PA_CARD_PROFILE_DATA(p);
-        *d = PROFILE_HFGW;
+        *d = PA_BLUEZ4_PROFILE_HFGW;
     }
 
     if (p) {
@@ -2233,7 +2233,7 @@ static int add_card(struct userdata *u) {
     pa_card_new_data data;
     bool b;
     pa_card_profile *p;
-    enum profile *d;
+    pa_bluez4_profile_t *d;
     pa_bluez4_form_factor_t ff;
     char *n;
     const char *default_profile;
@@ -2290,10 +2290,10 @@ static int add_card(struct userdata *u) {
 
     pa_assert(!pa_hashmap_isempty(data.profiles));
 
-    p = pa_card_profile_new("off", _("Off"), sizeof(enum profile));
+    p = pa_card_profile_new("off", _("Off"), sizeof(pa_bluez4_profile_t));
     p->available = PA_AVAILABLE_YES;
     d = PA_CARD_PROFILE_DATA(p);
-    *d = PROFILE_OFF;
+    *d = PA_BLUEZ4_PROFILE_OFF;
     pa_hashmap_put(data.profiles, p->name, p);
 
     if ((default_profile = pa_modargs_get_value(u->modargs, "profile", NULL))) {
@@ -2316,7 +2316,7 @@ static int add_card(struct userdata *u) {
 
     d = PA_CARD_PROFILE_DATA(u->card->active_profile);
 
-    if (*d != PROFILE_OFF && (!device->transports[*d] ||
+    if (*d != PA_BLUEZ4_PROFILE_OFF && (!device->transports[*d] ||
                               device->transports[*d]->state == PA_BLUEZ4_TRANSPORT_STATE_DISCONNECTED)) {
         pa_log_warn("Default profile not connected, selecting off profile");
         u->card->active_profile = pa_hashmap_get(u->card->profiles, "off");
@@ -2524,7 +2524,7 @@ int pa__init(pa_module *m) {
     u->msg->parent.process_msg = device_process_msg;
     u->msg->card = u->card;
 
-    if (u->profile != PROFILE_OFF)
+    if (u->profile != PA_BLUEZ4_PROFILE_OFF)
         if (init_profile(u) < 0)
             goto off;
 

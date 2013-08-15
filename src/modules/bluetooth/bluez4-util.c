@@ -95,38 +95,38 @@ static pa_bluez4_audio_state_t audio_state_from_string(const char* value) {
     return PA_BLUEZ4_AUDIO_STATE_INVALID;
 }
 
-const char *pa_bluez4_profile_to_string(enum profile profile) {
+const char *pa_bluez4_profile_to_string(pa_bluez4_profile_t profile) {
     switch(profile) {
-        case PROFILE_A2DP:
+        case PA_BLUEZ4_PROFILE_A2DP:
             return "a2dp";
-        case PROFILE_A2DP_SOURCE:
+        case PA_BLUEZ4_PROFILE_A2DP_SOURCE:
             return "a2dp_source";
-        case PROFILE_HSP:
+        case PA_BLUEZ4_PROFILE_HSP:
             return "hsp";
-        case PROFILE_HFGW:
+        case PA_BLUEZ4_PROFILE_HFGW:
             return "hfgw";
-        case PROFILE_OFF:
+        case PA_BLUEZ4_PROFILE_OFF:
             pa_assert_not_reached();
     }
 
     pa_assert_not_reached();
 }
 
-static int profile_from_interface(const char *interface, enum profile *p) {
+static int profile_from_interface(const char *interface, pa_bluez4_profile_t *p) {
     pa_assert(interface);
     pa_assert(p);
 
     if (pa_streq(interface, "org.bluez.AudioSink")) {
-        *p = PROFILE_A2DP;
+        *p = PA_BLUEZ4_PROFILE_A2DP;
         return 0;
     } else if (pa_streq(interface, "org.bluez.AudioSource")) {
-        *p = PROFILE_A2DP_SOURCE;
+        *p = PA_BLUEZ4_PROFILE_A2DP_SOURCE;
         return 0;
     } else if (pa_streq(interface, "org.bluez.Headset")) {
-        *p = PROFILE_HSP;
+        *p = PA_BLUEZ4_PROFILE_HSP;
         return 0;
     } else if (pa_streq(interface, "org.bluez.HandsfreeGateway")) {
-        *p = PROFILE_HFGW;
+        *p = PA_BLUEZ4_PROFILE_HFGW;
         return 0;
     }
 
@@ -505,7 +505,7 @@ static int parse_audio_property(pa_bluez4_device *d, const char *interface, DBus
     const char *key;
     DBusMessageIter variant_i;
     bool is_audio_interface;
-    enum profile p = PROFILE_OFF;
+    pa_bluez4_profile_t p = PA_BLUEZ4_PROFILE_OFF;
 
     pa_assert(d);
     pa_assert(interface);
@@ -519,7 +519,7 @@ static int parse_audio_property(pa_bluez4_device *d, const char *interface, DBus
     if (key == NULL)
         return -1;
 
-    transport = p == PROFILE_OFF ? NULL : d->transports[p];
+    transport = p == PA_BLUEZ4_PROFILE_OFF ? NULL : d->transports[p];
 
     dbus_message_iter_recurse(i, &variant_i);
 
@@ -546,7 +546,7 @@ static int parse_audio_property(pa_bluez4_device *d, const char *interface, DBus
                     break;
                 }
 
-                pa_assert(p != PROFILE_OFF);
+                pa_assert(p != PA_BLUEZ4_PROFILE_OFF);
 
                 d->profile_state[p] = state;
 
@@ -1216,7 +1216,7 @@ void pa_bluez4_transport_set_microphone_gain(pa_bluez4_transport *t, uint16_t va
     dbus_uint16_t gain = PA_MIN(value, HSP_MAX_GAIN);
 
     pa_assert(t);
-    pa_assert(t->profile == PROFILE_HSP);
+    pa_assert(t->profile == PA_BLUEZ4_PROFILE_HSP);
 
     set_property(t->device->discovery, "org.bluez", t->device->path, "org.bluez.Headset",
                  "MicrophoneGain", DBUS_TYPE_UINT16, &gain);
@@ -1226,7 +1226,7 @@ void pa_bluez4_transport_set_speaker_gain(pa_bluez4_transport *t, uint16_t value
     dbus_uint16_t gain = PA_MIN(value, HSP_MAX_GAIN);
 
     pa_assert(t);
-    pa_assert(t->profile == PROFILE_HSP);
+    pa_assert(t->profile == PA_BLUEZ4_PROFILE_HSP);
 
     set_property(t->device->discovery, "org.bluez", t->device->path, "org.bluez.Headset",
                  "SpeakerGain", DBUS_TYPE_UINT16, &gain);
@@ -1246,7 +1246,7 @@ static int setup_dbus(pa_bluez4_discovery *y) {
     return 0;
 }
 
-static pa_bluez4_transport *transport_new(pa_bluez4_device *d, const char *owner, const char *path, enum profile p,
+static pa_bluez4_transport *transport_new(pa_bluez4_device *d, const char *owner, const char *path, pa_bluez4_profile_t p,
                                              const uint8_t *config, int size) {
     pa_bluez4_transport *t;
 
@@ -1275,7 +1275,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     uint8_t *config = NULL;
     int size = 0;
     bool nrec = false;
-    enum profile p;
+    pa_bluez4_profile_t p;
     DBusMessageIter args, props;
     DBusMessage *r;
     bool old_any_connected;
@@ -1346,13 +1346,13 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
         goto fail;
 
     if (dbus_message_has_path(m, ENDPOINT_PATH_HFP_AG))
-        p = PROFILE_HSP;
+        p = PA_BLUEZ4_PROFILE_HSP;
     else if (dbus_message_has_path(m, ENDPOINT_PATH_HFP_HS))
-        p = PROFILE_HFGW;
+        p = PA_BLUEZ4_PROFILE_HFGW;
     else if (dbus_message_has_path(m, ENDPOINT_PATH_A2DP_SOURCE))
-        p = PROFILE_A2DP;
+        p = PA_BLUEZ4_PROFILE_A2DP;
     else
-        p = PROFILE_A2DP_SOURCE;
+        p = PA_BLUEZ4_PROFILE_A2DP_SOURCE;
 
     if (d->transports[p] != NULL) {
         pa_log("Cannot configure transport %s because profile %d is already used", path, p);
