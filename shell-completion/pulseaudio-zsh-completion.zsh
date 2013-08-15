@@ -36,6 +36,7 @@ _devices() {
                     cmd=('sinks' 'sources')
                 fi
                 ;;
+            --monitor-stream=*) cmd=('sink-inputs');;
         esac
 
         case $words[$((CURRENT - 1))] in
@@ -468,6 +469,7 @@ _pacat_completion() {
         {-p,--playback}'[create a connection for playback]' \
         {-s,--server=}'[name of server to connect to]:host:_hosts' \
         {-d,--device=}'[name of sink/source to connect to]:device:_devices' \
+        '--monitor-stream=[index of the sink input to record from]:device:_devices' \
         {-n,--client-name=}'[client name to use]:name' \
         '--stream-name=[how to call this stream]:name' \
         '--volume=[initial volume to use]:volume' \
