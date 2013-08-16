@@ -15,7 +15,6 @@ src/modules/alsa/module-alsa-card.c
 src/modules/alsa/module-alsa-sink.c
 src/modules/alsa/module-alsa-source.c
 src/modules/bluetooth/module-bluetooth-device.c
-src/modules/bluetooth/module-bluetooth-proximity.c
 src/modules/bluetooth/proximity-helper.c
 src/modules/echo-cancel/module-echo-cancel.c
 src/modules/gconf/gconf-helper.c

@@ -7,7 +7,6 @@ TAGS
 .libs
 /Makefile
 /Makefile.in
-proximity-helper
 client.conf
 daemon.conf
 default.pa

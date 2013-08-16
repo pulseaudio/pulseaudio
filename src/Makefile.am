@@ -1322,14 +1322,10 @@ endif
 
 if HAVE_BLUEZ
 modlibexec_LTLIBRARIES += \
-		module-bluetooth-proximity.la \
 		module-bluetooth-policy.la \
 		libbluez4-util.la \
 		module-bluez4-discover.la \
 		module-bluez4-device.la
-
-pulselibexec_PROGRAMS += \
-		proximity-helper
 endif
 
 if HAVE_OPENSSL
@@ -1418,7 +1414,6 @@ SYMDEF_FILES = \
 		module-hal-detect-symdef.h \
 		module-udev-detect-symdef.h \
 		module-systemd-login-symdef.h \
-		module-bluetooth-proximity-symdef.h \
 		module-bluetooth-policy-symdef.h \
 		module-bluez4-discover-symdef.h \
 		module-bluez4-device-symdef.h \
@@ -2017,17 +2012,6 @@ gconf_helper_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-
 gconf_helper_CFLAGS = $(AM_CFLAGS) $(GCONF_CFLAGS)
 gconf_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-# Bluetooth proximity
-module_bluetooth_proximity_la_SOURCES = modules/bluetooth/module-bluetooth-proximity.c
-module_bluetooth_proximity_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_bluetooth_proximity_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS)
-module_bluetooth_proximity_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) -DPA_BT_PROXIMITY_HELPER=\"$(pulselibexecdir)/proximity-helper\"
-
-proximity_helper_SOURCES = modules/bluetooth/proximity-helper.c
-proximity_helper_LDADD = $(AM_LDADD) $(BLUEZ_LIBS)
-proximity_helper_CFLAGS = $(AM_CFLAGS) $(BLUEZ_CFLAGS)
-proximity_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
-
 # Bluetooth BlueZ 4 sink / source
 module_bluez4_discover_la_SOURCES = modules/bluetooth/module-bluez4-discover.c
 module_bluez4_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
@@ -2082,10 +2066,6 @@ else
 SYMLINK_PROGRAM=ln -sf
 endif
 install-exec-hook:
-if HAVE_BLUEZ
-	-chown root $(DESTDIR)$(pulselibexecdir)/proximity-helper
-	-chmod u+s $(DESTDIR)$(pulselibexecdir)/proximity-helper
-endif
 	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/parec$(EXEEXT)
 	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/pamon$(EXEEXT)
 	$(SYMLINK_PROGRAM) pacat$(EXEEXT) $(DESTDIR)$(bindir)/paplay$(EXEEXT)
