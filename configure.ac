@@ -981,21 +981,19 @@ AX_DEFINE_DIR(PA_MACHINE_ID_FALLBACK, PA_MACHINE_ID_FALLBACK,
 
 #### BlueZ support (optional, dependent on D-Bus) ####
 
-AC_ARG_ENABLE([bluez],
-    AS_HELP_STRING([--disable-bluez],[Disable optional BlueZ support]))
+AC_ARG_ENABLE([bluez4],
+    AS_HELP_STRING([--disable-bluez4],[Disable optional BlueZ 4 support]))
 
-AS_IF([test "x$enable_bluez" != "xno"],
-    [PKG_CHECK_MODULES(BLUEZ, [ bluez >= 4.99 ], HAVE_BLUEZ=1, HAVE_BLUEZ=0)],
-    HAVE_BLUEZ=0)
-AS_IF([test "x$enable_bluez" != "xno"],
+AS_IF([test "x$enable_bluez4" != "xno"],
     [PKG_CHECK_MODULES(SBC, [ sbc >= 1.0 ], HAVE_SBC=1, HAVE_SBC=0)],
     HAVE_SBC=0)
-AS_IF([test "x$HAVE_SBC" != "x1"], HAVE_BLUEZ=0)
-AS_IF([test "x$HAVE_DBUS" != "x1"], HAVE_BLUEZ=0)
+AS_IF([test "x$enable_bluez4" != "xno" && test "x$HAVE_DBUS" = "x1" && test "x$HAVE_SBC" = "x1"], HAVE_BLUEZ_4=1)
+AS_IF([test "x$enable_bluez4" = "xyes" && test "x$HAVE_BLUEZ_4" != "x1"],
+    [AC_MSG_ERROR([*** BLUEZ 4 support not found (requires sbc and D-Bus)])])
+AC_SUBST(HAVE_BLUEZ_4)
+AM_CONDITIONAL([HAVE_BLUEZ_4], [test "x$HAVE_BLUEZ_4" = x1])
 
-AS_IF([test "x$enable_bluez" = "xyes" && test "x$HAVE_BLUEZ" = "x0"],
-    [AC_MSG_ERROR([*** BLUEZ support not found (requires BlueZ, sbc, and D-Bus)])])
-
+AS_IF([test "x$HAVE_BLUEZ_4" = "x1"], HAVE_BLUEZ=1)
 AC_SUBST(HAVE_BLUEZ)
 AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
 
@@ -1389,7 +1387,7 @@ AS_IF([test "x$HAVE_XEN" = "x1"], ENABLE_XEN=yes, ENABLE_XEN=no)
 AS_IF([test "x$HAVE_DBUS" = "x1"], ENABLE_DBUS=yes, ENABLE_DBUS=no)
 AS_IF([test "x$HAVE_UDEV" = "x1"], ENABLE_UDEV=yes, ENABLE_UDEV=no)
 AS_IF([test "x$HAVE_SYSTEMD" = "x1"], ENABLE_SYSTEMD=yes, ENABLE_SYSTEMD=no)
-AS_IF([test "x$HAVE_BLUEZ" = "x1"], ENABLE_BLUEZ=yes, ENABLE_BLUEZ=no)
+AS_IF([test "x$HAVE_BLUEZ_4" = "x1"], ENABLE_BLUEZ_4=yes, ENABLE_BLUEZ_4=no)
 AS_IF([test "x$HAVE_HAL_COMPAT" = "x1"], ENABLE_HAL_COMPAT=yes, ENABLE_HAL_COMPAT=no)
 AS_IF([test "x$HAVE_TCPWRAP" = "x1"], ENABLE_TCPWRAP=yes, ENABLE_TCPWRAP=no)
 AS_IF([test "x$HAVE_LIBSAMPLERATE" = "x1"], ENABLE_LIBSAMPLERATE=yes, ENABLE_LIBSAMPLERATE=no)
@@ -1440,7 +1438,7 @@ echo "
     Enable LIRC:                   ${ENABLE_LIRC}
     Enable Xen PV driver:          ${ENABLE_XEN}
     Enable D-Bus:                  ${ENABLE_DBUS}
-      Enable BlueZ:                ${ENABLE_BLUEZ}
+      Enable BlueZ 4:              ${ENABLE_BLUEZ_4}
     Enable udev:                   ${ENABLE_UDEV}
       Enable HAL->udev compat:     ${ENABLE_HAL_COMPAT}
     Enable systemd login:          ${ENABLE_SYSTEMD}

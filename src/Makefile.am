@@ -1322,7 +1322,11 @@ endif
 
 if HAVE_BLUEZ
 modlibexec_LTLIBRARIES += \
-		module-bluetooth-policy.la \
+		module-bluetooth-policy.la
+endif
+
+if HAVE_BLUEZ_4
+modlibexec_LTLIBRARIES += \
 		libbluez4-util.la \
 		module-bluez4-discover.la \
 		module-bluez4-device.la
@@ -2012,6 +2016,12 @@ gconf_helper_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-
 gconf_helper_CFLAGS = $(AM_CFLAGS) $(GCONF_CFLAGS)
 gconf_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
+# Bluetooth policy
+module_bluetooth_policy_la_SOURCES = modules/bluetooth/module-bluetooth-policy.c
+module_bluetooth_policy_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_bluetooth_policy_la_LIBADD = $(MODULE_LIBADD)
+module_bluetooth_policy_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+
 # Bluetooth BlueZ 4 sink / source
 module_bluez4_discover_la_SOURCES = modules/bluetooth/module-bluez4-discover.c
 module_bluez4_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
@@ -2030,11 +2040,6 @@ module_bluez4_device_la_SOURCES = modules/bluetooth/module-bluez4-device.c modul
 module_bluez4_device_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_bluez4_device_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) $(SBC_LIBS) libbluez4-util.la
 module_bluez4_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) $(SBC_CFLAGS)
-
-module_bluetooth_policy_la_SOURCES = modules/bluetooth/module-bluetooth-policy.c
-module_bluetooth_policy_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_bluetooth_policy_la_LIBADD = $(MODULE_LIBADD)
-module_bluetooth_policy_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # Apple Airtunes/RAOP
 module_raop_sink_la_SOURCES = modules/raop/module-raop-sink.c
