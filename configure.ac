@@ -979,21 +979,33 @@ PA_MACHINE_ID_FALLBACK="${localstatedir}/lib/dbus/machine-id"
 AX_DEFINE_DIR(PA_MACHINE_ID_FALLBACK, PA_MACHINE_ID_FALLBACK,
 	      [Fallback machine-id file])
 
-#### BlueZ support (optional, dependent on D-Bus) ####
+#### BlueZ support (optional, dependent on D-Bus and SBC) ####
 
 AC_ARG_ENABLE([bluez4],
     AS_HELP_STRING([--disable-bluez4],[Disable optional BlueZ 4 support]))
+AC_ARG_ENABLE([bluez5],
+    AS_HELP_STRING([--disable-bluez5],[Disable optional BlueZ 5 support]))
 
-AS_IF([test "x$enable_bluez4" != "xno"],
+## SBC ##
+AS_IF([test "x$enable_bluez4" != "xno" || test "x$enable_bluez5" != "xno"],
     [PKG_CHECK_MODULES(SBC, [ sbc >= 1.0 ], HAVE_SBC=1, HAVE_SBC=0)],
     HAVE_SBC=0)
+
+## BlueZ 4 ##
 AS_IF([test "x$enable_bluez4" != "xno" && test "x$HAVE_DBUS" = "x1" && test "x$HAVE_SBC" = "x1"], HAVE_BLUEZ_4=1)
 AS_IF([test "x$enable_bluez4" = "xyes" && test "x$HAVE_BLUEZ_4" != "x1"],
     [AC_MSG_ERROR([*** BLUEZ 4 support not found (requires sbc and D-Bus)])])
 AC_SUBST(HAVE_BLUEZ_4)
 AM_CONDITIONAL([HAVE_BLUEZ_4], [test "x$HAVE_BLUEZ_4" = x1])
 
-AS_IF([test "x$HAVE_BLUEZ_4" = "x1"], HAVE_BLUEZ=1)
+## BlueZ 5 ##
+AS_IF([test "x$enable_bluez5" != "xno" && test "x$HAVE_DBUS" = "x1" && test "x$HAVE_SBC" = "x1"], HAVE_BLUEZ_5=1)
+AS_IF([test "x$enable_bluez5" = "xyes" && test "x$HAVE_BLUEZ_5" != "x1"],
+    [AC_MSG_ERROR([*** BLUEZ 5 support not found (requires sbc and D-Bus)])])
+AC_SUBST(HAVE_BLUEZ_5)
+AM_CONDITIONAL([HAVE_BLUEZ_5], [test "x$HAVE_BLUEZ_5" = x1])
+
+AS_IF([test "x$HAVE_BLUEZ_4" = "x1" || test "x$HAVE_BLUEZ_5" = "x1"], HAVE_BLUEZ=1)
 AC_SUBST(HAVE_BLUEZ)
 AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
 
@@ -1388,6 +1400,7 @@ AS_IF([test "x$HAVE_DBUS" = "x1"], ENABLE_DBUS=yes, ENABLE_DBUS=no)
 AS_IF([test "x$HAVE_UDEV" = "x1"], ENABLE_UDEV=yes, ENABLE_UDEV=no)
 AS_IF([test "x$HAVE_SYSTEMD" = "x1"], ENABLE_SYSTEMD=yes, ENABLE_SYSTEMD=no)
 AS_IF([test "x$HAVE_BLUEZ_4" = "x1"], ENABLE_BLUEZ_4=yes, ENABLE_BLUEZ_4=no)
+AS_IF([test "x$HAVE_BLUEZ_5" = "x1"], ENABLE_BLUEZ_5=yes, ENABLE_BLUEZ_5=no)
 AS_IF([test "x$HAVE_HAL_COMPAT" = "x1"], ENABLE_HAL_COMPAT=yes, ENABLE_HAL_COMPAT=no)
 AS_IF([test "x$HAVE_TCPWRAP" = "x1"], ENABLE_TCPWRAP=yes, ENABLE_TCPWRAP=no)
 AS_IF([test "x$HAVE_LIBSAMPLERATE" = "x1"], ENABLE_LIBSAMPLERATE=yes, ENABLE_LIBSAMPLERATE=no)
@@ -1439,6 +1452,7 @@ echo "
     Enable Xen PV driver:          ${ENABLE_XEN}
     Enable D-Bus:                  ${ENABLE_DBUS}
       Enable BlueZ 4:              ${ENABLE_BLUEZ_4}
+      Enable BlueZ 5:              ${ENABLE_BLUEZ_5}
     Enable udev:                   ${ENABLE_UDEV}
       Enable HAL->udev compat:     ${ENABLE_HAL_COMPAT}
     Enable systemd login:          ${ENABLE_SYSTEMD}
