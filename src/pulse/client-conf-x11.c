@@ -91,20 +91,10 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
     }
 
     if (pa_x11_get_prop(xcb, screen, "PULSE_COOKIE", t, sizeof(t))) {
-        uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
-
-        if (pa_parsehex(t, cookie, sizeof(cookie)) != sizeof(cookie)) {
+        if (pa_client_conf_load_cookie_from_hex(c, t) < 0) {
             pa_log(_("Failed to parse cookie data"));
             goto finish;
         }
-
-        pa_assert(sizeof(cookie) == sizeof(c->cookie));
-        memcpy(c->cookie, cookie, sizeof(cookie));
-
-        c->cookie_valid = true;
-
-        pa_xfree(c->cookie_file);
-        c->cookie_file = NULL;
     }
 
     ret = 0;

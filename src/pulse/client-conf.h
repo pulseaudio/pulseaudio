@@ -48,7 +48,13 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename);
    process, overwriting the current settings in *c. */
 int pa_client_conf_env(pa_client_conf *c);
 
-/* Load cookie data from c->cookie_file into c->cookie */
-int pa_client_conf_load_cookie(pa_client_conf* c);
+/* Load cookie data from cookie_file_path into c->cookie */
+int pa_client_conf_load_cookie_from_file(pa_client_conf *c, const char *cookie_file_path);
+
+/* Load cookie data from hexdecimal string into c->cookie */
+int pa_client_conf_load_cookie_from_hex(pa_client_conf *c, const char *cookie_in_hex);
+
+/* Set cookie direct from memory */
+int pa_client_conf_set_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie_size);
 
 #endif
