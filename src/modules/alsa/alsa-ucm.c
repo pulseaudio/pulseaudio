@@ -664,6 +664,13 @@ int pa_alsa_ucm_get_verb(snd_use_case_mgr_t *uc_mgr, const char *verb_name, cons
     return 0;
 }
 
+static int pa_alsa_ucm_device_cmp(const void *a, const void *b) {
+    const pa_alsa_ucm_device *d1 = *(pa_alsa_ucm_device **)a;
+    const pa_alsa_ucm_device *d2 = *(pa_alsa_ucm_device **)b;
+
+    return strcmp(pa_proplist_gets(d1->proplist, PA_ALSA_PROP_UCM_NAME), pa_proplist_gets(d2->proplist, PA_ALSA_PROP_UCM_NAME));
+}
+
 static void ucm_add_port_combination(
         pa_hashmap *hash,
         pa_alsa_ucm_mapping_context *context,
@@ -681,9 +688,16 @@ static void ucm_add_port_combination(
     char *name, *desc;
     const char *dev_name;
     const char *direction;
-    pa_alsa_ucm_device *dev;
+    pa_alsa_ucm_device *sorted[num], *dev;
 
-    dev = pdevices[0];
+    for (i = 0; i < num; i++)
+        sorted[i] = pdevices[i];
+
+    /* Sort by alphabetical order so as to have a deterministic naming scheme
+     * for combination ports */
+    qsort(&sorted[0], num, sizeof(pa_alsa_ucm_device *), pa_alsa_ucm_device_cmp);
+
+    dev = sorted[0];
     dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
 
     name = pa_sprintf_malloc("%s%s", is_sink ? PA_UCM_PRE_TAG_OUTPUT : PA_UCM_PRE_TAG_INPUT, dev_name);
@@ -696,7 +710,7 @@ static void ucm_add_port_combination(
     for (i = 1; i < num; i++) {
         char *tmp;
 
-        dev = pdevices[i];
+        dev = sorted[i];
         dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
 
         tmp = pa_sprintf_malloc("%s+%s", name, dev_name);
