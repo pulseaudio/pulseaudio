@@ -366,7 +366,7 @@ int pa_source_output_new(
            module-suspend-on-idle can resume a source */
 
         pa_log_info("Trying to change sample rate");
-        if (pa_source_update_rate(data->source, data->sample_spec.rate, pa_source_output_new_data_is_passthrough(data)) == true)
+        if (pa_source_update_rate(data->source, data->sample_spec.rate, pa_source_output_new_data_is_passthrough(data)) >= 0)
             pa_log_info("Rate changed to %u Hz", data->source->sample_spec.rate);
     }
 
@@ -1449,7 +1449,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, bool save
            SOURCE_OUTPUT_MOVE_FINISH hook */
 
         pa_log_info("Trying to change sample rate");
-        if (pa_source_update_rate(dest, o->sample_spec.rate, pa_source_output_is_passthrough(o)) == true)
+        if (pa_source_update_rate(dest, o->sample_spec.rate, pa_source_output_is_passthrough(o)) >= 0)
             pa_log_info("Rate changed to %u Hz", dest->sample_spec.rate);
     }
 

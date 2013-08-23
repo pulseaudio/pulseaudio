@@ -426,7 +426,7 @@ int pa_sink_input_new(
            module-suspend-on-idle can resume a sink */
 
         pa_log_info("Trying to change sample rate");
-        if (pa_sink_update_rate(data->sink, data->sample_spec.rate, pa_sink_input_new_data_is_passthrough(data)) == true)
+        if (pa_sink_update_rate(data->sink, data->sample_spec.rate, pa_sink_input_new_data_is_passthrough(data)) >= 0)
             pa_log_info("Rate changed to %u Hz", data->sink->sample_spec.rate);
     }
 
@@ -1829,7 +1829,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, bool save) {
            SINK_INPUT_MOVE_FINISH hook */
 
         pa_log_info("Trying to change sample rate");
-        if (pa_sink_update_rate(dest, i->sample_spec.rate, pa_sink_input_is_passthrough(i)) == true)
+        if (pa_sink_update_rate(dest, i->sample_spec.rate, pa_sink_input_is_passthrough(i)) >= 0)
             pa_log_info("Rate changed to %u Hz", dest->sample_spec.rate);
     }
 

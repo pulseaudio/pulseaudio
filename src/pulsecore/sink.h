@@ -230,7 +230,7 @@ struct pa_sink {
 
     /* Called whenever the sampling frequency shall be changed. Called from
      * main thread. */
-    bool (*update_rate)(pa_sink *s, uint32_t rate);
+    int (*update_rate)(pa_sink *s, uint32_t rate);
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
@@ -411,7 +411,7 @@ unsigned pa_device_init_priority(pa_proplist *p);
 
 /**** May be called by everyone, from main context */
 
-bool pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough);
+int pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough);
 void pa_sink_set_latency_offset(pa_sink *s, int64_t offset);
 
 /* The returned value is supposed to be in the time domain of the sound card! */

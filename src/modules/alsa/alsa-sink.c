@@ -1593,7 +1593,7 @@ static bool sink_set_formats(pa_sink *s, pa_idxset *formats) {
     return true;
 }
 
-static bool sink_update_rate_cb(pa_sink *s, uint32_t rate) {
+static int sink_update_rate_cb(pa_sink *s, uint32_t rate) {
     struct userdata *u = s->userdata;
     int i;
     bool supported = false;
@@ -1609,16 +1609,16 @@ static bool sink_update_rate_cb(pa_sink *s, uint32_t rate) {
 
     if (!supported) {
         pa_log_info("Sink does not support sample rate of %d Hz", rate);
-        return false;
+        return -1;
     }
 
     if (!PA_SINK_IS_OPENED(s->state)) {
         pa_log_info("Updating rate for device %s, new rate is %d",u->device_name, rate);
         u->sink->sample_spec.rate = rate;
-        return true;
+        return 0;
     }
 
-    return false;
+    return -1;
 }
 
 static int process_rewind(struct userdata *u) {

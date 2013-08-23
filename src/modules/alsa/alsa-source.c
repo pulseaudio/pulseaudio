@@ -1401,7 +1401,7 @@ static void source_update_requested_latency_cb(pa_source *s) {
     update_sw_params(u);
 }
 
-static bool source_update_rate_cb(pa_source *s, uint32_t rate) {
+static int source_update_rate_cb(pa_source *s, uint32_t rate) {
     struct userdata *u = s->userdata;
     int i;
     bool supported = false;
@@ -1417,16 +1417,16 @@ static bool source_update_rate_cb(pa_source *s, uint32_t rate) {
 
     if (!supported) {
         pa_log_info("Source does not support sample rate of %d Hz", rate);
-        return false;
+        return -1;
     }
 
     if (!PA_SOURCE_IS_OPENED(s->state)) {
         pa_log_info("Updating rate for device %s, new rate is %d", u->device_name, rate);
         u->source->sample_spec.rate = rate;
-        return true;
+        return 0;
     }
 
-    return false;
+    return -1;
 }
 
 static void thread_func(void *userdata) {

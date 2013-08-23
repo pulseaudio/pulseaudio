@@ -1377,8 +1377,8 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
 }
 
 /* Called from main thread */
-bool pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
-    bool ret = false;
+int pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
+    int ret = -1;
     uint32_t desired_rate = rate;
     uint32_t default_rate = s->default_sample_rate;
     uint32_t alternate_rate = s->alternate_sample_rate;
@@ -1387,32 +1387,32 @@ bool pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
     bool use_alternate = false;
 
     if (rate == s->sample_spec.rate)
-        return true;
+        return 0;
 
     if (!s->update_rate)
-        return false;
+        return -1;
 
     if (PA_UNLIKELY(default_rate == alternate_rate && !passthrough)) {
         pa_log_debug("Default and alternate sample rates are the same.");
-        return false;
+        return -1;
     }
 
     if (PA_SINK_IS_RUNNING(s->state)) {
         pa_log_info("Cannot update rate, SINK_IS_RUNNING, will keep using %u Hz",
                     s->sample_spec.rate);
-        return false;
+        return -1;
     }
 
     if (s->monitor_source) {
         if (PA_SOURCE_IS_RUNNING(s->monitor_source->state) == true) {
             pa_log_info("Cannot update rate, monitor source is RUNNING");
-            return false;
+            return -1;
         }
     }
 
     if (PA_UNLIKELY (desired_rate < 8000 ||
                      desired_rate > PA_RATE_MAX))
-        return false;
+        return -1;
 
     if (!passthrough) {
         pa_assert((default_rate % 4000 == 0) || (default_rate % 11025 == 0));
@@ -1436,15 +1436,15 @@ bool pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
     }
 
     if (desired_rate == s->sample_spec.rate)
-        return false;
+        return -1;
 
     if (!passthrough && pa_sink_used_by(s) > 0)
-        return false;
+        return -1;
 
     pa_log_debug("Suspending sink %s due to changing the sample rate.", s->name);
     pa_sink_suspend(s, true, PA_SUSPEND_INTERNAL);
 
-    if (s->update_rate(s, desired_rate) == true) {
+    if (s->update_rate(s, desired_rate) >= 0) {
         /* update monitor source as well */
         if (s->monitor_source && !passthrough)
             pa_source_update_rate(s->monitor_source, desired_rate, false);
@@ -1455,7 +1455,7 @@ bool pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
                 pa_sink_input_update_rate(i);
         }
 
-        ret = true;
+        ret = 0;
     }
 
     pa_sink_suspend(s, false, PA_SUSPEND_INTERNAL);

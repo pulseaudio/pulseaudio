@@ -967,40 +967,40 @@ void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *
 }
 
 /* Called from main thread */
-bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
-    bool ret = false;
+int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
+    int ret;
     uint32_t desired_rate = rate;
     uint32_t default_rate = s->default_sample_rate;
     uint32_t alternate_rate = s->alternate_sample_rate;
     bool use_alternate = false;
 
     if (rate == s->sample_spec.rate)
-        return true;
+        return 0;
 
     if (!s->update_rate && !s->monitor_of)
-        return false;
+        return -1;
 
     if (PA_UNLIKELY(default_rate == alternate_rate && !passthrough)) {
         pa_log_debug("Default and alternate sample rates are the same.");
-        return false;
+        return -1;
     }
 
     if (PA_SOURCE_IS_RUNNING(s->state)) {
         pa_log_info("Cannot update rate, SOURCE_IS_RUNNING, will keep using %u Hz",
                     s->sample_spec.rate);
-        return false;
+        return -1;
     }
 
     if (s->monitor_of) {
         if (PA_SINK_IS_RUNNING(s->monitor_of->state)) {
             pa_log_info("Cannot update rate, this is a monitor source and the sink is running.");
-            return false;
+            return -1;
         }
     }
 
     if (PA_UNLIKELY (desired_rate < 8000 ||
                      desired_rate > PA_RATE_MAX))
-        return false;
+        return -1;
 
     if (!passthrough) {
         pa_assert((default_rate % 4000 == 0) || (default_rate % 11025 == 0));
@@ -1024,10 +1024,10 @@ bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
     }
 
     if (desired_rate == s->sample_spec.rate)
-        return false;
+        return -1;
 
     if (!passthrough && pa_source_used_by(s) > 0)
-        return false;
+        return -1;
 
     pa_log_debug("Suspending source %s due to changing the sample rate.", s->name);
     pa_source_suspend(s, true, PA_SUSPEND_INTERNAL);
@@ -1046,7 +1046,7 @@ bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
             s->sample_spec.rate = desired_rate;
             ret = pa_sink_update_rate(s->monitor_of, desired_rate, false);
 
-            if (!ret) {
+            if (ret < 0) {
                 /* Changing the sink rate failed, roll back the old rate for
                  * the monitor source. Why did we set the source rate before
                  * calling pa_sink_update_rate(), you may ask. The reason is
@@ -1060,10 +1060,10 @@ bool pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
                 s->sample_spec.rate = old_rate;
             }
         } else
-            ret = false;
+            ret = -1;
     }
 
-    if (ret) {
+    if (ret >= 0) {
         uint32_t idx;
         pa_source_output *o;
 
