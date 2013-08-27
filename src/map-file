@@ -67,6 +67,7 @@ pa_context_is_pending;
 pa_context_kill_client;
 pa_context_kill_sink_input;
 pa_context_kill_source_output;
+pa_context_load_cookie_from_file;
 pa_context_load_module;
 pa_context_move_sink_input_by_index;
 pa_context_move_sink_input_by_name;
