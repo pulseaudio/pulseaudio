@@ -534,7 +534,23 @@ size_t pa_resampler_max_block_size(pa_resampler *r) {
     if (r->remap_buf_contains_leftover_data)
         frames -= r->remap_buf.length / (r->w_sz * r->o_ss.channels);
 
-    return ((uint64_t) frames * r->i_ss.rate / max_ss.rate) * r->i_fz;
+    block_size_max = ((uint64_t) frames * r->i_ss.rate / max_ss.rate) * r->i_fz;
+
+    if (block_size_max > 0)
+        return block_size_max;
+    else
+        /* A single input frame may result in so much output that it doesn't
+         * fit in one standard memblock (e.g. converting 1 Hz to 44100 Hz). In
+         * this case the max block size will be set to one frame, and some
+         * memory will be probably be allocated with malloc() instead of using
+         * the memory pool.
+         *
+         * XXX: Should we support this case at all? We could also refuse to
+         * create resamplers whose max block size would exceed the memory pool
+         * block size. In this case also updating the resampler rate should
+         * fail if the new rate would cause an excessive max block size (in
+         * which case the stream would probably have to be killed). */
+        return r->i_fz;
 }
 
 void pa_resampler_reset(pa_resampler *r) {
