@@ -78,6 +78,7 @@ struct device_info {
     pa_source *source;
     pa_usec_t last_use;
     pa_time_event *time_event;
+    pa_usec_t timeout;
 };
 
 static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
@@ -102,24 +103,17 @@ static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval
 
 static void restart(struct device_info *d) {
     pa_usec_t now;
-    const char *s;
-    uint32_t timeout;
 
     pa_assert(d);
     pa_assert(d->sink || d->source);
 
     d->last_use = now = pa_rtclock_now();
-
-    s = pa_proplist_gets(d->sink ? d->sink->proplist : d->source->proplist, "module-suspend-on-idle.timeout");
-    if (!s || pa_atou(s, &timeout) < 0)
-        timeout = d->userdata->timeout;
-
-    pa_core_rttime_restart(d->userdata->core, d->time_event, now + timeout * PA_USEC_PER_SEC);
+    pa_core_rttime_restart(d->userdata->core, d->time_event, now + d->timeout);
 
     if (d->sink)
-        pa_log_debug("Sink %s becomes idle, timeout in %u seconds.", d->sink->name, timeout);
+        pa_log_debug("Sink %s becomes idle, timeout in %" PRIu64 " seconds.", d->sink->name, d->timeout / PA_USEC_PER_SEC);
     if (d->source)
-        pa_log_debug("Source %s becomes idle, timeout in %u seconds.", d->source->name, timeout);
+        pa_log_debug("Source %s becomes idle, timeout in %" PRIu64 " seconds.", d->source->name, d->timeout / PA_USEC_PER_SEC);
 }
 
 static void resume(struct device_info *d) {
@@ -328,6 +322,9 @@ static pa_hook_result_t device_new_hook_cb(pa_core *c, pa_object *o, struct user
     struct device_info *d;
     pa_source *source;
     pa_sink *sink;
+    const char *timeout_str;
+    int32_t timeout;
+    bool timeout_valid;
 
     pa_assert(c);
     pa_object_assert_ref(o);
@@ -342,11 +339,26 @@ static pa_hook_result_t device_new_hook_cb(pa_core *c, pa_object *o, struct user
 
     pa_assert(source || sink);
 
+    timeout_str = pa_proplist_gets(sink ? sink->proplist : source->proplist, "module-suspend-on-idle.timeout");
+    if (timeout_str && pa_atoi(timeout_str, &timeout) >= 0)
+        timeout_valid = true;
+    else
+        timeout_valid = false;
+
+    if (timeout_valid && timeout < 0)
+        return PA_HOOK_OK;
+
     d = pa_xnew(struct device_info, 1);
     d->userdata = u;
     d->source = source ? pa_source_ref(source) : NULL;
     d->sink = sink ? pa_sink_ref(sink) : NULL;
     d->time_event = pa_core_rttime_new(c, PA_USEC_INVALID, timeout_cb, d);
+
+    if (timeout_valid)
+        d->timeout = timeout * PA_USEC_PER_SEC;
+    else
+        d->timeout = d->userdata->timeout;
+
     pa_hashmap_put(u->device_infos, o, d);
 
     if ((d->sink && pa_sink_check_suspend(d->sink) <= 0) ||
@@ -434,7 +446,7 @@ int pa__init(pa_module*m) {
 
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
-    u->timeout = timeout;
+    u->timeout = timeout * PA_USEC_PER_SEC;
     u->device_infos = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     PA_IDXSET_FOREACH(sink, m->core->sinks, idx)
