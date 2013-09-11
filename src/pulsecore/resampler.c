@@ -214,6 +214,7 @@ static pa_resample_method_t pa_resampler_fix_method(
         case PA_RESAMPLER_COPY:
             if (rate_a != rate_b) {
                 pa_log_info("Resampler 'copy' cannot change sampling rate, reverting to resampler 'auto'.");
+                method = PA_RESAMPLER_AUTO;
                 break;
             }
                                      /* Else fall through */
