@@ -57,7 +57,6 @@ src/modules/module-tunnel-sink-new.c
 src/modules/module-tunnel-source-new.c
 src/modules/module-virtual-surround-sink.c
 src/modules/module-volume-restore.c
-#src/modules/module-waveout.c
 src/modules/module-zeroconf-discover.c
 src/modules/module-zeroconf-publish.c
 src/modules/oss/module-oss.c
@@ -148,7 +147,6 @@ src/pulsecore/sconv-s16le.c
 src/pulsecore/semaphore-posix.c
 src/pulsecore/semaphore-win32.c
 src/pulsecore/shared.c
-#src/pulsecore/shmasyncq.c
 src/pulsecore/shm.c
 src/pulsecore/sink.c
 src/pulsecore/sink-input.c
