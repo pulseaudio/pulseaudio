@@ -53,6 +53,8 @@ src/modules/module-solaris.c
 src/modules/module-stream-restore.c
 src/modules/module-suspend-on-idle.c
 src/modules/module-tunnel.c
+src/modules/module-tunnel-sink-new.c
+src/modules/module-tunnel-source-new.c
 src/modules/module-virtual-surround-sink.c
 src/modules/module-volume-restore.c
 #src/modules/module-waveout.c
