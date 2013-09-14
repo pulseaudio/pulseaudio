@@ -393,7 +393,7 @@ int pa__init(pa_module*m) {
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     u->hci = pa_xstrdup(pa_modargs_get_value(ma, "hci", DEFAULT_HCI));
     u->hci_path = pa_sprintf_malloc("/org/bluez/%s", u->hci);
-    u->bondings = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    u->bondings = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) bonding_free);
 
     if (!(u->dbus_connection = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &e))) {
         pa_log("Failed to get D-Bus connection: %s", e.message);
@@ -466,7 +466,7 @@ void pa__done(pa_module*m) {
         return;
 
     if (u->bondings)
-        pa_hashmap_free(u->bondings, (pa_free_cb_t) bonding_free);
+        pa_hashmap_free(u->bondings);
 
     if (u->dbus_connection) {
         update_matches(u, false);

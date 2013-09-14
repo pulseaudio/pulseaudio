@@ -93,6 +93,15 @@ static int add_key_value(pa_modargs *ma, char *key, char *value, const char* con
     return 0;
 }
 
+static void free_func(void *p) {
+    struct entry *e = p;
+    pa_assert(e);
+
+    pa_xfree(e->key);
+    pa_xfree(e->value);
+    pa_xfree(e);
+}
+
 pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
     enum {
         WHITESPACE,
@@ -110,8 +119,8 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
     size_t key_len = 0, value_len = 0;
     pa_modargs *ma = pa_xnew(pa_modargs, 1);
 
-    ma->raw = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    ma->unescaped = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    ma->raw = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, free_func);
+    ma->unescaped = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, free_func);
 
     if (!args)
         return ma;
@@ -247,20 +256,11 @@ fail:
     return NULL;
 }
 
-static void free_func(void *p) {
-    struct entry *e = p;
-    pa_assert(e);
-
-    pa_xfree(e->key);
-    pa_xfree(e->value);
-    pa_xfree(e);
-}
-
 void pa_modargs_free(pa_modargs*ma) {
     pa_assert(ma);
 
-    pa_hashmap_free(ma->raw, free_func);
-    pa_hashmap_free(ma->unescaped, free_func);
+    pa_hashmap_free(ma->raw);
+    pa_hashmap_free(ma->unescaped);
     pa_xfree(ma);
 }
 

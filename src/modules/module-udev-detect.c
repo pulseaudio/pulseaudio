@@ -700,7 +700,7 @@ int pa__init(pa_module *m) {
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
-    u->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    u->devices = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) device_free);
     u->inotify_fd = -1;
 
     if (pa_modargs_get_value_boolean(ma, "tsched", &use_tsched) < 0) {
@@ -841,7 +841,7 @@ void pa__done(pa_module *m) {
         pa_close(u->inotify_fd);
 
     if (u->devices)
-        pa_hashmap_free(u->devices, (pa_free_cb_t) device_free);
+        pa_hashmap_free(u->devices);
 
     pa_xfree(u);
 }

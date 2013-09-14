@@ -194,10 +194,10 @@ static void core_free(pa_object *o) {
     pa_idxset_free(c->sink_inputs, NULL);
 
     pa_assert(pa_hashmap_isempty(c->namereg));
-    pa_hashmap_free(c->namereg, NULL);
+    pa_hashmap_free(c->namereg);
 
     pa_assert(pa_hashmap_isempty(c->shared));
-    pa_hashmap_free(c->shared, NULL);
+    pa_hashmap_free(c->shared);
 
     pa_subscription_free_all(c);
 

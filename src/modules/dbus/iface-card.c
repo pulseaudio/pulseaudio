@@ -495,7 +495,7 @@ static pa_hook_result_t card_profile_added_cb(void *hook_data, void *call_data, 
         return PA_HOOK_OK;
 
     p = pa_dbusiface_card_profile_new(c, core, profile, c->next_profile_index++);
-    pa_assert_se(pa_hashmap_put(c->profiles, pa_dbusiface_card_profile_get_name(p), p) >= 0);
+    pa_assert_se(pa_hashmap_put(c->profiles, (char *) pa_dbusiface_card_profile_get_name(p), p) >= 0);
 
     /* Send D-Bus signal */
     object_path = pa_dbusiface_card_profile_get_path(p);
@@ -523,7 +523,8 @@ pa_dbusiface_card *pa_dbusiface_card_new(pa_dbusiface_core *core, pa_card *card)
     c->core = core;
     c->card = card;
     c->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, OBJECT_NAME, card->index);
-    c->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    c->profiles = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL,
+                                      (pa_free_cb_t) pa_dbusiface_card_profile_free);
     c->next_profile_index = 0;
     c->active_profile = card->active_profile;
     c->proplist = pa_proplist_copy(card->proplist);
@@ -532,7 +533,7 @@ pa_dbusiface_card *pa_dbusiface_card_new(pa_dbusiface_core *core, pa_card *card)
 
     PA_HASHMAP_FOREACH(profile, card->profiles, state) {
         pa_dbusiface_card_profile *p = pa_dbusiface_card_profile_new(c, card->core, profile, c->next_profile_index++);
-        pa_hashmap_put(c->profiles, pa_dbusiface_card_profile_get_name(p), p);
+        pa_hashmap_put(c->profiles, (char *) pa_dbusiface_card_profile_get_name(p), p);
     }
 
     pa_assert_se(pa_dbus_protocol_add_interface(c->dbus_protocol, c->path, &card_interface_info, c) >= 0);
@@ -550,7 +551,7 @@ void pa_dbusiface_card_free(pa_dbusiface_card *c) {
 
     pa_hook_slot_free(c->card_profile_added_slot);
 
-    pa_hashmap_free(c->profiles, (pa_free_cb_t) pa_dbusiface_card_profile_free);
+    pa_hashmap_free(c->profiles);
     pa_proplist_free(c->proplist);
     pa_dbus_protocol_unref(c->dbus_protocol);
     pa_subscription_free(c->subscription);

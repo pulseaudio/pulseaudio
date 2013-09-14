@@ -89,8 +89,8 @@ pa_card_new_data* pa_card_new_data_init(pa_card_new_data *data) {
 
     memset(data, 0, sizeof(*data));
     data->proplist = pa_proplist_new();
-    data->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    data->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    data->profiles = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) pa_card_profile_free);
+    data->ports = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) pa_device_port_unref);
     return data;
 }
 
@@ -128,10 +128,10 @@ void pa_card_new_data_done(pa_card_new_data *data) {
     pa_proplist_free(data->proplist);
 
     if (data->profiles)
-        pa_hashmap_free(data->profiles, (pa_free_cb_t) pa_card_profile_free);
+        pa_hashmap_free(data->profiles);
 
     if (data->ports)
-        pa_hashmap_free(data->ports, (pa_free_cb_t) pa_device_port_unref);
+        pa_hashmap_free(data->ports);
 
     pa_xfree(data->name);
     pa_xfree(data->active_profile);
@@ -239,10 +239,10 @@ void pa_card_free(pa_card *c) {
     pa_assert(pa_idxset_isempty(c->sources));
     pa_idxset_free(c->sources, NULL);
 
-    pa_hashmap_free(c->ports, (pa_free_cb_t) pa_device_port_unref);
+    pa_hashmap_free(c->ports);
 
     if (c->profiles)
-        pa_hashmap_free(c->profiles, (pa_free_cb_t) pa_card_profile_free);
+        pa_hashmap_free(c->profiles);
 
     pa_proplist_free(c->proplist);
     pa_xfree(c->driver);

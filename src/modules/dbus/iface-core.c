@@ -1870,7 +1870,7 @@ static pa_hook_result_t sink_put_cb(void *hook_data, void *call_data, void *slot
     object_path = pa_dbusiface_device_get_path(d);
 
     pa_assert_se(pa_hashmap_put(c->sinks_by_index, PA_UINT32_TO_PTR(s->index), d) >= 0);
-    pa_assert_se(pa_hashmap_put(c->sinks_by_path, object_path, d) >= 0);
+    pa_assert_se(pa_hashmap_put(c->sinks_by_path, (char *) object_path, d) >= 0);
 
     pa_assert_se(signal_msg = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
                                                       PA_DBUS_CORE_INTERFACE,
@@ -1924,7 +1924,7 @@ static pa_hook_result_t source_put_cb(void *hook_data, void *call_data, void *sl
     object_path = pa_dbusiface_device_get_path(d);
 
     pa_assert_se(pa_hashmap_put(c->sources_by_index, PA_UINT32_TO_PTR(s->index), d) >= 0);
-    pa_assert_se(pa_hashmap_put(c->sources_by_path, object_path, d) >= 0);
+    pa_assert_se(pa_hashmap_put(c->sources_by_path, (char *) object_path, d) >= 0);
 
     pa_assert_se((signal_msg = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
                                                        PA_DBUS_CORE_INTERFACE,
@@ -2021,16 +2021,20 @@ pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core) {
     c->core = core;
     c->subscription = pa_subscription_new(core, PA_SUBSCRIPTION_MASK_ALL, subscription_cb, c);
     c->dbus_protocol = pa_dbus_protocol_get(core);
-    c->cards = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-    c->sinks_by_index = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    c->cards = pa_hashmap_new_full(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func, NULL, (pa_free_cb_t) pa_dbusiface_card_free);
+    c->sinks_by_index = pa_hashmap_new_full(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func, NULL,
+                                            (pa_free_cb_t) pa_dbusiface_device_free);
     c->sinks_by_path = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    c->sources_by_index = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    c->sources_by_index = pa_hashmap_new_full(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func, NULL,
+                                              (pa_free_cb_t) pa_dbusiface_device_free);
     c->sources_by_path = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    c->playback_streams = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-    c->record_streams = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-    c->samples = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-    c->modules = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-    c->clients = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    c->playback_streams = pa_hashmap_new_full(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func, NULL,
+                                              (pa_free_cb_t) pa_dbusiface_stream_free);
+    c->record_streams = pa_hashmap_new_full(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func, NULL,
+                                            (pa_free_cb_t) pa_dbusiface_stream_free);
+    c->samples = pa_hashmap_new_full(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func, NULL, (pa_free_cb_t) pa_dbusiface_sample_free);
+    c->modules = pa_hashmap_new_full(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func, NULL, (pa_free_cb_t) pa_dbusiface_module_free);
+    c->clients = pa_hashmap_new_full(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func, NULL, (pa_free_cb_t) pa_dbusiface_client_free);
     c->fallback_sink = pa_namereg_get_default_sink(core);
     c->fallback_source = pa_namereg_get_default_source(core);
     c->sink_put_slot = pa_hook_connect(&core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_NORMAL, sink_put_cb, c);
@@ -2060,13 +2064,13 @@ pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core) {
     PA_IDXSET_FOREACH(sink, core->sinks, idx) {
         device = pa_dbusiface_device_new_sink(c, sink);
         pa_hashmap_put(c->sinks_by_index, PA_UINT32_TO_PTR(idx), device);
-        pa_hashmap_put(c->sinks_by_path, pa_dbusiface_device_get_path(device), device);
+        pa_hashmap_put(c->sinks_by_path, (char *) pa_dbusiface_device_get_path(device), device);
     }
 
     PA_IDXSET_FOREACH(source, core->sources, idx) {
         device = pa_dbusiface_device_new_source(c, source);
         pa_hashmap_put(c->sources_by_index, PA_UINT32_TO_PTR(idx), device);
-        pa_hashmap_put(c->sources_by_path, pa_dbusiface_device_get_path(device), device);
+        pa_hashmap_put(c->sources_by_path, (char *) pa_dbusiface_device_get_path(device), device);
     }
 
     PA_IDXSET_FOREACH(sink_input, core->sink_inputs, idx)
@@ -2097,16 +2101,16 @@ void pa_dbusiface_core_free(pa_dbusiface_core *c) {
     /* Note that the order of freeing is important below.
      * Do not change it for the sake of tidiness without checking! */
     pa_subscription_free(c->subscription);
-    pa_hashmap_free(c->cards, (pa_free_cb_t) pa_dbusiface_card_free);
-    pa_hashmap_free(c->sinks_by_path, NULL);
-    pa_hashmap_free(c->sinks_by_index, (pa_free_cb_t) pa_dbusiface_device_free);
-    pa_hashmap_free(c->sources_by_path, NULL);
-    pa_hashmap_free(c->sources_by_index, (pa_free_cb_t) pa_dbusiface_device_free);
-    pa_hashmap_free(c->playback_streams, (pa_free_cb_t) pa_dbusiface_stream_free);
-    pa_hashmap_free(c->record_streams, (pa_free_cb_t) pa_dbusiface_stream_free);
-    pa_hashmap_free(c->samples, (pa_free_cb_t) pa_dbusiface_sample_free);
-    pa_hashmap_free(c->modules, (pa_free_cb_t) pa_dbusiface_module_free);
-    pa_hashmap_free(c->clients, (pa_free_cb_t) pa_dbusiface_client_free);
+    pa_hashmap_free(c->cards);
+    pa_hashmap_free(c->sinks_by_path);
+    pa_hashmap_free(c->sinks_by_index);
+    pa_hashmap_free(c->sources_by_path);
+    pa_hashmap_free(c->sources_by_index);
+    pa_hashmap_free(c->playback_streams);
+    pa_hashmap_free(c->record_streams);
+    pa_hashmap_free(c->samples);
+    pa_hashmap_free(c->modules);
+    pa_hashmap_free(c->clients);
     pa_hook_slot_free(c->sink_put_slot);
     pa_hook_slot_free(c->sink_unlink_slot);
     pa_hook_slot_free(c->source_put_slot);

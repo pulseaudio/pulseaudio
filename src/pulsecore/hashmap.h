@@ -36,11 +36,15 @@ typedef struct pa_hashmap pa_hashmap;
 /* Create a new hashmap. Use the specified functions for hashing and comparing objects in the map */
 pa_hashmap *pa_hashmap_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func);
 
-/* Free the hash table. Calls the specified function for every value in the table. The function may be NULL */
-void pa_hashmap_free(pa_hashmap*, pa_free_cb_t free_cb);
+/* Create a new hashmap. Use the specified functions for hashing and comparing objects in the map, and functions to free the key
+ * and value (either or both can be NULL). */
+pa_hashmap *pa_hashmap_new_full(pa_hash_func_t hash_func, pa_compare_func_t compare_func, pa_free_cb_t key_free_func, pa_free_cb_t value_free_func);
+
+/* Free the hash table. */
+void pa_hashmap_free(pa_hashmap*);
 
 /* Add an entry to the hashmap. Returns non-zero when the entry already exists */
-int pa_hashmap_put(pa_hashmap *h, const void *key, void *value);
+int pa_hashmap_put(pa_hashmap *h, void *key, void *value);
 
 /* Return an entry from the hashmap */
 void* pa_hashmap_get(pa_hashmap *h, const void *key);
@@ -48,8 +52,8 @@ void* pa_hashmap_get(pa_hashmap *h, const void *key);
 /* Returns the data of the entry while removing */
 void* pa_hashmap_remove(pa_hashmap *h, const void *key);
 
-/* If free_cb is not NULL, it's called for each entry. */
-void pa_hashmap_remove_all(pa_hashmap *h, pa_free_cb_t free_cb);
+/* Remove all entries but don't free the hashmap */
+void pa_hashmap_remove_all(pa_hashmap *h);
 
 /* Return the current number of entries of the hashmap */
 unsigned pa_hashmap_size(pa_hashmap *h);

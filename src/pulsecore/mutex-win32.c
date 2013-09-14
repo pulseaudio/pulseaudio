@@ -80,7 +80,7 @@ pa_cond *pa_cond_new(void) {
 void pa_cond_free(pa_cond *c) {
     assert(c);
 
-    pa_hashmap_free(c->wait_events, NULL);
+    pa_hashmap_free(c->wait_events);
     pa_xfree(c);
 }
 

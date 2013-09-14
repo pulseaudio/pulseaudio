@@ -52,11 +52,11 @@ static void header_free(struct header *hdr) {
 }
 
 pa_headerlist* pa_headerlist_new(void) {
-    return MAKE_HEADERLIST(pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func));
+    return MAKE_HEADERLIST(pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) header_free));
 }
 
 void pa_headerlist_free(pa_headerlist* p) {
-    pa_hashmap_free(MAKE_HASHMAP(p), (pa_free_cb_t) header_free);
+    pa_hashmap_free(MAKE_HASHMAP(p));
 }
 
 int pa_headerlist_puts(pa_headerlist *p, const char *key, const char *value) {

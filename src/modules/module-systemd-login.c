@@ -140,7 +140,7 @@ static int get_session_list(struct userdata *u) {
         free(sessions);
     }
 
-    pa_hashmap_remove_all(u->previous_sessions, (pa_free_cb_t) free_session);
+    pa_hashmap_remove_all(u->previous_sessions);
 
     return 0;
 }
@@ -187,8 +187,8 @@ int pa__init(pa_module *m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    u->sessions = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    u->previous_sessions = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    u->sessions = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) free_session);
+    u->previous_sessions = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) free_session);
     u->monitor = monitor;
 
     u->io = u->core->mainloop->io_new(u->core->mainloop, sd_login_monitor_get_fd(monitor), PA_IO_EVENT_INPUT, monitor_cb, u);
@@ -219,8 +219,8 @@ void pa__done(pa_module *m) {
         return;
 
     if (u->sessions) {
-        pa_hashmap_free(u->sessions, (pa_free_cb_t) free_session);
-        pa_hashmap_free(u->previous_sessions, (pa_free_cb_t) free_session);
+        pa_hashmap_free(u->sessions);
+        pa_hashmap_free(u->previous_sessions);
     }
 
     if (u->io)

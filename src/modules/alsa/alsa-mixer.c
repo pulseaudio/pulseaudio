@@ -530,7 +530,7 @@ void pa_alsa_path_set_free(pa_alsa_path_set *ps) {
     pa_assert(ps);
 
     if (ps->paths)
-        pa_hashmap_free(ps->paths, NULL);
+        pa_hashmap_free(ps->paths);
 
     pa_xfree(ps);
 }
@@ -3337,19 +3337,19 @@ void pa_alsa_profile_set_free(pa_alsa_profile_set *ps) {
     pa_assert(ps);
 
     if (ps->input_paths)
-        pa_hashmap_free(ps->input_paths, (pa_free_cb_t) pa_alsa_path_free);
+        pa_hashmap_free(ps->input_paths);
 
     if (ps->output_paths)
-        pa_hashmap_free(ps->output_paths, (pa_free_cb_t) pa_alsa_path_free);
+        pa_hashmap_free(ps->output_paths);
 
     if (ps->profiles)
-        pa_hashmap_free(ps->profiles, (pa_free_cb_t) profile_free);
+        pa_hashmap_free(ps->profiles);
 
     if (ps->mappings)
-        pa_hashmap_free(ps->mappings, (pa_free_cb_t) mapping_free);
+        pa_hashmap_free(ps->mappings);
 
     if (ps->decibel_fixes)
-        pa_hashmap_free(ps->decibel_fixes, (pa_free_cb_t) decibel_fix_free);
+        pa_hashmap_free(ps->decibel_fixes);
 
     pa_xfree(ps);
 }
@@ -3776,7 +3776,7 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
     mixer_handle = pa_alsa_open_mixer_for_pcm(pcm_handle, NULL, &hctl_handle);
     if (!mixer_handle || !hctl_handle) {
          /* Cannot open mixer, remove all entries */
-        pa_hashmap_remove_all(ps->paths, NULL);
+        pa_hashmap_remove_all(ps->paths);
         return;
     }
 
@@ -4167,11 +4167,11 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
     };
 
     ps = pa_xnew0(pa_alsa_profile_set, 1);
-    ps->mappings = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    ps->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    ps->decibel_fixes = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    ps->input_paths = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    ps->output_paths = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    ps->mappings = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) mapping_free);
+    ps->profiles = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) profile_free);
+    ps->decibel_fixes = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) decibel_fix_free);
+    ps->input_paths = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) pa_alsa_path_free);
+    ps->output_paths = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) pa_alsa_path_free);
 
     items[0].data = &ps->auto_profiles;
 
@@ -4420,8 +4420,8 @@ void pa_alsa_profile_set_probe(
 
     paths_drop_unsupported(ps->input_paths);
     paths_drop_unsupported(ps->output_paths);
-    pa_hashmap_free(broken_inputs, NULL);
-    pa_hashmap_free(broken_outputs, NULL);
+    pa_hashmap_free(broken_inputs);
+    pa_hashmap_free(broken_outputs);
 
     ps->probed = true;
 }

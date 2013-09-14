@@ -447,7 +447,7 @@ int pa__init(pa_module*m) {
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
     u->timeout = timeout * PA_USEC_PER_SEC;
-    u->device_infos = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    u->device_infos = pa_hashmap_new_full(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func, NULL, (pa_free_cb_t) device_info_free);
 
     PA_IDXSET_FOREACH(sink, m->core->sinks, idx)
         device_new_hook_cb(m->core, PA_OBJECT(sink), u);
@@ -530,7 +530,7 @@ void pa__done(pa_module*m) {
     if (u->source_output_state_changed_slot)
         pa_hook_slot_free(u->source_output_state_changed_slot);
 
-    pa_hashmap_free(u->device_infos, (pa_free_cb_t) device_info_free);
+    pa_hashmap_free(u->device_infos);
 
     pa_xfree(u);
 }

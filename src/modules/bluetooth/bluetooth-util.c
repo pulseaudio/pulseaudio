@@ -2109,12 +2109,12 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
     if (y->devices) {
         remove_all_devices(y);
-        pa_hashmap_free(y->devices, NULL);
+        pa_hashmap_free(y->devices);
     }
 
     if (y->transports) {
         pa_assert(pa_hashmap_isempty(y->transports));
-        pa_hashmap_free(y->transports, NULL);
+        pa_hashmap_free(y->transports);
     }
 
     if (y->connection) {

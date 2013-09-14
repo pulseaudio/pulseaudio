@@ -107,10 +107,17 @@ static void trigger_save(struct userdata *u) {
     u->save_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, save_time_callback, u);
 }
 
+static void port_info_free(struct port_info *p_info) {
+    pa_assert(p_info);
+
+    pa_xfree(p_info->name);
+    pa_xfree(p_info);
+}
+
 static struct entry* entry_new(void) {
     struct entry *r = pa_xnew0(struct entry, 1);
     r->version = ENTRY_VERSION;
-    r->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    r->ports = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) port_info_free);
     return r;
 }
 
@@ -127,18 +134,11 @@ static struct port_info *port_info_new(pa_device_port *port) {
     return p_info;
 }
 
-static void port_info_free(struct port_info *p_info) {
-    pa_assert(p_info);
-
-    pa_xfree(p_info->name);
-    pa_xfree(p_info);
-}
-
 static void entry_free(struct entry* e) {
     pa_assert(e);
 
     pa_xfree(e->profile);
-    pa_hashmap_free(e->ports, (pa_free_cb_t) port_info_free);
+    pa_hashmap_free(e->ports);
 
     pa_xfree(e);
 }

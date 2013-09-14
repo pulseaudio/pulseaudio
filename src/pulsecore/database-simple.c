@@ -238,7 +238,7 @@ pa_database* pa_database_open(const char *fn, bool for_write) {
 
     if (f || errno == ENOENT) { /* file not found is ok */
         db = pa_xnew0(simple_data, 1);
-        db->map = pa_hashmap_new(hash_func, compare_func);
+        db->map = pa_hashmap_new_full(hash_func, compare_func, NULL, (pa_free_cb_t) free_entry);
         db->filename = pa_xstrdup(path);
         db->tmp_filename = pa_sprintf_malloc(".%s.tmp", db->filename);
         db->read_only = !for_write;
@@ -265,7 +265,7 @@ void pa_database_close(pa_database *database) {
     pa_database_sync(database);
     pa_xfree(db->filename);
     pa_xfree(db->tmp_filename);
-    pa_hashmap_free(db->map, (pa_free_cb_t) free_entry);
+    pa_hashmap_free(db->map);
     pa_xfree(db);
 }
 
@@ -341,7 +341,7 @@ int pa_database_clear(pa_database *database) {
 
     pa_assert(db);
 
-    pa_hashmap_remove_all(db->map, (pa_free_cb_t) free_entry);
+    pa_hashmap_remove_all(db->map);
 
     return 0;
 }

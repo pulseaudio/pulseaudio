@@ -336,7 +336,7 @@ int pa__init(pa_module*m) {
     u->core = m->core;
     u->module = m;
     m->userdata = u;
-    u->module_infos = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    u->module_infos = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) module_info_free);
     u->pid = (pid_t) -1;
     u->fd = -1;
     u->fd_type = 0;
@@ -401,7 +401,7 @@ void pa__done(pa_module*m) {
         pa_close(u->fd);
 
     if (u->module_infos)
-        pa_hashmap_free(u->module_infos, (pa_free_cb_t) module_info_free);
+        pa_hashmap_free(u->module_infos);
 
     pa_xfree(u);
 }

@@ -169,8 +169,8 @@ void pa_dbus_protocol_unref(pa_dbus_protocol *p) {
     pa_assert(pa_hashmap_isempty(p->connections));
     pa_assert(pa_idxset_isempty(p->extensions));
 
-    pa_hashmap_free(p->objects, NULL);
-    pa_hashmap_free(p->connections, NULL);
+    pa_hashmap_free(p->objects);
+    pa_hashmap_free(p->connections);
     pa_idxset_free(p->extensions, NULL);
 
     for (i = 0; i < PA_DBUS_PROTOCOL_HOOK_MAX; ++i)
@@ -633,6 +633,23 @@ static pa_dbus_arg_info *copy_args(const pa_dbus_arg_info *src, unsigned n) {
     return dst;
 }
 
+static void method_handler_free(pa_dbus_method_handler *h) {
+    unsigned i;
+
+    pa_assert(h);
+
+    pa_xfree((char *) h->method_name);
+
+    for (i = 0; i < h->n_arguments; ++i) {
+        pa_xfree((char *) h->arguments[i].name);
+        pa_xfree((char *) h->arguments[i].type);
+        pa_xfree((char *) h->arguments[i].direction);
+    }
+
+    pa_xfree((pa_dbus_arg_info *) h->arguments);
+    pa_xfree(h);
+}
+
 static pa_hashmap *create_method_handlers(const pa_dbus_interface_info *info) {
     pa_hashmap *handlers;
     unsigned i;
@@ -640,7 +657,7 @@ static pa_hashmap *create_method_handlers(const pa_dbus_interface_info *info) {
     pa_assert(info);
     pa_assert(info->method_handlers || info->n_method_handlers == 0);
 
-    handlers = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    handlers = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) method_handler_free);
 
     for (i = 0; i < info->n_method_handlers; ++i) {
         pa_dbus_method_handler *h = pa_xnew(pa_dbus_method_handler, 1);
@@ -649,7 +666,7 @@ static pa_hashmap *create_method_handlers(const pa_dbus_interface_info *info) {
         h->n_arguments = info->method_handlers[i].n_arguments;
         h->receive_cb = info->method_handlers[i].receive_cb;
 
-        pa_hashmap_put(handlers, h->method_name, h);
+        pa_hashmap_put(handlers, (char *) h->method_name, h);
     }
 
     return handlers;
@@ -664,7 +681,7 @@ static pa_hashmap *extract_method_signatures(pa_hashmap *method_handlers) {
 
     pa_assert(method_handlers);
 
-    signatures = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    signatures = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, pa_xfree);
 
     PA_HASHMAP_FOREACH(handler, method_handlers, state) {
         sig_buf = pa_strbuf_new();
@@ -674,10 +691,19 @@ static pa_hashmap *extract_method_signatures(pa_hashmap *method_handlers) {
                 pa_strbuf_puts(sig_buf, handler->arguments[i].type);
         }
 
-        pa_hashmap_put(signatures, handler->method_name, pa_strbuf_tostring_free(sig_buf));
+        pa_hashmap_put(signatures, (char *) handler->method_name, pa_strbuf_tostring_free(sig_buf));
     }
 
     return signatures;
+}
+
+static void property_handler_free(pa_dbus_property_handler *h) {
+    pa_assert(h);
+
+    pa_xfree((char *) h->property_name);
+    pa_xfree((char *) h->type);
+
+    pa_xfree(h);
 }
 
 static pa_hashmap *create_property_handlers(const pa_dbus_interface_info *info) {
@@ -687,7 +713,7 @@ static pa_hashmap *create_property_handlers(const pa_dbus_interface_info *info) 
     pa_assert(info);
     pa_assert(info->property_handlers || info->n_property_handlers == 0);
 
-    handlers = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    handlers = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) property_handler_free);
 
     for (i = 0; i < info->n_property_handlers; ++i) {
         pa_dbus_property_handler *h = pa_xnew(pa_dbus_property_handler, 1);
@@ -696,7 +722,7 @@ static pa_hashmap *create_property_handlers(const pa_dbus_interface_info *info) 
         h->get_cb = info->property_handlers[i].get_cb;
         h->set_cb = info->property_handlers[i].set_cb;
 
-        pa_hashmap_put(handlers, h->property_name, h);
+        pa_hashmap_put(handlers, (char *) h->property_name, h);
     }
 
     return handlers;
@@ -789,32 +815,6 @@ static void unregister_object(pa_dbus_protocol *p, struct object_entry *obj_entr
         pa_assert_se(dbus_connection_unregister_object_path(conn_entry->connection, obj_entry->path));
 }
 
-static void method_handler_free(pa_dbus_method_handler *h) {
-    unsigned i;
-
-    pa_assert(h);
-
-    pa_xfree((char *) h->method_name);
-
-    for (i = 0; i < h->n_arguments; ++i) {
-        pa_xfree((char *) h->arguments[i].name);
-        pa_xfree((char *) h->arguments[i].type);
-        pa_xfree((char *) h->arguments[i].direction);
-    }
-
-    pa_xfree((pa_dbus_arg_info *) h->arguments);
-    pa_xfree(h);
-}
-
-static void property_handler_free(pa_dbus_property_handler *h) {
-    pa_assert(h);
-
-    pa_xfree((char *) h->property_name);
-    pa_xfree((char *) h->type);
-
-    pa_xfree(h);
-}
-
 int pa_dbus_protocol_remove_interface(pa_dbus_protocol *p, const char* path, const char* interface) {
     struct object_entry *obj_entry;
     struct interface_entry *iface_entry;
@@ -835,9 +835,9 @@ int pa_dbus_protocol_remove_interface(pa_dbus_protocol *p, const char* path, con
     pa_log_debug("Interface %s removed from object %s", iface_entry->name, obj_entry->path);
 
     pa_xfree(iface_entry->name);
-    pa_hashmap_free(iface_entry->method_signatures, pa_xfree);
-    pa_hashmap_free(iface_entry->method_handlers, (pa_free_cb_t) method_handler_free);
-    pa_hashmap_free(iface_entry->property_handlers, (pa_free_cb_t) property_handler_free);
+    pa_hashmap_free(iface_entry->method_signatures);
+    pa_hashmap_free(iface_entry->method_handlers);
+    pa_hashmap_free(iface_entry->property_handlers);
 
     for (i = 0; i < iface_entry->n_signals; ++i) {
         unsigned j;
@@ -861,7 +861,7 @@ int pa_dbus_protocol_remove_interface(pa_dbus_protocol *p, const char* path, con
 
         pa_hashmap_remove(p->objects, path);
         pa_xfree(obj_entry->path);
-        pa_hashmap_free(obj_entry->interfaces, NULL);
+        pa_hashmap_free(obj_entry->interfaces);
         pa_xfree(obj_entry->introspection);
         pa_xfree(obj_entry);
     }
@@ -878,6 +878,14 @@ static void register_all_objects(pa_dbus_protocol *p, DBusConnection *conn) {
 
     PA_HASHMAP_FOREACH(obj_entry, p->objects, state)
         pa_assert_se(dbus_connection_register_object_path(conn, obj_entry->path, &vtable, p));
+}
+
+static void signal_paths_entry_free(struct signal_paths_entry *e) {
+    pa_assert(e);
+
+    pa_xfree(e->signal);
+    pa_idxset_free(e->paths, pa_xfree);
+    pa_xfree(e);
 }
 
 int pa_dbus_protocol_register_connection(pa_dbus_protocol *p, DBusConnection *conn, pa_client *client) {
@@ -897,7 +905,8 @@ int pa_dbus_protocol_register_connection(pa_dbus_protocol *p, DBusConnection *co
     conn_entry->client = client;
     conn_entry->listening_for_all_signals = false;
     conn_entry->all_signals_objects = pa_idxset_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    conn_entry->listening_signals = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    conn_entry->listening_signals = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL,
+                                                        (pa_free_cb_t) signal_paths_entry_free);
 
     pa_hashmap_put(p->connections, conn, conn_entry);
 
@@ -927,14 +936,6 @@ static struct signal_paths_entry *signal_paths_entry_new(const char *signal_name
     return e;
 }
 
-static void signal_paths_entry_free(struct signal_paths_entry *e) {
-    pa_assert(e);
-
-    pa_xfree(e->signal);
-    pa_idxset_free(e->paths, pa_xfree);
-    pa_xfree(e);
-}
-
 int pa_dbus_protocol_unregister_connection(pa_dbus_protocol *p, DBusConnection *conn) {
     struct connection_entry *conn_entry = NULL;
 
@@ -948,7 +949,7 @@ int pa_dbus_protocol_unregister_connection(pa_dbus_protocol *p, DBusConnection *
 
     dbus_connection_unref(conn_entry->connection);
     pa_idxset_free(conn_entry->all_signals_objects, pa_xfree);
-    pa_hashmap_free(conn_entry->listening_signals, (pa_free_cb_t) signal_paths_entry_free);
+    pa_hashmap_free(conn_entry->listening_signals);
     pa_xfree(conn_entry);
 
     return 0;
@@ -1006,7 +1007,7 @@ void pa_dbus_protocol_add_signal_listener(
 
         /* We're not interested in individual signals anymore, so let's empty
          * listening_signals. */
-        pa_hashmap_remove_all(conn_entry->listening_signals, (pa_free_cb_t) signal_paths_entry_free);
+        pa_hashmap_remove_all(conn_entry->listening_signals);
 
         for (i = 0; i < n_objects; ++i)
             pa_idxset_put(conn_entry->all_signals_objects, pa_xstrdup(objects[i]), NULL);
@@ -1029,7 +1030,7 @@ void pa_dbus_protocol_remove_signal_listener(pa_dbus_protocol *p, DBusConnection
     } else {
         conn_entry->listening_for_all_signals = false;
         pa_idxset_remove_all(conn_entry->all_signals_objects, pa_xfree);
-        pa_hashmap_remove_all(conn_entry->listening_signals, (pa_free_cb_t) signal_paths_entry_free);
+        pa_hashmap_remove_all(conn_entry->listening_signals);
     }
 }
 

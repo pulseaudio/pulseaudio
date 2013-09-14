@@ -184,7 +184,7 @@ void pa__done(pa_module* m) {
             pa_xfree(mi);
         }
 
-        pa_hashmap_free(u->hashmap, NULL);
+        pa_hashmap_free(u->hashmap);
     }
 
     if (u->modargs)

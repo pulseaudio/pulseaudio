@@ -735,7 +735,7 @@ int pa__init(pa_module*m) {
 
     PA_LLIST_HEAD_INIT(struct session, u->sessions);
     u->n_sessions = 0;
-    u->by_origin = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    u->by_origin = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) session_free);
 
     u->check_death_event = pa_core_rttime_new(m->core, pa_rtclock_now() + DEATH_TIMEOUT * PA_USEC_PER_SEC, check_death_event_cb, u);
 
@@ -770,7 +770,7 @@ void pa__done(pa_module*m) {
     pa_sap_context_destroy(&u->sap_context);
 
     if (u->by_origin)
-        pa_hashmap_free(u->by_origin, (pa_free_cb_t) session_free);
+        pa_hashmap_free(u->by_origin);
 
     pa_xfree(u->sink_name);
     pa_xfree(u);

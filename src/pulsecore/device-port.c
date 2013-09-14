@@ -98,7 +98,7 @@ static void device_port_free(pa_object *o) {
         pa_proplist_free(p->proplist);
 
     if (p->profiles)
-        pa_hashmap_free(p->profiles, NULL);
+        pa_hashmap_free(p->profiles);
 
     pa_xfree(p->name);
     pa_xfree(p->description);

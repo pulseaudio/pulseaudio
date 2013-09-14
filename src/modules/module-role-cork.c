@@ -304,7 +304,7 @@ void pa__done(pa_module *m) {
         pa_hook_slot_free(u->sink_input_move_finish_slot);
 
     if (u->cork_state)
-        pa_hashmap_free(u->cork_state, NULL);
+        pa_hashmap_free(u->cork_state);
 
     pa_xfree(u);
 

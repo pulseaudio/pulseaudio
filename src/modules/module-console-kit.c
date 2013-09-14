@@ -303,7 +303,7 @@ int pa__init(pa_module*m) {
     u->core = m->core;
     u->module = m;
     u->connection = connection;
-    u->sessions = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    u->sessions = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) free_session);
 
     if (!dbus_connection_add_filter(pa_dbus_connection_get(connection), filter_cb, u, NULL)) {
         pa_log_error("Failed to add filter function");
@@ -346,7 +346,7 @@ void pa__done(pa_module *m) {
         return;
 
     if (u->sessions)
-        pa_hashmap_free(u->sessions, (pa_free_cb_t) free_session);
+        pa_hashmap_free(u->sessions);
 
     if (u->connection) {
         pa_dbus_remove_matches(

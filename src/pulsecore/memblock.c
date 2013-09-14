@@ -964,8 +964,8 @@ void pa_memimport_free(pa_memimport *i) {
 
     pa_mutex_unlock(i->pool->mutex);
 
-    pa_hashmap_free(i->blocks, NULL);
-    pa_hashmap_free(i->segments, NULL);
+    pa_hashmap_free(i->blocks);
+    pa_hashmap_free(i->segments);
 
     pa_mutex_free(i->mutex);
 

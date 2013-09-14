@@ -82,7 +82,7 @@ pa_sink_new_data* pa_sink_new_data_init(pa_sink_new_data *data) {
 
     pa_zero(*data);
     data->proplist = pa_proplist_new();
-    data->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    data->ports = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) pa_device_port_unref);
 
     return data;
 }
@@ -142,7 +142,7 @@ void pa_sink_new_data_done(pa_sink_new_data *data) {
     pa_proplist_free(data->proplist);
 
     if (data->ports)
-        pa_hashmap_free(data->ports, (pa_free_cb_t) pa_device_port_unref);
+        pa_hashmap_free(data->ports);
 
     pa_xfree(data->name);
     pa_xfree(data->active_port);
@@ -325,7 +325,8 @@ pa_sink* pa_sink_new(
             0);
 
     s->thread_info.rtpoll = NULL;
-    s->thread_info.inputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    s->thread_info.inputs = pa_hashmap_new_full(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func, NULL,
+                                                (pa_free_cb_t) pa_sink_input_unref);
     s->thread_info.soft_volume =  s->soft_volume;
     s->thread_info.soft_muted = s->muted;
     s->thread_info.state = s->state;
@@ -730,7 +731,7 @@ static void sink_free(pa_object *o) {
     }
 
     pa_idxset_free(s->inputs, NULL);
-    pa_hashmap_free(s->thread_info.inputs, (pa_free_cb_t) pa_sink_input_unref);
+    pa_hashmap_free(s->thread_info.inputs);
 
     if (s->silence.memblock)
         pa_memblock_unref(s->silence.memblock);
@@ -742,7 +743,7 @@ static void sink_free(pa_object *o) {
         pa_proplist_free(s->proplist);
 
     if (s->ports)
-        pa_hashmap_free(s->ports, (pa_free_cb_t) pa_device_port_unref);
+        pa_hashmap_free(s->ports);
 
     pa_xfree(s);
 }

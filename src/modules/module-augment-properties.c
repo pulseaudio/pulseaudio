@@ -317,7 +317,7 @@ int pa__init(pa_module *m) {
 
     m->userdata = u = pa_xnew(struct userdata, 1);
 
-    u->cache = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    u->cache = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) rule_free);
     u->client_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_CLIENT_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) client_new_cb, u);
     u->client_proplist_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_CLIENT_PROPLIST_CHANGED], PA_HOOK_EARLY, (pa_hook_cb_t) client_proplist_changed_cb, u);
 
@@ -348,7 +348,7 @@ void pa__done(pa_module *m) {
         pa_hook_slot_free(u->client_proplist_changed_slot);
 
     if (u->cache)
-        pa_hashmap_free(u->cache, (pa_free_cb_t) rule_free);
+        pa_hashmap_free(u->cache);
 
     pa_xfree(u);
 }

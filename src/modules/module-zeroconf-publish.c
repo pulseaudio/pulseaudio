@@ -745,7 +745,7 @@ int pa__init(pa_module*m) {
 
     u->avahi_poll = pa_avahi_poll_new(u->api);
 
-    u->services = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    u->services = pa_hashmap_new_full(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func, NULL, (pa_free_cb_t) service_free);
 
     u->sink_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) device_new_or_changed_cb, u);
     u->sink_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PROPLIST_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) device_new_or_changed_cb, u);
@@ -786,7 +786,7 @@ fail:
 static void client_free(pa_mainloop_api *api PA_GCC_UNUSED, void *userdata) {
     struct userdata *u = (struct userdata *) userdata;
 
-    pa_hashmap_free(u->services, (pa_free_cb_t) service_free);
+    pa_hashmap_free(u->services);
 
     if (u->main_entry_group)
         avahi_entry_group_free(u->main_entry_group);

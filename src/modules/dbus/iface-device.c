@@ -1214,7 +1214,7 @@ pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_si
     d->volume = *pa_sink_get_volume(sink, false);
     d->mute = pa_sink_get_mute(sink, false);
     d->sink_state = pa_sink_get_state(sink);
-    d->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    d->ports = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) pa_dbusiface_device_port_free);
     d->next_port_index = 0;
     d->active_port = sink->active_port;
     d->proplist = pa_proplist_copy(sink->proplist);
@@ -1223,7 +1223,7 @@ pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_si
 
     PA_HASHMAP_FOREACH(port, sink->ports, state) {
         pa_dbusiface_device_port *p = pa_dbusiface_device_port_new(d, sink->core, port, d->next_port_index++);
-        pa_hashmap_put(d->ports, pa_dbusiface_device_port_get_name(p), p);
+        pa_hashmap_put(d->ports, (char *) pa_dbusiface_device_port_get_name(p), p);
     }
 
     pa_assert_se(pa_dbus_protocol_add_interface(d->dbus_protocol, d->path, &device_interface_info, d) >= 0);
@@ -1257,7 +1257,7 @@ pa_dbusiface_device *pa_dbusiface_device_new_source(pa_dbusiface_core *core, pa_
 
     PA_HASHMAP_FOREACH(port, source->ports, state) {
         pa_dbusiface_device_port *p = pa_dbusiface_device_port_new(d, source->core, port, d->next_port_index++);
-        pa_hashmap_put(d->ports, pa_dbusiface_device_port_get_name(p), p);
+        pa_hashmap_put(d->ports, (char *) pa_dbusiface_device_port_get_name(p), p);
     }
 
     pa_assert_se(pa_dbus_protocol_add_interface(d->dbus_protocol, d->path, &device_interface_info, d) >= 0);
@@ -1279,7 +1279,7 @@ void pa_dbusiface_device_free(pa_dbusiface_device *d) {
         pa_assert_se(pa_dbus_protocol_remove_interface(d->dbus_protocol, d->path, source_interface_info.name) >= 0);
         pa_source_unref(d->source);
     }
-    pa_hashmap_free(d->ports, (pa_free_cb_t) pa_dbusiface_device_port_free);
+    pa_hashmap_free(d->ports);
     pa_proplist_free(d->proplist);
     pa_dbus_protocol_unref(d->dbus_protocol);
     pa_subscription_free(d->subscription);

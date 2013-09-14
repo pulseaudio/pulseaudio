@@ -35,7 +35,7 @@
 #define NBUCKETS 127
 
 struct hashmap_entry {
-    const void *key;
+    void *key;
     void *value;
 
     struct hashmap_entry *bucket_next, *bucket_previous;
@@ -46,6 +46,9 @@ struct pa_hashmap {
     pa_hash_func_t hash_func;
     pa_compare_func_t compare_func;
 
+    pa_free_cb_t key_free_func;
+    pa_free_cb_t value_free_func;
+
     struct hashmap_entry *iterate_list_head, *iterate_list_tail;
     unsigned n_entries;
 };
@@ -54,7 +57,7 @@ struct pa_hashmap {
 
 PA_STATIC_FLIST_DECLARE(entries, 0, pa_xfree);
 
-pa_hashmap *pa_hashmap_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func) {
+pa_hashmap *pa_hashmap_new_full(pa_hash_func_t hash_func, pa_compare_func_t compare_func, pa_free_cb_t key_free_func, pa_free_cb_t value_free_func) {
     pa_hashmap *h;
 
     h = pa_xmalloc0(PA_ALIGN(sizeof(pa_hashmap)) + NBUCKETS*sizeof(struct hashmap_entry*));
@@ -62,10 +65,17 @@ pa_hashmap *pa_hashmap_new(pa_hash_func_t hash_func, pa_compare_func_t compare_f
     h->hash_func = hash_func ? hash_func : pa_idxset_trivial_hash_func;
     h->compare_func = compare_func ? compare_func : pa_idxset_trivial_compare_func;
 
+    h->key_free_func = key_free_func;
+    h->value_free_func = value_free_func;
+
     h->n_entries = 0;
     h->iterate_list_head = h->iterate_list_tail = NULL;
 
     return h;
+}
+
+pa_hashmap *pa_hashmap_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func) {
+    return pa_hashmap_new_full(hash_func, compare_func, NULL, NULL);
 }
 
 static void remove_entry(pa_hashmap *h, struct hashmap_entry *e) {
@@ -94,6 +104,9 @@ static void remove_entry(pa_hashmap *h, struct hashmap_entry *e) {
         BY_HASH(h)[hash] = e->bucket_next;
     }
 
+    if (h->key_free_func)
+        h->key_free_func(e->key);
+
     if (pa_flist_push(PA_STATIC_FLIST_GET(entries), e) < 0)
         pa_xfree(e);
 
@@ -101,10 +114,10 @@ static void remove_entry(pa_hashmap *h, struct hashmap_entry *e) {
     h->n_entries--;
 }
 
-void pa_hashmap_free(pa_hashmap *h, pa_free_cb_t free_cb) {
+void pa_hashmap_free(pa_hashmap *h) {
     pa_assert(h);
 
-    pa_hashmap_remove_all(h, free_cb);
+    pa_hashmap_remove_all(h);
     pa_xfree(h);
 }
 
@@ -120,7 +133,7 @@ static struct hashmap_entry *hash_scan(pa_hashmap *h, unsigned hash, const void 
     return NULL;
 }
 
-int pa_hashmap_put(pa_hashmap *h, const void *key, void *value) {
+int pa_hashmap_put(pa_hashmap *h, void *key, void *value) {
     struct hashmap_entry *e;
     unsigned hash;
 
@@ -194,7 +207,7 @@ void* pa_hashmap_remove(pa_hashmap *h, const void *key) {
     return data;
 }
 
-void pa_hashmap_remove_all(pa_hashmap *h, pa_free_cb_t free_cb) {
+void pa_hashmap_remove_all(pa_hashmap *h) {
     pa_assert(h);
 
     while (h->iterate_list_head) {
@@ -202,8 +215,8 @@ void pa_hashmap_remove_all(pa_hashmap *h, pa_free_cb_t free_cb) {
         data = h->iterate_list_head->value;
         remove_entry(h, h->iterate_list_head);
 
-        if (free_cb)
-            free_cb(data);
+        if (h->value_free_func)
+            h->value_free_func(data);
     }
 }
 

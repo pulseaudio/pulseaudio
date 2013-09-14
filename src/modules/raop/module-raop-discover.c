@@ -381,7 +381,7 @@ void pa__done(pa_module*m) {
             tunnel_free(t);
         }
 
-        pa_hashmap_free(u->tunnels, NULL);
+        pa_hashmap_free(u->tunnels);
     }
 
     pa_xfree(u);
