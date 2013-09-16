@@ -27,7 +27,7 @@ AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules color-tests dist-xz tar-ustar])
+AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability subdir-objects silent-rules color-tests dist-xz tar-ustar])
 
 AS_IF([! test -n "$VERSION"], [
    AC_MSG_ERROR([git-version-gen failed])
