@@ -225,7 +225,7 @@ need_libatomic_ops=yes
 AC_CACHE_CHECK([whether $CC knows __sync_bool_compare_and_swap()],
     pulseaudio_cv_sync_bool_compare_and_swap, [
     AC_LINK_IFELSE(
-        AC_LANG_PROGRAM([], [[int a = 4; __sync_bool_compare_and_swap(&a, 4, 5);]]),
+        [AC_LANG_PROGRAM([], [[int a = 4; __sync_bool_compare_and_swap(&a, 4, 5);]])],
         [pulseaudio_cv_sync_bool_compare_and_swap=yes],
         [pulseaudio_cv_sync_bool_compare_and_swap=no])
     ])
@@ -252,7 +252,7 @@ else
                 AC_CACHE_CHECK([compiler support for arm inline asm atomic operations],
                     pulseaudio_cv_support_arm_atomic_ops, [
                     AC_COMPILE_IFELSE(
-                        AC_LANG_PROGRAM([], [[
+                        [AC_LANG_PROGRAM([], [[
                             volatile int a=0;
                             int o=0, n=1, r;
                             asm volatile ("ldrex    %0, [%1]\n"
@@ -262,7 +262,7 @@ else
                                           : "r" (&a), "Ir" (o), "r" (n)
                                           : "cc");
                             return (a==1 ? 0 : -1);
-                        ]]),
+                        ]])],
                         [pulseaudio_cv_support_arm_atomic_ops=yes],
                         [pulseaudio_cv_support_arm_atomic_ops=no])
                 ])
@@ -292,7 +292,7 @@ case $host in
     AC_CACHE_CHECK([support for required armv6 instructions],
       pulseaudio_cv_support_armv6,
       [AC_COMPILE_IFELSE(
-         AC_LANG_PROGRAM([],
+         [AC_LANG_PROGRAM([],
            [[volatile int a = -60000, b = 0xaaaabbbb, c = 0xccccdddd;
              asm volatile ("ldr r0, %2 \n"
                            "ldr r2, %3 \n"
@@ -305,7 +305,7 @@ case $host in
                            : "m" (a), "m" (b), "m" (c)
                            : "r0", "r1", "r2", "r3", "cc");
              return (a == -128 && b == 0xaabbdddd) ? 0 : -1;
-           ]]),
+           ]])],
          [pulseaudio_cv_support_armv6=yes],
          [pulseaudio_cv_support_armv6=no])
       ])
@@ -324,7 +324,7 @@ AC_ARG_ENABLE([neon-opt],
 AS_IF([test "x$enable_neon_opt" != "xno"],
     [save_CFLAGS="$CFLAGS"; CFLAGS="-mfpu=neon $CFLAGS"
      AC_COMPILE_IFELSE(
-        AC_LANG_PROGRAM([[#include <arm_neon.h>]], []),
+        [AC_LANG_PROGRAM([[#include <arm_neon.h>]], [])],
         [
          HAVE_NEON=1
          NEON_CFLAGS="-mfpu=neon"
@@ -453,7 +453,7 @@ AX_CHECK_DEFINE([netinet/in.h], [INADDR_NONE], [],
 AC_CACHE_CHECK([whether $CC knows _Bool],
     pulseaudio_cv__Bool,
     [AC_COMPILE_IFELSE(
-        AC_LANG_PROGRAM([], [[_Bool b;]]),
+        [AC_LANG_PROGRAM([], [[_Bool b;]])],
         [pulseaudio_cv__Bool=yes],
         [pulseaudio_cv__Bool=no])
     ])
