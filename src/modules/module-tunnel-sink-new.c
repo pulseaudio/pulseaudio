@@ -245,7 +245,8 @@ static void stream_state_cb(pa_stream *stream, void *userdata) {
                 sink_update_requested_latency_cb(u->sink);
             else
                 stream_changed_buffer_attr_cb(stream, userdata);
-        default:
+        case PA_STREAM_CREATING:
+        case PA_STREAM_UNCONNECTED:
             break;
     }
 }
@@ -332,8 +333,6 @@ static void context_state_cb(pa_context *c, void *userdata) {
             pa_log_debug("Context terminated.");
             u->connected = false;
             u->thread_mainloop_api->quit(u->thread_mainloop_api, TUNNEL_THREAD_FAILED_MAINLOOP);
-            break;
-        default:
             break;
     }
 }
