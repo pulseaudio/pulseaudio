@@ -56,7 +56,8 @@ PA_MODULE_USAGE(
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
-        "channel_map=<channel map>"
+        "channel_map=<channel map> "
+        "cookie=<cookie file path>"
         );
 
 #define TUNNEL_THREAD_FAILED_MAINLOOP 1
@@ -81,6 +82,7 @@ struct userdata {
     bool connected;
     bool new_data;
 
+    char *cookie_file;
     char *remote_server;
     char *remote_source_name;
 };
@@ -94,7 +96,7 @@ static const char* const valid_modargs[] = {
     "channels",
     "rate",
     "channel_map",
-   /* "cookie", unimplemented */
+    "cookie",
    /* "reconnect", reconnect if server comes back again - unimplemented */
     NULL,
 };
@@ -195,6 +197,11 @@ static void thread_func(void *userdata) {
 
     if (!u->context) {
         pa_log("Failed to create libpulse context");
+        goto fail;
+    }
+
+    if (u->cookie_file && pa_context_load_cookie_from_file(u->context, u->cookie_file) != 0) {
+        pa_log_error("Can not load cookie file!");
         goto fail;
     }
 
@@ -454,6 +461,7 @@ int pa__init(pa_module *m) {
         goto fail;
     }
     u->thread_mainloop_api = pa_mainloop_get_api(u->thread_mainloop);
+    u->cookie_file = pa_xstrdup(pa_modargs_get_value(ma, "cookie", NULL));
     u->remote_source_name = pa_xstrdup(pa_modargs_get_value(ma, "source", NULL));
 
     u->thread_mq = pa_xnew0(pa_thread_mq, 1);
@@ -542,6 +550,9 @@ void pa__done(pa_module *m) {
 
     if (u->thread_mainloop)
         pa_mainloop_free(u->thread_mainloop);
+
+    if (u->cookie_file)
+        pa_xfree(u->cookie_file);
 
     if (u->remote_source_name)
         pa_xfree(u->remote_source_name);
