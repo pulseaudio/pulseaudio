@@ -71,7 +71,7 @@ struct userdata {
     pa_module *module;
     pa_sink *sink;
     pa_thread *thread;
-    pa_thread_mq thread_mq;
+    pa_thread_mq *thread_mq;
     pa_mainloop *thread_mainloop;
     pa_mainloop_api *thread_mainloop_api;
 
@@ -126,7 +126,7 @@ static void thread_func(void *userdata) {
     pa_assert(u);
 
     pa_log_debug("Thread starting up");
-    pa_thread_mq_install(&u->thread_mq);
+    pa_thread_mq_install(u->thread_mq);
 
     proplist = tunnel_new_proplist(u);
     u->context = pa_context_new_with_proplist(u->thread_mainloop_api,
@@ -203,8 +203,8 @@ static void thread_func(void *userdata) {
         }
     }
 fail:
-    pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->module->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
-    pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
+    pa_asyncmsgq_post(u->thread_mq->outq, PA_MSGOBJECT(u->module->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
+    pa_asyncmsgq_wait_for(u->thread_mq->inq, PA_MESSAGE_SHUTDOWN);
 
 finish:
     if (u->stream) {
@@ -453,7 +453,8 @@ int pa__init(pa_module *m) {
 
     u->remote_sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
 
-    pa_thread_mq_init_thread_mainloop(&u->thread_mq, m->core->mainloop, u->thread_mainloop_api);
+    u->thread_mq = pa_xnew0(pa_thread_mq, 1);
+    pa_thread_mq_init_thread_mainloop(u->thread_mq, m->core->mainloop, u->thread_mainloop_api);
 
     /* Create sink */
     pa_sink_new_data_init(&sink_data);
@@ -491,7 +492,7 @@ int pa__init(pa_module *m) {
     u->sink->update_requested_latency = sink_update_requested_latency_cb;
 
     /* set thread message queue */
-    pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
+    pa_sink_set_asyncmsgq(u->sink, u->thread_mq->inq);
 
     if (!(u->thread = pa_thread_new("tunnel-sink", thread_func, u))) {
         pa_log("Failed to create thread.");
@@ -528,11 +529,14 @@ void pa__done(pa_module *m) {
         pa_sink_unlink(u->sink);
 
     if (u->thread) {
-        pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
+        pa_asyncmsgq_send(u->thread_mq->inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
         pa_thread_free(u->thread);
     }
 
-    pa_thread_mq_done(&u->thread_mq);
+    if (u->thread_mq) {
+        pa_thread_mq_done(u->thread_mq);
+        pa_xfree(u->thread_mq);
+    }
 
     if (u->thread_mainloop)
         pa_mainloop_free(u->thread_mainloop);
