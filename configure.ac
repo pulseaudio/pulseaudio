@@ -770,9 +770,9 @@ AS_IF([test "x$enable_alsa" = "xyes" && test "x$HAVE_ALSA" = "x0"],
 
 AS_IF([test "x$HAVE_ALSA" = "x1"],
     [
-        save_CFLAGS="$CFLAGS"; CFLAGS="$CFLAGS $ASOUNDLIB_CFLAGS"
+        save_CPPFLAGS="$CPPFLAGS"; CPPFLAGS="$CPPFLAGS $ASOUNDLIB_CFLAGS"
         AC_CHECK_HEADERS([use-case.h], HAVE_ALSA_UCM=1, HAVE_ALSA_UCM=0)
-        CFLAGS="$save_CFLAGS"
+        CPPFLAGS="$save_CPPFLAGS"
     ],
     HAVE_ALSA_UCM=0)
 
