@@ -30,6 +30,7 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
