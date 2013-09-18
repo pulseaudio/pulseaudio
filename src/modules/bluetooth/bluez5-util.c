@@ -46,7 +46,87 @@ struct pa_bluetooth_discovery {
     bool matches_added;
     pa_hook hooks[PA_BLUETOOTH_HOOK_MAX];
     pa_hashmap *adapters;
+    pa_hashmap *devices;
 };
+
+static pa_bluetooth_device* device_create(pa_bluetooth_discovery *y, const char *path) {
+    pa_bluetooth_device *d;
+
+    pa_assert(y);
+    pa_assert(path);
+
+    d = pa_xnew0(pa_bluetooth_device, 1);
+    d->discovery = y;
+    d->path = pa_xstrdup(path);
+
+    pa_hashmap_put(y->devices, d->path, d);
+
+    return d;
+}
+
+pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_path(pa_bluetooth_discovery *y, const char *path) {
+    pa_bluetooth_device *d;
+
+    pa_assert(y);
+    pa_assert(PA_REFCNT_VALUE(y) > 0);
+    pa_assert(path);
+
+    if ((d = pa_hashmap_get(y->devices, path)))
+        if (d->device_info_valid == 1)
+            return d;
+
+    return NULL;
+}
+
+pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_address(pa_bluetooth_discovery *y, const char *remote, const char *local) {
+    pa_bluetooth_device *d;
+    void *state = NULL;
+
+    pa_assert(y);
+    pa_assert(PA_REFCNT_VALUE(y) > 0);
+    pa_assert(remote);
+    pa_assert(local);
+
+    while ((d = pa_hashmap_iterate(y->devices, &state, NULL)))
+        if (pa_streq(d->address, remote) && pa_streq(d->adapter->address, local))
+            return d->device_info_valid == 1 ? d : NULL;
+
+    return NULL;
+}
+
+static void device_free(pa_bluetooth_device *d) {
+    pa_assert(d);
+
+    d->discovery = NULL;
+    d->adapter = NULL;
+    pa_xfree(d->path);
+    pa_xfree(d->alias);
+    pa_xfree(d->address);
+    pa_xfree(d);
+}
+
+static void device_remove(pa_bluetooth_discovery *y, const char *path) {
+    pa_bluetooth_device *d;
+
+    if (!(d = pa_hashmap_remove(y->devices, path)))
+        pa_log_warn("Unknown device removed %s", path);
+    else {
+        pa_log_debug("Device %s removed", path);
+        device_free(d);
+    }
+}
+
+static void device_remove_all(pa_bluetooth_discovery *y) {
+    pa_bluetooth_device *d;
+
+    pa_assert(y);
+
+    while ((d = pa_hashmap_steal_first(y->devices))) {
+        d->device_info_valid = -1;
+        pa_hook_fire(&y->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED], d);
+        device_free(d);
+   }
+}
 
 static pa_bluetooth_adapter* adapter_create(pa_bluetooth_discovery *y, const char *path) {
     pa_bluetooth_adapter *a;
@@ -67,6 +147,8 @@ static void adapter_remove_all(pa_bluetooth_discovery *y) {
     pa_bluetooth_adapter *a;
 
     pa_assert(y);
+
+    /* When this function is called all devices have already been freed */
 
     while ((a = pa_hashmap_steal_first(y->adapters))) {
         pa_xfree(a->path);
@@ -138,6 +220,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     PA_REFCNT_INIT(y);
     y->core = c;
     y->adapters = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    y->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     for (i = 0; i < PA_BLUETOOTH_HOOK_MAX; i++)
         pa_hook_init(&y->hooks[i], y);
@@ -193,6 +276,11 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
     if (PA_REFCNT_DEC(y) > 0)
         return;
+
+    if (y->devices) {
+        device_remove_all(y);
+        pa_hashmap_free(y->devices);
+    }
 
     if (y->adapters) {
         adapter_remove_all(y);

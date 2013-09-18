@@ -24,18 +24,36 @@
 
 #include <pulsecore/core.h>
 
+typedef struct pa_bluetooth_device pa_bluetooth_device;
 typedef struct pa_bluetooth_adapter pa_bluetooth_adapter;
 typedef struct pa_bluetooth_discovery pa_bluetooth_discovery;
 
 typedef enum pa_bluetooth_hook {
+    PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED,          /* Call data: pa_bluetooth_device */
     PA_BLUETOOTH_HOOK_MAX
 } pa_bluetooth_hook_t;
+
+struct pa_bluetooth_device {
+    pa_bluetooth_discovery *discovery;
+    pa_bluetooth_adapter *adapter;
+
+    int device_info_valid;      /* 0: no results yet; 1: good results; -1: bad results ... */
+
+    /* Device information */
+    char *path;
+    char *alias;
+    char *address;
+    uint32_t class_of_device;
+};
 
 struct pa_bluetooth_adapter {
     pa_bluetooth_discovery *discovery;
     char *path;
     char *address;
 };
+
+pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_path(pa_bluetooth_discovery *y, const char *path);
+pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_address(pa_bluetooth_discovery *y, const char *remote, const char *local);
 
 pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook);
 
