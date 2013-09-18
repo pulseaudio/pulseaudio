@@ -105,7 +105,7 @@ fi
 if test -n "$v"
 then
     : # use $v
-elif test -d .git \
+elif test -e .git \
     && v=`git describe --abbrev=4 --match='v[0-9]*' HEAD 2>/dev/null` \
     && [ -n "$v" ]
 then
