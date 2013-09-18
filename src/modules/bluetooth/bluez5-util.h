@@ -24,11 +24,18 @@
 
 #include <pulsecore/core.h>
 
+typedef struct pa_bluetooth_adapter pa_bluetooth_adapter;
 typedef struct pa_bluetooth_discovery pa_bluetooth_discovery;
 
 typedef enum pa_bluetooth_hook {
     PA_BLUETOOTH_HOOK_MAX
 } pa_bluetooth_hook_t;
+
+struct pa_bluetooth_adapter {
+    pa_bluetooth_discovery *discovery;
+    char *path;
+    char *address;
+};
 
 pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook);
 

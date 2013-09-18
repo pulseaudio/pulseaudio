@@ -45,7 +45,35 @@ struct pa_bluetooth_discovery {
     bool filter_added;
     bool matches_added;
     pa_hook hooks[PA_BLUETOOTH_HOOK_MAX];
+    pa_hashmap *adapters;
 };
+
+static pa_bluetooth_adapter* adapter_create(pa_bluetooth_discovery *y, const char *path) {
+    pa_bluetooth_adapter *a;
+
+    pa_assert(y);
+    pa_assert(path);
+
+    a = pa_xnew0(pa_bluetooth_adapter, 1);
+    a->discovery = y;
+    a->path = pa_xstrdup(path);
+
+    pa_hashmap_put(y->adapters, a->path, a);
+
+    return a;
+}
+
+static void adapter_remove_all(pa_bluetooth_discovery *y) {
+    pa_bluetooth_adapter *a;
+
+    pa_assert(y);
+
+    while ((a = pa_hashmap_steal_first(y->adapters))) {
+        pa_xfree(a->path);
+        pa_xfree(a->address);
+        pa_xfree(a);
+    }
+}
 
 pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook) {
     pa_assert(y);
@@ -109,6 +137,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     y = pa_xnew0(pa_bluetooth_discovery, 1);
     PA_REFCNT_INIT(y);
     y->core = c;
+    y->adapters = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     for (i = 0; i < PA_BLUETOOTH_HOOK_MAX; i++)
         pa_hook_init(&y->hooks[i], y);
@@ -164,6 +193,11 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
     if (PA_REFCNT_DEC(y) > 0)
         return;
+
+    if (y->adapters) {
+        adapter_remove_all(y);
+        pa_hashmap_free(y->adapters);
+    }
 
     if (y->connection) {
 
