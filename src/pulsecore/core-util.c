@@ -117,7 +117,7 @@
 #include "rtkit.h"
 #endif
 
-#ifdef __linux__
+#if defined(__linux__) && !defined(__ANDROID__)
 #include <sys/personality.h>
 #endif
 
@@ -2939,7 +2939,7 @@ char *pa_machine_id(void) {
     if ((h = pa_get_host_name_malloc()))
         return h;
 
-#ifndef OS_IS_WIN32
+#if !defined(OS_IS_WIN32) && !defined(__ANDROID__)
     /* If no hostname was set we use the POSIX hostid. It's usually
      * the IPv4 address.  Might not be that stable. */
     return pa_sprintf_malloc("%08lx", (unsigned long) gethostid());
@@ -3226,7 +3226,7 @@ size_t pa_pipe_buf(int fd) {
 
 void pa_reset_personality(void) {
 
-#ifdef __linux__
+#if defined(__linux__) && !defined(__ANDROID__)
     if (personality(PER_LINUX) < 0)
         pa_log_warn("Uh, personality() failed: %s", pa_cstrerror(errno));
 #endif

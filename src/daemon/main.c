@@ -1003,7 +1003,7 @@ int main(int argc, char *argv[]) {
         pa_log_info(_("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"));
 
     if (conf->lock_memory) {
-#ifdef HAVE_SYS_MMAN_H
+#if defined(HAVE_SYS_MMAN_H) && !defined(__ANDROID__)
         if (mlockall(MCL_FUTURE) < 0)
             pa_log_warn("mlockall() failed: %s", pa_cstrerror(errno));
         else
