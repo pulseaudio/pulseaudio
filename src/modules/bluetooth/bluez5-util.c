@@ -44,7 +44,15 @@ struct pa_bluetooth_discovery {
     pa_dbus_connection *connection;
     bool filter_added;
     bool matches_added;
+    pa_hook hooks[PA_BLUETOOTH_HOOK_MAX];
 };
+
+pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook) {
+    pa_assert(y);
+    pa_assert(PA_REFCNT_VALUE(y) > 0);
+
+    return &y->hooks[hook];
+}
 
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *userdata) {
     pa_bluetooth_discovery *y;
@@ -93,6 +101,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     pa_bluetooth_discovery *y;
     DBusError err;
     DBusConnection *conn;
+    unsigned i;
 
     if ((y = pa_shared_get(c, "bluetooth-discovery")))
         return pa_bluetooth_discovery_ref(y);
@@ -100,6 +109,9 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     y = pa_xnew0(pa_bluetooth_discovery, 1);
     PA_REFCNT_INIT(y);
     y->core = c;
+
+    for (i = 0; i < PA_BLUETOOTH_HOOK_MAX; i++)
+        pa_hook_init(&y->hooks[i], y);
 
     pa_shared_set(c, "bluetooth-discovery", y);
 

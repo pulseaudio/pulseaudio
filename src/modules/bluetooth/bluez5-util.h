@@ -26,6 +26,12 @@
 
 typedef struct pa_bluetooth_discovery pa_bluetooth_discovery;
 
+typedef enum pa_bluetooth_hook {
+    PA_BLUETOOTH_HOOK_MAX
+} pa_bluetooth_hook_t;
+
+pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook);
+
 pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core);
 pa_bluetooth_discovery* pa_bluetooth_discovery_ref(pa_bluetooth_discovery *y);
 void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y);
