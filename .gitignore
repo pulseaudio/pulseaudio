@@ -33,3 +33,4 @@ ltmain.sh
 missing
 mkinstalldirs
 stamp-*
+.dirstamp
