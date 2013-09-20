@@ -114,7 +114,6 @@ struct pa_mainloop {
     int retval;
     bool quit:1;
 
-    pa_atomic_t wakeup_requested;
     int wakeup_pipe[2];
     int wakeup_pipe_type;
 
@@ -774,8 +773,6 @@ void pa_mainloop_wakeup(pa_mainloop *m) {
     if (pa_write(m->wakeup_pipe[1], &c, sizeof(c), &m->wakeup_pipe_type) < 0)
         /* Not much options for recovering from the error. Let's at least log something. */
         pa_log("pa_write() failed while trying to wake up the mainloop: %s", pa_cstrerror(errno));
-
-    pa_atomic_store(&m->wakeup_requested, true);
 }
 
 static void clear_wakeup(pa_mainloop *m) {
@@ -783,10 +780,8 @@ static void clear_wakeup(pa_mainloop *m) {
 
     pa_assert(m);
 
-    if (pa_atomic_cmpxchg(&m->wakeup_requested, true, false)) {
-        while (pa_read(m->wakeup_pipe[0], &c, sizeof(c), &m->wakeup_pipe_type) == sizeof(c))
-            ;
-    }
+    while (pa_read(m->wakeup_pipe[0], &c, sizeof(c), &m->wakeup_pipe_type) == sizeof(c))
+        ;
 }
 
 int pa_mainloop_prepare(pa_mainloop *m, int timeout) {
