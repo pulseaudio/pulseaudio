@@ -1349,6 +1349,9 @@ modlibexec_LTLIBRARIES += \
 		module-bluez5-device.la
 endif
 
+# RAOP depends on RTP, and we don't support RTP on Windows, see comment at
+# librtp.la above.
+if !OS_IS_WIN32
 if HAVE_OPENSSL
 modlibexec_LTLIBRARIES += \
 		libraop.la \
@@ -1356,6 +1359,7 @@ modlibexec_LTLIBRARIES += \
 if HAVE_AVAHI
 modlibexec_LTLIBRARIES += \
 		module-raop-discover.la
+endif
 endif
 endif
 
