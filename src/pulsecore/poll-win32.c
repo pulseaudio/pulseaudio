@@ -65,6 +65,8 @@ typedef unsigned long nfds_t;
 
 #include <time.h>
 
+#include <pulsecore/core-util.h>
+
 #ifndef INFTIM
 # define INFTIM (-1)
 #endif
@@ -602,6 +604,9 @@ restart:
           /* It's a socket.  */
           WSAEnumNetworkEvents ((SOCKET) h, NULL, &ev);
           WSAEventSelect ((SOCKET) h, 0, 0);
+          /* Have to restore blocking as WSAEventSelect() clears it */
+          if (!pa_is_fd_nonblock(pfd[i].fd))
+            pa_make_fd_block(pfd[i].fd);
 
           /* If we're lucky, WSAEnumNetworkEvents already provided a way
              to distinguish FD_READ and FD_ACCEPT; this saves a recv later.  */

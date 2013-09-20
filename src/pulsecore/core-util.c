@@ -149,6 +149,10 @@
 static pa_strlist *recorded_env = NULL;
 
 #ifdef OS_IS_WIN32
+static fd_set nonblocking_fds;
+#endif
+
+#ifdef OS_IS_WIN32
 
 #include "poll.h"
 
@@ -179,8 +183,59 @@ char *pa_win32_get_toplevel(HANDLE handle) {
 
 #endif
 
+static void set_nonblock(int fd, bool nonblock) {
+
+#ifdef O_NONBLOCK
+    int v, nv;
+    pa_assert(fd >= 0);
+
+    pa_assert_se((v = fcntl(fd, F_GETFL)) >= 0);
+
+    if (nonblock)
+        nv = v | O_NONBLOCK;
+    else
+        nv = v & ~O_NONBLOCK;
+
+    if (v != nv)
+        pa_assert_se(fcntl(fd, F_SETFL, v|O_NONBLOCK) >= 0);
+
+#elif defined(OS_IS_WIN32)
+    u_long arg;
+
+    if (nonblock)
+        arg = 1;
+    else
+        arg = 0;
+
+    if (ioctlsocket(fd, FIONBIO, &arg) < 0) {
+        pa_assert_se(WSAGetLastError() == WSAENOTSOCK);
+        pa_log_warn("Only sockets can be made non-blocking!");
+        return;
+    }
+
+    /* There is no method to query status, so we remember all fds */
+    if (nonblock)
+        FD_SET(fd, &nonblocking_fds);
+    else
+        FD_CLR(fd, &nonblocking_fds);
+#else
+    pa_log_warn("Non-blocking I/O not supported.!");
+#endif
+
+}
+
 /** Make a file descriptor nonblock. Doesn't do any error checking */
 void pa_make_fd_nonblock(int fd) {
+    set_nonblock(fd, true);
+}
+
+/** Make a file descriptor blocking. Doesn't do any error checking */
+void pa_make_fd_block(int fd) {
+    set_nonblock(fd, false);
+}
+
+/** Query if a file descriptor is non-blocking */
+bool pa_is_fd_nonblock(int fd) {
 
 #ifdef O_NONBLOCK
     int v;
@@ -188,17 +243,12 @@ void pa_make_fd_nonblock(int fd) {
 
     pa_assert_se((v = fcntl(fd, F_GETFL)) >= 0);
 
-    if (!(v & O_NONBLOCK))
-        pa_assert_se(fcntl(fd, F_SETFL, v|O_NONBLOCK) >= 0);
+    return !!(v & O_NONBLOCK);
 
 #elif defined(OS_IS_WIN32)
-    u_long arg = 1;
-    if (ioctlsocket(fd, FIONBIO, &arg) < 0) {
-        pa_assert_se(WSAGetLastError() == WSAENOTSOCK);
-        pa_log_warn("Only sockets can be made non-blocking!");
-    }
+    return !!FD_ISSET(fd, &nonblocking_fds);
 #else
-    pa_log_warn("Non-blocking I/O not supported.!");
+    return false;
 #endif
 
 }
@@ -531,12 +581,14 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size, int *type) {
     return ret;
 }
 
-/** Platform independent read function. Necessary since not all
+/** Platform independent close function. Necessary since not all
  * systems treat all file descriptors equal. */
 int pa_close(int fd) {
 
 #ifdef OS_IS_WIN32
     int ret;
+
+    FD_CLR(fd, &nonblocking_fds);
 
     if ((ret = closesocket(fd)) == 0)
         return 0;

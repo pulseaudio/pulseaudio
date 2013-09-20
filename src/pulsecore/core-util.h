@@ -57,6 +57,9 @@ struct timeval;
 #endif
 
 void pa_make_fd_nonblock(int fd);
+void pa_make_fd_block(int fd);
+bool pa_is_fd_nonblock(int fd);
+
 void pa_make_fd_cloexec(int fd);
 
 int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid, bool update_perms);
