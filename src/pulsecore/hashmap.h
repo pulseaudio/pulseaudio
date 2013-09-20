@@ -85,6 +85,10 @@ void* pa_hashmap_last(pa_hashmap *h);
 #define PA_HASHMAP_FOREACH(e, h, state) \
     for ((state) = NULL, (e) = pa_hashmap_iterate((h), &(state), NULL); (e); (e) = pa_hashmap_iterate((h), &(state), NULL))
 
+/* A macro to ease itration through all key, value pairs */
+#define PA_HASHMAP_FOREACH_KV(k, e, h, state) \
+    for ((state) = NULL, (e) = pa_hashmap_iterate((h), &(state), (const void **) &(k)); (e); (e) = pa_hashmap_iterate((h), &(state), (const void **) &(k)))
+
 /* A macro to ease iteration through all entries, backwards */
 #define PA_HASHMAP_FOREACH_BACKWARDS(e, h, state) \
     for ((state) = NULL, (e) = pa_hashmap_iterate_backwards((h), &(state), NULL); (e); (e) = pa_hashmap_iterate_backwards((h), &(state), NULL))
