@@ -154,8 +154,6 @@ static fd_set nonblocking_fds;
 
 #ifdef OS_IS_WIN32
 
-#include "poll.h"
-
 /* Returns the directory of the current DLL, with '/bin/' removed if it is the last component */
 char *pa_win32_get_toplevel(HANDLE handle) {
     static char *toplevel = NULL;
@@ -420,26 +418,13 @@ ssize_t pa_read(int fd, void *buf, size_t count, int *type) {
 #ifdef OS_IS_WIN32
 
     if (!type || *type == 0) {
-        int err;
         ssize_t r;
 
-retry:
         if ((r = recv(fd, buf, count, 0)) >= 0)
             return r;
 
-        err = WSAGetLastError();
-        if (err != WSAENOTSOCK) {
-            /* transparently handle non-blocking sockets, by waiting
-             * for readiness */
-            if (err == WSAEWOULDBLOCK) {
-                struct pollfd pfd;
-                pfd.fd = fd;
-                pfd.events = POLLIN;
-                if (pa_poll(&pfd, 1, -1) >= 0) {
-                    goto retry;
-                }
-            }
-            errno = err;
+        if (WSAGetLastError() != WSAENOTSOCK) {
+            errno = WSAGetLastError();
             return r;
         }
 
@@ -465,11 +450,7 @@ ssize_t pa_write(int fd, const void *buf, size_t count, int *type) {
 
     if (!type || *type == 0) {
         ssize_t r;
-#ifdef OS_IS_WIN32
-        int err;
 
-retry:
-#endif
         for (;;) {
             if ((r = send(fd, buf, count, MSG_NOSIGNAL)) < 0) {
 
@@ -483,19 +464,8 @@ retry:
         }
 
 #ifdef OS_IS_WIN32
-        err = WSAGetLastError();
-        if (err != WSAENOTSOCK) {
-            /* transparently handle non-blocking sockets, by waiting
-             * for readiness */
-            if (err == WSAEWOULDBLOCK) {
-                struct pollfd pfd;
-                pfd.fd = fd;
-                pfd.events = POLLOUT;
-                if (pa_poll(&pfd, 1, -1) >= 0) {
-                    goto retry;
-                }
-            }
-            errno = err;
+        if (WSAGetLastError() != WSAENOTSOCK) {
+            errno = WSAGetLastError();
             return r;
         }
 #else
