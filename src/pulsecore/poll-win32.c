@@ -46,6 +46,7 @@ typedef unsigned long nfds_t;
 # include <io.h>
 # include <stdio.h>
 # include <conio.h>
+# include <signal.h>
 # if 0
 # include "msvc-nothrow.h"
 # endif
@@ -568,8 +569,13 @@ restart:
           BOOL bRet;
           while ((bRet = PeekMessage (&msg, NULL, 0, 0, PM_REMOVE)) != 0)
             {
-              TranslateMessage (&msg);
-              DispatchMessage (&msg);
+              if (msg.message == WM_QUIT)
+                  raise(SIGTERM);
+              else
+                {
+                  TranslateMessage (&msg);
+                  DispatchMessage (&msg);
+                }
             }
         }
       else

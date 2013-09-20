@@ -114,27 +114,6 @@ int deny_severity = LOG_WARNING;
 int __padsp_disabled__ = 7;
 #endif
 
-#ifdef OS_IS_WIN32
-
-static void message_cb(pa_mainloop_api*a, pa_time_event*e, const struct timeval *tv, void *userdata) {
-    MSG msg;
-    struct timeval tvnext;
-
-    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-        if (msg.message == WM_QUIT)
-            raise(SIGTERM);
-        else {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
-
-    pa_timeval_add(pa_gettimeofday(&tvnext), 100000);
-    a->time_restart(e, &tvnext);
-}
-
-#endif
-
 static void signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
     pa_log_info(_("Got signal %s."), pa_sig2str(sig));
 
@@ -409,10 +388,6 @@ int main(int argc, char *argv[]) {
 #ifdef HAVE_FORK
     int daemon_pipe[2] = { -1, -1 };
     int daemon_pipe2[2] = { -1, -1 };
-#endif
-#ifdef OS_IS_WIN32
-    pa_time_event *win32_timer;
-    struct timeval win32_tv;
 #endif
     int autospawn_fd = -1;
     bool autospawn_locked = false;
@@ -1071,10 +1046,6 @@ int main(int argc, char *argv[]) {
     pa_signal_new(SIGHUP, signal_callback, c);
 #endif
 
-#ifdef OS_IS_WIN32
-    win32_timer = pa_mainloop_get_api(mainloop)->time_new(pa_mainloop_get_api(mainloop), pa_gettimeofday(&win32_tv), message_cb, NULL);
-#endif
-
     if (!conf->no_cpu_limit)
         pa_assert_se(pa_cpu_limit_init(pa_mainloop_get_api(mainloop)) == 0);
 
@@ -1168,11 +1139,6 @@ finish:
 
         pa_autospawn_lock_done(false);
     }
-
-#ifdef OS_IS_WIN32
-    if (mainloop && win32_timer)
-        pa_mainloop_get_api(mainloop)->time_free(win32_timer);
-#endif
 
     if (c) {
         /* Ensure all the modules/samples are unloaded when the core is still ref'ed,
