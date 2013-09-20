@@ -48,7 +48,7 @@ typedef struct pa_sink_volume_change pa_sink_volume_change;
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/sink-input.h>
 
-#define PA_MAX_INPUTS_PER_SINK 32
+#define PA_MAX_INPUTS_PER_SINK 256
 
 /* Returns true if sink is linked: registered and accessible from client side. */
 static inline bool PA_SINK_IS_LINKED(pa_sink_state_t x) {
