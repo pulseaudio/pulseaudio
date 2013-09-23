@@ -3748,7 +3748,7 @@ fail:
 }
 
 static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
-                                pa_alsa_direction_t direction) {
+                                pa_alsa_direction_t direction, pa_hashmap *used_paths) {
 
     pa_alsa_path *p;
     void *state;
@@ -3792,6 +3792,9 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
 
     if (mixer_handle)
         snd_mixer_close(mixer_handle);
+
+    PA_HASHMAP_FOREACH(p, ps->paths, state)
+        pa_hashmap_put(used_paths, p, p);
 
     pa_log_debug("Available mixer paths (after tidying):");
     pa_alsa_path_set_dump(ps);
@@ -4281,16 +4284,18 @@ static snd_pcm_t* mapping_open_pcm(pa_alsa_mapping *m,
                               &try_buffer_size, 0, NULL, NULL, true);
 }
 
-static void paths_drop_unsupported(pa_hashmap* h) {
+static void paths_drop_unused(pa_hashmap* h, pa_hashmap *keep) {
 
     void* state = NULL;
     const void* key;
     pa_alsa_path* p;
 
     pa_assert(h);
+    pa_assert(keep);
+
     p = pa_hashmap_iterate(h, &state, &key);
     while (p) {
-        if (p->supported <= 0) {
+        if (pa_hashmap_get(keep, p) == NULL) {
             pa_hashmap_remove(h, key);
             pa_alsa_path_free(p);
         }
@@ -4308,7 +4313,7 @@ void pa_alsa_profile_set_probe(
     void *state;
     pa_alsa_profile *p, *last = NULL;
     pa_alsa_mapping *m;
-    pa_hashmap *broken_inputs, *broken_outputs;
+    pa_hashmap *broken_inputs, *broken_outputs, *used_paths;
 
     pa_assert(ps);
     pa_assert(dev_id);
@@ -4319,6 +4324,7 @@ void pa_alsa_profile_set_probe(
 
     broken_inputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     broken_outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    used_paths = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     PA_HASHMAP_FOREACH(p, ps->profiles, state) {
         uint32_t idx;
@@ -4406,12 +4412,12 @@ void pa_alsa_profile_set_probe(
         if (p->output_mappings)
             PA_IDXSET_FOREACH(m, p->output_mappings, idx)
                 if (m->output_pcm)
-                    mapping_paths_probe(m, p, PA_ALSA_DIRECTION_OUTPUT);
+                    mapping_paths_probe(m, p, PA_ALSA_DIRECTION_OUTPUT, used_paths);
 
         if (p->input_mappings)
             PA_IDXSET_FOREACH(m, p->input_mappings, idx)
                 if (m->input_pcm)
-                    mapping_paths_probe(m, p, PA_ALSA_DIRECTION_INPUT);
+                    mapping_paths_probe(m, p, PA_ALSA_DIRECTION_INPUT, used_paths);
     }
 
     /* Clean up */
@@ -4419,10 +4425,11 @@ void pa_alsa_profile_set_probe(
 
     pa_alsa_profile_set_drop_unsupported(ps);
 
-    paths_drop_unsupported(ps->input_paths);
-    paths_drop_unsupported(ps->output_paths);
+    paths_drop_unused(ps->input_paths, used_paths);
+    paths_drop_unused(ps->output_paths, used_paths);
     pa_hashmap_free(broken_inputs);
     pa_hashmap_free(broken_outputs);
+    pa_hashmap_free(used_paths);
 
     ps->probed = true;
 }
