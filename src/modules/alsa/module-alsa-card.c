@@ -378,8 +378,8 @@ static int report_jack_state(snd_hctl_elem_t *elem, unsigned int mask) {
                 pa_assert(port);
             }
             else {
-                pa_assert(jack->path && jack->path->port);
-                port = jack->path->port;
+                pa_assert(jack->path);
+                pa_assert_se(port = jack->path->port);
             }
             report_port_state(port, u);
         }
