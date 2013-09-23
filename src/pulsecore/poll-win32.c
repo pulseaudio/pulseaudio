@@ -377,7 +377,7 @@ pa_poll (struct pollfd *pfd, nfds_t nfd, int timeout)
 #  endif /* OPEN_MAX -- else, no check is needed */
 # endif /* !_SC_OPEN_MAX */
 #else /* WINDOWS_NATIVE*/
-  static HANDLE hEvent;
+  HANDLE hEvent;
   WSANETWORKEVENTS ev;
   HANDLE h, handle_array[FD_SETSIZE + 2];
   DWORD ret, wait_timeout, nhandles;
@@ -477,8 +477,7 @@ pa_poll (struct pollfd *pfd, nfds_t nfd, int timeout)
   return rc;
 #else
 
-  if (!hEvent)
-    hEvent = CreateEvent (NULL, FALSE, FALSE, NULL);
+  hEvent = CreateEvent (NULL, FALSE, FALSE, NULL);
 
 restart:
   handle_array[0] = hEvent;
@@ -638,6 +637,8 @@ restart:
       SleepEx (1, TRUE);
       goto restart;
     }
+
+  CloseHandle(hEvent);
 
   return rc;
 #endif
