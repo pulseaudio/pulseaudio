@@ -351,6 +351,8 @@ New field in all commands that send/receive profile introspection data
 
 The field is added once for every profile.
 
+## v30, implemented by >= 6.0
+
 New client->server commands:
     GET_NODE_INFO
     GET_NODE_INFO_LIST

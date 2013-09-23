@@ -176,7 +176,7 @@ enum {
     /* Supported since protocol v27 (3.0) */
     PA_COMMAND_SET_PORT_LATENCY_OFFSET,
 
-    /* Supported since protocol v29 (5.0) */
+    /* Supported since protocol v30 (6.0) */
     PA_COMMAND_GET_NODE_INFO,
     PA_COMMAND_GET_NODE_INFO_LIST,
 

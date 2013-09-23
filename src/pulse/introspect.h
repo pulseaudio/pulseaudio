@@ -676,7 +676,7 @@ pa_operation* pa_context_get_sample_info_list(pa_context *c, pa_sample_info_cb_t
 /** Routing node information. Please note that this structure can be extended
  * as part of evolutionary API updates at any time in any new release.
  *
- * \since 5.0 */
+ * \since 6.0 */
 typedef struct pa_node_info {
     /** The index of this node. */
     uint32_t index;
@@ -698,16 +698,16 @@ typedef struct pa_node_info {
 } pa_node_info;
 
 /** Callback prototype for pa_context_get_node_info_by_name() and friends.
- * \since 5.0 */
+ * \since 6.0 */
 typedef void (*pa_node_info_cb_t)(pa_context *c, const pa_node_info *info, int eol, void *userdata);
 
-/** Get information about a node by its name. \since 5.0 */
+/** Get information about a node by its name. \since 6.0 */
 pa_operation *pa_context_get_node_info_by_name(pa_context *c, const char *name, pa_node_info_cb_t cb, void *userdata);
 
-/** Get information about a node by its index. \since 5.0 */
+/** Get information about a node by its index. \since 6.0 */
 pa_operation *pa_context_get_node_info_by_index(pa_context *c, uint32_t idx, pa_node_info_cb_t cb, void *userdata);
 
-/** Get a list of all nodes. \since 5.0 */
+/** Get a list of all nodes. \since 6.0 */
 pa_operation *pa_context_get_node_info_list(pa_context *c, pa_node_info_cb_t cb, void *userdata);
 
 /** @} */

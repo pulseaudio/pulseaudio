@@ -1846,7 +1846,7 @@ pa_operation *pa_context_get_node_info_by_name(pa_context *c, const char *name, 
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 29, PA_ERR_NOTSUPPORTED);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 30, PA_ERR_NOTSUPPORTED);
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
@@ -1870,7 +1870,7 @@ pa_operation *pa_context_get_node_info_by_index(pa_context *c, uint32_t idx, pa_
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 29, PA_ERR_NOTSUPPORTED);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 30, PA_ERR_NOTSUPPORTED);
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
@@ -1886,7 +1886,7 @@ pa_operation *pa_context_get_node_info_by_index(pa_context *c, uint32_t idx, pa_
 pa_operation *pa_context_get_node_info_list(pa_context *c, pa_node_info_cb_t cb, void *userdata) {
     pa_assert(c);
 
-    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 29, PA_ERR_NOTSUPPORTED);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 30, PA_ERR_NOTSUPPORTED);
 
     return pa_context_send_simple_command(c, PA_COMMAND_GET_NODE_INFO_LIST, context_get_node_info_callback, (pa_operation_cb_t) cb, userdata);
 }
