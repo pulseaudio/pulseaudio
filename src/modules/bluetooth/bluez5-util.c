@@ -297,6 +297,7 @@ static pa_bluetooth_device* device_create(pa_bluetooth_discovery *y, const char 
     d = pa_xnew0(pa_bluetooth_device, 1);
     d->discovery = y;
     d->path = pa_xstrdup(path);
+    d->uuids = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, pa_xfree);
 
     pa_hashmap_put(y->devices, d->path, d);
 
@@ -347,6 +348,9 @@ static void device_free(pa_bluetooth_device *d) {
         transport_state_changed(t, PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED);
         pa_bluetooth_transport_free(t);
     }
+
+    if (d->uuids)
+        pa_hashmap_free(d->uuids);
 
     d->discovery = NULL;
     d->adapter = NULL;
@@ -430,6 +434,141 @@ static void adapter_remove_all(pa_bluetooth_discovery *y) {
 
     while ((a = pa_hashmap_steal_first(y->adapters)))
         adapter_free(a);
+}
+
+static void parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, bool is_property_change) {
+    const char *key;
+    DBusMessageIter variant_i;
+
+    pa_assert(d);
+
+    key = check_variant_property(i);
+    if (key == NULL) {
+        pa_log_error("Received invalid property for device %s", d->path);
+        return;
+    }
+
+    dbus_message_iter_recurse(i, &variant_i);
+
+    switch (dbus_message_iter_get_arg_type(&variant_i)) {
+
+        case DBUS_TYPE_STRING: {
+            const char *value;
+            dbus_message_iter_get_basic(&variant_i, &value);
+
+            if (pa_streq(key, "Alias")) {
+                pa_xfree(d->alias);
+                d->alias = pa_xstrdup(value);
+                pa_log_debug("%s: %s", key, value);
+            } else if (pa_streq(key, "Address")) {
+                if (is_property_change) {
+                    pa_log_warn("Device property 'Address' expected to be constant but changed for %s, ignoring", d->path);
+                    return;
+                }
+
+                if (d->address) {
+                    pa_log_warn("Device %s: Received a duplicate 'Address' property, ignoring", d->path);
+                    return;
+                }
+
+                d->address = pa_xstrdup(value);
+                pa_log_debug("%s: %s", key, value);
+            }
+
+            break;
+        }
+
+        case DBUS_TYPE_OBJECT_PATH: {
+            const char *value;
+            dbus_message_iter_get_basic(&variant_i, &value);
+
+            if (pa_streq(key, "Adapter")) {
+
+                if (is_property_change) {
+                    pa_log_warn("Device property 'Adapter' expected to be constant but changed for %s, ignoring", d->path);
+                    return;
+                }
+
+                if (d->adapter) {
+                    pa_log_warn("Device %s: Received a duplicate 'Adapter' property, ignoring", d->path);
+                    return;
+                }
+
+                d->adapter = pa_hashmap_get(d->discovery->adapters, value);
+                if (!d->adapter)
+                    pa_log_info("Device %s: 'Adapter' property references an unknown adapter %s.", d->path, value);
+
+                pa_log_debug("%s: %s", key, value);
+            }
+
+            break;
+        }
+
+        case DBUS_TYPE_UINT32: {
+            uint32_t value;
+            dbus_message_iter_get_basic(&variant_i, &value);
+
+            if (pa_streq(key, "Class")) {
+                d->class_of_device = value;
+                pa_log_debug("%s: %d", key, value);
+            }
+
+            break;
+        }
+
+        case DBUS_TYPE_ARRAY: {
+            DBusMessageIter ai;
+            dbus_message_iter_recurse(&variant_i, &ai);
+
+            if (dbus_message_iter_get_arg_type(&ai) == DBUS_TYPE_STRING && pa_streq(key, "UUIDs")) {
+                /* bluetoothd never removes UUIDs from a device object so there
+                 * is no need to handle it here. */
+                while (dbus_message_iter_get_arg_type(&ai) != DBUS_TYPE_INVALID) {
+                    const char *value;
+                    char *uuid;
+
+                    dbus_message_iter_get_basic(&ai, &value);
+
+                    if (pa_hashmap_get(d->uuids, value)) {
+                        dbus_message_iter_next(&ai);
+                        continue;
+                    }
+
+                    uuid = pa_xstrdup(value);
+                    pa_hashmap_put(d->uuids, uuid, uuid);
+
+                    pa_log_debug("%s: %s", key, value);
+                    dbus_message_iter_next(&ai);
+                }
+            }
+
+            break;
+        }
+    }
+}
+
+static int parse_device_properties(pa_bluetooth_device *d, DBusMessageIter *i, bool is_property_change) {
+    DBusMessageIter element_i;
+    int ret = 0;
+
+    dbus_message_iter_recurse(i, &element_i);
+
+    while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
+        DBusMessageIter dict_i;
+
+        dbus_message_iter_recurse(&element_i, &dict_i);
+        parse_device_property(d, &dict_i, is_property_change);
+        dbus_message_iter_next(&element_i);
+    }
+
+    if (!d->address || !d->adapter || !d->alias) {
+        pa_log_error("Non-optional information missing for device %s", d->path);
+        d->device_info_valid = -1;
+        return -1;
+    }
+
+    d->device_info_valid = 1;
+    return ret;
 }
 
 static void parse_adapter_properties(pa_bluetooth_adapter *a, DBusMessageIter *i, bool is_property_change) {
@@ -546,6 +685,7 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
 static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessageIter *dict_i) {
     DBusMessageIter element_i;
     const char *path;
+    pa_bluetooth_device *d;
 
     pa_assert(dbus_message_iter_get_arg_type(dict_i) == DBUS_TYPE_OBJECT_PATH);
     dbus_message_iter_get_basic(dict_i, &path);
@@ -586,7 +726,6 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
             register_endpoint(y, path, A2DP_SINK_ENDPOINT, PA_BLUETOOTH_UUID_A2DP_SINK);
 
         } else if (pa_streq(interface, BLUEZ_DEVICE_INTERFACE)) {
-            pa_bluetooth_device *d;
 
             if ((d = pa_hashmap_get(y->devices, path))) {
                 if (d->device_info_valid != 0) {
@@ -598,7 +737,7 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
 
             pa_log_debug("Device %s found", d->path);
 
-            /* TODO: parse device properties */
+            parse_device_properties(d, &iface_i, false);
 
         } else
             pa_log_debug("Unknown interface %s found, skipping", interface);
