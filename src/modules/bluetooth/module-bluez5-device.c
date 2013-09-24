@@ -1882,3 +1882,12 @@ void pa__done(pa_module *m) {
 
     pa_xfree(u);
 }
+
+int pa__get_n_used(pa_module *m) {
+    struct userdata *u;
+
+    pa_assert(m);
+    pa_assert_se(u = m->userdata);
+
+    return (u->sink ? pa_sink_linked_by(u->sink) : 0) + (u->source ? pa_source_linked_by(u->source) : 0);
+}
