@@ -55,6 +55,8 @@ struct userdata {
 
     pa_card *card;
     pa_bluetooth_profile_t profile;
+    char *output_port_name;
+    char *input_port_name;
 };
 
 typedef enum pa_bluetooth_form_factor {
@@ -172,6 +174,143 @@ static char *cleanup_name(const char *name) {
 }
 
 /* Run from main thread */
+static pa_direction_t get_profile_direction(pa_bluetooth_profile_t p) {
+    static const pa_direction_t profile_direction[] = {
+        [PA_BLUETOOTH_PROFILE_A2DP_SINK] = PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_A2DP_SOURCE] = PA_DIRECTION_INPUT,
+        [PA_BLUETOOTH_PROFILE_OFF] = 0
+    };
+
+    return profile_direction[p];
+}
+
+/* Run from main thread */
+static pa_available_t get_port_availability(struct userdata *u, pa_direction_t direction) {
+    pa_available_t result = PA_AVAILABLE_NO;
+    unsigned i;
+
+    pa_assert(u);
+    pa_assert(u->device);
+
+    for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++) {
+        pa_bluetooth_transport *transport;
+
+        if (!(get_profile_direction(i) & direction))
+            continue;
+
+        if (!(transport = u->device->transports[i]))
+            continue;
+
+        switch(transport->state) {
+            case PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED:
+                continue;
+
+            case PA_BLUETOOTH_TRANSPORT_STATE_IDLE:
+                if (result == PA_AVAILABLE_NO)
+                    result = PA_AVAILABLE_UNKNOWN;
+
+                break;
+
+            case PA_BLUETOOTH_TRANSPORT_STATE_PLAYING:
+                return PA_AVAILABLE_YES;
+        }
+    }
+
+    return result;
+}
+
+/* Run from main thread */
+static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
+    pa_device_port *port;
+    pa_device_port_new_data port_data;
+    const char *name_prefix, *input_description, *output_description;
+
+    pa_assert(u);
+    pa_assert(ports);
+    pa_assert(u->device);
+
+    name_prefix = "unknown";
+    input_description = _("Bluetooth Input");
+    output_description = _("Bluetooth Output");
+
+    switch (form_factor_from_class(u->device->class_of_device)) {
+        case PA_BLUETOOTH_FORM_FACTOR_HEADSET:
+            name_prefix = "headset";
+            input_description = output_description = _("Headset");
+            break;
+
+        case PA_BLUETOOTH_FORM_FACTOR_HANDSFREE:
+            name_prefix = "handsfree";
+            input_description = output_description = _("Handsfree");
+            break;
+
+        case PA_BLUETOOTH_FORM_FACTOR_MICROPHONE:
+            name_prefix = "microphone";
+            input_description = _("Microphone");
+            output_description = _("Bluetooth Output");
+            break;
+
+        case PA_BLUETOOTH_FORM_FACTOR_SPEAKER:
+            name_prefix = "speaker";
+            input_description = _("Bluetooth Input");
+            output_description = _("Speaker");
+            break;
+
+        case PA_BLUETOOTH_FORM_FACTOR_HEADPHONE:
+            name_prefix = "headphone";
+            input_description = _("Bluetooth Input");
+            output_description = _("Headphone");
+            break;
+
+        case PA_BLUETOOTH_FORM_FACTOR_PORTABLE:
+            name_prefix = "portable";
+            input_description = output_description = _("Portable");
+            break;
+
+        case PA_BLUETOOTH_FORM_FACTOR_CAR:
+            name_prefix = "car";
+            input_description = output_description = _("Car");
+            break;
+
+        case PA_BLUETOOTH_FORM_FACTOR_HIFI:
+            name_prefix = "hifi";
+            input_description = output_description = _("HiFi");
+            break;
+
+        case PA_BLUETOOTH_FORM_FACTOR_PHONE:
+            name_prefix = "phone";
+            input_description = output_description = _("Phone");
+            break;
+
+        case PA_BLUETOOTH_FORM_FACTOR_UNKNOWN:
+            name_prefix = "unknown";
+            input_description = _("Bluetooth Input");
+            output_description = _("Bluetooth Output");
+            break;
+    }
+
+    u->output_port_name = pa_sprintf_malloc("%s-output", name_prefix);
+    pa_device_port_new_data_init(&port_data);
+    pa_device_port_new_data_set_name(&port_data, u->output_port_name);
+    pa_device_port_new_data_set_description(&port_data, output_description);
+    pa_device_port_new_data_set_direction(&port_data, PA_DIRECTION_OUTPUT);
+    pa_device_port_new_data_set_available(&port_data, get_port_availability(u, PA_DIRECTION_OUTPUT));
+    pa_assert_se(port = pa_device_port_new(u->core, &port_data, 0));
+    pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
+    pa_device_port_new_data_done(&port_data);
+
+    u->input_port_name = pa_sprintf_malloc("%s-input", name_prefix);
+    pa_device_port_new_data_init(&port_data);
+    pa_device_port_new_data_set_name(&port_data, u->input_port_name);
+    pa_device_port_new_data_set_description(&port_data, input_description);
+    pa_device_port_new_data_set_direction(&port_data, PA_DIRECTION_INPUT);
+    pa_device_port_new_data_set_available(&port_data, get_port_availability(u, PA_DIRECTION_INPUT));
+    pa_assert_se(port = pa_device_port_new(u->core, &port_data, 0));
+    pa_assert_se(pa_hashmap_put(ports, port->name, port) >= 0);
+    pa_device_port_new_data_done(&port_data);
+}
+
+/* Run from main thread */
 static int add_card(struct userdata *u) {
     const pa_bluetooth_device *d;
     pa_card_new_data data;
@@ -206,6 +345,8 @@ static int add_card(struct userdata *u) {
     pa_proplist_sets(data.proplist, "bluez.alias", d->alias);
     data.name = pa_sprintf_malloc("bluez_card.%s", d->address);
     data.namereg_fail = false;
+
+    create_card_ports(u, data.ports);
 
     cp = pa_card_profile_new("off", _("Off"), sizeof(pa_bluetooth_profile_t));
     cp->available = PA_AVAILABLE_YES;
@@ -308,6 +449,9 @@ void pa__done(pa_module *m) {
 
     if (u->discovery)
         pa_bluetooth_discovery_unref(u->discovery);
+
+    pa_xfree(u->output_port_name);
+    pa_xfree(u->input_port_name);
 
     pa_xfree(u);
 }
