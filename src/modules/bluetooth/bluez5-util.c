@@ -404,6 +404,67 @@ static void adapter_remove_all(pa_bluetooth_discovery *y) {
         adapter_free(a);
 }
 
+static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessageIter *dict_i) {
+    DBusMessageIter element_i;
+    const char *path;
+
+    pa_assert(dbus_message_iter_get_arg_type(dict_i) == DBUS_TYPE_OBJECT_PATH);
+    dbus_message_iter_get_basic(dict_i, &path);
+
+    pa_assert_se(dbus_message_iter_next(dict_i));
+    pa_assert(dbus_message_iter_get_arg_type(dict_i) == DBUS_TYPE_ARRAY);
+
+    dbus_message_iter_recurse(dict_i, &element_i);
+
+    while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
+        DBusMessageIter iface_i;
+        const char *interface;
+
+        dbus_message_iter_recurse(&element_i, &iface_i);
+
+        pa_assert(dbus_message_iter_get_arg_type(&iface_i) == DBUS_TYPE_STRING);
+        dbus_message_iter_get_basic(&iface_i, &interface);
+
+        pa_assert_se(dbus_message_iter_next(&iface_i));
+        pa_assert(dbus_message_iter_get_arg_type(&iface_i) == DBUS_TYPE_ARRAY);
+
+        if (pa_streq(interface, BLUEZ_ADAPTER_INTERFACE)) {
+            pa_bluetooth_adapter *a;
+
+            if ((a = pa_hashmap_get(y->adapters, path))) {
+                pa_log_error("Found duplicated D-Bus path for device %s", path);
+                return;
+            } else
+                a = adapter_create(y, path);
+
+            pa_log_debug("Adapter %s found", path);
+
+            /* TODO: parse adapter properties and register endpoints */
+
+        } else if (pa_streq(interface, BLUEZ_DEVICE_INTERFACE)) {
+            pa_bluetooth_device *d;
+
+            if ((d = pa_hashmap_get(y->devices, path))) {
+                if (d->device_info_valid != 0) {
+                    pa_log_error("Found duplicated D-Bus path for device %s", path);
+                    return;
+                }
+            } else
+                d = device_create(y, path);
+
+            pa_log_debug("Device %s found", d->path);
+
+            /* TODO: parse device properties */
+
+        } else
+            pa_log_debug("Unknown interface %s found, skipping", interface);
+
+        dbus_message_iter_next(&element_i);
+    }
+
+    return;
+}
+
 static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) {
     pa_dbus_pending *p;
     pa_bluetooth_discovery *y;
@@ -435,7 +496,7 @@ static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) 
 
         dbus_message_iter_recurse(&element_i, &dict_i);
 
-        /* TODO: parse interfaces and properties */
+        parse_interfaces_and_properties(y, &dict_i);
 
         dbus_message_iter_next(&element_i);
     }
@@ -514,7 +575,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             goto fail;
         }
 
-        /* TODO: parse interfaces and properties */
+        parse_interfaces_and_properties(y, &arg_i);
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
     } else if (dbus_message_is_signal(m, "org.freedesktop.DBus.ObjectManager", "InterfacesRemoved")) {
