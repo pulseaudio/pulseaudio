@@ -46,9 +46,25 @@ struct userdata {
     pa_module *module;
     pa_core *core;
 
+    pa_hook_slot *device_connection_changed_slot;
+
     pa_bluetooth_discovery *discovery;
     pa_bluetooth_device *device;
 };
+
+/* Run from main thread */
+static pa_hook_result_t device_connection_changed_cb(pa_bluetooth_discovery *y, const pa_bluetooth_device *d, struct userdata *u) {
+    pa_assert(d);
+    pa_assert(u);
+
+    if (d != u->device || pa_bluetooth_device_any_transport_connected(d))
+        return PA_HOOK_OK;
+
+    pa_log_debug("Unloading module for device %s", d->path);
+    pa_module_unload(u->core, u->module, true);
+
+    return PA_HOOK_OK;
+}
 
 int pa__init(pa_module* m) {
     struct userdata *u;
@@ -81,6 +97,10 @@ int pa__init(pa_module* m) {
 
     pa_modargs_free(ma);
 
+    u->device_connection_changed_slot =
+        pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED),
+                        PA_HOOK_NORMAL, (pa_hook_cb_t) device_connection_changed_cb, u);
+
     return 0;
 
 fail:
@@ -100,6 +120,9 @@ void pa__done(pa_module *m) {
 
     if (!(u = m->userdata))
         return;
+
+    if (u->device_connection_changed_slot)
+        pa_hook_slot_free(u->device_connection_changed_slot);
 
     if (u->discovery)
         pa_bluetooth_discovery_unref(u->discovery);
