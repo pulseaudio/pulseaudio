@@ -189,7 +189,8 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
         if (pa_streq(name, BLUEZ_SERVICE)) {
             if (old_owner && *old_owner) {
                 pa_log_debug("Bluetooth daemon disappeared");
-                /* TODO: remove all devices */
+                device_remove_all(y);
+                adapter_remove_all(y);
             }
 
             if (new_owner && *new_owner) {
