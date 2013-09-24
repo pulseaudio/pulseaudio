@@ -39,6 +39,7 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/poll.h>
 #include <pulsecore/rtpoll.h>
+#include <pulsecore/shared.h>
 #include <pulsecore/socket-util.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
@@ -1792,8 +1793,12 @@ int pa__init(pa_module* m) {
         goto fail;
     }
 
-    if (!(u->discovery = pa_bluetooth_discovery_get(m->core)))
+    if ((u->discovery = pa_shared_get(u->core, "bluetooth-discovery")))
+        pa_bluetooth_discovery_ref(u->discovery);
+    else {
+        pa_log_error("module-bluez5-discover doesn't seem to be loaded, refusing to load module-bluez5-device");
         goto fail;
+    }
 
     if (!(u->device = pa_bluetooth_discovery_get_device_by_path(u->discovery, path))) {
         pa_log_error("%s is unknown", path);

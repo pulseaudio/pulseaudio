@@ -1514,9 +1514,6 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     DBusConnection *conn;
     unsigned i;
 
-    if ((y = pa_shared_get(c, "bluetooth-discovery")))
-        return pa_bluetooth_discovery_ref(y);
-
     y = pa_xnew0(pa_bluetooth_discovery, 1);
     PA_REFCNT_INIT(y);
     y->core = c;

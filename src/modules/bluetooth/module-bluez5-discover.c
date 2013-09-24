@@ -27,6 +27,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/module.h>
+#include <pulsecore/shared.h>
 
 #include "bluez5-util.h"
 
