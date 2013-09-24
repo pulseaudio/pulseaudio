@@ -72,6 +72,7 @@ struct userdata {
 
     pa_card *card;
     pa_sink *sink;
+    pa_source *source;
     pa_bluetooth_profile_t profile;
     char *output_port_name;
     char *input_port_name;
@@ -200,6 +201,46 @@ static int transport_acquire(struct userdata *u, bool optional) {
 
     u->transport_acquired = true;
     pa_log_info("Transport %s acquired: fd %d", u->transport->path, u->stream_fd);
+
+    return 0;
+}
+
+/* Run from main thread */
+static int add_source(struct userdata *u) {
+    pa_source_new_data data;
+
+    pa_assert(u->transport);
+
+    pa_source_new_data_init(&data);
+    data.module = u->module;
+    data.card = u->card;
+    data.driver = __FILE__;
+    data.name = pa_sprintf_malloc("bluez_source.%s", u->device->address);
+    data.namereg_fail = false;
+    pa_proplist_sets(data.proplist, "bluetooth.protocol", pa_bluetooth_profile_to_string(u->profile));
+    pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
+
+    connect_ports(u, &data, PA_DIRECTION_INPUT);
+
+    if (!u->transport_acquired)
+        switch (u->profile) {
+            case PA_BLUETOOTH_PROFILE_A2DP_SOURCE:
+                data.suspend_cause = PA_SUSPEND_USER;
+                break;
+            case PA_BLUETOOTH_PROFILE_A2DP_SINK:
+            case PA_BLUETOOTH_PROFILE_OFF:
+                pa_assert_not_reached();
+                break;
+        }
+
+    u->source = pa_source_new(u->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
+    pa_source_new_data_done(&data);
+    if (!u->source) {
+        pa_log_error("Failed to create source");
+        return -1;
+    }
+
+    u->source->userdata = u;
 
     return 0;
 }
@@ -394,7 +435,9 @@ static int init_profile(struct userdata *u) {
         if (add_sink(u) < 0)
             r = -1;
 
-    /* TODO: add source */
+    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE)
+        if (add_source(u) < 0)
+            r = -1;
 
     return r;
 }
