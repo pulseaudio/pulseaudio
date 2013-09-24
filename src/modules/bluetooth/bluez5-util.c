@@ -489,10 +489,12 @@ static void parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, bo
                     return;
                 }
 
-                if (d->adapter) {
+                if (d->adapter_path) {
                     pa_log_warn("Device %s: Received a duplicate 'Adapter' property, ignoring", d->path);
                     return;
                 }
+
+                d->adapter_path = pa_xstrdup(value);
 
                 d->adapter = pa_hashmap_get(d->discovery->adapters, value);
                 if (!d->adapter)
@@ -561,7 +563,7 @@ static int parse_device_properties(pa_bluetooth_device *d, DBusMessageIter *i, b
         dbus_message_iter_next(&element_i);
     }
 
-    if (!d->address || !d->adapter || !d->alias) {
+    if (!d->address || !d->adapter_path || !d->alias) {
         pa_log_error("Non-optional information missing for device %s", d->path);
         d->device_info_valid = -1;
         return -1;
@@ -685,6 +687,7 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
 static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessageIter *dict_i) {
     DBusMessageIter element_i;
     const char *path;
+    void *state;
     pa_bluetooth_device *d;
 
     pa_assert(dbus_message_iter_get_arg_type(dict_i) == DBUS_TYPE_OBJECT_PATH);
@@ -744,6 +747,15 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
 
         dbus_message_iter_next(&element_i);
     }
+
+    PA_HASHMAP_FOREACH(d, y->devices, state)
+        if (!d->adapter && d->adapter_path) {
+            d->adapter = pa_hashmap_get(d->discovery->adapters, d->adapter_path);
+            if (!d->adapter) {
+                pa_log_error("Device %s is child of nonexistent adapter %s", d->path, d->adapter_path);
+                d->device_info_valid = -1;
+            }
+        }
 
     return;
 }

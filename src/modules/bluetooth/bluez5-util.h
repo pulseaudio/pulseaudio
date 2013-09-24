@@ -80,6 +80,7 @@ struct pa_bluetooth_device {
 
     /* Device information */
     char *path;
+    char *adapter_path;
     char *alias;
     char *address;
     uint32_t class_of_device;
