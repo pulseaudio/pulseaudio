@@ -288,6 +288,73 @@ bool pa_bluetooth_device_any_transport_connected(const pa_bluetooth_device *d) {
     return false;
 }
 
+static int transport_state_from_string(const char* value, pa_bluetooth_transport_state_t *state) {
+    pa_assert(value);
+    pa_assert(state);
+
+    if (pa_streq(value, "idle"))
+        *state = PA_BLUETOOTH_TRANSPORT_STATE_IDLE;
+    else if (pa_streq(value, "pending") || pa_streq(value, "active"))
+        *state = PA_BLUETOOTH_TRANSPORT_STATE_PLAYING;
+    else
+        return -1;
+
+    return 0;
+}
+
+static void parse_transport_property(pa_bluetooth_transport *t, DBusMessageIter *i) {
+    const char *key;
+    DBusMessageIter variant_i;
+
+    key = check_variant_property(i);
+    if (key == NULL)
+        return;
+
+    dbus_message_iter_recurse(i, &variant_i);
+
+    switch (dbus_message_iter_get_arg_type(&variant_i)) {
+
+        case DBUS_TYPE_STRING: {
+
+            const char *value;
+            dbus_message_iter_get_basic(&variant_i, &value);
+
+            if (pa_streq(key, "State")) {
+                pa_bluetooth_transport_state_t state;
+
+                if (transport_state_from_string(value, &state) < 0) {
+                    pa_log_error("Invalid state received: %s", value);
+                    return;
+                }
+
+                transport_state_changed(t, state);
+            }
+
+            break;
+        }
+    }
+
+    return;
+}
+
+static int parse_transport_properties(pa_bluetooth_transport *t, DBusMessageIter *i) {
+    DBusMessageIter element_i;
+
+    dbus_message_iter_recurse(i, &element_i);
+
+    while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
+        DBusMessageIter dict_i;
+
+        dbus_message_iter_recurse(&element_i, &dict_i);
+
+        parse_transport_property(t, &dict_i);
+
+        dbus_message_iter_next(&element_i);
+    }
+
+    return 0;
+}
+
 static pa_bluetooth_device* device_create(pa_bluetooth_discovery *y, const char *path) {
     pa_bluetooth_device *d;
 
@@ -953,6 +1020,15 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             }
 
             parse_device_properties(d, &arg_i, true);
+        } else if (pa_streq(iface, BLUEZ_MEDIA_TRANSPORT_INTERFACE)) {
+            pa_bluetooth_transport *t;
+
+            pa_log_debug("Properties changed in transport %s", dbus_message_get_path(m));
+
+            if (!(t = pa_hashmap_get(y->transports, dbus_message_get_path(m))))
+                return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+
+            parse_transport_properties(t, &arg_i);
         }
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
@@ -1480,6 +1556,8 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
             ",arg0='" BLUEZ_ADAPTER_INTERFACE "'",
             "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"
             ",arg0='" BLUEZ_DEVICE_INTERFACE "'",
+            "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"
+            ",arg0='" BLUEZ_MEDIA_TRANSPORT_INTERFACE "'",
             NULL) < 0) {
         pa_log_error("Failed to add D-Bus matches: %s", err.message);
         goto fail;
@@ -1547,6 +1625,8 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
                 "member='PropertiesChanged',arg0='" BLUEZ_ADAPTER_INTERFACE "'",
                 "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',"
                 "member='PropertiesChanged',arg0='" BLUEZ_DEVICE_INTERFACE "'",
+                "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',"
+                "member='PropertiesChanged',arg0='" BLUEZ_MEDIA_TRANSPORT_INTERFACE "'",
                 NULL);
 
         if (y->filter_added)
