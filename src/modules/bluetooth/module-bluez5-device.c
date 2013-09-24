@@ -97,6 +97,7 @@ struct userdata {
     pa_core *core;
 
     pa_hook_slot *device_connection_changed_slot;
+    pa_hook_slot *transport_state_changed_slot;
 
     pa_bluetooth_discovery *discovery;
     pa_bluetooth_device *device;
@@ -1670,6 +1671,62 @@ static int add_card(struct userdata *u) {
 }
 
 /* Run from main thread */
+static void handle_transport_state_change(struct userdata *u, struct pa_bluetooth_transport *t) {
+    bool acquire = false;
+    bool release = false;
+    pa_card_profile *cp;
+    pa_device_port *port;
+
+    pa_assert(u);
+    pa_assert(t);
+
+    /* Update profile availability */
+    if (!(cp = pa_hashmap_get(u->card->profiles, pa_bluetooth_profile_to_string(t->profile))))
+        return;
+    pa_card_profile_set_available(cp, transport_state_to_availability(t->state));
+
+    /* Update port availability */
+    pa_assert_se(port = pa_hashmap_get(u->card->ports, u->output_port_name));
+    pa_device_port_set_available(port, get_port_availability(u, PA_DIRECTION_OUTPUT));
+    pa_assert_se(port = pa_hashmap_get(u->card->ports, u->input_port_name));
+    pa_device_port_set_available(port, get_port_availability(u, PA_DIRECTION_INPUT));
+
+    /* Acquire or release transport as needed */
+    acquire = (t->state == PA_BLUETOOTH_TRANSPORT_STATE_PLAYING && u->profile == t->profile);
+    release = (t->state != PA_BLUETOOTH_TRANSPORT_STATE_PLAYING && u->profile == t->profile);
+
+    if (acquire && transport_acquire(u, true) >= 0) {
+        if (u->source) {
+            pa_log_debug("Resuming source %s because its transport state changed to playing", u->source->name);
+            pa_source_suspend(u->source, false, PA_SUSPEND_IDLE|PA_SUSPEND_USER);
+        }
+
+        if (u->sink) {
+            pa_log_debug("Resuming sink %s because its transport state changed to playing", u->sink->name);
+            pa_sink_suspend(u->sink, false, PA_SUSPEND_IDLE|PA_SUSPEND_USER);
+        }
+    }
+
+    if (release && u->transport_acquired) {
+        /* FIXME: this release is racy, since the audio stream might have
+         * been set up again in the meantime (but not processed yet by PA).
+         * BlueZ should probably release the transport automatically, and in
+         * that case we would just mark the transport as released */
+
+        /* Remote side closed the stream so we consider it PA_SUSPEND_USER */
+        if (u->source) {
+            pa_log_debug("Suspending source %s because the remote end closed the stream", u->source->name);
+            pa_source_suspend(u->source, true, PA_SUSPEND_USER);
+        }
+
+        if (u->sink) {
+            pa_log_debug("Suspending sink %s because the remote end closed the stream", u->sink->name);
+            pa_sink_suspend(u->sink, true, PA_SUSPEND_USER);
+        }
+    }
+}
+
+/* Run from main thread */
 static pa_hook_result_t device_connection_changed_cb(pa_bluetooth_discovery *y, const pa_bluetooth_device *d, struct userdata *u) {
     pa_assert(d);
     pa_assert(u);
@@ -1679,6 +1736,20 @@ static pa_hook_result_t device_connection_changed_cb(pa_bluetooth_discovery *y, 
 
     pa_log_debug("Unloading module for device %s", d->path);
     pa_module_unload(u->core, u->module, true);
+
+    return PA_HOOK_OK;
+}
+
+/* Run from main thread */
+static pa_hook_result_t transport_state_changed_cb(pa_bluetooth_discovery *y, pa_bluetooth_transport *t, struct userdata *u) {
+    pa_assert(t);
+    pa_assert(u);
+
+    if (t == u->transport && t->state <= PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
+        pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
+
+    if (t->device == u->device)
+        handle_transport_state_change(u, t);
 
     return PA_HOOK_OK;
 }
@@ -1735,6 +1806,10 @@ int pa__init(pa_module* m) {
         pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED),
                         PA_HOOK_NORMAL, (pa_hook_cb_t) device_connection_changed_cb, u);
 
+    u->transport_state_changed_slot =
+        pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED),
+                        PA_HOOK_NORMAL, (pa_hook_cb_t) transport_state_changed_cb, u);
+
     if (add_card(u) < 0)
         goto fail;
 
@@ -1783,6 +1858,9 @@ void pa__done(pa_module *m) {
 
     if (u->device_connection_changed_slot)
         pa_hook_slot_free(u->device_connection_changed_slot);
+
+    if (u->transport_state_changed_slot)
+        pa_hook_slot_free(u->transport_state_changed_slot);
 
     if (u->sbc_info.buffer)
         pa_xfree(u->sbc_info.buffer);
