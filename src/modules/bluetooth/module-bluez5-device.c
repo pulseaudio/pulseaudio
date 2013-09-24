@@ -660,6 +660,82 @@ static void setup_stream(struct userdata *u) {
         u->read_smoother = pa_smoother_new(PA_USEC_PER_SEC, 2*PA_USEC_PER_SEC, true, true, 10, pa_rtclock_now(), true);
 }
 
+/* Run from IO thread */
+static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
+    struct userdata *u = PA_SOURCE(o)->userdata;
+    bool failed = false;
+    int r;
+
+    pa_assert(u->source == PA_SOURCE(o));
+    pa_assert(u->transport);
+
+    switch (code) {
+
+        case PA_SOURCE_MESSAGE_SET_STATE:
+
+            switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
+
+                case PA_SOURCE_SUSPENDED:
+                    /* Ignore if transition is PA_SOURCE_INIT->PA_SOURCE_SUSPENDED */
+                    if (!PA_SOURCE_IS_OPENED(u->source->thread_info.state))
+                        break;
+
+                    /* Stop the device if the sink is suspended as well */
+                    if (!u->sink || u->sink->state == PA_SINK_SUSPENDED)
+                        transport_release(u);
+
+                    if (u->read_smoother)
+                        pa_smoother_pause(u->read_smoother, pa_rtclock_now());
+
+                    break;
+
+                case PA_SOURCE_IDLE:
+                case PA_SOURCE_RUNNING:
+                    if (u->source->thread_info.state != PA_SOURCE_SUSPENDED)
+                        break;
+
+                    /* Resume the device if the sink was suspended as well */
+                    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
+                        if (transport_acquire(u, false) < 0)
+                            failed = true;
+                        else
+                            setup_stream(u);
+                    }
+
+                    /* We don't resume the smoother here. Instead we
+                     * wait until the first packet arrives */
+
+                    break;
+
+                case PA_SOURCE_UNLINKED:
+                case PA_SOURCE_INIT:
+                case PA_SOURCE_INVALID_STATE:
+                    break;
+            }
+
+            break;
+
+        case PA_SOURCE_MESSAGE_GET_LATENCY: {
+            pa_usec_t wi, ri;
+
+            if (u->read_smoother) {
+                wi = pa_smoother_get(u->read_smoother, pa_rtclock_now());
+                ri = pa_bytes_to_usec(u->read_index, &u->sample_spec);
+
+                *((pa_usec_t*) data) = FIXED_LATENCY_RECORD_A2DP + wi > ri ? FIXED_LATENCY_RECORD_A2DP + wi - ri : 0;
+            } else
+                *((pa_usec_t*) data) = 0;
+
+            return 0;
+        }
+
+    }
+
+    r = pa_source_process_msg(o, code, data, offset, chunk);
+
+    return (r < 0 || !failed) ? r : -1;
+}
+
 /* Run from main thread */
 static int add_source(struct userdata *u) {
     pa_source_new_data data;
@@ -696,6 +772,7 @@ static int add_source(struct userdata *u) {
     }
 
     u->source->userdata = u;
+    u->source->parent.process_msg = source_process_msg;
 
     return 0;
 }
