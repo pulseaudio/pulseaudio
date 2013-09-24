@@ -36,6 +36,7 @@
 #include "bluez5-util.h"
 
 #define BLUEZ_SERVICE "org.bluez"
+#define BLUEZ_MEDIA_TRANSPORT_INTERFACE BLUEZ_SERVICE ".MediaTransport1"
 
 struct pa_bluetooth_discovery {
     PA_REFCNT_DECLARE;
@@ -47,7 +48,164 @@ struct pa_bluetooth_discovery {
     pa_hook hooks[PA_BLUETOOTH_HOOK_MAX];
     pa_hashmap *adapters;
     pa_hashmap *devices;
+    pa_hashmap *transports;
 };
+
+pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,
+                                                   pa_bluetooth_profile_t p, const uint8_t *config, size_t size) {
+    pa_bluetooth_transport *t;
+
+    t = pa_xnew0(pa_bluetooth_transport, 1);
+    t->device = d;
+    t->owner = pa_xstrdup(owner);
+    t->path = pa_xstrdup(path);
+    t->profile = p;
+    t->config_size = size;
+
+    if (size > 0) {
+        t->config = pa_xnew(uint8_t, size);
+        memcpy(t->config, config, size);
+    }
+
+    pa_assert_se(pa_hashmap_put(d->discovery->transports, t->path, t) >= 0);
+
+    return t;
+}
+
+static const char *transport_state_to_string(pa_bluetooth_transport_state_t state) {
+    switch(state) {
+        case PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED:
+            return "disconnected";
+        case PA_BLUETOOTH_TRANSPORT_STATE_IDLE:
+            return "idle";
+        case PA_BLUETOOTH_TRANSPORT_STATE_PLAYING:
+            return "playing";
+    }
+
+    return "invalid";
+}
+
+static void transport_state_changed(pa_bluetooth_transport *t, pa_bluetooth_transport_state_t state) {
+    bool old_any_connected;
+
+    pa_assert(t);
+
+    if (t->state == state)
+        return;
+
+    old_any_connected = pa_bluetooth_device_any_transport_connected(t->device);
+
+    pa_log_debug("Transport %s state changed from %s to %s",
+                 t->path, transport_state_to_string(t->state), transport_state_to_string(state));
+
+    t->state = state;
+    if (state == PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
+        t->device->transports[t->profile] = NULL;
+
+    pa_hook_fire(&t->device->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], t);
+
+    if (old_any_connected != pa_bluetooth_device_any_transport_connected(t->device))
+        pa_hook_fire(&t->device->discovery->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED], t->device);
+}
+
+void pa_bluetooth_transport_put(pa_bluetooth_transport *t) {
+    transport_state_changed(t, PA_BLUETOOTH_TRANSPORT_STATE_IDLE);
+}
+
+void pa_bluetooth_transport_free(pa_bluetooth_transport *t) {
+    pa_assert(t);
+
+    pa_hashmap_remove(t->device->discovery->transports, t->path);
+    pa_xfree(t->owner);
+    pa_xfree(t->path);
+    pa_xfree(t->config);
+    pa_xfree(t);
+}
+
+static int bluez5_transport_acquire_cb(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu) {
+    DBusMessage *m, *r;
+    DBusError err;
+    int ret;
+    uint16_t i, o;
+    const char *method = optional ? "TryAcquire" : "Acquire";
+
+    pa_assert(t);
+    pa_assert(t->device);
+    pa_assert(t->device->discovery);
+
+    pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, BLUEZ_MEDIA_TRANSPORT_INTERFACE, method));
+
+    dbus_error_init(&err);
+
+    r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
+    if (!r) {
+        if (optional && pa_streq(err.name, "org.bluez.Error.NotAvailable"))
+            pa_log_info("Failed optional acquire of unavailable transport %s", t->path);
+        else
+            pa_log_error("Transport %s() failed for transport %s (%s)", method, t->path, err.message);
+
+        dbus_error_free(&err);
+        return -1;
+    }
+
+    if (!dbus_message_get_args(r, &err, DBUS_TYPE_UNIX_FD, &ret, DBUS_TYPE_UINT16, &i, DBUS_TYPE_UINT16, &o,
+                               DBUS_TYPE_INVALID)) {
+        pa_log_error("Failed to parse %s() reply: %s", method, err.message);
+        dbus_error_free(&err);
+        ret = -1;
+        goto finish;
+    }
+
+    if (imtu)
+        *imtu = i;
+
+    if (omtu)
+        *omtu = o;
+
+finish:
+    dbus_message_unref(r);
+    return ret;
+}
+
+static void bluez5_transport_release_cb(pa_bluetooth_transport *t) {
+    DBusMessage *m;
+    DBusError err;
+
+    pa_assert(t);
+    pa_assert(t->device);
+    pa_assert(t->device->discovery);
+
+    dbus_error_init(&err);
+
+    if (t->state <= PA_BLUETOOTH_TRANSPORT_STATE_IDLE) {
+        pa_log_info("Transport %s auto-released by BlueZ or already released", t->path);
+        return;
+    }
+
+    pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, BLUEZ_MEDIA_TRANSPORT_INTERFACE, "Release"));
+    dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
+
+    if (dbus_error_is_set(&err)) {
+        pa_log_error("Failed to release transport %s: %s", t->path, err.message);
+        dbus_error_free(&err);
+    } else
+        pa_log_info("Transport %s released", t->path);
+}
+
+bool pa_bluetooth_device_any_transport_connected(const pa_bluetooth_device *d) {
+    unsigned i;
+
+    pa_assert(d);
+
+    if (d->device_info_valid != 1)
+        return false;
+
+    for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++)
+        if (d->transports[i] && d->transports[i]->state != PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
+            return true;
+
+    return false;
+}
 
 static pa_bluetooth_device* device_create(pa_bluetooth_discovery *y, const char *path) {
     pa_bluetooth_device *d;
@@ -95,7 +253,19 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_address(pa_bluetooth_d
 }
 
 static void device_free(pa_bluetooth_device *d) {
+    unsigned i;
+
     pa_assert(d);
+
+    for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++) {
+        pa_bluetooth_transport *t;
+
+        if (!(t = d->transports[i]))
+            continue;
+
+        transport_state_changed(t, PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED);
+        pa_bluetooth_transport_free(t);
+    }
 
     d->discovery = NULL;
     d->adapter = NULL;
@@ -222,6 +392,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     y->core = c;
     y->adapters = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     y->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    y->transports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     for (i = 0; i < PA_BLUETOOTH_HOOK_MAX; i++)
         pa_hook_init(&y->hooks[i], y);
@@ -286,6 +457,11 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
     if (y->adapters) {
         adapter_remove_all(y);
         pa_hashmap_free(y->adapters);
+    }
+
+    if (y->transports) {
+        pa_assert(pa_hashmap_isempty(y->transports));
+        pa_hashmap_free(y->transports);
     }
 
     if (y->connection) {

@@ -24,14 +24,50 @@
 
 #include <pulsecore/core.h>
 
+typedef struct pa_bluetooth_transport pa_bluetooth_transport;
 typedef struct pa_bluetooth_device pa_bluetooth_device;
 typedef struct pa_bluetooth_adapter pa_bluetooth_adapter;
 typedef struct pa_bluetooth_discovery pa_bluetooth_discovery;
 
 typedef enum pa_bluetooth_hook {
     PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED,          /* Call data: pa_bluetooth_device */
+    PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED,            /* Call data: pa_bluetooth_transport */
     PA_BLUETOOTH_HOOK_MAX
 } pa_bluetooth_hook_t;
+
+typedef enum profile {
+    PA_BLUETOOTH_PROFILE_A2DP_SINK,
+    PA_BLUETOOTH_PROFILE_A2DP_SOURCE,
+    PA_BLUETOOTH_PROFILE_OFF
+} pa_bluetooth_profile_t;
+#define PA_BLUETOOTH_PROFILE_COUNT PA_BLUETOOTH_PROFILE_OFF
+
+typedef enum pa_bluetooth_transport_state {
+    PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED,
+    PA_BLUETOOTH_TRANSPORT_STATE_IDLE,
+    PA_BLUETOOTH_TRANSPORT_STATE_PLAYING
+} pa_bluetooth_transport_state_t;
+
+typedef int (*pa_bluetooth_transport_acquire_cb)(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu);
+typedef void (*pa_bluetooth_transport_release_cb)(pa_bluetooth_transport *t);
+
+struct pa_bluetooth_transport {
+    pa_bluetooth_device *device;
+
+    char *owner;
+    char *path;
+    pa_bluetooth_profile_t profile;
+
+    uint8_t codec;
+    uint8_t *config;
+    size_t config_size;
+
+    pa_bluetooth_transport_state_t state;
+
+    pa_bluetooth_transport_acquire_cb acquire;
+    pa_bluetooth_transport_release_cb release;
+    void *userdata;
+};
 
 struct pa_bluetooth_device {
     pa_bluetooth_discovery *discovery;
@@ -44,6 +80,8 @@ struct pa_bluetooth_device {
     char *alias;
     char *address;
     uint32_t class_of_device;
+
+    pa_bluetooth_transport *transports[PA_BLUETOOTH_PROFILE_COUNT];
 };
 
 struct pa_bluetooth_adapter {
@@ -51,6 +89,14 @@ struct pa_bluetooth_adapter {
     char *path;
     char *address;
 };
+
+pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,
+                                                   pa_bluetooth_profile_t p, const uint8_t *config, size_t size);
+
+void pa_bluetooth_transport_put(pa_bluetooth_transport *t);
+void pa_bluetooth_transport_free(pa_bluetooth_transport *t);
+
+bool pa_bluetooth_device_any_transport_connected(const pa_bluetooth_device *d);
 
 pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_path(pa_bluetooth_discovery *y, const char *path);
 pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_address(pa_bluetooth_discovery *y, const char *remote, const char *local);
