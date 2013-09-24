@@ -2105,46 +2105,7 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
                     return -1;
                 } else {
                     const char *filename = cs+l+strspn(cs+l, whitespace);
-
-                    /* Search DL_SEARCH_PATH unless the filename is absolute */
-                    if (filename[0] == PA_PATH_SEP_CHAR) {
-
-                        *ifstate = access(filename, F_OK) == 0 ? IFSTATE_TRUE : IFSTATE_FALSE;
-                        pa_log_debug("Checking for existence of '%s': %s", filename, *ifstate == IFSTATE_TRUE ? "success" : "failure");
-
-                    } else {
-                        const char *paths, *state = NULL;
-                        char *p;
-
-                        if (!(paths = lt_dlgetsearchpath()))
-                            return -1;
-
-                        while ((p = pa_split(paths, ":", &state))) {
-                            char *pathname;
-
-                            pathname = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", p, filename);
-
-                            *ifstate = access(pathname, F_OK) == 0 ? IFSTATE_TRUE : IFSTATE_FALSE;
-                            pa_log_debug("Checking for existence of '%s': %s", pathname, *ifstate == IFSTATE_TRUE ? "success" : "failure");
-
-                            if (PA_UNLIKELY(pa_run_from_build_tree())) {
-                                /* If run from the build tree, search in <path>/.libs as well */
-                                char *ltpathname = pa_sprintf_malloc("%s" PA_PATH_SEP ".libs" PA_PATH_SEP "%s", p, filename);
-
-                                *ifstate = access(ltpathname, F_OK) == 0 ? IFSTATE_TRUE : IFSTATE_FALSE;
-                                pa_log_debug("Checking for existence of '%s': %s", ltpathname, *ifstate == IFSTATE_TRUE ? "success" : "failure");
-
-                                pa_xfree(ltpathname);
-                            }
-
-                            pa_xfree(p);
-                            pa_xfree(pathname);
-
-                            if (*ifstate == IFSTATE_TRUE)
-                                break;
-                        }
-                    }
-
+                    *ifstate = pa_module_exists(filename) ? IFSTATE_TRUE : IFSTATE_FALSE;
                 }
             } else {
                 pa_strbuf_printf(buf, "Invalid meta command: %s\n", cs);
