@@ -80,7 +80,26 @@ struct pa_bluetooth_discovery {
     pa_hashmap *adapters;
     pa_hashmap *devices;
     pa_hashmap *transports;
+
+    PA_LLIST_HEAD(pa_dbus_pending, pending);
 };
+
+static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, DBusMessage *m,
+                                                                  DBusPendingCallNotifyFunction func, void *call_data) {
+    pa_dbus_pending *p;
+    DBusPendingCall *call;
+
+    pa_assert(y);
+    pa_assert(m);
+
+    pa_assert_se(dbus_connection_send_with_reply(pa_dbus_connection_get(y->connection), m, &call, -1));
+
+    p = pa_dbus_pending_new(pa_dbus_connection_get(y->connection), m, call, y, call_data);
+    PA_LLIST_PREPEND(pa_dbus_pending, y->pending, p);
+    dbus_pending_call_set_notify(call, func, p, NULL);
+
+    return p;
+}
 
 pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,
                                                    pa_bluetooth_profile_t p, const uint8_t *config, size_t size) {
@@ -892,6 +911,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     y->adapters = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     y->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     y->transports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    PA_LLIST_HEAD_INIT(pa_dbus_pending, y->pending);
 
     for (i = 0; i < PA_BLUETOOTH_HOOK_MAX; i++)
         pa_hook_init(&y->hooks[i], y);
@@ -950,6 +970,8 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
     if (PA_REFCNT_DEC(y) > 0)
         return;
+
+    pa_dbus_free_pending_list(&y->pending);
 
     if (y->devices) {
         device_remove_all(y);
