@@ -40,8 +40,11 @@
 #define BLUEZ_SERVICE "org.bluez"
 #define BLUEZ_ADAPTER_INTERFACE BLUEZ_SERVICE ".Adapter1"
 #define BLUEZ_DEVICE_INTERFACE BLUEZ_SERVICE ".Device1"
+#define BLUEZ_MEDIA_INTERFACE BLUEZ_SERVICE ".Media1"
 #define BLUEZ_MEDIA_ENDPOINT_INTERFACE BLUEZ_SERVICE ".MediaEndpoint1"
 #define BLUEZ_MEDIA_TRANSPORT_INTERFACE BLUEZ_SERVICE ".MediaTransport1"
+
+#define BLUEZ_ERROR_NOT_SUPPORTED "org.bluez.Error.NotSupported"
 
 #define A2DP_SOURCE_ENDPOINT "/MediaEndpoint/A2DPSource"
 #define A2DP_SINK_ENDPOINT "/MediaEndpoint/A2DPSink"
@@ -471,6 +474,75 @@ static void parse_adapter_properties(pa_bluetooth_adapter *a, DBusMessageIter *i
     }
 }
 
+static void register_endpoint_reply(DBusPendingCall *pending, void *userdata) {
+    DBusMessage *r;
+    pa_dbus_pending *p;
+    pa_bluetooth_discovery *y;
+    char *endpoint;
+
+    pa_assert(pending);
+    pa_assert_se(p = userdata);
+    pa_assert_se(y = p->context_data);
+    pa_assert_se(endpoint = p->call_data);
+    pa_assert_se(r = dbus_pending_call_steal_reply(pending));
+
+    if (dbus_message_is_error(r, BLUEZ_ERROR_NOT_SUPPORTED)) {
+        pa_log_info("Couldn't register endpoint %s because it is disabled in BlueZ", endpoint);
+        goto finish;
+    }
+
+    if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
+        pa_log_error(BLUEZ_MEDIA_INTERFACE ".RegisterEndpoint() failed: %s: %s", dbus_message_get_error_name(r),
+                     pa_dbus_get_error_message(r));
+        goto finish;
+    }
+
+finish:
+    dbus_message_unref(r);
+
+    PA_LLIST_REMOVE(pa_dbus_pending, y->pending, p);
+    pa_dbus_pending_free(p);
+
+    pa_xfree(endpoint);
+}
+
+static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const char *endpoint, const char *uuid) {
+    DBusMessage *m;
+    DBusMessageIter i, d;
+    uint8_t codec = 0;
+
+    pa_log_debug("Registering %s on adapter %s", endpoint, path);
+
+    pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, path, BLUEZ_MEDIA_INTERFACE, "RegisterEndpoint"));
+
+    dbus_message_iter_init_append(m, &i);
+    dbus_message_iter_append_basic(&i, DBUS_TYPE_OBJECT_PATH, &endpoint);
+    dbus_message_iter_open_container(&i, DBUS_TYPE_ARRAY, DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING DBUS_TYPE_STRING_AS_STRING
+                                         DBUS_TYPE_VARIANT_AS_STRING DBUS_DICT_ENTRY_END_CHAR_AS_STRING, &d);
+    pa_dbus_append_basic_variant_dict_entry(&d, "UUID", DBUS_TYPE_STRING, &uuid);
+    pa_dbus_append_basic_variant_dict_entry(&d, "Codec", DBUS_TYPE_BYTE, &codec);
+
+    if (pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SOURCE) || pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SINK)) {
+        a2dp_sbc_t capabilities;
+
+        capabilities.channel_mode = SBC_CHANNEL_MODE_MONO | SBC_CHANNEL_MODE_DUAL_CHANNEL | SBC_CHANNEL_MODE_STEREO |
+                                    SBC_CHANNEL_MODE_JOINT_STEREO;
+        capabilities.frequency = SBC_SAMPLING_FREQ_16000 | SBC_SAMPLING_FREQ_32000 | SBC_SAMPLING_FREQ_44100 |
+                                 SBC_SAMPLING_FREQ_48000;
+        capabilities.allocation_method = SBC_ALLOCATION_SNR | SBC_ALLOCATION_LOUDNESS;
+        capabilities.subbands = SBC_SUBBANDS_4 | SBC_SUBBANDS_8;
+        capabilities.block_length = SBC_BLOCK_LENGTH_4 | SBC_BLOCK_LENGTH_8 | SBC_BLOCK_LENGTH_12 | SBC_BLOCK_LENGTH_16;
+        capabilities.min_bitpool = MIN_BITPOOL;
+        capabilities.max_bitpool = MAX_BITPOOL;
+
+        pa_dbus_append_basic_array_variant_dict_entry(&d, "Capabilities", DBUS_TYPE_BYTE, &capabilities, sizeof(capabilities));
+    }
+
+    dbus_message_iter_close_container(&i, &d);
+
+    send_and_add_to_pending(y, m, register_endpoint_reply, pa_xstrdup(endpoint));
+}
+
 static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessageIter *dict_i) {
     DBusMessageIter element_i;
     const char *path;
@@ -510,7 +582,8 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
             if (!a->address)
                 return;
 
-            /* TODO: register endpoints with adapter */
+            register_endpoint(y, path, A2DP_SOURCE_ENDPOINT, PA_BLUETOOTH_UUID_A2DP_SOURCE);
+            register_endpoint(y, path, A2DP_SINK_ENDPOINT, PA_BLUETOOTH_UUID_A2DP_SINK);
 
         } else if (pa_streq(interface, BLUEZ_DEVICE_INTERFACE)) {
             pa_bluetooth_device *d;
