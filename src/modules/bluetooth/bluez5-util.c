@@ -33,6 +33,8 @@
 #include <pulsecore/refcnt.h>
 #include <pulsecore/shared.h>
 
+#include "a2dp-codecs.h"
+
 #include "bluez5-util.h"
 
 #define BLUEZ_SERVICE "org.bluez"
@@ -407,12 +409,182 @@ fail:
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
+const char *pa_bluetooth_profile_to_string(pa_bluetooth_profile_t profile) {
+    switch(profile) {
+        case PA_BLUETOOTH_PROFILE_A2DP_SINK:
+            return "a2dp_sink";
+        case PA_BLUETOOTH_PROFILE_A2DP_SOURCE:
+            return "a2dp_source";
+        case PA_BLUETOOTH_PROFILE_OFF:
+            return "off";
+    }
+
+    return NULL;
+}
+
 static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage *m, void *userdata) {
+    pa_bluetooth_discovery *y = userdata;
+    pa_bluetooth_device *d;
+    pa_bluetooth_transport *t;
+    const char *sender, *path, *endpoint_path, *dev_path = NULL, *uuid = NULL;
+    const uint8_t *config = NULL;
+    int size = 0;
+    pa_bluetooth_profile_t p = PA_BLUETOOTH_PROFILE_OFF;
+    DBusMessageIter args, props;
     DBusMessage *r;
 
-    pa_assert_se(r = dbus_message_new_error(m, BLUEZ_MEDIA_ENDPOINT_INTERFACE ".Error.NotImplemented",
-                                            "Method not implemented"));
+    if (!dbus_message_iter_init(m, &args) || !pa_streq(dbus_message_get_signature(m), "oa{sv}")) {
+        pa_log_error("Invalid signature for method SetConfiguration()");
+        goto fail2;
+    }
 
+    dbus_message_iter_get_basic(&args, &path);
+
+    if (pa_hashmap_get(y->transports, path)) {
+        pa_log_error("Endpoint SetConfiguration(): Transport %s is already configured.", path);
+        goto fail2;
+    }
+
+    pa_assert_se(dbus_message_iter_next(&args));
+
+    dbus_message_iter_recurse(&args, &props);
+    if (dbus_message_iter_get_arg_type(&props) != DBUS_TYPE_DICT_ENTRY)
+        goto fail;
+
+    /* Read transport properties */
+    while (dbus_message_iter_get_arg_type(&props) == DBUS_TYPE_DICT_ENTRY) {
+        const char *key;
+        DBusMessageIter value, entry;
+        int var;
+
+        dbus_message_iter_recurse(&props, &entry);
+        dbus_message_iter_get_basic(&entry, &key);
+
+        dbus_message_iter_next(&entry);
+        dbus_message_iter_recurse(&entry, &value);
+
+        var = dbus_message_iter_get_arg_type(&value);
+
+        if (pa_streq(key, "UUID")) {
+            if (var != DBUS_TYPE_STRING) {
+                pa_log_error("Property %s of wrong type %c", key, (char)var);
+                goto fail;
+            }
+
+            dbus_message_iter_get_basic(&value, &uuid);
+
+            endpoint_path = dbus_message_get_path(m);
+            if (pa_streq(endpoint_path, A2DP_SOURCE_ENDPOINT)) {
+                if (pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SOURCE))
+                    p = PA_BLUETOOTH_PROFILE_A2DP_SINK;
+            } else if (pa_streq(endpoint_path, A2DP_SINK_ENDPOINT)) {
+                if (pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SINK))
+                    p = PA_BLUETOOTH_PROFILE_A2DP_SOURCE;
+            }
+
+            if (p == PA_BLUETOOTH_PROFILE_OFF) {
+                pa_log_error("UUID %s of transport %s incompatible with endpoint %s", uuid, path, endpoint_path);
+                goto fail;
+            }
+        } else if (pa_streq(key, "Device")) {
+            if (var != DBUS_TYPE_OBJECT_PATH) {
+                pa_log_error("Property %s of wrong type %c", key, (char)var);
+                goto fail;
+            }
+
+            dbus_message_iter_get_basic(&value, &dev_path);
+        } else if (pa_streq(key, "Configuration")) {
+            DBusMessageIter array;
+            a2dp_sbc_t *c;
+
+            if (var != DBUS_TYPE_ARRAY) {
+                pa_log_error("Property %s of wrong type %c", key, (char)var);
+                goto fail;
+            }
+
+            dbus_message_iter_recurse(&value, &array);
+            var = dbus_message_iter_get_arg_type(&array);
+            if (var != DBUS_TYPE_BYTE) {
+                pa_log_error("%s is an array of wrong type %c", key, (char)var);
+                goto fail;
+            }
+
+            dbus_message_iter_get_fixed_array(&array, &config, &size);
+            if (size != sizeof(a2dp_sbc_t)) {
+                pa_log_error("Configuration array of invalid size");
+                goto fail;
+            }
+
+            c = (a2dp_sbc_t *) config;
+
+            if (c->frequency != SBC_SAMPLING_FREQ_16000 && c->frequency != SBC_SAMPLING_FREQ_32000 &&
+                c->frequency != SBC_SAMPLING_FREQ_44100 && c->frequency != SBC_SAMPLING_FREQ_48000) {
+                pa_log_error("Invalid sampling frequency in configuration");
+                goto fail;
+            }
+
+            if (c->channel_mode != SBC_CHANNEL_MODE_MONO && c->channel_mode != SBC_CHANNEL_MODE_DUAL_CHANNEL &&
+                c->channel_mode != SBC_CHANNEL_MODE_STEREO && c->channel_mode != SBC_CHANNEL_MODE_JOINT_STEREO) {
+                pa_log_error("Invalid channel mode in configuration");
+                goto fail;
+            }
+
+            if (c->allocation_method != SBC_ALLOCATION_SNR && c->allocation_method != SBC_ALLOCATION_LOUDNESS) {
+                pa_log_error("Invalid allocation method in configuration");
+                goto fail;
+            }
+
+            if (c->subbands != SBC_SUBBANDS_4 && c->subbands != SBC_SUBBANDS_8) {
+                pa_log_error("Invalid SBC subbands in configuration");
+                goto fail;
+            }
+
+            if (c->block_length != SBC_BLOCK_LENGTH_4 && c->block_length != SBC_BLOCK_LENGTH_8 &&
+                c->block_length != SBC_BLOCK_LENGTH_12 && c->block_length != SBC_BLOCK_LENGTH_16) {
+                pa_log_error("Invalid block length in configuration");
+                goto fail;
+            }
+        }
+
+        dbus_message_iter_next(&props);
+    }
+
+    if ((d = pa_hashmap_get(y->devices, dev_path))) {
+        if (d->device_info_valid == -1) {
+            pa_log_error("Information about device %s is invalid", dev_path);
+            goto fail2;
+        }
+    } else {
+        /* InterfacesAdded signal is probably on it's way, device_info_valid is kept as 0. */
+        pa_log_warn("SetConfiguration() received for unknown device %s", dev_path);
+        d = device_create(y, dev_path);
+    }
+
+    if (d->transports[p] != NULL) {
+        pa_log_error("Cannot configure transport %s because profile %s is already used", path, pa_bluetooth_profile_to_string(p));
+        goto fail2;
+    }
+
+    sender = dbus_message_get_sender(m);
+
+    pa_assert_se(r = dbus_message_new_method_return(m));
+    pa_assert_se(dbus_connection_send(pa_dbus_connection_get(y->connection), r, NULL));
+    dbus_message_unref(r);
+
+    d->transports[p] = t = pa_bluetooth_transport_new(d, sender, path, p, config, size);
+    t->acquire = bluez5_transport_acquire_cb;
+    t->release = bluez5_transport_release_cb;
+    pa_bluetooth_transport_put(t);
+
+    pa_log_debug("Transport %s available for profile %s", t->path, pa_bluetooth_profile_to_string(t->profile));
+
+    return NULL;
+
+fail:
+    pa_log_error("Endpoint SetConfiguration(): invalid arguments");
+
+fail2:
+    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.Error.InvalidArguments", "Unable to set configuration"));
     return r;
 }
 
