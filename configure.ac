@@ -1217,6 +1217,7 @@ PACTL_BINARY=${bindir}/pactl${EXEEXT}
 AX_DEFINE_DIR(PACTL_BINARY, PACTL_BINARY, [Location of pactl binary])
 
 AC_SUBST(PA_SOEXT, [.so])
+AC_DEFINE(PA_SOEXT, [".so"], [Shared object extension])
 
 AC_SUBST(pulseconfdir, ["${sysconfdir}/pulse"])
 AX_DEFINE_DIR(PA_DEFAULT_CONFIG_DIR, pulseconfdir, [Location of configuration files])

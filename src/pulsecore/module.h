@@ -50,6 +50,8 @@ struct pa_module {
     pa_proplist *proplist;
 };
 
+bool pa_module_exists(const char *name);
+
 pa_module* pa_module_load(pa_core *c, const char *name, const char *argument);
 
 void pa_module_unload(pa_core *c, pa_module *m, bool force);

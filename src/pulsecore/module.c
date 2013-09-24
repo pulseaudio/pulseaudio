@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <ltdl.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/proplist.h>
@@ -46,6 +47,60 @@
 #define PA_SYMBOL_LOAD_ONCE "pa__load_once"
 #define PA_SYMBOL_GET_N_USED "pa__get_n_used"
 #define PA_SYMBOL_GET_DEPRECATE "pa__get_deprecated"
+
+bool pa_module_exists(const char *name) {
+    const char *paths, *state = NULL;
+    char *n, *p, *pathname;
+    bool result;
+
+    pa_assert(name);
+
+    if (name[0] == PA_PATH_SEP_CHAR) {
+        result = access(name, F_OK) == 0 ? true : false;
+        pa_log_debug("Checking for existence of '%s': %s", name, result ? "success" : "failure");
+        if (result)
+            return true;
+    }
+
+    if (!(paths = lt_dlgetsearchpath()))
+        return false;
+
+    /* strip .so from the end of name, if present */
+    n = pa_xstrdup(name);
+    p = rindex(n, '.');
+    if (p && pa_streq(p, PA_SOEXT))
+        p[0] = 0;
+
+    while ((p = pa_split(paths, ":", &state))) {
+        pathname = pa_sprintf_malloc("%s" PA_PATH_SEP "%s" PA_SOEXT, p, n);
+        result = access(pathname, F_OK) == 0 ? true : false;
+        pa_log_debug("Checking for existence of '%s': %s", pathname, result ? "success" : "failure");
+        pa_xfree(pathname);
+        pa_xfree(p);
+        if (result) {
+            pa_xfree(n);
+            return true;
+        }
+    }
+
+    state = NULL;
+    if (PA_UNLIKELY(pa_run_from_build_tree())) {
+        while ((p = pa_split(paths, ":", &state))) {
+            pathname = pa_sprintf_malloc("%s" PA_PATH_SEP ".libs" PA_PATH_SEP "%s" PA_SOEXT, p, n);
+            result = access(pathname, F_OK) == 0 ? true : false;
+            pa_log_debug("Checking for existence of '%s': %s", pathname, result ? "success" : "failure");
+            pa_xfree(pathname);
+            pa_xfree(p);
+            if (result) {
+                pa_xfree(n);
+                return true;
+            }
+        }
+    }
+
+    pa_xfree(n);
+    return false;
+}
 
 pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
