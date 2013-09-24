@@ -1322,6 +1322,7 @@ endif
 
 if HAVE_BLUEZ
 modlibexec_LTLIBRARIES += \
+		module-bluetooth-discover.la \
 		module-bluetooth-policy.la
 endif
 
@@ -1426,6 +1427,7 @@ SYMDEF_FILES = \
 		module-udev-detect-symdef.h \
 		module-systemd-login-symdef.h \
 		module-bluetooth-policy-symdef.h \
+		module-bluetooth-discover-symdef.h \
 		module-bluez4-discover-symdef.h \
 		module-bluez4-device-symdef.h \
 		module-bluez5-discover-symdef.h \
@@ -2030,6 +2032,12 @@ module_bluetooth_policy_la_SOURCES = modules/bluetooth/module-bluetooth-policy.c
 module_bluetooth_policy_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_bluetooth_policy_la_LIBADD = $(MODULE_LIBADD)
 module_bluetooth_policy_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+
+# Bluetooth discover
+module_bluetooth_discover_la_SOURCES = modules/bluetooth/module-bluetooth-discover.c
+module_bluetooth_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_bluetooth_discover_la_LIBADD = $(MODULE_LIBADD)
+module_bluetooth_discover_la_CFLAGS = $(AM_CFLAGS)
 
 # Bluetooth BlueZ 4 sink / source
 module_bluez4_discover_la_SOURCES = modules/bluetooth/module-bluez4-discover.c
