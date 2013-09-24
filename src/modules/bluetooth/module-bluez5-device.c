@@ -789,6 +789,48 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
 }
 
 /* Run from main thread */
+static int set_profile_cb(pa_card *c, pa_card_profile *new_profile) {
+    struct userdata *u;
+    pa_bluetooth_profile_t *p;
+
+    pa_assert(c);
+    pa_assert(new_profile);
+    pa_assert_se(u = c->userdata);
+
+    p = PA_CARD_PROFILE_DATA(new_profile);
+
+    if (*p != PA_BLUETOOTH_PROFILE_OFF) {
+        const pa_bluetooth_device *d = u->device;
+
+        if (!d->transports[*p] || d->transports[*p]->state <= PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED) {
+            pa_log_warn("Refused to switch profile to %s: Not connected", new_profile->name);
+            return -PA_ERR_IO;
+        }
+    }
+
+    stop_thread(u);
+
+    u->profile = *p;
+
+    if (u->profile != PA_BLUETOOTH_PROFILE_OFF)
+        if (init_profile(u) < 0)
+            goto off;
+
+    if (u->sink || u->source)
+        if (start_thread(u) < 0)
+            goto off;
+
+    return 0;
+
+off:
+    stop_thread(u);
+
+    pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
+
+    return -PA_ERR_IO;
+}
+
+/* Run from main thread */
 static int add_card(struct userdata *u) {
     const pa_bluetooth_device *d;
     pa_card_new_data data;
@@ -858,6 +900,7 @@ static int add_card(struct userdata *u) {
     }
 
     u->card->userdata = u;
+    u->card->set_profile = set_profile_cb;
 
     p = PA_CARD_PROFILE_DATA(u->card->active_profile);
     u->profile = *p;
