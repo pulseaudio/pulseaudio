@@ -757,6 +757,37 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
+    } else if (dbus_message_is_signal(m, "org.freedesktop.DBus.Properties", "PropertiesChanged")) {
+        DBusMessageIter arg_i;
+        const char *iface;
+
+        if (!y->objects_listed)
+            return DBUS_HANDLER_RESULT_NOT_YET_HANDLED; /* No reply received yet from GetManagedObjects */
+
+        if (!dbus_message_iter_init(m, &arg_i) || !pa_streq(dbus_message_get_signature(m), "sa{sv}as")) {
+            pa_log_error("Invalid signature found in PropertiesChanged");
+            goto fail;
+        }
+
+        dbus_message_iter_get_basic(&arg_i, &iface);
+
+        pa_assert_se(dbus_message_iter_next(&arg_i));
+        pa_assert(dbus_message_iter_get_arg_type(&arg_i) == DBUS_TYPE_ARRAY);
+
+        if (pa_streq(iface, BLUEZ_ADAPTER_INTERFACE)) {
+            pa_bluetooth_adapter *a;
+
+            pa_log_debug("Properties changed in adapter %s", dbus_message_get_path(m));
+
+            if (!(a = pa_hashmap_get(y->adapters, dbus_message_get_path(m)))) {
+                pa_log_warn("Properties changed in unknown adapter");
+                return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+            }
+
+            parse_adapter_properties(a, &arg_i, true);
+        }
+
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
     }
 
 fail:
@@ -1277,6 +1308,8 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
             "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.ObjectManager',member='InterfacesAdded'",
             "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.ObjectManager',"
             "member='InterfacesRemoved'",
+            "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"
+            ",arg0='" BLUEZ_ADAPTER_INTERFACE "'",
             NULL) < 0) {
         pa_log_error("Failed to add D-Bus matches: %s", err.message);
         goto fail;
@@ -1340,6 +1373,8 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
                 "member='InterfacesAdded'",
                 "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.ObjectManager',"
                 "member='InterfacesRemoved'",
+                "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',"
+                "member='PropertiesChanged',arg0='" BLUEZ_ADAPTER_INTERFACE "'",
                 NULL);
 
         if (y->filter_added)
