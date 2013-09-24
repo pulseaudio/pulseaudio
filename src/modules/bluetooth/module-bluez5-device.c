@@ -220,6 +220,18 @@ static pa_available_t get_port_availability(struct userdata *u, pa_direction_t d
 }
 
 /* Run from main thread */
+static pa_available_t transport_state_to_availability(pa_bluetooth_transport_state_t state) {
+    switch (state) {
+        case PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED:
+            return PA_AVAILABLE_NO;
+        case PA_BLUETOOTH_TRANSPORT_STATE_PLAYING:
+            return PA_AVAILABLE_YES;
+        default:
+            return PA_AVAILABLE_UNKNOWN;
+    }
+}
+
+/* Run from main thread */
 static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
     pa_device_port *port;
     pa_device_port_new_data port_data;
@@ -311,6 +323,49 @@ static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
 }
 
 /* Run from main thread */
+static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid, pa_hashmap *ports) {
+    pa_device_port *input_port, *output_port;
+    pa_card_profile *cp = NULL;
+    pa_bluetooth_profile_t *p;
+
+    pa_assert(u->input_port_name);
+    pa_assert(u->output_port_name);
+    pa_assert_se(input_port = pa_hashmap_get(ports, u->input_port_name));
+    pa_assert_se(output_port = pa_hashmap_get(ports, u->output_port_name));
+
+    if (pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SINK)) {
+	/* TODO: Change this profile's name to a2dp_sink, to reflect the remote
+         * device's role and be consistent with the a2dp source profile */
+        cp = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP Sink)"), sizeof(pa_bluetooth_profile_t));
+        cp->priority = 10;
+        cp->n_sinks = 1;
+        cp->n_sources = 0;
+        cp->max_sink_channels = 2;
+        cp->max_source_channels = 0;
+        pa_hashmap_put(output_port->profiles, cp->name, cp);
+
+        p = PA_CARD_PROFILE_DATA(cp);
+        *p = PA_BLUETOOTH_PROFILE_A2DP_SINK;
+    } else if (pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SOURCE)) {
+        cp = pa_card_profile_new("a2dp_source", _("High Fidelity Capture (A2DP Source)"), sizeof(pa_bluetooth_profile_t));
+        cp->priority = 10;
+        cp->n_sinks = 0;
+        cp->n_sources = 1;
+        cp->max_sink_channels = 0;
+        cp->max_source_channels = 2;
+        pa_hashmap_put(input_port->profiles, cp->name, cp);
+
+        p = PA_CARD_PROFILE_DATA(cp);
+        *p = PA_BLUETOOTH_PROFILE_A2DP_SOURCE;
+    }
+
+    if (cp && u->device->transports[*p])
+        cp->available = transport_state_to_availability(u->device->transports[*p]->state);
+
+    return cp;
+}
+
+/* Run from main thread */
 static int add_card(struct userdata *u) {
     const pa_bluetooth_device *d;
     pa_card_new_data data;
@@ -318,6 +373,8 @@ static int add_card(struct userdata *u) {
     pa_bluetooth_form_factor_t ff;
     pa_card_profile *cp;
     pa_bluetooth_profile_t *p;
+    const char *uuid;
+    void *state;
 
     pa_assert(u);
     pa_assert(u->device);
@@ -347,6 +404,22 @@ static int add_card(struct userdata *u) {
     data.namereg_fail = false;
 
     create_card_ports(u, data.ports);
+
+    PA_HASHMAP_FOREACH(uuid, d->uuids, state) {
+        cp = create_card_profile(u, uuid, data.ports);
+
+        if (!cp)
+            continue;
+
+        if (pa_hashmap_get(data.profiles, cp->name)) {
+            pa_card_profile_free(cp);
+            continue;
+        }
+
+        pa_hashmap_put(data.profiles, cp->name, cp);
+    }
+
+    pa_assert(!pa_hashmap_isempty(data.profiles));
 
     cp = pa_card_profile_new("off", _("Off"), sizeof(pa_bluetooth_profile_t));
     cp->available = PA_AVAILABLE_YES;
