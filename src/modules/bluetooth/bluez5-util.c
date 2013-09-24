@@ -76,6 +76,7 @@ struct pa_bluetooth_discovery {
     pa_dbus_connection *connection;
     bool filter_added;
     bool matches_added;
+    bool objects_listed;
     pa_hook hooks[PA_BLUETOOTH_HOOK_MAX];
     pa_hashmap *adapters;
     pa_hashmap *devices;
@@ -377,6 +378,61 @@ static void adapter_remove_all(pa_bluetooth_discovery *y) {
     }
 }
 
+static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) {
+    pa_dbus_pending *p;
+    pa_bluetooth_discovery *y;
+    DBusMessage *r;
+    DBusMessageIter arg_i, element_i;
+
+    pa_assert_se(p = userdata);
+    pa_assert_se(y = p->context_data);
+    pa_assert_se(r = dbus_pending_call_steal_reply(pending));
+
+    if (dbus_message_is_error(r, DBUS_ERROR_UNKNOWN_METHOD)) {
+        pa_log_warn("BlueZ D-Bus ObjectManager not available");
+        goto finish;
+    }
+
+    if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
+        pa_log_error("GetManagedObjects() failed: %s: %s", dbus_message_get_error_name(r), pa_dbus_get_error_message(r));
+        goto finish;
+    }
+
+    if (!dbus_message_iter_init(r, &arg_i) || !pa_streq(dbus_message_get_signature(r), "a{oa{sa{sv}}}")) {
+        pa_log_error("Invalid reply signature for GetManagedObjects()");
+        goto finish;
+    }
+
+    dbus_message_iter_recurse(&arg_i, &element_i);
+    while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
+        DBusMessageIter dict_i;
+
+        dbus_message_iter_recurse(&element_i, &dict_i);
+
+        /* TODO: parse interfaces and properties */
+
+        dbus_message_iter_next(&element_i);
+    }
+
+    y->objects_listed = true;
+
+finish:
+    dbus_message_unref(r);
+
+    PA_LLIST_REMOVE(pa_dbus_pending, y->pending, p);
+    pa_dbus_pending_free(p);
+}
+
+static void get_managed_objects(pa_bluetooth_discovery *y) {
+    DBusMessage *m;
+
+    pa_assert(y);
+
+    pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, "/", "org.freedesktop.DBus.ObjectManager",
+                                                  "GetManagedObjects"));
+    send_and_add_to_pending(y, m, get_managed_objects_reply, NULL);
+}
+
 pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook) {
     pa_assert(y);
     pa_assert(PA_REFCNT_VALUE(y) > 0);
@@ -411,11 +467,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 pa_log_debug("Bluetooth daemon disappeared");
                 device_remove_all(y);
                 adapter_remove_all(y);
+                y->objects_listed = false;
             }
 
             if (new_owner && *new_owner) {
                 pa_log_debug("Bluetooth daemon appeared");
-                /* TODO: get managed objects */
+                get_managed_objects(y);
             }
         }
 
@@ -945,6 +1002,8 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
 
     endpoint_init(y, PA_BLUETOOTH_PROFILE_A2DP_SINK);
     endpoint_init(y, PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
+
+    get_managed_objects(y);
 
     return y;
 
