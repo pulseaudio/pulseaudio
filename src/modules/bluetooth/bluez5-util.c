@@ -364,6 +364,33 @@ static pa_bluetooth_adapter* adapter_create(pa_bluetooth_discovery *y, const cha
     return a;
 }
 
+static void adapter_free(pa_bluetooth_adapter *a) {
+    pa_bluetooth_device *d;
+    void *state;
+
+    pa_assert(a);
+    pa_assert(a->discovery);
+
+    PA_HASHMAP_FOREACH(d, a->discovery->devices, state)
+        if (d->adapter == a)
+            d->adapter = NULL;
+
+    pa_xfree(a->path);
+    pa_xfree(a->address);
+    pa_xfree(a);
+}
+
+static void adapter_remove(pa_bluetooth_discovery *y, const char *path) {
+    pa_bluetooth_adapter *a;
+
+    if (!(a = pa_hashmap_remove(y->adapters, path)))
+        pa_log_warn("Unknown adapter removed %s", path);
+    else {
+        pa_log_debug("Adapter %s removed", path);
+        adapter_free(a);
+    }
+}
+
 static void adapter_remove_all(pa_bluetooth_discovery *y) {
     pa_bluetooth_adapter *a;
 
@@ -371,11 +398,8 @@ static void adapter_remove_all(pa_bluetooth_discovery *y) {
 
     /* When this function is called all devices have already been freed */
 
-    while ((a = pa_hashmap_steal_first(y->adapters))) {
-        pa_xfree(a->path);
-        pa_xfree(a->address);
-        pa_xfree(a);
-    }
+    while ((a = pa_hashmap_steal_first(y->adapters)))
+        adapter_free(a);
 }
 
 static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) {
