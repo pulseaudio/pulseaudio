@@ -71,6 +71,7 @@ struct userdata {
     bool transport_acquired;
 
     pa_card *card;
+    pa_sink *sink;
     pa_bluetooth_profile_t profile;
     char *output_port_name;
     char *input_port_name;
@@ -166,6 +167,25 @@ static const char *form_factor_to_string(pa_bluetooth_form_factor_t ff) {
     pa_assert_not_reached();
 }
 
+/* Run from main thread */
+static void connect_ports(struct userdata *u, void *new_data, pa_direction_t direction) {
+    pa_device_port *port;
+
+    if (direction == PA_DIRECTION_OUTPUT) {
+        pa_sink_new_data *sink_new_data = new_data;
+
+        pa_assert_se(port = pa_hashmap_get(u->card->ports, u->output_port_name));
+        pa_assert_se(pa_hashmap_put(sink_new_data->ports, port->name, port) >= 0);
+        pa_device_port_ref(port);
+    } else {
+        pa_source_new_data *source_new_data = new_data;
+
+        pa_assert_se(port = pa_hashmap_get(u->card->ports, u->input_port_name));
+        pa_assert_se(pa_hashmap_put(source_new_data->ports, port->name, port) >= 0);
+        pa_device_port_ref(port);
+    }
+}
+
 static int transport_acquire(struct userdata *u, bool optional) {
     pa_assert(u->transport);
 
@@ -180,6 +200,45 @@ static int transport_acquire(struct userdata *u, bool optional) {
 
     u->transport_acquired = true;
     pa_log_info("Transport %s acquired: fd %d", u->transport->path, u->stream_fd);
+
+    return 0;
+}
+
+/* Run from main thread */
+static int add_sink(struct userdata *u) {
+    pa_sink_new_data data;
+
+    pa_assert(u->transport);
+
+    pa_sink_new_data_init(&data);
+    data.module = u->module;
+    data.card = u->card;
+    data.driver = __FILE__;
+    data.name = pa_sprintf_malloc("bluez_sink.%s", u->device->address);
+    data.namereg_fail = false;
+    pa_proplist_sets(data.proplist, "bluetooth.protocol", pa_bluetooth_profile_to_string(u->profile));
+    pa_sink_new_data_set_sample_spec(&data, &u->sample_spec);
+
+    connect_ports(u, &data, PA_DIRECTION_OUTPUT);
+
+    if (!u->transport_acquired)
+        switch (u->profile) {
+            case PA_BLUETOOTH_PROFILE_A2DP_SINK:
+                /* Profile switch should have failed */
+            case PA_BLUETOOTH_PROFILE_A2DP_SOURCE:
+            case PA_BLUETOOTH_PROFILE_OFF:
+                pa_assert_not_reached();
+                break;
+        }
+
+    u->sink = pa_sink_new(u->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
+    pa_sink_new_data_done(&data);
+    if (!u->sink) {
+        pa_log_error("Failed to create sink");
+        return -1;
+    }
+
+    u->sink->userdata = u;
 
     return 0;
 }
@@ -331,7 +390,11 @@ static int init_profile(struct userdata *u) {
 
     pa_assert(u->transport);
 
-    /* TODO: add sink/source */
+    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK)
+        if (add_sink(u) < 0)
+            r = -1;
+
+    /* TODO: add source */
 
     return r;
 }
