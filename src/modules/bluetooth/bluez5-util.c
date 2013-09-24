@@ -104,6 +104,31 @@ static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, DBusM
     return p;
 }
 
+static const char *check_variant_property(DBusMessageIter *i) {
+    const char *key;
+
+    pa_assert(i);
+
+    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_STRING) {
+        pa_log_error("Property name not a string.");
+        return NULL;
+    }
+
+    dbus_message_iter_get_basic(i, &key);
+
+    if (!dbus_message_iter_next(i)) {
+        pa_log_error("Property value missing");
+        return NULL;
+    }
+
+    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_VARIANT) {
+        pa_log_error("Property value not a variant.");
+        return NULL;
+    }
+
+    return key;
+}
+
 pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,
                                                    pa_bluetooth_profile_t p, const uint8_t *config, size_t size) {
     pa_bluetooth_transport *t;
@@ -404,6 +429,48 @@ static void adapter_remove_all(pa_bluetooth_discovery *y) {
         adapter_free(a);
 }
 
+static void parse_adapter_properties(pa_bluetooth_adapter *a, DBusMessageIter *i, bool is_property_change) {
+    DBusMessageIter element_i;
+
+    pa_assert(a);
+
+    dbus_message_iter_recurse(i, &element_i);
+
+    while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
+        DBusMessageIter dict_i, variant_i;
+        const char *key;
+
+        dbus_message_iter_recurse(&element_i, &dict_i);
+
+        key = check_variant_property(&dict_i);
+        if (key == NULL) {
+            pa_log_error("Received invalid property for adapter %s", a->path);
+            return;
+        }
+
+        dbus_message_iter_recurse(&dict_i, &variant_i);
+
+        if (dbus_message_iter_get_arg_type(&variant_i) == DBUS_TYPE_STRING && pa_streq(key, "Address")) {
+            char *value;
+
+            if (is_property_change) {
+                pa_log_warn("Adapter property 'Address' expected to be constant but changed for %s, ignoring", a->path);
+                return;
+            }
+
+            if (a->address) {
+                pa_log_warn("Adapter %s received a duplicate 'Address' property, ignoring", a->path);
+                return;
+            }
+
+            dbus_message_iter_get_basic(&variant_i, &value);
+            a->address = pa_xstrdup(value);
+        }
+
+        dbus_message_iter_next(&element_i);
+    }
+}
+
 static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessageIter *dict_i) {
     DBusMessageIter element_i;
     const char *path;
@@ -439,7 +506,11 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
 
             pa_log_debug("Adapter %s found", path);
 
-            /* TODO: parse adapter properties and register endpoints */
+            parse_adapter_properties(a, &iface_i, false);
+            if (!a->address)
+                return;
+
+            /* TODO: register endpoints with adapter */
 
         } else if (pa_streq(interface, BLUEZ_DEVICE_INTERFACE)) {
             pa_bluetooth_device *d;
