@@ -24,11 +24,14 @@
 #include <config.h>
 #endif
 
+#include <sbc/sbc.h>
+
 #include <pulsecore/core-util.h>
 #include <pulsecore/i18n.h>
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
 
+#include "a2dp-codecs.h"
 #include "bluez5-util.h"
 
 #include "module-bluez5-device-symdef.h"
@@ -44,6 +47,18 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
+typedef struct sbc_info {
+    sbc_t sbc;                           /* Codec data */
+    bool sbc_initialized;                /* Keep track if the encoder is initialized */
+    size_t codesize, frame_length;       /* SBC Codesize, frame_length. We simply cache those values here */
+    uint16_t seq_num;                    /* Cumulative packet sequence */
+    uint8_t min_bitpool;
+    uint8_t max_bitpool;
+
+    void* buffer;                        /* Codec transfer buffer */
+    size_t buffer_size;                  /* Size of the buffer */
+} sbc_info_t;
+
 struct userdata {
     pa_module *module;
     pa_core *core;
@@ -52,11 +67,21 @@ struct userdata {
 
     pa_bluetooth_discovery *discovery;
     pa_bluetooth_device *device;
+    pa_bluetooth_transport *transport;
+    bool transport_acquired;
 
     pa_card *card;
     pa_bluetooth_profile_t profile;
     char *output_port_name;
     char *input_port_name;
+
+    int stream_fd;
+    size_t read_link_mtu;
+    size_t write_link_mtu;
+    size_t read_block_size;
+    size_t write_block_size;
+    pa_sample_spec sample_spec;
+    struct sbc_info sbc_info;
 };
 
 typedef enum pa_bluetooth_form_factor {
@@ -139,6 +164,176 @@ static const char *form_factor_to_string(pa_bluetooth_form_factor_t ff) {
     }
 
     pa_assert_not_reached();
+}
+
+static int transport_acquire(struct userdata *u, bool optional) {
+    pa_assert(u->transport);
+
+    if (u->transport_acquired)
+        return 0;
+
+    pa_log_debug("Acquiring transport %s", u->transport->path);
+
+    u->stream_fd = u->transport->acquire(u->transport, optional, &u->read_link_mtu, &u->write_link_mtu);
+    if (u->stream_fd < 0)
+        return -1;
+
+    u->transport_acquired = true;
+    pa_log_info("Transport %s acquired: fd %d", u->transport->path, u->stream_fd);
+
+    return 0;
+}
+
+/* Run from main thread */
+static void transport_config(struct userdata *u) {
+    sbc_info_t *sbc_info = &u->sbc_info;
+    a2dp_sbc_t *config;
+
+    pa_assert(u->transport);
+
+    u->sample_spec.format = PA_SAMPLE_S16LE;
+    config = (a2dp_sbc_t *) u->transport->config;
+
+    if (sbc_info->sbc_initialized)
+        sbc_reinit(&sbc_info->sbc, 0);
+    else
+        sbc_init(&sbc_info->sbc, 0);
+    sbc_info->sbc_initialized = true;
+
+    switch (config->frequency) {
+        case SBC_SAMPLING_FREQ_16000:
+            sbc_info->sbc.frequency = SBC_FREQ_16000;
+            u->sample_spec.rate = 16000U;
+            break;
+        case SBC_SAMPLING_FREQ_32000:
+            sbc_info->sbc.frequency = SBC_FREQ_32000;
+            u->sample_spec.rate = 32000U;
+            break;
+        case SBC_SAMPLING_FREQ_44100:
+            sbc_info->sbc.frequency = SBC_FREQ_44100;
+            u->sample_spec.rate = 44100U;
+            break;
+        case SBC_SAMPLING_FREQ_48000:
+            sbc_info->sbc.frequency = SBC_FREQ_48000;
+            u->sample_spec.rate = 48000U;
+            break;
+        default:
+            pa_assert_not_reached();
+    }
+
+    switch (config->channel_mode) {
+        case SBC_CHANNEL_MODE_MONO:
+            sbc_info->sbc.mode = SBC_MODE_MONO;
+            u->sample_spec.channels = 1;
+            break;
+        case SBC_CHANNEL_MODE_DUAL_CHANNEL:
+            sbc_info->sbc.mode = SBC_MODE_DUAL_CHANNEL;
+            u->sample_spec.channels = 2;
+            break;
+        case SBC_CHANNEL_MODE_STEREO:
+            sbc_info->sbc.mode = SBC_MODE_STEREO;
+            u->sample_spec.channels = 2;
+            break;
+        case SBC_CHANNEL_MODE_JOINT_STEREO:
+            sbc_info->sbc.mode = SBC_MODE_JOINT_STEREO;
+            u->sample_spec.channels = 2;
+            break;
+        default:
+            pa_assert_not_reached();
+    }
+
+    switch (config->allocation_method) {
+        case SBC_ALLOCATION_SNR:
+            sbc_info->sbc.allocation = SBC_AM_SNR;
+            break;
+        case SBC_ALLOCATION_LOUDNESS:
+            sbc_info->sbc.allocation = SBC_AM_LOUDNESS;
+            break;
+        default:
+            pa_assert_not_reached();
+    }
+
+    switch (config->subbands) {
+        case SBC_SUBBANDS_4:
+            sbc_info->sbc.subbands = SBC_SB_4;
+            break;
+        case SBC_SUBBANDS_8:
+            sbc_info->sbc.subbands = SBC_SB_8;
+            break;
+        default:
+            pa_assert_not_reached();
+    }
+
+    switch (config->block_length) {
+        case SBC_BLOCK_LENGTH_4:
+            sbc_info->sbc.blocks = SBC_BLK_4;
+            break;
+        case SBC_BLOCK_LENGTH_8:
+            sbc_info->sbc.blocks = SBC_BLK_8;
+            break;
+        case SBC_BLOCK_LENGTH_12:
+            sbc_info->sbc.blocks = SBC_BLK_12;
+            break;
+        case SBC_BLOCK_LENGTH_16:
+            sbc_info->sbc.blocks = SBC_BLK_16;
+            break;
+        default:
+            pa_assert_not_reached();
+    }
+
+    sbc_info->min_bitpool = config->min_bitpool;
+    sbc_info->max_bitpool = config->max_bitpool;
+
+    /* Set minimum bitpool for source to get the maximum possible block_size */
+    sbc_info->sbc.bitpool = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK ? sbc_info->max_bitpool : sbc_info->min_bitpool;
+    sbc_info->codesize = sbc_get_codesize(&sbc_info->sbc);
+    sbc_info->frame_length = sbc_get_frame_length(&sbc_info->sbc);
+
+    pa_log_info("SBC parameters: allocation=%u, subbands=%u, blocks=%u, bitpool=%u",
+                sbc_info->sbc.allocation, sbc_info->sbc.subbands, sbc_info->sbc.blocks, sbc_info->sbc.bitpool);
+}
+
+/* Run from main thread */
+static int setup_transport(struct userdata *u) {
+    pa_bluetooth_transport *t;
+
+    pa_assert(u);
+    pa_assert(!u->transport);
+    pa_assert(u->profile != PA_BLUETOOTH_PROFILE_OFF);
+
+    /* check if profile has a transport */
+    t = u->device->transports[u->profile];
+    if (!t || t->state <= PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED) {
+        pa_log_warn("Profile has no transport");
+        return -1;
+    }
+
+    u->transport = t;
+
+    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE)
+        transport_acquire(u, true); /* In case of error, the sink/sources will be created suspended */
+    else if (transport_acquire(u, false) < 0)
+        return -1; /* We need to fail here until the interactions with module-suspend-on-idle and alike get improved */
+
+    transport_config(u);
+
+    return 0;
+}
+
+/* Run from main thread */
+static int init_profile(struct userdata *u) {
+    int r = 0;
+    pa_assert(u);
+    pa_assert(u->profile != PA_BLUETOOTH_PROFILE_OFF);
+
+    if (setup_transport(u) < 0)
+        return -1;
+
+    pa_assert(u->transport);
+
+    /* TODO: add sink/source */
+
+    return r;
 }
 
 /* Run from main thread */
@@ -494,6 +689,16 @@ int pa__init(pa_module* m) {
     if (add_card(u) < 0)
         goto fail;
 
+    if (u->profile != PA_BLUETOOTH_PROFILE_OFF)
+        if (init_profile(u) < 0)
+            goto off;
+
+    return 0;
+
+off:
+
+    pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
+
     return 0;
 
 fail:
@@ -516,6 +721,9 @@ void pa__done(pa_module *m) {
 
     if (u->device_connection_changed_slot)
         pa_hook_slot_free(u->device_connection_changed_slot);
+
+    if (u->sbc_info.sbc_initialized)
+        sbc_finish(&u->sbc_info.sbc);
 
     if (u->card)
         pa_card_free(u->card);
