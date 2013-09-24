@@ -30,6 +30,10 @@
 #include <pulsecore/i18n.h>
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/poll.h>
+#include <pulsecore/rtpoll.h>
+#include <pulsecore/thread.h>
+#include <pulsecore/thread-mq.h>
 
 #include "a2dp-codecs.h"
 #include "bluez5-util.h"
@@ -76,6 +80,11 @@ struct userdata {
     pa_bluetooth_profile_t profile;
     char *output_port_name;
     char *input_port_name;
+
+    pa_thread *thread;
+    pa_thread_mq thread_mq;
+    pa_rtpoll *rtpoll;
+    pa_rtpoll_item *rtpoll_item;
 
     int stream_fd;
     size_t read_link_mtu;
@@ -187,6 +196,20 @@ static void connect_ports(struct userdata *u, void *new_data, pa_direction_t dir
     }
 }
 
+static void teardown_stream(struct userdata *u) {
+    if (u->rtpoll_item) {
+        pa_rtpoll_item_free(u->rtpoll_item);
+        u->rtpoll_item = NULL;
+    }
+
+    if (u->stream_fd >= 0) {
+        pa_close(u->stream_fd);
+        u->stream_fd = -1;
+    }
+
+    pa_log_debug("Audio stream torn down");
+}
+
 static int transport_acquire(struct userdata *u, bool optional) {
     pa_assert(u->transport);
 
@@ -203,6 +226,22 @@ static int transport_acquire(struct userdata *u, bool optional) {
     pa_log_info("Transport %s acquired: fd %d", u->transport->path, u->stream_fd);
 
     return 0;
+}
+
+static void transport_release(struct userdata *u) {
+    pa_assert(u->transport);
+
+    /* Ignore if already released */
+    if (!u->transport_acquired)
+        return;
+
+    pa_log_debug("Releasing transport %s", u->transport->path);
+
+    u->transport->release(u->transport);
+
+    u->transport_acquired = false;
+
+    teardown_stream(u);
 }
 
 /* Run from main thread */
@@ -440,6 +479,89 @@ static int init_profile(struct userdata *u) {
             r = -1;
 
     return r;
+}
+
+/* I/O thread function */
+static void thread_func(void *userdata) {
+}
+
+/* Run from main thread */
+static int start_thread(struct userdata *u) {
+    pa_assert(u);
+    pa_assert(!u->thread);
+    pa_assert(!u->rtpoll);
+    pa_assert(!u->rtpoll_item);
+
+    u->rtpoll = pa_rtpoll_new();
+    pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
+
+    if (!(u->thread = pa_thread_new("bluetooth", thread_func, u))) {
+        pa_log_error("Failed to create IO thread");
+        return -1;
+    }
+
+    if (u->sink) {
+        pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
+        pa_sink_set_rtpoll(u->sink, u->rtpoll);
+        pa_sink_put(u->sink);
+
+        if (u->sink->set_volume)
+            u->sink->set_volume(u->sink);
+    }
+
+    if (u->source) {
+        pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
+        pa_source_set_rtpoll(u->source, u->rtpoll);
+        pa_source_put(u->source);
+
+        if (u->source->set_volume)
+            u->source->set_volume(u->source);
+    }
+
+    return 0;
+}
+
+/* Run from main thread */
+static void stop_thread(struct userdata *u) {
+    pa_assert(u);
+
+    if (u->sink)
+        pa_sink_unlink(u->sink);
+
+    if (u->source)
+        pa_source_unlink(u->source);
+
+    if (u->thread) {
+        pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
+        pa_thread_free(u->thread);
+        u->thread = NULL;
+    }
+
+    if (u->rtpoll_item) {
+        pa_rtpoll_item_free(u->rtpoll_item);
+        u->rtpoll_item = NULL;
+    }
+
+    if (u->rtpoll) {
+        pa_thread_mq_done(&u->thread_mq);
+        pa_rtpoll_free(u->rtpoll);
+        u->rtpoll = NULL;
+    }
+
+    if (u->transport) {
+        transport_release(u);
+        u->transport = NULL;
+    }
+
+    if (u->sink) {
+        pa_sink_unref(u->sink);
+        u->sink = NULL;
+    }
+
+    if (u->source) {
+        pa_source_unref(u->source);
+        u->source = NULL;
+    }
 }
 
 /* Run from main thread */
@@ -799,9 +921,14 @@ int pa__init(pa_module* m) {
         if (init_profile(u) < 0)
             goto off;
 
+    if (u->sink || u->source)
+        if (start_thread(u) < 0)
+            goto off;
+
     return 0;
 
 off:
+    stop_thread(u);
 
     pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
 
@@ -824,6 +951,8 @@ void pa__done(pa_module *m) {
 
     if (!(u = m->userdata))
         return;
+
+    stop_thread(u);
 
     if (u->device_connection_changed_slot)
         pa_hook_slot_free(u->device_connection_changed_slot);
