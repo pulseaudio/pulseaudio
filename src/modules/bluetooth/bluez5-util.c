@@ -409,6 +409,48 @@ fail:
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
+static uint8_t a2dp_default_bitpool(uint8_t freq, uint8_t mode) {
+    /* These bitpool values were chosen based on the A2DP spec recommendation */
+    switch (freq) {
+        case SBC_SAMPLING_FREQ_16000:
+        case SBC_SAMPLING_FREQ_32000:
+            return 53;
+
+        case SBC_SAMPLING_FREQ_44100:
+
+            switch (mode) {
+                case SBC_CHANNEL_MODE_MONO:
+                case SBC_CHANNEL_MODE_DUAL_CHANNEL:
+                    return 31;
+
+                case SBC_CHANNEL_MODE_STEREO:
+                case SBC_CHANNEL_MODE_JOINT_STEREO:
+                    return 53;
+            }
+
+            pa_log_warn("Invalid channel mode %u", mode);
+            return 53;
+
+        case SBC_SAMPLING_FREQ_48000:
+
+            switch (mode) {
+                case SBC_CHANNEL_MODE_MONO:
+                case SBC_CHANNEL_MODE_DUAL_CHANNEL:
+                    return 29;
+
+                case SBC_CHANNEL_MODE_STEREO:
+                case SBC_CHANNEL_MODE_JOINT_STEREO:
+                    return 51;
+            }
+
+            pa_log_warn("Invalid channel mode %u", mode);
+            return 51;
+    }
+
+    pa_log_warn("Invalid sampling freq %u", freq);
+    return 53;
+}
+
 const char *pa_bluetooth_profile_to_string(pa_bluetooth_profile_t profile) {
     switch(profile) {
         case PA_BLUETOOTH_PROFILE_A2DP_SINK:
@@ -589,11 +631,131 @@ fail2:
 }
 
 static DBusMessage *endpoint_select_configuration(DBusConnection *conn, DBusMessage *m, void *userdata) {
+    pa_bluetooth_discovery *y = userdata;
+    a2dp_sbc_t *cap, config;
+    uint8_t *pconf = (uint8_t *) &config;
+    int i, size;
     DBusMessage *r;
+    DBusError err;
 
-    pa_assert_se(r = dbus_message_new_error(m, BLUEZ_MEDIA_ENDPOINT_INTERFACE ".Error.NotImplemented",
-                                            "Method not implemented"));
+    static const struct {
+        uint32_t rate;
+        uint8_t cap;
+    } freq_table[] = {
+        { 16000U, SBC_SAMPLING_FREQ_16000 },
+        { 32000U, SBC_SAMPLING_FREQ_32000 },
+        { 44100U, SBC_SAMPLING_FREQ_44100 },
+        { 48000U, SBC_SAMPLING_FREQ_48000 }
+    };
 
+    dbus_error_init(&err);
+
+    if (!dbus_message_get_args(m, &err, DBUS_TYPE_ARRAY, DBUS_TYPE_BYTE, &cap, &size, DBUS_TYPE_INVALID)) {
+        pa_log_error("Endpoint SelectConfiguration(): %s", err.message);
+        dbus_error_free(&err);
+        goto fail;
+    }
+
+    if (size != sizeof(config)) {
+        pa_log_error("Capabilities array has invalid size");
+        goto fail;
+    }
+
+    pa_zero(config);
+
+    /* Find the lowest freq that is at least as high as the requested sampling rate */
+    for (i = 0; (unsigned) i < PA_ELEMENTSOF(freq_table); i++)
+        if (freq_table[i].rate >= y->core->default_sample_spec.rate && (cap->frequency & freq_table[i].cap)) {
+            config.frequency = freq_table[i].cap;
+            break;
+        }
+
+    if ((unsigned) i == PA_ELEMENTSOF(freq_table)) {
+        for (--i; i >= 0; i--) {
+            if (cap->frequency & freq_table[i].cap) {
+                config.frequency = freq_table[i].cap;
+                break;
+            }
+        }
+
+        if (i < 0) {
+            pa_log_error("Not suitable sample rate");
+            goto fail;
+        }
+    }
+
+    pa_assert((unsigned) i < PA_ELEMENTSOF(freq_table));
+
+    if (y->core->default_sample_spec.channels <= 1) {
+        if (cap->channel_mode & SBC_CHANNEL_MODE_MONO)
+            config.channel_mode = SBC_CHANNEL_MODE_MONO;
+        else if (cap->channel_mode & SBC_CHANNEL_MODE_JOINT_STEREO)
+            config.channel_mode = SBC_CHANNEL_MODE_JOINT_STEREO;
+        else if (cap->channel_mode & SBC_CHANNEL_MODE_STEREO)
+            config.channel_mode = SBC_CHANNEL_MODE_STEREO;
+        else if (cap->channel_mode & SBC_CHANNEL_MODE_DUAL_CHANNEL)
+            config.channel_mode = SBC_CHANNEL_MODE_DUAL_CHANNEL;
+        else {
+            pa_log_error("No supported channel modes");
+            goto fail;
+        }
+    }
+
+    if (y->core->default_sample_spec.channels >= 2) {
+        if (cap->channel_mode & SBC_CHANNEL_MODE_JOINT_STEREO)
+            config.channel_mode = SBC_CHANNEL_MODE_JOINT_STEREO;
+        else if (cap->channel_mode & SBC_CHANNEL_MODE_STEREO)
+            config.channel_mode = SBC_CHANNEL_MODE_STEREO;
+        else if (cap->channel_mode & SBC_CHANNEL_MODE_DUAL_CHANNEL)
+            config.channel_mode = SBC_CHANNEL_MODE_DUAL_CHANNEL;
+        else if (cap->channel_mode & SBC_CHANNEL_MODE_MONO)
+            config.channel_mode = SBC_CHANNEL_MODE_MONO;
+        else {
+            pa_log_error("No supported channel modes");
+            goto fail;
+        }
+    }
+
+    if (cap->block_length & SBC_BLOCK_LENGTH_16)
+        config.block_length = SBC_BLOCK_LENGTH_16;
+    else if (cap->block_length & SBC_BLOCK_LENGTH_12)
+        config.block_length = SBC_BLOCK_LENGTH_12;
+    else if (cap->block_length & SBC_BLOCK_LENGTH_8)
+        config.block_length = SBC_BLOCK_LENGTH_8;
+    else if (cap->block_length & SBC_BLOCK_LENGTH_4)
+        config.block_length = SBC_BLOCK_LENGTH_4;
+    else {
+        pa_log_error("No supported block lengths");
+        goto fail;
+    }
+
+    if (cap->subbands & SBC_SUBBANDS_8)
+        config.subbands = SBC_SUBBANDS_8;
+    else if (cap->subbands & SBC_SUBBANDS_4)
+        config.subbands = SBC_SUBBANDS_4;
+    else {
+        pa_log_error("No supported subbands");
+        goto fail;
+    }
+
+    if (cap->allocation_method & SBC_ALLOCATION_LOUDNESS)
+        config.allocation_method = SBC_ALLOCATION_LOUDNESS;
+    else if (cap->allocation_method & SBC_ALLOCATION_SNR)
+        config.allocation_method = SBC_ALLOCATION_SNR;
+
+    config.min_bitpool = (uint8_t) PA_MAX(MIN_BITPOOL, cap->min_bitpool);
+    config.max_bitpool = (uint8_t) PA_MIN(a2dp_default_bitpool(config.frequency, config.channel_mode), cap->max_bitpool);
+
+    if (config.min_bitpool > config.max_bitpool)
+        goto fail;
+
+    pa_assert_se(r = dbus_message_new_method_return(m));
+    pa_assert_se(dbus_message_append_args(r, DBUS_TYPE_ARRAY, DBUS_TYPE_BYTE, &pconf, size, DBUS_TYPE_INVALID));
+
+    return r;
+
+fail:
+    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.Error.InvalidArguments", "Unable to select configuration"));
     return r;
 }
 
