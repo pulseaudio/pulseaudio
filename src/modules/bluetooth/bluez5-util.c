@@ -760,11 +760,32 @@ fail:
 }
 
 static DBusMessage *endpoint_clear_configuration(DBusConnection *conn, DBusMessage *m, void *userdata) {
+    pa_bluetooth_discovery *y = userdata;
+    pa_bluetooth_transport *t;
     DBusMessage *r;
+    DBusError err;
+    const char *path;
 
-    pa_assert_se(r = dbus_message_new_error(m, BLUEZ_MEDIA_ENDPOINT_INTERFACE ".Error.NotImplemented",
-                                            "Method not implemented"));
+    dbus_error_init(&err);
 
+    if (!dbus_message_get_args(m, &err, DBUS_TYPE_OBJECT_PATH, &path, DBUS_TYPE_INVALID)) {
+        pa_log_error("Endpoint ClearConfiguration(): %s", err.message);
+        dbus_error_free(&err);
+        goto fail;
+    }
+
+    if ((t = pa_hashmap_get(y->transports, path))) {
+        pa_log_debug("Clearing transport %s profile %s", t->path, pa_bluetooth_profile_to_string(t->profile));
+        transport_state_changed(t, PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED);
+        pa_bluetooth_transport_free(t);
+    }
+
+    pa_assert_se(r = dbus_message_new_method_return(m));
+
+    return r;
+
+fail:
+    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.Error.InvalidArguments", "Unable to clear configuration"));
     return r;
 }
 
