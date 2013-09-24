@@ -36,7 +36,36 @@
 #include "bluez5-util.h"
 
 #define BLUEZ_SERVICE "org.bluez"
+#define BLUEZ_MEDIA_ENDPOINT_INTERFACE BLUEZ_SERVICE ".MediaEndpoint1"
 #define BLUEZ_MEDIA_TRANSPORT_INTERFACE BLUEZ_SERVICE ".MediaTransport1"
+
+#define A2DP_SOURCE_ENDPOINT "/MediaEndpoint/A2DPSource"
+#define A2DP_SINK_ENDPOINT "/MediaEndpoint/A2DPSink"
+
+#define ENDPOINT_INTROSPECT_XML                                         \
+    DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE                           \
+    "<node>"                                                            \
+    " <interface name=\"" BLUEZ_MEDIA_ENDPOINT_INTERFACE "\">"          \
+    "  <method name=\"SetConfiguration\">"                              \
+    "   <arg name=\"transport\" direction=\"in\" type=\"o\"/>"          \
+    "   <arg name=\"properties\" direction=\"in\" type=\"ay\"/>"        \
+    "  </method>"                                                       \
+    "  <method name=\"SelectConfiguration\">"                           \
+    "   <arg name=\"capabilities\" direction=\"in\" type=\"ay\"/>"      \
+    "   <arg name=\"configuration\" direction=\"out\" type=\"ay\"/>"    \
+    "  </method>"                                                       \
+    "  <method name=\"ClearConfiguration\">"                            \
+    "   <arg name=\"transport\" direction=\"in\" type=\"o\"/>"          \
+    "  </method>"                                                       \
+    "  <method name=\"Release\">"                                       \
+    "  </method>"                                                       \
+    " </interface>"                                                     \
+    " <interface name=\"org.freedesktop.DBus.Introspectable\">"         \
+    "  <method name=\"Introspect\">"                                    \
+    "   <arg name=\"data\" type=\"s\" direction=\"out\"/>"              \
+    "  </method>"                                                       \
+    " </interface>"                                                     \
+    "</node>"
 
 struct pa_bluetooth_discovery {
     PA_REFCNT_DECLARE;
@@ -378,6 +407,121 @@ fail:
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
+static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage *m, void *userdata) {
+    DBusMessage *r;
+
+    pa_assert_se(r = dbus_message_new_error(m, BLUEZ_MEDIA_ENDPOINT_INTERFACE ".Error.NotImplemented",
+                                            "Method not implemented"));
+
+    return r;
+}
+
+static DBusMessage *endpoint_select_configuration(DBusConnection *conn, DBusMessage *m, void *userdata) {
+    DBusMessage *r;
+
+    pa_assert_se(r = dbus_message_new_error(m, BLUEZ_MEDIA_ENDPOINT_INTERFACE ".Error.NotImplemented",
+                                            "Method not implemented"));
+
+    return r;
+}
+
+static DBusMessage *endpoint_clear_configuration(DBusConnection *conn, DBusMessage *m, void *userdata) {
+    DBusMessage *r;
+
+    pa_assert_se(r = dbus_message_new_error(m, BLUEZ_MEDIA_ENDPOINT_INTERFACE ".Error.NotImplemented",
+                                            "Method not implemented"));
+
+    return r;
+}
+
+static DBusMessage *endpoint_release(DBusConnection *conn, DBusMessage *m, void *userdata) {
+    DBusMessage *r;
+
+    pa_assert_se(r = dbus_message_new_error(m, BLUEZ_MEDIA_ENDPOINT_INTERFACE ".Error.NotImplemented",
+                                            "Method not implemented"));
+
+    return r;
+}
+
+static DBusHandlerResult endpoint_handler(DBusConnection *c, DBusMessage *m, void *userdata) {
+    struct pa_bluetooth_discovery *y = userdata;
+    DBusMessage *r = NULL;
+    const char *path, *interface, *member;
+
+    pa_assert(y);
+
+    path = dbus_message_get_path(m);
+    interface = dbus_message_get_interface(m);
+    member = dbus_message_get_member(m);
+
+    pa_log_debug("dbus: path=%s, interface=%s, member=%s", path, interface, member);
+
+    if (!pa_streq(path, A2DP_SOURCE_ENDPOINT) && !pa_streq(path, A2DP_SINK_ENDPOINT))
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+
+    if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
+        const char *xml = ENDPOINT_INTROSPECT_XML;
+
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        pa_assert_se(dbus_message_append_args(r, DBUS_TYPE_STRING, &xml, DBUS_TYPE_INVALID));
+
+    } else if (dbus_message_is_method_call(m, BLUEZ_MEDIA_ENDPOINT_INTERFACE, "SetConfiguration"))
+        r = endpoint_set_configuration(c, m, userdata);
+    else if (dbus_message_is_method_call(m, BLUEZ_MEDIA_ENDPOINT_INTERFACE, "SelectConfiguration"))
+        r = endpoint_select_configuration(c, m, userdata);
+    else if (dbus_message_is_method_call(m, BLUEZ_MEDIA_ENDPOINT_INTERFACE, "ClearConfiguration"))
+        r = endpoint_clear_configuration(c, m, userdata);
+    else if (dbus_message_is_method_call(m, BLUEZ_MEDIA_ENDPOINT_INTERFACE, "Release"))
+        r = endpoint_release(c, m, userdata);
+    else
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+
+    if (r) {
+        pa_assert_se(dbus_connection_send(pa_dbus_connection_get(y->connection), r, NULL));
+        dbus_message_unref(r);
+    }
+
+    return DBUS_HANDLER_RESULT_HANDLED;
+}
+
+static void endpoint_init(pa_bluetooth_discovery *y, pa_bluetooth_profile_t profile) {
+    static const DBusObjectPathVTable vtable_endpoint = {
+        .message_function = endpoint_handler,
+    };
+
+    pa_assert(y);
+
+    switch(profile) {
+        case PA_BLUETOOTH_PROFILE_A2DP_SINK:
+            pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(y->connection), A2DP_SOURCE_ENDPOINT,
+                                                              &vtable_endpoint, y));
+            break;
+        case PA_BLUETOOTH_PROFILE_A2DP_SOURCE:
+            pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(y->connection), A2DP_SINK_ENDPOINT,
+                                                              &vtable_endpoint, y));
+            break;
+        default:
+            pa_assert_not_reached();
+            break;
+    }
+}
+
+static void endpoint_done(pa_bluetooth_discovery *y, pa_bluetooth_profile_t profile) {
+    pa_assert(y);
+
+    switch(profile) {
+        case PA_BLUETOOTH_PROFILE_A2DP_SINK:
+            dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), A2DP_SOURCE_ENDPOINT);
+            break;
+        case PA_BLUETOOTH_PROFILE_A2DP_SOURCE:
+            dbus_connection_unregister_object_path(pa_dbus_connection_get(y->connection), A2DP_SINK_ENDPOINT);
+            break;
+        default:
+            pa_assert_not_reached();
+            break;
+    }
+}
+
 pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     pa_bluetooth_discovery *y;
     DBusError err;
@@ -423,6 +567,9 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
         goto fail;
     }
     y->matches_added = true;
+
+    endpoint_init(y, PA_BLUETOOTH_PROFILE_A2DP_SINK);
+    endpoint_init(y, PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
 
     return y;
 
@@ -474,6 +621,9 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
         if (y->filter_added)
             dbus_connection_remove_filter(pa_dbus_connection_get(y->connection), filter_cb, y);
+
+        endpoint_done(y, PA_BLUETOOTH_PROFILE_A2DP_SINK);
+        endpoint_done(y, PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
 
         pa_dbus_connection_unref(y->connection);
     }
