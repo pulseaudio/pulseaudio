@@ -52,11 +52,6 @@ load-module module-device-restore
 ### that look up the default sink/source get the right value
 load-module module-default-device-restore
 
-.ifexists module-dbus-protocol@PA_SOEXT@
-### If you want to allow TCP connections, set access to "remote" or "local,remote".
-load-module module-dbus-protocol access=local
-.endif
-
 ### Automatically move streams to the default sink if the sink they are
 ### connected to dies, similar for sources
 load-module module-rescue-streams

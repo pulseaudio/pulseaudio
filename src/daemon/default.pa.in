@@ -171,13 +171,6 @@ load-module module-filter-heuristics
 load-module module-filter-apply
 ])dnl
 
-ifelse(@HAVE_DBUS@, 1, [dnl
-### Load DBus protocol
-.ifexists module-dbus-protocol@PA_SOEXT@
-load-module module-dbus-protocol
-.endif
-])dnl
-
 ifelse(@HAVE_X11@, 1, [dnl
 # X11 modules should not be started from default.pa so that one daemon
 # can be shared by multiple sessions.
