@@ -42,7 +42,9 @@ struct pa_cond {
 pa_mutex* pa_mutex_new(bool recursive, bool inherit_priority) {
     pa_mutex *m;
     pthread_mutexattr_t attr;
+#ifdef HAVE_PTHREAD_PRIO_INHERIT
     int r;
+#endif
 
     pa_assert_se(pthread_mutexattr_init(&attr) == 0);
 
