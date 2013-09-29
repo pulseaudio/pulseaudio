@@ -1699,11 +1699,21 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
     if (acquire && transport_acquire(u, true) >= 0) {
         if (u->source) {
             pa_log_debug("Resuming source %s because its transport state changed to playing", u->source->name);
+
+            /* We remove the IDLE suspend cause, because otherwise
+             * module-loopback doesn't uncork its streams. FIXME: Messing with
+             * the IDLE suspend cause here is wrong, the correct way to handle
+             * this would probably be to uncork the loopback streams not only
+             * when the other end is unsuspended, but also when the other end's
+             * suspend cause changes to IDLE only (currently there's no
+             * notification mechanism for suspend cause changes, though). */
             pa_source_suspend(u->source, false, PA_SUSPEND_IDLE|PA_SUSPEND_USER);
         }
 
         if (u->sink) {
             pa_log_debug("Resuming sink %s because its transport state changed to playing", u->sink->name);
+
+            /* FIXME: See the previous comment. */
             pa_sink_suspend(u->sink, false, PA_SUSPEND_IDLE|PA_SUSPEND_USER);
         }
     }
