@@ -651,7 +651,7 @@ static void parse_adapter_properties(pa_bluetooth_adapter *a, DBusMessageIter *i
         dbus_message_iter_recurse(&dict_i, &variant_i);
 
         if (dbus_message_iter_get_arg_type(&variant_i) == DBUS_TYPE_STRING && pa_streq(key, "Address")) {
-            char *value;
+            const char *value;
 
             if (is_property_change) {
                 pa_log_warn("Adapter property 'Address' expected to be constant but changed for %s, ignoring", a->path);
