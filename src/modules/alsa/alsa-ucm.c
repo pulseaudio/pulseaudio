@@ -263,7 +263,7 @@ static int ucm_get_device_property(
         /* get rate */
         if ((value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_PLAYBACK_RATE)) ||
             (value = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_PLAYBACK_RATE))) {
-            if (pa_atou(value, &ui) > 0 && ui < PA_RATE_MAX) {
+            if (pa_atou(value, &ui) == 0 && ui > 0 && ui < PA_RATE_MAX) {
                 pa_log_debug("UCM playback device %s rate %d", device_name, ui);
                 device->playback_rate = ui;
             } else
@@ -284,7 +284,7 @@ static int ucm_get_device_property(
         /* get rate */
         if ((value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_CAPTURE_RATE)) ||
             (value = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_CAPTURE_RATE))) {
-            if (pa_atou(value, &ui) > 0 && ui < PA_RATE_MAX) {
+            if (pa_atou(value, &ui) == 0 && ui > 0 && ui < PA_RATE_MAX) {
                 pa_log_debug("UCM capture device %s rate %d", device_name, ui);
                 device->capture_rate = ui;
             } else
