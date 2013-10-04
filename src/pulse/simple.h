@@ -137,8 +137,17 @@ int pa_simple_write(pa_simple *s, const void *data, size_t bytes, int *error);
 /** Wait until all data already written is played by the daemon. */
 int pa_simple_drain(pa_simple *s, int *error);
 
-/** Read some data from the server. */
-int pa_simple_read(pa_simple *s, void *data, size_t bytes, int *error);
+/** Read some data from the server. This function blocks until \a bytes amount
+ * of data has been received from the server, or until an error occurs.
+ * Returns a negative value on failure. */
+int pa_simple_read(
+    pa_simple *s, /**< The connection object. */
+    void *data,   /**< A pointer to a buffer. */
+    size_t bytes, /**< The number of bytes to read. */
+    int *error
+    /**< A pointer where the error code is stored when the function returns
+     * a negative value. It is OK to pass NULL here. */
+    );
 
 /** Return the playback latency. */
 pa_usec_t pa_simple_get_latency(pa_simple *s, int *error);
