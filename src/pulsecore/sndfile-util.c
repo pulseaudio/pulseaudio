@@ -384,6 +384,7 @@ pa_sndfile_readf_t pa_sndfile_readf_function(const pa_sample_spec *ss) {
 
         case PA_SAMPLE_ULAW:
         case PA_SAMPLE_ALAW:
+        case PA_SAMPLE_S24NE:
             return NULL;
 
         default:
@@ -407,6 +408,7 @@ pa_sndfile_writef_t pa_sndfile_writef_function(const pa_sample_spec *ss) {
 
         case PA_SAMPLE_ULAW:
         case PA_SAMPLE_ALAW:
+        case PA_SAMPLE_S24NE:
             return NULL;
 
         default:
