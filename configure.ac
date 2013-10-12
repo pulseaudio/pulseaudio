@@ -1438,6 +1438,7 @@ echo "
     System Config Path:            ${PA_SYSTEM_CONFIG_PATH}
     Compiler:                      ${CC}
     CFLAGS:                        ${CFLAGS}
+    CPPFLAGS:                      ${CPPFLAGS}
     LIBS:                          ${LIBS}
 
     Enable X11:                    ${ENABLE_X11}
