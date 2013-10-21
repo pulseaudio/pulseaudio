@@ -71,6 +71,16 @@
  * pa_stream_set_state_callback(), and wait for the stream to enter an active
  * state.
  *
+ * Note: there is a user-controllable slider in mixer applications such as
+ * pavucontrol corresponding to each of the created streams. Multiple
+ * (especially identically named) volume sliders for the same application might
+ * confuse the user. Also, the server supports only a limited number of
+ * simultaneous streams. Because of this, it is not always appropriate to
+ * create multiple streams in one application that needs to output multiple
+ * sounds. The rough guideline is: if there is no use case that would require
+ * separate user-initiated volume changes for each stream, perform the mixing
+ * inside the application.
+ *
  * \subsection bufattr_subsec Buffer Attributes
  *
  * Playback and record streams always have a server-side buffer as
@@ -435,7 +445,9 @@ int pa_stream_is_corked(pa_stream *s);
  * an absolute device volume. Since 0.9.20 it is an absolute volume when
  * the sink is in flat volume mode, and relative otherwise, thus
  * making sure the volume passed here has always the same semantics as
- * the volume passed to pa_context_set_sink_input_volume(). */
+ * the volume passed to pa_context_set_sink_input_volume(). It is possible
+ * to figure out whether flat volume mode is in effect for a given sink
+ * by calling pa_context_get_sink_info_by_name(). */
 int pa_stream_connect_playback(
         pa_stream *s                  /**< The stream to connect to a sink */,
         const char *dev               /**< Name of the sink to connect to, or NULL for default */ ,

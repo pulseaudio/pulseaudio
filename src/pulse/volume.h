@@ -47,6 +47,21 @@
  * Volumes commonly span between muted (0%), and normal (100%). It is possible
  * to set volumes to higher than 100%, but clipping might occur.
  *
+ * There is no single well-defined meaning attached to the 100% volume for a
+ * sink input. In fact, it depends on the server configuration. With flat
+ * volumes enabled (the default in most Linux distributions), it means the
+ * maximum volume that the sound hardware is capable of, which is usually so
+ * high that you absolutely must not set sink input volume to 100% unless the
+ * the user explicitly requests that (note that usually you shouldn't set the
+ * volume anyway if the user doesn't explicitly request it, instead, let
+ * PulseAudio decide the volume for the sink input). With flat volumes disabled
+ * (the default in Ubuntu), the sink input volume is relative to the sink
+ * volume, so 100% sink input volume means that the sink input is played at the
+ * current sink volume level. In this case 100% is often a good default volume
+ * for a sink input, although you still should let PulseAudio decide the
+ * default volume. It is possible to figure out whether flat volume mode is in
+ * effect for a given sink by calling pa_context_get_sink_info_by_name().
+ *
  * \section calc_sec Calculations
  *
  * The volumes in PulseAudio are logarithmic in nature and applications

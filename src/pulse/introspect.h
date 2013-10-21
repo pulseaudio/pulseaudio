@@ -173,6 +173,34 @@
  * \li Sink input - pa_context_kill_sink_input()
  * \li Source output - pa_context_kill_source_output()
  *
+ * It is strongly recommended that all volume changes are done as a direct
+ * result of user input. With automated requests, such as those resulting
+ * from misguided attempts of crossfading, PulseAudio can store the stream
+ * volume at an inappropriate moment and restore it later. Besides, such
+ * attempts lead to OSD popups in some desktop environments.
+ *
+ * As a special case of the general rule above, it is recommended that your
+ * application leaves the task of saving and restoring the volume of its
+ * streams to PulseAudio and does not attempt to do it by itself. PulseAudio
+ * really knows better about events such as stream moving or headphone
+ * plugging that would make the volume stored by the application inapplicable
+ * to the new configuration.
+ *
+ * Another important case where setting a sink input volume may be a bad idea
+ * is related to interpreters that interpret potentially untrusted scripts.
+ * PulseAudio relies on your application not making malicious requests (such
+ * as repeatedly setting the volume to 100%). Thus, script interpreters that
+ * represent a security boundary must sandbox volume-changing requests coming
+ * from their scripts. In the worst case, it may be necessary to apply the
+ * script-requested volume to the script-produced sounds by altering the
+ * samples in the script interpreter and not touching the sink or sink input
+ * volume as seen by PulseAudio.
+ *
+ * If an application changes any volume, it should also listen to changes of
+ * the same volume originating from outside the application (e.g., from the
+ * system mixer application) and update its user interface accordingly. Use
+ * \ref subscribe to get such notifications.
+ *
  * \subsection module_subsec Modules
  *
  * Server modules can be remotely loaded and unloaded using
