@@ -46,11 +46,11 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src/modules \
 	-I$(top_builddir)/src/modules \
 	-DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
-	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\"
-AM_CFLAGS = \
-	$(PTHREAD_CFLAGS) \
+	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\" \
 	-DPA_SRCDIR=\"$(abs_srcdir)\" \
 	-DPA_BUILDDIR=\"$(abs_builddir)\"
+AM_CFLAGS = \
+	$(PTHREAD_CFLAGS)
 AM_CXXFLAGS = $(AM_CFLAGS)
 SERVER_CFLAGS = -D__INCLUDED_FROM_PULSE_AUDIO
 
