@@ -47,10 +47,6 @@ fi
 intltoolize --version >/dev/null || DIE=1
 test "$DIE" = 1 && exit 1
 
-if type -p colorgcc > /dev/null ; then
-   export CC=colorgcc
-fi
-
 autopoint --force
 AUTOPOINT='intltoolize --automake --copy' autoreconf --force --install --verbose
 
