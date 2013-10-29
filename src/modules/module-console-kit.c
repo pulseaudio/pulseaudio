@@ -163,11 +163,6 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
 
     dbus_error_init(&error);
 
-    pa_log_debug("dbus: interface=%s, path=%s, member=%s\n",
-                 dbus_message_get_interface(message),
-                 dbus_message_get_path(message),
-                 dbus_message_get_member(message));
-
     if (dbus_message_is_signal(message, "org.freedesktop.ConsoleKit.Seat", "SessionAdded")) {
 
         /* CK API changed to match spec in 0.3 */
