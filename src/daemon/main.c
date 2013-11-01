@@ -900,7 +900,8 @@ int main(int argc, char *argv[]) {
 #endif
     pa_rtclock_hrtimer_enable();
 
-    pa_raise_priority(conf->nice_level);
+    if (conf->high_priority)
+        pa_raise_priority(conf->nice_level);
 
     if (conf->system_instance)
         if (change_user() < 0)
