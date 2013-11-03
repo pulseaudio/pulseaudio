@@ -195,9 +195,14 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
             c->save_profile = data->save_profile;
 
     if (!c->active_profile) {
-        PA_HASHMAP_FOREACH(profile, c->profiles, state)
+        PA_HASHMAP_FOREACH(profile, c->profiles, state) {
+            if (profile->available == PA_AVAILABLE_NO)
+                continue;
+
             if (!c->active_profile || profile->priority > c->active_profile->priority)
                 c->active_profile = profile;
+        }
+        pa_assert(c->active_profile);
     }
 
     c->userdata = NULL;
