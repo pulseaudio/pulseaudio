@@ -570,13 +570,13 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
 
     pa_xfree(pl);
 
-    if (i->profiles) {
-        pa_card_profile_info *p;
+    if (i->n_profiles > 0) {
+        pa_card_profile_info2 **p;
 
         printf(_("\tProfiles:\n"));
-        for (p = i->profiles; p->name; p++)
-            printf("\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n", p->name,
-                p->description, p->n_sinks, p->n_sources, p->priority, pa_yes_no(p->available));
+        for (p = i->profiles2; *p; p++)
+            printf("\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n", (*p)->name,
+                (*p)->description, (*p)->n_sinks, (*p)->n_sources, (*p)->priority, pa_yes_no((*p)->available));
     }
 
     if (i->active_profile)

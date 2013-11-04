@@ -443,10 +443,19 @@ pa_operation* pa_context_kill_client(pa_context *c, uint32_t idx, pa_context_suc
 
 /** @{ \name Cards */
 
-/** Stores information about a specific profile of a card.  Please
- * note that this structure can be extended as part of evolutionary
- * API updates at any time in any new release. \since 0.9.15 */
+/** \deprecated Superseded by pa_card_profile_info2 \since 0.9.15 */
 typedef struct pa_card_profile_info {
+    const char *name;                   /**< Name of this profile */
+    const char *description;            /**< Description of this profile */
+    uint32_t n_sinks;                   /**< Number of sinks this profile would create */
+    uint32_t n_sources;                 /**< Number of sources this profile would create */
+    uint32_t priority;                  /**< The higher this value is, the more useful this profile is as a default. */
+} pa_card_profile_info;
+
+/** Stores information about a specific profile of a card. Please
+ * note that this structure can be extended as part of evolutionary
+ * API updates at any time in any new release. \since 5.0 */
+typedef struct pa_card_profile_info2 {
     const char *name;                   /**< Name of this profile */
     const char *description;            /**< Description of this profile */
     uint32_t n_sinks;                   /**< Number of sinks this profile would create */
@@ -458,7 +467,7 @@ typedef struct pa_card_profile_info {
      * non-zero, it's still not a guarantee that activating the profile will
      * result in anything useful, it just means that the server isn't aware of
      * any reason why the profile would definitely be useless. \since 5.0 */
-} pa_card_profile_info;
+} pa_card_profile_info2;
 
 /** Stores information about a specific port of a card.  Please
  * note that this structure can be extended as part of evolutionary
@@ -470,9 +479,10 @@ typedef struct pa_card_port_info {
     int available;                      /**< A #pa_port_available enum, indicating availability status of this port. */
     int direction;                      /**< A #pa_direction enum, indicating the direction of this port. */
     uint32_t n_profiles;                /**< Number of entries in profile array */
-    pa_card_profile_info** profiles;    /**< Array of pointers to available profiles, or NULL. Array is terminated by an entry set to NULL. */
+    pa_card_profile_info** profiles;    /**< \deprecated Superseded by profiles2 */
     pa_proplist *proplist;              /**< Property list */
     int64_t latency_offset;             /**< Latency offset of the port that gets added to the sink/source latency when the port is active. \since 3.0 */
+    pa_card_profile_info2** profiles2;  /**< Array of pointers to available profiles, or NULL. Array is terminated by an entry set to NULL. */
 } pa_card_port_info;
 
 /** Stores information about cards. Please note that this structure
@@ -484,11 +494,13 @@ typedef struct pa_card_info {
     uint32_t owner_module;               /**< Index of the owning module, or PA_INVALID_INDEX. */
     const char *driver;                  /**< Driver name */
     uint32_t n_profiles;                 /**< Number of entries in profile array */
-    pa_card_profile_info* profiles;      /**< Array of available profile, or NULL. Array is terminated by an entry with name set to NULL. Number of entries is stored in n_profiles. */
-    pa_card_profile_info* active_profile; /**< Pointer to active profile in the array, or NULL. */
+    pa_card_profile_info* profiles;      /**< \deprecated Superseded by profiles2 */
+    pa_card_profile_info* active_profile; /**< \deprecated Superseded by active_profile2 */
     pa_proplist *proplist;               /**< Property list */
     uint32_t n_ports;                    /**< Number of entries in port array */
     pa_card_port_info **ports;           /**< Array of pointers to ports, or NULL. Array is terminated by an entry set to NULL. */
+    pa_card_profile_info2** profiles2;    /**< Array of pointers to available profiles, or NULL. Array is terminated by an entry set to NULL. */
+    pa_card_profile_info2* active_profile2; /**< Pointer to active profile in the array, or NULL. */
 } pa_card_info;
 
 /** Callback prototype for pa_context_get_card_info_...() \since 0.9.15 */

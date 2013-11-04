@@ -769,6 +769,15 @@ static void card_info_free(pa_card_info* i) {
 
     pa_xfree(i->profiles);
 
+    if (i->n_profiles) {
+        uint32_t j;
+
+        for (j = 0; j < i->n_profiles; j++)
+             pa_xfree(i->profiles2[j]);
+
+        pa_xfree(i->profiles2);
+    }
+
     if (i->ports) {
         uint32_t j;
 
@@ -776,6 +785,8 @@ static void card_info_free(pa_card_info* i) {
             if (i->ports[j]) {
                 if (i->ports[j]->profiles)
                     pa_xfree(i->ports[j]->profiles);
+                if (i->ports[j]->profiles2)
+                    pa_xfree(i->ports[j]->profiles2);
                 if (i->ports[j]->proplist)
                     pa_proplist_free(i->ports[j]->proplist);
             }
@@ -829,6 +840,7 @@ static int fill_card_port_info(pa_context *context, pa_tagstruct* t, pa_card_inf
 
         if (port->n_profiles > 0) {
             port->profiles = pa_xnew0(pa_card_profile_info*, i->n_profiles+1);
+            port->profiles2 = pa_xnew0(pa_card_profile_info2*, i->n_profiles+1);
 
             for (k = 0; k < port->n_profiles; k++) {
                 const char* profilename;
@@ -839,6 +851,7 @@ static int fill_card_port_info(pa_context *context, pa_tagstruct* t, pa_card_inf
                 for (l = 0; l < i->n_profiles; l++) {
                     if (pa_streq(i->profiles[l].name, profilename)) {
                         port->profiles[k] = &i->profiles[l];
+                        port->profiles2[k] = i->profiles2[l];
                         break;
                     }
                 }
@@ -852,6 +865,41 @@ static int fill_card_port_info(pa_context *context, pa_tagstruct* t, pa_card_inf
                 return -PA_ERR_PROTOCOL;
         } else
             port->latency_offset = 0;
+    }
+
+    return 0;
+}
+
+static int fill_card_profile_info(pa_context *context, pa_tagstruct* t, pa_card_info* i) {
+    uint32_t j;
+
+    i->profiles = pa_xnew0(pa_card_profile_info, i->n_profiles+1);
+    i->profiles2 = pa_xnew0(pa_card_profile_info2*, i->n_profiles+1);
+
+    for (j = 0; j < i->n_profiles; j++) {
+        if (pa_tagstruct_gets(t, &i->profiles[j].name) < 0 ||
+            pa_tagstruct_gets(t, &i->profiles[j].description) < 0 ||
+            pa_tagstruct_getu32(t, &i->profiles[j].n_sinks) < 0 ||
+            pa_tagstruct_getu32(t, &i->profiles[j].n_sources) < 0 ||
+            pa_tagstruct_getu32(t, &i->profiles[j].priority) < 0)
+                return -PA_ERR_PROTOCOL;
+
+        i->profiles2[j] = pa_xnew0(pa_card_profile_info2, 1);
+        i->profiles2[j]->name = i->profiles[j].name;
+        i->profiles2[j]->description = i->profiles[j].description;
+        i->profiles2[j]->n_sinks = i->profiles[j].n_sinks;
+        i->profiles2[j]->n_sources = i->profiles[j].n_sources;
+        i->profiles2[j]->priority = i->profiles[j].priority;
+        i->profiles2[j]->available = 1;
+
+        if (context->version >= 29) {
+            uint32_t av;
+
+            if (pa_tagstruct_getu32(t, &av) < 0)
+                return -PA_ERR_PROTOCOL;
+
+            i->profiles2[j]->available = av;
+        }
     }
 
     return 0;
@@ -890,29 +938,8 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
                     goto fail;
 
             if (i.n_profiles > 0) {
-                i.profiles = pa_xnew0(pa_card_profile_info, i.n_profiles+1);
-
-                for (j = 0; j < i.n_profiles; j++) {
-
-                    if (pa_tagstruct_gets(t, &i.profiles[j].name) < 0 ||
-                        pa_tagstruct_gets(t, &i.profiles[j].description) < 0 ||
-                        pa_tagstruct_getu32(t, &i.profiles[j].n_sinks) < 0 ||
-                        pa_tagstruct_getu32(t, &i.profiles[j].n_sources) < 0 ||
-                        pa_tagstruct_getu32(t, &i.profiles[j].priority) < 0)
-                            goto fail;
-
-                    i.profiles[j].available = 1;
-                    if (o->context->version >= 29) {
-                        uint32_t av;
-                        if (pa_tagstruct_getu32(t, &av) < 0)
-                            goto fail;
-                        i.profiles[j].available = av;
-                    }
-                }
-
-                /* Terminate with an extra NULL entry, just to make sure */
-                i.profiles[j].name = NULL;
-                i.profiles[j].description = NULL;
+                if (fill_card_profile_info(o->context, t, &i) < 0)
+                    goto fail;
             }
 
             i.proplist = pa_proplist_new();
@@ -929,6 +956,7 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
                 for (j = 0; j < i.n_profiles; j++)
                     if (pa_streq(i.profiles[j].name, ap)) {
                         i.active_profile = &i.profiles[j];
+                        i.active_profile2 = i.profiles2[j];
                         break;
                     }
             }
