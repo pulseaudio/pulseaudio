@@ -1816,6 +1816,14 @@ char *pa_get_runtime_dir(void) {
     /* Use the XDG standard for the runtime directory. */
     d = getenv("XDG_RUNTIME_DIR");
     if (d) {
+        struct stat st;
+        if (stat(d, &st) == 0 && st.st_uid != getuid()) {
+            pa_log(_("XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! "
+                   "(This could e g happen if you try to connect to a non-root PulseAudio as a root user, over the native protocol. Don't do that.)"),
+                   d, getuid(), st.st_uid);
+            goto fail;
+        }
+
         k = pa_sprintf_malloc("%s" PA_PATH_SEP "pulse", d);
 
         if (pa_make_secure_dir(k, m, (uid_t) -1, (gid_t) -1, true) < 0) {
