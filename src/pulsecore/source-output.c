@@ -667,7 +667,8 @@ static void source_output_free(pa_object* mo) {
     if (PA_SOURCE_OUTPUT_IS_LINKED(o->state))
         pa_source_output_unlink(o);
 
-    pa_log_info("Freeing output %u \"%s\"", o->index, pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME)));
+    pa_log_info("Freeing output %u \"%s\"", o->index,
+                o->proplist ? pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME)) : "");
 
     if (o->node)
         pa_node_free(o->node);
