@@ -745,7 +745,8 @@ static void sink_input_free(pa_object *o) {
     if (PA_SINK_INPUT_IS_LINKED(i->state))
         pa_sink_input_unlink(i);
 
-    pa_log_info("Freeing input %u \"%s\"", i->index, pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME)));
+    pa_log_info("Freeing input %u \"%s\"", i->index,
+                i->proplist ? pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME)) : "");
 
     /* Side note: this function must be able to destruct properly any
      * kind of sink input in any state, even those which are
