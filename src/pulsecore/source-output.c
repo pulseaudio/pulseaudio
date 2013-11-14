@@ -232,7 +232,7 @@ int pa_source_output_new(
 
     pa_source_output *o = NULL;
     pa_resampler *resampler = NULL;
-    char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], fmt[PA_FORMAT_INFO_SNPRINT_MAX];
     pa_channel_map original_cm;
     int r;
     char *pt;
@@ -289,7 +289,18 @@ int pa_source_output_new(
     if (!data->format && data->nego_formats && !pa_idxset_isempty(data->nego_formats))
         data->format = pa_format_info_copy(pa_idxset_first(data->nego_formats, NULL));
 
-    pa_return_val_if_fail(data->format, -PA_ERR_NOTSUPPORTED);
+    if (PA_LIKELY(data->format)) {
+        pa_log_debug("Negotiated format: %s", pa_format_info_snprint(fmt, sizeof(fmt), data->format));
+    } else {
+        pa_format_info *format;
+        uint32_t idx;
+
+        pa_log_info("Source does not support any requested format:");
+        PA_IDXSET_FOREACH(format, data->req_formats, idx)
+            pa_log_info(" -- %s", pa_format_info_snprint(fmt, sizeof(fmt), format));
+
+        return -PA_ERR_NOTSUPPORTED;
+    }
 
     /* Now populate the sample spec and format according to the final
      * format that we've negotiated */
