@@ -202,6 +202,12 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
             if (!c->active_profile || profile->priority > c->active_profile->priority)
                 c->active_profile = profile;
         }
+        /* If all profiles are not available, then we still need to pick one */
+        if (!c->active_profile) {
+            PA_HASHMAP_FOREACH(profile, c->profiles, state)
+                if (!c->active_profile || profile->priority > c->active_profile->priority)
+                    c->active_profile = profile;
+        }
         pa_assert(c->active_profile);
     }
 
