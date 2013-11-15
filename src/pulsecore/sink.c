@@ -304,9 +304,18 @@ pa_sink* pa_sink_new(
         void *state;
         pa_device_port *p;
 
-        PA_HASHMAP_FOREACH(p, s->ports, state)
+        PA_HASHMAP_FOREACH(p, s->ports, state) {
+            if (p->available == PA_AVAILABLE_NO)
+                continue;
+
             if (!s->active_port || p->priority > s->active_port->priority)
                 s->active_port = p;
+        }
+        if (!s->active_port) {
+            PA_HASHMAP_FOREACH(p, s->ports, state)
+                if (!s->active_port || p->priority > s->active_port->priority)
+                    s->active_port = p;
+        }
     }
 
     if (s->active_port)
