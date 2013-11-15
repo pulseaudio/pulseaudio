@@ -439,13 +439,19 @@ static void device_remove(pa_bluetooth_discovery *y, const char *path) {
 }
 
 static void set_device_info_valid(pa_bluetooth_device *device, int valid) {
+    bool old_any_connected;
+
     pa_assert(device);
     pa_assert(valid == -1 || valid == 0 || valid == 1);
 
     if (valid == device->device_info_valid)
         return;
 
+    old_any_connected = pa_bluetooth_device_any_transport_connected(device);
     device->device_info_valid = valid;
+
+    if (pa_bluetooth_device_any_transport_connected(device) != old_any_connected)
+        pa_hook_fire(&device->discovery->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED], device);
 }
 
 static void device_remove_all(pa_bluetooth_discovery *y) {
@@ -455,7 +461,6 @@ static void device_remove_all(pa_bluetooth_discovery *y) {
 
     while ((d = pa_hashmap_steal_first(y->devices))) {
         set_device_info_valid(d, -1);
-        pa_hook_fire(&y->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED], d);
         device_free(d);
    }
 }
