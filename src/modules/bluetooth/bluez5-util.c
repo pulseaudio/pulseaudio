@@ -438,13 +438,23 @@ static void device_remove(pa_bluetooth_discovery *y, const char *path) {
     }
 }
 
+static void set_device_info_valid(pa_bluetooth_device *device, int valid) {
+    pa_assert(device);
+    pa_assert(valid == -1 || valid == 0 || valid == 1);
+
+    if (valid == device->device_info_valid)
+        return;
+
+    device->device_info_valid = valid;
+}
+
 static void device_remove_all(pa_bluetooth_discovery *y) {
     pa_bluetooth_device *d;
 
     pa_assert(y);
 
     while ((d = pa_hashmap_steal_first(y->devices))) {
-        d->device_info_valid = -1;
+        set_device_info_valid(d, -1);
         pa_hook_fire(&y->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED], d);
         device_free(d);
    }
@@ -620,11 +630,11 @@ static int parse_device_properties(pa_bluetooth_device *d, DBusMessageIter *i, b
 
     if (!d->address || !d->adapter_path || !d->alias) {
         pa_log_error("Non-optional information missing for device %s", d->path);
-        d->device_info_valid = -1;
+        set_device_info_valid(d, -1);
         return -1;
     }
 
-    d->device_info_valid = 1;
+    set_device_info_valid(d, 1);
     return 0;
 }
 
@@ -808,7 +818,7 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
             d->adapter = pa_hashmap_get(d->discovery->adapters, d->adapter_path);
             if (!d->adapter) {
                 pa_log_error("Device %s is child of nonexistent adapter %s", d->path, d->adapter_path);
-                d->device_info_valid = -1;
+                set_device_info_valid(d, -1);
             }
         }
 
