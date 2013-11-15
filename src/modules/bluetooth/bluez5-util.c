@@ -634,7 +634,12 @@ static int parse_device_properties(pa_bluetooth_device *d, DBusMessageIter *i, b
         return -1;
     }
 
-    set_device_info_valid(d, 1);
+    if (!is_property_change && d->adapter)
+        set_device_info_valid(d, 1);
+
+    /* If d->adapter is NULL, device_info_valid will be left as 0, and updated
+     * after all interfaces have been parsed. */
+
     return 0;
 }
 
@@ -813,14 +818,19 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
         dbus_message_iter_next(&element_i);
     }
 
-    PA_HASHMAP_FOREACH(d, y->devices, state)
+    PA_HASHMAP_FOREACH(d, y->devices, state) {
+        if (d->device_info_valid != 0)
+            continue;
+
         if (!d->adapter && d->adapter_path) {
             d->adapter = pa_hashmap_get(d->discovery->adapters, d->adapter_path);
             if (!d->adapter) {
                 pa_log_error("Device %s is child of nonexistent adapter %s", d->path, d->adapter_path);
                 set_device_info_valid(d, -1);
-            }
+            } else
+                set_device_info_valid(d, 1);
         }
+    }
 
     return;
 }
