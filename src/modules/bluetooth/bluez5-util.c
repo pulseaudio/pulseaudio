@@ -454,17 +454,6 @@ static void set_device_info_valid(pa_bluetooth_device *device, int valid) {
         pa_hook_fire(&device->discovery->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED], device);
 }
 
-static void device_remove_all(pa_bluetooth_discovery *y) {
-    pa_bluetooth_device *d;
-
-    pa_assert(y);
-
-    while ((d = pa_hashmap_steal_first(y->devices))) {
-        set_device_info_valid(d, -1);
-        device_free(d);
-   }
-}
-
 static pa_bluetooth_adapter* adapter_create(pa_bluetooth_discovery *y, const char *path) {
     pa_bluetooth_adapter *a;
 
@@ -927,7 +916,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
         if (pa_streq(name, BLUEZ_SERVICE)) {
             if (old_owner && *old_owner) {
                 pa_log_debug("Bluetooth daemon disappeared");
-                device_remove_all(y);
+                pa_hashmap_remove_all(y->devices);
                 pa_hashmap_remove_all(y->adapters);
                 y->objects_listed = false;
             }
@@ -1532,7 +1521,8 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     y->core = c;
     y->adapters = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL,
                                       (pa_free_cb_t) adapter_free);
-    y->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    y->devices = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL,
+                                     (pa_free_cb_t) device_free);
     y->transports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     PA_LLIST_HEAD_INIT(pa_dbus_pending, y->pending);
 
@@ -1607,10 +1597,8 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
     pa_dbus_free_pending_list(&y->pending);
 
-    if (y->devices) {
-        device_remove_all(y);
+    if (y->devices)
         pa_hashmap_free(y->devices);
-    }
 
     if (y->adapters)
         pa_hashmap_free(y->adapters);
