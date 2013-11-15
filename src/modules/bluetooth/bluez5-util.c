@@ -607,7 +607,6 @@ static void parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, bo
 
 static int parse_device_properties(pa_bluetooth_device *d, DBusMessageIter *i, bool is_property_change) {
     DBusMessageIter element_i;
-    int ret = 0;
 
     dbus_message_iter_recurse(i, &element_i);
 
@@ -626,7 +625,7 @@ static int parse_device_properties(pa_bluetooth_device *d, DBusMessageIter *i, b
     }
 
     d->device_info_valid = 1;
-    return ret;
+    return 0;
 }
 
 static void parse_adapter_properties(pa_bluetooth_adapter *a, DBusMessageIter *i, bool is_property_change) {
