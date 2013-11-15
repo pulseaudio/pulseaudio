@@ -477,8 +477,10 @@ static void adapter_free(pa_bluetooth_adapter *a) {
     pa_assert(a->discovery);
 
     PA_HASHMAP_FOREACH(d, a->discovery->devices, state)
-        if (d->adapter == a)
+        if (d->adapter == a) {
+            set_device_info_valid(d, -1);
             d->adapter = NULL;
+        }
 
     pa_xfree(a->path);
     pa_xfree(a->address);
