@@ -1534,17 +1534,10 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
 
 static pa_idxset* sink_get_formats(pa_sink *s) {
     struct userdata *u = s->userdata;
-    pa_idxset *ret = pa_idxset_new(NULL, NULL);
-    pa_format_info *f;
-    uint32_t idx;
 
     pa_assert(u);
 
-    PA_IDXSET_FOREACH(f, u->formats, idx) {
-        pa_idxset_put(ret, pa_format_info_copy(f), NULL);
-    }
-
-    return ret;
+    return pa_idxset_copy(u->formats, (pa_copy_func_t) pa_format_info_copy);
 }
 
 static bool sink_set_formats(pa_sink *s, pa_idxset *formats) {

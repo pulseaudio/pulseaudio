@@ -2574,7 +2574,7 @@ static bool element_create_settings(pa_alsa_element *e, pa_alsa_setting *templat
 
         if (template) {
             s = pa_xnewdup(pa_alsa_setting, template, 1);
-            s->options = pa_idxset_copy(template->options);
+            s->options = pa_idxset_copy(template->options, NULL);
             s->name = pa_sprintf_malloc("%s+%s", template->name, o->name);
             s->description =
                 (template->description[0] && o->description[0])

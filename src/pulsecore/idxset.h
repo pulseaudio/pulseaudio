@@ -49,6 +49,7 @@ int pa_idxset_string_compare_func(const void *a, const void *b);
 
 typedef unsigned (*pa_hash_func_t)(const void *p);
 typedef int (*pa_compare_func_t)(const void *a, const void *b);
+typedef void *(*pa_copy_func_t)(const void *p);
 
 typedef struct pa_idxset pa_idxset;
 
@@ -105,8 +106,10 @@ unsigned pa_idxset_size(pa_idxset*s);
 /* Return true of the idxset is empty */
 bool pa_idxset_isempty(pa_idxset *s);
 
-/* Duplicate the idxset. This will not copy the actual indexes */
-pa_idxset *pa_idxset_copy(pa_idxset *s);
+/* Duplicate the idxset. This will not copy the actual indexes. If copy_func is
+ * set, each entry is copied using the provided function, otherwise a shallow
+ * copy will be made. */
+pa_idxset *pa_idxset_copy(pa_idxset *s, pa_copy_func_t copy_func);
 
 /* A macro to ease iteration through all entries */
 #define PA_IDXSET_FOREACH(e, s, idx) \
