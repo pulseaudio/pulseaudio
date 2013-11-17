@@ -461,7 +461,13 @@ pa_queue *pa_sink_move_all_start(pa_sink *s, pa_queue *q);
 void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, bool save);
 void pa_sink_move_all_fail(pa_queue *q);
 
+/* Returns a copy of the sink formats. TODO: Get rid of this function (or at
+ * least get rid of the copying). There's no good reason to copy the formats
+ * every time someone wants to know what formats the sink supports. The formats
+ * idxset could be stored directly in the pa_sink struct.
+ * https://bugs.freedesktop.org/show_bug.cgi?id=71924 */
 pa_idxset* pa_sink_get_formats(pa_sink *s);
+
 bool pa_sink_set_formats(pa_sink *s, pa_idxset *formats);
 bool pa_sink_check_format(pa_sink *s, pa_format_info *f);
 pa_idxset* pa_sink_check_formats(pa_sink *s, pa_idxset *in_formats);

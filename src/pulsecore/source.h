@@ -394,7 +394,13 @@ pa_queue *pa_source_move_all_start(pa_source *s, pa_queue *q);
 void pa_source_move_all_finish(pa_source *s, pa_queue *q, bool save);
 void pa_source_move_all_fail(pa_queue *q);
 
+/* Returns a copy of the source formats. TODO: Get rid of this function (or at
+ * least get rid of the copying). There's no good reason to copy the formats
+ * every time someone wants to know what formats the source supports. The
+ * formats idxset could be stored directly in the pa_source struct.
+ * https://bugs.freedesktop.org/show_bug.cgi?id=71924 */
 pa_idxset* pa_source_get_formats(pa_source *s);
+
 bool pa_source_check_format(pa_source *s, pa_format_info *f);
 pa_idxset* pa_source_check_formats(pa_source *s, pa_idxset *in_formats);
 
