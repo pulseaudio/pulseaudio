@@ -117,6 +117,70 @@ int pa_format_info_get_channel_map(pa_format_info *f, pa_channel_map *map) {
     return 0;
 }
 
+int pa_format_info_to_sample_spec2(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map, pa_sample_spec *fallback_ss,
+                                   pa_channel_map *fallback_map) {
+    int r, r2;
+    pa_sample_spec ss_local;
+    pa_channel_map map_local;
+
+    pa_assert(f);
+    pa_assert(ss);
+    pa_assert(map);
+    pa_assert(fallback_ss);
+    pa_assert(fallback_map);
+
+    if (!pa_format_info_is_pcm(f))
+        return pa_format_info_to_sample_spec_fake(f, ss, map);
+
+    r = pa_format_info_get_sample_format(f, &ss_local.format);
+    if (r == -PA_ERR_NOENTITY)
+        ss_local.format = fallback_ss->format;
+    else if (r < 0)
+        return r;
+
+    pa_assert(pa_sample_format_valid(ss_local.format));
+
+    r = pa_format_info_get_rate(f, &ss_local.rate);
+    if (r == -PA_ERR_NOENTITY)
+        ss_local.rate = fallback_ss->rate;
+    else if (r < 0)
+        return r;
+
+    pa_assert(pa_sample_rate_valid(ss_local.rate));
+
+    r = pa_format_info_get_channels(f, &ss_local.channels);
+    r2 = pa_format_info_get_channel_map(f, &map_local);
+    if (r == -PA_ERR_NOENTITY && r2 >= 0)
+        ss_local.channels = map_local.channels;
+    else if (r == -PA_ERR_NOENTITY)
+        ss_local.channels = fallback_ss->channels;
+    else if (r < 0)
+        return r;
+
+    pa_assert(pa_channels_valid(ss_local.channels));
+
+    if (r2 >= 0 && map_local.channels != ss_local.channels) {
+        pa_log_debug("Channel map is not compatible with the sample spec.");
+        return -PA_ERR_INVALID;
+    }
+
+    if (r2 == -PA_ERR_NOENTITY) {
+        if (fallback_map->channels == ss_local.channels)
+            map_local = *fallback_map;
+        else
+            pa_channel_map_init_extend(&map_local, ss_local.channels, PA_CHANNEL_MAP_DEFAULT);
+    } else if (r2 < 0)
+        return r2;
+
+    pa_assert(pa_channel_map_valid(&map_local));
+    pa_assert(ss_local.channels == map_local.channels);
+
+    *ss = ss_local;
+    *map = map_local;
+
+    return 0;
+}
+
 int pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
     int rate;
 
