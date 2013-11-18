@@ -614,6 +614,7 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/authkey.c pulsecore/authkey.h \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
+		pulsecore/core-format.c pulsecore/core-format.h \
 		pulsecore/core-rtclock.c pulsecore/core-rtclock.h \
 		pulsecore/core-util.c pulsecore/core-util.h \
 		pulsecore/creds.h \
