@@ -1125,6 +1125,9 @@ static void alsa_mapping_add_ucm_modifier(pa_alsa_mapping *m, pa_alsa_ucm_modifi
     }
 
     if (channel_str) {
+        /* FIXME: channel_str is unsanitized input from the UCM configuration,
+         * we should do proper error handling instead of asserting.
+         * https://bugs.freedesktop.org/show_bug.cgi?id=71823 */
         pa_assert_se(pa_atou(channel_str, &channels) == 0 && channels < PA_CHANNELS_MAX);
         pa_log_debug("Got channel count %" PRIu32 " for modifier", channels);
     }
