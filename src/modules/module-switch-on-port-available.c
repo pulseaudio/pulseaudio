@@ -121,7 +121,7 @@ static int try_to_switch_profile(pa_device_port *port) {
         return -1;
     }
 
-    if (pa_card_set_profile(port->card, best_profile->name, false) != 0) {
+    if (pa_card_set_profile(port->card, best_profile, false) != 0) {
         pa_log_debug("Could not set profile %s", best_profile->name);
         return -1;
     }

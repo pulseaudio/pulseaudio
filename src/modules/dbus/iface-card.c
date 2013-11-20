@@ -336,7 +336,7 @@ static void handle_set_active_profile(DBusConnection *conn, DBusMessage *msg, DB
         return;
     }
 
-    if ((r = pa_card_set_profile(c->card, pa_dbusiface_card_profile_get_name(new_active), true)) < 0) {
+    if ((r = pa_card_set_profile(c->card, pa_dbusiface_card_profile_get_profile(new_active), true)) < 0) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED,
                            "Internal error in PulseAudio: pa_card_set_profile() failed with error code %i.", r);
         return;

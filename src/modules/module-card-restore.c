@@ -413,7 +413,7 @@ static pa_hook_result_t card_profile_added_callback(pa_core *c, pa_card_profile 
         return PA_HOOK_OK;
 
     if (pa_safe_streq(entry->profile, profile->name)) {
-        if (pa_card_set_profile(profile->card, profile->name, true) >= 0)
+        if (pa_card_set_profile(profile->card, profile, true) >= 0)
             pa_log_info("Restored profile '%s' for card %s.", profile->name, profile->card->name);
     }
 

@@ -226,3 +226,9 @@ const char *pa_dbusiface_card_profile_get_name(pa_dbusiface_card_profile *p) {
 
     return p->profile->name;
 }
+
+pa_card_profile *pa_dbusiface_card_profile_get_profile(pa_dbusiface_card_profile *p) {
+    pa_assert(p);
+
+    return p->profile;
+}

@@ -250,22 +250,17 @@ void pa_card_free(pa_card *c) {
     pa_xfree(c);
 }
 
-int pa_card_set_profile(pa_card *c, const char *name, bool save) {
-    pa_card_profile *profile;
+int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
     int r;
 
     pa_assert(c);
+    pa_assert(profile);
+    pa_assert(profile->card == c);
 
     if (!c->set_profile) {
         pa_log_debug("set_profile() operation not implemented for card %u \"%s\"", c->index, c->name);
         return -PA_ERR_NOTIMPLEMENTED;
     }
-
-    if (!name)
-        return -PA_ERR_NOENTITY;
-
-    if (!(profile = pa_hashmap_get(c->profiles, name)))
-        return -PA_ERR_NOENTITY;
 
     if (c->active_profile == profile) {
         c->save_profile = c->save_profile || save;
