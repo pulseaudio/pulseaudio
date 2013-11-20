@@ -195,7 +195,7 @@ static pa_hook_result_t profile_available_hook_callback(pa_core *c, pa_card_prof
 
     pa_log_debug("Setting card '%s' to profile '%s'", card->name, selected_profile->name);
 
-    if (pa_card_set_profile(card, selected_profile->name, false) != 0)
+    if (pa_card_set_profile(card, selected_profile, false) != 0)
         pa_log_warn("Could not set profile '%s'", selected_profile->name);
 
     return PA_HOOK_OK;

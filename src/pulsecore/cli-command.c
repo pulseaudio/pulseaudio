@@ -1634,6 +1634,7 @@ static int pa_cli_command_log_backtrace(pa_core *c, pa_tokenizer *t, pa_strbuf *
 static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *p;
     pa_card *card;
+    pa_card_profile *profile;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -1655,7 +1656,12 @@ static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *b
         return -1;
     }
 
-    if (pa_card_set_profile(card, p, true) < 0) {
+    if (!(profile = pa_hashmap_get(card->profiles, p))) {
+        pa_strbuf_printf(buf, "No such profile: %s\n", p);
+        return -1;
+    }
+
+    if (pa_card_set_profile(card, profile, true) < 0) {
         pa_strbuf_printf(buf, "Failed to set card profile to '%s'.\n", p);
         return -1;
     }

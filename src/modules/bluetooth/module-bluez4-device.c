@@ -543,7 +543,7 @@ static int device_process_msg(pa_msgobject *obj, int code, void *data, int64_t o
 
             pa_log_debug("Switching the profile to off due to IO thread failure.");
 
-            pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
+            pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, "off"), false) >= 0);
             break;
         }
     }
@@ -1815,7 +1815,7 @@ static pa_hook_result_t transport_state_changed_cb(pa_bluez4_discovery *y, pa_bl
     pa_assert(u);
 
     if (t == u->transport && t->state == PA_BLUEZ4_TRANSPORT_STATE_DISCONNECTED)
-        pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
+        pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, "off"), false) >= 0);
 
     if (t->device == u->device)
         handle_transport_state_change(u, t);
@@ -2060,7 +2060,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 off:
     stop_thread(u);
 
-    pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
+    pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, "off"), false) >= 0);
 
     return -PA_ERR_IO;
 }
@@ -2537,7 +2537,7 @@ int pa__init(pa_module *m) {
 off:
     stop_thread(u);
 
-    pa_assert_se(pa_card_set_profile(u->card, "off", false) >= 0);
+    pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, "off"), false) >= 0);
 
     return 0;
 

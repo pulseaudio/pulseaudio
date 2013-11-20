@@ -45,5 +45,6 @@ void pa_dbusiface_card_profile_free(pa_dbusiface_card_profile *p);
 
 const char *pa_dbusiface_card_profile_get_path(pa_dbusiface_card_profile *p);
 const char *pa_dbusiface_card_profile_get_name(pa_dbusiface_card_profile *p);
+pa_card_profile *pa_dbusiface_card_profile_get_profile(pa_dbusiface_card_profile *p);
 
 #endif
