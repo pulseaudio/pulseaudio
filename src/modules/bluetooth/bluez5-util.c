@@ -395,8 +395,8 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_address(pa_bluetooth_d
     pa_assert(local);
 
     while ((d = pa_hashmap_iterate(y->devices, &state, NULL)))
-        if (pa_streq(d->address, remote) && pa_streq(d->adapter->address, local))
-            return d->device_info_valid == 1 ? d : NULL;
+        if (d->device_info_valid == 1 && pa_streq(d->address, remote) && pa_streq(d->adapter->address, local))
+            return d;
 
     return NULL;
 }
