@@ -820,8 +820,8 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
 
         if (!d->adapter && d->adapter_path) {
             d->adapter = pa_hashmap_get(d->discovery->adapters, d->adapter_path);
-            if (!d->adapter) {
-                pa_log_error("Device %s is child of nonexistent adapter %s", d->path, d->adapter_path);
+            if (!d->adapter || !d->adapter->address) {
+                pa_log_error("Device %s is child of nonexistent or corrupted adapter %s", d->path, d->adapter_path);
                 set_device_info_valid(d, -1);
             } else
                 set_device_info_valid(d, 1);
