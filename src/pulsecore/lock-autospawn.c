@@ -114,8 +114,15 @@ static void unref(bool after_fork) {
     if (n_ref > 0)
         return;
 
+    /* Join threads only in the process the new thread was created in
+     * to avoid undefined behaviour.
+     * POSIX.1-2008 XSH 2.9.2 Thread IDs: "applications should only assume
+     * that thread IDs are usable and unique within a single process." */
     if (thread) {
-        pa_thread_free(thread);
+        if (after_fork)
+            pa_thread_free_nojoin(thread);
+	else
+            pa_thread_free(thread);
         thread = NULL;
     }
 
