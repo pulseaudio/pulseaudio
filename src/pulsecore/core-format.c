@@ -74,6 +74,27 @@ int pa_format_info_get_rate(pa_format_info *f, uint32_t *rate) {
     return 0;
 }
 
+int pa_format_info_get_channels(pa_format_info *f, uint8_t *channels) {
+    int r;
+    int channels_local;
+
+    pa_assert(f);
+    pa_assert(channels);
+
+    r = pa_format_info_get_prop_int(f, PA_PROP_FORMAT_CHANNELS, &channels_local);
+    if (r < 0)
+        return r;
+
+    if (!pa_channels_valid(channels_local)) {
+        pa_log_debug("Invalid channel count: %i", channels_local);
+        return -PA_ERR_INVALID;
+    }
+
+    *channels = channels_local;
+
+    return 0;
+}
+
 int pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
     int rate;
 
