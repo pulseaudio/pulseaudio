@@ -24,8 +24,34 @@
 #include "core-format.h"
 
 #include <pulse/def.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/macro.h>
+
+int pa_format_info_get_sample_format(pa_format_info *f, pa_sample_format_t *sf) {
+    int r;
+    char *sf_str;
+    pa_sample_format_t sf_local;
+
+    pa_assert(f);
+    pa_assert(sf);
+
+    r = pa_format_info_get_prop_string(f, PA_PROP_FORMAT_SAMPLE_FORMAT, &sf_str);
+    if (r < 0)
+        return r;
+
+    sf_local = pa_parse_sample_format(sf_str);
+    pa_xfree(sf_str);
+
+    if (!pa_sample_format_valid(sf_local)) {
+        pa_log_debug("Invalid sample format.");
+        return -PA_ERR_INVALID;
+    }
+
+    *sf = sf_local;
+
+    return 0;
+}
 
 int pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
     int rate;

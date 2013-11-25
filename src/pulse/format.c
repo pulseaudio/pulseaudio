@@ -218,7 +218,7 @@ pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_m
 
 /* For PCM streams */
 int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
-    char *sf = NULL, *m = NULL;
+    char *m = NULL;
     int rate, channels;
     int ret = -PA_ERR_INVALID;
 
@@ -228,14 +228,11 @@ int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_chan
     if (!pa_format_info_is_pcm(f))
         return pa_format_info_to_sample_spec_fake(f, ss, map);
 
-    if (pa_format_info_get_prop_string(f, PA_PROP_FORMAT_SAMPLE_FORMAT, &sf))
+    if (pa_format_info_get_sample_format(f, &ss->format) < 0)
         goto out;
     if (pa_format_info_get_prop_int(f, PA_PROP_FORMAT_RATE, &rate))
         goto out;
     if (pa_format_info_get_prop_int(f, PA_PROP_FORMAT_CHANNELS, &channels))
-        goto out;
-
-    if ((ss->format = pa_parse_sample_format(sf)) == PA_SAMPLE_INVALID)
         goto out;
 
     ss->rate = (uint32_t) rate;
@@ -252,8 +249,6 @@ int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_chan
     ret = 0;
 
 out:
-    if (sf)
-        pa_xfree(sf);
     if (m)
         pa_xfree(m);
 
