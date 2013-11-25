@@ -27,6 +27,11 @@
  * -PA_ERR_NOENTITY. */
 int pa_format_info_get_sample_format(pa_format_info *f, pa_sample_format_t *sf);
 
+/* Gets the sample rate stored in the format info. Returns a negative error
+ * code on failure. If the sample rate property is not set at all, returns
+ * -PA_ERR_NOENTITY. */
+int pa_format_info_get_rate(pa_format_info *f, uint32_t *rate);
+
 /* For compressed formats. Converts the format info into a sample spec and a
  * channel map that an ALSA device can use as its configuration parameters when
  * playing back the compressed data. That is, the returned sample spec doesn't

@@ -53,6 +53,27 @@ int pa_format_info_get_sample_format(pa_format_info *f, pa_sample_format_t *sf) 
     return 0;
 }
 
+int pa_format_info_get_rate(pa_format_info *f, uint32_t *rate) {
+    int r;
+    int rate_local;
+
+    pa_assert(f);
+    pa_assert(rate);
+
+    r = pa_format_info_get_prop_int(f, PA_PROP_FORMAT_RATE, &rate_local);
+    if (r < 0)
+        return r;
+
+    if (!pa_sample_rate_valid(rate_local)) {
+        pa_log_debug("Invalid sample rate: %i", rate_local);
+        return -PA_ERR_INVALID;
+    }
+
+    *rate = rate_local;
+
+    return 0;
+}
+
 int pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
     int rate;
 
