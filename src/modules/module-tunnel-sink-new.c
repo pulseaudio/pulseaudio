@@ -102,6 +102,16 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
+static void cork_stream(struct userdata *u, bool cork) {
+    pa_operation *operation;
+
+    pa_assert(u);
+    pa_assert(u->stream);
+
+    if ((operation = pa_stream_cork(u->stream, cork, NULL, NULL)))
+        pa_operation_unref(operation);
+}
+
 static void reset_bufferattr(pa_buffer_attr *bufferattr) {
     pa_assert(bufferattr);
     bufferattr->fragsize = (uint32_t) -1;
@@ -174,9 +184,7 @@ static void thread_func(void *userdata) {
             /* TODO: Cork the stream when the sink is suspended. */
 
             if (pa_stream_is_corked(u->stream)) {
-                pa_operation *operation;
-                if ((operation = pa_stream_cork(u->stream, 0, NULL, NULL)))
-                    pa_operation_unref(operation);
+                cork_stream(u, false);
             } else {
                 size_t writable;
 
@@ -244,6 +252,9 @@ static void stream_state_cb(pa_stream *stream, void *userdata) {
             pa_log_debug("Stream terminated.");
             break;
         case PA_STREAM_READY:
+            if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
+                cork_stream(u, false);
+
             /* Only call our requested_latency_cb when requested_latency
              * changed between PA_STREAM_CREATING -> PA_STREAM_READY, because
              * we don't want to override the initial tlength set by the server
@@ -415,6 +426,26 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
             *((pa_usec_t*) data) = remote_latency;
             return 0;
         }
+        case PA_SINK_MESSAGE_SET_STATE:
+            if (!u->stream || pa_stream_get_state(u->stream) != PA_STREAM_READY)
+                break;
+
+            switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
+                case PA_SINK_SUSPENDED: {
+                    cork_stream(u, true);
+                    break;
+                }
+                case PA_SINK_IDLE:
+                case PA_SINK_RUNNING: {
+                    cork_stream(u, false);
+                    break;
+                }
+                case PA_SINK_INVALID_STATE:
+                case PA_SINK_INIT:
+                case PA_SINK_UNLINKED:
+                    break;
+            }
+            break;
     }
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
