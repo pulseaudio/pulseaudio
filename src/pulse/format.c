@@ -218,7 +218,6 @@ pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_m
 
 /* For PCM streams */
 int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
-    char *m = NULL;
     int ret = -PA_ERR_INVALID;
 
     pa_assert(f);
@@ -233,21 +232,12 @@ int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_chan
         goto out;
     if (pa_format_info_get_channels(f, &ss->channels) < 0)
         goto out;
-
-    if (map) {
-        pa_channel_map_init(map);
-
-        if (pa_format_info_get_prop_string(f, PA_PROP_FORMAT_CHANNEL_MAP, &m) == 0)
-            if (pa_channel_map_parse(map, m) == NULL)
-                goto out;
-    }
+    if (map && pa_format_info_get_channel_map(f, map) < 0)
+        goto out;
 
     ret = 0;
 
 out:
-    if (m)
-        pa_xfree(m);
-
     return ret;
 }
 

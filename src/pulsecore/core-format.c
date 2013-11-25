@@ -95,6 +95,28 @@ int pa_format_info_get_channels(pa_format_info *f, uint8_t *channels) {
     return 0;
 }
 
+int pa_format_info_get_channel_map(pa_format_info *f, pa_channel_map *map) {
+    int r;
+    char *map_str;
+
+    pa_assert(f);
+    pa_assert(map);
+
+    r = pa_format_info_get_prop_string(f, PA_PROP_FORMAT_CHANNEL_MAP, &map_str);
+    if (r < 0)
+        return r;
+
+    map = pa_channel_map_parse(map, map_str);
+    pa_xfree(map_str);
+
+    if (!map) {
+        pa_log_debug("Failed to parse channel map.");
+        return -PA_ERR_INVALID;
+    }
+
+    return 0;
+}
+
 int pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
     int rate;
 
