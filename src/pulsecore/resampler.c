@@ -100,7 +100,6 @@ struct peaks_data { /* data specific to the peak finder pseudo resampler */
 
 struct ffmpeg_data { /* data specific to ffmpeg */
     struct AVResampleContext *state;
-    pa_memchunk buf[PA_CHANNELS_MAX];
 };
 
 static int copy_init(pa_resampler *r);
@@ -1768,7 +1767,7 @@ static unsigned ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsig
         int consumed_frames;
 
         /* Allocate a new block */
-        b = pa_memblock_new(r->mempool, ffmpeg_data->buf[c].length + in_n_frames * sizeof(int16_t));
+        b = pa_memblock_new(r->mempool, in_n_frames * sizeof(int16_t));
         p = pa_memblock_acquire(b);
 
         /* Now copy the input data, splitting up channels */
@@ -1817,7 +1816,6 @@ static unsigned ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsig
 }
 
 static void ffmpeg_free(pa_resampler *r) {
-    unsigned c;
     struct ffmpeg_data *ffmpeg_data;
 
     pa_assert(r);
@@ -1825,14 +1823,9 @@ static void ffmpeg_free(pa_resampler *r) {
     ffmpeg_data = r->impl.data;
     if (ffmpeg_data->state)
         av_resample_close(ffmpeg_data->state);
-
-    for (c = 0; c < PA_ELEMENTSOF(ffmpeg_data->buf); c++)
-        if (ffmpeg_data->buf[c].memblock)
-            pa_memblock_unref(ffmpeg_data->buf[c].memblock);
 }
 
 static int ffmpeg_init(pa_resampler *r) {
-    unsigned c;
     struct ffmpeg_data *ffmpeg_data;
 
     pa_assert(r);
@@ -1850,9 +1843,6 @@ static int ffmpeg_init(pa_resampler *r) {
     r->impl.free = ffmpeg_free;
     r->impl.resample = ffmpeg_resample;
     r->impl.data = (void *) ffmpeg_data;
-
-    for (c = 0; c < PA_ELEMENTSOF(ffmpeg_data->buf); c++)
-        pa_memchunk_reset(&ffmpeg_data->buf[c]);
 
     return 0;
 }
