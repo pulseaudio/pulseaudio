@@ -41,6 +41,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "sink=<sink to connect to> "
+        "rate=<sample rate> "
         "frequency=<frequency in Hz>");
 
 struct userdata {
@@ -53,6 +54,7 @@ struct userdata {
 
 static const char* const valid_modargs[] = {
     "sink",
+    "rate",
     "frequency",
     NULL,
 };
@@ -137,6 +139,11 @@ int pa__init(pa_module*m) {
     ss.format = PA_SAMPLE_FLOAT32;
     ss.rate = sink->sample_spec.rate;
     ss.channels = 1;
+
+    if (pa_modargs_get_sample_rate(ma, &ss.rate) < 0) {
+        pa_log("Invalid rate specification");
+        goto fail;
+    }
 
     frequency = 440;
     if (pa_modargs_get_value_u32(ma, "frequency", &frequency) < 0 || frequency < 1 || frequency > ss.rate/2) {
