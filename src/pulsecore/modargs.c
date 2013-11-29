@@ -387,9 +387,7 @@ int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *rss) {
     pa_assert(rss);
 
     ss = *rss;
-    if ((pa_modargs_get_value_u32(ma, "rate", &ss.rate)) < 0 ||
-        ss.rate <= 0 ||
-        ss.rate > PA_RATE_MAX)
+    if ((pa_modargs_get_sample_rate(ma, &ss.rate)) < 0)
         return -1;
 
     channels = ss.channels;

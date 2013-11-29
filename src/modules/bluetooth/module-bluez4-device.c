@@ -2450,8 +2450,7 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    if (pa_modargs_get_value_u32(ma, "rate", &u->sample_spec.rate) < 0 ||
-        u->sample_spec.rate <= 0 || u->sample_spec.rate > PA_RATE_MAX) {
+    if (pa_modargs_get_sample_rate(ma, &u->sample_spec.rate) < 0) {
         pa_log_error("Failed to get rate from module arguments");
         goto fail;
     }
