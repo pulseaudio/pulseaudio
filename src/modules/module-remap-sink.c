@@ -48,6 +48,7 @@ PA_MODULE_USAGE(
         "rate=<sample rate> "
         "channels=<number of channels> "
         "channel_map=<channel map> "
+        "resample_method=<resampler> "
         "remix=<remix channels?>");
 
 struct userdata {
@@ -68,6 +69,7 @@ static const char* const valid_modargs[] = {
     "rate",
     "channels",
     "channel_map",
+    "resample_method",
     "remix",
     NULL
 };
@@ -318,6 +320,7 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
 int pa__init(pa_module*m) {
     struct userdata *u;
     pa_sample_spec ss;
+    pa_resample_method_t resample_method = PA_RESAMPLER_INVALID;
     pa_channel_map sink_map, stream_map;
     pa_modargs *ma;
     pa_sink *master;
@@ -360,6 +363,11 @@ int pa__init(pa_module*m) {
 
     if (pa_modargs_get_value_boolean(ma, "remix", &remix) < 0) {
         pa_log("Invalid boolean remix parameter");
+        goto fail;
+    }
+
+    if (pa_modargs_get_resample_method(ma, &resample_method) < 0) {
+        pa_log("Invalid resampling method");
         goto fail;
     }
 
@@ -418,6 +426,7 @@ int pa__init(pa_module*m) {
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &stream_map);
     sink_input_data.flags = (remix ? 0 : PA_SINK_INPUT_NO_REMIX);
+    sink_input_data.resample_method = resample_method;
 
     pa_sink_input_new(&u->sink_input, m->core, &sink_input_data);
     pa_sink_input_new_data_done(&sink_input_data);
