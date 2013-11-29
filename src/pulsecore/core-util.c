@@ -954,6 +954,7 @@ void pa_reset_priority(void) {
 }
 
 int pa_match(const char *expr, const char *v) {
+#if defined(HAVE_REGEX_H) || defined(HAVE_PCREPOSIX_H)
     int k;
     regex_t re;
     int r;
@@ -976,6 +977,10 @@ int pa_match(const char *expr, const char *v) {
         errno = EINVAL;
 
     return r;
+#else
+    errno = ENOSYS;
+    return -1;
+#endif
 }
 
 /* Try to parse a boolean string value.*/
