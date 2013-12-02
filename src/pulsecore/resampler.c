@@ -65,13 +65,14 @@ struct pa_resampler {
     size_t resample_buf_size;
     size_t from_work_format_buf_size;
 
-    /* points to buffer before resampling stage, remap */
+    /* points to buffer before resampling stage, remap or to_work */
     pa_memchunk *leftover_buf;
     size_t *leftover_buf_size;
 
-    /* have_leftover points to leftover_in_remap */
+    /* have_leftover points to leftover_in_remap or leftover_in_to_work */
     bool *have_leftover;
     bool leftover_in_remap;
+    bool leftover_in_to_work;
 
     pa_sample_format_t work_format;
     uint8_t work_channels;
@@ -1169,26 +1170,43 @@ static void fit_buf(pa_resampler *r, pa_memchunk *buf, size_t len, size_t *size,
 }
 
 static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) {
-    unsigned n_samples;
+    unsigned in_n_samples, out_n_samples;
     void *src, *dst;
+    bool have_leftover;
+    size_t leftover_length = 0;
 
     pa_assert(r);
     pa_assert(input);
     pa_assert(input->memblock);
 
     /* Convert the incoming sample into the work sample format and place them
-     * in to_work_format_buf. */
+     * in to_work_format_buf. The leftover data is already converted, so it's
+     * part of the output buffer. */
 
-    if (!r->to_work_format_func || !input->length)
+    have_leftover = r->leftover_in_to_work;
+    r->leftover_in_to_work = false;
+
+    if (!have_leftover && (!r->to_work_format_func || !input->length))
         return input;
+    else if (input->length <= 0)
+        return &r->to_work_format_buf;
 
-    n_samples = (unsigned) ((input->length / r->i_fz) * r->i_ss.channels);
-    fit_buf(r, &r->to_work_format_buf, r->w_sz * n_samples, &r->to_work_format_buf_size, 0);
+    in_n_samples = out_n_samples = (unsigned) ((input->length / r->i_fz) * r->i_ss.channels);
+
+    if (have_leftover) {
+        leftover_length = r->to_work_format_buf.length;
+        out_n_samples += (unsigned) (leftover_length / r->w_sz);
+    }
+
+    fit_buf(r, &r->to_work_format_buf, r->w_sz * out_n_samples, &r->to_work_format_buf_size, leftover_length);
 
     src = pa_memblock_acquire_chunk(input);
-    dst = pa_memblock_acquire(r->to_work_format_buf.memblock);
+    dst = (uint8_t *) pa_memblock_acquire(r->to_work_format_buf.memblock) + leftover_length;
 
-    r->to_work_format_func(n_samples, src, dst);
+    if (r->to_work_format_func)
+        r->to_work_format_func(in_n_samples, src, dst);
+    else
+        memcpy(dst, src, input->length);
 
     pa_memblock_release(input->memblock);
     pa_memblock_release(r->to_work_format_buf.memblock);
