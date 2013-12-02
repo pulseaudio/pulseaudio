@@ -1140,15 +1140,32 @@ static void calc_map_table(pa_resampler *r) {
     pa_init_remap(m);
 }
 
-static size_t fit_buf(pa_resampler *r, pa_memchunk *buf, size_t size) {
-    if (!buf->memblock || size < buf->length) {
-        size = buf->length;
-        if (buf->memblock)
-            pa_memblock_unref(buf->memblock);
+/* check if buf's memblock is large enough to hold 'len' bytes; create a
+ * new memblock if necessary and optionally preserve 'copy' data bytes */
+static void fit_buf(pa_resampler *r, pa_memchunk *buf, size_t len, size_t *size, size_t copy) {
+    pa_assert(size);
 
-        buf->memblock = pa_memblock_new(r->mempool, size);
+    if (!buf->memblock || len > *size) {
+        pa_memblock *new_block = pa_memblock_new(r->mempool, len);
+
+        if (buf->memblock) {
+            if (copy > 0) {
+                void *src = pa_memblock_acquire(buf->memblock);
+                void *dst = pa_memblock_acquire(new_block);
+                pa_assert(copy <= len);
+                memcpy(dst, src, copy);
+                pa_memblock_release(new_block);
+                pa_memblock_release(buf->memblock);
+            }
+
+            pa_memblock_unref(buf->memblock);
+        }
+
+        buf->memblock = new_block;
+        *size = len;
     }
-    return size;
+
+    buf->length = len;
 }
 
 static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) {
@@ -1166,9 +1183,7 @@ static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) 
         return input;
 
     n_samples = (unsigned) ((input->length / r->i_fz) * r->i_ss.channels);
-
-    r->to_work_format_buf.length = r->w_sz * n_samples;
-    r->to_work_format_buf_size = fit_buf(r, &r->to_work_format_buf, r->to_work_format_buf_size);
+    fit_buf(r, &r->to_work_format_buf, r->w_sz * n_samples, &r->to_work_format_buf_size, 0);
 
     src = pa_memblock_acquire_chunk(input);
     dst = pa_memblock_acquire(r->to_work_format_buf.memblock);
@@ -1212,24 +1227,7 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
     }
 
     out_n_samples = out_n_frames * r->o_ss.channels;
-    r->remap_buf.length = out_n_samples * r->w_sz;
-
-    if (have_leftover) {
-        if (r->remap_buf_size < r->remap_buf.length) {
-            pa_memblock *new_block = pa_memblock_new(r->mempool, r->remap_buf.length);
-
-            src = pa_memblock_acquire(r->remap_buf.memblock);
-            dst = pa_memblock_acquire(new_block);
-            memcpy(dst, src, leftover_length);
-            pa_memblock_release(r->remap_buf.memblock);
-            pa_memblock_release(new_block);
-
-            pa_memblock_unref(r->remap_buf.memblock);
-            r->remap_buf.memblock = new_block;
-            r->remap_buf_size = r->remap_buf.length;
-        }
-    } else
-        r->remap_buf_size = fit_buf(r, &r->remap_buf, r->remap_buf_size);
+    fit_buf(r, &r->remap_buf, out_n_samples * r->w_sz, &r->remap_buf_size, leftover_length);
 
     src = pa_memblock_acquire_chunk(input);
     dst = (uint8_t *) pa_memblock_acquire(r->remap_buf.memblock) + leftover_length;
@@ -1257,8 +1255,7 @@ static void save_leftover(pa_resampler *r, void *buf, size_t len) {
     pa_assert(len > 0);
 
     /* Store the leftover data. */
-    r->leftover_buf->length = len;
-    *r->leftover_buf_size = fit_buf(r, r->leftover_buf, *r->leftover_buf_size);
+    fit_buf(r, r->leftover_buf, len, r->leftover_buf_size, 0);
     *r->have_leftover = true;
 
     dst = pa_memblock_acquire(r->leftover_buf->memblock);
@@ -1280,9 +1277,7 @@ static pa_memchunk *resample(pa_resampler *r, pa_memchunk *input) {
     in_n_frames = (unsigned) (input->length / r->w_fz);
 
     out_n_frames = ((in_n_frames*r->o_ss.rate)/r->i_ss.rate)+EXTRA_FRAMES;
-
-    r->resample_buf.length = r->w_fz * out_n_frames;
-    r->resample_buf_size = fit_buf(r, &r->resample_buf, r->resample_buf_size);
+    fit_buf(r, &r->resample_buf, r->w_fz * out_n_frames, &r->resample_buf_size, 0);
 
     leftover_n_frames = r->impl.resample(r, input, in_n_frames, &r->resample_buf, &out_n_frames);
 
@@ -1312,9 +1307,7 @@ static pa_memchunk *convert_from_work_format(pa_resampler *r, pa_memchunk *input
 
     n_samples = (unsigned) (input->length / r->w_sz);
     n_frames = n_samples / r->o_ss.channels;
-
-    r->from_work_format_buf.length = r->o_fz * n_frames;
-    r->from_work_format_buf_size = fit_buf(r, &r->from_work_format_buf, r->from_work_format_buf_size);
+    fit_buf(r, &r->from_work_format_buf, r->o_fz * n_frames, &r->from_work_format_buf_size, 0);
 
     src = pa_memblock_acquire_chunk(input);
     dst = pa_memblock_acquire(r->from_work_format_buf.memblock);
