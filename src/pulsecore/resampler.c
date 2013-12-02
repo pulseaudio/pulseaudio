@@ -398,12 +398,7 @@ pa_resampler* pa_resampler_new(
 
     calc_map_table(r);
 
-    pa_log_info("Using resampler '%s'", pa_resample_method_to_string(method));
-
     r->work_format = pa_resampler_choose_work_format(method, a->format, b->format, r->map_required);
-
-    pa_log_info("Using %s as working format.", pa_sample_format_to_string(r->work_format));
-
     r->w_sz = pa_sample_size_of_format(r->work_format);
 
     if (r->i_ss.format != r->work_format) {
@@ -428,13 +423,30 @@ pa_resampler* pa_resampler_new(
         }
     }
 
-    /* leftover buffer is the buffer before the resampling stage */
-    r->leftover_buf = &r->remap_buf;
-    r->leftover_buf_size = &r->remap_buf_size;
-    r->have_leftover = &r->leftover_in_remap;
+    if (r->o_ss.channels <= r->i_ss.channels) {
+        /* pipeline is: format conv. -> remap -> resample -> format conv. */
+        r->work_channels = r->o_ss.channels;
 
-    r->work_channels = r->o_ss.channels;
+        /* leftover buffer is remap output buffer (before resampling) */
+        r->leftover_buf = &r->remap_buf;
+        r->leftover_buf_size = &r->remap_buf_size;
+        r->have_leftover = &r->leftover_in_remap;
+    } else {
+        /* pipeline is: format conv. -> resample -> remap -> format conv. */
+        r->work_channels = r->i_ss.channels;
+
+        /* leftover buffer is to_work output buffer (before resampling) */
+        r->leftover_buf = &r->to_work_format_buf;
+        r->leftover_buf_size = &r->to_work_format_buf_size;
+        r->have_leftover = &r->leftover_in_to_work;
+    }
     r->w_fz = pa_sample_size_of_format(r->work_format) * r->work_channels;
+
+    pa_log_debug("Resampler:");
+    pa_log_debug("  rate %d -> %d (method %s)", a->rate, b->rate, pa_resample_method_to_string(r->method));
+    pa_log_debug("  format %s -> %s (intermediate %s)", pa_sample_format_to_string(a->format),
+                 pa_sample_format_to_string(b->format), pa_sample_format_to_string(r->work_format));
+    pa_log_debug("  channels %d -> %d (resampling %d)", a->channels, b->channels, r->work_channels);
 
     /* initialize implementation */
     if (init_table[method](r) < 0)
@@ -1348,8 +1360,16 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) 
 
     buf = (pa_memchunk*) in;
     buf = convert_to_work_format(r, buf);
-    buf = remap_channels(r, buf);
-    buf = resample(r, buf);
+
+    /* Try to save resampling effort: if we have more output channels than
+     * input channels, do resampling first, then remapping. */
+    if (r->o_ss.channels <= r->i_ss.channels) {
+        buf = remap_channels(r, buf);
+        buf = resample(r, buf);
+    } else {
+        buf = resample(r, buf);
+        buf = remap_channels(r, buf);
+    }
 
     if (buf->length) {
         buf = convert_from_work_format(r, buf);
