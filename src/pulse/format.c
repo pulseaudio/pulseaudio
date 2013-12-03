@@ -218,8 +218,6 @@ pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_m
 
 /* For PCM streams */
 int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
-    int ret = -PA_ERR_INVALID;
-
     pa_assert(f);
     pa_assert(ss);
 
@@ -227,18 +225,15 @@ int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_chan
         return pa_format_info_to_sample_spec_fake(f, ss, map);
 
     if (pa_format_info_get_sample_format(f, &ss->format) < 0)
-        goto out;
+        return -PA_ERR_INVALID;
     if (pa_format_info_get_rate(f, &ss->rate) < 0)
-        goto out;
+        return -PA_ERR_INVALID;
     if (pa_format_info_get_channels(f, &ss->channels) < 0)
-        goto out;
+        return -PA_ERR_INVALID;
     if (map && pa_format_info_get_channel_map(f, map) < 0)
-        goto out;
+        return -PA_ERR_INVALID;
 
-    ret = 0;
-
-out:
-    return ret;
+    return 0;
 }
 
 pa_prop_type_t pa_format_info_get_prop_type(pa_format_info *f, const char *key) {
