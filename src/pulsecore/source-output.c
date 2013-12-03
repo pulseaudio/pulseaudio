@@ -268,8 +268,10 @@ int pa_source_output_new(
         pa_source_output_new_data_set_source(data, source, false);
     }
 
-    /* Routing's done, we have a source. Now let's fix the format and set up the
-     * sample spec */
+    pa_return_val_if_fail(PA_SOURCE_IS_LINKED(pa_source_get_state(data->source)), -PA_ERR_BADSTATE);
+    pa_return_val_if_fail(!data->direct_on_input || data->direct_on_input->sink == data->source->monitor_of, -PA_ERR_INVALID);
+
+    /* Routing's done, we have a source. Now let's fix the format. */
 
     /* If something didn't pick a format for us, pick the top-most format since
      * we assume this is sorted in priority order */
@@ -295,9 +297,6 @@ int pa_source_output_new(
     pa_source_output_new_data_set_sample_spec(data, &ss);
     if (pa_format_info_is_pcm(data->format) && pa_channel_map_valid(&map))
         pa_source_output_new_data_set_channel_map(data, &map);
-
-    pa_return_val_if_fail(PA_SOURCE_IS_LINKED(pa_source_get_state(data->source)), -PA_ERR_BADSTATE);
-    pa_return_val_if_fail(!data->direct_on_input || data->direct_on_input->sink == data->source->monitor_of, -PA_ERR_INVALID);
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->source->sample_spec;

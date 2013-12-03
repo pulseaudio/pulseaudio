@@ -325,8 +325,13 @@ int pa_sink_input_new(
         pa_return_val_if_fail(sink, -PA_ERR_NOENTITY);
         pa_sink_input_new_data_set_sink(data, sink, false);
     }
-    /* Routing's done, we have a sink. Now let's fix the format and set up the
-     * sample spec */
+
+    pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
+    pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink
+                                               && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED),
+                          -PA_ERR_INVALID);
+
+    /* Routing's done, we have a sink. Now let's fix the format. */
 
     /* If something didn't pick a format for us, pick the top-most format since
      * we assume this is sorted in priority order */
@@ -353,8 +358,6 @@ int pa_sink_input_new(
     if (pa_format_info_is_pcm(data->format) && pa_channel_map_valid(&map))
         pa_sink_input_new_data_set_channel_map(data, &map);
 
-    pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
-    pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED), -PA_ERR_INVALID);
 
     r = check_passthrough_connection(pa_sink_input_new_data_is_passthrough(data), data->sink);
     if (r != PA_OK)
