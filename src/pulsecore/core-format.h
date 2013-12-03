@@ -22,6 +22,8 @@
 
 #include <pulse/format.h>
 
+#include <stdbool.h>
+
 /* Gets the sample format stored in the format info. Returns a negative error
  * code on failure. If the sample format property is not set at all, returns
  * -PA_ERR_NOENTITY. */
@@ -41,6 +43,22 @@ int pa_format_info_get_channels(pa_format_info *f, uint8_t *channels);
  * code on failure. If the channel map property is not set at all, returns
  * -PA_ERR_NOENTITY. */
 int pa_format_info_get_channel_map(pa_format_info *f, pa_channel_map *map);
+
+/* Convert a sample spec and an optional channel map to a new PCM format info
+ * object (remember to free it). If map is NULL, then the channel map will be
+ * left unspecified. If some fields of the sample spec should be ignored, pass
+ * false for set_format, set_rate and set_channels as appropriate, then those
+ * fields will be left unspecified. This function returns NULL if the input is
+ * invalid (for example, setting the sample rate was requested, but the rate
+ * in ss is invalid).
+ *
+ * pa_format_info_from_sample_spec() exists too. This "version 2" was created,
+ * because the original function doesn't provide the possibility of ignoring
+ * some of the sample spec fields. That functionality can't be added to the
+ * original function, because the function is a part of the public API and
+ * adding parameters to it would break the API. */
+pa_format_info *pa_format_info_from_sample_spec2(const pa_sample_spec *ss, const pa_channel_map *map, bool set_format,
+                                                 bool set_rate, bool set_channels);
 
 /* Convert the format info into a sample spec and a channel map. If the format
  * info doesn't contain some information, the fallback sample spec and channel

@@ -117,6 +117,43 @@ int pa_format_info_get_channel_map(pa_format_info *f, pa_channel_map *map) {
     return 0;
 }
 
+pa_format_info *pa_format_info_from_sample_spec2(const pa_sample_spec *ss, const pa_channel_map *map, bool set_format,
+                                                 bool set_rate, bool set_channels) {
+    pa_format_info *format = NULL;
+
+    pa_assert(ss);
+
+    format = pa_format_info_new();
+    format->encoding = PA_ENCODING_PCM;
+
+    if (set_format)
+        pa_format_info_set_sample_format(format, ss->format);
+
+    if (set_rate)
+        pa_format_info_set_rate(format, ss->rate);
+
+    if (set_channels) {
+        pa_format_info_set_channels(format, ss->channels);
+
+        if (map) {
+            if (map->channels != ss->channels) {
+                pa_log_debug("Channel map is incompatible with the sample spec.");
+                goto fail;
+            }
+
+            pa_format_info_set_channel_map(format, map);
+        }
+    }
+
+    return format;
+
+fail:
+    if (format)
+        pa_format_info_free(format);
+
+    return NULL;
+}
+
 int pa_format_info_to_sample_spec2(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map, pa_sample_spec *fallback_ss,
                                    pa_channel_map *fallback_map) {
     int r, r2;
