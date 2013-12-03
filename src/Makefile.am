@@ -687,6 +687,11 @@ libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += $(X11_CFLAGS)
 libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS += $(X11_LIBS)
 endif
 
+if HAVE_SYSTEMD_JOURNAL
+libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += $(JOURNAL_FLAGS)
+libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS += $(JOURNAL_LIBS)
+endif
+
 # proplist-util.h uses these header files, but not the library itself!
 libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += $(GLIB20_CFLAGS) $(GTK30_CFLAGS)
 

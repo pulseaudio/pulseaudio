@@ -297,11 +297,12 @@ USA.
 
     <option>
       <p><opt>log-target=</opt> The default log target. Use either
-      <opt>stderr</opt>, <opt>syslog</opt>, <opt>auto</opt>,
-      <opt>file:PATH</opt> or <opt>newfile:PATH</opt>. <opt>auto</opt> is
-      equivalent to <opt>sylog</opt> in case <opt>daemonize</opt> is enabled,
-      otherwise to <opt>stderr</opt>. If set to <opt>file:PATH</opt>, logging
-      is directed to the file indicated by PATH. <opt>newfile:PATH</opt> is
+      <opt>stderr</opt>, <opt>syslog</opt>, <opt>journal</opt> (optional),
+      <opt>auto</opt>, <opt>file:PATH</opt> or <opt>newfile:PATH</opt>. On traditional
+      systems <opt>auto</opt> is equivalent to <opt>syslog</opt>. On systemd-enabled
+      systems, auto is equivalent to <opt>journal</opt>, in case <opt>daemonize</opt>
+      is enabled, and to <opt>stderr</opt> otherwise. If set to <opt>file:PATH</opt>,
+      logging is directed to the file indicated by PATH. <opt>newfile:PATH</opt> is
       otherwise the same as <opt>file:PATH</opt>, but existing files are never
       overwritten. If the specified file already exists, a suffix is added to
       the file name to avoid overwriting. Defaults to <opt>auto</opt>. The

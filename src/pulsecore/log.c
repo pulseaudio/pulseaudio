@@ -40,6 +40,10 @@
 #include <syslog.h>
 #endif
 
+#ifdef HAVE_JOURNAL
+#include <systemd/sd-journal.h>
+#endif
+
 #include <pulse/gccmacro.h>
 #include <pulse/rtclock.h>
 #include <pulse/utf8.h>
@@ -90,6 +94,18 @@ static const int level_to_syslog[] = {
 };
 #endif
 
+/* These are actually equivalent to the syslog ones
+ * but we don't want to depend on syslog.h */
+#ifdef HAVE_JOURNAL
+static const int level_to_journal[] = {
+    [PA_LOG_ERROR]  = 3,
+    [PA_LOG_WARN]   = 4,
+    [PA_LOG_NOTICE] = 5,
+    [PA_LOG_INFO]   = 6,
+    [PA_LOG_DEBUG]  = 7
+};
+#endif
+
 static const char level_to_char[] = {
     [PA_LOG_ERROR] = 'E',
     [PA_LOG_WARN] = 'W',
@@ -129,6 +145,9 @@ int pa_log_set_target(pa_log_target *t) {
     switch (t->type) {
         case PA_LOG_STDERR:
         case PA_LOG_SYSLOG:
+#ifdef HAVE_JOURNAL
+        case PA_LOG_JOURNAL:
+#endif
         case PA_LOG_NULL:
             break;
         case PA_LOG_FILE:
@@ -318,6 +337,20 @@ static void init_defaults(void) {
     } PA_ONCE_END;
 }
 
+#ifdef HAVE_SYSLOG_H
+static void log_syslog(pa_log_level_t level, char *t, char *timestamp, char *location, char *bt) {
+    char *local_t;
+
+    openlog(ident, LOG_PID, LOG_USER);
+
+    if ((local_t = pa_utf8_to_locale(t)))
+        t = local_t;
+
+    syslog(level_to_syslog[level], "%s%s%s%s", timestamp, location, t, pa_strempty(bt));
+    pa_xfree(local_t);
+}
+#endif
+
 void pa_log_levelv_meta(
         pa_log_level_t level,
         const char*file,
@@ -450,19 +483,35 @@ void pa_log_levelv_meta(
             }
 
 #ifdef HAVE_SYSLOG_H
-            case PA_LOG_SYSLOG: {
-                char *local_t;
-
-                openlog(ident, LOG_PID, LOG_USER);
-
-                if ((local_t = pa_utf8_to_locale(t)))
-                    t = local_t;
-
-                syslog(level_to_syslog[level], "%s%s%s%s", timestamp, location, t, pa_strempty(bt));
-                pa_xfree(local_t);
-
+            case PA_LOG_SYSLOG:
+                log_syslog(level, t, timestamp, location, bt);
                 break;
-            }
+#endif
+
+#ifdef HAVE_JOURNAL
+            case PA_LOG_JOURNAL:
+                if (sd_journal_send("MESSAGE=%s", t,
+                                "PRIORITY=%i", level_to_journal[level],
+                                "CODE_FILE=%s", file,
+                                "CODE_FUNC=%s", func,
+                                "CODE_LINE=%d", line,
+                                NULL) < 0) {
+#ifdef HAVE_SYSLOG_H
+                    pa_log_target new_target = { .type = PA_LOG_SYSLOG, .file = NULL };
+
+                    syslog(level_to_syslog[PA_LOG_ERROR], "%s%s%s", timestamp, __FILE__,
+                           "Error writing logs to the journal. Redirect log messages to syslog.");
+                    log_syslog(level, t, timestamp, location, bt);
+#else
+                    pa_log_target new_target = { .type = PA_LOG_STDERR, .file = NULL };
+
+                    saved_errno = errno;
+                    fprintf(stderr, "%s\n", "Error writing logs to the journal. Redirect log messages to console.");
+                    fprintf(stderr, "%s %s\n", metadata, t);
+#endif
+                    pa_log_set_target(&new_target);
+                }
+                break;
 #endif
 
             case PA_LOG_FILE:
@@ -570,6 +619,10 @@ pa_log_target *pa_log_parse_target(const char *string) {
         t = pa_log_target_new(PA_LOG_STDERR, NULL);
     else if (pa_streq(string, "syslog"))
         t = pa_log_target_new(PA_LOG_SYSLOG, NULL);
+#ifdef HAVE_JOURNAL
+    else if (pa_streq(string, "journal"))
+        t = pa_log_target_new(PA_LOG_JOURNAL, NULL);
+#endif
     else if (pa_streq(string, "null"))
         t = pa_log_target_new(PA_LOG_NULL, NULL);
     else if (pa_startswith(string, "file:"))
@@ -594,6 +647,11 @@ char *pa_log_target_to_string(const pa_log_target *t) {
         case PA_LOG_SYSLOG:
             string = pa_xstrdup("syslog");
             break;
+#ifdef HAVE_JOURNAL
+        case PA_LOG_JOURNAL:
+            string = pa_xstrdup("journal");
+            break;
+#endif
         case PA_LOG_NULL:
             string = pa_xstrdup("null");
             break;

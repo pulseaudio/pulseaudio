@@ -817,7 +817,11 @@ int main(int argc, char *argv[]) {
 #endif
 
         if (!conf->log_target) {
+#ifdef HAVE_JOURNAL
+            pa_log_target target = { .type = PA_LOG_JOURNAL, .file = NULL };
+#else
             pa_log_target target = { .type = PA_LOG_SYSLOG, .file = NULL };
+#endif
             pa_log_set_target(&target);
         }
 

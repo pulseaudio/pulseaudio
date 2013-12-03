@@ -1160,6 +1160,22 @@ AC_SUBST(HAVE_SYSTEMD)
 AM_CONDITIONAL([HAVE_SYSTEMD], [test "x$HAVE_SYSTEMD" = x1])
 AS_IF([test "x$HAVE_SYSTEMD" = "x1"], AC_DEFINE([HAVE_SYSTEMD], 1, [Have SYSTEMD?]))
 
+#### journal support (optional) ####
+
+AC_ARG_ENABLE([systemd-journal],
+    AS_HELP_STRING([--disable-systemd-journal],[Disable optional systemd journal support]))
+
+AS_IF([test "x$enable_systemd_journal" != "xno"],
+    [PKG_CHECK_MODULES(JOURNAL, [ libsystemd-journal ], HAVE_SYSTEMD_JOURNAL=1, HAVE_SYSTEMD_JOURNAL=0)],
+    HAVE_SYSTEMD_JOURNAL=0)
+
+AS_IF([test "x$enable_systemd_journal" = "xyes" && test "x$HAVE_SYSTEMD_JOURNAL" = "x0"],
+    [AC_MSG_ERROR([*** Needed systemd journal support not found])])
+
+AC_SUBST(HAVE_SYSTEMD_JOURNAL)
+AM_CONDITIONAL([HAVE_SYSTEMD_JOURNAL], [test "x$HAVE_SYSTEMD_JOURNAL" = x1])
+AS_IF([test "x$HAVE_SYSTEMD_JOURNAL" = "x1"], AC_DEFINE([HAVE_JOURNAL], 1, [Have JOURNAL?]))
+
 #### Build and Install man pages ####
 
 AC_ARG_ENABLE([manpages],
@@ -1405,6 +1421,7 @@ AS_IF([test "x$HAVE_XEN" = "x1"], ENABLE_XEN=yes, ENABLE_XEN=no)
 AS_IF([test "x$HAVE_DBUS" = "x1"], ENABLE_DBUS=yes, ENABLE_DBUS=no)
 AS_IF([test "x$HAVE_UDEV" = "x1"], ENABLE_UDEV=yes, ENABLE_UDEV=no)
 AS_IF([test "x$HAVE_SYSTEMD" = "x1"], ENABLE_SYSTEMD=yes, ENABLE_SYSTEMD=no)
+AS_IF([test "x$HAVE_SYSTEMD_JOURNAL" = "x1"], ENABLE_SYSTEMD_JOURNAL=yes, ENABLE_SYSTEMD_JOURNAL=no)
 AS_IF([test "x$HAVE_BLUEZ_4" = "x1"], ENABLE_BLUEZ_4=yes, ENABLE_BLUEZ_4=no)
 AS_IF([test "x$HAVE_BLUEZ_5" = "x1"], ENABLE_BLUEZ_5=yes, ENABLE_BLUEZ_5=no)
 AS_IF([test "x$HAVE_HAL_COMPAT" = "x1"], ENABLE_HAL_COMPAT=yes, ENABLE_HAL_COMPAT=no)
@@ -1463,6 +1480,7 @@ echo "
     Enable udev:                   ${ENABLE_UDEV}
       Enable HAL->udev compat:     ${ENABLE_HAL_COMPAT}
     Enable systemd login:          ${ENABLE_SYSTEMD}
+    Enable systemd journal:        ${ENABLE_SYSTEMD_JOURNAL}
     Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
     Enable IPv6:                   ${ENABLE_IPV6}
