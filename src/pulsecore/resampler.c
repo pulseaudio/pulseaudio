@@ -253,8 +253,8 @@ static pa_resample_method_t pa_resampler_fix_method(
 
 /* Return true if a is a more precise sample format than b, else return false */
 static bool sample_format_more_precise(pa_sample_format_t a, pa_sample_format_t b) {
-    pa_assert(a >= 0 && a < PA_SAMPLE_MAX);
-    pa_assert(b >= 0 && b < PA_SAMPLE_MAX);
+    pa_assert(pa_sample_format_valid(a));
+    pa_assert(pa_sample_format_valid(b));
 
     switch (a) {
         case PA_SAMPLE_U8:
@@ -305,8 +305,8 @@ static pa_sample_format_t pa_resampler_choose_work_format(
                     bool map_required) {
     pa_sample_format_t work_format;
 
-    pa_assert(a >= 0 && a < PA_SAMPLE_MAX);
-    pa_assert(b >= 0 && b < PA_SAMPLE_MAX);
+    pa_assert(pa_sample_format_valid(a));
+    pa_assert(pa_sample_format_valid(b));
     pa_assert(method >= 0);
     pa_assert(method < PA_RESAMPLER_MAX);
 

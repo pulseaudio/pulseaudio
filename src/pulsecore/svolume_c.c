@@ -261,15 +261,13 @@ static pa_do_volume_func_t do_volume_table[] = {
 };
 
 pa_do_volume_func_t pa_get_volume_func(pa_sample_format_t f) {
-    pa_assert(f >= 0);
-    pa_assert(f < PA_SAMPLE_MAX);
+    pa_assert(pa_sample_format_valid(f));
 
     return do_volume_table[f];
 }
 
 void pa_set_volume_func(pa_sample_format_t f, pa_do_volume_func_t func) {
-    pa_assert(f >= 0);
-    pa_assert(f < PA_SAMPLE_MAX);
+    pa_assert(pa_sample_format_valid(f));
 
     do_volume_table[f] = func;
 }

@@ -202,17 +202,13 @@ static pa_convert_func_t to_float32ne_table[] = {
 };
 
 pa_convert_func_t pa_get_convert_to_float32ne_function(pa_sample_format_t f) {
-
-    pa_assert(f >= 0);
-    pa_assert(f < PA_SAMPLE_MAX);
+    pa_assert(pa_sample_format_valid(f));
 
     return to_float32ne_table[f];
 }
 
 void pa_set_convert_to_float32ne_function(pa_sample_format_t f, pa_convert_func_t func) {
-
-    pa_assert(f >= 0);
-    pa_assert(f < PA_SAMPLE_MAX);
+    pa_assert(pa_sample_format_valid(f));
 
     to_float32ne_table[f] = func;
 }
@@ -234,17 +230,13 @@ static pa_convert_func_t from_float32ne_table[] = {
 };
 
 pa_convert_func_t pa_get_convert_from_float32ne_function(pa_sample_format_t f) {
-
-    pa_assert(f >= 0);
-    pa_assert(f < PA_SAMPLE_MAX);
+    pa_assert(pa_sample_format_valid(f));
 
     return from_float32ne_table[f];
 }
 
 void pa_set_convert_from_float32ne_function(pa_sample_format_t f, pa_convert_func_t func) {
-
-    pa_assert(f >= 0);
-    pa_assert(f < PA_SAMPLE_MAX);
+    pa_assert(pa_sample_format_valid(f));
 
     from_float32ne_table[f] = func;
 }
@@ -266,17 +258,13 @@ static pa_convert_func_t to_s16ne_table[] = {
 };
 
 pa_convert_func_t pa_get_convert_to_s16ne_function(pa_sample_format_t f) {
-
-    pa_assert(f >= 0);
-    pa_assert(f < PA_SAMPLE_MAX);
+    pa_assert(pa_sample_format_valid(f));
 
     return to_s16ne_table[f];
 }
 
 void pa_set_convert_to_s16ne_function(pa_sample_format_t f, pa_convert_func_t func) {
-
-    pa_assert(f >= 0);
-    pa_assert(f < PA_SAMPLE_MAX);
+    pa_assert(pa_sample_format_valid(f));
 
     to_s16ne_table[f] = func;
 }
@@ -298,17 +286,13 @@ static pa_convert_func_t from_s16ne_table[] = {
 };
 
 pa_convert_func_t pa_get_convert_from_s16ne_function(pa_sample_format_t f) {
-
-    pa_assert(f >= 0);
-    pa_assert(f < PA_SAMPLE_MAX);
+    pa_assert(pa_sample_format_valid(f));
 
     return from_s16ne_table[f];
 }
 
 void pa_set_convert_from_s16ne_function(pa_sample_format_t f, pa_convert_func_t func) {
-
-    pa_assert(f >= 0);
-    pa_assert(f < PA_SAMPLE_MAX);
+    pa_assert(pa_sample_format_valid(f));
 
     from_s16ne_table[f] = func;
 }

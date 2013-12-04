@@ -510,7 +510,7 @@ static void handle_set_default_sample_format(DBusConnection *conn, DBusMessage *
 
     dbus_message_iter_get_basic(iter, &default_sample_format);
 
-    if (default_sample_format >= PA_SAMPLE_MAX) {
+    if (!pa_sample_format_valid(default_sample_format)) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid sample format.");
         return;
     }
@@ -1317,7 +1317,7 @@ static void handle_upload_sample(DBusConnection *conn, DBusMessage *msg, void *u
     dbus_message_iter_recurse(&msg_iter, &array_iter);
     dbus_message_iter_get_fixed_array(&array_iter, &data, &data_length);
 
-    if (sample_format >= PA_SAMPLE_MAX) {
+    if (!pa_sample_format_valid(sample_format)) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid sample format.");
         goto finish;
     }
