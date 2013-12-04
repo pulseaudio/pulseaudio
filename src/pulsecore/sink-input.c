@@ -32,7 +32,9 @@
 #include <pulse/util.h>
 #include <pulse/internal.h>
 
+#include <pulsecore/core-format.h>
 #include <pulsecore/mix.h>
+#include <pulsecore/stream-util.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
 #include <pulsecore/play-memblockq.h>
@@ -286,12 +288,10 @@ int pa_sink_input_new(
     pa_sink_input *i;
     pa_resampler *resampler = NULL;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], fmt[PA_FORMAT_INFO_SNPRINT_MAX];
-    pa_channel_map original_cm;
+    pa_channel_map volume_map;
     int r;
     char *pt;
     char *memblockq_name;
-    pa_sample_spec ss;
-    pa_channel_map map;
 
     pa_assert(_i);
     pa_assert(core);
@@ -308,11 +308,19 @@ int pa_sink_input_new(
         /* From this point on, we want to work only with formats, and get back
          * to using the sample spec and channel map after all decisions w.r.t.
          * routing are complete. */
-        pa_idxset *tmp = pa_idxset_new(NULL, NULL);
-        pa_format_info *f = pa_format_info_from_sample_spec(&data->sample_spec,
-                data->channel_map_is_set ? &data->channel_map : NULL);
-        pa_idxset_put(tmp, f, NULL);
-        pa_sink_input_new_data_set_formats(data, tmp);
+        pa_format_info *f;
+        pa_idxset *formats;
+
+        f = pa_format_info_from_sample_spec2(&data->sample_spec, data->channel_map_is_set ? &data->channel_map : NULL,
+                                             !(data->flags & PA_SINK_INPUT_FIX_FORMAT),
+                                             !(data->flags & PA_SINK_INPUT_FIX_RATE),
+                                             !(data->flags & PA_SINK_INPUT_FIX_CHANNELS));
+        if (!f)
+            return -PA_ERR_INVALID;
+
+        formats = pa_idxset_new(NULL, NULL);
+        pa_idxset_put(formats, f, NULL);
+        pa_sink_input_new_data_set_formats(data, formats);
     }
 
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], data)) < 0)
@@ -351,31 +359,26 @@ int pa_sink_input_new(
         return -PA_ERR_NOTSUPPORTED;
     }
 
-    /* Now populate the sample spec and format according to the final
-     * format that we've negotiated */
-    pa_return_val_if_fail(pa_format_info_to_sample_spec(data->format, &ss, &map) == 0, -PA_ERR_INVALID);
-    pa_sink_input_new_data_set_sample_spec(data, &ss);
-    if (pa_format_info_is_pcm(data->format) && pa_channel_map_valid(&map))
-        pa_sink_input_new_data_set_channel_map(data, &map);
+    if (data->volume_is_set && pa_format_info_is_pcm(data->format)) {
+        /* If volume is set, we need to save the original data->channel_map,
+         * so that we can remap the volume from the original channel map to the
+         * final channel map of the stream in case data->channel_map gets
+         * modified in pa_format_info_to_sample_spec2(). */
+        r = pa_stream_get_volume_channel_map(&data->volume, data->channel_map_is_set ? &data->channel_map : NULL, data->format, &volume_map);
+        if (r < 0)
+            return r;
+    }
 
+    /* Now populate the sample spec and channel map according to the final
+     * format that we've negotiated */
+    r = pa_format_info_to_sample_spec2(data->format, &data->sample_spec, &data->channel_map, &data->sink->sample_spec,
+                                       &data->sink->channel_map);
+    if (r < 0)
+        return r;
 
     r = check_passthrough_connection(pa_sink_input_new_data_is_passthrough(data), data->sink);
     if (r != PA_OK)
         return r;
-
-    if (!data->sample_spec_is_set)
-        data->sample_spec = data->sink->sample_spec;
-
-    pa_return_val_if_fail(pa_sample_spec_valid(&data->sample_spec), -PA_ERR_INVALID);
-
-    if (!data->channel_map_is_set) {
-        if (pa_channel_map_compatible(&data->sink->channel_map, &data->sample_spec))
-            data->channel_map = data->sink->channel_map;
-        else
-            pa_channel_map_init_extend(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
-    }
-
-    pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
 
     /* Don't restore (or save) stream volume for passthrough streams and
      * prevent attenuation/gain */
@@ -395,35 +398,13 @@ int pa_sink_input_new(
     if (!data->volume_writable)
         data->save_volume = false;
 
-    pa_return_val_if_fail(pa_cvolume_compatible(&data->volume, &data->sample_spec), -PA_ERR_INVALID);
+    if (data->volume_is_set)
+        /* The original volume channel map may be different than the final
+         * stream channel map, so remapping may be needed. */
+        pa_cvolume_remap(&data->volume, &volume_map, &data->channel_map);
 
     if (!data->muted_is_set)
         data->muted = false;
-
-    if (data->flags & PA_SINK_INPUT_FIX_FORMAT) {
-        pa_return_val_if_fail(pa_format_info_is_pcm(data->format), -PA_ERR_INVALID);
-        data->sample_spec.format = data->sink->sample_spec.format;
-        pa_format_info_set_sample_format(data->format, data->sample_spec.format);
-    }
-
-    if (data->flags & PA_SINK_INPUT_FIX_RATE) {
-        pa_return_val_if_fail(pa_format_info_is_pcm(data->format), -PA_ERR_INVALID);
-        data->sample_spec.rate = data->sink->sample_spec.rate;
-        pa_format_info_set_rate(data->format, data->sample_spec.rate);
-    }
-
-    original_cm = data->channel_map;
-
-    if (data->flags & PA_SINK_INPUT_FIX_CHANNELS) {
-        pa_return_val_if_fail(pa_format_info_is_pcm(data->format), -PA_ERR_INVALID);
-        data->sample_spec.channels = data->sink->sample_spec.channels;
-        data->channel_map = data->sink->channel_map;
-        pa_format_info_set_channels(data->format, data->sample_spec.channels);
-        pa_format_info_set_channel_map(data->format, &data->channel_map);
-    }
-
-    pa_assert(pa_sample_spec_valid(&data->sample_spec));
-    pa_assert(pa_channel_map_valid(&data->channel_map));
 
     if (!(data->flags & PA_SINK_INPUT_VARIABLE_RATE) &&
         !pa_sample_spec_equal(&data->sample_spec, &data->sink->sample_spec)) {
@@ -442,9 +423,6 @@ int pa_sink_input_new(
         pa_log_debug("Could not update sink sample spec to match passthrough stream");
         return -PA_ERR_NOTSUPPORTED;
     }
-
-    /* Due to the fixing of the sample spec the volume might not match anymore */
-    pa_cvolume_remap(&data->volume, &original_cm, &data->channel_map);
 
     if (data->resample_method == PA_RESAMPLER_INVALID)
         data->resample_method = core->resample_method;
