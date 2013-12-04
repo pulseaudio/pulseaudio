@@ -130,7 +130,18 @@ char *pa_format_info_snprint(char *s, size_t l, const pa_format_info *f);
  * \a pa_format_info_snprint() into a pa_format_info structure. \since 1.0 */
 pa_format_info* pa_format_info_from_string(const char *str);
 
-/** Utility function to take a \a pa_sample_spec and generate the corresponding \a pa_format_info. \since 2.0 */
+/** Utility function to take a \a pa_sample_spec and generate the corresponding
+ * \a pa_format_info.
+ *
+ * Note that if you want the server to choose some of the stream parameters,
+ * for example the sample rate, so that they match the device parameters, then
+ * you shouldn't use this function. In order to allow the server to choose
+ * a parameter value, that parameter must be left unspecified in the
+ * pa_format_info object, and this function always specifies all parameters. An
+ * exception is the channel map: if you pass NULL for the channel map, then the
+ * channel map will be left unspecified, allowing the server to choose it.
+ *
+ * \since 2.0 */
 pa_format_info* pa_format_info_from_sample_spec(const pa_sample_spec *ss, const pa_channel_map *map);
 
 /** Utility function to generate a \a pa_sample_spec and \a pa_channel_map corresponding to a given \a pa_format_info. The
@@ -204,13 +215,48 @@ void pa_format_info_set_prop_string(pa_format_info *f, const char *key, const ch
 /** Sets a property with a list of string values on the given format info. \since 1.0 */
 void pa_format_info_set_prop_string_array(pa_format_info *f, const char *key, const char **values, int n_values);
 
-/** Convenience method to set the sample format as a property on the given format. \since 1.0 */
+/** Convenience method to set the sample format as a property on the given
+ * format.
+ *
+ * Note for PCM: If the sample format is left unspecified in the pa_format_info
+ * object, then the server will select the stream sample format. In that case
+ * the stream sample format will most likely match the device sample format,
+ * meaning that sample format conversion will be avoided.
+ *
+ * \since 1.0 */
 void pa_format_info_set_sample_format(pa_format_info *f, pa_sample_format_t sf);
-/** Convenience method to set the sampling rate as a property on the given format. \since 1.0 */
+
+/** Convenience method to set the sampling rate as a property on the given
+ * format.
+ *
+ * Note for PCM: If the sample rate is left unspecified in the pa_format_info
+ * object, then the server will select the stream sample rate. In that case the
+ * stream sample rate will most likely match the device sample rate, meaning
+ * that sample rate conversion will be avoided.
+ *
+ * \since 1.0 */
 void pa_format_info_set_rate(pa_format_info *f, int rate);
-/** Convenience method to set the number of channels as a property on the given format. \since 1.0 */
+
+/** Convenience method to set the number of channels as a property on the given
+ * format.
+ *
+ * Note for PCM: If the channel count is left unspecified in the pa_format_info
+ * object, then the server will select the stream channel count. In that case
+ * the stream channel count will most likely match the device channel count,
+ * meaning that up/downmixing will be avoided.
+ *
+ * \since 1.0 */
 void pa_format_info_set_channels(pa_format_info *f, int channels);
-/** Convenience method to set the channel map as a property on the given format. \since 1.0 */
+
+/** Convenience method to set the channel map as a property on the given
+ * format.
+ *
+ * Note for PCM: If the channel map is left unspecified in the pa_format_info
+ * object, then the server will select the stream channel map. In that case the
+ * stream channel map will most likely match the device channel map, meaning
+ * that remixing will be avoided.
+ *
+ * \since 1.0 */
 void pa_format_info_set_channel_map(pa_format_info *f, const pa_channel_map *map);
 
 PA_C_DECL_END
