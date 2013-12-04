@@ -1009,8 +1009,7 @@ int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
         }
     }
 
-    if (PA_UNLIKELY (desired_rate < 8000 ||
-                     desired_rate > PA_RATE_MAX))
+    if (PA_UNLIKELY(!pa_sample_rate_valid(desired_rate)))
         return -1;
 
     if (!passthrough) {

@@ -252,6 +252,7 @@ pa_sample_format_is_be;
 pa_sample_format_is_le;
 pa_sample_format_to_string;
 pa_sample_format_valid;
+pa_sample_rate_valid;
 pa_sample_size;
 pa_sample_size_of_format;
 pa_sample_spec_equal;

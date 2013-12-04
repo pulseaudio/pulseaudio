@@ -4112,7 +4112,7 @@ static void command_update_stream_sample_rate(pa_pdispatch *pd, uint32_t command
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, rate > 0 && rate <= PA_RATE_MAX, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, pa_sample_rate_valid(rate), tag, PA_ERR_INVALID);
 
     if (command == PA_COMMAND_UPDATE_PLAYBACK_STREAM_SAMPLE_RATE) {
         playback_stream *s;

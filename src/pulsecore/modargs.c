@@ -371,8 +371,7 @@ int pa_modargs_get_sample_rate(pa_modargs *ma, uint32_t *rate) {
 
     rate_local = *rate;
     if ((pa_modargs_get_value_u32(ma, "rate", &rate_local)) < 0 ||
-        rate_local <= 0 ||
-        rate_local > PA_RATE_MAX)
+        !pa_sample_rate_valid(rate_local))
         return -1;
 
     *rate = rate_local;
@@ -417,8 +416,7 @@ int pa_modargs_get_alternate_sample_rate(pa_modargs *ma, uint32_t *alternate_rat
 
     rate_local = *alternate_rate;
     if ((pa_modargs_get_value_u32(ma, "alternate_rate", &rate_local)) < 0 ||
-        rate_local <= 0 ||
-        rate_local > PA_RATE_MAX)
+        !pa_sample_rate_valid(*alternate_rate))
         return -1;
 
     if (!((rate_local % 4000 == 0) || (rate_local % 11025 == 0)))

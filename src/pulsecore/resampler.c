@@ -202,8 +202,8 @@ static pa_resample_method_t pa_resampler_fix_method(
                 const uint32_t rate_a,
                 const uint32_t rate_b) {
 
-    pa_assert(rate_a > 0 && rate_a <= PA_RATE_MAX);
-    pa_assert(rate_b > 0 && rate_b <= PA_RATE_MAX);
+    pa_assert(pa_sample_rate_valid(rate_a));
+    pa_assert(pa_sample_rate_valid(rate_b));
     pa_assert(method >= 0);
     pa_assert(method < PA_RESAMPLER_MAX);
 

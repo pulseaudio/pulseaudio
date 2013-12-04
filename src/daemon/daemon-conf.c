@@ -345,7 +345,7 @@ static int parse_sample_rate(pa_config_parser_state *state) {
 
     c = state->data;
 
-    if (pa_atou(state->rvalue, &r) < 0 || r > (uint32_t) PA_RATE_MAX || r <= 0 ||
+    if (pa_atou(state->rvalue, &r) < 0 || !pa_sample_rate_valid(r) ||
         !((r % 4000 == 0) || (r % 11025 == 0))) {
         pa_log(_("[%s:%u] Invalid sample rate '%s'."), state->filename, state->lineno, state->rvalue);
         return -1;
@@ -363,7 +363,7 @@ static int parse_alternate_sample_rate(pa_config_parser_state *state) {
 
     c = state->data;
 
-    if (pa_atou(state->rvalue, &r) < 0 || r > (uint32_t) PA_RATE_MAX || r <= 0 ||
+    if (pa_atou(state->rvalue, &r) < 0 || !pa_sample_rate_valid(r) ||
         !((r % 4000==0) || (r % 11025 == 0))) {
         pa_log(_("[%s:%u] Invalid sample rate '%s'."), state->filename, state->lineno, state->rvalue);
         return -1;

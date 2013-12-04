@@ -292,6 +292,9 @@ pa_sample_spec* pa_sample_spec_init(pa_sample_spec *spec);
 /** Return non-zero if the given integer is a valid sample format. \since 5.0 */
 int pa_sample_format_valid(unsigned format) PA_GCC_PURE;
 
+/** Return non-zero if the rate is within the supported range. \since 5.0 */
+int pa_sample_rate_valid(uint32_t rate) PA_GCC_PURE;
+
 /** Return non-zero when the sample type specification is valid */
 int pa_sample_spec_valid(const pa_sample_spec *spec) PA_GCC_PURE;
 
