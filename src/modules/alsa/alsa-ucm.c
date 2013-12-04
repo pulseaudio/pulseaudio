@@ -214,7 +214,7 @@ static int ucm_get_device_property(
     value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_PLAYBACK_CHANNELS);
     if (value) { /* output */
         /* get channels */
-        if (pa_atou(value, &ui) == 0 && ui < PA_CHANNELS_MAX)
+        if (pa_atou(value, &ui) == 0 && pa_channels_valid(ui))
             device->playback_channels = ui;
         else
             pa_log("UCM playback channels %s for device %s out of range", value, device_name);
@@ -234,7 +234,7 @@ static int ucm_get_device_property(
     value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_CAPTURE_CHANNELS);
     if (value) { /* input */
         /* get channels */
-        if (pa_atou(value, &ui) == 0 && ui < PA_CHANNELS_MAX)
+        if (pa_atou(value, &ui) == 0 && pa_channels_valid(ui))
             device->capture_channels = ui;
         else
             pa_log("UCM capture channels %s for device %s out of range", value, device_name);
@@ -1128,7 +1128,7 @@ static void alsa_mapping_add_ucm_modifier(pa_alsa_mapping *m, pa_alsa_ucm_modifi
         /* FIXME: channel_str is unsanitized input from the UCM configuration,
          * we should do proper error handling instead of asserting.
          * https://bugs.freedesktop.org/show_bug.cgi?id=71823 */
-        pa_assert_se(pa_atou(channel_str, &channels) == 0 && channels < PA_CHANNELS_MAX);
+        pa_assert_se(pa_atou(channel_str, &channels) == 0 && pa_channels_valid(channels));
         pa_log_debug("Got channel count %" PRIu32 " for modifier", channels);
     }
 

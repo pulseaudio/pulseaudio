@@ -2463,7 +2463,7 @@ int pa__init(pa_module *m) {
 
     channels = u->sample_spec.channels;
     if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0 ||
-        channels <= 0 || channels > PA_CHANNELS_MAX) {
+        !pa_channels_valid(channels)) {
         pa_log_error("Failed to get channels from module arguments");
         goto fail;
     }

@@ -387,7 +387,7 @@ static int parse_sample_channels(pa_config_parser_state *state) {
 
     i = state->data;
 
-    if (pa_atoi(state->rvalue, &n) < 0 || n > (int32_t) PA_CHANNELS_MAX || n <= 0) {
+    if (pa_atoi(state->rvalue, &n) < 0 || !pa_channels_valid(n)) {
         pa_log(_("[%s:%u] Invalid sample channels '%s'."), state->filename, state->lineno, state->rvalue);
         return -1;
     }

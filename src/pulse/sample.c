@@ -111,12 +111,15 @@ int pa_sample_rate_valid(uint32_t rate) {
     return rate > 0 && rate <= PA_RATE_MAX;
 }
 
+int pa_channels_valid(uint8_t channels) {
+    return channels > 0 && channels <= PA_CHANNELS_MAX;
+}
+
 int pa_sample_spec_valid(const pa_sample_spec *spec) {
     pa_assert(spec);
 
     if (PA_UNLIKELY(!pa_sample_rate_valid(spec->rate) ||
-        spec->channels <= 0 ||
-        spec->channels > PA_CHANNELS_MAX ||
+        !pa_channels_valid(spec->channels) ||
         !pa_sample_format_valid(spec->format)))
         return 0;
 

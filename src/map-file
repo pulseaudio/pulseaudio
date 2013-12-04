@@ -25,6 +25,7 @@ pa_channel_map_valid;
 pa_channel_position_from_string;
 pa_channel_position_to_pretty_string;
 pa_channel_position_to_string;
+pa_channels_valid;
 pa_context_add_autoload;
 pa_context_connect;
 pa_context_disconnect;

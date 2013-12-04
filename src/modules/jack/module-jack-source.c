@@ -297,8 +297,7 @@ int pa__init(pa_module*m) {
         channels = m->core->default_sample_spec.channels;
 
     if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0 ||
-        channels <= 0 ||
-        channels >= PA_CHANNELS_MAX) {
+        !pa_channels_valid(channels)) {
         pa_log("failed to parse channels= argument.");
         goto fail;
     }

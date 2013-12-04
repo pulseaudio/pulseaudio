@@ -199,8 +199,7 @@ pa_channel_map* pa_channel_map_init_stereo(pa_channel_map *m) {
 
 pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, pa_channel_map_def_t def) {
     pa_assert(m);
-    pa_assert(channels > 0);
-    pa_assert(channels <= PA_CHANNELS_MAX);
+    pa_assert(pa_channels_valid(channels));
     pa_assert(def < PA_CHANNEL_MAP_DEF_MAX);
 
     pa_channel_map_init(m);
@@ -401,8 +400,7 @@ pa_channel_map* pa_channel_map_init_extend(pa_channel_map *m, unsigned channels,
     unsigned c;
 
     pa_assert(m);
-    pa_assert(channels > 0);
-    pa_assert(channels <= PA_CHANNELS_MAX);
+    pa_assert(pa_channels_valid(channels));
     pa_assert(def < PA_CHANNEL_MAP_DEF_MAX);
 
     pa_channel_map_init(m);
@@ -617,7 +615,7 @@ int pa_channel_map_valid(const pa_channel_map *map) {
 
     pa_assert(map);
 
-    if (map->channels <= 0 || map->channels > PA_CHANNELS_MAX)
+    if (!pa_channels_valid(map->channels))
         return 0;
 
     for (c = 0; c < map->channels; c++)

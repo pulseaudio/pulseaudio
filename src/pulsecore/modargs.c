@@ -392,8 +392,7 @@ int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *rss) {
 
     channels = ss.channels;
     if ((pa_modargs_get_value_u32(ma, "channels", &channels)) < 0 ||
-        channels <= 0 ||
-        channels >= PA_CHANNELS_MAX)
+        !pa_channels_valid(channels))
         return -1;
     ss.channels = (uint8_t) channels;
 
