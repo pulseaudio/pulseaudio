@@ -52,9 +52,14 @@
  * \section create_sec Creating
  *
  * To access a stream, a pa_stream object must be created using
- * pa_stream_new(). At this point the audio sample format and mapping of
- * channels must be specified. See \ref sample and \ref channelmap for more
- * information about those structures.
+ * pa_stream_new() or pa_stream_new_extended(). pa_stream_new() is for PCM
+ * streams only, while pa_stream_new_extended() can be used for both PCM and
+ * compressed audio streams. At this point the application must specify what
+ * stream format(s) it supports. See \ref sample and \ref channelmap for more
+ * information on the stream format parameters. FIXME: Those references only
+ * talk about PCM parameters, we should also have an overview page for how the
+ * pa_format_info based stream format configuration works. Bug filed:
+ * https://bugs.freedesktop.org/show_bug.cgi?id=72265
  *
  * This first step will only create a client-side object, representing the
  * stream. To use the stream, a server-side object must be created and
