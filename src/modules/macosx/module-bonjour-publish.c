@@ -183,13 +183,13 @@ static uint16_t compute_port(struct userdata *u) {
             a.port > 0) {
 
             pa_xfree(a.path_or_host);
-            return a.port;
+            return htons(a.port);
         }
 
         pa_xfree(a.path_or_host);
     }
 
-    return PA_NATIVE_DEFAULT_PORT;
+    return htons(PA_NATIVE_DEFAULT_PORT);
 }
 
 static int publish_service(struct service *s) {
