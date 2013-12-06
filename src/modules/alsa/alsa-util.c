@@ -246,8 +246,10 @@ int pa_alsa_set_hw_params(
         _use_tsched = false;
 
     /* The PCM pointer is only updated with period granularity */
-    if (snd_pcm_hw_params_is_batch(hwparams))
+    if (snd_pcm_hw_params_is_batch(hwparams)) {
+        pa_log_info("Disabling tsched mode since BATCH flag is set");
         _use_tsched = false;
+    }
 
 #if (SND_LIB_VERSION >= ((1<<16)|(0<<8)|24)) /* API additions in 1.0.24 */
     if (_use_tsched) {
