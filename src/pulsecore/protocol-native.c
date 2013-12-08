@@ -3588,11 +3588,13 @@ static void command_get_info_list(pa_pdispatch *pd, uint32_t command, uint32_t t
 
     if (i) {
         PA_IDXSET_FOREACH(p, i, idx) {
-            if (command == PA_COMMAND_GET_SINK_INFO_LIST)
-                sink_fill_tagstruct(c, reply, p);
-            else if (command == PA_COMMAND_GET_SOURCE_INFO_LIST)
-                source_fill_tagstruct(c, reply, p);
-            else if (command == PA_COMMAND_GET_CLIENT_INFO_LIST)
+            if (command == PA_COMMAND_GET_SINK_INFO_LIST) {
+                if (PA_SINK_IS_LINKED(((pa_sink *)p)->state))
+                    sink_fill_tagstruct(c, reply, p);
+            } else if (command == PA_COMMAND_GET_SOURCE_INFO_LIST) {
+                if (PA_SOURCE_IS_LINKED(((pa_source *)p)->state))
+                    source_fill_tagstruct(c, reply, p);
+            } else if (command == PA_COMMAND_GET_CLIENT_INFO_LIST)
                 client_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_CARD_INFO_LIST)
                 card_fill_tagstruct(c, reply, p);
