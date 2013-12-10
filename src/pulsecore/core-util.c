@@ -707,7 +707,7 @@ static int set_scheduler(int rtprio) {
 #ifdef HAVE_DBUS
     int r;
     long long rttime;
-#ifdef HAVE_SYS_RESOURCE_H
+#ifdef RLIMIT_RTTIME
     struct rlimit rl;
 #endif
     DBusError error;
@@ -749,7 +749,7 @@ static int set_scheduler(int rtprio) {
 
     rttime = rtkit_get_rttime_usec_max(bus);
     if (rttime >= 0) {
-#ifdef HAVE_SYS_RESOURCE_H
+#ifdef RLIMIT_RTTIME
         r = getrlimit(RLIMIT_RTTIME, &rl);
 
         if (r >= 0 && (long long) rl.rlim_max > rttime) {
