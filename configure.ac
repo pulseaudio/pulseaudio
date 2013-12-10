@@ -118,6 +118,10 @@ fi
 
 #### Determine host OS ####
 
+# if the host has the possibility of sys/capability.h for dropping privileges
+# used to determine if we should error out if it is not found
+host_has_caps=0
+
 os_is_linux=0
 os_is_win32=0
 os_is_darwin=0
@@ -126,7 +130,12 @@ AC_MSG_CHECKING([host operating system])
 case "$host_os" in
     linux*)
         AC_MSG_RESULT([linux])
+        host_has_caps=1
         os_is_linux=1
+    ;;
+    freebsd*)
+        AC_MSG_RESULT([freebsd])
+        host_has_caps=1
     ;;
     darwin*)
         AC_MSG_RESULT([darwin])
@@ -595,17 +604,16 @@ AS_IF([test "x$HAVE_X11" = "x1"], AC_DEFINE([HAVE_X11], 1, [Have X11?]))
 CAP_LIBS=''
 
 AC_ARG_WITH([caps],
-    AS_HELP_STRING([--without-caps],[Omit support for POSIX capabilities.]))
+    AS_HELP_STRING([--without-caps],[Omit support for dropping capabilities.]))
 
 if test "x${with_caps}" != "xno"; then
-    AC_SEARCH_LIBS([cap_init], [cap], [], [
-                    if test "x${with_caps}" = "xyes" ; then
-                        AC_MSG_ERROR([*** POSIX caps libraries not found])
-                    fi])
+    AC_SEARCH_LIBS([cap_init], [cap], [], [])
+
+    # Only give an error on hosts that we know could support capabilities
     AC_CHECK_HEADERS([sys/capability.h], [], [
-                    if test "x${with_caps}" = "xyes" ; then
-                        AC_MSG_ERROR([*** POSIX caps headers not found])
-                    fi])
+      if test "${host_has_caps}" = "1"; then
+        AC_MSG_ERROR([*** sys/capability.h not found.  Use --without-caps to disable capabilities support.])
+      fi])
 fi
 
 #### Valgrind (optional) ####
