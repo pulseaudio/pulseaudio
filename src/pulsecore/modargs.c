@@ -369,6 +369,7 @@ int pa_modargs_get_sample_rate(pa_modargs *ma, uint32_t *rate) {
 
     pa_assert(rate);
 
+    rate_local = *rate;
     if ((pa_modargs_get_value_u32(ma, "rate", &rate_local)) < 0 ||
         rate_local <= 0 ||
         rate_local > PA_RATE_MAX)
