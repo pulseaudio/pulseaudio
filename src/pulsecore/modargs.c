@@ -411,14 +411,20 @@ int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *rss) {
 }
 
 int pa_modargs_get_alternate_sample_rate(pa_modargs *ma, uint32_t *alternate_rate) {
-    pa_assert(ma);
+    uint32_t rate_local;
+
     pa_assert(alternate_rate);
 
-    if ((pa_modargs_get_value_u32(ma, "alternate_rate", alternate_rate)) < 0 ||
-        *alternate_rate <= 0 ||
-        *alternate_rate > PA_RATE_MAX ||
-        !((*alternate_rate % 4000 == 0) || (*alternate_rate % 11025 == 0)))
+    rate_local = *alternate_rate;
+    if ((pa_modargs_get_value_u32(ma, "alternate_rate", &rate_local)) < 0 ||
+        rate_local <= 0 ||
+        rate_local > PA_RATE_MAX)
         return -1;
+
+    if (!((rate_local % 4000 == 0) || (rate_local % 11025 == 0)))
+        return -1;
+
+    *alternate_rate = rate_local;
 
     return 0;
 }
