@@ -147,7 +147,7 @@ static pa_card_profile *find_best_profile(pa_card *card) {
 
         if (result == NULL ||
             (profile->available == PA_AVAILABLE_YES && result->available == PA_AVAILABLE_UNKNOWN) ||
-            (profile->available == result->available && profile->priority > profile->priority))
+            (profile->available == result->available && profile->priority > result->priority))
             result = profile;
     }
 
