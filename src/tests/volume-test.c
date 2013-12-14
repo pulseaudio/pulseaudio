@@ -138,7 +138,13 @@ START_TEST (volume_test) {
     pa_log("max deviation: %lu n=%lu", (unsigned long) md, (unsigned long) mdn);
 
     fail_unless(md <= 1);
-    fail_unless(mdn <= 251);
+
+    /* mdn counts the times there were rounding errors during the test. The
+     * number of rounding errors seems to vary slightly depending on the
+     * hardware. The original limit was 251 errors, but it was increased to 253
+     * when the test was failing on Tanu's laptop.
+     * See https://bugs.freedesktop.org/show_bug.cgi?id=72374 */
+    fail_unless(mdn <= 253);
 }
 END_TEST
 
