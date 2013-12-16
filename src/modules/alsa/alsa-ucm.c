@@ -1106,8 +1106,7 @@ static void alsa_mapping_add_ucm_modifier(pa_alsa_mapping *m, pa_alsa_ucm_modifi
         m->description = pa_xstrdup(new_desc);
     pa_xfree(cur_desc);
 
-    if (!m->description)
-        pa_xstrdup("");
+    m->description = m->description ? m->description : pa_xstrdup("");
 
     /* Modifier sinks should not be routed to by default */
     m->priority = 0;
