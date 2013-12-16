@@ -251,11 +251,14 @@ int pa__init(pa_module*m) {
     if (inet_pton(AF_INET, src_addr, &src_sa4.sin_addr) > 0) {
         src_sa4.sin_family = af = AF_INET;
         src_sa4.sin_port = htons(0);
+        memset(&src_sa4.sin_zero, 0, sizeof(src_sa4.sin_zero));
         src_sap_sa4 = src_sa4;
 #ifdef HAVE_IPV6
     } else if (inet_pton(AF_INET6, src_addr, &src_sa6.sin6_addr) > 0) {
         src_sa6.sin6_family = af = AF_INET6;
         src_sa6.sin6_port = htons(0);
+        src_sa6.sin6_flowinfo = 0;
+        src_sa6.sin6_scope_id = 0;
         src_sap_sa6 = src_sa6;
 #endif
     } else {
@@ -270,12 +273,15 @@ int pa__init(pa_module*m) {
     if (inet_pton(AF_INET, dst_addr, &dst_sa4.sin_addr) > 0) {
         dst_sa4.sin_family = af = AF_INET;
         dst_sa4.sin_port = htons((uint16_t) port);
+        memset(&dst_sa4.sin_zero, 0, sizeof(dst_sa4.sin_zero));
         dst_sap_sa4 = dst_sa4;
         dst_sap_sa4.sin_port = htons(SAP_PORT);
 #ifdef HAVE_IPV6
     } else if (inet_pton(AF_INET6, dst_addr, &dst_sa6.sin6_addr) > 0) {
         dst_sa6.sin6_family = af = AF_INET6;
         dst_sa6.sin6_port = htons((uint16_t) port);
+        dst_sa6.sin6_flowinfo = 0;
+        src_sa6.sin6_scope_id = 0;
         dst_sap_sa6 = dst_sa6;
         dst_sap_sa6.sin6_port = htons(SAP_PORT);
 #endif
