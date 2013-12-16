@@ -200,7 +200,7 @@
  * \li pa_stream_drain() - Wait for the playback buffer to go empty. Will
  *                         return a pa_operation object that will indicate when
  *                         the buffer is completely drained.
- * \li pa_stream_flush() - Drop all data from the playback buffer and do not
+ * \li pa_stream_flush() - Drop all data from the playback or record buffer. Do not
  *                         wait for it to finish playing.
  *
  * \section seek_modes Seeking in the Playback Buffer
@@ -650,10 +650,9 @@ void pa_stream_set_buffer_attr_callback(pa_stream *p, pa_stream_notify_cb_t cb, 
  * the stream, it will be created in corked state. */
 pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, void *userdata);
 
-/** Flush the playback buffer of this stream. This discards any audio data
+/** Flush the playback or record buffer of this stream. This discards any audio data
  * in the buffer.  Most of the time you're better off using the parameter
- * \a seek of pa_stream_write() instead of this function. Available on both
- * playback and recording streams. */
+ * \a seek of pa_stream_write() instead of this function. */
 pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
 /** Reenable prebuffering if specified in the pa_buffer_attr
