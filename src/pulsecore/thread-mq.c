@@ -126,6 +126,8 @@ void pa_thread_mq_init(pa_thread_mq *q, pa_mainloop_api *mainloop, pa_rtpoll *rt
     pa_assert(mainloop);
 
     q->main_mainloop = mainloop;
+    q->thread_mainloop = NULL;
+
     pa_assert_se(q->inq = pa_asyncmsgq_new(0));
     pa_assert_se(q->outq = pa_asyncmsgq_new(0));
 
