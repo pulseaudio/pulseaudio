@@ -78,12 +78,13 @@
  *
  * \section ctrl_sec Buffer control
  *
+ * \li pa_simple_get_latency() - Will return the total latency of
+ *                               the playback or record pipeline, respectively.
+ *
  * If a playback stream is used then a few other operations are available:
  *
  * \li pa_simple_drain() - Will wait for all sent data to finish playing.
  * \li pa_simple_flush() - Will throw away all data currently in buffers.
- * \li pa_simple_get_latency() - Will return the total latency of
- *                               the playback pipeline.
  *
  * \section cleanup_sec Cleanup
  *
@@ -149,7 +150,7 @@ int pa_simple_read(
      * a negative value. It is OK to pass NULL here. */
     );
 
-/** Return the playback latency. */
+/** Return the playback or record latency. */
 pa_usec_t pa_simple_get_latency(pa_simple *s, int *error);
 
 /** Flush the playback buffer. This discards any audio in the buffer. */
