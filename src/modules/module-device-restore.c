@@ -1152,6 +1152,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 pa_format_info *f = pa_format_info_new();
                 if (pa_tagstruct_get_format_info(t, f) < 0) {
                     pa_format_info_free(f);
+                    perportentry_free(e);
                     pa_xfree(name);
                     goto fail;
                 }
