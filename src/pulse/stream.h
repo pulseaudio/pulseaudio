@@ -652,7 +652,7 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
 
 /** Flush the playback buffer of this stream. This discards any audio data
  * in the buffer.  Most of the time you're better off using the parameter
- * delta of pa_stream_write() instead of this function. Available on both
+ * \a seek of pa_stream_write() instead of this function. Available on both
  * playback and recording streams. */
 pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
