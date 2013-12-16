@@ -2119,8 +2119,10 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                     pa_tagstruct_get_channel_map(t, &entry->channel_map) ||
                     pa_tagstruct_get_cvolume(t, &entry->volume) < 0 ||
                     pa_tagstruct_gets(t, &device) < 0 ||
-                    pa_tagstruct_get_boolean(t, &muted) < 0)
+                    pa_tagstruct_get_boolean(t, &muted) < 0) {
+                    entry_free(entry);
                     goto fail;
+                }
 
                 if (!name || !*name) {
                     entry_free(entry);
