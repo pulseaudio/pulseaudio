@@ -4745,7 +4745,7 @@ static void command_set_sink_or_source_port(pa_pdispatch *pd, uint32_t command, 
     } else {
         pa_source *source;
 
-        pa_assert(command = PA_COMMAND_SET_SOURCE_PORT);
+        pa_assert(command == PA_COMMAND_SET_SOURCE_PORT);
 
         if (idx != PA_INVALID_INDEX)
             source = pa_idxset_get_by_index(c->protocol->core->sources, idx);
