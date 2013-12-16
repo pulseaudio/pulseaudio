@@ -115,7 +115,7 @@ struct pa_mainloop_api {
 };
 
 /** Run the specified callback function once from the main loop using an anonymous defer event. Note that this performs
- * multiple mainloop operations non-atomically. If, for example, you are using a \pa_threaded_mainloop, you will need to
+ * multiple mainloop operations non-atomically. If, for example, you are using a \ref pa_threaded_mainloop, you will need to
  * take the mainloop lock before this call. */
 void pa_mainloop_api_once(pa_mainloop_api*m, void (*callback)(pa_mainloop_api*m, void *userdata), void *userdata);
 
