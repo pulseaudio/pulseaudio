@@ -568,8 +568,6 @@ int pa__init(pa_module*m) {
 
     /* Initialize hrir and input buffer */
     /* this is the hrir file for the left ear! */
-    hrir_file = pa_modargs_get_value(ma, "hrir", NULL);
-
     if (!(hrir_file = pa_modargs_get_value(ma, "hrir", NULL))) {
         pa_log("The mandatory 'hrir' module argument is missing.");
         goto fail;
