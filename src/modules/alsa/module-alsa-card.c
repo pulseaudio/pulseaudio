@@ -204,6 +204,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     uint32_t idx;
     pa_alsa_mapping *am;
     pa_queue *sink_inputs = NULL, *source_outputs = NULL;
+    int ret = 0;
 
     pa_assert(c);
     pa_assert(new_profile);
@@ -245,8 +246,10 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     /* if UCM is available for this card then update the verb */
     if (u->use_ucm) {
         if (pa_alsa_ucm_set_profile(&u->ucm, nd->profile ? nd->profile->name : NULL,
-                    od->profile ? od->profile->name : NULL) < 0)
-            return -1;
+                    od->profile ? od->profile->name : NULL) < 0) {
+            ret = -1;
+            goto finish;
+        }
     }
 
     if (nd->profile && nd->profile->output_mappings)
@@ -273,13 +276,14 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
             }
         }
 
+finish:
     if (sink_inputs)
         pa_sink_move_all_fail(sink_inputs);
 
     if (source_outputs)
         pa_source_move_all_fail(source_outputs);
 
-    return 0;
+    return ret;
 }
 
 static void init_profile(struct userdata *u) {
@@ -764,11 +768,16 @@ int pa__init(pa_module *m) {
                     "is abused (i.e. fixes are not pushed to ALSA), the decibel fix feature may be removed in some future "
                     "PulseAudio version.", u->card->name);
 
+    pa_modargs_free(ma);
+
     return 0;
 
 fail:
     if (reserve)
         pa_reserve_wrapper_unref(reserve);
+
+    if (ma)
+        pa_modargs_free(ma);
 
     pa__done(m);
 
