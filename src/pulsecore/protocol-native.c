@@ -4780,6 +4780,7 @@ static void command_set_port_latency_offset(pa_pdispatch *pd, uint32_t command, 
         pa_tagstruct_gets64(t, &offset) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
+        return;
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
