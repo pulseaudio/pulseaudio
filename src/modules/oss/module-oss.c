@@ -1329,6 +1329,7 @@ int pa__init(pa_module*m) {
         if (pa_modargs_get_proplist(ma, "source_properties", source_new_data.proplist, PA_UPDATE_REPLACE) < 0) {
             pa_log("Invalid properties");
             pa_source_new_data_done(&source_new_data);
+            pa_xfree(name_buf);
             goto fail;
         }
 
@@ -1397,6 +1398,7 @@ int pa__init(pa_module*m) {
         if (pa_modargs_get_proplist(ma, "sink_properties", sink_new_data.proplist, PA_UPDATE_REPLACE) < 0) {
             pa_log("Invalid properties");
             pa_sink_new_data_done(&sink_new_data);
+            pa_xfree(name_buf);
             goto fail;
         }
 
