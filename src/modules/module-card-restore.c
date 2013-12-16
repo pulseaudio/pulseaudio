@@ -442,7 +442,7 @@ static pa_hook_result_t port_offset_change_callback(pa_core *c, pa_device_port *
         pa_log_info("Storing latency offset for port %s on card %s.", port->name, card->name);
 
     } else {
-        entry_from_card(card);
+        entry = entry_from_card(card);
         show_full_info(card);
     }
 
