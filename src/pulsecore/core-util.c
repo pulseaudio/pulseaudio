@@ -326,16 +326,20 @@ again:
         goto fail;
     }
 
-    if (!update_perms)
+    if (!update_perms) {
+        pa_assert_se(pa_close(fd) >= 0);
         return 0;
+    }
 
 #ifdef HAVE_FCHOWN
     if (uid == (uid_t) -1)
         uid = getuid();
     if (gid == (gid_t) -1)
         gid = getgid();
-    if (fchown(fd, uid, gid) < 0)
+    if (fchown(fd, uid, gid) < 0) {
+        pa_assert_se(pa_close(fd) >= 0);
         goto fail;
+    }
 #endif
 
 #ifdef HAVE_FCHMOD
