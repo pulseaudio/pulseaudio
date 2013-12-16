@@ -161,7 +161,7 @@ bool pa_source_output_new_data_set_formats(pa_source_output_new_data *data, pa_i
     pa_assert(formats);
 
     if (data->req_formats)
-        pa_idxset_free(formats, (pa_free_cb_t) pa_format_info_free);
+        pa_idxset_free(data->req_formats, (pa_free_cb_t) pa_format_info_free);
 
     data->req_formats = formats;
 

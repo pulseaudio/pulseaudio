@@ -218,7 +218,7 @@ bool pa_sink_input_new_data_set_formats(pa_sink_input_new_data *data, pa_idxset 
     pa_assert(formats);
 
     if (data->req_formats)
-        pa_idxset_free(formats, (pa_free_cb_t) pa_format_info_free);
+        pa_idxset_free(data->req_formats, (pa_free_cb_t) pa_format_info_free);
 
     data->req_formats = formats;
 
