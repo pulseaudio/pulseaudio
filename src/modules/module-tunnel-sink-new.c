@@ -287,10 +287,12 @@ static void context_state_cb(pa_context *c, void *userdata) {
             pa_proplist *proplist;
             pa_buffer_attr bufferattr;
             pa_usec_t requested_latency;
-            const char *username = pa_get_user_name_malloc();
-            const char *hostname = pa_get_host_name_malloc();
+            char *username = pa_get_user_name_malloc();
+            char *hostname = pa_get_host_name_malloc();
             /* TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus' */
             char *stream_name = pa_sprintf_malloc(_("Tunnel for %s@%s"), username, hostname);
+            pa_xfree(hostname);
+            pa_xfree(username);
 
             pa_log_debug("Connection successful. Creating stream.");
             pa_assert(!u->stream);
