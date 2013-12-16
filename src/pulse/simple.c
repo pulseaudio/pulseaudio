@@ -423,8 +423,6 @@ int pa_simple_flush(pa_simple *p, int *rerror) {
 
     pa_assert(p);
 
-    CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
-
     pa_threaded_mainloop_lock(p->mainloop);
     CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
 
