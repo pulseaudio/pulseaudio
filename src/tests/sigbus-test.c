@@ -67,6 +67,7 @@ START_TEST (sigbus_test) {
 
     pa_memtrap_remove(m);
     munmap(p, PA_PAGE_SIZE);
+    close(fd);
 }
 END_TEST
 
