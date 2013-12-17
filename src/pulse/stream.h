@@ -447,7 +447,11 @@ int pa_stream_is_corked(pa_stream *s);
  * making sure the volume passed here has always the same semantics as
  * the volume passed to pa_context_set_sink_input_volume(). It is possible
  * to figure out whether flat volume mode is in effect for a given sink
- * by calling pa_context_get_sink_info_by_name(). */
+ * by calling pa_context_get_sink_info_by_name().
+ *
+ * Since 5.0, it's possible to specify a single-channel volume even if the
+ * stream has multiple channels. In that case the same volume is applied to all
+ * channels. */
 int pa_stream_connect_playback(
         pa_stream *s                  /**< The stream to connect to a sink */,
         const char *dev               /**< Name of the sink to connect to, or NULL for default */ ,
