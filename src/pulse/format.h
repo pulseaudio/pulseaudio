@@ -114,7 +114,7 @@ int pa_format_info_is_pcm(const pa_format_info *f);
  * stream's format is compatible with a given sink. In such a case,
  * \a first would be the sink's format and \a second would be the
  * stream's. \since 1.0 */
-int pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second);
+int pa_format_info_is_compatible(const pa_format_info *first, const pa_format_info *second);
 
 /** Maximum required string length for
  * pa_format_info_snprint(). Please note that this value can change
@@ -131,14 +131,14 @@ char *pa_format_info_snprint(char *s, size_t l, const pa_format_info *f);
 pa_format_info* pa_format_info_from_string(const char *str);
 
 /** Utility function to take a \a pa_sample_spec and generate the corresponding \a pa_format_info. \since 2.0 */
-pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_map *map);
+pa_format_info* pa_format_info_from_sample_spec(const pa_sample_spec *ss, const pa_channel_map *map);
 
 /** Utility function to generate a \a pa_sample_spec and \a pa_channel_map corresponding to a given \a pa_format_info. The
  * conversion for PCM formats is straight-forward. For non-PCM formats, if there is a fixed size-time conversion (i.e. all
  * IEC61937-encapsulated formats), a "fake" sample spec whose size-time conversion corresponds to this format is provided and
  * the channel map argument is ignored. For formats with variable size-time conversion, this function will fail. Returns a
  * negative integer if conversion failed and 0 on success. \since 2.0 */
-int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map);
+int pa_format_info_to_sample_spec(const pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map);
 
 /** Represents the type of value type of a property on a \ref pa_format_info. \since 2.0 */
 typedef enum pa_prop_type_t {
@@ -171,24 +171,24 @@ typedef enum pa_prop_type_t {
 /** \endcond */
 
 /** Gets the type of property \a key in a given \ref pa_format_info. \since 2.0 */
-pa_prop_type_t pa_format_info_get_prop_type(pa_format_info *f, const char *key);
+pa_prop_type_t pa_format_info_get_prop_type(const pa_format_info *f, const char *key);
 
 /** Gets an integer property from the given format info. Returns 0 on success and a negative integer on failure. \since 2.0 */
-int pa_format_info_get_prop_int(pa_format_info *f, const char *key, int *v);
+int pa_format_info_get_prop_int(const pa_format_info *f, const char *key, int *v);
 /** Gets an integer range property from the given format info. Returns 0 on success and a negative integer on failure.
  * \since 2.0 */
-int pa_format_info_get_prop_int_range(pa_format_info *f, const char *key, int *min, int *max);
+int pa_format_info_get_prop_int_range(const pa_format_info *f, const char *key, int *min, int *max);
 /** Gets an integer array property from the given format info. \a values contains the values and \a n_values contains the
  * number of elements. The caller must free \a values using \ref pa_xfree. Returns 0 on success and a negative integer on
  * failure. \since 2.0 */
-int pa_format_info_get_prop_int_array(pa_format_info *f, const char *key, int **values, int *n_values);
+int pa_format_info_get_prop_int_array(const pa_format_info *f, const char *key, int **values, int *n_values);
 /** Gets a string property from the given format info.  The caller must free the returned string using \ref pa_xfree. Returns
  * 0 on success and a negative integer on failure. \since 2.0 */
-int pa_format_info_get_prop_string(pa_format_info *f, const char *key, char **v);
+int pa_format_info_get_prop_string(const pa_format_info *f, const char *key, char **v);
 /** Gets a string array property from the given format info. \a values contains the values and \a n_values contains
  * the number of elements. The caller must free \a values using \ref pa_format_info_free_string_array. Returns 0 on success and
  * a negative integer on failure. \since 2.0 */
-int pa_format_info_get_prop_string_array(pa_format_info *f, const char *key, char ***values, int *n_values);
+int pa_format_info_get_prop_string_array(const pa_format_info *f, const char *key, char ***values, int *n_values);
 
 /** Frees a string array returned by \ref pa_format_info_get_prop_string_array. \since 2.0 */
 void pa_format_info_free_string_array(char **values, int n_values);

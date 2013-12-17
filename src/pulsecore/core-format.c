@@ -28,7 +28,7 @@
 
 #include <pulsecore/macro.h>
 
-int pa_format_info_get_sample_format(pa_format_info *f, pa_sample_format_t *sf) {
+int pa_format_info_get_sample_format(const pa_format_info *f, pa_sample_format_t *sf) {
     int r;
     char *sf_str;
     pa_sample_format_t sf_local;
@@ -53,7 +53,7 @@ int pa_format_info_get_sample_format(pa_format_info *f, pa_sample_format_t *sf) 
     return 0;
 }
 
-int pa_format_info_get_rate(pa_format_info *f, uint32_t *rate) {
+int pa_format_info_get_rate(const pa_format_info *f, uint32_t *rate) {
     int r;
     int rate_local;
 
@@ -74,7 +74,7 @@ int pa_format_info_get_rate(pa_format_info *f, uint32_t *rate) {
     return 0;
 }
 
-int pa_format_info_get_channels(pa_format_info *f, uint8_t *channels) {
+int pa_format_info_get_channels(const pa_format_info *f, uint8_t *channels) {
     int r;
     int channels_local;
 
@@ -95,7 +95,7 @@ int pa_format_info_get_channels(pa_format_info *f, uint8_t *channels) {
     return 0;
 }
 
-int pa_format_info_get_channel_map(pa_format_info *f, pa_channel_map *map) {
+int pa_format_info_get_channel_map(const pa_format_info *f, pa_channel_map *map) {
     int r;
     char *map_str;
 
@@ -154,8 +154,8 @@ fail:
     return NULL;
 }
 
-int pa_format_info_to_sample_spec2(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map, pa_sample_spec *fallback_ss,
-                                   pa_channel_map *fallback_map) {
+int pa_format_info_to_sample_spec2(const pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map,
+                                   const pa_sample_spec *fallback_ss, const pa_channel_map *fallback_map) {
     int r, r2;
     pa_sample_spec ss_local;
     pa_channel_map map_local;
@@ -218,7 +218,7 @@ int pa_format_info_to_sample_spec2(pa_format_info *f, pa_sample_spec *ss, pa_cha
     return 0;
 }
 
-int pa_format_info_to_sample_spec_fake(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
+int pa_format_info_to_sample_spec_fake(const pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
     int rate;
 
     pa_assert(f);

@@ -171,7 +171,7 @@ error:
     goto out;
 }
 
-int pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second) {
+int pa_format_info_is_compatible(const pa_format_info *first, const pa_format_info *second) {
     const char *key;
     void *state = NULL;
 
@@ -194,7 +194,7 @@ int pa_format_info_is_compatible(pa_format_info *first, pa_format_info *second) 
     return true;
 }
 
-pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_map *map) {
+pa_format_info* pa_format_info_from_sample_spec(const pa_sample_spec *ss, const pa_channel_map *map) {
     char cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     pa_format_info *f;
 
@@ -217,7 +217,7 @@ pa_format_info* pa_format_info_from_sample_spec(pa_sample_spec *ss, pa_channel_m
 }
 
 /* For PCM streams */
-int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
+int pa_format_info_to_sample_spec(const pa_format_info *f, pa_sample_spec *ss, pa_channel_map *map) {
     pa_assert(f);
     pa_assert(ss);
 
@@ -236,7 +236,7 @@ int pa_format_info_to_sample_spec(pa_format_info *f, pa_sample_spec *ss, pa_chan
     return 0;
 }
 
-pa_prop_type_t pa_format_info_get_prop_type(pa_format_info *f, const char *key) {
+pa_prop_type_t pa_format_info_get_prop_type(const pa_format_info *f, const char *key) {
     const char *str;
     json_object *o, *o1;
     pa_prop_type_t type;
@@ -310,7 +310,7 @@ pa_prop_type_t pa_format_info_get_prop_type(pa_format_info *f, const char *key) 
     return type;
 }
 
-int pa_format_info_get_prop_int(pa_format_info *f, const char *key, int *v) {
+int pa_format_info_get_prop_int(const pa_format_info *f, const char *key, int *v) {
     const char *str;
     json_object *o;
 
@@ -337,7 +337,7 @@ int pa_format_info_get_prop_int(pa_format_info *f, const char *key, int *v) {
     return 0;
 }
 
-int pa_format_info_get_prop_int_range(pa_format_info *f, const char *key, int *min, int *max) {
+int pa_format_info_get_prop_int_range(const pa_format_info *f, const char *key, int *min, int *max) {
     const char *str;
     json_object *o, *o1;
     int ret = -PA_ERR_INVALID;
@@ -377,7 +377,7 @@ out:
     return ret;
 }
 
-int pa_format_info_get_prop_int_array(pa_format_info *f, const char *key, int **values, int *n_values) {
+int pa_format_info_get_prop_int_array(const pa_format_info *f, const char *key, int **values, int *n_values) {
     const char *str;
     json_object *o, *o1;
     int i, ret = -PA_ERR_INVALID;
@@ -420,7 +420,7 @@ out:
     return ret;
 }
 
-int pa_format_info_get_prop_string(pa_format_info *f, const char *key, char **v) {
+int pa_format_info_get_prop_string(const pa_format_info *f, const char *key, char **v) {
     const char *str = NULL;
     json_object *o;
 
@@ -447,7 +447,7 @@ int pa_format_info_get_prop_string(pa_format_info *f, const char *key, char **v)
     return 0;
 }
 
-int pa_format_info_get_prop_string_array(pa_format_info *f, const char *key, char ***values, int *n_values) {
+int pa_format_info_get_prop_string_array(const pa_format_info *f, const char *key, char ***values, int *n_values) {
     const char *str;
     json_object *o, *o1;
     int i, ret = -PA_ERR_INVALID;
