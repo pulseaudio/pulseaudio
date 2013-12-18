@@ -323,10 +323,13 @@ int pa_format_info_get_prop_int(const pa_format_info *f, const char *key, int *v
         return -PA_ERR_NOENTITY;
 
     o = json_tokener_parse(str);
-    if (is_error(o))
+    if (is_error(o)) {
+        pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
+    }
 
     if (json_object_get_type(o) != json_type_int) {
+        pa_log_debug("Format info property '%s' type is not int.", key);
         json_object_put(o);
         return -PA_ERR_INVALID;
     }
@@ -352,8 +355,10 @@ int pa_format_info_get_prop_int_range(const pa_format_info *f, const char *key, 
         return -PA_ERR_NOENTITY;
 
     o = json_tokener_parse(str);
-    if (is_error(o))
+    if (is_error(o)) {
+        pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
+    }
 
     if (json_object_get_type(o) != json_type_object)
         goto out;
@@ -373,6 +378,9 @@ int pa_format_info_get_prop_int_range(const pa_format_info *f, const char *key, 
     ret = 0;
 
 out:
+    if (ret < 0)
+        pa_log_debug("Format info property '%s' is not a valid int range.", key);
+
     json_object_put(o);
     return ret;
 }
@@ -392,8 +400,10 @@ int pa_format_info_get_prop_int_array(const pa_format_info *f, const char *key, 
         return -PA_ERR_NOENTITY;
 
     o = json_tokener_parse(str);
-    if (is_error(o))
+    if (is_error(o)) {
+        pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
+    }
 
     if (json_object_get_type(o) != json_type_array)
         goto out;
@@ -416,6 +426,9 @@ int pa_format_info_get_prop_int_array(const pa_format_info *f, const char *key, 
     ret = 0;
 
 out:
+    if (ret < 0)
+        pa_log_debug("Format info property '%s' is not a valid int array.", key);
+
     json_object_put(o);
     return ret;
 }
@@ -433,10 +446,13 @@ int pa_format_info_get_prop_string(const pa_format_info *f, const char *key, cha
         return -PA_ERR_NOENTITY;
 
     o = json_tokener_parse(str);
-    if (is_error(o))
+    if (is_error(o)) {
+        pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
+    }
 
     if (json_object_get_type(o) != json_type_string) {
+        pa_log_debug("Format info property '%s' type is not string.", key);
         json_object_put(o);
         return -PA_ERR_INVALID;
     }
@@ -462,8 +478,10 @@ int pa_format_info_get_prop_string_array(const pa_format_info *f, const char *ke
         return -PA_ERR_NOENTITY;
 
     o = json_tokener_parse(str);
-    if (is_error(o))
+    if (is_error(o)) {
+        pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
+    }
 
     if (json_object_get_type(o) != json_type_array)
         goto out;
@@ -486,6 +504,9 @@ int pa_format_info_get_prop_string_array(const pa_format_info *f, const char *ke
     ret = 0;
 
 out:
+    if (ret < 0)
+        pa_log_debug("Format info property '%s' is not a valid string array.", key);
+
     json_object_put(o);
     return ret;
 }
