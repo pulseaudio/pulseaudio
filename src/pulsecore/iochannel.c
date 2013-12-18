@@ -119,7 +119,7 @@ static void enable_events(pa_iochannel *io) {
                     io->mainloop->io_enable(io->output_event, PA_IO_EVENT_OUTPUT);
                 else
                     io->output_event = io->mainloop->io_new(io->mainloop, io->ofd, PA_IO_EVENT_OUTPUT, callback, io);
-            } else if (io->input_event) {
+            } else if (io->output_event) {
                 io->mainloop->io_free(io->output_event);
                 io->output_event = NULL;
             }
