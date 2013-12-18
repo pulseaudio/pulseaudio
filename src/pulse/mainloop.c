@@ -953,10 +953,8 @@ int pa_mainloop_run(pa_mainloop *m, int *retval) {
 
     if (r == -2)
         return 1;
-    else if (r < 0)
-        return -1;
     else
-        return 0;
+        return -1;
 }
 
 void pa_mainloop_quit(pa_mainloop *m, int retval) {
