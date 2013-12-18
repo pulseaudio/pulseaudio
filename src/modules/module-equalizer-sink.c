@@ -1585,7 +1585,7 @@ void dbus_init(struct userdata *u) {
     u->dbus_protocol=pa_dbus_protocol_get(u->sink->core);
     u->dbus_path=pa_sprintf_malloc("/org/pulseaudio/core1/sink%d", u->sink->index);
 
-    pa_dbus_protocol_add_interface(u->dbus_protocol, u->dbus_path, &equalizer_info, u);
+    pa_assert_se(pa_dbus_protocol_add_interface(u->dbus_protocol, u->dbus_path, &equalizer_info, u) >= 0);
     sink_list = pa_shared_get(u->sink->core, SINKLIST);
     u->database = pa_shared_get(u->sink->core, EQDB);
     if (sink_list == NULL) {
