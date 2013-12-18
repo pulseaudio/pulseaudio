@@ -144,7 +144,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_i
 }
 
 int pa__init(pa_module*m) {
-    pa_modargs *ma = NULL;
+    pa_modargs *ma;
     struct userdata *u;
 
     pa_assert(m);
@@ -164,9 +164,6 @@ int pa__init(pa_module*m) {
 
 fail:
     pa__done(m);
-
-    if (ma)
-        pa_modargs_free(ma);
 
     return -1;
 }
