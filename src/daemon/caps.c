@@ -93,7 +93,7 @@ void pa_drop_caps(void) {
 #endif /* __linux */
 #else /* HAVE_SYS_CAPABILITY_H */
     pa_log_warn("Normally all extra capabilities would be dropped now, but "
-                "that's impossible because this Pulseaudio was built without "
-                "libcap support.");
+                "that's impossible because PulseAudio was built without "
+                "capabilities support.");
 #endif
 }
