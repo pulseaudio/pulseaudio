@@ -519,7 +519,7 @@ int pa_sink_input_new(
 
     i->volume_factor_sink_items = data->volume_factor_sink_items;
     data->volume_factor_sink_items = NULL;
-    volume_factor_from_hashmap(&i->volume_factor_sink, i->volume_factor_sink_items, i->sample_spec.channels);
+    volume_factor_from_hashmap(&i->volume_factor_sink, i->volume_factor_sink_items, i->sink->sample_spec.channels);
 
     i->real_ratio = i->reference_ratio = data->volume;
     pa_cvolume_reset(&i->soft_volume, i->sample_spec.channels);
