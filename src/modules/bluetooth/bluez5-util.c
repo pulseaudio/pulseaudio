@@ -424,6 +424,7 @@ static void device_free(pa_bluetooth_device *d) {
     pa_xfree(d->path);
     pa_xfree(d->alias);
     pa_xfree(d->address);
+    pa_xfree(d->adapter_path);
     pa_xfree(d);
 }
 
