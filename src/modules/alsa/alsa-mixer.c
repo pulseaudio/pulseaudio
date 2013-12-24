@@ -523,6 +523,7 @@ void pa_alsa_path_free(pa_alsa_path *p) {
     pa_proplist_free(p->proplist);
     pa_xfree(p->name);
     pa_xfree(p->description);
+    pa_xfree(p->description_key);
     pa_xfree(p);
 }
 
