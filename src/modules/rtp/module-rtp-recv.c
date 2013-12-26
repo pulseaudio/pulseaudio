@@ -68,19 +68,21 @@ PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
         "sink=<name of the sink> "
         "sap_address=<multicast address to listen on> "
+        "latency_msec=<latency in ms> "
 );
 
 #define SAP_PORT 9875
 #define DEFAULT_SAP_ADDRESS "224.0.0.56"
+#define DEFAULT_LATENCY_MSEC 500
 #define MEMBLOCKQ_MAXLENGTH (1024*1024*40)
 #define MAX_SESSIONS 16
 #define DEATH_TIMEOUT 20
 #define RATE_UPDATE_INTERVAL (5*PA_USEC_PER_SEC)
-#define LATENCY_USEC (500*PA_USEC_PER_MSEC)
 
 static const char* const valid_modargs[] = {
     "sink",
     "sap_address",
+    "latency_msec",
     NULL
 };
 
@@ -126,6 +128,8 @@ struct userdata {
     PA_LLIST_HEAD(struct session, sessions);
     pa_hashmap *by_origin;
     int n_sessions;
+
+    pa_usec_t latency;
 };
 
 static void session_free(struct session *s);
@@ -508,9 +512,9 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->first_packet = false;
     s->sdp_info = *sdp_info;
     s->rtpoll_item = NULL;
-    s->intended_latency = LATENCY_USEC;
+    s->intended_latency = u->latency;
     s->last_rate_update = pa_timeval_load(&now);
-    s->last_latency = LATENCY_USEC;
+    s->last_latency = u->latency;
     s->estimated_rate = (double) sink->sample_spec.rate;
     s->avg_estimated_rate = (double) sink->sample_spec.rate;
     pa_atomic_store(&s->timestamp, (int) now.tv_sec);
@@ -694,6 +698,7 @@ int pa__init(pa_module*m) {
     struct sockaddr *sa;
     socklen_t salen;
     const char *sap_address;
+    uint32_t latency_msec;
     int fd = -1;
 
     pa_assert(m);
@@ -722,6 +727,12 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    latency_msec = DEFAULT_LATENCY_MSEC;
+    if (pa_modargs_get_value_u32(ma, "latency_msec", &latency_msec) < 0 || latency_msec < 1 || latency_msec > 300000) {
+        pa_log("Invalid latency specification");
+        goto fail;
+    }
+
     if ((fd = mcast_socket(sa, salen)) < 0)
         goto fail;
 
@@ -729,6 +740,7 @@ int pa__init(pa_module*m) {
     u->module = m;
     u->core = m->core;
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
+    u->latency = (pa_usec_t) latency_msec * PA_USEC_PER_MSEC;
 
     u->sap_event = m->core->mainloop->io_new(m->core->mainloop, fd, PA_IO_EVENT_INPUT, sap_event_cb, u);
     pa_sap_context_init_recv(&u->sap_context, fd);
