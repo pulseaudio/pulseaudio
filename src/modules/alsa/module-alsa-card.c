@@ -607,7 +607,6 @@ static pa_hook_result_t source_output_unlink_hook_callback(pa_core *c, pa_source
 
 int pa__init(pa_module *m) {
     pa_card_new_data data;
-    pa_modargs *ma;
     bool ignore_dB = false;
     struct userdata *u;
     pa_reserve_wrapper *reserve = NULL;
@@ -620,27 +619,26 @@ int pa__init(pa_module *m) {
 
     pa_assert(m);
 
-    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log("Failed to parse module arguments");
-        goto fail;
-    }
-
-    if (pa_modargs_get_value_boolean(ma, "ignore_dB", &ignore_dB) < 0) {
-        pa_log("Failed to parse ignore_dB argument.");
-        goto fail;
-    }
-
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    u->device_id = pa_xstrdup(pa_modargs_get_value(ma, "device_id", DEFAULT_DEVICE_ID));
-    u->modargs = ma;
-
     u->use_ucm = true;
     u->ucm.core = m->core;
 
+    if (!(u->modargs = pa_modargs_new(m->argument, valid_modargs))) {
+        pa_log("Failed to parse module arguments.");
+        goto fail;
+    }
+
+    u->device_id = pa_xstrdup(pa_modargs_get_value(u->modargs, "device_id", DEFAULT_DEVICE_ID));
+
     if ((u->alsa_card_index = snd_card_get_index(u->device_id)) < 0) {
         pa_log("Card '%s' doesn't exist: %s", u->device_id, pa_alsa_strerror(u->alsa_card_index));
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_boolean(u->modargs, "ignore_dB", &ignore_dB) < 0) {
+        pa_log("Failed to parse ignore_dB argument.");
         goto fail;
     }
 
@@ -656,7 +654,7 @@ int pa__init(pa_module *m) {
         }
     }
 
-    pa_modargs_get_value_boolean(ma, "use_ucm", &u->use_ucm);
+    pa_modargs_get_value_boolean(u->modargs, "use_ucm", &u->use_ucm);
     if (u->use_ucm && !pa_alsa_ucm_query_profiles(&u->ucm, u->alsa_card_index)) {
         pa_log_info("Found UCM profiles");
 
@@ -682,9 +680,9 @@ int pa__init(pa_module *m) {
         fn = pa_udev_get_property(u->alsa_card_index, "PULSE_PROFILE_SET");
 #endif
 
-        if (pa_modargs_get_value(ma, "profile_set", NULL)) {
+        if (pa_modargs_get_value(u->modargs, "profile_set", NULL)) {
             pa_xfree(fn);
-            fn = pa_xstrdup(pa_modargs_get_value(ma, "profile_set", NULL));
+            fn = pa_xstrdup(pa_modargs_get_value(u->modargs, "profile_set", NULL));
         }
 
         u->profile_set = pa_alsa_profile_set_new(fn, &u->core->default_channel_map);
@@ -707,14 +705,14 @@ int pa__init(pa_module *m) {
 
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_id);
     pa_alsa_init_description(data.proplist);
-    set_card_name(&data, ma, u->device_id);
+    set_card_name(&data, u->modargs, u->device_id);
 
     /* We need to give pa_modargs_get_value_boolean() a pointer to a local
      * variable instead of using &data.namereg_fail directly, because
      * data.namereg_fail is a bitfield and taking the address of a bitfield
      * variable is impossible. */
     namereg_fail = data.namereg_fail;
-    if (pa_modargs_get_value_boolean(ma, "namereg_fail", &namereg_fail) < 0) {
+    if (pa_modargs_get_value_boolean(u->modargs, "namereg_fail", &namereg_fail) < 0) {
         pa_log("Failed to parse namereg_fail argument.");
         pa_card_new_data_done(&data);
         goto fail;
@@ -735,13 +733,13 @@ int pa__init(pa_module *m) {
 
     add_disabled_profile(data.profiles);
 
-    if (pa_modargs_get_proplist(ma, "card_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+    if (pa_modargs_get_proplist(u->modargs, "card_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
         pa_log("Invalid properties");
         pa_card_new_data_done(&data);
         goto fail;
     }
 
-    if ((profile = pa_modargs_get_value(ma, "profile", NULL)))
+    if ((profile = pa_modargs_get_value(u->modargs, "profile", NULL)))
         pa_card_new_data_set_profile(&data, profile);
 
     u->card = pa_card_new(m->core, &data);
@@ -768,16 +766,11 @@ int pa__init(pa_module *m) {
                     "is abused (i.e. fixes are not pushed to ALSA), the decibel fix feature may be removed in some future "
                     "PulseAudio version.", u->card->name);
 
-    pa_modargs_free(ma);
-
     return 0;
 
 fail:
     if (reserve)
         pa_reserve_wrapper_unref(reserve);
-
-    if (ma)
-        pa_modargs_free(ma);
 
     pa__done(m);
 
