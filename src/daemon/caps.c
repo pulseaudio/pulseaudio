@@ -86,8 +86,6 @@ void pa_drop_caps(void) {
     pa_assert_se(cap_clear(caps) == 0);
     pa_assert_se(cap_set_proc(caps) == 0);
     pa_assert_se(cap_free(caps) == 0);
-#elif defined(__FreeBSD__)
-    pa_assert_se (cap_enter () == 0);
 #else
 #error "Don't know how to do capabilities on your system.  Please send a patch."
 #endif /* __linux */
