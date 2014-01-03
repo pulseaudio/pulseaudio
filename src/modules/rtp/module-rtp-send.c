@@ -281,7 +281,7 @@ int pa__init(pa_module*m) {
         dst_sa6.sin6_family = af = AF_INET6;
         dst_sa6.sin6_port = htons((uint16_t) port);
         dst_sa6.sin6_flowinfo = 0;
-        src_sa6.sin6_scope_id = 0;
+        dst_sa6.sin6_scope_id = 0;
         dst_sap_sa6 = dst_sa6;
         dst_sap_sa6.sin6_port = htons(SAP_PORT);
 #endif
