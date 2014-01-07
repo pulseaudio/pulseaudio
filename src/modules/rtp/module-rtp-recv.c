@@ -450,17 +450,26 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
         goto fail;
     }
 
+    r = 0;
     if (af == AF_INET) {
-        struct ip_mreq mr4;
-        memset(&mr4, 0, sizeof(mr4));
-        mr4.imr_multiaddr = ((const struct sockaddr_in*) sa)->sin_addr;
-        r = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mr4, sizeof(mr4));
+        /* IPv4 multicast addresses are in the 224.0.0.0-239.255.255.255 range */
+        static const uint32_t ipv4_mcast_mask = 0xe0000000;
+
+        if ((ntohl(((const struct sockaddr_in*) sa)->sin_addr.s_addr) & ipv4_mcast_mask) == ipv4_mcast_mask) {
+            struct ip_mreq mr4;
+            memset(&mr4, 0, sizeof(mr4));
+            mr4.imr_multiaddr = ((const struct sockaddr_in*) sa)->sin_addr;
+            r = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mr4, sizeof(mr4));
+        }
 #ifdef HAVE_IPV6
     } else if (af == AF_INET6) {
-        struct ipv6_mreq mr6;
-        memset(&mr6, 0, sizeof(mr6));
-        mr6.ipv6mr_multiaddr = ((const struct sockaddr_in6*) sa)->sin6_addr;
-        r = setsockopt(fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mr6, sizeof(mr6));
+        /* IPv6 multicast addresses have 255 as the most significant byte */
+        if (((const struct sockaddr_in6*) sa)->sin6_addr.s6_addr[0] == 0xff) {
+            struct ipv6_mreq mr6;
+            memset(&mr6, 0, sizeof(mr6));
+            mr6.ipv6mr_multiaddr = ((const struct sockaddr_in6*) sa)->sin6_addr;
+            r = setsockopt(fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mr6, sizeof(mr6));
+        }
 #endif
     } else
         pa_assert_not_reached();
