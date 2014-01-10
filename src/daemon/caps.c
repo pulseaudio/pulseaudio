@@ -39,7 +39,7 @@
 #include "caps.h"
 
 /* Glibc <= 2.2 has broken unistd.h */
-#if defined(linux) && (__GLIBC__ <= 2 && __GLIBC_MINOR__ <= 2)
+#if defined(__linux__) && (__GLIBC__ <= 2 && __GLIBC_MINOR__ <= 2)
 int setresgid(gid_t r, gid_t e, gid_t s);
 int setresuid(uid_t r, uid_t e, uid_t s);
 #endif
@@ -80,7 +80,7 @@ void pa_drop_root(void) {
 
 void pa_drop_caps(void) {
 #ifdef HAVE_SYS_CAPABILITY_H
-#if defined(__linux)
+#if defined(__linux__)
     cap_t caps;
     pa_assert_se(caps = cap_init());
     pa_assert_se(cap_clear(caps) == 0);
@@ -88,7 +88,7 @@ void pa_drop_caps(void) {
     pa_assert_se(cap_free(caps) == 0);
 #else
 #error "Don't know how to do capabilities on your system.  Please send a patch."
-#endif /* __linux */
+#endif /* __linux__ */
 #else /* HAVE_SYS_CAPABILITY_H */
     pa_log_warn("Normally all extra capabilities would be dropped now, but "
                 "that's impossible because PulseAudio was built without "
