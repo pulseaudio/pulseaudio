@@ -377,7 +377,6 @@ int pa__init(pa_module*m) {
     pa_source_output_new_data_set_source(&data, s, false);
     pa_source_output_new_data_set_sample_spec(&data, &ss);
     pa_source_output_new_data_set_channel_map(&data, &cm);
-    data.flags = PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND;
 
     pa_source_output_new(&o, m->core, &data);
     pa_source_output_new_data_done(&data);
