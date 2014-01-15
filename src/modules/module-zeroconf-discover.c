@@ -149,6 +149,7 @@ static void resolver_cb(
     else {
         char *device = NULL, *dname, *module_name, *args;
         const char *t;
+        char *if_suffix = NULL;
         char at[AVAHI_ADDRESS_STR_MAX], cmt[PA_CHANNEL_MAP_SNPRINT_MAX];
         pa_sample_spec ss;
         pa_channel_map cm;
@@ -210,16 +211,21 @@ static void resolver_cb(
         }
 
         t = strstr(type, "sink") ? "sink" : "source";
+        if (a->proto == AVAHI_PROTO_INET6 &&
+            a->data.ipv6.address[0] == 0xfe &&
+            (a->data.ipv6.address[1] & 0xc0) == 0x80)
+            if_suffix = pa_sprintf_malloc("%%%d", interface);
 
         module_name = pa_sprintf_malloc("module-tunnel-%s", t);
-        args = pa_sprintf_malloc("server=[%s]:%u "
+        args = pa_sprintf_malloc("server=[%s%s]:%u "
                                  "%s=%s "
                                  "format=%s "
                                  "channels=%u "
                                  "rate=%u "
                                  "%s_name=%s "
                                  "channel_map=%s",
-                                 avahi_address_snprint(at, sizeof(at), a), port,
+                                 avahi_address_snprint(at, sizeof(at), a),
+                                 if_suffix ? if_suffix : "", port,
                                  t, device,
                                  pa_sample_format_to_string(ss.format),
                                  ss.channels,
@@ -238,6 +244,7 @@ static void resolver_cb(
         pa_xfree(module_name);
         pa_xfree(dname);
         pa_xfree(args);
+        pa_xfree(if_suffix);
         avahi_free(device);
     }
 
