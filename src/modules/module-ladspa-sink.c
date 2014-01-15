@@ -474,21 +474,28 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
     pa_memblockq_drop(u->memblockq, chunk->length);
 
-    src = pa_memblock_acquire_chunk(&tchunk);
+    src = (tchunk.memblock ? pa_memblock_acquire_chunk(&tchunk) : NULL);
     dst = pa_memblock_acquire(chunk->memblock);
 
     for (h = 0; h < (u->channels / u->max_ladspaport_count); h++) {
-        for (c = 0; c < u->input_count; c++)
-            pa_sample_clamp(PA_SAMPLE_FLOAT32NE, u->input[c], sizeof(float), src+ h*u->max_ladspaport_count + c, u->channels*sizeof(float), n);
+        if (src) {
+            for (c = 0; c < u->input_count; c++)
+                pa_sample_clamp(PA_SAMPLE_FLOAT32NE, u->input[c], sizeof(float), src+ h*u->max_ladspaport_count + c, u->channels*sizeof(float), n);
+        } else {
+            for (c = 0; c < u->input_count; c++)
+                memset(u->input[c], 0, (n * sizeof(float)));
+        }
         u->descriptor->run(u->handle[h], n);
         for (c = 0; c < u->output_count; c++)
             pa_sample_clamp(PA_SAMPLE_FLOAT32NE, dst + h*u->max_ladspaport_count + c, u->channels*sizeof(float), u->output[c], sizeof(float), n);
     }
 
-    pa_memblock_release(tchunk.memblock);
-    pa_memblock_release(chunk->memblock);
+    if (tchunk.memblock) {
+        pa_memblock_release(tchunk.memblock);
+        pa_memblock_unref(tchunk.memblock);
+    }
 
-    pa_memblock_unref(tchunk.memblock);
+    pa_memblock_release(chunk->memblock);
 
     return 0;
 }
