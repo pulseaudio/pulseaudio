@@ -966,6 +966,7 @@ int pa__init(pa_module*m) {
     const char *e, *cdata;
     const LADSPA_Descriptor *d;
     unsigned long p, h, j, n_control, c;
+    pa_memchunk silence;
 
     pa_assert(m);
 
@@ -1010,7 +1011,6 @@ int pa__init(pa_module*m) {
     u = pa_xnew0(struct userdata, 1);
     u->module = m;
     m->userdata = u;
-    u->memblockq = pa_memblockq_new("module-ladspa-sink memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0, &ss, 1, 1, 0, NULL);
     u->max_ladspaport_count = 1; /*to avoid division by zero etc. in pa__done when failing before this value has been set*/
     u->channels = 0;
     u->input = NULL;
@@ -1292,6 +1292,10 @@ int pa__init(pa_module*m) {
     u->sink_input->userdata = u;
 
     u->sink->input_to_master = u->sink_input;
+
+    pa_sink_input_get_silence(u->sink_input, &silence);
+    u->memblockq = pa_memblockq_new("module-ladspa-sink memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0, &ss, 1, 1, 0, &silence);
+    pa_memblock_unref(silence.memblock);
 
     pa_sink_put(u->sink);
     pa_sink_input_put(u->sink_input);
