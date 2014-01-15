@@ -311,8 +311,6 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_SET_STATE,
     PA_SINK_MESSAGE_START_MOVE,
     PA_SINK_MESSAGE_FINISH_MOVE,
-    PA_SINK_MESSAGE_ATTACH,
-    PA_SINK_MESSAGE_DETACH,
     PA_SINK_MESSAGE_SET_LATENCY_RANGE,
     PA_SINK_MESSAGE_GET_LATENCY_RANGE,
     PA_SINK_MESSAGE_SET_FIXED_LATENCY,
@@ -394,9 +392,6 @@ void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind);
 void pa_sink_set_max_request(pa_sink *s, size_t max_request);
 void pa_sink_set_latency_range(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency);
 void pa_sink_set_fixed_latency(pa_sink *s, pa_usec_t latency);
-
-void pa_sink_detach(pa_sink *s);
-void pa_sink_attach(pa_sink *s);
 
 void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume);
 void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume);

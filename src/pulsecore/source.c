@@ -2170,18 +2170,6 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
             return 0;
         }
 
-        case PA_SOURCE_MESSAGE_DETACH:
-
-            /* Detach all streams */
-            pa_source_detach_within_thread(s);
-            return 0;
-
-        case PA_SOURCE_MESSAGE_ATTACH:
-
-            /* Reattach all streams */
-            pa_source_attach_within_thread(s);
-            return 0;
-
         case PA_SOURCE_MESSAGE_GET_REQUESTED_LATENCY: {
 
             pa_usec_t *usec = userdata;
@@ -2296,24 +2284,6 @@ int pa_source_suspend_all(pa_core *c, bool suspend, pa_suspend_cause_t cause) {
     }
 
     return ret;
-}
-
-/* Called from main thread */
-void pa_source_detach(pa_source *s) {
-    pa_source_assert_ref(s);
-    pa_assert_ctl_context();
-    pa_assert(PA_SOURCE_IS_LINKED(s->state));
-
-    pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_DETACH, NULL, 0, NULL) == 0);
-}
-
-/* Called from main thread */
-void pa_source_attach(pa_source *s) {
-    pa_source_assert_ref(s);
-    pa_assert_ctl_context();
-    pa_assert(PA_SOURCE_IS_LINKED(s->state));
-
-    pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_ATTACH, NULL, 0, NULL) == 0);
 }
 
 /* Called from IO thread */

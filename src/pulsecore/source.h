@@ -250,8 +250,6 @@ typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_GET_LATENCY,
     PA_SOURCE_MESSAGE_GET_REQUESTED_LATENCY,
     PA_SOURCE_MESSAGE_SET_STATE,
-    PA_SOURCE_MESSAGE_ATTACH,
-    PA_SOURCE_MESSAGE_DETACH,
     PA_SOURCE_MESSAGE_SET_LATENCY_RANGE,
     PA_SOURCE_MESSAGE_GET_LATENCY_RANGE,
     PA_SOURCE_MESSAGE_SET_FIXED_LATENCY,
@@ -330,9 +328,6 @@ void pa_source_set_rtpoll(pa_source *s, pa_rtpoll *p);
 void pa_source_set_max_rewind(pa_source *s, size_t max_rewind);
 void pa_source_set_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency);
 void pa_source_set_fixed_latency(pa_source *s, pa_usec_t latency);
-
-void pa_source_detach(pa_source *s);
-void pa_source_attach(pa_source *s);
 
 void pa_source_set_soft_volume(pa_source *s, const pa_cvolume *volume);
 void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_volume);
