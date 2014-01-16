@@ -216,10 +216,12 @@ static void adjust_rates(struct userdata *u) {
 
     PA_IDXSET_FOREACH(o, u->outputs, idx) {
         uint32_t new_rate = base_rate;
-        uint32_t current_rate = o->sink_input->sample_spec.rate;
+        uint32_t current_rate;
 
         if (!o->sink_input || !PA_SINK_IS_OPENED(pa_sink_get_state(o->sink)))
             continue;
+
+        current_rate = o->sink_input->sample_spec.rate;
 
         if (o->total_latency != target_latency)
             new_rate += (uint32_t) (((double) o->total_latency - (double) target_latency) / (double) u->adjust_time * (double) new_rate);
