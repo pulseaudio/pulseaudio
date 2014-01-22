@@ -8,3 +8,4 @@ Type=Application
 Categories=
 GenericName=
 X-GNOME-Autostart-Phase=Initialization
+X-KDE-autostart-phase=1
