@@ -95,12 +95,10 @@ EXTRA_DIST = \
 		depmod.py \
 		daemon/esdcompat.in \
 		daemon/start-pulseaudio-x11.in \
-		daemon/start-pulseaudio-kde.in \
 		utils/padsp.in \
 		utils/qpaeq \
 		modules/module-defs.h.m4 \
 		daemon/pulseaudio.desktop.in \
-		daemon/pulseaudio-kde.desktop.in \
 		map-file \
 		daemon/pulseaudio-system.conf \
 		modules/echo-cancel/adrian-license.txt

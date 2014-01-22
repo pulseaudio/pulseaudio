@@ -26,6 +26,10 @@ if [ x"$DISPLAY" != x ] ; then
     @PACTL_BINARY@ load-module module-x11-publish "display=$DISPLAY" > /dev/null
     @PACTL_BINARY@ load-module module-x11-cork-request "display=$DISPLAY" > /dev/null
 
+    if [ x"$KDE_FULL_SESSION" = x"true" ]; then
+       @PACTL_BINARY@ load-module module-device-manager "do_routing=1" > /dev/null
+    fi
+
     if [ x"$SESSION_MANAGER" != x ] ; then
 	@PACTL_BINARY@ load-module module-x11-xsmp "display=$DISPLAY session_manager=$SESSION_MANAGER" > /dev/null
     fi
