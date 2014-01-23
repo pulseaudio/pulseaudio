@@ -510,7 +510,7 @@ typedef struct pa_card_port_info {
     pa_card_profile_info** profiles;    /**< \deprecated Superseded by profiles2 */
     pa_proplist *proplist;              /**< Property list */
     int64_t latency_offset;             /**< Latency offset of the port that gets added to the sink/source latency when the port is active. \since 3.0 */
-    pa_card_profile_info2** profiles2;  /**< Array of pointers to available profiles, or NULL. Array is terminated by an entry set to NULL. */
+    pa_card_profile_info2** profiles2;  /**< Array of pointers to available profiles, or NULL. Array is terminated by an entry set to NULL. \since 5.0 */
 } pa_card_port_info;
 
 /** Stores information about cards. Please note that this structure
@@ -527,8 +527,8 @@ typedef struct pa_card_info {
     pa_proplist *proplist;               /**< Property list */
     uint32_t n_ports;                    /**< Number of entries in port array */
     pa_card_port_info **ports;           /**< Array of pointers to ports, or NULL. Array is terminated by an entry set to NULL. */
-    pa_card_profile_info2** profiles2;    /**< Array of pointers to available profiles, or NULL. Array is terminated by an entry set to NULL. */
-    pa_card_profile_info2* active_profile2; /**< Pointer to active profile in the array, or NULL. */
+    pa_card_profile_info2** profiles2;    /**< Array of pointers to available profiles, or NULL. Array is terminated by an entry set to NULL. \since 5.0 */
+    pa_card_profile_info2* active_profile2; /**< Pointer to active profile in the array, or NULL. \since 5.0 */
 } pa_card_info;
 
 /** Callback prototype for pa_context_get_card_info_...() \since 0.9.15 */

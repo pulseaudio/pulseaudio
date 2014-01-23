@@ -311,7 +311,7 @@ pa_mainloop_api* pa_threaded_mainloop_get_api(pa_threaded_mainloop*m);
 /** Returns non-zero when called from within the event loop thread. \since 0.9.7 */
 int pa_threaded_mainloop_in_thread(pa_threaded_mainloop *m);
 
-/** Sets the name of the thread. \since 4.0 */
+/** Sets the name of the thread. \since 5.0 */
 void pa_threaded_mainloop_set_name(pa_threaded_mainloop *m, const char *name);
 
 PA_C_DECL_END
