@@ -932,8 +932,8 @@ libpulsecore_mix_neon_la_CFLAGS = $(AM_CFLAGS) $(NEON_CFLAGS)
 libpulsecore_@PA_MAJORMINOR@_la_LIBADD += libpulsecore_sconv_neon.la libpulsecore_mix_neon.la
 endif
 
-if HAVE_ORC
 ORC_SOURCE += pulsecore/svolume
+if HAVE_ORC
 libpulsecore_@PA_MAJORMINOR@_la_SOURCES += pulsecore/svolume_orc.c
 nodist_libpulsecore_@PA_MAJORMINOR@_la_SOURCES = pulsecore/svolume-orc-gen.c pulsecore/svolume-orc-gen.h
 libpulsecore_@PA_MAJORMINOR@_la_CFLAGS += $(ORC_CFLAGS)
@@ -1950,8 +1950,8 @@ module_echo_cancel_la_SOURCES += \
 		modules/echo-cancel/adrian-aec.c modules/echo-cancel/adrian-aec.h \
 		modules/echo-cancel/adrian.c modules/echo-cancel/adrian.h
 module_echo_cancel_la_CFLAGS += -DHAVE_ADRIAN_EC=1
-if HAVE_ORC
 ORC_SOURCE += modules/echo-cancel/adrian-aec
+if HAVE_ORC
 nodist_module_echo_cancel_la_SOURCES = \
 		modules/echo-cancel/adrian-aec-orc-gen.c \
 		modules/echo-cancel/adrian-aec-orc-gen.h

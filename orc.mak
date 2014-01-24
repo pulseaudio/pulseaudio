@@ -22,6 +22,7 @@
 
 EXTRA_DIST += $(addsuffix .orc,$(ORC_SOURCE))
 
+if HAVE_ORC
 ORC_BUILT_SOURCE = $(addsuffix -orc-gen.c,$(ORC_SOURCE))
 ORC_BUILT_HEADER = $(addsuffix -orc-gen.h,$(ORC_SOURCE))
 
@@ -44,3 +45,4 @@ cp_v_gen_0 = @echo "  CP     $@";
 %-orc-gen.h: %.orc
 	@mkdir -p $(@D)
 	$(orcc_v_gen)$(ORCC) --header -o $@ $<
+endif
