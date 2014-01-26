@@ -22,7 +22,6 @@ pasuspender
 pax11publish
 pulseaudio
 start-pulseaudio-x11
-start-pulseaudio-kde
 *-symdef.h
 *-orc-gen.[ch]
 # tests

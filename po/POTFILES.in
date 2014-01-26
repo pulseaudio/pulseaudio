@@ -6,7 +6,6 @@ src/daemon/dumpmodules.c
 src/daemon/ltdl-bind-now.c
 src/daemon/main.c
 src/daemon/pulseaudio.desktop.in
-src/daemon/pulseaudio-kde.desktop.in
 src/modules/alsa/alsa-mixer.c
 src/modules/alsa/alsa-sink.c
 src/modules/alsa/alsa-source.c

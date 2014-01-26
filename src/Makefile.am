@@ -116,8 +116,7 @@ endif
 
 if HAVE_X11
 xdgautostart_in_files = \
-		daemon/pulseaudio.desktop.in \
-		daemon/pulseaudio-kde.desktop.in
+		daemon/pulseaudio.desktop.in
 xdgautostart_DATA = $(xdgautostart_in_files:.desktop.in=.desktop)
 @INTLTOOL_DESKTOP_RULE@
 endif
@@ -190,7 +189,7 @@ endif
 
 if HAVE_X11
 bin_PROGRAMS += pax11publish
-bin_SCRIPTS += start-pulseaudio-x11 start-pulseaudio-kde
+bin_SCRIPTS += start-pulseaudio-x11
 endif
 
 pacat_SOURCES = utils/pacat.c
@@ -2104,8 +2103,8 @@ module_rygel_media_server_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 #        Some minor stuff         #
 ###################################
 
-CLEANFILES += daemon/pulseaudio.desktop daemon/pulseaudio-kde.desktop
-DISTCLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 start-pulseaudio-kde
+CLEANFILES += daemon/pulseaudio.desktop
+DISTCLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11
 
 if OS_IS_WIN32
 SYMLINK_PROGRAM=cd $(DESTDIR)$(bindir) && cp

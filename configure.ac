@@ -1382,13 +1382,11 @@ man/pulse-daemon.conf.5.xml
 man/pulse-client.conf.5.xml
 man/default.pa.5.xml
 man/pulse-cli-syntax.5.xml
-man/start-pulseaudio-kde.1.xml
 man/start-pulseaudio-x11.1.xml
 ])
 
 AC_CONFIG_FILES([src/esdcompat:src/daemon/esdcompat.in], [chmod +x src/esdcompat])
 AC_CONFIG_FILES([src/start-pulseaudio-x11:src/daemon/start-pulseaudio-x11.in], [chmod +x src/start-pulseaudio-x11])
-AC_CONFIG_FILES([src/start-pulseaudio-kde:src/daemon/start-pulseaudio-kde.in], [chmod +x src/start-pulseaudio-kde])
 AC_CONFIG_FILES([src/client.conf:src/pulse/client.conf.in])
 AC_CONFIG_FILES([src/daemon.conf:src/daemon/daemon.conf.in],
     [m4 src/daemon.conf > src/daemon.conf.gen && mv src/daemon.conf.gen src/daemon.conf])
