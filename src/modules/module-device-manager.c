@@ -605,6 +605,8 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
                             PA_IDXSET_FOREACH(sink, u->core->sinks, idx) {
                                 if ((pa_sink*) ignore_device == sink)
                                     continue;
+                                if (!PA_SINK_IS_LINKED(sink->state))
+                                    continue;
                                 if (pa_streq(sink->name, device_name)) {
                                     found = true;
                                     idx = sink->index; /* Is this needed? */
@@ -616,6 +618,8 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
 
                             PA_IDXSET_FOREACH(source, u->core->sources, idx) {
                                 if ((pa_source*) ignore_device == source)
+                                    continue;
+                                if (!PA_SOURCE_IS_LINKED(source->state))
                                     continue;
                                 if (pa_streq(source->name, device_name)) {
                                     found = true;
