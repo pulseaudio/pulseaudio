@@ -937,7 +937,7 @@ static int a2dp_process_push(struct userdata *u) {
                 pa_log_error("SBC decoding error (%li)", (long) decoded);
                 pa_memblock_release(memchunk.memblock);
                 pa_memblock_unref(memchunk.memblock);
-                return -1;
+                return 0;
             }
 
 /*             pa_log_debug("SBC: decoded: %lu; written: %lu", (unsigned long) decoded, (unsigned long) written); */
@@ -1039,10 +1039,12 @@ static void thread_func(void *userdata) {
                 if (n_read < 0)
                     goto io_fail;
 
-                /* We just read something, so we are supposed to write something, too */
-                pending_read_bytes += n_read;
-                do_write += pending_read_bytes / u->write_block_size;
-                pending_read_bytes = pending_read_bytes % u->write_block_size;
+                if (n_read > 0) {
+                    /* We just read something, so we are supposed to write something, too */
+                    pending_read_bytes += n_read;
+                    do_write += pending_read_bytes / u->write_block_size;
+                    pending_read_bytes = pending_read_bytes % u->write_block_size;
+                }
             }
         }
 
