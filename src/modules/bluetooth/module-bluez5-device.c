@@ -402,6 +402,7 @@ static int a2dp_process_push(struct userdata *u) {
         void *d;
         ssize_t l;
         size_t to_write, to_decode;
+        size_t total_written = 0;
 
         a2dp_prepare_buffer(u);
 
@@ -428,16 +429,11 @@ static int a2dp_process_push(struct userdata *u) {
 
         pa_assert((size_t) l <= sbc_info->buffer_size);
 
-        u->read_index += (uint64_t) l;
-
         /* TODO: get timestamp from rtp */
         if (!found_tstamp) {
             /* pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!"); */
             tstamp = pa_rtclock_now();
         }
-
-        pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->sample_spec));
-        pa_smoother_resume(u->read_smoother, tstamp, true);
 
         p = (uint8_t*) sbc_info->buffer + sizeof(*header) + sizeof(*payload);
         to_decode = l - sizeof(*header) - sizeof(*payload);
@@ -461,6 +457,8 @@ static int a2dp_process_push(struct userdata *u) {
                 return 0;
             }
 
+            total_written += written;
+
             /* Reset frame length, it can be changed due to bitpool change */
             sbc_info->frame_length = sbc_get_frame_length(&sbc_info->sbc);
 
@@ -475,6 +473,10 @@ static int a2dp_process_push(struct userdata *u) {
             d = (uint8_t*) d + written;
             to_write -= written;
         }
+
+        u->read_index += (uint64_t) total_written;
+        pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->sample_spec));
+        pa_smoother_resume(u->read_smoother, tstamp, true);
 
         memchunk.length -= to_write;
 
