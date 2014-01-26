@@ -109,6 +109,13 @@ void pa_thread_free(pa_thread *t) {
     pa_xfree(t);
 }
 
+void pa_thread_free_nojoin(pa_thread *t) {
+    pa_assert(t);
+
+    CloseHandle(t->thread);
+    pa_xfree(t);
+}
+
 int pa_thread_join(pa_thread *t) {
     assert(t);
 
