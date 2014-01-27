@@ -67,7 +67,7 @@ bool pa_module_exists(const char *name) {
 
     /* strip .so from the end of name, if present */
     n = pa_xstrdup(name);
-    p = rindex(n, '.');
+    p = strrchr(n, '.');
     if (p && pa_streq(p, PA_SOEXT))
         p[0] = 0;
 
