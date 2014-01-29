@@ -3776,8 +3776,8 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
     pa_assert(pcm_handle);
 
     mixer_handle = pa_alsa_open_mixer_for_pcm(pcm_handle, NULL, &hctl_handle);
-    if (!mixer_handle || !hctl_handle) {
-         /* Cannot open mixer, remove all entries */
+    if (!mixer_handle) {
+        /* Cannot open mixer, remove all entries */
         pa_hashmap_remove_all(ps->paths);
         return;
     }
