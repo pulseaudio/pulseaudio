@@ -390,6 +390,7 @@ static pa_hook_result_t card_profile_changed_callback(pa_core *c, pa_card *card,
         return PA_HOOK_OK;
 
     if ((entry = entry_read(u, card->name))) {
+        pa_xfree(entry->profile);
         entry->profile = pa_xstrdup(card->active_profile->name);
         pa_log_info("Storing card profile for card %s.", card->name);
     } else {
