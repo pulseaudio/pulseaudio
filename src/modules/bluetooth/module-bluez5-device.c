@@ -71,6 +71,7 @@ static const char* const valid_modargs[] = {
 
 enum {
     BLUETOOTH_MESSAGE_IO_THREAD_FAILED,
+    BLUETOOTH_MESSAGE_STREAM_FD_HUP,
     BLUETOOTH_MESSAGE_MAX
 };
 
@@ -1234,6 +1235,8 @@ io_fail:
         pending_read_bytes = 0;
         writable = false;
 
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u->msg), BLUETOOTH_MESSAGE_STREAM_FD_HUP, NULL, 0, NULL, NULL);
+
         teardown_stream(u);
     }
 
@@ -1778,6 +1781,8 @@ static int device_process_msg(pa_msgobject *obj, int code, void *data, int64_t o
 
             pa_log_debug("Switching the profile to off due to IO thread failure.");
             pa_assert_se(pa_card_set_profile(m->card, pa_hashmap_get(m->card->profiles, "off"), false) >= 0);
+            break;
+        case BLUETOOTH_MESSAGE_STREAM_FD_HUP:
             break;
     }
 
