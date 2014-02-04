@@ -1769,15 +1769,15 @@ static pa_hook_result_t transport_state_changed_cb(pa_bluetooth_discovery *y, pa
 
 /* Run from main thread context */
 static int device_process_msg(pa_msgobject *obj, int code, void *data, int64_t offset, pa_memchunk *chunk) {
-    struct bluetooth_msg *u = BLUETOOTH_MSG(obj);
+    struct bluetooth_msg *m = BLUETOOTH_MSG(obj);
 
     switch (code) {
         case BLUETOOTH_MESSAGE_IO_THREAD_FAILED:
-            if (u->card->module->unload_requested)
+            if (m->card->module->unload_requested)
                 break;
 
             pa_log_debug("Switching the profile to off due to IO thread failure.");
-            pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, "off"), false) >= 0);
+            pa_assert_se(pa_card_set_profile(m->card, pa_hashmap_get(m->card->profiles, "off"), false) >= 0);
             break;
     }
 
