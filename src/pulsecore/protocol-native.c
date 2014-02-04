@@ -3785,6 +3785,7 @@ static void command_set_volume(
                      pa_strnull(pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)));
         pa_sink_input_set_volume(si, &volume, true, true);
     } else if (so) {
+        CHECK_VALIDITY(c->pstream, so->volume_writable, tag, PA_ERR_BADSTATE);
         CHECK_VALIDITY(c->pstream, volume.channels == 1 || pa_cvolume_compatible(&volume, &so->sample_spec), tag, PA_ERR_INVALID);
 
         pa_log_debug("Client %s changes volume of source output %s.",
