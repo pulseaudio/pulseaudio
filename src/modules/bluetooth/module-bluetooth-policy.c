@@ -89,7 +89,8 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
     }
 
     /* Load module-loopback */
-    args = pa_sprintf_malloc("source=\"%s\" source_dont_move=\"true\" sink_input_properties=\"media.role=%s\"", source->name, role);
+    args = pa_sprintf_malloc("source=\"%s\" source_dont_move=\"true\" sink_input_properties=\"media.role=%s\"", source->name,
+                             role);
     (void) pa_module_load(c, "module-loopback", args);
     pa_xfree(args);
 
@@ -126,7 +127,8 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void *
     }
 
     /* Load module-loopback */
-    args = pa_sprintf_malloc("sink=\"%s\" sink_dont_move=\"true\" source_output_properties=\"media.role=%s\"", sink->name, role);
+    args = pa_sprintf_malloc("sink=\"%s\" sink_dont_move=\"true\" source_output_properties=\"media.role=%s\"", sink->name,
+                             role);
     (void) pa_module_load(c, "module-loopback", args);
     pa_xfree(args);
 
@@ -239,9 +241,11 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    u->source_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_NORMAL, (pa_hook_cb_t) source_put_hook_callback, u);
+    u->source_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_NORMAL,
+                                         (pa_hook_cb_t) source_put_hook_callback, u);
 
-    u->sink_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_put_hook_callback, u);
+    u->sink_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_NORMAL,
+                                       (pa_hook_cb_t) sink_put_hook_callback, u);
 
     u->profile_available_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_AVAILABLE_CHANGED],
                                                         PA_HOOK_NORMAL, (pa_hook_cb_t) profile_available_hook_callback, u);
