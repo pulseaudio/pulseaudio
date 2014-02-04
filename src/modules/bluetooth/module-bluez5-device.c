@@ -1524,9 +1524,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
     pa_assert_se(output_port = pa_hashmap_get(ports, u->output_port_name));
 
     if (pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SINK)) {
-	/* TODO: Change this profile's name to a2dp_sink, to reflect the remote
-         * device's role and be consistent with the a2dp source profile */
-        cp = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP Sink)"), sizeof(pa_bluetooth_profile_t));
+        cp = pa_card_profile_new("a2dp_sink", _("High Fidelity Playback (A2DP Sink)"), sizeof(pa_bluetooth_profile_t));
         cp->priority = 10;
         cp->n_sinks = 1;
         cp->n_sources = 0;
