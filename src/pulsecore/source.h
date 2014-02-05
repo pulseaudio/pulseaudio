@@ -48,7 +48,7 @@ typedef struct pa_source_volume_change pa_source_volume_change;
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/source-output.h>
 
-#define PA_MAX_OUTPUTS_PER_SOURCE 32
+#define PA_MAX_OUTPUTS_PER_SOURCE 256
 
 /* Returns true if source is linked: registered and accessible from client side. */
 static inline bool PA_SOURCE_IS_LINKED(pa_source_state_t x) {
