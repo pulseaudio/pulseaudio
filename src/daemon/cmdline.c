@@ -140,7 +140,7 @@ void pa_cmdline_help(const char *argv0) {
            "      --scache-idle-time=SECS           Unload autoloaded samples when idle and\n"
            "                                        this time passed\n"
            "      --log-level[=LEVEL]               Increase or set verbosity level\n"
-           "  -v                                    Increase the verbosity level\n"
+           "  -v  --verbose                         Increase the verbosity level\n"
            "      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
            "                                        Specify the log target\n"
            "      --log-meta[=BOOL]                 Include code location in log messages\n"

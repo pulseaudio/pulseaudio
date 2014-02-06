@@ -181,6 +181,12 @@ USA.
     </option>
 
     <option>
+      <p><opt>--disallow-exit</opt><arg>[=BOOL]</arg></p>
+
+      <optdesc><p>Disallow user requested exit</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>--exit-idle-time</opt><arg>=SECS</arg></p>
 
       <optdesc><p>Terminate the daemon when idle and the specified
@@ -209,7 +215,7 @@ USA.
     </option>
 
     <option>
-      <p><opt>-v</opt></p>
+      <p><opt>-v | --verbose</opt></p>
 
       <optdesc><p>Increase the configured verbosity level by one (see
       <opt>--log-level</opt> above). Specify multiple times to
@@ -250,7 +256,7 @@ USA.
     </option>
 
     <option>
-      <p><opt>--p | --dl-search-path</opt><arg>=PATH</arg></p>
+      <p><opt>-p | --dl-search-path</opt><arg>=PATH</arg></p>
 
       <optdesc><p>Set the search path for dynamic shared objects
       (plugins).</p></optdesc>
