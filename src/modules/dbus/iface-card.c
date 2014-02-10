@@ -243,7 +243,7 @@ static const char **get_sources(pa_dbusiface_card *c, unsigned *n) {
 
     sources = pa_xnew(const char *, *n);
 
-    PA_IDXSET_FOREACH(source, c->card->sinks, idx) {
+    PA_IDXSET_FOREACH(source, c->card->sources, idx) {
         sources[i] = pa_dbusiface_core_get_source_path(c->core, source);
         ++i;
     }
