@@ -334,13 +334,6 @@ int pa_sink_input_new(
         pa_sink_input_new_data_set_sink(data, sink, false);
     }
 
-    pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
-    pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink
-                                               && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED),
-                          -PA_ERR_INVALID);
-
-    /* Routing's done, we have a sink. Now let's fix the format. */
-
     /* If something didn't pick a format for us, pick the top-most format since
      * we assume this is sorted in priority order */
     if (!data->format && data->nego_formats && !pa_idxset_isempty(data->nego_formats))
@@ -358,6 +351,13 @@ int pa_sink_input_new(
 
         return -PA_ERR_NOTSUPPORTED;
     }
+
+    pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
+    pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink
+                                               && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED),
+                          -PA_ERR_INVALID);
+
+    /* Routing is done. We have a sink and a format. */
 
     if (data->volume_is_set && pa_format_info_is_pcm(data->format)) {
         /* If volume is set, we need to save the original data->channel_map,

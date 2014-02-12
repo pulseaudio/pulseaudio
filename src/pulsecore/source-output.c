@@ -276,11 +276,6 @@ int pa_source_output_new(
         pa_source_output_new_data_set_source(data, source, false);
     }
 
-    pa_return_val_if_fail(PA_SOURCE_IS_LINKED(pa_source_get_state(data->source)), -PA_ERR_BADSTATE);
-    pa_return_val_if_fail(!data->direct_on_input || data->direct_on_input->sink == data->source->monitor_of, -PA_ERR_INVALID);
-
-    /* Routing's done, we have a source. Now let's fix the format. */
-
     /* If something didn't pick a format for us, pick the top-most format since
      * we assume this is sorted in priority order */
     if (!data->format && data->nego_formats && !pa_idxset_isempty(data->nego_formats))
@@ -298,6 +293,11 @@ int pa_source_output_new(
 
         return -PA_ERR_NOTSUPPORTED;
     }
+
+    pa_return_val_if_fail(PA_SOURCE_IS_LINKED(pa_source_get_state(data->source)), -PA_ERR_BADSTATE);
+    pa_return_val_if_fail(!data->direct_on_input || data->direct_on_input->sink == data->source->monitor_of, -PA_ERR_INVALID);
+
+    /* Routing is done. We have a source and a format. */
 
     if (data->volume_is_set && pa_format_info_is_pcm(data->format)) {
         /* If volume is set, we need to save the original data->channel_map,
