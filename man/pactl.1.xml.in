@@ -189,33 +189,37 @@ USA.
     </option>
 
     <option>
-      <p><opt>set-sink-volume</opt> <arg>SINK</arg> <arg>VOLUME</arg></p>
+      <p><opt>set-sink-volume</opt> <arg>SINK</arg> <arg>VOLUME [VOLUME ...]</arg></p>
       <optdesc><p>Set the volume of the specified sink (identified by its symbolic name or numerical index).
       <arg>VOLUME</arg> can be specified as an integer (e.g. 2000, 16384), a linear factor (e.g. 0.4, 1.100), a percentage
       (e.g.  10%, 100%) or a decibel value (e.g. 0dB, 20dB).  If the volume specification start with a + or - the volume
-      adjustment will be relative to the current sink volume.</p></optdesc>
+      adjustment will be relative to the current sink volume.  A single volume value affects all channels; if multiple
+      volume values are given their number has to match the sink's number of channels.</p></optdesc>
     </option>
 
     <option>
-      <p><opt>set-source-volume</opt> <arg>SOURCE</arg> <arg>VOLUME</arg></p>
+      <p><opt>set-source-volume</opt> <arg>SOURCE</arg> <arg>VOLUME [VOLUME ...]</arg></p>
       <optdesc><p>Set the volume of the specified source (identified by its symbolic name or numerical index).
       <arg>VOLUME</arg> can be specified as an integer (e.g. 2000, 16384), a linear factor (e.g. 0.4, 1.100), a percentage
       (e.g.  10%, 100%) or a decibel value (e.g. 0dB, 20dB).  If the volume specification start with a + or - the volume
-      adjustment will be relative to the current source volume.</p></optdesc> </option>
+      adjustment will be relative to the current source volume.  A single volume value affects all channels; if multiple
+      volume values are given their number has to match the source's number of channels.</p></optdesc> </option>
 
     <option>
-      <p><opt>set-sink-input-volume</opt> <arg>INPUT</arg> <arg>VOLUME</arg></p>
+      <p><opt>set-sink-input-volume</opt> <arg>INPUT</arg> <arg>VOLUME [VOLUME ...]</arg></p>
       <optdesc><p>Set the volume of the specified sink input (identified by its numerical index).
       <arg>VOLUME</arg> can be specified as an integer (e.g. 2000, 16384), a linear factor (e.g. 0.4, 1.100), a percentage
       (e.g.  10%, 100%) or a decibel value (e.g. 0dB, 20dB).  If the volume specification start with a + or - the volume
-      adjustment will be relative to the current sink input volume.</p></optdesc> </option>
+      adjustment will be relative to the current sink input volume.  A single volume value affects all channels; if multiple
+      volume values are given their number has to match the sink input's number of channels.</p></optdesc> </option>
 
     <option>
-      <p><opt>set-source-output-volume</opt> <arg>OUTPUT</arg> <arg>VOLUME</arg></p>
+      <p><opt>set-source-output-volume</opt> <arg>OUTPUT</arg> <arg>VOLUME [VOLUME ...]</arg></p>
       <optdesc><p>Set the volume of the specified source output (identified by its numerical index).
       <arg>VOLUME</arg> can be specified as an integer (e.g. 2000, 16384), a linear factor (e.g. 0.4, 1.100), a percentage
       (e.g.  10%, 100%) or a decibel value (e.g. 0dB, 20dB).  If the volume specification start with a + or - the volume
-      adjustment will be relative to the current source output volume.</p></optdesc>
+      adjustment will be relative to the current source output volume.  A single volume value affects all channels; if multiple
+      volume values are given their number has to match the source output's number of channels.</p></optdesc>
     </option>
 
     <option>
