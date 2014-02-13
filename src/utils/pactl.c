@@ -1517,6 +1517,31 @@ static int parse_volume(const char *vol_spec, pa_volume_t *vol, enum volume_flag
     return 0;
 }
 
+static int parse_volumes(char *args[], unsigned n) {
+    unsigned i;
+
+    if (n >= PA_CHANNELS_MAX) {
+        pa_log(_("Invalid number of volume specifications.\n"));
+        return -1;
+    }
+
+    volume.channels = n;
+    for (i = 0; i < volume.channels; i++) {
+        enum volume_flags flags;
+
+        if (parse_volume(args[i], &volume.values[i], &flags) < 0)
+            return -1;
+
+        if (i > 0 && flags != volume_flags) {
+            pa_log(_("Inconsistent volume specification.\n"));
+            return -1;
+        } else
+            volume_flags = flags;
+    }
+
+    return 0;
+}
+
 static enum mute_flags parse_mute(const char *mute_text) {
     int b;
 
@@ -1873,7 +1898,6 @@ int main(int argc, char *argv[]) {
             source_name = pa_xstrdup(argv[optind+1]);
 
         } else if (pa_streq(argv[optind], "set-sink-volume")) {
-            unsigned i;
             action = SET_SINK_VOLUME;
 
             if (argc < optind+3) {
@@ -1883,16 +1907,10 @@ int main(int argc, char *argv[]) {
 
             sink_name = pa_xstrdup(argv[optind+1]);
 
-            volume.channels = argc-3;
-
-            for (i = 0; i < volume.channels; i++) {
-                if (parse_volume(argv[optind+2+i],
-                    &volume.values[i], &volume_flags) < 0)
-                    goto quit;
-            }
+            if (parse_volumes(argv+optind+2, argc-3) < 0)
+                goto quit;
 
         } else if (pa_streq(argv[optind], "set-source-volume")) {
-            unsigned i;
             action = SET_SOURCE_VOLUME;
 
             if (argc < optind+3) {
@@ -1902,15 +1920,10 @@ int main(int argc, char *argv[]) {
 
             source_name = pa_xstrdup(argv[optind+1]);
 
-            volume.channels = argc-3;
-
-            for (i = 0; i < volume.channels; i++) {
-                if (parse_volume(argv[optind+2+i], &volume.values[i], &volume_flags) < 0)
-                    goto quit;
-            }
+            if (parse_volumes(argv+optind+2, argc-3) < 0)
+                goto quit;
 
         } else if (pa_streq(argv[optind], "set-sink-input-volume")) {
-            unsigned i;
             action = SET_SINK_INPUT_VOLUME;
 
             if (argc < optind+3) {
@@ -1923,15 +1936,10 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            volume.channels = argc-3;
-
-            for (i = 0; i < volume.channels; i++) {
-                if (parse_volume(argv[optind+2+i], &volume.values[i], &volume_flags) < 0)
-                    goto quit;
-            }
+            if (parse_volumes(argv+optind+2, argc-3) < 0)
+                goto quit;
 
         } else if (pa_streq(argv[optind], "set-source-output-volume")) {
-            unsigned i;
             action = SET_SOURCE_OUTPUT_VOLUME;
 
             if (argc < optind+3) {
@@ -1944,12 +1952,8 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            volume.channels = argc-3;
-
-            for (i = 0; i < volume.channels; i++) {
-                if (parse_volume(argv[optind+2+i], &volume.values[i], &volume_flags) < 0)
-                    goto quit;
-            }
+            if (parse_volumes(argv+optind+2, argc-3) < 0)
+                goto quit;
 
         } else if (pa_streq(argv[optind], "set-sink-mute")) {
             action = SET_SINK_MUTE;
