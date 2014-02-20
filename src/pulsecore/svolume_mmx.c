@@ -34,7 +34,7 @@
 
 #include "sample-util.h"
 
-#if defined (__i386__) || defined (__amd64__)
+#if (!defined(__FreeBSD__) && defined (__i386__)) || defined (__amd64__)
 /* in s: 2 int16_t samples
  * in v: 2 int32_t volumes, fixed point 16:16
  * out s: contains scaled and clamped int16_t samples.
@@ -240,15 +240,15 @@ static void pa_volume_s16re_mmx(int16_t *samples, const int32_t *volumes, unsign
     );
 }
 
-#endif /* defined (__i386__) || defined (__amd64__) */
+#endif /* (!defined(__FreeBSD__) && defined (__i386__)) || defined (__amd64__) */
 
 void pa_volume_func_init_mmx(pa_cpu_x86_flag_t flags) {
-#if defined (__i386__) || defined (__amd64__)
+#if (!defined(__FreeBSD__) && defined (__i386__)) || defined (__amd64__)
     if ((flags & PA_CPU_X86_MMX) && (flags & PA_CPU_X86_CMOV)) {
         pa_log_info("Initialising MMX optimized volume functions.");
 
         pa_set_volume_func(PA_SAMPLE_S16NE, (pa_do_volume_func_t) pa_volume_s16ne_mmx);
         pa_set_volume_func(PA_SAMPLE_S16RE, (pa_do_volume_func_t) pa_volume_s16re_mmx);
     }
-#endif /* defined (__i386__) || defined (__amd64__) */
+#endif /* (!defined(__FreeBSD__) && defined (__i386__)) || defined (__amd64__) */
 }
