@@ -87,7 +87,7 @@
  * Whenever the library creates an object, it will have an initial
  * reference count of one. Most of the time, this single reference will be
  * sufficient for the application, so all required reference count
- * interaction will be a single call to the objects unref function.
+ * interaction will be a single call to the object's unref function.
  *
  * \section context_sec Context
  *

@@ -326,7 +326,7 @@ typedef enum pa_stream_flags {
      * PA_STREAM_ADJUST_LATENCY. \since 0.9.12 */
 
     PA_STREAM_DONT_INHIBIT_AUTO_SUSPEND = 0x8000U,
-    /**< If set this stream won't be taken into account when we it is
+    /**< If set this stream won't be taken into account when it is
      * checked whether the device this stream is connected to should
      * auto-suspend. \since 0.9.15 */
 

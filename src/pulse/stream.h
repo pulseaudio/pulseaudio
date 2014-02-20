@@ -127,7 +127,7 @@
  *              (which is recommended) the server will choose the same
  *              value as tlength here.
  *
- * \li minreq - Minimum free number of the bytes in the playback
+ * \li minreq - Minimum number of free bytes in the playback
  *              buffer before the server will request more data. It is
  *              recommended to fill in (uint32_t) -1 here. This value
  *              influences how much time the sound server has to move
@@ -154,13 +154,13 @@
  * PA_STREAM_ADJUST_LATENCY if you want to control the overall
  * playback latency for your stream. Unset it if you want to control
  * only the latency induced by the server-side, rewritable playback
- * buffer. The server will try to fulfill the clients latency requests
+ * buffer. The server will try to fulfill the client's latency requests
  * as good as possible. However if the underlying hardware cannot
  * change the hardware buffer length or only in a limited range, the
  * actually resulting latency might be different from what the client
  * requested. Thus, for synchronization clients always need to check
  * the actual measured latency via pa_stream_get_latency() or a
- * similar call, and not make any assumptions. about the latency
+ * similar call, and not make any assumptions about the latency
  * available. The function pa_stream_get_buffer_attr() will always
  * return the actual size of the server-side per-stream buffer in
  * tlength/fragsize, regardless whether PA_STREAM_ADJUST_LATENCY is
@@ -434,7 +434,7 @@ int pa_stream_is_suspended(pa_stream *s);
 int pa_stream_is_corked(pa_stream *s);
 
 /** Connect the stream to a sink. It is strongly recommended to pass
- * NULL in both \a dev and \a volume and not to set either
+ * NULL in both \a dev and \a volume and to set neither
  * PA_STREAM_START_MUTED nor PA_STREAM_START_UNMUTED -- unless these
  * options are directly dependent on user input or configuration.
  *

@@ -226,7 +226,7 @@ PA_C_DECL_BEGIN
  * that they can be called at any time. The threaded main loop API provides
  * the locking mechanism to handle concurrent accesses, but nothing else.
  * Applications will have to handle communication from the callback to the
- * main program through its own mechanisms.
+ * main program through their own mechanisms.
  *
  * The callbacks that are completely asynchronous are:
  *
