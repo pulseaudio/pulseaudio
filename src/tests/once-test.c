@@ -23,6 +23,13 @@
 
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
+#ifdef HAVE_PTHREAD_SETAFFINITY_NP
+#if defined(__FreeBSD__)
+#include <pthread_np.h>
+#include <sys/param.h>
+#include <sys/cpuset.h>
+#endif
+#endif
 #endif
 
 #include <check.h>
@@ -56,7 +63,11 @@ static void thread_func(void *data) {
 
 #ifdef HAVE_PTHREAD_SETAFFINITY_NP
     static pa_atomic_t i_cpu = PA_ATOMIC_INIT(0);
+#ifdef __FreeBSD__
+    cpuset_t mask;
+#else
     cpu_set_t mask;
+#endif
 
     CPU_ZERO(&mask);
     CPU_SET((size_t) (pa_atomic_inc(&i_cpu) % n_cpu), &mask);

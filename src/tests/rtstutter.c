@@ -30,6 +30,13 @@
 
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
+#ifdef HAVE_PTHREAD_SETAFFINITY_NP
+#if defined(__FreeBSD__)
+#include <pthread_np.h>
+#include <sys/param.h>
+#include <sys/cpuset.h>
+#endif
+#endif
 #endif
 
 #include <pulse/util.h>
@@ -54,7 +61,11 @@ static void work(void *p) {
 
 #ifdef HAVE_PTHREAD_SETAFFINITY_NP
 {
+#ifdef __FreeBSD__
+    cpuset_t mask;
+#else
     cpu_set_t mask;
+#endif
 
     CPU_ZERO(&mask);
     CPU_SET((size_t) PA_PTR_TO_UINT(p), &mask);
