@@ -126,7 +126,7 @@ static int source_output_process_msg(pa_msgobject *o, int code, void *data, int6
 }
 
 /* Called from I/O thread context */
-static void source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
+static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk) {
     struct userdata *u;
     pa_source_output_assert_ref(o);
     pa_assert_se(u = o->userdata);
@@ -140,7 +140,7 @@ static void source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
 }
 
 /* Called from main context */
-static void source_output_kill(pa_source_output* o) {
+static void source_output_kill_cb(pa_source_output* o) {
     struct userdata *u;
     pa_source_output_assert_ref(o);
     pa_assert_se(u = o->userdata);
@@ -387,8 +387,8 @@ int pa__init(pa_module*m) {
     }
 
     o->parent.process_msg = source_output_process_msg;
-    o->push = source_output_push;
-    o->kill = source_output_kill;
+    o->push = source_output_push_cb;
+    o->kill = source_output_kill_cb;
 
     pa_log_info("Configured source latency of %llu ms.",
                 (unsigned long long) pa_source_output_set_requested_latency(o, pa_bytes_to_usec(mtu, &o->sample_spec)) / PA_USEC_PER_MSEC);
