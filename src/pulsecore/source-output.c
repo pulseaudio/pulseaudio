@@ -1656,7 +1656,8 @@ int pa_source_output_update_rate(pa_source_output *o) {
                                      o->requested_resample_method,
                                      ((o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
                                      ((o->flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
-                                     (o->core->disable_remixing || (o->flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0));
+                                     (o->core->disable_remixing || (o->flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
+                                     (o->core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0));
 
         if (!new_resampler) {
             pa_log_warn("Unsupported resampling operation.");

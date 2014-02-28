@@ -2210,7 +2210,8 @@ int pa_sink_input_update_rate(pa_sink_input *i) {
                                      i->requested_resample_method,
                                      ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
                                      ((i->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
-                                     (i->core->disable_remixing || (i->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0));
+                                     (i->core->disable_remixing || (i->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
+                                     (i->core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0));
 
         if (!new_resampler) {
             pa_log_warn("Unsupported resampling operation.");
