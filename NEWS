@@ -1,3 +1,73 @@
+PulseAudio 5.0
+
+Changes at a glance:
+
+  * BlueZ 5 support (A2DP only)
+  * Reimplementation of the tunnel modules
+  * Native log target support for systemd-journal
+  * Resampler refactoring
+  * --monitor-stream option for parecord and parec
+  * "latency_msec" argument for module-rtp-recv
+  * "inhibit_auto_suspend" argument for module-rtp-send
+  * "auto" argument for module-tunnel-sink and module-tunnel-source
+  * Removed module-bluetooth-proximity
+  * Jack detection for line out
+  * Laptop internal surround speaker volume support
+  * Improved float->s16 and s16->float sample conversion for ARM NEON
+  * "Available" flag for card profiles
+  * Removed module-dbus-protocol from the default configuration
+  * Lots of other enhancements, bug fixes, and documenation and i18n updates
+
+Detailed change log:
+
+  http://www.freedesktop.org/wiki/Software/PulseAudio/Notes/5.0
+
+Contributors:
+
+  Alexander Couzens
+  Alexander E. Patrakov
+  Alexander Potashev
+  Anton Lundin
+  Arun Raghavan
+  Ben Brewer
+  Cheng-Chia Tseng
+  Colin Guthrie
+  Damir Jelić
+  Daniel Albers
+  David Henningsson
+  Dominique Leuenberger
+  Héctor Martín
+  Ismo Puustinen
+  Jan Alexander Steffens
+  Javier Jardón
+  João Paulo Rechi Vita
+  Juho Hämäläinen
+  Kenneth Perry
+  Kerrick Staley
+  Kiran Krishnappa
+  Koop Mast
+  Lars-Peter Clausen
+  Laurentiu Nicola
+  Luiz Augusto von Dentz
+  Magnus Ekhall
+  Mikel Astiz
+  Mitchell Fang
+  Nikolay Amiantov
+  Parin Porecha
+  Peter Meerwald
+  Pierre Ossman
+  Piotr Drąg
+  Rafael Ferreira
+  Ryan Lortie
+  Scott Reeves
+  Shuai Fan
+  Stefan Sperling
+  Tanu Kaskinen
+  Wim Taymans
+  Yuri Chornoivan
+  victory
+
+
 PulseAudio 4.0
 
 Changes at a glance:
