@@ -167,8 +167,15 @@ static pa_hook_result_t source_output_fixate_hook_cb(pa_core *c, pa_source_outpu
 
     if (d) {
         resume(d);
-        if (pa_source_check_suspend(d->source) <= 0)
-            restart(d);
+        if (d->source) {
+            if (pa_source_check_suspend(d->source) <= 0)
+                restart(d);
+        } else {
+            /* The source output is connected to a monitor source. */
+            pa_assert(d->sink);
+            if (pa_sink_check_suspend(d->sink) <= 0)
+                restart(d);
+        }
     }
 
     return PA_HOOK_OK;
