@@ -142,8 +142,8 @@ static void read_new_samples(struct userdata *u) {
 
     readable = pa_stream_readable_size(u->stream);
     while (readable > 0) {
-        size_t read = 0;
-        if (PA_UNLIKELY(pa_stream_peek(u->stream, &p, &read) != 0)) {
+        size_t nbytes = 0;
+        if (PA_UNLIKELY(pa_stream_peek(u->stream, &p, &nbytes) != 0)) {
             pa_log("pa_stream_peek() failed: %s", pa_strerror(pa_context_errno(u->context)));
             u->thread_mainloop_api->quit(u->thread_mainloop_api, TUNNEL_THREAD_FAILED_MAINLOOP);
             return;
@@ -151,14 +151,14 @@ static void read_new_samples(struct userdata *u) {
 
         if (PA_LIKELY(p)) {
             /* we have valid data */
-            memchunk.memblock = pa_memblock_new_fixed(u->module->core->mempool, (void *) p, read, true);
-            memchunk.length = read;
+            memchunk.memblock = pa_memblock_new_fixed(u->module->core->mempool, (void *) p, nbytes, true);
+            memchunk.length = nbytes;
             memchunk.index = 0;
 
             pa_source_post(u->source, &memchunk);
             pa_memblock_unref_fixed(memchunk.memblock);
         } else {
-            size_t bytes_to_generate = read;
+            size_t bytes_to_generate = nbytes;
 
             /* we have a hole. generate silence */
             memchunk = u->source->silence;
@@ -176,7 +176,7 @@ static void read_new_samples(struct userdata *u) {
         }
 
         pa_stream_drop(u->stream);
-        readable -= read;
+        readable -= nbytes;
     }
 }
 
