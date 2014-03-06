@@ -628,7 +628,7 @@ void pa_stream_set_started_callback(pa_stream *p, pa_stream_notify_cb_t cb, void
 
 /** Set the callback function that is called whenever a latency
  * information update happens. Useful on PA_STREAM_AUTO_TIMING_UPDATE
- * streams only. (Only for playback streams) */
+ * streams only. */
 void pa_stream_set_latency_update_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
 /** Set the callback function that is called whenever the stream is
