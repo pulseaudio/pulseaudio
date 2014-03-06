@@ -30,7 +30,7 @@ SHM data transfer support
 
 ### v11, implemented by >= 0.9.7
 
-Reply to to PA_COMMAND_GET_SINK_INPUT_INFO, PA_COMMAND_GET_SINK_INPUT_INFO_LIST gets new field at the end:
+Reply to PA_COMMAND_GET_SINK_INPUT_INFO, PA_COMMAND_GET_SINK_INPUT_INFO_LIST gets new field at the end:
 
  mute
 

@@ -197,7 +197,7 @@ typedef enum pa_stream_flags {
      * return always monotonically increasing time values on each
      * call. This may confuse applications which cannot deal with time
      * going 'backwards', but has the advantage that bad transport
-     * latency estimations that caused the time to to jump ahead can
+     * latency estimations that caused the time to jump ahead can
      * be corrected quickly, without the need to wait. (Please note
      * that this flag was named PA_STREAM_NOT_MONOTONOUS in releases
      * prior to 0.9.11. The old name is still defined too, for

@@ -1096,7 +1096,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
                 i->process_rewind(i, amount);
             called = true;
 
-            /* Convert back to to sink domain */
+            /* Convert back to sink domain */
             if (i->thread_info.resampler)
                 amount = pa_resampler_result(i->thread_info.resampler, amount);
 
