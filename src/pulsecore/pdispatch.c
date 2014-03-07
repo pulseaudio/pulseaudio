@@ -190,6 +190,8 @@ static const char *command_names[PA_COMMAND_MAX] = {
     [PA_COMMAND_SET_SOURCE_OUTPUT_VOLUME] = "SET_SOURCE_OUTPUT_VOLUME",
     [PA_COMMAND_SET_SOURCE_OUTPUT_MUTE] = "SET_SOURCE_OUTPUT_MUTE",
 
+    /* Supported since protocol v27 (3.0) */
+    [PA_COMMAND_SET_PORT_LATENCY_OFFSET] = "SET_PORT_LATENCY_OFFSET",
 };
 
 #endif
