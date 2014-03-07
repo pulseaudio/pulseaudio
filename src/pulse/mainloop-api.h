@@ -61,21 +61,21 @@ typedef enum pa_io_event_flags {
 typedef struct pa_io_event pa_io_event;
 /** An IO event callback prototype \since 0.9.3 */
 typedef void (*pa_io_event_cb_t)(pa_mainloop_api*ea, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata);
-/** A IO event destroy callback prototype \ since 0.9.3 */
+/** A IO event destroy callback prototype \since 0.9.3 */
 typedef void (*pa_io_event_destroy_cb_t)(pa_mainloop_api*a, pa_io_event *e, void *userdata);
 
 /** An opaque timer event source object */
 typedef struct pa_time_event pa_time_event;
 /** A time event callback prototype \since 0.9.3 */
 typedef void (*pa_time_event_cb_t)(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata);
-/** A time event destroy callback prototype \ since 0.9.3 */
+/** A time event destroy callback prototype \since 0.9.3 */
 typedef void (*pa_time_event_destroy_cb_t)(pa_mainloop_api*a, pa_time_event *e, void *userdata);
 
 /** An opaque deferred event source object. Events of this type are triggered once in every main loop iteration */
 typedef struct pa_defer_event pa_defer_event;
 /** A defer event callback prototype \since 0.9.3 */
 typedef void (*pa_defer_event_cb_t)(pa_mainloop_api*a, pa_defer_event* e, void *userdata);
-/** A defer event destroy callback prototype \ since 0.9.3 */
+/** A defer event destroy callback prototype \since 0.9.3 */
 typedef void (*pa_defer_event_destroy_cb_t)(pa_mainloop_api*a, pa_defer_event *e, void *userdata);
 
 /** An abstract mainloop API vtable */
