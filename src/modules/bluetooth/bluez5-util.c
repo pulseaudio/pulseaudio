@@ -1233,7 +1233,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
             goto fail2;
         }
     } else {
-        /* InterfacesAdded signal is probably on it's way, device_info_valid is kept as 0. */
+        /* InterfacesAdded signal is probably on its way, device_info_valid is kept as 0. */
         pa_log_warn("SetConfiguration() received for unknown device %s", dev_path);
         d = device_create(y, dev_path);
     }

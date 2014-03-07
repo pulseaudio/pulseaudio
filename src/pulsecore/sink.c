@@ -2056,7 +2056,7 @@ void pa_sink_set_volume(
 
         /* Let's 'push' the reference volume if necessary */
         pa_cvolume_merge(&new_reference_volume, &s->reference_volume, &root_sink->real_volume);
-        /* If the sink and it's root don't have the same number of channels, we need to remap */
+        /* If the sink and its root don't have the same number of channels, we need to remap */
         if (s != root_sink && !pa_channel_map_equal(&s->channel_map, &root_sink->channel_map))
             pa_cvolume_remap(&new_reference_volume, &s->channel_map, &root_sink->channel_map);
         update_reference_volume(root_sink, &new_reference_volume, &root_sink->channel_map, save);

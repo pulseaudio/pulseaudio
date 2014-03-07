@@ -1651,7 +1651,7 @@ void pa_source_set_volume(
 
         /* Let's 'push' the reference volume if necessary */
         pa_cvolume_merge(&new_reference_volume, &s->reference_volume, &root_source->real_volume);
-        /* If the source and it's root don't have the same number of channels, we need to remap */
+        /* If the source and its root don't have the same number of channels, we need to remap */
         if (s != root_source && !pa_channel_map_equal(&s->channel_map, &root_source->channel_map))
             pa_cvolume_remap(&new_reference_volume, &s->channel_map, &root_source->channel_map);
         update_reference_volume(root_source, &new_reference_volume, &root_source->channel_map, save);

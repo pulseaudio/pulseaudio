@@ -1912,7 +1912,7 @@ static void entry_apply(struct userdata *u, const char *name, struct entry *e) {
                        removed the sink element from the rule. */
                     si->save_sink = false;
                     /* This is cheating a bit. The sink input itself has not changed
-                       but the rules governing it's routing have, so we fire this event
+                       but the rules governing its routing have, so we fire this event
                        such that other routing modules (e.g. module-device-manager)
                        will pick up the change and reapply their routing */
                     pa_subscription_post(si->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, si->index);
@@ -1960,7 +1960,7 @@ static void entry_apply(struct userdata *u, const char *name, struct entry *e) {
                        removed the source element from the rule. */
                     so->save_source = false;
                     /* This is cheating a bit. The source output itself has not changed
-                       but the rules governing it's routing have, so we fire this event
+                       but the rules governing its routing have, so we fire this event
                        such that other routing modules (e.g. module-device-manager)
                        will pick up the change and reapply their routing */
                     pa_subscription_post(so->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, so->index);
