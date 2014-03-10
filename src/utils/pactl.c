@@ -1137,7 +1137,7 @@ static const char *subscription_event_facility_to_string(pa_subscription_event_t
         return _("server");
 
     case PA_SUBSCRIPTION_EVENT_CARD:
-        return _("server");
+        return _("card");
     }
 
     return _("unknown");
