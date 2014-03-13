@@ -1997,7 +1997,7 @@ int pa__init(pa_module*m) {
 #endif
 
         /* Figure out the cookie the same way a normal client would */
-        if (cookie_path)
+        if (!cookie_path)
             cookie_path = getenv(ENV_COOKIE_FILE);
 
 #ifdef HAVE_X11
