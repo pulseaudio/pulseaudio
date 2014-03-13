@@ -201,7 +201,7 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     c->userdata = NULL;
     c->set_profile = NULL;
 
-    pa_device_init_description(c->proplist);
+    pa_device_init_description(c->proplist, c);
     pa_device_init_icon(c->proplist, true);
     pa_device_init_intended_roles(c->proplist);
 

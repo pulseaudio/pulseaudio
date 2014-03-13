@@ -118,7 +118,7 @@ void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *
 void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card);
 void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm);
 void pa_alsa_init_proplist_ctl(pa_proplist *p, const char *name);
-bool pa_alsa_init_description(pa_proplist *p);
+bool pa_alsa_init_description(pa_proplist *p, pa_card *card);
 
 int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents);
 

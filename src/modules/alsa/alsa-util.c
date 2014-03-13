@@ -868,11 +868,11 @@ void pa_alsa_refcnt_dec(void) {
     }
 }
 
-bool pa_alsa_init_description(pa_proplist *p) {
+bool pa_alsa_init_description(pa_proplist *p, pa_card *card) {
     const char *d, *k;
     pa_assert(p);
 
-    if (pa_device_init_description(p))
+    if (pa_device_init_description(p, card))
         return true;
 
     if (!(d = pa_proplist_gets(p, "alsa.card_name")))

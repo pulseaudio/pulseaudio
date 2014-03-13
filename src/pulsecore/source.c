@@ -218,7 +218,7 @@ pa_source* pa_source_new(
     if (data->card)
         pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->card->proplist);
 
-    pa_device_init_description(data->proplist);
+    pa_device_init_description(data->proplist, data->card);
     pa_device_init_icon(data->proplist, false);
     pa_device_init_intended_roles(data->proplist);
 

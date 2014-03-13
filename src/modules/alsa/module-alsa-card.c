@@ -704,7 +704,7 @@ int pa__init(pa_module *m) {
     pa_alsa_init_proplist_card(m->core, data.proplist, u->alsa_card_index);
 
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_id);
-    pa_alsa_init_description(data.proplist);
+    pa_alsa_init_description(data.proplist, NULL);
     set_card_name(&data, u->modargs, u->device_id);
 
     /* We need to give pa_modargs_get_value_boolean() a pointer to a local

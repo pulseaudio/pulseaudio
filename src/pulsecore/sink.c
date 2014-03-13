@@ -231,7 +231,7 @@ pa_sink* pa_sink_new(
     if (data->card)
         pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->card->proplist);
 
-    pa_device_init_description(data->proplist);
+    pa_device_init_description(data->proplist, data->card);
     pa_device_init_icon(data->proplist, true);
     pa_device_init_intended_roles(data->proplist);
 
@@ -3441,16 +3441,21 @@ bool pa_device_init_icon(pa_proplist *p, bool is_sink) {
     return true;
 }
 
-bool pa_device_init_description(pa_proplist *p) {
+bool pa_device_init_description(pa_proplist *p, pa_card *card) {
     const char *s, *d = NULL, *k;
     pa_assert(p);
 
     if (pa_proplist_contains(p, PA_PROP_DEVICE_DESCRIPTION))
         return true;
 
-    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_FORM_FACTOR)))
-        if (pa_streq(s, "internal"))
-            d = _("Built-in Audio");
+    if (card)
+        if ((s = pa_proplist_gets(card->proplist, PA_PROP_DEVICE_DESCRIPTION)))
+            d = s;
+
+    if (!d)
+        if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_FORM_FACTOR)))
+            if (pa_streq(s, "internal"))
+                d = _("Built-in Audio");
 
     if (!d)
         if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_CLASS)))

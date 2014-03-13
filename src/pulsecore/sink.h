@@ -399,7 +399,7 @@ void pa_sink_mute_changed(pa_sink *s, bool new_muted);
 
 void pa_sink_update_flags(pa_sink *s, pa_sink_flags_t mask, pa_sink_flags_t value);
 
-bool pa_device_init_description(pa_proplist *p);
+bool pa_device_init_description(pa_proplist *p, pa_card *card);
 bool pa_device_init_icon(pa_proplist *p, bool is_sink);
 bool pa_device_init_intended_roles(pa_proplist *p);
 unsigned pa_device_init_priority(pa_proplist *p);

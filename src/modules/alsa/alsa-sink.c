@@ -2278,7 +2278,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
             pa_proplist_sets(data.proplist, key, pa_proplist_gets(mapping->proplist, key));
     }
 
-    pa_alsa_init_description(data.proplist);
+    pa_alsa_init_description(data.proplist, card);
 
     if (u->control_device)
         pa_alsa_init_proplist_ctl(data.proplist, u->control_device);
