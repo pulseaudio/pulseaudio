@@ -807,7 +807,9 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
+    pa_threaded_mainloop_lock(u->mainloop);
     pa_mainloop_api_once(u->api, client_free, u);
+    pa_threaded_mainloop_unlock(u->mainloop);
     pa_asyncmsgq_wait_for(u->thread_mq.outq, AVAHI_MESSAGE_SHUTDOWN_COMPLETE);
 
     pa_threaded_mainloop_stop(u->mainloop);
