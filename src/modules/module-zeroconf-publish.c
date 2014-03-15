@@ -141,6 +141,8 @@ struct userdata {
     pa_hook_slot *sink_new_slot, *source_new_slot, *sink_unlink_slot, *source_unlink_slot, *sink_changed_slot, *source_changed_slot;
 
     pa_native_protocol *native;
+
+    bool shutting_down;
 };
 
 /* Runs in PA mainloop context */
@@ -638,6 +640,11 @@ static void unpublish_all_services(struct userdata *u, bool rem) {
 static int avahi_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = (struct userdata *) data;
 
+    pa_assert(u);
+
+    if (u->shutting_down)
+        return 0;
+
     switch (code) {
         case AVAHI_MESSAGE_PUBLISH_ALL:
             publish_all_services(u);
@@ -645,10 +652,6 @@ static int avahi_process_msg(pa_msgobject *o, int code, void *data, int64_t offs
 
         case AVAHI_MESSAGE_SHUTDOWN_START:
             pa_module_unload(u->core, u->module, true);
-            break;
-
-        case AVAHI_MESSAGE_SHUTDOWN_COMPLETE:
-            /* pa__done() is waiting for this */
             break;
 
         default:
@@ -797,7 +800,7 @@ static void client_free(pa_mainloop_api *api PA_GCC_UNUSED, void *userdata) {
     if (u->avahi_poll)
         pa_avahi_poll_free(u->avahi_poll);
 
-    pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->msg), AVAHI_MESSAGE_SHUTDOWN_COMPLETE, NULL, 0, NULL, NULL);
+    pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->msg), AVAHI_MESSAGE_SHUTDOWN_COMPLETE, u, 0, NULL, NULL);
 }
 
 void pa__done(pa_module*m) {
@@ -806,6 +809,8 @@ void pa__done(pa_module*m) {
 
     if (!(u = m->userdata))
         return;
+
+    u->shutting_down = true;
 
     pa_threaded_mainloop_lock(u->mainloop);
     pa_mainloop_api_once(u->api, client_free, u);
