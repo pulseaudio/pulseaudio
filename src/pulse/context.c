@@ -166,9 +166,9 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
 #endif
 
     c->conf = pa_client_conf_new();
-    pa_client_conf_load(c->conf, NULL);
+    pa_client_conf_load(c->conf);
 #ifdef HAVE_X11
-    pa_client_conf_from_x11(c->conf, NULL);
+    pa_client_conf_from_x11(c->conf);
 #endif
     pa_client_conf_env(c->conf);
 

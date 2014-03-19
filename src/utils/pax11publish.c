@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
             char hx[PA_NATIVE_COOKIE_LENGTH*2+1];
             assert(conf);
 
-            if (pa_client_conf_load(conf, NULL) < 0) {
+            if (pa_client_conf_load(conf) < 0) {
                 fprintf(stderr, _("Failed to load client configuration file.\n"));
                 goto finish;
             }

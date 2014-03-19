@@ -126,7 +126,7 @@ static enum get_address_result_t get_address(pa_server_type_t server_type, char 
 
     *address = NULL;
 
-    if (pa_client_conf_load(conf, NULL) < 0) {
+    if (pa_client_conf_load(conf) < 0) {
         r = FAILED_TO_LOAD_CLIENT_CONF;
         goto finish;
     }

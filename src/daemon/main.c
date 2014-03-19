@@ -346,9 +346,9 @@ static char *check_configured_address(void) {
     char *default_server = NULL;
     pa_client_conf *c = pa_client_conf_new();
 
-    pa_client_conf_load(c, NULL);
+    pa_client_conf_load(c);
 #ifdef HAVE_X11
-    pa_client_conf_from_x11(c, NULL);
+    pa_client_conf_from_x11(c);
 #endif
     pa_client_conf_env(c);
 

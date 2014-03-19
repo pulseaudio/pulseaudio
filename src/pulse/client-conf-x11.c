@@ -37,14 +37,15 @@
 
 #include "client-conf-x11.h"
 
-int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
+int pa_client_conf_from_x11(pa_client_conf *c) {
+    const char *dname;
     xcb_connection_t *xcb = NULL;
     int ret = -1, screen = 0;
     char t[1024];
 
     pa_assert(c);
 
-    if (!dname && !(dname = getenv("DISPLAY")))
+    if (!(dname = getenv("DISPLAY")))
         goto finish;
 
     if (*dname == 0)

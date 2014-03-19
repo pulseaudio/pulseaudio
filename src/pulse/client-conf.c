@@ -90,7 +90,7 @@ void pa_client_conf_free(pa_client_conf *c) {
     pa_xfree(c);
 }
 
-int pa_client_conf_load(pa_client_conf *c, const char *filename) {
+int pa_client_conf_load(pa_client_conf *c) {
     FILE *f = NULL;
     char *fn = NULL;
     int r = -1;
@@ -113,21 +113,9 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
         { NULL,                     NULL,                     NULL, NULL },
     };
 
-    if (filename) {
-
-        if (!(f = pa_fopen_cloexec(filename, "r"))) {
-            pa_log(_("Failed to open configuration file '%s': %s"), fn, pa_cstrerror(errno));
+    if (!(f = pa_open_config_file(DEFAULT_CLIENT_CONFIG_FILE, DEFAULT_CLIENT_CONFIG_FILE_USER, ENV_CLIENT_CONFIG_FILE, &fn)))
+        if (errno != ENOENT)
             goto finish;
-        }
-
-        fn = pa_xstrdup(fn);
-
-    } else {
-
-        if (!(f = pa_open_config_file(DEFAULT_CLIENT_CONFIG_FILE, DEFAULT_CLIENT_CONFIG_FILE_USER, ENV_CLIENT_CONFIG_FILE, &fn)))
-            if (errno != ENOENT)
-                goto finish;
-    }
 
     r = f ? pa_config_parse(fn, f, table, NULL, NULL) : 0;
 

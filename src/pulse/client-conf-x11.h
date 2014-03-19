@@ -24,8 +24,8 @@
 
 #include "client-conf.h"
 
-/* Load client configuration data from the specified X11 display,
- * overwriting the current settings in *c */
-int pa_client_conf_from_x11(pa_client_conf *c, const char *display);
+/* Load client configuration data from X11, overwriting the current settings in
+ * *c. */
+int pa_client_conf_from_x11(pa_client_conf *c);
 
 #endif
