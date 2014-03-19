@@ -506,6 +506,7 @@ finish:
 }
 
 static void setup_context(pa_context *c, pa_iochannel *io) {
+    uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
     pa_tagstruct *t;
     uint32_t tag;
 
@@ -524,7 +525,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     pa_assert(!c->pdispatch);
     c->pdispatch = pa_pdispatch_new(c->mainloop, c->use_rtclock, command_table, PA_COMMAND_MAX);
 
-    if (!c->conf->cookie_valid)
+    if (pa_client_conf_load_cookie(c->conf, cookie, sizeof(cookie)) < 0)
         pa_log_info(_("No cookie loaded. Attempting to connect without."));
 
     t = pa_tagstruct_command(c, PA_COMMAND_AUTH, &tag);
@@ -538,7 +539,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     /* Starting with protocol version 13 we use the MSB of the version
      * tag for informing the other side if we could do SHM or not */
     pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION | (c->do_shm ? 0x80000000U : 0));
-    pa_tagstruct_put_arbitrary(t, c->conf->cookie, sizeof(c->conf->cookie));
+    pa_tagstruct_put_arbitrary(t, cookie, sizeof(cookie));
 
 #ifdef HAVE_CREDS
 {
@@ -1451,11 +1452,13 @@ size_t pa_context_get_tile_size(pa_context *c, const pa_sample_spec *ss) {
 
 int pa_context_load_cookie_from_file(pa_context *c, const char *cookie_file_path) {
     pa_assert(c);
-    pa_assert(cookie_file_path);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY(c, c->state == PA_CONTEXT_UNCONNECTED, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(c, !cookie_file_path || *cookie_file_path, PA_ERR_INVALID);
 
-    return pa_client_conf_load_cookie_from_file(c->conf, cookie_file_path);
+    pa_client_conf_set_cookie_file_from_application(c->conf, cookie_file_path);
+
+    return 0;
 }

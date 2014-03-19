@@ -57,23 +57,22 @@ static const pa_client_conf default_conf = {
     .default_source = NULL,
     .default_server = NULL,
     .default_dbus_server = NULL,
+    .cookie_file_from_env = NULL,
+    .cookie_from_x11_valid = false,
+    .cookie_file_from_application = NULL,
+    .cookie_file_from_client_conf = NULL,
     .autospawn = true,
     .disable_shm = false,
-    .cookie_file = NULL,
-    .cookie_valid = false,
     .shm_size = 0,
     .auto_connect_localhost = false,
     .auto_connect_display = false
 };
-
-static int parse_cookie_file(pa_client_conf* c);
 
 pa_client_conf *pa_client_conf_new(void) {
     pa_client_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
 
     c->daemon_binary = pa_xstrdup(PA_BINARY);
     c->extra_arguments = pa_xstrdup("--log-target=syslog");
-    c->cookie_file = NULL;
 
     return c;
 }
@@ -86,7 +85,9 @@ void pa_client_conf_free(pa_client_conf *c) {
     pa_xfree(c->default_source);
     pa_xfree(c->default_server);
     pa_xfree(c->default_dbus_server);
-    pa_xfree(c->cookie_file);
+    pa_xfree(c->cookie_file_from_env);
+    pa_xfree(c->cookie_file_from_application);
+    pa_xfree(c->cookie_file_from_client_conf);
     pa_xfree(c);
 }
 
@@ -104,7 +105,7 @@ int pa_client_conf_load(pa_client_conf *c) {
         { "default-server",         pa_config_parse_string,   &c->default_server, NULL },
         { "default-dbus-server",    pa_config_parse_string,   &c->default_dbus_server, NULL },
         { "autospawn",              pa_config_parse_bool,     &c->autospawn, NULL },
-        { "cookie-file",            pa_config_parse_string,   &c->cookie_file, NULL },
+        { "cookie-file",            pa_config_parse_string,   &c->cookie_file_from_client_conf, NULL },
         { "disable-shm",            pa_config_parse_bool,     &c->disable_shm, NULL },
         { "enable-shm",             pa_config_parse_not_bool, &c->disable_shm, NULL },
         { "shm-size-bytes",         pa_config_parse_size,     &c->shm_size, NULL },
@@ -119,9 +120,6 @@ int pa_client_conf_load(pa_client_conf *c) {
 
     r = f ? pa_config_parse(fn, f, table, NULL, NULL) : 0;
 
-    if (!r)
-        r = parse_cookie_file(c);
-
 finish:
     pa_xfree(fn);
 
@@ -129,6 +127,67 @@ finish:
         fclose(f);
 
     return r;
+}
+
+int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie_length) {
+    int r;
+
+    pa_assert(c);
+    pa_assert(cookie);
+    pa_assert(cookie_length > 0);
+
+    if (c->cookie_file_from_env) {
+        r = pa_authkey_load_auto(c->cookie_file_from_env, true, cookie, cookie_length);
+        if (r >= 0)
+            return 0;
+
+        pa_log_warn("Failed to load cookie from %s (configured with environment variable PULSE_COOKIE): %s",
+                    c->cookie_file_from_env, pa_cstrerror(errno));
+    }
+
+    if (c->cookie_from_x11_valid) {
+        if (cookie_length == sizeof(c->cookie_from_x11)) {
+            memcpy(cookie, c->cookie_from_x11, cookie_length);
+            return 0;
+        }
+
+        pa_log_warn("Failed to load cookie from X11 root window property PULSE_COOKIE: size mismatch.");
+    }
+
+    if (c->cookie_file_from_application) {
+        r = pa_authkey_load_auto(c->cookie_file_from_application, true, cookie, cookie_length);
+        if (r >= 0)
+            return 0;
+
+        pa_log_warn("Failed to load cookie from %s (configured by the application): %s", c->cookie_file_from_application,
+                    pa_cstrerror(errno));
+    }
+
+    if (c->cookie_file_from_client_conf) {
+        r = pa_authkey_load_auto(c->cookie_file_from_client_conf, true, cookie, cookie_length);
+        if (r >= 0)
+            return 0;
+
+        pa_log_warn("Failed to load cookie from %s (configured in client.conf): %s", c->cookie_file_from_client_conf,
+                    pa_cstrerror(errno));
+    }
+
+    r = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE, false, cookie, cookie_length);
+    if (r >= 0)
+        return 0;
+
+    r = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE_FALLBACK, false, cookie, cookie_length);
+    if (r >= 0)
+        return 0;
+
+    r = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE, true, cookie, cookie_length);
+    if (r >= 0)
+        return 0;
+
+    pa_log("Failed to load cookie file from %s: %s", PA_NATIVE_COOKIE_FILE, pa_cstrerror(errno));
+    memset(cookie, 0, cookie_length);
+
+    return -1;
 }
 
 int pa_client_conf_env(pa_client_conf *c) {
@@ -157,73 +216,18 @@ int pa_client_conf_env(pa_client_conf *c) {
         c->daemon_binary = pa_xstrdup(e);
     }
 
-    if ((e = getenv(ENV_COOKIE_FILE))) {
-        return pa_client_conf_load_cookie_from_file(c, e);
+    if ((e = getenv(ENV_COOKIE_FILE)) && *e) {
+        pa_xfree(c->cookie_file_from_env);
+        c->cookie_file_from_env = pa_xstrdup(e);
     }
 
     return 0;
 }
 
-static int parse_cookie_file(pa_client_conf* c) {
-    int k;
-
+void pa_client_conf_set_cookie_file_from_application(pa_client_conf *c, const char *cookie_file) {
     pa_assert(c);
+    pa_assert(!cookie_file || *cookie_file);
 
-    c->cookie_valid = false;
-
-    if (c->cookie_file)
-        k = pa_authkey_load_auto(c->cookie_file, true, c->cookie, sizeof(c->cookie));
-    else {
-        k = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE, false, c->cookie, sizeof(c->cookie));
-
-        if (k < 0) {
-            k = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE_FALLBACK, false, c->cookie, sizeof(c->cookie));
-
-            if (k < 0)
-                k = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE, true, c->cookie, sizeof(c->cookie));
-        }
-    }
-
-    if (k < 0)
-        return k;
-
-    c->cookie_valid = true;
-    return 0;
-}
-
-int pa_client_conf_load_cookie_from_hex(pa_client_conf* c, const char *cookie_in_hex) {
-    uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
-
-    pa_assert(c);
-    pa_assert(cookie_in_hex);
-
-    if (pa_parsehex(cookie_in_hex, cookie, sizeof(cookie)) != sizeof(cookie)) {
-        pa_log(_("Failed to parse cookie data"));
-        return -PA_ERR_INVALID;
-    }
-
-    pa_xfree(c->cookie_file);
-    c->cookie_file = NULL;
-
-    return pa_client_conf_set_cookie(c, cookie, PA_NATIVE_COOKIE_LENGTH);
-}
-
-int pa_client_conf_load_cookie_from_file(pa_client_conf *c, const char *cookie_file_path) {
-    pa_assert(c);
-    pa_assert(cookie_file_path);
-
-    pa_xfree(c->cookie_file);
-    c->cookie_file = pa_xstrdup(cookie_file_path);
-    return parse_cookie_file(c);
-}
-
-int pa_client_conf_set_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie_size) {
-    pa_assert(c);
-    pa_assert(cookie);
-
-    if (cookie_size != PA_NATIVE_COOKIE_LENGTH)
-        return -PA_ERR_INVALID;
-    memcpy(c->cookie, cookie, cookie_size);
-    c->cookie_valid = true;
-    return 0;
+    pa_xfree(c->cookie_file_from_application);
+    c->cookie_file_from_application = pa_xstrdup(cookie_file);
 }
