@@ -142,7 +142,8 @@ struct userdata {
 
     pa_native_protocol *native;
 
-    bool shutting_down;
+    bool shutting_down; /* Used in the main thread. */
+    bool client_freed; /* Used in the Avahi thread. */
 };
 
 /* Runs in PA mainloop context */
@@ -707,6 +708,16 @@ static void create_client(pa_mainloop_api *api PA_GCC_UNUSED, void *userdata) {
     struct userdata *u = (struct userdata *) userdata;
     int error;
 
+    /* create_client() and client_free() are called via defer events. If the
+     * two defer events are created very quickly one after another, we can't
+     * assume that the defer event that runs create_client() will be dispatched
+     * before the defer event that runs client_free() (at the time of writing,
+     * pa_mainloop actually always dispatches queued defer events in reverse
+     * creation order). For that reason we must be prepared for the case where
+     * client_free() has already been called. */
+    if (u->client_freed)
+        return;
+
     pa_thread_mq_install(&u->thread_mq);
 
     if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error))) {
@@ -733,7 +744,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
     u->native = pa_native_protocol_get(u->core);
@@ -756,8 +767,6 @@ int pa__init(pa_module*m) {
     u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE, (pa_hook_cb_t) device_new_or_changed_cb, u);
     u->source_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PROPLIST_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) device_new_or_changed_cb, u);
     u->source_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) device_unlink_cb, u);
-
-    u->main_entry_group = NULL;
 
     un = pa_get_user_name_malloc();
     hn = pa_get_host_name_malloc();
@@ -801,6 +810,8 @@ static void client_free(pa_mainloop_api *api PA_GCC_UNUSED, void *userdata) {
         pa_avahi_poll_free(u->avahi_poll);
 
     pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->msg), AVAHI_MESSAGE_SHUTDOWN_COMPLETE, u, 0, NULL, NULL);
+
+    u->client_freed = true;
 }
 
 void pa__done(pa_module*m) {
