@@ -132,19 +132,23 @@ char *pa_get_host_name(char *s, size_t l) {
 
 char *pa_get_home_dir(char *s, size_t l) {
     char *e;
-#ifdef HAVE_PWD_H
     char *dir;
+#ifdef HAVE_PWD_H
     struct passwd *r;
 #endif
 
     pa_assert(s);
     pa_assert(l > 0);
 
-    if ((e = getenv("HOME")))
-        return pa_strlcpy(s, e, l);
+    if ((e = getenv("HOME"))) {
+        dir = pa_strlcpy(s, e, l);
+        goto finish;
+    }
 
-    if ((e = getenv("USERPROFILE")))
-        return pa_strlcpy(s, e, l);
+    if ((e = getenv("USERPROFILE"))) {
+        dir = pa_strlcpy(s, e, l);
+        goto finish;
+    }
 
 #ifdef HAVE_PWD_H
     errno = 0;
@@ -158,13 +162,21 @@ char *pa_get_home_dir(char *s, size_t l) {
     dir = pa_strlcpy(s, r->pw_dir, l);
 
     pa_getpwuid_free(r);
+#endif /* HAVE_PWD_H */
+
+finish:
+    if (!dir) {
+        errno = ENOENT;
+        return NULL;
+    }
+
+    if (!pa_is_path_absolute(dir)) {
+        pa_log("Failed to get the home directory, not an absolute path: %s", dir);
+        errno = ENOENT;
+        return NULL;
+    }
 
     return dir;
-#else /* HAVE_PWD_H */
-
-    errno = ENOENT;
-    return NULL;
-#endif
 }
 
 char *pa_get_binary_name(char *s, size_t l) {
