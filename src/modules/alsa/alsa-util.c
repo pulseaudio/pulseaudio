@@ -327,6 +327,7 @@ int pa_alsa_set_hw_params(
                 goto success;
             }
 
+            snd_pcm_hw_params_copy(hwparams_copy, hwparams);
             /* Second try: set period size first, followed by buffer size */
             if (set_period_size(pcm_handle, hwparams_copy, _period_size) >= 0 &&
                 set_buffer_size(pcm_handle, hwparams_copy, _buffer_size) >= 0 &&
