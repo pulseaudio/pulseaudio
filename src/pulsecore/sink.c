@@ -235,6 +235,12 @@ pa_sink* pa_sink_new(
     pa_device_init_icon(data->proplist, true);
     pa_device_init_intended_roles(data->proplist);
 
+    if (!data->active_port) {
+        pa_device_port *p = pa_device_port_find_best(data->ports);
+        if (p)
+            pa_sink_new_data_set_port(data, p->name);
+    }
+
     if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_FIXATE], data) < 0) {
         pa_xfree(s);
         pa_namereg_unregister(core, name);
@@ -300,23 +306,10 @@ pa_sink* pa_sink_new(
         if ((s->active_port = pa_hashmap_get(s->ports, data->active_port)))
             s->save_port = data->save_port;
 
-    if (!s->active_port) {
-        void *state;
-        pa_device_port *p;
-
-        PA_HASHMAP_FOREACH(p, s->ports, state) {
-            if (p->available == PA_AVAILABLE_NO)
-                continue;
-
-            if (!s->active_port || p->priority > s->active_port->priority)
-                s->active_port = p;
-        }
-        if (!s->active_port) {
-            PA_HASHMAP_FOREACH(p, s->ports, state)
-                if (!s->active_port || p->priority > s->active_port->priority)
-                    s->active_port = p;
-        }
-    }
+    /* Hopefully the active port has already been assigned in the previous call
+       to pa_device_port_find_best, but better safe than sorry */
+    if (!s->active_port)
+        s->active_port = pa_device_port_find_best(s->ports);
 
     if (s->active_port)
         s->latency_offset = s->active_port->latency_offset;

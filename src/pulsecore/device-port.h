@@ -83,4 +83,6 @@ void pa_device_port_set_available(pa_device_port *p, pa_available_t available);
 
 void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset);
 
+pa_device_port *pa_device_port_find_best(pa_hashmap *ports);
+
 #endif

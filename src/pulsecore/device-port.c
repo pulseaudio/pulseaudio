@@ -176,3 +176,30 @@ void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, p->card->index);
     pa_hook_fire(&core->hooks[PA_CORE_HOOK_PORT_LATENCY_OFFSET_CHANGED], p);
 }
+
+pa_device_port *pa_device_port_find_best(pa_hashmap *ports)
+{
+    void *state;
+    pa_device_port *p, *best = NULL;
+
+    if (!ports)
+        return NULL;
+
+    /* First run: skip unavailable ports */
+    PA_HASHMAP_FOREACH(p, ports, state) {
+        if (p->available == PA_AVAILABLE_NO)
+            continue;
+
+        if (!best || p->priority > best->priority)
+            best = p;
+    }
+
+    /* Second run: if only unavailable ports exist, still suggest a port */
+    if (!best) {
+        PA_HASHMAP_FOREACH(p, ports, state)
+            if (!best || p->priority > best->priority)
+                best = p;
+    }
+
+    return best;
+}
