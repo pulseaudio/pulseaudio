@@ -356,10 +356,10 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
                         pa_sample_spec_snprint(sst, sizeof(sst), pa_stream_get_sample_spec(s)),
                         pa_channel_map_snprint(cmt, sizeof(cmt), pa_stream_get_channel_map(s)));
 
-                pa_log(_("Connected to device %s (%u, %ssuspended)."),
+                pa_log(_("Connected to device %s (index: %u, suspended: %s)."),
                         pa_stream_get_device_name(s),
                         pa_stream_get_device_index(s),
-                        pa_stream_is_suspended(s) ? "" : "not ");
+                        pa_yes_no(pa_stream_is_suspended(s)));
             }
 
             break;
