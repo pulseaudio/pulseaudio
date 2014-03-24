@@ -35,6 +35,8 @@
 
 #include <pulse/gccmacro.h>
 #include <pulse/volume.h>
+
+#include <pulsecore/i18n.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/socket.h>
 
@@ -90,7 +92,7 @@ int pa_parse_boolean(const char *s) PA_GCC_PURE;
 int pa_parse_volume(const char *s, pa_volume_t *volume);
 
 static inline const char *pa_yes_no(bool b) {
-    return b ? "yes" : "no";
+    return b ? _("yes") : _("no");
 }
 
 static inline const char *pa_strnull(const char *x) {
