@@ -791,9 +791,10 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
         if (u->restore_muted && e->muted_valid) {
 
             if (!new_data->muted_is_set) {
-                pa_log_info("Restoring mute state for sink %s.", new_data->name);
                 pa_sink_new_data_set_muted(new_data, e->muted);
                 new_data->save_muted = true;
+                pa_log_info("Restoring mute state for sink %s: %smuted", new_data->name,
+                            new_data->muted ? "" : "un");
             } else
                 pa_log_debug("Not restoring mute state for sink %s, because already set.", new_data->name);
         }
@@ -932,9 +933,10 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
         if (u->restore_muted && e->muted_valid) {
 
             if (!new_data->muted_is_set) {
-                pa_log_info("Restoring mute state for source %s.", new_data->name);
                 pa_source_new_data_set_muted(new_data, e->muted);
                 new_data->save_muted = true;
+                pa_log_info("Restoring mute state for source %s: %smuted", new_data->name,
+                            new_data->muted ? "" : "un");
             } else
                 pa_log_debug("Not restoring mute state for source %s, because already set.", new_data->name);
         }
