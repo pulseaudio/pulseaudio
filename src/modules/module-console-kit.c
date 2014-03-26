@@ -144,12 +144,10 @@ static void free_session(struct session *session) {
 }
 
 static void remove_session(struct userdata *u, const char *id) {
-    struct session *session;
+    pa_assert(u);
+    pa_assert(id);
 
-    if (!(session = pa_hashmap_remove(u->sessions, id)))
-        return;
-
-    free_session(session);
+    pa_hashmap_remove_and_free(u->sessions, id);
 }
 
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, void *userdata) {

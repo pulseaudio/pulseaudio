@@ -949,8 +949,7 @@ static void handle_entry_remove(DBusConnection *conn, DBusMessage *msg, void *us
     send_entry_removed_signal(de);
     trigger_save(de->userdata);
 
-    pa_assert_se(pa_hashmap_remove(de->userdata->dbus_entries, de->entry_name));
-    dbus_entry_free(de);
+    pa_assert_se(pa_hashmap_remove_and_free(de->userdata->dbus_entries, de->entry_name) >= 0);
 
     pa_dbus_send_empty_reply(conn, msg);
 }
@@ -2099,7 +2098,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
                 PA_HASHMAP_FOREACH(de, u->dbus_entries, state) {
                     send_entry_removed_signal(de);
-                    dbus_entry_free(pa_hashmap_remove(u->dbus_entries, de->entry_name));
+                    pa_hashmap_remove_and_free(u->dbus_entries, de->entry_name);
                 }
 #endif
                 pa_database_clear(u->database);
@@ -2213,7 +2212,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 #ifdef HAVE_DBUS
                 if ((de = pa_hashmap_get(u->dbus_entries, name))) {
                     send_entry_removed_signal(de);
-                    dbus_entry_free(pa_hashmap_remove(u->dbus_entries, name));
+                    pa_hashmap_remove_and_free(u->dbus_entries, name);
                 }
 #endif
 

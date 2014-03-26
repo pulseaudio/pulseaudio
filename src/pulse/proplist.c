@@ -343,18 +343,15 @@ void pa_proplist_update(pa_proplist *p, pa_update_mode_t mode, const pa_proplist
 }
 
 int pa_proplist_unset(pa_proplist *p, const char *key) {
-    struct property *prop;
-
     pa_assert(p);
     pa_assert(key);
 
     if (!pa_proplist_key_valid(key))
         return -1;
 
-    if (!(prop = pa_hashmap_remove(MAKE_HASHMAP(p), key)))
+    if (pa_hashmap_remove_and_free(MAKE_HASHMAP(p), key) < 0)
         return -2;
 
-    property_free(prop);
     return 0;
 }
 

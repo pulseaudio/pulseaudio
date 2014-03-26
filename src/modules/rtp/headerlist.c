@@ -129,16 +129,10 @@ const char *pa_headerlist_gets(pa_headerlist *p, const char *key) {
 }
 
 int pa_headerlist_remove(pa_headerlist *p, const char *key) {
-    struct header *hdr;
-
     pa_assert(p);
     pa_assert(key);
 
-    if (!(hdr = pa_hashmap_remove(MAKE_HASHMAP(p), key)))
-        return -1;
-
-    header_free(hdr);
-    return 0;
+    return pa_hashmap_remove_and_free(MAKE_HASHMAP(p), key);
 }
 
 const char *pa_headerlist_iterate(pa_headerlist *p, void **state) {

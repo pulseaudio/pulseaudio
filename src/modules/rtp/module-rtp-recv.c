@@ -190,8 +190,7 @@ static void sink_input_kill(pa_sink_input* i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(s = i->userdata);
 
-    pa_hashmap_remove(s->userdata->by_origin, s->sdp_info.origin);
-    session_free(s);
+    pa_hashmap_remove_and_free(s->userdata->by_origin, s->sdp_info.origin);
 }
 
 /* Called from IO context */
@@ -647,10 +646,7 @@ static void sap_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
         return;
 
     if (goodbye) {
-
-        if ((s = pa_hashmap_remove(u->by_origin, info.origin)))
-            session_free(s);
-
+        pa_hashmap_remove_and_free(u->by_origin, info.origin);
         pa_sdp_info_destroy(&info);
     } else {
 
@@ -687,10 +683,8 @@ static void check_death_event_cb(pa_mainloop_api *m, pa_time_event *t, const str
 
         k = pa_atomic_load(&s->timestamp);
 
-        if (k + DEATH_TIMEOUT < now.tv_sec) {
-            pa_hashmap_remove(u->by_origin, s->sdp_info.origin);
-            session_free(s);
-        }
+        if (k + DEATH_TIMEOUT < now.tv_sec)
+            pa_hashmap_remove_and_free(u->by_origin, s->sdp_info.origin);
     }
 
     /* Restart timer */

@@ -376,10 +376,8 @@ static void publish_service(pa_mainloop_api *api PA_GCC_UNUSED, void *service) {
 finish:
 
     /* Remove this service */
-    if (r < 0) {
-        pa_hashmap_remove(s->userdata->services, s->key);
-        service_free(s);
-    }
+    if (r < 0)
+        pa_hashmap_remove_and_free(s->userdata->services, s->key);
 
     avahi_string_list_free(txt);
 }
@@ -470,16 +468,11 @@ static pa_hook_result_t device_new_or_changed_cb(pa_core *c, pa_object *o, struc
 
 /* Runs in PA mainloop context */
 static pa_hook_result_t device_unlink_cb(pa_core *c, pa_object *o, struct userdata *u) {
-    struct service *s;
-
     pa_assert(c);
     pa_object_assert_ref(o);
 
     pa_threaded_mainloop_lock(u->mainloop);
-
-    if ((s = pa_hashmap_remove(u->services, o)))
-        service_free(s);
-
+    pa_hashmap_remove_and_free(u->services, o);
     pa_threaded_mainloop_unlock(u->mainloop);
 
     return PA_HOOK_OK;

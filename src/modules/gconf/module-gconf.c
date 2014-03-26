@@ -289,11 +289,7 @@ static int handle_event(struct userdata *u) {
                 if (!(name = read_string(u)))
                     goto fail;
 
-                if ((m = pa_hashmap_get(u->module_infos, name))) {
-                    pa_hashmap_remove(u->module_infos, name);
-                    module_info_free(m);
-                }
-
+                pa_hashmap_remove_and_free(u->module_infos, name);
                 pa_xfree(name);
 
                 break;

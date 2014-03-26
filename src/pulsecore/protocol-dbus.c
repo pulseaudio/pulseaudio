@@ -993,8 +993,7 @@ void pa_dbus_protocol_add_signal_listener(
 
         /* Replace the old signal paths entry for this signal with a new
          * one. */
-        if ((signal_paths_entry = pa_hashmap_remove(conn_entry->listening_signals, signal_name)))
-            signal_paths_entry_free(signal_paths_entry);
+        pa_hashmap_remove_and_free(conn_entry->listening_signals, signal_name);
         signal_paths_entry = signal_paths_entry_new(signal_name);
 
         for (i = 0; i < n_objects; ++i)

@@ -1324,12 +1324,8 @@ int pa_sink_input_remove_volume_factor(pa_sink_input *i, const char *key) {
     pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
-    v = pa_hashmap_remove(i->volume_factor_items, key);
-
-    if (!v)
+    if (pa_hashmap_remove_and_free(i->volume_factor_items, key) < 0)
         return -1;
-
-    volume_factor_entry_free(v);
 
     switch (pa_hashmap_size(i->volume_factor_items)) {
         case 0:

@@ -2547,9 +2547,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 i->thread_info.sync_next = NULL;
             }
 
-            if (pa_hashmap_remove(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index)))
-                pa_sink_input_unref(i);
-
+            pa_hashmap_remove_and_free(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index));
             pa_sink_invalidate_requested_latency(s, true);
             pa_sink_request_rewind(s, (size_t) -1);
 
@@ -2630,8 +2628,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             i->thread_info.attached = false;
 
             /* Let's remove the sink input ...*/
-            if (pa_hashmap_remove(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index)))
-                pa_sink_input_unref(i);
+            pa_hashmap_remove_and_free(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index));
 
             pa_sink_invalidate_requested_latency(s, true);
 

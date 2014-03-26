@@ -4296,10 +4296,8 @@ static void paths_drop_unused(pa_hashmap* h, pa_hashmap *keep) {
 
     p = pa_hashmap_iterate(h, &state, &key);
     while (p) {
-        if (pa_hashmap_get(keep, p) == NULL) {
-            pa_hashmap_remove(h, key);
-            pa_alsa_path_free(p);
-        }
+        if (pa_hashmap_get(keep, p) == NULL)
+            pa_hashmap_remove_and_free(h, key);
         p = pa_hashmap_iterate(h, &state, &key);
     }
 }
@@ -4468,17 +4466,13 @@ void pa_alsa_profile_set_drop_unsupported(pa_alsa_profile_set *ps) {
     void *state;
 
     PA_HASHMAP_FOREACH(p, ps->profiles, state) {
-        if (!p->supported) {
-            pa_hashmap_remove(ps->profiles, p->name);
-            profile_free(p);
-        }
+        if (!p->supported)
+            pa_hashmap_remove_and_free(ps->profiles, p->name);
     }
 
     PA_HASHMAP_FOREACH(m, ps->mappings, state) {
-        if (m->supported <= 0) {
-            pa_hashmap_remove(ps->mappings, m->name);
-            mapping_free(m);
-        }
+        if (m->supported <= 0)
+            pa_hashmap_remove_and_free(ps->mappings, m->name);
     }
 }
 

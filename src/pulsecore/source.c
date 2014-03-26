@@ -2070,9 +2070,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
                 o->thread_info.direct_on_input = NULL;
             }
 
-            if (pa_hashmap_remove(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index)))
-                pa_source_output_unref(o);
-
+            pa_hashmap_remove_and_free(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index));
             pa_source_invalidate_requested_latency(s, true);
 
             /* In flat volume mode we need to update the volume as

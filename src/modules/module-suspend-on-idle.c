@@ -396,14 +396,11 @@ static void device_info_free(struct device_info *d) {
 }
 
 static pa_hook_result_t device_unlink_hook_cb(pa_core *c, pa_object *o, struct userdata *u) {
-    struct device_info *d;
-
     pa_assert(c);
     pa_object_assert_ref(o);
     pa_assert(u);
 
-    if ((d = pa_hashmap_remove(u->device_infos, o)))
-        device_info_free(d);
+    pa_hashmap_remove_and_free(u->device_infos, o);
 
     return PA_HOOK_OK;
 }
