@@ -25,6 +25,7 @@
 #endif
 
 #include <pulse/context.h>
+#include <pulse/direction.h>
 #include <pulse/xmalloc.h>
 #include <pulse/fork-detect.h>
 
@@ -823,15 +824,14 @@ static int fill_card_port_info(pa_context *context, pa_tagstruct* t, pa_card_inf
             pa_tagstruct_getu32(t, &port->priority) < 0 ||
             pa_tagstruct_getu32(t, &available) < 0 ||
             pa_tagstruct_getu8(t, &direction) < 0 ||
+            !pa_direction_valid(direction) ||
             pa_tagstruct_get_proplist(t, port->proplist) < 0 ||
             pa_tagstruct_getu32(t, &port->n_profiles) < 0) {
 
             return -PA_ERR_PROTOCOL;
         }
 
-        if (available > PA_PORT_AVAILABLE_YES ||
-            direction > PA_DIRECTION_OUTPUT + PA_DIRECTION_INPUT) {
-
+        if (available > PA_PORT_AVAILABLE_YES ) {
             return -PA_ERR_PROTOCOL;
         }
 
