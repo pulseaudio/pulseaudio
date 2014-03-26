@@ -671,6 +671,7 @@ WARN_LOGFILE           =
 INPUT                  = @srcdir@/../src/pulse/channelmap.h \
                          @srcdir@/../src/pulse/context.h \
                          @srcdir@/../src/pulse/def.h \
+                         @srcdir@/../src/pulse/direction.h \
                          @srcdir@/../src/pulse/error.h \
                          @srcdir@/../src/pulse/ext-stream-restore.h \
                          @srcdir@/../src/pulse/ext-device-manager.h \

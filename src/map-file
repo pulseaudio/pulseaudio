@@ -146,6 +146,8 @@ pa_cvolume_set_position;
 pa_cvolume_snprint;
 pa_cvolume_snprint_verbose;
 pa_cvolume_valid;
+pa_direction_to_string;
+pa_direction_valid;
 pa_encoding_to_string;
 pa_ext_device_manager_delete;
 pa_ext_device_manager_enable_role_device_priority_routing;

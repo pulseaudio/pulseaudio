@@ -23,6 +23,7 @@
   USA.
 ***/
 
+#include <pulse/direction.h>
 #include <pulse/mainloop-api.h>
 #include <pulse/sample.h>
 #include <pulse/format.h>
@@ -49,8 +50,8 @@
 
 /** \file
  * Include all libpulse header files at once. The following files are
- * included: \ref mainloop-api.h, \ref sample.h, \ref def.h, \ref
- * context.h, \ref stream.h, \ref introspect.h, \ref subscribe.h, \ref
+ * included: \ref direction.h, \ref mainloop-api.h, \ref sample.h, \ref def.h,
+ * \ref context.h, \ref stream.h, \ref introspect.h, \ref subscribe.h, \ref
  * scache.h, \ref version.h, \ref error.h, \ref channelmap.h, \ref
  * operation.h,\ref volume.h, \ref xmalloc.h, \ref utf8.h, \ref
  * thread-mainloop.h, \ref mainloop.h, \ref util.h, \ref proplist.h,
