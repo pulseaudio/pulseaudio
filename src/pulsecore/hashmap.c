@@ -207,6 +207,19 @@ void* pa_hashmap_remove(pa_hashmap *h, const void *key) {
     return data;
 }
 
+int pa_hashmap_remove_and_free(pa_hashmap *h, const void *key) {
+    void *data;
+
+    pa_assert(h);
+
+    data = pa_hashmap_remove(h, key);
+
+    if (data && h->value_free_func)
+        h->value_free_func(data);
+
+    return data ? 0 : -1;
+}
+
 void pa_hashmap_remove_all(pa_hashmap *h) {
     pa_assert(h);
 

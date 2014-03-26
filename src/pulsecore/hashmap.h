@@ -52,6 +52,13 @@ void* pa_hashmap_get(pa_hashmap *h, const void *key);
 /* Returns the data of the entry while removing */
 void* pa_hashmap_remove(pa_hashmap *h, const void *key);
 
+/* Removes the entry and frees the entry data. Returns a negative value if the
+ * entry is not found. FIXME: This function shouldn't be needed.
+ * pa_hashmap_remove() should free the entry data, and the current semantics of
+ * pa_hashmap_remove() should be implemented by a function called
+ * pa_hashmap_steal(). */
+int pa_hashmap_remove_and_free(pa_hashmap *h, const void *key);
+
 /* Remove all entries but don't free the hashmap */
 void pa_hashmap_remove_all(pa_hashmap *h);
 
