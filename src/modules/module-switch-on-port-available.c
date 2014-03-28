@@ -173,6 +173,11 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
         return PA_HOOK_OK;
     }
 
+    if (pa_idxset_size(card->sinks) == 0 && pa_idxset_size(card->sources) == 0)
+        /* This card is not initialized yet. We'll handle it in
+           sink_new / source_new callbacks later. */
+        return PA_HOOK_OK;
+
     find_sink_and_source(card, port, &sink, &source);
 
     is_active_profile = card->active_profile == pa_hashmap_get(port->profiles, card->active_profile->name);
