@@ -153,7 +153,6 @@ static void find_sink_and_source(pa_card *card, pa_device_port *port, pa_sink **
 }
 
 static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port *port, void* userdata) {
-    uint32_t state;
     pa_card* card;
     pa_sink *sink;
     pa_source *source;
@@ -162,14 +161,10 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
     if (port->available == PA_AVAILABLE_UNKNOWN)
         return PA_HOOK_OK;
 
-    pa_log_debug("finding port %s", port->name);
-
-    PA_IDXSET_FOREACH(card, c->cards, state)
-        if (port == pa_hashmap_get(card->ports, port->name))
-            break;
+    card = port->card;
 
     if (!card) {
-        pa_log_warn("Did not find port %s in array of cards", port->name);
+        pa_log_warn("Port %s does not have a card", port->name);
         return PA_HOOK_OK;
     }
 
