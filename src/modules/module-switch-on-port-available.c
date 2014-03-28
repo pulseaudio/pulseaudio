@@ -36,21 +36,6 @@ struct userdata {
      pa_hook_slot *source_new_slot;
 };
 
-static pa_device_port* find_best_port(pa_hashmap *ports) {
-    void *state;
-    pa_device_port* port, *result = NULL;
-
-    PA_HASHMAP_FOREACH(port, ports, state) {
-        if (result == NULL ||
-            result->available == PA_AVAILABLE_NO ||
-            (port->available != PA_AVAILABLE_NO && port->priority > result->priority)) {
-            result = port;
-        }
-    }
-
-    return result;
-}
-
 static bool profile_good_for_output(pa_card_profile *profile) {
     pa_sink *sink;
     uint32_t idx;
@@ -203,7 +188,7 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
 
     if (port->available == PA_AVAILABLE_NO) {
         if (sink) {
-            pa_device_port *p2 = find_best_port(sink->ports);
+            pa_device_port *p2 = pa_device_port_find_best(sink->ports);
 
             if (p2 && p2->available != PA_AVAILABLE_NO)
                 pa_sink_set_port(sink, p2->name, false);
@@ -213,7 +198,7 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
         }
 
         if (source) {
-            pa_device_port *p2 = find_best_port(source->ports);
+            pa_device_port *p2 = pa_device_port_find_best(source->ports);
 
             if (p2 && p2->available != PA_AVAILABLE_NO)
                 pa_source_set_port(source, p2->name, false);
@@ -259,7 +244,7 @@ static pa_device_port *new_sink_source(pa_hashmap *ports, const char *name) {
     if (p->available != PA_AVAILABLE_NO)
         return NULL;
 
-    pa_assert_se(p = find_best_port(ports));
+    pa_assert_se(p = pa_device_port_find_best(ports));
     return p;
 }
 
