@@ -837,7 +837,7 @@ static void index_callback(pa_context *c, uint32_t idx, void *userdata) {
 }
 
 static void volume_relative_adjust(pa_cvolume *cv) {
-    pa_assert((volume_flags & VOL_RELATIVE) == VOL_RELATIVE);
+    pa_assert(volume_flags & VOL_RELATIVE);
 
     /* Relative volume change is additive in case of UINT or PERCENT
      * and multiplicative for LINEAR or DECIBEL */
@@ -1492,7 +1492,7 @@ static int parse_volume(const char *vol_spec, pa_volume_t *vol, enum volume_flag
 
     pa_xfree(vs);
 
-    if ((*vol_flags & VOL_RELATIVE) == VOL_RELATIVE) {
+    if (*vol_flags & VOL_RELATIVE) {
         if ((*vol_flags & 0x0F) == VOL_UINT)
             v += (double) PA_VOLUME_NORM;
         if ((*vol_flags & 0x0F) == VOL_PERCENT)
