@@ -519,6 +519,45 @@ static pa_channel_position_t mirror_channel(pa_channel_position_t channel) {
     }
 }
 
+static void normalize_hrir(struct userdata *u) {
+    /* normalize hrir to avoid audible clipping
+     *
+     * The following heuristic tries to avoid audible clipping. It cannot avoid
+     * clipping in the worst case though, because the scaling factor would
+     * become too large resulting in a too quiet signal.
+     * The idea of the heuristic is to avoid clipping when a single click is
+     * played back on all channels. The scaling factor describes the additional
+     * factor that is necessary to avoid clipping for "normal" signals.
+     *
+     * This algorithm doesn't pretend to be perfect, it's just something that
+     * appears to work (not too quiet, no audible clipping) on the material that
+     * it has been tested on. If you find a real-world example where this
+     * algorithm results in audible clipping, please write a patch that adjusts
+     * the scaling factor constants or improves the algorithm (or if you can't
+     * write a patch, at least report the problem to the PulseAudio mailing list
+     * or bug tracker). */
+
+    const float scaling_factor = 2.5;
+
+    float hrir_sum, hrir_max;
+    unsigned i, j;
+
+    hrir_max = 0;
+    for (i = 0; i < u->hrir_samples; i++) {
+        hrir_sum = 0;
+        for (j = 0; j < u->hrir_channels; j++)
+            hrir_sum += fabs(u->hrir_data[i * u->hrir_channels + j]);
+
+        if (hrir_sum > hrir_max)
+            hrir_max = hrir_sum;
+    }
+
+    for (i = 0; i < u->hrir_samples; i++) {
+        for (j = 0; j < u->hrir_channels; j++)
+            u->hrir_data[i * u->hrir_channels + j] /= hrir_max * scaling_factor;
+    }
+}
+
 int pa__init(pa_module*m) {
     struct userdata *u;
     pa_sample_spec ss, sink_input_ss;
@@ -533,7 +572,6 @@ int pa__init(pa_module*m) {
 
     const char *hrir_file;
     unsigned i, j, found_channel_left, found_channel_right;
-    float hrir_sum, hrir_max;
     float *hrir_data;
 
     pa_sample_spec hrir_ss;
@@ -758,22 +796,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    /* normalize hrir to avoid clipping */
-    hrir_max = 0;
-    for (i = 0; i < u->hrir_samples; i++) {
-        hrir_sum = 0;
-        for (j = 0; j < u->hrir_channels; j++)
-            hrir_sum += fabs(u->hrir_data[i * u->hrir_channels + j]);
-
-        if (hrir_sum > hrir_max)
-            hrir_max = hrir_sum;
-    }
-    if (hrir_max > 1) {
-        for (i = 0; i < u->hrir_samples; i++) {
-            for (j = 0; j < u->hrir_channels; j++)
-                u->hrir_data[i * u->hrir_channels + j] /= hrir_max * 1.2;
-        }
-    }
+    normalize_hrir(u);
 
     /* create mapping between hrir and input */
     u->mapping_left = (unsigned *) pa_xnew0(unsigned, u->channels);
