@@ -265,7 +265,7 @@ USA.
   <section name="Paths">
 
     <option>
-      <p><opt>dl-search-path=</opt> The path were to look for dynamic
+      <p><opt>dl-search-path=</opt> The path where to look for dynamic
       shared objects (DSOs/plugins). You may specify more than one
       path separated by colons. The default path depends on compile
       time settings. The <opt>--dl-search-path</opt> command line
@@ -326,7 +326,7 @@ USA.
     </option>
 
     <option>
-      <p><opt>log-time=</opt> With each logged messages log the
+      <p><opt>log-time=</opt> With each logged message log the
       relative time since startup. Defaults to <opt>no</opt>.</p>
     </option>
 
