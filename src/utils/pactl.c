@@ -1596,7 +1596,7 @@ int main(int argc, char *argv[]) {
 
     proplist = pa_proplist_new();
 
-    while ((c = getopt_long(argc, argv, "s:n:h", long_options, NULL)) != -1) {
+    while ((c = getopt_long(argc, argv, "+s:n:h", long_options, NULL)) != -1) {
         switch (c) {
             case 'h' :
                 help(bn);
