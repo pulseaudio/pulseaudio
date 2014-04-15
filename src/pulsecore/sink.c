@@ -1835,20 +1835,13 @@ static void update_real_volume(pa_sink *s, const pa_cvolume *new_volume, pa_chan
     PA_IDXSET_FOREACH(i, s->inputs, idx) {
         if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)) {
             if (pa_sink_flat_volume_enabled(s)) {
-                pa_cvolume old_volume = i->volume;
+                pa_cvolume new_input_volume;
 
                 /* Follow the root sink's real volume. */
-                i->volume = *new_volume;
-                pa_cvolume_remap(&i->volume, channel_map, &i->channel_map);
+                new_input_volume = *new_volume;
+                pa_cvolume_remap(&new_input_volume, channel_map, &i->channel_map);
+                pa_sink_input_set_volume_direct(i, &new_input_volume);
                 compute_reference_ratio(i);
-
-                /* The volume changed, let's tell people so */
-                if (!pa_cvolume_equal(&old_volume, &i->volume)) {
-                    if (i->volume_changed)
-                        i->volume_changed(i);
-
-                    pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
-                }
             }
 
             update_real_volume(i->origin_sink, new_volume, channel_map);
@@ -1903,7 +1896,7 @@ static void propagate_reference_volume(pa_sink *s) {
      * sink input volumes accordingly */
 
     PA_IDXSET_FOREACH(i, s->inputs, idx) {
-        pa_cvolume old_volume;
+        pa_cvolume new_volume;
 
         if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)) {
             propagate_reference_volume(i->origin_sink);
@@ -1914,24 +1907,14 @@ static void propagate_reference_volume(pa_sink *s) {
             continue;
         }
 
-        old_volume = i->volume;
-
         /* This basically calculates:
          *
          * i->volume := s->reference_volume * i->reference_ratio  */
 
-        i->volume = s->reference_volume;
-        pa_cvolume_remap(&i->volume, &s->channel_map, &i->channel_map);
-        pa_sw_cvolume_multiply(&i->volume, &i->volume, &i->reference_ratio);
-
-        /* The volume changed, let's tell people so */
-        if (!pa_cvolume_equal(&old_volume, &i->volume)) {
-
-            if (i->volume_changed)
-                i->volume_changed(i);
-
-            pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
-        }
+        new_volume = s->reference_volume;
+        pa_cvolume_remap(&new_volume, &s->channel_map, &i->channel_map);
+        pa_sw_cvolume_multiply(&new_volume, &new_volume, &i->reference_ratio);
+        pa_sink_input_set_volume_direct(i, &new_volume);
     }
 }
 
@@ -2126,7 +2109,7 @@ static void propagate_real_volume(pa_sink *s, const pa_cvolume *old_real_volume)
     if (pa_sink_flat_volume_enabled(s)) {
 
         PA_IDXSET_FOREACH(i, s->inputs, idx) {
-            pa_cvolume old_volume = i->volume;
+            pa_cvolume new_volume;
 
             /* 2. Since the sink's reference and real volumes are equal
              * now our ratios should be too. */
@@ -2140,18 +2123,10 @@ static void propagate_real_volume(pa_sink *s, const pa_cvolume *old_real_volume)
              * i->volume = s->reference_volume * i->reference_ratio
              *
              * This is identical to propagate_reference_volume() */
-            i->volume = s->reference_volume;
-            pa_cvolume_remap(&i->volume, &s->channel_map, &i->channel_map);
-            pa_sw_cvolume_multiply(&i->volume, &i->volume, &i->reference_ratio);
-
-            /* Notify if something changed */
-            if (!pa_cvolume_equal(&old_volume, &i->volume)) {
-
-                if (i->volume_changed)
-                    i->volume_changed(i);
-
-                pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
-            }
+            new_volume = s->reference_volume;
+            pa_cvolume_remap(&new_volume, &s->channel_map, &i->channel_map);
+            pa_sw_cvolume_multiply(&new_volume, &new_volume, &i->reference_ratio);
+            pa_sink_input_set_volume_direct(i, &new_volume);
 
             if (i->origin_sink && (i->origin_sink->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER))
                 propagate_real_volume(i->origin_sink, old_real_volume);

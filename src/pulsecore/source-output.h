@@ -353,6 +353,13 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
 
 pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output *o, pa_usec_t usec);
 
+/* Called from the main thread, from source.c only. The normal way to set the
+ * source output volume is to call pa_source_output_set_volume(), but the flat
+ * volume logic in source.c needs also a function that doesn't do all the extra
+ * stuff that pa_source_output_set_volume() does. This function simply sets
+ * o->volume and fires change notifications. */
+void pa_source_output_set_volume_direct(pa_source_output *o, const pa_cvolume *volume);
+
 #define pa_source_output_assert_io_context(s) \
     pa_assert(pa_thread_mq_get() || !PA_SOURCE_OUTPUT_IS_LINKED((s)->state))
 

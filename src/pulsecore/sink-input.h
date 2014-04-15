@@ -417,6 +417,13 @@ bool pa_sink_input_process_underrun(pa_sink_input *i);
 
 pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret);
 
+/* Called from the main thread, from sink.c only. The normal way to set the
+ * sink input volume is to call pa_sink_input_set_volume(), but the flat volume
+ * logic in sink.c needs also a function that doesn't do all the extra stuff
+ * that pa_sink_input_set_volume() does. This function simply sets i->volume
+ * and fires change notifications. */
+void pa_sink_input_set_volume_direct(pa_sink_input *i, const pa_cvolume *volume);
+
 #define pa_sink_input_assert_io_context(s) \
     pa_assert(pa_thread_mq_get() || !PA_SINK_INPUT_IS_LINKED((s)->state))
 

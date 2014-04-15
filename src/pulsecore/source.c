@@ -1429,20 +1429,13 @@ static void update_real_volume(pa_source *s, const pa_cvolume *new_volume, pa_ch
     PA_IDXSET_FOREACH(o, s->outputs, idx) {
         if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)) {
             if (pa_source_flat_volume_enabled(s)) {
-                pa_cvolume old_volume = o->volume;
+                pa_cvolume new_output_volume;
 
                 /* Follow the root source's real volume. */
-                o->volume = *new_volume;
-                pa_cvolume_remap(&o->volume, channel_map, &o->channel_map);
+                new_output_volume = *new_volume;
+                pa_cvolume_remap(&new_output_volume, channel_map, &o->channel_map);
+                pa_source_output_set_volume_direct(o, &new_output_volume);
                 compute_reference_ratio(o);
-
-                /* The volume changed, let's tell people so */
-                if (!pa_cvolume_equal(&old_volume, &o->volume)) {
-                    if (o->volume_changed)
-                        o->volume_changed(o);
-
-                    pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
-                }
             }
 
             update_real_volume(o->destination_source, new_volume, channel_map);
@@ -1497,7 +1490,7 @@ static void propagate_reference_volume(pa_source *s) {
      * source output volumes accordingly */
 
     PA_IDXSET_FOREACH(o, s->outputs, idx) {
-        pa_cvolume old_volume;
+        pa_cvolume new_volume;
 
         if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)) {
             propagate_reference_volume(o->destination_source);
@@ -1508,24 +1501,14 @@ static void propagate_reference_volume(pa_source *s) {
             continue;
         }
 
-        old_volume = o->volume;
-
         /* This basically calculates:
          *
          * o->volume := o->reference_volume * o->reference_ratio  */
 
-        o->volume = s->reference_volume;
-        pa_cvolume_remap(&o->volume, &s->channel_map, &o->channel_map);
-        pa_sw_cvolume_multiply(&o->volume, &o->volume, &o->reference_ratio);
-
-        /* The volume changed, let's tell people so */
-        if (!pa_cvolume_equal(&old_volume, &o->volume)) {
-
-            if (o->volume_changed)
-                o->volume_changed(o);
-
-            pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
-        }
+        new_volume = s->reference_volume;
+        pa_cvolume_remap(&new_volume, &s->channel_map, &o->channel_map);
+        pa_sw_cvolume_multiply(&new_volume, &new_volume, &o->reference_ratio);
+        pa_source_output_set_volume_direct(o, &new_volume);
     }
 }
 
@@ -1718,9 +1701,8 @@ static void propagate_real_volume(pa_source *s, const pa_cvolume *old_real_volum
     }
 
     if (pa_source_flat_volume_enabled(s)) {
-
         PA_IDXSET_FOREACH(o, s->outputs, idx) {
-            pa_cvolume old_volume = o->volume;
+            pa_cvolume new_volume;
 
             /* 2. Since the source's reference and real volumes are equal
              * now our ratios should be too. */
@@ -1734,18 +1716,10 @@ static void propagate_real_volume(pa_source *s, const pa_cvolume *old_real_volum
              * o->volume = s->reference_volume * o->reference_ratio
              *
              * This is identical to propagate_reference_volume() */
-            o->volume = s->reference_volume;
-            pa_cvolume_remap(&o->volume, &s->channel_map, &o->channel_map);
-            pa_sw_cvolume_multiply(&o->volume, &o->volume, &o->reference_ratio);
-
-            /* Notify if something changed */
-            if (!pa_cvolume_equal(&old_volume, &o->volume)) {
-
-                if (o->volume_changed)
-                    o->volume_changed(o);
-
-                pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
-            }
+            new_volume = s->reference_volume;
+            pa_cvolume_remap(&new_volume, &s->channel_map, &o->channel_map);
+            pa_sw_cvolume_multiply(&new_volume, &new_volume, &o->reference_ratio);
+            pa_source_output_set_volume_direct(o, &new_volume);
 
             if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
                 propagate_real_volume(o->destination_source, old_real_volume);
