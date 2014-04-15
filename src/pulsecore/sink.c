@@ -3800,4 +3800,5 @@ void pa_sink_set_reference_volume_direct(pa_sink *s, const pa_cvolume *volume) {
                                             s->flags & PA_SINK_DECIBEL_VOLUME));
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_VOLUME_CHANGED], s);
 }

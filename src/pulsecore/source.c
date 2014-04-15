@@ -2869,4 +2869,5 @@ void pa_source_set_reference_volume_direct(pa_source *s, const pa_cvolume *volum
                                             s->flags & PA_SOURCE_DECIBEL_VOLUME));
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_VOLUME_CHANGED], s);
 }
