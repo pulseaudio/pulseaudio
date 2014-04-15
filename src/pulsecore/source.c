@@ -1548,13 +1548,11 @@ static bool update_reference_volume(pa_source *s, const pa_cvolume *v, const pa_
     pa_cvolume_remap(&volume, channel_map, &s->channel_map);
 
     reference_volume_changed = !pa_cvolume_equal(&volume, &s->reference_volume);
-    s->reference_volume = volume;
+    pa_source_set_reference_volume_direct(s, &volume);
 
     s->save_volume = (!reference_volume_changed && s->save_volume) || save;
 
-    if (reference_volume_changed)
-        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
-    else if (!(s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
+    if (!reference_volume_changed && !(s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
         /* If the root source's volume doesn't change, then there can't be any
          * changes in the other source in the source tree either.
          *
@@ -2867,4 +2865,28 @@ done:
         pa_idxset_free(source_formats, (pa_free_cb_t) pa_format_info_free);
 
     return out_formats;
+}
+
+/* Called from the main thread. */
+void pa_source_set_reference_volume_direct(pa_source *s, const pa_cvolume *volume) {
+    pa_cvolume old_volume;
+    char old_volume_str[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
+    char new_volume_str[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
+
+    pa_assert(s);
+    pa_assert(volume);
+
+    old_volume = s->reference_volume;
+
+    if (pa_cvolume_equal(volume, &old_volume))
+        return;
+
+    s->reference_volume = *volume;
+    pa_log_debug("The reference volume of source %s changed from %s to %s.", s->name,
+                 pa_cvolume_snprint_verbose(old_volume_str, sizeof(old_volume_str), &old_volume, &s->channel_map,
+                                            s->flags & PA_SOURCE_DECIBEL_VOLUME),
+                 pa_cvolume_snprint_verbose(new_volume_str, sizeof(new_volume_str), volume, &s->channel_map,
+                                            s->flags & PA_SOURCE_DECIBEL_VOLUME));
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }

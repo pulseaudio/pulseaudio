@@ -1632,6 +1632,7 @@ int pa_sink_input_start_move(pa_sink_input *i) {
  * their volume - this function does all that by using recursion. */
 static void update_volume_due_to_moving(pa_sink_input *i, pa_sink *dest) {
     pa_cvolume old_volume;
+    pa_cvolume new_volume;
 
     pa_assert(i);
     pa_assert(dest);
@@ -1703,25 +1704,21 @@ static void update_volume_due_to_moving(pa_sink_input *i, pa_sink *dest) {
          *         (sinks that use volume sharing should always have
          *          soft_volume of 0 dB) */
 
-        old_volume = i->origin_sink->reference_volume;
-
-        i->origin_sink->reference_volume = root_sink->reference_volume;
-        pa_cvolume_remap(&i->origin_sink->reference_volume, &root_sink->channel_map, &i->origin_sink->channel_map);
+        new_volume = root_sink->reference_volume;
+        pa_cvolume_remap(&new_volume, &root_sink->channel_map, &i->origin_sink->channel_map);
+        pa_sink_set_reference_volume_direct(i->origin_sink, &new_volume);
 
         i->origin_sink->real_volume = root_sink->real_volume;
         pa_cvolume_remap(&i->origin_sink->real_volume, &root_sink->channel_map, &i->origin_sink->channel_map);
 
         pa_assert(pa_cvolume_is_norm(&i->origin_sink->soft_volume));
 
-        /* Notify others about the changed sink volume. If you wonder whether
-         * i->origin_sink->set_volume() should be called somewhere, that's not
-         * the case, because sinks that use volume sharing shouldn't have any
-         * internal volume that set_volume() would update. If you wonder
-         * whether the thread_info variables should be synced, yes, they
-         * should, and it's done by the PA_SINK_MESSAGE_FINISH_MOVE message
-         * handler. */
-        if (!pa_cvolume_equal(&i->origin_sink->reference_volume, &old_volume))
-            pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, i->origin_sink->index);
+        /* If you wonder whether i->origin_sink->set_volume() should be called
+         * somewhere, that's not the case, because sinks that use volume
+         * sharing shouldn't have any internal volume that set_volume() would
+         * update. If you wonder whether the thread_info variables should be
+         * synced, yes, they should, and it's done by the
+         * PA_SINK_MESSAGE_FINISH_MOVE message handler. */
 
         /* Recursively update origin sink inputs. */
         PA_IDXSET_FOREACH(origin_sink_input, i->origin_sink->inputs, idx)

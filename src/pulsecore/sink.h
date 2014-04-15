@@ -503,6 +503,13 @@ void pa_sink_invalidate_requested_latency(pa_sink *s, bool dynamic);
 
 pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s);
 
+/* Called from the main thread, from sink-input.c only. The normal way to set
+ * the sink reference volume is to call pa_sink_set_volume(), but the flat
+ * volume logic in sink-input.c needs also a function that doesn't do all the
+ * extra stuff that pa_sink_set_volume() does. This function simply sets
+ * s->reference_volume and fires change notifications. */
+void pa_sink_set_reference_volume_direct(pa_sink *s, const pa_cvolume *volume);
+
 /* Verify that we called in IO context (aka 'thread context), or that
  * the sink is not yet set up, i.e. the thread not set up yet. See
  * pa_assert_io_context() in thread-mq.h for more information. */

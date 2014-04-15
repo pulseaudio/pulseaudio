@@ -1263,6 +1263,7 @@ int pa_source_output_start_move(pa_source_output *o) {
  * their volume - this function does all that by using recursion. */
 static void update_volume_due_to_moving(pa_source_output *o, pa_source *dest) {
     pa_cvolume old_volume;
+    pa_cvolume new_volume;
 
     pa_assert(o);
     pa_assert(dest);
@@ -1336,25 +1337,21 @@ static void update_volume_due_to_moving(pa_source_output *o, pa_source *dest) {
          *         (sources that use volume sharing should always have
          *          soft_volume of 0 dB) */
 
-        old_volume = o->destination_source->reference_volume;
-
-        o->destination_source->reference_volume = root_source->reference_volume;
-        pa_cvolume_remap(&o->destination_source->reference_volume, &root_source->channel_map, &o->destination_source->channel_map);
+        new_volume = root_source->reference_volume;
+        pa_cvolume_remap(&new_volume, &root_source->channel_map, &o->destination_source->channel_map);
+        pa_source_set_reference_volume_direct(o->destination_source, &new_volume);
 
         o->destination_source->real_volume = root_source->real_volume;
         pa_cvolume_remap(&o->destination_source->real_volume, &root_source->channel_map, &o->destination_source->channel_map);
 
         pa_assert(pa_cvolume_is_norm(&o->destination_source->soft_volume));
 
-        /* Notify others about the changed source volume. If you wonder whether
-         * o->destination_source->set_volume() should be called somewhere, that's not
-         * the case, because sources that use volume sharing shouldn't have any
-         * internal volume that set_volume() would update. If you wonder
-         * whether the thread_info variables should be synced, yes, they
-         * should, and it's done by the PA_SOURCE_MESSAGE_FINISH_MOVE message
-         * handler. */
-        if (!pa_cvolume_equal(&o->destination_source->reference_volume, &old_volume))
-            pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, o->destination_source->index);
+        /* If you wonder whether o->destination_source->set_volume() should be
+         * called somewhere, that's not the case, because sources that use
+         * volume sharing shouldn't have any internal volume that set_volume()
+         * would update. If you wonder whether the thread_info variables should
+         * be synced, yes, they should, and it's done by the
+         * PA_SOURCE_MESSAGE_FINISH_MOVE message handler. */
 
         /* Recursively update origin source outputs. */
         PA_IDXSET_FOREACH(destination_source_output, o->destination_source->outputs, idx)

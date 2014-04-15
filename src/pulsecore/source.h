@@ -426,6 +426,13 @@ bool pa_source_volume_change_apply(pa_source *s, pa_usec_t *usec_to_next);
 void pa_source_invalidate_requested_latency(pa_source *s, bool dynamic);
 pa_usec_t pa_source_get_latency_within_thread(pa_source *s);
 
+/* Called from the main thread, from source-output.c only. The normal way to
+ * set the source reference volume is to call pa_source_set_volume(), but the
+ * flat volume logic in source-output.c needs also a function that doesn't do
+ * all the extra stuff that pa_source_set_volume() does. This function simply
+ * sets s->reference_volume and fires change notifications. */
+void pa_source_set_reference_volume_direct(pa_source *s, const pa_cvolume *volume);
+
 #define pa_source_assert_io_context(s) \
     pa_assert(pa_thread_mq_get() || !PA_SOURCE_IS_LINKED((s)->state))
 
