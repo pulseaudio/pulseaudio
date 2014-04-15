@@ -1057,16 +1057,22 @@ pa_cvolume *pa_source_output_get_volume(pa_source_output *o, pa_cvolume *volume,
 
 /* Called from main context */
 void pa_source_output_set_mute(pa_source_output *o, bool mute, bool save) {
+    bool old_mute;
+
     pa_source_output_assert_ref(o);
     pa_assert_ctl_context();
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
 
-    if (mute == o->muted) {
+    old_mute = o->muted;
+
+    if (mute == old_mute) {
         o->save_muted |= save;
         return;
     }
 
     o->muted = mute;
+    pa_log_debug("The mute of source output %u changed from %s to %s.", o->index, pa_yes_no(old_mute), pa_yes_no(mute));
+
     o->save_muted = save;
 
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_SOFT_MUTE, NULL, 0, NULL) == 0);

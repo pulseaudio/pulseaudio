@@ -1399,16 +1399,22 @@ pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i, pa_cvolume *volume, bool 
 
 /* Called from main context */
 void pa_sink_input_set_mute(pa_sink_input *i, bool mute, bool save) {
+    bool old_mute;
+
     pa_sink_input_assert_ref(i);
     pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
-    if (mute == i->muted) {
+    old_mute = i->muted;
+
+    if (mute == old_mute) {
         i->save_muted |= save;
         return;
     }
 
     i->muted = mute;
+    pa_log_debug("The mute of sink input %u changed from %s to %s.", i->index, pa_yes_no(old_mute), pa_yes_no(mute));
+
     i->save_muted = save;
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_SOFT_MUTE, NULL, 0, NULL) == 0);
