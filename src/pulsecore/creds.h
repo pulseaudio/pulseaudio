@@ -29,8 +29,12 @@
 #endif
 
 #include <pulsecore/socket.h>
+#include <stdbool.h>
+
+#define MAX_ANCIL_FDS (2)
 
 typedef struct pa_creds pa_creds;
+typedef struct pa_ancil pa_ancil;
 
 #if defined(SCM_CREDENTIALS)
 
@@ -39,6 +43,15 @@ typedef struct pa_creds pa_creds;
 struct pa_creds {
     gid_t gid;
     uid_t uid;
+};
+
+/* Struct for handling ancillary data, i e, extra data that can be sent together with a message
+   over unix pipes. Supports sending and receiving credentials and file descriptors. */
+struct pa_ancil {
+    pa_creds creds;
+    bool creds_valid;
+    int nfd;
+    int fds[MAX_ANCIL_FDS];
 };
 
 #else
