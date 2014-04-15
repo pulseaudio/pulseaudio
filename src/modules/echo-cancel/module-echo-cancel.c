@@ -646,20 +646,6 @@ static void sink_set_mute_cb(pa_sink *s) {
     pa_sink_input_set_mute(u->sink_input, s->muted, s->save_muted);
 }
 
-/* Called from main context */
-static void source_get_mute_cb(pa_source *s) {
-    struct userdata *u;
-
-    pa_source_assert_ref(s);
-    pa_assert_se(u = s->userdata);
-
-    if (!PA_SOURCE_IS_LINKED(pa_source_get_state(s)) ||
-        !PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output)))
-        return;
-
-    pa_source_output_get_mute(u->source_output);
-}
-
 /* Called from source I/O thread context. */
 static void apply_diff_time(struct userdata *u, int64_t diff_time) {
     int64_t diff;
@@ -1810,7 +1796,6 @@ int pa__init(pa_module*m) {
     u->source->parent.process_msg = source_process_msg_cb;
     u->source->set_state = source_set_state_cb;
     u->source->update_requested_latency = source_update_requested_latency_cb;
-    pa_source_set_get_mute_callback(u->source, source_get_mute_cb);
     pa_source_set_set_mute_callback(u->source, source_set_mute_cb);
     if (!u->use_volume_sharing) {
         pa_source_set_get_volume_callback(u->source, source_get_volume_cb);
