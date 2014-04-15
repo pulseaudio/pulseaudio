@@ -318,7 +318,6 @@ void pa_source_output_set_volume(pa_source_output *o, const pa_cvolume *volume, 
 pa_cvolume *pa_source_output_get_volume(pa_source_output *o, pa_cvolume *volume, bool absolute);
 
 void pa_source_output_set_mute(pa_source_output *o, bool mute, bool save);
-bool pa_source_output_get_mute(pa_source_output *o);
 
 void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p);
 

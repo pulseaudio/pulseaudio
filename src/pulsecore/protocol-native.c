@@ -3366,7 +3366,7 @@ static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, 
     pa_tagstruct_puts(t, pa_resample_method_to_string(pa_sink_input_get_resample_method(s)));
     pa_tagstruct_puts(t, s->driver);
     if (c->version >= 11)
-        pa_tagstruct_put_boolean(t, pa_sink_input_get_mute(s));
+        pa_tagstruct_put_boolean(t, s->muted);
     if (c->version >= 13)
         pa_tagstruct_put_proplist(t, s->proplist);
     if (c->version >= 19)
@@ -3413,7 +3413,7 @@ static void source_output_fill_tagstruct(pa_native_connection *c, pa_tagstruct *
         pa_tagstruct_put_boolean(t, (pa_source_output_get_state(s) == PA_SOURCE_OUTPUT_CORKED));
     if (c->version >= 22) {
         pa_tagstruct_put_cvolume(t, &v);
-        pa_tagstruct_put_boolean(t, pa_source_output_get_mute(s));
+        pa_tagstruct_put_boolean(t, s->muted);
         pa_tagstruct_put_boolean(t, has_volume);
         pa_tagstruct_put_boolean(t, s->volume_writable);
         pa_tagstruct_put_format_info(t, s->format);

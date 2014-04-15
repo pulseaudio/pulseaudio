@@ -1299,7 +1299,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         }
 
         if (sink_input->save_muted) {
-            entry->muted = pa_sink_input_get_mute(sink_input);
+            entry->muted = sink_input->muted;
             entry->muted_valid = true;
 
             mute_updated = !created_new_entry && (!old->muted_valid || entry->muted != old->muted);
@@ -1349,7 +1349,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         }
 
         if (source_output->save_muted) {
-            entry->muted = pa_source_output_get_mute(source_output);
+            entry->muted = source_output->muted;
             entry->muted_valid = true;
 
             mute_updated = !created_new_entry && (!old->muted_valid || entry->muted != old->muted);

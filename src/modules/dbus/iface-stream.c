@@ -765,7 +765,7 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
             }
         }
 
-        new_mute = pa_sink_input_get_mute(s->sink_input);
+        new_mute = s->sink_input->muted;
 
         if (s->mute != new_mute) {
             s->mute = new_mute;
@@ -861,7 +861,7 @@ pa_dbusiface_stream *pa_dbusiface_stream_new_playback(pa_dbusiface_core *core, p
     else
         pa_cvolume_init(&s->volume);
 
-    s->mute = pa_sink_input_get_mute(sink_input);
+    s->mute = sink_input->muted;
     s->proplist = pa_proplist_copy(sink_input->proplist);
     s->dbus_protocol = pa_dbus_protocol_get(sink_input->core);
     s->subscription = pa_subscription_new(sink_input->core, PA_SUBSCRIPTION_MASK_SINK_INPUT, subscription_cb, s);

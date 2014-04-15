@@ -102,7 +102,7 @@ static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_in
     pa_sink_assert_ref(s);
 
     for (j = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); j; j = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
-        bool corked, muted, corked_here;
+        bool corked, corked_here;
         const char *role;
 
         if (j == ignore)
@@ -119,10 +119,9 @@ static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_in
             continue;
 
         corked = (pa_sink_input_get_state(j) == PA_SINK_INPUT_CORKED);
-        muted = pa_sink_input_get_mute(j);
         corked_here = !!pa_hashmap_get(u->cork_state, j);
 
-        if (cork && !corked && !muted) {
+        if (cork && !corked && !j->muted) {
             pa_log_debug("Found a '%s' stream that should be corked/muted.", cork_role);
             if (!corked_here)
                 pa_hashmap_put(u->cork_state, j, PA_INT_TO_PTR(1));
@@ -131,9 +130,9 @@ static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_in
         } else if (!cork) {
             pa_hashmap_remove(u->cork_state, j);
 
-            if (corked_here && (corked || muted)) {
+            if (corked_here && (corked || j->muted)) {
                 pa_log_debug("Found a '%s' stream that should be uncorked/unmuted.", cork_role);
-                if (muted)
+                if (j->muted)
                     pa_sink_input_set_mute(j, false, false);
                 if (corked)
                     pa_sink_input_send_event(j, PA_STREAM_EVENT_REQUEST_UNCORK, NULL);

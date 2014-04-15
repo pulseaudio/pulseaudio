@@ -1426,15 +1426,6 @@ void pa_sink_input_set_mute(pa_sink_input *i, bool mute, bool save) {
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 }
 
-/* Called from main context */
-bool pa_sink_input_get_mute(pa_sink_input *i) {
-    pa_sink_input_assert_ref(i);
-    pa_assert_ctl_context();
-    pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
-
-    return i->muted;
-}
-
 /* Called from main thread */
 void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_proplist *p) {
     pa_sink_input_assert_ref(i);

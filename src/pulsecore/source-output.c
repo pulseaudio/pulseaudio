@@ -1084,15 +1084,6 @@ void pa_source_output_set_mute(pa_source_output *o, bool mute, bool save) {
     pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
 }
 
-/* Called from main context */
-bool pa_source_output_get_mute(pa_source_output *o) {
-    pa_source_output_assert_ref(o);
-    pa_assert_ctl_context();
-    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
-
-    return o->muted;
-}
-
 /* Called from main thread */
 void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p) {
     pa_source_output_assert_ref(o);
