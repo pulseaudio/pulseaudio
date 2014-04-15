@@ -20,6 +20,7 @@
 
 #include <pulsecore/macro.h>
 #include <pulsecore/endianmacros.h>
+#include <pulsecore/sample-util.h>
 
 #include "cpu-arm.h"
 #include "mix.h"
@@ -79,8 +80,136 @@ static void pa_mix_ch2_s16ne_neon(pa_mix_info streams[], unsigned nstreams, uint
     fallback(streams, nstreams, 2, data, length & mask);
 }
 
+/* special case: mix 2 s16ne streams, 1 channel each */
+static void pa_mix2_ch1_s16ne_neon(pa_mix_info streams[], int16_t *data, unsigned length) {
+    const int16_t *ptr0 = streams[0].ptr;
+    const int16_t *ptr1 = streams[1].ptr;
+
+    int32x4_t sv0, sv1;
+    __asm__ __volatile__ (
+        "vdup.s32    %q[sv0], %[lin0]        \n\t"
+        "vdup.s32    %q[sv1], %[lin1]        \n\t"
+        : [sv0] "=w" (sv0), [sv1] "=w" (sv1)
+        : [lin0] "r" (streams[0].linear[0]), [lin1] "r" (streams[1].linear[0])
+        : /* clobber list */
+    );
+
+    length /= sizeof(int16_t);
+    for (; length >= 4; length -= 4) {
+        __asm__ __volatile__ (
+            "vld1.s16    d0, [%[ptr0]]!      \n\t"
+            "vld1.s16    d2, [%[ptr1]]!      \n\t"
+            "vshll.s16   q0, d0, #15         \n\t"
+            "vshll.s16   q1, d2, #15         \n\t"
+            "vqdmulh.s32 q0, q0, %q[sv0]     \n\t"
+            "vqdmulh.s32 q1, q1, %q[sv1]     \n\t"
+            "vqadd.s32   q0, q0, q1          \n\t"
+            "vqmovn.s32  d0, q0              \n\t"
+            "vst1.s16    d0, [%[data]]!      \n\t"
+            : [ptr0] "+r" (ptr0), [ptr1] "+r" (ptr1), [data] "+r" (data)
+            : [sv0] "w" (sv0), [sv1] "w" (sv1)
+            : "memory", "cc", "q0", "q1" /* clobber list */
+        );
+    }
+
+    for (; length > 0; length--) {
+        int32_t sum = pa_mult_s16_volume(*ptr0++, streams[0].linear[0].i);
+        sum += pa_mult_s16_volume(*ptr1++, streams[1].linear[0].i);
+        *data++ = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
+    }
+}
+
+/* special case: mix 2 s16ne streams, 2 channel each */
+static void pa_mix2_ch2_s16ne_neon(pa_mix_info streams[], int16_t *data, unsigned length) {
+    const int16_t *ptr0 = streams[0].ptr;
+    const int16_t *ptr1 = streams[1].ptr;
+
+    int32x4_t sv0, sv1;
+    __asm__ __volatile__ (
+        "vld1.s32 d0, [%[lin0]]              \n\t"
+        "vmov.s32 d1, d0                     \n\t"
+        "vmov.s32 %q[sv0], q0                \n\t"
+        "vld1.s32 d0, [%[lin1]]              \n\t"
+        "vmov.s32 d1, d0                     \n\t"
+        "vmov.s32 %q[sv1], q0                \n\t"
+        : [sv0] "=w" (sv0), [sv1] "=w" (sv1)
+        : [lin0] "r" (streams[0].linear), [lin1] "r" (streams[1].linear)
+        : "q0" /* clobber list */
+    );
+
+    length /= sizeof(int16_t);
+    for (; length >= 4; length -= 4) {
+        __asm__ __volatile__ (
+            "vld1.s16    d0, [%[ptr0]]!      \n\t"
+            "vld1.s16    d2, [%[ptr1]]!      \n\t"
+            "vshll.s16   q0, d0, #15         \n\t"
+            "vshll.s16   q1, d2, #15         \n\t"
+            "vqdmulh.s32 q0, q0, %q[sv0]     \n\t"
+            "vqdmulh.s32 q1, q1, %q[sv1]     \n\t"
+            "vqadd.s32   q0, q0, q1          \n\t"
+            "vqmovn.s32  d0, q0              \n\t"
+            "vst1.s16    d0, [%[data]]!      \n\t"
+            : [ptr0] "+r" (ptr0), [ptr1] "+r" (ptr1), [data] "+r" (data)
+            : [sv0] "w" (sv0), [sv1] "w" (sv1)
+            : "memory", "cc", "q0", "q1" /* clobber list */
+        );
+    }
+
+    if (length > 0) {
+        int32_t sum;
+
+        sum = pa_mult_s16_volume(*ptr0++, streams[0].linear[0].i);
+        sum += pa_mult_s16_volume(*ptr1++, streams[1].linear[0].i);
+        *data++ = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
+
+        sum = pa_mult_s16_volume(*ptr0++, streams[0].linear[1].i);
+        sum += pa_mult_s16_volume(*ptr1++, streams[1].linear[1].i);
+        *data++ = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
+    }
+}
+
+/* special case: mix 2 s16ne streams, 4 channels each */
+static void pa_mix2_ch4_s16ne_neon(pa_mix_info streams[], int16_t *data, unsigned length) {
+    const int16_t *ptr0 = streams[0].ptr;
+    const int16_t *ptr1 = streams[1].ptr;
+
+    int32x4_t sv0, sv1;
+
+    __asm__ __volatile__ (
+        "vld1.s32 %h[sv0], [%[lin0]]         \n\t"
+        "vld1.s32 %h[sv1], [%[lin1]]         \n\t"
+        : [sv0] "=w" (sv0), [sv1] "=w" (sv1)
+        : [lin0] "r" (streams[0].linear), [lin1] "r" (streams[1].linear)
+        : /* clobber list */
+    );
+
+    length /= sizeof(int16_t);
+    for (; length >= 4; length -= 4) {
+        __asm__ __volatile__ (
+            "vld1.s16    d0, [%[ptr0]]!      \n\t"
+            "vld1.s16    d2, [%[ptr1]]!      \n\t"
+            "vshll.s16   q0, d0, #15         \n\t"
+            "vshll.s16   q1, d2, #15         \n\t"
+            "vqdmulh.s32 q0, q0, %q[sv0]     \n\t"
+            "vqdmulh.s32 q1, q1, %q[sv1]     \n\t"
+            "vqadd.s32   q0, q0, q1          \n\t"
+            "vqmovn.s32  d0, q0              \n\t"
+            "vst1.s16    d0, [%[data]]!      \n\t"
+            : [ptr0] "+r" (ptr0), [ptr1] "+r" (ptr1), [data] "+r" (data)
+            : [sv0] "w" (sv0), [sv1] "w" (sv1)
+            : "memory", "cc", "q0", "q1" /* clobber list */
+        );
+    }
+}
+
 static void pa_mix_s16ne_neon(pa_mix_info streams[], unsigned nstreams, unsigned nchannels, void *data, unsigned length) {
-    if (nchannels == 2)
+    if (nstreams == 2 && nchannels == 2)
+        pa_mix2_ch2_s16ne_neon(streams, data, length);
+    else if (nstreams == 2 && nchannels == 4)
+        pa_mix2_ch4_s16ne_neon(streams, data, length);
+    else if (nstreams == 2 && nchannels == 1)
+        pa_mix2_ch1_s16ne_neon(streams, data, length);
+    else if (nchannels == 2)
         pa_mix_ch2_s16ne_neon(streams, nstreams, data, length);
     else
         fallback(streams, nstreams, nchannels, data, length);
