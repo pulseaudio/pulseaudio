@@ -1906,7 +1906,7 @@ static void sink_set_mute(pa_sink *sink) {
     pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_INPUT_MUTE);
     pa_tagstruct_putu32(t, u->ctag++);
     pa_tagstruct_putu32(t, u->device_index);
-    pa_tagstruct_put_boolean(t, !!sink->muted);
+    pa_tagstruct_put_boolean(t, sink->muted);
     pa_pstream_send_tagstruct(u->pstream, t);
 }
 

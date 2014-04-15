@@ -564,7 +564,7 @@ static void sink_set_mute(pa_sink *s) {
     if (u->fd >= 0) {
         AUDIO_INITINFO(&info);
 
-        info.output_muted = !!s->muted;
+        info.output_muted = s->muted;
 
         if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0)
             pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
