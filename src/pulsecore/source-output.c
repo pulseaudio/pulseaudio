@@ -1082,6 +1082,7 @@ void pa_source_output_set_mute(pa_source_output *o, bool mute, bool save) {
         o->mute_changed(o);
 
     pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MUTE_CHANGED], o);
 }
 
 /* Called from main thread */

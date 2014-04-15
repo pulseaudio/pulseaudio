@@ -1424,6 +1424,7 @@ void pa_sink_input_set_mute(pa_sink_input *i, bool mute, bool save) {
         i->mute_changed(i);
 
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MUTE_CHANGED], i);
 }
 
 /* Called from main thread */
