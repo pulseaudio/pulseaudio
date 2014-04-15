@@ -2219,6 +2219,7 @@ void pa_sink_set_mute(pa_sink *s, bool mute, bool save) {
     pa_log_debug("The mute of sink %s changed from %s to %s.", s->name, pa_yes_no(old_muted), pa_yes_no(mute));
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_MUTE, NULL, 0, NULL) == 0);
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_MUTE_CHANGED], s);
 }
 
 /* Called from main thread */
