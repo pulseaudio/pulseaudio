@@ -1800,8 +1800,11 @@ void pa_source_set_mute(pa_source *s, bool mute, bool save) {
     s->muted = mute;
     s->save_muted = save;
 
-    if (!(s->flags & PA_SOURCE_DEFERRED_VOLUME) && s->set_mute)
+    if (!(s->flags & PA_SOURCE_DEFERRED_VOLUME) && s->set_mute) {
+        s->set_mute_in_progress = true;
         s->set_mute(s);
+        s->set_mute_in_progress = false;
+    }
 
     if (!PA_SOURCE_IS_LINKED(s->state))
         return;
@@ -1845,15 +1848,17 @@ void pa_source_mute_changed(pa_source *s, bool new_muted) {
     pa_assert_ctl_context();
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
-    /* The source implementor may call this if the mute state changed to make sure everyone is notified */
-
-    if (s->muted == new_muted)
+    if (s->set_mute_in_progress)
         return;
 
-    s->muted = new_muted;
-    s->save_muted = true;
+    /* pa_source_set_mute() does this same check, so this may appear redundant,
+     * but we must have this here also, because the save parameter of
+     * pa_source_set_mute() would otherwise have unintended side effects
+     * (saving the mute state when it shouldn't be saved). */
+    if (new_muted == s->muted)
+        return;
 
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    pa_source_set_mute(s, new_muted, true);
 }
 
 /* Called from main thread */

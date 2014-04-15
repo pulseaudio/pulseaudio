@@ -118,6 +118,8 @@ struct pa_source {
 
     unsigned priority;
 
+    bool set_mute_in_progress;
+
     /* Called when the main loop requests a state change. Called from
      * main loop context. If returns -1 the state change will be
      * inhibited */
