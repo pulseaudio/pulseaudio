@@ -28,6 +28,8 @@
  * the best case all functions are lock-free unless sleeping is
  * required.  */
 
+#include <pulsecore/atomic.h>
+
 typedef struct pa_fdsem pa_fdsem;
 
 typedef struct pa_fdsem_data {
