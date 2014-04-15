@@ -1248,7 +1248,7 @@ pa_dbusiface_device *pa_dbusiface_device_new_source(pa_dbusiface_core *core, pa_
     d->volume = *pa_source_get_volume(source, false);
     d->mute = pa_source_get_mute(source, false);
     d->source_state = pa_source_get_state(source);
-    d->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    d->ports = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) pa_dbusiface_device_port_free);
     d->next_port_index = 0;
     d->active_port = source->active_port;
     d->proplist = pa_proplist_copy(source->proplist);
