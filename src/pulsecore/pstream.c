@@ -165,8 +165,9 @@ struct pa_pstream {
     pa_mempool *mempool;
 
 #ifdef HAVE_CREDS
-    pa_creds read_creds, write_creds;
-    bool read_creds_valid, send_creds_now;
+    pa_ancil read_ancil;
+    pa_creds write_creds;
+    bool send_creds_now;
 #endif
 };
 
@@ -646,12 +647,20 @@ static int do_read(pa_pstream *p) {
 
 #ifdef HAVE_CREDS
     {
-        bool b = 0;
+        pa_ancil b;
 
-        if ((r = pa_iochannel_read_with_creds(p->io, d, l, &p->read_creds, &b)) <= 0)
+        if ((r = pa_iochannel_read_with_ancil(p->io, d, l, &b)) <= 0)
             goto fail;
 
-        p->read_creds_valid = p->read_creds_valid || b;
+        if (b.creds_valid) {
+            p->read_ancil.creds_valid = true;
+            p->read_ancil.creds = b.creds;
+        }
+        if (b.nfd > 0) {
+            pa_assert(b.nfd <= MAX_ANCIL_FDS);
+            p->read_ancil.nfd = b.nfd;
+            memcpy(p->read_ancil.fds, b.fds, sizeof(int) * b.nfd);
+        }
     }
 #else
     if ((r = pa_iochannel_read(p->io, d, l)) <= 0)
@@ -799,7 +808,7 @@ static int do_read(pa_pstream *p) {
 
                 if (p->receive_packet_callback)
 #ifdef HAVE_CREDS
-                    p->receive_packet_callback(p, p->read.packet, p->read_creds_valid ? &p->read_creds : NULL, p->receive_packet_callback_userdata);
+                    p->receive_packet_callback(p, p->read.packet, &p->read_ancil, p->receive_packet_callback_userdata);
 #else
                     p->receive_packet_callback(p, p->read.packet, NULL, p->receive_packet_callback_userdata);
 #endif
@@ -860,7 +869,8 @@ frame_done:
     p->read.data = NULL;
 
 #ifdef HAVE_CREDS
-    p->read_creds_valid = false;
+    p->read_ancil.creds_valid = false;
+    p->read_ancil.nfd = 0;
 #endif
 
     return 0;

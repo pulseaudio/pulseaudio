@@ -1780,14 +1780,14 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
 }
 
 /* Called from main context */
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_creds *creds, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_ancil *ancil, void *userdata) {
     struct userdata *u = userdata;
 
     pa_assert(p);
     pa_assert(packet);
     pa_assert(u);
 
-    if (pa_pdispatch_run(u->pdispatch, packet, creds, u) < 0) {
+    if (pa_pdispatch_run(u->pdispatch, packet, ancil, u) < 0) {
         pa_log("Invalid packet");
         pa_module_unload_request(u->module, true);
         return;

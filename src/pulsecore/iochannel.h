@@ -58,7 +58,7 @@ bool pa_iochannel_creds_supported(pa_iochannel *io);
 int pa_iochannel_creds_enable(pa_iochannel *io);
 
 ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l, const pa_creds *ucred);
-ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_creds *ucred, bool *creds_valid);
+ssize_t pa_iochannel_read_with_ancil(pa_iochannel*io, void*data, size_t l, pa_ancil *ancil);
 #endif
 
 bool pa_iochannel_is_readable(pa_iochannel*io);

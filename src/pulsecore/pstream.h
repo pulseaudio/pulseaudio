@@ -37,7 +37,7 @@
 
 typedef struct pa_pstream pa_pstream;
 
-typedef void (*pa_pstream_packet_cb_t)(pa_pstream *p, pa_packet *packet, const pa_creds *creds, void *userdata);
+typedef void (*pa_pstream_packet_cb_t)(pa_pstream *p, pa_packet *packet, const pa_ancil *ancil, void *userdata);
 typedef void (*pa_pstream_memblock_cb_t)(pa_pstream *p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata);
 typedef void (*pa_pstream_notify_cb_t)(pa_pstream *p, void *userdata);
 typedef void (*pa_pstream_block_id_cb_t)(pa_pstream *p, uint32_t block_id, void *userdata);
