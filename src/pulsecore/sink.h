@@ -58,6 +58,8 @@ static inline bool PA_SINK_IS_LINKED(pa_sink_state_t x) {
 /* A generic definition for void callback functions */
 typedef void(*pa_sink_cb_t)(pa_sink *s);
 
+typedef int (*pa_sink_get_mute_cb_t)(pa_sink *s, bool *mute);
+
 struct pa_sink {
     pa_msgobject parent;
 
@@ -191,14 +193,24 @@ struct pa_sink {
      * set this callback. */
     pa_sink_cb_t write_volume; /* may be NULL */
 
-    /* Called when the mute setting is queried. A PA_SINK_MESSAGE_GET_MUTE
-     * message will also be sent. Called from IO thread if PA_SINK_DEFERRED_VOLUME
-     * flag is set otherwise from main loop context. If refresh_mute is false
-     * neither this function is called nor a message is sent.
+    /* If the sink mute can change "spontaneously" (i.e. initiated by the sink
+     * implementation, not by someone else calling pa_sink_set_mute()), then
+     * the sink implementation can notify about changed mute either by calling
+     * pa_sink_mute_changed() or by calling pa_sink_get_mute() with
+     * force_refresh=true. If the implementation chooses the latter approach,
+     * it should implement the get_mute callback. Otherwise get_mute can be
+     * NULL.
+     *
+     * This is called when pa_sink_get_mute() is called with
+     * force_refresh=true. This is called from the IO thread if the
+     * PA_SINK_DEFERRED_VOLUME flag is set, otherwise this is called from the
+     * main thread. On success, the implementation is expected to return 0 and
+     * set the mute parameter that is passed as a reference. On failure, the
+     * implementation is expected to return -1.
      *
      * You must use the function pa_sink_set_get_mute_callback() to
      * set this callback. */
-    pa_sink_cb_t get_mute; /* may be NULL */
+    pa_sink_get_mute_cb_t get_mute;
 
     /* Called when the mute setting shall be changed. A PA_SINK_MESSAGE_SET_MUTE
      * message will also be sent. Called from IO thread if PA_SINK_DEFERRED_VOLUME
@@ -379,7 +391,7 @@ pa_sink* pa_sink_new(
 void pa_sink_set_get_volume_callback(pa_sink *s, pa_sink_cb_t cb);
 void pa_sink_set_set_volume_callback(pa_sink *s, pa_sink_cb_t cb);
 void pa_sink_set_write_volume_callback(pa_sink *s, pa_sink_cb_t cb);
-void pa_sink_set_get_mute_callback(pa_sink *s, pa_sink_cb_t cb);
+void pa_sink_set_get_mute_callback(pa_sink *s, pa_sink_get_mute_cb_t cb);
 void pa_sink_set_set_mute_callback(pa_sink *s, pa_sink_cb_t cb);
 void pa_sink_enable_decibel_volume(pa_sink *s, bool enable);
 

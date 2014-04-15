@@ -571,18 +571,23 @@ static void sink_set_mute(pa_sink *s) {
     }
 }
 
-static void sink_get_mute(pa_sink *s) {
+static int sink_get_mute(pa_sink *s, bool *mute) {
     struct userdata *u = s->userdata;
     audio_info_t info;
 
     pa_assert(u);
 
-    if (u->fd >= 0) {
-        if (ioctl(u->fd, AUDIO_GETINFO, &info) < 0)
-            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
-        else
-            s->muted = !!info.output_muted;
+    if (u->fd < 0)
+        return -1;
+
+    if (ioctl(u->fd, AUDIO_GETINFO, &info) < 0) {
+        pa_log("AUDIO_GETINFO: %s", pa_cstrerror(errno));
+        return -1;
     }
+
+    *mute = info.output_muted;
+
+    return 0;
 }
 
 static void process_rewind(struct userdata *u) {

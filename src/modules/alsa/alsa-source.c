@@ -1277,18 +1277,17 @@ static void source_write_volume_cb(pa_source *s) {
     }
 }
 
-static void source_get_mute_cb(pa_source *s) {
+static int source_get_mute_cb(pa_source *s, bool *mute) {
     struct userdata *u = s->userdata;
-    bool b;
 
     pa_assert(u);
     pa_assert(u->mixer_path);
     pa_assert(u->mixer_handle);
 
-    if (pa_alsa_path_get_mute(u->mixer_path, u->mixer_handle, &b) < 0)
-        return;
+    if (pa_alsa_path_get_mute(u->mixer_path, u->mixer_handle, mute) < 0)
+        return -1;
 
-    s->muted = b;
+    return 0;
 }
 
 static void source_set_mute_cb(pa_source *s) {
@@ -2088,8 +2087,12 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         if (u->source->set_mute)
             u->source->set_mute(u->source);
     } else {
-        if (u->source->get_mute)
-            u->source->get_mute(u->source);
+        if (u->source->get_mute) {
+            bool mute;
+
+            if (u->source->get_mute(u->source, &mute) >= 0)
+                pa_source_set_mute(u->source, mute, false);
+        }
     }
 
     if ((data.volume_is_set || data.muted_is_set) && u->source->write_volume)

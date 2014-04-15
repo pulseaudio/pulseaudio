@@ -1395,18 +1395,17 @@ static void sink_write_volume_cb(pa_sink *s) {
     }
 }
 
-static void sink_get_mute_cb(pa_sink *s) {
+static int sink_get_mute_cb(pa_sink *s, bool *mute) {
     struct userdata *u = s->userdata;
-    bool b;
 
     pa_assert(u);
     pa_assert(u->mixer_path);
     pa_assert(u->mixer_handle);
 
-    if (pa_alsa_path_get_mute(u->mixer_path, u->mixer_handle, &b) < 0)
-        return;
+    if (pa_alsa_path_get_mute(u->mixer_path, u->mixer_handle, mute) < 0)
+        return -1;
 
-    s->muted = b;
+    return 0;
 }
 
 static void sink_set_mute_cb(pa_sink *s) {
@@ -2390,8 +2389,12 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         if (u->sink->set_mute)
             u->sink->set_mute(u->sink);
     } else {
-        if (u->sink->get_mute)
-            u->sink->get_mute(u->sink);
+        if (u->sink->get_mute) {
+            bool mute;
+
+            if (u->sink->get_mute(u->sink, &mute) >= 0)
+                pa_sink_set_mute(u->sink, mute, false);
+        }
     }
 
     if ((data.volume_is_set || data.muted_is_set) && u->sink->write_volume)

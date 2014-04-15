@@ -58,6 +58,8 @@ static inline bool PA_SOURCE_IS_LINKED(pa_source_state_t x) {
 /* A generic definition for void callback functions */
 typedef void(*pa_source_cb_t)(pa_source *s);
 
+typedef int (*pa_source_get_mute_cb_t)(pa_source *s, bool *mute);
+
 struct pa_source {
     pa_msgobject parent;
 
@@ -158,14 +160,24 @@ struct pa_source {
      * set this callback. */
     pa_source_cb_t write_volume; /* may be NULL */
 
-    /* Called when the mute setting is queried. Called from main loop
-     * context. If this is NULL a PA_SOURCE_MESSAGE_GET_MUTE message
-     * will be sent to the IO thread instead. If refresh_mute is
-     * false neither this function is called nor a message is sent.
+    /* If the source mute can change "spontaneously" (i.e. initiated by the
+     * source implementation, not by someone else calling
+     * pa_source_set_mute()), then the source implementation can notify about
+     * changed mute either by calling pa_source_mute_changed() or by calling
+     * pa_source_get_mute() with force_refresh=true. If the implementation
+     * chooses the latter approach, it should implement the get_mute callback.
+     * Otherwise get_mute can be NULL.
+     *
+     * This is called when pa_source_get_mute() is called with
+     * force_refresh=true. This is called from the IO thread if the
+     * PA_SINK_DEFERRED_VOLUME flag is set, otherwise this is called from the
+     * main thread. On success, the implementation is expected to return 0 and
+     * set the mute parameter that is passed as a reference. On failure, the
+     * implementation is expected to return -1.
      *
      * You must use the function pa_source_set_get_mute_callback() to
      * set this callback. */
-    pa_source_cb_t get_mute; /* may be NULL */
+    pa_source_get_mute_cb_t get_mute;
 
     /* Called when the mute setting shall be changed. Called from main
      * loop context. If this is NULL a PA_SOURCE_MESSAGE_SET_MUTE
@@ -316,7 +328,7 @@ pa_source* pa_source_new(
 void pa_source_set_get_volume_callback(pa_source *s, pa_source_cb_t cb);
 void pa_source_set_set_volume_callback(pa_source *s, pa_source_cb_t cb);
 void pa_source_set_write_volume_callback(pa_source *s, pa_source_cb_t cb);
-void pa_source_set_get_mute_callback(pa_source *s, pa_source_cb_t cb);
+void pa_source_set_get_mute_callback(pa_source *s, pa_source_get_mute_cb_t cb);
 void pa_source_set_set_mute_callback(pa_source *s, pa_source_cb_t cb);
 void pa_source_enable_decibel_volume(pa_source *s, bool enable);
 

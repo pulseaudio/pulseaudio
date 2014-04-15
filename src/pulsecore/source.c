@@ -459,7 +459,7 @@ void pa_source_set_write_volume_callback(pa_source *s, pa_source_cb_t cb) {
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
-void pa_source_set_get_mute_callback(pa_source *s, pa_source_cb_t cb) {
+void pa_source_set_get_mute_callback(pa_source *s, pa_source_get_mute_cb_t cb) {
     pa_assert(s);
 
     s->get_mute = cb;
@@ -1821,21 +1821,15 @@ bool pa_source_get_mute(pa_source *s, bool force_refresh) {
     pa_assert_ctl_context();
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
-    if (s->refresh_muted || force_refresh) {
-        bool old_muted = s->muted;
+    if ((s->refresh_muted || force_refresh) && s->get_mute) {
+        bool mute;
 
-        if (!(s->flags & PA_SOURCE_DEFERRED_VOLUME) && s->get_mute)
-            s->get_mute(s);
-
-        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_MUTE, NULL, 0, NULL) == 0);
-
-        if (old_muted != s->muted) {
-            s->save_muted = true;
-
-            pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
-
-            /* Make sure the soft mute status stays in sync */
-            pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_MUTE, NULL, 0, NULL) == 0);
+        if (s->flags & PA_SOURCE_DEFERRED_VOLUME) {
+            if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_MUTE, &mute, 0, NULL) >= 0)
+                pa_source_mute_changed(s, mute);
+        } else {
+            if (s->get_mute(s, &mute) >= 0)
+                pa_source_mute_changed(s, mute);
         }
     }
 
@@ -2120,7 +2114,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
         case PA_SOURCE_MESSAGE_GET_MUTE:
 
             if (s->flags & PA_SOURCE_DEFERRED_VOLUME && s->get_mute)
-                s->get_mute(s);
+                return s->get_mute(s, userdata);
 
             return 0;
 
