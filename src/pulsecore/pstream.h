@@ -49,7 +49,7 @@ void pa_pstream_unref(pa_pstream*p);
 
 void pa_pstream_unlink(pa_pstream *p);
 
-void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_creds *creds);
+void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_ancil *ancil);
 void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk);
 void pa_pstream_send_release(pa_pstream *p, uint32_t block_id);
 void pa_pstream_send_revoke(pa_pstream *p, uint32_t block_id);

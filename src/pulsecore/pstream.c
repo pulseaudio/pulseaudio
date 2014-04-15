@@ -94,8 +94,8 @@ struct item_info {
     /* packet info */
     pa_packet *packet;
 #ifdef HAVE_CREDS
-    bool with_creds;
-    pa_creds creds;
+    bool with_ancil;
+    pa_ancil ancil;
 #endif
 
     /* memblock info */
@@ -165,9 +165,8 @@ struct pa_pstream {
     pa_mempool *mempool;
 
 #ifdef HAVE_CREDS
-    pa_ancil read_ancil;
-    pa_creds write_creds;
-    bool send_creds_now;
+    pa_ancil read_ancil, write_ancil;
+    bool send_ancil_now;
 #endif
 };
 
@@ -298,7 +297,7 @@ static void pstream_free(pa_pstream *p) {
     pa_xfree(p);
 }
 
-void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_creds *creds) {
+void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_ancil *ancil) {
     struct item_info *i;
 
     pa_assert(p);
@@ -315,8 +314,13 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_creds *cre
     i->packet = pa_packet_ref(packet);
 
 #ifdef HAVE_CREDS
-    if ((i->with_creds = !!creds))
-        i->creds = *creds;
+    if ((i->with_ancil = !!ancil)) {
+        i->ancil = *ancil;
+        if (ancil->creds_valid)
+            pa_assert(ancil->nfd == 0);
+        else
+            pa_assert(ancil->nfd > 0);
+    }
 #endif
 
     pa_queue_push(p->send_queue, i);
@@ -358,7 +362,7 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
         i->offset = offset;
         i->seek_mode = seek_mode;
 #ifdef HAVE_CREDS
-        i->with_creds = false;
+        i->with_ancil = false;
 #endif
 
         pa_queue_push(p->send_queue, i);
@@ -385,7 +389,7 @@ void pa_pstream_send_release(pa_pstream *p, uint32_t block_id) {
     item->type = PA_PSTREAM_ITEM_SHMRELEASE;
     item->block_id = block_id;
 #ifdef HAVE_CREDS
-    item->with_creds = false;
+    item->with_ancil = false;
 #endif
 
     pa_queue_push(p->send_queue, item);
@@ -422,7 +426,7 @@ void pa_pstream_send_revoke(pa_pstream *p, uint32_t block_id) {
     item->type = PA_PSTREAM_ITEM_SHMREVOKE;
     item->block_id = block_id;
 #ifdef HAVE_CREDS
-    item->with_creds = false;
+    item->with_ancil = false;
 #endif
 
     pa_queue_push(p->send_queue, item);
@@ -536,8 +540,8 @@ static void prepare_next_write_item(pa_pstream *p) {
     }
 
 #ifdef HAVE_CREDS
-    if ((p->send_creds_now = p->write.current->with_creds))
-        p->write_creds = p->write.current->creds;
+    if ((p->send_ancil_now = p->write.current->with_ancil))
+        p->write_ancil = p->write.current->ancil;
 #endif
 }
 
@@ -579,12 +583,16 @@ static int do_write(pa_pstream *p) {
     pa_assert(l > 0);
 
 #ifdef HAVE_CREDS
-    if (p->send_creds_now) {
-
-        if ((r = pa_iochannel_write_with_creds(p->io, d, l, &p->write_creds)) < 0)
-            goto fail;
-
-        p->send_creds_now = false;
+    if (p->send_ancil_now) {
+        if (p->write_ancil.creds_valid) {
+            pa_assert(p->write_ancil.nfd == 0);
+            if ((r = pa_iochannel_write_with_creds(p->io, d, l, &p->write_ancil.creds)) < 0)
+                goto fail;
+        }
+        else
+            if ((r = pa_iochannel_write_with_fds(p->io, d, l, p->write_ancil.nfd, p->write_ancil.fds)) < 0)
+                goto fail;
+        p->send_ancil_now = false;
     } else
 #endif
 

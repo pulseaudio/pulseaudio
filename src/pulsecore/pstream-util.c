@@ -28,7 +28,7 @@
 
 #include "pstream-util.h"
 
-void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const pa_creds *creds) {
+static void pa_pstream_send_tagstruct_with_ancil(pa_pstream *p, pa_tagstruct *t, const pa_ancil *ancil) {
     size_t length;
     uint8_t *data;
     pa_packet *packet;
@@ -38,8 +38,35 @@ void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const 
 
     pa_assert_se(data = pa_tagstruct_free_data(t, &length));
     pa_assert_se(packet = pa_packet_new_dynamic(data, length));
-    pa_pstream_send_packet(p, packet, creds);
+    pa_pstream_send_packet(p, packet, ancil);
     pa_packet_unref(packet);
+}
+
+void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const pa_creds *creds) {
+    if (creds) {
+        pa_ancil a;
+
+        a.nfd = 0;
+        a.creds_valid = true;
+        a.creds = *creds;
+        pa_pstream_send_tagstruct_with_ancil(p, t, &a);
+    }
+    else
+        pa_pstream_send_tagstruct_with_ancil(p, t, NULL);
+}
+
+void pa_pstream_send_tagstruct_with_fds(pa_pstream *p, pa_tagstruct *t, int nfd, const int *fds) {
+    if (nfd > 0) {
+        pa_ancil a;
+
+        a.nfd = nfd;
+        a.creds_valid = false;
+        pa_assert(nfd <= MAX_ANCIL_FDS);
+        memcpy(a.fds, fds, sizeof(int) * nfd);
+        pa_pstream_send_tagstruct_with_ancil(p, t, &a);
+    }
+    else
+        pa_pstream_send_tagstruct_with_ancil(p, t, NULL);
 }
 
 void pa_pstream_send_error(pa_pstream *p, uint32_t tag, uint32_t error) {

@@ -348,6 +348,49 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
     return r;
 }
 
+ssize_t pa_iochannel_write_with_fds(pa_iochannel*io, const void*data, size_t l, int nfd, const int *fds) {
+    ssize_t r;
+    int *msgdata;
+    struct msghdr mh;
+    struct iovec iov;
+    union {
+        struct cmsghdr hdr;
+        uint8_t data[CMSG_SPACE(sizeof(int) * MAX_ANCIL_FDS)];
+    } cmsg;
+
+    pa_assert(io);
+    pa_assert(data);
+    pa_assert(l);
+    pa_assert(io->ofd >= 0);
+    pa_assert(fds);
+    pa_assert(nfd > 0);
+    pa_assert(nfd <= MAX_ANCIL_FDS);
+
+    pa_zero(iov);
+    iov.iov_base = (void*) data;
+    iov.iov_len = l;
+
+    pa_zero(cmsg);
+    cmsg.hdr.cmsg_level = SOL_SOCKET;
+    cmsg.hdr.cmsg_type = SCM_RIGHTS;
+
+    msgdata = (int*) CMSG_DATA(&cmsg.hdr);
+    memcpy(msgdata, fds, nfd * sizeof(int));
+    cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(int) * nfd);
+
+    pa_zero(mh);
+    mh.msg_iov = &iov;
+    mh.msg_iovlen = 1;
+    mh.msg_control = &cmsg;
+    mh.msg_controllen = sizeof(cmsg);
+
+    if ((r = sendmsg(io->ofd, &mh, MSG_NOSIGNAL)) >= 0) {
+        io->writable = io->hungup = false;
+        enable_events(io);
+    }
+    return r;
+}
+
 ssize_t pa_iochannel_read_with_ancil(pa_iochannel*io, void*data, size_t l, pa_ancil *ancil) {
     ssize_t r;
     struct msghdr mh;
