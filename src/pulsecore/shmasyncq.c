@@ -86,10 +86,11 @@ pa_shmasyncq *pa_shmasyncq_new(unsigned n_elements, size_t element_size, void *d
     l->data->n_elements = n_elements;
     l->data->element_size = element_size;
 
-    if (!(l->read_fdsem = pa_fdsem_new_shm(&d->read_fdsem_data, &fd[0]))) {
+    if (!(l->read_fdsem = pa_fdsem_new_shm(&d->read_fdsem_data))) {
         pa_xfree(l);
         return NULL;
     }
+    fd[0] = pa_fdsem_get(l->read_fdsem);
 
     if (!(l->write_fdsem = pa_fdsem_new(&d->write_fdsem_data, &fd[1]))) {
         pa_fdsem_free(l->read_fdsem);

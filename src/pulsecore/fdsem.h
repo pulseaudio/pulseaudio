@@ -38,7 +38,7 @@ typedef struct pa_fdsem_data {
 
 pa_fdsem *pa_fdsem_new(void);
 pa_fdsem *pa_fdsem_open_shm(pa_fdsem_data *data, int event_fd);
-pa_fdsem *pa_fdsem_new_shm(pa_fdsem_data *data, int* event_fd);
+pa_fdsem *pa_fdsem_new_shm(pa_fdsem_data *data);
 void pa_fdsem_free(pa_fdsem *f);
 
 void pa_fdsem_post(pa_fdsem *f);

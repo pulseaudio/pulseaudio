@@ -100,11 +100,10 @@ pa_fdsem *pa_fdsem_open_shm(pa_fdsem_data *data, int event_fd) {
     return f;
 }
 
-pa_fdsem *pa_fdsem_new_shm(pa_fdsem_data *data, int* event_fd) {
+pa_fdsem *pa_fdsem_new_shm(pa_fdsem_data *data) {
     pa_fdsem *f = NULL;
 
     pa_assert(data);
-    pa_assert(event_fd);
 
 #ifdef HAVE_SYS_EVENTFD_H
 
