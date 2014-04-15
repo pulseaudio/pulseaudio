@@ -237,11 +237,10 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     pa_assert(io);
     pa_assert(pool);
 
-    p = pa_xnew(pa_pstream, 1);
+    p = pa_xnew0(pa_pstream, 1);
     PA_REFCNT_INIT(p);
     p->io = io;
     pa_iochannel_set_callback(io, io_callback, p);
-    p->dead = false;
 
     p->mainloop = m;
     p->defer_event = m->defer_new(m, defer_callback, p);
@@ -249,30 +248,7 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
 
     p->send_queue = pa_queue_new();
 
-    p->write.current = NULL;
-    p->write.index = 0;
-    pa_memchunk_reset(&p->write.memchunk);
-    p->read.memblock = NULL;
-    p->read.packet = NULL;
-    p->read.index = 0;
-
-    p->receive_packet_callback = NULL;
-    p->receive_packet_callback_userdata = NULL;
-    p->receive_memblock_callback = NULL;
-    p->receive_memblock_callback_userdata = NULL;
-    p->drain_callback = NULL;
-    p->drain_callback_userdata = NULL;
-    p->die_callback = NULL;
-    p->die_callback_userdata = NULL;
-    p->revoke_callback = NULL;
-    p->revoke_callback_userdata = NULL;
-    p->release_callback = NULL;
-    p->release_callback_userdata = NULL;
-
     p->mempool = pool;
-
-    p->use_shm = false;
-    p->export = NULL;
 
     /* We do importing unconditionally */
     p->import = pa_memimport_new(p->mempool, memimport_release_cb, p);
@@ -280,10 +256,6 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     pa_iochannel_socket_set_rcvbuf(io, pa_mempool_block_size_max(p->mempool));
     pa_iochannel_socket_set_sndbuf(io, pa_mempool_block_size_max(p->mempool));
 
-#ifdef HAVE_CREDS
-    p->send_creds_now = false;
-    p->read_creds_valid = false;
-#endif
     return p;
 }
 
