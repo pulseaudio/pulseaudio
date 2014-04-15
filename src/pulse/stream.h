@@ -554,6 +554,17 @@ int pa_stream_write(
         int64_t offset,          /**< Offset for seeking, must be 0 for upload streams */
         pa_seek_mode_t seek      /**< Seek mode, must be PA_SEEK_RELATIVE for upload streams */);
 
+/** Function does exactly the same as pa_stream_write() with the difference
+ *  that free_cb_data is passed to free_cb instead of data. \since 6.0 */
+int pa_stream_write_ext_free(
+        pa_stream *p             /**< The stream to use */,
+        const void *data         /**< The data to write */,
+        size_t nbytes            /**< The length of the data to write in bytes */,
+        pa_free_cb_t free_cb     /**< A cleanup routine for the data or NULL to request an internal copy */,
+        void *free_cb_data       /**< Argument passed to free_cb function */,
+        int64_t offset           /**< Offset for seeking, must be 0 for upload streams */,
+        pa_seek_mode_t seek      /**< Seek mode, must be PA_SEEK_RELATIVE for upload streams */);
+
 /** Read the next fragment from the buffer (for recording streams).
  * If there is data at the current read index, \a data will point to
  * the actual data and \a nbytes will contain the size of the data in

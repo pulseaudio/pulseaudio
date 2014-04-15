@@ -330,6 +330,7 @@ pa_stream_update_sample_rate;
 pa_stream_update_timing_info;
 pa_stream_writable_size;
 pa_stream_write;
+pa_stream_write_ext_free;
 pa_strerror;
 pa_sw_cvolume_divide;
 pa_sw_cvolume_divide_scalar;

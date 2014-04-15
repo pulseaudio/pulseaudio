@@ -85,10 +85,10 @@ pa_memblock *pa_memblock_new(pa_mempool *, size_t length);
 pa_memblock *pa_memblock_new_pool(pa_mempool *, size_t length);
 
 /* Allocate a new memory block of type PA_MEMBLOCK_USER */
-pa_memblock *pa_memblock_new_user(pa_mempool *, void *data, size_t length, pa_free_cb_t free_cb, bool read_only);
+pa_memblock *pa_memblock_new_user(pa_mempool *, void *data, size_t length, pa_free_cb_t free_cb, void *free_cb_data, bool read_only);
 
 /* A special case of pa_memblock_new_user: take a memory buffer previously allocated with pa_xmalloc()  */
-#define pa_memblock_new_malloced(p,data,length) pa_memblock_new_user(p, data, length, pa_xfree, 0)
+#define pa_memblock_new_malloced(p,data,length) pa_memblock_new_user(p, data, length, pa_xfree, data, 0)
 
 /* Allocate a new memory block of type PA_MEMBLOCK_FIXED */
 pa_memblock *pa_memblock_new_fixed(pa_mempool *, void *data, size_t length, bool read_only);

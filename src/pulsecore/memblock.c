@@ -83,6 +83,8 @@ struct pa_memblock {
         struct {
             /* If type == PA_MEMBLOCK_USER this points to a function for freeing this memory block */
             pa_free_cb_t free_cb;
+            /* If type == PA_MEMBLOCK_USER this is passed as free_cb argument */
+            void *free_cb_data;
         } user;
 
         struct {
@@ -402,7 +404,13 @@ pa_memblock *pa_memblock_new_fixed(pa_mempool *p, void *d, size_t length, bool r
 }
 
 /* No lock necessary */
-pa_memblock *pa_memblock_new_user(pa_mempool *p, void *d, size_t length, pa_free_cb_t free_cb, bool read_only) {
+pa_memblock *pa_memblock_new_user(
+        pa_mempool *p,
+        void *d,
+        size_t length,
+        pa_free_cb_t free_cb,
+        void *free_cb_data,
+        bool read_only) {
     pa_memblock *b;
 
     pa_assert(p);
@@ -425,6 +433,7 @@ pa_memblock *pa_memblock_new_user(pa_mempool *p, void *d, size_t length, pa_free
     pa_atomic_store(&b->please_signal, 0);
 
     b->per_type.user.free_cb = free_cb;
+    b->per_type.user.free_cb_data = free_cb_data;
 
     stat_add(b);
     return b;
@@ -536,7 +545,7 @@ static void memblock_free(pa_memblock *b) {
     switch (b->type) {
         case PA_MEMBLOCK_USER :
             pa_assert(b->per_type.user.free_cb);
-            b->per_type.user.free_cb(pa_atomic_ptr_load(&b->data));
+            b->per_type.user.free_cb(b->per_type.user.free_cb_data);
 
             /* Fall through */
 
@@ -670,6 +679,7 @@ static void memblock_make_local(pa_memblock *b) {
     /* Humm, not enough space in the pool, so lets allocate the memory with malloc() */
     b->per_type.user.free_cb = pa_xfree;
     pa_atomic_ptr_store(&b->data, pa_xmemdup(pa_atomic_ptr_load(&b->data), b->length));
+    b->per_type.user.free_cb_data = pa_atomic_ptr_load(&b->data);
 
     b->type = PA_MEMBLOCK_USER;
     b->read_only = false;
