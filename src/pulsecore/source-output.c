@@ -1061,8 +1061,8 @@ void pa_source_output_set_mute(pa_source_output *o, bool mute, bool save) {
     pa_assert_ctl_context();
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
 
-    if (!o->muted == !mute) {
-        o->save_muted = o->save_muted || mute;
+    if (mute == o->muted) {
+        o->save_muted |= save;
         return;
     }
 
