@@ -2235,4 +2235,5 @@ void pa_sink_input_set_volume_direct(pa_sink_input *i, const pa_cvolume *volume)
         i->volume_changed(i);
 
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_VOLUME_CHANGED], i);
 }
