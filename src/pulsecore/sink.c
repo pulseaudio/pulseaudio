@@ -2196,7 +2196,6 @@ void pa_sink_set_mute(pa_sink *s, bool mute, bool save) {
 
     pa_sink_assert_ref(s);
     pa_assert_ctl_context();
-    pa_assert(PA_SINK_IS_LINKED(s->state));
 
     old_muted = s->muted;
 
@@ -2210,6 +2209,9 @@ void pa_sink_set_mute(pa_sink *s, bool mute, bool save) {
 
     if (!(s->flags & PA_SINK_DEFERRED_VOLUME) && s->set_mute)
         s->set_mute(s);
+
+    if (!PA_SINK_IS_LINKED(s->state))
+        return;
 
     pa_log_debug("The mute of sink %s changed from %s to %s.", s->name, pa_yes_no(old_muted), pa_yes_no(mute));
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_MUTE, NULL, 0, NULL) == 0);

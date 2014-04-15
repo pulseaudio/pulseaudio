@@ -1789,7 +1789,6 @@ void pa_source_set_mute(pa_source *s, bool mute, bool save) {
 
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
-    pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
     old_muted = s->muted;
 
@@ -1803,6 +1802,9 @@ void pa_source_set_mute(pa_source *s, bool mute, bool save) {
 
     if (!(s->flags & PA_SOURCE_DEFERRED_VOLUME) && s->set_mute)
         s->set_mute(s);
+
+    if (!PA_SOURCE_IS_LINKED(s->state))
+        return;
 
     pa_log_debug("The mute of source %s changed from %s to %s.", s->name, pa_yes_no(old_muted), pa_yes_no(mute));
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_MUTE, NULL, 0, NULL) == 0);
