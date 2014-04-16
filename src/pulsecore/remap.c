@@ -26,6 +26,7 @@
 
 #include <string.h>
 
+#include <pulse/xmalloc.h>
 #include <pulse/sample.h>
 #include <pulse/volume.h>
 #include <pulsecore/log.h>
@@ -158,6 +159,60 @@ bool pa_setup_remap_arrange(const pa_remap_t *m, int8_t arrange[PA_CHANNELS_MAX]
     return true;
 }
 
+static void remap_arrange_stereo_s16ne_c(pa_remap_t *m, int16_t *dst, const int16_t *src, unsigned n) {
+    const unsigned n_ic = m->i_ss.channels;
+    const int8_t *arrange = m->state;
+    const int8_t ic0 = arrange[0], ic1 = arrange[1];
+
+    for (; n > 0; n--) {
+        *dst++ = (ic0 >= 0) ? *(src + ic0) : 0;
+        *dst++ = (ic1 >= 0) ? *(src + ic1) : 0;
+        src += n_ic;
+    }
+}
+
+static void remap_arrange_ch4_s16ne_c(pa_remap_t *m, int16_t *dst, const int16_t *src, unsigned n) {
+    const unsigned n_ic = m->i_ss.channels;
+    const int8_t *arrange = m->state;
+    const int8_t ic0 = arrange[0], ic1 = arrange[1],
+        ic2 = arrange[2], ic3 = arrange[3];
+
+    for (; n > 0; n--) {
+        *dst++ = (ic0 >= 0) ? *(src + ic0) : 0;
+        *dst++ = (ic1 >= 0) ? *(src + ic1) : 0;
+        *dst++ = (ic2 >= 0) ? *(src + ic2) : 0;
+        *dst++ = (ic3 >= 0) ? *(src + ic3) : 0;
+        src += n_ic;
+    }
+}
+
+static void remap_arrange_stereo_float32ne_c(pa_remap_t *m, float *dst, const float *src, unsigned n) {
+    const unsigned n_ic = m->i_ss.channels;
+    const int8_t *arrange = m->state;
+    const int ic0 = arrange[0], ic1 = arrange[1];
+
+    for (; n > 0; n--) {
+        *dst++ = (ic0 >= 0) ? *(src + ic0) : 0.0f;
+        *dst++ = (ic1 >= 0) ? *(src + ic1) : 0.0f;
+        src += n_ic;
+    }
+}
+
+static void remap_arrange_ch4_float32ne_c(pa_remap_t *m, float *dst, const float *src, unsigned n) {
+    const unsigned n_ic = m->i_ss.channels;
+    const int8_t *arrange = m->state;
+    const int ic0 = arrange[0], ic1 = arrange[1],
+        ic2 = arrange[2], ic3 = arrange[3];
+
+    for (; n > 0; n--) {
+        *dst++ = (ic0 >= 0) ? *(src + ic0) : 0.0f;
+        *dst++ = (ic1 >= 0) ? *(src + ic1) : 0.0f;
+        *dst++ = (ic2 >= 0) ? *(src + ic2) : 0.0f;
+        *dst++ = (ic3 >= 0) ? *(src + ic3) : 0.0f;
+        src += n_ic;
+    }
+}
+
 void pa_set_remap_func(pa_remap_t *m, pa_do_remap_func_t func_s16,
     pa_do_remap_func_t func_float) {
 
@@ -174,6 +229,7 @@ void pa_set_remap_func(pa_remap_t *m, pa_do_remap_func_t func_s16,
 /* set the function that will execute the remapping based on the matrices */
 static void init_remap_c(pa_remap_t *m) {
     unsigned n_oc, n_ic;
+    int8_t arrange[PA_CHANNELS_MAX];
 
     n_oc = m->o_ss.channels;
     n_ic = m->i_ss.channels;
@@ -185,9 +241,25 @@ static void init_remap_c(pa_remap_t *m) {
         pa_log_info("Using mono to stereo remapping");
         pa_set_remap_func(m, (pa_do_remap_func_t) remap_mono_to_stereo_s16ne_c,
             (pa_do_remap_func_t) remap_mono_to_stereo_float32ne_c);
-    } else {
-        pa_log_info("Using generic matrix remapping");
+    } else if (pa_setup_remap_arrange(m, arrange) && n_oc == 2) {
 
+        pa_log_info("Using stereo arrange remapping");
+        pa_set_remap_func(m, (pa_do_remap_func_t) remap_arrange_stereo_s16ne_c,
+            (pa_do_remap_func_t) remap_arrange_stereo_float32ne_c);
+
+        /* setup state */
+        m->state = pa_xnewdup(int8_t, arrange, PA_CHANNELS_MAX);
+    } else if (pa_setup_remap_arrange(m, arrange) && n_oc == 4) {
+
+        pa_log_info("Using 4-channel arrange remapping");
+        pa_set_remap_func(m, (pa_do_remap_func_t) remap_arrange_ch4_s16ne_c,
+            (pa_do_remap_func_t) remap_arrange_ch4_float32ne_c);
+
+        /* setup state */
+        m->state = pa_xnewdup(int8_t, arrange, PA_CHANNELS_MAX);
+    } else {
+
+        pa_log_info("Using generic matrix remapping");
         pa_set_remap_func(m, (pa_do_remap_func_t) remap_channels_matrix_s16ne_c,
             (pa_do_remap_func_t) remap_channels_matrix_float32ne_c);
     }
