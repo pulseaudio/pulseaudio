@@ -33,130 +33,107 @@
 
 #include "remap.h"
 
-static void remap_mono_to_stereo_c(pa_remap_t *m, void *dst, const void *src, unsigned n) {
+static void remap_mono_to_stereo_s16ne_c(pa_remap_t *m, int16_t *dst, const int16_t *src, unsigned n) {
     unsigned i;
 
-    switch (m->format) {
-        case PA_SAMPLE_FLOAT32NE:
-        {
-            float *d, *s;
-
-            d = (float *) dst;
-            s = (float *) src;
-
-            for (i = n >> 2; i; i--) {
-                d[0] = d[1] = s[0];
-                d[2] = d[3] = s[1];
-                d[4] = d[5] = s[2];
-                d[6] = d[7] = s[3];
-                s += 4;
-                d += 8;
-            }
-            for (i = n & 3; i; i--) {
-                d[0] = d[1] = s[0];
-                s++;
-                d += 2;
-            }
-            break;
-        }
-        case PA_SAMPLE_S16NE:
-        {
-            int16_t *d, *s;
-
-            d = (int16_t *) dst;
-            s = (int16_t *) src;
-
-            for (i = n >> 2; i; i--) {
-                d[0] = d[1] = s[0];
-                d[2] = d[3] = s[1];
-                d[4] = d[5] = s[2];
-                d[6] = d[7] = s[3];
-                s += 4;
-                d += 8;
-            }
-            for (i = n & 3; i; i--) {
-                d[0] = d[1] = s[0];
-                s++;
-                d += 2;
-            }
-            break;
-        }
-        default:
-            pa_assert_not_reached();
+    for (i = n >> 2; i; i--) {
+        dst[0] = dst[1] = src[0];
+        dst[2] = dst[3] = src[1];
+        dst[4] = dst[5] = src[2];
+        dst[6] = dst[7] = src[3];
+        src += 4;
+        dst += 8;
+    }
+    for (i = n & 3; i; i--) {
+        dst[0] = dst[1] = src[0];
+        src++;
+        dst += 2;
     }
 }
 
-static void remap_channels_matrix_c(pa_remap_t *m, void *dst, const void *src, unsigned n) {
+static void remap_mono_to_stereo_float32ne_c(pa_remap_t *m, float *dst, const float *src, unsigned n) {
+    unsigned i;
+
+    for (i = n >> 2; i; i--) {
+        dst[0] = dst[1] = src[0];
+        dst[2] = dst[3] = src[1];
+        dst[4] = dst[5] = src[2];
+        dst[6] = dst[7] = src[3];
+        src += 4;
+        dst += 8;
+    }
+    for (i = n & 3; i; i--) {
+        dst[0] = dst[1] = src[0];
+        src++;
+        dst += 2;
+    }
+}
+
+static void remap_channels_matrix_s16ne_c(pa_remap_t *m, void *dst, const void *src, unsigned n) {
     unsigned oc, ic, i;
     unsigned n_ic, n_oc;
 
     n_ic = m->i_ss.channels;
     n_oc = m->o_ss.channels;
 
-    switch (m->format) {
-        case PA_SAMPLE_FLOAT32NE:
-        {
-            float *d, *s;
+    memset(dst, 0, n * sizeof(int16_t) * n_oc);
 
-            memset(dst, 0, n * sizeof(float) * n_oc);
+    for (oc = 0; oc < n_oc; oc++) {
 
-            for (oc = 0; oc < n_oc; oc++) {
-
-                for (ic = 0; ic < n_ic; ic++) {
-                    float vol;
-
-                    vol = m->map_table_f[oc][ic];
-
-                    if (vol <= 0.0)
-                        continue;
-
-                    d = (float *)dst + oc;
-                    s = (float *)src + ic;
-
-                    if (vol >= 1.0) {
-                        for (i = n; i > 0; i--, s += n_ic, d += n_oc)
-                            *d += *s;
-                    } else {
-                        for (i = n; i > 0; i--, s += n_ic, d += n_oc)
-                            *d += *s * vol;
-                    }
-                }
-            }
-
-            break;
-        }
-        case PA_SAMPLE_S16NE:
-        {
+        for (ic = 0; ic < n_ic; ic++) {
             int16_t *d, *s;
+            int32_t vol;
 
-            memset(dst, 0, n * sizeof(int16_t) * n_oc);
+            vol = m->map_table_i[oc][ic];
 
-            for (oc = 0; oc < n_oc; oc++) {
+            if (vol <= 0)
+                continue;
 
-                for (ic = 0; ic < n_ic; ic++) {
-                    int32_t vol;
+            d = (int16_t *)dst + oc;
+            s = (int16_t *)src + ic;
 
-                    vol = m->map_table_i[oc][ic];
-
-                    if (vol <= 0)
-                        continue;
-
-                    d = (int16_t *)dst + oc;
-                    s = (int16_t *)src + ic;
-
-                    if (vol >= 0x10000) {
-                        for (i = n; i > 0; i--, s += n_ic, d += n_oc)
-                            *d += *s;
-                    } else {
-                        for (i = n; i > 0; i--, s += n_ic, d += n_oc)
-                            *d += (int16_t) (((int32_t)*s * vol) >> 16);
-                    }
-                }
+            if (vol >= 0x10000) {
+                for (i = n; i > 0; i--, s += n_ic, d += n_oc)
+                    *d += *s;
+            } else {
+                for (i = n; i > 0; i--, s += n_ic, d += n_oc)
+                    *d += (int16_t) (((int32_t)*s * vol) >> 16);
             }
-            break;
         }
-        default:
-            pa_assert_not_reached();
+    }
+}
+
+static void remap_channels_matrix_float32ne_c(pa_remap_t *m, void *dst, const void *src, unsigned n) {
+    unsigned oc, ic, i;
+    unsigned n_ic, n_oc;
+
+    n_ic = m->i_ss.channels;
+    n_oc = m->o_ss.channels;
+
+    memset(dst, 0, n * sizeof(float) * n_oc);
+
+    for (oc = 0; oc < n_oc; oc++) {
+
+        for (ic = 0; ic < n_ic; ic++) {
+            float *d, *s;
+            float vol;
+
+            vol = m->map_table_f[oc][ic];
+
+            if (vol <= 0.0)
+                continue;
+
+            d = (float *)dst + oc;
+            s = (float *)src + ic;
+
+            if (vol >= 1.0) {
+                for (i = n; i > 0; i--, s += n_ic, d += n_oc)
+                    *d += *s;
+            } else {
+                for (i = n; i > 0; i--, s += n_ic, d += n_oc)
+                    *d += *s * vol;
+            }
+        }
     }
 }
 
@@ -170,11 +147,30 @@ static void init_remap_c(pa_remap_t *m) {
     /* find some common channel remappings, fall back to full matrix operation. */
     if (n_ic == 1 && n_oc == 2 &&
             m->map_table_i[0][0] == 0x10000 && m->map_table_i[1][0] == 0x10000) {
-        m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_c;
+
         pa_log_info("Using mono to stereo remapping");
+        switch (m->format) {
+        case PA_SAMPLE_S16NE:
+            m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_s16ne_c;
+            break;
+        case PA_SAMPLE_FLOAT32NE:
+            m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_float32ne_c;
+            break;
+        default:
+            pa_assert_not_reached();
+        }
     } else {
-        m->do_remap = (pa_do_remap_func_t) remap_channels_matrix_c;
         pa_log_info("Using generic matrix remapping");
+        switch (m->format) {
+        case PA_SAMPLE_S16NE:
+            m->do_remap = (pa_do_remap_func_t) remap_channels_matrix_s16ne_c;
+            break;
+        case PA_SAMPLE_FLOAT32NE:
+            m->do_remap = (pa_do_remap_func_t) remap_channels_matrix_float32ne_c;
+            break;
+        default:
+            pa_assert_not_reached();
+        }
     }
 }
 

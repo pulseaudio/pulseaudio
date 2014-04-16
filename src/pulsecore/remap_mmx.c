@@ -102,33 +102,26 @@
                 " emms                          \n\t"
 
 #if defined (__i386__) || defined (__amd64__)
-static void remap_mono_to_stereo_mmx(pa_remap_t *m, void *dst, const void *src, unsigned n) {
+static void remap_mono_to_stereo_s16ne_mmx(pa_remap_t *m, void *dst, const void *src, unsigned n) {
     pa_reg_x86 temp, temp2;
 
-    switch (m->format) {
-        case PA_SAMPLE_FLOAT32NE:
-        {
-            __asm__ __volatile__ (
-                MONO_TO_STEREO(dq,3,7) /* do doubles to quads */
-                : "+r" (dst), "+r" (src), "=&r" (temp), "=&r" (temp2)
-                : "r" ((pa_reg_x86)n)
-                : "cc"
-            );
-            break;
-        }
-        case PA_SAMPLE_S16NE:
-        {
-            __asm__ __volatile__ (
-                MONO_TO_STEREO(wd,4,15) /* do words to doubles */
-                : "+r" (dst), "+r" (src), "=&r" (temp), "=&r" (temp2)
-                : "r" ((pa_reg_x86)n)
-                : "cc"
-            );
-            break;
-        }
-        default:
-            pa_assert_not_reached();
-    }
+    __asm__ __volatile__ (
+        MONO_TO_STEREO(wd,4,15) /* do words to doubles */
+        : "+r" (dst), "+r" (src), "=&r" (temp), "=&r" (temp2)
+        : "r" ((pa_reg_x86)n)
+        : "cc"
+    );
+}
+
+static void remap_mono_to_stereo_float32ne_mmx(pa_remap_t *m, void *dst, const void *src, unsigned n) {
+    pa_reg_x86 temp, temp2;
+
+    __asm__ __volatile__ (
+        MONO_TO_STEREO(dq,3,7) /* do doubles to quads */
+        : "+r" (dst), "+r" (src), "=&r" (temp), "=&r" (temp2)
+        : "r" ((pa_reg_x86)n)
+        : "cc"
+    );
 }
 
 /* set the function that will execute the remapping based on the matrices */
@@ -141,8 +134,18 @@ static void init_remap_mmx(pa_remap_t *m) {
     /* find some common channel remappings, fall back to full matrix operation. */
     if (n_ic == 1 && n_oc == 2 &&
             m->map_table_i[0][0] == 0x10000 && m->map_table_i[1][0] == 0x10000) {
-        m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_mmx;
+
         pa_log_info("Using MMX mono to stereo remapping");
+        switch (m->format) {
+        case PA_SAMPLE_S16NE:
+            m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_s16ne_mmx;
+            break;
+        case PA_SAMPLE_FLOAT32NE:
+            m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_float32ne_mmx;
+            break;
+        default:
+            pa_assert_not_reached();
+        }
     }
 }
 #endif /* defined (__i386__) || defined (__amd64__) */
