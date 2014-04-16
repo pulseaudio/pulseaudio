@@ -169,7 +169,7 @@ static void init_remap_c(pa_remap_t *m) {
 
     /* find some common channel remappings, fall back to full matrix operation. */
     if (n_ic == 1 && n_oc == 2 &&
-            m->map_table_i[0][0] == PA_VOLUME_NORM && m->map_table_i[1][0] == PA_VOLUME_NORM) {
+            m->map_table_i[0][0] == 0x10000 && m->map_table_i[1][0] == 0x10000) {
         m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_c;
         pa_log_info("Using mono to stereo remapping");
     } else {
