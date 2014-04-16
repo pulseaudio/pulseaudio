@@ -137,6 +137,35 @@ static void remap_channels_matrix_float32ne_c(pa_remap_t *m, void *dst, const vo
     }
 }
 
+bool pa_setup_remap_arrange(const pa_remap_t *m, int8_t arrange[PA_CHANNELS_MAX]) {
+    unsigned ic, oc;
+    unsigned n_ic, n_oc;
+
+    pa_assert(m);
+
+    n_ic = m->i_ss.channels;
+    n_oc = m->o_ss.channels;
+
+    for (oc = 0; oc < n_oc; oc++) {
+        arrange[oc] = -1;
+        for (ic = 0; ic < n_ic; ic++) {
+            int32_t vol = m->map_table_i[oc][ic];
+
+            /* input channel is not used */
+            if (vol == 0)
+                continue;
+
+            /* if mixing this channel, we cannot just rearrange */
+            if (vol != 0x10000 || arrange[oc] >= 0)
+                return false;
+
+            arrange[oc] = ic;
+        }
+    }
+
+    return true;
+}
+
 /* set the function that will execute the remapping based on the matrices */
 static void init_remap_c(pa_remap_t *m) {
     unsigned n_oc, n_ic;

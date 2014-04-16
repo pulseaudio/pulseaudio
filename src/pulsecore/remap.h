@@ -45,4 +45,14 @@ typedef void (*pa_init_remap_func_t) (pa_remap_t *m);
 pa_init_remap_func_t pa_get_init_remap_func(void);
 void pa_set_init_remap_func(pa_init_remap_func_t func);
 
+/* Check if remapping can be performed by just copying some or all input
+ * channels' data to output channels. Returns true and a table of input
+ * channel indices, or false otherwise.
+ *
+ * The table contains an entry for each output channels. Each table entry given
+ * either the input channel index to be copied, or -1 indicating that the
+ * output channel is not used and hence zero.
+ */
+bool pa_setup_remap_arrange(const pa_remap_t *m, int8_t arrange[PA_CHANNELS_MAX]);
+
 #endif /* fooremapfoo */
