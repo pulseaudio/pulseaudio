@@ -120,13 +120,13 @@ static void remap_channels_matrix_float32ne_c(pa_remap_t *m, void *dst, const vo
 
             vol = m->map_table_f[oc][ic];
 
-            if (vol <= 0.0)
+            if (vol <= 0.0f)
                 continue;
 
             d = (float *)dst + oc;
             s = (float *)src + ic;
 
-            if (vol >= 1.0) {
+            if (vol >= 1.0f) {
                 for (i = n; i > 0; i--, s += n_ic, d += n_oc)
                     *d += *s;
             } else {
