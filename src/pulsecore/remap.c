@@ -70,7 +70,116 @@ static void remap_mono_to_stereo_float32ne_c(pa_remap_t *m, float *dst, const fl
     }
 }
 
+static void remap_stereo_to_mono_s16ne_c(pa_remap_t *m, int16_t *dst, const int16_t *src, unsigned n) {
+    unsigned i;
+
+    for (i = n >> 2; i > 0; i--) {
+        dst[0] = (src[0] + src[1])/2;
+        dst[1] = (src[2] + src[3])/2;
+        dst[2] = (src[4] + src[5])/2;
+        dst[3] = (src[6] + src[7])/2;
+        src += 8;
+        dst += 4;
+    }
+    for (i = n & 3; i; i--) {
+        dst[0] = (src[0] + src[1])/2;
+        src += 2;
+        dst += 1;
+    }
+}
+
+static void remap_stereo_to_mono_float32ne_c(pa_remap_t *m, float *dst, const float *src, unsigned n) {
+    unsigned i;
+
+    for (i = n >> 2; i > 0; i--) {
+        dst[0] = (src[0] + src[1])*0.5f;
+        dst[1] = (src[2] + src[3])*0.5f;
+        dst[2] = (src[4] + src[5])*0.5f;
+        dst[3] = (src[6] + src[7])*0.5f;
+        src += 8;
+        dst += 4;
+    }
+    for (i = n & 3; i; i--) {
+        dst[0] = (src[0] + src[1])*0.5f;
+        src += 2;
+        dst += 1;
+    }
+}
+
+static void remap_mono_to_ch4_s16ne_c(pa_remap_t *m, int16_t *dst, const int16_t *src, unsigned n) {
+    unsigned i;
+
+    for (i = n >> 2; i; i--) {
+        dst[0] = dst[1] = dst[2] = dst[3] = src[0];
+        dst[4] = dst[5] = dst[6] = dst[7] = src[1];
+        dst[8] = dst[9] = dst[10] = dst[11] = src[2];
+        dst[12] = dst[13] = dst[14] = dst[15] = src[3];
+        src += 4;
+        dst += 16;
+    }
+    for (i = n & 3; i; i--) {
+        dst[0] = dst[1] = dst[2] = dst[3] = src[0];
+        src++;
+        dst += 4;
+    }
+}
+
+static void remap_mono_to_ch4_float32ne_c(pa_remap_t *m, float *dst, const float *src, unsigned n) {
+    unsigned i;
+
+    for (i = n >> 2; i; i--) {
+        dst[0] = dst[1] = dst[2] = dst[3] = src[0];
+        dst[4] = dst[5] = dst[6] = dst[7] = src[1];
+        dst[8] = dst[9] = dst[10] = dst[11] = src[2];
+        dst[12] = dst[13] = dst[14] = dst[15] = src[3];
+        src += 4;
+        dst += 16;
+    }
+    for (i = n & 3; i; i--) {
+        dst[0] = dst[1] = dst[2] = dst[3] = src[0];
+        src++;
+        dst += 4;
+    }
+}
+
+static void remap_ch4_to_mono_s16ne_c(pa_remap_t *m, int16_t *dst, const int16_t *src, unsigned n) {
+    unsigned i;
+
+    for (i = n >> 2; i > 0; i--) {
+        dst[0] = (src[0] + src[1] + src[2] + src[3])/4;
+        dst[1] = (src[4] + src[5] + src[6] + src[7])/4;
+        dst[2] = (src[8] + src[9] + src[10] + src[11])/4;
+        dst[3] = (src[12] + src[13] + src[14] + src[15])/4;
+        src += 16;
+        dst += 4;
+    }
+    for (i = n & 3; i; i--) {
+        dst[0] = (src[0] + src[1] + src[2] + src[3])/4;
+        src += 4;
+        dst += 1;
+    }
+}
+
+static void remap_ch4_to_mono_float32ne_c(pa_remap_t *m, float *dst, const float *src, unsigned n) {
+    unsigned i;
+
+    for (i = n >> 2; i > 0; i--) {
+        dst[0] = (src[0] + src[1] + src[2] + src[3])*0.25f;
+        dst[1] = (src[4] + src[5] + src[6] + src[7])*0.25f;
+        dst[2] = (src[8] + src[9] + src[10] + src[11])*0.25f;
+        dst[3] = (src[12] + src[13] + src[14] + src[15])*0.25f;
+        src += 16;
+        dst += 4;
+    }
+    for (i = n & 3; i; i--) {
+        dst[0] = (src[0] + src[1] + src[2] + src[3])*0.25f;
+        src += 4;
+        dst += 1;
+    }
+}
+
 static void remap_channels_matrix_s16ne_c(pa_remap_t *m, int16_t *dst, const int16_t *src, unsigned n) {
+
     unsigned oc, ic, i;
     unsigned n_ic, n_oc;
 
@@ -241,6 +350,26 @@ static void init_remap_c(pa_remap_t *m) {
         pa_log_info("Using mono to stereo remapping");
         pa_set_remap_func(m, (pa_do_remap_func_t) remap_mono_to_stereo_s16ne_c,
             (pa_do_remap_func_t) remap_mono_to_stereo_float32ne_c);
+    } else if (n_ic == 2 && n_oc == 1 &&
+            m->map_table_i[0][0] == 0x8000 && m->map_table_i[0][1] == 0x8000) {
+
+        pa_log_info("Using stereo to mono remapping");
+        pa_set_remap_func(m, (pa_do_remap_func_t) remap_stereo_to_mono_s16ne_c,
+            (pa_do_remap_func_t) remap_stereo_to_mono_float32ne_c);
+    } else if (n_ic == 1 && n_oc == 4 &&
+            m->map_table_i[0][0] == 0x10000 && m->map_table_i[1][0] == 0x10000 &&
+            m->map_table_i[2][0] == 0x10000 && m->map_table_i[3][0] == 0x10000) {
+
+        pa_log_info("Using mono to 4-channel remapping");
+        pa_set_remap_func(m, (pa_do_remap_func_t)remap_mono_to_ch4_s16ne_c,
+            (pa_do_remap_func_t) remap_mono_to_ch4_float32ne_c);
+    } else if (n_ic == 4 && n_oc == 1 &&
+            m->map_table_i[0][0] == 0x4000 && m->map_table_i[0][1] == 0x4000 &&
+            m->map_table_i[0][2] == 0x4000 && m->map_table_i[0][3] == 0x4000) {
+
+        pa_log_info("Using 4-channel to mono remapping");
+        pa_set_remap_func(m, (pa_do_remap_func_t) remap_ch4_to_mono_s16ne_c,
+            (pa_do_remap_func_t) remap_ch4_to_mono_float32ne_c);
     } else if (pa_setup_remap_arrange(m, arrange) && n_oc == 2) {
 
         pa_log_info("Using stereo arrange remapping");
