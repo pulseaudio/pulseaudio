@@ -35,6 +35,7 @@ struct pa_remap {
     float map_table_f[PA_CHANNELS_MAX][PA_CHANNELS_MAX];
     int32_t map_table_i[PA_CHANNELS_MAX][PA_CHANNELS_MAX];
     pa_do_remap_func_t do_remap;
+    void *state; /* optional state information for the remap function */
 };
 
 void pa_init_remap_func(pa_remap_t *m);

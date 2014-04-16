@@ -115,6 +115,7 @@ static int libsamplerate_init(pa_resampler*r);
 #endif
 
 static void setup_remap(const pa_resampler *r, pa_remap_t *m);
+static void free_remap(pa_remap_t *m);
 
 static int (* const init_table[])(pa_resampler*r) = {
 #ifdef HAVE_LIBSAMPLERATE
@@ -476,6 +477,8 @@ void pa_resampler_free(pa_resampler *r) {
         pa_memblock_unref(r->resample_buf.memblock);
     if (r->from_work_format_buf.memblock)
         pa_memblock_unref(r->from_work_format_buf.memblock);
+
+    free_remap(&r->remap);
 
     pa_xfree(r);
 }
@@ -1150,6 +1153,12 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m) {
 
     /* initialize the remapping function */
     pa_init_remap_func(m);
+}
+
+static void free_remap(pa_remap_t *m) {
+    pa_assert(m);
+
+    pa_xfree(m->state);
 }
 
 /* check if buf's memblock is large enough to hold 'len' bytes; create a
