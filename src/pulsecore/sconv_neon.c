@@ -18,8 +18,6 @@
 #include <config.h>
 #endif
 
-#include <pulse/rtclock.h>
-
 #include <pulsecore/macro.h>
 #include <pulsecore/endianmacros.h>
 
@@ -60,9 +58,10 @@ static void pa_sconv_s16le_from_f32ne_neon(unsigned n, const float *src, int16_t
 
 static void pa_sconv_s16le_to_f32ne_neon(unsigned n, const int16_t *src, float *dst) {
     unsigned i = n & 3;
+    const float invscale = 1.0f / (1 << 15);
 
     __asm__ __volatile__ (
-        "movs        %[n], %[n], lsr #2     \n\t"
+        "movs       %[n], %[n], lsr #2      \n\t"
         "beq        2f                      \n\t"
 
         "1:                                 \n\t"
@@ -81,7 +80,6 @@ static void pa_sconv_s16le_to_f32ne_neon(unsigned n, const int16_t *src, float *
     );
 
     /* leftovers */
-    const float invscale = 1.0f / (1 << 15);
     while (i--) {
         *dst++ = *src++ * invscale;
     }
