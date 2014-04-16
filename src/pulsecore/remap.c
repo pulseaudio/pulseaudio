@@ -36,7 +36,7 @@
 static void remap_mono_to_stereo_c(pa_remap_t *m, void *dst, const void *src, unsigned n) {
     unsigned i;
 
-    switch (*m->format) {
+    switch (m->format) {
         case PA_SAMPLE_FLOAT32NE:
         {
             float *d, *s;
@@ -90,10 +90,10 @@ static void remap_channels_matrix_c(pa_remap_t *m, void *dst, const void *src, u
     unsigned oc, ic, i;
     unsigned n_ic, n_oc;
 
-    n_ic = m->i_ss->channels;
-    n_oc = m->o_ss->channels;
+    n_ic = m->i_ss.channels;
+    n_oc = m->o_ss.channels;
 
-    switch (*m->format) {
+    switch (m->format) {
         case PA_SAMPLE_FLOAT32NE:
         {
             float *d, *s;
@@ -164,8 +164,8 @@ static void remap_channels_matrix_c(pa_remap_t *m, void *dst, const void *src, u
 static void init_remap_c(pa_remap_t *m) {
     unsigned n_oc, n_ic;
 
-    n_oc = m->o_ss->channels;
-    n_ic = m->i_ss->channels;
+    n_oc = m->o_ss.channels;
+    n_ic = m->i_ss.channels;
 
     /* find some common channel remappings, fall back to full matrix operation. */
     if (n_ic == 1 && n_oc == 2 &&

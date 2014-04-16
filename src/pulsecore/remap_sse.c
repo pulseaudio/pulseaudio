@@ -104,7 +104,7 @@
 static void remap_mono_to_stereo_sse2(pa_remap_t *m, void *dst, const void *src, unsigned n) {
     pa_reg_x86 temp, temp2;
 
-    switch (*m->format) {
+    switch (m->format) {
         case PA_SAMPLE_FLOAT32NE:
         {
             __asm__ __volatile__ (
@@ -134,8 +134,8 @@ static void remap_mono_to_stereo_sse2(pa_remap_t *m, void *dst, const void *src,
 static void init_remap_sse2(pa_remap_t *m) {
     unsigned n_oc, n_ic;
 
-    n_oc = m->o_ss->channels;
-    n_ic = m->i_ss->channels;
+    n_oc = m->o_ss.channels;
+    n_ic = m->i_ss.channels;
 
     /* find some common channel remappings, fall back to full matrix operation. */
     if (n_ic == 1 && n_oc == 2 &&

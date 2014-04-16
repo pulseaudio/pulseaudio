@@ -114,7 +114,7 @@ static int peaks_init(pa_resampler*r);
 static int libsamplerate_init(pa_resampler*r);
 #endif
 
-static void calc_map_table(const pa_resampler *r, pa_remap_t *m);
+static void setup_remap(const pa_resampler *r, pa_remap_t *m);
 
 static int (* const init_table[])(pa_resampler*r) = {
 #ifdef HAVE_LIBSAMPLERATE
@@ -378,11 +378,6 @@ pa_resampler* pa_resampler_new(
     r->i_ss = *a;
     r->o_ss = *b;
 
-    /* set up the remap structure */
-    r->remap.i_ss = &r->i_ss;
-    r->remap.o_ss = &r->o_ss;
-    r->remap.format = &r->work_format;
-
     if (am)
         r->i_cm = *am;
     else if (!pa_channel_map_init_auto(&r->i_cm, r->i_ss.channels, PA_CHANNEL_MAP_DEFAULT))
@@ -396,10 +391,8 @@ pa_resampler* pa_resampler_new(
     r->i_fz = pa_frame_size(a);
     r->o_fz = pa_frame_size(b);
 
-    /* compute channel remap table if needed */
-    if ((r->map_required = (r->i_ss.channels != r->o_ss.channels || (!(r->flags & PA_RESAMPLER_NO_REMAP) &&
-        !pa_channel_map_equal(&r->i_cm, &r->o_cm)))))
-        calc_map_table(r, &r->remap);
+    r->map_required = (r->i_ss.channels != r->o_ss.channels || (!(r->flags & PA_RESAMPLER_NO_REMAP) &&
+        !pa_channel_map_equal(&r->i_cm, &r->o_cm)));
 
     r->work_format = pa_resampler_choose_work_format(method, a->format, b->format, r->map_required);
     r->w_sz = pa_sample_size_of_format(r->work_format);
@@ -450,6 +443,10 @@ pa_resampler* pa_resampler_new(
     pa_log_debug("  format %s -> %s (intermediate %s)", pa_sample_format_to_string(a->format),
                  pa_sample_format_to_string(b->format), pa_sample_format_to_string(r->work_format));
     pa_log_debug("  channels %d -> %d (resampling %d)", a->channels, b->channels, r->work_channels);
+
+    /* set up the remap structure */
+    if (r->map_required)
+        setup_remap(r, &r->remap);
 
     /* initialize implementation */
     if (init_table[method](r) < 0)
@@ -788,7 +785,7 @@ static int front_rear_side(pa_channel_position_t p) {
     return ON_OTHER;
 }
 
-static void calc_map_table(const pa_resampler *r, pa_remap_t *m) {
+static void setup_remap(const pa_resampler *r, pa_remap_t *m) {
     unsigned oc, ic;
     unsigned n_oc, n_ic;
     bool ic_connected[PA_CHANNELS_MAX];
@@ -801,6 +798,10 @@ static void calc_map_table(const pa_resampler *r, pa_remap_t *m) {
 
     n_oc = r->o_ss.channels;
     n_ic = r->i_ss.channels;
+
+    m->format = r->work_format;
+    m->i_ss = r->i_ss;
+    m->o_ss = r->o_ss;
 
     memset(m->map_table_f, 0, sizeof(m->map_table_f));
     memset(m->map_table_i, 0, sizeof(m->map_table_i));

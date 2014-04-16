@@ -549,17 +549,12 @@ static void remap_test_mono_stereo_float(
         pa_init_remap_func_t init_func,
         pa_init_remap_func_t orig_init_func) {
 
-    pa_sample_format_t sf;
     pa_remap_t remap;
-    pa_sample_spec iss, oss;
     pa_do_remap_func_t orig_func, func;
 
-    iss.format = oss.format = sf = PA_SAMPLE_FLOAT32NE;
-    iss.channels = 1;
-    oss.channels = 2;
-    remap.format = &sf;
-    remap.i_ss = &iss;
-    remap.o_ss = &oss;
+    remap.format = PA_SAMPLE_FLOAT32NE;
+    remap.i_ss.channels = 1;
+    remap.o_ss.channels = 2;
     remap.map_table_f[0][0] = 1.0;
     remap.map_table_f[1][0] = 1.0;
     remap.map_table_i[0][0] = 0x10000;
@@ -588,17 +583,12 @@ static void remap_test_mono_stereo_s16(
         pa_init_remap_func_t init_func,
         pa_init_remap_func_t orig_init_func) {
 
-    pa_sample_format_t sf;
     pa_remap_t remap;
-    pa_sample_spec iss, oss;
     pa_do_remap_func_t orig_func, func;
 
-    iss.format = oss.format = sf = PA_SAMPLE_S16NE;
-    iss.channels = 1;
-    oss.channels = 2;
-    remap.format = &sf;
-    remap.i_ss = &iss;
-    remap.o_ss = &oss;
+    remap.format = PA_SAMPLE_S16NE;
+    remap.i_ss.channels = 1;
+    remap.o_ss.channels = 2;
     remap.map_table_f[0][0] = 1.0;
     remap.map_table_f[1][0] = 1.0;
     remap.map_table_i[0][0] = 0x10000;

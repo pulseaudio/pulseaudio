@@ -30,8 +30,8 @@ typedef struct pa_remap pa_remap_t;
 typedef void (*pa_do_remap_func_t) (pa_remap_t *m, void *d, const void *s, unsigned n);
 
 struct pa_remap {
-    pa_sample_format_t *format;
-    pa_sample_spec *i_ss, *o_ss;
+    pa_sample_format_t format;
+    pa_sample_spec i_ss, o_ss;
     float map_table_f[PA_CHANNELS_MAX][PA_CHANNELS_MAX];
     int32_t map_table_i[PA_CHANNELS_MAX][PA_CHANNELS_MAX];
     pa_do_remap_func_t do_remap;
