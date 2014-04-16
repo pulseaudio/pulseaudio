@@ -1150,7 +1150,7 @@ static void calc_map_table(pa_resampler *r) {
     pa_xfree(t);
 
     /* initialize the remapping function */
-    pa_init_remap(m);
+    pa_init_remap_func(m);
 }
 
 /* check if buf's memblock is large enough to hold 'len' bytes; create a

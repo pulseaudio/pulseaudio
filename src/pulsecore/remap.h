@@ -37,7 +37,7 @@ struct pa_remap {
     pa_do_remap_func_t do_remap;
 };
 
-void pa_init_remap (pa_remap_t *m);
+void pa_init_remap_func(pa_remap_t *m);
 
 /* custom installation of init functions */
 typedef void (*pa_init_remap_func_t) (pa_remap_t *m);

@@ -179,15 +179,15 @@ static void init_remap_c(pa_remap_t *m) {
 }
 
 /* default C implementation */
-static pa_init_remap_func_t remap_func = init_remap_c;
+static pa_init_remap_func_t init_remap_func = init_remap_c;
 
-void pa_init_remap(pa_remap_t *m) {
-    pa_assert(remap_func);
+void pa_init_remap_func(pa_remap_t *m) {
+    pa_assert(init_remap_func);
 
     m->do_remap = NULL;
 
     /* call the installed remap init function */
-    remap_func(m);
+    init_remap_func(m);
 
     if (m->do_remap == NULL) {
         /* nothing was installed, fallback to C version */
@@ -196,9 +196,9 @@ void pa_init_remap(pa_remap_t *m) {
 }
 
 pa_init_remap_func_t pa_get_init_remap_func(void) {
-    return remap_func;
+    return init_remap_func;
 }
 
 void pa_set_init_remap_func(pa_init_remap_func_t func) {
-    remap_func = func;
+    init_remap_func = func;
 }
