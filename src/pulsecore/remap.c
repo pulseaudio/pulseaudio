@@ -32,6 +32,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 
+#include "cpu.h"
 #include "remap.h"
 
 static void remap_mono_to_stereo_s16ne_c(pa_remap_t *m, int16_t *dst, const int16_t *src, unsigned n) {
@@ -361,6 +362,8 @@ void pa_set_remap_func(pa_remap_t *m, pa_do_remap_func_t func_s16,
         pa_assert_not_reached();
 }
 
+static bool force_generic_code = false;
+
 /* set the function that will execute the remapping based on the matrices */
 static void init_remap_c(pa_remap_t *m) {
     unsigned n_oc, n_ic;
@@ -370,6 +373,13 @@ static void init_remap_c(pa_remap_t *m) {
     n_ic = m->i_ss.channels;
 
     /* find some common channel remappings, fall back to full matrix operation. */
+    if (force_generic_code) {
+        pa_log_info("Forced to use generic matrix remapping");
+        pa_set_remap_func(m, (pa_do_remap_func_t) remap_channels_matrix_s16ne_c,
+            (pa_do_remap_func_t) remap_channels_matrix_float32ne_c);
+        return;
+    }
+
     if (n_ic == 1 && n_oc == 2 &&
             m->map_table_i[0][0] == 0x10000 && m->map_table_i[1][0] == 0x10000) {
 
@@ -451,4 +461,8 @@ pa_init_remap_func_t pa_get_init_remap_func(void) {
 
 void pa_set_init_remap_func(pa_init_remap_func_t func) {
     init_remap_func = func;
+}
+
+void pa_remap_func_init(const pa_cpu_info *cpu_info) {
+    force_generic_code = cpu_info->force_generic_code;
 }

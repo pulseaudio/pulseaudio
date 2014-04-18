@@ -32,6 +32,7 @@
 #include <pulsecore/g711.h>
 #include <pulsecore/endianmacros.h>
 
+#include "cpu.h"
 #include "mix.h"
 
 #define VOLUME_PADDING 32
@@ -605,6 +606,13 @@ static pa_do_mix_func_t do_mix_table[] = {
     [PA_SAMPLE_S24_32NE]  = (pa_do_mix_func_t) pa_mix_s24_32ne_c,
     [PA_SAMPLE_S24_32RE]  = (pa_do_mix_func_t) pa_mix_s24_32re_c
 };
+
+void pa_mix_func_init(const pa_cpu_info *cpu_info) {
+    if (cpu_info->force_generic_code)
+        do_mix_table[PA_SAMPLE_S16NE] = (pa_do_mix_func_t) pa_mix_generic_s16ne;
+    else
+        do_mix_table[PA_SAMPLE_S16NE] = (pa_do_mix_func_t) pa_mix_s16ne_c;
+}
 
 size_t pa_mix(
         pa_mix_info streams[],
