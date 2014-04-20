@@ -343,30 +343,16 @@ again:
 #endif
 
 #ifdef HAVE_FCHMOD
-    (void) fchmod(fd, m);
+    if (fchmod(fd, m) < 0) {
+        pa_assert_se(pa_close(fd) >= 0);
+        goto fail;
+    };
 #endif
 
     pa_assert_se(pa_close(fd) >= 0);
 }
-#endif
-
-#ifdef HAVE_LSTAT
-    if (lstat(dir, &st) < 0)
 #else
-    if (stat(dir, &st) < 0)
-#endif
-        goto fail;
-
-#ifndef OS_IS_WIN32
-    if (!S_ISDIR(st.st_mode) ||
-        (st.st_uid != uid) ||
-        (st.st_gid != gid) ||
-        ((st.st_mode & 0777) != m)) {
-        errno = EACCES;
-        goto fail;
-    }
-#else
-    pa_log_warn("Secure directory creation not supported on Win32.");
+    pa_log_warn("Secure directory creation not supported on this platform.");
 #endif
 
     return 0;
