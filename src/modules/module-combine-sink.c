@@ -610,7 +610,7 @@ static void unsuspend(struct userdata *u) {
     PA_IDXSET_FOREACH(o, u->outputs, idx)
         output_enable(o);
 
-    if (!u->time_event)
+    if (!u->time_event && u->adjust_time > 0)
         u->time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + u->adjust_time, time_callback, u);
 
     pa_log_info("Resumed successfully...");
