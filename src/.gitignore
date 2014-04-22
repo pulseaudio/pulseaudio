@@ -36,7 +36,10 @@ close-test
 connect-stress
 cpulimit-test
 cpulimit-test2
-cpu-test
+cpu-sconv-test
+cpu-remap-test
+cpu-mix-test
+cpu-volume-test
 extended-test
 flist-test
 format-test

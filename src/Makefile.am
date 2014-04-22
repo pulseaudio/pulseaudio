@@ -244,7 +244,10 @@ TESTS_default = \
 		volume-test \
 		mix-test \
 		proplist-test \
-		cpu-test \
+		cpu-mix-test \
+		cpu-remap-test \
+		cpu-sconv-test \
+		cpu-volume-test \
 		lock-autospawn-test \
 		mult-s16-test \
 		mix-special-test
@@ -510,10 +513,25 @@ proplist_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la li
 proplist_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 proplist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
-cpu_test_SOURCES = tests/cpu-test.c tests/runtime-test-util.h
-cpu_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
-cpu_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
-cpu_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
+cpu_mix_test_SOURCES = tests/cpu-mix-test.c tests/runtime-test-util.h
+cpu_mix_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+cpu_mix_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+cpu_mix_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
+
+cpu_remap_test_SOURCES = tests/cpu-remap-test.c tests/runtime-test-util.h
+cpu_remap_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+cpu_remap_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+cpu_remap_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
+
+cpu_sconv_test_SOURCES = tests/cpu-sconv-test.c tests/runtime-test-util.h
+cpu_sconv_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+cpu_sconv_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+cpu_sconv_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
+
+cpu_volume_test_SOURCES = tests/cpu-volume-test.c tests/runtime-test-util.h
+cpu_volume_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+cpu_volume_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+cpu_volume_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 mult_s16_test_SOURCES = tests/mult-s16-test.c tests/runtime-test-util.h
 mult_s16_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
