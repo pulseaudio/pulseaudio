@@ -284,7 +284,6 @@ static int handle_event(struct userdata *u) {
 
             case '-': {
                 char *name;
-                struct module_info *m;
 
                 if (!(name = read_string(u)))
                     goto fail;
