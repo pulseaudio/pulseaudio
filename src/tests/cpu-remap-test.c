@@ -327,6 +327,75 @@ START_TEST (remap_sse2_test) {
 END_TEST
 #endif /* defined (__i386__) || defined (__amd64__) */
 
+#if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
+START_TEST (remap_neon_test) {
+    pa_cpu_arm_flag_t flags = 0;
+    pa_init_remap_func_t init_func, orig_init_func;
+
+    pa_cpu_get_arm_flags(&flags);
+    if (!(flags & PA_CPU_ARM_NEON)) {
+        pa_log_info("NEON not supported. Skipping");
+        return;
+    }
+
+    orig_init_func = pa_get_init_remap_func();
+    pa_remap_func_init_neon(flags);
+    init_func = pa_get_init_remap_func();
+
+    pa_log_debug("Checking NEON remap (float, mono->stereo)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 1, 2, false);
+    pa_log_debug("Checking NEON remap (float, mono->4-channel)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 1, 4, false);
+
+    pa_log_debug("Checking NEON remap (s16, mono->stereo)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 1, 2, false);
+    pa_log_debug("Checking NEON remap (s16, mono->4-channel)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 1, 4, false);
+
+    pa_log_debug("Checking NEON remap (float, stereo->mono)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 2, 1, false);
+    pa_log_debug("Checking NEON remap (float, 4-channel->mono)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 4, 1, false);
+
+    pa_log_debug("Checking NEON remap (s16, stereo->mono)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 2, 1, false);
+    pa_log_debug("Checking NEON remap (s16, 4-channel->mono)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 4, 1, false);
+
+    pa_log_debug("Checking NEON remap (float, 4-channel->4-channel)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 4, 4, false);
+    pa_log_debug("Checking NEON remap (s16, 4-channel->4-channel)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 4, 4, false);
+}
+END_TEST
+
+START_TEST (rearrange_neon_test) {
+    pa_cpu_arm_flag_t flags = 0;
+    pa_init_remap_func_t init_func, orig_init_func;
+
+    pa_cpu_get_arm_flags(&flags);
+    if (!(flags & PA_CPU_ARM_NEON)) {
+        pa_log_info("NEON not supported. Skipping");
+        return;
+    }
+
+    orig_init_func = pa_get_init_remap_func();
+    pa_remap_func_init_neon(flags);
+    init_func = pa_get_init_remap_func();
+
+    pa_log_debug("Checking NEON remap (float, stereo rearrange)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 2, 2, true);
+    pa_log_debug("Checking NEON remap (s16, stereo rearrange)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 2, 2, true);
+
+    pa_log_debug("Checking NEON remap (float, 4-channel rearrange)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 4, 4, true);
+    pa_log_debug("Checking NEON remap (s16, 4-channel rearrange)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 4, 4, true);
+}
+END_TEST
+#endif
+
 int main(int argc, char *argv[]) {
     int failed = 0;
     Suite *s;
@@ -344,11 +413,17 @@ int main(int argc, char *argv[]) {
     tcase_add_test(tc, remap_mmx_test);
     tcase_add_test(tc, remap_sse2_test);
 #endif
+#if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
+    tcase_add_test(tc, remap_neon_test);
+#endif
     tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);
 
     tc = tcase_create("rearrange");
     tcase_add_test(tc, rearrange_special_test);
+#if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
+    tcase_add_test(tc, rearrange_neon_test);
+#endif
     tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);
 
