@@ -135,16 +135,7 @@ static void init_remap_sse2(pa_remap_t *m) {
             m->map_table_i[0][0] == 0x10000 && m->map_table_i[1][0] == 0x10000) {
 
         pa_log_info("Using SSE2 mono to stereo remapping");
-        switch (m->format) {
-        case PA_SAMPLE_S16NE:
-            m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_s16ne_sse2;
-            break;
-        case PA_SAMPLE_FLOAT32NE:
-            m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_float32ne_sse2;
-            break;
-        default:
-            pa_assert_not_reached();
-        }
+        pa_set_remap_func(m, remap_mono_to_stereo_s16ne_sse2, remap_mono_to_stereo_float32ne_sse2);
     }
 }
 #endif /* defined (__i386__) || defined (__amd64__) */

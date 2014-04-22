@@ -166,6 +166,19 @@ bool pa_setup_remap_arrange(const pa_remap_t *m, int8_t arrange[PA_CHANNELS_MAX]
     return true;
 }
 
+void pa_set_remap_func(pa_remap_t *m, pa_do_remap_func_t func_s16,
+    pa_do_remap_func_t func_float) {
+
+    pa_assert(m);
+
+    if (m->format == PA_SAMPLE_S16NE)
+        m->do_remap = func_s16;
+    else if (m->format == PA_SAMPLE_FLOAT32NE)
+        m->do_remap = func_float;
+    else
+        pa_assert_not_reached();
+}
+
 /* set the function that will execute the remapping based on the matrices */
 static void init_remap_c(pa_remap_t *m) {
     unsigned n_oc, n_ic;
@@ -178,28 +191,12 @@ static void init_remap_c(pa_remap_t *m) {
             m->map_table_i[0][0] == 0x10000 && m->map_table_i[1][0] == 0x10000) {
 
         pa_log_info("Using mono to stereo remapping");
-        switch (m->format) {
-        case PA_SAMPLE_S16NE:
-            m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_s16ne_c;
-            break;
-        case PA_SAMPLE_FLOAT32NE:
-            m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_float32ne_c;
-            break;
-        default:
-            pa_assert_not_reached();
-        }
+        pa_set_remap_func(m, (pa_do_remap_func_t) remap_mono_to_stereo_s16ne_c,
+            (pa_do_remap_func_t) remap_mono_to_stereo_float32ne_c);
     } else {
         pa_log_info("Using generic matrix remapping");
-        switch (m->format) {
-        case PA_SAMPLE_S16NE:
-            m->do_remap = (pa_do_remap_func_t) remap_channels_matrix_s16ne_c;
-            break;
-        case PA_SAMPLE_FLOAT32NE:
-            m->do_remap = (pa_do_remap_func_t) remap_channels_matrix_float32ne_c;
-            break;
-        default:
-            pa_assert_not_reached();
-        }
+
+        pa_set_remap_func(m, remap_channels_matrix_s16ne_c, remap_channels_matrix_float32ne_c);
     }
 }
 
