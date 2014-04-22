@@ -99,7 +99,9 @@ int main(int argc, char *argv[]) {
     GConfClient *client;
     GSList *modules, *m;
 
+#if !GLIB_CHECK_VERSION(2,36,0)
     g_type_init();
+#endif
 
     if (!(client = gconf_client_get_default()))
         goto fail;
