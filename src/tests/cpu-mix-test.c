@@ -32,8 +32,7 @@
 
 /* Only ARM NEON has mix tests, so disable the related functions for other
  * architectures for now to avoid compiler warnings about unused functions. */
-#if defined (__arm__) && defined (__linux__)
-#ifdef HAVE_NEON
+#if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
 
 #define SAMPLES 1028
 #define TIMES 1000
@@ -150,11 +149,9 @@ static void run_mix_test(
 
     pa_mempool_free(pool);
 }
-#endif /* HAVE_NEON */
-#endif /* defined (__arm__) && defined (__linux__) */
+#endif /* defined (__arm__) && defined (__linux__) && defined (HAVE_NEON) */
 
-#if defined (__arm__) && defined (__linux__)
-#ifdef HAVE_NEON
+#if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
 START_TEST (mix_neon_test) {
     pa_do_mix_func_t orig_func, neon_func;
     pa_cpu_arm_flag_t flags = 0;
@@ -174,8 +171,7 @@ START_TEST (mix_neon_test) {
     run_mix_test(neon_func, orig_func, 7, 2, true, true);
 }
 END_TEST
-#endif /* HAVE_NEON */
-#endif /* defined (__arm__) && defined (__linux__) */
+#endif /* defined (__arm__) && defined (__linux__) && defined (HAVE_NEON) */
 
 int main(int argc, char *argv[]) {
     int failed = 0;
@@ -189,10 +185,8 @@ int main(int argc, char *argv[]) {
     s = suite_create("CPU");
 
     tc = tcase_create("mix");
-#if defined (__arm__) && defined (__linux__)
-#if HAVE_NEON
+#if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
     tcase_add_test(tc, mix_neon_test);
-#endif
 #endif
     tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);

@@ -86,8 +86,7 @@ static void run_conv_test_float_to_s16(
 }
 
 /* This test is currently only run under NEON */
-#if defined (__arm__) && defined (__linux__)
-#ifdef HAVE_NEON
+#if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
 static void run_conv_test_s16_to_float(
         pa_convert_func_t func,
         pa_convert_func_t orig_func,
@@ -135,8 +134,7 @@ static void run_conv_test_s16_to_float(
         } PA_RUNTIME_TEST_RUN_STOP
     }
 }
-#endif /* HAVE_NEON */
-#endif /* defined (__arm__) && defined (__linux__) */
+#endif /* defined (__arm__) && defined (__linux__) && defined (HAVE_NEON) */
 
 #if defined (__i386__) || defined (__amd64__)
 START_TEST (sconv_sse2_test) {
@@ -194,8 +192,7 @@ START_TEST (sconv_sse_test) {
 END_TEST
 #endif /* defined (__i386__) || defined (__amd64__) */
 
-#if defined (__arm__) && defined (__linux__)
-#ifdef HAVE_NEON
+#if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
 START_TEST (sconv_neon_test) {
     pa_cpu_arm_flag_t flags = 0;
     pa_convert_func_t orig_from_func, neon_from_func;
@@ -235,8 +232,7 @@ START_TEST (sconv_neon_test) {
     run_conv_test_s16_to_float(neon_to_func, orig_to_func, 7, true, true);
 }
 END_TEST
-#endif /* HAVE_NEON */
-#endif /* defined (__arm__) && defined (__linux__) */
+#endif /* defined (__arm__) && defined (__linux__) && defined (HAVE_NEON) */
 
 int main(int argc, char *argv[]) {
     int failed = 0;
@@ -254,10 +250,8 @@ int main(int argc, char *argv[]) {
     tcase_add_test(tc, sconv_sse2_test);
     tcase_add_test(tc, sconv_sse_test);
 #endif
-#if defined (__arm__) && defined (__linux__)
-#if HAVE_NEON
+#if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
     tcase_add_test(tc, sconv_neon_test);
-#endif
 #endif
     tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);
