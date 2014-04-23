@@ -186,8 +186,14 @@ START_TEST (mix_neon_test) {
     pa_mix_func_init_neon(flags);
     neon_func = pa_get_mix_func(PA_SAMPLE_S16NE);
 
-    pa_log_debug("Checking NEON mix");
+    pa_log_debug("Checking NEON mix (s16, stereo)");
     run_mix_test(neon_func, orig_func, 7, 2, true, true);
+
+    pa_log_debug("Checking NEON mix (s16, 4-channel)");
+    run_mix_test(neon_func, orig_func, 7, 4, true, true);
+
+    pa_log_debug("Checking NEON mix (s16, mono)");
+    run_mix_test(neon_func, orig_func, 7, 1, true, true);
 }
 END_TEST
 #endif /* defined (__arm__) && defined (__linux__) && defined (HAVE_NEON) */
