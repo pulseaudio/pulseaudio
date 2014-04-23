@@ -147,7 +147,8 @@ static void setup_remap_channels(
     pa_remap_t *m,
     pa_sample_format_t f,
     unsigned in_channels,
-    unsigned out_channels) {
+    unsigned out_channels,
+    bool rearrange) {
 
     unsigned i, o;
 
@@ -155,10 +156,19 @@ static void setup_remap_channels(
     m->i_ss.channels = in_channels;
     m->o_ss.channels = out_channels;
 
-    for (o = 0; o < out_channels; o++) {
-        for (i = 0; i < in_channels; i++) {
-            m->map_table_f[o][i] = 1.0f / in_channels;
-            m->map_table_i[o][i] = 0x10000 / in_channels;
+    if (rearrange) {
+        for (o = 0; o < out_channels; o++) {
+            for (i = 0; i < in_channels; i++) {
+                m->map_table_f[o][i] = (o == i) ? 1.0f : 0.0f;
+                m->map_table_i[o][i] = (o == i) ? 0x10000 : 0;
+            }
+        }
+    } else {
+        for (o = 0; o < out_channels; o++) {
+            for (i = 0; i < in_channels; i++) {
+                m->map_table_f[o][i] = 1.0f / in_channels;
+                m->map_table_i[o][i] = 0x10000 / in_channels;
+            }
         }
     }
 }
@@ -201,14 +211,15 @@ static void remap_init_test_channels(
         pa_init_remap_func_t orig_init_func,
         pa_sample_format_t f,
         unsigned in_channels,
-        unsigned out_channels) {
+        unsigned out_channels,
+        bool rearrange) {
 
     pa_remap_t remap_orig, remap_func;
 
-    setup_remap_channels(&remap_orig, f, in_channels, out_channels);
+    setup_remap_channels(&remap_orig, f, in_channels, out_channels, rearrange);
     orig_init_func(&remap_orig);
 
-    setup_remap_channels(&remap_func, f, in_channels, out_channels);
+    setup_remap_channels(&remap_func, f, in_channels, out_channels, rearrange);
     init_func(&remap_func);
 
     remap_test_channels(&remap_func, &remap_orig);
@@ -217,19 +228,20 @@ static void remap_init_test_channels(
 static void remap_init2_test_channels(
         pa_sample_format_t f,
         unsigned in_channels,
-        unsigned out_channels) {
+        unsigned out_channels,
+        bool rearrange) {
 
     pa_cpu_info cpu_info = { PA_CPU_UNDEFINED, {}, false };
     pa_remap_t remap_orig, remap_func;
 
     cpu_info.force_generic_code = true;
     pa_remap_func_init(&cpu_info);
-    setup_remap_channels(&remap_orig, f, in_channels, out_channels);
+    setup_remap_channels(&remap_orig, f, in_channels, out_channels, rearrange);
     pa_init_remap_func(&remap_orig);
 
     cpu_info.force_generic_code = false;
     pa_remap_func_init(&cpu_info);
-    setup_remap_channels(&remap_func, f, in_channels, out_channels);
+    setup_remap_channels(&remap_func, f, in_channels, out_channels, rearrange);
     pa_init_remap_func(&remap_func);
 
     remap_test_channels(&remap_func, &remap_orig);
@@ -237,24 +249,37 @@ static void remap_init2_test_channels(
 
 START_TEST (remap_special_test) {
     pa_log_debug("Checking special remap (float, mono->stereo)");
-    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 1, 2);
+    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 1, 2, false);
     pa_log_debug("Checking special remap (float, mono->4-channel)");
-    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 1, 4);
+    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 1, 4, false);
 
     pa_log_debug("Checking special remap (s16, mono->stereo)");
-    remap_init2_test_channels(PA_SAMPLE_S16NE, 1, 2);
+    remap_init2_test_channels(PA_SAMPLE_S16NE, 1, 2, false);
     pa_log_debug("Checking special remap (s16, mono->4-channel)");
-    remap_init2_test_channels(PA_SAMPLE_S16NE, 1, 4);
+    remap_init2_test_channels(PA_SAMPLE_S16NE, 1, 4, false);
 
     pa_log_debug("Checking special remap (float, stereo->mono)");
-    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 2, 1);
+    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 2, 1, false);
     pa_log_debug("Checking special remap (float, 4-channel->mono)");
-    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 4, 1);
+    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 4, 1, false);
 
     pa_log_debug("Checking special remap (s16, stereo->mono)");
-    remap_init2_test_channels(PA_SAMPLE_S16NE, 2, 1);
+    remap_init2_test_channels(PA_SAMPLE_S16NE, 2, 1, false);
     pa_log_debug("Checking special remap (s16, 4-channel->mono)");
-    remap_init2_test_channels(PA_SAMPLE_S16NE, 4, 1);
+    remap_init2_test_channels(PA_SAMPLE_S16NE, 4, 1, false);
+}
+END_TEST
+
+START_TEST (rearrange_special_test) {
+    pa_log_debug("Checking special remap (s16, stereo rearrange)");
+    remap_init2_test_channels(PA_SAMPLE_S16NE, 2, 2, true);
+    pa_log_debug("Checking special remap (float, stereo rearrange)");
+    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 2, 2, true);
+
+    pa_log_debug("Checking special remap (s16, 4-channel rearrange)");
+    remap_init2_test_channels(PA_SAMPLE_S16NE, 4, 4, true);
+    pa_log_debug("Checking special remap (float, 4-channel rearrange)");
+    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 4, 4, true);
 }
 END_TEST
 
@@ -273,10 +298,10 @@ START_TEST (remap_mmx_test) {
     orig_init_func = pa_get_init_remap_func();
     pa_remap_func_init_mmx(flags);
     init_func = pa_get_init_remap_func();
-    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 1, 2);
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 1, 2, false);
 
     pa_log_debug("Checking MMX remap (s16, mono->stereo)");
-    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 1, 2);
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 1, 2, false);
 }
 END_TEST
 
@@ -294,10 +319,10 @@ START_TEST (remap_sse2_test) {
     orig_init_func = pa_get_init_remap_func();
     pa_remap_func_init_sse(flags);
     init_func = pa_get_init_remap_func();
-    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 1, 2);
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 1, 2, false);
 
     pa_log_debug("Checking SSE2 remap (s16, mono->stereo)");
-    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 1, 2);
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 1, 2, false);
 }
 END_TEST
 #endif /* defined (__i386__) || defined (__amd64__) */
@@ -319,6 +344,11 @@ int main(int argc, char *argv[]) {
     tcase_add_test(tc, remap_mmx_test);
     tcase_add_test(tc, remap_sse2_test);
 #endif
+    tcase_set_timeout(tc, 120);
+    suite_add_tcase(s, tc);
+
+    tc = tcase_create("rearrange");
+    tcase_add_test(tc, rearrange_special_test);
     tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);
 
