@@ -214,6 +214,50 @@ static void remap_init_test_channels(
     remap_test_channels(&remap_func, &remap_orig);
 }
 
+static void remap_init2_test_channels(
+        pa_sample_format_t f,
+        unsigned in_channels,
+        unsigned out_channels) {
+
+    pa_cpu_info cpu_info = { PA_CPU_UNDEFINED, {}, false };
+    pa_remap_t remap_orig, remap_func;
+
+    cpu_info.force_generic_code = true;
+    pa_remap_func_init(&cpu_info);
+    setup_remap_channels(&remap_orig, f, in_channels, out_channels);
+    pa_init_remap_func(&remap_orig);
+
+    cpu_info.force_generic_code = false;
+    pa_remap_func_init(&cpu_info);
+    setup_remap_channels(&remap_func, f, in_channels, out_channels);
+    pa_init_remap_func(&remap_func);
+
+    remap_test_channels(&remap_func, &remap_orig);
+}
+
+START_TEST (remap_special_test) {
+    pa_log_debug("Checking special remap (float, mono->stereo)");
+    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 1, 2);
+    pa_log_debug("Checking special remap (float, mono->4-channel)");
+    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 1, 4);
+
+    pa_log_debug("Checking special remap (s16, mono->stereo)");
+    remap_init2_test_channels(PA_SAMPLE_S16NE, 1, 2);
+    pa_log_debug("Checking special remap (s16, mono->4-channel)");
+    remap_init2_test_channels(PA_SAMPLE_S16NE, 1, 4);
+
+    pa_log_debug("Checking special remap (float, stereo->mono)");
+    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 2, 1);
+    pa_log_debug("Checking special remap (float, 4-channel->mono)");
+    remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 4, 1);
+
+    pa_log_debug("Checking special remap (s16, stereo->mono)");
+    remap_init2_test_channels(PA_SAMPLE_S16NE, 2, 1);
+    pa_log_debug("Checking special remap (s16, 4-channel->mono)");
+    remap_init2_test_channels(PA_SAMPLE_S16NE, 4, 1);
+}
+END_TEST
+
 #if defined (__i386__) || defined (__amd64__)
 START_TEST (remap_mmx_test) {
     pa_cpu_x86_flag_t flags = 0;
@@ -270,6 +314,7 @@ int main(int argc, char *argv[]) {
     s = suite_create("CPU");
 
     tc = tcase_create("remap");
+    tcase_add_test(tc, remap_special_test);
 #if defined (__i386__) || defined (__amd64__)
     tcase_add_test(tc, remap_mmx_test);
     tcase_add_test(tc, remap_sse2_test);
