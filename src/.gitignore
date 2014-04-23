@@ -55,7 +55,6 @@ mainloop-test-glib
 mcalign-test
 memblockq-test
 memblock-test
-mix-special-test
 mix-test
 once-test
 pacat-simple
