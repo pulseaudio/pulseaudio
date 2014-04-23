@@ -94,8 +94,8 @@ static void run_conv_test_s16_to_float(
         bool correct,
         bool perf) {
 
-    PA_DECLARE_ALIGNED(8, float, f[SAMPLES]) = { 0 };
-    PA_DECLARE_ALIGNED(8, float, f_ref[SAMPLES]) = { 0 };
+    PA_DECLARE_ALIGNED(8, float, f[SAMPLES]) = { 0.0f };
+    PA_DECLARE_ALIGNED(8, float, f_ref[SAMPLES]) = { 0.0f };
     PA_DECLARE_ALIGNED(8, int16_t, s[SAMPLES]);
     float *floats, *floats_ref;
     int16_t *samples;
@@ -114,7 +114,7 @@ static void run_conv_test_s16_to_float(
         func(nsamples, samples, floats);
 
         for (i = 0; i < nsamples; i++) {
-            if (fabsf(floats[i] - floats_ref[i]) > 0.0001) {
+            if (fabsf(floats[i] - floats_ref[i]) > 0.0001f) {
                 pa_log_debug("Correctness test failed: align=%d", align);
                 pa_log_debug("%d: %.24f != %.24f (%d)\n", i, floats[i], floats_ref[i], samples[i]);
                 fail();
