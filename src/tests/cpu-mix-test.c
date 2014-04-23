@@ -23,16 +23,13 @@
 
 #include <check.h>
 
+#include <pulsecore/cpu.h>
 #include <pulsecore/cpu-arm.h>
 #include <pulsecore/random.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/mix.h>
 
 #include "runtime-test-util.h"
-
-/* Only ARM NEON has mix tests, so disable the related functions for other
- * architectures for now to avoid compiler warnings about unused functions. */
-#if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
 
 #define SAMPLES 1028
 #define TIMES 1000
@@ -149,7 +146,29 @@ static void run_mix_test(
 
     pa_mempool_free(pool);
 }
-#endif /* defined (__arm__) && defined (__linux__) && defined (HAVE_NEON) */
+
+START_TEST (mix_special_test) {
+    pa_cpu_info cpu_info = { PA_CPU_UNDEFINED, {}, false };
+    pa_do_mix_func_t orig_func, special_func;
+
+    cpu_info.force_generic_code = true;
+    pa_mix_func_init(&cpu_info);
+    orig_func = pa_get_mix_func(PA_SAMPLE_S16NE);
+
+    cpu_info.force_generic_code = false;
+    pa_mix_func_init(&cpu_info);
+    special_func = pa_get_mix_func(PA_SAMPLE_S16NE);
+
+    pa_log_debug("Checking special mix (s16, stereo)");
+    run_mix_test(special_func, orig_func, 7, 2, true, true);
+
+    pa_log_debug("Checking special mix (s16, 4-channel)");
+    run_mix_test(special_func, orig_func, 7, 4, true, true);
+
+    pa_log_debug("Checking special mix (s16, mono)");
+    run_mix_test(special_func, orig_func, 7, 1, true, true);
+}
+END_TEST
 
 #if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
 START_TEST (mix_neon_test) {
@@ -185,6 +204,7 @@ int main(int argc, char *argv[]) {
     s = suite_create("CPU");
 
     tc = tcase_create("mix");
+    tcase_add_test(tc, mix_special_test);
 #if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
     tcase_add_test(tc, mix_neon_test);
 #endif
