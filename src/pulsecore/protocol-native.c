@@ -181,6 +181,7 @@ struct pa_native_connection {
     uint32_t rrobin_index;
     pa_subscription *subscription;
     pa_time_event *auth_timeout_event;
+    pa_srbchannel *srbpending;
 };
 
 #define PA_NATIVE_CONNECTION(o) (pa_native_connection_cast(o))
@@ -294,6 +295,7 @@ static void command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, 
 static void command_set_card_profile(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_set_sink_or_source_port(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_set_port_latency_offset(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = NULL,
@@ -396,6 +398,8 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_SET_SOURCE_PORT] = command_set_sink_or_source_port,
 
     [PA_COMMAND_SET_PORT_LATENCY_OFFSET] = command_set_port_latency_offset,
+
+    [PA_COMMAND_ENABLE_SRBCHANNEL] = command_enable_srbchannel,
 
     [PA_COMMAND_EXTENSION] = command_extension
 };
@@ -1326,6 +1330,9 @@ static void native_connection_unlink(pa_native_connection *c) {
 
     if (c->options)
         pa_native_options_unref(c->options);
+
+    if (c->srbpending)
+        pa_srbchannel_free(c->srbpending);
 
     while ((r = pa_idxset_first(c->record_streams, NULL)))
         record_stream_unlink(r);
@@ -2578,6 +2585,65 @@ static void command_exit(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
     pa_pstream_send_simple_ack(c->pstream, tag); /* nonsense */
 }
 
+static void setup_srbchannel(pa_native_connection *c) {
+    pa_srbchannel_template srbt;
+    pa_srbchannel *srb;
+    pa_memchunk mc;
+    pa_tagstruct *t;
+    int fdlist[2];
+
+    if (!c->options->srbchannel) {
+        pa_log_debug("Disabling srbchannel, reason: Disabled by module parameter");
+        return;
+    }
+
+    if (c->version < 30) {
+        pa_log_debug("Disabling srbchannel, reason: Protocol too old");
+        return;
+    }
+
+    if (!pa_pstream_get_shm(c->pstream)) {
+        pa_log_debug("Disabling srbchannel, reason: No SHM support");
+        return;
+    }
+
+    if (!c->protocol->core->rw_mempool) {
+        pa_log_debug("Disabling srbchannel, reason: No rw memory pool");
+        return;
+    }
+
+    pa_log_debug("Enabling srbchannel...");
+    srb = pa_srbchannel_new(c->protocol->core->mainloop, c->protocol->core->rw_mempool);
+    pa_srbchannel_export(srb, &srbt);
+
+    /* Send enable command to client */
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_ENABLE_SRBCHANNEL);
+    pa_tagstruct_putu32(t, (size_t) srb); /* tag */
+    fdlist[0] = srbt.readfd;
+    fdlist[1] = srbt.writefd;
+    pa_pstream_send_tagstruct_with_fds(c->pstream, t, 2, fdlist);
+
+    /* Send ringbuffer memblock to client */
+    mc.memblock = srbt.memblock;
+    mc.index = 0;
+    mc.length = pa_memblock_get_length(srbt.memblock);
+    pa_pstream_send_memblock(c->pstream, 0, 0, 0, &mc);
+
+    c->srbpending = srb;
+}
+
+static void command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
+
+    if (tag != (uint32_t) (size_t) c->srbpending)
+        protocol_error(c);
+
+    pa_log_debug("Client enabled srbchannel.");
+    pa_pstream_set_srbchannel(c->pstream, c->srbpending);
+    c->srbpending = NULL;
+}
+
 static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     const void*cookie;
@@ -2709,6 +2775,8 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
 #else
     pa_pstream_send_tagstruct(c->pstream, reply);
 #endif
+
+    setup_srbchannel(c);
 }
 
 static void command_set_client_name(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -5017,6 +5085,7 @@ void pa_native_protocol_connect(pa_native_protocol *p, pa_iochannel *io, pa_nati
     c->protocol = p;
     c->options = pa_native_options_ref(o);
     c->authorized = false;
+    c->srbpending = NULL;
 
     if (o->auth_anonymous) {
         pa_log_info("Client authenticated anonymously.");
@@ -5246,6 +5315,12 @@ int pa_native_options_parse(pa_native_options *o, pa_core *c, pa_modargs *ma) {
     pa_assert(o);
     pa_assert(PA_REFCNT_VALUE(o) >= 1);
     pa_assert(ma);
+
+    o->srbchannel = true;
+    if (pa_modargs_get_value_boolean(ma, "srbchannel", &o->srbchannel) < 0) {
+        pa_log("srbchannel= expects a boolean argument.");
+        return -1;
+    }
 
     if (pa_modargs_get_value_boolean(ma, "auth-anonymous", &o->auth_anonymous) < 0) {
         pa_log("auth-anonymous= expects a boolean argument.");

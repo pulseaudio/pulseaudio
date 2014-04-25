@@ -120,14 +120,17 @@
 #  endif
 
 #  if defined(HAVE_CREDS) && !defined(USE_TCP_SOCKETS)
-#    define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-group", "auth-group-enable",
+#    define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-group", "auth-group-enable", "srbchannel",
 #    define AUTH_USAGE "auth-group=<system group to allow access> auth-group-enable=<enable auth by UNIX group?> "
+#    define SRB_USAGE "srbchannel=<enable shared ringbuffer communication channel?> "
 #  elif defined(USE_TCP_SOCKETS)
 #    define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-ip-acl",
 #    define AUTH_USAGE "auth-ip-acl=<IP address ACL to allow access> "
+#    define SRB_USAGE
 #  else
 #    define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON
 #    define AUTH_USAGE
+#    define SRB_USAGE
 #    endif
 
   PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION);
@@ -135,6 +138,7 @@
                   "auth-cookie=<path to cookie file> "
                   "auth-cookie-enabled=<enable cookie authentication?> "
                   AUTH_USAGE
+                  SRB_USAGE
                   SOCKET_USAGE);
 #elif defined(USE_PROTOCOL_ESOUND)
 #  include <pulsecore/protocol-esound.h>

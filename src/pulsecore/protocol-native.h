@@ -44,6 +44,7 @@ typedef struct pa_native_options {
     pa_module *module;
 
     bool auth_anonymous;
+    bool srbchannel;
     char *auth_group;
     pa_ip_acl *auth_ip_acl;
     pa_auth_cookie *auth_cookie;
