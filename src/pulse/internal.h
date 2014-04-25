@@ -66,6 +66,9 @@ struct pa_context {
     pa_pstream *pstream;
     pa_pdispatch *pdispatch;
 
+    pa_srbchannel_template srb_template;
+    uint32_t srb_setup_tag;
+
     pa_hashmap *record_streams, *playback_streams;
     PA_LLIST_HEAD(pa_stream, streams);
     PA_LLIST_HEAD(pa_operation, operations);

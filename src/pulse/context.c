@@ -69,6 +69,8 @@
 #include "context.h"
 
 void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void pa_command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void pa_command_disable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = pa_command_request,
@@ -87,7 +89,9 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_RECORD_STREAM_EVENT] = pa_command_stream_event,
     [PA_COMMAND_CLIENT_EVENT] = pa_command_client_event,
     [PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED] = pa_command_stream_buffer_attr,
-    [PA_COMMAND_RECORD_BUFFER_ATTR_CHANGED] = pa_command_stream_buffer_attr
+    [PA_COMMAND_RECORD_BUFFER_ATTR_CHANGED] = pa_command_stream_buffer_attr,
+    [PA_COMMAND_ENABLE_SRBCHANNEL] = pa_command_enable_srbchannel,
+    [PA_COMMAND_DISABLE_SRBCHANNEL] = pa_command_disable_srbchannel,
 };
 static void context_free(pa_context *c);
 
@@ -165,6 +169,9 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     c->conf = pa_client_conf_new();
     pa_client_conf_load(c->conf, true, true);
 
+    c->srb_template.readfd = -1;
+    c->srb_template.writefd = -1;
+
     if (!(c->mempool = pa_mempool_new(!c->conf->disable_shm, c->conf->shm_size))) {
 
         if (!c->conf->disable_shm)
@@ -204,6 +211,11 @@ static void context_unlink(pa_context *c) {
         pa_pstream_unlink(c->pstream);
         pa_pstream_unref(c->pstream);
         c->pstream = NULL;
+    }
+
+    if (c->srb_template.memblock) {
+        pa_memblock_unref(c->srb_template.memblock);
+        c->srb_template.memblock = NULL;
     }
 
     if (c->client) {
@@ -331,6 +343,35 @@ static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_a
     pa_context_unref(c);
 }
 
+static void handle_srbchannel_memblock(pa_context *c, pa_memblock *memblock) {
+    pa_srbchannel *sr;
+    pa_tagstruct *t;
+
+    pa_assert(c);
+
+    /* Memblock sanity check */
+    if (!memblock)
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+    else if (pa_memblock_is_read_only(memblock))
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+    else if (pa_memblock_is_ours(memblock))
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+
+    /* Create the srbchannel */
+    c->srb_template.memblock = memblock;
+    pa_memblock_ref(memblock);
+    sr = pa_srbchannel_new_from_template(c->mainloop, &c->srb_template);
+
+    /* Ack the enable command */
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_ENABLE_SRBCHANNEL);
+    pa_tagstruct_putu32(t, c->srb_setup_tag);
+    pa_pstream_send_tagstruct(c->pstream, t);
+
+    /* ...and switch over */
+    pa_pstream_set_srbchannel(c->pstream, sr);
+}
+
 static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata) {
     pa_context *c = userdata;
     pa_stream *s;
@@ -342,6 +383,12 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     pa_context_ref(c);
+
+    if (c->srb_template.readfd != -1 && c->srb_template.memblock == NULL) {
+        handle_srbchannel_memblock(c, chunk->memblock);
+        pa_context_unref(c);
+        return;
+    }
 
     if ((s = pa_hashmap_get(c->record_streams, PA_UINT32_TO_PTR(channel)))) {
 
@@ -1361,6 +1408,65 @@ void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_t
 finish:
     pa_context_unref(c);
 }
+
+static void pa_command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_context *c = userdata;
+    const int *fds;
+    int nfd;
+
+    pa_assert(pd);
+    pa_assert(command == PA_COMMAND_ENABLE_SRBCHANNEL);
+    pa_assert(t);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    /* Currently only one srb channel is supported, might change in future versions */
+    if (c->srb_template.readfd != -1) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        return;
+    }
+
+    fds = pa_pdispatch_fds(pd, &nfd);
+    if (nfd != 2 || !fds || fds[0] == -1 || fds[1] == -1) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        return;
+    }
+
+    pa_context_ref(c);
+
+    c->srb_template.readfd = fds[0];
+    c->srb_template.writefd = fds[1];
+    c->srb_setup_tag = tag;
+
+    pa_context_unref(c);
+}
+
+static void pa_command_disable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_context *c = userdata;
+    pa_tagstruct *t2;
+
+    pa_assert(pd);
+    pa_assert(command == PA_COMMAND_DISABLE_SRBCHANNEL);
+    pa_assert(t);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    pa_pstream_set_srbchannel(c->pstream, NULL);
+
+    c->srb_template.readfd = -1;
+    c->srb_template.writefd = -1;
+    if (c->srb_template.memblock) {
+        pa_memblock_unref(c->srb_template.memblock);
+        c->srb_template.memblock = NULL;
+    }
+
+    /* Send disable command back again */
+    t2 = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t2, PA_COMMAND_DISABLE_SRBCHANNEL);
+    pa_tagstruct_putu32(t2, tag);
+    pa_pstream_send_tagstruct(c->pstream, t2);
+}
+
 
 void pa_command_client_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;

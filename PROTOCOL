@@ -351,6 +351,26 @@ New field in all commands that send/receive profile introspection data
 
 The field is added once for every profile.
 
+## v30, implemented by >= 6.0
+#
+A new protocol mechanism supported: Two ringbuffers in shared memory.
+Pulseaudio fdsem (wrappers around event file descriptors) are used for
+signalling new data.
+The protocol has a new SHM flag telling whether a SHM memblock is writable
+by both sides.
+
+PA_COMMAND_ENABLE_SRBCHANNEL
+First sent from server to client, tells the client to start listening on
+the additional SHM ringbuffer channel.
+This command also has ancillary data (two eventfds attached to it).
+Must be directly followed by a memblock which is the ringbuffer memory.
+When memblock is received by the client, it acks by sending
+PA_COMMAND_ENABLE_SRBCHANNEL back (without ancillary or memblock data).
+
+PA_COMMAND_DISABLE_SRBCHANNEL
+Tells the client to stop listening on the additional SHM ringbuffer channel.
+Acked by client by sending PA_COMMAND_DISABLE_SRBCHANNEL back.
+
 #### If you just changed the protocol, read this
 ## module-tunnel depends on the sink/source/sink-input/source-input protocol
 ## internals, so if you changed these, you might have broken module-tunnel.
