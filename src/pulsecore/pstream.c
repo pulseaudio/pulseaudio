@@ -45,11 +45,12 @@
 #include "pstream.h"
 
 /* We piggyback information if audio data blocks are stored in SHM on the seek mode */
-#define PA_FLAG_SHMDATA    0x80000000LU
-#define PA_FLAG_SHMRELEASE 0x40000000LU
-#define PA_FLAG_SHMREVOKE  0xC0000000LU
-#define PA_FLAG_SHMMASK    0xFF000000LU
-#define PA_FLAG_SEEKMASK   0x000000FFLU
+#define PA_FLAG_SHMDATA     0x80000000LU
+#define PA_FLAG_SHMRELEASE  0x40000000LU
+#define PA_FLAG_SHMREVOKE   0xC0000000LU
+#define PA_FLAG_SHMMASK     0xFF000000LU
+#define PA_FLAG_SEEKMASK    0x000000FFLU
+#define PA_FLAG_SHMWRITABLE 0x00800000LU
 
 /* The sequence descriptor header consists of 5 32bit integers: */
 enum {
@@ -504,10 +505,15 @@ static void prepare_next_write_item(pa_pstream *p) {
             size_t offset, length;
             uint32_t *shm_info = (uint32_t *) &p->write.minibuf[PA_PSTREAM_DESCRIPTOR_SIZE];
             size_t shm_size = sizeof(uint32_t) * PA_PSTREAM_SHM_MAX;
+            pa_mempool *current_pool = pa_memblock_get_pool(p->write.current->chunk.memblock);
+            pa_memexport *current_export;
 
-            pa_assert(p->export);
+            if (p->mempool == current_pool)
+                pa_assert_se(current_export = p->export);
+            else
+                pa_assert_se(current_export = pa_memexport_new(current_pool, memexport_revoke_cb, p));
 
-            if (pa_memexport_put(p->export,
+            if (pa_memexport_put(current_export,
                                  p->write.current->chunk.memblock,
                                  &block_id,
                                  &shm_id,
@@ -515,6 +521,8 @@ static void prepare_next_write_item(pa_pstream *p) {
                                  &length) >= 0) {
 
                 flags |= PA_FLAG_SHMDATA;
+                if (pa_mempool_is_remote_writable(current_pool))
+                    flags |= PA_FLAG_SHMWRITABLE;
                 send_payload = false;
 
                 shm_info[PA_PSTREAM_SHM_BLOCKID] = htonl(block_id);
@@ -527,6 +535,9 @@ static void prepare_next_write_item(pa_pstream *p) {
             }
 /*             else */
 /*                 pa_log_warn("Failed to export memory block."); */
+
+            if (current_export != p->export)
+                pa_memexport_free(current_export);
         }
 
         if (send_payload) {
@@ -824,8 +835,8 @@ static int do_read(pa_pstream *p) {
                 pa_packet_unref(p->read.packet);
             } else {
                 pa_memblock *b;
-
-                pa_assert((ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS]) & PA_FLAG_SHMMASK) == PA_FLAG_SHMDATA);
+                uint32_t flags = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS]);
+                pa_assert((flags & PA_FLAG_SHMMASK) == PA_FLAG_SHMDATA);
 
                 pa_assert(p->import);
 
@@ -833,7 +844,8 @@ static int do_read(pa_pstream *p) {
                                           ntohl(p->read.shm_info[PA_PSTREAM_SHM_BLOCKID]),
                                           ntohl(p->read.shm_info[PA_PSTREAM_SHM_SHMID]),
                                           ntohl(p->read.shm_info[PA_PSTREAM_SHM_INDEX]),
-                                          ntohl(p->read.shm_info[PA_PSTREAM_SHM_LENGTH])))) {
+                                          ntohl(p->read.shm_info[PA_PSTREAM_SHM_LENGTH]),
+                                          !!(flags & PA_FLAG_SHMWRITABLE)))) {
 
                     if (pa_log_ratelimit(PA_LOG_DEBUG))
                         pa_log_debug("Failed to import memory block.");
