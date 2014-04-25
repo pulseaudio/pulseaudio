@@ -31,6 +31,7 @@
 #include <pulsecore/packet.h>
 #include <pulsecore/memblock.h>
 #include <pulsecore/iochannel.h>
+#include <pulsecore/srbchannel.h>
 #include <pulsecore/memchunk.h>
 #include <pulsecore/creds.h>
 #include <pulsecore/macro.h>
@@ -65,5 +66,9 @@ bool pa_pstream_is_pending(pa_pstream *p);
 
 void pa_pstream_enable_shm(pa_pstream *p, bool enable);
 bool pa_pstream_get_shm(pa_pstream *p);
+
+/* Enables shared ringbuffer channel. Note that the srbchannel is now owned by the pstream.
+   Setting srb to NULL will free any existing srbchannel. */
+void pa_pstream_set_srbchannel(pa_pstream *p, pa_srbchannel *srb);
 
 #endif
