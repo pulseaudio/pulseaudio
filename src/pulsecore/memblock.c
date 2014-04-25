@@ -913,7 +913,7 @@ static pa_memimport_segment* segment_attach(pa_memimport *i, uint32_t shm_id) {
 
     seg = pa_xnew0(pa_memimport_segment, 1);
 
-    if (pa_shm_attach_ro(&seg->memory, shm_id) < 0) {
+    if (pa_shm_attach(&seg->memory, shm_id, false) < 0) {
         pa_xfree(seg);
         return NULL;
     }

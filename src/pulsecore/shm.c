@@ -290,16 +290,17 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
 
 #ifdef HAVE_SHM_OPEN
 
-int pa_shm_attach_ro(pa_shm *m, unsigned id) {
+int pa_shm_attach(pa_shm *m, unsigned id, bool writable) {
     char fn[32];
     int fd = -1;
+    int prot;
     struct stat st;
 
     pa_assert(m);
 
     segment_name(fn, sizeof(fn), m->id = id);
 
-    if ((fd = shm_open(fn, O_RDONLY, 0)) < 0) {
+    if ((fd = shm_open(fn, writable ? O_RDWR : O_RDONLY, 0)) < 0) {
         if (errno != EACCES && errno != ENOENT)
             pa_log("shm_open() failed: %s", pa_cstrerror(errno));
         goto fail;
@@ -319,7 +320,8 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
 
     m->size = (size_t) st.st_size;
 
-    if ((m->ptr = mmap(NULL, PA_PAGE_ALIGN(m->size), PROT_READ, MAP_SHARED, fd, (off_t) 0)) == MAP_FAILED) {
+    prot = writable ? PROT_READ | PROT_WRITE : PROT_READ;
+    if ((m->ptr = mmap(NULL, PA_PAGE_ALIGN(m->size), prot, MAP_SHARED, fd, (off_t) 0)) == MAP_FAILED) {
         pa_log("mmap() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
@@ -340,7 +342,7 @@ fail:
 
 #else /* HAVE_SHM_OPEN */
 
-int pa_shm_attach_ro(pa_shm *m, unsigned id) {
+int pa_shm_attach(pa_shm *m, unsigned id, bool writable) {
     return -1;
 }
 
@@ -375,7 +377,7 @@ int pa_shm_cleanup(void) {
         if (pa_atou(de->d_name + SHM_ID_LEN, &id) < 0)
             continue;
 
-        if (pa_shm_attach_ro(&seg, id) < 0)
+        if (pa_shm_attach(&seg, id, false) < 0)
             continue;
 
         if (seg.size < SHM_MARKER_SIZE) {
