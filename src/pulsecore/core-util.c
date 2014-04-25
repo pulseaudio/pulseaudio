@@ -336,7 +336,7 @@ again:
         uid = getuid();
     if (gid == (gid_t) -1)
         gid = getgid();
-    if (fchown(fd, uid, gid) < 0) {
+    if (((st.st_uid != uid) || (st.st_gid != gid)) && fchown(fd, uid, gid) < 0) {
         pa_assert_se(pa_close(fd) >= 0);
         goto fail;
     }
