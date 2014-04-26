@@ -27,10 +27,10 @@ ifelse(@OS_IS_WIN32@, 1, [dnl
 load-sample x11-bell %WINDIR%\Media\ding.wav
 load-sample-dir-lazy %WINDIR%\Media\*.wav
 ], [dnl
-#load-sample-lazy x11-bell /usr/share/sounds/gtk-events/activate.wav
-#load-sample-lazy pulse-hotplug /usr/share/sounds/startup3.wav
-#load-sample-lazy pulse-coldplug /usr/share/sounds/startup3.wav
-#load-sample-lazy pulse-access /usr/share/sounds/generic.wav
+#load-sample-lazy x11-bell /usr/share/sounds/freedesktop/stereo/bell.oga
+#load-sample-lazy pulse-hotplug /usr/share/sounds/freedesktop/stereo/device-added.oga
+#load-sample-lazy pulse-coldplug /usr/share/sounds/freedesktop/stereo/device-added.oga
+#load-sample-lazy pulse-access /usr/share/sounds/freedesktop/stereo/message.oga
 ])dnl
 
 .fail
@@ -176,7 +176,7 @@ ifelse(@HAVE_X11@, 1, [dnl
 # can be shared by multiple sessions.
 
 ### Load X11 bell module
-#load-module module-x11-bell sample=bell-windowing-system
+#load-module module-x11-bell sample=x11-bell
 
 ### Register ourselves in the X11 session manager
 #load-module module-x11-xsmp
