@@ -101,7 +101,7 @@
                 "4:                             \n\t"
 
 #if defined (__i386__) || defined (__amd64__)
-static void remap_mono_to_stereo_s16ne_sse2(pa_remap_t *m, void *dst, const void *src, unsigned n) {
+static void remap_mono_to_stereo_s16ne_sse2(pa_remap_t *m, int16_t *dst, const int16_t *src, unsigned n) {
     pa_reg_x86 temp, temp2;
 
     __asm__ __volatile__ (
@@ -112,7 +112,7 @@ static void remap_mono_to_stereo_s16ne_sse2(pa_remap_t *m, void *dst, const void
     );
 }
 
-static void remap_mono_to_stereo_float32ne_sse2(pa_remap_t *m, void *dst, const void *src, unsigned n) {
+static void remap_mono_to_stereo_float32ne_sse2(pa_remap_t *m, float *dst, const float *src, unsigned n) {
     pa_reg_x86 temp, temp2;
 
     __asm__ __volatile__ (
@@ -135,7 +135,8 @@ static void init_remap_sse2(pa_remap_t *m) {
             m->map_table_i[0][0] == 0x10000 && m->map_table_i[1][0] == 0x10000) {
 
         pa_log_info("Using SSE2 mono to stereo remapping");
-        pa_set_remap_func(m, remap_mono_to_stereo_s16ne_sse2, remap_mono_to_stereo_float32ne_sse2);
+        pa_set_remap_func(m, (pa_do_remap_func_t) remap_mono_to_stereo_s16ne_sse2,
+            (pa_do_remap_func_t) remap_mono_to_stereo_float32ne_sse2);
     }
 }
 #endif /* defined (__i386__) || defined (__amd64__) */

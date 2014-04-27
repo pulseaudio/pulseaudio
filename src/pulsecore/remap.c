@@ -69,7 +69,7 @@ static void remap_mono_to_stereo_float32ne_c(pa_remap_t *m, float *dst, const fl
     }
 }
 
-static void remap_channels_matrix_s16ne_c(pa_remap_t *m, void *dst, const void *src, unsigned n) {
+static void remap_channels_matrix_s16ne_c(pa_remap_t *m, int16_t *dst, const int16_t *src, unsigned n) {
     unsigned oc, ic, i;
     unsigned n_ic, n_oc;
 
@@ -81,16 +81,12 @@ static void remap_channels_matrix_s16ne_c(pa_remap_t *m, void *dst, const void *
     for (oc = 0; oc < n_oc; oc++) {
 
         for (ic = 0; ic < n_ic; ic++) {
-            int16_t *d, *s;
-            int32_t vol;
-
-            vol = m->map_table_i[oc][ic];
+            int16_t *d = dst + oc;
+            const int16_t *s = src + ic;
+            int32_t vol = m->map_table_i[oc][ic];
 
             if (vol <= 0)
                 continue;
-
-            d = (int16_t *)dst + oc;
-            s = (int16_t *)src + ic;
 
             if (vol >= 0x10000) {
                 for (i = n; i > 0; i--, s += n_ic, d += n_oc)
@@ -103,7 +99,7 @@ static void remap_channels_matrix_s16ne_c(pa_remap_t *m, void *dst, const void *
     }
 }
 
-static void remap_channels_matrix_float32ne_c(pa_remap_t *m, void *dst, const void *src, unsigned n) {
+static void remap_channels_matrix_float32ne_c(pa_remap_t *m, float *dst, const float *src, unsigned n) {
     unsigned oc, ic, i;
     unsigned n_ic, n_oc;
 
@@ -115,16 +111,12 @@ static void remap_channels_matrix_float32ne_c(pa_remap_t *m, void *dst, const vo
     for (oc = 0; oc < n_oc; oc++) {
 
         for (ic = 0; ic < n_ic; ic++) {
-            float *d, *s;
-            float vol;
-
-            vol = m->map_table_f[oc][ic];
+            float *d = dst + oc;
+            const float *s = src + ic;
+            float vol = m->map_table_f[oc][ic];
 
             if (vol <= 0.0f)
                 continue;
-
-            d = (float *)dst + oc;
-            s = (float *)src + ic;
 
             if (vol >= 1.0f) {
                 for (i = n; i > 0; i--, s += n_ic, d += n_oc)
@@ -196,7 +188,8 @@ static void init_remap_c(pa_remap_t *m) {
     } else {
         pa_log_info("Using generic matrix remapping");
 
-        pa_set_remap_func(m, remap_channels_matrix_s16ne_c, remap_channels_matrix_float32ne_c);
+        pa_set_remap_func(m, (pa_do_remap_func_t) remap_channels_matrix_s16ne_c,
+            (pa_do_remap_func_t) remap_channels_matrix_float32ne_c);
     }
 }
 
