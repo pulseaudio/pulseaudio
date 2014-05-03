@@ -779,7 +779,7 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
             pa_bluetooth_adapter *a;
 
             if ((a = pa_hashmap_get(y->adapters, path))) {
-                pa_log_error("Found duplicated D-Bus path for device %s", path);
+                pa_log_error("Found duplicated D-Bus path for adapter %s", path);
                 return;
             } else
                 a = adapter_create(y, path);
