@@ -177,14 +177,20 @@ AX_APPEND_COMPILE_FLAGS(
     [-Wall -W -Wextra -pipe -Wno-long-long -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -ffast-math -fno-common -fdiagnostics-show-option],
     [], [-pedantic -Werror])
 
-# Only enable fastpath asserts when doing a debug build, e.g. from bootstrap.sh.
-AS_CASE([" $CFLAGS "], [*" -O0 "*], [], [AX_APPEND_FLAG(["-DFASTPATH"], [CPPFLAGS])])
+AS_CASE([" $CFLAGS "], [*" -O0 "*], [], [
+    # Don't append the flag if it already exists.
+    # Only enable fastpath asserts when doing a debug build, e.g. from bootstrap.sh.
+    AX_APPEND_FLAG([-DFASTPATH], [CPPFLAGS])
 
-# Only set _FORTIFY_SOURCE when optimizations are enabled. If optimizations
-# are disabled, _FORTIFY_SOURCE doesn't do anything, and causes tons of
-# warnings during compiling on some distributions (at least Fedora).
-AS_CASE([" $CFLAGS "], [*" -O0 "*], [], [AX_APPEND_FLAG(["-D_FORTIFY_SOURCE=2"], [CPPFLAGS])])
+    # Cannot use AX_APPEND_FLAG here, as it assumes no space inside the added flags.
+    # Cannot append flags with AX_APPEND_FLAG one by one, as this would destroy all fortifications
+    # if CPPFLAGS already contain -D_FORTIFY_SOURCE=2.
 
+    # Warnings to be aware of that appear with -D_FORTIFY_SOURCE=2 but without -U_FORTIFY_SOURCE:
+    # On Fedora 20 with -O0: #warning _FORTIFY_SOURCE requires compiling with optimization (-O) [-Wcpp]
+    # On Gentoo with -O2:    "_FORTIFY_SOURCE" redefined [enabled by default]
+    AS_VAR_APPEND([CPPFLAGS],[" -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2"])
+])
 
 #### Linker flags ####
 
