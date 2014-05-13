@@ -39,6 +39,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
 #include <pulsecore/remap.h>
+#include <pulsecore/once.h>
 #include <pulsecore/core-util.h>
 #include "ffmpeg/avcodec.h"
 
@@ -185,6 +186,8 @@ static int (* const init_table[])(pa_resampler*r) = {
     [PA_RESAMPLER_PEAKS]                   = peaks_init,
 };
 
+static bool speex_is_fixed_point(void);
+
 static pa_resample_method_t choose_auto_resampler(pa_resample_flags_t flags) {
     pa_resample_method_t method;
 
@@ -250,6 +253,20 @@ static pa_resample_method_t pa_resampler_fix_method(
     if (method == PA_RESAMPLER_AUTO)
         method = choose_auto_resampler(flags);
 
+    /* At this point, method is supported in the sense that it
+     * has an init function and supports the required flags. However,
+     * speex-float implementation in PulseAudio relies on the
+     * assumption that is invalid if speex has been compiled with
+     * --enable-fixed-point. Besides, speex-fixed is more efficient
+     * in this configuration. So use it instead.
+     */
+    if (method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && method <= PA_RESAMPLER_SPEEX_FLOAT_MAX) {
+        if (speex_is_fixed_point()) {
+            pa_log_info("Speex appears to be compiled with --enable-fixed-point. "
+                        "Switching to a fixed-point resampler because it should be faster.");
+            method = method - PA_RESAMPLER_SPEEX_FLOAT_BASE + PA_RESAMPLER_SPEEX_FIXED_BASE;
+        }
+    }
     return method;
 }
 
@@ -1469,9 +1486,37 @@ static int libsamplerate_init(pa_resampler *r) {
 }
 #endif
 
-#ifdef HAVE_SPEEX
 /*** speex based implementation ***/
 
+static bool speex_is_fixed_point(void) {
+    static bool result = false;
+#ifdef HAVE_SPEEX
+    PA_ONCE_BEGIN {
+        float f_out = -1.0f, f_in = 1.0f;
+        spx_uint32_t in_len = 1, out_len = 1;
+        SpeexResamplerState *s;
+
+        pa_assert_se(s = speex_resampler_init(1, 1, 1,
+            SPEEX_RESAMPLER_QUALITY_MIN, NULL));
+
+        /* feed one sample that is too soft for fixed-point speex */
+        pa_assert_se(speex_resampler_process_float(s, 0, &f_in, &in_len,
+            &f_out, &out_len) == RESAMPLER_ERR_SUCCESS);
+
+        /* expecting sample has been processed, one sample output */
+        pa_assert_se(in_len == 1 && out_len == 1);
+
+        /* speex compiled with --enable-fixed-point will output 0.0 due to insufficient precision */
+        if (fabsf(f_out) < 0.00001f)
+            result = true;
+
+        speex_resampler_destroy(s);
+    } PA_ONCE_END;
+#endif
+    return result;
+}
+
+#ifdef HAVE_SPEEX
 static unsigned speex_resample_float(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
     float *in, *out;
     uint32_t inf = in_n_frames, outf = *out_n_frames;
@@ -1487,6 +1532,16 @@ static unsigned speex_resample_float(pa_resampler *r, const pa_memchunk *input, 
     in = pa_memblock_acquire_chunk(input);
     out = pa_memblock_acquire_chunk(output);
 
+    /* Strictly speaking, speex resampler expects its input
+     * to be normalized to the [-32768.0 .. 32767.0] range.
+     * This matters if speex has been compiled with --enable-fixed-point,
+     * because such speex will round the samples to the nearest
+     * integer. speex with --enable-fixed-point is therefore incompatible
+     * with PulseAudio's floating-point sample range [-1 .. 1]. speex
+     * without --enable-fixed-point works fine with this range.
+     * Care has been taken to call speex_resample_float() only
+     * for speex compiled without --enable-fixed-point.
+     */
     pa_assert_se(speex_resampler_process_interleaved_float(state, in, &inf, out, &outf) == 0);
 
     pa_memblock_release(input->memblock);
