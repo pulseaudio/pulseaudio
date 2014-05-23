@@ -555,8 +555,11 @@ static void fix_record_buffer_attr_pre(record_stream *s) {
     if (s->early_requests) {
 
         /* In early request mode we need to emulate the classic
-         * fragment-based playback model. We do this setting the source
-         * latency to the fragment size. */
+         * fragment-based playback model. Unfortunately we have no
+         * mechanism to tell the source how often we want it to send us
+         * data. The next best thing we can do is to set the source's
+         * total buffer (i.e. its latency) to the fragment size. That
+         * way it will have to send data at least that often. */
 
         source_usec = fragsize_usec;
 
@@ -584,10 +587,12 @@ static void fix_record_buffer_attr_pre(record_stream *s) {
 
     if (s->early_requests) {
 
-        /* Ok, we didn't necessarily get what we were asking for, so
-         * let's tell the user */
+        /* Ok, we didn't necessarily get what we were asking for. We
+         * might still get the proper fragment interval, we just can't
+         * guarantee it. */
 
-        fragsize_usec = s->configured_source_latency;
+        if (fragsize_usec != s->configured_source_latency)
+            pa_log_debug("Could not configure a sufficiently low latency. Early requests might not be satisifed.");
 
     } else if (s->adjust_latency) {
 
@@ -963,8 +968,11 @@ static void fix_playback_buffer_attr(playback_stream *s) {
     if (s->early_requests) {
 
         /* In early request mode we need to emulate the classic
-         * fragment-based playback model. We do this setting the sink
-         * latency to the fragment size. */
+         * fragment-based playback model. Unfortunately we have no
+         * mechanism to tell the sink how often we want to be queried
+         * for data. The next best thing we can do is to set the sink's
+         * total buffer (i.e. its latency) to the fragment size. That
+         * way it will have to query us at least that often. */
 
         sink_usec = minreq_usec;
         pa_log_debug("Early requests mode enabled, configuring sink latency to minreq.");
@@ -1013,10 +1021,12 @@ static void fix_playback_buffer_attr(playback_stream *s) {
 
     if (s->early_requests) {
 
-        /* Ok, we didn't necessarily get what we were asking for, so
-         * let's tell the user */
+        /* Ok, we didn't necessarily get what we were asking for. We
+         * might still get the proper fragment interval, we just can't
+         * guarantee it. */
 
-        minreq_usec = s->configured_sink_latency;
+        if (minreq_usec != s->configured_sink_latency)
+            pa_log_debug("Could not configure a sufficiently low latency. Early requests might not be satisifed.");
 
     } else if (s->adjust_latency) {
 
