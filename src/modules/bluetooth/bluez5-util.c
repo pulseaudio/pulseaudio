@@ -674,6 +674,7 @@ static void parse_adapter_properties(pa_bluetooth_adapter *a, DBusMessageIter *i
 
             dbus_message_iter_get_basic(&variant_i, &value);
             a->address = pa_xstrdup(value);
+            a->valid = true;
         }
 
         dbus_message_iter_next(&element_i);
@@ -787,7 +788,7 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
             pa_log_debug("Adapter %s found", path);
 
             parse_adapter_properties(a, &iface_i, false);
-            if (!a->address)
+            if (!a->valid)
                 return;
 
             register_endpoint(y, path, A2DP_SOURCE_ENDPOINT, PA_BLUETOOTH_UUID_A2DP_SOURCE);
@@ -819,7 +820,7 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
 
         if (!d->adapter && d->adapter_path) {
             d->adapter = pa_hashmap_get(d->discovery->adapters, d->adapter_path);
-            if (!d->adapter || !d->adapter->address) {
+            if (!d->adapter || !d->adapter->valid) {
                 pa_log_error("Device %s is child of nonexistent or corrupted adapter %s", d->path, d->adapter_path);
                 set_device_info_valid(d, -1);
             } else

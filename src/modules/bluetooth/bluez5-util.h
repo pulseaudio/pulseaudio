@@ -93,6 +93,8 @@ struct pa_bluetooth_adapter {
     pa_bluetooth_discovery *discovery;
     char *path;
     char *address;
+
+    bool valid;
 };
 
 pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,
