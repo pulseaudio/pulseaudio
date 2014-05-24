@@ -201,7 +201,7 @@ static pa_resample_method_t choose_auto_resampler(pa_resample_flags_t flags) {
     return method;
 }
 
-static pa_resample_method_t pa_resampler_fix_method(
+static pa_resample_method_t fix_method(
                 pa_resample_flags_t flags,
                 pa_resample_method_t method,
                 const uint32_t rate_a,
@@ -317,7 +317,7 @@ static bool sample_format_more_precise(pa_sample_format_t a, pa_sample_format_t 
     }
 }
 
-static pa_sample_format_t pa_resampler_choose_work_format(
+static pa_sample_format_t choose_work_format(
                     pa_resample_method_t method,
                     pa_sample_format_t a,
                     pa_sample_format_t b,
@@ -385,7 +385,7 @@ pa_resampler* pa_resampler_new(
     pa_assert(method >= 0);
     pa_assert(method < PA_RESAMPLER_MAX);
 
-    method = pa_resampler_fix_method(flags, method, a->rate, b->rate);
+    method = fix_method(flags, method, a->rate, b->rate);
 
     r = pa_xnew0(pa_resampler, 1);
     r->mempool = pool;
@@ -412,7 +412,7 @@ pa_resampler* pa_resampler_new(
     r->map_required = (r->i_ss.channels != r->o_ss.channels || (!(r->flags & PA_RESAMPLER_NO_REMAP) &&
         !pa_channel_map_equal(&r->i_cm, &r->o_cm)));
 
-    r->work_format = pa_resampler_choose_work_format(method, a->format, b->format, r->map_required);
+    r->work_format = choose_work_format(method, a->format, b->format, r->map_required);
     r->w_sz = pa_sample_size_of_format(r->work_format);
 
     if (r->i_ss.format != r->work_format) {
