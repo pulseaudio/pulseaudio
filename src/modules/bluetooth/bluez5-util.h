@@ -76,7 +76,9 @@ struct pa_bluetooth_device {
     pa_bluetooth_discovery *discovery;
     pa_bluetooth_adapter *adapter;
 
-    int device_info_valid;      /* 0: no results yet; 1: good results; -1: bad results ... */
+    bool properties_received;
+    bool tried_to_link_with_adapter;
+    bool valid;
 
     /* Device information */
     char *path;

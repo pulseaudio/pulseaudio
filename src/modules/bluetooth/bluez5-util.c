@@ -278,7 +278,7 @@ bool pa_bluetooth_device_any_transport_connected(const pa_bluetooth_device *d) {
 
     pa_assert(d);
 
-    if (d->device_info_valid != 1)
+    if (!d->valid)
         return false;
 
     for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++)
@@ -378,9 +378,8 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_path(pa_bluetooth_disc
     pa_assert(PA_REFCNT_VALUE(y) > 0);
     pa_assert(path);
 
-    if ((d = pa_hashmap_get(y->devices, path)))
-        if (d->device_info_valid == 1)
-            return d;
+    if ((d = pa_hashmap_get(y->devices, path)) && d->valid)
+        return d;
 
     return NULL;
 }
@@ -395,7 +394,7 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_address(pa_bluetooth_d
     pa_assert(local);
 
     while ((d = pa_hashmap_iterate(y->devices, &state, NULL)))
-        if (d->device_info_valid == 1 && pa_streq(d->address, remote) && pa_streq(d->adapter->address, local))
+        if (d->valid && pa_streq(d->address, remote) && pa_streq(d->adapter->address, local))
             return d;
 
     return NULL;
@@ -437,20 +436,52 @@ static void device_remove(pa_bluetooth_discovery *y, const char *path) {
     }
 }
 
-static void set_device_info_valid(pa_bluetooth_device *device, int valid) {
+static void device_set_valid(pa_bluetooth_device *device, bool valid) {
     bool old_any_connected;
 
     pa_assert(device);
-    pa_assert(valid == -1 || valid == 0 || valid == 1);
 
-    if (valid == device->device_info_valid)
+    if (valid == device->valid)
         return;
 
     old_any_connected = pa_bluetooth_device_any_transport_connected(device);
-    device->device_info_valid = valid;
+    device->valid = valid;
 
     if (pa_bluetooth_device_any_transport_connected(device) != old_any_connected)
         pa_hook_fire(&device->discovery->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED], device);
+}
+
+static void device_update_valid(pa_bluetooth_device *d) {
+    pa_assert(d);
+
+    if (!d->properties_received) {
+        pa_assert(!d->valid);
+        return;
+    }
+
+    /* Check if mandatory properties are set. */
+    if (!d->address || !d->adapter_path || !d->alias) {
+        device_set_valid(d, false);
+        return;
+    }
+
+    if (!d->adapter || !d->adapter->valid) {
+        device_set_valid(d, false);
+        return;
+    }
+
+    device_set_valid(d, true);
+}
+
+static void device_set_adapter(pa_bluetooth_device *device, pa_bluetooth_adapter *adapter) {
+    pa_assert(device);
+
+    if (adapter == device->adapter)
+        return;
+
+    device->adapter = adapter;
+
+    device_update_valid(device);
 }
 
 static pa_bluetooth_adapter* adapter_create(pa_bluetooth_discovery *y, const char *path) {
@@ -476,10 +507,8 @@ static void adapter_free(pa_bluetooth_adapter *a) {
     pa_assert(a->discovery);
 
     PA_HASHMAP_FOREACH(d, a->discovery->devices, state)
-        if (d->adapter == a) {
-            set_device_info_valid(d, -1);
-            d->adapter = NULL;
-        }
+        if (d->adapter == a)
+            device_set_adapter(d, NULL);
 
     pa_xfree(a->path);
     pa_xfree(a->address);
@@ -497,7 +526,7 @@ static void adapter_remove(pa_bluetooth_discovery *y, const char *path) {
     }
 }
 
-static void parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, bool is_property_change) {
+static void parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i) {
     const char *key;
     DBusMessageIter variant_i;
 
@@ -522,7 +551,7 @@ static void parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, bo
                 d->alias = pa_xstrdup(value);
                 pa_log_debug("%s: %s", key, value);
             } else if (pa_streq(key, "Address")) {
-                if (is_property_change) {
+                if (d->properties_received) {
                     pa_log_warn("Device property 'Address' expected to be constant but changed for %s, ignoring", d->path);
                     return;
                 }
@@ -545,7 +574,7 @@ static void parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, bo
 
             if (pa_streq(key, "Adapter")) {
 
-                if (is_property_change) {
+                if (d->properties_received) {
                     pa_log_warn("Device property 'Adapter' expected to be constant but changed for %s, ignoring", d->path);
                     return;
                 }
@@ -556,11 +585,6 @@ static void parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, bo
                 }
 
                 d->adapter_path = pa_xstrdup(value);
-
-                d->adapter = pa_hashmap_get(d->discovery->adapters, value);
-                if (!d->adapter)
-                    pa_log_info("Device %s: 'Adapter' property references an unknown adapter %s.", d->path, value);
-
                 pa_log_debug("%s: %s", key, value);
             }
 
@@ -610,7 +634,7 @@ static void parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i, bo
     }
 }
 
-static int parse_device_properties(pa_bluetooth_device *d, DBusMessageIter *i, bool is_property_change) {
+static void parse_device_properties(pa_bluetooth_device *d, DBusMessageIter *i) {
     DBusMessageIter element_i;
 
     dbus_message_iter_recurse(i, &element_i);
@@ -619,23 +643,16 @@ static int parse_device_properties(pa_bluetooth_device *d, DBusMessageIter *i, b
         DBusMessageIter dict_i;
 
         dbus_message_iter_recurse(&element_i, &dict_i);
-        parse_device_property(d, &dict_i, is_property_change);
+        parse_device_property(d, &dict_i);
         dbus_message_iter_next(&element_i);
     }
 
-    if (!d->address || !d->adapter_path || !d->alias) {
-        pa_log_error("Non-optional information missing for device %s", d->path);
-        set_device_info_valid(d, -1);
-        return -1;
+    if (!d->properties_received) {
+        d->properties_received = true;
+
+        if (!d->address || !d->adapter_path || !d->alias)
+            pa_log_error("Non-optional information missing for device %s", d->path);
     }
-
-    if (!is_property_change && d->adapter)
-        set_device_info_valid(d, 1);
-
-    /* If d->adapter is NULL, device_info_valid will be left as 0, and updated
-     * after all interfaces have been parsed. */
-
-    return 0;
 }
 
 static void parse_adapter_properties(pa_bluetooth_adapter *a, DBusMessageIter *i, bool is_property_change) {
@@ -788,6 +805,7 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
             pa_log_debug("Adapter %s found", path);
 
             parse_adapter_properties(a, &iface_i, false);
+
             if (!a->valid)
                 return;
 
@@ -797,7 +815,7 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
         } else if (pa_streq(interface, BLUEZ_DEVICE_INTERFACE)) {
 
             if ((d = pa_hashmap_get(y->devices, path))) {
-                if (d->device_info_valid != 0) {
+                if (d->properties_received) {
                     pa_log_error("Found duplicated D-Bus path for device %s", path);
                     return;
                 }
@@ -806,7 +824,7 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
 
             pa_log_debug("Device %s found", d->path);
 
-            parse_device_properties(d, &iface_i, false);
+            parse_device_properties(d, &iface_i);
 
         } else
             pa_log_debug("Unknown interface %s found, skipping", interface);
@@ -815,16 +833,17 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
     }
 
     PA_HASHMAP_FOREACH(d, y->devices, state) {
-        if (d->device_info_valid != 0)
-            continue;
+        if (d->properties_received && !d->tried_to_link_with_adapter) {
+            if (d->adapter_path) {
+                device_set_adapter(d, pa_hashmap_get(d->discovery->adapters, d->adapter_path));
 
-        if (!d->adapter && d->adapter_path) {
-            d->adapter = pa_hashmap_get(d->discovery->adapters, d->adapter_path);
-            if (!d->adapter || !d->adapter->valid) {
-                pa_log_error("Device %s is child of nonexistent or corrupted adapter %s", d->path, d->adapter_path);
-                set_device_info_valid(d, -1);
-            } else
-                set_device_info_valid(d, 1);
+                if (!d->adapter)
+                    pa_log("Device %s points to a nonexistent adapter %s.", d->path, d->adapter_path);
+                else if (!d->adapter->valid)
+                    pa_log("Device %s points to an invalid adapter %s.", d->path, d->adapter_path);
+            }
+
+            d->tried_to_link_with_adapter = true;
         }
     }
 
@@ -1018,12 +1037,10 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
             }
 
-            if (d->device_info_valid != 1) {
-                pa_log_warn("Properties changed in a device which information is unknown or invalid");
+            if (!d->properties_received)
                 return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
-            }
 
-            parse_device_properties(d, &arg_i, true);
+            parse_device_properties(d, &arg_i);
         } else if (pa_streq(iface, BLUEZ_MEDIA_TRANSPORT_INTERFACE)) {
             pa_bluetooth_transport *t;
 
@@ -1227,7 +1244,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     }
 
     if ((d = pa_hashmap_get(y->devices, dev_path))) {
-        if (d->device_info_valid == -1) {
+        if (!d->valid) {
             pa_log_error("Information about device %s is invalid", dev_path);
             goto fail2;
         }
