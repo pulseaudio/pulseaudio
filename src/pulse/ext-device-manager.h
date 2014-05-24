@@ -34,6 +34,9 @@
 
 PA_C_DECL_BEGIN
 
+/* Don't extend this struct! It will break binary compatibility, because
+ * pa_ext_device_manager_info.role_priorities points to an array of structs
+ * instead of an array of pointers to structs. */
 typedef struct pa_ext_device_manager_role_priority_info {
     const char *role;
     uint32_t priority;
