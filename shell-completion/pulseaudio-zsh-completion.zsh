@@ -1,4 +1,4 @@
-#compdef pulseaudio pactl pacmd pacat paplay parecord padsp pasuspender
+#compdef pulseaudio pactl pacmd pacat paplay parec parecord padsp pasuspender
 
 _devices() {
     local -a _device_list
@@ -23,14 +23,14 @@ _devices() {
             move-source-output) cmd=('sources');;
         esac
 
-    elif [[ $service == (pacat|paplay|parecord) ]]; then
+    elif [[ $service == (pacat|paplay|parec|parecord) ]]; then
         case $words[$((CURRENT))] in
             --device=*)
                 if [[ $words == *(--playback|-p)[[:space:]]* ||
                     $service == paplay ]]; then
                     cmd=('sinks')
                 elif [[ $words == *(--record|-r)[[:space:]]* ||
-                    $service == parecord ]]; then
+                    $service == (parec|parecord) ]]; then
                     cmd=('sources')
                 else
                     cmd=('sinks' 'sources')
@@ -45,7 +45,7 @@ _devices() {
                     $service == paplay ]]; then
                     cmd=('sinks')
                 elif [[ $words == *(--record|-r)[[:space:]]* ||
-                    $service == parecord ]]; then
+                    $service == (parec|parecord) ]]; then
                     cmd=('sources')
                 else
                     cmd=('sinks' 'sources')
@@ -541,6 +541,7 @@ _pulseaudio() {
         pacmd) _pacmd_completion;;
         pacat) _pacat_completion;;
         paplay)_pacat_completion;;
+        parec) _pacat_completion;;
         parecord)_pacat_completion;;
         padsp) _padsp_completion;;
         pasuspender) _pasuspender_completion;;

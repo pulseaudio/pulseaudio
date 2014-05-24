@@ -492,7 +492,7 @@ _pacat () {
             ;;
     esac
 }
-complete -F _pacat pacat paplay parecord
+complete -F _pacat pacat paplay parec parecord
 
 _pulseaudio()
 {
