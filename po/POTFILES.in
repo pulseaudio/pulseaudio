@@ -72,6 +72,7 @@ src/pulse/channelmap.c
 src/pulse/client-conf.c
 src/pulse/client-conf-x11.c
 src/pulse/context.c
+src/pulse/direction.c
 src/pulsecore/asyncmsgq.c
 src/pulsecore/asyncq.c
 src/pulsecore/auth-cookie.c
@@ -87,6 +88,7 @@ src/pulsecore/core-error.c
 src/pulsecore/core-scache.c
 src/pulsecore/core-subscribe.c
 src/pulsecore/core-util.c
+src/pulsecore/core-util.h
 src/pulsecore/dbus-util.c
 src/pulsecore/dllmain.c
 src/pulsecore/dynarray.c
