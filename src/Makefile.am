@@ -271,6 +271,7 @@ TESTS_daemon = \
 
 if !OS_IS_WIN32
 TESTS_default += \
+		srbchannel-test \
 		sigbus-test \
 		usergroup-test
 endif
@@ -348,6 +349,11 @@ format_test_SOURCES = tests/format-test.c
 format_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 format_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 format_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
+
+srbchannel_test_SOURCES = tests/srbchannel-test.c
+srbchannel_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+srbchannel_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+srbchannel_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 get_binary_name_test_SOURCES = tests/get-binary-name-test.c
 get_binary_name_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
