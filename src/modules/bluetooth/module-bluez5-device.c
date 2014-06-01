@@ -1082,6 +1082,24 @@ static void thread_func(void *userdata) {
 
         pollfd = u->rtpoll_item ? pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL) : NULL;
 
+        if (pollfd && (pollfd->revents & ~(POLLOUT|POLLIN))) {
+            pa_log_info("FD error: %s%s%s%s",
+                        pollfd->revents & POLLERR ? "POLLERR " :"",
+                        pollfd->revents & POLLHUP ? "POLLHUP " :"",
+                        pollfd->revents & POLLPRI ? "POLLPRI " :"",
+                        pollfd->revents & POLLNVAL ? "POLLNVAL " :"");
+
+            if (pollfd->revents & POLLHUP) {
+                pollfd = NULL;
+                teardown_stream(u);
+                do_write = 0;
+                pending_read_bytes = 0;
+                writable = false;
+                pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u->msg), BLUETOOTH_MESSAGE_STREAM_FD_HUP, NULL, 0, NULL, NULL);
+            } else
+                goto fail;
+        }
+
         if (u->source && PA_SOURCE_IS_LINKED(u->source->thread_info.state)) {
 
             /* We should send two blocks to the device before we expect
@@ -1096,7 +1114,7 @@ static void thread_func(void *userdata) {
                 n_read = a2dp_process_push(u);
 
                 if (n_read < 0)
-                    goto io_fail;
+                    goto fail;
 
                 if (n_read > 0) {
                     /* We just read something, so we are supposed to write something, too */
@@ -1165,7 +1183,7 @@ static void thread_func(void *userdata) {
                         u->started_at = pa_rtclock_now();
 
                     if ((n_written = a2dp_process_render(u)) < 0)
-                        goto io_fail;
+                        goto fail;
 
                     if (n_written == 0)
                         pa_log("Broken kernel: we got EAGAIN on write() after POLLOUT!");
@@ -1212,32 +1230,6 @@ static void thread_func(void *userdata) {
             transport_release(u);
             goto finish;
         }
-
-        pollfd = u->rtpoll_item ? pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL) : NULL;
-
-        if (pollfd && (pollfd->revents & ~(POLLOUT|POLLIN))) {
-            pa_log_info("FD error: %s%s%s%s",
-                        pollfd->revents & POLLERR ? "POLLERR " :"",
-                        pollfd->revents & POLLHUP ? "POLLHUP " :"",
-                        pollfd->revents & POLLPRI ? "POLLPRI " :"",
-                        pollfd->revents & POLLNVAL ? "POLLNVAL " :"");
-            goto io_fail;
-        }
-
-        continue;
-
-io_fail:
-        /* In case of HUP, just tear down the streams */
-        if (!pollfd || (pollfd->revents & POLLHUP) == 0)
-            goto fail;
-
-        do_write = 0;
-        pending_read_bytes = 0;
-        writable = false;
-
-        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u->msg), BLUETOOTH_MESSAGE_STREAM_FD_HUP, NULL, 0, NULL, NULL);
-
-        teardown_stream(u);
     }
 
 fail:
