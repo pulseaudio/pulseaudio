@@ -544,8 +544,7 @@ static void handle_set_default_sample_rate(DBusConnection *conn, DBusMessage *ms
 
     dbus_message_iter_get_basic(iter, &default_sample_rate);
 
-    if (!pa_sample_rate_valid(default_sample_rate) ||
-        !((default_sample_rate % 4000 == 0) || (default_sample_rate % 11025 == 0)))  {
+    if (!pa_sample_rate_valid(default_sample_rate)) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid sample rate.");
         return;
     }
@@ -579,8 +578,7 @@ static void handle_set_alternate_sample_rate(DBusConnection *conn, DBusMessage *
 
     dbus_message_iter_get_basic(iter, &alternate_sample_rate);
 
-    if (!pa_sample_rate_valid(alternate_sample_rate) ||
-        !((alternate_sample_rate % 4000 == 0) || (alternate_sample_rate % 11025 == 0))) {
+    if (!pa_sample_rate_valid(alternate_sample_rate)) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid sample rate.");
         return;
     }

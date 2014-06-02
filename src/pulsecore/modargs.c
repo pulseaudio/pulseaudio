@@ -418,9 +418,6 @@ int pa_modargs_get_alternate_sample_rate(pa_modargs *ma, uint32_t *alternate_rat
         !pa_sample_rate_valid(*alternate_rate))
         return -1;
 
-    if (!((rate_local % 4000 == 0) || (rate_local % 11025 == 0)))
-        return -1;
-
     *alternate_rate = rate_local;
 
     return 0;

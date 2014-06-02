@@ -975,7 +975,8 @@ int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
     uint32_t desired_rate = rate;
     uint32_t default_rate = s->default_sample_rate;
     uint32_t alternate_rate = s->alternate_sample_rate;
-    bool use_alternate = false;
+    bool default_rate_is_usable = false;
+    bool alternate_rate_is_usable = false;
 
     if (rate == s->sample_spec.rate)
         return 0;
@@ -984,7 +985,7 @@ int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
         return -1;
 
     if (PA_UNLIKELY(default_rate == alternate_rate && !passthrough)) {
-        pa_log_debug("Default and alternate sample rates are the same.");
+        pa_log_debug("Default and alternate sample rates are the same, so there is no point in switching.");
         return -1;
     }
 
@@ -1004,25 +1005,20 @@ int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
     if (PA_UNLIKELY(!pa_sample_rate_valid(desired_rate)))
         return -1;
 
-    if (!passthrough) {
-        pa_assert((default_rate % 4000 == 0) || (default_rate % 11025 == 0));
-        pa_assert((alternate_rate % 4000 == 0) || (alternate_rate % 11025 == 0));
+    if (!passthrough && default_rate != desired_rate && alternate_rate != desired_rate) {
+        if (default_rate % 11025 == 0 && desired_rate % 11025 == 0)
+            default_rate_is_usable = true;
+        if (default_rate % 4000 == 0 && desired_rate % 4000 == 0)
+            default_rate_is_usable = true;
+        if (alternate_rate && alternate_rate % 11025 == 0 && desired_rate % 11025 == 0)
+            alternate_rate_is_usable = true;
+        if (alternate_rate && alternate_rate % 4000 == 0 && desired_rate % 4000 == 0)
+            alternate_rate_is_usable = true;
 
-        if (default_rate % 11025 == 0) {
-            if ((alternate_rate % 4000 == 0) && (desired_rate % 4000 == 0))
-                use_alternate=true;
-        } else {
-            /* default is 4000 multiple */
-            if ((alternate_rate % 11025 == 0) && (desired_rate % 11025 == 0))
-                use_alternate=true;
-        }
-
-        if (use_alternate)
+        if (alternate_rate_is_usable && !default_rate_is_usable)
             desired_rate = alternate_rate;
         else
             desired_rate = default_rate;
-    } else {
-        desired_rate = rate; /* use stream sampling rate, discard default/alternate settings */
     }
 
     if (desired_rate == s->sample_spec.rate)
