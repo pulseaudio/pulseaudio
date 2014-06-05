@@ -52,9 +52,56 @@ struct userdata {
         *source_output_move_fail_slot;
 };
 
-static pa_sink* find_evacuation_sink(pa_core *c, pa_sink_input *i, pa_sink *skip) {
-    pa_sink *target, *def;
+static pa_source* find_source_from_port(pa_core *c, pa_device_port *port) {
+    pa_source *target;
     uint32_t idx;
+    void *state;
+    pa_device_port *p;
+
+    if (!port)
+        return NULL;
+
+    PA_IDXSET_FOREACH(target, c->sources, idx)
+        PA_HASHMAP_FOREACH(p, target->ports, state)
+            if (port == p)
+                return target;
+
+    return NULL;
+}
+
+static pa_sink* find_sink_from_port(pa_core *c, pa_device_port *port) {
+    pa_sink *target;
+    uint32_t idx;
+    void *state;
+    pa_device_port *p;
+
+    if (!port)
+        return NULL;
+
+    PA_IDXSET_FOREACH(target, c->sinks, idx)
+        PA_HASHMAP_FOREACH(p, target->ports, state)
+            if (port == p)
+                return target;
+
+    return NULL;
+}
+
+static void build_group_ports(pa_hashmap *g_ports, pa_hashmap *s_ports) {
+    void *state;
+    pa_device_port *p;
+
+    if (!g_ports || !s_ports)
+        return;
+
+    PA_HASHMAP_FOREACH(p, s_ports, state)
+        pa_hashmap_put(g_ports, p, p);
+}
+
+static pa_sink* find_evacuation_sink(pa_core *c, pa_sink_input *i, pa_sink *skip) {
+    pa_sink *target, *def, *fb_sink = NULL;
+    uint32_t idx;
+    pa_hashmap *all_ports;
+    pa_device_port *best_port;
 
     pa_assert(c);
     pa_assert(i);
@@ -63,6 +110,8 @@ static pa_sink* find_evacuation_sink(pa_core *c, pa_sink_input *i, pa_sink *skip
 
     if (def && def != skip && pa_sink_input_may_move_to(i, def))
         return def;
+
+    all_ports = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     PA_IDXSET_FOREACH(target, c->sinks, idx) {
         if (target == def)
@@ -74,12 +123,25 @@ static pa_sink* find_evacuation_sink(pa_core *c, pa_sink_input *i, pa_sink *skip
         if (!PA_SINK_IS_LINKED(pa_sink_get_state(target)))
             continue;
 
-        if (pa_sink_input_may_move_to(i, target))
-            return target;
+        if (!pa_sink_input_may_move_to(i, target))
+            continue;
+
+        fb_sink = target;
+
+        build_group_ports(all_ports, target->ports);
     }
 
-    pa_log_debug("No evacuation sink found.");
-    return NULL;
+    best_port = pa_device_port_find_best(all_ports);
+
+    pa_hashmap_free(all_ports);
+
+    if(!best_port) {
+	pa_log_debug("No evacuation sink found.");
+        target = fb_sink;
+    } else
+	target = find_sink_from_port(c, best_port);
+
+    return target;
 }
 
 static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, void* userdata) {
@@ -141,8 +203,10 @@ static pa_hook_result_t sink_input_move_fail_hook_callback(pa_core *c, pa_sink_i
 }
 
 static pa_source* find_evacuation_source(pa_core *c, pa_source_output *o, pa_source *skip) {
-    pa_source *target, *def;
+    pa_source *target, *def, *fb_source = NULL;
     uint32_t idx;
+    pa_hashmap *all_ports;
+    pa_device_port *best_port;
 
     pa_assert(c);
     pa_assert(o);
@@ -151,6 +215,8 @@ static pa_source* find_evacuation_source(pa_core *c, pa_source_output *o, pa_sou
 
     if (def && def != skip && pa_source_output_may_move_to(o, def))
         return def;
+
+    all_ports = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     PA_IDXSET_FOREACH(target, c->sources, idx) {
         if (target == def)
@@ -165,12 +231,25 @@ static pa_source* find_evacuation_source(pa_core *c, pa_source_output *o, pa_sou
         if (!PA_SOURCE_IS_LINKED(pa_source_get_state(target)))
             continue;
 
-        if (pa_source_output_may_move_to(o, target))
-            return target;
+        if (!pa_source_output_may_move_to(o, target))
+            continue;
+
+        fb_source = target;
+
+        build_group_ports(all_ports, target->ports);
     }
 
-    pa_log_debug("No evacuation source found.");
-    return NULL;
+    best_port = pa_device_port_find_best(all_ports);
+
+    pa_hashmap_free(all_ports);
+
+    if(!best_port) {
+        pa_log_debug("No evacuation source found.");
+        target = fb_source;
+    } else
+        target = find_source_from_port(c, best_port);
+
+    return target;
 }
 
 static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *source, void* userdata) {
