@@ -180,7 +180,7 @@ enum {
 };
 
 #define PA_NATIVE_COOKIE_LENGTH 256
-#define PA_NATIVE_COOKIE_FILE ".config/pulse/cookie"
+#define PA_NATIVE_COOKIE_FILE "cookie"
 #define PA_NATIVE_COOKIE_FILE_FALLBACK ".pulse-cookie"
 
 #define PA_NATIVE_DEFAULT_PORT 4713

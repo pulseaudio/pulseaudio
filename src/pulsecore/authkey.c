@@ -132,29 +132,18 @@ finish:
 }
 
 /* If the specified file path starts with / return it, otherwise
- * return path prepended with home directory */
-static char *normalize_path(const char *fn) {
-
+ * return path prepended with the config home directory. */
+static int normalize_path(const char *fn, char **_r) {
     pa_assert(fn);
+    pa_assert(_r);
 
-#ifndef OS_IS_WIN32
-    if (fn[0] != '/') {
-#else
-    if (strlen(fn) < 3 || !IsCharAlpha(fn[0]) || fn[1] != ':' || fn[2] != '\\') {
-#endif
-        char *s;
+    if (!pa_is_path_absolute(fn))
+        return pa_append_to_config_home_dir(fn, _r);
 
-        if (pa_append_to_home_dir(fn, &s) < 0)
-            return NULL;
-
-        return s;
-    }
-
-    return pa_xstrdup(fn);
+    *_r = pa_xstrdup(fn);
+    return 0;
 }
 
-/* Load a cookie from a file in the home directory. If the specified
- * path starts with /, use it as absolute path instead. */
 int pa_authkey_load(const char *fn, bool create, void *data, size_t length) {
     char *p;
     int ret;
@@ -163,8 +152,8 @@ int pa_authkey_load(const char *fn, bool create, void *data, size_t length) {
     pa_assert(data);
     pa_assert(length > 0);
 
-    if (!(p = normalize_path(fn)))
-        return -2;
+    if ((ret = normalize_path(fn, &p)) < 0)
+        return ret;
 
     if ((ret = load(p, create, data, length)) < 0)
         pa_log_warn("Failed to load authorization key '%s': %s", p, (ret < 0) ? pa_cstrerror(errno) : "File corrupt");
@@ -177,7 +166,7 @@ int pa_authkey_load(const char *fn, bool create, void *data, size_t length) {
 /* Store the specified cookie in the specified cookie file */
 int pa_authkey_save(const char *fn, const void *data, size_t length) {
     int fd = -1;
-    int unlock = 0, ret = -1;
+    int unlock = 0, ret;
     ssize_t r;
     char *p;
 
@@ -185,11 +174,12 @@ int pa_authkey_save(const char *fn, const void *data, size_t length) {
     pa_assert(data);
     pa_assert(length > 0);
 
-    if (!(p = normalize_path(fn)))
-        return -2;
+    if ((ret = normalize_path(fn, &p)) < 0)
+        return ret;
 
     if ((fd = pa_open_cloexec(p, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
         pa_log_warn("Failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
+        ret = -1;
         goto finish;
     }
 
@@ -197,10 +187,9 @@ int pa_authkey_save(const char *fn, const void *data, size_t length) {
 
     if ((r = pa_loop_write(fd, data, length, NULL)) < 0 || (size_t) r != length) {
         pa_log("Failed to read cookie file '%s': %s", fn, pa_cstrerror(errno));
+        ret = -1;
         goto finish;
     }
-
-    ret = 0;
 
 finish:
 
