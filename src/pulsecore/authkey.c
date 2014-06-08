@@ -131,20 +131,6 @@ finish:
     return ret;
 }
 
-/* Load a cookie from a cookie file. If the file doesn't exist, create it. */
-int pa_authkey_load(const char *path, bool create, void *data, size_t length) {
-    int ret;
-
-    pa_assert(path);
-    pa_assert(data);
-    pa_assert(length > 0);
-
-    if ((ret = load(path, create, data, length)) < 0)
-        pa_log_warn("Failed to load authorization key '%s': %s", path, (ret < 0) ? pa_cstrerror(errno) : "File corrupt");
-
-    return ret;
-}
-
 /* If the specified file path starts with / return it, otherwise
  * return path prepended with home directory */
 static char *normalize_path(const char *fn) {
@@ -183,7 +169,9 @@ int pa_authkey_load_auto(const char *fn, bool create, void *data, size_t length)
     if (!(p = normalize_path(fn)))
         return -2;
 
-    ret = pa_authkey_load(p, create, data, length);
+    if ((ret = load(p, create, data, length)) < 0)
+        pa_log_warn("Failed to load authorization key '%s': %s", p, (ret < 0) ? pa_cstrerror(errno) : "File corrupt");
+
     pa_xfree(p);
 
     return ret;
