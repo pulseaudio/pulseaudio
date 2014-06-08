@@ -527,6 +527,8 @@ int pa__init(pa_module*m) {
     const char *espeaker;
     uint32_t key;
     pa_sink_new_data data;
+    char *cookie_path;
+    int r;
 
     pa_assert(m);
 
@@ -620,9 +622,18 @@ int pa__init(pa_module*m) {
 
     pa_socket_client_set_callback(u->client, on_connection, u);
 
+    cookie_path = pa_xstrdup(pa_modargs_get_value(ma, "cookie", NULL));
+    if (!cookie_path) {
+        if (pa_append_to_home_dir(".esd_auth", &cookie_path) < 0)
+            goto fail;
+    }
+
     /* Prepare the initial request */
     u->write_data = pa_xmalloc(u->write_length = ESD_KEY_LEN + sizeof(int32_t));
-    if (pa_authkey_load(pa_modargs_get_value(ma, "cookie", ".esd_auth"), true, u->write_data, ESD_KEY_LEN) < 0) {
+
+    r = pa_authkey_load(cookie_path, true, u->write_data, ESD_KEY_LEN);
+    pa_xfree(cookie_path);
+    if (r < 0) {
         pa_log("Failed to load cookie");
         goto fail;
     }

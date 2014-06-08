@@ -1707,15 +1707,20 @@ int pa_esound_options_parse(pa_esound_options *o, pa_core *c, pa_modargs *ma) {
         pa_auth_cookie_unref(o->auth_cookie);
 
     if (enabled) {
-        const char *cn;
+        char *cn;
 
         /* The new name for this is 'auth-cookie', for compat reasons
          * we check the old name too */
-        if (!(cn = pa_modargs_get_value(ma, "auth-cookie", NULL)))
-            if (!(cn = pa_modargs_get_value(ma, "cookie", NULL)))
-                cn = DEFAULT_COOKIE_FILE;
+        if (!(cn = pa_xstrdup(pa_modargs_get_value(ma, "auth-cookie", NULL)))) {
+            if (!(cn = pa_xstrdup(pa_modargs_get_value(ma, "cookie", NULL)))) {
+                if (pa_append_to_home_dir(DEFAULT_COOKIE_FILE, &cn) < 0)
+                    return -1;
+            }
+        }
 
-        if (!(o->auth_cookie = pa_auth_cookie_get(c, cn, true, ESD_KEY_LEN)))
+        o->auth_cookie = pa_auth_cookie_get(c, cn, true, ESD_KEY_LEN);
+        pa_xfree(cn);
+        if (!o->auth_cookie)
             return -1;
 
     } else

@@ -168,6 +168,7 @@ void pa_client_conf_load(pa_client_conf *c, bool load_from_x11, bool load_from_e
 
 int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie_length) {
     int r;
+    char *fallback_path;
 
     pa_assert(c);
     pa_assert(cookie);
@@ -213,9 +214,12 @@ int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie
     if (r >= 0)
         return 0;
 
-    r = pa_authkey_load(PA_NATIVE_COOKIE_FILE_FALLBACK, false, cookie, cookie_length);
-    if (r >= 0)
-        return 0;
+    if (pa_append_to_home_dir(PA_NATIVE_COOKIE_FILE_FALLBACK, &fallback_path) > 0) {
+        r = pa_authkey_load(fallback_path, false, cookie, cookie_length);
+        pa_xfree(fallback_path);
+        if (r >= 0)
+            return 0;
+    }
 
     r = pa_authkey_load(PA_NATIVE_COOKIE_FILE, true, cookie, cookie_length);
     if (r >= 0)

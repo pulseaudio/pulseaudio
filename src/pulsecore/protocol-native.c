@@ -5303,7 +5303,12 @@ int pa_native_options_parse(pa_native_options *o, pa_core *c, pa_modargs *ma) {
         else {
             o->auth_cookie = pa_auth_cookie_get(c, PA_NATIVE_COOKIE_FILE, false, PA_NATIVE_COOKIE_LENGTH);
             if (!o->auth_cookie) {
-                o->auth_cookie = pa_auth_cookie_get(c, PA_NATIVE_COOKIE_FILE_FALLBACK, false, PA_NATIVE_COOKIE_LENGTH);
+                char *fallback_path;
+
+                if (pa_append_to_home_dir(PA_NATIVE_COOKIE_FILE_FALLBACK, &fallback_path) >= 0) {
+                    o->auth_cookie = pa_auth_cookie_get(c, fallback_path, false, PA_NATIVE_COOKIE_LENGTH);
+                    pa_xfree(fallback_path);
+                }
 
                 if (!o->auth_cookie)
                     o->auth_cookie = pa_auth_cookie_get(c, PA_NATIVE_COOKIE_FILE, true, PA_NATIVE_COOKIE_LENGTH);
