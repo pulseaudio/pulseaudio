@@ -622,7 +622,7 @@ int pa__init(pa_module*m) {
 
     /* Prepare the initial request */
     u->write_data = pa_xmalloc(u->write_length = ESD_KEY_LEN + sizeof(int32_t));
-    if (pa_authkey_load_auto(pa_modargs_get_value(ma, "cookie", ".esd_auth"), true, u->write_data, ESD_KEY_LEN) < 0) {
+    if (pa_authkey_load(pa_modargs_get_value(ma, "cookie", ".esd_auth"), true, u->write_data, ESD_KEY_LEN) < 0) {
         pa_log("Failed to load cookie");
         goto fail;
     }

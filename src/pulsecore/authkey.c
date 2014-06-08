@@ -158,7 +158,7 @@ static char *normalize_path(const char *fn) {
 
 /* Load a cookie from a file in the home directory. If the specified
  * path starts with /, use it as absolute path instead. */
-int pa_authkey_load_auto(const char *fn, bool create, void *data, size_t length) {
+int pa_authkey_load(const char *fn, bool create, void *data, size_t length) {
     char *p;
     int ret;
 

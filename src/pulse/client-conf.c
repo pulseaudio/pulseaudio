@@ -174,7 +174,7 @@ int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie
     pa_assert(cookie_length > 0);
 
     if (c->cookie_file_from_env) {
-        r = pa_authkey_load_auto(c->cookie_file_from_env, true, cookie, cookie_length);
+        r = pa_authkey_load(c->cookie_file_from_env, true, cookie, cookie_length);
         if (r >= 0)
             return 0;
 
@@ -192,7 +192,7 @@ int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie
     }
 
     if (c->cookie_file_from_application) {
-        r = pa_authkey_load_auto(c->cookie_file_from_application, true, cookie, cookie_length);
+        r = pa_authkey_load(c->cookie_file_from_application, true, cookie, cookie_length);
         if (r >= 0)
             return 0;
 
@@ -201,7 +201,7 @@ int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie
     }
 
     if (c->cookie_file_from_client_conf) {
-        r = pa_authkey_load_auto(c->cookie_file_from_client_conf, true, cookie, cookie_length);
+        r = pa_authkey_load(c->cookie_file_from_client_conf, true, cookie, cookie_length);
         if (r >= 0)
             return 0;
 
@@ -209,15 +209,15 @@ int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie
                     pa_cstrerror(errno));
     }
 
-    r = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE, false, cookie, cookie_length);
+    r = pa_authkey_load(PA_NATIVE_COOKIE_FILE, false, cookie, cookie_length);
     if (r >= 0)
         return 0;
 
-    r = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE_FALLBACK, false, cookie, cookie_length);
+    r = pa_authkey_load(PA_NATIVE_COOKIE_FILE_FALLBACK, false, cookie, cookie_length);
     if (r >= 0)
         return 0;
 
-    r = pa_authkey_load_auto(PA_NATIVE_COOKIE_FILE, true, cookie, cookie_length);
+    r = pa_authkey_load(PA_NATIVE_COOKIE_FILE, true, cookie, cookie_length);
     if (r >= 0)
         return 0;
 
