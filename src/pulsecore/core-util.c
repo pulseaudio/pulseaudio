@@ -1549,16 +1549,6 @@ int pa_unlock_lockfile(const char *fn, int fd) {
     return r;
 }
 
-static char *get_config_home(char *home) {
-    char *t;
-
-    t = getenv("XDG_CONFIG_HOME");
-    if (t)
-        return pa_xstrdup(t);
-
-    return pa_sprintf_malloc("%s" PA_PATH_SEP ".config", home);
-}
-
 static int check_ours(const char *p) {
     struct stat st;
 
@@ -1576,7 +1566,7 @@ static int check_ours(const char *p) {
 }
 
 static char *get_pulse_home(void) {
-    char *h, *ret, *config_home;
+    char *h, *ret;
     int t;
 
     h = pa_get_home_dir_malloc();
@@ -1594,17 +1584,14 @@ static char *get_pulse_home(void) {
 
     /* If the old directory exists, use it. */
     ret = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse", h);
-    if (access(ret, F_OK) >= 0) {
-        free(h);
+    pa_xfree(h);
+    if (access(ret, F_OK) >= 0)
         return ret;
-    }
     free(ret);
 
     /* Otherwise go for the XDG compliant directory. */
-    config_home = get_config_home(h);
-    free(h);
-    ret = pa_sprintf_malloc("%s" PA_PATH_SEP "pulse", config_home);
-    free(config_home);
+    if (pa_get_config_home_dir(&ret) < 0)
+        return NULL;
 
     return ret;
 }
@@ -1666,6 +1653,27 @@ int pa_append_to_home_dir(const char *path, char **_r) {
     }
 
     *_r = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", home_dir, path);
+    pa_xfree(home_dir);
+    return 0;
+}
+
+int pa_get_config_home_dir(char **_r) {
+    const char *e;
+    char *home_dir;
+
+    pa_assert(_r);
+
+    e = getenv("XDG_CONFIG_HOME");
+    if (e && *e) {
+        *_r = pa_sprintf_malloc("%s" PA_PATH_SEP "pulse", e);
+        return 0;
+    }
+
+    home_dir = pa_get_home_dir_malloc();
+    if (!home_dir)
+        return -PA_ERR_NOENTITY;
+
+    *_r = pa_sprintf_malloc("%s" PA_PATH_SEP ".config" PA_PATH_SEP "pulse", home_dir);
     pa_xfree(home_dir);
     return 0;
 }
