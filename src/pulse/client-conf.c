@@ -40,6 +40,10 @@
 
 #include "client-conf.h"
 
+#ifdef HAVE_X11
+#include <client-conf-x11.h>
+#endif
+
 #define DEFAULT_CLIENT_CONFIG_FILE PA_DEFAULT_CONFIG_DIR PA_PATH_SEP "client.conf"
 #define DEFAULT_CLIENT_CONFIG_FILE_USER "client.conf"
 
@@ -91,7 +95,39 @@ void pa_client_conf_free(pa_client_conf *c) {
     pa_xfree(c);
 }
 
-void pa_client_conf_load(pa_client_conf *c) {
+static void load_env(pa_client_conf *c) {
+    char *e;
+
+    if ((e = getenv(ENV_DEFAULT_SINK))) {
+        pa_xfree(c->default_sink);
+        c->default_sink = pa_xstrdup(e);
+    }
+
+    if ((e = getenv(ENV_DEFAULT_SOURCE))) {
+        pa_xfree(c->default_source);
+        c->default_source = pa_xstrdup(e);
+    }
+
+    if ((e = getenv(ENV_DEFAULT_SERVER))) {
+        pa_xfree(c->default_server);
+        c->default_server = pa_xstrdup(e);
+
+        /* We disable autospawning automatically if a specific server was set */
+        c->autospawn = false;
+    }
+
+    if ((e = getenv(ENV_DAEMON_BINARY))) {
+        pa_xfree(c->daemon_binary);
+        c->daemon_binary = pa_xstrdup(e);
+    }
+
+    if ((e = getenv(ENV_COOKIE_FILE)) && *e) {
+        pa_xfree(c->cookie_file_from_env);
+        c->cookie_file_from_env = pa_xstrdup(e);
+    }
+}
+
+void pa_client_conf_load(pa_client_conf *c, bool load_from_x11, bool load_from_env) {
     FILE *f = NULL;
     char *fn = NULL;
 
@@ -114,12 +150,20 @@ void pa_client_conf_load(pa_client_conf *c) {
     };
 
     f = pa_open_config_file(DEFAULT_CLIENT_CONFIG_FILE, DEFAULT_CLIENT_CONFIG_FILE_USER, ENV_CLIENT_CONFIG_FILE, &fn);
-    if (!f)
-        return;
+    if (f) {
+        pa_config_parse(fn, f, table, NULL, NULL);
+        pa_xfree(fn);
+        fclose(f);
+    }
 
-    pa_config_parse(fn, f, table, NULL, NULL);
-    pa_xfree(fn);
-    fclose(f);
+    if (load_from_x11) {
+#ifdef HAVE_X11
+        pa_client_conf_from_x11(c);
+#endif
+    }
+
+    if (load_from_env)
+        load_env(c);
 }
 
 int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie_length) {
@@ -181,38 +225,6 @@ int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie
     memset(cookie, 0, cookie_length);
 
     return -1;
-}
-
-void pa_client_conf_env(pa_client_conf *c) {
-    char *e;
-
-    if ((e = getenv(ENV_DEFAULT_SINK))) {
-        pa_xfree(c->default_sink);
-        c->default_sink = pa_xstrdup(e);
-    }
-
-    if ((e = getenv(ENV_DEFAULT_SOURCE))) {
-        pa_xfree(c->default_source);
-        c->default_source = pa_xstrdup(e);
-    }
-
-    if ((e = getenv(ENV_DEFAULT_SERVER))) {
-        pa_xfree(c->default_server);
-        c->default_server = pa_xstrdup(e);
-
-        /* We disable autospawning automatically if a specific server was set */
-        c->autospawn = false;
-    }
-
-    if ((e = getenv(ENV_DAEMON_BINARY))) {
-        pa_xfree(c->daemon_binary);
-        c->daemon_binary = pa_xstrdup(e);
-    }
-
-    if ((e = getenv(ENV_COOKIE_FILE)) && *e) {
-        pa_xfree(c->cookie_file_from_env);
-        c->cookie_file_from_env = pa_xstrdup(e);
-    }
 }
 
 void pa_client_conf_set_cookie_file_from_application(pa_client_conf *c, const char *cookie_file) {

@@ -125,7 +125,7 @@ static enum get_address_result_t get_address(pa_server_type_t server_type, char 
 
     *address = NULL;
 
-    pa_client_conf_load(conf);
+    pa_client_conf_load(conf, false, false);
 
     if (conf->default_dbus_server)
         *address = pa_xstrdup(conf->default_dbus_server);

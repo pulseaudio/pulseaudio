@@ -59,9 +59,6 @@
 #endif
 
 #include <pulse/client-conf.h>
-#ifdef HAVE_X11
-#include <pulse/client-conf-x11.h>
-#endif
 #include <pulse/mainloop.h>
 #include <pulse/mainloop-signal.h>
 #include <pulse/timeval.h>
@@ -325,11 +322,7 @@ static char *check_configured_address(void) {
     char *default_server = NULL;
     pa_client_conf *c = pa_client_conf_new();
 
-    pa_client_conf_load(c);
-#ifdef HAVE_X11
-    pa_client_conf_from_x11(c);
-#endif
-    pa_client_conf_env(c);
+    pa_client_conf_load(c, true, true);
 
     if (c->default_server && *c->default_server)
         default_server = pa_xstrdup(c->default_server);

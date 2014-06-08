@@ -47,19 +47,16 @@ typedef struct pa_client_conf {
 pa_client_conf *pa_client_conf_new(void);
 void pa_client_conf_free(pa_client_conf *c);
 
-/* Load the configuration data from the client configuration file, overwriting
- * the current settings in *c. */
-void pa_client_conf_load(pa_client_conf *c);
+/* Load the configuration data from the client configuration file and
+ * optionally from X11 and/or environment variables, overwriting the current
+ * settings in *c. */
+void pa_client_conf_load(pa_client_conf *c, bool load_from_x11, bool load_from_env);
 
 /* Load the cookie from the cookie sources specified in the configuration, or
  * if nothing is specified or none of the sources work, load the cookie from
  * the default source. If the default source doesn't work either, this function
  * returns a negative value and initializes the cookie to all-zeroes. */
 int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie_length);
-
-/* Load the configuration data from the environment of the current
-   process, overwriting the current settings in *c. */
-void pa_client_conf_env(pa_client_conf *c);
 
 void pa_client_conf_set_cookie_file_from_application(pa_client_conf *c, const char *cookie_file);
 

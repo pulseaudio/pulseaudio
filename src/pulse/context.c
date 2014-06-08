@@ -48,9 +48,6 @@
 #include <pulse/timeval.h>
 #include <pulse/fork-detect.h>
 #include <pulse/client-conf.h>
-#ifdef HAVE_X11
-#include <pulse/client-conf-x11.h>
-#endif
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/i18n.h>
@@ -166,11 +163,7 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
 #endif
 
     c->conf = pa_client_conf_new();
-    pa_client_conf_load(c->conf);
-#ifdef HAVE_X11
-    pa_client_conf_from_x11(c->conf);
-#endif
-    pa_client_conf_env(c->conf);
+    pa_client_conf_load(c->conf, true, true);
 
     if (!(c->mempool = pa_mempool_new(!c->conf->disable_shm, c->conf->shm_size))) {
 

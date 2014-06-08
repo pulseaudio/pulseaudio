@@ -152,8 +152,7 @@ int main(int argc, char *argv[]) {
             char hx[PA_NATIVE_COOKIE_LENGTH*2+1];
             assert(conf);
 
-            pa_client_conf_load(conf);
-            pa_client_conf_env(conf);
+            pa_client_conf_load(conf, false, true);
 
             pa_x11_del_prop(xcb, screen, "PULSE_SERVER");
             pa_x11_del_prop(xcb, screen, "PULSE_SINK");
