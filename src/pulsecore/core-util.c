@@ -1653,6 +1653,23 @@ char *pa_get_home_dir_malloc(void) {
     return homedir;
 }
 
+int pa_append_to_home_dir(const char *path, char **_r) {
+    char *home_dir;
+
+    pa_assert(path);
+    pa_assert(_r);
+
+    home_dir = pa_get_home_dir_malloc();
+    if (!home_dir) {
+        pa_log("Failed to get home directory.");
+        return -PA_ERR_NOENTITY;
+    }
+
+    *_r = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", home_dir, path);
+    pa_xfree(home_dir);
+    return 0;
+}
+
 char *pa_get_binary_name_malloc(void) {
     char *t;
     size_t allocated = 128;

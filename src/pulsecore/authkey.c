@@ -142,13 +142,10 @@ static char *normalize_path(const char *fn) {
 #else
     if (strlen(fn) < 3 || !IsCharAlpha(fn[0]) || fn[1] != ':' || fn[2] != '\\') {
 #endif
-        char *homedir, *s;
+        char *s;
 
-        if (!(homedir = pa_get_home_dir_malloc()))
+        if (pa_append_to_home_dir(fn, &s) < 0)
             return NULL;
-
-        s = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", homedir, fn);
-        pa_xfree(homedir);
 
         return s;
     }
