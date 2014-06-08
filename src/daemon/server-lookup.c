@@ -115,7 +115,6 @@ finish:
 
 enum get_address_result_t {
     SUCCESS,
-    FAILED_TO_LOAD_CLIENT_CONF,
     SERVER_FROM_TYPE_FAILED
 };
 
@@ -126,10 +125,7 @@ static enum get_address_result_t get_address(pa_server_type_t server_type, char 
 
     *address = NULL;
 
-    if (pa_client_conf_load(conf) < 0) {
-        r = FAILED_TO_LOAD_CLIENT_CONF;
-        goto finish;
-    }
+    pa_client_conf_load(conf);
 
     if (conf->default_dbus_server)
         *address = pa_xstrdup(conf->default_dbus_server);
@@ -171,18 +167,6 @@ static DBusHandlerResult handle_get_address(DBusConnection *conn, DBusMessage *m
             }
             if (!dbus_message_iter_close_container(&msg_iter, &variant_iter)) {
                 r = DBUS_HANDLER_RESULT_NEED_MEMORY;
-                goto finish;
-            }
-            if (!dbus_connection_send(conn, reply, NULL)) {
-                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
-                goto finish;
-            }
-            r = DBUS_HANDLER_RESULT_HANDLED;
-            goto finish;
-
-        case FAILED_TO_LOAD_CLIENT_CONF:
-            if (!(reply = dbus_message_new_error(msg, "org.pulseaudio.ClientConfLoadError", "Failed to load client.conf."))) {
-                r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
                 goto finish;
             }
             if (!dbus_connection_send(conn, reply, NULL)) {
@@ -389,18 +373,6 @@ static DBusHandlerResult handle_get_all(DBusConnection *conn, DBusMessage *msg, 
             }
             if (!dbus_message_iter_close_container(&msg_iter, &dict_iter)) {
                 r = DBUS_HANDLER_RESULT_NEED_MEMORY;
-                goto finish;
-            }
-            if (!dbus_connection_send(conn, reply, NULL)) {
-                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
-                goto finish;
-            }
-            r = DBUS_HANDLER_RESULT_HANDLED;
-            goto finish;
-
-        case FAILED_TO_LOAD_CLIENT_CONF:
-            if (!(reply = dbus_message_new_error(msg, "org.pulseaudio.ClientConfLoadError", "Failed to load client.conf."))) {
-                r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
                 goto finish;
             }
             if (!dbus_connection_send(conn, reply, NULL)) {

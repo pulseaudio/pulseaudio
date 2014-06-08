@@ -49,7 +49,7 @@ void pa_client_conf_free(pa_client_conf *c);
 
 /* Load the configuration data from the client configuration file, overwriting
  * the current settings in *c. */
-int pa_client_conf_load(pa_client_conf *c);
+void pa_client_conf_load(pa_client_conf *c);
 
 /* Load the cookie from the cookie sources specified in the configuration, or
  * if nothing is specified or none of the sources work, load the cookie from
@@ -59,7 +59,7 @@ int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie
 
 /* Load the configuration data from the environment of the current
    process, overwriting the current settings in *c. */
-int pa_client_conf_env(pa_client_conf *c);
+void pa_client_conf_env(pa_client_conf *c);
 
 void pa_client_conf_set_cookie_file_from_application(pa_client_conf *c, const char *cookie_file);
 

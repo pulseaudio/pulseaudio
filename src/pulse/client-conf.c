@@ -91,10 +91,9 @@ void pa_client_conf_free(pa_client_conf *c) {
     pa_xfree(c);
 }
 
-int pa_client_conf_load(pa_client_conf *c) {
+void pa_client_conf_load(pa_client_conf *c) {
     FILE *f = NULL;
     char *fn = NULL;
-    int r = -1;
 
     /* Prepare the configuration parse table */
     pa_config_item table[] = {
@@ -114,19 +113,13 @@ int pa_client_conf_load(pa_client_conf *c) {
         { NULL,                     NULL,                     NULL, NULL },
     };
 
-    if (!(f = pa_open_config_file(DEFAULT_CLIENT_CONFIG_FILE, DEFAULT_CLIENT_CONFIG_FILE_USER, ENV_CLIENT_CONFIG_FILE, &fn)))
-        if (errno != ENOENT)
-            goto finish;
+    f = pa_open_config_file(DEFAULT_CLIENT_CONFIG_FILE, DEFAULT_CLIENT_CONFIG_FILE_USER, ENV_CLIENT_CONFIG_FILE, &fn);
+    if (!f)
+        return;
 
-    r = f ? pa_config_parse(fn, f, table, NULL, NULL) : 0;
-
-finish:
+    pa_config_parse(fn, f, table, NULL, NULL);
     pa_xfree(fn);
-
-    if (f)
-        fclose(f);
-
-    return r;
+    fclose(f);
 }
 
 int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie_length) {
@@ -190,7 +183,7 @@ int pa_client_conf_load_cookie(pa_client_conf *c, uint8_t *cookie, size_t cookie
     return -1;
 }
 
-int pa_client_conf_env(pa_client_conf *c) {
+void pa_client_conf_env(pa_client_conf *c) {
     char *e;
 
     if ((e = getenv(ENV_DEFAULT_SINK))) {
@@ -220,8 +213,6 @@ int pa_client_conf_env(pa_client_conf *c) {
         pa_xfree(c->cookie_file_from_env);
         c->cookie_file_from_env = pa_xstrdup(e);
     }
-
-    return 0;
 }
 
 void pa_client_conf_set_cookie_file_from_application(pa_client_conf *c, const char *cookie_file) {

@@ -152,15 +152,8 @@ int main(int argc, char *argv[]) {
             char hx[PA_NATIVE_COOKIE_LENGTH*2+1];
             assert(conf);
 
-            if (pa_client_conf_load(conf) < 0) {
-                fprintf(stderr, _("Failed to load client configuration file.\n"));
-                goto finish;
-            }
-
-            if (pa_client_conf_env(conf) < 0) {
-                fprintf(stderr, _("Failed to read environment configuration data.\n"));
-                goto finish;
-            }
+            pa_client_conf_load(conf);
+            pa_client_conf_env(conf);
 
             pa_x11_del_prop(xcb, screen, "PULSE_SERVER");
             pa_x11_del_prop(xcb, screen, "PULSE_SINK");
