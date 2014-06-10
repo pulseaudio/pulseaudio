@@ -126,7 +126,8 @@ static pa_sink* find_evacuation_sink(pa_core *c, pa_sink_input *i, pa_sink *skip
         if (!pa_sink_input_may_move_to(i, target))
             continue;
 
-        fb_sink = target;
+        if (!fb_sink)
+            fb_sink = target;
 
         build_group_ports(all_ports, target->ports);
     }
@@ -135,11 +136,13 @@ static pa_sink* find_evacuation_sink(pa_core *c, pa_sink_input *i, pa_sink *skip
 
     pa_hashmap_free(all_ports);
 
-    if(!best_port) {
-	pa_log_debug("No evacuation sink found.");
+    if (best_port)
+        target = find_sink_from_port(c, best_port);
+    else
         target = fb_sink;
-    } else
-	target = find_sink_from_port(c, best_port);
+
+    if (!target)
+	pa_log_debug("No evacuation sink found.");
 
     return target;
 }
@@ -234,7 +237,8 @@ static pa_source* find_evacuation_source(pa_core *c, pa_source_output *o, pa_sou
         if (!pa_source_output_may_move_to(o, target))
             continue;
 
-        fb_source = target;
+        if (!fb_source)
+            fb_source = target;
 
         build_group_ports(all_ports, target->ports);
     }
@@ -243,11 +247,13 @@ static pa_source* find_evacuation_source(pa_core *c, pa_source_output *o, pa_sou
 
     pa_hashmap_free(all_ports);
 
-    if(!best_port) {
-        pa_log_debug("No evacuation source found.");
-        target = fb_source;
-    } else
+    if (best_port)
         target = find_source_from_port(c, best_port);
+    else
+        target = fb_source;
+
+    if (!target)
+        pa_log_debug("No evacuation source found.");
 
     return target;
 }
