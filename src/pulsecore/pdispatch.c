@@ -192,6 +192,11 @@ static const char *command_names[PA_COMMAND_MAX] = {
 
     /* Supported since protocol v27 (3.0) */
     [PA_COMMAND_SET_PORT_LATENCY_OFFSET] = "SET_PORT_LATENCY_OFFSET",
+
+    /* Supported since protocol v30 (6.0) */
+    /* BOTH DIRECTIONS */
+    [PA_COMMAND_ENABLE_SRBCHANNEL] = "ENABLE_SRBCHANNEL",
+    [PA_COMMAND_DISABLE_SRBCHANNEL] = "DISABLE_SRBCHANNEL",
 };
 
 #endif
