@@ -31,7 +31,7 @@
 #include <pulsecore/socket.h>
 #include <stdbool.h>
 
-#define MAX_ANCIL_FDS (2)
+#define MAX_ANCIL_FDS 2
 
 typedef struct pa_creds pa_creds;
 typedef struct pa_ancil pa_ancil;

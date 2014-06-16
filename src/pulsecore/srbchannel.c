@@ -127,7 +127,7 @@ size_t pa_srbchannel_read(pa_srbchannel *sr, void *data, size_t l) {
         memcpy(data, ptr, toread);
         if (pa_ringbuffer_drop(&sr->rb_read, toread)) {
 #ifdef DEBUG_SRBCHANNEL
-            pa_log("read from full output buffer, signalling fdsem");
+            pa_log("Read from full output buffer, signalling fdsem");
 #endif
             pa_fdsem_post(sr->sem_write);
         }

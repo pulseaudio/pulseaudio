@@ -72,7 +72,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, size_t shm_size) {
 
     if (shared) {
         if (!(pool = pa_mempool_new(shared, shm_size))) {
-            pa_log_warn("failed to allocate shared memory pool. Falling back to a normal memory pool.");
+            pa_log_warn("Failed to allocate shared memory pool. Falling back to a normal memory pool.");
             shared = false;
         }
     }
@@ -128,7 +128,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, size_t shm_size) {
     pa_silence_cache_init(&c->silence_cache);
 
     if (shared && !(c->rw_mempool = pa_mempool_new(shared, shm_size)))
-        pa_log_warn("failed to allocate shared writable memory pool.");
+        pa_log_warn("Failed to allocate shared writable memory pool.");
     if (c->rw_mempool)
         pa_mempool_set_is_remote_writable(c->rw_mempool, true);
 
