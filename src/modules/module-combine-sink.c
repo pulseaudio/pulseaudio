@@ -925,6 +925,7 @@ static void update_description(struct userdata *u) {
 }
 
 static int output_create_sink_input(struct output *o) {
+    struct userdata *u;
     pa_sink_input_new_data data;
 
     pa_assert(o);
@@ -932,18 +933,20 @@ static int output_create_sink_input(struct output *o) {
     if (o->sink_input)
         return 0;
 
+    u = o->userdata;
+
     pa_sink_input_new_data_init(&data);
     pa_sink_input_new_data_set_sink(&data, o->sink, false);
     data.driver = __FILE__;
     pa_proplist_setf(data.proplist, PA_PROP_MEDIA_NAME, "Simultaneous output on %s", pa_strnull(pa_proplist_gets(o->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_ROLE, "filter");
-    pa_sink_input_new_data_set_sample_spec(&data, &o->userdata->sink->sample_spec);
-    pa_sink_input_new_data_set_channel_map(&data, &o->userdata->sink->channel_map);
-    data.module = o->userdata->module;
-    data.resample_method = o->userdata->resample_method;
+    pa_sink_input_new_data_set_sample_spec(&data, &u->sink->sample_spec);
+    pa_sink_input_new_data_set_channel_map(&data, &u->sink->channel_map);
+    data.module = u->module;
+    data.resample_method = u->resample_method;
     data.flags = PA_SINK_INPUT_VARIABLE_RATE|PA_SINK_INPUT_DONT_MOVE|PA_SINK_INPUT_NO_CREATE_ON_SUSPEND;
 
-    pa_sink_input_new(&o->sink_input, o->userdata->core, &data);
+    pa_sink_input_new(&o->sink_input, u->core, &data);
 
     pa_sink_input_new_data_done(&data);
 
