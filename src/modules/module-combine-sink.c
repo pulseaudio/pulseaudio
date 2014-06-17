@@ -1355,13 +1355,13 @@ int pa__init(pa_module*m) {
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
 
-    u->block_usec = BLOCK_USEC;
-    nbytes = pa_usec_to_bytes(u->block_usec, &u->sink->sample_spec);
+    nbytes = pa_usec_to_bytes(BLOCK_USEC, &u->sink->sample_spec);
     pa_sink_set_max_request(u->sink, nbytes);
-    pa_sink_set_latency_range(u->sink, 0, u->block_usec);
+    pa_sink_set_latency_range(u->sink, 0, BLOCK_USEC);
     /* pulse clamps the range, get the real values */
     u->default_min_latency = u->sink->thread_info.min_latency;
     u->default_max_latency = u->sink->thread_info.max_latency;
+    u->block_usec = u->sink->thread_info.max_latency;
 
 
     if (!u->automatic) {
