@@ -732,15 +732,20 @@ static void update_latency_range(struct userdata *u) {
             max_latency = max;
     }
     if (max_latency == (pa_usec_t) -1) {
-        /* no outputs, use block size */
+        /* No outputs, use default limits. */
         min_latency = u->default_min_latency;
         max_latency = u->default_max_latency;
     }
-    else if (max_latency < min_latency)
-        max_latency = min_latency;
 
-    /* never go below the min_latency or BLOCK_USEC */
-    max_latency = MIN (max_latency, MAX (min_latency, BLOCK_USEC));
+    /* As long as we don't support rewinding, we should limit the max latency
+     * to a conservative value. */
+    if (max_latency > u->default_max_latency)
+        max_latency = u->default_max_latency;
+
+    /* Never ever try to set lower max latency than min latency, it just
+     * doesn't make sense. */
+    if (max_latency < min_latency)
+        max_latency = min_latency;
 
     pa_log_debug("Sink update latency range %lu %lu", min_latency, max_latency);
     pa_sink_set_latency_range_within_thread(u->sink, min_latency, max_latency);
