@@ -964,7 +964,7 @@ static int output_create_sink_input(struct output *o) {
     o->sink_input->kill = sink_input_kill_cb;
     o->sink_input->userdata = o;
 
-    pa_sink_input_set_requested_latency(o->sink_input, BLOCK_USEC);
+    pa_sink_input_set_requested_latency(o->sink_input, pa_sink_get_requested_latency(u->sink));
 
     return 0;
 }
