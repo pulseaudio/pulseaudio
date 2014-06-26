@@ -41,7 +41,7 @@
 #include "client-conf.h"
 
 #ifdef HAVE_X11
-#include <client-conf-x11.h>
+#include <pulse/client-conf-x11.h>
 #endif
 
 #define DEFAULT_CLIENT_CONFIG_FILE PA_DEFAULT_CONFIG_DIR PA_PATH_SEP "client.conf"
