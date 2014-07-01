@@ -75,7 +75,7 @@ ifelse(@HAVE_SYS_RESOURCE_H@, 1, [dnl
 ; rlimit-msgqueue = -1
 ; rlimit-nice = 31
 ; rlimit-rtprio = 9
-; rlimit-rttime = 1000000
+; rlimit-rttime = 200000
 ])dnl
 
 ; default-sample-format = s16le

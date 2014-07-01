@@ -139,7 +139,7 @@ static const pa_daemon_conf default_conf = {
    ,.rlimit_rtprio = { .value = 9, .is_set = true }    /* One below JACK's default for the server */
 #endif
 #ifdef RLIMIT_RTTIME
-   ,.rlimit_rttime = { .value = PA_USEC_PER_SEC, .is_set = true }
+   ,.rlimit_rttime = { .value = 200*PA_USEC_PER_MSEC, .is_set = true } /* rtkit's limit is 200 ms */
 #endif
 #endif
 };
