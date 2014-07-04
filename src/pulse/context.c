@@ -1411,6 +1411,8 @@ finish:
 
 static void pa_command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
+
+#ifdef HAVE_CREDS
     const int *fds;
     int nfd;
 
@@ -1439,6 +1441,11 @@ static void pa_command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uin
     c->srb_setup_tag = tag;
 
     pa_context_unref(c);
+
+#else
+    pa_assert(c);
+    pa_context_fail(c, PA_ERR_PROTOCOL);
+#endif
 }
 
 static void pa_command_disable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {

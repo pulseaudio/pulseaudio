@@ -438,6 +438,8 @@ pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd) {
     return pd;
 }
 
+#ifdef HAVE_CREDS
+
 const pa_creds * pa_pdispatch_creds(pa_pdispatch *pd) {
     pa_assert(pd);
     pa_assert(PA_REFCNT_VALUE(pd) >= 1);
@@ -460,3 +462,5 @@ const int * pa_pdispatch_fds(pa_pdispatch *pd, int *nfd) {
     *nfd = 0;
     return NULL;
 }
+
+#endif

@@ -42,6 +42,8 @@ static void pa_pstream_send_tagstruct_with_ancil(pa_pstream *p, pa_tagstruct *t,
     pa_packet_unref(packet);
 }
 
+#ifdef HAVE_CREDS
+
 void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const pa_creds *creds) {
     if (creds) {
         pa_ancil a;
@@ -68,6 +70,14 @@ void pa_pstream_send_tagstruct_with_fds(pa_pstream *p, pa_tagstruct *t, int nfd,
     else
         pa_pstream_send_tagstruct_with_ancil(p, t, NULL);
 }
+
+#else
+
+void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const pa_creds *creds) {
+    pa_pstream_send_tagstruct_with_ancil(p, t, NULL);
+}
+
+#endif
 
 void pa_pstream_send_error(pa_pstream *p, uint32_t tag, uint32_t error) {
     pa_tagstruct *t;
