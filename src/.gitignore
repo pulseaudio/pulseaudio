@@ -64,6 +64,7 @@ rtstutter
 sig2str-test
 sigbus-test
 smoother-test
+srbchannel-test
 stripnul
 strlist-test
 sync-playback
