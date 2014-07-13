@@ -454,17 +454,32 @@ unlock_and_fail:
 
 pa_usec_t pa_simple_get_latency(pa_simple *p, int *rerror) {
     pa_usec_t t;
-    int negative;
 
     pa_assert(p);
 
     pa_threaded_mainloop_lock(p->mainloop);
 
     for (;;) {
+        int negative;
+
         CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
 
-        if (pa_stream_get_latency(p->stream, &t, &negative) >= 0)
+        if (pa_stream_get_latency(p->stream, &t, &negative) >= 0) {
+            pa_usec_t extra = 0;
+
+            if (p->direction == PA_STREAM_RECORD)
+                extra = pa_bytes_to_usec(p->read_length, pa_stream_get_sample_spec(p->stream));
+
+            if (negative) {
+                if (extra > t)
+                    t = extra - t;
+                else
+                    t = 0;
+            } else
+                t += extra;
+
             break;
+        }
 
         CHECK_SUCCESS_GOTO(p, rerror, pa_context_errno(p->context) == PA_ERR_NODATA, unlock_and_fail);
 
@@ -474,7 +489,7 @@ pa_usec_t pa_simple_get_latency(pa_simple *p, int *rerror) {
 
     pa_threaded_mainloop_unlock(p->mainloop);
 
-    return negative ? 0 : t;
+    return t;
 
 unlock_and_fail:
 
