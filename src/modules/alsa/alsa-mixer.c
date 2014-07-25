@@ -3368,6 +3368,7 @@ pa_alsa_mapping *pa_alsa_mapping_get(pa_alsa_profile_set *ps, const char *name) 
 
     m = pa_xnew0(pa_alsa_mapping, 1);
     m->profile_set = ps;
+    m->exact_channels = true;
     m->name = pa_xstrdup(name);
     pa_sample_spec_init(&m->sample_spec);
     pa_channel_map_init(&m->channel_map);
@@ -3481,6 +3482,30 @@ static int mapping_parse_paths(pa_config_parser_state *state) {
         pa_xstrfreev(m->output_path_names);
         m->output_path_names = pa_split_spaces_strv(state->rvalue);
     }
+
+    return 0;
+}
+
+static int mapping_parse_exact_channels(pa_config_parser_state *state) {
+    pa_alsa_profile_set *ps;
+    pa_alsa_mapping *m;
+    int b;
+
+    pa_assert(state);
+
+    ps = state->userdata;
+
+    if (!(m = pa_alsa_mapping_get(ps, state->section))) {
+        pa_log("[%s:%u] %s invalid in section %s", state->filename, state->lineno, state->lvalue, state->section);
+        return -1;
+    }
+
+    if ((b = pa_parse_boolean(state->rvalue)) < 0) {
+        pa_log("[%s:%u] %s has invalid value '%s'", state->filename, state->lineno, state->lvalue, state->section);
+        return -1;
+    }
+
+    m->exact_channels = b;
 
     return 0;
 }
@@ -4156,6 +4181,7 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
         { "element-input",          mapping_parse_element,        NULL, NULL },
         { "element-output",         mapping_parse_element,        NULL, NULL },
         { "direction",              mapping_parse_direction,      NULL, NULL },
+        { "exact-channels",         mapping_parse_exact_channels, NULL, NULL },
 
         /* Shared by [Mapping ...] and [Profile ...] */
         { "description",            mapping_parse_description,    NULL, NULL },
@@ -4264,10 +4290,12 @@ static void profile_finalize_probing(pa_alsa_profile *to_be_finalized, pa_alsa_p
 static snd_pcm_t* mapping_open_pcm(pa_alsa_mapping *m,
                                    const pa_sample_spec *ss,
                                    const char *dev_id,
+                                   bool exact_channels,
                                    int mode,
                                    unsigned default_n_fragments,
                                    unsigned default_fragment_size_msec) {
 
+    snd_pcm_t* handle;
     pa_sample_spec try_ss = *ss;
     pa_channel_map try_map = m->channel_map;
     snd_pcm_uframes_t try_period_size, try_buffer_size;
@@ -4279,10 +4307,17 @@ static snd_pcm_t* mapping_open_pcm(pa_alsa_mapping *m,
         pa_frame_size(&try_ss);
     try_buffer_size = default_n_fragments * try_period_size;
 
-    return pa_alsa_open_by_template(
+    handle = pa_alsa_open_by_template(
                               m->device_strings, dev_id, NULL, &try_ss,
                               &try_map, mode, &try_period_size,
-                              &try_buffer_size, 0, NULL, NULL, true);
+                              &try_buffer_size, 0, NULL, NULL, exact_channels);
+    if (handle && !exact_channels && m->channel_map.channels != try_map.channels) {
+        char buf[PA_CHANNEL_MAP_SNPRINT_MAX];
+        pa_log_debug("Channel map for mapping '%s' permanently changed to '%s'", m->name,
+                     pa_channel_map_snprint(buf, sizeof(buf), &try_map));
+        m->channel_map = try_map;
+    }
+    return handle;
 }
 
 static void paths_drop_unused(pa_hashmap* h, pa_hashmap *keep) {
@@ -4365,7 +4400,7 @@ void pa_alsa_profile_set_probe(
                         continue;
 
                     pa_log_debug("Checking for playback on %s (%s)", m->description, m->name);
-                    if (!(m->output_pcm = mapping_open_pcm(m, ss, dev_id,
+                    if (!(m->output_pcm = mapping_open_pcm(m, ss, dev_id, m->exact_channels,
                                                            SND_PCM_STREAM_PLAYBACK,
                                                            default_n_fragments,
                                                            default_fragment_size_msec))) {
@@ -4386,7 +4421,7 @@ void pa_alsa_profile_set_probe(
                         continue;
 
                     pa_log_debug("Checking for recording on %s (%s)", m->description, m->name);
-                    if (!(m->input_pcm = mapping_open_pcm(m, ss, dev_id,
+                    if (!(m->input_pcm = mapping_open_pcm(m, ss, dev_id, m->exact_channels,
                                                           SND_PCM_STREAM_CAPTURE,
                                                           default_n_fragments,
                                                           default_fragment_size_msec))) {

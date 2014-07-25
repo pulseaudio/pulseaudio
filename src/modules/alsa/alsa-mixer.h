@@ -264,6 +264,7 @@ struct pa_alsa_mapping {
     pa_alsa_path_set *output_path_set;
 
     unsigned supported;
+    bool exact_channels:1;
 
     /* Temporarily used during probing */
     snd_pcm_t *input_pcm;
