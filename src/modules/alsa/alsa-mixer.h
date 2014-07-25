@@ -265,6 +265,7 @@ struct pa_alsa_mapping {
 
     unsigned supported;
     bool exact_channels:1;
+    bool fallback:1;
 
     /* Temporarily used during probing */
     snd_pcm_t *input_pcm;
@@ -285,6 +286,8 @@ struct pa_alsa_profile {
     unsigned priority;
 
     bool supported:1;
+    bool fallback_input:1;
+    bool fallback_output:1;
 
     char **input_mapping_names;
     char **output_mapping_names;

@@ -3611,6 +3611,34 @@ static int mapping_parse_priority(pa_config_parser_state *state) {
     return 0;
 }
 
+static int mapping_parse_fallback(pa_config_parser_state *state) {
+    pa_alsa_profile_set *ps;
+    pa_alsa_profile *p;
+    pa_alsa_mapping *m;
+    int k;
+
+    pa_assert(state);
+
+    ps = state->userdata;
+
+    if ((k = pa_parse_boolean(state->rvalue)) < 0) {
+        pa_log("[%s:%u] Fallback invalid of '%s'", state->filename, state->lineno, state->section);
+        return -1;
+    }
+
+    if ((m = pa_alsa_mapping_get(ps, state->section)))
+        m->fallback = k;
+    else if ((p = profile_get(ps, state->section)))
+        p->fallback_input = p->fallback_output = k;
+    else {
+        pa_log("[%s:%u] Section name %s invalid.", state->filename, state->lineno, state->section);
+        return -1;
+    }
+
+    return 0;
+}
+
+
 static int profile_parse_mappings(pa_config_parser_state *state) {
     pa_alsa_profile_set *ps;
     pa_alsa_profile *p;
@@ -3939,12 +3967,14 @@ static void profile_set_add_auto_pair(
         p->output_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
         pa_idxset_put(p->output_mappings, m, NULL);
         p->priority += m->priority * 100;
+        p->fallback_output = m->fallback;
     }
 
     if (n) {
         p->input_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
         pa_idxset_put(p->input_mappings, n, NULL);
         p->priority += n->priority;
+        p->fallback_input = n->fallback;
     }
 
     pa_hashmap_put(ps->profiles, p->name, p);
@@ -4186,6 +4216,7 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
         /* Shared by [Mapping ...] and [Profile ...] */
         { "description",            mapping_parse_description,    NULL, NULL },
         { "priority",               mapping_parse_priority,       NULL, NULL },
+        { "fallback",               mapping_parse_fallback,       NULL, NULL },
 
         /* [Profile ...] */
         { "input-mappings",         profile_parse_mappings,       NULL, NULL },
@@ -4337,6 +4368,24 @@ static void paths_drop_unused(pa_hashmap* h, pa_hashmap *keep) {
     }
 }
 
+static int add_profiles_to_probe(
+        pa_alsa_profile **list,
+        pa_hashmap *profiles,
+        bool fallback_output,
+        bool fallback_input) {
+
+    int i = 0;
+    void *state;
+    pa_alsa_profile *p;
+    PA_HASHMAP_FOREACH(p, profiles, state)
+        if (p->fallback_input == fallback_input && p->fallback_output == fallback_output) {
+            *list = p;
+            list++;
+            i++;
+        }
+    return i;
+}
+
 void pa_alsa_profile_set_probe(
         pa_alsa_profile_set *ps,
         const char *dev_id,
@@ -4344,8 +4393,10 @@ void pa_alsa_profile_set_probe(
         unsigned default_n_fragments,
         unsigned default_fragment_size_msec) {
 
-    void *state;
+    bool found_output = false, found_input = false;
+
     pa_alsa_profile *p, *last = NULL;
+    pa_alsa_profile **pp, **probe_order;
     pa_alsa_mapping *m;
     pa_hashmap *broken_inputs, *broken_outputs, *used_paths;
 
@@ -4359,9 +4410,22 @@ void pa_alsa_profile_set_probe(
     broken_inputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     broken_outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     used_paths = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    pp = probe_order = pa_xnew0(pa_alsa_profile *, pa_hashmap_size(ps->profiles) + 1);
 
-    PA_HASHMAP_FOREACH(p, ps->profiles, state) {
+    pp += add_profiles_to_probe(pp, ps->profiles, false, false);
+    pp += add_profiles_to_probe(pp, ps->profiles, false, true);
+    pp += add_profiles_to_probe(pp, ps->profiles, true, false);
+    pp += add_profiles_to_probe(pp, ps->profiles, true, true);
+
+    for (pp = probe_order; *pp; pp++) {
         uint32_t idx;
+        p = *pp;
+
+        /* Skip if fallback and already found something */
+        if (found_input && p->fallback_input)
+            continue;
+        if (found_output && p->fallback_output)
+            continue;
 
         /* Skip if this is already marked that it is supported (i.e. from the config file) */
         if (!p->supported) {
@@ -4445,13 +4509,17 @@ void pa_alsa_profile_set_probe(
 
         if (p->output_mappings)
             PA_IDXSET_FOREACH(m, p->output_mappings, idx)
-                if (m->output_pcm)
+                if (m->output_pcm) {
+                    found_output |= !p->fallback_output;
                     mapping_paths_probe(m, p, PA_ALSA_DIRECTION_OUTPUT, used_paths);
+                }
 
         if (p->input_mappings)
             PA_IDXSET_FOREACH(m, p->input_mappings, idx)
-                if (m->input_pcm)
+                if (m->input_pcm) {
+                    found_input |= !p->fallback_input;
                     mapping_paths_probe(m, p, PA_ALSA_DIRECTION_INPUT, used_paths);
+                }
     }
 
     /* Clean up */
@@ -4464,6 +4532,7 @@ void pa_alsa_profile_set_probe(
     pa_hashmap_free(broken_inputs);
     pa_hashmap_free(broken_outputs);
     pa_hashmap_free(used_paths);
+    pa_xfree(probe_order);
 
     ps->probed = true;
 }
