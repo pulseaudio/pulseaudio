@@ -239,9 +239,12 @@ static void remap_channels_matrix_float32ne_c(pa_remap_t *m, float *dst, const f
     }
 }
 
+/* Produce an array containing input channel indices to map to output channels.
+ * If the output channel is empty, the array element is -1. */
 bool pa_setup_remap_arrange(const pa_remap_t *m, int8_t arrange[PA_CHANNELS_MAX]) {
     unsigned ic, oc;
     unsigned n_ic, n_oc;
+    unsigned count_output = 0;
 
     pa_assert(m);
 
@@ -262,10 +265,22 @@ bool pa_setup_remap_arrange(const pa_remap_t *m, int8_t arrange[PA_CHANNELS_MAX]
                 return false;
 
             arrange[oc] = ic;
+            count_output++;
         }
     }
 
-    return true;
+    return count_output > 0;
+}
+
+static void remap_arrange_mono_s16ne_c(pa_remap_t *m, int16_t *dst, const int16_t *src, unsigned n) {
+    const unsigned n_ic = m->i_ss.channels;
+    const int8_t *arrange = m->state;
+
+    src += arrange[0];
+    for (; n > 0; n--) {
+        *dst++ = *src;
+        src += n_ic;
+    }
 }
 
 static void remap_arrange_stereo_s16ne_c(pa_remap_t *m, int16_t *dst, const int16_t *src, unsigned n) {
@@ -291,6 +306,17 @@ static void remap_arrange_ch4_s16ne_c(pa_remap_t *m, int16_t *dst, const int16_t
         *dst++ = (ic1 >= 0) ? *(src + ic1) : 0;
         *dst++ = (ic2 >= 0) ? *(src + ic2) : 0;
         *dst++ = (ic3 >= 0) ? *(src + ic3) : 0;
+        src += n_ic;
+    }
+}
+
+static void remap_arrange_mono_float32ne_c(pa_remap_t *m, float *dst, const float *src, unsigned n) {
+    const unsigned n_ic = m->i_ss.channels;
+    const int8_t *arrange = m->state;
+
+    src += arrange[0];
+    for (; n > 0; n--) {
+        *dst++ = *src;
         src += n_ic;
     }
 }
@@ -370,6 +396,14 @@ static void init_remap_c(pa_remap_t *m) {
         pa_log_info("Using 4-channel to mono remapping");
         pa_set_remap_func(m, (pa_do_remap_func_t) remap_ch4_to_mono_s16ne_c,
             (pa_do_remap_func_t) remap_ch4_to_mono_float32ne_c);
+    } else if (pa_setup_remap_arrange(m, arrange) && n_oc == 1) {
+
+        pa_log_info("Using mono arrange remapping");
+        pa_set_remap_func(m, (pa_do_remap_func_t) remap_arrange_mono_s16ne_c,
+            (pa_do_remap_func_t) remap_arrange_mono_float32ne_c);
+
+        /* setup state */
+        m->state = pa_xnewdup(int8_t, arrange, PA_CHANNELS_MAX);
     } else if (pa_setup_remap_arrange(m, arrange) && n_oc == 2) {
 
         pa_log_info("Using stereo arrange remapping");
