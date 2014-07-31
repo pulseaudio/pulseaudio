@@ -346,8 +346,10 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
     pa_assert(u->time_event == e);
     pa_assert_ctl_context();
 
-    if (!IS_ACTIVE(u))
+    if (!IS_ACTIVE(u)){
+        pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
         return;
+    }
 
     /* update our snapshots */
     pa_asyncmsgq_send(u->source_output->source->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_LATENCY_SNAPSHOT, &latency_snapshot, 0, NULL);
