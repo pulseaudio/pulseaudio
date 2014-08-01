@@ -3871,7 +3871,6 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
         { "analog-surround-61",     N_("Analog Surround 6.1") },
         { "analog-surround-70",     N_("Analog Surround 7.0") },
         { "analog-surround-71",     N_("Analog Surround 7.1") },
-        { "analog-4-channel-input", N_("Analog 4-channel Input") },
         { "iec958-stereo",          N_("Digital Stereo (IEC958)") },
         { "iec958-passthrough",     N_("Digital Passthrough  (IEC958)") },
         { "iec958-ac3-surround-40", N_("Digital Surround 4.0 (IEC958/AC3)") },
