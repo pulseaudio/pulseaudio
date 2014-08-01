@@ -1205,7 +1205,6 @@ modlibexec_LTLIBRARIES += \
 
 dist_alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/default.conf \
-		modules/alsa/mixer/profile-sets/extra-hdmi.conf \
 		modules/alsa/mixer/profile-sets/force-speaker.conf \
 		modules/alsa/mixer/profile-sets/force-speaker-and-int-mic.conf \
 		modules/alsa/mixer/profile-sets/maudio-fasttrack-pro.conf \
@@ -1254,7 +1253,11 @@ dist_alsapaths_DATA = \
 		modules/alsa/mixer/paths/hdmi-output-0.conf \
 		modules/alsa/mixer/paths/hdmi-output-1.conf \
 		modules/alsa/mixer/paths/hdmi-output-2.conf \
-		modules/alsa/mixer/paths/hdmi-output-3.conf
+		modules/alsa/mixer/paths/hdmi-output-3.conf \
+		modules/alsa/mixer/paths/hdmi-output-4.conf \
+		modules/alsa/mixer/paths/hdmi-output-5.conf \
+		modules/alsa/mixer/paths/hdmi-output-6.conf \
+		modules/alsa/mixer/paths/hdmi-output-7.conf
 
 endif
 
