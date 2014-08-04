@@ -89,4 +89,8 @@ void pa_convert_func_init_neon(pa_cpu_arm_flag_t flags) {
     pa_log_info("Initialising ARM NEON optimized conversions.");
     pa_set_convert_from_float32ne_function(PA_SAMPLE_S16LE, (pa_convert_func_t) pa_sconv_s16le_from_f32ne_neon);
     pa_set_convert_to_float32ne_function(PA_SAMPLE_S16LE, (pa_convert_func_t) pa_sconv_s16le_to_f32ne_neon);
+#ifndef WORDS_BIGENDIAN
+    pa_set_convert_from_s16ne_function(PA_SAMPLE_FLOAT32LE, (pa_convert_func_t) pa_sconv_s16le_to_f32ne_neon);
+    pa_set_convert_to_s16ne_function(PA_SAMPLE_FLOAT32LE, (pa_convert_func_t) pa_sconv_s16le_from_f32ne_neon);
+#endif
 }
