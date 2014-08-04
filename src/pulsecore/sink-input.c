@@ -1273,7 +1273,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, bool s
         /* OK, we are in normal volume mode. The volume only affects
          * ourselves */
         set_real_ratio(i, volume);
-        i->reference_ratio = i->volume;
+        pa_sink_input_set_reference_ratio(i, &i->volume);
 
         /* Copy the new soft_volume to the thread_info struct */
         pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_SOFT_VOLUME, NULL, 0, NULL) == 0);
@@ -1673,7 +1673,7 @@ static void update_volume_due_to_moving(pa_sink_input *i, pa_sink *dest) {
 
             pa_cvolume_reset(&new_volume, i->volume.channels);
             pa_sink_input_set_volume_direct(i, &new_volume);
-            pa_cvolume_reset(&i->reference_ratio, i->reference_ratio.channels);
+            pa_sink_input_set_reference_ratio(i, &new_volume);
             pa_assert(pa_cvolume_is_norm(&i->real_ratio));
             pa_assert(pa_cvolume_equal(&i->soft_volume, &i->volume_factor));
         }
@@ -2237,4 +2237,28 @@ void pa_sink_input_set_volume_direct(pa_sink_input *i, const pa_cvolume *volume)
 
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_VOLUME_CHANGED], i);
+}
+
+/* Called from the main thread. */
+void pa_sink_input_set_reference_ratio(pa_sink_input *i, const pa_cvolume *ratio) {
+    pa_cvolume old_ratio;
+    char old_ratio_str[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
+    char new_ratio_str[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
+
+    pa_assert(i);
+    pa_assert(ratio);
+
+    old_ratio = i->reference_ratio;
+
+    if (pa_cvolume_equal(ratio, &old_ratio))
+        return;
+
+    i->reference_ratio = *ratio;
+
+    if (!PA_SINK_INPUT_IS_LINKED(i->state))
+        return;
+
+    pa_log_debug("Sink input %u reference ratio changed from %s to %s.", i->index,
+                 pa_cvolume_snprint_verbose(old_ratio_str, sizeof(old_ratio_str), &old_ratio, &i->channel_map, true),
+                 pa_cvolume_snprint_verbose(new_ratio_str, sizeof(new_ratio_str), ratio, &i->channel_map, true));
 }

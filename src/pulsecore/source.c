@@ -1204,6 +1204,7 @@ void pa_source_leave_passthrough(pa_source *s) {
 static void compute_reference_ratio(pa_source_output *o) {
     unsigned c = 0;
     pa_cvolume remapped;
+    pa_cvolume ratio;
 
     pa_assert(o);
     pa_assert(pa_source_flat_volume_enabled(o->source));
@@ -1218,7 +1219,7 @@ static void compute_reference_ratio(pa_source_output *o) {
     remapped = o->source->reference_volume;
     pa_cvolume_remap(&remapped, &o->source->channel_map, &o->channel_map);
 
-    o->reference_ratio.channels = o->sample_spec.channels;
+    ratio = o->reference_ratio;
 
     for (c = 0; c < o->sample_spec.channels; c++) {
 
@@ -1228,14 +1229,16 @@ static void compute_reference_ratio(pa_source_output *o) {
 
         /* Don't update the reference ratio unless necessary */
         if (pa_sw_volume_multiply(
-                    o->reference_ratio.values[c],
+                    ratio.values[c],
                     remapped.values[c]) == o->volume.values[c])
             continue;
 
-        o->reference_ratio.values[c] = pa_sw_volume_divide(
+        ratio.values[c] = pa_sw_volume_divide(
                 o->volume.values[c],
                 remapped.values[c]);
     }
+
+    pa_source_output_set_reference_ratio(o, &ratio);
 }
 
 /* Called from main context. Only called for the root source in volume sharing
@@ -1702,7 +1705,7 @@ static void propagate_real_volume(pa_source *s, const pa_cvolume *old_real_volum
 
             /* 2. Since the source's reference and real volumes are equal
              * now our ratios should be too. */
-            o->reference_ratio = o->real_ratio;
+            pa_source_output_set_reference_ratio(o, &o->real_ratio);
 
             /* 3. Recalculate the new stream reference volume based on the
              * reference ratio and the sink's reference volume.

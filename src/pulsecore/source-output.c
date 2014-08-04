@@ -1313,7 +1313,7 @@ static void update_volume_due_to_moving(pa_source_output *o, pa_source *dest) {
 
             pa_cvolume_reset(&new_volume, o->volume.channels);
             pa_source_output_set_volume_direct(o, &new_volume);
-            pa_cvolume_reset(&o->reference_ratio, o->reference_ratio.channels);
+            pa_source_output_set_reference_ratio(o, &new_volume);
             pa_assert(pa_cvolume_is_norm(&o->real_ratio));
             pa_assert(pa_cvolume_equal(&o->soft_volume, &o->volume_factor));
         }
@@ -1694,4 +1694,28 @@ void pa_source_output_set_volume_direct(pa_source_output *o, const pa_cvolume *v
 
     pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
     pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_VOLUME_CHANGED], o);
+}
+
+/* Called from the main thread. */
+void pa_source_output_set_reference_ratio(pa_source_output *o, const pa_cvolume *ratio) {
+    pa_cvolume old_ratio;
+    char old_ratio_str[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
+    char new_ratio_str[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
+
+    pa_assert(o);
+    pa_assert(ratio);
+
+    old_ratio = o->reference_ratio;
+
+    if (pa_cvolume_equal(ratio, &old_ratio))
+        return;
+
+    o->reference_ratio = *ratio;
+
+    if (!PA_SOURCE_OUTPUT_IS_LINKED(o->state))
+        return;
+
+    pa_log_debug("Source output %u reference ratio changed from %s to %s.", o->index,
+                 pa_cvolume_snprint_verbose(old_ratio_str, sizeof(old_ratio_str), &old_ratio, &o->channel_map, true),
+                 pa_cvolume_snprint_verbose(new_ratio_str, sizeof(new_ratio_str), ratio, &o->channel_map, true));
 }
