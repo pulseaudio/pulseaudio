@@ -26,9 +26,13 @@
 #include <pulse/channelmap.h>
 #include <pulsecore/memblock.h>
 #include <pulsecore/memchunk.h>
+#include <pulsecore/sconv.h>
+#include <pulsecore/remap.h>
 
 typedef struct pa_resampler pa_resampler;
 typedef struct pa_resampler_impl pa_resampler_impl;
+
+typedef struct pa_resampler pa_resampler;
 
 struct pa_resampler_impl {
     void (*free)(pa_resampler *r);
@@ -66,6 +70,45 @@ typedef enum pa_resample_flags {
     PA_RESAMPLER_NO_REMIX      = 0x0004U,
     PA_RESAMPLER_NO_LFE        = 0x0008U
 } pa_resample_flags_t;
+
+struct pa_resampler {
+    pa_resample_method_t method;
+    pa_resample_flags_t flags;
+
+    pa_sample_spec i_ss, o_ss;
+    pa_channel_map i_cm, o_cm;
+    size_t i_fz, o_fz, w_fz, w_sz;
+    pa_mempool *mempool;
+
+    pa_memchunk to_work_format_buf;
+    pa_memchunk remap_buf;
+    pa_memchunk resample_buf;
+    pa_memchunk from_work_format_buf;
+    size_t to_work_format_buf_size;
+    size_t remap_buf_size;
+    size_t resample_buf_size;
+    size_t from_work_format_buf_size;
+
+    /* points to buffer before resampling stage, remap or to_work */
+    pa_memchunk *leftover_buf;
+    size_t *leftover_buf_size;
+
+    /* have_leftover points to leftover_in_remap or leftover_in_to_work */
+    bool *have_leftover;
+    bool leftover_in_remap;
+    bool leftover_in_to_work;
+
+    pa_sample_format_t work_format;
+    uint8_t work_channels;
+
+    pa_convert_func_t to_work_format_func;
+    pa_convert_func_t from_work_format_func;
+
+    pa_remap_t remap;
+    bool map_required;
+
+    pa_resampler_impl impl;
+};
 
 pa_resampler* pa_resampler_new(
         pa_mempool *pool,
@@ -115,5 +158,12 @@ const pa_channel_map* pa_resampler_input_channel_map(pa_resampler *r);
 const pa_sample_spec* pa_resampler_input_sample_spec(pa_resampler *r);
 const pa_channel_map* pa_resampler_output_channel_map(pa_resampler *r);
 const pa_sample_spec* pa_resampler_output_sample_spec(pa_resampler *r);
+
+/* Implementation specific init functions */
+int pa_resampler_ffmpeg_init(pa_resampler *r);
+int pa_resampler_libsamplerate_init(pa_resampler *r);
+int pa_resampler_peaks_init(pa_resampler *r);
+int pa_resampler_speex_init(pa_resampler *r);
+int pa_resampler_trivial_init(pa_resampler*r);
 
 #endif
