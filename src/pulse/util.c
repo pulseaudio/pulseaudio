@@ -193,10 +193,10 @@ char *pa_get_binary_name(char *s, size_t l) {
     }
 #endif
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__FreeBSD_kernel__)
     {
         char *rp;
-        /* This works on Linux only */
+        /* This works on Linux and Debian/kFreeBSD */
 
         if ((rp = pa_readlink("/proc/self/exe"))) {
             pa_strlcpy(s, pa_path_get_filename(rp), l);
