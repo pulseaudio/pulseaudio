@@ -475,7 +475,7 @@ static int source_set_state_cb(pa_source *s, pa_source_state_t state) {
 
     if (state == PA_SOURCE_RUNNING) {
         /* restart timer when both sink and source are active */
-        if (IS_ACTIVE(u) && u->adjust_time)
+        if ((pa_sink_get_state(u->sink) == PA_SINK_RUNNING) && u->adjust_time)
             pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
 
         pa_atomic_store(&u->request_resync, 1);
@@ -500,7 +500,7 @@ static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
 
     if (state == PA_SINK_RUNNING) {
         /* restart timer when both sink and source are active */
-        if (IS_ACTIVE(u) && u->adjust_time)
+        if ((pa_source_get_state(u->source) == PA_SOURCE_RUNNING) && u->adjust_time)
             pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
 
         pa_atomic_store(&u->request_resync, 1);
