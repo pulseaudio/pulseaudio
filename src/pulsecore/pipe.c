@@ -149,7 +149,7 @@ error:
         if (filedes[0] >= 0)
                 pa_close(filedes[0]);
         if (filedes[1] >= 0)
-                pa_close(filedes[0]);
+                pa_close(filedes[1]);
 
         return -1;
 }
