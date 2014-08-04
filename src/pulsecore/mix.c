@@ -445,7 +445,7 @@ static void pa_mix_s24_32re_c(pa_mix_info streams[], unsigned nstreams, unsigned
                 v = (v * cv) >> 16;
                 sum += v;
             }
-            m->ptr = (uint8_t*) m->ptr + 3;
+            m->ptr = (uint8_t*) m->ptr + sizeof(int32_t);
         }
 
         sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
