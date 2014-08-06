@@ -202,7 +202,7 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
                 float uu = ss->format == PA_SAMPLE_FLOAT32NE ? *u : PA_FLOAT32_SWAP(*u);
-                fail_unless(fabs(uu - *v) <= 1e-6, NULL);
+                fail_unless(fabsf(uu - *v) <= 1e-6f, NULL);
                 ++u;
                 ++v;
             }
@@ -215,7 +215,7 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
                 float uu = ss->format == PA_SAMPLE_FLOAT32NE ? *u : PA_FLOAT32_SWAP(*u);
-                fail_unless(fabs(uu - *v) <= 1e-6, NULL);
+                fail_unless(fabsf(uu - *v) <= 1e-6f, NULL);
                 ++u;
                 ++v;
             }
@@ -385,7 +385,7 @@ static pa_memblock* generate_block(pa_mempool *pool, const pa_sample_spec *ss) {
                 for (i = 0; i < 10; i++)
                     u[i] = PA_FLOAT32_SWAP(float_samples[i]);
             } else
-              memcpy(d, float_samples, sizeof(float_samples));
+                memcpy(d, float_samples, sizeof(float_samples));
 
             break;
         }
