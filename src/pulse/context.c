@@ -328,7 +328,7 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
     pa_context_fail(c, PA_ERR_CONNECTIONTERMINATED);
 }
 
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_ancil *ancil, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data, void *userdata) {
     pa_context *c = userdata;
 
     pa_assert(p);
@@ -337,7 +337,7 @@ static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_a
 
     pa_context_ref(c);
 
-    if (pa_pdispatch_run(c->pdispatch, packet, ancil, c) < 0)
+    if (pa_pdispatch_run(c->pdispatch, packet, ancil_data, c) < 0)
         pa_context_fail(c, PA_ERR_PROTOCOL);
 
     pa_context_unref(c);

@@ -38,7 +38,7 @@
 
 typedef struct pa_pstream pa_pstream;
 
-typedef void (*pa_pstream_packet_cb_t)(pa_pstream *p, pa_packet *packet, const pa_ancil *ancil, void *userdata);
+typedef void (*pa_pstream_packet_cb_t)(pa_pstream *p, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data, void *userdata);
 typedef void (*pa_pstream_memblock_cb_t)(pa_pstream *p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata);
 typedef void (*pa_pstream_notify_cb_t)(pa_pstream *p, void *userdata);
 typedef void (*pa_pstream_block_id_cb_t)(pa_pstream *p, uint32_t block_id, void *userdata);
@@ -50,7 +50,7 @@ void pa_pstream_unref(pa_pstream*p);
 
 void pa_pstream_unlink(pa_pstream *p);
 
-void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_ancil *ancil);
+void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data);
 void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk);
 void pa_pstream_send_release(pa_pstream *p, uint32_t block_id);
 void pa_pstream_send_revoke(pa_pstream *p, uint32_t block_id);

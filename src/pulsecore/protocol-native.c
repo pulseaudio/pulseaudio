@@ -4888,14 +4888,14 @@ static void command_set_port_latency_offset(pa_pdispatch *pd, uint32_t command, 
 
 /*** pstream callbacks ***/
 
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_ancil *ancil, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
 
     pa_assert(p);
     pa_assert(packet);
     pa_native_connection_assert_ref(c);
 
-    if (pa_pdispatch_run(c->pdispatch, packet, ancil, c) < 0) {
+    if (pa_pdispatch_run(c->pdispatch, packet, ancil_data, c) < 0) {
         pa_log("invalid packet.");
         native_connection_unlink(c);
     }

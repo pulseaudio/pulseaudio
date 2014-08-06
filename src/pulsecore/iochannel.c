@@ -355,7 +355,7 @@ ssize_t pa_iochannel_write_with_fds(pa_iochannel*io, const void*data, size_t l, 
     struct iovec iov;
     union {
         struct cmsghdr hdr;
-        uint8_t data[CMSG_SPACE(sizeof(int) * MAX_ANCIL_FDS)];
+        uint8_t data[CMSG_SPACE(sizeof(int) * MAX_ANCIL_DATA_FDS)];
     } cmsg;
 
     pa_assert(io);
@@ -364,7 +364,7 @@ ssize_t pa_iochannel_write_with_fds(pa_iochannel*io, const void*data, size_t l, 
     pa_assert(io->ofd >= 0);
     pa_assert(fds);
     pa_assert(nfd > 0);
-    pa_assert(nfd <= MAX_ANCIL_FDS);
+    pa_assert(nfd <= MAX_ANCIL_DATA_FDS);
 
     pa_zero(iov);
     iov.iov_base = (void*) data;
@@ -391,24 +391,24 @@ ssize_t pa_iochannel_write_with_fds(pa_iochannel*io, const void*data, size_t l, 
     return r;
 }
 
-ssize_t pa_iochannel_read_with_ancil(pa_iochannel*io, void*data, size_t l, pa_ancil *ancil) {
+ssize_t pa_iochannel_read_with_ancil_data(pa_iochannel*io, void*data, size_t l, pa_cmsg_ancil_data *ancil_data) {
     ssize_t r;
     struct msghdr mh;
     struct iovec iov;
     union {
         struct cmsghdr hdr;
-        uint8_t data[CMSG_SPACE(sizeof(struct ucred)) + CMSG_SPACE(sizeof(int) * MAX_ANCIL_FDS)];
+        uint8_t data[CMSG_SPACE(sizeof(struct ucred)) + CMSG_SPACE(sizeof(int) * MAX_ANCIL_DATA_FDS)];
     } cmsg;
 
     pa_assert(io);
     pa_assert(data);
     pa_assert(l);
     pa_assert(io->ifd >= 0);
-    pa_assert(ancil);
+    pa_assert(ancil_data);
 
     if (io->ifd_type > 0) {
-        ancil->creds_valid = false;
-        ancil->nfd = 0;
+        ancil_data->creds_valid = false;
+        ancil_data->nfd = 0;
         return pa_iochannel_read(io, data, l);
     }
 
@@ -426,8 +426,8 @@ ssize_t pa_iochannel_read_with_ancil(pa_iochannel*io, void*data, size_t l, pa_an
     if ((r = recvmsg(io->ifd, &mh, 0)) >= 0) {
         struct cmsghdr *cmh;
 
-        ancil->creds_valid = false;
-        ancil->nfd = 0;
+        ancil_data->creds_valid = false;
+        ancil_data->nfd = 0;
 
         for (cmh = CMSG_FIRSTHDR(&mh); cmh; cmh = CMSG_NXTHDR(&mh, cmh)) {
 
@@ -439,21 +439,21 @@ ssize_t pa_iochannel_read_with_ancil(pa_iochannel*io, void*data, size_t l, pa_an
                 pa_assert(cmh->cmsg_len == CMSG_LEN(sizeof(struct ucred)));
                 memcpy(&u, CMSG_DATA(cmh), sizeof(struct ucred));
 
-                ancil->creds.gid = u.gid;
-                ancil->creds.uid = u.uid;
-                ancil->creds_valid = true;
+                ancil_data->creds.gid = u.gid;
+                ancil_data->creds.uid = u.uid;
+                ancil_data->creds_valid = true;
             }
             else if (cmh->cmsg_type == SCM_RIGHTS) {
                 int nfd = (cmh->cmsg_len - CMSG_LEN(0)) / sizeof(int);
-                if (nfd > MAX_ANCIL_FDS) {
+                if (nfd > MAX_ANCIL_DATA_FDS) {
                     int i;
                     pa_log("Trying to receive too many file descriptors!");
                     for (i = 0; i < nfd; i++)
                         pa_close(((int*) CMSG_DATA(cmh))[i]);
                     continue;
                 }
-                memcpy(ancil->fds, CMSG_DATA(cmh), nfd * sizeof(int));
-                ancil->nfd = nfd;
+                memcpy(ancil_data->fds, CMSG_DATA(cmh), nfd * sizeof(int));
+                ancil_data->nfd = nfd;
             }
         }
 
@@ -463,7 +463,7 @@ ssize_t pa_iochannel_read_with_ancil(pa_iochannel*io, void*data, size_t l, pa_an
 
     if (r == -1 && errno == ENOTSOCK) {
         io->ifd_type = 1;
-        return pa_iochannel_read_with_ancil(io, data, l, ancil);
+        return pa_iochannel_read_with_ancil_data(io, data, l, ancil_data);
     }
 
     return r;

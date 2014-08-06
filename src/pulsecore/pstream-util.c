@@ -28,7 +28,7 @@
 
 #include "pstream-util.h"
 
-static void pa_pstream_send_tagstruct_with_ancil(pa_pstream *p, pa_tagstruct *t, const pa_ancil *ancil) {
+static void pa_pstream_send_tagstruct_with_ancil_data(pa_pstream *p, pa_tagstruct *t, const pa_cmsg_ancil_data *ancil_data) {
     size_t length;
     uint8_t *data;
     pa_packet *packet;
@@ -38,7 +38,7 @@ static void pa_pstream_send_tagstruct_with_ancil(pa_pstream *p, pa_tagstruct *t,
 
     pa_assert_se(data = pa_tagstruct_free_data(t, &length));
     pa_assert_se(packet = pa_packet_new_dynamic(data, length));
-    pa_pstream_send_packet(p, packet, ancil);
+    pa_pstream_send_packet(p, packet, ancil_data);
     pa_packet_unref(packet);
 }
 
@@ -46,35 +46,35 @@ static void pa_pstream_send_tagstruct_with_ancil(pa_pstream *p, pa_tagstruct *t,
 
 void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const pa_creds *creds) {
     if (creds) {
-        pa_ancil a;
+        pa_cmsg_ancil_data a;
 
         a.nfd = 0;
         a.creds_valid = true;
         a.creds = *creds;
-        pa_pstream_send_tagstruct_with_ancil(p, t, &a);
+        pa_pstream_send_tagstruct_with_ancil_data(p, t, &a);
     }
     else
-        pa_pstream_send_tagstruct_with_ancil(p, t, NULL);
+        pa_pstream_send_tagstruct_with_ancil_data(p, t, NULL);
 }
 
 void pa_pstream_send_tagstruct_with_fds(pa_pstream *p, pa_tagstruct *t, int nfd, const int *fds) {
     if (nfd > 0) {
-        pa_ancil a;
+        pa_cmsg_ancil_data a;
 
         a.nfd = nfd;
         a.creds_valid = false;
-        pa_assert(nfd <= MAX_ANCIL_FDS);
+        pa_assert(nfd <= MAX_ANCIL_DATA_FDS);
         memcpy(a.fds, fds, sizeof(int) * nfd);
-        pa_pstream_send_tagstruct_with_ancil(p, t, &a);
+        pa_pstream_send_tagstruct_with_ancil_data(p, t, &a);
     }
     else
-        pa_pstream_send_tagstruct_with_ancil(p, t, NULL);
+        pa_pstream_send_tagstruct_with_ancil_data(p, t, NULL);
 }
 
 #else
 
 void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const pa_creds *creds) {
-    pa_pstream_send_tagstruct_with_ancil(p, t, NULL);
+    pa_pstream_send_tagstruct_with_ancil_data(p, t, NULL);
 }
 
 void pa_pstream_send_tagstruct_with_fds(pa_pstream *p, pa_tagstruct *t, int nfd, const int *fds) {

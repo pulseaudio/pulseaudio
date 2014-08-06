@@ -221,7 +221,7 @@ struct pa_pdispatch {
     PA_LLIST_HEAD(struct reply_info, replies);
     pa_pdispatch_drain_cb_t drain_callback;
     void *drain_userdata;
-    const pa_ancil *ancil;
+    const pa_cmsg_ancil_data *ancil_data;
     bool use_rtclock;
 };
 
@@ -291,7 +291,7 @@ static void run_action(pa_pdispatch *pd, struct reply_info *r, uint32_t command,
     pa_pdispatch_unref(pd);
 }
 
-int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_ancil *ancil, void *userdata) {
+int pa_pdispatch_run(pa_pdispatch *pd, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data, void *userdata) {
     uint32_t tag, command;
     pa_tagstruct *ts = NULL;
     int ret = -1;
@@ -325,7 +325,7 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_ancil *ancil, 
 }
 #endif
 
-    pd->ancil = ancil;
+    pd->ancil_data = ancil_data;
 
     if (command == PA_COMMAND_ERROR || command == PA_COMMAND_REPLY) {
         struct reply_info *r;
@@ -349,7 +349,7 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_ancil *ancil, 
     ret = 0;
 
 finish:
-    pd->ancil = NULL;
+    pd->ancil_data = NULL;
 
     if (ts)
         pa_tagstruct_free(ts);
@@ -444,8 +444,8 @@ const pa_creds * pa_pdispatch_creds(pa_pdispatch *pd) {
     pa_assert(pd);
     pa_assert(PA_REFCNT_VALUE(pd) >= 1);
 
-    if (pd->ancil && pd->ancil->creds_valid)
-         return &pd->ancil->creds;
+    if (pd->ancil_data && pd->ancil_data->creds_valid)
+         return &pd->ancil_data->creds;
     return NULL;
 }
 
@@ -454,9 +454,9 @@ const int * pa_pdispatch_fds(pa_pdispatch *pd, int *nfd) {
     pa_assert(PA_REFCNT_VALUE(pd) >= 1);
     pa_assert(nfd);
 
-    if (pd->ancil) {
-         *nfd = pd->ancil->nfd;
-         return pd->ancil->fds;
+    if (pd->ancil_data) {
+         *nfd = pd->ancil_data->nfd;
+         return pd->ancil_data->fds;
     }
 
     *nfd = 0;
