@@ -82,8 +82,8 @@ static inline float PA_FLOAT32_SWAP(float x) {
     return t.f;
 }
 
-#define PA_MAYBE_INT16_SWAP(c,x) ((c) ? PA_INT32_SWAP(x) : (x))
-#define PA_MAYBE_UINT16_SWAP(c,x) ((c) ? PA_UINT32_SWAP(x) : (x))
+#define PA_MAYBE_INT16_SWAP(c,x) ((c) ? PA_INT16_SWAP(x) : (x))
+#define PA_MAYBE_UINT16_SWAP(c,x) ((c) ? PA_UINT16_SWAP(x) : (x))
 
 #define PA_MAYBE_INT32_SWAP(c,x) ((c) ? PA_INT32_SWAP(x) : (x))
 #define PA_MAYBE_UINT32_SWAP(c,x) ((c) ? PA_UINT32_SWAP(x) : (x))
