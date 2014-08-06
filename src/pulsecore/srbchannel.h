@@ -27,7 +27,7 @@
 #include <pulsecore/memblock.h>
 
 /* An shm ringbuffer that is used for low overhead server-client communication.
-   Signaling is done through eventfd semaphores (pa_fdsem). */
+ * Signaling is done through eventfd semaphores (pa_fdsem). */
 
 typedef struct pa_srbchannel pa_srbchannel;
 
@@ -48,13 +48,13 @@ size_t pa_srbchannel_write(pa_srbchannel *sr, const void *data, size_t l);
 size_t pa_srbchannel_read(pa_srbchannel *sr, void *data, size_t l);
 
 /* Set the callback function that is called whenever data becomes available for reading.
-   It can also be called if the output buffer was full and can now be written to.
-
-   Return false to abort all processing (e g if the srbchannel has been freed during the callback).
-   Otherwise return true.
-
-   Note that the callback will be called immediately, to be able to process stuff that
-   might already be in the buffer.
+ * It can also be called if the output buffer was full and can now be written to.
+ *
+ * Return false to abort all processing (e g if the srbchannel has been freed during the callback).
+ * Otherwise return true.
+ *
+ * Note that the callback will be called immediately, to be able to process stuff that
+ * might already be in the buffer.
 */
 typedef bool (*pa_srbchannel_cb_t)(pa_srbchannel *sr, void *userdata);
 void pa_srbchannel_set_callback(pa_srbchannel *sr, pa_srbchannel_cb_t callback, void *userdata);
