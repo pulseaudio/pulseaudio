@@ -56,77 +56,35 @@ static const uint8_t ulaw_result[3][10] = {
 { 0x00, 0xff, 0xff, 0x80, 0x91, 0x31, 0x00, 0xe9, 0x12, 0x13 },
 };
 
-/* PA_SAMPLE_S16LE */
-static const uint16_t s16le_result[3][10] = {
+static const uint16_t s16ne_result[3][10] = {
 { 0x0000, 0xffff, 0x7fff, 0x8000, 0x9fff, 0x3fff, 0x0001, 0xf000, 0x0020, 0x0021 },
 { 0x0000, 0xffff, 0x7332, 0x8ccd, 0xa998, 0x3998, 0x0000, 0xf199, 0x001c, 0x001d },
 { 0x0000, 0xfffe, 0x7fff, 0x8000, 0x8000, 0x7997, 0x0001, 0xe199, 0x003c, 0x003e },
 };
 
-/* PA_SAMPLE_S16BE */
-static const uint16_t s16be_result[3][10] = {
-{ 0x0000, 0xffff, 0x7fff, 0x8000, 0x9fff, 0x3fff, 0x0001, 0xf000, 0x0020, 0x0021 },
-{ 0x0000, 0xffff, 0x8bff, 0x7300, 0xa8ff, 0x52ff, 0xe600, 0xd700, 0xcc1c, 0xb31d },
-{ 0x0000, 0xfeff, 0x0aff, 0xf300, 0x47ff, 0x91fe, 0xe601, 0xc701, 0xcc3c, 0xb33e },
-};
-
-/* PA_SAMPLE_FLOAT32LE */
-static const float float32le_result[3][10] = {
+static const float float32ne_result[3][10] = {
 { 0.000000, -1.000000, 1.000000, 4711.000000, 0.222000, 0.330000, -0.300000, 99.000000, -0.555000, -0.123000 },
 { 0.000000, -0.899987, 0.899987, 4239.837402, 0.199797, 0.296996, -0.269996, 89.098679, -0.499493, -0.110698 },
 { 0.000000, -1.899987, 1.899987, 8950.837891, 0.421797, 0.626996, -0.569996, 188.098679, -1.054493, -0.233698 },
 };
 
-/* PA_SAMPLE_FLOAT32BE */
-static const float float32be_result[3][10] = {
-{ 0.000000, -1.000000, 1.000000, 4711.000000, 0.222000, 0.330000, -0.300000, 99.000000, -0.555000, -0.123000 },
-{ 0.000000, -0.899987, 0.899987, 4239.837402, 0.199797, 0.296996, -0.269996, 89.098679, -0.499493, -0.110698 },
-{ 0.000000, -1.899987, 1.899987, 8950.837891, 0.421797, 0.626996, -0.569996, 188.098679, -1.054493, -0.233698 },
-};
-
-/* PA_SAMPLE_S32LE */
-static const uint32_t s32le_result[3][10] = {
+static const uint32_t s32ne_result[3][10] = {
 { 0x00000001, 0xffff0002, 0x7fff0003, 0x80000004, 0x9fff0005, 0x3fff0006, 0x00010007, 0xf0000008, 0x00200009, 0x0021000a },
 { 0x00000000, 0xffff199b, 0x7332199c, 0x8ccd0003, 0xa998d99e, 0x3998999f, 0x0000e66c, 0xf199a007, 0x001cccc8, 0x001db32e },
 { 0x00000001, 0xfffe199d, 0x7fffffff, 0x80000000, 0x80000000, 0x799799a5, 0x0001e673, 0xe199a00f, 0x003cccd1, 0x003eb338 },
 };
 
-/* PA_SAMPLE_S32BE */
-static const uint32_t s32be_result[3][10] = {
-{ 0x00000001, 0xffff0002, 0x7fff0003, 0x80000004, 0x9fff0005, 0x3fff0006, 0x00010007, 0xf0000008, 0x00200009, 0x0021000a },
-{ 0x0066e600, 0x65b2cd01, 0xf117b402, 0x73989903, 0x0ee48004, 0xb8496705, 0xe6ca4c06, 0xd7303307, 0xccb21908, 0xb3190009 },
-{ 0x0066e601, 0x64b2ce03, 0x7017b505, 0xf3989907, 0xade38109, 0xf748680b, 0xe6cb4c0d, 0xc731330f, 0xccd21911, 0xb33a0013 },
-};
-
-/* PA_SAMPLE_S24LE */
-static const uint8_t s24le_result[3][30] = {
-{ 0x00, 0x00, 0x01, 0xff, 0xff, 0x02, 0x7f, 0xff, 0x03, 0x80, 0x00, 0x04, 0x9f, 0xff, 0x05, 0x3f, 0xff, 0x06, 0x01, 0x00, 0x07, 0xf0, 0x00, 0x08, 0x20, 0x00, 0x09, 0x21, 0x00, 0x0a },
-{ 0x66, 0xe6, 0x00, 0x31, 0xb3, 0x02, 0x23, 0x99, 0x03, 0x0b, 0x9a, 0x03, 0x0c, 0x66, 0x05, 0x1c, 0x4c, 0x06, 0xca, 0x4c, 0x06, 0x07, 0x34, 0x07, 0xb2, 0x19, 0x08, 0x19, 0x00, 0x09 },
-{ 0x66, 0xe6, 0x01, 0x30, 0xb3, 0x05, 0xa2, 0x98, 0x07, 0x8b, 0x9a, 0x07, 0xab, 0x65, 0x0b, 0x5b, 0x4b, 0x0d, 0xcb, 0x4c, 0x0d, 0xf7, 0x34, 0x0f, 0xd2, 0x19, 0x11, 0x3a, 0x00, 0x13 },
-};
-
-/* PA_SAMPLE_S24BE */
+/* attention: result is in BE, not NE! */
 static const uint8_t s24be_result[3][30] = {
-{ 0x00, 0x00, 0x01, 0xff, 0xff, 0x02, 0x7f, 0xff, 0x03, 0x80, 0x00, 0x04, 0x9f, 0xff, 0x05, 0x3f, 0xff, 0x06, 0x01, 0x00, 0x07,
-    0xf0, 0x00, 0x08, 0x20, 0x00, 0x09, 0x21, 0x00, 0x0a },
-{ 0x00, 0x00, 0x00, 0xff, 0xff, 0x1b, 0x73, 0x32, 0x1c, 0x8c, 0xcd, 0x03, 0xa9, 0x98, 0xde, 0x39, 0x98, 0x9f, 0x00, 0xe6, 0x6c,
-    0xf1, 0x99, 0xa7, 0x1c, 0xcc, 0xc8, 0x1d, 0xb3, 0x2e },
-{ 0x00, 0x00, 0x01, 0xff, 0xfe, 0x1d, 0x7f, 0xff, 0xff, 0x80, 0x00, 0x00, 0x80, 0x00, 0x00, 0x79, 0x97, 0xa5, 0x01, 0xe6, 0x73,
-    0xe1, 0x99, 0xaf, 0x3c, 0xcc, 0xd1, 0x3e, 0xb3, 0x38 },
+{ 0x00, 0x00, 0x01, 0xff, 0xff, 0x02, 0x7f, 0xff, 0x03, 0x80, 0x00, 0x04, 0x9f, 0xff, 0x05, 0x3f, 0xff, 0x06, 0x01, 0x00, 0x07, 0xf0, 0x00, 0x08, 0x20, 0x00, 0x09, 0x21, 0x00, 0x0a },
+{ 0x00, 0x00, 0x00, 0xff, 0xff, 0x1b, 0x73, 0x32, 0x1c, 0x8c, 0xcd, 0x03, 0xa9, 0x98, 0xde, 0x39, 0x98, 0x9f, 0x00, 0xe6, 0x6c, 0xf1, 0x99, 0xa7, 0x1c, 0xcc, 0xc8, 0x1d, 0xb3, 0x2e },
+{ 0x00, 0x00, 0x01, 0xff, 0xfe, 0x1d, 0x7f, 0xff, 0xff, 0x80, 0x00, 0x00, 0x80, 0x00, 0x00, 0x79, 0x97, 0xa5, 0x01, 0xe6, 0x73, 0xe1, 0x99, 0xaf, 0x3c, 0xcc, 0xd1, 0x3e, 0xb3, 0x38 },
 };
 
-/* PA_SAMPLE_S24_32LE */
-static const uint32_t s24_32le_result[3][10] = {
+static const uint32_t s24_32ne_result[3][10] = {
 { 0x00000001, 0xffff0002, 0x7fff0003, 0x80000004, 0x9fff0005, 0x3fff0006, 0x00010007, 0xf0000008, 0x00200009, 0x0021000a },
 { 0x00000000, 0x00ff199b, 0x00ff199c, 0x00000003, 0x00ff199e, 0x00ff199f, 0x0000e66c, 0x00000007, 0x001cccc8, 0x001db32e },
 { 0x00000001, 0x00fe199d, 0x00fe199f, 0x00000007, 0x00fe19a3, 0x00fe19a5, 0x0001e673, 0x0000000f, 0x003cccd1, 0x003eb338 },
-};
-
-/* PA_SAMPLE_S24_32BE */
-static const uint32_t s24_32be_result[3][10] = {
-{ 0x00000001, 0xffff0002, 0x7fff0003, 0x80000004, 0x9fff0005, 0x3fff0006, 0x00010007, 0xf0000008, 0x00200009, 0x0021000a },
-{ 0x00000000, 0x65e60000, 0xf1e50000, 0x73000000, 0x0ee60000, 0xb8e50000, 0xe6000000, 0xd7000000, 0xcc1c0000, 0xb31d0000 },
-{ 0x00000000, 0x64e60100, 0x70e50100, 0xf3000000, 0xade50100, 0xf7e40100, 0xe6010000, 0xc7010000, 0xcc3c0000, 0xb33e0000 },
 };
 
 static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, int iter) {
@@ -172,36 +130,27 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
             break;
         }
 
-        case PA_SAMPLE_S16LE: {
-            const uint16_t *v = s16le_result[iter];
+        case PA_SAMPLE_S16NE:
+        case PA_SAMPLE_S16RE: {
+            const uint16_t *v = s16ne_result[iter];
             uint16_t *u = d;
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                fail_unless(*u == *v, NULL);
+                uint16_t uu = PA_MAYBE_UINT16_SWAP(ss->format != PA_SAMPLE_S16NE, *u);
+                fail_unless(uu == *v, NULL);
                 ++u;
                 ++v;
             }
             break;
         }
 
-        case PA_SAMPLE_S16BE: {
-            const uint16_t *v = s16be_result[iter];
-            uint16_t *u = d;
-
-            for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                fail_unless(*u == *v, NULL);
-                ++u;
-                ++v;
-            }
-            break;
-        }
-
-        case PA_SAMPLE_FLOAT32LE: {
-            const float *v = float32le_result[iter];
+        case PA_SAMPLE_FLOAT32NE:
+        case PA_SAMPLE_FLOAT32RE: {
+            const float *v = float32ne_result[iter];
             float *u = d;
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                float uu = ss->format == PA_SAMPLE_FLOAT32NE ? *u : PA_FLOAT32_SWAP(*u);
+                float uu = PA_MAYBE_FLOAT32_SWAP(ss->format != PA_SAMPLE_FLOAT32NE, *u);
                 fail_unless(fabsf(uu - *v) <= 1e-6f, NULL);
                 ++u;
                 ++v;
@@ -209,90 +158,42 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
             break;
         }
 
-        case PA_SAMPLE_FLOAT32BE: {
-            const float *v = float32be_result[iter];
-            float *u = d;
-
-            for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                float uu = ss->format == PA_SAMPLE_FLOAT32NE ? *u : PA_FLOAT32_SWAP(*u);
-                fail_unless(fabsf(uu - *v) <= 1e-6f, NULL);
-                ++u;
-                ++v;
-            }
-            break;
-        }
-
-        case PA_SAMPLE_S32LE: {
-            const uint32_t *v = s32le_result[iter];
+        case PA_SAMPLE_S32NE:
+        case PA_SAMPLE_S32RE: {
+            const uint32_t *v = s32ne_result[iter];
             uint32_t *u = d;
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                fail_unless(*u == *v, NULL);
+                uint32_t uu = PA_MAYBE_UINT32_SWAP(ss->format != PA_SAMPLE_S32NE, *u);
+                fail_unless(uu == *v, NULL);
                 ++u;
                 ++v;
             }
             break;
         }
 
-        case PA_SAMPLE_S32BE: {
-            const uint32_t *v = s32be_result[iter];
+        case PA_SAMPLE_S24_32NE:
+        case PA_SAMPLE_S24_32RE: {
+            const uint32_t *v = s24_32ne_result[iter];
             uint32_t *u = d;
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                fail_unless(*u == *v, NULL);
+                uint32_t uu = PA_MAYBE_UINT32_SWAP(ss->format != PA_SAMPLE_S24_32NE, *u);
+                fail_unless(uu == *v, NULL);
                 ++u;
                 ++v;
             }
             break;
         }
 
-        case PA_SAMPLE_S24_32LE: {
-            const uint32_t *v = s24_32le_result[iter];
-            uint32_t *u = d;
-
-            for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                fail_unless(*u == *v, NULL);
-                ++u;
-                ++v;
-            }
-            break;
-        }
-
-        case PA_SAMPLE_S24_32BE: {
-            const uint32_t *v = s24_32be_result[iter];
-            uint32_t *u = d;
-
-            for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                fail_unless(*u == *v, NULL);
-                ++u;
-                ++v;
-            }
-            break;
-        }
-
-        case PA_SAMPLE_S24LE: {
-            const uint8_t *v = s24le_result[iter];
-            uint8_t *u = d;
-
-            for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                fail_unless(*u == *v, NULL);
-                fail_unless(*(u+1) == *(v+1), NULL);
-                fail_unless(*(u+2) == *(v+2), NULL);
-
-                u += 3;
-                v += 3;
-            }
-            break;
-        }
-
-        case PA_SAMPLE_S24BE: {
+        case PA_SAMPLE_S24NE:
+        case PA_SAMPLE_S24RE: {
             const uint8_t *v = s24be_result[iter];
             uint8_t *u = d;
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                fail_unless(*u == *v, NULL);
-                fail_unless(*(u+1) == *(v+1), NULL);
-                fail_unless(*(u+2) == *(v+2), NULL);
+                uint32_t uu = ss->format == PA_SAMPLE_S24LE ? PA_READ24LE(u) : PA_READ24BE(u);
+                fail_unless(uu == PA_READ24BE(v), NULL);
 
                 u += 3;
                 v += 3;
@@ -320,23 +221,18 @@ static pa_memblock* generate_block(pa_mempool *pool, const pa_sample_spec *ss) {
         case PA_SAMPLE_U8:
         case PA_SAMPLE_ULAW:
         case PA_SAMPLE_ALAW: {
-            static const uint8_t u8_samples[] = {
-                0x00, 0xFF, 0x7F, 0x80, 0x9f,
-                0x3f, 0x01, 0xF0, 0x20, 0x21
-            };
-
-            memcpy(d, u8_samples, sizeof(u8_samples));
+            memcpy(d, u8_result[0], sizeof(u8_result[0]));
             break;
         }
 
         case PA_SAMPLE_S16NE:
         case PA_SAMPLE_S16RE: {
-            static const uint16_t u16_samples[] = {
-                0x0000, 0xFFFF, 0x7FFF, 0x8000, 0x9fff,
-                0x3fff, 0x0001, 0xF000, 0x0020, 0x0021
-            };
-
-            memcpy(d, u16_samples, sizeof(u16_samples));
+            if (ss->format == PA_SAMPLE_S16RE) {
+                uint16_t *u = d;
+                for (i = 0; i < 10; i++)
+                    u[i] = PA_UINT16_SWAP(s16ne_result[0][i]);
+            } else
+                memcpy(d, s16ne_result[0], sizeof(s16ne_result[0]));
             break;
         }
 
@@ -344,48 +240,33 @@ static pa_memblock* generate_block(pa_mempool *pool, const pa_sample_spec *ss) {
         case PA_SAMPLE_S24_32RE:
         case PA_SAMPLE_S32NE:
         case PA_SAMPLE_S32RE: {
-            static const uint32_t u32_samples[] = {
-                0x00000001, 0xFFFF0002, 0x7FFF0003, 0x80000004, 0x9fff0005,
-                0x3fff0006, 0x00010007, 0xF0000008, 0x00200009, 0x0021000A
-            };
-
-            memcpy(d, u32_samples, sizeof(u32_samples));
+            if (ss->format == PA_SAMPLE_S24_32RE || ss->format == PA_SAMPLE_S32RE) {
+                uint32_t *u = d;
+                for (i = 0; i < 10; i++)
+                    u[i] = PA_UINT32_SWAP(s32ne_result[0][i]);
+            } else
+                memcpy(d, s32ne_result[0], sizeof(s32ne_result[0]));
             break;
         }
 
         case PA_SAMPLE_S24NE:
-        case PA_SAMPLE_S24RE: {
-            /* Need to be on a byte array because they are not aligned */
-            static const uint8_t u24_samples[] = {
-                0x00, 0x00, 0x01,
-                0xFF, 0xFF, 0x02,
-                0x7F, 0xFF, 0x03,
-                0x80, 0x00, 0x04,
-                0x9f, 0xff, 0x05,
-                0x3f, 0xff, 0x06,
-                0x01, 0x00, 0x07,
-                0xF0, 0x00, 0x08,
-                0x20, 0x00, 0x09,
-                0x21, 0x00, 0x0A
-            };
-
-            memcpy(d, u24_samples, sizeof(u24_samples));
+        case PA_SAMPLE_S24RE:
+            if (ss->format == PA_SAMPLE_S24LE) {
+                uint8_t *u = d;
+                for (i = 0; i < 30; i += 3)
+                    PA_WRITE24LE(&u[i], PA_READ24BE(&s24be_result[0][i]));
+            } else
+                memcpy(d, s24be_result[0], sizeof(s24be_result[0]));
             break;
-        }
 
         case PA_SAMPLE_FLOAT32NE:
         case PA_SAMPLE_FLOAT32RE: {
-            float *u = d;
-            static const float float_samples[] = {
-                0.0f, -1.0f, 1.0f, 4711.0f, 0.222f,
-                0.33f, -.3f, 99.0f, -0.555f, -.123f
-            };
-
             if (ss->format == PA_SAMPLE_FLOAT32RE) {
+                float *u = d;
                 for (i = 0; i < 10; i++)
-                    u[i] = PA_FLOAT32_SWAP(float_samples[i]);
+                    u[i] = PA_FLOAT32_SWAP(float32ne_result[0][i]);
             } else
-                memcpy(d, float_samples, sizeof(float_samples));
+                memcpy(d, float32ne_result[0], sizeof(float32ne_result[0]));
 
             break;
         }
@@ -426,8 +307,6 @@ START_TEST (mix_test) {
         i.memblock = generate_block(pool, &a);
         i.length = pa_memblock_get_length(i.memblock);
         i.index = 0;
-
-        compare_block(&a, &i, 0);
 
         /* Make a copy */
         j = i;
