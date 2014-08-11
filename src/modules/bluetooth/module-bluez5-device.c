@@ -1755,8 +1755,12 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         *p = PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY;
     }
 
-    if (cp && u->device->transports[*p])
-        cp->available = transport_state_to_availability(u->device->transports[*p]->state);
+    if (cp) {
+        if (u->device->transports[*p])
+            cp->available = transport_state_to_availability(u->device->transports[*p]->state);
+        else
+            cp->available = PA_AVAILABLE_NO;
+    }
 
     return cp;
 }
