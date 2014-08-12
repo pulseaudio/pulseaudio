@@ -3342,8 +3342,11 @@ int pa_open_cloexec(const char *fn, int flags, mode_t mode) {
         return fd;
 #endif
 
-    if ((fd = open(fn, flags, mode)) < 0)
-        return fd;
+    if ((fd = open(fn, flags, mode)) >= 0)
+        goto finish;
+
+    /* return error */
+    return fd;
 
 finish:
     /* Some implementations might simply ignore O_CLOEXEC if it is not
@@ -3364,8 +3367,11 @@ int pa_socket_cloexec(int domain, int type, int protocol) {
         return fd;
 #endif
 
-    if ((fd = socket(domain, type, protocol)) < 0)
-        return fd;
+    if ((fd = socket(domain, type, protocol)) >= 0)
+        goto finish;
+
+    /* return error */
+    return fd;
 
 finish:
     /* Some implementations might simply ignore SOCK_CLOEXEC if it is
@@ -3387,8 +3393,11 @@ int pa_pipe_cloexec(int pipefd[2]) {
 
 #endif
 
-    if ((r = pipe(pipefd)) < 0)
-        return r;
+    if ((r = pipe(pipefd)) >= 0)
+        goto finish;
+
+    /* return error */
+    return r;
 
 finish:
     pa_make_fd_cloexec(pipefd[0]);
@@ -3409,8 +3418,11 @@ int pa_accept_cloexec(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
 
 #endif
 
-    if ((fd = accept(sockfd, addr, addrlen)) < 0)
-        return fd;
+    if ((fd = accept(sockfd, addr, addrlen)) >= 0)
+        goto finish;
+
+    /* return error */
+    return fd;
 
 finish:
     pa_make_fd_cloexec(fd);
