@@ -168,7 +168,7 @@ static const pa_echo_canceller ec_table[] = {
  *    capture and playback samples, we perform a resync. This adjusts the
  *    position in the playback memblock to the requested sample. Quick
  *    adjustments include moving the playback samples before the capture
- *    samples (because else the echo canceler does not work) or when the
+ *    samples (because else the echo canceller does not work) or when the
  *    playback pointer drifts too far away.
  *
  * 2) periodically check the difference between capture and playback. We use a
@@ -224,7 +224,7 @@ struct userdata {
     pa_source *source;
     bool source_auto_desc;
     pa_source_output *source_output;
-    pa_memblockq *source_memblockq; /* echo canceler needs fixed sized chunks */
+    pa_memblockq *source_memblockq; /* echo canceller needs fixed sized chunks */
     size_t source_skip;
 
     pa_sink *sink;
@@ -362,7 +362,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
 
     if (diff_time < 0) {
         /* recording before playback, we need to adjust quickly. The echo
-         * canceler does not work in this case. */
+         * canceller does not work in this case. */
         pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_APPLY_DIFF_TIME,
             NULL, diff_time, NULL, NULL);
         /*new_rate = base_rate - ((pa_usec_to_bytes(-diff_time, &u->source_output->sample_spec) / fs) * PA_USEC_PER_SEC) / u->adjust_time;*/
