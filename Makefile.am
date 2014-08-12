@@ -29,7 +29,6 @@ EXTRA_DIST = \
 	PROTOCOL \
 	README \
 	todo \
-	shell-completion/pulseaudio-zsh-completion.zsh \
 	.gitignore \
 	doxygen/.gitignore \
 	m4/.gitignore \
@@ -63,6 +62,9 @@ cmake_DATA = PulseAudioConfig.cmake PulseAudioConfigVersion.cmake
 
 bashcompletiondir=$(sysconfdir)/bash_completion.d
 dist_bashcompletion_DATA = shell-completion/pulseaudio-bash-completion.sh
+
+zshcompletiondir=@zshcompletiondir@
+dist_zshcompletion_DATA = shell-completion/zsh/_pulseaudio
 
 homepage: all dist doxygen
 	test -d $$HOME/homepage/private

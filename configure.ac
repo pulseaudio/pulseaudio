@@ -1353,6 +1353,13 @@ AC_ARG_WITH(
 
 AC_SUBST(udevrulesdir)
 
+AC_ARG_WITH(
+        [zsh-completion-dir],
+        AS_HELP_STRING([--with-zsh-completion-dir], [Zsh completions directory (defaults to ${datadir}/zsh/site-functions)]),
+        [zshcompletiondir=$withval], [zshcompletiondir="${datadir}/zsh/site-functions"])
+
+AC_SUBST(zshcompletiondir)
+
 AC_ARG_ENABLE([force-preopen],
     AS_HELP_STRING([--enable-force-preopen],[Preopen modules, even when dlopen() is supported.]))
 
@@ -1465,6 +1472,7 @@ echo "
     System Runtime Path:           ${PA_SYSTEM_RUNTIME_PATH}
     System State Path:             ${PA_SYSTEM_STATE_PATH}
     System Config Path:            ${PA_SYSTEM_CONFIG_PATH}
+    Zsh completions directory:     ${zshcompletiondir}
     Compiler:                      ${CC}
     CFLAGS:                        ${CFLAGS}
     CPPFLAGS:                      ${CPPFLAGS}
