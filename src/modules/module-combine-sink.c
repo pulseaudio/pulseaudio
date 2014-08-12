@@ -747,7 +747,7 @@ static void update_latency_range(struct userdata *u) {
     if (max_latency < min_latency)
         max_latency = min_latency;
 
-    pa_log_debug("Sink update latency range %lu %lu", min_latency, max_latency);
+    pa_log_debug("Sink update latency range %" PRIu64 " %" PRIu64, min_latency, max_latency);
     pa_sink_set_latency_range_within_thread(u->sink, min_latency, max_latency);
 }
 

@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
 
         c.length = (size_t) r;
         pa_mcalign_push(a, &c);
-        fprintf(stderr, "Read %ld bytes\n", (long)r);
+        fprintf(stderr, "Read %zd bytes\n", r);
 
         c.index += (size_t) r;
 
