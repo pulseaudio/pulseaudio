@@ -237,5 +237,8 @@ void pa_memtrap_install(void) {
     sa.sa_flags = SA_RESTART|SA_SIGINFO;
 
     pa_assert_se(sigaction(SIGBUS, &sa, NULL) == 0);
+#ifdef __FreeBSD_kernel__
+    pa_assert_se(sigaction(SIGSEGV, &sa, NULL) == 0);
+#endif
 #endif
 }
