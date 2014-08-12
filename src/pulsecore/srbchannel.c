@@ -211,7 +211,12 @@ pa_srbchannel* pa_srbchannel_new(pa_mainloop_api *m, pa_mempool *p) {
     sr->rb_write.count = &srh->write_count;
 
     sr->sem_read = pa_fdsem_new_shm(&srh->read_semdata);
+    if (!sr->sem_read)
+        goto fail;
+
     sr->sem_write = pa_fdsem_new_shm(&srh->write_semdata);
+    if (!sr->sem_write)
+        goto fail;
 
     readfd = pa_fdsem_get(sr->sem_read);
 #ifdef DEBUG_SRBCHANNEL
@@ -221,6 +226,11 @@ pa_srbchannel* pa_srbchannel_new(pa_mainloop_api *m, pa_mempool *p) {
     m->io_enable(sr->read_event, PA_IO_EVENT_INPUT);
 
     return sr;
+
+fail:
+    pa_srbchannel_free(sr);
+
+    return NULL;
 }
 
 static void pa_srbchannel_swap(pa_srbchannel *sr) {
@@ -249,7 +259,12 @@ pa_srbchannel* pa_srbchannel_new_from_template(pa_mainloop_api *m, pa_srbchannel
     sr->rb_write.memory = (uint8_t*) srh + srh->writebuf_offset;
 
     sr->sem_read = pa_fdsem_open_shm(&srh->read_semdata, t->readfd);
+    if (!sr->sem_read)
+        goto fail;
+
     sr->sem_write = pa_fdsem_open_shm(&srh->write_semdata, t->writefd);
+    if (!sr->sem_write)
+        goto fail;
 
     pa_srbchannel_swap(sr);
     temp = t->readfd; t->readfd = t->writefd; t->writefd = temp;
@@ -261,6 +276,11 @@ pa_srbchannel* pa_srbchannel_new_from_template(pa_mainloop_api *m, pa_srbchannel
     m->io_enable(sr->read_event, PA_IO_EVENT_INPUT);
 
     return sr;
+
+fail:
+    pa_srbchannel_free(sr);
+
+    return NULL;
 }
 
 void pa_srbchannel_export(pa_srbchannel *sr, pa_srbchannel_template *t) {
