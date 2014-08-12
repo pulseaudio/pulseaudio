@@ -2612,8 +2612,12 @@ static void setup_srbchannel(pa_native_connection *c) {
         return;
     }
 
-    pa_log_debug("Enabling srbchannel...");
     srb = pa_srbchannel_new(c->protocol->core->mainloop, c->protocol->core->rw_mempool);
+    if (!srb) {
+        pa_log_debug("Failed to create srbchannel");
+        return;
+    }
+    pa_log_debug("Enabling srbchannel...");
     pa_srbchannel_export(srb, &srbt);
 
     /* Send enable command to client */
