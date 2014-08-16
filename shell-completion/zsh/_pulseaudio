@@ -278,8 +278,8 @@ _pactl_completion() {
     _arguments -C -S -A '-*' \
         {-h,--help}'[display help and exit]' \
         '--version[show version and exit]' \
-        {-s,--server}'[name of server to connect to]:host:_hosts' \
-        {-n,--client-name}'[client name to use]:name' \
+        {-s,--server=}'[name of server to connect to]:host:_hosts' \
+        {-n,--client-name=}'[client name to use]:name' \
         '::pactl command:_pactl_command'
 
     case $words[$((CURRENT - 1))] in
@@ -406,7 +406,7 @@ _pasuspender_completion() {
     _arguments -S -A "-*" -C \
         {-h,--help}'[display help and exit]' \
         '--version[show version and exit]' \
-        {-s,--server}'[name of server to connect to]:host:_hosts' \
+        {-s,--server=}'[name of server to connect to]:host:_hosts' \
 }
 
 _padsp_completion() {
