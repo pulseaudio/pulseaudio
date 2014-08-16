@@ -276,14 +276,11 @@ _pactl_completion() {
     )
 
     _arguments -C \
-        - '(help)' \
-            {-h,--help}'[display help and exit]' \
+        {-h,--help}'[display help and exit]' \
         '--version[show version and exit]' \
-        - '(server)' \
-            {-s,--server}'[name of server to connect to]:host:_hosts' \
-        - '(name)' \
-            {-n,--client-name}'[client name to use]:name' \
-        '::pactl commands:_pactl_command' \
+        {-s,--server}'[name of server to connect to]:host:_hosts' \
+        {-n,--client-name}'[client name to use]:name' \
+        '::pactl command:_pactl_command'
 
     case $words[$((CURRENT - 1))] in
         list) _describe 'pactl list commands' _pactl_list_commands;;
@@ -307,8 +304,6 @@ _pactl_completion() {
         suspend-*) compadd true false;;
         list) compadd short;;
         move-*) _devices;;
-        '-s' | '-n') _pactl_command;;
-        --server | --client-*) _pactl_command;;
     esac
 }
 
@@ -375,8 +370,7 @@ _pacmd_completion() {
     }
 
     _arguments -C \
-        - '(help)' \
-            {-h,--help}'[display help and exit]' \
+        {-h,--help}'[display help and exit]' \
         '--version[show version and exit]' \
         '::pacmd commands:_pacmd_command' \
 
