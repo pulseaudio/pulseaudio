@@ -275,7 +275,7 @@ _pactl_completion() {
         'cards: list available cards'
     )
 
-    _arguments -C \
+    _arguments -C -S -A '-*' \
         {-h,--help}'[display help and exit]' \
         '--version[show version and exit]' \
         {-s,--server}'[name of server to connect to]:host:_hosts' \
@@ -369,7 +369,7 @@ _pacmd_completion() {
         _describe 'pacmd commands' _pacmd_commands
     }
 
-    _arguments -C \
+    _arguments -C -S -A "-*" \
         {-h,--help}'[display help and exit]' \
         '--version[show version and exit]' \
         '::pacmd commands:_pacmd_command' \
@@ -403,14 +403,14 @@ _pacmd_completion() {
 }
 
 _pasuspender_completion() {
-    _arguments -C \
+    _arguments -S -A "-*" -C \
         {-h,--help}'[display help and exit]' \
         '--version[show version and exit]' \
         {-s,--server}'[name of server to connect to]:host:_hosts' \
 }
 
 _padsp_completion() {
-    _arguments -C \
+    _arguments -C -S -A "-*" \
         '-h[display help and exit]' \
         '-s[name of server to connect to]:host:_hosts' \
         '-n[client name to use]:name:' \
@@ -429,7 +429,7 @@ _pacat_completion() {
     _pacat_sample_formats=('s16le' 's16be' 'u8' 'float32le' 'float32be'
         'ulaw' 'alaw' 's32le' 's32be' 's24le' 's24-32le' 's24-32be')
 
-    _arguments -C \
+    _arguments -C -S -A "-*" \
         {-h,--help}'[display this help and exit]' \
         '--version[show version and exit]' \
         {-r,--record}'[create a connection for recording]' \
