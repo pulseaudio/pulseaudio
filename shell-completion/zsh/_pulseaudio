@@ -277,7 +277,7 @@ _pactl_completion() {
 
     _arguments -C \
         - '(help)' \
-            {-h,--help}'[display this help and exit]' \
+            {-h,--help}'[display help and exit]' \
         '--version[show version and exit]' \
         - '(server)' \
             {-s,--server}'[name of server to connect to]:host:_hosts' \
@@ -376,7 +376,7 @@ _pacmd_completion() {
 
     _arguments -C \
         - '(help)' \
-            {-h,--help}'[display this help and exit]' \
+            {-h,--help}'[display help and exit]' \
         '--version[show version and exit]' \
         '::pacmd commands:_pacmd_command' \
 
@@ -410,14 +410,14 @@ _pacmd_completion() {
 
 _pasuspender_completion() {
     _arguments -C \
-        {-h,--help}'[display this help and exit]' \
+        {-h,--help}'[display help and exit]' \
         '--version[show version and exit]' \
         {-s,--server}'[name of server to connect to]:host:_hosts' \
 }
 
 _padsp_completion() {
     _arguments -C \
-        '-h[display this help and exit]' \
+        '-h[display help and exit]' \
         '-s[name of server to connect to]:host:_hosts' \
         '-n[client name to use]:name:' \
         '-m[stream name to use]:name:' \
