@@ -3218,21 +3218,21 @@ static void path_set_condense(pa_alsa_path_set *ps, snd_mixer_t *m) {
             }
 
             /* Compare the elements of each set... */
-            ea = p->elements;
-            eb = p2->elements;
+            PA_LLIST_FOREACH(ea, p->elements) {
+                bool found_matching_element = false;
 
-            while (is_subset) {
-                if (!ea && !eb)
+                if (!is_subset)
                     break;
-                else if ((ea && !eb) || (!ea && eb))
-                    is_subset = false;
-                else if (pa_streq(ea->alsa_name, eb->alsa_name)) {
-                    if (element_is_subset(ea, eb, m)) {
-                        ea = ea->next;
-                        eb = eb->next;
-                    } else
-                        is_subset = false;
-                } else
+
+                PA_LLIST_FOREACH(eb, p2->elements) {
+                    if (pa_streq(ea->alsa_name, eb->alsa_name)) {
+                        found_matching_element = true;
+                        is_subset = element_is_subset(ea, eb, m);
+                        break;
+                    }
+                }
+
+                if (!found_matching_element)
                     is_subset = false;
             }
 
