@@ -25,7 +25,7 @@
 
 #include <pulse/xmalloc.h>
 
-#include "pulsecore/resampler.h"
+#include <pulsecore/resampler.h>
 
 struct trivial_data { /* data specific to the trivial resampler */
     unsigned o_counter;

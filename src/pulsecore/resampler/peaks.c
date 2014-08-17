@@ -26,7 +26,7 @@
 #include <pulse/xmalloc.h>
 #include <math.h>
 
-#include "pulsecore/resampler.h"
+#include <pulsecore/resampler.h>
 
 struct peaks_data { /* data specific to the peak finder pseudo resampler */
     unsigned o_counter;
