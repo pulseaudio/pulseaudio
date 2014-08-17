@@ -25,16 +25,10 @@
 
 #include <string.h>
 
-#ifdef HAVE_SPEEX
-#include <speex/speex_resampler.h>
-#include <math.h>
-#endif
-
 #include <pulse/xmalloc.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
-#include <pulsecore/once.h>
 #include <pulsecore/core-util.h>
 
 #include "resampler.h"
@@ -119,8 +113,6 @@ static int (* const init_table[])(pa_resampler *r) = {
     [PA_RESAMPLER_PEAKS]                   = pa_resampler_peaks_init,
 };
 
-static bool speex_is_fixed_point(void);
-
 static pa_resample_method_t choose_auto_resampler(pa_resample_flags_t flags) {
     pa_resample_method_t method;
 
@@ -186,6 +178,7 @@ static pa_resample_method_t fix_method(
     if (method == PA_RESAMPLER_AUTO)
         method = choose_auto_resampler(flags);
 
+#ifdef HAVE_SPEEX
     /* At this point, method is supported in the sense that it
      * has an init function and supports the required flags. However,
      * speex-float implementation in PulseAudio relies on the
@@ -194,12 +187,14 @@ static pa_resample_method_t fix_method(
      * in this configuration. So use it instead.
      */
     if (method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && method <= PA_RESAMPLER_SPEEX_FLOAT_MAX) {
-        if (speex_is_fixed_point()) {
+        if (pa_speex_is_fixed_point()) {
             pa_log_info("Speex appears to be compiled with --enable-fixed-point. "
                         "Switching to a fixed-point resampler because it should be faster.");
             method = method - PA_RESAMPLER_SPEEX_FLOAT_BASE + PA_RESAMPLER_SPEEX_FIXED_BASE;
         }
     }
+#endif
+
     return method;
 }
 
@@ -1339,36 +1334,6 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) 
             pa_memchunk_reset(buf);
     } else
         pa_memchunk_reset(out);
-}
-
-/*** speex based implementation ***/
-
-static bool speex_is_fixed_point(void) {
-    static bool result = false;
-#ifdef HAVE_SPEEX
-    PA_ONCE_BEGIN {
-        float f_out = -1.0f, f_in = 1.0f;
-        spx_uint32_t in_len = 1, out_len = 1;
-        SpeexResamplerState *s;
-
-        pa_assert_se(s = speex_resampler_init(1, 1, 1,
-            SPEEX_RESAMPLER_QUALITY_MIN, NULL));
-
-        /* feed one sample that is too soft for fixed-point speex */
-        pa_assert_se(speex_resampler_process_float(s, 0, &f_in, &in_len,
-            &f_out, &out_len) == RESAMPLER_ERR_SUCCESS);
-
-        /* expecting sample has been processed, one sample output */
-        pa_assert_se(in_len == 1 && out_len == 1);
-
-        /* speex compiled with --enable-fixed-point will output 0.0 due to insufficient precision */
-        if (fabsf(f_out) < 0.00001f)
-            result = true;
-
-        speex_resampler_destroy(s);
-    } PA_ONCE_END;
-#endif
-    return result;
 }
 
 /*** copy (noop) implementation ***/

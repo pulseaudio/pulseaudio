@@ -24,8 +24,37 @@
 #endif
 
 #include <speex/speex_resampler.h>
+#include <math.h>
 
-#include "pulsecore/resampler.h"
+#include <pulsecore/once.h>
+#include <pulsecore/resampler.h>
+
+bool pa_speex_is_fixed_point(void) {
+    static bool result = false;
+    PA_ONCE_BEGIN {
+        float f_out = -1.0f, f_in = 1.0f;
+        spx_uint32_t in_len = 1, out_len = 1;
+        SpeexResamplerState *s;
+
+        pa_assert_se(s = speex_resampler_init(1, 1, 1,
+            SPEEX_RESAMPLER_QUALITY_MIN, NULL));
+
+        /* feed one sample that is too soft for fixed-point speex */
+        pa_assert_se(speex_resampler_process_float(s, 0, &f_in, &in_len,
+            &f_out, &out_len) == RESAMPLER_ERR_SUCCESS);
+
+        /* expecting sample has been processed, one sample output */
+        pa_assert_se(in_len == 1 && out_len == 1);
+
+        /* speex compiled with --enable-fixed-point will output 0.0 due to insufficient precision */
+        if (fabsf(f_out) < 0.00001f)
+            result = true;
+
+        speex_resampler_destroy(s);
+    } PA_ONCE_END;
+    return result;
+}
+
 
 static unsigned speex_resample_float(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
     float *in, *out;

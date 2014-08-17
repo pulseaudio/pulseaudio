@@ -166,4 +166,7 @@ int pa_resampler_peaks_init(pa_resampler *r);
 int pa_resampler_speex_init(pa_resampler *r);
 int pa_resampler_trivial_init(pa_resampler*r);
 
+/* Resampler-specific quirks */
+bool pa_speex_is_fixed_point(void);
+
 #endif
