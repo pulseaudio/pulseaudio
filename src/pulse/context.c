@@ -350,12 +350,16 @@ static void handle_srbchannel_memblock(pa_context *c, pa_memblock *memblock) {
     pa_assert(c);
 
     /* Memblock sanity check */
-    if (!memblock)
+    if (!memblock) {
         pa_context_fail(c, PA_ERR_PROTOCOL);
-    else if (pa_memblock_is_read_only(memblock))
+        return;
+    } else if (pa_memblock_is_read_only(memblock)) {
         pa_context_fail(c, PA_ERR_PROTOCOL);
-    else if (pa_memblock_is_ours(memblock))
+        return;
+    } else if (pa_memblock_is_ours(memblock)) {
         pa_context_fail(c, PA_ERR_PROTOCOL);
+        return;
+    }
 
     /* Create the srbchannel */
     c->srb_template.memblock = memblock;
