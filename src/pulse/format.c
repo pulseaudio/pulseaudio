@@ -249,7 +249,7 @@ pa_prop_type_t pa_format_info_get_prop_type(const pa_format_info *f, const char 
         return PA_PROP_TYPE_INVALID;
 
     o = json_tokener_parse(str);
-    if (is_error(o))
+    if (!o)
         return PA_PROP_TYPE_INVALID;
 
     switch (json_object_get_type(o)) {
@@ -318,7 +318,7 @@ int pa_format_info_get_prop_int(const pa_format_info *f, const char *key, int *v
         return -PA_ERR_NOENTITY;
 
     o = json_tokener_parse(str);
-    if (is_error(o)) {
+    if (!o) {
         pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
     }
@@ -350,7 +350,7 @@ int pa_format_info_get_prop_int_range(const pa_format_info *f, const char *key, 
         return -PA_ERR_NOENTITY;
 
     o = json_tokener_parse(str);
-    if (is_error(o)) {
+    if (!o) {
         pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
     }
@@ -393,7 +393,7 @@ int pa_format_info_get_prop_int_array(const pa_format_info *f, const char *key, 
         return -PA_ERR_NOENTITY;
 
     o = json_tokener_parse(str);
-    if (is_error(o)) {
+    if (!o) {
         pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
     }
@@ -437,7 +437,7 @@ int pa_format_info_get_prop_string(const pa_format_info *f, const char *key, cha
         return -PA_ERR_NOENTITY;
 
     o = json_tokener_parse(str);
-    if (is_error(o)) {
+    if (!o) {
         pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
     }
@@ -469,7 +469,7 @@ int pa_format_info_get_prop_string_array(const pa_format_info *f, const char *ke
         return -PA_ERR_NOENTITY;
 
     o = json_tokener_parse(str);
-    if (is_error(o)) {
+    if (!o) {
         pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
     }
@@ -626,11 +626,11 @@ static int pa_format_info_prop_compatible(const char *one, const char *two) {
     int i, ret = 0;
 
     o1 = json_tokener_parse(one);
-    if (is_error(o1))
+    if (!o1)
         goto out;
 
     o2 = json_tokener_parse(two);
-    if (is_error(o2))
+    if (!o2)
         goto out;
 
     /* We don't deal with both values being non-fixed - just because there is no immediate need (FIXME) */
