@@ -283,14 +283,12 @@ pa_prop_type_t pa_format_info_get_prop_type(const pa_format_info *f, const char 
         case json_type_object:
             /* We actually know at this point that it's a int range, but let's
              * confirm. */
-            o1 = json_object_object_get(o, PA_JSON_MIN_KEY);
-            if (!o1) {
+            if (!json_object_object_get_ex(o, PA_JSON_MIN_KEY, NULL)) {
                 type = PA_PROP_TYPE_INVALID;
                 break;
             }
 
-            o1 = json_object_object_get(o, PA_JSON_MAX_KEY);
-            if (!o1) {
+            if (!json_object_object_get_ex(o, PA_JSON_MAX_KEY, NULL)) {
                 type = PA_PROP_TYPE_INVALID;
                 break;
             }
@@ -360,12 +358,12 @@ int pa_format_info_get_prop_int_range(const pa_format_info *f, const char *key, 
     if (json_object_get_type(o) != json_type_object)
         goto out;
 
-    if (!(o1 = json_object_object_get(o, PA_JSON_MIN_KEY)))
+    if (!json_object_object_get_ex(o, PA_JSON_MIN_KEY, &o1))
         goto out;
 
     *min = json_object_get_int(o1);
 
-    if (!(o1 = json_object_object_get(o, PA_JSON_MAX_KEY)))
+    if (!json_object_object_get_ex(o, PA_JSON_MAX_KEY, &o1))
         goto out;
 
     *max = json_object_get_int(o1);
@@ -668,12 +666,12 @@ static int pa_format_info_prop_compatible(const char *one, const char *two) {
             goto out;
         }
 
-        o_min = json_object_object_get(o1, PA_JSON_MIN_KEY);
-        if (!o_min || json_object_get_type(o_min) != json_type_int)
+        if (!json_object_object_get_ex(o1, PA_JSON_MIN_KEY, &o_min) ||
+            json_object_get_type(o_min) != json_type_int)
             goto out;
 
-        o_max = json_object_object_get(o1, PA_JSON_MAX_KEY);
-        if (!o_max || json_object_get_type(o_max) != json_type_int)
+        if (!json_object_object_get_ex(o1, PA_JSON_MAX_KEY, &o_max) ||
+            json_object_get_type(o_max) != json_type_int)
             goto out;
 
         v = json_object_get_int(o2);
