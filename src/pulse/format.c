@@ -278,7 +278,6 @@ pa_prop_type_t pa_format_info_get_prop_type(const pa_format_info *f, const char 
             else
                 type = PA_PROP_TYPE_INVALID;
 
-            json_object_put(o1);
             break;
 
         case json_type_object:
@@ -289,14 +288,12 @@ pa_prop_type_t pa_format_info_get_prop_type(const pa_format_info *f, const char 
                 type = PA_PROP_TYPE_INVALID;
                 break;
             }
-            json_object_put(o1);
 
             o1 = json_object_object_get(o, PA_JSON_MAX_KEY);
             if (!o1) {
                 type = PA_PROP_TYPE_INVALID;
                 break;
             }
-            json_object_put(o1);
 
             type = PA_PROP_TYPE_INT_RANGE;
             break;
@@ -367,13 +364,11 @@ int pa_format_info_get_prop_int_range(const pa_format_info *f, const char *key, 
         goto out;
 
     *min = json_object_get_int(o1);
-    json_object_put(o1);
 
     if (!(o1 = json_object_object_get(o, PA_JSON_MAX_KEY)))
         goto out;
 
     *max = json_object_get_int(o1);
-    json_object_put(o1);
 
     ret = 0;
 
@@ -415,12 +410,10 @@ int pa_format_info_get_prop_int_array(const pa_format_info *f, const char *key, 
         o1 = json_object_array_get_idx(o, i);
 
         if (json_object_get_type(o1) != json_type_int) {
-            json_object_put(o1);
             goto out;
         }
 
         (*values)[i] = json_object_get_int(o1);
-        json_object_put(o1);
     }
 
     ret = 0;
@@ -493,12 +486,10 @@ int pa_format_info_get_prop_string_array(const pa_format_info *f, const char *ke
         o1 = json_object_array_get_idx(o, i);
 
         if (json_object_get_type(o1) != json_type_string) {
-            json_object_put(o1);
             goto out;
         }
 
         (*values)[i] = pa_xstrdup(json_object_get_string(o1));
-        json_object_put(o1);
     }
 
     ret = 0;
