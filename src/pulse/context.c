@@ -365,6 +365,10 @@ static void handle_srbchannel_memblock(pa_context *c, pa_memblock *memblock) {
     c->srb_template.memblock = memblock;
     pa_memblock_ref(memblock);
     sr = pa_srbchannel_new_from_template(c->mainloop, &c->srb_template);
+    if (!sr) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        return;
+    }
 
     /* Ack the enable command */
     t = pa_tagstruct_new(NULL, 0);
