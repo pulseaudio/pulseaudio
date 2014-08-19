@@ -518,15 +518,17 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    ss = m->core->default_sample_spec;
+    ss.format = PA_SAMPLE_S16NE;
+    ss.channels = 2;
+    ss.rate = m->core->default_sample_spec.rate;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
         pa_log("invalid sample format specification");
         goto fail;
     }
 
-    if ((/*ss.format != PA_SAMPLE_U8 &&*/ ss.format != PA_SAMPLE_S16NE) ||
+    if ((ss.format != PA_SAMPLE_S16NE) ||
         (ss.channels > 2)) {
-        pa_log("sample type support is limited to mono/stereo and U8 or S16NE sample data");
+        pa_log("sample type support is limited to mono/stereo and S16NE sample data");
         goto fail;
     }
 
