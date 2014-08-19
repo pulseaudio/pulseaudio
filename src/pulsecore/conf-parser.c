@@ -175,6 +175,7 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, pa_p
         pa_log_warn("Failed to open configuration file '%s': %s", filename, pa_cstrerror(errno));
         goto finish;
     }
+    pa_log_debug("Parsing configuration file '%s'", filename);
 
     state.filename = filename;
     state.item_table = t;
