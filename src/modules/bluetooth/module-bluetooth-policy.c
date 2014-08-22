@@ -41,17 +41,19 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "a2dp_source=<Handle a2dp_source card profile (sink role)?> "
-        "hfgw=<Handle hfgw card profile (headset role)?>");
+        "ag=<Handle headset_audio_gateway card profile (headset role)?> "
+        "hfgw=<Handle hfgw card profile (headset role)?> DEPRECATED");
 
 static const char* const valid_modargs[] = {
     "a2dp_source",
+    "ag",
     "hfgw",
     NULL
 };
 
 struct userdata {
     bool enable_a2dp_source;
-    bool enable_hfgw;
+    bool enable_ag;
     pa_hook_slot *source_put_slot;
     pa_hook_slot *sink_put_slot;
     pa_hook_slot *profile_available_changed_slot;
@@ -79,9 +81,10 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
     if (!s)
         return PA_HOOK_OK;
 
-    if (u->enable_a2dp_source && pa_streq(s, "a2dp_source")) /* A2DP profile (we're doing sink role) */
+    if (u->enable_a2dp_source && pa_streq(s, "a2dp_source"))
         role = "music";
-    else if (u->enable_hfgw && pa_streq(s, "hfgw")) /* HFP profile (we're doing headset role) */
+    /* TODO: remove hfgw when we remove BlueZ 4 support */
+    else if (u->enable_ag && (pa_streq(s, "hfgw") || pa_streq(s, "headset_audio_gateway")))
         role = "phone";
     else {
         pa_log_debug("Profile %s cannot be selected for loopback", s);
@@ -119,7 +122,8 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void *
     if (!s)
         return PA_HOOK_OK;
 
-    if (u->enable_hfgw && pa_streq(s, "hfgw")) /* HFP profile (we're doing headset role) */
+    /* TODO: remove hfgw when we remove BlueZ 4 support */
+    if (u->enable_ag && (pa_streq(s, "hfgw") || pa_streq(s, "headset_audio_gateway")))
         role = "phone";
     else {
         pa_log_debug("Profile %s cannot be selected for loopback", s);
@@ -172,8 +176,9 @@ static pa_hook_result_t profile_available_hook_callback(pa_core *c, pa_card_prof
         return PA_HOOK_OK;
 
     /* Do not automatically switch profiles for headsets, just in case */
-    /* TODO: remove a2dp when we decide to remove support for BlueZ 4 */
-    if (pa_streq(profile->name, "hsp") || pa_streq(profile->name, "a2dp") || pa_streq(profile->name, "a2dp_sink"))
+    /* TODO: remove a2dp and hsp when we remove BlueZ 4 support */
+    if (pa_streq(profile->name, "hsp") || pa_streq(profile->name, "a2dp") || pa_streq(profile->name, "a2dp_sink") ||
+        pa_streq(profile->name, "headset_head_unit"))
         return PA_HOOK_OK;
 
     is_active_profile = card->active_profile == profile;
@@ -236,9 +241,13 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    u->enable_hfgw = true;
-    if (pa_modargs_get_value_boolean(ma, "hfgw", &u->enable_hfgw) < 0) {
+    u->enable_ag = true;
+    if (pa_modargs_get_value_boolean(ma, "hfgw", &u->enable_ag) < 0) {
         pa_log("Failed to parse hfgw argument.");
+        goto fail;
+    }
+    if (pa_modargs_get_value_boolean(ma, "ag", &u->enable_ag) < 0) {
+        pa_log("Failed to parse ag argument.");
         goto fail;
     }
 
