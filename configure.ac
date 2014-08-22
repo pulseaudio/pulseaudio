@@ -1028,6 +1028,21 @@ AS_IF([test "x$HAVE_BLUEZ_4" = "x1" || test "x$HAVE_BLUEZ_5" = "x1"], HAVE_BLUEZ
 AC_SUBST(HAVE_BLUEZ)
 AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
 
+## Bluetooth Headset profiles backend ##
+
+AC_ARG_WITH(bluetooth_headset_backend,
+    AS_HELP_STRING([--with-bluetooth-headset-backend=<null>],[Backend for Bluetooth headset profiles (null)]))
+if test -z "$with_bluetooth_headset_backend" ; then
+    BLUETOOTH_HEADSET_BACKEND=null
+else
+    BLUETOOTH_HEADSET_BACKEND=$with_bluetooth_headset_backend
+fi
+
+AS_IF([test "x$BLUETOOTH_HEADSET_BACKEND" != "xnull"],
+    [AC_MSG_ERROR([*** Invalid Bluetooth Headset backend])])
+
+AC_SUBST(BLUETOOTH_HEADSET_BACKEND)
+
 #### UDEV support (optional) ####
 
 AC_ARG_ENABLE([udev],
@@ -1497,6 +1512,7 @@ echo "
     Enable D-Bus:                  ${ENABLE_DBUS}
       Enable BlueZ 4:              ${ENABLE_BLUEZ_4}
       Enable BlueZ 5:              ${ENABLE_BLUEZ_5}
+        headset backed:            ${BLUETOOTH_HEADSET_BACKEND}
     Enable udev:                   ${ENABLE_UDEV}
       Enable HAL->udev compat:     ${ENABLE_HAL_COMPAT}
     Enable systemd login:          ${ENABLE_SYSTEMD}

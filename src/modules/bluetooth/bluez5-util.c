@@ -87,6 +87,7 @@ struct pa_bluetooth_discovery {
     pa_hashmap *devices;
     pa_hashmap *transports;
 
+    pa_bluetooth_backend *backend;
     PA_LLIST_HEAD(pa_dbus_pending, pending);
 };
 
@@ -1590,6 +1591,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
 
     endpoint_init(y, PA_BLUETOOTH_PROFILE_A2DP_SINK);
     endpoint_init(y, PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
+    y->backend = pa_bluetooth_backend_new(c);
 
     get_managed_objects(y);
 
@@ -1630,6 +1632,9 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
         pa_assert(pa_hashmap_isempty(y->transports));
         pa_hashmap_free(y->transports);
     }
+
+    if (y->backend)
+        pa_bluetooth_backend_free(y->backend);
 
     if (y->connection) {
 

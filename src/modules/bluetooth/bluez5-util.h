@@ -35,6 +35,7 @@ typedef struct pa_bluetooth_transport pa_bluetooth_transport;
 typedef struct pa_bluetooth_device pa_bluetooth_device;
 typedef struct pa_bluetooth_adapter pa_bluetooth_adapter;
 typedef struct pa_bluetooth_discovery pa_bluetooth_discovery;
+typedef struct pa_bluetooth_backend pa_bluetooth_backend;
 
 typedef enum pa_bluetooth_hook {
     PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED,          /* Call data: pa_bluetooth_device */
@@ -104,6 +105,9 @@ struct pa_bluetooth_adapter {
 
     bool valid;
 };
+
+pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c);
+void pa_bluetooth_backend_free(pa_bluetooth_backend *b);
 
 pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,
                                                    pa_bluetooth_profile_t p, const uint8_t *config, size_t size);
