@@ -33,6 +33,7 @@
 #include <pulse/timeval.h>
 
 #include <pulsecore/core-error.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/i18n.h>
 #include <pulsecore/module.h>
@@ -59,7 +60,9 @@ PA_MODULE_USAGE("path=<device object path>");
 
 #define MAX_PLAYBACK_CATCH_UP_USEC (100 * PA_USEC_PER_MSEC)
 #define FIXED_LATENCY_PLAYBACK_A2DP (25 * PA_USEC_PER_MSEC)
+#define FIXED_LATENCY_PLAYBACK_SCO (125 * PA_USEC_PER_MSEC)
 #define FIXED_LATENCY_RECORD_A2DP   (25 * PA_USEC_PER_MSEC)
+#define FIXED_LATENCY_RECORD_SCO    (25 * PA_USEC_PER_MSEC)
 
 #define BITPOOL_DEC_LIMIT 32
 #define BITPOOL_DEC_STEP 5
@@ -233,6 +236,157 @@ static void connect_ports(struct userdata *u, void *new_data, pa_direction_t dir
         pa_assert_se(pa_hashmap_put(source_new_data->ports, port->name, port) >= 0);
         pa_device_port_ref(port);
     }
+}
+
+/* Run from IO thread */
+static int sco_process_render(struct userdata *u) {
+    ssize_t l;
+    pa_memchunk memchunk;
+
+    pa_assert(u);
+    pa_assert(u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT ||
+                u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY);
+    pa_assert(u->sink);
+
+    pa_sink_render_full(u->sink, u->write_block_size, &memchunk);
+
+    pa_assert(memchunk.length == u->write_block_size);
+
+    for (;;) {
+        const void *p;
+
+        /* Now write that data to the socket. The socket is of type
+         * SEQPACKET, and we generated the data of the MTU size, so this
+         * should just work. */
+
+        p = (const uint8_t *) pa_memblock_acquire_chunk(&memchunk);
+        l = pa_write(u->stream_fd, p, memchunk.length, &u->stream_write_type);
+        pa_memblock_release(memchunk.memblock);
+
+        pa_assert(l != 0);
+
+        if (l > 0)
+            break;
+
+        if (errno == EINTR)
+            /* Retry right away if we got interrupted */
+            continue;
+        else if (errno == EAGAIN)
+            /* Hmm, apparently the socket was not writable, give up for now */
+            return 0;
+
+        pa_log_error("Failed to write data to SCO socket: %s", pa_cstrerror(errno));
+        return -1;
+    }
+
+    pa_assert((size_t) l <= memchunk.length);
+
+    if ((size_t) l != memchunk.length) {
+        pa_log_error("Wrote memory block to socket only partially! %llu written, wanted to write %llu.",
+                    (unsigned long long) l,
+                    (unsigned long long) memchunk.length);
+        return -1;
+    }
+
+    u->write_index += (uint64_t) memchunk.length;
+    pa_memblock_unref(memchunk.memblock);
+
+    return 1;
+}
+
+/* Run from IO thread */
+static int sco_process_push(struct userdata *u) {
+    ssize_t l;
+    pa_memchunk memchunk;
+    struct cmsghdr *cm;
+    struct msghdr m;
+    bool found_tstamp = false;
+    pa_usec_t tstamp = 0;
+
+    pa_assert(u);
+    pa_assert(u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT ||
+                u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY);
+    pa_assert(u->source);
+    pa_assert(u->read_smoother);
+
+    memchunk.memblock = pa_memblock_new(u->core->mempool, u->read_block_size);
+    memchunk.index = memchunk.length = 0;
+
+    for (;;) {
+        void *p;
+        uint8_t aux[1024];
+        struct iovec iov;
+
+        pa_zero(m);
+        pa_zero(aux);
+        pa_zero(iov);
+
+        m.msg_iov = &iov;
+        m.msg_iovlen = 1;
+        m.msg_control = aux;
+        m.msg_controllen = sizeof(aux);
+
+        p = pa_memblock_acquire(memchunk.memblock);
+        iov.iov_base = p;
+        iov.iov_len = pa_memblock_get_length(memchunk.memblock);
+        l = recvmsg(u->stream_fd, &m, 0);
+        pa_memblock_release(memchunk.memblock);
+
+        if (l > 0)
+            break;
+
+        if (l < 0 && errno == EINTR)
+            /* Retry right away if we got interrupted */
+            continue;
+
+        pa_memblock_unref(memchunk.memblock);
+
+        if (l < 0 && errno == EAGAIN)
+            /* Hmm, apparently the socket was not readable, give up for now. */
+            return 0;
+
+        pa_log_error("Failed to read data from SCO socket: %s", l < 0 ? pa_cstrerror(errno) : "EOF");
+        return -1;
+    }
+
+    pa_assert((size_t) l <= pa_memblock_get_length(memchunk.memblock));
+
+    /* In some rare occasions, we might receive packets of a very strange
+     * size. This could potentially be possible if the SCO packet was
+     * received partially over-the-air, or more probably due to hardware
+     * issues in our Bluetooth adapter. In these cases, in order to avoid
+     * an assertion failure due to unaligned data, just discard the whole
+     * packet */
+    if (!pa_frame_aligned(l, &u->sample_spec)) {
+        pa_log_warn("SCO packet received of unaligned size: %zu", l);
+        pa_memblock_unref(memchunk.memblock);
+        return -1;
+    }
+
+    memchunk.length = (size_t) l;
+    u->read_index += (uint64_t) l;
+
+    for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm))
+        if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP) {
+            struct timeval *tv = (struct timeval*) CMSG_DATA(cm);
+            pa_rtclock_from_wallclock(tv);
+            tstamp = pa_timeval_load(tv);
+            found_tstamp = true;
+            break;
+        }
+
+    if (!found_tstamp) {
+        pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
+        tstamp = pa_rtclock_now();
+    }
+
+    pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->sample_spec));
+    pa_smoother_resume(u->read_smoother, tstamp, true);
+
+    pa_source_post(u->source, &memchunk);
+    pa_memblock_unref(memchunk.memblock);
+
+    return l;
 }
 
 /* Run from IO thread */
@@ -611,24 +765,31 @@ static void transport_release(struct userdata *u) {
 
 /* Run from I/O thread */
 static void transport_config_mtu(struct userdata *u) {
-    u->read_block_size =
-        (u->read_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
-        / u->sbc_info.frame_length * u->sbc_info.codesize;
+    if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT || u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY) {
+        u->read_block_size = u->read_link_mtu;
+        u->write_block_size = u->write_link_mtu;
+    } else {
+        u->read_block_size =
+            (u->read_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+            / u->sbc_info.frame_length * u->sbc_info.codesize;
 
-    u->write_block_size =
-        (u->write_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
-        / u->sbc_info.frame_length * u->sbc_info.codesize;
+        u->write_block_size =
+            (u->write_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
+            / u->sbc_info.frame_length * u->sbc_info.codesize;
+    }
 
     if (u->sink) {
         pa_sink_set_max_request_within_thread(u->sink, u->write_block_size);
         pa_sink_set_fixed_latency_within_thread(u->sink,
-                                                FIXED_LATENCY_PLAYBACK_A2DP +
+                                                (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK ?
+                                                 FIXED_LATENCY_PLAYBACK_A2DP : FIXED_LATENCY_PLAYBACK_SCO) +
                                                 pa_bytes_to_usec(u->write_block_size, &u->sample_spec));
     }
 
     if (u->source)
         pa_source_set_fixed_latency_within_thread(u->source,
-                                                  FIXED_LATENCY_RECORD_A2DP +
+                                                  (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE ?
+                                                   FIXED_LATENCY_RECORD_A2DP : FIXED_LATENCY_RECORD_SCO) +
                                                   pa_bytes_to_usec(u->read_block_size, &u->sample_spec));
 }
 
@@ -755,15 +916,19 @@ static int add_source(struct userdata *u) {
     data.namereg_fail = false;
     pa_proplist_sets(data.proplist, "bluetooth.protocol", pa_bluetooth_profile_to_string(u->profile));
     pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
+    if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT)
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
 
     connect_ports(u, &data, PA_DIRECTION_INPUT);
 
     if (!u->transport_acquired)
         switch (u->profile) {
             case PA_BLUETOOTH_PROFILE_A2DP_SOURCE:
+            case PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY:
                 data.suspend_cause = PA_SUSPEND_USER;
                 break;
             case PA_BLUETOOTH_PROFILE_A2DP_SINK:
+            case PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT:
             case PA_BLUETOOTH_PROFILE_OFF:
                 pa_assert_not_reached();
                 break;
@@ -870,14 +1035,20 @@ static int add_sink(struct userdata *u) {
     data.namereg_fail = false;
     pa_proplist_sets(data.proplist, "bluetooth.protocol", pa_bluetooth_profile_to_string(u->profile));
     pa_sink_new_data_set_sample_spec(&data, &u->sample_spec);
+    if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT)
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
 
     connect_ports(u, &data, PA_DIRECTION_OUTPUT);
 
     if (!u->transport_acquired)
         switch (u->profile) {
+            case PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY:
+                data.suspend_cause = PA_SUSPEND_USER;
+                break;
             case PA_BLUETOOTH_PROFILE_A2DP_SINK:
                 /* Profile switch should have failed */
             case PA_BLUETOOTH_PROFILE_A2DP_SOURCE:
+            case PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT:
             case PA_BLUETOOTH_PROFILE_OFF:
                 pa_assert_not_reached();
                 break;
@@ -898,111 +1069,117 @@ static int add_sink(struct userdata *u) {
 
 /* Run from main thread */
 static void transport_config(struct userdata *u) {
-    sbc_info_t *sbc_info = &u->sbc_info;
-    a2dp_sbc_t *config;
+    if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT || u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY) {
+        u->sample_spec.format = PA_SAMPLE_S16LE;
+        u->sample_spec.channels = 1;
+        u->sample_spec.rate = 8000;
+    } else {
+        sbc_info_t *sbc_info = &u->sbc_info;
+        a2dp_sbc_t *config;
 
-    pa_assert(u->transport);
+        pa_assert(u->transport);
 
-    u->sample_spec.format = PA_SAMPLE_S16LE;
-    config = (a2dp_sbc_t *) u->transport->config;
+        u->sample_spec.format = PA_SAMPLE_S16LE;
+        config = (a2dp_sbc_t *) u->transport->config;
 
-    if (sbc_info->sbc_initialized)
-        sbc_reinit(&sbc_info->sbc, 0);
-    else
-        sbc_init(&sbc_info->sbc, 0);
-    sbc_info->sbc_initialized = true;
+        if (sbc_info->sbc_initialized)
+            sbc_reinit(&sbc_info->sbc, 0);
+        else
+            sbc_init(&sbc_info->sbc, 0);
+        sbc_info->sbc_initialized = true;
 
-    switch (config->frequency) {
-        case SBC_SAMPLING_FREQ_16000:
-            sbc_info->sbc.frequency = SBC_FREQ_16000;
-            u->sample_spec.rate = 16000U;
-            break;
-        case SBC_SAMPLING_FREQ_32000:
-            sbc_info->sbc.frequency = SBC_FREQ_32000;
-            u->sample_spec.rate = 32000U;
-            break;
-        case SBC_SAMPLING_FREQ_44100:
-            sbc_info->sbc.frequency = SBC_FREQ_44100;
-            u->sample_spec.rate = 44100U;
-            break;
-        case SBC_SAMPLING_FREQ_48000:
-            sbc_info->sbc.frequency = SBC_FREQ_48000;
-            u->sample_spec.rate = 48000U;
-            break;
-        default:
-            pa_assert_not_reached();
+        switch (config->frequency) {
+            case SBC_SAMPLING_FREQ_16000:
+                sbc_info->sbc.frequency = SBC_FREQ_16000;
+                u->sample_spec.rate = 16000U;
+                break;
+            case SBC_SAMPLING_FREQ_32000:
+                sbc_info->sbc.frequency = SBC_FREQ_32000;
+                u->sample_spec.rate = 32000U;
+                break;
+            case SBC_SAMPLING_FREQ_44100:
+                sbc_info->sbc.frequency = SBC_FREQ_44100;
+                u->sample_spec.rate = 44100U;
+                break;
+            case SBC_SAMPLING_FREQ_48000:
+                sbc_info->sbc.frequency = SBC_FREQ_48000;
+                u->sample_spec.rate = 48000U;
+                break;
+            default:
+                pa_assert_not_reached();
+        }
+
+        switch (config->channel_mode) {
+            case SBC_CHANNEL_MODE_MONO:
+                sbc_info->sbc.mode = SBC_MODE_MONO;
+                u->sample_spec.channels = 1;
+                break;
+            case SBC_CHANNEL_MODE_DUAL_CHANNEL:
+                sbc_info->sbc.mode = SBC_MODE_DUAL_CHANNEL;
+                u->sample_spec.channels = 2;
+                break;
+            case SBC_CHANNEL_MODE_STEREO:
+                sbc_info->sbc.mode = SBC_MODE_STEREO;
+                u->sample_spec.channels = 2;
+                break;
+            case SBC_CHANNEL_MODE_JOINT_STEREO:
+                sbc_info->sbc.mode = SBC_MODE_JOINT_STEREO;
+                u->sample_spec.channels = 2;
+                break;
+            default:
+                pa_assert_not_reached();
+        }
+
+        switch (config->allocation_method) {
+            case SBC_ALLOCATION_SNR:
+                sbc_info->sbc.allocation = SBC_AM_SNR;
+                break;
+            case SBC_ALLOCATION_LOUDNESS:
+                sbc_info->sbc.allocation = SBC_AM_LOUDNESS;
+                break;
+            default:
+                pa_assert_not_reached();
+        }
+
+        switch (config->subbands) {
+            case SBC_SUBBANDS_4:
+                sbc_info->sbc.subbands = SBC_SB_4;
+                break;
+            case SBC_SUBBANDS_8:
+                sbc_info->sbc.subbands = SBC_SB_8;
+                break;
+            default:
+                pa_assert_not_reached();
+        }
+
+        switch (config->block_length) {
+            case SBC_BLOCK_LENGTH_4:
+                sbc_info->sbc.blocks = SBC_BLK_4;
+                break;
+            case SBC_BLOCK_LENGTH_8:
+                sbc_info->sbc.blocks = SBC_BLK_8;
+                break;
+            case SBC_BLOCK_LENGTH_12:
+                sbc_info->sbc.blocks = SBC_BLK_12;
+                break;
+            case SBC_BLOCK_LENGTH_16:
+                sbc_info->sbc.blocks = SBC_BLK_16;
+                break;
+            default:
+                pa_assert_not_reached();
+        }
+
+        sbc_info->min_bitpool = config->min_bitpool;
+        sbc_info->max_bitpool = config->max_bitpool;
+
+        /* Set minimum bitpool for source to get the maximum possible block_size */
+        sbc_info->sbc.bitpool = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK ? sbc_info->max_bitpool : sbc_info->min_bitpool;
+        sbc_info->codesize = sbc_get_codesize(&sbc_info->sbc);
+        sbc_info->frame_length = sbc_get_frame_length(&sbc_info->sbc);
+
+        pa_log_info("SBC parameters: allocation=%u, subbands=%u, blocks=%u, bitpool=%u",
+                    sbc_info->sbc.allocation, sbc_info->sbc.subbands, sbc_info->sbc.blocks, sbc_info->sbc.bitpool);
     }
-
-    switch (config->channel_mode) {
-        case SBC_CHANNEL_MODE_MONO:
-            sbc_info->sbc.mode = SBC_MODE_MONO;
-            u->sample_spec.channels = 1;
-            break;
-        case SBC_CHANNEL_MODE_DUAL_CHANNEL:
-            sbc_info->sbc.mode = SBC_MODE_DUAL_CHANNEL;
-            u->sample_spec.channels = 2;
-            break;
-        case SBC_CHANNEL_MODE_STEREO:
-            sbc_info->sbc.mode = SBC_MODE_STEREO;
-            u->sample_spec.channels = 2;
-            break;
-        case SBC_CHANNEL_MODE_JOINT_STEREO:
-            sbc_info->sbc.mode = SBC_MODE_JOINT_STEREO;
-            u->sample_spec.channels = 2;
-            break;
-        default:
-            pa_assert_not_reached();
-    }
-
-    switch (config->allocation_method) {
-        case SBC_ALLOCATION_SNR:
-            sbc_info->sbc.allocation = SBC_AM_SNR;
-            break;
-        case SBC_ALLOCATION_LOUDNESS:
-            sbc_info->sbc.allocation = SBC_AM_LOUDNESS;
-            break;
-        default:
-            pa_assert_not_reached();
-    }
-
-    switch (config->subbands) {
-        case SBC_SUBBANDS_4:
-            sbc_info->sbc.subbands = SBC_SB_4;
-            break;
-        case SBC_SUBBANDS_8:
-            sbc_info->sbc.subbands = SBC_SB_8;
-            break;
-        default:
-            pa_assert_not_reached();
-    }
-
-    switch (config->block_length) {
-        case SBC_BLOCK_LENGTH_4:
-            sbc_info->sbc.blocks = SBC_BLK_4;
-            break;
-        case SBC_BLOCK_LENGTH_8:
-            sbc_info->sbc.blocks = SBC_BLK_8;
-            break;
-        case SBC_BLOCK_LENGTH_12:
-            sbc_info->sbc.blocks = SBC_BLK_12;
-            break;
-        case SBC_BLOCK_LENGTH_16:
-            sbc_info->sbc.blocks = SBC_BLK_16;
-            break;
-        default:
-            pa_assert_not_reached();
-    }
-
-    sbc_info->min_bitpool = config->min_bitpool;
-    sbc_info->max_bitpool = config->max_bitpool;
-
-    /* Set minimum bitpool for source to get the maximum possible block_size */
-    sbc_info->sbc.bitpool = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK ? sbc_info->max_bitpool : sbc_info->min_bitpool;
-    sbc_info->codesize = sbc_get_codesize(&sbc_info->sbc);
-    sbc_info->frame_length = sbc_get_frame_length(&sbc_info->sbc);
-
-    pa_log_info("SBC parameters: allocation=%u, subbands=%u, blocks=%u, bitpool=%u",
-                sbc_info->sbc.allocation, sbc_info->sbc.subbands, sbc_info->sbc.blocks, sbc_info->sbc.bitpool);
 }
 
 /* Run from main thread */
@@ -1022,7 +1199,7 @@ static int setup_transport(struct userdata *u) {
 
     u->transport = t;
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE)
+    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE || u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY)
         transport_acquire(u, true); /* In case of error, the sink/sources will be created suspended */
     else if (transport_acquire(u, false) < 0)
         return -1; /* We need to fail here until the interactions with module-suspend-on-idle and alike get improved */
@@ -1043,11 +1220,13 @@ static int init_profile(struct userdata *u) {
 
     pa_assert(u->transport);
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK)
+    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK || u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT ||
+        u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY)
         if (add_sink(u) < 0)
             r = -1;
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE)
+    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE || u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT ||
+        u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY)
         if (add_source(u) < 0)
             r = -1;
 
@@ -1111,7 +1290,10 @@ static void thread_func(void *userdata) {
             if (pollfd && (pollfd->revents & POLLIN)) {
                 int n_read;
 
-                n_read = a2dp_process_push(u);
+                if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE)
+                    n_read = a2dp_process_push(u);
+                else
+                    n_read = sco_process_push(u);
 
                 if (n_read < 0)
                     goto fail;
@@ -1182,8 +1364,13 @@ static void thread_func(void *userdata) {
                     if (u->write_index <= 0)
                         u->started_at = pa_rtclock_now();
 
-                    if ((n_written = a2dp_process_render(u)) < 0)
-                        goto fail;
+                    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK) {
+                        if ((n_written = a2dp_process_render(u)) < 0)
+                            goto fail;
+                    } else {
+                        if ((n_written = sco_process_render(u)) < 0)
+                            goto fail;
+                    }
 
                     if (n_written == 0)
                         pa_log("Broken kernel: we got EAGAIN on write() after POLLOUT!");
@@ -1363,6 +1550,8 @@ static pa_direction_t get_profile_direction(pa_bluetooth_profile_t p) {
     static const pa_direction_t profile_direction[] = {
         [PA_BLUETOOTH_PROFILE_A2DP_SINK] = PA_DIRECTION_OUTPUT,
         [PA_BLUETOOTH_PROFILE_A2DP_SOURCE] = PA_DIRECTION_INPUT,
+        [PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
         [PA_BLUETOOTH_PROFILE_OFF] = 0
     };
 
@@ -1540,6 +1729,30 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
 
         p = PA_CARD_PROFILE_DATA(cp);
         *p = PA_BLUETOOTH_PROFILE_A2DP_SOURCE;
+    } else if (pa_streq(uuid, PA_BLUETOOTH_UUID_HSP_HS) || pa_streq(uuid, PA_BLUETOOTH_UUID_HFP_HF)) {
+        cp = pa_card_profile_new("headset_head_unit", _("Headset Head Unit (HSP/HFP)"), sizeof(pa_bluetooth_profile_t));
+        cp->priority = 20;
+        cp->n_sinks = 1;
+        cp->n_sources = 1;
+        cp->max_sink_channels = 1;
+        cp->max_source_channels = 1;
+        pa_hashmap_put(input_port->profiles, cp->name, cp);
+        pa_hashmap_put(output_port->profiles, cp->name, cp);
+
+        p = PA_CARD_PROFILE_DATA(cp);
+        *p = PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT;
+    } else if (pa_streq(uuid, PA_BLUETOOTH_UUID_HSP_AG) || pa_streq(uuid, PA_BLUETOOTH_UUID_HFP_AG)) {
+        cp = pa_card_profile_new("headset_audio_gateway", _("Headset Audio Gateway (HSP/HFP)"), sizeof(pa_bluetooth_profile_t));
+        cp->priority = 20;
+        cp->n_sinks = 1;
+        cp->n_sources = 1;
+        cp->max_sink_channels = 1;
+        cp->max_source_channels = 1;
+        pa_hashmap_put(input_port->profiles, cp->name, cp);
+        pa_hashmap_put(output_port->profiles, cp->name, cp);
+
+        p = PA_CARD_PROFILE_DATA(cp);
+        *p = PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY;
     }
 
     if (cp && u->device->transports[*p])
