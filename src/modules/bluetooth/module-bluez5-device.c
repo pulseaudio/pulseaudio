@@ -1890,10 +1890,8 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
 
     pa_assert(u);
     pa_assert(t);
+    pa_assert_se(cp = pa_hashmap_get(u->card->profiles, pa_bluetooth_profile_to_string(t->profile)));
 
-    /* Update profile availability */
-    if (!(cp = pa_hashmap_get(u->card->profiles, pa_bluetooth_profile_to_string(t->profile))))
-        return;
     pa_card_profile_set_available(cp, transport_state_to_availability(t->state));
 
     /* Update port availability */
