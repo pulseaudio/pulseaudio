@@ -564,8 +564,10 @@ void pa_source_put(pa_source *s) {
      * the source implementor to set this flag as needed.
      *
      * Note: This flag can also change over the life time of the source. */
-    if (!(s->flags & PA_SOURCE_HW_VOLUME_CTRL) && !(s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
+    if (!(s->flags & PA_SOURCE_HW_VOLUME_CTRL) && !(s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)) {
         pa_source_enable_decibel_volume(s, true);
+        s->soft_volume = s->reference_volume;
+    }
 
     /* If the source implementor support DB volumes by itself, we should always
      * try and enable flat volumes too */
