@@ -77,6 +77,10 @@ void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const 
     pa_pstream_send_tagstruct_with_ancil(p, t, NULL);
 }
 
+void pa_pstream_send_tagstruct_with_fds(pa_pstream *p, pa_tagstruct *t, int nfd, const int *fds) {
+    pa_assert_not_reached();
+}
+
 #endif
 
 void pa_pstream_send_error(pa_pstream *p, uint32_t tag, uint32_t error) {
