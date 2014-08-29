@@ -32,8 +32,6 @@
 typedef struct pa_resampler pa_resampler;
 typedef struct pa_resampler_impl pa_resampler_impl;
 
-typedef struct pa_resampler pa_resampler;
-
 struct pa_resampler_impl {
     void (*free)(pa_resampler *r);
     void (*update_rates)(pa_resampler *r);
