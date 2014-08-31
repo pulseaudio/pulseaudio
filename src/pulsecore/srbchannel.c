@@ -36,7 +36,7 @@
 typedef struct pa_ringbuffer pa_ringbuffer;
 
 struct pa_ringbuffer {
-    pa_atomic_t *count; /* amount of data in the buffer, can be negative */
+    pa_atomic_t *count; /* amount of data in the buffer */
     int capacity;
     uint8_t *memory;
     int readindex, writeindex;
