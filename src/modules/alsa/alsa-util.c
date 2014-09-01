@@ -1457,6 +1457,25 @@ bool pa_alsa_may_tsched(bool want) {
     return true;
 }
 
+#define SND_MIXER_ELEM_PULSEAUDIO (SND_MIXER_ELEM_LAST + 10)
+
+snd_mixer_elem_t *pa_alsa_mixer_find(snd_mixer_t *mixer, const char *name, unsigned int device) {
+    snd_mixer_elem_t *elem;
+
+    for (elem = snd_mixer_first_elem(mixer); elem; elem = snd_mixer_elem_next(elem)) {
+        snd_hctl_elem_t *helem;
+        if (snd_mixer_elem_get_type(elem) != SND_MIXER_ELEM_PULSEAUDIO)
+            continue;
+        helem = snd_mixer_elem_get_private(elem);
+        if (!pa_streq(snd_hctl_elem_get_name(helem), name))
+            continue;
+        if (snd_hctl_elem_get_device(helem) != device)
+            continue;
+        return elem;
+    }
+    return NULL;
+}
+
 snd_hctl_elem_t* pa_alsa_find_jack(snd_hctl_t *hctl, const char* jack_name) {
     snd_ctl_elem_id_t *id;
 
@@ -1481,8 +1500,53 @@ snd_hctl_elem_t* pa_alsa_find_eld_ctl(snd_hctl_t *hctl, int device) {
     return snd_hctl_find_elem(hctl, id);
 }
 
+static int mixer_class_compare(const snd_mixer_elem_t *c1, const snd_mixer_elem_t *c2)
+{
+    /* Dummy compare function */
+    return c1 == c2 ? 0 : (c1 > c2 ? 1 : -1);
+}
+
+static int mixer_class_event(snd_mixer_class_t *class, unsigned int mask,
+			snd_hctl_elem_t *helem, snd_mixer_elem_t *melem)
+{
+    int err;
+    const char *name = snd_hctl_elem_get_name(helem);
+    if (mask & SND_CTL_EVENT_MASK_ADD) {
+        snd_ctl_elem_iface_t iface = snd_hctl_elem_get_interface(helem);
+        if (iface == SND_CTL_ELEM_IFACE_CARD || iface == SND_CTL_ELEM_IFACE_PCM) {
+            snd_mixer_elem_t *new_melem;
+
+            /* Put the hctl pointer as our private data - it will be useful for callbacks */
+            if ((err = snd_mixer_elem_new(&new_melem, SND_MIXER_ELEM_PULSEAUDIO, 0, helem, NULL)) < 0) {
+                pa_log_warn("snd_mixer_elem_new failed: %s", pa_alsa_strerror(err));
+                return 0;
+            }
+
+            if ((err = snd_mixer_elem_attach(new_melem, helem)) < 0) {
+                pa_log_warn("snd_mixer_elem_attach failed: %s", pa_alsa_strerror(err));
+		snd_mixer_elem_free(melem);
+                return 0;
+            }
+
+            if ((err = snd_mixer_elem_add(new_melem, class)) < 0) {
+                pa_log_warn("snd_mixer_elem_add failed: %s", pa_alsa_strerror(err));
+                return 0;
+            }
+        }
+    }
+    else if (mask & SND_CTL_EVENT_MASK_VALUE) {
+        snd_mixer_elem_value(melem); /* Calls the element callback */
+        return 0;
+    }
+    else
+        pa_log_info("Got an unknown mixer class event for %s: mask 0x%x\n", name, mask);
+
+    return 0;
+}
+
 static int prepare_mixer(snd_mixer_t *mixer, const char *dev, snd_hctl_t **hctl) {
     int err;
+    snd_mixer_class_t *class;
 
     pa_assert(mixer);
     pa_assert(dev);
@@ -1498,6 +1562,19 @@ static int prepare_mixer(snd_mixer_t *mixer, const char *dev, snd_hctl_t **hctl)
         pa_log_info("Unable to get hctl of mixer %s: %s", dev, pa_alsa_strerror(err));
         return -1;
     }
+
+    if (snd_mixer_class_malloc(&class)) {
+        pa_log_info("Failed to allocate mixer class for %s", dev);
+        return -1;
+    }
+    snd_mixer_class_set_event(class, mixer_class_event);
+    snd_mixer_class_set_compare(class, mixer_class_compare);
+    if ((err = snd_mixer_class_register(class, mixer)) < 0) {
+        pa_log_info("Unable register mixer class for %s: %s", dev, pa_alsa_strerror(err));
+        snd_mixer_class_free(class);
+        return -1;
+    }
+    /* From here on, the mixer class is deallocated by alsa on snd_mixer_close/free. */
 
     if ((err = snd_mixer_selem_register(mixer, NULL, NULL)) < 0) {
         pa_log_warn("Unable to register mixer: %s", pa_alsa_strerror(err));
