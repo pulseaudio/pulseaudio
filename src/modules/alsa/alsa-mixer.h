@@ -164,7 +164,7 @@ struct pa_alsa_jack {
     char *alsa_name; /* E g "Headphone Jack" */
     bool has_control; /* is the jack itself present? */
     bool plugged_in; /* is this jack currently plugged in? */
-    snd_hctl_elem_t *hctl_elem; /* Jack detection handle */
+    snd_mixer_elem_t *melem; /* Jack detection handle */
     pa_available_t state_unplugged, state_plugged;
 
     pa_alsa_required_t required;
