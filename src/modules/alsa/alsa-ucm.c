@@ -1426,21 +1426,20 @@ static void profile_finalize_probing(pa_alsa_profile *p) {
 static void ucm_mapping_jack_probe(pa_alsa_mapping *m) {
     snd_pcm_t *pcm_handle;
     snd_mixer_t *mixer_handle;
-    snd_hctl_t *hctl_handle;
     pa_alsa_ucm_mapping_context *context = &m->ucm_context;
     pa_alsa_ucm_device *dev;
     uint32_t idx;
 
     pcm_handle = m->direction == PA_ALSA_DIRECTION_OUTPUT ? m->output_pcm : m->input_pcm;
-    mixer_handle = pa_alsa_open_mixer_for_pcm(pcm_handle, NULL, &hctl_handle);
-    if (!mixer_handle || !hctl_handle)
+    mixer_handle = pa_alsa_open_mixer_for_pcm(pcm_handle, NULL);
+    if (!mixer_handle)
         return;
 
     PA_IDXSET_FOREACH(dev, context->ucm_devices, idx) {
         pa_alsa_jack *jack;
         jack = m->direction == PA_ALSA_DIRECTION_OUTPUT ? dev->output_jack : dev->input_jack;
         pa_assert (jack);
-        jack->has_control = pa_alsa_find_jack(hctl_handle, jack->alsa_name) != NULL;
+        jack->has_control = pa_alsa_mixer_find(mixer_handle, jack->alsa_name, 0) != NULL;
         pa_log_info("UCM jack %s has_control=%d", jack->name, jack->has_control);
     }
 

@@ -2657,7 +2657,7 @@ static void path_create_settings(pa_alsa_path *p) {
     element_create_settings(p->elements, NULL);
 }
 
-int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, snd_hctl_t *hctl, bool ignore_dB) {
+int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, bool ignore_dB) {
     pa_alsa_element *e;
     pa_alsa_jack *j;
     double min_dB[PA_CHANNEL_POSITION_MAX], max_dB[PA_CHANNEL_POSITION_MAX];
@@ -3851,7 +3851,6 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
     snd_pcm_t *pcm_handle;
     pa_alsa_path_set *ps;
     snd_mixer_t *mixer_handle;
-    snd_hctl_t *hctl_handle;
 
     if (direction == PA_ALSA_DIRECTION_OUTPUT) {
         if (m->output_path_set)
@@ -3870,7 +3869,7 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
 
     pa_assert(pcm_handle);
 
-    mixer_handle = pa_alsa_open_mixer_for_pcm(pcm_handle, NULL, &hctl_handle);
+    mixer_handle = pa_alsa_open_mixer_for_pcm(pcm_handle, NULL);
     if (!mixer_handle) {
         /* Cannot open mixer, remove all entries */
         pa_hashmap_remove_all(ps->paths);
@@ -3878,7 +3877,7 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
     }
 
     PA_HASHMAP_FOREACH(p, ps->paths, state) {
-        if (pa_alsa_path_probe(p, mixer_handle, hctl_handle, m->profile_set->ignore_dB) < 0) {
+        if (pa_alsa_path_probe(p, mixer_handle, m->profile_set->ignore_dB) < 0) {
             pa_hashmap_remove(ps->paths, p);
         }
     }

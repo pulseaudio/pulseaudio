@@ -111,7 +111,6 @@ struct userdata {
     int alsa_card_index;
 
     snd_mixer_t *mixer_handle;
-    snd_hctl_t *hctl_handle;
     pa_hashmap *jacks;
     pa_alsa_fdlist *mixer_fdl;
 
@@ -422,7 +421,7 @@ static int hdmi_eld_changed(snd_mixer_elem_t *melem, unsigned int mask) {
         return 0;
     }
 
-    if (pa_alsa_get_hdmi_eld(u->hctl_handle, device, &eld) < 0)
+    if (pa_alsa_get_hdmi_eld(elem, &eld) < 0)
         memset(&eld, 0, sizeof(eld));
 
     old_monitor_name = pa_proplist_gets(p->proplist, PA_PROP_DEVICE_PRODUCT_NAME);
@@ -444,7 +443,7 @@ static void init_eld_ctls(struct userdata *u) {
     void *state;
     pa_device_port *port;
 
-    if (!u->hctl_handle)
+    if (!u->mixer_handle)
         return;
 
     PA_HASHMAP_FOREACH(port, u->card->ports, state) {
@@ -501,7 +500,7 @@ static void init_jacks(struct userdata *u) {
 
     u->mixer_fdl = pa_alsa_fdlist_new();
 
-    u->mixer_handle = pa_alsa_open_mixer(u->alsa_card_index, NULL, &u->hctl_handle);
+    u->mixer_handle = pa_alsa_open_mixer(u->alsa_card_index, NULL);
     if (u->mixer_handle && pa_alsa_fdlist_set_handle(u->mixer_fdl, u->mixer_handle, NULL, u->core->mainloop) >= 0) {
         PA_HASHMAP_FOREACH(jack, u->jacks, state) {
             jack->melem = pa_alsa_mixer_find(u->mixer_handle, jack->alsa_name, 0);
@@ -516,7 +515,7 @@ static void init_jacks(struct userdata *u) {
         }
 
     } else
-        pa_log("Failed to open hctl/mixer for jack detection");
+        pa_log("Failed to open mixer for jack detection");
 
 }
 
