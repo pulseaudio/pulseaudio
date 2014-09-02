@@ -351,7 +351,7 @@ static int esd_proto_connect(connection *c, esd_proto_t request, const void *dat
     }
 
     if (!c->authorized) {
-        pa_log("Kicked client with invalid authorization key.");
+        pa_log("Kicked client with invalid authentication key.");
         return -1;
     }
 

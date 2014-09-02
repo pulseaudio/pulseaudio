@@ -33,7 +33,7 @@
 /* maximum size we can write().  Otherwise we might overflow */
 #define ESD_MAX_WRITE_SIZE (21 * 4096)
 
-/* length of the authorization key, octets */
+/* length of the authentication key, octets */
 #define ESD_KEY_LEN (16)
 
 /* default port for the EsounD server */

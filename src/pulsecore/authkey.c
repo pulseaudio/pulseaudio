@@ -42,7 +42,7 @@
 
 #include "authkey.h"
 
-/* Generate a new authorization key, store it in file fd and return it in *data  */
+/* Generate a new authentication key, store it in file fd and return it in *data  */
 static int generate(int fd, void *ret_data, size_t length) {
     ssize_t r;
 
@@ -70,7 +70,7 @@ static int generate(int fd, void *ret_data, size_t length) {
 #define O_BINARY 0
 #endif
 
-/* Load an authorization cookie from file fn and store it in data. If
+/* Load an authentication cookie from file fn and store it in data. If
  * the cookie file doesn't exist, create it */
 static int load(const char *fn, bool create, void *data, size_t length) {
     int fd = -1;
@@ -156,7 +156,7 @@ int pa_authkey_load(const char *fn, bool create, void *data, size_t length) {
         return ret;
 
     if ((ret = load(p, create, data, length)) < 0)
-        pa_log_warn("Failed to load authorization key '%s': %s", p, (ret < 0) ? pa_cstrerror(errno) : "File corrupt");
+        pa_log_warn("Failed to load authentication key '%s': %s", p, (ret < 0) ? pa_cstrerror(errno) : "File corrupt");
 
     pa_xfree(p);
 

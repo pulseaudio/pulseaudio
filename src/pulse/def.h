@@ -464,7 +464,7 @@ typedef enum pa_error_code {
     PA_ERR_CONNECTIONREFUSED,      /**< Connection refused */
     PA_ERR_PROTOCOL,               /**< Protocol error */
     PA_ERR_TIMEOUT,                /**< Timeout */
-    PA_ERR_AUTHKEY,                /**< No authorization key */
+    PA_ERR_AUTHKEY,                /**< No authentication key */
     PA_ERR_INTERNAL,               /**< Internal error */
     PA_ERR_CONNECTIONTERMINATED,   /**< Connection terminated */
     PA_ERR_KILLED,                 /**< Entity killed */

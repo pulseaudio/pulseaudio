@@ -46,7 +46,7 @@ const char*pa_strerror(int error) {
         [PA_ERR_CONNECTIONREFUSED] = N_("Connection refused"),
         [PA_ERR_PROTOCOL] = N_("Protocol error"),
         [PA_ERR_TIMEOUT] = N_("Timeout"),
-        [PA_ERR_AUTHKEY] = N_("No authorization key"),
+        [PA_ERR_AUTHKEY] = N_("No authentication key"),
         [PA_ERR_INTERNAL] = N_("Internal error"),
         [PA_ERR_CONNECTIONTERMINATED] = N_("Connection terminated"),
         [PA_ERR_KILLED] = N_("Entity killed"),

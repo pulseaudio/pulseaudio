@@ -2724,7 +2724,7 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
         }
 
         if (!success) {
-            pa_log_warn("Denied access to client with invalid authorization data.");
+            pa_log_warn("Denied access to client with invalid authentication data.");
             pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
             return;
         }
