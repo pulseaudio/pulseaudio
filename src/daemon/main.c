@@ -112,7 +112,7 @@ int __padsp_disabled__ = 7;
 #endif
 
 static void signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
-    pa_log_info(_("Got signal %s."), pa_sig2str(sig));
+    pa_log_info("Got signal %s.", pa_sig2str(sig));
 
     switch (sig) {
 #ifdef SIGUSR1
@@ -139,7 +139,7 @@ static void signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void
         case SIGINT:
         case SIGTERM:
         default:
-            pa_log_info(_("Exiting."));
+            pa_log_info("Exiting.");
             m->quit(m, 1);
             break;
     }
@@ -166,7 +166,7 @@ static int change_user(void) {
         return -1;
     }
 
-    pa_log_info(_("Found user '%s' (UID %lu) and group '%s' (GID %lu)."),
+    pa_log_info("Found user '%s' (UID %lu) and group '%s' (GID %lu).",
                 PA_SYSTEM_USER, (unsigned long) pw->pw_uid,
                 PA_SYSTEM_GROUP, (unsigned long) gr->gr_gid);
 
@@ -244,7 +244,7 @@ static int change_user(void) {
     if (!getenv("PULSE_STATE_PATH"))
         pa_set_env("PULSE_STATE_PATH", PA_SYSTEM_STATE_PATH);
 
-    pa_log_info(_("Successfully changed user to \"" PA_SYSTEM_USER "\"."));
+    pa_log_info("Successfully changed user to \"" PA_SYSTEM_USER "\".");
 
     return 0;
 }
@@ -270,7 +270,7 @@ static int set_one_rlimit(const pa_rlimit *r, int resource, const char *name) {
     rl.rlim_cur = rl.rlim_max = r->value;
 
     if (setrlimit(resource, &rl) < 0) {
-        pa_log_info(_("setrlimit(%s, (%u, %u)) failed: %s"), name, (unsigned) r->value, (unsigned) r->value, pa_cstrerror(errno));
+        pa_log_info("setrlimit(%s, (%u, %u)) failed: %s", name, (unsigned) r->value, (unsigned) r->value, pa_cstrerror(errno));
         return -1;
     }
 
@@ -584,9 +584,9 @@ int main(int argc, char *argv[]) {
             }
 
             if (pa_pid_file_check_running(&pid, "pulseaudio") < 0)
-                pa_log_info(_("Daemon not running"));
+                pa_log_info("Daemon not running");
             else {
-                pa_log_info(_("Daemon running as PID %u"), pid);
+                pa_log_info("Daemon running as PID %u", pid);
                 retval = 0;
             }
 
@@ -769,7 +769,7 @@ int main(int argc, char *argv[]) {
             if (retval)
                 pa_log(_("Daemon startup failed."));
             else
-                pa_log_info(_("Daemon startup successful."));
+                pa_log_info("Daemon startup successful.");
 
             goto finish;
         }
@@ -886,67 +886,67 @@ int main(int argc, char *argv[]) {
 
     pa_set_env_and_record("PULSE_SYSTEM", conf->system_instance ? "1" : "0");
 
-    pa_log_info(_("This is PulseAudio %s"), PACKAGE_VERSION);
-    pa_log_debug(_("Compilation host: %s"), CANONICAL_HOST);
-    pa_log_debug(_("Compilation CFLAGS: %s"), PA_CFLAGS);
+    pa_log_info("This is PulseAudio %s", PACKAGE_VERSION);
+    pa_log_debug("Compilation host: %s", CANONICAL_HOST);
+    pa_log_debug("Compilation CFLAGS: %s", PA_CFLAGS);
 
     s = pa_uname_string();
-    pa_log_debug(_("Running on host: %s"), s);
+    pa_log_debug("Running on host: %s", s);
     pa_xfree(s);
 
-    pa_log_debug(_("Found %u CPUs."), pa_ncpus());
+    pa_log_debug("Found %u CPUs.", pa_ncpus());
 
-    pa_log_info(_("Page size is %lu bytes"), (unsigned long) PA_PAGE_SIZE);
+    pa_log_info("Page size is %lu bytes", (unsigned long) PA_PAGE_SIZE);
 
 #ifdef HAVE_VALGRIND_MEMCHECK_H
-    pa_log_debug(_("Compiled with Valgrind support: yes"));
+    pa_log_debug("Compiled with Valgrind support: yes");
 #else
-    pa_log_debug(_("Compiled with Valgrind support: no"));
+    pa_log_debug("Compiled with Valgrind support: no");
 #endif
 
-    pa_log_debug(_("Running in valgrind mode: %s"), pa_yes_no(pa_in_valgrind()));
+    pa_log_debug("Running in valgrind mode: %s", pa_yes_no(pa_in_valgrind()));
 
-    pa_log_debug(_("Running in VM: %s"), pa_yes_no(pa_running_in_vm()));
+    pa_log_debug("Running in VM: %s", pa_yes_no(pa_running_in_vm()));
 
 #ifdef __OPTIMIZE__
-    pa_log_debug(_("Optimized build: yes"));
+    pa_log_debug("Optimized build: yes");
 #else
-    pa_log_debug(_("Optimized build: no"));
+    pa_log_debug("Optimized build: no");
 #endif
 
 #ifdef NDEBUG
-    pa_log_debug(_("NDEBUG defined, all asserts disabled."));
+    pa_log_debug("NDEBUG defined, all asserts disabled.");
 #elif defined(FASTPATH)
-    pa_log_debug(_("FASTPATH defined, only fast path asserts disabled."));
+    pa_log_debug("FASTPATH defined, only fast path asserts disabled.");
 #else
-    pa_log_debug(_("All asserts enabled."));
+    pa_log_debug("All asserts enabled.");
 #endif
 
     if (!(s = pa_machine_id())) {
         pa_log(_("Failed to get machine ID"));
         goto finish;
     }
-    pa_log_info(_("Machine ID is %s."), s);
+    pa_log_info("Machine ID is %s.", s);
     pa_xfree(s);
 
     if ((s = pa_session_id())) {
-        pa_log_info(_("Session ID is %s."), s);
+        pa_log_info("Session ID is %s.", s);
         pa_xfree(s);
     }
 
     if (!(s = pa_get_runtime_dir()))
         goto finish;
-    pa_log_info(_("Using runtime directory %s."), s);
+    pa_log_info("Using runtime directory %s.", s);
     pa_xfree(s);
 
     if (!(s = pa_get_state_dir()))
         goto finish;
-    pa_log_info(_("Using state directory %s."), s);
+    pa_log_info("Using state directory %s.", s);
     pa_xfree(s);
 
-    pa_log_info(_("Using modules directory %s."), conf->dl_search_path);
+    pa_log_info("Using modules directory %s.", conf->dl_search_path);
 
-    pa_log_info(_("Running in system mode: %s"), pa_yes_no(pa_in_system_mode()));
+    pa_log_info("Running in system mode: %s", pa_yes_no(pa_in_system_mode()));
 
     if (pa_in_system_mode())
         pa_log_warn(_("OK, so you are running PA in system mode. Please note that you most likely shouldn't be doing that.\n"
@@ -976,9 +976,9 @@ int main(int argc, char *argv[]) {
     pa_disable_sigpipe();
 
     if (pa_rtclock_hrtimer())
-        pa_log_info(_("Fresh high-resolution timers available! Bon appetit!"));
+        pa_log_info("Fresh high-resolution timers available! Bon appetit!");
     else
-        pa_log_info(_("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"));
+        pa_log_info("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!");
 
     if (conf->lock_memory) {
 #if defined(HAVE_SYS_MMAN_H) && !defined(__ANDROID__)
@@ -1113,13 +1113,13 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
-    pa_log_info(_("Daemon startup complete."));
+    pa_log_info("Daemon startup complete.");
 
     retval = 0;
     if (pa_mainloop_run(mainloop, &retval) < 0)
         goto finish;
 
-    pa_log_info(_("Daemon shutdown initiated."));
+    pa_log_info("Daemon shutdown initiated.");
 
 finish:
 #ifdef HAVE_DBUS
@@ -1145,7 +1145,7 @@ finish:
         pa_scache_free_all(c);
 
         pa_core_unref(c);
-        pa_log_info(_("Daemon terminated."));
+        pa_log_info("Daemon terminated.");
     }
 
     if (!conf->no_cpu_limit)

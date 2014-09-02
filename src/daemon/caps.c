@@ -51,7 +51,7 @@ void pa_drop_root(void) {
     uid_t uid;
     gid_t gid;
 
-    pa_log_debug(_("Cleaning up privileges."));
+    pa_log_debug("Cleaning up privileges.");
     uid = getuid();
     gid = getgid();
 

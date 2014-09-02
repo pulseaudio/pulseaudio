@@ -574,7 +574,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     c->pdispatch = pa_pdispatch_new(c->mainloop, c->use_rtclock, command_table, PA_COMMAND_MAX);
 
     if (pa_client_conf_load_cookie(c->conf, cookie, sizeof(cookie)) < 0)
-        pa_log_info(_("No cookie loaded. Attempting to connect without."));
+        pa_log_info("No cookie loaded. Attempting to connect without.");
 
     t = pa_tagstruct_command(c, PA_COMMAND_AUTH, &tag);
 

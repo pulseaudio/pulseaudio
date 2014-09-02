@@ -415,8 +415,8 @@ int main(int argc, char *argv[]) {
         pa_memchunk i, j;
         pa_usec_t ts;
 
-        pa_log_debug(_("Compilation CFLAGS: %s"), PA_CFLAGS);
-        pa_log_debug(_("=== %d seconds: %d Hz %d ch (%s) -> %d Hz %d ch (%s)"), seconds,
+        pa_log_debug("Compilation CFLAGS: %s", PA_CFLAGS);
+        pa_log_debug("=== %d seconds: %d Hz %d ch (%s) -> %d Hz %d ch (%s)", seconds,
                    a.rate, a.channels, pa_sample_format_to_string(a.format),
                    b.rate, b.channels, pa_sample_format_to_string(b.format));
 
