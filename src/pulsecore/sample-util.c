@@ -296,9 +296,9 @@ void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const vo
         for (; n > 0; n--) {
             float f;
 
-            f = PA_FLOAT32_SWAP(*s);
+            f = PA_READ_FLOAT32RE(s);
             f = PA_CLAMP_UNLIKELY(f, -1.0f, 1.0f);
-            *d = PA_FLOAT32_SWAP(f);
+            PA_WRITE_FLOAT32RE(d, f);
 
             s = (const float*) ((const uint8_t*) s + sstr);
             d = (float*) ((uint8_t*) d + dstr);

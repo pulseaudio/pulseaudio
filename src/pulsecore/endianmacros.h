@@ -71,15 +71,24 @@ static inline void PA_WRITE24LE(uint8_t *p, uint32_t u) {
     p[0] = (uint8_t) u;
 }
 
-static inline float PA_FLOAT32_SWAP(float x) {
+static inline float PA_READ_FLOAT32RE(const void *p) {
+    union {
+        float f;
+        uint32_t u;
+    } t;
+
+    t.u = PA_UINT32_SWAP(*(uint32_t *) p);
+    return t.f;
+}
+
+static inline void PA_WRITE_FLOAT32RE(void *p, float x) {
     union {
         float f;
         uint32_t u;
     } t;
 
     t.f = x;
-    t.u = PA_UINT32_SWAP(t.u);
-    return t.f;
+    *(uint32_t *) p = PA_UINT32_SWAP(t.u);
 }
 
 #define PA_MAYBE_INT16_SWAP(c,x) ((c) ? PA_INT16_SWAP(x) : (x))
@@ -87,8 +96,6 @@ static inline float PA_FLOAT32_SWAP(float x) {
 
 #define PA_MAYBE_INT32_SWAP(c,x) ((c) ? PA_INT32_SWAP(x) : (x))
 #define PA_MAYBE_UINT32_SWAP(c,x) ((c) ? PA_UINT32_SWAP(x) : (x))
-
-#define PA_MAYBE_FLOAT32_SWAP(c,x) ((c) ? PA_FLOAT32_SWAP(x) : (x))
 
 #ifdef WORDS_BIGENDIAN
  #define PA_INT16_FROM_LE(x) PA_INT16_SWAP(x)
@@ -114,9 +121,6 @@ static inline float PA_FLOAT32_SWAP(float x) {
 
  #define PA_UINT32_TO_LE(x) PA_UINT32_SWAP(x)
  #define PA_UINT32_TO_BE(x) ((uint32_t)(x))
-
- #define PA_FLOAT32_TO_LE(x) PA_FLOAT32_SWAP(x)
- #define PA_FLOAT32_TO_BE(x) ((float) (x))
 
  #define PA_READ24NE(x) PA_READ24BE(x)
  #define PA_WRITE24NE(x,y) PA_WRITE24BE((x),(y))
@@ -147,9 +151,6 @@ static inline float PA_FLOAT32_SWAP(float x) {
 
  #define PA_UINT32_TO_LE(x) ((uint32_t)(x))
  #define PA_UINT32_TO_BE(x) PA_UINT32_SWAP(x)
-
- #define PA_FLOAT32_TO_LE(x) ((float) (x))
- #define PA_FLOAT32_TO_BE(x) PA_FLOAT32_SWAP(x)
 
  #define PA_READ24NE(x) PA_READ24LE(x)
  #define PA_WRITE24NE(x,y) PA_WRITE24LE((x),(y))

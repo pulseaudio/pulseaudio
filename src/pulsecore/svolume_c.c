@@ -125,9 +125,9 @@ static void pa_volume_float32re_c(float *samples, const float *volumes, unsigned
     for (channel = 0; length; length--) {
         float t;
 
-        t = PA_FLOAT32_SWAP(*samples);
+        t = PA_READ_FLOAT32RE(samples);
         t *= volumes[channel];
-        *samples++ = PA_FLOAT32_SWAP(t);
+        PA_WRITE_FLOAT32RE(samples++, t);
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;

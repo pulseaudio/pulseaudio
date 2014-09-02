@@ -576,17 +576,14 @@ static void pa_mix_float32re_c(pa_mix_info streams[], unsigned nstreams, unsigne
 
         for (i = 0; i < nstreams; i++) {
             pa_mix_info *m = streams + i;
-            float v, cv = m->linear[channel].f;
+            float cv = m->linear[channel].f;
 
-            if (PA_LIKELY(cv > 0)) {
-                v = PA_FLOAT32_SWAP(*(float*) m->ptr);
-                v *= cv;
-                sum += v;
-            }
+            if (PA_LIKELY(cv > 0))
+                sum += PA_READ_FLOAT32RE(m->ptr) * cv;
             m->ptr = (uint8_t*) m->ptr + sizeof(float);
         }
 
-        *data = PA_FLOAT32_SWAP(sum);
+        PA_WRITE_FLOAT32RE(data, sum);
 
         if (PA_UNLIKELY(++channel >= channels))
             channel = 0;

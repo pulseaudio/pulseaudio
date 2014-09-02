@@ -150,7 +150,7 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
             float *u = d;
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                float uu = PA_MAYBE_FLOAT32_SWAP(ss->format != PA_SAMPLE_FLOAT32NE, *u);
+                float uu = ss->format == PA_SAMPLE_FLOAT32NE ? *u : PA_READ_FLOAT32RE(u);
                 fail_unless(fabsf(uu - *v) <= 1e-6f, NULL);
                 ++u;
                 ++v;
@@ -264,7 +264,7 @@ static pa_memblock* generate_block(pa_mempool *pool, const pa_sample_spec *ss) {
             if (ss->format == PA_SAMPLE_FLOAT32RE) {
                 float *u = d;
                 for (i = 0; i < 10; i++)
-                    u[i] = PA_FLOAT32_SWAP(float32ne_result[0][i]);
+                    PA_WRITE_FLOAT32RE(&u[i], float32ne_result[0][i]);
             } else
                 memcpy(d, float32ne_result[0], sizeof(float32ne_result[0]));
 
