@@ -117,7 +117,7 @@ static void pa_volume_float32ne_c(float *samples, const float *volumes, unsigned
     }
 }
 
-static void pa_volume_float32re_c(float *samples, float *volumes, unsigned channels, unsigned length) {
+static void pa_volume_float32re_c(float *samples, const float *volumes, unsigned channels, unsigned length) {
     unsigned channel;
 
     length /= sizeof(float);
