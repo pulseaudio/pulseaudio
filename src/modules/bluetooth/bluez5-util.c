@@ -167,7 +167,7 @@ static const char *transport_state_to_string(pa_bluetooth_transport_state_t stat
     return "invalid";
 }
 
-static void transport_state_changed(pa_bluetooth_transport *t, pa_bluetooth_transport_state_t state) {
+void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_transport_state_t state) {
     bool old_any_connected;
 
     pa_assert(t);
@@ -183,6 +183,8 @@ static void transport_state_changed(pa_bluetooth_transport *t, pa_bluetooth_tran
     t->state = state;
     if (state == PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
         t->device->transports[t->profile] = NULL;
+    else
+        t->device->transports[t->profile] = t;
 
     pa_hook_fire(&t->device->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], t);
 
@@ -191,7 +193,7 @@ static void transport_state_changed(pa_bluetooth_transport *t, pa_bluetooth_tran
 }
 
 void pa_bluetooth_transport_put(pa_bluetooth_transport *t) {
-    transport_state_changed(t, PA_BLUETOOTH_TRANSPORT_STATE_IDLE);
+    pa_bluetooth_transport_set_state(t, PA_BLUETOOTH_TRANSPORT_STATE_IDLE);
 }
 
 void pa_bluetooth_transport_free(pa_bluetooth_transport *t) {
@@ -328,7 +330,7 @@ static void parse_transport_property(pa_bluetooth_transport *t, DBusMessageIter 
                     return;
                 }
 
-                transport_state_changed(t, state);
+                pa_bluetooth_transport_set_state(t, state);
             }
 
             break;
@@ -412,7 +414,7 @@ static void device_free(pa_bluetooth_device *d) {
         if (!(t = d->transports[i]))
             continue;
 
-        transport_state_changed(t, PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED);
+        pa_bluetooth_transport_set_state(t, PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED);
         pa_bluetooth_transport_free(t);
     }
 
@@ -1270,7 +1272,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     pa_assert_se(dbus_connection_send(pa_dbus_connection_get(y->connection), r, NULL));
     dbus_message_unref(r);
 
-    d->transports[p] = t = pa_bluetooth_transport_new(d, sender, path, p, config, size);
+    t = pa_bluetooth_transport_new(d, sender, path, p, config, size);
     t->acquire = bluez5_transport_acquire_cb;
     t->release = bluez5_transport_release_cb;
     pa_bluetooth_transport_put(t);
@@ -1433,7 +1435,7 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *conn, DBusMessa
 
     if ((t = pa_hashmap_get(y->transports, path))) {
         pa_log_debug("Clearing transport %s profile %s", t->path, pa_bluetooth_profile_to_string(t->profile));
-        transport_state_changed(t, PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED);
+        pa_bluetooth_transport_set_state(t, PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED);
         pa_bluetooth_transport_free(t);
     }
 
