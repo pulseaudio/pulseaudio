@@ -895,6 +895,9 @@ static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) 
 
     y->objects_listed = true;
 
+    if (!y->backend)
+        y->backend = pa_bluetooth_backend_new(y->core);
+
 finish:
     dbus_message_unref(r);
 
@@ -947,6 +950,10 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 pa_hashmap_remove_all(y->devices);
                 pa_hashmap_remove_all(y->adapters);
                 y->objects_listed = false;
+                if (y->backend) {
+                    pa_bluetooth_backend_free(y->backend);
+                    y->backend = NULL;
+                }
             }
 
             if (new_owner && *new_owner) {
@@ -1597,7 +1604,6 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
 
     endpoint_init(y, PA_BLUETOOTH_PROFILE_A2DP_SINK);
     endpoint_init(y, PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
-    y->backend = pa_bluetooth_backend_new(c);
 
     get_managed_objects(y);
 
