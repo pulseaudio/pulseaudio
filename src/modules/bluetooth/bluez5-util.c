@@ -196,6 +196,10 @@ void pa_bluetooth_transport_put(pa_bluetooth_transport *t) {
     pa_bluetooth_transport_set_state(t, PA_BLUETOOTH_TRANSPORT_STATE_IDLE);
 }
 
+void pa_bluetooth_transport_unlink(pa_bluetooth_transport *t) {
+    pa_bluetooth_transport_set_state(t, PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED);
+}
+
 void pa_bluetooth_transport_free(pa_bluetooth_transport *t) {
     pa_assert(t);
 

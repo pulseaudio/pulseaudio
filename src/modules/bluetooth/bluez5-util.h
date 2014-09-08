@@ -114,6 +114,7 @@ pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const
 
 void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_transport_state_t state);
 void pa_bluetooth_transport_put(pa_bluetooth_transport *t);
+void pa_bluetooth_transport_unlink(pa_bluetooth_transport *t);
 void pa_bluetooth_transport_free(pa_bluetooth_transport *t);
 
 bool pa_bluetooth_device_any_transport_connected(const pa_bluetooth_device *d);
