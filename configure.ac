@@ -1037,7 +1037,7 @@ else
     BLUETOOTH_HEADSET_BACKEND=$with_bluetooth_headset_backend
 fi
 
-AS_IF([test "x$BLUETOOTH_HEADSET_BACKEND" != "xofono && "test "x$BLUETOOTH_HEADSET_BACKEND" != "xnull"],
+AS_IF([test "x$BLUETOOTH_HEADSET_BACKEND" != "xofono" && test "x$BLUETOOTH_HEADSET_BACKEND" != "xnull"],
     [AC_MSG_ERROR([*** Invalid Bluetooth Headset backend])])
 
 AC_SUBST(BLUETOOTH_HEADSET_BACKEND)
