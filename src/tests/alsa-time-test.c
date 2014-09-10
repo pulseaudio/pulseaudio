@@ -27,12 +27,14 @@ int main(int argc, char *argv[]) {
     unsigned periods = 2;
     snd_pcm_uframes_t boundary, buffer_size = 44100/10; /* 100s */
     int dir = 1;
+    int fillrate;
     struct timespec start, last_timestamp = { 0, 0 };
     uint64_t start_us, last_us = 0;
     snd_pcm_sframes_t last_avail = 0, last_delay = 0;
     struct pollfd *pollfds;
     int n_pollfd;
     int64_t sample_count = 0;
+    uint16_t *samples;
     struct sched_param sp;
 
     r = -1;
@@ -54,6 +56,10 @@ int main(int argc, char *argv[]) {
 
     dev = argc > 1 ? argv[1] : "front:AudioPCI";
     cap = argc > 2 ? atoi(argv[2]) : 0;
+    fillrate = argc > 3 ? atoi(argv[3]) : 1;
+
+    samples = calloc(fillrate, 2*sizeof(uint16_t));
+    assert(samples);
 
     if (cap == 0)
       r = snd_pcm_open(&pcm, dev, SND_PCM_STREAM_PLAYBACK, 0);
@@ -108,7 +114,7 @@ int main(int argc, char *argv[]) {
 
     r = snd_pcm_hw_params_get_buffer_size(hwparams, &buffer_size);
     assert(r == 0);
-    r = snd_pcm_sw_params_set_start_threshold(pcm, swparams, buffer_size);
+    r = snd_pcm_sw_params_set_start_threshold(pcm, swparams, buffer_size - (buffer_size % fillrate));
     assert(r == 0);
 
     r = snd_pcm_sw_params_get_boundary(swparams, &boundary);
@@ -185,19 +191,17 @@ int main(int argc, char *argv[]) {
 
         assert(!revents || avail > 0);
 
-        if ((!cap && avail) || (cap && (unsigned)avail >= buffer_size)) {
+        if ((!cap && (avail >= fillrate)) || (cap && (unsigned)avail >= buffer_size)) {
             snd_pcm_sframes_t sframes;
-            static const uint16_t psamples[2] = { 0, 0 };
-            uint16_t csamples[2];
 
             if (cap == 0)
-              sframes = snd_pcm_writei(pcm, psamples, 1);
+              sframes = snd_pcm_writei(pcm, samples, fillrate);
             else
-              sframes = snd_pcm_readi(pcm, csamples, 1);
-            assert(sframes == 1);
+              sframes = snd_pcm_readi(pcm, samples, fillrate);
+            assert(sframes == fillrate);
 
-            handled = 1;
-            sample_count++;
+            handled = fillrate;
+            sample_count += fillrate;
         }
 
         if (!handled &&
