@@ -249,18 +249,19 @@ static void hf_audio_agent_card_found(pa_bluetooth_backend *backend, const char 
         dbus_message_iter_next(props_i);
     }
 
-    pa_hashmap_put(backend->cards, card->path, card);
-
     d = pa_bluetooth_discovery_get_device_by_address(backend->discovery, card->remote_address, card->local_address);
-    if (d) {
-        card->transport = pa_bluetooth_transport_new(d, backend->ofono_bus_id, path, PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY, NULL, 0);
-        card->transport->acquire = hf_audio_agent_transport_acquire;
-        card->transport->release = hf_audio_agent_transport_release;
-        card->transport->userdata = card;
-
-        pa_bluetooth_transport_put(card->transport);
-    } else
+    if (!d) {
         pa_log_error("Device doesnt exist for %s", path);
+        goto fail;
+    }
+
+    card->transport = pa_bluetooth_transport_new(d, backend->ofono_bus_id, path, PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY, NULL, 0);
+    card->transport->acquire = hf_audio_agent_transport_acquire;
+    card->transport->release = hf_audio_agent_transport_release;
+    card->transport->userdata = card;
+
+    pa_bluetooth_transport_put(card->transport);
+    pa_hashmap_put(backend->cards, card->path, card);
 
     return;
 
@@ -426,6 +427,23 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *da
             }
         }
 
+    } else if (dbus_message_is_signal(m, "org.ofono.HandsfreeAudioManager", "CardAdded")) {
+        const char *p;
+        DBusMessageIter arg_i, props_i;
+
+        if (!dbus_message_iter_init(m, &arg_i) || !pa_streq(dbus_message_get_signature(m), "oa{sv}")) {
+            pa_log_error("Failed to parse org.ofono.HandsfreeAudioManager.CardAdded");
+            goto fail;
+        }
+
+        dbus_message_iter_get_basic(&arg_i, &p);
+
+        pa_assert_se(dbus_message_iter_next(&arg_i));
+        pa_assert(dbus_message_iter_get_arg_type(&arg_i) == DBUS_TYPE_ARRAY);
+
+        dbus_message_iter_recurse(&arg_i, &props_i);
+
+        hf_audio_agent_card_found(backend, p, &props_i);
     }
 
 fail:
