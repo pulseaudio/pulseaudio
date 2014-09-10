@@ -83,6 +83,58 @@ static pa_dbus_pending* hf_dbus_send_and_add_to_pending(pa_bluetooth_backend *ba
     return p;
 }
 
+static void hf_audio_agent_get_cards_reply(DBusPendingCall *pending, void *userdata) {
+    DBusMessage *r;
+    pa_dbus_pending *p;
+    pa_bluetooth_backend *backend;
+    DBusMessageIter i, array_i, struct_i, props_i;
+
+    pa_assert_se(p = userdata);
+    pa_assert_se(backend = p->context_data);
+    pa_assert_se(r = dbus_pending_call_steal_reply(pending));
+
+    if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
+        pa_log_error("Failed to get a list of handsfree audio cards from ofono: %s: %s",
+                     dbus_message_get_error_name(r), pa_dbus_get_error_message(r));
+        goto finish;
+    }
+
+    if (!dbus_message_iter_init(r, &i) || !pa_streq(dbus_message_get_signature(r), "a(oa{sv})")) {
+        pa_log_error("Invalid arguments in GetCards() reply");
+        goto finish;
+    }
+
+    dbus_message_iter_recurse(&i, &array_i);
+    while (dbus_message_iter_get_arg_type(&array_i) != DBUS_TYPE_INVALID) {
+        const char *path;
+
+        dbus_message_iter_recurse(&array_i, &struct_i);
+        dbus_message_iter_get_basic(&struct_i, &path);
+        dbus_message_iter_next(&struct_i);
+
+        dbus_message_iter_recurse(&struct_i, &props_i);
+
+        /* TODO: Parse HandsfreeAudioCard properties */
+
+        dbus_message_iter_next(&array_i);
+    }
+
+finish:
+    dbus_message_unref(r);
+
+    PA_LLIST_REMOVE(pa_dbus_pending, backend->pending, p);
+    pa_dbus_pending_free(p);
+}
+
+static void hf_audio_agent_get_cards(pa_bluetooth_backend *hf) {
+    DBusMessage *m;
+
+    pa_assert(hf);
+
+    pa_assert_se(m = dbus_message_new_method_call(OFONO_SERVICE, "/", HF_AUDIO_MANAGER_INTERFACE, "GetCards"));
+    hf_dbus_send_and_add_to_pending(hf, m, hf_audio_agent_get_cards_reply, NULL);
+}
+
 static void hf_audio_agent_register_reply(DBusPendingCall *pending, void *userdata) {
     DBusMessage *r;
     pa_dbus_pending *p;
@@ -100,7 +152,7 @@ static void hf_audio_agent_register_reply(DBusPendingCall *pending, void *userda
 
     backend->ofono_bus_id = pa_xstrdup(dbus_message_get_sender(r));
 
-    /* TODO: List all HandsfreeAudioCard objects */
+    hf_audio_agent_get_cards(backend);
 
 finish:
     dbus_message_unref(r);
