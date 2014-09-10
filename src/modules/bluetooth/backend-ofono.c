@@ -25,6 +25,7 @@
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/dbus-shared.h>
+#include <pulsecore/shared.h>
 
 #include "bluez5-util.h"
 
@@ -56,6 +57,18 @@
     "  </interface>"                                                \
     "</node>"
 
+struct hf_audio_card {
+    pa_bluetooth_backend *backend;
+    char *path;
+    char *remote_address;
+    char *local_address;
+
+    int fd;
+    uint8_t codec;
+
+    pa_bluetooth_transport *transport;
+};
+
 struct pa_bluetooth_backend {
     pa_core *core;
     pa_bluetooth_discovery *discovery;
@@ -81,6 +94,97 @@ static pa_dbus_pending* hf_dbus_send_and_add_to_pending(pa_bluetooth_backend *ba
     dbus_pending_call_set_notify(call, func, p, NULL);
 
     return p;
+}
+
+static struct hf_audio_card *hf_audio_card_new(pa_bluetooth_backend *backend, const char *path) {
+    struct hf_audio_card *card = pa_xnew0(struct hf_audio_card, 1);
+
+    card->path = pa_xstrdup(path);
+    card->backend = backend;
+    card->fd = -1;
+
+    return card;
+}
+
+static void hf_audio_card_free(struct hf_audio_card *card) {
+    pa_assert(card);
+
+    if (card->transport)
+        pa_bluetooth_transport_free(card->transport);
+
+    pa_xfree(card->path);
+    pa_xfree(card->remote_address);
+    pa_xfree(card->local_address);
+    pa_xfree(card);
+}
+
+static int hf_audio_agent_transport_acquire(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu) {
+    return -1;
+}
+
+static void hf_audio_agent_transport_release(pa_bluetooth_transport *t) {
+}
+
+static void hf_audio_agent_card_found(pa_bluetooth_backend *backend, const char *path, DBusMessageIter *props_i) {
+    DBusMessageIter i, value_i;
+    const char *key, *value;
+    struct hf_audio_card *card;
+    pa_bluetooth_device *d;
+
+    pa_assert(backend);
+    pa_assert(path);
+    pa_assert(props_i);
+
+    pa_log_debug("New HF card found: %s", path);
+
+    card = hf_audio_card_new(backend, path);
+
+    while (dbus_message_iter_get_arg_type(props_i) != DBUS_TYPE_INVALID) {
+        char c;
+
+        dbus_message_iter_recurse(props_i, &i);
+
+        dbus_message_iter_get_basic(&i, &key);
+        dbus_message_iter_next(&i);
+        dbus_message_iter_recurse(&i, &value_i);
+
+        if ((c = dbus_message_iter_get_arg_type(&value_i)) != DBUS_TYPE_STRING) {
+            pa_log_error("Invalid properties for %s: expected 's', received '%c'", path, c);
+            goto fail;
+        }
+
+        dbus_message_iter_get_basic(&value_i, &value);
+
+        if (pa_streq(key, "RemoteAddress")) {
+            pa_xfree(card->remote_address);
+            card->remote_address = pa_xstrdup(value);
+        } else if (pa_streq(key, "LocalAddress")) {
+            pa_xfree(card->local_address);
+            card->local_address = pa_xstrdup(value);
+        }
+
+        pa_log_debug("%s: %s", key, value);
+
+        dbus_message_iter_next(props_i);
+    }
+
+    pa_hashmap_put(backend->cards, card->path, card);
+
+    d = pa_bluetooth_discovery_get_device_by_address(backend->discovery, card->remote_address, card->local_address);
+    if (d) {
+        card->transport = pa_bluetooth_transport_new(d, backend->ofono_bus_id, path, PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY, NULL, 0);
+        card->transport->acquire = hf_audio_agent_transport_acquire;
+        card->transport->release = hf_audio_agent_transport_release;
+        card->transport->userdata = card;
+
+        pa_bluetooth_transport_put(card->transport);
+    } else
+        pa_log_error("Device doesnt exist for %s", path);
+
+    return;
+
+fail:
+    hf_audio_card_free(card);
 }
 
 static void hf_audio_agent_get_cards_reply(DBusPendingCall *pending, void *userdata) {
@@ -114,7 +218,7 @@ static void hf_audio_agent_get_cards_reply(DBusPendingCall *pending, void *userd
 
         dbus_message_iter_recurse(&struct_i, &props_i);
 
-        /* TODO: Parse HandsfreeAudioCard properties */
+        hf_audio_agent_card_found(backend, path, &props_i);
 
         dbus_message_iter_next(&array_i);
     }
@@ -295,7 +399,8 @@ pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c, pa_bluetooth_discover
     backend = pa_xnew0(pa_bluetooth_backend, 1);
     backend->core = c;
     backend->discovery = y;
-    backend->cards = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    backend->cards = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL,
+                                         (pa_free_cb_t) hf_audio_card_free);
 
     dbus_error_init(&err);
 
