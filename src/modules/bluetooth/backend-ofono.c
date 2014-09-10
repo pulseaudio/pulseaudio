@@ -23,9 +23,13 @@
 #include <config.h>
 #endif
 
+#include <errno.h>
+#include <poll.h>
+
 #include <pulsecore/core-util.h>
 #include <pulsecore/dbus-shared.h>
 #include <pulsecore/shared.h>
+#include <pulsecore/core-error.h>
 
 #include "bluez5-util.h"
 
@@ -118,8 +122,69 @@ static void hf_audio_card_free(struct hf_audio_card *card) {
     pa_xfree(card);
 }
 
+static int socket_accept(int sock)
+{
+    char c;
+    struct pollfd pfd;
+
+    if (sock < 0)
+        return -ENOTCONN;
+
+    memset(&pfd, 0, sizeof(pfd));
+    pfd.fd = sock;
+    pfd.events = POLLOUT;
+
+    if (poll(&pfd, 1, 0) < 0)
+        return -errno;
+
+    /*
+     * If socket already writable then it is not in defer setup state,
+     * otherwise it needs to be read to authorize the connection.
+     */
+    if ((pfd.revents & POLLOUT))
+        return 0;
+
+    /* Enable socket by reading 1 byte */
+    if (read(sock, &c, 1) < 0)
+        return -errno;
+
+    return 0;
+}
+
 static int hf_audio_agent_transport_acquire(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu) {
-    return -1;
+    struct hf_audio_card *card = t->userdata;
+    int err;
+
+    pa_assert(card);
+
+    if (!optional) {
+        DBusMessage *m;
+
+        pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.ofono.HandsfreeAudioCard", "Connect"));
+        pa_assert_se(dbus_connection_send(pa_dbus_connection_get(card->backend->connection), m, NULL));
+
+        return -1;
+    }
+
+    /* The correct block size should take into account the SCO MTU from
+     * the Bluetooth adapter and (for adapters in the USB bus) the MxPS
+     * value from the Isoc USB endpoint in use by btusb and should be
+     * made available to userspace by the Bluetooth kernel subsystem.
+     * Meanwhile the empiric value 48 will be used. */
+    if (imtu)
+        *imtu = 48;
+    if (omtu)
+        *omtu = 48;
+
+    t->codec = card->codec;
+
+    err = socket_accept(card->fd);
+    if (err < 0) {
+        pa_log_error("Deferred setup failed on fd %d: %s", card->fd, pa_cstrerror(-err));
+        return -1;
+    }
+
+    return card->fd;
 }
 
 static void hf_audio_agent_transport_release(pa_bluetooth_transport *t) {
