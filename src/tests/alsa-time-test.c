@@ -10,6 +10,9 @@
 
 #include <alsa/asoundlib.h>
 
+#define SAMPLE_RATE 44100
+#define CHANNELS 2
+
 static uint64_t timespec_us(const struct timespec *ts) {
     return
         ts->tv_sec * 1000000LLU +
@@ -23,9 +26,9 @@ int main(int argc, char *argv[]) {
     snd_pcm_sw_params_t *swparams;
     snd_pcm_status_t *status;
     snd_pcm_t *pcm;
-    unsigned rate = 44100;
+    unsigned rate = SAMPLE_RATE;
     unsigned periods = 2;
-    snd_pcm_uframes_t boundary, buffer_size = 44100/10; /* 100s */
+    snd_pcm_uframes_t boundary, buffer_size = SAMPLE_RATE/10; /* 100s */
     int dir = 1;
     int fillrate;
     struct timespec start, last_timestamp = { 0, 0 };
@@ -58,7 +61,7 @@ int main(int argc, char *argv[]) {
     cap = argc > 2 ? atoi(argv[2]) : 0;
     fillrate = argc > 3 ? atoi(argv[3]) : 1;
 
-    samples = calloc(fillrate, 2*sizeof(uint16_t));
+    samples = calloc(fillrate, CHANNELS*sizeof(uint16_t));
     assert(samples);
 
     if (cap == 0)
@@ -82,7 +85,7 @@ int main(int argc, char *argv[]) {
     r = snd_pcm_hw_params_set_rate_near(pcm, hwparams, &rate, NULL);
     assert(r == 0);
 
-    r = snd_pcm_hw_params_set_channels(pcm, hwparams, 2);
+    r = snd_pcm_hw_params_set_channels(pcm, hwparams, CHANNELS);
     assert(r == 0);
 
     r = snd_pcm_hw_params_set_periods_integer(pcm, hwparams);
@@ -216,9 +219,9 @@ int main(int argc, char *argv[]) {
         timestamp_us = timespec_us(&timestamp);
 
         if (cap == 0)
-            pos = (unsigned long long) ((sample_count - handled - delay) * 1000000LU / 44100);
+            pos = (unsigned long long) ((sample_count - handled - delay) * 1000000LU / SAMPLE_RATE);
         else
-            pos = (unsigned long long) ((sample_count - handled + delay) * 1000000LU / 44100);
+            pos = (unsigned long long) ((sample_count - handled + delay) * 1000000LU / SAMPLE_RATE);
 
         if (count++ % 50 == 0)
             printf("Elapsed\tCPU\tALSA\tPos\tSamples\tavail\tdelay\trevents\thandled\tstate\n");
