@@ -28,6 +28,9 @@
 
 #include "bluez5-util.h"
 
+#define HFP_AUDIO_CODEC_CVSD    0x01
+#define HFP_AUDIO_CODEC_MSBC    0x02
+
 #define OFONO_SERVICE "org.ofono"
 #define HF_AUDIO_AGENT_INTERFACE OFONO_SERVICE ".HandsfreeAudioAgent"
 #define HF_AUDIO_MANAGER_INTERFACE OFONO_SERVICE ".HandsfreeAudioManager"
@@ -58,6 +61,7 @@ struct pa_bluetooth_backend {
     pa_bluetooth_discovery *discovery;
     pa_dbus_connection *connection;
     pa_hashmap *cards;
+    char *ofono_bus_id;
 
     PA_LLIST_HEAD(pa_dbus_pending, pending);
 };
@@ -79,20 +83,114 @@ static pa_dbus_pending* hf_dbus_send_and_add_to_pending(pa_bluetooth_backend *ba
     return p;
 }
 
+static void hf_audio_agent_register_reply(DBusPendingCall *pending, void *userdata) {
+    DBusMessage *r;
+    pa_dbus_pending *p;
+    pa_bluetooth_backend *backend;
+
+    pa_assert_se(p = userdata);
+    pa_assert_se(backend = p->context_data);
+    pa_assert_se(r = dbus_pending_call_steal_reply(pending));
+
+    if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
+        pa_log_error("Failed to register as a handsfree audio agent with ofono: %s: %s",
+                     dbus_message_get_error_name(r), pa_dbus_get_error_message(r));
+        goto finish;
+    }
+
+    backend->ofono_bus_id = pa_xstrdup(dbus_message_get_sender(r));
+
+    /* TODO: List all HandsfreeAudioCard objects */
+
+finish:
+    dbus_message_unref(r);
+
+    PA_LLIST_REMOVE(pa_dbus_pending, backend->pending, p);
+    pa_dbus_pending_free(p);
+}
+
+static void hf_audio_agent_register(pa_bluetooth_backend *hf) {
+    DBusMessage *m;
+    uint8_t codecs[2];
+    const uint8_t *pcodecs = codecs;
+    int ncodecs = 0;
+    const char *path = HF_AUDIO_AGENT_PATH;
+
+    pa_assert(hf);
+
+    pa_assert_se(m = dbus_message_new_method_call(OFONO_SERVICE, "/", HF_AUDIO_MANAGER_INTERFACE, "Register"));
+
+    codecs[ncodecs++] = HFP_AUDIO_CODEC_CVSD;
+
+    pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_OBJECT_PATH, &path, DBUS_TYPE_ARRAY, DBUS_TYPE_BYTE, &pcodecs, ncodecs,
+                                          DBUS_TYPE_INVALID));
+
+    hf_dbus_send_and_add_to_pending(hf, m, hf_audio_agent_register_reply, NULL);
+}
+
+static void hf_audio_agent_unregister(pa_bluetooth_backend *backend) {
+    DBusMessage *m;
+    const char *path = HF_AUDIO_AGENT_PATH;
+
+    pa_assert(backend);
+    pa_assert(backend->connection);
+
+    if (backend->ofono_bus_id) {
+        pa_assert_se(m = dbus_message_new_method_call(backend->ofono_bus_id, "/", HF_AUDIO_MANAGER_INTERFACE, "Unregister"));
+        pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_OBJECT_PATH, &path, DBUS_TYPE_INVALID));
+        pa_assert_se(dbus_connection_send(pa_dbus_connection_get(backend->connection), m, NULL));
+
+        pa_xfree(backend->ofono_bus_id);
+        backend->ofono_bus_id = NULL;
+    }
+}
+
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *data) {
+    const char *sender;
+    pa_bluetooth_backend *backend = data;
+
     pa_assert(bus);
     pa_assert(m);
+    pa_assert(backend);
+
+    sender = dbus_message_get_sender(m);
+    if (!pa_safe_streq(backend->ofono_bus_id, sender) && !pa_streq("org.freedesktop.DBus", sender))
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
 static DBusMessage *hf_audio_agent_release(DBusConnection *c, DBusMessage *m, void *data) {
-    DBusMessage *r = dbus_message_new_error(m, "org.ofono.Error.NotImplemented", "Operation is not implemented");
+    DBusMessage *r;
+    const char *sender;
+    pa_bluetooth_backend *backend = data;
+
+    pa_assert(backend);
+
+    sender = dbus_message_get_sender(m);
+    if (!pa_safe_streq(backend->ofono_bus_id, sender)) {
+        pa_assert_se(r = dbus_message_new_error(m, "org.ofono.Error.NotAllowed", "Operation is not allowed by this sender"));
+        return r;
+    }
+
+    r = dbus_message_new_error(m, "org.ofono.Error.NotImplemented", "Operation is not implemented");
     return r;
 }
 
 static DBusMessage *hf_audio_agent_new_connection(DBusConnection *c, DBusMessage *m, void *data) {
-    DBusMessage *r = dbus_message_new_error(m, "org.ofono.Error.NotImplemented", "Operation is not implemented");
+    DBusMessage *r;
+    const char *sender;
+    pa_bluetooth_backend *backend = data;
+
+    pa_assert(backend);
+
+    sender = dbus_message_get_sender(m);
+    if (!pa_safe_streq(backend->ofono_bus_id, sender)) {
+        pa_assert_se(r = dbus_message_new_error(m, "org.ofono.Error.NotAllowed", "Operation is not allowed by this sender"));
+        return r;
+    }
+
+    r = dbus_message_new_error(m, "org.ofono.Error.NotImplemented", "Operation is not implemented");
     return r;
 }
 
@@ -180,6 +278,8 @@ pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c, pa_bluetooth_discover
     pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(backend->connection), HF_AUDIO_AGENT_PATH,
                                                       &vtable_hf_audio_agent, backend));
 
+    hf_audio_agent_register(backend);
+
     return backend;
 }
 
@@ -187,6 +287,8 @@ void pa_bluetooth_backend_free(pa_bluetooth_backend *backend) {
     pa_assert(backend);
 
     pa_dbus_free_pending_list(&backend->pending);
+
+    hf_audio_agent_unregister(backend);
 
     dbus_connection_unregister_object_path(pa_dbus_connection_get(backend->connection), HF_AUDIO_AGENT_PATH);
 
