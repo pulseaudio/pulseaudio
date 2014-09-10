@@ -491,7 +491,15 @@ static DBusMessage *hf_audio_agent_release(DBusConnection *c, DBusMessage *m, vo
         return r;
     }
 
-    r = dbus_message_new_error(m, "org.ofono.Error.NotImplemented", "Operation is not implemented");
+    pa_log_debug("HF audio agent has been unregistered by oFono (%s)", backend->ofono_bus_id);
+
+    pa_hashmap_remove_all(backend->cards);
+
+    pa_xfree(backend->ofono_bus_id);
+    backend->ofono_bus_id = NULL;
+
+    pa_assert_se(r = dbus_message_new_method_return(m));
+
     return r;
 }
 
