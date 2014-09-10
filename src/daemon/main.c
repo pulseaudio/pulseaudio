@@ -86,9 +86,7 @@
 #ifdef HAVE_DBUS
 #include <pulsecore/dbus-shared.h>
 #endif
-#include <pulsecore/cpu-arm.h>
-#include <pulsecore/cpu-x86.h>
-#include <pulsecore/cpu-orc.h>
+#include <pulsecore/cpu.h>
 
 #include "cmdline.h"
 #include "cpulimit.h"
@@ -1022,14 +1020,7 @@ int main(int argc, char *argv[]) {
     c->server_type = conf->local_server_type;
 #endif
 
-    c->cpu_info.cpu_type = PA_CPU_UNDEFINED;
-    if (!getenv("PULSE_NO_SIMD")) {
-        if (pa_cpu_init_x86(&(c->cpu_info.flags.x86)))
-            c->cpu_info.cpu_type = PA_CPU_X86;
-        if (pa_cpu_init_arm(&(c->cpu_info.flags.arm)))
-            c->cpu_info.cpu_type = PA_CPU_ARM;
-        pa_cpu_init_orc(c->cpu_info);
-    }
+    pa_cpu_init(&c->cpu_info);
 
     pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);
     pa_signal_new(SIGINT, signal_callback, c);

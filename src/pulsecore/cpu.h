@@ -42,4 +42,6 @@ struct pa_cpu_info {
     } flags;
 };
 
+void pa_cpu_init(pa_cpu_info *cpu_info);
+
 #endif /* foocpuhfoo */

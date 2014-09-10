@@ -906,7 +906,7 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/rtpoll.c pulsecore/rtpoll.h \
 		pulsecore/stream-util.c pulsecore/stream-util.h \
 		pulsecore/mix.c pulsecore/mix.h \
-		pulsecore/cpu.h \
+		pulsecore/cpu.c pulsecore/cpu.h \
 		pulsecore/cpu-arm.c pulsecore/cpu-arm.h \
 		pulsecore/cpu-x86.c pulsecore/cpu-x86.h \
 		pulsecore/cpu-orc.c pulsecore/cpu-orc.h \
