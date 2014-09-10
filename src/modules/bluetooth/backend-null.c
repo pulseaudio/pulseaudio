@@ -27,7 +27,7 @@
 
 #include "bluez5-util.h"
 
-pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c) {
+pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c, pa_bluetooth_discovery *y) {
     pa_log_debug("Bluetooth Headset Backend API support disabled");
     return NULL;
 }

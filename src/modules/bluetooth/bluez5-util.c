@@ -896,7 +896,7 @@ static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) 
     y->objects_listed = true;
 
     if (!y->backend)
-        y->backend = pa_bluetooth_backend_new(y->core);
+        y->backend = pa_bluetooth_backend_new(y->core, y);
 
 finish:
     dbus_message_unref(r);

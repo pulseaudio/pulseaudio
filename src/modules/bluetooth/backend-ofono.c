@@ -54,6 +54,7 @@
 
 struct pa_bluetooth_backend {
     pa_core *core;
+    pa_bluetooth_discovery *discovery;
     pa_dbus_connection *connection;
 };
 
@@ -104,7 +105,7 @@ static DBusHandlerResult hf_audio_agent_handler(DBusConnection *c, DBusMessage *
     return DBUS_HANDLER_RESULT_HANDLED;
 }
 
-pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c) {
+pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c, pa_bluetooth_discovery *y) {
     pa_bluetooth_backend *backend;
     DBusError err;
     static const DBusObjectPathVTable vtable_hf_audio_agent = {
@@ -115,6 +116,7 @@ pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c) {
 
     backend = pa_xnew0(pa_bluetooth_backend, 1);
     backend->core = c;
+    backend->discovery = y;
 
     dbus_error_init(&err);
 
