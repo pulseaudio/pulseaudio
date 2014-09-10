@@ -30,6 +30,7 @@
 
 #define OFONO_SERVICE "org.ofono"
 #define HF_AUDIO_AGENT_INTERFACE OFONO_SERVICE ".HandsfreeAudioAgent"
+#define HF_AUDIO_MANAGER_INTERFACE OFONO_SERVICE ".HandsfreeAudioManager"
 
 #define HF_AUDIO_AGENT_PATH "/HandsfreeAudioAgent"
 
@@ -56,7 +57,15 @@ struct pa_bluetooth_backend {
     pa_core *core;
     pa_bluetooth_discovery *discovery;
     pa_dbus_connection *connection;
+    pa_hashmap *cards;
 };
+
+static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *data) {
+    pa_assert(bus);
+    pa_assert(m);
+
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
 
 static DBusMessage *hf_audio_agent_release(DBusConnection *c, DBusMessage *m, void *data) {
     DBusMessage *r = dbus_message_new_error(m, "org.ofono.Error.NotImplemented", "Operation is not implemented");
@@ -117,12 +126,35 @@ pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c, pa_bluetooth_discover
     backend = pa_xnew0(pa_bluetooth_backend, 1);
     backend->core = c;
     backend->discovery = y;
+    backend->cards = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     dbus_error_init(&err);
 
     if (!(backend->connection = pa_dbus_bus_get(c, DBUS_BUS_SYSTEM, &err))) {
         pa_log("Failed to get D-Bus connection: %s", err.message);
         dbus_error_free(&err);
+        pa_xfree(backend);
+        return NULL;
+    }
+
+    /* dynamic detection of handsfree audio cards */
+    if (!dbus_connection_add_filter(pa_dbus_connection_get(backend->connection), filter_cb, backend, NULL)) {
+        pa_log_error("Failed to add filter function");
+        pa_dbus_connection_unref(backend->connection);
+        pa_xfree(backend);
+        return NULL;
+    }
+
+    if (pa_dbus_add_matches(pa_dbus_connection_get(backend->connection), &err,
+            "type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged',"
+            "arg0='" OFONO_SERVICE "'",
+            "type='signal',sender='" OFONO_SERVICE "',interface='" HF_AUDIO_MANAGER_INTERFACE "',member='CardAdded'",
+            "type='signal',sender='" OFONO_SERVICE "',interface='" HF_AUDIO_MANAGER_INTERFACE "',member='CardRemoved'",
+            NULL) < 0) {
+        pa_log("Failed to add oFono D-Bus matches: %s", err.message);
+        dbus_connection_remove_filter(pa_dbus_connection_get(backend->connection), filter_cb, backend);
+        pa_dbus_connection_unref(backend->connection);
+        pa_xfree(backend);
         return NULL;
     }
 
@@ -135,11 +167,20 @@ pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c, pa_bluetooth_discover
 void pa_bluetooth_backend_free(pa_bluetooth_backend *backend) {
     pa_assert(backend);
 
-    if (backend->connection) {
-        dbus_connection_unregister_object_path(pa_dbus_connection_get(backend->connection), HF_AUDIO_AGENT_PATH);
+    dbus_connection_unregister_object_path(pa_dbus_connection_get(backend->connection), HF_AUDIO_AGENT_PATH);
 
-        pa_dbus_connection_unref(backend->connection);
-    }
+    pa_dbus_remove_matches(pa_dbus_connection_get(backend->connection),
+            "type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged',"
+            "arg0='" OFONO_SERVICE "'",
+            "type='signal',sender='" OFONO_SERVICE "',interface='" HF_AUDIO_MANAGER_INTERFACE "',member='CardAdded'",
+            "type='signal',sender='" OFONO_SERVICE "',interface='" HF_AUDIO_MANAGER_INTERFACE "',member='CardRemoved'",
+            NULL);
+
+    dbus_connection_remove_filter(pa_dbus_connection_get(backend->connection), filter_cb, backend);
+
+    pa_dbus_connection_unref(backend->connection);
+
+    pa_hashmap_free(backend->cards);
 
     pa_xfree(backend);
 }
