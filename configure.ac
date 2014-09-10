@@ -1511,7 +1511,7 @@ echo "
     Enable D-Bus:                  ${ENABLE_DBUS}
       Enable BlueZ 4:              ${ENABLE_BLUEZ_4}
       Enable BlueZ 5:              ${ENABLE_BLUEZ_5}
-        headset backed:            ${BLUETOOTH_HEADSET_BACKEND}
+        headset backend:           ${BLUETOOTH_HEADSET_BACKEND}
     Enable udev:                   ${ENABLE_UDEV}
       Enable HAL->udev compat:     ${ENABLE_HAL_COMPAT}
     Enable systemd login:          ${ENABLE_SYSTEMD}
