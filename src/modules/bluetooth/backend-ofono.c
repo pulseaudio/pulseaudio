@@ -58,7 +58,26 @@ struct pa_bluetooth_backend {
     pa_bluetooth_discovery *discovery;
     pa_dbus_connection *connection;
     pa_hashmap *cards;
+
+    PA_LLIST_HEAD(pa_dbus_pending, pending);
 };
+
+static pa_dbus_pending* hf_dbus_send_and_add_to_pending(pa_bluetooth_backend *backend, DBusMessage *m,
+                                                    DBusPendingCallNotifyFunction func, void *call_data) {
+    pa_dbus_pending *p;
+    DBusPendingCall *call;
+
+    pa_assert(backend);
+    pa_assert(m);
+
+    pa_assert_se(dbus_connection_send_with_reply(pa_dbus_connection_get(backend->connection), m, &call, -1));
+
+    p = pa_dbus_pending_new(pa_dbus_connection_get(backend->connection), m, call, backend, call_data);
+    PA_LLIST_PREPEND(pa_dbus_pending, backend->pending, p);
+    dbus_pending_call_set_notify(call, func, p, NULL);
+
+    return p;
+}
 
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *data) {
     pa_assert(bus);
@@ -166,6 +185,8 @@ pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c, pa_bluetooth_discover
 
 void pa_bluetooth_backend_free(pa_bluetooth_backend *backend) {
     pa_assert(backend);
+
+    pa_dbus_free_pending_list(&backend->pending);
 
     dbus_connection_unregister_object_path(pa_dbus_connection_get(backend->connection), HF_AUDIO_AGENT_PATH);
 
