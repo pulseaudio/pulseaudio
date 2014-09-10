@@ -269,6 +269,24 @@ fail:
     hf_audio_card_free(card);
 }
 
+static void hf_audio_agent_card_removed(pa_bluetooth_backend *backend, const char *path) {
+    struct hf_audio_card *card;
+
+    pa_assert(backend);
+    pa_assert(path);
+
+    pa_log_debug("HF card removed: %s", path);
+
+    card = pa_hashmap_remove(backend->cards, path);
+    if (!card)
+        return;
+
+    if (card->transport)
+        pa_bluetooth_transport_unlink(card->transport);
+
+    hf_audio_card_free(card);
+}
+
 static void hf_audio_agent_get_cards_reply(DBusPendingCall *pending, void *userdata) {
     DBusMessage *r;
     pa_dbus_pending *p;
@@ -444,6 +462,15 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *da
         dbus_message_iter_recurse(&arg_i, &props_i);
 
         hf_audio_agent_card_found(backend, p, &props_i);
+    } else if (dbus_message_is_signal(m, "org.ofono.HandsfreeAudioManager", "CardRemoved")) {
+        const char *p;
+
+        if (!dbus_message_get_args(m, &err, DBUS_TYPE_OBJECT_PATH, &p, DBUS_TYPE_INVALID)) {
+            pa_log_error("Failed to parse org.ofono.HandsfreeAudioManager.CardRemoved: %s", err.message);
+            goto fail;
+        }
+
+        hf_audio_agent_card_removed(backend, p);
     }
 
 fail:
