@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
 
     start_us = timespec_us(&start);
 
-    dev = argc > 1 ? argv[1] : "front:AudioPCI";
+    dev = argc > 1 ? argv[1] : "front:0";
     cap = argc > 2 ? atoi(argv[2]) : 0;
     fillrate = argc > 3 ? atoi(argv[3]) : 1;
 
