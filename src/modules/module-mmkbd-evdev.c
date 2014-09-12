@@ -256,8 +256,11 @@ void pa__done(pa_module*m) {
     if (u->io)
         m->core->mainloop->io_free(u->io);
 
-    if (u->fd >= 0)
-        pa_assert_se(pa_close(u->fd) == 0);
+    if (u->fd >= 0) {
+        int r = pa_close(u->fd);
+        if (r < 0) /* https://bugs.freedesktop.org/show_bug.cgi?id=80867 */
+            pa_log("Closing fd failed: %s", pa_cstrerror(errno));
+    }
 
     pa_xfree(u->sink_name);
     pa_xfree(u);
