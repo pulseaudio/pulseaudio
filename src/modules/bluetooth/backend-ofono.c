@@ -505,7 +505,10 @@ static DBusMessage *hf_audio_agent_release(DBusConnection *c, DBusMessage *m, vo
 
 static DBusMessage *hf_audio_agent_new_connection(DBusConnection *c, DBusMessage *m, void *data) {
     DBusMessage *r;
-    const char *sender;
+    const char *sender, *path;
+    int fd;
+    uint8_t codec;
+    struct hf_audio_card *card;
     pa_bluetooth_backend *backend = data;
 
     pa_assert(backend);
@@ -516,7 +519,32 @@ static DBusMessage *hf_audio_agent_new_connection(DBusConnection *c, DBusMessage
         return r;
     }
 
-    r = dbus_message_new_error(m, "org.ofono.Error.NotImplemented", "Operation is not implemented");
+    if (dbus_message_get_args(m, NULL,
+                              DBUS_TYPE_OBJECT_PATH, &path,
+                              DBUS_TYPE_UNIX_FD, &fd,
+                              DBUS_TYPE_BYTE, &codec,
+                              DBUS_TYPE_INVALID) == FALSE) {
+        pa_assert_se(r = dbus_message_new_error(m, "org.ofono.Error.InvalidArguments", "Invalid arguments in method call"));
+        return r;
+    }
+
+    card = pa_hashmap_get(backend->cards, path);
+
+    if (!card || codec != HFP_AUDIO_CODEC_CVSD || card->transport->state == PA_BLUETOOTH_TRANSPORT_STATE_PLAYING) {
+        pa_log_warn("New audio connection invalid arguments (path=%s fd=%d, codec=%d)", path, fd, codec);
+        pa_assert_se(r = dbus_message_new_error(m, "org.ofono.Error.InvalidArguments", "Invalid arguments in method call"));
+        return r;
+    }
+
+    pa_log_debug("New audio connection on card %s (fd=%d, codec=%d)", path, fd, codec);
+
+    card->fd = fd;
+    card->transport->codec = codec;
+
+    pa_bluetooth_transport_set_state(card->transport, PA_BLUETOOTH_TRANSPORT_STATE_PLAYING);
+
+    pa_assert_se(r = dbus_message_new_method_return(m));
+
     return r;
 }
 
