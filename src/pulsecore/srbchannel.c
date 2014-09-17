@@ -86,6 +86,7 @@ struct pa_srbchannel {
     pa_srbchannel_cb_t callback;
 
     pa_io_event *read_event;
+    pa_defer_event *defer_event;
     pa_mainloop_api *mainloop;
 };
 
@@ -211,6 +212,17 @@ static void semread_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event_f
     srbchannel_rwloop(sr);
 }
 
+static void defer_cb(pa_mainloop_api *m, pa_defer_event *e, void *userdata) {
+    pa_srbchannel* sr = userdata;
+
+#ifdef DEBUG_SRBCHANNEL
+    pa_log("Calling rw loop from deferred event");
+#endif
+
+    m->defer_enable(e, 0);
+    srbchannel_rwloop(sr);
+}
+
 pa_srbchannel* pa_srbchannel_new(pa_mainloop_api *m, pa_mempool *p) {
     int capacity;
     int readfd;
@@ -331,9 +343,13 @@ void pa_srbchannel_set_callback(pa_srbchannel *sr, pa_srbchannel_cb_t callback, 
     sr->callback = callback;
     sr->cb_userdata = userdata;
 
-    if (sr->callback)
-        /* Maybe deferred event? */
-        srbchannel_rwloop(sr);
+    if (sr->callback) {
+        /* If there are events to be read already in the ringbuffer, we will not get any IO event for that,
+           because that's how pa_fdsem works. Therefore check the ringbuffer in a defer event instead. */
+        if (!sr->defer_event)
+            sr->defer_event = sr->mainloop->defer_new(sr->mainloop, defer_cb, sr);
+        sr->mainloop->defer_enable(sr->defer_event, 1);
+    }
 }
 
 void pa_srbchannel_free(pa_srbchannel *sr)
@@ -343,6 +359,8 @@ void pa_srbchannel_free(pa_srbchannel *sr)
 #endif
     pa_assert(sr);
 
+    if (sr->defer_event)
+        sr->mainloop->defer_free(sr->defer_event);
     if (sr->read_event)
         sr->mainloop->io_free(sr->read_event);
 

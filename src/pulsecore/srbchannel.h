@@ -52,9 +52,6 @@ size_t pa_srbchannel_read(pa_srbchannel *sr, void *data, size_t l);
  *
  * Return false to abort all processing (e g if the srbchannel has been freed during the callback).
  * Otherwise return true.
- *
- * Note that the callback will be called immediately, to be able to process stuff that
- * might already be in the buffer.
 */
 typedef bool (*pa_srbchannel_cb_t)(pa_srbchannel *sr, void *userdata);
 void pa_srbchannel_set_callback(pa_srbchannel *sr, pa_srbchannel_cb_t callback, void *userdata);
