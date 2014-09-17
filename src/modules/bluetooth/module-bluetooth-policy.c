@@ -143,12 +143,9 @@ static pa_card_profile *find_best_profile(pa_card *card) {
     void *state;
     pa_card_profile *profile;
     pa_card_profile *result = card->active_profile;
-    pa_card_profile *off;
-
-    pa_assert_se(off = pa_hashmap_get(card->profiles, "off"));
 
     PA_HASHMAP_FOREACH(profile, card->profiles, state) {
-        if (profile->available == PA_AVAILABLE_NO || profile == off)
+        if (profile->available == PA_AVAILABLE_NO)
             continue;
 
         if (result == NULL ||
@@ -157,7 +154,7 @@ static pa_card_profile *find_best_profile(pa_card *card) {
             result = profile;
     }
 
-    return result ? result : off;
+    return result;
 }
 
 static pa_hook_result_t profile_available_hook_callback(pa_core *c, pa_card_profile *profile, void *userdata) {
