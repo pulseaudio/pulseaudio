@@ -21,6 +21,7 @@ EXTRA_DIST = \
 	bootstrap.sh \
 	git-version-gen \
 	LICENSE \
+	pulseaudio.supp \
 	GPL \
 	LGPL \
 	doxygen/Makefile.am \
