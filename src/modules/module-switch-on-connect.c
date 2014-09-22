@@ -38,11 +38,15 @@
 #include "module-switch-on-connect-symdef.h"
 
 PA_MODULE_AUTHOR("Michael Terry");
-PA_MODULE_DESCRIPTION("When a sink/source is added, switch to it");
+PA_MODULE_DESCRIPTION("When a sink/source is added, switch to it or conditionally switch to it");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
+PA_MODULE_USAGE(
+        "only_from_unavailable=<boolean, only switch from unavailable ports> "
+);
 
 static const char* const valid_modargs[] = {
+    "only_from_unavailable",
     NULL,
 };
 
@@ -50,6 +54,7 @@ struct userdata {
     pa_hook_slot
         *sink_put_slot,
         *source_put_slot;
+    bool only_from_unavailable;
 };
 
 static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* userdata) {
@@ -57,9 +62,11 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* 
     uint32_t idx;
     pa_sink *def;
     const char *s;
+    struct userdata *u = userdata;
 
     pa_assert(c);
     pa_assert(sink);
+    pa_assert(userdata);
 
     /* Don't want to run during startup or shutdown */
     if (c->state != PA_CORE_RUNNING)
@@ -76,6 +83,10 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* 
     def = pa_namereg_get_default_sink(c);
     if (def == sink)
         return PA_HOOK_OK;
+
+    if (u->only_from_unavailable)
+        if (!def->active_port || def->active_port->available != PA_AVAILABLE_NO)
+            return PA_HOOK_OK;
 
     /* Actually do the switch to the new sink */
     pa_namereg_set_default_sink(c, sink);
@@ -106,9 +117,11 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
     uint32_t idx;
     pa_source *def;
     const char *s;
+    struct userdata *u = userdata;
 
     pa_assert(c);
     pa_assert(source);
+    pa_assert(userdata);
 
     /* Don't want to run during startup or shutdown */
     if (c->state != PA_CORE_RUNNING)
@@ -129,6 +142,10 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
     def = pa_namereg_get_default_source(c);
     if (def == source)
         return PA_HOOK_OK;
+
+    if (u->only_from_unavailable)
+        if (!def->active_port || def->active_port->available != PA_AVAILABLE_NO)
+            return PA_HOOK_OK;
 
     /* Actually do the switch to the new source */
     pa_namereg_set_default_source(c, source);
@@ -171,8 +188,21 @@ int pa__init(pa_module*m) {
     u->sink_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE+30, (pa_hook_cb_t) sink_put_hook_callback, u);
     u->source_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE+20, (pa_hook_cb_t) source_put_hook_callback, u);
 
+    if (pa_modargs_get_value_boolean(ma, "only_from_unavailable", &u->only_from_unavailable) < 0) {
+	pa_log("Failed to get a boolean value for only_from_unavailable.");
+	goto fail;
+    }
+
     pa_modargs_free(ma);
     return 0;
+
+fail:
+    if (ma)
+        pa_modargs_free(ma);
+
+    pa__done(m);
+
+    return -1;
 }
 
 void pa__done(pa_module*m) {
