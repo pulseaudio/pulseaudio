@@ -1371,7 +1371,7 @@ static void source_set_volume_cb(pa_source *s) {
 }
 
 /* Run from main thread */
-static char *get_name(const char *type, pa_modargs *ma, const char *device_id, bool *namereg_fail) {
+static char *get_name(const char *type, pa_modargs *ma, const char *device_id, const char *profile, bool *namereg_fail) {
     char *t;
     const char *n;
 
@@ -1396,7 +1396,10 @@ static char *get_name(const char *type, pa_modargs *ma, const char *device_id, b
         *namereg_fail = false;
     }
 
-    return pa_sprintf_malloc("bluez_%s.%s", type, n);
+    if (profile)
+        return pa_sprintf_malloc("bluez_%s.%s.%s", type, n, profile);
+    else
+        return pa_sprintf_malloc("bluez_%s.%s", type, n);
 }
 
 static int sco_over_pcm_state_update(struct userdata *u, bool changed) {
@@ -1567,7 +1570,7 @@ static int add_sink(struct userdata *u) {
         if (u->profile == PA_BLUEZ4_PROFILE_HSP)
             pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
         data.card = u->card;
-        data.name = get_name("sink", u->modargs, u->address, &b);
+        data.name = get_name("sink", u->modargs, u->address, pa_bluez4_profile_to_string(u->profile), &b);
         data.namereg_fail = b;
 
         if (pa_modargs_get_proplist(u->modargs, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
@@ -1638,7 +1641,7 @@ static int add_source(struct userdata *u) {
             pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
 
         data.card = u->card;
-        data.name = get_name("source", u->modargs, u->address, &b);
+        data.name = get_name("source", u->modargs, u->address, pa_bluez4_profile_to_string(u->profile), &b);
         data.namereg_fail = b;
 
         if (pa_modargs_get_proplist(u->modargs, "source_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
@@ -2267,7 +2270,7 @@ static int add_card(struct userdata *u) {
     pa_proplist_sets(data.proplist, "bluez.path", device->path);
     pa_proplist_setf(data.proplist, "bluez.class", "0x%06x", (unsigned) device->class);
     pa_proplist_sets(data.proplist, "bluez.alias", device->alias);
-    data.name = get_name("card", u->modargs, device->address, &b);
+    data.name = get_name("card", u->modargs, device->address, NULL, &b);
     data.namereg_fail = b;
 
     if (pa_modargs_get_proplist(u->modargs, "card_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
