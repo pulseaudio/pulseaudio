@@ -264,8 +264,7 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
     pa_device_port *p = new_sink_source(new_data->ports, new_data->active_port);
 
     if (p) {
-        pa_log_debug("Switching initial port for source '%s' to '%s'", new_data->name,
-                     new_data->active_port);
+        pa_log_debug("Switching initial port for source '%s' to '%s'", new_data->name, p->name);
         pa_source_new_data_set_port(new_data, p->name);
     }
     return PA_HOOK_OK;
