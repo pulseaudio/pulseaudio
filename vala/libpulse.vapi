@@ -1376,6 +1376,9 @@ namespace PulseAudio {
                 public string driver;
                 public int mute;
                 public Proplist proplist;
+                public int corked;
+                public int has_volume;
+                public int volume_writable;
         }
 
         [CCode (cname="pa_source_output_info", has_type_id=false)]
@@ -1392,6 +1395,11 @@ namespace PulseAudio {
                 public string resample_method;
                 public string driver;
                 public Proplist proplist;
+                public int corked;
+                public CVolume volume;
+                public int mute;
+                public int has_volume;
+                public int volume_writable;
         }
 
         [CCode (cname="pa_stat_info", has_type_id=false)]
