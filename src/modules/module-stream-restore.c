@@ -1831,7 +1831,6 @@ static int fill_db(struct userdata *u, const char *filename) {
         *d = 0;
         if (pa_atod(v, &db) >= 0) {
             if (db <= 0.0) {
-                pa_datum key, data;
                 struct entry e;
 
                 pa_zero(e);
@@ -1840,13 +1839,7 @@ static int fill_db(struct userdata *u, const char *filename) {
                 pa_cvolume_set(&e.volume, 1, pa_sw_volume_from_dB(db));
                 pa_channel_map_init_mono(&e.channel_map);
 
-                key.data = (void *) ln;
-                key.size = strlen(ln);
-
-                data.data = (void *) &e;
-                data.size = sizeof(e);
-
-                if (pa_database_set(u->database, &key, &data, false) == 0)
+                if (entry_write(u, ln, &e, false))
                     pa_log_debug("Setting %s to %0.2f dB.", ln, db);
             } else
                 pa_log_warn("[%s:%u] Positive dB values are not allowed, not setting entry %s.", fn, n, ln);
