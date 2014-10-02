@@ -2859,6 +2859,18 @@ void pa_set_env(const char *key, const char *value) {
 #endif
 }
 
+void pa_unset_env(const char *key) {
+    pa_assert(key);
+
+    /* This is not thread-safe */
+
+#ifdef OS_IS_WIN32
+    SetEnvironmentVariable(key, NULL);
+#else
+    unsetenv(key);
+#endif
+}
+
 void pa_set_env_and_record(const char *key, const char *value) {
     pa_assert(key);
     pa_assert(value);
@@ -2881,11 +2893,7 @@ void pa_unset_env_recorded(void) {
         if (!s)
             break;
 
-#ifdef OS_IS_WIN32
-        SetEnvironmentVariable(s, NULL);
-#else
-        unsetenv(s);
-#endif
+        pa_unset_env(s);
         pa_xfree(s);
     }
 }
