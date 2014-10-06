@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PulseAudio master\n"
 "Report-Msgid-Bugs-To: https://bugs.freedesktop.org/enter_bug.cgi?"
 "product=PulseAudio&keywords=I18N+L10N&component=misc\n"
-"POT-Creation-Date: 2014-09-14 10:24+0000\n"
-"PO-Revision-Date: 2014-09-14 20:39+0100\n"
+"POT-Creation-Date: 2014-09-16 22:25+0000\n"
+"PO-Revision-Date: 2014-10-02 13:41+0100\n"
 "Last-Translator: Dušan Kazik <prescott66@gmail.com>\n"
 "Language-Team: Slovak <gnome-sk-list@gnome.org>\n"
 "Language: sk\n"
@@ -468,255 +468,255 @@ msgstr "Zvukový systém PulseAudio"
 msgid "Start the PulseAudio Sound System"
 msgstr "Spustenie zvukového systému PulseAudio"
 
-#: ../src/modules/alsa/alsa-mixer.c:2294
+#: ../src/modules/alsa/alsa-mixer.c:2293
 msgid "Input"
 msgstr "Vstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:2295
+#: ../src/modules/alsa/alsa-mixer.c:2294
 msgid "Docking Station Input"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:2296
+#: ../src/modules/alsa/alsa-mixer.c:2295
 msgid "Docking Station Microphone"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:2297
+#: ../src/modules/alsa/alsa-mixer.c:2296
 msgid "Docking Station Line In"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:2298 ../src/modules/alsa/alsa-mixer.c:2383
+#: ../src/modules/alsa/alsa-mixer.c:2297 ../src/modules/alsa/alsa-mixer.c:2382
 msgid "Line In"
 msgstr "Vstupná linka"
 
-#: ../src/modules/alsa/alsa-mixer.c:2299 ../src/modules/alsa/alsa-mixer.c:2377
+#: ../src/modules/alsa/alsa-mixer.c:2298 ../src/modules/alsa/alsa-mixer.c:2376
 #: ../src/modules/bluetooth/module-bluez4-device.c:2101
 #: ../src/modules/bluetooth/module-bluez5-device.c:1635
 msgid "Microphone"
 msgstr "Mikrofón"
 
-#: ../src/modules/alsa/alsa-mixer.c:2300 ../src/modules/alsa/alsa-mixer.c:2378
+#: ../src/modules/alsa/alsa-mixer.c:2299 ../src/modules/alsa/alsa-mixer.c:2377
 msgid "Front Microphone"
 msgstr "Predný mikrofón"
 
-#: ../src/modules/alsa/alsa-mixer.c:2301 ../src/modules/alsa/alsa-mixer.c:2379
+#: ../src/modules/alsa/alsa-mixer.c:2300 ../src/modules/alsa/alsa-mixer.c:2378
 msgid "Rear Microphone"
 msgstr "Zadný mikrofón"
 
-#: ../src/modules/alsa/alsa-mixer.c:2302
+#: ../src/modules/alsa/alsa-mixer.c:2301
 msgid "External Microphone"
 msgstr "Externý mikrofón"
 
-#: ../src/modules/alsa/alsa-mixer.c:2303 ../src/modules/alsa/alsa-mixer.c:2381
+#: ../src/modules/alsa/alsa-mixer.c:2302 ../src/modules/alsa/alsa-mixer.c:2380
 msgid "Internal Microphone"
 msgstr "Vstavaný mikrofón"
 
-#: ../src/modules/alsa/alsa-mixer.c:2304 ../src/modules/alsa/alsa-mixer.c:2384
+#: ../src/modules/alsa/alsa-mixer.c:2303 ../src/modules/alsa/alsa-mixer.c:2383
 msgid "Radio"
 msgstr "Rádio"
 
-#: ../src/modules/alsa/alsa-mixer.c:2305 ../src/modules/alsa/alsa-mixer.c:2385
+#: ../src/modules/alsa/alsa-mixer.c:2304 ../src/modules/alsa/alsa-mixer.c:2384
 msgid "Video"
 msgstr "Video"
 
-#: ../src/modules/alsa/alsa-mixer.c:2306
+#: ../src/modules/alsa/alsa-mixer.c:2305
 msgid "Automatic Gain Control"
 msgstr "Automatické ovládanie zosilnenia"
 
-#: ../src/modules/alsa/alsa-mixer.c:2307
+#: ../src/modules/alsa/alsa-mixer.c:2306
 msgid "No Automatic Gain Control"
 msgstr "Bez automatického ovládania zosilnenia"
 
-#: ../src/modules/alsa/alsa-mixer.c:2308
+#: ../src/modules/alsa/alsa-mixer.c:2307
 msgid "Boost"
 msgstr "Zosilnenie"
 
-#: ../src/modules/alsa/alsa-mixer.c:2309
+#: ../src/modules/alsa/alsa-mixer.c:2308
 msgid "No Boost"
 msgstr "Bez zosilnenia"
 
-#: ../src/modules/alsa/alsa-mixer.c:2310
+#: ../src/modules/alsa/alsa-mixer.c:2309
 msgid "Amplifier"
 msgstr "Zosilňovač"
 
-#: ../src/modules/alsa/alsa-mixer.c:2311
+#: ../src/modules/alsa/alsa-mixer.c:2310
 msgid "No Amplifier"
 msgstr "Bez zosilňovača"
 
-#: ../src/modules/alsa/alsa-mixer.c:2312
+#: ../src/modules/alsa/alsa-mixer.c:2311
 msgid "Bass Boost"
 msgstr "Zosilnenie basov"
 
-#: ../src/modules/alsa/alsa-mixer.c:2313
+#: ../src/modules/alsa/alsa-mixer.c:2312
 msgid "No Bass Boost"
 msgstr "Bez zosilnenia basov"
 
-#: ../src/modules/alsa/alsa-mixer.c:2314
+#: ../src/modules/alsa/alsa-mixer.c:2313
 #: ../src/modules/bluetooth/module-bluez4-device.c:2106
 #: ../src/modules/bluetooth/module-bluez5-device.c:1642
 msgid "Speaker"
 msgstr "Reproduktor"
 
-#: ../src/modules/alsa/alsa-mixer.c:2315 ../src/modules/alsa/alsa-mixer.c:2387
+#: ../src/modules/alsa/alsa-mixer.c:2314 ../src/modules/alsa/alsa-mixer.c:2386
 msgid "Headphones"
 msgstr "Slúchadlá"
 
-#: ../src/modules/alsa/alsa-mixer.c:2376
+#: ../src/modules/alsa/alsa-mixer.c:2375
 msgid "Analog Input"
 msgstr "Analógový vstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:2380
+#: ../src/modules/alsa/alsa-mixer.c:2379
 msgid "Dock Microphone"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:2382
+#: ../src/modules/alsa/alsa-mixer.c:2381
 msgid "Headset Microphone"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:2386
+#: ../src/modules/alsa/alsa-mixer.c:2385
 msgid "Analog Output"
 msgstr "Analógový výstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:2388
+#: ../src/modules/alsa/alsa-mixer.c:2387
 msgid "LFE on Separate Mono Output"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:2389
+#: ../src/modules/alsa/alsa-mixer.c:2388
 msgid "Line Out"
 msgstr "Výstupná linka"
 
-#: ../src/modules/alsa/alsa-mixer.c:2390
+#: ../src/modules/alsa/alsa-mixer.c:2389
 msgid "Analog Mono Output"
 msgstr "Analógový mono výstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:2391
+#: ../src/modules/alsa/alsa-mixer.c:2390
 msgid "Speakers"
 msgstr "Reproduktory"
 
-#: ../src/modules/alsa/alsa-mixer.c:2392
+#: ../src/modules/alsa/alsa-mixer.c:2391
 msgid "HDMI / DisplayPort"
 msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2393
+#: ../src/modules/alsa/alsa-mixer.c:2392
 msgid "Digital Output (S/PDIF)"
 msgstr "Digitálny výstup (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2394
+#: ../src/modules/alsa/alsa-mixer.c:2393
 msgid "Digital Input (S/PDIF)"
 msgstr "Digitálny vstup (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2395
+#: ../src/modules/alsa/alsa-mixer.c:2394
 msgid "Digital Passthrough (S/PDIF)"
 msgstr "Digitálny prechod (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3903
+#: ../src/modules/alsa/alsa-mixer.c:3901
 msgid "Analog Mono"
 msgstr "Analógový mono"
 
-#: ../src/modules/alsa/alsa-mixer.c:3904
+#: ../src/modules/alsa/alsa-mixer.c:3902
 msgid "Analog Stereo"
 msgstr "Analógový stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:3905
+#: ../src/modules/alsa/alsa-mixer.c:3903
 msgid "Multichannel"
 msgstr "Viackanálový"
 
-#: ../src/modules/alsa/alsa-mixer.c:3906
+#: ../src/modules/alsa/alsa-mixer.c:3904
 msgid "Analog Surround 2.1"
 msgstr "Analógový priestorový 2.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3907
+#: ../src/modules/alsa/alsa-mixer.c:3905
 msgid "Analog Surround 3.0"
 msgstr "Analógový priestorový 3.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3908
+#: ../src/modules/alsa/alsa-mixer.c:3906
 msgid "Analog Surround 3.1"
 msgstr "Analógový priestorový 3.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3909
+#: ../src/modules/alsa/alsa-mixer.c:3907
 msgid "Analog Surround 4.0"
 msgstr "Analógový priestorový 4.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3910
+#: ../src/modules/alsa/alsa-mixer.c:3908
 msgid "Analog Surround 4.1"
 msgstr "Analógový priestorový 4.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3911
+#: ../src/modules/alsa/alsa-mixer.c:3909
 msgid "Analog Surround 5.0"
 msgstr "Analógový priestorový 5.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3912
+#: ../src/modules/alsa/alsa-mixer.c:3910
 msgid "Analog Surround 5.1"
 msgstr "Analógový priestorový 5.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3913
+#: ../src/modules/alsa/alsa-mixer.c:3911
 msgid "Analog Surround 6.0"
 msgstr "Analógový priestorový 6.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3914
+#: ../src/modules/alsa/alsa-mixer.c:3912
 msgid "Analog Surround 6.1"
 msgstr "Analógový priestorový 6.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3915
+#: ../src/modules/alsa/alsa-mixer.c:3913
 msgid "Analog Surround 7.0"
 msgstr "Analógový priestorový 7.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3916
+#: ../src/modules/alsa/alsa-mixer.c:3914
 msgid "Analog Surround 7.1"
 msgstr "Analógový priestorový 7.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3917
+#: ../src/modules/alsa/alsa-mixer.c:3915
 msgid "Digital Stereo (IEC958)"
 msgstr "Digitálne stereo (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3918
+#: ../src/modules/alsa/alsa-mixer.c:3916
 msgid "Digital Passthrough  (IEC958)"
 msgstr "Digitálny prechod  (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3919
+#: ../src/modules/alsa/alsa-mixer.c:3917
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Digitálny priestorový 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3920
+#: ../src/modules/alsa/alsa-mixer.c:3918
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Digitálny priestorový 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3921
+#: ../src/modules/alsa/alsa-mixer.c:3919
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr "Digitálny priestorový 5.1 (IEC958/DTS)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3922
+#: ../src/modules/alsa/alsa-mixer.c:3920
 msgid "Digital Stereo (HDMI)"
 msgstr "Digitálny stereo (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3923
+#: ../src/modules/alsa/alsa-mixer.c:3921
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr "Digitálny priestorový 5.1 (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4054
+#: ../src/modules/alsa/alsa-mixer.c:4052
 msgid "Analog Mono Duplex"
 msgstr "Obojsmerný analógový mono"
 
-#: ../src/modules/alsa/alsa-mixer.c:4055
+#: ../src/modules/alsa/alsa-mixer.c:4053
 msgid "Analog Stereo Duplex"
 msgstr "Obojsmerný analógový stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:4056
+#: ../src/modules/alsa/alsa-mixer.c:4054
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Obojsmerný digitálny stereo (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4057
-#: ../src/modules/alsa/module-alsa-card.c:193
+#: ../src/modules/alsa/alsa-mixer.c:4055
+#: ../src/modules/alsa/module-alsa-card.c:192
 #: ../src/modules/bluetooth/module-bluez4-device.c:2297
 #: ../src/modules/bluetooth/module-bluez5-device.c:1866
 msgid "Off"
 msgstr "Vypnuté"
 
-#: ../src/modules/alsa/alsa-mixer.c:4156
+#: ../src/modules/alsa/alsa-mixer.c:4154
 #, c-format
 msgid "%s Output"
 msgstr "%s výstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:4164
+#: ../src/modules/alsa/alsa-mixer.c:4162
 #, c-format
 msgid "%s Input"
 msgstr "%s vstup"
@@ -1003,7 +1003,7 @@ msgstr "Zadný pravý"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr "Subwoofer"
+msgstr "Basový reproduktor"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1023,131 +1023,131 @@ msgstr "Pravá strana"
 
 #: ../src/pulse/channelmap.c:123
 msgid "Auxiliary 0"
-msgstr ""
+msgstr "Aux 0"
 
 #: ../src/pulse/channelmap.c:124
 msgid "Auxiliary 1"
-msgstr ""
+msgstr "Aux 1"
 
 #: ../src/pulse/channelmap.c:125
 msgid "Auxiliary 2"
-msgstr ""
+msgstr "Aux 2"
 
 #: ../src/pulse/channelmap.c:126
 msgid "Auxiliary 3"
-msgstr ""
+msgstr "Aux 3"
 
 #: ../src/pulse/channelmap.c:127
 msgid "Auxiliary 4"
-msgstr ""
+msgstr "Aux 4"
 
 #: ../src/pulse/channelmap.c:128
 msgid "Auxiliary 5"
-msgstr ""
+msgstr "Aux 5"
 
 #: ../src/pulse/channelmap.c:129
 msgid "Auxiliary 6"
-msgstr ""
+msgstr "Aux 6"
 
 #: ../src/pulse/channelmap.c:130
 msgid "Auxiliary 7"
-msgstr ""
+msgstr "Aux 7"
 
 #: ../src/pulse/channelmap.c:131
 msgid "Auxiliary 8"
-msgstr ""
+msgstr "Aux 8"
 
 #: ../src/pulse/channelmap.c:132
 msgid "Auxiliary 9"
-msgstr ""
+msgstr "Aux 9"
 
 #: ../src/pulse/channelmap.c:133
 msgid "Auxiliary 10"
-msgstr ""
+msgstr "Aux 10"
 
 #: ../src/pulse/channelmap.c:134
 msgid "Auxiliary 11"
-msgstr ""
+msgstr "Aux 11"
 
 #: ../src/pulse/channelmap.c:135
 msgid "Auxiliary 12"
-msgstr ""
+msgstr "Aux 12"
 
 #: ../src/pulse/channelmap.c:136
 msgid "Auxiliary 13"
-msgstr ""
+msgstr "Aux 13"
 
 #: ../src/pulse/channelmap.c:137
 msgid "Auxiliary 14"
-msgstr ""
+msgstr "Aux 14"
 
 #: ../src/pulse/channelmap.c:138
 msgid "Auxiliary 15"
-msgstr ""
+msgstr "Aux 15"
 
 #: ../src/pulse/channelmap.c:139
 msgid "Auxiliary 16"
-msgstr ""
+msgstr "Aux 16"
 
 #: ../src/pulse/channelmap.c:140
 msgid "Auxiliary 17"
-msgstr ""
+msgstr "Aux 17"
 
 #: ../src/pulse/channelmap.c:141
 msgid "Auxiliary 18"
-msgstr ""
+msgstr "Aux 18"
 
 #: ../src/pulse/channelmap.c:142
 msgid "Auxiliary 19"
-msgstr ""
+msgstr "Aux 19"
 
 #: ../src/pulse/channelmap.c:143
 msgid "Auxiliary 20"
-msgstr ""
+msgstr "Aux 20"
 
 #: ../src/pulse/channelmap.c:144
 msgid "Auxiliary 21"
-msgstr ""
+msgstr "Aux 21"
 
 #: ../src/pulse/channelmap.c:145
 msgid "Auxiliary 22"
-msgstr ""
+msgstr "Aux 22"
 
 #: ../src/pulse/channelmap.c:146
 msgid "Auxiliary 23"
-msgstr ""
+msgstr "Aux 23"
 
 #: ../src/pulse/channelmap.c:147
 msgid "Auxiliary 24"
-msgstr ""
+msgstr "Aux 24"
 
 #: ../src/pulse/channelmap.c:148
 msgid "Auxiliary 25"
-msgstr ""
+msgstr "Aux 25"
 
 #: ../src/pulse/channelmap.c:149
 msgid "Auxiliary 26"
-msgstr ""
+msgstr "Aux 26"
 
 #: ../src/pulse/channelmap.c:150
 msgid "Auxiliary 27"
-msgstr ""
+msgstr "Aux 27"
 
 #: ../src/pulse/channelmap.c:151
 msgid "Auxiliary 28"
-msgstr ""
+msgstr "Aux 28"
 
 #: ../src/pulse/channelmap.c:152
 msgid "Auxiliary 29"
-msgstr ""
+msgstr "Aux 29"
 
 #: ../src/pulse/channelmap.c:153
 msgid "Auxiliary 30"
-msgstr ""
+msgstr "Aux 30"
 
 #: ../src/pulse/channelmap.c:154
 msgid "Auxiliary 31"
-msgstr ""
+msgstr "Aux 31"
 
 #: ../src/pulse/channelmap.c:156
 msgid "Top Center"
@@ -1262,11 +1262,11 @@ msgstr ""
 
 #: ../src/pulsecore/core-util.h:95
 msgid "yes"
-msgstr ""
+msgstr "áno"
 
 #: ../src/pulsecore/core-util.h:95
 msgid "no"
-msgstr ""
+msgstr "nie"
 
 #: ../src/pulsecore/lock-autospawn.c:143 ../src/pulsecore/lock-autospawn.c:229
 msgid "Cannot access autospawn lock."
@@ -2379,11 +2379,11 @@ msgstr ""
 #: ../src/utils/pactl.c:1584 ../src/utils/pactl.c:1585
 #: ../src/utils/pactl.c:1586
 msgid "[options]"
-msgstr ""
+msgstr "[voľby]"
 
 #: ../src/utils/pactl.c:1568
 msgid "[TYPE]"
-msgstr ""
+msgstr "[TYP]"
 
 #: ../src/utils/pactl.c:1570
 msgid "FILENAME [NAME]"
@@ -2433,6 +2433,13 @@ msgid ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 msgstr ""
+"\n"
+"  -h, --help                            Zobrazí tohoto pomocníka\n"
+"      --version                         Zobrazí verziu\n"
+"\n"
+"  -s, --server=SERVER                   Názov servera, na ktorý sa pripojiť\n"
+"  -n, --client-name=NÁZOV                Ako nazvať tohoto klienta na "
+"serveri\n"
 
 #: ../src/utils/pactl.c:1631
 #, c-format
