@@ -60,6 +60,7 @@ PA_MODULE_USAGE(
         "cookie=<cookie file path>"
         );
 
+#define MAX_LATENCY_USEC (200 * PA_USEC_PER_MSEC)
 #define TUNNEL_THREAD_FAILED_MAINLOOP 1
 
 static void stream_state_cb(pa_stream *stream, void *userdata);
@@ -525,6 +526,7 @@ int pa__init(pa_module *m) {
     u->sink->userdata = u;
     u->sink->parent.process_msg = sink_process_msg_cb;
     u->sink->update_requested_latency = sink_update_requested_latency_cb;
+    pa_sink_set_latency_range(u->sink, 0, MAX_LATENCY_USEC);
 
     /* set thread message queue */
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq->inq);
