@@ -320,7 +320,7 @@ static void context_state_cb(pa_context *c, void *userdata) {
             }
 
             requested_latency = pa_sink_get_requested_latency_within_thread(u->sink);
-            if (requested_latency == (uint32_t) -1)
+            if (requested_latency == (pa_usec_t) -1)
                 requested_latency = u->sink->thread_info.max_latency;
 
             reset_bufferattr(&bufferattr);
