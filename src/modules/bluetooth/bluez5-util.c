@@ -149,8 +149,6 @@ pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const
         memcpy(t->config, config, size);
     }
 
-    pa_assert_se(pa_hashmap_put(d->discovery->transports, t->path, t) >= 0);
-
     return t;
 }
 
@@ -181,10 +179,6 @@ void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_tr
                  t->path, transport_state_to_string(t->state), transport_state_to_string(state));
 
     t->state = state;
-    if (state == PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
-        t->device->transports[t->profile] = NULL;
-    else
-        t->device->transports[t->profile] = t;
 
     pa_hook_fire(&t->device->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], t);
 
@@ -193,17 +187,26 @@ void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_tr
 }
 
 void pa_bluetooth_transport_put(pa_bluetooth_transport *t) {
+    pa_assert(t);
+
+    t->device->transports[t->profile] = t;
+    pa_assert_se(pa_hashmap_put(t->device->discovery->transports, t->path, t) >= 0);
     pa_bluetooth_transport_set_state(t, PA_BLUETOOTH_TRANSPORT_STATE_IDLE);
 }
 
 void pa_bluetooth_transport_unlink(pa_bluetooth_transport *t) {
+    pa_assert(t);
+
     pa_bluetooth_transport_set_state(t, PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED);
+    pa_hashmap_remove(t->device->discovery->transports, t->path);
+    t->device->transports[t->profile] = NULL;
 }
 
 void pa_bluetooth_transport_free(pa_bluetooth_transport *t) {
     pa_assert(t);
 
-    pa_hashmap_remove(t->device->discovery->transports, t->path);
+    pa_bluetooth_transport_unlink(t);
+
     pa_xfree(t->owner);
     pa_xfree(t->path);
     pa_xfree(t->config);
@@ -418,7 +421,6 @@ static void device_free(pa_bluetooth_device *d) {
         if (!(t = d->transports[i]))
             continue;
 
-        pa_bluetooth_transport_set_state(t, PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED);
         pa_bluetooth_transport_free(t);
     }
 
@@ -1446,7 +1448,6 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *conn, DBusMessa
 
     if ((t = pa_hashmap_get(y->transports, path))) {
         pa_log_debug("Clearing transport %s profile %s", t->path, pa_bluetooth_profile_to_string(t->profile));
-        pa_bluetooth_transport_set_state(t, PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED);
         pa_bluetooth_transport_free(t);
     }
 

@@ -281,9 +281,6 @@ static void hf_audio_agent_card_removed(pa_bluetooth_backend *backend, const cha
     if (!card)
         return;
 
-    if (card->transport)
-        pa_bluetooth_transport_unlink(card->transport);
-
     hf_audio_card_free(card);
 }
 
