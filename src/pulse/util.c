@@ -64,6 +64,15 @@
 
 #include "util.h"
 
+#if defined(HAVE_DLADDR) && defined(PA_GCC_WEAKREF)
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+#include <dlfcn.h>
+
+static int _main() PA_GCC_WEAKREF(main);
+#endif
+
 char *pa_get_user_name(char *s, size_t l) {
     const char *p;
     char *name = NULL;
@@ -214,6 +223,20 @@ char *pa_get_binary_name(char *s, size_t l) {
             pa_strlcpy(s, pa_path_get_filename(rp), l);
             pa_xfree(rp);
             return s;
+        }
+    }
+#endif
+
+#if defined(HAVE_DLADDR) && defined(PA_GCC_WEAKREF)
+    {
+        Dl_info info;
+        if(_main) {
+            int err = dladdr(&_main, &info);
+            if (err != 0) {
+                char *p = pa_realpath(info.dli_fname);
+                if (p)
+                    return p;
+            }
         }
     }
 #endif

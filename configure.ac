@@ -580,6 +580,8 @@ AC_SYS_LARGEFILE
 # Check for open64 to know if the current system does have open64() and similar functions
 AC_CHECK_FUNCS_ONCE([open64])
 
+AC_SEARCH_LIBS([dladdr], [dl], [HAVE_DLADDR=1], [HAVE_DLADDR=0])
+AC_DEFINE(HAVE_DLADDR, [1], [Have dladdr?])
 
 ###################################
 #      External libraries         #
