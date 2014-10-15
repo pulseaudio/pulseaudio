@@ -1334,7 +1334,6 @@ AC_ARG_ENABLE([legacy-database-entry-format],
 if test "x$enable_legacy_database_entry_format" != "xno" ; then
         AC_DEFINE(ENABLE_LEGACY_DATABASE_ENTRY_FORMAT, [1], [Legacy database entry format])
 fi
-AC_DEFINE([WIBBLE], 1, [Just a test.])
 
 AC_ARG_ENABLE([static-bins],
     AS_HELP_STRING([--enable-static-bins],[Statically link executables.]))
