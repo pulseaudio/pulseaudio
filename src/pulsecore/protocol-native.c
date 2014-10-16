@@ -4922,6 +4922,13 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     if (playback_stream_isinstance(stream)) {
         playback_stream *ps = PLAYBACK_STREAM(stream);
 
+        size_t frame_size = pa_frame_size(&ps->sink_input->sample_spec);
+        if (chunk->index % frame_size != 0 || chunk->length % frame_size != 0) {
+            pa_log_warn("Client sent non-aligned memblock: index %d, length %d, frame size: %d",
+                        (int) chunk->index, (int) chunk->length, (int) frame_size);
+            return;
+        }
+
         pa_atomic_inc(&ps->seek_or_post_in_queue);
         if (chunk->memblock) {
             if (seek != PA_SEEK_RELATIVE || offset != 0)
