@@ -97,7 +97,7 @@ pa_threaded_mainloop *pa_threaded_mainloop_new(void) {
 
     pa_init_i18n();
 
-    m = pa_xnew(pa_threaded_mainloop, 1);
+    m = pa_xnew0(pa_threaded_mainloop, 1);
 
     if (!(m->real_mainloop = pa_mainloop_new())) {
         pa_xfree(m);
@@ -107,13 +107,8 @@ pa_threaded_mainloop *pa_threaded_mainloop_new(void) {
     m->mutex = pa_mutex_new(true, true);
     m->cond = pa_cond_new();
     m->accept_cond = pa_cond_new();
-    m->thread = NULL;
-    m->name = NULL;
 
     pa_mainloop_set_poll_func(m->real_mainloop, poll_func, m->mutex);
-
-    m->n_waiting = 0;
-    m->n_waiting_for_accept = 0;
 
     return m;
 }
