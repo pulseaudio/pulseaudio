@@ -56,6 +56,10 @@ int deny_severity = LOG_WARNING;
 
 #endif /* HAVE_LIBWRAP */
 
+#ifdef HAVE_SYSTEMD_DAEMON
+#include <systemd/sd-daemon.h>
+#endif
+
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 
@@ -74,6 +78,7 @@ struct pa_socket_server {
     PA_REFCNT_DECLARE;
     int fd;
     char *filename;
+    bool activated;
     char *tcpwrap_service;
 
     pa_socket_server_on_connection_cb_t on_connection;
@@ -174,43 +179,63 @@ pa_socket_server* pa_socket_server_ref(pa_socket_server *s) {
 
 pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *filename) {
     int fd = -1;
+    bool activated = false;
     struct sockaddr_un sa;
     pa_socket_server *s;
 
     pa_assert(m);
     pa_assert(filename);
 
-    if ((fd = pa_socket_cloexec(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-        pa_log("socket(): %s", pa_cstrerror(errno));
-        goto fail;
+#ifdef HAVE_SYSTEMD_DAEMON
+    {
+        int n = sd_listen_fds(0);
+        if (n > 0) {
+            for (int i = 0; i < n; ++i) {
+                if (sd_is_socket_unix(SD_LISTEN_FDS_START + i, SOCK_STREAM, 1, filename, 0) > 0) {
+                    fd = SD_LISTEN_FDS_START + i;
+                    activated = true;
+                    pa_log_info("Found socket activation socket for '%s' \\o/", filename);
+                    break;
+                }
+            }
+        }
     }
+#endif
 
-    memset(&sa, 0, sizeof(sa));
-    sa.sun_family = AF_UNIX;
-    pa_strlcpy(sa.sun_path, filename, sizeof(sa.sun_path));
+    if (fd < 0) {
+        if ((fd = pa_socket_cloexec(PF_UNIX, SOCK_STREAM, 0)) < 0) {
+            pa_log("socket(PF_UNIX): %s", pa_cstrerror(errno));
+            goto fail;
+        }
 
-    pa_make_socket_low_delay(fd);
+        memset(&sa, 0, sizeof(sa));
+        sa.sun_family = AF_UNIX;
+        pa_strlcpy(sa.sun_path, filename, sizeof(sa.sun_path));
 
-    if (bind(fd, (struct sockaddr*) &sa, (socklen_t) SUN_LEN(&sa)) < 0) {
-        pa_log("bind(): %s", pa_cstrerror(errno));
-        goto fail;
-    }
+        pa_make_socket_low_delay(fd);
 
-    /* Allow access from all clients. Sockets like this one should
-     * always be put inside a directory with proper access rights,
-     * because not all OS check the access rights on the socket
-     * inodes. */
-    chmod(filename, 0777);
+        if (bind(fd, (struct sockaddr*) &sa, (socklen_t) SUN_LEN(&sa)) < 0) {
+            pa_log("bind(): %s", pa_cstrerror(errno));
+            goto fail;
+        }
 
-    if (listen(fd, 5) < 0) {
-        pa_log("listen(): %s", pa_cstrerror(errno));
-        goto fail;
+        /* Allow access from all clients. Sockets like this one should
+        * always be put inside a directory with proper access rights,
+        * because not all OS check the access rights on the socket
+        * inodes. */
+        chmod(filename, 0777);
+
+        if (listen(fd, 5) < 0) {
+            pa_log("listen(): %s", pa_cstrerror(errno));
+            goto fail;
+        }
     }
 
     pa_assert_se(s = pa_socket_server_new(m, fd));
 
     s->filename = pa_xstrdup(filename);
     s->type = SOCKET_SERVER_UNIX;
+    s->activated = activated;
 
     return s;
 
@@ -421,10 +446,9 @@ pa_socket_server* pa_socket_server_new_ipv6_string(pa_mainloop_api *m, const cha
 static void socket_server_free(pa_socket_server*s) {
     pa_assert(s);
 
-    if (s->filename) {
+    if (!s->activated && s->filename)
         unlink(s->filename);
-        pa_xfree(s->filename);
-    }
+    pa_xfree(s->filename);
 
     pa_close(s->fd);
 

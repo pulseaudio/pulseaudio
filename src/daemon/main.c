@@ -58,6 +58,10 @@
 #include <dbus/dbus.h>
 #endif
 
+#ifdef HAVE_SYSTEMD_DAEMON
+#include <systemd/sd-daemon.h>
+#endif
+
 #include <pulse/client-conf.h>
 #include <pulse/mainloop.h>
 #include <pulse/mainloop-signal.h>
@@ -374,7 +378,7 @@ int main(int argc, char *argv[]) {
     int r = 0, retval = 1, d = 0;
     bool valid_pid_file = false;
     bool ltdl_init = false;
-    int passed_fd = -1;
+    int n_fds = 0, *passed_fds = NULL;
     const char *e;
 #ifdef HAVE_FORK
     int daemon_pipe[2] = { -1, -1 };
@@ -431,11 +435,28 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
-    if ((e = getenv("PULSE_PASSED_FD"))) {
-        passed_fd = atoi(e);
+#ifdef HAVE_SYSTEMD_DAEMON
+    n_fds = sd_listen_fds(0);
+    if (n_fds > 0) {
+        int i = n_fds;
 
-        if (passed_fd <= 2)
-            passed_fd = -1;
+        passed_fds = pa_xnew(int, n_fds+2);
+        passed_fds[n_fds] = passed_fds[n_fds+1] = -1;
+        while (i--)
+            passed_fds[i] = SD_LISTEN_FDS_START + i;
+    }
+#endif
+
+    if (!passed_fds) {
+        n_fds = 0;
+        passed_fds = pa_xnew(int, 2);
+        passed_fds[0] = passed_fds[1] = -1;
+    }
+
+    if ((e = getenv("PULSE_PASSED_FD"))) {
+        int passed_fd = atoi(e);
+        if (passed_fd > 2)
+            passed_fds[n_fds] = passed_fd;
     }
 
     /* We might be autospawned, in which case have no idea in which
@@ -444,7 +465,8 @@ int main(int argc, char *argv[]) {
 
     pa_reset_personality();
     pa_drop_root();
-    pa_close_all(passed_fd, -1);
+    pa_close_allv(passed_fds);
+    pa_xfree(passed_fds);
     pa_reset_sigs(-1);
     pa_unblock_sigs(-1);
     pa_reset_priority();

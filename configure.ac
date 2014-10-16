@@ -1180,6 +1180,9 @@ ORC_CHECK([0.4.11])
 
 #### systemd support (optional) ####
 
+AC_ARG_ENABLE([systemd-daemon],
+    AS_HELP_STRING([--disable-systemd-daemon],[Disable optional systemd daemon (socket activation) support]))
+
 AC_ARG_ENABLE([systemd-login],
     AS_HELP_STRING([--disable-systemd-login],[Disable optional systemd login support]))
 
@@ -1189,15 +1192,29 @@ AC_ARG_ENABLE([systemd-journal],
 # Newer systemd's combine their subcomponent libraries into one
 # If it exists, we should use it for the further checks
 
-AS_IF([test "x$enable_systemd_login" != "xno" || test "x$enable_systemd_journal" != "xno"],
+AS_IF([test "x$enable_systemd_daemon" != "xno" || test "x$enable_systemd_login" != "xno" || test "x$enable_systemd_journal" != "xno"],
     [PKG_CHECK_MODULES(SYSTEMD, [ libsystemd ], HAVE_SYSTEMD=1, HAVE_SYSTEMD=0)],
     HAVE_SYSTEMD=0)
 
 AS_IF([test "x$HAVE_SYSTEMD" = "x1"],
     [
+        HAVE_SYSTEMD_DAEMON=1
         HAVE_SYSTEMD_LOGIN=1
         HAVE_SYSTEMD_JOURNAL=1
     ])
+
+#### systemd daemon support (optional) ####
+
+AS_IF([test "x$enable_systemd_daemon" != "xno"],
+    [AS_IF([test "x$HAVE_SYSTEMD_DAEMON" != "x1"], [PKG_CHECK_MODULES(SYSTEMDDAEMON, [ libsystemd-daemon ], HAVE_SYSTEMD_DAEMON=1, HAVE_SYSTEMD_DAEMON=0)])],
+    HAVE_SYSTEMD_DAEMON=0)
+
+AS_IF([test "x$enable_systemd_daemon" = "xyes" && test "x$HAVE_SYSTEMD_DAEMON" = "x0"],
+    [AC_MSG_ERROR([*** Needed systemd daemon support not found])])
+
+AC_SUBST(HAVE_SYSTEMD_DAEMON)
+AM_CONDITIONAL([HAVE_SYSTEMD_DAEMON], [test "x$HAVE_SYSTEMD_DAEMON" = x1])
+AS_IF([test "x$HAVE_SYSTEMD_DAEMON" = "x1"], AC_DEFINE([HAVE_SYSTEMD_DAEMON], 1, [Have SYSTEMDDAEMON?]))
 
 #### systemd login support (optional) ####
 
@@ -1473,6 +1490,7 @@ AS_IF([test "x$HAVE_LIRC" = "x1"], ENABLE_LIRC=yes, ENABLE_LIRC=no)
 AS_IF([test "x$HAVE_XEN" = "x1"], ENABLE_XEN=yes, ENABLE_XEN=no)
 AS_IF([test "x$HAVE_DBUS" = "x1"], ENABLE_DBUS=yes, ENABLE_DBUS=no)
 AS_IF([test "x$HAVE_UDEV" = "x1"], ENABLE_UDEV=yes, ENABLE_UDEV=no)
+AS_IF([test "x$HAVE_SYSTEMD_DAEMON" = "x1"], ENABLE_SYSTEMD_DAEMON=yes, ENABLE_SYSTEMD_DAEMON=no)
 AS_IF([test "x$HAVE_SYSTEMD_LOGIN" = "x1"], ENABLE_SYSTEMD_LOGIN=yes, ENABLE_SYSTEMD_LOGIN=no)
 AS_IF([test "x$HAVE_SYSTEMD_JOURNAL" = "x1"], ENABLE_SYSTEMD_JOURNAL=yes, ENABLE_SYSTEMD_JOURNAL=no)
 AS_IF([test "x$HAVE_BLUEZ_4" = "x1"], ENABLE_BLUEZ_4=yes, ENABLE_BLUEZ_4=no)
@@ -1534,6 +1552,7 @@ echo "
         headset backend:           ${BLUETOOTH_HEADSET_BACKEND}
     Enable udev:                   ${ENABLE_UDEV}
       Enable HAL->udev compat:     ${ENABLE_HAL_COMPAT}
+    Enable systemd daemon:         ${ENABLE_SYSTEMD_DAEMON}
     Enable systemd login:          ${ENABLE_SYSTEMD_LOGIN}
     Enable systemd journal:        ${ENABLE_SYSTEMD_JOURNAL}
     Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
