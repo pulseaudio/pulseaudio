@@ -74,6 +74,10 @@ AM_SILENT_RULES([yes])
 
 AC_PROG_MKDIR_P
 
+# ln -s
+
+AC_PROG_LN_S
+
 # CC
 
 AC_PROG_CC

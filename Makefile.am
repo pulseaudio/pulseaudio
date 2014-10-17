@@ -62,7 +62,19 @@ cmakedir = $(libdir)/cmake/PulseAudio
 cmake_DATA = PulseAudioConfig.cmake PulseAudioConfigVersion.cmake
 
 bashcompletiondir=$(sysconfdir)/bash_completion.d
-dist_bashcompletion_DATA = shell-completion/pulseaudio-bash-completion.sh
+dist_bashcompletion_DATA = shell-completion/bash/pulseaudio
+
+install-bashcompletion-aliases:
+	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/pactl
+	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/pacmd
+	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/pasuspender
+	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/padsp
+	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/pacat
+	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/paplay
+	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/parec
+	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/parecord
+
+install-data-hook: install-bashcompletion-aliases
 
 zshcompletiondir=@zshcompletiondir@
 dist_zshcompletion_DATA = shell-completion/zsh/_pulseaudio
