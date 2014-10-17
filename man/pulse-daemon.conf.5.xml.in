@@ -124,7 +124,7 @@ USA.
 
     <option>
       <p><opt>use-pid-file=</opt> Create a PID file in the runtime directory
-      (<file>$XDG_RUNTIMEDIR/pulse/pid</file>). If this is enabled you may
+      (<file>$XDG_RUNTIME_DIR/pulse/pid</file>). If this is enabled you may
       use commands like <opt>--kill</opt> or <opt>--check</opt>. If
       you are planning to start more than one PulseAudio process per
       user, you better disable this option since it effectively
