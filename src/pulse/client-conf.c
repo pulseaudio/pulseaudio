@@ -65,7 +65,11 @@ static const pa_client_conf default_conf = {
     .cookie_from_x11_valid = false,
     .cookie_file_from_application = NULL,
     .cookie_file_from_client_conf = NULL,
+#ifdef HAVE_SYSTEMD_DAEMON
+    .autospawn = false,
+#else
     .autospawn = true,
+#endif
     .disable_shm = false,
     .shm_size = 0,
     .auto_connect_localhost = false,

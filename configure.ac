@@ -1219,6 +1219,9 @@ AS_IF([test "x$enable_systemd_daemon" != "xno"],
 AS_IF([test "x$enable_systemd_daemon" = "xyes" && test "x$HAVE_SYSTEMD_DAEMON" = "x0"],
     [AC_MSG_ERROR([*** Needed systemd daemon support not found])])
 
+AS_IF([test "x$HAVE_SYSTEMD_DAEMON" = "x1"], [ PA_DEFAULT_AUTOSPAWN=no ], [ PA_DEFAULT_AUTOSPAWN=yes ])
+AC_SUBST(PA_DEFAULT_AUTOSPAWN)
+
 AC_SUBST(HAVE_SYSTEMD_DAEMON)
 AM_CONDITIONAL([HAVE_SYSTEMD_DAEMON], [test "x$HAVE_SYSTEMD_DAEMON" = x1])
 AS_IF([test "x$HAVE_SYSTEMD_DAEMON" = "x1"], AC_DEFINE([HAVE_SYSTEMD_DAEMON], 1, [Have SYSTEMDDAEMON?]))
