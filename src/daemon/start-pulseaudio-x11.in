@@ -19,8 +19,6 @@
 
 set -e
 
-@PA_BINARY@ --start "$@"
-
 if [ x"$DISPLAY" != x ] ; then
 
     @PACTL_BINARY@ load-module module-x11-publish "display=$DISPLAY" > /dev/null
