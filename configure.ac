@@ -1203,6 +1203,13 @@ AS_IF([test "x$HAVE_SYSTEMD" = "x1"],
         HAVE_SYSTEMD_JOURNAL=1
     ])
 
+AC_ARG_WITH([systemduserunitdir],
+        AS_HELP_STRING([--with-systemduserunitdir=DIR], [Directory for systemd user service files]),
+        [], [with_systemduserunitdir=$($PKG_CONFIG --variable=systemduserunitdir systemd)])
+if test "x$with_systemduserunitdir" != xno; then
+        AC_SUBST([systemduserunitdir], [$with_systemduserunitdir])
+fi
+
 #### systemd daemon support (optional) ####
 
 AS_IF([test "x$enable_systemd_daemon" != "xno"],
@@ -1458,6 +1465,10 @@ AC_CONFIG_FILES([src/default.pa:src/daemon/default.pa.in],
     [m4 src/default.pa > src/default.pa.gen && mv src/default.pa.gen src/default.pa])
 AC_CONFIG_FILES([src/system.pa:src/daemon/system.pa.in],
     [m4 src/system.pa > src/system.pa.gen && mv src/system.pa.gen src/system.pa])
+AS_IF([test "$HAVE_SYSTEMD_DAEMON" = "x1"],
+    [
+        AC_CONFIG_FILES([src/pulseaudio.service:src/daemon/systemd/user/pulseaudio.service.in])
+    ])
 
 # CMake related ProjectConfig files
 PA_LIBDIR="$libdir"
