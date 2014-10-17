@@ -1178,13 +1178,31 @@ AM_CONDITIONAL([HAVE_GCOV], [test "x$HAVE_GCOV" = x1])
 
 ORC_CHECK([0.4.11])
 
-#### systemd login support (optional) ####
+#### systemd support (optional) ####
 
 AC_ARG_ENABLE([systemd-login],
     AS_HELP_STRING([--disable-systemd-login],[Disable optional systemd login support]))
 
+AC_ARG_ENABLE([systemd-journal],
+    AS_HELP_STRING([--disable-systemd-journal],[Disable optional systemd journal support]))
+
+# Newer systemd's combine their subcomponent libraries into one
+# If it exists, we should use it for the further checks
+
+AS_IF([test "x$enable_systemd_login" != "xno" || test "x$enable_systemd_journal" != "xno"],
+    [PKG_CHECK_MODULES(SYSTEMD, [ libsystemd ], HAVE_SYSTEMD=1, HAVE_SYSTEMD=0)],
+    HAVE_SYSTEMD=0)
+
+AS_IF([test "x$HAVE_SYSTEMD" = "x1"],
+    [
+        HAVE_SYSTEMD_LOGIN=1
+        HAVE_SYSTEMD_JOURNAL=1
+    ])
+
+#### systemd login support (optional) ####
+
 AS_IF([test "x$enable_systemd_login" != "xno"],
-    [PKG_CHECK_MODULES(SYSTEMDLOGIN, [ libsystemd-login ], HAVE_SYSTEMD_LOGIN=1, HAVE_SYSTEMD_LOGIN=0)],
+    [AS_IF([test "x$HAVE_SYSTEMD_LOGIN" != "x1"], [PKG_CHECK_MODULES(SYSTEMDLOGIN, [ libsystemd-login ], HAVE_SYSTEMD_LOGIN=1, HAVE_SYSTEMD_LOGIN=0)])],
     HAVE_SYSTEMD_LOGIN=0)
 
 AS_IF([test "x$enable_systemd_login" = "xyes" && test "x$HAVE_SYSTEMD_LOGIN" = "x0"],
@@ -1196,11 +1214,8 @@ AS_IF([test "x$HAVE_SYSTEMD_LOGIN" = "x1"], AC_DEFINE([HAVE_SYSTEMD_LOGIN], 1, [
 
 #### systemd journal support (optional) ####
 
-AC_ARG_ENABLE([systemd-journal],
-    AS_HELP_STRING([--disable-systemd-journal],[Disable optional systemd journal support]))
-
 AS_IF([test "x$enable_systemd_journal" != "xno"],
-    [PKG_CHECK_MODULES(SYSTEMDJOURNAL, [ libsystemd-journal ], HAVE_SYSTEMD_JOURNAL=1, HAVE_SYSTEMD_JOURNAL=0)],
+    [AS_IF([test "x$HAVE_SYSTEMD_JOURNAL" != "x1"], [PKG_CHECK_MODULES(SYSTEMDJOURNAL, [ libsystemd-journal ], HAVE_SYSTEMD_JOURNAL=1, HAVE_SYSTEMD_JOURNAL=0)])],
     HAVE_SYSTEMD_JOURNAL=0)
 
 AS_IF([test "x$enable_systemd_journal" = "xyes" && test "x$HAVE_SYSTEMD_JOURNAL" = "x0"],
