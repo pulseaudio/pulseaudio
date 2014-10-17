@@ -707,8 +707,8 @@ libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS += $(X11_LIBS)
 endif
 
 if HAVE_SYSTEMD_JOURNAL
-libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += $(JOURNAL_FLAGS)
-libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS += $(JOURNAL_LIBS)
+libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += $(SYSTEMDJOURNAL_FLAGS)
+libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS += $(SYSTEMDJOURNAL_LIBS)
 endif
 
 # proplist-util.h uses these header files, but not the library itself!
@@ -1353,7 +1353,7 @@ modlibexec_LTLIBRARIES += \
 		module-udev-detect.la
 endif
 
-if HAVE_SYSTEMD
+if HAVE_SYSTEMD_LOGIN
 modlibexec_LTLIBRARIES += \
 		module-systemd-login.la
 endif
@@ -2061,8 +2061,8 @@ module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 module_systemd_login_la_SOURCES = modules/module-systemd-login.c
 module_systemd_login_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_systemd_login_la_LIBADD = $(MODULE_LIBADD) $(SYSTEMD_LIBS)
-module_systemd_login_la_CFLAGS = $(AM_CFLAGS) $(SYSTEMD_CFLAGS)
+module_systemd_login_la_LIBADD = $(MODULE_LIBADD) $(SYSTEMDLOGIN_LIBS)
+module_systemd_login_la_CFLAGS = $(AM_CFLAGS) $(SYSTEMDLOGIN_CFLAGS)
 
 # GConf support
 module_gconf_la_SOURCES = modules/gconf/module-gconf.c

@@ -35,7 +35,7 @@
 typedef enum pa_log_target_type {
     PA_LOG_STDERR,      /* default */
     PA_LOG_SYSLOG,
-#ifdef HAVE_JOURNAL
+#ifdef HAVE_SYSTEMD_JOURNAL
     PA_LOG_JOURNAL,     /* systemd journal */
 #endif
     PA_LOG_NULL,        /* to /dev/null */
