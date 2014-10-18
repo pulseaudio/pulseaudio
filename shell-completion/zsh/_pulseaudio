@@ -263,50 +263,244 @@ _pactl_completion() {
             'set-sink-formats: set supported formats of a sink'
             'subscribe: subscribe to events'
         )
+
         _describe 'pactl commands' _pactl_commands
     }
 
-    _pactl_list_commands=(
-        'modules: list loaded modules'
-        'sinks: list available sinks'
-        'sources: list available sources'
-        'sink-inputs: list connected sink inputs'
-        'source-outputs: list connected source outputs'
-        'clients: list connected clients'
-        'samples: list samples'
-        'cards: list available cards'
-    )
+    _pactl_command_parameter() {
+        local _command
+
+        _list_parameter() {
+            local -a _objects;
+
+            _objects=(
+                'modules: list loaded modules'
+                'sinks: list available sinks'
+                'sources: list available sources'
+                'sink-inputs: list connected sink inputs'
+                'source-outputs: list connected source outputs'
+                'clients: list connected clients'
+                'samples: list samples'
+                'cards: list available cards'
+            )
+
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after "list".
+                # "pactl list cards short" and "pactl list short cards" are
+                # treated as equivalent by pactl, but here we only support the
+                # first form, so "short" isn't a valid completion.
+                _describe 'objects' _objects
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after "list". As
+                # explained in the previous comment, we only support the
+                # "pactl list cards short" form, so "short" is the only valid
+                # completion here.
+                compadd short
+            fi
+        }
+
+        _play_sample_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after "play-sample".
+                # TODO: Implement sample name completion.
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after "play-sample".
+                # TODO: Implement sink name completion.
+            fi
+        }
+
+        _load_module_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after "load-module".
+                _all_modules
+            else
+                # We're completing the second or later parameter after
+                # "load-module", i.e. the module arguments.
+                # TODO: Implement module argument completion.
+            fi
+        }
+
+        _move_sink_input_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after "move-sink-input".
+                # Even though the function name is "_devices", it actually
+                # completes the sink input index. _devices is magical like
+                # that.
+                _devices
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after
+                # "move-sink-input".
+                _devices
+            fi
+        }
+
+        _move_source_output_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after
+                # "move-source-output". Even though the function name is
+                # "_devices", it actually completes the source output index.
+                # _devices is magical like that.
+                _devices
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after
+                # "move-source-output".
+                _devices
+            fi
+        }
+
+        _suspend_sink_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after "suspend-sink".
+                _devices
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after "suspend-sink".
+                compadd true false
+            fi
+        }
+
+        _suspend_source_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after "suspend-source".
+                _devices
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after "suspend-source".
+                compadd true false
+            fi
+        }
+
+        _set_card_profile_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after
+                # "set-card-profile".
+                _cards
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after
+                # "set-card-profile".
+                _profiles
+            fi
+        }
+
+        _set_sink_port_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after "set-sink-port".
+                _devices
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after "set-sink-port".
+                _ports
+            fi
+        }
+
+        _set_source_port_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after "set-source-port".
+                _devices
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after
+                # "set-source-port".
+                _ports
+            fi
+        }
+
+        _set_sink_mute_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after "set-sink-mute".
+                _devices
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after "set-sink-mute".
+                compadd true false toggle
+            fi
+        }
+
+        _set_source_mute_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after "set-source-mute".
+                _devices
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after
+                # "set-source-mute".
+                compadd true false toggle
+            fi
+        }
+
+        _set_sink_input_mute_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after
+                # "set-sink-input-mute". Even though the function name is
+                # "_devices", it actually completes the sink input index.
+                # _devices is magical like that.
+                _devices
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after
+                # "set-sink-input-mute".
+                compadd true false toggle
+            fi
+        }
+
+        _set_source_output_mute_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after
+                # "set-source-output-mute". Even though the function name is
+                # "_devices", it actually completes the source output index.
+                # _devices is magical like that.
+                _devices
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after
+                # "set-source-output-mute".
+                compadd true false toggle
+            fi
+        }
+
+        _set_port_latency_offset_parameter() {
+            if ((CURRENT == 2)); then
+                # We're completing the first parameter after
+                # "set-port-latency-offset".
+                _cards
+            elif ((CURRENT == 3)); then
+                # We're completing the second parameter after
+                # "set-port-latency-offset".
+                _ports
+            fi
+        }
+
+        _command=$words[1]
+
+        case $_command in
+            stat)                                  if ((CURRENT == 2)); then compadd short; fi;;
+            list)                                  _list_parameter;;
+            upload-sample)                         if ((CURRENT == 2)); then _files; fi;;
+            play-sample)                           _play_sample_parameter;;
+            remove-sample)                         ;; # TODO: Implement sample name completion.
+            load-module)                           _load_module_parameter;;
+            unload-module)                         if ((CURRENT == 2)); then _loaded_modules; fi;;
+            move-sink-input)                       _move_sink_input_parameter;;
+            move-source-output)                    _move_source_output_parameter;;
+            suspend-sink)                          _suspend_sink_parameter;;
+            suspend-source)                        _suspend_source_parameter;;
+            set-card-profile)                      _set_card_profile_parameter;;
+            set-default-sink)                      if ((CURRENT == 2)); then _devices; fi;;
+            set-default-source)                    if ((CURRENT == 2)); then _devices; fi;;
+            set-sink-port)                         _set_sink_port_parameter;;
+            set-source-port)                       _set_source_port_parameter;;
+            set-sink-volume)                       if ((CURRENT == 2)); then _devices; fi;;
+            set-source-volume)                     if ((CURRENT == 2)); then _devices; fi;;
+            set-sink-input-volume)                 if ((CURRENT == 2)); then _devices; fi;;
+            set-source-output-volume)              if ((CURRENT == 2)); then _devices; fi;;
+            set-sink-mute)                         _set_sink_mute_parameter;;
+            set-source-mute)                       _set_source_mute_parameter;;
+            set-sink-input-mute)                   _set_sink_input_mute_parameter;;
+            set-source-output-mute)                _set_source_output_mute_parameter;;
+            set-sink-formats)                      if ((CURRENT == 2)); then _devices; fi;;
+            set-port-latency-offset)               _set_port_latency_offset_parameter;;
+        esac
+    }
 
     _arguments -C -S -A '-*' \
         {-h,--help}'[display help and exit]' \
         '--version[show version and exit]' \
         {-s,--server=}'[name of server to connect to]:host:_hosts' \
         {-n,--client-name=}'[client name to use]:name' \
-        '::pactl command:_pactl_command'
-
-    case $words[$((CURRENT - 1))] in
-        list) _describe 'pactl list commands' _pactl_list_commands;;
-        stat) compadd short;;
-        set-card-profile) _cards;;
-        set-sink-*) _devices;;
-        set-source-*) _devices;;
-        upload-sample) _files;;
-        load-module) _all_modules;;
-        unload-module) _loaded_modules;;
-        suspend-*) _devices;;
-        move-*) _devices;;
-        set-port-latency-offset) _cards;;
-    esac
-
-    case $words[$((CURRENT - 2))] in
-        set-card-profile) _profiles;;
-        set-(sink|source)-port) _ports;;
-        set-port-latency-offset) _ports;;
-        set-*-mute) compadd true false toggle;;
-        suspend-*) compadd true false;;
-        list) compadd short;;
-        move-*) _devices;;
-    esac
+        '::pactl command:_pactl_command' \
+        '*::pactl command parameter:_pactl_command_parameter'
 }
 
 _pacmd_completion() {
