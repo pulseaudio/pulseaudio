@@ -229,6 +229,8 @@ _pactl_completion() {
     _set_remote
 
     _pactl_command(){
+        local -a _pactl_commands
+
         _pactl_commands=(
             'help: show help and exit'
             'stat: dump statistics about the PulseAudio daemon'
