@@ -1566,9 +1566,10 @@ echo "
         headset backend:           ${BLUETOOTH_HEADSET_BACKEND}
     Enable udev:                   ${ENABLE_UDEV}
       Enable HAL->udev compat:     ${ENABLE_HAL_COMPAT}
-    Enable systemd daemon:         ${ENABLE_SYSTEMD_DAEMON}
-    Enable systemd login:          ${ENABLE_SYSTEMD_LOGIN}
-    Enable systemd journal:        ${ENABLE_SYSTEMD_JOURNAL}
+    Enable systemd
+      Daemon (Socket Activation):  ${ENABLE_SYSTEMD_DAEMON}
+      Login (Session Tracking):    ${ENABLE_SYSTEMD_LOGIN}
+      Journal (Logging):           ${ENABLE_SYSTEMD_JOURNAL}
     Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
     Enable IPv6:                   ${ENABLE_IPV6}
