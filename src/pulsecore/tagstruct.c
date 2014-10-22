@@ -45,7 +45,10 @@ struct pa_tagstruct {
     size_t length, allocated;
     size_t rindex;
 
-    bool dynamic;
+    enum {
+        PA_TAGSTRUCT_FIXED,
+        PA_TAGSTRUCT_DYNAMIC,
+    } type;
 };
 
 pa_tagstruct *pa_tagstruct_new(void) {
@@ -55,7 +58,7 @@ pa_tagstruct *pa_tagstruct_new(void) {
     t->data = NULL;
     t->allocated = t->length = 0;
     t->rindex = 0;
-    t->dynamic = true;
+    t->type = PA_TAGSTRUCT_DYNAMIC;
 
     return t;
 }
@@ -69,7 +72,7 @@ pa_tagstruct *pa_tagstruct_new_fixed(const uint8_t* data, size_t length) {
     t->data = (uint8_t*) data;
     t->allocated = t->length = length;
     t->rindex = 0;
-    t->dynamic = false;
+    t->type = PA_TAGSTRUCT_FIXED;
 
     return t;
 }
@@ -77,7 +80,7 @@ pa_tagstruct *pa_tagstruct_new_fixed(const uint8_t* data, size_t length) {
 void pa_tagstruct_free(pa_tagstruct*t) {
     pa_assert(t);
 
-    if (t->dynamic)
+    if (t->type == PA_TAGSTRUCT_DYNAMIC)
         pa_xfree(t->data);
     pa_xfree(t);
 }
@@ -86,7 +89,7 @@ uint8_t* pa_tagstruct_free_data(pa_tagstruct*t, size_t *l) {
     uint8_t *p;
 
     pa_assert(t);
-    pa_assert(t->dynamic);
+    pa_assert(t->type == PA_TAGSTRUCT_DYNAMIC);
     pa_assert(l);
 
     p = t->data;
@@ -97,7 +100,7 @@ uint8_t* pa_tagstruct_free_data(pa_tagstruct*t, size_t *l) {
 
 static inline void extend(pa_tagstruct*t, size_t l) {
     pa_assert(t);
-    pa_assert(t->dynamic);
+    pa_assert(t->type != PA_TAGSTRUCT_FIXED);
 
     if (t->length+l <= t->allocated)
         return;
@@ -449,7 +452,6 @@ int pa_tagstruct_eof(pa_tagstruct*t) {
 
 const uint8_t* pa_tagstruct_data(pa_tagstruct*t, size_t *l) {
     pa_assert(t);
-    pa_assert(t->dynamic);
     pa_assert(l);
 
     *l = t->length;
