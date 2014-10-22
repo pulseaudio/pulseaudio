@@ -39,6 +39,8 @@
 #include "tagstruct.h"
 
 #define MAX_TAG_SIZE (64*1024)
+#define MAX_APPENDED_SIZE 128
+#define GROW_TAG_SIZE 100
 
 struct pa_tagstruct {
     uint8_t *data;
@@ -46,19 +48,23 @@ struct pa_tagstruct {
     size_t rindex;
 
     enum {
-        PA_TAGSTRUCT_FIXED,
-        PA_TAGSTRUCT_DYNAMIC,
+        PA_TAGSTRUCT_FIXED, /* The tagstruct does not own the data, buffer was provided by caller. */
+        PA_TAGSTRUCT_DYNAMIC, /* Buffer owned by tagstruct, data must be freed. */
+        PA_TAGSTRUCT_APPENDED, /* Data points to appended buffer, used for small tagstructs. Will change to dynamic if needed. */
     } type;
+    union {
+        uint8_t appended[MAX_APPENDED_SIZE];
+    } per_type;
 };
 
 pa_tagstruct *pa_tagstruct_new(void) {
     pa_tagstruct*t;
 
     t = pa_xnew(pa_tagstruct, 1);
-    t->data = NULL;
-    t->allocated = t->length = 0;
-    t->rindex = 0;
-    t->type = PA_TAGSTRUCT_DYNAMIC;
+    t->data = t->per_type.appended;
+    t->allocated = MAX_APPENDED_SIZE;
+    t->length = t->rindex = 0;
+    t->type = PA_TAGSTRUCT_APPENDED;
 
     return t;
 }
@@ -92,7 +98,13 @@ static inline void extend(pa_tagstruct*t, size_t l) {
     if (t->length+l <= t->allocated)
         return;
 
-    t->data = pa_xrealloc(t->data, t->allocated = t->length+l+100);
+    if (t->type == PA_TAGSTRUCT_DYNAMIC)
+        t->data = pa_xrealloc(t->data, t->allocated = t->length + l + GROW_TAG_SIZE);
+    else if (t->type == PA_TAGSTRUCT_APPENDED) {
+        t->type = PA_TAGSTRUCT_DYNAMIC;
+        t->data = pa_xmalloc(t->allocated = t->length + l + GROW_TAG_SIZE);
+        memcpy(t->data, t->per_type.appended, t->length);
+    }
 }
 
 static void write_u8(pa_tagstruct *t, uint8_t u) {
