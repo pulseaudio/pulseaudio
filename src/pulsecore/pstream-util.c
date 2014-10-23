@@ -23,19 +23,22 @@
 
 #include <pulsecore/native-common.h>
 #include <pulsecore/macro.h>
+#include <pulse/xmalloc.h>
 
 #include "pstream-util.h"
 
 static void pa_pstream_send_tagstruct_with_ancil_data(pa_pstream *p, pa_tagstruct *t, const pa_cmsg_ancil_data *ancil_data) {
     size_t length;
-    uint8_t *data;
+    const uint8_t *data;
     pa_packet *packet;
 
     pa_assert(p);
     pa_assert(t);
 
-    pa_assert_se(data = pa_tagstruct_free_data(t, &length));
-    pa_assert_se(packet = pa_packet_new_dynamic(data, length));
+    pa_assert_se(data = pa_tagstruct_data(t, &length));
+    pa_assert_se(packet = pa_packet_new_dynamic(pa_xmemdup(data, length), length));
+    pa_tagstruct_free(t);
+
     pa_pstream_send_packet(p, packet, ancil_data);
     pa_packet_unref(packet);
 }

@@ -85,19 +85,6 @@ void pa_tagstruct_free(pa_tagstruct*t) {
     pa_xfree(t);
 }
 
-uint8_t* pa_tagstruct_free_data(pa_tagstruct*t, size_t *l) {
-    uint8_t *p;
-
-    pa_assert(t);
-    pa_assert(t->type == PA_TAGSTRUCT_DYNAMIC);
-    pa_assert(l);
-
-    p = t->data;
-    *l = t->length;
-    pa_xfree(t);
-    return p;
-}
-
 static inline void extend(pa_tagstruct*t, size_t l) {
     pa_assert(t);
     pa_assert(t->type != PA_TAGSTRUCT_FIXED);
