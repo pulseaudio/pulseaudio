@@ -32,23 +32,23 @@
 #include <pulsecore/iochannel.h>
 #include <pulsecore/memblock.h>
 
-static int packets_received;
-static int packets_checksum;
-static int packets_length;
+static unsigned packets_received;
+static unsigned packets_checksum;
+static size_t packets_length;
 
 static void packet_received(pa_pstream *p, pa_packet *packet, const pa_ancil *ancil, void *userdata) {
-    unsigned int i;
-    fail_unless(packets_length == (int) packet->length);
+    unsigned i;
+    fail_unless(packets_length == packet->length);
     packets_received++;
     for (i = 0; i < packet->length; i++)
         packets_checksum += packet->data[i];
 }
 
-static void packet_test(int npackets, int plength, pa_mainloop *ml, pa_pstream *p1, pa_pstream *p2) {
+static void packet_test(unsigned npackets, size_t plength, pa_mainloop *ml, pa_pstream *p1, pa_pstream *p2) {
     pa_packet *packet = pa_packet_new(plength);
-    int i;
-    int psum = 0, totalsum = 0;
-    pa_log_info("Sending %d packets of length %d", npackets, plength);
+    unsigned i;
+    unsigned psum = 0, totalsum = 0;
+    pa_log_info("Sending %d packets of length %zd", npackets, plength);
     packets_received = 0;
     packets_checksum = 0;
     packets_length = plength;
