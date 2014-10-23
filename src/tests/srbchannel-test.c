@@ -32,9 +32,9 @@
 #include <pulsecore/iochannel.h>
 #include <pulsecore/memblock.h>
 
-int packets_received;
-int packets_checksum;
-int packets_length;
+static int packets_received;
+static int packets_checksum;
+static int packets_length;
 
 static void packet_received(pa_pstream *p, pa_packet *packet, const pa_ancil *ancil, void *userdata) {
     unsigned int i;
