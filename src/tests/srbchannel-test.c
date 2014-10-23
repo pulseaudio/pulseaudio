@@ -35,26 +35,35 @@ static unsigned packets_checksum;
 static size_t packets_length;
 
 static void packet_received(pa_pstream *p, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data, void *userdata) {
+    const uint8_t *pdata;
+    size_t plen;
     unsigned i;
-    fail_unless(packets_length == packet->length);
+
+    pdata = pa_packet_data(packet, &plen);
+    fail_unless(packets_length == plen);
+
     packets_received++;
-    for (i = 0; i < packet->length; i++)
-        packets_checksum += packet->data[i];
+    for (i = 0; i < plen; i++)
+        packets_checksum += pdata[i];
 }
 
 static void packet_test(unsigned npackets, size_t plength, pa_mainloop *ml, pa_pstream *p1, pa_pstream *p2) {
     pa_packet *packet = pa_packet_new(plength);
     unsigned i;
     unsigned psum = 0, totalsum = 0;
+    uint8_t *pdata;
+    size_t plen;
+
     pa_log_info("Sending %d packets of length %zd", npackets, plength);
     packets_received = 0;
     packets_checksum = 0;
     packets_length = plength;
     pa_pstream_set_receive_packet_callback(p2, packet_received, NULL);
 
-    for (i = 0; i < plength; i++) {
-        packet->data[i] = i;
-        psum += packet->data[i];
+    pdata = (uint8_t *) pa_packet_data(packet, &plen);
+    for (i = 0; i < plen; i++) {
+        pdata[i] = i;
+        psum += pdata[i];
     }
 
     for (i = 0; i < npackets; i++) {

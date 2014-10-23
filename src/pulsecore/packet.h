@@ -23,17 +23,12 @@
 #include <sys/types.h>
 #include <inttypes.h>
 
-#include <pulsecore/refcnt.h>
-
-typedef struct pa_packet {
-    PA_REFCNT_DECLARE;
-    enum { PA_PACKET_APPENDED, PA_PACKET_DYNAMIC } type;
-    size_t length;
-    uint8_t *data;
-} pa_packet;
+typedef struct pa_packet pa_packet;
 
 pa_packet* pa_packet_new(size_t length);
 pa_packet* pa_packet_new_dynamic(void* data, size_t length);
+
+const void* pa_packet_data(pa_packet *p, size_t *l);
 
 pa_packet* pa_packet_ref(pa_packet *p);
 void pa_packet_unref(pa_packet *p);

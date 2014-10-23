@@ -491,14 +491,16 @@ static void prepare_next_write_item(pa_pstream *p) {
     p->write.descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS] = 0;
 
     if (p->write.current->type == PA_PSTREAM_ITEM_PACKET) {
+        size_t plen;
 
         pa_assert(p->write.current->packet);
-        p->write.data = p->write.current->packet->data;
-        p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl((uint32_t) p->write.current->packet->length);
 
-        if (p->write.current->packet->length <= MINIBUF_SIZE - PA_PSTREAM_DESCRIPTOR_SIZE) {
-            memcpy(&p->write.minibuf[PA_PSTREAM_DESCRIPTOR_SIZE], p->write.data, p->write.current->packet->length);
-            p->write.minibuf_validsize = PA_PSTREAM_DESCRIPTOR_SIZE + p->write.current->packet->length;
+        p->write.data = (void *) pa_packet_data(p->write.current->packet, &plen);
+        p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl((uint32_t) plen);
+
+        if (plen <= MINIBUF_SIZE - PA_PSTREAM_DESCRIPTOR_SIZE) {
+            memcpy(&p->write.minibuf[PA_PSTREAM_DESCRIPTOR_SIZE], p->write.data, plen);
+            p->write.minibuf_validsize = PA_PSTREAM_DESCRIPTOR_SIZE + plen;
         }
 
     } else if (p->write.current->type == PA_PSTREAM_ITEM_SHMRELEASE) {
@@ -787,6 +789,7 @@ static int do_read(pa_pstream *p, struct pstream_read *re) {
         channel = ntohl(re->descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL]);
 
         if (channel == (uint32_t) -1) {
+            size_t plen;
 
             if (flags != 0) {
                 pa_log_warn("Received packet frame with invalid flags value.");
@@ -795,7 +798,7 @@ static int do_read(pa_pstream *p, struct pstream_read *re) {
 
             /* Frame is a packet frame */
             re->packet = pa_packet_new(length);
-            re->data = re->packet->data;
+            re->data = (void *) pa_packet_data(re->packet, &plen);
 
         } else {
 

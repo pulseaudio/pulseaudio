@@ -293,19 +293,20 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet *packet, const pa_cmsg_ancil_da
     uint32_t tag, command;
     pa_tagstruct *ts = NULL;
     int ret = -1;
+    const void *pdata;
+    size_t plen;
 
     pa_assert(pd);
     pa_assert(PA_REFCNT_VALUE(pd) >= 1);
     pa_assert(packet);
-    pa_assert(PA_REFCNT_VALUE(packet) >= 1);
-    pa_assert(packet->data);
 
     pa_pdispatch_ref(pd);
 
-    if (packet->length <= 8)
+    pdata = pa_packet_data(packet, &plen);
+    if (plen <= 8)
         goto finish;
 
-    ts = pa_tagstruct_new_fixed(packet->data, packet->length);
+    ts = pa_tagstruct_new_fixed(pdata, plen);
 
     if (pa_tagstruct_getu32(ts, &command) < 0 ||
         pa_tagstruct_getu32(ts, &tag) < 0)
