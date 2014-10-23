@@ -29,11 +29,16 @@
 
 #include "packet.h"
 
+#define MAX_APPENDED_SIZE 128
+
 typedef struct pa_packet {
     PA_REFCNT_DECLARE;
     enum { PA_PACKET_APPENDED, PA_PACKET_DYNAMIC } type;
     size_t length;
     uint8_t *data;
+    union {
+        uint8_t appended[MAX_APPENDED_SIZE];
+    } per_type;
 } pa_packet;
 
 pa_packet* pa_packet_new(size_t length) {
@@ -41,11 +46,16 @@ pa_packet* pa_packet_new(size_t length) {
 
     pa_assert(length > 0);
 
-    p = pa_xmalloc(PA_ALIGN(sizeof(pa_packet)) + length);
+    p = pa_xnew(pa_packet, 1);
     PA_REFCNT_INIT(p);
     p->length = length;
-    p->data = (uint8_t*) p + PA_ALIGN(sizeof(pa_packet));
-    p->type = PA_PACKET_APPENDED;
+    if (length > MAX_APPENDED_SIZE) {
+        p->data = pa_xmalloc(length);
+        p->type = PA_PACKET_DYNAMIC;
+    } else {
+        p->data = p->per_type.appended;
+        p->type = PA_PACKET_APPENDED;
+    }
 
     return p;
 }
