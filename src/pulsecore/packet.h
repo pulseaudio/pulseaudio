@@ -29,6 +29,10 @@ typedef struct pa_packet pa_packet;
  * on length) */
 pa_packet* pa_packet_new(size_t length);
 
+/* create packet (either of type appended or dynamic depending on length)
+ * and copy data */
+pa_packet* pa_packet_new_data(const void* data, size_t length);
+
 /* data must have been malloc()ed; the packet takes ownership of the memory,
  * i.e. memory is free()d with the packet */
 pa_packet* pa_packet_new_dynamic(void* data, size_t length);

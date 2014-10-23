@@ -60,6 +60,17 @@ pa_packet* pa_packet_new(size_t length) {
     return p;
 }
 
+pa_packet* pa_packet_new_data(const void* data, size_t length) {
+    pa_packet *p = pa_packet_new(length);
+
+    pa_assert(data);
+    pa_assert(length > 0);
+
+    memcpy(p->data, data, length);
+
+    return p;
+}
+
 pa_packet* pa_packet_new_dynamic(void* data, size_t length) {
     pa_packet *p;
 
