@@ -771,7 +771,7 @@ void pa_mainloop_wakeup(pa_mainloop *m) {
     pa_assert(m);
 
     if (pa_write(m->wakeup_pipe[1], &c, sizeof(c), &m->wakeup_pipe_type) < 0)
-        /* Not much options for recovering from the error. Let's at least log something. */
+        /* Not many options for recovering from the error. Let's at least log something. */
         pa_log("pa_write() failed while trying to wake up the mainloop: %s", pa_cstrerror(errno));
 }
 
@@ -837,7 +837,7 @@ int pa_mainloop_poll(pa_mainloop *m) {
 
     m->state = STATE_POLLING;
 
-    if (m->n_enabled_defer_events )
+    if (m->n_enabled_defer_events)
         m->poll_func_ret = 0;
     else {
         pa_assert(!m->rebuild_pollfds);
