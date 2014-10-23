@@ -35,6 +35,7 @@
 
 #include <pulsecore/socket.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/flist.h>
 
 #include "tagstruct.h"
 
@@ -57,10 +58,13 @@ struct pa_tagstruct {
     } per_type;
 };
 
+PA_STATIC_FLIST_DECLARE(tagstructs, 0, pa_xfree);
+
 pa_tagstruct *pa_tagstruct_new(void) {
     pa_tagstruct*t;
 
-    t = pa_xnew(pa_tagstruct, 1);
+    if (!(t = pa_flist_pop(PA_STATIC_FLIST_GET(tagstructs))))
+        t = pa_xnew(pa_tagstruct, 1);
     t->data = t->per_type.appended;
     t->allocated = MAX_APPENDED_SIZE;
     t->length = t->rindex = 0;
@@ -74,7 +78,8 @@ pa_tagstruct *pa_tagstruct_new_fixed(const uint8_t* data, size_t length) {
 
     pa_assert(data && length);
 
-    t = pa_xnew(pa_tagstruct, 1);
+    if (!(t = pa_flist_pop(PA_STATIC_FLIST_GET(tagstructs))))
+        t = pa_xnew(pa_tagstruct, 1);
     t->data = (uint8_t*) data;
     t->allocated = t->length = length;
     t->rindex = 0;
@@ -88,7 +93,8 @@ void pa_tagstruct_free(pa_tagstruct*t) {
 
     if (t->type == PA_TAGSTRUCT_DYNAMIC)
         pa_xfree(t->data);
-    pa_xfree(t);
+    if (pa_flist_push(PA_STATIC_FLIST_GET(tagstructs), t) < 0)
+        pa_xfree(t);
 }
 
 static inline void extend(pa_tagstruct*t, size_t l) {
