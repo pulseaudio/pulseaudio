@@ -481,7 +481,7 @@ void pa_iochannel_set_callback(pa_iochannel*io, pa_iochannel_cb_t _callback, voi
 void pa_iochannel_set_noclose(pa_iochannel*io, bool b) {
     pa_assert(io);
 
-    io->no_close = !!b;
+    io->no_close = b;
 }
 
 void pa_iochannel_socket_peer_to_string(pa_iochannel*io, char*s, size_t l) {

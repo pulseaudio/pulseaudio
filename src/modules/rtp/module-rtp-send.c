@@ -398,7 +398,7 @@ int pa__init(pa_module*m) {
 #endif
     }
 
-    j = !!loop;
+    j = loop;
     if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &j, sizeof(j)) < 0 ||
         setsockopt(sap_fd, IPPROTO_IP, IP_MULTICAST_LOOP, &j, sizeof(j)) < 0) {
         pa_log("IP_MULTICAST_LOOP failed: %s", pa_cstrerror(errno));

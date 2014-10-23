@@ -356,7 +356,7 @@ typedef struct pa_sink_new_data {
     pa_channel_map channel_map;
     uint32_t alternate_sample_rate;
     pa_cvolume volume;
-    bool muted :1;
+    bool muted:1;
 
     bool sample_spec_is_set:1;
     bool channel_map_is_set:1;

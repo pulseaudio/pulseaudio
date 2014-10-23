@@ -179,7 +179,7 @@ void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, bool mute) {
     pa_assert(data);
 
     data->muted_is_set = true;
-    data->muted = !!mute;
+    data->muted = mute;
 }
 
 bool pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, bool save) {

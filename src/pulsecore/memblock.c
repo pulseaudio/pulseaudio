@@ -910,7 +910,7 @@ int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id) {
 bool pa_mempool_is_shared(pa_mempool *p) {
     pa_assert(p);
 
-    return !!p->memory.shared;
+    return p->memory.shared;
 }
 
 /* For receiving blocks from other nodes */

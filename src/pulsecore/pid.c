@@ -174,7 +174,7 @@ static int proc_name_ours(pid_t pid, const char *procname) {
         }
 /*#endif*/
 
-        return !!good;
+        return good;
     }
 #else
 

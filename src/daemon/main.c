@@ -1009,11 +1009,11 @@ int main(int argc, char *argv[]) {
     c->scache_idle_time = conf->scache_idle_time;
     c->resample_method = conf->resample_method;
     c->realtime_priority = conf->realtime_priority;
-    c->realtime_scheduling = !!conf->realtime_scheduling;
-    c->disable_remixing = !!conf->disable_remixing;
-    c->disable_lfe_remixing = !!conf->disable_lfe_remixing;
-    c->deferred_volume = !!conf->deferred_volume;
-    c->running_as_daemon = !!conf->daemonize;
+    c->realtime_scheduling = conf->realtime_scheduling;
+    c->disable_remixing = conf->disable_remixing;
+    c->disable_lfe_remixing = conf->disable_lfe_remixing;
+    c->deferred_volume = conf->deferred_volume;
+    c->running_as_daemon = conf->daemonize;
     c->disallow_exit = conf->disallow_exit;
     c->flat_volumes = conf->flat_volumes;
 #ifdef HAVE_DBUS
@@ -1081,7 +1081,7 @@ int main(int argc, char *argv[]) {
 
     /* We completed the initial module loading, so let's disable it
      * from now on, if requested */
-    c->disallow_module_loading = !!conf->disallow_module_loading;
+    c->disallow_module_loading = conf->disallow_module_loading;
 
 #ifdef HAVE_DBUS
     if (!conf->system_instance) {

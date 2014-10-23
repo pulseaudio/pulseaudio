@@ -122,7 +122,7 @@ void pa_source_output_new_data_set_muted(pa_source_output_new_data *data, bool m
     pa_assert(data);
 
     data->muted_is_set = true;
-    data->muted = !!mute;
+    data->muted = mute;
 }
 
 bool pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_source *s, bool save) {

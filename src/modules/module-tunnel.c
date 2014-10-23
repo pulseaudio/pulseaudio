@@ -304,9 +304,9 @@ static void command_suspended(pa_pdispatch *pd,  uint32_t command,  uint32_t tag
     pa_log_debug("Server reports device suspend.");
 
 #ifdef TUNNEL_SINK
-    pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(!!suspended), 0, NULL);
+    pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(suspended), 0, NULL);
 #else
-    pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), SOURCE_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(!!suspended), 0, NULL);
+    pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), SOURCE_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(suspended), 0, NULL);
 #endif
 
     request_latency(u);
@@ -337,9 +337,9 @@ static void command_moved(pa_pdispatch *pd,  uint32_t command,  uint32_t tag, pa
     pa_log_debug("Server reports a stream move.");
 
 #ifdef TUNNEL_SINK
-    pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(!!suspended), 0, NULL);
+    pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(suspended), 0, NULL);
 #else
-    pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), SOURCE_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(!!suspended), 0, NULL);
+    pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), SOURCE_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(suspended), 0, NULL);
 #endif
 
     request_latency(u);
@@ -457,7 +457,7 @@ static void stream_cork(struct userdata *u, bool cork) {
 #endif
     pa_tagstruct_putu32(t, u->ctag++);
     pa_tagstruct_putu32(t, u->channel);
-    pa_tagstruct_put_boolean(t, !!cork);
+    pa_tagstruct_put_boolean(t, cork);
     pa_pstream_send_tagstruct(u->pstream, t);
 
     request_latency(u);
@@ -1251,7 +1251,7 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
 
     pa_assert(u->sink);
 
-    if ((u->version < 11 || !!mute == !!u->sink->muted) &&
+    if ((u->version < 11 || mute == u->sink->muted) &&
         pa_cvolume_equal(&volume, &u->sink->real_volume))
         return;
 

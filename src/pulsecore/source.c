@@ -117,7 +117,7 @@ void pa_source_new_data_set_muted(pa_source_new_data *data, bool mute) {
     pa_assert(data);
 
     data->muted_is_set = true;
-    data->muted = !!mute;
+    data->muted = mute;
 }
 
 void pa_source_new_data_set_port(pa_source_new_data *data, const char *port) {

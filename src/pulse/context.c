@@ -831,7 +831,7 @@ static int try_next_connection(pa_context *c) {
         if (!(c->client = pa_socket_client_new_string(c->mainloop, c->use_rtclock, u, PA_NATIVE_DEFAULT_PORT)))
             continue;
 
-        c->is_local = !!pa_socket_client_is_local(c->client);
+        c->is_local = pa_socket_client_is_local(c->client);
         pa_socket_client_set_callback(c->client, on_connection, c);
         break;
     }
@@ -1230,7 +1230,7 @@ int pa_context_is_local(pa_context *c) {
     PA_CHECK_VALIDITY_RETURN_ANY(c, !pa_detect_fork(), PA_ERR_FORKED, -1);
     PA_CHECK_VALIDITY_RETURN_ANY(c, PA_CONTEXT_IS_GOOD(c->state), PA_ERR_BADSTATE, -1);
 
-    return !!c->is_local;
+    return c->is_local;
 }
 
 pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata) {
