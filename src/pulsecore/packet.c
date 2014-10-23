@@ -26,6 +26,7 @@
 #include <pulse/xmalloc.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/refcnt.h>
+#include <pulsecore/flist.h>
 
 #include "packet.h"
 
@@ -41,12 +42,15 @@ typedef struct pa_packet {
     } per_type;
 } pa_packet;
 
+PA_STATIC_FLIST_DECLARE(packets, 0, pa_xfree);
+
 pa_packet* pa_packet_new(size_t length) {
     pa_packet *p;
 
     pa_assert(length > 0);
 
-    p = pa_xnew(pa_packet, 1);
+    if (!(p = pa_flist_pop(PA_STATIC_FLIST_GET(packets))))
+        p = pa_xnew(pa_packet, 1);
     PA_REFCNT_INIT(p);
     p->length = length;
     if (length > MAX_APPENDED_SIZE) {
@@ -77,7 +81,8 @@ pa_packet* pa_packet_new_dynamic(void* data, size_t length) {
     pa_assert(data);
     pa_assert(length > 0);
 
-    p = pa_xnew(pa_packet, 1);
+    if (!(p = pa_flist_pop(PA_STATIC_FLIST_GET(packets))))
+        p = pa_xnew(pa_packet, 1);
     PA_REFCNT_INIT(p);
     p->length = length;
     p->data = data;
@@ -111,6 +116,7 @@ void pa_packet_unref(pa_packet *p) {
     if (PA_REFCNT_DEC(p) <= 0) {
         if (p->type == PA_PACKET_DYNAMIC)
             pa_xfree(p->data);
-        pa_xfree(p);
+        if (pa_flist_push(PA_STATIC_FLIST_GET(packets), p) < 0)
+            pa_xfree(p);
     }
 }
