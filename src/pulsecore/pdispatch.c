@@ -305,7 +305,7 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet *packet, const pa_cmsg_ancil_da
     if (packet->length <= 8)
         goto finish;
 
-    ts = pa_tagstruct_new(packet->data, packet->length);
+    ts = pa_tagstruct_new_fixed(packet->data, packet->length);
 
     if (pa_tagstruct_getu32(ts, &command) < 0 ||
         pa_tagstruct_getu32(ts, &tag) < 0)

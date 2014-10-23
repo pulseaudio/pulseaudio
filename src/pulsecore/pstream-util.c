@@ -84,7 +84,7 @@ void pa_pstream_send_tagstruct_with_fds(pa_pstream *p, pa_tagstruct *t, int nfd,
 void pa_pstream_send_error(pa_pstream *p, uint32_t tag, uint32_t error) {
     pa_tagstruct *t;
 
-    pa_assert_se(t = pa_tagstruct_new(NULL, 0));
+    pa_assert_se(t = pa_tagstruct_new());
     pa_tagstruct_putu32(t, PA_COMMAND_ERROR);
     pa_tagstruct_putu32(t, tag);
     pa_tagstruct_putu32(t, error);
@@ -94,7 +94,7 @@ void pa_pstream_send_error(pa_pstream *p, uint32_t tag, uint32_t error) {
 void pa_pstream_send_simple_ack(pa_pstream *p, uint32_t tag) {
     pa_tagstruct *t;
 
-    pa_assert_se(t = pa_tagstruct_new(NULL, 0));
+    pa_assert_se(t = pa_tagstruct_new());
     pa_tagstruct_putu32(t, PA_COMMAND_REPLY);
     pa_tagstruct_putu32(t, tag);
     pa_pstream_send_tagstruct(p, t);

@@ -447,7 +447,7 @@ static void stream_cork(struct userdata *u, bool cork) {
     if (!u->pstream)
         return;
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
 #ifdef TUNNEL_SINK
     pa_tagstruct_putu32(t, PA_COMMAND_CORK_PLAYBACK_STREAM);
 #else
@@ -880,7 +880,7 @@ static void request_latency(struct userdata *u) {
     uint32_t tag;
     pa_assert(u);
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
 #ifdef TUNNEL_SINK
     pa_tagstruct_putu32(t, PA_COMMAND_GET_PLAYBACK_LATENCY);
 #else
@@ -942,7 +942,7 @@ static void update_description(struct userdata *u) {
                           pa_get_user_name(un, sizeof(un)),
                           pa_get_host_name(hn, sizeof(hn)));
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
 #ifdef TUNNEL_SINK
     pa_tagstruct_putu32(t, PA_COMMAND_SET_PLAYBACK_STREAM_NAME);
 #else
@@ -1362,14 +1362,14 @@ static void request_info(struct userdata *u) {
     uint32_t tag;
     pa_assert(u);
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_GET_SERVER_INFO);
     pa_tagstruct_putu32(t, tag = u->ctag++);
     pa_pstream_send_tagstruct(u->pstream, t);
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, server_info_cb, u, NULL);
 
 #ifdef TUNNEL_SINK
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_GET_SINK_INPUT_INFO);
     pa_tagstruct_putu32(t, tag = u->ctag++);
     pa_tagstruct_putu32(t, u->device_index);
@@ -1377,7 +1377,7 @@ static void request_info(struct userdata *u) {
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, sink_input_info_cb, u, NULL);
 
     if (u->sink_name) {
-        t = pa_tagstruct_new(NULL, 0);
+        t = pa_tagstruct_new();
         pa_tagstruct_putu32(t, PA_COMMAND_GET_SINK_INFO);
         pa_tagstruct_putu32(t, tag = u->ctag++);
         pa_tagstruct_putu32(t, PA_INVALID_INDEX);
@@ -1387,7 +1387,7 @@ static void request_info(struct userdata *u) {
     }
 #else
     if (u->source_name) {
-        t = pa_tagstruct_new(NULL, 0);
+        t = pa_tagstruct_new();
         pa_tagstruct_putu32(t, PA_COMMAND_GET_SOURCE_INFO);
         pa_tagstruct_putu32(t, tag = u->ctag++);
         pa_tagstruct_putu32(t, PA_INVALID_INDEX);
@@ -1434,7 +1434,7 @@ static void start_subscribe(struct userdata *u) {
     pa_tagstruct *t;
     pa_assert(u);
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_SUBSCRIBE);
     pa_tagstruct_putu32(t, u->ctag++);
     pa_tagstruct_putu32(t, PA_SUBSCRIPTION_MASK_SERVER|
@@ -1619,7 +1619,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
                 pa_get_host_name(hn, sizeof(hn)));
 #endif
 
-    reply = pa_tagstruct_new(NULL, 0);
+    reply = pa_tagstruct_new();
     pa_tagstruct_putu32(reply, PA_COMMAND_SET_CLIENT_NAME);
     pa_tagstruct_putu32(reply, u->ctag++);
 
@@ -1637,7 +1637,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_pstream_send_tagstruct(u->pstream, reply);
     /* We ignore the server's reply here */
 
-    reply = pa_tagstruct_new(NULL, 0);
+    reply = pa_tagstruct_new();
 
     if (u->version < 13)
         /* Only for older PA versions we need to fill in the maxlength */
@@ -1841,7 +1841,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     pa_pstream_set_receive_memblock_callback(u->pstream, pstream_memblock_callback, u);
 #endif
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_AUTH);
     pa_tagstruct_putu32(t, tag = u->ctag++);
     pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION);
@@ -1880,7 +1880,7 @@ static void sink_set_volume(pa_sink *sink) {
     u = sink->userdata;
     pa_assert(u);
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_INPUT_VOLUME);
     pa_tagstruct_putu32(t, u->ctag++);
     pa_tagstruct_putu32(t, u->device_index);
@@ -1900,7 +1900,7 @@ static void sink_set_mute(pa_sink *sink) {
     if (u->version < 11)
         return;
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_INPUT_MUTE);
     pa_tagstruct_putu32(t, u->ctag++);
     pa_tagstruct_putu32(t, u->device_index);

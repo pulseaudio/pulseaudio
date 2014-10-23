@@ -195,7 +195,7 @@ static bool entry_write(struct userdata *u, const char *name, const struct entry
     pa_assert(name);
     pa_assert(e);
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu8(t, e->version);
     pa_tagstruct_puts(t, e->profile);
     pa_tagstruct_putu32(t, pa_hashmap_size(e->ports));
@@ -273,7 +273,7 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
         return NULL;
     }
 
-    t = pa_tagstruct_new(data.data, data.size);
+    t = pa_tagstruct_new_fixed(data.data, data.size);
     e = entry_new();
 
     if (pa_tagstruct_getu8(t, &e->version) < 0 ||

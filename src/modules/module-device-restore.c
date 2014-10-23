@@ -151,7 +151,7 @@ static void trigger_save(struct userdata *u, pa_device_type_t type, uint32_t sin
         PA_IDXSET_FOREACH(c, u->subscribed, idx) {
             pa_tagstruct *t;
 
-            t = pa_tagstruct_new(NULL, 0);
+            t = pa_tagstruct_new();
             pa_tagstruct_putu32(t, PA_COMMAND_EXTENSION);
             pa_tagstruct_putu32(t, 0);
             pa_tagstruct_putu32(t, u->module->index);
@@ -200,7 +200,7 @@ static bool entry_write(struct userdata *u, const char *name, const struct entry
     pa_assert(name);
     pa_assert(e);
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu8(t, e->version);
     pa_tagstruct_put_boolean(t, e->port_valid);
     pa_tagstruct_puts(t, e->port);
@@ -236,7 +236,7 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
         return NULL;
     }
 
-    t = pa_tagstruct_new(data.data, data.size);
+    t = pa_tagstruct_new_fixed(data.data, data.size);
     e = entry_new();
 
     if (pa_tagstruct_getu8(t, &e->version) < 0 ||
@@ -371,7 +371,7 @@ static bool perportentry_write(struct userdata *u, const char *basekeyname, cons
     n_formats = pa_idxset_size(e->formats);
     pa_assert(n_formats > 0);
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu8(t, e->version);
     pa_tagstruct_put_boolean(t, e->volume_valid);
     pa_tagstruct_put_channel_map(t, &e->channel_map);
@@ -417,7 +417,7 @@ static struct perportentry* perportentry_read(struct userdata *u, const char *ba
     if (!pa_database_get(u->database, &key, &data))
         goto fail;
 
-    t = pa_tagstruct_new(data.data, data.size);
+    t = pa_tagstruct_new_fixed(data.data, data.size);
     e = perportentry_new(false);
 
     if (pa_tagstruct_getu8(t, &e->version) < 0 ||
@@ -1041,7 +1041,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
     if (pa_tagstruct_getu32(t, &command) < 0)
         goto fail;
 
-    reply = pa_tagstruct_new(NULL, 0);
+    reply = pa_tagstruct_new();
     pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
     pa_tagstruct_putu32(reply, tag);
 

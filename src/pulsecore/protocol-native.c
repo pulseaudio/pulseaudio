@@ -757,7 +757,7 @@ static void record_stream_send_killed(record_stream *r) {
     pa_tagstruct *t;
     record_stream_assert_ref(r);
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_RECORD_STREAM_KILLED);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(t, r->index);
@@ -818,7 +818,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
                     break;
             }
 
-            t = pa_tagstruct_new(NULL, 0);
+            t = pa_tagstruct_new();
             pa_tagstruct_putu32(t, PA_COMMAND_REQUEST);
             pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
             pa_tagstruct_putu32(t, s->index);
@@ -839,7 +839,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
 #endif
 
             /* Report that we're empty */
-            t = pa_tagstruct_new(NULL, 0);
+            t = pa_tagstruct_new();
             pa_tagstruct_putu32(t, PA_COMMAND_UNDERFLOW);
             pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
             pa_tagstruct_putu32(t, s->index);
@@ -853,7 +853,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
             pa_tagstruct *t;
 
             /* Notify the user we're overflowed*/
-            t = pa_tagstruct_new(NULL, 0);
+            t = pa_tagstruct_new();
             pa_tagstruct_putu32(t, PA_COMMAND_OVERFLOW);
             pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
             pa_tagstruct_putu32(t, s->index);
@@ -867,7 +867,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
                 pa_tagstruct *t;
 
                 /* Notify the user we started playback */
-                t = pa_tagstruct_new(NULL, 0);
+                t = pa_tagstruct_new();
                 pa_tagstruct_putu32(t, PA_COMMAND_STARTED);
                 pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
                 pa_tagstruct_putu32(t, s->index);
@@ -887,7 +887,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
             if (s->connection->version >= 15) {
                 pa_tagstruct *t;
 
-                t = pa_tagstruct_new(NULL, 0);
+                t = pa_tagstruct_new();
                 pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED);
                 pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
                 pa_tagstruct_putu32(t, s->index);
@@ -1285,7 +1285,7 @@ static void playback_stream_send_killed(playback_stream *p) {
     pa_tagstruct *t;
     playback_stream_assert_ref(p);
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_STREAM_KILLED);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(t, p->index);
@@ -1747,7 +1747,7 @@ static void sink_input_send_event_cb(pa_sink_input *i, const char *event, pa_pro
     if (s->connection->version < 15)
       return;
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_STREAM_EVENT);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(t, s->index);
@@ -1768,7 +1768,7 @@ static void sink_input_suspend_cb(pa_sink_input *i, bool suspend) {
     if (s->connection->version < 12)
       return;
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_STREAM_SUSPENDED);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(t, s->index);
@@ -1795,7 +1795,7 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     if (s->connection->version < 12)
       return;
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_STREAM_MOVED);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(t, s->index);
@@ -1885,7 +1885,7 @@ static void source_output_send_event_cb(pa_source_output *o, const char *event, 
     if (s->connection->version < 15)
       return;
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_RECORD_STREAM_EVENT);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(t, s->index);
@@ -1906,7 +1906,7 @@ static void source_output_suspend_cb(pa_source_output *o, bool suspend) {
     if (s->connection->version < 12)
       return;
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_RECORD_STREAM_SUSPENDED);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(t, s->index);
@@ -1934,7 +1934,7 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     if (s->connection->version < 12)
       return;
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_RECORD_STREAM_MOVED);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(t, s->index);
@@ -1975,7 +1975,7 @@ if (!(expression)) { \
 static pa_tagstruct *reply_new(uint32_t tag) {
     pa_tagstruct *reply;
 
-    reply = pa_tagstruct_new(NULL, 0);
+    reply = pa_tagstruct_new();
     pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
     pa_tagstruct_putu32(reply, tag);
     return reply;
@@ -2619,7 +2619,7 @@ static void setup_srbchannel(pa_native_connection *c) {
     pa_srbchannel_export(srb, &srbt);
 
     /* Send enable command to client */
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_ENABLE_SRBCHANNEL);
     pa_tagstruct_putu32(t, (size_t) srb); /* tag */
     fdlist[0] = srbt.readfd;
@@ -3744,7 +3744,7 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t e, uint3
 
     pa_native_connection_assert_ref(c);
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_SUBSCRIBE_EVENT);
     pa_tagstruct_putu32(t, (uint32_t) -1);
     pa_tagstruct_putu32(t, e);
@@ -5037,7 +5037,7 @@ static void client_send_event_cb(pa_client *client, const char*event, pa_proplis
     if (c->version < 15)
       return;
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_CLIENT_EVENT);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_puts(t, event);

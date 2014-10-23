@@ -369,7 +369,7 @@ static void handle_srbchannel_memblock(pa_context *c, pa_memblock *memblock) {
     }
 
     /* Ack the enable command */
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, PA_COMMAND_ENABLE_SRBCHANNEL);
     pa_tagstruct_putu32(t, c->srb_setup_tag);
     pa_pstream_send_tagstruct(c->pstream, t);
@@ -1305,7 +1305,7 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
     pa_assert(c);
     pa_assert(tag);
 
-    t = pa_tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new();
     pa_tagstruct_putu32(t, command);
     pa_tagstruct_putu32(t, *tag = c->ctag++);
 
@@ -1479,7 +1479,7 @@ static void pa_command_disable_srbchannel(pa_pdispatch *pd, uint32_t command, ui
     }
 
     /* Send disable command back again */
-    t2 = pa_tagstruct_new(NULL, 0);
+    t2 = pa_tagstruct_new();
     pa_tagstruct_putu32(t2, PA_COMMAND_DISABLE_SRBCHANNEL);
     pa_tagstruct_putu32(t2, tag);
     pa_pstream_send_tagstruct(c->pstream, t2);

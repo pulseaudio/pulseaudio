@@ -48,16 +48,28 @@ struct pa_tagstruct {
     bool dynamic;
 };
 
-pa_tagstruct *pa_tagstruct_new(const uint8_t* data, size_t length) {
+pa_tagstruct *pa_tagstruct_new(void) {
     pa_tagstruct*t;
 
-    pa_assert(!data || (data && length));
+    t = pa_xnew(pa_tagstruct, 1);
+    t->data = NULL;
+    t->allocated = t->length = 0;
+    t->rindex = 0;
+    t->dynamic = true;
+
+    return t;
+}
+
+pa_tagstruct *pa_tagstruct_new_fixed(const uint8_t* data, size_t length) {
+    pa_tagstruct*t;
+
+    pa_assert(data && length);
 
     t = pa_xnew(pa_tagstruct, 1);
     t->data = (uint8_t*) data;
-    t->allocated = t->length = data ? length : 0;
+    t->allocated = t->length = length;
     t->rindex = 0;
-    t->dynamic = !data;
+    t->dynamic = false;
 
     return t;
 }
