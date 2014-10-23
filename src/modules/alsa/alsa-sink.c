@@ -630,7 +630,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, bool polled, bo
 
             /* Check these are multiples of 8 bit */
             pa_assert((areas[0].first & 7) == 0);
-            pa_assert((areas[0].step & 7)== 0);
+            pa_assert((areas[0].step & 7) == 0);
 
             /* We assume a single interleaved memory buffer */
             pa_assert((areas[0].first >> 3) == 0);

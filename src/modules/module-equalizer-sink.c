@@ -1619,7 +1619,7 @@ void dbus_done(struct userdata *u) {
 
     pa_assert_se(sink_list=pa_shared_get(u->sink->core,SINKLIST));
     pa_idxset_remove_by_data(sink_list,u,&dummy);
-    if (pa_idxset_size(sink_list)==0) {
+    if (pa_idxset_size(sink_list) == 0) {
         pa_dbus_protocol_unregister_extension(u->dbus_protocol, EXTNAME);
         pa_dbus_protocol_remove_interface(u->dbus_protocol, MANAGER_PATH, manager_info.name);
         pa_shared_remove(u->sink->core, EQDB);
