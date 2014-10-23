@@ -648,7 +648,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, bool polled, bo
 
             if (PA_UNLIKELY((sframes = snd_pcm_mmap_commit(u->pcm_handle, offset, frames)) < 0)) {
 
-                if (!after_avail && (int) sframes == -EAGAIN)
+                if ((int) sframes == -EAGAIN)
                     break;
 
                 if ((r = try_recover(u, "snd_pcm_mmap_commit", (int) sframes)) == 0)
