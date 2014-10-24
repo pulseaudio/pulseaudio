@@ -114,6 +114,7 @@ static int bluez5_sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_
     src_addr = d->adapter->address;
     dst_addr = d->address;
 
+    /* don't use ba2str to avoid -lbluetooth */
     for (i = 5; i >= 0; i--, src_addr += 3)
         src.b[i] = strtol(src_addr, NULL, 16);
     for (i = 5; i >= 0; i--, dst_addr += 3)
@@ -230,13 +231,25 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
     if (events & PA_IO_EVENT_INPUT) {
         char buf[512];
         ssize_t len;
+        int gain;
 
         len = read(fd, buf, 511);
         buf[len] = 0;
         pa_log_debug("RFCOMM << %s", buf);
 
+        if (sscanf(buf, "AT+VGS=%d", &gain) == 1) {
+          t->speaker_gain = gain;
+          pa_hook_fire(pa_bluetooth_discovery_hook(t->device->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SPEAKER_GAIN_CHANGED), t);
+
+        } else if (sscanf(buf, "AT+VGM=%d", &gain) == 1) {
+          t->microphone_gain = gain;
+          pa_hook_fire(pa_bluetooth_discovery_hook(t->device->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_MICROPHONE_GAIN_CHANGED), t);
+        }
+
         pa_log_debug("RFCOMM >> OK");
-        len = write (fd, "\r\nOK\r\n", 5);
+
+        len = write(fd, "\r\nOK\r\n", 5);
+
         /* we ignore any errors, it's not critical and real errors should
          * be caught with the HANGUP and ERROR events handled above */
         if (len < 0)
@@ -260,6 +273,44 @@ static void transport_destroy(pa_bluetooth_transport *t) {
     close (trfc->rfcomm_fd);
 
     pa_xfree(trfc);
+}
+
+static void set_speaker_gain(pa_bluetooth_transport *t, uint16_t gain) {
+    struct transport_rfcomm *trfc = t->userdata;
+    char buf[512];
+    ssize_t len, written;
+
+    if (t->speaker_gain == gain)
+      return;
+
+    t->speaker_gain = gain;
+
+    len = sprintf(buf, "+VGS=%d\r\n", gain);
+    pa_log_debug("RFCOMM >> +VGS=%d", gain);
+
+    written = write(trfc->rfcomm_fd, buf, len);
+
+    if (written != len)
+        pa_log_error("RFCOMM write error: %s", pa_cstrerror(errno));
+}
+
+static void set_microphone_gain(pa_bluetooth_transport *t, uint16_t gain) {
+    struct transport_rfcomm *trfc = t->userdata;
+    char buf[512];
+    ssize_t len, written;
+
+    if (t->microphone_gain == gain)
+      return;
+
+    t->microphone_gain = gain;
+
+    len = sprintf(buf, "+VGM=%d\r\n", gain);
+    pa_log_debug("RFCOMM >> +VGM=%d", gain);
+
+    written = write (trfc->rfcomm_fd, buf, len);
+
+    if (written != len)
+        pa_log_error("RFCOMM write error: %s", pa_cstrerror(errno));
 }
 
 static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m, void *userdata) {
@@ -308,6 +359,8 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
     t->acquire = bluez5_sco_acquire_cb;
     t->release = bluez5_sco_release_cb;
     t->destroy = transport_destroy;
+    t->set_speaker_gain = set_speaker_gain;
+    t->set_microphone_gain = set_microphone_gain;
 
     trfc = pa_xnew0(struct transport_rfcomm, 1);
     trfc->rfcomm_fd = fd;
