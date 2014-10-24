@@ -1036,14 +1036,14 @@ AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
 ## Bluetooth Headset profiles backend ##
 
 AC_ARG_WITH(bluetooth_headset_backend,
-    AS_HELP_STRING([--with-bluetooth-headset-backend=<ofono|null>],[Backend for Bluetooth headset profiles (ofono)]))
+    AS_HELP_STRING([--with-bluetooth-headset-backend=<ofono|native|null>],[Backend for Bluetooth headset profiles (native)]))
 if test -z "$with_bluetooth_headset_backend" ; then
-    BLUETOOTH_HEADSET_BACKEND=ofono
+    BLUETOOTH_HEADSET_BACKEND=native
 else
     BLUETOOTH_HEADSET_BACKEND=$with_bluetooth_headset_backend
 fi
 
-AS_IF([test "x$BLUETOOTH_HEADSET_BACKEND" != "xofono" && test "x$BLUETOOTH_HEADSET_BACKEND" != "xnull"],
+AS_IF([test "x$BLUETOOTH_HEADSET_BACKEND" != "xofono" && test "x$BLUETOOTH_HEADSET_BACKEND" != "xnull" && test "x$BLUETOOTH_HEADSET_BACKEND" != "xnative"],
     [AC_MSG_ERROR([*** Invalid Bluetooth Headset backend])])
 
 AC_SUBST(BLUETOOTH_HEADSET_BACKEND)
