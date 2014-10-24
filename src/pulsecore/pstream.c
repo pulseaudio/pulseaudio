@@ -570,7 +570,6 @@ static void prepare_next_write_item(pa_pstream *p) {
             p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl((uint32_t) p->write.current->chunk.length);
             p->write.memchunk = p->write.current->chunk;
             pa_memblock_ref(p->write.memchunk.memblock);
-            p->write.data = NULL;
         }
 
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS] = htonl(flags);
