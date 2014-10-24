@@ -1210,6 +1210,19 @@ static int setup_transport(struct userdata *u) {
 }
 
 /* Run from main thread */
+static pa_direction_t get_profile_direction(pa_bluetooth_profile_t p) {
+    static const pa_direction_t profile_direction[] = {
+        [PA_BLUETOOTH_PROFILE_A2DP_SINK] = PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_A2DP_SOURCE] = PA_DIRECTION_INPUT,
+        [PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_OFF] = 0
+    };
+
+    return profile_direction[p];
+}
+
+/* Run from main thread */
 static int init_profile(struct userdata *u) {
     int r = 0;
     pa_assert(u);
@@ -1220,13 +1233,11 @@ static int init_profile(struct userdata *u) {
 
     pa_assert(u->transport);
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK || u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT ||
-        u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY)
+    if (get_profile_direction (u->profile) & PA_DIRECTION_OUTPUT)
         if (add_sink(u) < 0)
             r = -1;
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE || u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT ||
-        u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY)
+    if (get_profile_direction (u->profile) & PA_DIRECTION_INPUT)
         if (add_source(u) < 0)
             r = -1;
 
@@ -1543,19 +1554,6 @@ static char *cleanup_name(const char *name) {
     *d = 0;
 
     return t;
-}
-
-/* Run from main thread */
-static pa_direction_t get_profile_direction(pa_bluetooth_profile_t p) {
-    static const pa_direction_t profile_direction[] = {
-        [PA_BLUETOOTH_PROFILE_A2DP_SINK] = PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_A2DP_SOURCE] = PA_DIRECTION_INPUT,
-        [PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_OFF] = 0
-    };
-
-    return profile_direction[p];
 }
 
 /* Run from main thread */
