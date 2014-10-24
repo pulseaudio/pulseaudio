@@ -60,6 +60,7 @@ typedef enum pa_bluetooth_transport_state {
 
 typedef int (*pa_bluetooth_transport_acquire_cb)(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu);
 typedef void (*pa_bluetooth_transport_release_cb)(pa_bluetooth_transport *t);
+typedef void (*pa_bluetooth_transport_destroy_cb)(pa_bluetooth_transport *t);
 
 struct pa_bluetooth_transport {
     pa_bluetooth_device *device;
@@ -76,6 +77,7 @@ struct pa_bluetooth_transport {
 
     pa_bluetooth_transport_acquire_cb acquire;
     pa_bluetooth_transport_release_cb release;
+    pa_bluetooth_transport_destroy_cb destroy;
     void *userdata;
 };
 

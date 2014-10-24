@@ -205,6 +205,8 @@ void pa_bluetooth_transport_unlink(pa_bluetooth_transport *t) {
 void pa_bluetooth_transport_free(pa_bluetooth_transport *t) {
     pa_assert(t);
 
+    if (t->destroy)
+        t->destroy(t);
     pa_bluetooth_transport_unlink(t);
 
     pa_xfree(t->owner);
