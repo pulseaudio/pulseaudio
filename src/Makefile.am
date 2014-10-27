@@ -1270,7 +1270,6 @@ dist_alsapaths_DATA = \
 		modules/alsa/mixer/paths/analog-output-speaker.conf \
 		modules/alsa/mixer/paths/analog-output-speaker-always.conf \
 		modules/alsa/mixer/paths/analog-output.conf.common \
-		modules/alsa/mixer/paths/analog-output-desktop-speaker.conf \
 		modules/alsa/mixer/paths/analog-output-headphones.conf \
 		modules/alsa/mixer/paths/analog-output-headphones-2.conf \
 		modules/alsa/mixer/paths/analog-output-lineout.conf \
