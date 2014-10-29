@@ -737,7 +737,6 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m) {
     unsigned oc, ic;
     unsigned n_oc, n_ic;
     bool ic_connected[PA_CHANNELS_MAX];
-    bool remix;
     pa_strbuf *s;
     char *t;
 
@@ -755,16 +754,12 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m) {
     memset(m->map_table_i, 0, sizeof(m->map_table_i));
 
     memset(ic_connected, 0, sizeof(ic_connected));
-    remix = (r->flags & (PA_RESAMPLER_NO_REMAP | PA_RESAMPLER_NO_REMIX)) == 0;
 
     if (r->flags & PA_RESAMPLER_NO_REMAP) {
-        pa_assert(!remix);
-
         for (oc = 0; oc < PA_MIN(n_ic, n_oc); oc++)
             m->map_table_f[oc][oc] = 1.0f;
 
     } else if (r->flags & PA_RESAMPLER_NO_REMIX) {
-        pa_assert(!remix);
         for (oc = 0; oc < n_oc; oc++) {
             pa_channel_position_t b = r->o_cm.map[oc];
 
@@ -848,8 +843,6 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m) {
             ic_unconnected_center = 0,
             ic_unconnected_lfe = 0;
         bool ic_unconnected_center_mixed_in = 0;
-
-        pa_assert(remix);
 
         for (ic = 0; ic < n_ic; ic++) {
             if (on_left(r->i_cm.map[ic]))
