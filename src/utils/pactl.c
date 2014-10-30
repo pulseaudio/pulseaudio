@@ -1201,14 +1201,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
             switch (action) {
                 case STAT:
                     o = pa_context_stat(c, stat_callback, NULL);
-                    if (short_list_format)
-                        break;
-
-                    if (o) {
-                        pa_operation_unref(o);
-                        actions++;
-                    }
-                    /* Fall through */
+                    break;
 
                 case INFO:
                     o = pa_context_get_server_info(c, get_server_info_callback, NULL);
@@ -1563,7 +1556,7 @@ static enum mute_flags parse_mute(const char *mute_text) {
 
 static void help(const char *argv0) {
 
-    printf("%s %s %s\n",    argv0, _("[options]"), "stat [short]");
+    printf("%s %s %s\n",    argv0, _("[options]"), "stat");
     printf("%s %s %s\n",    argv0, _("[options]"), "info");
     printf("%s %s %s %s\n", argv0, _("[options]"), "list [short]", _("[TYPE]"));
     printf("%s %s %s\n",    argv0, _("[options]"), "exit");
@@ -1665,9 +1658,6 @@ int main(int argc, char *argv[]) {
     if (optind < argc) {
         if (pa_streq(argv[optind], "stat")) {
             action = STAT;
-            short_list_format = false;
-            if (optind+1 < argc && pa_streq(argv[optind+1], "short"))
-                short_list_format = true;
 
         } else if (pa_streq(argv[optind], "info"))
             action = INFO;

@@ -179,8 +179,6 @@ _pactl() {
     case $prev in
         list) COMPREPLY=($(compgen -W '${list_types[*]}' -- "$cur")) ;;
 
-        stat) COMPREPLY=($(compgen -W 'short' -- "$cur")) ;;
-
         upload-sample) _filedir ;;
 
         play-sample) ;; # TODO

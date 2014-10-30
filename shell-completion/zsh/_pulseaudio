@@ -465,7 +465,6 @@ _pactl_completion() {
         _command=$words[1]
 
         case $_command in
-            stat)                                  if ((CURRENT == 2)); then compadd short; fi;;
             list)                                  _list_parameter;;
             upload-sample)                         if ((CURRENT == 2)); then _files; fi;;
             play-sample)                           _play_sample_parameter;;
