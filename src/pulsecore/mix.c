@@ -707,10 +707,10 @@ void pa_volume_memchunk(
     if (pa_memblock_is_silence(c->memblock))
         return;
 
-    if (pa_cvolume_channels_equal_to(volume, PA_VOLUME_NORM))
+    if (pa_cvolume_is_norm(volume))
         return;
 
-    if (pa_cvolume_channels_equal_to(volume, PA_VOLUME_MUTED)) {
+    if (pa_cvolume_is_muted(volume)) {
         pa_silence_memchunk(c, spec);
         return;
     }
