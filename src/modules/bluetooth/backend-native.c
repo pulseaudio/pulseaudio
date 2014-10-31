@@ -248,7 +248,7 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
 
         pa_log_debug("RFCOMM >> OK");
 
-        len = write(fd, "\r\nOK\r\n", 5);
+        len = write(fd, "\r\nOK\r\n", 6);
 
         /* we ignore any errors, it's not critical and real errors should
          * be caught with the HANGUP and ERROR events handled above */
@@ -285,8 +285,8 @@ static void set_speaker_gain(pa_bluetooth_transport *t, uint16_t gain) {
 
     t->speaker_gain = gain;
 
-    len = sprintf(buf, "+VGS=%d\r\n", gain);
-    pa_log_debug("RFCOMM >> +VGS=%d", gain);
+    len = sprintf(buf, "AT+VGS=%d\r", gain);
+    pa_log_debug("RFCOMM >> AT+VGS=%d", gain);
 
     written = write(trfc->rfcomm_fd, buf, len);
 
@@ -304,8 +304,8 @@ static void set_microphone_gain(pa_bluetooth_transport *t, uint16_t gain) {
 
     t->microphone_gain = gain;
 
-    len = sprintf(buf, "+VGM=%d\r\n", gain);
-    pa_log_debug("RFCOMM >> +VGM=%d", gain);
+    len = sprintf(buf, "AT+VGM=%d\r", gain);
+    pa_log_debug("RFCOMM >> AT+VGM=%d", gain);
 
     written = write (trfc->rfcomm_fd, buf, len);
 
