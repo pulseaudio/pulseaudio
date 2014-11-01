@@ -19,6 +19,8 @@ _devices() {
         case $words[$((CURRENT - 1))] in
             set-sink-input-*) cmd=('sink-inputs');;
             set-sink-*) cmd=('sinks');;
+            set-default-sink) cmd=('sinks');;
+            set-default-source) cmd=('sources');;
             set-source-output-*) cmd=('source-outputs');;
             set-source-*) cmd=('sources');;
             suspend-sink) cmd=('sinks');;
