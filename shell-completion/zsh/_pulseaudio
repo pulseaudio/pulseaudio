@@ -248,7 +248,7 @@ _pactl_completion() {
             'move-source-output: move a recording stream to a source'
             'suspend-sink: suspend or resume a sink'
             'suspend-source: suspend or resume a source'
-            'set-card-profile: set a card profile:cards:_cards'
+            'set-card-profile: set a card profile'
             'set-default-sink: set the default sink'
             'set-default-source: set the default source'
             'set-sink-port: set the sink port of a sink'
