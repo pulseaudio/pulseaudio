@@ -630,11 +630,12 @@ size_t pa_mix(
     pa_assert(data);
     pa_assert(length);
     pa_assert(spec);
+    pa_assert(nstreams > 1);
 
     if (!volume)
         volume = pa_cvolume_reset(&full_volume, spec->channels);
 
-    if (mute || pa_cvolume_is_muted(volume) || nstreams <= 0) {
+    if (mute || pa_cvolume_is_muted(volume)) {
         pa_silence_memory(data, length, spec);
         return length;
     }
