@@ -641,9 +641,8 @@ size_t pa_mix(
     }
 
     for (k = 0; k < nstreams; k++) {
+        pa_assert(length <= streams[k].chunk.length);
         streams[k].ptr = pa_memblock_acquire_chunk(&streams[k].chunk);
-        if (length > streams[k].chunk.length)
-            length = streams[k].chunk.length;
     }
 
     calc_stream_volumes_table[spec->format](streams, nstreams, volume, spec);
