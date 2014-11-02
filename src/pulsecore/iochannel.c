@@ -412,11 +412,9 @@ ssize_t pa_iochannel_read_with_ancil_data(pa_iochannel*io, void*data, size_t l, 
         return pa_iochannel_read(io, data, l);
     }
 
-    pa_zero(iov);
     iov.iov_base = data;
     iov.iov_len = l;
 
-    pa_zero(cmsg);
     pa_zero(mh);
     mh.msg_iov = &iov;
     mh.msg_iovlen = 1;
