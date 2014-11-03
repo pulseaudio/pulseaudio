@@ -157,8 +157,6 @@ int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const voi
     if (!(i.semaphore = pa_flist_pop(PA_STATIC_FLIST_GET(semaphores))))
         i.semaphore = pa_semaphore_new(0);
 
-    pa_assert_se(i.semaphore);
-
     /* This mutex makes the queue multiple-writer safe. This lock is only used on the writing side */
     pa_mutex_lock(a->mutex);
     pa_assert_se(pa_asyncq_push(a->asyncq, &i, true) == 0);
