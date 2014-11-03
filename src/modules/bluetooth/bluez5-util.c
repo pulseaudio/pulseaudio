@@ -87,7 +87,7 @@ struct pa_bluetooth_discovery {
     pa_hashmap *devices;
     pa_hashmap *transports;
 
-    pa_bluetooth_backend *backend;
+    pa_bluetooth_backend *ofono_backend, *native_backend;
     PA_LLIST_HEAD(pa_dbus_pending, pending);
 };
 
@@ -899,8 +899,10 @@ static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) 
 
     y->objects_listed = true;
 
-    if (!y->backend)
-        y->backend = pa_bluetooth_backend_new(y->core, y);
+    if (!y->ofono_backend)
+        y->ofono_backend = pa_bluetooth_ofono_backend_new(y->core, y);
+    if (!y->ofono_backend && !y->native_backend)
+        y->native_backend = pa_bluetooth_native_backend_new(y->core, y);
 
 finish:
     dbus_message_unref(r);
@@ -954,9 +956,13 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 pa_hashmap_remove_all(y->devices);
                 pa_hashmap_remove_all(y->adapters);
                 y->objects_listed = false;
-                if (y->backend) {
-                    pa_bluetooth_backend_free(y->backend);
-                    y->backend = NULL;
+                if (y->ofono_backend) {
+                    pa_bluetooth_ofono_backend_free(y->ofono_backend);
+                    y->ofono_backend = NULL;
+                }
+                if (y->native_backend) {
+                    pa_bluetooth_native_backend_free(y->native_backend);
+                    y->native_backend = NULL;
                 }
             }
 
@@ -1648,8 +1654,10 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
         pa_hashmap_free(y->transports);
     }
 
-    if (y->backend)
-        pa_bluetooth_backend_free(y->backend);
+    if (y->ofono_backend)
+        pa_bluetooth_ofono_backend_free(y->ofono_backend);
+    if (y->native_backend)
+        pa_bluetooth_native_backend_free(y->native_backend);
 
     if (y->connection) {
 

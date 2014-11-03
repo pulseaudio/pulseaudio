@@ -1035,18 +1035,22 @@ AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
 
 ## Bluetooth Headset profiles backend ##
 
-AC_ARG_WITH(bluetooth_headset_backend,
-    AS_HELP_STRING([--with-bluetooth-headset-backend=<ofono|native|null>],[Backend for Bluetooth headset profiles (native)]))
-if test -z "$with_bluetooth_headset_backend" ; then
-    BLUETOOTH_HEADSET_BACKEND=native
-else
-    BLUETOOTH_HEADSET_BACKEND=$with_bluetooth_headset_backend
-fi
+AC_ARG_ENABLE([bluez5-ofono-headset],
+    AS_HELP_STRING([--disable-bluez5-ofono-headset],[Disable optional ofono headset backend support (Bluez 5)]))
+AS_IF([test "x$HAVE_BLUEZ_5" = "x1" && test "x$enable_bluez5_ofono_headset" != "xno"], HAVE_BLUEZ_5_OFONO_HEADSET=1)
+AC_SUBST(HAVE_BLUEZ_5_OFONO_HEADSET)
+AM_CONDITIONAL([HAVE_BLUEZ_5_OFONO_HEADSET], [test "x$HAVE_BLUEZ_5_OFONO_HEADSET" = x1])
+AS_IF([test "x$HAVE_BLUEZ_5_OFONO_HEADSET" = "x1"], AC_DEFINE([HAVE_BLUEZ_5_OFONO_HEADSET], 1, [Bluez 5 ofono headset backend enabled]))
 
-AS_IF([test "x$BLUETOOTH_HEADSET_BACKEND" != "xofono" && test "x$BLUETOOTH_HEADSET_BACKEND" != "xnull" && test "x$BLUETOOTH_HEADSET_BACKEND" != "xnative"],
-    [AC_MSG_ERROR([*** Invalid Bluetooth Headset backend])])
+AC_ARG_ENABLE([bluez5-native-headset],
+    AS_HELP_STRING([--disable-bluez5-native-headset],[Disable optional native headset backend support (Bluez 5)]))
+AS_IF([test "x$HAVE_BLUEZ_5" = "x1" && test "x$enable_bluez5_native_headset" != "xno"], HAVE_BLUEZ_5_NATIVE_HEADSET=1)
+AS_IF([test "x$HAVE_BLUEZ_5_NATIVE_HEADSET" = "x1"], [PKG_CHECK_MODULES(BLUEZ, [ bluez >= 4.101 ], [],
+    [AC_MSG_ERROR([*** Bluez library not found (required by native headset backend)])])])
 
-AC_SUBST(BLUETOOTH_HEADSET_BACKEND)
+AC_SUBST(HAVE_BLUEZ_5_NATIVE_HEADSET)
+AM_CONDITIONAL([HAVE_BLUEZ_5_NATIVE_HEADSET], [test "x$HAVE_BLUEZ_5_NATIVE_HEADSET" = x1])
+AS_IF([test "x$HAVE_BLUEZ_5_NATIVE_HEADSET" = "x1"], AC_DEFINE([HAVE_BLUEZ_5_NATIVE_HEADSET], 1, [Bluez 5 native headset backend enabled]))
 
 #### UDEV support (optional) ####
 
@@ -1509,6 +1513,8 @@ AS_IF([test "x$HAVE_SYSTEMD_LOGIN" = "x1"], ENABLE_SYSTEMD_LOGIN=yes, ENABLE_SYS
 AS_IF([test "x$HAVE_SYSTEMD_JOURNAL" = "x1"], ENABLE_SYSTEMD_JOURNAL=yes, ENABLE_SYSTEMD_JOURNAL=no)
 AS_IF([test "x$HAVE_BLUEZ_4" = "x1"], ENABLE_BLUEZ_4=yes, ENABLE_BLUEZ_4=no)
 AS_IF([test "x$HAVE_BLUEZ_5" = "x1"], ENABLE_BLUEZ_5=yes, ENABLE_BLUEZ_5=no)
+AS_IF([test "x$HAVE_BLUEZ_5_OFONO_HEADSET" = "x1"], ENABLE_BLUEZ_5_OFONO_HEADSET=yes, ENABLE_BLUEZ_5_OFONO_HEADSET=no)
+AS_IF([test "x$HAVE_BLUEZ_5_NATIVE_HEADSET" = "x1"], ENABLE_BLUEZ_5_NATIVE_HEADSET=yes, ENABLE_BLUEZ_5_NATIVE_HEADSET=no)
 AS_IF([test "x$HAVE_HAL_COMPAT" = "x1"], ENABLE_HAL_COMPAT=yes, ENABLE_HAL_COMPAT=no)
 AS_IF([test "x$HAVE_TCPWRAP" = "x1"], ENABLE_TCPWRAP=yes, ENABLE_TCPWRAP=no)
 AS_IF([test "x$HAVE_LIBSAMPLERATE" = "x1"], ENABLE_LIBSAMPLERATE=yes, ENABLE_LIBSAMPLERATE=no)
@@ -1563,7 +1569,8 @@ echo "
     Enable D-Bus:                  ${ENABLE_DBUS}
       Enable BlueZ 4:              ${ENABLE_BLUEZ_4}
       Enable BlueZ 5:              ${ENABLE_BLUEZ_5}
-        headset backend:           ${BLUETOOTH_HEADSET_BACKEND}
+        Enable ofono headsets:     ${ENABLE_BLUEZ_5_OFONO_HEADSET}
+        Enable native headsets:    ${ENABLE_BLUEZ_5_NATIVE_HEADSET}
     Enable udev:                   ${ENABLE_UDEV}
       Enable HAL->udev compat:     ${ENABLE_HAL_COMPAT}
     Enable systemd

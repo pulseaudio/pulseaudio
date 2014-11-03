@@ -464,7 +464,7 @@ static void profile_done(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile
     }
 }
 
-pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c, pa_bluetooth_discovery *y) {
+pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_discovery *y) {
     pa_bluetooth_backend *backend;
     DBusError err;
 
@@ -488,7 +488,7 @@ pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c, pa_bluetooth_discover
     return backend;
 }
 
-void pa_bluetooth_backend_free(pa_bluetooth_backend *backend) {
+void pa_bluetooth_native_backend_free(pa_bluetooth_backend *backend) {
     pa_assert(backend);
 
     pa_dbus_free_pending_list(&backend->pending);

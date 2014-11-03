@@ -117,8 +117,25 @@ struct pa_bluetooth_adapter {
     bool valid;
 };
 
-pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c, pa_bluetooth_discovery *y);
-void pa_bluetooth_backend_free(pa_bluetooth_backend *b);
+#ifdef HAVE_BLUEZ_5_OFONO_HEADSET
+pa_bluetooth_backend *pa_bluetooth_ofono_backend_new(pa_core *c, pa_bluetooth_discovery *y);
+void pa_bluetooth_ofono_backend_free(pa_bluetooth_backend *b);
+#else
+static inline pa_bluetooth_backend *pa_bluetooth_ofono_backend_new(pa_core *c, pa_bluetooth_discovery *y) {
+    return NULL;
+}
+static inline void pa_bluetooth_ofono_backend_free(pa_bluetooth_backend *b) {}
+#endif
+
+#ifdef HAVE_BLUEZ_5_NATIVE_HEADSET
+pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_discovery *y);
+void pa_bluetooth_native_backend_free(pa_bluetooth_backend *b);
+#else
+static inline pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_discovery *y) {
+    return NULL;
+}
+static inline void pa_bluetooth_native_backend_free(pa_bluetooth_backend *b) {}
+#endif
 
 pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,
                                                    pa_bluetooth_profile_t p, const uint8_t *config, size_t size);

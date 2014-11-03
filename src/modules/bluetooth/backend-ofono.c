@@ -582,7 +582,7 @@ static DBusHandlerResult hf_audio_agent_handler(DBusConnection *c, DBusMessage *
     return DBUS_HANDLER_RESULT_HANDLED;
 }
 
-pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c, pa_bluetooth_discovery *y) {
+pa_bluetooth_backend *pa_bluetooth_ofono_backend_new(pa_core *c, pa_bluetooth_discovery *y) {
     pa_bluetooth_backend *backend;
     DBusError err;
     static const DBusObjectPathVTable vtable_hf_audio_agent = {
@@ -635,7 +635,7 @@ pa_bluetooth_backend *pa_bluetooth_backend_new(pa_core *c, pa_bluetooth_discover
     return backend;
 }
 
-void pa_bluetooth_backend_free(pa_bluetooth_backend *backend) {
+void pa_bluetooth_ofono_backend_free(pa_bluetooth_backend *backend) {
     pa_assert(backend);
 
     pa_dbus_free_pending_list(&backend->pending);
