@@ -157,4 +157,5 @@ const char *pa_bluetooth_profile_to_string(pa_bluetooth_profile_t profile);
 pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core);
 pa_bluetooth_discovery* pa_bluetooth_discovery_ref(pa_bluetooth_discovery *y);
 void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y);
+void pa_bluetooth_discovery_set_ofono_running(pa_bluetooth_discovery *y, bool is_running);
 #endif

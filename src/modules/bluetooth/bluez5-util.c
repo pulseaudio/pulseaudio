@@ -861,6 +861,18 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
     return;
 }
 
+void pa_bluetooth_discovery_set_ofono_running(pa_bluetooth_discovery *y, bool is_running) {
+    pa_assert(y);
+
+    pa_log_debug("oFono is running: %s", pa_yes_no(is_running));
+    if (is_running && y->native_backend) {
+        pa_bluetooth_native_backend_free(y->native_backend);
+        y->native_backend = NULL;
+    }
+    else if (!is_running && !y->native_backend)
+        y->native_backend = pa_bluetooth_native_backend_new(y->core, y);
+}
+
 static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) {
     pa_dbus_pending *p;
     pa_bluetooth_discovery *y;

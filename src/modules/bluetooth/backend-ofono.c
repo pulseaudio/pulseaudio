@@ -336,6 +336,16 @@ static void hf_audio_agent_get_cards(pa_bluetooth_backend *hf) {
     hf_dbus_send_and_add_to_pending(hf, m, hf_audio_agent_get_cards_reply, NULL);
 }
 
+static void ofono_bus_id_destroy(pa_bluetooth_backend *backend) {
+    pa_hashmap_remove_all(backend->cards);
+
+    if (backend->ofono_bus_id) {
+        pa_xfree(backend->ofono_bus_id);
+        backend->ofono_bus_id = NULL;
+        pa_bluetooth_discovery_set_ofono_running(backend->discovery, false);
+    }
+}
+
 static void hf_audio_agent_register_reply(DBusPendingCall *pending, void *userdata) {
     DBusMessage *r;
     pa_dbus_pending *p;
@@ -360,6 +370,8 @@ finish:
 
     PA_LLIST_REMOVE(pa_dbus_pending, backend->pending, p);
     pa_dbus_pending_free(p);
+
+    pa_bluetooth_discovery_set_ofono_running(backend->discovery, backend->ofono_bus_id != NULL);
 }
 
 static void hf_audio_agent_register(pa_bluetooth_backend *hf) {
@@ -393,8 +405,7 @@ static void hf_audio_agent_unregister(pa_bluetooth_backend *backend) {
         pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_OBJECT_PATH, &path, DBUS_TYPE_INVALID));
         pa_assert_se(dbus_connection_send(pa_dbus_connection_get(backend->connection), m, NULL));
 
-        pa_xfree(backend->ofono_bus_id);
-        backend->ofono_bus_id = NULL;
+        ofono_bus_id_destroy(backend);
     }
 }
 
@@ -429,11 +440,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *da
 
             if (old_owner && *old_owner) {
                 pa_log_debug("oFono disappeared");
-
-                pa_hashmap_remove_all(backend->cards);
-
-                pa_xfree(backend->ofono_bus_id);
-                backend->ofono_bus_id = NULL;
+                ofono_bus_id_destroy(backend);
             }
 
             if (new_owner && *new_owner) {
@@ -490,10 +497,7 @@ static DBusMessage *hf_audio_agent_release(DBusConnection *c, DBusMessage *m, vo
 
     pa_log_debug("HF audio agent has been unregistered by oFono (%s)", backend->ofono_bus_id);
 
-    pa_hashmap_remove_all(backend->cards);
-
-    pa_xfree(backend->ofono_bus_id);
-    backend->ofono_bus_id = NULL;
+    ofono_bus_id_destroy(backend);
 
     pa_assert_se(r = dbus_message_new_method_return(m));
 
