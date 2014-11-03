@@ -260,15 +260,14 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
         if (errno == EADDRINUSE && fallback) {
             sa.sin_port = 0;
 
-            if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) >= 0)
-                goto good;
+            if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+                pa_log("bind(): %s", pa_cstrerror(errno));
+                goto fail;
+            }
+        } else {
+            pa_log("bind(): %s", pa_cstrerror(errno));
+            goto fail;
         }
-
-        pa_log("bind(): %s", pa_cstrerror(errno));
-        goto fail;
-
-    good:
-        ;
     }
 
     if (listen(fd, 5) < 0) {
@@ -329,15 +328,14 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
         if (errno == EADDRINUSE && fallback) {
             sa.sin6_port = 0;
 
-            if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) >= 0)
-                goto good;
+            if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+                pa_log("bind(): %s", pa_cstrerror(errno));
+                goto fail;
+            }
+        } else {
+            pa_log("bind(): %s", pa_cstrerror(errno));
+            goto fail;
         }
-
-        pa_log("bind(): %s", pa_cstrerror(errno));
-        goto fail;
-
-    good:
-        ;
     }
 
     if (listen(fd, 5) < 0) {
