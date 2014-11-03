@@ -298,10 +298,10 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
         goto fail;
     }
 
-    if ((ss = pa_socket_server_new(m, fd))) {
-        ss->type = SOCKET_SERVER_IPV4;
-        ss->tcpwrap_service = pa_xstrdup(tcpwrap_service);
-    }
+    pa_assert_se(ss = pa_socket_server_new(m, fd));
+
+    ss->type = SOCKET_SERVER_IPV4;
+    ss->tcpwrap_service = pa_xstrdup(tcpwrap_service);
 
     return ss;
 
@@ -366,10 +366,10 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
         goto fail;
     }
 
-    if ((ss = pa_socket_server_new(m, fd))) {
-        ss->type = SOCKET_SERVER_IPV6;
-        ss->tcpwrap_service = pa_xstrdup(tcpwrap_service);
-    }
+    pa_assert_se(ss = pa_socket_server_new(m, fd));
+
+    ss->type = SOCKET_SERVER_IPV6;
+    ss->tcpwrap_service = pa_xstrdup(tcpwrap_service);
 
     return ss;
 
