@@ -468,7 +468,7 @@ pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_d
     pa_bluetooth_backend *backend;
     DBusError err;
 
-    pa_log_debug("Bluetooth Headset Backend API support using the NULL backend");
+    pa_log_debug("Bluetooth Headset Backend API support using the native backend");
 
     backend = pa_xnew0(pa_bluetooth_backend, 1);
     backend->core = c;
