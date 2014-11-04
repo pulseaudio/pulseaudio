@@ -127,6 +127,8 @@ struct userdata {
         watermark_dec_threshold,
         rewind_safeguard;
 
+    snd_pcm_uframes_t frames_per_block;
+
     pa_usec_t watermark_dec_not_before;
     pa_usec_t min_latency_ref;
     pa_usec_t tsched_watermark_usec;
@@ -619,8 +621,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, bool polled, bo
             }
 
             /* Make sure that if these memblocks need to be copied they will fit into one slot */
-            if (frames > pa_mempool_block_size_max(u->core->mempool)/u->frame_size)
-                frames = pa_mempool_block_size_max(u->core->mempool)/u->frame_size;
+            frames = PA_MIN(frames, u->frames_per_block);
 
             if (!after_avail && frames == 0)
                 break;
@@ -2328,6 +2329,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
     u->frame_size = frame_size;
+    u->frames_per_block = pa_mempool_block_size_max(m->core->mempool) / frame_size;
     u->fragment_size = frag_size = (size_t) (period_frames * frame_size);
     u->hwbuf_size = buffer_size = (size_t) (buffer_frames * frame_size);
     pa_cvolume_mute(&u->hardware_volume, u->sink->sample_spec.channels);
