@@ -252,53 +252,73 @@ pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *file
 pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address, uint16_t port, bool fallback, const char *tcpwrap_service) {
     pa_socket_server *ss;
     int fd = -1;
+    bool activated = false;
     struct sockaddr_in sa;
     int on = 1;
 
     pa_assert(m);
     pa_assert(port);
 
-    if ((fd = pa_socket_cloexec(PF_INET, SOCK_STREAM, 0)) < 0) {
-        pa_log("socket(PF_INET): %s", pa_cstrerror(errno));
-        goto fail;
+#ifdef HAVE_SYSTEMD_DAEMON
+    {
+        int n = sd_listen_fds(0);
+        if (n > 0) {
+            for (int i = 0; i < n; ++i) {
+                if (sd_is_socket_inet(SD_LISTEN_FDS_START + i, AF_INET, SOCK_STREAM, 1, port) > 0) {
+                    fd = SD_LISTEN_FDS_START + i;
+                    activated = true;
+                    pa_log_info("Found socket activation socket for ipv4 in port '%d' \\o/", port);
+                    break;
+                }
+            }
+        }
     }
-
-#ifdef SO_REUSEADDR
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const void *) &on, sizeof(on)) < 0)
-        pa_log("setsockopt(): %s", pa_cstrerror(errno));
 #endif
 
-    pa_make_tcp_socket_low_delay(fd);
+    if (fd < 0) {
+        if ((fd = pa_socket_cloexec(PF_INET, SOCK_STREAM, 0)) < 0) {
+            pa_log("socket(PF_INET): %s", pa_cstrerror(errno));
+            goto fail;
+        }
 
-    memset(&sa, 0, sizeof(sa));
-    sa.sin_family = AF_INET;
-    sa.sin_port = htons(port);
-    sa.sin_addr.s_addr = htonl(address);
+#ifdef SO_REUSEADDR
+        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const void *) &on, sizeof(on)) < 0)
+            pa_log("setsockopt(): %s", pa_cstrerror(errno));
+#endif
 
-    if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+        pa_make_tcp_socket_low_delay(fd);
 
-        if (errno == EADDRINUSE && fallback) {
-            sa.sin_port = 0;
+        memset(&sa, 0, sizeof(sa));
+        sa.sin_family = AF_INET;
+        sa.sin_port = htons(port);
+        sa.sin_addr.s_addr = htonl(address);
 
-            if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+        if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+
+            if (errno == EADDRINUSE && fallback) {
+                sa.sin_port = 0;
+
+                if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+                    pa_log("bind(): %s", pa_cstrerror(errno));
+                    goto fail;
+                }
+            } else {
                 pa_log("bind(): %s", pa_cstrerror(errno));
                 goto fail;
             }
-        } else {
-            pa_log("bind(): %s", pa_cstrerror(errno));
+        }
+
+        if (listen(fd, 5) < 0) {
+            pa_log("listen(): %s", pa_cstrerror(errno));
             goto fail;
         }
-    }
-
-    if (listen(fd, 5) < 0) {
-        pa_log("listen(): %s", pa_cstrerror(errno));
-        goto fail;
     }
 
     pa_assert_se(ss = socket_server_new(m, fd));
 
     ss->type = SOCKET_SERVER_IPV4;
     ss->tcpwrap_service = pa_xstrdup(tcpwrap_service);
+    ss->activated = activated;
 
     return ss;
 
@@ -313,60 +333,80 @@ fail:
 pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t address[16], uint16_t port, bool fallback, const char *tcpwrap_service) {
     pa_socket_server *ss;
     int fd = -1;
+    bool activated = false;
     struct sockaddr_in6 sa;
     int on;
 
     pa_assert(m);
     pa_assert(port > 0);
 
-    if ((fd = pa_socket_cloexec(PF_INET6, SOCK_STREAM, 0)) < 0) {
-        pa_log("socket(PF_INET6): %s", pa_cstrerror(errno));
-        goto fail;
+#ifdef HAVE_SYSTEMD_DAEMON
+    {
+        int n = sd_listen_fds(0);
+        if (n > 0) {
+            for (int i = 0; i < n; ++i) {
+                if (sd_is_socket_inet(SD_LISTEN_FDS_START + i, AF_INET6, SOCK_STREAM, 1, port) > 0) {
+                    fd = SD_LISTEN_FDS_START + i;
+                    activated = true;
+                    pa_log_info("Found socket activation socket for ipv6 in port '%d' \\o/", port);
+                    break;
+                }
+            }
+        }
     }
+#endif
+
+    if (fd < 0) {
+        if ((fd = pa_socket_cloexec(PF_INET6, SOCK_STREAM, 0)) < 0) {
+            pa_log("socket(PF_INET6): %s", pa_cstrerror(errno));
+            goto fail;
+        }
 
 #ifdef IPV6_V6ONLY
-    on = 1;
-    if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, (const void *) &on, sizeof(on)) < 0)
-        pa_log("setsockopt(IPPROTO_IPV6, IPV6_V6ONLY): %s", pa_cstrerror(errno));
+        on = 1;
+        if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, (const void *) &on, sizeof(on)) < 0)
+            pa_log("setsockopt(IPPROTO_IPV6, IPV6_V6ONLY): %s", pa_cstrerror(errno));
 #endif
 
 #ifdef SO_REUSEADDR
-    on = 1;
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const void *) &on, sizeof(on)) < 0)
-        pa_log("setsockopt(SOL_SOCKET, SO_REUSEADDR, 1): %s", pa_cstrerror(errno));
+        on = 1;
+        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const void *) &on, sizeof(on)) < 0)
+            pa_log("setsockopt(SOL_SOCKET, SO_REUSEADDR, 1): %s", pa_cstrerror(errno));
 #endif
 
-    pa_make_tcp_socket_low_delay(fd);
+        pa_make_tcp_socket_low_delay(fd);
 
-    memset(&sa, 0, sizeof(sa));
-    sa.sin6_family = AF_INET6;
-    sa.sin6_port = htons(port);
-    memcpy(sa.sin6_addr.s6_addr, address, 16);
+        memset(&sa, 0, sizeof(sa));
+        sa.sin6_family = AF_INET6;
+        sa.sin6_port = htons(port);
+        memcpy(sa.sin6_addr.s6_addr, address, 16);
 
-    if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+        if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
 
-        if (errno == EADDRINUSE && fallback) {
-            sa.sin6_port = 0;
+            if (errno == EADDRINUSE && fallback) {
+                sa.sin6_port = 0;
 
-            if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+                if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+                    pa_log("bind(): %s", pa_cstrerror(errno));
+                    goto fail;
+                }
+            } else {
                 pa_log("bind(): %s", pa_cstrerror(errno));
                 goto fail;
             }
-        } else {
-            pa_log("bind(): %s", pa_cstrerror(errno));
+        }
+
+        if (listen(fd, 5) < 0) {
+            pa_log("listen(): %s", pa_cstrerror(errno));
             goto fail;
         }
-    }
-
-    if (listen(fd, 5) < 0) {
-        pa_log("listen(): %s", pa_cstrerror(errno));
-        goto fail;
     }
 
     pa_assert_se(ss = socket_server_new(m, fd));
 
     ss->type = SOCKET_SERVER_IPV6;
     ss->tcpwrap_service = pa_xstrdup(tcpwrap_service);
+    ss->activated = activated;
 
     return ss;
 
