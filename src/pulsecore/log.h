@@ -48,7 +48,7 @@ typedef enum pa_log_level {
     PA_LOG_WARN   = 1,    /* Warning messages */
     PA_LOG_NOTICE = 2,    /* Notice messages */
     PA_LOG_INFO   = 3,    /* Info messages */
-    PA_LOG_DEBUG  = 4,    /* debug message */
+    PA_LOG_DEBUG  = 4,    /* Debug messages */
     PA_LOG_LEVEL_MAX
 } pa_log_level_t;
 
