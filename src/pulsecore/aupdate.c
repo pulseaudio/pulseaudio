@@ -79,7 +79,7 @@ unsigned pa_aupdate_read_begin(pa_aupdate *a) {
 }
 
 void pa_aupdate_read_end(pa_aupdate *a) {
-    unsigned n;
+    unsigned PA_UNUSED n;
 
     pa_assert(a);
 

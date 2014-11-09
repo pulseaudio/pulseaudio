@@ -36,7 +36,7 @@
 
 START_TEST (format_test) {
     pa_format_info *f1 = NULL, *f2 = NULL;
-    int rates1[] = { 32000, 44100, 48000 }, i, temp_int1 = -1, temp_int2 = -1, *temp_int_array;
+    int rates1[] = { 32000, 44100, 48000 }, i, temp_int1 = -1, PA_UNUSED temp_int2 = -1, *temp_int_array;
     const char *strings[] = { "thing1", "thing2", "thing3" };
     char *temp_str, **temp_str_array;
 

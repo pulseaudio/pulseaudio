@@ -644,7 +644,7 @@ static void sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) 
 /* Called from main context */
 void pa_sink_input_unlink(pa_sink_input *i) {
     bool linked;
-    pa_source_output *o, *p = NULL;
+    pa_source_output *o, PA_UNUSED *p = NULL;
 
     pa_assert(i);
     pa_assert_ctl_context();
@@ -1519,7 +1519,7 @@ bool pa_sink_input_may_move(pa_sink_input *i) {
 }
 
 static bool find_filter_sink_input(pa_sink_input *target, pa_sink *s) {
-    int i = 0;
+    unsigned PA_UNUSED i = 0;
     while (s && s->input_to_master) {
         if (s->input_to_master == target)
             return true;
@@ -1565,7 +1565,7 @@ bool pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
 
 /* Called from main context */
 int pa_sink_input_start_move(pa_sink_input *i) {
-    pa_source_output *o, *p = NULL;
+    pa_source_output *o, PA_UNUSED *p = NULL;
     struct volume_factor_entry *v;
     void *state = NULL;
     int r;

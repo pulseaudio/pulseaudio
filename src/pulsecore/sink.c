@@ -669,7 +669,7 @@ void pa_sink_put(pa_sink* s) {
 /* Called from main context */
 void pa_sink_unlink(pa_sink* s) {
     bool linked;
-    pa_sink_input *i, *j = NULL;
+    pa_sink_input *i, PA_UNUSED *j = NULL;
 
     pa_assert(s);
     pa_assert_ctl_context();

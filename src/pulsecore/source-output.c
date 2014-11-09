@@ -1175,7 +1175,7 @@ bool pa_source_output_may_move(pa_source_output *o) {
 }
 
 static bool find_filter_source_output(pa_source_output *target, pa_source *s) {
-    int i = 0;
+    unsigned PA_UNUSED i = 0;
     while (s && s->output_from_master) {
         if (s->output_from_master == target)
             return true;

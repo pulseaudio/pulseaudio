@@ -320,7 +320,7 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
     pa_bluetooth_profile_t p;
     DBusMessage *r;
     int fd;
-    const char *sender, *path, *handler;
+    const char *sender, *path, PA_UNUSED *handler;
     DBusMessageIter arg_i;
     char *pathfd;
     struct transport_rfcomm *trfc;
@@ -331,7 +331,7 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
     }
 
     handler = dbus_message_get_path(m);
-    pa_assert (pa_streq(handler, HSP_AG_PROFILE));
+    pa_assert(pa_streq(handler, HSP_AG_PROFILE));
 
     pa_assert(dbus_message_iter_get_arg_type(&arg_i) == DBUS_TYPE_OBJECT_PATH);
     dbus_message_iter_get_basic(&arg_i, &path);

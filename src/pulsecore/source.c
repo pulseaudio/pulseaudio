@@ -612,7 +612,7 @@ void pa_source_put(pa_source *s) {
 /* Called from main context */
 void pa_source_unlink(pa_source *s) {
     bool linked;
-    pa_source_output *o, *j = NULL;
+    pa_source_output *o, PA_UNUSED *j = NULL;
 
     pa_assert(s);
     pa_assert_ctl_context();
