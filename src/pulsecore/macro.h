@@ -231,7 +231,7 @@ static inline size_t PA_PAGE_ALIGN(size_t l) {
 #endif
 
 #ifdef NDEBUG
-#define pa_assert_not_reached() pa_nop()
+#define pa_assert_not_reached() abort()
 #else
 #define pa_assert_not_reached()                                         \
     do {                                                                \
