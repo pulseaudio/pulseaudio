@@ -3155,8 +3155,7 @@ static bool element_is_subset(pa_alsa_element *a, pa_alsa_element *b, snd_mixer_
             else if (a->volume_use == PA_ALSA_VOLUME_MERGE)
                 a_limit = a->volume_limit;
             else
-                /* This should never be reached */
-                pa_assert(false);
+                pa_assert_not_reached();
 
             if (a_limit > b->volume_limit)
                 return false;
