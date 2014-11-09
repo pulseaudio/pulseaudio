@@ -495,7 +495,7 @@ static void sink_set_volume(pa_sink *s) {
         AUDIO_INITINFO(&info);
 
         info.play.gain = pa_cvolume_max(&s->real_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
-        assert(info.play.gain <= AUDIO_MAX_GAIN);
+        pa_assert(info.play.gain <= AUDIO_MAX_GAIN);
 
         if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
             if (errno == EINVAL)
@@ -530,7 +530,7 @@ static void source_set_volume(pa_source *s) {
         AUDIO_INITINFO(&info);
 
         info.play.gain = pa_cvolume_max(&s->real_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
-        assert(info.play.gain <= AUDIO_MAX_GAIN);
+        pa_assert(info.play.gain <= AUDIO_MAX_GAIN);
 
         if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
             if (errno == EINVAL)
@@ -817,7 +817,7 @@ finish:
 static void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void *userdata) {
     struct userdata *u = userdata;
 
-    assert(u);
+    pa_assert(u);
 
     pa_log_debug("caught signal");
 

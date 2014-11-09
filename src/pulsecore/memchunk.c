@@ -111,7 +111,7 @@ pa_memchunk* pa_memchunk_memcpy(pa_memchunk *dst, pa_memchunk *src) {
 }
 
 bool pa_memchunk_isset(pa_memchunk *chunk) {
-    assert(chunk);
+    pa_assert(chunk);
 
     return
         chunk->memblock ||

@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
 
     for (i = 0; i < THREADS_MAX; i++) {
         threads[i] = pa_thread_new("test", thread_func, pa_sprintf_malloc("Thread #%i", i+1));
-        assert(threads[i]);
+        pa_assert(threads[i]);
     }
 
     pa_msleep(60000);

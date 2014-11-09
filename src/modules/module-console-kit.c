@@ -240,7 +240,7 @@ static int get_session_list(struct userdata *u) {
         if ((at = dbus_message_iter_get_arg_type(&sub)) == DBUS_TYPE_INVALID)
             break;
 
-        assert(at == DBUS_TYPE_OBJECT_PATH);
+        pa_assert(at == DBUS_TYPE_OBJECT_PATH);
         dbus_message_iter_get_basic(&sub, &id);
 
         add_session(u, id);

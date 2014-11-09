@@ -41,7 +41,7 @@ static int set_block(int fd, int blocking) {
 
     int v;
 
-    assert(fd >= 0);
+    pa_assert(fd >= 0);
 
     if ((v = fcntl(fd, F_GETFL)) < 0)
         return -1;

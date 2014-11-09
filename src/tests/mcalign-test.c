@@ -21,7 +21,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -56,7 +55,7 @@ int main(int argc, char *argv[]) {
             c.index = c.length = 0;
         }
 
-        assert(c.index < pa_memblock_get_length(c.memblock));
+        pa_assert(c.index < pa_memblock_get_length(c.memblock));
 
         l = pa_memblock_get_length(c.memblock) - c.index;
 

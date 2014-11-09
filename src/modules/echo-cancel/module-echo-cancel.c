@@ -1559,14 +1559,14 @@ uint32_t pa_echo_canceller_blocksize_power2(unsigned rate, unsigned ms) {
     unsigned nframes = (rate * ms) / 1000;
     uint32_t y = 1 << ((8 * sizeof(uint32_t)) - 2);
 
-    assert(rate >= 4000);
-    assert(ms >= 1);
+    pa_assert(rate >= 4000);
+    pa_assert(ms >= 1);
 
     /* nframes should be a power of 2, round down to nearest power of two */
     while (y > nframes)
         y >>= 1;
 
-    assert(y >= 1);
+    pa_assert(y >= 1);
     return y;
 }
 
