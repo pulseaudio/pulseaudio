@@ -72,7 +72,7 @@ static int cal_state = CALIBRATION_ONE;
 
 static void calibrate_write_cb(pa_stream *s, size_t nbytes, void *userdata) {
     pa_lo_test_context *ctx = (pa_lo_test_context *) userdata;
-    int i, r, nsamp = nbytes / ctx->fs;
+    int i, nsamp = nbytes / ctx->fs;
     float tmp[nsamp][2];
     static int count = 0;
 
@@ -80,8 +80,7 @@ static void calibrate_write_cb(pa_stream *s, size_t nbytes, void *userdata) {
     for (i = 0; i < nsamp; i++)
         tmp[i][0] = tmp[i][1] = cal_state == CALIBRATION_ONE ? sinf(count++ * TONE_HZ * 2 * M_PI / ctx->sample_spec.rate) : 0.0f;
 
-    r = pa_stream_write(s, &tmp, nbytes, nop_free_cb, 0, PA_SEEK_RELATIVE);
-    pa_assert(r == 0);
+    pa_assert_se(pa_stream_write(s, &tmp, nbytes, nop_free_cb, 0, PA_SEEK_RELATIVE) == 0);
 
     if (cal_state == CALIBRATION_DONE)
         pa_stream_set_write_callback(s, ctx->write_cb, ctx);
@@ -94,12 +93,11 @@ static void calibrate_read_cb(pa_stream *s, size_t nbytes, void *userdata) {
 
     pa_cvolume vol;
     pa_operation *o;
-    int r, nsamp;
+    int nsamp;
     float *in;
     size_t l;
 
-    r = pa_stream_peek(s, (const void **)&in, &l);
-    pa_assert(r == 0);
+    pa_assert_se(pa_stream_peek(s, (const void **)&in, &l) == 0);
 
     nsamp = l / ctx->fs;
 
