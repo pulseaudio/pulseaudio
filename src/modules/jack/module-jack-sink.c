@@ -232,7 +232,7 @@ static void thread_func(void *userdata) {
         if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
             pa_sink_process_rewind(u->sink, 0);
 
-        if ((ret = pa_rtpoll_run(u->rtpoll, true)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll)) < 0)
             goto fail;
 
         if (ret == 0)
