@@ -171,6 +171,11 @@ else
 pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(IMMEDIATE_LDFLAGS) -dlopen force $(foreach f,$(PREOPEN_LIBS),-dlopen $(f))
 endif
 
+if HAVE_SYSTEMD_DAEMON
+pulseaudio_CFLAGS += $(SYSTEMD_FLAGS) $(SYSTEMDDAEMON_FLAGS)
+pulseaudio_LDFLAGS += $(SYSTEMD_LIBS) $(SYSTEMDDAEMON_LIBS)
+endif
+
 ###################################
 #       Utility programs          #
 ###################################
