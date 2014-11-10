@@ -27,6 +27,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/module.h>
+#include <pulsecore/modargs.h>
 #include <pulsecore/shared.h>
 
 #include "bluez5-util.h"
@@ -37,6 +38,14 @@ PA_MODULE_AUTHOR("João Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Detect available BlueZ 5 Bluetooth audio devices and load BlueZ 5 Bluetooth audio drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
+PA_MODULE_USAGE(
+    "headset=ofono|native|auto"
+);
+
+static const char* const valid_modargs[] = {
+    "headset",
+    NULL
+};
 
 struct userdata {
     pa_module *module;
@@ -83,26 +92,54 @@ static pa_hook_result_t device_connection_changed_cb(pa_bluetooth_discovery *y, 
     return PA_HOOK_OK;
 }
 
+#ifdef HAVE_BLUEZ_5_NATIVE_HEADSET
+const char *default_headset_backend = "native";
+#else
+const char *default_headset_backend = "ofono";
+#endif
+
 int pa__init(pa_module *m) {
     struct userdata *u;
+    pa_modargs *ma;
+    const char *headset_str;
+    int headset_backend;
 
     pa_assert(m);
+
+    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
+        pa_log("failed to parse module arguments.");
+        goto fail;
+    }
+
+    pa_assert_se(headset_str = pa_modargs_get_value(ma, "headset", default_headset_backend));
+    if (pa_streq(headset_str, "ofono"))
+        headset_backend = HEADSET_BACKEND_OFONO;
+    else if (pa_streq(headset_str, "native"))
+        headset_backend = HEADSET_BACKEND_NATIVE;
+    else if (pa_streq(headset_str, "auto"))
+        headset_backend = HEADSET_BACKEND_AUTO;
+    else {
+        pa_log("headset parameter must be either ofono, native or auto (found %s)", headset_str);
+        goto fail;
+    }
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
     u->core = m->core;
     u->loaded_device_paths = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    if (!(u->discovery = pa_bluetooth_discovery_get(u->core)))
+    if (!(u->discovery = pa_bluetooth_discovery_get(u->core, headset_backend)))
         goto fail;
 
     u->device_connection_changed_slot =
         pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED),
                         PA_HOOK_NORMAL, (pa_hook_cb_t) device_connection_changed_cb, u);
 
+    pa_modargs_free(ma);
     return 0;
 
 fail:
+    pa_modargs_free(ma);
     pa__done(m);
     return -1;
 }

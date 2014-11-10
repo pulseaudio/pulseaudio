@@ -87,6 +87,7 @@ struct pa_bluetooth_discovery {
     pa_hashmap *devices;
     pa_hashmap *transports;
 
+    int headset_backend;
     pa_bluetooth_backend *ofono_backend, *native_backend;
     PA_LLIST_HEAD(pa_dbus_pending, pending);
 };
@@ -865,6 +866,9 @@ void pa_bluetooth_discovery_set_ofono_running(pa_bluetooth_discovery *y, bool is
     pa_assert(y);
 
     pa_log_debug("oFono is running: %s", pa_yes_no(is_running));
+    if (y->headset_backend != HEADSET_BACKEND_AUTO)
+        return;
+
     if (is_running && y->native_backend) {
         pa_bluetooth_native_backend_free(y->native_backend);
         y->native_backend = NULL;
@@ -911,9 +915,9 @@ static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) 
 
     y->objects_listed = true;
 
-    if (!y->ofono_backend)
+    if (!y->ofono_backend && y->headset_backend != HEADSET_BACKEND_NATIVE)
         y->ofono_backend = pa_bluetooth_ofono_backend_new(y->core, y);
-    if (!y->ofono_backend && !y->native_backend)
+    if (!y->ofono_backend && !y->native_backend && y->headset_backend != HEADSET_BACKEND_OFONO)
         y->native_backend = pa_bluetooth_native_backend_new(y->core, y);
 
 finish:
@@ -1568,7 +1572,7 @@ static void endpoint_done(pa_bluetooth_discovery *y, pa_bluetooth_profile_t prof
     }
 }
 
-pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
+pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c, int headset_backend) {
     pa_bluetooth_discovery *y;
     DBusError err;
     DBusConnection *conn;
@@ -1577,6 +1581,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
     y = pa_xnew0(pa_bluetooth_discovery, 1);
     PA_REFCNT_INIT(y);
     y->core = c;
+    y->headset_backend = headset_backend;
     y->adapters = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL,
                                       (pa_free_cb_t) adapter_free);
     y->devices = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL,

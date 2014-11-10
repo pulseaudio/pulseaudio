@@ -154,7 +154,11 @@ pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hoo
 
 const char *pa_bluetooth_profile_to_string(pa_bluetooth_profile_t profile);
 
-pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core);
+#define HEADSET_BACKEND_OFONO 0
+#define HEADSET_BACKEND_NATIVE 1
+#define HEADSET_BACKEND_AUTO 2
+
+pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core, int headset_backend);
 pa_bluetooth_discovery* pa_bluetooth_discovery_ref(pa_bluetooth_discovery *y);
 void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y);
 void pa_bluetooth_discovery_set_ofono_running(pa_bluetooth_discovery *y, bool is_running);
