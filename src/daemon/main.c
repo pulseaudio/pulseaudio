@@ -910,6 +910,10 @@ int main(int argc, char *argv[]) {
     pa_log_debug("Compilation host: %s", CANONICAL_HOST);
     pa_log_debug("Compilation CFLAGS: %s", PA_CFLAGS);
 
+#ifdef HAVE_LIBSAMPLERATE
+    pa_log_warn("Compiled with DEPRECATED libsamplerate support!");
+#endif
+
     s = pa_uname_string();
     pa_log_debug("Running on host: %s", s);
     pa_xfree(s);
