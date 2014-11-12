@@ -23,6 +23,7 @@ paplay
 pasuspender
 pax11publish
 pulseaudio
+pulseaudio.service
 start-pulseaudio-x11
 *-symdef.h
 *-orc-gen.[ch]
