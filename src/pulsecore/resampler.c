@@ -234,7 +234,7 @@ static bool sample_format_more_precise(pa_sample_format_t a, pa_sample_format_t 
         case PA_SAMPLE_S32LE:
         case PA_SAMPLE_S32BE:
             if (b == PA_SAMPLE_FLOAT32LE || b == PA_SAMPLE_FLOAT32BE ||
-                b == PA_SAMPLE_S32LE || b == PA_SAMPLE_FLOAT32BE)
+                b == PA_SAMPLE_S32LE || b == PA_SAMPLE_S32BE)
                 return false;
             else
                 return true;
