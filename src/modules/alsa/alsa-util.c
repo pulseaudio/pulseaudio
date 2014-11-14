@@ -184,7 +184,8 @@ static int set_buffer_size(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams,
 }
 
 /* Set the hardware parameters of the given ALSA device. Returns the
- * selected fragment settings in *buffer_size and *period_size. If tsched mode can be enabled */
+ * selected fragment settings in *buffer_size and *period_size. Determine
+ * whether mmap and tsched mode can be enabled. */
 int pa_alsa_set_hw_params(
         snd_pcm_t *pcm_handle,
         pa_sample_spec *ss,
@@ -263,7 +264,7 @@ int pa_alsa_set_hw_params(
             else
                 pa_log_info("Trying to disable ALSA period wakeups, using timers only");
         } else
-            pa_log_info("cannot disable ALSA period wakeups");
+            pa_log_info("Cannot disable ALSA period wakeups");
     }
 #endif
 
