@@ -285,8 +285,8 @@ static void set_speaker_gain(pa_bluetooth_transport *t, uint16_t gain) {
 
     t->speaker_gain = gain;
 
-    len = sprintf(buf, "AT+VGS=%d\r", gain);
-    pa_log_debug("RFCOMM >> AT+VGS=%d", gain);
+    len = sprintf(buf, "\r\n+VGS=%d\r\n", gain);
+    pa_log_debug("RFCOMM >> +VGS=%d", gain);
 
     written = write(trfc->rfcomm_fd, buf, len);
 
@@ -304,8 +304,8 @@ static void set_microphone_gain(pa_bluetooth_transport *t, uint16_t gain) {
 
     t->microphone_gain = gain;
 
-    len = sprintf(buf, "AT+VGM=%d\r", gain);
-    pa_log_debug("RFCOMM >> AT+VGM=%d", gain);
+    len = sprintf(buf, "\r\n+VGM=%d\r\n", gain);
+    pa_log_debug("RFCOMM >> +VGM=%d", gain);
 
     written = write (trfc->rfcomm_fd, buf, len);
 
