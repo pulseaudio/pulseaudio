@@ -181,6 +181,19 @@ static int set_buffer_size(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams,
     return 0;
 }
 
+static void check_access(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, bool use_mmap) {
+    if ((use_mmap && !snd_pcm_hw_params_test_access(pcm_handle, hwparams, SND_PCM_ACCESS_MMAP_INTERLEAVED)) ||
+        !snd_pcm_hw_params_test_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED))
+        pa_log_error("Weird, PCM claims to support interleaved access, but snd_pcm_hw_params_set_access() failed.");
+
+    if ((use_mmap && !snd_pcm_hw_params_test_access(pcm_handle, hwparams, SND_PCM_ACCESS_MMAP_NONINTERLEAVED)) ||
+        !snd_pcm_hw_params_test_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_NONINTERLEAVED))
+        pa_log_error("PCM seems to support non-interleaved access, but PA doesn't.");
+    else if (use_mmap && !snd_pcm_hw_params_test_access(pcm_handle, hwparams, SND_PCM_ACCESS_MMAP_COMPLEX)) {
+        pa_log_error("PCM seems to support mmapped complex access, but PA doesn't.");
+    }
+}
+
 /* Set the hardware parameters of the given ALSA device. Returns the
  * selected fragment settings in *buffer_size and *period_size. Determine
  * whether mmap and tsched mode can be enabled. */
@@ -227,6 +240,7 @@ int pa_alsa_set_hw_params(
 
             if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
                 pa_log_debug("snd_pcm_hw_params_set_access() failed: %s", pa_alsa_strerror(ret));
+                check_access(pcm_handle, hwparams, true);
                 goto finish;
             }
 
@@ -235,6 +249,7 @@ int pa_alsa_set_hw_params(
 
     } else if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
         pa_log_debug("snd_pcm_hw_params_set_access() failed: %s", pa_alsa_strerror(ret));
+        check_access(pcm_handle, hwparams, false);
         goto finish;
     }
 
