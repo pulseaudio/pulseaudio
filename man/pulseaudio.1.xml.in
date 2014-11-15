@@ -457,7 +457,9 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     server addresses separated by whitespace which are tried in turn. A server
     address consists of an optional address type specifier (unix:, tcp:, tcp4:,
     tcp6:), followed by a path or host address. A host address may include an
-    optional port number.</p>
+    optional port number. A server address may be prefixed by a string enclosed
+    in {}. In this case the following server address is ignored unless the prefix
+    string equals the local hostname or the machine id (/etc/machine-id).</p>
 
     <p><arg>$PULSE_SINK</arg>: the symbolic name of the sink to connect to when a client creates a playback stream and doesn't explicitly ask for a specific sink.</p>
 
