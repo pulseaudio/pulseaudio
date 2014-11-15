@@ -814,6 +814,11 @@ static int try_next_connection(pa_context *c) {
                     track_pulseaudio_on_dbus(c, DBUS_BUS_SESSION, &c->session_bus);
                 if (!c->system_bus)
                     track_pulseaudio_on_dbus(c, DBUS_BUS_SYSTEM, &c->system_bus);
+
+                if (c->session_bus || c->system_bus) {
+                    pa_log_debug("Waiting for PA on D-Bus...");
+                    break;
+                }
             } else
 #endif
                 pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
