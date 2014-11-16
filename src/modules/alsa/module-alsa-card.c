@@ -335,15 +335,26 @@ static void report_port_state(pa_device_port *p, struct userdata *u) {
 
         cpa = jack->plugged_in ? jack->state_plugged : jack->state_unplugged;
 
-        /* "Yes" and "no" trumphs "unknown" if we have more than one jack */
-        if (cpa == PA_AVAILABLE_UNKNOWN)
-            continue;
-
-        if ((cpa == PA_AVAILABLE_NO && pa == PA_AVAILABLE_YES) ||
-            (pa == PA_AVAILABLE_NO && cpa == PA_AVAILABLE_YES))
-            pa_log_warn("Availability of port '%s' is inconsistent!", p->name);
-        else
+        if (cpa == PA_AVAILABLE_NO) {
+          /* If a plugged-in jack causes the availability to go to NO, it
+           * should override all other availability information (like a
+           * blacklist) so set and bail */
+          if (jack->plugged_in) {
             pa = cpa;
+            break;
+          }
+
+          /* If the current availablility is unknown go the more precise no,
+           * but otherwise don't change state */
+          if (pa == PA_AVAILABLE_UNKNOWN)
+            pa = cpa;
+        } else if (cpa == PA_AVAILABLE_YES) {
+          /* Output is available through at least one jack, so go to that
+           * level of availability. We still need to continue iterating through
+           * the jacks in case a jack is plugged in that forces the state to no
+           */
+          pa = cpa;
+        }
     }
 
     pa_device_port_set_available(p, pa);
