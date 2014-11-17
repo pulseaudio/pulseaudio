@@ -1453,7 +1453,6 @@ po/Makefile.in
 man/pulseaudio.1.xml
 man/esdcompat.1.xml
 man/pax11publish.1.xml
-man/paplay.1.xml
 man/pacat.1.xml
 man/pacmd.1.xml
 man/pactl.1.xml

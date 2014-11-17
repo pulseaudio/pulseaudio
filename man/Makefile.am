@@ -20,7 +20,6 @@ noinst_DATA = \
 	pulseaudio.1.xml \
 	esdcompat.1.xml \
 	pax11publish.1.xml \
-	paplay.1.xml \
 	pacat.1.xml \
 	pacmd.1.xml \
 	pactl.1.xml \
@@ -43,7 +42,6 @@ dist_man_MANS = \
 	pulseaudio.1 \
 	esdcompat.1 \
 	pax11publish.1 \
-	paplay.1 \
 	pacat.1 \
 	pacmd.1 \
 	pactl.1 \
@@ -67,7 +65,6 @@ EXTRA_DIST = \
 	pulseaudio.1.xml.in \
 	esdcompat.1.xml.in \
 	pax11publish.1.xml.in \
-	paplay.1.xml.in \
 	pacat.1.xml.in \
 	pacmd.1.xml.in \
 	pactl.1.xml.in \
