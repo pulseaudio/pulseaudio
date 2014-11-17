@@ -59,6 +59,22 @@ CLEANFILES = \
 %: %.xml Makefile
 	$(AM_V_GEN) perl $(srcdir)/xmltoman $< > $@ || rm -f $@
 
+if OS_IS_WIN32
+SYMLINK_PROGRAM=cd $(DESTDIR)$(man1dir) && cp
+else
+SYMLINK_PROGRAM=ln -sf
+endif
+install-data-hook:
+	$(SYMLINK_PROGRAM) pacat.1 $(DESTDIR)$(man1dir)/paplay.1
+	$(SYMLINK_PROGRAM) pacat.1 $(DESTDIR)$(man1dir)/parec.1
+	$(SYMLINK_PROGRAM) pacat.1 $(DESTDIR)$(man1dir)/parecord.1
+	$(SYMLINK_PROGRAM) pacat.1 $(DESTDIR)$(man1dir)/pamon.1
+
+uninstall-hook:
+	rm -f $(DESTDIR)$(man1dir)/paplay.1
+	rm -f $(DESTDIR)$(man1dir)/parec.1
+	rm -f $(DESTDIR)$(man1dir)/parecord.1
+	rm -f $(DESTDIR)$(man1dir)/pamon.1
 endif
 
 EXTRA_DIST = \
