@@ -727,7 +727,7 @@ static void handle_set_active_port(DBusConnection *conn, DBusMessage *msg, DBusM
     const char *new_active_path;
     pa_dbusiface_device_port *port;
     void *state;
-    pa_dbusiface_device_port *new_active;
+    pa_dbusiface_device_port *new_active = NULL;
     int r;
 
     pa_assert(conn);
