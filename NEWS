@@ -1,3 +1,64 @@
+PulseAudio 6.0
+
+Changes at a glance:
+
+  * Bluez 5 HSP (headset profile) support, both with and without oFono
+  * SystemD socket activation support
+  * Better support for multichannel and 2.1 profiles
+  * Protocol optimisations
+  * Zsh shell completion support
+  * Remap optimisations
+  * Lots of other enhancements, bug fixes, and documenation and i18n updates
+
+Detailed change log:
+
+  http://www.freedesktop.org/wiki/Software/PulseAudio/Notes/6.0
+
+Contributors:
+
+  Alexander Couzens
+  Alexander E. Patrakov
+  Alexander Kurtz
+  Alexander Potashev
+  Andrey Semashev
+  Arun Raghavan
+  Bradley Broom
+  Colin Guthrie
+  David Henningsson
+  Dimitris Spingos
+  Dušan Kazik
+  Evan Nemerson
+  Felipe Sateler
+  Hemanth Meenakshisundaram
+  Hui Wang
+  James Bunton
+  Javier Jardón
+  João Paulo Rechi Vita
+  Joe Marcus Clarke
+  Juho Hämäläinen
+  Luiz Augusto von Dentz
+  Lukas Peleska
+  Lukasz Marek
+  Mauro Guerrera
+  Michał Górny
+  Niels Ole Salscheider
+  Pali Rohár
+  Parin Porecha
+  Pete Beardmore
+  Peter Meerwald
+  Peter Ujfalusi
+  Pierre Ossman
+  poljar (Damir Jelić)
+  Rafael Ferreira
+  Rex Dieter
+  Ricardo Salveti de Araujo
+  Sajeesh Sidharthan
+  Sjoerd Simons
+  Tanu Kaskinen
+  Wim Taymans
+  Yuri Chornoivan
+
+
 PulseAudio 5.0
 
 Changes at a glance:
