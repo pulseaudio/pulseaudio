@@ -6,7 +6,6 @@ Changes at a glance:
   * SystemD socket activation support
   * Better support for multichannel and 2.1 profiles
   * Protocol optimisations
-  * Zsh shell completion support
   * Remap optimisations
   * Lots of other enhancements, bug fixes, and documenation and i18n updates
 
