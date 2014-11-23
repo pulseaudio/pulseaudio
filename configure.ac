@@ -1049,11 +1049,11 @@ AS_IF([test "x$HAVE_BLUEZ_5_OFONO_HEADSET" = "x1"], AC_DEFINE([HAVE_BLUEZ_5_OFON
 
 AC_ARG_ENABLE([bluez5-native-headset],
     AS_HELP_STRING([--disable-bluez5-native-headset],[Disable optional native headset backend support (Bluez 5)]))
-AS_IF([test "x$HAVE_BLUEZ_5" = "x1" && test "x$enable_bluez5_native_headset" != "xno"], HAVE_BLUEZ_5_NATIVE_HEADSET=1,
+AS_IF([test "x$HAVE_BLUEZ_5" = "x1" && test "x$enable_bluez5_native_headset" != "xno"],
+      [PKG_CHECK_MODULES(BLUEZ, [ bluez >= 4.101 ], HAVE_BLUEZ_5_NATIVE_HEADSET=1, HAVE_BLUEZ_5_NATIVE_HEADSET=0)],
       HAVE_BLUEZ_5_NATIVE_HEADSET=0)
-AS_IF([test "x$HAVE_BLUEZ_5_NATIVE_HEADSET" = "x1"], [PKG_CHECK_MODULES(BLUEZ, [ bluez >= 4.101 ], [],
-    [AC_MSG_ERROR([*** Bluez library not found (required by native headset backend)])])])
-
+AS_IF([test "x$enable_bluez5_native_headset" = "xyes" && test "x$HAVE_BLUEZ_5_NATIVE_HEADSET" = "x0"],
+      [AC_MSG_ERROR([*** BlueZ 5 native headset backend support not available (requires the libbluetooth headers)])])
 AC_SUBST(HAVE_BLUEZ_5_NATIVE_HEADSET)
 AM_CONDITIONAL([HAVE_BLUEZ_5_NATIVE_HEADSET], [test "x$HAVE_BLUEZ_5_NATIVE_HEADSET" = x1])
 AS_IF([test "x$HAVE_BLUEZ_5_NATIVE_HEADSET" = "x1"], AC_DEFINE([HAVE_BLUEZ_5_NATIVE_HEADSET], 1, [Bluez 5 native headset backend enabled]))
