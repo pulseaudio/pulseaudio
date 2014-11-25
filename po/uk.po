@@ -7,8 +7,8 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: https://bugs.freedesktop.org/enter_bug.cgi?"
 "product=PulseAudio&keywords=I18N+L10N&component=misc\n"
-"POT-Creation-Date: 2014-05-30 15:56+0000\n"
-"PO-Revision-Date: 2014-06-23 21:20+0300\n"
+"POT-Creation-Date: 2014-09-08 22:21+0000\n"
+"PO-Revision-Date: 2014-11-25 10:23+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation@linux.org.ua>\n"
 "Language: uk\n"
@@ -18,10 +18,6 @@ msgstr ""
 "X-Generator: Lokalize 1.5\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-
-#: ../src/daemon/caps.c:54
-msgid "Cleaning up privileges."
-msgstr "Позбуваємося прав доступу."
 
 #: ../src/daemon/cmdline.c:113
 #, c-format
@@ -281,47 +277,47 @@ msgstr "[%s:%u] Некоректне значення rlimit «%s»."
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Некоректний формат фрагмента «%s»."
 
-#: ../src/daemon/daemon-conf.c:350 ../src/daemon/daemon-conf.c:368
+#: ../src/daemon/daemon-conf.c:349 ../src/daemon/daemon-conf.c:366
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] Некоректна частота вибірки «%s»."
 
-#: ../src/daemon/daemon-conf.c:391
+#: ../src/daemon/daemon-conf.c:389
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Некоректні канали фрагмента «%s»."
 
-#: ../src/daemon/daemon-conf.c:408
+#: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
 msgstr "[%s:%u] Некоректна карта каналів «%s»'."
 
-#: ../src/daemon/daemon-conf.c:425
+#: ../src/daemon/daemon-conf.c:423
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] Некоректна кількість фрагментів «%s»."
 
-#: ../src/daemon/daemon-conf.c:442
+#: ../src/daemon/daemon-conf.c:440
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] Некоректний розмір фрагмента «%s»."
 
-#: ../src/daemon/daemon-conf.c:459
+#: ../src/daemon/daemon-conf.c:457
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Некоректний рівень nice «%s»."
 
-#: ../src/daemon/daemon-conf.c:502
+#: ../src/daemon/daemon-conf.c:500
 #, c-format
 msgid "[%s:%u] Invalid server type '%s'."
 msgstr "[%s:%u] Некоректний тип сервера «%s»."
 
-#: ../src/daemon/daemon-conf.c:615
+#: ../src/daemon/daemon-conf.c:613
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Не вдалося відкрити файл налаштувань: %s"
 
-#: ../src/daemon/daemon-conf.c:631
+#: ../src/daemon/daemon-conf.c:629
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -329,7 +325,7 @@ msgstr ""
 "У вказаній типовій карті каналів визначається інша кількість каналів, ніж "
 "типова кількість каналів."
 
-#: ../src/daemon/daemon-conf.c:718
+#: ../src/daemon/daemon-conf.c:716
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Прочитано з файла налаштувань: %s ###\n"
@@ -399,78 +395,55 @@ msgstr ""
 msgid "Failed to add bind-now-loader."
 msgstr "Не вдалося додати bind-now-loader."
 
-#: ../src/daemon/main.c:139
-#, c-format
-msgid "Got signal %s."
-msgstr "Отримано сигнал %s."
-
-#: ../src/daemon/main.c:166
-msgid "Exiting."
-msgstr "Завершення роботи."
-
-#: ../src/daemon/main.c:184
+#: ../src/daemon/main.c:160
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "Не вдалося знайти користувача «%s»."
 
-#: ../src/daemon/main.c:189
+#: ../src/daemon/main.c:165
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "Не вдалося знайти групу «%s»."
 
-#: ../src/daemon/main.c:193
-#, c-format
-msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr "Знайдено користувача «%s» (UID %lu) і групу «%s» (GID %lu)."
-
-#: ../src/daemon/main.c:198
+#: ../src/daemon/main.c:174
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "GID користувача «%s» і групи «%s» не збігаються."
 
-#: ../src/daemon/main.c:203
+#: ../src/daemon/main.c:179
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "Домашнім каталогом користувача «%s» не є «%s», дані проігноровано."
 
-#: ../src/daemon/main.c:206 ../src/daemon/main.c:211
+#: ../src/daemon/main.c:182 ../src/daemon/main.c:187
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Не вдалося створити «%s»: %s"
 
-#: ../src/daemon/main.c:218
+#: ../src/daemon/main.c:194
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "Не вдалося змінити список груп: %s"
 
-#: ../src/daemon/main.c:234
+#: ../src/daemon/main.c:210
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "Не вдалося змінити GID: %s"
 
-#: ../src/daemon/main.c:250
+#: ../src/daemon/main.c:226
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "Не вдалося змінити UID: %s"
 
-#: ../src/daemon/main.c:271
-msgid "Successfully changed user to \""
-msgstr "Користувача успішно змінено на «"
-
-#: ../src/daemon/main.c:279
+#: ../src/daemon/main.c:255
 msgid "System wide mode unsupported on this platform."
 msgstr "Загальносистемний режим не підтримується на цій платформі."
 
-#: ../src/daemon/main.c:297
-#, c-format
-msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr "Спроба виконати setrlimit(%s, (%u, %u)) була невдалою: %s"
-
-#: ../src/daemon/main.c:498
+#: ../src/daemon/main.c:466
 msgid "Failed to parse command line."
 msgstr "Не вдалося обробити рядок команди."
 
-#: ../src/daemon/main.c:537
+#: ../src/daemon/main.c:505
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
@@ -478,21 +451,12 @@ msgstr ""
 "Запуск у системному режимі для неадміністративного користувача неможливий. "
 "Буде запущено лише службу виявлення пристроїв сервера D-Bus."
 
-#: ../src/daemon/main.c:619
-msgid "Daemon not running"
-msgstr "Фонову службу не запущено"
-
-#: ../src/daemon/main.c:621
-#, c-format
-msgid "Daemon running as PID %u"
-msgstr "Фонову службу запущено як PID %u"
-
-#: ../src/daemon/main.c:636
+#: ../src/daemon/main.c:604
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Не вдалося завершити роботу фонової служби: %s"
 
-#: ../src/daemon/main.c:665
+#: ../src/daemon/main.c:633
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -500,23 +464,23 @@ msgstr ""
 "Цю програму не призначено для запуску від імені користувача root (якщо не "
 "вказано параметра --system)."
 
-#: ../src/daemon/main.c:668
+#: ../src/daemon/main.c:636
 msgid "Root privileges required."
 msgstr "Потрібні права доступу користувача root."
 
-#: ../src/daemon/main.c:675
+#: ../src/daemon/main.c:643
 msgid "--start not supported for system instances."
 msgstr ""
 "Параметр --start не підтримується для загальносистемних екземплярів програми."
 
-#: ../src/daemon/main.c:715
+#: ../src/daemon/main.c:683
 #, c-format
 msgid "User-configured server at %s, refusing to start/autospawn."
 msgstr ""
 "Налаштований користувачем сервер на %s, не вдалося запустити/автоматично "
 "відновити роботу."
 
-#: ../src/daemon/main.c:721
+#: ../src/daemon/main.c:689
 #, c-format
 msgid ""
 "User-configured server at %s, which appears to be local. Probing deeper."
@@ -524,162 +488,60 @@ msgstr ""
 "Налаштований користувачем сервер на %s, який, здається, є локальним. "
 "Виконуємо докладнішу діагностику."
 
-#: ../src/daemon/main.c:726
+#: ../src/daemon/main.c:694
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
 "Запуск у загальносистемному режимі, але не встановлено --disallow-exit!"
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:697
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Запуск у загальносистемному режимі, але не встановлено --disallow-module-"
 "loading!"
 
-#: ../src/daemon/main.c:732
+#: ../src/daemon/main.c:700
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "Запуск у загальносистемному режимі, примусове вимикання режиму SHM!"
 
-#: ../src/daemon/main.c:737
+#: ../src/daemon/main.c:705
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Запуск у загальносистемному режимі, примусове вимикання режиму параметрів "
 "часу виходу за відсутності активності!"
 
-#: ../src/daemon/main.c:765
+#: ../src/daemon/main.c:738
 msgid "Failed to acquire stdio."
 msgstr "Не вдалося отримати stdio."
 
-#: ../src/daemon/main.c:771 ../src/daemon/main.c:842
+#: ../src/daemon/main.c:744 ../src/daemon/main.c:815
 #, c-format
 msgid "pipe() failed: %s"
 msgstr "Спроба виконання pipe() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:776 ../src/daemon/main.c:847
+#: ../src/daemon/main.c:749 ../src/daemon/main.c:820
 #, c-format
 msgid "fork() failed: %s"
 msgstr "Спроба виконання fork() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:791 ../src/daemon/main.c:862 ../src/utils/pacat.c:569
+#: ../src/daemon/main.c:764 ../src/daemon/main.c:835 ../src/utils/pacat.c:569
 #, c-format
 msgid "read() failed: %s"
 msgstr "Спроба виконання read() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:797
+#: ../src/daemon/main.c:770
 msgid "Daemon startup failed."
 msgstr "Спроба запуску фонової служби завершилася невдало."
 
-#: ../src/daemon/main.c:799
-msgid "Daemon startup successful."
-msgstr "Фонову службу успішно запущено."
-
-#: ../src/daemon/main.c:830
+#: ../src/daemon/main.c:803
 #, c-format
 msgid "setsid() failed: %s"
 msgstr "Спроба виконання setsid() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:916
-#, c-format
-msgid "This is PulseAudio %s"
-msgstr "Це PulseAudio %s"
-
-#: ../src/daemon/main.c:917
-#, c-format
-msgid "Compilation host: %s"
-msgstr "Вузол збирання: %s"
-
-#: ../src/daemon/main.c:918 ../src/tests/resampler-test.c:418
-#, c-format
-msgid "Compilation CFLAGS: %s"
-msgstr "CFLAGS збирання: %s"
-
-#: ../src/daemon/main.c:921
-#, c-format
-msgid "Running on host: %s"
-msgstr "Запущено на вузлі: %s"
-
-#: ../src/daemon/main.c:924
-#, c-format
-msgid "Found %u CPUs."
-msgstr "Знайдено %u процесорів."
-
 #: ../src/daemon/main.c:926
-#, c-format
-msgid "Page size is %lu bytes"
-msgstr "Розмір сторінки дорівнює %lu байтам"
-
-#: ../src/daemon/main.c:929
-msgid "Compiled with Valgrind support: yes"
-msgstr "Зібрано з підтримкою Valgrind: так"
-
-#: ../src/daemon/main.c:931
-msgid "Compiled with Valgrind support: no"
-msgstr "Зібрано з підтримкою Valgrind: ні"
-
-#: ../src/daemon/main.c:934
-#, c-format
-msgid "Running in valgrind mode: %s"
-msgstr "Запуск у режимі valgrind: %s"
-
-#: ../src/daemon/main.c:936
-#, c-format
-msgid "Running in VM: %s"
-msgstr "Запущено у віртуальній машині: %s"
-
-#: ../src/daemon/main.c:939
-msgid "Optimized build: yes"
-msgstr "Зібрано з оптимізацією: так"
-
-#: ../src/daemon/main.c:941
-msgid "Optimized build: no"
-msgstr "Зібрано з оптимізацією: ні"
-
-#: ../src/daemon/main.c:945
-msgid "NDEBUG defined, all asserts disabled."
-msgstr "Визначено NDEBUG, всі додавання вимкнено."
-
-#: ../src/daemon/main.c:947
-msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr "Визначено FASTPATH, вимкнено лише додавання швидких шляхів."
-
-#: ../src/daemon/main.c:949
-msgid "All asserts enabled."
-msgstr "Увімкнено всі додавання."
-
-#: ../src/daemon/main.c:953
 msgid "Failed to get machine ID"
 msgstr "Спроба отримати ідентифікатор системи завершилася невдало"
 
-#: ../src/daemon/main.c:956
-#, c-format
-msgid "Machine ID is %s."
-msgstr "Ідентифікатор системи %s."
-
-#: ../src/daemon/main.c:960
-#, c-format
-msgid "Session ID is %s."
-msgstr "Ідентифікатор сеансу — %s."
-
-#: ../src/daemon/main.c:966
-#, c-format
-msgid "Using runtime directory %s."
-msgstr "Каталог запуску: %s."
-
-#: ../src/daemon/main.c:971
-#, c-format
-msgid "Using state directory %s."
-msgstr "Каталог стану: %s."
-
-#: ../src/daemon/main.c:974
-#, c-format
-msgid "Using modules directory %s."
-msgstr "Каталог модулів: %s."
-
-#: ../src/daemon/main.c:976
-#, c-format
-msgid "Running in system mode: %s"
-msgstr "Запуску у загальносистемному режимі: %s"
-
-#: ../src/daemon/main.c:979
+#: ../src/daemon/main.c:952
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -696,47 +558,23 @@ msgstr ""
 "WhatIsWrongWithSystemMode, щоб дізнатися про те, чому не варто "
 "використовувати системний режим."
 
-#: ../src/daemon/main.c:996
+#: ../src/daemon/main.c:969
 msgid "pa_pid_file_create() failed."
 msgstr "Спроба виконання pa_pid_file_create() зазнала невдачі."
 
-#: ../src/daemon/main.c:1006
-msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr "Доступні свіжі високоточні таймери! Смачного!"
-
-#: ../src/daemon/main.c:1008
-msgid ""
-"Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
-"resolution timers enabled!"
-msgstr ""
-"Хлопче, від твого ядра вже тхне! Варто нарешті встановити Linux з "
-"увімкненими високоточними таймерами!"
-
-#: ../src/daemon/main.c:1026
+#: ../src/daemon/main.c:999
 msgid "pa_core_new() failed."
 msgstr "Спроба виконання pa_core_new() зазнала невдачі."
 
-#: ../src/daemon/main.c:1104
+#: ../src/daemon/main.c:1073
 msgid "Failed to initialize daemon."
 msgstr "Не вдалося ініціалізувати фонову службу."
 
-#: ../src/daemon/main.c:1109
+#: ../src/daemon/main.c:1078
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Запуск фонової служби без жодного завантаженого модуля, служба не буде "
 "працездатною."
-
-#: ../src/daemon/main.c:1147
-msgid "Daemon startup complete."
-msgstr "Запуск фонової служби завершено."
-
-#: ../src/daemon/main.c:1153
-msgid "Daemon shutdown initiated."
-msgstr "Ініційовано завершення роботи фонової служби."
-
-#: ../src/daemon/main.c:1184
-msgid "Daemon terminated."
-msgstr "Виконання фонової служби перервано."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
@@ -746,255 +584,255 @@ msgstr "Звукова система PulseAudio"
 msgid "Start the PulseAudio Sound System"
 msgstr "Запустити звукову систему PulseAudio"
 
-#: ../src/modules/alsa/alsa-mixer.c:2251
+#: ../src/modules/alsa/alsa-mixer.c:2294
 msgid "Input"
 msgstr "Вхід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2252
+#: ../src/modules/alsa/alsa-mixer.c:2295
 msgid "Docking Station Input"
 msgstr "Вхідний канал док-станції"
 
-#: ../src/modules/alsa/alsa-mixer.c:2253
+#: ../src/modules/alsa/alsa-mixer.c:2296
 msgid "Docking Station Microphone"
 msgstr "Мікрофон док-станції"
 
-#: ../src/modules/alsa/alsa-mixer.c:2254
+#: ../src/modules/alsa/alsa-mixer.c:2297
 msgid "Docking Station Line In"
 msgstr "Лінійний вхід док-станції"
 
-#: ../src/modules/alsa/alsa-mixer.c:2255 ../src/modules/alsa/alsa-mixer.c:2340
+#: ../src/modules/alsa/alsa-mixer.c:2298 ../src/modules/alsa/alsa-mixer.c:2383
 msgid "Line In"
 msgstr "Лінійний вхід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2256 ../src/modules/alsa/alsa-mixer.c:2334
+#: ../src/modules/alsa/alsa-mixer.c:2299 ../src/modules/alsa/alsa-mixer.c:2377
 #: ../src/modules/bluetooth/module-bluez4-device.c:2101
-#: ../src/modules/bluetooth/module-bluez5-device.c:1451
+#: ../src/modules/bluetooth/module-bluez5-device.c:1635
 msgid "Microphone"
 msgstr "Мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2257 ../src/modules/alsa/alsa-mixer.c:2335
+#: ../src/modules/alsa/alsa-mixer.c:2300 ../src/modules/alsa/alsa-mixer.c:2378
 msgid "Front Microphone"
 msgstr "Передній мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2258 ../src/modules/alsa/alsa-mixer.c:2336
+#: ../src/modules/alsa/alsa-mixer.c:2301 ../src/modules/alsa/alsa-mixer.c:2379
 msgid "Rear Microphone"
 msgstr "Задній мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2259
+#: ../src/modules/alsa/alsa-mixer.c:2302
 msgid "External Microphone"
 msgstr "Зовнішній мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2260 ../src/modules/alsa/alsa-mixer.c:2338
+#: ../src/modules/alsa/alsa-mixer.c:2303 ../src/modules/alsa/alsa-mixer.c:2381
 msgid "Internal Microphone"
 msgstr "Вбудований мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2261 ../src/modules/alsa/alsa-mixer.c:2341
+#: ../src/modules/alsa/alsa-mixer.c:2304 ../src/modules/alsa/alsa-mixer.c:2384
 msgid "Radio"
 msgstr "Радіо"
 
-#: ../src/modules/alsa/alsa-mixer.c:2262 ../src/modules/alsa/alsa-mixer.c:2342
+#: ../src/modules/alsa/alsa-mixer.c:2305 ../src/modules/alsa/alsa-mixer.c:2385
 msgid "Video"
 msgstr "Відео"
 
-#: ../src/modules/alsa/alsa-mixer.c:2263
+#: ../src/modules/alsa/alsa-mixer.c:2306
 msgid "Automatic Gain Control"
 msgstr "Автоматичне керування підсиленням"
 
-#: ../src/modules/alsa/alsa-mixer.c:2264
+#: ../src/modules/alsa/alsa-mixer.c:2307
 msgid "No Automatic Gain Control"
 msgstr "Без автоматичного керування підсиленням"
 
-#: ../src/modules/alsa/alsa-mixer.c:2265
+#: ../src/modules/alsa/alsa-mixer.c:2308
 msgid "Boost"
 msgstr "Підсилення"
 
-#: ../src/modules/alsa/alsa-mixer.c:2266
+#: ../src/modules/alsa/alsa-mixer.c:2309
 msgid "No Boost"
 msgstr "Без пісилення"
 
-#: ../src/modules/alsa/alsa-mixer.c:2267
+#: ../src/modules/alsa/alsa-mixer.c:2310
 msgid "Amplifier"
 msgstr "Підсилювач"
 
-#: ../src/modules/alsa/alsa-mixer.c:2268
+#: ../src/modules/alsa/alsa-mixer.c:2311
 msgid "No Amplifier"
 msgstr "Без підсилювача"
 
-#: ../src/modules/alsa/alsa-mixer.c:2269
+#: ../src/modules/alsa/alsa-mixer.c:2312
 msgid "Bass Boost"
 msgstr "Підсилення басів"
 
-#: ../src/modules/alsa/alsa-mixer.c:2270
+#: ../src/modules/alsa/alsa-mixer.c:2313
 msgid "No Bass Boost"
 msgstr "Без підсилення"
 
-#: ../src/modules/alsa/alsa-mixer.c:2271
+#: ../src/modules/alsa/alsa-mixer.c:2314
 #: ../src/modules/bluetooth/module-bluez4-device.c:2106
-#: ../src/modules/bluetooth/module-bluez5-device.c:1458
+#: ../src/modules/bluetooth/module-bluez5-device.c:1642
 msgid "Speaker"
 msgstr "Гучномовець"
 
-#: ../src/modules/alsa/alsa-mixer.c:2272 ../src/modules/alsa/alsa-mixer.c:2344
+#: ../src/modules/alsa/alsa-mixer.c:2315 ../src/modules/alsa/alsa-mixer.c:2387
 msgid "Headphones"
 msgstr "Аналогові навушники"
 
-#: ../src/modules/alsa/alsa-mixer.c:2333
+#: ../src/modules/alsa/alsa-mixer.c:2376
 msgid "Analog Input"
 msgstr "Аналогових вхід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2337
+#: ../src/modules/alsa/alsa-mixer.c:2380
 msgid "Dock Microphone"
 msgstr "Мікрофон стикувальної станції"
 
-#: ../src/modules/alsa/alsa-mixer.c:2339
+#: ../src/modules/alsa/alsa-mixer.c:2382
 msgid "Headset Microphone"
 msgstr "Мікрофон гарнітури"
 
-#: ../src/modules/alsa/alsa-mixer.c:2343
+#: ../src/modules/alsa/alsa-mixer.c:2386
 msgid "Analog Output"
 msgstr "Аналогове відтворення"
 
-#: ../src/modules/alsa/alsa-mixer.c:2345
+#: ../src/modules/alsa/alsa-mixer.c:2388
 msgid "LFE on Separate Mono Output"
 msgstr "Аналоговий вихід (сабвуфер)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2346
+#: ../src/modules/alsa/alsa-mixer.c:2389
 msgid "Line Out"
 msgstr "Лінійний вихід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2347
+#: ../src/modules/alsa/alsa-mixer.c:2390
 msgid "Analog Mono Output"
 msgstr "Аналоговий моно-вихід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2348
+#: ../src/modules/alsa/alsa-mixer.c:2391
 msgid "Speakers"
 msgstr "Гучномовці"
 
-#: ../src/modules/alsa/alsa-mixer.c:2349
+#: ../src/modules/alsa/alsa-mixer.c:2392
 msgid "HDMI / DisplayPort"
 msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2350
+#: ../src/modules/alsa/alsa-mixer.c:2393
 msgid "Digital Output (S/PDIF)"
 msgstr "Цифровий вихід (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2351
+#: ../src/modules/alsa/alsa-mixer.c:2394
 msgid "Digital Input (S/PDIF)"
 msgstr "Цифровий вхід (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2352
+#: ../src/modules/alsa/alsa-mixer.c:2395
 msgid "Digital Passthrough (S/PDIF)"
 msgstr "Цифрове передавання (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3807
+#: ../src/modules/alsa/alsa-mixer.c:3903
 msgid "Analog Mono"
 msgstr "Аналогове моно"
 
-#: ../src/modules/alsa/alsa-mixer.c:3808
+#: ../src/modules/alsa/alsa-mixer.c:3904
 msgid "Analog Stereo"
 msgstr "Аналогове стерео"
 
-#: ../src/modules/alsa/alsa-mixer.c:3809
+#: ../src/modules/alsa/alsa-mixer.c:3905
+msgid "Multichannel"
+msgstr "Багатоканальний"
+
+#: ../src/modules/alsa/alsa-mixer.c:3906
 msgid "Analog Surround 2.1"
 msgstr "Аналоговий об'ємний 2.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3810
+#: ../src/modules/alsa/alsa-mixer.c:3907
 msgid "Analog Surround 3.0"
 msgstr "Аналоговий об'ємний 3.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3811
+#: ../src/modules/alsa/alsa-mixer.c:3908
 msgid "Analog Surround 3.1"
 msgstr "Аналоговий об'ємний 3.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3812
+#: ../src/modules/alsa/alsa-mixer.c:3909
 msgid "Analog Surround 4.0"
 msgstr "Аналоговий об'ємний 4.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3813
+#: ../src/modules/alsa/alsa-mixer.c:3910
 msgid "Analog Surround 4.1"
 msgstr "Аналоговий об'ємний 4.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3814
+#: ../src/modules/alsa/alsa-mixer.c:3911
 msgid "Analog Surround 5.0"
 msgstr "Аналоговий об'ємний 5.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3815
+#: ../src/modules/alsa/alsa-mixer.c:3912
 msgid "Analog Surround 5.1"
 msgstr "Аналоговий об'ємний 5.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3816
+#: ../src/modules/alsa/alsa-mixer.c:3913
 msgid "Analog Surround 6.0"
 msgstr "Аналоговий об'ємний 6.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3817
+#: ../src/modules/alsa/alsa-mixer.c:3914
 msgid "Analog Surround 6.1"
 msgstr "Аналоговий об'ємний 6.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3818
+#: ../src/modules/alsa/alsa-mixer.c:3915
 msgid "Analog Surround 7.0"
 msgstr "Аналоговий об'ємний 7.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3819
+#: ../src/modules/alsa/alsa-mixer.c:3916
 msgid "Analog Surround 7.1"
 msgstr "Аналоговий об'ємний 7.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3820
-msgid "Analog 4-channel Input"
-msgstr "Аналогових 4-канальний вхід"
-
-#: ../src/modules/alsa/alsa-mixer.c:3821
+#: ../src/modules/alsa/alsa-mixer.c:3917
 msgid "Digital Stereo (IEC958)"
 msgstr "Цифрове стерео (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3822
+#: ../src/modules/alsa/alsa-mixer.c:3918
 msgid "Digital Passthrough  (IEC958)"
 msgstr "Цифрове передавання (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3823
+#: ../src/modules/alsa/alsa-mixer.c:3919
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Цифровий об’ємний 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3824
+#: ../src/modules/alsa/alsa-mixer.c:3920
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Цифровий об’ємний 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3825
+#: ../src/modules/alsa/alsa-mixer.c:3921
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr "Цифровий об’ємний 5.1 (IEC958/DTS)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3826
+#: ../src/modules/alsa/alsa-mixer.c:3922
 msgid "Digital Stereo (HDMI)"
 msgstr "Цифровий стерео (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3827
+#: ../src/modules/alsa/alsa-mixer.c:3923
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr "Цифровий об’ємний 5.1 (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3956
+#: ../src/modules/alsa/alsa-mixer.c:4054
 msgid "Analog Mono Duplex"
 msgstr "Аналогове двобічне моно"
 
-#: ../src/modules/alsa/alsa-mixer.c:3957
+#: ../src/modules/alsa/alsa-mixer.c:4055
 msgid "Analog Stereo Duplex"
 msgstr "Аналогове двобічне стерео"
 
-#: ../src/modules/alsa/alsa-mixer.c:3958
+#: ../src/modules/alsa/alsa-mixer.c:4056
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Цифрове двобічне стерео (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3959
+#: ../src/modules/alsa/alsa-mixer.c:4057
 #: ../src/modules/alsa/module-alsa-card.c:193
 #: ../src/modules/bluetooth/module-bluez4-device.c:2297
-#: ../src/modules/bluetooth/module-bluez5-device.c:1654
+#: ../src/modules/bluetooth/module-bluez5-device.c:1866
 msgid "Off"
 msgstr "Вимкнено"
 
-#: ../src/modules/alsa/alsa-mixer.c:4058
+#: ../src/modules/alsa/alsa-mixer.c:4156
 #, c-format
 msgid "%s Output"
 msgstr "вихід %s"
 
-#: ../src/modules/alsa/alsa-mixer.c:4066
+#: ../src/modules/alsa/alsa-mixer.c:4164
 #, c-format
 msgid "%s Input"
 msgstr "вхід %s"
@@ -1086,52 +924,52 @@ msgstr ""
 "про цю ваду розробникам ALSA."
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2091
-#: ../src/modules/bluetooth/module-bluez5-device.c:1441
+#: ../src/modules/bluetooth/module-bluez5-device.c:1625
 msgid "Headset"
 msgstr "Гарнітура"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2096
-#: ../src/modules/bluetooth/module-bluez5-device.c:1446
+#: ../src/modules/bluetooth/module-bluez5-device.c:1630
 msgid "Handsfree"
 msgstr "Пристрій гучного зв’язку"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2111
-#: ../src/modules/bluetooth/module-bluez5-device.c:1464
+#: ../src/modules/bluetooth/module-bluez5-device.c:1648
 msgid "Headphone"
 msgstr "Навушники"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2116
-#: ../src/modules/bluetooth/module-bluez5-device.c:1469
+#: ../src/modules/bluetooth/module-bluez5-device.c:1653
 msgid "Portable"
 msgstr "Портативна система"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2121
-#: ../src/modules/bluetooth/module-bluez5-device.c:1474
+#: ../src/modules/bluetooth/module-bluez5-device.c:1658
 msgid "Car"
 msgstr "Автомобільна система"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2126
-#: ../src/modules/bluetooth/module-bluez5-device.c:1479
+#: ../src/modules/bluetooth/module-bluez5-device.c:1663
 msgid "HiFi"
 msgstr "HiFi"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2131
-#: ../src/modules/bluetooth/module-bluez5-device.c:1484
+#: ../src/modules/bluetooth/module-bluez5-device.c:1668
 msgid "Phone"
 msgstr "Телефон"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2139
-#: ../src/modules/bluetooth/module-bluez5-device.c:1436
-#: ../src/modules/bluetooth/module-bluez5-device.c:1452
-#: ../src/modules/bluetooth/module-bluez5-device.c:1490
+#: ../src/modules/bluetooth/module-bluez5-device.c:1620
+#: ../src/modules/bluetooth/module-bluez5-device.c:1636
+#: ../src/modules/bluetooth/module-bluez5-device.c:1674
 msgid "Bluetooth Output"
 msgstr "Bluetooth (відтворення)"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2142
-#: ../src/modules/bluetooth/module-bluez5-device.c:1435
-#: ../src/modules/bluetooth/module-bluez5-device.c:1457
-#: ../src/modules/bluetooth/module-bluez5-device.c:1463
-#: ../src/modules/bluetooth/module-bluez5-device.c:1489
+#: ../src/modules/bluetooth/module-bluez5-device.c:1619
+#: ../src/modules/bluetooth/module-bluez5-device.c:1641
+#: ../src/modules/bluetooth/module-bluez5-device.c:1647
+#: ../src/modules/bluetooth/module-bluez5-device.c:1673
 msgid "Bluetooth Input"
 msgstr "Bluetooth (вхід)"
 
@@ -1151,13 +989,21 @@ msgstr "Телефонний дуплекс (HSP/HFP)"
 msgid "Handsfree Gateway"
 msgstr "Пристрій гучного зв’язку"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1527
+#: ../src/modules/bluetooth/module-bluez5-device.c:1711
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Високоточне відтворення (приймач A2DP)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1538
+#: ../src/modules/bluetooth/module-bluez5-device.c:1722
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Високоточне захоплення (джерело A2DP)"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:1733
+msgid "Headset Head Unit (HSP/HFP)"
+msgstr "Головний модуль гарнітури (HSP/HFP)"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:1745
+msgid "Headset Audio Gateway (HSP/HFP)"
+msgstr "Звуковий шлюз гарнітури (HSP/HFP)"
 
 #: ../src/modules/echo-cancel/module-echo-cancel.c:63
 msgid ""
@@ -1267,14 +1113,14 @@ msgstr "Звук на @НАЗВАВУЗЛА@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: ../src/modules/module-tunnel-sink-new.c:293
-#: ../src/modules/module-tunnel-source-new.c:294
+#: ../src/modules/module-tunnel-sink-new.c:299
+#: ../src/modules/module-tunnel-source-new.c:307
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "Тунель для %s@%s"
 
-#: ../src/modules/module-tunnel-sink-new.c:483
-#: ../src/modules/module-tunnel-source-new.c:485
+#: ../src/modules/module-tunnel-sink-new.c:509
+#: ../src/modules/module-tunnel-source-new.c:518
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "Тунель до %s/%s"
@@ -1549,33 +1395,26 @@ msgstr "xcb_connection_has_error() повернуто true"
 msgid "Failed to parse cookie data"
 msgstr "Не вдалося обробити дані куки"
 
-#: ../src/pulse/context.c:529
-msgid "No cookie loaded. Attempting to connect without."
-msgstr ""
-"Куків не завантажено. Буде виконано спробу з’єднання за їх відсутності."
-
-#: ../src/pulse/context.c:610
+#: ../src/pulse/context.c:658
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:665
+#: ../src/pulse/context.c:713
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1366
+#: ../src/pulse/context.c:1414
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Отримано повідомлення про невідомий додаток «%s»"
 
 #: ../src/pulse/direction.c:39
-#| msgid "Input"
 msgid "input"
 msgstr "вхід"
 
 #: ../src/pulse/direction.c:41
-#| msgid "%s Output"
 msgid "output"
 msgstr "вихід"
 
@@ -1584,16 +1423,26 @@ msgid "bidirectional"
 msgstr "двобічний"
 
 #: ../src/pulse/direction.c:45
-#| msgid "(invalid)"
 msgid "invalid"
 msgstr "некоректний"
+
+#: ../src/pulsecore/core-util.c:1821
+#, c-format
+msgid ""
+"XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
+"e g happen if you try to connect to a non-root PulseAudio as a root user, "
+"over the native protocol. Don't do that.)"
+msgstr ""
+"XDG_RUNTIME_DIR (%s) не належить нашому користувачу (uid %d), а належить "
+"користувачу uid %d! (Таке, наприклад, може трапитися, якщо ви намагаєтеся "
+"встановити з’єднання із PulseAudio, запущеного не від імені користувача root, "
+"від імені користувача root за допомогою вбудованого протоколу. Не робіть так.)"
 
 #: ../src/pulsecore/core-util.h:95
 msgid "yes"
 msgstr "так"
 
 #: ../src/pulsecore/core-util.h:95
-#| msgid "Mono"
 msgid "no"
 msgstr "ні"
 
@@ -1618,11 +1467,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Некоректна адреса файла журналу."
 
-#: ../src/pulsecore/sink.c:3428
+#: ../src/pulsecore/sink.c:3429
 msgid "Built-in Audio"
 msgstr "Вбудоване аудіо"
 
-#: ../src/pulsecore/sink.c:3433
+#: ../src/pulsecore/sink.c:3434
 msgid "Modem"
 msgstr "Модем"
 
@@ -1663,8 +1512,9 @@ msgid "Timeout"
 msgstr "Перевищення часу очікування"
 
 #: ../src/pulse/error.c:49
-msgid "No authorization key"
-msgstr "Не вказано ключа розпізнавання"
+#| msgid "No authorization key"
+msgid "No authentication key"
+msgstr "Немає ключа розпізнавання"
 
 #: ../src/pulse/error.c:50
 msgid "Internal error"
@@ -1747,12 +1597,12 @@ msgstr "%0.1f ГБ"
 #: ../src/pulse/sample.c:193
 #, c-format
 msgid "%0.1f MiB"
-msgstr "%0.1f МБ"
+msgstr "%0.1f МіБ"
 
 #: ../src/pulse/sample.c:195
 #, c-format
 msgid "%0.1f KiB"
-msgstr "%0.1f кБ"
+msgstr "%0.1f КіБ"
 
 #: ../src/pulse/sample.c:197
 #, c-format
@@ -1823,11 +1673,6 @@ msgstr ""
 msgid "%s %s\n"
 msgstr "%s %s\n"
 
-#: ../src/tests/resampler-test.c:419
-#, c-format
-msgid "=== %d seconds: %d Hz %d ch (%s) -> %d Hz %d ch (%s)"
-msgstr "=== %d секунд: %d Гц %d кан. (%s) -> %d Гц %d кан. (%s)"
-
 #: ../src/utils/pacat.c:118
 #, c-format
 msgid "Failed to drain stream: %s"
@@ -1887,7 +1732,6 @@ msgstr "Використання частотної специфікації «%
 
 #: ../src/utils/pacat.c:359
 #, c-format
-#| msgid "Connected to device %s (%u, %ssuspended)."
 msgid "Connected to device %s (index: %u, suspended: %s)."
 msgstr "З’єднано з пристроєм %s (індекс: %u, призупинено: %s)."
 
@@ -2009,70 +1853,6 @@ msgstr "Помилка pa_stream_update_timing_info(): %s"
 
 #: ../src/utils/pacat.c:672
 #, c-format
-#| msgid ""
-#| "%s [options]\n"
-#| "\n"
-#| "  -h, --help                            Show this help\n"
-#| "      --version                         Show version\n"
-#| "\n"
-#| "  -r, --record                          Create a connection for "
-#| "recording\n"
-#| "  -p, --playback                        Create a connection for playback\n"
-#| "\n"
-#| "  -v, --verbose                         Enable verbose operations\n"
-#| "\n"
-#| "  -s, --server=SERVER                   The name of the server to connect "
-#| "to\n"
-#| "  -d, --device=DEVICE                   The name of the sink/source to "
-#| "connect to\n"
-#| "  -n, --client-name=NAME                How to call this client on the "
-#| "server\n"
-#| "      --stream-name=NAME                How to call this stream on the "
-#| "server\n"
-#| "      --volume=VOLUME                   Specify the initial (linear) "
-#| "volume in range 0...65536\n"
-#| "      --rate=SAMPLERATE                 The sample rate in Hz (defaults "
-#| "to 44100)\n"
-#| "      --format=SAMPLEFORMAT             The sample type, one of s16le, "
-#| "s16be, u8, float32le,\n"
-#| "                                        float32be, ulaw, alaw, s32le, "
-#| "s32be, s24le, s24be,\n"
-#| "                                        s24-32le, s24-32be (defaults to "
-#| "s16ne)\n"
-#| "      --channels=CHANNELS               The number of channels, 1 for "
-#| "mono, 2 for stereo\n"
-#| "                                        (defaults to 2)\n"
-#| "      --channel-map=CHANNELMAP          Channel map to use instead of the "
-#| "default\n"
-#| "      --fix-format                      Take the sample format from the "
-#| "sink the stream is\n"
-#| "                                        being connected to.\n"
-#| "      --fix-rate                        Take the sampling rate from the "
-#| "sink the stream is\n"
-#| "                                        being connected to.\n"
-#| "      --fix-channels                    Take the number of channels and "
-#| "the channel map\n"
-#| "                                        from the sink the stream is being "
-#| "connected to.\n"
-#| "      --no-remix                        Don't upmix or downmix channels.\n"
-#| "      --no-remap                        Map channels by index instead of "
-#| "name.\n"
-#| "      --latency=BYTES                   Request the specified latency in "
-#| "bytes.\n"
-#| "      --process-time=BYTES              Request the specified process "
-#| "time per request in bytes.\n"
-#| "      --latency-msec=MSEC               Request the specified latency in "
-#| "msec.\n"
-#| "      --process-time-msec=MSEC          Request the specified process "
-#| "time per request in msec.\n"
-#| "      --property=PROPERTY=VALUE         Set the specified property to the "
-#| "specified value.\n"
-#| "      --raw                             Record/play raw PCM data.\n"
-#| "      --passthrough                     passthrough data \n"
-#| "      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
-#| "      --list-file-formats               List available file formats.\n"
-#| "      --monitor-stream=INDEX            Record from the sink input with "
-#| "index INDEX.\n"
 msgid ""
 "%s [options]\n"
 "\n"
@@ -2170,8 +1950,7 @@ msgstr ""
 "      --channel-map=КАРТА КАНАЛІВ       Карта каналів, яку слід "
 "використовувати замість типової\n"
 "      --fix-format                      Запозичити формат фрагмента з "
-"приймача, "
-"з яким з’єднано\n"
+"приймача, з яким з’єднано\n"
 "                                        потік.\n"
 "      --fix-rate                        Запозичити дані щодо частоти "
 "дискретизації з приймача, з яким з’єднано\n"
@@ -2990,12 +2769,10 @@ msgid "Volume outside permissible range.\n"
 msgstr "Гучність поза межами дозволеного діапазону.\n"
 
 #: ../src/utils/pactl.c:1524
-#| msgid "Invalid volume specification"
 msgid "Invalid number of volume specifications.\n"
 msgstr "Некоректна кількість специфікацій гучності.\n"
 
 #: ../src/utils/pactl.c:1536
-#| msgid "Invalid volume specification"
 msgid "Inconsistent volume specification.\n"
 msgstr "Несумісна специфікація гучності.\n"
 
@@ -3026,7 +2803,6 @@ msgid "NAME [SINK]"
 msgstr "НАЗВА [ПРИЙМАЧ]"
 
 #: ../src/utils/pactl.c:1580
-#| msgid "NAME|#N VOLUME"
 msgid "NAME|#N VOLUME [VOLUME ...]"
 msgstr "НАЗВА|НОМЕР ГУЧНІСТЬ [ГУЧНІСТЬ ...]"
 
@@ -3389,30 +3165,145 @@ msgstr "Не вдалося обробити дані куки\n"
 msgid "Failed to save cookie data\n"
 msgstr "Не вдалося зберегти дані куки\n"
 
-#: ../src/utils/pax11publish.c:156
-#, c-format
-msgid "Failed to load client configuration file.\n"
-msgstr "Не вдалося завантажити файл налаштувань клієнта.\n"
-
-#: ../src/utils/pax11publish.c:161
-#, c-format
-msgid "Failed to read environment configuration data.\n"
-msgstr "Не вдалося прочитати дані налаштування середовища.\n"
-
-#: ../src/utils/pax11publish.c:178
+#: ../src/utils/pax11publish.c:170
 #, c-format
 msgid "Failed to get FQDN.\n"
 msgstr "Не вдалося отримати FQDN.\n"
 
-#: ../src/utils/pax11publish.c:198
+#: ../src/utils/pax11publish.c:190
 #, c-format
 msgid "Failed to load cookie data\n"
 msgstr "Не вдалося завантажити дані куки\n"
 
-#: ../src/utils/pax11publish.c:216
+#: ../src/utils/pax11publish.c:208
 #, c-format
 msgid "Not yet implemented.\n"
 msgstr "Ще не реалізовано.\n"
+
+#~ msgid "Cleaning up privileges."
+#~ msgstr "Позбуваємося прав доступу."
+
+#~ msgid "Got signal %s."
+#~ msgstr "Отримано сигнал %s."
+
+#~ msgid "Exiting."
+#~ msgstr "Завершення роботи."
+
+#~ msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
+#~ msgstr "Знайдено користувача «%s» (UID %lu) і групу «%s» (GID %lu)."
+
+#~ msgid "Successfully changed user to \""
+#~ msgstr "Користувача успішно змінено на «"
+
+#~ msgid "setrlimit(%s, (%u, %u)) failed: %s"
+#~ msgstr "Спроба виконати setrlimit(%s, (%u, %u)) була невдалою: %s"
+
+#~ msgid "Daemon not running"
+#~ msgstr "Фонову службу не запущено"
+
+#~ msgid "Daemon running as PID %u"
+#~ msgstr "Фонову службу запущено як PID %u"
+
+#~ msgid "Daemon startup successful."
+#~ msgstr "Фонову службу успішно запущено."
+
+#~ msgid "This is PulseAudio %s"
+#~ msgstr "Це PulseAudio %s"
+
+#~ msgid "Compilation host: %s"
+#~ msgstr "Вузол збирання: %s"
+
+#~ msgid "Compilation CFLAGS: %s"
+#~ msgstr "CFLAGS збирання: %s"
+
+#~ msgid "Running on host: %s"
+#~ msgstr "Запущено на вузлі: %s"
+
+#~ msgid "Found %u CPUs."
+#~ msgstr "Знайдено %u процесорів."
+
+#~ msgid "Page size is %lu bytes"
+#~ msgstr "Розмір сторінки дорівнює %lu байтам"
+
+#~ msgid "Compiled with Valgrind support: yes"
+#~ msgstr "Зібрано з підтримкою Valgrind: так"
+
+#~ msgid "Compiled with Valgrind support: no"
+#~ msgstr "Зібрано з підтримкою Valgrind: ні"
+
+#~ msgid "Running in valgrind mode: %s"
+#~ msgstr "Запуск у режимі valgrind: %s"
+
+#~ msgid "Running in VM: %s"
+#~ msgstr "Запущено у віртуальній машині: %s"
+
+#~ msgid "Optimized build: yes"
+#~ msgstr "Зібрано з оптимізацією: так"
+
+#~ msgid "Optimized build: no"
+#~ msgstr "Зібрано з оптимізацією: ні"
+
+#~ msgid "NDEBUG defined, all asserts disabled."
+#~ msgstr "Визначено NDEBUG, всі додавання вимкнено."
+
+#~ msgid "FASTPATH defined, only fast path asserts disabled."
+#~ msgstr "Визначено FASTPATH, вимкнено лише додавання швидких шляхів."
+
+#~ msgid "All asserts enabled."
+#~ msgstr "Увімкнено всі додавання."
+
+#~ msgid "Machine ID is %s."
+#~ msgstr "Ідентифікатор системи %s."
+
+#~ msgid "Session ID is %s."
+#~ msgstr "Ідентифікатор сеансу — %s."
+
+#~ msgid "Using runtime directory %s."
+#~ msgstr "Каталог запуску: %s."
+
+#~ msgid "Using state directory %s."
+#~ msgstr "Каталог стану: %s."
+
+#~ msgid "Using modules directory %s."
+#~ msgstr "Каталог модулів: %s."
+
+#~ msgid "Running in system mode: %s"
+#~ msgstr "Запуску у загальносистемному режимі: %s"
+
+#~ msgid "Fresh high-resolution timers available! Bon appetit!"
+#~ msgstr "Доступні свіжі високоточні таймери! Смачного!"
+
+#~ msgid ""
+#~ "Dude, your kernel stinks! The chef's recommendation today is Linux with "
+#~ "high-resolution timers enabled!"
+#~ msgstr ""
+#~ "Хлопче, від твого ядра вже тхне! Варто нарешті встановити Linux з "
+#~ "увімкненими високоточними таймерами!"
+
+#~ msgid "Daemon startup complete."
+#~ msgstr "Запуск фонової служби завершено."
+
+#~ msgid "Daemon shutdown initiated."
+#~ msgstr "Ініційовано завершення роботи фонової служби."
+
+#~ msgid "Daemon terminated."
+#~ msgstr "Виконання фонової служби перервано."
+
+#~ msgid "Analog 4-channel Input"
+#~ msgstr "Аналогових 4-канальний вхід"
+
+#~ msgid "No cookie loaded. Attempting to connect without."
+#~ msgstr ""
+#~ "Куків не завантажено. Буде виконано спробу з’єднання за їх відсутності."
+
+#~ msgid "=== %d seconds: %d Hz %d ch (%s) -> %d Hz %d ch (%s)"
+#~ msgstr "=== %d секунд: %d Гц %d кан. (%s) -> %d Гц %d кан. (%s)"
+
+#~ msgid "Failed to load client configuration file.\n"
+#~ msgstr "Не вдалося завантажити файл налаштувань клієнта.\n"
+
+#~ msgid "Failed to read environment configuration data.\n"
+#~ msgstr "Не вдалося прочитати дані налаштування середовища.\n"
 
 #~ msgid "PulseAudio Sound System KDE Routing Policy"
 #~ msgstr "Правила маршрутизації звукової системи PulseAudio у KDE"
