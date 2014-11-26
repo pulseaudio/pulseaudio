@@ -15,9 +15,7 @@ scriptversion=2012-09-25.20
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # This script is derived from GIT-VERSION-GEN from GIT: http://git.or.cz/.
 # It may be run two ways:
