@@ -1660,11 +1660,11 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
     pa_dbus_free_pending_list(&y->pending);
 
-    if (y->devices)
-        pa_hashmap_free(y->devices);
-
     if (y->adapters)
         pa_hashmap_free(y->adapters);
+
+    if (y->devices)
+        pa_hashmap_free(y->devices);
 
     if (y->transports) {
         pa_assert(pa_hashmap_isempty(y->transports));
