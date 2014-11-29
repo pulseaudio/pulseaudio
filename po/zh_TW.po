@@ -360,13 +360,18 @@ msgstr "以系統模式執行中：%s"
 
 #: ../src/daemon/main.c:964
 msgid ""
-"OK, so you are running PA in system mode. Please note that you most likely shouldn't be doing that.\n"
-"If you do it nonetheless then it's your own fault if things don't work as expected.\n"
-"Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an explanation why system mode is usually a bad idea."
+"OK, so you are running PA in system mode. Please note that you most likely "
+"shouldn't be doing that.\n"
+"If you do it nonetheless then it's your own fault if things don't work as "
+"expected.\n"
+"Please read http://www.freedesktop.org/wiki/Software/PulseAudio/"
+"Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
+"mode is usually a bad idea."
 msgstr ""
 "好的，所以您正以系統模式執行 PA。請注意，您很不應該那麼做。\n"
 "若您仍執意這樣做，那麼當事情的進展非如您所願時是您自己的過錯。\n"
-"請閱讀 http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode 來瞭解為何採用系統模式是個壞主意。"
+"請閱讀 http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/"
+"User/WhatIsWrongWithSystemWide/ 來瞭解為何採用系統模式是個壞主意。"
 
 #: ../src/daemon/main.c:981
 msgid "pa_pid_file_create() failed."
