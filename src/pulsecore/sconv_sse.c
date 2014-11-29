@@ -33,7 +33,7 @@
 #include "cpu-x86.h"
 #include "sconv.h"
 
-#if (!defined(__APPLE__) && !defined(__FreeBSD__) && defined (__i386__)) || defined (__amd64__)
+#if (!defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__FreeBSD_kernel__) && defined (__i386__)) || defined (__amd64__)
 
 static const PA_DECLARE_ALIGNED (16, float, scale[4]) = { 0x8000, 0x8000, 0x8000, 0x8000 };
 
@@ -163,7 +163,7 @@ static void pa_sconv_s16le_from_f32ne_sse2(unsigned n, const float *a, int16_t *
 #endif /* defined (__i386__) || defined (__amd64__) */
 
 void pa_convert_func_init_sse(pa_cpu_x86_flag_t flags) {
-#if (!defined(__APPLE__) && !defined(__FreeBSD__) && defined (__i386__)) || defined (__amd64__)
+#if (!defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__FreeBSD_kernel__) && defined (__i386__)) || defined (__amd64__)
 
     if (flags & PA_CPU_X86_SSE2) {
         pa_log_info("Initialising SSE2 optimized conversions.");

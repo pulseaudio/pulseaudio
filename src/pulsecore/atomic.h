@@ -180,7 +180,7 @@ static inline bool pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* 
     return r == old_p;
 }
 
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 
 #include <sys/cdefs.h>
 #include <sys/types.h>
