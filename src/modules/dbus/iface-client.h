@@ -24,8 +24,8 @@
 
 /* This object implements the D-Bus interface org.PulseAudio.Core1.Client.
  *
- * See http://pulseaudio.org/wiki/DBusInterface for the Client interface
- * documentation.
+ * See http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Clients/DBus/Client/
+ * for the Client interface documentation.
  */
 
 #include <pulsecore/client.h>

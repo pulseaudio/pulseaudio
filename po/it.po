@@ -2044,7 +2044,7 @@ msgstr "\tProfilo attivo: %s\n"
 # Sink input
 # A stream that is connected to an output device, i.e. an input for a sink.
 #
-# from http://pulseaudio.org/wiki/WritingVolumeControlUIs
+# from http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Clients/WritingVolumeControlUIs/
 #: ../src/utils/pactl.c:593 ../src/utils/pactl.c:868
 #, c-format
 msgid "Failed to get sink input information: %s"
@@ -2091,7 +2091,7 @@ msgstr ""
 # Source output
 # A stream that is connected to an input device, i.e. an output of a source.
 #
-# from http://pulseaudio.org/wiki/WritingVolumeControlUIs
+# from http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Clients/WritingVolumeControlUIs/
 #: ../src/utils/pactl.c:663 ../src/utils/pactl.c:887
 #, c-format
 msgid "Failed to get source output information: %s"

@@ -24,8 +24,8 @@
 
 /* This object implements the D-Bus interface org.PulseAudio.Core1.Card.
  *
- * See http://pulseaudio.org/wiki/DBusInterface for the Card interface
- * documentation.
+ * See http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Clients/DBus/Card/
+ * for the Card interface documentation.
  */
 
 #include <pulsecore/card.h>

@@ -49,7 +49,7 @@ static const char introspection[] =
     DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE
     "<node>"
     " <!-- If you are looking for documentation make sure to check out\n"
-    "      http://pulseaudio.org/wiki/DBusInterface -->\n"
+    "      http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Clients/DBus/ -->\n"
     " <interface name=\"" INTERFACE "\">\n"
     "  <property name=\"Address\" type=\"s\" access=\"read\"/>\n"
     " </interface>\n"

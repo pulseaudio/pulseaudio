@@ -96,7 +96,7 @@ struct pa_sink_input {
 
     pa_sink_input *sync_prev, *sync_next;
 
-    /* Also see http://pulseaudio.org/wiki/InternalVolumes */
+    /* Also see http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Volumes/ */
     pa_cvolume volume;             /* The volume clients are informed about */
     pa_cvolume reference_ratio;    /* The ratio of the stream's volume to the sink's reference volume */
     pa_cvolume real_ratio;         /* The ratio of the stream's volume to the sink's real volume */

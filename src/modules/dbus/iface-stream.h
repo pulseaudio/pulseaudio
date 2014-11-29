@@ -24,8 +24,8 @@
 
 /* This object implements the D-Bus interface org.PulseAudio.Core1.Stream.
  *
- * See http://pulseaudio.org/wiki/DBusInterface for the Stream interface
- * documentation.
+ * See http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Clients/DBus/Stream/
+ * for the Stream interface documentation.
  */
 
 #include <pulsecore/protocol-dbus.h>

@@ -26,8 +26,8 @@
  * /org/pulseaudio/server_lookup. Implemented interfaces
  * are org.pulseaudio.ServerLookup and org.freedesktop.DBus.Introspectable.
  *
- * See http://pulseaudio.org/wiki/DBusInterface for the ServerLookup interface
- * documentation.
+ * See http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Clients/DBus/ConnectingToServer/
+ * for the ServerLookup interface documentation.
  */
 
 #include <pulsecore/core.h>

@@ -25,8 +25,8 @@
 /* This object implements the D-Bus interfaces org.PulseAudio.Core1.Device,
  * org.PulseAudio.Core1.Sink and org.PulseAudio.Core1.Source.
  *
- * See http://pulseaudio.org/wiki/DBusInterface for the interface
- * documentation.
+ * See http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Clients/DBus/Device/
+ * for the interface documentation.
  */
 
 #include <pulsecore/protocol-dbus.h>

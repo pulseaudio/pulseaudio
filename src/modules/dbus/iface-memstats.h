@@ -24,8 +24,8 @@
 
 /* This object implements the D-Bus interface org.PulseAudio.Core1.Memstats.
  *
- * See http://pulseaudio.org/wiki/DBusInterface for the Memstats interface
- * documentation.
+ * See http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Clients/DBus/Memstats/
+ * for the Memstats interface documentation.
  */
 
 #include <pulsecore/core.h>

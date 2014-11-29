@@ -87,7 +87,7 @@ struct pa_source_output {
     pa_channel_map channel_map;
     pa_format_info *format;
 
-    /* Also see http://pulseaudio.org/wiki/InternalVolumes */
+    /* Also see http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Volumes/ */
     pa_cvolume volume;             /* The volume clients are informed about */
     pa_cvolume reference_ratio;    /* The ratio of the stream's volume to the source's reference volume */
     pa_cvolume real_ratio;         /* The ratio of the stream's volume to the source's real volume */

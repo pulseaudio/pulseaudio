@@ -24,8 +24,8 @@
 
 /* This object implements the D-Bus interface org.PulseAudio.Core1.DevicePort.
  *
- * See http://pulseaudio.org/wiki/DBusInterface for the DevicePort interface
- * documentation.
+ * See http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Clients/DBus/DevicePort/
+ * for the DevicePort interface documentation.
  */
 
 #include <pulsecore/protocol-dbus.h>

@@ -24,8 +24,8 @@
 
 /* This object implements the D-Bus interface org.PulseAudio.Core1.
  *
- * See http://pulseaudio.org/wiki/DBusInterface for the Core interface
- * documentation.
+ * See http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Clients/DBus/Core/
+ * for the Core interface documentation.
  */
 
 #include <pulsecore/core.h>

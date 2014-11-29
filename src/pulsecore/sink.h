@@ -90,7 +90,7 @@ struct pa_sink {
     pa_volume_t base_volume; /* shall be constant */
     unsigned n_volume_steps; /* shall be constant */
 
-    /* Also see http://pulseaudio.org/wiki/InternalVolumes */
+    /* Also see http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/Developer/Volumes/ */
     pa_cvolume reference_volume; /* The volume exported and taken as reference base for relative sink input volumes */
     pa_cvolume real_volume;      /* The volume that the hardware is configured to  */
     pa_cvolume soft_volume;      /* The internal software volume we apply to all PCM data while it passes through */
