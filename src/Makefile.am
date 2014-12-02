@@ -288,9 +288,13 @@ TESTS_daemon = \
 
 if !OS_IS_WIN32
 TESTS_default += \
-		srbchannel-test \
 		sigbus-test \
 		usergroup-test
+endif
+
+if HAVE_SYS_EVENTFD_H
+TESTS_default += \
+		srbchannel-test
 endif
 
 if !OS_IS_DARWIN

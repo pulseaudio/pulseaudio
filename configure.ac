@@ -449,6 +449,7 @@ AC_CHECK_HEADERS_ONCE([execinfo.h])
 AC_CHECK_HEADERS_ONCE([langinfo.h])
 AC_CHECK_HEADERS_ONCE([regex.h pcreposix.h])
 
+AM_CONDITIONAL(HAVE_SYS_EVENTFD_H, test "x$ac_cv_header_sys_eventfd_h" = "xyes")
 
 #### Typdefs, structures, etc. ####
 
