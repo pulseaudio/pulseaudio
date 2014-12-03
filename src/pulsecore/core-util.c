@@ -1816,6 +1816,7 @@ char *pa_get_runtime_dir(void) {
     /* Use the XDG standard for the runtime directory. */
     d = getenv("XDG_RUNTIME_DIR");
     if (d) {
+#ifdef HAVE_GETUID
         struct stat st;
         if (stat(d, &st) == 0 && st.st_uid != getuid()) {
             pa_log(_("XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! "
@@ -1823,6 +1824,7 @@ char *pa_get_runtime_dir(void) {
                    d, getuid(), st.st_uid);
             goto fail;
         }
+#endif
 
         k = pa_sprintf_malloc("%s" PA_PATH_SEP "pulse", d);
 
