@@ -1096,6 +1096,10 @@ int pa__init(pa_module*m) {
 
     pa_assert(m);
 
+    pa_log_warn("module-equalizer-sink is currently unsupported, and can sometimes cause "
+                "PulseAudio crashes, increased latency or audible artifacts.");
+    pa_log_warn("If you're facing audio problems, try unloading this module as a potential workaround.");
+
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments.");
         goto fail;
