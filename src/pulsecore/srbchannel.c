@@ -231,6 +231,9 @@ pa_srbchannel* pa_srbchannel_new(pa_mainloop_api *m, pa_mempool *p) {
     pa_srbchannel* sr = pa_xmalloc0(sizeof(pa_srbchannel));
     sr->mainloop = m;
     sr->memblock = pa_memblock_new_pool(p, -1);
+    if (!sr->memblock)
+        goto fail;
+
     srh = pa_memblock_acquire(sr->memblock);
     pa_zero(*srh);
 
