@@ -132,6 +132,7 @@ struct pa_memexport {
     PA_LLIST_HEAD(struct memexport_slot, free_slots);
     PA_LLIST_HEAD(struct memexport_slot, used_slots);
     unsigned n_init;
+    unsigned baseidx;
 
     /* Called whenever a client from which we imported a memory block
        which we in turn exported to another client dies and we need to
@@ -150,6 +151,7 @@ struct pa_mempool {
     size_t block_size;
     unsigned n_blocks;
     bool is_remote_writable;
+    unsigned export_baseidx;
 
     pa_atomic_t n_init;
 
@@ -1103,7 +1105,11 @@ pa_memexport* pa_memexport_new(pa_mempool *p, pa_memexport_revoke_cb_t cb, void 
     e->userdata = userdata;
 
     pa_mutex_lock(p->mutex);
+
     PA_LLIST_PREPEND(pa_memexport, p->exports, e);
+    e->baseidx = p->export_baseidx;
+    p->export_baseidx += PA_MEMEXPORT_SLOTS_MAX;
+
     pa_mutex_unlock(p->mutex);
     return e;
 }
@@ -1113,7 +1119,7 @@ void pa_memexport_free(pa_memexport *e) {
 
     pa_mutex_lock(e->mutex);
     while (e->used_slots)
-        pa_memexport_process_release(e, (uint32_t) (e->used_slots - e->slots));
+        pa_memexport_process_release(e, (uint32_t) (e->used_slots - e->slots + e->baseidx));
     pa_mutex_unlock(e->mutex);
 
     pa_mutex_lock(e->pool->mutex);
@@ -1131,6 +1137,10 @@ int pa_memexport_process_release(pa_memexport *e, uint32_t id) {
     pa_assert(e);
 
     pa_mutex_lock(e->mutex);
+
+    if (id < e->baseidx)
+        goto fail;
+    id -= e->baseidx;
 
     if (id >= e->n_init)
         goto fail;
@@ -1180,7 +1190,7 @@ static void memexport_revoke_blocks(pa_memexport *e, pa_memimport *i) {
             slot->block->per_type.imported.segment->import != i)
             continue;
 
-        idx = (uint32_t) (slot - e->slots);
+        idx = (uint32_t) (slot - e->slots + e->baseidx);
         e->revoke_cb(e, idx, e->userdata);
         pa_memexport_process_release(e, idx);
     }
@@ -1241,7 +1251,7 @@ int pa_memexport_put(pa_memexport *e, pa_memblock *b, uint32_t *block_id, uint32
 
     PA_LLIST_PREPEND(struct memexport_slot, e->used_slots, slot);
     slot->block = b;
-    *block_id = (uint32_t) (slot - e->slots);
+    *block_id = (uint32_t) (slot - e->slots + e->baseidx);
 
     pa_mutex_unlock(e->mutex);
 /*     pa_log("Got block id %u", *block_id); */
