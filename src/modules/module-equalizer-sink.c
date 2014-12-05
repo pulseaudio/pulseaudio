@@ -674,8 +674,6 @@ END:
     pa_assert(chunk->memblock);
     pa_memblockq_drop(u->output_q, chunk->length);
 
-    /** FIXME: Uh? you need to unref the chunk here! */
-
     //pa_log_debug("gave %ld", chunk->length/fs);
     //pa_log_debug("end pop");
     return 0;
