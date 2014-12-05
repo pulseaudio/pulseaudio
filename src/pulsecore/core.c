@@ -117,7 +117,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, size_t shm_size) {
     c->deferred_volume_extra_delay_usec = 0;
 
     c->module_defer_unload_event = NULL;
-    c->scache_auto_unload_event = NULL;
+    c->modules_pending_unload = pa_hashmap_new(NULL, NULL);
 
     c->subscription_defer_event = NULL;
     PA_LLIST_HEAD_INIT(pa_subscription, c->subscriptions);
@@ -133,6 +133,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, size_t shm_size) {
         pa_mempool_set_is_remote_writable(c->rw_mempool, true);
 
     c->exit_event = NULL;
+    c->scache_auto_unload_event = NULL;
 
     c->exit_idle_time = -1;
     c->scache_idle_time = 20;
@@ -203,6 +204,9 @@ static void core_free(pa_object *o) {
 
     pa_assert(pa_hashmap_isempty(c->shared));
     pa_hashmap_free(c->shared);
+
+    pa_assert(pa_hashmap_isempty(c->modules_pending_unload));
+    pa_hashmap_free(c->modules_pending_unload);
 
     pa_subscription_free_all(c);
 

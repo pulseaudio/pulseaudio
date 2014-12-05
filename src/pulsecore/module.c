@@ -247,6 +247,8 @@ void pa_module_unload(pa_core *c, pa_module *m, bool force) {
     if (m->core->disallow_module_loading && !force)
         return;
 
+    pa_hashmap_remove(c->modules_pending_unload, m);
+
     if (!(m = pa_idxset_remove_by_data(c->modules, m, NULL)))
         return;
 
@@ -303,16 +305,14 @@ void pa_module_unload_all(pa_core *c) {
 }
 
 static void defer_cb(pa_mainloop_api*api, pa_defer_event *e, void *userdata) {
-    void *state = NULL;
     pa_core *c = PA_CORE(userdata);
     pa_module *m;
 
     pa_core_assert_ref(c);
     api->defer_enable(e, 0);
 
-    while ((m = pa_idxset_iterate(c->modules, &state, NULL)))
-        if (m->unload_requested)
-            pa_module_unload(c, m, true);
+    while ((m = pa_hashmap_first(c->modules_pending_unload)))
+        pa_module_unload(c, m, true);
 }
 
 void pa_module_unload_request(pa_module *m, bool force) {
@@ -322,6 +322,7 @@ void pa_module_unload_request(pa_module *m, bool force) {
         return;
 
     m->unload_requested = true;
+    pa_hashmap_put(m->core->modules_pending_unload, m, m);
 
     if (!m->core->module_defer_unload_event)
         m->core->module_defer_unload_event = m->core->mainloop->defer_new(m->core->mainloop, defer_cb, m->core);

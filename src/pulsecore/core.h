@@ -164,6 +164,7 @@ struct pa_core {
     int deferred_volume_extra_delay_usec;
 
     pa_defer_event *module_defer_unload_event;
+    pa_hashmap *modules_pending_unload; /* pa_module -> pa_module (hashmap-as-a-set) */
 
     pa_defer_event *subscription_defer_event;
     PA_LLIST_HEAD(pa_subscription, subscriptions);
