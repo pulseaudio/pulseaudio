@@ -2770,7 +2770,7 @@ msgstr "Pas de boost"
 
 #: ../src/modules/alsa/alsa-mixer.c:2239
 msgid "Speaker"
-msgstr ""
+msgstr "Haut-parleur"
 
 #: ../src/modules/alsa/alsa-mixer.c:2240 ../src/modules/alsa/alsa-mixer.c:2311
 msgid "Headphones"
