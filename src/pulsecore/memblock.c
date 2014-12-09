@@ -751,7 +751,7 @@ pa_mempool* pa_mempool_new(bool shared, size_t size) {
     pa_mempool *p;
     char t1[PA_BYTES_SNPRINT_MAX], t2[PA_BYTES_SNPRINT_MAX];
 
-    p = pa_xnew(pa_mempool, 1);
+    p = pa_xnew0(pa_mempool, 1);
 
     p->block_size = PA_PAGE_ALIGN(PA_MEMPOOL_SLOT_SIZE);
     if (p->block_size < PA_PAGE_SIZE)
@@ -778,7 +778,6 @@ pa_mempool* pa_mempool_new(bool shared, size_t size) {
                  pa_bytes_snprint(t2, sizeof(t2), (unsigned) (p->n_blocks * p->block_size)),
                  (unsigned long) pa_mempool_block_size_max(p));
 
-    memset(&p->stat, 0, sizeof(p->stat));
     pa_atomic_store(&p->n_init, 0);
 
     PA_LLIST_HEAD_INIT(pa_memimport, p->imports);
