@@ -1968,11 +1968,13 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
     bool release = false;
     pa_card_profile *cp;
     pa_device_port *port;
+    pa_available_t oldavail;
 
     pa_assert(u);
     pa_assert(t);
     pa_assert_se(cp = pa_hashmap_get(u->card->profiles, pa_bluetooth_profile_to_string(t->profile)));
 
+    oldavail = cp->available;
     pa_card_profile_set_available(cp, transport_state_to_availability(t->state));
 
     /* Update port availability */
@@ -1983,7 +1985,7 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
 
     /* Acquire or release transport as needed */
     acquire = (t->state == PA_BLUETOOTH_TRANSPORT_STATE_PLAYING && u->profile == t->profile);
-    release = (t->state != PA_BLUETOOTH_TRANSPORT_STATE_PLAYING && u->profile == t->profile);
+    release = (oldavail != PA_AVAILABLE_NO && t->state != PA_BLUETOOTH_TRANSPORT_STATE_PLAYING && u->profile == t->profile);
 
     if (acquire && transport_acquire(u, true) >= 0) {
         if (u->source) {
