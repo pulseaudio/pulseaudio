@@ -69,7 +69,7 @@ USA.
 
     <option>
       <p><opt>autospawn=</opt> Autospawn a PulseAudio daemon when
-      needed. Takes a boolean value, defaults to <opt>@PA_DEFAULT_AUTOSPAWN@</opt>.</p>
+      needed. Takes a boolean value, defaults to <opt>yes</opt>.</p>
     </option>
 
     <option>
