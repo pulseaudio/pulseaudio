@@ -109,6 +109,15 @@ static void cork_stream(struct userdata *u, bool cork) {
     pa_assert(u);
     pa_assert(u->stream);
 
+    if (cork) {
+        /* When the sink becomes suspended (which is the only case where we
+         * cork the stream), we don't want to keep any old data around, because
+         * the old data is most likely unrelated to the audio that will be
+         * played at the time when the sink starts running again. */
+        if ((operation = pa_stream_flush(u->stream, NULL, NULL)))
+            pa_operation_unref(operation);
+    }
+
     if ((operation = pa_stream_cork(u->stream, cork, NULL, NULL)))
         pa_operation_unref(operation);
 }
