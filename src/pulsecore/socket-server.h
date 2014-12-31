@@ -29,7 +29,6 @@
 
 typedef struct pa_socket_server pa_socket_server;
 
-pa_socket_server* pa_socket_server_new(pa_mainloop_api *m, int fd);
 pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *filename);
 pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address, uint16_t port, bool fallback, const char *tcpwrap_service);
 pa_socket_server* pa_socket_server_new_ipv4_loopback(pa_mainloop_api *m, uint16_t port, bool fallback, const char *tcpwrap_service);
