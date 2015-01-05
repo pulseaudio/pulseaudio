@@ -673,9 +673,9 @@ fi
 #### Libsamplerate support (optional) ####
 
 AC_ARG_ENABLE([samplerate],
-    AS_HELP_STRING([--disable-samplerate],[Disable optional libsamplerate support]))
+    AS_HELP_STRING([--enable-samplerate],[Enable optional libsamplerate support (DEPRECATED)]))
 
-AS_IF([test "x$enable_samplerate" != "xno"],
+AS_IF([test "x$enable_samplerate" = "xyes"],
     [PKG_CHECK_MODULES(LIBSAMPLERATE, [ samplerate >= 0.1.0 ], HAVE_LIBSAMPLERATE=1, HAVE_LIBSAMPLERATE=0)],
     HAVE_LIBSAMPLERATE=0)
 
