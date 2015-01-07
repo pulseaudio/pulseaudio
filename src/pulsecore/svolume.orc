@@ -45,13 +45,15 @@
 
 .function pa_volume_s16ne_orc_1ch
 .dest 2 samples int16_t
-.param 4 v int32_t
+.param 4 vols int32_t
+.temp 4 v
 .temp 2 vh
 .temp 4 s
 .temp 4 mh
 .temp 4 ml
 .temp 4 signc
 
+loadpl v, vols
 convuwl s, samples
 x2 cmpgtsw signc, 0, s
 x2 andw signc, signc, v
