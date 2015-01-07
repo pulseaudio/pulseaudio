@@ -77,6 +77,15 @@ void *pa_dynarray_get(pa_dynarray *array, unsigned i) {
     return array->data[i];
 }
 
+void *pa_dynarray_last(pa_dynarray *array) {
+    pa_assert(array);
+
+    if (array->n_entries == 0)
+        return NULL;
+
+    return array->data[array->n_entries - 1];
+}
+
 void *pa_dynarray_steal_last(pa_dynarray *array) {
     pa_assert(array);
 

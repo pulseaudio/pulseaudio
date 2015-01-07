@@ -48,6 +48,9 @@ void pa_dynarray_free(pa_dynarray *array);
 void pa_dynarray_append(pa_dynarray *array, void *p);
 void *pa_dynarray_get(pa_dynarray *array, unsigned i);
 
+/* Returns the last element, or NULL if the array is empty. */
+void *pa_dynarray_last(pa_dynarray *array);
+
 /* Returns the removed item, or NULL if the array is empty. */
 void *pa_dynarray_steal_last(pa_dynarray *array);
 
