@@ -33,12 +33,9 @@ typedef struct pa_dynarray pa_dynarray;
  * from the array without freeing them, while also having the free callback
  * set, the functions with "steal" in their name can be used.
  *
- * Removing items from the middle of the array causes the subsequent items to
- * be moved to fill the gap, so it's not efficient with large arrays. If the
- * order of the array is not important, however, functions with "fast" in their
- * name can be used, in which case the gap is filled by moving only the last
- * item(s). XXX: Currently there are no functions with "fast" in their name,
- * but such functions will be added if they are ever needed.
+ * Removing items from the middle of the array causes the last item to be
+ * moved to the place of the removed item. That is, array ordering is not
+ * preserved.
  *
  * The array doesn't support storing NULL pointers. */
 
@@ -50,6 +47,9 @@ void *pa_dynarray_get(pa_dynarray *array, unsigned i);
 
 /* Returns the last element, or NULL if the array is empty. */
 void *pa_dynarray_last(pa_dynarray *array);
+
+/* Returns -PA_ERR_NOENTITY if i is out of bounds, and zero otherwise. */
+int pa_dynarray_remove_by_index(pa_dynarray *array, unsigned i);
 
 /* Returns the removed item, or NULL if the array is empty. */
 void *pa_dynarray_steal_last(pa_dynarray *array);
