@@ -104,6 +104,26 @@ int pa_dynarray_remove_by_index(pa_dynarray *array, unsigned i) {
     return 0;
 }
 
+int pa_dynarray_remove_by_data(pa_dynarray *array, void *p) {
+    unsigned i;
+
+    pa_assert(array);
+    pa_assert(p);
+
+    /* Iterate backwards, with the assumption that recently appended entries
+     * are likely to be removed first. */
+    i = array->n_entries;
+    while (i > 0) {
+        i--;
+        if (array->data[i] == p) {
+            pa_dynarray_remove_by_index(array, i);
+            return 0;
+        }
+    }
+
+    return -PA_ERR_NOENTITY;
+}
+
 void *pa_dynarray_steal_last(pa_dynarray *array) {
     pa_assert(array);
 
