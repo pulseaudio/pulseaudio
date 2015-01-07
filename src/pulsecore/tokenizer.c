@@ -78,8 +78,5 @@ const char *pa_tokenizer_get(pa_tokenizer *t, unsigned i) {
 
     pa_assert(a);
 
-    if (i >= pa_dynarray_size(a))
-        return NULL;
-
     return pa_dynarray_get(a, i);
 }

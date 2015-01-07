@@ -72,7 +72,9 @@ void pa_dynarray_append(pa_dynarray *array, void *p) {
 
 void *pa_dynarray_get(pa_dynarray *array, unsigned i) {
     pa_assert(array);
-    pa_assert(i < array->n_entries);
+
+    if (i >= array->n_entries)
+        return NULL;
 
     return array->data[i];
 }
