@@ -151,7 +151,6 @@ struct pa_mempool {
     size_t block_size;
     unsigned n_blocks;
     bool is_remote_writable;
-    unsigned export_baseidx;
 
     pa_atomic_t n_init;
 
@@ -1088,6 +1087,8 @@ finish:
 pa_memexport* pa_memexport_new(pa_mempool *p, pa_memexport_revoke_cb_t cb, void *userdata) {
     pa_memexport *e;
 
+    static pa_atomic_t export_baseidx = PA_ATOMIC_INIT(0);
+
     pa_assert(p);
     pa_assert(cb);
 
@@ -1106,8 +1107,7 @@ pa_memexport* pa_memexport_new(pa_mempool *p, pa_memexport_revoke_cb_t cb, void 
     pa_mutex_lock(p->mutex);
 
     PA_LLIST_PREPEND(pa_memexport, p->exports, e);
-    e->baseidx = p->export_baseidx;
-    p->export_baseidx += PA_MEMEXPORT_SLOTS_MAX;
+    e->baseidx = (uint32_t) pa_atomic_add(&export_baseidx, PA_MEMEXPORT_SLOTS_MAX);
 
     pa_mutex_unlock(p->mutex);
     return e;
