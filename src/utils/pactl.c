@@ -1897,7 +1897,7 @@ int main(int argc, char *argv[]) {
 
             sink_name = pa_xstrdup(argv[optind+1]);
 
-            if (parse_volumes(argv+optind+2, argc-3) < 0)
+            if (parse_volumes(argv+optind+2, argc-(optind+2)) < 0)
                 goto quit;
 
         } else if (pa_streq(argv[optind], "set-source-volume")) {
@@ -1910,7 +1910,7 @@ int main(int argc, char *argv[]) {
 
             source_name = pa_xstrdup(argv[optind+1]);
 
-            if (parse_volumes(argv+optind+2, argc-3) < 0)
+            if (parse_volumes(argv+optind+2, argc-(optind+2)) < 0)
                 goto quit;
 
         } else if (pa_streq(argv[optind], "set-sink-input-volume")) {
@@ -1926,7 +1926,7 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            if (parse_volumes(argv+optind+2, argc-3) < 0)
+            if (parse_volumes(argv+optind+2, argc-(optind+2)) < 0)
                 goto quit;
 
         } else if (pa_streq(argv[optind], "set-source-output-volume")) {
@@ -1942,7 +1942,7 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            if (parse_volumes(argv+optind+2, argc-3) < 0)
+            if (parse_volumes(argv+optind+2, argc-(optind+2)) < 0)
                 goto quit;
 
         } else if (pa_streq(argv[optind], "set-sink-mute")) {
