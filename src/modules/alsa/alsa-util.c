@@ -443,7 +443,7 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min, bool peri
 
     snd_pcm_sw_params_alloca(&swparams);
 
-    if ((err = snd_pcm_sw_params_current(pcm, swparams) < 0)) {
+    if ((err = snd_pcm_sw_params_current(pcm, swparams)) < 0) {
         pa_log_warn("Unable to determine current swparams: %s\n", pa_alsa_strerror(err));
         return err;
     }
