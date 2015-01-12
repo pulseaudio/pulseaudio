@@ -333,7 +333,7 @@ int main(int argc, char*argv[]) {
             if (watch_socket->revents & POLLHUP) {
                 ibuf_eof = true;
                 ibuf_length = 0;
-            } if (watch_socket->revents & POLLOUT) {
+            } else if (watch_socket->revents & POLLOUT) {
                 ssize_t r;
                 pa_assert(ibuf_length > 0);
 
