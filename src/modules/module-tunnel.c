@@ -691,7 +691,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
 
         case PA_SOURCE_UNLINKED:
         case PA_SOURCE_INIT:
-        case PA_SINK_INVALID_STATE:
+        case PA_SOURCE_INVALID_STATE:
             ;
     }
 
