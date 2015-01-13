@@ -2799,6 +2799,7 @@ msgid ""
 "The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
 "can be used to specify the default sink, source and monitor.\n"
 msgstr ""
+"\n"
 "Özel isimler @DEFAULT_SINK@, @DEFAULT_SOURCE@ ve @DEFAULT_MONITOR@\n"
 "varsayılan alıcıyı, kaynağı ve ekranı belirtmek için kullanılabilir.\n"
 
