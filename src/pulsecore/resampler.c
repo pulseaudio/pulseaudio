@@ -109,6 +109,15 @@ static int (* const init_table[])(pa_resampler *r) = {
     [PA_RESAMPLER_AUTO]                    = NULL,
     [PA_RESAMPLER_COPY]                    = copy_init,
     [PA_RESAMPLER_PEAKS]                   = pa_resampler_peaks_init,
+#ifdef HAVE_SOXR
+    [PA_RESAMPLER_SOXR_MQ]                 = pa_resampler_soxr_init,
+    [PA_RESAMPLER_SOXR_HQ]                 = pa_resampler_soxr_init,
+    [PA_RESAMPLER_SOXR_VHQ]                = pa_resampler_soxr_init,
+#else
+    [PA_RESAMPLER_SOXR_MQ]                 = NULL,
+    [PA_RESAMPLER_SOXR_HQ]                 = NULL,
+    [PA_RESAMPLER_SOXR_VHQ]                = NULL,
+#endif
 };
 
 static pa_resample_method_t choose_auto_resampler(pa_resample_flags_t flags) {
@@ -154,6 +163,9 @@ static pa_resample_method_t fix_method(
             }
                                      /* Else fall through */
         case PA_RESAMPLER_FFMPEG:
+        case PA_RESAMPLER_SOXR_MQ:
+        case PA_RESAMPLER_SOXR_HQ:
+        case PA_RESAMPLER_SOXR_VHQ:
             if (flags & PA_RESAMPLER_VARIABLE_RATE) {
                 pa_log_info("Resampler '%s' cannot do variable rate, reverting to resampler 'auto'.", pa_resample_method_to_string(method));
                 method = PA_RESAMPLER_AUTO;
@@ -276,10 +288,20 @@ static pa_sample_format_t choose_work_format(
             }
                                                 /* Else fall trough */
         case PA_RESAMPLER_PEAKS:
-            if (a == PA_SAMPLE_S16NE || b == PA_SAMPLE_S16NE)
+            /* PEAKS, COPY and TRIVIAL do not benefit from increased
+             * working precision, so for better performance use s16ne
+             * if either input or output fits in it. */
+            if (a == PA_SAMPLE_S16NE || b == PA_SAMPLE_S16NE) {
                 work_format = PA_SAMPLE_S16NE;
-            else if (sample_format_more_precise(a, PA_SAMPLE_S16NE) ||
-                     sample_format_more_precise(b, PA_SAMPLE_S16NE))
+                break;
+            }
+                                                /* Else fall trough */
+        case PA_RESAMPLER_SOXR_MQ:
+        case PA_RESAMPLER_SOXR_HQ:
+        case PA_RESAMPLER_SOXR_VHQ:
+            /* Do processing with max precision of input and output. */
+            if (sample_format_more_precise(a, PA_SAMPLE_S16NE) ||
+                sample_format_more_precise(b, PA_SAMPLE_S16NE))
                 work_format = PA_SAMPLE_FLOAT32NE;
             else
                 work_format = PA_SAMPLE_S16NE;
@@ -599,7 +621,10 @@ static const char * const resample_methods[] = {
     "ffmpeg",
     "auto",
     "copy",
-    "peaks"
+    "peaks",
+    "soxr-mq",
+    "soxr-hq",
+    "soxr-vhq"
 };
 
 const char *pa_resample_method_to_string(pa_resample_method_t m) {

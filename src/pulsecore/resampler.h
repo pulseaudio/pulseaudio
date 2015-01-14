@@ -57,6 +57,9 @@ typedef enum pa_resample_method {
     PA_RESAMPLER_AUTO, /* automatic select based on sample format */
     PA_RESAMPLER_COPY,
     PA_RESAMPLER_PEAKS,
+    PA_RESAMPLER_SOXR_MQ,
+    PA_RESAMPLER_SOXR_HQ,
+    PA_RESAMPLER_SOXR_VHQ,
     PA_RESAMPLER_MAX
 } pa_resample_method_t;
 
@@ -161,6 +164,7 @@ int pa_resampler_libsamplerate_init(pa_resampler *r);
 int pa_resampler_peaks_init(pa_resampler *r);
 int pa_resampler_speex_init(pa_resampler *r);
 int pa_resampler_trivial_init(pa_resampler*r);
+int pa_resampler_soxr_init(pa_resampler *r);
 
 /* Resampler-specific quirks */
 bool pa_speex_is_fixed_point(void);
