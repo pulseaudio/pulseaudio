@@ -1139,6 +1139,21 @@ AS_IF([test "x$with_speex" = "xyes" && test "x$HAVE_SPEEX" = "x0"],
 AM_CONDITIONAL([HAVE_SPEEX], [test "x$HAVE_SPEEX" = "x1"])
 AS_IF([test "x$HAVE_SPEEX" = "x1"], AC_DEFINE([HAVE_SPEEX], 1, [Have speex]))
 
+#### soxr (optional) ####
+
+AC_ARG_WITH([soxr],
+    AS_HELP_STRING([--without-soxr],[Omit soxr (resampling)]))
+
+AS_IF([test "x$with_soxr" != "xno"],
+    [PKG_CHECK_MODULES(LIBSOXR, [ soxr >= 0.1.1 ], HAVE_SOXR=1, HAVE_SOXR=0)],
+    HAVE_SOXR=0)
+
+AS_IF([test "x$with_soxr" = "xyes" && test "x$HAVE_SOXR" = "x0"],
+    [AC_MSG_ERROR([*** soxr support not found])])
+
+AM_CONDITIONAL([HAVE_SOXR], [test "x$HAVE_SOXR" = "x1"])
+AS_IF([test "x$HAVE_SOXR" = "x1"], AC_DEFINE([HAVE_SOXR], 1, [Have soxr]))
+
 #### Xen support (optional) ####
 
 AC_ARG_ENABLE([xen],
@@ -1526,6 +1541,7 @@ AS_IF([test "x$HAVE_FFTW" = "x1"], ENABLE_FFTW=yes, ENABLE_FFTW=no)
 AS_IF([test "x$HAVE_ORC" = "xyes"], ENABLE_ORC=yes, ENABLE_ORC=no)
 AS_IF([test "x$HAVE_ADRIAN_EC" = "x1"], ENABLE_ADRIAN_EC=yes, ENABLE_ADRIAN_EC=no)
 AS_IF([test "x$HAVE_SPEEX" = "x1"], ENABLE_SPEEX=yes, ENABLE_SPEEX=no)
+AS_IF([test "x$HAVE_SOXR" = "x1"], ENABLE_SOXR=yes, ENABLE_SOXR=no)
 AS_IF([test "x$HAVE_WEBRTC" = "x1"], ENABLE_WEBRTC=yes, ENABLE_WEBRTC=no)
 AS_IF([test "x$HAVE_TDB" = "x1"], ENABLE_TDB=yes, ENABLE_TDB=no)
 AS_IF([test "x$HAVE_GDBM" = "x1"], ENABLE_GDBM=yes, ENABLE_GDBM=no)
@@ -1587,6 +1603,7 @@ echo "
     Enable orc:                    ${ENABLE_ORC}
     Enable Adrian echo canceller:  ${ENABLE_ADRIAN_EC}
     Enable speex (resampler, AEC): ${ENABLE_SPEEX}
+    Enable soxr (resampler):       ${ENABLE_SOXR}
     Enable WebRTC echo canceller:  ${ENABLE_WEBRTC}
     Enable gcov coverage:          ${ENABLE_GCOV}
     Enable unit tests:             ${ENABLE_TESTS}
