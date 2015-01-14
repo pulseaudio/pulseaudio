@@ -86,7 +86,8 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       <opt>src-sinc-medium-quality</opt>, <opt>src-sinc-fastest</opt>,
       <opt>src-zero-order-hold</opt>, <opt>src-linear</opt>,
       <opt>trivial</opt>, <opt>speex-float-N</opt>,
-      <opt>speex-fixed-N</opt>, <opt>ffmpeg</opt>. See the
+      <opt>speex-fixed-N</opt>, <opt>ffmpeg</opt>, <opt>soxr-mq</opt>,
+      <opt>soxr-hq</opt>, <opt>soxr-vhq</opt>. See the
       documentation of libsamplerate and speex for explanations of the
       different src- and speex- methods, respectively. The method
       <opt>trivial</opt> is the most basic algorithm implemented. If
@@ -96,8 +97,15 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       exist in two flavours: <opt>fixed</opt> and <opt>float</opt>. The former uses fixed point
       numbers, the latter relies on floating point numbers. On most
       desktop CPUs the float point resampler is a lot faster, and it
-      also offers slightly better quality. See the output of
-      <opt>dump-resample-methods</opt> for a complete list of all
+      also offers slightly better quality. The soxr-family methods
+      are based on libsoxr, a resampler library from the SoX sound processing utility.
+      The mq variant has the best performance of the three. The hq is more expensive
+      and, according to SoX developers, is considered the best choice for audio of up to 16 bits per sample.
+      The vhq variant has more precision than hq and is more suitable for larger samples. The Soxr resamplers
+      generally offer better quality at less CPU compared to other resamplers, such as speex.
+      The downside is that they can add a significant delay to the output
+      (usually up to around 20 ms, in rare cases more).
+      See the output of <opt>dump-resample-methods</opt> for a complete list of all
       available resamplers. Defaults to <opt>speex-float-1</opt>. The
       <opt>--resample-method</opt> command line option takes precedence.
       Note that some modules overwrite or allow overwriting of the
