@@ -59,7 +59,7 @@ endif
 cmakedir = $(libdir)/cmake/PulseAudio
 cmake_DATA = PulseAudioConfig.cmake PulseAudioConfigVersion.cmake
 
-bashcompletiondir=$(sysconfdir)/bash_completion.d
+bashcompletiondir=@bashcompletiondir@
 dist_bashcompletion_DATA = shell-completion/bash/pulseaudio
 
 install-bashcompletion-aliases:
