@@ -1021,6 +1021,7 @@ static void read_sink_format_reply(struct userdata *u, pa_tagstruct *reply, pa_s
         PA_IDXSET_FOREACH(f, e->formats, idx) {
             pa_tagstruct_put_format_info(reply, f);
         }
+        perportentry_free(e);
     }
     pa_xfree(name);
 }
