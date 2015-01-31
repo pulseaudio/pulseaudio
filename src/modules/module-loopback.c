@@ -272,7 +272,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     pa_source_output_assert_io_context(o);
     pa_assert_se(u = o->userdata);
 
-    if (u->skip > chunk->length) {
+    if (u->skip >= chunk->length) {
         u->skip -= chunk->length;
         return;
     }
