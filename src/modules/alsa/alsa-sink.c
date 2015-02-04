@@ -2011,6 +2011,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     size_t frame_size;
     bool use_mmap = true, b, use_tsched = true, d, ignore_dB = false, namereg_fail = false, deferred_volume = false, set_formats = false, fixed_latency_range = false;
     pa_sink_new_data data;
+    bool volume_is_set;
+    bool mute_is_set;
     pa_alsa_profile_set *profile_set = NULL;
     void *state = NULL;
 
@@ -2292,6 +2294,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE | PA_SINK_LATENCY | (u->use_tsched ? PA_SINK_DYNAMIC_LATENCY : 0) |
                           (set_formats ? PA_SINK_SET_FORMATS : 0));
+    volume_is_set = data.volume_is_set;
+    mute_is_set = data.muted_is_set;
     pa_sink_new_data_done(&data);
 
     if (!u->sink) {
@@ -2375,7 +2379,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     thread_name = NULL;
 
     /* Get initial mixer settings */
-    if (data.volume_is_set) {
+    if (volume_is_set) {
         if (u->sink->set_volume)
             u->sink->set_volume(u->sink);
     } else {
@@ -2383,7 +2387,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
             u->sink->get_volume(u->sink);
     }
 
-    if (data.muted_is_set) {
+    if (mute_is_set) {
         if (u->sink->set_mute)
             u->sink->set_mute(u->sink);
     } else {
@@ -2395,7 +2399,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         }
     }
 
-    if ((data.volume_is_set || data.muted_is_set) && u->sink->write_volume)
+    if ((volume_is_set || mute_is_set) && u->sink->write_volume)
         u->sink->write_volume(u->sink);
 
     if (set_formats) {
