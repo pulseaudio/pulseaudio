@@ -455,6 +455,12 @@ static void init_eld_ctls(struct userdata *u) {
     if (!u->mixer_handle)
         return;
 
+    /* The code in this function expects ports to have a pa_alsa_port_data
+     * struct as their data, but in UCM mode ports don't have any data. Hence,
+     * the ELD controls can't currently be used in UCM mode. */
+    if (u->use_ucm)
+        return;
+
     PA_HASHMAP_FOREACH(port, u->card->ports, state) {
         pa_alsa_port_data *data = PA_DEVICE_PORT_DATA(port);
         snd_mixer_elem_t* melem;
