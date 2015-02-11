@@ -126,7 +126,7 @@ enum {
 };
 
 enum {
-    SOURCE_OUTPUT_MESSAGE_LATENCY_SNAPSHOT
+    SOURCE_OUTPUT_MESSAGE_LATENCY_SNAPSHOT = PA_SOURCE_OUTPUT_MESSAGE_MAX,
 };
 
 static void enable_adjust_timer(struct userdata *u, bool enable);
