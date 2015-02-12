@@ -90,6 +90,7 @@ static struct ucm_items item[] = {
     {"CaptureRate", PA_ALSA_PROP_UCM_CAPTURE_RATE},
     {"CaptureChannels", PA_ALSA_PROP_UCM_CAPTURE_CHANNELS},
     {"TQ", PA_ALSA_PROP_UCM_QOS},
+    {"JackControl", PA_ALSA_PROP_UCM_JACK_CONTROL},
     {NULL, NULL},
 };
 
@@ -1262,9 +1263,18 @@ static int ucm_create_mapping(
     return ret;
 }
 
-static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, const char *dev_name, const char *pre_tag) {
+static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *device, const char *pre_tag) {
     pa_alsa_jack *j;
-    char *name = pa_sprintf_malloc("%s%s", pre_tag, dev_name);
+    const char *device_name;
+    char *name;
+    const char *jack_control;
+
+    pa_assert(ucm);
+    pa_assert(device);
+    pa_assert(pre_tag);
+
+    device_name = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_NAME);
+    name = pa_sprintf_malloc("%s%s", pre_tag, device_name);
 
     PA_LLIST_FOREACH(j, ucm->jacks)
         if (pa_streq(j->name, name))
@@ -1274,7 +1284,12 @@ static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, const char *dev_name,
     j->state_unplugged = PA_AVAILABLE_NO;
     j->state_plugged = PA_AVAILABLE_YES;
     j->name = pa_xstrdup(name);
-    j->alsa_name = pa_sprintf_malloc("%s Jack", dev_name);
+
+    jack_control = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_JACK_CONTROL);
+    if (jack_control)
+        j->alsa_name = pa_xstrdup(jack_control);
+    else
+        j->alsa_name = pa_sprintf_malloc("%s Jack", device_name);
 
     PA_LLIST_PREPEND(pa_alsa_jack, ucm->jacks, j);
 
@@ -1343,9 +1358,9 @@ static int ucm_create_profile(
         ucm_create_mapping(ucm, ps, p, dev, verb_name, name, sink, source);
 
         if (sink)
-            dev->output_jack = ucm_get_jack(ucm, name, PA_UCM_PRE_TAG_OUTPUT);
+            dev->output_jack = ucm_get_jack(ucm, dev, PA_UCM_PRE_TAG_OUTPUT);
         if (source)
-            dev->input_jack = ucm_get_jack(ucm, name, PA_UCM_PRE_TAG_INPUT);
+            dev->input_jack = ucm_get_jack(ucm, dev, PA_UCM_PRE_TAG_INPUT);
     }
 
     /* Now find modifiers that have their own PlaybackPCM and create
