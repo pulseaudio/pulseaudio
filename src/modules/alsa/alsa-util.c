@@ -188,9 +188,9 @@ static void check_access(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, b
 
     if ((use_mmap && !snd_pcm_hw_params_test_access(pcm_handle, hwparams, SND_PCM_ACCESS_MMAP_NONINTERLEAVED)) ||
         !snd_pcm_hw_params_test_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_NONINTERLEAVED))
-        pa_log_error("PCM seems to support non-interleaved access, but PA doesn't.");
+        pa_log_debug("PCM seems to support non-interleaved access, but PA doesn't.");
     else if (use_mmap && !snd_pcm_hw_params_test_access(pcm_handle, hwparams, SND_PCM_ACCESS_MMAP_COMPLEX)) {
-        pa_log_error("PCM seems to support mmapped complex access, but PA doesn't.");
+        pa_log_debug("PCM seems to support mmapped complex access, but PA doesn't.");
     }
 }
 
