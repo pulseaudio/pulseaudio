@@ -83,7 +83,7 @@ uint8_t* pa_tagstruct_free_data(pa_tagstruct*t, size_t *l) {
     return p;
 }
 
-static void extend(pa_tagstruct*t, size_t l) {
+static inline void extend(pa_tagstruct*t, size_t l) {
     pa_assert(t);
     pa_assert(t->dynamic);
 
@@ -93,133 +93,168 @@ static void extend(pa_tagstruct*t, size_t l) {
     t->data = pa_xrealloc(t->data, t->allocated = t->length+l+100);
 }
 
+static void write_u8(pa_tagstruct *t, uint8_t u) {
+    extend(t, 1);
+    t->data[t->length++] = u;
+}
+
+static int read_u8(pa_tagstruct *t, uint8_t *u) {
+    if (t->rindex + 1 > t->length)
+        return -1;
+
+    *u = t->data[t->rindex++];
+    return 0;
+}
+
+static void write_u32(pa_tagstruct *t, uint32_t u) {
+    extend(t, 4);
+    u = htonl(u);
+    memcpy(t->data + t->length, &u, 4);
+    t->length += 4;
+}
+
+static int read_u32(pa_tagstruct *t, uint32_t *u) {
+    if (t->rindex + 4 > t->length)
+        return -1;
+
+    memcpy(u, t->data + t->rindex, 4);
+    *u = ntohl(*u);
+    t->rindex += 4;
+
+    return 0;
+}
+
+static void write_u64(pa_tagstruct *t, uint64_t u) {
+    write_u32(t, u >> 32);
+    write_u32(t, u);
+}
+
+static int read_u64(pa_tagstruct *t, uint64_t *u) {
+    uint32_t tmp;
+
+    if (read_u32(t, &tmp) < 0)
+        return -1;
+
+    *u = ((uint64_t) tmp) << 32;
+
+    if (read_u32(t, &tmp) < 0)
+        return -1;
+
+    *u |= tmp;
+    return 0;
+}
+
+static int read_s64(pa_tagstruct *t, int64_t *u) {
+    uint32_t tmp;
+
+    if (read_u32(t, &tmp) < 0)
+        return -1;
+
+    *u = (int64_t) (((uint64_t) tmp) << 32);
+
+    if (read_u32(t, &tmp) < 0)
+        return -1;
+
+    *u |= (int64_t) tmp;
+    return 0;
+}
+
+static void write_arbitrary(pa_tagstruct *t, const void *p, size_t len) {
+    extend(t, len);
+
+    if (len > 0)
+        memcpy(t->data + t->length, p, len);
+
+    t->length += len;
+}
+
+static int read_arbitrary(pa_tagstruct *t, const void **p, size_t length) {
+    if (t->rindex + length > t->length)
+        return -1;
+
+    *p = t->data + t->rindex;
+    t->rindex += length;
+    return 0;
+}
+
 void pa_tagstruct_puts(pa_tagstruct*t, const char *s) {
     size_t l;
     pa_assert(t);
 
     if (s) {
-        l = strlen(s)+2;
-        extend(t, l);
-        t->data[t->length] = PA_TAG_STRING;
-        strcpy((char*) (t->data+t->length+1), s);
-        t->length += l;
-    } else {
-        extend(t, 1);
-        t->data[t->length] = PA_TAG_STRING_NULL;
-        t->length += 1;
-    }
+        write_u8(t, PA_TAG_STRING);
+        l = strlen(s)+1;
+        write_arbitrary(t, s, l);
+    } else
+        write_u8(t, PA_TAG_STRING_NULL);
 }
 
 void pa_tagstruct_putu32(pa_tagstruct*t, uint32_t i) {
     pa_assert(t);
 
-    extend(t, 5);
-    t->data[t->length] = PA_TAG_U32;
-    i = htonl(i);
-    memcpy(t->data+t->length+1, &i, 4);
-    t->length += 5;
+    write_u8(t, PA_TAG_U32);
+    write_u32(t, i);
 }
 
 void pa_tagstruct_putu8(pa_tagstruct*t, uint8_t c) {
     pa_assert(t);
 
-    extend(t, 2);
-    t->data[t->length] = PA_TAG_U8;
-    *(t->data+t->length+1) = c;
-    t->length += 2;
+    write_u8(t, PA_TAG_U8);
+    write_u8(t, c);
 }
 
 void pa_tagstruct_put_sample_spec(pa_tagstruct *t, const pa_sample_spec *ss) {
-    uint32_t rate;
-
     pa_assert(t);
     pa_assert(ss);
 
-    extend(t, 7);
-    t->data[t->length] = PA_TAG_SAMPLE_SPEC;
-    t->data[t->length+1] = (uint8_t) ss->format;
-    t->data[t->length+2] = ss->channels;
-    rate = htonl(ss->rate);
-    memcpy(t->data+t->length+3, &rate, 4);
-    t->length += 7;
+    write_u8(t, PA_TAG_SAMPLE_SPEC);
+    write_u8(t, ss->format);
+    write_u8(t, ss->channels);
+    write_u32(t, ss->rate);
 }
 
 void pa_tagstruct_put_arbitrary(pa_tagstruct *t, const void *p, size_t length) {
-    uint32_t tmp;
-
     pa_assert(t);
     pa_assert(p);
 
-    extend(t, 5+length);
-    t->data[t->length] = PA_TAG_ARBITRARY;
-    tmp = htonl((uint32_t) length);
-    memcpy(t->data+t->length+1, &tmp, 4);
-    if (length)
-        memcpy(t->data+t->length+5, p, length);
-    t->length += 5+length;
+    write_u8(t, PA_TAG_ARBITRARY);
+    write_u32(t, length);
+    write_arbitrary(t, p, length);
 }
 
 void pa_tagstruct_put_boolean(pa_tagstruct*t, bool b) {
     pa_assert(t);
 
-    extend(t, 1);
-    t->data[t->length] = (uint8_t) (b ? PA_TAG_BOOLEAN_TRUE : PA_TAG_BOOLEAN_FALSE);
-    t->length += 1;
+    write_u8(t, b ? PA_TAG_BOOLEAN_TRUE : PA_TAG_BOOLEAN_FALSE);
 }
 
 void pa_tagstruct_put_timeval(pa_tagstruct*t, const struct timeval *tv) {
-    uint32_t tmp;
     pa_assert(t);
 
-    extend(t, 9);
-    t->data[t->length] = PA_TAG_TIMEVAL;
-    tmp = htonl((uint32_t) tv->tv_sec);
-    memcpy(t->data+t->length+1, &tmp, 4);
-    tmp = htonl((uint32_t) tv->tv_usec);
-    memcpy(t->data+t->length+5, &tmp, 4);
-    t->length += 9;
+    write_u8(t, PA_TAG_TIMEVAL);
+    write_u32(t, tv->tv_sec);
+    write_u32(t, tv->tv_usec);
 }
 
 void pa_tagstruct_put_usec(pa_tagstruct*t, pa_usec_t u) {
-    uint32_t tmp;
-
     pa_assert(t);
 
-    extend(t, 9);
-    t->data[t->length] = PA_TAG_USEC;
-    tmp = htonl((uint32_t) (u >> 32));
-    memcpy(t->data+t->length+1, &tmp, 4);
-    tmp = htonl((uint32_t) u);
-    memcpy(t->data+t->length+5, &tmp, 4);
-    t->length += 9;
+    write_u8(t, PA_TAG_USEC);
+    write_u64(t, u);
 }
 
 void pa_tagstruct_putu64(pa_tagstruct*t, uint64_t u) {
-    uint32_t tmp;
-
     pa_assert(t);
 
-    extend(t, 9);
-    t->data[t->length] = PA_TAG_U64;
-    tmp = htonl((uint32_t) (u >> 32));
-    memcpy(t->data+t->length+1, &tmp, 4);
-    tmp = htonl((uint32_t) u);
-    memcpy(t->data+t->length+5, &tmp, 4);
-    t->length += 9;
+    write_u8(t, PA_TAG_U64);
+    write_u64(t, u);
 }
 
 void pa_tagstruct_puts64(pa_tagstruct*t, int64_t u) {
-    uint32_t tmp;
-
     pa_assert(t);
 
-    extend(t, 9);
-    t->data[t->length] = PA_TAG_S64;
-    tmp = htonl((uint32_t) ((uint64_t) u >> 32));
-    memcpy(t->data+t->length+1, &tmp, 4);
-    tmp = htonl((uint32_t) ((uint64_t) u));
-    memcpy(t->data+t->length+5, &tmp, 4);
-    t->length += 9;
+    write_u8(t, PA_TAG_S64);
+    write_u64(t, u);
 }
 
 void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map) {
@@ -227,42 +262,32 @@ void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map) {
 
     pa_assert(t);
     pa_assert(map);
-    extend(t, 2 + (size_t) map->channels);
 
-    t->data[t->length++] = PA_TAG_CHANNEL_MAP;
-    t->data[t->length++] = map->channels;
+    write_u8(t, PA_TAG_CHANNEL_MAP);
+    write_u8(t, map->channels);
 
     for (i = 0; i < map->channels; i ++)
-        t->data[t->length++] = (uint8_t) map->map[i];
+        write_u8(t, map->map[i]);
 }
 
 void pa_tagstruct_put_cvolume(pa_tagstruct *t, const pa_cvolume *cvolume) {
     unsigned i;
-    pa_volume_t vol;
 
     pa_assert(t);
     pa_assert(cvolume);
-    extend(t, 2 + cvolume->channels * sizeof(pa_volume_t));
 
-    t->data[t->length++] = PA_TAG_CVOLUME;
-    t->data[t->length++] = cvolume->channels;
+    write_u8(t, PA_TAG_CVOLUME);
+    write_u8(t, cvolume->channels);
 
-    for (i = 0; i < cvolume->channels; i ++) {
-        vol = htonl(cvolume->values[i]);
-        memcpy(t->data + t->length, &vol, sizeof(pa_volume_t));
-        t->length += sizeof(pa_volume_t);
-    }
+    for (i = 0; i < cvolume->channels; i ++)
+        write_u32(t, cvolume->values[i]);
 }
 
 void pa_tagstruct_put_volume(pa_tagstruct *t, pa_volume_t vol) {
-    uint32_t u;
     pa_assert(t);
 
-    extend(t, 5);
-    t->data[t->length] = PA_TAG_VOLUME;
-    u = htonl((uint32_t) vol);
-    memcpy(t->data+t->length+1, &u, 4);
-    t->length += 5;
+    write_u8(t, PA_TAG_VOLUME);
+    write_u32(t, vol);
 }
 
 void pa_tagstruct_put_proplist(pa_tagstruct *t, pa_proplist *p) {
@@ -270,9 +295,7 @@ void pa_tagstruct_put_proplist(pa_tagstruct *t, pa_proplist *p) {
     pa_assert(t);
     pa_assert(p);
 
-    extend(t, 1);
-
-    t->data[t->length++] = PA_TAG_PROPLIST;
+    write_u8(t, PA_TAG_PROPLIST);
 
     for (;;) {
         const char *k;
@@ -295,11 +318,21 @@ void pa_tagstruct_put_format_info(pa_tagstruct *t, pa_format_info *f) {
     pa_assert(t);
     pa_assert(f);
 
-    extend(t, 1);
-
-    t->data[t->length++] = PA_TAG_FORMAT_INFO;
+    write_u8(t, PA_TAG_FORMAT_INFO);
     pa_tagstruct_putu8(t, (uint8_t) f->encoding);
     pa_tagstruct_put_proplist(t, f->plist);
+}
+
+static int read_tag(pa_tagstruct *t, uint8_t type) {
+    if (t->rindex + 1 > t->length)
+        return -1;
+
+    if (t->data[t->rindex] != type)
+        return -1;
+
+    t->rindex++;
+
+    return 0;
 }
 
 int pa_tagstruct_gets(pa_tagstruct*t, const char **s) {
@@ -319,14 +352,14 @@ int pa_tagstruct_gets(pa_tagstruct*t, const char **s) {
         return 0;
     }
 
-    if (t->rindex+2 > t->length)
+    if (read_tag(t, PA_TAG_STRING) < 0)
         return -1;
 
-    if (t->data[t->rindex] != PA_TAG_STRING)
+    if (t->rindex + 1 > t->length)
         return -1;
 
     error = 1;
-    for (n = 0, c = (char*) (t->data+t->rindex+1); t->rindex+1+n < t->length; n++, c++)
+    for (n = 0, c = (char*) (t->data + t->rindex); t->rindex + n < t->length; n++, c++)
         if (!*c) {
             error = 0;
             break;
@@ -335,9 +368,9 @@ int pa_tagstruct_gets(pa_tagstruct*t, const char **s) {
     if (error)
         return -1;
 
-    *s = (char*) (t->data+t->rindex+1);
+    *s = (char*) (t->data + t->rindex);
 
-    t->rindex += n+2;
+    t->rindex += n + 1;
     return 0;
 }
 
@@ -345,50 +378,40 @@ int pa_tagstruct_getu32(pa_tagstruct*t, uint32_t *i) {
     pa_assert(t);
     pa_assert(i);
 
-    if (t->rindex+5 > t->length)
+    if (read_tag(t, PA_TAG_U32) < 0)
         return -1;
 
-    if (t->data[t->rindex] != PA_TAG_U32)
-        return -1;
-
-    memcpy(i, t->data+t->rindex+1, 4);
-    *i = ntohl(*i);
-    t->rindex += 5;
-    return 0;
+    return read_u32(t, i);
 }
 
 int pa_tagstruct_getu8(pa_tagstruct*t, uint8_t *c) {
     pa_assert(t);
     pa_assert(c);
 
-    if (t->rindex+2 > t->length)
+    if (read_tag(t, PA_TAG_U8) < 0)
         return -1;
 
-    if (t->data[t->rindex] != PA_TAG_U8)
-        return -1;
-
-    *c = t->data[t->rindex+1];
-    t->rindex +=2;
-    return 0;
+    return read_u8(t, c);
 }
 
 int pa_tagstruct_get_sample_spec(pa_tagstruct *t, pa_sample_spec *ss) {
+    uint8_t tmp;
+
     pa_assert(t);
     pa_assert(ss);
 
-    if (t->rindex+7 > t->length)
+    if (read_tag(t, PA_TAG_SAMPLE_SPEC) < 0)
         return -1;
 
-    if (t->data[t->rindex] != PA_TAG_SAMPLE_SPEC)
+    if (read_u8(t, &tmp) < 0)
         return -1;
 
-    ss->format = t->data[t->rindex+1];
-    ss->channels = t->data[t->rindex+2];
-    memcpy(&ss->rate, t->data+t->rindex+3, 4);
-    ss->rate = ntohl(ss->rate);
+    ss->format = tmp;
 
-    t->rindex += 7;
-    return 0;
+    if (read_u8(t, &ss->channels) < 0)
+        return -1;
+
+    return read_u32(t, &ss->rate);
 }
 
 int pa_tagstruct_get_arbitrary(pa_tagstruct *t, const void **p, size_t length) {
@@ -397,19 +420,13 @@ int pa_tagstruct_get_arbitrary(pa_tagstruct *t, const void **p, size_t length) {
     pa_assert(t);
     pa_assert(p);
 
-    if (t->rindex+5+length > t->length)
+    if (read_tag(t, PA_TAG_ARBITRARY) < 0)
         return -1;
 
-    if (t->data[t->rindex] != PA_TAG_ARBITRARY)
+    if (read_u32(t, &len) < 0 || len != length)
         return -1;
 
-    memcpy(&len, t->data+t->rindex+1, 4);
-    if (ntohl(len) != length)
-        return -1;
-
-    *p = t->data+t->rindex+5;
-    t->rindex += 5+length;
-    return 0;
+    return read_arbitrary(t, p, length);
 }
 
 int pa_tagstruct_eof(pa_tagstruct*t) {
@@ -446,82 +463,55 @@ int pa_tagstruct_get_boolean(pa_tagstruct*t, bool *b) {
 }
 
 int pa_tagstruct_get_timeval(pa_tagstruct*t, struct timeval *tv) {
+    uint32_t tmp;
 
     pa_assert(t);
     pa_assert(tv);
 
-    if (t->rindex+9 > t->length)
+    if (read_tag(t, PA_TAG_TIMEVAL) < 0)
         return -1;
 
-    if (t->data[t->rindex] != PA_TAG_TIMEVAL)
+    if (read_u32(t, &tmp) < 0)
         return -1;
 
-    memcpy(&tv->tv_sec, t->data+t->rindex+1, 4);
-    tv->tv_sec = (time_t) ntohl((uint32_t) tv->tv_sec);
-    memcpy(&tv->tv_usec, t->data+t->rindex+5, 4);
-    tv->tv_usec = (suseconds_t) ntohl((uint32_t) tv->tv_usec);
-    t->rindex += 9;
+    tv->tv_sec = tmp;
+
+    if (read_u32(t, &tmp) < 0)
+        return -1;
+
+    tv->tv_usec = tmp;
+
     return 0;
 }
 
 int pa_tagstruct_get_usec(pa_tagstruct*t, pa_usec_t *u) {
-    uint32_t tmp;
-
     pa_assert(t);
     pa_assert(u);
 
-    if (t->rindex+9 > t->length)
+    if (read_tag(t, PA_TAG_USEC) < 0)
         return -1;
 
-    if (t->data[t->rindex] != PA_TAG_USEC)
-        return -1;
-
-    memcpy(&tmp, t->data+t->rindex+1, 4);
-    *u = (pa_usec_t) ntohl(tmp) << 32;
-    memcpy(&tmp, t->data+t->rindex+5, 4);
-    *u |= (pa_usec_t) ntohl(tmp);
-    t->rindex +=9;
-    return 0;
+    return read_u64(t, u);
 }
 
 int pa_tagstruct_getu64(pa_tagstruct*t, uint64_t *u) {
-    uint32_t tmp;
-
     pa_assert(t);
     pa_assert(u);
 
-    if (t->rindex+9 > t->length)
+    if (read_tag(t, PA_TAG_U64) < 0)
         return -1;
 
-    if (t->data[t->rindex] != PA_TAG_U64)
-        return -1;
-
-    memcpy(&tmp, t->data+t->rindex+1, 4);
-    *u = (uint64_t) ntohl(tmp) << 32;
-    memcpy(&tmp, t->data+t->rindex+5, 4);
-    *u |= (uint64_t) ntohl(tmp);
-    t->rindex +=9;
-    return 0;
+    return read_u64(t, u);
 }
 
 int pa_tagstruct_gets64(pa_tagstruct*t, int64_t *u) {
-    uint32_t tmp;
-
     pa_assert(t);
     pa_assert(u);
 
-    if (t->rindex+9 > t->length)
+    if (read_tag(t, PA_TAG_S64) < 0)
         return -1;
 
-    if (t->data[t->rindex] != PA_TAG_S64)
-        return -1;
-
-    memcpy(&tmp, t->data+t->rindex+1, 4);
-    *u = (int64_t) ((uint64_t) ntohl(tmp) << 32);
-    memcpy(&tmp, t->data+t->rindex+5, 4);
-    *u |= (int64_t) ntohl(tmp);
-    t->rindex +=9;
-    return 0;
+    return read_s64(t, u);
 }
 
 int pa_tagstruct_get_channel_map(pa_tagstruct *t, pa_channel_map *map) {
@@ -530,85 +520,59 @@ int pa_tagstruct_get_channel_map(pa_tagstruct *t, pa_channel_map *map) {
     pa_assert(t);
     pa_assert(map);
 
-    if (t->rindex+2 > t->length)
+    if (read_tag(t, PA_TAG_CHANNEL_MAP) < 0)
         return -1;
 
-    if (t->data[t->rindex] != PA_TAG_CHANNEL_MAP)
+    if (read_u8(t, &map->channels) < 0 || map->channels > PA_CHANNELS_MAX)
         return -1;
 
-    if ((map->channels = t->data[t->rindex+1]) > PA_CHANNELS_MAX)
-        return -1;
+    for (i = 0; i < map->channels; i ++) {
+        uint8_t tmp;
 
-    if (t->rindex+2+map->channels > t->length)
-        return -1;
+        if (read_u8(t, &tmp) < 0)
+            return -1;
 
-    for (i = 0; i < map->channels; i ++)
-        map->map[i] = (int8_t) t->data[t->rindex + 2 + i];
+        map->map[i] = tmp;
+    }
 
-    t->rindex += 2 + (size_t) map->channels;
     return 0;
 }
 
 int pa_tagstruct_get_cvolume(pa_tagstruct *t, pa_cvolume *cvolume) {
     unsigned i;
-    pa_volume_t vol;
 
     pa_assert(t);
     pa_assert(cvolume);
 
-    if (t->rindex+2 > t->length)
+    if (read_tag(t, PA_TAG_CVOLUME) < 0)
         return -1;
 
-    if (t->data[t->rindex] != PA_TAG_CVOLUME)
-        return -1;
-
-    if ((cvolume->channels = t->data[t->rindex+1]) > PA_CHANNELS_MAX)
-        return -1;
-
-    if (t->rindex+2+cvolume->channels*sizeof(pa_volume_t) > t->length)
+    if (read_u8(t, &cvolume->channels) < 0 || cvolume->channels > PA_CHANNELS_MAX)
         return -1;
 
     for (i = 0; i < cvolume->channels; i ++) {
-        memcpy(&vol, t->data + t->rindex + 2 + i * sizeof(pa_volume_t), sizeof(pa_volume_t));
-        cvolume->values[i] = (pa_volume_t) ntohl(vol);
+        if (read_u32(t, &cvolume->values[i]) < 0)
+            return -1;
     }
 
-    t->rindex += 2 + cvolume->channels * sizeof(pa_volume_t);
     return 0;
 }
 
 int pa_tagstruct_get_volume(pa_tagstruct*t, pa_volume_t *vol) {
-    uint32_t u;
-
     pa_assert(t);
     pa_assert(vol);
 
-    if (t->rindex+5 > t->length)
+    if (read_tag(t, PA_TAG_VOLUME) < 0)
         return -1;
 
-    if (t->data[t->rindex] != PA_TAG_VOLUME)
-        return -1;
-
-    memcpy(&u, t->data+t->rindex+1, 4);
-    *vol = (pa_volume_t) ntohl(u);
-
-    t->rindex += 5;
-    return 0;
+    return read_u32(t, vol);
 }
 
 int pa_tagstruct_get_proplist(pa_tagstruct *t, pa_proplist *p) {
-    size_t saved_rindex;
-
     pa_assert(t);
 
-    if (t->rindex+1 > t->length)
+    if (read_tag(t, PA_TAG_PROPLIST) < 0)
         return -1;
-
-    if (t->data[t->rindex] != PA_TAG_PROPLIST)
-        return -1;
-
-    saved_rindex = t->rindex;
-    t->rindex++;
 
     for (;;) {
         const char *k;
@@ -616,63 +580,45 @@ int pa_tagstruct_get_proplist(pa_tagstruct *t, pa_proplist *p) {
         uint32_t length;
 
         if (pa_tagstruct_gets(t, &k) < 0)
-            goto fail;
+            return -1;
 
         if (!k)
             break;
 
         if (!pa_proplist_key_valid(k))
-            goto fail;
+            return -1;
 
         if (pa_tagstruct_getu32(t, &length) < 0)
-            goto fail;
+            return -1;
 
         if (length > MAX_TAG_SIZE)
-            goto fail;
+            return -1;
 
         if (pa_tagstruct_get_arbitrary(t, &d, length) < 0)
-            goto fail;
+            return -1;
 
         if (p)
             pa_assert_se(pa_proplist_set(p, k, d, length) >= 0);
     }
 
     return 0;
-
-fail:
-    t->rindex = saved_rindex;
-    return -1;
 }
 
 int pa_tagstruct_get_format_info(pa_tagstruct *t, pa_format_info *f) {
-    size_t saved_rindex;
     uint8_t encoding;
 
     pa_assert(t);
     pa_assert(f);
 
-    if (t->rindex+1 > t->length)
+    if (read_tag(t, PA_TAG_FORMAT_INFO) < 0)
         return -1;
-
-    if (t->data[t->rindex] != PA_TAG_FORMAT_INFO)
-        return -1;
-
-    saved_rindex = t->rindex;
-    t->rindex++;
 
     if (pa_tagstruct_getu8(t, &encoding) < 0)
-        goto fail;
+        return -1;
 
     f->encoding = encoding;
 
-    if (pa_tagstruct_get_proplist(t, f->plist) < 0)
-        goto fail;
-
-    return 0;
-
-fail:
-    t->rindex = saved_rindex;
-    return -1;
+    return pa_tagstruct_get_proplist(t, f->plist);
 }
 
 void pa_tagstruct_put(pa_tagstruct *t, ...) {
