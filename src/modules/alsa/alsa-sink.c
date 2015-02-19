@@ -358,7 +358,7 @@ static void increase_watermark(struct userdata *u) {
         pa_sink_set_latency_range_within_thread(u->sink, new_min_latency, u->sink->thread_info.max_latency);
     }
 
-    /* When we reach this we're officialy fucked! */
+    /* When we reach this we're officially fucked! */
 }
 
 static void decrease_watermark(struct userdata *u) {
