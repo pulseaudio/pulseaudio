@@ -315,7 +315,7 @@ static int64_t calc_diff(struct userdata *u, struct snapshot *snapshot) {
     if (recv_counter <= send_counter)
         buffer_latency += (int64_t) (send_counter - recv_counter);
     else
-        buffer_latency += PA_CLIP_SUB(buffer_latency, (int64_t) (recv_counter - send_counter));
+        buffer_latency = PA_CLIP_SUB(buffer_latency, (int64_t) (recv_counter - send_counter));
 
     /* capture and playback are perfectly aligned when diff_time is 0 */
     diff_time = (snapshot->sink_now + snapshot->sink_latency - buffer_latency) -
