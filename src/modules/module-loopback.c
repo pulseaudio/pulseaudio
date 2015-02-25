@@ -799,6 +799,11 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    if (ss.rate < 4000 || ss.rate > PA_RATE_MAX) {
+        pa_log("Invalid rate specification, valid range is 4000 Hz to %i Hz", PA_RATE_MAX);
+        goto fail;
+    }
+
     if (pa_modargs_get_value(ma, "format", NULL))
         format_set = true;
 
