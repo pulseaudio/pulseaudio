@@ -2316,10 +2316,27 @@ int pa_atou(const char *s, uint32_t *ret_u) {
     pa_assert(s);
     pa_assert(ret_u);
 
+    /* strtoul() ignores leading spaces. We don't. */
+    if (isspace(*s)) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    /* strtoul() accepts strings that start with a minus sign. In that case the
+     * original negative number gets negated, and strtoul() returns the negated
+     * result. We don't want that kind of behaviour. strtoul() also allows a
+     * leading plus sign, which is also a thing that we don't want. */
+    if (*s == '-' || *s == '+') {
+        errno = EINVAL;
+        return -1;
+    }
+
     errno = 0;
     l = strtoul(s, &x, 0);
 
-    if (!x || *x || errno) {
+    /* If x doesn't point to the end of s, there was some trailing garbage in
+     * the string. If x points to s, no conversion was done (empty string). */
+    if (!x || *x || x == s || errno) {
         if (!errno)
             errno = EINVAL;
         return -1;
@@ -2343,10 +2360,26 @@ int pa_atol(const char *s, long *ret_l) {
     pa_assert(s);
     pa_assert(ret_l);
 
+    /* strtol() ignores leading spaces. We don't. */
+    if (isspace(*s)) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    /* strtol() accepts leading plus signs, but that's ugly, so we don't allow
+     * that. */
+    if (*s == '+') {
+        errno = EINVAL;
+        return -1;
+    }
+
     errno = 0;
     l = strtol(s, &x, 0);
 
-    if (!x || *x || errno) {
+    /* If x doesn't point to the end of s, there was some trailing garbage in
+     * the string. If x points to s, no conversion was done (at least an empty
+     * string can trigger this). */
+    if (!x || *x || x == s || errno) {
         if (!errno)
             errno = EINVAL;
         return -1;
@@ -2372,6 +2405,19 @@ int pa_atod(const char *s, double *ret_d) {
     pa_assert(s);
     pa_assert(ret_d);
 
+    /* strtod() ignores leading spaces. We don't. */
+    if (isspace(*s)) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    /* strtod() accepts leading plus signs, but that's ugly, so we don't allow
+     * that. */
+    if (*s == '+') {
+        errno = EINVAL;
+        return -1;
+    }
+
     /* This should be locale independent */
 
 #ifdef HAVE_STRTOF_L
@@ -2393,7 +2439,10 @@ int pa_atod(const char *s, double *ret_d) {
         f = strtod(s, &x);
     }
 
-    if (!x || *x || errno) {
+    /* If x doesn't point to the end of s, there was some trailing garbage in
+     * the string. If x points to s, no conversion was done (at least an empty
+     * string can trigger this). */
+    if (!x || *x || x == s || errno) {
         if (!errno)
             errno = EINVAL;
         return -1;
