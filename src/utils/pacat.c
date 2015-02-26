@@ -241,7 +241,7 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     }
 }
 
-/* This is called whenever new data may is available */
+/* This is called whenever new data is available */
 static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
 
     pa_assert(s);
