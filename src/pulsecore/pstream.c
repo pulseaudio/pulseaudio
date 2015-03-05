@@ -682,6 +682,30 @@ fail:
     return -1;
 }
 
+static void memblock_complete(pa_pstream *p, struct pstream_read *re) {
+    pa_memchunk chunk;
+    int64_t offset;
+
+    if (!p->receive_memblock_callback)
+        return;
+
+    chunk.memblock = re->memblock;
+    chunk.index = 0;
+    chunk.length = re->index - PA_PSTREAM_DESCRIPTOR_SIZE;
+
+    offset = (int64_t) (
+             (((uint64_t) ntohl(re->descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI])) << 32) |
+             (((uint64_t) ntohl(re->descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_LO]))));
+
+    p->receive_memblock_callback(
+        p,
+        ntohl(re->descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL]),
+        offset,
+        ntohl(re->descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS]) & PA_FLAG_SEEKMASK,
+        &chunk,
+        p->receive_memblock_callback_userdata);
+}
+
 static int do_read(pa_pstream *p, struct pstream_read *re) {
     void *d;
     size_t l;
@@ -831,47 +855,12 @@ static int do_read(pa_pstream *p, struct pstream_read *re) {
         }
 
     } else if (re->index > PA_PSTREAM_DESCRIPTOR_SIZE) {
-        /* Frame payload available */
-
-        if (re->memblock && p->receive_memblock_callback) {
-
-            /* Is this memblock data? Than pass it to the user */
-            l = (re->index - (size_t) r) < PA_PSTREAM_DESCRIPTOR_SIZE ? (size_t) (re->index - PA_PSTREAM_DESCRIPTOR_SIZE) : (size_t) r;
-
-            if (l > 0) {
-                pa_memchunk chunk;
-
-                chunk.memblock = re->memblock;
-                chunk.index = re->index - PA_PSTREAM_DESCRIPTOR_SIZE - l;
-                chunk.length = l;
-
-                if (p->receive_memblock_callback) {
-                    int64_t offset;
-
-                    offset = (int64_t) (
-                            (((uint64_t) ntohl(re->descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI])) << 32) |
-                            (((uint64_t) ntohl(re->descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_LO]))));
-
-                    p->receive_memblock_callback(
-                        p,
-                        ntohl(re->descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL]),
-                        offset,
-                        ntohl(re->descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS]) & PA_FLAG_SEEKMASK,
-                        &chunk,
-                        p->receive_memblock_callback_userdata);
-                }
-
-                /* Drop seek info for following callbacks */
-                re->descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS] =
-                    re->descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI] =
-                    re->descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_LO] = 0;
-            }
-        }
 
         /* Frame complete */
         if (re->index >= ntohl(re->descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) + PA_PSTREAM_DESCRIPTOR_SIZE) {
 
             if (re->memblock) {
+                memblock_complete(p, re);
 
                 /* This was a memblock frame. We can unref the memblock now */
                 pa_memblock_unref(re->memblock);
