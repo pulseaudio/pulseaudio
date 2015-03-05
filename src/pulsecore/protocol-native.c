@@ -5325,7 +5325,7 @@ int pa_native_options_parse(pa_native_options *o, pa_core *c, pa_modargs *ma) {
     pa_assert(PA_REFCNT_VALUE(o) >= 1);
     pa_assert(ma);
 
-    o->srbchannel = false;
+    o->srbchannel = true;
     if (pa_modargs_get_value_boolean(ma, "srbchannel", &o->srbchannel) < 0) {
         pa_log("srbchannel= expects a boolean argument.");
         return -1;
