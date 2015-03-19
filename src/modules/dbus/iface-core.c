@@ -109,6 +109,8 @@ struct pa_dbusiface_core {
     pa_sink *fallback_sink;
     pa_source *fallback_source;
 
+    pa_hook_slot *default_sink_changed_slot;
+    pa_hook_slot *default_source_changed_slot;
     pa_hook_slot *card_put_slot;
     pa_hook_slot *card_unlink_slot;
     pa_hook_slot *sink_input_put_slot;
@@ -1576,76 +1578,14 @@ static void handle_stop_listening_for_signal(DBusConnection *conn, DBusMessage *
 
 static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     pa_dbusiface_core *c = userdata;
-    pa_dbusiface_device *device_iface = NULL;
     pa_dbusiface_sample *sample_iface = NULL;
     pa_dbusiface_module *module_iface = NULL;
     DBusMessage *signal_msg = NULL;
     const char *object_path = NULL;
-    pa_sink *new_fallback_sink = NULL;
-    pa_source *new_fallback_source = NULL;
 
     pa_assert(c);
 
     switch (t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) {
-        case PA_SUBSCRIPTION_EVENT_SERVER:
-            new_fallback_sink = pa_namereg_get_default_sink(core);
-            new_fallback_source = pa_namereg_get_default_source(core);
-
-            if (c->fallback_sink != new_fallback_sink) {
-                if (c->fallback_sink)
-                    pa_sink_unref(c->fallback_sink);
-                c->fallback_sink = new_fallback_sink ? pa_sink_ref(new_fallback_sink) : NULL;
-
-                if (c->fallback_sink) {
-                    pa_assert_se(device_iface = pa_hashmap_get(c->sinks_by_index, PA_UINT32_TO_PTR(c->fallback_sink->index)));
-                    object_path = pa_dbusiface_device_get_path(device_iface);
-
-                    pa_assert_se((signal_msg = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
-                                                                       PA_DBUS_CORE_INTERFACE,
-                                                                       signals[SIGNAL_FALLBACK_SINK_UPDATED].name)));
-                    pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
-                    pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
-                    dbus_message_unref(signal_msg);
-                    signal_msg = NULL;
-
-                } else {
-                    pa_assert_se((signal_msg = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
-                                                                       PA_DBUS_CORE_INTERFACE,
-                                                                       signals[SIGNAL_FALLBACK_SINK_UNSET].name)));
-                    pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
-                    dbus_message_unref(signal_msg);
-                    signal_msg = NULL;
-                }
-            }
-
-            if (c->fallback_source != new_fallback_source) {
-                if (c->fallback_source)
-                    pa_source_unref(c->fallback_source);
-                c->fallback_source = new_fallback_source ? pa_source_ref(new_fallback_source) : NULL;
-
-                if (c->fallback_source) {
-                    pa_assert_se(device_iface = pa_hashmap_get(c->sources_by_index, PA_UINT32_TO_PTR(c->fallback_source->index)));
-                    object_path = pa_dbusiface_device_get_path(device_iface);
-
-                    pa_assert_se((signal_msg = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
-                                                                       PA_DBUS_CORE_INTERFACE,
-                                                                       signals[SIGNAL_FALLBACK_SOURCE_UPDATED].name)));
-                    pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
-                    pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
-                    dbus_message_unref(signal_msg);
-                    signal_msg = NULL;
-
-                } else {
-                    pa_assert_se((signal_msg = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
-                                                                       PA_DBUS_CORE_INTERFACE,
-                                                                       signals[SIGNAL_FALLBACK_SOURCE_UNSET].name)));
-                    pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
-                    dbus_message_unref(signal_msg);
-                    signal_msg = NULL;
-                }
-            }
-            break;
-
         case PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
                 pa_scache_entry *sample = NULL;
@@ -1719,6 +1659,82 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
         pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
         dbus_message_unref(signal_msg);
     }
+}
+
+static pa_hook_result_t default_sink_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_core *c = slot_data;
+    pa_sink *new_fallback_sink = call_data;
+    pa_dbusiface_device *device_iface;
+    const char *object_path;
+    DBusMessage *signal_msg = NULL;
+
+    pa_assert(c);
+
+    if (c->fallback_sink != new_fallback_sink) {
+        if (c->fallback_sink)
+            pa_sink_unref(c->fallback_sink);
+        c->fallback_sink = new_fallback_sink ? pa_sink_ref(new_fallback_sink) : NULL;
+
+        if (c->fallback_sink) {
+            pa_assert_se((device_iface = pa_hashmap_get(c->sinks_by_index, PA_UINT32_TO_PTR(c->fallback_sink->index))));
+            object_path = pa_dbusiface_device_get_path(device_iface);
+
+            pa_assert_se((signal_msg = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
+                                                               PA_DBUS_CORE_INTERFACE,
+                                                               signals[SIGNAL_FALLBACK_SINK_UPDATED].name)));
+            pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
+
+        } else {
+            pa_assert_se((signal_msg = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
+                                                               PA_DBUS_CORE_INTERFACE,
+                                                               signals[SIGNAL_FALLBACK_SINK_UNSET].name)));
+        }
+    }
+
+    if (signal_msg) {
+        pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
+        dbus_message_unref(signal_msg);
+    }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t default_source_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_core *c = slot_data;
+    pa_source *new_fallback_source = call_data;
+    pa_dbusiface_device *device_iface;
+    const char *object_path;
+    DBusMessage *signal_msg = NULL;
+
+    pa_assert(c);
+
+    if (c->fallback_source != new_fallback_source) {
+        if (c->fallback_source)
+            pa_source_unref(c->fallback_source);
+        c->fallback_source = new_fallback_source ? pa_source_ref(new_fallback_source) : NULL;
+
+        if (c->fallback_source) {
+            pa_assert_se((device_iface = pa_hashmap_get(c->sources_by_index, PA_UINT32_TO_PTR(c->fallback_source->index))));
+            object_path = pa_dbusiface_device_get_path(device_iface);
+
+            pa_assert_se((signal_msg = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
+                                                               PA_DBUS_CORE_INTERFACE,
+                                                               signals[SIGNAL_FALLBACK_SOURCE_UPDATED].name)));
+            pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
+
+        } else {
+            pa_assert_se((signal_msg = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
+                                                               PA_DBUS_CORE_INTERFACE,
+                                                               signals[SIGNAL_FALLBACK_SOURCE_UNSET].name)));
+        }
+    }
+
+    if (signal_msg) {
+        pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
+        dbus_message_unref(signal_msg);
+    }
+
+    return PA_HOOK_OK;
 }
 
 static pa_hook_result_t card_put_cb(void *hook_data, void *call_data, void *slot_data) {
@@ -2114,6 +2130,10 @@ pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core) {
     c->clients = pa_hashmap_new_full(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func, NULL, (pa_free_cb_t) pa_dbusiface_client_free);
     c->fallback_sink = pa_namereg_get_default_sink(core);
     c->fallback_source = pa_namereg_get_default_source(core);
+    c->default_sink_changed_slot = pa_hook_connect(&core->hooks[PA_CORE_HOOK_DEFAULT_SINK_CHANGED],
+                                                   PA_HOOK_NORMAL, default_sink_changed_cb, c);
+    c->default_source_changed_slot = pa_hook_connect(&core->hooks[PA_CORE_HOOK_DEFAULT_SOURCE_CHANGED],
+                                                     PA_HOOK_NORMAL, default_source_changed_cb, c);
     c->card_put_slot = pa_hook_connect(&core->hooks[PA_CORE_HOOK_CARD_PUT],
                                        PA_HOOK_NORMAL, card_put_cb, c);
     c->card_unlink_slot = pa_hook_connect(&core->hooks[PA_CORE_HOOK_CARD_UNLINK],
@@ -2204,6 +2224,8 @@ void pa_dbusiface_core_free(pa_dbusiface_core *c) {
     pa_hashmap_free(c->samples);
     pa_hashmap_free(c->modules);
     pa_hashmap_free(c->clients);
+    pa_hook_slot_free(c->default_sink_changed_slot);
+    pa_hook_slot_free(c->default_source_changed_slot);
     pa_hook_slot_free(c->card_put_slot);
     pa_hook_slot_free(c->card_unlink_slot);
     pa_hook_slot_free(c->sink_input_put_slot);
