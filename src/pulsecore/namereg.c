@@ -257,6 +257,7 @@ pa_sink* pa_namereg_set_default_sink(pa_core*c, pa_sink *s) {
 
     if (c->default_sink != s) {
         c->default_sink = s;
+        pa_hook_fire(&c->hooks[PA_CORE_HOOK_DEFAULT_SINK_CHANGED], c->default_sink);
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
     }
 
@@ -271,6 +272,7 @@ pa_source* pa_namereg_set_default_source(pa_core*c, pa_source *s) {
 
     if (c->default_source != s) {
         c->default_source = s;
+        pa_hook_fire(&c->hooks[PA_CORE_HOOK_DEFAULT_SOURCE_CHANGED], c->default_source);
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
     }
 
