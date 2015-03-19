@@ -36,6 +36,7 @@ static void handle_get_description(DBusConnection *conn, DBusMessage *msg, void 
 static void handle_get_sinks(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_sources(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_priority(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_get_available(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
 static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
@@ -53,6 +54,7 @@ enum property_handler_index {
     PROPERTY_HANDLER_SINKS,
     PROPERTY_HANDLER_SOURCES,
     PROPERTY_HANDLER_PRIORITY,
+    PROPERTY_HANDLER_AVAILABLE,
     PROPERTY_HANDLER_MAX
 };
 
@@ -63,6 +65,7 @@ static pa_dbus_property_handler property_handlers[PROPERTY_HANDLER_MAX] = {
     [PROPERTY_HANDLER_SINKS]       = { .property_name = "Sinks",       .type = "u", .get_cb = handle_get_sinks,       .set_cb = NULL },
     [PROPERTY_HANDLER_SOURCES]     = { .property_name = "Sources",     .type = "u", .get_cb = handle_get_sources,     .set_cb = NULL },
     [PROPERTY_HANDLER_PRIORITY]    = { .property_name = "Priority",    .type = "u", .get_cb = handle_get_priority,    .set_cb = NULL },
+    [PROPERTY_HANDLER_AVAILABLE]   = { .property_name = "Available",   .type = "b", .get_cb = handle_get_available,   .set_cb = NULL },
 };
 
 static pa_dbus_interface_info profile_interface_info = {
@@ -145,6 +148,19 @@ static void handle_get_priority(DBusConnection *conn, DBusMessage *msg, void *us
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &priority);
 }
 
+static void handle_get_available(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    pa_dbusiface_card_profile *p = userdata;
+    dbus_bool_t available;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(p);
+
+    available = p->profile->available != PA_AVAILABLE_NO;
+
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &available);
+}
+
 static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_card_profile *p = userdata;
     DBusMessage *reply = NULL;
@@ -153,6 +169,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     dbus_uint32_t sinks = 0;
     dbus_uint32_t sources = 0;
     dbus_uint32_t priority = 0;
+    dbus_bool_t available;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -161,6 +178,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     sinks = p->profile->n_sinks;
     sources = p->profile->n_sources;
     priority = p->profile->priority;
+    available = p->profile->available != PA_AVAILABLE_NO;
 
     pa_assert_se((reply = dbus_message_new_method_return(msg)));
 
@@ -173,6 +191,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_SINKS].property_name, DBUS_TYPE_UINT32, &sinks);
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_SOURCES].property_name, DBUS_TYPE_UINT32, &sources);
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_PRIORITY].property_name, DBUS_TYPE_UINT32, &priority);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_AVAILABLE].property_name, DBUS_TYPE_BOOLEAN, &available);
 
     pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
 
