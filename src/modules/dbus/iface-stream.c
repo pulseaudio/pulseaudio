@@ -62,6 +62,7 @@ struct pa_dbusiface_stream {
     pa_hook_slot *volume_changed_slot;
     pa_hook_slot *mute_changed_slot;
     pa_hook_slot *proplist_changed_slot;
+    pa_hook_slot *state_changed_slot;
 };
 
 static void handle_get_index(DBusConnection *conn, DBusMessage *msg, void *userdata);
@@ -830,6 +831,20 @@ static pa_hook_result_t proplist_changed_cb(void *hook_data, void *call_data, vo
     return PA_HOOK_OK;
 }
 
+static pa_hook_result_t state_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_stream *s = slot_data;
+
+    pa_assert(s);
+
+    if ((s->type == STREAM_TYPE_PLAYBACK && s->sink_input != call_data) ||
+        (s->type == STREAM_TYPE_RECORD && s->source_output != call_data))
+        return PA_HOOK_OK;
+
+    check_and_signal_rate(s);
+
+    return PA_HOOK_OK;
+}
+
 static pa_hook_result_t send_event_cb(void *hook_data, void *call_data, void *slot_data) {
     pa_dbusiface_stream *s = slot_data;
     DBusMessage *signal_msg = NULL;
@@ -906,6 +921,8 @@ pa_dbusiface_stream *pa_dbusiface_stream_new_playback(pa_dbusiface_core *core, p
                                            PA_HOOK_NORMAL, mute_changed_cb, s);
     s->proplist_changed_slot = pa_hook_connect(&sink_input->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED],
                                                PA_HOOK_NORMAL, proplist_changed_cb, s);
+    s->state_changed_slot = pa_hook_connect(&sink_input->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED],
+                                            PA_HOOK_NORMAL, state_changed_cb, s);
 
     pa_assert_se(pa_dbus_protocol_add_interface(s->dbus_protocol, s->path, &stream_interface_info, s) >= 0);
 
@@ -942,6 +959,8 @@ pa_dbusiface_stream *pa_dbusiface_stream_new_record(pa_dbusiface_core *core, pa_
                                            PA_HOOK_NORMAL, mute_changed_cb, s);
     s->proplist_changed_slot = pa_hook_connect(&source_output->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED],
                                                PA_HOOK_NORMAL, proplist_changed_cb, s);
+    s->state_changed_slot = pa_hook_connect(&source_output->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED],
+                                            PA_HOOK_NORMAL, state_changed_cb, s);
 
     pa_assert_se(pa_dbus_protocol_add_interface(s->dbus_protocol, s->path, &stream_interface_info, s) >= 0);
 
@@ -968,6 +987,7 @@ void pa_dbusiface_stream_free(pa_dbusiface_stream *s) {
     pa_hook_slot_free(s->volume_changed_slot);
     pa_hook_slot_free(s->mute_changed_slot);
     pa_hook_slot_free(s->proplist_changed_slot);
+    pa_hook_slot_free(s->state_changed_slot);
 
     pa_xfree(s->path);
     pa_xfree(s);
