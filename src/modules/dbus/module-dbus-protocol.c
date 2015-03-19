@@ -527,11 +527,6 @@ int pa__init(pa_module *m) {
 
     pa_assert(m);
 
-    pa_log_warn("module-dbus-protocol is currently unsupported, and can sometimes cause PulseAudio crashes.");
-    pa_log_warn("The most popular use cases for module-dbus-protocol are related to changing "
-                "equalizer settings and LADSPA plugin parameters at runtime.");
-    pa_log_warn("If you don't use such functionality, it's possible that you don't actually need this module.");
-
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments.");
         goto fail;
