@@ -94,8 +94,13 @@ struct pa_dbusiface_device {
     pa_device_port *active_port;
     pa_proplist *proplist;
 
+    pa_hook_slot *volume_changed_slot;
+    pa_hook_slot *mute_changed_slot;
+    pa_hook_slot *state_changed_slot;
+    pa_hook_slot *port_changed_slot;
+    pa_hook_slot *proplist_changed_slot;
+
     pa_dbus_protocol *dbus_protocol;
-    pa_subscription *subscription;
 };
 
 enum property_handler_index {
@@ -1077,30 +1082,15 @@ static void handle_source_get_all(DBusConnection *conn, DBusMessage *msg, void *
     dbus_message_unref(reply);
 }
 
-static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
-    pa_dbusiface_device *d = userdata;
+static pa_hook_result_t volume_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_device *d = slot_data;
     DBusMessage *signal_msg = NULL;
     const pa_cvolume *new_volume = NULL;
-    bool new_mute = false;
-    pa_sink_state_t new_sink_state = 0;
-    pa_source_state_t new_source_state = 0;
-    pa_device_port *new_active_port = NULL;
-    pa_proplist *new_proplist = NULL;
     unsigned i = 0;
 
-    pa_assert(c);
-    pa_assert(d);
-
-    if ((d->type == PA_DEVICE_TYPE_SINK && idx != d->sink->index) || (d->type == PA_DEVICE_TYPE_SOURCE && idx != d->source->index))
-        return;
-
-    if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) != PA_SUBSCRIPTION_EVENT_CHANGE)
-        return;
-
-    pa_assert(((d->type == PA_DEVICE_TYPE_SINK)
-                && ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK))
-              || ((d->type == PA_DEVICE_TYPE_SOURCE)
-                   && ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE)));
+    if ((d->type == PA_DEVICE_TYPE_SINK && d->sink != call_data) ||
+        (d->type == PA_DEVICE_TYPE_SOURCE && d->source != call_data))
+        return PA_HOOK_OK;
 
     new_volume = (d->type == PA_DEVICE_TYPE_SINK)
                  ? pa_sink_get_volume(d->sink, false)
@@ -1124,10 +1114,23 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
         pa_dbus_protocol_send_signal(d->dbus_protocol, signal_msg);
         dbus_message_unref(signal_msg);
-        signal_msg = NULL;
     }
 
-    new_mute = (d->type == PA_DEVICE_TYPE_SINK) ? pa_sink_get_mute(d->sink, false) : pa_source_get_mute(d->source, false);
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t mute_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_device *d = slot_data;
+    DBusMessage *signal_msg = NULL;
+    bool new_mute = false;
+
+    if ((d->type == PA_DEVICE_TYPE_SINK && d->sink != call_data) ||
+        (d->type == PA_DEVICE_TYPE_SOURCE && d->source != call_data))
+        return PA_HOOK_OK;
+
+    new_mute = (d->type == PA_DEVICE_TYPE_SINK)
+               ? pa_sink_get_mute(d->sink, false)
+               : pa_source_get_mute(d->source, false);
 
     if (d->mute != new_mute) {
         d->mute = new_mute;
@@ -1139,8 +1142,20 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
         pa_dbus_protocol_send_signal(d->dbus_protocol, signal_msg);
         dbus_message_unref(signal_msg);
-        signal_msg = NULL;
     }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t state_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_device *d = slot_data;
+    DBusMessage *signal_msg = NULL;
+    pa_sink_state_t new_sink_state = 0;
+    pa_source_state_t new_source_state = 0;
+
+    if ((d->type == PA_DEVICE_TYPE_SINK && d->sink != call_data) ||
+        (d->type == PA_DEVICE_TYPE_SOURCE && d->source != call_data))
+        return PA_HOOK_OK;
 
     if (d->type == PA_DEVICE_TYPE_SINK)
         new_sink_state = pa_sink_get_state(d->sink);
@@ -1165,8 +1180,19 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
         pa_dbus_protocol_send_signal(d->dbus_protocol, signal_msg);
         dbus_message_unref(signal_msg);
-        signal_msg = NULL;
     }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t port_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_device *d = slot_data;
+    DBusMessage *signal_msg = NULL;
+    pa_device_port *new_active_port = NULL;
+
+    if ((d->type == PA_DEVICE_TYPE_SINK && d->sink != call_data) ||
+        (d->type == PA_DEVICE_TYPE_SOURCE && d->source != call_data))
+        return PA_HOOK_OK;
 
     new_active_port = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->active_port : d->source->active_port;
 
@@ -1183,8 +1209,19 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
         pa_dbus_protocol_send_signal(d->dbus_protocol, signal_msg);
         dbus_message_unref(signal_msg);
-        signal_msg = NULL;
     }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t proplist_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_device *d = slot_data;
+    DBusMessage *signal_msg = NULL;
+    pa_proplist *new_proplist = NULL;
+
+    if ((d->type == PA_DEVICE_TYPE_SINK && d->sink != call_data) ||
+        (d->type == PA_DEVICE_TYPE_SOURCE && d->source != call_data))
+        return PA_HOOK_OK;
 
     new_proplist = (d->type == PA_DEVICE_TYPE_SINK) ? d->sink->proplist : d->source->proplist;
 
@@ -1201,8 +1238,9 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
         pa_dbus_protocol_send_signal(d->dbus_protocol, signal_msg);
         dbus_message_unref(signal_msg);
-        signal_msg = NULL;
     }
+
+    return PA_HOOK_OK;
 }
 
 pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_sink *sink) {
@@ -1226,7 +1264,16 @@ pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_si
     d->active_port = sink->active_port;
     d->proplist = pa_proplist_copy(sink->proplist);
     d->dbus_protocol = pa_dbus_protocol_get(sink->core);
-    d->subscription = pa_subscription_new(sink->core, PA_SUBSCRIPTION_MASK_SINK, subscription_cb, d);
+    d->volume_changed_slot = pa_hook_connect(&sink->core->hooks[PA_CORE_HOOK_SINK_VOLUME_CHANGED],
+                                             PA_HOOK_NORMAL, volume_changed_cb, d);
+    d->mute_changed_slot = pa_hook_connect(&sink->core->hooks[PA_CORE_HOOK_SINK_MUTE_CHANGED],
+                                           PA_HOOK_NORMAL, mute_changed_cb, d);
+    d->state_changed_slot = pa_hook_connect(&sink->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED],
+                                            PA_HOOK_NORMAL, state_changed_cb, d);
+    d->port_changed_slot = pa_hook_connect(&sink->core->hooks[PA_CORE_HOOK_SINK_PORT_CHANGED],
+                                           PA_HOOK_NORMAL, port_changed_cb, d);
+    d->proplist_changed_slot = pa_hook_connect(&sink->core->hooks[PA_CORE_HOOK_SINK_PROPLIST_CHANGED],
+                                               PA_HOOK_NORMAL, proplist_changed_cb, d);
 
     PA_HASHMAP_FOREACH(port, sink->ports, state) {
         pa_dbusiface_device_port *p = pa_dbusiface_device_port_new(d, sink->core, port, d->next_port_index++);
@@ -1260,7 +1307,16 @@ pa_dbusiface_device *pa_dbusiface_device_new_source(pa_dbusiface_core *core, pa_
     d->active_port = source->active_port;
     d->proplist = pa_proplist_copy(source->proplist);
     d->dbus_protocol = pa_dbus_protocol_get(source->core);
-    d->subscription = pa_subscription_new(source->core, PA_SUBSCRIPTION_MASK_SOURCE, subscription_cb, d);
+    d->volume_changed_slot = pa_hook_connect(&source->core->hooks[PA_CORE_HOOK_SOURCE_VOLUME_CHANGED],
+                                             PA_HOOK_NORMAL, volume_changed_cb, d);
+    d->mute_changed_slot = pa_hook_connect(&source->core->hooks[PA_CORE_HOOK_SOURCE_MUTE_CHANGED],
+                                           PA_HOOK_NORMAL, mute_changed_cb, d);
+    d->state_changed_slot = pa_hook_connect(&source->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED],
+                                            PA_HOOK_NORMAL, state_changed_cb, d);
+    d->port_changed_slot = pa_hook_connect(&source->core->hooks[PA_CORE_HOOK_SOURCE_PORT_CHANGED],
+                                           PA_HOOK_NORMAL, port_changed_cb, d);
+    d->proplist_changed_slot = pa_hook_connect(&source->core->hooks[PA_CORE_HOOK_SOURCE_PROPLIST_CHANGED],
+                                               PA_HOOK_NORMAL, proplist_changed_cb, d);
 
     PA_HASHMAP_FOREACH(port, source->ports, state) {
         pa_dbusiface_device_port *p = pa_dbusiface_device_port_new(d, source->core, port, d->next_port_index++);
@@ -1276,6 +1332,12 @@ pa_dbusiface_device *pa_dbusiface_device_new_source(pa_dbusiface_core *core, pa_
 void pa_dbusiface_device_free(pa_dbusiface_device *d) {
     pa_assert(d);
 
+    pa_hook_slot_free(d->volume_changed_slot);
+    pa_hook_slot_free(d->mute_changed_slot);
+    pa_hook_slot_free(d->state_changed_slot);
+    pa_hook_slot_free(d->port_changed_slot);
+    pa_hook_slot_free(d->proplist_changed_slot);
+
     pa_assert_se(pa_dbus_protocol_remove_interface(d->dbus_protocol, d->path, device_interface_info.name) >= 0);
 
     if (d->type == PA_DEVICE_TYPE_SINK) {
@@ -1289,7 +1351,6 @@ void pa_dbusiface_device_free(pa_dbusiface_device *d) {
     pa_hashmap_free(d->ports);
     pa_proplist_free(d->proplist);
     pa_dbus_protocol_unref(d->dbus_protocol);
-    pa_subscription_free(d->subscription);
 
     pa_xfree(d->path);
     pa_xfree(d);
