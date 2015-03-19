@@ -37,8 +37,9 @@ struct pa_dbusiface_sample {
     char *path;
     pa_proplist *proplist;
 
+    pa_hook_slot *sample_cache_changed_slot;
+
     pa_dbus_protocol *dbus_protocol;
-    pa_subscription *subscription;
 };
 
 static void handle_get_index(DBusConnection *conn, DBusMessage *msg, void *userdata);
@@ -446,36 +447,33 @@ static void handle_remove(DBusConnection *conn, DBusMessage *msg, void *userdata
     pa_dbus_send_empty_reply(conn, msg);
 }
 
-static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
-    pa_dbusiface_sample *s = userdata;
-    DBusMessage *signal_msg = NULL;
+static pa_hook_result_t sample_cache_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_sample *sample_iface = slot_data;
+    pa_scache_entry *sample = call_data;
+    DBusMessage *signal_msg;
 
-    pa_assert(c);
-    pa_assert(s);
+    pa_assert(sample);
+    pa_assert(sample_iface);
 
-    /* We can't use idx != s->sample->index, because the s->sample pointer may
-     * be stale at this point. */
-    if (pa_idxset_get_by_index(c->scache, idx) != s->sample)
-        return;
+    if (sample_iface->sample != sample)
+        return PA_HOOK_OK;
 
-    if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) != PA_SUBSCRIPTION_EVENT_CHANGE)
-        return;
-
-    if (!pa_proplist_equal(s->proplist, s->sample->proplist)) {
+    if (!pa_proplist_equal(sample_iface->proplist, sample_iface->sample->proplist)) {
         DBusMessageIter msg_iter;
 
-        pa_proplist_update(s->proplist, PA_UPDATE_SET, s->sample->proplist);
+        pa_proplist_update(sample_iface->proplist, PA_UPDATE_SET, sample_iface->sample->proplist);
 
-        pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
+        pa_assert_se(signal_msg = dbus_message_new_signal(sample_iface->path,
                                                           PA_DBUSIFACE_SAMPLE_INTERFACE,
                                                           signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
         dbus_message_iter_init_append(signal_msg, &msg_iter);
-        pa_dbus_append_proplist(&msg_iter, s->proplist);
+        pa_dbus_append_proplist(&msg_iter, sample_iface->proplist);
 
-        pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
+        pa_dbus_protocol_send_signal(sample_iface->dbus_protocol, signal_msg);
         dbus_message_unref(signal_msg);
-        signal_msg = NULL;
     }
+
+    return PA_HOOK_OK;
 }
 
 pa_dbusiface_sample *pa_dbusiface_sample_new(pa_dbusiface_core *core, pa_scache_entry *sample) {
@@ -490,7 +488,8 @@ pa_dbusiface_sample *pa_dbusiface_sample_new(pa_dbusiface_core *core, pa_scache_
     s->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, OBJECT_NAME, sample->index);
     s->proplist = pa_proplist_copy(sample->proplist);
     s->dbus_protocol = pa_dbus_protocol_get(sample->core);
-    s->subscription = pa_subscription_new(sample->core, PA_SUBSCRIPTION_MASK_SAMPLE_CACHE, subscription_cb, s);
+    s->sample_cache_changed_slot = pa_hook_connect(&sample->core->hooks[PA_CORE_HOOK_SAMPLE_CACHE_CHANGED],
+                                                   PA_HOOK_NORMAL, sample_cache_changed_cb, s);
 
     pa_assert_se(pa_dbus_protocol_add_interface(s->dbus_protocol, s->path, &sample_interface_info, s) >= 0);
 
@@ -502,9 +501,9 @@ void pa_dbusiface_sample_free(pa_dbusiface_sample *s) {
 
     pa_assert_se(pa_dbus_protocol_remove_interface(s->dbus_protocol, s->path, sample_interface_info.name) >= 0);
 
+    pa_hook_slot_free(s->sample_cache_changed_slot);
     pa_proplist_free(s->proplist);
     pa_dbus_protocol_unref(s->dbus_protocol);
-    pa_subscription_free(s->subscription);
 
     pa_xfree(s->path);
     pa_xfree(s);
