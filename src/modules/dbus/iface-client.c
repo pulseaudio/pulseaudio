@@ -39,8 +39,9 @@ struct pa_dbusiface_client {
     char *path;
     pa_proplist *proplist;
 
+    pa_hook_slot *client_proplist_changed_slot;
+
     pa_dbus_protocol *dbus_protocol;
-    pa_subscription *subscription;
 };
 
 static void handle_get_index(DBusConnection *conn, DBusMessage *msg, void *userdata);
@@ -381,27 +382,24 @@ static void handle_remove_properties(DBusConnection *conn, DBusMessage *msg, voi
 
     pa_dbus_send_empty_reply(conn, msg);
 
-    if (changed)
+    if (changed) {
+        pa_hook_fire(&c->client->core->hooks[PA_CORE_HOOK_CLIENT_PROPLIST_CHANGED], c->client);
         pa_subscription_post(c->client->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_CHANGE, c->client->index);
+    }
 
     dbus_free_string_array(keys);
 }
 
-static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
-    pa_dbusiface_client *c = userdata;
-    DBusMessage *signal_msg = NULL;
+static pa_hook_result_t client_proplist_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_client *c = slot_data;
+    pa_client *client = call_data;
+    DBusMessage *signal_msg;
 
-    pa_assert(core);
-    pa_assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_CLIENT);
     pa_assert(c);
+    pa_assert(client);
 
-    /* We can't use idx != c->client->index, because the c->client pointer may
-     * be stale at this point. */
-    if (pa_idxset_get_by_index(core->clients, idx) != c->client)
-        return;
-
-    if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) != PA_SUBSCRIPTION_EVENT_CHANGE)
-        return;
+    if (c->client != client)
+        return PA_HOOK_OK;
 
     if (!pa_proplist_equal(c->proplist, c->client->proplist)) {
         DBusMessageIter msg_iter;
@@ -416,8 +414,9 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
         pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
         dbus_message_unref(signal_msg);
-        signal_msg = NULL;
     }
+
+    return PA_HOOK_OK;
 }
 
 pa_dbusiface_client *pa_dbusiface_client_new(pa_dbusiface_core *core, pa_client *client) {
@@ -432,7 +431,8 @@ pa_dbusiface_client *pa_dbusiface_client_new(pa_dbusiface_core *core, pa_client 
     c->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, OBJECT_NAME, client->index);
     c->proplist = pa_proplist_copy(client->proplist);
     c->dbus_protocol = pa_dbus_protocol_get(client->core);
-    c->subscription = pa_subscription_new(client->core, PA_SUBSCRIPTION_MASK_CLIENT, subscription_cb, c);
+    c->client_proplist_changed_slot = pa_hook_connect(&client->core->hooks[PA_CORE_HOOK_CLIENT_PROPLIST_CHANGED],
+                                                      PA_HOOK_NORMAL, client_proplist_changed_cb, c);
 
     pa_assert_se(pa_dbus_protocol_add_interface(c->dbus_protocol, c->path, &client_interface_info, c) >= 0);
 
@@ -444,9 +444,9 @@ void pa_dbusiface_client_free(pa_dbusiface_client *c) {
 
     pa_assert_se(pa_dbus_protocol_remove_interface(c->dbus_protocol, c->path, client_interface_info.name) >= 0);
 
+    pa_hook_slot_free(c->client_proplist_changed_slot);
     pa_proplist_free(c->proplist);
     pa_dbus_protocol_unref(c->dbus_protocol);
-    pa_subscription_free(c->subscription);
 
     pa_xfree(c->path);
     pa_xfree(c);
