@@ -79,6 +79,7 @@ static void free_entry(pa_scache_entry *e) {
 
     pa_namereg_unregister(e->core, e->name);
     pa_subscription_post(e->core, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_REMOVE, e->index);
+    pa_hook_fire(&e->core->hooks[PA_CORE_HOOK_SAMPLE_CACHE_UNLINK], e);
     pa_xfree(e->name);
     pa_xfree(e->filename);
     if (e->memchunk.memblock)
@@ -88,11 +89,12 @@ static void free_entry(pa_scache_entry *e) {
     pa_xfree(e);
 }
 
-static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
+static pa_scache_entry* scache_add_item(pa_core *c, const char *name, bool *new_sample) {
     pa_scache_entry *e;
 
     pa_assert(c);
     pa_assert(name);
+    pa_assert(new_sample);
 
     if ((e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE))) {
         if (e->memchunk.memblock)
@@ -104,6 +106,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
         pa_assert(e->core == c);
 
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);
+        *new_sample = false;
     } else {
         e = pa_xnew(pa_scache_entry, 1);
 
@@ -119,6 +122,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
         pa_idxset_put(c->scache, e, &e->index);
 
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_NEW, e->index);
+        *new_sample = true;
     }
 
     e->last_used_time = 0;
@@ -149,6 +153,7 @@ int pa_scache_add_item(
     pa_scache_entry *e;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX];
     pa_channel_map tmap;
+    bool new_sample;
 
     pa_assert(c);
     pa_assert(name);
@@ -163,7 +168,7 @@ int pa_scache_add_item(
     if (chunk && chunk->length > PA_SCACHE_ENTRY_SIZE_MAX)
         return -1;
 
-    if (!(e = scache_add_item(c, name)))
+    if (!(e = scache_add_item(c, name, &new_sample)))
         return -1;
 
     pa_sample_spec_init(&e->sample_spec);
@@ -193,6 +198,8 @@ int pa_scache_add_item(
     pa_log_debug("Created sample \"%s\" (#%d), %lu bytes with sample spec %s",
                  name, e->index, (unsigned long) e->memchunk.length,
                  pa_sample_spec_snprint(st, sizeof(st), &e->sample_spec));
+
+    pa_hook_fire(&e->core->hooks[new_sample ? PA_CORE_HOOK_SAMPLE_CACHE_NEW : PA_CORE_HOOK_SAMPLE_CACHE_CHANGED], e);
 
     return 0;
 }
@@ -232,6 +239,7 @@ int pa_scache_add_file(pa_core *c, const char *name, const char *filename, uint3
 
 int pa_scache_add_file_lazy(pa_core *c, const char *name, const char *filename, uint32_t *idx) {
     pa_scache_entry *e;
+    bool new_sample;
 
 #ifdef OS_IS_WIN32
     char buf[MAX_PATH];
@@ -244,7 +252,7 @@ int pa_scache_add_file_lazy(pa_core *c, const char *name, const char *filename, 
     pa_assert(name);
     pa_assert(filename);
 
-    if (!(e = scache_add_item(c, name)))
+    if (!(e = scache_add_item(c, name, &new_sample)))
         return -1;
 
     e->lazy = true;
@@ -257,6 +265,8 @@ int pa_scache_add_file_lazy(pa_core *c, const char *name, const char *filename, 
 
     if (idx)
         *idx = e->index;
+
+    pa_hook_fire(&e->core->hooks[new_sample ? PA_CORE_HOOK_SAMPLE_CACHE_NEW : PA_CORE_HOOK_SAMPLE_CACHE_CHANGED], e);
 
     return 0;
 }
