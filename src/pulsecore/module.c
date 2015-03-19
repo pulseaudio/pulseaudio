@@ -200,6 +200,8 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
         pa_modinfo_free(mi);
     }
 
+    pa_hook_fire(&m->core->hooks[PA_CORE_HOOK_MODULE_NEW], m);
+
     return m;
 
 fail:
@@ -231,6 +233,7 @@ static void pa_module_free(pa_module *m) {
     pa_assert(m->core);
 
     pa_log_info("Unloading \"%s\" (index: #%u).", m->name, m->index);
+    pa_hook_fire(&m->core->hooks[PA_CORE_HOOK_MODULE_UNLINK], m);
 
     if (m->hooks) {
        pa_dynarray_free(m->hooks);
@@ -370,4 +373,5 @@ void pa_module_update_proplist(pa_module *m, pa_update_mode_t mode, pa_proplist 
         pa_proplist_update(m->proplist, mode, p);
 
     pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_CHANGE, m->index);
+    pa_hook_fire(&m->core->hooks[PA_CORE_HOOK_MODULE_PROPLIST_CHANGED], m);
 }
