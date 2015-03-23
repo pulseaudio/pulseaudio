@@ -148,21 +148,35 @@ void pa_thread_mq_done(pa_thread_mq *q) {
      * msgs, other stuff). Hence do so if we aren't currently
      * dispatching anyway. */
 
-    if (!pa_asyncmsgq_dispatching(q->outq))
-        pa_asyncmsgq_flush(q->outq, true);
+    if (q->outq && !pa_asyncmsgq_dispatching(q->outq)) {
+        /* Flushing the asyncmsgq can cause arbitrarily callbacks to run,
+           potentially causing recursion into pa_thread_mq_done again. */
+        pa_asyncmsgq *z = q->outq;
+        pa_asyncmsgq_ref(z);
+        pa_asyncmsgq_flush(z, true);
+        pa_asyncmsgq_unref(z);
+    }
 
-    q->main_mainloop->io_free(q->read_main_event);
-    q->main_mainloop->io_free(q->write_main_event);
-    q->read_main_event = q->write_main_event = NULL;
+    if (q->main_mainloop) {
+        if (q->read_main_event)
+            q->main_mainloop->io_free(q->read_main_event);
+        if (q->write_main_event)
+            q->main_mainloop->io_free(q->write_main_event);
+        q->read_main_event = q->write_main_event = NULL;
+    }
 
     if (q->thread_mainloop) {
-        q->thread_mainloop->io_free(q->read_thread_event);
-        q->thread_mainloop->io_free(q->write_thread_event);
+        if (q->read_thread_event)
+            q->thread_mainloop->io_free(q->read_thread_event);
+        if (q->write_thread_event)
+            q->thread_mainloop->io_free(q->write_thread_event);
         q->read_thread_event = q->write_thread_event = NULL;
     }
 
-    pa_asyncmsgq_unref(q->inq);
-    pa_asyncmsgq_unref(q->outq);
+    if (q->inq)
+        pa_asyncmsgq_unref(q->inq);
+    if (q->outq)
+        pa_asyncmsgq_unref(q->outq);
     q->inq = q->outq = NULL;
 
     q->main_mainloop = NULL;
