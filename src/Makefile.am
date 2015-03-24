@@ -262,7 +262,8 @@ TESTS_default = \
 		cpu-sconv-test \
 		cpu-volume-test \
 		lock-autospawn-test \
-		mult-s16-test
+		mult-s16-test \
+		lfe-filter-test
 
 TESTS_norun = \
 		ipacl-test \
@@ -553,6 +554,11 @@ mult_s16_test_SOURCES = tests/mult-s16-test.c tests/runtime-test-util.h
 mult_s16_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 mult_s16_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 mult_s16_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
+
+lfe_filter_test_SOURCES = tests/lfe-filter-test.c
+lfe_filter_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+lfe_filter_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+lfe_filter_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 rtstutter_SOURCES = tests/rtstutter.c
 rtstutter_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
