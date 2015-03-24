@@ -125,7 +125,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       channel is available as well. If no input LFE channel is
       available the output LFE channel will always be 0. If no output
       LFE channel is available the signal on the input LFE channel
-      will be ignored. Defaults to <opt>no</opt>.</p>
+      will be ignored. Defaults to <opt>yes</opt>.</p>
     </option>
 
     <option>
