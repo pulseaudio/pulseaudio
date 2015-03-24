@@ -145,6 +145,9 @@ void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate);
 /* Reinitialize state of the resampler, possibly due to seeking or other discontinuities */
 void pa_resampler_reset(pa_resampler *r);
 
+/* Rewind resampler */
+void pa_resampler_rewind(pa_resampler *r, size_t out_frames);
+
 /* Return the resampling method of the resampler object */
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r);
 

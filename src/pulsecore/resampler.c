@@ -578,6 +578,20 @@ void pa_resampler_reset(pa_resampler *r) {
     *r->have_leftover = false;
 }
 
+void pa_resampler_rewind(pa_resampler *r, size_t out_frames) {
+    pa_assert(r);
+
+    /* For now, we don't have any rewindable resamplers, so we just
+       reset the resampler instead (and hope that nobody hears the difference). */
+    if (r->impl.reset)
+        r->impl.reset(r);
+
+    if (r->lfe_filter)
+        pa_lfe_filter_rewind(r->lfe_filter, out_frames);
+
+    *r->have_leftover = false;
+}
+
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r) {
     pa_assert(r);
 
@@ -818,8 +832,8 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_filter_r
     } else {
 
         /* OK, we shall do the full monty: upmixing and downmixing. Our
-         * algorithm is relatively simple, does not do spacialization, delay
-         * elements or apply lowpass filters for LFE. Patches are always
+         * algorithm is relatively simple, does not do spacialization, or delay
+         * elements. LFE filters are done after the remap step. Patches are always
          * welcome, though. Oh, and it doesn't do any matrix decoding. (Which
          * probably wouldn't make any sense anyway.)
          *

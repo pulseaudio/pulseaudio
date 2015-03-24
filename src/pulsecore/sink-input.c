@@ -1106,9 +1106,9 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
             if (i->thread_info.rewrite_flush)
                 pa_memblockq_silence(i->thread_info.render_memblockq);
 
-            /* And reset the resampler */
+            /* And rewind the resampler */
             if (i->thread_info.resampler)
-                pa_resampler_reset(i->thread_info.resampler);
+                pa_resampler_rewind(i->thread_info.resampler, amount);
         }
     }
 

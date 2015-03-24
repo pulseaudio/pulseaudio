@@ -851,7 +851,7 @@ void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes /* in so
             o->process_rewind(o, nbytes);
 
         if (o->thread_info.resampler)
-            pa_resampler_reset(o->thread_info.resampler);
+            pa_resampler_rewind(o->thread_info.resampler, nbytes);
 
     } else
         pa_memblockq_rewind(o->thread_info.delay_memblockq, nbytes);
