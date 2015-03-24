@@ -25,6 +25,12 @@ struct lr4 {
 	float z1, z2;
 };
 
+void lr4_set(struct lr4 *lr4, enum biquad_type type, float freq);
+
+void lr4_process_float32(struct lr4 *lr4, int samples, int channels, float *src, float *dest);
+void lr4_process_s16(struct lr4 *lr4, int samples, int channels, short *src, short *dest);
+
+
 /* Three bands crossover filter:
  *
  * INPUT --+-- lp0 --+-- lp1 --+---> LOW (0)

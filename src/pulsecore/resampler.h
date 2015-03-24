@@ -26,6 +26,7 @@
 #include <pulsecore/memchunk.h>
 #include <pulsecore/sconv.h>
 #include <pulsecore/remap.h>
+#include <pulsecore/filter/lfe-filter.h>
 
 typedef struct pa_resampler pa_resampler;
 typedef struct pa_resampler_impl pa_resampler_impl;
@@ -105,6 +106,8 @@ struct pa_resampler {
 
     pa_remap_t remap;
     bool map_required;
+
+    pa_lfe_filter_t *lfe_filter;
 
     pa_resampler_impl impl;
 };
