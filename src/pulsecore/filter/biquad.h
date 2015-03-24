@@ -21,21 +21,12 @@ extern "C" {
 struct biquad {
 	float b0, b1, b2;
 	float a1, a2;
-	float x1, x2;
-	float y1, y2;
 };
 
 /* The type of the biquad filters */
 enum biquad_type {
-	BQ_NONE,
 	BQ_LOWPASS,
 	BQ_HIGHPASS,
-	BQ_BANDPASS,
-	BQ_LOWSHELF,
-	BQ_HIGHSHELF,
-	BQ_PEAKING,
-	BQ_NOTCH,
-	BQ_ALLPASS
 };
 
 /* Initialize a biquad filter parameters from its type and parameters.
@@ -44,11 +35,8 @@ enum biquad_type {
  *    type - The type of the biquad filter.
  *    frequency - The value should be in the range [0, 1]. It is relative to
  *        half of the sampling rate.
- *    Q - Quality factor. See Web Audio API for details.
- *    gain - The value is in dB. See Web Audio API for details.
  */
-void biquad_set(struct biquad *bq, enum biquad_type type, double freq, double Q,
-		double gain);
+void biquad_set(struct biquad *bq, enum biquad_type type, double freq);
 
 #ifdef __cplusplus
 } /* extern "C" */
