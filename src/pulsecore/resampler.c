@@ -419,7 +419,8 @@ pa_resampler* pa_resampler_new(
     if (lfe_filter_required) {
         pa_sample_spec wss = r->o_ss;
         wss.format = r->work_format;
-        r->lfe_filter = pa_lfe_filter_new(&wss, &r->o_cm, (float)crossover_freq);
+        /* FIXME: For now just hardcode maxrewind to 3 seconds */
+        r->lfe_filter = pa_lfe_filter_new(&wss, &r->o_cm, (float)crossover_freq, b->rate * 3);
         pa_log_debug("  lfe filter activated (LR4 type), the crossover_freq = %uHz", crossover_freq);
     }
 

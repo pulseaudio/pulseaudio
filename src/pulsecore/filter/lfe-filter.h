@@ -25,13 +25,14 @@
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 #include <pulsecore/memchunk.h>
-
+#include <pulsecore/memblockq.h>
 
 typedef struct pa_lfe_filter pa_lfe_filter_t;
 
-pa_lfe_filter_t * pa_lfe_filter_new(const pa_sample_spec* ss, const pa_channel_map* cm, float crossover_freq);
+pa_lfe_filter_t * pa_lfe_filter_new(const pa_sample_spec* ss, const pa_channel_map* cm, float crossover_freq, size_t maxrewind);
 void pa_lfe_filter_free(pa_lfe_filter_t *);
 void pa_lfe_filter_reset(pa_lfe_filter_t *);
+void pa_lfe_filter_rewind(pa_lfe_filter_t *, size_t amount);
 pa_memchunk * pa_lfe_filter_process(pa_lfe_filter_t *filter, pa_memchunk *buf);
 void pa_lfe_filter_update_rate(pa_lfe_filter_t *, uint32_t new_rate);
 
