@@ -29,6 +29,9 @@ considered too small and stable to be considered as an external library) use the
 more permissive MIT license. This include the device reservation DBus protocol
 and realtime kit implementations.
 
+A more permissive BSD-style license is used for LFE filters, see
+src/pulsecore/filter/LICENSE.WEBKIT for details.
+
 Additionally, a more permissive Sun license is used for code that performs
 u-law, A-law and linear PCM conversions.
 
