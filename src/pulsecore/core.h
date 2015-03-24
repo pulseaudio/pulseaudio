@@ -160,6 +160,7 @@ struct pa_core {
     unsigned default_n_fragments, default_fragment_size_msec;
     unsigned deferred_volume_safety_margin_usec;
     int deferred_volume_extra_delay_usec;
+    unsigned lfe_crossover_freq;
 
     pa_defer_event *module_defer_unload_event;
     pa_hashmap *modules_pending_unload; /* pa_module -> pa_module (hashmap-as-a-set) */

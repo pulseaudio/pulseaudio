@@ -303,6 +303,7 @@ int main(int argc, char *argv[]) {
     bool all_formats = true;
     pa_resample_method_t method;
     int seconds;
+    unsigned crossover_freq = 120;
 
     static const struct option long_options[] = {
         {"help",                  0, NULL, 'h'},
@@ -419,7 +420,7 @@ int main(int argc, char *argv[]) {
                    b.rate, b.channels, pa_sample_format_to_string(b.format));
 
         ts = pa_rtclock_now();
-        pa_assert_se(resampler = pa_resampler_new(pool, &a, NULL, &b, NULL, method, 0));
+        pa_assert_se(resampler = pa_resampler_new(pool, &a, NULL, &b, NULL, crossover_freq, method, 0));
         pa_log_info("init: %llu", (long long unsigned)(pa_rtclock_now() - ts));
 
         i.memblock = pa_memblock_new(pool, pa_usec_to_bytes(1*PA_USEC_PER_SEC, &a));
@@ -450,8 +451,8 @@ int main(int argc, char *argv[]) {
                        pa_sample_format_to_string(b.format),
                        pa_sample_format_to_string(a.format));
 
-            pa_assert_se(forth = pa_resampler_new(pool, &a, NULL, &b, NULL, method, 0));
-            pa_assert_se(back = pa_resampler_new(pool, &b, NULL, &a, NULL, method, 0));
+            pa_assert_se(forth = pa_resampler_new(pool, &a, NULL, &b, NULL, crossover_freq, method, 0));
+            pa_assert_se(back = pa_resampler_new(pool, &b, NULL, &a, NULL, crossover_freq, method, 0));
 
             i.memblock = generate_block(pool, &a);
             i.length = pa_memblock_get_length(i.memblock);

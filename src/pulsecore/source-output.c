@@ -396,6 +396,7 @@ int pa_source_output_new(
                         core->mempool,
                         &data->source->sample_spec, &data->source->channel_map,
                         &data->sample_spec, &data->channel_map,
+                        core->lfe_crossover_freq,
                         data->resample_method,
                         ((data->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
                         ((data->flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
@@ -1625,6 +1626,7 @@ int pa_source_output_update_rate(pa_source_output *o) {
         new_resampler = pa_resampler_new(o->core->mempool,
                                      &o->source->sample_spec, &o->source->channel_map,
                                      &o->sample_spec, &o->channel_map,
+                                     o->core->lfe_crossover_freq,
                                      o->requested_resample_method,
                                      ((o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
                                      ((o->flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |

@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
 
     unsigned i, j;
     pa_mempool *pool;
+    unsigned crossover_freq = 120;
 
     pa_log_set_level(PA_LOG_DEBUG);
 
@@ -66,7 +67,7 @@ int main(int argc, char *argv[]) {
             ss1.rate = ss2.rate = 44100;
             ss1.format = ss2.format = PA_SAMPLE_S16NE;
 
-            r = pa_resampler_new(pool, &ss1, &maps[i], &ss2, &maps[j], PA_RESAMPLER_AUTO, 0);
+            r = pa_resampler_new(pool, &ss1, &maps[i], &ss2, &maps[j], crossover_freq, PA_RESAMPLER_AUTO, 0);
 
             /* We don't really care for the resampler. We just want to
              * see the remixing debug output. */

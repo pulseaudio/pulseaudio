@@ -144,6 +144,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, size_t shm_size) {
     c->realtime_priority = 5;
     c->disable_remixing = false;
     c->disable_lfe_remixing = false;
+    c->lfe_crossover_freq = 120;
     c->deferred_volume = true;
     c->resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 1;
 

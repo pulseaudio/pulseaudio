@@ -127,6 +127,7 @@ typedef struct pa_daemon_conf {
     unsigned default_n_fragments, default_fragment_size_msec;
     unsigned deferred_volume_safety_margin_usec;
     int deferred_volume_extra_delay_usec;
+    unsigned lfe_crossover_freq;
     pa_sample_spec default_sample_spec;
     uint32_t alternate_sample_rate;
     pa_channel_map default_channel_map;

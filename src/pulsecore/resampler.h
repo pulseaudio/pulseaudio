@@ -118,6 +118,7 @@ pa_resampler* pa_resampler_new(
         const pa_channel_map *am,
         const pa_sample_spec *b,
         const pa_channel_map *bm,
+	unsigned crossover_freq,
         pa_resample_method_t resample_method,
         pa_resample_flags_t flags);
 

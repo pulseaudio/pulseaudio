@@ -451,6 +451,7 @@ int pa_sink_input_new(
                           core->mempool,
                           &data->sample_spec, &data->channel_map,
                           &data->sink->sample_spec, &data->sink->channel_map,
+                          core->lfe_crossover_freq,
                           data->resample_method,
                           ((data->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
                           ((data->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
@@ -2168,6 +2169,7 @@ int pa_sink_input_update_rate(pa_sink_input *i) {
         new_resampler = pa_resampler_new(i->core->mempool,
                                      &i->sample_spec, &i->channel_map,
                                      &i->sink->sample_spec, &i->sink->channel_map,
+                                     i->core->lfe_crossover_freq,
                                      i->requested_resample_method,
                                      ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
                                      ((i->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |

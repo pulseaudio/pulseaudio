@@ -1029,6 +1029,7 @@ int main(int argc, char *argv[]) {
     c->default_fragment_size_msec = conf->default_fragment_size_msec;
     c->deferred_volume_safety_margin_usec = conf->deferred_volume_safety_margin_usec;
     c->deferred_volume_extra_delay_usec = conf->deferred_volume_extra_delay_usec;
+    c->lfe_crossover_freq = conf->lfe_crossover_freq;
     c->exit_idle_time = conf->exit_idle_time;
     c->scache_idle_time = conf->scache_idle_time;
     c->resample_method = conf->resample_method;
