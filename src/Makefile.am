@@ -1953,7 +1953,8 @@ module_augment_properties_la_LIBADD = $(MODULE_LIBADD)
 module_augment_properties_la_CFLAGS = $(AM_CFLAGS) -DDESKTOPFILEDIR=\"/usr/share/applications\"
 
 # Cork certain streams while others are active (e.g. cork music when phone streams appear)
-module_role_cork_la_SOURCES = modules/module-role-cork.c
+module_role_cork_la_SOURCES = modules/module-role-cork.c \
+                              modules/stream-interaction.c modules/stream-interaction.h
 module_role_cork_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_role_cork_la_LIBADD = $(MODULE_LIBADD)
 module_role_cork_la_CFLAGS = $(AM_CFLAGS)
