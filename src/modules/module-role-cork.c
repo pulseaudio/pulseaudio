@@ -124,6 +124,8 @@ static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_in
         PA_IDXSET_FOREACH(cork_role, u->cork_roles, role_idx) {
             if ((trigger = pa_streq(role, cork_role)))
                 break;
+            if ((trigger = (pa_streq(cork_role, "any_role") && !is_trigger_stream(u, j))))
+                break;
         }
         if (!trigger)
             continue;
@@ -132,7 +134,7 @@ static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_in
         corked_here = !!pa_hashmap_get(u->cork_state, j);
 
         if (cork && !corked && !j->muted) {
-            pa_log_debug("Found a '%s' stream that should be corked/muted.", cork_role);
+            pa_log_debug("Found a '%s' stream that should be corked/muted.", role);
             if (!corked_here)
                 pa_hashmap_put(u->cork_state, j, PA_INT_TO_PTR(1));
             pa_sink_input_set_mute(j, true, false);
@@ -141,7 +143,7 @@ static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_in
             pa_hashmap_remove(u->cork_state, j);
 
             if (corked_here && (corked || j->muted)) {
-                pa_log_debug("Found a '%s' stream that should be uncorked/unmuted.", cork_role);
+                pa_log_debug("Found a '%s' stream that should be uncorked/unmuted.", role);
                 if (j->muted)
                     pa_sink_input_set_mute(j, false, false);
                 if (corked)
