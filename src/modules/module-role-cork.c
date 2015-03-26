@@ -102,6 +102,24 @@ static bool shall_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore) {
     return false;
 }
 
+static void cork_stream(struct userdata *u, pa_sink_input *i, const char *cork_role) {
+
+    pa_log_debug("Found a '%s' stream that should be corked/muted.", cork_role);
+    pa_sink_input_set_mute(i, true, false);
+    pa_sink_input_send_event(i, PA_STREAM_EVENT_REQUEST_CORK, NULL);
+}
+
+static void uncork_stream(struct userdata *u, pa_sink_input *i, const char *cork_role, bool corked) {
+
+    pa_log_debug("Found a '%s' stream that should be uncorked/unmuted.", cork_role);
+    if (corked || i->muted) {
+        if (i->muted)
+            pa_sink_input_set_mute(i, false, false);
+        if (corked)
+            pa_sink_input_send_event(i, PA_STREAM_EVENT_REQUEST_UNCORK, NULL);
+    }
+}
+
 static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_input *ignore, bool cork) {
     pa_sink_input *j;
     uint32_t idx, role_idx;
@@ -134,21 +152,14 @@ static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_in
         corked_here = !!pa_hashmap_get(u->cork_state, j);
 
         if (cork && !corked && !j->muted) {
-            pa_log_debug("Found a '%s' stream that should be corked/muted.", role);
             if (!corked_here)
                 pa_hashmap_put(u->cork_state, j, PA_INT_TO_PTR(1));
-            pa_sink_input_set_mute(j, true, false);
-            pa_sink_input_send_event(j, PA_STREAM_EVENT_REQUEST_CORK, NULL);
-        } else if (!cork) {
+
+            cork_stream(u, j, role);
+        } else if (!cork && corked_here) {
             pa_hashmap_remove(u->cork_state, j);
 
-            if (corked_here && (corked || j->muted)) {
-                pa_log_debug("Found a '%s' stream that should be uncorked/unmuted.", role);
-                if (j->muted)
-                    pa_sink_input_set_mute(j, false, false);
-                if (corked)
-                    pa_sink_input_send_event(j, PA_STREAM_EVENT_REQUEST_UNCORK, NULL);
-            }
+            uncork_stream(u, j, role, corked);
         }
     }
 }
@@ -162,6 +173,27 @@ static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, bo
             apply_cork_to_sink(u, s, ignore, cork);
     } else
         apply_cork_to_sink(u, s, ignore, cork);
+}
+
+static void remove_cork(struct userdata *u) {
+    uint32_t idx, idx_input;
+    pa_sink *s;
+    pa_sink_input *j;
+    bool corked;
+    const char *role;
+
+    PA_IDXSET_FOREACH(s, u->core->sinks, idx) {
+
+        PA_IDXSET_FOREACH(j, s->inputs, idx_input) {
+
+            if (!!pa_hashmap_get(u->cork_state, j)) {
+                corked = (pa_sink_input_get_state(j) == PA_SINK_INPUT_CORKED);
+                if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
+                    role = "no_role";
+                uncork_stream(u, j, role, corked);
+            }
+        }
+    }
 }
 
 static pa_hook_result_t process(struct userdata *u, pa_sink_input *i, bool create) {
@@ -349,8 +381,10 @@ void pa__done(pa_module *m) {
     if (u->sink_input_proplist_changed_slot)
         pa_hook_slot_free(u->sink_input_proplist_changed_slot);
 
-    if (u->cork_state)
+    if (u->cork_state) {
+        remove_cork(u);
         pa_hashmap_free(u->cork_state);
+    }
 
     pa_xfree(u);
 
