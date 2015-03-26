@@ -47,12 +47,12 @@ int pa__init(pa_module *m) {
 
     pa_assert(m);
 
-    return pa_cork_init(m, valid_modargs);
+    return pa_stream_interaction_init(m, valid_modargs);
 }
 
 void pa__done(pa_module *m) {
 
     pa_assert(m);
 
-    pa_cork_done(m);
+    pa_stream_interaction_done(m);
 }

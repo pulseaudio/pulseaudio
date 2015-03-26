@@ -17,5 +17,5 @@
   along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 ***/
 
-int pa_cork_init(pa_module *m, const char* const v_modargs[]);
-void pa_cork_done(pa_module *m);
+int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]);
+void pa_stream_interaction_done(pa_module *m);

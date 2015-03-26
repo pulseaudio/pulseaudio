@@ -35,9 +35,9 @@
 
 struct userdata {
     pa_core *core;
-    pa_hashmap *cork_state;
+    pa_hashmap *interaction_state;
     pa_idxset *trigger_roles;
-    pa_idxset *cork_roles;
+    pa_idxset *interaction_roles;
     bool global:1;
     pa_hook_slot
         *sink_input_put_slot,
@@ -63,7 +63,7 @@ static const char *is_trigger_stream(struct userdata *u, pa_sink_input *i) {
     return NULL;
 }
 
-static bool shall_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore) {
+static bool shall_interact(struct userdata *u, pa_sink *s, pa_sink_input *ignore) {
     pa_sink_input *j;
     uint32_t idx;
     const char *trigger_role;
@@ -86,16 +86,16 @@ static bool shall_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore) {
     return false;
 }
 
-static void cork_stream(struct userdata *u, pa_sink_input *i, const char *cork_role) {
+static void cork_stream(struct userdata *u, pa_sink_input *i, const char *interaction_role) {
 
-    pa_log_debug("Found a '%s' stream that should be corked/muted.", cork_role);
+    pa_log_debug("Found a '%s' stream that should be corked/muted.", interaction_role);
     pa_sink_input_set_mute(i, true, false);
     pa_sink_input_send_event(i, PA_STREAM_EVENT_REQUEST_CORK, NULL);
 }
 
-static void uncork_stream(struct userdata *u, pa_sink_input *i, const char *cork_role, bool corked) {
+static void uncork_stream(struct userdata *u, pa_sink_input *i, const char *interaction_role, bool corked) {
 
-    pa_log_debug("Found a '%s' stream that should be uncorked/unmuted.", cork_role);
+    pa_log_debug("Found a '%s' stream that should be uncorked/unmuted.", interaction_role);
     if (corked || i->muted) {
        if (i->muted)
           pa_sink_input_set_mute(i, false, false);
@@ -104,17 +104,17 @@ static void uncork_stream(struct userdata *u, pa_sink_input *i, const char *cork
     }
 }
 
-static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_input *ignore, bool cork) {
+static inline void apply_interaction_to_sink(struct userdata *u, pa_sink *s, pa_sink_input *ignore, bool cork) {
     pa_sink_input *j;
     uint32_t idx, role_idx;
-    const char *cork_role;
+    const char *interaction_role;
     bool trigger = false;
 
     pa_assert(u);
     pa_sink_assert_ref(s);
 
     for (j = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); j; j = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
-        bool corked, corked_here;
+        bool corked, interaction_applied;
         const char *role;
 
         if (j == ignore)
@@ -123,43 +123,43 @@ static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_in
         if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
             role = "no_role";
 
-        PA_IDXSET_FOREACH(cork_role, u->cork_roles, role_idx) {
-            if ((trigger = pa_streq(role, cork_role)))
+        PA_IDXSET_FOREACH(interaction_role, u->interaction_roles, role_idx) {
+            if ((trigger = pa_streq(role, interaction_role)))
                 break;
-            if ((trigger = (pa_streq(cork_role, "any_role") && !is_trigger_stream(u, j))))
-                break;
+            if ((trigger = (pa_streq(interaction_role, "any_role") && !is_trigger_stream(u, j))))
+               break;
         }
         if (!trigger)
             continue;
 
         corked = (pa_sink_input_get_state(j) == PA_SINK_INPUT_CORKED);
-        corked_here = !!pa_hashmap_get(u->cork_state, j);
+        interaction_applied = !!pa_hashmap_get(u->interaction_state, j);
 
         if (cork && !corked && !j->muted) {
-            if (!corked_here)
-                pa_hashmap_put(u->cork_state, j, PA_INT_TO_PTR(1));
+            if (!interaction_applied)
+                pa_hashmap_put(u->interaction_state, j, PA_INT_TO_PTR(1));
 
             cork_stream(u, j, role);
-        } else if (!cork && corked_here) {
-            pa_hashmap_remove(u->cork_state, j);
+        } else if (!cork && interaction_applied) {
+            pa_hashmap_remove(u->interaction_state, j);
 
             uncork_stream(u, j, role, corked);
         }
     }
 }
 
-static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, bool cork) {
+static void apply_interaction(struct userdata *u, pa_sink *s, pa_sink_input *ignore, bool cork) {
     pa_assert(u);
 
     if (u->global) {
         uint32_t idx;
         PA_IDXSET_FOREACH(s, u->core->sinks, idx)
-            apply_cork_to_sink(u, s, ignore, cork);
+            apply_interaction_to_sink(u, s, ignore, cork);
     } else
-        apply_cork_to_sink(u, s, ignore, cork);
+        apply_interaction_to_sink(u, s, ignore, cork);
 }
 
-static void remove_cork(struct userdata *u) {
+static void remove_interactions(struct userdata *u) {
     uint32_t idx, idx_input;
     pa_sink *s;
     pa_sink_input *j;
@@ -170,7 +170,7 @@ static void remove_cork(struct userdata *u) {
 
       for (j = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx_input)); j; j = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx_input))) {
 
-         if(!!pa_hashmap_get(u->cork_state, j)) {
+         if(!!pa_hashmap_get(u->interaction_state, j)) {
            corked = (pa_sink_input_get_state(j) == PA_SINK_INPUT_CORKED);
            if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
               role = "no_role";
@@ -187,13 +187,13 @@ static pa_hook_result_t process(struct userdata *u, pa_sink_input *i, bool creat
     pa_sink_input_assert_ref(i);
 
     if (!create)
-        pa_hashmap_remove(u->cork_state, i);
+        pa_hashmap_remove(u->interaction_state, i);
 
     if (!i->sink)
         return PA_HOOK_OK;
 
-    cork = shall_cork(u, i->sink, create ? NULL : i);
-    apply_cork(u, i->sink, create ? NULL : i, cork);
+    cork = shall_interact(u, i->sink, create ? NULL : i);
+    apply_interaction(u, i->sink, create ? NULL : i, cork);
 
     return PA_HOOK_OK;
 }
@@ -255,7 +255,7 @@ static pa_hook_result_t sink_input_proplist_changed_cb(pa_core *core, pa_sink_in
     return PA_HOOK_OK;
 }
 
-int pa_cork_init(pa_module *m, const char* const v_modargs[]) {
+int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     const char *roles;
@@ -271,7 +271,7 @@ int pa_cork_init(pa_module *m, const char* const v_modargs[]) {
     m->userdata = u = pa_xnew(struct userdata, 1);
 
     u->core = m->core;
-    u->cork_state = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    u->interaction_state = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     u->trigger_roles = pa_idxset_new(NULL, NULL);
     roles = pa_modargs_get_value(ma, "trigger_roles", NULL);
@@ -290,22 +290,22 @@ int pa_cork_init(pa_module *m, const char* const v_modargs[]) {
         pa_idxset_put(u->trigger_roles, pa_xstrdup("phone"), NULL);
     }
 
-    u->cork_roles = pa_idxset_new(NULL, NULL);
+    u->interaction_roles = pa_idxset_new(NULL, NULL);
     roles = pa_modargs_get_value(ma, "cork_roles", NULL);
     if (roles) {
         const char *split_state = NULL;
         char *n = NULL;
         while ((n = pa_split(roles, ",", &split_state))) {
             if (n[0] != '\0')
-                pa_idxset_put(u->cork_roles, n, NULL);
+                pa_idxset_put(u->interaction_roles, n, NULL);
             else
                 pa_xfree(n);
         }
     }
-    if (pa_idxset_isempty(u->cork_roles)) {
+    if (pa_idxset_isempty(u->interaction_roles)) {
         pa_log_debug("Using roles 'music' and 'video' as cork roles.");
-        pa_idxset_put(u->cork_roles, pa_xstrdup("music"), NULL);
-        pa_idxset_put(u->cork_roles, pa_xstrdup("video"), NULL);
+        pa_idxset_put(u->interaction_roles, pa_xstrdup("music"), NULL);
+        pa_idxset_put(u->interaction_roles, pa_xstrdup("video"), NULL);
     }
 
     if (pa_modargs_get_value_boolean(ma, "global", &global) < 0) {
@@ -327,7 +327,7 @@ int pa_cork_init(pa_module *m, const char* const v_modargs[]) {
     return 0;
 
 fail:
-    pa_cork_done(m);
+    pa_stream_interaction_done(m);
 
     if (ma)
         pa_modargs_free(ma);
@@ -336,7 +336,7 @@ fail:
 
 }
 
-void pa_cork_done(pa_module *m) {
+void pa_stream_interaction_done(pa_module *m) {
     struct userdata* u;
 
     pa_assert(m);
@@ -347,8 +347,8 @@ void pa_cork_done(pa_module *m) {
     if (u->trigger_roles)
         pa_idxset_free(u->trigger_roles, pa_xfree);
 
-    if (u->cork_roles)
-        pa_idxset_free(u->cork_roles, pa_xfree);
+    if (u->interaction_roles)
+        pa_idxset_free(u->interaction_roles, pa_xfree);
 
     if (u->sink_input_put_slot)
         pa_hook_slot_free(u->sink_input_put_slot);
@@ -365,9 +365,9 @@ void pa_cork_done(pa_module *m) {
     if (u->sink_input_proplist_changed_slot)
         pa_hook_slot_free(u->sink_input_proplist_changed_slot);
 
-    if (u->cork_state) {
-        remove_cork(u);
-        pa_hashmap_free(u->cork_state);
+    if (u->interaction_state) {
+        remove_interactions(u);
+        pa_hashmap_free(u->interaction_state);
     }
 
     pa_xfree(u);
