@@ -77,7 +77,7 @@ static bool shall_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore) {
             continue;
 
         if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
-            continue;
+            role = "no_role";
 
         PA_IDXSET_FOREACH(trigger_role, u->trigger_roles, role_idx) {
             if (pa_streq(role, trigger_role)) {
@@ -107,7 +107,7 @@ static inline void apply_cork_to_sink(struct userdata *u, pa_sink *s, pa_sink_in
             continue;
 
         if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
-            continue;
+            role = "no_role";
 
         PA_IDXSET_FOREACH(cork_role, u->cork_roles, role_idx) {
             if ((trigger = pa_streq(role, cork_role)))
@@ -152,16 +152,12 @@ static void apply_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore, bo
 
 static pa_hook_result_t process(struct userdata *u, pa_sink_input *i, bool create) {
     bool cork = false;
-    const char *role;
 
     pa_assert(u);
     pa_sink_input_assert_ref(i);
 
     if (!create)
         pa_hashmap_remove(u->cork_state, i);
-
-    if (!(role = pa_proplist_gets(i->proplist, PA_PROP_MEDIA_ROLE)))
-        return PA_HOOK_OK;
 
     if (!i->sink)
         return PA_HOOK_OK;
