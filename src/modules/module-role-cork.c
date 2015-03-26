@@ -59,31 +59,43 @@ struct userdata {
         *sink_input_put_slot,
         *sink_input_unlink_slot,
         *sink_input_move_start_slot,
-        *sink_input_move_finish_slot;
+        *sink_input_move_finish_slot,
+        *sink_input_state_changed_slot,
+        *sink_input_mute_changed_slot,
+        *sink_input_proplist_changed_slot;
 };
+
+static const char *is_trigger_stream(struct userdata *u, pa_sink_input *i) {
+    const char *role, *trigger_role;
+    uint32_t role_idx;
+
+    if (!(role = pa_proplist_gets(i->proplist, PA_PROP_MEDIA_ROLE)))
+        role = "no_role";
+
+    PA_IDXSET_FOREACH(trigger_role, u->trigger_roles, role_idx) {
+        if (pa_streq(role, trigger_role))
+            return trigger_role;
+    }
+    return NULL;
+}
 
 static bool shall_cork(struct userdata *u, pa_sink *s, pa_sink_input *ignore) {
     pa_sink_input *j;
-    uint32_t idx, role_idx;
+    uint32_t idx;
     const char *trigger_role;
 
     pa_assert(u);
     pa_sink_assert_ref(s);
 
     for (j = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); j; j = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
-        const char *role;
 
         if (j == ignore)
             continue;
 
-        if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
-            role = "no_role";
-
-        PA_IDXSET_FOREACH(trigger_role, u->trigger_roles, role_idx) {
-            if (pa_streq(role, trigger_role)) {
-                pa_log_debug("Found a '%s' stream that will trigger the auto-cork.", trigger_role);
-                return true;
-            }
+        trigger_role = is_trigger_stream(u, j);
+        if (trigger_role && !j->muted && pa_sink_input_get_state(j) != PA_SINK_INPUT_CORKED) {
+            pa_log_debug("Found a '%s' stream that will trigger the auto-cork.", trigger_role);
+            return true;
         }
     }
 
@@ -195,6 +207,36 @@ static pa_hook_result_t sink_input_move_finish_cb(pa_core *core, pa_sink_input *
     return process(u, i, true);
 }
 
+static pa_hook_result_t sink_input_state_changed_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
+    pa_core_assert_ref(core);
+    pa_sink_input_assert_ref(i);
+
+    if (PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(i)) && is_trigger_stream(u, i))
+        return process(u, i, true);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t sink_input_mute_changed_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
+    pa_core_assert_ref(core);
+    pa_sink_input_assert_ref(i);
+
+    if (PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(i)) && is_trigger_stream(u, i))
+        return process(u, i, true);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t sink_input_proplist_changed_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
+    pa_core_assert_ref(core);
+    pa_sink_input_assert_ref(i);
+
+    if (PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(i)))
+        return process(u, i, true);
+
+    return PA_HOOK_OK;
+}
+
 int pa__init(pa_module *m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
@@ -258,6 +300,9 @@ int pa__init(pa_module *m) {
     u->sink_input_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_unlink_cb, u);
     u->sink_input_move_start_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_START], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_move_start_cb, u);
     u->sink_input_move_finish_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_move_finish_cb, u);
+    u->sink_input_state_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_state_changed_cb, u);
+    u->sink_input_mute_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MUTE_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_mute_changed_cb, u);
+    u->sink_input_proplist_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_proplist_changed_cb, u);
 
     pa_modargs_free(ma);
 
@@ -295,6 +340,12 @@ void pa__done(pa_module *m) {
         pa_hook_slot_free(u->sink_input_move_start_slot);
     if (u->sink_input_move_finish_slot)
         pa_hook_slot_free(u->sink_input_move_finish_slot);
+    if (u->sink_input_state_changed_slot)
+        pa_hook_slot_free(u->sink_input_state_changed_slot);
+    if (u->sink_input_mute_changed_slot)
+        pa_hook_slot_free(u->sink_input_mute_changed_slot);
+    if (u->sink_input_proplist_changed_slot)
+        pa_hook_slot_free(u->sink_input_proplist_changed_slot);
 
     if (u->cork_state)
         pa_hashmap_free(u->cork_state);
