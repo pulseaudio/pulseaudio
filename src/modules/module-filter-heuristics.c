@@ -46,11 +46,6 @@ static const char* const valid_modargs[] = {
 
 struct userdata {
     pa_core *core;
-    pa_hook_slot
-        *sink_input_put_slot,
-        *sink_input_move_finish_slot,
-        *source_output_put_slot,
-        *source_output_move_finish_slot;
 };
 
 static pa_hook_result_t process(struct userdata *u, pa_object *o, bool is_sink_input) {
@@ -147,10 +142,10 @@ int pa__init(pa_module *m) {
 
     u->core = m->core;
 
-    u->sink_input_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE-1, (pa_hook_cb_t) sink_input_put_cb, u);
-    u->sink_input_move_finish_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], PA_HOOK_LATE-1, (pa_hook_cb_t) sink_input_move_finish_cb, u);
-    u->source_output_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], PA_HOOK_LATE-1, (pa_hook_cb_t) source_output_put_cb, u);
-    u->source_output_move_finish_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FINISH], PA_HOOK_LATE-1, (pa_hook_cb_t) source_output_move_finish_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE-1, (pa_hook_cb_t) sink_input_put_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], PA_HOOK_LATE-1, (pa_hook_cb_t) sink_input_move_finish_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], PA_HOOK_LATE-1, (pa_hook_cb_t) source_output_put_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FINISH], PA_HOOK_LATE-1, (pa_hook_cb_t) source_output_move_finish_cb, u);
 
     pa_modargs_free(ma);
 
@@ -173,15 +168,6 @@ void pa__done(pa_module *m) {
 
     if (!(u = m->userdata))
         return;
-
-    if (u->sink_input_put_slot)
-        pa_hook_slot_free(u->sink_input_put_slot);
-    if (u->sink_input_move_finish_slot)
-        pa_hook_slot_free(u->sink_input_move_finish_slot);
-    if (u->source_output_put_slot)
-        pa_hook_slot_free(u->source_output_put_slot);
-    if (u->source_output_move_finish_slot)
-        pa_hook_slot_free(u->source_output_move_finish_slot);
 
     pa_xfree(u);
 

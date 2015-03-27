@@ -65,17 +65,6 @@ struct filter {
 struct userdata {
     pa_core *core;
     pa_hashmap *filters;
-    pa_hook_slot
-        *sink_input_put_slot,
-        *sink_input_move_finish_slot,
-        *sink_input_proplist_slot,
-        *sink_input_unlink_slot,
-        *sink_unlink_slot,
-        *source_output_put_slot,
-        *source_output_move_finish_slot,
-        *source_output_proplist_slot,
-        *source_output_unlink_slot,
-        *source_unlink_slot;
     bool autoclean;
     pa_time_event *housekeeping_time_event;
 };
@@ -681,16 +670,16 @@ int pa__init(pa_module *m) {
 
     u->filters = pa_hashmap_new(filter_hash, filter_compare);
 
-    u->sink_input_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_put_cb, u);
-    u->sink_input_move_finish_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_move_finish_cb, u);
-    u->sink_input_proplist_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_proplist_cb, u);
-    u->sink_input_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_unlink_cb, u);
-    u->sink_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE-1, (pa_hook_cb_t) sink_unlink_cb, u);
-    u->source_output_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_output_put_cb, u);
-    u->source_output_move_finish_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FINISH], PA_HOOK_LATE, (pa_hook_cb_t) source_output_move_finish_cb, u);
-    u->source_output_proplist_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) source_output_proplist_cb, u);
-    u->source_output_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_output_unlink_cb, u);
-    u->source_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE-1, (pa_hook_cb_t) source_unlink_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_put_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_move_finish_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_proplist_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_unlink_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE-1, (pa_hook_cb_t) sink_unlink_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_output_put_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FINISH], PA_HOOK_LATE, (pa_hook_cb_t) source_output_move_finish_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) source_output_proplist_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_output_unlink_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE-1, (pa_hook_cb_t) source_unlink_cb, u);
 
     pa_modargs_free(ma);
 
@@ -712,27 +701,6 @@ void pa__done(pa_module *m) {
 
     if (!(u = m->userdata))
         return;
-
-    if (u->sink_input_put_slot)
-        pa_hook_slot_free(u->sink_input_put_slot);
-    if (u->sink_input_move_finish_slot)
-        pa_hook_slot_free(u->sink_input_move_finish_slot);
-    if (u->sink_input_proplist_slot)
-        pa_hook_slot_free(u->sink_input_proplist_slot);
-    if (u->sink_input_unlink_slot)
-        pa_hook_slot_free(u->sink_input_unlink_slot);
-    if (u->sink_unlink_slot)
-        pa_hook_slot_free(u->sink_unlink_slot);
-    if (u->source_output_put_slot)
-        pa_hook_slot_free(u->source_output_put_slot);
-    if (u->source_output_move_finish_slot)
-        pa_hook_slot_free(u->source_output_move_finish_slot);
-    if (u->source_output_proplist_slot)
-        pa_hook_slot_free(u->source_output_proplist_slot);
-    if (u->source_output_unlink_slot)
-        pa_hook_slot_free(u->source_output_unlink_slot);
-    if (u->source_unlink_slot)
-        pa_hook_slot_free(u->source_unlink_slot);
 
     if (u->housekeeping_time_event)
         u->core->mainloop->time_free(u->housekeeping_time_event);
