@@ -28,12 +28,6 @@
 
 #include "module-switch-on-port-available-symdef.h"
 
-struct userdata {
-     pa_hook_slot *available_slot;
-     pa_hook_slot *sink_new_slot;
-     pa_hook_slot *source_new_slot;
-};
-
 static bool profile_good_for_output(pa_card_profile *profile) {
     pa_sink *sink;
     uint32_t idx;
@@ -246,7 +240,7 @@ static pa_device_port *new_sink_source(pa_hashmap *ports, const char *name) {
     return p;
 }
 
-static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new_data, struct userdata *u) {
+static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new_data, void *u) {
 
     pa_device_port *p = new_sink_source(new_data->ports, new_data->active_port);
 
@@ -257,7 +251,7 @@ static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data *new_data, struct userdata *u) {
+static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data *new_data, void *u) {
 
     pa_device_port *p = new_sink_source(new_data->ports, new_data->active_port);
 
@@ -269,39 +263,17 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
 }
 
 int pa__init(pa_module*m) {
-    struct userdata *u;
-
     pa_assert(m);
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
-
     /* Make sure we are after module-device-restore, so we can overwrite that suggestion if necessary */
-    u->sink_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_NEW],
-                                       PA_HOOK_NORMAL, (pa_hook_cb_t) sink_new_hook_callback, u);
-    u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_NEW],
-                                         PA_HOOK_NORMAL, (pa_hook_cb_t) source_new_hook_callback, u);
-    u->available_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED],
-                                        PA_HOOK_LATE, (pa_hook_cb_t) port_available_hook_callback, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_NEW],
+                           PA_HOOK_NORMAL, (pa_hook_cb_t) sink_new_hook_callback, NULL);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_NEW],
+                           PA_HOOK_NORMAL, (pa_hook_cb_t) source_new_hook_callback, NULL);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED],
+                           PA_HOOK_LATE, (pa_hook_cb_t) port_available_hook_callback, NULL);
 
     handle_all_unavailable(m->core);
 
     return 0;
-}
-
-void pa__done(pa_module*m) {
-    struct userdata *u;
-
-    pa_assert(m);
-
-    if (!(u = m->userdata))
-        return;
-
-    if (u->available_slot)
-        pa_hook_slot_free(u->available_slot);
-    if (u->sink_new_slot)
-        pa_hook_slot_free(u->sink_new_slot);
-    if (u->source_new_slot)
-        pa_hook_slot_free(u->source_new_slot);
-
-    pa_xfree(u);
 }

@@ -49,9 +49,6 @@ static const char* const valid_modargs[] = {
 };
 
 struct userdata {
-    pa_hook_slot
-        *sink_put_slot,
-        *source_put_slot;
     bool only_from_unavailable;
 };
 
@@ -183,8 +180,8 @@ int pa__init(pa_module*m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
 
     /* A little bit later than module-rescue-streams... */
-    u->sink_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE+30, (pa_hook_cb_t) sink_put_hook_callback, u);
-    u->source_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE+20, (pa_hook_cb_t) source_put_hook_callback, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE+30, (pa_hook_cb_t) sink_put_hook_callback, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE+20, (pa_hook_cb_t) source_put_hook_callback, u);
 
     if (pa_modargs_get_value_boolean(ma, "only_from_unavailable", &u->only_from_unavailable) < 0) {
 	pa_log("Failed to get a boolean value for only_from_unavailable.");
@@ -210,11 +207,6 @@ void pa__done(pa_module*m) {
 
     if (!(u = m->userdata))
         return;
-
-    if (u->sink_put_slot)
-        pa_hook_slot_free(u->sink_put_slot);
-    if (u->source_put_slot)
-        pa_hook_slot_free(u->source_put_slot);
 
     pa_xfree(u);
 }
