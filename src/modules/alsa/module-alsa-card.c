@@ -122,12 +122,6 @@ struct userdata {
     bool use_ucm;
     pa_alsa_ucm_config ucm;
 
-    /* hooks for modifier action */
-    pa_hook_slot
-        *sink_input_put_hook_slot,
-        *source_output_put_hook_slot,
-        *sink_input_unlink_hook_slot,
-        *source_output_unlink_hook_slot;
 };
 
 struct profile_data {
@@ -677,16 +671,16 @@ int pa__init(pa_module *m) {
 
         /* hook start of sink input/source output to enable modifiers */
         /* A little bit later than module-role-cork */
-        u->sink_input_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE+10,
+        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE+10,
                 (pa_hook_cb_t) sink_input_put_hook_callback, u);
-        u->source_output_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], PA_HOOK_LATE+10,
+        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], PA_HOOK_LATE+10,
                 (pa_hook_cb_t) source_output_put_hook_callback, u);
 
         /* hook end of sink input/source output to disable modifiers */
         /* A little bit later than module-role-cork */
-        u->sink_input_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_LATE+10,
+        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_LATE+10,
                 (pa_hook_cb_t) sink_input_unlink_hook_callback, u);
-        u->source_output_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], PA_HOOK_LATE+10,
+        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], PA_HOOK_LATE+10,
                 (pa_hook_cb_t) source_output_unlink_hook_callback, u);
     }
     else {
@@ -819,18 +813,6 @@ void pa__done(pa_module*m) {
 
     if (!(u = m->userdata))
         goto finish;
-
-    if (u->sink_input_put_hook_slot)
-        pa_hook_slot_free(u->sink_input_put_hook_slot);
-
-    if (u->sink_input_unlink_hook_slot)
-        pa_hook_slot_free(u->sink_input_unlink_hook_slot);
-
-    if (u->source_output_put_hook_slot)
-        pa_hook_slot_free(u->source_output_put_hook_slot);
-
-    if (u->source_output_unlink_hook_slot)
-        pa_hook_slot_free(u->source_output_unlink_hook_slot);
 
     if (u->mixer_fdl)
         pa_alsa_fdlist_free(u->mixer_fdl);
