@@ -2397,31 +2397,31 @@ int pa__init(pa_module*m) {
     u->protocol = pa_native_protocol_get(m->core);
     pa_native_protocol_install_ext(u->protocol, m, extension_cb);
 
-    u->connection_unlink_hook_slot = pa_hook_connect(&pa_native_protocol_hooks(u->protocol)[PA_NATIVE_HOOK_CONNECTION_UNLINK], PA_HOOK_NORMAL, (pa_hook_cb_t) connection_unlink_hook_cb, u);
+    pa_module_hook_connect(m, &pa_native_protocol_hooks(u->protocol)[PA_NATIVE_HOOK_CONNECTION_UNLINK], PA_HOOK_NORMAL, (pa_hook_cb_t) connection_unlink_hook_cb, u);
 
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscribe_callback, u);
 
     if (restore_device) {
         /* A little bit earlier than module-intended-roles ... */
-        u->sink_input_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_new_hook_callback, u);
-        u->source_output_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) source_output_new_hook_callback, u);
+        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_new_hook_callback, u);
+        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) source_output_new_hook_callback, u);
     }
 
     if (restore_device && on_hotplug) {
         /* A little bit earlier than module-intended-roles ... */
-        u->sink_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_put_hook_callback, u);
-        u->source_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_put_hook_callback, u);
+        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_put_hook_callback, u);
+        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_put_hook_callback, u);
     }
 
     if (restore_device && on_rescue) {
         /* A little bit earlier than module-intended-roles, module-rescue-streams, ... */
-        u->sink_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_unlink_hook_callback, u);
-        u->source_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_unlink_hook_callback, u);
+        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_unlink_hook_callback, u);
+        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_unlink_hook_callback, u);
     }
 
     if (restore_volume || restore_muted) {
-        u->sink_input_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_fixate_hook_callback, u);
-        u->source_output_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) source_output_fixate_hook_callback, u);
+        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_fixate_hook_callback, u);
+        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) source_output_fixate_hook_callback, u);
     }
 
     if (!(fname = pa_state_path("stream-volumes", true)))
@@ -2507,28 +2507,6 @@ void pa__done(pa_module*m) {
 
     if (u->subscription)
         pa_subscription_free(u->subscription);
-
-    if (u->sink_input_new_hook_slot)
-        pa_hook_slot_free(u->sink_input_new_hook_slot);
-    if (u->sink_input_fixate_hook_slot)
-        pa_hook_slot_free(u->sink_input_fixate_hook_slot);
-    if (u->source_output_new_hook_slot)
-        pa_hook_slot_free(u->source_output_new_hook_slot);
-    if (u->source_output_fixate_hook_slot)
-        pa_hook_slot_free(u->source_output_fixate_hook_slot);
-
-    if (u->sink_put_hook_slot)
-        pa_hook_slot_free(u->sink_put_hook_slot);
-    if (u->source_put_hook_slot)
-        pa_hook_slot_free(u->source_put_hook_slot);
-
-    if (u->sink_unlink_hook_slot)
-        pa_hook_slot_free(u->sink_unlink_hook_slot);
-    if (u->source_unlink_hook_slot)
-        pa_hook_slot_free(u->source_unlink_hook_slot);
-
-    if (u->connection_unlink_hook_slot)
-        pa_hook_slot_free(u->connection_unlink_hook_slot);
 
     if (u->save_time_event)
         u->core->mainloop->time_free(u->save_time_event);
