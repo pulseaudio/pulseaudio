@@ -100,6 +100,13 @@ bool pa_module_exists(const char *name) {
     return false;
 }
 
+void pa_module_hook_connect(pa_module *m, pa_hook *hook, pa_hook_priority_t prio, pa_hook_cb_t cb, void *data) {
+    pa_assert(m);
+    pa_assert(hook);
+    pa_assert(m->hooks);
+    pa_dynarray_append(m->hooks, pa_hook_connect(hook, prio, cb, data));
+}
+
 pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
     bool (*load_once)(void);
@@ -117,6 +124,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     m->argument = pa_xstrdup(argument);
     m->load_once = false;
     m->proplist = pa_proplist_new();
+    m->hooks = pa_dynarray_new((pa_free_cb_t) pa_hook_slot_free);
     m->index = PA_IDXSET_INVALID;
 
     if (!(m->dl = lt_dlopenext(name))) {
@@ -200,6 +208,9 @@ fail:
         if (m->index != PA_IDXSET_INVALID)
             pa_idxset_remove_by_index(c->modules, m->index);
 
+        if (m->hooks)
+            pa_dynarray_free(m->hooks);
+
         if (m->proplist)
             pa_proplist_free(m->proplist);
 
@@ -220,6 +231,11 @@ static void pa_module_free(pa_module *m) {
     pa_assert(m->core);
 
     pa_log_info("Unloading \"%s\" (index: #%u).", m->name, m->index);
+
+    if (m->hooks) {
+       pa_dynarray_free(m->hooks);
+       m->hooks = NULL;
+    }
 
     if (m->done)
         m->done(m);

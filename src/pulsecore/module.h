@@ -26,6 +26,7 @@
 typedef struct pa_module pa_module;
 
 #include <pulse/proplist.h>
+#include <pulsecore/dynarray.h>
 
 #include <pulsecore/core.h>
 
@@ -46,6 +47,7 @@ struct pa_module {
     bool unload_requested:1;
 
     pa_proplist *proplist;
+    pa_dynarray *hooks;
 };
 
 bool pa_module_exists(const char *name);
@@ -63,6 +65,8 @@ void pa_module_unload_all(pa_core *c);
 int pa_module_get_n_used(pa_module*m);
 
 void pa_module_update_proplist(pa_module *m, pa_update_mode_t mode, pa_proplist *p);
+
+void pa_module_hook_connect(pa_module *m, pa_hook *hook, pa_hook_priority_t prio, pa_hook_cb_t cb, void *data);
 
 #define PA_MODULE_AUTHOR(s)                                     \
     const char *pa__get_author(void) { return s; }              \
