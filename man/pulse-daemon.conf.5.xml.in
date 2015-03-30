@@ -130,7 +130,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
     <option>
       <p><opt>lfe-crossover-freq=</opt> The crossover frequency (in Hz) for the
-      LFE filter. Defaults to 120 Hz.</p>
+      LFE filter. Defaults to 120 Hz. Set it to 0 to disable the LFE filter.</p>
     </option>
 
     <option>

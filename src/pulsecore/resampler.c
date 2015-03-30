@@ -416,7 +416,7 @@ pa_resampler* pa_resampler_new(
     if (r->map_required)
         setup_remap(r, &r->remap, &lfe_filter_required);
 
-    if (lfe_filter_required) {
+    if (lfe_filter_required && crossover_freq > 0) {
         pa_sample_spec wss = r->o_ss;
         wss.format = r->work_format;
         /* FIXME: For now just hardcode maxrewind to 3 seconds */
