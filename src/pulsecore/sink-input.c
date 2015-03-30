@@ -2011,8 +2011,8 @@ bool pa_sink_input_safe_to_remove(pa_sink_input *i) {
 void pa_sink_input_request_rewind(
         pa_sink_input *i,
         size_t nbytes  /* in our sample spec */,
-        bool rewrite,
-        bool flush,
+        bool rewrite,  /* rewrite what we have, or get fresh data? */
+        bool flush,    /* flush render memblockq? */
         bool dont_rewind_render) {
 
     size_t lbq;
