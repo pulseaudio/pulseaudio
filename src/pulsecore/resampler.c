@@ -40,7 +40,7 @@ struct ffmpeg_data { /* data specific to ffmpeg */
 
 static int copy_init(pa_resampler *r);
 
-static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_filter_required);
+static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed);
 static void free_remap(pa_remap_t *m);
 
 static int (* const init_table[])(pa_resampler *r) = {
@@ -325,7 +325,7 @@ pa_resampler* pa_resampler_new(
         pa_resample_flags_t flags) {
 
     pa_resampler *r = NULL;
-    bool lfe_filter_required = false;
+    bool lfe_remixed = false;
 
     pa_assert(pool);
     pa_assert(a);
@@ -414,9 +414,9 @@ pa_resampler* pa_resampler_new(
 
     /* set up the remap structure */
     if (r->map_required)
-        setup_remap(r, &r->remap, &lfe_filter_required);
+        setup_remap(r, &r->remap, &lfe_remixed);
 
-    if (lfe_filter_required && crossover_freq > 0) {
+    if (lfe_remixed && crossover_freq > 0) {
         pa_sample_spec wss = r->o_ss;
         wss.format = r->work_format;
         /* FIXME: For now just hardcode maxrewind to 3 seconds */
@@ -789,7 +789,7 @@ static int front_rear_side(pa_channel_position_t p) {
     return ON_OTHER;
 }
 
-static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_filter_required) {
+static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed) {
     unsigned oc, ic;
     unsigned n_oc, n_ic;
     bool ic_connected[PA_CHANNELS_MAX];
@@ -798,7 +798,7 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_filter_r
 
     pa_assert(r);
     pa_assert(m);
-    pa_assert(lfe_filter_required);
+    pa_assert(lfe_remixed);
 
     n_oc = r->o_ss.channels;
     n_ic = r->i_ss.channels;
@@ -811,7 +811,7 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_filter_r
     memset(m->map_table_i, 0, sizeof(m->map_table_i));
 
     memset(ic_connected, 0, sizeof(ic_connected));
-    *lfe_filter_required = false;
+    *lfe_remixed = false;
 
     if (r->flags & PA_RESAMPLER_NO_REMAP) {
         for (oc = 0; oc < PA_MIN(n_ic, n_oc); oc++)
@@ -925,7 +925,7 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_filter_r
                     ic_connected[ic] = true;
 
                     if (a == PA_CHANNEL_POSITION_MONO && on_lfe(b) && !(r->flags & PA_RESAMPLER_NO_LFE))
-                        *lfe_filter_required = true;
+                        *lfe_remixed = true;
                 }
                 else if (b == PA_CHANNEL_POSITION_MONO) {
                     m->map_table_f[oc][ic] = 1.0f / (float) n_ic;
@@ -1009,7 +1009,7 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_filter_r
                     /* Please note that a channel connected to LFE doesn't
                      * really count as connected. */
 
-                    *lfe_filter_required = true;
+                    *lfe_remixed = true;
                 }
             }
         }
