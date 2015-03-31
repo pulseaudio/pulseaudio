@@ -3897,7 +3897,10 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
     static const struct description_map well_known_descriptions[] = {
         { "analog-mono",            N_("Analog Mono") },
         { "analog-stereo",          N_("Analog Stereo") },
-        { "multichannel",           N_("Multichannel") },
+        /* Note: Not translated to "Multichannel Input" - then the source name would be "Multichannel Input Input".
+           Same for multichannel-output. */
+        { "multichannel-input",     N_("Multichannel") },
+        { "multichannel-output",    N_("Multichannel") },
         { "analog-surround-21",     N_("Analog Surround 2.1") },
         { "analog-surround-30",     N_("Analog Surround 3.0") },
         { "analog-surround-31",     N_("Analog Surround 3.1") },
@@ -4049,6 +4052,7 @@ static int profile_verify(pa_alsa_profile *p) {
         { "output:analog-mono+input:analog-mono",     N_("Analog Mono Duplex") },
         { "output:analog-stereo+input:analog-stereo", N_("Analog Stereo Duplex") },
         { "output:iec958-stereo+input:iec958-stereo", N_("Digital Stereo Duplex (IEC958)") },
+        { "output:multichannel-output+input:multichannel-input", N_("Multichannel Duplex") },
         { "off",                                      N_("Off") }
     };
 
