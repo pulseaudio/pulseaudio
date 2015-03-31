@@ -662,6 +662,8 @@ static void source_free(pa_object *o) {
 
     pa_log_info("Freeing source %u \"%s\"", s->index, s->name);
 
+    pa_source_volume_change_flush(s);
+
     pa_idxset_free(s->outputs, NULL);
     pa_hashmap_free(s->thread_info.outputs);
 

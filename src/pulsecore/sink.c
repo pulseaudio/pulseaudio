@@ -727,6 +727,8 @@ static void sink_free(pa_object *o) {
 
     pa_log_info("Freeing sink %u \"%s\"", s->index, s->name);
 
+    pa_sink_volume_change_flush(s);
+
     if (s->monitor_source) {
         pa_source_unref(s->monitor_source);
         s->monitor_source = NULL;
