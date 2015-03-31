@@ -168,6 +168,7 @@ int pa_udev_get_info(int card_idx, pa_proplist *p) {
     struct udev_device *card = NULL;
     char *t;
     const char *v;
+    const char *bus;
     int id;
 
     pa_assert(p);
@@ -201,15 +202,16 @@ int pa_udev_get_info(int card_idx, pa_proplist *p) {
             pa_proplist_sets(p, "udev.id", v);
 
     if (!pa_proplist_contains(p, PA_PROP_DEVICE_BUS))
-        if ((v = udev_device_get_property_value(card, "ID_BUS")) && *v)
-            pa_proplist_sets(p, PA_PROP_DEVICE_BUS, v);
+        if ((bus = udev_device_get_property_value(card, "ID_BUS")) && *bus)
+            pa_proplist_sets(p, PA_PROP_DEVICE_BUS, bus);
 
     if (!pa_proplist_contains(p, PA_PROP_DEVICE_VENDOR_ID))
         if ((id = read_id(card, "ID_VENDOR_ID")) > 0)
             pa_proplist_setf(p, PA_PROP_DEVICE_VENDOR_ID, "%04x", id);
 
     if (!pa_proplist_contains(p, PA_PROP_DEVICE_VENDOR_NAME)) {
-        if ((v = udev_device_get_property_value(card, "ID_VENDOR_FROM_DATABASE")) && *v)
+        /* ID_VENDOR_FROM_DATABASE returns the name of IEEE 1394 Phy/Link chipset for FireWire devices */
+        if (!pa_streq(bus, "firewire") && (v = udev_device_get_property_value(card, "ID_VENDOR_FROM_DATABASE")) && *v)
             pa_proplist_sets(p, PA_PROP_DEVICE_VENDOR_NAME, v);
         else if ((v = udev_device_get_property_value(card, "ID_VENDOR_ENC")) && *v)
             proplist_sets_unescape(p, PA_PROP_DEVICE_VENDOR_NAME, v);
@@ -222,7 +224,8 @@ int pa_udev_get_info(int card_idx, pa_proplist *p) {
             pa_proplist_setf(p, PA_PROP_DEVICE_PRODUCT_ID, "%04x", id);
 
     if (!pa_proplist_contains(p, PA_PROP_DEVICE_PRODUCT_NAME)) {
-        if ((v = udev_device_get_property_value(card, "ID_MODEL_FROM_DATABASE")) && *v)
+        /* ID_MODEL_FROM_DATABASE returns the name of IEEE 1394 Phy/Link chipset for FireWire devices */
+        if (!pa_streq(bus, "firewire") && (v = udev_device_get_property_value(card, "ID_MODEL_FROM_DATABASE")) && *v)
             pa_proplist_sets(p, PA_PROP_DEVICE_PRODUCT_NAME, v);
         else if ((v = udev_device_get_property_value(card, "ID_MODEL_ENC")) && *v)
             proplist_sets_unescape(p, PA_PROP_DEVICE_PRODUCT_NAME, v);
