@@ -49,6 +49,7 @@ gtk-test
 hook-list-test
 interpol-test
 ipacl-test
+lfe-filter-test
 lock-autospawn-test
 lo-latency-test
 mainloop-test
