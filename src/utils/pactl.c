@@ -1456,6 +1456,7 @@ static void exit_signal_callback(pa_mainloop_api *m, pa_signal_event *e, int sig
 static int parse_volume(const char *vol_spec, pa_volume_t *vol, enum volume_flags *vol_flags) {
     double v;
     char *vs;
+    const char *atod_input;
 
     pa_assert(vol_spec);
     pa_assert(vol);
@@ -1475,7 +1476,12 @@ static int parse_volume(const char *vol_spec, pa_volume_t *vol, enum volume_flag
         vs[strlen(vs)-2] = 0;
     }
 
-    if (pa_atod(vs, &v) < 0) {
+    atod_input = vs;
+
+    if (atod_input[0] == '+')
+        atod_input++; /* pa_atod() doesn't accept leading '+', so skip it. */
+
+    if (pa_atod(atod_input, &v) < 0) {
         pa_log(_("Invalid volume specification"));
         pa_xfree(vs);
         return -1;
