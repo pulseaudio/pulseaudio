@@ -180,7 +180,8 @@ static pa_usec_t get_latency_us(pa_object *o) {
     pa_sample_spec *ss;
     bool is_source;
     UInt32 v = 0, total = 0;
-    UInt32 err, size = sizeof(v);
+    OSStatus err;
+    UInt32 size = sizeof(v);
     AudioObjectPropertyAddress property_address;
     AudioObjectID stream_id;
 
@@ -211,7 +212,7 @@ static pa_usec_t get_latency_us(pa_object *o) {
     if (!err)
         total += v;
     else
-        pa_log_warn("Failed to get device latency: %i", err);
+        pa_log_warn("Failed to get device latency: %d", err);
 
     /* the IOProc buffer size */
     property_address.mSelector = kAudioDevicePropertyBufferFrameSize;
@@ -220,7 +221,7 @@ static pa_usec_t get_latency_us(pa_object *o) {
     if (!err)
         total += v;
     else
-        pa_log_warn("Failed to get buffer frame size: %i", err);
+        pa_log_warn("Failed to get buffer frame size: %d", err);
 
     /* IOProc safety offset - this value is the same for both directions, hence we divide it by 2 */
     property_address.mSelector = kAudioDevicePropertySafetyOffset;
@@ -229,7 +230,7 @@ static pa_usec_t get_latency_us(pa_object *o) {
     if (!err)
         total += v / 2;
     else
-        pa_log_warn("Failed to get safety offset: %i", err);
+        pa_log_warn("Failed to get safety offset: %d", err);
 
     /* get the stream latency.
      * FIXME: this assumes the stream latency is the same for all streams */
@@ -244,9 +245,9 @@ static pa_usec_t get_latency_us(pa_object *o) {
         if (!err)
             total += v;
         else
-            pa_log_warn("Failed to get stream latency: %i", err);
+            pa_log_warn("Failed to get stream latency: %d", err);
     } else
-        pa_log_warn("Failed to get streams: %i", err);
+        pa_log_warn("Failed to get streams: %d", err);
 
     return pa_bytes_to_usec(total * pa_frame_size(ss), ss);
 }
