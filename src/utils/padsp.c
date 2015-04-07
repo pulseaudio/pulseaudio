@@ -2394,7 +2394,7 @@ fail:
     return ret;
 }
 
-#ifdef sun
+#ifndef __GLIBC__
 int ioctl(int fd, int request, ...) {
 #else
 int ioctl(int fd, unsigned long request, ...) {
@@ -2534,10 +2534,13 @@ int stat(const char *pathname, struct stat *buf) {
 
     return 0;
 }
-
 #ifdef HAVE_OPEN64
-
+#undef stat64
+#ifdef __GLIBC__
 int stat64(const char *pathname, struct stat64 *buf) {
+#else
+int stat64(const char *pathname, struct stat *buf) {
+#endif
     struct stat oldbuf;
     int ret;
 
@@ -2570,7 +2573,7 @@ int stat64(const char *pathname, struct stat64 *buf) {
 
     return 0;
 }
-
+#undef open64
 int open64(const char *filename, int flags, ...) {
     va_list args;
     mode_t mode = 0;
@@ -2696,8 +2699,8 @@ FILE* fopen(const char *filename, const char *mode) {
 }
 
 #ifdef HAVE_OPEN64
-
-FILE *fopen64(const char *filename, const char *mode) {
+#undef fopen64
+FILE *fopen64(const char *__restrict filename, const char *__restrict mode) {
 
     debug(DEBUG_LEVEL_VERBOSE, __FILE__": fopen64(%s)\n", filename?filename:"NULL");
 
