@@ -23,6 +23,7 @@
 #include <config.h>
 #endif
 
+#include <math.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -2445,6 +2446,11 @@ int pa_atod(const char *s, double *ret_d) {
     if (!x || *x || x == s || errno) {
         if (!errno)
             errno = EINVAL;
+        return -1;
+    }
+
+    if (isnan(f)) {
+        errno = EINVAL;
         return -1;
     }
 
