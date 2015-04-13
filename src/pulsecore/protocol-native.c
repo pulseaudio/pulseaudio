@@ -568,11 +568,14 @@ static void fix_record_buffer_attr_pre(record_stream *s) {
     } else if (s->adjust_latency) {
 
         /* So, the user asked us to adjust the latency according to
-         * what the source can provide. Half the latency will be
-         * spent on the hw buffer, half of it in the async buffer
-         * queue we maintain for each client. */
+         * what the source can provide. We set the source to whatever
+         * latency it can provide that is closest to what we want, and
+         * let the client buffer be equally large. This does NOT mean
+         * that we are doing (2 * fragsize) bytes of buffering, since
+         * the client-side buffer is only data that is on the way to
+         * the client. */
 
-        source_usec = fragsize_usec/2;
+        source_usec = fragsize_usec;
 
     } else {
 
@@ -598,12 +601,10 @@ static void fix_record_buffer_attr_pre(record_stream *s) {
 
     } else if (s->adjust_latency) {
 
-        /* Now subtract what we actually got */
+        /* We keep the client buffer large enough to transfer one
+         * hardware-buffer-sized chunk at a time to the client. */
 
-        if (fragsize_usec >= s->configured_source_latency*2)
-            fragsize_usec -= s->configured_source_latency;
-        else
-            fragsize_usec = s->configured_source_latency;
+        fragsize_usec = s->configured_source_latency;
     }
 
     if (pa_usec_to_bytes(orig_fragsize_usec, &s->source_output->sample_spec) !=
