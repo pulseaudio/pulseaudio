@@ -168,7 +168,7 @@ int pa_udev_get_info(int card_idx, pa_proplist *p) {
     struct udev_device *card = NULL;
     char *t;
     const char *v;
-    const char *bus;
+    const char *bus = NULL;
     int id;
 
     pa_assert(p);
@@ -211,7 +211,7 @@ int pa_udev_get_info(int card_idx, pa_proplist *p) {
 
     if (!pa_proplist_contains(p, PA_PROP_DEVICE_VENDOR_NAME)) {
         /* ID_VENDOR_FROM_DATABASE returns the name of IEEE 1394 Phy/Link chipset for FireWire devices */
-        if (!pa_streq(bus, "firewire") && (v = udev_device_get_property_value(card, "ID_VENDOR_FROM_DATABASE")) && *v)
+        if (!pa_safe_streq(bus, "firewire") && (v = udev_device_get_property_value(card, "ID_VENDOR_FROM_DATABASE")) && *v)
             pa_proplist_sets(p, PA_PROP_DEVICE_VENDOR_NAME, v);
         else if ((v = udev_device_get_property_value(card, "ID_VENDOR_ENC")) && *v)
             proplist_sets_unescape(p, PA_PROP_DEVICE_VENDOR_NAME, v);
@@ -225,7 +225,7 @@ int pa_udev_get_info(int card_idx, pa_proplist *p) {
 
     if (!pa_proplist_contains(p, PA_PROP_DEVICE_PRODUCT_NAME)) {
         /* ID_MODEL_FROM_DATABASE returns the name of IEEE 1394 Phy/Link chipset for FireWire devices */
-        if (!pa_streq(bus, "firewire") && (v = udev_device_get_property_value(card, "ID_MODEL_FROM_DATABASE")) && *v)
+        if (!pa_safe_streq(bus, "firewire") && (v = udev_device_get_property_value(card, "ID_MODEL_FROM_DATABASE")) && *v)
             pa_proplist_sets(p, PA_PROP_DEVICE_PRODUCT_NAME, v);
         else if ((v = udev_device_get_property_value(card, "ID_MODEL_ENC")) && *v)
             proplist_sets_unescape(p, PA_PROP_DEVICE_PRODUCT_NAME, v);
