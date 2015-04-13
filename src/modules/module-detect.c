@@ -131,7 +131,7 @@ static int detect_oss(pa_core *c, int just_one) {
     }
 
     while (!feof(f)) {
-        char line[64], args[64];
+        char line[256], args[64];
         unsigned device;
 
         if (!fgets(line, sizeof(line), f))
