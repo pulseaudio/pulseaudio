@@ -34,6 +34,7 @@ static void handle_get_index(DBusConnection *conn, DBusMessage *msg, void *userd
 static void handle_get_name(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_description(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_priority(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_get_available(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
 static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
@@ -41,6 +42,9 @@ struct pa_dbusiface_device_port {
     uint32_t index;
     pa_device_port *port;
     char *path;
+
+    pa_hook_slot *available_changed_slot;
+
     pa_dbus_protocol *dbus_protocol;
 };
 
@@ -49,6 +53,7 @@ enum property_handler_index {
     PROPERTY_HANDLER_NAME,
     PROPERTY_HANDLER_DESCRIPTION,
     PROPERTY_HANDLER_PRIORITY,
+    PROPERTY_HANDLER_AVAILABLE,
     PROPERTY_HANDLER_MAX
 };
 
@@ -57,6 +62,18 @@ static pa_dbus_property_handler property_handlers[PROPERTY_HANDLER_MAX] = {
     [PROPERTY_HANDLER_NAME]        = { .property_name = "Name",        .type = "s", .get_cb = handle_get_name,        .set_cb = NULL },
     [PROPERTY_HANDLER_DESCRIPTION] = { .property_name = "Description", .type = "s", .get_cb = handle_get_description, .set_cb = NULL },
     [PROPERTY_HANDLER_PRIORITY]    = { .property_name = "Priority",    .type = "u", .get_cb = handle_get_priority,    .set_cb = NULL },
+    [PROPERTY_HANDLER_AVAILABLE]   = { .property_name = "Available",   .type = "u", .get_cb = handle_get_available,   .set_cb = NULL }
+};
+
+enum signal_index {
+    SIGNAL_AVAILABLE_CHANGED,
+    SIGNAL_MAX
+};
+
+static pa_dbus_arg_info available_changed_args[] = { { "available", "u", NULL } };
+
+static pa_dbus_signal_info signals[SIGNAL_MAX] = {
+    [SIGNAL_AVAILABLE_CHANGED] = { .name = "AvailableChanged", .arguments = available_changed_args, .n_arguments = 1 }
 };
 
 static pa_dbus_interface_info port_interface_info = {
@@ -66,8 +83,8 @@ static pa_dbus_interface_info port_interface_info = {
     .property_handlers = property_handlers,
     .n_property_handlers = PROPERTY_HANDLER_MAX,
     .get_all_properties_cb = handle_get_all,
-    .signals = NULL,
-    .n_signals = 0
+    .signals = signals,
+    .n_signals = SIGNAL_MAX
 };
 
 static void handle_get_index(DBusConnection *conn, DBusMessage *msg, void *userdata) {
@@ -113,6 +130,20 @@ static void handle_get_priority(DBusConnection *conn, DBusMessage *msg, void *us
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &priority);
 }
 
+static void handle_get_available(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    pa_dbusiface_device_port *p = userdata;
+    dbus_uint32_t available = 0;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(p);
+
+    available = p->port->available;
+
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &available);
+}
+
+
 static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device_port *p = userdata;
     DBusMessage *reply = NULL;
@@ -135,12 +166,39 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_NAME].property_name, DBUS_TYPE_STRING, &p->port->name);
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_DESCRIPTION].property_name, DBUS_TYPE_STRING, &p->port->description);
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_PRIORITY].property_name, DBUS_TYPE_UINT32, &priority);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_AVAILABLE].property_name, DBUS_TYPE_UINT32, &p->port->available);
 
     pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
 
     pa_assert_se(dbus_connection_send(conn, reply, NULL));
     dbus_message_unref(reply);
 }
+
+static pa_hook_result_t available_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_device_port *p = slot_data;
+    pa_device_port *port = call_data;
+    DBusMessage *signal_msg;
+    uint32_t available;
+
+    pa_assert(p);
+    pa_assert(port);
+
+    if(p->port != port)
+        return PA_HOOK_OK;
+
+    available = port->available;
+
+    pa_assert_se(signal_msg = dbus_message_new_signal(p->path,
+                                                      PA_DBUSIFACE_DEVICE_PORT_INTERFACE,
+                                                      signals[SIGNAL_AVAILABLE_CHANGED].name));
+    pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_UINT32, &available, DBUS_TYPE_INVALID));
+
+    pa_dbus_protocol_send_signal(p->dbus_protocol, signal_msg);
+    dbus_message_unref(signal_msg);
+
+    return PA_HOOK_OK;
+}
+
 
 pa_dbusiface_device_port *pa_dbusiface_device_port_new(
         pa_dbusiface_device *device,
@@ -158,6 +216,8 @@ pa_dbusiface_device_port *pa_dbusiface_device_port_new(
     p->port = port;
     p->path = pa_sprintf_malloc("%s/%s%u", pa_dbusiface_device_get_path(device), OBJECT_NAME, idx);
     p->dbus_protocol = pa_dbus_protocol_get(core);
+    p->available_changed_slot = pa_hook_connect(&port->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED],
+                                                PA_HOOK_NORMAL, available_changed_cb, p);
 
     pa_assert_se(pa_dbus_protocol_add_interface(p->dbus_protocol, p->path, &port_interface_info, p) >= 0);
 
@@ -169,6 +229,7 @@ void pa_dbusiface_device_port_free(pa_dbusiface_device_port *p) {
 
     pa_assert_se(pa_dbus_protocol_remove_interface(p->dbus_protocol, p->path, port_interface_info.name) >= 0);
 
+    pa_hook_slot_free(p->available_changed_slot);
     pa_dbus_protocol_unref(p->dbus_protocol);
 
     pa_xfree(p->path);
