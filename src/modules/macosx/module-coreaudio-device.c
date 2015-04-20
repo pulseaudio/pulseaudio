@@ -375,6 +375,30 @@ static int ca_sink_set_state(pa_sink *s, pa_sink_state_t state) {
     return 0;
 }
 
+/* Caveat: The caller is responsible to get rid of the CFString(Ref). */
+static bool CFString_to_cstr_n(CFStringRef cfstr, char *buf, long n) {
+    bool ret;
+
+    pa_assert (buf);
+
+    ret = false;
+
+    if (cfstr != NULL) {
+        const char *tmp = CFStringGetCStringPtr(cfstr, kCFStringEncodingUTF8);
+
+        if (tmp == NULL) {
+            if (CFStringGetCString(cfstr, buf, n, kCFStringEncodingUTF8))
+                ret = true;
+        } else {
+            strncpy(buf, tmp, n);
+            buf[n - 1] = 0;
+            ret = true;
+        }
+    }
+
+    return ret;
+}
+
 static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx) {
     OSStatus err;
     UInt32 size;
@@ -387,6 +411,7 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
     char tmp[255];
     pa_strbuf *strbuf;
     AudioObjectPropertyAddress property_address;
+    CFStringRef tmp_cfstr = NULL;
 
     ca_sink = pa_xnew0(coreaudio_sink, 1);
     ca_sink->map.channels = buf->mNumberChannels;
@@ -401,7 +426,15 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
         property_address.mScope = kAudioDevicePropertyScopeOutput;
         property_address.mElement = channel_idx + i + 1;
         size = sizeof(tmp);
-        err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, tmp);
+        err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, &tmp_cfstr);
+        if (err == 0) {
+            err = !(CFString_to_cstr_n(tmp_cfstr, tmp, sizeof(tmp)));
+
+            if (tmp_cfstr) {
+                CFRelease(tmp_cfstr);
+            }
+        }
+
         if (err || !strlen(tmp))
             snprintf(tmp, sizeof(tmp), "Channel %d", (int) property_address.mElement);
 
@@ -505,6 +538,7 @@ static int ca_device_create_source(pa_module *m, AudioBuffer *buf, int channel_i
     char tmp[255];
     pa_strbuf *strbuf;
     AudioObjectPropertyAddress property_address;
+    CFStringRef tmp_cfstr = NULL;
 
     ca_source = pa_xnew0(coreaudio_source, 1);
     ca_source->map.channels = buf->mNumberChannels;
@@ -519,7 +553,15 @@ static int ca_device_create_source(pa_module *m, AudioBuffer *buf, int channel_i
         property_address.mScope = kAudioDevicePropertyScopeInput;
         property_address.mElement = channel_idx + i + 1;
         size = sizeof(tmp);
-        err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, tmp);
+        err = AudioObjectGetPropertyData(u->object_id, &property_address, 0, NULL, &size, &tmp_cfstr);
+        if (err == 0) {
+            err = !(CFString_to_cstr_n(tmp_cfstr, tmp, sizeof(tmp)));
+
+            if (tmp_cfstr) {
+                CFRelease(tmp_cfstr);
+            }
+        }
+
         if (err || !strlen(tmp))
             snprintf(tmp, sizeof(tmp), "Channel %d", (int) property_address.mElement);
 
