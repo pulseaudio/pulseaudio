@@ -196,7 +196,7 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
              pa_context_get_server(c),
              pa_context_get_protocol_version(c),
              pa_context_get_server_protocol_version(c),
-             pa_yes_no(pa_context_is_local(c)),
+             pa_yes_no_localised(pa_context_is_local(c)),
              pa_context_get_index(c),
              pa_context_get_tile_size(c, NULL));
 
@@ -302,7 +302,7 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            i->owner_module,
-           pa_yes_no(i->mute),
+           pa_yes_no_localised(i->mute),
            pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, i->flags & PA_SINK_DECIBEL_VOLUME),
            pa_cvolume_get_balance(&i->volume, &i->channel_map),
            pa_volume_snprint_verbose(v, sizeof(v), i->base_volume, i->flags & PA_SINK_DECIBEL_VOLUME),
@@ -409,7 +409,7 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            i->owner_module,
-           pa_yes_no(i->mute),
+           pa_yes_no_localised(i->mute),
            pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, i->flags & PA_SOURCE_DECIBEL_VOLUME),
            pa_cvolume_get_balance(&i->volume, &i->channel_map),
            pa_volume_snprint_verbose(v, sizeof(v), i->base_volume, i->flags & PA_SOURCE_DECIBEL_VOLUME),
@@ -578,8 +578,8 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
 
         printf(_("\tProfiles:\n"));
         for (p = i->profiles2; *p; p++)
-            printf("\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n", (*p)->name,
-                (*p)->description, (*p)->n_sinks, (*p)->n_sources, (*p)->priority, pa_yes_no((*p)->available));
+            printf(_("\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"), (*p)->name,
+                (*p)->description, (*p)->n_sinks, (*p)->n_sources, (*p)->priority, pa_yes_no_localised((*p)->available));
     }
 
     if (i->active_profile)
@@ -672,8 +672,8 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            pa_format_info_snprint(f, sizeof(f), i->format),
-           pa_yes_no(i->corked),
-           pa_yes_no(i->mute),
+           pa_yes_no_localised(i->corked),
+           pa_yes_no_localised(i->mute),
            pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
            pa_cvolume_get_balance(&i->volume, &i->channel_map),
            (double) i->buffer_usec,
@@ -742,8 +742,8 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            pa_format_info_snprint(f, sizeof(f), i->format),
-           pa_yes_no(i->corked),
-           pa_yes_no(i->mute),
+           pa_yes_no_localised(i->corked),
+           pa_yes_no_localised(i->mute),
            pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
            pa_cvolume_get_balance(&i->volume, &i->channel_map),
            (double) i->buffer_usec,
@@ -805,7 +805,7 @@ static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int
            pa_cvolume_get_balance(&i->volume, &i->channel_map),
            (double) i->duration/1000000.0,
            t,
-           pa_yes_no(i->lazy),
+           pa_yes_no_localised(i->lazy),
            i->filename ? i->filename : _("n/a"),
            pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
