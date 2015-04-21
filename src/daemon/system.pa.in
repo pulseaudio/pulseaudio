@@ -28,6 +28,10 @@ load-module module-udev-detect
 .ifexists module-hal-detect@PA_SOEXT@
 load-module module-hal-detect
 .else
+], @HAVE_COREAUDIO@, 1, [dnl
+.ifexists module-coreaudio-detect@PA_SOEXT@
+load-module module-coreaudio-detect
+.else
 ], [dnl
 .ifexists module-detect@PA_SOEXT@
 ])dnl
