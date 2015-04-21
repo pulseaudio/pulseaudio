@@ -781,7 +781,10 @@ AS_IF([test "x$enable_coreaudio_output" != "xno"],
 AS_IF([test "x$enable_coreaudio_output" = "xyes" && test "x$HAVE_COREAUDIO" = "x0"],
     [AC_MSG_ERROR([*** CoreAudio output support not found])])
 
+AC_SUBST(HAVE_COREAUDIO)
 AM_CONDITIONAL([HAVE_COREAUDIO], [test "x$HAVE_COREAUDIO" = "x1" && test "x$enable_coreaudio_output" != "xno"])
+
+AS_IF([test "x$HAVE_COREAUDIO" = "x1"], AC_DEFINE([HAVE_COREAUDIO], 1, [Have CoreAudio?]))
 
 #### ALSA support (optional) ####
 
