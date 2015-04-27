@@ -1008,7 +1008,7 @@ int pa_parse_boolean(const char *v) {
 /* Try to parse a volume string to pa_volume_t. The allowed formats are:
  * db, % and unsigned integer */
 int pa_parse_volume(const char *v, pa_volume_t *volume) {
-    int len, ret = -1;
+    int len;
     uint32_t i;
     double d;
     char str[64];
@@ -1025,26 +1025,36 @@ int pa_parse_volume(const char *v, pa_volume_t *volume) {
 
     if (str[len - 1] == '%') {
         str[len - 1] = '\0';
-        if (pa_atou(str, &i) == 0) {
-            *volume = PA_CLAMP_VOLUME((uint64_t) PA_VOLUME_NORM * i / 100);
-            ret = 0;
-        }
-    } else if (len > 2 && (str[len - 1] == 'b' || str[len - 1] == 'B') &&
-               (str[len - 2] == 'd' || str[len - 2] == 'D')) {
-        str[len - 2] = '\0';
-        if (pa_atod(str, &d) == 0) {
-            *volume = pa_sw_volume_from_dB(d);
-            ret = 0;
-        }
-    } else {
-        if (pa_atou(v, &i) == 0) {
-            *volume= PA_CLAMP_VOLUME(i);
-            ret = 0;
-        }
+        if (pa_atod(str, &d) < 0)
+            return -1;
 
+        d = d / 100 * PA_VOLUME_NORM;
+
+        if (d < 0 || d > PA_VOLUME_MAX)
+            return -1;
+
+        *volume = d;
+        return 0;
     }
 
-    return ret;
+    if (len > 2 && (str[len - 1] == 'b' || str[len - 1] == 'B') &&
+               (str[len - 2] == 'd' || str[len - 2] == 'D')) {
+        str[len - 2] = '\0';
+        if (pa_atod(str, &d) < 0)
+            return -1;
+
+        if (d > pa_sw_volume_to_dB(PA_VOLUME_MAX))
+            return -1;
+
+        *volume = pa_sw_volume_from_dB(d);
+        return 0;
+    }
+
+    if (pa_atou(v, &i) < 0 || !PA_VOLUME_IS_VALID(i))
+        return -1;
+
+    *volume = i;
+    return 0;
 }
 
 /* Split the specified string wherever one of the strings in delimiter
