@@ -1,0 +1,64 @@
+language: c
+
+compiler:
+  - gcc
+ #- clang
+
+before_install:
+  - sudo sh -c 'echo "deb http://archive.ubuntu.com/ubuntu/ trusty main universe\ndeb-src http://archive.ubuntu.com/ubuntu/ trusty main universe" >> /etc/apt/sources.list'
+  - sudo apt-get -qq update
+install:
+  - >
+    sudo apt-get -qq install
+    git-core
+    autopoint
+    autoconf
+    automake
+    intltool
+    check
+    libasound2-dev
+    libasyncns-dev
+    libatomic-ops-dev
+    libavahi-client-dev
+    libbluetooth-dev
+    libsbc-dev
+    libcap-dev
+    libfftw3-dev
+    libgconf2-dev
+    libglib2.0-dev
+    libgtk-3-dev
+    libice-dev
+    libjack-dev
+    libjson-c-dev
+    liblircclient-dev
+    libltdl-dev
+    liborc-0.4-dev
+    libsamplerate0-dev
+    libsndfile1-dev
+    libspeexdsp-dev
+    libssl-dev
+    libtdb-dev
+    libudev-dev
+    libwebrtc-audio-processing-dev
+    libwrap0-dev
+    libx11-xcb-dev
+    libxcb1-dev
+    libxtst-dev
+    libsystemd-daemon-dev
+    libsystemd-id128-dev
+    libsystemd-journal-dev
+    libsystemd-login-dev
+
+before_script:
+  # can't run git-version-gen on a shallow clone or without tags
+  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - git fetch --tags
+  - NOCONFIGURE=1 ./bootstrap.sh
+
+script:
+  - ./configure --localstatedir=/var && make && make check && make check-daemon
+
+notifications:
+  email:
+    recipients:
+      - pulseaudio-commits@lists.freedesktop.org
