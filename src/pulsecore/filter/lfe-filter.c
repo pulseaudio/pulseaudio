@@ -176,11 +176,11 @@ void pa_lfe_filter_rewind(pa_lfe_filter_t *f, size_t amount) {
             s = i;
     }
     if (s == NULL) {
-        pa_log_debug("Rewinding LFE filter %lu samples to position %lli. No saved state found", samples, (long long) f->index);
+        pa_log_debug("Rewinding LFE filter %zu samples to position %lli. No saved state found", samples, (long long) f->index);
         pa_lfe_filter_update_rate(f, f->ss.rate);
         return;
     }
-    pa_log_debug("Rewinding LFE filter %lu samples to position %lli. Found saved state at position %lli",
+    pa_log_debug("Rewinding LFE filter %zu samples to position %lli. Found saved state at position %lli",
         samples, (long long) f->index, (long long) s->index);
     memcpy(f->lr4, s->lr4, sizeof(struct lr4) * f->cm.channels);
 
