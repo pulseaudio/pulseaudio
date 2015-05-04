@@ -107,7 +107,7 @@ struct description_map {
     const char *description;
 };
 
-pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *name, const char *alsa_name) {
+pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *name) {
     pa_alsa_jack *jack;
 
     pa_assert(name);
@@ -115,12 +115,7 @@ pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *name, const char 
     jack = pa_xnew0(pa_alsa_jack, 1);
     jack->path = path;
     jack->name = pa_xstrdup(name);
-
-    if (alsa_name)
-        jack->alsa_name = pa_xstrdup(alsa_name);
-    else
-        jack->alsa_name = pa_sprintf_malloc("%s Jack", name);
-
+    jack->alsa_name = pa_sprintf_malloc("%s Jack", name);
     jack->state_unplugged = PA_AVAILABLE_NO;
     jack->state_plugged = PA_AVAILABLE_YES;
     jack->ucm_devices = pa_dynarray_new(NULL);
@@ -1857,7 +1852,7 @@ static pa_alsa_jack* jack_get(pa_alsa_path *p, const char *section) {
         if (pa_streq(j->name, section))
             goto finish;
 
-    j = pa_alsa_jack_new(p, section, NULL);
+    j = pa_alsa_jack_new(p, section);
     PA_LLIST_INSERT_AFTER(pa_alsa_jack, p->jacks, p->last_jack, j);
 
 finish:

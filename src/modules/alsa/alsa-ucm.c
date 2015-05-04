@@ -1292,26 +1292,38 @@ static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *d
     pa_alsa_jack *j;
     const char *device_name;
     const char *jack_control;
-    char *alsa_name;
+    char *name;
 
     pa_assert(ucm);
     pa_assert(device);
 
     device_name = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_NAME);
 
-    PA_LLIST_FOREACH(j, ucm->jacks)
-        if (pa_streq(j->name, device_name))
-            return j;
-
     jack_control = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_JACK_CONTROL);
-    if (jack_control)
-        alsa_name = pa_xstrdup(jack_control);
-    else
-        alsa_name = pa_sprintf_malloc("%s Jack", device_name);
+    if (jack_control) {
+        if (!pa_endswith(jack_control, " Jack")) {
+            pa_log("[%s] Invalid JackControl value: \"%s\"", device_name, jack_control);
+            return NULL;
+        }
 
-    j = pa_alsa_jack_new(NULL, device_name, alsa_name);
-    pa_xfree(alsa_name);
+        /* pa_alsa_jack_new() expects a jack name without " Jack" at the
+         * end, so drop the trailing " Jack". */
+        name = pa_xstrndup(jack_control, strlen(jack_control) - 5);
+    } else {
+        /* The jack control hasn't been explicitly configured - try a jack name
+         * that is the same as the device name. */
+        name = pa_xstrdup(device_name);
+    }
+
+    PA_LLIST_FOREACH(j, ucm->jacks)
+        if (pa_streq(j->name, name))
+            goto finish;
+
+    j = pa_alsa_jack_new(NULL, name);
     PA_LLIST_PREPEND(pa_alsa_jack, ucm->jacks, j);
+
+finish:
+    pa_xfree(name);
 
     return j;
 }
