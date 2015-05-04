@@ -320,6 +320,19 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       cancel the execution of the current script file. This is ignored when
       used on the interactive command line.</p></optdesc>
     </option>
+    <option>
+      <p><opt>.ifexists</opt> <arg>filename</arg></p>
+      <optdesc><p>Execute the subsequent block of commands only if the specified
+      file exists. Typically <arg>filename</arg> indicates a module. Relative
+      paths are resolved using the module directory as the base. By using an
+      absolute path, the existance of other files can be checked as well.</p></optdesc>
+    </option>
+    <option>
+      <p><opt>.else</opt> and <opt>.endif</opt></p>
+      <optdesc><p>A block of commands is delimited by an <opt>.else</opt> or
+      <opt>.endif</opt> meta command. Nesting conditional commands is not
+      supported.</p></optdesc>
+    </option>
   </section>
 
   <section name="Authors">
