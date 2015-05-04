@@ -50,7 +50,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
   </section>
 
-  <section name="Status_Commands">
+  <section name="Status Commands">
     <option>
       <p><opt>list-modules</opt></p>
       <optdesc><p>Show all currently loaded modules with their arguments.</p></optdesc>
@@ -312,12 +312,12 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     <option>
       <p><opt>.include</opt> <arg>filename|folder</arg></p>
       <optdesc><p>Executes the commands from the specified script file or in all
-      of the *.pa file within the folder.</p></optdesc>
+      of the *.pa files within the folder.</p></optdesc>
     </option>
     <option>
       <p><opt>.fail</opt> and <opt>.nofail</opt></p>
       <optdesc><p>Enable (resp. disable) that following failing commands will
-      cancel the execution of the current script file. This is a ignored when
+      cancel the execution of the current script file. This is ignored when
       used on the interactive command line.</p></optdesc>
     </option>
   </section>
