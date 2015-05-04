@@ -148,7 +148,10 @@ struct pa_alsa_ucm_device {
     pa_dynarray *ucm_ports; /* struct ucm_port */
 
     pa_alsa_jack *jack;
+    pa_available_t available;
 };
+
+void pa_alsa_ucm_device_update_available(pa_alsa_ucm_device *device);
 
 struct pa_alsa_ucm_modifier {
     PA_LLIST_FIELDS(pa_alsa_ucm_modifier);

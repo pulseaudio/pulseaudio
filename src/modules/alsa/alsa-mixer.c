@@ -139,6 +139,36 @@ void pa_alsa_jack_free(pa_alsa_jack *jack) {
     pa_xfree(jack);
 }
 
+void pa_alsa_jack_set_has_control(pa_alsa_jack *jack, bool has_control) {
+    pa_alsa_ucm_device *device;
+    unsigned idx;
+
+    pa_assert(jack);
+
+    if (has_control == jack->has_control)
+        return;
+
+    jack->has_control = has_control;
+
+    PA_DYNARRAY_FOREACH(device, jack->ucm_devices, idx)
+        pa_alsa_ucm_device_update_available(device);
+}
+
+void pa_alsa_jack_set_plugged_in(pa_alsa_jack *jack, bool plugged_in) {
+    pa_alsa_ucm_device *device;
+    unsigned idx;
+
+    pa_assert(jack);
+
+    if (plugged_in == jack->plugged_in)
+        return;
+
+    jack->plugged_in = plugged_in;
+
+    PA_DYNARRAY_FOREACH(device, jack->ucm_devices, idx)
+        pa_alsa_ucm_device_update_available(device);
+}
+
 void pa_alsa_jack_add_ucm_device(pa_alsa_jack *jack, pa_alsa_ucm_device *device) {
     pa_assert(jack);
     pa_assert(device);
@@ -1755,10 +1785,13 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
 }
 
 static int jack_probe(pa_alsa_jack *j, snd_mixer_t *m) {
+    bool has_control;
+
     pa_assert(j);
     pa_assert(j->path);
 
-    j->has_control = pa_alsa_mixer_find(m, j->alsa_name, 0) != NULL;
+    has_control = pa_alsa_mixer_find(m, j->alsa_name, 0) != NULL;
+    pa_alsa_jack_set_has_control(j, has_control);
 
     if (j->has_control) {
         if (j->required_absent != PA_ALSA_REQUIRED_IGNORE)

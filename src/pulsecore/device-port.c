@@ -66,8 +66,6 @@ void pa_device_port_new_data_done(pa_device_port_new_data *data) {
 }
 
 void pa_device_port_set_available(pa_device_port *p, pa_available_t status) {
-    pa_core *core;
-
     pa_assert(p);
 
     if (p->available == status)
@@ -80,10 +78,14 @@ void pa_device_port_set_available(pa_device_port *p, pa_available_t status) {
        status == PA_AVAILABLE_NO ? "no" : "unknown");
 
     /* Post subscriptions to the card which owns us */
-    pa_assert_se(core = p->core);
-    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, p->card->index);
-
-    pa_hook_fire(&core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED], p);
+    /* XXX: We need to check p->card, because this function may be called
+     * before the card object has been created. The card object should probably
+     * be created before port objects, and then p->card could be non-NULL for
+     * the whole lifecycle of pa_device_port. */
+    if (p->card) {
+        pa_subscription_post(p->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, p->card->index);
+        pa_hook_fire(&p->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED], p);
+    }
 }
 
 static void device_port_free(pa_object *o) {

@@ -378,16 +378,17 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
 
     PA_HASHMAP_FOREACH(jack, u->jacks, state)
         if (jack->melem == melem) {
-            jack->plugged_in = plugged_in;
+            pa_alsa_jack_set_plugged_in(jack, plugged_in);
+
             if (u->use_ucm) {
-                pa_assert(u->card->ports);
-                port = pa_hashmap_get(u->card->ports, jack->name);
-                pa_assert(port);
+                /* When using UCM, pa_alsa_jack_set_plugged_in() maps the jack
+                 * state to port availability. */
+                continue;
             }
-            else {
-                pa_assert(jack->path);
-                pa_assert_se(port = jack->path->port);
-            }
+
+            /* When not using UCM, we have to do the jack state -> port
+             * availability mapping ourselves. */
+            pa_assert_se(port = jack->path->port);
             report_port_state(port, u);
         }
     return 0;
@@ -515,7 +516,7 @@ static void init_jacks(struct userdata *u) {
             jack->melem = pa_alsa_mixer_find(u->mixer_handle, jack->alsa_name, 0);
             if (!jack->melem) {
                 pa_log_warn("Jack '%s' seems to have disappeared.", jack->alsa_name);
-                jack->has_control = false;
+                pa_alsa_jack_set_has_control(jack, false);
                 continue;
             }
             snd_mixer_elem_set_callback(jack->melem, report_jack_state);

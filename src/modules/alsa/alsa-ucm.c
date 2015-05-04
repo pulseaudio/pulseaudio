@@ -90,6 +90,7 @@ struct ucm_port {
 static struct ucm_port *ucm_port_new(pa_alsa_ucm_config *ucm, pa_device_port *core_port, pa_alsa_ucm_device **devices,
                                      unsigned n_devices);
 static void ucm_port_free(struct ucm_port *port);
+static void ucm_port_update_available(struct ucm_port *port);
 
 static struct ucm_items item[] = {
     {"PlaybackPCM", PA_ALSA_PROP_UCM_SINK},
@@ -413,6 +414,7 @@ static int ucm_get_devices(pa_alsa_ucm_verb *verb, snd_use_case_mgr_t *uc_mgr) {
         pa_proplist_sets(d->proplist, PA_ALSA_PROP_UCM_NAME, pa_strnull(dev_list[i]));
         pa_proplist_sets(d->proplist, PA_ALSA_PROP_UCM_DESCRIPTION, pa_strna(dev_list[i + 1]));
         d->ucm_ports = pa_dynarray_new(NULL);
+        d->available = PA_AVAILABLE_UNKNOWN;
 
         PA_LLIST_PREPEND(pa_alsa_ucm_device, verb->devices, d);
     }
@@ -1465,7 +1467,10 @@ static void ucm_mapping_jack_probe(pa_alsa_mapping *m) {
         return;
 
     PA_IDXSET_FOREACH(dev, context->ucm_devices, idx) {
-        dev->jack->has_control = pa_alsa_mixer_find(mixer_handle, dev->jack->alsa_name, 0) != NULL;
+        bool has_control;
+
+        has_control = pa_alsa_mixer_find(mixer_handle, dev->jack->alsa_name, 0) != NULL;
+        pa_alsa_jack_set_has_control(dev->jack, has_control);
         pa_log_info("UCM jack %s has_control=%d", dev->jack->name, dev->jack->has_control);
     }
 
@@ -1716,6 +1721,34 @@ static void device_set_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack) {
 
     device->jack = jack;
     pa_alsa_jack_add_ucm_device(jack, device);
+
+    pa_alsa_ucm_device_update_available(device);
+}
+
+static void device_set_available(pa_alsa_ucm_device *device, pa_available_t available) {
+    struct ucm_port *port;
+    unsigned idx;
+
+    pa_assert(device);
+
+    if (available == device->available)
+        return;
+
+    device->available = available;
+
+    PA_DYNARRAY_FOREACH(port, device->ucm_ports, idx)
+        ucm_port_update_available(port);
+}
+
+void pa_alsa_ucm_device_update_available(pa_alsa_ucm_device *device) {
+    pa_available_t available = PA_AVAILABLE_UNKNOWN;
+
+    pa_assert(device);
+
+    if (device->jack && device->jack->has_control)
+        available = device->jack->plugged_in ? PA_AVAILABLE_YES : PA_AVAILABLE_NO;
+
+    device_set_available(device, available);
 }
 
 static struct ucm_port *ucm_port_new(pa_alsa_ucm_config *ucm, pa_device_port *core_port, pa_alsa_ucm_device **devices,
@@ -1737,6 +1770,8 @@ static struct ucm_port *ucm_port_new(pa_alsa_ucm_config *ucm, pa_device_port *co
         device_add_ucm_port(devices[i], port);
     }
 
+    ucm_port_update_available(port);
+
     return port;
 }
 
@@ -1747,6 +1782,25 @@ static void ucm_port_free(struct ucm_port *port) {
         pa_dynarray_free(port->devices);
 
     pa_xfree(port);
+}
+
+static void ucm_port_update_available(struct ucm_port *port) {
+    pa_alsa_ucm_device *device;
+    unsigned idx;
+    pa_available_t available = PA_AVAILABLE_YES;
+
+    pa_assert(port);
+
+    PA_DYNARRAY_FOREACH(device, port->devices, idx) {
+        if (device->available == PA_AVAILABLE_UNKNOWN)
+            available = PA_AVAILABLE_UNKNOWN;
+        else if (device->available == PA_AVAILABLE_NO) {
+            available = PA_AVAILABLE_NO;
+            break;
+        }
+    }
+
+    pa_device_port_set_available(port->core_port, available);
 }
 
 #else /* HAVE_ALSA_UCM */
