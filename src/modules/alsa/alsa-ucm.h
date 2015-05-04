@@ -87,6 +87,9 @@ typedef void snd_use_case_mgr_t;
 /* Corresponds to the "JackControl" UCM value. */
 #define PA_ALSA_PROP_UCM_JACK_CONTROL               "alsa.ucm.jack_control"
 
+/* Corresponds to the "JackHWMute" UCM value. */
+#define PA_ALSA_PROP_UCM_JACK_HW_MUTE               "alsa.ucm.jack_hw_mute"
+
 typedef struct pa_alsa_ucm_verb pa_alsa_ucm_verb;
 typedef struct pa_alsa_ucm_modifier pa_alsa_ucm_modifier;
 typedef struct pa_alsa_ucm_device pa_alsa_ucm_device;
@@ -148,6 +151,7 @@ struct pa_alsa_ucm_device {
     pa_dynarray *ucm_ports; /* struct ucm_port */
 
     pa_alsa_jack *jack;
+    pa_dynarray *hw_mute_jacks; /* pa_alsa_jack */
     pa_available_t available;
 };
 

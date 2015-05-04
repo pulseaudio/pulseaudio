@@ -170,6 +170,7 @@ struct pa_alsa_jack {
     pa_alsa_required_t required_absent;
 
     pa_dynarray *ucm_devices; /* pa_alsa_ucm_device */
+    pa_dynarray *ucm_hw_mute_devices; /* pa_alsa_ucm_device */
 };
 
 pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *name);
@@ -177,6 +178,7 @@ void pa_alsa_jack_free(pa_alsa_jack *jack);
 void pa_alsa_jack_set_has_control(pa_alsa_jack *jack, bool has_control);
 void pa_alsa_jack_set_plugged_in(pa_alsa_jack *jack, bool plugged_in);
 void pa_alsa_jack_add_ucm_device(pa_alsa_jack *jack, pa_alsa_ucm_device *device);
+void pa_alsa_jack_add_ucm_hw_mute_device(pa_alsa_jack *jack, pa_alsa_ucm_device *device);
 
 /* A path wraps a series of elements into a single entity which can be
  * used to control it as if it had a single volume slider, a single

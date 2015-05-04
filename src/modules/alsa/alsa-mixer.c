@@ -119,12 +119,16 @@ pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *name) {
     jack->state_unplugged = PA_AVAILABLE_NO;
     jack->state_plugged = PA_AVAILABLE_YES;
     jack->ucm_devices = pa_dynarray_new(NULL);
+    jack->ucm_hw_mute_devices = pa_dynarray_new(NULL);
 
     return jack;
 }
 
 void pa_alsa_jack_free(pa_alsa_jack *jack) {
     pa_assert(jack);
+
+    if (jack->ucm_hw_mute_devices)
+        pa_dynarray_free(jack->ucm_hw_mute_devices);
 
     if (jack->ucm_devices)
         pa_dynarray_free(jack->ucm_devices);
@@ -145,6 +149,9 @@ void pa_alsa_jack_set_has_control(pa_alsa_jack *jack, bool has_control) {
 
     jack->has_control = has_control;
 
+    PA_DYNARRAY_FOREACH(device, jack->ucm_hw_mute_devices, idx)
+        pa_alsa_ucm_device_update_available(device);
+
     PA_DYNARRAY_FOREACH(device, jack->ucm_devices, idx)
         pa_alsa_ucm_device_update_available(device);
 }
@@ -160,6 +167,44 @@ void pa_alsa_jack_set_plugged_in(pa_alsa_jack *jack, bool plugged_in) {
 
     jack->plugged_in = plugged_in;
 
+    /* XXX: If this is a headphone jack that mutes speakers when plugged in,
+     * and the headphones get unplugged, then the headphone device must be set
+     * to unavailable and the speaker device must be set to unknown. So far so
+     * good. But there's an ugly detail: we must first set the availability of
+     * the speakers and then the headphones. We shouldn't need to care about
+     * the order, but we have to, because module-switch-on-port-available gets
+     * separate events for the two devices, and the intermediate state between
+     * the two events is such that the second event doesn't trigger the desired
+     * port switch, if the event order is "wrong".
+     *
+     * These are the transitions when the event order is "right":
+     *
+     *     speakers:   1) unavailable -> 2) unknown   -> 3) unknown
+     *     headphones: 1) available   -> 2) available -> 3) unavailable
+     *
+     * In the 2 -> 3 transition, headphones become unavailable, and
+     * module-switch-on-port-available sees that speakers can be used, so the
+     * port gets changed as it should.
+     *
+     * These are the transitions when the event order is "wrong":
+     *
+     *     speakers:   1) unavailable -> 2) unavailable -> 3) unknown
+     *     headphones: 1) available   -> 2) unavailable -> 3) unavailable
+     *
+     * In the 1 -> 2 transition, headphones become unavailable, and there are
+     * no available ports to use, so no port change happens. In the 2 -> 3
+     * transition, speaker availability becomes unknown, but that's not
+     * a strong enough signal for module-switch-on-port-available, so it still
+     * doesn't do the port switch.
+     *
+     * We should somehow merge the two events so that
+     * module-switch-on-port-available would handle both transitions in one go.
+     * If module-switch-on-port-available used a defer event to delay
+     * the port availability processing, that would probably do the trick. */
+
+    PA_DYNARRAY_FOREACH(device, jack->ucm_hw_mute_devices, idx)
+        pa_alsa_ucm_device_update_available(device);
+
     PA_DYNARRAY_FOREACH(device, jack->ucm_devices, idx)
         pa_alsa_ucm_device_update_available(device);
 }
@@ -169,6 +214,13 @@ void pa_alsa_jack_add_ucm_device(pa_alsa_jack *jack, pa_alsa_ucm_device *device)
     pa_assert(device);
 
     pa_dynarray_append(jack->ucm_devices, device);
+}
+
+void pa_alsa_jack_add_ucm_hw_mute_device(pa_alsa_jack *jack, pa_alsa_ucm_device *device) {
+    pa_assert(jack);
+    pa_assert(device);
+
+    pa_dynarray_append(jack->ucm_hw_mute_devices, device);
 }
 
 static const char *lookup_description(const char *key, const struct description_map dm[], unsigned n) {

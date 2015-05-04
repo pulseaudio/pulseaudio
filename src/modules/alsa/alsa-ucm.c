@@ -77,6 +77,9 @@ struct ucm_info {
 };
 
 static void device_set_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack);
+static void device_add_hw_mute_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack);
+
+static pa_alsa_ucm_device *verb_find_device(pa_alsa_ucm_verb *verb, const char *device_name);
 
 struct ucm_port {
     pa_alsa_ucm_config *ucm;
@@ -107,6 +110,7 @@ static struct ucm_items item[] = {
     {"CaptureChannels", PA_ALSA_PROP_UCM_CAPTURE_CHANNELS},
     {"TQ", PA_ALSA_PROP_UCM_QOS},
     {"JackControl", PA_ALSA_PROP_UCM_JACK_CONTROL},
+    {"JackHWMute", PA_ALSA_PROP_UCM_JACK_HW_MUTE},
     {NULL, NULL},
 };
 
@@ -414,6 +418,7 @@ static int ucm_get_devices(pa_alsa_ucm_verb *verb, snd_use_case_mgr_t *uc_mgr) {
         pa_proplist_sets(d->proplist, PA_ALSA_PROP_UCM_NAME, pa_strnull(dev_list[i]));
         pa_proplist_sets(d->proplist, PA_ALSA_PROP_UCM_DESCRIPTION, pa_strna(dev_list[i + 1]));
         d->ucm_ports = pa_dynarray_new(NULL);
+        d->hw_mute_jacks = pa_dynarray_new(NULL);
         d->available = PA_AVAILABLE_UNKNOWN;
 
         PA_LLIST_PREPEND(pa_alsa_ucm_device, verb->devices, d);
@@ -1381,6 +1386,7 @@ static int ucm_create_profile(
 
     PA_LLIST_FOREACH(dev, verb->devices) {
         pa_alsa_jack *jack;
+        const char *jack_hw_mute;
 
         name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
 
@@ -1391,6 +1397,37 @@ static int ucm_create_profile(
 
         jack = ucm_get_jack(ucm, dev);
         device_set_jack(dev, jack);
+
+        /* JackHWMute contains a list of device names. Each listed device must
+         * be associated with the jack object that we just created. */
+        jack_hw_mute = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_JACK_HW_MUTE);
+        if (jack_hw_mute) {
+            char *hw_mute_device_name;
+            const char *state = NULL;
+
+            while ((hw_mute_device_name = pa_split_spaces(jack_hw_mute, &state))) {
+                pa_alsa_ucm_verb *verb2;
+                bool device_found = false;
+
+                /* Search the referenced device from all verbs. If there are
+                 * multiple verbs that have a device with this name, we add the
+                 * hw mute association to each of those devices. */
+                PA_LLIST_FOREACH(verb2, ucm->verbs) {
+                    pa_alsa_ucm_device *hw_mute_device;
+
+                    hw_mute_device = verb_find_device(verb2, hw_mute_device_name);
+                    if (hw_mute_device) {
+                        device_found = true;
+                        device_add_hw_mute_jack(hw_mute_device, jack);
+                    }
+                }
+
+                if (!device_found)
+                    pa_log("[%s] JackHWMute references an unknown device: %s", name, hw_mute_device_name);
+
+                pa_xfree(hw_mute_device_name);
+            }
+        }
     }
 
     /* Now find modifiers that have their own PlaybackPCM and create
@@ -1596,6 +1633,9 @@ static void free_verb(pa_alsa_ucm_verb *verb) {
     PA_LLIST_FOREACH_SAFE(di, dn, verb->devices) {
         PA_LLIST_REMOVE(pa_alsa_ucm_device, verb->devices, di);
 
+        if (di->hw_mute_jacks)
+            pa_dynarray_free(di->hw_mute_jacks);
+
         if (di->ucm_ports)
             pa_dynarray_free(di->ucm_ports);
 
@@ -1619,6 +1659,23 @@ static void free_verb(pa_alsa_ucm_verb *verb) {
     }
     pa_proplist_free(verb->proplist);
     pa_xfree(verb);
+}
+
+static pa_alsa_ucm_device *verb_find_device(pa_alsa_ucm_verb *verb, const char *device_name) {
+    pa_alsa_ucm_device *device;
+
+    pa_assert(verb);
+    pa_assert(device_name);
+
+    PA_LLIST_FOREACH(device, verb->devices) {
+        const char *name;
+
+        name = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_NAME);
+        if (pa_streq(name, device_name))
+            return device;
+    }
+
+    return NULL;
 }
 
 void pa_alsa_ucm_free(pa_alsa_ucm_config *ucm) {
@@ -1737,6 +1794,16 @@ static void device_set_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack) {
     pa_alsa_ucm_device_update_available(device);
 }
 
+static void device_add_hw_mute_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack) {
+    pa_assert(device);
+    pa_assert(jack);
+
+    pa_dynarray_append(device->hw_mute_jacks, jack);
+    pa_alsa_jack_add_ucm_hw_mute_device(jack, device);
+
+    pa_alsa_ucm_device_update_available(device);
+}
+
 static void device_set_available(pa_alsa_ucm_device *device, pa_available_t available) {
     struct ucm_port *port;
     unsigned idx;
@@ -1754,11 +1821,20 @@ static void device_set_available(pa_alsa_ucm_device *device, pa_available_t avai
 
 void pa_alsa_ucm_device_update_available(pa_alsa_ucm_device *device) {
     pa_available_t available = PA_AVAILABLE_UNKNOWN;
+    pa_alsa_jack *jack;
+    unsigned idx;
 
     pa_assert(device);
 
     if (device->jack && device->jack->has_control)
         available = device->jack->plugged_in ? PA_AVAILABLE_YES : PA_AVAILABLE_NO;
+
+    PA_DYNARRAY_FOREACH(jack, device->hw_mute_jacks, idx) {
+        if (jack->plugged_in) {
+            available = PA_AVAILABLE_NO;
+            break;
+        }
+    }
 
     device_set_available(device, available);
 }
