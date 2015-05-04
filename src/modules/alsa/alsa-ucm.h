@@ -142,6 +142,11 @@ struct pa_alsa_ucm_device {
     pa_idxset *conflicting_devices;
     pa_idxset *supported_devices;
 
+    /* One device may be part of multiple ports, since each device has
+     * a dedicated port, and in addition to that we sometimes generate ports
+     * that represent combinations of devices. */
+    pa_dynarray *ucm_ports; /* struct ucm_port */
+
     pa_alsa_jack *jack;
 };
 
@@ -184,6 +189,7 @@ struct pa_alsa_ucm_config {
 
     PA_LLIST_HEAD(pa_alsa_ucm_verb, verbs);
     PA_LLIST_HEAD(pa_alsa_jack, jacks);
+    pa_dynarray *ports; /* struct ucm_port */
 };
 
 struct pa_alsa_ucm_mapping_context {

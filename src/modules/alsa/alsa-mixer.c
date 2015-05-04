@@ -123,6 +123,7 @@ pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *name, const char 
 
     jack->state_unplugged = PA_AVAILABLE_NO;
     jack->state_plugged = PA_AVAILABLE_YES;
+    jack->ucm_devices = pa_dynarray_new(NULL);
 
     return jack;
 }
@@ -130,9 +131,19 @@ pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *name, const char 
 void pa_alsa_jack_free(pa_alsa_jack *jack) {
     pa_assert(jack);
 
+    if (jack->ucm_devices)
+        pa_dynarray_free(jack->ucm_devices);
+
     pa_xfree(jack->alsa_name);
     pa_xfree(jack->name);
     pa_xfree(jack);
+}
+
+void pa_alsa_jack_add_ucm_device(pa_alsa_jack *jack, pa_alsa_ucm_device *device) {
+    pa_assert(jack);
+    pa_assert(device);
+
+    pa_dynarray_append(jack->ucm_devices, device);
 }
 
 static const char *lookup_description(const char *key, const struct description_map dm[], unsigned n) {

@@ -78,6 +78,19 @@ struct ucm_info {
 
 static void device_set_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack);
 
+struct ucm_port {
+    pa_alsa_ucm_config *ucm;
+    pa_device_port *core_port;
+
+    /* A single port will be associated with multiple devices if it represents
+     * a combination of devices. */
+    pa_dynarray *devices; /* pa_alsa_ucm_device */
+};
+
+static struct ucm_port *ucm_port_new(pa_alsa_ucm_config *ucm, pa_device_port *core_port, pa_alsa_ucm_device **devices,
+                                     unsigned n_devices);
+static void ucm_port_free(struct ucm_port *port);
+
 static struct ucm_items item[] = {
     {"PlaybackPCM", PA_ALSA_PROP_UCM_SINK},
     {"CapturePCM", PA_ALSA_PROP_UCM_SOURCE},
@@ -399,6 +412,7 @@ static int ucm_get_devices(pa_alsa_ucm_verb *verb, snd_use_case_mgr_t *uc_mgr) {
         d->proplist = pa_proplist_new();
         pa_proplist_sets(d->proplist, PA_ALSA_PROP_UCM_NAME, pa_strnull(dev_list[i]));
         pa_proplist_sets(d->proplist, PA_ALSA_PROP_UCM_DESCRIPTION, pa_strna(dev_list[i + 1]));
+        d->ucm_ports = pa_dynarray_new(NULL);
 
         PA_LLIST_PREPEND(pa_alsa_ucm_device, verb->devices, d);
     }
@@ -554,6 +568,8 @@ int pa_alsa_ucm_query_profiles(pa_alsa_ucm_config *ucm, int card_index) {
     char *card_name;
     const char **verb_list;
     int num_verbs, i, err = 0;
+
+    ucm->ports = pa_dynarray_new((pa_free_cb_t) ucm_port_free);
 
     /* is UCM available for this card ? */
     err = snd_card_get_name(card_index, &card_name);
@@ -737,6 +753,8 @@ static void ucm_add_port_combination(
 
     port = pa_hashmap_get(ports, name);
     if (!port) {
+        struct ucm_port *ucm_port;
+
         pa_device_port_new_data port_data;
 
         pa_device_port_new_data_init(&port_data);
@@ -744,9 +762,12 @@ static void ucm_add_port_combination(
         pa_device_port_new_data_set_description(&port_data, desc);
         pa_device_port_new_data_set_direction(&port_data, is_sink ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT);
 
-        port = pa_device_port_new(core, &port_data, 0);
+        port = pa_device_port_new(core, &port_data, sizeof(ucm_port));
         pa_device_port_new_data_done(&port_data);
-        pa_assert(port);
+
+        ucm_port = ucm_port_new(context->ucm, port, pdevices, num);
+        pa_dynarray_append(context->ucm->ports, ucm_port);
+        *((struct ucm_port **) PA_DEVICE_PORT_DATA(port)) = ucm_port;
 
         pa_hashmap_put(ports, port->name, port);
         pa_log_debug("Add port %s: %s", port->name, port->description);
@@ -1557,6 +1578,10 @@ static void free_verb(pa_alsa_ucm_verb *verb) {
 
     PA_LLIST_FOREACH_SAFE(di, dn, verb->devices) {
         PA_LLIST_REMOVE(pa_alsa_ucm_device, verb->devices, di);
+
+        if (di->ucm_ports)
+            pa_dynarray_free(di->ucm_ports);
+
         pa_proplist_free(di->proplist);
         if (di->conflicting_devices)
             pa_idxset_free(di->conflicting_devices, NULL);
@@ -1582,6 +1607,9 @@ static void free_verb(pa_alsa_ucm_verb *verb) {
 void pa_alsa_ucm_free(pa_alsa_ucm_config *ucm) {
     pa_alsa_ucm_verb *vi, *vn;
     pa_alsa_jack *ji, *jn;
+
+    if (ucm->ports)
+        pa_dynarray_free(ucm->ports);
 
     PA_LLIST_FOREACH_SAFE(vi, vn, ucm->verbs) {
         PA_LLIST_REMOVE(pa_alsa_ucm_verb, ucm->verbs, vi);
@@ -1675,10 +1703,50 @@ void pa_alsa_ucm_roled_stream_end(pa_alsa_ucm_config *ucm, const char *role, pa_
     }
 }
 
+static void device_add_ucm_port(pa_alsa_ucm_device *device, struct ucm_port *port) {
+    pa_assert(device);
+    pa_assert(port);
+
+    pa_dynarray_append(device->ucm_ports, port);
+}
+
 static void device_set_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack) {
     pa_assert(device);
+    pa_assert(jack);
 
     device->jack = jack;
+    pa_alsa_jack_add_ucm_device(jack, device);
+}
+
+static struct ucm_port *ucm_port_new(pa_alsa_ucm_config *ucm, pa_device_port *core_port, pa_alsa_ucm_device **devices,
+                                     unsigned n_devices) {
+    struct ucm_port *port;
+    unsigned i;
+
+    pa_assert(ucm);
+    pa_assert(core_port);
+    pa_assert(devices);
+
+    port = pa_xnew0(struct ucm_port, 1);
+    port->ucm = ucm;
+    port->core_port = core_port;
+    port->devices = pa_dynarray_new(NULL);
+
+    for (i = 0; i < n_devices; i++) {
+        pa_dynarray_append(port->devices, devices[i]);
+        device_add_ucm_port(devices[i], port);
+    }
+
+    return port;
+}
+
+static void ucm_port_free(struct ucm_port *port) {
+    pa_assert(port);
+
+    if (port->devices)
+        pa_dynarray_free(port->devices);
+
+    pa_xfree(port);
 }
 
 #else /* HAVE_ALSA_UCM */
