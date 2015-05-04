@@ -107,6 +107,34 @@ struct description_map {
     const char *description;
 };
 
+pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *name, const char *alsa_name) {
+    pa_alsa_jack *jack;
+
+    pa_assert(name);
+
+    jack = pa_xnew0(pa_alsa_jack, 1);
+    jack->path = path;
+    jack->name = pa_xstrdup(name);
+
+    if (alsa_name)
+        jack->alsa_name = pa_xstrdup(alsa_name);
+    else
+        jack->alsa_name = pa_sprintf_malloc("%s Jack", name);
+
+    jack->state_unplugged = PA_AVAILABLE_NO;
+    jack->state_plugged = PA_AVAILABLE_YES;
+
+    return jack;
+}
+
+void pa_alsa_jack_free(pa_alsa_jack *jack) {
+    pa_assert(jack);
+
+    pa_xfree(jack->alsa_name);
+    pa_xfree(jack->name);
+    pa_xfree(jack);
+}
+
 static const char *lookup_description(const char *key, const struct description_map dm[], unsigned n) {
     unsigned i;
 
@@ -524,14 +552,6 @@ static void decibel_fix_free(pa_alsa_decibel_fix *db_fix) {
     pa_xfree(db_fix);
 }
 
-static void jack_free(pa_alsa_jack *j) {
-    pa_assert(j);
-
-    pa_xfree(j->alsa_name);
-    pa_xfree(j->name);
-    pa_xfree(j);
-}
-
 static void element_free(pa_alsa_element *e) {
     pa_alsa_option *o;
     pa_assert(e);
@@ -557,7 +577,7 @@ void pa_alsa_path_free(pa_alsa_path *p) {
 
     while ((j = p->jacks)) {
         PA_LLIST_REMOVE(pa_alsa_jack, p->jacks, j);
-        jack_free(j);
+        pa_alsa_jack_free(j);
     }
 
     while ((e = p->elements)) {
@@ -1793,12 +1813,7 @@ static pa_alsa_jack* jack_get(pa_alsa_path *p, const char *section) {
         if (pa_streq(j->name, section))
             goto finish;
 
-    j = pa_xnew0(pa_alsa_jack, 1);
-    j->state_unplugged = PA_AVAILABLE_NO;
-    j->state_plugged = PA_AVAILABLE_YES;
-    j->path = p;
-    j->name = pa_xstrdup(section);
-    j->alsa_name = pa_sprintf_malloc("%s Jack", section);
+    j = pa_alsa_jack_new(p, section, NULL);
     PA_LLIST_INSERT_AFTER(pa_alsa_jack, p->jacks, p->last_jack, j);
 
 finish:

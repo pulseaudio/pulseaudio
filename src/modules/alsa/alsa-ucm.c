@@ -1268,6 +1268,7 @@ static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *d
     const char *device_name;
     char *name;
     const char *jack_control;
+    char *alsa_name;
 
     pa_assert(ucm);
     pa_assert(device);
@@ -1280,17 +1281,14 @@ static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *d
         if (pa_streq(j->name, name))
             goto out;
 
-    j = pa_xnew0(pa_alsa_jack, 1);
-    j->state_unplugged = PA_AVAILABLE_NO;
-    j->state_plugged = PA_AVAILABLE_YES;
-    j->name = pa_xstrdup(name);
-
     jack_control = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_JACK_CONTROL);
     if (jack_control)
-        j->alsa_name = pa_xstrdup(jack_control);
+        alsa_name = pa_xstrdup(jack_control);
     else
-        j->alsa_name = pa_sprintf_malloc("%s Jack", device_name);
+        alsa_name = pa_sprintf_malloc("%s Jack", device_name);
 
+    j = pa_alsa_jack_new(NULL, name, alsa_name);
+    pa_xfree(alsa_name);
     PA_LLIST_PREPEND(pa_alsa_jack, ucm->jacks, j);
 
 out:
@@ -1597,9 +1595,7 @@ void pa_alsa_ucm_free(pa_alsa_ucm_config *ucm) {
     }
     PA_LLIST_FOREACH_SAFE(ji, jn, ucm->jacks) {
         PA_LLIST_REMOVE(pa_alsa_jack, ucm->jacks, ji);
-        pa_xfree(ji->alsa_name);
-        pa_xfree(ji->name);
-        pa_xfree(ji);
+        pa_alsa_jack_free(ji);
     }
     if (ucm->ucm_mgr) {
         snd_use_case_mgr_close(ucm->ucm_mgr);

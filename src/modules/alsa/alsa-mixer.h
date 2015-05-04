@@ -170,6 +170,9 @@ struct pa_alsa_jack {
     pa_alsa_required_t required_absent;
 };
 
+pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *name, const char *alsa_name);
+void pa_alsa_jack_free(pa_alsa_jack *jack);
+
 /* A path wraps a series of elements into a single entity which can be
  * used to control it as if it had a single volume slider, a single
  * mute switch and a single list of selectable options. */
