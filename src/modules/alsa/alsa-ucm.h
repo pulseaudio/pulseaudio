@@ -142,8 +142,7 @@ struct pa_alsa_ucm_device {
     pa_idxset *conflicting_devices;
     pa_idxset *supported_devices;
 
-    pa_alsa_jack *input_jack;
-    pa_alsa_jack *output_jack;
+    pa_alsa_jack *jack;
 };
 
 struct pa_alsa_ucm_modifier {

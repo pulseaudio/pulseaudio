@@ -76,6 +76,8 @@ struct ucm_info {
     unsigned priority;
 };
 
+static void device_set_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack);
+
 static struct ucm_items item[] = {
     {"PlaybackPCM", PA_ALSA_PROP_UCM_SINK},
     {"CapturePCM", PA_ALSA_PROP_UCM_SOURCE},
@@ -1263,23 +1265,20 @@ static int ucm_create_mapping(
     return ret;
 }
 
-static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *device, const char *pre_tag) {
+static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *device) {
     pa_alsa_jack *j;
     const char *device_name;
-    char *name;
     const char *jack_control;
     char *alsa_name;
 
     pa_assert(ucm);
     pa_assert(device);
-    pa_assert(pre_tag);
 
     device_name = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_NAME);
-    name = pa_sprintf_malloc("%s%s", pre_tag, device_name);
 
     PA_LLIST_FOREACH(j, ucm->jacks)
-        if (pa_streq(j->name, name))
-            goto out;
+        if (pa_streq(j->name, device_name))
+            return j;
 
     jack_control = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_JACK_CONTROL);
     if (jack_control)
@@ -1287,12 +1286,10 @@ static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *d
     else
         alsa_name = pa_sprintf_malloc("%s Jack", device_name);
 
-    j = pa_alsa_jack_new(NULL, name, alsa_name);
+    j = pa_alsa_jack_new(NULL, device_name, alsa_name);
     pa_xfree(alsa_name);
     PA_LLIST_PREPEND(pa_alsa_jack, ucm->jacks, j);
 
-out:
-    pa_xfree(name);
     return j;
 }
 
@@ -1348,6 +1345,8 @@ static int ucm_create_profile(
         p->priority = 1000;
 
     PA_LLIST_FOREACH(dev, verb->devices) {
+        pa_alsa_jack *jack;
+
         name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
 
         sink = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_SINK);
@@ -1355,10 +1354,8 @@ static int ucm_create_profile(
 
         ucm_create_mapping(ucm, ps, p, dev, verb_name, name, sink, source);
 
-        if (sink)
-            dev->output_jack = ucm_get_jack(ucm, dev, PA_UCM_PRE_TAG_OUTPUT);
-        if (source)
-            dev->input_jack = ucm_get_jack(ucm, dev, PA_UCM_PRE_TAG_INPUT);
+        jack = ucm_get_jack(ucm, dev);
+        device_set_jack(dev, jack);
     }
 
     /* Now find modifiers that have their own PlaybackPCM and create
@@ -1447,11 +1444,8 @@ static void ucm_mapping_jack_probe(pa_alsa_mapping *m) {
         return;
 
     PA_IDXSET_FOREACH(dev, context->ucm_devices, idx) {
-        pa_alsa_jack *jack;
-        jack = m->direction == PA_ALSA_DIRECTION_OUTPUT ? dev->output_jack : dev->input_jack;
-        pa_assert (jack);
-        jack->has_control = pa_alsa_mixer_find(mixer_handle, jack->alsa_name, 0) != NULL;
-        pa_log_info("UCM jack %s has_control=%d", jack->name, jack->has_control);
+        dev->jack->has_control = pa_alsa_mixer_find(mixer_handle, dev->jack->alsa_name, 0) != NULL;
+        pa_log_info("UCM jack %s has_control=%d", dev->jack->name, dev->jack->has_control);
     }
 
     snd_mixer_close(mixer_handle);
@@ -1679,6 +1673,12 @@ void pa_alsa_ucm_roled_stream_end(pa_alsa_ucm_config *ucm, const char *role, pa_
             break;
         }
     }
+}
+
+static void device_set_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack) {
+    pa_assert(device);
+
+    device->jack = jack;
 }
 
 #else /* HAVE_ALSA_UCM */
