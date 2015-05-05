@@ -304,7 +304,7 @@ static void init_profile(struct userdata *u) {
             am->source = pa_alsa_source_new(u->module, u->modargs, __FILE__, u->card, am);
 }
 
-static void report_port_state(pa_device_port *p, struct userdata *u) {
+static pa_available_t calc_port_state(pa_device_port *p, struct userdata *u) {
     void *state;
     pa_alsa_jack *jack;
     pa_available_t pa = PA_AVAILABLE_UNKNOWN;
@@ -348,9 +348,13 @@ static void report_port_state(pa_device_port *p, struct userdata *u) {
           pa = cpa;
         }
     }
-
-    pa_device_port_set_available(p, pa);
+    return pa;
 }
+
+struct temp_port_avail {
+    pa_device_port *port;
+    pa_available_t avail;
+};
 
 static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
     struct userdata *u = snd_mixer_elem_get_callback_private(melem);
@@ -359,7 +363,7 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
     bool plugged_in;
     void *state;
     pa_alsa_jack *jack;
-    pa_device_port *port;
+    struct temp_port_avail *tp, *tports;
 
     pa_assert(u);
 
@@ -376,6 +380,8 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
 
     pa_log_debug("Jack '%s' is now %s", pa_strnull(snd_hctl_elem_get_name(elem)), plugged_in ? "plugged in" : "unplugged");
 
+    tports = tp = pa_xnew0(struct temp_port_avail, pa_hashmap_size(u->jacks)+1);
+
     PA_HASHMAP_FOREACH(jack, u->jacks, state)
         if (jack->melem == melem) {
             pa_alsa_jack_set_plugged_in(jack, plugged_in);
@@ -388,9 +394,22 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
 
             /* When not using UCM, we have to do the jack state -> port
              * availability mapping ourselves. */
-            pa_assert_se(port = jack->path->port);
-            report_port_state(port, u);
+            pa_assert_se(tp->port = jack->path->port);
+            tp->avail = calc_port_state(tp->port, u);
+            tp++;
         }
+
+    /* Report available ports before unavailable ones: in case port 1 becomes available when port 2 becomes unavailable,
+       this prevents an unnecessary switch port 1 -> port 3 -> port 2 */
+
+    for (tp = tports; tp->port; tp++)
+        if (tp->avail != PA_AVAILABLE_NO)
+           pa_device_port_set_available(tp->port, tp->avail);
+    for (tp = tports; tp->port; tp++)
+        if (tp->avail == PA_AVAILABLE_NO)
+           pa_device_port_set_available(tp->port, tp->avail);
+
+    pa_xfree(tports);
     return 0;
 }
 
