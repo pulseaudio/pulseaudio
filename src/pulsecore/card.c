@@ -41,14 +41,9 @@ pa_card_profile *pa_card_profile_new(const char *name, const char *description, 
 
     pa_assert(name);
 
-    c = pa_xmalloc(PA_ALIGN(sizeof(pa_card_profile)) + extra);
-    c->card = NULL;
+    c = pa_xmalloc0(PA_ALIGN(sizeof(pa_card_profile)) + extra);
     c->name = pa_xstrdup(name);
     c->description = pa_xstrdup(description);
-
-    c->priority = 0;
-    c->n_sinks = c->n_sources = 0;
-    c->max_sink_channels = c->max_source_channels = 0;
     c->available = PA_AVAILABLE_UNKNOWN;
 
     return c;
