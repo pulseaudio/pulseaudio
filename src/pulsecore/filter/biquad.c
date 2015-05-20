@@ -51,13 +51,13 @@ static void biquad_lowpass(struct biquad *bq, double cutoff)
 		double theta = M_PI * cutoff;
 		double sn = 0.5 * M_SQRT2 * sin(theta);
 		double beta = 0.5 * (1 - sn) / (1 + sn);
-		double gamma = (0.5 + beta) * cos(theta);
-		double alpha = 0.25 * (0.5 + beta - gamma);
+		double gamma_coeff = (0.5 + beta) * cos(theta);
+		double alpha = 0.25 * (0.5 + beta - gamma_coeff);
 
 		double b0 = 2 * alpha;
 		double b1 = 2 * 2 * alpha;
 		double b2 = 2 * alpha;
-		double a1 = 2 * -gamma;
+		double a1 = 2 * -gamma_coeff;
 		double a2 = 2 * beta;
 
 		set_coefficient(bq, b0, b1, b2, 1, a1, a2);
@@ -83,13 +83,13 @@ static void biquad_highpass(struct biquad *bq, double cutoff)
 		double theta = M_PI * cutoff;
 		double sn = 0.5 * M_SQRT2 * sin(theta);
 		double beta = 0.5 * (1 - sn) / (1 + sn);
-		double gamma = (0.5 + beta) * cos(theta);
-		double alpha = 0.25 * (0.5 + beta + gamma);
+		double gamma_coeff = (0.5 + beta) * cos(theta);
+		double alpha = 0.25 * (0.5 + beta + gamma_coeff);
 
 		double b0 = 2 * alpha;
 		double b1 = 2 * -2 * alpha;
 		double b2 = 2 * alpha;
-		double a1 = 2 * -gamma;
+		double a1 = 2 * -gamma_coeff;
 		double a2 = 2 * beta;
 
 		set_coefficient(bq, b0, b1, b2, 1, a1, a2);
