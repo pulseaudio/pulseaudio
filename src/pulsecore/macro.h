@@ -34,16 +34,6 @@
 #error "Please include config.h before including this file!"
 #endif
 
-#ifndef PA_LIKELY
-#ifdef __GNUC__
-#define PA_LIKELY(x) (__builtin_expect(!!(x),1))
-#define PA_UNLIKELY(x) (__builtin_expect(!!(x),0))
-#else
-#define PA_LIKELY(x) (x)
-#define PA_UNLIKELY(x) (x)
-#endif
-#endif
-
 /* Rounds down */
 static inline void* PA_ALIGN_PTR(const void *p) {
     return (void*) (((size_t) p) & ~(sizeof(void*) - 1));
@@ -98,34 +88,6 @@ static inline size_t PA_ALIGN(size_t l) {
 #else
 #define PA_MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
-
-#ifdef __GNUC__
-#define PA_CLAMP(x, low, high)                                          \
-    __extension__ ({                                                    \
-            typeof(x) _x = (x);                                         \
-            typeof(low) _low = (low);                                   \
-            typeof(high) _high = (high);                                \
-            ((_x > _high) ? _high : ((_x < _low) ? _low : _x));         \
-        })
-#else
-#define PA_CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
-#endif
-
-#ifdef __GNUC__
-#define PA_CLAMP_UNLIKELY(x, low, high)                                 \
-    __extension__ ({                                                    \
-            typeof(x) _x = (x);                                         \
-            typeof(low) _low = (low);                                   \
-            typeof(high) _high = (high);                                \
-            (PA_UNLIKELY(_x > _high) ? _high : (PA_UNLIKELY(_x < _low) ? _low : _x)); \
-        })
-#else
-#define PA_CLAMP_UNLIKELY(x, low, high) (PA_UNLIKELY((x) > (high)) ? (high) : (PA_UNLIKELY((x) < (low)) ? (low) : (x)))
-#endif
-
-/* We don't define a PA_CLAMP_LIKELY here, because it doesn't really
- * make sense: we cannot know if it is more likely that the values is
- * lower or greater than the boundaries.*/
 
 #ifdef __GNUC__
 #define PA_ROUND_UP(a, b)                       \
