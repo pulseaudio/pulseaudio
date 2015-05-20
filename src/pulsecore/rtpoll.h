@@ -98,8 +98,4 @@ pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio
 pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq_read(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q);
 pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq_write(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q);
 
-/* Requests the loop to exit. Will cause the next iteration of
- * pa_rtpoll_run() to return 0 */
-void pa_rtpoll_quit(pa_rtpoll *p);
-
 #endif
