@@ -52,7 +52,7 @@
 #include <pcreposix.h>
 #endif
 
-#ifdef HAVE_STRTOF_L
+#ifdef HAVE_STRTOD_L
 #include <locale.h>
 #endif
 
@@ -2401,7 +2401,7 @@ int pa_atol(const char *s, long *ret_l) {
     return 0;
 }
 
-#ifdef HAVE_STRTOF_L
+#ifdef HAVE_STRTOD_L
 static locale_t c_locale = NULL;
 
 static void c_locale_destroy(void) {
@@ -2431,7 +2431,7 @@ int pa_atod(const char *s, double *ret_d) {
 
     /* This should be locale independent */
 
-#ifdef HAVE_STRTOF_L
+#ifdef HAVE_STRTOD_L
 
     PA_ONCE_BEGIN {
 
