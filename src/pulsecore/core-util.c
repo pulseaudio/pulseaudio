@@ -54,6 +54,7 @@
 
 #ifdef HAVE_STRTOD_L
 #include <locale.h>
+#include <xlocale.h>
 #endif
 
 #ifdef HAVE_SCHED_H
