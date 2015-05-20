@@ -140,7 +140,7 @@ static void signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void
         case SIGTERM:
         default:
             pa_log_info("Exiting.");
-            m->quit(m, 1);
+            m->quit(m, 0);
             break;
     }
 }
