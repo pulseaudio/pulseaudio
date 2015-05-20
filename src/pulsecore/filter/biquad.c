@@ -22,6 +22,10 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#ifndef M_SQRT2
+#define M_SQRT2 1.41421356237309504880
+#endif
+
 static void set_coefficient(struct biquad *bq, double b0, double b1, double b2,
 			    double a0, double a1, double a2)
 {
@@ -44,10 +48,8 @@ static void biquad_lowpass(struct biquad *bq, double cutoff)
 		set_coefficient(bq, 1, 0, 0, 1, 0, 0);
 	} else if (cutoff > 0) {
 		/* Compute biquad coefficients for lowpass filter */
-		double d = sqrt(2);
-
 		double theta = M_PI * cutoff;
-		double sn = 0.5 * d * sin(theta);
+		double sn = 0.5 * M_SQRT2 * sin(theta);
 		double beta = 0.5 * (1 - sn) / (1 + sn);
 		double gamma = (0.5 + beta) * cos(theta);
 		double alpha = 0.25 * (0.5 + beta - gamma);
@@ -78,10 +80,8 @@ static void biquad_highpass(struct biquad *bq, double cutoff)
 		set_coefficient(bq, 0, 0, 0, 1, 0, 0);
 	} else if (cutoff > 0) {
 		/* Compute biquad coefficients for highpass filter */
-		double d = sqrt(2);
-
 		double theta = M_PI * cutoff;
-		double sn = 0.5 * d * sin(theta);
+		double sn = 0.5 * M_SQRT2 * sin(theta);
 		double beta = 0.5 * (1 - sn) / (1 + sn);
 		double gamma = (0.5 + beta) * cos(theta);
 		double alpha = 0.25 * (0.5 + beta + gamma);
