@@ -330,8 +330,6 @@ int main(int argc, char *argv[]) {
     if (!getenv("MAKE_CHECK"))
         pa_log_set_level(PA_LOG_INFO);
 
-    pa_assert_se(pool = pa_mempool_new(false, 0));
-
     a.channels = b.channels = 1;
     a.rate = b.rate = 44100;
     a.format = b.format = PA_SAMPLE_S16LE;
