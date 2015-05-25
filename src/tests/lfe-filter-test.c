@@ -37,6 +37,7 @@ static uint8_t *ori_sample_ptr;
 
 #define ONE_BLOCK_SAMPLES 4096
 #define TOTAL_SAMPLES 8192
+#define TOLERANT_VARIATION 1
 
 static void save_data_block(struct lfe_filter_test *lft, void *d, pa_memblock *blk) {
     uint8_t *dst = d, *src;
@@ -63,11 +64,12 @@ static pa_memblock* generate_data_block(struct lfe_filter_test *lft, int start) 
 static int compare_data_block(struct lfe_filter_test *lft, void *a, void *b) {
     int ret = 0;
     uint32_t i;
-    uint32_t fz = pa_frame_size(lft->ss);
-    uint8_t *r = a, *u = b;
+    uint16_t *r = a, *u = b;
 
-    for (i = 0; i < ONE_BLOCK_SAMPLES * fz; i++) {
-        if (*r++ != *u++) {
+    pa_assert(lft->ss->format == PA_SAMPLE_S16NE);
+
+    for (i = 0; i < ONE_BLOCK_SAMPLES; i++) {
+        if (abs(*r++ - *u++) > TOLERANT_VARIATION) {
             pa_log_error("lfe-filter-test: test failed, the output data in the position 0x%x of a block does not equal!\n", i);
             ret = -1;
             break;
