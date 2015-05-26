@@ -133,7 +133,7 @@ START_TEST (lfe_filter_test) {
 
     a.channels = 1;
     a.rate = 44100;
-    a.format = PA_SAMPLE_S16LE;
+    a.format = PA_SAMPLE_S16NE;
 
     lft.ss = &a;
     pa_assert_se(lft.pool = pa_mempool_new(false, 0));
