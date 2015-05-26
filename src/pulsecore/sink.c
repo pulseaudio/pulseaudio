@@ -645,7 +645,7 @@ void pa_sink_put(pa_sink* s) {
               || (s->base_volume == PA_VOLUME_NORM
                   && ((s->flags & PA_SINK_DECIBEL_VOLUME || (s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER)))));
     pa_assert(!(s->flags & PA_SINK_DECIBEL_VOLUME) || s->n_volume_steps == PA_VOLUME_NORM+1);
-    pa_assert(!(s->flags & PA_SINK_DYNAMIC_LATENCY) == (s->thread_info.fixed_latency != 0));
+    pa_assert(!(s->flags & PA_SINK_DYNAMIC_LATENCY) == !(s->thread_info.fixed_latency == 0));
     pa_assert(!(s->flags & PA_SINK_LATENCY) == !(s->monitor_source->flags & PA_SOURCE_LATENCY));
     pa_assert(!(s->flags & PA_SINK_DYNAMIC_LATENCY) == !(s->monitor_source->flags & PA_SOURCE_DYNAMIC_LATENCY));
 

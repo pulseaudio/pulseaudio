@@ -596,7 +596,7 @@ void pa_source_put(pa_source *s) {
               || (s->base_volume == PA_VOLUME_NORM
                   && ((s->flags & PA_SOURCE_DECIBEL_VOLUME || (s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)))));
     pa_assert(!(s->flags & PA_SOURCE_DECIBEL_VOLUME) || s->n_volume_steps == PA_VOLUME_NORM+1);
-    pa_assert(!(s->flags & PA_SOURCE_DYNAMIC_LATENCY) == (s->thread_info.fixed_latency != 0));
+    pa_assert(!(s->flags & PA_SOURCE_DYNAMIC_LATENCY) == !(s->thread_info.fixed_latency == 0));
 
     if (s->suspend_cause)
         pa_assert_se(source_set_state(s, PA_SOURCE_SUSPENDED) == 0);
