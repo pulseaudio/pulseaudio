@@ -712,7 +712,9 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/socket.h
 
 if OS_IS_WIN32
-libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += pulsecore/poll-win32.c pulsecore/poll.h
+libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += \
+		pulsecore/poll-win32.c pulsecore/poll.h \
+		pulsecore/winerrno.h
 else
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += pulsecore/poll-posix.c pulsecore/poll.h
 endif
