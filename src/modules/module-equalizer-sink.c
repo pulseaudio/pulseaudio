@@ -1055,9 +1055,6 @@ static bool sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (u->autoloaded)
-        return false;
-
     return u->sink != dest;
 }
 
@@ -1067,6 +1064,12 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
+
+    if (u->autoloaded) {
+        /* We were autoloaded, and don't support moving. Let's unload ourselves. */
+        pa_log_debug("Can't move autoloaded stream, unloading");
+        pa_module_unload_request(u->module, true);
+    }
 
     if (dest) {
         pa_sink_set_asyncmsgq(u->sink, dest->asyncmsgq);
