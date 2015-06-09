@@ -1412,7 +1412,7 @@ static bool source_output_may_move_to_cb(pa_source_output *o, pa_source *dest) {
     pa_assert_ctl_context();
     pa_assert_se(u = o->userdata);
 
-    if (u->dead || u->autoloaded)
+    if (u->dead)
         return false;
 
     return (u->source != dest) && (u->sink != dest->monitor_of);
@@ -1425,7 +1425,7 @@ static bool sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (u->dead || u->autoloaded)
+    if (u->dead)
         return false;
 
     return u->sink != dest;
@@ -1439,6 +1439,12 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     pa_assert_ctl_context();
     pa_assert_se(u = o->userdata);
 
+    if (u->autoloaded) {
+        /* We were autoloaded, and don't support moving. Let's unload ourselves. */
+        pa_log_debug("Can't move autoloaded streams, unloading");
+        pa_module_unload_request(u->module, true);
+    }
+
     if (dest) {
         pa_source_set_asyncmsgq(u->source, dest->asyncmsgq);
         pa_source_update_flags(u->source, PA_SOURCE_LATENCY|PA_SOURCE_DYNAMIC_LATENCY, dest->flags);
@@ -1450,7 +1456,10 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
         pa_proplist *pl;
 
         pl = pa_proplist_new();
-        y = pa_proplist_gets(u->sink_input->sink->proplist, PA_PROP_DEVICE_DESCRIPTION);
+        if (u->sink_input->sink)
+            y = pa_proplist_gets(u->sink_input->sink->proplist, PA_PROP_DEVICE_DESCRIPTION);
+        else
+            y = "<unknown>"; /* Probably in the middle of a move */
         z = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION);
         pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "%s (echo cancelled with %s)", z ? z : dest->name,
                 y ? y : u->sink_input->sink->name);
@@ -1467,6 +1476,12 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
+    if (u->autoloaded) {
+        /* We were autoloaded, and don't support moving. Let's unload ourselves. */
+        pa_log_debug("Can't move autoloaded streams, unloading");
+        pa_module_unload_request(u->module, true);
+    }
+
     if (dest) {
         pa_sink_set_asyncmsgq(u->sink, dest->asyncmsgq);
         pa_sink_update_flags(u->sink, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY, dest->flags);
@@ -1478,7 +1493,10 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
         pa_proplist *pl;
 
         pl = pa_proplist_new();
-        y = pa_proplist_gets(u->source_output->source->proplist, PA_PROP_DEVICE_DESCRIPTION);
+        if (u->source_output->source)
+            y = pa_proplist_gets(u->source_output->source->proplist, PA_PROP_DEVICE_DESCRIPTION);
+        else
+            y = "<unknown>"; /* Probably in the middle of a move */
         z = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION);
         pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "%s (echo cancelled with %s)", z ? z : dest->name,
                          y ? y : u->source_output->source->name);
