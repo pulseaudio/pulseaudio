@@ -531,7 +531,7 @@ void pa_source_put(pa_source *s) {
     pa_assert_ctl_context();
 
     pa_assert(s->state == PA_SOURCE_INIT);
-    pa_assert(!(s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER) || s->output_from_master);
+    pa_assert(!(s->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER) || pa_source_is_filter(s));
 
     /* The following fields must be initialized properly when calling _put() */
     pa_assert(s->asyncmsgq);
@@ -1170,6 +1170,13 @@ pa_source *pa_source_get_master(pa_source *s) {
     }
 
     return s;
+}
+
+/* Called from main context */
+bool pa_source_is_filter(pa_source *s) {
+    pa_source_assert_ref(s);
+
+    return (s->output_from_master != NULL);
 }
 
 /* Called from main context */

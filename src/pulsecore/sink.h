@@ -440,6 +440,8 @@ bool pa_sink_flat_volume_enabled(pa_sink *s);
 /* Get the master sink when sharing volumes */
 pa_sink *pa_sink_get_master(pa_sink *s);
 
+bool pa_sink_is_filter(pa_sink *s);
+
 /* Is the sink in passthrough mode? (that is, is there a passthrough sink input
  * connected to this sink? */
 bool pa_sink_is_passthrough(pa_sink *s);

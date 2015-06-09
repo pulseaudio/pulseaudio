@@ -371,6 +371,8 @@ bool pa_source_flat_volume_enabled(pa_source *s);
 /* Get the master source when sharing volumes */
 pa_source *pa_source_get_master(pa_source *s);
 
+bool pa_source_is_filter(pa_source *s);
+
 /* Is the source in passthrough mode? (that is, is this a monitor source for a sink
  * that has a passthrough sink input connected to it. */
 bool pa_source_is_passthrough(pa_source *s);

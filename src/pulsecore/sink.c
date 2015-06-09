@@ -580,7 +580,7 @@ void pa_sink_put(pa_sink* s) {
     pa_assert_ctl_context();
 
     pa_assert(s->state == PA_SINK_INIT);
-    pa_assert(!(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER) || s->input_to_master);
+    pa_assert(!(s->flags & PA_SINK_SHARE_VOLUME_WITH_MASTER) || pa_sink_is_filter(s));
 
     /* The following fields must be initialized properly when calling _put() */
     pa_assert(s->asyncmsgq);
@@ -1555,6 +1555,13 @@ pa_sink *pa_sink_get_master(pa_sink *s) {
     }
 
     return s;
+}
+
+/* Called from main context */
+bool pa_sink_is_filter(pa_sink *s) {
+    pa_sink_assert_ref(s);
+
+    return (s->input_to_master != NULL);
 }
 
 /* Called from main context */

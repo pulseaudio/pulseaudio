@@ -356,7 +356,7 @@ static void find_filters_for_module(struct userdata *u, pa_module *m, const char
 
     PA_IDXSET_FOREACH(sink, u->core->sinks, idx) {
         if (sink->module == m) {
-            pa_assert(sink->input_to_master != NULL);
+            pa_assert(pa_sink_is_filter(sink));
 
             fltr = filter_new(name, sink->input_to_master->sink, NULL);
             fltr->module_index = m->index;
@@ -368,7 +368,7 @@ static void find_filters_for_module(struct userdata *u, pa_module *m, const char
 
     PA_IDXSET_FOREACH(source, u->core->sources, idx) {
         if (source->module == m && !source->monitor_of) {
-            pa_assert(source->output_from_master != NULL);
+            pa_assert(pa_source_is_filter(source));
 
             if (!fltr) {
                 fltr = filter_new(name, NULL, source->output_from_master->source);
