@@ -61,12 +61,15 @@ static void load_null_sink_if_needed(pa_core *c, pa_sink *sink, struct userdata*
 
     pa_assert(c);
     pa_assert(u);
-    pa_assert(u->null_module == PA_INVALID_INDEX);
+
+    if (u->null_module != PA_INVALID_INDEX)
+        return; /* We've already got a null-sink loaded */
 
     /* Loop through all sinks and check to see if we have *any*
-     * sinks. Ignore the sink passed in (if it's not null) */
+     * sinks. Ignore the sink passed in (if it's not null), and
+     * don't count filter sinks. */
     PA_IDXSET_FOREACH(target, c->sinks, idx)
-        if (!sink || target != sink)
+        if (!sink || ((target != sink) && !pa_sink_is_filter(target)))
             break;
 
     if (target)
@@ -109,6 +112,10 @@ static pa_hook_result_t put_hook_callback(pa_core *c, pa_sink *sink, void* userd
 
     /* This is us detecting ourselves on load in a different way... just ignore this too. */
     if (sink->module && sink->module->index == u->null_module)
+        return PA_HOOK_OK;
+
+    /* We don't count filter sinks since they need a real sink */
+    if (pa_sink_is_filter(sink))
         return PA_HOOK_OK;
 
     pa_log_info("A new sink has been discovered. Unloading null-sink.");
