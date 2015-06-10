@@ -226,6 +226,7 @@ static pa_source* find_evacuation_source(pa_core *c, pa_source_output *o, pa_sou
         if (target == skip)
             continue;
 
+        /* We only move to a monitor source if we're already on one */
         if (skip && !target->monitor_of != !skip->monitor_of)
             continue;
 
