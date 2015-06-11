@@ -987,6 +987,14 @@ static void patch_buffer_attr(pa_stream *s, pa_buffer_attr *attr, pa_stream_flag
 
     if ((e = getenv("PULSE_LATENCY_MSEC"))) {
         uint32_t ms;
+        pa_sample_spec ss;
+
+        pa_sample_spec_init(&ss);
+
+        if (pa_sample_spec_valid(&s->sample_spec))
+            ss = s->sample_spec;
+        else if (s->n_formats == 1)
+            pa_format_info_to_sample_spec(s->req_formats[0], &ss, NULL);
 
         if (pa_atou(e, &ms) < 0 || ms <= 0)
             pa_log_debug("Failed to parse $PULSE_LATENCY_MSEC: %s", e);
@@ -994,7 +1002,7 @@ static void patch_buffer_attr(pa_stream *s, pa_buffer_attr *attr, pa_stream_flag
             pa_log_debug("Ignoring $PULSE_LATENCY_MSEC: %s (invalid sample spec)", e);
         else {
             attr->maxlength = (uint32_t) -1;
-            attr->tlength = pa_usec_to_bytes(ms * PA_USEC_PER_MSEC, &s->sample_spec);
+            attr->tlength = pa_usec_to_bytes(ms * PA_USEC_PER_MSEC, &ss);
             attr->minreq = (uint32_t) -1;
             attr->prebuf = (uint32_t) -1;
             attr->fragsize = attr->tlength;
