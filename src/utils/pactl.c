@@ -1953,7 +1953,7 @@ int main(int argc, char *argv[]) {
             action = SET_SINK_MUTE;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a sink name/index and a mute boolean"));
+                pa_log(_("You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"));
                 goto quit;
             }
 
@@ -1968,7 +1968,7 @@ int main(int argc, char *argv[]) {
             action = SET_SOURCE_MUTE;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a source name/index and a mute boolean"));
+                pa_log(_("You have to specify a source name/index and a mute action (0, 1, or 'toggle')"));
                 goto quit;
             }
 
@@ -1983,7 +1983,7 @@ int main(int argc, char *argv[]) {
             action = SET_SINK_INPUT_MUTE;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a sink input index and a mute boolean"));
+                pa_log(_("You have to specify a sink input index and a mute action (0, 1, or 'toggle')"));
                 goto quit;
             }
 
@@ -2001,7 +2001,7 @@ int main(int argc, char *argv[]) {
             action = SET_SOURCE_OUTPUT_MUTE;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a source output index and a mute boolean"));
+                pa_log(_("You have to specify a source output index and a mute action (0, 1, or 'toggle')"));
                 goto quit;
             }
 
