@@ -94,7 +94,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       different from starting PulseAudio without <opt>--start</opt>
       which would fail if PA is already running. PulseAudio is
       guaranteed to be fully initialized when this call
-      returns. Implies <opt>--daemon</opt>.</p></optdesc>
+      returns. Implies <opt>--daemonize</opt>.</p></optdesc>
     </option>
 
     <option>
