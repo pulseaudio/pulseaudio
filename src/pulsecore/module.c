@@ -313,7 +313,11 @@ void pa_module_unload_all(pa_core *c) {
     pa_xfree(indices);
 
     /* Just in case module unloading caused more modules to load */
+    PA_IDXSET_FOREACH(m, c->modules, state)
+        pa_log_warn("After module unload, module '%s' was still loaded!", m->name);
+    c->disallow_module_loading = 1;
     pa_idxset_remove_all(c->modules, (pa_free_cb_t) pa_module_free);
+    pa_assert(pa_idxset_isempty(c->modules));
 
     if (c->module_defer_unload_event) {
         c->mainloop->defer_free(c->module_defer_unload_event);
