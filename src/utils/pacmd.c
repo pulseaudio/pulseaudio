@@ -73,7 +73,7 @@ static void help(const char *argv0) {
     printf("%s %s %s\n", argv0, "set-(sink|source)-port", _("NAME|#N PORT"));
     printf("%s %s %s\n", argv0, "set-port-latency-offset", _("CARD-NAME|CARD-#N PORT OFFSET"));
     printf("%s %s %s\n", argv0, "set-log-target", _("TARGET"));
-    printf("%s %s %s\n", argv0, "set-log-level", _("NUMERIC LEVEL"));
+    printf("%s %s %s\n", argv0, "set-log-level", _("NUMERIC-LEVEL"));
     printf("%s %s %s\n", argv0, "set-log-meta", _("1|0"));
     printf("%s %s %s\n", argv0, "set-log-time", _("1|0"));
     printf("%s %s %s\n", argv0, "set-log-backtrace", _("FRAMES"));
