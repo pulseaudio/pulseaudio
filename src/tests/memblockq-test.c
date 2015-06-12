@@ -70,7 +70,7 @@ static void dump(pa_memblockq *bq, int n) {
     buf = pa_strbuf_new();
     dump_chunk(&out, buf);
     pa_memblock_unref(out.memblock);
-    str = pa_strbuf_tostring_free(buf);
+    str = pa_strbuf_to_string_free(buf);
     fail_unless(pa_streq(str, fixed[n]));
     pa_xfree(str);
     fprintf(stderr, "<\n");
@@ -87,7 +87,7 @@ static void dump(pa_memblockq *bq, int n) {
         pa_memblock_unref(out.memblock);
         pa_memblockq_drop(bq, out.length);
     }
-    str = pa_strbuf_tostring_free(buf);
+    str = pa_strbuf_to_string_free(buf);
     fail_unless(pa_streq(str, manual[n]));
     pa_xfree(str);
     fprintf(stderr, "<\n");

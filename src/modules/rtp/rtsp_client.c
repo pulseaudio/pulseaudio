@@ -205,7 +205,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
         /* End of headers */
         /* We will have a header left from our looping iteration, so add it in :) */
         if (c->last_header) {
-            char *tmp = pa_strbuf_tostring_free(c->header_buffer);
+            char *tmp = pa_strbuf_to_string_free(c->header_buffer);
             /* This is not a continuation header so let's dump it into our proplist */
             pa_headerlist_puts(c->response_headers, c->last_header, tmp);
             pa_xfree(tmp);
@@ -233,7 +233,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     }
 
     if (c->last_header) {
-        char *tmp = pa_strbuf_tostring_free(c->header_buffer);
+        char *tmp = pa_strbuf_to_string_free(c->header_buffer);
         /* This is not a continuation header so let's dump the full
           header/value into our proplist */
         pa_headerlist_puts(c->response_headers, c->last_header, tmp);
@@ -432,7 +432,7 @@ static int rtsp_exec(pa_rtsp_client* c, const char* cmd,
     }
 
     /* Our packet is created... now we can send it :) */
-    hdrs = pa_strbuf_tostring_free(buf);
+    hdrs = pa_strbuf_to_string_free(buf);
     /*pa_log_debug("Submitting request:");
     pa_log_debug(hdrs);*/
     pa_ioline_puts(c->ioline, hdrs);

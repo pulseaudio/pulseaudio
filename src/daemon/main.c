@@ -1082,7 +1082,7 @@ int main(int argc, char *argv[]) {
         if (r >= 0)
             r = pa_cli_command_execute(c, conf->script_commands, buf, &conf->fail);
 
-        pa_log_error("%s", s = pa_strbuf_tostring_free(buf));
+        pa_log_error("%s", s = pa_strbuf_to_string_free(buf));
         pa_xfree(s);
 
         if (r < 0 && conf->fail) {

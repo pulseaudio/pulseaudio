@@ -152,7 +152,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     else
         pa_cli_command_execute_line(c->core, s, buf, &c->fail);
     c->defer_kill--;
-    pa_ioline_puts(line, p = pa_strbuf_tostring_free(buf));
+    pa_ioline_puts(line, p = pa_strbuf_to_string_free(buf));
     pa_xfree(p);
 
     if (c->kill_requested) {

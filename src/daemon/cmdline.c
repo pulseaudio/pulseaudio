@@ -395,7 +395,7 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
     }
 
     pa_xfree(conf->script_commands);
-    conf->script_commands = pa_strbuf_tostring_free(buf);
+    conf->script_commands = pa_strbuf_to_string_free(buf);
 
     *d = optind;
 

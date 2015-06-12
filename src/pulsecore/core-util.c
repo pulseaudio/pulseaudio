@@ -3202,7 +3202,7 @@ char *pa_replace(const char*s, const char*a, const char *b) {
 
     pa_strbuf_puts(sb, s);
 
-    return pa_strbuf_tostring_free(sb);
+    return pa_strbuf_to_string_free(sb);
 }
 
 char *pa_escape(const char *p, const char *chars) {
@@ -3224,7 +3224,7 @@ char *pa_escape(const char *p, const char *chars) {
         pa_strbuf_putc(buf, *s);
     }
 
-    return pa_strbuf_tostring_free(buf);
+    return pa_strbuf_to_string_free(buf);
 }
 
 char *pa_unescape(char *p) {

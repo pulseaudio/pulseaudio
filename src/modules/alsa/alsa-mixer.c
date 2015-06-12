@@ -4273,7 +4273,7 @@ static int profile_verify(pa_alsa_profile *p) {
                 pa_strbuf_printf(sb, _("%s Input"), m->description);
             }
 
-        p->description = pa_strbuf_tostring_free(sb);
+        p->description = pa_strbuf_to_string_free(sb);
     }
 
     return 0;
@@ -4333,7 +4333,7 @@ void pa_alsa_decibel_fix_dump(pa_alsa_decibel_fix *db_fix) {
         for (i = 0; i < nsteps; ++i)
             pa_strbuf_printf(buf, "[%li]:%0.2f ", i + db_fix->min_step, db_fix->db_values[i] / 100.0);
 
-        db_values = pa_strbuf_tostring_free(buf);
+        db_values = pa_strbuf_to_string_free(buf);
     }
 
     pa_log_debug("Decibel fix %s, min_step=%li, max_step=%li, db_values=%s",

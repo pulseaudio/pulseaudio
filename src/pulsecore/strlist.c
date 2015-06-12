@@ -50,7 +50,7 @@ pa_strlist* pa_strlist_prepend(pa_strlist *l, const char *s) {
     return n;
 }
 
-char *pa_strlist_tostring(pa_strlist *l) {
+char *pa_strlist_to_string(pa_strlist *l) {
     int first = 1;
     pa_strbuf *b;
 
@@ -62,7 +62,7 @@ char *pa_strlist_tostring(pa_strlist *l) {
         pa_strbuf_puts(b, ITEM_TO_TEXT(l));
     }
 
-    return pa_strbuf_tostring_free(b);
+    return pa_strbuf_to_string_free(b);
 }
 
 pa_strlist* pa_strlist_remove(pa_strlist *l, const char *s) {

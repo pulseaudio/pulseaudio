@@ -83,7 +83,7 @@ static void publish_servers(struct userdata *u, pa_strlist *l) {
         char *s;
 
         l = pa_strlist_reverse(l);
-        s = pa_strlist_tostring(l);
+        s = pa_strlist_to_string(l);
         pa_strlist_reverse(l);
 
         pa_x11_set_prop(pa_x11_wrapper_get_xcb_connection(u->x11_wrapper), screen, "PULSE_SERVER", s);

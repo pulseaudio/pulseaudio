@@ -69,7 +69,7 @@ void pa_strbuf_free(pa_strbuf *sb) {
 
 /* Make a C string from the string buffer. The caller has to free
  * string with pa_xfree(). */
-char *pa_strbuf_tostring(pa_strbuf *sb) {
+char *pa_strbuf_to_string(pa_strbuf *sb) {
     char *t, *e;
     struct chunk *c;
 
@@ -91,12 +91,12 @@ char *pa_strbuf_tostring(pa_strbuf *sb) {
     return t;
 }
 
-/* Combination of pa_strbuf_free() and pa_strbuf_tostring() */
-char *pa_strbuf_tostring_free(pa_strbuf *sb) {
+/* Combination of pa_strbuf_free() and pa_strbuf_to_string() */
+char *pa_strbuf_to_string_free(pa_strbuf *sb) {
     char *t;
 
     pa_assert(sb);
-    t = pa_strbuf_tostring(sb);
+    t = pa_strbuf_to_string(sb);
     pa_strbuf_free(sb);
 
     return t;

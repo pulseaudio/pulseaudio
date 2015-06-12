@@ -1149,7 +1149,7 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed)
         pa_strbuf_puts(s, "\n");
     }
 
-    pa_log_debug("Channel matrix:\n%s", t = pa_strbuf_tostring_free(s));
+    pa_log_debug("Channel matrix:\n%s", t = pa_strbuf_to_string_free(s));
     pa_xfree(t);
 
     /* initialize the remapping function */

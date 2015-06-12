@@ -68,7 +68,7 @@ char *pa_module_list_to_string(pa_core *c) {
         pa_xfree(t);
     }
 
-    return pa_strbuf_tostring_free(s);
+    return pa_strbuf_to_string_free(s);
 }
 
 char *pa_client_list_to_string(pa_core *c) {
@@ -98,7 +98,7 @@ char *pa_client_list_to_string(pa_core *c) {
         pa_xfree(t);
     }
 
-    return pa_strbuf_tostring_free(s);
+    return pa_strbuf_to_string_free(s);
 }
 
 static const char *available_to_string(pa_available_t a) {
@@ -193,7 +193,7 @@ char *pa_card_list_to_string(pa_core *c) {
         append_port_list(s, card->ports);
     }
 
-    return pa_strbuf_tostring_free(s);
+    return pa_strbuf_to_string_free(s);
 }
 
 static const char *sink_state_to_string(pa_sink_state_t state) {
@@ -345,7 +345,7 @@ char *pa_sink_list_to_string(pa_core *c) {
                     sink->active_port->name);
     }
 
-    return pa_strbuf_tostring_free(s);
+    return pa_strbuf_to_string_free(s);
 }
 
 char *pa_source_list_to_string(pa_core *c) {
@@ -460,7 +460,7 @@ char *pa_source_list_to_string(pa_core *c) {
                     source->active_port->name);
     }
 
-    return pa_strbuf_tostring_free(s);
+    return pa_strbuf_to_string_free(s);
 }
 
 char *pa_source_output_list_to_string(pa_core *c) {
@@ -557,7 +557,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
         pa_xfree(t);
     }
 
-    return pa_strbuf_tostring_free(s);
+    return pa_strbuf_to_string_free(s);
 }
 
 char *pa_sink_input_list_to_string(pa_core *c) {
@@ -653,7 +653,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
         pa_xfree(t);
     }
 
-    return pa_strbuf_tostring_free(s);
+    return pa_strbuf_to_string_free(s);
 }
 
 char *pa_scache_list_to_string(pa_core *c) {
@@ -712,7 +712,7 @@ char *pa_scache_list_to_string(pa_core *c) {
         }
     }
 
-    return pa_strbuf_tostring_free(s);
+    return pa_strbuf_to_string_free(s);
 }
 
 char *pa_full_status_string(pa_core *c) {
@@ -755,5 +755,5 @@ char *pa_full_status_string(pa_core *c) {
         pa_xfree(t);
     }
 
-    return pa_strbuf_tostring_free(s);
+    return pa_strbuf_to_string_free(s);
 }

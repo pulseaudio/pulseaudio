@@ -804,5 +804,5 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
 
     pa_xfree(log_target);
 
-    return pa_strbuf_tostring_free(s);
+    return pa_strbuf_to_string_free(s);
 }

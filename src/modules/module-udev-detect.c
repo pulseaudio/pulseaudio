@@ -421,7 +421,7 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
     if (u->tsched_buffer_size_valid)
         pa_strbuf_printf(args_buf, " tsched_buffer_size=%" PRIu32, u->tsched_buffer_size);
 
-    d->args = pa_strbuf_tostring_free(args_buf);
+    d->args = pa_strbuf_to_string_free(args_buf);
 
     pa_hashmap_put(u->devices, d->path, d);
 

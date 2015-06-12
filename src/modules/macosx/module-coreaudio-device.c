@@ -411,7 +411,7 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
         pa_strbuf_puts(strbuf, tmp);
     }
 
-    ca_sink->name = pa_strbuf_tostring_free(strbuf);
+    ca_sink->name = pa_strbuf_to_string_free(strbuf);
 
     pa_log_debug("Stream name is >%s<", ca_sink->name);
 
@@ -529,7 +529,7 @@ static int ca_device_create_source(pa_module *m, AudioBuffer *buf, int channel_i
         pa_strbuf_puts(strbuf, tmp);
     }
 
-    ca_source->name = pa_strbuf_tostring_free(strbuf);
+    ca_source->name = pa_strbuf_to_string_free(strbuf);
 
     pa_log_debug("Stream name is >%s<", ca_source->name);
 

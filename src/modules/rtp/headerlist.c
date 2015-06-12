@@ -159,7 +159,7 @@ char *pa_headerlist_to_string(pa_headerlist *p) {
             pa_strbuf_printf(buf, "%s: %s\r\n", key, v);
     }
 
-    return pa_strbuf_tostring_free(buf);
+    return pa_strbuf_to_string_free(buf);
 }
 
 int pa_headerlist_contains(pa_headerlist *p, const char *key) {

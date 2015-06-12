@@ -294,7 +294,7 @@ static char *escape_html(const char *t) {
     if (p > e)
         pa_strbuf_putsn(sb, e, p-e);
 
-    return pa_strbuf_tostring_free(sb);
+    return pa_strbuf_to_string_free(sb);
 }
 
 static void http_response(

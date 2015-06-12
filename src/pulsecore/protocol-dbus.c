@@ -257,7 +257,7 @@ static void update_introspection(struct object_entry *oe) {
     pa_strbuf_puts(buf, "</node>\n");
 
     pa_xfree(oe->introspection);
-    oe->introspection = pa_strbuf_tostring_free(buf);
+    oe->introspection = pa_strbuf_to_string_free(buf);
 }
 
 /* Return value of find_handler() and its subfunctions. */
@@ -689,7 +689,7 @@ static pa_hashmap *extract_method_signatures(pa_hashmap *method_handlers) {
                 pa_strbuf_puts(sig_buf, handler->arguments[i].type);
         }
 
-        pa_hashmap_put(signatures, (char *) handler->method_name, pa_strbuf_tostring_free(sig_buf));
+        pa_hashmap_put(signatures, (char *) handler->method_name, pa_strbuf_to_string_free(sig_buf));
     }
 
     return signatures;

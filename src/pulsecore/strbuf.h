@@ -27,8 +27,8 @@ typedef struct pa_strbuf pa_strbuf;
 
 pa_strbuf *pa_strbuf_new(void);
 void pa_strbuf_free(pa_strbuf *sb);
-char *pa_strbuf_tostring(pa_strbuf *sb);
-char *pa_strbuf_tostring_free(pa_strbuf *sb);
+char *pa_strbuf_to_string(pa_strbuf *sb);
+char *pa_strbuf_to_string_free(pa_strbuf *sb);
 
 size_t pa_strbuf_printf(pa_strbuf *sb, const char *format, ...)  PA_GCC_PRINTF_ATTR(2,3);
 void pa_strbuf_puts(pa_strbuf *sb, const char *t);

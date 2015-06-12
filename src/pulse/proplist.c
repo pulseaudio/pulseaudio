@@ -435,7 +435,7 @@ char *pa_proplist_to_string_sep(pa_proplist *p, const char *sep) {
         }
     }
 
-    return pa_strbuf_tostring_free(buf);
+    return pa_strbuf_to_string_free(buf);
 }
 
 char *pa_proplist_to_string(pa_proplist *p) {

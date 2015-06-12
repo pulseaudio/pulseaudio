@@ -20,7 +20,7 @@ START_TEST (strlist_test) {
     l = pa_strlist_prepend(l, "b");
     l = pa_strlist_prepend(l, "a");
 
-    t = pa_strlist_tostring(l);
+    t = pa_strlist_to_string(l);
     pa_strlist_free(l);
 
     fprintf(stderr, "1: %s\n", t);
@@ -29,7 +29,7 @@ START_TEST (strlist_test) {
     l = pa_strlist_parse(t);
     pa_xfree(t);
 
-    t = pa_strlist_tostring(l);
+    t = pa_strlist_to_string(l);
     fprintf(stderr, "2: %s\n", t);
     fail_unless(pa_streq(t, "a b c d e"));
     pa_xfree(t);
@@ -41,7 +41,7 @@ START_TEST (strlist_test) {
 
     l = pa_strlist_remove(l, "c");
 
-    t = pa_strlist_tostring(l);
+    t = pa_strlist_to_string(l);
     fprintf(stderr, "4: %s\n", t);
     fail_unless(pa_streq(t, "b d e"));
     pa_xfree(t);

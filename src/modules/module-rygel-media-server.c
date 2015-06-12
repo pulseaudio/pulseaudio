@@ -937,7 +937,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             }
 
             pa_strbuf_puts(sb, CONTAINER_INTROSPECT_XML_POSTFIX);
-            xml = pa_strbuf_tostring_free(sb);
+            xml = pa_strbuf_to_string_free(sb);
 
             pa_assert_se(r = dbus_message_new_method_return(m));
             pa_assert_se(dbus_message_append_args(r, DBUS_TYPE_STRING, &xml, DBUS_TYPE_INVALID));

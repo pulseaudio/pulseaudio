@@ -29,7 +29,7 @@ pa_strlist* pa_strlist_prepend(pa_strlist *l, const char *s);
 pa_strlist* pa_strlist_remove(pa_strlist *l, const char *s);
 
 /* Make a whitespace separated string of all server strings. Returned memory has to be freed with pa_xfree() */
-char *pa_strlist_tostring(pa_strlist *l);
+char *pa_strlist_to_string(pa_strlist *l);
 
 /* Free the entire list */
 void pa_strlist_free(pa_strlist *l);
