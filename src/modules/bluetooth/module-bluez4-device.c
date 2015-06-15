@@ -75,7 +75,6 @@ PA_MODULE_USAGE(
         "rate=<sample rate> "
         "channels=<number of channels> "
         "path=<device object path> "
-        "auto_connect=<automatically connect?> "
         "sco_sink=<SCO over PCM sink name> "
         "sco_source=<SCO over PCM source name>");
 
@@ -94,7 +93,6 @@ static const char* const valid_modargs[] = {
     "rate",
     "channels",
     "path",
-    "auto_connect",
     "sco_sink",
     "sco_source",
     NULL
@@ -148,7 +146,6 @@ struct userdata {
     pa_hook_slot *transport_speaker_changed_slot;
 
     pa_bluez4_discovery *discovery;
-    bool auto_connect;
 
     char *output_port_name;
     char *input_port_name;
@@ -2457,12 +2454,6 @@ int pa__init(pa_module *m) {
 
     if (pa_modargs_get_sample_rate(ma, &u->sample_spec.rate) < 0) {
         pa_log_error("Failed to get rate from module arguments");
-        goto fail;
-    }
-
-    u->auto_connect = true;
-    if (pa_modargs_get_value_boolean(ma, "auto_connect", &u->auto_connect)) {
-        pa_log("Failed to parse auto_connect= argument");
         goto fail;
     }
 
