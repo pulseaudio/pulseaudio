@@ -567,7 +567,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, bool polled, bo
             if (polled)
                 PA_ONCE_BEGIN {
                     char *dn = pa_alsa_get_driver_name_by_pcm(u->pcm_handle);
-                    pa_log(_("ALSA woke us up to write new data to the device, but there was actually nothing to write!\n"
+                    pa_log(_("ALSA woke us up to write new data to the device, but there was actually nothing to write.\n"
                              "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
                              "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."),
                            pa_strnull(dn));

@@ -438,7 +438,7 @@ static void stream_event_callback(pa_stream *s, const char *name, pa_proplist *p
             pa_operation_unref(pa_stream_cork(s, 0, NULL, NULL));
         }
         if (cork_requests == 0)
-            pa_log(_("Warning: Received more uncork requests than cork requests!"));
+            pa_log(_("Warning: Received more uncork requests than cork requests."));
         else
             cork_requests--;
     }

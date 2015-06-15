@@ -709,18 +709,18 @@ int main(int argc, char *argv[]) {
     }
 
     if (conf->system_instance && !conf->disallow_exit)
-        pa_log_warn(_("Running in system mode, but --disallow-exit not set!"));
+        pa_log_warn(_("Running in system mode, but --disallow-exit not set."));
 
     if (conf->system_instance && !conf->disallow_module_loading)
-        pa_log_warn(_("Running in system mode, but --disallow-module-loading not set!"));
+        pa_log_warn(_("Running in system mode, but --disallow-module-loading not set."));
 
     if (conf->system_instance && !conf->disable_shm) {
-        pa_log_notice(_("Running in system mode, forcibly disabling SHM mode!"));
+        pa_log_notice(_("Running in system mode, forcibly disabling SHM mode."));
         conf->disable_shm = true;
     }
 
     if (conf->system_instance && conf->exit_idle_time >= 0) {
-        pa_log_notice(_("Running in system mode, forcibly disabling exit idle time!"));
+        pa_log_notice(_("Running in system mode, forcibly disabling exit idle time."));
         conf->exit_idle_time = -1;
     }
 
@@ -998,9 +998,9 @@ int main(int argc, char *argv[]) {
     pa_disable_sigpipe();
 
     if (pa_rtclock_hrtimer())
-        pa_log_info("Fresh high-resolution timers available! Bon appetit!");
+        pa_log_info("Fresh high-resolution timers available! Bon appetit.");
     else
-        pa_log_info("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!");
+        pa_log_info("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled.");
 
     if (conf->lock_memory) {
 #if defined(HAVE_SYS_MMAN_H) && !defined(__ANDROID__)
