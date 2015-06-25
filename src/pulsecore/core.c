@@ -51,7 +51,7 @@ static int core_process_msg(pa_msgobject *o, int code, void *userdata, int64_t o
     switch (code) {
 
         case PA_CORE_MESSAGE_UNLOAD_MODULE:
-            pa_module_unload(c, userdata, true);
+            pa_module_unload(userdata, true);
             return 0;
 
         default:

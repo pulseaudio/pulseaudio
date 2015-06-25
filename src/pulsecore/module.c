@@ -259,14 +259,13 @@ static void pa_module_free(pa_module *m) {
     pa_xfree(m);
 }
 
-void pa_module_unload(pa_core *c, pa_module *m, bool force) {
-    pa_assert(c);
+void pa_module_unload(pa_module *m, bool force) {
     pa_assert(m);
 
     if (m->core->disallow_module_loading && !force)
         return;
 
-    if (!(m = pa_idxset_remove_by_data(c->modules, m, NULL)))
+    if (!(m = pa_idxset_remove_by_data(m->core->modules, m, NULL)))
         return;
 
     pa_module_free(m);
@@ -334,7 +333,7 @@ static void defer_cb(pa_mainloop_api*api, pa_defer_event *e, void *userdata) {
     api->defer_enable(e, 0);
 
     while ((m = pa_hashmap_first(c->modules_pending_unload)))
-        pa_module_unload(c, m, true);
+        pa_module_unload(m, true);
 }
 
 void pa_module_unload_request(pa_module *m, bool force) {

@@ -2414,7 +2414,7 @@ static pa_hook_result_t discovery_hook_cb(pa_bluez4_discovery *y, const pa_bluez
     else
         return PA_HOOK_OK;
 
-    pa_module_unload(u->core, u->module, true);
+    pa_module_unload(u->module, true);
 
     return PA_HOOK_OK;
 }

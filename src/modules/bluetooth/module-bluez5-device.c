@@ -2035,7 +2035,7 @@ static pa_hook_result_t device_connection_changed_cb(pa_bluetooth_discovery *y, 
         return PA_HOOK_OK;
 
     pa_log_debug("Unloading module for device %s", d->path);
-    pa_module_unload(u->core, u->module, true);
+    pa_module_unload(u->module, true);
 
     return PA_HOOK_OK;
 }

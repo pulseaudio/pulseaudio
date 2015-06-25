@@ -643,7 +643,7 @@ static int avahi_process_msg(pa_msgobject *o, int code, void *data, int64_t offs
             break;
 
         case AVAHI_MESSAGE_SHUTDOWN_START:
-            pa_module_unload(u->core, u->module, true);
+            pa_module_unload(u->module, true);
             break;
 
         default:
