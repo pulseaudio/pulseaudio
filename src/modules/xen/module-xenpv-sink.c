@@ -591,6 +591,7 @@ static int alloc_gref(struct ioctl_gntalloc_alloc_gref *gref_, void **addr) {
     dev_fd = open("/dev/xen/gntdev", O_RDWR);
     if (dev_fd<=0) {
         perror("Could not open /dev/xen/gntdev! Have you loaded the xen_gntdev module?");
+        close(alloc_fd);
         return 1;
     }
 
@@ -602,7 +603,7 @@ static int alloc_gref(struct ioctl_gntalloc_alloc_gref *gref_, void **addr) {
     rv = ioctl(alloc_fd, IOCTL_GNTALLOC_ALLOC_GREF, gref_);
     if (rv) {
         pa_log_debug("Xen audio sink: src-add error: %s (rv=%d)\n", strerror(errno), rv);
-        return rv;
+        goto finish;
     }
 
     /*addr=NULL(default),length, prot,             flags,    fd,         offset*/
@@ -610,7 +611,7 @@ static int alloc_gref(struct ioctl_gntalloc_alloc_gref *gref_, void **addr) {
     if (*addr == MAP_FAILED) {
         *addr = 0;
         pa_log_debug("Xen audio sink: mmap'ing shared page failed\n");
-        return rv;
+        goto finish;
     }
 
     pa_log_debug("Xen audio sink: Got grant #%d. Mapped locally at %Ld=%p\n",
@@ -626,7 +627,7 @@ static int alloc_gref(struct ioctl_gntalloc_alloc_gref *gref_, void **addr) {
        if (rv)
        pa_log_debug("gntalloc unmap notify error: %s (rv=%d)\n", strerror(errno), rv);
        */
-
+finish:
     close(alloc_fd);
     close(dev_fd);
 
