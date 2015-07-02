@@ -1201,6 +1201,9 @@ static int dsp_open(int flags, int *_errno) {
         i->io_flags = PA_IO_EVENT_INPUT | PA_IO_EVENT_OUTPUT;
         break;
     default:
+        pa_threaded_mainloop_unlock(i->mainloop);
+        fd_info_unref(i);
+        *_errno = EIO;
         return -1;
     }
 
