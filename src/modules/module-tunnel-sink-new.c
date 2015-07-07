@@ -280,11 +280,24 @@ static void stream_changed_buffer_attr_cb(pa_stream *stream, void *userdata) {
 
     bufferattr = pa_stream_get_buffer_attr(u->stream);
     pa_sink_set_max_request_within_thread(u->sink, bufferattr->tlength);
+
+    pa_log_debug("Server reports buffer attrs changed. tlength now at %lu.",
+                 (unsigned long) bufferattr->tlength);
 }
 
 /* called after we requested a change of the stream buffer_attr */
 static void stream_set_buffer_attr_cb(pa_stream *stream, int success, void *userdata) {
     stream_changed_buffer_attr_cb(stream, userdata);
+}
+
+/* called when the server experiences an underrun of our buffer */
+static void stream_underflow_callback(pa_stream *stream, void *userdata) {
+    pa_log_info("Server signalled buffer underrun.");
+}
+
+/* called when the server experiences an overrun of our buffer */
+static void stream_overflow_callback(pa_stream *stream, void *userdata) {
+    pa_log_info("Server signalled buffer overrun.");
 }
 
 static void context_state_cb(pa_context *c, void *userdata) {
@@ -333,8 +346,12 @@ static void context_state_cb(pa_context *c, void *userdata) {
             reset_bufferattr(&bufferattr);
             bufferattr.tlength = pa_usec_to_bytes(requested_latency, &u->sink->sample_spec);
 
+            pa_log_debug("tlength requested at %lu.", (unsigned long) bufferattr.tlength);
+
             pa_stream_set_state_callback(u->stream, stream_state_cb, userdata);
             pa_stream_set_buffer_attr_callback(u->stream, stream_changed_buffer_attr_cb, userdata);
+            pa_stream_set_underflow_callback(u->stream, stream_underflow_callback, userdata);
+            pa_stream_set_overflow_callback(u->stream, stream_overflow_callback, userdata);
             if (pa_stream_connect_playback(u->stream,
                                            u->remote_sink_name,
                                            &bufferattr,
@@ -382,6 +399,9 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
             case PA_STREAM_READY:
                 if (pa_stream_get_buffer_attr(u->stream)->tlength == nbytes)
                     break;
+
+                pa_log_debug("Requesting new buffer attrs. tlength requested at %lu.",
+                             (unsigned long) nbytes);
 
                 reset_bufferattr(&bufferattr);
                 bufferattr.tlength = nbytes;
