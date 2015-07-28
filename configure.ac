@@ -1436,17 +1436,12 @@ AC_ARG_WITH(
 
 AC_SUBST(udevrulesdir)
 
-# PKG_CHECK_VAR available with pkg-config 0.28
-AC_DEFUN([PKG_CHECK_VAR],
-        [AC_REQUIRE([PKG_PROG_PKG_CONFIG])dnl
-        AC_ARG_VAR([$1], [value of $3 for $2, overriding pkg-config])dnl
-        _PKG_CONFIG([$1], [variable="][$3]["], [$2])
-        AS_VAR_COPY([$1], [pkg_cv_][$1])
-        AS_VAR_IF([$1], [""], [$5], [$4])dnl
-        ])
-
-PKG_CHECK_VAR(bashcompletiondir, [bash-completion], [completionsdir], ,
-    bashcompletiondir="${sysconfdir}/bash_completion.d")
+AC_ARG_WITH([bash-completion-dir],
+        AS_HELP_STRING([--with-bash-completion-dir=DIR], [Directory for bash completion files]),
+        [bashcompletiondir=$withval], [bashcompletiondir=$($PKG_CONFIG --variable=completionsdir bash-completion)])
+if test "x$bashcompletionsdir" = ""; then
+	bashcompletiondir="${datadir}/bash-completion/completions"
+fi
 
 AC_SUBST(bashcompletiondir)
 
