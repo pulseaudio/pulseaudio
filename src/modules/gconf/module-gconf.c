@@ -56,7 +56,7 @@ struct module_item {
     uint32_t index;
 };
 
-struct module_info {
+struct pa_module_info {
     struct userdata *userdata;
     char *name;
 
@@ -129,7 +129,7 @@ static char *read_string(struct userdata *u) {
     }
 }
 
-static void unload_one_module(struct module_info *m, unsigned i) {
+static void unload_one_module(struct pa_module_info *m, unsigned i) {
     struct userdata *u;
 
     pa_assert(m);
@@ -148,7 +148,7 @@ static void unload_one_module(struct module_info *m, unsigned i) {
     m->items[i].name = m->items[i].args = NULL;
 }
 
-static void unload_all_modules(struct module_info *m) {
+static void unload_all_modules(struct pa_module_info *m) {
     unsigned i;
 
     pa_assert(m);
@@ -160,7 +160,7 @@ static void unload_all_modules(struct module_info *m) {
 }
 
 static void load_module(
-        struct module_info *m,
+        struct pa_module_info *m,
         unsigned i,
         const char *name,
         const char *args,
@@ -199,7 +199,7 @@ static void load_module(
 }
 
 static void module_info_free(void *p) {
-    struct module_info *m = p;
+    struct pa_module_info *m = p;
 
     pa_assert(m);
 
@@ -227,14 +227,14 @@ static int handle_event(struct userdata *u) {
 
             case '+': {
                 char *name;
-                struct module_info *m;
+                struct pa_module_info *m;
                 unsigned i, j;
 
                 if (!(name = read_string(u)))
                     goto fail;
 
                 if (!(m = pa_hashmap_get(u->module_infos, name))) {
-                    m = pa_xnew(struct module_info, 1);
+                    m = pa_xnew(struct pa_module_info, 1);
                     m->userdata = u;
                     m->name = name;
                     m->n_items = 0;

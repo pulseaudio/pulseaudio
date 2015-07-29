@@ -58,13 +58,13 @@ struct userdata {
     pa_hashmap *hashmap;
 };
 
-struct module_info {
+struct pa_module_info {
     char *path;
     uint32_t module;
 };
 
 static pa_hook_result_t load_module_for_device(pa_bluez4_discovery *y, const pa_bluez4_device *d, struct userdata *u) {
-    struct module_info *mi;
+    struct pa_module_info *mi;
 
     pa_assert(u);
     pa_assert(d);
@@ -97,7 +97,7 @@ static pa_hook_result_t load_module_for_device(pa_bluez4_discovery *y, const pa_
             pa_xfree(args);
 
             if (m) {
-                mi = pa_xnew(struct module_info, 1);
+                mi = pa_xnew(struct pa_module_info, 1);
                 mi->module = m->index;
                 mi->path = pa_xstrdup(d->path);
 
@@ -175,7 +175,7 @@ void pa__done(pa_module* m) {
         pa_bluez4_discovery_unref(u->discovery);
 
     if (u->hashmap) {
-        struct module_info *mi;
+        struct pa_module_info *mi;
 
         while ((mi = pa_hashmap_steal_first(u->hashmap))) {
             pa_xfree(mi->path);
