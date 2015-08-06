@@ -3899,8 +3899,13 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
     static const struct description_map well_known_descriptions[] = {
         { "analog-mono",            N_("Analog Mono") },
         { "analog-stereo",          N_("Analog Stereo") },
-        /* Note: Not translated to "Multichannel Input" - then the source name would be "Multichannel Input Input".
-           Same for multichannel-output. */
+        /* Note: Not translated to "Analog Stereo Input", because the source
+         * name gets "Input" appended to it automatically, so adding "Input"
+         * here would lead to the source name to become "Analog Stereo Input
+         * Input". The same logic applies to analog-stereo-output,
+         * multichannel-input and multichannel-output. */
+        { "analog-stereo-input",    N_("Analog Stereo") },
+        { "analog-stereo-output",   N_("Analog Stereo") },
         { "multichannel-input",     N_("Multichannel") },
         { "multichannel-output",    N_("Multichannel") },
         { "analog-surround-21",     N_("Analog Surround 2.1") },
