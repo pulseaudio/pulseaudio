@@ -38,7 +38,7 @@ fi
 # which will make PKG_PROG_PKG_CONFIG be undefined and the generated
 # configure file faulty.
 if ! pkg-config --version &>/dev/null; then
-    echo "pkg-config is required to bootstrap this program" &>/dev/null
+    echo "pkg-config is required to bootstrap this program"
     DIE=1
 fi
 
