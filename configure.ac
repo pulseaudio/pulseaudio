@@ -212,7 +212,7 @@ AC_SUBST([IMMEDIATE_LDFLAGS])
 # On ELF systems we don't want the libraries to be unloaded since we don't clean them up properly,
 # so we request the nodelete flag to be enabled.
 # On other systems, we don't really know how to do that, but it's welcome if somebody can tell.
-AX_APPEND_LINK_FLAGS([-Wl,-z,nodelete], [NODELETE_LDFLAGS])
+AX_APPEND_LINK_FLAGS([-Wl,-z,nodelete], [NODELETE_LDFLAGS], [-shared])
 AC_SUBST([NODELETE_LDFLAGS])
 
 # Check for the proper way to build libraries that have no undefined symbols
