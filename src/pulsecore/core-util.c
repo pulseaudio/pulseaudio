@@ -3061,14 +3061,19 @@ char *pa_machine_id(void) {
     char *h;
 
     /* The returned value is supposed be some kind of ascii identifier
-     * that is unique and stable across reboots. */
+     * that is unique and stable across reboots. First we try if the machine-id
+     * file is available. If it's available, that's great, since it provides an
+     * identifier that suits our needs perfectly. If it's not, we fall back to
+     * the hostname, which is not as good, since it can change over time. */
 
-    /* First we try ${sysconfdir}/etc/machine-id, with fallbacks to
-     * ${localstatedir}/lib/dbus/machine-id, /etc/machine-id and
-     * /var/lib/dbus/machine-id, which are the best option we
-     * have, since they fit perfectly our needs and are not as volatile
-     * as the hostname which might be set from dhcp. */
-
+    /* We search for the machine-id file from four locations. The first two are
+     * relative to the configured installation prefix, but if we're installed
+     * under /usr/local, for example, it's likely that the machine-id won't be
+     * found there, so we also try the hardcoded paths.
+     *
+     * PA_MACHINE_ID or PA_MACHINE_ID_FALLBACK might exist on a Windows system,
+     * but the last two hardcoded paths certainly don't, hence we don't try
+     * them on Windows. */
     if ((f = pa_fopen_cloexec(PA_MACHINE_ID, "r")) ||
         (f = pa_fopen_cloexec(PA_MACHINE_ID_FALLBACK, "r")) ||
 #if !defined(OS_IS_WIN32)
