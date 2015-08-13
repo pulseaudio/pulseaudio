@@ -1131,11 +1131,19 @@ int main(int argc, char *argv[]) {
 
     pa_log_info("Daemon startup complete.");
 
+#ifdef HAVE_SYSTEMD_DAEMON
+    sd_notify(0, "READY=1");
+#endif
+
     retval = 0;
     if (pa_mainloop_run(mainloop, &retval) < 0)
         goto finish;
 
     pa_log_info("Daemon shutdown initiated.");
+
+#ifdef HAVE_SYSTEMD_DAEMON
+    sd_notify(0, "STOPPING=1");
+#endif
 
 finish:
 #ifdef HAVE_DBUS
