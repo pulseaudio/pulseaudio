@@ -130,7 +130,9 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       <p><opt>-D | --daemonize</opt><arg>[=BOOL]</arg></p>
 
       <optdesc><p>Daemonize after startup, i.e. detach from the
-      terminal.</p></optdesc>
+      terminal. Note that when running as a systemd service you should
+      use <opt>--daemonize=no</opt> for systemd notification to work.
+      </p></optdesc>
     </option>
 
     <option>
