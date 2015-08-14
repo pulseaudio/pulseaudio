@@ -60,6 +60,7 @@
 #include "log.h"
 
 #define ENV_LOG_SYSLOG "PULSE_LOG_SYSLOG"
+#define ENV_LOG_JOURNAL "PULSE_LOG_JOURNAL"
 #define ENV_LOG_LEVEL "PULSE_LOG"
 #define ENV_LOG_COLORS "PULSE_LOG_COLORS"
 #define ENV_LOG_PRINT_TIME "PULSE_LOG_TIME"
@@ -293,6 +294,11 @@ static void init_defaults(void) {
             target_override_set = true;
         }
 
+        if (getenv(ENV_LOG_JOURNAL)) {
+            target_override = PA_LOG_JOURNAL;
+            target_override_set = true;
+        }
+
         if ((e = getenv(ENV_LOG_LEVEL))) {
             maximum_level_override = (pa_log_level_t) atoi(e);
 
@@ -493,6 +499,7 @@ void pa_log_levelv_meta(
                                 "CODE_FILE=%s", file,
                                 "CODE_FUNC=%s", func,
                                 "CODE_LINE=%d", line,
+                                "PULSE_BACKTRACE=%s", pa_strempty(bt),
                                 NULL) < 0) {
 #ifdef HAVE_SYSLOG_H
                     pa_log_target new_target = { .type = PA_LOG_SYSLOG, .file = NULL };

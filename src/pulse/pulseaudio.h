@@ -140,6 +140,14 @@
  *  - `PULSE_LOG_SYSLOG`: If defined, force all client libraries to log
  *     their output using the syslog(3) mechanism. Default behavior is to
  *     log all output to stderr.
+ *  - `PULSE_LOG_JOURNAL`: If defined, force all client libraries to log
+ *     their output using the systemd journal. If both `PULSE_LOG_JOURNAL`
+ *     and `PULSE_LOG_SYSLOG` are defined, logging to the systemd journal
+ *     takes a higher precedence. Each message originating library file name
+ *     and function are included by default through the journal fields
+ *     `CODE_FILE`, `CODE_FUNC`, and `CODE_LINE`. Any backtrace attached to
+ *     the logging message is sent through the PulseAudio-specific journal
+ *     field `PULSE_BACKTRACE`.
  *  - `PULSE_LOG_COLORS`: If defined, enables colored logging output.
  *  - `PULSE_LOG_TIME`: If defined, include timestamps with each message.
  *  - `PULSE_LOG_FILE`: If defined, include each message originating file
