@@ -127,11 +127,8 @@ pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *name) {
 void pa_alsa_jack_free(pa_alsa_jack *jack) {
     pa_assert(jack);
 
-    if (jack->ucm_hw_mute_devices)
-        pa_dynarray_free(jack->ucm_hw_mute_devices);
-
-    if (jack->ucm_devices)
-        pa_dynarray_free(jack->ucm_devices);
+    pa_dynarray_free(jack->ucm_hw_mute_devices);
+    pa_dynarray_free(jack->ucm_devices);
 
     pa_xfree(jack->alsa_name);
     pa_xfree(jack->name);
