@@ -769,7 +769,7 @@ static void ucm_add_port_combination(
         pa_device_port_new_data_set_description(&port_data, desc);
         pa_device_port_new_data_set_direction(&port_data, is_sink ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT);
 
-        port = pa_device_port_new(core, &port_data, sizeof(ucm_port));
+        port = pa_device_port_new(core, &port_data, sizeof(struct ucm_port *));
         pa_device_port_new_data_done(&port_data);
 
         ucm_port = ucm_port_new(context->ucm, port, pdevices, num);
