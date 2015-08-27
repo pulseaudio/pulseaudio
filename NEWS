@@ -1,3 +1,51 @@
+PulseAudio 7.0
+
+Changes at a glance:
+
+  * LFE channel synthesis with low-pass filtering
+  * New libsoxr based resamplers
+  * Socket activation support for TCP
+  * The "srbchannel" IPC mechanism enabled by default
+  * More flexible jack detection support when using UCM
+  * Exiting due to SIGTERM isn't considered a failure
+
+Detailed change log:
+
+  http://www.freedesktop.org/wiki/Software/PulseAudio/Notes/7.0
+
+Contributors:
+
+  Ahmed S. Darwish
+  Alexander E. Patrakov
+  Andrey Semashev
+  Andrey Zholos
+  Arun Raghavan
+  Cédric Valmary
+  David Henningsson
+  David Herrmann
+  Deepak Srivastava
+  Dušan Kazik
+  Felipe Sateler
+  Hui Wang
+  Jaska Uimonen
+  Juho Hämäläinen
+  Manish Sogi
+  Milo Casagrande
+  Muhammet Kara
+  Paul Menzel
+  Peter Meerwald
+  Pierre Ossman
+  René J. V. Bertin
+  Sagar Nageshmurthy
+  Shawn Walker
+  Sukesh Adiga
+  Takashi Sakamoto
+  Tanu Kaskinen
+  Ville Skyttä
+  Wim Taymans
+  Yuri Chornoivan
+
+
 PulseAudio 6.0
 
 Changes at a glance:
