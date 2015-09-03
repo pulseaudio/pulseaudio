@@ -248,6 +248,8 @@ static void pa_module_free(pa_module *m) {
 
     lt_dlclose(m->dl);
 
+    pa_hashmap_remove(m->core->modules_pending_unload, m);
+
     pa_log_info("Unloaded \"%s\" (index: #%u).", m->name, m->index);
 
     pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_REMOVE, m->index);
@@ -263,8 +265,6 @@ void pa_module_unload(pa_core *c, pa_module *m, bool force) {
 
     if (m->core->disallow_module_loading && !force)
         return;
-
-    pa_hashmap_remove(c->modules_pending_unload, m);
 
     if (!(m = pa_idxset_remove_by_data(c->modules, m, NULL)))
         return;
@@ -323,6 +323,7 @@ void pa_module_unload_all(pa_core *c) {
         c->mainloop->defer_free(c->module_defer_unload_event);
         c->module_defer_unload_event = NULL;
     }
+    pa_assert(pa_hashmap_isempty(c->modules_pending_unload));
 }
 
 static void defer_cb(pa_mainloop_api*api, pa_defer_event *e, void *userdata) {
