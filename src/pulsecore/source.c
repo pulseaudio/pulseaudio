@@ -2654,6 +2654,7 @@ static void pa_source_volume_change_free(pa_source_volume_change *c) {
 void pa_source_volume_change_push(pa_source *s) {
     pa_source_volume_change *c = NULL;
     pa_source_volume_change *nc = NULL;
+    pa_source_volume_change *pc = NULL;
     uint32_t safety_margin = s->thread_info.volume_change_safety_margin;
 
     const char *direction = NULL;
@@ -2711,7 +2712,7 @@ void pa_source_volume_change_push(pa_source *s) {
     pa_log_debug("Volume going %s to %d at %llu", direction, pa_cvolume_avg(&nc->hw_volume), (long long unsigned) nc->at);
 
     /* We can ignore volume events that came earlier but should happen later than this. */
-    PA_LLIST_FOREACH(c, nc->next) {
+    PA_LLIST_FOREACH_SAFE(c, pc, nc->next) {
         pa_log_debug("Volume change to %d at %llu was dropped", pa_cvolume_avg(&c->hw_volume), (long long unsigned) c->at);
         pa_source_volume_change_free(c);
     }
