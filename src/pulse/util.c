@@ -297,7 +297,7 @@ char *pa_path_get_filename(const char *p) {
 char *pa_get_fqdn(char *s, size_t l) {
     char hn[256];
 #ifdef HAVE_GETADDRINFO
-    struct addrinfo *a, hints;
+    struct addrinfo *a = NULL, hints;
 #endif
 
     pa_assert(s);
@@ -311,8 +311,13 @@ char *pa_get_fqdn(char *s, size_t l) {
     hints.ai_family = AF_UNSPEC;
     hints.ai_flags = AI_CANONNAME;
 
-    if (getaddrinfo(hn, NULL, &hints, &a) < 0 || !a || !a->ai_canonname || !*a->ai_canonname)
+    if (getaddrinfo(hn, NULL, &hints, &a))
         return pa_strlcpy(s, hn, l);
+
+    if (!a->ai_canonname || !*a->ai_canonname) {
+        freeaddrinfo(a);
+        return pa_strlcpy(s, hn, l);
+    }
 
     pa_strlcpy(s, a->ai_canonname, l);
     freeaddrinfo(a);
