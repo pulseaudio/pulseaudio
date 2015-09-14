@@ -312,7 +312,7 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
             case 'p':
             case ARG_DL_SEARCH_PATH:
                 pa_xfree(conf->dl_search_path);
-                conf->dl_search_path = *optarg ? pa_xstrdup(optarg) : NULL;
+                conf->dl_search_path = pa_xstrdup(optarg);
                 break;
 
             case 'n':
