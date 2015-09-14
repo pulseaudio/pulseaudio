@@ -2639,8 +2639,10 @@ static void setup_srbchannel(pa_native_connection *c) {
 static void command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
 
-    if (tag != (uint32_t) (size_t) c->srbpending)
+    if (tag != (uint32_t) (size_t) c->srbpending) {
         protocol_error(c);
+        return;
+    }
 
     pa_log_debug("Client enabled srbchannel.");
     pa_pstream_set_srbchannel(c->pstream, c->srbpending);
