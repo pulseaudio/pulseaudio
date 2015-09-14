@@ -438,12 +438,15 @@ static pa_hook_result_t profile_available_changed_callback(void *hook_data, void
     if (!entry)
         return PA_HOOK_OK;
 
-    if (!pa_streq(profile->name, entry->profile))
+    if (!pa_streq(profile->name, entry->profile)) {
+        entry_free(entry);
         return PA_HOOK_OK;
+    }
 
     pa_log_info("Card %s profile %s became available, activating.", card->name, profile->name);
     pa_card_set_profile(profile->card, profile, true);
 
+    entry_free(entry);
     return PA_HOOK_OK;
 }
 
