@@ -60,7 +60,7 @@ START_TEST (rtpoll_test) {
 
     pa_rtpoll_set_timer_relative(p, 10000000); /* 10 s */
 
-    pa_rtpoll_run(p);
+    fail_unless(pa_rtpoll_run(p) >= 0);
 
     pa_rtpoll_item_free(i);
 
@@ -72,7 +72,7 @@ START_TEST (rtpoll_test) {
     pollfd->fd = 0;
     pollfd->events = POLLIN;
 
-    pa_rtpoll_run(p);
+    fail_unless(pa_rtpoll_run(p) >= 0);
 
     pa_rtpoll_item_free(i);
 
