@@ -1137,18 +1137,16 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
         || s->context->version >= 22) {
 
         pa_format_info *f = pa_format_info_new();
-        pa_tagstruct_get_format_info(t, f);
 
-        if (pa_format_info_valid(f))
-            s->format = f;
-        else {
+        if (pa_tagstruct_get_format_info(t, f) < 0 || !pa_format_info_valid(f)) {
             pa_format_info_free(f);
             if (s->n_formats > 0) {
                 /* We used the extended API, so we should have got back a proper format */
                 pa_context_fail(s->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
-        }
+        } else
+            s->format = f;
     }
 
     if (!pa_tagstruct_eof(t)) {
