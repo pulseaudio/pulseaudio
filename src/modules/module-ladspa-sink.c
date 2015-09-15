@@ -166,7 +166,7 @@ static void get_algorithm_parameters(DBusConnection *conn, DBusMessage *msg, voi
     pa_dbus_append_basic_array(&struct_iter, DBUS_TYPE_DOUBLE, control, u->n_control);
     pa_dbus_append_basic_array(&struct_iter, DBUS_TYPE_BOOLEAN, use_default, u->n_control);
 
-    dbus_message_iter_close_container(&msg_iter, &struct_iter);
+    pa_assert_se(dbus_message_iter_close_container(&msg_iter, &struct_iter));
 
     pa_assert_se(dbus_connection_send(conn, reply, NULL));
 
