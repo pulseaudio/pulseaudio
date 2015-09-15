@@ -766,7 +766,8 @@ int pa__init(pa_module*m) {
     pa_xfree(hn);
 
     pa_threaded_mainloop_set_name(u->mainloop, "avahi-ml");
-    pa_threaded_mainloop_start(u->mainloop);
+    if (pa_threaded_mainloop_start(u->mainloop) < 0)
+        goto fail;
 
     pa_threaded_mainloop_lock(u->mainloop);
     pa_mainloop_api_once(u->api, create_client, u);
