@@ -147,7 +147,8 @@
  *     and function are included by default through the journal fields
  *     `CODE_FILE`, `CODE_FUNC`, and `CODE_LINE`. Any backtrace attached to
  *     the logging message is sent through the PulseAudio-specific journal
- *     field `PULSE_BACKTRACE`.
+ *     field `PULSE_BACKTRACE`. This environment variable has no effect if
+ *     PulseAudio was compiled without systemd journal support.
  *  - `PULSE_LOG_COLORS`: If defined, enables colored logging output.
  *  - `PULSE_LOG_TIME`: If defined, include timestamps with each message.
  *  - `PULSE_LOG_FILE`: If defined, include each message originating file

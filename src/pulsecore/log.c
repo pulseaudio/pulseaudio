@@ -294,10 +294,12 @@ static void init_defaults(void) {
             target_override_set = true;
         }
 
+#ifdef HAVE_SYSTEMD_JOURNAL
         if (getenv(ENV_LOG_JOURNAL)) {
             target_override = PA_LOG_JOURNAL;
             target_override_set = true;
         }
+#endif
 
         if ((e = getenv(ENV_LOG_LEVEL))) {
             maximum_level_override = (pa_log_level_t) atoi(e);
