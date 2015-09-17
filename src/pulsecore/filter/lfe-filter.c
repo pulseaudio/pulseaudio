@@ -113,7 +113,7 @@ pa_memchunk * pa_lfe_filter_process(pa_lfe_filter_t *f, pa_memchunk *buf) {
     struct saved_state *s, *s2;
     void *data;
 
-    if (!f->active)
+    if (!f->active || !buf->length)
         return buf;
 
     /* Remove old states (FIXME: we could do better than searching the entire array here?) */
