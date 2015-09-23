@@ -27,12 +27,15 @@ EXTRA_DIST = \
 	doxygen/doxygen.conf.in \
 	PROTOCOL \
 	README \
+	scripts/benchmark_memory_usage.sh \
+	scripts/benchmarks/README \
 	todo \
 	.gitignore \
 	doxygen/.gitignore \
 	m4/.gitignore \
 	man/.gitignore \
 	po/.gitignore \
+	scripts/benchmarks/.gitignore \
 	src/.gitignore \
 	src/daemon/.gitignore \
 	src/pulse/.gitignore
