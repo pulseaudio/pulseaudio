@@ -53,6 +53,7 @@ PA_PLAY_PROCESS_NAME="paplay"
 
 SCRIPTS_DIR=${PA_HOME}/scripts
 BENCHMARKS_DIR=${SCRIPTS_DIR}/benchmarks
+GNUPLOT_SCRIPT=${SCRIPTS_DIR}/plot_memory_usage.gp
 OUTPUT_FILE=${BENCHMARKS_DIR}/memory-usage-`date -Iseconds`.txt
 SYMLINK_LATEST_OUTPUT_FILE=${BENCHMARKS_DIR}/memory-usage-LATEST.txt
 
@@ -129,3 +130,4 @@ ln -s $OUTPUT_FILE $SYMLINK_LATEST_OUTPUT_FILE
 
 msg "Sampling daemon memory usage done!"
 msg "Check the results at $SYMLINK_LATEST_OUTPUT_FILE"
+msg "Plot these results using 'gnuplot $GNUPLOT_SCRIPT'"

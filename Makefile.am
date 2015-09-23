@@ -28,6 +28,7 @@ EXTRA_DIST = \
 	PROTOCOL \
 	README \
 	scripts/benchmark_memory_usage.sh \
+	scripts/plot_memory_usage.gp \
 	scripts/benchmarks/README \
 	todo \
 	.gitignore \
