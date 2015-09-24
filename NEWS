@@ -8,6 +8,7 @@ Changes at a glance:
   * The "srbchannel" IPC mechanism enabled by default
   * More flexible jack detection support when using UCM
   * Exiting due to SIGTERM isn't considered a failure
+  * Better support for Creative SoundBlaster Omni Surround 5.1
 
 Detailed change log:
 
@@ -30,11 +31,14 @@ Contributors:
   Jaska Uimonen
   Juho Hämäläinen
   Manish Sogi
+  Michael Cree
   Milo Casagrande
   Muhammet Kara
+  Nazar Mokrynskyi
   Paul Menzel
   Peter Meerwald
   Pierre Ossman
+  Piotr Drąg
   René J. V. Bertin
   Sagar Nageshmurthy
   Shawn Walker
@@ -44,6 +48,7 @@ Contributors:
   Ville Skyttä
   Wim Taymans
   Yuri Chornoivan
+  Zavadovsky Yan
 
 
 PulseAudio 6.0
