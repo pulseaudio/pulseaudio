@@ -1439,7 +1439,7 @@ AC_SUBST(udevrulesdir)
 AC_ARG_WITH([bash-completion-dir],
         AS_HELP_STRING([--with-bash-completion-dir=DIR], [Directory for bash completion files]),
         [bashcompletiondir=$withval], [bashcompletiondir=$($PKG_CONFIG --variable=completionsdir bash-completion)])
-if test "x$bashcompletionsdir" = ""; then
+if test "x$bashcompletionsdir" = "x"; then
 	bashcompletiondir="${datadir}/bash-completion/completions"
 fi
 
