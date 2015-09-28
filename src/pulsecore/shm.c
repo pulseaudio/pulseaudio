@@ -288,7 +288,7 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
 
 #ifdef HAVE_SHM_OPEN
 
-int pa_shm_attach(pa_shm *m, unsigned id, bool writable) {
+static int shm_attach(pa_shm *m, unsigned id, bool writable, bool for_cleanup) {
     char fn[32];
     int fd = -1;
     int prot;
@@ -299,7 +299,7 @@ int pa_shm_attach(pa_shm *m, unsigned id, bool writable) {
     segment_name(fn, sizeof(fn), m->id = id);
 
     if ((fd = shm_open(fn, writable ? O_RDWR : O_RDONLY, 0)) < 0) {
-        if (errno != EACCES && errno != ENOENT)
+        if ((errno != EACCES && errno != ENOENT) || !for_cleanup)
             pa_log("shm_open() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
@@ -336,6 +336,10 @@ fail:
         pa_close(fd);
 
     return -1;
+}
+
+int pa_shm_attach(pa_shm *m, unsigned id, bool writable) {
+    return shm_attach(m, id, writable, false);
 }
 
 #else /* HAVE_SHM_OPEN */
@@ -375,7 +379,7 @@ int pa_shm_cleanup(void) {
         if (pa_atou(de->d_name + SHM_ID_LEN, &id) < 0)
             continue;
 
-        if (pa_shm_attach(&seg, id, false) < 0)
+        if (shm_attach(&seg, id, false, true) < 0)
             continue;
 
         if (seg.size < SHM_MARKER_SIZE) {
