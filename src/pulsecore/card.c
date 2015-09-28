@@ -135,7 +135,7 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     pa_assert(data->profiles);
     pa_assert(!pa_hashmap_isempty(data->profiles));
 
-    c = pa_xnew(pa_card, 1);
+    c = pa_xnew0(pa_card, 1);
 
     if (!(name = pa_namereg_register(core, data->name, PA_NAMEREG_CARD, c, data->namereg_fail))) {
         pa_xfree(c);
@@ -172,9 +172,6 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     PA_HASHMAP_FOREACH(port, c->ports, state)
         port->card = c;
 
-    c->active_profile = NULL;
-    c->save_profile = false;
-
     if (data->active_profile)
         if ((c->active_profile = pa_hashmap_get(c->profiles, data->active_profile)))
             c->save_profile = data->save_profile;
@@ -195,9 +192,6 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
         }
         pa_assert(c->active_profile);
     }
-
-    c->userdata = NULL;
-    c->set_profile = NULL;
 
     pa_device_init_description(c->proplist, c);
     pa_device_init_icon(c->proplist, true);
