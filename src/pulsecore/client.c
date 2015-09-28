@@ -60,7 +60,7 @@ pa_client *pa_client_new(pa_core *core, pa_client_new_data *data) {
     if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_CLIENT_NEW], data) < 0)
         return NULL;
 
-    c = pa_xnew(pa_client, 1);
+    c = pa_xnew0(pa_client, 1);
     c->core = core;
     c->proplist = pa_proplist_copy(data->proplist);
     c->driver = pa_xstrdup(pa_path_get_filename(data->driver));
@@ -68,10 +68,6 @@ pa_client *pa_client_new(pa_core *core, pa_client_new_data *data) {
 
     c->sink_inputs = pa_idxset_new(NULL, NULL);
     c->source_outputs = pa_idxset_new(NULL, NULL);
-
-    c->userdata = NULL;
-    c->kill = NULL;
-    c->send_event = NULL;
 
     pa_assert_se(pa_idxset_put(core->clients, c, &c->index) >= 0);
 
