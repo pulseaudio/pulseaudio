@@ -108,9 +108,6 @@ AM_GNU_GETTEXT([external])
 GETTEXT_PACKAGE=pulseaudio
 AC_SUBST([GETTEXT_PACKAGE])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
-
-pulselocaledir='${prefix}/${DATADIRNAME}/locale'
-AX_DEFINE_DIR(PULSE_LOCALEDIR, pulselocaledir, [Gettext locale dir])
 else
 # workaround till an intltool m4 bug is fixed upstream
 # (https://bugs.launchpad.net/intltool/+bug/904647)

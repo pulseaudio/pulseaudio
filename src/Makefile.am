@@ -46,7 +46,8 @@ AM_CPPFLAGS = \
 	-DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
 	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\" \
 	-DPA_SRCDIR=\"$(abs_srcdir)\" \
-	-DPA_BUILDDIR=\"$(abs_builddir)\"
+	-DPA_BUILDDIR=\"$(abs_builddir)\" \
+	-DPULSE_LOCALEDIR=\"$(localedir)\"
 AM_CFLAGS = \
 	$(PTHREAD_CFLAGS)
 AM_CXXFLAGS = $(AM_CFLAGS)
