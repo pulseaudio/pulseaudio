@@ -343,7 +343,7 @@ again:
 #endif
 
 #ifdef HAVE_FCHMOD
-    if (fchmod(fd, m) < 0) {
+    if ((st.st_mode & 07777) != m && fchmod(fd, m) < 0) {
         pa_assert_se(pa_close(fd) >= 0);
         goto fail;
     };
