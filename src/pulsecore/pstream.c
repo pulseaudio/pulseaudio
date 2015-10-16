@@ -216,14 +216,23 @@ fail:
 }
 
 static bool srb_callback(pa_srbchannel *srb, void *userdata) {
+    bool b;
     pa_pstream *p = userdata;
 
     pa_assert(p);
     pa_assert(PA_REFCNT_VALUE(p) > 0);
     pa_assert(p->srb == srb);
 
+    pa_pstream_ref(p);
+
     do_pstream_read_write(p);
-    return p->srb != NULL;
+
+    /* If either pstream or the srb is going away, return false.
+       We need to check this before p is destroyed. */
+    b = (PA_REFCNT_VALUE(p) > 1) && (p->srb == srb);
+    pa_pstream_unref(p);
+
+    return b;
 }
 
 static void io_callback(pa_iochannel*io, void *userdata) {
