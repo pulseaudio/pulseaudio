@@ -77,10 +77,22 @@ static void thread(void *userdata) {
 
 #ifndef OS_IS_WIN32
     sigset_t mask;
+    sigset_t prev_mask;
+    struct sigaction sa;
 
-    /* Make sure that signals are delivered to the main thread */
     sigfillset(&mask);
-    pthread_sigmask(SIG_BLOCK, &mask, NULL);
+
+    /* If SIGSYS is currently unblocked and trapped then keep it unblocked. */
+    if (!pthread_sigmask(SIG_SETMASK, NULL, &prev_mask) &&
+        !sigismember(&prev_mask, SIGSYS) &&
+        !sigaction(SIGSYS, NULL, &sa)
+        && sa.sa_handler != SIG_DFL) {
+        sigdelset(&mask, SIGSYS);
+    }
+
+    /* Make sure that signals are delivered to the main thread.
+     * Use SIG_SETMASK because SIG_BLOCK does an union with current set.*/
+    pthread_sigmask(SIG_SETMASK, &mask, NULL);
 #endif
 
     pa_mutex_lock(m->mutex);
