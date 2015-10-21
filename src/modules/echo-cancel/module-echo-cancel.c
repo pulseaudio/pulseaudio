@@ -1558,17 +1558,23 @@ static int canceller_process_msg_cb(pa_msgobject *o, int code, void *userdata, i
 
 /* Called by the canceller, so source I/O thread context. */
 void pa_echo_canceller_get_capture_volume(pa_echo_canceller *ec, pa_cvolume *v) {
+#ifndef ECHO_CANCEL_TEST
     *v = ec->msg->userdata->thread_info.current_volume;
+#else
+    pa_cvolume_set(v, 1, PA_VOLUME_NORM);
+#endif
 }
 
 /* Called by the canceller, so source I/O thread context. */
 void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_cvolume *v) {
+#ifndef ECHO_CANCEL_TEST
     if (!pa_cvolume_equal(&ec->msg->userdata->thread_info.current_volume, v)) {
         pa_cvolume *vol = pa_xnewdup(pa_cvolume, v, 1);
 
         pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(ec->msg), ECHO_CANCELLER_MESSAGE_SET_VOLUME, vol, 0, NULL,
                 pa_xfree);
     }
+#endif
 }
 
 uint32_t pa_echo_canceller_blocksize_power2(unsigned rate, unsigned ms) {
