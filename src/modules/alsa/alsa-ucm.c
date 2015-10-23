@@ -778,7 +778,6 @@ static void ucm_add_port_combination(
 
         pa_hashmap_put(ports, port->name, port);
         pa_log_debug("Add port %s: %s", port->name, port->description);
-        port->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     }
 
     port->priority = priority;
