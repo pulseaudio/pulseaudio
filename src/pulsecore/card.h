@@ -101,15 +101,11 @@ typedef struct pa_card_new_data {
     pa_module *module;
 
     pa_hashmap *profiles;
-    char *active_profile;
-
     pa_hashmap *ports;
     pa_device_port *preferred_input_port;
     pa_device_port *preferred_output_port;
 
     bool namereg_fail:1;
-
-    bool save_profile:1;
 } pa_card_new_data;
 
 typedef struct {
@@ -125,7 +121,6 @@ void pa_card_profile_set_available(pa_card_profile *c, pa_available_t available)
 
 pa_card_new_data *pa_card_new_data_init(pa_card_new_data *data);
 void pa_card_new_data_set_name(pa_card_new_data *data, const char *name);
-void pa_card_new_data_set_profile(pa_card_new_data *data, const char *profile);
 void pa_card_new_data_set_preferred_port(pa_card_new_data *data, pa_direction_t direction, pa_device_port *port);
 void pa_card_new_data_done(pa_card_new_data *data);
 

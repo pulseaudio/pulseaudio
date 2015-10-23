@@ -96,13 +96,6 @@ void pa_card_new_data_set_name(pa_card_new_data *data, const char *name) {
     data->name = pa_xstrdup(name);
 }
 
-void pa_card_new_data_set_profile(pa_card_new_data *data, const char *profile) {
-    pa_assert(data);
-
-    pa_xfree(data->active_profile);
-    data->active_profile = pa_xstrdup(profile);
-}
-
 void pa_card_new_data_set_preferred_port(pa_card_new_data *data, pa_direction_t direction, pa_device_port *port) {
     pa_assert(data);
 
@@ -125,7 +118,6 @@ void pa_card_new_data_done(pa_card_new_data *data) {
         pa_hashmap_free(data->ports);
 
     pa_xfree(data->name);
-    pa_xfree(data->active_profile);
 }
 
 pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
