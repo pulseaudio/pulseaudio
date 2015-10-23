@@ -2301,8 +2301,11 @@ static int add_card(struct userdata *u) {
     if ((default_profile = pa_modargs_get_value(u->modargs, "profile", NULL))) {
         if (pa_hashmap_get(data.profiles, default_profile))
             pa_card_new_data_set_profile(&data, default_profile);
-        else
-            pa_log_warn("Profile '%s' not valid or not supported by device.", default_profile);
+        else {
+            pa_log("Profile '%s' not valid or not supported by device.", default_profile);
+            pa_card_new_data_done(&data);
+            return -1;
+        }
     }
 
     u->card = pa_card_new(u->core, &data);

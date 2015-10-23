@@ -807,8 +807,15 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    if ((profile = pa_modargs_get_value(u->modargs, "profile", NULL)))
-        pa_card_new_data_set_profile(&data, profile);
+    if ((profile = pa_modargs_get_value(u->modargs, "profile", NULL))) {
+        if (pa_hashmap_get(data.profiles, profile))
+            pa_card_new_data_set_profile(&data, profile);
+        else {
+            pa_log("No such profile: %s", profile);
+            pa_card_new_data_done(&data);
+            goto fail;
+        }
+    }
 
     u->card = pa_card_new(m->core, &data);
     pa_card_new_data_done(&data);
