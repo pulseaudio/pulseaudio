@@ -1953,6 +1953,8 @@ static int add_card(struct userdata *u) {
 
     u->card->userdata = u;
     u->card->set_profile = set_profile_cb;
+    pa_card_choose_initial_profile(u->card);
+    pa_card_put(u->card);
 
     p = PA_CARD_PROFILE_DATA(u->card->active_profile);
     u->profile = *p;

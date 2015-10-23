@@ -2238,7 +2238,7 @@ static int add_card(struct userdata *u) {
     pa_bluez4_profile_t *d;
     pa_bluez4_form_factor_t ff;
     char *n;
-    const char *default_profile;
+    const char *profile_str;
     const pa_bluez4_device *device;
     const pa_bluez4_uuid *uuid;
 
@@ -2298,16 +2298,6 @@ static int add_card(struct userdata *u) {
     *d = PA_BLUEZ4_PROFILE_OFF;
     pa_hashmap_put(data.profiles, p->name, p);
 
-    if ((default_profile = pa_modargs_get_value(u->modargs, "profile", NULL))) {
-        if (pa_hashmap_get(data.profiles, default_profile))
-            pa_card_new_data_set_profile(&data, default_profile);
-        else {
-            pa_log("Profile '%s' not valid or not supported by device.", default_profile);
-            pa_card_new_data_done(&data);
-            return -1;
-        }
-    }
-
     u->card = pa_card_new(u->core, &data);
     pa_card_new_data_done(&data);
 
@@ -2318,6 +2308,25 @@ static int add_card(struct userdata *u) {
 
     u->card->userdata = u;
     u->card->set_profile = card_set_profile;
+
+    pa_card_choose_initial_profile(u->card);
+
+    /* If the "profile" modarg is given, we have to override whatever the usual
+     * policy chose in pa_card_choose_initial_profile(). */
+    profile_str = pa_modargs_get_value(u->modargs, "profile", NULL);
+    if (profile_str) {
+        pa_card_profile *profile;
+
+        profile = pa_hashmap_get(u->card->profiles, profile_str);
+        if (!profile) {
+            pa_log("No such profile: %s", profile_str);
+            return -1;
+        }
+
+        pa_card_set_profile(u->card, profile, false);
+    }
+
+    pa_card_put(u->card);
 
     d = PA_CARD_PROFILE_DATA(u->card->active_profile);
 

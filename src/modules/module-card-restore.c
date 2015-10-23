@@ -551,16 +551,6 @@ static pa_hook_result_t card_new_hook_callback(pa_core *c, pa_card_new_data *new
     if (!(e = entry_read(u, new_data->name)))
         return PA_HOOK_OK;
 
-    if (e->profile[0]) {
-        if (!new_data->active_profile) {
-            pa_card_new_data_set_profile(new_data, e->profile);
-            pa_log_info("Restored profile '%s' for card %s.", new_data->active_profile, new_data->name);
-            new_data->save_profile = true;
-
-        } else
-            pa_log_debug("Not restoring profile for card %s, because already set.", new_data->name);
-    }
-
     /* Always restore the latency offsets because their
      * initial value is always 0 */
 
@@ -583,6 +573,30 @@ static pa_hook_result_t card_new_hook_callback(pa_core *c, pa_card_new_data *new
         p = pa_hashmap_get(new_data->ports, e->preferred_output_port);
         if (p)
             pa_card_new_data_set_preferred_port(new_data, PA_DIRECTION_OUTPUT, p);
+    }
+
+    entry_free(e);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t card_choose_initial_profile_callback(pa_core *core, pa_card *card, struct userdata *u) {
+    struct entry *e;
+
+    if (!(e = entry_read(u, card->name)))
+        return PA_HOOK_OK;
+
+    if (e->profile[0]) {
+        pa_card_profile *profile;
+
+        profile = pa_hashmap_get(card->profiles, e->profile);
+        if (profile) {
+            pa_log_info("Restoring profile '%s' for card %s.", card->active_profile->name, card->name);
+            pa_card_set_profile(card, profile, true);
+        } else {
+            pa_log_debug("Tried to restore profile %s for card %s, but the card doesn't have such profile.",
+                         e->profile, card->name);
+        }
     }
 
     entry_free(e);
@@ -634,6 +648,8 @@ int pa__init(pa_module*m) {
     u->module = m;
 
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) card_new_hook_callback, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_CHOOSE_INITIAL_PROFILE], PA_HOOK_NORMAL,
+                           (pa_hook_cb_t) card_choose_initial_profile_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PUT], PA_HOOK_NORMAL, (pa_hook_cb_t) card_put_hook_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PREFERRED_PORT_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) card_preferred_port_changed_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) card_profile_changed_callback, u);

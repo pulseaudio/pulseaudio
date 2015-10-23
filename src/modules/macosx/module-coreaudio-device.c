@@ -821,6 +821,8 @@ int pa__init(pa_module *m) {
     pa_card_new_data_done(&card_new_data);
     u->card->userdata = u;
     u->card->set_profile = card_set_profile;
+    pa_card_choose_initial_profile(u->card);
+    pa_card_put(u->card);
 
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);

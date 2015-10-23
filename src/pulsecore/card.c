@@ -176,38 +176,56 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     c->preferred_input_port = data->preferred_input_port;
     c->preferred_output_port = data->preferred_output_port;
 
-    if (data->active_profile)
-        if ((c->active_profile = pa_hashmap_get(c->profiles, data->active_profile)))
-            c->save_profile = data->save_profile;
-
-    if (!c->active_profile) {
-        PA_HASHMAP_FOREACH(profile, c->profiles, state) {
-            if (profile->available == PA_AVAILABLE_NO)
-                continue;
-
-            if (!c->active_profile || profile->priority > c->active_profile->priority)
-                c->active_profile = profile;
-        }
-        /* If all profiles are not available, then we still need to pick one */
-        if (!c->active_profile) {
-            PA_HASHMAP_FOREACH(profile, c->profiles, state)
-                if (!c->active_profile || profile->priority > c->active_profile->priority)
-                    c->active_profile = profile;
-        }
-        pa_assert(c->active_profile);
-    }
-
     pa_device_init_description(c->proplist, c);
     pa_device_init_icon(c->proplist, true);
     pa_device_init_intended_roles(c->proplist);
 
-    pa_assert_se(pa_idxset_put(core->cards, c, &c->index) >= 0);
-
-    pa_log_info("Created %u \"%s\"", c->index, c->name);
-    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_NEW, c->index);
-
-    pa_hook_fire(&core->hooks[PA_CORE_HOOK_CARD_PUT], c);
     return c;
+}
+
+void pa_card_choose_initial_profile(pa_card *card) {
+    pa_card_profile *profile;
+    void *state;
+    pa_card_profile *best = NULL;
+
+    pa_assert(card);
+
+    /* By default, pick the highest priority profile that is not unavailable,
+     * or if all profiles are unavailable, pick the profile with the highest
+     * priority regardless of its availability. */
+
+    PA_HASHMAP_FOREACH(profile, card->profiles, state) {
+        if (profile->available == PA_AVAILABLE_NO)
+            continue;
+
+        if (!best || profile->priority > best->priority)
+            best = profile;
+    }
+
+    if (!best) {
+        PA_HASHMAP_FOREACH(profile, card->profiles, state) {
+            if (!best || profile->priority > best->priority)
+                best = profile;
+        }
+    }
+    pa_assert(best);
+
+    card->active_profile = best;
+    card->save_profile = false;
+
+    /* Let policy modules override the default. */
+    pa_hook_fire(&card->core->hooks[PA_CORE_HOOK_CARD_CHOOSE_INITIAL_PROFILE], card);
+}
+
+void pa_card_put(pa_card *card) {
+    pa_assert(card);
+
+    pa_assert_se(pa_idxset_put(card->core->cards, card, &card->index) >= 0);
+    card->linked = true;
+
+    pa_log_info("Created %u \"%s\"", card->index, card->name);
+    pa_hook_fire(&card->core->hooks[PA_CORE_HOOK_CARD_PUT], card);
+    pa_subscription_post(card->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_NEW, card->index);
 }
 
 void pa_card_free(pa_card *c) {
@@ -218,15 +236,15 @@ void pa_card_free(pa_card *c) {
 
     core = c->core;
 
-    pa_hook_fire(&core->hooks[PA_CORE_HOOK_CARD_UNLINK], c);
+    if (c->linked) {
+        pa_hook_fire(&core->hooks[PA_CORE_HOOK_CARD_UNLINK], c);
+
+        pa_idxset_remove_by_data(c->core->cards, c, NULL);
+        pa_log_info("Freed %u \"%s\"", c->index, c->name);
+        pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
+    }
 
     pa_namereg_unregister(core, c->name);
-
-    pa_idxset_remove_by_data(c->core->cards, c, NULL);
-
-    pa_log_info("Freed %u \"%s\"", c->index, c->name);
-
-    pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
 
     pa_assert(pa_idxset_isempty(c->sinks));
     pa_idxset_free(c->sinks, NULL);
@@ -298,12 +316,15 @@ int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
         return 0;
     }
 
-    if ((r = c->set_profile(c, profile)) < 0)
+    /* If we're setting the initial profile, we shouldn't call set_profile(),
+     * because the implementations don't expect that (for historical reasons).
+     * We should just set c->active_profile, and the implementations will
+     * properly set up that profile after pa_card_put() has returned. It would
+     * be probably good to change this so that also the initial profile can be
+     * set up in set_profile(), but if set_profile() fails, that would need
+     * some better handling than what we do here currently. */
+    if (c->linked && (r = c->set_profile(c, profile)) < 0)
         return r;
-
-    pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
-
-    pa_log_info("Changed profile of card %u \"%s\" to %s", c->index, c->name, profile->name);
 
     c->active_profile = profile;
     c->save_profile = save;
@@ -311,7 +332,11 @@ int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
     if (save)
         update_port_preferred_profile(c);
 
-    pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], c);
+    if (c->linked) {
+        pa_log_info("Changed profile of card %u \"%s\" to %s", c->index, c->name, profile->name);
+        pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], c);
+        pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
+    }
 
     return 0;
 }
