@@ -366,6 +366,7 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
     void *state;
     pa_alsa_jack *jack;
     struct temp_port_avail *tp, *tports;
+    pa_card_profile *profile;
 
     pa_assert(u);
 
@@ -425,6 +426,32 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
     for (tp = tports; tp->port; tp++)
         if (tp->avail == PA_AVAILABLE_NO)
            pa_device_port_set_available(tp->port, tp->avail);
+
+    /* Update profile availabilities. The logic could be improved; for now we
+     * only set obviously unavailable profiles (those that contain only
+     * unavailable ports) to PA_AVAILABLE_NO and all others to
+     * PA_AVAILABLE_UNKNOWN. */
+    PA_HASHMAP_FOREACH(profile, u->card->profiles, state) {
+        pa_device_port *port;
+        void *state2;
+        pa_available_t available = PA_AVAILABLE_NO;
+
+        /* Don't touch the "off" profile. */
+        if (profile->n_sources == 0 && profile->n_sinks == 0)
+            continue;
+
+        PA_HASHMAP_FOREACH(port, u->card->ports, state2) {
+            if (!pa_hashmap_get(port->profiles, profile->name))
+                continue;
+
+            if (port->available != PA_AVAILABLE_NO) {
+                available = PA_AVAILABLE_UNKNOWN;
+                break;
+            }
+        }
+
+        pa_card_profile_set_available(profile, available);
+    }
 
     pa_xfree(tports);
     return 0;
