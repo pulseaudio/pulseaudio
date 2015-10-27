@@ -552,8 +552,12 @@ static bool on_center(pa_channel_position_t p) {
     return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_CENTER);
 }
 
+static bool on_hfe(pa_channel_position_t p) {
+    return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_HFE);
+}
+
 static bool on_lfe(pa_channel_position_t p) {
-    return p == PA_CHANNEL_POSITION_LFE;
+    return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_LFE);
 }
 
 static bool on_front(pa_channel_position_t p) {
@@ -831,6 +835,42 @@ pa_cvolume* pa_cvolume_set_fade(pa_cvolume *v, const pa_channel_map *map, float 
         return v;
 
     return set_balance(v, map, new_fade, on_rear, on_front);
+}
+
+float pa_cvolume_get_lfe_balance(const pa_cvolume *v, const pa_channel_map *map) {
+    pa_volume_t hfe, lfe;
+
+    pa_assert(v);
+    pa_assert(map);
+
+    pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(v, map), 0.0f);
+
+    if (!pa_channel_map_can_lfe_balance(map))
+        return 0.0f;
+
+    get_avg(map, v, &hfe, &lfe, on_hfe, on_lfe);
+
+    if (hfe == lfe)
+        return 0.0f;
+
+    if (hfe > lfe)
+        return -1.0f + ((float) lfe / (float) hfe);
+    else
+        return 1.0f - ((float) hfe / (float) lfe);
+}
+
+pa_cvolume* pa_cvolume_set_lfe_balance(pa_cvolume *v, const pa_channel_map *map, float new_balance) {
+    pa_assert(map);
+    pa_assert(v);
+
+    pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(v, map), NULL);
+    pa_return_val_if_fail(new_balance >= -1.0f, NULL);
+    pa_return_val_if_fail(new_balance <= 1.0f, NULL);
+
+    if (!pa_channel_map_can_lfe_balance(map))
+        return v;
+
+    return set_balance(v, map, new_balance, on_hfe, on_lfe);
 }
 
 pa_cvolume* pa_cvolume_set_position(

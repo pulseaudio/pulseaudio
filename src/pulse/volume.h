@@ -372,6 +372,24 @@ float pa_cvolume_get_fade(const pa_cvolume *v, const pa_channel_map *map) PA_GCC
  * pa_channel_map_can_fade(). \since 0.9.15 */
 pa_cvolume* pa_cvolume_set_fade(pa_cvolume *v, const pa_channel_map *map, float new_fade);
 
+/** Calculate a 'lfe balance' value for the specified volume with
+ * the specified channel map. The return value will range from
+ * -1.0f (no lfe) to +1.0f (only lfe), where 0.0f is balanced.
+ * If no value is applicable to this channel map the return value
+ * will always be 0.0f. See pa_channel_map_can_lfe_balance(). \since 8.0 */
+float pa_cvolume_get_lfe_balance(const pa_cvolume *v, const pa_channel_map *map) PA_GCC_PURE;
+
+/** Adjust the 'lfe balance' value for the specified volume with
+ * the specified channel map. v will be modified in place and returned.
+ * The balance is a value between -1.0f (no lfe) and +1.0f (only lfe).
+ * This operation might not be reversible! Also, after this call
+ * pa_cvolume_get_lfe_balance() is not guaranteed to actually
+ * return the requested value (e.g. when the input volume was
+ * zero anyway for all channels). If no lfe balance value is applicable to
+ * this channel map the volume will not be modified. See
+ * pa_channel_map_can_lfe_balance(). \since 8.0 */
+pa_cvolume* pa_cvolume_set_lfe_balance(pa_cvolume *v, const pa_channel_map *map, float new_balance);
+
 /** Scale the passed pa_cvolume structure so that the maximum volume
  * of all channels equals max. The proportions between the channel
  * volumes are kept. \since 0.9.15 */

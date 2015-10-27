@@ -684,6 +684,19 @@ int pa_channel_map_can_fade(const pa_channel_map *map) {
         (PA_CHANNEL_POSITION_MASK_REAR & m);
 }
 
+int pa_channel_map_can_lfe_balance(const pa_channel_map *map) {
+    pa_channel_position_mask_t m;
+
+    pa_assert(map);
+    pa_return_val_if_fail(pa_channel_map_valid(map), 0);
+
+    m = pa_channel_map_mask(map);
+
+    return
+        (PA_CHANNEL_POSITION_MASK_LFE & m) &&
+        (PA_CHANNEL_POSITION_MASK_HFE & m);
+}
+
 const char* pa_channel_map_to_name(const pa_channel_map *map) {
     pa_bitset_t in_map[PA_BITSET_ELEMENTS(PA_CHANNEL_POSITION_MAX)];
     unsigned c;
