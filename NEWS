@@ -1,3 +1,21 @@
+PulseAudio 7.1
+
+Changes at a glance:
+
+  * Fix a crasher when using srbchannel
+  * Fix a build system typo that caused symlinks to turn up in /
+  * Make Xonar cards work better
+  * Other minor  bug fixes and improvements
+
+Contributors:
+
+  David Henningsson (4):
+  Felipe Sateler (2):
+  Georg Chini (1):
+  Takashi Iwai (1):
+  Tanu Kaskinen (3):
+
+
 PulseAudio 7.0
 
 Changes at a glance:
