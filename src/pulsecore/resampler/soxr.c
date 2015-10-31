@@ -64,16 +64,16 @@ static void resampler_soxr_free(pa_resampler *r) {
 }
 
 static void resampler_soxr_reset(pa_resampler *r) {
+#if SOXR_THIS_VERSION >= SOXR_VERSION(0, 1, 2)
+    pa_assert(r);
+
+    soxr_clear(r->impl.data);
+#else
+    /* With libsoxr prior to 0.1.2 soxr_clear() makes soxr_process() crash afterwards,
+     * so don't use this function and re-create the context instead. */
     soxr_t old_state;
 
     pa_assert(r);
-
-    /*
-     * soxr_clear() makes soxr_process() crash afterwards,
-     * so don't use this function until libsoxr is fixed.
-     *
-     * soxr_clear(r->impl.data);
-     */
 
     old_state = r->impl.data;
     r->impl.data = NULL;
@@ -85,6 +85,7 @@ static void resampler_soxr_reset(pa_resampler *r) {
         r->impl.data = old_state;
         pa_log_error("Failed to reset libsoxr context");
     }
+#endif
 }
 
 static void resampler_soxr_update_rates(pa_resampler *r) {
