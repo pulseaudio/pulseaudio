@@ -209,6 +209,8 @@ int main(int argc, char *argv[]) {
     s = suite_create("Extended");
     tc = tcase_create("extended");
     tcase_add_test(tc, extended_test);
+    /* 4s of audio, 0.5s grace time */
+    tcase_set_timeout(tc, 4.5);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);
