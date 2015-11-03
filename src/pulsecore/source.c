@@ -1573,7 +1573,7 @@ void pa_source_set_volume(
         bool send_msg,
         bool save) {
 
-    pa_cvolume new_reference_volume;
+    pa_cvolume new_reference_volume, root_real_volume;
     pa_source *root_source;
 
     pa_source_assert_ref(s);
@@ -1630,11 +1630,21 @@ void pa_source_set_volume(
         /* Ok, let's determine the new real volume */
         compute_real_volume(root_source);
 
-        /* Let's 'push' the reference volume if necessary */
-        pa_cvolume_merge(&new_reference_volume, &s->reference_volume, &root_source->real_volume);
-        /* If the source and its root don't have the same number of channels, we need to remap */
+        /* To propagate the reference volume from the filter to the root source,
+         * we first take the real volume from the root source and remap it to
+         * match the filter. Then, we merge in the reference volume from the
+         * filter on top of this, and remap it back to the root source channel
+         * count and map */
+        root_real_volume = root_source->real_volume;
+        /* First we remap root's real volume to filter channel count and map if needed */
+        if (s != root_source && !pa_channel_map_equal(&s->channel_map, &root_source->channel_map))
+            pa_cvolume_remap(&root_real_volume, &root_source->channel_map, &s->channel_map);
+        /* Then let's 'push' the reference volume if necessary */
+        pa_cvolume_merge(&new_reference_volume, &s->reference_volume, &root_real_volume);
+        /* If the source and its root don't have the same number of channels, we need to remap back */
         if (s != root_source && !pa_channel_map_equal(&s->channel_map, &root_source->channel_map))
             pa_cvolume_remap(&new_reference_volume, &s->channel_map, &root_source->channel_map);
+
         update_reference_volume(root_source, &new_reference_volume, &root_source->channel_map, save);
 
         /* Now that the reference volume is updated, we can update the streams'
