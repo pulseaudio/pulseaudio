@@ -213,15 +213,16 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
             if (i->payload <= 127) {
                 char c[64];
                 int _payload;
+                int len;
 
-                if (sscanf(t+9, "%i %64c", &_payload, c) == 2) {
-
+                if (sscanf(t + 9, "%i %n", &_payload, &len) == 1) {
                     if (_payload < 0 || _payload > 127) {
                         pa_log("Failed to parse SDP data: invalid payload %i.", _payload);
                         goto fail;
                     }
                     if (_payload == i->payload) {
-
+                        strncpy(c, t + 9 + len, 63);
+                        c[63] = 0;
                         c[strcspn(c, "\n")] = 0;
 
                         if (parse_sdp_sample_spec(&i->sample_spec, c))
