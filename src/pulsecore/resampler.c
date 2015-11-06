@@ -685,6 +685,11 @@ int pa_resample_method_supported(pa_resample_method_t m) {
         return 0;
 #endif
 
+#ifndef HAVE_SOXR
+    if (m >= PA_RESAMPLER_SOXR_MQ && m <= PA_RESAMPLER_SOXR_VHQ)
+        return 0;
+#endif
+
     return 1;
 }
 
