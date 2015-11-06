@@ -329,6 +329,10 @@ static void defer_cb(pa_mainloop_api *a, pa_defer_event *e, void *userdata) {
         pa_log("snd_mixer_poll_descriptors_count() failed: %s", pa_alsa_strerror(n));
         return;
     }
+    else if (n == 0) {
+        pa_log_warn("Mixer has no poll descriptors. Please control mixer from PulseAudio only.");
+        return;
+    }
     num_fds = (unsigned) n;
 
     if (num_fds != fdl->num_fds) {
@@ -521,6 +525,10 @@ int pa_alsa_set_mixer_rtpoll(struct pa_alsa_mixer_pdata *pd, snd_mixer_t *mixer,
     if ((n = snd_mixer_poll_descriptors_count(mixer)) < 0) {
         pa_log("snd_mixer_poll_descriptors_count() failed: %s", pa_alsa_strerror(n));
         return -1;
+    }
+    else if (n == 0) {
+        pa_log_warn("Mixer has no poll descriptors. Please control mixer from PulseAudio only.");
+        return 0;
     }
 
     i = pa_rtpoll_item_new(rtp, PA_RTPOLL_LATE, (unsigned) n);
