@@ -62,3 +62,6 @@ notifications:
   email:
     recipients:
       - pulseaudio-commits@lists.freedesktop.org
+
+  irc:
+    - "irc.freenode.net#pulseaudio"
