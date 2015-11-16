@@ -950,18 +950,42 @@ size_t pa_sink_process_input_underruns(pa_sink *s, size_t left_to_play) {
 
     PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state) {
         size_t uf = i->thread_info.underrun_for_sink;
-        if (uf == 0)
-            continue;
-        if (uf >= left_to_play) {
-            if (pa_sink_input_process_underrun(i))
-                continue;
+
+        /* Propagate down the filter tree */
+        if (i->origin_sink) {
+            size_t filter_result, left_to_play_origin;
+
+            /* The recursive call works in the origin sink domain ... */
+            left_to_play_origin = pa_convert_size(left_to_play, &i->sink->sample_spec, &i->origin_sink->sample_spec);
+
+            /* .. and returns the time to sleep before waking up. We need the
+             * underrun duration for comparisons, so we undo the subtraction on
+             * the return value... */
+            filter_result = left_to_play_origin - pa_sink_process_input_underruns(i->origin_sink, left_to_play_origin);
+
+            /* ... and convert it back to the master sink domain */
+            filter_result = pa_convert_size(filter_result, &i->origin_sink->sample_spec, &i->sink->sample_spec);
+
+            /* Remember the longest underrun so far */
+            if (filter_result > result)
+                result = filter_result;
         }
-        else if (uf > result)
+
+        if (uf == 0) {
+            /* No underrun here, move on */
+            continue;
+        } else if (uf >= left_to_play) {
+            /* The sink has possibly consumed all the data the sink input provided */
+            pa_sink_input_process_underrun(i);
+        } else if (uf > result) {
+            /* Remember the longest underrun so far */
             result = uf;
+        }
     }
 
     if (result > 0)
-        pa_log_debug("Found underrun %ld bytes ago (%ld bytes ahead in playback buffer)", (long) result, (long) left_to_play - result);
+        pa_log_debug("%s: Found underrun %ld bytes ago (%ld bytes ahead in playback buffer)", s->name,
+                (long) result, (long) left_to_play - result);
     return left_to_play - result;
 }
 
