@@ -73,7 +73,6 @@ struct port_info {
 };
 
 struct entry {
-    uint8_t version;
     char *profile;
     pa_hashmap *ports; /* Port name -> struct port_info */
 };
@@ -110,7 +109,6 @@ static void port_info_free(struct port_info *p_info) {
 
 static struct entry* entry_new(void) {
     struct entry *r = pa_xnew0(struct entry, 1);
-    r->version = ENTRY_VERSION;
     r->ports = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) port_info_free);
     return r;
 }
@@ -193,15 +191,14 @@ static bool entry_write(struct userdata *u, const char *name, const struct entry
     pa_assert(e);
 
     t = pa_tagstruct_new();
-    pa_tagstruct_putu8(t, e->version);
+    pa_tagstruct_putu8(t, ENTRY_VERSION);
     pa_tagstruct_puts(t, e->profile);
     pa_tagstruct_putu32(t, pa_hashmap_size(e->ports));
 
     PA_HASHMAP_FOREACH(p_info, e->ports, state) {
         pa_tagstruct_puts(t, p_info->name);
         pa_tagstruct_puts64(t, p_info->offset);
-        if (e->version >= 3)
-            pa_tagstruct_puts(t, p_info->profile);
+        pa_tagstruct_puts(t, p_info->profile);
     }
 
     key.data = (char *) name;
@@ -258,6 +255,7 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
     struct entry *e = NULL;
     pa_tagstruct *t = NULL;
     const char* profile;
+    uint8_t version;
 
     pa_assert(u);
     pa_assert(name);
@@ -275,8 +273,8 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
     t = pa_tagstruct_new_fixed(data.data, data.size);
     e = entry_new();
 
-    if (pa_tagstruct_getu8(t, &e->version) < 0 ||
-        e->version > ENTRY_VERSION ||
+    if (pa_tagstruct_getu8(t, &version) < 0 ||
+        version > ENTRY_VERSION ||
         pa_tagstruct_gets(t, &profile) < 0) {
 
         goto fail;
@@ -287,7 +285,7 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
 
     e->profile = pa_xstrdup(profile);
 
-    if (e->version >= 2) {
+    if (version >= 2) {
         uint32_t port_count = 0;
         const char *port_name = NULL, *profile_name = NULL;
         int64_t port_offset = 0;
@@ -303,7 +301,7 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
                 pa_hashmap_get(e->ports, port_name) ||
                 pa_tagstruct_gets64(t, &port_offset) < 0)
                 goto fail;
-            if (e->version >= 3 && pa_tagstruct_gets(t, &profile_name) < 0)
+            if (version >= 3 && pa_tagstruct_gets(t, &profile_name) < 0)
                 goto fail;
 
             p_info = port_info_new(NULL);
@@ -399,7 +397,6 @@ static void update_profile_for_port(struct entry *entry, pa_card *card, pa_devic
     if (!pa_safe_streq(p_info->profile, p->preferred_profile)) {
         pa_xfree(p_info->profile);
         p_info->profile = pa_xstrdup(p->preferred_profile);
-        entry->version = ENTRY_VERSION;
         pa_log_info("Storing profile %s for port %s on card %s.", p_info->profile, p->name, card->name);
     }
 }
