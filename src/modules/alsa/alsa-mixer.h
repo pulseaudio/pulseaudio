@@ -293,6 +293,9 @@ struct pa_alsa_profile {
     char *description;
     unsigned priority;
 
+    char *input_name;
+    char *output_name;
+
     bool supported:1;
     bool fallback_input:1;
     bool fallback_output:1;

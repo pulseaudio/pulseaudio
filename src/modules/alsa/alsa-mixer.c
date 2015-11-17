@@ -3473,6 +3473,8 @@ static void profile_free(pa_alsa_profile *p) {
 
     pa_xfree(p->name);
     pa_xfree(p->description);
+    pa_xfree(p->input_name);
+    pa_xfree(p->output_name);
 
     pa_xstrfreev(p->input_mapping_names);
     pa_xstrfreev(p->output_mapping_names);
@@ -4123,6 +4125,7 @@ static void profile_set_add_auto_pair(
     p->name = name;
 
     if (m) {
+        p->output_name = pa_xstrdup(m->name);
         p->output_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
         pa_idxset_put(p->output_mappings, m, NULL);
         p->priority += m->priority * 100;
@@ -4130,6 +4133,7 @@ static void profile_set_add_auto_pair(
     }
 
     if (n) {
+        p->input_name = pa_xstrdup(n->name);
         p->input_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
         pa_idxset_put(p->input_mappings, n, NULL);
         p->priority += n->priority;
@@ -4292,9 +4296,11 @@ void pa_alsa_profile_dump(pa_alsa_profile *p) {
     pa_alsa_mapping *m;
     pa_assert(p);
 
-    pa_log_debug("Profile %s (%s), priority=%u, supported=%s n_input_mappings=%u, n_output_mappings=%u",
+    pa_log_debug("Profile %s (%s), input=%s, output=%s priority=%u, supported=%s n_input_mappings=%u, n_output_mappings=%u",
                  p->name,
                  pa_strnull(p->description),
+                 pa_strnull(p->input_name),
+                 pa_strnull(p->output_name),
                  p->priority,
                  pa_yes_no(p->supported),
                  p->input_mappings ? pa_idxset_size(p->input_mappings) : 0,
