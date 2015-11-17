@@ -250,8 +250,19 @@ void pa_card_add_profile(pa_card *c, pa_card_profile *profile) {
     pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_ADDED], profile);
 }
 
+static const char* profile_name_for_dir(pa_card_profile *cp, pa_direction_t dir) {
+    if (dir == PA_DIRECTION_OUTPUT && cp->output_name)
+        return cp->output_name;
+    if (dir == PA_DIRECTION_INPUT && cp->input_name)
+        return cp->input_name;
+    return cp->name;
+}
+
 int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
     int r;
+    pa_sink *sink;
+    pa_source *source;
+    uint32_t state;
 
     pa_assert(c);
     pa_assert(profile);
@@ -276,6 +287,13 @@ int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
 
     c->active_profile = profile;
     c->save_profile = save;
+
+    PA_IDXSET_FOREACH(sink, c->sinks, state)
+        if (sink->active_port)
+            pa_device_port_set_preferred_profile(sink->active_port, profile_name_for_dir(profile, PA_DIRECTION_OUTPUT));
+    PA_IDXSET_FOREACH(source, c->sources, state)
+        if (source->active_port)
+            pa_device_port_set_preferred_profile(source->active_port, profile_name_for_dir(profile, PA_DIRECTION_INPUT));
 
     pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], c);
 
