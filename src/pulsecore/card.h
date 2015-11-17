@@ -40,6 +40,14 @@ typedef struct pa_card_profile {
     char *name;
     char *description;
 
+    /* Identifiers for the profile's input and output parts, i e, if two different profiles
+       have the same input_name string, they have the same source(s).
+       Same for output_name and sink(s).
+       Can be NULL (and in case of an input- or output- only profile, the other direction
+       will be NULL). */
+    char *input_name;
+    char *output_name;
+
     unsigned priority;
     pa_available_t available; /* PA_AVAILABLE_UNKNOWN, PA_AVAILABLE_NO or PA_AVAILABLE_YES */
 

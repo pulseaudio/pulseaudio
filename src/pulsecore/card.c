@@ -52,6 +52,8 @@ pa_card_profile *pa_card_profile_new(const char *name, const char *description, 
 void pa_card_profile_free(pa_card_profile *c) {
     pa_assert(c);
 
+    pa_xfree(c->input_name);
+    pa_xfree(c->output_name);
     pa_xfree(c->name);
     pa_xfree(c->description);
     pa_xfree(c);
