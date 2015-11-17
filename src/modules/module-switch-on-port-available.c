@@ -23,6 +23,7 @@
 #endif
 
 #include <pulsecore/core.h>
+#include <pulsecore/core-util.h>
 #include <pulsecore/device-port.h>
 #include <pulsecore/hashmap.h>
 
@@ -33,6 +34,9 @@ static bool profile_good_for_output(pa_card_profile *profile) {
     uint32_t idx;
 
     pa_assert(profile);
+
+    if (!pa_safe_streq(profile->card->active_profile->input_name, profile->input_name))
+        return false;
 
     if (profile->card->active_profile->n_sources != profile->n_sources)
         return false;
@@ -54,6 +58,9 @@ static bool profile_good_for_output(pa_card_profile *profile) {
 
 static bool profile_good_for_input(pa_card_profile *profile) {
     pa_assert(profile);
+
+    if (!pa_safe_streq(profile->card->active_profile->output_name, profile->output_name))
+        return false;
 
     if (profile->card->active_profile->n_sinks != profile->n_sinks)
         return false;
