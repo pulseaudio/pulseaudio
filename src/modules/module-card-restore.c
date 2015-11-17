@@ -64,11 +64,12 @@ struct userdata {
     pa_database *database;
 };
 
-#define ENTRY_VERSION 2
+#define ENTRY_VERSION 3
 
 struct port_info {
     char *name;
     int64_t offset;
+    char *profile;
 };
 
 struct entry {
@@ -102,6 +103,7 @@ static void trigger_save(struct userdata *u) {
 static void port_info_free(struct port_info *p_info) {
     pa_assert(p_info);
 
+    pa_xfree(p_info->profile);
     pa_xfree(p_info->name);
     pa_xfree(p_info);
 }
@@ -117,9 +119,11 @@ static struct port_info *port_info_new(pa_device_port *port) {
     struct port_info *p_info;
 
     if (port) {
-        p_info = pa_xnew(struct port_info, 1);
+        p_info = pa_xnew0(struct port_info, 1);
         p_info->name = pa_xstrdup(port->name);
         p_info->offset = port->latency_offset;
+        if (port->preferred_profile)
+            p_info->profile = pa_xstrdup(port->preferred_profile);
     } else
         p_info = pa_xnew0(struct port_info, 1);
 
@@ -196,6 +200,8 @@ static bool entry_write(struct userdata *u, const char *name, const struct entry
     PA_HASHMAP_FOREACH(p_info, e->ports, state) {
         pa_tagstruct_puts(t, p_info->name);
         pa_tagstruct_puts64(t, p_info->offset);
+        if (e->version >= 3)
+            pa_tagstruct_puts(t, p_info->profile);
     }
 
     key.data = (char *) name;
@@ -283,7 +289,7 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
 
     if (e->version >= 2) {
         uint32_t port_count = 0;
-        const char *port_name = NULL;
+        const char *port_name = NULL, *profile_name = NULL;
         int64_t port_offset = 0;
         struct port_info *p_info;
         unsigned i;
@@ -297,10 +303,14 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
                 pa_hashmap_get(e->ports, port_name) ||
                 pa_tagstruct_gets64(t, &port_offset) < 0)
                 goto fail;
+            if (e->version >= 3 && pa_tagstruct_gets(t, &profile_name) < 0)
+                goto fail;
 
             p_info = port_info_new(NULL);
             p_info->name = pa_xstrdup(port_name);
             p_info->offset = port_offset;
+            if (profile_name)
+                p_info->profile = pa_xstrdup(profile_name);
 
             pa_assert_se(pa_hashmap_put(e->ports, p_info->name, p_info) >= 0);
         }
@@ -375,8 +385,30 @@ finish:
     return PA_HOOK_OK;
 }
 
+static void update_profile_for_port(struct entry *entry, pa_card *card, pa_device_port *p) {
+    struct port_info *p_info;
+
+    if (p == NULL)
+        return;
+
+    if (!(p_info = pa_hashmap_get(entry->ports, p->name))) {
+        p_info = port_info_new(p);
+        pa_assert_se(pa_hashmap_put(entry->ports, p_info->name, p_info) >= 0);
+    }
+
+    if (!pa_safe_streq(p_info->profile, p->preferred_profile)) {
+        pa_xfree(p_info->profile);
+        p_info->profile = pa_xstrdup(p->preferred_profile);
+        entry->version = ENTRY_VERSION;
+        pa_log_info("Storing profile %s for port %s on card %s.", p_info->profile, p->name, card->name);
+    }
+}
+
 static pa_hook_result_t card_profile_changed_callback(pa_core *c, pa_card *card, struct userdata *u) {
     struct entry *entry;
+    pa_sink *sink;
+    pa_source *source;
+    uint32_t state;
 
     pa_assert(card);
 
@@ -391,6 +423,11 @@ static pa_hook_result_t card_profile_changed_callback(pa_core *c, pa_card *card,
         entry = entry_from_card(card);
         show_full_info(card);
     }
+
+    PA_IDXSET_FOREACH(sink, card->sinks, state)
+        update_profile_for_port(entry, card, sink->active_port);
+    PA_IDXSET_FOREACH(source, card->sources, state)
+        update_profile_for_port(entry, card, source->active_port);
 
     if (entry_write(u, card->name, entry))
         trigger_save(u);
@@ -508,9 +545,11 @@ static pa_hook_result_t card_new_hook_callback(pa_core *c, pa_card_new_data *new
     pa_log_info("Restoring port latency offsets for card %s.", new_data->name);
 
     PA_HASHMAP_FOREACH(p_info, e->ports, state)
-        if ((p = pa_hashmap_get(new_data->ports, p_info->name)))
+        if ((p = pa_hashmap_get(new_data->ports, p_info->name))) {
             p->latency_offset = p_info->offset;
-
+            if (!p->preferred_profile && p_info->profile)
+                pa_device_port_set_preferred_profile(p, p_info->profile);
+        }
     entry_free(e);
 
     return PA_HOOK_OK;
