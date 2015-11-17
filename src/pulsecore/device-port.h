@@ -43,6 +43,7 @@ struct pa_device_port {
 
     char *name;
     char *description;
+    char *preferred_profile;
 
     unsigned priority;
     pa_available_t available;         /* PA_AVAILABLE_UNKNOWN, PA_AVAILABLE_NO or PA_AVAILABLE_YES */
@@ -80,6 +81,7 @@ pa_device_port *pa_device_port_new(pa_core *c, pa_device_port_new_data *data, si
 void pa_device_port_set_available(pa_device_port *p, pa_available_t available);
 
 void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset);
+void pa_device_port_set_preferred_profile(pa_device_port *p, const char *new_pp);
 
 pa_device_port *pa_device_port_find_best(pa_hashmap *ports);
 
