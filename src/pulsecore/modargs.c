@@ -131,7 +131,7 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
             case WHITESPACE:
                 if (*p == '=')
                     goto fail;
-                else if (!isspace(*p)) {
+                else if (!isspace((unsigned char)*p)) {
                     key = p;
                     state = KEY;
                     key_len = 1;
@@ -141,7 +141,7 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
             case KEY:
                 if (*p == '=')
                     state = VALUE_START;
-                else if (isspace(*p))
+                else if (isspace((unsigned char)*p))
                     goto fail;
                 else
                     key_len++;
@@ -156,7 +156,7 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
                     state = VALUE_DOUBLE_QUOTES;
                     value = p+1;
                     value_len = 0;
-                } else if (isspace(*p)) {
+                } else if (isspace((unsigned char)*p)) {
                     if (add_key_value(ma,
                                       pa_xstrndup(key, key_len),
                                       pa_xstrdup(""),
@@ -175,7 +175,7 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
                 break;
 
             case VALUE_SIMPLE:
-                if (isspace(*p)) {
+                if (isspace((unsigned char)*p)) {
                     if (add_key_value(ma,
                                       pa_xstrndup(key, key_len),
                                       pa_xstrndup(value, value_len),

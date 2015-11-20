@@ -480,7 +480,7 @@ pa_proplist *pa_proplist_from_string(const char *s) {
                     goto success;
                 else if (*p == '=')
                     goto fail;
-                else if (!isspace(*p)) {
+                else if (!isspace((unsigned char)*p)) {
                     key = p;
                     state = KEY;
                     key_len = 1;
@@ -492,7 +492,7 @@ pa_proplist *pa_proplist_from_string(const char *s) {
                     goto fail;
                 else if (*p == '=')
                     state = VALUE_START;
-                else if (isspace(*p))
+                else if (isspace((unsigned char)*p))
                     state = AFTER_KEY;
                 else
                     key_len++;
@@ -503,7 +503,7 @@ pa_proplist *pa_proplist_from_string(const char *s) {
                     goto fail;
                 else if (*p == '=')
                     state = VALUE_START;
-                else if (!isspace(*p))
+                else if (!isspace((unsigned char)*p))
                     goto fail;
                 break;
 
@@ -523,7 +523,7 @@ pa_proplist *pa_proplist_from_string(const char *s) {
                     state = VALUE_DOUBLE_QUOTES;
                     value = p+1;
                     value_len = 0;
-                } else if (!isspace(*p)) {
+                } else if (!isspace((unsigned char)*p)) {
                     state = VALUE_SIMPLE;
                     value = p;
                     value_len = 1;
@@ -531,7 +531,7 @@ pa_proplist *pa_proplist_from_string(const char *s) {
                 break;
 
             case VALUE_SIMPLE:
-                if (*p == 0 || isspace(*p)) {
+                if (*p == 0 || isspace((unsigned char)*p)) {
                     if (proplist_setn(pl, key, key_len, value, value_len) < 0)
                         goto fail;
 
@@ -610,7 +610,7 @@ pa_proplist *pa_proplist_from_string(const char *s) {
                     (*p >= 'A' && *p <= 'F') ||
                     (*p >= 'a' && *p <= 'f')) {
                     value_len++;
-                } else if (*p == 0 || isspace(*p)) {
+                } else if (*p == 0 || isspace((unsigned char)*p)) {
 
                     if (proplist_sethex(pl, key, key_len, value, value_len) < 0)
                         goto fail;

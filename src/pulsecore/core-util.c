@@ -2332,7 +2332,7 @@ int pa_atou(const char *s, uint32_t *ret_u) {
     pa_assert(ret_u);
 
     /* strtoul() ignores leading spaces. We don't. */
-    if (isspace(*s)) {
+    if (isspace((unsigned char)*s)) {
         errno = EINVAL;
         return -1;
     }
@@ -2376,7 +2376,7 @@ int pa_atol(const char *s, long *ret_l) {
     pa_assert(ret_l);
 
     /* strtol() ignores leading spaces. We don't. */
-    if (isspace(*s)) {
+    if (isspace((unsigned char)*s)) {
         errno = EINVAL;
         return -1;
     }
@@ -2421,7 +2421,7 @@ int pa_atod(const char *s, double *ret_d) {
     pa_assert(ret_d);
 
     /* strtod() ignores leading spaces. We don't. */
-    if (isspace(*s)) {
+    if (isspace((unsigned char)*s)) {
         errno = EINVAL;
         return -1;
     }

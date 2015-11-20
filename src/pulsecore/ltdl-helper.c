@@ -53,7 +53,7 @@ pa_void_func_t pa_load_sym(lt_dlhandle handle, const char *module, const char *s
     sn = pa_sprintf_malloc("%s_LTX_%s", module, symbol);
 
     for (c = sn; *c; c++)
-        if (!isalnum(*c))
+        if (!isalnum((unsigned char)*c))
             *c = '_';
 
     f = (pa_void_func_t) lt_dlsym(handle, sn);

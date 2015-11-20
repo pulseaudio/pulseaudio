@@ -1442,7 +1442,7 @@ static bool contains_space(const char *string) {
     pa_assert(string);
 
     for (p = string; *p; ++p) {
-        if (isspace(*p))
+        if (isspace((unsigned char)*p))
             return true;
     }
 
