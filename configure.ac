@@ -569,7 +569,7 @@ AC_CHECK_FUNCS_ONCE([ctime_r usleep])
 AC_CHECK_FUNCS_ONCE([strerror_r])
 
 # BSD
-AC_CHECK_FUNCS_ONCE([lstat])
+AC_CHECK_FUNCS_ONCE([lstat paccept])
 
 # Non-standard
 AC_CHECK_FUNCS_ONCE([setresuid setresgid setreuid setregid seteuid setegid ppoll strsignal sig2str strtod_l pipe2 accept4])

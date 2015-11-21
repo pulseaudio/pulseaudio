@@ -3501,6 +3501,8 @@ finish:
 int pa_accept_cloexec(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
     int fd;
 
+    errno = 0;
+
 #ifdef HAVE_ACCEPT4
     if ((fd = accept4(sockfd, addr, addrlen, SOCK_CLOEXEC)) >= 0)
         goto finish;
@@ -3508,6 +3510,11 @@ int pa_accept_cloexec(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
     if (errno != EINVAL && errno != ENOSYS)
         return fd;
 
+#endif
+
+#ifdef HAVE_PACCEPT
+    if ((fd = paccept(sockfd, addr, addrlen, NULL, SOCK_CLOEXEC)) >= 0)
+        goto finish;
 #endif
 
     if ((fd = accept(sockfd, addr, addrlen)) >= 0)
