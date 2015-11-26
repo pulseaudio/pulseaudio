@@ -23,8 +23,7 @@
 
 #include <inttypes.h>
 
-typedef struct pa_sink_input pa_sink_input;
-
+#include <pulsecore/typedefs.h>
 #include <pulse/sample.h>
 #include <pulse/format.h>
 #include <pulsecore/memblockq.h>

@@ -20,11 +20,10 @@
   along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 ***/
 
+#include <pulsecore/typedefs.h>
 #include <pulse/mainloop-api.h>
 #include <pulse/sample.h>
 #include <pulsecore/cpu.h>
-
-typedef struct pa_core pa_core;
 
 /* This is a bitmask that encodes the cause why a sink/source is
  * suspended. */

@@ -22,14 +22,13 @@
   along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 ***/
 
-typedef struct pa_device_port pa_device_port;
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <inttypes.h>
 
+#include <pulsecore/typedefs.h>
 #include <pulse/def.h>
 #include <pulsecore/object.h>
 #include <pulsecore/hashmap.h>

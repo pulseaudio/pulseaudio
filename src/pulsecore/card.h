@@ -20,8 +20,7 @@
   along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 ***/
 
-typedef struct pa_card pa_card;
-
+#include <pulsecore/typedefs.h>
 #include <pulse/proplist.h>
 #include <pulsecore/core.h>
 #include <pulsecore/module.h>
@@ -35,7 +34,7 @@ typedef enum pa_available {
     PA_AVAILABLE_YES = 2,
 } pa_available_t;
 
-typedef struct pa_card_profile {
+struct pa_card_profile {
     pa_card *card;
     char *name;
     char *description;
@@ -59,7 +58,7 @@ typedef struct pa_card_profile {
     unsigned max_source_channels;
 
     /* .. followed by some implementation specific data */
-} pa_card_profile;
+};
 
 #define PA_CARD_PROFILE_DATA(d) ((void*) ((uint8_t*) d + PA_ALIGN(sizeof(pa_card_profile))))
 

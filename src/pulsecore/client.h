@@ -22,8 +22,7 @@
 
 #include <inttypes.h>
 
-typedef struct pa_client pa_client;
-
+#include <pulsecore/typedefs.h>
 #include <pulse/proplist.h>
 #include <pulsecore/core.h>
 #include <pulsecore/module.h>

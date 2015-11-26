@@ -21,11 +21,10 @@
   along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 ***/
 
-typedef struct pa_source pa_source;
-typedef struct pa_source_volume_change pa_source_volume_change;
 
 #include <inttypes.h>
 
+#include <pulsecore/typedefs.h>
 #include <pulse/def.h>
 #include <pulse/format.h>
 #include <pulse/sample.h>

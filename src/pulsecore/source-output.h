@@ -22,8 +22,7 @@
 
 #include <inttypes.h>
 
-typedef struct pa_source_output pa_source_output;
-
+#include <pulsecore/typedefs.h>
 #include <pulse/sample.h>
 #include <pulse/format.h>
 #include <pulsecore/memblockq.h>
