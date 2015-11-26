@@ -258,11 +258,21 @@ static const char* profile_name_for_dir(pa_card_profile *cp, pa_direction_t dir)
     return cp->name;
 }
 
-int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
-    int r;
+static void update_port_preferred_profile(pa_card *c) {
     pa_sink *sink;
     pa_source *source;
     uint32_t state;
+
+    PA_IDXSET_FOREACH(sink, c->sinks, state)
+        if (sink->active_port)
+            pa_device_port_set_preferred_profile(sink->active_port, profile_name_for_dir(c->active_profile, PA_DIRECTION_OUTPUT));
+    PA_IDXSET_FOREACH(source, c->sources, state)
+        if (source->active_port)
+            pa_device_port_set_preferred_profile(source->active_port, profile_name_for_dir(c->active_profile, PA_DIRECTION_INPUT));
+}
+
+int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
+    int r;
 
     pa_assert(c);
     pa_assert(profile);
@@ -274,7 +284,10 @@ int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
     }
 
     if (c->active_profile == profile) {
-        c->save_profile = c->save_profile || save;
+        if (save && !c->save_profile) {
+            update_port_preferred_profile(c);
+            c->save_profile = true;
+        }
         return 0;
     }
 
@@ -288,12 +301,8 @@ int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
     c->active_profile = profile;
     c->save_profile = save;
 
-    PA_IDXSET_FOREACH(sink, c->sinks, state)
-        if (sink->active_port)
-            pa_device_port_set_preferred_profile(sink->active_port, profile_name_for_dir(profile, PA_DIRECTION_OUTPUT));
-    PA_IDXSET_FOREACH(source, c->sources, state)
-        if (source->active_port)
-            pa_device_port_set_preferred_profile(source->active_port, profile_name_for_dir(profile, PA_DIRECTION_INPUT));
+    if (save)
+        update_port_preferred_profile(c);
 
     pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], c);
 
