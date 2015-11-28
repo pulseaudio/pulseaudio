@@ -489,14 +489,14 @@ AS_IF([test "$pulseaudio_cv__Bool" = "yes"], AC_DEFINE([HAVE_STD_BOOL], 1, [Have
 #### Thread support ####
 
 AX_TLS
-AS_IF([test "$ac_cv_tls" == "__thread"],
+AS_IF([test "$ac_cv_tls" = "__thread"],
     AC_DEFINE([SUPPORT_TLS___THREAD], 1, [Define this if the compiler supports __thread for Thread-Local Storage]))
 
 # Win32 build breaks with win32 pthread installed
 AS_IF([test "x$os_is_win32" != "x1"],
   [AX_PTHREAD])
 
-AS_IF([test "x$ax_pthread_ok" == "xyes"],
+AS_IF([test "x$ax_pthread_ok" = "xyes"],
     AC_DEFINE([_POSIX_PTHREAD_SEMANTICS], 1, [Needed on Solaris]))
 
 
