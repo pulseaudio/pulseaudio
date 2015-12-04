@@ -23,15 +23,21 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
   <synopsis>
     <p><file>~/.config/pulse/default.pa</file></p>
-
     <p><file>@PA_DEFAULT_CONFIG_DIR@/default.pa</file></p>
+    <p><file>@PA_DEFAULT_CONFIG_DIR@/system.pa</file></p>
   </synopsis>
 
   <description>
-    <p>The PulseAudio sound server interprets the file
-    <file>~/.config/pulse/default.pa</file> on startup, and when that file
-    doesn't exist <file>@PA_DEFAULT_CONFIG_DIR@/default.pa</file>. It
-    should contain directives in the PulseAudio CLI language, as
+    <p>The PulseAudio sound server interprets a configuration script on
+    startup, which is mainly used to define the set of modules to load. When
+    PulseAudio runs in the per-user mode and
+    <file>~/.config/pulse/default.pa</file> exists, that file is used. When
+    PulseAudio runs in the per-user mode and that file doesn't exist,
+    <file>@PA_DEFAULT_CONFIG_DIR@/default.pa</file> is used. When PulseAudio
+    runs as a system service, <file>@PA_DEFAULT_CONFIG_DIR@/system.pa</file> is
+    used.</p>
+
+    <p>The script should contain directives in the PulseAudio CLI language, as
     documented in <manref name="pulse-cli-syntax" section="5"/>.</p>
 
     <p>The same commands can also be entered during runtime in the <manref name="pacmd"
