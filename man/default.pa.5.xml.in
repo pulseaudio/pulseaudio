@@ -39,9 +39,6 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
     <p>The script should contain directives in the PulseAudio CLI language, as
     documented in <manref name="pulse-cli-syntax" section="5"/>.</p>
-
-    <p>The same commands can also be entered during runtime in the <manref name="pacmd"
-      section="1"/> tool, allowing flexible runtime reconfiguration.</p>
   </description>
 
   <section name="Authors">
