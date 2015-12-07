@@ -23,18 +23,29 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
   <synopsis>
     <p><file>~/.config/pulse/daemon.conf</file></p>
-
+    <p><file>~/.config/pulse/daemon.conf.d/*.conf</file></p>
     <p><file>@PA_DEFAULT_CONFIG_DIR@/daemon.conf</file></p>
+    <p><file>@PA_DEFAULT_CONFIG_DIR@/daemon.conf.d/*.conf</file></p>
   </synopsis>
 
   <description>
     <p>The PulseAudio sound server reads configuration directives from
-    a file <file>~/.config/pulse/daemon.conf</file> on startup and when that
-    file doesn't exist from
-    <file>@PA_DEFAULT_CONFIG_DIR@/daemon.conf</file>. Please note that the
-    server also reads a configuration script on startup
-    <file>default.pa</file> which also contains runtime configuration
-    directives.</p>
+    a configuration file on startup. If the per-user file
+    <file>~/.config/pulse/daemon.conf</file> exists, it is used, otherwise the
+    system configuration file <file>@PA_DEFAULT_CONFIG_DIR@/daemon.conf</file>
+    is used. In addition to those main files, configuration directives can also
+    be put in files under directories
+    <file>~/.config/pulse/daemon.conf.d/</file> and
+    <file>@PA_DEFAULT_CONFIG_DIR@/daemon.conf.d/</file>. Those files have to
+    have the .conf file name extension, but otherwise the file names can be
+    chosen freely. The files under daemon.conf.d are processed in alphabetical
+    order. In case the same option is set in multiple files, the last file to
+    set an option overrides earlier files. The main daemon.conf file is
+    processed first, so options set in files under daemon.conf.d override the
+    main file.</p>
+
+    <p>Please note that the server also reads a configuration script on
+    startup. See <manref name="default.pa" section="5"/>.</p>
 
     <p>The configuration file is a simple collection of variable
     declarations. If the configuration file parser encounters either ;

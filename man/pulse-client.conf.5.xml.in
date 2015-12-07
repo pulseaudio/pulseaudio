@@ -23,15 +23,26 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
   <synopsis>
     <p><file>~/.config/pulse/client.conf</file></p>
-
+    <p><file>~/.config/pulse/client.conf.d/*.conf</file></p>
     <p><file>@PA_DEFAULT_CONFIG_DIR@/client.conf</file></p>
+    <p><file>@PA_DEFAULT_CONFIG_DIR@/client.conf.d/*.conf</file></p>
   </synopsis>
 
   <description>
     <p>The PulseAudio client library reads configuration directives from
-    a file <file>~/.config/pulse/client.conf</file> on startup and when that
-    file doesn't exist from
-    <file>@PA_DEFAULT_CONFIG_DIR@/client.conf</file>.</p>
+    a configuration file on startup. If the per-user file
+    <file>~/.config/pulse/client.conf</file> exists, it is used, otherwise the
+    system configuration file <file>@PA_DEFAULT_CONFIG_DIR@/client.conf</file>
+    is used. In addition to those main files, configuration directives can also
+    be put in files under directories
+    <file>~/.config/pulse/client.conf.d/</file> and
+    <file>@PA_DEFAULT_CONFIG_DIR@/client.conf.d/</file>. Those files have to
+    have the .conf file name extension, but otherwise the file names can be
+    chosen freely. The files under client.conf.d are processed in alphabetical
+    order. In case the same option is set in multiple files, the last file to
+    set an option overrides earlier files. The main client.conf file is
+    processed first, so options set in files under client.conf.d override the
+    main file.</p>
 
     <p>The configuration file is a simple collection of variable
     declarations. If the configuration file parser encounters either ;

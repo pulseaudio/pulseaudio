@@ -149,7 +149,7 @@ void pa_client_conf_load(pa_client_conf *c, bool load_from_x11, bool load_from_e
 
     f = pa_open_config_file(DEFAULT_CLIENT_CONFIG_FILE, DEFAULT_CLIENT_CONFIG_FILE_USER, ENV_CLIENT_CONFIG_FILE, &fn);
     if (f) {
-        pa_config_parse(fn, f, table, NULL, false, NULL);
+        pa_config_parse(fn, f, table, NULL, true, NULL);
         pa_xfree(fn);
         fclose(f);
     }
