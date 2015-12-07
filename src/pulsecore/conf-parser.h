@@ -59,6 +59,11 @@ struct pa_config_parser_state {
  * pa_config_items in *t that is terminated by an item where lvalue is
  * NULL.
  *
+ * If use_dot_d is true, then after parsing the file named by the filename
+ * argument, the function will parse all files ending with ".conf" in
+ * alphabetical order from a directory whose name is filename + ".d", if such
+ * directory exists.
+ *
  * Some configuration files may contain a Properties section, which
  * is a bit special. Normally all accepted lvalues must be predefined
  * in the pa_config_item table, but in the Properties section the
@@ -68,7 +73,8 @@ struct pa_config_parser_state {
  * properties, and those properties will be merged into the given
  * proplist. If proplist is NULL, then sections named "Properties"
  * are not allowed at all in the configuration file. */
-int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, pa_proplist *proplist, void *userdata);
+int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, pa_proplist *proplist, bool use_dot_d,
+                    void *userdata);
 
 /* Generic parsers for integers, size_t, booleans and strings */
 int pa_config_parse_int(pa_config_parser_state *state);

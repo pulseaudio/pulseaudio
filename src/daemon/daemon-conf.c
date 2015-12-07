@@ -617,7 +617,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     ci.default_channel_map_set = ci.default_sample_spec_set = false;
     ci.conf = c;
 
-    r = f ? pa_config_parse(c->config_file, f, table, NULL, NULL) : 0;
+    r = f ? pa_config_parse(c->config_file, f, table, NULL, false, NULL) : 0;
 
     if (r >= 0) {
 

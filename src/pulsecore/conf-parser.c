@@ -21,6 +21,7 @@
 #include <config.h>
 #endif
 
+#include <dirent.h>
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
@@ -103,7 +104,7 @@ static int parse_line(pa_config_parser_state *state) {
             }
         }
 
-        r = pa_config_parse(fn, NULL, state->item_table, state->proplist, state->userdata);
+        r = pa_config_parse(fn, NULL, state->item_table, state->proplist, false, state->userdata);
         pa_xfree(path);
         return r;
     }
@@ -152,8 +153,13 @@ static int parse_line(pa_config_parser_state *state) {
         return normal_assignment(state);
 }
 
+static int conf_filter(const struct dirent *entry) {
+    return pa_endswith(entry->d_name, ".conf");
+}
+
 /* Go through the file and parse each line */
-int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, pa_proplist *proplist, void *userdata) {
+int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, pa_proplist *proplist, bool use_dot_d,
+                    void *userdata) {
     int r = -1;
     bool do_close = !f;
     pa_config_parser_state state;
@@ -210,6 +216,38 @@ finish:
 
     if (do_close && f)
         fclose(f);
+
+    if (use_dot_d) {
+        char *dir_name;
+        int n;
+        struct dirent **entries = NULL;
+
+        dir_name = pa_sprintf_malloc("%s.d", filename);
+
+        n = scandir(dir_name, &entries, conf_filter, alphasort);
+        if (n >= 0) {
+            int i;
+
+            for (i = 0; i < n; i++) {
+                char *filename2;
+
+                filename2 = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", dir_name, entries[i]->d_name);
+                pa_config_parse(filename2, NULL, t, proplist, false, userdata);
+                pa_xfree(filename2);
+
+                free(entries[i]);
+            }
+
+            free(entries);
+        } else {
+            if (errno == ENOENT)
+                pa_log_debug("%s does not exist, ignoring.", dir_name);
+            else
+                pa_log_warn("scandir(\"%s\") failed: %s", dir_name, pa_cstrerror(errno));
+        }
+
+        pa_xfree(dir_name);
+    }
 
     return r;
 }
