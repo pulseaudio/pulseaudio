@@ -137,6 +137,9 @@ case "$host_os" in
         AC_MSG_RESULT([freebsd])
         host_has_caps=1
     ;;
+    netbsd*)
+        AC_MSG_RESULT([netbsd])
+    ;;
     darwin*)
         AC_MSG_RESULT([darwin])
         os_is_darwin=1
@@ -257,6 +260,10 @@ else
     # HW specific atomic ops stuff
     AC_MSG_CHECKING([architecture for native atomic operations])
     case $host in
+        *-netbsd*)
+            AC_MSG_RESULT([yes])
+            need_libatomic_ops=no
+        ;;
         arm*)
             AC_MSG_RESULT([arm])
             AC_MSG_CHECKING([whether we can use Linux kernel helpers])
@@ -291,10 +298,6 @@ else
                     need_libatomic_ops=no
                 ])
             fi
-        ;;
-        *-netbsdelf5*)
-            AC_MSG_RESULT([yes])
-            need_libatomic_ops=no
         ;;
         *-freebsd*)
             AC_MSG_RESULT([yes])
