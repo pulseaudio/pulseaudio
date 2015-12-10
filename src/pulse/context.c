@@ -364,7 +364,11 @@ static void handle_srbchannel_memblock(pa_context *c, pa_memblock *memblock) {
     pa_memblock_ref(memblock);
     sr = pa_srbchannel_new_from_template(c->mainloop, &c->srb_template);
     if (!sr) {
-        pa_context_fail(c, PA_ERR_PROTOCOL);
+        pa_log_warn("Failed to create srbchannel from template");
+        c->srb_template.readfd = -1;
+        c->srb_template.writefd = -1;
+        pa_memblock_unref(c->srb_template.memblock);
+        c->srb_template.memblock = NULL;
         return;
     }
 
