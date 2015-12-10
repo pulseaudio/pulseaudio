@@ -2621,6 +2621,7 @@ pa_alsa_path *pa_alsa_path_synthesize(const char *element, pa_alsa_direction_t d
     p = pa_xnew0(pa_alsa_path, 1);
     p->name = pa_xstrdup(element);
     p->direction = direction;
+    p->proplist = pa_proplist_new();
 
     e = pa_xnew0(pa_alsa_element, 1);
     e->path = p;
