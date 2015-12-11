@@ -918,7 +918,7 @@ libpulsedsp_la_LDFLAGS = $(AM_LDFLAGS) $(AM_LIBLDFLAGS) -avoid-version -disable-
 #      Daemon core library        #
 ###################################
 
-lib_LTLIBRARIES += libpulsecore-@PA_MAJORMINOR@.la
+pkglib_LTLIBRARIES += libpulsecore-@PA_MAJORMINOR@.la
 
 # Pure core stuff
 libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
