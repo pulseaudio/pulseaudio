@@ -47,7 +47,6 @@ static const char* const valid_modargs[] = {
 };
 
 struct userdata {
-    pa_hook_slot *put_slot, *unlink_slot;
     uint32_t null_module;
     bool ignore;
     char *sink_name;
@@ -162,8 +161,8 @@ int pa__init(pa_module*m) {
 
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
-    u->put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) put_hook_callback, u);
-    u->unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_EARLY, (pa_hook_cb_t) unlink_hook_callback, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) put_hook_callback, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_EARLY, (pa_hook_cb_t) unlink_hook_callback, u);
     u->null_module = PA_INVALID_INDEX;
     u->ignore = false;
 
@@ -182,10 +181,6 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->put_slot)
-        pa_hook_slot_free(u->put_slot);
-    if (u->unlink_slot)
-        pa_hook_slot_free(u->unlink_slot);
     if (u->null_module != PA_INVALID_INDEX && m->core->state != PA_CORE_SHUTDOWN)
         pa_module_unload_request_by_index(m->core, u->null_module, true);
 
