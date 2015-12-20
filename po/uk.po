@@ -7,8 +7,8 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: https://bugs.freedesktop.org/enter_bug.cgi?"
 "product=PulseAudio&keywords=I18N+L10N&component=misc\n"
-"POT-Creation-Date: 2015-04-10 23:07+0000\n"
-"PO-Revision-Date: 2015-04-20 15:53+0300\n"
+"POT-Creation-Date: 2015-09-12 15:47+0000\n"
+"PO-Revision-Date: 2015-12-20 13:34+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation@linux.org.ua>\n"
 "Language: uk\n"
@@ -489,25 +489,29 @@ msgstr ""
 "Виконуємо докладнішу діагностику."
 
 #: ../src/daemon/main.c:712
-msgid "Running in system mode, but --disallow-exit not set!"
+#| msgid "Running in system mode, but --disallow-exit not set!"
+msgid "Running in system mode, but --disallow-exit not set."
 msgstr ""
-"Запуск у загальносистемному режимі, але не встановлено --disallow-exit!"
+"Запуск у загальносистемному режимі, але не встановлено --disallow-exit."
 
 #: ../src/daemon/main.c:715
-msgid "Running in system mode, but --disallow-module-loading not set!"
+#| msgid "Running in system mode, but --disallow-module-loading not set!"
+msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr ""
 "Запуск у загальносистемному режимі, але не встановлено --disallow-module-"
-"loading!"
+"loading."
 
 #: ../src/daemon/main.c:718
-msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr "Запуск у загальносистемному режимі, примусове вимикання режиму SHM!"
+#| msgid "Running in system mode, forcibly disabling SHM mode!"
+msgid "Running in system mode, forcibly disabling SHM mode."
+msgstr "Запуск у загальносистемному режимі, примусове вимикання режиму SHM."
 
 #: ../src/daemon/main.c:723
-msgid "Running in system mode, forcibly disabling exit idle time!"
+#| msgid "Running in system mode, forcibly disabling exit idle time!"
+msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
 "Запуск у загальносистемному режимі, примусове вимикання режиму параметрів "
-"часу виходу за відсутності активності!"
+"часу виходу, якщо немає активності."
 
 #: ../src/daemon/main.c:756
 msgid "Failed to acquire stdio."
@@ -585,277 +589,302 @@ msgstr "Звукова система PulseAudio"
 msgid "Start the PulseAudio Sound System"
 msgstr "Запустити звукову систему PulseAudio"
 
-#: ../src/modules/alsa/alsa-mixer.c:2291
+#: ../src/modules/alsa/alsa-mixer.c:2394
 msgid "Input"
 msgstr "Вхід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2292
+#: ../src/modules/alsa/alsa-mixer.c:2395
 msgid "Docking Station Input"
 msgstr "Вхідний канал док-станції"
 
-#: ../src/modules/alsa/alsa-mixer.c:2293
+#: ../src/modules/alsa/alsa-mixer.c:2396
 msgid "Docking Station Microphone"
 msgstr "Мікрофон док-станції"
 
-#: ../src/modules/alsa/alsa-mixer.c:2294
+#: ../src/modules/alsa/alsa-mixer.c:2397
 msgid "Docking Station Line In"
 msgstr "Лінійний вхід док-станції"
 
-#: ../src/modules/alsa/alsa-mixer.c:2295 ../src/modules/alsa/alsa-mixer.c:2380
+#: ../src/modules/alsa/alsa-mixer.c:2398 ../src/modules/alsa/alsa-mixer.c:2483
 msgid "Line In"
 msgstr "Лінійний вхід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2296 ../src/modules/alsa/alsa-mixer.c:2374
+#: ../src/modules/alsa/alsa-mixer.c:2399 ../src/modules/alsa/alsa-mixer.c:2477
 #: ../src/modules/bluetooth/module-bluez4-device.c:2102
 #: ../src/modules/bluetooth/module-bluez5-device.c:1710
 msgid "Microphone"
 msgstr "Мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2297 ../src/modules/alsa/alsa-mixer.c:2375
+#: ../src/modules/alsa/alsa-mixer.c:2400 ../src/modules/alsa/alsa-mixer.c:2478
 msgid "Front Microphone"
 msgstr "Передній мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2298 ../src/modules/alsa/alsa-mixer.c:2376
+#: ../src/modules/alsa/alsa-mixer.c:2401 ../src/modules/alsa/alsa-mixer.c:2479
 msgid "Rear Microphone"
 msgstr "Задній мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2299
+#: ../src/modules/alsa/alsa-mixer.c:2402
 msgid "External Microphone"
 msgstr "Зовнішній мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2300 ../src/modules/alsa/alsa-mixer.c:2378
+#: ../src/modules/alsa/alsa-mixer.c:2403 ../src/modules/alsa/alsa-mixer.c:2481
 msgid "Internal Microphone"
 msgstr "Вбудований мікрофон"
 
-#: ../src/modules/alsa/alsa-mixer.c:2301 ../src/modules/alsa/alsa-mixer.c:2381
+#: ../src/modules/alsa/alsa-mixer.c:2404 ../src/modules/alsa/alsa-mixer.c:2484
 msgid "Radio"
 msgstr "Радіо"
 
-#: ../src/modules/alsa/alsa-mixer.c:2302 ../src/modules/alsa/alsa-mixer.c:2382
+#: ../src/modules/alsa/alsa-mixer.c:2405 ../src/modules/alsa/alsa-mixer.c:2485
 msgid "Video"
 msgstr "Відео"
 
-#: ../src/modules/alsa/alsa-mixer.c:2303
+#: ../src/modules/alsa/alsa-mixer.c:2406
 msgid "Automatic Gain Control"
 msgstr "Автоматичне керування підсиленням"
 
-#: ../src/modules/alsa/alsa-mixer.c:2304
+#: ../src/modules/alsa/alsa-mixer.c:2407
 msgid "No Automatic Gain Control"
 msgstr "Без автоматичного керування підсиленням"
 
-#: ../src/modules/alsa/alsa-mixer.c:2305
+#: ../src/modules/alsa/alsa-mixer.c:2408
 msgid "Boost"
 msgstr "Підсилення"
 
-#: ../src/modules/alsa/alsa-mixer.c:2306
+#: ../src/modules/alsa/alsa-mixer.c:2409
 msgid "No Boost"
 msgstr "Без пісилення"
 
-#: ../src/modules/alsa/alsa-mixer.c:2307
+#: ../src/modules/alsa/alsa-mixer.c:2410
 msgid "Amplifier"
 msgstr "Підсилювач"
 
-#: ../src/modules/alsa/alsa-mixer.c:2308
+#: ../src/modules/alsa/alsa-mixer.c:2411
 msgid "No Amplifier"
 msgstr "Без підсилювача"
 
-#: ../src/modules/alsa/alsa-mixer.c:2309
+#: ../src/modules/alsa/alsa-mixer.c:2412
 msgid "Bass Boost"
 msgstr "Підсилення басів"
 
-#: ../src/modules/alsa/alsa-mixer.c:2310
+#: ../src/modules/alsa/alsa-mixer.c:2413
 msgid "No Bass Boost"
 msgstr "Без підсилення"
 
-#: ../src/modules/alsa/alsa-mixer.c:2311
+#: ../src/modules/alsa/alsa-mixer.c:2414
 #: ../src/modules/bluetooth/module-bluez4-device.c:2107
 #: ../src/modules/bluetooth/module-bluez5-device.c:1717
 msgid "Speaker"
 msgstr "Гучномовець"
 
-#: ../src/modules/alsa/alsa-mixer.c:2312 ../src/modules/alsa/alsa-mixer.c:2384
+#: ../src/modules/alsa/alsa-mixer.c:2415 ../src/modules/alsa/alsa-mixer.c:2487
 msgid "Headphones"
 msgstr "Аналогові навушники"
 
-#: ../src/modules/alsa/alsa-mixer.c:2373
+#: ../src/modules/alsa/alsa-mixer.c:2476
 msgid "Analog Input"
 msgstr "Аналогових вхід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2377
+#: ../src/modules/alsa/alsa-mixer.c:2480
 msgid "Dock Microphone"
 msgstr "Мікрофон стикувальної станції"
 
-#: ../src/modules/alsa/alsa-mixer.c:2379
+#: ../src/modules/alsa/alsa-mixer.c:2482
 msgid "Headset Microphone"
 msgstr "Мікрофон гарнітури"
 
-#: ../src/modules/alsa/alsa-mixer.c:2383
+#: ../src/modules/alsa/alsa-mixer.c:2486
 msgid "Analog Output"
 msgstr "Аналогове відтворення"
 
-#: ../src/modules/alsa/alsa-mixer.c:2385
+#: ../src/modules/alsa/alsa-mixer.c:2488
 msgid "LFE on Separate Mono Output"
 msgstr "Аналоговий вихід (сабвуфер)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2386
+#: ../src/modules/alsa/alsa-mixer.c:2489
 msgid "Line Out"
 msgstr "Лінійний вихід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2387
+#: ../src/modules/alsa/alsa-mixer.c:2490
 msgid "Analog Mono Output"
 msgstr "Аналоговий моно-вихід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2388
+#: ../src/modules/alsa/alsa-mixer.c:2491
 msgid "Speakers"
 msgstr "Гучномовці"
 
-#: ../src/modules/alsa/alsa-mixer.c:2389
+#: ../src/modules/alsa/alsa-mixer.c:2492
 msgid "HDMI / DisplayPort"
 msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2390
+#: ../src/modules/alsa/alsa-mixer.c:2493
 msgid "Digital Output (S/PDIF)"
 msgstr "Цифровий вихід (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2391
+#: ../src/modules/alsa/alsa-mixer.c:2494
 msgid "Digital Input (S/PDIF)"
 msgstr "Цифровий вхід (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2392
+#: ../src/modules/alsa/alsa-mixer.c:2495
 msgid "Digital Passthrough (S/PDIF)"
 msgstr "Цифрове передавання (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2393
-#| msgid "Multichannel"
+#: ../src/modules/alsa/alsa-mixer.c:2496
 msgid "Multichannel Input"
 msgstr "Багатоканальний вхід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2394
-#| msgid "Multichannel"
+#: ../src/modules/alsa/alsa-mixer.c:2497
 msgid "Multichannel Output"
 msgstr "Багатоканальний вихід"
 
-#: ../src/modules/alsa/alsa-mixer.c:3900
+#: ../src/modules/alsa/alsa-mixer.c:4003
 msgid "Analog Mono"
 msgstr "Аналогове моно"
 
-#: ../src/modules/alsa/alsa-mixer.c:3901
+#. Note: Not translated to "Analog Stereo Input", because the source
+#. * name gets "Input" appended to it automatically, so adding "Input"
+#. * here would lead to the source name to become "Analog Stereo Input
+#. * Input". The same logic applies to analog-stereo-output,
+#. * multichannel-input and multichannel-output.
+#: ../src/modules/alsa/alsa-mixer.c:4004 ../src/modules/alsa/alsa-mixer.c:4010
+#: ../src/modules/alsa/alsa-mixer.c:4011
 msgid "Analog Stereo"
 msgstr "Аналогове стерео"
 
-#. Note: Not translated to "Multichannel Input" - then the source name would be "Multichannel Input Input".
-#. Same for multichannel-output.
-#: ../src/modules/alsa/alsa-mixer.c:3904 ../src/modules/alsa/alsa-mixer.c:3905
+#: ../src/modules/alsa/alsa-mixer.c:4012 ../src/modules/alsa/alsa-mixer.c:4013
 msgid "Multichannel"
 msgstr "Багатоканальний"
 
-#: ../src/modules/alsa/alsa-mixer.c:3906
+#: ../src/modules/alsa/alsa-mixer.c:4014
 msgid "Analog Surround 2.1"
 msgstr "Аналоговий об'ємний 2.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3907
+#: ../src/modules/alsa/alsa-mixer.c:4015
 msgid "Analog Surround 3.0"
 msgstr "Аналоговий об'ємний 3.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3908
+#: ../src/modules/alsa/alsa-mixer.c:4016
 msgid "Analog Surround 3.1"
 msgstr "Аналоговий об'ємний 3.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3909
+#: ../src/modules/alsa/alsa-mixer.c:4017
 msgid "Analog Surround 4.0"
 msgstr "Аналоговий об'ємний 4.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3910
+#: ../src/modules/alsa/alsa-mixer.c:4018
 msgid "Analog Surround 4.1"
 msgstr "Аналоговий об'ємний 4.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3911
+#: ../src/modules/alsa/alsa-mixer.c:4019
 msgid "Analog Surround 5.0"
 msgstr "Аналоговий об'ємний 5.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3912
+#: ../src/modules/alsa/alsa-mixer.c:4020
 msgid "Analog Surround 5.1"
 msgstr "Аналоговий об'ємний 5.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3913
+#: ../src/modules/alsa/alsa-mixer.c:4021
 msgid "Analog Surround 6.0"
 msgstr "Аналоговий об'ємний 6.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3914
+#: ../src/modules/alsa/alsa-mixer.c:4022
 msgid "Analog Surround 6.1"
 msgstr "Аналоговий об'ємний 6.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3915
+#: ../src/modules/alsa/alsa-mixer.c:4023
 msgid "Analog Surround 7.0"
 msgstr "Аналоговий об'ємний 7.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3916
+#: ../src/modules/alsa/alsa-mixer.c:4024
 msgid "Analog Surround 7.1"
 msgstr "Аналоговий об'ємний 7.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3917
+#: ../src/modules/alsa/alsa-mixer.c:4025
 msgid "Digital Stereo (IEC958)"
 msgstr "Цифрове стерео (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3918
+#: ../src/modules/alsa/alsa-mixer.c:4026
 msgid "Digital Passthrough  (IEC958)"
 msgstr "Цифрове передавання (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3919
+#: ../src/modules/alsa/alsa-mixer.c:4027
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Цифровий об’ємний 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3920
+#: ../src/modules/alsa/alsa-mixer.c:4028
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Цифровий об’ємний 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3921
+#: ../src/modules/alsa/alsa-mixer.c:4029
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr "Цифровий об’ємний 5.1 (IEC958/DTS)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3922
+#: ../src/modules/alsa/alsa-mixer.c:4030
 msgid "Digital Stereo (HDMI)"
 msgstr "Цифровий стерео (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3923
+#: ../src/modules/alsa/alsa-mixer.c:4031
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr "Цифровий об’ємний 5.1 (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4054
+#: ../src/modules/alsa/alsa-mixer.c:4162
 msgid "Analog Mono Duplex"
 msgstr "Аналогове двобічне моно"
 
-#: ../src/modules/alsa/alsa-mixer.c:4055
+#: ../src/modules/alsa/alsa-mixer.c:4163
 msgid "Analog Stereo Duplex"
 msgstr "Аналогове двобічне стерео"
 
-#: ../src/modules/alsa/alsa-mixer.c:4056
+#: ../src/modules/alsa/alsa-mixer.c:4164
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Цифрове двобічне стерео (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4057
-#| msgid "Multichannel"
+#: ../src/modules/alsa/alsa-mixer.c:4165
 msgid "Multichannel Duplex"
 msgstr "Багатоканальний двобічний"
 
-#: ../src/modules/alsa/alsa-mixer.c:4058
+#: ../src/modules/alsa/alsa-mixer.c:4166
 #: ../src/modules/alsa/module-alsa-card.c:184
 #: ../src/modules/bluetooth/module-bluez4-device.c:2298
 #: ../src/modules/bluetooth/module-bluez5-device.c:1941
 msgid "Off"
 msgstr "Вимкнено"
 
-#: ../src/modules/alsa/alsa-mixer.c:4157
+#: ../src/modules/alsa/alsa-mixer.c:4265
 #, c-format
 msgid "%s Output"
 msgstr "вихід %s"
 
-#: ../src/modules/alsa/alsa-mixer.c:4165
+#: ../src/modules/alsa/alsa-mixer.c:4273
 #, c-format
 msgid "%s Input"
 msgstr "вхід %s"
 
-#: ../src/modules/alsa/alsa-sink.c:570 ../src/modules/alsa/alsa-sink.c:747
+#: ../src/modules/alsa/alsa-sink.c:570
+#, c-format
+#| msgid ""
+#| "ALSA woke us up to write new data to the device, but there was actually "
+#| "nothing to write!\n"
+#| "Most likely this is a bug in the ALSA driver '%s'. Please report this "
+#| "issue to the ALSA developers.\n"
+#| "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+#| "returned 0 or another value < min_avail."
+msgid ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA викликала службу запису нових даних на пристрій, але насправді ніяких "
+"даних для запису не виявлено!\n"
+"Ймовірно, це пов’язано з вадою у драйвері ALSA «%s». Будь ласка, повідомте "
+"про цю ваду розробникам ALSA.\n"
+"Службу було викликано зі встановленим POLLOUT, але наступний виклик "
+"snd_pcm_avail() повернув 0 або інше значення < min_avail."
+
+#: ../src/modules/alsa/alsa-sink.c:747
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -872,7 +901,31 @@ msgstr ""
 "Службу було викликано зі встановленим POLLOUT, але наступний виклик "
 "snd_pcm_avail() повернув 0 або інше значення < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:529 ../src/modules/alsa/alsa-source.c:680
+#: ../src/modules/alsa/alsa-source.c:529
+#, c-format
+#| msgid ""
+#| "ALSA woke us up to read new data from the device, but there was actually "
+#| "nothing to read!\n"
+#| "Most likely this is a bug in the ALSA driver '%s'. Please report this "
+#| "issue to the ALSA developers.\n"
+#| "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+#| "returned 0 or another value < min_avail."
+msgid ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA викликала службу читання нових даних з пристрою, але насправді ніяких "
+"даних для читання не виявлено!\n"
+"Ймовірно, це пов’язано з вадою у драйвері ALSA «%s». Будь ласка, повідомте "
+"про цю ваду розробникам ALSA.\n"
+"Службу було викликано зі встановленим POLLIN, але наступний виклик "
+"snd_pcm_avail() повернув 0 або інше значення < min_avail."
+
+#: ../src/modules/alsa/alsa-source.c:680
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -1057,7 +1110,7 @@ msgstr ""
 "Завжди підтримувати принаймні один завантажений приймач, навіть якщо він "
 "буде нульовим"
 
-#: ../src/modules/module-always-sink.c:80
+#: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
 msgstr "Тестове відтворення"
 
@@ -1444,7 +1497,7 @@ msgstr "двобічний"
 msgid "invalid"
 msgstr "некоректний"
 
-#: ../src/pulsecore/core-util.c:1822
+#: ../src/pulsecore/core-util.c:1833
 #, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
@@ -1457,11 +1510,11 @@ msgstr ""
 "root, від імені користувача root за допомогою вбудованого протоколу. Не "
 "робіть так.)"
 
-#: ../src/pulsecore/core-util.h:93
+#: ../src/pulsecore/core-util.h:97
 msgid "yes"
 msgstr "так"
 
-#: ../src/pulsecore/core-util.h:93
+#: ../src/pulsecore/core-util.h:97
 msgid "no"
 msgstr "ні"
 
@@ -1486,11 +1539,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Некоректна адреса файла журналу."
 
-#: ../src/pulsecore/sink.c:3429
+#: ../src/pulsecore/sink.c:3436
 msgid "Built-in Audio"
 msgstr "Вбудоване аудіо"
 
-#: ../src/pulsecore/sink.c:3434
+#: ../src/pulsecore/sink.c:3441
 msgid "Modem"
 msgstr "Модем"
 
@@ -1686,7 +1739,7 @@ msgstr ""
 "Перелік можливих значень способів зміни частоти можна отримати за допомогою "
 "параметра --dump-resample-methods.\n"
 
-#: ../src/tests/resampler-test.c:355
+#: ../src/tests/resampler-test.c:353
 #, c-format
 msgid "%s %s\n"
 msgstr "%s %s\n"
@@ -1806,10 +1859,11 @@ msgid "Cork request stack is empty: uncorking stream"
 msgstr "Стос запитів щодо блокування порожній: розблоковуємо потік"
 
 #: ../src/utils/pacat.c:441
-msgid "Warning: Received more uncork requests than cork requests!"
+#| msgid "Warning: Received more uncork requests than cork requests!"
+msgid "Warning: Received more uncork requests than cork requests."
 msgstr ""
 "Попередження: отримано більше запитів щодо розблокування, ніж запитів щодо "
-"блокування!"
+"блокування."
 
 #: ../src/utils/pacat.c:466
 #, c-format
@@ -1871,70 +1925,6 @@ msgstr "Помилка pa_stream_update_timing_info(): %s"
 
 #: ../src/utils/pacat.c:671
 #, c-format
-#| msgid ""
-#| "%s [options]\n"
-#| "\n"
-#| "  -h, --help                            Show this help\n"
-#| "      --version                         Show version\n"
-#| "\n"
-#| "  -r, --record                          Create a connection for "
-#| "recording\n"
-#| "  -p, --playback                        Create a connection for playback\n"
-#| "\n"
-#| "  -v, --verbose                         Enable verbose operations\n"
-#| "\n"
-#| "  -s, --server=SERVER                   The name of the server to connect "
-#| "to\n"
-#| "  -d, --device=DEVICE                   The name of the sink/source to "
-#| "connect to\n"
-#| "  -n, --client-name=NAME                How to call this client on the "
-#| "server\n"
-#| "      --stream-name=NAME                How to call this stream on the "
-#| "server\n"
-#| "      --volume=VOLUME                   Specify the initial (linear) "
-#| "volume in range 0...65536\n"
-#| "      --rate=SAMPLERATE                 The sample rate in Hz (defaults "
-#| "to 44100)\n"
-#| "      --format=SAMPLEFORMAT             The sample type, one of s16le, "
-#| "s16be, u8, float32le,\n"
-#| "                                        float32be, ulaw, alaw, s32le, "
-#| "s32be, s24le, s24be,\n"
-#| "                                        s24-32le, s24-32be (defaults to "
-#| "s16ne)\n"
-#| "      --channels=CHANNELS               The number of channels, 1 for "
-#| "mono, 2 for stereo\n"
-#| "                                        (defaults to 2)\n"
-#| "      --channel-map=CHANNELMAP          Channel map to use instead of the "
-#| "default\n"
-#| "      --fix-format                      Take the sample format from the "
-#| "sink/source the stream is\n"
-#| "                                        being connected to.\n"
-#| "      --fix-rate                        Take the sampling rate from the "
-#| "sink/source the stream is\n"
-#| "                                        being connected to.\n"
-#| "      --fix-channels                    Take the number of channels and "
-#| "the channel map\n"
-#| "                                        from the sink/source the stream "
-#| "is being connected to.\n"
-#| "      --no-remix                        Don't upmix or downmix channels.\n"
-#| "      --no-remap                        Map channels by index instead of "
-#| "name.\n"
-#| "      --latency=BYTES                   Request the specified latency in "
-#| "bytes.\n"
-#| "      --process-time=BYTES              Request the specified process "
-#| "time per request in bytes.\n"
-#| "      --latency-msec=MSEC               Request the specified latency in "
-#| "msec.\n"
-#| "      --process-time-msec=MSEC          Request the specified process "
-#| "time per request in msec.\n"
-#| "      --property=PROPERTY=VALUE         Set the specified property to the "
-#| "specified value.\n"
-#| "      --raw                             Record/play raw PCM data.\n"
-#| "      --passthrough                     Passthrough data.\n"
-#| "      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
-#| "      --list-file-formats               List available file formats.\n"
-#| "      --monitor-stream=INDEX            Record from the sink input with "
-#| "index INDEX.\n"
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -2081,8 +2071,8 @@ msgid ""
 "Capture audio data from a PulseAudio sound server and write it to STDOUT or "
 "the specified file."
 msgstr ""
-"Захопити звукові дані зі звукового сервера PulseAudio і записати їх до STDOUT "
-"або вказаного файла."
+"Захопити звукові дані зі звукового сервера PulseAudio і записати їх до "
+"STDOUT або вказаного файла."
 
 #: ../src/utils/pacat.c:800
 msgid ""
@@ -2318,7 +2308,8 @@ msgid "TARGET"
 msgstr "ПРИЗНАЧЕННЯ"
 
 #: ../src/utils/pacmd.c:76
-msgid "NUMERIC LEVEL"
+#| msgid "NUMERIC LEVEL"
+msgid "NUMERIC-LEVEL"
 msgstr "ЧИСЛОВИЙ РІВЕНЬ"
 
 #: ../src/utils/pacmd.c:79
@@ -2634,6 +2625,11 @@ msgstr ""
 #, c-format
 msgid "\tProfiles:\n"
 msgstr "\tПрофілі:\n"
+
+#: ../src/utils/pactl.c:581
+#, c-format
+msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
+msgstr "\t\t%s: %s (приймачів: %u, джерел: %u, пріоритет: %u, доступно: %s)\n"
 
 #: ../src/utils/pactl.c:586
 #, c-format
@@ -3080,9 +3076,12 @@ msgid "Invalid source output index"
 msgstr "Некоректний номер джерела відтворення"
 
 #: ../src/utils/pactl.c:1956
-msgid "You have to specify a sink name/index and a mute boolean"
+#| msgid "You have to specify a sink name/index and a mute boolean"
+msgid ""
+"You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
-"Вам слід вказати назву/номер приймача і булеве значення вимикання звуку"
+"Вам слід вказати назву/номер приймача і значення вимикання звуку (0, 1 або "
+"«toggle»)"
 
 #: ../src/utils/pactl.c:1961 ../src/utils/pactl.c:1976
 #: ../src/utils/pactl.c:1996 ../src/utils/pactl.c:2014
@@ -3090,23 +3089,33 @@ msgid "Invalid mute specification"
 msgstr "Некоректна специфікація вимикання звуку"
 
 #: ../src/utils/pactl.c:1971
-msgid "You have to specify a source name/index and a mute boolean"
-msgstr "Вам слід вказати назву/номер джерела і булеве значення вимикання звуку"
+#| msgid "You have to specify a source name/index and a mute boolean"
+msgid ""
+"You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+"Вам слід вказати назву/номер джерела і значення вимикання звуку (0, 1 або "
+"«toggle»)"
 
 #: ../src/utils/pactl.c:1986
-msgid "You have to specify a sink input index and a mute boolean"
+#| msgid "You have to specify a sink input index and a mute boolean"
+msgid ""
+"You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr ""
-"Вам слід вказати номер вхідного каналу приймача даних і булеве значення "
-"вимикання звуку"
+"Вам слід вказати індекс входу приймача і значення вимикання звуку (0, 1 або "
+"«toggle»)"
 
 #: ../src/utils/pactl.c:1991
 msgid "Invalid sink input index specification"
 msgstr "Некоректна специфікація номера вхідного каналу приймача даних"
 
 #: ../src/utils/pactl.c:2004
-msgid "You have to specify a source output index and a mute boolean"
+#| msgid "You have to specify a source output index and a mute boolean"
+msgid ""
+"You have to specify a source output index and a mute action (0, 1, or "
+"'toggle')"
 msgstr ""
-"Вам слід вказати номер джерела відтворення і булеве значення вимикання звуку"
+"Вам слід вказати індекс виходу джерела і значення вимикання звуку (0, 1 або "
+"«toggle»)"
 
 #: ../src/utils/pactl.c:2009
 msgid "Invalid source output index specification"
