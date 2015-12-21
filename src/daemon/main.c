@@ -998,9 +998,9 @@ int main(int argc, char *argv[]) {
     pa_disable_sigpipe();
 
     if (pa_rtclock_hrtimer())
-        pa_log_info("Fresh high-resolution timers available! Bon appetit.");
+        pa_log_info("System supports high resolution timers");
     else
-        pa_log_info("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled.");
+        pa_log_info("System appears to not support high resolution timers");
 
     if (conf->lock_memory) {
 #if defined(HAVE_SYS_MMAN_H) && !defined(__ANDROID__)
