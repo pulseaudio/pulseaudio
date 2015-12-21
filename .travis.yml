@@ -1,3 +1,7 @@
+# use the trusty beta
+sudo: required
+dist: trusty
+
 language: c
 
 compiler:
@@ -5,11 +9,9 @@ compiler:
  #- clang
 
 before_install:
-  - sudo sh -c 'echo "deb http://archive.ubuntu.com/ubuntu/ trusty main universe\ndeb-src http://archive.ubuntu.com/ubuntu/ trusty main universe" >> /etc/apt/sources.list'
-  - sudo apt-get -qq update
-install:
+  - sudo apt-get -qq -y update
   - >
-    sudo apt-get -qq install
+    sudo apt-get -qq -y install
     git-core
     autopoint
     autoconf
