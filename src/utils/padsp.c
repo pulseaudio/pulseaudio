@@ -2278,6 +2278,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             break;
         }
 
+#if HAVE_DECL_SOUND_PCM_READ_RATE
         case SOUND_PCM_READ_RATE:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_PCM_READ_RATE\n");
 
@@ -2285,7 +2286,9 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             *(int*) argp = i->sample_spec.rate;
             pa_threaded_mainloop_unlock(i->mainloop);
             break;
+#endif
 
+#if HAVE_DECL_SOUND_PCM_READ_CHANNELS
         case SOUND_PCM_READ_CHANNELS:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_PCM_READ_CHANNELS\n");
 
@@ -2293,7 +2296,9 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             *(int*) argp = i->sample_spec.channels;
             pa_threaded_mainloop_unlock(i->mainloop);
             break;
+#endif
 
+#if HAVE_DECL_SOUND_PCM_READ_BITS
         case SOUND_PCM_READ_BITS:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_PCM_READ_BITS\n");
 
@@ -2301,6 +2306,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             *(int*) argp = pa_sample_size(&i->sample_spec)*8;
             pa_threaded_mainloop_unlock(i->mainloop);
             break;
+#endif
 
         case SNDCTL_DSP_GETOPTR: {
             count_info *info;

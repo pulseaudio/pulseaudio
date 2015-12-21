@@ -780,6 +780,13 @@ AM_CONDITIONAL([HAVE_OSS_WRAPPER], [test "x$HAVE_OSS_WRAPPER" = "x1"])
 AS_IF([test "x$HAVE_OSS_OUTPUT" = "x1"], AC_DEFINE([HAVE_OSS_OUTPUT], 1, [Have OSS output?]))
 AS_IF([test "x$HAVE_OSS_WRAPPER" = "x1"], AC_DEFINE([HAVE_OSS_WRAPPER], 1, [Have OSS wrapper (padsp)?]))
 
+# Some platforms like SunOS (Illumos) may ship without SOUND_PCM_* functionality
+if test "x$HAVE_OSS" = "x1"; then
+    AC_CHECK_DECLS([SOUND_PCM_READ_RATE], [], [], [[#include <sys/soundcard.h>]])
+    AC_CHECK_DECLS([SOUND_PCM_READ_CHANNELS], [], [], [[#include <sys/soundcard.h>]])
+    AC_CHECK_DECLS([SOUND_PCM_READ_BITS], [], [], [[#include <sys/soundcard.h>]])
+fi
+
 #### CoreAudio support (optional) ####
 
 AC_ARG_ENABLE([coreaudio-output],
