@@ -931,6 +931,7 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/cli-command.c pulsecore/cli-command.h \
 		pulsecore/cli-text.c pulsecore/cli-text.h \
 		pulsecore/client.c pulsecore/client.h \
+		pulsecore/typedefs.h \
 		pulsecore/card.c pulsecore/card.h \
 		pulsecore/core-scache.c pulsecore/core-scache.h \
 		pulsecore/core-subscribe.c pulsecore/core-subscribe.h \
