@@ -631,7 +631,8 @@ lo_latency_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 #         Common library          #
 ###################################
 
-pkglib_LTLIBRARIES = \
+commonlibdir = $(pkglibdir)
+commonlib_LTLIBRARIES = \
 		libpulsecommon-@PA_MAJORMINOR@.la
 
 # We duplicate files from pulse/ in this to allow as-needed linking. If we did
@@ -918,7 +919,7 @@ libpulsedsp_la_LDFLAGS = $(AM_LDFLAGS) $(AM_LIBLDFLAGS) -avoid-version -disable-
 #      Daemon core library        #
 ###################################
 
-pkglib_LTLIBRARIES += libpulsecore-@PA_MAJORMINOR@.la
+pkglib_LTLIBRARIES = libpulsecore-@PA_MAJORMINOR@.la
 
 # Pure core stuff
 libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
@@ -2262,7 +2263,10 @@ update-all: update-ffmpeg update-map-file
 # Isn't libtool/autotools fun!
 
 installlibLTLIBRARIES = install-libLTLIBRARIES
-$(installlibLTLIBRARIES): install-pkglibLTLIBRARIES
+$(installlibLTLIBRARIES): install-commonlibLTLIBRARIES
+
+installpkglibLTLIBRARIES = install-pkglibLTLIBRARIES
+$(installpkglibLTLIBRARIES): install-libLTLIBRARIES
 
 installmodlibexecLTLIBRARIES = install-modlibexecLTLIBRARIES
 $(installmodlibexecLTLIBRARIES): install-pkglibLTLIBRARIES install-libLTLIBRARIES
