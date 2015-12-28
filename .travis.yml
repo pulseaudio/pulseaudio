@@ -58,7 +58,7 @@ before_script:
   - NOCONFIGURE=1 ./bootstrap.sh
 
 script:
-  - ./configure --localstatedir=/var && make && make check && make check-daemon
+  - ./configure --localstatedir=/var && make && make check && make check-daemon && make install DESTDIR=`mktemp -d`
 
 notifications:
   email:
