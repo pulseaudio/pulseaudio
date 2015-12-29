@@ -261,8 +261,25 @@ int pa_alsa_set_hw_params(
 
     /* The PCM pointer is only updated with period granularity */
     if (snd_pcm_hw_params_is_batch(hwparams)) {
-        pa_log_info("Disabling tsched mode since BATCH flag is set");
-        _use_tsched = false;
+        bool is_usb = false;
+        const char *id;
+        snd_pcm_info_t* pcm_info;
+        snd_pcm_info_alloca(&pcm_info);
+
+        if (snd_pcm_info(pcm_handle, pcm_info) == 0 &&
+            (id = snd_pcm_info_get_id(pcm_info))) {
+            /* This horrible hack makes sure we don't disable tsched on USB
+             * devices, which have a low enough transfer size for timer-based
+             * scheduling to work. This can go away when the ALSA API supprots
+             * querying the block transfer size. */
+            if (pa_streq(id, "USB Audio"))
+                is_usb = true;
+        }
+
+        if (!is_usb) {
+            pa_log_info("Disabling tsched mode since BATCH flag is set");
+            _use_tsched = false;
+        }
     }
 
 #if (SND_LIB_VERSION >= ((1<<16)|(0<<8)|24)) /* API additions in 1.0.24 */
