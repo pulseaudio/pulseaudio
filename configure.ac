@@ -1375,11 +1375,16 @@ AC_ARG_WITH(mac-version-min,
 
 AC_ARG_WITH(mac-sysroot,
     AS_HELP_STRING([--with-mac-sysroot=<path>], [SDK basedir to use as the logical root directory for headers and libraries.]),
-    mac_sysroot=$withval, mac_sysroot="/Developer/SDKs/MacOSX10.5.sdk")
+    mac_sysroot=$withval)
 
 if test "x$os_is_darwin" = "x1" ; then
-    LDFLAGS="$LDFLAGS -isysroot $mac_sysroot -mmacosx-version-min=$mac_version_min"
-    CFLAGS="$CFLAGS -isysroot $mac_sysroot -mmacosx-version-min=$mac_version_min"
+    LDFLAGS="$LDFLAGS -mmacosx-version-min=$mac_version_min"
+    CFLAGS="$CFLAGS -mmacosx-version-min=$mac_version_min"
+
+    if test "x$mac_sysroot" != "x" ; then
+        LDFLAGS="$LDFLAGS -isysroot $mac_sysroot"
+        CFLAGS="$CFLAGS -isysroot $mac_sysroot"
+    fi
 
     if test "x$enable_mac_universal" = "xyes" ; then
         mac_arches="-arch i386 -arch x86_64"
