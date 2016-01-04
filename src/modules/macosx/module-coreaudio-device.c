@@ -415,6 +415,11 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
     AudioObjectPropertyAddress property_address;
     CFStringRef tmp_cfstr = NULL;
 
+    if (buf->mNumberChannels > PA_CHANNELS_MAX) {
+        pa_log("Skipping device with more channels than we support (%u)", (unsigned int) buf->mNumberChannels);
+        return -1;
+    }
+
     ca_sink = pa_xnew0(coreaudio_sink, 1);
     ca_sink->map.channels = buf->mNumberChannels;
     ca_sink->ss.channels = buf->mNumberChannels;
@@ -542,6 +547,11 @@ static int ca_device_create_source(pa_module *m, AudioBuffer *buf, int channel_i
     pa_strbuf *strbuf;
     AudioObjectPropertyAddress property_address;
     CFStringRef tmp_cfstr = NULL;
+
+    if (buf->mNumberChannels > PA_CHANNELS_MAX) {
+        pa_log("Skipping device with more channels than we support (%u)", (unsigned int) buf->mNumberChannels);
+        return -1;
+    }
 
     ca_source = pa_xnew0(coreaudio_source, 1);
     ca_source->map.channels = buf->mNumberChannels;
