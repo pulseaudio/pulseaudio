@@ -298,7 +298,7 @@ int pa_rtpoll_run(pa_rtpoll *p) {
         p->timestamp = now;
         if (!p->quit && p->timer_enabled)
             pa_log("poll timeout: %d ms ",(int) ((timeout.tv_sec*1000) + (timeout.tv_usec / 1000)));
-        else if (q->quit)
+        else if (p->quit)
             pa_log("poll timeout is ZERO");
         else
             pa_log("poll timeout is FOREVER");
