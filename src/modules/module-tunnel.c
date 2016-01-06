@@ -2200,8 +2200,6 @@ int pa__init(pa_module*m) {
     u->mcalign = pa_mcalign_new(pa_frame_size(&u->source->sample_spec));
 #endif
 
-    pa_xfree(dn);
-
     u->time_event = NULL;
 
     u->maxlength = (uint32_t) -1;
@@ -2221,6 +2219,8 @@ int pa__init(pa_module*m) {
 #else
     pa_source_put(u->source);
 #endif
+
+    pa_xfree(dn);
 
     if (server)
         pa_xfree(server);
