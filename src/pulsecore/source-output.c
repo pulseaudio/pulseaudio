@@ -1244,6 +1244,9 @@ int pa_source_output_start_move(pa_source_output *o) {
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL) == 0);
 
     pa_source_update_status(o->source);
+
+    pa_cvolume_remap(&o->volume_factor_source, &o->source->channel_map, &o->channel_map);
+
     o->source = NULL;
 
     pa_source_output_unref(o);
