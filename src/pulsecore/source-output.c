@@ -792,14 +792,14 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
                 pa_volume_memchunk(&qchunk, &o->source->sample_spec, &o->thread_info.soft_volume);
         }
 
-        if (!o->thread_info.resampler) {
-            if (nvfs) {
-                pa_memchunk_make_writable(&qchunk, 0);
-                pa_volume_memchunk(&qchunk, &o->thread_info.sample_spec, &o->volume_factor_source);
-            }
+        if (nvfs) {
+            pa_memchunk_make_writable(&qchunk, 0);
+            pa_volume_memchunk(&qchunk, &o->source->sample_spec, &o->volume_factor_source);
+        }
 
+        if (!o->thread_info.resampler)
             o->push(o, &qchunk);
-        } else {
+        else {
             pa_memchunk rchunk;
 
             if (mbs == 0)
@@ -810,14 +810,8 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
 
             pa_resampler_run(o->thread_info.resampler, &qchunk, &rchunk);
 
-            if (rchunk.length > 0) {
-                if (nvfs) {
-                    pa_memchunk_make_writable(&rchunk, 0);
-                    pa_volume_memchunk(&rchunk, &o->thread_info.sample_spec, &o->volume_factor_source);
-                }
-
+            if (rchunk.length > 0)
                 o->push(o, &rchunk);
-            }
 
             if (rchunk.memblock)
                 pa_memblock_unref(rchunk.memblock);
