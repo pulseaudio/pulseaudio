@@ -1230,6 +1230,8 @@ int pa_source_output_start_move(pa_source_output *o) {
     if ((r = pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_START], o)) < 0)
         return r;
 
+    pa_log_debug("Starting to move source output %u from '%s'", (unsigned) o->index, o->source->name);
+
     origin = o->source;
 
     pa_idxset_remove_by_data(o->source->outputs, o, NULL);

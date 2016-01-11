@@ -1580,6 +1580,8 @@ int pa_sink_input_start_move(pa_sink_input *i) {
     if ((r = pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_START], i)) < 0)
         return r;
 
+    pa_log_debug("Starting to move sink input %u from '%s'", (unsigned) i->index, i->sink->name);
+
     /* Kill directly connected outputs */
     while ((o = pa_idxset_first(i->direct_outputs, NULL))) {
         pa_assert(o != p);
