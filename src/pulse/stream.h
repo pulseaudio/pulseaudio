@@ -588,7 +588,14 @@ int pa_stream_peek(
  * calling pa_stream_peek(). */
 int pa_stream_drop(pa_stream *p);
 
-/** Return the number of bytes that may be written using pa_stream_write(). */
+/** Return the number of bytes requested by the server that have not yet
+ * been written.
+ *
+ * It is possible to write more than this amount, up to the stream's
+ * buffer_attr.maxlength bytes. This is usually not desirable, though, as
+ * it would increase stream latency to be higher than requested
+ * (buffer_attr.tlength).
+ */
 size_t pa_stream_writable_size(pa_stream *p);
 
 /** Return the number of bytes that may be read using pa_stream_peek(). */
