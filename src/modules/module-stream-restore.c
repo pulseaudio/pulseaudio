@@ -2341,7 +2341,7 @@ static void clean_up_db(struct userdata *u) {
     PA_LLIST_FOREACH_SAFE(item, next, to_be_converted) {
         pa_log_debug("Upgrading a legacy entry to the current format: %s", item->entry_name);
 
-        pa_assert_se(entry_write(u, item->entry_name, item->entry, true) >= 0);
+        pa_assert_se(entry_write(u, item->entry_name, item->entry, true));
         trigger_save(u);
 
         PA_LLIST_REMOVE(struct clean_up_item, to_be_converted, item);
