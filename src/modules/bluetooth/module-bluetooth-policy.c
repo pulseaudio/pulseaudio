@@ -225,7 +225,7 @@ int pa__init(pa_module *m) {
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log_error("Failed to parse module arguments");
-        return -1;
+        goto fail;
     }
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
@@ -261,7 +261,8 @@ int pa__init(pa_module *m) {
     return 0;
 
 fail:
-    pa_modargs_free(ma);
+    if (ma)
+        pa_modargs_free(ma);
     return -1;
 }
 
