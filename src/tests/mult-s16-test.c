@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
     if (!getenv("MAKE_CHECK"))
         pa_log_set_level(PA_LOG_DEBUG);
 
-#if HAVE_FAST_64BIT_OPERATIONS
+#ifdef HAVE_FAST_64BIT_OPERATIONS
     pa_log_debug("Detected CPU with fast 64-bit operations.");
 #else
     pa_log_debug("Not detected CPU with fast 64-bit operations.");
