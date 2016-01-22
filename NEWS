@@ -1,3 +1,56 @@
+PulseAudio 8.0
+
+Changes at a glance:
+
+ * Automatic routing more likely to change profile
+ * OS X and NetBSD support improvements
+ * Systemd journal logging for clients
+ * New LFE balance programming interface
+ * Module-dbus-protocol improvements
+ * More flexible configuration file handling
+ * pulsecore-8.0.so moved to a private directory
+ * New script for measuring memory consumption
+ * Various bug fixes and small improvements
+
+Detailed change log:
+
+  http://www.freedesktop.org/wiki/Software/PulseAudio/Notes/8.0
+
+Contributors
+
+  Ahmed S. Darwish
+  Alexander E. Patrakov
+  Andrey Semashev
+  Arun Raghavan
+  David Henningsson
+  Deepak Srivastava
+  Felipe Sateler
+  Georg Chini
+  Jason Gerecke
+  John Horan
+  Juho Hämäläinen
+  Julien Isorce
+  Kamil Rytarowski
+  KimJeongYeon
+  Kiran Krishnappa
+  Lev Melnikovsky
+  Manish Sogi
+  Mihai Moldovan
+  Mingye Wang
+  Nazar Mokrynskyi
+  Peter Mattern
+  Peter Meerwald
+  Pierre Ossman
+  Ross Burton
+  Shawn Walker
+  Takashi Iwai
+  Tanu Kaskinen
+  Thomas Petazzoni
+  Yuri Chornoivan
+  Zbigniew Kempczyński
+  jungsup lee
+
+
 PulseAudio 7.0
 
 Changes at a glance:
