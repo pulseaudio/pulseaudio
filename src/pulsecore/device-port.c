@@ -161,7 +161,7 @@ void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
 
             PA_IDXSET_FOREACH(sink, p->core->sinks, state) {
                 if (sink->active_port == p) {
-                    pa_sink_set_latency_offset(sink, p->latency_offset);
+                    pa_sink_set_port_latency_offset(sink, p->latency_offset);
                     break;
                 }
             }
@@ -174,7 +174,7 @@ void pa_device_port_set_latency_offset(pa_device_port *p, int64_t offset) {
 
             PA_IDXSET_FOREACH(source, p->core->sources, state) {
                 if (source->active_port == p) {
-                    pa_source_set_latency_offset(source, p->latency_offset);
+                    pa_source_set_port_latency_offset(source, p->latency_offset);
                     break;
                 }
             }
