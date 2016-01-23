@@ -2637,6 +2637,8 @@ int pa_source_set_port(pa_source *s, const char *name, bool save) {
     s->active_port = port;
     s->save_port = save;
 
+    pa_source_set_latency_offset(s, s->active_port->latency_offset);
+
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PORT_CHANGED], s);
 
     return 0;
