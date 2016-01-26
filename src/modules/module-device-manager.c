@@ -292,8 +292,10 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
 
     pa_zero(data);
 
-    if (!pa_database_get(u->database, &key, &data))
-        goto fail;
+    if (!pa_database_get(u->database, &key, &data)) {
+        pa_log_debug("Database contains no data for key: %s", name);
+        return NULL;
+    }
 
     t = pa_tagstruct_new_fixed(data.data, data.size);
     e = entry_new();
