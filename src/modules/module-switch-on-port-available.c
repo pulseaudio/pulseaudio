@@ -29,7 +29,7 @@
 
 #include "module-switch-on-port-available-symdef.h"
 
-static bool profile_good_for_output(pa_card_profile *profile) {
+static bool profile_good_for_output(pa_card_profile *profile, unsigned prio) {
     pa_sink *sink;
     uint32_t idx;
 
@@ -49,7 +49,7 @@ static bool profile_good_for_output(pa_card_profile *profile) {
         if (!sink->active_port)
             continue;
 
-        if (sink->active_port->available != PA_AVAILABLE_NO)
+        if ((sink->active_port->available != PA_AVAILABLE_NO) && (sink->active_port->priority >= prio))
             return false;
     }
 
@@ -88,7 +88,7 @@ static int try_to_switch_profile(pa_device_port *port) {
         switch (port->direction) {
             case PA_DIRECTION_OUTPUT:
                 name = profile->output_name;
-                good = profile_good_for_output(profile);
+                good = profile_good_for_output(profile, port->priority);
                 break;
 
             case PA_DIRECTION_INPUT:
