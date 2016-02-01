@@ -41,6 +41,7 @@
 #include <pulsecore/strbuf.h>
 #include <pulsecore/ioline.h>
 #include <pulsecore/arpa-inet.h>
+#include <pulsecore/random.h>
 
 #include "rtsp_client.h"
 
@@ -199,7 +200,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     }
     if (c->waiting) {
         pa_log_warn("Unexpected response: %s", s2);
-        goto exit;;
+        goto exit;
     }
     if (!strlen(s2)) {
         /* End of headers */
@@ -504,8 +505,8 @@ int pa_rtsp_record(pa_rtsp_client *c, uint16_t *seq, uint32_t *rtptime) {
         return -1;
     }
 
-    /* Todo: Generate these values randomly as per spec */
-    *seq = *rtptime = 0;
+    pa_random(seq, sizeof(*seq));
+    pa_random(rtptime, sizeof(*rtptime));
 
     headers = pa_headerlist_new();
     pa_headerlist_puts(headers, "Range", "npt=0-");
