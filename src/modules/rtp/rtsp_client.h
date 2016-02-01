@@ -58,6 +58,8 @@ void pa_rtsp_set_url(pa_rtsp_client *c, const char *url);
 void pa_rtsp_add_header(pa_rtsp_client *c, const char *key, const char *value);
 void pa_rtsp_remove_header(pa_rtsp_client *c, const char *key);
 
+bool pa_rtsp_exec_ready(const pa_rtsp_client *c);
+
 int pa_rtsp_options(pa_rtsp_client *c);
 int pa_rtsp_announce(pa_rtsp_client *c, const char *sdp);
 

@@ -389,6 +389,12 @@ void pa_rtsp_remove_header(pa_rtsp_client *c, const char *key) {
     pa_headerlist_remove(c->headers, key);
 }
 
+bool pa_rtsp_exec_ready(const pa_rtsp_client *c) {
+    pa_assert(c);
+
+    return c->url != NULL && c->ioline != NULL;
+}
+
 static int rtsp_exec(pa_rtsp_client *c, const char *cmd,
                         const char *content_type, const char *content,
                         int expect_response,
