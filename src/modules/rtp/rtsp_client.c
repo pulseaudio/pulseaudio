@@ -348,8 +348,10 @@ void pa_rtsp_set_callback(pa_rtsp_client *c, pa_rtsp_cb_t callback, void *userda
 void pa_rtsp_disconnect(pa_rtsp_client *c) {
     pa_assert(c);
 
-    if (c->ioline)
+    if (c->ioline) {
         pa_ioline_close(c->ioline);
+        pa_ioline_unref(c->ioline);
+    }
     c->ioline = NULL;
 }
 
