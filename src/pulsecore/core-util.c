@@ -2981,6 +2981,26 @@ bool pa_in_system_mode(void) {
     return !!atoi(e);
 }
 
+/* Checks a delimiters-separated list of words in haystack for needle */
+bool pa_str_in_list(const char *haystack, const char *delimiters, const char *needle) {
+    char *s;
+    const char *state = NULL;
+
+    if (!haystack || !needle)
+        return false;
+
+    while ((s = pa_split(haystack, delimiters, &state))) {
+        if (pa_streq(needle, s)) {
+            pa_xfree(s);
+            return true;
+        }
+
+        pa_xfree(s);
+    }
+
+    return false;
+}
+
 /* Checks a whitespace-separated list of words in haystack for needle */
 bool pa_str_in_list_spaces(const char *haystack, const char *needle) {
     char *s;
