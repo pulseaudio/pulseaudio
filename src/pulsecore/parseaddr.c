@@ -143,3 +143,14 @@ bool pa_is_ip_address(const char *a) {
 
     return false;
 }
+
+bool pa_is_ip6_address(const char *a) {
+    char buf[INET6_ADDRSTRLEN];
+
+    pa_assert(a);
+
+    if (inet_pton(AF_INET6, a, buf) >= 1)
+        return true;
+
+    return false;
+}

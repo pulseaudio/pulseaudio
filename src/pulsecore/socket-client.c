@@ -428,12 +428,28 @@ static void start_timeout(pa_socket_client *c, bool use_rtclock) {
 pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, bool use_rtclock, const char*name, uint16_t default_port) {
     pa_socket_client *c = NULL;
     pa_parsed_address a;
+    char *name_buf;
 
     pa_assert(m);
     pa_assert(name);
 
-    if (pa_parse_address(name, &a) < 0)
-        return NULL;
+    a.path_or_host = NULL;
+
+    if (pa_is_ip6_address(name)) {
+        size_t len = strlen(name);
+        name_buf = pa_xmalloc(len + 3);
+        memcpy(name_buf + 1, name, len);
+        name_buf[0] = '[';
+        name_buf[len + 1] = ']';
+        name_buf[len + 2] = '\0';
+    } else {
+        name_buf = pa_xstrdup(name);
+    }
+
+    if (pa_parse_address(name_buf, &a) < 0) {
+        pa_log_warn("parsing address failed: %s", name_buf);
+        goto finish;
+    }
 
     if (!a.port)
         a.port = default_port;
@@ -530,6 +546,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, bool use_rtclo
     }
 
 finish:
+    pa_xfree(name_buf);
     pa_xfree(a.path_or_host);
     return c;
 
