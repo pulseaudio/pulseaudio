@@ -443,6 +443,22 @@ static int rtsp_exec(pa_rtsp_client *c, const char *cmd,
     return 0;
 }
 
+int pa_rtsp_options(pa_rtsp_client *c) {
+    char *url;
+    int rv;
+
+    pa_assert(c);
+
+    url = c->url;
+    c->state = STATE_OPTIONS;
+
+    c->url = (char *)"*";
+    rv = rtsp_exec(c, "OPTIONS", NULL, NULL, 0, NULL);
+
+    c->url = url;
+    return rv;
+}
+
 int pa_rtsp_announce(pa_rtsp_client *c, const char *sdp) {
     int rv;
 
@@ -457,14 +473,17 @@ int pa_rtsp_announce(pa_rtsp_client *c, const char *sdp) {
     return rv;
 }
 
-int pa_rtsp_setup(pa_rtsp_client *c) {
+int pa_rtsp_setup(pa_rtsp_client *c, const char *transport) {
     pa_headerlist *headers;
     int rv;
 
     pa_assert(c);
 
     headers = pa_headerlist_new();
-    pa_headerlist_puts(headers, "Transport", "RTP/AVP/TCP;unicast;interleaved=0-1;mode=record");
+    if (!transport)
+        pa_headerlist_puts(headers, "Transport", "RTP/AVP/TCP;unicast;interleaved=0-1;mode=record");
+    else
+        pa_headerlist_puts(headers, "Transport", transport);
 
     c->state = STATE_SETUP;
     rv = rtsp_exec(c, "SETUP", NULL, NULL, 1, headers);

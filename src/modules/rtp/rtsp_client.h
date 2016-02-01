@@ -33,6 +33,7 @@
 typedef struct pa_rtsp_client pa_rtsp_client;
 typedef enum {
   STATE_CONNECT,
+  STATE_OPTIONS,
   STATE_ANNOUNCE,
   STATE_SETUP,
   STATE_RECORD,
@@ -57,9 +58,10 @@ void pa_rtsp_set_url(pa_rtsp_client *c, const char *url);
 void pa_rtsp_add_header(pa_rtsp_client *c, const char *key, const char *value);
 void pa_rtsp_remove_header(pa_rtsp_client *c, const char *key);
 
+int pa_rtsp_options(pa_rtsp_client *c);
 int pa_rtsp_announce(pa_rtsp_client *c, const char *sdp);
 
-int pa_rtsp_setup(pa_rtsp_client *c);
+int pa_rtsp_setup(pa_rtsp_client *c, const char *transport);
 int pa_rtsp_record(pa_rtsp_client *c, uint16_t *seq, uint32_t *rtptime);
 int pa_rtsp_teardown(pa_rtsp_client *c);
 
