@@ -95,9 +95,9 @@ struct pa_raop_client {
 
     /* Encryption Related bits */
     AES_KEY aes;
-    uint8_t aes_iv[AES_CHUNKSIZE]; /* initialization vector for aes-cbc */
-    uint8_t aes_nv[AES_CHUNKSIZE]; /* next vector for aes-cbc */
-    uint8_t aes_key[AES_CHUNKSIZE]; /* key for aes-cbc */
+    uint8_t aes_iv[AES_CHUNKSIZE]; /* Initialization vector for aes-cbc */
+    uint8_t aes_nv[AES_CHUNKSIZE]; /* Next vector for aes-cbc */
+    uint8_t aes_key[AES_CHUNKSIZE]; /* Key for aes-cbc */
 
     pa_socket_client *sc;
     int fd;
@@ -106,9 +106,9 @@ struct pa_raop_client {
     uint32_t rtptime;
 
     pa_raop_client_cb_t callback;
-    void* userdata;
+    void *userdata;
     pa_raop_client_closed_cb_t closed_callback;
-    void* closed_userdata;
+    void *closed_userdata;
 };
 
 /**
@@ -130,32 +130,32 @@ static inline void bit_writer(uint8_t **buffer, uint8_t *bit_pos, int *size, uin
     if (!*bit_pos)
         *size += 1;
 
-    /* Calc the number of bits left in the current byte of buffer */
+    /* Calc the number of bits left in the current byte of buffer. */
     bits_left = 7 - *bit_pos  + 1;
     /* Calc the overflow of bits in relation to how much space we have left... */
     bit_overflow = bits_left - data_bit_len;
     if (bit_overflow >= 0) {
-        /* We can fit the new data in our current byte */
-        /* As we write from MSB->LSB we need to left shift by the overflow amount */
+        /* We can fit the new data in our current byte.
+         * As we write from MSB->LSB we need to left shift by the overflow amount. */
         bit_data = data << bit_overflow;
         if (*bit_pos)
             **buffer |= bit_data;
         else
             **buffer = bit_data;
-        /* If our data fits exactly into the current byte, we need to increment our pointer */
+        /* If our data fits exactly into the current byte, we need to increment our pointer. */
         if (0 == bit_overflow) {
-            /* Do not increment size as it will be incremented on next call as bit_pos is zero */
+            /* Do not increment size as it will be incremented on next call as bit_pos is zero. */
             *buffer += 1;
             *bit_pos = 0;
         } else {
             *bit_pos += data_bit_len;
         }
     } else {
-        /* bit_overflow is negative, there for we will need a new byte from our buffer */
-        /* Firstly fill up what's left in the current byte */
+        /* bit_overflow is negative, there for we will need a new byte from our buffer
+         * Firstly fill up what's left in the current byte. */
         bit_data = data >> -bit_overflow;
         **buffer |= bit_data;
-        /* Increment our buffer pointer and size counter*/
+        /* Increment our buffer pointer and size counter. */
         *buffer += 1;
         *size += 1;
         **buffer = data << (8 + bit_overflow);
@@ -191,7 +191,7 @@ static int rsa_encrypt(uint8_t *text, int len, uint8_t *res) {
     return size;
 }
 
-static int aes_encrypt(pa_raop_client* c, uint8_t *data, int size) {
+static int aes_encrypt(pa_raop_client *c, uint8_t *data, int size) {
     uint8_t *buf;
     int i=0, j;
 
@@ -246,8 +246,8 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     c->callback(c->fd, c->userdata);
 }
 
-static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* headers, void *userdata) {
-    pa_raop_client* c = userdata;
+static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist *headers, void *userdata) {
+    pa_raop_client *c = userdata;
     pa_assert(c);
     pa_assert(rtsp);
     pa_assert(rtsp == c->rtsp);
@@ -263,12 +263,12 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
 
             pa_log_debug("RAOP: CONNECTED");
             ip = pa_rtsp_localip(c->rtsp);
-            /* First of all set the url properly */
+            /* First of all set the url properly. */
             url = pa_sprintf_malloc("rtsp://%s/%s", ip, c->sid);
             pa_rtsp_set_url(c->rtsp, url);
             pa_xfree(url);
 
-            /* Now encrypt our aes_public key to send to the device */
+            /* Now encrypt our aes_public key to send to the device. */
             i = rsa_encrypt(c->aes_key, AES_CHUNKSIZE, rsakey);
             pa_base64_encode(rsakey, i, &key);
             rtrimchar(key, '=');
@@ -367,7 +367,7 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
             pa_rtsp_client_free(c->rtsp);
             c->rtsp = NULL;
             if (c->fd > 0) {
-                /* We do not close the fd, we leave it to the closed callback to do that */
+                /* We do not close the fd, we leave it to the closed callback to do that. */
                 c->fd = -1;
             }
             if (c->sc) {
@@ -381,7 +381,7 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
     }
 }
 
-pa_raop_client* pa_raop_client_new(pa_core *core, const char* host) {
+pa_raop_client* pa_raop_client_new(pa_core *core, const char *host) {
     pa_parsed_address a;
     pa_raop_client* c;
 
@@ -410,10 +410,11 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char* host) {
         pa_raop_client_free(c);
         return NULL;
     }
+
     return c;
 }
 
-void pa_raop_client_free(pa_raop_client* c) {
+void pa_raop_client_free(pa_raop_client *c) {
     pa_assert(c);
 
     if (c->rtsp)
@@ -424,7 +425,7 @@ void pa_raop_client_free(pa_raop_client* c) {
     pa_xfree(c);
 }
 
-int pa_raop_connect(pa_raop_client* c) {
+int pa_raop_connect(pa_raop_client *c) {
     char *sci;
     struct {
         uint32_t a;
@@ -441,30 +442,31 @@ int pa_raop_connect(pa_raop_client* c) {
 
     c->rtsp = pa_rtsp_client_new(c->core->mainloop, c->host, c->port, "iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)");
 
-    /* Initialise the AES encryption system */
+    /* Initialise the AES encryption system. */
     pa_random(c->aes_iv, sizeof(c->aes_iv));
     pa_random(c->aes_key, sizeof(c->aes_key));
     memcpy(c->aes_nv, c->aes_iv, sizeof(c->aes_nv));
     AES_set_encrypt_key(c->aes_key, 128, &c->aes);
 
-    /* Generate random instance id */
+    /* Generate random instance id. */
     pa_random(&rand_data, sizeof(rand_data));
     c->sid = pa_sprintf_malloc("%u", rand_data.a);
     sci = pa_sprintf_malloc("%08x%08x",rand_data.b, rand_data.c);
     pa_rtsp_add_header(c->rtsp, "Client-Instance", sci);
     pa_xfree(sci);
     pa_rtsp_set_callback(c->rtsp, rtsp_cb, c);
+
     return pa_rtsp_connect(c->rtsp);
 }
 
-int pa_raop_flush(pa_raop_client* c) {
+int pa_raop_flush(pa_raop_client *c) {
     pa_assert(c);
 
     pa_rtsp_flush(c->rtsp, c->seq, c->rtptime);
     return 0;
 }
 
-int pa_raop_client_set_volume(pa_raop_client* c, pa_volume_t volume) {
+int pa_raop_client_set_volume(pa_raop_client *c, pa_volume_t volume) {
     int rv;
     double db;
     char *param;
@@ -479,13 +481,14 @@ int pa_raop_client_set_volume(pa_raop_client* c, pa_volume_t volume) {
 
     param = pa_sprintf_malloc("volume: %0.6f\r\n",  db);
 
-    /* We just hit and hope, cannot wait for the callback */
+    /* We just hit and hope, cannot wait for the callback. */
     rv = pa_rtsp_setparameter(c->rtsp, param);
     pa_xfree(param);
+
     return rv;
 }
 
-int pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw, pa_memchunk* encoded) {
+int pa_raop_client_encode_sample(pa_raop_client *c, pa_memchunk *raw, pa_memchunk *encoded) {
     uint16_t len;
     size_t bufmax;
     uint8_t *bp, bpos;
@@ -513,25 +516,25 @@ int pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw, pa_memchun
     bsize = (int)(raw->length / 4);
     length = bsize * 4;
 
-    /* Leave 16 bytes extra to allow for the ALAC header which is about 55 bits */
+    /* Leave 16 bytes extra to allow for the ALAC header which is about 55 bits. */
     bufmax = length + header_size + 16;
     pa_memchunk_reset(encoded);
     encoded->memblock = pa_memblock_new(c->core->mempool, bufmax);
     b = pa_memblock_acquire(encoded->memblock);
     memcpy(b, header, header_size);
 
-    /* Now write the actual samples */
+    /* Now write the actual samples. */
     bp = b + header_size;
     size = bpos = 0;
     bit_writer(&bp,&bpos,&size,1,3); /* channel=1, stereo */
-    bit_writer(&bp,&bpos,&size,0,4); /* unknown */
-    bit_writer(&bp,&bpos,&size,0,8); /* unknown */
-    bit_writer(&bp,&bpos,&size,0,4); /* unknown */
-    bit_writer(&bp,&bpos,&size,1,1); /* hassize */
-    bit_writer(&bp,&bpos,&size,0,2); /* unused */
-    bit_writer(&bp,&bpos,&size,1,1); /* is-not-compressed */
+    bit_writer(&bp,&bpos,&size,0,4); /* Unknown */
+    bit_writer(&bp,&bpos,&size,0,8); /* Unknown */
+    bit_writer(&bp,&bpos,&size,0,4); /* Unknown */
+    bit_writer(&bp,&bpos,&size,1,1); /* Hassize */
+    bit_writer(&bp,&bpos,&size,0,2); /* Unused */
+    bit_writer(&bp,&bpos,&size,1,1); /* Is-not-compressed */
 
-    /* size of data, integer, big endian */
+    /* Size of data, integer, big endian. */
     bit_writer(&bp,&bpos,&size,(bsize>>24)&0xff,8);
     bit_writer(&bp,&bpos,&size,(bsize>>16)&0xff,8);
     bit_writer(&bp,&bpos,&size,(bsize>>8)&0xff,8);
@@ -540,7 +543,7 @@ int pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw, pa_memchun
     ibp = p = pa_memblock_acquire(raw->memblock);
     maxibp = p + raw->length - 4;
     while (ibp <= maxibp) {
-        /* Byte swap stereo data */
+        /* Byte swap stereo data. */
         bit_writer(&bp,&bpos,&size,*(ibp+1),8);
         bit_writer(&bp,&bpos,&size,*(ibp+0),8);
         bit_writer(&bp,&bpos,&size,*(ibp+3),8);
@@ -552,28 +555,28 @@ int pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw, pa_memchun
     pa_memblock_release(raw->memblock);
     encoded->length = header_size + size;
 
-    /* store the length (endian swapped: make this better) */
+    /* Store the length (endian swapped: make this better). */
     len = size + header_size - 4;
     *(b + 2) = len >> 8;
     *(b + 3) = len & 0xff;
 
-    /* encrypt our data */
+    /* Encrypt our data. */
     aes_encrypt(c, (b + header_size), size);
 
-    /* We're done with the chunk */
+    /* We're done with the chunk. */
     pa_memblock_release(encoded->memblock);
 
     return 0;
 }
 
-void pa_raop_client_set_callback(pa_raop_client* c, pa_raop_client_cb_t callback, void *userdata) {
+void pa_raop_client_set_callback(pa_raop_client *c, pa_raop_client_cb_t callback, void *userdata) {
     pa_assert(c);
 
     c->callback = callback;
     c->userdata = userdata;
 }
 
-void pa_raop_client_set_closed_callback(pa_raop_client* c, pa_raop_client_closed_cb_t callback, void *userdata) {
+void pa_raop_client_set_closed_callback(pa_raop_client *c, pa_raop_client_closed_cb_t callback, void *userdata) {
     pa_assert(c);
 
     c->closed_callback = callback;
