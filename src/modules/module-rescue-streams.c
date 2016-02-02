@@ -309,7 +309,7 @@ static pa_hook_result_t source_output_move_fail_hook_callback(pa_core *c, pa_sou
         return PA_HOOK_OK;
 
     } else {
-        pa_log_info("Successfully moved output input %u \"%s\" to %s.", i->index,
+        pa_log_info("Successfully moved source output %u \"%s\" to %s.", i->index,
                     pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), target->name);
         return PA_HOOK_STOP;
     }
