@@ -19,19 +19,6 @@
 # (i.e. not in system mode)
 changequote(`[', `]')dnl Set up m4 quoting
 
-.nofail
-
-### Load something into the sample cache
-ifelse(@OS_IS_WIN32@, 1, [dnl
-load-sample x11-bell %WINDIR%\Media\ding.wav
-load-sample-dir-lazy %WINDIR%\Media\*.wav
-], [dnl
-#load-sample-lazy x11-bell /usr/share/sounds/freedesktop/stereo/bell.oga
-#load-sample-lazy pulse-hotplug /usr/share/sounds/freedesktop/stereo/device-added.oga
-#load-sample-lazy pulse-coldplug /usr/share/sounds/freedesktop/stereo/device-added.oga
-#load-sample-lazy pulse-access /usr/share/sounds/freedesktop/stereo/message.oga
-])dnl
-
 .fail
 
 ### Automatically restore the volume of streams and devices
@@ -172,24 +159,6 @@ load-module module-role-cork
 ### loading modules and rerouting streams.
 load-module module-filter-heuristics
 load-module module-filter-apply
-])dnl
-
-ifelse(@HAVE_X11@, 1, [dnl
-# X11 modules should not be started from default.pa so that one daemon
-# can be shared by multiple sessions.
-
-### Load X11 bell module
-#load-module module-x11-bell sample=x11-bell
-
-### Register ourselves in the X11 session manager
-#load-module module-x11-xsmp
-
-### Publish connection data in the X11 root window
-#.ifexists module-x11-publish@PA_SOEXT@
-#.nofail
-#load-module module-x11-publish
-#.fail
-#.endif
 ])dnl
 
 ### Make some devices default
