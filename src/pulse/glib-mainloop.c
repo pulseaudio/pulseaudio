@@ -595,7 +595,7 @@ static const pa_mainloop_api vtable = {
     .io_new = glib_io_new,
     .io_enable = glib_io_enable,
     .io_free = glib_io_free,
-    .io_set_destroy= glib_io_set_destroy,
+    .io_set_destroy = glib_io_set_destroy,
 
     .time_new = glib_time_new,
     .time_restart = glib_time_restart,
