@@ -96,6 +96,22 @@ static bool sink_has_trigger_streams(struct userdata *u, pa_sink *s, pa_sink_inp
     return false;
 }
 
+static bool sinks_have_trigger_streams(struct userdata *u, pa_sink *s, pa_sink_input *ignore) {
+    bool ret = false;
+
+    pa_assert(u);
+
+    if (u->global) {
+        uint32_t idx;
+        PA_IDXSET_FOREACH(s, u->core->sinks, idx)
+            if ((ret = sink_has_trigger_streams(u, s, ignore)))
+                break;
+    } else
+        ret = sink_has_trigger_streams(u, s, ignore);
+
+    return ret;
+}
+
 static void apply_ducking_to_sink(struct userdata *u, pa_sink *s, pa_sink_input *ignore, bool duck) {
     pa_sink_input *j;
     uint32_t idx, role_idx;
@@ -163,7 +179,7 @@ static pa_hook_result_t process(struct userdata *u, pa_sink_input *i, bool duck)
     if (!i->sink)
         return PA_HOOK_OK;
 
-    should_duck = sink_has_trigger_streams(u, i->sink, duck ? NULL : i);
+    should_duck = sinks_have_trigger_streams(u, i->sink, duck ? NULL : i);
     apply_ducking(u, i->sink, duck ? NULL : i, should_duck);
 
     return PA_HOOK_OK;
