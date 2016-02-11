@@ -57,11 +57,15 @@ PA_MODULE_DESCRIPTION("CoreAudio device");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE("object_id=<the CoreAudio device id> "
-                "ioproc_frames=<audio frames per IOProc call> ");
+                "ioproc_frames=<audio frames per IOProc call> "
+                "record=<enable source?> "
+                "playback=<enable sink?> ");
 
 static const char* const valid_modargs[] = {
     "object_id",
     "ioproc_frames",
+    "record",
+    "playback",
     NULL
 };
 
@@ -757,6 +761,7 @@ int pa__init(pa_module *m) {
     UInt32 size, frames;
     struct userdata *u = NULL;
     pa_modargs *ma = NULL;
+    bool record = true, playback = true;
     char tmp[64];
     pa_card_new_data card_new_data;
     pa_card_profile *p;
@@ -768,6 +773,16 @@ int pa__init(pa_module *m) {
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments.");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_boolean(ma, "record", &record) < 0 || pa_modargs_get_value_boolean(ma, "playback", &playback) < 0) {
+        pa_log("record= and playback= expect boolean argument.");
+        goto fail;
+    }
+
+    if (!playback && !record) {
+        pa_log("neither playback nor record enabled for device.");
         goto fail;
     }
 
@@ -842,10 +857,12 @@ int pa__init(pa_module *m) {
     PA_LLIST_HEAD_INIT(coreaudio_sink, u->sinks);
 
     /* create sinks */
-    ca_device_create_streams(m, false);
+    if (playback)
+        ca_device_create_streams(m, false);
 
     /* create sources */
-    ca_device_create_streams(m, true);
+    if (record)
+        ca_device_create_streams(m, true);
 
     /* create the message thread */
     if (!(u->thread = pa_thread_new(u->device_name, thread_func, u))) {

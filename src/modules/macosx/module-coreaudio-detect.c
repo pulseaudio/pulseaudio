@@ -39,10 +39,14 @@ PA_MODULE_AUTHOR("Daniel Mack");
 PA_MODULE_DESCRIPTION("CoreAudio device detection");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
-PA_MODULE_USAGE("ioproc_frames=<passed on to module-coreaudio-device> ");
+PA_MODULE_USAGE("ioproc_frames=<passed on to module-coreaudio-device> "
+                "record=<enable source?> "
+                "playback=<enable sink?> ");
 
 static const char* const valid_modargs[] = {
     "ioproc_frames",
+    "record",
+    "playback",
     NULL
 };
 
@@ -58,6 +62,8 @@ struct userdata {
     int detect_fds[2];
     pa_io_event *detect_io;
     unsigned int ioproc_frames;
+    bool record;
+    bool playback;
     PA_LLIST_HEAD(ca_device, devices);
 };
 
@@ -87,9 +93,9 @@ static int ca_device_added(struct pa_module *m, AudioObjectID id) {
         return 0;
 
     if (u->ioproc_frames)
-        args = pa_sprintf_malloc("object_id=%d ioproc_frames=%d", (int) id, u->ioproc_frames);
+        args = pa_sprintf_malloc("object_id=%d ioproc_frames=%d record=%d playback=%d", (int) id, u->ioproc_frames, (int) u->record, (int) u->playback);
     else
-        args = pa_sprintf_malloc("object_id=%d", (int) id);
+        args = pa_sprintf_malloc("object_id=%d record=%d playback=%d", (int) id, (int) u->record, (int) u->playback);
 
     pa_log_debug("Loading %s with arguments '%s'", DEVICE_MODULE_NAME, args);
     pa_module_load(&mod, m->core, DEVICE_MODULE_NAME, args);
@@ -212,11 +218,29 @@ int pa__init(pa_module *m) {
     pa_modargs *ma;
 
     pa_assert(m);
+    pa_assert(m->core);
 
     m->userdata = u;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments.");
+        goto fail;
+    }
+
+    /*
+     * Set default value to true if not given as a modarg.
+     * In such a case, pa_modargs_get_value_boolean() will not touch the
+     * buffer.
+     */
+    u->playback = u->record = true;
+
+    if (pa_modargs_get_value_boolean(ma, "record", &u->record) < 0 || pa_modargs_get_value_boolean(ma, "playback", &u->playback) < 0) {
+        pa_log("record= and playback= expect boolean argument.");
+        goto fail;
+    }
+
+    if (!u->playback && !u->record) {
+        pa_log("neither playback nor record enabled for device.");
         goto fail;
     }
 
