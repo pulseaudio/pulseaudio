@@ -298,14 +298,16 @@ static inline size_t PA_PAGE_ALIGN(size_t l) {
 
 #define PA_INT_TYPE_SIGNED(type) (!!((type) 0 > (type) -1))
 
+#define PA_INT_TYPE_HALF(type) ((type) 1 << (sizeof(type)*8 - 2))
+
 #define PA_INT_TYPE_MAX(type)                                          \
     ((type) (PA_INT_TYPE_SIGNED(type)                                  \
-             ? ~(~(type) 0 << (8*sizeof(type)-1))                      \
+             ? (PA_INT_TYPE_HALF(type) - 1 + PA_INT_TYPE_HALF(type))   \
              : (type) -1))
 
 #define PA_INT_TYPE_MIN(type)                                          \
     ((type) (PA_INT_TYPE_SIGNED(type)                                  \
-             ? (~(type) 0 << (8*sizeof(type)-1))                       \
+             ? (-1 - PA_INT_TYPE_MAX(type))                            \
              : (type) 0))
 
 /* We include this at the very last place */
