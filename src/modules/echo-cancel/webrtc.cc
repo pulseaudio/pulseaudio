@@ -47,6 +47,7 @@ PA_C_DECL_END
 #define DEFAULT_ROUTING_MODE "speakerphone"
 #define DEFAULT_COMFORT_NOISE true
 #define DEFAULT_DRIFT_COMPENSATION false
+#define DEFAULT_VAD true
 #define DEFAULT_EXTENDED_FILTER false
 #define DEFAULT_INTELLIGIBILITY_ENHANCER false
 #define DEFAULT_EXPERIMENTAL_AGC false
@@ -64,6 +65,7 @@ static const char* const valid_modargs[] = {
     "routing_mode",
     "comfort_noise",
     "drift_compensation",
+    "voice_detection",
     "extended_filter",
     "intelligibility_enhancer",
     "experimental_agc",
@@ -143,7 +145,7 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     webrtc::AudioProcessing *apm = NULL;
     webrtc::ProcessingConfig pconfig;
     webrtc::Config config;
-    bool hpf, ns, agc, dgc, mobile, cn, ext_filter, intelligibility, experimental_agc;
+    bool hpf, ns, agc, dgc, mobile, cn, vad, ext_filter, intelligibility, experimental_agc;
     int rm = -1;
     pa_modargs *ma;
     bool trace = false;
@@ -215,6 +217,12 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
             pa_log("The routing_mode and comfort_noise options are only valid with mobile=true");
             goto fail;
         }
+    }
+
+    vad = DEFAULT_VAD;
+    if (pa_modargs_get_value_boolean(ma, "voice_detection", &vad) < 0) {
+        pa_log("Failed to parse voice_detection value");
+        goto fail;
     }
 
     ext_filter = DEFAULT_EXTENDED_FILTER;
@@ -304,7 +312,8 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         apm->gain_control()->Enable(true);
     }
 
-    apm->voice_detection()->Enable(true);
+    if (vad)
+        apm->voice_detection()->Enable(true);
 
     ec->params.priv.webrtc.apm = apm;
     ec->params.priv.webrtc.sample_spec = *out_ss;
