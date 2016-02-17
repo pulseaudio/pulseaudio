@@ -47,9 +47,9 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static void pa_speex_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
-                                    pa_sample_spec *play_ss, pa_channel_map *play_map,
-                                    pa_sample_spec *out_ss, pa_channel_map *out_map) {
+static void speex_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                                 pa_sample_spec *play_ss, pa_channel_map *play_map,
+                                 pa_sample_spec *out_ss, pa_channel_map *out_map) {
     out_ss->format = PA_SAMPLE_S16NE;
 
     *play_ss = *out_ss;
@@ -170,7 +170,7 @@ bool pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
         goto fail;
     }
 
-    pa_speex_ec_fixate_spec(rec_ss, rec_map, play_ss, play_map, out_ss, out_map);
+    speex_ec_fixate_spec(rec_ss, rec_map, play_ss, play_map, out_ss, out_map);
 
     rate = out_ss->rate;
     *nframes = pa_echo_canceller_blocksize_power2(rate, frame_size_ms);

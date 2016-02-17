@@ -114,9 +114,9 @@ static pa_volume_t webrtc_volume_to_pa(int v)
     return (v * PA_VOLUME_NORM) / WEBRTC_AGC_MAX_VOLUME;
 }
 
-static void pa_webrtc_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
-                                     pa_sample_spec *play_ss, pa_channel_map *play_map,
-                                     pa_sample_spec *out_ss, pa_channel_map *out_map)
+static void webrtc_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                                  pa_sample_spec *play_ss, pa_channel_map *play_map,
+                                  pa_sample_spec *out_ss, pa_channel_map *out_map)
 {
     rec_ss->format = PA_SAMPLE_FLOAT32NE;
     play_ss->format = PA_SAMPLE_FLOAT32NE;
@@ -276,7 +276,7 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         webrtc::Trace::SetTraceCallback((PaWebrtcTraceCallback *) ec->params.webrtc.trace_callback);
     }
 
-    pa_webrtc_ec_fixate_spec(rec_ss, rec_map, play_ss, play_map, out_ss, out_map);
+    webrtc_ec_fixate_spec(rec_ss, rec_map, play_ss, play_map, out_ss, out_map);
 
     apm = webrtc::AudioProcessing::Create(config);
 
