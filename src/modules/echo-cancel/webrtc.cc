@@ -78,6 +78,31 @@ static int routing_mode_from_string(const char *rmode) {
         return -1;
 }
 
+void pa_webrtc_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                              pa_sample_spec *play_ss, pa_channel_map *play_map,
+                              pa_sample_spec *out_ss, pa_channel_map *out_map)
+{
+    rec_ss->format = PA_SAMPLE_S16NE;
+    play_ss->format = PA_SAMPLE_S16NE;
+
+    /* AudioProcessing expects one of the following rates */
+    if (rec_ss->rate >= 48000)
+        rec_ss->rate = 48000;
+    else if (rec_ss->rate >= 32000)
+        rec_ss->rate = 32000;
+    else if (rec_ss->rate >= 16000)
+        rec_ss->rate = 16000;
+    else
+        rec_ss->rate = 8000;
+
+    /* In int16 mode, AudioProcessing will give us the same spec we give it */
+    *out_ss = *rec_ss;
+    *out_map = *rec_map;
+
+    /* Playback stream rate needs to be the same as capture */
+    play_ss->rate = rec_ss->rate;
+}
+
 bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
                        pa_sample_spec *rec_ss, pa_channel_map *rec_map,
                        pa_sample_spec *play_ss, pa_channel_map *play_map,
@@ -176,15 +201,9 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     if (intelligibility)
         pa_log_warn("The intelligibility enhancer is not currently supported");
 
-    apm = webrtc::AudioProcessing::Create(config);
+    pa_webrtc_ec_fixate_spec(rec_ss, rec_map, play_ss, play_map, out_ss, out_map);
 
-    out_ss->format = PA_SAMPLE_S16NE;
-    *play_ss = *out_ss;
-    /* FIXME: the implementation actually allows a different number of
-     * source/sink channels. Do we want to support that? */
-    *play_map = *out_map;
-    *rec_ss = *out_ss;
-    *rec_map = *out_map;
+    apm = webrtc::AudioProcessing::Create(config);
 
     pconfig = {
         webrtc::StreamConfig(rec_ss->rate, rec_ss->channels, false), /* input stream */
