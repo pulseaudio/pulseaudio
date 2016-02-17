@@ -65,7 +65,7 @@ struct pa_echo_canceller_params {
              * to C++ linkage. apm is a pointer to an AudioProcessing object */
             void *apm;
             unsigned int blocksize; /* in frames */
-            pa_sample_spec rec_ss, play_ss;
+            pa_sample_spec rec_ss, play_ss, out_ss;
             void *trace_callback;
             bool agc;
             bool first;

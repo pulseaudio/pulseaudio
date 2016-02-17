@@ -335,6 +335,7 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     ec->params.webrtc.apm = apm;
     ec->params.webrtc.rec_ss = *rec_ss;
     ec->params.webrtc.play_ss = *play_ss;
+    ec->params.webrtc.out_ss = *out_ss;
     ec->params.webrtc.blocksize = (uint64_t) out_ss->rate * BLOCK_SIZE_US / PA_USEC_PER_SEC;
     *nframes = ec->params.webrtc.blocksize;
     ec->params.webrtc.first = true;
@@ -379,17 +380,18 @@ void pa_webrtc_ec_play(pa_echo_canceller *ec, const uint8_t *play) {
 void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out) {
     webrtc::AudioProcessing *apm = (webrtc::AudioProcessing*)ec->params.webrtc.apm;
     webrtc::AudioFrame out_frame;
-    const pa_sample_spec *ss = &ec->params.webrtc.rec_ss;
+    const pa_sample_spec *rec_ss = &ec->params.webrtc.rec_ss;
+    const pa_sample_spec *out_ss = &ec->params.webrtc.out_ss;
     pa_cvolume v;
     int old_volume, new_volume;
 
-    out_frame.num_channels_ = ss->channels;
-    out_frame.sample_rate_hz_ = ss->rate;
+    out_frame.num_channels_ = rec_ss->channels;
+    out_frame.sample_rate_hz_ = rec_ss->rate;
     out_frame.interleaved_ = true;
     out_frame.samples_per_channel_ = ec->params.webrtc.blocksize;
 
     pa_assert(out_frame.samples_per_channel_ <= webrtc::AudioFrame::kMaxDataSizeSamples);
-    memcpy(out_frame.data_, rec, ec->params.webrtc.blocksize * pa_frame_size(ss));
+    memcpy(out_frame.data_, rec, ec->params.webrtc.blocksize * pa_frame_size(rec_ss));
 
     if (ec->params.webrtc.agc) {
         pa_cvolume_init(&v);
@@ -414,12 +416,12 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
         }
 
         if (old_volume != new_volume) {
-            pa_cvolume_set(&v, ss->channels, webrtc_volume_to_pa(new_volume));
+            pa_cvolume_set(&v, rec_ss->channels, webrtc_volume_to_pa(new_volume));
             pa_echo_canceller_set_capture_volume(ec, &v);
         }
     }
 
-    memcpy(out, out_frame.data_, ec->params.webrtc.blocksize * pa_frame_size(ss));
+    memcpy(out, out_frame.data_, ec->params.webrtc.blocksize * pa_frame_size(out_ss));
 }
 
 void pa_webrtc_ec_set_drift(pa_echo_canceller *ec, float drift) {
