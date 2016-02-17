@@ -2,8 +2,9 @@
     This file is part of PulseAudio.
 
     Copyright 2011 Collabora Ltd.
+              2015 Aldebaran SoftBank Group
 
-    Contributor: Arun Raghavan <arun.raghavan@collabora.co.uk>
+    Contributor: Arun Raghavan <mail@arunraghavan.net>
 
     PulseAudio is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published
