@@ -46,6 +46,7 @@ PA_C_DECL_END
 #define DEFAULT_ROUTING_MODE "speakerphone"
 #define DEFAULT_COMFORT_NOISE true
 #define DEFAULT_DRIFT_COMPENSATION false
+#define DEFAULT_EXTENDED_FILTER false
 
 static const char* const valid_modargs[] = {
     "high_pass_filter",
@@ -56,6 +57,7 @@ static const char* const valid_modargs[] = {
     "routing_mode",
     "comfort_noise",
     "drift_compensation",
+    "extended_filter",
     NULL
 };
 
@@ -81,7 +83,8 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
                        uint32_t *nframes, const char *args) {
     webrtc::AudioProcessing *apm = NULL;
     webrtc::ProcessingConfig pconfig;
-    bool hpf, ns, agc, dgc, mobile, cn;
+    webrtc::Config config;
+    bool hpf, ns, agc, dgc, mobile, cn, ext_filter;
     int rm = -1;
     pa_modargs *ma;
 
@@ -154,7 +157,16 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         }
     }
 
-    apm = webrtc::AudioProcessing::Create();
+    ext_filter = DEFAULT_EXTENDED_FILTER;
+    if (pa_modargs_get_value_boolean(ma, "extended_filter", &ext_filter) < 0) {
+        pa_log("Failed to parse extended_filter value");
+        goto fail;
+    }
+
+    if (ext_filter)
+        config.Set<webrtc::ExtendedFilter>(new webrtc::ExtendedFilter(true));
+
+    apm = webrtc::AudioProcessing::Create(config);
 
     out_ss->format = PA_SAMPLE_S16NE;
     *play_ss = *out_ss;
