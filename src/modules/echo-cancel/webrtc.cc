@@ -78,9 +78,9 @@ static int routing_mode_from_string(const char *rmode) {
         return -1;
 }
 
-void pa_webrtc_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
-                              pa_sample_spec *play_ss, pa_channel_map *play_map,
-                              pa_sample_spec *out_ss, pa_channel_map *out_map)
+static void pa_webrtc_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
+                                     pa_sample_spec *play_ss, pa_channel_map *play_map,
+                                     pa_sample_spec *out_ss, pa_channel_map *out_map)
 {
     rec_ss->format = PA_SAMPLE_S16NE;
     play_ss->format = PA_SAMPLE_S16NE;
