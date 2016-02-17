@@ -53,6 +53,7 @@ PA_C_DECL_END
 #define DEFAULT_INTELLIGIBILITY_ENHANCER false
 #define DEFAULT_EXPERIMENTAL_AGC false
 #define DEFAULT_AGC_START_VOLUME 85
+#define DEFAULT_BEAMFORMING false
 #define DEFAULT_TRACE false
 
 #define WEBRTC_AGC_MAX_VOLUME 255
@@ -71,6 +72,9 @@ static const char* const valid_modargs[] = {
     "intelligibility_enhancer",
     "experimental_agc",
     "agc_start_volume",
+    "beamforming",
+    "mic_geometry", /* documented in parse_mic_geometry() */
+    "target_direction", /* documented in parse_mic_geometry() */
     "trace",
     NULL
 };
@@ -116,7 +120,8 @@ static pa_volume_t webrtc_volume_to_pa(int v)
 
 static void webrtc_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
                                   pa_sample_spec *play_ss, pa_channel_map *play_map,
-                                  pa_sample_spec *out_ss, pa_channel_map *out_map)
+                                  pa_sample_spec *out_ss, pa_channel_map *out_map,
+                                  bool beamforming)
 {
     rec_ss->format = PA_SAMPLE_FLOAT32NE;
     play_ss->format = PA_SAMPLE_FLOAT32NE;
@@ -134,8 +139,95 @@ static void webrtc_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_ma
     *out_ss = *rec_ss;
     *out_map = *rec_map;
 
+    if (beamforming) {
+        /* The beamformer gives us a single channel */
+        out_ss->channels = 1;
+        pa_channel_map_init_mono(out_map);
+    }
+
     /* Playback stream rate needs to be the same as capture */
     play_ss->rate = rec_ss->rate;
+}
+
+static bool parse_point(const char **point, float (&f)[3]) {
+    int ret, length;
+
+    ret = sscanf(*point, "%g,%g,%g%n", &f[0], &f[1], &f[2], &length);
+    if (ret != 3)
+        return false;
+
+    /* Consume the bytes we've read so far */
+    *point += length;
+
+    return true;
+}
+
+static bool parse_mic_geometry(const char **mic_geometry, std::vector<webrtc::Point>& geometry) {
+    /* The microphone geometry is expressed as cartesian point form:
+     *   x1,y1,z1,x2,y2,z2,...
+     *
+     * Where x1,y1,z1 is the position of the first microphone with regards to
+     * the array's "center", x2,y2,z2 the position of the second, and so on.
+     *
+     * 'x' is the horizontal coordinate, with positive values being to the
+     * right from the mic array's perspective.
+     *
+     * 'y' is the depth coordinate, with positive values being in front of the
+     * array.
+     *
+     * 'z' is the vertical coordinate, with positive values being above the
+     * array.
+     *
+     * All distances are in meters.
+     */
+
+    /* The target direction is expected to be in spherical point form:
+     *   a,e,r
+     *
+     * Where 'a is the azimuth of the first mic channel, 'e' its elevation,
+     * and 'r' the radius.
+     *
+     * 0 radians azimuth is to the right of the array, and positive angles
+     * move in a counter-clockwise direction.
+     *
+     * 0 radians elevation is horizontal w.r.t. the array, and positive
+     * angles go upwards.
+     *
+     * radius is distance from the array center in meters.
+     */
+
+    int i;
+    float f[3];
+
+    for (i = 0; i < geometry.size(); i++) {
+        if (!parse_point(mic_geometry, f)) {
+            pa_log("Failed to parse channel %d in mic_geometry", i);
+            return false;
+        }
+
+        /* Except for the last point, we should have a trailing comma */
+        if (i != geometry.size() - 1) {
+            if (**mic_geometry != ',') {
+                pa_log("Failed to parse channel %d in mic_geometry", i);
+                return false;
+            }
+
+            (*mic_geometry)++;
+        }
+
+        pa_log_debug("Got mic #%d position: (%g, %g, %g)", i, f[0], f[1], f[2]);
+
+        geometry[i].c[0] = f[0];
+        geometry[i].c[1] = f[1];
+        geometry[i].c[2] = f[2];
+    }
+
+    if (**mic_geometry != '\0') {
+        pa_log("Failed to parse mic_geometry value: more parameters than expected");
+        return false;
+    }
+
+    return true;
 }
 
 bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
@@ -146,7 +238,7 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     webrtc::AudioProcessing *apm = NULL;
     webrtc::ProcessingConfig pconfig;
     webrtc::Config config;
-    bool hpf, ns, agc, dgc, mobile, cn, vad, ext_filter, intelligibility, experimental_agc;
+    bool hpf, ns, agc, dgc, mobile, cn, vad, ext_filter, intelligibility, experimental_agc, beamforming;
     int rm = -1, i;
     uint32_t agc_start_volume;
     pa_modargs *ma;
@@ -256,6 +348,12 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     }
     ec->params.webrtc.agc_start_volume = agc_start_volume;
 
+    beamforming = DEFAULT_BEAMFORMING;
+    if (pa_modargs_get_value_boolean(ma, "beamforming", &beamforming) < 0) {
+        pa_log("Failed to parse beamforming value");
+        goto fail;
+    }
+
     if (ext_filter)
         config.Set<webrtc::ExtendedFilter>(new webrtc::ExtendedFilter(true));
     if (intelligibility)
@@ -276,7 +374,54 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         webrtc::Trace::SetTraceCallback((PaWebrtcTraceCallback *) ec->params.webrtc.trace_callback);
     }
 
-    webrtc_ec_fixate_spec(rec_ss, rec_map, play_ss, play_map, out_ss, out_map);
+    webrtc_ec_fixate_spec(rec_ss, rec_map, play_ss, play_map, out_ss, out_map, beamforming);
+
+    /* We do this after fixate because we need the capture channel count */
+    if (beamforming) {
+        std::vector<webrtc::Point> geometry(rec_ss->channels);
+        webrtc::SphericalPointf direction(0.0f, 0.0f, 0.0f);
+        const char *mic_geometry, *target_direction;
+
+        if (!(mic_geometry = pa_modargs_get_value(ma, "mic_geometry", NULL))) {
+            pa_log("mic_geometry must be set if beamforming is enabled");
+            goto fail;
+        }
+
+        if (!parse_mic_geometry(&mic_geometry, geometry)) {
+            pa_log("Failed to parse mic_geometry value");
+            goto fail;
+        }
+
+        if ((target_direction = pa_modargs_get_value(ma, "target_direction", NULL))) {
+            float f[3];
+
+            if (!parse_point(&target_direction, f)) {
+                pa_log("Failed to parse target_direction value");
+                goto fail;
+            }
+
+            if (*target_direction != '\0') {
+                pa_log("Failed to parse target_direction value: more parameters than expected");
+                goto fail;
+            }
+
+#define IS_ZERO(f) ((f) < 0.000001 && (f) > -0.000001)
+
+            if (!IS_ZERO(f[1]) || !IS_ZERO(f[2])) {
+                pa_log("The beamformer currently only supports targeting along the azimuth");
+                goto fail;
+            }
+
+            direction.s[0] = f[0];
+            direction.s[1] = f[1];
+            direction.s[2] = f[2];
+        }
+
+        if (!target_direction)
+            config.Set<webrtc::Beamforming>(new webrtc::Beamforming(true, geometry));
+        else
+            config.Set<webrtc::Beamforming>(new webrtc::Beamforming(true, geometry, direction));
+    }
 
     apm = webrtc::AudioProcessing::Create(config);
 
