@@ -70,7 +70,7 @@ static void run_remap_test_float(
                 pa_log_debug("Correctness test failed: align=%d", align);
                 pa_log_debug("%d: %.24f != %.24f\n", i,
                     out[i], out_ref[i]);
-                fail();
+                ck_abort();
             }
         }
     }
@@ -123,7 +123,7 @@ static void run_remap_test_s16(
             if (abs(out[i] - out_ref[i]) > 3) {
                 pa_log_debug("Correctness test failed: align=%d", align);
                 pa_log_debug("%d: %d != %d\n", i, out[i], out_ref[i]);
-                fail();
+                ck_abort();
             }
         }
     }

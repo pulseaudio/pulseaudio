@@ -80,7 +80,6 @@ AC_PROG_LN_S
 # CC
 
 AC_PROG_CC
-AC_PROG_CC_C99
 AM_PROG_CC_C_O
 # Only required if you want the WebRTC canceller -- no runtime dep on
 # libstdc++ otherwise
@@ -176,6 +175,11 @@ esac
 
 
 #### Compiler flags ####
+
+AX_CHECK_COMPILE_FLAG([-std=c11],
+   [],
+   [AC_MSG_ERROR([*** Compiler does not support -std=c11])],
+   [-pedantic -Werror])
 
 AX_APPEND_COMPILE_FLAGS(
     [-Wall -W -Wextra -pipe -Wno-long-long -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing -Wwrite-strings -Wno-unused-parameter -ffast-math -fno-common -fdiagnostics-show-option -fdiagnostics-color=auto],

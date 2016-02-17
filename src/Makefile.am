@@ -48,7 +48,7 @@ AM_CPPFLAGS = \
 	-DPA_SRCDIR=\"$(abs_srcdir)\" \
 	-DPA_BUILDDIR=\"$(abs_builddir)\" \
 	-DPULSE_LOCALEDIR=\"$(localedir)\"
-AM_CFLAGS = \
+AM_CFLAGS = -std=c11 \
 	$(PTHREAD_CFLAGS)
 AM_CXXFLAGS = -std=c++11 \
 	$(PTHREAD_CFLAGS)

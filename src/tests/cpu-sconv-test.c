@@ -65,7 +65,7 @@ static void run_conv_test_float_to_s16(
             if (abs(samples[i] - samples_ref[i]) > 1) {
                 pa_log_debug("Correctness test failed: align=%d", align);
                 pa_log_debug("%d: %04hx != %04hx (%.24f)\n", i, samples[i], samples_ref[i], floats[i]);
-                fail();
+                ck_abort();
             }
         }
     }
@@ -115,7 +115,7 @@ static void run_conv_test_s16_to_float(
             if (fabsf(floats[i] - floats_ref[i]) > 0.0001f) {
                 pa_log_debug("Correctness test failed: align=%d", align);
                 pa_log_debug("%d: %.24f != %.24f (%d)\n", i, floats[i], floats_ref[i], samples[i]);
-                fail();
+                ck_abort();
             }
         }
     }

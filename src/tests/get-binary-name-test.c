@@ -39,7 +39,7 @@ START_TEST (getbinaryname_test) {
         if (!pa_get_binary_name(exename, allocated)) {
             pa_log_error("failed to read binary name");
             pa_xfree(exename);
-            fail();
+            ck_abort();
         }
 
         if (strlen(exename) < allocated - 1) {

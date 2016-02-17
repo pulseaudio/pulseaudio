@@ -65,7 +65,7 @@ START_TEST (mult_s16_test) {
 
         if (a != b) {
             pa_log_debug("%d: %d != %d", i, a, b);
-            fail();
+            ck_abort();
         }
     }
 

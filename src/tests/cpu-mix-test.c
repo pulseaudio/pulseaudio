@@ -118,7 +118,7 @@ static void run_mix_test(
                     i,
                     samples[i], samples_ref[i],
                     samples0[i], samples1[i]);
-                fail();
+                ck_abort();
             }
         }
     }

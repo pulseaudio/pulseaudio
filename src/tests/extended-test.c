@@ -100,7 +100,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
         default:
         case PA_STREAM_FAILED:
             fprintf(stderr, "Stream error: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
-            fail();
+            ck_abort();
     }
 }
 
@@ -151,7 +151,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_FAILED:
         default:
             fprintf(stderr, "Context error: %s\n", pa_strerror(pa_context_errno(c)));
-            fail();
+            ck_abort();
     }
 }
 

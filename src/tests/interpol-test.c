@@ -144,7 +144,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_FAILED:
         default:
             pa_log_error("Context error: %s", pa_strerror(pa_context_errno(c)));
-            fail();
+            ck_abort();
     }
 }
 

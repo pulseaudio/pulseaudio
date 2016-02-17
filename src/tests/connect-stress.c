@@ -80,7 +80,7 @@ static void connect(const char *name, int *try) {
     /* Connect the context */
     if (pa_context_connect(context, NULL, 0, NULL) < 0) {
         fprintf(stderr, "pa_context_connect() failed.\n");
-        fail();
+        ck_abort();
     }
 
     ret = pa_threaded_mainloop_start(mainloop);
@@ -144,7 +144,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
         default:
         case PA_STREAM_FAILED:
             fprintf(stderr, "Stream error: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
-            fail();
+            ck_abort();
     }
 }
 
@@ -190,7 +190,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_FAILED:
         default:
             fprintf(stderr, "Context error: %s\n", pa_strerror(pa_context_errno(c)));
-            fail();
+            ck_abort();
     }
 }
 

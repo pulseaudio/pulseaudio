@@ -48,7 +48,7 @@ static void func(pa_mainloop_api *m, pa_signal_event *e, int sig, void *userdata
     if ((now - start) >= 30) {
         m->quit(m, 1);
         fprintf(stderr, "Test failed\n");
-        fail();
+        ck_abort();
     } else
         raise(SIGUSR1);
 }
@@ -78,7 +78,7 @@ START_TEST (cpulimit_test) {
 
         if ((now - start) >= 30) {
             fprintf(stderr, "Test failed\n");
-            fail();
+            ck_abort();
             break;
         }
     }
