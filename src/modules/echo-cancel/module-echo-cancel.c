@@ -75,6 +75,7 @@ PA_MODULE_USAGE(
           "save_aec=<save AEC data in /tmp> "
           "autoloaded=<set if this module is being loaded automatically> "
           "use_volume_sharing=<yes or no> "
+          "use_master_format=<yes or no> "
         ));
 
 /* NOTE: Make sure the enum and ec_table are maintained in the correct order */
@@ -140,6 +141,7 @@ static const pa_echo_canceller ec_table[] = {
 #define DEFAULT_ADJUST_TOLERANCE (5*PA_USEC_PER_MSEC)
 #define DEFAULT_SAVE_AEC false
 #define DEFAULT_AUTOLOADED false
+#define DEFAULT_USE_MASTER_FORMAT false
 
 #define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
 
@@ -275,6 +277,7 @@ static const char* const valid_modargs[] = {
     "save_aec",
     "autoloaded",
     "use_volume_sharing",
+    "use_master_format",
     NULL
 };
 
@@ -1659,6 +1662,7 @@ int pa__init(pa_module*m) {
     pa_memchunk silence;
     uint32_t temp;
     uint32_t nframes = 0;
+    bool use_master_format;
 
     pa_assert(m);
 
@@ -1684,15 +1688,30 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    source_ss = source_master->sample_spec;
-    source_ss.rate = DEFAULT_RATE;
-    source_ss.channels = DEFAULT_CHANNELS;
-    pa_channel_map_init_auto(&source_map, source_ss.channels, PA_CHANNEL_MAP_DEFAULT);
+    /* Set to true if we just want to inherit sample spec and channel map from the sink and source master */
+    use_master_format = DEFAULT_USE_MASTER_FORMAT;
+    if (pa_modargs_get_value_boolean(ma, "use_master_format", &use_master_format) < 0) {
+        pa_log("use_master_format= expects a boolean argument");
+        goto fail;
+    }
 
+    source_ss = source_master->sample_spec;
     sink_ss = sink_master->sample_spec;
-    sink_ss.rate = DEFAULT_RATE;
-    sink_ss.channels = DEFAULT_CHANNELS;
-    pa_channel_map_init_auto(&sink_map, sink_ss.channels, PA_CHANNEL_MAP_DEFAULT);
+
+    if (use_master_format) {
+        source_map = source_master->channel_map;
+        sink_map = sink_master->channel_map;
+    } else {
+        source_ss = source_master->sample_spec;
+        source_ss.rate = DEFAULT_RATE;
+        source_ss.channels = DEFAULT_CHANNELS;
+        pa_channel_map_init_auto(&source_map, source_ss.channels, PA_CHANNEL_MAP_DEFAULT);
+
+        sink_ss = sink_master->sample_spec;
+        sink_ss.rate = DEFAULT_RATE;
+        sink_ss.channels = DEFAULT_CHANNELS;
+        pa_channel_map_init_auto(&sink_map, sink_ss.channels, PA_CHANNEL_MAP_DEFAULT);
+    }
 
     u = pa_xnew0(struct userdata, 1);
     if (!u) {
