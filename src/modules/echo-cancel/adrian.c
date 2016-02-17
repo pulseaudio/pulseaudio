@@ -78,16 +78,16 @@ bool pa_adrian_ec_init(pa_core *c, pa_echo_canceller *ec,
 
     rate = out_ss->rate;
     *nframes = (rate * frame_size_ms) / 1000;
-    ec->params.priv.adrian.blocksize = (*nframes) * pa_frame_size(out_ss);
+    ec->params.adrian.blocksize = (*nframes) * pa_frame_size(out_ss);
 
-    pa_log_debug ("Using nframes %d, blocksize %u, channels %d, rate %d", *nframes, ec->params.priv.adrian.blocksize, out_ss->channels, out_ss->rate);
+    pa_log_debug ("Using nframes %d, blocksize %u, channels %d, rate %d", *nframes, ec->params.adrian.blocksize, out_ss->channels, out_ss->rate);
 
     /* For now we only support SSE */
     if (c->cpu_info.cpu_type == PA_CPU_X86 && (c->cpu_info.flags.x86 & PA_CPU_X86_SSE))
         have_vector = 1;
 
-    ec->params.priv.adrian.aec = AEC_init(rate, have_vector);
-    if (!ec->params.priv.adrian.aec)
+    ec->params.adrian.aec = AEC_init(rate, have_vector);
+    if (!ec->params.adrian.aec)
         goto fail;
 
     pa_modargs_free(ma);
@@ -102,17 +102,17 @@ fail:
 void pa_adrian_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {
     unsigned int i;
 
-    for (i = 0; i < ec->params.priv.adrian.blocksize; i += 2) {
+    for (i = 0; i < ec->params.adrian.blocksize; i += 2) {
         /* We know it's S16NE mono data */
         int r = *(int16_t *)(rec + i);
         int p = *(int16_t *)(play + i);
-        *(int16_t *)(out + i) = (int16_t) AEC_doAEC(ec->params.priv.adrian.aec, r, p);
+        *(int16_t *)(out + i) = (int16_t) AEC_doAEC(ec->params.adrian.aec, r, p);
     }
 }
 
 void pa_adrian_ec_done(pa_echo_canceller *ec) {
-    if (ec->params.priv.adrian.aec) {
-        AEC_done(ec->params.priv.adrian.aec);
-        ec->params.priv.adrian.aec = NULL;
+    if (ec->params.adrian.aec) {
+        AEC_done(ec->params.adrian.aec);
+        ec->params.adrian.aec = NULL;
     }
 }

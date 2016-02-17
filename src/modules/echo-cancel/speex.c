@@ -111,26 +111,26 @@ static bool pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_spec 
             goto fail;
         }
 
-        ec->params.priv.speex.pp_state = speex_preprocess_state_init(nframes, out_ss->rate);
+        ec->params.speex.pp_state = speex_preprocess_state_init(nframes, out_ss->rate);
 
         tmp = agc;
-        speex_preprocess_ctl(ec->params.priv.speex.pp_state, SPEEX_PREPROCESS_SET_AGC, &tmp);
+        speex_preprocess_ctl(ec->params.speex.pp_state, SPEEX_PREPROCESS_SET_AGC, &tmp);
 
         tmp = denoise;
-        speex_preprocess_ctl(ec->params.priv.speex.pp_state, SPEEX_PREPROCESS_SET_DENOISE, &tmp);
+        speex_preprocess_ctl(ec->params.speex.pp_state, SPEEX_PREPROCESS_SET_DENOISE, &tmp);
 
         if (echo_suppress) {
             if (echo_suppress_attenuation)
-                speex_preprocess_ctl(ec->params.priv.speex.pp_state, SPEEX_PREPROCESS_SET_ECHO_SUPPRESS,
+                speex_preprocess_ctl(ec->params.speex.pp_state, SPEEX_PREPROCESS_SET_ECHO_SUPPRESS,
                                      &echo_suppress_attenuation);
 
             if (echo_suppress_attenuation_active) {
-                speex_preprocess_ctl(ec->params.priv.speex.pp_state, SPEEX_PREPROCESS_SET_ECHO_SUPPRESS_ACTIVE,
+                speex_preprocess_ctl(ec->params.speex.pp_state, SPEEX_PREPROCESS_SET_ECHO_SUPPRESS_ACTIVE,
                                      &echo_suppress_attenuation_active);
             }
 
-            speex_preprocess_ctl(ec->params.priv.speex.pp_state, SPEEX_PREPROCESS_SET_ECHO_STATE,
-                                 ec->params.priv.speex.state);
+            speex_preprocess_ctl(ec->params.speex.pp_state, SPEEX_PREPROCESS_SET_ECHO_STATE,
+                                 ec->params.speex.state);
         }
 
         pa_log_info("Loaded speex preprocessor with params: agc=%s, denoise=%s, echo_suppress=%s", pa_yes_no(agc),
@@ -176,12 +176,12 @@ bool pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
     *nframes = pa_echo_canceller_blocksize_power2(rate, frame_size_ms);
 
     pa_log_debug ("Using nframes %d, channels %d, rate %d", *nframes, out_ss->channels, out_ss->rate);
-    ec->params.priv.speex.state = speex_echo_state_init_mc(*nframes, (rate * filter_size_ms) / 1000, out_ss->channels, out_ss->channels);
+    ec->params.speex.state = speex_echo_state_init_mc(*nframes, (rate * filter_size_ms) / 1000, out_ss->channels, out_ss->channels);
 
-    if (!ec->params.priv.speex.state)
+    if (!ec->params.speex.state)
         goto fail;
 
-    speex_echo_ctl(ec->params.priv.speex.state, SPEEX_ECHO_SET_SAMPLING_RATE, &rate);
+    speex_echo_ctl(ec->params.speex.state, SPEEX_ECHO_SET_SAMPLING_RATE, &rate);
 
     if (!pa_speex_ec_preprocessor_init(ec, out_ss, *nframes, ma))
         goto fail;
@@ -192,34 +192,34 @@ bool pa_speex_ec_init(pa_core *c, pa_echo_canceller *ec,
 fail:
     if (ma)
         pa_modargs_free(ma);
-    if (ec->params.priv.speex.pp_state) {
-        speex_preprocess_state_destroy(ec->params.priv.speex.pp_state);
-        ec->params.priv.speex.pp_state = NULL;
+    if (ec->params.speex.pp_state) {
+        speex_preprocess_state_destroy(ec->params.speex.pp_state);
+        ec->params.speex.pp_state = NULL;
     }
-    if (ec->params.priv.speex.state) {
-        speex_echo_state_destroy(ec->params.priv.speex.state);
-        ec->params.priv.speex.state = NULL;
+    if (ec->params.speex.state) {
+        speex_echo_state_destroy(ec->params.speex.state);
+        ec->params.speex.state = NULL;
     }
     return false;
 }
 
 void pa_speex_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {
-    speex_echo_cancellation(ec->params.priv.speex.state, (const spx_int16_t *) rec, (const spx_int16_t *) play,
+    speex_echo_cancellation(ec->params.speex.state, (const spx_int16_t *) rec, (const spx_int16_t *) play,
                             (spx_int16_t *) out);
 
     /* preprecessor is run after AEC. This is not a mistake! */
-    if (ec->params.priv.speex.pp_state)
-        speex_preprocess_run(ec->params.priv.speex.pp_state, (spx_int16_t *) out);
+    if (ec->params.speex.pp_state)
+        speex_preprocess_run(ec->params.speex.pp_state, (spx_int16_t *) out);
 }
 
 void pa_speex_ec_done(pa_echo_canceller *ec) {
-    if (ec->params.priv.speex.pp_state) {
-        speex_preprocess_state_destroy(ec->params.priv.speex.pp_state);
-        ec->params.priv.speex.pp_state = NULL;
+    if (ec->params.speex.pp_state) {
+        speex_preprocess_state_destroy(ec->params.speex.pp_state);
+        ec->params.speex.pp_state = NULL;
     }
 
-    if (ec->params.priv.speex.state) {
-        speex_echo_state_destroy(ec->params.priv.speex.state);
-        ec->params.priv.speex.state = NULL;
+    if (ec->params.speex.state) {
+        speex_echo_state_destroy(ec->params.speex.state);
+        ec->params.speex.state = NULL;
     }
 }

@@ -259,8 +259,8 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     if (trace) {
         webrtc::Trace::CreateTrace();
         webrtc::Trace::set_level_filter(webrtc::kTraceAll);
-        ec->params.priv.webrtc.trace_callback = new PaWebrtcTraceCallback();
-        webrtc::Trace::SetTraceCallback((PaWebrtcTraceCallback *) ec->params.priv.webrtc.trace_callback);
+        ec->params.webrtc.trace_callback = new PaWebrtcTraceCallback();
+        webrtc::Trace::SetTraceCallback((PaWebrtcTraceCallback *) ec->params.webrtc.trace_callback);
     }
 
     pa_webrtc_ec_fixate_spec(rec_ss, rec_map, play_ss, play_map, out_ss, out_map);
@@ -296,17 +296,17 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         if (mobile && rm <= webrtc::EchoControlMobile::kEarpiece) {
             /* Maybe this should be a knob, but we've got a lot of knobs already */
             apm->gain_control()->set_mode(webrtc::GainControl::kFixedDigital);
-            ec->params.priv.webrtc.agc = false;
+            ec->params.webrtc.agc = false;
         } else if (dgc) {
             apm->gain_control()->set_mode(webrtc::GainControl::kAdaptiveDigital);
-            ec->params.priv.webrtc.agc = false;
+            ec->params.webrtc.agc = false;
         } else {
             apm->gain_control()->set_mode(webrtc::GainControl::kAdaptiveAnalog);
             if (apm->gain_control()->set_analog_level_limits(0, WEBRTC_AGC_MAX_VOLUME) != apm->kNoError) {
                 pa_log("Failed to initialise AGC");
                 goto fail;
             }
-            ec->params.priv.webrtc.agc = true;
+            ec->params.webrtc.agc = true;
         }
 
         apm->gain_control()->Enable(true);
@@ -315,11 +315,11 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     if (vad)
         apm->voice_detection()->Enable(true);
 
-    ec->params.priv.webrtc.apm = apm;
-    ec->params.priv.webrtc.sample_spec = *out_ss;
-    ec->params.priv.webrtc.blocksize = (uint64_t)pa_bytes_per_second(out_ss) * BLOCK_SIZE_US / PA_USEC_PER_SEC;
-    *nframes = ec->params.priv.webrtc.blocksize / pa_frame_size(out_ss);
-    ec->params.priv.webrtc.first = true;
+    ec->params.webrtc.apm = apm;
+    ec->params.webrtc.sample_spec = *out_ss;
+    ec->params.webrtc.blocksize = (uint64_t)pa_bytes_per_second(out_ss) * BLOCK_SIZE_US / PA_USEC_PER_SEC;
+    *nframes = ec->params.webrtc.blocksize / pa_frame_size(out_ss);
+    ec->params.webrtc.first = true;
 
     pa_modargs_free(ma);
     return true;
@@ -327,9 +327,9 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
 fail:
     if (ma)
         pa_modargs_free(ma);
-    if (ec->params.priv.webrtc.trace_callback) {
+    if (ec->params.webrtc.trace_callback) {
         webrtc::Trace::ReturnTrace();
-        delete ((PaWebrtcTraceCallback *) ec->params.priv.webrtc.trace_callback);
+        delete ((PaWebrtcTraceCallback *) ec->params.webrtc.trace_callback);
     } if (apm)
         delete apm;
 
@@ -337,17 +337,17 @@ fail:
 }
 
 void pa_webrtc_ec_play(pa_echo_canceller *ec, const uint8_t *play) {
-    webrtc::AudioProcessing *apm = (webrtc::AudioProcessing*)ec->params.priv.webrtc.apm;
+    webrtc::AudioProcessing *apm = (webrtc::AudioProcessing*)ec->params.webrtc.apm;
     webrtc::AudioFrame play_frame;
-    const pa_sample_spec *ss = &ec->params.priv.webrtc.sample_spec;
+    const pa_sample_spec *ss = &ec->params.webrtc.sample_spec;
 
     play_frame.num_channels_ = ss->channels;
     play_frame.sample_rate_hz_ = ss->rate;
     play_frame.interleaved_ = true;
-    play_frame.samples_per_channel_ = ec->params.priv.webrtc.blocksize / pa_frame_size(ss);
+    play_frame.samples_per_channel_ = ec->params.webrtc.blocksize / pa_frame_size(ss);
 
     pa_assert(play_frame.samples_per_channel_ <= webrtc::AudioFrame::kMaxDataSizeSamples);
-    memcpy(play_frame.data_, play, ec->params.priv.webrtc.blocksize);
+    memcpy(play_frame.data_, play, ec->params.webrtc.blocksize);
 
     apm->ProcessReverseStream(&play_frame);
 
@@ -359,21 +359,21 @@ void pa_webrtc_ec_play(pa_echo_canceller *ec, const uint8_t *play) {
 }
 
 void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out) {
-    webrtc::AudioProcessing *apm = (webrtc::AudioProcessing*)ec->params.priv.webrtc.apm;
+    webrtc::AudioProcessing *apm = (webrtc::AudioProcessing*)ec->params.webrtc.apm;
     webrtc::AudioFrame out_frame;
-    const pa_sample_spec *ss = &ec->params.priv.webrtc.sample_spec;
+    const pa_sample_spec *ss = &ec->params.webrtc.sample_spec;
     pa_cvolume v;
     int old_volume, new_volume;
 
     out_frame.num_channels_ = ss->channels;
     out_frame.sample_rate_hz_ = ss->rate;
     out_frame.interleaved_ = true;
-    out_frame.samples_per_channel_ = ec->params.priv.webrtc.blocksize / pa_frame_size(ss);
+    out_frame.samples_per_channel_ = ec->params.webrtc.blocksize / pa_frame_size(ss);
 
     pa_assert(out_frame.samples_per_channel_ <= webrtc::AudioFrame::kMaxDataSizeSamples);
-    memcpy(out_frame.data_, rec, ec->params.priv.webrtc.blocksize);
+    memcpy(out_frame.data_, rec, ec->params.webrtc.blocksize);
 
-    if (ec->params.priv.webrtc.agc) {
+    if (ec->params.webrtc.agc) {
         pa_cvolume_init(&v);
         pa_echo_canceller_get_capture_volume(ec, &v);
         old_volume = webrtc_volume_from_pa(pa_cvolume_avg(&v));
@@ -383,13 +383,13 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
     apm->set_stream_delay_ms(0);
     apm->ProcessStream(&out_frame);
 
-    if (ec->params.priv.webrtc.agc) {
-        if (PA_UNLIKELY(ec->params.priv.webrtc.first)) {
+    if (ec->params.webrtc.agc) {
+        if (PA_UNLIKELY(ec->params.webrtc.first)) {
             /* We start at a sane default volume (taken from the Chromium
              * condition on the experimental AGC in audio_processing.h). This is
              * needed to make sure that there's enough energy in the capture
              * signal for the AGC to work */
-            ec->params.priv.webrtc.first = false;
+            ec->params.webrtc.first = false;
             new_volume = WEBRTC_AGC_START_VOLUME;
         } else {
             new_volume = apm->gain_control()->stream_analog_level();
@@ -401,14 +401,14 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
         }
     }
 
-    memcpy(out, out_frame.data_, ec->params.priv.webrtc.blocksize);
+    memcpy(out, out_frame.data_, ec->params.webrtc.blocksize);
 }
 
 void pa_webrtc_ec_set_drift(pa_echo_canceller *ec, float drift) {
-    webrtc::AudioProcessing *apm = (webrtc::AudioProcessing*)ec->params.priv.webrtc.apm;
-    const pa_sample_spec *ss = &ec->params.priv.webrtc.sample_spec;
+    webrtc::AudioProcessing *apm = (webrtc::AudioProcessing*)ec->params.webrtc.apm;
+    const pa_sample_spec *ss = &ec->params.webrtc.sample_spec;
 
-    apm->echo_cancellation()->set_stream_drift_samples(drift * ec->params.priv.webrtc.blocksize / pa_frame_size(ss));
+    apm->echo_cancellation()->set_stream_drift_samples(drift * ec->params.webrtc.blocksize / pa_frame_size(ss));
 }
 
 void pa_webrtc_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {
@@ -417,13 +417,13 @@ void pa_webrtc_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *
 }
 
 void pa_webrtc_ec_done(pa_echo_canceller *ec) {
-    if (ec->params.priv.webrtc.trace_callback) {
+    if (ec->params.webrtc.trace_callback) {
         webrtc::Trace::ReturnTrace();
-        delete ((PaWebrtcTraceCallback *) ec->params.priv.webrtc.trace_callback);
+        delete ((PaWebrtcTraceCallback *) ec->params.webrtc.trace_callback);
     }
 
-    if (ec->params.priv.webrtc.apm) {
-        delete (webrtc::AudioProcessing*)ec->params.priv.webrtc.apm;
-        ec->params.priv.webrtc.apm = NULL;
+    if (ec->params.webrtc.apm) {
+        delete (webrtc::AudioProcessing*)ec->params.webrtc.apm;
+        ec->params.webrtc.apm = NULL;
     }
 }

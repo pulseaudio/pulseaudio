@@ -34,7 +34,7 @@ bool pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
     char strss_sink[PA_SAMPLE_SPEC_SNPRINT_MAX];
 
     *nframes = 256;
-    ec->params.priv.null.out_ss = *out_ss;
+    ec->params.null.out_ss = *out_ss;
 
     *rec_ss = *out_ss;
     *rec_map = *out_map;
@@ -49,7 +49,7 @@ bool pa_null_ec_init(pa_core *c, pa_echo_canceller *ec,
 void pa_null_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *play, uint8_t *out) {
     /* The null implementation simply copies the recorded buffer to the output
        buffer and ignores the play buffer. */
-    memcpy(out, rec, 256 * pa_frame_size(&ec->params.priv.null.out_ss));
+    memcpy(out, rec, 256 * pa_frame_size(&ec->params.null.out_ss));
 }
 
 void pa_null_ec_done(pa_echo_canceller *ec) {

@@ -69,10 +69,11 @@ struct pa_echo_canceller_params {
             void *trace_callback;
             bool agc;
             bool first;
+            unsigned int agc_start_volume;
         } webrtc;
 #endif
         /* each canceller-specific structure goes here */
-    } priv;
+    };
 
     /* Set this if canceller can do drift compensation. Also see set_drift()
      * below */
