@@ -66,6 +66,7 @@ struct pa_echo_canceller_params {
             void *apm;
             unsigned int blocksize; /* in frames */
             pa_sample_spec rec_ss, play_ss, out_ss;
+            float *rec_buffer[PA_CHANNELS_MAX], *play_buffer[PA_CHANNELS_MAX]; /* for deinterleaved buffers */
             void *trace_callback;
             bool agc;
             bool first;

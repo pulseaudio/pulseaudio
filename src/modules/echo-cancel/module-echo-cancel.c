@@ -2158,12 +2158,12 @@ int main(int argc, char* argv[]) {
         goto fail;
     }
 
-    source_ss.format = PA_SAMPLE_S16LE;
+    source_ss.format = PA_SAMPLE_FLOAT32LE;
     source_ss.rate = DEFAULT_RATE;
     source_ss.channels = DEFAULT_CHANNELS;
     pa_channel_map_init_auto(&source_map, source_ss.channels, PA_CHANNEL_MAP_DEFAULT);
 
-    sink_ss.format = PA_SAMPLE_S16LE;
+    sink_ss.format = PA_SAMPLE_FLOAT32LE;
     sink_ss.rate = DEFAULT_RATE;
     sink_ss.channels = DEFAULT_CHANNELS;
     pa_channel_map_init_auto(&sink_map, sink_ss.channels, PA_CHANNEL_MAP_DEFAULT);
