@@ -33,8 +33,8 @@ PA_C_DECL_BEGIN
 #include "echo-cancel.h"
 PA_C_DECL_END
 
-#include <audio_processing.h>
-#include <module_common_types.h>
+#include <webrtc/modules/audio_processing/include/audio_processing.h>
+#include <webrtc/modules/interface/module_common_types.h>
 
 #define BLOCK_SIZE_US 10000
 
@@ -80,6 +80,7 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
                        pa_sample_spec *out_ss, pa_channel_map *out_map,
                        uint32_t *nframes, const char *args) {
     webrtc::AudioProcessing *apm = NULL;
+    webrtc::ProcessingConfig pconfig;
     bool hpf, ns, agc, dgc, mobile, cn;
     int rm = -1;
     pa_modargs *ma;
@@ -153,7 +154,7 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         }
     }
 
-    apm = webrtc::AudioProcessing::Create(0);
+    apm = webrtc::AudioProcessing::Create();
 
     out_ss->format = PA_SAMPLE_S16NE;
     *play_ss = *out_ss;
@@ -163,22 +164,19 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     *rec_ss = *out_ss;
     *rec_map = *out_map;
 
-    apm->set_sample_rate_hz(out_ss->rate);
-
-    apm->set_num_channels(out_ss->channels, out_ss->channels);
-    apm->set_num_reverse_channels(play_ss->channels);
+    pconfig = {
+        webrtc::StreamConfig(rec_ss->rate, rec_ss->channels, false), /* input stream */
+        webrtc::StreamConfig(out_ss->rate, out_ss->channels, false), /* output stream */
+        webrtc::StreamConfig(play_ss->rate, play_ss->channels, false), /* reverse input stream */
+        webrtc::StreamConfig(play_ss->rate, play_ss->channels, false), /* reverse output stream */
+    };
+    apm->Initialize(pconfig);
 
     if (hpf)
         apm->high_pass_filter()->Enable(true);
 
     if (!mobile) {
-        if (ec->params.drift_compensation) {
-            apm->echo_cancellation()->set_device_sample_rate_hz(out_ss->rate);
-            apm->echo_cancellation()->enable_drift_compensation(true);
-        } else {
-            apm->echo_cancellation()->enable_drift_compensation(false);
-        }
-
+        apm->echo_cancellation()->enable_drift_compensation(ec->params.drift_compensation);
         apm->echo_cancellation()->Enable(true);
     } else {
         apm->echo_control_mobile()->set_routing_mode(static_cast<webrtc::EchoControlMobile::RoutingMode>(rm));
@@ -225,7 +223,7 @@ fail:
     if (ma)
         pa_modargs_free(ma);
     if (apm)
-        webrtc::AudioProcessing::Destroy(apm);
+        delete apm;
 
     return false;
 }
@@ -235,10 +233,13 @@ void pa_webrtc_ec_play(pa_echo_canceller *ec, const uint8_t *play) {
     webrtc::AudioFrame play_frame;
     const pa_sample_spec *ss = &ec->params.priv.webrtc.sample_spec;
 
-    play_frame._audioChannel = ss->channels;
-    play_frame._frequencyInHz = ss->rate;
-    play_frame._payloadDataLengthInSamples = ec->params.priv.webrtc.blocksize / pa_frame_size(ss);
-    memcpy(play_frame._payloadData, play, ec->params.priv.webrtc.blocksize);
+    play_frame.num_channels_ = ss->channels;
+    play_frame.sample_rate_hz_ = ss->rate;
+    play_frame.interleaved_ = true;
+    play_frame.samples_per_channel_ = ec->params.priv.webrtc.blocksize / pa_frame_size(ss);
+
+    pa_assert(play_frame.samples_per_channel_ <= webrtc::AudioFrame::kMaxDataSizeSamples);
+    memcpy(play_frame.data_, play, ec->params.priv.webrtc.blocksize);
 
     apm->AnalyzeReverseStream(&play_frame);
 }
@@ -249,10 +250,13 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
     const pa_sample_spec *ss = &ec->params.priv.webrtc.sample_spec;
     pa_cvolume v;
 
-    out_frame._audioChannel = ss->channels;
-    out_frame._frequencyInHz = ss->rate;
-    out_frame._payloadDataLengthInSamples = ec->params.priv.webrtc.blocksize / pa_frame_size(ss);
-    memcpy(out_frame._payloadData, rec, ec->params.priv.webrtc.blocksize);
+    out_frame.num_channels_ = ss->channels;
+    out_frame.sample_rate_hz_ = ss->rate;
+    out_frame.interleaved_ = true;
+    out_frame.samples_per_channel_ = ec->params.priv.webrtc.blocksize / pa_frame_size(ss);
+
+    pa_assert(out_frame.samples_per_channel_ <= webrtc::AudioFrame::kMaxDataSizeSamples);
+    memcpy(out_frame.data_, rec, ec->params.priv.webrtc.blocksize);
 
     if (ec->params.priv.webrtc.agc) {
         pa_cvolume_init(&v);
@@ -268,7 +272,7 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
         pa_echo_canceller_set_capture_volume(ec, &v);
     }
 
-    memcpy(out, out_frame._payloadData, ec->params.priv.webrtc.blocksize);
+    memcpy(out, out_frame.data_, ec->params.priv.webrtc.blocksize);
 }
 
 void pa_webrtc_ec_set_drift(pa_echo_canceller *ec, float drift) {
@@ -285,7 +289,7 @@ void pa_webrtc_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *
 
 void pa_webrtc_ec_done(pa_echo_canceller *ec) {
     if (ec->params.priv.webrtc.apm) {
-        webrtc::AudioProcessing::Destroy((webrtc::AudioProcessing*)ec->params.priv.webrtc.apm);
+        delete (webrtc::AudioProcessing*)ec->params.priv.webrtc.apm;
         ec->params.priv.webrtc.apm = NULL;
     }
 }
