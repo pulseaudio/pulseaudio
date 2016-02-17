@@ -286,7 +286,10 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         webrtc::StreamConfig(play_ss->rate, play_ss->channels, false), /* reverse input stream */
         webrtc::StreamConfig(play_ss->rate, play_ss->channels, false), /* reverse output stream */
     };
-    apm->Initialize(pconfig);
+    if (apm->Initialize(pconfig) != webrtc::AudioProcessing::kNoError) {
+        pa_log("Error initialising audio processing module");
+        goto fail;
+    }
 
     if (hpf)
         apm->high_pass_filter()->Enable(true);
@@ -315,7 +318,8 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
             ec->params.webrtc.agc = false;
         } else {
             apm->gain_control()->set_mode(webrtc::GainControl::kAdaptiveAnalog);
-            if (apm->gain_control()->set_analog_level_limits(0, WEBRTC_AGC_MAX_VOLUME) != apm->kNoError) {
+            if (apm->gain_control()->set_analog_level_limits(0, WEBRTC_AGC_MAX_VOLUME) !=
+                    webrtc::AudioProcessing::kNoError) {
                 pa_log("Failed to initialise AGC");
                 goto fail;
             }
@@ -363,7 +367,7 @@ void pa_webrtc_ec_play(pa_echo_canceller *ec, const uint8_t *play) {
     pa_assert(play_frame.samples_per_channel_ <= webrtc::AudioFrame::kMaxDataSizeSamples);
     memcpy(play_frame.data_, play, ec->params.webrtc.blocksize * pa_frame_size(ss));
 
-    apm->ProcessReverseStream(&play_frame);
+    pa_assert_se(apm->ProcessReverseStream(&play_frame) == webrtc::AudioProcessing::kNoError);
 
     /* FIXME: If ProcessReverseStream() makes any changes to the audio, such as
      * applying intelligibility enhancement, those changes don't have any
@@ -395,7 +399,7 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
     }
 
     apm->set_stream_delay_ms(0);
-    apm->ProcessStream(&out_frame);
+    pa_assert_se(apm->ProcessStream(&out_frame) == webrtc::AudioProcessing::kNoError);
 
     if (ec->params.webrtc.agc) {
         if (PA_UNLIKELY(ec->params.webrtc.first)) {
