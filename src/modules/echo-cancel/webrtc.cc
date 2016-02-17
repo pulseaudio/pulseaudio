@@ -51,6 +51,8 @@ PA_C_DECL_END
 #define DEFAULT_INTELLIGIBILITY_ENHANCER false
 #define DEFAULT_TRACE false
 
+#define WEBRTC_AGC_MAX_VOLUME 255
+
 static const char* const valid_modargs[] = {
     "high_pass_filter",
     "noise_suppression",
@@ -94,6 +96,16 @@ class PaWebrtcTraceCallback : public webrtc::TraceCallback {
             pa_log_debug(message);
     }
 };
+
+static int webrtc_volume_from_pa(pa_volume_t v)
+{
+    return (v * WEBRTC_AGC_MAX_VOLUME) / PA_VOLUME_NORM;
+}
+
+static pa_volume_t webrtc_volume_to_pa(int v)
+{
+    return (v * PA_VOLUME_NORM) / WEBRTC_AGC_MAX_VOLUME;
+}
 
 static void pa_webrtc_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
                                      pa_sample_spec *play_ss, pa_channel_map *play_map,
@@ -271,7 +283,7 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
             ec->params.priv.webrtc.agc = false;
         } else {
             apm->gain_control()->set_mode(webrtc::GainControl::kAdaptiveAnalog);
-            if (apm->gain_control()->set_analog_level_limits(0, PA_VOLUME_NORM-1) != apm->kNoError) {
+            if (apm->gain_control()->set_analog_level_limits(0, WEBRTC_AGC_MAX_VOLUME) != apm->kNoError) {
                 pa_log("Failed to initialise AGC");
                 goto fail;
             }
@@ -330,6 +342,7 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
     webrtc::AudioFrame out_frame;
     const pa_sample_spec *ss = &ec->params.priv.webrtc.sample_spec;
     pa_cvolume v;
+    int old_volume, new_volume;
 
     out_frame.num_channels_ = ss->channels;
     out_frame.sample_rate_hz_ = ss->rate;
@@ -342,15 +355,19 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
     if (ec->params.priv.webrtc.agc) {
         pa_cvolume_init(&v);
         pa_echo_canceller_get_capture_volume(ec, &v);
-        apm->gain_control()->set_stream_analog_level(pa_cvolume_avg(&v));
+        old_volume = webrtc_volume_from_pa(pa_cvolume_avg(&v));
+        apm->gain_control()->set_stream_analog_level(old_volume);
     }
 
     apm->set_stream_delay_ms(0);
     apm->ProcessStream(&out_frame);
 
     if (ec->params.priv.webrtc.agc) {
-        pa_cvolume_set(&v, ss->channels, apm->gain_control()->stream_analog_level());
-        pa_echo_canceller_set_capture_volume(ec, &v);
+        new_volume = apm->gain_control()->stream_analog_level();
+        if (old_volume != new_volume) {
+            pa_cvolume_set(&v, ss->channels, webrtc_volume_to_pa(new_volume));
+            pa_echo_canceller_set_capture_volume(ec, &v);
+        }
     }
 
     memcpy(out, out_frame.data_, ec->params.priv.webrtc.blocksize);
