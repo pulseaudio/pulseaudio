@@ -49,6 +49,7 @@ PA_C_DECL_END
 #define DEFAULT_DRIFT_COMPENSATION false
 #define DEFAULT_EXTENDED_FILTER false
 #define DEFAULT_INTELLIGIBILITY_ENHANCER false
+#define DEFAULT_EXPERIMENTAL_AGC false
 #define DEFAULT_TRACE false
 
 #define WEBRTC_AGC_MAX_VOLUME 255
@@ -65,6 +66,7 @@ static const char* const valid_modargs[] = {
     "drift_compensation",
     "extended_filter",
     "intelligibility_enhancer",
+    "experimental_agc",
     "trace",
     NULL
 };
@@ -141,7 +143,7 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     webrtc::AudioProcessing *apm = NULL;
     webrtc::ProcessingConfig pconfig;
     webrtc::Config config;
-    bool hpf, ns, agc, dgc, mobile, cn, ext_filter, intelligibility;
+    bool hpf, ns, agc, dgc, mobile, cn, ext_filter, intelligibility, experimental_agc;
     int rm = -1;
     pa_modargs *ma;
     bool trace = false;
@@ -227,10 +229,18 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         goto fail;
     }
 
+    experimental_agc = DEFAULT_EXPERIMENTAL_AGC;
+    if (pa_modargs_get_value_boolean(ma, "experimental_agc", &experimental_agc) < 0) {
+        pa_log("Failed to parse experimental_agc value");
+        goto fail;
+    }
+
     if (ext_filter)
         config.Set<webrtc::ExtendedFilter>(new webrtc::ExtendedFilter(true));
     if (intelligibility)
         pa_log_warn("The intelligibility enhancer is not currently supported");
+    if (experimental_agc)
+        config.Set<webrtc::ExperimentalAgc>(new webrtc::ExperimentalAgc(true, WEBRTC_AGC_START_VOLUME));
 
     trace = DEFAULT_TRACE;
     if (pa_modargs_get_value_boolean(ma, "trace", &trace) < 0) {
