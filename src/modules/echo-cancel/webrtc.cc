@@ -51,10 +51,10 @@ PA_C_DECL_END
 #define DEFAULT_EXTENDED_FILTER false
 #define DEFAULT_INTELLIGIBILITY_ENHANCER false
 #define DEFAULT_EXPERIMENTAL_AGC false
+#define DEFAULT_AGC_START_VOLUME 85
 #define DEFAULT_TRACE false
 
 #define WEBRTC_AGC_MAX_VOLUME 255
-#define WEBRTC_AGC_START_VOLUME 85
 
 static const char* const valid_modargs[] = {
     "high_pass_filter",
@@ -69,6 +69,7 @@ static const char* const valid_modargs[] = {
     "extended_filter",
     "intelligibility_enhancer",
     "experimental_agc",
+    "agc_start_volume",
     "trace",
     NULL
 };
@@ -147,6 +148,7 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     webrtc::Config config;
     bool hpf, ns, agc, dgc, mobile, cn, vad, ext_filter, intelligibility, experimental_agc;
     int rm = -1;
+    uint32_t agc_start_volume;
     pa_modargs *ma;
     bool trace = false;
 
@@ -243,12 +245,23 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         goto fail;
     }
 
+    agc_start_volume = DEFAULT_AGC_START_VOLUME;
+    if (pa_modargs_get_value_u32(ma, "agc_start_volume", &agc_start_volume) < 0) {
+        pa_log("Failed to parse agc_start_volume value");
+        goto fail;
+    }
+    if (agc_start_volume > WEBRTC_AGC_MAX_VOLUME) {
+        pa_log("AGC start volume must not exceed %u", WEBRTC_AGC_MAX_VOLUME);
+        goto fail;
+    }
+    ec->params.webrtc.agc_start_volume = agc_start_volume;
+
     if (ext_filter)
         config.Set<webrtc::ExtendedFilter>(new webrtc::ExtendedFilter(true));
     if (intelligibility)
         pa_log_warn("The intelligibility enhancer is not currently supported");
     if (experimental_agc)
-        config.Set<webrtc::ExperimentalAgc>(new webrtc::ExperimentalAgc(true, WEBRTC_AGC_START_VOLUME));
+        config.Set<webrtc::ExperimentalAgc>(new webrtc::ExperimentalAgc(true, ec->params.webrtc.agc_start_volume));
 
     trace = DEFAULT_TRACE;
     if (pa_modargs_get_value_boolean(ma, "trace", &trace) < 0) {
@@ -390,7 +403,7 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
              * needed to make sure that there's enough energy in the capture
              * signal for the AGC to work */
             ec->params.webrtc.first = false;
-            new_volume = WEBRTC_AGC_START_VOLUME;
+            new_volume = ec->params.webrtc.agc_start_volume;
         } else {
             new_volume = apm->gain_control()->stream_analog_level();
         }
