@@ -52,6 +52,7 @@ PA_C_DECL_END
 #define DEFAULT_TRACE false
 
 #define WEBRTC_AGC_MAX_VOLUME 255
+#define WEBRTC_AGC_START_VOLUME 85
 
 static const char* const valid_modargs[] = {
     "high_pass_filter",
@@ -299,6 +300,7 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     ec->params.priv.webrtc.sample_spec = *out_ss;
     ec->params.priv.webrtc.blocksize = (uint64_t)pa_bytes_per_second(out_ss) * BLOCK_SIZE_US / PA_USEC_PER_SEC;
     *nframes = ec->params.priv.webrtc.blocksize / pa_frame_size(out_ss);
+    ec->params.priv.webrtc.first = true;
 
     pa_modargs_free(ma);
     return true;
@@ -363,7 +365,17 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
     apm->ProcessStream(&out_frame);
 
     if (ec->params.priv.webrtc.agc) {
-        new_volume = apm->gain_control()->stream_analog_level();
+        if (PA_UNLIKELY(ec->params.priv.webrtc.first)) {
+            /* We start at a sane default volume (taken from the Chromium
+             * condition on the experimental AGC in audio_processing.h). This is
+             * needed to make sure that there's enough energy in the capture
+             * signal for the AGC to work */
+            ec->params.priv.webrtc.first = false;
+            new_volume = WEBRTC_AGC_START_VOLUME;
+        } else {
+            new_volume = apm->gain_control()->stream_analog_level();
+        }
+
         if (old_volume != new_volume) {
             pa_cvolume_set(&v, ss->channels, webrtc_volume_to_pa(new_volume));
             pa_echo_canceller_set_capture_volume(ec, &v);

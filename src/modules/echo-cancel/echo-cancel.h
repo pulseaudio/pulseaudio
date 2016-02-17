@@ -68,6 +68,7 @@ struct pa_echo_canceller_params {
             pa_sample_spec sample_spec;
             void *trace_callback;
             bool agc;
+            bool first;
         } webrtc;
 #endif
         /* each canceller-specific structure goes here */
