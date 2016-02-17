@@ -66,6 +66,7 @@ struct pa_echo_canceller_params {
             void *apm;
             uint32_t blocksize;
             pa_sample_spec sample_spec;
+            void *trace_callback;
             bool agc;
         } webrtc;
 #endif

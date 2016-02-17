@@ -35,6 +35,7 @@ PA_C_DECL_END
 
 #include <webrtc/modules/audio_processing/include/audio_processing.h>
 #include <webrtc/modules/interface/module_common_types.h>
+#include <webrtc/system_wrappers/include/trace.h>
 
 #define BLOCK_SIZE_US 10000
 
@@ -48,6 +49,7 @@ PA_C_DECL_END
 #define DEFAULT_DRIFT_COMPENSATION false
 #define DEFAULT_EXTENDED_FILTER false
 #define DEFAULT_INTELLIGIBILITY_ENHANCER false
+#define DEFAULT_TRACE false
 
 static const char* const valid_modargs[] = {
     "high_pass_filter",
@@ -60,6 +62,7 @@ static const char* const valid_modargs[] = {
     "drift_compensation",
     "extended_filter",
     "intelligibility_enhancer",
+    "trace",
     NULL
 };
 
@@ -77,6 +80,20 @@ static int routing_mode_from_string(const char *rmode) {
     else
         return -1;
 }
+
+class PaWebrtcTraceCallback : public webrtc::TraceCallback {
+    void Print(webrtc::TraceLevel level, const char *message, int length)
+    {
+        if (level & webrtc::kTraceError || level & webrtc::kTraceCritical)
+            pa_log(message);
+        else if (level & webrtc::kTraceWarning)
+            pa_log_warn(message);
+        else if (level & webrtc::kTraceInfo)
+            pa_log_info(message);
+        else
+            pa_log_debug(message);
+    }
+};
 
 static void pa_webrtc_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map,
                                      pa_sample_spec *play_ss, pa_channel_map *play_map,
@@ -114,6 +131,7 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     bool hpf, ns, agc, dgc, mobile, cn, ext_filter, intelligibility;
     int rm = -1;
     pa_modargs *ma;
+    bool trace = false;
 
     if (!(ma = pa_modargs_new(args, valid_modargs))) {
         pa_log("Failed to parse submodule arguments.");
@@ -201,6 +219,19 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     if (intelligibility)
         pa_log_warn("The intelligibility enhancer is not currently supported");
 
+    trace = DEFAULT_TRACE;
+    if (pa_modargs_get_value_boolean(ma, "trace", &trace) < 0) {
+        pa_log("Failed to parse trace value");
+        goto fail;
+    }
+
+    if (trace) {
+        webrtc::Trace::CreateTrace();
+        webrtc::Trace::set_level_filter(webrtc::kTraceAll);
+        ec->params.priv.webrtc.trace_callback = new PaWebrtcTraceCallback();
+        webrtc::Trace::SetTraceCallback((PaWebrtcTraceCallback *) ec->params.priv.webrtc.trace_callback);
+    }
+
     pa_webrtc_ec_fixate_spec(rec_ss, rec_map, play_ss, play_map, out_ss, out_map);
 
     apm = webrtc::AudioProcessing::Create(config);
@@ -263,7 +294,10 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
 fail:
     if (ma)
         pa_modargs_free(ma);
-    if (apm)
+    if (ec->params.priv.webrtc.trace_callback) {
+        webrtc::Trace::ReturnTrace();
+        delete ((PaWebrtcTraceCallback *) ec->params.priv.webrtc.trace_callback);
+    } if (apm)
         delete apm;
 
     return false;
@@ -335,6 +369,11 @@ void pa_webrtc_ec_run(pa_echo_canceller *ec, const uint8_t *rec, const uint8_t *
 }
 
 void pa_webrtc_ec_done(pa_echo_canceller *ec) {
+    if (ec->params.priv.webrtc.trace_callback) {
+        webrtc::Trace::ReturnTrace();
+        delete ((PaWebrtcTraceCallback *) ec->params.priv.webrtc.trace_callback);
+    }
+
     if (ec->params.priv.webrtc.apm) {
         delete (webrtc::AudioProcessing*)ec->params.priv.webrtc.apm;
         ec->params.priv.webrtc.apm = NULL;
