@@ -47,6 +47,7 @@ PA_C_DECL_END
 #define DEFAULT_COMFORT_NOISE true
 #define DEFAULT_DRIFT_COMPENSATION false
 #define DEFAULT_EXTENDED_FILTER false
+#define DEFAULT_INTELLIGIBILITY_ENHANCER false
 
 static const char* const valid_modargs[] = {
     "high_pass_filter",
@@ -58,6 +59,7 @@ static const char* const valid_modargs[] = {
     "comfort_noise",
     "drift_compensation",
     "extended_filter",
+    "intelligibility_enhancer",
     NULL
 };
 
@@ -84,7 +86,7 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
     webrtc::AudioProcessing *apm = NULL;
     webrtc::ProcessingConfig pconfig;
     webrtc::Config config;
-    bool hpf, ns, agc, dgc, mobile, cn, ext_filter;
+    bool hpf, ns, agc, dgc, mobile, cn, ext_filter, intelligibility;
     int rm = -1;
     pa_modargs *ma;
 
@@ -163,8 +165,16 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         goto fail;
     }
 
+    intelligibility = DEFAULT_INTELLIGIBILITY_ENHANCER;
+    if (pa_modargs_get_value_boolean(ma, "intelligibility_enhancer", &intelligibility) < 0) {
+        pa_log("Failed to parse intelligibility_enhancer value");
+        goto fail;
+    }
+
     if (ext_filter)
         config.Set<webrtc::ExtendedFilter>(new webrtc::ExtendedFilter(true));
+    if (intelligibility)
+        pa_log_warn("The intelligibility enhancer is not currently supported");
 
     apm = webrtc::AudioProcessing::Create(config);
 
@@ -253,7 +263,13 @@ void pa_webrtc_ec_play(pa_echo_canceller *ec, const uint8_t *play) {
     pa_assert(play_frame.samples_per_channel_ <= webrtc::AudioFrame::kMaxDataSizeSamples);
     memcpy(play_frame.data_, play, ec->params.priv.webrtc.blocksize);
 
-    apm->AnalyzeReverseStream(&play_frame);
+    apm->ProcessReverseStream(&play_frame);
+
+    /* FIXME: If ProcessReverseStream() makes any changes to the audio, such as
+     * applying intelligibility enhancement, those changes don't have any
+     * effect. This function is called at the source side, but the processing
+     * would have to be done in the sink to be able to feed the processed audio
+     * to speakers. */
 }
 
 void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out) {
