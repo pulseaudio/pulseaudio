@@ -529,7 +529,6 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
     const pa_sample_spec *out_ss = &ec->params.webrtc.out_ss;
     float **buf = ec->params.webrtc.rec_buffer;
     int n = ec->params.webrtc.blocksize;
-    pa_cvolume v;
     int old_volume, new_volume;
     webrtc::StreamConfig rec_config(rec_ss->rate, rec_ss->channels, false);
     webrtc::StreamConfig out_config(out_ss->rate, out_ss->channels, false);
@@ -537,9 +536,8 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
     pa_deinterleave(rec, (void **) buf, rec_ss->channels, pa_sample_size(rec_ss), n);
 
     if (ec->params.webrtc.agc) {
-        pa_cvolume_init(&v);
-        pa_echo_canceller_get_capture_volume(ec, &v);
-        old_volume = webrtc_volume_from_pa(pa_cvolume_avg(&v));
+        pa_volume_t v = pa_echo_canceller_get_capture_volume(ec);
+        old_volume = webrtc_volume_from_pa(v);
         apm->gain_control()->set_stream_analog_level(old_volume);
     }
 
@@ -558,10 +556,8 @@ void pa_webrtc_ec_record(pa_echo_canceller *ec, const uint8_t *rec, uint8_t *out
             new_volume = apm->gain_control()->stream_analog_level();
         }
 
-        if (old_volume != new_volume) {
-            pa_cvolume_set(&v, rec_ss->channels, webrtc_volume_to_pa(new_volume));
-            pa_echo_canceller_set_capture_volume(ec, &v);
-        }
+        if (old_volume != new_volume)
+            pa_echo_canceller_set_capture_volume(ec, webrtc_volume_to_pa(new_volume));
     }
 
     pa_interleave((const void **) buf, out_ss->channels, out, pa_sample_size(out_ss), n);

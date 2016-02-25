@@ -132,8 +132,8 @@ struct pa_echo_canceller {
 };
 
 /* Functions to be used by the canceller analog gain control routines */
-void pa_echo_canceller_get_capture_volume(pa_echo_canceller *ec, pa_cvolume *v);
-void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_cvolume *v);
+pa_volume_t pa_echo_canceller_get_capture_volume(pa_echo_canceller *ec);
+void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_volume_t volume);
 
 /* Computes EC block size in frames (rounded down to nearest power-of-2) based
  * on sample rate and milliseconds. */

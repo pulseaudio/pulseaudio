@@ -1535,12 +1535,16 @@ static int canceller_process_msg_cb(pa_msgobject *o, int code, void *userdata, i
 
     switch (code) {
         case ECHO_CANCELLER_MESSAGE_SET_VOLUME: {
-            pa_cvolume *v = (pa_cvolume *) userdata;
+            pa_volume_t v = PA_PTR_TO_UINT(userdata);
+            pa_cvolume vol;
 
-            if (u->use_volume_sharing)
-                pa_source_set_volume(u->source, v, true, false);
-            else
-                pa_source_output_set_volume(u->source_output, v, false, true);
+            if (u->use_volume_sharing) {
+                pa_cvolume_set(&vol, u->source->sample_spec.channels, v);
+                pa_source_set_volume(u->source, &vol, true, false);
+            } else {
+                pa_cvolume_set(&vol, u->source_output->sample_spec.channels, v);
+                pa_source_output_set_volume(u->source_output, &vol, false, true);
+            }
 
             break;
         }
@@ -1554,22 +1558,20 @@ static int canceller_process_msg_cb(pa_msgobject *o, int code, void *userdata, i
 }
 
 /* Called by the canceller, so source I/O thread context. */
-void pa_echo_canceller_get_capture_volume(pa_echo_canceller *ec, pa_cvolume *v) {
+pa_volume_t pa_echo_canceller_get_capture_volume(pa_echo_canceller *ec) {
 #ifndef ECHO_CANCEL_TEST
-    *v = ec->msg->userdata->thread_info.current_volume;
+    return pa_cvolume_avg(&ec->msg->userdata->thread_info.current_volume);
 #else
-    pa_cvolume_set(v, 1, PA_VOLUME_NORM);
+    return PA_VOLUME_NORM;
 #endif
 }
 
 /* Called by the canceller, so source I/O thread context. */
-void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_cvolume *v) {
+void pa_echo_canceller_set_capture_volume(pa_echo_canceller *ec, pa_volume_t v) {
 #ifndef ECHO_CANCEL_TEST
-    if (!pa_cvolume_equal(&ec->msg->userdata->thread_info.current_volume, v)) {
-        pa_cvolume *vol = pa_xnewdup(pa_cvolume, v, 1);
-
-        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(ec->msg), ECHO_CANCELLER_MESSAGE_SET_VOLUME, vol, 0, NULL,
-                pa_xfree);
+    if (pa_cvolume_avg(&ec->msg->userdata->thread_info.current_volume) != v) {
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(ec->msg), ECHO_CANCELLER_MESSAGE_SET_VOLUME, PA_UINT_TO_PTR(v),
+                0, NULL, NULL);
     }
 #endif
 }
