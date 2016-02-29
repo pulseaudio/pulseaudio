@@ -106,6 +106,7 @@ struct session {
     pa_usec_t intended_latency;
     pa_usec_t sink_latency;
 
+    unsigned int base_rate;
     pa_usec_t last_rate_update;
     pa_usec_t last_latency;
     double estimated_rate;
@@ -284,7 +285,6 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
     if (s->last_rate_update + RATE_UPDATE_INTERVAL < pa_timeval_load(&now)) {
         pa_usec_t wi, ri, render_delay, sink_delay = 0, latency;
-        uint32_t base_rate = s->sink_input->sink->sample_spec.rate;
         uint32_t current_rate = s->sink_input->sample_spec.rate;
         uint32_t new_rate;
         double estimated_rate, alpha = 0.02;
@@ -351,12 +351,12 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         new_rate = (uint32_t) ((double) (RATE_UPDATE_INTERVAL + latency/4 - s->intended_latency/4) / (double) RATE_UPDATE_INTERVAL * s->avg_estimated_rate);
         s->last_latency = latency;
 
-        if (new_rate < (uint32_t) (base_rate*0.8) || new_rate > (uint32_t) (base_rate*1.25)) {
-            pa_log_warn("Sample rates too different, not adjusting (%u vs. %u).", base_rate, new_rate);
-            new_rate = base_rate;
+        if (new_rate < (uint32_t) (s->base_rate*0.8) || new_rate > (uint32_t) (s->base_rate*1.25)) {
+            pa_log_warn("Sample rates too different, not adjusting (%u vs. %u).", s->base_rate, new_rate);
+            new_rate = s->base_rate;
         } else {
-            if (base_rate < new_rate + 20 && new_rate < base_rate + 20)
-              new_rate = base_rate;
+            if (s->base_rate < new_rate + 20 && new_rate < s->base_rate + 20)
+                new_rate = s->base_rate;
             /* Do the adjustment in small steps; 2‰ can be considered inaudible */
             if (new_rate < (uint32_t) (current_rate*0.998) || new_rate > (uint32_t) (current_rate*1.002)) {
                 pa_log_info("New rate of %u Hz not within 2‰ of %u Hz, forcing smaller adjustment", new_rate, current_rate);
@@ -521,8 +521,6 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->intended_latency = u->latency;
     s->last_rate_update = pa_timeval_load(&now);
     s->last_latency = u->latency;
-    s->estimated_rate = (double) sink->sample_spec.rate;
-    s->avg_estimated_rate = (double) sink->sample_spec.rate;
     pa_atomic_store(&s->timestamp, (int) now.tv_sec);
 
     if ((fd = mcast_socket((const struct sockaddr*) &sdp_info->sa, sdp_info->salen)) < 0)
@@ -553,6 +551,10 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
         pa_log("Failed to create sink input.");
         goto fail;
     }
+
+    s->base_rate = (double) s->sink_input->sample_spec.rate;
+    s->estimated_rate = (double) s->sink_input->sample_spec.rate;
+    s->avg_estimated_rate = (double) s->sink_input->sample_spec.rate;
 
     s->sink_input->userdata = s;
 
