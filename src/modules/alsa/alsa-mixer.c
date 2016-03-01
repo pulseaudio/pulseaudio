@@ -1518,6 +1518,214 @@ static int check_required(pa_alsa_element *e, snd_mixer_elem_t *me) {
     return 0;
 }
 
+static int element_ask_vol_dB(snd_mixer_elem_t *me, pa_alsa_direction_t dir, long value, long *dBvalue) {
+    if (dir == PA_ALSA_DIRECTION_OUTPUT)
+        return snd_mixer_selem_ask_playback_vol_dB(me, value, dBvalue);
+    else
+        return snd_mixer_selem_ask_capture_vol_dB(me, value, dBvalue);
+}
+
+static bool element_probe_volume(pa_alsa_element *e, snd_mixer_elem_t *me) {
+
+    long min_dB = 0, max_dB = 0;
+    int r;
+    bool is_mono;
+    pa_channel_position_t p;
+
+    if (e->direction == PA_ALSA_DIRECTION_OUTPUT) {
+        if (!snd_mixer_selem_has_playback_volume(me)) {
+            if (e->direction_try_other && snd_mixer_selem_has_capture_volume(me))
+                e->direction = PA_ALSA_DIRECTION_INPUT;
+            else
+                return false;
+        }
+    } else {
+        if (!snd_mixer_selem_has_capture_volume(me)) {
+            if (e->direction_try_other && snd_mixer_selem_has_playback_volume(me))
+                e->direction = PA_ALSA_DIRECTION_OUTPUT;
+            else
+                return false;
+        }
+    }
+
+    e->direction_try_other = false;
+
+    if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
+        r = snd_mixer_selem_get_playback_volume_range(me, &e->min_volume, &e->max_volume);
+    else
+        r = snd_mixer_selem_get_capture_volume_range(me, &e->min_volume, &e->max_volume);
+
+    if (r < 0) {
+        pa_log_warn("Failed to get volume range of %s: %s", e->alsa_name, pa_alsa_strerror(r));
+        return false;
+    }
+
+    if (e->min_volume >= e->max_volume) {
+        pa_log_warn("Your kernel driver is broken: it reports a volume range from %li to %li which makes no sense.",
+                    e->min_volume, e->max_volume);
+        return false;
+    }
+    if (e->volume_use == PA_ALSA_VOLUME_CONSTANT && (e->min_volume > e->constant_volume || e->max_volume < e->constant_volume)) {
+        pa_log_warn("Constant volume %li configured for element %s, but the available range is from %li to %li.",
+                    e->constant_volume, e->alsa_name, e->min_volume, e->max_volume);
+        return false;
+    }
+
+
+    if (e->db_fix && ((e->min_volume > e->db_fix->min_step) || (e->max_volume < e->db_fix->max_step))) {
+          pa_log_warn("The step range of the decibel fix for element %s (%li-%li) doesn't fit to the "
+                      "real hardware range (%li-%li). Disabling the decibel fix.", e->alsa_name,
+                      e->db_fix->min_step, e->db_fix->max_step, e->min_volume, e->max_volume);
+
+          decibel_fix_free(e->db_fix);
+          e->db_fix = NULL;
+    }
+
+    if (e->db_fix) {
+        e->has_dB = true;
+        e->min_volume = e->db_fix->min_step;
+        e->max_volume = e->db_fix->max_step;
+        min_dB = e->db_fix->db_values[0];
+        max_dB = e->db_fix->db_values[e->db_fix->max_step - e->db_fix->min_step];
+    } else if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
+        e->has_dB = snd_mixer_selem_get_playback_dB_range(me, &min_dB, &max_dB) >= 0;
+    else
+        e->has_dB = snd_mixer_selem_get_capture_dB_range(me, &min_dB, &max_dB) >= 0;
+
+    /* Check that the kernel driver returns consistent limits with
+     * both _get_*_dB_range() and _ask_*_vol_dB(). */
+    if (e->has_dB && !e->db_fix) {
+        long min_dB_checked = 0;
+        long max_dB_checked = 0;
+
+        if (element_ask_vol_dB(me, e->direction, e->min_volume, &min_dB_checked) < 0) {
+            pa_log_warn("Failed to query the dB value for %s at volume level %li", e->alsa_name, e->min_volume);
+            return false;
+        }
+
+        if (element_ask_vol_dB(me, e->direction, e->max_volume, &max_dB_checked) < 0) {
+            pa_log_warn("Failed to query the dB value for %s at volume level %li", e->alsa_name, e->max_volume);
+            return false;
+        }
+
+        if (min_dB != min_dB_checked || max_dB != max_dB_checked) {
+            pa_log_warn("Your kernel driver is broken: the reported dB range for %s (from %0.2f dB to %0.2f dB) "
+                        "doesn't match the dB values at minimum and maximum volume levels: %0.2f dB at level %li, "
+                        "%0.2f dB at level %li.", e->alsa_name, min_dB / 100.0, max_dB / 100.0,
+                        min_dB_checked / 100.0, e->min_volume, max_dB_checked / 100.0, e->max_volume);
+            return false;
+        }
+    }
+
+    if (e->has_dB) {
+        e->min_dB = ((double) min_dB) / 100.0;
+        e->max_dB = ((double) max_dB) / 100.0;
+
+        if (min_dB >= max_dB) {
+            pa_assert(!e->db_fix);
+            pa_log_warn("Your kernel driver is broken: it reports a volume range from %0.2f dB to %0.2f dB which makes no sense.",
+                        e->min_dB, e->max_dB);
+            e->has_dB = false;
+        }
+    }
+
+    if (e->volume_limit >= 0) {
+        if (e->volume_limit <= e->min_volume || e->volume_limit > e->max_volume)
+            pa_log_warn("Volume limit for element %s of path %s is invalid: %li isn't within the valid range "
+                        "%li-%li. The volume limit is ignored.",
+                        e->alsa_name, e->path->name, e->volume_limit, e->min_volume + 1, e->max_volume);
+        else {
+            e->max_volume = e->volume_limit;
+
+            if (e->has_dB) {
+                if (e->db_fix) {
+                    e->db_fix->max_step = e->max_volume;
+                    e->max_dB = ((double) e->db_fix->db_values[e->db_fix->max_step - e->db_fix->min_step]) / 100.0;
+                } else if (element_ask_vol_dB(me, e->direction, e->max_volume, &max_dB) < 0) {
+                    pa_log_warn("Failed to get dB value of %s: %s", e->alsa_name, pa_alsa_strerror(r));
+                    e->has_dB = false;
+                } else
+                    e->max_dB = ((double) max_dB) / 100.0;
+            }
+        }
+    }
+
+    if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
+        is_mono = snd_mixer_selem_is_playback_mono(me) > 0;
+    else
+        is_mono = snd_mixer_selem_is_capture_mono(me) > 0;
+
+    if (is_mono) {
+        e->n_channels = 1;
+
+        if (!e->override_map) {
+            for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
+                if (alsa_channel_ids[p] == SND_MIXER_SCHN_UNKNOWN)
+                    continue;
+                e->masks[alsa_channel_ids[p]][e->n_channels-1] = 0;
+            }
+            e->masks[SND_MIXER_SCHN_MONO][e->n_channels-1] = PA_CHANNEL_POSITION_MASK_ALL;
+        }
+        e->merged_mask = e->masks[SND_MIXER_SCHN_MONO][e->n_channels-1];
+        return true;
+    }
+
+    e->n_channels = 0;
+    for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
+        if (alsa_channel_ids[p] == SND_MIXER_SCHN_UNKNOWN)
+            continue;
+
+        if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
+            e->n_channels += snd_mixer_selem_has_playback_channel(me, alsa_channel_ids[p]) > 0;
+        else
+            e->n_channels += snd_mixer_selem_has_capture_channel(me, alsa_channel_ids[p]) > 0;
+    }
+
+    if (e->n_channels <= 0) {
+        pa_log_warn("Volume element %s with no channels?", e->alsa_name);
+        return false;
+    } else if (e->n_channels > 2) {
+        /* FIXME: In some places code like this is used:
+         *
+         *     e->masks[alsa_channel_ids[p]][e->n_channels-1]
+         *
+         * The definition of e->masks is
+         *
+         *     pa_channel_position_mask_t masks[SND_MIXER_SCHN_LAST + 1][2];
+         *
+         * Since the array size is fixed at 2, we obviously
+         * don't support elements with more than two
+         * channels... */
+        pa_log_warn("Volume element %s has %u channels. That's too much! I can't handle that!", e->alsa_name, e->n_channels);
+        return false;
+    }
+
+    if (!e->override_map) {
+        for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
+            bool has_channel;
+
+            if (alsa_channel_ids[p] == SND_MIXER_SCHN_UNKNOWN)
+                continue;
+
+            if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
+                has_channel = snd_mixer_selem_has_playback_channel(me, alsa_channel_ids[p]) > 0;
+            else
+                has_channel = snd_mixer_selem_has_capture_channel(me, alsa_channel_ids[p]) > 0;
+
+            e->masks[alsa_channel_ids[p]][e->n_channels-1] = has_channel ? PA_CHANNEL_POSITION_MASK(p) : 0;
+        }
+    }
+
+    e->merged_mask = 0;
+    for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
+        if (alsa_channel_ids[p] == SND_MIXER_SCHN_UNKNOWN)
+            continue;
+
+        e->merged_mask |= e->masks[alsa_channel_ids[p]][e->n_channels-1];
+    }
+    return true;
+}
+
 static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
     snd_mixer_selem_id_t *sid;
     snd_mixer_elem_t *me;
@@ -1564,240 +1772,8 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
             e->direction_try_other = false;
     }
 
-    if (e->volume_use != PA_ALSA_VOLUME_IGNORE) {
-
-        if (e->direction == PA_ALSA_DIRECTION_OUTPUT) {
-
-            if (!snd_mixer_selem_has_playback_volume(me)) {
-                if (e->direction_try_other && snd_mixer_selem_has_capture_volume(me))
-                    e->direction = PA_ALSA_DIRECTION_INPUT;
-                else
-                    e->volume_use = PA_ALSA_VOLUME_IGNORE;
-            }
-
-        } else {
-
-            if (!snd_mixer_selem_has_capture_volume(me)) {
-                if (e->direction_try_other && snd_mixer_selem_has_playback_volume(me))
-                    e->direction = PA_ALSA_DIRECTION_OUTPUT;
-                else
-                    e->volume_use = PA_ALSA_VOLUME_IGNORE;
-            }
-        }
-
-        if (e->volume_use != PA_ALSA_VOLUME_IGNORE) {
-            long min_dB = 0, max_dB = 0;
-            int r;
-
-            e->direction_try_other = false;
-
-            if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-                r = snd_mixer_selem_get_playback_volume_range(me, &e->min_volume, &e->max_volume);
-            else
-                r = snd_mixer_selem_get_capture_volume_range(me, &e->min_volume, &e->max_volume);
-
-            if (r < 0) {
-                pa_log_warn("Failed to get volume range of %s: %s", e->alsa_name, pa_alsa_strerror(r));
-                return -1;
-            }
-
-            if (e->min_volume >= e->max_volume) {
-                pa_log_warn("Your kernel driver is broken: it reports a volume range from %li to %li which makes no sense.", e->min_volume, e->max_volume);
-                e->volume_use = PA_ALSA_VOLUME_IGNORE;
-
-            } else if (e->volume_use == PA_ALSA_VOLUME_CONSTANT &&
-                       (e->min_volume > e->constant_volume || e->max_volume < e->constant_volume)) {
-                pa_log_warn("Constant volume %li configured for element %s, but the available range is from %li to %li.",
-                            e->constant_volume, e->alsa_name, e->min_volume, e->max_volume);
-                e->volume_use = PA_ALSA_VOLUME_IGNORE;
-
-            } else {
-                bool is_mono;
-                pa_channel_position_t p;
-
-                if (e->db_fix &&
-                        ((e->min_volume > e->db_fix->min_step) ||
-                         (e->max_volume < e->db_fix->max_step))) {
-                    pa_log_warn("The step range of the decibel fix for element %s (%li-%li) doesn't fit to the "
-                                "real hardware range (%li-%li). Disabling the decibel fix.", e->alsa_name,
-                                e->db_fix->min_step, e->db_fix->max_step,
-                                e->min_volume, e->max_volume);
-
-                    decibel_fix_free(e->db_fix);
-                    e->db_fix = NULL;
-                }
-
-                if (e->db_fix) {
-                    e->has_dB = true;
-                    e->min_volume = e->db_fix->min_step;
-                    e->max_volume = e->db_fix->max_step;
-                    min_dB = e->db_fix->db_values[0];
-                    max_dB = e->db_fix->db_values[e->db_fix->max_step - e->db_fix->min_step];
-                } else if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-                    e->has_dB = snd_mixer_selem_get_playback_dB_range(me, &min_dB, &max_dB) >= 0;
-                else
-                    e->has_dB = snd_mixer_selem_get_capture_dB_range(me, &min_dB, &max_dB) >= 0;
-
-                /* Check that the kernel driver returns consistent limits with
-                 * both _get_*_dB_range() and _ask_*_vol_dB(). */
-                if (e->has_dB && !e->db_fix) {
-                    long min_dB_checked = 0;
-                    long max_dB_checked = 0;
-
-                    if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-                        r = snd_mixer_selem_ask_playback_vol_dB(me, e->min_volume, &min_dB_checked);
-                    else
-                        r = snd_mixer_selem_ask_capture_vol_dB(me, e->min_volume, &min_dB_checked);
-
-                    if (r < 0) {
-                        pa_log_warn("Failed to query the dB value for %s at volume level %li", e->alsa_name, e->min_volume);
-                        return -1;
-                    }
-
-                    if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-                        r = snd_mixer_selem_ask_playback_vol_dB(me, e->max_volume, &max_dB_checked);
-                    else
-                        r = snd_mixer_selem_ask_capture_vol_dB(me, e->max_volume, &max_dB_checked);
-
-                    if (r < 0) {
-                        pa_log_warn("Failed to query the dB value for %s at volume level %li", e->alsa_name, e->max_volume);
-                        return -1;
-                    }
-
-                    if (min_dB != min_dB_checked || max_dB != max_dB_checked) {
-                        pa_log_warn("Your kernel driver is broken: the reported dB range for %s (from %0.2f dB to %0.2f dB) "
-                                    "doesn't match the dB values at minimum and maximum volume levels: %0.2f dB at level %li, "
-                                    "%0.2f dB at level %li.",
-                                    e->alsa_name,
-                                    min_dB / 100.0, max_dB / 100.0,
-                                    min_dB_checked / 100.0, e->min_volume, max_dB_checked / 100.0, e->max_volume);
-                        return -1;
-                    }
-                }
-
-                if (e->has_dB) {
-                    e->min_dB = ((double) min_dB) / 100.0;
-                    e->max_dB = ((double) max_dB) / 100.0;
-
-                    if (min_dB >= max_dB) {
-                        pa_assert(!e->db_fix);
-                        pa_log_warn("Your kernel driver is broken: it reports a volume range from %0.2f dB to %0.2f dB which makes no sense.", e->min_dB, e->max_dB);
-                        e->has_dB = false;
-                    }
-                }
-
-                if (e->volume_limit >= 0) {
-                    if (e->volume_limit <= e->min_volume || e->volume_limit > e->max_volume)
-                        pa_log_warn("Volume limit for element %s of path %s is invalid: %li isn't within the valid range "
-                                    "%li-%li. The volume limit is ignored.",
-                                    e->alsa_name, e->path->name, e->volume_limit, e->min_volume + 1, e->max_volume);
-
-                    else {
-                        e->max_volume = e->volume_limit;
-
-                        if (e->has_dB) {
-                            if (e->db_fix) {
-                                e->db_fix->max_step = e->max_volume;
-                                e->max_dB = ((double) e->db_fix->db_values[e->db_fix->max_step - e->db_fix->min_step]) / 100.0;
-
-                            } else {
-                                if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-                                    r = snd_mixer_selem_ask_playback_vol_dB(me, e->max_volume, &max_dB);
-                                else
-                                    r = snd_mixer_selem_ask_capture_vol_dB(me, e->max_volume, &max_dB);
-
-                                if (r < 0) {
-                                    pa_log_warn("Failed to get dB value of %s: %s", e->alsa_name, pa_alsa_strerror(r));
-                                    e->has_dB = false;
-                                } else
-                                    e->max_dB = ((double) max_dB) / 100.0;
-                            }
-                        }
-                    }
-                }
-
-                if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-                    is_mono = snd_mixer_selem_is_playback_mono(me) > 0;
-                else
-                    is_mono = snd_mixer_selem_is_capture_mono(me) > 0;
-
-                if (is_mono) {
-                    e->n_channels = 1;
-
-                    if (!e->override_map) {
-                        for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
-                            if (alsa_channel_ids[p] == SND_MIXER_SCHN_UNKNOWN)
-                                continue;
-
-                            e->masks[alsa_channel_ids[p]][e->n_channels-1] = 0;
-                        }
-
-                        e->masks[SND_MIXER_SCHN_MONO][e->n_channels-1] = PA_CHANNEL_POSITION_MASK_ALL;
-                    }
-
-                    e->merged_mask = e->masks[SND_MIXER_SCHN_MONO][e->n_channels-1];
-                } else {
-                    e->n_channels = 0;
-                    for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
-
-                        if (alsa_channel_ids[p] == SND_MIXER_SCHN_UNKNOWN)
-                            continue;
-
-                        if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-                            e->n_channels += snd_mixer_selem_has_playback_channel(me, alsa_channel_ids[p]) > 0;
-                        else
-                            e->n_channels += snd_mixer_selem_has_capture_channel(me, alsa_channel_ids[p]) > 0;
-                    }
-
-                    if (e->n_channels <= 0) {
-                        pa_log_warn("Volume element %s with no channels?", e->alsa_name);
-                        e->volume_use = PA_ALSA_VOLUME_IGNORE;
-                    }
-
-                    else if (e->n_channels > 2) {
-                        /* FIXME: In some places code like this is used:
-                         *
-                         *     e->masks[alsa_channel_ids[p]][e->n_channels-1]
-                         *
-                         * The definition of e->masks is
-                         *
-                         *     pa_channel_position_mask_t masks[SND_MIXER_SCHN_LAST + 1][2];
-                         *
-                         * Since the array size is fixed at 2, we obviously
-                         * don't support elements with more than two
-                         * channels... */
-                        pa_log_warn("Volume element %s has %u channels. That's too much! I can't handle that!", e->alsa_name, e->n_channels);
-                        e->volume_use = PA_ALSA_VOLUME_IGNORE;
-                    }
-
-                    if (!e->override_map) {
-                        for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
-                            bool has_channel;
-
-                            if (alsa_channel_ids[p] == SND_MIXER_SCHN_UNKNOWN)
-                                continue;
-
-                            if (e->direction == PA_ALSA_DIRECTION_OUTPUT)
-                                has_channel = snd_mixer_selem_has_playback_channel(me, alsa_channel_ids[p]) > 0;
-                            else
-                                has_channel = snd_mixer_selem_has_capture_channel(me, alsa_channel_ids[p]) > 0;
-
-                            e->masks[alsa_channel_ids[p]][e->n_channels-1] = has_channel ? PA_CHANNEL_POSITION_MASK(p) : 0;
-                        }
-                    }
-
-                    e->merged_mask = 0;
-                    for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
-                        if (alsa_channel_ids[p] == SND_MIXER_SCHN_UNKNOWN)
-                            continue;
-
-                        e->merged_mask |= e->masks[alsa_channel_ids[p]][e->n_channels-1];
-                    }
-                }
-            }
-        }
-
-    }
+    if (!element_probe_volume(e, me))
+        e->volume_use = PA_ALSA_VOLUME_IGNORE;
 
     if (e->switch_use == PA_ALSA_SWITCH_SELECT) {
         pa_alsa_option *o;
