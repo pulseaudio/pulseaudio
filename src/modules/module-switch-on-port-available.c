@@ -56,7 +56,10 @@ static bool profile_good_for_output(pa_card_profile *profile, unsigned prio) {
     return true;
 }
 
-static bool profile_good_for_input(pa_card_profile *profile) {
+static bool profile_good_for_input(pa_card_profile *profile, unsigned prio) {
+    pa_source *source;
+    uint32_t idx;
+
     pa_assert(profile);
 
     if (!pa_safe_streq(profile->card->active_profile->output_name, profile->output_name))
@@ -67,6 +70,14 @@ static bool profile_good_for_input(pa_card_profile *profile) {
 
     if (profile->card->active_profile->max_sink_channels != profile->max_sink_channels)
         return false;
+
+    PA_IDXSET_FOREACH(source, profile->card->sources, idx) {
+        if (!source->active_port)
+            continue;
+
+        if ((source->active_port->available != PA_AVAILABLE_NO) && (source->active_port->priority >= prio))
+            return false;
+    }
 
     return true;
 }
@@ -93,7 +104,7 @@ static int try_to_switch_profile(pa_device_port *port) {
 
             case PA_DIRECTION_INPUT:
                 name = profile->input_name;
-                good = profile_good_for_input(profile);
+                good = profile_good_for_input(profile, port->priority);
                 break;
         }
 
