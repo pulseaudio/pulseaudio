@@ -193,7 +193,7 @@ static bool switch_to_port(pa_device_port *port) {
     pa_log_debug("Trying to switch to port %s", port->name);
     if (!pp.is_preferred_profile_active) {
         if (try_to_switch_profile(port) < 0) {
-            if (pp.is_possible_profile_active)
+            if (!pp.is_possible_profile_active)
                 return false;
         }
         else
