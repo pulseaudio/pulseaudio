@@ -30,22 +30,25 @@
 #include "module-switch-on-port-available-symdef.h"
 
 static bool profile_good_for_output(pa_card_profile *profile, unsigned prio) {
+    pa_card *card;
     pa_sink *sink;
     uint32_t idx;
 
     pa_assert(profile);
 
-    if (!pa_safe_streq(profile->card->active_profile->input_name, profile->input_name))
+    card = profile->card;
+
+    if (!pa_safe_streq(card->active_profile->input_name, profile->input_name))
         return false;
 
-    if (profile->card->active_profile->n_sources != profile->n_sources)
+    if (card->active_profile->n_sources != profile->n_sources)
         return false;
 
-    if (profile->card->active_profile->max_source_channels != profile->max_source_channels)
+    if (card->active_profile->max_source_channels != profile->max_source_channels)
         return false;
 
     /* Try not to switch to HDMI sinks from analog when HDMI is becoming available */
-    PA_IDXSET_FOREACH(sink, profile->card->sinks, idx) {
+    PA_IDXSET_FOREACH(sink, card->sinks, idx) {
         if (!sink->active_port)
             continue;
 
@@ -57,21 +60,24 @@ static bool profile_good_for_output(pa_card_profile *profile, unsigned prio) {
 }
 
 static bool profile_good_for_input(pa_card_profile *profile, unsigned prio) {
+    pa_card *card;
     pa_source *source;
     uint32_t idx;
 
     pa_assert(profile);
 
-    if (!pa_safe_streq(profile->card->active_profile->output_name, profile->output_name))
+    card = profile->card;
+
+    if (!pa_safe_streq(card->active_profile->output_name, profile->output_name))
         return false;
 
-    if (profile->card->active_profile->n_sinks != profile->n_sinks)
+    if (card->active_profile->n_sinks != profile->n_sinks)
         return false;
 
-    if (profile->card->active_profile->max_sink_channels != profile->max_sink_channels)
+    if (card->active_profile->max_sink_channels != profile->max_sink_channels)
         return false;
 
-    PA_IDXSET_FOREACH(source, profile->card->sources, idx) {
+    PA_IDXSET_FOREACH(source, card->sources, idx) {
         if (!source->active_port)
             continue;
 
