@@ -64,7 +64,7 @@ struct userdata {
     pa_database *database;
 };
 
-#define ENTRY_VERSION 3
+#define ENTRY_VERSION 4
 
 struct port_info {
     char *name;
@@ -75,6 +75,8 @@ struct port_info {
 struct entry {
     char *profile;
     pa_hashmap *ports; /* Port name -> struct port_info */
+    char *preferred_input_port;
+    char *preferred_output_port;
 };
 
 static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
@@ -131,6 +133,8 @@ static struct port_info *port_info_new(pa_device_port *port) {
 static void entry_free(struct entry* e) {
     pa_assert(e);
 
+    pa_xfree(e->preferred_output_port);
+    pa_xfree(e->preferred_input_port);
     pa_xfree(e->profile);
     pa_hashmap_free(e->ports);
 
@@ -176,6 +180,12 @@ static bool entrys_equal(struct entry *a, struct entry *b) {
             return false;
     }
 
+    if (!pa_safe_streq(a->preferred_input_port, b->preferred_input_port))
+        return false;
+
+    if (!pa_safe_streq(a->preferred_output_port, b->preferred_output_port))
+        return false;
+
     return true;
 }
 
@@ -200,6 +210,9 @@ static bool entry_write(struct userdata *u, const char *name, const struct entry
         pa_tagstruct_puts64(t, p_info->offset);
         pa_tagstruct_puts(t, p_info->profile);
     }
+
+    pa_tagstruct_puts(t, e->preferred_input_port);
+    pa_tagstruct_puts(t, e->preferred_output_port);
 
     key.data = (char *) name;
     key.size = strlen(name);
@@ -312,6 +325,18 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
 
             pa_assert_se(pa_hashmap_put(e->ports, p_info->name, p_info) >= 0);
         }
+    }
+
+    if (version >= 4) {
+        const char *preferred_input_port;
+        const char *preferred_output_port;
+
+        if (pa_tagstruct_gets(t, &preferred_input_port) < 0
+                || pa_tagstruct_gets(t, &preferred_output_port) < 0)
+            goto fail;
+
+        e->preferred_input_port = pa_xstrdup(preferred_input_port);
+        e->preferred_output_port = pa_xstrdup(preferred_output_port);
     }
 
     if (!pa_tagstruct_eof(t))
@@ -547,6 +572,46 @@ static pa_hook_result_t card_new_hook_callback(pa_core *c, pa_card_new_data *new
             if (!p->preferred_profile && p_info->profile)
                 pa_device_port_set_preferred_profile(p, p_info->profile);
         }
+
+    if (e->preferred_input_port) {
+        p = pa_hashmap_get(new_data->ports, e->preferred_input_port);
+        if (p)
+            pa_card_new_data_set_preferred_port(new_data, PA_DIRECTION_INPUT, p);
+    }
+
+    if (e->preferred_output_port) {
+        p = pa_hashmap_get(new_data->ports, e->preferred_output_port);
+        if (p)
+            pa_card_new_data_set_preferred_port(new_data, PA_DIRECTION_OUTPUT, p);
+    }
+
+    entry_free(e);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t card_preferred_port_changed_callback(pa_core *core, pa_card_preferred_port_changed_hook_data *data,
+                                                             struct userdata *u) {
+    struct entry *e;
+    pa_card *card;
+
+    card = data->card;
+
+    e = entry_read(u, card->name);
+    if (!e)
+        e = entry_from_card(card);
+
+    if (data->direction == PA_DIRECTION_INPUT) {
+        pa_xfree(e->preferred_input_port);
+        e->preferred_input_port = pa_xstrdup(card->preferred_input_port ? card->preferred_input_port->name : NULL);
+    } else {
+        pa_xfree(e->preferred_output_port);
+        e->preferred_output_port = pa_xstrdup(card->preferred_output_port ? card->preferred_output_port->name : NULL);
+    }
+
+    if (entry_write(u, card->name, e))
+        trigger_save(u);
+
     entry_free(e);
 
     return PA_HOOK_OK;
@@ -570,6 +635,7 @@ int pa__init(pa_module*m) {
 
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) card_new_hook_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PUT], PA_HOOK_NORMAL, (pa_hook_cb_t) card_put_hook_callback, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PREFERRED_PORT_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) card_preferred_port_changed_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) card_profile_changed_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_ADDED], PA_HOOK_NORMAL, (pa_hook_cb_t) card_profile_added_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_AVAILABLE_CHANGED],
