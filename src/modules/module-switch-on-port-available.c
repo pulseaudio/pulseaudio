@@ -29,7 +29,37 @@
 
 #include "module-switch-on-port-available-symdef.h"
 
-static bool profile_good_for_output(pa_card_profile *profile, unsigned prio) {
+struct card_info {
+    struct userdata *userdata;
+    pa_card *card;
+
+    /* We need to cache the active profile, because we want to compare the old
+     * and new profiles in the PROFILE_CHANGED hook. Without this we'd only
+     * have access to the new profile. */
+    pa_card_profile *active_profile;
+};
+
+struct userdata {
+    pa_hashmap *card_infos; /* pa_card -> struct card_info */
+};
+
+static void card_info_new(struct userdata *u, pa_card *card) {
+    struct card_info *info;
+
+    info = pa_xnew0(struct card_info, 1);
+    info->userdata = u;
+    info->card = card;
+    info->active_profile = card->active_profile;
+
+    pa_hashmap_put(u->card_infos, card, info);
+}
+
+static void card_info_free(struct card_info *info) {
+    pa_hashmap_remove(info->userdata->card_infos, info->card);
+    pa_xfree(info);
+}
+
+static bool profile_good_for_output(pa_card_profile *profile, pa_device_port *port) {
     pa_card *card;
     pa_sink *sink;
     uint32_t idx;
@@ -47,19 +77,21 @@ static bool profile_good_for_output(pa_card_profile *profile, unsigned prio) {
     if (card->active_profile->max_source_channels != profile->max_source_channels)
         return false;
 
-    /* Try not to switch to HDMI sinks from analog when HDMI is becoming available */
+    if (port == card->preferred_output_port)
+        return true;
+
     PA_IDXSET_FOREACH(sink, card->sinks, idx) {
         if (!sink->active_port)
             continue;
 
-        if ((sink->active_port->available != PA_AVAILABLE_NO) && (sink->active_port->priority >= prio))
+        if ((sink->active_port->available != PA_AVAILABLE_NO) && (sink->active_port->priority >= port->priority))
             return false;
     }
 
     return true;
 }
 
-static bool profile_good_for_input(pa_card_profile *profile, unsigned prio) {
+static bool profile_good_for_input(pa_card_profile *profile, pa_device_port *port) {
     pa_card *card;
     pa_source *source;
     uint32_t idx;
@@ -77,11 +109,14 @@ static bool profile_good_for_input(pa_card_profile *profile, unsigned prio) {
     if (card->active_profile->max_sink_channels != profile->max_sink_channels)
         return false;
 
+    if (port == card->preferred_input_port)
+        return true;
+
     PA_IDXSET_FOREACH(source, card->sources, idx) {
         if (!source->active_port)
             continue;
 
-        if ((source->active_port->available != PA_AVAILABLE_NO) && (source->active_port->priority >= prio))
+        if ((source->active_port->available != PA_AVAILABLE_NO) && (source->active_port->priority >= port->priority))
             return false;
     }
 
@@ -105,12 +140,12 @@ static int try_to_switch_profile(pa_device_port *port) {
         switch (port->direction) {
             case PA_DIRECTION_OUTPUT:
                 name = profile->output_name;
-                good = profile_good_for_output(profile, port->priority);
+                good = profile_good_for_output(profile, port);
                 break;
 
             case PA_DIRECTION_INPUT:
                 name = profile->input_name;
-                good = profile_good_for_input(profile, port->priority);
+                good = profile_good_for_input(profile, port);
                 break;
         }
 
@@ -324,8 +359,141 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
     return PA_HOOK_OK;
 }
 
+static pa_hook_result_t card_put_hook_callback(pa_core *core, pa_card *card, struct userdata *u) {
+    card_info_new(u, card);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t card_unlink_hook_callback(pa_core *core, pa_card *card, struct userdata *u) {
+    card_info_free(pa_hashmap_get(u->card_infos, card));
+
+    return PA_HOOK_OK;
+}
+
+static void update_preferred_input_port(pa_card *card, pa_card_profile *old_profile, pa_card_profile *new_profile) {
+    pa_source *source;
+
+    /* If the profile change didn't affect input, it doesn't indicate change in
+     * the user's input port preference. */
+    if (pa_safe_streq(old_profile->input_name, new_profile->input_name))
+        return;
+
+    /* If there are more than one source, we don't know which of those the user
+     * prefers. If there are no sources, then the user doesn't seem to care
+     * about input at all. */
+    if (pa_idxset_size(card->sources) != 1) {
+        pa_card_set_preferred_port(card, PA_DIRECTION_INPUT, NULL);
+        return;
+    }
+
+    /* If the profile change modified the set of sinks, then it's unclear
+     * whether the user wanted to activate some specific input port, or was the
+     * input change only a side effect of activating some output. If the new
+     * profile contains no sinks, though, then we know the user only cares
+     * about input. */
+    if (pa_idxset_size(card->sinks) > 0 && !pa_safe_streq(old_profile->output_name, new_profile->output_name)) {
+        pa_card_set_preferred_port(card, PA_DIRECTION_INPUT, NULL);
+        return;
+    }
+
+    source = pa_idxset_first(card->sources, NULL);
+
+    /* We know the user wanted to activate this source. The user might not have
+     * wanted to activate the port that was selected by default, but if that's
+     * the case, the user will change the port manually, and we'll update the
+     * port preference at that time. If no port change occurs, we can assume
+     * that the user likes the port that is now active. */
+    pa_card_set_preferred_port(card, PA_DIRECTION_INPUT, source->active_port);
+}
+
+static void update_preferred_output_port(pa_card *card, pa_card_profile *old_profile, pa_card_profile *new_profile) {
+    pa_sink *sink;
+
+    /* If the profile change didn't affect output, it doesn't indicate change in
+     * the user's output port preference. */
+    if (pa_safe_streq(old_profile->output_name, new_profile->output_name))
+        return;
+
+    /* If there are more than one sink, we don't know which of those the user
+     * prefers. If there are no sinks, then the user doesn't seem to care about
+     * output at all. */
+    if (pa_idxset_size(card->sinks) != 1) {
+        pa_card_set_preferred_port(card, PA_DIRECTION_OUTPUT, NULL);
+        return;
+    }
+
+    /* If the profile change modified the set of sources, then it's unclear
+     * whether the user wanted to activate some specific output port, or was
+     * the output change only a side effect of activating some input. If the
+     * new profile contains no sources, though, then we know the user only
+     * cares about output. */
+    if (pa_idxset_size(card->sources) > 0 && !pa_safe_streq(old_profile->input_name, new_profile->input_name)) {
+        pa_card_set_preferred_port(card, PA_DIRECTION_OUTPUT, NULL);
+        return;
+    }
+
+    sink = pa_idxset_first(card->sinks, NULL);
+
+    /* We know the user wanted to activate this sink. The user might not have
+     * wanted to activate the port that was selected by default, but if that's
+     * the case, the user will change the port manually, and we'll update the
+     * port preference at that time. If no port change occurs, we can assume
+     * that the user likes the port that is now active. */
+    pa_card_set_preferred_port(card, PA_DIRECTION_OUTPUT, sink->active_port);
+}
+
+static pa_hook_result_t card_profile_changed_callback(pa_core *core, pa_card *card, struct userdata *u) {
+    struct card_info *info;
+    pa_card_profile *old_profile;
+    pa_card_profile *new_profile;
+
+    info = pa_hashmap_get(u->card_infos, card);
+    old_profile = info->active_profile;
+    new_profile = card->active_profile;
+    info->active_profile = new_profile;
+
+    /* This profile change wasn't initiated by the user, so it doesn't signal
+     * a change in the user's port preferences. */
+    if (!card->save_profile)
+        return PA_HOOK_OK;
+
+    update_preferred_input_port(card, old_profile, new_profile);
+    update_preferred_output_port(card, old_profile, new_profile);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_port_changed_callback(pa_core *core, pa_source *source, void *userdata) {
+    if (!source->save_port)
+        return PA_HOOK_OK;
+
+    pa_card_set_preferred_port(source->card, PA_DIRECTION_INPUT, source->active_port);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t sink_port_changed_callback(pa_core *core, pa_sink *sink, void *userdata) {
+    if (!sink->save_port)
+        return PA_HOOK_OK;
+
+    pa_card_set_preferred_port(sink->card, PA_DIRECTION_OUTPUT, sink->active_port);
+
+    return PA_HOOK_OK;
+}
+
 int pa__init(pa_module*m) {
+    struct userdata *u;
+    pa_card *card;
+    uint32_t idx;
+
     pa_assert(m);
+
+    u = m->userdata = pa_xnew0(struct userdata, 1);
+    u->card_infos = pa_hashmap_new(NULL, NULL);
+
+    PA_IDXSET_FOREACH(card, m->core->cards, idx)
+        card_info_new(u, card);
 
     /* Make sure we are after module-device-restore, so we can overwrite that suggestion if necessary */
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_NEW],
@@ -334,8 +502,35 @@ int pa__init(pa_module*m) {
                            PA_HOOK_NORMAL, (pa_hook_cb_t) source_new_hook_callback, NULL);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED],
                            PA_HOOK_LATE, (pa_hook_cb_t) port_available_hook_callback, NULL);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PUT],
+                           PA_HOOK_NORMAL, (pa_hook_cb_t) card_put_hook_callback, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_UNLINK],
+                           PA_HOOK_NORMAL, (pa_hook_cb_t) card_unlink_hook_callback, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED],
+                           PA_HOOK_NORMAL, (pa_hook_cb_t) card_profile_changed_callback, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_PORT_CHANGED],
+                           PA_HOOK_NORMAL, (pa_hook_cb_t) source_port_changed_callback, NULL);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_PORT_CHANGED],
+                           PA_HOOK_NORMAL, (pa_hook_cb_t) sink_port_changed_callback, NULL);
 
     handle_all_unavailable(m->core);
 
     return 0;
+}
+
+void pa__done(pa_module *module) {
+    struct userdata *u;
+    struct card_info *info;
+
+    pa_assert(module);
+
+    if (!(u = module->userdata))
+        return;
+
+    while ((info = pa_hashmap_last(u->card_infos)))
+        card_info_free(info);
+
+    pa_hashmap_free(u->card_infos);
+
+    pa_xfree(u);
 }
