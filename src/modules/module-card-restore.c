@@ -608,8 +608,10 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->save_time_event)
+    if (u->save_time_event) {
         u->core->mainloop->time_free(u->save_time_event);
+        pa_database_sync(u->database);
+    }
 
     if (u->database)
         pa_database_close(u->database);
