@@ -79,6 +79,8 @@ struct pa_card {
     pa_card_profile *active_profile;
 
     pa_hashmap *ports;
+    pa_device_port *preferred_input_port;
+    pa_device_port *preferred_output_port;
 
     bool save_profile:1;
 
@@ -98,11 +100,18 @@ typedef struct pa_card_new_data {
     char *active_profile;
 
     pa_hashmap *ports;
+    pa_device_port *preferred_input_port;
+    pa_device_port *preferred_output_port;
 
     bool namereg_fail:1;
 
     bool save_profile:1;
 } pa_card_new_data;
+
+typedef struct {
+    pa_card *card;
+    pa_direction_t direction;
+} pa_card_preferred_port_changed_hook_data;
 
 pa_card_profile *pa_card_profile_new(const char *name, const char *description, size_t extra);
 void pa_card_profile_free(pa_card_profile *c);
@@ -113,6 +122,7 @@ void pa_card_profile_set_available(pa_card_profile *c, pa_available_t available)
 pa_card_new_data *pa_card_new_data_init(pa_card_new_data *data);
 void pa_card_new_data_set_name(pa_card_new_data *data, const char *name);
 void pa_card_new_data_set_profile(pa_card_new_data *data, const char *profile);
+void pa_card_new_data_set_preferred_port(pa_card_new_data *data, pa_direction_t direction, pa_device_port *port);
 void pa_card_new_data_done(pa_card_new_data *data);
 
 pa_card *pa_card_new(pa_core *c, pa_card_new_data *data);
@@ -121,6 +131,8 @@ void pa_card_free(pa_card *c);
 void pa_card_add_profile(pa_card *c, pa_card_profile *profile);
 
 int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save);
+
+void pa_card_set_preferred_port(pa_card *c, pa_direction_t direction, pa_device_port *port);
 
 int pa_card_suspend(pa_card *c, bool suspend, pa_suspend_cause_t cause);
 

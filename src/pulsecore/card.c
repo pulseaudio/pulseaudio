@@ -103,6 +103,15 @@ void pa_card_new_data_set_profile(pa_card_new_data *data, const char *profile) {
     data->active_profile = pa_xstrdup(profile);
 }
 
+void pa_card_new_data_set_preferred_port(pa_card_new_data *data, pa_direction_t direction, pa_device_port *port) {
+    pa_assert(data);
+
+    if (direction == PA_DIRECTION_INPUT)
+        data->preferred_input_port = port;
+    else
+        data->preferred_output_port = port;
+}
+
 void pa_card_new_data_done(pa_card_new_data *data) {
 
     pa_assert(data);
@@ -168,6 +177,9 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
 
     PA_HASHMAP_FOREACH(port, c->ports, state)
         port->card = c;
+
+    c->preferred_input_port = data->preferred_input_port;
+    c->preferred_output_port = data->preferred_output_port;
 
     if (data->active_profile)
         if ((c->active_profile = pa_hashmap_get(c->profiles, data->active_profile)))
@@ -307,6 +319,40 @@ int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
     pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], c);
 
     return 0;
+}
+
+void pa_card_set_preferred_port(pa_card *c, pa_direction_t direction, pa_device_port *port) {
+    pa_device_port *old_port;
+    const char *old_port_str;
+    const char *new_port_str;
+    pa_card_preferred_port_changed_hook_data data;
+
+    pa_assert(c);
+
+    if (direction == PA_DIRECTION_INPUT) {
+        old_port = c->preferred_input_port;
+        old_port_str = c->preferred_input_port ? c->preferred_input_port->name : "(unset)";
+    } else {
+        old_port = c->preferred_output_port;
+        old_port_str = c->preferred_output_port ? c->preferred_output_port->name : "(unset)";
+    }
+
+    if (port == old_port)
+        return;
+
+    new_port_str = port ? port->name : "(unset)";
+
+    if (direction == PA_DIRECTION_INPUT) {
+        c->preferred_input_port = port;
+        pa_log_debug("%s: preferred_input_port: %s -> %s", c->name, old_port_str, new_port_str);
+    } else {
+        c->preferred_output_port = port;
+        pa_log_debug("%s: preferred_output_port: %s -> %s", c->name, old_port_str, new_port_str);
+    }
+
+    data.card = c;
+    data.direction = direction;
+    pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PREFERRED_PORT_CHANGED], &data);
 }
 
 int pa_card_suspend(pa_card *c, bool suspend, pa_suspend_cause_t cause) {
