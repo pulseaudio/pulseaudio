@@ -271,10 +271,59 @@ static void trigger_housekeeping(struct userdata *u) {
 }
 
 static int do_move(pa_object *obj, pa_object *parent, bool restore, bool is_input) {
-    if (is_input)
+    if (is_input) {
+        if (!restore) {
+            char *old_value;
+
+            if (pa_proplist_contains(PA_SINK_INPUT(obj)->proplist, "module-filter-apply.filter_device")) {
+                old_value = pa_xstrdup(pa_proplist_gets(PA_SINK_INPUT(obj)->proplist, "module-filter-apply.filter_device"));
+                if (!old_value)
+                    old_value = pa_xstrdup("(data)");
+            } else
+                old_value = pa_xstrdup("(unset)");
+
+            if (!pa_streq(PA_SINK(parent)->name, old_value)) {
+                pa_proplist *pl;
+
+                pl = pa_proplist_new();
+                pa_proplist_sets(pl, "module-filter-apply.filter_device", PA_SINK(parent)->name);
+                pa_sink_input_update_proplist(PA_SINK_INPUT(obj), PA_UPDATE_REPLACE, pl);
+                pa_proplist_free(pl);
+                pa_log_debug("Sink input %u: proplist[module-filter-apply.filter_device]: %s -> %s",
+                             PA_SINK_INPUT(obj)->index, old_value, PA_SINK(parent)->name);
+            }
+
+            pa_xfree(old_value);
+        }
+
         return pa_sink_input_move_to(PA_SINK_INPUT(obj), PA_SINK(parent), restore);
-    else
+    } else {
+        if (!restore) {
+            char *old_value;
+
+            if (pa_proplist_contains(PA_SOURCE_OUTPUT(obj)->proplist, "module-filter-apply.filter_device")) {
+                old_value = pa_xstrdup(pa_proplist_gets(PA_SOURCE_OUTPUT(obj)->proplist, "module-filter-apply.filter_device"));
+                if (!old_value)
+                    old_value = pa_xstrdup("(data)");
+            } else
+                old_value = pa_xstrdup("(unset)");
+
+            if (!pa_streq(PA_SOURCE(parent)->name, old_value)) {
+                pa_proplist *pl;
+
+                pl = pa_proplist_new();
+                pa_proplist_sets(pl, "module-filter-apply.filter_device", PA_SOURCE(parent)->name);
+                pa_source_output_update_proplist(PA_SOURCE_OUTPUT(obj), PA_UPDATE_REPLACE, pl);
+                pa_proplist_free(pl);
+                pa_log_debug("Source output %u: proplist[module-filter-apply.filter_device]: %s -> %s",
+                             PA_SOURCE_OUTPUT(obj)->index, old_value, PA_SOURCE(parent)->name);
+            }
+
+            pa_xfree(old_value);
+        }
+
         return pa_source_output_move_to(PA_SOURCE_OUTPUT(obj), PA_SOURCE(parent), restore);
+    }
 }
 
 static void move_object_for_filter(pa_object *o, struct filter* filter, bool restore, bool is_sink_input) {
