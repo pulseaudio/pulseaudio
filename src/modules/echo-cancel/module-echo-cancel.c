@@ -206,7 +206,6 @@ struct userdata {
     pa_core *core;
     pa_module *module;
 
-    bool autoloaded;
     bool dead;
     bool save_aec;
 
@@ -1436,12 +1435,6 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     pa_assert_ctl_context();
     pa_assert_se(u = o->userdata);
 
-    if (u->autoloaded) {
-        /* We were autoloaded, and don't support moving. Let's unload ourselves. */
-        pa_log_debug("Can't move autoloaded streams, unloading");
-        pa_module_unload_request(u->module, true);
-    }
-
     if (dest) {
         pa_source_set_asyncmsgq(u->source, dest->asyncmsgq);
         pa_source_update_flags(u->source, PA_SOURCE_LATENCY|PA_SOURCE_DYNAMIC_LATENCY, dest->flags);
@@ -1472,12 +1465,6 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
-
-    if (u->autoloaded) {
-        /* We were autoloaded, and don't support moving. Let's unload ourselves. */
-        pa_log_debug("Can't move autoloaded streams, unloading");
-        pa_module_unload_request(u->module, true);
-    }
 
     if (dest) {
         pa_sink_set_asyncmsgq(u->sink, dest->asyncmsgq);
@@ -1657,6 +1644,7 @@ int pa__init(pa_module*m) {
     pa_modargs *ma;
     pa_source *source_master=NULL;
     pa_sink *sink_master=NULL;
+    bool autoloaded;
     pa_source_output_new_data source_output_data;
     pa_sink_input_new_data sink_input_data;
     pa_source_new_data source_data;
@@ -1759,8 +1747,8 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->autoloaded = DEFAULT_AUTOLOADED;
-    if (pa_modargs_get_value_boolean(ma, "autoloaded", &u->autoloaded) < 0) {
+    autoloaded = DEFAULT_AUTOLOADED;
+    if (pa_modargs_get_value_boolean(ma, "autoloaded", &autoloaded) < 0) {
         pa_log("Failed to parse autoloaded value");
         goto fail;
     }
@@ -1805,7 +1793,7 @@ int pa__init(pa_module*m) {
     pa_source_new_data_set_channel_map(&source_data, &source_map);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, source_master->name);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
-    if (!u->autoloaded)
+    if (!autoloaded)
         pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
 
     if (pa_modargs_get_proplist(ma, "source_properties", source_data.proplist, PA_UPDATE_REPLACE) < 0) {
@@ -1855,7 +1843,7 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_channel_map(&sink_data, &sink_map);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, sink_master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
-    if (!u->autoloaded)
+    if (!autoloaded)
         pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
 
     if (pa_modargs_get_proplist(ma, "sink_properties", sink_data.proplist, PA_UPDATE_REPLACE) < 0) {
@@ -1907,6 +1895,9 @@ int pa__init(pa_module*m) {
     pa_source_output_new_data_set_sample_spec(&source_output_data, &source_output_ss);
     pa_source_output_new_data_set_channel_map(&source_output_data, &source_output_map);
 
+    if (autoloaded)
+        source_output_data.flags |= PA_SOURCE_OUTPUT_DONT_MOVE;
+
     pa_source_output_new(&u->source_output, m->core, &source_output_data);
     pa_source_output_new_data_done(&source_output_data);
 
@@ -1941,6 +1932,9 @@ int pa__init(pa_module*m) {
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &sink_ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &sink_map);
     sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE;
+
+    if (autoloaded)
+        sink_input_data.flags |= PA_SINK_INPUT_DONT_MOVE;
 
     pa_sink_input_new(&u->sink_input, m->core, &sink_input_data);
     pa_sink_input_new_data_done(&sink_input_data);
