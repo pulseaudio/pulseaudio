@@ -124,7 +124,7 @@ static const char* should_filter(pa_object *o, bool is_sink_input) {
     else
         pl = PA_SOURCE_OUTPUT(o)->proplist;
 
-    /* If the stream doesn't what any filter, then let it be. */
+    /* If the stream doesn't want any filter, then let it be. */
     if ((apply = pa_proplist_gets(pl, PA_PROP_FILTER_APPLY)) && !pa_streq(apply, "")) {
         const char* suppress = pa_proplist_gets(pl, PA_PROP_FILTER_SUPPRESS);
 
