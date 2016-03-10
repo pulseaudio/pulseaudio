@@ -398,9 +398,9 @@ static bool source_output_may_move_to_cb(pa_source_output *o, pa_source *dest) {
 
 /* Called from main thread */
 static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
-    pa_proplist *p;
-    const char *n;
     struct userdata *u;
+    char *input_description;
+    const char *n;
 
     if (!dest)
         return;
@@ -409,14 +409,13 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     pa_assert_ctl_context();
     pa_assert_se(u = o->userdata);
 
-    p = pa_proplist_new();
-    pa_proplist_setf(p, PA_PROP_MEDIA_NAME, "Loopback of %s", pa_strnull(pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+    input_description = pa_sprintf_malloc("Loopback of %s",
+                                          pa_strnull(pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+    pa_sink_input_set_property(u->sink_input, PA_PROP_MEDIA_NAME, input_description);
+    pa_xfree(input_description);
 
     if ((n = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_ICON_NAME)))
-        pa_proplist_sets(p, PA_PROP_MEDIA_ICON_NAME, n);
-
-    pa_sink_input_update_proplist(u->sink_input, PA_UPDATE_REPLACE, p);
-    pa_proplist_free(p);
+        pa_sink_input_set_property(u->sink_input, PA_PROP_DEVICE_ICON_NAME, n);
 
     if (pa_source_get_state(dest) == PA_SOURCE_SUSPENDED)
         pa_sink_input_cork(u->sink_input, true);
@@ -671,7 +670,7 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
 /* Called from main thread */
 static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     struct userdata *u;
-    pa_proplist *p;
+    char *output_description;
     const char *n;
 
     if (!dest)
@@ -681,14 +680,13 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     pa_assert_ctl_context();
     pa_assert_se(u = i->userdata);
 
-    p = pa_proplist_new();
-    pa_proplist_setf(p, PA_PROP_MEDIA_NAME, "Loopback to %s", pa_strnull(pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+    output_description = pa_sprintf_malloc("Loopback to %s",
+                                           pa_strnull(pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+    pa_source_output_set_property(u->source_output, PA_PROP_MEDIA_NAME, output_description);
+    pa_xfree(output_description);
 
     if ((n = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_ICON_NAME)))
-        pa_proplist_sets(p, PA_PROP_MEDIA_ICON_NAME, n);
-
-    pa_source_output_update_proplist(u->source_output, PA_UPDATE_REPLACE, p);
-    pa_proplist_free(p);
+        pa_source_output_set_property(u->source_output, PA_PROP_MEDIA_ICON_NAME, n);
 
     if (pa_sink_get_state(dest) == PA_SINK_SUSPENDED)
         pa_source_output_cork(u->source_output, true);
