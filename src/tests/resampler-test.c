@@ -252,26 +252,26 @@ static pa_memblock* generate_block(pa_mempool *pool, const pa_sample_spec *ss) {
 }
 
 static void help(const char *argv0) {
-    printf(_("%s [options]\n\n"
-             "-h, --help                            Show this help\n"
-             "-v, --verbose                         Print debug messages\n"
-             "      --from-rate=SAMPLERATE          From sample rate in Hz (defaults to 44100)\n"
-             "      --from-format=SAMPLEFORMAT      From sample type (defaults to s16le)\n"
-             "      --from-channels=CHANNELS        From number of channels (defaults to 1)\n"
-             "      --to-rate=SAMPLERATE            To sample rate in Hz (defaults to 44100)\n"
-             "      --to-format=SAMPLEFORMAT        To sample type (defaults to s16le)\n"
-             "      --to-channels=CHANNELS          To number of channels (defaults to 1)\n"
-             "      --resample-method=METHOD        Resample method (defaults to auto)\n"
-             "      --seconds=SECONDS               From stream duration (defaults to 60)\n"
-             "\n"
-             "If the formats are not specified, the test performs all formats combinations,\n"
-             "back and forth.\n"
-             "\n"
-             "Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, alaw,\n"
-             "s24le, s24be, s24-32le, s24-32be, s32le, s32be (defaults to s16ne)\n"
-             "\n"
-             "See --dump-resample-methods for possible values of resample methods.\n"),
-             argv0);
+    printf("%s [options]\n\n"
+           "-h, --help                            Show this help\n"
+           "-v, --verbose                         Print debug messages\n"
+           "      --from-rate=SAMPLERATE          From sample rate in Hz (defaults to 44100)\n"
+           "      --from-format=SAMPLEFORMAT      From sample type (defaults to s16le)\n"
+           "      --from-channels=CHANNELS        From number of channels (defaults to 1)\n"
+           "      --to-rate=SAMPLERATE            To sample rate in Hz (defaults to 44100)\n"
+           "      --to-format=SAMPLEFORMAT        To sample type (defaults to s16le)\n"
+           "      --to-channels=CHANNELS          To number of channels (defaults to 1)\n"
+           "      --resample-method=METHOD        Resample method (defaults to auto)\n"
+           "      --seconds=SECONDS               From stream duration (defaults to 60)\n"
+           "\n"
+           "If the formats are not specified, the test performs all formats combinations,\n"
+           "back and forth.\n"
+           "\n"
+           "Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, alaw,\n"
+           "s24le, s24be, s24-32le, s24-32be, s32le, s32be (defaults to s16ne)\n"
+           "\n"
+           "See --dump-resample-methods for possible values of resample methods.\n",
+           argv0);
 }
 
 enum {
@@ -350,7 +350,7 @@ int main(int argc, char *argv[]) {
                 break;
 
             case ARG_VERSION:
-                printf(_("%s %s\n"), argv[0], PACKAGE_VERSION);
+                printf("%s %s\n", argv[0], PACKAGE_VERSION);
                 ret = 0;
                 goto quit;
 
