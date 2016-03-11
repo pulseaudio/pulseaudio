@@ -1426,17 +1426,124 @@ void pa_sink_input_set_mute(pa_sink_input *i, bool mute, bool save) {
     pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MUTE_CHANGED], i);
 }
 
-/* Called from main thread */
-void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_proplist *p) {
-    pa_sink_input_assert_ref(i);
-    pa_assert_ctl_context();
+void pa_sink_input_set_property(pa_sink_input *i, const char *key, const char *value) {
+    char *old_value = NULL;
+    const char *new_value;
 
-    if (p)
-        pa_proplist_update(i->proplist, mode, p);
+    pa_assert(i);
+    pa_assert(key);
+
+    if (pa_proplist_contains(i->proplist, key)) {
+        old_value = pa_xstrdup(pa_proplist_gets(i->proplist, key));
+        if (old_value) {
+            if (pa_streq(value, old_value))
+                goto finish;
+        } else
+            old_value = pa_xstrdup("(data)");
+    } else {
+        if (!value)
+            goto finish;
+
+        old_value = pa_xstrdup("(unset)");
+    }
+
+    if (value) {
+        pa_proplist_sets(i->proplist, key, value);
+        new_value = value;
+    } else {
+        pa_proplist_unset(i->proplist, key);
+        new_value = "(unset)";
+    }
 
     if (PA_SINK_INPUT_IS_LINKED(i->state)) {
+        pa_log_debug("Sink input %u: proplist[%s]: %s -> %s", i->index, key, old_value, new_value);
         pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], i);
-        pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+        pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT | PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    }
+
+finish:
+    pa_xfree(old_value);
+}
+
+void pa_sink_input_set_property_arbitrary(pa_sink_input *i, const char *key, const uint8_t *value, size_t nbytes) {
+    const uint8_t *old_value;
+    size_t old_nbytes;
+    const char *old_value_str;
+    const char *new_value_str;
+
+    pa_assert(i);
+    pa_assert(key);
+
+    if (pa_proplist_get(i->proplist, key, (const void **) &old_value, &old_nbytes) >= 0) {
+        if (value && nbytes == old_nbytes && !memcmp(value, old_value, nbytes))
+            return;
+
+        old_value_str = "(data)";
+
+    } else {
+        if (!value)
+            return;
+
+        old_value_str = "(unset)";
+    }
+
+    if (value) {
+        pa_proplist_set(i->proplist, key, value, nbytes);
+        new_value_str = "(data)";
+    } else {
+        pa_proplist_unset(i->proplist, key);
+        new_value_str = "(unset)";
+    }
+
+    if (PA_SINK_INPUT_IS_LINKED(i->state)) {
+        pa_log_debug("Sink input %u: proplist[%s]: %s -> %s", i->index, key, old_value_str, new_value_str);
+        pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], i);
+        pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT | PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    }
+}
+
+/* Called from main thread */
+void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_proplist *p) {
+    void *state;
+    const char *key;
+    const uint8_t *value;
+    size_t nbytes;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert(p);
+    pa_assert_ctl_context();
+
+    switch (mode) {
+        case PA_UPDATE_SET: {
+            /* Delete everything that is not in p. */
+            for (state = NULL; (key = pa_proplist_iterate(i->proplist, &state));) {
+                if (!pa_proplist_contains(p, key))
+                    pa_sink_input_set_property(i, key, NULL);
+            }
+
+            /* Fall through. */
+        }
+
+        case PA_UPDATE_REPLACE: {
+            for (state = NULL; (key = pa_proplist_iterate(p, &state));) {
+                pa_proplist_get(p, key, (const void **) &value, &nbytes);
+                pa_sink_input_set_property_arbitrary(i, key, value, nbytes);
+            }
+
+            break;
+        }
+
+        case PA_UPDATE_MERGE: {
+            for (state = NULL; (key = pa_proplist_iterate(p, &state));) {
+                if (pa_proplist_contains(i->proplist, key))
+                    continue;
+
+                pa_proplist_get(p, key, (const void **) &value, &nbytes);
+                pa_sink_input_set_property_arbitrary(i, key, value, nbytes);
+            }
+
+            break;
+        }
     }
 }
 

@@ -1078,17 +1078,124 @@ void pa_source_output_set_mute(pa_source_output *o, bool mute, bool save) {
     pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MUTE_CHANGED], o);
 }
 
-/* Called from main thread */
-void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p) {
-    pa_source_output_assert_ref(o);
-    pa_assert_ctl_context();
+void pa_source_output_set_property(pa_source_output *o, const char *key, const char *value) {
+    char *old_value = NULL;
+    const char *new_value;
 
-    if (p)
-        pa_proplist_update(o->proplist, mode, p);
+    pa_assert(o);
+    pa_assert(key);
+
+    if (pa_proplist_contains(o->proplist, key)) {
+        old_value = pa_xstrdup(pa_proplist_gets(o->proplist, key));
+        if (old_value) {
+            if (pa_streq(value, old_value))
+                goto finish;
+        } else
+            old_value = pa_xstrdup("(data)");
+    } else {
+        if (!value)
+            goto finish;
+
+        old_value = pa_xstrdup("(unset)");
+    }
+
+    if (value) {
+        pa_proplist_sets(o->proplist, key, value);
+        new_value = value;
+    } else {
+        pa_proplist_unset(o->proplist, key);
+        new_value = "(unset)";
+    }
+
+    if (PA_SINK_INPUT_IS_LINKED(o->state)) {
+        pa_log_debug("Source output %u: proplist[%s]: %s -> %s", o->index, key, old_value, new_value);
+        pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
+        pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT | PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    }
+
+finish:
+    pa_xfree(old_value);
+}
+
+void pa_source_output_set_property_arbitrary(pa_source_output *o, const char *key, const uint8_t *value, size_t nbytes) {
+    const uint8_t *old_value;
+    size_t old_nbytes;
+    const char *old_value_str;
+    const char *new_value_str;
+
+    pa_assert(o);
+    pa_assert(key);
+
+    if (pa_proplist_get(o->proplist, key, (const void **) &old_value, &old_nbytes) >= 0) {
+        if (value && nbytes == old_nbytes && !memcmp(value, old_value, nbytes))
+            return;
+
+        old_value_str = "(data)";
+
+    } else {
+        if (!value)
+            return;
+
+        old_value_str = "(unset)";
+    }
+
+    if (value) {
+        pa_proplist_set(o->proplist, key, value, nbytes);
+        new_value_str = "(data)";
+    } else {
+        pa_proplist_unset(o->proplist, key);
+        new_value_str = "(unset)";
+    }
 
     if (PA_SOURCE_OUTPUT_IS_LINKED(o->state)) {
+        pa_log_debug("Source output %u: proplist[%s]: %s -> %s", o->index, key, old_value_str, new_value_str);
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
-        pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+        pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT | PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    }
+}
+
+/* Called from main thread */
+void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p) {
+    void *state;
+    const char *key;
+    const uint8_t *value;
+    size_t nbytes;
+
+    pa_source_output_assert_ref(o);
+    pa_assert(p);
+    pa_assert_ctl_context();
+
+    switch (mode) {
+        case PA_UPDATE_SET: {
+            /* Delete everything that is not in p. */
+            for (state = NULL; (key = pa_proplist_iterate(o->proplist, &state));) {
+                if (!pa_proplist_contains(p, key))
+                    pa_source_output_set_property(o, key, NULL);
+            }
+
+            /* Fall through. */
+        }
+
+        case PA_UPDATE_REPLACE: {
+            for (state = NULL; (key = pa_proplist_iterate(p, &state));) {
+                pa_proplist_get(p, key, (const void **) &value, &nbytes);
+                pa_source_output_set_property_arbitrary(o, key, value, nbytes);
+            }
+
+            break;
+        }
+
+        case PA_UPDATE_MERGE: {
+            for (state = NULL; (key = pa_proplist_iterate(p, &state));) {
+                if (pa_proplist_contains(o->proplist, key))
+                    continue;
+
+                pa_proplist_get(p, key, (const void **) &value, &nbytes);
+                pa_source_output_set_property_arbitrary(o, key, value, nbytes);
+            }
+
+            break;
+        }
     }
 }
 

@@ -373,6 +373,8 @@ pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i, pa_cvolume *volume, bool 
 
 void pa_sink_input_set_mute(pa_sink_input *i, bool mute, bool save);
 
+void pa_sink_input_set_property(pa_sink_input *i, const char *key, const char *value);
+void pa_sink_input_set_property_arbitrary(pa_sink_input *i, const char *key, const uint8_t *value, size_t nbytes);
 void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_proplist *p);
 
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);

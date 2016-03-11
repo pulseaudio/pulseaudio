@@ -316,6 +316,8 @@ pa_cvolume *pa_source_output_get_volume(pa_source_output *o, pa_cvolume *volume,
 
 void pa_source_output_set_mute(pa_source_output *o, bool mute, bool save);
 
+void pa_source_output_set_property(pa_source_output *o, const char *key, const char *value);
+void pa_source_output_set_property_arbitrary(pa_source_output *o, const char *key, const uint8_t *value, size_t nbytes);
 void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p);
 
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
