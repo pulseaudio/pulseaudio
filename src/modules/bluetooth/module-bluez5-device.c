@@ -63,6 +63,7 @@ PA_MODULE_USAGE("path=<device object path>"
 #define FIXED_LATENCY_RECORD_SCO    (25 * PA_USEC_PER_MSEC)
 
 #define HSP_MAX_GAIN 15
+#define A2DP_MAX_VOLUME 127
 
 static const char* const valid_modargs[] = {
     "path",
@@ -100,6 +101,7 @@ struct userdata {
     pa_hook_slot *transport_state_changed_slot;
     pa_hook_slot *transport_speaker_gain_changed_slot;
     pa_hook_slot *transport_microphone_gain_changed_slot;
+    pa_hook_slot *transport_a2dp_source_volume_changed_slot;
 
     pa_bluetooth_discovery *discovery;
     pa_bluetooth_device *device;
@@ -2194,6 +2196,29 @@ static pa_hook_result_t transport_microphone_gain_changed_cb(pa_bluetooth_discov
     return PA_HOOK_OK;
 }
 
+static pa_hook_result_t transport_a2dp_source_volume_changed_cb(pa_bluetooth_discovery *y, pa_bluetooth_transport *t, struct userdata *u) {
+    pa_volume_t volume;
+    pa_cvolume v;
+
+    pa_assert(t);
+    pa_assert(u);
+
+    if (t != u->transport)
+      return PA_HOOK_OK;
+
+    volume = (pa_volume_t) (t->source_volume * PA_VOLUME_NORM / A2DP_MAX_VOLUME);
+
+    /* increment volume by one to correct rounding errors */
+    if (volume < PA_VOLUME_NORM)
+        volume++;
+
+    pa_cvolume_set(&v, u->decoder_sample_spec.channels, volume);
+    pa_source_set_volume(u->source, &v, true, true);
+    pa_source_volume_changed(u->source, &v);
+
+    return PA_HOOK_OK;
+}
+
 /* Run from main thread context */
 static int device_process_msg(pa_msgobject *obj, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct bluetooth_msg *m = BLUETOOTH_MSG(obj);
@@ -2284,6 +2309,9 @@ int pa__init(pa_module* m) {
     u->transport_microphone_gain_changed_slot =
         pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_MICROPHONE_GAIN_CHANGED), PA_HOOK_NORMAL, (pa_hook_cb_t) transport_microphone_gain_changed_cb, u);
 
+    u->transport_a2dp_source_volume_changed_slot =
+        pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_A2DP_SOURCE_VOLUME_CHANGED), PA_HOOK_NORMAL, (pa_hook_cb_t) transport_a2dp_source_volume_changed_cb, u);
+
     if (add_card(u) < 0)
         goto fail;
 
@@ -2347,6 +2375,9 @@ void pa__done(pa_module *m) {
 
     if (u->encoder_buffer)
         pa_xfree(u->encoder_buffer);
+
+    if (u->transport_a2dp_source_volume_changed_slot)
+        pa_hook_slot_free(u->transport_a2dp_source_volume_changed_slot);
 
     if (u->decoder_buffer)
         pa_xfree(u->decoder_buffer);

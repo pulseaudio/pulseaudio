@@ -51,6 +51,7 @@ typedef enum pa_bluetooth_hook {
     PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED,            /* Call data: pa_bluetooth_transport */
     PA_BLUETOOTH_HOOK_TRANSPORT_MICROPHONE_GAIN_CHANGED,  /* Call data: pa_bluetooth_transport */
     PA_BLUETOOTH_HOOK_TRANSPORT_SPEAKER_GAIN_CHANGED,     /* Call data: pa_bluetooth_transport */
+    PA_BLUETOOTH_HOOK_TRANSPORT_A2DP_SOURCE_VOLUME_CHANGED,
     PA_BLUETOOTH_HOOK_MAX
 } pa_bluetooth_hook_t;
 
@@ -74,6 +75,7 @@ typedef void (*pa_bluetooth_transport_release_cb)(pa_bluetooth_transport *t);
 typedef void (*pa_bluetooth_transport_destroy_cb)(pa_bluetooth_transport *t);
 typedef void (*pa_bluetooth_transport_set_speaker_gain_cb)(pa_bluetooth_transport *t, uint16_t gain);
 typedef void (*pa_bluetooth_transport_set_microphone_gain_cb)(pa_bluetooth_transport *t, uint16_t gain);
+typedef void (*pa_bluetooth_transport_set_a2dp_source_volume_cb)(pa_bluetooth_transport *t, uint16_t volume);
 
 struct pa_bluetooth_transport {
     pa_bluetooth_device *device;
@@ -90,6 +92,7 @@ struct pa_bluetooth_transport {
 
     uint16_t microphone_gain;
     uint16_t speaker_gain;
+    uint16_t source_volume;
 
     pa_bluetooth_transport_state_t state;
 
@@ -98,6 +101,7 @@ struct pa_bluetooth_transport {
     pa_bluetooth_transport_destroy_cb destroy;
     pa_bluetooth_transport_set_speaker_gain_cb set_speaker_gain;
     pa_bluetooth_transport_set_microphone_gain_cb set_microphone_gain;
+    pa_bluetooth_transport_set_a2dp_source_volume_cb set_source_volume;
     void *userdata;
 };
 
@@ -157,6 +161,7 @@ pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const
                                                    pa_bluetooth_profile_t p, const uint8_t *config, size_t size);
 
 void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_transport_state_t state);
+void pa_bluetooth_transport_set_source_volume(pa_bluetooth_transport *t, uint16_t volume);
 void pa_bluetooth_transport_put(pa_bluetooth_transport *t);
 void pa_bluetooth_transport_unlink(pa_bluetooth_transport *t);
 void pa_bluetooth_transport_free(pa_bluetooth_transport *t);

@@ -321,6 +321,14 @@ void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_tr
     }
 }
 
+void pa_bluetooth_transport_set_source_volume(pa_bluetooth_transport *t,uint16_t volume) {
+
+    pa_assert(t);
+    t->source_volume = volume;
+    pa_hook_fire(&t->device->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_A2DP_SOURCE_VOLUME_CHANGED], t);
+
+}
+
 void pa_bluetooth_transport_put(pa_bluetooth_transport *t) {
     pa_assert(t);
 
@@ -483,6 +491,13 @@ static void parse_transport_property(pa_bluetooth_transport *t, DBusMessageIter 
                 }
 
                 pa_bluetooth_transport_set_state(t, state);
+            }
+        case DBUS_TYPE_UINT16: {
+            uint16_t uintValue;
+            dbus_message_iter_get_basic(&variant_i, &uintValue);
+
+                if (pa_streq(key, "Volume"))
+                    pa_bluetooth_transport_set_source_volume(t,uintValue);
             }
 
             break;
