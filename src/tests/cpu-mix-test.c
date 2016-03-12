@@ -142,7 +142,7 @@ static void run_mix_test(
     pa_memblock_unref(c0.memblock);
     pa_memblock_unref(c1.memblock);
 
-    pa_mempool_free(pool);
+    pa_mempool_unref(pool);
 }
 
 START_TEST (mix_special_test) {

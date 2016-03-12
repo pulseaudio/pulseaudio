@@ -163,7 +163,7 @@ START_TEST (lfe_filter_test) {
 
     pa_lfe_filter_free(lft.lf);
 
-    pa_mempool_free(lft.pool);
+    pa_mempool_unref(lft.pool);
 
     if (!ret)
         pa_log_debug("lfe-filter-test: tests for both rewind to block boundary and rewind to middle position of a block passed!");

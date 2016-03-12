@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
     if (c.memblock)
         pa_memblock_unref(c.memblock);
 
-    pa_mempool_free(p);
+    pa_mempool_unref(p);
 
     return 0;
 }

@@ -473,7 +473,7 @@ int main(int argc, char *argv[]) {
 
  quit:
     if (pool)
-        pa_mempool_free(pool);
+        pa_mempool_unref(pool);
 
     return ret;
 }

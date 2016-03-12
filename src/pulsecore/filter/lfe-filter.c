@@ -110,6 +110,7 @@ static void process_block(pa_lfe_filter_t *f, pa_memchunk *buf, bool store_resul
 }
 
 pa_memchunk * pa_lfe_filter_process(pa_lfe_filter_t *f, pa_memchunk *buf) {
+    pa_mempool *pool;
     struct saved_state *s, *s2;
     void *data;
 
@@ -129,10 +130,12 @@ pa_memchunk * pa_lfe_filter_process(pa_lfe_filter_t *f, pa_memchunk *buf) {
     /* TODO: This actually memcpys the entire chunk into a new allocation, because we need to retain the original
        in case of rewinding. Investigate whether this can be avoided. */
     data = pa_memblock_acquire_chunk(buf);
-    s->chunk.memblock = pa_memblock_new_malloced(pa_memblock_get_pool(buf->memblock), pa_xmemdup(data, buf->length), buf->length);
+    pool = pa_memblock_get_pool(buf->memblock);
+    s->chunk.memblock = pa_memblock_new_malloced(pool, pa_xmemdup(data, buf->length), buf->length);
     s->chunk.length = buf->length;
     s->chunk.index = 0;
     pa_memblock_release(buf->memblock);
+    pa_mempool_unref(pool), pool = NULL;
 
     s->index = f->index;
     memcpy(s->lr4, f->lr4, sizeof(struct lr4) * f->cm.channels);

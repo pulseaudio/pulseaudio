@@ -116,13 +116,16 @@ void *pa_memblock_acquire_chunk(const pa_memchunk *c);
 void pa_memblock_release(pa_memblock *b);
 
 size_t pa_memblock_get_length(pa_memblock *b);
+
+/* Note! Always unref the returned pool after use */
 pa_mempool * pa_memblock_get_pool(pa_memblock *b);
 
 pa_memblock *pa_memblock_will_need(pa_memblock *b);
 
 /* The memory block manager */
 pa_mempool* pa_mempool_new(bool shared, size_t size);
-void pa_mempool_free(pa_mempool *p);
+void pa_mempool_unref(pa_mempool *p);
+pa_mempool* pa_mempool_ref(pa_mempool *p);
 const pa_mempool_stat* pa_mempool_get_stat(pa_mempool *p);
 void pa_mempool_vacuum(pa_mempool *p);
 int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id);

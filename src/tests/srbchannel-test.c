@@ -116,7 +116,7 @@ START_TEST (srbchannel_test) {
 
     pa_pstream_unref(p1);
     pa_pstream_unref(p2);
-    pa_mempool_free(mp);
+    pa_mempool_unref(mp);
     pa_mainloop_free(ml);
 }
 END_TEST

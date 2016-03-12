@@ -573,6 +573,7 @@ static void prepare_next_write_item(pa_pstream *p) {
 
             if (current_export != p->export)
                 pa_memexport_free(current_export);
+            pa_mempool_unref(current_pool);
         }
 
         if (send_payload) {

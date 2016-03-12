@@ -208,7 +208,7 @@ START_TEST (memblockq_test) {
     pa_memblock_unref(chunk3.memblock);
     pa_memblock_unref(chunk4.memblock);
 
-    pa_mempool_free(p);
+    pa_mempool_unref(p);
 }
 END_TEST
 

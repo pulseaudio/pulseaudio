@@ -169,9 +169,9 @@ START_TEST (memblock_test) {
 
     pa_log("vacuuming done...");
 
-    pa_mempool_free(pool_a);
-    pa_mempool_free(pool_b);
-    pa_mempool_free(pool_c);
+    pa_mempool_unref(pool_a);
+    pa_mempool_unref(pool_b);
+    pa_mempool_unref(pool_c);
 }
 END_TEST
 

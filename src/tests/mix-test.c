@@ -338,7 +338,7 @@ START_TEST (mix_test) {
         pa_memblock_unref(k.memblock);
     }
 
-    pa_mempool_free(pool);
+    pa_mempool_unref(pool);
 }
 END_TEST
 

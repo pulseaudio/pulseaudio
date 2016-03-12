@@ -218,8 +218,8 @@ static void core_free(pa_object *o) {
 
     pa_silence_cache_done(&c->silence_cache);
     if (c->rw_mempool)
-        pa_mempool_free(c->rw_mempool);
-    pa_mempool_free(c->mempool);
+        pa_mempool_unref(c->rw_mempool);
+    pa_mempool_unref(c->mempool);
 
     for (j = 0; j < PA_CORE_HOOK_MAX; j++)
         pa_hook_done(&c->hooks[j]);

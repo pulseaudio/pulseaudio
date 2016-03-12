@@ -142,6 +142,23 @@ struct pa_memexport {
 };
 
 struct pa_mempool {
+    /* Reference count the mempool
+     *
+     * Any block allocation from the pool itself, or even just imported from
+     * another process through SHM and attached to it (PA_MEMBLOCK_IMPORTED),
+     * shall increase the refcount.
+     *
+     * This is done for per-client mempools: global references to blocks in
+     * the pool, or just to attached ones, can still be lingering around when
+     * the client connection dies and all per-client objects are to be freed.
+     * That is, current PulseAudio design does not guarantee that the client
+     * mempool blocks are referenced only by client-specific objects.
+     *
+     * For further details, please check:
+     * https://lists.freedesktop.org/archives/pulseaudio-discuss/2016-February/025587.html
+     */
+    PA_REFCNT_DECLARE;
+
     pa_semaphore *semaphore;
     pa_mutex *mutex;
 
@@ -237,6 +254,7 @@ static pa_memblock *memblock_new_appended(pa_mempool *p, size_t length) {
     b = pa_xmalloc(PA_ALIGN(sizeof(pa_memblock)) + length);
     PA_REFCNT_INIT(b);
     b->pool = p;
+    pa_mempool_ref(b->pool);
     b->type = PA_MEMBLOCK_APPENDED;
     b->read_only = b->is_silence = false;
     pa_atomic_ptr_store(&b->data, (uint8_t*) b + PA_ALIGN(sizeof(pa_memblock)));
@@ -367,6 +385,7 @@ pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
 
     PA_REFCNT_INIT(b);
     b->pool = p;
+    pa_mempool_ref(b->pool);
     b->read_only = b->is_silence = false;
     b->length = length;
     pa_atomic_store(&b->n_acquired, 0);
@@ -390,6 +409,7 @@ pa_memblock *pa_memblock_new_fixed(pa_mempool *p, void *d, size_t length, bool r
 
     PA_REFCNT_INIT(b);
     b->pool = p;
+    pa_mempool_ref(b->pool);
     b->type = PA_MEMBLOCK_FIXED;
     b->read_only = read_only;
     b->is_silence = false;
@@ -423,6 +443,7 @@ pa_memblock *pa_memblock_new_user(
 
     PA_REFCNT_INIT(b);
     b->pool = p;
+    pa_mempool_ref(b->pool);
     b->type = PA_MEMBLOCK_USER;
     b->read_only = read_only;
     b->is_silence = false;
@@ -518,10 +539,13 @@ size_t pa_memblock_get_length(pa_memblock *b) {
     return b->length;
 }
 
+/* Note! Always unref the returned pool after use */
 pa_mempool* pa_memblock_get_pool(pa_memblock *b) {
     pa_assert(b);
     pa_assert(PA_REFCNT_VALUE(b) > 0);
+    pa_assert(b->pool);
 
+    pa_mempool_ref(b->pool);
     return b->pool;
 }
 
@@ -535,10 +559,13 @@ pa_memblock* pa_memblock_ref(pa_memblock*b) {
 }
 
 static void memblock_free(pa_memblock *b) {
-    pa_assert(b);
+    pa_mempool *pool;
 
+    pa_assert(b);
+    pa_assert(b->pool);
     pa_assert(pa_atomic_load(&b->n_acquired) == 0);
 
+    pool = b->pool;
     stat_remove(b);
 
     switch (b->type) {
@@ -620,6 +647,8 @@ static void memblock_free(pa_memblock *b) {
         default:
             pa_assert_not_reached();
     }
+
+    pa_mempool_unref(pool);
 }
 
 /* No lock necessary */
@@ -749,6 +778,7 @@ pa_mempool* pa_mempool_new(bool shared, size_t size) {
     char t1[PA_BYTES_SNPRINT_MAX], t2[PA_BYTES_SNPRINT_MAX];
 
     p = pa_xnew0(pa_mempool, 1);
+    PA_REFCNT_INIT(p);
 
     p->block_size = PA_PAGE_ALIGN(PA_MEMPOOL_SLOT_SIZE);
     if (p->block_size < PA_PAGE_SIZE)
@@ -788,7 +818,7 @@ pa_mempool* pa_mempool_new(bool shared, size_t size) {
     return p;
 }
 
-void pa_mempool_free(pa_mempool *p) {
+static void mempool_free(pa_mempool *p) {
     pa_assert(p);
 
     pa_mutex_lock(p->mutex);
@@ -911,6 +941,22 @@ bool pa_mempool_is_shared(pa_mempool *p) {
     return p->memory.shared;
 }
 
+pa_mempool* pa_mempool_ref(pa_mempool *p) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+
+    PA_REFCNT_INC(p);
+    return p;
+}
+
+void pa_mempool_unref(pa_mempool *p) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+
+    if (PA_REFCNT_DEC(p) <= 0)
+        mempool_free(p);
+}
+
 /* For receiving blocks from other nodes */
 pa_memimport* pa_memimport_new(pa_mempool *p, pa_memimport_release_cb_t cb, void *userdata) {
     pa_memimport *i;
@@ -921,6 +967,7 @@ pa_memimport* pa_memimport_new(pa_mempool *p, pa_memimport_release_cb_t cb, void
     i = pa_xnew(pa_memimport, 1);
     i->mutex = pa_mutex_new(true, true);
     i->pool = p;
+    pa_mempool_ref(i->pool);
     i->segments = pa_hashmap_new(NULL, NULL);
     i->blocks = pa_hashmap_new(NULL, NULL);
     i->release_cb = cb;
@@ -996,6 +1043,7 @@ void pa_memimport_free(pa_memimport *i) {
 
     pa_mutex_unlock(i->pool->mutex);
 
+    pa_mempool_unref(i->pool);
     pa_hashmap_free(i->blocks);
     pa_hashmap_free(i->segments);
 
@@ -1039,6 +1087,7 @@ pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_i
 
     PA_REFCNT_INIT(b);
     b->pool = i->pool;
+    pa_mempool_ref(b->pool);
     b->type = PA_MEMBLOCK_IMPORTED;
     b->read_only = !writable;
     b->is_silence = false;
@@ -1096,6 +1145,7 @@ pa_memexport* pa_memexport_new(pa_mempool *p, pa_memexport_revoke_cb_t cb, void 
     e = pa_xnew(pa_memexport, 1);
     e->mutex = pa_mutex_new(true, true);
     e->pool = p;
+    pa_mempool_ref(e->pool);
     PA_LLIST_HEAD_INIT(struct memexport_slot, e->free_slots);
     PA_LLIST_HEAD_INIT(struct memexport_slot, e->used_slots);
     e->n_init = 0;
@@ -1123,6 +1173,7 @@ void pa_memexport_free(pa_memexport *e) {
     PA_LLIST_REMOVE(pa_memexport, e->pool->exports, e);
     pa_mutex_unlock(e->pool->mutex);
 
+    pa_mempool_unref(e->pool);
     pa_mutex_free(e->mutex);
     pa_xfree(e);
 }

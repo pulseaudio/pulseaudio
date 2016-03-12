@@ -249,7 +249,7 @@ static void context_free(pa_context *c) {
         pa_hashmap_free(c->playback_streams);
 
     if (c->mempool)
-        pa_mempool_free(c->mempool);
+        pa_mempool_unref(c->mempool);
 
     if (c->conf)
         pa_client_conf_free(c->conf);
