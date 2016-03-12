@@ -612,6 +612,23 @@ AC_DEFINE(HAVE_DLADDR, [1], [Have dladdr?])
 
 AM_ICONV
 
+#### Linux memfd_create(2) SHM support ####
+
+AC_ARG_ENABLE([memfd],
+    AS_HELP_STRING([--disable-memfd], [Disable Linux memfd shared memory]))
+
+AS_IF([test "x$enable_memfd" != "xno"],
+    AC_CHECK_DECL(SYS_memfd_create, [HAVE_MEMFD=1], [HAVE_MEMFD=0], [#include <sys/syscall.h>]),
+    [HAVE_MEMFD=0])
+
+AS_IF([test "x$enable_memfd" = "xyes" && test "x$HAVE_MEMFD" = "x0"],
+    [AC_MSG_ERROR([*** Your Linux kernel does not support memfd shared memory.
+                  *** Use linux v3.17 or higher for such a feature.])])
+
+AC_SUBST(HAVE_MEMFD)
+AM_CONDITIONAL([HAVE_MEMFD], [test "x$HAVE_MEMFD" = x1])
+AS_IF([test "x$HAVE_MEMFD" = "x1"], AC_DEFINE([HAVE_MEMFD], 1, [Have memfd shared memory.]))
+
 #### X11 (optional) ####
 
 AC_ARG_ENABLE([x11],
@@ -1549,6 +1566,7 @@ AC_OUTPUT
 
 # ==========================================================================
 
+AS_IF([test "x$HAVE_MEMFD" = "x1"], ENABLE_MEMFD=yes, ENABLE_MEMFD=no)
 AS_IF([test "x$HAVE_X11" = "x1"], ENABLE_X11=yes, ENABLE_X11=no)
 AS_IF([test "x$HAVE_OSS_OUTPUT" = "x1"], ENABLE_OSS_OUTPUT=yes, ENABLE_OSS_OUTPUT=no)
 AS_IF([test "x$HAVE_OSS_WRAPPER" = "x1"], ENABLE_OSS_WRAPPER=yes, ENABLE_OSS_WRAPPER=no)
@@ -1610,6 +1628,7 @@ echo "
     CPPFLAGS:                      ${CPPFLAGS}
     LIBS:                          ${LIBS}
 
+    Enable memfd shared memory:    ${ENABLE_MEMFD}
     Enable X11:                    ${ENABLE_X11}
     Enable OSS Output:             ${ENABLE_OSS_OUTPUT}
     Enable OSS Wrapper:            ${ENABLE_OSS_WRAPPER}

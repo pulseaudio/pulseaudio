@@ -30,7 +30,19 @@ typedef struct pa_shm {
     unsigned id;
     void *ptr;
     size_t size;
+
+    /* Only for type = PA_MEM_TYPE_SHARED_POSIX */
     bool do_unlink:1;
+
+    /* Only for type = PA_MEM_TYPE_SHARED_MEMFD
+     *
+     * To avoid fd leaks, we keep this fd open only until we pass it
+     * to the other PA endpoint over unix domain socket.
+     *
+     * When we don't have ownership for the memfd fd in question (e.g.
+     * pa_shm_attach()), or the file descriptor has now been closed,
+     * this is set to -1. */
+    int fd;
 } pa_shm;
 
 int pa_shm_create_rw(pa_shm *m, pa_mem_type_t type, size_t size, mode_t mode);

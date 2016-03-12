@@ -45,6 +45,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/gccmacro.h>
 
+#include <pulsecore/memfd-wrappers.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/random.h>
@@ -92,7 +93,12 @@ struct shm_marker {
     uint64_t _reserved4;
 } PA_GCC_PACKED;
 
-#define SHM_MARKER_SIZE PA_ALIGN(sizeof(struct shm_marker))
+static inline size_t shm_marker_size(pa_shm *m) {
+    if (m->type == PA_MEM_TYPE_SHARED_POSIX)
+        return PA_ALIGN(sizeof(struct shm_marker));
+
+    return 0;
+}
 
 #ifdef HAVE_SHM_OPEN
 static char *segment_name(char *fn, size_t l, unsigned id) {
@@ -105,9 +111,11 @@ static int privatemem_create(pa_shm *m, size_t size) {
     pa_assert(m);
     pa_assert(size > 0);
 
+    m->type = PA_MEM_TYPE_PRIVATE;
     m->id = 0;
     m->size = size;
     m->do_unlink = false;
+    m->fd = -1;
 
 #ifdef MAP_ANONYMOUS
     if ((m->ptr = mmap(NULL, m->size, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, (off_t) 0)) == MAP_FAILED) {
@@ -130,41 +138,44 @@ static int privatemem_create(pa_shm *m, size_t size) {
     return 0;
 }
 
-int pa_shm_create_rw(pa_shm *m, pa_mem_type_t type, size_t size, mode_t mode) {
-#ifdef HAVE_SHM_OPEN
+static int sharedmem_create(pa_shm *m, pa_mem_type_t type, size_t size, mode_t mode) {
+#if defined(HAVE_SHM_OPEN) || defined(HAVE_MEMFD)
     char fn[32];
     int fd = -1;
     struct shm_marker *marker;
-#endif
-
-    pa_assert(m);
-    pa_assert(size > 0);
-    pa_assert(size <= MAX_SHM_SIZE);
-    pa_assert(!(mode & ~0777));
-    pa_assert(mode >= 0600);
+    bool do_unlink = false;
 
     /* Each time we create a new SHM area, let's first drop all stale
      * ones */
     pa_shm_cleanup();
 
-    /* Round up to make it page aligned */
-    size = PA_PAGE_ALIGN(size);
-
-    m->type = type;
-
-    if (type == PA_MEM_TYPE_PRIVATE)
-        return privatemem_create(m, size);
-
-#ifdef HAVE_SHM_OPEN
     pa_random(&m->id, sizeof(m->id));
-    segment_name(fn, sizeof(fn), m->id);
 
-    if ((fd = shm_open(fn, O_RDWR|O_CREAT|O_EXCL, mode)) < 0) {
-        pa_log("shm_open() failed: %s", pa_cstrerror(errno));
+    switch (type) {
+#ifdef HAVE_SHM_OPEN
+    case PA_MEM_TYPE_SHARED_POSIX:
+        segment_name(fn, sizeof(fn), m->id);
+        fd = shm_open(fn, O_RDWR|O_CREAT|O_EXCL, mode);
+        do_unlink = true;
+        break;
+#endif
+#ifdef HAVE_MEMFD
+    case PA_MEM_TYPE_SHARED_MEMFD:
+        fd = memfd_create("pulseaudio", MFD_ALLOW_SEALING);
+        break;
+#endif
+    default:
         goto fail;
     }
 
-    m->size = size + SHM_MARKER_SIZE;
+    if (fd < 0) {
+        pa_log("%s open() failed: %s", pa_mem_type_to_string(type), pa_cstrerror(errno));
+        goto fail;
+    }
+
+    m->type = type;
+    m->size = size + shm_marker_size(m);
+    m->do_unlink = do_unlink;
 
     if (ftruncate(fd, (off_t) m->size) < 0) {
         pa_log("ftruncate() failed: %s", pa_cstrerror(errno));
@@ -180,30 +191,52 @@ int pa_shm_create_rw(pa_shm *m, pa_mem_type_t type, size_t size, mode_t mode) {
         goto fail;
     }
 
-    /* We store our PID at the end of the shm block, so that we
-     * can check for dead shm segments later */
-    marker = (struct shm_marker*) ((uint8_t*) m->ptr + m->size - SHM_MARKER_SIZE);
-    pa_atomic_store(&marker->pid, (int) getpid());
-    pa_atomic_store(&marker->marker, SHM_MARKER);
+    if (type == PA_MEM_TYPE_SHARED_POSIX) {
+        /* We store our PID at the end of the shm block, so that we
+         * can check for dead shm segments later */
+        marker = (struct shm_marker*) ((uint8_t*) m->ptr + m->size - shm_marker_size(m));
+        pa_atomic_store(&marker->pid, (int) getpid());
+        pa_atomic_store(&marker->marker, SHM_MARKER);
+    }
 
-    pa_assert_se(pa_close(fd) == 0);
-    m->do_unlink = true;
-#else
-    goto fail;
-#endif
+    /* For memfds, we keep the fd open until we pass it
+     * to the other PA endpoint over unix domain socket. */
+    if (type == PA_MEM_TYPE_SHARED_MEMFD)
+        m->fd = fd;
+    else {
+        pa_assert_se(pa_close(fd) == 0);
+        m->fd = -1;
+    }
 
     return 0;
 
 fail:
-
-#ifdef HAVE_SHM_OPEN
     if (fd >= 0) {
-        shm_unlink(fn);
+#ifdef HAVE_SHM_OPEN
+        if (type == PA_MEM_TYPE_SHARED_POSIX)
+            shm_unlink(fn);
+#endif
         pa_close(fd);
     }
-#endif
+#endif /* defined(HAVE_SHM_OPEN) || defined(HAVE_MEMFD) */
 
     return -1;
+}
+
+int pa_shm_create_rw(pa_shm *m, pa_mem_type_t type, size_t size, mode_t mode) {
+    pa_assert(m);
+    pa_assert(size > 0);
+    pa_assert(size <= MAX_SHM_SIZE);
+    pa_assert(!(mode & ~0777));
+    pa_assert(mode >= 0600);
+
+    /* Round up to make it page aligned */
+    size = PA_PAGE_ALIGN(size);
+
+    if (type == PA_MEM_TYPE_PRIVATE)
+        return privatemem_create(m, size);
+
+    return sharedmem_create(m, type, size, mode);
 }
 
 static void privatemem_free(pa_shm *m) {
@@ -235,19 +268,26 @@ void pa_shm_free(pa_shm *m) {
         goto finish;
     }
 
-#ifdef HAVE_SHM_OPEN
+#if defined(HAVE_SHM_OPEN) || defined(HAVE_MEMFD)
     if (munmap(m->ptr, PA_PAGE_ALIGN(m->size)) < 0)
         pa_log("munmap() failed: %s", pa_cstrerror(errno));
 
-    if (m->do_unlink) {
+#ifdef HAVE_SHM_OPEN
+    if (m->type == PA_MEM_TYPE_SHARED_POSIX && m->do_unlink) {
         char fn[32];
 
         segment_name(fn, sizeof(fn), m->id);
         if (shm_unlink(fn) < 0)
             pa_log(" shm_unlink(%s) failed: %s", fn, pa_cstrerror(errno));
     }
+#endif
+#ifdef HAVE_MEMFD
+    if (m->type == PA_MEM_TYPE_SHARED_MEMFD && m->fd != -1)
+        pa_assert_se(pa_close(m->fd) == 0);
+#endif
+
 #else
-    /* We shouldn't be here without shm support */
+    /* We shouldn't be here without shm or memfd support */
     pa_assert_not_reached();
 #endif
 
@@ -301,9 +341,8 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
 #endif
 }
 
-#ifdef HAVE_SHM_OPEN
-
-static int shm_attach(pa_shm *m, unsigned id, bool writable, bool for_cleanup) {
+static int shm_attach(pa_shm *m, pa_mem_type_t type, unsigned id, int memfd_fd, bool writable, bool for_cleanup) {
+#if defined(HAVE_SHM_OPEN) || defined(HAVE_MEMFD)
     char fn[32];
     int fd = -1;
     int prot;
@@ -311,11 +350,25 @@ static int shm_attach(pa_shm *m, unsigned id, bool writable, bool for_cleanup) {
 
     pa_assert(m);
 
-    segment_name(fn, sizeof(fn), m->id = id);
-
-    if ((fd = shm_open(fn, writable ? O_RDWR : O_RDONLY, 0)) < 0) {
-        if ((errno != EACCES && errno != ENOENT) || !for_cleanup)
-            pa_log("shm_open() failed: %s", pa_cstrerror(errno));
+    switch (type) {
+#ifdef HAVE_SHM_OPEN
+    case PA_MEM_TYPE_SHARED_POSIX:
+        pa_assert(memfd_fd == -1);
+        segment_name(fn, sizeof(fn), id);
+        if ((fd = shm_open(fn, writable ? O_RDWR : O_RDONLY, 0)) < 0) {
+            if ((errno != EACCES && errno != ENOENT) || !for_cleanup)
+                pa_log("shm_open() failed: %s", pa_cstrerror(errno));
+            goto fail;
+        }
+        break;
+#endif
+#ifdef HAVE_MEMFD
+    case PA_MEM_TYPE_SHARED_MEMFD:
+        pa_assert(memfd_fd != -1);
+        fd = memfd_fd;
+        break;
+#endif
+    default:
         goto fail;
     }
 
@@ -325,45 +378,53 @@ static int shm_attach(pa_shm *m, unsigned id, bool writable, bool for_cleanup) {
     }
 
     if (st.st_size <= 0 ||
-        st.st_size > (off_t) (MAX_SHM_SIZE+SHM_MARKER_SIZE) ||
+        st.st_size > (off_t) MAX_SHM_SIZE + (off_t) shm_marker_size(m) ||
         PA_ALIGN((size_t) st.st_size) != (size_t) st.st_size) {
         pa_log("Invalid shared memory segment size");
         goto fail;
     }
 
-    m->size = (size_t) st.st_size;
-
     prot = writable ? PROT_READ | PROT_WRITE : PROT_READ;
-    if ((m->ptr = mmap(NULL, PA_PAGE_ALIGN(m->size), prot, MAP_SHARED, fd, (off_t) 0)) == MAP_FAILED) {
+    if ((m->ptr = mmap(NULL, PA_PAGE_ALIGN(st.st_size), prot, MAP_SHARED, fd, (off_t) 0)) == MAP_FAILED) {
         pa_log("mmap() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
-    m->do_unlink = false;
-    m->type = PA_MEM_TYPE_SHARED_POSIX;
+    /* In case of attaching to memfd areas, _the caller_ maintains
+     * ownership of the passed fd and has the sole responsibility
+     * of closing it down.. For other types, we're the code path
+     * which created the fd in the first place and we're thus the
+     * ones responsible for closing it down */
+    if (type != PA_MEM_TYPE_SHARED_MEMFD)
+        pa_assert_se(pa_close(fd) == 0);
 
-    pa_assert_se(pa_close(fd) == 0);
+    m->type = type;
+    m->id = id;
+    m->size = (size_t) st.st_size;
+    m->do_unlink = false;
+    m->fd = -1;
 
     return 0;
 
 fail:
-    if (fd >= 0)
+    /* In case of memfds, caller maintains fd ownership */
+    if (fd >= 0 && type != PA_MEM_TYPE_SHARED_MEMFD)
         pa_close(fd);
 
+#endif /* defined(HAVE_SHM_OPEN) || defined(HAVE_MEMFD) */
+
     return -1;
 }
 
-int pa_shm_attach(pa_shm *m, unsigned id, bool writable) {
-    return shm_attach(m, id, writable, false);
+/* Caller owns passed @memfd_fd and must close it down when appropriate. */
+static int NEW_API_pa_shm_attach(pa_shm *m, pa_mem_type_t type, unsigned id, int memfd_fd, bool writable) {
+    return shm_attach(m, type, id, memfd_fd, writable, false);
 }
 
-#else /* HAVE_SHM_OPEN */
-
+/* Compatibility version until the new API is used in external sources */
 int pa_shm_attach(pa_shm *m, unsigned id, bool writable) {
-    return -1;
+    return NEW_API_pa_shm_attach(m, PA_MEM_TYPE_SHARED_POSIX, id, -1, writable);
 }
-
-#endif /* HAVE_SHM_OPEN */
 
 int pa_shm_cleanup(void) {
 
@@ -394,15 +455,15 @@ int pa_shm_cleanup(void) {
         if (pa_atou(de->d_name + SHM_ID_LEN, &id) < 0)
             continue;
 
-        if (shm_attach(&seg, id, false, true) < 0)
+        if (shm_attach(&seg, PA_MEM_TYPE_SHARED_POSIX, id, -1, false, true) < 0)
             continue;
 
-        if (seg.size < SHM_MARKER_SIZE) {
+        if (seg.size < shm_marker_size(&seg)) {
             pa_shm_free(&seg);
             continue;
         }
 
-        m = (struct shm_marker*) ((uint8_t*) seg.ptr + seg.size - SHM_MARKER_SIZE);
+        m = (struct shm_marker*) ((uint8_t*) seg.ptr + seg.size - shm_marker_size(&seg));
 
         if (pa_atomic_load(&m->marker) != SHM_MARKER) {
             pa_shm_free(&seg);

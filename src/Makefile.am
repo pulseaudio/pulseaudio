@@ -729,6 +729,11 @@ libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBJSON_CFLAGS) $(LIBS
 libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) $(AM_LIBLDFLAGS) -avoid-version
 libpulsecommon_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBJSON_LIBS)  $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSNDFILE_LIBS)
 
+if HAVE_MEMFD
+libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += \
+		pulsecore/memfd-wrappers.h
+endif
+
 if HAVE_X11
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += \
 		pulse/client-conf-x11.c pulse/client-conf-x11.h \
