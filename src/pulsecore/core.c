@@ -123,6 +123,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, size_t shm_size) {
     c->subscription_event_last = NULL;
 
     c->mempool = pool;
+    c->shm_size = shm_size;
     pa_silence_cache_init(&c->silence_cache);
 
     if (shared && !(c->rw_mempool = pa_mempool_new(shared, shm_size)))

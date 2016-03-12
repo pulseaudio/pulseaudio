@@ -181,6 +181,11 @@ struct pa_core {
        The rw_mempool is used for data writable by both server and client (and
        can be NULL in some cases). */
     pa_mempool *mempool, *rw_mempool;
+
+    /* Shared memory size, as specified either by daemon configuration
+     * or PA daemon defaults (~ 64 MiB). */
+    size_t shm_size;
+
     pa_silence_cache silence_cache;
 
     pa_time_event *exit_event;
