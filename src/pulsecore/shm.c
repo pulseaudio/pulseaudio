@@ -101,10 +101,40 @@ static char *segment_name(char *fn, size_t l, unsigned id) {
 }
 #endif
 
+static int privatemem_create(pa_shm *m, size_t size) {
+    pa_assert(m);
+    pa_assert(size > 0);
+
+    m->id = 0;
+    m->size = size;
+    m->do_unlink = false;
+
+#ifdef MAP_ANONYMOUS
+    if ((m->ptr = mmap(NULL, m->size, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, (off_t) 0)) == MAP_FAILED) {
+        pa_log("mmap() failed: %s", pa_cstrerror(errno));
+        return -1;
+    }
+#elif defined(HAVE_POSIX_MEMALIGN)
+    {
+        int r;
+
+        if ((r = posix_memalign(&m->ptr, PA_PAGE_SIZE, size)) < 0) {
+            pa_log("posix_memalign() failed: %s", pa_cstrerror(r));
+            return r;
+        }
+    }
+#else
+    m->ptr = pa_xmalloc(m->size);
+#endif
+
+    return 0;
+}
+
 int pa_shm_create_rw(pa_shm *m, pa_mem_type_t type, size_t size, mode_t mode) {
 #ifdef HAVE_SHM_OPEN
     char fn[32];
     int fd = -1;
+    struct shm_marker *marker;
 #endif
 
     pa_assert(m);
@@ -120,72 +150,47 @@ int pa_shm_create_rw(pa_shm *m, pa_mem_type_t type, size_t size, mode_t mode) {
     /* Round up to make it page aligned */
     size = PA_PAGE_ALIGN(size);
 
-    if (!pa_mem_type_is_shared(type)) {
-        m->id = 0;
-        m->size = size;
+    m->type = type;
 
-#ifdef MAP_ANONYMOUS
-        if ((m->ptr = mmap(NULL, m->size, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, (off_t) 0)) == MAP_FAILED) {
-            pa_log("mmap() failed: %s", pa_cstrerror(errno));
-            goto fail;
-        }
-#elif defined(HAVE_POSIX_MEMALIGN)
-        {
-            int r;
+    if (type == PA_MEM_TYPE_PRIVATE)
+        return privatemem_create(m, size);
 
-            if ((r = posix_memalign(&m->ptr, PA_PAGE_SIZE, size)) < 0) {
-                pa_log("posix_memalign() failed: %s", pa_cstrerror(r));
-                goto fail;
-            }
-        }
-#else
-        m->ptr = pa_xmalloc(m->size);
-#endif
-
-        m->do_unlink = false;
-
-    } else {
 #ifdef HAVE_SHM_OPEN
-        struct shm_marker *marker;
+    pa_random(&m->id, sizeof(m->id));
+    segment_name(fn, sizeof(fn), m->id);
 
-        pa_random(&m->id, sizeof(m->id));
-        segment_name(fn, sizeof(fn), m->id);
+    if ((fd = shm_open(fn, O_RDWR|O_CREAT|O_EXCL, mode)) < 0) {
+        pa_log("shm_open() failed: %s", pa_cstrerror(errno));
+        goto fail;
+    }
 
-        if ((fd = shm_open(fn, O_RDWR|O_CREAT|O_EXCL, mode)) < 0) {
-            pa_log("shm_open() failed: %s", pa_cstrerror(errno));
-            goto fail;
-        }
+    m->size = size + SHM_MARKER_SIZE;
 
-        m->size = size + SHM_MARKER_SIZE;
-
-        if (ftruncate(fd, (off_t) m->size) < 0) {
-            pa_log("ftruncate() failed: %s", pa_cstrerror(errno));
-            goto fail;
-        }
+    if (ftruncate(fd, (off_t) m->size) < 0) {
+        pa_log("ftruncate() failed: %s", pa_cstrerror(errno));
+        goto fail;
+    }
 
 #ifndef MAP_NORESERVE
 #define MAP_NORESERVE 0
 #endif
 
-        if ((m->ptr = mmap(NULL, PA_PAGE_ALIGN(m->size), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_NORESERVE, fd, (off_t) 0)) == MAP_FAILED) {
-            pa_log("mmap() failed: %s", pa_cstrerror(errno));
-            goto fail;
-        }
-
-        /* We store our PID at the end of the shm block, so that we
-         * can check for dead shm segments later */
-        marker = (struct shm_marker*) ((uint8_t*) m->ptr + m->size - SHM_MARKER_SIZE);
-        pa_atomic_store(&marker->pid, (int) getpid());
-        pa_atomic_store(&marker->marker, SHM_MARKER);
-
-        pa_assert_se(pa_close(fd) == 0);
-        m->do_unlink = true;
-#else
+    if ((m->ptr = mmap(NULL, PA_PAGE_ALIGN(m->size), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_NORESERVE, fd, (off_t) 0)) == MAP_FAILED) {
+        pa_log("mmap() failed: %s", pa_cstrerror(errno));
         goto fail;
-#endif
     }
 
-    m->type = type;
+    /* We store our PID at the end of the shm block, so that we
+     * can check for dead shm segments later */
+    marker = (struct shm_marker*) ((uint8_t*) m->ptr + m->size - SHM_MARKER_SIZE);
+    pa_atomic_store(&marker->pid, (int) getpid());
+    pa_atomic_store(&marker->marker, SHM_MARKER);
+
+    pa_assert_se(pa_close(fd) == 0);
+    m->do_unlink = true;
+#else
+    goto fail;
+#endif
 
     return 0;
 
@@ -201,6 +206,21 @@ fail:
     return -1;
 }
 
+static void privatemem_free(pa_shm *m) {
+    pa_assert(m);
+    pa_assert(m->ptr);
+    pa_assert(m->size > 0);
+
+#ifdef MAP_ANONYMOUS
+    if (munmap(m->ptr, m->size) < 0)
+        pa_log("munmap() failed: %s", pa_cstrerror(errno));
+#elif defined(HAVE_POSIX_MEMALIGN)
+    free(m->ptr);
+#else
+    pa_xfree(m->ptr);
+#endif
+}
+
 void pa_shm_free(pa_shm *m) {
     pa_assert(m);
     pa_assert(m->ptr);
@@ -210,34 +230,28 @@ void pa_shm_free(pa_shm *m) {
     pa_assert(m->ptr != MAP_FAILED);
 #endif
 
-    if (!pa_mem_type_is_shared(m->type)) {
-#ifdef MAP_ANONYMOUS
-        if (munmap(m->ptr, m->size) < 0)
-            pa_log("munmap() failed: %s", pa_cstrerror(errno));
-#elif defined(HAVE_POSIX_MEMALIGN)
-        free(m->ptr);
-#else
-        pa_xfree(m->ptr);
-#endif
-    } else {
-#ifdef HAVE_SHM_OPEN
-        if (munmap(m->ptr, PA_PAGE_ALIGN(m->size)) < 0)
-            pa_log("munmap() failed: %s", pa_cstrerror(errno));
-
-        if (m->do_unlink) {
-            char fn[32];
-
-            segment_name(fn, sizeof(fn), m->id);
-
-            if (shm_unlink(fn) < 0)
-                pa_log(" shm_unlink(%s) failed: %s", fn, pa_cstrerror(errno));
-        }
-#else
-        /* We shouldn't be here without shm support */
-        pa_assert_not_reached();
-#endif
+    if (m->type == PA_MEM_TYPE_PRIVATE) {
+        privatemem_free(m);
+        goto finish;
     }
 
+#ifdef HAVE_SHM_OPEN
+    if (munmap(m->ptr, PA_PAGE_ALIGN(m->size)) < 0)
+        pa_log("munmap() failed: %s", pa_cstrerror(errno));
+
+    if (m->do_unlink) {
+        char fn[32];
+
+        segment_name(fn, sizeof(fn), m->id);
+        if (shm_unlink(fn) < 0)
+            pa_log(" shm_unlink(%s) failed: %s", fn, pa_cstrerror(errno));
+    }
+#else
+    /* We shouldn't be here without shm support */
+    pa_assert_not_reached();
+#endif
+
+finish:
     pa_zero(*m);
 }
 
