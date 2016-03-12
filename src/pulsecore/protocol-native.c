@@ -55,6 +55,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/ipacl.h>
 #include <pulsecore/thread-mq.h>
+#include <pulsecore/mem.h>
 
 #include "protocol-native.h"
 
@@ -2621,7 +2622,7 @@ static void setup_srbchannel(pa_native_connection *c) {
         return;
     }
 
-    if (!(c->rw_mempool = pa_mempool_new(true, c->protocol->core->shm_size))) {
+    if (!(c->rw_mempool = pa_mempool_new(PA_MEM_TYPE_SHARED_POSIX, c->protocol->core->shm_size))) {
         pa_log_warn("Disabling srbchannel, reason: Failed to allocate shared "
                     "writable memory pool.");
         return;

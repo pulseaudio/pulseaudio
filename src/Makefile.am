@@ -700,6 +700,7 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/refcnt.h \
 		pulsecore/srbchannel.c pulsecore/srbchannel.h \
 		pulsecore/sample-util.c pulsecore/sample-util.h \
+		pulsecore/mem.h \
 		pulsecore/shm.c pulsecore/shm.h \
 		pulsecore/bitset.c pulsecore/bitset.h \
 		pulsecore/socket-client.c pulsecore/socket-client.h \

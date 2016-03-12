@@ -773,7 +773,7 @@ static void memblock_replace_import(pa_memblock *b) {
     pa_mutex_unlock(import->mutex);
 }
 
-pa_mempool* pa_mempool_new(bool shared, size_t size) {
+pa_mempool *pa_mempool_new(pa_mem_type_t type, size_t size) {
     pa_mempool *p;
     char t1[PA_BYTES_SNPRINT_MAX], t2[PA_BYTES_SNPRINT_MAX];
 
@@ -793,13 +793,13 @@ pa_mempool* pa_mempool_new(bool shared, size_t size) {
             p->n_blocks = 2;
     }
 
-    if (pa_shm_create_rw(&p->memory, p->n_blocks * p->block_size, shared, 0700) < 0) {
+    if (pa_shm_create_rw(&p->memory, type, p->n_blocks * p->block_size, 0700) < 0) {
         pa_xfree(p);
         return NULL;
     }
 
     pa_log_debug("Using %s memory pool with %u slots of size %s each, total size is %s, maximum usable slot size is %lu",
-                 p->memory.shared ? "shared" : "private",
+                 pa_mem_type_to_string(type),
                  p->n_blocks,
                  pa_bytes_snprint(t1, sizeof(t1), (unsigned) p->block_size),
                  pa_bytes_snprint(t2, sizeof(t2), (unsigned) (p->n_blocks * p->block_size)),
@@ -923,22 +923,22 @@ void pa_mempool_vacuum(pa_mempool *p) {
 }
 
 /* No lock necessary */
+bool pa_mempool_is_shared(pa_mempool *p) {
+    pa_assert(p);
+
+    return pa_mem_type_is_shared(p->memory.type);
+}
+
+/* No lock necessary */
 int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id) {
     pa_assert(p);
 
-    if (!p->memory.shared)
+    if (!pa_mempool_is_shared(p))
         return -1;
 
     *id = p->memory.id;
 
     return 0;
-}
-
-/* No lock necessary */
-bool pa_mempool_is_shared(pa_mempool *p) {
-    pa_assert(p);
-
-    return p->memory.shared;
 }
 
 pa_mempool* pa_mempool_ref(pa_mempool *p) {
@@ -1139,7 +1139,7 @@ pa_memexport* pa_memexport_new(pa_mempool *p, pa_memexport_revoke_cb_t cb, void 
     pa_assert(p);
     pa_assert(cb);
 
-    if (!p->memory.shared)
+    if (!pa_mempool_is_shared(p))
         return NULL;
 
     e = pa_xnew(pa_memexport, 1);

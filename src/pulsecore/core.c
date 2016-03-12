@@ -69,14 +69,14 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, size_t shm_size) {
     pa_assert(m);
 
     if (shared) {
-        if (!(pool = pa_mempool_new(shared, shm_size))) {
+        if (!(pool = pa_mempool_new(PA_MEM_TYPE_SHARED_POSIX, shm_size))) {
             pa_log_warn("Failed to allocate shared memory pool. Falling back to a normal memory pool.");
             shared = false;
         }
     }
 
     if (!shared) {
-        if (!(pool = pa_mempool_new(shared, shm_size))) {
+        if (!(pool = pa_mempool_new(PA_MEM_TYPE_PRIVATE, shm_size))) {
             pa_log("pa_mempool_new() failed.");
             return NULL;
         }

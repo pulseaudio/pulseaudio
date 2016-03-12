@@ -80,11 +80,11 @@ START_TEST (memblock_test) {
 
     const char txt[] = "This is a test!";
 
-    pool_a = pa_mempool_new(true, 0);
+    pool_a = pa_mempool_new(PA_MEM_TYPE_SHARED_POSIX, 0);
     fail_unless(pool_a != NULL);
-    pool_b = pa_mempool_new(true, 0);
+    pool_b = pa_mempool_new(PA_MEM_TYPE_SHARED_POSIX, 0);
     fail_unless(pool_b != NULL);
-    pool_c = pa_mempool_new(true, 0);
+    pool_c = pa_mempool_new(PA_MEM_TYPE_SHARED_POSIX, 0);
     fail_unless(pool_c != NULL);
 
     pa_mempool_get_shm_id(pool_a, &id_a);

@@ -51,6 +51,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/atomic.h>
+#include <pulsecore/mem.h>
 
 #include "shm.h"
 
@@ -100,7 +101,7 @@ static char *segment_name(char *fn, size_t l, unsigned id) {
 }
 #endif
 
-int pa_shm_create_rw(pa_shm *m, size_t size, bool shared, mode_t mode) {
+int pa_shm_create_rw(pa_shm *m, pa_mem_type_t type, size_t size, mode_t mode) {
 #ifdef HAVE_SHM_OPEN
     char fn[32];
     int fd = -1;
@@ -119,7 +120,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, bool shared, mode_t mode) {
     /* Round up to make it page aligned */
     size = PA_PAGE_ALIGN(size);
 
-    if (!shared) {
+    if (!pa_mem_type_is_shared(type)) {
         m->id = 0;
         m->size = size;
 
@@ -184,7 +185,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, bool shared, mode_t mode) {
 #endif
     }
 
-    m->shared = shared;
+    m->type = type;
 
     return 0;
 
@@ -209,7 +210,7 @@ void pa_shm_free(pa_shm *m) {
     pa_assert(m->ptr != MAP_FAILED);
 #endif
 
-    if (!m->shared) {
+    if (!pa_mem_type_is_shared(m->type)) {
 #ifdef MAP_ANONYMOUS
         if (munmap(m->ptr, m->size) < 0)
             pa_log("munmap() failed: %s", pa_cstrerror(errno));
@@ -325,7 +326,7 @@ static int shm_attach(pa_shm *m, unsigned id, bool writable, bool for_cleanup) {
     }
 
     m->do_unlink = false;
-    m->shared = true;
+    m->type = PA_MEM_TYPE_SHARED_POSIX;
 
     pa_assert_se(pa_close(fd) == 0);
 

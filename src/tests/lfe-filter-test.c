@@ -136,7 +136,7 @@ START_TEST (lfe_filter_test) {
     a.format = PA_SAMPLE_S16NE;
 
     lft.ss = &a;
-    pa_assert_se(lft.pool = pa_mempool_new(false, 0));
+    pa_assert_se(lft.pool = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0));
 
     /* We prepare pseudo-random input audio samples for lfe-filter rewind testing*/
     ori_sample_ptr = pa_xmalloc(pa_frame_size(lft.ss) * TOTAL_SAMPLES);

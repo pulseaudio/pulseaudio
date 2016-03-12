@@ -30,6 +30,7 @@ typedef struct pa_memblock pa_memblock;
 #include <pulse/xmalloc.h>
 #include <pulsecore/atomic.h>
 #include <pulsecore/memchunk.h>
+#include <pulsecore/mem.h>
 
 /* A pa_memblock is a reference counted memory block. PulseAudio
  * passes references to pa_memblocks around instead of copying
@@ -123,7 +124,7 @@ pa_mempool * pa_memblock_get_pool(pa_memblock *b);
 pa_memblock *pa_memblock_will_need(pa_memblock *b);
 
 /* The memory block manager */
-pa_mempool* pa_mempool_new(bool shared, size_t size);
+pa_mempool *pa_mempool_new(pa_mem_type_t type, size_t size);
 void pa_mempool_unref(pa_mempool *p);
 pa_mempool* pa_mempool_ref(pa_mempool *p);
 const pa_mempool_stat* pa_mempool_get_stat(pa_mempool *p);
