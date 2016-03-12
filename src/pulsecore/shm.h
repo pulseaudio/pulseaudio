@@ -41,7 +41,11 @@ typedef struct pa_shm {
      *
      * When we don't have ownership for the memfd fd in question (e.g.
      * pa_shm_attach()), or the file descriptor has now been closed,
-     * this is set to -1. */
+     * this is set to -1.
+     *
+     * For the special case of a global mempool, we keep this fd
+     * always open. Check comments on top of pa_mempool_new() for
+     * rationale. */
     int fd;
 } pa_shm;
 

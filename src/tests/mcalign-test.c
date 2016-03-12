@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     pa_mcalign *a;
     pa_memchunk c;
 
-    p = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0);
+    p = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0, true);
 
     a = pa_mcalign_new(11);
 

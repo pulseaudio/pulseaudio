@@ -108,7 +108,7 @@ START_TEST (memblockq_test) {
 
     pa_log_set_level(PA_LOG_DEBUG);
 
-    p = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0);
+    p = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0, true);
 
     silence.memblock = pa_memblock_new_fixed(p, (char*) "__", 2, 1);
     fail_unless(silence.memblock != NULL);

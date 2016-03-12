@@ -172,11 +172,11 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     c->srb_template.writefd = -1;
 
     type = !c->conf->disable_shm ? PA_MEM_TYPE_SHARED_POSIX : PA_MEM_TYPE_PRIVATE;
-    if (!(c->mempool = pa_mempool_new(type, c->conf->shm_size))) {
+    if (!(c->mempool = pa_mempool_new(type, c->conf->shm_size, true))) {
 
         if (!c->conf->disable_shm) {
             pa_log_warn("Failed to allocate shared memory pool. Falling back to a normal private one.");
-            c->mempool = pa_mempool_new(PA_MEM_TYPE_PRIVATE, c->conf->shm_size);
+            c->mempool = pa_mempool_new(PA_MEM_TYPE_PRIVATE, c->conf->shm_size, true);
         }
 
         if (!c->mempool) {

@@ -85,7 +85,7 @@ START_TEST (srbchannel_test) {
     int pipefd[4];
 
     pa_mainloop *ml = pa_mainloop_new();
-    pa_mempool *mp = pa_mempool_new(PA_MEM_TYPE_SHARED_POSIX, 0);
+    pa_mempool *mp = pa_mempool_new(PA_MEM_TYPE_SHARED_POSIX, 0, true);
     pa_iochannel *io1, *io2;
     pa_pstream *p1, *p2;
     pa_srbchannel *sr1, *sr2;

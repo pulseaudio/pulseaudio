@@ -404,7 +404,7 @@ int main(int argc, char *argv[]) {
     }
 
     ret = 0;
-    pa_assert_se(pool = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0));
+    pa_assert_se(pool = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0, true));
 
     if (!all_formats) {
 

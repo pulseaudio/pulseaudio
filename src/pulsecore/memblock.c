@@ -185,6 +185,9 @@ struct pa_mempool {
     pa_mutex *mutex;
 
     pa_shm memory;
+
+    bool global;
+
     size_t block_size;
     unsigned n_blocks;
     bool is_remote_writable;
@@ -795,7 +798,34 @@ static void memblock_replace_import(pa_memblock *b) {
     pa_mutex_unlock(import->mutex);
 }
 
-pa_mempool *pa_mempool_new(pa_mem_type_t type, size_t size) {
+/*@per_client: This is a security measure. By default this should
+ * be set to true where the created mempool is never shared with more
+ * than one client in the system. Set this to false if a global
+ * mempool, shared with all existing and future clients, is required.
+ *
+ * NOTE-1: Do not create any further global mempools! They allow data
+ * leaks between clients and thus conflict with the xdg-app containers
+ * model. They also complicate the handling of memfd-based pools.
+ *
+ * NOTE-2: Almost all mempools are now created on a per client basis.
+ * The only exception is the pa_core's mempool which is still shared
+ * between all clients of the system.
+ *
+ * Beside security issues, special marking for global mempools is
+ * required for memfd communication. To avoid fd leaks, memfd pools
+ * are registered with the connection pstream to create an ID<->memfd
+ * mapping on both PA endpoints. Such memory regions are then always
+ * referenced by their IDs and never by their fds and thus their fds
+ * can be quickly closed later.
+ *
+ * Unfortunately this scheme cannot work with global pools since the
+ * ID registration mechanism needs to happen for each newly connected
+ * client, and thus the need for a more special handling. That is,
+ * for the pool's fd to be always open :-(
+ *
+ * TODO-1: Transform the global core mempool to a per-client one
+ * TODO-2: Remove global mempools support */
+pa_mempool *pa_mempool_new(pa_mem_type_t type, size_t size, bool per_client) {
     pa_mempool *p;
     char t1[PA_BYTES_SNPRINT_MAX], t2[PA_BYTES_SNPRINT_MAX];
 
@@ -826,6 +856,8 @@ pa_mempool *pa_mempool_new(pa_mem_type_t type, size_t size) {
                  pa_bytes_snprint(t1, sizeof(t1), (unsigned) p->block_size),
                  pa_bytes_snprint(t2, sizeof(t2), (unsigned) (p->n_blocks * p->block_size)),
                  (unsigned long) pa_mempool_block_size_max(p));
+
+    p->global = !per_client;
 
     pa_atomic_store(&p->n_init, 0);
 
@@ -984,6 +1016,70 @@ void pa_mempool_unref(pa_mempool *p) {
 
     if (PA_REFCNT_DEC(p) <= 0)
         mempool_free(p);
+}
+
+/* No lock necessary
+ * Check pa_mempool_new() for per-client vs. global mempools */
+bool pa_mempool_is_global(pa_mempool *p) {
+    pa_assert(p);
+
+    return p->global;
+}
+
+/* No lock necessary
+ * Check pa_mempool_new() for per-client vs. global mempools */
+bool pa_mempool_is_per_client(pa_mempool *p) {
+    return !pa_mempool_is_global(p);
+}
+
+/* Self-locked
+ *
+ * This is only for per-client mempools!
+ *
+ * After this method's return, the caller owns the file descriptor
+ * and is responsible for closing it in the appropriate time. This
+ * should only be called once during during a mempool's lifetime.
+ *
+ * Check pa_shm->fd and pa_mempool_new() for further context. */
+int pa_mempool_take_memfd_fd(pa_mempool *p) {
+    int memfd_fd;
+
+    pa_assert(p);
+    pa_assert(pa_mempool_is_shared(p));
+    pa_assert(pa_mempool_is_memfd_backed(p));
+    pa_assert(pa_mempool_is_per_client(p));
+
+    pa_mutex_lock(p->mutex);
+
+    memfd_fd = p->memory.fd;
+    p->memory.fd = -1;
+
+    pa_mutex_unlock(p->mutex);
+
+    pa_assert(memfd_fd != -1);
+    return memfd_fd;
+}
+
+/* No lock necessary
+ *
+ * This is only for global mempools!
+ *
+ * Global mempools have their memfd descriptor always open. DO NOT
+ * close the returned descriptor by your own.
+ *
+ * Check pa_mempool_new() for further context. */
+int pa_mempool_get_memfd_fd(pa_mempool *p) {
+    int memfd_fd;
+
+    pa_assert(p);
+    pa_assert(pa_mempool_is_shared(p));
+    pa_assert(pa_mempool_is_memfd_backed(p));
+    pa_assert(pa_mempool_is_global(p));
+
+    memfd_fd = p->memory.fd;
+    pa_assert(memfd_fd != -1);
+
+    return memfd_fd;
 }
 
 /* For receiving blocks from other nodes */

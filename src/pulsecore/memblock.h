@@ -124,7 +124,7 @@ pa_mempool * pa_memblock_get_pool(pa_memblock *b);
 pa_memblock *pa_memblock_will_need(pa_memblock *b);
 
 /* The memory block manager */
-pa_mempool *pa_mempool_new(pa_mem_type_t type, size_t size);
+pa_mempool *pa_mempool_new(pa_mem_type_t type, size_t size, bool per_client);
 void pa_mempool_unref(pa_mempool *p);
 pa_mempool* pa_mempool_ref(pa_mempool *p);
 const pa_mempool_stat* pa_mempool_get_stat(pa_mempool *p);
@@ -132,9 +132,14 @@ void pa_mempool_vacuum(pa_mempool *p);
 int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id);
 bool pa_mempool_is_shared(pa_mempool *p);
 bool pa_mempool_is_memfd_backed(const pa_mempool *p);
+bool pa_mempool_is_global(pa_mempool *p);
+bool pa_mempool_is_per_client(pa_mempool *p);
 bool pa_mempool_is_remote_writable(pa_mempool *p);
 void pa_mempool_set_is_remote_writable(pa_mempool *p, bool writable);
 size_t pa_mempool_block_size_max(pa_mempool *p);
+
+int pa_mempool_take_memfd_fd(pa_mempool *p);
+int pa_mempool_get_memfd_fd(pa_mempool *p);
 
 /* For receiving blocks from other nodes */
 pa_memimport* pa_memimport_new(pa_mempool *p, pa_memimport_release_cb_t cb, void *userdata);
