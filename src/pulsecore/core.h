@@ -177,10 +177,8 @@ struct pa_core {
     PA_LLIST_HEAD(pa_subscription_event, subscription_event_queue);
     pa_subscription_event *subscription_event_last;
 
-    /* The mempool is used for data we write to, it's readonly for the client.
-       The rw_mempool is used for data writable by both server and client (and
-       can be NULL in some cases). */
-    pa_mempool *mempool, *rw_mempool;
+    /* The mempool is used for data we write to, it's readonly for the client. */
+    pa_mempool *mempool;
 
     /* Shared memory size, as specified either by daemon configuration
      * or PA daemon defaults (~ 64 MiB). */

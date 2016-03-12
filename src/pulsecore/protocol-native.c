@@ -173,6 +173,12 @@ struct pa_native_connection {
     bool is_local:1;
     uint32_t version;
     pa_client *client;
+    /* R/W mempool, one per client connection, for srbchannel transport.
+     * Both server and client can write to this shm area.
+     *
+     * Note: This will be NULL if our connection with the client does
+     * not support srbchannels */
+    pa_mempool *rw_mempool;
     pa_pstream *pstream;
     pa_pdispatch *pdispatch;
     pa_idxset *record_streams, *output_streams;
@@ -1371,6 +1377,9 @@ static void native_connection_free(pa_object *o) {
 
     pa_pdispatch_unref(c->pdispatch);
     pa_pstream_unref(c->pstream);
+    if (c->rw_mempool)
+        pa_mempool_unref(c->rw_mempool);
+
     pa_client_free(c->client);
 
     pa_xfree(c);
@@ -2606,14 +2615,25 @@ static void setup_srbchannel(pa_native_connection *c) {
         return;
     }
 
-    if (!c->protocol->core->rw_mempool) {
-        pa_log_debug("Disabling srbchannel, reason: No rw memory pool");
+    if (c->rw_mempool) {
+        pa_log_debug("Ignoring srbchannel setup, reason: received COMMAND_AUTH "
+                     "more than once");
         return;
     }
 
-    srb = pa_srbchannel_new(c->protocol->core->mainloop, c->protocol->core->rw_mempool);
+    if (!(c->rw_mempool = pa_mempool_new(true, c->protocol->core->shm_size))) {
+        pa_log_warn("Disabling srbchannel, reason: Failed to allocate shared "
+                    "writable memory pool.");
+        return;
+    }
+    pa_mempool_set_is_remote_writable(c->rw_mempool, true);
+
+    srb = pa_srbchannel_new(c->protocol->core->mainloop, c->rw_mempool);
     if (!srb) {
         pa_log_debug("Failed to create srbchannel");
+
+        pa_mempool_unref(c->rw_mempool);
+        c->rw_mempool = NULL;
         return;
     }
     pa_log_debug("Enabling srbchannel...");
@@ -5124,6 +5144,8 @@ void pa_native_protocol_connect(pa_native_protocol *p, pa_iochannel *io, pa_nati
     c->client->kill = client_kill_cb;
     c->client->send_event = client_send_event_cb;
     c->client->userdata = c;
+
+    c->rw_mempool = NULL;
 
     c->pstream = pa_pstream_new(p->core->mainloop, io, p->core->mempool);
     pa_pstream_set_receive_packet_callback(c->pstream, pstream_packet_callback, c);
