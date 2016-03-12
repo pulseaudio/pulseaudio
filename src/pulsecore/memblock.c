@@ -100,6 +100,28 @@ struct pa_memimport_segment {
     bool writable;
 };
 
+/*
+ * If true, this segment's lifetime will not be limited by the
+ * number of active blocks (seg->n_blocks) using its shared memory.
+ * Rather, it will exist for the full lifetime of the memimport it
+ * is attached to.
+ *
+ * This is done to support memfd blocks transport.
+ *
+ * To transfer memfd-backed blocks without passing their fd every
+ * time, thus minimizing overhead and avoiding fd leaks, a command
+ * is sent with the memfd fd as ancil data very early on.
+ *
+ * This command has an ID that identifies the memfd region. Further
+ * block references are then exclusively done using this ID. On the
+ * receiving end, such logic is enabled by the memimport's segment
+ * hash and 'permanent' segments below.
+ */
+static bool segment_is_permanent(pa_memimport_segment *seg) {
+    pa_assert(seg);
+    return seg->memory.type == PA_MEM_TYPE_SHARED_MEMFD;
+}
+
 /* A collection of multiple segments */
 struct pa_memimport {
     pa_mutex *mutex;
@@ -930,6 +952,13 @@ bool pa_mempool_is_shared(pa_mempool *p) {
 }
 
 /* No lock necessary */
+bool pa_mempool_is_memfd_backed(const pa_mempool *p) {
+    pa_assert(p);
+
+    return (p->memory.type == PA_MEM_TYPE_SHARED_MEMFD);
+}
+
+/* No lock necessary */
 int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id) {
     pa_assert(p);
 
@@ -983,15 +1012,17 @@ pa_memimport* pa_memimport_new(pa_mempool *p, pa_memimport_release_cb_t cb, void
 static void memexport_revoke_blocks(pa_memexport *e, pa_memimport *i);
 
 /* Should be called locked */
-static pa_memimport_segment* segment_attach(pa_memimport *i, uint32_t shm_id, bool writable) {
+static pa_memimport_segment* segment_attach(pa_memimport *i, pa_mem_type_t type, uint32_t shm_id,
+                                            int memfd_fd, bool writable) {
     pa_memimport_segment* seg;
+    pa_assert(pa_mem_type_is_shared(type));
 
     if (pa_hashmap_size(i->segments) >= PA_MEMIMPORT_SEGMENTS_MAX)
         return NULL;
 
     seg = pa_xnew0(pa_memimport_segment, 1);
 
-    if (pa_shm_attach(&seg->memory, shm_id, writable) < 0) {
+    if (pa_shm_attach(&seg->memory, type, shm_id, memfd_fd, writable) < 0) {
         pa_xfree(seg);
         return NULL;
     }
@@ -1007,6 +1038,7 @@ static pa_memimport_segment* segment_attach(pa_memimport *i, uint32_t shm_id, bo
 /* Should be called locked */
 static void segment_detach(pa_memimport_segment *seg) {
     pa_assert(seg);
+    pa_assert(seg->n_blocks == (segment_is_permanent(seg) ? 1 : 0));
 
     pa_hashmap_remove(seg->import->segments, PA_UINT32_TO_PTR(seg->memory.id));
     pa_shm_free(&seg->memory);
@@ -1021,6 +1053,8 @@ static void segment_detach(pa_memimport_segment *seg) {
 void pa_memimport_free(pa_memimport *i) {
     pa_memexport *e;
     pa_memblock *b;
+    pa_memimport_segment *seg;
+    void *state = NULL;
 
     pa_assert(i);
 
@@ -1029,6 +1063,15 @@ void pa_memimport_free(pa_memimport *i) {
     while ((b = pa_hashmap_first(i->blocks)))
         memblock_replace_import(b);
 
+    /* Permanent segments exist for the lifetime of the memimport. Now
+     * that we're freeing the memimport itself, clear them all up.
+     *
+     * Careful! segment_detach() internally removes itself from the
+     * memimport's hash; the same hash we're now using for iteration. */
+    PA_HASHMAP_FOREACH(seg, i->segments, state) {
+        if (segment_is_permanent(seg))
+            segment_detach(seg);
+    }
     pa_assert(pa_hashmap_size(i->segments) == 0);
 
     pa_mutex_unlock(i->mutex);
@@ -1052,13 +1095,45 @@ void pa_memimport_free(pa_memimport *i) {
     pa_xfree(i);
 }
 
+/* Create a new memimport's memfd segment entry, with passed SHM ID
+ * as key and the newly-created segment (with its mmap()-ed memfd
+ * memory region) as its value.
+ *
+ * Note! check comments at 'pa_shm->fd', 'segment_is_permanent()',
+ * and 'pa_pstream_register_memfd_mempool()' for further details. */
+int pa_memimport_attach_memfd(pa_memimport *i, uint32_t shm_id, int memfd_fd, bool writable) {
+    pa_memimport_segment *seg;
+    int ret = -1;
+
+    pa_assert(i);
+    pa_assert(memfd_fd != -1);
+
+    pa_mutex_lock(i->mutex);
+
+    if (!(seg = segment_attach(i, PA_MEM_TYPE_SHARED_MEMFD, shm_id, memfd_fd, writable)))
+        goto finish;
+
+    /* n_blocks acts as a segment reference count. To avoid the segment
+     * being deleted when receiving silent memchunks, etc., mark our
+     * permanent presence by incrementing that refcount. */
+    seg->n_blocks++;
+
+    pa_assert(segment_is_permanent(seg));
+    ret = 0;
+
+finish:
+    pa_mutex_unlock(i->mutex);
+    return ret;
+}
+
 /* Self-locked */
-pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_id,
+pa_memblock* pa_memimport_get(pa_memimport *i, pa_mem_type_t type, uint32_t block_id, uint32_t shm_id,
                               size_t offset, size_t size, bool writable) {
     pa_memblock *b = NULL;
     pa_memimport_segment *seg;
 
     pa_assert(i);
+    pa_assert(pa_mem_type_is_shared(type));
 
     pa_mutex_lock(i->mutex);
 
@@ -1070,12 +1145,20 @@ pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_i
     if (pa_hashmap_size(i->blocks) >= PA_MEMIMPORT_SLOTS_MAX)
         goto finish;
 
-    if (!(seg = pa_hashmap_get(i->segments, PA_UINT32_TO_PTR(shm_id))))
-        if (!(seg = segment_attach(i, shm_id, writable)))
+    if (!(seg = pa_hashmap_get(i->segments, PA_UINT32_TO_PTR(shm_id)))) {
+        if (type == PA_MEM_TYPE_SHARED_MEMFD) {
+            pa_log("Bailing out! No cached memimport segment for memfd ID %u", shm_id);
+            pa_log("Did the other PA endpoint forget registering its memfd pool?");
             goto finish;
+        }
 
-    if (writable != seg->writable) {
-        pa_log("Cannot open segment - writable status changed!");
+        pa_assert(type == PA_MEM_TYPE_SHARED_POSIX);
+        if (!(seg = segment_attach(i, type, shm_id, -1, writable)))
+            goto finish;
+    }
+
+    if (writable && !seg->writable) {
+        pa_log("Cannot import cached segment in write mode - previously mapped as read-only");
         goto finish;
     }
 
@@ -1268,13 +1351,15 @@ static pa_memblock *memblock_shared_copy(pa_mempool *p, pa_memblock *b) {
 }
 
 /* Self-locked */
-int pa_memexport_put(pa_memexport *e, pa_memblock *b, uint32_t *block_id, uint32_t *shm_id, size_t *offset, size_t * size) {
-    pa_shm *memory;
+int pa_memexport_put(pa_memexport *e, pa_memblock *b, pa_mem_type_t *type, uint32_t *block_id,
+                     uint32_t *shm_id, size_t *offset, size_t * size) {
+    pa_shm  *memory;
     struct memexport_slot *slot;
     void *data;
 
     pa_assert(e);
     pa_assert(b);
+    pa_assert(type);
     pa_assert(block_id);
     pa_assert(shm_id);
     pa_assert(offset);
@@ -1312,12 +1397,14 @@ int pa_memexport_put(pa_memexport *e, pa_memblock *b, uint32_t *block_id, uint32
     } else {
         pa_assert(b->type == PA_MEMBLOCK_POOL || b->type == PA_MEMBLOCK_POOL_EXTERNAL);
         pa_assert(b->pool);
+        pa_assert(pa_mempool_is_shared(b->pool));
         memory = &b->pool->memory;
     }
 
     pa_assert(data >= memory->ptr);
     pa_assert((uint8_t*) data + b->length <= (uint8_t*) memory->ptr + memory->size);
 
+    *type = memory->type;
     *shm_id = memory->id;
     *offset = (size_t) ((uint8_t*) data - (uint8_t*) memory->ptr);
     *size = b->length;

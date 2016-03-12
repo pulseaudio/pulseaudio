@@ -536,6 +536,7 @@ static void prepare_next_write_item(pa_pstream *p) {
         flags = (uint32_t) (p->write.current->seek_mode & PA_FLAG_SEEKMASK);
 
         if (p->use_shm) {
+            pa_mem_type_t type;
             uint32_t block_id, shm_id;
             size_t offset, length;
             uint32_t *shm_info = (uint32_t *) &p->write.minibuf[PA_PSTREAM_DESCRIPTOR_SIZE];
@@ -550,10 +551,12 @@ static void prepare_next_write_item(pa_pstream *p) {
 
             if (pa_memexport_put(current_export,
                                  p->write.current->chunk.memblock,
+                                 &type,
                                  &block_id,
                                  &shm_id,
                                  &offset,
                                  &length) >= 0) {
+                pa_assert(type == PA_MEM_TYPE_SHARED_POSIX);
 
                 flags |= PA_FLAG_SHMDATA;
                 if (pa_mempool_is_remote_writable(current_pool))
@@ -891,6 +894,7 @@ static int do_read(pa_pstream *p, struct pstream_read *re) {
             pa_assert(p->import);
 
             if (!(b = pa_memimport_get(p->import,
+                                       PA_MEM_TYPE_SHARED_POSIX,
                                        ntohl(re->shm_info[PA_PSTREAM_SHM_BLOCKID]),
                                        ntohl(re->shm_info[PA_PSTREAM_SHM_SHMID]),
                                        ntohl(re->shm_info[PA_PSTREAM_SHM_INDEX]),

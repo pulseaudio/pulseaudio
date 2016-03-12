@@ -46,7 +46,7 @@ typedef struct pa_shm {
 } pa_shm;
 
 int pa_shm_create_rw(pa_shm *m, pa_mem_type_t type, size_t size, mode_t mode);
-int pa_shm_attach(pa_shm *m, unsigned id, bool writable);
+int pa_shm_attach(pa_shm *m, pa_mem_type_t type, unsigned id, int memfd_fd, bool writable);
 
 void pa_shm_punch(pa_shm *m, size_t offset, size_t size);
 

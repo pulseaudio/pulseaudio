@@ -74,6 +74,7 @@ START_TEST (memblock_test) {
     pa_memblock *mb_a, *mb_b, *mb_c;
     int r, i;
     pa_memblock* blocks[5];
+    pa_mem_type_t mem_type;
     uint32_t id, shm_id;
     size_t offset, size;
     char *x;
@@ -122,22 +123,22 @@ START_TEST (memblock_test) {
         import_c = pa_memimport_new(pool_c, release_cb, (void*) "C");
         fail_unless(import_b != NULL);
 
-        r = pa_memexport_put(export_a, mb_a, &id, &shm_id, &offset, &size);
+        r = pa_memexport_put(export_a, mb_a, &mem_type, &id, &shm_id, &offset, &size);
         fail_unless(r >= 0);
         fail_unless(shm_id == id_a);
 
         pa_log("A: Memory block exported as %u", id);
 
-        mb_b = pa_memimport_get(import_b, id, shm_id, offset, size, false);
+        mb_b = pa_memimport_get(import_b, PA_MEM_TYPE_SHARED_POSIX, id, shm_id, offset, size, false);
         fail_unless(mb_b != NULL);
-        r = pa_memexport_put(export_b, mb_b, &id, &shm_id, &offset, &size);
+        r = pa_memexport_put(export_b, mb_b, &mem_type, &id, &shm_id, &offset, &size);
         fail_unless(r >= 0);
         fail_unless(shm_id == id_a || shm_id == id_b);
         pa_memblock_unref(mb_b);
 
         pa_log("B: Memory block exported as %u", id);
 
-        mb_c = pa_memimport_get(import_c, id, shm_id, offset, size, false);
+        mb_c = pa_memimport_get(import_c, PA_MEM_TYPE_SHARED_POSIX, id, shm_id, offset, size, false);
         fail_unless(mb_c != NULL);
         x = pa_memblock_acquire(mb_c);
         pa_log_debug("1 data=%s", x);

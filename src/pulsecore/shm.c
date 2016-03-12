@@ -417,13 +417,8 @@ fail:
 }
 
 /* Caller owns passed @memfd_fd and must close it down when appropriate. */
-static int NEW_API_pa_shm_attach(pa_shm *m, pa_mem_type_t type, unsigned id, int memfd_fd, bool writable) {
+int pa_shm_attach(pa_shm *m, pa_mem_type_t type, unsigned id, int memfd_fd, bool writable) {
     return shm_attach(m, type, id, memfd_fd, writable, false);
-}
-
-/* Compatibility version until the new API is used in external sources */
-int pa_shm_attach(pa_shm *m, unsigned id, bool writable) {
-    return NEW_API_pa_shm_attach(m, PA_MEM_TYPE_SHARED_POSIX, id, -1, writable);
 }
 
 int pa_shm_cleanup(void) {
