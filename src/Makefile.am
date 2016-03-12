@@ -683,7 +683,7 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/memblock.c pulsecore/memblock.h \
 		pulsecore/memblockq.c pulsecore/memblockq.h \
 		pulsecore/memchunk.c pulsecore/memchunk.h \
-		pulsecore/native-common.h \
+		pulsecore/native-common.c pulsecore/native-common.h \
 		pulsecore/once.c pulsecore/once.h \
 		pulsecore/packet.c pulsecore/packet.h \
 		pulsecore/parseaddr.c pulsecore/parseaddr.h \

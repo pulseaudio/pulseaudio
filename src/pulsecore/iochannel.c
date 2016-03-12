@@ -450,6 +450,7 @@ ssize_t pa_iochannel_read_with_ancil_data(pa_iochannel*io, void*data, size_t l, 
                 }
                 memcpy(ancil_data->fds, CMSG_DATA(cmh), nfd * sizeof(int));
                 ancil_data->nfd = nfd;
+                ancil_data->close_fds_on_cleanup = true;
             }
         }
 

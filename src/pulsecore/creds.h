@@ -49,8 +49,13 @@ struct pa_cmsg_ancil_data {
     pa_creds creds;
     bool creds_valid;
     int nfd;
+
+    /* Don't close these fds by your own. Check pa_cmsg_ancil_data_close_fds() */
     int fds[MAX_ANCIL_DATA_FDS];
+    bool close_fds_on_cleanup;
 };
+
+void pa_cmsg_ancil_data_close_fds(struct pa_cmsg_ancil_data *ancil);
 
 #else
 #undef HAVE_CREDS

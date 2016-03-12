@@ -36,7 +36,7 @@
 
 typedef struct pa_pstream pa_pstream;
 
-typedef void (*pa_pstream_packet_cb_t)(pa_pstream *p, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data, void *userdata);
+typedef void (*pa_pstream_packet_cb_t)(pa_pstream *p, pa_packet *packet, pa_cmsg_ancil_data *ancil_data, void *userdata);
 typedef void (*pa_pstream_memblock_cb_t)(pa_pstream *p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata);
 typedef void (*pa_pstream_notify_cb_t)(pa_pstream *p, void *userdata);
 typedef void (*pa_pstream_block_id_cb_t)(pa_pstream *p, uint32_t block_id, void *userdata);
@@ -48,7 +48,9 @@ void pa_pstream_unref(pa_pstream*p);
 
 void pa_pstream_unlink(pa_pstream *p);
 
-void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data);
+int pa_pstream_attach_memfd_shmid(pa_pstream *p, unsigned shm_id, int memfd_fd);
+
+void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, pa_cmsg_ancil_data *ancil_data);
 void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk);
 void pa_pstream_send_release(pa_pstream *p, uint32_t block_id);
 void pa_pstream_send_revoke(pa_pstream *p, uint32_t block_id);
@@ -63,7 +65,9 @@ void pa_pstream_set_revoke_callback(pa_pstream *p, pa_pstream_block_id_cb_t cb, 
 bool pa_pstream_is_pending(pa_pstream *p);
 
 void pa_pstream_enable_shm(pa_pstream *p, bool enable);
+void pa_pstream_enable_memfd(pa_pstream *p);
 bool pa_pstream_get_shm(pa_pstream *p);
+bool pa_pstream_get_memfd(pa_pstream *p);
 
 /* Enables shared ringbuffer channel. Note that the srbchannel is now owned by the pstream.
    Setting srb to NULL will free any existing srbchannel. */

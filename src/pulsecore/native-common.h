@@ -24,6 +24,10 @@
 #include <pulse/cdecl.h>
 #include <pulse/def.h>
 
+#include <pulsecore/pdispatch.h>
+#include <pulsecore/pstream.h>
+#include <pulsecore/tagstruct.h>
+
 PA_C_DECL_BEGIN
 
 enum {
@@ -179,6 +183,10 @@ enum {
     PA_COMMAND_ENABLE_SRBCHANNEL,
     PA_COMMAND_DISABLE_SRBCHANNEL,
 
+    /* Supported since protocol v31 (9.0)
+     * BOTH DIRECTIONS */
+    PA_COMMAND_REGISTER_MEMFD_SHMID,
+
     PA_COMMAND_MAX
 };
 
@@ -192,6 +200,9 @@ enum {
 #define PA_NATIVE_SERVER_PROPERTY_NAME "protocol-native-server"
 
 #define PA_NATIVE_DEFAULT_UNIX_SOCKET "native"
+
+int pa_common_command_register_memfd_shmid(pa_pstream *p, pa_pdispatch *pd, uint32_t version,
+                                           uint32_t command, pa_tagstruct *t);
 
 PA_C_DECL_END
 

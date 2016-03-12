@@ -1778,7 +1778,7 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
 }
 
 /* Called from main context */
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, pa_cmsg_ancil_data *ancil_data, void *userdata) {
     struct userdata *u = userdata;
 
     pa_assert(p);

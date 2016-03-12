@@ -301,6 +301,7 @@ static void command_set_card_profile(pa_pdispatch *pd, uint32_t command, uint32_
 static void command_set_sink_or_source_port(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_set_port_latency_offset(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void command_register_memfd_shmid(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = NULL,
@@ -405,6 +406,8 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_SET_PORT_LATENCY_OFFSET] = command_set_port_latency_offset,
 
     [PA_COMMAND_ENABLE_SRBCHANNEL] = command_enable_srbchannel,
+
+    [PA_COMMAND_REGISTER_MEMFD_SHMID] = command_register_memfd_shmid,
 
     [PA_COMMAND_EXTENSION] = command_extension
 };
@@ -2646,7 +2649,7 @@ static void setup_srbchannel(pa_native_connection *c) {
     pa_tagstruct_putu32(t, (size_t) srb); /* tag */
     fdlist[0] = srbt.readfd;
     fdlist[1] = srbt.writefd;
-    pa_pstream_send_tagstruct_with_fds(c->pstream, t, 2, fdlist);
+    pa_pstream_send_tagstruct_with_fds(c->pstream, t, 2, fdlist, false);
 
     /* Send ringbuffer memblock to client */
     mc.memblock = srbt.memblock;
@@ -2803,6 +2806,16 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
 #endif
 
     setup_srbchannel(c);
+}
+
+static void command_register_memfd_shmid(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
+
+    pa_native_connection_assert_ref(c);
+    pa_assert(t);
+
+    if (pa_common_command_register_memfd_shmid(c->pstream, pd, c->version, command, t))
+        protocol_error(c);
 }
 
 static void command_set_client_name(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -4910,7 +4923,7 @@ static void command_set_port_latency_offset(pa_pdispatch *pd, uint32_t command, 
 
 /*** pstream callbacks ***/
 
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, pa_cmsg_ancil_data *ancil_data, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
 
     pa_assert(p);

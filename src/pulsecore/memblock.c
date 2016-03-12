@@ -1107,7 +1107,8 @@ pa_memimport* pa_memimport_new(pa_mempool *p, pa_memimport_release_cb_t cb, void
 
 static void memexport_revoke_blocks(pa_memexport *e, pa_memimport *i);
 
-/* Should be called locked */
+/* Should be called locked
+ * Caller owns passed @memfd_fd and must close it down when appropriate. */
 static pa_memimport_segment* segment_attach(pa_memimport *i, pa_mem_type_t type, uint32_t shm_id,
                                             int memfd_fd, bool writable) {
     pa_memimport_segment* seg;
@@ -1196,7 +1197,9 @@ void pa_memimport_free(pa_memimport *i) {
  * memory region) as its value.
  *
  * Note! check comments at 'pa_shm->fd', 'segment_is_permanent()',
- * and 'pa_pstream_register_memfd_mempool()' for further details. */
+ * and 'pa_pstream_register_memfd_mempool()' for further details.
+ *
+ * Caller owns passed @memfd_fd and must close it down when appropriate. */
 int pa_memimport_attach_memfd(pa_memimport *i, uint32_t shm_id, int memfd_fd, bool writable) {
     pa_memimport_segment *seg;
     int ret = -1;

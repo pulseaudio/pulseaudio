@@ -39,7 +39,7 @@ pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *m, bool use_rtclock, const pa_pd
 void pa_pdispatch_unref(pa_pdispatch *pd);
 pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd);
 
-int pa_pdispatch_run(pa_pdispatch *pd, pa_packet *p, const pa_cmsg_ancil_data *ancil_data, void *userdata);
+int pa_pdispatch_run(pa_pdispatch *pd, pa_packet *p, pa_cmsg_ancil_data *ancil_data, void *userdata);
 
 void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_cb_t callback, void *userdata, pa_free_cb_t free_cb);
 
@@ -51,7 +51,6 @@ void pa_pdispatch_set_drain_callback(pa_pdispatch *pd, pa_pdispatch_drain_cb_t c
 void pa_pdispatch_unregister_reply(pa_pdispatch *pd, void *userdata);
 
 const pa_creds * pa_pdispatch_creds(pa_pdispatch *pd);
-
-const int * pa_pdispatch_fds(pa_pdispatch *pd, int *nfd);
+pa_cmsg_ancil_data *pa_pdispatch_take_ancil_data(pa_pdispatch *pd);
 
 #endif

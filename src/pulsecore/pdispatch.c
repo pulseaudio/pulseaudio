@@ -195,6 +195,10 @@ static const char *command_names[PA_COMMAND_MAX] = {
     /* BOTH DIRECTIONS */
     [PA_COMMAND_ENABLE_SRBCHANNEL] = "ENABLE_SRBCHANNEL",
     [PA_COMMAND_DISABLE_SRBCHANNEL] = "DISABLE_SRBCHANNEL",
+
+    /* Supported since protocol v31 (9.0) */
+    /* BOTH DIRECTIONS */
+    [PA_COMMAND_REGISTER_MEMFD_SHMID] = "REGISTER_MEMFD_SHMID",
 };
 
 #endif
@@ -219,7 +223,7 @@ struct pa_pdispatch {
     PA_LLIST_HEAD(struct reply_info, replies);
     pa_pdispatch_drain_cb_t drain_callback;
     void *drain_userdata;
-    const pa_cmsg_ancil_data *ancil_data;
+    pa_cmsg_ancil_data *ancil_data;
     bool use_rtclock;
 };
 
@@ -289,7 +293,7 @@ static void run_action(pa_pdispatch *pd, struct reply_info *r, uint32_t command,
     pa_pdispatch_unref(pd);
 }
 
-int pa_pdispatch_run(pa_pdispatch *pd, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data, void *userdata) {
+int pa_pdispatch_run(pa_pdispatch *pd, pa_packet *packet, pa_cmsg_ancil_data *ancil_data, void *userdata) {
     uint32_t tag, command;
     pa_tagstruct *ts = NULL;
     int ret = -1;
@@ -448,18 +452,24 @@ const pa_creds * pa_pdispatch_creds(pa_pdispatch *pd) {
     return NULL;
 }
 
-const int * pa_pdispatch_fds(pa_pdispatch *pd, int *nfd) {
+/* Should be called only once during the dispatcher lifetime
+ *
+ * If the returned ancillary data contains any fds, caller maintains sole
+ * responsibility of closing them down using pa_cmsg_ancil_data_close_fds() */
+pa_cmsg_ancil_data *pa_pdispatch_take_ancil_data(pa_pdispatch *pd) {
+    pa_cmsg_ancil_data *ancil;
+
     pa_assert(pd);
     pa_assert(PA_REFCNT_VALUE(pd) >= 1);
-    pa_assert(nfd);
 
-    if (pd->ancil_data) {
-         *nfd = pd->ancil_data->nfd;
-         return pd->ancil_data->fds;
-    }
+    ancil = pd->ancil_data;
 
-    *nfd = 0;
-    return NULL;
+    /* iochannel guarantees us that nfd will always be capped */
+    if (ancil)
+        pa_assert(ancil->nfd <= MAX_ANCIL_DATA_FDS);
+
+    pd->ancil_data = NULL;
+    return ancil;
 }
 
 #endif

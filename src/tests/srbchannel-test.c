@@ -34,7 +34,7 @@ static unsigned packets_received;
 static unsigned packets_checksum;
 static size_t packets_length;
 
-static void packet_received(pa_pstream *p, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data, void *userdata) {
+static void packet_received(pa_pstream *p, pa_packet *packet, pa_cmsg_ancil_data *ancil_data, void *userdata) {
     const uint8_t *pdata;
     size_t plen;
     unsigned i;

@@ -27,11 +27,13 @@
 
 /* The tagstruct is freed!*/
 void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const pa_creds *creds);
-void pa_pstream_send_tagstruct_with_fds(pa_pstream *p, pa_tagstruct *t, int nfd, const int *fds);
+void pa_pstream_send_tagstruct_with_fds(pa_pstream *p, pa_tagstruct *t, int nfd, const int *fds, bool close_fds);
 
 #define pa_pstream_send_tagstruct(p, t) pa_pstream_send_tagstruct_with_creds((p), (t), NULL)
 
 void pa_pstream_send_error(pa_pstream *p, uint32_t tag, uint32_t error);
 void pa_pstream_send_simple_ack(pa_pstream *p, uint32_t tag);
+
+int pa_pstream_register_memfd_mempool(pa_pstream *p, pa_mempool *pool, const char **fail_reason);
 
 #endif

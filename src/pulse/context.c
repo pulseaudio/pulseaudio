@@ -69,6 +69,7 @@
 void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void pa_command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void pa_command_disable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void pa_command_register_memfd_shmid(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = pa_command_request,
@@ -90,6 +91,7 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_RECORD_BUFFER_ATTR_CHANGED] = pa_command_stream_buffer_attr,
     [PA_COMMAND_ENABLE_SRBCHANNEL] = pa_command_enable_srbchannel,
     [PA_COMMAND_DISABLE_SRBCHANNEL] = pa_command_disable_srbchannel,
+    [PA_COMMAND_REGISTER_MEMFD_SHMID] = pa_command_register_memfd_shmid,
 };
 static void context_free(pa_context *c);
 
@@ -330,7 +332,7 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
     pa_context_fail(c, PA_ERR_CONNECTIONTERMINATED);
 }
 
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_cmsg_ancil_data *ancil_data, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, pa_cmsg_ancil_data *ancil_data, void *userdata) {
     pa_context *c = userdata;
 
     pa_assert(p);
@@ -1432,8 +1434,7 @@ static void pa_command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uin
     pa_context *c = userdata;
 
 #ifdef HAVE_CREDS
-    const int *fds;
-    int nfd;
+    pa_cmsg_ancil_data *ancil = NULL;
 
     pa_assert(pd);
     pa_assert(command == PA_COMMAND_ENABLE_SRBCHANNEL);
@@ -1441,26 +1442,34 @@ static void pa_command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uin
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
-    /* Currently only one srb channel is supported, might change in future versions */
-    if (c->srb_template.readfd != -1) {
-        pa_context_fail(c, PA_ERR_PROTOCOL);
-        return;
-    }
+    ancil = pa_pdispatch_take_ancil_data(pd);
+    if (!ancil)
+        goto fail;
 
-    fds = pa_pdispatch_fds(pd, &nfd);
-    if (nfd != 2 || !fds || fds[0] == -1 || fds[1] == -1) {
-        pa_context_fail(c, PA_ERR_PROTOCOL);
-        return;
-    }
+    /* Currently only one srb channel is supported, might change in future versions */
+    if (c->srb_template.readfd != -1)
+        goto fail;
+
+    if (ancil->nfd != 2 || ancil->fds[0] == -1 || ancil->fds[1] == -1)
+        goto fail;
 
     pa_context_ref(c);
 
-    c->srb_template.readfd = fds[0];
-    c->srb_template.writefd = fds[1];
+    c->srb_template.readfd = ancil->fds[0];
+    c->srb_template.writefd = ancil->fds[1];
     c->srb_setup_tag = tag;
 
     pa_context_unref(c);
 
+    ancil->close_fds_on_cleanup = false;
+    return;
+
+fail:
+    if (ancil)
+        pa_cmsg_ancil_data_close_fds(ancil);
+
+    pa_context_fail(c, PA_ERR_PROTOCOL);
+    return;
 #else
     pa_assert(c);
     pa_context_fail(c, PA_ERR_PROTOCOL);
@@ -1493,6 +1502,18 @@ static void pa_command_disable_srbchannel(pa_pdispatch *pd, uint32_t command, ui
     pa_pstream_send_tagstruct(c->pstream, t2);
 }
 
+static void pa_command_register_memfd_shmid(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_context *c = userdata;
+
+    pa_assert(pd);
+    pa_assert(command == PA_COMMAND_REGISTER_MEMFD_SHMID);
+    pa_assert(t);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    if (pa_common_command_register_memfd_shmid(c->pstream, pd, c->version, command, t))
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+}
 
 void pa_command_client_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
