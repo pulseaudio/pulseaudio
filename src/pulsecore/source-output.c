@@ -1227,31 +1227,6 @@ int pa_source_output_set_rate(pa_source_output *o, uint32_t rate) {
 }
 
 /* Called from main context */
-void pa_source_output_set_name(pa_source_output *o, const char *name) {
-    const char *old;
-    pa_assert_ctl_context();
-    pa_source_output_assert_ref(o);
-
-    if (!name && !pa_proplist_contains(o->proplist, PA_PROP_MEDIA_NAME))
-        return;
-
-    old = pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME);
-
-    if (old && name && pa_streq(old, name))
-        return;
-
-    if (name)
-        pa_proplist_sets(o->proplist, PA_PROP_MEDIA_NAME, name);
-    else
-        pa_proplist_unset(o->proplist, PA_PROP_MEDIA_NAME);
-
-    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state)) {
-        pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
-        pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
-    }
-}
-
-/* Called from main context */
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
     pa_source_output_assert_ref(o);
     pa_assert_ctl_context();

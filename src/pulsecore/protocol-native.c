@@ -4486,7 +4486,7 @@ static void command_set_stream_name(pa_pdispatch *pd, uint32_t command, uint32_t
         CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
         CHECK_VALIDITY(c->pstream, playback_stream_isinstance(s), tag, PA_ERR_NOENTITY);
 
-        pa_sink_input_set_name(s->sink_input, name);
+        pa_sink_input_set_property(s->sink_input, PA_PROP_MEDIA_NAME, name);
 
     } else {
         record_stream *s;
@@ -4495,7 +4495,7 @@ static void command_set_stream_name(pa_pdispatch *pd, uint32_t command, uint32_t
         s = pa_idxset_get_by_index(c->record_streams, idx);
         CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
-        pa_source_output_set_name(s->source_output, name);
+        pa_source_output_set_property(s->source_output, PA_PROP_MEDIA_NAME, name);
     }
 
     pa_pstream_send_simple_ack(c->pstream, tag);

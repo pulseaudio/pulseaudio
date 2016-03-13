@@ -1575,31 +1575,6 @@ int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate) {
 }
 
 /* Called from main context */
-void pa_sink_input_set_name(pa_sink_input *i, const char *name) {
-    const char *old;
-    pa_sink_input_assert_ref(i);
-    pa_assert_ctl_context();
-
-    if (!name && !pa_proplist_contains(i->proplist, PA_PROP_MEDIA_NAME))
-        return;
-
-    old = pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME);
-
-    if (old && name && pa_streq(old, name))
-        return;
-
-    if (name)
-        pa_proplist_sets(i->proplist, PA_PROP_MEDIA_NAME, name);
-    else
-        pa_proplist_unset(i->proplist, PA_PROP_MEDIA_NAME);
-
-    if (PA_SINK_INPUT_IS_LINKED(i->state)) {
-        pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], i);
-        pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
-    }
-}
-
-/* Called from main context */
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_ctl_context();

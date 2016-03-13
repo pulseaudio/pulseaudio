@@ -335,8 +335,6 @@ int pa_sink_input_new(
 void pa_sink_input_put(pa_sink_input *i);
 void pa_sink_input_unlink(pa_sink_input* i);
 
-void pa_sink_input_set_name(pa_sink_input *i, const char *name);
-
 pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec);
 
 /* Request that the specified number of bytes already written out to

@@ -291,8 +291,6 @@ int pa_source_output_new(
 void pa_source_output_put(pa_source_output *o);
 void pa_source_output_unlink(pa_source_output*o);
 
-void pa_source_output_set_name(pa_source_output *o, const char *name);
-
 pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t usec);
 
 void pa_source_output_cork(pa_source_output *o, bool b);
