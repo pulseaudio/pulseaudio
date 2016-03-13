@@ -1187,6 +1187,9 @@ bool pa_source_output_may_move_to(pa_source_output *o, pa_source *dest) {
     if (dest == o->source)
         return true;
 
+    if (dest->unlink_requested)
+        return false;
+
     if (!pa_source_output_may_move(o))
         return false;
 

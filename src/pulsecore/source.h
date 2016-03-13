@@ -64,6 +64,12 @@ struct pa_source {
     pa_core *core;
 
     pa_source_state_t state;
+
+    /* Set in the beginning of pa_source_unlink() before setting the source
+     * state to UNLINKED. The purpose is to prevent moving streams to a source
+     * that is about to be removed. */
+    bool unlink_requested;
+
     pa_source_flags_t flags;
     pa_suspend_cause_t suspend_cause;
 

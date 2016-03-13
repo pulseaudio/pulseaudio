@@ -1538,6 +1538,9 @@ bool pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
     if (dest == i->sink)
         return true;
 
+    if (dest->unlink_requested)
+        return false;
+
     if (!pa_sink_input_may_move(i))
         return false;
 

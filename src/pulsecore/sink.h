@@ -63,6 +63,12 @@ struct pa_sink {
     pa_core *core;
 
     pa_sink_state_t state;
+
+    /* Set in the beginning of pa_sink_unlink() before setting the sink state
+     * to UNLINKED. The purpose is to prevent moving streams to a sink that is
+     * about to be removed. */
+    bool unlink_requested;
+
     pa_sink_flags_t flags;
     pa_suspend_cause_t suspend_cause;
 

@@ -618,6 +618,11 @@ void pa_source_unlink(pa_source *s) {
     /* See pa_sink_unlink() for a couple of comments how this function
      * works. */
 
+    if (s->unlink_requested)
+        return;
+
+    s->unlink_requested = true;
+
     linked = PA_SOURCE_IS_LINKED(s->state);
 
     if (linked)

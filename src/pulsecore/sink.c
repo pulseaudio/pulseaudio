@@ -676,9 +676,10 @@ void pa_sink_unlink(pa_sink* s) {
      * reversing pa_sink_put(). It also undoes the registrations
      * already done in pa_sink_new()! */
 
-    /* All operations here shall be idempotent, i.e. pa_sink_unlink()
-     * may be called multiple times on the same sink without bad
-     * effects. */
+    if (s->unlink_requested)
+        return;
+
+    s->unlink_requested = true;
 
     linked = PA_SINK_IS_LINKED(s->state);
 
