@@ -176,9 +176,9 @@ esac
 
 #### Compiler flags ####
 
-AX_CHECK_COMPILE_FLAG([-std=c11],
+AX_CHECK_COMPILE_FLAG([-std=gnu11],
    [],
-   [AC_MSG_ERROR([*** Compiler does not support -std=c11])],
+   [AC_MSG_ERROR([*** Compiler does not support -std=gnu11])],
    [-pedantic -Werror])
 
 AX_APPEND_COMPILE_FLAGS(
