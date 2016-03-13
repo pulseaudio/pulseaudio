@@ -547,9 +547,9 @@ int pa_stream_cancel_write(
 int pa_stream_write(
         pa_stream *p             /**< The stream to use */,
         const void *data         /**< The data to write */,
-        size_t nbytes            /**< The length of the data to write in bytes */,
+        size_t nbytes            /**< The length of the data to write in bytes, must be in multiples of the stream's sample spec frame size */,
         pa_free_cb_t free_cb     /**< A cleanup routine for the data or NULL to request an internal copy */,
-        int64_t offset,          /**< Offset for seeking, must be 0 for upload streams */
+        int64_t offset           /**< Offset for seeking, must be 0 for upload streams, must be in multiples of the stream's sample spec frame size */,
         pa_seek_mode_t seek      /**< Seek mode, must be PA_SEEK_RELATIVE for upload streams */);
 
 /** Function does exactly the same as pa_stream_write() with the difference
