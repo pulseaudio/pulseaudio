@@ -39,6 +39,17 @@
 #endif
 
 #ifdef HAVE_SYSTEMD_JOURNAL
+
+/* sd_journal_send() implicitly add fields for the source file,
+ * function name and code line from where it's invoked. As the
+ * correct code location fields CODE_FILE, CODE_LINE and
+ * CODE_FUNC are already handled by this module, we do not want
+ * the automatic values supplied by the systemd journal API.
+ *
+ * Without suppressing these, both the actual log event source
+ * and the call to sd_journal_send() will be logged. */
+#define SD_JOURNAL_SUPPRESS_LOCATION
+
 #include <systemd/sd-journal.h>
 #endif
 
