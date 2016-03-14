@@ -68,12 +68,17 @@ static GstCaps* caps_from_sample_spec(const pa_sample_spec *ss) {
 static bool init_send_pipeline(pa_rtp_context *c, int fd, uint8_t payload, size_t mtu, const pa_sample_spec *ss) {
     GstElement *appsrc = NULL, *pay = NULL, *capsf = NULL, *rtpbin = NULL, *sink = NULL;
     GstCaps *caps;
+    GSocket *socket;
+    GInetSocketAddress *addr;
+    GInetAddress *iaddr;
+    guint16 port;
+    gchar *addr_str;
 
     MAKE_ELEMENT(appsrc, "appsrc");
     MAKE_ELEMENT(pay, "rtpL16pay");
     MAKE_ELEMENT(capsf, "capsfilter");
     MAKE_ELEMENT(rtpbin, "rtpbin");
-    MAKE_ELEMENT(sink, "fdsink");
+    MAKE_ELEMENT(sink, "udpsink");
 
     c->pipeline = gst_pipeline_new(NULL);
 
@@ -85,9 +90,29 @@ static bool init_send_pipeline(pa_rtp_context *c, int fd, uint8_t payload, size_
         goto fail;
     }
 
+    socket = g_socket_new_from_fd(fd, NULL);
+    if (!socket) {
+        pa_log("Failed to create socket");
+        goto fail;
+    }
+
+    addr = G_INET_SOCKET_ADDRESS(g_socket_get_remote_address(socket, NULL));
+    iaddr = g_inet_socket_address_get_address(addr);
+    addr_str = g_inet_address_to_string(iaddr);
+    port = g_inet_socket_address_get_port(addr);
+
     g_object_set(appsrc, "caps", caps, "is-live", TRUE, "blocksize", mtu, "format", 3 /* time */, NULL);
     g_object_set(pay, "mtu", mtu, NULL);
-    g_object_set(sink, "fd", fd, "enable-last-sample", FALSE, NULL);
+    g_object_set(sink, "socket", socket, "host", addr_str, "port", port,
+                 "enable-last-sample", FALSE, "sync", FALSE, "loop",
+                 g_socket_get_multicast_loopback(socket), "ttl",
+                 g_socket_get_ttl(socket), "ttl-mc",
+                 g_socket_get_multicast_ttl(socket), "auto-multicast", FALSE,
+                 NULL);
+
+    g_free(addr_str);
+    g_object_unref(addr);
+    g_object_unref(socket);
 
     gst_caps_unref(caps);
 
