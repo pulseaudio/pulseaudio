@@ -233,6 +233,19 @@ int pa_rtp_send(pa_rtp_context *c, pa_memblockq *q) {
         return -1;
 
     while (!stop && pa_memblockq_peek(q, &chunk) == 0) {
+        GstClock *clock;
+        GstClockTime timestamp, clock_time;
+
+        clock = gst_element_get_clock(c->pipeline);
+        clock_time = gst_clock_get_time(clock);
+        gst_object_unref(clock);
+
+        timestamp = gst_element_get_base_time(c->pipeline);
+        if (timestamp > clock_time)
+          timestamp -= clock_time;
+        else
+          timestamp = 0;
+
         pa_assert(chunk.memblock);
 
         data = pa_memblock_acquire(chunk.memblock);
@@ -240,6 +253,8 @@ int pa_rtp_send(pa_rtp_context *c, pa_memblockq *q) {
         buf = gst_buffer_new_wrapped_full(GST_MEMORY_FLAG_READONLY | GST_MEMORY_FLAG_PHYSICALLY_CONTIGUOUS,
                                           data, chunk.length, chunk.index, chunk.length, chunk.memblock,
                                           (GDestroyNotify) free_buffer);
+
+        GST_BUFFER_PTS(buf) = timestamp;
 
         if (gst_app_src_push_buffer(GST_APP_SRC(c->appsrc), buf) != GST_FLOW_OK) {
             pa_log_error("Could not push buffer");
