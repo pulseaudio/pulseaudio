@@ -1940,7 +1940,8 @@ module_position_event_sounds_la_LIBADD = $(MODULE_LIBADD)
 module_position_event_sounds_la_CFLAGS = $(AM_CFLAGS)
 
 # Ducking effect based on stream roles
-module_role_ducking_la_SOURCES = modules/module-role-ducking.c
+module_role_ducking_la_SOURCES = modules/module-role-ducking.c \
+                                 modules/stream-interaction.c modules/stream-interaction.h
 module_role_ducking_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_role_ducking_la_LIBADD = $(MODULE_LIBADD)
 module_role_ducking_la_CFLAGS = $(AM_CFLAGS)
