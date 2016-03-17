@@ -22,6 +22,7 @@
 #endif
 
 #include <pulse/xmalloc.h>
+#include <pulse/volume.h>
 
 #include <pulsecore/macro.h>
 #include <pulsecore/hashmap.h>
@@ -35,10 +36,13 @@
 
 struct userdata {
     pa_core *core;
+    const char *name;
     pa_hashmap *interaction_state;
     pa_idxset *trigger_roles;
     pa_idxset *interaction_roles;
+    pa_volume_t volume;
     bool global:1;
+    bool duck:1;
     pa_hook_slot
         *sink_input_put_slot,
         *sink_input_unlink_slot,
@@ -100,17 +104,31 @@ static const char *find_global_trigger_stream(struct userdata *u, pa_sink *s, pa
     return trigger_role;
 }
 
-static void cork_stream(struct userdata *u, pa_sink_input *i, const char *interaction_role, const char *trigger_role) {
+static void cork_or_duck(struct userdata *u, pa_sink_input *i, const char *interaction_role,  const char *trigger_role, bool interaction_applied) {
 
-    pa_log_debug("Found a '%s' stream that corks/mutes a '%s' stream.", trigger_role, interaction_role);
-    pa_sink_input_set_mute(i, true, false);
-    pa_sink_input_send_event(i, PA_STREAM_EVENT_REQUEST_CORK, NULL);
+    if (u->duck && !interaction_applied) {
+        pa_cvolume vol;
+        vol.channels = 1;
+        vol.values[0] = u->volume;
+
+        pa_log_debug("Found a '%s' stream that ducks a '%s' stream.", trigger_role, interaction_role);
+        pa_sink_input_add_volume_factor(i, u->name, &vol);
+
+    } else if (!u->duck) {
+        pa_log_debug("Found a '%s' stream that corks/mutes a '%s' stream.", trigger_role, interaction_role);
+        pa_sink_input_set_mute(i, true, false);
+        pa_sink_input_send_event(i, PA_STREAM_EVENT_REQUEST_CORK, NULL);
+    }
 }
 
-static void uncork_stream(struct userdata *u, pa_sink_input *i, const char *interaction_role, bool corked) {
+static void uncork_or_unduck(struct userdata *u, pa_sink_input *i, const char *interaction_role, bool corked) {
 
-    pa_log_debug("Found a '%s' stream that should be uncorked/unmuted.", interaction_role);
-    if (corked || i->muted) {
+    if (u->duck) {
+       pa_log_debug("Found a '%s' stream that should be unducked", interaction_role);
+       pa_sink_input_remove_volume_factor(i, u->name);
+    }
+    else if (corked || i->muted) {
+       pa_log_debug("Found a '%s' stream that should be uncorked/unmuted.", interaction_role);
        if (i->muted)
           pa_sink_input_set_mute(i, false, false);
        if (corked)
@@ -149,15 +167,16 @@ static inline void apply_interaction_to_sink(struct userdata *u, pa_sink *s, con
         corked = (pa_sink_input_get_state(j) == PA_SINK_INPUT_CORKED);
         interaction_applied = !!pa_hashmap_get(u->interaction_state, j);
 
-        if (new_trigger && !corked && !j->muted) {
+        if (new_trigger && ((!corked && !j->muted) || u->duck)) {
             if (!interaction_applied)
                 pa_hashmap_put(u->interaction_state, j, PA_INT_TO_PTR(1));
 
-            cork_stream(u, j, role, new_trigger);
+            cork_or_duck(u, j, role, new_trigger, interaction_applied);
+
         } else if (!new_trigger && interaction_applied) {
             pa_hashmap_remove(u->interaction_state, j);
 
-            uncork_stream(u, j, role, corked);
+            uncork_or_unduck(u, j, role, corked);
         }
     }
 }
@@ -188,7 +207,7 @@ static void remove_interactions(struct userdata *u) {
            corked = (pa_sink_input_get_state(j) == PA_SINK_INPUT_CORKED);
            if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
               role = "no_role";
-           uncork_stream(u, j, role, corked);
+           uncork_or_unduck(u, j, role, corked);
          }
       }
    }
@@ -285,7 +304,18 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
     m->userdata = u = pa_xnew(struct userdata, 1);
 
     u->core = m->core;
+    u->name = m->name;
     u->interaction_state = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+
+    u->duck = false;
+    if (pa_streq(u->name, "module-role-ducking")) {
+        u->duck = true;
+        u->volume = pa_sw_volume_from_dB(-20);
+        if (pa_modargs_get_value_volume(ma, "volume", &u->volume) < 0) {
+           pa_log("Failed to parse a volume parameter: volume");
+           goto fail;
+        }
+    }
 
     u->trigger_roles = pa_idxset_new(NULL, NULL);
     roles = pa_modargs_get_value(ma, "trigger_roles", NULL);
@@ -305,7 +335,7 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
     }
 
     u->interaction_roles = pa_idxset_new(NULL, NULL);
-    roles = pa_modargs_get_value(ma, "cork_roles", NULL);
+    roles = pa_modargs_get_value(ma, u->duck ? "ducking_roles" : "cork_roles", NULL);
     if (roles) {
         const char *split_state = NULL;
         char *n = NULL;
@@ -317,7 +347,7 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
         }
     }
     if (pa_idxset_isempty(u->interaction_roles)) {
-        pa_log_debug("Using roles 'music' and 'video' as cork roles.");
+        pa_log_debug("Using roles 'music' and 'video' as %s roles.", u->duck ? "ducking" : "cork");
         pa_idxset_put(u->interaction_roles, pa_xstrdup("music"), NULL);
         pa_idxset_put(u->interaction_roles, pa_xstrdup("video"), NULL);
     }
