@@ -84,6 +84,22 @@ static const char *find_trigger_stream(struct userdata *u, pa_sink *s, pa_sink_i
     return NULL;
 }
 
+static const char *find_global_trigger_stream(struct userdata *u, pa_sink *s, pa_sink_input *ignore) {
+    const char *trigger_role = NULL;
+
+    pa_assert(u);
+
+    if (u->global) {
+        uint32_t idx;
+        PA_IDXSET_FOREACH(s, u->core->sinks, idx)
+            if ((trigger_role = find_trigger_stream(u, s, ignore)))
+                break;
+    } else
+        trigger_role = find_trigger_stream(u, s, ignore);
+
+    return trigger_role;
+}
+
 static void cork_stream(struct userdata *u, pa_sink_input *i, const char *interaction_role, const char *trigger_role) {
 
     pa_log_debug("Found a '%s' stream that corks/mutes a '%s' stream.", trigger_role, interaction_role);
@@ -190,7 +206,7 @@ static pa_hook_result_t process(struct userdata *u, pa_sink_input *i, bool creat
     if (!i->sink)
         return PA_HOOK_OK;
 
-    trigger_role = find_trigger_stream(u, i->sink, create ? NULL : i);
+    trigger_role = find_global_trigger_stream(u, i->sink, create ? NULL : i);
     apply_interaction(u, i->sink, trigger_role, create ? NULL : i);
 
     return PA_HOOK_OK;
