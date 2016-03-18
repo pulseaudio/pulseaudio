@@ -1205,7 +1205,8 @@ modlibexec_LTLIBRARIES += \
 		module-switch-on-port-available.la \
 		module-filter-apply.la \
 		module-filter-heuristics.la \
-		module-role-ducking.la
+		module-role-ducking.la \
+		module-allow-passthrough.la
 
 if HAVE_ESOUND
 modlibexec_LTLIBRARIES += \
@@ -1548,7 +1549,8 @@ SYMDEF_FILES = \
 		module-switch-on-connect-symdef.h \
 		module-switch-on-port-available-symdef.h \
 		module-filter-apply-symdef.h \
-		module-filter-heuristics-symdef.h
+		module-filter-heuristics-symdef.h \
+		module-allow-passthrough-symdef.h
 
 if HAVE_ESOUND
 SYMDEF_FILES += \
@@ -2206,6 +2208,12 @@ module_rygel_media_server_la_SOURCES = modules/module-rygel-media-server.c
 module_rygel_media_server_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_rygel_media_server_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) libprotocol-http.la
 module_rygel_media_server_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+
+# Allow passthrough module
+module_allow_passthrough_la_SOURCES = modules/module-allow-passthrough.c
+module_allow_passthrough_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_allow_passthrough_la_LIBADD = $(MODULE_LIBADD)
+module_allow_passthrough_la_CFLAGS = $(AM_CFLAGS)
 
 ###################################
 #        Some minor stuff         #
