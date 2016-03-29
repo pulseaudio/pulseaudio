@@ -329,7 +329,7 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
         goto fail;
     }
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
 
     u->core = m->core;
 
