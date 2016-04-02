@@ -191,6 +191,8 @@ finish:
     return ret;
 
 #else
-    pa_assert_not_reached();
+    pa_assert(fail_reason);
+    *fail_reason = "memfd support not compiled in";
+    return -1;
 #endif
 }

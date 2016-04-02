@@ -1135,7 +1135,7 @@ static pa_memimport_segment* segment_attach(pa_memimport *i, pa_mem_type_t type,
 /* Should be called locked */
 static void segment_detach(pa_memimport_segment *seg) {
     pa_assert(seg);
-    pa_assert(seg->n_blocks == (segment_is_permanent(seg) ? 1 : 0));
+    pa_assert(seg->n_blocks == (segment_is_permanent(seg) ? 1u : 0u));
 
     pa_hashmap_remove(seg->import->segments, PA_UINT32_TO_PTR(seg->memory.id));
     pa_shm_free(&seg->memory);
