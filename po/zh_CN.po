@@ -12,15 +12,16 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: https://bugs.freedesktop.org/enter_bug.cgi?"
 "product=PulseAudio&keywords=I18N+L10N&component=misc\n"
-"POT-Creation-Date: 2015-11-17 14:10+0000\n"
-"PO-Revision-Date: 2015-11-10 13:13-0500\n"
-"Last-Translator: Mingye Wang (Arthur2e5) <arthur200126@gmail.com>\n"
+"POT-Creation-Date: 2016-03-26 02:46+0000\n"
+"PO-Revision-Date: 2016-03-26 13:00+0800\n"
+"Last-Translator: Luo Lei <luolei@ubuntukylin.com>\n"
 "Language-Team: Chinese (Simplified, GNOME) <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.6\n"
+"X-Launchpad-Export-Date: 2016-03-22 13:23+0000\n"
+"X-Generator: Poedit 1.7.6\n"
 
 #: ../src/daemon/cmdline.c:111
 #, c-format
@@ -149,39 +150,39 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:243
 msgid "--daemonize expects boolean argument"
-msgstr "--daemonize 需要布尔值参数"
+msgstr "--daemonize 布尔参数"
 
 #: ../src/daemon/cmdline.c:251
 msgid "--fail expects boolean argument"
-msgstr "--fail 需要布尔值参数"
+msgstr "--fail 布尔参数"
 
 #: ../src/daemon/cmdline.c:262
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
-"--log-level 期待日志级别参数（可以是数字0～4或者debug，info，notice，warn，"
-"error中的一个）"
+"--log-level 日志级别参数(可以是数字 0～4 或者 debug、info、notice、warn 和 "
+"error 中的一个)"
 
 #: ../src/daemon/cmdline.c:274
 msgid "--high-priority expects boolean argument"
-msgstr "--high-priority 需要布尔值参数"
+msgstr "--high-priority 布尔参数"
 
 #: ../src/daemon/cmdline.c:282
 msgid "--realtime expects boolean argument"
-msgstr "--realtime 需要布尔值参数"
+msgstr "--realtime 布尔参数"
 
 #: ../src/daemon/cmdline.c:290
 msgid "--disallow-module-loading expects boolean argument"
-msgstr "--disallow-module-loading 需要布尔值参数"
+msgstr "--disallow-module-loading 布尔参数"
 
 #: ../src/daemon/cmdline.c:298
 msgid "--disallow-exit expects boolean argument"
-msgstr "--disallow-exit 需要布尔值参数"
+msgstr "--disallow-exit 布尔参数"
 
 #: ../src/daemon/cmdline.c:306
 msgid "--use-pid-file expects boolean argument"
-msgstr "--use-pid-file 需要布尔值参数"
+msgstr "--use-pid-file 布尔参数"
 
 #: ../src/daemon/cmdline.c:325
 msgid ""
@@ -201,63 +202,63 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:335
 msgid "--log-time expects boolean argument"
-msgstr "--log-time 需要布尔值参数"
+msgstr "--log-time 布尔参数"
 
 #: ../src/daemon/cmdline.c:343
 msgid "--log-meta expects boolean argument"
-msgstr "--log-meta 需要布尔值参数"
+msgstr "--log-meta 布尔参数"
 
 #: ../src/daemon/cmdline.c:363
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr "无效的重采样方法'%s'。"
+msgstr "无效的重采样方法 %s。"
 
 #: ../src/daemon/cmdline.c:370
 msgid "--system expects boolean argument"
-msgstr "--system 需要布尔值参数"
+msgstr "--system 布尔参数"
 
 #: ../src/daemon/cmdline.c:378
 msgid "--no-cpu-limit expects boolean argument"
-msgstr "--no-cpu-limit 需要布尔值参数"
+msgstr "--no-cpu-limit 布尔参数"
 
 #: ../src/daemon/cmdline.c:386
 msgid "--disable-shm expects boolean argument"
-msgstr "--disable-shm 需要布尔值参数"
+msgstr "--disable-shm 布尔参数"
 
 #: ../src/daemon/daemon-conf.c:259
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr "[%s:%u] 无效的日志目标'%s'。"
+msgstr "[%s:%u] 无效的日志目标 %s。"
 
 #: ../src/daemon/daemon-conf.c:274
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr "[%s:%u] 无效的日志级别'%s'。"
+msgstr "[%s:%u] 无效的日志级别 '%s。"
 
 #: ../src/daemon/daemon-conf.c:289
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr "[%s:%u] 无效的重采样方法'%s'。"
+msgstr "[%s:%u] 无效的重采样方法 %s。"
 
 #: ../src/daemon/daemon-conf.c:311
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr "[%s:%u] 无效的 rlimit '%s'。"
+msgstr "[%s:%u] 无效的运行限制 %s。"
 
 #: ../src/daemon/daemon-conf.c:331
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr "[%s:%u] 无效的采样格式'%s'。"
+msgstr "[%s:%u] 无效的采样格式 %s。"
 
 #: ../src/daemon/daemon-conf.c:348 ../src/daemon/daemon-conf.c:365
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr "[%s:%u] 无效的采样率'%s'。"
+msgstr "[%s:%u] 无效的采样率 %s。"
 
 #: ../src/daemon/daemon-conf.c:388
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr "[%s:%u] 无效的采样声道 '%s'。"
+msgstr "[%s:%u] 无效的采样声道 %s。"
 
 #: ../src/daemon/daemon-conf.c:405
 #, c-format
@@ -267,17 +268,17 @@ msgstr "[%s:%u] 无效声道映射 '%s'。"
 #: ../src/daemon/daemon-conf.c:422
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr "[%s:%u] 无效的分段数'%s'。"
+msgstr "[%s:%u] 无效的分片数 %s。"
 
 #: ../src/daemon/daemon-conf.c:439
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr "[%s:%u] 无效的分段大小'%s'。"
+msgstr "[%s:%u] 无效的分片大小 %s。"
 
 #: ../src/daemon/daemon-conf.c:456
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr "[%s:%u] 无效的静态优先级 '%s'。"
+msgstr "[%s:%u] 无效的优先级 %s。"
 
 #: ../src/daemon/daemon-conf.c:499
 #, c-format
@@ -313,7 +314,7 @@ msgstr "没有可用的模块信息\n"
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
 msgid "Version: %s\n"
-msgstr "版本号：%s\n"
+msgstr "版本：%s\n"
 
 #: ../src/daemon/dumpmodules.c:65
 #, c-format
@@ -338,7 +339,7 @@ msgstr "加载一次：%s\n"
 #: ../src/daemon/dumpmodules.c:72
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr "过时警告：%s\n"
+msgstr "旧接口警告：%s\n"
 
 #: ../src/daemon/dumpmodules.c:76
 #, c-format
@@ -356,7 +357,7 @@ msgstr "查找原始 lt_dlopen 加载器失败。"
 
 #: ../src/daemon/ltdl-bind-now.c:131
 msgid "Failed to allocate new dl loader."
-msgstr "分配新的 dl 加载器失败。"
+msgstr "分配新的动态加载器失败。"
 
 #: ../src/daemon/ltdl-bind-now.c:144
 msgid "Failed to add bind-now-loader."
@@ -365,27 +366,27 @@ msgstr "添加 bind-now-loader 失败。"
 #: ../src/daemon/main.c:160
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr "找不到用户 `%s' "
+msgstr "找不到用户 %s。"
 
 #: ../src/daemon/main.c:165
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr "找不到用户组 `%s'"
+msgstr "找不到组 %s。"
 
 #: ../src/daemon/main.c:174
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr "用户'%s'与组'%s'的GID不匹配."
+msgstr "用户 %s 与组 %s 的 GID 不匹配。"
 
 #: ../src/daemon/main.c:179
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr "用户'%s'的主文件夹不是'%s'，忽略。"
+msgstr "用户 %s 的主文件夹不是 %s，忽略。"
 
 #: ../src/daemon/main.c:182 ../src/daemon/main.c:187
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr "创建'%s'失败： %s"
+msgstr "创建 %s 失败：%s"
 
 #: ../src/daemon/main.c:194
 #, c-format
@@ -395,20 +396,20 @@ msgstr "更改组列表失败：%s"
 #: ../src/daemon/main.c:210
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr "更改GID失败：%s"
+msgstr "更改 GID 失败：%s"
 
 #: ../src/daemon/main.c:226
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr "更改UID失败：%s"
+msgstr "更改 UID 失败：%s"
 
 #: ../src/daemon/main.c:255
 msgid "System wide mode unsupported on this platform."
-msgstr "此平台不支持system-wide模式。"
+msgstr "此平台不支持系统全局模式。"
 
 #: ../src/daemon/main.c:484
 msgid "Failed to parse command line."
-msgstr "分析命令行失败。"
+msgstr "命令行解析失败"
 
 #: ../src/daemon/main.c:523
 msgid ""
@@ -419,13 +420,13 @@ msgstr "已拒绝非超级用户使用系统模式，仅启动 D-Bus 服务器�
 #: ../src/daemon/main.c:622
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr "杀死后台程序失败：%s"
+msgstr "杀死守护进程失败：%s"
 
 #: ../src/daemon/main.c:651
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr "不应以root身份运行本程序（除非指定 --system）。"
+msgstr "不应以 root 身份运行本程序(除非指定 --system 参数)。"
 
 #: ../src/daemon/main.c:654
 msgid "Root privileges required."
@@ -433,7 +434,7 @@ msgstr "需要 root 权限。"
 
 #: ../src/daemon/main.c:661
 msgid "--start not supported for system instances."
-msgstr "系统实例不支持 --start。"
+msgstr "系统实例不支持 --start 参数。"
 
 #: ../src/daemon/main.c:701
 #, c-format
@@ -464,7 +465,7 @@ msgstr "正在以系统模式运行，强制禁用退出空闲时间！"
 
 #: ../src/daemon/main.c:756
 msgid "Failed to acquire stdio."
-msgstr "获取stdio失败。"
+msgstr "获取 stdio 失败。"
 
 #: ../src/daemon/main.c:762 ../src/daemon/main.c:833
 #, c-format
@@ -483,7 +484,7 @@ msgstr "read() 失败：%s"
 
 #: ../src/daemon/main.c:788
 msgid "Daemon startup failed."
-msgstr "后台程序启动失败。"
+msgstr "守护程序启动失败。"
 
 #: ../src/daemon/main.c:821
 #, c-format
@@ -492,7 +493,7 @@ msgstr "setsid() 失败：%s"
 
 #: ../src/daemon/main.c:948
 msgid "Failed to get machine ID"
-msgstr "获取machine ID失败"
+msgstr "获取机器 ID 失败"
 
 #: ../src/daemon/main.c:974
 msgid ""
@@ -505,7 +506,7 @@ msgid ""
 "mode is usually a bad idea."
 msgstr ""
 "好的，那么您现在是在系统模式中运行 PA。请注意：您很可能不应该这样做。\n"
-"如果您无论如何都这样做了，那么出现意外情况就是您的问题。\n"
+"如果您坚持这么做，请做好接受意外情况的准备。\n"
 "请阅读 http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/"
 "User/WhatIsWrongWithSystemWide/ 以了解为什么系统模式通常不是个好主意。"
 
@@ -519,11 +520,11 @@ msgstr "pa_core_new() 失败。"
 
 #: ../src/daemon/main.c:1089
 msgid "Failed to initialize daemon."
-msgstr "后台程序初始化失败。"
+msgstr "初始化守护进程失败。"
 
 #: ../src/daemon/main.c:1094
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr "后台程序启动未加载任何模块，拒绝工作。"
+msgstr "守护进程未加载任何负载模块，拒绝工作。"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
@@ -533,155 +534,155 @@ msgstr "PulseAudio 声音系统"
 msgid "Start the PulseAudio Sound System"
 msgstr "启动 PulseAudio 声音系统"
 
-#: ../src/modules/alsa/alsa-mixer.c:2402
+#: ../src/modules/alsa/alsa-mixer.c:2378
 msgid "Input"
 msgstr "输入"
 
-#: ../src/modules/alsa/alsa-mixer.c:2403
+#: ../src/modules/alsa/alsa-mixer.c:2379
 msgid "Docking Station Input"
 msgstr "扩展坞输入"
 
-#: ../src/modules/alsa/alsa-mixer.c:2404
+#: ../src/modules/alsa/alsa-mixer.c:2380
 msgid "Docking Station Microphone"
-msgstr "扩展坞麦克风"
+msgstr "扩展坞话筒"
 
-#: ../src/modules/alsa/alsa-mixer.c:2405
+#: ../src/modules/alsa/alsa-mixer.c:2381
 msgid "Docking Station Line In"
 msgstr "扩展坞线输入"
 
-#: ../src/modules/alsa/alsa-mixer.c:2406 ../src/modules/alsa/alsa-mixer.c:2491
+#: ../src/modules/alsa/alsa-mixer.c:2382 ../src/modules/alsa/alsa-mixer.c:2467
 msgid "Line In"
-msgstr "Line In"
+msgstr "输入插孔"
 
-#: ../src/modules/alsa/alsa-mixer.c:2407 ../src/modules/alsa/alsa-mixer.c:2485
+#: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
 #: ../src/modules/bluetooth/module-bluez4-device.c:2099
 #: ../src/modules/bluetooth/module-bluez5-device.c:1710
 msgid "Microphone"
-msgstr "麦克风"
+msgstr "话筒"
 
-#: ../src/modules/alsa/alsa-mixer.c:2408 ../src/modules/alsa/alsa-mixer.c:2486
+#: ../src/modules/alsa/alsa-mixer.c:2384 ../src/modules/alsa/alsa-mixer.c:2462
 msgid "Front Microphone"
 msgstr "前麦克风"
 
-#: ../src/modules/alsa/alsa-mixer.c:2409 ../src/modules/alsa/alsa-mixer.c:2487
+#: ../src/modules/alsa/alsa-mixer.c:2385 ../src/modules/alsa/alsa-mixer.c:2463
 msgid "Rear Microphone"
 msgstr "后麦克风"
 
-#: ../src/modules/alsa/alsa-mixer.c:2410
+#: ../src/modules/alsa/alsa-mixer.c:2386
 msgid "External Microphone"
-msgstr "外部麦克风"
+msgstr "外部话筒"
 
-#: ../src/modules/alsa/alsa-mixer.c:2411 ../src/modules/alsa/alsa-mixer.c:2489
+#: ../src/modules/alsa/alsa-mixer.c:2387 ../src/modules/alsa/alsa-mixer.c:2465
 msgid "Internal Microphone"
-msgstr "内部麦克风"
+msgstr "内部话筒"
 
-#: ../src/modules/alsa/alsa-mixer.c:2412 ../src/modules/alsa/alsa-mixer.c:2492
+#: ../src/modules/alsa/alsa-mixer.c:2388 ../src/modules/alsa/alsa-mixer.c:2468
 msgid "Radio"
 msgstr "无线电"
 
-#: ../src/modules/alsa/alsa-mixer.c:2413 ../src/modules/alsa/alsa-mixer.c:2493
+#: ../src/modules/alsa/alsa-mixer.c:2389 ../src/modules/alsa/alsa-mixer.c:2469
 msgid "Video"
 msgstr "视频"
 
-#: ../src/modules/alsa/alsa-mixer.c:2414
+#: ../src/modules/alsa/alsa-mixer.c:2390
 msgid "Automatic Gain Control"
 msgstr "自动增益控制"
 
-#: ../src/modules/alsa/alsa-mixer.c:2415
+#: ../src/modules/alsa/alsa-mixer.c:2391
 msgid "No Automatic Gain Control"
 msgstr "无自动增益控制"
 
-#: ../src/modules/alsa/alsa-mixer.c:2416
+#: ../src/modules/alsa/alsa-mixer.c:2392
 msgid "Boost"
-msgstr "加速器"
+msgstr "增强"
 
-#: ../src/modules/alsa/alsa-mixer.c:2417
+#: ../src/modules/alsa/alsa-mixer.c:2393
 msgid "No Boost"
-msgstr "无加速器"
+msgstr "无增强"
 
-#: ../src/modules/alsa/alsa-mixer.c:2418
+#: ../src/modules/alsa/alsa-mixer.c:2394
 msgid "Amplifier"
-msgstr "均衡器"
+msgstr "功放"
 
-#: ../src/modules/alsa/alsa-mixer.c:2419
+#: ../src/modules/alsa/alsa-mixer.c:2395
 msgid "No Amplifier"
-msgstr "无均衡器"
+msgstr "无功放"
 
-#: ../src/modules/alsa/alsa-mixer.c:2420
+#: ../src/modules/alsa/alsa-mixer.c:2396
 msgid "Bass Boost"
 msgstr "重低音增强"
 
-#: ../src/modules/alsa/alsa-mixer.c:2421
+#: ../src/modules/alsa/alsa-mixer.c:2397
 msgid "No Bass Boost"
 msgstr "无重低音增强"
 
-#: ../src/modules/alsa/alsa-mixer.c:2422
+#: ../src/modules/alsa/alsa-mixer.c:2398
 #: ../src/modules/bluetooth/module-bluez4-device.c:2104
 #: ../src/modules/bluetooth/module-bluez5-device.c:1717
 msgid "Speaker"
 msgstr "扬声器"
 
-#: ../src/modules/alsa/alsa-mixer.c:2423 ../src/modules/alsa/alsa-mixer.c:2495
+#: ../src/modules/alsa/alsa-mixer.c:2399 ../src/modules/alsa/alsa-mixer.c:2471
 msgid "Headphones"
 msgstr "模拟耳机"
 
-#: ../src/modules/alsa/alsa-mixer.c:2484
+#: ../src/modules/alsa/alsa-mixer.c:2460
 msgid "Analog Input"
 msgstr "模拟输入"
 
-#: ../src/modules/alsa/alsa-mixer.c:2488
+#: ../src/modules/alsa/alsa-mixer.c:2464
 msgid "Dock Microphone"
 msgstr "扩展坞麦克风"
 
-#: ../src/modules/alsa/alsa-mixer.c:2490
+#: ../src/modules/alsa/alsa-mixer.c:2466
 msgid "Headset Microphone"
 msgstr "头挂麦克风"
 
-#: ../src/modules/alsa/alsa-mixer.c:2494
+#: ../src/modules/alsa/alsa-mixer.c:2470
 msgid "Analog Output"
-msgstr "模拟输出 "
+msgstr "模拟输出"
 
-#: ../src/modules/alsa/alsa-mixer.c:2496
+#: ../src/modules/alsa/alsa-mixer.c:2472
 msgid "LFE on Separate Mono Output"
 msgstr "模拟输出（LFE）"
 
-#: ../src/modules/alsa/alsa-mixer.c:2497
+#: ../src/modules/alsa/alsa-mixer.c:2473
 msgid "Line Out"
 msgstr "线缆输出"
 
-#: ../src/modules/alsa/alsa-mixer.c:2498
+#: ../src/modules/alsa/alsa-mixer.c:2474
 msgid "Analog Mono Output"
 msgstr "模拟单声道输出"
 
-#: ../src/modules/alsa/alsa-mixer.c:2499
+#: ../src/modules/alsa/alsa-mixer.c:2475
 msgid "Speakers"
 msgstr "扬声器"
 
-#: ../src/modules/alsa/alsa-mixer.c:2500
+#: ../src/modules/alsa/alsa-mixer.c:2476
 msgid "HDMI / DisplayPort"
 msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2501
+#: ../src/modules/alsa/alsa-mixer.c:2477
 msgid "Digital Output (S/PDIF)"
 msgstr "数字输出 (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2502
+#: ../src/modules/alsa/alsa-mixer.c:2478
 msgid "Digital Input (S/PDIF)"
 msgstr "数字输入 (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2503
+#: ../src/modules/alsa/alsa-mixer.c:2479
 msgid "Digital Passthrough (S/PDIF)"
 msgstr "数字直通 (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2504
+#: ../src/modules/alsa/alsa-mixer.c:2480
 msgid "Multichannel Input"
 msgstr "多声道输入"
 
-#: ../src/modules/alsa/alsa-mixer.c:2505
+#: ../src/modules/alsa/alsa-mixer.c:2481
 msgid "Multichannel Output"
 msgstr "多声道输出"
 
-#: ../src/modules/alsa/alsa-mixer.c:4011
+#: ../src/modules/alsa/alsa-mixer.c:3990
 msgid "Analog Mono"
 msgstr "模拟单声道"
 
@@ -690,116 +691,116 @@ msgstr "模拟单声道"
 #. * here would lead to the source name to become "Analog Stereo Input
 #. * Input". The same logic applies to analog-stereo-output,
 #. * multichannel-input and multichannel-output.
-#: ../src/modules/alsa/alsa-mixer.c:4012 ../src/modules/alsa/alsa-mixer.c:4018
-#: ../src/modules/alsa/alsa-mixer.c:4019
+#: ../src/modules/alsa/alsa-mixer.c:3991 ../src/modules/alsa/alsa-mixer.c:3997
+#: ../src/modules/alsa/alsa-mixer.c:3998
 msgid "Analog Stereo"
 msgstr "模拟立体声"
 
-#: ../src/modules/alsa/alsa-mixer.c:4020 ../src/modules/alsa/alsa-mixer.c:4021
+#: ../src/modules/alsa/alsa-mixer.c:3999 ../src/modules/alsa/alsa-mixer.c:4000
 msgid "Multichannel"
 msgstr "多声道"
 
-#: ../src/modules/alsa/alsa-mixer.c:4022
+#: ../src/modules/alsa/alsa-mixer.c:4001
 msgid "Analog Surround 2.1"
 msgstr "模拟环绕 2.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4023
+#: ../src/modules/alsa/alsa-mixer.c:4002
 msgid "Analog Surround 3.0"
 msgstr "模拟环绕 3.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4024
+#: ../src/modules/alsa/alsa-mixer.c:4003
 msgid "Analog Surround 3.1"
 msgstr "模拟环绕 3.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4025
+#: ../src/modules/alsa/alsa-mixer.c:4004
 msgid "Analog Surround 4.0"
 msgstr "模拟环绕 4.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4026
+#: ../src/modules/alsa/alsa-mixer.c:4005
 msgid "Analog Surround 4.1"
 msgstr "模拟环绕 4.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4027
+#: ../src/modules/alsa/alsa-mixer.c:4006
 msgid "Analog Surround 5.0"
 msgstr "模拟环绕 5.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4028
+#: ../src/modules/alsa/alsa-mixer.c:4007
 msgid "Analog Surround 5.1"
 msgstr "模拟环绕 5.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4029
+#: ../src/modules/alsa/alsa-mixer.c:4008
 msgid "Analog Surround 6.0"
 msgstr "模拟环绕 6.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4030
+#: ../src/modules/alsa/alsa-mixer.c:4009
 msgid "Analog Surround 6.1"
 msgstr "模拟环绕 6.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4031
+#: ../src/modules/alsa/alsa-mixer.c:4010
 msgid "Analog Surround 7.0"
 msgstr "模拟环绕 7.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4032
+#: ../src/modules/alsa/alsa-mixer.c:4011
 msgid "Analog Surround 7.1"
 msgstr "模拟环绕 7.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4033
+#: ../src/modules/alsa/alsa-mixer.c:4012
 msgid "Digital Stereo (IEC958)"
-msgstr "数字立体声（IEC958）"
+msgstr "数字立体声(IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4034
+#: ../src/modules/alsa/alsa-mixer.c:4013
 msgid "Digital Passthrough  (IEC958)"
 msgstr "数字直通（IEC958）"
 
-#: ../src/modules/alsa/alsa-mixer.c:4035
+#: ../src/modules/alsa/alsa-mixer.c:4014
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr "数字环绕 4.0（IEC958/AC3）"
+msgstr "数字环绕 4.0(IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4036
+#: ../src/modules/alsa/alsa-mixer.c:4015
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr "数字环绕 5.1（IEC958/AC3）"
+msgstr "数字环绕 5.1(IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4037
+#: ../src/modules/alsa/alsa-mixer.c:4016
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr "数字环绕 5.1（IEC958/DTS）"
 
-#: ../src/modules/alsa/alsa-mixer.c:4038
+#: ../src/modules/alsa/alsa-mixer.c:4017
 msgid "Digital Stereo (HDMI)"
-msgstr "数字立体声（HDMI）"
+msgstr "数字立体声(HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4039
+#: ../src/modules/alsa/alsa-mixer.c:4018
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr "数字环绕 5.1（HDMI）"
 
-#: ../src/modules/alsa/alsa-mixer.c:4170
+#: ../src/modules/alsa/alsa-mixer.c:4151
 msgid "Analog Mono Duplex"
 msgstr "模拟单声道双工"
 
-#: ../src/modules/alsa/alsa-mixer.c:4171
+#: ../src/modules/alsa/alsa-mixer.c:4152
 msgid "Analog Stereo Duplex"
 msgstr "模拟立体声双工"
 
-#: ../src/modules/alsa/alsa-mixer.c:4172
+#: ../src/modules/alsa/alsa-mixer.c:4153
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "数字立体声双工（IEC958）"
+msgstr "数字立体声双工(IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4173
+#: ../src/modules/alsa/alsa-mixer.c:4154
 msgid "Multichannel Duplex"
 msgstr "多声道双工"
 
-#: ../src/modules/alsa/alsa-mixer.c:4174
-#: ../src/modules/alsa/module-alsa-card.c:184
+#: ../src/modules/alsa/alsa-mixer.c:4155
+#: ../src/modules/alsa/module-alsa-card.c:186
 #: ../src/modules/bluetooth/module-bluez4-device.c:2295
 #: ../src/modules/bluetooth/module-bluez5-device.c:1941
 msgid "Off"
 msgstr "关"
 
-#: ../src/modules/alsa/alsa-mixer.c:4273
+#: ../src/modules/alsa/alsa-mixer.c:4254
 #, c-format
 msgid "%s Output"
 msgstr "%s 输出"
 
-#: ../src/modules/alsa/alsa-mixer.c:4281
+#: ../src/modules/alsa/alsa-mixer.c:4262
 #, c-format
 msgid "%s Input"
 msgstr "%s 输入"
@@ -831,10 +832,9 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 "ALSA 提醒我们在该设备中写入新数据，但实际上没有什么可以写入的！\n"
-"这很可能是 ALSA 驱动程序 '%s' 中的一个 bug。请向 ALSA 开发人员报告这个问"
-"题。\n"
-"提醒我们设置 POLLOUT -- 但结果是 snd_pcm_avail() 返回 0 或者另一个小于最小可"
-"用值的数值。"
+"这很可能是 ALSA 驱动程序 %s 中的一个 bug。请向 ALSA 开发人员报告这个问题。\n"
+"提醒我们设置 POLLOUT - 但结果是 snd_pcm_avail() 返回 0 或者另一个小于最小可用"
+"值的数值。"
 
 #: ../src/modules/alsa/alsa-source.c:529
 #, c-format
@@ -863,12 +863,11 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 "ALSA 提醒我们从该设备中读取新数据，但实际上没有什么可以读取的！\n"
-"这很可能是 ALSA 驱动程序 '%s' 中的一个 bug。请向 ALSA 开发人员报告这个问"
-"题。\n"
-"提醒我们设置 POLLOUT -- 但结果是 snd_pcm_avail() 返回 0 或者另一个小于最小可"
-"用值的数值。"
+"这很可能是 ALSA 驱动程序 %s 中的一个 bug。请向 ALSA 开发人员报告这个问题。\n"
+"提醒我们设置 POLLIN - 但结果是 snd_pcm_avail() 返回 0 或者另一个小于最小可用"
+"值的数值。"
 
-#: ../src/modules/alsa/alsa-util.c:1149 ../src/modules/alsa/alsa-util.c:1224
+#: ../src/modules/alsa/alsa-util.c:1166 ../src/modules/alsa/alsa-util.c:1241
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -876,10 +875,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() 返回的值非常大：%lu 字节（%lu ms）。\n"
-"很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
+"snd_pcm_avail() 返回的值非常大：%lu 字节(%lu 毫秒)。\n"
+"这很可能是由 ALSA 驱动程序 %s 的缺陷导致的。请向 ALSA 开发者报告这个问题。"
 
-#: ../src/modules/alsa/alsa-util.c:1199
+#: ../src/modules/alsa/alsa-util.c:1216
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
@@ -887,10 +886,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_delay() 返回的值非常大：%li 字节（%s%lu ms）。\n"
-"很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
+"snd_pcm_delay() 返回的值非常大：%li 字节(%s%lu 毫秒)。\n"
+"这很可能是由 ALSA 驱动程序 %s 的缺陷导致的。请向 ALSA 开发者报告这个问题。"
 
-#: ../src/modules/alsa/alsa-util.c:1240
+#: ../src/modules/alsa/alsa-util.c:1257
 #, c-format
 msgid ""
 "snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
@@ -901,7 +900,7 @@ msgstr ""
 "snd_pcm_avail_delay() 返回的值非常很奇怪：延迟 %lu 小于可用 (avail) %lu。\n"
 "很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
 
-#: ../src/modules/alsa/alsa-util.c:1283
+#: ../src/modules/alsa/alsa-util.c:1300
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -909,8 +908,8 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_mmap_begin() 返回的值非常大：%lu 字节（%lu ms）。\n"
-"很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
+"snd_pcm_mmap_begin() 返回的值非常大：%lu 字节(%lu ms)。\n"
+"这很可能是由 ALSA 驱动程序 %s 中的 bug。请向 ALSA 开发者举报这个问题。"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2089
 #: ../src/modules/bluetooth/module-bluez5-device.c:1700
@@ -952,7 +951,7 @@ msgstr "电话"
 #: ../src/modules/bluetooth/module-bluez5-device.c:1711
 #: ../src/modules/bluetooth/module-bluez5-device.c:1749
 msgid "Bluetooth Output"
-msgstr "蓝牙输出 "
+msgstr "蓝牙输出"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2140
 #: ../src/modules/bluetooth/module-bluez5-device.c:1694
@@ -964,35 +963,35 @@ msgstr "蓝牙输入"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2176
 msgid "High Fidelity Playback (A2DP)"
-msgstr "高保真回放（A2DP）"
+msgstr "高保真回放(A2DP)"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2187
 msgid "High Fidelity Capture (A2DP)"
-msgstr "高保真采集（A2DP）"
+msgstr "高保真采集(A2DP)"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2198
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr "双工电话（HSP/HFP）"
+msgstr "双工电话(HSP/HFP)"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2210
 msgid "Handsfree Gateway"
-msgstr "免持闸道"
+msgstr "蓝牙音频网关"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1786
 msgid "High Fidelity Playback (A2DP Sink)"
-msgstr "高保真播放 (A2DP 接收器)"
+msgstr "高保真回放 (A2DP 信宿)"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1797
 msgid "High Fidelity Capture (A2DP Source)"
-msgstr "高保真采集（A2DP 数据信源）"
+msgstr "高保真采集（A2DP 信源）"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1808
 msgid "Headset Head Unit (HSP/HFP)"
-msgstr ""
+msgstr "头戴式耳机单元 (HSP/HFP)"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1820
 msgid "Headset Audio Gateway (HSP/HFP)"
-msgstr ""
+msgstr "头戴式音频网关 (HSP/HFP)"
 
 #: ../src/modules/echo-cancel/module-echo-cancel.c:61
 msgid ""
@@ -1004,28 +1003,29 @@ msgid ""
 "rate> channels=<number of channels> channel_map=<channel map> "
 "aec_method=<implementation to use> aec_args=<parameters for the AEC engine> "
 "save_aec=<save AEC data in /tmp> autoloaded=<set if this module is being "
-"loaded automatically> use_volume_sharing=<yes or no> "
+"loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes "
+"or no> "
 msgstr ""
-"source_name=<信源名称> source_properties=<信源属性> source_master=<要过滤的信"
-"源名称> sink_name=<采集器的名称> sink_properties=<采集器属性> sink_master=<要"
-"过滤的采集器名称> adjust_time=<多少秒重新调整一次频率> adjust_threshold=<重新"
-"调整时的偏移量阈值（微秒）> format=<采样格式> rate=<采样率> channels=<声道数"
-"> channel_map=<声道映射> aec_method=<要使用的实现> aec_args=<AEC 引擎的参数> "
-"save_aec=<在 /tmp 内保存 AEC 数据> autoloaded=<若为自动加载则会设置> "
-"use_volume_sharing=<yes 或 no> "
+"source_name=<信源名称> source_properties=<信源属性> source_master=<工作信源名"
+"称> sink_name=<信宿名称> sink_properties=<信宿属性> sink_master=<工作信宿名称"
+"> adjust_time=<多少秒重新调整一次频率> adjust_threshold=<重新调整时的偏移量阀"
+"值 (微秒)> format=<采样格式> rate=<采样率> channels=<声道数> channel_map=<声"
+"道映射> aec_method=<要使用的实现> aec_args=<AEC 引擎的参数> save_aec=<在 /"
+"tmp 下保存 AEC 数据> autoloaded=<若为自动加载则会设置> "
+"use_volume_sharing=<yes 或 no> use_master_format=<yes or no> "
 
 #. add on profile
-#: ../src/modules/macosx/module-coreaudio-device.c:755
+#: ../src/modules/macosx/module-coreaudio-device.c:811
 msgid "On"
 msgstr "启用"
 
 #: ../src/modules/module-always-sink.c:36
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr "总是保持至少载入一个采集器，即使它是空的"
+msgstr "总是保持至少载入一个信宿，即使它并不真实存在"
 
-#: ../src/modules/module-always-sink.c:83
+#: ../src/modules/module-always-sink.c:82
 msgid "Dummy Output"
-msgstr "假输出"
+msgstr "伪输出"
 
 #: ../src/modules/module-equalizer-sink.c:70
 msgid "General Purpose Equalizer"
@@ -1038,17 +1038,17 @@ msgid ""
 "channels=<number of channels> channel_map=<channel map> autoloaded=<set if "
 "this module is being loaded automatically> use_volume_sharing=<yes or no> "
 msgstr ""
-"sink_name=<采集器名称> sink_properties=<采集器属性> sink_master=<要连接的采集"
-"器> format=<采样格式> rate=<采样率> channels=<声道数> channel_map=<声道映射> "
+"sink_name=<信宿名称> sink_properties=<信宿属性> sink_master=<要连接的信宿> "
+"format=<采样格式> rate=<采样率> channels=<声道数> channel_map=<声道映射> "
 "autoloaded=<若为自动加载则会设置> use_volume_sharing=<yes 或 no> "
 
 #: ../src/modules/module-filter-apply.c:46
 msgid "autoclean=<automatically unload unused filters?>"
-msgstr "autoclean=<是否自动取消未使用过滤器的加载？>"
+msgstr "autoclean=<是否自动卸载未使用的滤波器？>"
 
 #: ../src/modules/module-ladspa-sink.c:51
 msgid "Virtual LADSPA sink"
-msgstr "虚拟 LDASPA 采集器"
+msgstr "虚拟 LDASPA 信宿"
 
 #: ../src/modules/module-ladspa-sink.c:55
 msgid ""
@@ -1060,16 +1060,15 @@ msgid ""
 "LADSPA port names> output_ladspaport_map=<comma separated list of output "
 "LADSPA port names> "
 msgstr ""
-"sink_name=<采集器的名称> sink_properties=<采集器的属性> master=<要过滤的采集"
-"器名称> format=<样本格式> rate=<采样率> channels=<声道数> channel_map=<输入声"
-"道映射> plugin=<ladspa 插件名称> label=<ladspa 插件标签> control=<以半角逗号"
-"分隔的输入控制值列表> input_ladspaport_map=<以半角逗号分隔的输入 LADSPA 连接"
-"端口名称列表> output_ladspaport_map=<以半角逗号分隔的输出 LADSPA 连接端口名称"
-"列表> "
+"sink_name=<信宿名称> sink_properties=<信宿属性> master=<工作信宿名称> "
+"format=<样本格式> rate=<采样率> channels=<声道数> channel_map=<输入声道映射> "
+"plugin=<ladspa 插件名称> label=<ladspa 插件标签> control=<以半角逗号分隔的输"
+"入控制值列表> input_ladspaport_map=<以半角逗号分隔的输入 LADSPA 连接端口名称"
+"列表> output_ladspaport_map=<以半角逗号分隔的输出 LADSPA 连接端口名称列表> "
 
 #: ../src/modules/module-null-sink.c:47
 msgid "Clocked NULL sink"
-msgstr "定时的空采集器"
+msgstr "定时的空信宿"
 
 #: ../src/modules/module-null-sink.c:280
 msgid "Null Output"
@@ -1097,17 +1096,17 @@ msgstr "@HOSTNAME@ 中的音频"
 #: ../src/modules/module-tunnel-source-new.c:305
 #, c-format
 msgid "Tunnel for %s@%s"
-msgstr ""
+msgstr "%s@%s 的通道"
 
 #: ../src/modules/module-tunnel-sink-new.c:517
 #: ../src/modules/module-tunnel-source-new.c:516
 #, c-format
 msgid "Tunnel to %s/%s"
-msgstr ""
+msgstr "到远程信宿 %s/%s 的通道"
 
 #: ../src/modules/module-virtual-surround-sink.c:47
 msgid "Virtual surround sink"
-msgstr "虚拟环绕声采集器"
+msgstr "虚拟环绕声信宿"
 
 #: ../src/modules/module-virtual-surround-sink.c:51
 msgid ""
@@ -1117,8 +1116,8 @@ msgid ""
 "use_volume_sharing=<yes or no> force_flat_volume=<yes or no> hrir=/path/to/"
 "left_hrir.wav "
 msgstr ""
-"sink_name=<采样器名称> sink_properties=<采集器属性> sink_master=<要连接的采集"
-"器> format=<采样格式> rate=<采样率> channels=<声道数> channel_map=<声道映射> "
+"sink_name=<信宿名称> sink_properties=<信宿属性> master=<工作信宿名> format=<"
+"采样格式> rate=<采样率> channels=<声道数> channel_map=<声道映射> "
 "use_volume_sharing=<yes 或 no> force_flat_volume=<yes 或 no> hrir=/path/to/"
 "left_hrir.wav "
 
@@ -1132,7 +1131,7 @@ msgstr "单声道"
 
 #: ../src/pulse/channelmap.c:105
 msgid "Front Center"
-msgstr "中前"
+msgstr "正前"
 
 #: ../src/pulse/channelmap.c:106
 msgid "Front Left"
@@ -1144,7 +1143,7 @@ msgstr "右前"
 
 #: ../src/pulse/channelmap.c:109
 msgid "Rear Center"
-msgstr "中后"
+msgstr "正后"
 
 #: ../src/pulse/channelmap.c:110
 msgid "Rear Left"
@@ -1330,13 +1329,13 @@ msgstr "上左后"
 msgid "Top Rear Right"
 msgstr "上右后"
 
-#: ../src/pulse/channelmap.c:479 ../src/pulse/format.c:121
+#: ../src/pulse/channelmap.c:479 ../src/pulse/format.c:127
 #: ../src/pulse/sample.c:175 ../src/pulse/volume.c:294
 #: ../src/pulse/volume.c:320 ../src/pulse/volume.c:340
 #: ../src/pulse/volume.c:372 ../src/pulse/volume.c:412
 #: ../src/pulse/volume.c:431
 msgid "(invalid)"
-msgstr "（无效）"
+msgstr "(无效)"
 
 #: ../src/pulse/channelmap.c:775
 msgid "Stereo"
@@ -1344,7 +1343,7 @@ msgstr "立体声"
 
 #: ../src/pulse/channelmap.c:780
 msgid "Surround 4.0"
-msgstr "环绕 4.0 "
+msgstr "环绕 4.0"
 
 #: ../src/pulse/channelmap.c:786
 msgid "Surround 4.1"
@@ -1372,22 +1371,22 @@ msgstr "xcb_connection_has_error() 返回真"
 
 #: ../src/pulse/client-conf-x11.c:94
 msgid "Failed to parse cookie data"
-msgstr "cookie数据分析失败"
+msgstr "cookie 数据解析失败"
 
-#: ../src/pulse/context.c:656
+#: ../src/pulse/context.c:660
 #, c-format
 msgid "fork(): %s"
 msgstr "fork()：%s"
 
-#: ../src/pulse/context.c:711
+#: ../src/pulse/context.c:715
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid()：%s"
 
-#: ../src/pulse/context.c:1417
+#: ../src/pulse/context.c:1421
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr "收到未知扩展'%s'的信息"
+msgstr "收到未知扩展 %s 的信息"
 
 #: ../src/pulse/direction.c:37
 msgid "input"
@@ -1405,13 +1404,16 @@ msgstr "双向"
 msgid "invalid"
 msgstr "无效"
 
-#: ../src/pulsecore/core-util.c:1833
+#: ../src/pulsecore/core-util.c:1836
 #, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
 "e g happen if you try to connect to a non-root PulseAudio as a root user, "
 "over the native protocol. Don't do that.)"
 msgstr ""
+"XDG_RUNTIME_DIR (%s) 不属于本进程 (uid %d)，而属于 uid %d 号进程! (这可能是在"
+"原生协议下通过 root 用户连接一个非 root 用户的 PulseAudio 导致的，请不要这样"
+"做。)"
 
 #: ../src/pulsecore/core-util.h:97
 msgid "yes"
@@ -1423,26 +1425,26 @@ msgstr "否"
 
 #: ../src/pulsecore/lock-autospawn.c:141 ../src/pulsecore/lock-autospawn.c:227
 msgid "Cannot access autospawn lock."
-msgstr "不能访问 autospawn 锁。"
+msgstr "不能访问自动执行锁。"
 
-#: ../src/pulsecore/log.c:154
+#: ../src/pulsecore/log.c:165
 #, c-format
 msgid "Failed to open target file '%s'."
 msgstr "打开目标文件 %s 失败。"
 
-#: ../src/pulsecore/log.c:177
+#: ../src/pulsecore/log.c:188
 #, c-format
 msgid ""
 "Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
 msgstr "尝试打开目标文件 '%s'，'%s.1'，'%s.2'…'%s.%d'，但均失败。"
 
-#: ../src/pulsecore/log.c:640
+#: ../src/pulsecore/log.c:651
 msgid "Invalid log target."
 msgstr "无效的日志目标。"
 
 #: ../src/pulsecore/sink.c:3460
 msgid "Built-in Audio"
-msgstr "内部音频"
+msgstr "内置音频"
 
 #: ../src/pulsecore/sink.c:3465
 msgid "Modem"
@@ -1470,7 +1472,7 @@ msgstr "实体存在"
 
 #: ../src/pulse/error.c:43
 msgid "No such entity"
-msgstr "没有该实体"
+msgstr "无此实体"
 
 #: ../src/pulse/error.c:44
 msgid "Connection refused"
@@ -1498,7 +1500,7 @@ msgstr "连接终止"
 
 #: ../src/pulse/error.c:50
 msgid "Entity killed"
-msgstr "实体已杀死"
+msgstr "实体已被杀死"
 
 #: ../src/pulse/error.c:51
 msgid "Invalid server"
@@ -1510,11 +1512,11 @@ msgstr "模块初始化失败"
 
 #: ../src/pulse/error.c:53
 msgid "Bad state"
-msgstr "坏状态"
+msgstr "错误状态"
 
 #: ../src/pulse/error.c:54
 msgid "No data"
-msgstr "没有数据"
+msgstr "无数据"
 
 #: ../src/pulse/error.c:55
 msgid "Incompatible protocol version"
@@ -1538,11 +1540,11 @@ msgstr "没有该扩展"
 
 #: ../src/pulse/error.c:60
 msgid "Obsolete functionality"
-msgstr "废弃的功能性"
+msgstr "废弃的功能"
 
 #: ../src/pulse/error.c:61
 msgid "Missing implementation"
-msgstr "缺少部署"
+msgstr "缺少实现"
 
 #: ../src/pulse/error.c:62
 msgid "Client forked"
@@ -1581,60 +1583,6 @@ msgstr "%0.1f KiB"
 msgid "%u B"
 msgstr "%u B"
 
-#: ../src/tests/resampler-test.c:255
-#, c-format
-msgid ""
-"%s [options]\n"
-"\n"
-"-h, --help                            Show this help\n"
-"-v, --verbose                         Print debug messages\n"
-"      --from-rate=SAMPLERATE          From sample rate in Hz (defaults to "
-"44100)\n"
-"      --from-format=SAMPLEFORMAT      From sample type (defaults to s16le)\n"
-"      --from-channels=CHANNELS        From number of channels (defaults to "
-"1)\n"
-"      --to-rate=SAMPLERATE            To sample rate in Hz (defaults to "
-"44100)\n"
-"      --to-format=SAMPLEFORMAT        To sample type (defaults to s16le)\n"
-"      --to-channels=CHANNELS          To number of channels (defaults to 1)\n"
-"      --resample-method=METHOD        Resample method (defaults to auto)\n"
-"      --seconds=SECONDS               From stream duration (defaults to 60)\n"
-"\n"
-"If the formats are not specified, the test performs all formats "
-"combinations,\n"
-"back and forth.\n"
-"\n"
-"Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, "
-"alaw,\n"
-"s24le, s24be, s24-32le, s24-32be, s32le, s32be (defaults to s16ne)\n"
-"\n"
-"See --dump-resample-methods for possible values of resample methods.\n"
-msgstr ""
-"%s [选项]\n"
-"\n"
-"-h, --help                            显示帮助\n"
-"-v, --verbose                         输出调试信息\n"
-"      --from-rate=SAMPLERATE          音源频率（默认为 44100）赫兹\n"
-"      --from-format=SAMPLEFORMAT      音源格式（默认为 s16le）\n"
-"      --from-channels=CHANNELS        音源声道（默认为 1）\n"
-"      --to-rate=SAMPLERATE           转换为频率（默认 44100）赫兹\n"
-"      --to-format=SAMPLEFORMAT        转换为格式（默认为 s16le）\n"
-"      --to-channels=CHANNELS          转换到声道（默认为 1）\n"
-"      --resample-method=METHOD        重采样方法（默认为自动）\n"
-"      --seconds=SECONDS               音源流长度（默认为 60 秒）\n"
-"\n"
-"如果格式未指定，将会测试进行所有格式组合来回测试。\n"
-"\n"
-"采样类型有这几种：s16le，s16be，u8，float32le，float32be，ulaw，alaw，\n"
-"s24le，s24be，s24-32le，s24-32be，s32le，s32be。\n"
-"\n"
-"使用 --dump-resample-methods 参数可列出可能的采样方法。\n"
-
-#: ../src/tests/resampler-test.c:353
-#, c-format
-msgid "%s %s\n"
-msgstr "%s %s\n"
-
 #: ../src/utils/pacat.c:117
 #, c-format
 msgid "Failed to drain stream: %s"
@@ -1656,41 +1604,41 @@ msgstr "pa_stream_drain(): %s"
 #: ../src/utils/pacat.c:169
 #, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr "pa_stream_write() 失败: %s"
+msgstr "pa_stream_write() 失败：%s"
 
 #: ../src/utils/pacat.c:210
 #, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr "pa_stream_begin_write() 失败: %s"
+msgstr "pa_stream_begin_write() 失败：%s"
 
 #: ../src/utils/pacat.c:260 ../src/utils/pacat.c:290
 #, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr "pa_stream_peek() 失败: %s"
+msgstr "pa_stream_peek() 失败：%s"
 
 #: ../src/utils/pacat.c:340
 msgid "Stream successfully created."
-msgstr "流创建成功。"
+msgstr "成功创建流。"
 
 #: ../src/utils/pacat.c:343
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr "pa_stream_get_buffer_attr() 失败: %s"
+msgstr "pa_stream_get_buffer_attr() 失败：%s"
 
 #: ../src/utils/pacat.c:347
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
-msgstr "缓冲矩阵：maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
+msgstr "缓冲量度：maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 
 #: ../src/utils/pacat.c:350
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
-msgstr "缓冲矩阵：maxlength=%u, fragsize=%u"
+msgstr "缓冲量度：maxlength=%u, fragsize=%u"
 
 #: ../src/utils/pacat.c:354
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "正在使用采样规格 '%s'，通道映射 '%s'。"
+msgstr "正在使用采样规格 %s，声道映射 %s。"
 
 #: ../src/utils/pacat.c:358
 #, c-format
@@ -1730,11 +1678,11 @@ msgstr "流已启动。%s"
 #: ../src/utils/pacat.c:409
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
-msgstr "流移至设备 %s （%u，%s 挂起）。%s"
+msgstr "流移至设备 %s (%u，%s 挂起)。%s"
 
 #: ../src/utils/pacat.c:409
 msgid "not "
-msgstr "not "
+msgstr "非 "
 
 #: ../src/utils/pacat.c:416
 #, c-format
@@ -1756,17 +1704,17 @@ msgstr "警告：收到比抑制请求更多的反抑制请求！"
 #: ../src/utils/pacat.c:466
 #, c-format
 msgid "Connection established.%s"
-msgstr "连接已建立。%s "
+msgstr "连接已建立。%s"
 
 #: ../src/utils/pacat.c:469
 #, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr "pa_stream_new() 失败: %s"
+msgstr "pa_stream_new() 失败：%s"
 
 #: ../src/utils/pacat.c:507
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr "pa_stream_connect_playback() 失败: %s"
+msgstr "pa_stream_connect_playback() 失败：%s"
 
 #: ../src/utils/pacat.c:513
 #, c-format
@@ -1776,7 +1724,7 @@ msgstr "设置监视器流失败: %s"
 #: ../src/utils/pacat.c:517
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr "pa_stream_connect_record() 失败: %s"
+msgstr "pa_stream_connect_record() 失败：%s"
 
 #: ../src/utils/pacat.c:530 ../src/utils/pactl.c:1446
 #, c-format
@@ -1785,16 +1733,16 @@ msgstr "连接失败：%s"
 
 #: ../src/utils/pacat.c:563
 msgid "Got EOF."
-msgstr "获得 EOF。"
+msgstr "到达 EOF。"
 
 #: ../src/utils/pacat.c:600
 #, c-format
 msgid "write() failed: %s"
-msgstr "写入（）失败：%s"
+msgstr "write() 失败：%s"
 
 #: ../src/utils/pacat.c:621
 msgid "Got signal, exiting."
-msgstr "收到信号，正在退出。"
+msgstr "收到信号，退出。"
 
 #: ../src/utils/pacat.c:635
 #, c-format
@@ -1809,7 +1757,7 @@ msgstr "时间：%0.3f 秒；延迟：%0.0f 微秒。"
 #: ../src/utils/pacat.c:661
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr "pa_stream_update_timing_info() 失败: %s"
+msgstr "pa_stream_update_timing_info() 失败：%s"
 
 #: ../src/utils/pacat.c:671
 #, c-format
@@ -1889,7 +1837,7 @@ msgstr ""
 "  -v, --verbose                     启用详述操作\n"
 "\n"
 "  -s, --server=服务器               要连接的服务器名\n"
-"  -d, --device=设备名               要连接的采集器/信源名称\n"
+"  -d, --device=设备名               要连接的信宿/信源名称\n"
 "  -n, --client-name=名称            如何在服务器中调用此客户端\n"
 "      --stream-name=名称            如何在服务器中调用这个流\n"
 "      --volume=音量                 指定初始（线性）音量，取值在0...65536之"
@@ -1901,9 +1849,9 @@ msgstr ""
 "（默认为 s16ne）\n"
 "      --channels=CHANNELS           通道数，1为单声道，2为立体声（默认为2）\n"
 "      --channel-map=CHANNELMAP      取代默认值的通道映射表\n"
-"      --fix-format                  从流连接的采集器中提取采样格式。\n"
-"      --fix-rate                    从流连接的采集器中提取采样率。\n"
-"      --fix-channels                从流连接的采集器中提取通道数和通道映射"
+"      --fix-format                  从流连接的信宿中提取采样格式。\n"
+"      --fix-rate                    从流连接的信宿中提取采样率。\n"
+"      --fix-channels                从流连接的信宿中提取通道数和通道映射"
 "表。\n"
 "      --no-remix                    不要对通道进行 upmix 或者 downmix 操"
 "作。\n"
@@ -1913,24 +1861,24 @@ msgstr ""
 
 #: ../src/utils/pacat.c:788
 msgid "Play back encoded audio files on a PulseAudio sound server."
-msgstr ""
+msgstr "在 PulseAudio 声音服务器回放音频编码文件。"
 
 #: ../src/utils/pacat.c:792
 msgid ""
 "Capture audio data from a PulseAudio sound server and write it to a file."
-msgstr ""
+msgstr "从 PulseAudio 声音服务器获取音频数据并写入文件。"
 
 #: ../src/utils/pacat.c:796
 msgid ""
 "Capture audio data from a PulseAudio sound server and write it to STDOUT or "
 "the specified file."
-msgstr ""
+msgstr "从 PulseAudio 声音服务器获取音频数据并写入 STDOUT 或指定的文件。"
 
 #: ../src/utils/pacat.c:800
 msgid ""
 "Play back audio data from STDIN or the specified file on a PulseAudio sound "
 "server."
-msgstr ""
+msgstr "在 PulseAudio 声音服务器回放 STDIN 或指定文件中的音频数据。"
 
 #: ../src/utils/pacat.c:814
 #, c-format
@@ -1940,38 +1888,38 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pacat %s\n"
-"编译到 libpulse %s\n"
-"链接到 libpulse %s\n"
+"使用 libpulse %s 编译\n"
+"与 libpulse %s 链接\n"
 
 #: ../src/utils/pacat.c:847 ../src/utils/pactl.c:1648
 #, c-format
 msgid "Invalid client name '%s'"
-msgstr "无效客户端名称 '%s'"
+msgstr "无效的客户端名称 '%s'"
 
 #: ../src/utils/pacat.c:862
 #, c-format
 msgid "Invalid stream name '%s'"
-msgstr "无效流名称 '%s'"
+msgstr "无效的流名称 '%s'"
 
 #: ../src/utils/pacat.c:899
 #, c-format
 msgid "Invalid channel map '%s'"
-msgstr "无效通道映射 '%s'"
+msgstr "无效的通道映射 '%s'"
 
 #: ../src/utils/pacat.c:928 ../src/utils/pacat.c:942
 #, c-format
 msgid "Invalid latency specification '%s'"
-msgstr "无效延迟说明 %s'"
+msgstr "无效的延迟规格 %s'"
 
 #: ../src/utils/pacat.c:935 ../src/utils/pacat.c:949
 #, c-format
 msgid "Invalid process time specification '%s'"
-msgstr "无效处理时间说明 '%s'"
+msgstr "无效的处理时间规格 '%s'"
 
 #: ../src/utils/pacat.c:961
 #, c-format
 msgid "Invalid property '%s'"
-msgstr "无效属性 '%s'"
+msgstr "无效的属性 %s"
 
 #: ../src/utils/pacat.c:980
 #, c-format
@@ -1984,17 +1932,17 @@ msgstr "--monitor-stream 的参数解析失败"
 
 #: ../src/utils/pacat.c:1006
 msgid "Invalid sample specification"
-msgstr "无效采样说明"
+msgstr "无效的采样规格"
 
 #: ../src/utils/pacat.c:1016
 #, c-format
 msgid "open(): %s"
-msgstr "open(): %s"
+msgstr "open()：%s"
 
 #: ../src/utils/pacat.c:1021
 #, c-format
 msgid "dup2(): %s"
-msgstr "dup2(): %s"
+msgstr "dup2()：%s"
 
 #: ../src/utils/pacat.c:1028
 msgid "Too many arguments."
@@ -2002,7 +1950,7 @@ msgstr "参数过多。"
 
 #: ../src/utils/pacat.c:1039
 msgid "Failed to generate sample specification for file."
-msgstr "为文件获取采样说明失败。"
+msgstr "为文件生成采样规格失败。"
 
 #: ../src/utils/pacat.c:1065
 msgid "Failed to open audio file."
@@ -2012,11 +1960,11 @@ msgstr "打开声音文件失败。"
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
-msgstr "警告：指定的采样说明将覆盖文件中的说明。"
+msgstr "警告：指定的采样规格将覆盖文件中的说明。"
 
 #: ../src/utils/pacat.c:1074 ../src/utils/pactl.c:1712
 msgid "Failed to determine sample specification from file."
-msgstr "从文件中确定采样说明失败。"
+msgstr "从文件中确定采样规格失败。"
 
 #: ../src/utils/pacat.c:1083
 msgid "Warning: Failed to determine channel map from file."
@@ -2024,7 +1972,7 @@ msgstr "警告：从文件中确定通道映射失败。"
 
 #: ../src/utils/pacat.c:1094
 msgid "Channel map doesn't match sample specification"
-msgstr "通道映射与采样说明不匹配"
+msgstr "通道映射与采样规格不匹配"
 
 #: ../src/utils/pacat.c:1105
 msgid "Warning: failed to write channel map to file."
@@ -2034,7 +1982,7 @@ msgstr "警告：在文件中写入通道映射失败。"
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr "使用采样说明 '%s' 和通道映射 '%s' 打开 %s 流。"
+msgstr "使用采样规格 %s 和通道映射 %s 打开 %s 流。"
 
 #: ../src/utils/pacat.c:1121
 msgid "recording"
@@ -2116,7 +2064,7 @@ msgstr "#N"
 
 #: ../src/utils/pacmd.c:62
 msgid "NAME SINK|#N"
-msgstr "名称 采集器|#N"
+msgstr "名称 信宿|#N"
 
 #: ../src/utils/pacmd.c:64 ../src/utils/pacmd.c:65
 msgid "NAME FILENAME"
@@ -2128,11 +2076,11 @@ msgstr "路径名"
 
 #: ../src/utils/pacmd.c:67
 msgid "FILENAME SINK|#N"
-msgstr "文件名 采集器|#N"
+msgstr "文件名 信宿|#N"
 
 #: ../src/utils/pacmd.c:69 ../src/utils/pactl.c:1572
 msgid "#N SINK|SOURCE"
-msgstr "#N 采集器|信号源"
+msgstr "#N 信宿|信号源"
 
 #: ../src/utils/pacmd.c:71 ../src/utils/pacmd.c:77 ../src/utils/pacmd.c:78
 msgid "1|0"
@@ -2156,11 +2104,11 @@ msgstr "目标"
 
 #: ../src/utils/pacmd.c:76
 msgid "NUMERIC-LEVEL"
-msgstr ""
+msgstr "级别 (数字)"
 
 #: ../src/utils/pacmd.c:79
 msgid "FRAMES"
-msgstr ""
+msgstr "FRAMES"
 
 #: ../src/utils/pacmd.c:81
 #, c-format
@@ -2183,8 +2131,8 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pacmd %s\n"
-"编译到 libpulse %s\n"
-"链接到 libpulse %s\n"
+"使用 libpulse %s 编译\n"
+"与 libpulse %s 链接\n"
 
 #: ../src/utils/pacmd.c:142
 msgid "No PulseAudio daemon running, or not running as session daemon."
@@ -2202,11 +2150,11 @@ msgstr "connect()：%s"
 
 #: ../src/utils/pacmd.c:172
 msgid "Failed to kill PulseAudio daemon."
-msgstr "杀死PulseAudio后台程序失败。"
+msgstr "杀死 PulseAudio 守护程序失败。"
 
 #: ../src/utils/pacmd.c:180
 msgid "Daemon not responding."
-msgstr "后台程序未响应。"
+msgstr "守护进程未响应"
 
 #: ../src/utils/pacmd.c:212 ../src/utils/pacmd.c:321 ../src/utils/pacmd.c:339
 #, c-format
@@ -2216,7 +2164,7 @@ msgstr "write()：%s"
 #: ../src/utils/pacmd.c:268
 #, c-format
 msgid "poll(): %s"
-msgstr "poll(): %s"
+msgstr "poll()：%s"
 
 #: ../src/utils/pacmd.c:279 ../src/utils/pacmd.c:299
 #, c-format
@@ -2231,12 +2179,12 @@ msgstr "获取统计数据失败：%s"
 #: ../src/utils/pactl.c:170
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr "当前使用：%u块，总共%s字节。\n"
+msgstr "当前使用：%u 块，总共 %s 字节。\n"
 
 #: ../src/utils/pactl.c:173
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr "整个生命周期所得分配：%u块，总共%s字节。\n"
+msgstr "整个生命周期所得分配：%u 块，总共 %s 字节。\n"
 
 #: ../src/utils/pactl.c:176
 #, c-format
@@ -2314,7 +2262,7 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"采集器 #%u\n"
+"信宿 #%u\n"
 "\t状态：%s\n"
 "\t名称：%s\n"
 "\t描述：%s\n"
@@ -2328,19 +2276,19 @@ msgstr ""
 "\t基础音量：%s\n"
 "\t监视器信源：%s\n"
 "\t延迟：%0.0f 微秒，设置为 %0.0f 微秒\n"
-"\t旗标：%s%s%s%s%s%s%s\n"
+"\t标记：%s%s%s%s%s%s%s\n"
 "\t属性：\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:325 ../src/utils/pactl.c:431 ../src/utils/pactl.c:592
 #, c-format
 msgid "\tPorts:\n"
-msgstr "\t连接端口：\n"
+msgstr "\t端口：\n"
 
 #: ../src/utils/pactl.c:332 ../src/utils/pactl.c:438
 #, c-format
 msgid "\tActive Port: %s\n"
-msgstr "\t使用中连接端口：%s\n"
+msgstr "\t活动端口：%s\n"
 
 #: ../src/utils/pactl.c:338 ../src/utils/pactl.c:444
 #, c-format
@@ -2385,9 +2333,9 @@ msgstr ""
 "\t音量：%s\n"
 "\t        平衡 %0.2f\n"
 "\t基础音量：%s\n"
-"\t采集器的监视器：%s\n"
+"\t信宿的监视器：%s\n"
 "\t延迟：%0.0f 微秒，已设置 %0.0f 微秒\n"
-"\t旗标：%s%s%s%s%s%s\n"
+"\t标记：%s%s%s%s%s%s\n"
 "\t属性：\n"
 "\t\t%s\n"
 
@@ -2414,11 +2362,11 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Module #%u\n"
+"模块 #%u\n"
 "\t名称：%s\n"
 "\t参数：%s\n"
-"\t用量计数器：%s\n"
-"\t属性：\n"
+"\t使用计数：%s\n"
+"\t属性\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:497
@@ -2435,9 +2383,9 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Client #%u\n"
-"\t驱动程序：%s\n"
-"\t用户模块：%s\n"
+"客户端 #%u\n"
+"\t驱动：%s\n"
+"\t拥有者模块：%s\n"
 "\t属性：\n"
 "\t\t%s\n"
 
@@ -2456,27 +2404,27 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Card #%u\n"
+"卡 #%u\n"
 "\t名称：%s\n"
-"\t驱动程序：%s\n"
-"\t用户模块：%s\n"
+"\t驱动：%s\n"
+"\t拥有者模块：%s\n"
 "\t属性：\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:579
 #, c-format
 msgid "\tProfiles:\n"
-msgstr "\t个人设置档：\n"
+msgstr "\t配置文件：\n"
 
 #: ../src/utils/pactl.c:581
 #, c-format
 msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
-msgstr ""
+msgstr "\t\t%s: %s (信宿：%u，信源：%u，优先级：%u，可用性：%s)\n"
 
 #: ../src/utils/pactl.c:586
 #, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "\t启用的个人设置档：%s\n"
+msgstr "\t活动配置：%s\n"
 
 #: ../src/utils/pactl.c:600
 #, c-format
@@ -2490,12 +2438,12 @@ msgstr ""
 #: ../src/utils/pactl.c:605
 #, c-format
 msgid "\t\t\tPart of profile(s): %s"
-msgstr ""
+msgstr "\t\t\t属于配置文件：%s"
 
 #: ../src/utils/pactl.c:622 ../src/utils/pactl.c:940 ../src/utils/pactl.c:1008
 #, c-format
 msgid "Failed to get sink input information: %s"
-msgstr "获取音频出口输入信息失败：%s"
+msgstr "获取音频信宿输入信息失败：%s"
 
 #: ../src/utils/pactl.c:651
 #, c-format
@@ -2518,28 +2466,28 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"信源输入 #%u\n"
+"信宿输入 #%u\n"
 "\t驱动程序：%s\n"
 "\t所有者模块：%s\n"
 "\t客户端：%s\n"
-"\tSink：%u\n"
+"\t信宿：%u\n"
 "\t采样规格：%s\n"
 "\t声道映射：%s\n"
 "\t格式：%s\n"
+"\t抑制: %s\n"
 "\t静音：%s\n"
 "\t音量：%s\n"
-"\t        %s\n"
 "\t        平衡 %0.2f\n"
-"\t缓冲延迟：%0.0f usec\n"
-"\tSink 延迟：%0.0f usec\n"
-"\t重新采样方法：%s\n"
+"\t缓冲延迟：%0.0f 微秒\n"
+"\t信宿延迟：%0.0f 微秒\n"
+"\t重采样方法：%s\n"
 "\t属性：\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:692 ../src/utils/pactl.c:960 ../src/utils/pactl.c:1023
 #, c-format
 msgid "Failed to get source output information: %s"
-msgstr "获取音频入口输出信息失败：%s"
+msgstr "获取音频信源输出信息失败：%s"
 
 #: ../src/utils/pactl.c:721
 #, c-format
@@ -2570,13 +2518,13 @@ msgstr ""
 "\t采样规格：%s\n"
 "\t声道映射：%s\n"
 "\t格式：%s\n"
+"\t抑制：%s\n"
 "\t静音：%s\n"
 "\t音量：%s\n"
-"\t        %s\n"
 "\t        平衡 %0.2f\n"
-"\t缓冲延迟：%0.0f usec\n"
-"\tSink 延迟：%0.0f usec\n"
-"\t重新采样方法：%s\n"
+"\t缓冲延迟：%0.0f 微秒\n"
+"\t信源延迟：%0.0f 微秒\n"
+"\t重采样方法：%s\n"
 "\t属性：\n"
 "\t\t%s\n"
 
@@ -2663,31 +2611,31 @@ msgstr "未知"
 
 #: ../src/utils/pactl.c:1147
 msgid "sink"
-msgstr "sink"
+msgstr "信宿"
 
 #: ../src/utils/pactl.c:1150
 msgid "source"
-msgstr "source"
+msgstr "信源"
 
 #: ../src/utils/pactl.c:1153
 msgid "sink-input"
-msgstr "sink-input"
+msgstr "信宿-输入"
 
 #: ../src/utils/pactl.c:1156
 msgid "source-output"
-msgstr "source-output"
+msgstr "信源-输出"
 
 #: ../src/utils/pactl.c:1159
 msgid "module"
-msgstr "module"
+msgstr "模块"
 
 #: ../src/utils/pactl.c:1162
 msgid "client"
-msgstr "client"
+msgstr "客户端"
 
 #: ../src/utils/pactl.c:1165
 msgid "sample-cache"
-msgstr "sample-cache"
+msgstr "采样-缓冲"
 
 #: ../src/utils/pactl.c:1168
 msgid "server"
@@ -2704,11 +2652,11 @@ msgstr "事件“%s”于 %s #%u\n"
 
 #: ../src/utils/pactl.c:1452
 msgid "Got SIGINT, exiting."
-msgstr "收到 SIGINT，正在退出。"
+msgstr "收到 SIGINT 信号，退出。"
 
 #: ../src/utils/pactl.c:1485
 msgid "Invalid volume specification"
-msgstr "无效采样说明"
+msgstr "无效采样规格"
 
 #: ../src/utils/pactl.c:1508
 msgid "Volume outside permissible range.\n"
@@ -2746,7 +2694,7 @@ msgstr "文件名 [名称]"
 
 #: ../src/utils/pactl.c:1568
 msgid "NAME [SINK]"
-msgstr "名称 [采集器]"
+msgstr "名称 [信宿]"
 
 #: ../src/utils/pactl.c:1577
 msgid "NAME|#N VOLUME [VOLUME ...]"
@@ -2777,7 +2725,7 @@ msgid ""
 msgstr ""
 "\n"
 "指定名称 @DEFAULT_SINK@，@DEFAULT_SOURCE@ 和 @DEFAULT_MONITOR@\n"
-"可用于指定默认的采集器、信源和监视器。\n"
+"可用于指定默认的信宿、信源和监视器。\n"
 
 #: ../src/utils/pactl.c:1587
 #, c-format
@@ -2805,13 +2753,13 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pactl %s\n"
-"编译到 libpulse %s\n"
-"链接到 libpulse %s\n"
+"使用 libpulse %s 编译\n"
+"与 libpules %s 链接\n"
 
 #: ../src/utils/pactl.c:1684
 #, c-format
 msgid "Specify nothing, or one of: %s"
-msgstr "不需指定，或指定成下列之一：%s"
+msgstr "不指定，或指定成下列之一：%s"
 
 #: ../src/utils/pactl.c:1694
 msgid "Please specify a sample file to load"
@@ -2823,7 +2771,7 @@ msgstr "打开声音文件失败。"
 
 #: ../src/utils/pactl.c:1719
 msgid "Warning: Failed to determine sample specification from file."
-msgstr "警告：从文件中确定采样说明失败。"
+msgstr "警告：从文件中确定采样规格失败。"
 
 #: ../src/utils/pactl.c:1729
 msgid "You have to specify a sample name to play"
@@ -2835,7 +2783,7 @@ msgstr "您必须指定要删除的采样名"
 
 #: ../src/utils/pactl.c:1750
 msgid "You have to specify a sink input index and a sink"
-msgstr "您必须指定采集器输入索引和采集器"
+msgstr "您必须指定信宿输入索引和信宿"
 
 #: ../src/utils/pactl.c:1760
 msgid "You have to specify a source output index and a source"
@@ -2852,7 +2800,7 @@ msgstr "必须指定模块索引或名称"
 #: ../src/utils/pactl.c:1808
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
-msgstr "不可指定多个采集器。必须指定一个布尔值。"
+msgstr "不可指定多个信宿。必须指定一个布尔值。"
 
 #: ../src/utils/pactl.c:1813 ../src/utils/pactl.c:1833
 msgid "Invalid suspend specification."
@@ -2870,7 +2818,7 @@ msgstr "您必须指定声卡名称/索引和侧写名称"
 
 #: ../src/utils/pactl.c:1856
 msgid "You have to specify a sink name/index and a port name"
-msgstr "您必须指定采集器名称/索引和端口名称"
+msgstr "您必须指定信宿名称/索引和端口名称"
 
 #: ../src/utils/pactl.c:1867
 msgid "You have to specify a sink name"
@@ -2886,19 +2834,19 @@ msgstr "必须指定信号源索引"
 
 #: ../src/utils/pactl.c:1898
 msgid "You have to specify a sink name/index and a volume"
-msgstr "您必须指定采集器名称/索引和音量"
+msgstr "您必须指定信宿名称/索引和音量"
 
 #: ../src/utils/pactl.c:1911
 msgid "You have to specify a source name/index and a volume"
-msgstr "您必须指定信源名称/索引和音量"
+msgstr "您必须指定源名称/索引和音量"
 
 #: ../src/utils/pactl.c:1924
 msgid "You have to specify a sink input index and a volume"
-msgstr "您必须指定采集器输入索引和音量"
+msgstr "您必须指定信宿输入索引和音量"
 
 #: ../src/utils/pactl.c:1929
 msgid "Invalid sink input index"
-msgstr "无效采集器输入索引"
+msgstr "无效信宿输入索引"
 
 #: ../src/utils/pactl.c:1940
 msgid "You have to specify a source output index and a volume"
@@ -2911,7 +2859,7 @@ msgstr "无效信源输出索引"
 #: ../src/utils/pactl.c:1956
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
-msgstr "您必须指定采集器名称/索引和静音动作 (0, 1, 或 'toggle' 切换)"
+msgstr "您必须指定信宿名称/索引和静音动作 (0, 1, 或 'toggle' 切换)"
 
 #: ../src/utils/pactl.c:1961 ../src/utils/pactl.c:1976
 #: ../src/utils/pactl.c:1996 ../src/utils/pactl.c:2014
@@ -2926,11 +2874,11 @@ msgstr "您必须指定信源名称/索引和静音动作 (0, 1, 或 'toggle' �
 #: ../src/utils/pactl.c:1986
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
-msgstr "您必须指定采集器输入索引和静音动作 (0, 1, 或 'toggle' 切换)"
+msgstr "您必须指定信宿输入索引和静音动作 (0, 1, 或 'toggle' 切换)"
 
 #: ../src/utils/pactl.c:1991
 msgid "Invalid sink input index specification"
-msgstr "无效采集器输入索引说明"
+msgstr "无效信宿输入索引规格"
 
 #: ../src/utils/pactl.c:2004
 msgid ""
@@ -2946,7 +2894,7 @@ msgstr "无效信源输出索引说明"
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
-msgstr "您必须指定采集器名称及以英文分号分隔的其所支持格式的列表"
+msgstr "您必须指定信宿名称及以英文分号分隔的其所支持格式的列表"
 
 #: ../src/utils/pactl.c:2038
 msgid "You have to specify a card name/index, a port name and a latency offset"
@@ -2993,7 +2941,7 @@ msgstr "连接失败：%s\n"
 #: ../src/utils/pasuspender.c:201
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr "收到SIGINT，正在退出。\n"
+msgstr "收到 SIGINT 信号，退出。\n"
 
 #: ../src/utils/pasuspender.c:219
 #, c-format
@@ -3015,7 +2963,7 @@ msgstr ""
 "\n"
 "  -h, --help                            显示此帮助\n"
 "      --version                         显示版本\n"
-"  -s, --server=服务器                   要连接的服务器名\n"
+"  -s, --server=SERVER                   要连接的服务器名\n"
 "\n"
 
 #: ../src/utils/pasuspender.c:266
@@ -3026,8 +2974,8 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pasuspender %s\n"
-"编译到 libpulse %s\n"
-"链接到 libpulse %s\n"
+"使用 libpulse %s 编译\n"
+"与 libpulse %s 链接\n"
 
 #: ../src/utils/pasuspender.c:295
 #, c-format
@@ -3055,17 +3003,17 @@ msgid ""
 "variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
-"%s [-D 显示器] [-S 服务器] [-O 接收器] [-I 信号源] [-c 文件]  [-d|-e|-i|-r]\n"
+"%s [-D 显示] [-S 服务器] [-O 信宿] [-I 信源] [-c 文件]  [-d|-e|-i|-r]\n"
 "\n"
-" -d    显示与 X11 显示器关联的当前 PulseAudio 数据（默认）\n"
+" -d    显示与 X11 显示关联的当前 PulseAudio 数据(默认)\n"
 " -e    将本地 PulseAudio 数据导出至 X11 显示器\n"
 " -i    将 PulseAudio 数据由 X11 显示器导入至本地环境变量和 cookie 文件。\n"
-" -r    从 X11 显示器清除 PulseAudio 数据\n"
+" -r    从 X11 显示中清除 PulseAudio 数据\n"
 
 #: ../src/utils/pax11publish.c:91
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr "分析命令行失败。\n"
+msgstr "解析命令行失败。\n"
 
 #: ../src/utils/pax11publish.c:110
 #, c-format
@@ -3075,12 +3023,12 @@ msgstr "服务器：%s\n"
 #: ../src/utils/pax11publish.c:112
 #, c-format
 msgid "Source: %s\n"
-msgstr "音频入口：%s\n"
+msgstr "信源：%s\n"
 
 #: ../src/utils/pax11publish.c:114
 #, c-format
 msgid "Sink: %s\n"
-msgstr "音频出口：%s\n"
+msgstr "信宿：%s\n"
 
 #: ../src/utils/pax11publish.c:116
 #, c-format
@@ -3090,263 +3038,80 @@ msgstr "Cookie：%s\n"
 #: ../src/utils/pax11publish.c:134
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr "分析cookie数据失败\n"
+msgstr "解析 cookie 数据失败\n"
 
 #: ../src/utils/pax11publish.c:139
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr "保存cookie数据失败\n"
+msgstr "保存 cookie 数据失败\n"
 
 #: ../src/utils/pax11publish.c:168
 #, c-format
 msgid "Failed to get FQDN.\n"
-msgstr "获取FQDN失败。\n"
+msgstr "获取 FQDN 失败。\n"
 
 #: ../src/utils/pax11publish.c:188
 #, c-format
 msgid "Failed to load cookie data\n"
-msgstr "加载cookie数据失败\n"
+msgstr "加载 cookie 数据失败\n"
 
 #: ../src/utils/pax11publish.c:206
 #, c-format
 msgid "Not yet implemented.\n"
 msgstr "尚未实现。\n"
 
-#~ msgid "Got signal %s."
-#~ msgstr "获得信号%s"
-
-#~ msgid "Exiting."
-#~ msgstr "退出"
-
-#~ msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-#~ msgstr "发现用户'%s' (UID %lu)和组'%s' (GID %lu)."
-
-#~ msgid "Successfully dropped root privileges."
-#~ msgstr "成功放弃root权限。"
-
-#~ msgid "setrlimit(%s, (%u, %u)) failed: %s"
-#~ msgstr "setrlimit(%s, (%u, %u)) 失败：%s"
-
-#~ msgid "Daemon not running"
-#~ msgstr "后台程序没有运行"
-
-#~ msgid "Daemon running as PID %u"
-#~ msgstr "后台程序正在运行，PID %u"
-
-#~ msgid "Daemon startup successful."
-#~ msgstr "后台程序启动成功。"
-
-#~ msgid "This is PulseAudio %s"
-#~ msgstr "这是 PulseAudio %s"
-
-#~ msgid "Compilation host: %s"
-#~ msgstr "编译主机：%s"
-
-#~ msgid "Compilation CFLAGS: %s"
-#~ msgstr "编译CFLAGS：%s"
-
-#~ msgid "Running on host: %s"
-#~ msgstr "正在主机上运行：%s"
-
-#~ msgid "Found %u CPUs."
-#~ msgstr "找到 %u CPU。"
-
-#~ msgid "Page size is %lu bytes"
-#~ msgstr "页面大小为%lu字节"
-
-#~ msgid "Compiled with Valgrind support: yes"
-#~ msgstr "编译启用Valgrind支持：是"
-
-#~ msgid "Compiled with Valgrind support: no"
-#~ msgstr "编译启用Valgrind支持：否"
-
-#~ msgid "Running in valgrind mode: %s"
-#~ msgstr "正在以valgrind模式运行：%s"
-
-#, fuzzy
-#~ msgid "Running in VM: %s"
-#~ msgstr "正在主机上运行：%s"
-
-#~ msgid "Optimized build: yes"
-#~ msgstr "优化生成：是"
-
-#~ msgid "Optimized build: no"
-#~ msgstr "优化生成：否"
-
-#~ msgid "NDEBUG defined, all asserts disabled."
-#~ msgstr "拒绝 NDEBUG，禁用所有 assert"
-
-#~ msgid "FASTPATH defined, only fast path asserts disabled."
-#~ msgstr "拒绝 FASTPATH，只禁用快速路径 assert。"
-
-#~ msgid "All asserts enabled."
-#~ msgstr "启用所有 assert。"
-
-#~ msgid "Machine ID is %s."
-#~ msgstr "machine ID是%s。"
-
-#~ msgid "Session ID is %s."
-#~ msgstr "会话 ID %s。"
-
-#~ msgid "Using runtime directory %s."
-#~ msgstr "正在使用运行时文件夹%s。"
-
-#~ msgid "Using state directory %s."
-#~ msgstr "正在使用状态文件夹%s。"
-
-#~ msgid "Using modules directory %s."
-#~ msgstr "正在使用模块目录 %s。"
-
-#~ msgid "Running in system mode: %s"
-#~ msgstr "正在以系统模式运行：%s"
-
-#~ msgid "Fresh high-resolution timers available! Bon appetit!"
-#~ msgstr "新鲜的高分辨率计时器开锅了！吃个饱！"
+#~ msgid "wants to record audio."
+#~ msgstr "试图录制音频。"
 
 #~ msgid ""
-#~ "Dude, your kernel stinks! The chef's recommendation today is Linux with "
-#~ "high-resolution timers enabled!"
-#~ msgstr "老兄，您的内核真臭！现在流行的是启用了高分辩率计分器的Linux！"
-
-#~ msgid "Daemon startup complete."
-#~ msgstr "后台程序启动完成。"
-
-#~ msgid "Daemon shutdown initiated."
-#~ msgstr "开始关闭后台程序。"
-
-#~ msgid "Daemon terminated."
-#~ msgstr "后台程序已终止。"
-
-#~ msgid "Cleaning up privileges."
-#~ msgstr "取消特权。"
-
-#, fuzzy
-#~ msgid "PulseAudio Sound System KDE Routing Policy"
-#~ msgstr "PulseAudio 声音系统"
-
-#, fuzzy
-#~ msgid "Start the PulseAudio Sound System with KDE Routing Policy"
-#~ msgstr "启动 PulseAudio 声音系统"
-
-#~ msgid "No cookie loaded. Attempting to connect without."
-#~ msgstr "没有加载cookie。尝试不加载cookie进行连接。"
-
-#~ msgid "Failed to load client configuration file.\n"
-#~ msgstr "加载客户端配置文件失败。\n"
-
-#~ msgid "Failed to read environment configuration data.\n"
-#~ msgstr "读取环境配置数据失败。\n"
-
-#~ msgid "=== %d seconds: %d Hz %d ch (%s) -> %d Hz %d ch (%s)"
-#~ msgstr "=== %d 秒：%d Hz %d ch (%s) -> %d Hz %d ch (%s)"
-
-#~ msgid "XOpenDisplay() failed"
-#~ msgstr "XOpenDisplay()失败"
-
-#~ msgid "%s+%s"
-#~ msgstr "%s+%s"
-
-#~ msgid "%s / %s"
-#~ msgstr "%s / %s"
-
-#~ msgid "Digital Surround 4.0 (IEC958)"
-#~ msgstr "数字环绕 4.0（IEC958）"
-
-#~ msgid "Low Frequency Emmiter"
-#~ msgstr "低频脉冲"
-
-#~ msgid "Successfully changed user to \""
-#~ msgstr "成功变更用户为 \""
-
-#~ msgid "[%s:%u] rlimit not supported on this platform."
-#~ msgstr "[%s:%u] 此平台不支持rlimit。"
-
-#~ msgid ""
-#~ "Source Output #%u\n"
-#~ "\tDriver: %s\n"
-#~ "\tOwner Module: %s\n"
-#~ "\tClient: %s\n"
-#~ "\tSource: %u\n"
-#~ "\tSample Specification: %s\n"
-#~ "\tChannel Map: %s\n"
-#~ "\tBuffer Latency: %0.0f usec\n"
-#~ "\tSource Latency: %0.0f usec\n"
-#~ "\tResample method: %s\n"
-#~ "\tProperties:\n"
-#~ "\t\t%s\n"
+#~ "%s [options]\n"
+#~ "\n"
+#~ "-h, --help                            Show this help\n"
+#~ "-v, --verbose                         Print debug messages\n"
+#~ "      --from-rate=SAMPLERATE          From sample rate in Hz (defaults to "
+#~ "44100)\n"
+#~ "      --from-format=SAMPLEFORMAT      From sample type (defaults to "
+#~ "s16le)\n"
+#~ "      --from-channels=CHANNELS        From number of channels (defaults "
+#~ "to 1)\n"
+#~ "      --to-rate=SAMPLERATE            To sample rate in Hz (defaults to "
+#~ "44100)\n"
+#~ "      --to-format=SAMPLEFORMAT        To sample type (defaults to s16le)\n"
+#~ "      --to-channels=CHANNELS          To number of channels (defaults to "
+#~ "1)\n"
+#~ "      --resample-method=METHOD        Resample method (defaults to auto)\n"
+#~ "      --seconds=SECONDS               From stream duration (defaults to "
+#~ "60)\n"
+#~ "\n"
+#~ "If the formats are not specified, the test performs all formats "
+#~ "combinations,\n"
+#~ "back and forth.\n"
+#~ "\n"
+#~ "Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, "
+#~ "alaw,\n"
+#~ "s24le, s24be, s24-32le, s24-32be, s32le, s32be (defaults to s16ne)\n"
+#~ "\n"
+#~ "See --dump-resample-methods for possible values of resample methods.\n"
 #~ msgstr ""
-#~ "Source Output #%u\n"
-#~ "\tDriver: %s\n"
-#~ "\tOwner Module: %s\n"
-#~ "\tClient: %s\n"
-#~ "\tSource: %u\n"
-#~ "\tSample Specification: %s\n"
-#~ "\tChannel Map: %s\n"
-#~ "\tBuffer Latency: %0.0f usec\n"
-#~ "\tSource Latency: %0.0f usec\n"
-#~ "\tResample method: %s\n"
-#~ "\tProperties:\n"
-#~ "\t\t%s\n"
+#~ "%s [选项]\n"
+#~ "\n"
+#~ "-h, --help                            显示帮助\n"
+#~ "-v, --verbose                         输出调试信息\n"
+#~ "      --from-rate=SAMPLERATE          音源频率（默认为 44100）赫兹\n"
+#~ "      --from-format=SAMPLEFORMAT      音源格式（默认为 s16le）\n"
+#~ "      --from-channels=CHANNELS        音源声道（默认为 1）\n"
+#~ "      --to-rate=SAMPLERATE           转换为频率（默认 44100）赫兹\n"
+#~ "      --to-format=SAMPLEFORMAT        转换为格式（默认为 s16le）\n"
+#~ "      --to-channels=CHANNELS          转换到声道（默认为 1）\n"
+#~ "      --resample-method=METHOD        重采样方法（默认为自动）\n"
+#~ "      --seconds=SECONDS               音源流长度（默认为 60 秒）\n"
+#~ "\n"
+#~ "如果格式未指定，将会测试进行所有格式组合来回测试。\n"
+#~ "\n"
+#~ "采样类型有这几种：s16le，s16be，u8，float32le，float32be，ulaw，alaw，\n"
+#~ "s24le，s24be，s24-32le，s24-32be，s32le，s32be。\n"
+#~ "\n"
+#~ "使用 --dump-resample-methods 参数可列出可能的采样方法。\n"
 
-#, fuzzy
-#~ msgid ""
-#~ "%s [options] stat\n"
-#~ "%s [options] list\n"
-#~ "%s [options] exit\n"
-#~ "%s [options] upload-sample FILENAME [NAME]\n"
-#~ "%s [options] play-sample NAME [SINK]\n"
-#~ "%s [options] remove-sample NAME\n"
-#~ "%s [options] move-sink-input SINKINPUT SINK\n"
-#~ "%s [options] move-source-output SOURCEOUTPUT SOURCE\n"
-#~ "%s [options] load-module NAME [ARGS ...]\n"
-#~ "%s [options] unload-module MODULE\n"
-#~ "%s [options] suspend-sink SINK 1|0\n"
-#~ "%s [options] suspend-source SOURCE 1|0\n"
-#~ "%s [options] set-card-profile CARD PROFILE\n"
-#~ "%s [options] set-sink-port SINK PORT\n"
-#~ "%s [options] set-source-port SOURCE PORT\n"
-#~ "%s [options] set-sink-volume SINK VOLUME\n"
-#~ "%s [options] set-source-volume SOURCE VOLUME\n"
-#~ "%s [options] set-sink-input-volume SINKINPUT VOLUME\n"
-#~ "%s [options] set-sink-mute SINK 1|0\n"
-#~ "%s [options] set-source-mute SOURCE 1|0\n"
-#~ "%s [options] set-sink-input-mute SINKINPUT 1|0\n"
-#~ "%s [options] subscribe\n"
-#~ "\n"
-#~ "  -h, --help                            Show this help\n"
-#~ "      --version                         Show version\n"
-#~ "\n"
-#~ "  -s, --server=SERVER                   The name of the server to connect "
-#~ "to\n"
-#~ "  -n, --client-name=NAME                How to call this client on the "
-#~ "server\n"
-#~ msgstr ""
-#~ "%s [options] stat\n"
-#~ "%s [options] list\n"
-#~ "%s [options] exit\n"
-#~ "%s [options] upload-sample FILENAME [NAME]\n"
-#~ "%s [options] play-sample NAME [SINK]\n"
-#~ "%s [options] remove-sample NAME\n"
-#~ "%s [options] move-sink-input SINKINPUT SINK\n"
-#~ "%s [options] move-source-output SOURCEOUTPUT SOURCE\n"
-#~ "%s [options] load-module NAME [ARGS ...]\n"
-#~ "%s [options] unload-module MODULE\n"
-#~ "%s [options] suspend-sink SINK 1|0\n"
-#~ "%s [options] suspend-source SOURCE 1|0\n"
-#~ "%s [options] set-card-profile CARD PROFILE\n"
-#~ "%s [options] set-sink-port SINK PORT\n"
-#~ "%s [options] set-source-port SOURCE PORT\n"
-#~ "%s [options] set-sink-volume SINK VOLUME\n"
-#~ "%s [options] set-source-volume SOURCE VOLUME\n"
-#~ "%s [options] set-sink-input-volume SINKINPUT VOLUME\n"
-#~ "%s [options] set-sink-mute SINK 1|0\n"
-#~ "%s [options] set-source-mute SOURCE 1|0\n"
-#~ "%s [options] set-sink-input-mute SINKINPUT 1|0\n"
-#~ "\n"
-#~ "  -h, --help                            Show this help\n"
-#~ "      --version                         Show version\n"
-#~ "\n"
-#~ "  -s, --server=SERVER                   The name of the server to connect "
-#~ "to\n"
-#~ "  -n, --client-name=NAME                How to call this client on the "
-#~ "server\n"
+#~ msgid "%s %s\n"
+#~ msgstr "%s %s\n"
