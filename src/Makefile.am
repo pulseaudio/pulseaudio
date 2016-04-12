@@ -314,11 +314,12 @@ endif
 if HAVE_GLIB20
 TESTS_default += \
 		mainloop-test-glib
-endif
 
 if HAVE_GTK30
+# gtk-test depends on both glib and gtk
 TESTS_norun += \
 		gtk-test
+endif
 endif
 
 if HAVE_ALSA
