@@ -32,10 +32,10 @@ PA_MODULE_DESCRIPTION("Apply a ducking effect based on streams roles");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
-        "trigger_roles=<Comma separated list of roles which will trigger a ducking> "
-        "ducking_roles=<Comma separated list of roles which will be ducked> "
+        "trigger_roles=<Comma(and slash) separated list of roles which will trigger a ducking. Slash can divide the roles into groups>"
+        "ducking_roles=<Comma(and slash) separated list of roles which will be ducked. Slash can divide the roles into groups>"
         "global=<Should we operate globally or only inside the same device?>"
-        "volume=<Volume for the attenuated streams. Default: -20dB"
+        "volume=<Volume for the attenuated streams. Default: -20dB. If trigger_roles and ducking_roles are separated by slash, use slash for dividing volume group>"
 );
 
 static const char* const valid_modargs[] = {
