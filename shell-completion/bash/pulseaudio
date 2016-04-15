@@ -500,13 +500,13 @@ _pulseaudio()
                 --realtime= --disallow-module-loading= --disallow-exit= --exit-idle-time=
                 --scache-idle-time= --log-level= -v --log-target= --log-meta= --log-time=
                 --log-backtrace= -p --dl-search-path= --resample-method= --use-pit-file=
-                --no-cpu-limit= --disable-shm= -L --load= -F --file= -C -n'
+                --no-cpu-limit= --disable-shm= --enable-memfd= -L --load= -F --file= -C -n'
     _init_completion -n = || return
 
     case $cur in
         --system=*|--daemonize=*|--fail=*|--high-priority=*|--realtime=*| \
             --disallow-*=*|--log-meta=*|--log-time=*|--use-pid-file=*| \
-            --no-cpu-limit=*|--disable-shm=*)
+            --no-cpu-limit=*|--disable-shm=*|--enable-memfd=*)
             cur=${cur#*=}
             COMPREPLY=($(compgen -W 'true false' -- "$cur"))
             ;;

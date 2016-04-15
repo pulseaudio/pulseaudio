@@ -690,6 +690,7 @@ _pulseaudio_completion() {
         '--use-pid-file=[create a PID file]:bool:(true false)' \
         '--no-cpu-limit=[do not install CPU load limiter]:bool:(true false)' \
         '--disable-shm=[disable shared memory support]:bool:(true false)' \
+        '--enable-memfd=[enable memfd shared memory support]:bool:(true false)' \
         {-L,--load=}'[load the specified module]:modules:_all_modules' \
         {-F,--file=}'[run the specified script]:file:_files' \
         '-C[open a command line on the running tty]' \

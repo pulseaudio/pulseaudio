@@ -371,6 +371,43 @@ PA_COMMAND_DISABLE_SRBCHANNEL
 Tells the client to stop listening on the additional SHM ringbuffer channel.
 Acked by client by sending PA_COMMAND_DISABLE_SRBCHANNEL back.
 
+## v31, implemented by >= 9.0
+
+Memfd shared-memory support is now added to PulseAudio as an opt-in feature.
+Add 'enable-memfd=yes' to daemon's configuration to use memfds, instead of
+POSIX shm, by default.
+
+Memfd is a simple memory sharing mechanism, added by the systemd/kdbus
+developers, to share pages between processes in an anonymous, no global
+registry needed, no mount-point required, relatively secure, manner.
+
+PulseAudio memfd support builds the necessary (but not yet sufficient)
+groundwork for a better integration with per-app containers (e.g. xdg-app)
+
+For further details on memfds in general, please check:
+
+  https://dvdhrm.wordpress.com/2014/06/10/memfd_create2/
+  Archived at: http://www.webcitation.org/6gnHTy9Kr
+
+Moreover, for both client and server, the second most-significant bit of
+the version tag is now used to flag memfd SHM support. On the way forward,
+the two most-significant _bytes_ of the version tag are now also reserved
+for flags.
+
+PA_COMMAND_REGISTER_MEMFD_SHMID
+New command that can be sent both ways, from client to server and vice versa.
+This is needed to transfer a memfd pool's blocks without passing its fd every
+time, thus minimizing overhead and avoiding fd leaks.
+
+The registration command above sends a packet with the pool's memfd fd as
+ancillary data. Such packet has an ID that uniquely identifies the pool's
+memfd memory area. Upon arrival, the other end (client or server) creates a
+permanent ID<->memfd mapping.
+
+By doing so, there's need to reference the pool's memfd file descriptor any
+further -- just its ID. Thus both endpoints can then quickly and safely
+close their memfd file descriptors.
+
 #### If you just changed the protocol, read this
 ## module-tunnel depends on the sink/source/sink-input/source-input protocol
 ## internals, so if you changed these, you might have broken module-tunnel.

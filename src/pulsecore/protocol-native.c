@@ -2598,7 +2598,7 @@ static void command_exit(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
     pa_pstream_send_simple_ack(c->pstream, tag); /* nonsense */
 }
 
-static void setup_srbchannel(pa_native_connection *c) {
+static void setup_srbchannel(pa_native_connection *c, pa_mem_type_t shm_type) {
     pa_srbchannel_template srbt;
     pa_srbchannel *srb;
     pa_memchunk mc;
@@ -2631,20 +2631,25 @@ static void setup_srbchannel(pa_native_connection *c) {
         return;
     }
 
-    if (!(c->rw_mempool = pa_mempool_new(PA_MEM_TYPE_SHARED_POSIX, c->protocol->core->shm_size, true))) {
+    if (!(c->rw_mempool = pa_mempool_new(shm_type, c->protocol->core->shm_size, true))) {
         pa_log_warn("Disabling srbchannel, reason: Failed to allocate shared "
                     "writable memory pool.");
         return;
+    }
+
+    if (shm_type == PA_MEM_TYPE_SHARED_MEMFD) {
+        const char *reason;
+        if (pa_pstream_register_memfd_mempool(c->pstream, c->rw_mempool, &reason)) {
+            pa_log_warn("Disabling srbchannel, reason: Failed to register memfd mempool: %s", reason);
+            goto fail;
+        }
     }
     pa_mempool_set_is_remote_writable(c->rw_mempool, true);
 
     srb = pa_srbchannel_new(c->protocol->core->mainloop, c->rw_mempool);
     if (!srb) {
         pa_log_debug("Failed to create srbchannel");
-
-        pa_mempool_unref(c->rw_mempool);
-        c->rw_mempool = NULL;
-        return;
+        goto fail;
     }
     pa_log_debug("Enabling srbchannel...");
     pa_srbchannel_export(srb, &srbt);
@@ -2664,6 +2669,13 @@ static void setup_srbchannel(pa_native_connection *c) {
     pa_pstream_send_memblock(c->pstream, 0, 0, 0, &mc);
 
     c->srbpending = srb;
+    return;
+
+fail:
+    if (c->rw_mempool) {
+        pa_mempool_unref(c->rw_mempool);
+        c->rw_mempool = NULL;
+    }
 }
 
 static void command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -2682,7 +2694,7 @@ static void command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32
 static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     const void*cookie;
-    bool memfd_on_remote = false;
+    bool memfd_on_remote = false, do_memfd = false;
     pa_tagstruct *reply;
     pa_mem_type_t shm_type;
     bool shm_on_remote = false, do_shm;
@@ -2777,7 +2789,7 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
         }
     }
 
-    /* Enable shared memory support if possible */
+    /* Enable shared memory and memfd support if possible */
     do_shm =
         pa_mempool_is_shared(c->protocol->core->mempool) &&
         c->is_local;
@@ -2803,9 +2815,12 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
     pa_log_debug("Negotiated SHM: %s", pa_yes_no(do_shm));
     pa_pstream_enable_shm(c->pstream, do_shm);
 
+    do_memfd =
+        do_shm && pa_mempool_is_memfd_backed(c->protocol->core->mempool);
+
     shm_type = PA_MEM_TYPE_PRIVATE;
     if (do_shm) {
-        if (c->version >= 31 && memfd_on_remote && pa_memfd_is_locally_supported()) {
+        if (c->version >= 31 && memfd_on_remote && do_memfd) {
             pa_pstream_enable_memfd(c->pstream);
             shm_type = PA_MEM_TYPE_SHARED_MEMFD;
         } else
@@ -2817,7 +2832,7 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
 
     reply = reply_new(tag);
     pa_tagstruct_putu32(reply, PA_PROTOCOL_VERSION | (do_shm ? 0x80000000 : 0) |
-                        (pa_memfd_is_locally_supported() ? 0x40000000 : 0));
+                        (do_memfd ? 0x40000000 : 0));
 
 #ifdef HAVE_CREDS
 {
@@ -2834,7 +2849,19 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
     pa_pstream_send_tagstruct(c->pstream, reply);
 #endif
 
-    setup_srbchannel(c);
+    /* The client enables memfd transport on its pstream only after
+     * inspecting our version flags to see if we support memfds too.
+     *
+     * Thus register any pools after sending the server's version
+     * flags and _never_ before it. */
+    if (shm_type == PA_MEM_TYPE_SHARED_MEMFD) {
+        const char *reason;
+
+        if (pa_pstream_register_memfd_mempool(c->pstream, c->protocol->core->mempool, &reason))
+            pa_log("Failed to register memfd mempool. Reason: %s", reason);
+    }
+
+    setup_srbchannel(c, shm_type);
 }
 
 static void command_register_memfd_shmid(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {

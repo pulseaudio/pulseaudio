@@ -1017,7 +1017,9 @@ int main(int argc, char *argv[]) {
 
     pa_assert_se(mainloop = pa_mainloop_new());
 
-    if (!(c = pa_core_new(pa_mainloop_get_api(mainloop), !conf->disable_shm, conf->shm_size))) {
+    if (!(c = pa_core_new(pa_mainloop_get_api(mainloop), !conf->disable_shm,
+                          !conf->disable_shm && !conf->disable_memfd && pa_memfd_is_locally_supported(),
+                          conf->shm_size))) {
         pa_log(_("pa_core_new() failed."));
         goto finish;
     }

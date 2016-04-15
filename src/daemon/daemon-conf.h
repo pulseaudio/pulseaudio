@@ -66,6 +66,7 @@ typedef struct pa_daemon_conf {
         system_instance,
         no_cpu_limit,
         disable_shm,
+        disable_memfd,
         disable_remixing,
         disable_lfe_remixing,
         load_default_script_file,

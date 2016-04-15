@@ -292,11 +292,20 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       <p><opt>--disable-shm</opt><arg>[=BOOL]</arg></p>
 
       <optdesc><p>PulseAudio clients and the server can exchange audio
-      data via POSIX shared memory segments (on systems that support
-      this). If disabled PulseAudio will communicate exclusively over
-      sockets. Please note that data transfer via shared memory
+      data via POSIX or memfd shared memory segments (on systems that
+      support this). If disabled PulseAudio will communicate exclusively
+      over sockets. Please note that data transfer via shared memory
       segments is always disabled when PulseAudio is running with
       <opt>--system</opt> enabled (see above).</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--enable-memfd</opt><arg>[=BOOL]</arg></p>
+
+      <optdesc><p>PulseAudio clients and the server can exchange audio
+      data via memfds - the anonymous Linux Kernel shared memory mechanism
+      (on kernels that support this). If disabled PulseAudio will
+      communicate via POSIX shared memory.</p></optdesc>
     </option>
 
     <option>

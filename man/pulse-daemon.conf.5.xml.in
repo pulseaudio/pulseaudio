@@ -189,9 +189,14 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
     <option>
       <p><opt>enable-shm=</opt> Enable data transfer via POSIX
-      shared memory. Takes a boolean argument, defaults to
+      or memfd shared memory. Takes a boolean argument, defaults to
       <opt>yes</opt>. The <opt>--disable-shm</opt> command line
       argument takes precedence.</p>
+    </option>
+
+    <option>
+      <p><opt>enable-memfd=</opt>. Enable memfd shared memory. Takes
+      a boolean argument, defaults to <opt>no</opt>.</p>
     </option>
 
     <option>

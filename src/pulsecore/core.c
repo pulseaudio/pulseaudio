@@ -61,16 +61,19 @@ static int core_process_msg(pa_msgobject *o, int code, void *userdata, int64_t o
 
 static void core_free(pa_object *o);
 
-pa_core* pa_core_new(pa_mainloop_api *m, bool shared, size_t shm_size) {
+pa_core* pa_core_new(pa_mainloop_api *m, bool shared, bool enable_memfd, size_t shm_size) {
     pa_core* c;
     pa_mempool *pool;
+    pa_mem_type_t type;
     int j;
 
     pa_assert(m);
 
     if (shared) {
-        if (!(pool = pa_mempool_new(PA_MEM_TYPE_SHARED_POSIX, shm_size, false))) {
-            pa_log_warn("Failed to allocate shared memory pool. Falling back to a normal memory pool.");
+        type = (enable_memfd) ? PA_MEM_TYPE_SHARED_MEMFD : PA_MEM_TYPE_SHARED_POSIX;
+        if (!(pool = pa_mempool_new(type, shm_size, false))) {
+            pa_log_warn("Failed to allocate %s memory pool. Falling back to a normal memory pool.",
+                        pa_mem_type_to_string(type));
             shared = false;
         }
     }

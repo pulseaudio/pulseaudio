@@ -218,7 +218,7 @@ enum {
     PA_CORE_MESSAGE_MAX
 };
 
-pa_core* pa_core_new(pa_mainloop_api *m, bool shared, size_t shm_size);
+pa_core* pa_core_new(pa_mainloop_api *m, bool shared, bool enable_memfd, size_t shm_size);
 
 /* Check whether no one is connected to this core */
 void pa_core_check_idle(pa_core *c);

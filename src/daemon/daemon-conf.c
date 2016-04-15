@@ -92,6 +92,7 @@ static const pa_daemon_conf default_conf = {
 #endif
     .no_cpu_limit = true,
     .disable_shm = false,
+    .disable_memfd = true,
     .lock_memory = false,
     .deferred_volume = true,
     .default_n_fragments = 4,
@@ -526,6 +527,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "cpu-limit",                  pa_config_parse_not_bool, &c->no_cpu_limit, NULL },
         { "disable-shm",                pa_config_parse_bool,     &c->disable_shm, NULL },
         { "enable-shm",                 pa_config_parse_not_bool, &c->disable_shm, NULL },
+        { "enable-memfd",               pa_config_parse_not_bool, &c->disable_memfd, NULL },
         { "flat-volumes",               pa_config_parse_bool,     &c->flat_volumes, NULL },
         { "lock-memory",                pa_config_parse_bool,     &c->lock_memory, NULL },
         { "enable-deferred-volume",     pa_config_parse_bool,     &c->deferred_volume, NULL },
