@@ -88,12 +88,15 @@ struct pa_context {
 
     bool is_local:1;
     bool do_shm:1;
+    bool memfd_on_local:1;
     bool server_specified:1;
     bool no_fail:1;
     bool do_autospawn:1;
     bool use_rtclock:1;
     bool filter_added:1;
     pa_spawn_api spawn_api;
+
+    pa_mem_type_t shm_type;
 
     pa_strlist *server_list;
 

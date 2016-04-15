@@ -48,6 +48,7 @@
 #include <pulsecore/core-scache.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
+#include <pulsecore/mem.h>
 #include <pulsecore/strlist.h>
 #include <pulsecore/shared.h>
 #include <pulsecore/sample-util.h>
@@ -2681,7 +2682,9 @@ static void command_enable_srbchannel(pa_pdispatch *pd, uint32_t command, uint32
 static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     const void*cookie;
+    bool memfd_on_remote = false;
     pa_tagstruct *reply;
+    pa_mem_type_t shm_type;
     bool shm_on_remote = false, do_shm;
 
     pa_native_connection_assert_ref(c);
@@ -2705,7 +2708,15 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
        not. */
     if (c->version >= 13) {
         shm_on_remote = !!(c->version & 0x80000000U);
-        c->version &= 0x7FFFFFFFU;
+
+        /* Starting with protocol version 31, the second MSB of the version
+         * tag reflects whether memfd is supported on the other PA end. */
+        if (c->version >= 31)
+            memfd_on_remote = !!(c->version & 0x40000000U);
+
+        /* Reserve the two most-significant _bytes_ of the version tag
+         * for flags. */
+        c->version &= 0x0000FFFFU;
     }
 
     pa_log_debug("Protocol version: remote %u, local %u", c->version, PA_PROTOCOL_VERSION);
@@ -2792,8 +2803,21 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
     pa_log_debug("Negotiated SHM: %s", pa_yes_no(do_shm));
     pa_pstream_enable_shm(c->pstream, do_shm);
 
+    shm_type = PA_MEM_TYPE_PRIVATE;
+    if (do_shm) {
+        if (c->version >= 31 && memfd_on_remote && pa_memfd_is_locally_supported()) {
+            pa_pstream_enable_memfd(c->pstream);
+            shm_type = PA_MEM_TYPE_SHARED_MEMFD;
+        } else
+            shm_type = PA_MEM_TYPE_SHARED_POSIX;
+
+        pa_log_debug("Memfd possible: %s", pa_yes_no(pa_memfd_is_locally_supported()));
+        pa_log_debug("Negotiated SHM type: %s", pa_mem_type_to_string(shm_type));
+    }
+
     reply = reply_new(tag);
-    pa_tagstruct_putu32(reply, PA_PROTOCOL_VERSION | (do_shm ? 0x80000000 : 0));
+    pa_tagstruct_putu32(reply, PA_PROTOCOL_VERSION | (do_shm ? 0x80000000 : 0) |
+                        (pa_memfd_is_locally_supported() ? 0x40000000 : 0));
 
 #ifdef HAVE_CREDS
 {

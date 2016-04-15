@@ -173,7 +173,12 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     c->srb_template.readfd = -1;
     c->srb_template.writefd = -1;
 
-    type = !c->conf->disable_shm ? PA_MEM_TYPE_SHARED_POSIX : PA_MEM_TYPE_PRIVATE;
+    c->memfd_on_local = (!c->conf->disable_memfd && pa_memfd_is_locally_supported());
+
+    type = (c->conf->disable_shm) ? PA_MEM_TYPE_PRIVATE :
+           ((!c->memfd_on_local) ?
+               PA_MEM_TYPE_SHARED_POSIX : PA_MEM_TYPE_SHARED_MEMFD);
+
     if (!(c->mempool = pa_mempool_new(type, c->conf->shm_size, true))) {
 
         if (!c->conf->disable_shm) {
@@ -482,6 +487,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
         case PA_CONTEXT_AUTHORIZING: {
             pa_tagstruct *reply;
             bool shm_on_remote = false;
+            bool memfd_on_remote = false;
 
             if (pa_tagstruct_getu32(t, &c->version) < 0 ||
                 !pa_tagstruct_eof(t)) {
@@ -500,7 +506,15 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
                not. */
             if (c->version >= 13) {
                 shm_on_remote = !!(c->version & 0x80000000U);
-                c->version &= 0x7FFFFFFFU;
+
+                /* Starting with protocol version 31, the second MSB of the version
+                 * tag reflects whether memfd is supported on the other PA end. */
+                if (c->version >= 31)
+                    memfd_on_remote = !!(c->version & 0x40000000U);
+
+                /* Reserve the two most-significant _bytes_ of the version tag
+                 * for flags. */
+                c->version &= 0x0000FFFFU;
             }
 
             pa_log_debug("Protocol version: remote %u, local %u", c->version, PA_PROTOCOL_VERSION);
@@ -525,6 +539,26 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 
             pa_log_debug("Negotiated SHM: %s", pa_yes_no(c->do_shm));
             pa_pstream_enable_shm(c->pstream, c->do_shm);
+
+            c->shm_type = PA_MEM_TYPE_PRIVATE;
+            if (c->do_shm) {
+                if (c->version >= 31 && memfd_on_remote && c->memfd_on_local) {
+                    const char *reason;
+
+                    pa_pstream_enable_memfd(c->pstream);
+                    if (pa_mempool_is_memfd_backed(c->mempool))
+                        if (pa_pstream_register_memfd_mempool(c->pstream, c->mempool, &reason))
+                            pa_log("Failed to regester memfd mempool. Reason: %s", reason);
+
+                    /* Even if memfd pool registration fails, the negotiated SHM type
+                     * shall remain memfd as both endpoints claim to support it. */
+                    c->shm_type = PA_MEM_TYPE_SHARED_MEMFD;
+                } else
+                    c->shm_type = PA_MEM_TYPE_SHARED_POSIX;
+            }
+
+            pa_log_debug("Memfd possible: %s", pa_yes_no(c->memfd_on_local));
+            pa_log_debug("Negotiated SHM type: %s", pa_mem_type_to_string(c->shm_type));
 
             reply = pa_tagstruct_command(c, PA_COMMAND_SET_CLIENT_NAME, &tag);
 
@@ -593,8 +627,10 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     pa_log_debug("SHM possible: %s", pa_yes_no(c->do_shm));
 
     /* Starting with protocol version 13 we use the MSB of the version
-     * tag for informing the other side if we could do SHM or not */
-    pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION | (c->do_shm ? 0x80000000U : 0));
+     * tag for informing the other side if we could do SHM or not.
+     * Starting from version 31, second MSB is used to flag memfd support. */
+    pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION | (c->do_shm ? 0x80000000U : 0) |
+                        (c->memfd_on_local ? 0x40000000 : 0));
     pa_tagstruct_put_arbitrary(t, cookie, sizeof(cookie));
 
 #ifdef HAVE_CREDS

@@ -22,6 +22,7 @@
 
 #include <stdbool.h>
 
+#include <pulsecore/creds.h>
 #include <pulsecore/macro.h>
 
 typedef enum pa_mem_type {
@@ -46,6 +47,14 @@ static inline const char *pa_mem_type_to_string(pa_mem_type_t type) {
 
 static inline bool pa_mem_type_is_shared(pa_mem_type_t t) {
     return (t == PA_MEM_TYPE_SHARED_POSIX) || (t == PA_MEM_TYPE_SHARED_MEMFD);
+}
+
+static inline bool pa_memfd_is_locally_supported() {
+#if defined(HAVE_CREDS) && defined(HAVE_MEMFD)
+    return true;
+#else
+    return false;
+#endif
 }
 
 #endif

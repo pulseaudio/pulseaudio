@@ -102,6 +102,14 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
     <option>
       <p><opt>enable-shm=</opt> Enable data transfer via POSIX
+      or memfd shared memory. Takes a boolean argument, defaults to
+      <opt>yes</opt>. If set to <opt>no</opt>, communication with
+      the server will be exclusively done through data-copy over
+      sockets.</p>
+    </option>
+
+    <option>
+      <p><opt>enable-memfd=</opt>. Enable data transfer via memfd
       shared memory. Takes a boolean argument, defaults to
       <opt>yes</opt>.</p>
     </option>
