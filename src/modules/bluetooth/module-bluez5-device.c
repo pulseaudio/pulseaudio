@@ -2142,7 +2142,8 @@ static int device_process_msg(pa_msgobject *obj, int code, void *data, int64_t o
             pa_assert_se(pa_card_set_profile(m->card, pa_hashmap_get(m->card->profiles, "off"), false) >= 0);
             break;
         case BLUETOOTH_MESSAGE_STREAM_FD_HUP:
-            pa_bluetooth_transport_set_state(u->transport, PA_BLUETOOTH_TRANSPORT_STATE_IDLE);
+            if (u->transport->state > PA_BLUETOOTH_TRANSPORT_STATE_IDLE)
+                pa_bluetooth_transport_set_state(u->transport, PA_BLUETOOTH_TRANSPORT_STATE_IDLE);
             break;
     }
 
