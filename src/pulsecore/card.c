@@ -364,6 +364,11 @@ int pa_card_suspend(pa_card *c, bool suspend, pa_suspend_cause_t cause) {
     pa_assert(c);
     pa_assert(cause != 0);
 
+    if (suspend)
+        c->suspend_cause |= cause;
+    else
+        c->suspend_cause &= ~cause;
+
     PA_IDXSET_FOREACH(sink, c->sinks, idx) {
         int r;
 

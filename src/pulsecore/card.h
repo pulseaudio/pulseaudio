@@ -84,6 +84,8 @@ struct pa_card {
 
     bool save_profile:1;
 
+    pa_suspend_cause_t suspend_cause;
+
     void *userdata;
 
     int (*set_profile)(pa_card *c, pa_card_profile *profile);

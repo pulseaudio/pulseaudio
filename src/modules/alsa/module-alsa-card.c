@@ -369,6 +369,34 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
 
     pa_assert(u);
 
+    /* Quick and dirty fix for
+     * https://bugs.freedesktop.org/show_bug.cgi?id=93259
+     *
+     * Changing the jack state may cause a port change, and a port change will
+     * make the sink or source change the mixer settings. If there are multiple
+     * users having pulseaudio running, the mixer changes done by inactive
+     * users may mess up the volume settings for the active users, because when
+     * the inactive users change the mixer settings, those changes are picked
+     * up by the active user's pulseaudio instance and the changes are
+     * interpreted as if the active user changed the settings manually e.g.
+     * with alsamixer. Even single-user systems suffer from this, because gdm
+     * runs its own pulseaudio instance.
+     *
+     * Returning early here means that jack state events get ignored while the
+     * user is inactive. When the user becomes active again, the routing may
+     * not any more match the real jack state. While this is bad, this should
+     * nevertheless be better than messing up the volume every time headphones
+     * are plugged in or out.
+     *
+     * It might be better to unload the card altogether when the user becomes
+     * inactive and udev removes the permission to the card. That requires at
+     * least improving the default sink handling so that if the unloaded card
+     * contained the default sink, the default sink should be restored to what
+     * it was earlier, when the user becomes active and the card becomes
+     * accessible. */
+    if (u->card->suspend_cause & PA_SUSPEND_SESSION)
+        return 0;
+
     if (mask == SND_CTL_EVENT_MASK_REMOVE)
         return 0;
 
