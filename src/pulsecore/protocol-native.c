@@ -2604,6 +2604,11 @@ static void setup_srbchannel(pa_native_connection *c) {
     pa_tagstruct *t;
     int fdlist[2];
 
+#ifndef HAVE_CREDS
+    pa_log_debug("Disabling srbchannel, reason: No fd passing support");
+    return;
+#endif
+
     if (!c->options->srbchannel) {
         pa_log_debug("Disabling srbchannel, reason: Must be enabled by module parameter");
         return;

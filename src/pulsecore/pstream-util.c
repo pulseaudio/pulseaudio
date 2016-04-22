@@ -90,8 +90,8 @@ void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const 
     pa_pstream_send_tagstruct_with_ancil_data(p, t, NULL);
 }
 
-void pa_pstream_send_tagstruct_with_fds(pa_pstream *p, pa_tagstruct *t, int nfd, const int *fds,
-                                        bool close_fds) {
+void PA_GCC_NORETURN pa_pstream_send_tagstruct_with_fds(pa_pstream *p, pa_tagstruct *t, int nfd, const int *fds,
+                                                        bool close_fds) {
     pa_assert_not_reached();
 }
 
