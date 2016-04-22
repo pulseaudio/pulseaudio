@@ -46,7 +46,10 @@ PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE("just-one=<boolean>");
+
+#ifdef __linux__
 PA_MODULE_DEPRECATED("Please use module-udev-detect instead of module-detect!");
+#endif
 
 static const char* const valid_modargs[] = {
     "just-one",
