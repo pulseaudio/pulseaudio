@@ -649,7 +649,7 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
 }
 
 static void route_sink_input(struct userdata *u, pa_sink_input *si) {
-    const char *filter_device;
+    const char *ignore;
     const char *role;
     uint32_t role_index, device_index;
     pa_sink *sink;
@@ -664,13 +664,8 @@ static void route_sink_input(struct userdata *u, pa_sink_input *si) {
     if (!si->sink)
         return;
 
-    /* If module-filter-apply has loaded a filter for the stream, let's not
-     * break the filtering. The pa_streq() check is needed, because
-     * module-filter-apply doesn't unset the property when the stream moves
-     * away from the filter device for whatever reason (this is ugly, but
-     * easier to do this way than appropriately unsetting the property). */
-    filter_device = pa_proplist_gets(si->proplist, "module-filter-apply.filter_device");
-    if (filter_device && pa_streq(filter_device, si->sink->name))
+    ignore = pa_proplist_gets(si->proplist, "module-device-manager.ignore");
+    if (ignore && (pa_parse_boolean(ignore) == 1))
         return;
 
     /* It might happen that a stream and a sink are set up at the
@@ -717,7 +712,7 @@ static pa_hook_result_t route_sink_inputs(struct userdata *u, pa_sink *ignore_si
 }
 
 static void route_source_output(struct userdata *u, pa_source_output *so) {
-    const char *filter_device;
+    const char *ignore;
     const char *role;
     uint32_t role_index, device_index;
     pa_source *source;
@@ -735,13 +730,8 @@ static void route_source_output(struct userdata *u, pa_source_output *so) {
     if (!so->source)
         return;
 
-    /* If module-filter-apply has loaded a filter for the stream, let's not
-     * break the filtering. The pa_streq() check is needed, because
-     * module-filter-apply doesn't unset the property when the stream moves
-     * away from the filter device for whatever reason (this is ugly, but
-     * easier to do this way than appropriately unsetting the property). */
-    filter_device = pa_proplist_gets(so->proplist, "module-filter-apply.filter_device");
-    if (filter_device && pa_streq(filter_device, so->source->name))
+    ignore = pa_proplist_gets(so->proplist, "module-device-manager.ignore");
+    if (ignore && (pa_parse_boolean(ignore) == 1))
         return;
 
     /* It might happen that a stream and a source are set up at the

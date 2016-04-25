@@ -38,6 +38,7 @@
 #include "module-filter-apply-symdef.h"
 
 #define PA_PROP_FILTER_APPLY_MOVING "filter.apply.moving"
+#define PA_PROP_MDM_IGNORE          "module-device-manager.ignore"
 
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("Load filter sinks automatically when needed");
@@ -65,6 +66,10 @@ struct filter {
 struct userdata {
     pa_core *core;
     pa_hashmap *filters;
+    /* Keep track of streams we're managing PA_PROP_MDM_IGNORE on, we're only
+     * maintaining membership, so key and value are just the
+     * pa_sink_input/pa_source_output. */
+    pa_hashmap *mdm_ignored_inputs, *mdm_ignored_outputs;
     bool autoclean;
     pa_time_event *housekeeping_time_event;
 };
@@ -270,17 +275,20 @@ static void trigger_housekeeping(struct userdata *u) {
     u->housekeeping_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + HOUSEKEEPING_INTERVAL, housekeeping_time_callback, u);
 }
 
-static int do_move(pa_object *obj, pa_object *parent, bool is_input) {
+static int do_move(struct userdata *u, pa_object *obj, pa_object *parent, bool is_input) {
+    /* Keep track of objects that we've marked for module-device-manager to ignore */
+    pa_hashmap_put(is_input ? u->mdm_ignored_inputs : u->mdm_ignored_outputs, obj, obj);
+
     if (is_input) {
-        pa_sink_input_set_property(PA_SINK_INPUT(obj), "module-filter-apply.filter_device", PA_SINK(parent)->name);
+        pa_sink_input_set_property(PA_SINK_INPUT(obj), PA_PROP_MDM_IGNORE, "1");
         return pa_sink_input_move_to(PA_SINK_INPUT(obj), PA_SINK(parent), false);
     } else {
-        pa_source_output_set_property(PA_SOURCE_OUTPUT(obj), "module-filter-apply.filter_device", PA_SOURCE(parent)->name);
+        pa_source_output_set_property(PA_SOURCE_OUTPUT(obj), PA_PROP_MDM_IGNORE, "1");
         return pa_source_output_move_to(PA_SOURCE_OUTPUT(obj), PA_SOURCE(parent), false);
     }
 }
 
-static void move_object_for_filter(pa_object *o, struct filter* filter, bool restore, bool is_sink_input) {
+static void move_object_for_filter(struct userdata *u, pa_object *o, struct filter* filter, bool restore, bool is_sink_input) {
     pa_object *parent;
     pa_proplist *pl;
     const char *name;
@@ -304,7 +312,7 @@ static void move_object_for_filter(pa_object *o, struct filter* filter, bool res
 
     pa_proplist_sets(pl, PA_PROP_FILTER_APPLY_MOVING, "1");
 
-    if (do_move(o, parent, is_sink_input) < 0)
+    if (do_move(u, o, parent, is_sink_input) < 0)
         pa_log_info("Failed to move %s for \"%s\" to <%s>.", is_sink_input ? "sink-input" : "source-output",
                     pa_strnull(pa_proplist_gets(pl, PA_PROP_APPLICATION_NAME)), name);
     else
@@ -318,7 +326,7 @@ static void move_objects_for_filter(struct userdata *u, pa_object *o, struct fil
         bool is_sink_input) {
 
     if (!should_group_filter(filter))
-        move_object_for_filter(o, filter, restore, is_sink_input);
+        move_object_for_filter(u, o, filter, restore, is_sink_input);
     else {
         pa_source_output *so;
         pa_sink_input *si;
@@ -331,7 +339,7 @@ static void move_objects_for_filter(struct userdata *u, pa_object *o, struct fil
             g = get_group(PA_OBJECT(so), false);
 
             if (pa_streq(g, group))
-                move_object_for_filter(PA_OBJECT(so), filter, restore, false);
+                move_object_for_filter(u, PA_OBJECT(so), filter, restore, false);
 
             pa_xfree(g);
         }
@@ -340,7 +348,7 @@ static void move_objects_for_filter(struct userdata *u, pa_object *o, struct fil
             g = get_group(PA_OBJECT(si), true);
 
             if (pa_streq(g, group))
-                move_object_for_filter(PA_OBJECT(si), filter, restore, true);
+                move_object_for_filter(u, PA_OBJECT(si), filter, restore, true);
 
             pa_xfree(g);
         }
@@ -520,6 +528,9 @@ static pa_hook_result_t sink_input_move_finish_cb(pa_core *core, pa_sink_input *
     if (pa_proplist_gets(i->proplist, PA_PROP_FILTER_APPLY_MOVING))
         return PA_HOOK_OK;
 
+    /* If we're managing m-d-m.ignore on this, remove and re-add if we're continuing to manage it */
+    pa_hashmap_remove(u->mdm_ignored_inputs, i);
+
     return process(u, PA_OBJECT(i), true);
 }
 
@@ -538,6 +549,8 @@ static pa_hook_result_t sink_input_unlink_cb(pa_core *core, pa_sink_input *i, st
 
     if (pa_hashmap_size(u->filters) > 0)
         trigger_housekeeping(u);
+
+    pa_hashmap_remove(u->mdm_ignored_inputs, i);
 
     return PA_HOOK_OK;
 }
@@ -592,6 +605,9 @@ static pa_hook_result_t source_output_move_finish_cb(pa_core *core, pa_source_ou
     if (pa_proplist_gets(o->proplist, PA_PROP_FILTER_APPLY_MOVING))
         return PA_HOOK_OK;
 
+    /* If we're managing m-d-m.ignore on this, remove and re-add if we're continuing to manage it */
+    pa_hashmap_remove(u->mdm_ignored_outputs, o);
+
     return process(u, PA_OBJECT(o), false);
 }
 
@@ -610,6 +626,8 @@ static pa_hook_result_t source_output_unlink_cb(pa_core *core, pa_source_output 
 
     if (pa_hashmap_size(u->filters) > 0)
         trigger_housekeeping(u);
+
+    pa_hashmap_remove(u->mdm_ignored_outputs, o);
 
     return PA_HOOK_OK;
 }
@@ -650,6 +668,16 @@ static pa_hook_result_t source_unlink_cb(pa_core *core, pa_source *source, struc
     return PA_HOOK_OK;
 }
 
+static void unset_mdm_ignore_input(pa_sink_input *i)
+{
+    pa_sink_input_set_property(i, PA_PROP_MDM_IGNORE, NULL);
+}
+
+static void unset_mdm_ignore_output(pa_source_output *o)
+{
+    pa_source_output_set_property(o, PA_PROP_MDM_IGNORE, NULL);
+}
+
 int pa__init(pa_module *m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
@@ -672,6 +700,8 @@ int pa__init(pa_module *m) {
     }
 
     u->filters = pa_hashmap_new(filter_hash, filter_compare);
+    u->mdm_ignored_inputs = pa_hashmap_new_full(NULL, NULL, (pa_free_cb_t) unset_mdm_ignore_input, NULL);
+    u->mdm_ignored_outputs = pa_hashmap_new_full(NULL, NULL, (pa_free_cb_t) unset_mdm_ignore_output, NULL);
 
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_put_cb, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_move_finish_cb, u);
@@ -718,6 +748,12 @@ void pa__done(pa_module *m) {
 
         pa_hashmap_free(u->filters);
     }
+
+    if (u->mdm_ignored_inputs)
+        pa_hashmap_free(u->mdm_ignored_inputs);
+
+    if (u->mdm_ignored_outputs)
+        pa_hashmap_free(u->mdm_ignored_outputs);
 
     pa_xfree(u);
 }
