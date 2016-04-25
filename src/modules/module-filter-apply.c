@@ -270,17 +270,13 @@ static void trigger_housekeeping(struct userdata *u) {
     u->housekeeping_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + HOUSEKEEPING_INTERVAL, housekeeping_time_callback, u);
 }
 
-static int do_move(pa_object *obj, pa_object *parent, bool restore, bool is_input) {
+static int do_move(pa_object *obj, pa_object *parent, bool is_input) {
     if (is_input) {
-        if (!restore)
-            pa_sink_input_set_property(PA_SINK_INPUT(obj), "module-filter-apply.filter_device", PA_SINK(parent)->name);
-
-        return pa_sink_input_move_to(PA_SINK_INPUT(obj), PA_SINK(parent), restore);
+        pa_sink_input_set_property(PA_SINK_INPUT(obj), "module-filter-apply.filter_device", PA_SINK(parent)->name);
+        return pa_sink_input_move_to(PA_SINK_INPUT(obj), PA_SINK(parent), false);
     } else {
-        if (!restore)
-            pa_source_output_set_property(PA_SOURCE_OUTPUT(obj), "module-filter-apply.filter_device", PA_SOURCE(parent)->name);
-
-        return pa_source_output_move_to(PA_SOURCE_OUTPUT(obj), PA_SOURCE(parent), restore);
+        pa_source_output_set_property(PA_SOURCE_OUTPUT(obj), "module-filter-apply.filter_device", PA_SOURCE(parent)->name);
+        return pa_source_output_move_to(PA_SOURCE_OUTPUT(obj), PA_SOURCE(parent), false);
     }
 }
 
@@ -308,7 +304,7 @@ static void move_object_for_filter(pa_object *o, struct filter* filter, bool res
 
     pa_proplist_sets(pl, PA_PROP_FILTER_APPLY_MOVING, "1");
 
-    if (do_move(o, parent, false, is_sink_input) < 0)
+    if (do_move(o, parent, is_sink_input) < 0)
         pa_log_info("Failed to move %s for \"%s\" to <%s>.", is_sink_input ? "sink-input" : "source-output",
                     pa_strnull(pa_proplist_gets(pl, PA_PROP_APPLICATION_NAME)), name);
     else
