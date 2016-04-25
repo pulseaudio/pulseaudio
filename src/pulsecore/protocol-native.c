@@ -2718,17 +2718,17 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
     /* Starting with protocol version 13 the MSB of the version tag
        reflects if shm is available for this pa_native_connection or
        not. */
-    if (c->version >= 13) {
-        shm_on_remote = !!(c->version & 0x80000000U);
+    if ((c->version & PA_PROTOCOL_VERSION_MASK) >= 13) {
+        shm_on_remote = !!(c->version & PA_PROTOCOL_FLAG_SHM);
 
         /* Starting with protocol version 31, the second MSB of the version
          * tag reflects whether memfd is supported on the other PA end. */
-        if (c->version >= 31)
-            memfd_on_remote = !!(c->version & 0x40000000U);
+        if ((c->version & PA_PROTOCOL_VERSION_MASK) >= 31)
+            memfd_on_remote = !!(c->version & PA_PROTOCOL_FLAG_MEMFD);
 
         /* Reserve the two most-significant _bytes_ of the version tag
          * for flags. */
-        c->version &= 0x0000FFFFU;
+        c->version &= PA_PROTOCOL_VERSION_MASK;
     }
 
     pa_log_debug("Protocol version: remote %u, local %u", c->version, PA_PROTOCOL_VERSION);

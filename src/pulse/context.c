@@ -504,17 +504,17 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
             /* Starting with protocol version 13 the MSB of the version
                tag reflects if shm is available for this connection or
                not. */
-            if (c->version >= 13) {
-                shm_on_remote = !!(c->version & 0x80000000U);
+            if ((c->version & PA_PROTOCOL_VERSION_MASK) >= 13) {
+                shm_on_remote = !!(c->version & PA_PROTOCOL_FLAG_SHM);
 
                 /* Starting with protocol version 31, the second MSB of the version
                  * tag reflects whether memfd is supported on the other PA end. */
-                if (c->version >= 31)
-                    memfd_on_remote = !!(c->version & 0x40000000U);
+                if ((c->version & PA_PROTOCOL_VERSION_MASK) >= 31)
+                    memfd_on_remote = !!(c->version & PA_PROTOCOL_FLAG_MEMFD);
 
                 /* Reserve the two most-significant _bytes_ of the version tag
                  * for flags. */
-                c->version &= 0x0000FFFFU;
+                c->version &= PA_PROTOCOL_VERSION_MASK;
             }
 
             pa_log_debug("Protocol version: remote %u, local %u", c->version, PA_PROTOCOL_VERSION);
@@ -629,8 +629,8 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     /* Starting with protocol version 13 we use the MSB of the version
      * tag for informing the other side if we could do SHM or not.
      * Starting from version 31, second MSB is used to flag memfd support. */
-    pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION | (c->do_shm ? 0x80000000U : 0) |
-                        (c->memfd_on_local ? 0x40000000 : 0));
+    pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION | (c->do_shm ? PA_PROTOCOL_FLAG_SHM : 0) |
+                        (c->memfd_on_local ? PA_PROTOCOL_FLAG_MEMFD: 0));
     pa_tagstruct_put_arbitrary(t, cookie, sizeof(cookie));
 
 #ifdef HAVE_CREDS
