@@ -645,7 +645,7 @@ static void handle_add_entry(DBusConnection *conn, DBusMessage *msg, void *userd
         e->channel_map = map;
         e->volume_valid = !!map.channels;
 
-        device_updated = (e->device_valid != !!device[0]) || !pa_streq(e->device, device);
+        device_updated = (e->device_valid != !!device[0]) || !pa_safe_streq(e->device, device);
         pa_xfree(e->device);
         e->device = pa_xstrdup(device);
         e->device_valid = !!device[0];
@@ -757,7 +757,7 @@ static void handle_entry_set_device(DBusConnection *conn, DBusMessage *msg, DBus
 
     pa_assert_se(e = entry_read(de->userdata, de->entry_name));
 
-    updated = (e->device_valid != !!device[0]) || !pa_streq(e->device, device);
+    updated = (e->device_valid != !!device[0]) || !pa_safe_streq(e->device, device);
 
     if (updated) {
         pa_xfree(e->device);
