@@ -101,13 +101,7 @@ void pa_format_info_free(pa_format_info *f) {
 }
 
 int pa_format_info_valid(const pa_format_info *f) {
-    pa_sample_spec ss;
-
-    if (pa_format_info_is_pcm(f)) {
-        pa_format_info_to_sample_spec(f, &ss, NULL);
-        return pa_sample_spec_valid(&ss);
-    } else
-        return (f->encoding >= 0 && f->encoding < PA_ENCODING_MAX && f->plist != NULL);
+    return (f->encoding >= 0 && f->encoding < PA_ENCODING_MAX && f->plist != NULL);
 }
 
 int pa_format_info_is_pcm(const pa_format_info *f) {
