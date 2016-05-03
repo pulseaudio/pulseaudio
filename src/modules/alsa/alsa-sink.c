@@ -1598,7 +1598,7 @@ static void sink_set_mute_cb(pa_sink *s) {
 static void mixer_volume_init(struct userdata *u) {
     pa_assert(u);
 
-    if (!u->mixer_path->has_volume) {
+    if (!u->mixer_path || !u->mixer_path->has_volume) {
         pa_sink_set_write_volume_callback(u->sink, NULL);
         pa_sink_set_get_volume_callback(u->sink, NULL);
         pa_sink_set_set_volume_callback(u->sink, NULL);
@@ -1633,7 +1633,7 @@ static void mixer_volume_init(struct userdata *u) {
         pa_log_info("Using hardware volume control. Hardware dB scale %s.", u->mixer_path->has_dB ? "supported" : "not supported");
     }
 
-    if (!u->mixer_path->has_mute) {
+    if (!u->mixer_path || !u->mixer_path->has_mute) {
         pa_sink_set_get_mute_callback(u->sink, NULL);
         pa_sink_set_set_mute_callback(u->sink, NULL);
         pa_log_info("Driver does not support hardware mute control, falling back to software mute control.");
@@ -1646,10 +1646,30 @@ static void mixer_volume_init(struct userdata *u) {
 
 static int sink_set_port_ucm_cb(pa_sink *s, pa_device_port *p) {
     struct userdata *u = s->userdata;
+    pa_alsa_ucm_port_data *data;
+
+    data = PA_DEVICE_PORT_DATA(p);
 
     pa_assert(u);
     pa_assert(p);
     pa_assert(u->ucm_context);
+
+    u->mixer_path = data->path;
+    mixer_volume_init(u);
+
+    if (u->mixer_path) {
+        pa_alsa_path_select(u->mixer_path, NULL, u->mixer_handle, s->muted);
+
+        if (s->set_mute)
+            s->set_mute(s);
+        if (s->flags & PA_SINK_DEFERRED_VOLUME) {
+            if (s->write_volume)
+                s->write_volume(s);
+        } else {
+            if (s->set_volume)
+                s->set_volume(s);
+        }
+    }
 
     return pa_alsa_ucm_set_port(u->ucm_context, p, true);
 }
@@ -2079,6 +2099,11 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
         return;
     }
 
+    if (u->ucm_context) {
+        /* We just want to open the device */
+        return;
+    }
+
     if (element) {
 
         if (!(u->mixer_path = pa_alsa_path_synthesize(element, PA_ALSA_DIRECTION_OUTPUT)))
@@ -2116,16 +2141,31 @@ static int setup_mixer(struct userdata *u, bool ignore_dB) {
         return 0;
 
     if (u->sink->active_port) {
-        pa_alsa_port_data *data;
+        if (!u->ucm_context) {
+            pa_alsa_port_data *data;
 
-        /* We have a list of supported paths, so let's activate the
-         * one that has been chosen as active */
+            /* We have a list of supported paths, so let's activate the
+             * one that has been chosen as active */
 
-        data = PA_DEVICE_PORT_DATA(u->sink->active_port);
-        u->mixer_path = data->path;
+            data = PA_DEVICE_PORT_DATA(u->sink->active_port);
+            u->mixer_path = data->path;
 
-        pa_alsa_path_select(data->path, data->setting, u->mixer_handle, u->sink->muted);
+            pa_alsa_path_select(data->path, data->setting, u->mixer_handle, u->sink->muted);
+        } else {
+            pa_alsa_ucm_port_data *data;
 
+            /* First activate the port on the UCM side */
+            if (pa_alsa_ucm_set_port(u->ucm_context, u->sink->active_port, true) < 0)
+                return -1;
+
+            data = PA_DEVICE_PORT_DATA(u->sink->active_port);
+
+            /* Now activate volume controls, if any */
+            if (data->path) {
+                u->mixer_path = data->path;
+                pa_alsa_path_select(u->mixer_path, NULL, u->mixer_handle, u->sink->muted);
+            }
+        }
     } else {
 
         if (!u->mixer_path && u->mixer_path_set)
@@ -2135,7 +2175,6 @@ static int setup_mixer(struct userdata *u, bool ignore_dB) {
             /* Hmm, we have only a single path, then let's activate it */
 
             pa_alsa_path_select(u->mixer_path, u->mixer_path->settings, u->mixer_handle, u->sink->muted);
-
         } else
             return 0;
     }
@@ -2466,8 +2505,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     /* ALSA might tweak the sample spec, so recalculate the frame size */
     frame_size = pa_frame_size(&ss);
 
-    if (!u->ucm_context)
-        find_mixer(u, mapping, pa_modargs_get_value(ma, "control", NULL), ignore_dB);
+    find_mixer(u, mapping, pa_modargs_get_value(ma, "control", NULL), ignore_dB);
 
     pa_sink_new_data_init(&data);
     data.driver = driver;
@@ -2524,7 +2562,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     }
 
     if (u->ucm_context)
-        pa_alsa_ucm_add_ports(&data.ports, data.proplist, u->ucm_context, true, card);
+        pa_alsa_ucm_add_ports(&data.ports, data.proplist, u->ucm_context, true, card, u->pcm_handle, ignore_dB);
     else if (u->mixer_path_set)
         pa_alsa_add_ports(&data, u->mixer_path_set, card);
 
@@ -2598,10 +2636,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     if (update_sw_params(u, false) < 0)
         goto fail;
 
-    if (u->ucm_context) {
-        if (u->sink->active_port && pa_alsa_ucm_set_port(u->ucm_context, u->sink->active_port, true) < 0)
-            goto fail;
-    } else if (setup_mixer(u, ignore_dB) < 0)
+    if (setup_mixer(u, ignore_dB) < 0)
         goto fail;
 
     pa_alsa_dump(PA_LOG_DEBUG, u->pcm_handle);
@@ -2725,7 +2760,8 @@ static void userdata_free(struct userdata *u) {
     if (u->mixer_fdl)
         pa_alsa_fdlist_free(u->mixer_fdl);
 
-    if (u->mixer_path && !u->mixer_path_set)
+    /* Only free the mixer_path if the sink owns it */
+    if (u->mixer_path && !u->mixer_path_set && !u->ucm_context)
         pa_alsa_path_free(u->mixer_path);
 
     if (u->mixer_handle)

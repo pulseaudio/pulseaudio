@@ -2893,6 +2893,32 @@ bool pa_str_in_list_spaces(const char *haystack, const char *needle) {
     return false;
 }
 
+char* pa_str_strip_suffix(const char *str, const char *suffix) {
+    size_t str_l, suf_l, prefix;
+    char *ret;
+
+    pa_assert(str);
+    pa_assert(suffix);
+
+    str_l = strlen(str);
+    suf_l = strlen(suffix);
+
+    if (str_l < suf_l)
+        return NULL;
+
+    prefix = str_l - suf_l;
+
+    if (!pa_streq(&str[prefix], suffix))
+        return NULL;
+
+    ret = pa_xmalloc(prefix + 1);
+
+    strncpy(ret, str, prefix);
+    ret[prefix] = '\0';
+
+    return ret;
+}
+
 char *pa_get_user_name_malloc(void) {
     ssize_t k;
     char *u;

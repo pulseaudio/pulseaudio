@@ -232,6 +232,8 @@ static inline bool pa_safe_streq(const char *a, const char *b) {
 bool pa_str_in_list_spaces(const char *needle, const char *haystack);
 bool pa_str_in_list(const char *haystack, const char *delimiters, const char *needle);
 
+char* pa_str_strip_suffix(const char *str, const char *suffix);
+
 char *pa_get_host_name_malloc(void);
 char *pa_get_user_name_malloc(void);
 

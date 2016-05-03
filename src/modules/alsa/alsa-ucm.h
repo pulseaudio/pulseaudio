@@ -113,10 +113,11 @@ typedef struct pa_alsa_ucm_modifier pa_alsa_ucm_modifier;
 typedef struct pa_alsa_ucm_device pa_alsa_ucm_device;
 typedef struct pa_alsa_ucm_config pa_alsa_ucm_config;
 typedef struct pa_alsa_ucm_mapping_context pa_alsa_ucm_mapping_context;
+typedef struct pa_alsa_ucm_port_data pa_alsa_ucm_port_data;
 
 int pa_alsa_ucm_query_profiles(pa_alsa_ucm_config *ucm, int card_index);
 pa_alsa_profile_set* pa_alsa_ucm_add_profile_set(pa_alsa_ucm_config *ucm, pa_channel_map *default_channel_map);
-int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, const char *new_profile, const char *old_profile);
+int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, const char *new_profile, const char *old_profile);
 
 int pa_alsa_ucm_get_verb(snd_use_case_mgr_t *uc_mgr, const char *verb_name, const char *verb_desc, pa_alsa_ucm_verb **p_verb);
 
@@ -125,7 +126,9 @@ void pa_alsa_ucm_add_ports(
         pa_proplist *proplist,
         pa_alsa_ucm_mapping_context *context,
         bool is_sink,
-        pa_card *card);
+        pa_card *card,
+        snd_pcm_t *pcm_handle,
+        bool ignore_dB);
 void pa_alsa_ucm_add_ports_combination(
         pa_hashmap *hash,
         pa_alsa_ucm_mapping_context *context,
@@ -156,6 +159,11 @@ struct pa_alsa_ucm_device {
 
     unsigned playback_channels;
     unsigned capture_channels;
+
+    /* These may be different per verb, so we store this as a hashmap of verb -> volume_control. We might eventually want to
+     * make this a hashmap of verb -> per-verb-device-properties-struct. */
+    pa_hashmap *playback_volumes;
+    pa_hashmap *capture_volumes;
 
     pa_alsa_mapping *playback_mapping;
     pa_alsa_mapping *capture_mapping;
@@ -222,6 +230,20 @@ struct pa_alsa_ucm_mapping_context {
 
     pa_idxset *ucm_devices;
     pa_idxset *ucm_modifiers;
+};
+
+struct pa_alsa_ucm_port_data {
+    pa_alsa_ucm_config *ucm;
+    pa_device_port *core_port;
+
+    /* A single port will be associated with multiple devices if it represents
+     * a combination of devices. */
+    pa_dynarray *devices; /* pa_alsa_ucm_device */
+
+    /* profile -> pa_alsa_path for volume control */
+    pa_hashmap *paths;
+    /* Current path, set when activating profile */
+    pa_alsa_path *path;
 };
 
 #endif
