@@ -43,7 +43,7 @@ struct entry {
     char *key, *value;
 };
 
-static int add_key_value(pa_modargs *ma, char *key, char *value, const char* const valid_keys[]) {
+static int add_key_value(pa_modargs *ma, char *key, char *value, const char* const valid_keys[], bool ignore_dupes) {
     struct entry *e;
     char *raw;
 
@@ -56,7 +56,11 @@ static int add_key_value(pa_modargs *ma, char *key, char *value, const char* con
     if (pa_hashmap_get(ma->unescaped, key)) {
         pa_xfree(key);
         pa_xfree(value);
-        return -1;
+
+        if (ignore_dupes)
+            return 0;
+        else
+            return -1;
     }
 
     if (valid_keys) {
@@ -100,7 +104,7 @@ static void free_func(void *p) {
     pa_xfree(e);
 }
 
-pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
+static int parse(pa_modargs *ma, const char *args, const char* const* valid_keys, bool ignore_dupes) {
     enum {
         WHITESPACE,
         KEY,
@@ -115,13 +119,6 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
 
     const char *p, *key = NULL, *value = NULL;
     size_t key_len = 0, value_len = 0;
-    pa_modargs *ma = pa_xnew(pa_modargs, 1);
-
-    ma->raw = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, free_func);
-    ma->unescaped = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, free_func);
-
-    if (!args)
-        return ma;
 
     state = WHITESPACE;
 
@@ -160,7 +157,8 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
                     if (add_key_value(ma,
                                       pa_xstrndup(key, key_len),
                                       pa_xstrdup(""),
-                                      valid_keys) < 0)
+                                      valid_keys,
+                                      ignore_dupes) < 0)
                         goto fail;
                     state = WHITESPACE;
                 } else if (*p == '\\') {
@@ -179,7 +177,8 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
                     if (add_key_value(ma,
                                       pa_xstrndup(key, key_len),
                                       pa_xstrndup(value, value_len),
-                                      valid_keys) < 0)
+                                      valid_keys,
+                                      ignore_dupes) < 0)
                         goto fail;
                     state = WHITESPACE;
                 } else if (*p == '\\') {
@@ -199,7 +198,8 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
                     if (add_key_value(ma,
                                       pa_xstrndup(key, key_len),
                                       pa_xstrndup(value, value_len),
-                                      valid_keys) < 0)
+                                      valid_keys,
+                                      ignore_dupes) < 0)
                         goto fail;
                     state = WHITESPACE;
                 } else if (*p == '\\') {
@@ -219,7 +219,8 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
                     if (add_key_value(ma,
                                       pa_xstrndup(key, key_len),
                                       pa_xstrndup(value, value_len),
-                                      valid_keys) < 0)
+                                      valid_keys,
+                                      ignore_dupes) < 0)
                         goto fail;
                     state = WHITESPACE;
                 } else if (*p == '\\') {
@@ -237,21 +238,38 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
     }
 
     if (state == VALUE_START) {
-        if (add_key_value(ma, pa_xstrndup(key, key_len), pa_xstrdup(""), valid_keys) < 0)
+        if (add_key_value(ma, pa_xstrndup(key, key_len), pa_xstrdup(""), valid_keys, ignore_dupes) < 0)
             goto fail;
     } else if (state == VALUE_SIMPLE) {
-        if (add_key_value(ma, pa_xstrndup(key, key_len), pa_xstrdup(value), valid_keys) < 0)
+        if (add_key_value(ma, pa_xstrndup(key, key_len), pa_xstrdup(value), valid_keys, ignore_dupes) < 0)
             goto fail;
     } else if (state != WHITESPACE)
+        goto fail;
+
+    return 0;
+
+fail:
+    return -1;
+}
+
+pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
+    pa_modargs *ma = pa_xnew(pa_modargs, 1);
+
+    ma->raw = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, free_func);
+    ma->unescaped = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, free_func);
+
+    if (args && parse(ma, args, valid_keys, false) < 0)
         goto fail;
 
     return ma;
 
 fail:
-
     pa_modargs_free(ma);
-
     return NULL;
+}
+
+int pa_modargs_append(pa_modargs *ma, const char *args, const char* const* valid_keys) {
+    return parse(ma, args, valid_keys, true);
 }
 
 void pa_modargs_free(pa_modargs*ma) {

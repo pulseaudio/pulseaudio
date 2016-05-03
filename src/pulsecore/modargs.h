@@ -34,6 +34,8 @@ typedef struct pa_modargs pa_modargs;
 
 /* Parse the string args. The NULL-terminated array keys contains all valid arguments. */
 pa_modargs *pa_modargs_new(const char *args, const char* const keys[]);
+/* Parse the string args, and add any keys that are not already present. */
+int pa_modargs_append(pa_modargs *ma, const char *args, const char* const* valid_keys);
 void pa_modargs_free(pa_modargs*ma);
 
 /* Return the module argument for the specified name as a string. If
