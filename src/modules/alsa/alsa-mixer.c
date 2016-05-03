@@ -4754,6 +4754,7 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports, /* card ports */
         pa_proplist_update(p->proplist, PA_UPDATE_REPLACE, path->proplist);
 
         data = PA_DEVICE_PORT_DATA(p);
+        /* Ownership of the path and setting is not transferred to the port data, so we don't deal with freeing them */
         data->path = path;
         data->setting = setting;
         path->port = p;
