@@ -104,6 +104,9 @@ static void device_port_free(pa_object *o) {
     pa_assert(p);
     pa_assert(pa_device_port_refcnt(p) == 0);
 
+    if (p->impl_free)
+        p->impl_free(p);
+
     if (p->proplist)
         pa_proplist_free(p->proplist);
 

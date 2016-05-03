@@ -52,6 +52,9 @@ struct pa_device_port {
     pa_direction_t direction;
     int64_t latency_offset;
 
+    /* Free the extra implementation specific data. Called before other members are freed. */
+    void (*impl_free)(pa_device_port *port);
+
     /* .. followed by some implementation specific data */
 };
 
