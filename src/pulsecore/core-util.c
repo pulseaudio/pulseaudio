@@ -2535,8 +2535,10 @@ char *pa_getcwd(void) {
         if (getcwd(p, l))
             return p;
 
-        if (errno != ERANGE)
+        if (errno != ERANGE) {
+            pa_xfree(p);
             return NULL;
+        }
 
         pa_xfree(p);
         l *= 2;
