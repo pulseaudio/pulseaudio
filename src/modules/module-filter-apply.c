@@ -38,7 +38,7 @@
 #include "module-filter-apply-symdef.h"
 
 #define PA_PROP_FILTER_APPLY_MOVING "filter.apply.moving"
-#define PA_PROP_MDM_IGNORE          "module-device-manager.ignore"
+#define PA_PROP_MDM_AUTO_FILTERED   "module-device-manager.auto_filtered"
 
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("Load filter sinks automatically when needed");
@@ -66,8 +66,8 @@ struct filter {
 struct userdata {
     pa_core *core;
     pa_hashmap *filters;
-    /* Keep track of streams we're managing PA_PROP_MDM_IGNORE on, we're only
-     * maintaining membership, so key and value are just the
+    /* Keep track of streams we're managing PA_PROP_MDM_AUTO_FILTERED on, we're
+     * only maintaining membership, so key and value are just the
      * pa_sink_input/pa_source_output. */
     pa_hashmap *mdm_ignored_inputs, *mdm_ignored_outputs;
     bool autoclean;
@@ -280,10 +280,10 @@ static int do_move(struct userdata *u, pa_object *obj, pa_object *parent, bool i
     pa_hashmap_put(is_input ? u->mdm_ignored_inputs : u->mdm_ignored_outputs, obj, obj);
 
     if (is_input) {
-        pa_sink_input_set_property(PA_SINK_INPUT(obj), PA_PROP_MDM_IGNORE, "1");
+        pa_sink_input_set_property(PA_SINK_INPUT(obj), PA_PROP_MDM_AUTO_FILTERED, "1");
         return pa_sink_input_move_to(PA_SINK_INPUT(obj), PA_SINK(parent), false);
     } else {
-        pa_source_output_set_property(PA_SOURCE_OUTPUT(obj), PA_PROP_MDM_IGNORE, "1");
+        pa_source_output_set_property(PA_SOURCE_OUTPUT(obj), PA_PROP_MDM_AUTO_FILTERED, "1");
         return pa_source_output_move_to(PA_SOURCE_OUTPUT(obj), PA_SOURCE(parent), false);
     }
 }
@@ -670,12 +670,12 @@ static pa_hook_result_t source_unlink_cb(pa_core *core, pa_source *source, struc
 
 static void unset_mdm_ignore_input(pa_sink_input *i)
 {
-    pa_sink_input_set_property(i, PA_PROP_MDM_IGNORE, NULL);
+    pa_sink_input_set_property(i, PA_PROP_MDM_AUTO_FILTERED, NULL);
 }
 
 static void unset_mdm_ignore_output(pa_source_output *o)
 {
-    pa_source_output_set_property(o, PA_PROP_MDM_IGNORE, NULL);
+    pa_source_output_set_property(o, PA_PROP_MDM_AUTO_FILTERED, NULL);
 }
 
 int pa__init(pa_module *m) {

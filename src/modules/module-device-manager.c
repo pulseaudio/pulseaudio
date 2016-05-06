@@ -649,9 +649,10 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
 }
 
 static void route_sink_input(struct userdata *u, pa_sink_input *si) {
-    const char *ignore;
+    const char *auto_filtered_prop;
     const char *role;
     uint32_t role_index, device_index;
+    bool auto_filtered = false;
     pa_sink *sink;
 
     pa_assert(u);
@@ -664,9 +665,9 @@ static void route_sink_input(struct userdata *u, pa_sink_input *si) {
     if (!si->sink)
         return;
 
-    ignore = pa_proplist_gets(si->proplist, "module-device-manager.ignore");
-    if (ignore && (pa_parse_boolean(ignore) == 1))
-        return;
+    auto_filtered_prop = pa_proplist_gets(si->proplist, "module-device-manager.auto_filtered");
+    if (auto_filtered_prop)
+        auto_filtered = (pa_parse_boolean(auto_filtered_prop) == 1);
 
     /* It might happen that a stream and a sink are set up at the
     same time, in which case we want to make sure we don't
@@ -688,6 +689,13 @@ static void route_sink_input(struct userdata *u, pa_sink_input *si) {
 
     if (!(sink = pa_idxset_get_by_index(u->core->sinks, device_index)))
         return;
+
+    if (auto_filtered) {
+        /* For streams for which a filter has been loaded by another module, we
+         * do not try to execute moves within the same filter hierarchy */
+        if (pa_sink_get_master(si->sink) == pa_sink_get_master(sink))
+            return;
+    }
 
     if (si->sink != sink)
         pa_sink_input_move_to(si, sink, false);
@@ -712,9 +720,10 @@ static pa_hook_result_t route_sink_inputs(struct userdata *u, pa_sink *ignore_si
 }
 
 static void route_source_output(struct userdata *u, pa_source_output *so) {
-    const char *ignore;
+    const char *auto_filtered_prop;
     const char *role;
     uint32_t role_index, device_index;
+    bool auto_filtered = false;
     pa_source *source;
 
     pa_assert(u);
@@ -730,9 +739,9 @@ static void route_source_output(struct userdata *u, pa_source_output *so) {
     if (!so->source)
         return;
 
-    ignore = pa_proplist_gets(so->proplist, "module-device-manager.ignore");
-    if (ignore && (pa_parse_boolean(ignore) == 1))
-        return;
+    auto_filtered_prop = pa_proplist_gets(so->proplist, "module-device-manager.auto_filtered");
+    if (auto_filtered_prop)
+        auto_filtered = (pa_parse_boolean(auto_filtered_prop) == 1);
 
     /* It might happen that a stream and a source are set up at the
     same time, in which case we want to make sure we don't
@@ -754,6 +763,13 @@ static void route_source_output(struct userdata *u, pa_source_output *so) {
 
     if (!(source = pa_idxset_get_by_index(u->core->sources, device_index)))
         return;
+
+    if (auto_filtered) {
+        /* For streams for which a filter has been loaded by another module, we
+         * do not try to execute moves within the same filter hierarchy */
+        if (pa_source_get_master(so->source) == pa_source_get_master(source))
+            return;
+    }
 
     if (so->source != source)
         pa_source_output_move_to(so, source, false);
