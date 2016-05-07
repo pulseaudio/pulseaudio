@@ -51,12 +51,6 @@ struct userdata {
      * its streams. */
     pa_hashmap *null_sinks;
 
-    pa_hook_slot
-        *sink_input_new_slot,
-        *sink_input_unlink_slot,
-        *sink_input_move_start_slot,
-        *sink_input_move_finish_slot;
-
     bool moving;
 };
 
@@ -281,10 +275,10 @@ int pa__init(pa_module*m) {
 
     u->null_sinks = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
-    u->sink_input_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_new_cb, u);
-    u->sink_input_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_unlink_cb, u);
-    u->sink_input_move_start_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_START], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_move_start_cb, u);
-    u->sink_input_move_finish_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_move_finish_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_new_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_unlink_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_START], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_move_start_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_move_finish_cb, u);
 
     u->moving = false;
 
@@ -307,15 +301,6 @@ void pa__done(pa_module*m) {
 
     if (!(u = m->userdata))
         return;
-
-    if (u->sink_input_new_slot)
-        pa_hook_slot_free(u->sink_input_new_slot);
-    if (u->sink_input_unlink_slot)
-        pa_hook_slot_free(u->sink_input_unlink_slot);
-    if (u->sink_input_move_start_slot)
-        pa_hook_slot_free(u->sink_input_move_start_slot);
-    if (u->sink_input_move_finish_slot)
-        pa_hook_slot_free(u->sink_input_move_finish_slot);
 
     if (m->core->state != PA_CORE_SHUTDOWN)
         unload_all_null_sink_modules(u, m->core);
