@@ -358,16 +358,25 @@ void pa_card_set_preferred_port(pa_card *c, pa_direction_t direction, pa_device_
 int pa_card_suspend(pa_card *c, bool suspend, pa_suspend_cause_t cause) {
     pa_sink *sink;
     pa_source *source;
+    pa_suspend_cause_t suspend_cause;
     uint32_t idx;
     int ret = 0;
 
     pa_assert(c);
     pa_assert(cause != 0);
 
+    suspend_cause = c->suspend_cause;
+
     if (suspend)
-        c->suspend_cause |= cause;
+        suspend_cause |= cause;
     else
-        c->suspend_cause &= ~cause;
+        suspend_cause &= ~cause;
+
+    if (c->suspend_cause != suspend_cause) {
+        pa_log_debug("Card suspend causes/state changed");
+        c->suspend_cause = suspend_cause;
+        pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_SUSPEND_CHANGED], c);
+    }
 
     PA_IDXSET_FOREACH(sink, c->sinks, idx) {
         int r;

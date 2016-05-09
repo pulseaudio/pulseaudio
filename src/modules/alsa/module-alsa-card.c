@@ -369,10 +369,7 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
 
     pa_assert(u);
 
-    /* Quick and dirty fix for
-     * https://bugs.freedesktop.org/show_bug.cgi?id=93259
-     *
-     * Changing the jack state may cause a port change, and a port change will
+    /* Changing the jack state may cause a port change, and a port change will
      * make the sink or source change the mixer settings. If there are multiple
      * users having pulseaudio running, the mixer changes done by inactive
      * users may mess up the volume settings for the active users, because when
@@ -382,18 +379,8 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
      * with alsamixer. Even single-user systems suffer from this, because gdm
      * runs its own pulseaudio instance.
      *
-     * Returning early here means that jack state events get ignored while the
-     * user is inactive. When the user becomes active again, the routing may
-     * not any more match the real jack state. While this is bad, this should
-     * nevertheless be better than messing up the volume every time headphones
-     * are plugged in or out.
-     *
-     * It might be better to unload the card altogether when the user becomes
-     * inactive and udev removes the permission to the card. That requires at
-     * least improving the default sink handling so that if the unloaded card
-     * contained the default sink, the default sink should be restored to what
-     * it was earlier, when the user becomes active and the card becomes
-     * accessible. */
+     * We rerun this function when being unsuspended to catch up on jack state
+     * changes */
     if (u->card->suspend_cause & PA_SUSPEND_SESSION)
         return 0;
 
@@ -604,6 +591,20 @@ static void set_card_name(pa_card_new_data *data, pa_modargs *ma, const char *de
     pa_xfree(t);
 }
 
+static pa_hook_result_t card_suspend_changed(pa_core *c, pa_card *card, struct userdata *u) {
+    void *state;
+    pa_alsa_jack *jack;
+
+    if (card->suspend_cause == 0) {
+        /* We were unsuspended, update jack state in case it changed while we were suspended */
+        PA_HASHMAP_FOREACH(jack, u->jacks, state) {
+            report_jack_state(jack->melem, 0);
+        }
+    }
+
+    return PA_HOOK_OK;
+}
+
 static pa_hook_result_t sink_input_put_hook_callback(pa_core *c, pa_sink_input *sink_input, struct userdata *u) {
     const char *role;
     pa_sink *sink = sink_input->sink;
@@ -809,6 +810,9 @@ int pa__init(pa_module *m) {
 
     u->card->userdata = u;
     u->card->set_profile = card_set_profile;
+
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_SUSPEND_CHANGED], PA_HOOK_NORMAL,
+            (pa_hook_cb_t) card_suspend_changed, u);
 
     init_jacks(u);
     init_profile(u);
