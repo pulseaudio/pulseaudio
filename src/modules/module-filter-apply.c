@@ -416,6 +416,8 @@ static pa_hook_result_t process(struct userdata *u, pa_object *o, bool is_sink_i
     pa_sink *sink = NULL;
     pa_source *source = NULL;
     pa_module *module = NULL;
+    char *module_name = NULL;
+    struct filter *fltr = NULL, *filter = NULL;
 
     if (is_sink_input) {
         sink = PA_SINK_INPUT(o)->sink;
@@ -431,31 +433,27 @@ static pa_hook_result_t process(struct userdata *u, pa_object *o, bool is_sink_i
 
     /* If there is no sink/source yet, we can't do much */
     if ((is_sink_input && !sink) || (!is_sink_input && !source))
-        return PA_HOOK_OK;
+        goto done;
 
     /* If the stream doesn't what any filter, then let it be. */
     if ((want = should_filter(o, is_sink_input))) {
-        char *module_name;
-        struct filter *fltr, *filter;
-
         /* We need to ensure the SI is playing on a sink of this type
          * attached to the sink it's "officially" playing on */
 
         if (!module)
-            return PA_HOOK_OK;
+            goto done;
 
         module_name = pa_sprintf_malloc("module-%s", want);
         if (pa_streq(module->name, module_name)) {
             pa_log_debug("Stream appears to be playing on an appropriate sink already. Ignoring.");
-            pa_xfree(module_name);
-            return PA_HOOK_OK;
+            goto done;
         }
 
         fltr = filter_new(want, sink, source);
 
         if (should_group_filter(fltr) && !find_paired_master(u, fltr, o, is_sink_input)) {
             pa_log_debug("Want group filtering but don't have enough streams.");
-            return PA_HOOK_OK;
+            goto done;
         }
 
         if (!(filter = pa_hashmap_get(u->filters, fltr))) {
@@ -478,14 +476,10 @@ static pa_hook_result_t process(struct userdata *u, pa_object *o, bool is_sink_i
             pa_xfree(args);
         }
 
-        pa_xfree(fltr);
-
         if (!filter) {
             pa_log("Unable to load %s", module_name);
-            pa_xfree(module_name);
-            return PA_HOOK_OK;
+            goto done;
         }
-        pa_xfree(module_name);
 
         /* We can move the stream now as we know the destination. If this
          * isn't true, we will do it later when the sink appears. */
@@ -495,7 +489,6 @@ static pa_hook_result_t process(struct userdata *u, pa_object *o, bool is_sink_i
         }
     } else {
         void *state;
-        struct filter *filter = NULL;
 
         /* We do not want to filter... but are we already filtered?
          * This can happen if an input's proplist changes */
@@ -510,6 +503,10 @@ static pa_hook_result_t process(struct userdata *u, pa_object *o, bool is_sink_i
 
     if (done_something)
         trigger_housekeeping(u);
+
+done:
+    pa_xfree(module_name);
+    pa_xfree(fltr);
 
     return PA_HOOK_OK;
 }
