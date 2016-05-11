@@ -525,7 +525,7 @@ static pa_hook_result_t sink_input_move_finish_cb(pa_core *core, pa_sink_input *
     if (pa_proplist_gets(i->proplist, PA_PROP_FILTER_APPLY_MOVING))
         return PA_HOOK_OK;
 
-    /* If we're managing m-d-m.ignore on this, remove and re-add if we're continuing to manage it */
+    /* If we're managing m-d-m.auto_filtered on this, remove and re-add if we're continuing to manage it */
     pa_hashmap_remove(u->mdm_ignored_inputs, i);
 
     return process(u, PA_OBJECT(i), true);
@@ -602,7 +602,7 @@ static pa_hook_result_t source_output_move_finish_cb(pa_core *core, pa_source_ou
     if (pa_proplist_gets(o->proplist, PA_PROP_FILTER_APPLY_MOVING))
         return PA_HOOK_OK;
 
-    /* If we're managing m-d-m.ignore on this, remove and re-add if we're continuing to manage it */
+    /* If we're managing m-d-m.auto_filtered on this, remove and re-add if we're continuing to manage it */
     pa_hashmap_remove(u->mdm_ignored_outputs, o);
 
     return process(u, PA_OBJECT(o), false);
