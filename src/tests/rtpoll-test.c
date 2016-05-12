@@ -48,15 +48,15 @@ START_TEST (rtpoll_test) {
     p = pa_rtpoll_new();
 
     i = pa_rtpoll_item_new(p, PA_RTPOLL_EARLY, 1);
-    pa_rtpoll_item_set_before_callback(i, before);
-    pa_rtpoll_item_set_after_callback(i, after);
+    pa_rtpoll_item_set_before_callback(i, before, NULL);
+    pa_rtpoll_item_set_after_callback(i, after, NULL);
 
     pollfd = pa_rtpoll_item_get_pollfd(i, NULL);
     pollfd->fd = 0;
     pollfd->events = POLLIN;
 
     w = pa_rtpoll_item_new(p, PA_RTPOLL_NORMAL, 0);
-    pa_rtpoll_item_set_before_callback(w, worker);
+    pa_rtpoll_item_set_before_callback(w, worker, NULL);
 
     pa_rtpoll_set_timer_relative(p, 10000000); /* 10 s */
 
@@ -65,8 +65,8 @@ START_TEST (rtpoll_test) {
     pa_rtpoll_item_free(i);
 
     i = pa_rtpoll_item_new(p, PA_RTPOLL_EARLY, 1);
-    pa_rtpoll_item_set_before_callback(i, before);
-    pa_rtpoll_item_set_after_callback(i, after);
+    pa_rtpoll_item_set_before_callback(i, before, NULL);
+    pa_rtpoll_item_set_after_callback(i, after, NULL);
 
     pollfd = pa_rtpoll_item_get_pollfd(i, NULL);
     pollfd->fd = 0;

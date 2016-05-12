@@ -77,7 +77,9 @@ struct pa_rtpoll_item {
     int (*work_cb)(pa_rtpoll_item *i);
     int (*before_cb)(pa_rtpoll_item *i);
     void (*after_cb)(pa_rtpoll_item *i);
-    void *userdata;
+    void *work_userdata;
+    void *before_userdata;
+    void *after_userdata;
 
     PA_LLIST_FIELDS(pa_rtpoll_item);
 };
@@ -411,7 +413,9 @@ pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, pa_rtpoll_priority_t prio, unsi
     i->pollfd = NULL;
     i->priority = prio;
 
-    i->userdata = NULL;
+    i->work_userdata = NULL;
+    i->before_userdata = NULL;
+    i->work_userdata = NULL;
     i->before_cb = NULL;
     i->after_cb = NULL;
     i->work_cb = NULL;
@@ -458,42 +462,39 @@ struct pollfd *pa_rtpoll_item_get_pollfd(pa_rtpoll_item *i, unsigned *n_fds) {
     return i->pollfd;
 }
 
-void pa_rtpoll_item_set_before_callback(pa_rtpoll_item *i, int (*before_cb)(pa_rtpoll_item *i)) {
+void pa_rtpoll_item_set_before_callback(pa_rtpoll_item *i, int (*before_cb)(pa_rtpoll_item *i), void *userdata) {
     pa_assert(i);
     pa_assert(i->priority < PA_RTPOLL_NEVER);
 
     i->before_cb = before_cb;
+    i->before_userdata = userdata;
 }
 
-void pa_rtpoll_item_set_after_callback(pa_rtpoll_item *i, void (*after_cb)(pa_rtpoll_item *i)) {
+void pa_rtpoll_item_set_after_callback(pa_rtpoll_item *i, void (*after_cb)(pa_rtpoll_item *i), void *userdata) {
     pa_assert(i);
     pa_assert(i->priority < PA_RTPOLL_NEVER);
 
     i->after_cb = after_cb;
+    i->after_userdata = userdata;
 }
 
-void pa_rtpoll_item_set_work_callback(pa_rtpoll_item *i, int (*work_cb)(pa_rtpoll_item *i)) {
+void pa_rtpoll_item_set_work_callback(pa_rtpoll_item *i, int (*work_cb)(pa_rtpoll_item *i), void *userdata) {
     pa_assert(i);
     pa_assert(i->priority < PA_RTPOLL_NEVER);
 
     i->work_cb = work_cb;
+    i->work_userdata = userdata;
 }
 
-void pa_rtpoll_item_set_userdata(pa_rtpoll_item *i, void *userdata) {
+void* pa_rtpoll_item_get_work_userdata(pa_rtpoll_item *i) {
     pa_assert(i);
 
-    i->userdata = userdata;
-}
-
-void* pa_rtpoll_item_get_userdata(pa_rtpoll_item *i) {
-    pa_assert(i);
-
-    return i->userdata;
+    return i->work_userdata;
 }
 
 static int fdsem_before(pa_rtpoll_item *i) {
 
-    if (pa_fdsem_before_poll(i->userdata) < 0)
+    if (pa_fdsem_before_poll(i->before_userdata) < 0)
         return 1; /* 1 means immediate restart of the loop */
 
     return 0;
@@ -503,7 +504,7 @@ static void fdsem_after(pa_rtpoll_item *i) {
     pa_assert(i);
 
     pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
-    pa_fdsem_after_poll(i->userdata);
+    pa_fdsem_after_poll(i->after_userdata);
 }
 
 pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_fdsem *f) {
@@ -520,9 +521,8 @@ pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio
     pollfd->fd = pa_fdsem_get(f);
     pollfd->events = POLLIN;
 
-    i->before_cb = fdsem_before;
-    i->after_cb = fdsem_after;
-    i->userdata = f;
+    pa_rtpoll_item_set_before_callback(i, fdsem_before, f);
+    pa_rtpoll_item_set_after_callback(i, fdsem_after, f);
 
     return i;
 }
@@ -530,7 +530,7 @@ pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio
 static int asyncmsgq_read_before(pa_rtpoll_item *i) {
     pa_assert(i);
 
-    if (pa_asyncmsgq_read_before_poll(i->userdata) < 0)
+    if (pa_asyncmsgq_read_before_poll(i->before_userdata) < 0)
         return 1; /* 1 means immediate restart of the loop */
 
     return 0;
@@ -540,7 +540,7 @@ static void asyncmsgq_read_after(pa_rtpoll_item *i) {
     pa_assert(i);
 
     pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
-    pa_asyncmsgq_read_after_poll(i->userdata);
+    pa_asyncmsgq_read_after_poll(i->after_userdata);
 }
 
 static int asyncmsgq_read_work(pa_rtpoll_item *i) {
@@ -552,11 +552,11 @@ static int asyncmsgq_read_work(pa_rtpoll_item *i) {
 
     pa_assert(i);
 
-    if (pa_asyncmsgq_get(i->userdata, &object, &code, &data, &offset, &chunk, 0) == 0) {
+    if (pa_asyncmsgq_get(i->work_userdata, &object, &code, &data, &offset, &chunk, 0) == 0) {
         int ret;
 
         if (!object && code == PA_MESSAGE_SHUTDOWN) {
-            pa_asyncmsgq_done(i->userdata, 0);
+            pa_asyncmsgq_done(i->work_userdata, 0);
             /* Requests the loop to exit. Will cause the next iteration of
              * pa_rtpoll_run() to return 0 */
             i->rtpoll->quit = true;
@@ -564,7 +564,7 @@ static int asyncmsgq_read_work(pa_rtpoll_item *i) {
         }
 
         ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-        pa_asyncmsgq_done(i->userdata, ret);
+        pa_asyncmsgq_done(i->work_userdata, ret);
         return 1;
     }
 
@@ -584,10 +584,9 @@ pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq_read(pa_rtpoll *p, pa_rtpoll_priori
     pollfd->fd = pa_asyncmsgq_read_fd(q);
     pollfd->events = POLLIN;
 
-    i->before_cb = asyncmsgq_read_before;
-    i->after_cb = asyncmsgq_read_after;
-    i->work_cb = asyncmsgq_read_work;
-    i->userdata = q;
+    pa_rtpoll_item_set_before_callback(i, asyncmsgq_read_before, q);
+    pa_rtpoll_item_set_after_callback(i, asyncmsgq_read_after, q);
+    pa_rtpoll_item_set_work_callback(i, asyncmsgq_read_work, q);
 
     return i;
 }
@@ -595,7 +594,7 @@ pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq_read(pa_rtpoll *p, pa_rtpoll_priori
 static int asyncmsgq_write_before(pa_rtpoll_item *i) {
     pa_assert(i);
 
-    pa_asyncmsgq_write_before_poll(i->userdata);
+    pa_asyncmsgq_write_before_poll(i->before_userdata);
     return 0;
 }
 
@@ -603,7 +602,7 @@ static void asyncmsgq_write_after(pa_rtpoll_item *i) {
     pa_assert(i);
 
     pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
-    pa_asyncmsgq_write_after_poll(i->userdata);
+    pa_asyncmsgq_write_after_poll(i->after_userdata);
 }
 
 pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq_write(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q) {
@@ -619,10 +618,8 @@ pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq_write(pa_rtpoll *p, pa_rtpoll_prior
     pollfd->fd = pa_asyncmsgq_write_fd(q);
     pollfd->events = POLLIN;
 
-    i->before_cb = asyncmsgq_write_before;
-    i->after_cb = asyncmsgq_write_after;
-    i->work_cb = NULL;
-    i->userdata = q;
+    pa_rtpoll_item_set_before_callback(i, asyncmsgq_write_before, q);
+    pa_rtpoll_item_set_after_callback(i, asyncmsgq_write_after, q);
 
     return i;
 }

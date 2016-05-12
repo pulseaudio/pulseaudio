@@ -210,7 +210,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     struct session *s;
     struct pollfd *p;
 
-    pa_assert_se(s = pa_rtpoll_item_get_userdata(i));
+    pa_assert_se(s = pa_rtpoll_item_get_work_userdata(i));
 
     p = pa_rtpoll_item_get_pollfd(i, NULL);
 
@@ -383,8 +383,7 @@ static void sink_input_attach(pa_sink_input *i) {
     pa_assert(!s->rtpoll_item);
     s->rtpoll_item = pa_rtp_context_get_rtpoll_item(s->rtp_context, i->sink->thread_info.rtpoll);
 
-    pa_rtpoll_item_set_work_callback(s->rtpoll_item, rtpoll_work_cb);
-    pa_rtpoll_item_set_userdata(s->rtpoll_item, s);
+    pa_rtpoll_item_set_work_callback(s->rtpoll_item, rtpoll_work_cb, s);
 }
 
 /* Called from I/O thread context */
