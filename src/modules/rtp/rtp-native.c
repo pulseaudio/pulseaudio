@@ -58,7 +58,7 @@ typedef struct pa_rtp_context {
     pa_memchunk memchunk;
 } pa_rtp_context;
 
-pa_rtp_context* pa_rtp_context_new_send(int fd, uint8_t payload, size_t mtu, size_t frame_size) {
+pa_rtp_context* pa_rtp_context_new_send(int fd, uint8_t payload, size_t mtu, const pa_sample_spec *ss) {
     pa_rtp_context *c;
 
     pa_assert(fd >= 0);
@@ -70,7 +70,7 @@ pa_rtp_context* pa_rtp_context_new_send(int fd, uint8_t payload, size_t mtu, siz
     c->timestamp = 0;
     c->ssrc = (uint32_t) (rand()*rand());
     c->payload = (uint8_t) (payload & 127U);
-    c->frame_size = frame_size;
+    c->frame_size = pa_frame_size(ss);
     c->mtu = mtu;
 
     c->recv_buf = NULL;
@@ -169,14 +169,14 @@ int pa_rtp_send(pa_rtp_context *c, pa_memblockq *q) {
     return 0;
 }
 
-pa_rtp_context* pa_rtp_context_new_recv(int fd, uint8_t payload, size_t frame_size) {
+pa_rtp_context* pa_rtp_context_new_recv(int fd, uint8_t payload, const pa_sample_spec *ss) {
     pa_rtp_context *c;
 
     c = pa_xnew0(pa_rtp_context, 1);
 
     c->fd = fd;
     c->payload = payload;
-    c->frame_size = frame_size;
+    c->frame_size = pa_frame_size(ss);
 
     c->recv_buf_size = 2000;
     c->recv_buf = pa_xmalloc(c->recv_buf_size);
@@ -369,59 +369,6 @@ fail:
     return -1;
 }
 
-uint8_t pa_rtp_payload_from_sample_spec(const pa_sample_spec *ss) {
-    pa_assert(ss);
-
-    if (ss->format == PA_SAMPLE_S16BE && ss->rate == 44100 && ss->channels == 2)
-        return 10;
-    if (ss->format == PA_SAMPLE_S16BE && ss->rate == 44100 && ss->channels == 1)
-        return 11;
-
-    return 127;
-}
-
-pa_sample_spec *pa_rtp_sample_spec_from_payload(uint8_t payload, pa_sample_spec *ss) {
-    pa_assert(ss);
-
-    switch (payload) {
-        case 10:
-            ss->channels = 2;
-            ss->format = PA_SAMPLE_S16BE;
-            ss->rate = 44100;
-            break;
-
-        case 11:
-            ss->channels = 1;
-            ss->format = PA_SAMPLE_S16BE;
-            ss->rate = 44100;
-            break;
-
-        default:
-            return NULL;
-    }
-
-    return ss;
-}
-
-pa_sample_spec *pa_rtp_sample_spec_fixup(pa_sample_spec * ss) {
-    pa_assert(ss);
-
-    if (!pa_rtp_sample_spec_valid(ss))
-        ss->format = PA_SAMPLE_S16BE;
-
-    pa_assert(pa_rtp_sample_spec_valid(ss));
-    return ss;
-}
-
-int pa_rtp_sample_spec_valid(const pa_sample_spec *ss) {
-    pa_assert(ss);
-
-    if (!pa_sample_spec_valid(ss))
-        return 0;
-
-    return ss->format == PA_SAMPLE_S16BE;
-}
-
 void pa_rtp_context_free(pa_rtp_context *c) {
     pa_assert(c);
 
@@ -432,24 +379,6 @@ void pa_rtp_context_free(pa_rtp_context *c) {
 
     pa_xfree(c->recv_buf);
     pa_xfree(c);
-}
-
-const char* pa_rtp_format_to_string(pa_sample_format_t f) {
-    switch (f) {
-        case PA_SAMPLE_S16BE:
-            return "L16";
-        default:
-            return NULL;
-    }
-}
-
-pa_sample_format_t pa_rtp_string_to_format(const char *s) {
-    pa_assert(s);
-
-    if (pa_streq(s, "L16"))
-        return PA_SAMPLE_S16BE;
-    else
-        return PA_SAMPLE_INVALID;
 }
 
 size_t pa_rtp_context_get_frame_size(pa_rtp_context *c) {

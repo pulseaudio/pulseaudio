@@ -488,7 +488,7 @@ int pa__init(pa_module*m) {
 
     pa_xfree(n);
 
-    if (!(u->rtp_context = pa_rtp_context_new_send(fd, payload, mtu, pa_frame_size(&ss))))
+    if (!(u->rtp_context = pa_rtp_context_new_send(fd, payload, mtu, &ss)))
         goto fail;
     pa_sap_context_init_send(&u->sap_context, sap_fd, p);
 

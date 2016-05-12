@@ -669,6 +669,15 @@ if webrtc_dep.found()
   cdata.set('HAVE_WEBRTC', 1)
 endif
 
+gst_dep = dependency('gstreamer-1.0', required : get_option('gstreamer'))
+gstapp_dep = dependency('gstreamer-app-1.0', required : get_option('gstreamer'))
+gstrtp_dep = dependency('gstreamer-rtp-1.0', required : get_option('gstreamer'))
+
+have_gstreamer = false
+if gst_dep.found() and gstapp_dep.found() and gstrtp_dep.found()
+  have_gstreamer = true
+endif
+
 # These are required for the CMake file generation
 cdata.set('PA_LIBDIR', libdir)
 cdata.set('PA_INCDIR', includedir)
@@ -815,6 +824,7 @@ summary = [
   'Enable OpenSSL (for Airtunes): @0@'.format(openssl_dep.found()),
   'Enable FFTW:                   @0@'.format(fftw_dep.found()),
   'Enable ORC:                    @0@'.format(have_orcc),
+  'Enable GStreamer:              @0@'.format(have_gstreamer),
   'Enable Adrian echo canceller:  @0@'.format(get_option('adrian-aec')),
   'Enable Speex (resampler, AEC): @0@'.format(speex_dep.found()),
   'Enable SoXR (resampler):       @0@'.format(soxr_dep.found()),

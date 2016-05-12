@@ -66,7 +66,9 @@ src/modules/raop/raop-sink.c
 src/modules/reserve-wrap.c
 src/modules/rtp/module-rtp-recv.c
 src/modules/rtp/module-rtp-send.c
-src/modules/rtp/rtp.c
+src/modules/rtp/rtp-common.c
+src/modules/rtp/rtp-native.c
+src/modules/rtp/rtp-gstreamer.c
 src/modules/rtp/sap.c
 src/modules/rtp/sdp.c
 src/modules/x11/module-x11-bell.c

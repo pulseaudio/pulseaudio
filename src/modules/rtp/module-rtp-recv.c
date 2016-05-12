@@ -568,7 +568,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
 
     pa_memblock_unref(silence.memblock);
 
-    if (!(s->rtp_context = pa_rtp_context_new_recv(fd, sdp_info->payload, pa_frame_size(&s->sdp_info.sample_spec))))
+    if (!(s->rtp_context = pa_rtp_context_new_recv(fd, sdp_info->payload, &s->sdp_info.sample_spec)))
         goto fail;
 
     pa_hashmap_put(s->userdata->by_origin, s->sdp_info.origin, s);

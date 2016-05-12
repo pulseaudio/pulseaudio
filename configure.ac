@@ -1310,6 +1310,22 @@ AC_SUBST(HAVE_SYSTEMD_JOURNAL)
 AM_CONDITIONAL([HAVE_SYSTEMD_JOURNAL], [test "x$HAVE_SYSTEMD_JOURNAL" = x1])
 AS_IF([test "x$HAVE_SYSTEMD_JOURNAL" = "x1"], AC_DEFINE([HAVE_SYSTEMD_JOURNAL], 1, [Have SYSTEMDJOURNAL?]))
 
+#### GStreamer-based RTP support (optional) ####
+
+AC_ARG_ENABLE([gstreamer],
+    AS_HELP_STRING([--disable-gstreamer],[Disable optional GStreamer-based RTP support]))
+
+AS_IF([test "x$enable_gstreamer" != "xno"],
+    [PKG_CHECK_MODULES(GSTREAMER, [ gstreamer-1.0 gstreamer-app-1.0 gstreamer-rtp-1.0 gio-2.0 ],
+                       HAVE_GSTREAMER=1, HAVE_GSTREAMER=0)],
+    HAVE_GSTREAMER=0)
+
+AS_IF([test "x$enable_gstreamer" = "xyes" && test "x$HAVE_GSTREAMER" = "x0"],
+    [AC_MSG_ERROR([*** GStreamer 1.0 support not found])])
+
+AM_CONDITIONAL([HAVE_GSTREAMER], [test "x$HAVE_GSTREAMER" = x1])
+AS_IF([test "x$HAVE_GSTREAMER" = "x1"], AC_DEFINE([HAVE_GSTREAMER], 1, [Have GStreamer?]))
+
 #### Build and Install man pages ####
 
 AC_ARG_ENABLE([manpages],
@@ -1614,6 +1630,7 @@ AS_IF([test "x$HAVE_ADRIAN_EC" = "x1"], ENABLE_ADRIAN_EC=yes, ENABLE_ADRIAN_EC=n
 AS_IF([test "x$HAVE_SPEEX" = "x1"], ENABLE_SPEEX=yes, ENABLE_SPEEX=no)
 AS_IF([test "x$HAVE_SOXR" = "x1"], ENABLE_SOXR=yes, ENABLE_SOXR=no)
 AS_IF([test "x$HAVE_WEBRTC" = "x1"], ENABLE_WEBRTC=yes, ENABLE_WEBRTC=no)
+AS_IF([test "x$HAVE_GSTREAMER" = "x1"], ENABLE_GSTREAMER=yes, ENABLE_GSTREAMER=no)
 AS_IF([test "x$HAVE_TDB" = "x1"], ENABLE_TDB=yes, ENABLE_TDB=no)
 AS_IF([test "x$HAVE_GDBM" = "x1"], ENABLE_GDBM=yes, ENABLE_GDBM=no)
 AS_IF([test "x$HAVE_SIMPLEDB" = "x1"], ENABLE_SIMPLEDB=yes, ENABLE_SIMPLEDB=no)
@@ -1677,6 +1694,7 @@ echo "
     Enable speex (resampler, AEC): ${ENABLE_SPEEX}
     Enable soxr (resampler):       ${ENABLE_SOXR}
     Enable WebRTC echo canceller:  ${ENABLE_WEBRTC}
+    Enable GStreamer-based RTP:    ${ENABLE_GSTREAMER}
     Enable gcov coverage:          ${ENABLE_GCOV}
     Enable unit tests:             ${ENABLE_TESTS}
     Database
