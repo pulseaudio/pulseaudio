@@ -89,15 +89,6 @@ static pa_sample_spec *parse_sdp_sample_spec(pa_sample_spec *ss, char *c) {
     if (pa_startswith(c, "L16/")) {
         ss->format = PA_SAMPLE_S16BE;
         c += 4;
-    } else if (pa_startswith(c, "L8/")) {
-        ss->format = PA_SAMPLE_U8;
-        c += 3;
-    } else if (pa_startswith(c, "PCMA/")) {
-        ss->format = PA_SAMPLE_ALAW;
-        c += 5;
-    } else if (pa_startswith(c, "PCMU/")) {
-        ss->format = PA_SAMPLE_ULAW;
-        c += 5;
     } else
         return NULL;
 

@@ -338,10 +338,6 @@ fail:
 uint8_t pa_rtp_payload_from_sample_spec(const pa_sample_spec *ss) {
     pa_assert(ss);
 
-    if (ss->format == PA_SAMPLE_ULAW && ss->rate == 8000 && ss->channels == 1)
-        return 0;
-    if (ss->format == PA_SAMPLE_ALAW && ss->rate == 8000 && ss->channels == 1)
-        return 8;
     if (ss->format == PA_SAMPLE_S16BE && ss->rate == 44100 && ss->channels == 2)
         return 10;
     if (ss->format == PA_SAMPLE_S16BE && ss->rate == 44100 && ss->channels == 1)
@@ -354,18 +350,6 @@ pa_sample_spec *pa_rtp_sample_spec_from_payload(uint8_t payload, pa_sample_spec 
     pa_assert(ss);
 
     switch (payload) {
-        case 0:
-            ss->channels = 1;
-            ss->format = PA_SAMPLE_ULAW;
-            ss->rate = 8000;
-            break;
-
-        case 8:
-            ss->channels = 1;
-            ss->format = PA_SAMPLE_ALAW;
-            ss->rate = 8000;
-            break;
-
         case 10:
             ss->channels = 2;
             ss->format = PA_SAMPLE_S16BE;
@@ -401,11 +385,7 @@ int pa_rtp_sample_spec_valid(const pa_sample_spec *ss) {
     if (!pa_sample_spec_valid(ss))
         return 0;
 
-    return
-        ss->format == PA_SAMPLE_U8 ||
-        ss->format == PA_SAMPLE_ALAW ||
-        ss->format == PA_SAMPLE_ULAW ||
-        ss->format == PA_SAMPLE_S16BE;
+    return ss->format == PA_SAMPLE_S16BE;
 }
 
 void pa_rtp_context_destroy(pa_rtp_context *c) {
@@ -425,12 +405,6 @@ const char* pa_rtp_format_to_string(pa_sample_format_t f) {
     switch (f) {
         case PA_SAMPLE_S16BE:
             return "L16";
-        case PA_SAMPLE_U8:
-            return "L8";
-        case PA_SAMPLE_ALAW:
-            return "PCMA";
-        case PA_SAMPLE_ULAW:
-            return "PCMU";
         default:
             return NULL;
     }
@@ -441,12 +415,6 @@ pa_sample_format_t pa_rtp_string_to_format(const char *s) {
 
     if (pa_streq(s, "L16"))
         return PA_SAMPLE_S16BE;
-    else if (pa_streq(s, "L8"))
-        return PA_SAMPLE_U8;
-    else if (pa_streq(s, "PCMA"))
-        return PA_SAMPLE_ALAW;
-    else if (pa_streq(s, "PCMU"))
-        return PA_SAMPLE_ULAW;
     else
         return PA_SAMPLE_INVALID;
 }
