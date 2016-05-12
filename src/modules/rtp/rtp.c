@@ -43,7 +43,7 @@
 
 #include "rtp.h"
 
-int pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint8_t payload, size_t frame_size) {
+int pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint8_t payload, size_t mtu, size_t frame_size) {
     pa_assert(c);
     pa_assert(fd >= 0);
 
@@ -53,6 +53,7 @@ int pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint8_t payload, size_t 
     c->ssrc = (uint32_t) (rand()*rand());
     c->payload = (uint8_t) (payload & 127U);
     c->frame_size = frame_size;
+    c->mtu = mtu;
 
     c->recv_buf = NULL;
     c->recv_buf_size = 0;
@@ -63,17 +64,16 @@ int pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint8_t payload, size_t 
 
 #define MAX_IOVECS 16
 
-int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
+int pa_rtp_send(pa_rtp_context *c, pa_memblockq *q) {
     struct iovec iov[MAX_IOVECS];
     pa_memblock* mb[MAX_IOVECS];
     int iov_idx = 1;
     size_t n = 0;
 
     pa_assert(c);
-    pa_assert(size > 0);
     pa_assert(q);
 
-    if (pa_memblockq_get_length(q) < size)
+    if (pa_memblockq_get_length(q) < c->mtu)
         return 0;
 
     for (;;) {
@@ -84,7 +84,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
 
         if ((r = pa_memblockq_peek(q, &chunk)) >= 0) {
 
-            size_t k = n + chunk.length > size ? size - n : chunk.length;
+            size_t k = n + chunk.length > c->mtu ? c->mtu - n : chunk.length;
 
             pa_assert(chunk.memblock);
 
@@ -99,7 +99,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
 
         pa_assert(n % c->frame_size == 0);
 
-        if (r < 0 || n >= size || iov_idx >= MAX_IOVECS) {
+        if (r < 0 || n >= c->mtu || iov_idx >= MAX_IOVECS) {
             uint32_t header[3];
             struct msghdr m;
             ssize_t k;
@@ -140,7 +140,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
                 return -1;
             }
 
-            if (r < 0 || pa_memblockq_get_length(q) < size)
+            if (r < 0 || pa_memblockq_get_length(q) < c->mtu)
                 break;
 
             n = 0;

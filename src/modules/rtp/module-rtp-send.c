@@ -109,7 +109,6 @@ struct userdata {
 
     pa_rtp_context rtp_context;
     pa_sap_context sap_context;
-    size_t mtu;
 
     pa_time_event *sap_event;
 
@@ -144,7 +143,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         return;
     }
 
-    pa_rtp_send(&u->rtp_context, u->mtu, u->memblockq);
+    pa_rtp_send(&u->rtp_context, u->memblockq);
 }
 
 static pa_source_output_flags_t get_dont_inhibit_auto_suspend_flag(pa_source *source,
@@ -466,8 +465,6 @@ int pa__init(pa_module*m) {
             0,
             NULL);
 
-    u->mtu = mtu;
-
     k = sizeof(sa_dst);
     pa_assert_se((r = getsockname(fd, (struct sockaddr*) &sa_dst, &k)) >= 0);
 
@@ -491,7 +488,7 @@ int pa__init(pa_module*m) {
 
     pa_xfree(n);
 
-    if (pa_rtp_context_init_send(&u->rtp_context, fd, payload, pa_frame_size(&ss)) < 0)
+    if (pa_rtp_context_init_send(&u->rtp_context, fd, payload, mtu, pa_frame_size(&ss)) < 0)
         goto fail;
     pa_sap_context_init_send(&u->sap_context, sap_fd, p);
 

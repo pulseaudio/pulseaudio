@@ -33,17 +33,18 @@ typedef struct pa_rtp_context {
     uint32_t ssrc;
     uint8_t payload;
     size_t frame_size;
+    size_t mtu;
 
     uint8_t *recv_buf;
     size_t recv_buf_size;
     pa_memchunk memchunk;
 } pa_rtp_context;
 
-int pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint8_t payload, size_t frame_size);
+int pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint8_t payload, size_t mtu, size_t frame_size);
 
 /* If the memblockq doesn't have a silence memchunk set, then the caller must
  * guarantee that the current read index doesn't point to a hole. */
-int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q);
+int pa_rtp_send(pa_rtp_context *c, pa_memblockq *q);
 
 pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd, size_t frame_size);
 int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct timeval *tstamp);
