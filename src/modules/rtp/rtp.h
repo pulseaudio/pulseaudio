@@ -25,31 +25,24 @@
 #include <sys/types.h>
 #include <pulsecore/memblockq.h>
 #include <pulsecore/memchunk.h>
+#include <pulsecore/rtpoll.h>
 
-typedef struct pa_rtp_context {
-    int fd;
-    uint16_t sequence;
-    uint32_t timestamp;
-    uint32_t ssrc;
-    uint8_t payload;
-    size_t frame_size;
-    size_t mtu;
-
-    uint8_t *recv_buf;
-    size_t recv_buf_size;
-    pa_memchunk memchunk;
-} pa_rtp_context;
+typedef struct pa_rtp_context pa_rtp_context;
 
 int pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint8_t payload, size_t mtu, size_t frame_size);
+pa_rtp_context* pa_rtp_context_new_send(int fd, uint8_t payload, size_t mtu, size_t frame_size);
 
 /* If the memblockq doesn't have a silence memchunk set, then the caller must
  * guarantee that the current read index doesn't point to a hole. */
 int pa_rtp_send(pa_rtp_context *c, pa_memblockq *q);
 
-pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd, size_t frame_size);
-int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct timeval *tstamp);
+pa_rtp_context* pa_rtp_context_new_recv(int fd, uint8_t payload, size_t frame_size);
+int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, uint32_t *rtp_tstamp, struct timeval *tstamp);
 
-void pa_rtp_context_destroy(pa_rtp_context *c);
+void pa_rtp_context_free(pa_rtp_context *c);
+
+size_t pa_rtp_context_get_frame_size(pa_rtp_context *c);
+pa_rtpoll_item* pa_rtp_context_get_rtpoll_item(pa_rtp_context *c, pa_rtpoll *rtpoll);
 
 pa_sample_spec* pa_rtp_sample_spec_fixup(pa_sample_spec *ss);
 int pa_rtp_sample_spec_valid(const pa_sample_spec *ss);
