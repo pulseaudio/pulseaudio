@@ -238,9 +238,6 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
         s->ssrc = s->rtp_context.ssrc;
         s->offset = s->rtp_context.timestamp;
-
-        if (s->ssrc == s->userdata->module->core->cookie)
-            pa_log_warn("Detected RTP packet loop!");
     } else {
         if (s->ssrc != s->rtp_context.ssrc) {
             pa_memblock_unref(chunk.memblock);

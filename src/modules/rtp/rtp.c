@@ -43,14 +43,14 @@
 
 #include "rtp.h"
 
-int pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssrc, uint8_t payload, size_t frame_size) {
+int pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint8_t payload, size_t frame_size) {
     pa_assert(c);
     pa_assert(fd >= 0);
 
     c->fd = fd;
     c->sequence = (uint16_t) (rand()*rand());
     c->timestamp = 0;
-    c->ssrc = ssrc ? ssrc : (uint32_t) (rand()*rand());
+    c->ssrc = (uint32_t) (rand()*rand());
     c->payload = (uint8_t) (payload & 127U);
     c->frame_size = frame_size;
 
