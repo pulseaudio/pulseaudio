@@ -491,7 +491,8 @@ int pa__init(pa_module*m) {
 
     pa_xfree(n);
 
-    pa_rtp_context_init_send(&u->rtp_context, fd, m->core->cookie, payload, pa_frame_size(&ss));
+    if (pa_rtp_context_init_send(&u->rtp_context, fd, m->core->cookie, payload, pa_frame_size(&ss)) < 0)
+        goto fail;
     pa_sap_context_init_send(&u->sap_context, sap_fd, p);
 
     pa_log_info("RTP stream initialized with mtu %u on %s:%u from %s ttl=%u, SSRC=0x%08x, payload=%u, initial sequence #%u", mtu, dst_addr, port, src_addr, ttl, u->rtp_context.ssrc, payload, u->rtp_context.sequence);
