@@ -431,6 +431,8 @@ pa_resampler* pa_resampler_new(
     return r;
 
 fail:
+    if (r->lfe_filter)
+      pa_lfe_filter_free(r->lfe_filter);
     pa_xfree(r);
 
     return NULL;
