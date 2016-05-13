@@ -548,7 +548,8 @@ static void source_output_set_state(pa_source_output *o, pa_source_output_state_
 /* Called from main context */
 void pa_source_output_unlink(pa_source_output*o) {
     bool linked;
-    pa_assert(o);
+
+    pa_source_output_assert_ref(o);
     pa_assert_ctl_context();
 
     /* See pa_sink_unlink() for a couple of comments how this function
@@ -614,9 +615,7 @@ static void source_output_free(pa_object* mo) {
     pa_assert(o);
     pa_assert_ctl_context();
     pa_assert(pa_source_output_refcnt(o) == 0);
-
-    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state))
-        pa_source_output_unlink(o);
+    pa_assert(!PA_SOURCE_OUTPUT_IS_LINKED(o->state));
 
     pa_log_info("Freeing output %u \"%s\"", o->index,
                 o->proplist ? pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME)) : "");

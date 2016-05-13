@@ -645,7 +645,7 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     bool linked;
     pa_source_output *o, PA_UNUSED *p = NULL;
 
-    pa_assert(i);
+    pa_sink_input_assert_ref(i);
     pa_assert_ctl_context();
 
     /* See pa_sink_unlink() for a couple of comments how this function
@@ -721,9 +721,7 @@ static void sink_input_free(pa_object *o) {
     pa_assert(i);
     pa_assert_ctl_context();
     pa_assert(pa_sink_input_refcnt(i) == 0);
-
-    if (PA_SINK_INPUT_IS_LINKED(i->state))
-        pa_sink_input_unlink(i);
+    pa_assert(!PA_SINK_INPUT_IS_LINKED(i->state));
 
     pa_log_info("Freeing input %u \"%s\"", i->index,
                 i->proplist ? pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME)) : "");

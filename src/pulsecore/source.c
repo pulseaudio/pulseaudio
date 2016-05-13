@@ -612,7 +612,7 @@ void pa_source_unlink(pa_source *s) {
     bool linked;
     pa_source_output *o, PA_UNUSED *j = NULL;
 
-    pa_assert(s);
+    pa_source_assert_ref(s);
     pa_assert_ctl_context();
 
     /* See pa_sink_unlink() for a couple of comments how this function
@@ -661,9 +661,7 @@ static void source_free(pa_object *o) {
     pa_assert(s);
     pa_assert_ctl_context();
     pa_assert(pa_source_refcnt(s) == 0);
-
-    if (PA_SOURCE_IS_LINKED(s->state))
-        pa_source_unlink(s);
+    pa_assert(!PA_SOURCE_IS_LINKED(s->state));
 
     pa_log_info("Freeing source %u \"%s\"", s->index, s->name);
 

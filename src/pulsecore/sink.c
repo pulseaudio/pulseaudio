@@ -669,7 +669,7 @@ void pa_sink_unlink(pa_sink* s) {
     bool linked;
     pa_sink_input *i, PA_UNUSED *j = NULL;
 
-    pa_assert(s);
+    pa_sink_assert_ref(s);
     pa_assert_ctl_context();
 
     /* Please note that pa_sink_unlink() does more than simply
@@ -722,9 +722,7 @@ static void sink_free(pa_object *o) {
     pa_assert(s);
     pa_assert_ctl_context();
     pa_assert(pa_sink_refcnt(s) == 0);
-
-    if (PA_SINK_IS_LINKED(s->state))
-        pa_sink_unlink(s);
+    pa_assert(!PA_SINK_IS_LINKED(s->state));
 
     pa_log_info("Freeing sink %u \"%s\"", s->index, s->name);
 
