@@ -240,6 +240,7 @@ endif
 noinst_LTLIBRARIES =
 
 TESTS_default = \
+		core-util-test \
 		mainloop-test \
 		strlist-test \
 		close-test \
@@ -354,6 +355,11 @@ check-daemon:
 	false
 
 endif
+
+core_util_test_SOURCES = tests/core-util-test.c
+core_util_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+core_util_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+core_util_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 mainloop_test_SOURCES = tests/mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)

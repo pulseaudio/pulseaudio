@@ -35,6 +35,7 @@ asyncq-test
 channelmap-test
 close-test
 connect-stress
+core-util-test
 cpulimit-test
 cpulimit-test2
 cpu-sconv-test
