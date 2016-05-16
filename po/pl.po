@@ -1,12 +1,12 @@
 # translation of pl.po to Polish
-# Piotr Drąg <piotrdrag@gmail.com>, 2008, 2012, 2013, 2014, 2015.
+# Piotr Drąg <piotrdrag@gmail.com>, 2008, 2012, 2013, 2014, 2015, 2016.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-08-28 16:28+0200\n"
-"PO-Revision-Date: 2015-08-28 16:29+0200\n"
+"POT-Creation-Date: 2016-05-16 13:50+0200\n"
+"PO-Revision-Date: 2016-05-16 13:51+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
 "Language: pl\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: ../src/daemon/cmdline.c:111
+#: ../src/daemon/cmdline.c:113
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -75,6 +75,7 @@ msgid ""
 "      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
 "                                        platforms that support it.\n"
 "      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"      --enable-memfd[=BOOL]             Enable memfd shared memory support.\n"
 "\n"
 "STARTUP SCRIPT:\n"
 "  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
@@ -151,6 +152,8 @@ msgstr ""
 "                                        platformach.\n"
 "      --disable-shm[=ZMIENNALOGICZNA]   Wyłącza obsługę pamięci\n"
 "                                        współdzielonej.\n"
+"      --enable-memfd[=ZMIENNALOGICZNA]  Włącza obsługę pamięci\n"
+"                                        współdzielonej memfd.\n"
 "\n"
 "SKRYPT STARTOWY:\n"
 "  -L, --load=\"PARAMETRY MODUŁU\"       Wczytuje podany moduł wtyczki z\n"
@@ -162,15 +165,15 @@ msgstr ""
 "  -n                                    Nie wczytuje domyślnego pliku\n"
 "                                        skryptu\n"
 
-#: ../src/daemon/cmdline.c:243
+#: ../src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
 msgstr "--daemonize oczekuje parametru zmiennej logicznej"
 
-#: ../src/daemon/cmdline.c:251
+#: ../src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
 msgstr "--fail oczekuje parametru zmiennej logicznej"
 
-#: ../src/daemon/cmdline.c:262
+#: ../src/daemon/cmdline.c:265
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
@@ -178,27 +181,27 @@ msgstr ""
 "--log-level oczekuje parametru poziomu dziennika (numeryczny w zakresie 0..4 "
 "lub jeden z debug, info, notice, warn, error)."
 
-#: ../src/daemon/cmdline.c:274
+#: ../src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
 msgstr "--high-priority oczekuje parametru zmiennej logicznej"
 
-#: ../src/daemon/cmdline.c:282
+#: ../src/daemon/cmdline.c:285
 msgid "--realtime expects boolean argument"
 msgstr "--realtime oczekuje parametru zmiennej logicznej"
 
-#: ../src/daemon/cmdline.c:290
+#: ../src/daemon/cmdline.c:293
 msgid "--disallow-module-loading expects boolean argument"
 msgstr "--disallow-module-loading oczekuje parametru zmiennej logicznej"
 
-#: ../src/daemon/cmdline.c:298
+#: ../src/daemon/cmdline.c:301
 msgid "--disallow-exit expects boolean argument"
 msgstr "--disallow-exit oczekuje parametru zmiennej logicznej"
 
-#: ../src/daemon/cmdline.c:306
+#: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file oczekuje parametru zmiennej logicznej"
 
-#: ../src/daemon/cmdline.c:325
+#: ../src/daemon/cmdline.c:328
 msgid ""
 "Invalid log target: use either 'syslog', 'journal','stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
@@ -206,7 +209,7 @@ msgstr ""
 "Nieprawidłowy dziennik docelowy: należy użyć „syslog”, „journal”, „stderr”, "
 "„auto” lub prawidłowej nazwy pliku „file:<ścieżka>”, „newfile:<ścieżka>”."
 
-#: ../src/daemon/cmdline.c:327
+#: ../src/daemon/cmdline.c:330
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
 "name 'file:<path>', 'newfile:<path>'."
@@ -214,97 +217,101 @@ msgstr ""
 "Nieprawidłowy dziennik docelowy: należy użyć „syslog”, „stderr”, „auto” lub "
 "prawidłowej nazwy pliku „file:<ścieżka>”, „newfile:<ścieżka>”."
 
-#: ../src/daemon/cmdline.c:335
+#: ../src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
 msgstr "--log-time oczekuje parametru zmiennej logicznej"
 
-#: ../src/daemon/cmdline.c:343
+#: ../src/daemon/cmdline.c:346
 msgid "--log-meta expects boolean argument"
 msgstr "--log-meta oczekuje parametru zmiennej logicznej"
 
-#: ../src/daemon/cmdline.c:363
+#: ../src/daemon/cmdline.c:366
 #, c-format
 msgid "Invalid resample method '%s'."
 msgstr "Nieprawidłowa metoda resamplingu „%s”."
 
-#: ../src/daemon/cmdline.c:370
+#: ../src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
 msgstr "--system oczekuje parametru zmiennej logicznej"
 
-#: ../src/daemon/cmdline.c:378
+#: ../src/daemon/cmdline.c:381
 msgid "--no-cpu-limit expects boolean argument"
 msgstr "--no-cpu-limit oczekuje parametru zmiennej logicznej"
 
-#: ../src/daemon/cmdline.c:386
+#: ../src/daemon/cmdline.c:389
 msgid "--disable-shm expects boolean argument"
 msgstr "--disable-shm oczekuje parametru zmiennej logicznej"
 
-#: ../src/daemon/daemon-conf.c:259
+#: ../src/daemon/cmdline.c:397
+msgid "--enable-memfd expects boolean argument"
+msgstr "--enable-memfd oczekuje parametru zmiennej logicznej"
+
+#: ../src/daemon/daemon-conf.c:260
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] Nieprawidłowy dziennik docelowy „%s”."
 
-#: ../src/daemon/daemon-conf.c:274
+#: ../src/daemon/daemon-conf.c:275
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] Nieprawidłowy poziom dziennika „%s”."
 
-#: ../src/daemon/daemon-conf.c:289
+#: ../src/daemon/daemon-conf.c:290
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] Nieprawidłowa metoda resamplingu „%s”."
 
-#: ../src/daemon/daemon-conf.c:311
+#: ../src/daemon/daemon-conf.c:312
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] Nieprawidłowy rlimit „%s”."
 
-#: ../src/daemon/daemon-conf.c:331
+#: ../src/daemon/daemon-conf.c:332
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Nieprawidłowy format próbki „%s”."
 
-#: ../src/daemon/daemon-conf.c:348 ../src/daemon/daemon-conf.c:365
+#: ../src/daemon/daemon-conf.c:349 ../src/daemon/daemon-conf.c:366
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] Nieprawidłowa częstotliwość próbki „%s”."
 
-#: ../src/daemon/daemon-conf.c:388
+#: ../src/daemon/daemon-conf.c:389
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Nieprawidłowe kanały próbki „%s”."
 
-#: ../src/daemon/daemon-conf.c:405
+#: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
 msgstr "[%s:%u] Nieprawidłowa mapa kanałów „%s”."
 
-#: ../src/daemon/daemon-conf.c:422
+#: ../src/daemon/daemon-conf.c:423
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] Nieprawidłowa liczba fragmentów „%s”."
 
-#: ../src/daemon/daemon-conf.c:439
+#: ../src/daemon/daemon-conf.c:440
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] Nieprawidłowy rozmiar fragmentu „%s”."
 
-#: ../src/daemon/daemon-conf.c:456
+#: ../src/daemon/daemon-conf.c:457
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Nieprawidłowy poziom nice „%s”."
 
-#: ../src/daemon/daemon-conf.c:499
+#: ../src/daemon/daemon-conf.c:500
 #, c-format
 msgid "[%s:%u] Invalid server type '%s'."
 msgstr "[%s:%u] Nieprawidłowy typ serwera „%s”."
 
-#: ../src/daemon/daemon-conf.c:613
+#: ../src/daemon/daemon-conf.c:615
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Otwarcie pliku konfiguracji się nie powiodło: %s"
 
-#: ../src/daemon/daemon-conf.c:629
+#: ../src/daemon/daemon-conf.c:631
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -312,7 +319,7 @@ msgstr ""
 "Podana domyślna mapa kanałów ma inną liczbę kanałów niż podana domyślna "
 "liczba kanałów."
 
-#: ../src/daemon/daemon-conf.c:716
+#: ../src/daemon/daemon-conf.c:718
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Odczytano z pliku konfiguracji: %s ###\n"
@@ -547,15 +554,15 @@ msgstr ""
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() się nie powiodło."
 
-#: ../src/daemon/main.c:1021
+#: ../src/daemon/main.c:1023
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() się nie powiodło."
 
-#: ../src/daemon/main.c:1089
+#: ../src/daemon/main.c:1091
 msgid "Failed to initialize daemon."
 msgstr "Zainicjowanie usługi się nie powiodło."
 
-#: ../src/daemon/main.c:1094
+#: ../src/daemon/main.c:1096
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Uruchamianie usługi bez żadnych wczytanych modułów, odmawianie działania."
@@ -568,155 +575,155 @@ msgstr "System dźwięku PulseAudio"
 msgid "Start the PulseAudio Sound System"
 msgstr "Uruchomienie systemu dźwięku PulseAudio"
 
-#: ../src/modules/alsa/alsa-mixer.c:2394
+#: ../src/modules/alsa/alsa-mixer.c:2378
 msgid "Input"
 msgstr "Wejście"
 
-#: ../src/modules/alsa/alsa-mixer.c:2395
+#: ../src/modules/alsa/alsa-mixer.c:2379
 msgid "Docking Station Input"
 msgstr "Wejście stacji dokującej"
 
-#: ../src/modules/alsa/alsa-mixer.c:2396
+#: ../src/modules/alsa/alsa-mixer.c:2380
 msgid "Docking Station Microphone"
 msgstr "Mikrofon stacji dokującej"
 
-#: ../src/modules/alsa/alsa-mixer.c:2397
+#: ../src/modules/alsa/alsa-mixer.c:2381
 msgid "Docking Station Line In"
 msgstr "Wejście liniowe stacji dokującej"
 
-#: ../src/modules/alsa/alsa-mixer.c:2398 ../src/modules/alsa/alsa-mixer.c:2483
+#: ../src/modules/alsa/alsa-mixer.c:2382 ../src/modules/alsa/alsa-mixer.c:2467
 msgid "Line In"
 msgstr "Wejście liniowe"
 
-#: ../src/modules/alsa/alsa-mixer.c:2399 ../src/modules/alsa/alsa-mixer.c:2477
-#: ../src/modules/bluetooth/module-bluez4-device.c:2102
+#: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
+#: ../src/modules/bluetooth/module-bluez4-device.c:2099
 #: ../src/modules/bluetooth/module-bluez5-device.c:1710
 msgid "Microphone"
 msgstr "Mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2400 ../src/modules/alsa/alsa-mixer.c:2478
+#: ../src/modules/alsa/alsa-mixer.c:2384 ../src/modules/alsa/alsa-mixer.c:2462
 msgid "Front Microphone"
 msgstr "Przedni mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2401 ../src/modules/alsa/alsa-mixer.c:2479
+#: ../src/modules/alsa/alsa-mixer.c:2385 ../src/modules/alsa/alsa-mixer.c:2463
 msgid "Rear Microphone"
 msgstr "Tylny mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2402
+#: ../src/modules/alsa/alsa-mixer.c:2386
 msgid "External Microphone"
 msgstr "Zewnętrzny mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2403 ../src/modules/alsa/alsa-mixer.c:2481
+#: ../src/modules/alsa/alsa-mixer.c:2387 ../src/modules/alsa/alsa-mixer.c:2465
 msgid "Internal Microphone"
 msgstr "Wewnętrzny mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2404 ../src/modules/alsa/alsa-mixer.c:2484
+#: ../src/modules/alsa/alsa-mixer.c:2388 ../src/modules/alsa/alsa-mixer.c:2468
 msgid "Radio"
 msgstr "Radio"
 
-#: ../src/modules/alsa/alsa-mixer.c:2405 ../src/modules/alsa/alsa-mixer.c:2485
+#: ../src/modules/alsa/alsa-mixer.c:2389 ../src/modules/alsa/alsa-mixer.c:2469
 msgid "Video"
 msgstr "Wideo"
 
-#: ../src/modules/alsa/alsa-mixer.c:2406
+#: ../src/modules/alsa/alsa-mixer.c:2390
 msgid "Automatic Gain Control"
 msgstr "Automatyczna kontrola natężenia"
 
-#: ../src/modules/alsa/alsa-mixer.c:2407
+#: ../src/modules/alsa/alsa-mixer.c:2391
 msgid "No Automatic Gain Control"
 msgstr "Brak automatycznej kontroli natężenia"
 
-#: ../src/modules/alsa/alsa-mixer.c:2408
+#: ../src/modules/alsa/alsa-mixer.c:2392
 msgid "Boost"
 msgstr "Podbicie"
 
-#: ../src/modules/alsa/alsa-mixer.c:2409
+#: ../src/modules/alsa/alsa-mixer.c:2393
 msgid "No Boost"
 msgstr "Brak podbicia"
 
-#: ../src/modules/alsa/alsa-mixer.c:2410
+#: ../src/modules/alsa/alsa-mixer.c:2394
 msgid "Amplifier"
 msgstr "Amplituner"
 
-#: ../src/modules/alsa/alsa-mixer.c:2411
+#: ../src/modules/alsa/alsa-mixer.c:2395
 msgid "No Amplifier"
 msgstr "Brak amplitunera"
 
-#: ../src/modules/alsa/alsa-mixer.c:2412
+#: ../src/modules/alsa/alsa-mixer.c:2396
 msgid "Bass Boost"
 msgstr "Podbicie basów"
 
-#: ../src/modules/alsa/alsa-mixer.c:2413
+#: ../src/modules/alsa/alsa-mixer.c:2397
 msgid "No Bass Boost"
 msgstr "Brak podbicia basów"
 
-#: ../src/modules/alsa/alsa-mixer.c:2414
-#: ../src/modules/bluetooth/module-bluez4-device.c:2107
+#: ../src/modules/alsa/alsa-mixer.c:2398
+#: ../src/modules/bluetooth/module-bluez4-device.c:2104
 #: ../src/modules/bluetooth/module-bluez5-device.c:1717
 msgid "Speaker"
 msgstr "Głośnik"
 
-#: ../src/modules/alsa/alsa-mixer.c:2415 ../src/modules/alsa/alsa-mixer.c:2487
+#: ../src/modules/alsa/alsa-mixer.c:2399 ../src/modules/alsa/alsa-mixer.c:2471
 msgid "Headphones"
 msgstr "Słuchawki"
 
-#: ../src/modules/alsa/alsa-mixer.c:2476
+#: ../src/modules/alsa/alsa-mixer.c:2460
 msgid "Analog Input"
 msgstr "Wejście analogowe"
 
-#: ../src/modules/alsa/alsa-mixer.c:2480
+#: ../src/modules/alsa/alsa-mixer.c:2464
 msgid "Dock Microphone"
 msgstr "Mikrofon stacji dokującej"
 
-#: ../src/modules/alsa/alsa-mixer.c:2482
+#: ../src/modules/alsa/alsa-mixer.c:2466
 msgid "Headset Microphone"
 msgstr "Mikrofon na słuchawkach"
 
-#: ../src/modules/alsa/alsa-mixer.c:2486
+#: ../src/modules/alsa/alsa-mixer.c:2470
 msgid "Analog Output"
 msgstr "Wyjście analogowe"
 
-#: ../src/modules/alsa/alsa-mixer.c:2488
+#: ../src/modules/alsa/alsa-mixer.c:2472
 msgid "LFE on Separate Mono Output"
 msgstr "Subwoofer na oddzielnym wyjściu mono"
 
-#: ../src/modules/alsa/alsa-mixer.c:2489
+#: ../src/modules/alsa/alsa-mixer.c:2473
 msgid "Line Out"
 msgstr "Wyjście liniowe"
 
-#: ../src/modules/alsa/alsa-mixer.c:2490
+#: ../src/modules/alsa/alsa-mixer.c:2474
 msgid "Analog Mono Output"
 msgstr "Analogowe wyjście mono"
 
-#: ../src/modules/alsa/alsa-mixer.c:2491
+#: ../src/modules/alsa/alsa-mixer.c:2475
 msgid "Speakers"
 msgstr "Głośniki"
 
-#: ../src/modules/alsa/alsa-mixer.c:2492
+#: ../src/modules/alsa/alsa-mixer.c:2476
 msgid "HDMI / DisplayPort"
 msgstr "HDMI/DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2493
+#: ../src/modules/alsa/alsa-mixer.c:2477
 msgid "Digital Output (S/PDIF)"
 msgstr "Wyjście cyfrowe (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2494
+#: ../src/modules/alsa/alsa-mixer.c:2478
 msgid "Digital Input (S/PDIF)"
 msgstr "Wejście cyfrowe (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2495
+#: ../src/modules/alsa/alsa-mixer.c:2479
 msgid "Digital Passthrough (S/PDIF)"
 msgstr "Cyfrowe przekazywanie (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2496
+#: ../src/modules/alsa/alsa-mixer.c:2480
 msgid "Multichannel Input"
 msgstr "Wejście wielokanałowe"
 
-#: ../src/modules/alsa/alsa-mixer.c:2497
+#: ../src/modules/alsa/alsa-mixer.c:2481
 msgid "Multichannel Output"
 msgstr "Wyjście wielokanałowe"
 
-#: ../src/modules/alsa/alsa-mixer.c:4003
+#: ../src/modules/alsa/alsa-mixer.c:3990
 msgid "Analog Mono"
 msgstr "Analogowe mono"
 
@@ -725,116 +732,116 @@ msgstr "Analogowe mono"
 #. * here would lead to the source name to become "Analog Stereo Input
 #. * Input". The same logic applies to analog-stereo-output,
 #. * multichannel-input and multichannel-output.
-#: ../src/modules/alsa/alsa-mixer.c:4004 ../src/modules/alsa/alsa-mixer.c:4010
-#: ../src/modules/alsa/alsa-mixer.c:4011
+#: ../src/modules/alsa/alsa-mixer.c:3991 ../src/modules/alsa/alsa-mixer.c:3997
+#: ../src/modules/alsa/alsa-mixer.c:3998
 msgid "Analog Stereo"
 msgstr "Analogowe stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:4012 ../src/modules/alsa/alsa-mixer.c:4013
+#: ../src/modules/alsa/alsa-mixer.c:3999 ../src/modules/alsa/alsa-mixer.c:4000
 msgid "Multichannel"
 msgstr "Wielokanałowe"
 
-#: ../src/modules/alsa/alsa-mixer.c:4014
+#: ../src/modules/alsa/alsa-mixer.c:4001
 msgid "Analog Surround 2.1"
 msgstr "Analogowe surround 2.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4015
+#: ../src/modules/alsa/alsa-mixer.c:4002
 msgid "Analog Surround 3.0"
 msgstr "Analogowe surround 3.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4016
+#: ../src/modules/alsa/alsa-mixer.c:4003
 msgid "Analog Surround 3.1"
 msgstr "Analogowe surround 3.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4017
+#: ../src/modules/alsa/alsa-mixer.c:4004
 msgid "Analog Surround 4.0"
 msgstr "Analogowe surround 4.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4018
+#: ../src/modules/alsa/alsa-mixer.c:4005
 msgid "Analog Surround 4.1"
 msgstr "Analogowe surround 4.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4019
+#: ../src/modules/alsa/alsa-mixer.c:4006
 msgid "Analog Surround 5.0"
 msgstr "Analogowe surround 5.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4020
+#: ../src/modules/alsa/alsa-mixer.c:4007
 msgid "Analog Surround 5.1"
 msgstr "Analogowe surround 5.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4021
+#: ../src/modules/alsa/alsa-mixer.c:4008
 msgid "Analog Surround 6.0"
 msgstr "Analogowe surround 6.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4022
+#: ../src/modules/alsa/alsa-mixer.c:4009
 msgid "Analog Surround 6.1"
 msgstr "Analogowe surround 6.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4023
+#: ../src/modules/alsa/alsa-mixer.c:4010
 msgid "Analog Surround 7.0"
 msgstr "Analogowe surround 7.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4024
+#: ../src/modules/alsa/alsa-mixer.c:4011
 msgid "Analog Surround 7.1"
 msgstr "Analogowe surround 7.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4025
+#: ../src/modules/alsa/alsa-mixer.c:4012
 msgid "Digital Stereo (IEC958)"
 msgstr "Cyfrowe stereo (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4026
+#: ../src/modules/alsa/alsa-mixer.c:4013
 msgid "Digital Passthrough  (IEC958)"
 msgstr "Cyfrowe przekazywanie (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4027
+#: ../src/modules/alsa/alsa-mixer.c:4014
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Cyfrowe surround 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4028
+#: ../src/modules/alsa/alsa-mixer.c:4015
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Cyfrowe surround 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4029
+#: ../src/modules/alsa/alsa-mixer.c:4016
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr "Cyfrowe surround 5.1 (IEC958/DTS)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4030
+#: ../src/modules/alsa/alsa-mixer.c:4017
 msgid "Digital Stereo (HDMI)"
 msgstr "Cyfrowe stereo (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4031
+#: ../src/modules/alsa/alsa-mixer.c:4018
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr "Cyfrowe surround 5.1 (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4162
+#: ../src/modules/alsa/alsa-mixer.c:4151
 msgid "Analog Mono Duplex"
 msgstr "Analogowy dupleks mono"
 
-#: ../src/modules/alsa/alsa-mixer.c:4163
+#: ../src/modules/alsa/alsa-mixer.c:4152
 msgid "Analog Stereo Duplex"
 msgstr "Analogowy dupleks stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:4164
+#: ../src/modules/alsa/alsa-mixer.c:4153
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Cyfrowy dupleks stereo (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4165
+#: ../src/modules/alsa/alsa-mixer.c:4154
 msgid "Multichannel Duplex"
 msgstr "Dupleks wielokanałowy"
 
-#: ../src/modules/alsa/alsa-mixer.c:4166
-#: ../src/modules/alsa/module-alsa-card.c:184
-#: ../src/modules/bluetooth/module-bluez4-device.c:2298
+#: ../src/modules/alsa/alsa-mixer.c:4155
+#: ../src/modules/alsa/module-alsa-card.c:186
+#: ../src/modules/bluetooth/module-bluez4-device.c:2295
 #: ../src/modules/bluetooth/module-bluez5-device.c:1941
 msgid "Off"
 msgstr "Wyłączone"
 
-#: ../src/modules/alsa/alsa-mixer.c:4265
+#: ../src/modules/alsa/alsa-mixer.c:4254
 #, c-format
 msgid "%s Output"
 msgstr "Wyjście %s"
 
-#: ../src/modules/alsa/alsa-mixer.c:4273
+#: ../src/modules/alsa/alsa-mixer.c:4262
 #, c-format
 msgid "%s Input"
 msgstr "Wejście %s"
@@ -907,7 +914,7 @@ msgstr ""
 "Wybudzono za pomocą ustawienia POLLIN — ale jednoczesne wywołanie "
 "snd_pcm_avail() zwróciło zero lub inną wartość < min_avail."
 
-#: ../src/modules/alsa/alsa-util.c:1149 ../src/modules/alsa/alsa-util.c:1224
+#: ../src/modules/alsa/alsa-util.c:1166 ../src/modules/alsa/alsa-util.c:1241
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -919,7 +926,7 @@ msgstr ""
 "Prawdopodobnie jest to błąd sterownika ALSA „%s”. Proszę zgłosić ten problem "
 "programistom usługi ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1199
+#: ../src/modules/alsa/alsa-util.c:1216
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
@@ -931,7 +938,7 @@ msgstr ""
 "Prawdopodobnie jest to błąd sterownika ALSA „%s”. Proszę zgłosić ten problem "
 "programistom usługi ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1240
+#: ../src/modules/alsa/alsa-util.c:1257
 #, c-format
 msgid ""
 "snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
@@ -944,7 +951,7 @@ msgstr ""
 "Prawdopodobnie jest to błąd sterownika ALSA „%s”. Proszę zgłosić ten problem "
 "programistom usługi ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1283
+#: ../src/modules/alsa/alsa-util.c:1300
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -956,49 +963,49 @@ msgstr ""
 "Prawdopodobnie jest to błąd sterownika ALSA „%s”. Proszę zgłosić ten problem "
 "programistom usługi ALSA."
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2092
+#: ../src/modules/bluetooth/module-bluez4-device.c:2089
 #: ../src/modules/bluetooth/module-bluez5-device.c:1700
 msgid "Headset"
 msgstr "Słuchawki z mikrofonem"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2097
+#: ../src/modules/bluetooth/module-bluez4-device.c:2094
 #: ../src/modules/bluetooth/module-bluez5-device.c:1705
 msgid "Handsfree"
 msgstr "Zestaw głośnomówiący"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2112
+#: ../src/modules/bluetooth/module-bluez4-device.c:2109
 #: ../src/modules/bluetooth/module-bluez5-device.c:1723
 msgid "Headphone"
 msgstr "Słuchawki"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2117
+#: ../src/modules/bluetooth/module-bluez4-device.c:2114
 #: ../src/modules/bluetooth/module-bluez5-device.c:1728
 msgid "Portable"
 msgstr "Przenośne"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2122
+#: ../src/modules/bluetooth/module-bluez4-device.c:2119
 #: ../src/modules/bluetooth/module-bluez5-device.c:1733
 msgid "Car"
 msgstr "Samochód"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2127
+#: ../src/modules/bluetooth/module-bluez4-device.c:2124
 #: ../src/modules/bluetooth/module-bluez5-device.c:1738
 msgid "HiFi"
 msgstr "HiFi"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2132
+#: ../src/modules/bluetooth/module-bluez4-device.c:2129
 #: ../src/modules/bluetooth/module-bluez5-device.c:1743
 msgid "Phone"
 msgstr "Telefon"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2140
+#: ../src/modules/bluetooth/module-bluez4-device.c:2137
 #: ../src/modules/bluetooth/module-bluez5-device.c:1695
 #: ../src/modules/bluetooth/module-bluez5-device.c:1711
 #: ../src/modules/bluetooth/module-bluez5-device.c:1749
 msgid "Bluetooth Output"
 msgstr "Wyjście Bluetooth"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2143
+#: ../src/modules/bluetooth/module-bluez4-device.c:2140
 #: ../src/modules/bluetooth/module-bluez5-device.c:1694
 #: ../src/modules/bluetooth/module-bluez5-device.c:1716
 #: ../src/modules/bluetooth/module-bluez5-device.c:1722
@@ -1006,19 +1013,19 @@ msgstr "Wyjście Bluetooth"
 msgid "Bluetooth Input"
 msgstr "Wejście Bluetooth"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2179
+#: ../src/modules/bluetooth/module-bluez4-device.c:2176
 msgid "High Fidelity Playback (A2DP)"
 msgstr "Odtwarzanie o wysokiej dokładności (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2190
+#: ../src/modules/bluetooth/module-bluez4-device.c:2187
 msgid "High Fidelity Capture (A2DP)"
 msgstr "Przechwytywanie o wysokiej dokładności (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2201
+#: ../src/modules/bluetooth/module-bluez4-device.c:2198
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Dupleks telefoniczny (HSP/HFP)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2213
+#: ../src/modules/bluetooth/module-bluez4-device.c:2210
 msgid "Handsfree Gateway"
 msgstr "Zestaw głośnomówiący"
 
@@ -1048,7 +1055,8 @@ msgid ""
 "rate> channels=<number of channels> channel_map=<channel map> "
 "aec_method=<implementation to use> aec_args=<parameters for the AEC engine> "
 "save_aec=<save AEC data in /tmp> autoloaded=<set if this module is being "
-"loaded automatically> use_volume_sharing=<yes or no> "
+"loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes "
+"or no> "
 msgstr ""
 "source_name=<nazwa źródła> source_properties=<właściwości źródła> "
 "source_master=<nazwa źródła do filtrowania> sink_name=<nazwa odpływu> "
@@ -1059,10 +1067,10 @@ msgstr ""
 "channel_map=<map kanałów> aec_method=<używana implementacja> "
 "aec_args=<parametry dla mechanizmu AEC> save_aec=<zapisywanie danych AEC w /"
 "tmp> autoloaded=<należy ustawić, jeśli moduł jest automatycznie wczytywany> "
-"use_volume_sharing=<yes lub no> "
+"use_volume_sharing=<yes lub no> use_master_format=<yes lub no> "
 
 #. add on profile
-#: ../src/modules/macosx/module-coreaudio-device.c:755
+#: ../src/modules/macosx/module-coreaudio-device.c:811
 msgid "On"
 msgstr "Włączone"
 
@@ -1072,7 +1080,7 @@ msgstr ""
 "Utrzymywanie zawsze co najmniej jednego wczytanego odpływu nawet, jeśli to "
 "pusty odpływ"
 
-#: ../src/modules/module-always-sink.c:83
+#: ../src/modules/module-always-sink.c:82
 msgid "Dummy Output"
 msgstr "Głuche wyjście"
 
@@ -1093,7 +1101,7 @@ msgstr ""
 "kanałów> autoloaded=<należy ustawić, jeśli ten moduł jest automatycznie "
 "uruchamiany> use_volume_sharing=<yes lub no> "
 
-#: ../src/modules/module-filter-apply.c:46
+#: ../src/modules/module-filter-apply.c:47
 msgid "autoclean=<automatically unload unused filters?>"
 msgstr "autoclean=<automatycznie usuwać nieużywane filtry?>"
 
@@ -1124,7 +1132,7 @@ msgstr ""
 msgid "Clocked NULL sink"
 msgstr "Zegarowy PUSTY odpływ"
 
-#: ../src/modules/module-null-sink.c:278
+#: ../src/modules/module-null-sink.c:280
 msgid "Null Output"
 msgstr "Puste wyjście"
 
@@ -1180,7 +1188,7 @@ msgstr ""
 msgid "PulseAudio Sound Server"
 msgstr "Serwer dźwięku PulseAudio"
 
-#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:758
+#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:771
 msgid "Mono"
 msgstr "Mono"
 
@@ -1392,27 +1400,27 @@ msgstr "Górny tylny prawy"
 msgid "(invalid)"
 msgstr "(nieprawidłowe)"
 
-#: ../src/pulse/channelmap.c:762
+#: ../src/pulse/channelmap.c:775
 msgid "Stereo"
 msgstr "Stereo"
 
-#: ../src/pulse/channelmap.c:767
+#: ../src/pulse/channelmap.c:780
 msgid "Surround 4.0"
 msgstr "Surround 4.0"
 
-#: ../src/pulse/channelmap.c:773
+#: ../src/pulse/channelmap.c:786
 msgid "Surround 4.1"
 msgstr "Surround 4.1"
 
-#: ../src/pulse/channelmap.c:779
+#: ../src/pulse/channelmap.c:792
 msgid "Surround 5.0"
 msgstr "Surround 5.0"
 
-#: ../src/pulse/channelmap.c:785
+#: ../src/pulse/channelmap.c:798
 msgid "Surround 5.1"
 msgstr "Surround 5.1"
 
-#: ../src/pulse/channelmap.c:792
+#: ../src/pulse/channelmap.c:805
 msgid "Surround 7.1"
 msgstr "Surround 7.1"
 
@@ -1428,17 +1436,17 @@ msgstr "xcb_connection_has_error() zwróciło wartość „true”"
 msgid "Failed to parse cookie data"
 msgstr "Przetworzenie danych ciasteczka się nie powiodło"
 
-#: ../src/pulse/context.c:656
+#: ../src/pulse/context.c:702
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:711
+#: ../src/pulse/context.c:757
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1417
+#: ../src/pulse/context.c:1463
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Otrzymano komunikat dla nieznanego rozszerzenia „%s”"
@@ -1459,7 +1467,7 @@ msgstr "dwukierunkowe"
 msgid "invalid"
 msgstr "nieprawidłowe"
 
-#: ../src/pulsecore/core-util.c:1832
+#: ../src/pulsecore/core-util.c:1836
 #, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
@@ -1482,12 +1490,12 @@ msgstr "nie"
 msgid "Cannot access autospawn lock."
 msgstr "Nie można uzyskać dostępu do blokady automatycznego wznawiania."
 
-#: ../src/pulsecore/log.c:153
+#: ../src/pulsecore/log.c:165
 #, c-format
 msgid "Failed to open target file '%s'."
 msgstr "Otwarcie pliku docelowego „%s” się nie powiodło."
 
-#: ../src/pulsecore/log.c:176
+#: ../src/pulsecore/log.c:188
 #, c-format
 msgid ""
 "Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
@@ -1495,15 +1503,15 @@ msgstr ""
 "Próbowano otworzyć plik docelowy „%s”, „%s.1”, „%s.2” … „%s.%d”, ale "
 "wszystkie się nie powiodły."
 
-#: ../src/pulsecore/log.c:631
+#: ../src/pulsecore/log.c:651
 msgid "Invalid log target."
 msgstr "Nieprawidłowy dziennik docelowy."
 
-#: ../src/pulsecore/sink.c:3436
+#: ../src/pulsecore/sink.c:3461
 msgid "Built-in Audio"
 msgstr "Wbudowany dźwięk"
 
-#: ../src/pulsecore/sink.c:3441
+#: ../src/pulsecore/sink.c:3466
 msgid "Modem"
 msgstr "Modem"
 
@@ -1639,64 +1647,6 @@ msgstr "%0.1f KiB"
 #, c-format
 msgid "%u B"
 msgstr "%u B"
-
-#: ../src/tests/resampler-test.c:255
-#, c-format
-msgid ""
-"%s [options]\n"
-"\n"
-"-h, --help                            Show this help\n"
-"-v, --verbose                         Print debug messages\n"
-"      --from-rate=SAMPLERATE          From sample rate in Hz (defaults to "
-"44100)\n"
-"      --from-format=SAMPLEFORMAT      From sample type (defaults to s16le)\n"
-"      --from-channels=CHANNELS        From number of channels (defaults to "
-"1)\n"
-"      --to-rate=SAMPLERATE            To sample rate in Hz (defaults to "
-"44100)\n"
-"      --to-format=SAMPLEFORMAT        To sample type (defaults to s16le)\n"
-"      --to-channels=CHANNELS          To number of channels (defaults to 1)\n"
-"      --resample-method=METHOD        Resample method (defaults to auto)\n"
-"      --seconds=SECONDS               From stream duration (defaults to 60)\n"
-"\n"
-"If the formats are not specified, the test performs all formats "
-"combinations,\n"
-"back and forth.\n"
-"\n"
-"Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, "
-"alaw,\n"
-"s24le, s24be, s24-32le, s24-32be, s32le, s32be (defaults to s16ne)\n"
-"\n"
-"See --dump-resample-methods for possible values of resample methods.\n"
-msgstr ""
-"%s [opcje]\n"
-"\n"
-"-h, --help                            Wyświetla tę pomoc\n"
-"-v, --verbose                         Wyświetla komunikaty debugowania\n"
-"      --from-rate=CZĘSTOTLIWOŚĆPRÓBKI Z częstotliwości próbki w Hz\n"
-"                                      (domyślnie 44100)\n"
-"      --from-format=FORMATPRÓBKI      Z typu próbki (domyślnie s16le)\n"
-"      --from-channels=KANAŁY          Z liczby kanałów (domyślnie 1)\n"
-"      --to-rate=CZĘSTOTLIWOŚĆPRÓBKI   Do częstotliwości próbki w Hz\n"
-"                                      (domyślnie 44100)\n"
-"      --to-format=FORMATPRÓBKI        Do typu próbki (domyślnie s16le)\n"
-"      --to-channels=KANAŁY            Do liczby kanałów (domyślnie 1)\n"
-"      --resample-method=METODA        Metoda resamplingu\n"
-"                                      (domyślnie automatyczna)\n"
-"      --seconds=SEKUNDY               Z długości potoku (domyślnie 60)\n"
-"\n"
-"Jeśli nie podano formatu, to test wykona wszystkie kombinacje formatów.\n"
-"\n"
-"Typ próbki musi być jednym z s16le, s16be, u8, float32le, float32be, ulaw,\n"
-"alaw, s24le, s24be, s24-32le, s24-32be, s32le, s32be (domyślnie s16ne)\n"
-"\n"
-"Opcja --dump-resample-methods wyświetli możliwe wartości metody "
-"resamplingu.\n"
-
-#: ../src/tests/resampler-test.c:353
-#, c-format
-msgid "%s %s\n"
-msgstr "%s %s\n"
 
 #: ../src/utils/pacat.c:117
 #, c-format
