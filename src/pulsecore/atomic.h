@@ -201,7 +201,7 @@ static inline u_int atomic_fetchadd_int(volatile u_int *p, u_int v) {
 
     return (v);
 }
-#elif defined(__sparc64__)
+#elif defined(__sparc__) && defined(__arch64__)
 #define atomic_load_acq_64      atomic_load_acq_long
 #define atomic_fetchadd_int     atomic_add_int
 #elif defined(__ia64__)
