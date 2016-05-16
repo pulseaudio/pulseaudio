@@ -249,6 +249,10 @@ void pa_reduce(unsigned *num, unsigned *den);
 
 unsigned pa_ncpus(void);
 
+/* Replaces all occurrences of `a' in `s' with `b'. The caller has to free the
+ * returned string. All parameters must be non-NULL and additionally `a' must
+ * not be a zero-length string.
+ */
 char *pa_replace(const char*s, const char*a, const char *b);
 
 /* Escapes p by inserting backslashes in front of backslashes. chars is a

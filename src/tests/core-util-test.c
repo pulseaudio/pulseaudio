@@ -228,6 +228,11 @@ START_TEST (modargs_test_escape) {
 }
 END_TEST
 
+START_TEST (modargs_test_replace_fail_4) {
+    pa_replace("abe", "", "bab");
+}
+END_TEST
+
 START_TEST (modargs_test_unescape) {
     char* value;
 
@@ -264,6 +269,7 @@ int main(int argc, char *argv[]) {
     tcase_add_test_raise_signal(tc, modargs_test_replace_fail_1, SIGABRT);
     tcase_add_test_raise_signal(tc, modargs_test_replace_fail_2, SIGABRT);
     tcase_add_test_raise_signal(tc, modargs_test_replace_fail_3, SIGABRT);
+    tcase_add_test_raise_signal(tc, modargs_test_replace_fail_4, SIGABRT);
     tcase_add_test(tc, modargs_test_escape);
     tcase_add_test(tc, modargs_test_unescape);
 
