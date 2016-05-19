@@ -1111,8 +1111,7 @@ out:
 
 /* Called from IO context */
 static void playback_stream_request_bytes(playback_stream *s) {
-    size_t m, minreq;
-    int previous_missing;
+    size_t m;
 
     playback_stream_assert_ref(s);
 
@@ -1132,11 +1131,7 @@ static void playback_stream_request_bytes(playback_stream *s) {
     pa_log("request_bytes(%lu)", (unsigned long) m);
 #endif
 
-    previous_missing = pa_atomic_add(&s->missing, (int) m);
-    minreq = pa_memblockq_get_minreq(s->memblockq);
-
-    if (pa_memblockq_prebuf_active(s->memblockq) ||
-        (previous_missing < (int) minreq && previous_missing + (int) m >= (int) minreq))
+    if (pa_atomic_add(&s->missing, (int) m) <= 0)
         pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
 }
 

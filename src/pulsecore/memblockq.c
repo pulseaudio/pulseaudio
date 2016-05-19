@@ -840,6 +840,10 @@ size_t pa_memblockq_pop_missing(pa_memblockq *bq) {
     if (bq->missing <= 0)
         return 0;
 
+    if (((size_t) bq->missing < bq->minreq) &&
+        !pa_memblockq_prebuf_active(bq))
+        return 0;
+
     l = (size_t) bq->missing;
 
     bq->requested += bq->missing;
