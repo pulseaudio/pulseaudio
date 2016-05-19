@@ -345,6 +345,69 @@ START_TEST (memblockq_test) {
 }
 END_TEST
 
+START_TEST (memblockq_test_length_changes) {
+    pa_mempool *p;
+    pa_memblockq *bq;
+    pa_memchunk silence, data;
+    pa_sample_spec ss = {
+        .format = PA_SAMPLE_S32BE,
+        .rate = 48000,
+        .channels = 1
+    };
+    int64_t idx = 0;
+    size_t maxlength = 60;
+    size_t tlength = 40;
+    size_t prebuf = 16;
+    size_t minreq = 20;
+    size_t maxrewind = 40;
+
+    p = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0, true);
+    ck_assert_ptr_ne(p, NULL);
+
+    silence = memchunk_from_str(p, "____");
+
+    bq = pa_memblockq_new("test memblockq", idx, maxlength, tlength, &ss, prebuf, minreq, maxrewind, &silence);
+    fail_unless(bq != NULL);
+
+    data = memchunk_from_str(p, "12345678");
+
+    /* insert some data */
+    ck_assert_int_eq(pa_memblockq_push(bq, &data), 0);
+    ck_assert_int_eq(pa_memblockq_push(bq, &data), 0);
+    ck_assert_int_eq(pa_memblockq_push(bq, &data), 0);
+    ck_assert_int_eq(pa_memblockq_push(bq, &data), 0);
+
+    /* check state */
+    ck_assert_int_eq(pa_memblockq_get_length(bq), 32);
+    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
+
+    /* adjust maximum length
+     * This might modify tlength, prebuf, minreq, too. */
+    pa_memblockq_set_maxlength(bq, maxlength/2);
+    check_queue_invariants(bq);
+
+    /* adjust target length
+     * This might modify minreq, too. */
+    pa_memblockq_set_tlength(bq, tlength/2);
+    check_queue_invariants(bq);
+
+    /* adjust minimum requested length
+     * This might modify prebuf, too. */
+    pa_memblockq_set_minreq(bq, minreq/2);
+    check_queue_invariants(bq);
+
+    /* adjust prebuffer length */
+    pa_memblockq_set_prebuf(bq, prebuf/2);
+    check_queue_invariants(bq);
+
+    /* cleanup */
+    pa_memblockq_free(bq);
+    pa_memblock_unref(silence.memblock);
+    pa_memblock_unref(data.memblock);
+    pa_mempool_unref(p);
+}
+END_TEST
+
 START_TEST (pop_missing_test) {
     int ret;
     size_t missing;
@@ -438,6 +501,7 @@ int main(int argc, char *argv[]) {
     tcase_add_test(tc, memchunk_from_str_test);
     tcase_add_test(tc, memblockq_test_initial_properties);
     tcase_add_test(tc, memblockq_test);
+    tcase_add_test(tc, memblockq_test_length_changes);
     tcase_add_test(tc, pop_missing_test);
     suite_add_tcase(s, tc);
 
