@@ -42,6 +42,23 @@ static const char *manual[] = {
     "__________________3333______________________________"
 };
 
+/*
+ * utility function to create a memchunk
+ */
+static pa_memchunk memchunk_from_str(pa_mempool *p, const char* data)
+{
+    pa_memchunk res;
+    size_t size = strlen(data);
+
+    res.memblock = pa_memblock_new_fixed(p, (void*)data, size, true);
+    ck_assert_ptr_ne(res.memblock, NULL);
+
+    res.index = 0;
+    res.length = pa_memblock_get_length(res.memblock);
+
+    return res;
+}
+
 static void dump_chunk(const pa_memchunk *chunk, pa_strbuf *buf) {
     size_t n;
     void *q;
@@ -92,6 +109,25 @@ static void dump(pa_memblockq *bq, int n) {
     pa_xfree(str);
     fprintf(stderr, "<\n");
 }
+
+START_TEST (memchunk_from_str_test) {
+    pa_mempool *p;
+    pa_memchunk chunk;
+
+    p = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0, true);
+    ck_assert_ptr_ne(p, NULL);
+
+    /* allocate memchunk and check default settings */
+    chunk = memchunk_from_str(p, "abcd");
+    ck_assert_ptr_ne(chunk.memblock, NULL);
+    ck_assert_int_eq(chunk.index, 0);
+    ck_assert_int_eq(chunk.length, 4);
+
+    /* cleanup */
+    pa_memblock_unref(chunk.memblock);
+    pa_mempool_unref(p);
+}
+END_TEST
 
 START_TEST (memblockq_test) {
     int ret;
@@ -299,6 +335,7 @@ int main(int argc, char *argv[]) {
 
     s = suite_create("Memblock Queue");
     tc = tcase_create("memblockq");
+    tcase_add_test(tc, memchunk_from_str_test);
     tcase_add_test(tc, memblockq_test);
     tcase_add_test(tc, pop_missing_test);
     suite_add_tcase(s, tc);
