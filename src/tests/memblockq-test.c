@@ -204,42 +204,21 @@ START_TEST (memblockq_test) {
         .channels = 1
     };
 
-    pa_log_set_level(PA_LOG_DEBUG);
-
     p = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0, true);
+    ck_assert_ptr_ne(p, NULL);
 
-    silence.memblock = pa_memblock_new_fixed(p, (char*) "__", 2, 1);
-    fail_unless(silence.memblock != NULL);
-
-    silence.index = 0;
-    silence.length = pa_memblock_get_length(silence.memblock);
+    silence = memchunk_from_str(p, "__");
 
     bq = pa_memblockq_new("test memblockq", 0, 200, 10, &ss, 4, 4, 40, &silence);
     fail_unless(bq != NULL);
+    check_queue_invariants(bq);
 
-    chunk1.memblock = pa_memblock_new_fixed(p, (char*) "11", 2, 1);
-    fail_unless(chunk1.memblock != NULL);
-
-    chunk1.index = 0;
-    chunk1.length = 2;
-
-    chunk2.memblock = pa_memblock_new_fixed(p, (char*) "XX22", 4, 1);
-    fail_unless(chunk2.memblock != NULL);
-
-    chunk2.index = 2;
-    chunk2.length = 2;
-
-    chunk3.memblock = pa_memblock_new_fixed(p, (char*) "3333", 4, 1);
-    fail_unless(chunk3.memblock != NULL);
-
-    chunk3.index = 0;
-    chunk3.length = 4;
-
-    chunk4.memblock = pa_memblock_new_fixed(p, (char*) "44444444", 8, 1);
-    fail_unless(chunk4.memblock != NULL);
-
-    chunk4.index = 0;
-    chunk4.length = 8;
+    chunk1 = memchunk_from_str(p, "11");
+    chunk2 = memchunk_from_str(p, "XX22");
+    chunk2.index += 2;
+    chunk2.length -= 2;
+    chunk3 = memchunk_from_str(p, "3333");
+    chunk4 = memchunk_from_str(p, "44444444");
 
     ret = pa_memblockq_push(bq, &chunk1);
     fail_unless(ret == 0);
@@ -252,6 +231,8 @@ START_TEST (memblockq_test) {
 
     ret = pa_memblockq_push(bq, &chunk4);
     fail_unless(ret == 0);
+
+    check_queue_invariants(bq);
 
     pa_memblockq_seek(bq, -6, 0, true);
     ret = pa_memblockq_push(bq, &chunk3);
@@ -298,6 +279,8 @@ START_TEST (memblockq_test) {
     pa_memblockq_rewind(bq, 52);
 
     dump(bq, 1);
+
+    check_queue_invariants(bq);
 
     pa_memblockq_free(bq);
     pa_memblock_unref(silence.memblock);
@@ -394,6 +377,9 @@ int main(int argc, char *argv[]) {
     Suite *s;
     TCase *tc;
     SRunner *sr;
+
+    if (!getenv("MAKE_CHECK"))
+        pa_log_set_level(PA_LOG_DEBUG);
 
     s = suite_create("Memblock Queue");
     tc = tcase_create("memblockq");
