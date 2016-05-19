@@ -53,7 +53,7 @@ struct pa_memblockq {
     bool in_prebuf;
     pa_memchunk silence;
     pa_mcalign *mcalign;
-    int64_t missing, requested;
+    size_t requested;
     char *name;
     pa_sample_spec sample_spec;
 };
@@ -251,10 +251,12 @@ static void write_index_changed(pa_memblockq *bq, int64_t old_write_index, bool 
 
     delta = bq->write_index - old_write_index;
 
-    if (account)
-        bq->requested -= delta;
-    else
-        bq->missing -= delta;
+    if (account) {
+        if (delta > (int64_t)bq->requested)
+            bq->requested = 0;
+        else if (delta > 0)
+            bq->requested -= delta;
+    }
 
 #ifdef MEMBLOCKQ_DEBUG
      pa_log_debug("[%s] pushed/seeked %lli: requested counter at %lli, account=%i", bq->name, (long long) delta, (long long) bq->requested, account);
@@ -262,15 +264,14 @@ static void write_index_changed(pa_memblockq *bq, int64_t old_write_index, bool 
 }
 
 static void read_index_changed(pa_memblockq *bq, int64_t old_read_index) {
+#ifdef MEMBLOCKQ_DEBUG
     int64_t delta;
 
     pa_assert(bq);
 
     delta = bq->read_index - old_read_index;
-    bq->missing += delta;
 
-#ifdef MEMBLOCKQ_DEBUG
-    pa_log_debug("[%s] popped %lli: missing counter at %lli", bq->name, (long long) delta, (long long) bq->missing);
+    pa_log_debug("[%s] popped %lli", bq->name, (long long) delta);
 #endif
 }
 
@@ -829,31 +830,37 @@ size_t pa_memblockq_get_prebuf(pa_memblockq *bq) {
 }
 
 size_t pa_memblockq_pop_missing(pa_memblockq *bq) {
-    size_t l;
+    int64_t length;
+    size_t missing;
 
     pa_assert(bq);
 
-#ifdef MEMBLOCKQ_DEBUG
-    pa_log_debug("[%s] pop: %lli", bq->name, (long long) bq->missing);
-#endif
+    /* Note that write_index might be before read_index, which means
+     * that we should ask for extra data to catch up. This also means
+     * that we cannot call pa_memblockq_length() as it doesn't return
+     * negative values. */
 
-    if (bq->missing <= 0)
+    length = (bq->write_index - bq->read_index) + bq->requested;
+
+    if (length > (int64_t)bq->tlength)
         return 0;
 
-    if (((size_t) bq->missing < bq->minreq) &&
+    missing = (int64_t)bq->tlength - length;
+
+    if (missing == 0)
+        return 0;
+
+    if ((missing < bq->minreq) &&
         !pa_memblockq_prebuf_active(bq))
         return 0;
 
-    l = (size_t) bq->missing;
-
-    bq->requested += bq->missing;
-    bq->missing = 0;
+    bq->requested += missing;
 
 #ifdef MEMBLOCKQ_DEBUG
-    pa_log_debug("[%s] sent %lli: request counter is at %lli", bq->name, (long long) l, (long long) bq->requested);
+    pa_log_debug("[%s] sent %lli: request counter is at %lli", bq->name, (long long) missing, (long long) bq->requested);
 #endif
 
-    return l;
+    return missing;
 }
 
 void pa_memblockq_set_maxlength(pa_memblockq *bq, size_t maxlength) {
@@ -869,13 +876,11 @@ void pa_memblockq_set_maxlength(pa_memblockq *bq, size_t maxlength) {
 }
 
 void pa_memblockq_set_tlength(pa_memblockq *bq, size_t tlength) {
-    size_t old_tlength;
     pa_assert(bq);
 
     if (tlength <= 0 || tlength == (size_t) -1)
         tlength = bq->maxlength;
 
-    old_tlength = bq->tlength;
     bq->tlength = ((tlength+bq->base-1)/bq->base)*bq->base;
 
     if (bq->tlength > bq->maxlength)
@@ -886,8 +891,6 @@ void pa_memblockq_set_tlength(pa_memblockq *bq, size_t tlength) {
 
     if (bq->prebuf > bq->tlength+bq->base-bq->minreq)
         pa_memblockq_set_prebuf(bq, bq->tlength+bq->base-bq->minreq);
-
-    bq->missing += (int64_t) bq->tlength - (int64_t) old_tlength;
 }
 
 void pa_memblockq_set_minreq(pa_memblockq *bq, size_t minreq) {
