@@ -981,6 +981,11 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    if (ss.format != PA_SAMPLE_FLOAT32) {
+        pa_log("LADSPA accepts float format only");
+        goto fail;
+    }
+
     if (!(plugin = pa_modargs_get_value(ma, "plugin", NULL))) {
         pa_log("Missing LADSPA plugin name");
         goto fail;
