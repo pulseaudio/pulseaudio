@@ -54,8 +54,8 @@ ifelse(@HAVE_DBUS@, 1, [dnl
 
 ; resample-method = speex-float-1
 ; enable-remixing = yes
-; enable-lfe-remixing = yes
-; lfe-crossover-freq = 120
+; enable-lfe-remixing = no
+; lfe-crossover-freq = 0
 
 ; flat-volumes = yes
 
