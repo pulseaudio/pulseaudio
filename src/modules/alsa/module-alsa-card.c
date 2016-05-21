@@ -715,6 +715,14 @@ int pa__init(pa_module *m) {
     }
 
     pa_modargs_get_value_boolean(u->modargs, "use_ucm", &u->use_ucm);
+
+    /* Force ALSA to reread its configuration. This matters if our device
+     * was hot-plugged after ALSA has already read its configuration - see
+     * https://bugs.freedesktop.org/show_bug.cgi?id=54029
+     */
+
+    snd_config_update_free_global();
+
     if (u->use_ucm && !pa_alsa_ucm_query_profiles(&u->ucm, u->alsa_card_index)) {
         pa_log_info("Found UCM profiles");
 
