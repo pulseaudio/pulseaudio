@@ -299,7 +299,7 @@ class SliderArray(QtGui.QWidget):
     def __init__(self,filter_state,parent=None):
         super(SliderArray,self).__init__(parent)
         #self.setStyleSheet('padding: 0px; border-width: 0px; margin: 0px;')
-        #self.setStyleSheet('font-size: 7pt; font-family: monospace;'+outline%('blue'))
+        #self.setStyleSheet('font-family: monospace;'+outline%('blue'))
         self.filter_state=filter_state
         self.setLayout(QtGui.QHBoxLayout())
         self.sub_array=None
@@ -367,7 +367,7 @@ class SliderArraySub(QtGui.QWidget):
         self.slider=[None]*len(self.filter_state.frequencies)
         self.label=[None]*len(self.slider)
         #self.setStyleSheet('padding: 0px; border-width: 0px; margin: 0px;')
-        #self.setStyleSheet('font-size: 7pt; font-family: monospace;'+outline%('blue'))
+        #self.setStyleSheet('font-family: monospace;'+outline%('blue'))
         qt=QtCore.Qt
         #self.layout().setHorizontalSpacing(1)
         def add_slider(slider,label, c):
@@ -385,7 +385,7 @@ class SliderArraySub(QtGui.QWidget):
         for i,hz in enumerate(self.filter_state.frequencies):
             slider,label=create_slider(self.hz2label(hz))
             self.slider[i]=slider
-            #slider.setStyleSheet('font-size: 7pt; font-family: monospace;'+outline%('red',))
+            #slider.setStyleSheet('font-family: monospace;'+outline%('red',))
             self.label[i]=label
             c=i+1
             add_slider(slider,label,i+1)
@@ -465,7 +465,7 @@ class SliderLabel(QtGui.QLabel):
     clicked=QtCore.pyqtSignal()
     def __init__(self,label_text,filter_state,parent=None):
         super(SliderLabel,self).__init__(parent)
-        self.setStyleSheet('font-size: 7pt; font-family: monospace;')
+        self.setStyleSheet('font-family: monospace;')
         self.setText(label_text)
         self.setMinimumSize(self.sizeHint())
     def mouseDoubleClickEvent(self, event):
