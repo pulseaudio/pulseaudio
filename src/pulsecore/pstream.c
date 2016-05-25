@@ -1119,8 +1119,8 @@ void pa_pstream_set_revoke_callback(pa_pstream *p, pa_pstream_block_id_cb_t cb, 
     pa_assert(p);
     pa_assert(PA_REFCNT_VALUE(p) > 0);
 
-    p->release_callback = cb;
-    p->release_callback_userdata = userdata;
+    p->revoke_callback = cb;
+    p->revoke_callback_userdata = userdata;
 }
 
 bool pa_pstream_is_pending(pa_pstream *p) {
