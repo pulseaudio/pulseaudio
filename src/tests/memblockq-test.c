@@ -110,6 +110,68 @@ static void dump(pa_memblockq *bq, int n) {
     fprintf(stderr, "<\n");
 }
 
+/*
+ * utility function to validate invariants
+ *
+ * The different values like base, maxlength etc follow certain rules.
+ * This convenience function makes sure that changes don't violate
+ * these rules.
+ */
+static void check_queue_invariants(pa_memblockq *bq) {
+    size_t base = pa_memblockq_get_base(bq);
+    size_t maxlength = pa_memblockq_get_maxlength(bq);
+    size_t tlength = pa_memblockq_get_tlength(bq);
+    size_t minreq = pa_memblockq_get_minreq(bq);
+    size_t prebuf = pa_memblockq_get_prebuf(bq);
+    size_t length = pa_memblockq_get_length(bq);
+    size_t missing = pa_memblockq_missing(bq);
+
+    /* base > zero */
+    ck_assert_int_gt(base, 0);
+
+    /* maxlength multiple of base
+     * maxlength >= base */
+    ck_assert_int_eq(maxlength % base, 0);
+    ck_assert_int_ge(maxlength, base);
+
+    /* tlength multiple of base
+     * tlength >= base
+     * tlength <= maxlength */
+    ck_assert_int_eq(tlength % base, 0);
+    ck_assert_int_ge(tlength, base);
+    ck_assert_int_le(tlength, maxlength);
+
+    /* minreq multiple of base
+     * minreq >= base
+     * minreq <= tlength */
+    ck_assert_int_eq(minreq % base, 0);
+    ck_assert_int_ge(minreq, base);
+    ck_assert_int_le(minreq, tlength);
+
+    /* prebuf multiple of base
+     * prebuf >= 0
+     * prebuf <= tlength + base - minreq
+     * prebuf <= tlength (because minreq >= base) */
+    ck_assert_int_eq(prebuf % base, 0);
+    ck_assert_int_ge(prebuf, 0);
+    ck_assert_int_le(prebuf, tlength + base - minreq);
+    ck_assert_int_le(prebuf, tlength);
+
+    /* length >= 0
+     * length <= maxlength */
+    ck_assert_int_ge(length, 0);
+    ck_assert_int_le(length, maxlength);
+
+    /* missing >= 0
+     * missing <= tlength
+     * minimum reported amount of missing data is minreq
+     * reported amount of missing data is target length minus actual length */
+    ck_assert_int_ge(missing, 0);
+    ck_assert_int_le(missing, tlength);
+    ck_assert((missing == 0) || (missing >= minreq));
+    ck_assert((missing == 0) || (missing == tlength - length));
+}
+
 START_TEST (memchunk_from_str_test) {
     pa_mempool *p;
     pa_memchunk chunk;
