@@ -1511,9 +1511,8 @@ static void handle_load_module(DBusConnection *conn, DBusMessage *msg, void *use
         goto finish;
     }
 
-    dbus_module = pa_dbusiface_module_new(module);
-    pa_hashmap_put(c->modules, PA_UINT32_TO_PTR(module->index), dbus_module);
-
+    /* This is created during module loading in module_new_cb() */
+    dbus_module = pa_hashmap_get(c->modules, PA_UINT32_TO_PTR(module->index));
     object_path = pa_dbusiface_module_get_path(dbus_module);
 
     pa_dbus_send_basic_value_reply(conn, msg, DBUS_TYPE_OBJECT_PATH, &object_path);
@@ -1589,20 +1588,18 @@ static pa_hook_result_t module_new_cb(void *hook_data, void *call_data, void *sl
     pa_assert(c);
     pa_assert(module);
 
-    if (!(module_iface = pa_hashmap_get(c->modules, PA_UINT32_TO_PTR(module->index)))) {
-        module_iface = pa_dbusiface_module_new(module);
-        pa_assert_se(pa_hashmap_put(c->modules, PA_UINT32_TO_PTR(module->index), module_iface) >= 0);
+    module_iface = pa_dbusiface_module_new(module);
+    pa_assert_se(pa_hashmap_put(c->modules, PA_UINT32_TO_PTR(module->index), module_iface) >= 0);
 
-        object_path = pa_dbusiface_module_get_path(module_iface);
+    object_path = pa_dbusiface_module_get_path(module_iface);
 
-        pa_assert_se((signal_msg = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
-                                                           PA_DBUS_CORE_INTERFACE,
-                                                           signals[SIGNAL_NEW_MODULE].name)));
-        pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
+    pa_assert_se((signal_msg = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
+                                                       PA_DBUS_CORE_INTERFACE,
+                                                       signals[SIGNAL_NEW_MODULE].name)));
+    pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
 
-        pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
-        dbus_message_unref(signal_msg);
-    }
+    pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
+    dbus_message_unref(signal_msg);
 
     return PA_HOOK_OK;
 }
