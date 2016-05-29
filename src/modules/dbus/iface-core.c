@@ -1588,6 +1588,14 @@ static pa_hook_result_t module_new_cb(void *hook_data, void *call_data, void *sl
     pa_assert(c);
     pa_assert(module);
 
+    if (pa_streq(module->name, "module-dbus-protocol")) {
+        /* module-dbus-protocol can only be loaded once, and will be accounted
+         * for while iterating core->modules in pa_dbusiface_core_new(). As it
+         * happens, we will also see it here when the hook is called after the
+         * module is initialised, so we ignore it. */
+        return PA_HOOK_OK;
+    }
+
     module_iface = pa_dbusiface_module_new(module);
     pa_assert_se(pa_hashmap_put(c->modules, PA_UINT32_TO_PTR(module->index), module_iface) >= 0);
 
