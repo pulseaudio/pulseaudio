@@ -242,6 +242,9 @@ START_TEST(bad_test) {
         "-" /* Bad number string */,
         "{ \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": {  \"a\": { } } } } } } } } } } } } } } } } } } } } } }" /* Nested too deep */,
         "[ [ [ [ [ [ [ [ [ [ [ [ [ [ [ [ [ [ [ [ { \"a\": \"b\" } ] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ]" /* Nested too deep */,
+        "asdf" /* Unquoted string */,
+        "{ a: true }" /* Unquoted key in object */,
+        "\"    \a\"" /* Alarm is not a valid character */
     };
 
     for (i = 0; i < PA_ELEMENTSOF(bad_parse); i++) {
