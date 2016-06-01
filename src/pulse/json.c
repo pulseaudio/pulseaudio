@@ -30,6 +30,8 @@
 #include <pulsecore/refcnt.h>
 #include <pulsecore/strbuf.h>
 
+#define MAX_NESTING_DEPTH 20 /* Arbitrary number to make sure we don't have a stack overflow */
+
 struct pa_json_object {
     PA_REFCNT_DECLARE;
     pa_json_type type;
@@ -44,7 +46,7 @@ struct pa_json_object {
     };
 };
 
-static const char* parse_value(const char *str, const char *end, pa_json_object **obj);
+static const char* parse_value(const char *str, const char *end, pa_json_object **obj, unsigned int depth);
 
 static pa_json_object* json_object_new(void) {
     pa_json_object *obj;
@@ -303,7 +305,7 @@ error:
     return NULL;
 }
 
-static const char *parse_object(const char *str, pa_json_object *obj) {
+static const char *parse_object(const char *str, pa_json_object *obj, unsigned int depth) {
     pa_json_object *name = NULL, *value = NULL;
 
     obj->object_values = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func,
@@ -312,7 +314,7 @@ static const char *parse_object(const char *str, pa_json_object *obj) {
     while (*str != '}') {
         str++; /* Consume leading '{' or ',' */
 
-        str = parse_value(str, ":", &name);
+        str = parse_value(str, ":", &name, depth + 1);
         if (!str || pa_json_object_get_type(name) != PA_JSON_TYPE_STRING) {
             pa_log("Could not parse key for object");
             goto error;
@@ -321,7 +323,7 @@ static const char *parse_object(const char *str, pa_json_object *obj) {
         /* Consume the ':' */
         str++;
 
-        str = parse_value(str, ",}", &value);
+        str = parse_value(str, ",}", &value, depth + 1);
         if (!str) {
             pa_log("Could not parse value for object");
             goto error;
@@ -354,7 +356,7 @@ error:
     return NULL;
 }
 
-static const char *parse_array(const char *str, pa_json_object *obj) {
+static const char *parse_array(const char *str, pa_json_object *obj, unsigned int depth) {
     pa_json_object *value;
 
     obj->array_values = pa_idxset_new(NULL, NULL);
@@ -370,7 +372,7 @@ static const char *parse_array(const char *str, pa_json_object *obj) {
         if (*str == ']')
             break;
 
-        str = parse_value(str, ",]", &value);
+        str = parse_value(str, ",]", &value, depth + 1);
         if (!str) {
             pa_log("Could not parse value for array");
             goto error;
@@ -398,13 +400,18 @@ typedef enum {
     JSON_PARSER_STATE_FINISH,
 } json_parser_state;
 
-static const char* parse_value(const char *str, const char *end, pa_json_object **obj) {
+static const char* parse_value(const char *str, const char *end, pa_json_object **obj, unsigned int depth) {
     json_parser_state state = JSON_PARSER_STATE_INIT;
     pa_json_object *o;
 
     pa_assert(str != NULL);
 
     o = json_object_new();
+
+    if (depth > MAX_NESTING_DEPTH) {
+        pa_log("Exceeded maximum permitted nesting depth of objects (%u)", MAX_NESTING_DEPTH);
+        goto error;
+    }
 
     while (!is_end(*str, end)) {
         switch (state) {
@@ -424,10 +431,10 @@ static const char* parse_value(const char *str, const char *end, pa_json_object 
                     str = parse_number(str, o);
                     state = JSON_PARSER_STATE_FINISH;
                 } else if (*str == '{') {
-                    str = parse_object(str, o);
+                    str = parse_object(str, o, depth);
                     state = JSON_PARSER_STATE_FINISH;
                 } else if (*str == '[') {
-                    str = parse_array(str, o);
+                    str = parse_array(str, o, depth);
                     state = JSON_PARSER_STATE_FINISH;
                 } else {
                     pa_log("Invalid JSON string: %s", str);
@@ -468,7 +475,7 @@ error:
 pa_json_object* pa_json_parse(const char *str) {
     pa_json_object *obj;
 
-    str = parse_value(str, NULL, &obj);
+    str = parse_value(str, NULL, &obj, 0);
 
     if (!str) {
         pa_log("JSON parsing failed");

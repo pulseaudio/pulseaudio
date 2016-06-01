@@ -227,6 +227,8 @@ START_TEST(bad_test) {
         "1." /* Bad number string */,
         "1.e3" /* Bad number string */,
         "-" /* Bad number string */,
+        "{ \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": { \"a\": {  \"a\": { } } } } } } } } } } } } } } } } } } } } } }" /* Nested too deep */,
+        "[ [ [ [ [ [ [ [ [ [ [ [ [ [ [ [ [ [ [ [ { \"a\": \"b\" } ] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ]" /* Nested too deep */,
     };
 
     for (i = 0; i < PA_ELEMENTSOF(bad_parse); i++) {
