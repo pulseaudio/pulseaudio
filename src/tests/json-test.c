@@ -162,6 +162,19 @@ START_TEST(object_test) {
     fail_unless(pa_json_object_get_bool(v) == true);
 
     pa_json_object_unref(o);
+
+    o = pa_json_parse("{ \"parent\": { \"child\": false } }");
+    fail_unless(o != NULL);
+    fail_unless(pa_json_object_get_type(o) == PA_JSON_TYPE_OBJECT);
+
+    v = pa_json_object_get_object_member(o, "parent");
+    fail_unless(v != NULL);
+    fail_unless(pa_json_object_get_type(v) == PA_JSON_TYPE_OBJECT);
+    v = pa_json_object_get_object_member(v, "child");
+    fail_unless(pa_json_object_get_type(v) == PA_JSON_TYPE_BOOL);
+    fail_unless(pa_json_object_get_bool(v) == false);
+
+    pa_json_object_unref(o);
 }
 END_TEST
 
