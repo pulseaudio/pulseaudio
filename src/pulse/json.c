@@ -122,7 +122,7 @@ static const char* parse_string(const char *str, pa_json_object *obj) {
 
     str++; /* Consume leading '"' */
 
-    while (*str != '"') {
+    while (*str && *str != '"') {
         if (*str != '\\') {
             /* We only accept ASCII printable characters. */
             if (*str < 0x20 || *str > 0x7E) {

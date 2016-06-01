@@ -216,6 +216,18 @@ START_TEST(array_test) {
 }
 END_TEST
 
+START_TEST(bad_test) {
+    unsigned int i;
+    const char *bad_parse[] = {
+        "\"" /* Quote not closed */,
+    };
+
+    for (i = 0; i < PA_ELEMENTSOF(bad_parse); i++) {
+        fail_unless(pa_json_parse(bad_parse[i]) == NULL);
+    }
+}
+END_TEST
+
 int main(int argc, char *argv[]) {
     int failed = 0;
     Suite *s;
@@ -231,6 +243,7 @@ int main(int argc, char *argv[]) {
     tcase_add_test(tc, bool_test);
     tcase_add_test(tc, object_test);
     tcase_add_test(tc, array_test);
+    tcase_add_test(tc, bad_test);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);
