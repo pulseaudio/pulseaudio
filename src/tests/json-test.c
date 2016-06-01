@@ -45,7 +45,7 @@ START_TEST (string_test) {
         fail_unless(pa_json_object_get_type(o) == PA_JSON_TYPE_STRING);
         fail_unless(pa_streq(pa_json_object_get_string(o), strings_compare[i]));
 
-        pa_json_object_unref(o);
+        pa_json_object_free(o);
     }
 }
 END_TEST
@@ -63,7 +63,7 @@ START_TEST(int_test) {
         fail_unless(pa_json_object_get_type(o) == PA_JSON_TYPE_INT);
         fail_unless(pa_json_object_get_int(o) == ints_compare[i]);
 
-        pa_json_object_unref(o);
+        pa_json_object_free(o);
     }
 }
 END_TEST
@@ -85,7 +85,7 @@ START_TEST(double_test) {
         fail_unless(pa_json_object_get_type(o) == PA_JSON_TYPE_DOUBLE);
         fail_unless(PA_DOUBLE_IS_EQUAL(pa_json_object_get_double(o), doubles_compare[i]));
 
-        pa_json_object_unref(o);
+        pa_json_object_free(o);
     }
 }
 END_TEST
@@ -98,7 +98,7 @@ START_TEST(null_test) {
     fail_unless(o != NULL);
     fail_unless(pa_json_object_get_type(o) == PA_JSON_TYPE_NULL);
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
 }
 END_TEST
 
@@ -111,7 +111,7 @@ START_TEST(bool_test) {
     fail_unless(pa_json_object_get_type(o) == PA_JSON_TYPE_BOOL);
     fail_unless(pa_json_object_get_bool(o) == true);
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
 
     o = pa_json_parse("false");
 
@@ -119,7 +119,7 @@ START_TEST(bool_test) {
     fail_unless(pa_json_object_get_type(o) == PA_JSON_TYPE_BOOL);
     fail_unless(pa_json_object_get_bool(o) == false);
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
 }
 END_TEST
 
@@ -137,7 +137,7 @@ START_TEST(object_test) {
     fail_unless(pa_json_object_get_type(v) == PA_JSON_TYPE_STRING);
     fail_unless(pa_streq(pa_json_object_get_string(v), "A Person"));
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
 
     o = pa_json_parse(" { \"age\" : -45.3e-0 } ");
 
@@ -149,7 +149,7 @@ START_TEST(object_test) {
     fail_unless(pa_json_object_get_type(v) == PA_JSON_TYPE_DOUBLE);
     fail_unless(PA_DOUBLE_IS_EQUAL(pa_json_object_get_double(v), -45.3));
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
 
     o = pa_json_parse("{\"person\":true}");
 
@@ -161,7 +161,7 @@ START_TEST(object_test) {
     fail_unless(pa_json_object_get_type(v) == PA_JSON_TYPE_BOOL);
     fail_unless(pa_json_object_get_bool(v) == true);
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
 
     o = pa_json_parse("{ \"parent\": { \"child\": false } }");
     fail_unless(o != NULL);
@@ -174,7 +174,7 @@ START_TEST(object_test) {
     fail_unless(pa_json_object_get_type(v) == PA_JSON_TYPE_BOOL);
     fail_unless(pa_json_object_get_bool(v) == false);
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
 }
 END_TEST
 
@@ -188,7 +188,7 @@ START_TEST(array_test) {
     fail_unless(pa_json_object_get_type(o) == PA_JSON_TYPE_ARRAY);
     fail_unless(pa_json_object_get_array_length(o) == 0);
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
 
     o = pa_json_parse("[\"a member\"]");
 
@@ -201,7 +201,7 @@ START_TEST(array_test) {
     fail_unless(pa_json_object_get_type(v) == PA_JSON_TYPE_STRING);
     fail_unless(pa_streq(pa_json_object_get_string(v), "a member"));
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
 
     o = pa_json_parse("[\"a member\", 1234.5, { \"another\": true } ]");
 
@@ -225,7 +225,7 @@ START_TEST(array_test) {
     fail_unless(pa_json_object_get_type(v2) == PA_JSON_TYPE_BOOL);
     fail_unless(pa_json_object_get_bool(v2) == true);
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
 }
 END_TEST
 

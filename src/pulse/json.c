@@ -27,13 +27,11 @@
 #include <pulse/xmalloc.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/hashmap.h>
-#include <pulsecore/refcnt.h>
 #include <pulsecore/strbuf.h>
 
 #define MAX_NESTING_DEPTH 20 /* Arbitrary number to make sure we don't have a stack overflow */
 
 struct pa_json_object {
-    PA_REFCNT_DECLARE;
     pa_json_type type;
 
     union {
@@ -309,7 +307,7 @@ static const char *parse_object(const char *str, pa_json_object *obj, unsigned i
     pa_json_object *name = NULL, *value = NULL;
 
     obj->object_values = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func,
-                                             pa_xfree, (pa_free_cb_t) pa_json_object_unref);
+                                             pa_xfree, (pa_free_cb_t) pa_json_object_free);
 
     while (*str != '}') {
         str++; /* Consume leading '{' or ',' */
@@ -330,7 +328,7 @@ static const char *parse_object(const char *str, pa_json_object *obj, unsigned i
         }
 
         pa_hashmap_put(obj->object_values, pa_xstrdup(pa_json_object_get_string(name)), value);
-        pa_json_object_unref(name);
+        pa_json_object_free(name);
 
         name = NULL;
         value = NULL;
@@ -349,9 +347,9 @@ error:
     obj->object_values = NULL;
 
     if (name)
-        pa_json_object_unref(name);
+        pa_json_object_free(name);
     if (value)
-        pa_json_object_unref(value);
+        pa_json_object_free(value);
 
     return NULL;
 }
@@ -390,7 +388,7 @@ static const char *parse_array(const char *str, pa_json_object *obj, unsigned in
     return str;
 
 error:
-    pa_idxset_free(obj->array_values, (pa_free_cb_t) pa_json_object_unref);
+    pa_idxset_free(obj->array_values, (pa_free_cb_t) pa_json_object_free);
     obj->array_values = NULL;
     return NULL;
 }
@@ -467,7 +465,7 @@ static const char* parse_value(const char *str, const char *end, pa_json_object 
     return str;
 
 error:
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
     return NULL;
 }
 
@@ -484,7 +482,7 @@ pa_json_object* pa_json_parse(const char *str) {
 
     if (*str != '\0') {
         pa_log("Unable to parse complete JSON string, remainder is: %s", str);
-        pa_json_object_unref(obj);
+        pa_json_object_free(obj);
         return NULL;
     }
 
@@ -495,9 +493,7 @@ pa_json_type pa_json_object_get_type(const pa_json_object *obj) {
     return obj->type;
 }
 
-void pa_json_object_unref(pa_json_object *obj) {
-    if (PA_REFCNT_DEC(obj) > 0)
-        return;
+void pa_json_object_free(pa_json_object *obj) {
 
     switch (pa_json_object_get_type(obj)) {
         case PA_JSON_TYPE_INIT:
@@ -516,7 +512,7 @@ void pa_json_object_unref(pa_json_object *obj) {
             break;
 
         case PA_JSON_TYPE_ARRAY:
-            pa_idxset_free(obj->array_values, (pa_free_cb_t) pa_json_object_unref);
+            pa_idxset_free(obj->array_values, (pa_free_cb_t) pa_json_object_free);
             break;
 
         default:

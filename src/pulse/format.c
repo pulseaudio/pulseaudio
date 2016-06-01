@@ -300,7 +300,7 @@ pa_prop_type_t pa_format_info_get_prop_type(const pa_format_info *f, const char 
             break;
     }
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
     return type;
 }
 
@@ -324,12 +324,12 @@ int pa_format_info_get_prop_int(const pa_format_info *f, const char *key, int *v
 
     if (pa_json_object_get_type(o) != PA_JSON_TYPE_INT) {
         pa_log_debug("Format info property '%s' type is not int.", key);
-        pa_json_object_unref(o);
+        pa_json_object_free(o);
         return -PA_ERR_INVALID;
     }
 
     *v = pa_json_object_get_int(o);
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
 
     return 0;
 }
@@ -376,7 +376,7 @@ out:
     if (ret < 0)
         pa_log_debug("Format info property '%s' is not a valid int range.", key);
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
     return ret;
 }
 
@@ -423,7 +423,7 @@ out:
     if (ret < 0)
         pa_log_debug("Format info property '%s' is not a valid int array.", key);
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
     return ret;
 }
 
@@ -447,12 +447,12 @@ int pa_format_info_get_prop_string(const pa_format_info *f, const char *key, cha
 
     if (pa_json_object_get_type(o) != PA_JSON_TYPE_STRING) {
         pa_log_debug("Format info property '%s' type is not string.", key);
-        pa_json_object_unref(o);
+        pa_json_object_free(o);
         return -PA_ERR_INVALID;
     }
 
     *v = pa_xstrdup(pa_json_object_get_string(o));
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
 
     return 0;
 }
@@ -500,7 +500,7 @@ out:
     if (ret < 0)
         pa_log_debug("Format info property '%s' is not a valid string array.", key);
 
-    pa_json_object_unref(o);
+    pa_json_object_free(o);
     return ret;
 }
 
@@ -675,9 +675,9 @@ static int pa_format_info_prop_compatible(const char *one, const char *two) {
 
 out:
     if (o1)
-        pa_json_object_unref(o1);
+        pa_json_object_free(o1);
     if (o2)
-        pa_json_object_unref(o2);
+        pa_json_object_free(o2);
 
     return ret;
 }

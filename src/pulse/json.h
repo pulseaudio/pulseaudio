@@ -36,7 +36,7 @@ typedef struct pa_json_object pa_json_object;
 
 pa_json_object* pa_json_parse(const char *str);
 pa_json_type pa_json_object_get_type(const pa_json_object *obj);
-void pa_json_object_unref(pa_json_object *obj);
+void pa_json_object_free(pa_json_object *obj);
 
 /* All pointer members that are returned are valid while the corresponding object is valid */
 
