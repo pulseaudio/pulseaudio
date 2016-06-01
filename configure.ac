@@ -676,10 +676,6 @@ AS_IF([test "x$enable_tests" = "xyes" && test "x$HAVE_LIBCHECK" = "x0"],
 
 AM_CONDITIONAL([HAVE_TESTS], [test "x$HAVE_LIBCHECK" = x1])
 
-#### json parsing ####
-
-PKG_CHECK_MODULES(LIBJSON, [ json-c >= 0.11 ])
-
 #### Sound file ####
 
 PKG_CHECK_MODULES(LIBSNDFILE, [ sndfile >= 1.0.20 ])

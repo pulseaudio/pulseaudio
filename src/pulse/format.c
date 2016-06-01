@@ -23,8 +23,7 @@
 #include <config.h>
 #endif
 
-#include <json.h>
-
+#include <pulse/json.h>
 #include <pulse/internal.h>
 #include <pulse/xmalloc.h>
 
@@ -32,6 +31,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/i18n.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/strbuf.h>
 
 #include "format.h"
 
@@ -236,7 +236,8 @@ int pa_format_info_to_sample_spec(const pa_format_info *f, pa_sample_spec *ss, p
 
 pa_prop_type_t pa_format_info_get_prop_type(const pa_format_info *f, const char *key) {
     const char *str;
-    json_object *o, *o1;
+    pa_json_object *o;
+    const pa_json_object *o1;
     pa_prop_type_t type;
 
     pa_assert(f);
@@ -246,47 +247,47 @@ pa_prop_type_t pa_format_info_get_prop_type(const pa_format_info *f, const char 
     if (!str)
         return PA_PROP_TYPE_INVALID;
 
-    o = json_tokener_parse(str);
+    o = pa_json_parse(str);
     if (!o)
         return PA_PROP_TYPE_INVALID;
 
-    switch (json_object_get_type(o)) {
-        case json_type_int:
+    switch (pa_json_object_get_type(o)) {
+        case PA_JSON_TYPE_INT:
             type = PA_PROP_TYPE_INT;
             break;
 
-        case json_type_string:
+        case PA_JSON_TYPE_STRING:
             type = PA_PROP_TYPE_STRING;
             break;
 
-        case json_type_array:
-            if (json_object_array_length(o) == 0) {
+        case PA_JSON_TYPE_ARRAY:
+            if (pa_json_object_get_array_length(o) == 0) {
                 /* Unlikely, but let's account for this anyway. We need at
                  * least one element to figure out the array type. */
                 type = PA_PROP_TYPE_INVALID;
                 break;
             }
 
-            o1 = json_object_array_get_idx(o, 1);
+            o1 = pa_json_object_get_array_member(o, 0);
 
-            if (json_object_get_type(o1) == json_type_int)
+            if (pa_json_object_get_type(o1) == PA_JSON_TYPE_INT)
                 type = PA_PROP_TYPE_INT_ARRAY;
-            else if (json_object_get_type(o1) == json_type_string)
+            else if (pa_json_object_get_type(o1) == PA_JSON_TYPE_STRING)
                 type = PA_PROP_TYPE_STRING_ARRAY;
             else
                 type = PA_PROP_TYPE_INVALID;
 
             break;
 
-        case json_type_object:
+        case PA_JSON_TYPE_OBJECT:
             /* We actually know at this point that it's a int range, but let's
              * confirm. */
-            if (!json_object_object_get_ex(o, PA_JSON_MIN_KEY, NULL)) {
+            if (!pa_json_object_get_object_member(o, PA_JSON_MIN_KEY)) {
                 type = PA_PROP_TYPE_INVALID;
                 break;
             }
 
-            if (!json_object_object_get_ex(o, PA_JSON_MAX_KEY, NULL)) {
+            if (!pa_json_object_get_object_member(o, PA_JSON_MAX_KEY)) {
                 type = PA_PROP_TYPE_INVALID;
                 break;
             }
@@ -299,13 +300,13 @@ pa_prop_type_t pa_format_info_get_prop_type(const pa_format_info *f, const char 
             break;
     }
 
-    json_object_put(o);
+    pa_json_object_unref(o);
     return type;
 }
 
 int pa_format_info_get_prop_int(const pa_format_info *f, const char *key, int *v) {
     const char *str;
-    json_object *o;
+    pa_json_object *o;
 
     pa_assert(f);
     pa_assert(key);
@@ -315,27 +316,28 @@ int pa_format_info_get_prop_int(const pa_format_info *f, const char *key, int *v
     if (!str)
         return -PA_ERR_NOENTITY;
 
-    o = json_tokener_parse(str);
+    o = pa_json_parse(str);
     if (!o) {
         pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
     }
 
-    if (json_object_get_type(o) != json_type_int) {
+    if (pa_json_object_get_type(o) != PA_JSON_TYPE_INT) {
         pa_log_debug("Format info property '%s' type is not int.", key);
-        json_object_put(o);
+        pa_json_object_unref(o);
         return -PA_ERR_INVALID;
     }
 
-    *v = json_object_get_int(o);
-    json_object_put(o);
+    *v = pa_json_object_get_int(o);
+    pa_json_object_unref(o);
 
     return 0;
 }
 
 int pa_format_info_get_prop_int_range(const pa_format_info *f, const char *key, int *min, int *max) {
     const char *str;
-    json_object *o, *o1;
+    pa_json_object *o;
+    const pa_json_object *o1;
     int ret = -PA_ERR_INVALID;
 
     pa_assert(f);
@@ -347,24 +349,26 @@ int pa_format_info_get_prop_int_range(const pa_format_info *f, const char *key, 
     if (!str)
         return -PA_ERR_NOENTITY;
 
-    o = json_tokener_parse(str);
+    o = pa_json_parse(str);
     if (!o) {
         pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
     }
 
-    if (json_object_get_type(o) != json_type_object)
+    if (pa_json_object_get_type(o) != PA_JSON_TYPE_OBJECT)
         goto out;
 
-    if (!json_object_object_get_ex(o, PA_JSON_MIN_KEY, &o1))
+    if (!(o1 = pa_json_object_get_object_member(o, PA_JSON_MIN_KEY)) ||
+            (pa_json_object_get_type(o1) != PA_JSON_TYPE_INT))
         goto out;
 
-    *min = json_object_get_int(o1);
+    *min = pa_json_object_get_int(o1);
 
-    if (!json_object_object_get_ex(o, PA_JSON_MAX_KEY, &o1))
+    if (!(o1 = pa_json_object_get_object_member(o, PA_JSON_MAX_KEY)) ||
+            (pa_json_object_get_type(o1) != PA_JSON_TYPE_INT))
         goto out;
 
-    *max = json_object_get_int(o1);
+    *max = pa_json_object_get_int(o1);
 
     ret = 0;
 
@@ -372,13 +376,14 @@ out:
     if (ret < 0)
         pa_log_debug("Format info property '%s' is not a valid int range.", key);
 
-    json_object_put(o);
+    pa_json_object_unref(o);
     return ret;
 }
 
 int pa_format_info_get_prop_int_array(const pa_format_info *f, const char *key, int **values, int *n_values) {
     const char *str;
-    json_object *o, *o1;
+    pa_json_object *o;
+    const pa_json_object *o1;
     int i, ret = -PA_ERR_INVALID;
 
     pa_assert(f);
@@ -390,26 +395,26 @@ int pa_format_info_get_prop_int_array(const pa_format_info *f, const char *key, 
     if (!str)
         return -PA_ERR_NOENTITY;
 
-    o = json_tokener_parse(str);
+    o = pa_json_parse(str);
     if (!o) {
         pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
     }
 
-    if (json_object_get_type(o) != json_type_array)
+    if (pa_json_object_get_type(o) != PA_JSON_TYPE_ARRAY)
         goto out;
 
-    *n_values = json_object_array_length(o);
+    *n_values = pa_json_object_get_array_length(o);
     *values = pa_xnew(int, *n_values);
 
     for (i = 0; i < *n_values; i++) {
-        o1 = json_object_array_get_idx(o, i);
+        o1 = pa_json_object_get_array_member(o, i);
 
-        if (json_object_get_type(o1) != json_type_int) {
+        if (pa_json_object_get_type(o1) != PA_JSON_TYPE_INT) {
             goto out;
         }
 
-        (*values)[i] = json_object_get_int(o1);
+        (*values)[i] = pa_json_object_get_int(o1);
     }
 
     ret = 0;
@@ -418,13 +423,13 @@ out:
     if (ret < 0)
         pa_log_debug("Format info property '%s' is not a valid int array.", key);
 
-    json_object_put(o);
+    pa_json_object_unref(o);
     return ret;
 }
 
 int pa_format_info_get_prop_string(const pa_format_info *f, const char *key, char **v) {
     const char *str = NULL;
-    json_object *o;
+    pa_json_object *o;
 
     pa_assert(f);
     pa_assert(key);
@@ -434,27 +439,28 @@ int pa_format_info_get_prop_string(const pa_format_info *f, const char *key, cha
     if (!str)
         return -PA_ERR_NOENTITY;
 
-    o = json_tokener_parse(str);
+    o = pa_json_parse(str);
     if (!o) {
         pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
     }
 
-    if (json_object_get_type(o) != json_type_string) {
+    if (pa_json_object_get_type(o) != PA_JSON_TYPE_STRING) {
         pa_log_debug("Format info property '%s' type is not string.", key);
-        json_object_put(o);
+        pa_json_object_unref(o);
         return -PA_ERR_INVALID;
     }
 
-    *v = pa_xstrdup(json_object_get_string(o));
-    json_object_put(o);
+    *v = pa_xstrdup(pa_json_object_get_string(o));
+    pa_json_object_unref(o);
 
     return 0;
 }
 
 int pa_format_info_get_prop_string_array(const pa_format_info *f, const char *key, char ***values, int *n_values) {
     const char *str;
-    json_object *o, *o1;
+    pa_json_object *o;
+    const pa_json_object *o1;
     int i, ret = -PA_ERR_INVALID;
 
     pa_assert(f);
@@ -466,26 +472,26 @@ int pa_format_info_get_prop_string_array(const pa_format_info *f, const char *ke
     if (!str)
         return -PA_ERR_NOENTITY;
 
-    o = json_tokener_parse(str);
+    o = pa_json_parse(str);
     if (!o) {
         pa_log_debug("Failed to parse format info property '%s'.", key);
         return -PA_ERR_INVALID;
     }
 
-    if (json_object_get_type(o) != json_type_array)
+    if (pa_json_object_get_type(o) != PA_JSON_TYPE_ARRAY)
         goto out;
 
-    *n_values = json_object_array_length(o);
+    *n_values = pa_json_object_get_array_length(o);
     *values = pa_xnew(char *, *n_values);
 
     for (i = 0; i < *n_values; i++) {
-        o1 = json_object_array_get_idx(o, i);
+        o1 = pa_json_object_get_array_member(o, i);
 
-        if (json_object_get_type(o1) != json_type_string) {
+        if (pa_json_object_get_type(o1) != PA_JSON_TYPE_STRING) {
             goto out;
         }
 
-        (*values)[i] = pa_xstrdup(json_object_get_string(o1));
+        (*values)[i] = pa_xstrdup(pa_json_object_get_string(o1));
     }
 
     ret = 0;
@@ -494,7 +500,7 @@ out:
     if (ret < 0)
         pa_log_debug("Format info property '%s' is not a valid string array.", key);
 
-    json_object_put(o);
+    pa_json_object_unref(o);
     return ret;
 }
 
@@ -528,85 +534,76 @@ void pa_format_info_set_channel_map(pa_format_info *f, const pa_channel_map *map
 }
 
 void pa_format_info_set_prop_int(pa_format_info *f, const char *key, int value) {
-    json_object *o;
-
     pa_assert(f);
     pa_assert(key);
 
-    o = json_object_new_int(value);
-
-    pa_proplist_sets(f->plist, key, json_object_to_json_string(o));
-
-    json_object_put(o);
+    pa_proplist_setf(f->plist, key, "%d", value);
 }
 
 void pa_format_info_set_prop_int_array(pa_format_info *f, const char *key, const int *values, int n_values) {
-    json_object *o;
+    pa_strbuf *buf;
+    char *str;
     int i;
 
     pa_assert(f);
     pa_assert(key);
+    pa_assert(n_values > 0);
 
-    o = json_object_new_array();
+    buf = pa_strbuf_new();
 
-    for (i = 0; i < n_values; i++)
-        json_object_array_add(o, json_object_new_int(values[i]));
+    pa_strbuf_printf(buf, "[ %d", values[0]);
 
-    pa_proplist_sets(f->plist, key, json_object_to_json_string(o));
+    for (i = 1; i < n_values; i++)
+        pa_strbuf_printf(buf, ", %d", values[i]);
 
-    json_object_put(o);
+    pa_strbuf_printf(buf, " ]");
+    str = pa_strbuf_to_string_free(buf);
+
+    pa_proplist_sets(f->plist, key, str);
+    pa_xfree (str);
 }
 
 void pa_format_info_set_prop_int_range(pa_format_info *f, const char *key, int min, int max) {
-    json_object *o;
-
     pa_assert(f);
     pa_assert(key);
 
-    o = json_object_new_object();
-
-    json_object_object_add(o, PA_JSON_MIN_KEY, json_object_new_int(min));
-    json_object_object_add(o, PA_JSON_MAX_KEY, json_object_new_int(max));
-
-    pa_proplist_sets(f->plist, key, json_object_to_json_string(o));
-
-    json_object_put(o);
+    pa_proplist_setf(f->plist, key, "{ \"" PA_JSON_MIN_KEY "\": %d, \"" PA_JSON_MAX_KEY "\": %d }",
+            min, max);
 }
 
 void pa_format_info_set_prop_string(pa_format_info *f, const char *key, const char *value) {
-    json_object *o;
-
     pa_assert(f);
     pa_assert(key);
 
-    o = json_object_new_string(value);
-
-    pa_proplist_sets(f->plist, key, json_object_to_json_string(o));
-
-    json_object_put(o);
+    pa_proplist_setf(f->plist, key, "\"%s\"", value);
 }
 
 void pa_format_info_set_prop_string_array(pa_format_info *f, const char *key, const char **values, int n_values) {
-    json_object *o;
+    pa_strbuf *buf;
+    char *str;
     int i;
 
     pa_assert(f);
     pa_assert(key);
 
-    o = json_object_new_array();
+    buf = pa_strbuf_new();
 
-    for (i = 0; i < n_values; i++)
-        json_object_array_add(o, json_object_new_string(values[i]));
+    pa_strbuf_printf(buf, "[ \"%s\"", values[0]);
 
-    pa_proplist_sets(f->plist, key, json_object_to_json_string(o));
+    for (i = 1; i < n_values; i++)
+        pa_strbuf_printf(buf, ", \"%s\"", values[i]);
 
-    json_object_put(o);
+    pa_strbuf_printf(buf, " ]");
+    str = pa_strbuf_to_string_free(buf);
+
+    pa_proplist_sets(f->plist, key, str);
+    pa_xfree (str);
 }
 
-static bool pa_json_is_fixed_type(json_object *o) {
-    switch(json_object_get_type(o)) {
-        case json_type_object:
-        case json_type_array:
+static bool pa_json_is_fixed_type(pa_json_object *o) {
+    switch(pa_json_object_get_type(o)) {
+        case PA_JSON_TYPE_OBJECT:
+        case PA_JSON_TYPE_ARRAY:
             return false;
 
         default:
@@ -614,20 +611,15 @@ static bool pa_json_is_fixed_type(json_object *o) {
     }
 }
 
-static int pa_json_value_equal(json_object *o1, json_object *o2) {
-    return (json_object_get_type(o1) == json_object_get_type(o2)) &&
-        pa_streq(json_object_to_json_string(o1), json_object_to_json_string(o2));
-}
-
 static int pa_format_info_prop_compatible(const char *one, const char *two) {
-    json_object *o1 = NULL, *o2 = NULL;
+    pa_json_object *o1 = NULL, *o2 = NULL;
     int i, ret = 0;
 
-    o1 = json_tokener_parse(one);
+    o1 = pa_json_parse(one);
     if (!o1)
         goto out;
 
-    o2 = json_tokener_parse(two);
+    o2 = pa_json_parse(two);
     if (!o2)
         goto out;
 
@@ -635,46 +627,46 @@ static int pa_format_info_prop_compatible(const char *one, const char *two) {
     pa_return_val_if_fail(pa_json_is_fixed_type(o1) || pa_json_is_fixed_type(o2), false);
 
     if (pa_json_is_fixed_type(o1) && pa_json_is_fixed_type(o2)) {
-        ret = pa_json_value_equal(o1, o2);
+        ret = pa_json_object_equal(o1, o2);
         goto out;
     }
 
     if (pa_json_is_fixed_type(o1)) {
-        json_object *tmp = o2;
+        pa_json_object *tmp = o2;
         o2 = o1;
         o1 = tmp;
     }
 
     /* o2 is now a fixed type, and o1 is not */
 
-    if (json_object_get_type(o1) == json_type_array) {
-        for (i = 0; i < json_object_array_length(o1); i++) {
-            if (pa_json_value_equal(json_object_array_get_idx(o1, i), o2)) {
+    if (pa_json_object_get_type(o1) == PA_JSON_TYPE_ARRAY) {
+        for (i = 0; i < pa_json_object_get_array_length(o1); i++) {
+            if (pa_json_object_equal(pa_json_object_get_array_member(o1, i), o2)) {
                 ret = 1;
                 break;
             }
         }
-    } else if (json_object_get_type(o1) == json_type_object) {
+    } else if (pa_json_object_get_type(o1) == PA_JSON_TYPE_OBJECT) {
         /* o1 should be a range type */
         int min, max, v;
-        json_object *o_min = NULL, *o_max = NULL;
+        const pa_json_object *o_min = NULL, *o_max = NULL;
 
-        if (json_object_get_type(o2) != json_type_int) {
+        if (pa_json_object_get_type(o2) != PA_JSON_TYPE_INT) {
             /* We don't support non-integer ranges */
             goto out;
         }
 
-        if (!json_object_object_get_ex(o1, PA_JSON_MIN_KEY, &o_min) ||
-            json_object_get_type(o_min) != json_type_int)
+        if (!(o_min = pa_json_object_get_object_member(o1, PA_JSON_MIN_KEY)) ||
+            pa_json_object_get_type(o_min) != PA_JSON_TYPE_INT)
             goto out;
 
-        if (!json_object_object_get_ex(o1, PA_JSON_MAX_KEY, &o_max) ||
-            json_object_get_type(o_max) != json_type_int)
+        if (!(o_max = pa_json_object_get_object_member(o1, PA_JSON_MAX_KEY)) ||
+            pa_json_object_get_type(o_max) != PA_JSON_TYPE_INT)
             goto out;
 
-        v = json_object_get_int(o2);
-        min = json_object_get_int(o_min);
-        max = json_object_get_int(o_max);
+        v = pa_json_object_get_int(o2);
+        min = pa_json_object_get_int(o_min);
+        max = pa_json_object_get_int(o_max);
 
         ret = v >= min && v <= max;
     } else {
@@ -683,9 +675,9 @@ static int pa_format_info_prop_compatible(const char *one, const char *two) {
 
 out:
     if (o1)
-        json_object_put(o1);
+        pa_json_object_unref(o1);
     if (o2)
-        json_object_put(o2);
+        pa_json_object_unref(o2);
 
     return ret;
 }

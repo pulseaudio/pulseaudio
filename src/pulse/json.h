@@ -19,6 +19,8 @@
 
 #include <stdbool.h>
 
+#define PA_DOUBLE_IS_EQUAL(x, y) (((x) - (y)) < 0.000001 && ((x) - (y)) > -0.000001)
+
 typedef enum {
     PA_JSON_TYPE_INIT = 0,
     PA_JSON_TYPE_NULL,
@@ -47,3 +49,5 @@ const pa_json_object* pa_json_object_get_object_member(const pa_json_object *o, 
 
 int pa_json_object_get_array_length(const pa_json_object *o);
 const pa_json_object* pa_json_object_get_array_member(const pa_json_object *o, int index);
+
+bool pa_json_object_equal(const pa_json_object *o1, const pa_json_object *o2);

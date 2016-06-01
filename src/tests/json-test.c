@@ -26,8 +26,6 @@
 #include <pulse/json.h>
 #include <pulsecore/core-util.h>
 
-#define IS_EQUAL(x, y) (((x) - (y)) < 0.000001 && ((x) - (y)) > -0.000001)
-
 START_TEST (string_test) {
     pa_json_object *o;
     unsigned int i;
@@ -85,7 +83,7 @@ START_TEST(double_test) {
 
         fail_unless(o != NULL);
         fail_unless(pa_json_object_get_type(o) == PA_JSON_TYPE_DOUBLE);
-        fail_unless(IS_EQUAL(pa_json_object_get_double(o), doubles_compare[i]));
+        fail_unless(PA_DOUBLE_IS_EQUAL(pa_json_object_get_double(o), doubles_compare[i]));
 
         pa_json_object_unref(o);
     }
@@ -149,7 +147,7 @@ START_TEST(object_test) {
     v = pa_json_object_get_object_member(o, "age");
     fail_unless(v != NULL);
     fail_unless(pa_json_object_get_type(v) == PA_JSON_TYPE_DOUBLE);
-    fail_unless(IS_EQUAL(pa_json_object_get_double(v), -45.3));
+    fail_unless(PA_DOUBLE_IS_EQUAL(pa_json_object_get_double(v), -45.3));
 
     pa_json_object_unref(o);
 
@@ -205,7 +203,7 @@ START_TEST(array_test) {
     v = pa_json_object_get_array_member(o, 1);
     fail_unless(v != NULL);
     fail_unless(pa_json_object_get_type(v) == PA_JSON_TYPE_DOUBLE);
-    fail_unless(IS_EQUAL(pa_json_object_get_double(v), 1234.5));
+    fail_unless(PA_DOUBLE_IS_EQUAL(pa_json_object_get_double(v), 1234.5));
     v = pa_json_object_get_array_member(o, 2);
     fail_unless(v != NULL);
     fail_unless(pa_json_object_get_type(v) == PA_JSON_TYPE_OBJECT);

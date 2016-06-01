@@ -44,8 +44,6 @@ struct pa_json_object {
     };
 };
 
-#define JSON_OBJECT_TYPE(o) ((o)->type)
-
 static const char* parse_value(const char *str, const char *end, pa_json_object **obj);
 
 static pa_json_object* json_object_new(void) {
@@ -272,7 +270,7 @@ static const char *parse_object(const char *str, pa_json_object *obj) {
         str++; /* Consume leading '{' or ',' */
 
         str = parse_value(str, ":", &name);
-        if (!str || JSON_OBJECT_TYPE(name) != PA_JSON_TYPE_STRING) {
+        if (!str || pa_json_object_get_type(name) != PA_JSON_TYPE_STRING) {
             pa_log("Could not parse key for object");
             goto error;
         }
@@ -408,7 +406,7 @@ static const char* parse_value(const char *str, const char *end, pa_json_object 
         }
     }
 
-    if (JSON_OBJECT_TYPE(o) == PA_JSON_TYPE_INIT) {
+    if (pa_json_object_get_type(o) == PA_JSON_TYPE_INIT) {
         /* We didn't actually get any data */
         pa_log("No data while parsing json string: '%s' till '%s'", str, pa_strnull(end));
         goto error;
@@ -444,14 +442,14 @@ pa_json_object* pa_json_parse(const char *str) {
 }
 
 pa_json_type pa_json_object_get_type(const pa_json_object *obj) {
-    return JSON_OBJECT_TYPE(obj);
+    return obj->type;
 }
 
 void pa_json_object_unref(pa_json_object *obj) {
     if (PA_REFCNT_DEC(obj) > 0)
         return;
 
-    switch (JSON_OBJECT_TYPE(obj)) {
+    switch (pa_json_object_get_type(obj)) {
         case PA_JSON_TYPE_INIT:
         case PA_JSON_TYPE_INT:
         case PA_JSON_TYPE_DOUBLE:
@@ -479,36 +477,92 @@ void pa_json_object_unref(pa_json_object *obj) {
 }
 
 int pa_json_object_get_int(const pa_json_object *o) {
-    pa_return_val_if_fail(JSON_OBJECT_TYPE(o) == PA_JSON_TYPE_INT, 0);
+    pa_assert(pa_json_object_get_type(o) == PA_JSON_TYPE_INT);
     return o->int_value;
 }
 
 double pa_json_object_get_double(const pa_json_object *o) {
-    pa_return_val_if_fail(JSON_OBJECT_TYPE(o) == PA_JSON_TYPE_DOUBLE, 0);
+    pa_assert(pa_json_object_get_type(o) == PA_JSON_TYPE_DOUBLE);
     return o->double_value;
 }
 
 bool pa_json_object_get_bool(const pa_json_object *o) {
-    pa_return_val_if_fail(JSON_OBJECT_TYPE(o) == PA_JSON_TYPE_BOOL, false);
+    pa_assert(pa_json_object_get_type(o) == PA_JSON_TYPE_BOOL);
     return o->bool_value;
 }
 
 const char* pa_json_object_get_string(const pa_json_object *o) {
-    pa_return_val_if_fail(JSON_OBJECT_TYPE(o) == PA_JSON_TYPE_STRING, NULL);
+    pa_assert(pa_json_object_get_type(o) == PA_JSON_TYPE_STRING);
     return o->string_value;
 }
 
 const pa_json_object* pa_json_object_get_object_member(const pa_json_object *o, const char *name) {
-    pa_return_val_if_fail(JSON_OBJECT_TYPE(o) == PA_JSON_TYPE_OBJECT, NULL);
+    pa_assert(pa_json_object_get_type(o) == PA_JSON_TYPE_OBJECT);
     return pa_hashmap_get(o->object_values, name);
 }
 
 int pa_json_object_get_array_length(const pa_json_object *o) {
-    pa_return_val_if_fail(JSON_OBJECT_TYPE(o) == PA_JSON_TYPE_ARRAY, 0);
+    pa_assert(pa_json_object_get_type(o) == PA_JSON_TYPE_ARRAY);
     return pa_idxset_size(o->array_values);
 }
 
 const pa_json_object* pa_json_object_get_array_member(const pa_json_object *o, int index) {
-    pa_return_val_if_fail(JSON_OBJECT_TYPE(o) == PA_JSON_TYPE_ARRAY, NULL);
+    pa_assert(pa_json_object_get_type(o) == PA_JSON_TYPE_ARRAY);
     return pa_idxset_get_by_index(o->array_values, index);
+}
+
+bool pa_json_object_equal(const pa_json_object *o1, const pa_json_object *o2) {
+    int i;
+
+    if (pa_json_object_get_type(o1) != pa_json_object_get_type(o2))
+        return false;
+
+    switch (pa_json_object_get_type(o1)) {
+        case PA_JSON_TYPE_NULL:
+            return true;
+
+        case PA_JSON_TYPE_BOOL:
+            return o1->bool_value == o2->bool_value;
+
+        case PA_JSON_TYPE_INT:
+            return o1->int_value == o2->int_value;
+
+        case PA_JSON_TYPE_DOUBLE:
+            return PA_DOUBLE_IS_EQUAL(o1->double_value, o2->double_value);
+
+        case PA_JSON_TYPE_STRING:
+            return pa_streq(o1->string_value, o2->string_value);
+
+        case PA_JSON_TYPE_ARRAY:
+            if (pa_json_object_get_array_length(o1) != pa_json_object_get_array_length(o2))
+                return false;
+
+            for (i = 0; i < pa_json_object_get_array_length(o1); i++) {
+                if (!pa_json_object_equal(pa_json_object_get_array_member(o1, i),
+                            pa_json_object_get_array_member(o2, i)))
+                    return false;
+            }
+
+            return true;
+
+        case PA_JSON_TYPE_OBJECT: {
+            void *state;
+            const char *key;
+            const pa_json_object *v1, *v2;
+
+            if (pa_hashmap_size(o1->object_values) != pa_hashmap_size(o2->object_values))
+                return false;
+
+            PA_HASHMAP_FOREACH_KV(key, v1, o1->object_values, state) {
+                v2 = pa_json_object_get_object_member(o2, key);
+                if (!v2 || !pa_json_object_equal(v1, v2))
+                    return false;
+            }
+
+            return true;
+        }
+
+        default:
+            pa_assert_not_reached();
+    }
 }

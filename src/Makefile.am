@@ -739,9 +739,9 @@ else
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += pulsecore/poll-posix.c pulsecore/poll.h
 endif
 
-libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBJSON_CFLAGS) $(LIBSNDFILE_CFLAGS)
+libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS = $(AM_LDFLAGS) $(AM_LIBLDFLAGS) -avoid-version
-libpulsecommon_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBJSON_LIBS)  $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSNDFILE_LIBS)
+libpulsecommon_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSNDFILE_LIBS)
 
 if HAVE_MEMFD
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += \
@@ -893,8 +893,8 @@ libpulse_la_SOURCES = \
 		pulse/volume.c pulse/volume.h \
 		pulse/xmalloc.c pulse/xmalloc.h
 
-libpulse_la_CFLAGS = $(AM_CFLAGS) $(LIBJSON_CFLAGS)
-libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBJSON_LIBS) libpulsecommon-@PA_MAJORMINOR@.la
+libpulse_la_CFLAGS = $(AM_CFLAGS)
+libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINOR@.la
 libpulse_la_LDFLAGS = $(AM_LDFLAGS) $(AM_LIBLDFLAGS) $(VERSIONING_LDFLAGS) -version-info $(LIBPULSE_VERSION_INFO)
 
 if HAVE_DBUS
