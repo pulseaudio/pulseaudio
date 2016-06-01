@@ -194,7 +194,7 @@ error:
 }
 
 static const char* parse_number(const char *str, pa_json_object *obj) {
-    bool negative = false, has_fraction = false, has_exponent = false;
+    bool negative = false, has_fraction = false, has_exponent = false, valid = false;
     unsigned int integer = 0;
     unsigned int fraction = 0;
     unsigned int fraction_digits = 0;
@@ -206,11 +206,14 @@ static const char* parse_number(const char *str, pa_json_object *obj) {
     }
 
     if (*str == '0') {
+        valid = true;
         str++;
         goto fraction;
     }
 
     while (is_digit(*str)) {
+        valid = true;
+
         if (integer > ((negative ? INT_MAX : UINT_MAX) / 10)) {
             pa_log("Integer overflow while parsing number");
             goto error;
@@ -221,11 +224,20 @@ static const char* parse_number(const char *str, pa_json_object *obj) {
     }
 
 fraction:
+
+    if (!valid) {
+        pa_log("Missing digits while parsing number");
+        goto error;
+    }
+
     if (*str == '.') {
         has_fraction = true;
         str++;
+        valid = false;
 
         while (is_digit(*str)) {
+            valid = true;
+
             if (fraction > (UINT_MAX / 10)) {
                 pa_log("Integer overflow while parsing fractional part of number");
                 goto error;
@@ -235,6 +247,11 @@ fraction:
             fraction_digits++;
             str++;
         }
+
+        if (!valid) {
+            pa_log("No digit after '.' while parsing fraction");
+            goto error;
+        }
     }
 
     if (*str == 'e' || *str == 'E') {
@@ -242,6 +259,7 @@ fraction:
 
         has_exponent = true;
         str++;
+        valid = false;
 
         if (*str == '-') {
             exponent_negative = true;
@@ -250,6 +268,8 @@ fraction:
             str++;
 
         while (is_digit(*str)) {
+            valid = true;
+
             if (exponent > (INT_MAX / 10)) {
                 pa_log("Integer overflow while parsing exponent part of number");
                 goto error;
@@ -257,6 +277,11 @@ fraction:
 
             exponent = (exponent * 10) + (*str - '0');
             str++;
+        }
+
+        if (!valid) {
+            pa_log("No digit in exponent while parsing fraction");
+            goto error;
         }
 
         if (exponent_negative)

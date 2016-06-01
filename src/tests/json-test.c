@@ -223,6 +223,10 @@ START_TEST(bad_test) {
         "123456789012345678901234567890" /* Overflow */,
         "0.123456789012345678901234567890" /* Overflow */,
         "1e123456789012345678901234567890" /* Overflow */,
+        "1e" /* Bad number string */,
+        "1." /* Bad number string */,
+        "1.e3" /* Bad number string */,
+        "-" /* Bad number string */,
     };
 
     for (i = 0; i < PA_ELEMENTSOF(bad_parse); i++) {
