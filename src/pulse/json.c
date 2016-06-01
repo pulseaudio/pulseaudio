@@ -211,6 +211,11 @@ static const char* parse_number(const char *str, pa_json_object *obj) {
     }
 
     while (is_digit(*str)) {
+        if (integer > ((negative ? INT_MAX : UINT_MAX) / 10)) {
+            pa_log("Integer overflow while parsing number");
+            goto error;
+        }
+
         integer = (integer * 10) + (*str - '0');
         str++;
     }
@@ -221,6 +226,11 @@ fraction:
         str++;
 
         while (is_digit(*str)) {
+            if (fraction > (UINT_MAX / 10)) {
+                pa_log("Integer overflow while parsing fractional part of number");
+                goto error;
+            }
+
             fraction = (fraction * 10) + (*str - '0');
             fraction_digits++;
             str++;
@@ -240,6 +250,11 @@ fraction:
             str++;
 
         while (is_digit(*str)) {
+            if (exponent > (INT_MAX / 10)) {
+                pa_log("Integer overflow while parsing exponent part of number");
+                goto error;
+            }
+
             exponent = (exponent * 10) + (*str - '0');
             str++;
         }
@@ -258,6 +273,9 @@ fraction:
     }
 
     return str;
+
+error:
+    return NULL;
 }
 
 static const char *parse_object(const char *str, pa_json_object *obj) {

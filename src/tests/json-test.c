@@ -220,6 +220,9 @@ START_TEST(bad_test) {
     unsigned int i;
     const char *bad_parse[] = {
         "\"" /* Quote not closed */,
+        "123456789012345678901234567890" /* Overflow */,
+        "0.123456789012345678901234567890" /* Overflow */,
+        "1e123456789012345678901234567890" /* Overflow */,
     };
 
     for (i = 0; i < PA_ELEMENTSOF(bad_parse); i++) {
