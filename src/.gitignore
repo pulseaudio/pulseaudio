@@ -50,6 +50,7 @@ gtk-test
 hook-list-test
 interpol-test
 ipacl-test
+json-test
 lfe-filter-test
 lock-autospawn-test
 lo-latency-test

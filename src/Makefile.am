@@ -249,6 +249,7 @@ TESTS_default = \
 		thread-mainloop-test \
 		utf8-test \
 		format-test \
+		json-test \
 		get-binary-name-test \
 		hook-list-test \
 		memblock-test \
@@ -380,6 +381,11 @@ format_test_SOURCES = tests/format-test.c
 format_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 format_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 format_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
+
+json_test_SOURCES = tests/json-test.c
+json_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+json_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+json_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 srbchannel_test_SOURCES = tests/srbchannel-test.c
 srbchannel_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
@@ -652,6 +658,7 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulse/client-conf.c pulse/client-conf.h \
 		pulse/fork-detect.c pulse/fork-detect.h \
 		pulse/format.c pulse/format.h \
+		pulse/json.c pulse/json.h \
 		pulse/xmalloc.c pulse/xmalloc.h \
 		pulse/proplist.c pulse/proplist.h \
 		pulse/utf8.c pulse/utf8.h \
