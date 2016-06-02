@@ -184,8 +184,8 @@ static bool parse_mic_geometry(const char **mic_geometry, std::vector<webrtc::Po
     /* The target direction is expected to be in spherical point form:
      *   a,e,r
      *
-     * Where 'a is the azimuth of the first mic channel, 'e' its elevation,
-     * and 'r' the radius.
+     * Where 'a' is the azimuth of the target point relative to the center of
+     * the array, 'e' its elevation, and 'r' the radius.
      *
      * 0 radians azimuth is to the right of the array, and positive angles
      * move in a counter-clockwise direction.
