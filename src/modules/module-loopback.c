@@ -85,7 +85,6 @@ struct userdata {
     pa_usec_t latency;
 
     bool in_pop;
-    size_t min_memblockq_length;
 
     struct {
         int64_t send_counter;
@@ -96,9 +95,6 @@ struct userdata {
         size_t sink_input_buffer;
         pa_usec_t sink_latency;
         pa_usec_t sink_timestamp;
-
-        size_t min_memblockq_length;
-        size_t max_request;
     } latency_snapshot;
 };
 
@@ -122,8 +118,7 @@ static const char* const valid_modargs[] = {
 enum {
     SINK_INPUT_MESSAGE_POST = PA_SINK_INPUT_MESSAGE_MAX,
     SINK_INPUT_MESSAGE_REWIND,
-    SINK_INPUT_MESSAGE_LATENCY_SNAPSHOT,
-    SINK_INPUT_MESSAGE_MAX_REQUEST_CHANGED
+    SINK_INPUT_MESSAGE_LATENCY_SNAPSHOT
 };
 
 enum {
@@ -230,10 +225,6 @@ static void adjust_rates(struct userdata *u) {
                 (double) current_latency / PA_USEC_PER_MSEC);
 
     pa_log_debug("Loopback latency at base rate is %0.2f ms", (double)latency_at_optimum_rate / PA_USEC_PER_MSEC);
-
-    pa_log_debug("Should buffer %zu bytes, buffered at minimum %zu bytes",
-                u->latency_snapshot.max_request*2,
-                u->latency_snapshot.min_memblockq_length);
 
     /* Calculate new rate */
     new_rate = rate_controller(base_rate, u->adjust_time, latency_difference);
@@ -466,20 +457,6 @@ static void source_output_suspend_cb(pa_source_output *o, bool suspended) {
 }
 
 /* Called from output thread context */
-static void update_min_memblockq_length(struct userdata *u) {
-    size_t length;
-
-    pa_assert(u);
-    pa_sink_input_assert_io_context(u->sink_input);
-
-    length = pa_memblockq_get_length(u->memblockq);
-
-    if (u->min_memblockq_length == (size_t) -1 ||
-        length < u->min_memblockq_length)
-        u->min_memblockq_length = length;
-}
-
-/* Called from output thread context */
 static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     struct userdata *u;
 
@@ -500,8 +477,6 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
     chunk->length = PA_MIN(chunk->length, nbytes);
     pa_memblockq_drop(u->memblockq, chunk->length);
-
-    update_min_memblockq_length(u);
 
     return 0;
 }
@@ -544,8 +519,6 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
             else
                 pa_memblockq_flush_write(u->memblockq, true);
 
-            update_min_memblockq_length(u);
-
             /* Is this the end of an underrun? Then let's start things
              * right-away */
             if (!u->in_pop &&
@@ -573,14 +546,10 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
 
             u->recv_counter -= offset;
 
-            update_min_memblockq_length(u);
-
             return 0;
 
         case SINK_INPUT_MESSAGE_LATENCY_SNAPSHOT: {
             size_t length;
-
-            update_min_memblockq_length(u);
 
             length = pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq);
 
@@ -591,23 +560,6 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
                                                pa_bytes_to_usec(length, &u->sink_input->sink->sample_spec);
             u->latency_snapshot.sink_timestamp = pa_rtclock_now();
 
-            u->latency_snapshot.max_request = pa_sink_input_get_max_request(u->sink_input);
-
-            u->latency_snapshot.min_memblockq_length = u->min_memblockq_length;
-            u->min_memblockq_length = (size_t) -1;
-
-            return 0;
-        }
-
-        case SINK_INPUT_MESSAGE_MAX_REQUEST_CHANGED: {
-            /* This message is sent from the IO thread to the main
-             * thread! So don't be confused. All the user cases above
-             * are executed in thread context, but this one is not! */
-
-            pa_assert_ctl_context();
-
-            if (u->time_event)
-                adjust_rates(u);
             return 0;
         }
     }
@@ -630,8 +582,6 @@ static void sink_input_attach_cb(pa_sink_input *i) {
 
     pa_memblockq_set_prebuf(u->memblockq, pa_sink_input_get_max_request(i)*2);
     pa_memblockq_set_maxrewind(u->memblockq, pa_sink_input_get_max_rewind(i));
-
-    u->min_memblockq_length = (size_t) -1;
 }
 
 /* Called from output thread context */
@@ -669,7 +619,6 @@ static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
 
     pa_memblockq_set_prebuf(u->memblockq, nbytes*2);
     pa_log_info("Max request changed");
-    pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_MAX_REQUEST_CHANGED, NULL, 0, NULL, NULL);
 }
 
 /* Called from main thread */
