@@ -91,10 +91,12 @@ struct userdata {
         int64_t send_counter;
         size_t source_output_buffer;
         pa_usec_t source_latency;
+        pa_usec_t source_timestamp;
 
         int64_t recv_counter;
         size_t sink_input_buffer;
         pa_usec_t sink_latency;
+        pa_usec_t sink_timestamp;
 
         size_t min_memblockq_length;
         size_t max_request;
@@ -316,6 +318,7 @@ static int source_output_process_msg_cb(pa_msgobject *obj, int code, void *data,
             u->latency_snapshot.send_counter = u->send_counter;
             u->latency_snapshot.source_output_buffer = u->source_output->thread_info.resampler ? pa_resampler_result(u->source_output->thread_info.resampler, length) : length;
             u->latency_snapshot.source_latency = pa_source_get_latency_within_thread(u->source_output->source);
+            u->latency_snapshot.source_timestamp = pa_rtclock_now();
 
             return 0;
         }
@@ -562,6 +565,7 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
                 pa_memblockq_get_length(u->memblockq) +
                 (u->sink_input->thread_info.resampler ? pa_resampler_request(u->sink_input->thread_info.resampler, length) : length);
             u->latency_snapshot.sink_latency = pa_sink_get_latency_within_thread(u->sink_input->sink);
+            u->latency_snapshot.sink_timestamp = pa_rtclock_now();
 
             u->latency_snapshot.max_request = pa_sink_input_get_max_request(u->sink_input);
 
