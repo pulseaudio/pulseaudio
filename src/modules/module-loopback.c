@@ -168,11 +168,34 @@ static void teardown(struct userdata *u) {
     }
 }
 
+/* rate controller
+ * - maximum deviation from base rate is less than 1%
+ * - can create audible artifacts by changing the rate too quickly
+ * - exhibits hunting with USB or Bluetooth sources
+ */
+static uint32_t rate_controller(
+                uint32_t base_rate,
+                pa_usec_t adjust_time,
+                int32_t latency_difference_usec) {
+
+    uint32_t new_rate;
+    double min_cycles;
+
+    /* Calculate best rate to correct the current latency offset, limit at
+     * slightly below 1% difference from base_rate */
+    min_cycles = (double)abs(latency_difference_usec) / adjust_time / 0.01 + 1;
+    new_rate = base_rate * (1.0 + (double)latency_difference_usec / min_cycles / adjust_time);
+
+    return new_rate;
+}
+
 /* Called from main context */
 static void adjust_rates(struct userdata *u) {
-    size_t buffer, fs;
+    size_t buffer;
     uint32_t old_rate, base_rate, new_rate;
+    int32_t latency_difference;
     pa_usec_t current_buffer_latency, snapshot_delay, current_source_sink_latency, current_latency, latency_at_optimum_rate;
+    pa_usec_t final_latency;
 
     pa_assert(u);
     pa_assert_ctl_context();
@@ -197,6 +220,9 @@ static void adjust_rates(struct userdata *u) {
     /* Latency at base rate */
     latency_at_optimum_rate = current_source_sink_latency + current_buffer_latency * old_rate / base_rate;
 
+    final_latency = u->latency;
+    latency_difference = (int32_t)((int64_t)latency_at_optimum_rate - final_latency);
+
     pa_log_debug("Loopback overall latency is %0.2f ms + %0.2f ms + %0.2f ms = %0.2f ms",
                 (double) u->latency_snapshot.sink_latency / PA_USEC_PER_MSEC,
                 (double) current_buffer_latency / PA_USEC_PER_MSEC,
@@ -209,26 +235,10 @@ static void adjust_rates(struct userdata *u) {
                 u->latency_snapshot.max_request*2,
                 u->latency_snapshot.min_memblockq_length);
 
-    fs = pa_frame_size(&u->sink_input->sample_spec);
+    /* Calculate new rate */
+    new_rate = rate_controller(base_rate, u->adjust_time, latency_difference);
 
-    if (u->latency_snapshot.min_memblockq_length < u->latency_snapshot.max_request*2)
-        new_rate = base_rate - (((u->latency_snapshot.max_request*2 - u->latency_snapshot.min_memblockq_length) / fs) *PA_USEC_PER_SEC)/u->adjust_time;
-    else
-        new_rate = base_rate + (((u->latency_snapshot.min_memblockq_length - u->latency_snapshot.max_request*2) / fs) *PA_USEC_PER_SEC)/u->adjust_time;
-
-    if (new_rate < (uint32_t) (base_rate*0.8) || new_rate > (uint32_t) (base_rate*1.25)) {
-        pa_log_warn("Sample rates too different, not adjusting (%u vs. %u).", base_rate, new_rate);
-        new_rate = base_rate;
-    } else {
-        if (base_rate < new_rate + 20 && new_rate < base_rate + 20)
-          new_rate = base_rate;
-        /* Do the adjustment in small steps; 2‰ can be considered inaudible */
-        if (new_rate < (uint32_t) (old_rate*0.998) || new_rate > (uint32_t) (old_rate*1.002)) {
-            pa_log_info("New rate of %u Hz not within 2‰ of %u Hz, forcing smaller adjustment", new_rate, old_rate);
-            new_rate = PA_CLAMP(new_rate, (uint32_t) (old_rate*0.998), (uint32_t) (old_rate*1.002));
-        }
-    }
-
+    /* Set rate */
     pa_sink_input_set_rate(u->sink_input, new_rate);
     pa_log_debug("[%s] Updated sampling rate to %lu Hz.", u->sink_input->sink->name, (unsigned long) new_rate);
 }
