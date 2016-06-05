@@ -251,13 +251,16 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
     adjust_rates(u);
 }
 
-/* Called from main context */
+/* Called from main context
+ * When source or sink changes, give it a third of a second to settle down, then call adjust_rates for the first time */
 static void enable_adjust_timer(struct userdata *u, bool enable) {
     if (enable) {
-        if (u->time_event || u->adjust_time <= 0)
+        if (!u->adjust_time)
             return;
+        if (u->time_event)
+            u->core->mainloop->time_free(u->time_event);
 
-        u->time_event = pa_core_rttime_new(u->module->core, pa_rtclock_now() + u->adjust_time, time_callback, u);
+        u->time_event = pa_core_rttime_new(u->module->core, pa_rtclock_now() + 333 * PA_USEC_PER_MSEC, time_callback, u);
     } else {
         if (!u->time_event)
             return;
