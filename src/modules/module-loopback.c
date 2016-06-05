@@ -177,9 +177,6 @@ static void adjust_rates(struct userdata *u) {
     pa_assert(u);
     pa_assert_ctl_context();
 
-    pa_asyncmsgq_send(u->sink_input->sink->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_LATENCY_SNAPSHOT, NULL, 0, NULL);
-    pa_asyncmsgq_send(u->source_output->source->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_LATENCY_SNAPSHOT, NULL, 0, NULL);
-
     /* Rates and latencies*/
     old_rate = u->sink_input->sample_spec.rate;
     base_rate = u->source_output->sample_spec.rate;
@@ -234,8 +231,6 @@ static void adjust_rates(struct userdata *u) {
 
     pa_sink_input_set_rate(u->sink_input, new_rate);
     pa_log_debug("[%s] Updated sampling rate to %lu Hz.", u->sink_input->sink->name, (unsigned long) new_rate);
-
-    pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
 }
 
 /* Called from main context */
@@ -245,6 +240,13 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
     pa_assert(u);
     pa_assert(a);
     pa_assert(u->time_event == e);
+
+    /* Restart timer right away */
+    pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
+
+    /* Get sink and source latency snapshot */
+    pa_asyncmsgq_send(u->sink_input->sink->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_LATENCY_SNAPSHOT, NULL, 0, NULL);
+    pa_asyncmsgq_send(u->source_output->source->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_LATENCY_SNAPSHOT, NULL, 0, NULL);
 
     adjust_rates(u);
 }
