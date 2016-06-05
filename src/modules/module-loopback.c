@@ -172,36 +172,47 @@ static void teardown(struct userdata *u) {
 static void adjust_rates(struct userdata *u) {
     size_t buffer, fs;
     uint32_t old_rate, base_rate, new_rate;
-    pa_usec_t buffer_latency;
+    pa_usec_t current_buffer_latency, snapshot_delay, current_source_sink_latency, current_latency, latency_at_optimum_rate;
 
     pa_assert(u);
     pa_assert_ctl_context();
 
-    pa_asyncmsgq_send(u->source_output->source->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_LATENCY_SNAPSHOT, NULL, 0, NULL);
     pa_asyncmsgq_send(u->sink_input->sink->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_LATENCY_SNAPSHOT, NULL, 0, NULL);
+    pa_asyncmsgq_send(u->source_output->source->asyncmsgq, PA_MSGOBJECT(u->source_output), SOURCE_OUTPUT_MESSAGE_LATENCY_SNAPSHOT, NULL, 0, NULL);
+
+    /* Rates and latencies*/
+    old_rate = u->sink_input->sample_spec.rate;
+    base_rate = u->source_output->sample_spec.rate;
 
     buffer = u->latency_snapshot.sink_input_buffer;
-
     if (u->latency_snapshot.recv_counter <= u->latency_snapshot.send_counter)
         buffer += (size_t) (u->latency_snapshot.send_counter - u->latency_snapshot.recv_counter);
     else
         buffer = PA_CLIP_SUB(buffer, (size_t) (u->latency_snapshot.recv_counter - u->latency_snapshot.send_counter));
 
-    buffer_latency = pa_bytes_to_usec(buffer, &u->sink_input->sample_spec);
+    current_buffer_latency = pa_bytes_to_usec(buffer, &u->sink_input->sample_spec);
+    snapshot_delay = u->latency_snapshot.source_timestamp - u->latency_snapshot.sink_timestamp;
+    current_source_sink_latency = u->latency_snapshot.sink_latency + u->latency_snapshot.source_latency - snapshot_delay;
+
+    /* Current latency */
+    current_latency = current_source_sink_latency + current_buffer_latency;
+
+    /* Latency at base rate */
+    latency_at_optimum_rate = current_source_sink_latency + current_buffer_latency * old_rate / base_rate;
 
     pa_log_debug("Loopback overall latency is %0.2f ms + %0.2f ms + %0.2f ms = %0.2f ms",
                 (double) u->latency_snapshot.sink_latency / PA_USEC_PER_MSEC,
-                (double) buffer_latency / PA_USEC_PER_MSEC,
+                (double) current_buffer_latency / PA_USEC_PER_MSEC,
                 (double) u->latency_snapshot.source_latency / PA_USEC_PER_MSEC,
-                ((double) u->latency_snapshot.sink_latency + buffer_latency + u->latency_snapshot.source_latency) / PA_USEC_PER_MSEC);
+                (double) current_latency / PA_USEC_PER_MSEC);
+
+    pa_log_debug("Loopback latency at base rate is %0.2f ms", (double)latency_at_optimum_rate / PA_USEC_PER_MSEC);
 
     pa_log_debug("Should buffer %zu bytes, buffered at minimum %zu bytes",
                 u->latency_snapshot.max_request*2,
                 u->latency_snapshot.min_memblockq_length);
 
     fs = pa_frame_size(&u->sink_input->sample_spec);
-    old_rate = u->sink_input->sample_spec.rate;
-    base_rate = u->source_output->sample_spec.rate;
 
     if (u->latency_snapshot.min_memblockq_length < u->latency_snapshot.max_request*2)
         new_rate = base_rate - (((u->latency_snapshot.max_request*2 - u->latency_snapshot.min_memblockq_length) / fs) *PA_USEC_PER_SEC)/u->adjust_time;
