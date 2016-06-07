@@ -149,12 +149,7 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     }
 
     pa_card_new_data_set_name(data, name);
-
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_CARD_NEW], data) < 0) {
-        pa_xfree(c);
-        pa_namereg_unregister(core, name);
-        return NULL;
-    }
+    pa_hook_fire(&core->hooks[PA_CORE_HOOK_CARD_NEW], data);
 
     c->core = core;
     c->name = pa_xstrdup(data->name);
