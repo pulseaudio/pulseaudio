@@ -497,7 +497,7 @@ bool pa_memblock_is_read_only(pa_memblock *b) {
     pa_assert(b);
     pa_assert(PA_REFCNT_VALUE(b) > 0);
 
-    return b->read_only && PA_REFCNT_VALUE(b) == 1;
+    return b->read_only || PA_REFCNT_VALUE(b) > 1;
 }
 
 /* No lock necessary */
