@@ -186,9 +186,34 @@ struct pa_pstream {
 };
 
 #ifdef HAVE_CREDS
-/* Don't close the ancillary fds by your own! Always call this method;
- * it guarantees necessary cleanups after fds close.. This method is
- * also multiple-invocations safe. */
+/*
+ * memfd-backed SHM pools blocks transfer occur without passing the pool's
+ * fd every time, thus minimizing overhead and avoiding fd leaks. A
+ * REGISTER_MEMFD_SHMID command is sent, with the pool's memfd fd, very early
+ * on. This command has an ID that uniquely identifies the pool in question.
+ * Further pool's block references can then be exclusively done using such ID;
+ * the fd can be safely closed – on both ends – afterwards.
+ *
+ * On the sending side of this command, we want to close the passed fds
+ * directly after being sent. Meanwhile we're only allowed to asynchronously
+ * schedule packet writes to the pstream, so the job of closing passed fds is
+ * left to the pstream's actual writing function do_write(): it knows the
+ * exact point in time where the fds are passed to the other end through
+ * iochannels and the sendmsg() system call.
+ *
+ * Nonetheless not all code paths in the system desire their socket-passed
+ * fds to be closed after the send. srbchannel needs the passed fds to still
+ * be open for further communication. System-wide global memfd-backed pools
+ * also require the passed fd to be open: they pass the same fd, with the same
+ * ID registration mechanism, for each newly connected client to the system.
+ *
+ * So from all of the above, never close the ancillary fds by your own and
+ * always call below method instead. It takes care of closing the passed fds
+ * _only if allowed_ by the code paths that originally created them to do so.
+ * Moreover, it is multiple-invocations safe: failure handlers can, and
+ * should, call it for passed fds cleanup without worrying too much about
+ * the system state.
+ */
 void pa_cmsg_ancil_data_close_fds(struct pa_cmsg_ancil_data *ancil) {
     if (ancil && ancil->nfd > 0 && ancil->close_fds_on_cleanup) {
         int i;
