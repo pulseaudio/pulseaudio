@@ -190,7 +190,7 @@ struct pa_pstream {
  * it guarantees necessary cleanups after fds close.. This method is
  * also multiple-invocations safe. */
 void pa_cmsg_ancil_data_close_fds(struct pa_cmsg_ancil_data *ancil) {
-    if (ancil && ancil->close_fds_on_cleanup) {
+    if (ancil && ancil->nfd > 0 && ancil->close_fds_on_cleanup) {
         int i;
 
         pa_assert(ancil->nfd <= MAX_ANCIL_DATA_FDS);
