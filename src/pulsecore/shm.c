@@ -93,8 +93,8 @@ struct shm_marker {
     uint64_t _reserved4;
 } PA_GCC_PACKED;
 
-static inline size_t shm_marker_size(pa_shm *m) {
-    if (m->type == PA_MEM_TYPE_SHARED_POSIX)
+static inline size_t shm_marker_size(pa_mem_type_t type) {
+    if (type == PA_MEM_TYPE_SHARED_POSIX)
         return PA_ALIGN(sizeof(struct shm_marker));
 
     return 0;
@@ -174,7 +174,7 @@ static int sharedmem_create(pa_shm *m, pa_mem_type_t type, size_t size, mode_t m
     }
 
     m->type = type;
-    m->size = size + shm_marker_size(m);
+    m->size = size + shm_marker_size(type);
     m->do_unlink = do_unlink;
 
     if (ftruncate(fd, (off_t) m->size) < 0) {
@@ -194,7 +194,7 @@ static int sharedmem_create(pa_shm *m, pa_mem_type_t type, size_t size, mode_t m
     if (type == PA_MEM_TYPE_SHARED_POSIX) {
         /* We store our PID at the end of the shm block, so that we
          * can check for dead shm segments later */
-        marker = (struct shm_marker*) ((uint8_t*) m->ptr + m->size - shm_marker_size(m));
+        marker = (struct shm_marker*) ((uint8_t*) m->ptr + m->size - shm_marker_size(type));
         pa_atomic_store(&marker->pid, (int) getpid());
         pa_atomic_store(&marker->marker, SHM_MARKER);
     }
@@ -378,7 +378,7 @@ static int shm_attach(pa_shm *m, pa_mem_type_t type, unsigned id, int memfd_fd, 
     }
 
     if (st.st_size <= 0 ||
-        st.st_size > (off_t) MAX_SHM_SIZE + (off_t) shm_marker_size(m) ||
+        st.st_size > (off_t) MAX_SHM_SIZE + (off_t) shm_marker_size(type) ||
         PA_ALIGN((size_t) st.st_size) != (size_t) st.st_size) {
         pa_log("Invalid shared memory segment size");
         goto fail;
@@ -453,12 +453,12 @@ int pa_shm_cleanup(void) {
         if (shm_attach(&seg, PA_MEM_TYPE_SHARED_POSIX, id, -1, false, true) < 0)
             continue;
 
-        if (seg.size < shm_marker_size(&seg)) {
+        if (seg.size < shm_marker_size(seg.type)) {
             pa_shm_free(&seg);
             continue;
         }
 
-        m = (struct shm_marker*) ((uint8_t*) seg.ptr + seg.size - shm_marker_size(&seg));
+        m = (struct shm_marker*) ((uint8_t*) seg.ptr + seg.size - shm_marker_size(seg.type));
 
         if (pa_atomic_load(&m->marker) != SHM_MARKER) {
             pa_shm_free(&seg);
