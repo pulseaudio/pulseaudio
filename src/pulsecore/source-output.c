@@ -1087,7 +1087,7 @@ void pa_source_output_set_property(pa_source_output *o, const char *key, const c
 
     if (pa_proplist_contains(o->proplist, key)) {
         old_value = pa_xstrdup(pa_proplist_gets(o->proplist, key));
-        if (old_value) {
+        if (value && old_value) {
             if (pa_streq(value, old_value))
                 goto finish;
         } else

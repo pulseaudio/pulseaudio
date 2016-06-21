@@ -1435,7 +1435,7 @@ void pa_sink_input_set_property(pa_sink_input *i, const char *key, const char *v
 
     if (pa_proplist_contains(i->proplist, key)) {
         old_value = pa_xstrdup(pa_proplist_gets(i->proplist, key));
-        if (old_value) {
+        if (value && old_value) {
             if (pa_streq(value, old_value))
                 goto finish;
         } else
