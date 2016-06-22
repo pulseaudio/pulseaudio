@@ -1,3 +1,47 @@
+PulseAudio 9.0
+
+Changes at a glance:
+
+ * Automatic routing improvements
+ * Beamforming and various other new features in the WebRTC echo canceller
+ * Various improvements in module-role-cork and module-role-ducking
+ * LFE remixing disabled by default
+ * memfd-backed shared memory transport
+ * Support for sample rates up to 384 kHz
+ * webrtc-audio-processing dependency minimum version bumped to 0.2
+ * Changed the C standard from C99 to C11.
+
+Detailed change log:
+
+  http://www.freedesktop.org/wiki/Software/PulseAudio/Notes/9.0
+
+Contributors
+
+  Ahmed S. Darwish
+  Alexander E. Patrakov
+  Arun Raghavan
+  Barun Kumar Singh
+  David Henningsson
+  Deepak Srivastava
+  Gabor Kelemen
+  Georg Chini
+  Jeremy Huddleston Sequoia
+  Jonathan Perkin
+  Juho Hämäläinen
+  Jungsup Lee
+  Kamil Rytarowski
+  Marcin Lewandowski
+  Milo Casagrande
+  Muhammet Kara
+  Nazar Mokrynskyi
+  Peter Meerwald
+  Piotr Drąg
+  Sachin Kumar Chauhan
+  Sangchul Lee
+  Tanu Kaskinen
+  YunQiang Su
+
+
 PulseAudio 8.0
 
 Changes at a glance:
