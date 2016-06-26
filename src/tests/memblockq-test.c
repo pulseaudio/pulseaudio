@@ -212,6 +212,85 @@ START_TEST (memblockq_test) {
 }
 END_TEST
 
+START_TEST (pop_missing_test) {
+    int ret;
+    size_t missing;
+
+    pa_mempool *p;
+    pa_memblockq *bq;
+    pa_memchunk chunk;
+    char buffer[2048];
+    pa_sample_spec ss = {
+        .format = PA_SAMPLE_S16LE,
+        .rate = 48000,
+        .channels = 1
+    };
+
+    pa_log_set_level(PA_LOG_DEBUG);
+
+    bq = pa_memblockq_new("test memblockq", 0, 4096, 2048, &ss, 0, 512, 512, NULL);
+    fail_unless(bq != NULL);
+
+    /* Empty buffer, so expect tlength */
+    missing = pa_memblockq_pop_missing(bq);
+    fail_unless(missing == 2048);
+
+    /* Everything requested, so should be satisfied */
+    missing = pa_memblockq_pop_missing(bq);
+    fail_unless(missing == 0);
+
+    p = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0, true);
+
+    chunk.memblock = pa_memblock_new_fixed(p, buffer, sizeof(buffer), 1);
+    fail_unless(chunk.memblock != NULL);
+
+    chunk.index = 0;
+    chunk.length = sizeof(buffer);
+
+    /* Fill buffer (i.e. satisfy earlier request) */
+    ret = pa_memblockq_push(bq, &chunk);
+    fail_unless(ret == 0);
+
+    /* Should still be happy */
+    missing = pa_memblockq_pop_missing(bq);
+    fail_unless(missing == 0);
+
+    /* Check that we don't request less than minreq */
+    pa_memblockq_drop(bq, 400);
+    missing = pa_memblockq_pop_missing(bq);
+    ck_assert_int_eq(missing, 0);
+
+    missing = pa_memblockq_pop_missing(bq);
+    fail_unless(missing == 0);
+
+    /* Reduce tlength under what's dropped and under previous minreq */
+    pa_memblockq_set_tlength(bq, 256);
+    pa_memblockq_set_minreq(bq, 64);
+
+    /* We are now overbuffered and should not request more */
+    missing = pa_memblockq_pop_missing(bq);
+    fail_unless(missing == 0);
+
+    /* Drop more data so we are below tlength again, but just barely */
+    pa_memblockq_drop(bq, 1400);
+
+    /* Should still honour minreq */
+    missing = pa_memblockq_pop_missing(bq);
+    fail_unless(missing == 0);
+
+    /* Finally drop enough to fall below minreq */
+    pa_memblockq_drop(bq, 80);
+
+    /* And expect a request */
+    missing = pa_memblockq_pop_missing(bq);
+    fail_unless(missing == 88);
+
+    pa_memblockq_free(bq);
+    pa_memblock_unref(chunk.memblock);
+    pa_mempool_unref(p);
+}
+END_TEST
+
 int main(int argc, char *argv[]) {
     int failed = 0;
     Suite *s;
@@ -221,6 +300,7 @@ int main(int argc, char *argv[]) {
     s = suite_create("Memblock Queue");
     tc = tcase_create("memblockq");
     tcase_add_test(tc, memblockq_test);
+    tcase_add_test(tc, pop_missing_test);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);
