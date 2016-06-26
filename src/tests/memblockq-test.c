@@ -408,6 +408,116 @@ START_TEST (memblockq_test_length_changes) {
 }
 END_TEST
 
+START_TEST (memblockq_test_pop_missing) {
+    pa_mempool *p;
+    pa_memblockq *bq;
+    pa_memchunk silence, data, chunk;
+    pa_sample_spec ss = {
+        .format = PA_SAMPLE_S16BE,
+        .rate = 48000,
+        .channels = 1
+    };
+    int64_t idx = 0;
+    size_t maxlength = 200;
+    size_t tlength = 100;
+    size_t prebuf = 0;
+    size_t minreq = 80;
+    size_t maxrewind = 0;
+
+    p = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0, true);
+    ck_assert_ptr_ne(p, NULL);
+
+    silence = memchunk_from_str(p, "____");
+    data = memchunk_from_str(p, "1234567890");
+
+    bq = pa_memblockq_new("test memblockq", idx, maxlength, tlength, &ss, prebuf, minreq, maxrewind, &silence);
+    fail_unless(bq != NULL);
+
+    /* initially, the whole target length of bytes is missing */
+    ck_assert_int_eq(pa_memblockq_missing(bq), tlength);
+    ck_assert_int_eq(pa_memblockq_pop_missing(bq), tlength);
+
+    /* add 20 bytes of data */
+    for (int i = 0; i != 2; ++i)
+        ck_assert_int_eq(pa_memblockq_push(bq, &data), 0);
+    check_queue_invariants(bq);
+
+    /* the missing bytes are reduced, but no new missing data is reported */
+    ck_assert_int_eq(pa_memblockq_missing(bq), tlength - 20);
+    ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
+
+    /* fill up to 100 bytes of data */
+    for (int i = 0; i != 8; ++i)
+        ck_assert_int_eq(pa_memblockq_push(bq, &data), 0);
+    check_queue_invariants(bq);
+
+    /* queue fill level is at target level now */
+    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
+    ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
+
+    /* pop 40 bytes of data, down to 60 bytes fill level */
+    ck_assert_int_eq(pa_memblockq_peek_fixed_size(bq, 40, &chunk), 0);
+    pa_memblockq_drop(bq, 40);
+    ck_assert_int_eq(chunk.length - chunk.index, 40);
+    pa_memblock_unref(chunk.memblock);
+    check_queue_invariants(bq);
+
+    /* queue fill level is 40 bytes under target length
+     * This is less than minreq, so no missing data is reported */
+    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
+    ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
+
+    /* add 30 bytes of data, up to 90 bytes fill level */
+    for (int i = 0; i != 3; ++i)
+        ck_assert_int_eq(pa_memblockq_push(bq, &data), 0);
+    check_queue_invariants(bq);
+
+    /* queue fill level is 10 bytes under target length
+     * This is less than minreq, so no missing data is reported. */
+    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
+    ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
+
+    /* pop 20 bytes of data, down to 70 bytes of data */
+    ck_assert_int_eq(pa_memblockq_peek_fixed_size(bq, 20, &chunk), 0);
+    pa_memblockq_drop(bq, 20);
+    ck_assert_int_eq(chunk.length - chunk.index, 20);
+    pa_memblock_unref(chunk.memblock);
+    check_queue_invariants(bq);
+
+    /* queue fill level is 30 bytes under target length
+     * This is less than minreq, so no missing data is reported */
+    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
+    ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
+
+    /* add 50 bytes of data, up to 120 bytes fill level */
+    for (int i = 0; i != 5; ++i)
+        ck_assert_int_eq(pa_memblockq_push(bq, &data), 0);
+    check_queue_invariants(bq);
+
+    /* queue fill level is above target level, so no missing data is reported. */
+    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
+    ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
+
+    /* pop 20 bytes of data, down the target level */
+    ck_assert_int_eq(pa_memblockq_peek_fixed_size(bq, 20, &chunk), 0);
+    pa_memblockq_drop(bq, 20);
+    ck_assert_int_eq(chunk.length - chunk.index, 20);
+    pa_memblock_unref(chunk.memblock);
+    check_queue_invariants(bq);
+
+    /* queue fill level is at target level now
+     * No missing data should be reported. */
+    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
+    ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
+
+    /* cleanup */
+    pa_memblockq_free(bq);
+    pa_memblock_unref(silence.memblock);
+    pa_memblock_unref(data.memblock);
+    pa_mempool_unref(p);
+}
+END_TEST
+
 START_TEST (pop_missing_test) {
     int ret;
     size_t missing;
@@ -487,6 +597,7 @@ START_TEST (pop_missing_test) {
 }
 END_TEST
 
+
 int main(int argc, char *argv[]) {
     int failed = 0;
     Suite *s;
@@ -502,6 +613,7 @@ int main(int argc, char *argv[]) {
     tcase_add_test(tc, memblockq_test_initial_properties);
     tcase_add_test(tc, memblockq_test);
     tcase_add_test(tc, memblockq_test_length_changes);
+    tcase_add_test(tc, memblockq_test_pop_missing);
     tcase_add_test(tc, pop_missing_test);
     suite_add_tcase(s, tc);
 
