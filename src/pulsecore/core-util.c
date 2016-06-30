@@ -3493,6 +3493,16 @@ int pa_pipe_cloexec(int pipefd[2]) {
     if ((r = pipe2(pipefd, O_CLOEXEC)) >= 0)
         goto finish;
 
+    if (errno == EMFILE) {
+        pa_log_error("The per-process limit on the number of open file descriptors has been reached.");
+        return r;
+    }
+
+    if (errno == ENFILE) {
+        pa_log_error("The system-wide limit on the total number of open files has been reached.");
+        return r;
+    }
+
     if (errno != EINVAL && errno != ENOSYS)
         return r;
 
@@ -3500,6 +3510,16 @@ int pa_pipe_cloexec(int pipefd[2]) {
 
     if ((r = pipe(pipefd)) >= 0)
         goto finish;
+
+    if (errno == EMFILE) {
+        pa_log_error("The per-process limit on the number of open file descriptors has been reached.");
+        return r;
+    }
+
+    if (errno == ENFILE) {
+        pa_log_error("The system-wide limit on the total number of open files has been reached.");
+        return r;
+    }
 
     /* return error */
     return r;
