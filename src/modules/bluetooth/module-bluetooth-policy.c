@@ -33,16 +33,18 @@
 
 #include "module-bluetooth-policy-symdef.h"
 
-PA_MODULE_AUTHOR("Frédéric Dalleau");
-PA_MODULE_DESCRIPTION("When a bluetooth sink or source is added, load module-loopback");
+PA_MODULE_AUTHOR("Frédéric Dalleau, Pali Rohár");
+PA_MODULE_DESCRIPTION("Policy module to make using bluetooth devices out-of-the-box easier");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
+        "auto_switch=<Switch between hsp and a2dp profile?> "
         "a2dp_source=<Handle a2dp_source card profile (sink role)?> "
         "ag=<Handle headset_audio_gateway card profile (headset role)?> "
         "hfgw=<Handle hfgw card profile (headset role)?> DEPRECATED");
 
 static const char* const valid_modargs[] = {
+    "auto_switch",
     "a2dp_source",
     "ag",
     "hfgw",
@@ -54,7 +56,12 @@ struct userdata {
     bool enable_ag;
     pa_hook_slot *source_put_slot;
     pa_hook_slot *sink_put_slot;
+    pa_hook_slot *source_output_put_slot;
+    pa_hook_slot *source_output_unlink_slot;
+    pa_hook_slot *card_init_profile_slot;
+    pa_hook_slot *card_unlink_slot;
     pa_hook_slot *profile_available_changed_slot;
+    pa_hashmap *will_need_revert_card_map;
 };
 
 /* When a source is created, loopback it to default sink */
@@ -134,6 +141,167 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void *
     (void) pa_module_load(c, "module-loopback", args);
     pa_xfree(args);
 
+    return PA_HOOK_OK;
+}
+
+static void card_set_profile(struct userdata *u, pa_card *card, const char *to_profile, bool revert_to_a2dp)
+{
+    pa_card_profile *profile;
+    void *state;
+
+    /* Find available to_profile and activate it */
+    PA_HASHMAP_FOREACH(profile, card->profiles, state) {
+        if (!pa_streq(profile->name, to_profile))
+            continue;
+
+        if (profile->available == PA_AVAILABLE_NO)
+            continue;
+
+        pa_log_debug("Setting card '%s' to profile '%s'", card->name, to_profile);
+
+        if (pa_card_set_profile(card, profile, false) != 0) {
+            pa_log_warn("Could not set profile '%s'", to_profile);
+            continue;
+        }
+
+        /* When we are not in revert_to_a2dp phase flag this card for will_need_revert */
+        if (!revert_to_a2dp)
+            pa_hashmap_put(u->will_need_revert_card_map, card, PA_INT_TO_PTR(1));
+
+        break;
+    }
+}
+
+/* Switch profile for one card */
+static void switch_profile(pa_card *card, bool revert_to_a2dp, void *userdata) {
+    struct userdata *u = userdata;
+    const char *from_profile;
+    const char *to_profile;
+    const char *s;
+
+    if (revert_to_a2dp) {
+        from_profile = "hsp";
+        to_profile = "a2dp";
+    } else {
+        from_profile = "a2dp";
+        to_profile = "hsp";
+    }
+
+    /* Only consider bluetooth cards */
+    s = pa_proplist_gets(card->proplist, PA_PROP_DEVICE_BUS);
+    if (!s || !pa_streq(s, "bluetooth"))
+        return;
+
+    if (revert_to_a2dp) {
+        /* In revert_to_a2dp phase only consider cards with will_need_revert flag and remove it */
+        if (!pa_hashmap_remove(u->will_need_revert_card_map, card))
+            return;
+    }
+
+    /* Skip card if does not have active from_profile */
+    if (!pa_streq(card->active_profile->name, from_profile))
+        return;
+
+    /* Skip card if already has active profile to_profile */
+    if (pa_streq(card->active_profile->name, to_profile))
+        return;
+
+    card_set_profile(u, card, to_profile, revert_to_a2dp);
+}
+
+/* Return true if we should ignore this source output */
+static bool ignore_output(pa_source_output *source_output) {
+    const char *s;
+
+    /* New applications could set media.role for identifying streams */
+    /* We are interested only in media.role=phone */
+    s = pa_proplist_gets(source_output->proplist, PA_PROP_MEDIA_ROLE);
+    if (s)
+        return !pa_streq(s, "phone");
+
+    return true;
+}
+
+static unsigned source_output_count(pa_core *c) {
+    pa_source_output *source_output;
+    uint32_t idx;
+    unsigned count = 0;
+
+    PA_IDXSET_FOREACH(source_output, c->source_outputs, idx)
+        if (!ignore_output(source_output))
+            ++count;
+
+    return count;
+}
+
+/* Switch profile for all cards */
+static void switch_profile_all(pa_idxset *cards, bool revert_to_a2dp, void *userdata) {
+    pa_card *card;
+    uint32_t idx;
+
+    PA_IDXSET_FOREACH(card, cards, idx)
+        switch_profile(card, revert_to_a2dp, userdata);
+}
+
+/* When a source output is created, switch profile a2dp to profile hsp */
+static pa_hook_result_t source_output_put_hook_callback(pa_core *c, pa_source_output *source_output, void *userdata) {
+    pa_assert(c);
+    pa_assert(source_output);
+
+    if (ignore_output(source_output))
+        return PA_HOOK_OK;
+
+    switch_profile_all(c->cards, false, userdata);
+    return PA_HOOK_OK;
+}
+
+/* When all source outputs are unlinked, switch profile hsp back back to profile a2dp */
+static pa_hook_result_t source_output_unlink_hook_callback(pa_core *c, pa_source_output *source_output, void *userdata) {
+    pa_assert(c);
+    pa_assert(source_output);
+
+    if (ignore_output(source_output))
+        return PA_HOOK_OK;
+
+    /* If there are still some source outputs do nothing (count is with *this* source_output, so +1) */
+    if (source_output_count(c) > 1)
+        return PA_HOOK_OK;
+
+    switch_profile_all(c->cards, true, userdata);
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t card_init_profile_hook_callback(pa_core *c, pa_card *card, void *userdata) {
+    struct userdata *u = userdata;
+    const char *s;
+
+    pa_assert(c);
+    pa_assert(card);
+
+    if (source_output_count(c) == 0)
+        return PA_HOOK_OK;
+
+    /* Only consider bluetooth cards */
+    s = pa_proplist_gets(card->proplist, PA_PROP_DEVICE_BUS);
+    if (!s || !pa_streq(s, "bluetooth"))
+        return PA_HOOK_OK;
+
+    /* Ignore card if has already set other initial profile than a2dp */
+    if (card->active_profile && !pa_streq(card->active_profile->name, "a2dp"))
+        return PA_HOOK_OK;
+
+    /* Set initial profile to hsp */
+    card_set_profile(u, card, "hsp", false);
+
+    /* Flag this card for will_need_revert */
+    pa_hashmap_put(u->will_need_revert_card_map, card, PA_INT_TO_PTR(1));
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t card_unlink_hook_callback(pa_core *c, pa_card *card, void *userdata) {
+    pa_assert(c);
+    pa_assert(card);
+    switch_profile(card, true, userdata);
     return PA_HOOK_OK;
 }
 
@@ -220,6 +388,7 @@ static void handle_all_profiles(pa_core *core) {
 int pa__init(pa_module *m) {
     pa_modargs *ma;
     struct userdata *u;
+    bool auto_switch;
 
     pa_assert(m);
 
@@ -229,6 +398,12 @@ int pa__init(pa_module *m) {
     }
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
+
+    auto_switch = true;
+    if (pa_modargs_get_value_boolean(ma, "auto_switch", &auto_switch) < 0) {
+        pa_log("Failed to parse auto_switch argument.");
+        goto fail;
+    }
 
     u->enable_a2dp_source = true;
     if (pa_modargs_get_value_boolean(ma, "a2dp_source", &u->enable_a2dp_source) < 0) {
@@ -246,11 +421,27 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    u->will_need_revert_card_map = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+
     u->source_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_NORMAL,
                                          (pa_hook_cb_t) source_put_hook_callback, u);
 
     u->sink_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_NORMAL,
                                        (pa_hook_cb_t) sink_put_hook_callback, u);
+
+    if (auto_switch) {
+        u->source_output_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], PA_HOOK_NORMAL,
+                                                    (pa_hook_cb_t) source_output_put_hook_callback, u);
+
+        u->source_output_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], PA_HOOK_NORMAL,
+                                                       (pa_hook_cb_t) source_output_unlink_hook_callback, u);
+
+        u->card_init_profile_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_CARD_CHOOSE_INITIAL_PROFILE], PA_HOOK_NORMAL,
+                                           (pa_hook_cb_t) card_init_profile_hook_callback, u);
+
+        u->card_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_CARD_UNLINK], PA_HOOK_NORMAL,
+                                           (pa_hook_cb_t) card_unlink_hook_callback, u);
+    }
 
     u->profile_available_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_AVAILABLE_CHANGED],
                                                         PA_HOOK_NORMAL, (pa_hook_cb_t) profile_available_hook_callback, u);
@@ -280,8 +471,22 @@ void pa__done(pa_module *m) {
     if (u->sink_put_slot)
         pa_hook_slot_free(u->sink_put_slot);
 
+    if (u->source_output_put_slot)
+        pa_hook_slot_free(u->source_output_put_slot);
+
+    if (u->source_output_unlink_slot)
+        pa_hook_slot_free(u->source_output_unlink_slot);
+
+    if (u->card_init_profile_slot)
+        pa_hook_slot_free(u->card_init_profile_slot);
+
+    if (u->card_unlink_slot)
+        pa_hook_slot_free(u->card_unlink_slot);
+
     if (u->profile_available_changed_slot)
         pa_hook_slot_free(u->profile_available_changed_slot);
+
+    pa_hashmap_free(u->will_need_revert_card_map);
 
     pa_xfree(u);
 }
