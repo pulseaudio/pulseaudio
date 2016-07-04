@@ -3179,8 +3179,8 @@ void pa_reduce(unsigned *num, unsigned *den) {
 unsigned pa_ncpus(void) {
     long ncpus;
 
-#ifdef _SC_NPROCESSORS_CONF
-    ncpus = sysconf(_SC_NPROCESSORS_CONF);
+#ifdef _SC_NPROCESSORS_ONLN
+    ncpus = sysconf(_SC_NPROCESSORS_ONLN);
 #else
     ncpus = 1;
 #endif
