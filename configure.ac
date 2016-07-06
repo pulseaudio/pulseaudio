@@ -84,7 +84,7 @@ AM_PROG_CC_C_O
 # Only required if you want the WebRTC canceller -- no runtime dep on
 # libstdc++ otherwise
 AC_PROG_CXX
-AX_CXX_COMPILE_STDCXX_11
+AX_CXX_COMPILE_STDCXX_11([ext],[optional])
 AC_PROG_GCC_TRADITIONAL
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -1409,6 +1409,9 @@ fi
 
 AC_ARG_ENABLE([webrtc-aec],
     AS_HELP_STRING([--enable-webrtc-aec], [Enable the optional WebRTC-based echo canceller]))
+
+AS_IF([test "x$enable_webrtc_aec" = "xyes" && test "$HAVE_CXX11" = "0"],
+    [AC_MSG_ERROR([*** webrtc-audio-processing needs C++11 support])])
 
 AS_IF([test "x$enable_webrtc_aec" != "xno"],
     [PKG_CHECK_MODULES(WEBRTC, [ webrtc-audio-processing >= 0.2 ], [HAVE_WEBRTC=1], [HAVE_WEBRTC=0])],
