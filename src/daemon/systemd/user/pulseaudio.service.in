@@ -1,5 +1,7 @@
 [Unit]
 Description=Sound Service
+Requires=pulseaudio.socket
+After=pulseaudio.socket
 
 [Service]
 # Note that notify will only work if --daemonize=no
