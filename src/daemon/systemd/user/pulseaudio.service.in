@@ -1,5 +1,19 @@
 [Unit]
 Description=Sound Service
+
+# We require pulseaudio.socket to be active before starting the daemon, for two
+# reasons:
+#
+# 1. There are no implicit dependencies between sockets and services, so
+#    the socket, as set up by systemd will race with the socket, as set up
+#    by the pulseaudio daemon. This can cause the pulseaudio.socket unit to
+#    fail (even though the pulseaudio service started just fine), which can
+#    confuse users.
+# 2. While it is possible to use the service without the socket, it is not
+#    clear why it would be desirable. And a user installing pulseaudio and
+#    doing `systemctl --user start pulseaudio` will not get the socket
+#    started, which might be confusing and problematic if the server is to
+#    be restarted later on, as the client autospawn feature might kick in.
 Requires=pulseaudio.socket
 After=pulseaudio.socket
 
