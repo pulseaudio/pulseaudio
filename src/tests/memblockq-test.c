@@ -518,7 +518,7 @@ START_TEST (memblockq_test_pop_missing) {
 }
 END_TEST
 
-START_TEST (pop_missing_test) {
+START_TEST (memblockq_test_tlength_change) {
     int ret;
     size_t missing;
 
@@ -614,7 +614,7 @@ int main(int argc, char *argv[]) {
     tcase_add_test(tc, memblockq_test);
     tcase_add_test(tc, memblockq_test_length_changes);
     tcase_add_test(tc, memblockq_test_pop_missing);
-    tcase_add_test(tc, pop_missing_test);
+    tcase_add_test(tc, memblockq_test_tlength_change);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);
