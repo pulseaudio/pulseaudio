@@ -26,8 +26,8 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/start-child.h>
 
-PA_MODULE_AUTHOR("Lennart Poettering");
-PA_MODULE_DESCRIPTION("GConf Adapter");
+PA_MODULE_AUTHOR("Sylvain Baubeau");
+PA_MODULE_DESCRIPTION("GSettings Adapter");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
 
@@ -48,9 +48,9 @@ int pa__init(pa_module*m) {
 
     if ((u->fd = pa_start_child_for_read(
 #if defined(__linux__) && !defined(__OPTIMIZE__)
-                              pa_run_from_build_tree() ? PA_BUILDDIR "/gconf-helper" :
+                              pa_run_from_build_tree() ? PA_BUILDDIR "/gsettings-helper" :
 #endif
-                 PA_GCONF_HELPER, NULL, &u->pid)) < 0)
+                 PA_GSETTINGS_HELPER, NULL, &u->pid)) < 0)
         goto fail;
 
     u->io_event = m->core->mainloop->io_new(

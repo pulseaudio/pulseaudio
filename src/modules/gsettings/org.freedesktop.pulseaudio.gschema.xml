@@ -1,0 +1,98 @@
+<schemalist gettext-domain="pulseaudio">
+  <schema id="org.freedesktop.pulseaudio.module">
+    <key name="name" type="s">
+      <default>''</default>
+      <summary>Module name</summary>
+      <description>Name of the pulseaudio module</description>
+    </key>
+
+    <key name="enabled" type="b">
+      <default>false</default>
+    </key>
+
+    <key name="locked" type="b">
+      <default>false</default>
+    </key>
+
+    <key name="args0" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="args1" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="args2" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="args3" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="args4" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="args5" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="args6" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="args7" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="args8" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="args9" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="name0" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="name1" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="name2" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="name3" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="name4" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="name5" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="name6" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="name7" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="name8" type="s">
+      <default>''</default>
+    </key>
+
+    <key name="name9" type="s">
+      <default>''</default>
+    </key>
+  </schema>
+
+</schemalist>

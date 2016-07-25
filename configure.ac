@@ -926,6 +926,24 @@ AS_IF([test "x$enable_gconf" = "xyes" && test "x$HAVE_GCONF" = "x0"],
 
 AM_CONDITIONAL([HAVE_GCONF], [test "x$HAVE_GCONF" = x1])
 
+#### GSettings support (optional) ####
+
+AC_ARG_ENABLE([gsettings],
+    AS_HELP_STRING([--enable-gsettings],[Enable optional GSettings support]))
+
+AS_IF([test "x$enable_gsettings" = "xyes"],
+    [PKG_CHECK_MODULES(GSETTINGS, [ gio-2.0 >= 2.26.0 ], [HAVE_GSETTINGS=1], [HAVE_GSETTINGS=0])],
+    HAVE_GSETTINGS=0)
+
+AS_IF([test "x$enable_gsettings" = "xyes" && test "x$HAVE_GSETTINGS" = "x0"],
+    [AC_MSG_ERROR([*** GSettings support not found])])
+
+AM_CONDITIONAL([HAVE_GSETTINGS], [test "x$HAVE_GSETTINGS" = x1])
+
+if test "x$enable_gsettings" = "xyes" && test "x$HAVE_GSETTINGS" = "x1" ; then
+    GLIB_GSETTINGS
+fi
+
 #### Avahi support (optional) ####
 
 AC_ARG_ENABLE([avahi],
@@ -1566,6 +1584,7 @@ AS_IF([test "x$HAVE_WAVEOUT" = "x1"], ENABLE_WAVEOUT=yes, ENABLE_WAVEOUT=no)
 AS_IF([test "x$HAVE_GLIB20" = "x1"], ENABLE_GLIB20=yes, ENABLE_GLIB20=no)
 AS_IF([test "x$HAVE_GTK30" = "x1"], ENABLE_GTK30=yes, ENABLE_GTK30=no)
 AS_IF([test "x$HAVE_GCONF" = "x1"], ENABLE_GCONF=yes, ENABLE_GCONF=no)
+AS_IF([test "x$HAVE_GSETTINGS" = "x1"], ENABLE_GSETTINGS=yes, ENABLE_GSETTINGS=no)
 AS_IF([test "x$HAVE_AVAHI" = "x1"], ENABLE_AVAHI=yes, ENABLE_AVAHI=no)
 AS_IF([test "x$HAVE_JACK" = "x1"], ENABLE_JACK=yes, ENABLE_JACK=no)
 AS_IF([test "x$HAVE_LIBASYNCNS" = "x1"], ENABLE_LIBASYNCNS=yes, ENABLE_LIBASYNCNS=no)
@@ -1628,6 +1647,7 @@ echo "
     Enable GLib 2.0:               ${ENABLE_GLIB20}
     Enable Gtk+ 3.0:               ${ENABLE_GTK30}
     Enable GConf:                  ${ENABLE_GCONF}
+    Enable GSettings:              ${ENABLE_GSETTINGS}
     Enable Avahi:                  ${ENABLE_AVAHI}
     Enable Jack:                   ${ENABLE_JACK}
     Enable Async DNS:              ${ENABLE_LIBASYNCNS}
