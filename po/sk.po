@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PulseAudio master\n"
 "Report-Msgid-Bugs-To: https://bugs.freedesktop.org/enter_bug.cgi?"
 "product=PulseAudio&keywords=I18N+L10N&component=misc\n"
-"POT-Creation-Date: 2015-09-12 15:47+0000\n"
-"PO-Revision-Date: 2015-09-22 20:59+0200\n"
+"POT-Creation-Date: 2016-06-22 13:54+0000\n"
+"PO-Revision-Date: 2016-07-06 17:20+0200\n"
 "Last-Translator: Dušan Kazik <prescott66@gmail.com>\n"
 "Language-Team: Slovak <gnome-sk-list@gnome.org>\n"
 "Language: sk\n"
@@ -17,9 +17,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
-"X-Generator: Poedit 1.8.4\n"
+"X-Generator: Poedit 1.8.7.1\n"
 
-#: ../src/daemon/cmdline.c:111
+#: ../src/daemon/cmdline.c:113
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -78,6 +78,7 @@ msgid ""
 "      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
 "                                        platforms that support it.\n"
 "      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"      --enable-memfd[=BOOL]             Enable memfd shared memory support.\n"
 "\n"
 "STARTUP SCRIPT:\n"
 "  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
@@ -91,143 +92,147 @@ msgid ""
 "  -n                                    Don't load default script file\n"
 msgstr ""
 
-#: ../src/daemon/cmdline.c:243
+#: ../src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
 msgstr ""
 
-#: ../src/daemon/cmdline.c:251
+#: ../src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
 msgstr ""
 
-#: ../src/daemon/cmdline.c:262
+#: ../src/daemon/cmdline.c:265
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
 
-#: ../src/daemon/cmdline.c:274
+#: ../src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
 msgstr ""
 
-#: ../src/daemon/cmdline.c:282
+#: ../src/daemon/cmdline.c:285
 msgid "--realtime expects boolean argument"
 msgstr ""
 
-#: ../src/daemon/cmdline.c:290
+#: ../src/daemon/cmdline.c:293
 msgid "--disallow-module-loading expects boolean argument"
 msgstr ""
 
-#: ../src/daemon/cmdline.c:298
+#: ../src/daemon/cmdline.c:301
 msgid "--disallow-exit expects boolean argument"
 msgstr ""
 
-#: ../src/daemon/cmdline.c:306
+#: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
 msgstr ""
 
-#: ../src/daemon/cmdline.c:325
+#: ../src/daemon/cmdline.c:328
 msgid ""
 "Invalid log target: use either 'syslog', 'journal','stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
 
-#: ../src/daemon/cmdline.c:327
+#: ../src/daemon/cmdline.c:330
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
 "name 'file:<path>', 'newfile:<path>'."
 msgstr ""
 
-#: ../src/daemon/cmdline.c:335
+#: ../src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
 msgstr ""
 
-#: ../src/daemon/cmdline.c:343
+#: ../src/daemon/cmdline.c:346
 msgid "--log-meta expects boolean argument"
 msgstr ""
 
-#: ../src/daemon/cmdline.c:363
+#: ../src/daemon/cmdline.c:366
 #, c-format
 msgid "Invalid resample method '%s'."
 msgstr "Neplatná metóda prevzorkovania „%s“."
 
-#: ../src/daemon/cmdline.c:370
+#: ../src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
 msgstr "Voľba --system očakáva booleovský parameter"
 
-#: ../src/daemon/cmdline.c:378
+#: ../src/daemon/cmdline.c:381
 msgid "--no-cpu-limit expects boolean argument"
 msgstr ""
 
-#: ../src/daemon/cmdline.c:386
+#: ../src/daemon/cmdline.c:389
 msgid "--disable-shm expects boolean argument"
 msgstr ""
 
-#: ../src/daemon/daemon-conf.c:259
+#: ../src/daemon/cmdline.c:397
+msgid "--enable-memfd expects boolean argument"
+msgstr "Voľba --enable-memfd očakáva booleovský parameter"
+
+#: ../src/daemon/daemon-conf.c:260
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr ""
+msgstr "[%s:%u] Neplatný cieľ záznamu „%s“."
 
-#: ../src/daemon/daemon-conf.c:274
+#: ../src/daemon/daemon-conf.c:275
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr ""
+msgstr "[%s:%u] Neplatná úroveň záznamu „%s“."
 
-#: ../src/daemon/daemon-conf.c:289
+#: ../src/daemon/daemon-conf.c:290
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr ""
+msgstr "[%s:%u] Neplatný spôsob prevzorkovania „%s“."
 
-#: ../src/daemon/daemon-conf.c:311
+#: ../src/daemon/daemon-conf.c:312
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr ""
+msgstr "[%s:%u] Neplatný rlimit „%s“."
 
-#: ../src/daemon/daemon-conf.c:331
+#: ../src/daemon/daemon-conf.c:332
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr ""
+msgstr "[%s:%u] Neplatný formát vzoriek „%s“."
 
-#: ../src/daemon/daemon-conf.c:348 ../src/daemon/daemon-conf.c:365
+#: ../src/daemon/daemon-conf.c:349 ../src/daemon/daemon-conf.c:366
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr ""
+msgstr "[%s:%u] Neplatná frekvencia vzoriek „%s“."
 
-#: ../src/daemon/daemon-conf.c:388
+#: ../src/daemon/daemon-conf.c:389
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr ""
 
-#: ../src/daemon/daemon-conf.c:405
+#: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr ""
+msgstr "[%s:%u] Neplatná mapa kanálov „%s“."
 
-#: ../src/daemon/daemon-conf.c:422
+#: ../src/daemon/daemon-conf.c:423
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr ""
+msgstr "[%s:%u] Neplatný počet fragmentov „%s“."
 
-#: ../src/daemon/daemon-conf.c:439
+#: ../src/daemon/daemon-conf.c:440
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr ""
+msgstr "[%s:%u] Neplatná veľkosť fragmentu „%s“."
 
-#: ../src/daemon/daemon-conf.c:456
+#: ../src/daemon/daemon-conf.c:457
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr ""
+msgstr "[%s:%u] Neplatná úroveň nice „%s“."
 
-#: ../src/daemon/daemon-conf.c:499
+#: ../src/daemon/daemon-conf.c:500
 #, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr ""
+msgstr "[%s:%u] Neplatný typ servera „%s“."
 
-#: ../src/daemon/daemon-conf.c:613
+#: ../src/daemon/daemon-conf.c:615
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Zlyhalo otvorenie konfiguračného súboru: %s"
 
-#: ../src/daemon/daemon-conf.c:629
+#: ../src/daemon/daemon-conf.c:631
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -235,7 +240,7 @@ msgstr ""
 "Určená predvolená mapa kanálov obsahuje odlišný počet kanálov ako je určený "
 "predvolený počet kanálov."
 
-#: ../src/daemon/daemon-conf.c:716
+#: ../src/daemon/daemon-conf.c:718
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Čítať z konfiguračného súboru: %s ###\n"
@@ -359,7 +364,7 @@ msgstr ""
 #: ../src/daemon/main.c:622
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr "Zlyhalo zabitie služby: %s"
+msgstr "Zlyhalo zabitie démona: %s"
 
 #: ../src/daemon/main.c:651
 msgid ""
@@ -423,7 +428,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:788
 msgid "Daemon startup failed."
-msgstr "Zlyhalo spustenie služby."
+msgstr "Zlyhalo spustenie démona."
 
 #: ../src/daemon/main.c:821
 #, c-format
@@ -449,15 +454,15 @@ msgstr ""
 msgid "pa_pid_file_create() failed."
 msgstr ""
 
-#: ../src/daemon/main.c:1021
+#: ../src/daemon/main.c:1023
 msgid "pa_core_new() failed."
 msgstr ""
 
-#: ../src/daemon/main.c:1089
+#: ../src/daemon/main.c:1091
 msgid "Failed to initialize daemon."
-msgstr "Zlyhala inicializácia služby."
+msgstr "Zlyhala inicializácia démona."
 
-#: ../src/daemon/main.c:1094
+#: ../src/daemon/main.c:1096
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 
@@ -469,155 +474,155 @@ msgstr "Zvukový systém PulseAudio"
 msgid "Start the PulseAudio Sound System"
 msgstr "Spustenie zvukového systému PulseAudio"
 
-#: ../src/modules/alsa/alsa-mixer.c:2394
+#: ../src/modules/alsa/alsa-mixer.c:2378
 msgid "Input"
 msgstr "Vstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:2395
+#: ../src/modules/alsa/alsa-mixer.c:2379
 msgid "Docking Station Input"
 msgstr "Vstup dokovacej stanice"
 
-#: ../src/modules/alsa/alsa-mixer.c:2396
+#: ../src/modules/alsa/alsa-mixer.c:2380
 msgid "Docking Station Microphone"
 msgstr "Mikrofón dokovacej stanice"
 
-#: ../src/modules/alsa/alsa-mixer.c:2397
+#: ../src/modules/alsa/alsa-mixer.c:2381
 msgid "Docking Station Line In"
 msgstr "Vstupná linka dokovacej stanice"
 
-#: ../src/modules/alsa/alsa-mixer.c:2398 ../src/modules/alsa/alsa-mixer.c:2483
+#: ../src/modules/alsa/alsa-mixer.c:2382 ../src/modules/alsa/alsa-mixer.c:2467
 msgid "Line In"
 msgstr "Vstupná linka"
 
-#: ../src/modules/alsa/alsa-mixer.c:2399 ../src/modules/alsa/alsa-mixer.c:2477
-#: ../src/modules/bluetooth/module-bluez4-device.c:2102
+#: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
+#: ../src/modules/bluetooth/module-bluez4-device.c:2099
 #: ../src/modules/bluetooth/module-bluez5-device.c:1710
 msgid "Microphone"
 msgstr "Mikrofón"
 
-#: ../src/modules/alsa/alsa-mixer.c:2400 ../src/modules/alsa/alsa-mixer.c:2478
+#: ../src/modules/alsa/alsa-mixer.c:2384 ../src/modules/alsa/alsa-mixer.c:2462
 msgid "Front Microphone"
 msgstr "Predný mikrofón"
 
-#: ../src/modules/alsa/alsa-mixer.c:2401 ../src/modules/alsa/alsa-mixer.c:2479
+#: ../src/modules/alsa/alsa-mixer.c:2385 ../src/modules/alsa/alsa-mixer.c:2463
 msgid "Rear Microphone"
 msgstr "Zadný mikrofón"
 
-#: ../src/modules/alsa/alsa-mixer.c:2402
+#: ../src/modules/alsa/alsa-mixer.c:2386
 msgid "External Microphone"
 msgstr "Externý mikrofón"
 
-#: ../src/modules/alsa/alsa-mixer.c:2403 ../src/modules/alsa/alsa-mixer.c:2481
+#: ../src/modules/alsa/alsa-mixer.c:2387 ../src/modules/alsa/alsa-mixer.c:2465
 msgid "Internal Microphone"
 msgstr "Vstavaný mikrofón"
 
-#: ../src/modules/alsa/alsa-mixer.c:2404 ../src/modules/alsa/alsa-mixer.c:2484
+#: ../src/modules/alsa/alsa-mixer.c:2388 ../src/modules/alsa/alsa-mixer.c:2468
 msgid "Radio"
 msgstr "Rádio"
 
-#: ../src/modules/alsa/alsa-mixer.c:2405 ../src/modules/alsa/alsa-mixer.c:2485
+#: ../src/modules/alsa/alsa-mixer.c:2389 ../src/modules/alsa/alsa-mixer.c:2469
 msgid "Video"
 msgstr "Video"
 
-#: ../src/modules/alsa/alsa-mixer.c:2406
+#: ../src/modules/alsa/alsa-mixer.c:2390
 msgid "Automatic Gain Control"
 msgstr "Automatické ovládanie zosilnenia"
 
-#: ../src/modules/alsa/alsa-mixer.c:2407
+#: ../src/modules/alsa/alsa-mixer.c:2391
 msgid "No Automatic Gain Control"
 msgstr "Bez automatického ovládania zosilnenia"
 
-#: ../src/modules/alsa/alsa-mixer.c:2408
+#: ../src/modules/alsa/alsa-mixer.c:2392
 msgid "Boost"
 msgstr "Zosilnenie"
 
-#: ../src/modules/alsa/alsa-mixer.c:2409
+#: ../src/modules/alsa/alsa-mixer.c:2393
 msgid "No Boost"
 msgstr "Bez zosilnenia"
 
-#: ../src/modules/alsa/alsa-mixer.c:2410
+#: ../src/modules/alsa/alsa-mixer.c:2394
 msgid "Amplifier"
 msgstr "Zosilňovač"
 
-#: ../src/modules/alsa/alsa-mixer.c:2411
+#: ../src/modules/alsa/alsa-mixer.c:2395
 msgid "No Amplifier"
 msgstr "Bez zosilňovača"
 
-#: ../src/modules/alsa/alsa-mixer.c:2412
+#: ../src/modules/alsa/alsa-mixer.c:2396
 msgid "Bass Boost"
 msgstr "Zosilnenie basov"
 
-#: ../src/modules/alsa/alsa-mixer.c:2413
+#: ../src/modules/alsa/alsa-mixer.c:2397
 msgid "No Bass Boost"
 msgstr "Bez zosilnenia basov"
 
-#: ../src/modules/alsa/alsa-mixer.c:2414
-#: ../src/modules/bluetooth/module-bluez4-device.c:2107
+#: ../src/modules/alsa/alsa-mixer.c:2398
+#: ../src/modules/bluetooth/module-bluez4-device.c:2104
 #: ../src/modules/bluetooth/module-bluez5-device.c:1717
 msgid "Speaker"
 msgstr "Reproduktor"
 
-#: ../src/modules/alsa/alsa-mixer.c:2415 ../src/modules/alsa/alsa-mixer.c:2487
+#: ../src/modules/alsa/alsa-mixer.c:2399 ../src/modules/alsa/alsa-mixer.c:2471
 msgid "Headphones"
 msgstr "Slúchadlá"
 
-#: ../src/modules/alsa/alsa-mixer.c:2476
+#: ../src/modules/alsa/alsa-mixer.c:2460
 msgid "Analog Input"
 msgstr "Analógový vstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:2480
+#: ../src/modules/alsa/alsa-mixer.c:2464
 msgid "Dock Microphone"
 msgstr "Mikrofón doku"
 
-#: ../src/modules/alsa/alsa-mixer.c:2482
+#: ../src/modules/alsa/alsa-mixer.c:2466
 msgid "Headset Microphone"
 msgstr "Mikrofón headsetu"
 
-#: ../src/modules/alsa/alsa-mixer.c:2486
+#: ../src/modules/alsa/alsa-mixer.c:2470
 msgid "Analog Output"
 msgstr "Analógový výstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:2488
+#: ../src/modules/alsa/alsa-mixer.c:2472
 msgid "LFE on Separate Mono Output"
 msgstr "Kanál LFE na oddelenom mono výstupe"
 
-#: ../src/modules/alsa/alsa-mixer.c:2489
+#: ../src/modules/alsa/alsa-mixer.c:2473
 msgid "Line Out"
 msgstr "Výstupná linka"
 
-#: ../src/modules/alsa/alsa-mixer.c:2490
+#: ../src/modules/alsa/alsa-mixer.c:2474
 msgid "Analog Mono Output"
 msgstr "Analógový mono výstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:2491
+#: ../src/modules/alsa/alsa-mixer.c:2475
 msgid "Speakers"
 msgstr "Reproduktory"
 
-#: ../src/modules/alsa/alsa-mixer.c:2492
+#: ../src/modules/alsa/alsa-mixer.c:2476
 msgid "HDMI / DisplayPort"
 msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2493
+#: ../src/modules/alsa/alsa-mixer.c:2477
 msgid "Digital Output (S/PDIF)"
 msgstr "Digitálny výstup (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2494
+#: ../src/modules/alsa/alsa-mixer.c:2478
 msgid "Digital Input (S/PDIF)"
 msgstr "Digitálny vstup (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2495
+#: ../src/modules/alsa/alsa-mixer.c:2479
 msgid "Digital Passthrough (S/PDIF)"
 msgstr "Digitálny prechod (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2496
+#: ../src/modules/alsa/alsa-mixer.c:2480
 msgid "Multichannel Input"
 msgstr "Viackanálový vstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:2497
+#: ../src/modules/alsa/alsa-mixer.c:2481
 msgid "Multichannel Output"
 msgstr "Viackanálový výstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:4003
+#: ../src/modules/alsa/alsa-mixer.c:3990
 msgid "Analog Mono"
 msgstr "Analógový mono"
 
@@ -626,116 +631,116 @@ msgstr "Analógový mono"
 #. * here would lead to the source name to become "Analog Stereo Input
 #. * Input". The same logic applies to analog-stereo-output,
 #. * multichannel-input and multichannel-output.
-#: ../src/modules/alsa/alsa-mixer.c:4004 ../src/modules/alsa/alsa-mixer.c:4010
-#: ../src/modules/alsa/alsa-mixer.c:4011
+#: ../src/modules/alsa/alsa-mixer.c:3991 ../src/modules/alsa/alsa-mixer.c:3997
+#: ../src/modules/alsa/alsa-mixer.c:3998
 msgid "Analog Stereo"
 msgstr "Analógový stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:4012 ../src/modules/alsa/alsa-mixer.c:4013
+#: ../src/modules/alsa/alsa-mixer.c:3999 ../src/modules/alsa/alsa-mixer.c:4000
 msgid "Multichannel"
 msgstr "Viackanálový"
 
-#: ../src/modules/alsa/alsa-mixer.c:4014
+#: ../src/modules/alsa/alsa-mixer.c:4001
 msgid "Analog Surround 2.1"
 msgstr "Analógový priestorový 2.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4015
+#: ../src/modules/alsa/alsa-mixer.c:4002
 msgid "Analog Surround 3.0"
 msgstr "Analógový priestorový 3.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4016
+#: ../src/modules/alsa/alsa-mixer.c:4003
 msgid "Analog Surround 3.1"
 msgstr "Analógový priestorový 3.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4017
+#: ../src/modules/alsa/alsa-mixer.c:4004
 msgid "Analog Surround 4.0"
 msgstr "Analógový priestorový 4.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4018
+#: ../src/modules/alsa/alsa-mixer.c:4005
 msgid "Analog Surround 4.1"
 msgstr "Analógový priestorový 4.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4019
+#: ../src/modules/alsa/alsa-mixer.c:4006
 msgid "Analog Surround 5.0"
 msgstr "Analógový priestorový 5.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4020
+#: ../src/modules/alsa/alsa-mixer.c:4007
 msgid "Analog Surround 5.1"
 msgstr "Analógový priestorový 5.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4021
+#: ../src/modules/alsa/alsa-mixer.c:4008
 msgid "Analog Surround 6.0"
 msgstr "Analógový priestorový 6.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4022
+#: ../src/modules/alsa/alsa-mixer.c:4009
 msgid "Analog Surround 6.1"
 msgstr "Analógový priestorový 6.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4023
+#: ../src/modules/alsa/alsa-mixer.c:4010
 msgid "Analog Surround 7.0"
 msgstr "Analógový priestorový 7.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4024
+#: ../src/modules/alsa/alsa-mixer.c:4011
 msgid "Analog Surround 7.1"
 msgstr "Analógový priestorový 7.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4025
+#: ../src/modules/alsa/alsa-mixer.c:4012
 msgid "Digital Stereo (IEC958)"
 msgstr "Digitálne stereo (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4026
+#: ../src/modules/alsa/alsa-mixer.c:4013
 msgid "Digital Passthrough  (IEC958)"
 msgstr "Digitálny prechod  (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4027
+#: ../src/modules/alsa/alsa-mixer.c:4014
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Digitálny priestorový 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4028
+#: ../src/modules/alsa/alsa-mixer.c:4015
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Digitálny priestorový 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4029
+#: ../src/modules/alsa/alsa-mixer.c:4016
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr "Digitálny priestorový 5.1 (IEC958/DTS)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4030
+#: ../src/modules/alsa/alsa-mixer.c:4017
 msgid "Digital Stereo (HDMI)"
 msgstr "Digitálny stereo (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4031
+#: ../src/modules/alsa/alsa-mixer.c:4018
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr "Digitálny priestorový 5.1 (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4162
+#: ../src/modules/alsa/alsa-mixer.c:4151
 msgid "Analog Mono Duplex"
 msgstr "Obojsmerný analógový mono"
 
-#: ../src/modules/alsa/alsa-mixer.c:4163
+#: ../src/modules/alsa/alsa-mixer.c:4152
 msgid "Analog Stereo Duplex"
 msgstr "Obojsmerný analógový stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:4164
+#: ../src/modules/alsa/alsa-mixer.c:4153
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Obojsmerný digitálny stereo (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4165
+#: ../src/modules/alsa/alsa-mixer.c:4154
 msgid "Multichannel Duplex"
 msgstr "Obojsmerný viackanálový"
 
-#: ../src/modules/alsa/alsa-mixer.c:4166
-#: ../src/modules/alsa/module-alsa-card.c:184
-#: ../src/modules/bluetooth/module-bluez4-device.c:2298
+#: ../src/modules/alsa/alsa-mixer.c:4155
+#: ../src/modules/alsa/module-alsa-card.c:186
+#: ../src/modules/bluetooth/module-bluez4-device.c:2295
 #: ../src/modules/bluetooth/module-bluez5-device.c:1941
 msgid "Off"
 msgstr "Vypnuté"
 
-#: ../src/modules/alsa/alsa-mixer.c:4265
+#: ../src/modules/alsa/alsa-mixer.c:4254
 #, c-format
 msgid "%s Output"
 msgstr "%s výstup"
 
-#: ../src/modules/alsa/alsa-mixer.c:4273
+#: ../src/modules/alsa/alsa-mixer.c:4262
 #, c-format
 msgid "%s Input"
 msgstr "%s vstup"
@@ -784,7 +789,7 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1149 ../src/modules/alsa/alsa-util.c:1224
+#: ../src/modules/alsa/alsa-util.c:1166 ../src/modules/alsa/alsa-util.c:1241
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -793,7 +798,7 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1199
+#: ../src/modules/alsa/alsa-util.c:1216
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
@@ -802,7 +807,7 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1240
+#: ../src/modules/alsa/alsa-util.c:1257
 #, c-format
 msgid ""
 "snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
@@ -811,7 +816,7 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1283
+#: ../src/modules/alsa/alsa-util.c:1300
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -820,49 +825,49 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2092
+#: ../src/modules/bluetooth/module-bluez4-device.c:2089
 #: ../src/modules/bluetooth/module-bluez5-device.c:1700
 msgid "Headset"
 msgstr "Headset"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2097
+#: ../src/modules/bluetooth/module-bluez4-device.c:2094
 #: ../src/modules/bluetooth/module-bluez5-device.c:1705
 msgid "Handsfree"
 msgstr "Handsfree"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2112
+#: ../src/modules/bluetooth/module-bluez4-device.c:2109
 #: ../src/modules/bluetooth/module-bluez5-device.c:1723
 msgid "Headphone"
 msgstr "Slúchadlo"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2117
+#: ../src/modules/bluetooth/module-bluez4-device.c:2114
 #: ../src/modules/bluetooth/module-bluez5-device.c:1728
 msgid "Portable"
 msgstr "Prenosné"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2122
+#: ../src/modules/bluetooth/module-bluez4-device.c:2119
 #: ../src/modules/bluetooth/module-bluez5-device.c:1733
 msgid "Car"
 msgstr "Automobil"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2127
+#: ../src/modules/bluetooth/module-bluez4-device.c:2124
 #: ../src/modules/bluetooth/module-bluez5-device.c:1738
 msgid "HiFi"
 msgstr "HiFi"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2132
+#: ../src/modules/bluetooth/module-bluez4-device.c:2129
 #: ../src/modules/bluetooth/module-bluez5-device.c:1743
 msgid "Phone"
 msgstr "Telefón"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2140
+#: ../src/modules/bluetooth/module-bluez4-device.c:2137
 #: ../src/modules/bluetooth/module-bluez5-device.c:1695
 #: ../src/modules/bluetooth/module-bluez5-device.c:1711
 #: ../src/modules/bluetooth/module-bluez5-device.c:1749
 msgid "Bluetooth Output"
 msgstr "Výstup cez Bluetooth"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2143
+#: ../src/modules/bluetooth/module-bluez4-device.c:2140
 #: ../src/modules/bluetooth/module-bluez5-device.c:1694
 #: ../src/modules/bluetooth/module-bluez5-device.c:1716
 #: ../src/modules/bluetooth/module-bluez5-device.c:1722
@@ -870,21 +875,21 @@ msgstr "Výstup cez Bluetooth"
 msgid "Bluetooth Input"
 msgstr "Vstup cez Bluetooth"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2179
+#: ../src/modules/bluetooth/module-bluez4-device.c:2176
 msgid "High Fidelity Playback (A2DP)"
-msgstr ""
+msgstr "Hi-Fi prehrávanie (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2190
+#: ../src/modules/bluetooth/module-bluez4-device.c:2187
 msgid "High Fidelity Capture (A2DP)"
-msgstr ""
+msgstr "Hi-Fi zaznamenávanie (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2201
+#: ../src/modules/bluetooth/module-bluez4-device.c:2198
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2213
+#: ../src/modules/bluetooth/module-bluez4-device.c:2210
 msgid "Handsfree Gateway"
-msgstr ""
+msgstr "Brána pre handsfree"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1786
 msgid "High Fidelity Playback (A2DP Sink)"
@@ -900,7 +905,7 @@ msgstr ""
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1820
 msgid "Headset Audio Gateway (HSP/HFP)"
-msgstr ""
+msgstr "Brána zvuku pre handsfree (HSP/HFP)"
 
 #: ../src/modules/echo-cancel/module-echo-cancel.c:61
 msgid ""
@@ -912,21 +917,23 @@ msgid ""
 "rate> channels=<number of channels> channel_map=<channel map> "
 "aec_method=<implementation to use> aec_args=<parameters for the AEC engine> "
 "save_aec=<save AEC data in /tmp> autoloaded=<set if this module is being "
-"loaded automatically> use_volume_sharing=<yes or no> "
+"loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes "
+"or no> "
 msgstr ""
 
 #. add on profile
-#: ../src/modules/macosx/module-coreaudio-device.c:755
+#: ../src/modules/macosx/module-coreaudio-device.c:811
 msgid "On"
 msgstr "Zapnutý"
+
+#: ../src/modules/module-allow-passthrough.c:73
+#: ../src/modules/module-always-sink.c:82
+msgid "Dummy Output"
+msgstr "Fiktívny výstup"
 
 #: ../src/modules/module-always-sink.c:36
 msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr ""
-
-#: ../src/modules/module-always-sink.c:83
-msgid "Dummy Output"
-msgstr "Fiktívny výstup"
 
 #: ../src/modules/module-equalizer-sink.c:70
 msgid "General Purpose Equalizer"
@@ -940,7 +947,7 @@ msgid ""
 "this module is being loaded automatically> use_volume_sharing=<yes or no> "
 msgstr ""
 
-#: ../src/modules/module-filter-apply.c:46
+#: ../src/modules/module-filter-apply.c:47
 msgid "autoclean=<automatically unload unused filters?>"
 msgstr ""
 
@@ -963,7 +970,7 @@ msgstr ""
 msgid "Clocked NULL sink"
 msgstr ""
 
-#: ../src/modules/module-null-sink.c:278
+#: ../src/modules/module-null-sink.c:280
 msgid "Null Output"
 msgstr "Prázdny výstup"
 
@@ -981,7 +988,7 @@ msgstr "Vstupné zariadenia"
 
 #: ../src/modules/module-rygel-media-server.c:1063
 msgid "Audio on @HOSTNAME@"
-msgstr "Audio na @HOSTNAME@"
+msgstr "Zvuk na @HOSTNAME@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
@@ -1014,7 +1021,7 @@ msgstr ""
 msgid "PulseAudio Sound Server"
 msgstr "Zvukový server PulseAudio"
 
-#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:758
+#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:771
 msgid "Mono"
 msgstr "Mono"
 
@@ -1226,27 +1233,27 @@ msgstr "Horný zadný pravý"
 msgid "(invalid)"
 msgstr "(neplatné)"
 
-#: ../src/pulse/channelmap.c:762
+#: ../src/pulse/channelmap.c:775
 msgid "Stereo"
 msgstr "Stereo"
 
-#: ../src/pulse/channelmap.c:767
+#: ../src/pulse/channelmap.c:780
 msgid "Surround 4.0"
 msgstr "Priestorový 4.0"
 
-#: ../src/pulse/channelmap.c:773
+#: ../src/pulse/channelmap.c:786
 msgid "Surround 4.1"
 msgstr "Priestorový 4.1"
 
-#: ../src/pulse/channelmap.c:779
+#: ../src/pulse/channelmap.c:792
 msgid "Surround 5.0"
 msgstr "Priestorový 5.0"
 
-#: ../src/pulse/channelmap.c:785
+#: ../src/pulse/channelmap.c:798
 msgid "Surround 5.1"
 msgstr "Priestorový 5.1"
 
-#: ../src/pulse/channelmap.c:792
+#: ../src/pulse/channelmap.c:805
 msgid "Surround 7.1"
 msgstr "Priestorový 7.1"
 
@@ -1262,20 +1269,20 @@ msgstr ""
 msgid "Failed to parse cookie data"
 msgstr ""
 
-#: ../src/pulse/context.c:656
+#: ../src/pulse/context.c:702
 #, c-format
 msgid "fork(): %s"
 msgstr ""
 
-#: ../src/pulse/context.c:711
+#: ../src/pulse/context.c:757
 #, c-format
 msgid "waitpid(): %s"
 msgstr ""
 
-#: ../src/pulse/context.c:1417
+#: ../src/pulse/context.c:1463
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr ""
+msgstr "Prijatá správa pre neznáme rozšírenie „%s“"
 
 #: ../src/pulse/direction.c:37
 msgid "input"
@@ -1293,7 +1300,7 @@ msgstr "obojsmerný"
 msgid "invalid"
 msgstr "neplatný"
 
-#: ../src/pulsecore/core-util.c:1833
+#: ../src/pulsecore/core-util.c:1836
 #, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
@@ -1313,26 +1320,26 @@ msgstr "nie"
 msgid "Cannot access autospawn lock."
 msgstr ""
 
-#: ../src/pulsecore/log.c:153
+#: ../src/pulsecore/log.c:165
 #, c-format
 msgid "Failed to open target file '%s'."
-msgstr ""
+msgstr "Zlyhalo otvorenie cieľového súboru „%s“."
 
-#: ../src/pulsecore/log.c:176
+#: ../src/pulsecore/log.c:188
 #, c-format
 msgid ""
 "Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
 msgstr ""
 
-#: ../src/pulsecore/log.c:631
+#: ../src/pulsecore/log.c:651
 msgid "Invalid log target."
 msgstr "Neplatný cieľ záznamu."
 
-#: ../src/pulsecore/sink.c:3436
+#: ../src/pulsecore/sink.c:3459
 msgid "Built-in Audio"
-msgstr "Vstavané audio"
+msgstr "Vstavaný zvuk"
 
-#: ../src/pulsecore/sink.c:3441
+#: ../src/pulsecore/sink.c:3464
 msgid "Modem"
 msgstr "Modem"
 
@@ -1354,15 +1361,15 @@ msgstr "Neplatný parameter"
 
 #: ../src/pulse/error.c:42
 msgid "Entity exists"
-msgstr ""
+msgstr "Entita existuje"
 
 #: ../src/pulse/error.c:43
 msgid "No such entity"
-msgstr ""
+msgstr "Entita neexistuje"
 
 #: ../src/pulse/error.c:44
 msgid "Connection refused"
-msgstr ""
+msgstr "Pripojenie odmietnuté"
 
 #: ../src/pulse/error.c:45
 msgid "Protocol error"
@@ -1386,7 +1393,7 @@ msgstr "Pripojenie prerušené"
 
 #: ../src/pulse/error.c:50
 msgid "Entity killed"
-msgstr ""
+msgstr "Entita zabitá"
 
 #: ../src/pulse/error.c:51
 msgid "Invalid server"
@@ -1469,41 +1476,6 @@ msgstr "%0.1f KiB"
 msgid "%u B"
 msgstr "%u B"
 
-#: ../src/tests/resampler-test.c:255
-#, c-format
-msgid ""
-"%s [options]\n"
-"\n"
-"-h, --help                            Show this help\n"
-"-v, --verbose                         Print debug messages\n"
-"      --from-rate=SAMPLERATE          From sample rate in Hz (defaults to "
-"44100)\n"
-"      --from-format=SAMPLEFORMAT      From sample type (defaults to s16le)\n"
-"      --from-channels=CHANNELS        From number of channels (defaults to "
-"1)\n"
-"      --to-rate=SAMPLERATE            To sample rate in Hz (defaults to "
-"44100)\n"
-"      --to-format=SAMPLEFORMAT        To sample type (defaults to s16le)\n"
-"      --to-channels=CHANNELS          To number of channels (defaults to 1)\n"
-"      --resample-method=METHOD        Resample method (defaults to auto)\n"
-"      --seconds=SECONDS               From stream duration (defaults to 60)\n"
-"\n"
-"If the formats are not specified, the test performs all formats "
-"combinations,\n"
-"back and forth.\n"
-"\n"
-"Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, "
-"alaw,\n"
-"s24le, s24be, s24-32le, s24-32be, s32le, s32be (defaults to s16ne)\n"
-"\n"
-"See --dump-resample-methods for possible values of resample methods.\n"
-msgstr ""
-
-#: ../src/tests/resampler-test.c:353
-#, c-format
-msgid "%s %s\n"
-msgstr "%s %s\n"
-
 #: ../src/utils/pacat.c:117
 #, c-format
 msgid "Failed to drain stream: %s"
@@ -1584,17 +1556,17 @@ msgstr ""
 #: ../src/utils/pacat.c:388
 #, c-format
 msgid "Stream underrun.%s"
-msgstr ""
+msgstr "Podtečenie prúdu.%s"
 
 #: ../src/utils/pacat.c:395
 #, c-format
 msgid "Stream overrun.%s"
-msgstr ""
+msgstr "Pretečenie prúdu.%s"
 
 #: ../src/utils/pacat.c:402
 #, c-format
 msgid "Stream started.%s"
-msgstr ""
+msgstr "Spustenie prúdu.%s"
 
 #: ../src/utils/pacat.c:409
 #, c-format
@@ -1625,7 +1597,7 @@ msgstr ""
 #: ../src/utils/pacat.c:466
 #, c-format
 msgid "Connection established.%s"
-msgstr ""
+msgstr "Spojenie nadviazané.%s"
 
 #: ../src/utils/pacat.c:469
 #, c-format
@@ -1840,7 +1812,7 @@ msgstr "Zlyhalo generovanie špecifikácie vzoriek pre súbor."
 
 #: ../src/utils/pacat.c:1065
 msgid "Failed to open audio file."
-msgstr "Zlyhalo otvorenie audio súboru."
+msgstr "Zlyhalo otvorenie zvukového súboru."
 
 #: ../src/utils/pacat.c:1071
 msgid ""
@@ -2455,11 +2427,11 @@ msgstr "Neplatná špecifikácia hlasitosti"
 
 #: ../src/utils/pactl.c:1508
 msgid "Volume outside permissible range.\n"
-msgstr ""
+msgstr "Hlasitosť mimo povoleného rozsahu.\n"
 
 #: ../src/utils/pactl.c:1521
 msgid "Invalid number of volume specifications.\n"
-msgstr ""
+msgstr "Neplatný počet špecifikácií hlasitosti.\n"
 
 #: ../src/utils/pactl.c:1533
 msgid "Inconsistent volume specification.\n"
@@ -2693,7 +2665,7 @@ msgstr "Musíte určiť názov/číslo karty, názov portu a posunutie oneskoren
 
 #: ../src/utils/pactl.c:2045
 msgid "Could not parse latency offset"
-msgstr ""
+msgstr "Nepodarilo sa analyzovať posun oneskorenia"
 
 #: ../src/utils/pactl.c:2057
 msgid "No valid command specified."
@@ -2732,12 +2704,12 @@ msgstr "Zlyhanie pripojenia: %s\n"
 #: ../src/utils/pasuspender.c:201
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr ""
+msgstr "Získaný signál SIGINT, ukončuje sa.\n"
 
 #: ../src/utils/pasuspender.c:219
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
+msgstr "UPOZORNENIE: Podradený proces bol ukončený signálom %u\n"
 
 #: ../src/utils/pasuspender.c:228
 #, c-format
@@ -2841,3 +2813,6 @@ msgstr "Zlyhalo načítanie údajov súboru cookie\n"
 #, c-format
 msgid "Not yet implemented.\n"
 msgstr "Zatiaľ nie je implementované.\n"
+
+#~ msgid "%s %s\n"
+#~ msgstr "%s %s\n"
