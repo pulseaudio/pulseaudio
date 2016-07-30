@@ -2162,18 +2162,23 @@ static void create_card_ports(struct userdata *u, pa_hashmap *ports) {
 }
 
 /* Run from main thread */
-static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid, pa_hashmap *ports) {
+static pa_card_profile *create_card_profile(struct userdata *u, pa_bluez4_profile_t profile, pa_hashmap *ports) {
     pa_device_port *input_port, *output_port;
+    const char *name;
     pa_card_profile *p = NULL;
-    pa_bluez4_profile_t *d;
+    pa_bluez4_profile_t *d = NULL;
+    pa_bluez4_transport *t;
 
     pa_assert(u->input_port_name);
     pa_assert(u->output_port_name);
     pa_assert_se(input_port = pa_hashmap_get(ports, u->input_port_name));
     pa_assert_se(output_port = pa_hashmap_get(ports, u->output_port_name));
 
-    if (pa_streq(uuid, PA_BLUEZ4_UUID_A2DP_SINK)) {
-        p = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP)"), sizeof(pa_bluez4_profile_t));
+    name = pa_bluez4_profile_to_string(profile);
+
+    switch (profile) {
+    case PA_BLUEZ4_PROFILE_A2DP_SINK:
+        p = pa_card_profile_new(name, _("High Fidelity Playback (A2DP)"), sizeof(pa_bluez4_profile_t));
         p->priority = 10;
         p->n_sinks = 1;
         p->n_sources = 0;
@@ -2182,9 +2187,10 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         pa_hashmap_put(output_port->profiles, p->name, p);
 
         d = PA_CARD_PROFILE_DATA(p);
-        *d = PA_BLUEZ4_PROFILE_A2DP_SINK;
-    } else if (pa_streq(uuid, PA_BLUEZ4_UUID_A2DP_SOURCE)) {
-        p = pa_card_profile_new("a2dp_source", _("High Fidelity Capture (A2DP)"), sizeof(pa_bluez4_profile_t));
+        break;
+
+    case PA_BLUEZ4_PROFILE_A2DP_SOURCE:
+        p = pa_card_profile_new(name, _("High Fidelity Capture (A2DP)"), sizeof(pa_bluez4_profile_t));
         p->priority = 10;
         p->n_sinks = 0;
         p->n_sources = 1;
@@ -2193,9 +2199,10 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         pa_hashmap_put(input_port->profiles, p->name, p);
 
         d = PA_CARD_PROFILE_DATA(p);
-        *d = PA_BLUEZ4_PROFILE_A2DP_SOURCE;
-    } else if (pa_streq(uuid, PA_BLUEZ4_UUID_HSP_HS) || pa_streq(uuid, PA_BLUEZ4_UUID_HFP_HF)) {
-        p = pa_card_profile_new("hsp", _("Telephony Duplex (HSP/HFP)"), sizeof(pa_bluez4_profile_t));
+        break;
+
+    case PA_BLUEZ4_PROFILE_HEADSET_HEAD_UNIT:
+        p = pa_card_profile_new(name, _("Telephony Duplex (HSP/HFP)"), sizeof(pa_bluez4_profile_t));
         p->priority = 20;
         p->n_sinks = 1;
         p->n_sources = 1;
@@ -2205,9 +2212,10 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         pa_hashmap_put(output_port->profiles, p->name, p);
 
         d = PA_CARD_PROFILE_DATA(p);
-        *d = PA_BLUEZ4_PROFILE_HEADSET_HEAD_UNIT;
-    } else if (pa_streq(uuid, PA_BLUEZ4_UUID_HFP_AG)) {
-        p = pa_card_profile_new("hfgw", _("Handsfree Gateway"), sizeof(pa_bluez4_profile_t));
+        break;
+
+    case PA_BLUEZ4_PROFILE_HEADSET_AUDIO_GATEWAY:
+        p = pa_card_profile_new(name, _("Handsfree Gateway"), sizeof(pa_bluez4_profile_t));
         p->priority = 20;
         p->n_sinks = 1;
         p->n_sources = 1;
@@ -2217,17 +2225,33 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
         pa_hashmap_put(output_port->profiles, p->name, p);
 
         d = PA_CARD_PROFILE_DATA(p);
-        *d = PA_BLUEZ4_PROFILE_HEADSET_AUDIO_GATEWAY;
+        break;
+
+    case PA_BLUEZ4_PROFILE_OFF:
+        pa_assert_not_reached();
     }
 
-    if (p) {
-        pa_bluez4_transport *t;
+    *d = profile;
 
-        if ((t = u->device->transports[*d]))
-            p->available = transport_state_to_availability(t->state);
-    }
+    if ((t = u->device->transports[*d]))
+        p->available = transport_state_to_availability(t->state);
 
     return p;
+}
+
+static int uuid_to_profile(const char *uuid, pa_bluez4_profile_t *_r) {
+    if (pa_streq(uuid, PA_BLUEZ4_UUID_A2DP_SINK))
+        *_r = PA_BLUEZ4_PROFILE_A2DP_SINK;
+    else if (pa_streq(uuid, PA_BLUEZ4_UUID_A2DP_SOURCE))
+        *_r = PA_BLUEZ4_PROFILE_A2DP_SOURCE;
+    else if (pa_streq(uuid, PA_BLUEZ4_UUID_HSP_HS) || pa_streq(uuid, PA_BLUEZ4_UUID_HFP_HF))
+        *_r = PA_BLUEZ4_PROFILE_HEADSET_HEAD_UNIT;
+    else if (pa_streq(uuid, PA_BLUEZ4_UUID_HSP_AG) || pa_streq(uuid, PA_BLUEZ4_UUID_HFP_AG))
+        *_r = PA_BLUEZ4_PROFILE_HEADSET_AUDIO_GATEWAY;
+    else
+        return -PA_ERR_INVALID;
+
+    return 0;
 }
 
 /* Run from main thread */
@@ -2278,16 +2302,15 @@ static int add_card(struct userdata *u) {
     create_card_ports(u, data.ports);
 
     PA_HASHMAP_FOREACH(uuid, device->uuids, state) {
-        p = create_card_profile(u, uuid, data.ports);
+        pa_bluez4_profile_t profile;
 
-        if (!p)
+        if (uuid_to_profile(uuid, &profile) < 0)
             continue;
 
-        if (pa_hashmap_get(data.profiles, p->name)) {
-            pa_card_profile_free(p);
+        if (pa_hashmap_get(data.profiles, pa_bluez4_profile_to_string(profile)))
             continue;
-        }
 
+        p = create_card_profile(u, profile, data.ports);
         pa_hashmap_put(data.profiles, p->name, p);
     }
 
@@ -2387,6 +2410,7 @@ static pa_bluez4_device* find_device(struct userdata *u, const char *address, co
 /* Run from main thread */
 static pa_hook_result_t uuid_added_cb(pa_bluez4_discovery *y, const struct pa_bluez4_hook_uuid_data *data,
                                       struct userdata *u) {
+    pa_bluez4_profile_t profile;
     pa_card_profile *p;
 
     pa_assert(data);
@@ -2397,16 +2421,13 @@ static pa_hook_result_t uuid_added_cb(pa_bluez4_discovery *y, const struct pa_bl
     if (data->device != u->device)
         return PA_HOOK_OK;
 
-    p = create_card_profile(u, data->uuid, u->card->ports);
-
-    if (!p)
+    if (uuid_to_profile(data->uuid, &profile) < 0)
         return PA_HOOK_OK;
 
-    if (pa_hashmap_get(u->card->profiles, p->name)) {
-        pa_card_profile_free(p);
+    if (pa_hashmap_get(u->card->profiles, pa_bluez4_profile_to_string(profile)))
         return PA_HOOK_OK;
-    }
 
+    p = create_card_profile(u, profile, u->card->ports);
     pa_card_add_profile(u->card, p);
 
     return PA_HOOK_OK;
