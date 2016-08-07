@@ -732,8 +732,8 @@ static void parse_device_property(pa_bluetooth_device *d, DBusMessageIter *i) {
             dbus_message_iter_recurse(&variant_i, &ai);
 
             if (dbus_message_iter_get_arg_type(&ai) == DBUS_TYPE_STRING && pa_streq(key, "UUIDs")) {
-                /* bluetoothd never removes UUIDs from a device object so there
-                 * is no need to handle it here. */
+                /* bluetoothd never removes UUIDs from a device object so we
+                 * don't need to check for disappeared UUIDs here. */
                 while (dbus_message_iter_get_arg_type(&ai) != DBUS_TYPE_INVALID) {
                     const char *value;
                     char *uuid;

@@ -2172,7 +2172,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
     pa_assert_se(input_port = pa_hashmap_get(ports, u->input_port_name));
     pa_assert_se(output_port = pa_hashmap_get(ports, u->output_port_name));
 
-    if (pa_streq(uuid, A2DP_SINK_UUID)) {
+    if (pa_streq(uuid, PA_BLUEZ4_UUID_A2DP_SINK)) {
         p = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP)"), sizeof(pa_bluez4_profile_t));
         p->priority = 10;
         p->n_sinks = 1;
@@ -2183,7 +2183,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PA_BLUEZ4_PROFILE_A2DP;
-    } else if (pa_streq(uuid, A2DP_SOURCE_UUID)) {
+    } else if (pa_streq(uuid, PA_BLUEZ4_UUID_A2DP_SOURCE)) {
         p = pa_card_profile_new("a2dp_source", _("High Fidelity Capture (A2DP)"), sizeof(pa_bluez4_profile_t));
         p->priority = 10;
         p->n_sinks = 0;
@@ -2194,7 +2194,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PA_BLUEZ4_PROFILE_A2DP_SOURCE;
-    } else if (pa_streq(uuid, HSP_HS_UUID) || pa_streq(uuid, HFP_HS_UUID)) {
+    } else if (pa_streq(uuid, PA_BLUEZ4_UUID_HSP_HS) || pa_streq(uuid, PA_BLUEZ4_UUID_HFP_HF)) {
         p = pa_card_profile_new("hsp", _("Telephony Duplex (HSP/HFP)"), sizeof(pa_bluez4_profile_t));
         p->priority = 20;
         p->n_sinks = 1;
@@ -2206,7 +2206,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, const char *uuid
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PA_BLUEZ4_PROFILE_HSP;
-    } else if (pa_streq(uuid, HFP_AG_UUID)) {
+    } else if (pa_streq(uuid, PA_BLUEZ4_UUID_HFP_AG)) {
         p = pa_card_profile_new("hfgw", _("Handsfree Gateway"), sizeof(pa_bluez4_profile_t));
         p->priority = 20;
         p->n_sinks = 1;
@@ -2240,7 +2240,8 @@ static int add_card(struct userdata *u) {
     char *n;
     const char *profile_str;
     const pa_bluez4_device *device;
-    const pa_bluez4_uuid *uuid;
+    const char *uuid;
+    void *state;
 
     pa_assert(u);
     pa_assert(u->device);
@@ -2276,8 +2277,8 @@ static int add_card(struct userdata *u) {
 
     create_card_ports(u, data.ports);
 
-    PA_LLIST_FOREACH(uuid, device->uuids) {
-        p = create_card_profile(u, uuid->uuid, data.ports);
+    PA_HASHMAP_FOREACH(uuid, device->uuids, state) {
+        p = create_card_profile(u, uuid, data.ports);
 
         if (!p)
             continue;

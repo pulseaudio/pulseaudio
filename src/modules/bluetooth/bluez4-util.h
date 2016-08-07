@@ -27,33 +27,20 @@
 
 #define PA_BLUEZ4_ERROR_NOT_SUPPORTED "org.bluez.Error.NotSupported"
 
-/* UUID copied from bluez/audio/device.h */
-#define GENERIC_AUDIO_UUID      "00001203-0000-1000-8000-00805f9b34fb"
-
-#define HSP_HS_UUID             "00001108-0000-1000-8000-00805f9b34fb"
-#define HSP_AG_UUID             "00001112-0000-1000-8000-00805f9b34fb"
-
-#define HFP_HS_UUID             "0000111e-0000-1000-8000-00805f9b34fb"
-#define HFP_AG_UUID             "0000111f-0000-1000-8000-00805f9b34fb"
-
-#define ADVANCED_AUDIO_UUID     "0000110d-0000-1000-8000-00805f9b34fb"
-
-#define A2DP_SOURCE_UUID        "0000110a-0000-1000-8000-00805f9b34fb"
-#define A2DP_SINK_UUID          "0000110b-0000-1000-8000-00805f9b34fb"
+#define PA_BLUEZ4_UUID_A2DP_SOURCE "0000110a-0000-1000-8000-00805f9b34fb"
+#define PA_BLUEZ4_UUID_A2DP_SINK   "0000110b-0000-1000-8000-00805f9b34fb"
+#define PA_BLUEZ4_UUID_HSP_HS      "00001108-0000-1000-8000-00805f9b34fb"
+#define PA_BLUEZ4_UUID_HSP_AG      "00001112-0000-1000-8000-00805f9b34fb"
+#define PA_BLUEZ4_UUID_HFP_HF      "0000111e-0000-1000-8000-00805f9b34fb"
+#define PA_BLUEZ4_UUID_HFP_AG      "0000111f-0000-1000-8000-00805f9b34fb"
 
 #define HSP_MAX_GAIN 15
 
-typedef struct pa_bluez4_uuid pa_bluez4_uuid;
 typedef struct pa_bluez4_device pa_bluez4_device;
 typedef struct pa_bluez4_discovery pa_bluez4_discovery;
 typedef struct pa_bluez4_transport pa_bluez4_transport;
 
 struct userdata;
-
-struct pa_bluez4_uuid {
-    char *uuid;
-    PA_LLIST_FIELDS(pa_bluez4_uuid);
-};
 
 typedef enum pa_bluez4_profile {
     PA_BLUEZ4_PROFILE_A2DP,
@@ -123,9 +110,9 @@ struct pa_bluez4_device {
     pa_bluez4_transport *transports[PA_BLUEZ4_PROFILE_COUNT];
     int paired;
     char *alias;
-    PA_LLIST_HEAD(pa_bluez4_uuid, uuids);
     char *address;
     int class;
+    pa_hashmap *uuids; /* char* -> char* (hashmap-as-a-set) */
     int trusted;
 
     /* Audio state */
@@ -170,7 +157,6 @@ const char *pa_bluez4_form_factor_to_string(pa_bluez4_form_factor_t ff);
 
 char *pa_bluez4_cleanup_name(const char *name);
 
-bool pa_bluez4_uuid_has(pa_bluez4_uuid *uuids, const char *uuid);
 const char *pa_bluez4_profile_to_string(pa_bluez4_profile_t profile);
 
 #endif
