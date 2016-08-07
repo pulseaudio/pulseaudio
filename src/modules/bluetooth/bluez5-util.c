@@ -773,6 +773,7 @@ static void parse_device_properties(pa_bluetooth_device *d, DBusMessageIter *i) 
 
     if (!d->properties_received) {
         d->properties_received = true;
+        device_update_valid(d);
 
         if (!d->address || !d->adapter_path || !d->alias)
             pa_log_error("Non-optional information missing for device %s", d->path);
