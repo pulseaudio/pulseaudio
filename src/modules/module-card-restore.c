@@ -479,36 +479,6 @@ static pa_hook_result_t card_profile_added_callback(pa_core *c, pa_card_profile 
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t profile_available_changed_callback(void *hook_data, void *call_data, void *userdata) {
-    pa_card_profile *profile = call_data;
-    pa_card *card;
-    struct userdata *u = userdata;
-    struct entry *entry;
-
-    pa_assert(profile);
-    pa_assert(u);
-
-    card = profile->card;
-
-    if (profile->available == PA_AVAILABLE_NO)
-        return PA_HOOK_OK;
-
-    entry = entry_read(u, card->name);
-    if (!entry)
-        return PA_HOOK_OK;
-
-    if (!pa_streq(profile->name, entry->profile)) {
-        entry_free(entry);
-        return PA_HOOK_OK;
-    }
-
-    pa_log_info("Card %s profile %s became available, activating.", card->name, profile->name);
-    pa_card_set_profile(profile->card, profile, true);
-
-    entry_free(entry);
-    return PA_HOOK_OK;
-}
-
 static pa_hook_result_t port_offset_change_callback(pa_core *c, pa_device_port *port, struct userdata *u) {
     struct entry *entry;
     pa_card *card;
@@ -654,8 +624,6 @@ int pa__init(pa_module*m) {
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PREFERRED_PORT_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) card_preferred_port_changed_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) card_profile_changed_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_ADDED], PA_HOOK_NORMAL, (pa_hook_cb_t) card_profile_added_callback, u);
-    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_AVAILABLE_CHANGED],
-                                                             PA_HOOK_NORMAL, profile_available_changed_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_PORT_LATENCY_OFFSET_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) port_offset_change_callback, u);
 
     if (!(fname = pa_state_path("card-database", true)))
