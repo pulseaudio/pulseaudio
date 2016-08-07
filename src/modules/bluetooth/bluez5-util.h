@@ -105,6 +105,8 @@ struct pa_bluetooth_device {
     pa_hashmap *uuids;
 
     pa_bluetooth_transport *transports[PA_BLUETOOTH_PROFILE_COUNT];
+
+    pa_time_event *wait_for_profiles_timer;
 };
 
 struct pa_bluetooth_adapter {

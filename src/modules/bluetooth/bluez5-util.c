@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <pulse/rtclock.h>
+#include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core.h>
@@ -34,6 +36,8 @@
 #include "a2dp-codecs.h"
 
 #include "bluez5-util.h"
+
+#define WAIT_FOR_PROFILES_TIMEOUT_USEC (3 * PA_USEC_PER_SEC)
 
 #define BLUEZ_SERVICE "org.bluez"
 #define BLUEZ_ADAPTER_INTERFACE BLUEZ_SERVICE ".Adapter1"
@@ -164,6 +168,95 @@ static const char *transport_state_to_string(pa_bluetooth_transport_state_t stat
     return "invalid";
 }
 
+static bool device_supports_profile(pa_bluetooth_device *device, pa_bluetooth_profile_t profile) {
+    switch (profile) {
+        case PA_BLUETOOTH_PROFILE_A2DP_SINK:
+            return !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_A2DP_SINK);
+        case PA_BLUETOOTH_PROFILE_A2DP_SOURCE:
+            return !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_A2DP_SOURCE);
+        case PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT:
+            return !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HSP_HS)
+                || !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HFP_HF);
+        case PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY:
+            return !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HSP_AG)
+                || !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HFP_AG);
+        case PA_BLUETOOTH_PROFILE_OFF:
+            pa_assert_not_reached();
+    }
+
+    pa_assert_not_reached();
+}
+
+static bool device_is_profile_connected(pa_bluetooth_device *device, pa_bluetooth_profile_t profile) {
+    if (device->transports[profile] && device->transports[profile]->state != PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
+        return true;
+    else
+        return false;
+}
+
+static unsigned device_count_disconnected_profiles(pa_bluetooth_device *device) {
+    pa_bluetooth_profile_t profile;
+    unsigned count = 0;
+
+    for (profile = 0; profile < PA_BLUETOOTH_PROFILE_COUNT; profile++) {
+        if (!device_supports_profile(device, profile))
+            continue;
+
+        if (!device_is_profile_connected(device, profile))
+            count++;
+    }
+
+    return count;
+}
+
+static void device_stop_waiting_for_profiles(pa_bluetooth_device *device) {
+    if (!device->wait_for_profiles_timer)
+        return;
+
+    device->discovery->core->mainloop->time_free(device->wait_for_profiles_timer);
+    device->wait_for_profiles_timer = NULL;
+}
+
+static void wait_for_profiles_cb(pa_mainloop_api *api, pa_time_event* event, const struct timeval *tv, void *userdata) {
+    pa_bluetooth_device *device = userdata;
+    pa_strbuf *buf;
+    pa_bluetooth_profile_t profile;
+    bool first = true;
+    char *profiles_str;
+
+    device_stop_waiting_for_profiles(device);
+
+    buf = pa_strbuf_new();
+
+    for (profile = 0; profile < PA_BLUETOOTH_PROFILE_COUNT; profile++) {
+        if (device_is_profile_connected(device, profile))
+            continue;
+
+        if (!device_supports_profile(device, profile))
+            continue;
+
+        if (first)
+            first = false;
+        else
+            pa_strbuf_puts(buf, ", ");
+
+        pa_strbuf_puts(buf, pa_bluetooth_profile_to_string(profile));
+    }
+
+    profiles_str = pa_strbuf_to_string_free(buf);
+    pa_log_debug("Timeout expired, and device %s still has disconnected profiles: %s",
+                 device->path, profiles_str);
+    pa_xfree(profiles_str);
+    pa_hook_fire(&device->discovery->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED], device);
+}
+
+static void device_start_waiting_for_profiles(pa_bluetooth_device *device) {
+    pa_assert(!device->wait_for_profiles_timer);
+    device->wait_for_profiles_timer = pa_core_rttime_new(device->discovery->core,
+                                                         pa_rtclock_now() + WAIT_FOR_PROFILES_TIMEOUT_USEC,
+                                                         wait_for_profiles_cb, device);
+}
+
 void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_transport_state_t state) {
     bool old_any_connected;
 
@@ -181,8 +274,27 @@ void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_tr
 
     pa_hook_fire(&t->device->discovery->hooks[PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED], t);
 
-    if (old_any_connected != pa_bluetooth_device_any_transport_connected(t->device))
-        pa_hook_fire(&t->device->discovery->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED], t->device);
+    if (old_any_connected != pa_bluetooth_device_any_transport_connected(t->device)) {
+        unsigned n_disconnected_profiles;
+
+        /* If there are profiles that are expected to get connected soon (based
+         * on the UUID list), we wait for a bit before announcing the new
+         * device, so that all profiles have time to get connected before the
+         * card object is created. If we didn't wait, the card would always
+         * have only one profile marked as available in the initial state,
+         * which would prevent module-card-restore from restoring the initial
+         * profile properly. */
+
+        n_disconnected_profiles = device_count_disconnected_profiles(t->device);
+
+        if (n_disconnected_profiles == 0)
+            device_stop_waiting_for_profiles(t->device);
+
+        if (!old_any_connected && n_disconnected_profiles > 0)
+            device_start_waiting_for_profiles(t->device);
+        else
+            pa_hook_fire(&t->device->discovery->hooks[PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED], t->device);
+    }
 }
 
 void pa_bluetooth_transport_put(pa_bluetooth_transport *t) {
@@ -415,6 +527,8 @@ static void device_free(pa_bluetooth_device *d) {
     unsigned i;
 
     pa_assert(d);
+
+    device_stop_waiting_for_profiles(d);
 
     for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++) {
         pa_bluetooth_transport *t;
