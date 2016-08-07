@@ -351,7 +351,7 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
 
     p = PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT;
     pathfd = pa_sprintf_malloc ("%s/fd%d", path, fd);
-    d->transports[p] = t = pa_bluetooth_transport_new(d, sender, pathfd, p, NULL, 0);
+    t = pa_bluetooth_transport_new(d, sender, pathfd, p, NULL, 0);
     pa_xfree(pathfd);
 
     t->acquire = bluez5_sco_acquire_cb;
