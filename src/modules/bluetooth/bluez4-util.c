@@ -77,6 +77,7 @@ static pa_dbus_pending* send_and_add_to_pending(pa_bluez4_discovery *y, DBusMess
                                                 void *call_data);
 static void found_adapter(pa_bluez4_discovery *y, const char *path);
 static pa_bluez4_device *found_device(pa_bluez4_discovery *y, const char* path);
+static void transport_set_state(pa_bluez4_transport *transport, pa_bluez4_transport_state_t state);
 
 static pa_bluez4_audio_state_t audio_state_from_string(const char* value) {
     pa_assert(value);
@@ -198,8 +199,7 @@ static void device_free(pa_bluez4_device *d) {
 
         d->transports[i] = NULL;
         pa_hashmap_remove(d->discovery->transports, t->path);
-        t->state = PA_BLUEZ4_TRANSPORT_STATE_DISCONNECTED;
-        pa_hook_fire(&d->discovery->hooks[PA_BLUEZ4_HOOK_TRANSPORT_STATE_CHANGED], t);
+        transport_set_state(t, PA_BLUEZ4_TRANSPORT_STATE_DISCONNECTED);
         transport_free(t);
     }
 
@@ -515,7 +515,6 @@ static int parse_audio_property(pa_bluez4_device *d, const char *interface, DBus
 
             if (pa_streq(key, "State")) {
                 pa_bluez4_audio_state_t state = audio_state_from_string(value);
-                pa_bluez4_transport_state_t old_state;
 
                 pa_log_debug("Device %s interface %s property 'State' changed to value '%s'", d->path, interface, value);
 
@@ -534,16 +533,7 @@ static int parse_audio_property(pa_bluez4_device *d, const char *interface, DBus
                 if (!transport)
                     break;
 
-                old_state = transport->state;
-                transport->state = audio_state_to_transport_state(state);
-
-                if (transport->state != old_state) {
-                    pa_log_debug("Transport %s (profile %s) changed state from %s to %s.", transport->path,
-                                 pa_bluez4_profile_to_string(transport->profile), transport_state_to_string(old_state),
-                                 transport_state_to_string(transport->state));
-
-                    pa_hook_fire(&d->discovery->hooks[PA_BLUEZ4_HOOK_TRANSPORT_STATE_CHANGED], transport);
-                }
+                transport_set_state(transport, audio_state_to_transport_state(state));
             }
 
             break;
@@ -1248,6 +1238,18 @@ static pa_bluez4_transport *transport_new(pa_bluez4_device *d, const char *owner
     return t;
 }
 
+static void transport_set_state(pa_bluez4_transport *transport, pa_bluez4_transport_state_t state) {
+    if (transport->state == state)
+        return;
+
+    pa_log_debug("Transport %s state: %s -> %s",
+                 transport->path, transport_state_to_string(transport->state), transport_state_to_string(state));
+
+    transport->state = state;
+
+    pa_hook_fire(&transport->device->discovery->hooks[PA_BLUEZ4_HOOK_TRANSPORT_STATE_CHANGED], transport);
+}
+
 static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage *m, void *userdata) {
     pa_bluez4_discovery *y = userdata;
     pa_bluez4_device *d;
@@ -1392,8 +1394,7 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *c, DBusMessage 
         pa_log_debug("Clearing transport %s profile %d", t->path, t->profile);
         t->device->transports[t->profile] = NULL;
         pa_hashmap_remove(y->transports, t->path);
-        t->state = PA_BLUEZ4_TRANSPORT_STATE_DISCONNECTED;
-        pa_hook_fire(&y->hooks[PA_BLUEZ4_HOOK_TRANSPORT_STATE_CHANGED], t);
+        transport_set_state(t, PA_BLUEZ4_TRANSPORT_STATE_DISCONNECTED);
 
         if (old_any_connected != pa_bluez4_device_any_audio_connected(t->device))
             run_callback(t->device, false);

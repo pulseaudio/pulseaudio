@@ -267,7 +267,7 @@ void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_tr
 
     old_any_connected = pa_bluetooth_device_any_transport_connected(t->device);
 
-    pa_log_debug("Transport %s state changed from %s to %s",
+    pa_log_debug("Transport %s state: %s -> %s",
                  t->path, transport_state_to_string(t->state), transport_state_to_string(state));
 
     t->state = state;
