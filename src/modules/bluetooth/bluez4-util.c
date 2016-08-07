@@ -95,13 +95,13 @@ static pa_bluez4_audio_state_t audio_state_from_string(const char* value) {
 
 const char *pa_bluez4_profile_to_string(pa_bluez4_profile_t profile) {
     switch(profile) {
-        case PA_BLUEZ4_PROFILE_A2DP:
+        case PA_BLUEZ4_PROFILE_A2DP_SINK:
             return "a2dp";
         case PA_BLUEZ4_PROFILE_A2DP_SOURCE:
             return "a2dp_source";
-        case PA_BLUEZ4_PROFILE_HSP:
+        case PA_BLUEZ4_PROFILE_HEADSET_HEAD_UNIT:
             return "hsp";
-        case PA_BLUEZ4_PROFILE_HFGW:
+        case PA_BLUEZ4_PROFILE_HEADSET_AUDIO_GATEWAY:
             return "hfgw";
         case PA_BLUEZ4_PROFILE_OFF:
             pa_assert_not_reached();
@@ -115,16 +115,16 @@ static int profile_from_interface(const char *interface, pa_bluez4_profile_t *p)
     pa_assert(p);
 
     if (pa_streq(interface, "org.bluez.AudioSink")) {
-        *p = PA_BLUEZ4_PROFILE_A2DP;
+        *p = PA_BLUEZ4_PROFILE_A2DP_SINK;
         return 0;
     } else if (pa_streq(interface, "org.bluez.AudioSource")) {
         *p = PA_BLUEZ4_PROFILE_A2DP_SOURCE;
         return 0;
     } else if (pa_streq(interface, "org.bluez.Headset")) {
-        *p = PA_BLUEZ4_PROFILE_HSP;
+        *p = PA_BLUEZ4_PROFILE_HEADSET_HEAD_UNIT;
         return 0;
     } else if (pa_streq(interface, "org.bluez.HandsfreeGateway")) {
-        *p = PA_BLUEZ4_PROFILE_HFGW;
+        *p = PA_BLUEZ4_PROFILE_HEADSET_AUDIO_GATEWAY;
         return 0;
     }
 
@@ -1197,7 +1197,7 @@ void pa_bluez4_transport_set_microphone_gain(pa_bluez4_transport *t, uint16_t va
     dbus_uint16_t gain = PA_MIN(value, HSP_MAX_GAIN);
 
     pa_assert(t);
-    pa_assert(t->profile == PA_BLUEZ4_PROFILE_HSP);
+    pa_assert(t->profile == PA_BLUEZ4_PROFILE_HEADSET_HEAD_UNIT);
 
     set_property(t->device->discovery, "org.bluez", t->device->path, "org.bluez.Headset",
                  "MicrophoneGain", DBUS_TYPE_UINT16, &gain);
@@ -1207,7 +1207,7 @@ void pa_bluez4_transport_set_speaker_gain(pa_bluez4_transport *t, uint16_t value
     dbus_uint16_t gain = PA_MIN(value, HSP_MAX_GAIN);
 
     pa_assert(t);
-    pa_assert(t->profile == PA_BLUEZ4_PROFILE_HSP);
+    pa_assert(t->profile == PA_BLUEZ4_PROFILE_HEADSET_HEAD_UNIT);
 
     set_property(t->device->discovery, "org.bluez", t->device->path, "org.bluez.Headset",
                  "SpeakerGain", DBUS_TYPE_UINT16, &gain);
@@ -1327,11 +1327,11 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
         goto fail;
 
     if (dbus_message_has_path(m, ENDPOINT_PATH_HFP_AG))
-        p = PA_BLUEZ4_PROFILE_HSP;
+        p = PA_BLUEZ4_PROFILE_HEADSET_HEAD_UNIT;
     else if (dbus_message_has_path(m, ENDPOINT_PATH_HFP_HS))
-        p = PA_BLUEZ4_PROFILE_HFGW;
+        p = PA_BLUEZ4_PROFILE_HEADSET_AUDIO_GATEWAY;
     else if (dbus_message_has_path(m, ENDPOINT_PATH_A2DP_SOURCE))
-        p = PA_BLUEZ4_PROFILE_A2DP;
+        p = PA_BLUEZ4_PROFILE_A2DP_SINK;
     else
         p = PA_BLUEZ4_PROFILE_A2DP_SOURCE;
 

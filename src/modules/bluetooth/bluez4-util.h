@@ -43,10 +43,10 @@ typedef struct pa_bluez4_transport pa_bluez4_transport;
 struct userdata;
 
 typedef enum pa_bluez4_profile {
-    PA_BLUEZ4_PROFILE_A2DP,
+    PA_BLUEZ4_PROFILE_A2DP_SINK,
     PA_BLUEZ4_PROFILE_A2DP_SOURCE,
-    PA_BLUEZ4_PROFILE_HSP,
-    PA_BLUEZ4_PROFILE_HFGW,
+    PA_BLUEZ4_PROFILE_HEADSET_HEAD_UNIT,
+    PA_BLUEZ4_PROFILE_HEADSET_AUDIO_GATEWAY,
     PA_BLUEZ4_PROFILE_OFF
 } pa_bluez4_profile_t;
 
