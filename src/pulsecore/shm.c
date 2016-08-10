@@ -201,12 +201,14 @@ static int sharedmem_create(pa_shm *m, pa_mem_type_t type, size_t size, mode_t m
 
     /* For memfds, we keep the fd open until we pass it
      * to the other PA endpoint over unix domain socket. */
-    if (type == PA_MEM_TYPE_SHARED_MEMFD)
-        m->fd = fd;
-    else {
+    if (type != PA_MEM_TYPE_SHARED_MEMFD) {
         pa_assert_se(pa_close(fd) == 0);
         m->fd = -1;
     }
+#if HAVE_MEMFD
+    else
+        m->fd = fd;
+#endif
 
     return 0;
 
