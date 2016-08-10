@@ -19,6 +19,8 @@
 #include <config.h>
 #endif
 
+#include <signal.h>
+
 #include <check.h>
 
 #include <pulse/xmalloc.h>
