@@ -1089,8 +1089,10 @@ void pa_source_output_set_property(pa_source_output *o, const char *key, const c
         if (value && old_value) {
             if (pa_streq(value, old_value))
                 goto finish;
-        } else
+        } else {
+            pa_xfree(old_value);
             old_value = pa_xstrdup("(data)");
+        }
     } else {
         if (!value)
             goto finish;
