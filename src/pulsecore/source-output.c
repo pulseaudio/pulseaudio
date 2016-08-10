@@ -1108,7 +1108,7 @@ void pa_source_output_set_property(pa_source_output *o, const char *key, const c
         new_value = "(unset)";
     }
 
-    if (PA_SINK_INPUT_IS_LINKED(o->state)) {
+    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state)) {
         pa_log_debug("Source output %u: proplist[%s]: %s -> %s", o->index, key, old_value, new_value);
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
         pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT | PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
