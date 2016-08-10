@@ -668,11 +668,11 @@ AC_ARG_ENABLE([tests],
     AS_HELP_STRING([--disable-tests],[Disable unit tests]))
 
 AS_IF([test "x$enable_tests" != "xno"],
-    [PKG_CHECK_MODULES(LIBCHECK, [ check ], HAVE_LIBCHECK=1, HAVE_LIBCHECK=0)],
+    [PKG_CHECK_MODULES(LIBCHECK, [ check >= 0.9.10 ], HAVE_LIBCHECK=1, HAVE_LIBCHECK=0)],
     HAVE_LIBCHECK=0)
 
 AS_IF([test "x$enable_tests" = "xyes" && test "x$HAVE_LIBCHECK" = "x0"],
-    [AC_MSG_ERROR([*** check library not found])])
+    [AC_MSG_ERROR([*** check library not found or too old])])
 
 AM_CONDITIONAL([HAVE_TESTS], [test "x$HAVE_LIBCHECK" = x1])
 
