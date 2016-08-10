@@ -319,6 +319,7 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     const char *roles;
+    char *roles_in_group = NULL;
     bool global = false;
     uint32_t i = 0;
 
@@ -396,8 +397,8 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
     roles = pa_modargs_get_value(ma, "trigger_roles", NULL);
     if (roles) {
         const char *group_split_state = NULL;
-        char *roles_in_group = NULL;
         i = 0;
+
         while ((roles_in_group = pa_split(roles, "/", &group_split_state))) {
             if (roles_in_group[0] != '\0') {
                 const char *split_state = NULL;
@@ -414,9 +415,10 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
                 i++;
             } else {
                 pa_log("empty trigger roles");
-                pa_xfree(roles_in_group);
                 goto fail;
             }
+
+            pa_xfree(roles_in_group);
         }
     }
     if (pa_idxset_isempty(u->groups[0]->trigger_roles)) {
@@ -427,8 +429,8 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
     roles = pa_modargs_get_value(ma, u->duck ? "ducking_roles" : "cork_roles", NULL);
     if (roles) {
         const char *group_split_state = NULL;
-        char *roles_in_group = NULL;
         i = 0;
+
         while ((roles_in_group = pa_split(roles, "/", &group_split_state))) {
             if (roles_in_group[0] != '\0') {
                 const char *split_state = NULL;
@@ -445,9 +447,10 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
                 i++;
             } else {
                 pa_log("empty ducking roles");
-                pa_xfree(roles_in_group);
                 goto fail;
             }
+
+            pa_xfree(roles_in_group);
         }
     }
     if (pa_idxset_isempty(u->groups[0]->interaction_roles)) {
@@ -503,6 +506,8 @@ fail:
 
     if (ma)
         pa_modargs_free(ma);
+    if (roles_in_group)
+        pa_xfree(roles_in_group);
 
     return -1;
 
