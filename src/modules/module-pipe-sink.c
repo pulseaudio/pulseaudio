@@ -75,6 +75,7 @@ struct userdata {
 
     char *filename;
     int fd;
+    size_t buffer_size;
 
     pa_memchunk memchunk;
 
@@ -123,7 +124,7 @@ static int process_render(struct userdata *u) {
     pa_assert(u);
 
     if (u->memchunk.length <= 0)
-        pa_sink_render(u->sink, pa_frame_align(pa_pipe_buf(u->fd), &u->sink->sample_spec), &u->memchunk);
+        pa_sink_render(u->sink, u->buffer_size, &u->memchunk);
 
     pa_assert(u->memchunk.length > 0);
 
@@ -306,8 +307,10 @@ int pa__init(pa_module *m) {
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
-    pa_sink_set_max_request(u->sink, pa_frame_align(pa_pipe_buf(u->fd), &u->sink->sample_spec));
-    pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(pa_pipe_buf(u->fd), &u->sink->sample_spec));
+
+    u->buffer_size = pa_frame_align(pa_pipe_buf(u->fd), &u->sink->sample_spec);
+    pa_sink_set_max_request(u->sink, u->buffer_size);
+    pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(u->buffer_size, &u->sink->sample_spec));
 
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
