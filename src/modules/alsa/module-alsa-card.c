@@ -741,7 +741,10 @@ int pa__init(pa_module *m) {
         }
     }
 
-    pa_modargs_get_value_boolean(u->modargs, "use_ucm", &u->use_ucm);
+    if (pa_modargs_get_value_boolean(u->modargs, "use_ucm", &u->use_ucm) < 0) {
+        pa_log("Failed to parse use_ucm argument.");
+        goto fail;
+    }
 
     /* Force ALSA to reread its configuration. This matters if our device
      * was hot-plugged after ALSA has already read its configuration - see
