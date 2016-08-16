@@ -124,7 +124,7 @@ static pa_hook_result_t load_module_for_device(pa_bluez4_discovery *y, const pa_
 
 int pa__init(pa_module* m) {
     struct userdata *u;
-    pa_modargs *ma = NULL;
+    pa_modargs *ma;
 
     pa_assert(m);
 
@@ -140,7 +140,6 @@ int pa__init(pa_module* m) {
     u->module = m;
     u->core = m->core;
     u->modargs = ma;
-    ma = NULL;
     u->hashmap = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     if (!(u->discovery = pa_bluez4_discovery_get(u->core)))
@@ -153,9 +152,6 @@ int pa__init(pa_module* m) {
 
 fail:
     pa__done(m);
-
-    if (ma)
-        pa_modargs_free(ma);
 
     return -1;
 }
