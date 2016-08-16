@@ -190,7 +190,7 @@ static inline size_t PA_PAGE_ALIGN(size_t l) {
 #define pa_return_if_fail(expr)                                         \
     do {                                                                \
         if (PA_UNLIKELY(!(expr))) {                                     \
-            pa_log_debug("Assertion '%s' failed at %s:%u, function %s.\n", #expr , __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
+            pa_log_debug("Assertion '%s' failed at %s:%u, function %s.", #expr , __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
             return;                                                     \
         }                                                               \
     } while(false)
@@ -198,7 +198,7 @@ static inline size_t PA_PAGE_ALIGN(size_t l) {
 #define pa_return_val_if_fail(expr, val)                                \
     do {                                                                \
         if (PA_UNLIKELY(!(expr))) {                                     \
-            pa_log_debug("Assertion '%s' failed at %s:%u, function %s.\n", #expr , __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
+            pa_log_debug("Assertion '%s' failed at %s:%u, function %s.", #expr , __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
             return (val);                                               \
         }                                                               \
     } while(false)

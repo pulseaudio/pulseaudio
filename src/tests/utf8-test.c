@@ -25,7 +25,7 @@ START_TEST (utf8_filter) {
     {
         char res1[] = { 0x68, 0x5f, 0x70, 0x66, 0x62, 0x75, 0x72, 0x67, '\0' };
         c = pa_utf8_filter("hüpfburg");
-        pa_log_debug("%s %s\n", res1, c);
+        pa_log_debug("%s %s", res1, c);
         fail_unless(pa_streq(c, res1));
         pa_xfree(c);
     }
@@ -34,14 +34,14 @@ START_TEST (utf8_filter) {
         char res2[] = { 0x68, 0xc3, 0xbc, 0x70, 0x66, 0x62, 0x75, 0x72, 0x67, '\0' };
         c = pa_utf8_filter("hÃ¼pfburg");
         fail_unless(pa_streq(c, res2));
-        pa_log_debug("%s %s\n", res2, c);
+        pa_log_debug("%s %s", res2, c);
         pa_xfree(c);
     }
 
     {
         char res3[] = { 0x5f, 0x78, 0x6b, 0x6e, 0x5f, 0x72, 0x7a, 0x6d, 0x5f, 0x72, 0x7a, 0x65, 0x6c, 0x74, 0x5f, 0x72, 0x73, 0x7a, 0xdf, 0xb3, 0x5f, 0x64, 0x73, 0x6a, 0x6b, 0x66, 0x68, '\0' };
         c = pa_utf8_filter("üxknärzmörzeltörszß³§dsjkfh");
-        pa_log_debug("%s %s\n", res3, c);
+        pa_log_debug("%s %s", res3, c);
         fail_unless(pa_streq(c, res3));
         pa_xfree(c);
     }

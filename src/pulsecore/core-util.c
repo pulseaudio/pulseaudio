@@ -729,7 +729,7 @@ static int set_scheduler(int rtprio) {
     /* Try to talk to RealtimeKit */
 
     if (!(bus = dbus_bus_get_private(DBUS_BUS_SYSTEM, &error))) {
-        pa_log("Failed to connect to system bus: %s\n", error.message);
+        pa_log("Failed to connect to system bus: %s", error.message);
         dbus_error_free(&error);
         errno = -EIO;
         return -1;
@@ -746,7 +746,7 @@ static int set_scheduler(int rtprio) {
         r = getrlimit(RLIMIT_RTTIME, &rl);
 
         if (r >= 0 && (long long) rl.rlim_max > rttime) {
-            pa_log_info("Clamping rlimit-rttime to %lld for RealtimeKit\n", rttime);
+            pa_log_info("Clamping rlimit-rttime to %lld for RealtimeKit", rttime);
             rl.rlim_cur = rl.rlim_max = rttime;
             r = setrlimit(RLIMIT_RTTIME, &rl);
 
@@ -866,7 +866,7 @@ static int set_nice(int nice_level) {
     /* Try to talk to RealtimeKit */
 
     if (!(bus = dbus_bus_get_private(DBUS_BUS_SYSTEM, &error))) {
-        pa_log("Failed to connect to system bus: %s\n", error.message);
+        pa_log("Failed to connect to system bus: %s", error.message);
         dbus_error_free(&error);
         errno = -EIO;
         return -1;

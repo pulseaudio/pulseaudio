@@ -483,7 +483,7 @@ int pa_shm_cleanup(void) {
         segment_name(fn, sizeof(fn), id);
 
         if (shm_unlink(fn) < 0 && errno != EACCES && errno != ENOENT)
-            pa_log_warn("Failed to remove SHM segment %s: %s\n", fn, pa_cstrerror(errno));
+            pa_log_warn("Failed to remove SHM segment %s: %s", fn, pa_cstrerror(errno));
     }
 
     closedir(d);

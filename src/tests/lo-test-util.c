@@ -38,11 +38,11 @@ static void nop_free_cb(void *p) {
 }
 
 static void underflow_cb(struct pa_stream *s, void *userdata) {
-    pa_log_warn("Underflow\n");
+    pa_log_warn("Underflow");
 }
 
 static void overflow_cb(struct pa_stream *s, void *userdata) {
-    pa_log_warn("Overlow\n");
+    pa_log_warn("Overlow");
 }
 
 /*
@@ -114,7 +114,7 @@ static void calibrate_read_cb(pa_stream *s, size_t nbytes, void *userdata) {
                 v += 0.02f;
 
                 if (v > 1.0) {
-                    pa_log_error("Capture signal too weak at 100%% volume (%g). Giving up.\n", pa_rms(in, nsamp));
+                    pa_log_error("Capture signal too weak at 100%% volume (%g). Giving up.", pa_rms(in, nsamp));
                     pa_assert_not_reached();
                 }
 
@@ -126,7 +126,7 @@ static void calibrate_read_cb(pa_stream *s, size_t nbytes, void *userdata) {
                 /* Make sure the signal strength is steadily above our threshold */
                 if (++confirm > 5) {
 #if 0
-                    pa_log_debug(stderr, "Capture volume = %g (%g)\n", v, pa_rms(in, nsamp));
+                    pa_log_debug(stderr, "Capture volume = %g (%g)", v, pa_rms(in, nsamp));
 #endif
                     cal_state = CALIBRATION_ZERO;
                 }
@@ -138,7 +138,7 @@ static void calibrate_read_cb(pa_stream *s, size_t nbytes, void *userdata) {
             /* Now make sure silence doesn't trigger a false positive because
              * of noise. */
             if (pa_rms(in, nsamp) > 0.1f) {
-                fprintf(stderr, "Too much noise on capture (%g). Giving up.\n", pa_rms(in, nsamp));
+                pa_log_warn("Too much noise on capture (%g). Giving up.", pa_rms(in, nsamp));
                 pa_assert_not_reached();
             }
 
@@ -179,7 +179,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
             }
 
             if (!o) {
-                pa_log_error("Could not set stream volume: %s\n", pa_strerror(pa_context_errno(ctx->context)));
+                pa_log_error("Could not set stream volume: %s", pa_strerror(pa_context_errno(ctx->context)));
                 pa_assert_not_reached();
             } else
                 pa_operation_unref(o);
@@ -189,7 +189,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
 
         case PA_STREAM_FAILED:
         default:
-            pa_log_error("Stream error: %s\n", pa_strerror(pa_context_errno(ctx->context)));
+            pa_log_error("Stream error: %s", pa_strerror(pa_context_errno(ctx->context)));
             pa_assert_not_reached();
     }
 }
@@ -252,7 +252,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
         case PA_CONTEXT_FAILED:
         default:
-            pa_log_error("Context error: %s\n", pa_strerror(pa_context_errno(c)));
+            pa_log_error("Context error: %s", pa_strerror(pa_context_errno(c)));
             pa_assert_not_reached();
     }
 }
@@ -271,7 +271,7 @@ int pa_lo_test_init(pa_lo_test_context *ctx) {
 
     /* Connect the context */
     if (pa_context_connect(ctx->context, NULL, PA_CONTEXT_NOFLAGS, NULL) < 0) {
-        pa_log_error("pa_context_connect() failed.\n");
+        pa_log_error("pa_context_connect() failed.");
         goto quit;
     }
 
@@ -288,7 +288,7 @@ int pa_lo_test_run(pa_lo_test_context *ctx) {
     int ret;
 
     if (pa_mainloop_run(ctx->mainloop, &ret) < 0) {
-        pa_log_error("pa_mainloop_run() failed.\n");
+        pa_log_error("pa_mainloop_run() failed.");
         return -1;
     }
 

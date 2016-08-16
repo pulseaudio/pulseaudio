@@ -76,7 +76,7 @@ static void run_volume_test(
         for (i = 0; i < nsamples; i++) {
             if (samples[i] != samples_ref[i]) {
                 pa_log_debug("Correctness test failed: align=%d, channels=%d", align, channels);
-                pa_log_debug("%d: %04hx != %04hx (%04hx * %08x)\n", i, samples[i], samples_ref[i],
+                pa_log_debug("%d: %04hx != %04hx (%04hx * %08x)", i, samples[i], samples_ref[i],
                         samples_orig[i], volumes[i % channels]);
                 ck_abort();
             }

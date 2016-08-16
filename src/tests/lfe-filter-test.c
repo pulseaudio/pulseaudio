@@ -70,7 +70,7 @@ static int compare_data_block(struct lfe_filter_test *lft, void *a, void *b) {
 
     for (i = 0; i < ONE_BLOCK_SAMPLES; i++) {
         if (abs(*r++ - *u++) > TOLERANT_VARIATION) {
-            pa_log_error("lfe-filter-test: test failed, the output data in the position 0x%x of a block does not equal!\n", i);
+            pa_log_error("lfe-filter-test: test failed, the output data in the position 0x%x of a block does not equal!", i);
             ret = -1;
             break;
         }
@@ -88,7 +88,7 @@ static int lfe_filter_rewind_test(struct lfe_filter_test *lft, int rewind_sample
     uint32_t fz = pa_frame_size(lft->ss);
 
     if (rewind_samples > TOTAL_SAMPLES || rewind_samples < TOTAL_SAMPLES - ONE_BLOCK_SAMPLES) {
-        pa_log_error("lfe-filter-test: Please keep %d samples < rewind_samples < %d samples\n", TOTAL_SAMPLES - ONE_BLOCK_SAMPLES, TOTAL_SAMPLES);
+        pa_log_error("lfe-filter-test: Please keep %d samples < rewind_samples < %d samples", TOTAL_SAMPLES - ONE_BLOCK_SAMPLES, TOTAL_SAMPLES);
         return ret;
     }
 

@@ -550,7 +550,7 @@ int main(int argc, char *argv[]) {
         case PA_CMD_DUMP_CONF: {
 
             if (d < argc) {
-                pa_log("Too many arguments.\n");
+                pa_log("Too many arguments.");
                 goto finish;
             }
 
@@ -565,7 +565,7 @@ int main(int argc, char *argv[]) {
             int i;
 
             if (d < argc) {
-                pa_log("Too many arguments.\n");
+                pa_log("Too many arguments.");
                 goto finish;
             }
 
@@ -585,7 +585,7 @@ int main(int argc, char *argv[]) {
         case PA_CMD_VERSION :
 
             if (d < argc) {
-                pa_log("Too many arguments.\n");
+                pa_log("Too many arguments.");
                 goto finish;
             }
 
@@ -597,7 +597,7 @@ int main(int argc, char *argv[]) {
             pid_t pid;
 
             if (d < argc) {
-                pa_log("Too many arguments.\n");
+                pa_log("Too many arguments.");
                 goto finish;
             }
 
@@ -614,7 +614,7 @@ int main(int argc, char *argv[]) {
         case PA_CMD_KILL:
 
             if (d < argc) {
-                pa_log("Too many arguments.\n");
+                pa_log("Too many arguments.");
                 goto finish;
             }
 
@@ -628,7 +628,7 @@ int main(int argc, char *argv[]) {
         case PA_CMD_CLEANUP_SHM:
 
             if (d < argc) {
-                pa_log("Too many arguments.\n");
+                pa_log("Too many arguments.");
                 goto finish;
             }
 
@@ -642,7 +642,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (d < argc) {
-        pa_log("Too many arguments.\n");
+        pa_log("Too many arguments.");
         goto finish;
     }
 

@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
             pa_resampler *r;
             pa_sample_spec ss1, ss2;
 
-            pa_log_info("Converting from '%s' to '%s'.\n", pa_channel_map_snprint(a, sizeof(a), &maps[i]), pa_channel_map_snprint(b, sizeof(b), &maps[j]));
+            pa_log_info("Converting from '%s' to '%s'.", pa_channel_map_snprint(a, sizeof(a), &maps[i]), pa_channel_map_snprint(b, sizeof(b), &maps[j]));
 
             ss1.channels = maps[i].channels;
             ss2.channels = maps[j].channels;

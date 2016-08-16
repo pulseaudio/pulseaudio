@@ -888,7 +888,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
     dbus_error_init(&err);
 
-    pa_log_debug("dbus: interface=%s, path=%s, member=%s\n",
+    pa_log_debug("dbus: interface=%s, path=%s, member=%s",
             dbus_message_get_interface(m),
             dbus_message_get_path(m),
             dbus_message_get_member(m));

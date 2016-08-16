@@ -155,7 +155,7 @@ static char* read_param(const char *paramname);
 
 static int set_state(int state) {
     static int current_state = 0;
-    pa_log_debug("State transition %s->%s\n",
+    pa_log_debug("State transition %s->%s",
             xenbus_names[current_state], xenbus_names[state]);
 
     publish_param_int("state", state);
@@ -167,25 +167,25 @@ static int set_state(int state) {
 
 /* negotiation callbacks */
 static int state_unknown_cb() {
-    pa_log_debug("Xen audio sink: Backend state was XenbusStateUnknown\n");
+    pa_log_debug("Xen audio sink: Backend state was XenbusStateUnknown");
     set_state(XenbusStateInitialising);
 
     return 0;
 }
 
 static int state_initialising_cb() {
-    pa_log_debug("Xen audio sink: Backend state was XenbusStateInitialising\n");
+    pa_log_debug("Xen audio sink: Backend state was XenbusStateInitialising");
     set_state(XenbusStateInitialised);
     return 0;
 }
 
 static int state_initwait_cb() {
-    pa_log_debug("Xen audio sink: Backend state was XenbusStateInitWait\n");
+    pa_log_debug("Xen audio sink: Backend state was XenbusStateInitWait");
     return 0;
 }
 
 static int state_initialised_cb() {
-    pa_log_debug("Xen audio sink: Backend state was XenbusStateInitialised\n");
+    pa_log_debug("Xen audio sink: Backend state was XenbusStateInitialised");
     /*Remind the backend we are ready*/
     set_state(XenbusStateInitialised);
     return 0;
@@ -194,23 +194,23 @@ static int state_initialised_cb() {
 static int state_connected_cb() {
     /* The backend accepted our parameters, sweet! */
     set_state(XenbusStateConnected);
-    pa_log_debug("Xen audio sink: Backend state was XenbusStateConnected\n");
+    pa_log_debug("Xen audio sink: Backend state was XenbusStateConnected");
     return NEGOTIATION_OK;
 }
 
 static int state_closing_cb() {
-    pa_log_debug("Xen audio sink: Backend state was XenbusStateClosing\n");
+    pa_log_debug("Xen audio sink: Backend state was XenbusStateClosing");
     return 0;
 }
 
 static int state_closed_cb() {
-    pa_log_debug("Xen audio sink: Backend state was XenbusStateClosed\n");
+    pa_log_debug("Xen audio sink: Backend state was XenbusStateClosed");
     return 0;
 }
 
 static int state_reconfiguring_cb() {
     /* The backend rejected our sample spec */
-    pa_log_debug("Xen audio sink: Backend state was XenbusStateReconfiguring\n");
+    pa_log_debug("Xen audio sink: Backend state was XenbusStateReconfiguring");
     /* fall back to the backend's default parameters*/
     read_backend_default_spec(&ss);
     /* backend should accept these now */
@@ -220,7 +220,7 @@ static int state_reconfiguring_cb() {
 }
 
 static int state_reconfigured_cb() {
-    pa_log_debug("Xen audio sink: Backend state was XenbusStateReconfigured\n");
+    pa_log_debug("Xen audio sink: Backend state was XenbusStateReconfigured");
     return 0;
 }
 
@@ -602,7 +602,7 @@ static int alloc_gref(struct ioctl_gntalloc_alloc_gref *gref_, void **addr) {
 
     rv = ioctl(alloc_fd, IOCTL_GNTALLOC_ALLOC_GREF, gref_);
     if (rv) {
-        pa_log_debug("Xen audio sink: src-add error: %s (rv=%d)\n", strerror(errno), rv);
+        pa_log_debug("Xen audio sink: src-add error: %s (rv=%d)", strerror(errno), rv);
         goto finish;
     }
 
@@ -610,11 +610,11 @@ static int alloc_gref(struct ioctl_gntalloc_alloc_gref *gref_, void **addr) {
     *addr = mmap(0, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, alloc_fd, gref_->index);
     if (*addr == MAP_FAILED) {
         *addr = 0;
-        pa_log_debug("Xen audio sink: mmap'ing shared page failed\n");
+        pa_log_debug("Xen audio sink: mmap'ing shared page failed");
         goto finish;
     }
 
-    pa_log_debug("Xen audio sink: Got grant #%d. Mapped locally at %Ld=%p\n",
+    pa_log_debug("Xen audio sink: Got grant #%d. Mapped locally at %Ld=%p",
             gref_->gref_ids[0], (long long)gref_->index, *addr);
 
     /* skip this for now
@@ -625,7 +625,7 @@ static int alloc_gref(struct ioctl_gntalloc_alloc_gref *gref_, void **addr) {
 
        rv = ioctl(a_fd, IOCTL_GNTALLOC_SET_UNMAP_NOTIFY, &uarg);
        if (rv)
-       pa_log_debug("gntalloc unmap notify error: %s (rv=%d)\n", strerror(errno), rv);
+       pa_log_debug("gntalloc unmap notify error: %s (rv=%d)", strerror(errno), rv);
        */
 finish:
     close(alloc_fd);

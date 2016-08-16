@@ -137,7 +137,7 @@ static int bluez5_sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_
     addr.sco_family = AF_BLUETOOTH;
     bacpy(&addr.sco_bdaddr, &dst);
 
-    pa_log_info ("doing connect\n");
+    pa_log_info("doing connect");
     err = connect(sock, (struct sockaddr *) &addr, sizeof(addr));
     if (err < 0 && !(errno == EAGAIN || errno == EINPROGRESS)) {
         pa_log_error("connect(): %s", pa_cstrerror(errno));

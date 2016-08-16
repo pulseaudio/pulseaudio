@@ -68,7 +68,7 @@ static void run_remap_test_float(
         for (i = 0; i < nsamples * n_oc; i++) {
             if (fabsf(out[i] - out_ref[i]) > 0.0001f) {
                 pa_log_debug("Correctness test failed: align=%d", align);
-                pa_log_debug("%d: %.24f != %.24f\n", i,
+                pa_log_debug("%d: %.24f != %.24f", i,
                     out[i], out_ref[i]);
                 ck_abort();
             }
@@ -122,7 +122,7 @@ static void run_remap_test_s16(
         for (i = 0; i < nsamples * n_oc; i++) {
             if (abs(out[i] - out_ref[i]) > 3) {
                 pa_log_debug("Correctness test failed: align=%d", align);
-                pa_log_debug("%d: %d != %d\n", i, out[i], out_ref[i]);
+                pa_log_debug("%d: %d != %d", i, out[i], out_ref[i]);
                 ck_abort();
             }
         }

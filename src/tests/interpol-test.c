@@ -212,7 +212,7 @@ START_TEST (interpol_test) {
             bool cork_now;
 #endif
             rtc = pa_timeval_diff(&now, &start);
-            pa_log_info("%i\t%llu\t%llu\t%llu\t%llu\t%lli\t%u\t%u\t%llu\t%llu\n", k,
+            pa_log_info("%i\t%llu\t%llu\t%llu\t%llu\t%lli\t%u\t%u\t%llu\t%llu", k,
                    (unsigned long long) rtc,
                    (unsigned long long) t,
                    (unsigned long long) (rtc-old_rtc),

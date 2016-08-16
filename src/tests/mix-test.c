@@ -299,7 +299,7 @@ START_TEST (mix_test) {
         pa_mix_info m[2];
         void *ptr;
 
-        pa_log_debug("=== mixing: %s\n", pa_sample_format_to_string(a.format));
+        pa_log_debug("=== mixing: %s", pa_sample_format_to_string(a.format));
 
         /* Generate block */
         i.memblock = generate_block(pool, &a);
