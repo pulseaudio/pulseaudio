@@ -2162,24 +2162,24 @@ int pa__init(pa_module* m) {
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log_error("Failed to parse module arguments");
-        goto fail;
+        goto fail_free_modargs;
     }
 
     if (!(path = pa_modargs_get_value(ma, "path", NULL))) {
         pa_log_error("Failed to get device path from module arguments");
-        goto fail;
+        goto fail_free_modargs;
     }
 
     if ((u->discovery = pa_shared_get(u->core, "bluetooth-discovery")))
         pa_bluetooth_discovery_ref(u->discovery);
     else {
         pa_log_error("module-bluez5-discover doesn't seem to be loaded, refusing to load module-bluez5-device");
-        goto fail;
+        goto fail_free_modargs;
     }
 
     if (!(u->device = pa_bluetooth_discovery_get_device_by_path(u->discovery, path))) {
         pa_log_error("%s is unknown", path);
-        goto fail;
+        goto fail_free_modargs;
     }
 
     pa_modargs_free(ma);
@@ -2197,7 +2197,6 @@ int pa__init(pa_module* m) {
 
     u->transport_microphone_gain_changed_slot =
         pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_MICROPHONE_GAIN_CHANGED), PA_HOOK_NORMAL, (pa_hook_cb_t) transport_microphone_gain_changed_cb, u);
-
 
     if (add_card(u) < 0)
         goto fail;
@@ -2225,10 +2224,12 @@ off:
 
     return 0;
 
-fail:
+fail_free_modargs:
 
     if (ma)
         pa_modargs_free(ma);
+
+fail:
 
     pa__done(m);
 
