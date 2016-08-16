@@ -657,13 +657,13 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
 
     pa_assert(p->call_data == d);
 
-    if (d != NULL)
+    if (d != NULL) {
         old_any_connected = pa_bluez4_device_any_audio_connected(d);
+        valid = dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR ? -1 : 1;
 
-    valid = dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR ? -1 : 1;
-
-    if (dbus_message_is_method_call(p->message, "org.bluez.Device", "GetProperties"))
-        d->device_info_valid = valid;
+        if (dbus_message_is_method_call(p->message, "org.bluez.Device", "GetProperties"))
+            d->device_info_valid = valid;
+    }
 
     if (dbus_message_is_error(r, DBUS_ERROR_SERVICE_UNKNOWN)) {
         pa_log_debug("Bluetooth daemon is apparently not available.");
