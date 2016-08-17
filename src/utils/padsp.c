@@ -1768,11 +1768,18 @@ static int dsp_flush_fd(int fd) {
     while (l > 0) {
         char buf[1024];
         size_t k;
+        ssize_t r;
 
         k = (size_t) l > sizeof(buf) ? sizeof(buf) : (size_t) l;
-        if (read(fd, buf, k) < 0)
+        r = read(fd, buf, k);
+        if (r < 0) {
+            if (errno == EAGAIN)
+                break;
             debug(DEBUG_LEVEL_NORMAL, __FILE__": read(): %s\n", strerror(errno));
-        l -= k;
+            return -1;
+        } else if (r == 0)
+            break;
+        l -= r;
     }
 
     return 0;
