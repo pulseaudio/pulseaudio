@@ -39,7 +39,7 @@
 
 #include "sample-util.h"
 
-#define PA_SILENCE_MAX (PA_PAGE_SIZE*16)
+#define PA_SILENCE_MAX (pa_page_size()*16)
 
 pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
     void *data;

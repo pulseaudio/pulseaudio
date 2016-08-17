@@ -33,6 +33,7 @@ START_TEST (sigbus_test) {
     void *p;
     int fd;
     pa_memtrap *m;
+    const size_t page_size = pa_page_size();
 
     pa_log_set_level(PA_LOG_DEBUG);
     pa_memtrap_install();
@@ -40,14 +41,14 @@ START_TEST (sigbus_test) {
     /* Create the memory map */
     fail_unless((fd = open("sigbus-test-map", O_RDWR|O_TRUNC|O_CREAT, 0660)) >= 0);
     fail_unless(unlink("sigbus-test-map") == 0);
-    fail_unless(ftruncate(fd, PA_PAGE_SIZE) >= 0);
-    fail_unless((p = mmap(NULL, PA_PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)) != MAP_FAILED);
+    fail_unless(ftruncate(fd, page_size) >= 0);
+    fail_unless((p = mmap(NULL, page_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)) != MAP_FAILED);
 
     /* Register memory map */
-    m = pa_memtrap_add(p, PA_PAGE_SIZE);
+    m = pa_memtrap_add(p, page_size);
 
     /* Use memory map */
-    pa_snprintf(p, PA_PAGE_SIZE, "This is a test that should work fine.");
+    pa_snprintf(p, page_size, "This is a test that should work fine.");
 
     /* Verify memory map */
     pa_log("Let's see if this worked: %s", (char*) p);
@@ -58,7 +59,7 @@ START_TEST (sigbus_test) {
     fail_unless(ftruncate(fd, 0) >= 0);
 
     /* Use memory map */
-    pa_snprintf(p, PA_PAGE_SIZE, "This is a test that should fail but get caught.");
+    pa_snprintf(p, page_size, "This is a test that should fail but get caught.");
 
     /* Verify memory map */
     pa_log("Let's see if this worked: %s", (char*) p);
@@ -66,7 +67,7 @@ START_TEST (sigbus_test) {
     fail_unless(pa_memtrap_is_good(m) == false);
 
     pa_memtrap_remove(m);
-    munmap(p, PA_PAGE_SIZE);
+    munmap(p, page_size);
     close(fd);
 }
 END_TEST

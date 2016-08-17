@@ -126,7 +126,7 @@ static int privatemem_create(pa_shm *m, size_t size) {
     {
         int r;
 
-        if ((r = posix_memalign(&m->ptr, PA_PAGE_SIZE, size)) < 0) {
+        if ((r = posix_memalign(&m->ptr, pa_page_size(), size)) < 0) {
             pa_log("posix_memalign() failed: %s", pa_cstrerror(r));
             return r;
         }
@@ -300,6 +300,7 @@ finish:
 void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
     void *ptr;
     size_t o;
+    const size_t page_size = pa_page_size();
 
     pa_assert(m);
     pa_assert(m->ptr);
@@ -318,13 +319,13 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
     o = (size_t) ((uint8_t*) ptr - (uint8_t*) PA_PAGE_ALIGN_PTR(ptr));
 
     if (o > 0) {
-        size_t delta = PA_PAGE_SIZE - o;
+        size_t delta = page_size - o;
         ptr = (uint8_t*) ptr + delta;
         size -= delta;
     }
 
     /* Align the size down to multiples of page size */
-    size = (size / PA_PAGE_SIZE) * PA_PAGE_SIZE;
+    size = (size / page_size) * page_size;
 
 #ifdef MADV_REMOVE
     if (madvise(ptr, size, MADV_REMOVE) >= 0)

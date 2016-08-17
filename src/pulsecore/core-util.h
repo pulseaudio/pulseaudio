@@ -302,4 +302,17 @@ bool pa_running_in_vm(void);
 char *pa_win32_get_toplevel(HANDLE handle);
 #endif
 
+size_t pa_page_size(void);
+
+/* Rounds down */
+static inline void* PA_PAGE_ALIGN_PTR(const void *p) {
+    return (void*) (((size_t) p) & ~(pa_page_size() - 1));
+}
+
+/* Rounds up */
+static inline size_t PA_PAGE_ALIGN(size_t l) {
+    size_t page_size = pa_page_size();
+    return (l + page_size - 1) & ~(page_size - 1);
+}
+
 #endif

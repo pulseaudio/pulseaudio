@@ -138,6 +138,7 @@
 #include <pulsecore/strlist.h>
 #include <pulsecore/cpu-x86.h>
 #include <pulsecore/pipe.h>
+#include <pulsecore/once.h>
 
 #include "core-util.h"
 
@@ -2553,6 +2554,7 @@ void *pa_will_need(const void *p, size_t l) {
     size_t size;
     int r = ENOTSUP;
     size_t bs;
+    const size_t page_size = pa_page_size();
 
     pa_assert(p);
     pa_assert(l > 0);
@@ -2577,7 +2579,7 @@ void *pa_will_need(const void *p, size_t l) {
 #ifdef RLIMIT_MEMLOCK
     pa_assert_se(getrlimit(RLIMIT_MEMLOCK, &rlim) == 0);
 
-    if (rlim.rlim_cur < PA_PAGE_SIZE) {
+    if (rlim.rlim_cur < page_size) {
         pa_log_debug("posix_madvise() failed (or doesn't exist), resource limits don't allow mlock(), can't page in data: %s", pa_cstrerror(r));
         errno = EPERM;
         return (void*) p;
@@ -2585,7 +2587,7 @@ void *pa_will_need(const void *p, size_t l) {
 
     bs = PA_PAGE_ALIGN((size_t) rlim.rlim_cur);
 #else
-    bs = PA_PAGE_SIZE*4;
+    bs = page_size*4;
 #endif
 
     pa_log_debug("posix_madvise() failed (or doesn't exist), trying mlock(): %s", pa_cstrerror(r));
@@ -3668,4 +3670,24 @@ bool pa_running_in_vm(void) {
 #endif
 
     return false;
+}
+
+size_t pa_page_size(void) {
+#if defined(PAGE_SIZE)
+    return PAGE_SIZE;
+#elif defined(PAGESIZE)
+    return PAGESIZE;
+#elif defined(HAVE_SYSCONF)
+    static size_t page_size = 4096; /* Let's hope it's like x86. */
+
+    PA_ONCE_BEGIN {
+        long ret = sysconf(_SC_PAGE_SIZE);
+        if (ret > 0)
+            page_size = ret;
+    } PA_ONCE_END;
+
+    return page_size;
+#else
+    return 4096;
+#endif
 }

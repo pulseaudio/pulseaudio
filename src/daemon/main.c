@@ -918,7 +918,7 @@ int main(int argc, char *argv[]) {
 
     pa_log_debug("Found %u CPUs.", pa_ncpus());
 
-    pa_log_info("Page size is %lu bytes", (unsigned long) PA_PAGE_SIZE);
+    pa_log_info("Page size is %zu bytes", pa_page_size());
 
 #ifdef HAVE_VALGRIND_MEMCHECK_H
     pa_log_debug("Compiled with Valgrind support: yes");

@@ -828,13 +828,14 @@ static void memblock_replace_import(pa_memblock *b) {
 pa_mempool *pa_mempool_new(pa_mem_type_t type, size_t size, bool per_client) {
     pa_mempool *p;
     char t1[PA_BYTES_SNPRINT_MAX], t2[PA_BYTES_SNPRINT_MAX];
+    const size_t page_size = pa_page_size();
 
     p = pa_xnew0(pa_mempool, 1);
     PA_REFCNT_INIT(p);
 
     p->block_size = PA_PAGE_ALIGN(PA_MEMPOOL_SLOT_SIZE);
-    if (p->block_size < PA_PAGE_SIZE)
-        p->block_size = PA_PAGE_SIZE;
+    if (p->block_size < page_size)
+        p->block_size = page_size;
 
     if (size <= 0)
         p->n_blocks = PA_MEMPOOL_SLOTS_MAX;

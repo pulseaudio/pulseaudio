@@ -44,7 +44,7 @@
 /* #define SINK_INPUT_DEBUG */
 
 #define MEMBLOCKQ_MAXLENGTH (32*1024*1024)
-#define CONVERT_BUFFER_LENGTH (PA_PAGE_SIZE)
+#define CONVERT_BUFFER_LENGTH (pa_page_size())
 
 PA_DEFINE_PUBLIC_CLASS(pa_sink_input, pa_msgobject);
 
