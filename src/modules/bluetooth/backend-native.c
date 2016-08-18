@@ -54,6 +54,7 @@ struct transport_data {
 };
 
 #define HSP_AG_PROFILE "/Profile/HSPAGProfile"
+#define HFP_AG_PROFILE "/Profile/HFPAGProfile"
 #define HSP_HS_PROFILE "/Profile/HSPHSProfile"
 
 /* RFCOMM channel for HSP headset role
@@ -508,6 +509,8 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
         p = PA_BLUETOOTH_PROFILE_HSP_HS;
     } else if (pa_streq(handler, HSP_HS_PROFILE)) {
         p = PA_BLUETOOTH_PROFILE_HFP_AG;
+    } else if (pa_streq(handler, HFP_AG_PROFILE)) {
+        p = PA_BLUETOOTH_PROFILE_HFP_HF;
     } else {
         pa_log_error("Invalid handler");
         goto fail;
@@ -585,7 +588,8 @@ static DBusHandlerResult profile_handler(DBusConnection *c, DBusMessage *m, void
 
     pa_log_debug("dbus: path=%s, interface=%s, member=%s", path, interface, member);
 
-    if (!pa_streq(path, HSP_AG_PROFILE) && !pa_streq(path, HSP_HS_PROFILE))
+    if (!pa_streq(path, HSP_AG_PROFILE) && !pa_streq(path, HSP_HS_PROFILE)
+        && !pa_streq(path, HFP_AG_PROFILE))
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
     if (dbus_message_is_method_call(m, DBUS_INTERFACE_INTROSPECTABLE, "Introspect")) {
@@ -630,6 +634,10 @@ static void profile_init(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile
             object_name = HSP_HS_PROFILE;
             uuid = PA_BLUETOOTH_UUID_HSP_HS;
             break;
+        case PA_BLUETOOTH_PROFILE_HFP_HF:
+            object_name = HFP_AG_PROFILE;
+            uuid = PA_BLUETOOTH_UUID_HFP_AG;
+            break;
         default:
             pa_assert_not_reached();
             break;
@@ -648,6 +656,9 @@ static void profile_done(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile
             break;
         case PA_BLUETOOTH_PROFILE_HFP_AG:
             dbus_connection_unregister_object_path(pa_dbus_connection_get(b->connection), HSP_HS_PROFILE);
+            break;
+        case PA_BLUETOOTH_PROFILE_HFP_HF:
+            dbus_connection_unregister_object_path(pa_dbus_connection_get(b->connection), HFP_AG_PROFILE);
             break;
         default:
             pa_assert_not_reached();
@@ -691,6 +702,8 @@ pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_d
     if (enable_hs_role)
        profile_init(backend, PA_BLUETOOTH_PROFILE_HFP_AG);
     profile_init(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
+    if (pa_bluetooth_discovery_get_enable_native_hfp_hf(y))
+        profile_init(backend, PA_BLUETOOTH_PROFILE_HFP_HF);
 
     return backend;
 }
@@ -703,6 +716,8 @@ void pa_bluetooth_native_backend_free(pa_bluetooth_backend *backend) {
     if (backend->enable_hs_role)
        profile_done(backend, PA_BLUETOOTH_PROFILE_HFP_AG);
     profile_done(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
+    if (pa_bluetooth_discovery_get_enable_native_hfp_hf(backend->discovery))
+      profile_done(backend, PA_BLUETOOTH_PROFILE_HFP_HF);
 
     pa_dbus_connection_unref(backend->connection);
 
