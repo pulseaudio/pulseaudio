@@ -56,37 +56,36 @@ size_t pa_sample_size_of_format(pa_sample_format_t f) {
 }
 
 size_t pa_sample_size(const pa_sample_spec *spec) {
-
     pa_assert(spec);
-    pa_return_val_if_fail(pa_sample_spec_valid(spec), 0);
+    pa_assert(pa_sample_spec_valid(spec));
 
     return size_table[spec->format];
 }
 
 size_t pa_frame_size(const pa_sample_spec *spec) {
     pa_assert(spec);
-    pa_return_val_if_fail(pa_sample_spec_valid(spec), 0);
+    pa_assert(pa_sample_spec_valid(spec));
 
     return size_table[spec->format] * spec->channels;
 }
 
 size_t pa_bytes_per_second(const pa_sample_spec *spec) {
     pa_assert(spec);
-    pa_return_val_if_fail(pa_sample_spec_valid(spec), 0);
+    pa_assert(pa_sample_spec_valid(spec));
 
     return spec->rate * size_table[spec->format] * spec->channels;
 }
 
 pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec) {
     pa_assert(spec);
-    pa_return_val_if_fail(pa_sample_spec_valid(spec), 0);
+    pa_assert(pa_sample_spec_valid(spec));
 
     return (((pa_usec_t) (length / (size_table[spec->format] * spec->channels)) * PA_USEC_PER_SEC) / spec->rate);
 }
 
 size_t pa_usec_to_bytes(pa_usec_t t, const pa_sample_spec *spec) {
     pa_assert(spec);
-    pa_return_val_if_fail(pa_sample_spec_valid(spec), 0);
+    pa_assert(pa_sample_spec_valid(spec));
 
     return (size_t) (((t * spec->rate) / PA_USEC_PER_SEC)) * (size_table[spec->format] * spec->channels);
 }
