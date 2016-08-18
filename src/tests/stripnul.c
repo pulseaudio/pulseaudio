@@ -26,6 +26,8 @@
 #include <pulse/xmalloc.h>
 #include <pulsecore/macro.h>
 
+#define MAX_BUFFER (16*1024)
+
 int main(int argc, char *argv[]) {
     FILE *i, *o;
     size_t granularity;
@@ -34,13 +36,14 @@ int main(int argc, char *argv[]) {
 
     pa_assert_se(argc >= 2);
     pa_assert_se((granularity = (size_t) atoi(argv[1])) >= 1);
+    pa_assert(granularity <= MAX_BUFFER);
     pa_assert_se((i = (argc >= 3) ? fopen(argv[2], "r") : stdin));
     pa_assert_se((o = (argc >= 4) ? fopen(argv[3], "w") : stdout));
 
     zero = pa_xmalloc0(granularity);
 
     for (;;) {
-        uint8_t buffer[16*1024], *p;
+        uint8_t buffer[MAX_BUFFER], *p;
         size_t k;
 
         k = fread(buffer, granularity, sizeof(buffer)/granularity, i);
