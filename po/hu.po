@@ -4,14 +4,15 @@
 #
 # KAMI <kami911@gmail.com>, 2012.
 # Gabor Kelemen <kelemeng at ubuntu dot com>, 2016.
+# Balázs Úr <urbalazs at gmail dot com>, 2016.
 msgid ""
 msgstr ""
 "Project-Id-Version: PulseAudio master\n"
 "Report-Msgid-Bugs-To: https://bugs.freedesktop.org/enter_bug.cgi?"
 "product=PulseAudio&keywords=I18N+L10N&component=misc\n"
-"POT-Creation-Date: 2016-03-07 14:26+0000\n"
-"PO-Revision-Date: 2016-03-07 22:25+0100\n"
-"Last-Translator: Gabor Kelemen <kelemeng at ubuntu dot com>\n"
+"POT-Creation-Date: 2016-08-23 02:28+0000\n"
+"PO-Revision-Date: 2016-08-23 12:10+0200\n"
+"Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
 "Language-Team: Hungarian <openscope at googlegroups dot com>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
@@ -21,9 +22,9 @@ msgstr ""
 "X-Poedit-Country: HUNGARY\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 1.5\n"
+"X-Generator: Lokalize 1.2\n"
 
-#: ../src/daemon/cmdline.c:111
+#: ../src/daemon/cmdline.c:113
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -82,6 +83,7 @@ msgid ""
 "      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
 "                                        platforms that support it.\n"
 "      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"      --enable-memfd[=BOOL]             Enable memfd shared memory support.\n"
 "\n"
 "STARTUP SCRIPT:\n"
 "  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
@@ -121,11 +123,13 @@ msgstr ""
 "                                          emelt RLIMIT_NICE esetén)\n"
 "      --realtime[=LOGIKAI]              Kísérlet valós idejű ütemezés\n"
 "                                          bekapcsolására (csak rootként,\n"
-"                                          SUID-ként vagy emelt RLIMIT_RTPRIO\n"
+"                                          SUID-ként vagy emelt "
+"RLIMIT_RTPRIO\n"
 "                                          esetén)\n"
 "      --disallow-module-loading[=LOGIKAI]  Felhasználó által kért "
 "modulbetöltés/\n"
-"                                           -eltávolítás tiltása indítás után\n"
+"                                           -eltávolítás tiltása indítás "
+"után\n"
 "      --disallow-exit[=LOGIKAI]         Felhasználó által kért kilépés "
 "tiltása\n"
 "      --exit-idle-time=MP               A démon befejeztetése, ha "
@@ -159,6 +163,8 @@ msgstr ""
 "                                          az azt támogató platformokon\n"
 "      --disable-shm[=LOGIKAI]           Megosztott memória támogatásának "
 "tiltása\n"
+"      --enable-memfd[=LOGIKAI]          A memfd megosztott memória\n"
+"                                          támogatásának engedélyezése\n"
 "\n"
 "INDÍTÓ PARANCSFÁJL:\n"
 "  -L, --load=\"MODUL ARGUMENTUMOK\"       A megadott bővítménymodul "
@@ -172,15 +178,15 @@ msgstr ""
 "  -n                                    Ne töltse be az alapértelmezett\n"
 "                                           parancsfájlt\n"
 
-#: ../src/daemon/cmdline.c:243
+#: ../src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
 msgstr "a --daemonize paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:251
+#: ../src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
 msgstr "a --fail paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:262
+#: ../src/daemon/cmdline.c:265
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
@@ -188,27 +194,27 @@ msgstr ""
 "a --log-level paraméter a naplózás szintjének értékét várja (Ez lehet a 0..4 "
 "tartomány, vagy a következők egyike: debug, info, notice, warn, error)."
 
-#: ../src/daemon/cmdline.c:274
+#: ../src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
 msgstr "a --high-priority paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:282
+#: ../src/daemon/cmdline.c:285
 msgid "--realtime expects boolean argument"
 msgstr "a --realtime paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:290
+#: ../src/daemon/cmdline.c:293
 msgid "--disallow-module-loading expects boolean argument"
 msgstr "a --disallow-module-loading paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:298
+#: ../src/daemon/cmdline.c:301
 msgid "--disallow-exit expects boolean argument"
 msgstr "a --disallow-exit paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:306
+#: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
 msgstr "a --use-pid-file paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:325
+#: ../src/daemon/cmdline.c:328
 msgid ""
 "Invalid log target: use either 'syslog', 'journal','stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
@@ -217,7 +223,7 @@ msgstr ""
 "„auto” egyikét, vagy egy érvényes fájlnevet: „file:<útvonal>”, „newfile:"
 "<útvonal>”."
 
-#: ../src/daemon/cmdline.c:327
+#: ../src/daemon/cmdline.c:330
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
 "name 'file:<path>', 'newfile:<path>'."
@@ -225,97 +231,101 @@ msgstr ""
 "Érvénytelen naplózási cél: használja a „syslog”, „stderr” vagy az „auto” "
 "egyikét, vagy egy érvényes fájlnevet: „file:<útvonal>”, „newfile:<útvonal>”."
 
-#: ../src/daemon/cmdline.c:335
+#: ../src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
 msgstr "a --log-time paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:343
+#: ../src/daemon/cmdline.c:346
 msgid "--log-meta expects boolean argument"
 msgstr "a --log-meta paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:363
+#: ../src/daemon/cmdline.c:366
 #, c-format
 msgid "Invalid resample method '%s'."
 msgstr "Érvénytelen újramintavételezési eljárás: „%s”."
 
-#: ../src/daemon/cmdline.c:370
+#: ../src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
 msgstr "a --system paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:378
+#: ../src/daemon/cmdline.c:381
 msgid "--no-cpu-limit expects boolean argument"
 msgstr "a --no-cpu-limit paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:386
+#: ../src/daemon/cmdline.c:389
 msgid "--disable-shm expects boolean argument"
 msgstr "a --disable-shm paraméter logikai értéket vár"
 
-#: ../src/daemon/daemon-conf.c:259
+#: ../src/daemon/cmdline.c:397
+msgid "--enable-memfd expects boolean argument"
+msgstr "a --enable-memfd paraméter logikai értéket vár"
+
+#: ../src/daemon/daemon-conf.c:260
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] Érvénytelen naplózási cél: „%s”."
 
-#: ../src/daemon/daemon-conf.c:274
+#: ../src/daemon/daemon-conf.c:275
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] Érvénytelen naplózási szint: „%s”."
 
-#: ../src/daemon/daemon-conf.c:289
+#: ../src/daemon/daemon-conf.c:290
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] Érvénytelen újramintavételezési eljárás: „%s”."
 
-#: ../src/daemon/daemon-conf.c:311
+#: ../src/daemon/daemon-conf.c:312
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] Érvénytelen rlimit érték: „%s”."
 
-#: ../src/daemon/daemon-conf.c:331
+#: ../src/daemon/daemon-conf.c:332
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Érvénytelen mintavételi formátum: „%s”."
 
-#: ../src/daemon/daemon-conf.c:348 ../src/daemon/daemon-conf.c:365
+#: ../src/daemon/daemon-conf.c:349 ../src/daemon/daemon-conf.c:366
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] Érvénytelen mintavételezési gyakoriság: „%s”."
 
-#: ../src/daemon/daemon-conf.c:388
+#: ../src/daemon/daemon-conf.c:389
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Érvénytelen minta csatornák: „%s”."
 
-#: ../src/daemon/daemon-conf.c:405
+#: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
 msgstr "[%s:%u] Érvénytelen csatornaleképzés: „%s”."
 
-#: ../src/daemon/daemon-conf.c:422
+#: ../src/daemon/daemon-conf.c:423
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] Érvénytelen a részek száma: „%s”."
 
-#: ../src/daemon/daemon-conf.c:439
+#: ../src/daemon/daemon-conf.c:440
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] Érvénytelen a részek mérete: „%s”."
 
-#: ../src/daemon/daemon-conf.c:456
+#: ../src/daemon/daemon-conf.c:457
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Érvénytelen a prioritási érték: „%s”."
 
-#: ../src/daemon/daemon-conf.c:499
+#: ../src/daemon/daemon-conf.c:500
 #, c-format
 msgid "[%s:%u] Invalid server type '%s'."
 msgstr "[%s:%u] Érvénytelen kiszolgálótípus: „%s”."
 
-#: ../src/daemon/daemon-conf.c:613
+#: ../src/daemon/daemon-conf.c:615
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Nem sikerült megnyitni a konfigurációs fájlt: %s"
 
-#: ../src/daemon/daemon-conf.c:629
+#: ../src/daemon/daemon-conf.c:631
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -323,7 +333,7 @@ msgstr ""
 "A megadott alapértelmezett csatornaleképzés csatornáinak száma eltér az "
 "megadott alapértelmezett csatornaszámtól."
 
-#: ../src/daemon/daemon-conf.c:716
+#: ../src/daemon/daemon-conf.c:718
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Olvasás a következő konfigurációs fájlból: %s ###\n"
@@ -540,35 +550,31 @@ msgstr "Nem sikerült lekérni a számítógép azonosítóját"
 
 #: ../src/daemon/main.c:974
 msgid ""
-"OK, so you are running PA in system mode. Please note that you most likely "
-"shouldn't be doing that.\n"
-"If you do it nonetheless then it's your own fault if things don't work as "
-"expected.\n"
+"OK, so you are running PA in system mode. Please make sure that you actually "
+"do want to do that.\n"
 "Please read http://www.freedesktop.org/wiki/Software/PulseAudio/"
 "Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
 "mode is usually a bad idea."
 msgstr ""
-"A PulseAudio rendszer üzemmódban fut. Általánosságban ezen üzemmód "
-"használata nem ajánlott.\n"
-"Ha mindenképpen ilyen üzemmódban kívánja futtatni a PulseAudio rendszert, ne "
-"lepődjön meg, ha egyes funkciók esetleg nem az elvárások szerint működnek.\n"
+"A PulseAudio rendszer üzemmódban fut. Győződjön meg arról, hogy valóban ezt "
+"szeretné-e tenni.\n"
 "További tájékoztatás: http://www.freedesktop.org/wiki/Software/PulseAudio/"
 "Documentation/User/WhatIsWrongWithSystemWide/ amelyből megtudhatja miért nem "
 "tanácsos a rendszer üzemmód használata."
 
-#: ../src/daemon/main.c:991
+#: ../src/daemon/main.c:990
 msgid "pa_pid_file_create() failed."
 msgstr "A „pa_pid_file_create()” függvényhívás meghiúsult."
 
-#: ../src/daemon/main.c:1021
+#: ../src/daemon/main.c:1022
 msgid "pa_core_new() failed."
 msgstr "A „pa_core_new()” függvényhívás meghiúsult: %s"
 
-#: ../src/daemon/main.c:1089
+#: ../src/daemon/main.c:1090
 msgid "Failed to initialize daemon."
 msgstr "Nem sikerült előkészíteni a démont."
 
-#: ../src/daemon/main.c:1094
+#: ../src/daemon/main.c:1095
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "A démont noha elindult, de nem töltött be modulokat, így a hangrendszer nem "
@@ -582,155 +588,155 @@ msgstr "PulseAudio hangrendszer"
 msgid "Start the PulseAudio Sound System"
 msgstr "A PulseAudio hangrendszer elindítása"
 
-#: ../src/modules/alsa/alsa-mixer.c:2402
+#: ../src/modules/alsa/alsa-mixer.c:2378
 msgid "Input"
 msgstr "Bemenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2403
+#: ../src/modules/alsa/alsa-mixer.c:2379
 msgid "Docking Station Input"
 msgstr "Dokkolóállomás bemenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2404
+#: ../src/modules/alsa/alsa-mixer.c:2380
 msgid "Docking Station Microphone"
 msgstr "Dokkolóállomás mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2405
+#: ../src/modules/alsa/alsa-mixer.c:2381
 msgid "Docking Station Line In"
 msgstr "Dokkolóállomás vonalbemenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2406 ../src/modules/alsa/alsa-mixer.c:2491
+#: ../src/modules/alsa/alsa-mixer.c:2382 ../src/modules/alsa/alsa-mixer.c:2467
 msgid "Line In"
 msgstr "Vonalbemenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2407 ../src/modules/alsa/alsa-mixer.c:2485
+#: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
 #: ../src/modules/bluetooth/module-bluez4-device.c:2099
 #: ../src/modules/bluetooth/module-bluez5-device.c:1710
 msgid "Microphone"
 msgstr "Mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2408 ../src/modules/alsa/alsa-mixer.c:2486
+#: ../src/modules/alsa/alsa-mixer.c:2384 ../src/modules/alsa/alsa-mixer.c:2462
 msgid "Front Microphone"
 msgstr "Első mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2409 ../src/modules/alsa/alsa-mixer.c:2487
+#: ../src/modules/alsa/alsa-mixer.c:2385 ../src/modules/alsa/alsa-mixer.c:2463
 msgid "Rear Microphone"
 msgstr "Hátsó mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2410
+#: ../src/modules/alsa/alsa-mixer.c:2386
 msgid "External Microphone"
 msgstr "Külső mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2411 ../src/modules/alsa/alsa-mixer.c:2489
+#: ../src/modules/alsa/alsa-mixer.c:2387 ../src/modules/alsa/alsa-mixer.c:2465
 msgid "Internal Microphone"
 msgstr "Belső mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2412 ../src/modules/alsa/alsa-mixer.c:2492
+#: ../src/modules/alsa/alsa-mixer.c:2388 ../src/modules/alsa/alsa-mixer.c:2468
 msgid "Radio"
 msgstr "Rádió"
 
-#: ../src/modules/alsa/alsa-mixer.c:2413 ../src/modules/alsa/alsa-mixer.c:2493
+#: ../src/modules/alsa/alsa-mixer.c:2389 ../src/modules/alsa/alsa-mixer.c:2469
 msgid "Video"
 msgstr "Videó"
 
-#: ../src/modules/alsa/alsa-mixer.c:2414
+#: ../src/modules/alsa/alsa-mixer.c:2390
 msgid "Automatic Gain Control"
 msgstr "Automatikus erősítésszabályzás"
 
-#: ../src/modules/alsa/alsa-mixer.c:2415
+#: ../src/modules/alsa/alsa-mixer.c:2391
 msgid "No Automatic Gain Control"
 msgstr "Nincs automatikus erősítésszabályzás"
 
-#: ../src/modules/alsa/alsa-mixer.c:2416
+#: ../src/modules/alsa/alsa-mixer.c:2392
 msgid "Boost"
 msgstr "Erősítés"
 
-#: ../src/modules/alsa/alsa-mixer.c:2417
+#: ../src/modules/alsa/alsa-mixer.c:2393
 msgid "No Boost"
 msgstr "Nincs erősítés"
 
-#: ../src/modules/alsa/alsa-mixer.c:2418
+#: ../src/modules/alsa/alsa-mixer.c:2394
 msgid "Amplifier"
 msgstr "Erősítő"
 
-#: ../src/modules/alsa/alsa-mixer.c:2419
+#: ../src/modules/alsa/alsa-mixer.c:2395
 msgid "No Amplifier"
 msgstr "Nincs erősítő"
 
-#: ../src/modules/alsa/alsa-mixer.c:2420
+#: ../src/modules/alsa/alsa-mixer.c:2396
 msgid "Bass Boost"
 msgstr "Basszuskiemelés"
 
-#: ../src/modules/alsa/alsa-mixer.c:2421
+#: ../src/modules/alsa/alsa-mixer.c:2397
 msgid "No Bass Boost"
 msgstr "Nincs basszuskiemelés"
 
-#: ../src/modules/alsa/alsa-mixer.c:2422
+#: ../src/modules/alsa/alsa-mixer.c:2398
 #: ../src/modules/bluetooth/module-bluez4-device.c:2104
 #: ../src/modules/bluetooth/module-bluez5-device.c:1717
 msgid "Speaker"
 msgstr "Hangszóró"
 
-#: ../src/modules/alsa/alsa-mixer.c:2423 ../src/modules/alsa/alsa-mixer.c:2495
+#: ../src/modules/alsa/alsa-mixer.c:2399 ../src/modules/alsa/alsa-mixer.c:2471
 msgid "Headphones"
 msgstr "Analóg fejhallgató"
 
-#: ../src/modules/alsa/alsa-mixer.c:2484
+#: ../src/modules/alsa/alsa-mixer.c:2460
 msgid "Analog Input"
 msgstr "Analóg bemenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2488
+#: ../src/modules/alsa/alsa-mixer.c:2464
 msgid "Dock Microphone"
 msgstr "Dokkolóállomás mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2490
+#: ../src/modules/alsa/alsa-mixer.c:2466
 msgid "Headset Microphone"
 msgstr "Fejhallgató mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2494
+#: ../src/modules/alsa/alsa-mixer.c:2470
 msgid "Analog Output"
 msgstr "Analóg kimenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2496
+#: ../src/modules/alsa/alsa-mixer.c:2472
 msgid "LFE on Separate Mono Output"
 msgstr "Analóg kimenet (mély)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2497
+#: ../src/modules/alsa/alsa-mixer.c:2473
 msgid "Line Out"
 msgstr "Vonalkimenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2498
+#: ../src/modules/alsa/alsa-mixer.c:2474
 msgid "Analog Mono Output"
 msgstr "Analóg mono kimenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2499
+#: ../src/modules/alsa/alsa-mixer.c:2475
 msgid "Speakers"
 msgstr "Hangszórók"
 
-#: ../src/modules/alsa/alsa-mixer.c:2500
+#: ../src/modules/alsa/alsa-mixer.c:2476
 msgid "HDMI / DisplayPort"
 msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2501
+#: ../src/modules/alsa/alsa-mixer.c:2477
 msgid "Digital Output (S/PDIF)"
 msgstr "Digitális kimenet (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2502
+#: ../src/modules/alsa/alsa-mixer.c:2478
 msgid "Digital Input (S/PDIF)"
 msgstr "Digitális bemenet (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2503
+#: ../src/modules/alsa/alsa-mixer.c:2479
 msgid "Digital Passthrough (S/PDIF)"
 msgstr "Digitális Passthrough (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2504
+#: ../src/modules/alsa/alsa-mixer.c:2480
 msgid "Multichannel Input"
 msgstr "Többcsatornás bemenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2505
+#: ../src/modules/alsa/alsa-mixer.c:2481
 msgid "Multichannel Output"
 msgstr "Többcsatornás kimenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:4014
+#: ../src/modules/alsa/alsa-mixer.c:3990
 msgid "Analog Mono"
 msgstr "Analóg mono"
 
@@ -739,116 +745,116 @@ msgstr "Analóg mono"
 #. * here would lead to the source name to become "Analog Stereo Input
 #. * Input". The same logic applies to analog-stereo-output,
 #. * multichannel-input and multichannel-output.
-#: ../src/modules/alsa/alsa-mixer.c:4015 ../src/modules/alsa/alsa-mixer.c:4021
-#: ../src/modules/alsa/alsa-mixer.c:4022
+#: ../src/modules/alsa/alsa-mixer.c:3991 ../src/modules/alsa/alsa-mixer.c:3997
+#: ../src/modules/alsa/alsa-mixer.c:3998
 msgid "Analog Stereo"
 msgstr "Analóg sztereó"
 
-#: ../src/modules/alsa/alsa-mixer.c:4023 ../src/modules/alsa/alsa-mixer.c:4024
+#: ../src/modules/alsa/alsa-mixer.c:3999 ../src/modules/alsa/alsa-mixer.c:4000
 msgid "Multichannel"
 msgstr "Többcsatornás"
 
-#: ../src/modules/alsa/alsa-mixer.c:4025
+#: ../src/modules/alsa/alsa-mixer.c:4001
 msgid "Analog Surround 2.1"
 msgstr "Analóg térhatású 2.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4026
+#: ../src/modules/alsa/alsa-mixer.c:4002
 msgid "Analog Surround 3.0"
 msgstr "Analóg térhatású 3.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4027
+#: ../src/modules/alsa/alsa-mixer.c:4003
 msgid "Analog Surround 3.1"
 msgstr "Analóg térhatású 3.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4028
+#: ../src/modules/alsa/alsa-mixer.c:4004
 msgid "Analog Surround 4.0"
 msgstr "Analóg térhatású 4.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4029
+#: ../src/modules/alsa/alsa-mixer.c:4005
 msgid "Analog Surround 4.1"
 msgstr "Analóg térhatású 4.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4030
+#: ../src/modules/alsa/alsa-mixer.c:4006
 msgid "Analog Surround 5.0"
 msgstr "Analóg térhatású 5.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4031
+#: ../src/modules/alsa/alsa-mixer.c:4007
 msgid "Analog Surround 5.1"
 msgstr "Analóg térhatású 5.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4032
+#: ../src/modules/alsa/alsa-mixer.c:4008
 msgid "Analog Surround 6.0"
 msgstr "Analóg térhatású 6.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4033
+#: ../src/modules/alsa/alsa-mixer.c:4009
 msgid "Analog Surround 6.1"
 msgstr "Analóg térhatású 6.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4034
+#: ../src/modules/alsa/alsa-mixer.c:4010
 msgid "Analog Surround 7.0"
 msgstr "Analóg térhatású 7.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4035
+#: ../src/modules/alsa/alsa-mixer.c:4011
 msgid "Analog Surround 7.1"
 msgstr "Analóg térhatású 7.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4036
+#: ../src/modules/alsa/alsa-mixer.c:4012
 msgid "Digital Stereo (IEC958)"
 msgstr "Digitális sztereó (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4037
+#: ../src/modules/alsa/alsa-mixer.c:4013
 msgid "Digital Passthrough  (IEC958)"
 msgstr "Digitális Passthrough (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4038
+#: ../src/modules/alsa/alsa-mixer.c:4014
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Digitális térhatású 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4039
+#: ../src/modules/alsa/alsa-mixer.c:4015
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Digitális térhatású 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4040
+#: ../src/modules/alsa/alsa-mixer.c:4016
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr "Digitális térhatású 5.1 (IEC958/DTS)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4041
+#: ../src/modules/alsa/alsa-mixer.c:4017
 msgid "Digital Stereo (HDMI)"
 msgstr "Digitális térhatású (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4042
+#: ../src/modules/alsa/alsa-mixer.c:4018
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr "Digitális térhatású 5.1 (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4175
+#: ../src/modules/alsa/alsa-mixer.c:4151
 msgid "Analog Mono Duplex"
 msgstr "Analóg mono duplex"
 
-#: ../src/modules/alsa/alsa-mixer.c:4176
+#: ../src/modules/alsa/alsa-mixer.c:4152
 msgid "Analog Stereo Duplex"
 msgstr "Analóg sztereó duplex"
 
-#: ../src/modules/alsa/alsa-mixer.c:4177
+#: ../src/modules/alsa/alsa-mixer.c:4153
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Analóg sztereó duplex (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4178
+#: ../src/modules/alsa/alsa-mixer.c:4154
 msgid "Multichannel Duplex"
 msgstr "Többcsatornás duplex"
 
-#: ../src/modules/alsa/alsa-mixer.c:4179
+#: ../src/modules/alsa/alsa-mixer.c:4155
 #: ../src/modules/alsa/module-alsa-card.c:186
-#: ../src/modules/bluetooth/module-bluez4-device.c:2295
-#: ../src/modules/bluetooth/module-bluez5-device.c:1941
+#: ../src/modules/bluetooth/module-bluez4-device.c:2319
+#: ../src/modules/bluetooth/module-bluez5-device.c:1965
 msgid "Off"
 msgstr "Kikapcsolva"
 
-#: ../src/modules/alsa/alsa-mixer.c:4278
+#: ../src/modules/alsa/alsa-mixer.c:4254
 #, c-format
 msgid "%s Output"
 msgstr "%s kimenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:4286
+#: ../src/modules/alsa/alsa-mixer.c:4262
 #, c-format
 msgid "%s Input"
 msgstr "%s bemenet"
@@ -1028,50 +1034,39 @@ msgstr "Bluetooth kimenet"
 msgid "Bluetooth Input"
 msgstr "Bluetooth bemenet"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2176
+#: ../src/modules/bluetooth/module-bluez4-device.c:2181
 msgid "High Fidelity Playback (A2DP)"
 msgstr "Hi-Fi lejátszás (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2187
+#: ../src/modules/bluetooth/module-bluez4-device.c:2193
 msgid "High Fidelity Capture (A2DP)"
 msgstr "Hi-Fi felvétel (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2198
+#: ../src/modules/bluetooth/module-bluez4-device.c:2205
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Telefon duplex (HSP/HFP)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2210
+#: ../src/modules/bluetooth/module-bluez4-device.c:2218
 msgid "Handsfree Gateway"
 msgstr "Kihangosító átjáró"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1786
+#: ../src/modules/bluetooth/module-bluez5-device.c:1790
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Hi-Fi lejátszás (A2DP bemenet)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1797
+#: ../src/modules/bluetooth/module-bluez5-device.c:1802
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Hi-Fi felvétel (A2DP forrás)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1808
+#: ../src/modules/bluetooth/module-bluez5-device.c:1814
 msgid "Headset Head Unit (HSP/HFP)"
 msgstr "Fejhallgató fejegység (HSP/HFP)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1820
+#: ../src/modules/bluetooth/module-bluez5-device.c:1827
 msgid "Headset Audio Gateway (HSP/HFP)"
 msgstr "Fejhallgató hangátjáró (HSP/HFP)"
 
 #: ../src/modules/echo-cancel/module-echo-cancel.c:61
-#| msgid ""
-#| "source_name=<name for the source> source_properties=<properties for the "
-#| "source> source_master=<name of source to filter> sink_name=<name for the "
-#| "sink> sink_properties=<properties for the sink> sink_master=<name of sink "
-#| "to filter> adjust_time=<how often to readjust rates in s> "
-#| "adjust_threshold=<how much drift to readjust after in ms> format=<sample "
-#| "format> rate=<sample rate> channels=<number of channels> "
-#| "channel_map=<channel map> aec_method=<implementation to use> "
-#| "aec_args=<parameters for the AEC engine> save_aec=<save AEC data in /tmp> "
-#| "autoloaded=<set if this module is being loaded automatically> "
-#| "use_volume_sharing=<yes or no> "
 msgid ""
 "source_name=<name for the source> source_properties=<properties for the "
 "source> source_master=<name of source to filter> sink_name=<name for the "
@@ -1100,14 +1095,15 @@ msgstr ""
 msgid "On"
 msgstr "Be"
 
+#: ../src/modules/module-allow-passthrough.c:73
+#: ../src/modules/module-always-sink.c:82
+msgid "Dummy Output"
+msgstr "Látszólagos kimenet"
+
 #: ../src/modules/module-always-sink.c:36
 msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr ""
 "Mindig maradjon betöltve legalább egy nyelő, még ha az csak az üres nyelő is"
-
-#: ../src/modules/module-always-sink.c:82
-msgid "Dummy Output"
-msgstr "Látszólagos kimenet"
 
 #: ../src/modules/module-equalizer-sink.c:70
 msgid "General Purpose Equalizer"
@@ -1126,7 +1122,7 @@ msgstr ""
 "channel_map=<csatornaleképzés> autoloaded=<beállítva, ha ez a modul "
 "automatikusan betöltődik> use_volume_sharing=<igen vagy nem>"
 
-#: ../src/modules/module-filter-apply.c:46
+#: ../src/modules/module-filter-apply.c:47
 msgid "autoclean=<automatically unload unused filters?>"
 msgstr "autoclean=<nem használt szűrők automatikus eltávolítása?>"
 
@@ -1417,7 +1413,7 @@ msgstr "Felső hátsó bal"
 msgid "Top Rear Right"
 msgstr "Felső hátsó jobb"
 
-#: ../src/pulse/channelmap.c:479 ../src/pulse/format.c:127
+#: ../src/pulse/channelmap.c:479 ../src/pulse/format.c:121
 #: ../src/pulse/sample.c:175 ../src/pulse/volume.c:294
 #: ../src/pulse/volume.c:320 ../src/pulse/volume.c:340
 #: ../src/pulse/volume.c:372 ../src/pulse/volume.c:412
@@ -1461,17 +1457,17 @@ msgstr "az xcb_connection_has_error() igaz értéket adott vissza"
 msgid "Failed to parse cookie data"
 msgstr "Nem sikerült feldolgozni a süti adatait"
 
-#: ../src/pulse/context.c:660
+#: ../src/pulse/context.c:702
 #, c-format
 msgid "fork(): %s"
 msgstr "Programindítás: %s"
 
-#: ../src/pulse/context.c:715
+#: ../src/pulse/context.c:757
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1421
+#: ../src/pulse/context.c:1463
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Üzenet érkezett az ismeretlen „%s” kiterjesztéstől"
@@ -1516,12 +1512,12 @@ msgstr "nem"
 msgid "Cannot access autospawn lock."
 msgstr "Nem érhető zárolás az automatikus indításhoz."
 
-#: ../src/pulsecore/log.c:154
+#: ../src/pulsecore/log.c:165
 #, c-format
 msgid "Failed to open target file '%s'."
 msgstr "Nem sikerült megnyitni a cél „%s” fájlt."
 
-#: ../src/pulsecore/log.c:177
+#: ../src/pulsecore/log.c:188
 #, c-format
 msgid ""
 "Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
@@ -1529,15 +1525,15 @@ msgstr ""
 "Kísérlet történt a cél fájlok megnyitására: „%s”, „%s.1”, „%s.2” ... „%s."
 "%d”, de mind meghiúsult."
 
-#: ../src/pulsecore/log.c:640
+#: ../src/pulsecore/log.c:651
 msgid "Invalid log target."
 msgstr "Érvénytelen naplózási cél."
 
-#: ../src/pulsecore/sink.c:3460
+#: ../src/pulsecore/sink.c:3459
 msgid "Built-in Audio"
 msgstr "Belső hangforrás"
 
-#: ../src/pulsecore/sink.c:3465
+#: ../src/pulsecore/sink.c:3464
 msgid "Modem"
 msgstr "Modem"
 
@@ -1673,42 +1669,6 @@ msgstr "%0.1f KiB"
 #, c-format
 msgid "%u B"
 msgstr "%u B"
-
-# Ez egy unit teszt program. Senki nem fogja látni. Fordíthatósága inkább bug.
-#: ../src/tests/resampler-test.c:255
-#, c-format
-msgid ""
-"%s [options]\n"
-"\n"
-"-h, --help                            Show this help\n"
-"-v, --verbose                         Print debug messages\n"
-"      --from-rate=SAMPLERATE          From sample rate in Hz (defaults to "
-"44100)\n"
-"      --from-format=SAMPLEFORMAT      From sample type (defaults to s16le)\n"
-"      --from-channels=CHANNELS        From number of channels (defaults to "
-"1)\n"
-"      --to-rate=SAMPLERATE            To sample rate in Hz (defaults to "
-"44100)\n"
-"      --to-format=SAMPLEFORMAT        To sample type (defaults to s16le)\n"
-"      --to-channels=CHANNELS          To number of channels (defaults to 1)\n"
-"      --resample-method=METHOD        Resample method (defaults to auto)\n"
-"      --seconds=SECONDS               From stream duration (defaults to 60)\n"
-"\n"
-"If the formats are not specified, the test performs all formats "
-"combinations,\n"
-"back and forth.\n"
-"\n"
-"Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, "
-"alaw,\n"
-"s24le, s24be, s24-32le, s24-32be, s32le, s32be (defaults to s16ne)\n"
-"\n"
-"See --dump-resample-methods for possible values of resample methods.\n"
-msgstr ""
-
-#: ../src/tests/resampler-test.c:353
-#, c-format
-msgid "%s %s\n"
-msgstr "%s %s\n"
 
 #: ../src/utils/pacat.c:117
 #, c-format
@@ -3257,241 +3217,3 @@ msgstr "Nem sikerült betölteni a sütiadatokat\n"
 #, c-format
 msgid "Not yet implemented.\n"
 msgstr "Még nincs elkészítve.\n"
-
-#~ msgid "Got signal %s."
-#~ msgstr "Szignál: %s."
-
-#~ msgid "Exiting."
-#~ msgstr "Kilépés."
-
-#~ msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-#~ msgstr "Létező felhasználó „%s” (UID: %lu) és csoport „%s” (GID: %lu)."
-
-#~ msgid "Successfully dropped root privileges."
-#~ msgstr "A rendszergazdai jogosultságok sikeresen visszaadva."
-
-#~ msgid "setrlimit(%s, (%u, %u)) failed: %s"
-#~ msgstr "setrlimit(%s, (%u, %u)) meghiúsult: %s"
-
-#~ msgid "Daemon not running"
-#~ msgstr "A démon nem fut."
-
-#~ msgid "Daemon running as PID %u"
-#~ msgstr "A démon a következő PID azonosítóval fut: %u"
-
-#~ msgid "Daemon startup successful."
-#~ msgstr "A démon sikeresen elindult."
-
-#~ msgid "This is PulseAudio %s"
-#~ msgstr "PulseAudio %s"
-
-#~ msgid "Compilation host: %s"
-#~ msgstr "Összeépítő számítógép: %s"
-
-#~ msgid "Compilation CFLAGS: %s"
-#~ msgstr "Összeépítési CFLAGS jelzők: %s"
-
-#~ msgid "Running on host: %s"
-#~ msgstr "Kiszolgáló: %s"
-
-#~ msgid "Found %u CPUs."
-#~ msgstr "%u CPU található a rendszerben."
-
-#~ msgid "Page size is %lu bytes"
-#~ msgstr "Oldalméret: %lu bájt"
-
-#~ msgid "Compiled with Valgrind support: yes"
-#~ msgstr "Összeépítés Valgrind támogatással: Igen"
-
-#~ msgid "Compiled with Valgrind support: no"
-#~ msgstr "Összeépítés Valgrind támogatással: Nem"
-
-#~ msgid "Running in valgrind mode: %s"
-#~ msgstr "Futás Valgrind üzemmódban: %s"
-
-#, fuzzy
-#~ msgid "Running in VM: %s"
-#~ msgstr "Kiszolgáló: %s"
-
-#~ msgid "Optimized build: yes"
-#~ msgstr "Optimalizált összeépítés: Igen"
-
-#~ msgid "Optimized build: no"
-#~ msgstr "Optimalizált összeépítés: Nem"
-
-#~ msgid "NDEBUG defined, all asserts disabled."
-#~ msgstr "NDEBUG megadva, minden érvényesítés letiltva."
-
-#~ msgid "FASTPATH defined, only fast path asserts disabled."
-#~ msgstr ""
-#~ "FASTPATH megadva, így csak a gyors útvonal-érvényesítés lesz letiltva."
-
-#~ msgid "All asserts enabled."
-#~ msgstr "Minden érvényesítés engedélyezve."
-
-#~ msgid "Machine ID is %s."
-#~ msgstr "Számítógép-azonosító: %s."
-
-#~ msgid "Session ID is %s."
-#~ msgstr "Munkamenet-azonosító: %s."
-
-#~ msgid "Using runtime directory %s."
-#~ msgstr "A futásidőben használt mappa: %s."
-
-#~ msgid "Using state directory %s."
-#~ msgstr "Az állapottároló mappa: %s."
-
-#~ msgid "Using modules directory %s."
-#~ msgstr "A modulok mappája: %s."
-
-#~ msgid "Running in system mode: %s"
-#~ msgstr "Futás rendszer üzemmódban: %s"
-
-#~ msgid "Fresh high-resolution timers available! Bon appetit!"
-#~ msgstr "A nagypontosságú időzítők elérhetőek."
-
-#~ msgid ""
-#~ "Dude, your kernel stinks! The chef's recommendation today is Linux with "
-#~ "high-resolution timers enabled!"
-#~ msgstr ""
-#~ "A nagypontosságú időzítők nem érhetőek el. Napjaink Linux rendszereiben "
-#~ "érdemes engedélyezni a nagypontosságú időzítőket."
-
-#~ msgid "Daemon startup complete."
-#~ msgstr "A démon elindítása sikeres."
-
-#~ msgid "Daemon shutdown initiated."
-#~ msgstr "A démon leállítása kezdeményezve."
-
-#~ msgid "Daemon terminated."
-#~ msgstr "A démon leállítva."
-
-#~ msgid "Cleaning up privileges."
-#~ msgstr "Jogosultságok letisztázása."
-
-#, fuzzy
-#~ msgid "PulseAudio Sound System KDE Routing Policy"
-#~ msgstr "PulseAudio hangrendszer"
-
-#, fuzzy
-#~ msgid "Start the PulseAudio Sound System with KDE Routing Policy"
-#~ msgstr "A PulseAudio hangrendszer elindítása"
-
-#~ msgid "No cookie loaded. Attempting to connect without."
-#~ msgstr ""
-#~ "Nincs betölthető süti. Kísérlet a kapcsolat felvételére sütik használata "
-#~ "nélkül."
-
-#~ msgid "Failed to load client configuration file.\n"
-#~ msgstr "Nem sikerült betölteni a kliens konfigurációs fájlt.\n"
-
-#~ msgid "Failed to read environment configuration data.\n"
-#~ msgstr "Nem sikerült elolvasni a környezetváltozó konfigurációs adatokat.\n"
-
-#~ msgid "[%s:%u] rlimit not supported on this platform."
-#~ msgstr "[%s:%u] Az rlimit nem támogatott ezen az operációs rendszeren."
-
-#~ msgid "XOpenDisplay() failed"
-#~ msgstr "Az XOpenDisplay() függvényhívás meghiúsult."
-
-#~ msgid ""
-#~ "Source Output #%u\n"
-#~ "\tDriver: %s\n"
-#~ "\tOwner Module: %s\n"
-#~ "\tClient: %s\n"
-#~ "\tSource: %u\n"
-#~ "\tSample Specification: %s\n"
-#~ "\tChannel Map: %s\n"
-#~ "\tBuffer Latency: %0.0f usec\n"
-#~ "\tSource Latency: %0.0f usec\n"
-#~ "\tResample method: %s\n"
-#~ "\tProperties:\n"
-#~ "\t\t%s\n"
-#~ msgstr ""
-#~ "Forrás kimenet #%u\n"
-#~ "\tEszközmeghajtó: %s\n"
-#~ "\tTulajdonos modul: %s\n"
-#~ "\tKliens: %s\n"
-#~ "\tForrás: %u\n"
-#~ "\tMintavételi leírás: %s\n"
-#~ "\tCsatornaleképzés: %s\n"
-#~ "\tPuffer késleltetés: %0.0f usec\n"
-#~ "\tForrás késleltetés: %0.0f usec\n"
-#~ "\tÚjramintavételezési eljárás: %s\n"
-#~ "\tTulajdonságok:\n"
-#~ "\t\t%s\n"
-
-#, fuzzy
-#~ msgid ""
-#~ "%s [options] stat\n"
-#~ "%s [options] list\n"
-#~ "%s [options] exit\n"
-#~ "%s [options] upload-sample FILENAME [NAME]\n"
-#~ "%s [options] play-sample NAME [SINK]\n"
-#~ "%s [options] remove-sample NAME\n"
-#~ "%s [options] move-sink-input SINKINPUT SINK\n"
-#~ "%s [options] move-source-output SOURCEOUTPUT SOURCE\n"
-#~ "%s [options] load-module NAME [ARGS ...]\n"
-#~ "%s [options] unload-module MODULE\n"
-#~ "%s [options] suspend-sink SINK 1|0\n"
-#~ "%s [options] suspend-source SOURCE 1|0\n"
-#~ "%s [options] set-card-profile CARD PROFILE\n"
-#~ "%s [options] set-sink-port SINK PORT\n"
-#~ "%s [options] set-source-port SOURCE PORT\n"
-#~ "%s [options] set-sink-volume SINK VOLUME\n"
-#~ "%s [options] set-source-volume SOURCE VOLUME\n"
-#~ "%s [options] set-sink-input-volume SINKINPUT VOLUME\n"
-#~ "%s [options] set-sink-mute SINK 1|0\n"
-#~ "%s [options] set-source-mute SOURCE 1|0\n"
-#~ "%s [options] set-sink-input-mute SINKINPUT 1|0\n"
-#~ "%s [options] subscribe\n"
-#~ "\n"
-#~ "  -h, --help                            Show this help\n"
-#~ "      --version                         Show version\n"
-#~ "\n"
-#~ "  -s, --server=SERVER                   The name of the server to connect "
-#~ "to\n"
-#~ "  -n, --client-name=NAME                How to call this client on the "
-#~ "server\n"
-#~ msgstr ""
-#~ "%s [options] stat\n"
-#~ "%s [options] list\n"
-#~ "%s [options] exit\n"
-#~ "%s [options] upload-sample FÁJLNÉV [NÉV]\n"
-#~ "%s [options] play-sample NÉV [NYELŐ]\n"
-#~ "%s [options] remove-sample NÉV\n"
-#~ "%s [options] move-sink-input NYELŐBEMENET NYELŐ\n"
-#~ "%s [options] move-source-output FORRÁSKIMENET FORRÁS\n"
-#~ "%s [options] load-module NÉV [PARAMÉTEREK ...]\n"
-#~ "%s [options] unload-module MODUL\n"
-#~ "%s [options] suspend-sink NYELŐ 1|0\n"
-#~ "%s [options] suspend-source FORRÁS 1|0\n"
-#~ "%s [options] set-card-profile KÁRTYA PROFIL\n"
-#~ "%s [options] set-sink-port NYELŐ PORT\n"
-#~ "%s [options] set-source-port FORRÁS PORT\n"
-#~ "%s [options] set-sink-volume NYELŐ HANGERŐ\n"
-#~ "%s [options] set-source-volume FORRÁS HANGERŐ\n"
-#~ "%s [options] set-sink-input-volume NYELŐBEMENET HANGERŐ\n"
-#~ "%s [options] set-sink-mute NYELŐ 1|0\n"
-#~ "%s [options] set-source-mute FORRÁS 1|0\n"
-#~ "%s [options] set-sink-input-mute NYELŐBEMENET 1|0\n"
-#~ "\n"
-#~ "  -h, --help                            Megjeleníti ezt a súgót\n"
-#~ "      --version                         Az alkalmazás verziószámának "
-#~ "megjelenítése\n"
-#~ "\n"
-#~ "  -s, --server=KISZOLGÁLÓ                   Kapcsolódás a megadott "
-#~ "KISZOLGÁLÓ kiszolgálóhoz\n"
-#~ "  -n, --client-name=NÉV                A kliens neve ezen a szerveren\n"
-
-#~ msgid "%s+%s"
-#~ msgstr "%s+%s"
-
-#~ msgid "%s / %s"
-#~ msgstr "%s / %s"
-
-#~ msgid "Digital Surround 4.0 (IEC958)"
-#~ msgstr "Digitális térhatású 4.0 (IEC958)"
-
-#~ msgid "Low Frequency Emmiter"
-#~ msgstr "Mély-hangszóró (LFE)"
