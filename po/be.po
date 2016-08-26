@@ -1766,7 +1766,7 @@ msgstr ""
 #: ../src/utils/pacat.c:466
 #, c-format
 msgid "Connection established.%s"
-msgstr "Злучэнне ўстаноўлена"
+msgstr "Злучэнне ўстаноўлена.%s"
 
 #: ../src/utils/pacat.c:469
 #, c-format
@@ -1781,7 +1781,7 @@ msgstr "pa_stream_connect_playback() пацярпела няўдачу: %s"
 #: ../src/utils/pacat.c:513
 #, c-format
 msgid "Failed to set monitor stream: %s"
-msgstr "Не атрымалася ўсталяваць маніторны паток: s"
+msgstr "Не атрымалася ўсталяваць маніторны паток: %s"
 
 #: ../src/utils/pacat.c:517
 #, c-format
@@ -2663,7 +2663,7 @@ msgid "Failure: %s"
 msgstr "Няўдача: %s"
 
 #: ../src/utils/pactl.c:866
-#, c-format
+#, fuzzy, c-format
 msgid "Failed to unload module: Module %s not loaded"
 msgstr "Не атрымалася выгрузіць модуль: модуль не загружаны"
 

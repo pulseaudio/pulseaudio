@@ -1,7 +1,7 @@
 # eukim <eukim@redhat.com>, 2013. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-08-06 14:45+0530\n"
 "MIME-Version: 1.0\n"
@@ -2124,7 +2124,7 @@ msgid "server"
 msgstr "서버 "
 
 #: ../src/utils/pactl.c:1100
-#, c-format
+#, fuzzy, c-format
 msgid "Event '%s' on %s #%u\n"
 msgstr "%s #%u에서 이벤트 '%s'\n"
 
