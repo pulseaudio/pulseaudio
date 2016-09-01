@@ -46,6 +46,14 @@
 #include <pulsecore/avahi-wrap.h>
 #include <pulsecore/protocol-native.h>
 
+#ifdef HAVE_DBUS
+#include <pulsecore/dbus-shared.h>
+
+#define HOSTNAME_DBUS_INTERFACE "org.freedesktop.hostname1"
+#define HOSTNAME_DBUS_PATH "/org/freedesktop/hostname1"
+#define HOSTNAME_DBUS_ICON_PROPERTY "IconName"
+#endif
+
 #include "module-zeroconf-publish-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
@@ -133,6 +141,7 @@ struct userdata {
 
     pa_hashmap *services; /* protect with mainloop lock */
     char *service_name;
+    char *icon_name;
 
     AvahiEntryGroup *main_entry_group;
 
@@ -308,8 +317,6 @@ static void publish_service(pa_mainloop_api *api PA_GCC_UNUSED, void *service) {
 
     if ((t = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION)))
         txt = avahi_string_list_add_pair(txt, "description", t);
-    if ((t = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_ICON_NAME)))
-        txt = avahi_string_list_add_pair(txt, "icon-name", t);
     if ((t = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_VENDOR_NAME)))
         txt = avahi_string_list_add_pair(txt, "vendor-name", t);
     if ((t = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_PRODUCT_NAME)))
@@ -318,6 +325,12 @@ static void publish_service(pa_mainloop_api *api PA_GCC_UNUSED, void *service) {
         txt = avahi_string_list_add_pair(txt, "class", t);
     if ((t = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_FORM_FACTOR)))
         txt = avahi_string_list_add_pair(txt, "form-factor", t);
+
+    if (s->userdata->icon_name) {
+        txt = avahi_string_list_add_pair(txt, "icon-name", s->userdata->icon_name);
+    } else if ((t = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_ICON_NAME))) {
+        txt = avahi_string_list_add_pair(txt, "icon-name", t);
+    }
 
     if (avahi_entry_group_add_service_strlst(
                 s->entry_group,
@@ -653,6 +666,66 @@ static int avahi_process_msg(pa_msgobject *o, int code, void *data, int64_t offs
     return 0;
 }
 
+#ifdef HAVE_DBUS
+static char *get_icon_name(pa_module*m) {
+    const char *interface = HOSTNAME_DBUS_INTERFACE;
+    const char *property = HOSTNAME_DBUS_ICON_PROPERTY;
+    char *icon_name;
+    pa_dbus_connection *bus;
+    DBusError error;
+    DBusMessageIter args;
+    DBusMessage *msg = NULL;
+    DBusMessage *reply = NULL;
+    DBusConnection *conn = NULL;
+    DBusMessageIter sub;
+
+    if (!(bus = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &error))) {
+        pa_log("Failed to get system bus connection: %s", error.message);
+        goto out;
+    }
+
+    conn = pa_dbus_connection_get(bus);
+
+    msg = dbus_message_new_method_call(HOSTNAME_DBUS_INTERFACE,
+                                       HOSTNAME_DBUS_PATH,
+                                       "org.freedesktop.DBus.Properties",
+                                       "Get");
+    dbus_message_append_args(msg, DBUS_TYPE_STRING, &interface, DBUS_TYPE_STRING, &property, DBUS_TYPE_INVALID);
+
+    dbus_error_init(&error);
+    if ((reply = dbus_connection_send_with_reply_and_block(conn, msg, -1, &error)) == NULL) {
+        pa_log("Failed to send: %s:%s", error.name, error.message);
+        dbus_error_free(&error);
+        goto out;
+    }
+
+    dbus_message_iter_init(reply, &args);
+    if (dbus_message_iter_get_arg_type(&args) != DBUS_TYPE_VARIANT) {
+        pa_log("Incorrect reply type");
+        goto out;
+    }
+
+    dbus_message_iter_recurse(&args, &sub);
+
+    if (dbus_message_iter_get_arg_type(&sub) != DBUS_TYPE_STRING) {
+        pa_log("Incorrect value type");
+        goto out;
+    }
+
+    dbus_message_iter_get_basic(&sub, &icon_name);
+    icon_name = pa_xstrdup(icon_name);
+
+out:
+    if (reply)
+        dbus_message_unref(reply);
+
+    if (msg)
+        dbus_message_unref(msg);
+
+    return icon_name;
+}
+#endif
+
 /* Runs in Avahi mainloop context */
 static void client_callback(AvahiClient *c, AvahiClientState state, void *userdata) {
     struct userdata *u = userdata;
@@ -666,6 +739,12 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
         case AVAHI_CLIENT_S_RUNNING:
             /* Collect all sinks/sources, and publish them */
             pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->msg), AVAHI_MESSAGE_PUBLISH_ALL, u, 0, NULL, NULL);
+
+#ifdef HAVE_DBUS
+            /* Request icon name through D-BUS */
+            u->icon_name = get_icon_name(u->module);
+#endif
+
             break;
 
         case AVAHI_CLIENT_S_COLLISION:
@@ -844,5 +923,6 @@ void pa__done(pa_module*m) {
 
     pa_xfree(u->msg);
     pa_xfree(u->service_name);
+    pa_xfree(u->icon_name);
     pa_xfree(u);
 }

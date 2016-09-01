@@ -149,6 +149,7 @@ static void resolver_cb(
         const char *t;
         char *if_suffix = NULL;
         char at[AVAHI_ADDRESS_STR_MAX], cmt[PA_CHANNEL_MAP_SNPRINT_MAX];
+        char *properties = NULL;
         pa_sample_spec ss;
         pa_channel_map cm;
         AvahiStringList *l;
@@ -172,6 +173,8 @@ static void resolver_cb(
                 ss.channels = (uint8_t) atoi(value);
             else if (pa_streq(key, "format"))
                 ss.format = pa_parse_sample_format(value);
+            else if (pa_streq(key, "icon-name"))
+                properties = pa_sprintf_malloc("device.icon_name=%s", value);
             else if (pa_streq(key, "channel_map")) {
                 pa_channel_map_parse(&cm, value);
                 channel_map_set = true;
@@ -187,12 +190,14 @@ static void resolver_cb(
         if (!pa_sample_spec_valid(&ss)) {
             pa_log("Service '%s' contains an invalid sample specification.", name);
             avahi_free(device);
+            pa_xfree(properties);
             goto finish;
         }
 
         if (!pa_channel_map_valid(&cm) || cm.channels != ss.channels) {
             pa_log("Service '%s' contains an invalid channel map.", name);
             avahi_free(device);
+            pa_xfree(properties);
             goto finish;
         }
 
@@ -205,6 +210,7 @@ static void resolver_cb(
             pa_log("Cannot construct valid device name from credentials of service '%s'.", dname);
             avahi_free(device);
             pa_xfree(dname);
+            pa_xfree(properties);
             goto finish;
         }
 
@@ -220,6 +226,7 @@ static void resolver_cb(
                                  "format=%s "
                                  "channels=%u "
                                  "rate=%u "
+                                 "%s_properties=%s "
                                  "%s_name=%s "
                                  "channel_map=%s",
                                  avahi_address_snprint(at, sizeof(at), a),
@@ -228,6 +235,7 @@ static void resolver_cb(
                                  pa_sample_format_to_string(ss.format),
                                  ss.channels,
                                  ss.rate,
+                                 t, properties ? properties : "",
                                  t, dname,
                                  pa_channel_map_snprint(cmt, sizeof(cmt), &cm));
 
@@ -243,6 +251,7 @@ static void resolver_cb(
         pa_xfree(dname);
         pa_xfree(args);
         pa_xfree(if_suffix);
+        pa_xfree(properties);
         avahi_free(device);
     }
 
