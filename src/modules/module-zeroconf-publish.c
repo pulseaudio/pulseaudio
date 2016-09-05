@@ -722,6 +722,9 @@ out:
     if (msg)
         dbus_message_unref(msg);
 
+    if (bus)
+        pa_dbus_connection_unref(bus);
+
     return icon_name;
 }
 #endif
