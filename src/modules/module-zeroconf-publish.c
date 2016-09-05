@@ -670,7 +670,7 @@ static int avahi_process_msg(pa_msgobject *o, int code, void *data, int64_t offs
 static char *get_icon_name(pa_module*m) {
     const char *interface = HOSTNAME_DBUS_INTERFACE;
     const char *property = HOSTNAME_DBUS_ICON_PROPERTY;
-    char *icon_name;
+    char *icon_name = NULL;
     pa_dbus_connection *bus;
     DBusError error;
     DBusMessageIter args;
