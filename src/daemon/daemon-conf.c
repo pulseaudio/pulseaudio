@@ -92,7 +92,7 @@ static const pa_daemon_conf default_conf = {
 #endif
     .no_cpu_limit = true,
     .disable_shm = false,
-    .disable_memfd = true,
+    .disable_memfd = false,
     .lock_memory = false,
     .deferred_volume = true,
     .default_n_fragments = 4,

@@ -196,7 +196,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
     <option>
       <p><opt>enable-memfd=</opt>. Enable memfd shared memory. Takes
-      a boolean argument, defaults to <opt>no</opt>.</p>
+      a boolean argument, defaults to <opt>yes</opt>.</p>
     </option>
 
     <option>
