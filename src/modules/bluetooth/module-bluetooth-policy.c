@@ -144,23 +144,29 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void *
     return PA_HOOK_OK;
 }
 
-static void card_set_profile(struct userdata *u, pa_card *card, const char *to_profile, bool revert_to_a2dp)
+static void card_set_profile(struct userdata *u, pa_card *card, bool revert_to_a2dp)
 {
     pa_card_profile *profile;
     void *state;
 
-    /* Find available to_profile and activate it */
+    /* Find available profile and activate it */
     PA_HASHMAP_FOREACH(profile, card->profiles, state) {
-        if (!pa_streq(profile->name, to_profile))
-            continue;
-
         if (profile->available == PA_AVAILABLE_NO)
             continue;
 
-        pa_log_debug("Setting card '%s' to profile '%s'", card->name, to_profile);
+        /* Check for correct profile based on revert_to_a2dp */
+        if (revert_to_a2dp) {
+            if (!pa_streq(profile->name, "a2dp") && !pa_streq(profile->name, "a2dp_sink"))
+                continue;
+        } else {
+            if (!pa_streq(profile->name, "hsp") && !pa_streq(profile->name, "headset_head_unit"))
+                continue;
+        }
+
+        pa_log_debug("Setting card '%s' to profile '%s'", card->name, profile->name);
 
         if (pa_card_set_profile(card, profile, false) != 0) {
-            pa_log_warn("Could not set profile '%s'", to_profile);
+            pa_log_warn("Could not set profile '%s'", profile->name);
             continue;
         }
 
@@ -175,17 +181,7 @@ static void card_set_profile(struct userdata *u, pa_card *card, const char *to_p
 /* Switch profile for one card */
 static void switch_profile(pa_card *card, bool revert_to_a2dp, void *userdata) {
     struct userdata *u = userdata;
-    const char *from_profile;
-    const char *to_profile;
     const char *s;
-
-    if (revert_to_a2dp) {
-        from_profile = "hsp";
-        to_profile = "a2dp";
-    } else {
-        from_profile = "a2dp";
-        to_profile = "hsp";
-    }
 
     /* Only consider bluetooth cards */
     s = pa_proplist_gets(card->proplist, PA_PROP_DEVICE_BUS);
@@ -196,17 +192,25 @@ static void switch_profile(pa_card *card, bool revert_to_a2dp, void *userdata) {
         /* In revert_to_a2dp phase only consider cards with will_need_revert flag and remove it */
         if (!pa_hashmap_remove(u->will_need_revert_card_map, card))
             return;
+
+        /* Skip card if does not have active hsp profile */
+        if (!pa_streq(card->active_profile->name, "hsp") && !pa_streq(card->active_profile->name, "headset_head_unit"))
+            return;
+
+        /* Skip card if already has active a2dp profile */
+        if (pa_streq(card->active_profile->name, "a2dp") || pa_streq(card->active_profile->name, "a2dp_sink"))
+            return;
+    } else {
+        /* Skip card if does not have active a2dp profile */
+        if (!pa_streq(card->active_profile->name, "a2dp") && !pa_streq(card->active_profile->name, "a2dp_sink"))
+            return;
+
+        /* Skip card if already has active hsp profile */
+        if (pa_streq(card->active_profile->name, "hsp") || pa_streq(card->active_profile->name, "headset_head_unit"))
+            return;
     }
 
-    /* Skip card if does not have active from_profile */
-    if (!pa_streq(card->active_profile->name, from_profile))
-        return;
-
-    /* Skip card if already has active profile to_profile */
-    if (pa_streq(card->active_profile->name, to_profile))
-        return;
-
-    card_set_profile(u, card, to_profile, revert_to_a2dp);
+    card_set_profile(u, card, revert_to_a2dp);
 }
 
 /* Return true if we should ignore this source output */
@@ -287,11 +291,13 @@ static pa_hook_result_t card_init_profile_hook_callback(pa_core *c, pa_card *car
         return PA_HOOK_OK;
 
     /* Ignore card if has already set other initial profile than a2dp */
-    if (card->active_profile && !pa_streq(card->active_profile->name, "a2dp"))
+    if (card->active_profile &&
+        !pa_streq(card->active_profile->name, "a2dp") &&
+        !pa_streq(card->active_profile->name, "a2dp_sink"))
         return PA_HOOK_OK;
 
     /* Set initial profile to hsp */
-    card_set_profile(u, card, "hsp", false);
+    card_set_profile(u, card, false);
 
     /* Flag this card for will_need_revert */
     pa_hashmap_put(u->will_need_revert_card_map, card, PA_INT_TO_PTR(1));
