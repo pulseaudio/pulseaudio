@@ -38,7 +38,7 @@ PA_MODULE_DESCRIPTION("Policy module to make using bluetooth devices out-of-the-
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
-        "auto_switch=<Switch between hsp and a2dp profile?> "
+        "auto_switch=<Switch between hsp and a2dp profile? (0 - never, 1 - media.role=phone, 2 - heuristic> "
         "a2dp_source=<Handle a2dp_source card profile (sink role)?> "
         "ag=<Handle headset_audio_gateway card profile (headset role)?> "
         "hfgw=<Handle hfgw card profile (headset role)?> DEPRECATED");
@@ -52,6 +52,7 @@ static const char* const valid_modargs[] = {
 };
 
 struct userdata {
+    uint32_t auto_switch;
     bool enable_a2dp_source;
     bool enable_ag;
     pa_hook_slot *source_put_slot;
@@ -214,7 +215,8 @@ static void switch_profile(pa_card *card, bool revert_to_a2dp, void *userdata) {
 }
 
 /* Return true if we should ignore this source output */
-static bool ignore_output(pa_source_output *source_output) {
+static bool ignore_output(pa_source_output *source_output, void *userdata) {
+    struct userdata *u = userdata;
     const char *s;
 
     /* New applications could set media.role for identifying streams */
@@ -223,16 +225,32 @@ static bool ignore_output(pa_source_output *source_output) {
     if (s)
         return !pa_streq(s, "phone");
 
-    return true;
+    /* If media.role is not set use some heuristic (if enabled) */
+    if (u->auto_switch != 2)
+        return true;
+
+    /* Ignore if resample method is peaks (used by desktop volume programs) */
+    if (pa_source_output_get_resample_method(source_output) == PA_RESAMPLER_PEAKS)
+        return true;
+
+    /* Ignore if there is no client/application assigned (used by virtual stream) */
+    if (!source_output->client)
+        return true;
+
+    /* Ignore if recording from monitor of sink */
+    if (source_output->direct_on_input)
+        return true;
+
+    return false;
 }
 
-static unsigned source_output_count(pa_core *c) {
+static unsigned source_output_count(pa_core *c, void *userdata) {
     pa_source_output *source_output;
     uint32_t idx;
     unsigned count = 0;
 
     PA_IDXSET_FOREACH(source_output, c->source_outputs, idx)
-        if (!ignore_output(source_output))
+        if (!ignore_output(source_output, userdata))
             ++count;
 
     return count;
@@ -252,7 +270,7 @@ static pa_hook_result_t source_output_put_hook_callback(pa_core *c, pa_source_ou
     pa_assert(c);
     pa_assert(source_output);
 
-    if (ignore_output(source_output))
+    if (ignore_output(source_output, userdata))
         return PA_HOOK_OK;
 
     switch_profile_all(c->cards, false, userdata);
@@ -264,11 +282,11 @@ static pa_hook_result_t source_output_unlink_hook_callback(pa_core *c, pa_source
     pa_assert(c);
     pa_assert(source_output);
 
-    if (ignore_output(source_output))
+    if (ignore_output(source_output, userdata))
         return PA_HOOK_OK;
 
     /* If there are still some source outputs do nothing. */
-    if (source_output_count(c) > 0)
+    if (source_output_count(c, userdata) > 0)
         return PA_HOOK_OK;
 
     switch_profile_all(c->cards, true, userdata);
@@ -282,7 +300,7 @@ static pa_hook_result_t card_init_profile_hook_callback(pa_core *c, pa_card *car
     pa_assert(c);
     pa_assert(card);
 
-    if (source_output_count(c) == 0)
+    if (source_output_count(c, userdata) == 0)
         return PA_HOOK_OK;
 
     /* Only consider bluetooth cards */
@@ -394,7 +412,6 @@ static void handle_all_profiles(pa_core *core) {
 int pa__init(pa_module *m) {
     pa_modargs *ma;
     struct userdata *u;
-    bool auto_switch;
 
     pa_assert(m);
 
@@ -405,8 +422,8 @@ int pa__init(pa_module *m) {
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
 
-    auto_switch = true;
-    if (pa_modargs_get_value_boolean(ma, "auto_switch", &auto_switch) < 0) {
+    u->auto_switch = 1;
+    if (pa_modargs_get_value_u32(ma, "auto_switch", &u->auto_switch) < 0) {
         pa_log("Failed to parse auto_switch argument.");
         goto fail;
     }
@@ -435,7 +452,7 @@ int pa__init(pa_module *m) {
     u->sink_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_NORMAL,
                                        (pa_hook_cb_t) sink_put_hook_callback, u);
 
-    if (auto_switch) {
+    if (u->auto_switch) {
         u->source_output_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], PA_HOOK_NORMAL,
                                                     (pa_hook_cb_t) source_output_put_hook_callback, u);
 
