@@ -497,7 +497,11 @@ int pa__init(pa_module *m) {
     u->remote_sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
 
     u->thread_mq = pa_xnew0(pa_thread_mq, 1);
-    pa_thread_mq_init_thread_mainloop(u->thread_mq, m->core->mainloop, u->thread_mainloop_api);
+
+    if (pa_thread_mq_init_thread_mainloop(u->thread_mq, m->core->mainloop, u->thread_mainloop_api) < 0) {
+        pa_log("pa_thread_mq_init_thread_mainloop() failed.");
+        goto fail;
+    }
 
     /* Create sink */
     pa_sink_new_data_init(&sink_data);

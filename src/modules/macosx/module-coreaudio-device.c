@@ -825,8 +825,18 @@ int pa__init(pa_module *m) {
     pa_card_put(u->card);
 
     u->rtpoll = pa_rtpoll_new();
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
+
+    if (pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll) < 0) {
+        pa_log("pa_thread_mq_init() failed.");
+        goto fail;
+    }
+
     u->async_msgq = pa_asyncmsgq_new(0);
+    if (!u->async_msgq) {
+        pa_log("pa_asyncmsgq_new() failed.");
+        goto fail;
+    }
+
     pa_rtpoll_item_new_asyncmsgq_read(u->rtpoll, PA_RTPOLL_EARLY-1, u->async_msgq);
 
     PA_LLIST_HEAD_INIT(coreaudio_sink, u->sinks);
@@ -910,8 +920,10 @@ void pa__done(pa_module *m) {
         pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
         pa_thread_free(u->thread);
         pa_thread_mq_done(&u->thread_mq);
-        pa_asyncmsgq_unref(u->async_msgq);
     }
+
+    if (u->async_msgq)
+        pa_asyncmsgq_unref(u->async_msgq);
 
     /* free sinks */
     for (ca_sink = u->sinks; ca_sink;) {

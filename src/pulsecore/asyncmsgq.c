@@ -58,12 +58,17 @@ struct pa_asyncmsgq {
 };
 
 pa_asyncmsgq *pa_asyncmsgq_new(unsigned size) {
+    pa_asyncq *asyncq;
     pa_asyncmsgq *a;
+
+    asyncq = pa_asyncq_new(size);
+    if (!asyncq)
+        return NULL;
 
     a = pa_xnew(pa_asyncmsgq, 1);
 
     PA_REFCNT_INIT(a);
-    pa_assert_se(a->asyncq = pa_asyncq_new(size));
+    a->asyncq = asyncq;
     pa_assert_se(a->mutex = pa_mutex_new(false, true));
     a->current = NULL;
 

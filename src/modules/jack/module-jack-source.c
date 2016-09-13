@@ -274,9 +274,18 @@ int pa__init(pa_module*m) {
     u->module = m;
     u->saved_frame_time_valid = false;
     u->rtpoll = pa_rtpoll_new();
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
+
+    if (pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll) < 0) {
+        pa_log("pa_thread_mq_init() failed.");
+        goto fail;
+    }
 
     u->jack_msgq = pa_asyncmsgq_new(0);
+    if (!u->jack_msgq) {
+        pa_log("pa_asyncmsgq_new() failed.");
+        goto fail;
+    }
+
     u->rtpoll_item = pa_rtpoll_item_new_asyncmsgq_read(u->rtpoll, PA_RTPOLL_EARLY-1, u->jack_msgq);
 
     if (!(u->client = jack_client_open(client_name, server_name ? JackServerName : JackNullOption, &status, server_name))) {

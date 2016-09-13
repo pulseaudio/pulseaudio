@@ -320,10 +320,18 @@ int pa__init(pa_module*m) {
     u->module = m;
     u->saved_frame_time_valid = false;
     u->rtpoll = pa_rtpoll_new();
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
+
+    if (pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll) < 0) {
+        pa_log("pa_thread_mq_init() failed.");
+        goto fail;
+    }
 
     /* The queue linking the JACK thread and our RT thread */
     u->jack_msgq = pa_asyncmsgq_new(0);
+    if (!u->jack_msgq) {
+        pa_log("pa_asyncmsgq_new() failed.");
+        goto fail;
+    }
 
     /* The msgq from the JACK RT thread should have an even higher
      * priority than the normal message queues, to match the guarantee

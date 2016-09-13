@@ -1019,9 +1019,25 @@ static struct output *output_new(struct userdata *u, pa_sink *sink) {
 
     o = pa_xnew0(struct output, 1);
     o->userdata = u;
+
     o->audio_inq = pa_asyncmsgq_new(0);
+    if (!o->audio_inq) {
+        pa_log("pa_asyncmsgq_new() failed.");
+        goto fail;
+    }
+
     o->control_inq = pa_asyncmsgq_new(0);
+    if (!o->control_inq) {
+        pa_log("pa_asyncmsgq_new() failed.");
+        goto fail;
+    }
+
     o->outq = pa_asyncmsgq_new(0);
+    if (!o->outq) {
+        pa_log("pa_asyncmsgq_new() failed.");
+        goto fail;
+    }
+
     o->sink = sink;
     o->memblockq = pa_memblockq_new(
             "module-combine-sink output memblockq",
@@ -1038,6 +1054,11 @@ static struct output *output_new(struct userdata *u, pa_sink *sink) {
     update_description(u);
 
     return o;
+
+fail:
+    output_free(o);
+
+    return NULL;
 }
 
 /* Called from main context */
@@ -1280,7 +1301,12 @@ int pa__init(pa_module*m) {
     u->core = m->core;
     u->module = m;
     u->rtpoll = pa_rtpoll_new();
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
+
+    if (pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll) < 0) {
+        pa_log("pa_thread_mq_init() failed.");
+        goto fail;
+    }
+
     u->resample_method = resample_method;
     u->outputs = pa_idxset_new(NULL, NULL);
     u->thread_info.smoother = pa_smoother_new(

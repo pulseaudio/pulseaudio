@@ -1968,7 +1968,11 @@ int pa__init(pa_module*m) {
     u->counter = u->counter_delta = 0;
 
     u->rtpoll = pa_rtpoll_new();
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
+
+    if (pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll) < 0) {
+        pa_log("pa_thread_mq_init() failed.");
+        goto fail;
+    }
 
     if (pa_modargs_get_value_boolean(ma, "auto", &automatic) < 0) {
         pa_log("Failed to parse argument \"auto\".");

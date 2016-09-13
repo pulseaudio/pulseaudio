@@ -1949,7 +1949,11 @@ static int start_thread(struct userdata *u) {
     pa_assert(!u->rtpoll_item);
 
     u->rtpoll = pa_rtpoll_new();
-    pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
+
+    if (pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll) < 0) {
+        pa_log("pa_thread_mq_init() failed.");
+        return -1;
+    }
 
     if (USE_SCO_OVER_PCM(u)) {
         if (sco_over_pcm_state_update(u, false) < 0) {

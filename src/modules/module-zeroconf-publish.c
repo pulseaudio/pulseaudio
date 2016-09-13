@@ -826,7 +826,11 @@ int pa__init(pa_module*m) {
     u->mainloop = pa_threaded_mainloop_new();
     u->api = pa_threaded_mainloop_get_api(u->mainloop);
 
-    pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
+    if (pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll) < 0) {
+        pa_log("pa_thread_mq_init() failed.");
+        goto fail;
+    }
+
     u->msg = pa_msgobject_new(avahi_msg);
     u->msg->parent.process_msg = avahi_process_msg;
 

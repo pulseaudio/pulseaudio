@@ -496,7 +496,11 @@ int pa__init(pa_module *m) {
     u->remote_source_name = pa_xstrdup(pa_modargs_get_value(ma, "source", NULL));
 
     u->thread_mq = pa_xnew0(pa_thread_mq, 1);
-    pa_thread_mq_init_thread_mainloop(u->thread_mq, m->core->mainloop, u->thread_mainloop_api);
+
+    if (pa_thread_mq_init_thread_mainloop(u->thread_mq, m->core->mainloop, u->thread_mainloop_api) < 0) {
+        pa_log("pa_thread_mq_init_thread_mainloop() failed.");
+        goto fail;
+    }
 
     /* Create source */
     pa_source_new_data_init(&source_data);

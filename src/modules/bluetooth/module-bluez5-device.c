@@ -1525,7 +1525,11 @@ static int start_thread(struct userdata *u) {
     pa_assert(!u->rtpoll_item);
 
     u->rtpoll = pa_rtpoll_new();
-    pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
+
+    if (pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll) < 0) {
+        pa_log("pa_thread_mq_init() failed.");
+        return -1;
+    }
 
     if (!(u->thread = pa_thread_new("bluetooth", thread_func, u))) {
         pa_log_error("Failed to create IO thread");

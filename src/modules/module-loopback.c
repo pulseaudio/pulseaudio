@@ -943,6 +943,10 @@ int pa__init(pa_module *m) {
     pa_memblock_unref(silence.memblock);
 
     u->asyncmsgq = pa_asyncmsgq_new(0);
+    if (!u->asyncmsgq) {
+        pa_log("pa_asyncmsgq_new() failed.");
+        goto fail;
+    }
 
     if (!pa_proplist_contains(u->source_output->proplist, PA_PROP_MEDIA_NAME))
         pa_proplist_setf(u->source_output->proplist, PA_PROP_MEDIA_NAME, "Loopback to %s",

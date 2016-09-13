@@ -36,8 +36,8 @@ typedef struct pa_thread_mq {
     pa_io_event *read_thread_event, *write_thread_event;
 } pa_thread_mq;
 
-void pa_thread_mq_init(pa_thread_mq *q, pa_mainloop_api *mainloop, pa_rtpoll *rtpoll);
-void pa_thread_mq_init_thread_mainloop(pa_thread_mq *q, pa_mainloop_api *main_mainloop, pa_mainloop_api *thread_mainloop);
+int pa_thread_mq_init(pa_thread_mq *q, pa_mainloop_api *mainloop, pa_rtpoll *rtpoll);
+int pa_thread_mq_init_thread_mainloop(pa_thread_mq *q, pa_mainloop_api *main_mainloop, pa_mainloop_api *thread_mainloop);
 void pa_thread_mq_done(pa_thread_mq *q);
 
 /* Install the specified pa_thread_mq object for the current thread */

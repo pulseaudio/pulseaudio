@@ -1757,6 +1757,11 @@ int pa__init(pa_module*m) {
         goto fail;
 
     u->asyncmsgq = pa_asyncmsgq_new(0);
+    if (!u->asyncmsgq) {
+        pa_log("pa_asyncmsgq_new() failed.");
+        goto fail;
+    }
+
     u->need_realign = true;
 
     source_output_ss = source_ss;
