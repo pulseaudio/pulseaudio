@@ -118,7 +118,7 @@ int pa_thread_mq_init_thread_mainloop(pa_thread_mq *q, pa_mainloop_api *main_mai
     pa_assert_se(pa_asyncmsgq_read_before_poll(q->outq) == 0);
     pa_asyncmsgq_write_before_poll(q->outq);
     pa_assert_se(q->read_main_event = main_mainloop->io_new(main_mainloop, pa_asyncmsgq_read_fd(q->outq), PA_IO_EVENT_INPUT, asyncmsgq_read_cb, q));
-    pa_assert_se(q->write_thread_event = main_mainloop->io_new(thread_mainloop, pa_asyncmsgq_write_fd(q->outq), PA_IO_EVENT_INPUT, asyncmsgq_write_outq_cb, q));
+    pa_assert_se(q->write_thread_event = thread_mainloop->io_new(thread_mainloop, pa_asyncmsgq_write_fd(q->outq), PA_IO_EVENT_INPUT, asyncmsgq_write_outq_cb, q));
 
     pa_asyncmsgq_read_before_poll(q->inq);
     pa_asyncmsgq_write_before_poll(q->inq);
