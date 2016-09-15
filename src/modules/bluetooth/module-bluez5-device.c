@@ -947,7 +947,7 @@ static int add_source(struct userdata *u) {
     data.module = u->module;
     data.card = u->card;
     data.driver = __FILE__;
-    data.name = pa_sprintf_malloc("bluez_source.%s", u->device->address);
+    data.name = pa_sprintf_malloc("bluez_source.%s.%s", u->device->address, pa_bluetooth_profile_to_string(u->profile));
     data.namereg_fail = false;
     pa_proplist_sets(data.proplist, "bluetooth.protocol", pa_bluetooth_profile_to_string(u->profile));
     pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
@@ -1104,7 +1104,7 @@ static int add_sink(struct userdata *u) {
     data.module = u->module;
     data.card = u->card;
     data.driver = __FILE__;
-    data.name = pa_sprintf_malloc("bluez_sink.%s", u->device->address);
+    data.name = pa_sprintf_malloc("bluez_sink.%s.%s", u->device->address, pa_bluetooth_profile_to_string(u->profile));
     data.namereg_fail = false;
     pa_proplist_sets(data.proplist, "bluetooth.protocol", pa_bluetooth_profile_to_string(u->profile));
     pa_sink_new_data_set_sample_spec(&data, &u->sample_spec);
