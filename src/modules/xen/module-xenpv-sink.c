@@ -398,7 +398,7 @@ int pa__init(pa_module*m) {
     /* user arguments override these */
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
         pa_log("Invalid sample format specification or channel map");
-        return 1;
+        goto fail;
     }
 
     /* Xen Basic init */
@@ -460,7 +460,7 @@ int pa__init(pa_module*m) {
     }
     if (ret!=NEGOTIATION_OK) {
         pa_log("Negotiation with Xen backend failed!");
-        return 1;
+        goto fail;
     }
 
     pa_sample_spec_snprint(strbuf, 100, &ss);
