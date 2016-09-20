@@ -54,6 +54,8 @@ pa_rtp_context* pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssr
     c->payload = (uint8_t) (payload & 127U);
     c->frame_size = frame_size;
 
+    c->recv_buf = NULL;
+    c->recv_buf_size = 0;
     pa_memchunk_reset(&c->memchunk);
 
     return c;
@@ -155,12 +157,16 @@ pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd, size_t frame
     c->fd = fd;
     c->frame_size = frame_size;
 
+    c->recv_buf_size = 2000;
+    c->recv_buf = pa_xmalloc(c->recv_buf_size);
     pa_memchunk_reset(&c->memchunk);
     return c;
 }
 
 int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct timeval *tstamp) {
     int size;
+    size_t audio_length;
+    size_t metadata_length;
     struct msghdr m;
     struct cmsghdr *cm;
     struct iovec iov;
@@ -204,25 +210,17 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct 
         size = 1;
     }
 
-    if (c->memchunk.length < (unsigned) size) {
-        size_t l;
+    if (c->recv_buf_size < (size_t) size) {
+        do
+            c->recv_buf_size *= 2;
+        while (c->recv_buf_size < (size_t) size);
 
-        if (c->memchunk.memblock)
-            pa_memblock_unref(c->memchunk.memblock);
-
-        l = PA_MAX((size_t) size, pa_mempool_block_size_max(pool));
-
-        c->memchunk.memblock = pa_memblock_new(pool, l);
-        c->memchunk.index = 0;
-        c->memchunk.length = pa_memblock_get_length(c->memchunk.memblock);
+        c->recv_buf = pa_xrealloc(c->recv_buf, c->recv_buf_size);
     }
 
-    pa_assert(c->memchunk.length >= (size_t) size);
+    pa_assert(c->recv_buf_size >= (size_t) size);
 
-    chunk->memblock = pa_memblock_ref(c->memchunk.memblock);
-    chunk->index = c->memchunk.index;
-
-    iov.iov_base = pa_memblock_acquire_chunk(chunk);
+    iov.iov_base = c->recv_buf;
     iov.iov_len = (size_t) size;
 
     m.msg_name = NULL;
@@ -234,7 +232,6 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct 
     m.msg_flags = 0;
 
     r = recvmsg(c->fd, &m, 0);
-    pa_memblock_release(chunk->memblock);
 
     if (r != size) {
         if (r < 0 && errno != EAGAIN && errno != EINTR)
@@ -275,21 +272,42 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct 
     c->payload = (uint8_t) ((header >> 16) & 127U);
     c->sequence = (uint16_t) (header & 0xFFFFU);
 
-    if (12 + cc*4 > (unsigned) size) {
+    metadata_length = 12 + cc * 4;
+
+    if (metadata_length > (unsigned) size) {
         pa_log_warn("RTP packet too short. (CSRC)");
         goto fail;
     }
 
-    chunk->index += 12 + cc*4;
-    chunk->length = (size_t) size - 12 + cc*4;
+    audio_length = size - metadata_length;
 
-    if (chunk->length % c->frame_size != 0) {
+    if (audio_length % c->frame_size != 0) {
         pa_log_warn("Bad RTP packet size.");
         goto fail;
     }
 
-    c->memchunk.index = chunk->index + chunk->length;
-    c->memchunk.length = pa_memblock_get_length(c->memchunk.memblock) - c->memchunk.index;
+    if (c->memchunk.length < (unsigned) audio_length) {
+        size_t l;
+
+        if (c->memchunk.memblock)
+            pa_memblock_unref(c->memchunk.memblock);
+
+        l = PA_MAX((size_t) audio_length, pa_mempool_block_size_max(pool));
+
+        c->memchunk.memblock = pa_memblock_new(pool, l);
+        c->memchunk.index = 0;
+        c->memchunk.length = pa_memblock_get_length(c->memchunk.memblock);
+    }
+
+    memcpy(pa_memblock_acquire_chunk(&c->memchunk), c->recv_buf + metadata_length, audio_length);
+    pa_memblock_release(c->memchunk.memblock);
+
+    chunk->memblock = pa_memblock_ref(c->memchunk.memblock);
+    chunk->index = c->memchunk.index;
+    chunk->length = audio_length;
+
+    c->memchunk.index += audio_length;
+    c->memchunk.length -= audio_length;
 
     if (c->memchunk.length <= 0) {
         pa_memblock_unref(c->memchunk.memblock);
@@ -397,6 +415,10 @@ void pa_rtp_context_destroy(pa_rtp_context *c) {
 
     if (c->memchunk.memblock)
         pa_memblock_unref(c->memchunk.memblock);
+
+    pa_xfree(c->recv_buf);
+    c->recv_buf = NULL;
+    c->recv_buf_size = 0;
 }
 
 const char* pa_rtp_format_to_string(pa_sample_format_t f) {
