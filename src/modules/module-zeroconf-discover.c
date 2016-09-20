@@ -173,9 +173,10 @@ static void resolver_cb(
                 ss.channels = (uint8_t) atoi(value);
             else if (pa_streq(key, "format"))
                 ss.format = pa_parse_sample_format(value);
-            else if (pa_streq(key, "icon-name"))
+            else if (pa_streq(key, "icon-name")) {
+                pa_xfree(properties);
                 properties = pa_sprintf_malloc("device.icon_name=%s", value);
-            else if (pa_streq(key, "channel_map")) {
+            } else if (pa_streq(key, "channel_map")) {
                 pa_channel_map_parse(&cm, value);
                 channel_map_set = true;
             }
