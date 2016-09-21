@@ -228,6 +228,12 @@ fail:
     return NULL;
 }
 
+static void postponed_dlclose(pa_mainloop_api *api, void *userdata) {
+    lt_dlhandle dl = userdata;
+
+    lt_dlclose(dl);
+}
+
 static void pa_module_free(pa_module *m) {
     pa_assert(m);
     pa_assert(m->core);
@@ -246,7 +252,15 @@ static void pa_module_free(pa_module *m) {
     if (m->proplist)
         pa_proplist_free(m->proplist);
 
-    lt_dlclose(m->dl);
+    /* If a module unloads itself with pa_module_unload(), we can't call
+     * lt_dlclose() here, because otherwise pa_module_unload() may return to a
+     * code location that has been removed from memory. Therefore, let's
+     * postpone the lt_dlclose() call a bit.
+     *
+     * Apparently lt_dlclose() doesn't always remove the module from memory,
+     * but it can happen, as can be seen here:
+     * https://bugs.freedesktop.org/show_bug.cgi?id=96831 */
+    pa_mainloop_api_once(m->core->mainloop, postponed_dlclose, m->dl);
 
     pa_hashmap_remove(m->core->modules_pending_unload, m);
 
