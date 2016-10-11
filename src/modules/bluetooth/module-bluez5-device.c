@@ -29,6 +29,7 @@
 
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
+#include <pulse/utf8.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-rtclock.h>
@@ -1619,38 +1620,6 @@ static void stop_thread(struct userdata *u) {
 }
 
 /* Run from main thread */
-static char *cleanup_name(const char *name) {
-    char *t, *s, *d;
-    bool space = false;
-
-    pa_assert(name);
-
-    while ((*name >= 1 && *name <= 32) || *name >= 127)
-        name++;
-
-    t = pa_xstrdup(name);
-
-    for (s = d = t; *s; s++) {
-
-        if (*s <= 32 || *s >= 127 || *s == '_') {
-            space = true;
-            continue;
-        }
-
-        if (space) {
-            *(d++) = ' ';
-            space = false;
-        }
-
-        *(d++) = *s;
-    }
-
-    *d = 0;
-
-    return t;
-}
-
-/* Run from main thread */
 static pa_available_t get_port_availability(struct userdata *u, pa_direction_t direction) {
     pa_available_t result = PA_AVAILABLE_NO;
     unsigned i;
@@ -1944,7 +1913,7 @@ static int add_card(struct userdata *u) {
     data.driver = __FILE__;
     data.module = u->module;
 
-    alias = cleanup_name(d->alias);
+    alias = pa_utf8_filter(d->alias);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, alias);
     pa_xfree(alias);
 

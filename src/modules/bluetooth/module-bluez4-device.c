@@ -31,6 +31,7 @@
 #include <pulse/rtclock.h>
 #include <pulse/sample.h>
 #include <pulse/timeval.h>
+#include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/i18n.h>
@@ -2280,7 +2281,7 @@ static int add_card(struct userdata *u) {
     data.driver = __FILE__;
     data.module = u->module;
 
-    n = pa_bluez4_cleanup_name(device->alias);
+    n = pa_utf8_filter(device->alias);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, n);
     pa_xfree(n);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, device->address);

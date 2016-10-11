@@ -155,8 +155,6 @@ typedef enum pa_bluez4_form_factor {
 pa_bluez4_form_factor_t pa_bluez4_get_form_factor(uint32_t class);
 const char *pa_bluez4_form_factor_to_string(pa_bluez4_form_factor_t ff);
 
-char *pa_bluez4_cleanup_name(const char *name);
-
 const char *pa_bluez4_profile_to_string(pa_bluez4_profile_t profile);
 
 #endif

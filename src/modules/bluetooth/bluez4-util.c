@@ -1841,34 +1841,3 @@ const char *pa_bluez4_form_factor_to_string(pa_bluez4_form_factor_t ff) {
 
     pa_assert_not_reached();
 }
-
-char *pa_bluez4_cleanup_name(const char *name) {
-    char *t, *s, *d;
-    bool space = false;
-
-    pa_assert(name);
-
-    while ((*name >= 1 && *name <= 32) || *name >= 127)
-        name++;
-
-    t = pa_xstrdup(name);
-
-    for (s = d = t; *s; s++) {
-
-        if (*s <= 32 || *s >= 127 || *s == '_') {
-            space = true;
-            continue;
-        }
-
-        if (space) {
-            *(d++) = ' ';
-            space = false;
-        }
-
-        *(d++) = *s;
-    }
-
-    *d = 0;
-
-    return t;
-}
