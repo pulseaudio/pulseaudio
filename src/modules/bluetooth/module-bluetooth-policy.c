@@ -267,8 +267,8 @@ static pa_hook_result_t source_output_unlink_hook_callback(pa_core *c, pa_source
     if (ignore_output(source_output))
         return PA_HOOK_OK;
 
-    /* If there are still some source outputs do nothing (count is with *this* source_output, so +1) */
-    if (source_output_count(c) > 1)
+    /* If there are still some source outputs do nothing. */
+    if (source_output_count(c) > 0)
         return PA_HOOK_OK;
 
     switch_profile_all(c->cards, true, userdata);
@@ -439,7 +439,7 @@ int pa__init(pa_module *m) {
         u->source_output_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], PA_HOOK_NORMAL,
                                                     (pa_hook_cb_t) source_output_put_hook_callback, u);
 
-        u->source_output_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], PA_HOOK_NORMAL,
+        u->source_output_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST], PA_HOOK_NORMAL,
                                                        (pa_hook_cb_t) source_output_unlink_hook_callback, u);
 
         u->card_init_profile_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_CARD_CHOOSE_INITIAL_PROFILE], PA_HOOK_NORMAL,
