@@ -697,16 +697,16 @@ void pa_sink_input_unlink(pa_sink_input *i) {
 
     reset_callbacks(i);
 
-    if (linked) {
-        pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_REMOVE, i->index);
-        pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK_POST], i);
-    }
-
     if (i->sink) {
         if (PA_SINK_IS_LINKED(pa_sink_get_state(i->sink)))
             pa_sink_update_status(i->sink);
 
         i->sink = NULL;
+    }
+
+    if (linked) {
+        pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_REMOVE, i->index);
+        pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK_POST], i);
     }
 
     pa_core_maybe_vacuum(i->core);
