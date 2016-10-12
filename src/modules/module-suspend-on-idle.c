@@ -67,13 +67,13 @@ static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval
 
     d->userdata->core->mainloop->time_restart(d->time_event, NULL);
 
-    if (d->sink && pa_sink_check_suspend(d->sink) <= 0 && !(d->sink->suspend_cause & PA_SUSPEND_IDLE)) {
+    if (d->sink && pa_sink_check_suspend(d->sink, NULL, NULL) <= 0 && !(d->sink->suspend_cause & PA_SUSPEND_IDLE)) {
         pa_log_info("Sink %s idle for too long, suspending ...", d->sink->name);
         pa_sink_suspend(d->sink, true, PA_SUSPEND_IDLE);
         pa_core_maybe_vacuum(d->userdata->core);
     }
 
-    if (d->source && pa_source_check_suspend(d->source) <= 0 && !(d->source->suspend_cause & PA_SUSPEND_IDLE)) {
+    if (d->source && pa_source_check_suspend(d->source, NULL) <= 0 && !(d->source->suspend_cause & PA_SUSPEND_IDLE)) {
         pa_log_info("Source %s idle for too long, suspending ...", d->source->name);
         pa_source_suspend(d->source, true, PA_SUSPEND_IDLE);
         pa_core_maybe_vacuum(d->userdata->core);
@@ -125,7 +125,7 @@ static pa_hook_result_t sink_input_fixate_hook_cb(pa_core *c, pa_sink_input_new_
 
     if ((d = pa_hashmap_get(u->device_infos, data->sink))) {
         resume(d);
-        if (pa_sink_check_suspend(d->sink) <= 0)
+        if (pa_sink_check_suspend(d->sink, NULL, NULL) <= 0)
             restart(d);
     }
 
@@ -147,12 +147,12 @@ static pa_hook_result_t source_output_fixate_hook_cb(pa_core *c, pa_source_outpu
     if (d) {
         resume(d);
         if (d->source) {
-            if (pa_source_check_suspend(d->source) <= 0)
+            if (pa_source_check_suspend(d->source, NULL) <= 0)
                 restart(d);
         } else {
             /* The source output is connected to a monitor source. */
             pa_assert(d->sink);
-            if (pa_sink_check_suspend(d->sink) <= 0)
+            if (pa_sink_check_suspend(d->sink, NULL, NULL) <= 0)
                 restart(d);
         }
     }
@@ -168,7 +168,7 @@ static pa_hook_result_t sink_input_unlink_hook_cb(pa_core *c, pa_sink_input *s, 
     if (!s->sink)
         return PA_HOOK_OK;
 
-    if (pa_sink_check_suspend(s->sink) <= 0) {
+    if (pa_sink_check_suspend(s->sink, s, NULL) <= 0) {
         struct device_info *d;
         if ((d = pa_hashmap_get(u->device_infos, s->sink)))
             restart(d);
@@ -188,10 +188,10 @@ static pa_hook_result_t source_output_unlink_hook_cb(pa_core *c, pa_source_outpu
         return PA_HOOK_OK;
 
     if (s->source->monitor_of) {
-        if (pa_sink_check_suspend(s->source->monitor_of) <= 0)
+        if (pa_sink_check_suspend(s->source->monitor_of, NULL, s) <= 0)
             d = pa_hashmap_get(u->device_infos, s->source->monitor_of);
     } else {
-        if (pa_source_check_suspend(s->source) <= 0)
+        if (pa_source_check_suspend(s->source, s) <= 0)
             d = pa_hashmap_get(u->device_infos, s->source);
     }
 
@@ -208,7 +208,7 @@ static pa_hook_result_t sink_input_move_start_hook_cb(pa_core *c, pa_sink_input 
     pa_sink_input_assert_ref(s);
     pa_assert(u);
 
-    if (pa_sink_check_suspend(s->sink) <= 1)
+    if (pa_sink_check_suspend(s->sink, s, NULL) <= 0)
         if ((d = pa_hashmap_get(u->device_infos, s->sink)))
             restart(d);
 
@@ -241,10 +241,10 @@ static pa_hook_result_t source_output_move_start_hook_cb(pa_core *c, pa_source_o
     pa_assert(u);
 
     if (s->source->monitor_of) {
-        if (pa_sink_check_suspend(s->source->monitor_of) <= 1)
+        if (pa_sink_check_suspend(s->source->monitor_of, NULL, s) <= 0)
             d = pa_hashmap_get(u->device_infos, s->source->monitor_of);
     } else {
-        if (pa_source_check_suspend(s->source) <= 1)
+        if (pa_source_check_suspend(s->source, s) <= 0)
             d = pa_hashmap_get(u->device_infos, s->source);
     }
 
@@ -354,8 +354,8 @@ static pa_hook_result_t device_new_hook_cb(pa_core *c, pa_object *o, struct user
 
     pa_hashmap_put(u->device_infos, o, d);
 
-    if ((d->sink && pa_sink_check_suspend(d->sink) <= 0) ||
-        (d->source && pa_source_check_suspend(d->source) <= 0))
+    if ((d->sink && pa_sink_check_suspend(d->sink, NULL, NULL) <= 0) ||
+        (d->source && pa_source_check_suspend(d->source, NULL) <= 0))
         restart(d);
 
     return PA_HOOK_OK;
@@ -398,7 +398,7 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
         pa_sink *s = PA_SINK(o);
         pa_sink_state_t state = pa_sink_get_state(s);
 
-        if (pa_sink_check_suspend(s) <= 0)
+        if (pa_sink_check_suspend(s, NULL, NULL) <= 0)
             if (PA_SINK_IS_OPENED(state))
                 restart(d);
 
@@ -406,7 +406,7 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
         pa_source *s = PA_SOURCE(o);
         pa_source_state_t state = pa_source_get_state(s);
 
-        if (pa_source_check_suspend(s) <= 0)
+        if (pa_source_check_suspend(s, NULL) <= 0)
             if (PA_SOURCE_IS_OPENED(state))
                 restart(d);
     }
@@ -454,8 +454,8 @@ int pa__init(pa_module*m) {
 
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_input_fixate_hook_cb, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], PA_HOOK_NORMAL, (pa_hook_cb_t) source_output_fixate_hook_cb, u);
-    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK_POST], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_input_unlink_hook_cb, u);
-    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST], PA_HOOK_NORMAL, (pa_hook_cb_t) source_output_unlink_hook_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_input_unlink_hook_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], PA_HOOK_NORMAL, (pa_hook_cb_t) source_output_unlink_hook_cb, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_START], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_input_move_start_hook_cb, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_START], PA_HOOK_NORMAL, (pa_hook_cb_t) source_output_move_start_hook_cb, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_input_move_finish_hook_cb, u);

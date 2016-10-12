@@ -466,7 +466,14 @@ void pa_sink_set_mixer_dirty(pa_sink *s, bool is_dirty);
 
 unsigned pa_sink_linked_by(pa_sink *s); /* Number of connected streams */
 unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are not corked */
-unsigned pa_sink_check_suspend(pa_sink *s); /* Returns how many streams are active that don't allow suspensions */
+
+/* Returns how many streams are active that don't allow suspensions. If
+ * "ignore_input" or "ignore_output" is non-NULL, that stream is not included
+ * in the count (the returned count includes the value from
+ * pa_source_check_suspend(), which is called for the monitor source, so that's
+ * why "ignore_output" may be relevant). */
+unsigned pa_sink_check_suspend(pa_sink *s, pa_sink_input *ignore_input, pa_source_output *ignore_output);
+
 #define pa_sink_get_state(s) ((s)->state)
 
 /* Moves all inputs away, and stores them in pa_queue */

@@ -2381,7 +2381,7 @@ unsigned pa_sink_used_by(pa_sink *s) {
 }
 
 /* Called from main thread */
-unsigned pa_sink_check_suspend(pa_sink *s) {
+unsigned pa_sink_check_suspend(pa_sink *s, pa_sink_input *ignore_input, pa_source_output *ignore_output) {
     unsigned ret;
     pa_sink_input *i;
     uint32_t idx;
@@ -2396,6 +2396,9 @@ unsigned pa_sink_check_suspend(pa_sink *s) {
 
     PA_IDXSET_FOREACH(i, s->inputs, idx) {
         pa_sink_input_state_t st;
+
+        if (i == ignore_input)
+            continue;
 
         st = pa_sink_input_get_state(i);
 
@@ -2417,7 +2420,7 @@ unsigned pa_sink_check_suspend(pa_sink *s) {
     }
 
     if (s->monitor_source)
-        ret += pa_source_check_suspend(s->monitor_source);
+        ret += pa_source_check_suspend(s->monitor_source, ignore_output);
 
     return ret;
 }

@@ -1943,7 +1943,7 @@ unsigned pa_source_used_by(pa_source *s) {
 }
 
 /* Called from main thread */
-unsigned pa_source_check_suspend(pa_source *s) {
+unsigned pa_source_check_suspend(pa_source *s, pa_source_output *ignore) {
     unsigned ret;
     pa_source_output *o;
     uint32_t idx;
@@ -1958,6 +1958,9 @@ unsigned pa_source_check_suspend(pa_source *s) {
 
     PA_IDXSET_FOREACH(o, s->outputs, idx) {
         pa_source_output_state_t st;
+
+        if (o == ignore)
+            continue;
 
         st = pa_source_output_get_state(o);
 

@@ -400,7 +400,11 @@ int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough);
 
 unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
 unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */
-unsigned pa_source_check_suspend(pa_source *s); /* Returns how many streams are active that don't allow suspensions */
+
+/* Returns how many streams are active that don't allow suspensions. If
+ * "ignore" is non-NULL, that stream is not included in the count. */
+unsigned pa_source_check_suspend(pa_source *s, pa_source_output *ignore);
+
 #define pa_source_get_state(s) ((pa_source_state_t) (s)->state)
 
 /* Moves all inputs away, and stores them in pa_queue */
