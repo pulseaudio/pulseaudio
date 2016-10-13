@@ -177,10 +177,8 @@ static bool is_card_busy(const char *id) {
     char *card_path = NULL, *pcm_path = NULL, *sub_status = NULL;
     DIR *card_dir = NULL, *pcm_dir = NULL;
     FILE *status_file = NULL;
-    size_t len;
-    struct dirent *space = NULL, *de;
+    struct dirent *de;
     bool busy = false;
-    int r;
 
     pa_assert(id);
 
@@ -194,14 +192,11 @@ static bool is_card_busy(const char *id) {
         goto fail;
     }
 
-    len = offsetof(struct dirent, d_name) + fpathconf(dirfd(card_dir), _PC_NAME_MAX) + 1;
-    space = pa_xmalloc(len);
-
     for (;;) {
-        de = NULL;
-
-        if ((r = readdir_r(card_dir, space, &de)) != 0) {
-            pa_log_warn("readdir_r() failed: %s", pa_cstrerror(r));
+        errno = 0;
+        de = readdir(card_dir);
+        if (!de && errno) {
+            pa_log_warn("readdir() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
 
@@ -228,8 +223,10 @@ static bool is_card_busy(const char *id) {
         for (;;) {
             char line[32];
 
-            if ((r = readdir_r(pcm_dir, space, &de)) != 0) {
-                pa_log_warn("readdir_r() failed: %s", pa_cstrerror(r));
+            errno = 0;
+            de = readdir(pcm_dir);
+            if (!de && errno) {
+                pa_log_warn("readdir() failed: %s", pa_cstrerror(errno));
                 goto fail;
             }
 
@@ -267,7 +264,6 @@ fail:
     pa_xfree(card_path);
     pa_xfree(pcm_path);
     pa_xfree(sub_status);
-    pa_xfree(space);
 
     if (card_dir)
         closedir(card_dir);
