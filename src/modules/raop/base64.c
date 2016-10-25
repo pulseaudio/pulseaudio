@@ -19,7 +19,7 @@
 
 /*
   This file was originally inspired by a file developed by
-    Kungliga Tekniska H�gskolan
+  Kungliga Tekniska högskolan
 */
 
 #ifdef HAVE_CONFIG_H

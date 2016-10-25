@@ -5,7 +5,7 @@
   This file is part of PulseAudio.
 
   Copyright 2008 Colin Guthrie
-  Copyright Kungliga Tekniska Høgskolan
+  Copyright Kungliga Tekniska högskolan
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -23,7 +23,7 @@
 
 /*
   This file was originally inspired by a file developed by
-    Kungliga Tekniska Høgskolan
+  Kungliga Tekniska högskolan
 */
 
 int pa_base64_encode(const void *data, int size, char **str);
