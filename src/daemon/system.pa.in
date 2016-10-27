@@ -22,6 +22,7 @@ changequote(`[', `]')dnl Set up m4 quoting
 ### Automatically restore the volume of streams and devices
 load-module module-device-restore
 load-module module-stream-restore
+load-module module-card-restore
 
 ### Automatically load driver modules depending on the hardware available
 ifelse(@HAVE_UDEV@, 1, [dnl
