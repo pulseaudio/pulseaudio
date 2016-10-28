@@ -164,7 +164,7 @@ PA_C_DECL_BEGIN
  * access this data safely, we must extend our example a bit:
  *
  * \code
- * static volatile int *drain_result = NULL;
+ * static int * volatile drain_result = NULL;
  *
  * static void my_drain_callback(pa_stream*s, int success, void *userdata) {
  *     pa_threaded_mainloop *m;
