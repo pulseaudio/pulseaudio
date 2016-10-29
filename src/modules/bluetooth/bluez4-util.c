@@ -792,7 +792,7 @@ static void register_endpoint(pa_bluez4_discovery *y, const char *path, const ch
 
     dbus_message_iter_init_append(m, &i);
 
-    dbus_message_iter_append_basic(&i, DBUS_TYPE_OBJECT_PATH, &endpoint);
+    pa_assert_se(dbus_message_iter_append_basic(&i, DBUS_TYPE_OBJECT_PATH, &endpoint));
 
     dbus_message_iter_open_container(&i, DBUS_TYPE_ARRAY, DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
                                     DBUS_TYPE_STRING_AS_STRING DBUS_TYPE_VARIANT_AS_STRING DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
@@ -1175,7 +1175,7 @@ static void set_property(pa_bluez4_discovery *y, const char *bus, const char *pa
 
     pa_assert_se(m = dbus_message_new_method_call(bus, path, interface, "SetProperty"));
     dbus_message_iter_init_append(m, &i);
-    dbus_message_iter_append_basic(&i, DBUS_TYPE_STRING, &prop_name);
+    pa_assert_se(dbus_message_iter_append_basic(&i, DBUS_TYPE_STRING, &prop_name));
     pa_dbus_append_basic_variant(&i, prop_type, prop_value);
 
     dbus_message_set_no_reply(m, true);
