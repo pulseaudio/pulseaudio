@@ -68,6 +68,21 @@
 
 #define RAOP_PORT 5000
 
+/* Openssl 1.1.0 broke compatibility. Before 1.1.0 we had to set RSA->n and
+ * RSA->e manually, but after 1.1.0 the RSA struct is opaque and we have to use
+ * RSA_set0_key(). RSA_set0_key() is a new function added in 1.1.0. We could
+ * depend on openssl 1.1.0, but it may take some time before distributions will
+ * be able to upgrade to the new openssl version. To insulate ourselves from
+ * such transition problems, let's implement RSA_set0_key() ourselves if it's
+ * not available. */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+static int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
+    r->n = n;
+    r->e = e;
+    return 1;
+}
+#endif
+
 struct pa_raop_client {
     pa_core *core;
     char *host;
@@ -161,12 +176,15 @@ static int rsa_encrypt(uint8_t *text, int len, uint8_t *res) {
     uint8_t exponent[8];
     int size;
     RSA *rsa;
+    BIGNUM *n_bn;
+    BIGNUM *e_bn;
 
     rsa = RSA_new();
     size = pa_base64_decode(n, modules);
-    rsa->n = BN_bin2bn(modules, size, NULL);
+    n_bn = BN_bin2bn(modules, size, NULL);
     size = pa_base64_decode(e, exponent);
-    rsa->e = BN_bin2bn(exponent, size, NULL);
+    e_bn = BN_bin2bn(exponent, size, NULL);
+    RSA_set0_key(rsa, n_bn, e_bn, NULL);
 
     size = RSA_public_encrypt(len, text, res, rsa, RSA_PKCS1_OAEP_PADDING);
     RSA_free(rsa);
