@@ -1114,8 +1114,6 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
         case STATE_FLUSH: {
             pa_log_debug("RAOP: FLUSHED");
 
-            c->is_recording = false;
-
             break;
         }
 
@@ -1613,6 +1611,8 @@ int pa_raop_client_flush(pa_raop_client *c) {
         pa_log_debug("FLUSH requires a preliminary authentication");
         return 1;
     }
+
+    c->is_recording = false;
 
     rv = pa_rtsp_flush(c->rtsp, c->seq, c->rtptime);
     return rv;
