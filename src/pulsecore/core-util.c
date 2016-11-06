@@ -3022,19 +3022,16 @@ bool pa_str_in_list(const char *haystack, const char *delimiters, const char *ne
 
 /* Checks a whitespace-separated list of words in haystack for needle */
 bool pa_str_in_list_spaces(const char *haystack, const char *needle) {
-    char *s;
+    const char *s;
+    int n;
     const char *state = NULL;
 
     if (!haystack || !needle)
         return false;
 
-    while ((s = pa_split_spaces(haystack, &state))) {
-        if (pa_streq(needle, s)) {
-            pa_xfree(s);
+    while ((s = pa_split_spaces_in_place(haystack, &n, &state))) {
+        if (pa_strneq(needle, s, n))
             return true;
-        }
-
-        pa_xfree(s);
     }
 
     return false;
