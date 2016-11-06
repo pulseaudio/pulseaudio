@@ -1120,8 +1120,6 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
         case STATE_TEARDOWN: {
             pa_log_debug("RAOP: TEARDOWN");
 
-            c->is_recording = false;
-
             if (c->tcp_sfd > 0)
                 pa_close(c->tcp_sfd);
             c->tcp_sfd = -1;
@@ -1630,6 +1628,8 @@ int pa_raop_client_teardown(pa_raop_client *c) {
         pa_log_debug("TEARDOWN requires a preliminary authentication");
         return 1;
     }
+
+    c->is_recording = false;
 
     rv = pa_rtsp_teardown(c->rtsp);
     return rv;
