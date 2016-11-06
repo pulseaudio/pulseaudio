@@ -36,8 +36,8 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/random.h>
 
-#include "raop_crypto.h"
-#include "raop_util.h"
+#include "raop-crypto.h"
+#include "raop-util.h"
 
 #define AES_CHUNK_SIZE 16
 

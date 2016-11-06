@@ -32,7 +32,7 @@
 
 typedef struct pa_rtsp_client pa_rtsp_client;
 
-typedef enum {
+typedef enum pa_rtsp_state {
   STATE_CONNECT,
   STATE_OPTIONS,
   STATE_ANNOUNCE,
@@ -42,17 +42,17 @@ typedef enum {
   STATE_FLUSH,
   STATE_TEARDOWN,
   STATE_DISCONNECTED
-} pa_rtsp_state;
+} pa_rtsp_state_t;
 
-typedef enum {
+typedef enum pa_rtsp_status {
   STATUS_OK             = 200,
   STATUS_BAD_REQUEST    = 400,
   STATUS_UNAUTHORIZED   = 401,
   STATUS_NO_RESPONSE    = 444,
   STATUS_INTERNAL_ERROR = 500
-} pa_rtsp_status;
+} pa_rtsp_status_t;
 
-typedef void (*pa_rtsp_cb_t)(pa_rtsp_client *c, pa_rtsp_state state, pa_rtsp_status code, pa_headerlist *headers, void *userdata);
+typedef void (*pa_rtsp_cb_t)(pa_rtsp_client *c, pa_rtsp_state_t state, pa_rtsp_status_t code, pa_headerlist *headers, void *userdata);
 
 pa_rtsp_client* pa_rtsp_client_new(pa_mainloop_api *mainloop, const char *hostname, uint16_t port, const char *useragent);
 void pa_rtsp_client_free(pa_rtsp_client *c);

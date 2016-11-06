@@ -1154,10 +1154,12 @@ librtp_la_LDFLAGS = $(AM_LDFLAGS) $(AM_LIBLDFLAGS) -avoid-version
 librtp_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 
 libraop_la_SOURCES = \
-        modules/raop/raop_client.c modules/raop/raop_client.h \
-        modules/raop/raop_packet_buffer.h modules/raop/raop_packet_buffer.c \
-        modules/raop/raop_crypto.c modules/raop/raop_crypto.h \
-        modules/raop/raop_util.c modules/raop/raop_util.h
+        modules/raop/raop-util.c modules/raop/raop-util.h \
+        modules/raop/raop-crypto.c modules/raop/raop-crypto.h \
+        modules/raop/raop-packet-buffer.h modules/raop/raop-packet-buffer.c \
+        modules/raop/raop-client.c modules/raop/raop-client.h \
+        modules/raop/raop-sink.c modules/raop/raop-sink.h
+
 libraop_la_CFLAGS = $(AM_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/src/modules/rtp
 libraop_la_LDFLAGS = $(AM_LDFLAGS) $(AM_LIBLDFLAGS) -avoid-version
 libraop_la_LIBADD = $(AM_LIBADD) $(OPENSSL_LIBS) libpulsecore-@PA_MAJORMINOR@.la librtp.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la

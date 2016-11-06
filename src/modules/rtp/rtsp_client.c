@@ -58,8 +58,8 @@ struct pa_rtsp_client {
     void *userdata;
     const char *useragent;
 
-    pa_rtsp_state state;
-    pa_rtsp_status status;
+    pa_rtsp_state_t state;
+    pa_rtsp_status_t status;
     uint8_t waiting;
 
     pa_headerlist* headers;

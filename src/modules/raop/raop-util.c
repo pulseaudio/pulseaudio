@@ -38,7 +38,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 
-#include "raop_util.h"
+#include "raop-util.h"
 
 #ifndef MD5_DIGEST_LENGTH
 #define MD5_DIGEST_LENGTH 16
