@@ -139,6 +139,9 @@ static void resolver_cb(
     struct userdata *u = userdata;
     struct tunnel *tnl;
     char *device = NULL, *nicename, *dname, *vname, *args;
+    char *tp = NULL, *et = NULL, *cn = NULL;
+    char *ch = NULL, *ss = NULL, *sr = NULL;
+    char *t = NULL;
     char at[AVAHI_ADDRESS_STR_MAX];
     AvahiStringList *l;
     pa_module *m;
@@ -169,6 +172,51 @@ static void resolver_cb(
         if (pa_streq(key, "device")) {
             device = value;
             value = NULL;
+        } else if (pa_streq(key, "tp")) {
+            /* Transport protocol:
+             *  - TCP = only TCP,
+             *  - UDP = only UDP,
+             *  - TCP,UDP = both supported (UDP should be prefered) */
+            if (pa_str_in_list(value, ",", "UDP"))
+                tp = pa_xstrdup("UDP");
+            else if (pa_str_in_list(value, ",", "TCP"))
+                tp = pa_xstrdup("TCP");
+            else
+                tp = pa_xstrdup(value);
+        } else if (pa_streq(key, "et")) {
+            /* Supported encryption types:
+             *  - 0 = none,
+             *  - 1 = RSA,
+             *  - 2 = FairPlay,
+             *  - 3 = MFiSAP,
+             *  - 4 = FairPlay SAPv2.5. */
+             if (pa_str_in_list(value, ",", "1"))
+                 et = pa_xstrdup("RSA");
+             else
+                 et = pa_xstrdup("none");
+        } else if (pa_streq(key, "cn")) {
+            /* Suported audio codecs:
+             *  - 0 = PCM,
+             *  - 1 = ALAC,
+             *  - 2 = AAC,
+             *  - 3 = AAC ELD. */
+            cn = pa_xstrdup("PCM");
+        } else if (pa_streq(key, "md")) {
+            /* Supported metadata types:
+             *  - 0 = text,
+             *  - 1 = artwork,
+             *  - 2 = progress. */
+        } else if (pa_streq(key, "pw")) {
+            /* Requires password ? (true/false) */
+        } else if (pa_streq(key, "ch")) {
+            /* Number of channels */
+            ch = pa_xstrdup(value);
+        } else if (pa_streq(key, "ss")) {
+            /* Sample size */
+            ss = pa_xstrdup(value);
+        } else if (pa_streq(key, "sr")) {
+            /* Sample rate */
+            sr = pa_xstrdup(value);
         }
 
         avahi_free(key);
@@ -176,9 +224,9 @@ static void resolver_cb(
     }
 
     if (device)
-        dname = pa_sprintf_malloc("raop.%s.%s", host_name, device);
+        dname = pa_sprintf_malloc("raop_output.%s.%s", host_name, device);
     else
-        dname = pa_sprintf_malloc("raop.%s", host_name);
+        dname = pa_sprintf_malloc("raop_output.%s", host_name);
 
     if (!(vname = pa_namereg_make_valid_name(dname))) {
         pa_log("Cannot construct valid device name from '%s'.", dname);
@@ -203,6 +251,43 @@ static void resolver_cb(
                                  "sink_name=%s",
                                  avahi_address_snprint(at, sizeof(at), a), port,
                                  vname);
+    }
+
+    if (tp != NULL) {
+        t = args;
+        args = pa_sprintf_malloc("%s protocol=%s", args, tp);
+        pa_xfree(tp);
+        pa_xfree(t);
+    }
+    if (et != NULL) {
+        t = args;
+        args = pa_sprintf_malloc("%s encryption=%s", args, et);
+        pa_xfree(et);
+        pa_xfree(t);
+    }
+    if (cn != NULL) {
+        t = args;
+        args = pa_sprintf_malloc("%s codec=%s", args, cn);
+        pa_xfree(cn);
+        pa_xfree(t);
+    }
+    if (ch != NULL) {
+        t = args;
+        args = pa_sprintf_malloc("%s channels=%s", args, ch);
+        pa_xfree(ch);
+        pa_xfree(t);
+    }
+    if (ss != NULL) {
+        t = args;
+        args = pa_sprintf_malloc("%s format=%s", args, ss);
+        pa_xfree(ss);
+        pa_xfree(t);
+    }
+    if (sr != NULL) {
+        t = args;
+        args = pa_sprintf_malloc("%s rate=%s", args, sr);
+        pa_xfree(sr);
+        pa_xfree(t);
     }
 
     pa_log_debug("Loading module-raop-sink with arguments '%s'", args);
