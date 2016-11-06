@@ -37,7 +37,7 @@
 #include <pulsecore/random.h>
 
 #include "raop_crypto.h"
-#include "base64.h"
+#include "raop_util.h"
 
 #define AES_CHUNK_SIZE 16
 
@@ -85,9 +85,9 @@ static int rsa_encrypt(uint8_t *data, int len, uint8_t *str) {
     pa_assert(str);
 
     rsa = RSA_new();
-    size = pa_base64_decode(rsa_modulus, modules);
+    size = pa_raop_base64_decode(rsa_modulus, modules);
     n_bn = BN_bin2bn(modules, size, NULL);
-    size = pa_base64_decode(rsa_exponent, exponent);
+    size = pa_raop_base64_decode(rsa_exponent, exponent);
     e_bn = BN_bin2bn(exponent, size, NULL);
     RSA_set0_key(rsa, n_bn, e_bn, NULL);
 
@@ -120,7 +120,7 @@ char* pa_raop_secret_get_iv(pa_raop_secret *s) {
 
     pa_assert(s);
 
-    pa_base64_encode(s->iv, AES_CHUNK_SIZE, &base64_iv);
+    pa_raop_base64_encode(s->iv, AES_CHUNK_SIZE, &base64_iv);
 
     return base64_iv;
 }
@@ -134,7 +134,7 @@ char* pa_raop_secret_get_key(pa_raop_secret *s) {
 
     /* Encrypt our AES public key to send to the device */
     size = rsa_encrypt(s->key, AES_CHUNK_SIZE, rsa_key);
-    pa_base64_encode(rsa_key, size, &base64_key);
+    pa_raop_base64_encode(rsa_key, size, &base64_key);
 
     return base64_key;
 }

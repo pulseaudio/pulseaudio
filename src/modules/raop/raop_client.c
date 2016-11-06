@@ -53,7 +53,7 @@
 #include "rtsp_client.h"
 #include "raop_packet_buffer.h"
 #include "raop_crypto.h"
-#include "base64.h"
+#include "raop_util.h"
 
 #define JACK_STATUS_DISCONNECTED 0
 #define JACK_STATUS_CONNECTED 1
@@ -528,7 +528,7 @@ static void do_rtsp_announce(pa_raop_client *c) {
     /* UDP protocol does not need "Apple-Challenge" at announce. */
     if (c->protocol == RAOP_TCP) {
         pa_random(&rand_data, sizeof(rand_data));
-        pa_base64_encode(&rand_data, sizeof(rand_data), &sac);
+        pa_raop_base64_encode(&rand_data, 8*sizeof(rand_data), &sac);
         rtrimchar(sac, '=');
         pa_rtsp_add_header(c->rtsp, "Apple-Challenge", sac);
     }
@@ -689,7 +689,7 @@ static void udp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist
 
             /* Set the Apple-Challenge key */
             pa_random(&rand, sizeof(rand));
-            pa_base64_encode(&rand, sizeof(rand), &sac);
+            pa_raop_base64_encode(&rand, 8*sizeof(rand), &sac);
             rtrimchar(sac, '=');
             pa_rtsp_add_header(c->rtsp, "Apple-Challenge", sac);
 
