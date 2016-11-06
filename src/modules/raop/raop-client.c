@@ -1596,7 +1596,7 @@ int pa_raop_client_flush(pa_raop_client *c) {
 
     pa_assert(c);
 
-    if (!c->rtsp) {
+    if (!c->rtsp || !pa_rtsp_exec_ready(c->rtsp)) {
         pa_log_debug("Cannot FLUSH, connection not established yet...)");
         return 0;
     } else if (!c->sci) {
