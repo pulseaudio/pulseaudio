@@ -236,7 +236,6 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
 
         pa_log_debug("Full response received. Dispatching");
         headers_read(c);
-        c->waiting = 1;
         goto exit;
     }
 
@@ -481,7 +480,8 @@ static int rtsp_exec(pa_rtsp_client *c, const char *cmd,
     pa_log_debug(hdrs);*/
     pa_ioline_puts(c->ioline, hdrs);
     pa_xfree(hdrs);
-
+    /* The command is sent we can configure the rtsp client structure to handle a new answer */
+    c->waiting = 1;
     return 0;
 }
 
