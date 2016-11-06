@@ -3,6 +3,7 @@
 
   Copyright 2004-2006 Lennart Poettering
   Copyright 2008 Colin Guthrie
+  Copyright 2013 Hajime Fujita
   Copyright 2013 Martin Blanchard
 
   PulseAudio is free software; you can redistribute it and/or modify

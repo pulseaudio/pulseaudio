@@ -1,8 +1,9 @@
 /***
   This file is part of PulseAudio.
 
+  Copyright 2008 Colin Guthrie
+  Copyright Kungliga Tekniska högskolan
   Copyright 2013 Martin Blanchard
-  Copyright Kungliga Tekniska Høgskolan & Colin Guthrie
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published

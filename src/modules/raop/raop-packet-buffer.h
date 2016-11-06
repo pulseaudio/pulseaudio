@@ -1,18 +1,18 @@
-#ifndef RAOP_PACKET_BUFFER_H_INCLUDED
-#define RAOP_PACKET_BUFFER_H_INCLUDED
+#ifndef fooraoppacketbufferfoo
+#define fooraoppacketbufferfoo
 
 /***
-  Circular buffer for RTP audio packets with random access support
-  by RTP sequence number.
+  This file is part of PulseAudio.
 
-  Copyright 2013 Matthias Wabersich, Hajime Fujita
+  Copyright 2013 Matthias Wabersich
+  Copyright 2013 Hajime Fujita
 
-  This is free software; you can redistribute it and/or modify
+  PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
-  This is distributed in the hope that it will be useful, but
+  PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
@@ -21,7 +21,6 @@
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   USA.
-
 ***/
 
 struct pa_raop_packet_element;
@@ -39,4 +38,4 @@ void pa_raop_pb_delete(pa_raop_packet_buffer *pb);
 void pa_raop_pb_write_packet(pa_raop_packet_buffer *pb, uint16_t seq_num, const uint8_t *packet_data, ssize_t packet_length);
 ssize_t pa_raop_pb_read_packet(pa_raop_packet_buffer *pb, uint16_t seq_num, uint8_t **packet_data);
 
-#endif /* RAOP_PACKET_BUFFER_H_INCLUDED */
+#endif
