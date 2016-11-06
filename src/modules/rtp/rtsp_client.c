@@ -330,7 +330,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
             }
         } else if (AF_INET6 == sa.sa.sa_family) {
             if ((res = inet_ntop(AF_INET6, &sa.in6.sin6_addr, buf, sizeof(buf)))) {
-                c->localip = pa_sprintf_malloc("[%s]", res);
+                c->localip = pa_xstrdup(res);
             }
         }
     }
