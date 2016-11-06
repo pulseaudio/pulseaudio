@@ -65,6 +65,8 @@
 #define FRAMES_PER_TCP_PACKET 4096
 #define FRAMES_PER_UDP_PACKET 352
 
+#define RTX_BUFFERING_SECONDS 4
+
 #define DEFAULT_TCP_AUDIO_PORT   6000
 #define DEFAULT_UDP_AUDIO_PORT   6000
 #define DEFAULT_UDP_CONTROL_PORT 6001
@@ -323,92 +325,102 @@ static size_t write_AAC_data(uint8_t *packet, const size_t max, uint8_t *raw, si
     return size;
 }
 
-static size_t build_tcp_audio_packet(pa_raop_client *c, uint8_t *raw, size_t *index, size_t *length, uint32_t **packet) {
-    const size_t max = sizeof(tcp_audio_header) + 8 + 16384;
+static size_t build_tcp_audio_packet(pa_raop_client *c, pa_memchunk *block, pa_memchunk *packet) {
+    const size_t head = sizeof(tcp_audio_header);
     uint32_t *buffer = NULL;
-    size_t size, head;
+    uint8_t *raw = NULL;
+    size_t length, size;
 
-    *packet = NULL;
-    if (!(buffer = pa_xmalloc0(max)))
-        return 0;
+    raw = pa_memblock_acquire(block->memblock);
+    buffer = pa_memblock_acquire(packet->memblock);
+    buffer += packet->index / sizeof(uint32_t);
+    raw += block->index;
 
-    size = head = sizeof(tcp_audio_header);
+    c->seq++;
     memcpy(buffer, tcp_audio_header, sizeof(tcp_audio_header));
     buffer[1] |= htonl((uint32_t) c->seq);
     buffer[2] = htonl(c->rtptime);
     buffer[3] = htonl(c->ssrc);
 
+    length = block->length;
+    size = sizeof(tcp_audio_header);
     if (c->codec == PA_RAOP_CODEC_PCM)
-        size += write_PCM_data(((uint8_t *) buffer + head), max - head, raw, length);
+        size += write_PCM_data(((uint8_t *) buffer + head), packet->length - head, raw, &length);
     else if (c->codec == PA_RAOP_CODEC_ALAC)
-        size += write_ALAC_data(((uint8_t *) buffer + head), max - head, raw, length, false);
+        size += write_ALAC_data(((uint8_t *) buffer + head), packet->length - head, raw, &length, false);
     else
-        size += write_AAC_data(((uint8_t *) buffer + head), max - head, raw, length);
-    c->rtptime += *length / 4;
+        size += write_AAC_data(((uint8_t *) buffer + head), packet->length - head, raw, &length);
+    c->rtptime += length / 4;
+
+    pa_memblock_release(block->memblock);
 
     buffer[0] |= htonl((uint32_t) size - 4);
     if (c->encryption == PA_RAOP_ENCRYPTION_RSA)
         pa_raop_aes_encrypt(c->secret, (uint8_t *) buffer + head, size - head);
 
-    *packet = buffer;
+    pa_memblock_release(packet->memblock);
+    packet->length = size;
+
     return size;
 }
 
 static ssize_t send_tcp_audio_packet(pa_raop_client *c, pa_memchunk *block, size_t offset) {
-    static uint32_t * packet = NULL;
-    static size_t size, sent;
+    static int write_type = 0;
+    const size_t max = sizeof(tcp_audio_header) + 8 + 16384;
+    pa_memchunk *packet = NULL;
+    uint8_t *buffer = NULL;
     double progress = 0.0;
-    size_t index, length;
-    uint8_t *raw = NULL;
-    ssize_t written;
+    ssize_t written = -1;
+    size_t done = 0;
 
-    if (!packet) {
-        index = block->index;
-        length = block->length;
-        raw = pa_memblock_acquire(block->memblock);
+    if (!(packet = pa_raop_packet_buffer_get(c->pbuf, c->seq, max)))
+        return -1;
 
-        pa_assert(raw);
-        pa_assert(index == offset);
-        pa_assert(length > 0);
+    if (packet->length <= 0) {
+        pa_assert(block->index == offset);
 
-        size = build_tcp_audio_packet(c, raw, &index, &length, &packet);
-        sent = 0;
+        if (!(packet = pa_raop_packet_buffer_get(c->pbuf, c->seq + 1, max)))
+            return -1;
+
+        packet->index = 0;
+        packet->length = max;
+        if (!build_tcp_audio_packet(c, block, packet))
+            return -1;
     }
 
-    written = -1;
-    if (packet != NULL && size > 0)
-        written = pa_write(c->tcp_sfd, packet + sent, size - sent, NULL);
-    if (block->index == offset)
-        c->seq++;
-    if (sent == 0)
-        pa_memblock_release(block->memblock);
+    buffer = pa_memblock_acquire(packet->memblock);
+
+    pa_assert(buffer);
+
+    buffer += packet->index;
+    if (buffer && packet->length > 0)
+        written = pa_write(c->tcp_sfd, buffer, packet->length, &write_type);
     if (written > 0) {
-        sent += written;
-        progress = (double) sent / (double) size;
-        index = (block->index + block->length) * progress;
-        length = (block->index + block->length) - index;
-        block->length = length;
-        block->index = index;
+        progress = (double) written / (double) packet->length;
+        packet->length -= written;
+        packet->index += written;
+
+        done = block->length * progress;
+        block->length -= done;
+        block->index += done;
     }
 
-    if ((size - sent) <= 0) {
-        pa_xfree(packet);
-        packet = NULL;
-    }
+    pa_memblock_release(packet->memblock);
 
     return written;
 }
 
-static size_t build_udp_audio_packet(pa_raop_client *c, uint8_t *raw, size_t *index, size_t *length, uint32_t **packet) {
-    const size_t max = sizeof(udp_audio_header) + 8 + 1408;
+static size_t build_udp_audio_packet(pa_raop_client *c, pa_memchunk *block, pa_memchunk *packet) {
+    const size_t head = sizeof(udp_audio_header);
     uint32_t *buffer = NULL;
-    size_t size, head;
+    uint8_t *raw = NULL;
+    size_t length, size;
 
-    *packet = NULL;
-    if (!(buffer = pa_xmalloc0(max)))
-        return 0;
+    raw = pa_memblock_acquire(block->memblock);
+    buffer = pa_memblock_acquire(packet->memblock);
+    buffer += packet->index / sizeof(uint32_t);
+    raw += block->index;
 
-    size = head = sizeof(udp_audio_header);
     memcpy(buffer, udp_audio_header, sizeof(udp_audio_header));
     if (c->is_first_packet)
         buffer[0] |= htonl((uint32_t) 0x80 << 16);
@@ -416,75 +428,79 @@ static size_t build_udp_audio_packet(pa_raop_client *c, uint8_t *raw, size_t *in
     buffer[1] = htonl(c->rtptime);
     buffer[2] = htonl(c->ssrc);
 
+    length = block->length;
+    size = sizeof(udp_audio_header);
     if (c->codec == PA_RAOP_CODEC_PCM)
-        size += write_PCM_data(((uint8_t *) buffer + head), max - head, raw + *index, length);
+        size += write_PCM_data(((uint8_t *) buffer + head), packet->length - head, raw, &length);
     else if (c->codec == PA_RAOP_CODEC_ALAC)
-        size += write_ALAC_data(((uint8_t *) buffer + head), max - head, raw + *index, length, false);
+        size += write_ALAC_data(((uint8_t *) buffer + head), packet->length - head, raw, &length, false);
     else
-        size += write_AAC_data(((uint8_t *) buffer + head), max - head, raw + *index, length);
-    c->rtptime += *length / 4;
+        size += write_AAC_data(((uint8_t *) buffer + head), packet->length - head, raw, &length);
+    c->rtptime += length / 4;
+    c->seq++;
+
+    pa_memblock_release(block->memblock);
 
     if (c->encryption == PA_RAOP_ENCRYPTION_RSA)
         pa_raop_aes_encrypt(c->secret, (uint8_t *) buffer + head, size - head);
 
-    *index += *length;
-    *length = 0;
-    /* It is meaningless to preseve the partial data -> */
-    *packet = buffer;
+    pa_memblock_release(packet->memblock);
+    packet->length = size;
+
     return size;
 }
 
 static ssize_t send_udp_audio_packet(pa_raop_client *c, pa_memchunk *block, size_t offset) {
-    uint32_t *packet = NULL;
-    size_t index, length, size;
-    uint8_t *raw = NULL;
-    ssize_t written;
+    const size_t max = sizeof(udp_audio_retrans_header) + sizeof(udp_audio_header) + 8 + 1408;
+    pa_memchunk *packet = NULL;
+    uint8_t *buffer = NULL;
+    ssize_t written = -1;
 
-    index = block->index;
-    length = block->length;
-    raw = pa_memblock_acquire(block->memblock);
+    /* UDP packet has to be sent at once ! */
+    pa_assert(block->index == offset);
 
-    pa_assert(raw);
-    /* <- UDP packet has to be sent at once ! */
-    pa_assert(index == offset);
-    pa_assert(length > 0);
+    if (!(packet = pa_raop_packet_buffer_get(c->pbuf, c->seq, max)))
+        return -1;
 
-    written = -1;
-    size = build_udp_audio_packet(c, raw, &index, &length, &packet);
-    if (packet != NULL && size > 0)
-        written = pa_write(c->udp_sfd, packet, size, NULL);
-    if (written < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+    packet->length = max;
+    packet->index = sizeof(udp_audio_retrans_header);
+    if (!build_udp_audio_packet(c, block, packet))
+        return -1;
+
+    buffer = pa_memblock_acquire(packet->memblock);
+
+    pa_assert(buffer);
+
+    buffer += packet->index;
+    if (buffer && packet->length > 0)
+        written = pa_write(c->udp_sfd, buffer, packet->length, NULL);
+    if (written < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
         pa_log_debug("Discarding UDP (audio, seq=%d) packet due to EAGAIN (%s)", c->seq, pa_cstrerror(errno));
-    c->seq++;
+        return (ssize_t) packet->length;
+    }
 
-    /* Store packet for resending in the packet buffer (UDP). */
-    pa_raop_pb_write_packet(c->pbuf, c->seq, raw + block->index, block->length);
-    pa_xfree(packet);
+    pa_memblock_release(packet->memblock);
+    /* It is meaningless to preseve the partial data */
+    block->index += block->length;
+    block->length = 0;
 
-    pa_memblock_release(block->memblock);
-    block->length = length;
-    block->index = index;
-
-    if (written < 0)
-        return (ssize_t) size;
     return written;
 }
 
-static size_t rebuild_udp_audio_packet(pa_raop_client *c, uint16_t seq, uint32_t **packet) {
+static size_t rebuild_udp_audio_packet(pa_raop_client *c, uint16_t seq, pa_memchunk *packet) {
     size_t size = sizeof(udp_audio_retrans_header);
     uint32_t *buffer = NULL;
-    uint8_t *data = NULL;
 
-    size += pa_raop_pb_read_packet(c->pbuf, seq, &data);
-    if (size == sizeof(udp_audio_retrans_header))
-        return 0;
-    if (!(buffer = pa_xmalloc0(size)))
-        return 0;
+    buffer = pa_memblock_acquire(packet->memblock);
 
     memcpy(buffer, udp_audio_retrans_header, sizeof(udp_audio_retrans_header));
     buffer[0] |= htonl((uint32_t) seq);
+    size += packet->length;
 
-    *packet = buffer;
+    pa_memblock_release(packet->memblock);
+    packet->length += sizeof(udp_audio_retrans_header);
+    packet->index -= sizeof(udp_audio_retrans_header);
+
     return size;
 }
 
@@ -493,20 +509,32 @@ static ssize_t resend_udp_audio_packets(pa_raop_client *c, uint16_t seq, uint16_
     int i = 0;
 
     for (i = 0; i < nbp; i++) {
-        uint32_t * packet = NULL;
-        ssize_t written = 0;
-        size_t size = 0;
+        pa_memchunk *packet = NULL;
+        uint8_t *buffer = NULL;
+        ssize_t written = -1;
 
-        size = rebuild_udp_audio_packet(c, seq, &packet);
-        if (packet != NULL && size > 0)
-            written = pa_write(c->udp_cfd, packet, size, NULL);
+        if (!(packet = pa_raop_packet_buffer_get(c->pbuf, seq + i, 0)))
+            continue;
+
+        if (packet->index > 0) {
+            if (!rebuild_udp_audio_packet(c, seq + i, packet))
+                continue;
+        }
+
+        pa_assert(packet->index == 0);
+
+        buffer = pa_memblock_acquire(packet->memblock);
+
+        pa_assert(buffer);
+
+        if (buffer && packet->length > 0)
+            written = pa_write(c->udp_cfd, buffer, packet->length, NULL);
         if (written < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-            pa_log_debug("Discarding UDP (audio-restransmitted, seq=%d) packet due to EAGAIN", c->seq);
+            pa_log_debug("Discarding UDP (audio-restransmitted, seq=%d) packet due to EAGAIN", seq + i);
             continue;
         }
 
-        if (written > 0)
-            total +=  written;
+        total +=  written;
     }
 
     return total;
@@ -557,17 +585,13 @@ static size_t handle_udp_control_packet(pa_raop_client *c, const uint8_t packet[
     ssize_t written = 0;
 
     /* Control packets are 8 bytes long:  */
-    if (size != 8 || packet[0] != 0x80) {
-        pa_log_debug("Received an invalid control packet...");
+    if (size != 8 || packet[0] != 0x80)
         return 1;
-    }
 
     seq = ntohs((uint16_t) packet[4]);
     nbp = ntohs((uint16_t) packet[6]);
-    if (nbp <= 0) {
-        pa_log_debug("Received an invalid control packet...");
+    if (nbp <= 0)
         return 1;
-    }
 
     /* The market bit is always set (see rfc3550 for packet structure) ! */
     payload = packet[1] ^ 0x80;
@@ -631,10 +655,8 @@ static size_t handle_udp_timing_packet(pa_raop_client *c, const uint8_t packet[]
     uint64_t rci = 0;
 
     /* Timing packets are 32 bytes long: 1 x 8 RTP header (no ssrc) + 3 x 8 NTP timestamps */
-    if (size != 32 || packet[0] != 0x80) {
-        pa_log_debug("Received an invalid UDP timing packet...");
+    if (size != 32 || packet[0] != 0x80)
         return 0;
-    }
 
     rci = timeval_to_ntp(pa_rtclock_get(&tv));
     data = (uint32_t *) (packet + sizeof(udp_timming_header));
@@ -1061,6 +1083,8 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
             if (alt)
                 pa_atoi(alt, &latency);
 
+            pa_raop_packet_buffer_reset(c->pbuf, c->seq);
+
             pa_random(&ssrc, sizeof(ssrc));
             c->is_first_packet = true;
             c->is_recording = true;
@@ -1093,9 +1117,6 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
 
             c->is_recording = false;
 
-            if (c->pbuf)
-                pa_raop_pb_clear(c->pbuf);
-
             if (c->tcp_sfd > 0)
                 pa_close(c->tcp_sfd);
             c->tcp_sfd = -1;
@@ -1123,9 +1144,6 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
             pa_log_debug("RAOP: DISCONNECTED");
 
             c->is_recording = false;
-
-            if (c->pbuf)
-                pa_raop_pb_clear(c->pbuf);
 
             if (c->tcp_sfd > 0)
                 pa_close(c->tcp_sfd);
@@ -1331,6 +1349,7 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_prot
 
     pa_parsed_address a;
     pa_sample_spec ss;
+    size_t size = 2;
 
     pa_assert(core);
     pa_assert(host);
@@ -1369,6 +1388,8 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_prot
         c->secret = pa_raop_secret_new();
 
     ss = core->default_sample_spec;
+    if (c->protocol == PA_RAOP_PROTOCOL_UDP)
+        size = RTX_BUFFERING_SECONDS * ss.rate / FRAMES_PER_UDP_PACKET;
 
     c->is_recording = false;
     c->is_first_packet = true;
@@ -1376,7 +1397,7 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_prot
     c->sync_interval = ss.rate / FRAMES_PER_UDP_PACKET;
     c->sync_count = 0;
 
-    c->pbuf = pa_raop_pb_new(UDP_DEFAULT_PKT_BUF_SIZE);
+    c->pbuf = pa_raop_packet_buffer_new(c->core->mempool, size);
 
     return c;
 }
@@ -1384,7 +1405,7 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_prot
 void pa_raop_client_free(pa_raop_client *c) {
     pa_assert(c);
 
-    pa_raop_pb_delete(c->pbuf);
+    pa_raop_packet_buffer_free(c->pbuf);
 
     pa_xfree(c->sid);
     pa_xfree(c->sci);
@@ -1686,10 +1707,10 @@ void pa_raop_client_handle_oob_packet(pa_raop_client *c, const int fd, const uin
 
     if (c->protocol == PA_RAOP_PROTOCOL_UDP) {
         if (fd == c->udp_cfd) {
-            pa_log_debug("Received UDP control packet");
+            pa_log_debug("Received UDP control packet...");
             handle_udp_control_packet(c, packet, size);
         } else if (fd == c->udp_tfd) {
-            pa_log_debug("Received UDP timing packet");
+            pa_log_debug("Received UDP timing packet...");
             handle_udp_timing_packet(c, packet, size);
         }
     }

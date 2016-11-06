@@ -23,19 +23,16 @@
   USA.
 ***/
 
-struct pa_raop_packet_element;
-typedef struct pa_raop_packet_element pa_raop_packet_element;
+#include <pulsecore/memblock.h>
+#include <pulsecore/memchunk.h>
 
-struct pa_raop_packet_buffer;
 typedef struct pa_raop_packet_buffer pa_raop_packet_buffer;
 
-/* Allocates a new circular packet buffer
-   size: Maximum number of packets to store */
-pa_raop_packet_buffer *pa_raop_pb_new(size_t size);
-void pa_raop_pb_clear(pa_raop_packet_buffer *pb);
-void pa_raop_pb_delete(pa_raop_packet_buffer *pb);
+/* Allocates a new circular packet buffer, size: Maximum number of packets to store */
+pa_raop_packet_buffer *pa_raop_packet_buffer_new(pa_mempool *mempool, const size_t size);
+void pa_raop_packet_buffer_free(pa_raop_packet_buffer *pb);
 
-void pa_raop_pb_write_packet(pa_raop_packet_buffer *pb, uint16_t seq_num, const uint8_t *packet_data, ssize_t packet_length);
-ssize_t pa_raop_pb_read_packet(pa_raop_packet_buffer *pb, uint16_t seq_num, uint8_t **packet_data);
+void pa_raop_packet_buffer_reset(pa_raop_packet_buffer *pb, uint16_t seq);
+pa_memchunk *pa_raop_packet_buffer_get(pa_raop_packet_buffer *pb, uint16_t seq, const size_t size);
 
 #endif

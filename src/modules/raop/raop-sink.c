@@ -333,7 +333,6 @@ static void thread_func(void *userdata) {
         unsigned int i, nbfds = 0;
         pa_usec_t now, estimated, intvl;
         uint64_t position;
-        ssize_t written;
         size_t index;
         int ret;
 
@@ -399,8 +398,7 @@ static void thread_func(void *userdata) {
         pa_assert(u->memchunk.length > 0);
 
         index = u->memchunk.index;
-        written = pa_raop_client_send_audio_packet(u->raop, &u->memchunk, offset);
-        if (written < 0) {
+        if (pa_raop_client_send_audio_packet(u->raop, &u->memchunk, offset) < 0) {
             if (errno == EINTR) {
                 /* Just try again. */
                 pa_log_debug("Failed to write data to FIFO (EINTR), retrying");
