@@ -35,4 +35,5 @@ void pa_raop_packet_buffer_free(pa_raop_packet_buffer *pb);
 void pa_raop_packet_buffer_reset(pa_raop_packet_buffer *pb, uint16_t seq);
 pa_memchunk *pa_raop_packet_buffer_get(pa_raop_packet_buffer *pb, uint16_t seq, const size_t size);
 
+uint16_t pa_raop_packet_buffer_wrap_seq(pa_raop_packet_buffer *pb, uint16_t seq);
 #endif

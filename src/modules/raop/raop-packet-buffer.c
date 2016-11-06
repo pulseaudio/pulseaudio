@@ -88,13 +88,28 @@ void pa_raop_packet_buffer_reset(pa_raop_packet_buffer *pb, uint16_t seq) {
     }
 }
 
+uint16_t pa_raop_packet_buffer_wrap_seq(pa_raop_packet_buffer *pb, uint16_t seq) {
+    int seq_shift;
+
+    pa_assert(pb);
+
+    if (seq > pb->seq)
+        seq_shift = pb->seq - 1;
+    else
+        seq_shift = seq;
+
+    pb->seq -= seq_shift;
+
+    return seq - seq_shift;
+
+}
+
 pa_memchunk *pa_raop_packet_buffer_get(pa_raop_packet_buffer *pb, uint16_t seq, const size_t size) {
     pa_memchunk *packet = NULL;
     size_t delta, i;
 
     pa_assert(pb);
     pa_assert(pb->packets);
-    pa_assert(seq > 0);
 
     if (seq == pb->seq)
         packet = &pb->packets[pb->pos];
