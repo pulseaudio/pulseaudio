@@ -200,7 +200,10 @@ static void resolver_cb(
              *  - 1 = ALAC,
              *  - 2 = AAC,
              *  - 3 = AAC ELD. */
-            cn = pa_xstrdup("PCM");
+            if (pa_str_in_list(value, ",", "1"))
+                cn = pa_xstrdup("ALAC");
+            else
+                cn = pa_xstrdup("PCM");
         } else if (pa_streq(key, "md")) {
             /* Supported metadata types:
              *  - 0 = text,
