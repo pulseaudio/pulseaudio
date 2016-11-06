@@ -95,6 +95,8 @@ enum {
 
 static void userdata_free(struct userdata *u);
 
+static void sink_set_volume_cb(pa_sink *s);
+
 static void raop_state_cb(pa_raop_state_t state, void *userdata) {
     struct userdata *u = userdata;
 
@@ -228,6 +230,9 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                         /* Our stream has been suspended so we just flush it... */
                         pa_rtpoll_set_timer_disabled(u->rtpoll);
                         pa_raop_client_flush(u->raop);
+                    } else {
+                        /* Set the initial volume */
+                        sink_set_volume_cb(u->sink);
                     }
 
                     return 0;
