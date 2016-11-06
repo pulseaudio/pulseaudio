@@ -86,6 +86,7 @@
 #define VOLUME_MIN -144.0
 
 #define UDP_DEFAULT_PKT_BUF_SIZE 1000
+#define APPLE_CHALLENGE_LENGTH 16
 
 struct pa_raop_client {
     pa_core *core;
@@ -1190,7 +1191,7 @@ static void rtsp_auth_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_st
     switch (state) {
         case STATE_CONNECT: {
             char *sci = NULL, *sac = NULL;
-            uint16_t rac;
+            uint8_t rac[APPLE_CHALLENGE_LENGTH];
             struct {
                 uint32_t ci1;
                 uint32_t ci2;
@@ -1201,9 +1202,9 @@ static void rtsp_auth_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_st
             sci = pa_sprintf_malloc("%08x%08x",rci.ci1, rci.ci2);
             pa_rtsp_add_header(c->rtsp, "Client-Instance", sci);
 
-            pa_random(&rac, sizeof(rac));
+            pa_random(rac, APPLE_CHALLENGE_LENGTH);
             /* Generate a random Apple-Challenge key */
-            pa_raop_base64_encode(&rac, 8 * sizeof(rac), &sac);
+            pa_raop_base64_encode(rac, APPLE_CHALLENGE_LENGTH, &sac);
             rtrim_char(sac, '=');
             pa_rtsp_add_header(c->rtsp, "Apple-Challenge", sac);
 
