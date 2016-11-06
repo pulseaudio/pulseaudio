@@ -310,7 +310,7 @@ static int udp_sink_process_msg(pa_msgobject *o, int code, void *data, int64_t o
                     pa_log_debug("RAOP: SUSPENDED");
                     pa_smoother_pause(u->smoother, pa_rtclock_now());
 
-                    if (pa_raop_client_udp_can_stream(u->raop)) {
+                    if (pa_raop_client_udp_is_alive(u->raop)) {
                         /* Issue a TEARDOWN if we are still connected. */
                         pa_raop_client_teardown(u->raop);
                     }
@@ -756,9 +756,9 @@ static void udp_thread_func(struct userdata *u) {
             continue;
         }
 
-        if (!pa_raop_client_udp_can_stream(u->raop))
-            continue;
         if (u->sink->thread_info.state != PA_SINK_RUNNING)
+            continue;
+        if (!pa_raop_client_udp_can_stream(u->raop))
             continue;
 
         if (u->encoded_memchunk.length <= 0) {

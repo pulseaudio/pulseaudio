@@ -146,6 +146,8 @@ struct pa_raop_client {
 
     uint32_t udp_ssrc;
 
+    bool is_recording;
+
     bool udp_first_packet;
     uint32_t udp_sync_interval;
     uint32_t udp_sync_count;
@@ -950,6 +952,8 @@ static void udp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist
 
             pa_log_debug("RAOP: RECORD");
 
+            c->is_recording = true;
+
             alt = pa_xstrdup(pa_headerlist_gets(headers, "Audio-Latency"));
             /* Generate a random synchronization source identifier from this session. */
             pa_random(&rand, sizeof(rand));
@@ -976,6 +980,8 @@ static void udp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist
         case STATE_FLUSH: {
             pa_log_debug("RAOP: FLUSHED");
 
+            c->is_recording = false;
+
             break;
         }
 
@@ -983,6 +989,8 @@ static void udp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist
             pa_log_debug("RAOP: TEARDOWN");
             pa_assert(c->udp_disconnected_callback);
             pa_assert(c->rtsp);
+
+            c->is_recording = false;
 
             pa_rtsp_disconnect(c->rtsp);
 
@@ -1084,6 +1092,8 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_prot
     else
         c->port = DEFAULT_RAOP_PORT;
 
+    c->is_recording = false;
+
     c->udp_first_packet = true;
 
     ss = core->default_sample_spec;
@@ -1151,6 +1161,8 @@ int pa_raop_client_connect(pa_raop_client *c) {
     else
         pa_rtsp_set_callback(c->rtsp, udp_rtsp_cb, c);
 
+    c->is_recording = false;
+
     return pa_rtsp_connect(c->rtsp);
 }
 
@@ -1177,12 +1189,23 @@ int pa_raop_client_teardown(pa_raop_client *c) {
     return rv;
 }
 
-int pa_raop_client_udp_can_stream(pa_raop_client *c) {
+int pa_raop_client_udp_is_alive(pa_raop_client *c) {
     int rv = 0;
 
     pa_assert(c);
 
     if (c->udp_stream_fd > 0)
+        rv = 1;
+
+    return rv;
+}
+
+int pa_raop_client_udp_can_stream(pa_raop_client *c) {
+    int rv = 0;
+
+    pa_assert(c);
+
+    if (c->is_recording && c->udp_stream_fd > 0)
         rv = 1;
 
     return rv;
