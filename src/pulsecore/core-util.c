@@ -1121,6 +1121,25 @@ char *pa_split_spaces(const char *c, const char **state) {
     return pa_xstrndup(current, l);
 }
 
+/* Similar to pa_split_spaces, except this returns a string in-place.
+   Returned string is generally not NULL-terminated.
+   See pa_split_in_place(). */
+const char *pa_split_spaces_in_place(const char *c, int *n, const char **state) {
+    const char *current = *state ? *state : c;
+    size_t l;
+
+    if (!*current || *c == 0)
+        return NULL;
+
+    current += strspn(current, WHITESPACE);
+    l = strcspn(current, WHITESPACE);
+
+    *state = current+l;
+
+    *n = l;
+    return current;
+}
+
 PA_STATIC_TLS_DECLARE(signame, pa_xfree);
 
 /* Return the name of an UNIX signal. Similar to Solaris sig2str() */
