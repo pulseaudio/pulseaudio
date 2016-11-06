@@ -241,19 +241,22 @@ static void resolver_cb(
     avahi_free(device);
     pa_xfree(dname);
 
+    avahi_address_snprint(at, sizeof(at), a);
     if (nicename) {
         args = pa_sprintf_malloc("server=[%s]:%u "
                                  "sink_name=%s "
-                                 "sink_properties='device.description=\"%s\"'",
-                                 avahi_address_snprint(at, sizeof(at), a), port,
+                                 "sink_properties='device.description=\"%s (%s:%u)\"'",
+                                 at, port,
                                  vname,
-                                 nicename);
+                                 nicename, at, port);
         pa_xfree(nicename);
     } else {
         args = pa_sprintf_malloc("server=[%s]:%u "
-                                 "sink_name=%s",
-                                 avahi_address_snprint(at, sizeof(at), a), port,
-                                 vname);
+                                 "sink_name=%s"
+                                 "sink_properties='device.description=\"%s:%u\"'",
+                                 at, port,
+                                 vname,
+                                 at, port);
     }
 
     if (tp != NULL) {
