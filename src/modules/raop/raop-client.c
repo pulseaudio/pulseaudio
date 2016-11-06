@@ -267,16 +267,6 @@ static inline void bit_writer(uint8_t **buffer, uint8_t *bit_pos, size_t *size, 
     }
 }
 
-static size_t write_PCM_data(uint8_t *packet, const size_t max, uint8_t *raw, size_t *length) {
-    size_t size = 0;
-
-    pa_memzero(packet, max);
-
-    pa_log("Raw PCM not implemented...");
-
-    return size;
-}
-
 static size_t write_ALAC_data(uint8_t *packet, const size_t max, uint8_t *raw, size_t *length, bool compress) {
     uint32_t nbs = (*length / 2) / 2;
     uint8_t *ibp, *maxibp;
@@ -315,16 +305,6 @@ static size_t write_ALAC_data(uint8_t *packet, const size_t max, uint8_t *raw, s
     return size;
 }
 
-static size_t write_AAC_data(uint8_t *packet, const size_t max, uint8_t *raw, size_t *length) {
-    size_t size = 0;
-
-    pa_memzero(packet, max);
-
-    pa_log("AAC encoding not implemented...");
-
-    return size;
-}
-
 static size_t build_tcp_audio_packet(pa_raop_client *c, pa_memchunk *block, pa_memchunk *packet) {
     const size_t head = sizeof(tcp_audio_header);
     uint32_t *buffer = NULL;
@@ -344,12 +324,14 @@ static size_t build_tcp_audio_packet(pa_raop_client *c, pa_memchunk *block, pa_m
 
     length = block->length;
     size = sizeof(tcp_audio_header);
-    if (c->codec == PA_RAOP_CODEC_PCM)
-        size += write_PCM_data(((uint8_t *) buffer + head), packet->length - head, raw, &length);
-    else if (c->codec == PA_RAOP_CODEC_ALAC)
+    if (c->codec == PA_RAOP_CODEC_ALAC)
         size += write_ALAC_data(((uint8_t *) buffer + head), packet->length - head, raw, &length, false);
-    else
-        size += write_AAC_data(((uint8_t *) buffer + head), packet->length - head, raw, &length);
+    else {
+        pa_log_debug("Only ALAC encoding is supported, sending zeros...");
+        pa_memzero(((uint8_t *) buffer + head), packet->length - head);
+        size += length;
+    }
+
     c->rtptime += length / 4;
 
     pa_memblock_release(block->memblock);
@@ -430,12 +412,14 @@ static size_t build_udp_audio_packet(pa_raop_client *c, pa_memchunk *block, pa_m
 
     length = block->length;
     size = sizeof(udp_audio_header);
-    if (c->codec == PA_RAOP_CODEC_PCM)
-        size += write_PCM_data(((uint8_t *) buffer + head), packet->length - head, raw, &length);
-    else if (c->codec == PA_RAOP_CODEC_ALAC)
+    if (c->codec == PA_RAOP_CODEC_ALAC)
         size += write_ALAC_data(((uint8_t *) buffer + head), packet->length - head, raw, &length, false);
-    else
-        size += write_AAC_data(((uint8_t *) buffer + head), packet->length - head, raw, &length);
+    else {
+        pa_log_debug("Only ALAC encoding is supported, sending zeros...");
+        pa_memzero(((uint8_t *) buffer + head), packet->length - head);
+        size += length;
+    }
+
     c->rtptime += length / 4;
     c->seq++;
 
