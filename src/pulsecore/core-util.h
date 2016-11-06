@@ -219,6 +219,7 @@ void pa_unset_env_recorded(void);
 bool pa_in_system_mode(void);
 
 #define pa_streq(a,b) (!strcmp((a),(b)))
+#define pa_strneq(a,b,n) (!strncmp((a),(b),(n)))
 
 /* Like pa_streq, but does not blow up on NULL pointers. */
 static inline bool pa_safe_streq(const char *a, const char *b) {
