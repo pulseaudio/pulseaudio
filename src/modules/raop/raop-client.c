@@ -174,14 +174,14 @@ static const uint8_t udp_sync_header[8] = {
     0x00, 0x00, 0x00, 0x00
 };
 
-/* Timming packet header [8x8] (cf. rfc3550):
+/* Timing packet header [8x8] (cf. rfc3550):
  *  [0]   RTP v2: 0x80
  *  [1]   Payload type: 0x53 | Marker bit: 0x80 (always set)
  *  [2,3] Sequence number: 0x0007
  *  [4,7] Timestamp: 0x00000000 (unused) */
 #define PAYLOAD_TIMING_REQUEST  0x52
 #define PAYLOAD_TIMING_REPLY    0x53
-static const uint8_t udp_timming_header[8] = {
+static const uint8_t udp_timing_header[8] = {
     0x80, 0xd3, 0x00, 0x07,
     0x00, 0x00, 0x00, 0x00
 };
@@ -587,7 +587,7 @@ static size_t handle_udp_control_packet(pa_raop_client *c, const uint8_t packet[
     if (nbp <= 0)
         return 1;
 
-    /* The market bit is always set (see rfc3550 for packet structure) ! */
+    /* The marker bit is always set (see rfc3550 for packet structure) ! */
     payload = packet[1] ^ 0x80;
     switch (payload) {
         case PAYLOAD_RETRANSMIT_REQUEST:
@@ -604,7 +604,7 @@ static size_t handle_udp_control_packet(pa_raop_client *c, const uint8_t packet[
 }
 
 static size_t build_udp_timing_packet(pa_raop_client *c, const uint32_t data[6], uint64_t received, uint32_t **packet) {
-    const size_t size = sizeof(udp_timming_header) + 24;
+    const size_t size = sizeof(udp_timing_header) + 24;
     uint32_t *buffer = NULL;
     uint64_t transmitted = 0;
     struct timeval tv;
@@ -613,7 +613,7 @@ static size_t build_udp_timing_packet(pa_raop_client *c, const uint32_t data[6],
     if (!(buffer = pa_xmalloc0(size)))
         return 0;
 
-    memcpy(buffer, udp_timming_header, sizeof(udp_timming_header));
+    memcpy(buffer, udp_timing_header, sizeof(udp_timing_header));
     /* Copying originate timestamp from the incoming request packet. */
     buffer[2] = data[4];
     buffer[3] = data[5];
@@ -653,9 +653,9 @@ static size_t handle_udp_timing_packet(pa_raop_client *c, const uint8_t packet[]
         return 0;
 
     rci = timeval_to_ntp(pa_rtclock_get(&tv));
-    data = (uint32_t *) (packet + sizeof(udp_timming_header));
+    data = (uint32_t *) (packet + sizeof(udp_timing_header));
 
-    /* The market bit is always set (see rfc3550 for packet structure) ! */
+    /* The marker bit is always set (see rfc3550 for packet structure) ! */
     payload = packet[1] ^ 0x80;
     switch (payload) {
         case PAYLOAD_TIMING_REQUEST:
