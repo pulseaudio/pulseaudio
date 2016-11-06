@@ -470,6 +470,7 @@ static ssize_t send_udp_audio_packet(pa_raop_client *c, pa_memchunk *block, size
         written = pa_write(c->udp_sfd, buffer, packet->length, NULL);
     if (written < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
         pa_log_debug("Discarding UDP (audio, seq=%d) packet due to EAGAIN (%s)", c->seq, pa_cstrerror(errno));
+        pa_memblock_release(packet->memblock);
         return (ssize_t) packet->length;
     }
 
@@ -525,9 +526,11 @@ static ssize_t resend_udp_audio_packets(pa_raop_client *c, uint16_t seq, uint16_
             written = pa_write(c->udp_cfd, buffer, packet->length, NULL);
         if (written < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
             pa_log_debug("Discarding UDP (audio-restransmitted, seq=%d) packet due to EAGAIN", seq + i);
+            pa_memblock_release(packet->memblock);
             continue;
         }
 
+        pa_memblock_release(packet->memblock);
         total +=  written;
     }
 
@@ -582,8 +585,8 @@ static size_t handle_udp_control_packet(pa_raop_client *c, const uint8_t packet[
     if (size != 8 || packet[0] != 0x80)
         return 1;
 
-    seq = ntohs((uint16_t) packet[4]);
-    nbp = ntohs((uint16_t) packet[6]);
+    seq = ntohs((uint16_t) (packet[4] | packet[5] << 8));
+    nbp = ntohs((uint16_t) (packet[6] | packet[7] << 8));
     if (nbp <= 0)
         return 1;
 
