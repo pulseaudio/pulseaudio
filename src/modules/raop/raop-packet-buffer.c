@@ -25,6 +25,7 @@
 #endif
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <limits.h>
 
 #include <pulse/xmalloc.h>
@@ -37,7 +38,9 @@
 struct pa_raop_packet_buffer {
     pa_memchunk *packets;
     pa_mempool *mempool;
+
     size_t size;
+    size_t count;
 
     uint16_t seq;
     size_t pos;
@@ -49,6 +52,7 @@ pa_raop_packet_buffer *pa_raop_packet_buffer_new(pa_mempool *mempool, const size
     pa_assert(mempool);
     pa_assert(size > 0);
 
+    pb->count = 0;
     pb->size = size;
     pb->mempool = mempool;
     pb->packets = pa_xnew0(pa_memchunk, size);
@@ -80,7 +84,8 @@ void pa_raop_packet_buffer_reset(pa_raop_packet_buffer *pb, uint16_t seq) {
     pa_assert(pb->packets);
 
     pb->pos = 0;
-    pb->seq = seq - 1;
+    pb->count = 0;
+    pb->seq = (!seq) ? UINT16_MAX : seq - 1;
     for (i = 0; i < pb->size; i++) {
         if (pb->packets[i].memblock)
             pa_memblock_unref(pb->packets[i].memblock);
@@ -88,23 +93,43 @@ void pa_raop_packet_buffer_reset(pa_raop_packet_buffer *pb, uint16_t seq) {
     }
 }
 
-uint16_t pa_raop_packet_buffer_wrap_seq(pa_raop_packet_buffer *pb, uint16_t seq) {
-    int seq_shift;
+pa_memchunk *pa_raop_packet_buffer_prepare(pa_raop_packet_buffer *pb, uint16_t seq, const size_t size) {
+    pa_memchunk *packet = NULL;
+    size_t i;
 
     pa_assert(pb);
+    pa_assert(pb->packets);
 
-    if (seq > pb->seq)
-        seq_shift = pb->seq - 1;
-    else
-        seq_shift = seq;
+    if (seq == 0) {
+        /* 0 means seq reached UINT16_MAX and has been wrapped... */
+        pa_assert(pb->seq == UINT16_MAX);
+        pb->seq = 0;
+    } else {
+        /* ...otherwise, seq MUST have be increased! */
+        pa_assert(seq == pb->seq + 1);
+        pb->seq++;
+    }
 
-    pb->seq -= seq_shift;
+    i = (pb->pos + 1) % pb->size;
 
-    return seq - seq_shift;
+    if (pb->packets[i].memblock)
+        pa_memblock_unref(pb->packets[i].memblock);
+    pa_memchunk_reset(&pb->packets[i]);
 
+    pb->packets[i].memblock = pa_memblock_new(pb->mempool, size);
+    pb->packets[i].length = size;
+    pb->packets[i].index = 0;
+
+    packet = &pb->packets[i];
+
+    if (pb->count < pb->size)
+        pb->count++;
+    pb->pos = i;
+
+    return packet;
 }
 
-pa_memchunk *pa_raop_packet_buffer_get(pa_raop_packet_buffer *pb, uint16_t seq, const size_t size) {
+pa_memchunk *pa_raop_packet_buffer_retrieve(pa_raop_packet_buffer *pb, uint16_t seq) {
     pa_memchunk *packet = NULL;
     size_t delta, i;
 
@@ -113,20 +138,21 @@ pa_memchunk *pa_raop_packet_buffer_get(pa_raop_packet_buffer *pb, uint16_t seq, 
 
     if (seq == pb->seq)
         packet = &pb->packets[pb->pos];
-    else if (seq < pb->seq) {
-        delta = pb->seq - seq;
+    else {
+        if (seq < pb->seq) {
+            /* Regular case: pb->seq did not wrapped since seq. */
+            delta = pb->seq - seq;
+            pa_assert(delta <= pb->count);
+        } else {
+            /* Tricky case: pb->seq wrapped since seq! */
+            delta = pb->seq + (UINT16_MAX - seq);
+            pa_assert(delta <= pb->count);
+        }
+
         i = (pb->size + pb->pos - delta) % pb->size;
-        if (delta < pb->size)
+
+        if (delta < pb->size && pb->packets[i].memblock)
             packet = &pb->packets[i];
-    } else {
-        i = (pb->pos + (seq - pb->seq)) % pb->size;
-        if (pb->packets[i].memblock)
-            pa_memblock_unref(pb->packets[i].memblock);
-        pa_memchunk_reset(&pb->packets[i]);
-        pb->packets[i].memblock = pa_memblock_new(pb->mempool, size);
-        packet = &pb->packets[i];
-        pb->seq = seq;
-        pb->pos = i;
     }
 
     return packet;

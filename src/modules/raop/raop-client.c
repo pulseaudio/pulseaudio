@@ -24,6 +24,7 @@
 #endif
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
@@ -316,10 +317,10 @@ static size_t build_tcp_audio_packet(pa_raop_client *c, pa_memchunk *block, pa_m
     buffer += packet->index / sizeof(uint32_t);
     raw += block->index;
 
-    if (c->seq == 0xFFFF) {
-        pa_log_debug("wrapping sequence number");
-        c->seq = pa_raop_packet_buffer_wrap_seq(c->pbuf, c->seq);
-    } else
+    /* Wrap sequence number to 0 then UINT16_MAX is reached */
+    if (c->seq == UINT16_MAX)
+        c->seq = 0;
+    else
         c->seq++;
 
     memcpy(buffer, tcp_audio_header, sizeof(tcp_audio_header));
@@ -360,13 +361,13 @@ static ssize_t send_tcp_audio_packet(pa_raop_client *c, pa_memchunk *block, size
     ssize_t written = -1;
     size_t done = 0;
 
-    if (!(packet = pa_raop_packet_buffer_get(c->pbuf, c->seq, max)))
+    if (!(packet = pa_raop_packet_buffer_retrieve(c->pbuf, c->seq)))
         return -1;
 
     if (packet->length <= 0) {
         pa_assert(block->index == offset);
 
-        if (!(packet = pa_raop_packet_buffer_get(c->pbuf, c->seq + 1, max)))
+        if (!(packet = pa_raop_packet_buffer_prepare(c->pbuf, c->seq + 1, max)))
             return -1;
 
         packet->index = 0;
@@ -427,10 +428,10 @@ static size_t build_udp_audio_packet(pa_raop_client *c, pa_memchunk *block, pa_m
 
     c->rtptime += length / 4;
 
-    if (c->seq == 0xFFFF) {
-        pa_log_debug("wrapping sequence number");
-        c->seq = pa_raop_packet_buffer_wrap_seq(c->pbuf, c->seq);
-    } else
+    /* Wrap sequence number to 0 then UINT16_MAX is reached */
+    if (c->seq == UINT16_MAX)
+        c->seq = 0;
+    else
         c->seq++;
 
     pa_memblock_release(block->memblock);
@@ -453,11 +454,11 @@ static ssize_t send_udp_audio_packet(pa_raop_client *c, pa_memchunk *block, size
     /* UDP packet has to be sent at once ! */
     pa_assert(block->index == offset);
 
-    if (!(packet = pa_raop_packet_buffer_get(c->pbuf, c->seq, max)))
+    if (!(packet = pa_raop_packet_buffer_prepare(c->pbuf, c->seq, max)))
         return -1;
 
-    packet->length = max;
     packet->index = sizeof(udp_audio_retrans_header);
+    packet->length = max - sizeof(udp_audio_retrans_header);
     if (!build_udp_audio_packet(c, block, packet))
         return -1;
 
@@ -508,7 +509,7 @@ static ssize_t resend_udp_audio_packets(pa_raop_client *c, uint16_t seq, uint16_
         uint8_t *buffer = NULL;
         ssize_t written = -1;
 
-        if (!(packet = pa_raop_packet_buffer_get(c->pbuf, seq + i, 0)))
+        if (!(packet = pa_raop_packet_buffer_retrieve(c->pbuf, seq + i)))
             continue;
 
         if (packet->index > 0) {
