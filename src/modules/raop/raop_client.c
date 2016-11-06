@@ -32,13 +32,6 @@
 #include <sys/filio.h>
 #endif
 
-/* TODO: Replace OpenSSL with NSS */
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include <openssl/aes.h>
-#include <openssl/rsa.h>
-#include <openssl/engine.h>
-
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulse/sample.h>
@@ -56,12 +49,11 @@
 #include <pulsecore/random.h>
 
 #include "raop_client.h"
+
 #include "rtsp_client.h"
-#include "base64.h"
-
 #include "raop_packet_buffer.h"
-
-#define AES_CHUNKSIZE 16
+#include "raop_crypto.h"
+#include "base64.h"
 
 #define JACK_STATUS_DISCONNECTED 0
 #define JACK_STATUS_CONNECTED 1
@@ -89,21 +81,6 @@ typedef enum {
     UDP_PAYLOAD_AUDIO_DATA = 0x60
 } pa_raop_udp_payload_type;
 
-/* Openssl 1.1.0 broke compatibility. Before 1.1.0 we had to set RSA->n and
- * RSA->e manually, but after 1.1.0 the RSA struct is opaque and we have to use
- * RSA_set0_key(). RSA_set0_key() is a new function added in 1.1.0. We could
- * depend on openssl 1.1.0, but it may take some time before distributions will
- * be able to upgrade to the new openssl version. To insulate ourselves from
- * such transition problems, let's implement RSA_set0_key() ourselves if it's
- * not available. */
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-static int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
-    r->n = n;
-    r->e = e;
-    return 1;
-}
-#endif
-
 struct pa_raop_client {
     pa_core *core;
     char *host;
@@ -115,12 +92,8 @@ struct pa_raop_client {
     uint8_t jack_type;
     uint8_t jack_status;
 
-    /* Encryption Related bits */
     int encryption; /* Enable encryption? */
-    AES_KEY aes;
-    uint8_t aes_iv[AES_CHUNKSIZE]; /* Initialization vector for aes-cbc */
-    uint8_t aes_nv[AES_CHUNKSIZE]; /* Next vector for aes-cbc */
-    uint8_t aes_key[AES_CHUNKSIZE]; /* Key for aes-cbc */
+    pa_raop_secret *aes;
 
     uint16_t seq;
     uint32_t rtptime;
@@ -253,53 +226,6 @@ static inline void bit_writer(uint8_t **buffer, uint8_t *bit_pos, int *size, uin
         **buffer = data << (8 + bit_overflow);
         *bit_pos = -bit_overflow;
     }
-}
-
-static int rsa_encrypt(uint8_t *text, int len, uint8_t *res) {
-    const char n[] =
-        "59dE8qLieItsH1WgjrcFRKj6eUWqi+bGLOX1HL3U3GhC/j0Qg90u3sG/1CUtwC"
-        "5vOYvfDmFI6oSFXi5ELabWJmT2dKHzBJKa3k9ok+8t9ucRqMd6DZHJ2YCCLlDR"
-        "KSKv6kDqnw4UwPdpOMXziC/AMj3Z/lUVX1G7WSHCAWKf1zNS1eLvqr+boEjXuB"
-        "OitnZ/bDzPHrTOZz0Dew0uowxf/+sG+NCK3eQJVxqcaJ/vEHKIVd2M+5qL71yJ"
-        "Q+87X6oV3eaYvt3zWZYD6z5vYTcrtij2VZ9Zmni/UAaHqn9JdsBWLUEpVviYnh"
-        "imNVvYFZeCXg/IdTQ+x4IRdiXNv5hEew==";
-    const char e[] = "AQAB";
-    uint8_t modules[256];
-    uint8_t exponent[8];
-    int size;
-    RSA *rsa;
-    BIGNUM *n_bn;
-    BIGNUM *e_bn;
-
-    rsa = RSA_new();
-    size = pa_base64_decode(n, modules);
-    n_bn = BN_bin2bn(modules, size, NULL);
-    size = pa_base64_decode(e, exponent);
-    e_bn = BN_bin2bn(exponent, size, NULL);
-    RSA_set0_key(rsa, n_bn, e_bn, NULL);
-
-    size = RSA_public_encrypt(len, text, res, rsa, RSA_PKCS1_OAEP_PADDING);
-    RSA_free(rsa);
-    return size;
-}
-
-static int aes_encrypt(pa_raop_client *c, uint8_t *data, int size) {
-    uint8_t *buf;
-    int i=0, j;
-
-    pa_assert(c);
-
-    memcpy(c->aes_nv, c->aes_iv, AES_CHUNKSIZE);
-    while (i+AES_CHUNKSIZE <= size) {
-        buf = data + i;
-        for (j=0; j<AES_CHUNKSIZE; ++j)
-            buf[j] ^= c->aes_nv[j];
-
-        AES_encrypt(buf, buf, &c->aes);
-        memcpy(c->aes_nv, buf, AES_CHUNKSIZE);
-        i += AES_CHUNKSIZE;
-    }
-    return i;
 }
 
 static inline void rtrimchar(char *str, char rc) {
@@ -588,8 +514,6 @@ static ssize_t udp_send_audio_packet(pa_raop_client *c, bool retrans, uint8_t *b
 }
 
 static void do_rtsp_announce(pa_raop_client *c) {
-    int i;
-    uint8_t rsakey[512];
     char *key, *iv, *sac = NULL, *sdp;
     uint16_t rand_data;
     const char *ip;
@@ -601,22 +525,20 @@ static void do_rtsp_announce(pa_raop_client *c) {
     pa_rtsp_set_url(c->rtsp, url);
     pa_xfree(url);
 
-    /* Now encrypt our aes_public key to send to the device. */
-    i = rsa_encrypt(c->aes_key, AES_CHUNKSIZE, rsakey);
-    pa_base64_encode(rsakey, i, &key);
-    rtrimchar(key, '=');
-    pa_base64_encode(c->aes_iv, AES_CHUNKSIZE, &iv);
-    rtrimchar(iv, '=');
-
     /* UDP protocol does not need "Apple-Challenge" at announce. */
     if (c->protocol == RAOP_TCP) {
         pa_random(&rand_data, sizeof(rand_data));
-        pa_base64_encode(&rand_data, AES_CHUNKSIZE, &sac);
+        pa_base64_encode(&rand_data, sizeof(rand_data), &sac);
         rtrimchar(sac, '=');
         pa_rtsp_add_header(c->rtsp, "Apple-Challenge", sac);
     }
 
-    if (c->encryption)
+    if (c->encryption) {
+        iv = pa_raop_secret_get_iv(c->aes);
+        rtrimchar(iv, '=');
+        key = pa_raop_secret_get_key(c->aes);
+        rtrimchar(key, '=');
+
         sdp = pa_sprintf_malloc(
             "v=0\r\n"
             "o=iTunes %s 0 IN IP4 %s\r\n"
@@ -631,7 +553,10 @@ static void do_rtsp_announce(pa_raop_client *c) {
             c->sid, ip, c->host,
             c->protocol == RAOP_TCP ? 4096 : UDP_FRAMES_PER_PACKET,
             key, iv);
-    else
+
+        pa_xfree(iv);
+        pa_xfree(key);
+    } else {
         sdp = pa_sprintf_malloc(
             "v=0\r\n"
             "o=iTunes %s 0 IN IP4 %s\r\n"
@@ -643,10 +568,10 @@ static void do_rtsp_announce(pa_raop_client *c) {
             "a=fmtp:96 %d 0 16 40 10 14 2 255 0 0 44100\r\n",
             c->sid, ip, c->host,
             c->protocol == RAOP_TCP ? 4096 : UDP_FRAMES_PER_PACKET);
+    }
 
     pa_rtsp_announce(c->rtsp, sdp);
-    pa_xfree(key);
-    pa_xfree(iv);
+
     pa_xfree(sac);
     pa_xfree(sdp);
 }
@@ -764,7 +689,7 @@ static void udp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist
 
             /* Set the Apple-Challenge key */
             pa_random(&rand, sizeof(rand));
-            pa_base64_encode(&rand, AES_CHUNKSIZE, &sac);
+            pa_base64_encode(&rand, sizeof(rand), &sac);
             rtrimchar(sac, '=');
             pa_rtsp_add_header(c->rtsp, "Apple-Challenge", sac);
 
@@ -1081,6 +1006,9 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_prot
     c->udp_control_fd = -1;
     c->udp_timing_fd = -1;
 
+    c->encryption = 0;
+    c->aes = NULL;
+
     c->udp_my_control_port     = UDP_DEFAULT_CONTROL_PORT;
     c->udp_server_control_port = UDP_DEFAULT_CONTROL_PORT;
     c->udp_my_timing_port      = UDP_DEFAULT_TIMING_PORT;
@@ -1116,11 +1044,15 @@ void pa_raop_client_free(pa_raop_client *c) {
     pa_assert(c);
 
     pa_raop_pb_delete(c->packet_buffer);
-    if (c->rtsp)
-        pa_rtsp_client_free(c->rtsp);
+
     if (c->sid)
         pa_xfree(c->sid);
+    if (c->aes)
+        pa_raop_secret_free(c->aes);
+    if (c->rtsp)
+        pa_rtsp_client_free(c->rtsp);
     pa_xfree(c->host);
+
     pa_xfree(c);
 }
 
@@ -1143,12 +1075,6 @@ int pa_raop_client_connect(pa_raop_client *c) {
         c->rtsp = pa_rtsp_client_new(c->core->mainloop, c->host, c->port, "iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)");
     else
         c->rtsp = pa_rtsp_client_new(c->core->mainloop, c->host, c->port, "iTunes/7.6.2 (Windows; N;)");
-
-    /* Initialise the AES encryption system. */
-    pa_random(c->aes_iv, sizeof(c->aes_iv));
-    pa_random(c->aes_key, sizeof(c->aes_key));
-    memcpy(c->aes_nv, c->aes_iv, sizeof(c->aes_nv));
-    AES_set_encrypt_key(c->aes_key, 128, &c->aes);
 
     /* Generate random instance id. */
     pa_random(&rand_data, sizeof(rand_data));
@@ -1520,7 +1446,7 @@ int pa_raop_client_encode_sample(pa_raop_client *c, pa_memchunk *raw, pa_memchun
 
     if (c->encryption) {
         /* Encrypt our data. */
-        aes_encrypt(c, (b + header_size), size);
+        pa_raop_aes_encrypt(c->aes, (b + header_size), size);
     }
 
     /* We're done with the chunk. */
@@ -1544,7 +1470,11 @@ void pa_raop_client_tcp_set_closed_callback(pa_raop_client *c, pa_raop_client_cl
 }
 
 void pa_raop_client_set_encryption(pa_raop_client *c, int encryption) {
+    pa_assert(c);
+
     c->encryption = encryption;
+    if (c->encryption)
+        c->aes = pa_raop_secret_new();
 }
 
 void pa_raop_client_udp_set_setup_callback(pa_raop_client *c, pa_raop_client_setup_cb_t callback, void *userdata) {

@@ -50,8 +50,7 @@ pa_volume_t pa_raop_client_adjust_volume(pa_raop_client *c, pa_volume_t volume);
 int pa_raop_client_set_volume(pa_raop_client *c, pa_volume_t volume);
 int pa_raop_client_encode_sample(pa_raop_client *c, pa_memchunk *raw, pa_memchunk *encoded);
 
-int pa_raop_client_udp_handle_timing_packet(pa_raop_client *c, const uint8_t packet
-[], ssize_t size);
+int pa_raop_client_udp_handle_timing_packet(pa_raop_client *c, const uint8_t packet[], ssize_t size);
 int pa_raop_client_udp_handle_control_packet(pa_raop_client *c, const uint8_t packet[], ssize_t size);
 int pa_raop_client_udp_get_blocks_size(pa_raop_client *c, size_t *size);
 ssize_t pa_raop_client_udp_send_audio_packet(pa_raop_client *c, pa_memchunk *block);

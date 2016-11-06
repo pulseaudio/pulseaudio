@@ -1155,6 +1155,7 @@ librtp_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@
 
 libraop_la_SOURCES = \
         modules/raop/raop_client.c modules/raop/raop_client.h \
+        modules/raop/raop_crypto.c modules/raop/raop_crypto.h \
         modules/raop/base64.c modules/raop/base64.h \
         modules/raop/raop_packet_buffer.h modules/raop/raop_packet_buffer.c
 libraop_la_CFLAGS = $(AM_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/src/modules/rtp
