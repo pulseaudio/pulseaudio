@@ -142,12 +142,14 @@ pa_memchunk *pa_raop_packet_buffer_retrieve(pa_raop_packet_buffer *pb, uint16_t 
         if (seq < pb->seq) {
             /* Regular case: pb->seq did not wrapped since seq. */
             delta = pb->seq - seq;
-            pa_assert(delta <= pb->count);
         } else {
             /* Tricky case: pb->seq wrapped since seq! */
             delta = pb->seq + (UINT16_MAX - seq);
-            pa_assert(delta <= pb->count);
         }
+
+        /* If the requested packet is too old, do nothing and return */
+        if (delta > pb->count)
+            return NULL;
 
         i = (pb->size + pb->pos - delta) % pb->size;
 
