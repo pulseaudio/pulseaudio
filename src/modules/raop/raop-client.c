@@ -537,6 +537,7 @@ static ssize_t resend_udp_audio_packets(pa_raop_client *c, uint16_t seq, uint16_
     return total;
 }
 
+/* Caller has to free the allocated memory region for packet */
 static size_t build_udp_sync_packet(pa_raop_client *c, uint32_t stamp, uint32_t **packet) {
     const size_t size = sizeof(udp_sync_header) + 12;
     const uint32_t delay = 88200;
@@ -570,8 +571,10 @@ static ssize_t send_udp_sync_packet(pa_raop_client *c, uint32_t stamp) {
     size_t size = 0;
 
     size = build_udp_sync_packet(c, stamp, &packet);
-    if (packet != NULL && size > 0)
+    if (packet != NULL && size > 0) {
         written = pa_loop_write(c->udp_cfd, packet, size, NULL);
+        pa_xfree(packet);
+    }
 
     return written;
 }
@@ -606,6 +609,7 @@ static size_t handle_udp_control_packet(pa_raop_client *c, const uint8_t packet[
     return written;
 }
 
+/* Caller has to free the allocated memory region for packet */
 static size_t build_udp_timing_packet(pa_raop_client *c, const uint32_t data[6], uint64_t received, uint32_t **packet) {
     const size_t size = sizeof(udp_timing_header) + 24;
     uint32_t *buffer = NULL;
@@ -638,8 +642,10 @@ static ssize_t send_udp_timing_packet(pa_raop_client *c, const uint32_t data[6],
     size_t size = 0;
 
     size = build_udp_timing_packet(c, data, received, &packet);
-    if (packet != NULL && size > 0)
+    if (packet != NULL && size > 0) {
         written = pa_loop_write(c->udp_tfd, packet, size, NULL);
+        pa_xfree(packet);
+    }
 
     return written;
 }
@@ -1366,7 +1372,7 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_prot
 
     c = pa_xnew0(pa_raop_client, 1);
     c->core = core;
-    c->host = pa_xstrdup(a.path_or_host);
+    c->host = a.path_or_host; /* Will eventually be freed on destruction of c */
     if (a.port > 0)
         c->port = a.port;
     else
