@@ -30,11 +30,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <openssl/err.h>
+#include <openssl/md5.h>
+
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/macro.h>
 
 #include "raop_util.h"
+
+#ifndef MD5_DIGEST_LENGTH
+#define MD5_DIGEST_LENGTH 16
+#endif
+
+#define MD5_HASH_LENGTH (2*MD5_DIGEST_LENGTH)
 
 #define BASE64_DECODE_ERROR 0xffffffff
 
@@ -140,4 +149,22 @@ int pa_raop_base64_decode(const char *str, void *data) {
     }
 
     return q - (unsigned char *) data;
+}
+
+int pa_raop_md5_hash(const char *data, int len, char **str) {
+    unsigned char d[MD5_DIGEST_LENGTH];
+    char *s = NULL;
+    int i;
+
+    pa_assert(data);
+    pa_assert(str);
+
+    MD5((unsigned char*) data, len, d);
+    s = pa_xnew(char, MD5_HASH_LENGTH);
+    for (i = 0; i < MD5_DIGEST_LENGTH; i++)
+        sprintf(&s[2*i], "%02x", (unsigned int) d[i]);
+
+    *str = s;
+    s[MD5_HASH_LENGTH] = 0;
+    return strlen(s);
 }

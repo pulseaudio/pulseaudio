@@ -30,4 +30,6 @@
 int pa_raop_base64_encode(const void *data, int len, char **str);
 int pa_raop_base64_decode(const char *str, void *data);
 
+int pa_raop_md5_hash(const char *data, int len, char **str);
+
 #endif
