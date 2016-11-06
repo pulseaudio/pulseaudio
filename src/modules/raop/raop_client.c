@@ -59,7 +59,8 @@
 #include "rtsp_client.h"
 #include "base64.h"
 
-#define UDP_FRAMES_PER_PACKET 352
+#include "raop_packet_buffer.h"
+
 #define AES_CHUNKSIZE 16
 
 #define JACK_STATUS_DISCONNECTED 0
@@ -76,6 +77,8 @@
 #define UDP_DEFAULT_AUDIO_PORT 6000
 #define UDP_DEFAULT_CONTROL_PORT 6001
 #define UDP_DEFAULT_TIMING_PORT 6002
+
+#define UDP_DEFAULT_PKT_BUF_SIZE 1000
 
 typedef enum {
     UDP_PAYLOAD_TIMING_REQUEST = 0x52,
@@ -155,6 +158,8 @@ struct pa_raop_client {
 
     pa_raop_client_disconnected_cb_t udp_disconnected_callback;
     void *udp_disconnected_userdata;
+
+    pa_raop_packet_buffer *packet_buffer;
 };
 
 /* Timming packet header (8x8):
@@ -548,12 +553,35 @@ static void udp_build_audio_header(pa_raop_client *c, uint32_t *buffer, size_t s
     buffer[2] = htonl(c->udp_ssrc);
 }
 
-static ssize_t udp_send_audio_packet(pa_raop_client *c, uint8_t *buffer, size_t size) {
+/* Audio retransmission header:
+ * [0]    RTP v2: 0x80
+ * [1]    Payload type: 0x56 + 0x80 (marker == on)
+ * [2]    Unknown; seems always 0x01
+ * [3]    Unknown; seems some random number around 0x20~0x40
+ * [4,5]  Original RTP header htons(0x8060)
+ * [6,7]  Packet sequence number to be retransmitted
+ * [8,11] Original RTP timestamp on the lost packet */
+static void udp_build_retrans_header(uint32_t *buffer, size_t size, uint16_t seq_num) {
+    uint8_t x = 0x30; /* FIXME: what's this?? */
+
+    pa_assert(size >= sizeof(uint32_t) * 2);
+
+    buffer[0] = htonl((uint32_t) 0x80000000
+                      | ((uint32_t) UDP_PAYLOAD_RETRANSMIT_REPLY | 0x80) << 16
+                      | 0x0100
+                      | x);
+    buffer[1] = htonl((uint32_t) 0x80600000 | seq_num);
+}
+
+static ssize_t udp_send_audio_packet(pa_raop_client *c, bool retrans, uint8_t *buffer, size_t size) {
     ssize_t length;
+    int fd = retrans ? c->udp_control_fd : c->udp_stream_fd;
 
-    length = pa_write(c->udp_stream_fd, buffer, size, NULL);
-    c->seq++;
-
+    length = pa_write(fd, buffer, size, NULL);
+    if (length < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+        pa_log_debug("Discarding audio packet %d due to EAGAIN", c->seq);
+        length = size;
+    }
     return length;
 }
 
@@ -965,6 +993,8 @@ static void udp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist
 
             pa_log_debug("RTSP control channel closed (teardown)");
 
+            pa_raop_pb_clear(c->packet_buffer);
+
             pa_rtsp_client_free(c->rtsp);
             pa_xfree(c->sid);
             c->rtsp = NULL;
@@ -1000,6 +1030,8 @@ static void udp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist
             }
 
             pa_log_debug("RTSP control channel closed (disconnected)");
+
+            pa_raop_pb_clear(c->packet_buffer);
 
             pa_rtsp_client_free(c->rtsp);
             pa_xfree(c->sid);
@@ -1064,7 +1096,8 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_prot
             pa_raop_client_free(c);
             return NULL;
         }
-    }
+    } else
+        c->packet_buffer = pa_raop_pb_new(UDP_DEFAULT_PKT_BUF_SIZE);
 
     return c;
 }
@@ -1072,6 +1105,7 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_prot
 void pa_raop_client_free(pa_raop_client *c) {
     pa_assert(c);
 
+    pa_raop_pb_delete(c->packet_buffer);
     if (c->rtsp)
         pa_rtsp_client_free(c->rtsp);
     if (c->sid)
@@ -1188,14 +1222,48 @@ int pa_raop_client_udp_handle_timing_packet(pa_raop_client *c, const uint8_t pac
     return rv;
 }
 
+static int udp_resend_packets(pa_raop_client *c, uint16_t seq_num, uint16_t num_packets) {
+    int rv = -1;
+    uint8_t *data = NULL;
+    ssize_t len = 0;
+    int i = 0;
+
+    pa_assert(c);
+    pa_assert(num_packets > 0);
+    pa_assert(c->packet_buffer);
+
+    for (i = seq_num; i < seq_num + num_packets; i++) {
+        len = pa_raop_pb_read_packet(c->packet_buffer, i, (uint8_t **) &data);
+
+        if (len > 0) {
+            ssize_t r;
+
+            /* Obtained buffer has a header room for retransmission
+               header */
+            udp_build_retrans_header((uint32_t *) data, len, seq_num);
+            r = udp_send_audio_packet(c, true /* retrans */, data, len);
+            if (r == len)
+                rv = 0;
+            else
+                rv = -1;
+        } else
+            pa_log_debug("Packet not found in retrans buffer: %u", i);
+    }
+
+    return rv;
+}
+
 int pa_raop_client_udp_handle_control_packet(pa_raop_client *c, const uint8_t packet[], ssize_t size) {
     uint8_t payload = 0;
     int rv = 0;
 
+    uint16_t seq_num;
+    uint16_t num_packets;
+
     pa_assert(c);
     pa_assert(packet);
 
-    if (size != 20 || packet[0] != 0x80)
+    if ((size != 20 && size != 8) || packet[0] != 0x80)
     {
         pa_log_debug("Received an invalid control packet.");
         return 1;
@@ -1206,12 +1274,24 @@ int pa_raop_client_udp_handle_control_packet(pa_raop_client *c, const uint8_t pa
     payload = packet[1] ^ 0x80;
     switch (payload) {
         case UDP_PAYLOAD_RETRANSMIT_REQUEST:
-            /* Packet retransmission not implemented yet... */
-            /* rv = ... */
+            pa_assert(size == 8);
+
+            /* Requested start sequence number */
+            seq_num = ((uint16_t) packet[4]) << 8;
+            seq_num |= (uint16_t) packet[5];
+            /* Number of requested packets starting at requested seq. number */
+            num_packets = (uint16_t) packet[6] << 8;
+            num_packets |= (uint16_t) packet[7];
+            pa_log_debug("Resending %d packets starting at %d", num_packets, seq_num);
+            rv = udp_resend_packets(c, seq_num, num_packets);
             break;
+
         case UDP_PAYLOAD_RETRANSMIT_REPLY:
+            pa_log_debug("Received a retransmit reply packet on control port (this should never happen)");
+            break;
+
         default:
-            pa_log_debug("Got an unexpected payload type on control channel !");
+            pa_log_debug("Got an unexpected payload type on control channel: %u !", payload);
             return 1;
     }
 
@@ -1248,7 +1328,14 @@ ssize_t pa_raop_client_udp_send_audio_packet(pa_raop_client *c, pa_memchunk *blo
     pa_assert(buf);
     pa_assert(block->length > 0);
     udp_build_audio_header(c, (uint32_t *) (buf + block->index), block->length);
-    len = udp_send_audio_packet(c, buf + block->index, block->length);
+    len = udp_send_audio_packet(c, false, buf + block->index, block->length);
+
+    /* Store packet for resending in the packet buffer */
+    pa_raop_pb_write_packet(c->packet_buffer, c->seq, buf + block->index,
+                            block->length);
+
+    c->seq++;
+
     pa_memblock_release(block->memblock);
 
     if (len > 0) {
