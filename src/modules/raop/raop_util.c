@@ -35,6 +35,7 @@
 
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 
 #include "raop_util.h"
@@ -167,4 +168,43 @@ int pa_raop_md5_hash(const char *data, int len, char **str) {
     *str = s;
     s[MD5_HASH_LENGTH] = 0;
     return strlen(s);
+}
+
+int pa_raop_basic_response(const char *user, const char *pwd, char **str) {
+    char *tmp, *B = NULL;
+
+    pa_assert(str);
+
+    tmp = pa_sprintf_malloc("%s:%s", user, pwd);
+    pa_raop_base64_encode(tmp, strlen(tmp), &B);
+    pa_xfree(tmp);
+
+    *str = B;
+    return strlen(B);
+}
+
+int pa_raop_digest_response(const char *user, const char *realm, const char *password,
+                            const char *nonce, const char *uri, char **str) {
+    char *A1, *HA1, *A2, *HA2;
+    char *tmp, *KD = NULL;
+
+    pa_assert(str);
+
+    A1 = pa_sprintf_malloc("%s:%s:%s", user, realm, password);
+    pa_raop_md5_hash(A1, strlen(A1), &HA1);
+    pa_xfree(A1);
+
+    A2 = pa_sprintf_malloc("OPTIONS:%s", uri);
+    pa_raop_md5_hash(A2, strlen(A2), &HA2);
+    pa_xfree(A2);
+
+    tmp = pa_sprintf_malloc("%s:%s:%s", HA1, nonce, HA2);
+    pa_raop_md5_hash(tmp, strlen(tmp), &KD);
+    pa_xfree(tmp);
+
+    pa_xfree(HA1);
+    pa_xfree(HA2);
+
+    *str = KD;
+    return strlen(KD);
 }

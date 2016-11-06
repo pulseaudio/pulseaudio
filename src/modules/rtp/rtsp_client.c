@@ -59,6 +59,7 @@ struct pa_rtsp_client {
     const char *useragent;
 
     pa_rtsp_state state;
+    pa_rtsp_status status;
     uint8_t waiting;
 
     pa_headerlist* headers;
@@ -119,8 +120,8 @@ void pa_rtsp_client_free(pa_rtsp_client *c) {
 }
 
 static void headers_read(pa_rtsp_client *c) {
-    char* token;
     char delimiters[] = ";";
+    char* token;
 
     pa_assert(c);
     pa_assert(c->response_headers);
@@ -165,14 +166,14 @@ static void headers_read(pa_rtsp_client *c) {
     }
 
     /* Call our callback */
-    c->callback(c, c->state, c->response_headers, c->userdata);
+    c->callback(c, c->state, c->status, c->response_headers, c->userdata);
 }
 
 static void line_callback(pa_ioline *line, const char *s, void *userdata) {
+    pa_rtsp_client *c = userdata;
     char *delimpos;
     char *s2, *s2p;
 
-    pa_rtsp_client *c = userdata;
     pa_assert(line);
     pa_assert(c);
     pa_assert(c->callback);
@@ -180,7 +181,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     if (!s) {
         /* Keep the ioline/iochannel open as they will be freed automatically */
         c->ioline = NULL;
-        c->callback(c, STATE_DISCONNECTED, NULL, c->userdata);
+        c->callback(c, STATE_DISCONNECTED, STATUS_NO_RESPONSE, NULL, c->userdata);
         return;
     }
 
@@ -191,17 +192,35 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
         *s2p = '\0';
         s2p -= 1;
     }
+
     if (c->waiting && pa_streq(s2, "RTSP/1.0 200 OK")) {
-        c->waiting = 0;
         if (c->response_headers)
             pa_headerlist_free(c->response_headers);
         c->response_headers = pa_headerlist_new();
+
+        c->status = STATUS_OK;
+        c->waiting = 0;
+        goto exit;
+    } else if (c->waiting && pa_streq(s2, "RTSP/1.0 401 Unauthorized")) {
+        if (c->response_headers)
+            pa_headerlist_free(c->response_headers);
+        c->response_headers = pa_headerlist_new();
+
+        c->status = STATUS_UNAUTHORIZED;
+        c->waiting = 0;
+        goto exit;
+    } else if (c->waiting) {
+        pa_log_warn("Unexpected/Unhandled response: %s", s2);
+
+        if (pa_streq(s2, "RTSP/1.0 400 Bad Request"))
+            c->status = STATUS_BAD_REQUEST;
+        else if (pa_streq(s2, "RTSP/1.0 500 Internal Server Error"))
+            c->status = STATUS_INTERNAL_ERROR;
+        else
+            c->status = STATUS_NO_RESPONSE;
         goto exit;
     }
-    if (c->waiting) {
-        pa_log_warn("Unexpected response: %s", s2);
-        goto exit;
-    }
+
     if (!strlen(s2)) {
         /* End of headers */
         /* We will have a header left from our looping iteration, so add it in :) */
@@ -228,7 +247,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     if (c->last_header && ' ' == s2[0]) {
         pa_assert(c->header_buffer);
 
-        /* Add this line to the buffer (sans the space. */
+        /* Add this line to the buffer (sans the space) */
         pa_strbuf_puts(c->header_buffer, &(s2[1]));
         goto exit;
     }
@@ -270,6 +289,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
 
     /* Save the header name */
     c->last_header = pa_xstrdup(s2);
+
   exit:
     pa_xfree(s2);
 }
@@ -317,7 +337,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     pa_log_debug("Established RTSP connection from local ip %s", c->localip);
 
     if (c->callback)
-        c->callback(c, c->state, NULL, c->userdata);
+        c->callback(c, c->state, STATUS_OK, NULL, c->userdata);
 }
 
 int pa_rtsp_connect(pa_rtsp_client *c) {
@@ -336,6 +356,7 @@ int pa_rtsp_connect(pa_rtsp_client *c) {
     pa_socket_client_set_callback(c->sc, on_connection, c);
     c->waiting = 1;
     c->state = STATE_CONNECT;
+    c->status = STATUS_NO_RESPONSE;
     return 0;
 }
 
@@ -368,10 +389,23 @@ uint32_t pa_rtsp_serverport(pa_rtsp_client *c) {
     return c->rtp_port;
 }
 
+bool pa_rtsp_exec_ready(const pa_rtsp_client *c) {
+    pa_assert(c);
+
+    return c->url != NULL && c->ioline != NULL;
+}
+
 void pa_rtsp_set_url(pa_rtsp_client *c, const char *url) {
     pa_assert(c);
 
     c->url = pa_xstrdup(url);
+}
+
+bool pa_rtsp_has_header(pa_rtsp_client *c, const char *key) {
+    pa_assert(c);
+    pa_assert(key);
+
+    return pa_headerlist_contains(c->headers, key);
 }
 
 void pa_rtsp_add_header(pa_rtsp_client *c, const char *key, const char *value) {
@@ -382,17 +416,18 @@ void pa_rtsp_add_header(pa_rtsp_client *c, const char *key, const char *value) {
     pa_headerlist_puts(c->headers, key, value);
 }
 
+const char* pa_rtsp_get_header(pa_rtsp_client *c, const char *key) {
+    pa_assert(c);
+    pa_assert(key);
+
+    return pa_headerlist_gets(c->headers, key);
+}
+
 void pa_rtsp_remove_header(pa_rtsp_client *c, const char *key) {
     pa_assert(c);
     pa_assert(key);
 
     pa_headerlist_remove(c->headers, key);
-}
-
-bool pa_rtsp_exec_ready(const pa_rtsp_client *c) {
-    pa_assert(c);
-
-    return c->url != NULL && c->ioline != NULL;
 }
 
 static int rtsp_exec(pa_rtsp_client *c, const char *cmd,
@@ -527,17 +562,6 @@ int pa_rtsp_record(pa_rtsp_client *c, uint16_t *seq, uint32_t *rtptime) {
     return rv;
 }
 
-int pa_rtsp_teardown(pa_rtsp_client *c) {
-    int rv;
-
-    pa_assert(c);
-
-    c->state = STATE_TEARDOWN;
-    rv = rtsp_exec(c, "TEARDOWN", NULL, NULL, 0, NULL);
-
-    return rv;
-}
-
 int pa_rtsp_setparameter(pa_rtsp_client *c, const char *param) {
     int rv;
 
@@ -568,5 +592,16 @@ int pa_rtsp_flush(pa_rtsp_client *c, uint16_t seq, uint32_t rtptime) {
     rv = rtsp_exec(c, "FLUSH", NULL, NULL, 1, headers);
 
     pa_headerlist_free(headers);
+    return rv;
+}
+
+int pa_rtsp_teardown(pa_rtsp_client *c) {
+    int rv;
+
+    pa_assert(c);
+
+    c->state = STATE_TEARDOWN;
+    rv = rtsp_exec(c, "TEARDOWN", NULL, NULL, 0, NULL);
+
     return rv;
 }

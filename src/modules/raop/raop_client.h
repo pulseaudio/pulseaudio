@@ -37,10 +37,12 @@ typedef struct pa_raop_client pa_raop_client;
 pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_protocol_t protocol);
 void pa_raop_client_free(pa_raop_client *c);
 
+int pa_raop_client_authenticate (pa_raop_client *c, const char *password);
 int pa_raop_client_connect(pa_raop_client *c);
 int pa_raop_client_flush(pa_raop_client *c);
 int pa_raop_client_teardown(pa_raop_client *c);
 
+int pa_raop_client_udp_is_authenticated(pa_raop_client *c);
 int pa_raop_client_udp_is_alive(pa_raop_client *c);
 int pa_raop_client_udp_can_stream(pa_raop_client *c);
 int pa_raop_client_udp_stream(pa_raop_client *c);
@@ -61,6 +63,8 @@ void pa_raop_client_tcp_set_callback(pa_raop_client *c, pa_raop_client_cb_t call
 typedef void (*pa_raop_client_closed_cb_t)(void *userdata);
 void pa_raop_client_tcp_set_closed_callback(pa_raop_client *c, pa_raop_client_closed_cb_t callback, void *userdata);
 
+typedef void (*pa_raop_client_auth_cb_t)(int status, void *userdata);
+void pa_raop_client_udp_set_auth_callback(pa_raop_client *c, pa_raop_client_auth_cb_t callback, void *userdata);
 
 typedef void (*pa_raop_client_setup_cb_t)(int control_fd, int timing_fd, void *userdata);
 void pa_raop_client_udp_set_setup_callback(pa_raop_client *c, pa_raop_client_setup_cb_t callback, void *userdata);

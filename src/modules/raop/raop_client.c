@@ -65,6 +65,9 @@
 #define VOLUME_MIN -144
 #define VOLUME_MAX 0
 
+#define USER_AGENT "iTunes/11.0.4 (Windows; N)"
+#define USER_NAME "iTunes"
+
 #define DEFAULT_RAOP_PORT 5000
 #define UDP_DEFAULT_AUDIO_PORT 6000
 #define UDP_DEFAULT_CONTROL_PORT 6001
@@ -85,12 +88,14 @@ struct pa_raop_client {
     pa_core *core;
     char *host;
     uint16_t port;
-    char *sid;
     pa_rtsp_client *rtsp;
-    pa_raop_protocol_t protocol;
+    char *sci, *sid;
+    char *pwd;
 
     uint8_t jack_type;
     uint8_t jack_status;
+
+    pa_raop_protocol_t protocol;
 
     int encryption; /* Enable encryption? */
     pa_raop_secret *aes;
@@ -124,6 +129,9 @@ struct pa_raop_client {
     bool udp_first_packet;
     uint32_t udp_sync_interval;
     uint32_t udp_sync_count;
+
+    pa_raop_client_auth_cb_t udp_auth_callback;
+    void *udp_auth_userdata;
 
     pa_raop_client_setup_cb_t udp_setup_callback;
     void *udp_setup_userdata;
@@ -576,7 +584,7 @@ static void do_rtsp_announce(pa_raop_client *c) {
     pa_xfree(sdp);
 }
 
-static void tcp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* headers, void *userdata) {
+static void tcp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_rtsp_status status, pa_headerlist* headers, void *userdata) {
     pa_raop_client* c = userdata;
     pa_assert(c);
     pa_assert(rtsp);
@@ -675,12 +683,13 @@ static void tcp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist
     }
 }
 
-static void udp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist *headers, void *userdata) {
+static void udp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_rtsp_status status, pa_headerlist *headers, void *userdata) {
     pa_raop_client *c = userdata;
 
     pa_assert(c);
     pa_assert(rtsp);
     pa_assert(rtsp == c->rtsp);
+    pa_assert(STATUS_OK == status);
 
     switch (state) {
         case STATE_CONNECT: {
@@ -982,6 +991,178 @@ static void udp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist
     }
 }
 
+static void rtsp_authentication_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_rtsp_status status, pa_headerlist *headers, void *userdata) {
+    pa_raop_client *c = userdata;
+
+    pa_assert(c);
+    pa_assert(rtsp);
+    pa_assert(rtsp == c->rtsp);
+
+    switch (state) {
+        case STATE_CONNECT: {
+            char *sci = NULL, *sac = NULL;
+            uint16_t rac;
+            struct {
+                uint32_t ci1;
+                uint32_t ci2;
+            } rci;
+
+            pa_random(&rci, sizeof(rci));
+            /* Generate a random Client-Instance number */
+            sci = pa_sprintf_malloc("%08x%08x",rci.ci1, rci.ci2);
+            pa_rtsp_add_header(c->rtsp, "Client-Instance", sci);
+
+            pa_random(&rac, sizeof(rac));
+            /* Generate a random Apple-Challenge key */
+            pa_raop_base64_encode(&rac, 8*sizeof(rac), &sac);
+            pa_log_debug ("APPLECHALLENGE >> %s | %d", sac, (int) sizeof(rac));
+            rtrimchar(sac, '=');
+            pa_rtsp_add_header(c->rtsp, "Apple-Challenge", sac);
+
+            pa_rtsp_options(c->rtsp);
+
+            pa_xfree(sac);
+            pa_xfree(sci);
+            break;
+        }
+
+        case STATE_OPTIONS: {
+            static bool waiting = false;
+            const char *current = NULL;
+            char space[] = " ";
+            char *token,*ath = NULL;
+            char *publ, *wath, *mth, *val;
+            char *realm = NULL, *nonce = NULL, *response = NULL;
+            char comma[] = ",";
+
+            pa_log_debug("RAOP: OPTIONS");
+            /* We do not consider the Apple-Response */
+            pa_rtsp_remove_header(c->rtsp, "Apple-Challenge");
+
+            if (STATUS_UNAUTHORIZED == status) {
+                wath = pa_xstrdup(pa_headerlist_gets(headers, "WWW-Authenticate"));
+                if (true == waiting) {
+                    pa_xfree(wath);
+                    goto failure;
+                }
+
+                if (wath)
+                    mth = pa_split(wath, space, &current);
+                while ((token = pa_split(wath, comma, &current))) {
+                    val = NULL;
+                    if ((val = strstr(token, "="))) {
+                        if (NULL == realm && val > strstr(token, "realm"))
+                            realm = pa_xstrdup(val + 2);
+                        else if (NULL == nonce && val > strstr(token, "nonce"))
+                            nonce = pa_xstrdup(val + 2);
+                        val = NULL;
+                    }
+
+                    pa_xfree(token);
+                }
+
+                if (pa_safe_streq(mth, "Basic")) {
+                    rtrimchar(realm, '\"');
+
+                    pa_raop_basic_response(USER_NAME, c->pwd, &response);
+                    ath = pa_sprintf_malloc("Basic %s",
+                        response);
+
+                    pa_xfree(response);
+                    pa_xfree(realm);
+                } else if (pa_safe_streq(mth, "Digest")) {
+                    rtrimchar(realm, '\"');
+                    rtrimchar(nonce, '\"');
+
+                    pa_raop_digest_response(USER_NAME, realm, c->pwd, nonce, "*", &response);
+                    ath = pa_sprintf_malloc("Digest username=\"%s\", realm=\"%s\", nonce=\"%s\", uri=\"*\", response=\"%s\"",
+                        USER_NAME, realm, nonce,
+                        response);
+
+                    pa_xfree(response);
+                    pa_xfree(realm);
+                    pa_xfree(nonce);
+                } else {
+                    pa_log_error("unsupported authentication method: %s", mth);
+                    pa_xfree(wath);
+                    pa_xfree(mth);
+                    goto error;
+                }
+
+                pa_xfree(wath);
+                pa_xfree(mth);
+
+                pa_rtsp_add_header(c->rtsp, "Authorization", ath);
+                pa_xfree(ath);
+
+                waiting = true;
+                pa_rtsp_options(c->rtsp);
+                break;
+            }
+
+            if (STATUS_OK == status) {
+                publ = pa_xstrdup(pa_headerlist_gets(headers, "Public"));
+                c->sci = pa_xstrdup(pa_rtsp_get_header(c->rtsp, "Client-Instance"));
+
+                if (c->pwd)
+                    pa_xfree(c->pwd);
+                pa_xfree(publ);
+                c->pwd = NULL;
+            }
+
+            if (c->udp_auth_callback)
+                c->udp_auth_callback((int) status, c->udp_auth_userdata);
+            pa_rtsp_client_free(c->rtsp);
+            c->rtsp = NULL;
+
+            waiting = false;
+            break;
+
+        failure:
+            if (c->udp_auth_callback)
+                c->udp_auth_callback((int) STATUS_UNAUTHORIZED, c->udp_auth_userdata);
+            pa_rtsp_client_free(c->rtsp);
+            c->rtsp = NULL;
+
+            pa_log_error("aborting RTSP authentication, wrong password");
+
+            waiting = false;
+            break;
+
+        error:
+            if (c->udp_auth_callback)
+                c->udp_auth_callback((int) status, c->udp_auth_userdata);
+            pa_rtsp_client_free(c->rtsp);
+            c->rtsp = NULL;
+
+            pa_log_error("aborting RTSP authentication, unexpected failure");
+
+            waiting = false;
+            break;
+        }
+
+        case STATE_ANNOUNCE:
+        case STATE_SETUP:
+        case STATE_RECORD:
+        case STATE_SET_PARAMETER:
+        case STATE_FLUSH:
+        case STATE_TEARDOWN:
+        case STATE_DISCONNECTED:
+        default: {
+            if (c->udp_auth_callback)
+                c->udp_auth_callback((int) STATUS_BAD_REQUEST, c->udp_auth_userdata);
+            pa_rtsp_client_free(c->rtsp);
+            c->rtsp = NULL;
+
+            if (c->sci)
+                pa_xfree(c->sci);
+            c->sci = NULL;
+
+            break;
+        }
+    }
+}
+
 pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_protocol_t protocol) {
     pa_raop_client* c;
     pa_parsed_address a;
@@ -1047,13 +1228,38 @@ void pa_raop_client_free(pa_raop_client *c) {
 
     if (c->sid)
         pa_xfree(c->sid);
+    if (c->sci)
+        pa_xfree(c->sci);
+    c->sci = c->sid = NULL;
+
     if (c->aes)
         pa_raop_secret_free(c->aes);
     if (c->rtsp)
         pa_rtsp_client_free(c->rtsp);
-    pa_xfree(c->host);
+    c->rtsp = NULL;
 
+    pa_xfree(c->host);
     pa_xfree(c);
+}
+
+int pa_raop_client_authenticate (pa_raop_client *c, const char *password) {
+
+    pa_assert(c);
+
+    if (c->rtsp || c->pwd) {
+        pa_log_debug("Connection already in progress");
+        return 0;
+    }
+
+    c->pwd = NULL;
+    if (password)
+        c->pwd = pa_xstrdup(password);
+    c->rtsp = pa_rtsp_client_new(c->core->mainloop, c->host, c->port, USER_AGENT);
+
+    pa_assert(c->rtsp);
+
+    pa_rtsp_set_callback(c->rtsp, rtsp_authentication_cb, c);
+    return pa_rtsp_connect(c->rtsp);
 }
 
 int pa_raop_client_connect(pa_raop_client *c) {
@@ -1074,7 +1280,7 @@ int pa_raop_client_connect(pa_raop_client *c) {
     if (c->protocol == RAOP_TCP)
         c->rtsp = pa_rtsp_client_new(c->core->mainloop, c->host, c->port, "iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)");
     else
-        c->rtsp = pa_rtsp_client_new(c->core->mainloop, c->host, c->port, "iTunes/7.6.2 (Windows; N;)");
+        c->rtsp = pa_rtsp_client_new(c->core->mainloop, c->host, c->port, USER_AGENT);
 
     /* Generate random instance id. */
     pa_random(&rand_data, sizeof(rand_data));
@@ -1116,6 +1322,17 @@ int pa_raop_client_teardown(pa_raop_client *c) {
     return rv;
 }
 
+int pa_raop_client_udp_is_authenticated(pa_raop_client *c) {
+    int rv = 0;
+
+    pa_assert(c);
+
+    if (c->sci != NULL)
+        rv = 1;
+
+    return rv;
+}
+
 int pa_raop_client_udp_is_alive(pa_raop_client *c) {
     int rv = 0;
 
@@ -1147,7 +1364,6 @@ int pa_raop_client_udp_stream(pa_raop_client *c) {
         if (!c->is_recording) {
             c->udp_first_packet = true;
             c->udp_sync_count = 0;
-
             c->is_recording = true;
          }
 
@@ -1326,6 +1542,14 @@ ssize_t pa_raop_client_udp_send_audio_packet(pa_raop_client *c, pa_memchunk *blo
     return len;
 }
 
+void pa_raop_client_set_encryption(pa_raop_client *c, int encryption) {
+    pa_assert(c);
+
+    c->encryption = encryption;
+    if (c->encryption)
+        c->aes = pa_raop_secret_new();
+}
+
 /* Adjust volume so that it fits into VOLUME_DEF <= v <= 0 dB */
 pa_volume_t pa_raop_client_adjust_volume(pa_raop_client *c, pa_volume_t volume) {
     double minv, maxv;
@@ -1469,12 +1693,11 @@ void pa_raop_client_tcp_set_closed_callback(pa_raop_client *c, pa_raop_client_cl
     c->tcp_closed_userdata = userdata;
 }
 
-void pa_raop_client_set_encryption(pa_raop_client *c, int encryption) {
+void pa_raop_client_udp_set_auth_callback(pa_raop_client *c, pa_raop_client_auth_cb_t callback, void *userdata) {
     pa_assert(c);
 
-    c->encryption = encryption;
-    if (c->encryption)
-        c->aes = pa_raop_secret_new();
+    c->udp_auth_callback = callback;
+    c->udp_auth_userdata = userdata;
 }
 
 void pa_raop_client_udp_set_setup_callback(pa_raop_client *c, pa_raop_client_setup_cb_t callback, void *userdata) {

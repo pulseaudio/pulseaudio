@@ -32,4 +32,8 @@ int pa_raop_base64_decode(const char *str, void *data);
 
 int pa_raop_md5_hash(const char *data, int len, char **str);
 
+int pa_raop_basic_response(const char *user, const char *pwd, char **str);
+int pa_raop_digest_response(const char *user, const char *realm, const char *password,
+                            const char *nonce, const char *uri, char **str);
+
 #endif
