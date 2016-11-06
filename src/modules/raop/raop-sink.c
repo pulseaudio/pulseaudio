@@ -252,7 +252,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED)
                         pa_rtpoll_set_timer_disabled(u->rtpoll);
-                    else
+                    else if (u->sink->thread_info.state != PA_SINK_IDLE)
                         pa_module_unload_request(u->module, true);
 
                     return 0;
