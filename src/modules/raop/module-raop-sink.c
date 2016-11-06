@@ -332,10 +332,14 @@ static int udp_sink_process_msg(pa_msgobject *o, int code, void *data, int64_t o
 
                     pa_smoother_resume(u->smoother, pa_rtclock_now(), true);
 
-                    if (!pa_raop_client_udp_can_stream(u->raop)) {
-                        /* Connecting will trigger a RECORD */
+                    if (!pa_raop_client_udp_is_alive(u->raop)) {
+                        /* Connecting will trigger a RECORD and start steaming */
                         pa_raop_client_connect(u->raop);
+                    } else if (!pa_raop_client_udp_can_stream(u->raop)) {
+                        /* RECORD alredy sent, simply start streaming */
+                        pa_raop_client_udp_stream(u->raop);
                     }
+
                     udp_start_wakeup_clock(u);
 
                     break;

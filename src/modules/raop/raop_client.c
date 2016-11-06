@@ -952,8 +952,6 @@ static void udp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist
 
             pa_log_debug("RAOP: RECORD");
 
-            c->is_recording = true;
-
             alt = pa_xstrdup(pa_headerlist_gets(headers, "Audio-Latency"));
             /* Generate a random synchronization source identifier from this session. */
             pa_random(&rand, sizeof(rand));
@@ -964,6 +962,8 @@ static void udp_rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist
 
             c->udp_first_packet = true;
             c->udp_sync_count = 0;
+
+            c->is_recording = true;
 
             c->udp_record_callback(c->udp_setup_userdata);
 
@@ -1168,11 +1168,12 @@ int pa_raop_client_connect(pa_raop_client *c) {
 
 int pa_raop_client_flush(pa_raop_client *c) {
     int rv = 0;
+
     pa_assert(c);
 
     if (c->rtsp != NULL) {
         rv = pa_rtsp_flush(c->rtsp, c->seq, c->rtptime);
-        c->udp_sync_count = -1;
+        c->udp_sync_count = 0;
     }
 
     return rv;
@@ -1207,6 +1208,25 @@ int pa_raop_client_udp_can_stream(pa_raop_client *c) {
 
     if (c->is_recording && c->udp_stream_fd > 0)
         rv = 1;
+
+    return rv;
+}
+
+int pa_raop_client_udp_stream(pa_raop_client *c) {
+    int rv = 0;
+
+    pa_assert(c);
+
+    if (c->rtsp != NULL && c->udp_stream_fd > 0) {
+        if (!c->is_recording) {
+            c->udp_first_packet = true;
+            c->udp_sync_count = 0;
+
+            c->is_recording = true;
+         }
+
+        rv = 1;
+    }
 
     return rv;
 }
