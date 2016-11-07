@@ -74,7 +74,7 @@ static const char rsa_exponent[] =
     "AQAB";
 
 static int rsa_encrypt(uint8_t *data, int len, uint8_t *str) {
-    uint8_t modules[256];
+    uint8_t modulus[256];
     uint8_t exponent[8];
     int size;
     RSA *rsa;
@@ -91,9 +91,9 @@ static int rsa_encrypt(uint8_t *data, int len, uint8_t *str) {
         goto fail;
     }
 
-    size = pa_raop_base64_decode(rsa_modulus, modules);
+    size = pa_raop_base64_decode(rsa_modulus, modulus);
 
-    n_bn = BN_bin2bn(modules, size, NULL);
+    n_bn = BN_bin2bn(modulus, size, NULL);
     if (!n_bn) {
         pa_log("n_bn = BN_bin2bn() failed.");
         goto fail;
