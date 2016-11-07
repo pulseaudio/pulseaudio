@@ -78,23 +78,67 @@ static int rsa_encrypt(uint8_t *data, int len, uint8_t *str) {
     uint8_t exponent[8];
     int size;
     RSA *rsa;
-    BIGNUM *n_bn;
-    BIGNUM *e_bn;
+    BIGNUM *n_bn = NULL;
+    BIGNUM *e_bn = NULL;
+    int r;
 
     pa_assert(data);
     pa_assert(str);
 
     rsa = RSA_new();
+    if (!rsa) {
+        pa_log("RSA_new() failed.");
+        goto fail;
+    }
+
     size = pa_raop_base64_decode(rsa_modulus, modules);
+
     n_bn = BN_bin2bn(modules, size, NULL);
+    if (!n_bn) {
+        pa_log("n_bn = BN_bin2bn() failed.");
+        goto fail;
+    }
+
     size = pa_raop_base64_decode(rsa_exponent, exponent);
+
     e_bn = BN_bin2bn(exponent, size, NULL);
-    RSA_set0_key(rsa, n_bn, e_bn, NULL);
+    if (!e_bn) {
+        pa_log("e_bn = BN_bin2bn() failed.");
+        goto fail;
+    }
+
+    r = RSA_set0_key(rsa, n_bn, e_bn, NULL);
+    if (r == 0) {
+        pa_log("RSA_set0_key() failed.");
+        goto fail;
+    }
+
+    /* The memory allocated for n_bn and e_bn is now managed by the RSA object.
+     * Let's set n_bn and e_bn to NULL to avoid freeing the memory in the error
+     * handling code. */
+    n_bn = NULL;
+    e_bn = NULL;
 
     size = RSA_public_encrypt(len, data, str, rsa, RSA_PKCS1_OAEP_PADDING);
+    if (size == -1) {
+        pa_log("RSA_public_encrypt() failed.");
+        goto fail;
+    }
 
     RSA_free(rsa);
     return size;
+
+fail:
+    if (e_bn)
+        BN_free(e_bn);
+
+    if (n_bn)
+        BN_free(n_bn);
+
+    if (rsa)
+        RSA_free(rsa);
+
+    return -1;
 }
 
 pa_raop_secret* pa_raop_secret_new(void) {
@@ -134,6 +178,11 @@ char* pa_raop_secret_get_key(pa_raop_secret *s) {
 
     /* Encrypt our AES public key to send to the device */
     size = rsa_encrypt(s->key, AES_CHUNK_SIZE, rsa_key);
+    if (size < 0) {
+        pa_log("rsa_encrypt() failed.");
+        return NULL;
+    }
+
     pa_raop_base64_encode(rsa_key, size, &base64_key);
 
     return base64_key;

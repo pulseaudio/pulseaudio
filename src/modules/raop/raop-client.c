@@ -906,6 +906,15 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
                 case PA_RAOP_ENCRYPTION_MFISAP:
                 case PA_RAOP_ENCRYPTION_FAIRPLAY_SAP25: {
                     key = pa_raop_secret_get_key(c->secret);
+                    if (!key) {
+                        pa_log("pa_raop_secret_get_key() failed.");
+                        pa_rtsp_disconnect(rtsp);
+                        /* FIXME: This is an unrecoverable failure. We should notify
+                         * the pa_raop_client owner so that it could shut itself
+                         * down. */
+                        goto connect_finish;
+                    }
+
                     iv = pa_raop_secret_get_iv(c->secret);
 
                     sdp = pa_sprintf_malloc(
@@ -929,6 +938,7 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
 
             pa_rtsp_announce(c->rtsp, sdp);
 
+connect_finish:
             pa_xfree(sdp);
             pa_xfree(url);
             break;
