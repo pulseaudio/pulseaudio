@@ -600,10 +600,26 @@ _pacmd_completion() {
 }
 
 _pasuspender_completion() {
-    _arguments -S -A "-*" -C \
-        {-h,--help}'[display help and exit]' \
-        '--version[show version and exit]' \
-        {-s,--server=}'[name of server to connect to]:host:_hosts' \
+    # parenthesis expressions specify which options should not get suggested afterwards
+    # e.g. after -s, help and version will not get suggested, -- remains the only valid argument
+    # after "--" external commands get suggested
+    _arguments -C \
+        '(-)'{-h,--help}'[display help and exit]' \
+        '(-)--version[show version and exit]' \
+        '(-h --help --version -s --server)'{-s,--server=}'[name of server to connect to]:host:_hosts' \
+        '(-)--[program]:program: _command_names -e' && return 0
+    # check if "--" is one of the words in the command line
+    # if so, ${words[(i)--]} is the position of "--"
+    # shift the arguments and reduce CURRENT, such that further completions see only what follows "--"
+    if [[ ${words[(r)--]} == "--" ]]; then
+        for ((j = ${words[(i)--]}; j > 0; j--));
+        do
+            shift words
+            (( CURRENT-- ))
+        done
+        # proceed with normal completion
+        _normal
+    fi
 }
 
 _padsp_completion() {
