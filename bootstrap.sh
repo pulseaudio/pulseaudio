@@ -15,13 +15,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
-case $(uname) in
-	*Darwin*)
-		LIBTOOLIZE="glibtoolize"
-		;;
-esac
-test "x$LIBTOOLIZE" = "x" && LIBTOOLIZE=libtoolize
-
 if [ -f .git/hooks/pre-commit.sample -a ! -f .git/hooks/pre-commit ] ; then
     cp -p .git/hooks/pre-commit.sample .git/hooks/pre-commit && \
     chmod +x .git/hooks/pre-commit && \
