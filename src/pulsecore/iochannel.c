@@ -346,6 +346,8 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
     return r;
 }
 
+/* For more details on FD passing, check the cmsg(3) manpage
+ * and IETF RFC #2292: "Advanced Sockets API for IPv6" */
 ssize_t pa_iochannel_write_with_fds(pa_iochannel*io, const void*data, size_t l, int nfd, const int *fds) {
     ssize_t r;
     int *msgdata;
@@ -353,7 +355,7 @@ ssize_t pa_iochannel_write_with_fds(pa_iochannel*io, const void*data, size_t l, 
     struct iovec iov;
     union {
         struct cmsghdr hdr;
-        uint8_t data[CMSG_SPACE(sizeof(int) * MAX_ANCIL_DATA_FDS)];
+        uint8_t data[CMSG_SPACE(sizeof(int) * nfd)];
     } cmsg;
 
     pa_assert(io);
