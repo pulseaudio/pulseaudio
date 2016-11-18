@@ -408,6 +408,18 @@ By doing so, there's need to reference the pool's memfd file descriptor any
 further -- just its ID. Thus both endpoints can then quickly and safely
 close their memfd file descriptors.
 
+## v32, implemented by >= 10.0
+
+Enable memfd transport by default.
+
+This protocol bump was only created to mark 9.0 clients. Although they
+support memfd transport, such older clients has an iochannel bug that would
+break memfd audio if they're run in 32-bit mode over a 64-bit kernel. Thus
+influence these buggy libraries to use POSIX shared memory, by signalling
+memfd support only to 10.0+ clients.
+
+Check commit 451d1d676237c81 for further details.
+
 #### If you just changed the protocol, read this
 ## module-tunnel depends on the sink/source/sink-input/source-input protocol
 ## internals, so if you changed these, you might have broken module-tunnel.

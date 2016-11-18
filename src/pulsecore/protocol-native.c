@@ -2658,12 +2658,18 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
     pa_log_debug("Negotiated SHM: %s", pa_yes_no(do_shm));
     pa_pstream_enable_shm(c->pstream, do_shm);
 
+    /* Do not declare memfd support for 9.0 client libraries (protocol v31).
+     *
+     * Although they support memfd transport, such 9.0 clients has an iochannel
+     * bug that would break memfd audio if they're run in 32-bit mode over a
+     * 64-bit kernel. Thus influence them to use the POSIX shared memory model
+     * instead. Check commit 451d1d676237c81 for further details. */
     do_memfd =
-        do_shm && pa_mempool_is_memfd_backed(c->protocol->core->mempool);
+        c->version >= 32 && do_shm && pa_mempool_is_memfd_backed(c->protocol->core->mempool);
 
     shm_type = PA_MEM_TYPE_PRIVATE;
     if (do_shm) {
-        if (c->version >= 31 && memfd_on_remote && do_memfd) {
+        if (do_memfd && memfd_on_remote) {
             pa_pstream_enable_memfd(c->pstream);
             shm_type = PA_MEM_TYPE_SHARED_MEMFD;
         } else
