@@ -542,18 +542,19 @@ fail:
 static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     size_t l, w = 0;
     ssize_t r;
+    bool stream_not_ready;
 
     pa_assert(a == mainloop_api);
     pa_assert(e);
     pa_assert(stdio_event == e);
 
-    if (buffer) {
+    stream_not_ready = !stream || pa_stream_get_state(stream) != PA_STREAM_READY ||
+                        !(l = w = pa_stream_writable_size(stream));
+
+    if (buffer || stream_not_ready) {
         mainloop_api->io_enable(stdio_event, PA_IO_EVENT_NULL);
         return;
     }
-
-    if (!stream || pa_stream_get_state(stream) != PA_STREAM_READY || !(l = w = pa_stream_writable_size(stream)))
-        l = 4096;
 
     buffer = pa_xmalloc(l);
 
