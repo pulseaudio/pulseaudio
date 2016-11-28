@@ -759,6 +759,9 @@ AC_ARG_ENABLE([oss-output],
 AC_ARG_ENABLE([oss-wrapper],
     AS_HELP_STRING([--disable-oss-wrapper],[Disable optional OSS wrapper support]))
 
+AC_ARG_WITH([pulsedsp-location],
+    AS_HELP_STRING([--with-pulsedsp-location],[Specify location where OSS wrapper will be installed]))
+
 AS_IF([test "x$enable_oss_output" != "xno" -o "x$enable_oss_wrapper" != "xno"],
     [AC_CHECK_HEADERS([sys/soundcard.h], HAVE_OSS=1, HAVE_OSS=0)],
     HAVE_OSS=0)
@@ -774,7 +777,12 @@ AS_IF([test "x$enable_oss_wrapper" != "xno"],
     [AS_IF([test "x$HAVE_OSS" = "x1"], HAVE_OSS_WRAPPER=1, HAVE_OSS_WRAPPER=0)],
     HAVE_OSS_WRAPPER=0)
 
+AS_IF([test "x$with_pulsedsp_location" != "x"],
+    [PULSEDSP_LOCATION="$with_pulsedsp_location"],
+    [PULSEDSP_LOCATION="\$(pkglibdir)"])
+
 AC_SUBST(HAVE_OSS_OUTPUT)
+AC_SUBST(PULSEDSP_LOCATION)
 AM_CONDITIONAL([HAVE_OSS_OUTPUT], [test "x$HAVE_OSS_OUTPUT" = "x1"])
 AM_CONDITIONAL([HAVE_OSS_WRAPPER], [test "x$HAVE_OSS_WRAPPER" = "x1"])
 AS_IF([test "x$HAVE_OSS_OUTPUT" = "x1"], AC_DEFINE([HAVE_OSS_OUTPUT], 1, [Have OSS output?]))

@@ -923,7 +923,7 @@ padsplib_LTLIBRARIES = libpulsedsp.la
 bin_SCRIPTS += padsp
 
 edit = @SED@ \
-       -e "s|@pkglibdir[@]|$(pkglibdir)|g"
+       -e 's|@PULSEDSP_LOCATION[@]|$(PULSEDSP_LOCATION)|g'
 
 padsp: utils/padsp.in
 	$(edit) $< > $@
