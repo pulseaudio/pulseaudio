@@ -1190,30 +1190,6 @@ AS_IF([test "x$with_soxr" = "xyes" && test "x$HAVE_SOXR" = "x0"],
 AM_CONDITIONAL([HAVE_SOXR], [test "x$HAVE_SOXR" = "x1"])
 AS_IF([test "x$HAVE_SOXR" = "x1"], AC_DEFINE([HAVE_SOXR], 1, [Have soxr]))
 
-#### Xen support (optional) ####
-
-AC_ARG_ENABLE([xen],
-    AS_HELP_STRING([--disable-xen],[Disable optional Xen paravirtualized driver]))
-
-XEN_CFLAGS=
-XEN_LIBS=
-
-AS_IF([test "x$enable_xen" != "xno"],
-    [
-        HAVE_XEN=1
-        AC_CHECK_HEADER(xenctrl.h, [], [HAVE_XEN=0])
-        AC_CHECK_HEADER(xs.h, [], [HAVE_XEN=0])
-        AC_CHECK_LIB(xenctrl, xc_interface_open, [XEN_LIBS="$XEN_LIBS -lxenctrl"], [HAVE_XEN=0])
-        AC_CHECK_LIB(xenstore, xs_domain_open, [XEN_LIBS="$XEN_LIBS -lxenstore"], [HAVE_XEN=0])
-    ],
-    HAVE_XEN=0)
-
-AS_IF([test "x$enable_xen" = "xyes" && test "x$HAVE_XEN" = "x0"],
-    [AC_MSG_ERROR([*** Xen development headers or libraries not found])])
-
-AC_SUBST(XEN_CFLAGS)
-AC_SUBST(XEN_LIBS)
-AM_CONDITIONAL([HAVE_XEN], [test "x$HAVE_XEN" = x1])
 
 #### gcov support (optional) #####
 
@@ -1576,7 +1552,6 @@ AS_IF([test "x$HAVE_AVAHI" = "x1"], ENABLE_AVAHI=yes, ENABLE_AVAHI=no)
 AS_IF([test "x$HAVE_JACK" = "x1"], ENABLE_JACK=yes, ENABLE_JACK=no)
 AS_IF([test "x$HAVE_LIBASYNCNS" = "x1"], ENABLE_LIBASYNCNS=yes, ENABLE_LIBASYNCNS=no)
 AS_IF([test "x$HAVE_LIRC" = "x1"], ENABLE_LIRC=yes, ENABLE_LIRC=no)
-AS_IF([test "x$HAVE_XEN" = "x1"], ENABLE_XEN=yes, ENABLE_XEN=no)
 AS_IF([test "x$HAVE_DBUS" = "x1"], ENABLE_DBUS=yes, ENABLE_DBUS=no)
 AS_IF([test "x$HAVE_UDEV" = "x1"], ENABLE_UDEV=yes, ENABLE_UDEV=no)
 AS_IF([test "x$HAVE_SYSTEMD_DAEMON" = "x1"], ENABLE_SYSTEMD_DAEMON=yes, ENABLE_SYSTEMD_DAEMON=no)
@@ -1639,7 +1614,6 @@ echo "
     Enable Jack:                   ${ENABLE_JACK}
     Enable Async DNS:              ${ENABLE_LIBASYNCNS}
     Enable LIRC:                   ${ENABLE_LIRC}
-    Enable Xen PV driver:          ${ENABLE_XEN}
     Enable D-Bus:                  ${ENABLE_DBUS}
       Enable BlueZ 4:              ${ENABLE_BLUEZ_4}
       Enable BlueZ 5:              ${ENABLE_BLUEZ_5}

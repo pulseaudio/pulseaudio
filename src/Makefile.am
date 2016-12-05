@@ -1373,12 +1373,6 @@ modlibexec_LTLIBRARIES += \
 		module-lirc.la
 endif
 
-if HAVE_XEN
-modlibexec_LTLIBRARIES += \
-		module-xenpv-sink.la
-endif
-
-
 if HAVE_EVDEV
 modlibexec_LTLIBRARIES += \
 		module-mmkbd-evdev.la
@@ -1503,7 +1497,6 @@ SYMDEF_FILES = \
 		module-zeroconf-discover-symdef.h \
 		module-bonjour-publish-symdef.h \
 		module-lirc-symdef.h \
-		module-xenpv-sink-symdef.h \
 		module-mmkbd-evdev-symdef.h \
 		module-http-protocol-tcp-symdef.h \
 		module-http-protocol-unix-symdef.h \
@@ -1920,14 +1913,6 @@ module_lirc_la_SOURCES = modules/module-lirc.c
 module_lirc_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_lirc_la_LIBADD = $(MODULE_LIBADD) $(LIRC_LIBS)
 module_lirc_la_CFLAGS = $(AM_CFLAGS) $(LIRC_CFLAGS)
-
-
-# Xen PV driver
-
-module_xenpv_sink_la_SOURCES = modules/xen/module-xenpv-sink.c modules/xen/gntalloc.h modules/xen/gntdev.h
-module_xenpv_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_xenpv_sink_la_LIBADD = $(MODULE_LIBADD) $(XEN_LIBS)
-module_xenpv_sink_la_CFLAGS = $(AM_CFLAGS) $(XEN_CFLAGS) -I$(top_srcdir)/src/modules/xen
 
 
 # Linux evdev
