@@ -2298,6 +2298,30 @@ int pa_sink_input_update_rate(pa_sink_input *i) {
     return 0;
 }
 
+/* Called from the IO thread. */
+void pa_sink_input_attach(pa_sink_input *i) {
+    pa_assert(i);
+    pa_assert(!i->thread_info.attached);
+
+    i->thread_info.attached = true;
+
+    if (i->attach)
+        i->attach(i);
+}
+
+/* Called from the IO thread. */
+void pa_sink_input_detach(pa_sink_input *i) {
+    pa_assert(i);
+
+    if (!i->thread_info.attached)
+        return;
+
+    i->thread_info.attached = false;
+
+    if (i->detach)
+        i->detach(i);
+}
+
 /* Called from the main thread. */
 void pa_sink_input_set_volume_direct(pa_sink_input *i, const pa_cvolume *volume) {
     pa_cvolume old_volume;

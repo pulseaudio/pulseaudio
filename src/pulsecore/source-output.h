@@ -349,6 +349,31 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
 
 pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output *o, pa_usec_t usec);
 
+/* Calls the attach() callback if it's set. The output must be in detached
+ * state. */
+void pa_source_output_attach(pa_source_output *o);
+
+/* Calls the detach() callback if it's set and the output is attached. The
+ * output is allowed to be already detached, in which case this does nothing.
+ *
+ * The reason why this can be called for already-detached outputs is that when
+ * a filter source's output is detached, it has to detach also all outputs
+ * connected to the filter source. In case the filter source's output was
+ * detached because the filter source is being removed, those other outputs
+ * will be moved to another source or removed, and moving and removing involve
+ * detaching the outputs, but the outputs at that point are already detached.
+ *
+ * XXX: Moving or removing an output also involves sending messages to the
+ * output's source. If the output's source is a detached filter source,
+ * shouldn't sending messages to it be prohibited? The messages are processed
+ * in the root source's IO thread, and when the filter source is detached, it
+ * would seem logical to prohibit any interaction with the IO thread that isn't
+ * any more associated with the filter source. Currently sending messages to
+ * detached filter sources mostly works, because the filter sources don't
+ * update their asyncmsgq pointer when detaching, so messages still find their
+ * way to the old IO thread. */
+void pa_source_output_detach(pa_source_output *o);
+
 /* Called from the main thread, from source.c only. The normal way to set the
  * source output volume is to call pa_source_output_set_volume(), but the flat
  * volume logic in source.c needs also a function that doesn't do all the extra

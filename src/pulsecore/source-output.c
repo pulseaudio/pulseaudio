@@ -1753,6 +1753,30 @@ int pa_source_output_update_rate(pa_source_output *o) {
     return 0;
 }
 
+/* Called from the IO thread. */
+void pa_source_output_attach(pa_source_output *o) {
+    pa_assert(o);
+    pa_assert(!o->thread_info.attached);
+
+    o->thread_info.attached = true;
+
+    if (o->attach)
+        o->attach(o);
+}
+
+/* Called from the IO thread. */
+void pa_source_output_detach(pa_source_output *o) {
+    pa_assert(o);
+
+    if (!o->thread_info.attached)
+        return;
+
+    o->thread_info.attached = false;
+
+    if (o->detach)
+        o->detach(o);
+}
+
 /* Called from the main thread. */
 void pa_source_output_set_volume_direct(pa_source_output *o, const pa_cvolume *volume) {
     pa_cvolume old_volume;
