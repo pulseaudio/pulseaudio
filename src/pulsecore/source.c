@@ -2062,11 +2062,11 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             pa_source_output_set_state_within_thread(o, o->state);
 
-            if (o->detach)
-                o->detach(o);
-
             pa_assert(o->thread_info.attached);
             o->thread_info.attached = false;
+
+            if (o->detach)
+                o->detach(o);
 
             if (o->thread_info.direct_on_input) {
                 pa_hashmap_remove(o->thread_info.direct_on_input->thread_info.direct_outputs, PA_UINT32_TO_PTR(o->index));
