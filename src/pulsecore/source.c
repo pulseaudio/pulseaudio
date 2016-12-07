@@ -2062,11 +2062,12 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             pa_source_output_set_state_within_thread(o, o->state);
 
-            pa_assert(o->thread_info.attached);
-            o->thread_info.attached = false;
+            if (o->thread_info.attached) {
+                o->thread_info.attached = false;
 
-            if (o->detach)
-                o->detach(o);
+                if (o->detach)
+                    o->detach(o);
+            }
 
             if (o->thread_info.direct_on_input) {
                 pa_hashmap_remove(o->thread_info.direct_on_input->thread_info.direct_outputs, PA_UINT32_TO_PTR(o->index));
@@ -2289,11 +2290,12 @@ void pa_source_detach_within_thread(pa_source *s) {
     pa_assert(PA_SOURCE_IS_LINKED(s->thread_info.state));
 
     PA_HASHMAP_FOREACH(o, s->thread_info.outputs, state) {
-        pa_assert(o->thread_info.attached);
-        o->thread_info.attached = false;
+        if (o->thread_info.attached) {
+            o->thread_info.attached = false;
 
-        if (o->detach)
-            o->detach(o);
+            if (o->detach)
+                o->detach(o);
+        }
     }
 }
 

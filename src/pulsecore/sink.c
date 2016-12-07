@@ -2536,11 +2536,12 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
              * sink input handling a few lines down at
              * PA_SINK_MESSAGE_START_MOVE, too. */
 
-            pa_assert(i->thread_info.attached);
-            i->thread_info.attached = false;
+            if (i->thread_info.attached) {
+                i->thread_info.attached = false;
 
-            if (i->detach)
-                i->detach(i);
+                if (i->detach)
+                    i->detach(i);
+            }
 
             pa_sink_input_set_state_within_thread(i, i->state);
 
@@ -2635,11 +2636,12 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 }
             }
 
-            pa_assert(i->thread_info.attached);
-            i->thread_info.attached = false;
+            if (i->thread_info.attached) {
+                i->thread_info.attached = false;
 
-            if (i->detach)
-                i->detach(i);
+                if (i->detach)
+                    i->detach(i);
+            }
 
             /* Let's remove the sink input ...*/
             pa_hashmap_remove_and_free(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index));
@@ -2932,11 +2934,12 @@ void pa_sink_detach_within_thread(pa_sink *s) {
     pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
     PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state) {
-        pa_assert(i->thread_info.attached);
-        i->thread_info.attached = false;
+        if (i->thread_info.attached) {
+            i->thread_info.attached = false;
 
-        if (i->detach)
-            i->detach(i);
+            if (i->detach)
+                i->detach(i);
+        }
     }
 
     if (s->monitor_source)
