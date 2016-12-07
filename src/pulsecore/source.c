@@ -2288,9 +2288,13 @@ void pa_source_detach_within_thread(pa_source *s) {
     pa_source_assert_io_context(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->thread_info.state));
 
-    PA_HASHMAP_FOREACH(o, s->thread_info.outputs, state)
+    PA_HASHMAP_FOREACH(o, s->thread_info.outputs, state) {
+        pa_assert(o->thread_info.attached);
+        o->thread_info.attached = false;
+
         if (o->detach)
             o->detach(o);
+    }
 }
 
 /* Called from IO thread */
@@ -2302,9 +2306,13 @@ void pa_source_attach_within_thread(pa_source *s) {
     pa_source_assert_io_context(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->thread_info.state));
 
-    PA_HASHMAP_FOREACH(o, s->thread_info.outputs, state)
+    PA_HASHMAP_FOREACH(o, s->thread_info.outputs, state) {
+        pa_assert(!o->thread_info.attached);
+        o->thread_info.attached = true;
+
         if (o->attach)
             o->attach(o);
+    }
 }
 
 /* Called from IO thread */

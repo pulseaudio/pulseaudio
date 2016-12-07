@@ -2931,9 +2931,13 @@ void pa_sink_detach_within_thread(pa_sink *s) {
     pa_sink_assert_io_context(s);
     pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
-    PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state)
+    PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state) {
+        pa_assert(i->thread_info.attached);
+        i->thread_info.attached = false;
+
         if (i->detach)
             i->detach(i);
+    }
 
     if (s->monitor_source)
         pa_source_detach_within_thread(s->monitor_source);
@@ -2948,9 +2952,13 @@ void pa_sink_attach_within_thread(pa_sink *s) {
     pa_sink_assert_io_context(s);
     pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
-    PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state)
+    PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state) {
+        pa_assert(!i->thread_info.attached);
+        i->thread_info.attached = true;
+
         if (i->attach)
             i->attach(i);
+    }
 
     if (s->monitor_source)
         pa_source_attach_within_thread(s->monitor_source);
