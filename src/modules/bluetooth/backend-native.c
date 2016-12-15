@@ -103,6 +103,8 @@ static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_backend *backend, D
 static int bluez5_sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu) {
     pa_bluetooth_device *d = t->device;
     struct sockaddr_sco addr;
+    struct sco_options sco_opt;
+    socklen_t len;
     int err, i;
     int sock;
     bdaddr_t src;
@@ -124,34 +126,40 @@ static int bluez5_sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_
         return -1;
     }
 
-    memset(&addr, 0, sizeof(addr));
+    len = sizeof(addr);
+    memset(&addr, 0, len);
     addr.sco_family = AF_BLUETOOTH;
     bacpy(&addr.sco_bdaddr, &src);
 
-    if (bind(sock, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+    if (bind(sock, (struct sockaddr *) &addr, len) < 0) {
         pa_log_error("bind(): %s", pa_cstrerror(errno));
         goto fail_close;
     }
 
-    memset(&addr, 0, sizeof(addr));
+    memset(&addr, 0, len);
     addr.sco_family = AF_BLUETOOTH;
     bacpy(&addr.sco_bdaddr, &dst);
 
     pa_log_info("doing connect");
-    err = connect(sock, (struct sockaddr *) &addr, sizeof(addr));
+    err = connect(sock, (struct sockaddr *) &addr, len);
     if (err < 0 && !(errno == EAGAIN || errno == EINPROGRESS)) {
         pa_log_error("connect(): %s", pa_cstrerror(errno));
         goto fail_close;
     }
 
-    /* The "48" below is hardcoded until we get meaningful MTU values exposed
-     * by the kernel */
+    len = sizeof(sco_opt);
+    memset(&sco_opt, 0, len);
 
-    if (imtu)
-        *imtu = 48;
+    if (getsockopt(sock, SOL_SCO, SCO_OPTIONS, &sco_opt, &len) < 0) {
+        pa_log_warn("getsockopt(SCO_OPTIONS) failed, loading defaults");
 
-    if (omtu)
-        *omtu = 48;
+        /* Setting defaults in case of error */
+        if (imtu) *imtu = 48;
+        if (omtu) *omtu = 48;
+    } else {
+        if (imtu) *imtu = sco_opt.mtu;
+        if (omtu) *omtu = sco_opt.mtu;
+    }
 
     return sock;
 
