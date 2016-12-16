@@ -91,6 +91,7 @@ MODULE_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_
 EXTRA_DIST = \
 		pulse/client.conf.in \
 		pulse/version.h.in \
+		pulsecore/filter/LICENSE.WEBKIT \
 		daemon/daemon.conf.in \
 		daemon/default.pa.in \
 		daemon/system.pa.in \
