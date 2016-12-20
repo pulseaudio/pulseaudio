@@ -56,6 +56,23 @@ static pa_context *context = NULL;
 static pa_stream *stream = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
 
+/* Playback Mode (raw):
+ *
+ * We can only write audio to the PA stream in multiples of the stream's
+ * sample-spec frame size. Meanwhile, the STDIN read(2) system call can return
+ * a length much smaller than the frame-aligned size requested - leading to
+ * invalid writes. This can be reproduced by choosing a starved STDIN backend
+ * (e.g. "pacat /dev/random", "echo 1234 | pacat"), or an incomplete WAV file
+ * in raw non-paplay mode.
+ *
+ * Solve this by writing only frame-aligned sizes, while caching the resulting
+ * trailing partial frames here. This partial frame is then directly written
+ * in the next stream write iteration. Rinse and repeat.
+ */
+static void *partialframe_buf = NULL;
+static size_t partialframe_len = 0;
+
+/* Recording Mode buffers */
 static void *buffer = NULL;
 static size_t buffer_length = 0, buffer_index = 0;
 
@@ -153,34 +170,6 @@ static void start_drain(void) {
         quit(0);
 }
 
-/* Write some data to the stream */
-static void do_stream_write(size_t length) {
-    size_t l;
-    pa_assert(length);
-
-    if (!buffer || !buffer_length)
-        return;
-
-    l = length;
-    if (l > buffer_length)
-        l = buffer_length;
-
-    if (pa_stream_write(stream, (uint8_t*) buffer + buffer_index, l, NULL, 0, PA_SEEK_RELATIVE) < 0) {
-        pa_log(_("pa_stream_write() failed: %s"), pa_strerror(pa_context_errno(context)));
-        quit(1);
-        return;
-    }
-
-    buffer_length -= l;
-    buffer_index += l;
-
-    if (!buffer_length) {
-        pa_xfree(buffer);
-        buffer = NULL;
-        buffer_index = buffer_length = 0;
-    }
-}
-
 /* This is called whenever new data may be written to the stream */
 static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     pa_assert(s);
@@ -191,11 +180,6 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
 
         if (stdio_event)
             mainloop_api->io_enable(stdio_event, PA_IO_EVENT_INPUT);
-
-        if (!buffer)
-            return;
-
-        do_stream_write(length);
 
     } else {
         sf_count_t bytes;
@@ -540,25 +524,34 @@ fail:
 
 /* New data on STDIN **/
 static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
-    size_t l, w = 0;
-    ssize_t r;
-    bool stream_not_ready;
+    uint8_t *buf = NULL;
+    size_t writable, towrite, r;
 
     pa_assert(a == mainloop_api);
     pa_assert(e);
     pa_assert(stdio_event == e);
 
-    stream_not_ready = !stream || pa_stream_get_state(stream) != PA_STREAM_READY ||
-                        !(l = w = pa_stream_writable_size(stream));
+    /* Stream not ready? */
+    if (!stream || pa_stream_get_state(stream) != PA_STREAM_READY ||
+        !(writable = pa_stream_writable_size(stream))) {
 
-    if (buffer || stream_not_ready) {
         mainloop_api->io_enable(stdio_event, PA_IO_EVENT_NULL);
         return;
     }
 
-    buffer = pa_xmalloc(l);
+    if (pa_stream_begin_write(stream, (void **)&buf, &writable) < 0) {
+        pa_log(_("pa_stream_begin_write() failed: %s"), pa_strerror(pa_context_errno(context)));
+        quit(1);
+        return;
+    }
 
-    if ((r = pa_read(fd, buffer, l, userdata)) <= 0) {
+    /* Partial frame cached from a previous write iteration? */
+    if (partialframe_len) {
+        pa_assert(partialframe_len < pa_frame_size(&sample_spec));
+        memcpy(buf, partialframe_buf, partialframe_len);
+    }
+
+    if ((r = pa_read(fd, buf + partialframe_len, writable - partialframe_len, userdata)) <= 0) {
         if (r == 0) {
             if (verbose)
                 pa_log(_("Got EOF."));
@@ -574,12 +567,23 @@ static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_even
         stdio_event = NULL;
         return;
     }
+    r += partialframe_len;
 
-    buffer_length = (uint32_t) r;
-    buffer_index = 0;
+    /* Cache any trailing partial frames for the next write */
+    towrite = pa_frame_align(r, &sample_spec);
+    partialframe_len = r - towrite;
 
-    if (w)
-        do_stream_write(w);
+    if (partialframe_len)
+        memcpy(partialframe_buf, buf + towrite, partialframe_len);
+
+    if (towrite) {
+        if (pa_stream_write(stream, buf, towrite, NULL, 0, PA_SEEK_RELATIVE) < 0) {
+            pa_log(_("pa_stream_write() failed: %s"), pa_strerror(pa_context_errno(context)));
+            quit(1);
+            return;
+        }
+    } else
+        pa_stream_cancel_write(stream);
 }
 
 /* Some data may be written to STDOUT */
@@ -1148,6 +1152,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    if (raw && mode == PLAYBACK)
+        partialframe_buf = pa_xmalloc(pa_frame_size(&sample_spec));
+
     /* Set up a new main loop */
     if (!(m = pa_mainloop_new())) {
         pa_log(_("pa_mainloop_new() failed."));
@@ -1229,6 +1236,7 @@ quit:
 
     pa_xfree(silence_buffer);
     pa_xfree(buffer);
+    pa_xfree(partialframe_buf);
 
     pa_xfree(server);
     pa_xfree(device);
