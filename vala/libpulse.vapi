@@ -110,7 +110,7 @@ namespace PulseAudio {
                 public uint8 channels;
 
                 [CCode (cname="PA_SAMPLE_SPEC_SNPRINT_MAX")]
-                public static const size_t SNPRINT_MAX;
+                public const size_t SNPRINT_MAX;
 
                 [CCode (cname="pa_bytes_per_second")]
                 public size_t bytes_per_second();
@@ -170,23 +170,23 @@ namespace PulseAudio {
         public struct Volume : uint32 {
 
                 [CCode (cname="PA_SW_VOLUME_SNPRINT_DB_MAX")]
-                public static const size_t SW_SNPRINT_DB_MAX;
+                public const size_t SW_SNPRINT_DB_MAX;
 
                 [CCode (cname="PA_VOLUME_SNPRINT_MAX")]
-                public static const size_t SNPRINT_MAX;
+                public const size_t SNPRINT_MAX;
 
                 [CCode (cname="PA_VOLUME_MAX")]
-                public static const Volume MAX;
+                public const Volume MAX;
 
                 [CCode (cname="PA_VOLUME_NORM")]
-                public static const Volume NORM;
+                public const Volume NORM;
 
                 [CCode (cname="PA_VOLUME_MUTED")]
-                public static const Volume MUTED;
+                public const Volume MUTED;
 
                 // [CCode (cname="PA_VOLUME_INVALID")]
                 [CCode (cname="PA_VOLUME_MAX")]
-                public static const Volume INVALID;
+                public const Volume INVALID;
 
                 [CCode (cname="pa_volume_snprint", instance_pos = 3.1)]
                 public unowned string snprint(char[] s);
@@ -245,10 +245,10 @@ namespace PulseAudio {
                 public Volume values[32];
 
                 [CCode (cname="PA_SW_CVOLUME_SNPRINT_DB_MAX")]
-                public static const size_t SW_SNPRINT_DB_MAX;
+                public const size_t SW_SNPRINT_DB_MAX;
 
                 [CCode (cname="PA_CVOLUME_SNPRINT_MAX")]
-                public static const size_t SNPRINT_MAX;
+                public const size_t SNPRINT_MAX;
 
                 [CCode (cname="pa_cvolume_equal")]
                 public bool equal(CVolume other);
@@ -382,7 +382,7 @@ namespace PulseAudio {
                 public ChannelPosition map[32];
 
                 [CCode (cname="PA_CHANNEL_MAP_SNPRINT_MAX")]
-                public static const size_t SNPRINT_MAX;
+                public const size_t SNPRINT_MAX;
 
                 [CCode (cname="pa_channel_map_init")]
                 public ChannelMap();
@@ -532,121 +532,121 @@ namespace PulseAudio {
         public class Proplist {
 
                 [CCode (cname="PA_PROP_MEDIA_NAME")]
-                public static const string PROP_MEDIA_NAME;
+                public const string PROP_MEDIA_NAME;
                 [CCode (cname="PA_PROP_MEDIA_TITLE")]
-                public static const string PROP_MEDIA_TITLE;
+                public const string PROP_MEDIA_TITLE;
                 [CCode (cname="PA_PROP_MEDIA_ARTIST")]
-                public static const string PROP_MEDIA_ARTIST;
+                public const string PROP_MEDIA_ARTIST;
                 [CCode (cname="PA_PROP_MEDIA_COPYRIGHT")]
-                public static const string PROP_MEDIA_COPYRIGHT;
+                public const string PROP_MEDIA_COPYRIGHT;
                 [CCode (cname="PA_PROP_MEDIA_SOFTWARE")]
-                public static const string PROP_MEDIA_SOFTWARE;
+                public const string PROP_MEDIA_SOFTWARE;
                 [CCode (cname="PA_PROP_MEDIA_LANGUAGE")]
-                public static const string PROP_MEDIA_LANGUAGE;
+                public const string PROP_MEDIA_LANGUAGE;
                 [CCode (cname="PA_PROP_MEDIA_FILENAME")]
-                public static const string PROP_MEDIA_FILENAME;
+                public const string PROP_MEDIA_FILENAME;
                 [CCode (cname="PA_PROP_MEDIA_ICON_NAME")]
-                public static const string PROP_MEDIA_ICON_NAME;
+                public const string PROP_MEDIA_ICON_NAME;
                 [CCode (cname="PA_PROP_MEDIA_ROLE")]
-                public static const string PROP_MEDIA_ROLE;
+                public const string PROP_MEDIA_ROLE;
                 [CCode (cname="PA_PROP_EVENT_ID")]
-                public static const string PROP_EVENT_ID;
+                public const string PROP_EVENT_ID;
                 [CCode (cname="PA_PROP_EVENT_DESCRIPTION")]
-                public static const string PROP_EVENT_DESCRIPTION;
+                public const string PROP_EVENT_DESCRIPTION;
                 [CCode (cname="PA_PROP_EVENT_MOUSE_X")]
-                public static const string PROP_EVENT_MOUSE_X;
+                public const string PROP_EVENT_MOUSE_X;
                 [CCode (cname="PA_PROP_EVENT_MOUSE_Y")]
-                public static const string PROP_EVENT_MOUSE_Y;
+                public const string PROP_EVENT_MOUSE_Y;
                 [CCode (cname="PA_PROP_EVENT_MOUSE_HPOS")]
-                public static const string PROP_EVENT_MOUSE_HPOS;
+                public const string PROP_EVENT_MOUSE_HPOS;
                 [CCode (cname="PA_PROP_EVENT_MOUSE_VPOS")]
-                public static const string PROP_EVENT_MOUSE_VPOS;
+                public const string PROP_EVENT_MOUSE_VPOS;
                 [CCode (cname="PA_PROP_EVENT_MOUSE_BUTTON")]
-                public static const string PROP_EVENT_MOUSE_BUTTON;
+                public const string PROP_EVENT_MOUSE_BUTTON;
                 [CCode (cname="PA_PROP_WINDOW_NAME")]
-                public static const string PROP_WINDOW_NAME;
+                public const string PROP_WINDOW_NAME;
                 [CCode (cname="PA_PROP_WINDOW_ID")]
-                public static const string PROP_WINDOW_ID;
+                public const string PROP_WINDOW_ID;
                 [CCode (cname="PA_PROP_WINDOW_ICON_NAME")]
-                public static const string PROP_WINDOW_ICON_NAME;
+                public const string PROP_WINDOW_ICON_NAME;
                 [CCode (cname="PA_PROP_WINDOW_X11_DISPLAY")]
-                public static const string PROP_WINDOW_X11_DISPLAY;
+                public const string PROP_WINDOW_X11_DISPLAY;
                 [CCode (cname="PA_PROP_WINDOW_X11_SCREEN")]
-                public static const string PROP_WINDOW_X11_SCREEN;
+                public const string PROP_WINDOW_X11_SCREEN;
                 [CCode (cname="PA_PROP_WINDOW_X11_MONITOR")]
-                public static const string PROP_WINDOW_X11_MONITOR;
+                public const string PROP_WINDOW_X11_MONITOR;
                 [CCode (cname="PA_PROP_WINDOW_X11_XID")]
-                public static const string PROP_WINDOW_X11_XID;
+                public const string PROP_WINDOW_X11_XID;
                 [CCode (cname="PA_PROP_APPLICATION_NAME")]
-                public static const string PROP_APPLICATION_NAME;
+                public const string PROP_APPLICATION_NAME;
                 [CCode (cname="PA_PROP_APPLICATION_ID")]
-                public static const string PROP_APPLICATION_ID;
+                public const string PROP_APPLICATION_ID;
                 [CCode (cname="PA_PROP_APPLICATION_VERSION")]
-                public static const string PROP_APPLICATION_VERSION;
+                public const string PROP_APPLICATION_VERSION;
                 [CCode (cname="PA_PROP_APPLICATION_ICON_NAME")]
-                public static const string PROP_APPLICATION_ICON_NAME;
+                public const string PROP_APPLICATION_ICON_NAME;
                 [CCode (cname="PA_PROP_APPLICATION_LANGUAGE")]
-                public static const string PROP_APPLICATION_LANGUAGE;
+                public const string PROP_APPLICATION_LANGUAGE;
                 [CCode (cname="PA_PROP_APPLICATION_PROCESS_ID")]
-                public static const string PROP_APPLICATION_PROCESS_ID;
+                public const string PROP_APPLICATION_PROCESS_ID;
                 [CCode (cname="PA_PROP_APPLICATION_PROCESS_BINARY")]
-                public static const string PROP_APPLICATION_PROCESS_BINARY;
+                public const string PROP_APPLICATION_PROCESS_BINARY;
                 [CCode (cname="PA_PROP_APPLICATION_PROCESS_USER")]
-                public static const string PROP_APPLICATION_PROCESS_USER;
+                public const string PROP_APPLICATION_PROCESS_USER;
                 [CCode (cname="PA_PROP_APPLICATION_PROCESS_HOST")]
-                public static const string PROP_APPLICATION_PROCESS_HOST;
+                public const string PROP_APPLICATION_PROCESS_HOST;
                 [CCode (cname="PA_PROP_APPLICATION_PROCESS_MACHINE_ID")]
-                public static const string PROP_APPLICATION_PROCESS_MACHINE_ID;
+                public const string PROP_APPLICATION_PROCESS_MACHINE_ID;
                 [CCode (cname="PA_PROP_APPLICATION_PROCESS_SESSION_ID")]
-                public static const string PROP_APPLICATION_PROCESS_SESSION_ID;
+                public const string PROP_APPLICATION_PROCESS_SESSION_ID;
                 [CCode (cname="PA_PROP_DEVICE_STRING")]
-                public static const string PROP_DEVICE_STRING;
+                public const string PROP_DEVICE_STRING;
                 [CCode (cname="PA_PROP_DEVICE_API")]
-                public static const string PROP_DEVICE_API;
+                public const string PROP_DEVICE_API;
                 [CCode (cname="PA_PROP_DEVICE_DESCRIPTION")]
-                public static const string PROP_DEVICE_DESCRIPTION;
+                public const string PROP_DEVICE_DESCRIPTION;
                 [CCode (cname="PA_PROP_DEVICE_BUS_PATH")]
-                public static const string PROP_DEVICE_BUS_PATH;
+                public const string PROP_DEVICE_BUS_PATH;
                 [CCode (cname="PA_PROP_DEVICE_SERIAL")]
-                public static const string PROP_DEVICE_SERIAL;
+                public const string PROP_DEVICE_SERIAL;
                 [CCode (cname="PA_PROP_DEVICE_VENDOR_ID")]
-                public static const string PROP_DEVICE_VENDOR_ID;
+                public const string PROP_DEVICE_VENDOR_ID;
                 [CCode (cname="PA_PROP_DEVICE_VENDOR_NAME")]
-                public static const string PROP_DEVICE_VENDOR_NAME;
+                public const string PROP_DEVICE_VENDOR_NAME;
                 [CCode (cname="PA_PROP_DEVICE_PRODUCT_ID")]
-                public static const string PROP_DEVICE_PRODUCT_ID;
+                public const string PROP_DEVICE_PRODUCT_ID;
                 [CCode (cname="PA_PROP_DEVICE_PRODUCT_NAME")]
-                public static const string PROP_DEVICE_PRODUCT_NAME;
+                public const string PROP_DEVICE_PRODUCT_NAME;
                 [CCode (cname="PA_PROP_DEVICE_CLASS")]
-                public static const string PROP_DEVICE_CLASS;
+                public const string PROP_DEVICE_CLASS;
                 [CCode (cname="PA_PROP_DEVICE_FORM_FACTOR")]
-                public static const string PROP_DEVICE_FORM_FACTOR;
+                public const string PROP_DEVICE_FORM_FACTOR;
                 [CCode (cname="PA_PROP_DEVICE_BUS")]
-                public static const string PROP_DEVICE_BUS;
+                public const string PROP_DEVICE_BUS;
                 [CCode (cname="PA_PROP_DEVICE_ICON_NAME")]
-                public static const string PROP_DEVICE_ICON_NAME;
+                public const string PROP_DEVICE_ICON_NAME;
                 [CCode (cname="PA_PROP_DEVICE_ACCESS_MODE")]
-                public static const string PROP_DEVICE_ACCESS_MODE;
+                public const string PROP_DEVICE_ACCESS_MODE;
                 [CCode (cname="PA_PROP_DEVICE_MASTER_DEVICE")]
-                public static const string PROP_DEVICE_MASTER_DEVICE;
+                public const string PROP_DEVICE_MASTER_DEVICE;
                 [CCode (cname="PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE")]
-                public static const string PROP_DEVICE_BUFFERING_BUFFER_SIZE;
+                public const string PROP_DEVICE_BUFFERING_BUFFER_SIZE;
                 [CCode (cname="PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE")]
-                public static const string PROP_DEVICE_BUFFERING_FRAGMENT_SIZE;
+                public const string PROP_DEVICE_BUFFERING_FRAGMENT_SIZE;
                 [CCode (cname="PA_PROP_DEVICE_PROFILE_NAME")]
-                public static const string PROP_DEVICE_PROFILE_NAME;
+                public const string PROP_DEVICE_PROFILE_NAME;
                 [CCode (cname="PA_PROP_DEVICE_INTENDED_ROLES")]
-                public static const string PROP_DEVICE_INTENDED_ROLES;
+                public const string PROP_DEVICE_INTENDED_ROLES;
                 [CCode (cname="PA_PROP_DEVICE_PROFILE_DESCRIPTION")]
-                public static const string PROP_DEVICE_PROFILE_DESCRIPTION;
+                public const string PROP_DEVICE_PROFILE_DESCRIPTION;
                 [CCode (cname="PA_PROP_MODULE_AUTHOR")]
-                public static const string PROP_MODULE_AUTHOR;
+                public const string PROP_MODULE_AUTHOR;
                 [CCode (cname="PA_PROP_MODULE_DESCRIPTION")]
-                public static const string PROP_MODULE_DESCRIPTION;
+                public const string PROP_MODULE_DESCRIPTION;
                 [CCode (cname="PA_PROP_MODULE_USAGE")]
-                public static const string PROP_MODULE_USAGE;
+                public const string PROP_MODULE_USAGE;
                 [CCode (cname="PA_PROP_MODULE_VERSION")]
-                public static const string PROP_MODULE_VERSION;
+                public const string PROP_MODULE_VERSION;
 
                 [CCode (cname="pa_proplist_new")]
                 public Proplist();
