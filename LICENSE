@@ -1,5 +1,5 @@
-All PulseAudio source files are licensed under the GNU Lesser General Public
-License. (see file LGPL for details)
+All PulseAudio source files, except as noted below, are licensed under the GNU
+Lesser General Public License. (see file LGPL for details)
 
 However, the server side has optional GPL dependencies.  These include the
 libsamplerate and gdbm (core libraries), LIRC (lirc module) and FFTW (equalizer
