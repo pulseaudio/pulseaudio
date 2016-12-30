@@ -124,7 +124,6 @@ static void check_queue_invariants(pa_memblockq *bq) {
     size_t minreq = pa_memblockq_get_minreq(bq);
     size_t prebuf = pa_memblockq_get_prebuf(bq);
     size_t length = pa_memblockq_get_length(bq);
-    size_t missing = pa_memblockq_missing(bq);
 
     /* base > zero */
     ck_assert_int_gt(base, 0);
@@ -161,15 +160,6 @@ static void check_queue_invariants(pa_memblockq *bq) {
      * length <= maxlength */
     ck_assert_int_ge(length, 0);
     ck_assert_int_le(length, maxlength);
-
-    /* missing >= 0
-     * missing <= tlength
-     * minimum reported amount of missing data is minreq
-     * reported amount of missing data is target length minus actual length */
-    ck_assert_int_ge(missing, 0);
-    ck_assert_int_le(missing, tlength);
-    ck_assert((missing == 0) || (missing >= minreq));
-    ck_assert((missing == 0) || (missing == tlength - length));
 }
 
 START_TEST (memchunk_from_str_test) {
@@ -218,7 +208,6 @@ START_TEST (memblockq_test_initial_properties) {
     /* check initial properties */
     ck_assert_int_eq(pa_memblockq_is_readable(bq), false);
     ck_assert_int_eq(pa_memblockq_get_length(bq), 0);
-    ck_assert_int_eq(pa_memblockq_missing(bq), tlength);
     ck_assert_int_eq(pa_memblockq_get_maxlength(bq), maxlength);
     ck_assert_int_eq(pa_memblockq_get_tlength(bq), tlength);
     ck_assert_int_eq(pa_memblockq_get_prebuf(bq), prebuf);
@@ -379,7 +368,6 @@ START_TEST (memblockq_test_length_changes) {
 
     /* check state */
     ck_assert_int_eq(pa_memblockq_get_length(bq), 32);
-    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
 
     /* adjust maximum length
      * This might modify tlength, prebuf, minreq, too. */
@@ -434,7 +422,6 @@ START_TEST (memblockq_test_pop_missing) {
     fail_unless(bq != NULL);
 
     /* initially, the whole target length of bytes is missing */
-    ck_assert_int_eq(pa_memblockq_missing(bq), tlength);
     ck_assert_int_eq(pa_memblockq_pop_missing(bq), tlength);
 
     /* add 20 bytes of data */
@@ -442,8 +429,7 @@ START_TEST (memblockq_test_pop_missing) {
         ck_assert_int_eq(pa_memblockq_push(bq, &data), 0);
     check_queue_invariants(bq);
 
-    /* the missing bytes are reduced, but no new missing data is reported */
-    ck_assert_int_eq(pa_memblockq_missing(bq), tlength - 20);
+    /* no new missing data is reported */
     ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
 
     /* fill up to 100 bytes of data */
@@ -452,7 +438,6 @@ START_TEST (memblockq_test_pop_missing) {
     check_queue_invariants(bq);
 
     /* queue fill level is at target level now */
-    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
     ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
 
     /* pop 40 bytes of data, down to 60 bytes fill level */
@@ -464,7 +449,6 @@ START_TEST (memblockq_test_pop_missing) {
 
     /* queue fill level is 40 bytes under target length
      * This is less than minreq, so no missing data is reported */
-    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
     ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
 
     /* add 30 bytes of data, up to 90 bytes fill level */
@@ -474,7 +458,6 @@ START_TEST (memblockq_test_pop_missing) {
 
     /* queue fill level is 10 bytes under target length
      * This is less than minreq, so no missing data is reported. */
-    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
     ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
 
     /* pop 20 bytes of data, down to 70 bytes of data */
@@ -486,7 +469,6 @@ START_TEST (memblockq_test_pop_missing) {
 
     /* queue fill level is 30 bytes under target length
      * This is less than minreq, so no missing data is reported */
-    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
     ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
 
     /* add 50 bytes of data, up to 120 bytes fill level */
@@ -495,7 +477,6 @@ START_TEST (memblockq_test_pop_missing) {
     check_queue_invariants(bq);
 
     /* queue fill level is above target level, so no missing data is reported. */
-    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
     ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
 
     /* pop 20 bytes of data, down the target level */
@@ -507,7 +488,6 @@ START_TEST (memblockq_test_pop_missing) {
 
     /* queue fill level is at target level now
      * No missing data should be reported. */
-    ck_assert_int_eq(pa_memblockq_missing(bq), 0);
     ck_assert_int_eq(pa_memblockq_pop_missing(bq), 0);
 
     /* cleanup */

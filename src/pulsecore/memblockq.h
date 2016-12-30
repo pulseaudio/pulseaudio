@@ -56,7 +56,7 @@ typedef struct pa_memblockq pa_memblockq;
                 if no data is in the queue and will never fail. Pass
                 (size_t) -1 for the default.
 
-   - minreq:    pa_memblockq_missing() will only return values greater
+   - minreq:    pa_memblockq_pop_missing() will only return values greater
                 than this value. Pass 0 for the default.
 
    - maxrewind: how many bytes of history to keep in the queue
@@ -111,9 +111,6 @@ bool pa_memblockq_is_readable(pa_memblockq *bq);
 
 /* Return the length of the queue in bytes */
 size_t pa_memblockq_get_length(pa_memblockq *bq);
-
-/* Return how many bytes are missing in queue to the specified fill amount */
-size_t pa_memblockq_missing(pa_memblockq *bq);
 
 /* Return the number of bytes that are missing since the last call to
  * this function, reset the internal counter to 0. */
