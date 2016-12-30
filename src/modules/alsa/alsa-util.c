@@ -410,11 +410,6 @@ success:
     if (ss->format != _ss.format)
         pa_log_info("Device %s doesn't support sample format %s, changed to %s.", snd_pcm_name(pcm_handle), pa_sample_format_to_string(ss->format), pa_sample_format_to_string(_ss.format));
 
-    if ((ret = snd_pcm_prepare(pcm_handle)) < 0) {
-        pa_log_info("snd_pcm_prepare() failed: %s", pa_alsa_strerror(ret));
-        goto finish;
-    }
-
     if ((ret = snd_pcm_hw_params_current(pcm_handle, hwparams)) < 0) {
         pa_log_info("snd_pcm_hw_params_current() failed: %s", pa_alsa_strerror(ret));
         goto finish;

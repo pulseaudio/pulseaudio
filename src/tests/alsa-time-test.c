@@ -132,9 +132,6 @@ int main(int argc, char *argv[]) {
     r = snd_pcm_sw_params(pcm, swparams);
     assert(r == 0);
 
-    r = snd_pcm_prepare(pcm);
-    assert(r == 0);
-
     r = snd_pcm_sw_params_current(pcm, swparams);
     assert(r == 0);
 
