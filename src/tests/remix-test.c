@@ -27,6 +27,17 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/memblock.h>
 
+struct resample_flags {
+    const char *str;
+    pa_resample_flags_t value;
+};
+
+/* Call like this to get an initializer for struct resample_flags:
+ *     RESAMPLE_FLAGS(PA_RESAMPLER_NO_LFE)
+ */
+#define RESAMPLE_FLAGS(flags) { .str = #flags, .value = (flags) }
+
+
 int main(int argc, char *argv[]) {
 
     static const pa_channel_map maps[] = {
@@ -45,7 +56,15 @@ int main(int argc, char *argv[]) {
         { 0, { 0 } }
     };
 
-    unsigned i, j;
+    static const struct resample_flags flag_sets[] = {
+        RESAMPLE_FLAGS(0),
+        RESAMPLE_FLAGS(PA_RESAMPLER_NO_REMAP),
+        RESAMPLE_FLAGS(PA_RESAMPLER_NO_REMIX),
+        RESAMPLE_FLAGS(PA_RESAMPLER_NO_LFE),
+        { .str = NULL, .value = 0 },
+    };
+
+    unsigned i, j, k;
     pa_mempool *pool;
     unsigned crossover_freq = 120;
 
@@ -59,20 +78,24 @@ int main(int argc, char *argv[]) {
             pa_resampler *r;
             pa_sample_spec ss1, ss2;
 
-            pa_log_info("Converting from '%s' to '%s'.", pa_channel_map_snprint(a, sizeof(a), &maps[i]), pa_channel_map_snprint(b, sizeof(b), &maps[j]));
-
             ss1.channels = maps[i].channels;
             ss2.channels = maps[j].channels;
 
             ss1.rate = ss2.rate = 44100;
             ss1.format = ss2.format = PA_SAMPLE_S16NE;
 
-            r = pa_resampler_new(pool, &ss1, &maps[i], &ss2, &maps[j], crossover_freq, PA_RESAMPLER_AUTO, 0);
+            for (k = 0; flag_sets[k].str; k++) {
+                pa_log_info("Converting from '%s' to '%s' with flags %s.", pa_channel_map_snprint(a, sizeof(a), &maps[i]),
+                            pa_channel_map_snprint(b, sizeof(b), &maps[j]), flag_sets[k].str);
 
-            /* We don't really care for the resampler. We just want to
-             * see the remixing debug output. */
+                r = pa_resampler_new(pool, &ss1, &maps[i], &ss2, &maps[j], crossover_freq, PA_RESAMPLER_AUTO,
+                                     flag_sets[k].value);
 
-            pa_resampler_free(r);
+                /* We don't really care for the resampler. We just want to
+                 * see the remixing debug output. */
+
+                pa_resampler_free(r);
+            }
         }
 
     pa_mempool_unref(pool);
