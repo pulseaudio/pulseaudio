@@ -130,6 +130,14 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
+      <p><opt>remixing-use-all-sink-channels=</opt> If enabled, use
+      all sink channels when remixing. Otherwise, remix to the minimal
+      set of sink channels needed to reproduce all of the source
+      channels. (This has no effect on LFE remixing.) Defaults to
+      <opt>yes</opt>.</p>
+    </option>
+
+    <option>
       <p><opt>enable-lfe-remixing=</opt> If disabled when upmixing or
       downmixing ignore LFE channels. When this option is disabled the
       output LFE channel will only get a signal when an input LFE

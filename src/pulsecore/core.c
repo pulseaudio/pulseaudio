@@ -142,6 +142,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, bool enable_memfd, size_t 
     c->realtime_scheduling = false;
     c->realtime_priority = 5;
     c->disable_remixing = false;
+    c->remixing_use_all_sink_channels = true;
     c->disable_lfe_remixing = true;
     c->lfe_crossover_freq = 0;
     c->deferred_volume = true;

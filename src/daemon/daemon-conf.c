@@ -82,6 +82,7 @@ static const pa_daemon_conf default_conf = {
     .log_time = false,
     .resample_method = PA_RESAMPLER_AUTO,
     .disable_remixing = false,
+    .remixing_use_all_sink_channels = true,
     .disable_lfe_remixing = true,
     .lfe_crossover_freq = 0,
     .config_file = NULL,
@@ -554,6 +555,8 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "nice-level",                 parse_nice_level,         c, NULL },
         { "disable-remixing",           pa_config_parse_bool,     &c->disable_remixing, NULL },
         { "enable-remixing",            pa_config_parse_not_bool, &c->disable_remixing, NULL },
+        { "remixing-use-all-sink-channels",
+                                        pa_config_parse_bool,     &c->remixing_use_all_sink_channels, NULL },
         { "disable-lfe-remixing",       pa_config_parse_bool,     &c->disable_lfe_remixing, NULL },
         { "enable-lfe-remixing",        pa_config_parse_not_bool, &c->disable_lfe_remixing, NULL },
         { "lfe-crossover-freq",         pa_config_parse_unsigned, &c->lfe_crossover_freq, NULL },
@@ -748,6 +751,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "log-level = %s\n", log_level_to_string[c->log_level]);
     pa_strbuf_printf(s, "resample-method = %s\n", pa_resample_method_to_string(c->resample_method));
     pa_strbuf_printf(s, "enable-remixing = %s\n", pa_yes_no(!c->disable_remixing));
+    pa_strbuf_printf(s, "remixing-use-all-sink-channels = %s\n", pa_yes_no(c->remixing_use_all_sink_channels));
     pa_strbuf_printf(s, "enable-lfe-remixing = %s\n", pa_yes_no(!c->disable_lfe_remixing));
     pa_strbuf_printf(s, "lfe-crossover-freq = %u\n", c->lfe_crossover_freq);
     pa_strbuf_printf(s, "default-sample-format = %s\n", pa_sample_format_to_string(c->default_sample_spec.format));
