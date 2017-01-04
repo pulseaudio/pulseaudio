@@ -796,6 +796,64 @@ static int front_rear_side(pa_channel_position_t p) {
     return ON_OTHER;
 }
 
+/* Fill a map of which output channels should get mono from input, not including
+ * LFE output channels. (The LFE output channels are mapped separately.)
+ */
+static void setup_oc_mono_map(const pa_resampler *r, float *oc_mono_map) {
+    unsigned oc;
+    unsigned n_oc;
+    bool found_oc_for_mono = false;
+
+    pa_assert(r);
+    pa_assert(oc_mono_map);
+
+    n_oc = r->o_ss.channels;
+
+    if (!(r->flags & PA_RESAMPLER_NO_FILL_SINK)) {
+        /* Mono goes to all non-LFE output channels and we're done. */
+        for (oc = 0; oc < n_oc; oc++)
+            oc_mono_map[oc] = on_lfe(r->o_cm.map[oc]) ? 0.0f : 1.0f;
+        return;
+    } else {
+        /* Initialize to all zero so we can select individual channels below. */
+        for (oc = 0; oc < n_oc; oc++)
+            oc_mono_map[oc] = 0.0f;
+    }
+
+    for (oc = 0; oc < n_oc; oc++) {
+        if (r->o_cm.map[oc] == PA_CHANNEL_POSITION_MONO) {
+            oc_mono_map[oc] = 1.0f;
+            found_oc_for_mono = true;
+        }
+    }
+    if (found_oc_for_mono)
+        return;
+
+    for (oc = 0; oc < n_oc; oc++) {
+        if (r->o_cm.map[oc] == PA_CHANNEL_POSITION_FRONT_CENTER) {
+            oc_mono_map[oc] = 1.0f;
+            found_oc_for_mono = true;
+        }
+    }
+    if (found_oc_for_mono)
+        return;
+
+    for (oc = 0; oc < n_oc; oc++) {
+        if (r->o_cm.map[oc] == PA_CHANNEL_POSITION_FRONT_LEFT || r->o_cm.map[oc] == PA_CHANNEL_POSITION_FRONT_RIGHT) {
+            oc_mono_map[oc] = 1.0f;
+            found_oc_for_mono = true;
+        }
+    }
+    if (found_oc_for_mono)
+        return;
+
+    /* Give up on finding a suitable map for mono, and just send it to all
+     * non-LFE output channels.
+     */
+    for (oc = 0; oc < n_oc; oc++)
+        oc_mono_map[oc] = on_lfe(r->o_cm.map[oc]) ? 0.0f : 1.0f;
+}
+
 static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed) {
     unsigned oc, ic;
     unsigned n_oc, n_ic;
@@ -858,14 +916,14 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed)
          * 1) Connect all channels with matching names.
          *
          * 2) Mono Handling:
-         *    S:Mono: Copy into all D:channels
+         *    S:Mono: See setup_oc_mono_map().
          *    D:Mono: Avg all S:channels
          *
-         * 3) Mix D:Left, D:Right:
+         * 3) Mix D:Left, D:Right (if PA_RESAMPLER_NO_FILL_SINK is clear):
          *    D:Left: If not connected, avg all S:Left
          *    D:Right: If not connected, avg all S:Right
          *
-         * 4) Mix D:Center
+         * 4) Mix D:Center (if PA_RESAMPLER_NO_FILL_SINK is clear):
          *    If not connected, avg all S:Center
          *    If still not connected, avg all S:Left, S:Right
          *
@@ -908,6 +966,7 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed)
             ic_unconnected_center = 0,
             ic_unconnected_lfe = 0;
         bool ic_unconnected_center_mixed_in = 0;
+        float oc_mono_map[PA_CHANNELS_MAX];
 
         for (ic = 0; ic < n_ic; ic++) {
             if (on_left(r->i_cm.map[ic]))
@@ -918,6 +977,8 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed)
                 ic_center++;
         }
 
+        setup_oc_mono_map(r, oc_mono_map);
+
         for (oc = 0; oc < n_oc; oc++) {
             bool oc_connected = false;
             pa_channel_position_t b = r->o_cm.map[oc];
@@ -925,14 +986,17 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed)
             for (ic = 0; ic < n_ic; ic++) {
                 pa_channel_position_t a = r->i_cm.map[ic];
 
-                if (a == b || a == PA_CHANNEL_POSITION_MONO) {
+                if (a == b) {
                     m->map_table_f[oc][ic] = 1.0f;
 
                     oc_connected = true;
                     ic_connected[ic] = true;
+                }
+                else if (a == PA_CHANNEL_POSITION_MONO && oc_mono_map[oc] > 0.0f) {
+                    m->map_table_f[oc][ic] = oc_mono_map[oc];
 
-                    if (a == PA_CHANNEL_POSITION_MONO && on_lfe(b) && !(r->flags & PA_RESAMPLER_NO_LFE))
-                        *lfe_remixed = true;
+                    oc_connected = true;
+                    ic_connected[ic] = true;
                 }
                 else if (b == PA_CHANNEL_POSITION_MONO) {
                     m->map_table_f[oc][ic] = 1.0f / (float) n_ic;
@@ -945,7 +1009,7 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed)
             if (!oc_connected) {
                 /* Try to find matching input ports for this output port */
 
-                if (on_left(b)) {
+                if (on_left(b) && !(r->flags & PA_RESAMPLER_NO_FILL_SINK)) {
 
                     /* We are not connected and on the left side, let's
                      * average all left side input channels. */
@@ -960,7 +1024,7 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed)
                     /* We ignore the case where there is no left input channel.
                      * Something is really wrong in this case anyway. */
 
-                } else if (on_right(b)) {
+                } else if (on_right(b) && !(r->flags & PA_RESAMPLER_NO_FILL_SINK)) {
 
                     /* We are not connected and on the right side, let's
                      * average all right side input channels. */
@@ -976,7 +1040,7 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed)
                      * channel. Something is really wrong in this case anyway.
                      * */
 
-                } else if (on_center(b)) {
+                } else if (on_center(b) && !(r->flags & PA_RESAMPLER_NO_FILL_SINK)) {
 
                     if (ic_center > 0) {
 
