@@ -1,0 +1,3224 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.freedesktop.org/enter_bug.cgi?"
+"product=PulseAudio&keywords=I18N+L10N&component=misc\n"
+"POT-Creation-Date: 2016-09-22 02:28+0000\n"
+"PO-Revision-Date: 2016-09-29 23:38+0300\n"
+"Last-Translator: Moo\n"
+"Language-Team: \n"
+"Language: lt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.9\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n"
+"%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: ../src/daemon/cmdline.c:113
+#, c-format
+msgid ""
+"%s [options]\n"
+"\n"
+"COMMANDS:\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"      --dump-conf                       Dump default configuration\n"
+"      --dump-modules                    Dump list of available modules\n"
+"      --dump-resample-methods           Dump available resample methods\n"
+"      --cleanup-shm                     Cleanup stale shared memory "
+"segments\n"
+"      --start                           Start the daemon if it is not "
+"running\n"
+"  -k  --kill                            Kill a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Run as system-wide instance\n"
+"  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+"      --fail[=BOOL]                     Quit when startup fails\n"
+"      --high-priority[=BOOL]            Try to set high nice level\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested "
+"module\n"
+"                                        loading/unloading after startup\n"
+"      --disallow-exit[=BOOL]            Disallow user requested exit\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
+"                                        time passed\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v  --verbose                         Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
+"                                        Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"      --enable-memfd[=BOOL]             Enable memfd shared memory support.\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
+"\n"
+"  -n                                    Don't load default script file\n"
+msgstr ""
+"%s [parametrai]\n"
+"\n"
+"KOMANDOS:\n"
+"  -h, --help                            Rodyti šią pagalbą\n"
+"      --version                         Rodyti versiją\n"
+"      --dump-conf                       Sukurti numatytosios konfigūracijos "
+"išklotinę\n"
+"      --dump-modules                    Sukurti prieinamų modulių išklotinę\n"
+"      --dump-resample-methods           Sukurti prieinamų ėminių keitimo "
+"metodų išklotinę\n"
+"      --cleanup-shm                     Išvalyti pasenusius bendrinamos "
+"atminties segmentus\n"
+"      --start                           Paleisti tarnybą, jeigu ji nėra "
+"vykdoma\n"
+"  -k  --kill                            Nutraukti vykdomos tarnybos darbą\n"
+"      --check                           Patikrinti ar yra paleista tarnyba "
+"(grąžina tik išėjimo kodą)\n"
+"\n"
+"PARAMETRAI:\n"
+"      --system[=BOOL]                   Vykdyti egzempliorių sistemos mastu\n"
+"  -D, --daemonize[=BOOL]                Po paleidimo paversti tarnyba\n"
+"      --fail[=BOOL]                     Baigti darbą, kai paleidimas "
+"nepavyksta\n"
+"      --high-priority[=BOOL]            Pabandyti nustatyti aukštesnį nice "
+"lygį\n"
+"                                        (yra prieinama tik kaip root, su "
+"SUID arba\n"
+"                                        su iškeltu RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Pabandyti įjungti tikralaikį "
+"planavimą\n"
+"                                        (yra prieinama tik kaip root, su "
+"SUID arba\n"
+"                                        su iškeltu RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Neleisti naudotojo užklausto "
+"modulio\n"
+"                                        įkėlimą/iškėlimą po paleidimo\n"
+"      --disallow-exit[=BOOL]            Neleisti naudotojo užklausto "
+"išėjimo\n"
+"      --exit-idle-time=SEK.             Nutraukti tarnybą, kai ji yra "
+"neveikli ir praėjo\n"
+"                                        tiek laiko\n"
+"      --scache-idle-time=SEK.           Iškelti automatiškai įkeltus "
+"ėminius, kai\n"
+"                                        nėra veiklos ir praėjo tiek laiko\n"
+"      --log-level[=LYGIS]               Padidinti arba nustatyti išsamumo "
+"lygį\n"
+"  -v  --verbose                         Padidinti išsamumo lygį\n"
+"      --log-target={auto,syslog,stderr,file:KELIAS,newfile:KELIAS}\n"
+"                                        Nurodyti žurnalo paskirties vietą\n"
+"      --log-meta[=BOOL]                 Į žurnalo žinutes įtraukti kodo "
+"vietą\n"
+"      --log-time[=BOOL]                 Į žurnalo žinutes įtraukti laiko "
+"žymas\n"
+"      --log-backtrace=KADRAI            Į žurnalo žinutes įtraukti "
+"atgalinius pėdsakus\n"
+"  -p, --dl-search-path=KELIAS             Nustatyti paieškos kelią, skirtą "
+"dinaminiams\n"
+"                                        bendrinamiems objektams "
+"(įskiepiams)\n"
+"      --resample-method=METODAS          Naudoti nurodytą ėminių keitimo "
+"metodą\n"
+"                                        (Galimoms reikšmėms, žiūrėkite --"
+"dump-resample-methods\n"
+"      --use-pid-file[=BOOL]             Sukurti PID failą\n"
+"      --no-cpu-limit[=BOOL]             Nediegti procesoriaus apkrovos "
+"ribotuvą\n"
+"                                        platformose, kurios jį palaiko.\n"
+"      --disable-shm[=BOOL]              Išjungti bendrinamos atminties "
+"palaikymą.\n"
+"      --enable-memfd[=BOOL]             Įjungti memfd bendrinamo atminties "
+"palaikymą.\n"
+"\n"
+"PALEIDIMO SCENARIJUS:\n"
+"  -L, --load=\"MODULIO ARGUMENTAI\"         Įkelti nurodytą įskiepio modulį "
+"su\n"
+"                                        nurodytais argumentais\n"
+"  -F, --file=FILENAME                   Vykdyti nurodytą scenarijų\n"
+"  -C                                    Po paleidimo atverti komandų eilutę "
+"vykdomame TTY\n"
+"\n"
+"  -n                                    Neįkelti numatytojo scenarijaus "
+"failo\n"
+
+#: ../src/daemon/cmdline.c:246
+msgid "--daemonize expects boolean argument"
+msgstr "Parametrui --daemonize turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/cmdline.c:254
+msgid "--fail expects boolean argument"
+msgstr "Parametrui --fail turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/cmdline.c:265
+msgid ""
+"--log-level expects log level argument (either numeric in range 0..4 or one "
+"of debug, info, notice, warn, error)."
+msgstr ""
+"Parametrui --log-level turėtumėte nurodyti registravimo lygio argumentą "
+"(arba skaitmeninį rėžyje 0..4, arba vieną iš debug, info, notice, warn, "
+"error)."
+
+#: ../src/daemon/cmdline.c:277
+msgid "--high-priority expects boolean argument"
+msgstr "Parametrui --high-priority turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/cmdline.c:285
+msgid "--realtime expects boolean argument"
+msgstr "Parametrui --realtime turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/cmdline.c:293
+msgid "--disallow-module-loading expects boolean argument"
+msgstr ""
+"Parametrui --disallow-module-loading turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/cmdline.c:301
+msgid "--disallow-exit expects boolean argument"
+msgstr "Parametrui --disallow-exit turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/cmdline.c:309
+msgid "--use-pid-file expects boolean argument"
+msgstr "Parametrui --use-pid-file turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/cmdline.c:328
+msgid ""
+"Invalid log target: use either 'syslog', 'journal','stderr' or 'auto' or a "
+"valid file name 'file:<path>', 'newfile:<path>'."
+msgstr ""
+"Neteisinga žurnalo paskirtis: naudokite arba \"syslog\", \"journal\", "
+"\"stderr\", arba \"auto\", arba teisingą failo pavadinimą \"file:<kelias>\", "
+"\"newfile:<kelias>\"."
+
+#: ../src/daemon/cmdline.c:330
+msgid ""
+"Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
+"name 'file:<path>', 'newfile:<path>'."
+msgstr ""
+"Neteisinga žurnalo paskirtis: naudokite arba \"syslog\", \"stderr\", arba "
+"\"auto\", arba teisingą failo pavadinimą \"file:<kelias>\", \"newfile:"
+"<kelias>\"."
+
+#: ../src/daemon/cmdline.c:338
+msgid "--log-time expects boolean argument"
+msgstr "Parametrui --log-time turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/cmdline.c:346
+msgid "--log-meta expects boolean argument"
+msgstr "Parametrui --log-meta turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/cmdline.c:366
+#, c-format
+msgid "Invalid resample method '%s'."
+msgstr "Neteisingas ėminių keitimo metodas \"%s\"."
+
+#: ../src/daemon/cmdline.c:373
+msgid "--system expects boolean argument"
+msgstr "Parametrui --system turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/cmdline.c:381
+msgid "--no-cpu-limit expects boolean argument"
+msgstr "Parametrui --no-cpu-limit turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/cmdline.c:389
+msgid "--disable-shm expects boolean argument"
+msgstr "Parametrui --disable-shm turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/cmdline.c:397
+msgid "--enable-memfd expects boolean argument"
+msgstr "Parametrui --enable-memfd turėtumėte nurodyti loginį argumentą"
+
+#: ../src/daemon/daemon-conf.c:260
+#, c-format
+msgid "[%s:%u] Invalid log target '%s'."
+msgstr "[%s:%u] Neteisinga žurnalo paskirtis \"%s\"."
+
+#: ../src/daemon/daemon-conf.c:275
+#, c-format
+msgid "[%s:%u] Invalid log level '%s'."
+msgstr "[%s:%u] Neteisingas registravimo lygis \"%s\"."
+
+#: ../src/daemon/daemon-conf.c:290
+#, c-format
+msgid "[%s:%u] Invalid resample method '%s'."
+msgstr "[%s:%u] Neteisingas ėminių keitimo metodas \"%s\"."
+
+#: ../src/daemon/daemon-conf.c:312
+#, c-format
+msgid "[%s:%u] Invalid rlimit '%s'."
+msgstr "[%s:%u] Neteisingas rlimit \"%s\"."
+
+#: ../src/daemon/daemon-conf.c:332
+#, c-format
+msgid "[%s:%u] Invalid sample format '%s'."
+msgstr "[%s:%u] Neteisingas ėminio formatas \"%s\"."
+
+#: ../src/daemon/daemon-conf.c:349 ../src/daemon/daemon-conf.c:366
+#, c-format
+msgid "[%s:%u] Invalid sample rate '%s'."
+msgstr "[%s:%u] Neteisingas skaitmeninimo dažnis \"%s\"."
+
+#: ../src/daemon/daemon-conf.c:389
+#, c-format
+msgid "[%s:%u] Invalid sample channels '%s'."
+msgstr "[%s:%u] Neteisingi ėminio kanalai \"%s\"."
+
+#: ../src/daemon/daemon-conf.c:406
+#, c-format
+msgid "[%s:%u] Invalid channel map '%s'."
+msgstr "[%s:%u] Neteisinga kanalų schema \"%s\"."
+
+#: ../src/daemon/daemon-conf.c:423
+#, c-format
+msgid "[%s:%u] Invalid number of fragments '%s'."
+msgstr "[%s:%u] Neteisingas fragmentų skaičius \"%s\"."
+
+#: ../src/daemon/daemon-conf.c:440
+#, c-format
+msgid "[%s:%u] Invalid fragment size '%s'."
+msgstr "[%s:%u] Neteisingas fragmento dydis \"%s\"."
+
+#: ../src/daemon/daemon-conf.c:457
+#, c-format
+msgid "[%s:%u] Invalid nice level '%s'."
+msgstr "[%s:%u] Neteisingas nice lygis \"%s\"."
+
+#: ../src/daemon/daemon-conf.c:500
+#, c-format
+msgid "[%s:%u] Invalid server type '%s'."
+msgstr "[%s:%u] Neteisingas serverio tipas \"%s\"."
+
+#: ../src/daemon/daemon-conf.c:615
+#, c-format
+msgid "Failed to open configuration file: %s"
+msgstr "Nepavyko atverti konfigūracijos failo: %s"
+
+#: ../src/daemon/daemon-conf.c:631
+msgid ""
+"The specified default channel map has a different number of channels than "
+"the specified default number of channels."
+msgstr ""
+"Nurodytoje numatytojoje kanalų schemoje yra skirtingas kanalų skaičius nei nu"
+
+#: ../src/daemon/daemon-conf.c:718
+#, c-format
+msgid "### Read from configuration file: %s ###\n"
+msgstr "### Perskaityta iš konfigūracijos failo: %s ###\n"
+
+#: ../src/daemon/dumpmodules.c:57
+#, c-format
+msgid "Name: %s\n"
+msgstr "Pavadinimas: %s\n"
+
+#: ../src/daemon/dumpmodules.c:60
+#, c-format
+msgid "No module information available\n"
+msgstr "Nėra prieinamos modulio informacijos\n"
+
+#: ../src/daemon/dumpmodules.c:63
+#, c-format
+msgid "Version: %s\n"
+msgstr "Versija: %s\n"
+
+#: ../src/daemon/dumpmodules.c:65
+#, c-format
+msgid "Description: %s\n"
+msgstr "Aprašas: %s\n"
+
+#: ../src/daemon/dumpmodules.c:67
+#, c-format
+msgid "Author: %s\n"
+msgstr "Autorius: %s\n"
+
+#: ../src/daemon/dumpmodules.c:69
+#, c-format
+msgid "Usage: %s\n"
+msgstr "Naudojimas: %s\n"
+
+#: ../src/daemon/dumpmodules.c:70
+#, c-format
+msgid "Load Once: %s\n"
+msgstr "Įkelti kai: %s\n"
+
+#: ../src/daemon/dumpmodules.c:72
+#, c-format
+msgid "DEPRECATION WARNING: %s\n"
+msgstr "ĮSPĖJIMAS APIE PASENUSĮ MODULĮ: %s\n"
+
+#: ../src/daemon/dumpmodules.c:76
+#, c-format
+msgid "Path: %s\n"
+msgstr "Kelias: %s\n"
+
+#: ../src/daemon/ltdl-bind-now.c:75
+#, c-format
+msgid "Failed to open module %s: %s"
+msgstr "Nepavyko atverti modulio %s: %s"
+
+#: ../src/daemon/ltdl-bind-now.c:126
+msgid "Failed to find original lt_dlopen loader."
+msgstr "Nepavyko rasti pradinio lt_dlopen įkėliklio."
+
+#: ../src/daemon/ltdl-bind-now.c:131
+msgid "Failed to allocate new dl loader."
+msgstr "Nepavyko paskirstyti naujo dl įkėliklio."
+
+#: ../src/daemon/ltdl-bind-now.c:144
+msgid "Failed to add bind-now-loader."
+msgstr "Nepavyko pridėti bind-now-loader."
+
+#: ../src/daemon/main.c:160
+#, c-format
+msgid "Failed to find user '%s'."
+msgstr "Nepavyko rasti naudotojo \"%s\"."
+
+#: ../src/daemon/main.c:165
+#, c-format
+msgid "Failed to find group '%s'."
+msgstr "Nepavyko rasti grupės \"%s\"."
+
+#: ../src/daemon/main.c:174
+#, c-format
+msgid "GID of user '%s' and of group '%s' don't match."
+msgstr "Naudoto \"%s\" ir grupės \"%s\" GID nesutampa."
+
+#: ../src/daemon/main.c:179
+#, c-format
+msgid "Home directory of user '%s' is not '%s', ignoring."
+msgstr "\"%s\" naudotojo namų katalogas nėra \"%s\", nepaisoma."
+
+#: ../src/daemon/main.c:182 ../src/daemon/main.c:187
+#, c-format
+msgid "Failed to create '%s': %s"
+msgstr "Nepavyko sukurti \"%s\": %s"
+
+#: ../src/daemon/main.c:194
+#, c-format
+msgid "Failed to change group list: %s"
+msgstr "Nepavyko pakeisti grupės sąrašo: %s"
+
+#: ../src/daemon/main.c:210
+#, c-format
+msgid "Failed to change GID: %s"
+msgstr "Nepavyko pakeisti GID: %s"
+
+#: ../src/daemon/main.c:226
+#, c-format
+msgid "Failed to change UID: %s"
+msgstr "Nepavyko pakeisti UID: %s"
+
+#: ../src/daemon/main.c:255
+msgid "System wide mode unsupported on this platform."
+msgstr "Sistemą apimanti veiksena šioje platformoje nepalaikoma."
+
+#: ../src/daemon/main.c:484
+msgid "Failed to parse command line."
+msgstr "Nepavyko analizuoti komandų eilutės."
+
+#: ../src/daemon/main.c:523
+msgid ""
+"System mode refused for non-root user. Only starting the D-Bus server lookup "
+"service."
+msgstr ""
+"Sistemos veiksena atsisakė pasileisti ne root naudotojui. Paleidžiama tik D-"
+"Bus serverio peržvalginė tarnyba."
+
+#: ../src/daemon/main.c:622
+#, c-format
+msgid "Failed to kill daemon: %s"
+msgstr "Nepavyko nutraukti tarnybos: %s"
+
+#: ../src/daemon/main.c:651
+msgid ""
+"This program is not intended to be run as root (unless --system is "
+"specified)."
+msgstr ""
+"Ši programa nėra skirta vykdyti administratoriaus teisėmis (nebent yra "
+"nurodyta --system)."
+
+#: ../src/daemon/main.c:654
+msgid "Root privileges required."
+msgstr "Reikalaujamos pagrindinio naudotojo (root) teisės."
+
+#: ../src/daemon/main.c:661
+msgid "--start not supported for system instances."
+msgstr "Parametras --start nėra palaikomas sistemos egzemplioriams."
+
+#: ../src/daemon/main.c:701
+#, c-format
+msgid "User-configured server at %s, refusing to start/autospawn."
+msgstr ""
+"Naudotojo sukonfigūruotas serveris ties %s, atsisako pasileisti/automatiškai "
+"atnaujinti darbą."
+
+#: ../src/daemon/main.c:707
+#, c-format
+msgid ""
+"User-configured server at %s, which appears to be local. Probing deeper."
+msgstr ""
+"Naudotojo sukonfigūruotas serveris ties %s, kuris, atrodo, yra vietinis. "
+"Tiriama išsamiau."
+
+#: ../src/daemon/main.c:712
+msgid "Running in system mode, but --disallow-exit not set."
+msgstr "Vykdoma sistemos veiksenoje, tačiau nėra nustatytas --disallow-exit."
+
+#: ../src/daemon/main.c:715
+msgid "Running in system mode, but --disallow-module-loading not set."
+msgstr ""
+"Vykdoma sistemos veiksenoje, tačiau nėra nustatytas --disallow-module-"
+"loading."
+
+#: ../src/daemon/main.c:718
+msgid "Running in system mode, forcibly disabling SHM mode."
+msgstr "Vykdoma sistemos veiksenoje, priverstinai išjungiama SHM veiksena."
+
+#: ../src/daemon/main.c:723
+msgid "Running in system mode, forcibly disabling exit idle time."
+msgstr ""
+"Vykdoma sistemos veiksenoje, priverstinai išjungiamas išėjimo laikas, esant "
+"neveiklumui."
+
+#: ../src/daemon/main.c:756
+msgid "Failed to acquire stdio."
+msgstr "Nepavyko įgyti stdio."
+
+#: ../src/daemon/main.c:762 ../src/daemon/main.c:833
+#, c-format
+msgid "pipe() failed: %s"
+msgstr "pipe() nepavyko: %s"
+
+#: ../src/daemon/main.c:767 ../src/daemon/main.c:838
+#, c-format
+msgid "fork() failed: %s"
+msgstr "fork() nepavyko: %s"
+
+#: ../src/daemon/main.c:782 ../src/daemon/main.c:853 ../src/utils/pacat.c:568
+#, c-format
+msgid "read() failed: %s"
+msgstr "read() nepavyko: %s"
+
+#: ../src/daemon/main.c:788
+msgid "Daemon startup failed."
+msgstr "Tarnybos paleidimas nepavyko."
+
+#: ../src/daemon/main.c:821
+#, c-format
+msgid "setsid() failed: %s"
+msgstr "setsid() nepavyko: %s"
+
+#: ../src/daemon/main.c:948
+msgid "Failed to get machine ID"
+msgstr "Nepavyko gauti sistemos ID"
+
+#: ../src/daemon/main.c:974
+msgid ""
+"OK, so you are running PA in system mode. Please make sure that you actually "
+"do want to do that.\n"
+"Please read http://www.freedesktop.org/wiki/Software/PulseAudio/"
+"Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
+"mode is usually a bad idea."
+msgstr ""
+"Gerai, taigi jūs vykdote PA sistemos veiksenoje. Prašome įsitikinti, kad jūs "
+"tikrai to norite.\n"
+"Prašome skaityti http://www.freedesktop.org/wiki/Software/PulseAudio/"
+"Documentation/User/WhatIsWrongWithSystemWide/ , kad sužinotumėte kodėl "
+"sistemos veiksena, dažniausiai, yra netikusi mintis."
+
+#: ../src/daemon/main.c:990
+msgid "pa_pid_file_create() failed."
+msgstr "pa_pid_file_create() nepavyko."
+
+#: ../src/daemon/main.c:1022
+msgid "pa_core_new() failed."
+msgstr "pa_core_new() nepavyko."
+
+#: ../src/daemon/main.c:1090
+msgid "Failed to initialize daemon."
+msgstr "Nepavyko inicijuoti tarnybos."
+
+#: ../src/daemon/main.c:1095
+msgid "Daemon startup without any loaded modules, refusing to work."
+msgstr "Tarnybos paleidimas be jokių įkeltų modulių, tarnyba negalės veikti."
+
+#: ../src/daemon/pulseaudio.desktop.in.h:1
+msgid "PulseAudio Sound System"
+msgstr "PulseAudio garso sistema"
+
+#: ../src/daemon/pulseaudio.desktop.in.h:2
+msgid "Start the PulseAudio Sound System"
+msgstr "Paleisti PulseAudio garso sistemą"
+
+#: ../src/modules/alsa/alsa-mixer.c:2378
+msgid "Input"
+msgstr "Įvestis"
+
+#: ../src/modules/alsa/alsa-mixer.c:2379
+msgid "Docking Station Input"
+msgstr "Sujungimo stoties įvestis"
+
+#: ../src/modules/alsa/alsa-mixer.c:2380
+msgid "Docking Station Microphone"
+msgstr "Sujungimo stoties mikrofonas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2381
+msgid "Docking Station Line In"
+msgstr "Sujungimo stoties įvadinė linija"
+
+#: ../src/modules/alsa/alsa-mixer.c:2382 ../src/modules/alsa/alsa-mixer.c:2467
+msgid "Line In"
+msgstr "Įvadinė linija"
+
+#: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
+#: ../src/modules/bluetooth/module-bluez4-device.c:2099
+#: ../src/modules/bluetooth/module-bluez5-device.c:1710
+msgid "Microphone"
+msgstr "Mikrofonas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2384 ../src/modules/alsa/alsa-mixer.c:2462
+msgid "Front Microphone"
+msgstr "Priekinis mikrofonas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2385 ../src/modules/alsa/alsa-mixer.c:2463
+msgid "Rear Microphone"
+msgstr "Galinis mikrofonas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2386
+msgid "External Microphone"
+msgstr "Išorinis mikrofonas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2387 ../src/modules/alsa/alsa-mixer.c:2465
+msgid "Internal Microphone"
+msgstr "Vidinis mikrofonas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2388 ../src/modules/alsa/alsa-mixer.c:2468
+msgid "Radio"
+msgstr "Radijas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2389 ../src/modules/alsa/alsa-mixer.c:2469
+msgid "Video"
+msgstr "Vaizdas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2390
+msgid "Automatic Gain Control"
+msgstr "Automatinis stiprinimo reguliavimas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2391
+msgid "No Automatic Gain Control"
+msgstr "Be automatinio stiprinimo reguliavimo"
+
+#: ../src/modules/alsa/alsa-mixer.c:2392
+msgid "Boost"
+msgstr "Pastiprinimas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2393
+msgid "No Boost"
+msgstr "Be pastiprinimo"
+
+#: ../src/modules/alsa/alsa-mixer.c:2394
+msgid "Amplifier"
+msgstr "Stiprintuvas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2395
+msgid "No Amplifier"
+msgstr "Be stiprintuvo"
+
+#: ../src/modules/alsa/alsa-mixer.c:2396
+msgid "Bass Boost"
+msgstr "Žemų tonų pastiprinimas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2397
+msgid "No Bass Boost"
+msgstr "Be žemų tonų pastiprinimo"
+
+#: ../src/modules/alsa/alsa-mixer.c:2398
+#: ../src/modules/bluetooth/module-bluez4-device.c:2104
+#: ../src/modules/bluetooth/module-bluez5-device.c:1717
+msgid "Speaker"
+msgstr "Garsiakalbis"
+
+#: ../src/modules/alsa/alsa-mixer.c:2399 ../src/modules/alsa/alsa-mixer.c:2471
+msgid "Headphones"
+msgstr "Ausinės"
+
+#: ../src/modules/alsa/alsa-mixer.c:2460
+msgid "Analog Input"
+msgstr "Analoginė įvestis"
+
+#: ../src/modules/alsa/alsa-mixer.c:2464
+msgid "Dock Microphone"
+msgstr "Doko mikrofonas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2466
+msgid "Headset Microphone"
+msgstr "Ausinių mikrofonas"
+
+#: ../src/modules/alsa/alsa-mixer.c:2470
+msgid "Analog Output"
+msgstr "Analoginė išvestis"
+
+#: ../src/modules/alsa/alsa-mixer.c:2472
+msgid "LFE on Separate Mono Output"
+msgstr "Žemųjų dažnių efektai atskiroje mono išvestyje"
+
+#: ../src/modules/alsa/alsa-mixer.c:2473
+msgid "Line Out"
+msgstr "Išvadinė linija"
+
+#: ../src/modules/alsa/alsa-mixer.c:2474
+msgid "Analog Mono Output"
+msgstr "Analoginė mono išvestis"
+
+#: ../src/modules/alsa/alsa-mixer.c:2475
+msgid "Speakers"
+msgstr "Garsiakalbiai"
+
+#: ../src/modules/alsa/alsa-mixer.c:2476
+msgid "HDMI / DisplayPort"
+msgstr "HDMI / DisplayPort"
+
+#: ../src/modules/alsa/alsa-mixer.c:2477
+msgid "Digital Output (S/PDIF)"
+msgstr "Skaitmeninė išvestis (S/PDIF)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2478
+msgid "Digital Input (S/PDIF)"
+msgstr "Skaitmeninė įvestis (S/PDIF)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2479
+msgid "Digital Passthrough (S/PDIF)"
+msgstr "Skaitmeninis persiuntimas (S/PDIF)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2480
+msgid "Multichannel Input"
+msgstr "Daugiakanalė įvestis"
+
+#: ../src/modules/alsa/alsa-mixer.c:2481
+msgid "Multichannel Output"
+msgstr "Daugiakanalė išvestis"
+
+#: ../src/modules/alsa/alsa-mixer.c:3990
+msgid "Analog Mono"
+msgstr "Analoginė mono"
+
+#. Note: Not translated to "Analog Stereo Input", because the source
+#. * name gets "Input" appended to it automatically, so adding "Input"
+#. * here would lead to the source name to become "Analog Stereo Input
+#. * Input". The same logic applies to analog-stereo-output,
+#. * multichannel-input and multichannel-output.
+#: ../src/modules/alsa/alsa-mixer.c:3991 ../src/modules/alsa/alsa-mixer.c:3997
+#: ../src/modules/alsa/alsa-mixer.c:3998
+msgid "Analog Stereo"
+msgstr "Analoginė stereo"
+
+#: ../src/modules/alsa/alsa-mixer.c:3999 ../src/modules/alsa/alsa-mixer.c:4000
+msgid "Multichannel"
+msgstr "Daugiakanalė"
+
+#: ../src/modules/alsa/alsa-mixer.c:4001
+msgid "Analog Surround 2.1"
+msgstr "Analoginė erdvinė 2.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4002
+msgid "Analog Surround 3.0"
+msgstr "Analoginė erdvinė 3.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4003
+msgid "Analog Surround 3.1"
+msgstr "Analoginė erdvinė 3.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4004
+msgid "Analog Surround 4.0"
+msgstr "Analoginė erdvinė 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4005
+msgid "Analog Surround 4.1"
+msgstr "Analoginė erdvinė 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4006
+msgid "Analog Surround 5.0"
+msgstr "Analoginė erdvinė 5.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4007
+msgid "Analog Surround 5.1"
+msgstr "Analoginė erdvinė 5.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4008
+msgid "Analog Surround 6.0"
+msgstr "Analoginė erdvinė 6.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4009
+msgid "Analog Surround 6.1"
+msgstr "Analoginė erdvinė 6.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4010
+msgid "Analog Surround 7.0"
+msgstr "Analoginė erdvinė 7.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4011
+msgid "Analog Surround 7.1"
+msgstr "Analoginė erdvinė 7.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4012
+msgid "Digital Stereo (IEC958)"
+msgstr "Skaitmeninė stereo (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4013
+msgid "Digital Passthrough  (IEC958)"
+msgstr "Skaitmeninis persiuntimas (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4014
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr "Skaitmeninė erdvinė 4.0 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4015
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr "Skaitmeninė erdvinė 5.1 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4016
+msgid "Digital Surround 5.1 (IEC958/DTS)"
+msgstr "Skaitmeninė erdvinė 5.1 (IEC958/DTS)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4017
+msgid "Digital Stereo (HDMI)"
+msgstr "Skaitmeninė stereo (HDMI)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4018
+msgid "Digital Surround 5.1 (HDMI)"
+msgstr "Skaitmeninė erdvinė 5.1 (HDMI)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4151
+msgid "Analog Mono Duplex"
+msgstr "Analoginė dvipusė mono"
+
+#: ../src/modules/alsa/alsa-mixer.c:4152
+msgid "Analog Stereo Duplex"
+msgstr "Analoginė dvipusė stereo"
+
+#: ../src/modules/alsa/alsa-mixer.c:4153
+msgid "Digital Stereo Duplex (IEC958)"
+msgstr "Skaitmeninė dvipusė stereo (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4154
+msgid "Multichannel Duplex"
+msgstr "Daugiakanalė dvipusė"
+
+#: ../src/modules/alsa/alsa-mixer.c:4155
+#: ../src/modules/alsa/module-alsa-card.c:186
+#: ../src/modules/bluetooth/module-bluez4-device.c:2319
+#: ../src/modules/bluetooth/module-bluez5-device.c:1965
+msgid "Off"
+msgstr "Išjungta"
+
+#: ../src/modules/alsa/alsa-mixer.c:4254
+#, c-format
+msgid "%s Output"
+msgstr "%s išvestis"
+
+#: ../src/modules/alsa/alsa-mixer.c:4262
+#, c-format
+msgid "%s Input"
+msgstr "%s įvestis"
+
+#: ../src/modules/alsa/alsa-sink.c:570
+#, c-format
+msgid ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA iškvietė mus, kad įrašytume naujus duomenis į įrenginį, tačiau, iš "
+"tikrųjų, nebuvo ką rašyti.\n"
+"Greičiausiai, tai yra klaida ALSA tvarkyklėje \"%s\". Prašome pranešti apie "
+"šią klaidą ALSA kūrėjams.\n"
+"Mes buvome iškviesti su nustatytu POLLOUT -- vis dėlto, vėlesnis "
+"snd_pcm_avail() grąžino 0 ar kitą reikšmę < min_avail."
+
+#: ../src/modules/alsa/alsa-sink.c:747
+#, c-format
+msgid ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA iškvietė mus, kad įrašytume naujus duomenis į įrenginį, tačiau, iš "
+"tikrųjų, nebuvo ką rašyti!\n"
+"Greičiausiai, tai yra klaida ALSA tvarkyklėje \"%s\". Prašome pranešti apie "
+"šią klaidą ALSA kūrėjams.\n"
+"Mes buvome iškviesti su nustatytu POLLOUT -- vis dėlto, vėlesnis "
+"snd_pcm_avail() grąžino 0 ar kitą reikšmę < min_avail."
+
+#: ../src/modules/alsa/alsa-source.c:529
+#, c-format
+msgid ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA iškvietė mus, kad perskaitytumėme naujus duomenis iš įrenginio, tačiau, "
+"iš tikrųjų, nebuvo ką skaityti.\n"
+"Greičiausiai, tai yra klaida ALSA tvarkyklėje \"%s\". Prašome pranešti apie "
+"šią klaidą ALSA kūrėjams.\n"
+"Mes buvome iškviesti su nustatytu POLLIN -- vis dėlto, vėlesnis "
+"snd_pcm_avail() grąžino 0 ar kitą reikšmę < min_avail."
+
+#: ../src/modules/alsa/alsa-source.c:680
+#, c-format
+msgid ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA iškvietė mus, kad perskaitytumėme naujus duomenis iš įrenginio, tačiau, "
+"iš tikrųjų, nebuvo ką skaityti!\n"
+"Greičiausiai, tai yra klaida ALSA tvarkyklėje \"%s\". Prašome pranešti apie "
+"šią klaidą ALSA kūrėjams.\n"
+"Mes buvome iškviesti su nustatytu POLLIN -- vis dėlto, vėlesnis "
+"snd_pcm_avail() grąžino 0 ar kitą reikšmę < min_avail."
+
+#: ../src/modules/alsa/alsa-util.c:1166 ../src/modules/alsa/alsa-util.c:1241
+#, c-format
+msgid ""
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"snd_pcm_avail() grąžino reikšmę, kuri yra išskirtinai didelė: %lu baitų (%lu "
+"ms).\n"
+"Greičiausiai, tai yra klaida ALSA \"'%s\" tvarkyklėje. Prašome apie šią "
+"klaidą pranešti ALSA kūrėjams."
+
+#: ../src/modules/alsa/alsa-util.c:1216
+#, c-format
+msgid ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"snd_pcm_delay() grąžino reikšmę, kuri yra išskirtinai didelė: %li baitų (%s"
+"%lu ms).\n"
+"Greičiausiai, tai yra klaida ALSA \"'%s\" tvarkyklėje. Prašome apie šią "
+"klaidą pranešti ALSA kūrėjams."
+
+#: ../src/modules/alsa/alsa-util.c:1257
+#, c-format
+msgid ""
+"snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
+"%lu.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"snd_pcm_avail_delay() grąžino keistas reikšmes: delsa %lu yra mažesnė, nei "
+"prieinama %lu.\n"
+"Greičiausiai, tai yra klaida ALSA \"'%s\" tvarkyklėje. Prašome apie šią "
+"klaidą pranešti ALSA kūrėjams."
+
+#: ../src/modules/alsa/alsa-util.c:1300
+#, c-format
+msgid ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"snd_pcm_mmap_begin() grąžino reikšmę, kuri yra išskirtinai didelė: %lu baitų "
+"(%lu ms).\n"
+"Greičiausiai, tai yra klaida ALSA \"'%s\" tvarkyklėje. Prašome apie šią "
+"klaidą pranešti ALSA kūrėjams."
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2089
+#: ../src/modules/bluetooth/module-bluez5-device.c:1700
+msgid "Headset"
+msgstr "Ausinės su mikrofonu"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2094
+#: ../src/modules/bluetooth/module-bluez5-device.c:1705
+msgid "Handsfree"
+msgstr "Laisvų rankų įranga"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2109
+#: ../src/modules/bluetooth/module-bluez5-device.c:1723
+msgid "Headphone"
+msgstr "Ausinė"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2114
+#: ../src/modules/bluetooth/module-bluez5-device.c:1728
+msgid "Portable"
+msgstr "Portatyvi sistema"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2119
+#: ../src/modules/bluetooth/module-bluez5-device.c:1733
+msgid "Car"
+msgstr "Automobilis"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2124
+#: ../src/modules/bluetooth/module-bluez5-device.c:1738
+msgid "HiFi"
+msgstr "HiFi"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2129
+#: ../src/modules/bluetooth/module-bluez5-device.c:1743
+msgid "Phone"
+msgstr "Telefonas"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2137
+#: ../src/modules/bluetooth/module-bluez5-device.c:1695
+#: ../src/modules/bluetooth/module-bluez5-device.c:1711
+#: ../src/modules/bluetooth/module-bluez5-device.c:1749
+msgid "Bluetooth Output"
+msgstr "Bluetooth išvestis"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2140
+#: ../src/modules/bluetooth/module-bluez5-device.c:1694
+#: ../src/modules/bluetooth/module-bluez5-device.c:1716
+#: ../src/modules/bluetooth/module-bluez5-device.c:1722
+#: ../src/modules/bluetooth/module-bluez5-device.c:1748
+msgid "Bluetooth Input"
+msgstr "Bluetooth įvestis"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2181
+msgid "High Fidelity Playback (A2DP)"
+msgstr "Aukštos kokybės atkūrimas (A2DP)"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2193
+msgid "High Fidelity Capture (A2DP)"
+msgstr "Aukštos kokybės paėmimas (A2DP)"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2205
+msgid "Telephony Duplex (HSP/HFP)"
+msgstr "Telefoninė dvipusė (HSP/HFP)"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2218
+msgid "Handsfree Gateway"
+msgstr "Laisvų rankų įrangos tinklų sietuvas"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:1790
+msgid "High Fidelity Playback (A2DP Sink)"
+msgstr "Aukštos kokybės atkūrimas (A2DP rinktuvas)"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:1802
+msgid "High Fidelity Capture (A2DP Source)"
+msgstr "Aukštos kokybės paėmimas (A2DP šaltinis)"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:1814
+msgid "Headset Head Unit (HSP/HFP)"
+msgstr "Ausinių su mikrofonu pagrindinis įtaisas (HSP/HFP)"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:1827
+msgid "Headset Audio Gateway (HSP/HFP)"
+msgstr "Ausinių su mikrofonu garso tinklų sietuvas (HSP/HFP)"
+
+#: ../src/modules/echo-cancel/module-echo-cancel.c:61
+msgid ""
+"source_name=<name for the source> source_properties=<properties for the "
+"source> source_master=<name of source to filter> sink_name=<name for the "
+"sink> sink_properties=<properties for the sink> sink_master=<name of sink to "
+"filter> adjust_time=<how often to readjust rates in s> adjust_threshold=<how "
+"much drift to readjust after in ms> format=<sample format> rate=<sample "
+"rate> channels=<number of channels> channel_map=<channel map> "
+"aec_method=<implementation to use> aec_args=<parameters for the AEC engine> "
+"save_aec=<save AEC data in /tmp> autoloaded=<set if this module is being "
+"loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes "
+"or no> "
+msgstr ""
+"source_name=<šaltinio pavadinimas> source_properties=<šaltinio savybės> "
+"source_master=<šaltinio, kurį filtruoti, pavadinimas> sink_name=<rinktuvo "
+"pavadinimas> sink_properties=<rinktuvo savybės> sink_master=<rinktuvo, kurį "
+"filtruoti, pavadinimas> adjust_time=<kaip dažnai reguliuoti dažnius, reikšmė "
+"sekundėmis> adjust_threshold=<dreifo trukmė milisekundemis, kurią reikėtų "
+"sureguliuoti> format=<ėminio formatas> rate=<skaitmeninimo dažnis> "
+"channels=<kanalų skaičius> channel_map=<kanalų schema> "
+"aec_method=<įgyvendinimas, kurį naudoti> aec_args=<parametrai, skirti AEC "
+"moduliui> save_aec=<įrašyti AEC duomenis į /tmp> autoloaded=<nustatyti ar "
+"šis modulis bus įkeliamas automatiškai> use_volume_sharing=<yes arba no> "
+"use_master_format=<yes arba no> "
+
+#. add on profile
+#: ../src/modules/macosx/module-coreaudio-device.c:811
+msgid "On"
+msgstr "Įjungta"
+
+#: ../src/modules/module-allow-passthrough.c:73
+#: ../src/modules/module-always-sink.c:82
+msgid "Dummy Output"
+msgstr "Fiktyvi išvestis"
+
+#: ../src/modules/module-always-sink.c:36
+msgid "Always keeps at least one sink loaded even if it's a null one"
+msgstr "Visada palieka įkeltą bent vieną rinktuvą, netgi jei tai yra nulinis"
+
+#: ../src/modules/module-equalizer-sink.c:70
+msgid "General Purpose Equalizer"
+msgstr "Universalusis glodintuvas"
+
+#: ../src/modules/module-equalizer-sink.c:74
+msgid ""
+"sink_name=<name of the sink> sink_properties=<properties for the sink> "
+"sink_master=<sink to connect to> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> autoloaded=<set if "
+"this module is being loaded automatically> use_volume_sharing=<yes or no> "
+msgstr ""
+"sink_name=<rinktuvo pavadinimas> sink_properties=<rinktuvo savybės> "
+"sink_master=<rinktuvas prie kurio jungtis> format=<ėminio formatas> "
+"rate=<skaitmeninimo dažnis> channels=<kanalų skaičius> channel_map=<kanalų "
+"schema> autoloaded=<nustatyti ar šis modulis turėtų būti automatiškai "
+"įkeliamas> use_volume_sharing=<yes arba no> "
+
+#: ../src/modules/module-filter-apply.c:47
+msgid "autoclean=<automatically unload unused filters?>"
+msgstr "autoclean=<ar automatiškai iškelti nenaudojamus filtrus?>"
+
+#: ../src/modules/module-ladspa-sink.c:51
+msgid "Virtual LADSPA sink"
+msgstr "Virtualus LADSPA rinktuvas"
+
+#: ../src/modules/module-ladspa-sink.c:55
+msgid ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<input channel map> plugin=<ladspa "
+"plugin name> label=<ladspa plugin label> control=<comma separated list of "
+"input control values> input_ladspaport_map=<comma separated list of input "
+"LADSPA port names> output_ladspaport_map=<comma separated list of output "
+"LADSPA port names> "
+msgstr ""
+"sink_name=<rinktuvo pavadinimas> sink_properties=<rinktuvo savybės> "
+"master=<rinktuvo, kurį filtruoti, pavadinimas> format=<ėminio formatas> "
+"rate=<skaitmeninimo dažnis> channels=<kanalų skaičius> channel_map=<įvesties "
+"kanalų schema> plugin=<ladspa įskiepio pavadinimas> label=<ladspa įskiepio "
+"etiketė> control=<kableliais atskirtų įvesties valdymo reikšmių sąrašas> "
+"input_ladspaport_map=<kableliais atskirtų LADSPA įvesties prievadų "
+"pavadinimų sąrašas> output_ladspaport_map=<kableliais atskirtų LADSPA "
+"išvesties prievadų pavadinimų sąrašas> "
+
+#: ../src/modules/module-null-sink.c:47
+msgid "Clocked NULL sink"
+msgstr "Sinchroninis tuščiasis rinktuvas"
+
+#: ../src/modules/module-null-sink.c:280
+msgid "Null Output"
+msgstr "Nulinė išvestis"
+
+#: ../src/modules/module-rygel-media-server.c:508
+#: ../src/modules/module-rygel-media-server.c:546
+#: ../src/modules/module-rygel-media-server.c:905
+msgid "Output Devices"
+msgstr "Išvesties įrenginiai"
+
+#: ../src/modules/module-rygel-media-server.c:509
+#: ../src/modules/module-rygel-media-server.c:547
+#: ../src/modules/module-rygel-media-server.c:906
+msgid "Input Devices"
+msgstr "Įvesties įrenginiai"
+
+#: ../src/modules/module-rygel-media-server.c:1063
+msgid "Audio on @HOSTNAME@"
+msgstr "Garsas ties @HOSTNAME@"
+
+#. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
+#. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
+#: ../src/modules/module-tunnel-sink-new.c:307
+#: ../src/modules/module-tunnel-source-new.c:305
+#, c-format
+msgid "Tunnel for %s@%s"
+msgstr "Tunelis, skirtas %s@%s"
+
+#: ../src/modules/module-tunnel-sink-new.c:517
+#: ../src/modules/module-tunnel-source-new.c:516
+#, c-format
+msgid "Tunnel to %s/%s"
+msgstr "Tunelis į %s/%s"
+
+#: ../src/modules/module-virtual-surround-sink.c:47
+msgid "Virtual surround sink"
+msgstr "Virtualus erdvinis rinktuvas"
+
+#: ../src/modules/module-virtual-surround-sink.c:51
+msgid ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> "
+"use_volume_sharing=<yes or no> force_flat_volume=<yes or no> hrir=/path/to/"
+"left_hrir.wav "
+msgstr ""
+"sink_name=<rinktuvo pavadinimas> sink_properties=<rinktuvo savybės> "
+"master=<rinktuvo, kurį filtruoti, pavadinimas> format=<ėminio formatas> "
+"rate=<skaitmeninimo dažnis> channels=<kanalų skaičius> channel_map=<kanalų "
+"schema> use_volume_sharing=<yes arba no> force_flat_volume=<yes arba no> "
+"hrir=/kelias/iki/left_hrir.wav "
+
+#: ../src/modules/reserve-wrap.c:149
+msgid "PulseAudio Sound Server"
+msgstr "PulseAudio garso serveris"
+
+#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:771
+msgid "Mono"
+msgstr "Mono"
+
+#: ../src/pulse/channelmap.c:105
+msgid "Front Center"
+msgstr "Priekinė centrinė"
+
+#: ../src/pulse/channelmap.c:106
+msgid "Front Left"
+msgstr "Priekinė kairioji"
+
+#: ../src/pulse/channelmap.c:107
+msgid "Front Right"
+msgstr "Priekinė dešinioji"
+
+#: ../src/pulse/channelmap.c:109
+msgid "Rear Center"
+msgstr "Galinė centrinė"
+
+#: ../src/pulse/channelmap.c:110
+msgid "Rear Left"
+msgstr "Galinė kairioji"
+
+#: ../src/pulse/channelmap.c:111
+msgid "Rear Right"
+msgstr "Galinė dešinioji"
+
+#: ../src/pulse/channelmap.c:113
+msgid "Subwoofer"
+msgstr "Po-žemadažnis garsiakalbis"
+
+#: ../src/pulse/channelmap.c:115
+msgid "Front Left-of-center"
+msgstr "Priekinė kairioji nuo vidurio"
+
+#: ../src/pulse/channelmap.c:116
+msgid "Front Right-of-center"
+msgstr "Priekinė dešinioji nuo vidurio"
+
+#: ../src/pulse/channelmap.c:118
+msgid "Side Left"
+msgstr "Šoninė kairioji"
+
+#: ../src/pulse/channelmap.c:119
+msgid "Side Right"
+msgstr "Šoninė dešinioji"
+
+#: ../src/pulse/channelmap.c:121
+msgid "Auxiliary 0"
+msgstr "Pagalbinė 0"
+
+#: ../src/pulse/channelmap.c:122
+msgid "Auxiliary 1"
+msgstr "Pagalbinė 1"
+
+#: ../src/pulse/channelmap.c:123
+msgid "Auxiliary 2"
+msgstr "Pagalbinė 2"
+
+#: ../src/pulse/channelmap.c:124
+msgid "Auxiliary 3"
+msgstr "Pagalbinė 3"
+
+#: ../src/pulse/channelmap.c:125
+msgid "Auxiliary 4"
+msgstr "Pagalbinė 4"
+
+#: ../src/pulse/channelmap.c:126
+msgid "Auxiliary 5"
+msgstr "Pagalbinė 5"
+
+#: ../src/pulse/channelmap.c:127
+msgid "Auxiliary 6"
+msgstr "Pagalbinė 6"
+
+#: ../src/pulse/channelmap.c:128
+msgid "Auxiliary 7"
+msgstr "Pagalbinė 7"
+
+#: ../src/pulse/channelmap.c:129
+msgid "Auxiliary 8"
+msgstr "Pagalbinė 8"
+
+#: ../src/pulse/channelmap.c:130
+msgid "Auxiliary 9"
+msgstr "Pagalbinė 9"
+
+#: ../src/pulse/channelmap.c:131
+msgid "Auxiliary 10"
+msgstr "Pagalbinė 10"
+
+#: ../src/pulse/channelmap.c:132
+msgid "Auxiliary 11"
+msgstr "Pagalbinė 11"
+
+#: ../src/pulse/channelmap.c:133
+msgid "Auxiliary 12"
+msgstr "Pagalbinė 12"
+
+#: ../src/pulse/channelmap.c:134
+msgid "Auxiliary 13"
+msgstr "Pagalbinė 13"
+
+#: ../src/pulse/channelmap.c:135
+msgid "Auxiliary 14"
+msgstr "Pagalbinė 14"
+
+#: ../src/pulse/channelmap.c:136
+msgid "Auxiliary 15"
+msgstr "Pagalbinė 15"
+
+#: ../src/pulse/channelmap.c:137
+msgid "Auxiliary 16"
+msgstr "Pagalbinė 16"
+
+#: ../src/pulse/channelmap.c:138
+msgid "Auxiliary 17"
+msgstr "Pagalbinė 17"
+
+#: ../src/pulse/channelmap.c:139
+msgid "Auxiliary 18"
+msgstr "Pagalbinė 18"
+
+#: ../src/pulse/channelmap.c:140
+msgid "Auxiliary 19"
+msgstr "Pagalbinė 19"
+
+#: ../src/pulse/channelmap.c:141
+msgid "Auxiliary 20"
+msgstr "Pagalbinė 20"
+
+#: ../src/pulse/channelmap.c:142
+msgid "Auxiliary 21"
+msgstr "Pagalbinė 21"
+
+#: ../src/pulse/channelmap.c:143
+msgid "Auxiliary 22"
+msgstr "Pagalbinė 22"
+
+#: ../src/pulse/channelmap.c:144
+msgid "Auxiliary 23"
+msgstr "Pagalbinė 23"
+
+#: ../src/pulse/channelmap.c:145
+msgid "Auxiliary 24"
+msgstr "Pagalbinė 24"
+
+#: ../src/pulse/channelmap.c:146
+msgid "Auxiliary 25"
+msgstr "Pagalbinė 25"
+
+#: ../src/pulse/channelmap.c:147
+msgid "Auxiliary 26"
+msgstr "Pagalbinė 26"
+
+#: ../src/pulse/channelmap.c:148
+msgid "Auxiliary 27"
+msgstr "Pagalbinė 27"
+
+#: ../src/pulse/channelmap.c:149
+msgid "Auxiliary 28"
+msgstr "Pagalbinė 28"
+
+#: ../src/pulse/channelmap.c:150
+msgid "Auxiliary 29"
+msgstr "Pagalbinė 29"
+
+#: ../src/pulse/channelmap.c:151
+msgid "Auxiliary 30"
+msgstr "Pagalbinė 30"
+
+#: ../src/pulse/channelmap.c:152
+msgid "Auxiliary 31"
+msgstr "Pagalbinė 31"
+
+#: ../src/pulse/channelmap.c:154
+msgid "Top Center"
+msgstr "Viršutinė centrinė"
+
+#: ../src/pulse/channelmap.c:156
+msgid "Top Front Center"
+msgstr "Viršutinė priekinė centrinė"
+
+#: ../src/pulse/channelmap.c:157
+msgid "Top Front Left"
+msgstr "Viršutinė priekinė kairioji"
+
+#: ../src/pulse/channelmap.c:158
+msgid "Top Front Right"
+msgstr "Viršutinė priekinė dešinioji"
+
+#: ../src/pulse/channelmap.c:160
+msgid "Top Rear Center"
+msgstr "Viršutinė galinė centrinė"
+
+#: ../src/pulse/channelmap.c:161
+msgid "Top Rear Left"
+msgstr "Viršutinė galinė kairioji"
+
+#: ../src/pulse/channelmap.c:162
+msgid "Top Rear Right"
+msgstr "Viršutinė galinė dešinioji"
+
+#: ../src/pulse/channelmap.c:479 ../src/pulse/format.c:121
+#: ../src/pulse/sample.c:174 ../src/pulse/volume.c:294
+#: ../src/pulse/volume.c:320 ../src/pulse/volume.c:340
+#: ../src/pulse/volume.c:372 ../src/pulse/volume.c:412
+#: ../src/pulse/volume.c:431
+msgid "(invalid)"
+msgstr "(neteisinga)"
+
+#: ../src/pulse/channelmap.c:775
+msgid "Stereo"
+msgstr "Stereo"
+
+#: ../src/pulse/channelmap.c:780
+msgid "Surround 4.0"
+msgstr "Erdvinė 4.0"
+
+#: ../src/pulse/channelmap.c:786
+msgid "Surround 4.1"
+msgstr "Erdvinė 4.1"
+
+#: ../src/pulse/channelmap.c:792
+msgid "Surround 5.0"
+msgstr "Erdvinė 5.0"
+
+#: ../src/pulse/channelmap.c:798
+msgid "Surround 5.1"
+msgstr "Erdvinė 5.1"
+
+#: ../src/pulse/channelmap.c:805
+msgid "Surround 7.1"
+msgstr "Erdvinė 7.1"
+
+#: ../src/pulse/client-conf-x11.c:53 ../src/utils/pax11publish.c:97
+msgid "xcb_connect() failed"
+msgstr "xcb_connect() nepavyko"
+
+#: ../src/pulse/client-conf-x11.c:58 ../src/utils/pax11publish.c:102
+msgid "xcb_connection_has_error() returned true"
+msgstr "xcb_connection_has_error() grąžino reikšmę \"true\""
+
+#: ../src/pulse/client-conf-x11.c:94
+msgid "Failed to parse cookie data"
+msgstr "Nepavyko analizuoti slapuko duomenų"
+
+#: ../src/pulse/context.c:702
+#, c-format
+msgid "fork(): %s"
+msgstr "fork(): %s"
+
+#: ../src/pulse/context.c:757
+#, c-format
+msgid "waitpid(): %s"
+msgstr "waitpid(): %s"
+
+#: ../src/pulse/context.c:1463
+#, c-format
+msgid "Received message for unknown extension '%s'"
+msgstr "Gautas pranešimas nežinomam plėtiniui \"%s\""
+
+#: ../src/pulse/direction.c:37
+msgid "input"
+msgstr "įvestis"
+
+#: ../src/pulse/direction.c:39
+msgid "output"
+msgstr "išvestis"
+
+#: ../src/pulse/direction.c:41
+msgid "bidirectional"
+msgstr "dvikryptė"
+
+#: ../src/pulse/direction.c:43
+msgid "invalid"
+msgstr "neteisinga"
+
+#: ../src/pulsecore/core-util.c:1837
+#, c-format
+msgid ""
+"XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
+"e g happen if you try to connect to a non-root PulseAudio as a root user, "
+"over the native protocol. Don't do that.)"
+msgstr ""
+"XDG_RUNTIME_DIR (%s) savininkais esame ne mes (uid %d), o uid %d! (Tai gali "
+"nutikti, jeigu, pvz., jūs per savą protokolą, kaip pagrindinis (root) "
+"naudotojas bandote prisijungti prie ne pagrindinio (non-root) naudotojo "
+"vykdomo PulseAudio. Taip nedarykite.)"
+
+#: ../src/pulsecore/core-util.h:97
+msgid "yes"
+msgstr "taip"
+
+#: ../src/pulsecore/core-util.h:97
+msgid "no"
+msgstr "ne"
+
+#: ../src/pulsecore/lock-autospawn.c:141 ../src/pulsecore/lock-autospawn.c:227
+msgid "Cannot access autospawn lock."
+msgstr "Nepavyksta gauti prieigos prie automatinio darbo atnaujinimo užrakto."
+
+#: ../src/pulsecore/log.c:165
+#, c-format
+msgid "Failed to open target file '%s'."
+msgstr "Nepavyko atverti paskirties failo \"%s\"."
+
+#: ../src/pulsecore/log.c:188
+#, c-format
+msgid ""
+"Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
+msgstr ""
+"Bandyta atverti paskirties failus \"%s\", \"%s.1\", \"%s.2\" ... \"%s.%d\", "
+"bet nei vieno nepavyko."
+
+#: ../src/pulsecore/log.c:651
+msgid "Invalid log target."
+msgstr "Neteisinga žurnalo paskirtis."
+
+#: ../src/pulsecore/sink.c:3459
+msgid "Built-in Audio"
+msgstr "Įtaisytas garsas"
+
+#: ../src/pulsecore/sink.c:3464
+msgid "Modem"
+msgstr "Modemas"
+
+#: ../src/pulse/error.c:38
+msgid "OK"
+msgstr "Gerai"
+
+#: ../src/pulse/error.c:39
+msgid "Access denied"
+msgstr "Prieiga negalima"
+
+#: ../src/pulse/error.c:40
+msgid "Unknown command"
+msgstr "Nežinoma komanda"
+
+#: ../src/pulse/error.c:41
+msgid "Invalid argument"
+msgstr "Neteisingas argumentas"
+
+#: ../src/pulse/error.c:42
+msgid "Entity exists"
+msgstr "Objektas yra"
+
+#: ../src/pulse/error.c:43
+msgid "No such entity"
+msgstr "Tokio objekto nėra"
+
+#: ../src/pulse/error.c:44
+msgid "Connection refused"
+msgstr "Sujungimas atmestas"
+
+#: ../src/pulse/error.c:45
+msgid "Protocol error"
+msgstr "Protokolo klaida"
+
+#: ../src/pulse/error.c:46
+msgid "Timeout"
+msgstr "Skirtojo laiko pabaiga"
+
+#: ../src/pulse/error.c:47
+msgid "No authentication key"
+msgstr "Nėra tapatybės nustatymo rakto"
+
+#: ../src/pulse/error.c:48
+msgid "Internal error"
+msgstr "Vidinė klaida"
+
+#: ../src/pulse/error.c:49
+msgid "Connection terminated"
+msgstr "Sujungimas nutrauktas"
+
+#: ../src/pulse/error.c:50
+msgid "Entity killed"
+msgstr "Objektas sunaikintas"
+
+#: ../src/pulse/error.c:51
+msgid "Invalid server"
+msgstr "Neteisingas serveris"
+
+#: ../src/pulse/error.c:52
+msgid "Module initialization failed"
+msgstr "Modulio inicijavimas nepavyko"
+
+#: ../src/pulse/error.c:53
+msgid "Bad state"
+msgstr "Bloga būsena"
+
+#: ../src/pulse/error.c:54
+msgid "No data"
+msgstr "Nėra duomenų"
+
+#: ../src/pulse/error.c:55
+msgid "Incompatible protocol version"
+msgstr "Nesuderinama protokolo versija"
+
+#: ../src/pulse/error.c:56
+msgid "Too large"
+msgstr "Pernelyg didelis"
+
+#: ../src/pulse/error.c:57
+msgid "Not supported"
+msgstr "Nepalaikoma"
+
+#: ../src/pulse/error.c:58
+msgid "Unknown error code"
+msgstr "Nežinomas klaidos kodas"
+
+#: ../src/pulse/error.c:59
+msgid "No such extension"
+msgstr "Tokio plėtinio nėra"
+
+#: ../src/pulse/error.c:60
+msgid "Obsolete functionality"
+msgstr "Pasenęs funkcionalumas"
+
+#: ../src/pulse/error.c:61
+msgid "Missing implementation"
+msgstr "Trūksta realizacijos"
+
+#: ../src/pulse/error.c:62
+msgid "Client forked"
+msgstr "Klientas atšakotas"
+
+#: ../src/pulse/error.c:63
+msgid "Input/Output error"
+msgstr "Įvesties/Išvesties klaida"
+
+#: ../src/pulse/error.c:64
+msgid "Device or resource busy"
+msgstr "Įrenginys ar išteklius užimtas"
+
+#: ../src/pulse/sample.c:176
+#, c-format
+msgid "%s %uch %uHz"
+msgstr "%s %ukan. %uHz"
+
+#: ../src/pulse/sample.c:188
+#, c-format
+msgid "%0.1f GiB"
+msgstr "%0.1f GiB"
+
+#: ../src/pulse/sample.c:190
+#, c-format
+msgid "%0.1f MiB"
+msgstr "%0.1f MiB"
+
+#: ../src/pulse/sample.c:192
+#, c-format
+msgid "%0.1f KiB"
+msgstr "%0.1f KiB"
+
+#: ../src/pulse/sample.c:194
+#, c-format
+msgid "%u B"
+msgstr "%u B"
+
+#: ../src/utils/pacat.c:117
+#, c-format
+msgid "Failed to drain stream: %s"
+msgstr "Nepavyko nutekinti srauto: %s"
+
+#: ../src/utils/pacat.c:122
+msgid "Playback stream drained."
+msgstr "Atkūrimo srautas nutekintas."
+
+#: ../src/utils/pacat.c:133
+msgid "Draining connection to server."
+msgstr "Nutekinamas ryšys su serveriu."
+
+#: ../src/utils/pacat.c:146
+#, c-format
+msgid "pa_stream_drain(): %s"
+msgstr "pa_stream_drain(): %s"
+
+#: ../src/utils/pacat.c:169
+#, c-format
+msgid "pa_stream_write() failed: %s"
+msgstr "pa_stream_write() nepavyko: %s"
+
+#: ../src/utils/pacat.c:210
+#, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "pa_stream_begin_write() nepavyko: %s"
+
+#: ../src/utils/pacat.c:260 ../src/utils/pacat.c:290
+#, c-format
+msgid "pa_stream_peek() failed: %s"
+msgstr "pa_stream_peek() nepavyko: %s"
+
+#: ../src/utils/pacat.c:340
+msgid "Stream successfully created."
+msgstr "Srautas sėkmingai sukurtas."
+
+#: ../src/utils/pacat.c:343
+#, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s"
+msgstr "pa_stream_get_buffer_attr() nepavyko: %s"
+
+#: ../src/utils/pacat.c:347
+#, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
+msgstr "Buferio metrika: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
+
+#: ../src/utils/pacat.c:350
+#, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u"
+msgstr "Buferio metrika: maxlength=%u, fragsize=%u"
+
+#: ../src/utils/pacat.c:354
+#, c-format
+msgid "Using sample spec '%s', channel map '%s'."
+msgstr "Naudojama ėminio specifikacija \"%s\", kanalų schema \"%s\"."
+
+#: ../src/utils/pacat.c:358
+#, c-format
+msgid "Connected to device %s (index: %u, suspended: %s)."
+msgstr "Prisijungta prie įrenginio %s (indeksas: %u, pristabdyta: %s)."
+
+#: ../src/utils/pacat.c:368
+#, c-format
+msgid "Stream error: %s"
+msgstr "Srauto klaida: %s"
+
+#: ../src/utils/pacat.c:378
+#, c-format
+msgid "Stream device suspended.%s"
+msgstr "Srauto įrenginys pristabdytas.%s"
+
+#: ../src/utils/pacat.c:380
+#, c-format
+msgid "Stream device resumed.%s"
+msgstr "Srauto įrenginys pratęstas.%s"
+
+#: ../src/utils/pacat.c:388
+#, c-format
+msgid "Stream underrun.%s"
+msgstr "Srauto ištuštėjimas. %s"
+
+#: ../src/utils/pacat.c:395
+#, c-format
+msgid "Stream overrun.%s"
+msgstr "Srauto perpildymas. %s"
+
+#: ../src/utils/pacat.c:402
+#, c-format
+msgid "Stream started.%s"
+msgstr "Srautas paleistas.%s"
+
+#: ../src/utils/pacat.c:409
+#, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s"
+msgstr "Srautas perkeltas į įrenginį %s (%u, %spristabdytas).%s"
+
+#: ../src/utils/pacat.c:409
+msgid "not "
+msgstr "ne "
+
+#: ../src/utils/pacat.c:416
+#, c-format
+msgid "Stream buffer attributes changed.%s"
+msgstr "Pasikeitė srauto buferio požymiai.%s"
+
+#: ../src/utils/pacat.c:431
+msgid "Cork request stack is empty: corking stream"
+msgstr "Kamščių užklausos dėklas yra tuščas: užkemšamas srautas"
+
+#: ../src/utils/pacat.c:437
+msgid "Cork request stack is empty: uncorking stream"
+msgstr "Kamščių užklausos dėklas yra tuščas: atkemšamas srautas"
+
+#: ../src/utils/pacat.c:441
+msgid "Warning: Received more uncork requests than cork requests."
+msgstr "Įspėjimas: Gauta daugiau atkimšimo užklausų nei užkimšimo."
+
+#: ../src/utils/pacat.c:466
+#, c-format
+msgid "Connection established.%s"
+msgstr "Ryšys užmegztas.%s"
+
+#: ../src/utils/pacat.c:469
+#, c-format
+msgid "pa_stream_new() failed: %s"
+msgstr "pa_stream_new() nepavyko: %s"
+
+#: ../src/utils/pacat.c:507
+#, c-format
+msgid "pa_stream_connect_playback() failed: %s"
+msgstr "pa_stream_connect_playback() nepavyko: %s"
+
+#: ../src/utils/pacat.c:513
+#, c-format
+msgid "Failed to set monitor stream: %s"
+msgstr "Nepavyko nustatytį monitorinį srautą: %s"
+
+#: ../src/utils/pacat.c:517
+#, c-format
+msgid "pa_stream_connect_record() failed: %s"
+msgstr "pa_stream_connect_record() nepavyko %s"
+
+#: ../src/utils/pacat.c:530 ../src/utils/pactl.c:1446
+#, c-format
+msgid "Connection failure: %s"
+msgstr "Sujungimo nesėkmė: %s"
+
+#: ../src/utils/pacat.c:563
+msgid "Got EOF."
+msgstr "Gauta EOF."
+
+#: ../src/utils/pacat.c:600
+#, c-format
+msgid "write() failed: %s"
+msgstr "write() nepavyko: %s"
+
+#: ../src/utils/pacat.c:621
+msgid "Got signal, exiting."
+msgstr "Gautas signalas, išeinama."
+
+#: ../src/utils/pacat.c:635
+#, c-format
+msgid "Failed to get latency: %s"
+msgstr "Nepavyko gauti delsos: %s"
+
+#: ../src/utils/pacat.c:640
+#, c-format
+msgid "Time: %0.3f sec; Latency: %0.0f usec."
+msgstr "Laikas: %0.3f sek.; Delsa: %0.0f mikrosek."
+
+#: ../src/utils/pacat.c:661
+#, c-format
+msgid "pa_stream_update_timing_info() failed: %s"
+msgstr "pa_stream_update_timing_info() nepavyko: %s"
+
+#: ../src/utils/pacat.c:671
+#, c-format
+msgid ""
+"%s [options]\n"
+"%s\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
+"\n"
+"  -v, --verbose                         Enable verbose operations\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (defaults to "
+"s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink/"
+"source the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink/"
+"source the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink/source the stream is "
+"being connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in "
+"msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time "
+"per request in msec.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the "
+"specified value.\n"
+"      --raw                             Record/play raw PCM data.\n"
+"      --passthrough                     Passthrough data.\n"
+"      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
+"      --list-file-formats               List available file formats.\n"
+"      --monitor-stream=INDEX            Record from the sink input with "
+"index INDEX.\n"
+msgstr ""
+"%s [parametrai]\n"
+"%s\n"
+"\n"
+"  -h, --help                            Rodyti šią pagalbą\n"
+"      --version                         Rodyti versiją\n"
+"\n"
+"  -r, --record                          Sukurti ryšį, skirtą įrašymui\n"
+"  -p, --playback                        Sukurti ryšį, skirtą atkūrimui\n"
+"\n"
+"  -v, --verbose                         Įjungti plačias operacijas\n"
+"\n"
+"  -s, --server=SERVERIS                   Serverio, prie kurio jungtis, "
+"pavadinimas\n"
+"  -d, --device=ĮRENGINYS                   Rinktuvo/šaltinio, prie kurio "
+"jungtis, pavadinimas\n"
+"  -n, --client-name=PAVADINIMAS                Kaip vadinti šį klientą "
+"serveryje\n"
+"      --stream-name=PAVADINIMAS                Kaip vadinti šį srautą "
+"serveryje\n"
+"      --volume=GARSIS                   Nurodyti pradinį (linijinį) garsį, "
+"rėžyje 0...65536\n"
+"      --rate=SKAITMENINIMO_DAŽNIS                 Skaitmeninimo dažnis, Hz "
+"(numatytasis yra 44100)\n"
+"      --format=ĖMINIO_FORMATAS             Ėminio tipas, vienas iš s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (numatytasis yra "
+"s16ne)\n"
+"      --channels=KANALAI               Kanalų skaičius, 1 — mono, 2 — "
+"stereo\n"
+"                                        (numatytasis yra 2)\n"
+"      --channel-map=KANALŲ_SCHEMA          Kanalų schema, naudojama vietoj "
+"numatytosios\n"
+"      --fix-format                      Paimti ėminio formatą iš rinktuvo/"
+"šaltinio, prie kurio yra\n"
+"                                        prijungtas srautas.\n"
+"      --fix-rate                        Paimti skaitmeninimo dažnį iš "
+"rinktuvo/šaltinio, prie kurio yra\n"
+"                                        prijungtas srautas.\n"
+"      --fix-channels                    Paimti kanalų skaičių ir kanalų "
+"schemą iš rinktuvo/šaltinio,\n"
+"                                        prie kurio yra prijungtas srautas.\n"
+"      --no-remix                        Nemaišyti kanalų.\n"
+"      --no-remap                        Vietoj pavadinimo, atvaizduoti "
+"kanalus pagal indeksą.\n"
+"      --latency=BAITAI                   Užklausti nurodytą delsą baitais.\n"
+"      --process-time=BAITAI              Užklausti užklausai skirtą nurodytą "
+"proceso laiką baitais.\n"
+"      --latency-msec=MILISEK.               Užklausti nurodytą delsą "
+"milisekundėmis.\n"
+"      --process-time-msec=MILISEK.          Užklausti užklausai skirtą "
+"nurodytą proceso laiką milisekundėmis.\n"
+"      --property=SAVYBĖ=REIKŠMĖ         Nustatyti nurodytą savybę į nurodytą "
+"reikšmę.\n"
+"      --raw                             Įrašyti/atkurti neapdorotus PCM "
+"duomenis.\n"
+"      --passthrough                     Perduoti duomenis.\n"
+"      --file-format[=FAILO_FORMATAS]           Įrašyti/atkurti formatuotus "
+"PCM duomenis.\n"
+"      --list-file-formats               Išvardyti prieinamus failo "
+"formatus.\n"
+"      --monitor-stream=INDEKSAS            Įrašyti iš rinktuvo įvesties su "
+"indeksu INDEKSAS.\n"
+
+#: ../src/utils/pacat.c:788
+msgid "Play back encoded audio files on a PulseAudio sound server."
+msgstr "PulseAudio garso serveryje atkurti užkoduotus garso failus."
+
+#: ../src/utils/pacat.c:792
+msgid ""
+"Capture audio data from a PulseAudio sound server and write it to a file."
+msgstr ""
+"Pagauti garso duomenis iš PulseAudio garso serverio ir įrašyti juos į failą."
+
+#: ../src/utils/pacat.c:796
+msgid ""
+"Capture audio data from a PulseAudio sound server and write it to STDOUT or "
+"the specified file."
+msgstr ""
+"Pagauti garso duomenis iš PulseAudio garso serverio ir įrašyti juos į STDOUT "
+"ar nurodytą failą."
+
+#: ../src/utils/pacat.c:800
+msgid ""
+"Play back audio data from STDIN or the specified file on a PulseAudio sound "
+"server."
+msgstr ""
+"Atkurti garso duomenis PulseAudio garso serveryje iš STDIN ar nurodyto failo."
+
+#: ../src/utils/pacat.c:814
+#, c-format
+msgid ""
+"pacat %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pacat %s\n"
+"Sukompiliuota su libpulse %s\n"
+"Susieta su libpulse %s\n"
+
+#: ../src/utils/pacat.c:847 ../src/utils/pactl.c:1648
+#, c-format
+msgid "Invalid client name '%s'"
+msgstr "Neteisingas kliento pavadinimas \"%s\""
+
+#: ../src/utils/pacat.c:862
+#, c-format
+msgid "Invalid stream name '%s'"
+msgstr "Neteisingas srauto pavadinimas \"%s\""
+
+#: ../src/utils/pacat.c:899
+#, c-format
+msgid "Invalid channel map '%s'"
+msgstr "Neteisinga kanalų schema \"'%s\""
+
+#: ../src/utils/pacat.c:928 ../src/utils/pacat.c:942
+#, c-format
+msgid "Invalid latency specification '%s'"
+msgstr "Neteisinga delsos specifikacija \"%s\""
+
+#: ../src/utils/pacat.c:935 ../src/utils/pacat.c:949
+#, c-format
+msgid "Invalid process time specification '%s'"
+msgstr "Neteisinga proceso laiko specifikacija \"%s\""
+
+#: ../src/utils/pacat.c:961
+#, c-format
+msgid "Invalid property '%s'"
+msgstr "Neteisinga savybė \"%s\""
+
+#: ../src/utils/pacat.c:980
+#, c-format
+msgid "Unknown file format %s."
+msgstr "Nežinomas failo formatas %s."
+
+#: ../src/utils/pacat.c:995
+msgid "Failed to parse the argument for --monitor-stream"
+msgstr "Nepavyko analizuoti argumentą, skirtą --monitor-stream"
+
+#: ../src/utils/pacat.c:1006
+msgid "Invalid sample specification"
+msgstr "Neteisinga ėminio specifikacija"
+
+#: ../src/utils/pacat.c:1016
+#, c-format
+msgid "open(): %s"
+msgstr "open(): %s"
+
+#: ../src/utils/pacat.c:1021
+#, c-format
+msgid "dup2(): %s"
+msgstr "dup2(): %s"
+
+#: ../src/utils/pacat.c:1028
+msgid "Too many arguments."
+msgstr "Pernelyg daug argumentų."
+
+#: ../src/utils/pacat.c:1039
+msgid "Failed to generate sample specification for file."
+msgstr "Nepavyko failui sukurti ėminio specifikaciją."
+
+#: ../src/utils/pacat.c:1065
+msgid "Failed to open audio file."
+msgstr "Nepavyko atverti garso failo."
+
+#: ../src/utils/pacat.c:1071
+msgid ""
+"Warning: specified sample specification will be overwritten with "
+"specification from file."
+msgstr ""
+"Įspėjimas: nurodyta ėminio specifikacija bus perrašyta specifikacija iš "
+"failo."
+
+#: ../src/utils/pacat.c:1074 ../src/utils/pactl.c:1712
+msgid "Failed to determine sample specification from file."
+msgstr "Nepavyko iš failo nustatyti ėminio specifikaciją."
+
+#: ../src/utils/pacat.c:1083
+msgid "Warning: Failed to determine channel map from file."
+msgstr "Įspėjimas: Nepavyko nustatyti kanalų schemos iš failo."
+
+#: ../src/utils/pacat.c:1094
+msgid "Channel map doesn't match sample specification"
+msgstr "Kanalų schema neatitinka ėminio specifikacijos"
+
+#: ../src/utils/pacat.c:1105
+msgid "Warning: failed to write channel map to file."
+msgstr "Įspėjimas: nepavyko įrašyti kanalų schemos į failą."
+
+#: ../src/utils/pacat.c:1120
+#, c-format
+msgid ""
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr ""
+"Atveriamas srautas %s su \"%s\" ėminio specifikacija ir \"%s\" kanalų schema."
+
+#: ../src/utils/pacat.c:1121
+msgid "recording"
+msgstr "įrašymas"
+
+#: ../src/utils/pacat.c:1121
+msgid "playback"
+msgstr "atkūrimas"
+
+#: ../src/utils/pacat.c:1145
+msgid "Failed to set media name."
+msgstr "Nepavyko nustatyti laikmenos pavadinimo."
+
+#: ../src/utils/pacat.c:1152 ../src/utils/pactl.c:2062
+msgid "pa_mainloop_new() failed."
+msgstr "pa_mainloop_new() nepavyko."
+
+#: ../src/utils/pacat.c:1175
+msgid "io_new() failed."
+msgstr "io_new() nepavyko."
+
+#: ../src/utils/pacat.c:1182 ../src/utils/pactl.c:2074
+msgid "pa_context_new() failed."
+msgstr "pa_context_new() nepavyko."
+
+#: ../src/utils/pacat.c:1190 ../src/utils/pactl.c:2080
+#, c-format
+msgid "pa_context_connect() failed: %s"
+msgstr "pa_context_connect() nepavyko: %s"
+
+#: ../src/utils/pacat.c:1196
+msgid "pa_context_rttime_new() failed."
+msgstr "pa_context_rttime_new() nepavyko."
+
+#: ../src/utils/pacat.c:1203 ../src/utils/pactl.c:2085
+msgid "pa_mainloop_run() failed."
+msgstr "pa_mainloop_run() nepavyko."
+
+#: ../src/utils/pacmd.c:51 ../src/utils/pactl.c:1570
+msgid "NAME [ARGS ...]"
+msgstr "PAVADINIMAS [ARGUMENTAI ...]"
+
+#: ../src/utils/pacmd.c:52 ../src/utils/pacmd.c:60 ../src/utils/pactl.c:1571
+msgid "NAME|#N"
+msgstr "PAVADINIMAS|#NUMERIS"
+
+#: ../src/utils/pacmd.c:53 ../src/utils/pacmd.c:63 ../src/utils/pactl.c:1569
+#: ../src/utils/pactl.c:1575
+msgid "NAME"
+msgstr "PAVADINIMAS"
+
+#: ../src/utils/pacmd.c:54
+msgid "NAME|#N VOLUME"
+msgstr "PAVADINIMAS|#NUMERIS GARSIS"
+
+#: ../src/utils/pacmd.c:55
+msgid "#N VOLUME"
+msgstr "#NUMERIS GARSIS"
+
+#: ../src/utils/pacmd.c:56 ../src/utils/pacmd.c:70 ../src/utils/pactl.c:1573
+msgid "NAME|#N 1|0"
+msgstr "PAVADINIMAS|#NUMERIS 1|0"
+
+#: ../src/utils/pacmd.c:57
+msgid "#N 1|0"
+msgstr "#NUMERIS 1|0"
+
+#: ../src/utils/pacmd.c:58
+msgid "NAME|#N KEY=VALUE"
+msgstr "PAVADINIMAS|#NUMERIS RAKTAS=REIKŠMĖ"
+
+#: ../src/utils/pacmd.c:59
+msgid "#N KEY=VALUE"
+msgstr "#NUMERIS RAKTAS=REIKŠMĖ"
+
+#: ../src/utils/pacmd.c:61
+msgid "#N"
+msgstr "#NUMERIS"
+
+#: ../src/utils/pacmd.c:62
+msgid "NAME SINK|#N"
+msgstr "PAVADINIMAS RINKTUVAS|#NUMERIS"
+
+#: ../src/utils/pacmd.c:64 ../src/utils/pacmd.c:65
+msgid "NAME FILENAME"
+msgstr "PAVADINIMAS FAILO_PAVADINIMAS"
+
+#: ../src/utils/pacmd.c:66
+msgid "PATHNAME"
+msgstr "KELIAS"
+
+#: ../src/utils/pacmd.c:67
+msgid "FILENAME SINK|#N"
+msgstr "FAILO_PAVADINIMAS RINKTUVAS|#NUMERIS"
+
+#: ../src/utils/pacmd.c:69 ../src/utils/pactl.c:1572
+msgid "#N SINK|SOURCE"
+msgstr "#NUMERIS RINKTUVAS|ŠALTINIS"
+
+#: ../src/utils/pacmd.c:71 ../src/utils/pacmd.c:77 ../src/utils/pacmd.c:78
+msgid "1|0"
+msgstr "1|0"
+
+#: ../src/utils/pacmd.c:72 ../src/utils/pactl.c:1574
+msgid "CARD PROFILE"
+msgstr "PLOKŠTĖS PROFILIS"
+
+#: ../src/utils/pacmd.c:73 ../src/utils/pactl.c:1576
+msgid "NAME|#N PORT"
+msgstr "PAVADINIMAS|#NUMERIS PRIEVADAS"
+
+#: ../src/utils/pacmd.c:74 ../src/utils/pactl.c:1582
+msgid "CARD-NAME|CARD-#N PORT OFFSET"
+msgstr "PLOKŠTĖS-PAVADINIMAS|PLOKŠTĖS-#NUMERIS PRIEVADAS POSLINKIS"
+
+#: ../src/utils/pacmd.c:75
+msgid "TARGET"
+msgstr "PASKIRTIS"
+
+#: ../src/utils/pacmd.c:76
+msgid "NUMERIC-LEVEL"
+msgstr "SKAITINIS-LYGIS"
+
+#: ../src/utils/pacmd.c:79
+msgid "FRAMES"
+msgstr "KADRAI"
+
+#: ../src/utils/pacmd.c:81
+#, c-format
+msgid ""
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"When no command is given pacmd starts in the interactive mode.\n"
+msgstr ""
+"\n"
+"  -h, --help                            Rodyti šią pagalbą\n"
+"      --version                         Rodyti versiją\n"
+"Kai nenurodyta jokia komanda, pacmd paleidžiama interaktyvioje veiksenoje.\n"
+
+#: ../src/utils/pacmd.c:128
+#, c-format
+msgid ""
+"pacmd %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pacmd %s\n"
+"Sukompiliuota su libpulse %s\n"
+"Susieta su libpulse %s\n"
+
+#: ../src/utils/pacmd.c:142
+msgid "No PulseAudio daemon running, or not running as session daemon."
+msgstr "PulseAudio tarnyba nevykdoma arba nevykdoma kaip seanso tarnyba."
+
+#: ../src/utils/pacmd.c:147
+#, c-format
+msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
+msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
+
+#: ../src/utils/pacmd.c:164
+#, c-format
+msgid "connect(): %s"
+msgstr "connect(): %s"
+
+#: ../src/utils/pacmd.c:172
+msgid "Failed to kill PulseAudio daemon."
+msgstr "Nepavyko nutraukti PulseAudio tarnybos."
+
+#: ../src/utils/pacmd.c:180
+msgid "Daemon not responding."
+msgstr "Tarnyba neatsako."
+
+#: ../src/utils/pacmd.c:212 ../src/utils/pacmd.c:321 ../src/utils/pacmd.c:339
+#, c-format
+msgid "write(): %s"
+msgstr "write(): %s"
+
+#: ../src/utils/pacmd.c:268
+#, c-format
+msgid "poll(): %s"
+msgstr "poll(): %s"
+
+#: ../src/utils/pacmd.c:279 ../src/utils/pacmd.c:299
+#, c-format
+msgid "read(): %s"
+msgstr "read(): %s"
+
+#: ../src/utils/pactl.c:164
+#, c-format
+msgid "Failed to get statistics: %s"
+msgstr "Nepavyko gauti statistikos: %s"
+
+#: ../src/utils/pactl.c:170
+#, c-format
+msgid "Currently in use: %u blocks containing %s bytes total.\n"
+msgstr "Currently in use: %u blocks containing %s bytes total.\n"
+
+#: ../src/utils/pactl.c:173
+#, c-format
+msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
+msgstr ""
+"Paskirstyta per visą gyvavimo trukmę: %u blokų, kuriuose iš viso yra %s "
+"baitų.\n"
+
+#: ../src/utils/pactl.c:176
+#, c-format
+msgid "Sample cache size: %s\n"
+msgstr "Ėminių podėlio dydis: %s\n"
+
+#: ../src/utils/pactl.c:185
+#, c-format
+msgid "Failed to get server information: %s"
+msgstr "Nepavyko gauti serverio informacijos: %s"
+
+#: ../src/utils/pactl.c:190
+#, c-format
+msgid ""
+"Server String: %s\n"
+"Library Protocol Version: %u\n"
+"Server Protocol Version: %u\n"
+"Is Local: %s\n"
+"Client Index: %u\n"
+"Tile Size: %zu\n"
+msgstr ""
+"Serverio eilutė: %s\n"
+"Bibliotekos protokolo versija: %u\n"
+"Serverio protokolo versija: %u\n"
+"Yra vietinis: %s\n"
+"Kliento indeksas: %u\n"
+"Plytelės dydis: %zu\n"
+
+#: ../src/utils/pactl.c:206
+#, c-format
+msgid ""
+"User Name: %s\n"
+"Host Name: %s\n"
+"Server Name: %s\n"
+"Server Version: %s\n"
+"Default Sample Specification: %s\n"
+"Default Channel Map: %s\n"
+"Default Sink: %s\n"
+"Default Source: %s\n"
+"Cookie: %04x:%04x\n"
+msgstr ""
+"Naudotojo vardas: %s\n"
+"Kompiuterio pavadinimas: %s\n"
+"Serverio pavadinimas: %s\n"
+"Serverio versija: %s\n"
+"Numatytoji ėminio specifikacija: %s\n"
+"Numatytoji kanalų schema: %s\n"
+"Numatytasis rinktuvas: %s\n"
+"Numatytasis šaltinis: %s\n"
+"Slapukas: %04x:%04x\n"
+
+#: ../src/utils/pactl.c:255 ../src/utils/pactl.c:900 ../src/utils/pactl.c:978
+#, c-format
+msgid "Failed to get sink information: %s"
+msgstr "Nepavyko gauti rinktuvo informacijos: %s"
+
+#: ../src/utils/pactl.c:281
+#, c-format
+msgid ""
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s\n"
+"\tMonitor Source: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Rinktuvas Nr.%u\n"
+"\tBūsena: %s\n"
+"\tPavadinimas: %s\n"
+"\tAprašas: %s\n"
+"\tTvarkyklė: %s\n"
+"\tĖminio specifikacija: %s\n"
+"\tKanalų schema: %s\n"
+"\tModulis savininkas: %u\n"
+"\tNutildyti: %s\n"
+"\tGarsis: %s\n"
+"\t        balansas %0.2f\n"
+"\tBazinis garsis: %s\n"
+"\tStebėjimo šaltinis: %s\n"
+"\tDelsa: %0.0f milisek., konfigūruota %0.0f milisek.\n"
+"\tVėliavėlės: %s%s%s%s%s%s%s\n"
+"\tSavybės:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:325 ../src/utils/pactl.c:431 ../src/utils/pactl.c:592
+#, c-format
+msgid "\tPorts:\n"
+msgstr "\tPrievadai:\n"
+
+#: ../src/utils/pactl.c:332 ../src/utils/pactl.c:438
+#, c-format
+msgid "\tActive Port: %s\n"
+msgstr "\tAktyvus prievadas: %s\n"
+
+#: ../src/utils/pactl.c:338 ../src/utils/pactl.c:444
+#, c-format
+msgid "\tFormats:\n"
+msgstr "\tFormatai:\n"
+
+#: ../src/utils/pactl.c:362 ../src/utils/pactl.c:920 ../src/utils/pactl.c:993
+#, c-format
+msgid "Failed to get source information: %s"
+msgstr "Nepavyko gauti šaltinio informacijos: %s"
+
+#: ../src/utils/pactl.c:388
+#, c-format
+msgid ""
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Šaltinis Nr.%u\n"
+"\tBūsena: %s\n"
+"\tPavadinimas: %s\n"
+"\tAprašas: %s\n"
+"\tTvarkyklė: %s\n"
+"\tĖminio specifikacija: %s\n"
+"\tKanalų schema: %s\n"
+"\tModulis savininkas: %u\n"
+"\tNutildyti: %s\n"
+"\tGarsis: %s\n"
+"\t        balansas %0.2f\n"
+"\tBazinis garsis: %s\n"
+"\tRinktuvo stebėjimas: %s\n"
+"\tDelsa: %0.0f milisek., konfigūruota %0.0f milisek.\n"
+"\tVėliavėlės: %s%s%s%s%s%s\n"
+"\tSavybės:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:416 ../src/utils/pactl.c:486 ../src/utils/pactl.c:529
+#: ../src/utils/pactl.c:571 ../src/utils/pactl.c:669 ../src/utils/pactl.c:670
+#: ../src/utils/pactl.c:681 ../src/utils/pactl.c:739 ../src/utils/pactl.c:740
+#: ../src/utils/pactl.c:751 ../src/utils/pactl.c:802 ../src/utils/pactl.c:803
+#: ../src/utils/pactl.c:809
+msgid "n/a"
+msgstr "nėra"
+
+#: ../src/utils/pactl.c:455 ../src/utils/pactl.c:859
+#, c-format
+msgid "Failed to get module information: %s"
+msgstr "Nepavyko gauti modulio informacijos: %s"
+
+#: ../src/utils/pactl.c:478
+#, c-format
+msgid ""
+"Module #%u\n"
+"\tName: %s\n"
+"\tArgument: %s\n"
+"\tUsage counter: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Modulis #%u\n"
+"\tPavadinimas: %s\n"
+"\tArgumentas: %s\n"
+"\tNaudojimo skaitiklis: %s\n"
+"\tSavybės:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:497
+#, c-format
+msgid "Failed to get client information: %s"
+msgstr "Nepavyko gauti kliento informacijos: %s"
+
+#: ../src/utils/pactl.c:523
+#, c-format
+msgid ""
+"Client #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Klientas #%u\n"
+"\tTvarkyklė: %s\n"
+"\tModulis savininkas: %s\n"
+"\tSavybės:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:540
+#, c-format
+msgid "Failed to get card information: %s"
+msgstr "Nepavyko gauti plokštės informacijos: %s"
+
+#: ../src/utils/pactl.c:563
+#, c-format
+msgid ""
+"Card #%u\n"
+"\tName: %s\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Plokštė #%u\n"
+"\tPavadinimas: %s\n"
+"\tTvarkyklė: %s\n"
+"\tModulis-savininkas: %s\n"
+"\tSavybės:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:579
+#, c-format
+msgid "\tProfiles:\n"
+msgstr "\tProfiliai:\n"
+
+#: ../src/utils/pactl.c:581
+#, c-format
+msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
+msgstr ""
+"\t\t%s: %s (rinktuvų: %u, šaltinių: %u, pirmenybė: %u, prieinama: %s)\n"
+
+#: ../src/utils/pactl.c:586
+#, c-format
+msgid "\tActive Profile: %s\n"
+msgstr "\tAktyvus profilis: %s\n"
+
+#: ../src/utils/pactl.c:600
+#, c-format
+msgid ""
+"\t\t\tProperties:\n"
+"\t\t\t\t%s\n"
+msgstr ""
+"\t\t\tSavybės:\n"
+"\t\t\t\t%s\n"
+
+#: ../src/utils/pactl.c:605
+#, c-format
+msgid "\t\t\tPart of profile(s): %s"
+msgstr "\t\t\tProfilio(-ių) dalis: %s"
+
+#: ../src/utils/pactl.c:622 ../src/utils/pactl.c:940 ../src/utils/pactl.c:1008
+#, c-format
+msgid "Failed to get sink input information: %s"
+msgstr "Nepavyko gauti rinktuvo įvesties informacijos: %s"
+
+#: ../src/utils/pactl.c:651
+#, c-format
+msgid ""
+"Sink Input #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSink: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tFormat: %s\n"
+"\tCorked: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Rinktuvo įvestis Nr.%u\n"
+"\tTvarkyklė: %s\n"
+"\tModulis savininkas: %s\n"
+"\tKlientas: %s\n"
+"\tRinktuvas: %u\n"
+"\tĘminio specifikacija: %s\n"
+"\tKanalų schema: %s\n"
+"\tFormatas: %s\n"
+"\tUžkimštas: %s\n"
+"\tNutildyti: %s\n"
+"\tGarsis: %s\n"
+"\t        balansas %0.2f\n"
+"\tBuferio delsa: %0.0f milisek.\n"
+"\tRinktuvo delsa: %0.0f milisek.\n"
+"\tĖminių keitimo metodas: %s\n"
+"\tSavybės:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:692 ../src/utils/pactl.c:960 ../src/utils/pactl.c:1023
+#, c-format
+msgid "Failed to get source output information: %s"
+msgstr "Nepavyko gauti šaltinio išvesties informacijos: %s"
+
+#: ../src/utils/pactl.c:721
+#, c-format
+msgid ""
+"Source Output #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSource: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tFormat: %s\n"
+"\tCorked: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Šaltinio išvestis Nr.%u\n"
+"\tTvarkyklė: %s\n"
+"\tModulis savininkas: %s\n"
+"\tKlientas: %s\n"
+"\tŠaltinis: %u\n"
+"\tĖminio specifikacija: %s\n"
+"\tKanalų schema: %s\n"
+"\tFormatas: %s\n"
+"\tUžkimštas: %s\n"
+"\tNutildyti: %s\n"
+"\tGarsis: %s\n"
+"\t        balansas %0.2f\n"
+"\tBuferio delsa: %0.0f milisek.\n"
+"\tŠaltinio delsa: %0.0f milisek.\n"
+"\tĖminių keitimo metodas: %s\n"
+"\tSavybės:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:762
+#, c-format
+msgid "Failed to get sample information: %s"
+msgstr "Nepavyko gauti ėminio informacijos: %s"
+
+#: ../src/utils/pactl.c:789
+#, c-format
+msgid ""
+"Sample #%u\n"
+"\tName: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tDuration: %0.1fs\n"
+"\tSize: %s\n"
+"\tLazy: %s\n"
+"\tFilename: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Ėminys Nr.%u\n"
+"\tPavadinimas: %s\n"
+"\tĖminio specifikacija: %s\n"
+"\tKanalų schema: %s\n"
+"\tGarsis: %s\n"
+"\t        balansas %0.2f\n"
+"\tTrukmė: %0.1fs\n"
+"\tDydis: %s\n"
+"\tTingus: %s\n"
+"\tFailo pavadinimas: %s\n"
+"\tSavybės:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:817 ../src/utils/pactl.c:827
+#, c-format
+msgid "Failure: %s"
+msgstr "Triktis: %s"
+
+#: ../src/utils/pactl.c:866
+#, c-format
+msgid "Failed to unload module: Module %s not loaded"
+msgstr "Nepavyko iškelti modulio: Modulis %s nėra įkeltas"
+
+#: ../src/utils/pactl.c:884
+#, c-format
+msgid ""
+"Failed to set volume: You tried to set volumes for %d channels, whereas "
+"channel/s supported = %d\n"
+msgstr ""
+"Nepavyko nustatyti garsio: Jūs bandėte nustatyti garsį %d kanalams, tuo "
+"tarpu yra palaikomi %d kanalai\n"
+
+#: ../src/utils/pactl.c:1050
+#, c-format
+msgid "Failed to set format: invalid format string %s"
+msgstr "Nepavyko nustatyti formato: neteisinga formato eilutė %s"
+
+#: ../src/utils/pactl.c:1093
+#, c-format
+msgid "Failed to upload sample: %s"
+msgstr "Nepavyko įkelti ėminio: %s"
+
+#: ../src/utils/pactl.c:1110
+msgid "Premature end of file"
+msgstr "Priešlaikinė failo pabaiga"
+
+#: ../src/utils/pactl.c:1130
+msgid "new"
+msgstr "nauja"
+
+#: ../src/utils/pactl.c:1133
+msgid "change"
+msgstr "pakeisti"
+
+#: ../src/utils/pactl.c:1136
+msgid "remove"
+msgstr "šalinti"
+
+#: ../src/utils/pactl.c:1139 ../src/utils/pactl.c:1174
+msgid "unknown"
+msgstr "nežinoma"
+
+#: ../src/utils/pactl.c:1147
+msgid "sink"
+msgstr "rinktuvas"
+
+#: ../src/utils/pactl.c:1150
+msgid "source"
+msgstr "šaltinis"
+
+#: ../src/utils/pactl.c:1153
+msgid "sink-input"
+msgstr "rinktuvo-įvestis"
+
+#: ../src/utils/pactl.c:1156
+msgid "source-output"
+msgstr "šaltinio-išvestis"
+
+#: ../src/utils/pactl.c:1159
+msgid "module"
+msgstr "modulis"
+
+#: ../src/utils/pactl.c:1162
+msgid "client"
+msgstr "klientas"
+
+#: ../src/utils/pactl.c:1165
+msgid "sample-cache"
+msgstr "ėminių-podėlis"
+
+#: ../src/utils/pactl.c:1168
+msgid "server"
+msgstr "serveris"
+
+#: ../src/utils/pactl.c:1171
+msgid "card"
+msgstr "plokštė"
+
+#: ../src/utils/pactl.c:1180
+#, c-format
+msgid "Event '%s' on %s #%u\n"
+msgstr "Įvykis \"%s\" ties %s Nr.%u\n"
+
+#: ../src/utils/pactl.c:1452
+msgid "Got SIGINT, exiting."
+msgstr "Gautas SIGINT, išeinama."
+
+#: ../src/utils/pactl.c:1485
+msgid "Invalid volume specification"
+msgstr "Neteisinga garsio specifikacija"
+
+#: ../src/utils/pactl.c:1508
+msgid "Volume outside permissible range.\n"
+msgstr "Garsis už leidžiamų ribų diapazono.\n"
+
+#: ../src/utils/pactl.c:1521
+msgid "Invalid number of volume specifications.\n"
+msgstr "Neteisingas garsio specifikacijų skaičius.\n"
+
+#: ../src/utils/pactl.c:1533
+msgid "Inconsistent volume specification.\n"
+msgstr "Nesuderinama garsio specifikacija.\n"
+
+#: ../src/utils/pactl.c:1563 ../src/utils/pactl.c:1564
+#: ../src/utils/pactl.c:1565 ../src/utils/pactl.c:1566
+#: ../src/utils/pactl.c:1567 ../src/utils/pactl.c:1568
+#: ../src/utils/pactl.c:1569 ../src/utils/pactl.c:1570
+#: ../src/utils/pactl.c:1571 ../src/utils/pactl.c:1572
+#: ../src/utils/pactl.c:1573 ../src/utils/pactl.c:1574
+#: ../src/utils/pactl.c:1575 ../src/utils/pactl.c:1576
+#: ../src/utils/pactl.c:1577 ../src/utils/pactl.c:1578
+#: ../src/utils/pactl.c:1579 ../src/utils/pactl.c:1580
+#: ../src/utils/pactl.c:1581 ../src/utils/pactl.c:1582
+#: ../src/utils/pactl.c:1583
+msgid "[options]"
+msgstr "[parametrai]"
+
+#: ../src/utils/pactl.c:1565
+msgid "[TYPE]"
+msgstr "[TIPAS]"
+
+#: ../src/utils/pactl.c:1567
+msgid "FILENAME [NAME]"
+msgstr "FAILO_PAVADINIMAS [PAVADINIMAS]"
+
+#: ../src/utils/pactl.c:1568
+msgid "NAME [SINK]"
+msgstr "PAVADINIMAS [RINKTUVAS]"
+
+#: ../src/utils/pactl.c:1577
+msgid "NAME|#N VOLUME [VOLUME ...]"
+msgstr "PAVADINIMAS|#NUMERIS GARSIS [GARSIS ...]"
+
+#: ../src/utils/pactl.c:1578
+msgid "#N VOLUME [VOLUME ...]"
+msgstr "#NUMERIS GARSIS [GARSIS ...]"
+
+#: ../src/utils/pactl.c:1579
+msgid "NAME|#N 1|0|toggle"
+msgstr "PAVADINIMAS|#NUMERIS 1|0|toggle"
+
+#: ../src/utils/pactl.c:1580
+msgid "#N 1|0|toggle"
+msgstr "#NUMERIS 1|0|toggle"
+
+#: ../src/utils/pactl.c:1581
+msgid "#N FORMATS"
+msgstr "#NUMERIS FORMATAI"
+
+#: ../src/utils/pactl.c:1584
+#, c-format
+msgid ""
+"\n"
+"The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
+"can be used to specify the default sink, source and monitor.\n"
+msgstr ""
+"\n"
+"Specialūs pavadinimai @DEFAULT_SINK@, @DEFAULT_SOURCE@ ir @DEFAULT_MONITOR@\n"
+"gali būti naudojami, norint nurodyti numatytąjį rinktuvą, šaltinį ir "
+"monitorių.\n"
+
+#: ../src/utils/pactl.c:1587
+#, c-format
+msgid ""
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+msgstr ""
+"\n"
+"  -h, --help                            Rodyti šią pagalbą\n"
+"      --version                         Rodyti versiją\n"
+"\n"
+"  -s, --server=SERVER                   Serverio, prie kurio jungtis, "
+"pavadinimas\n"
+"  -n, --client-name=NAME                Kaip vadinti šį, serveryje esantį, "
+"klientą\n"
+
+#: ../src/utils/pactl.c:1628
+#, c-format
+msgid ""
+"pactl %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pactl %s\n"
+"Sukompiliuota su libpulse %s\n"
+"Susieta su libpulse %s\n"
+
+#: ../src/utils/pactl.c:1684
+#, c-format
+msgid "Specify nothing, or one of: %s"
+msgstr "Nieko nenurodykite arba nurodykite vieną iš: %s"
+
+#: ../src/utils/pactl.c:1694
+msgid "Please specify a sample file to load"
+msgstr "Prašome nurodyti ėminio failą, kurį įkelti"
+
+#: ../src/utils/pactl.c:1707
+msgid "Failed to open sound file."
+msgstr "Nepavyko atverti garso failo."
+
+#: ../src/utils/pactl.c:1719
+msgid "Warning: Failed to determine sample specification from file."
+msgstr "Įspėjimas: Nepavyko iš failo nustatyti ėminio specifikacijos."
+
+#: ../src/utils/pactl.c:1729
+msgid "You have to specify a sample name to play"
+msgstr "Jūs turite nurodyti ėminio, kurį groti, pavadinimą"
+
+#: ../src/utils/pactl.c:1741
+msgid "You have to specify a sample name to remove"
+msgstr "Jūs turite nurodyti ėminio, kurį šalinti, pavadinimą"
+
+#: ../src/utils/pactl.c:1750
+msgid "You have to specify a sink input index and a sink"
+msgstr "Jūs turite nurodyti rinktuvo įvesties indeksą ir rinktuvą"
+
+#: ../src/utils/pactl.c:1760
+msgid "You have to specify a source output index and a source"
+msgstr "Jūs turite nurodyti šaltinio išvesties indeksą ir šaltinį"
+
+#: ../src/utils/pactl.c:1775
+msgid "You have to specify a module name and arguments."
+msgstr "Jūs turite nurodyti modulio pavadinimą ir argumentus."
+
+#: ../src/utils/pactl.c:1795
+msgid "You have to specify a module index or name"
+msgstr "Jūs turite nurodyti modulio indeksą ar pavadinimą"
+
+#: ../src/utils/pactl.c:1808
+msgid ""
+"You may not specify more than one sink. You have to specify a boolean value."
+msgstr ""
+"Jūs negalite nurodyti daugiau kaip vieną rinktuvą. Turite nurodyti loginę "
+"reikšmę."
+
+#: ../src/utils/pactl.c:1813 ../src/utils/pactl.c:1833
+msgid "Invalid suspend specification."
+msgstr "Neteisinga pristabdymo specifikacija."
+
+#: ../src/utils/pactl.c:1828
+msgid ""
+"You may not specify more than one source. You have to specify a boolean "
+"value."
+msgstr ""
+"Jūs negalite nurodyti daugiau kaip vieną šaltinį. Turite nurodyti loginę "
+"reikšmę."
+
+#: ../src/utils/pactl.c:1845
+msgid "You have to specify a card name/index and a profile name"
+msgstr "Jūs turite nurodyti plokštės pavadinimą/indeksą ir profilio pavadinimą"
+
+#: ../src/utils/pactl.c:1856
+msgid "You have to specify a sink name/index and a port name"
+msgstr "Jūs turite nurodyti rinktuvo pavadinimą/indeksą ir prievado pavadinimą"
+
+#: ../src/utils/pactl.c:1867
+msgid "You have to specify a sink name"
+msgstr "Jūs turite nurodyti rinktuvo pavadinimą"
+
+#: ../src/utils/pactl.c:1877
+msgid "You have to specify a source name/index and a port name"
+msgstr "Jūs turite nurodyti šaltinio pavadinimą/indeksą ir prievado pavadinimą"
+
+#: ../src/utils/pactl.c:1888
+msgid "You have to specify a source name"
+msgstr "Jūs turite nurodyti šaltinio pavadinimą"
+
+#: ../src/utils/pactl.c:1898
+msgid "You have to specify a sink name/index and a volume"
+msgstr "Jūs turite nurodyti rinktuvo pavadinimą/indeksą ir garsį"
+
+#: ../src/utils/pactl.c:1911
+msgid "You have to specify a source name/index and a volume"
+msgstr "Jūs turite nurodyti šaltinio pavadinimą/indeksą ir garsį"
+
+#: ../src/utils/pactl.c:1924
+msgid "You have to specify a sink input index and a volume"
+msgstr "Jūs turite nurodyti rinktuvo įvesties indeksą ir garsį"
+
+#: ../src/utils/pactl.c:1929
+msgid "Invalid sink input index"
+msgstr "Neteisingas rinktuvo įvesties indeksas"
+
+#: ../src/utils/pactl.c:1940
+msgid "You have to specify a source output index and a volume"
+msgstr "Jūs turite nurodyti šaltinio išvesties indeksą ir garsį"
+
+#: ../src/utils/pactl.c:1945
+msgid "Invalid source output index"
+msgstr "Neteisingas šaltinio išvesties indeksas"
+
+#: ../src/utils/pactl.c:1956
+msgid ""
+"You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+"Jūs turite nurodyti rinktuvo pavadinimą/indeksą ir nutildymo veiksmą (0, 1 "
+"arba \"toggle\")"
+
+#: ../src/utils/pactl.c:1961 ../src/utils/pactl.c:1976
+#: ../src/utils/pactl.c:1996 ../src/utils/pactl.c:2014
+msgid "Invalid mute specification"
+msgstr "Neteisinga nutildymo specifikacija"
+
+#: ../src/utils/pactl.c:1971
+msgid ""
+"You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+"Jūs turite nurodyti šaltinio pavadinimą/indeksą ir nutildymo veiksmą (0, 1 "
+"arba \"toggle\")"
+
+#: ../src/utils/pactl.c:1986
+msgid ""
+"You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+"Jūs turite nurodyti rinktuvo įvesties indeksą ir nutildymo veiksmą (0, 1 "
+"arba \"toggle\")"
+
+#: ../src/utils/pactl.c:1991
+msgid "Invalid sink input index specification"
+msgstr "Neteisinga rinktuvo įvesties indekso specifikacija"
+
+#: ../src/utils/pactl.c:2004
+msgid ""
+"You have to specify a source output index and a mute action (0, 1, or "
+"'toggle')"
+msgstr ""
+"Jūs turite nurodyti šaltinio išvesties indeksą ir nutildymo veiksmą (0, 1 "
+"arba \"toggle\")"
+
+#: ../src/utils/pactl.c:2009
+msgid "Invalid source output index specification"
+msgstr "Neteisinga šaltinio išvesties indekso specifikacija"
+
+#: ../src/utils/pactl.c:2026
+msgid ""
+"You have to specify a sink index and a semicolon-separated list of supported "
+"formats"
+msgstr ""
+"Jūs turite nurodyti rinktuvo indeksą ir kabliataškiais atskirtų palaikomų "
+"formatų sąrašą"
+
+#: ../src/utils/pactl.c:2038
+msgid "You have to specify a card name/index, a port name and a latency offset"
+msgstr ""
+"Jūs turite nurodyti plokštės pavadinimą/indeksą, prievado pavadinimą ir "
+"delsos poslinkį"
+
+#: ../src/utils/pactl.c:2045
+msgid "Could not parse latency offset"
+msgstr "Nepavyko analizuoti delsos poslinkio"
+
+#: ../src/utils/pactl.c:2057
+msgid "No valid command specified."
+msgstr "Nenurodyta taisyklinga komanda."
+
+#: ../src/utils/pasuspender.c:79
+#, c-format
+msgid "fork(): %s\n"
+msgstr "fork(): %s\n"
+
+#: ../src/utils/pasuspender.c:92
+#, c-format
+msgid "execvp(): %s\n"
+msgstr "execvp(): %s\n"
+
+#: ../src/utils/pasuspender.c:111
+#, c-format
+msgid "Failure to resume: %s\n"
+msgstr "Nepavyko pratęsti: %s\n"
+
+#: ../src/utils/pasuspender.c:145
+#, c-format
+msgid "Failure to suspend: %s\n"
+msgstr "Nepavyko pristabdyti: %s\n"
+
+#: ../src/utils/pasuspender.c:170
+#, c-format
+msgid "WARNING: Sound server is not local, not suspending.\n"
+msgstr "ĮSPĖJIMAS: Garso serveris nėra vietinis, nepristabdoma.\n"
+
+#: ../src/utils/pasuspender.c:183
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "Sujungimo nesėkmė: %s\n"
+
+#: ../src/utils/pasuspender.c:201
+#, c-format
+msgid "Got SIGINT, exiting.\n"
+msgstr "Gautas SIGINT, išeinama.\n"
+
+#: ../src/utils/pasuspender.c:219
+#, c-format
+msgid "WARNING: Child process terminated by signal %u\n"
+msgstr "ĮSPĖJIMAS: Vyksnis nutrauktas %u signalo\n"
+
+#: ../src/utils/pasuspender.c:228
+#, c-format
+msgid ""
+"%s [options] ... \n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"\n"
+msgstr ""
+"%s [parametrai] ... \n"
+"\n"
+"  -h, --help                            Rodyti šią pagalbą\n"
+"      --version                         Rodyti versiją\n"
+"  -s, --server=SERVER                   Serverio, prie kurio jungtis, "
+"pavadinimas\n"
+"\n"
+
+#: ../src/utils/pasuspender.c:266
+#, c-format
+msgid ""
+"pasuspender %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pasuspender %s\n"
+"Sukompiliuota su libpulse %s\n"
+"Susieta su libpulse %s\n"
+
+#: ../src/utils/pasuspender.c:295
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "pa_mainloop_new() nepavyko.\n"
+
+#: ../src/utils/pasuspender.c:308
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "pa_context_new() nepavyko.\n"
+
+#: ../src/utils/pasuspender.c:320
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "pa_mainloop_run() nepavyko.\n"
+
+#: ../src/utils/pax11publish.c:58
+#, c-format
+msgid ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Show current PulseAudio data attached to X11 display (default)\n"
+" -e    Export local PulseAudio data to X11 display\n"
+" -i    Import PulseAudio data from X11 display to local environment "
+"variables and cookie file.\n"
+" -r    Remove PulseAudio data from X11 display\n"
+msgstr ""
+"%s [-D ekranas] [-S serveris] [-O rinktuvas] [-I šaltinis] [-c failas]  [-d|-"
+"e|-i|-r]\n"
+"\n"
+" -d    Rodyti esamus PulseAudio duomenis, pridėtus prie X11 ekrano (pagal "
+"numatymą)\n"
+" -e    Eksportuoti vietinius PulseAudio duomenis į X11 ekraną\n"
+" -i    Importuoti PulseAudio duomenis iš X11 ekrano į vietinius aplinkos "
+"kintamuosius ir slapuko failą.\n"
+" -r    Šalinti PulseAudio duomenis iš X11 ekrano\n"
+
+#: ../src/utils/pax11publish.c:91
+#, c-format
+msgid "Failed to parse command line.\n"
+msgstr "Nepavyko analizuoti komandų eilutės.\n"
+
+#: ../src/utils/pax11publish.c:110
+#, c-format
+msgid "Server: %s\n"
+msgstr "Serveris: %s\n"
+
+#: ../src/utils/pax11publish.c:112
+#, c-format
+msgid "Source: %s\n"
+msgstr "Šaltinis: %s\n"
+
+#: ../src/utils/pax11publish.c:114
+#, c-format
+msgid "Sink: %s\n"
+msgstr "Rinktuvas: %s\n"
+
+#: ../src/utils/pax11publish.c:116
+#, c-format
+msgid "Cookie: %s\n"
+msgstr "Slapukas: %s\n"
+
+#: ../src/utils/pax11publish.c:134
+#, c-format
+msgid "Failed to parse cookie data\n"
+msgstr "Nepavyko analizuoti slapuko duomenų\n"
+
+#: ../src/utils/pax11publish.c:139
+#, c-format
+msgid "Failed to save cookie data\n"
+msgstr "Nepavyko įrašyti slapuko duomenų\n"
+
+#: ../src/utils/pax11publish.c:168
+#, c-format
+msgid "Failed to get FQDN.\n"
+msgstr "Nepavyko gauti FQDN.\n"
+
+#: ../src/utils/pax11publish.c:188
+#, c-format
+msgid "Failed to load cookie data\n"
+msgstr "Nepavyko įkelti slapuko duomenų\n"
+
+#: ../src/utils/pax11publish.c:206
+#, c-format
+msgid "Not yet implemented.\n"
+msgstr "Kol kas neįgyvendinta.\n"
+
+#~ msgid ""
+#~ "OK, so you are running PA in system mode. Please note that you most "
+#~ "likely shouldn't be doing that.\n"
+#~ "If you do it nonetheless then it's your own fault if things don't work as "
+#~ "expected.\n"
+#~ "Please read http://www.freedesktop.org/wiki/Software/PulseAudio/"
+#~ "Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why "
+#~ "system mode is usually a bad idea."
+#~ msgstr ""
+#~ "Gerai, taigi, dabar vykdote PA sistemos veiksenoje. Prašome turėti "
+#~ "omenyje, kad jums tikriausiai, nėra reikalo to daryti.\n"
+#~ "Vis dėlto, jeigu tai darote, visa atsakomybė už visus nesklandumus tenka "
+#~ "jums.\n"
+#~ "Prašome skaityti http://www.freedesktop.org/wiki/Software/PulseAudio/"
+#~ "Documentation/User/WhatIsWrongWithSystemWide/ , kad sužinotumėte, kodėl "
+#~ "sistemos veiksena nėra geras sumanymas."
+
+#~ msgid "%s %s\n"
+#~ msgstr "%s %s\n"
