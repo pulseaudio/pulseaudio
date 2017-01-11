@@ -476,6 +476,8 @@ fail:
 
 void pa__done(pa_module*m) {
     struct userdata *u;
+    struct device_info *d;
+    void *state;
 
     pa_assert(m);
 
@@ -483,6 +485,18 @@ void pa__done(pa_module*m) {
         return;
 
     u = m->userdata;
+
+    PA_HASHMAP_FOREACH(d, u->device_infos, state) {
+        if (d->sink && pa_sink_get_state(d->sink) == PA_SINK_SUSPENDED) {
+            pa_log_debug("Resuming sink %s on module unload.", d->sink->name);
+            pa_sink_suspend(d->sink, false, PA_SUSPEND_IDLE);
+        }
+
+        if (d->source && pa_source_get_state(d->source) == PA_SOURCE_SUSPENDED) {
+            pa_log_debug("Resuming source %s on module unload.", d->source->name);
+            pa_source_suspend(d->source, false, PA_SUSPEND_IDLE);
+        }
+    }
 
     pa_hashmap_free(u->device_infos);
 
