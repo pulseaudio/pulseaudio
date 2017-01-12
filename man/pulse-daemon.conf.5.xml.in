@@ -245,7 +245,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       mentioned above apply. However, if PA enters an endless loop,
       realtime scheduling causes a system lockup. Thus, realtime
       scheduling should only be enabled on trusted machines for
-      now. Please not that only the IO threads of PulseAudio are made
+      now. Please note that only the IO threads of PulseAudio are made
       real-time. The controlling thread is left a normally scheduled
       thread. Thus enabling the high-priority option is orthogonal.
       See <manref section="1" name="pulseaudio"/> for more
