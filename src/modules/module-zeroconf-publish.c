@@ -679,8 +679,11 @@ static char *get_icon_name(pa_module*m) {
     DBusConnection *conn = NULL;
     DBusMessageIter sub;
 
+    dbus_error_init(&error);
+
     if (!(bus = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &error))) {
         pa_log("Failed to get system bus connection: %s", error.message);
+        dbus_error_free(&error);
         goto out;
     }
 
@@ -692,7 +695,6 @@ static char *get_icon_name(pa_module*m) {
                                        "Get");
     dbus_message_append_args(msg, DBUS_TYPE_STRING, &interface, DBUS_TYPE_STRING, &property, DBUS_TYPE_INVALID);
 
-    dbus_error_init(&error);
     if ((reply = dbus_connection_send_with_reply_and_block(conn, msg, -1, &error)) == NULL) {
         pa_log("Failed to send: %s:%s", error.name, error.message);
         dbus_error_free(&error);
