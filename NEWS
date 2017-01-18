@@ -1,3 +1,61 @@
+PulseAudio 10.0
+
+Changes at a glance:
+
+ * Automatically switch Bluetooth profile when using VoIP applications
+ * New module for prioritizing passthrough streams (module-allow-passthrough)
+ * Fix hotplugging support for USB surround sound cards
+ * Separate volumes for Bluetooth A2DP and HSP profiles
+ * memfd-based shared memory mechanism enabled by default
+ * Removed module-xenpv-sink
+ * Dropped dependency to json-c
+ * When using systemd to start PulseAudio, pulseaudio.socket is always started
+   first
+ * Compatibility with OpenSSL 1.1.0
+ * Clarified qpaeq license
+
+Detailed change log:
+
+  https://www.freedesktop.org/wiki/Software/PulseAudio/Notes/10.0/
+
+Contributors
+
+  Ahmed S. Darwish
+  Aidan Gauland
+  Alexander E. Patrakov
+  Anton Lundin
+  Arun Raghavan
+  Balázs Úr
+  Chris Billington
+  Cédric Valmary
+  Deepak Srivastava
+  Dušan Kazik
+  Felipe Sateler
+  Fran Dieguez
+  Georg Chini
+  Guillaume Desmottes
+  Jan Alexander Steffens
+  John Paul Adrian Glaubitz
+  Juha Kuikka
+  Juho Hämäläinen
+  KimJeongYeon
+  Marcin Lewandowski
+  Mario Blättermann
+  Moo
+  Nils Schneider
+  Pali Rohár
+  Peter Meerwald-Stadler
+  Philip Withnall
+  Pierre Ossman
+  Piotr Drąg
+  Rikard Söderström
+  Romain Naour
+  Sylvain Baubeau
+  Tanu Kaskinen
+  Ulrich Eckhardt
+  Viktar Vaŭčkievič
+
+
 PulseAudio 9.0
 
 Changes at a glance:
