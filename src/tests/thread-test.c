@@ -115,7 +115,10 @@ START_TEST (thread_test) {
     for (k = 0; k < 100; k++) {
         pa_assert(magic_number == 0);
 
-        magic_number = (int) rand() % 0x10000;
+        /* There's a thread waiting for us to change magic_number to a non-zero
+         * value. The "+ 1" part ensures that we don't accidentally set
+         * magic_number to zero here. */
+        magic_number = (int) rand() % 0x10000 + 1;
 
         pa_log_info("iteration %i (%i)", k, magic_number);
 
