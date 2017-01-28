@@ -747,6 +747,13 @@ snd_pcm_t *pa_alsa_open_by_device_string(
             goto fail;
         }
 
+        if (ss->channels > PA_CHANNELS_MAX) {
+            pa_log("Device %s has %u channels, but PulseAudio supports only %u channels. Unable to use the device.",
+                   d, ss->channels, PA_CHANNELS_MAX);
+            snd_pcm_close(pcm_handle);
+            goto fail;
+        }
+
         if (dev)
             *dev = d;
         else
