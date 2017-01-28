@@ -199,6 +199,7 @@ struct pa_core {
     bool disallow_exit:1;
     bool running_as_daemon:1;
     bool realtime_scheduling:1;
+    bool avoid_resampling:1;
     bool disable_remixing:1;
     bool remixing_use_all_sink_channels:1;
     bool disable_lfe_remixing:1;

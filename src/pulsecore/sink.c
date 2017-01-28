@@ -1414,6 +1414,7 @@ int pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
     pa_sink_input *i;
     bool default_rate_is_usable = false;
     bool alternate_rate_is_usable = false;
+    bool avoid_resampling = s->core->avoid_resampling;
 
     if (rate == s->sample_spec.rate)
         return 0;
@@ -1421,7 +1422,7 @@ int pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
     if (!s->update_rate)
         return -1;
 
-    if (PA_UNLIKELY(default_rate == alternate_rate && !passthrough)) {
+    if (PA_UNLIKELY(default_rate == alternate_rate && !passthrough && !avoid_resampling)) {
         pa_log_debug("Default and alternate sample rates are the same, so there is no point in switching.");
         return -1;
     }
@@ -1442,7 +1443,11 @@ int pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
     if (PA_UNLIKELY(!pa_sample_rate_valid(desired_rate)))
         return -1;
 
-    if (!passthrough && default_rate != desired_rate && alternate_rate != desired_rate) {
+    if (avoid_resampling && (rate >= default_rate || rate >= alternate_rate)) {
+        /* We just try to set the sink input's sample rate if it's not too low */
+        desired_rate = rate;
+
+    } else if (!passthrough && default_rate != desired_rate && alternate_rate != desired_rate) {
         if (default_rate % 11025 == 0 && desired_rate % 11025 == 0)
             default_rate_is_usable = true;
         if (default_rate % 4000 == 0 && desired_rate % 4000 == 0)

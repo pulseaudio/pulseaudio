@@ -54,6 +54,7 @@ ifelse(@HAVE_DBUS@, 1, [dnl
 ; log-backtrace = 0
 
 ; resample-method = speex-float-1
+; avoid-resampling = false
 ; enable-remixing = yes
 ; remixing-use-all-sink-channels = yes
 ; enable-lfe-remixing = no

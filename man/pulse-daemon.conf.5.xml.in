@@ -124,6 +124,15 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
+      <p><opt>avoid-resampling=</opt> If set, try to configure the
+      device to avoid resampling. This only works on devices which
+      support reconfiguring their rate, and when no other streams are
+      already playing or capturing audio. The device will also not be
+      configured to a rate less than the default and alternate sample
+      rates.</p>
+    </option>
+
+    <option>
       <p><opt>enable-remixing=</opt> If disabled never upmix or
       downmix channels to different channel maps. Instead, do a simple
       name-based matching only. Defaults to <opt>yes.</opt></p>
