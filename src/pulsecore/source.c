@@ -977,7 +977,7 @@ void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *
 /* Called from main thread */
 int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
     int ret;
-    uint32_t desired_rate = rate;
+    uint32_t desired_rate;
     uint32_t default_rate = s->default_sample_rate;
     uint32_t alternate_rate = s->alternate_sample_rate;
     bool default_rate_is_usable = false;
@@ -1008,21 +1008,30 @@ int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
         }
     }
 
-    if (PA_UNLIKELY(!pa_sample_rate_valid(desired_rate)))
+    if (PA_UNLIKELY(!pa_sample_rate_valid(rate)))
         return -1;
 
-    if (avoid_resampling && (rate >= default_rate || rate >= alternate_rate)) {
+    if (passthrough) {
+        /* We have to try to use the source output rate */
+        desired_rate = rate;
+
+    } else if (avoid_resampling && (rate >= default_rate || rate >= alternate_rate)) {
         /* We just try to set the source output's sample rate if it's not too low */
         desired_rate = rate;
 
-    } else if (!passthrough && default_rate != desired_rate && alternate_rate != desired_rate) {
-        if (default_rate % 11025 == 0 && desired_rate % 11025 == 0)
+    } else if (default_rate == rate || alternate_rate == rate) {
+        /* We can directly try to use this rate */
+        desired_rate = rate;
+
+    } else {
+        /* See if we can pick a rate that results in less resampling effort */
+        if (default_rate % 11025 == 0 && rate % 11025 == 0)
             default_rate_is_usable = true;
-        if (default_rate % 4000 == 0 && desired_rate % 4000 == 0)
+        if (default_rate % 4000 == 0 && rate % 4000 == 0)
             default_rate_is_usable = true;
-        if (alternate_rate && alternate_rate % 11025 == 0 && desired_rate % 11025 == 0)
+        if (alternate_rate && alternate_rate % 11025 == 0 && rate % 11025 == 0)
             alternate_rate_is_usable = true;
-        if (alternate_rate && alternate_rate % 4000 == 0 && desired_rate % 4000 == 0)
+        if (alternate_rate && alternate_rate % 4000 == 0 && rate % 4000 == 0)
             alternate_rate_is_usable = true;
 
         if (alternate_rate_is_usable && !default_rate_is_usable)
