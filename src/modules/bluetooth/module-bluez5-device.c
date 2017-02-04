@@ -54,7 +54,8 @@ PA_MODULE_AUTHOR("João Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("BlueZ 5 Bluetooth audio sink and source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(false);
-PA_MODULE_USAGE("path=<device object path>");
+PA_MODULE_USAGE("path=<device object path>"
+                "autodetect_mtu=<boolean>");
 
 #define MAX_PLAYBACK_CATCH_UP_USEC (100 * PA_USEC_PER_MSEC)
 #define FIXED_LATENCY_PLAYBACK_A2DP (25 * PA_USEC_PER_MSEC)
@@ -68,6 +69,7 @@ PA_MODULE_USAGE("path=<device object path>");
 
 static const char* const valid_modargs[] = {
     "path",
+    "autodetect_mtu",
     NULL
 };
 
@@ -2158,6 +2160,7 @@ int pa__init(pa_module* m) {
     struct userdata *u;
     const char *path;
     pa_modargs *ma;
+    bool autodetect_mtu;
 
     pa_assert(m);
 
@@ -2186,6 +2189,14 @@ int pa__init(pa_module* m) {
         pa_log_error("%s is unknown", path);
         goto fail_free_modargs;
     }
+
+    autodetect_mtu = true;
+    if (pa_modargs_get_value_boolean(ma, "autodetect_mtu", &autodetect_mtu) < 0) {
+        pa_log("Invalid boolean value for autodetect_mtu parameter");
+        goto fail_free_modargs;
+    }
+
+    u->device->autodetect_mtu = autodetect_mtu;
 
     pa_modargs_free(ma);
 

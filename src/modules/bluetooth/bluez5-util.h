@@ -95,6 +95,7 @@ struct pa_bluetooth_device {
     bool properties_received;
     bool tried_to_link_with_adapter;
     bool valid;
+    bool autodetect_mtu;
 
     /* Device information */
     char *path;

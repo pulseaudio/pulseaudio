@@ -103,7 +103,6 @@ static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_backend *backend, D
 static int bluez5_sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu) {
     pa_bluetooth_device *d = t->device;
     struct sockaddr_sco addr;
-    struct sco_options sco_opt;
     socklen_t len;
     int err, i;
     int sock;
@@ -147,18 +146,21 @@ static int bluez5_sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_
         goto fail_close;
     }
 
-    len = sizeof(sco_opt);
-    memset(&sco_opt, 0, len);
+    if (imtu) *imtu = 48;
+    if (omtu) *omtu = 48;
 
-    if (getsockopt(sock, SOL_SCO, SCO_OPTIONS, &sco_opt, &len) < 0) {
-        pa_log_warn("getsockopt(SCO_OPTIONS) failed, loading defaults");
+    if (t->device->autodetect_mtu) {
+        struct sco_options sco_opt;
 
-        /* Setting defaults in case of error */
-        if (imtu) *imtu = 48;
-        if (omtu) *omtu = 48;
-    } else {
-        if (imtu) *imtu = sco_opt.mtu;
-        if (omtu) *omtu = sco_opt.mtu;
+        len = sizeof(sco_opt);
+        memset(&sco_opt, 0, len);
+
+        if (getsockopt(sock, SOL_SCO, SCO_OPTIONS, &sco_opt, &len) < 0)
+            pa_log_warn("getsockopt(SCO_OPTIONS) failed, loading defaults");
+        else {
+            if (imtu) *imtu = sco_opt.mtu;
+            if (omtu) *omtu = sco_opt.mtu;
+        }
     }
 
     return sock;

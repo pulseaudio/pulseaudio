@@ -33,6 +33,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
     "headset=ofono|native|auto (bluez 5 only)"
+    "autodetect_mtu=<boolean> (bluez 5 only)"
 );
 
 struct userdata {
