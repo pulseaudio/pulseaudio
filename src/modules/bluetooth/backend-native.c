@@ -693,7 +693,9 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
         char buf[512];
         ssize_t len;
         int gain, dummy;
-        bool  do_reply = false;
+        bool do_reply = false;
+        int vendor, product, version, features;
+        int num;
 
         len = pa_read(fd, buf, 511, NULL);
         if (len < 0) {
@@ -733,6 +735,31 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
             pa_hook_fire(pa_bluetooth_discovery_hook(t->device->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SOURCE_VOLUME_CHANGED), t);
             do_reply = true;
         } else if (sscanf(buf, "AT+CKPD=%d", &dummy) == 1) {
+            do_reply = true;
+        } else if (sscanf(buf, "AT+XAPL=%04x-%04x-%04x,%d", &vendor, &product, &version, &features) == 4) {
+            if (features & 0x2)
+                /* claim, that we support battery status reports */
+                rfcomm_write_response(fd, "+XAPL=iPhone,2");
+            do_reply = true;
+        } else if (sscanf(buf, "AT+IPHONEACCEV=%d", &num) == 1) {
+            char *substr = strchr(buf, ',');
+            bool isval = false;
+            int key, val;
+
+            for (; substr; substr = strchr(substr, ',')) {
+                substr++;
+                if (!isval) {
+                    key = atoi(substr);
+                } else {
+                    val = atoi(substr);
+                    if (key == 1) {
+                        pa_log_notice("Battery Level: %d0%%", val + 1);
+                    } else if (key == 2) {
+                        pa_log_notice("Dock Status: %s", val ? "docked" : "undocked");
+                    }
+                }
+                isval = !isval;
+            }
             do_reply = true;
         } else if (t->config) { /* t->config is only non-null for hfp profile */
             do_reply = hfp_rfcomm_handle(fd, t, buf);
