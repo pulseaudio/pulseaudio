@@ -92,7 +92,7 @@ struct userdata {
         pa_usec_t source_timestamp;
 
         int64_t recv_counter;
-        size_t sink_input_buffer;
+        size_t loopback_memblockq_length;
         pa_usec_t sink_latency;
         pa_usec_t sink_timestamp;
     } latency_snapshot;
@@ -199,7 +199,7 @@ static void adjust_rates(struct userdata *u) {
     old_rate = u->sink_input->sample_spec.rate;
     base_rate = u->source_output->sample_spec.rate;
 
-    buffer = u->latency_snapshot.sink_input_buffer;
+    buffer = u->latency_snapshot.loopback_memblockq_length;
     if (u->latency_snapshot.recv_counter <= u->latency_snapshot.send_counter)
         buffer += (size_t) (u->latency_snapshot.send_counter - u->latency_snapshot.recv_counter);
     else
@@ -554,7 +554,7 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
             length = pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq);
 
             u->latency_snapshot.recv_counter = u->recv_counter;
-            u->latency_snapshot.sink_input_buffer = pa_memblockq_get_length(u->memblockq);
+            u->latency_snapshot.loopback_memblockq_length = pa_memblockq_get_length(u->memblockq);
             /* Add content of render memblockq to sink latency */
             u->latency_snapshot.sink_latency = pa_sink_get_latency_within_thread(u->sink_input->sink) +
                                                pa_bytes_to_usec(length, &u->sink_input->sink->sample_spec);
