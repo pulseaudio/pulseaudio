@@ -891,7 +891,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                 wi = pa_smoother_get(u->read_smoother, pa_rtclock_now());
                 ri = pa_bytes_to_usec(u->read_index, &u->sample_spec);
 
-                *((pa_usec_t*) data) = FIXED_LATENCY_RECORD_A2DP + wi > ri ? FIXED_LATENCY_RECORD_A2DP + wi - ri : 0;
+                *((pa_usec_t*) data) = u->source->thread_info.fixed_latency + wi > ri ? u->source->thread_info.fixed_latency + wi - ri : 0;
             } else
                 *((pa_usec_t*) data) = 0;
 
@@ -1051,7 +1051,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 wi = pa_bytes_to_usec(u->write_index, &u->sample_spec);
             }
 
-            *((pa_usec_t*) data) = FIXED_LATENCY_PLAYBACK_A2DP + wi > ri ? FIXED_LATENCY_PLAYBACK_A2DP + wi - ri : 0;
+            *((pa_usec_t*) data) = u->sink->thread_info.fixed_latency + wi > ri ? u->sink->thread_info.fixed_latency + wi - ri : 0;
 
             return 0;
         }
