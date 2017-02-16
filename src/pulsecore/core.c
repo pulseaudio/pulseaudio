@@ -266,6 +266,14 @@ static int compare_sinks(pa_sink *a, pa_sink *b) {
 
     core = a->core;
 
+    /* Available sinks always beat unavailable sinks. */
+    if (a->active_port && a->active_port->available == PA_AVAILABLE_NO
+            && (!b->active_port || b->active_port->available != PA_AVAILABLE_NO))
+        return -1;
+    if (b->active_port && b->active_port->available == PA_AVAILABLE_NO
+            && (!a->active_port || a->active_port->available != PA_AVAILABLE_NO))
+        return 1;
+
     /* The configured default sink is preferred over any other sink. */
     if (b == core->configured_default_sink)
         return -1;
@@ -331,6 +339,14 @@ static int compare_sources(pa_source *a, pa_source *b) {
     pa_core *core;
 
     core = a->core;
+
+    /* Available sources always beat unavailable sources. */
+    if (a->active_port && a->active_port->available == PA_AVAILABLE_NO
+            && (!b->active_port || b->active_port->available != PA_AVAILABLE_NO))
+        return -1;
+    if (b->active_port && b->active_port->available == PA_AVAILABLE_NO
+            && (!a->active_port || a->active_port->available != PA_AVAILABLE_NO))
+        return 1;
 
     /* The configured default source is preferred over any other source. */
     if (b == core->configured_default_source)
