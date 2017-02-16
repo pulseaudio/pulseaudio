@@ -344,8 +344,6 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool
     char bytes[PA_BYTES_SNPRINT_MAX];
     const pa_mempool_stat *mstat;
     unsigned k;
-    pa_sink *def_sink;
-    pa_source *def_source;
 
     static const char* const type_table[PA_MEMBLOCK_TYPE_MAX] = {
         [PA_MEMBLOCK_POOL] = "POOL",
@@ -388,12 +386,10 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool
     pa_strbuf_printf(buf, "Default channel map: %s\n",
                      pa_channel_map_snprint(cm, sizeof(cm), &c->default_channel_map));
 
-    def_sink = pa_namereg_get_default_sink(c);
-    def_source = pa_namereg_get_default_source(c);
     pa_strbuf_printf(buf, "Default sink name: %s\n"
                      "Default source name: %s\n",
-                     def_sink ? def_sink->name : "none",
-                     def_source ? def_source->name : "none");
+                     c->default_sink ? c->default_sink->name : "none",
+                     c->default_source ? c->default_source->name : "none");
 
     for (k = 0; k < PA_MEMBLOCK_TYPE_MAX; k++)
         pa_strbuf_printf(buf,
@@ -1034,7 +1030,7 @@ static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *b
     }
 
     if ((s = pa_namereg_get(c, n, PA_NAMEREG_SINK)))
-        pa_namereg_set_default_sink(c, s);
+        pa_core_set_configured_default_sink(c, s);
     else
         pa_strbuf_printf(buf, "Sink %s does not exist.\n", n);
 
@@ -1056,7 +1052,7 @@ static int pa_cli_command_source_default(pa_core *c, pa_tokenizer *t, pa_strbuf 
     }
 
     if ((s = pa_namereg_get(c, n, PA_NAMEREG_SOURCE)))
-        pa_namereg_set_default_source(c, s);
+        pa_core_set_configured_default_source(c, s);
     else
         pa_strbuf_printf(buf, "Source %s does not exist.\n", n);
     return 0;
@@ -1850,20 +1846,20 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool
     }
 
     nl = false;
-    if ((sink = pa_namereg_get_default_sink(c))) {
+    if (c->default_sink) {
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
             nl = true;
         }
 
-        pa_strbuf_printf(buf, "set-default-sink %s\n", sink->name);
+        pa_strbuf_printf(buf, "set-default-sink %s\n", c->default_sink->name);
     }
 
-    if ((source = pa_namereg_get_default_source(c))) {
+    if (c->default_source) {
         if (!nl)
             pa_strbuf_puts(buf, "\n");
 
-        pa_strbuf_printf(buf, "set-default-source %s\n", source->name);
+        pa_strbuf_printf(buf, "set-default-source %s\n", c->default_source->name);
     }
 
     pa_strbuf_puts(buf, "\n### EOF\n");

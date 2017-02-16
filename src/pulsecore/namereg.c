@@ -168,17 +168,6 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
 
     pa_assert_se(pa_hashmap_put(c->namereg, e->name, e) >= 0);
 
-    /* If a sink or source is registered and there was none registered
-     * before we inform the clients which then can ask for the default
-     * sink/source which is then assigned. We don't adjust the default
-     * sink/source here right away to give the module the chance to
-     * register more sinks/sources before we choose a new default
-     * sink/source. */
-
-    if ((!c->default_sink && type == PA_NAMEREG_SINK) ||
-        (!c->default_source && type == PA_NAMEREG_SOURCE))
-        pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
-
     return e->name;
 }
 
@@ -189,12 +178,6 @@ void pa_namereg_unregister(pa_core *c, const char *name) {
     pa_assert(name);
 
     pa_assert_se(e = pa_hashmap_remove(c->namereg, name));
-
-    if (c->default_sink == e->data)
-        pa_namereg_set_default_sink(c, NULL);
-    else if (c->default_source == e->data)
-        pa_namereg_set_default_source(c, NULL);
-
     pa_xfree(e->name);
     pa_xfree(e);
 }
@@ -205,22 +188,16 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type) {
     pa_assert(c);
 
     if (type == PA_NAMEREG_SOURCE && (!name || pa_streq(name, "@DEFAULT_SOURCE@"))) {
-        pa_source *s;
-
-        if ((s = pa_namereg_get_default_source(c)))
-            return s;
+        return c->default_source;
 
     } else if (type == PA_NAMEREG_SINK && (!name || pa_streq(name, "@DEFAULT_SINK@"))) {
-        pa_sink *s;
-
-        if ((s = pa_namereg_get_default_sink(c)))
-            return s;
+        return c->default_sink;
 
     } else if (type == PA_NAMEREG_SOURCE && name && pa_streq(name, "@DEFAULT_MONITOR@")) {
-        pa_sink *s;
-
-        if ((s = pa_namereg_get(c, NULL, PA_NAMEREG_SINK)))
-            return s->monitor_source;
+        if (c->default_sink)
+            return c->default_sink->monitor_source;
+        else
+            return NULL;
     }
 
     if (!name)
@@ -247,84 +224,4 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type) {
         return pa_idxset_get_by_index(c->cards, idx);
 
     return NULL;
-}
-
-pa_sink* pa_namereg_set_default_sink(pa_core*c, pa_sink *s) {
-    pa_assert(c);
-
-    if (s && !PA_SINK_IS_LINKED(pa_sink_get_state(s)))
-        return NULL;
-
-    if (c->default_sink != s) {
-        c->default_sink = s;
-        pa_hook_fire(&c->hooks[PA_CORE_HOOK_DEFAULT_SINK_CHANGED], c->default_sink);
-        pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
-    }
-
-    return s;
-}
-
-pa_source* pa_namereg_set_default_source(pa_core*c, pa_source *s) {
-    pa_assert(c);
-
-    if (s && !PA_SOURCE_IS_LINKED(pa_source_get_state(s)))
-        return NULL;
-
-    if (c->default_source != s) {
-        c->default_source = s;
-        pa_hook_fire(&c->hooks[PA_CORE_HOOK_DEFAULT_SOURCE_CHANGED], c->default_source);
-        pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
-    }
-
-    return s;
-}
-
-pa_sink *pa_namereg_get_default_sink(pa_core *c) {
-    pa_sink *s, *best = NULL;
-    uint32_t idx;
-
-    pa_assert(c);
-
-    if (c->default_sink && PA_SINK_IS_LINKED(pa_sink_get_state(c->default_sink)))
-        return c->default_sink;
-
-    PA_IDXSET_FOREACH(s, c->sinks, idx)
-        if (PA_SINK_IS_LINKED(pa_sink_get_state(s)))
-            if (!best || s->priority > best->priority)
-                best = s;
-
-    return best;
-}
-
-pa_source *pa_namereg_get_default_source(pa_core *c) {
-    pa_source *s, *best = NULL;
-    uint32_t idx;
-
-    pa_assert(c);
-
-    if (c->default_source && PA_SOURCE_IS_LINKED(pa_source_get_state(c->default_source)))
-        return c->default_source;
-
-    /* First, try to find one that isn't a monitor */
-    PA_IDXSET_FOREACH(s, c->sources, idx)
-        if (!s->monitor_of && PA_SOURCE_IS_LINKED(pa_source_get_state(s)))
-            if (!best ||
-                s->priority > best->priority)
-                best = s;
-
-    if (best)
-        return best;
-
-    /* Then, fallback to a monitor */
-    PA_IDXSET_FOREACH(s, c->sources, idx)
-        if (PA_SOURCE_IS_LINKED(pa_source_get_state(s)))
-            if (!best ||
-                s->priority > best->priority ||
-                (s->priority == best->priority &&
-                 s->monitor_of &&
-                 best->monitor_of &&
-                 s->monitor_of->priority > best->monitor_of->priority))
-                best = s;
-
-    return best;
 }

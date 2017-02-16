@@ -603,6 +603,8 @@ void pa_source_put(pa_source *s) {
     else
         pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
 
+    pa_core_update_default_source(s->core);
+
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PUT], s);
 }
@@ -631,6 +633,11 @@ void pa_source_unlink(pa_source *s) {
     if (s->state != PA_SOURCE_UNLINKED)
         pa_namereg_unregister(s->core, s->name);
     pa_idxset_remove_by_data(s->core->sources, s, NULL);
+
+    if (s == s->core->configured_default_source)
+        pa_core_set_configured_default_source(s->core, NULL);
+    else
+        pa_core_update_default_source(s->core);
 
     if (s->card)
         pa_idxset_remove_by_data(s->card->sources, s, NULL);

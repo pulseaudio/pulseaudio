@@ -352,7 +352,6 @@ static void handle_play(DBusConnection *conn, DBusMessage *msg, void *userdata) 
     DBusMessageIter msg_iter;
     dbus_uint32_t volume = 0;
     pa_proplist *property_list = NULL;
-    pa_sink *sink = NULL;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -370,13 +369,18 @@ static void handle_play(DBusConnection *conn, DBusMessage *msg, void *userdata) 
         goto finish;
     }
 
-    if (!(sink = pa_namereg_get_default_sink(s->sample->core))) {
+    if (!s->sample->core->default_sink) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED,
                            "Can't play sample %s, because there are no sinks available.", s->sample->name);
         goto finish;
     }
 
-    if (pa_scache_play_item(s->sample->core, s->sample->name, sink, volume, property_list, NULL) < 0) {
+    if (pa_scache_play_item(s->sample->core,
+                            s->sample->name,
+                            s->sample->core->default_sink,
+                            volume,
+                            property_list,
+                            NULL) < 0) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED, "Playing sample %s failed.", s->sample->name);
         goto finish;
     }

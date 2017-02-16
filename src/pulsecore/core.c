@@ -224,6 +224,176 @@ static void core_free(pa_object *o) {
     pa_xfree(c);
 }
 
+void pa_core_set_configured_default_sink(pa_core *core, pa_sink *sink) {
+    pa_sink *old_sink;
+
+    pa_assert(core);
+
+    old_sink = core->configured_default_sink;
+
+    if (sink == old_sink)
+        return;
+
+    core->configured_default_sink = sink;
+    pa_log_info("configured_default_sink: %s -> %s",
+                old_sink ? old_sink->name : "(unset)", sink ? sink->name : "(unset)");
+
+    pa_core_update_default_sink(core);
+}
+
+void pa_core_set_configured_default_source(pa_core *core, pa_source *source) {
+    pa_source *old_source;
+
+    pa_assert(core);
+
+    old_source = core->configured_default_source;
+
+    if (source == old_source)
+        return;
+
+    core->configured_default_source = source;
+    pa_log_info("configured_default_source: %s -> %s",
+                old_source ? old_source->name : "(unset)", source ? source->name : "(unset)");
+
+    pa_core_update_default_source(core);
+}
+
+/* a  < b  ->  return -1
+ * a == b  ->  return  0
+ * a  > b  ->  return  1 */
+static int compare_sinks(pa_sink *a, pa_sink *b) {
+    pa_core *core;
+
+    core = a->core;
+
+    /* The configured default sink is preferred over any other sink. */
+    if (b == core->configured_default_sink)
+        return -1;
+    if (a == core->configured_default_sink)
+        return 1;
+
+    if (a->priority < b->priority)
+        return -1;
+    if (a->priority > b->priority)
+        return 1;
+
+    /* It's hard to find any difference between these sinks, but maybe one of
+     * them is already the default sink? If so, it's best to keep it as the
+     * default to avoid changing the routing for no good reason. */
+    if (b == core->default_sink)
+        return -1;
+    if (a == core->default_sink)
+        return 1;
+
+    return 0;
+}
+
+void pa_core_update_default_sink(pa_core *core) {
+    pa_sink *best = NULL;
+    pa_sink *sink;
+    uint32_t idx;
+    pa_sink *old_default_sink;
+
+    pa_assert(core);
+
+    PA_IDXSET_FOREACH(sink, core->sinks, idx) {
+        if (!best) {
+            best = sink;
+            continue;
+        }
+
+        if (compare_sinks(sink, best) > 0)
+            best = sink;
+    }
+
+    old_default_sink = core->default_sink;
+
+    if (best == old_default_sink)
+        return;
+
+    core->default_sink = best;
+    pa_log_info("default_sink: %s -> %s",
+                old_default_sink ? old_default_sink->name : "(unset)", best ? best->name : "(unset)");
+
+    /* If the default sink changed, it may be that the default source has to be
+     * changed too, because monitor sources are prioritized partly based on the
+     * priorities of the monitored sinks. */
+    pa_core_update_default_source(core);
+
+    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SERVER | PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
+    pa_hook_fire(&core->hooks[PA_CORE_HOOK_DEFAULT_SINK_CHANGED], core->default_sink);
+}
+
+/* a  < b  ->  return -1
+ * a == b  ->  return  0
+ * a  > b  ->  return  1 */
+static int compare_sources(pa_source *a, pa_source *b) {
+    pa_core *core;
+
+    core = a->core;
+
+    /* The configured default source is preferred over any other source. */
+    if (b == core->configured_default_source)
+        return -1;
+    if (a == core->configured_default_source)
+        return 1;
+
+    /* Monitor sources lose to non-monitor sources. */
+    if (a->monitor_of && !b->monitor_of)
+        return -1;
+    if (!a->monitor_of && b->monitor_of)
+        return 1;
+
+    if (a->priority < b->priority)
+        return -1;
+    if (a->priority > b->priority)
+        return 1;
+
+    /* If the sources are monitors, we can compare the monitored sinks. */
+    if (a->monitor_of)
+        return compare_sinks(a->monitor_of, b->monitor_of);
+
+    /* It's hard to find any difference between these sources, but maybe one of
+     * them is already the default source? If so, it's best to keep it as the
+     * default to avoid changing the routing for no good reason. */
+    if (b == core->default_source)
+        return -1;
+    if (a == core->default_source)
+        return 1;
+
+    return 0;
+}
+
+void pa_core_update_default_source(pa_core *core) {
+    pa_source *best = NULL;
+    pa_source *source;
+    uint32_t idx;
+    pa_source *old_default_source;
+
+    pa_assert(core);
+
+    PA_IDXSET_FOREACH(source, core->sources, idx) {
+        if (!best) {
+            best = source;
+            continue;
+        }
+
+        if (compare_sources(source, best) > 0)
+            best = source;
+    }
+
+    old_default_source = core->default_source;
+
+    if (best == old_default_source)
+        return;
+
+    core->default_source = best;
+    pa_log_info("default_source: %s -> %s",
+                old_default_source ? old_default_source->name : "(unset)", best ? best->name : "(unset)");
+    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SERVER | PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
+    pa_hook_fire(&core->hooks[PA_CORE_HOOK_DEFAULT_SOURCE_CHANGED], core->default_source);
+}
+
 static void exit_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata) {
     pa_core *c = userdata;
     pa_assert(c->exit_event == e);

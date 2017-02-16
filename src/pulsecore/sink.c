@@ -660,6 +660,8 @@ void pa_sink_put(pa_sink* s) {
 
     pa_source_put(s->monitor_source);
 
+    pa_core_update_default_sink(s->core);
+
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_PUT], s);
 }
@@ -689,6 +691,11 @@ void pa_sink_unlink(pa_sink* s) {
     if (s->state != PA_SINK_UNLINKED)
         pa_namereg_unregister(s->core, s->name);
     pa_idxset_remove_by_data(s->core->sinks, s, NULL);
+
+    if (s == s->core->configured_default_sink)
+        pa_core_set_configured_default_sink(s->core, NULL);
+    else
+        pa_core_update_default_sink(s->core);
 
     if (s->card)
         pa_idxset_remove_by_data(s->card->sinks, s, NULL);

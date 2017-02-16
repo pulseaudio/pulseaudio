@@ -96,7 +96,7 @@ static void build_group_ports(pa_hashmap *g_ports, pa_hashmap *s_ports) {
 }
 
 static pa_sink* find_evacuation_sink(pa_core *c, pa_sink_input *i, pa_sink *skip) {
-    pa_sink *target, *def, *fb_sink = NULL;
+    pa_sink *target, *fb_sink = NULL;
     uint32_t idx;
     pa_hashmap *all_ports;
     pa_device_port *best_port;
@@ -104,15 +104,13 @@ static pa_sink* find_evacuation_sink(pa_core *c, pa_sink_input *i, pa_sink *skip
     pa_assert(c);
     pa_assert(i);
 
-    def = pa_namereg_get_default_sink(c);
-
-    if (def && def != skip && pa_sink_input_may_move_to(i, def))
-        return def;
+    if (c->default_sink && c->default_sink != skip && pa_sink_input_may_move_to(i, c->default_sink))
+        return c->default_sink;
 
     all_ports = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     PA_IDXSET_FOREACH(target, c->sinks, idx) {
-        if (target == def)
+        if (target == c->default_sink)
             continue;
 
         if (target == skip)
@@ -204,7 +202,7 @@ static pa_hook_result_t sink_input_move_fail_hook_callback(pa_core *c, pa_sink_i
 }
 
 static pa_source* find_evacuation_source(pa_core *c, pa_source_output *o, pa_source *skip) {
-    pa_source *target, *def, *fb_source = NULL;
+    pa_source *target, *fb_source = NULL;
     uint32_t idx;
     pa_hashmap *all_ports;
     pa_device_port *best_port;
@@ -212,15 +210,13 @@ static pa_source* find_evacuation_source(pa_core *c, pa_source_output *o, pa_sou
     pa_assert(c);
     pa_assert(o);
 
-    def = pa_namereg_get_default_source(c);
-
-    if (def && def != skip && pa_source_output_may_move_to(o, def))
-        return def;
+    if (c->default_source && c->default_source != skip && pa_source_output_may_move_to(o, c->default_source))
+        return c->default_source;
 
     all_ports = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     PA_IDXSET_FOREACH(target, c->sources, idx) {
-        if (target == def)
+        if (target == c->default_source)
             continue;
 
         if (target == skip)

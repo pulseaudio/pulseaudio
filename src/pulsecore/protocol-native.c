@@ -3637,10 +3637,9 @@ static void command_get_info_list(pa_pdispatch *pd, uint32_t command, uint32_t t
 static void command_get_server_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     pa_tagstruct *reply;
-    pa_sink *def_sink;
-    pa_source *def_source;
     pa_sample_spec fixed_ss;
     char *h, *u;
+    pa_core *core;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
@@ -3664,18 +3663,18 @@ static void command_get_server_info(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_tagstruct_puts(reply, h);
     pa_xfree(h);
 
-    fixup_sample_spec(c, &fixed_ss, &c->protocol->core->default_sample_spec);
+    core = c->protocol->core;
+
+    fixup_sample_spec(c, &fixed_ss, &core->default_sample_spec);
     pa_tagstruct_put_sample_spec(reply, &fixed_ss);
 
-    def_sink = pa_namereg_get_default_sink(c->protocol->core);
-    pa_tagstruct_puts(reply, def_sink ? def_sink->name : NULL);
-    def_source = pa_namereg_get_default_source(c->protocol->core);
-    pa_tagstruct_puts(reply, def_source ? def_source->name : NULL);
+    pa_tagstruct_puts(reply, core->default_sink ? core->default_sink->name : NULL);
+    pa_tagstruct_puts(reply, core->default_source ? core->default_source->name : NULL);
 
     pa_tagstruct_putu32(reply, c->protocol->core->cookie);
 
     if (c->version >= 15)
-        pa_tagstruct_put_channel_map(reply, &c->protocol->core->default_channel_map);
+        pa_tagstruct_put_channel_map(reply, &core->default_channel_map);
 
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
@@ -4347,7 +4346,7 @@ static void command_set_default_sink_or_source(pa_pdispatch *pd, uint32_t comman
         source = pa_namereg_get(c->protocol->core, s, PA_NAMEREG_SOURCE);
         CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
 
-        pa_namereg_set_default_source(c->protocol->core, source);
+        pa_core_set_configured_default_source(c->protocol->core, source);
     } else {
         pa_sink *sink;
         pa_assert(command == PA_COMMAND_SET_DEFAULT_SINK);
@@ -4355,7 +4354,7 @@ static void command_set_default_sink_or_source(pa_pdispatch *pd, uint32_t comman
         sink = pa_namereg_get(c->protocol->core, s, PA_NAMEREG_SINK);
         CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
 
-        pa_namereg_set_default_sink(c->protocol->core, sink);
+        pa_core_set_configured_default_sink(c->protocol->core, sink);
     }
 
     pa_pstream_send_simple_ack(c->pstream, tag);

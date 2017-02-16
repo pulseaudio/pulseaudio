@@ -232,15 +232,13 @@ static const char *source_state_to_string(pa_source_state_t state) {
 
 char *pa_sink_list_to_string(pa_core *c) {
     pa_strbuf *s;
-    pa_sink *sink, *default_sink;
+    pa_sink *sink;
     uint32_t idx = PA_IDXSET_INVALID;
     pa_assert(c);
 
     s = pa_strbuf_new();
 
     pa_strbuf_printf(s, "%u sink(s) available.\n", pa_idxset_size(c->sinks));
-
-    default_sink = pa_namereg_get_default_sink(c);
 
     PA_IDXSET_FOREACH(sink, c->sinks, idx) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX],
@@ -273,7 +271,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             "\tchannel map: %s%s%s\n"
             "\tused by: %u\n"
             "\tlinked by: %u\n",
-            sink == default_sink ? '*' : ' ',
+            sink == c->default_sink ? '*' : ' ',
             sink->index,
             sink->name,
             sink->driver,
@@ -350,15 +348,13 @@ char *pa_sink_list_to_string(pa_core *c) {
 
 char *pa_source_list_to_string(pa_core *c) {
     pa_strbuf *s;
-    pa_source *source, *default_source;
+    pa_source *source;
     uint32_t idx = PA_IDXSET_INVALID;
     pa_assert(c);
 
     s = pa_strbuf_new();
 
     pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_size(c->sources));
-
-    default_source = pa_namereg_get_default_source(c);
 
     PA_IDXSET_FOREACH(source, c->sources, idx) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX],
@@ -389,7 +385,7 @@ char *pa_source_list_to_string(pa_core *c) {
             "\tchannel map: %s%s%s\n"
             "\tused by: %u\n"
             "\tlinked by: %u\n",
-            source == default_source ? '*' : ' ',
+            source == c->default_source ? '*' : ' ',
             source->index,
             source->name,
             source->driver,
