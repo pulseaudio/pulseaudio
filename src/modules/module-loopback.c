@@ -163,7 +163,7 @@ static void teardown(struct userdata *u) {
     }
 }
 
-/* rate controller
+/* rate controller, called from main context
  * - maximum deviation from base rate is less than 1%
  * - can create audible artifacts by changing the rate too quickly
  * - exhibits hunting with USB or Bluetooth sources
@@ -318,7 +318,7 @@ static void source_output_process_rewind_cb(pa_source_output *o, size_t nbytes) 
     u->send_counter -= (int64_t) nbytes;
 }
 
-/* Called from output thread context */
+/* Called from input thread context */
 static int source_output_process_msg_cb(pa_msgobject *obj, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE_OUTPUT(obj)->userdata;
 
@@ -342,7 +342,7 @@ static int source_output_process_msg_cb(pa_msgobject *obj, int code, void *data,
     return pa_source_output_process_msg(obj, code, data, offset, chunk);
 }
 
-/* Called from output thread context */
+/* Called from input thread context */
 static void source_output_attach_cb(pa_source_output *o) {
     struct userdata *u;
 
@@ -356,7 +356,7 @@ static void source_output_attach_cb(pa_source_output *o) {
             u->asyncmsgq);
 }
 
-/* Called from output thread context */
+/* Called from input thread context */
 static void source_output_detach_cb(pa_source_output *o) {
     struct userdata *u;
 
@@ -370,7 +370,7 @@ static void source_output_detach_cb(pa_source_output *o) {
     }
 }
 
-/* Called from output thread context */
+/* Called from input thread context */
 static void source_output_state_change_cb(pa_source_output *o, pa_source_output_state_t state) {
     struct userdata *u;
 
