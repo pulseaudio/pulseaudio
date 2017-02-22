@@ -460,7 +460,6 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
     const char /* *username, */ *password;
     pa_sink_new_data data;
     const char *name = NULL;
-    char * nick = NULL;
 
     pa_assert(m);
     pa_assert(ma);
@@ -550,9 +549,11 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
     if ((name = pa_modargs_get_value(ma, "sink_name", NULL))) {
         pa_sink_new_data_set_name(&data, name);
     } else {
+        char *nick;
+
         if ((name = pa_modargs_get_value(ma, "name", NULL)))
             nick = pa_sprintf_malloc("raop_client.%s", name);
-        if (!nick)
+        else
             nick = pa_sprintf_malloc("raop_client.%s", server);
         pa_sink_new_data_set_name(&data, nick);
         pa_xfree(nick);
@@ -618,7 +619,6 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
 
 fail:
     pa_xfree(thread_name);
-    pa_xfree(nick);
 
     if (u)
         userdata_free(u);
