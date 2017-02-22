@@ -799,13 +799,16 @@ static int open_bind_udp_socket(pa_raop_client *c, uint16_t *actual_port) {
     }
 
     do {
-        *sa_port = htons(port);
+        int ret;
 
-        if (bind(fd, sa, salen) < 0 && errno != EADDRINUSE) {
-            pa_log("bind_socket() failed: %s", pa_cstrerror(errno));
+        *sa_port = htons(port);
+        ret = bind(fd, sa, salen);
+        if (!ret)
+            break;
+        if (ret < 0 && errno != EADDRINUSE) {
+            pa_log("bind() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
-        break;
     } while (++port > 0);
 
     pa_log_debug("Socket bound to port %d (SOCK_DGRAM)", port);
