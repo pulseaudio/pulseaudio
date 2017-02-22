@@ -1228,7 +1228,7 @@ static void rtsp_auth_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_st
             static bool waiting = false;
             const char *current = NULL;
             char space[] = " ";
-            char *token,*ath = NULL;
+            char *token, *ath = NULL;
             char *publ, *wath, *mth, *val;
             char *realm = NULL, *nonce = NULL, *response = NULL;
             char comma[] = ",";
@@ -1265,9 +1265,6 @@ static void rtsp_auth_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_st
                     pa_raop_basic_response(DEFAULT_USER_NAME, c->password, &response);
                     ath = pa_sprintf_malloc("Basic %s",
                         response);
-
-                    pa_xfree(response);
-                    pa_xfree(realm);
                 } else if (pa_safe_streq(mth, "Digest")) {
                     rtrim_char(realm, '\"');
                     rtrim_char(nonce, '\"');
@@ -1276,17 +1273,18 @@ static void rtsp_auth_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_st
                     ath = pa_sprintf_malloc("Digest username=\"%s\", realm=\"%s\", nonce=\"%s\", uri=\"*\", response=\"%s\"",
                         DEFAULT_USER_NAME, realm, nonce,
                         response);
-
-                    pa_xfree(response);
-                    pa_xfree(realm);
-                    pa_xfree(nonce);
                 } else {
                     pa_log_error("unsupported authentication method: %s", mth);
+                    pa_xfree(realm);
+                    pa_xfree(nonce);
                     pa_xfree(wath);
                     pa_xfree(mth);
                     goto error;
                 }
 
+                pa_xfree(response);
+                pa_xfree(realm);
+                pa_xfree(nonce);
                 pa_xfree(wath);
                 pa_xfree(mth);
 
