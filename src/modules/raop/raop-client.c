@@ -988,14 +988,13 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
             pa_socket_client *sc = NULL;
             uint32_t sport = DEFAULT_UDP_AUDIO_PORT;
             uint32_t cport =0, tport = 0;
-            char *ajs, *trs, *token, *pc;
+            char *ajs, *token, *pc;
             const char *token_state = NULL;
             char delimiters[] = ";";
 
             pa_log_debug("RAOP: SETUP");
 
             ajs = pa_xstrdup(pa_headerlist_gets(headers, "Audio-Jack-Status"));
-            trs = pa_xstrdup(pa_headerlist_gets(headers, "Transport"));
 
             if (ajs) {
                 c->jack_type = JACK_TYPE_ANALOG;
@@ -1032,6 +1031,8 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
                 pa_socket_client_unref(sc);
                 sc = NULL;
             } else if (c->protocol == PA_RAOP_PROTOCOL_UDP) {
+                char *trs = pa_xstrdup(pa_headerlist_gets(headers, "Transport"));
+
                 if (trs) {
                     /* Now parse out the server port component of the response. */
                     while ((token = pa_split(trs, delimiters, &token_state))) {
@@ -1045,6 +1046,7 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
                         }
                         pa_xfree(token);
                     }
+                    pa_xfree(trs);
                 } else {
                     pa_log_warn("\"Transport\" missing in RTSP setup response");
                 }
@@ -1067,7 +1069,6 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
 
             pa_rtsp_record(c->rtsp, &c->seq, &c->rtptime);
 
-            pa_xfree(trs);
             pa_xfree(ajs);
             break;
 
