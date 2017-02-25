@@ -379,8 +379,6 @@ static int ca_sink_set_state(pa_sink *s, pa_sink_state_t state) {
 static char * CFString_to_cstr(CFStringRef cfstr) {
     char *ret = NULL;
 
-    ret = false;
-
     if (cfstr != NULL) {
         const char *tmp = CFStringGetCStringPtr(cfstr, kCFStringEncodingUTF8);
         CFIndex n = CFStringGetLength(cfstr) + 1 /* for the terminating NULL */;
@@ -410,7 +408,7 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
     coreaudio_sink *ca_sink;
     pa_sink *sink;
     unsigned int i;
-    char *tmp;
+    char *tmp = NULL;
     pa_strbuf *strbuf;
     AudioObjectPropertyAddress property_address;
     CFStringRef tmp_cfstr = NULL;
@@ -450,6 +448,7 @@ static int ca_device_create_sink(pa_module *m, AudioBuffer *buf, int channel_idx
             pa_strbuf_puts(strbuf, tmp);
 
         pa_xfree(tmp);
+        tmp = NULL;
     }
 
     ca_sink->name = pa_strbuf_to_string_free(strbuf);
@@ -543,7 +542,7 @@ static int ca_device_create_source(pa_module *m, AudioBuffer *buf, int channel_i
     coreaudio_source *ca_source;
     pa_source *source;
     unsigned int i;
-    char *tmp;
+    char *tmp = NULL;
     pa_strbuf *strbuf;
     AudioObjectPropertyAddress property_address;
     CFStringRef tmp_cfstr = NULL;
@@ -583,6 +582,7 @@ static int ca_device_create_source(pa_module *m, AudioBuffer *buf, int channel_i
             pa_strbuf_puts(strbuf, tmp);
 
         pa_xfree(tmp);
+        tmp = NULL;
     }
 
     ca_source->name = pa_strbuf_to_string_free(strbuf);
