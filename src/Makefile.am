@@ -785,8 +785,6 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += \
 		pulsecore/mutex-posix.c pulsecore/mutex.h \
 		pulsecore/thread-posix.c pulsecore/thread.h \
 		pulsecore/semaphore-osx.c pulsecore/semaphore.h
-libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += "-I/Developer/Headers/FlatCarbon/"
-#libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS += "-framework CoreServices"
 else !OS_IS_DARWIN
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += \
 		pulsecore/mutex-posix.c pulsecore/mutex.h \
