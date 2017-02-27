@@ -152,7 +152,7 @@ static void resolver_cb(
 
     if (event != AVAHI_RESOLVER_FOUND) {
         pa_log("Resolving of '%s' failed: %s", name, avahi_strerror(avahi_client_errno(u->client)));
-        goto  finish;
+        goto finish;
     }
 
     if ((nicename = strstr(name, "@"))) {
@@ -235,6 +235,12 @@ static void resolver_cb(
         pa_log("Cannot construct valid device name from '%s'.", dname);
         avahi_free(device);
         pa_xfree(dname);
+        pa_xfree(tp);
+        pa_xfree(et);
+        pa_xfree(cn);
+        pa_xfree(ch);
+        pa_xfree(ss);
+        pa_xfree(sr);
         goto finish;
     }
 
