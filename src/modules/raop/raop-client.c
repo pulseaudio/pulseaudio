@@ -1037,8 +1037,8 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
                     /* Now parse out the server port component of the response. */
                     while ((token = pa_split(trs, delimiters, &token_state))) {
                         if ((pc = strstr(token, "="))) {
-                        *pc = 0;
-                         if (pa_streq(token, "control_port"))
+                            *pc = 0;
+                            if (pa_streq(token, "control_port"))
                                 pa_atou(pc + 1, &cport);
                             if (pa_streq(token, "timing_port"))
                                 pa_atou(pc + 1, &tport);
