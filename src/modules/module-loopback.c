@@ -141,7 +141,6 @@ enum {
     SINK_INPUT_MESSAGE_POST = PA_SINK_INPUT_MESSAGE_MAX,
     SINK_INPUT_MESSAGE_REWIND,
     SINK_INPUT_MESSAGE_LATENCY_SNAPSHOT,
-    SINK_INPUT_MESSAGE_SINK_CHANGED,
     SINK_INPUT_MESSAGE_SOURCE_CHANGED,
     SINK_INPUT_MESSAGE_SET_EFFECTIVE_SOURCE_LATENCY
 };
@@ -320,7 +319,7 @@ static void update_latency_boundaries(struct userdata *u, pa_source *source, pa_
         if (u->max_source_latency >= MIN_DEVICE_LATENCY)
             u->min_source_latency = PA_MAX(u->min_source_latency, MIN_DEVICE_LATENCY);
         else
-           u->min_source_latency = u->max_source_latency;
+            u->min_source_latency = u->max_source_latency;
     }
 
     if (sink) {
@@ -335,7 +334,7 @@ static void update_latency_boundaries(struct userdata *u, pa_source *source, pa_
         if (u->max_sink_latency >= MIN_DEVICE_LATENCY)
             u->min_sink_latency = PA_MAX(u->min_sink_latency, MIN_DEVICE_LATENCY);
         else
-           u->min_sink_latency = u->max_sink_latency;
+            u->min_sink_latency = u->max_sink_latency;
     }
 }
 
@@ -435,7 +434,7 @@ static int source_output_process_msg_cb(pa_msgobject *obj, int code, void *data,
  * Get current effective latency of the source. If the source is in use with
  * smaller latency than the configured latency, it will continue running with
  * the smaller value when the source output is switched to the source. */
-static void get_effective_source_latency(struct userdata *u, pa_source *source, pa_sink *sink) {
+static void update_effective_source_latency(struct userdata *u, pa_source *source, pa_sink *sink) {
     pa_usec_t effective_source_latency;
 
     effective_source_latency = u->configured_source_latency;
@@ -456,9 +455,8 @@ static void get_effective_source_latency(struct userdata *u, pa_source *source, 
 /* Called from main thread.
  * Set source output latency to one third of the overall latency if possible.
  * The choice of one third is rather arbitrary somewhere between the minimum
- * possible latency (which would cause a lot of CPU load) and half the configured
- * latency (which would lead to an empty memblockq if the sink is configured
- * likewise). */
+ * possible latency which would cause a lot of CPU load and half the configured
+ * latency which would quickly lead to underruns */
 static void set_source_output_latency(struct userdata *u, pa_source *source) {
     pa_usec_t latency, requested_latency;
 
@@ -566,12 +564,11 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     /* Set latency and calculate latency limits */
     update_latency_boundaries(u, dest, NULL);
     set_source_output_latency(u, dest);
-    get_effective_source_latency(u, dest, u->sink_input->sink);
+    update_effective_source_latency(u, dest, u->sink_input->sink);
 
-    if (pa_source_get_state(dest) == PA_SOURCE_SUSPENDED) {
-        if (dest->suspend_cause != PA_SUSPEND_IDLE)
-            pa_sink_input_cork(u->sink_input, true);
-    } else
+    if (pa_source_get_state(dest) == PA_SOURCE_SUSPENDED)
+        pa_sink_input_cork(u->sink_input, true);
+    else
         pa_sink_input_cork(u->sink_input, false);
 
     update_adjust_timer(u);
@@ -593,8 +590,8 @@ static void source_output_suspend_cb(pa_source_output *o, bool suspended) {
     pa_assert_ctl_context();
     pa_assert_se(u = o->userdata);
 
-    /* If the source output has been suspended, we need to handle this like
-     * a source change when the source output is resumed */
+    /* If the source has been suspended, we need to handle this like
+     * a source change when the source is resumed */
     if (suspended) {
         if (u->sink_input->sink)
             pa_asyncmsgq_send(u->sink_input->sink->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_SOURCE_CHANGED, NULL, 0, NULL);
@@ -603,7 +600,7 @@ static void source_output_suspend_cb(pa_source_output *o, bool suspended) {
 
     } else
         /* Get effective source latency on unsuspend */
-        get_effective_source_latency(u, u->source_output->source, u->sink_input->sink);
+        update_effective_source_latency(u, u->source_output->source, u->sink_input->sink);
 
     pa_sink_input_cork(u->sink_input, suspended);
 
@@ -628,8 +625,9 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
     /* While pop has not been called, latency adjustments in SINK_INPUT_MESSAGE_POST are
      * enabled. Disable them on second pop and enable the final adjustment during the
-     * next push. We are waiting for the second pop, because the first pop is called
-     * before the sink is actually started. */
+     * next push. The adjustment must be done on the next push, because there is no way
+     * to retrieve the source latency here. We are waiting for the second pop, because
+     * the first pop may be called before the sink is actually started. */
     if (!u->output_thread_info.pop_called && u->output_thread_info.first_pop_done) {
         u->output_thread_info.pop_adjust = true;
         u->output_thread_info.pop_called = true;
@@ -644,11 +642,10 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     chunk->length = PA_MIN(chunk->length, nbytes);
     pa_memblockq_drop(u->memblockq, chunk->length);
 
-    /* If push has not been called yet, assume that the source will deliver one full latency
-     * when it starts pushing. Adjust the memblockq accordingly and ensure that there is
+    /* Adjust the memblockq to ensure that there is
      * enough data in the queue to avoid underruns. */
     if (!u->output_thread_info.push_called)
-        memblockq_adjust(u, u->output_thread_info.effective_source_latency, true);
+        memblockq_adjust(u, 0, true);
 
     return 0;
 }
@@ -687,23 +684,42 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
             pa_memblockq_push_align(u->memblockq, chunk);
 
             /* If push has not been called yet, latency adjustments in sink_input_pop_cb()
-             * are enabled. Disable them on first push and correct the memblockq. Do the
-             * same if the pop_cb() requested the adjustment */
-            if (!u->output_thread_info.push_called || u->output_thread_info.pop_adjust) {
+             * are enabled. Disable them on first push and correct the memblockq. If pop
+             * has not been called yet, wait until the pop_cb() requests the adjustment */
+            if (u->output_thread_info.pop_called && (!u->output_thread_info.push_called || u->output_thread_info.pop_adjust)) {
                 pa_usec_t time_delta;
 
+                /* This is the source latency at the time push was called */
                 time_delta = PA_PTR_TO_UINT(data);
-                time_delta += pa_rtclock_now() - offset;
+                /* Add the time between push and post */
+                time_delta += pa_rtclock_now() - (pa_usec_t) offset;
+                /* Add the sink latency */
                 time_delta += pa_sink_get_latency_within_thread(u->sink_input->sink);
 
-                /* If the source has overrun, assume that the maximum it should have pushed is
-                 * one full source latency. It may still be possible that the next push also
-                 * contains too much data, then the resulting latency will be wrong. */
+                /* The source latency report includes the audio in the chunk,
+                 * but since we already pushed the chunk to the memblockq, we need
+                 * to subtract the chunk size from the source latency so that it
+                 * won't be counted towards both the memblockq latency and the
+                 * source latency.
+                 *
+                 * Sometimes the alsa source reports way too low latency (might
+                 * be a bug in the alsa source code). This seems to happen when
+                 * there's an overrun. As an attempt to detect overruns, we
+                 * check if the chunk size is larger than the configured source
+                 * latency. If so, we assume that the source should have pushed
+                 * a chunk whose size equals the configured latency, so we
+                 * modify time_delta only by that amount, which makes
+                 * memblockq_adjust() drop more data than it would otherwise.
+                 * This seems to work quite well, but it's possible that the
+                 * next push also contains too much data, and in that case the
+                 * resulting latency will be wrong. */
                 if (pa_bytes_to_usec(chunk->length, &u->sink_input->sample_spec) > u->output_thread_info.effective_source_latency)
                     time_delta = PA_CLIP_SUB(time_delta, u->output_thread_info.effective_source_latency);
                 else
                     time_delta = PA_CLIP_SUB(time_delta, pa_bytes_to_usec(chunk->length, &u->sink_input->sample_spec));
 
+                /* FIXME: We allow pushing silence here to fix up the latency. This
+                 * might lead to a gap in the stream */
                 memblockq_adjust(u, time_delta, true);
 
                 u->output_thread_info.pop_adjust = false;
@@ -713,7 +729,7 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
             /* If pop has not been called yet, make sure the latency does not grow too much.
              * Don't push any silence here, because we already have new data in the queue */
             if (!u->output_thread_info.pop_called)
-                 memblockq_adjust(u, pa_sink_get_latency_within_thread(u->sink_input->sink), false);
+                 memblockq_adjust(u, 0, false);
 
             /* Is this the end of an underrun? Then let's start things
              * right-away */
@@ -761,13 +777,6 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
 
             return 0;
 
-        case SINK_INPUT_MESSAGE_SINK_CHANGED:
-
-            u->output_thread_info.pop_called = false;
-            u->output_thread_info.first_pop_done = false;
-
-            return 0;
-
         case SINK_INPUT_MESSAGE_SET_EFFECTIVE_SOURCE_LATENCY:
 
             u->output_thread_info.effective_source_latency = (pa_usec_t)offset;
@@ -780,9 +789,8 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
 /* Called from main thread.
  * Set sink input latency to one third of the overall latency if possible.
  * The choice of one third is rather arbitrary somewhere between the minimum
- * possible latency (which would cause a lot of CPU load) and half the configured
- * latency (which would lead to an empty memblockq if the source is configured
- * likewise). */
+ * possible latency which would cause a lot of CPU load and half the configured
+ * latency which would quickly lead to underruns. */
 static void set_sink_input_latency(struct userdata *u, pa_sink *sink) {
      pa_usec_t latency, requested_latency;
 
@@ -895,18 +903,17 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     /* Set latency and calculate latency limits */
     update_latency_boundaries(u, NULL, dest);
     set_sink_input_latency(u, dest);
-    get_effective_source_latency(u, u->source_output->source, dest);
+    update_effective_source_latency(u, u->source_output->source, dest);
 
-    if (pa_sink_get_state(dest) == PA_SINK_SUSPENDED) {
-        if (dest->suspend_cause != PA_SUSPEND_IDLE)
-            pa_source_output_cork(u->source_output, true);
-    } else
+    if (pa_sink_get_state(dest) == PA_SINK_SUSPENDED)
+        pa_source_output_cork(u->source_output, true);
+    else
         pa_source_output_cork(u->source_output, false);
 
     update_adjust_timer(u);
 
-    /* Send a message to the output thread that the sink has changed */
-    pa_asyncmsgq_send(dest->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_SINK_CHANGED, NULL, 0, NULL);
+    u->output_thread_info.pop_called = false;
+    u->output_thread_info.first_pop_done = false;
 }
 
 /* Called from main thread */
@@ -931,15 +938,16 @@ static void sink_input_suspend_cb(pa_sink_input *i, bool suspended) {
     pa_assert_ctl_context();
     pa_assert_se(u = i->userdata);
 
-    /* If the sink input has been suspended, we need to handle this like
-     * a sink change when the sink input is resumed. Because the sink input
+    /* If the sink has been suspended, we need to handle this like
+     * a sink change when the sink is resumed. Because the sink
      * is suspended, we can set the variables directly. */
     if (suspended) {
         u->output_thread_info.pop_called = false;
         u->output_thread_info.first_pop_done = false;
+
     } else
         /* Set effective source latency on unsuspend */
-        get_effective_source_latency(u, u->source_output->source, u->sink_input->sink);
+        update_effective_source_latency(u, u->source_output->source, u->sink_input->sink);
 
     pa_source_output_cork(u->source_output, suspended);
 
@@ -1125,9 +1133,6 @@ int pa__init(pa_module *m) {
     u->sink_input->suspend = sink_input_suspend_cb;
     u->sink_input->userdata = u;
 
-    update_latency_boundaries(u, NULL, u->sink_input->sink);
-    set_sink_input_latency(u, u->sink_input->sink);
-
     pa_source_output_new_data_init(&source_output_data);
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
@@ -1178,6 +1183,7 @@ int pa__init(pa_module *m) {
     u->source_output->userdata = u;
 
     update_latency_boundaries(u, u->source_output->source, u->sink_input->sink);
+    set_sink_input_latency(u, u->sink_input->sink);
     set_source_output_latency(u, u->source_output->source);
 
     pa_sink_input_get_silence(u->sink_input, &silence);
@@ -1218,7 +1224,7 @@ int pa__init(pa_module *m) {
         pa_proplist_sets(u->sink_input->proplist, PA_PROP_MEDIA_ICON_NAME, n);
 
     /* The output thread is not yet running, set effective_source_latency directly */
-    get_effective_source_latency(u, u->source_output->source, NULL);
+    update_effective_source_latency(u, u->source_output->source, NULL);
 
     pa_sink_input_put(u->sink_input);
     pa_source_output_put(u->source_output);
