@@ -1039,9 +1039,9 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
                         if ((pc = strstr(token, "="))) {
                             *pc = 0;
                             if (pa_streq(token, "control_port"))
-                                pa_atou(pc + 1, &cport);
+                                (void) pa_atou(pc + 1, &cport);
                             if (pa_streq(token, "timing_port"))
-                                pa_atou(pc + 1, &tport);
+                                (void) pa_atou(pc + 1, &tport);
                             *pc = '=';
                         }
                         pa_xfree(token);
