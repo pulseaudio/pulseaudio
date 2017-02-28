@@ -177,6 +177,7 @@ static void resolver_cb(
              *  - TCP = only TCP,
              *  - UDP = only UDP,
              *  - TCP,UDP = both supported (UDP should be prefered) */
+            pa_xfree(tp);
             if (pa_str_in_list(value, ",", "UDP"))
                 tp = pa_xstrdup("UDP");
             else if (pa_str_in_list(value, ",", "TCP"))
@@ -190,16 +191,18 @@ static void resolver_cb(
              *  - 2 = FairPlay,
              *  - 3 = MFiSAP,
              *  - 4 = FairPlay SAPv2.5. */
-             if (pa_str_in_list(value, ",", "1"))
-                 et = pa_xstrdup("RSA");
-             else
-                 et = pa_xstrdup("none");
+            pa_xfree(et);
+            if (pa_str_in_list(value, ",", "1"))
+                et = pa_xstrdup("RSA");
+            else
+                et = pa_xstrdup("none");
         } else if (pa_streq(key, "cn")) {
             /* Suported audio codecs:
              *  - 0 = PCM,
              *  - 1 = ALAC,
              *  - 2 = AAC,
              *  - 3 = AAC ELD. */
+            pa_xfree(cn);
             if (pa_str_in_list(value, ",", "1"))
                 cn = pa_xstrdup("ALAC");
             else
@@ -213,12 +216,15 @@ static void resolver_cb(
             /* Requires password ? (true/false) */
         } else if (pa_streq(key, "ch")) {
             /* Number of channels */
+            pa_xfree(ch);
             ch = pa_xstrdup(value);
         } else if (pa_streq(key, "ss")) {
             /* Sample size */
+            pa_xfree(ss);
             ss = pa_xstrdup(value);
         } else if (pa_streq(key, "sr")) {
             /* Sample rate */
+            pa_xfree(sr);
             sr = pa_xstrdup(value);
         }
 
