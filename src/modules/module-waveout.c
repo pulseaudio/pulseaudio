@@ -58,7 +58,9 @@ PA_MODULE_USAGE(
     "channels=<number of channels> "
     "channel_map=<channel map> "
     "fragments=<number of fragments> "
-    "fragment_size=<fragment size>");
+    "fragment_size=<fragment size>"
+    "device=<device number - deprecated>"
+    "device_name=<name of the device - deprecated>");
 
 #define DEFAULT_SINK_NAME "wave_output"
 #define DEFAULT_SOURCE_NAME "wave_input"
@@ -107,6 +109,8 @@ static const char* const valid_modargs[] = {
     "rate",
     "channels",
     "channel_map",
+    "device",
+    "device_name",
     NULL
 };
 
@@ -518,6 +522,12 @@ int pa__init(pa_module *m) {
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("failed to parse module arguments.");
+        goto fail;
+    }
+
+    /* Check whether deprecated arguments have been used. */
+    if (pa_modargs_get_value(ma, "device", NULL) != NULL || pa_modargs_get_value(ma, "device_name", NULL) != NULL) {
+        pa_log("device and device_name are no longer supported. Please use input_device, input_device_name, output_device and output_device_name.");
         goto fail;
     }
 
