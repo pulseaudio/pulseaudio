@@ -1259,13 +1259,13 @@ static void rtsp_auth_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_st
                     pa_xfree(token);
                 }
 
-                if (pa_safe_streq(mth, "Basic")) {
+                if (pa_safe_streq(mth, "Basic") && realm) {
                     rtrim_char(realm, '\"');
 
                     pa_raop_basic_response(DEFAULT_USER_NAME, c->password, &response);
                     ath = pa_sprintf_malloc("Basic %s",
                         response);
-                } else if (pa_safe_streq(mth, "Digest")) {
+                } else if (pa_safe_streq(mth, "Digest") && realm && nonce) {
                     rtrim_char(realm, '\"');
                     rtrim_char(nonce, '\"');
 
