@@ -186,6 +186,7 @@ static inline size_t PA_ALIGN(size_t l) {
 
 /* pa_assert_se() is an assert which guarantees side effects of x,
  * i.e. is never optimized away, regardless of NDEBUG or FASTPATH. */
+#ifndef __COVERITY__
 #define pa_assert_se(expr)                                              \
     do {                                                                \
         if (PA_UNLIKELY(!(expr))) {                                     \
@@ -193,6 +194,14 @@ static inline size_t PA_ALIGN(size_t l) {
             abort();                                                    \
         }                                                               \
     } while (false)
+#else
+#define pa_assert_se(expr)                                              \
+    do {                                                                \
+        int _unique_var = (expr);                                       \
+        if (!_unique_var)                                               \
+            abort();                                                    \
+    } while (false)
+#endif
 
 /* Does exactly nothing */
 #define pa_nop() do {} while (false)
