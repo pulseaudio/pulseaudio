@@ -811,6 +811,11 @@ static int open_bind_udp_socket(pa_raop_client *c, uint16_t *actual_port) {
         }
     } while (++port > 0);
 
+    if (!port) {
+        pa_log("Could not bind port");
+        goto fail;
+    }
+
     pa_log_debug("Socket bound to port %d (SOCK_DGRAM)", port);
     *actual_port = port;
 
