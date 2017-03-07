@@ -1229,7 +1229,7 @@ static void rtsp_auth_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_st
             const char *current = NULL;
             char space[] = " ";
             char *token, *ath = NULL;
-            char *publ, *wath, *mth, *val;
+            char *publ, *wath, *mth = NULL, *val;
             char *realm = NULL, *nonce = NULL, *response = NULL;
             char comma[] = ",";
 
@@ -1244,19 +1244,18 @@ static void rtsp_auth_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_st
                     goto fail;
                 }
 
-                if (wath)
+                if (wath) {
                     mth = pa_split(wath, space, &current);
-                while ((token = pa_split(wath, comma, &current))) {
-                    val = NULL;
-                    if ((val = strstr(token, "="))) {
-                        if (NULL == realm && val > strstr(token, "realm"))
-                            realm = pa_xstrdup(val + 2);
-                        else if (NULL == nonce && val > strstr(token, "nonce"))
-                            nonce = pa_xstrdup(val + 2);
-                        val = NULL;
-                    }
+                    while ((token = pa_split(wath, comma, &current))) {
+                        if ((val = strstr(token, "="))) {
+                            if (NULL == realm && val > strstr(token, "realm"))
+                                realm = pa_xstrdup(val + 2);
+                            else if (NULL == nonce && val > strstr(token, "nonce"))
+                                nonce = pa_xstrdup(val + 2);
+                        }
 
-                    pa_xfree(token);
+                        pa_xfree(token);
+                    }
                 }
 
                 if (pa_safe_streq(mth, "Basic") && realm) {
