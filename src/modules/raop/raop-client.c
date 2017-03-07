@@ -968,10 +968,10 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
             break;
 
         annonce_error:
-            if (c->udp_cfd > 0)
+            if (c->udp_cfd >= 0)
                 pa_close(c->udp_cfd);
             c->udp_cfd = -1;
-            if (c->udp_tfd > 0)
+            if (c->udp_tfd >= 0)
                 pa_close(c->udp_tfd);
             c->udp_tfd = -1;
 
@@ -1073,11 +1073,11 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
             break;
 
         setup_error:
-            if (c->tcp_sfd > 0)
+            if (c->tcp_sfd >= 0)
                 pa_close(c->tcp_sfd);
             c->tcp_sfd = -1;
 
-            if (c->udp_sfd > 0)
+            if (c->udp_sfd >= 0)
                 pa_close(c->udp_sfd);
             c->udp_sfd = -1;
 
@@ -1135,11 +1135,11 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
         case STATE_TEARDOWN: {
             pa_log_debug("RAOP: TEARDOWN");
 
-            if (c->tcp_sfd > 0)
+            if (c->tcp_sfd >= 0)
                 pa_close(c->tcp_sfd);
             c->tcp_sfd = -1;
 
-            if (c->udp_sfd > 0)
+            if (c->udp_sfd >= 0)
                 pa_close(c->udp_sfd);
             c->udp_sfd = -1;
 
@@ -1163,11 +1163,11 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
 
             c->is_recording = false;
 
-            if (c->tcp_sfd > 0)
+            if (c->tcp_sfd >= 0)
                 pa_close(c->tcp_sfd);
             c->tcp_sfd = -1;
 
-            if (c->udp_sfd > 0)
+            if (c->udp_sfd >= 0)
                 pa_close(c->udp_sfd);
             c->udp_sfd = -1;
 
@@ -1507,11 +1507,11 @@ bool pa_raop_client_is_alive(pa_raop_client *c) {
 
     switch (c->protocol) {
         case PA_RAOP_PROTOCOL_TCP:
-            if (c->tcp_sfd > 0)
+            if (c->tcp_sfd >= 0)
                 return true;
             break;
         case PA_RAOP_PROTOCOL_UDP:
-            if (c->udp_sfd > 0)
+            if (c->udp_sfd >= 0)
                 return true;
             break;
         default:
@@ -1531,11 +1531,11 @@ bool pa_raop_client_can_stream(pa_raop_client *c) {
 
     switch (c->protocol) {
         case PA_RAOP_PROTOCOL_TCP:
-            if (c->tcp_sfd > 0 && c->is_recording)
+            if (c->tcp_sfd >= 0 && c->is_recording)
                 return true;
             break;
         case PA_RAOP_PROTOCOL_UDP:
-            if (c->udp_sfd > 0 && c->is_recording)
+            if (c->udp_sfd >= 0 && c->is_recording)
                 return true;
             break;
         default:
@@ -1557,14 +1557,14 @@ int pa_raop_client_stream(pa_raop_client *c) {
 
     switch (c->protocol) {
         case PA_RAOP_PROTOCOL_TCP:
-            if (c->tcp_sfd > 0 && !c->is_recording) {
+            if (c->tcp_sfd >= 0 && !c->is_recording) {
                 c->is_recording = true;
                 c->is_first_packet = true;
                 c->sync_count = 0;
             }
             break;
         case PA_RAOP_PROTOCOL_UDP:
-            if (c->udp_sfd > 0 && !c->is_recording) {
+            if (c->udp_sfd >= 0 && !c->is_recording) {
                 c->is_recording = true;
                 c->is_first_packet = true;
                 c->sync_count = 0;
@@ -1722,7 +1722,7 @@ pa_volume_t pa_raop_client_adjust_volume(pa_raop_client *c, pa_volume_t volume) 
 
 void pa_raop_client_handle_oob_packet(pa_raop_client *c, const int fd, const uint8_t packet[], ssize_t size) {
     pa_assert(c);
-    pa_assert(fd > 0);
+    pa_assert(fd >= 0);
     pa_assert(packet);
 
     if (c->protocol == PA_RAOP_PROTOCOL_UDP) {
