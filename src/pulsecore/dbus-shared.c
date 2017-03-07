@@ -45,7 +45,7 @@ static pa_dbus_connection* dbus_connection_new(pa_core *c, pa_dbus_wrap_connecti
     pconn->property_name = name;
     pconn->connection = conn;
 
-    pa_shared_set(c, name, pconn);
+    pa_assert_se(pa_shared_set(c, name, pconn) >= 0);
 
     return pconn;
 }
@@ -88,7 +88,7 @@ void pa_dbus_connection_unref(pa_dbus_connection *c) {
 
     pa_dbus_wrap_connection_free(c->connection);
 
-    pa_shared_remove(c->core, c->property_name);
+    pa_assert_se(pa_shared_remove(c->core, c->property_name) >= 0);
     pa_xfree(c);
 }
 
