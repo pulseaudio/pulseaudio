@@ -97,7 +97,7 @@ static void thread(void *userdata) {
 
     pa_mutex_lock(m->mutex);
 
-    pa_mainloop_run(m->real_mainloop, NULL);
+    (void) pa_mainloop_run(m->real_mainloop, NULL);
 
     pa_mutex_unlock(m->mutex);
 }
