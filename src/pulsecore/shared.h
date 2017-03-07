@@ -44,7 +44,9 @@ int pa_shared_set(pa_core *c, const char *name, void *data);
 /* Remove the specified shared property. Return non-zero on failure */
 int pa_shared_remove(pa_core *c, const char *name);
 
-/* A combination of pa_shared_remove() and pa_shared_set() */
+/* A combination of pa_shared_remove() and pa_shared_set(); this function
+ * first tries to remove the property by this name and then sets the
+ * property. Return non-zero on failure. */
 int pa_shared_replace(pa_core *c, const char *name, void *data);
 
 /* Dump the current set of shared properties */

@@ -111,6 +111,6 @@ int pa_shared_replace(pa_core *c, const char *name, void *data) {
     pa_assert(c);
     pa_assert(name);
 
-    pa_shared_remove(c, name);
+    (void) pa_shared_remove(c, name);
     return pa_shared_set(c, name, data);
 }
