@@ -897,7 +897,6 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
             return 0;
         }
-
     }
 
     r = pa_source_process_msg(o, code, data, offset, chunk);
@@ -918,7 +917,6 @@ static void source_set_volume_cb(pa_source *s) {
 
     pa_assert(u);
     pa_assert(u->source == s);
-    pa_assert(u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT);
 
     if (u->transport->set_microphone_gain == NULL)
       return;
@@ -936,6 +934,13 @@ static void source_set_volume_cb(pa_source *s) {
 
     pa_cvolume_set(&s->real_volume, u->sample_spec.channels, volume);
 
+    /* Set soft volume when in headset role */
+    if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY)
+        pa_cvolume_set(&s->soft_volume, u->sample_spec.channels, volume);
+
+    /* If we are in the AG role, we send a command to the head set to change
+     * the microphone gain. In the HS role, source and sink are swapped, so
+     * in this case we notify the AG that the speaker gain has changed */
     u->transport->set_microphone_gain(u->transport, gain);
 }
 
@@ -981,7 +986,7 @@ static int add_source(struct userdata *u) {
     u->source->userdata = u;
     u->source->parent.process_msg = source_process_msg;
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT) {
+    if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT || u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY) {
         pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
         u->source->n_volume_steps = 16;
     }
@@ -1075,7 +1080,6 @@ static void sink_set_volume_cb(pa_sink *s) {
 
     pa_assert(u);
     pa_assert(u->sink == s);
-    pa_assert(u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT);
 
     if (u->transport->set_speaker_gain == NULL)
       return;
@@ -1093,6 +1097,13 @@ static void sink_set_volume_cb(pa_sink *s) {
 
     pa_cvolume_set(&s->real_volume, u->sample_spec.channels, volume);
 
+    /* Set soft volume when in headset role */
+    if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY)
+        pa_cvolume_set(&s->soft_volume, u->sample_spec.channels, volume);
+
+    /* If we are in the AG role, we send a command to the head set to change
+     * the speaker gain. In the HS role, source and sink are swapped, so
+     * in this case we notify the AG that the microphone gain has changed */
     u->transport->set_speaker_gain(u->transport, gain);
 }
 
@@ -1139,7 +1150,7 @@ static int add_sink(struct userdata *u) {
     u->sink->userdata = u;
     u->sink->parent.process_msg = sink_process_msg;
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT) {
+    if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT || u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY) {
         pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
         u->sink->n_volume_steps = 16;
     }
@@ -1272,7 +1283,7 @@ static int setup_transport(struct userdata *u) {
     /* check if profile has a transport */
     t = u->device->transports[u->profile];
     if (!t || t->state <= PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED) {
-        pa_log_warn("Profile has no transport");
+        pa_log_warn("Profile %s has no transport", pa_bluetooth_profile_to_string(u->profile));
         return -1;
     }
 
@@ -2105,7 +2116,10 @@ static pa_hook_result_t transport_speaker_gain_changed_cb(pa_bluetooth_discovery
         volume++;
 
     pa_cvolume_set(&v, u->sample_spec.channels, volume);
-    pa_sink_volume_changed(u->sink, &v);
+    if (t->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT)
+        pa_sink_volume_changed(u->sink, &v);
+    else
+        pa_sink_set_volume(u->sink, &v, true, true);
 
     return PA_HOOK_OK;
 }
@@ -2129,7 +2143,11 @@ static pa_hook_result_t transport_microphone_gain_changed_cb(pa_bluetooth_discov
         volume++;
 
     pa_cvolume_set(&v, u->sample_spec.channels, volume);
-    pa_source_volume_changed(u->source, &v);
+
+    if (t->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT)
+        pa_source_volume_changed(u->source, &v);
+    else
+        pa_source_set_volume(u->source, &v, true, true);
 
     return PA_HOOK_OK;
 }
