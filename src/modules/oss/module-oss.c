@@ -1195,7 +1195,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    mode = (playback && record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
+    mode = (playback && record) ? O_RDWR : (playback ? O_WRONLY : O_RDONLY);
 
     ss = m->core->default_sample_spec;
     map = m->core->default_channel_map;
