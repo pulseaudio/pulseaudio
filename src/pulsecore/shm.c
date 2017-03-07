@@ -205,7 +205,7 @@ static int sharedmem_create(pa_shm *m, pa_mem_type_t type, size_t size, mode_t m
         pa_assert_se(pa_close(fd) == 0);
         m->fd = -1;
     }
-#if HAVE_MEMFD
+#ifdef HAVE_MEMFD
     else
         m->fd = fd;
 #endif

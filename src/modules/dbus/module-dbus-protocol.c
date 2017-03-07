@@ -220,7 +220,7 @@ static void io_event_cb(pa_mainloop_api *mainloop, pa_io_event *e, int fd, pa_io
     unsigned int flags = 0;
     DBusWatch *watch = userdata;
 
-#if HAVE_DBUS_WATCH_GET_UNIX_FD
+#ifdef HAVE_DBUS_WATCH_GET_UNIX_FD
     pa_assert(fd == dbus_watch_get_unix_fd(watch));
 #else
     pa_assert(fd == dbus_watch_get_fd(watch));
@@ -291,7 +291,7 @@ static dbus_bool_t watch_add_cb(DBusWatch *watch, void *data) {
 
     ev = mainloop->io_new(
             mainloop,
-#if HAVE_DBUS_WATCH_GET_UNIX_FD
+#ifdef HAVE_DBUS_WATCH_GET_UNIX_FD
             dbus_watch_get_unix_fd(watch),
 #else
             dbus_watch_get_fd(watch),
