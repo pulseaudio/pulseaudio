@@ -1062,7 +1062,7 @@ int pa_parse_volume(const char *v, pa_volume_t *volume) {
     return 0;
 }
 
-/* Split the specified string wherever one of the strings in delimiter
+/* Split the specified string wherever one of the characters in delimiter
  * occurs. Each time it is called returns a newly allocated string
  * with pa_xmalloc(). The variable state points to, should be
  * initialized to NULL before the first call. */
@@ -1082,7 +1082,7 @@ char *pa_split(const char *c, const char *delimiter, const char**state) {
     return pa_xstrndup(current, l);
 }
 
-/* Split the specified string wherever one of the strings in delimiter
+/* Split the specified string wherever one of the characters in delimiter
  * occurs. Each time it is called returns a pointer to the substring within the
  * string and the length in 'n'. Note that the resultant string cannot be used
  * as-is without the length parameter, since it is merely pointing to a point
