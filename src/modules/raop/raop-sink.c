@@ -246,10 +246,12 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                     if (u->rtpoll_item) {
                         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, &nbfds);
-                        for (i = 0; i < nbfds; i++) {
-                            if (pollfd && pollfd->fd >= 0)
-                               pa_close(pollfd->fd);
-                            pollfd++;
+                        if (pollfd) {
+                            for (i = 0; i < nbfds; i++) {
+                                if (pollfd->fd >= 0)
+                                   pa_close(pollfd->fd);
+                                pollfd++;
+                            }
                         }
                         pa_rtpoll_item_free(u->rtpoll_item);
                         u->rtpoll_item = NULL;
