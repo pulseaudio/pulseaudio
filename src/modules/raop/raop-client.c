@@ -1102,8 +1102,10 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
             pa_log_debug("RAOP: RECORD");
 
             alt = pa_xstrdup(pa_headerlist_gets(headers, "Audio-Latency"));
-            if (alt)
-                pa_atoi(alt, &latency);
+            if (alt) {
+                if (pa_atoi(alt, &latency) < 0)
+                    pa_log("Failed to parse audio latency");
+            }
 
             pa_raop_packet_buffer_reset(c->pbuf, c->seq);
 
