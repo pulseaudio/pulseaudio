@@ -988,7 +988,7 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
             pa_socket_client *sc = NULL;
             uint32_t sport = DEFAULT_UDP_AUDIO_PORT;
             uint32_t cport =0, tport = 0;
-            char *ajs, *token, *pc;
+            char *ajs, *token, *pc, *trs;
             const char *token_state = NULL;
             char delimiters[] = ";";
 
@@ -1031,17 +1031,21 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
                 pa_socket_client_unref(sc);
                 sc = NULL;
             } else if (c->protocol == PA_RAOP_PROTOCOL_UDP) {
-                char *trs = pa_xstrdup(pa_headerlist_gets(headers, "Transport"));
+                trs = pa_xstrdup(pa_headerlist_gets(headers, "Transport"));
 
                 if (trs) {
                     /* Now parse out the server port component of the response. */
                     while ((token = pa_split(trs, delimiters, &token_state))) {
                         if ((pc = strstr(token, "="))) {
                             *pc = 0;
-                            if (pa_streq(token, "control_port"))
-                                (void) pa_atou(pc + 1, &cport);
-                            if (pa_streq(token, "timing_port"))
-                                (void) pa_atou(pc + 1, &tport);
+                            if (pa_streq(token, "control_port")) {
+                                if (pa_atou(pc + 1, &cport) < 0)
+                                    goto setup_error_parse;
+                            }
+                            if (pa_streq(token, "timing_port")) {
+                                if (pa_atou(pc + 1, &tport) < 0)
+                                    goto setup_error_parse;
+                            }
                             *pc = '=';
                         }
                         pa_xfree(token);
@@ -1072,6 +1076,11 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
             pa_xfree(ajs);
             break;
 
+        setup_error_parse:
+            pa_log("Failed parsing server port components");
+            pa_xfree(token);
+            pa_xfree(trs);
+            /* fall-thru */
         setup_error:
             if (c->tcp_sfd >= 0)
                 pa_close(c->tcp_sfd);
