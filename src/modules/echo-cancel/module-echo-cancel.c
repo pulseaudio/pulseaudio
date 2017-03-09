@@ -145,6 +145,8 @@ static const pa_echo_canceller ec_table[] = {
 
 #define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
 
+#define MAX_LATENCY_BLOCKS 10
+
 /* Can only be used in main context */
 #define IS_ACTIVE(u) ((pa_source_get_state((u)->source) == PA_SOURCE_RUNNING) && \
                       (pa_sink_get_state((u)->sink) == PA_SINK_RUNNING))
@@ -515,6 +517,7 @@ static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
 /* Called from source I/O thread context */
 static void source_update_requested_latency_cb(pa_source *s) {
     struct userdata *u;
+    pa_usec_t latency;
 
     pa_source_assert_ref(s);
     pa_assert_se(u = s->userdata);
@@ -525,15 +528,17 @@ static void source_update_requested_latency_cb(pa_source *s) {
 
     pa_log_debug("Source update requested latency");
 
-    /* Just hand this one over to the master source */
-    pa_source_output_set_requested_latency_within_thread(
-            u->source_output,
-            pa_source_get_requested_latency_within_thread(s));
+    /* Cap the maximum latency so we don't have to process too large chunks */
+    latency = PA_MIN(pa_source_get_requested_latency_within_thread(s),
+                     pa_bytes_to_usec(u->source_blocksize, &s->sample_spec) * MAX_LATENCY_BLOCKS);
+
+    pa_source_output_set_requested_latency_within_thread(u->source_output, latency);
 }
 
 /* Called from sink I/O thread context */
 static void sink_update_requested_latency_cb(pa_sink *s) {
     struct userdata *u;
+    pa_usec_t latency;
 
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
@@ -544,10 +549,11 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
 
     pa_log_debug("Sink update requested latency");
 
-    /* Just hand this one over to the master sink */
-    pa_sink_input_set_requested_latency_within_thread(
-            u->sink_input,
-            pa_sink_get_requested_latency_within_thread(s));
+    /* Cap the maximum latency so we don't have to process too large chunks */
+    latency = PA_MIN(pa_sink_get_requested_latency_within_thread(s),
+                     pa_bytes_to_usec(u->sink_blocksize, &s->sample_spec) * MAX_LATENCY_BLOCKS);
+
+    pa_sink_input_set_requested_latency_within_thread(u->sink_input, latency);
 }
 
 /* Called from sink I/O thread context */
@@ -1653,6 +1659,7 @@ int pa__init(pa_module*m) {
     uint32_t temp;
     uint32_t nframes = 0;
     bool use_master_format;
+    pa_usec_t blocksize_usec;
 
     pa_assert(m);
 
@@ -2014,6 +2021,15 @@ int pa__init(pa_module*m) {
     u->ec->msg->userdata = u;
 
     u->thread_info.current_volume = u->source->reference_volume;
+
+    /* We don't want to deal with too many chunks at a time */
+    blocksize_usec = pa_bytes_to_usec(u->source_blocksize, &u->source->sample_spec);
+    pa_source_set_latency_range(u->source, blocksize_usec, blocksize_usec * MAX_LATENCY_BLOCKS);
+    pa_source_output_set_requested_latency(u->source_output, blocksize_usec * MAX_LATENCY_BLOCKS);
+
+    blocksize_usec = pa_bytes_to_usec(u->sink_blocksize, &u->sink->sample_spec);
+    pa_sink_set_latency_range(u->sink, blocksize_usec, blocksize_usec * MAX_LATENCY_BLOCKS);
+    pa_sink_input_set_requested_latency(u->sink_input, blocksize_usec * MAX_LATENCY_BLOCKS);
 
     pa_sink_put(u->sink);
     pa_source_put(u->source);
