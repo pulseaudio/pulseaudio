@@ -227,7 +227,7 @@ static void adjust_rates(struct userdata *u) {
 
     avg_total_latency /= n;
 
-    target_latency = max_sink_latency > min_total_latency ? max_sink_latency : min_total_latency;
+    target_latency = PA_MAX(max_sink_latency, min_total_latency);
 
     pa_log_info("[%s] avg total latency is %0.2f msec.", u->sink->name, (double) avg_total_latency / PA_USEC_PER_MSEC);
     pa_log_info("[%s] target latency is %0.2f msec.", u->sink->name, (double) target_latency / PA_USEC_PER_MSEC);
