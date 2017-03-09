@@ -3511,21 +3511,21 @@ unsigned pa_device_init_priority(pa_proplist *p) {
 
     if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_FORM_FACTOR))) {
 
-        if (pa_streq(s, "internal"))
+        if (pa_streq(s, "headphone"))
             priority += 900;
         else if (pa_streq(s, "speaker"))
             priority += 500;
-        else if (pa_streq(s, "headphone"))
+        else if (pa_streq(s, "internal"))
             priority += 400;
     }
 
     if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_BUS))) {
 
-        if (pa_streq(s, "pci"))
+        if (pa_streq(s, "bluetooth"))
             priority += 50;
         else if (pa_streq(s, "usb"))
             priority += 40;
-        else if (pa_streq(s, "bluetooth"))
+        else if (pa_streq(s, "pci"))
             priority += 30;
     }
 
