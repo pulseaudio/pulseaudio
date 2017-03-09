@@ -689,8 +689,13 @@ static void do_resync(struct userdata *u) {
     pa_log("Doing resync");
 
     /* update our snapshot */
-    source_output_snapshot_within_thread(u, &latency_snapshot);
+    /* 1. Get sink input latency snapshot, might cause buffers to be sent to source thread */
     pa_asyncmsgq_send(u->sink_input->sink->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_LATENCY_SNAPSHOT, &latency_snapshot, 0, NULL);
+    /* 2. Pick up any in-flight buffers (and discard if needed) */
+    while (pa_asyncmsgq_process_one(u->asyncmsgq))
+        ;
+    /* 3. Now get the source output latency snapshot */
+    source_output_snapshot_within_thread(u, &latency_snapshot);
 
     /* calculate drift between capture and playback */
     diff_time = calc_diff(u, &latency_snapshot);
