@@ -731,9 +731,6 @@ static void do_push_drift_comp(struct userdata *u) {
     u->sink_rem = plen % u->sink_blocksize;
     u->source_rem = rlen % u->source_output_blocksize;
 
-    /* Now let the canceller work its drift compensation magic */
-    u->ec->set_drift(u->ec, drift);
-
     if (u->save_aec) {
         if (u->drift_file)
             fprintf(u->drift_file, "d %a\n", drift);
@@ -773,6 +770,7 @@ static void do_push_drift_comp(struct userdata *u) {
         cchunk.memblock = pa_memblock_new(u->source->core->mempool, cchunk.length);
         cdata = pa_memblock_acquire(cchunk.memblock);
 
+        u->ec->set_drift(u->ec, drift);
         u->ec->record(u->ec, rdata, cdata);
 
         if (u->save_aec) {
@@ -941,8 +939,8 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
         u->sink_skip -= to_skip;
     }
 
-    /* process and push out samples, do drift compensation only if the sink is actually running */
-    if (u->ec->params.drift_compensation && u->sink->thread_info.state == PA_SINK_RUNNING)
+    /* process and push out samples */
+    if (u->ec->params.drift_compensation)
         do_push_drift_comp(u);
     else
         do_push(u);
