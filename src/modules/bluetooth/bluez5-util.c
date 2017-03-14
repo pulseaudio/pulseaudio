@@ -982,6 +982,24 @@ void pa_bluetooth_discovery_set_ofono_running(pa_bluetooth_discovery *y, bool is
     if (y->headset_backend != HEADSET_BACKEND_AUTO)
         return;
 
+    /* If ofono starts running, all devices that might be connected to the HS role
+     * need to be disconnected, so that the devices can be handled by ofono */
+    if (is_running) {
+        void *state;
+        pa_bluetooth_device *d;
+
+        PA_HASHMAP_FOREACH(d, y->devices, state) {
+            if (device_supports_profile(d, PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY)) {
+                DBusMessage *m;
+
+                pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, d->path, "org.bluez.Device1", "Disconnect"));
+                dbus_message_set_no_reply(m, true);
+                dbus_connection_send(pa_dbus_connection_get(y->connection), m, NULL);
+                dbus_message_unref(m);
+            }
+        }
+    }
+
     pa_bluetooth_native_backend_enable_hs_role(y->native_backend, !is_running);
 }
 
