@@ -423,9 +423,22 @@ int pa__init(pa_module *m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
 
     u->auto_switch = 1;
-    if (pa_modargs_get_value_u32(ma, "auto_switch", &u->auto_switch) < 0) {
-        pa_log("Failed to parse auto_switch argument.");
-        goto fail;
+
+    if (pa_modargs_get_value(ma, "auto_switch", NULL)) {
+        bool auto_switch_bool;
+
+        /* auto_switch originally took a boolean value, let's keep
+         * compatibility with configuration files that still pass a boolean. */
+        if (pa_modargs_get_value_boolean(ma, "auto_switch", &auto_switch_bool) >= 0) {
+            if (auto_switch_bool)
+                u->auto_switch = 1;
+            else
+                u->auto_switch = 0;
+
+        } else if (pa_modargs_get_value_u32(ma, "auto_switch", &u->auto_switch) < 0) {
+            pa_log("Failed to parse auto_switch argument.");
+            goto fail;
+        }
     }
 
     u->enable_a2dp_source = true;
