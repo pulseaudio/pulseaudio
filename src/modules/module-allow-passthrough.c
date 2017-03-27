@@ -77,10 +77,10 @@ static pa_sink *ensure_null_sink_for_sink(struct userdata *u, pa_sink *s, pa_cor
     if (m == NULL)
         return NULL;
 
-   PA_IDXSET_FOREACH(sink, c->sinks, idx) {
+    PA_IDXSET_FOREACH(sink, c->sinks, idx) {
         if (sink->module->index == m->index) {
-          pa_hashmap_put(u->null_sinks, s, sink);
-          return sink;
+            pa_hashmap_put(u->null_sinks, s, sink);
+            return sink;
         }
     }
 
@@ -118,10 +118,10 @@ static bool sink_has_passthrough_stream(pa_sink *sink, pa_sink_input *ignore)
 
     PA_IDXSET_FOREACH(stream, sink->inputs, idx) {
         if (stream == ignore)
-          continue;
+            continue;
 
         if (pa_sink_input_is_passthrough(stream))
-          return true;
+            return true;
     }
 
     return false;
@@ -147,7 +147,7 @@ static pa_hook_result_t new_passthrough_stream(struct userdata *u, pa_core *c, p
     PA_IDXSET_FOREACH(stream, sink->inputs, idx) {
         /* We don't want to move the stream which just moved to the sink and trigger this re-routing */
         if (stream != i)
-          move_stream(u, stream, null_sink);
+            move_stream(u, stream, null_sink);
     }
 
     return PA_HOOK_OK;
@@ -184,7 +184,7 @@ static pa_hook_result_t sink_input_new_cb(pa_core *core, pa_sink_input_new_data 
     }
 
     if (!new_data->format && new_data->nego_formats && !pa_idxset_isempty(new_data->nego_formats))
-      new_data->format = pa_format_info_copy(pa_idxset_first(new_data->nego_formats, NULL));
+        new_data->format = pa_format_info_copy(pa_idxset_first(new_data->nego_formats, NULL));
 
     if (pa_sink_input_new_data_is_passthrough(new_data))
         return new_passthrough_stream(u, core, new_data->sink, NULL);
@@ -225,7 +225,7 @@ static pa_hook_result_t sink_input_removed(pa_core *core, pa_sink_input *i, stru
     pa_sink_input_assert_ref(i);
 
     if (pa_sink_input_is_passthrough(i))
-      return passthrough_stream_removed(u, core, i);
+        return passthrough_stream_removed(u, core, i);
 
     return PA_HOOK_OK;
 }
@@ -236,7 +236,7 @@ static pa_hook_result_t sink_input_unlink_cb(pa_core *core, pa_sink_input *i, st
 
 static pa_hook_result_t sink_input_move_start_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
     if (u->moving)
-      return PA_HOOK_OK;
+        return PA_HOOK_OK;
 
     return sink_input_removed(core, i, u);
 }
