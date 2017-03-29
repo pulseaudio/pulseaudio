@@ -604,14 +604,26 @@ static void sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) 
     if (i->state == state)
         return;
 
-    if (i->state == PA_SINK_INPUT_CORKED && state == PA_SINK_INPUT_RUNNING && pa_sink_used_by(i->sink) == 0 &&
-        !pa_sample_spec_equal(&i->sample_spec, &i->sink->sample_spec)) {
-        /* We were uncorked and the sink was not playing anything -- let's try
-         * to update the sample rate to avoid resampling */
-        pa_sink_update_rate(i->sink, i->sample_spec.rate, pa_sink_input_is_passthrough(i));
-    }
+    if (i->sink) {
+        if (i->state == PA_SINK_INPUT_CORKED && state == PA_SINK_INPUT_RUNNING && pa_sink_used_by(i->sink) == 0 &&
+            !pa_sample_spec_equal(&i->sample_spec, &i->sink->sample_spec)) {
+            /* We were uncorked and the sink was not playing anything -- let's try
+             * to update the sample rate to avoid resampling */
+            pa_sink_update_rate(i->sink, i->sample_spec.rate, pa_sink_input_is_passthrough(i));
+        }
 
-    pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) == 0);
+        pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) == 0);
+    } else {
+        /* If the sink is not valid, pa_sink_input_set_state_within_thread() must be called directly */
+
+        pa_sink_input_set_state_within_thread(i, state);
+
+        for (ssync = i->thread_info.sync_prev; ssync; ssync = ssync->thread_info.sync_prev)
+            pa_sink_input_set_state_within_thread(ssync, state);
+
+        for (ssync = i->thread_info.sync_next; ssync; ssync = ssync->thread_info.sync_next)
+            pa_sink_input_set_state_within_thread(ssync, state);
+    }
 
     update_n_corked(i, state);
     i->state = state;
@@ -638,7 +650,8 @@ static void sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) 
             pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     }
 
-    pa_sink_update_status(i->sink);
+    if (i->sink)
+        pa_sink_update_status(i->sink);
 }
 
 /* Called from main context */
@@ -1952,12 +1965,11 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, bool save) {
     return 0;
 }
 
-/* Called from IO thread context */
+/* Called from IO thread context except when cork() is called without a valid sink. */
 void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state_t state) {
     bool corking, uncorking;
 
     pa_sink_input_assert_ref(i);
-    pa_sink_input_assert_io_context(i);
 
     if (state == i->thread_info.state)
         return;
@@ -1978,7 +1990,8 @@ void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state
 
         /* This will tell the implementing sink input driver to rewind
          * so that the unplayed already mixed data is not lost */
-        pa_sink_input_request_rewind(i, 0, true, true, false);
+        if (i->sink)
+            pa_sink_input_request_rewind(i, 0, true, true, false);
 
         /* Set the corked state *after* requesting rewind */
         i->thread_info.state = state;
@@ -1996,7 +2009,8 @@ void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state
 
         /* OK, we're being uncorked. Make sure we're not rewound when
          * the hw buffer is remixed and request a remix. */
-        pa_sink_input_request_rewind(i, 0, false, true, true);
+        if (i->sink)
+            pa_sink_input_request_rewind(i, 0, false, true, true);
     } else
         /* We may not be corking or uncorking, but we still need to set the state. */
         i->thread_info.state = state;

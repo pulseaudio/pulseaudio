@@ -222,12 +222,11 @@ static void source_output_kill_cb(pa_source_output *o) {
     pa_module_unload_request(u->module, true);
 }
 
-/* Called from output thread context */
+/* Called from output thread context except when cork() is called without valid source. */
 static void source_output_state_change_cb(pa_source_output *o, pa_source_output_state_t state) {
     struct userdata *u;
 
     pa_source_output_assert_ref(o);
-    pa_source_output_assert_io_context(o);
     pa_assert_se(u = o->userdata);
 
     pa_log_debug("Source output %d state %d.", o->index, state);

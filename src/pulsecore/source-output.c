@@ -524,14 +524,18 @@ static void source_output_set_state(pa_source_output *o, pa_source_output_state_
     if (o->state == state)
         return;
 
-    if (o->state == PA_SOURCE_OUTPUT_CORKED && state == PA_SOURCE_OUTPUT_RUNNING && pa_source_used_by(o->source) == 0 &&
-        !pa_sample_spec_equal(&o->sample_spec, &o->source->sample_spec)) {
-        /* We were uncorked and the source was not playing anything -- let's try
-         * to update the sample rate to avoid resampling */
-        pa_source_update_rate(o->source, o->sample_spec.rate, pa_source_output_is_passthrough(o));
-    }
+    if (o->source) {
+        if (o->state == PA_SOURCE_OUTPUT_CORKED && state == PA_SOURCE_OUTPUT_RUNNING && pa_source_used_by(o->source) == 0 &&
+            !pa_sample_spec_equal(&o->sample_spec, &o->source->sample_spec)) {
+            /* We were uncorked and the source was not playing anything -- let's try
+             * to update the sample rate to avoid resampling */
+            pa_source_update_rate(o->source, o->sample_spec.rate, pa_source_output_is_passthrough(o));
+        }
 
-    pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) == 0);
+        pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) == 0);
+    } else
+        /* If the source is not valid, pa_source_output_set_state_within_thread() must be called directly */
+        pa_source_output_set_state_within_thread(o, state);
 
     update_n_corked(o, state);
     o->state = state;
@@ -543,7 +547,8 @@ static void source_output_set_state(pa_source_output *o, pa_source_output_state_
             pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
     }
 
-    pa_source_update_status(o->source);
+    if (o->source)
+        pa_source_update_status(o->source);
 }
 
 /* Called from main context */
@@ -1584,10 +1589,9 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest, bool save) {
     return 0;
 }
 
-/* Called from IO thread context */
+/* Called from IO thread context except when cork() is called without a valid source. */
 void pa_source_output_set_state_within_thread(pa_source_output *o, pa_source_output_state_t state) {
     pa_source_output_assert_ref(o);
-    pa_source_output_assert_io_context(o);
 
     if (state == o->thread_info.state)
         return;

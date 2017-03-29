@@ -391,17 +391,16 @@ static void source_output_detach_cb(pa_source_output *o) {
     pa_source_set_rtpoll(u->source, NULL);
 }
 
-/* Called from output thread context */
+/* Called from output thread context except when cork() is called without valid source.*/
 static void source_output_state_change_cb(pa_source_output *o, pa_source_output_state_t state) {
     struct userdata *u;
 
     pa_source_output_assert_ref(o);
-    pa_source_output_assert_io_context(o);
     pa_assert_se(u = o->userdata);
 
     /* FIXME */
 #if 0
-    if (PA_SOURCE_OUTPUT_IS_LINKED(state) && o->thread_info.state == PA_SOURCE_OUTPUT_INIT) {
+    if (PA_SOURCE_OUTPUT_IS_LINKED(state) && o->thread_info.state == PA_SOURCE_OUTPUT_INIT && o->source) {
 
         u->skip = pa_usec_to_bytes(PA_CLIP_SUB(pa_source_get_latency_within_thread(o->source),
                                                u->latency),

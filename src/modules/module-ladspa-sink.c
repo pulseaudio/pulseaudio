@@ -633,7 +633,7 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
     /* If we are added for the first time, ask for a rewinding so that
      * we are heard right-away. */
     if (PA_SINK_INPUT_IS_LINKED(state) &&
-            i->thread_info.state == PA_SINK_INPUT_INIT) {
+            i->thread_info.state == PA_SINK_INPUT_INIT && i->sink) {
         pa_log_debug("Requesting rewind due to state change.");
         pa_sink_input_request_rewind(i, 0, false, true, true);
     }

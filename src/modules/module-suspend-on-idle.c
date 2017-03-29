@@ -284,7 +284,7 @@ static pa_hook_result_t sink_input_state_changed_hook_cb(pa_core *c, pa_sink_inp
     pa_assert(u);
 
     state = pa_sink_input_get_state(s);
-    if (state == PA_SINK_INPUT_RUNNING || state == PA_SINK_INPUT_DRAINED)
+    if ((state == PA_SINK_INPUT_RUNNING || state == PA_SINK_INPUT_DRAINED) && s->sink)
         if ((d = pa_hashmap_get(u->device_infos, s->sink)))
             resume(d);
 
@@ -296,7 +296,7 @@ static pa_hook_result_t source_output_state_changed_hook_cb(pa_core *c, pa_sourc
     pa_source_output_assert_ref(s);
     pa_assert(u);
 
-    if (pa_source_output_get_state(s) == PA_SOURCE_OUTPUT_RUNNING) {
+    if (pa_source_output_get_state(s) == PA_SOURCE_OUTPUT_RUNNING && s->source) {
         struct device_info *d;
 
         if (s->source->monitor_of)
