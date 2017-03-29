@@ -565,8 +565,10 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     set_source_output_latency(u, dest);
     update_effective_source_latency(u, dest, u->sink_input->sink);
 
+    /* Uncork the sink input unless the destination is suspended for other
+     * reasons than idle. */
     if (pa_source_get_state(dest) == PA_SOURCE_SUSPENDED)
-        pa_sink_input_cork(u->sink_input, true);
+        pa_sink_input_cork(u->sink_input, (dest->suspend_cause != PA_SUSPEND_IDLE));
     else
         pa_sink_input_cork(u->sink_input, false);
 
@@ -904,8 +906,10 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     set_sink_input_latency(u, dest);
     update_effective_source_latency(u, u->source_output->source, dest);
 
+    /* Uncork the source output unless the destination is suspended for other
+     * reasons than idle */
     if (pa_sink_get_state(dest) == PA_SINK_SUSPENDED)
-        pa_source_output_cork(u->source_output, true);
+        pa_source_output_cork(u->source_output, (dest->suspend_cause != PA_SUSPEND_IDLE));
     else
         pa_source_output_cork(u->source_output, false);
 
