@@ -78,10 +78,10 @@ struct userdata {
     pa_rtpoll_item *rtpoll_item_read, *rtpoll_item_write;
 
     pa_time_event *time_event;
-    pa_usec_t adjust_time;
 
-    size_t skip;
+    /* Values from command line configuration */
     pa_usec_t latency;
+    pa_usec_t adjust_time;
 
     /* Latency boundaries and current values */
     pa_usec_t min_source_latency;
@@ -365,26 +365,11 @@ static void memblockq_adjust(struct userdata *u, pa_usec_t latency_offset_usec, 
 /* Called from input thread context */
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk) {
     struct userdata *u;
-    pa_memchunk copy;
     pa_usec_t push_time, current_source_latency;
 
     pa_source_output_assert_ref(o);
     pa_source_output_assert_io_context(o);
     pa_assert_se(u = o->userdata);
-
-    if (u->skip >= chunk->length) {
-        u->skip -= chunk->length;
-        return;
-    }
-
-    if (u->skip > 0) {
-        copy = *chunk;
-        copy.index += u->skip;
-        copy.length -= u->skip;
-        u->skip = 0;
-
-        chunk = &copy;
-    }
 
     /* Send current source latency and timestamp with the message */
     push_time = pa_rtclock_now();
@@ -493,23 +478,6 @@ static void source_output_detach_cb(pa_source_output *o) {
     if (u->rtpoll_item_write) {
         pa_rtpoll_item_free(u->rtpoll_item_write);
         u->rtpoll_item_write = NULL;
-    }
-}
-
-/* Called from input thread context except when cork() is called without valid source. */
-static void source_output_state_change_cb(pa_source_output *o, pa_source_output_state_t state) {
-    struct userdata *u;
-
-    pa_source_output_assert_ref(o);
-    pa_assert_se(u = o->userdata);
-
-    if (PA_SOURCE_OUTPUT_IS_LINKED(state) && o->thread_info.state == PA_SOURCE_OUTPUT_INIT && o->source) {
-
-        u->skip = pa_usec_to_bytes(PA_CLIP_SUB(pa_source_get_latency_within_thread(o->source),
-                                               u->latency),
-                                   &o->sample_spec);
-
-        pa_log_info("Skipping %lu bytes", (unsigned long) u->skip);
     }
 }
 
@@ -1179,7 +1147,6 @@ int pa__init(pa_module *m) {
     u->source_output->kill = source_output_kill_cb;
     u->source_output->attach = source_output_attach_cb;
     u->source_output->detach = source_output_detach_cb;
-    u->source_output->state_change = source_output_state_change_cb;
     u->source_output->may_move_to = source_output_may_move_to_cb;
     u->source_output->moving = source_output_moving_cb;
     u->source_output->suspend = source_output_suspend_cb;
