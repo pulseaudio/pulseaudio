@@ -4721,6 +4721,11 @@ static void command_set_card_profile(pa_pdispatch *pd, uint32_t command, uint32_
 
     CHECK_VALIDITY(c->pstream, profile, tag, PA_ERR_NOENTITY);
 
+    pa_log_info("Application \"%s\" requests card profile change. card = %s, profile = %s",
+                pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_NAME)),
+                card->name,
+                profile->name);
+
     if ((ret = pa_card_set_profile(card, profile, true)) < 0) {
         pa_pstream_send_error(c->pstream, tag, -ret);
         return;
