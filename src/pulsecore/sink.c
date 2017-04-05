@@ -3512,6 +3512,8 @@ unsigned pa_device_init_priority(pa_proplist *p) {
 
         if (pa_streq(s, "headphone"))
             priority += 900;
+        else if (pa_streq(s, "hifi"))
+            priority += 600;
         else if (pa_streq(s, "speaker"))
             priority += 500;
         else if (pa_streq(s, "portable"))
