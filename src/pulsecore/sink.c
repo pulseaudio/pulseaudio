@@ -3514,6 +3514,8 @@ unsigned pa_device_init_priority(pa_proplist *p) {
             priority += 900;
         else if (pa_streq(s, "speaker"))
             priority += 500;
+        else if (pa_streq(s, "portable"))
+            priority += 450;
         else if (pa_streq(s, "internal"))
             priority += 400;
     }
