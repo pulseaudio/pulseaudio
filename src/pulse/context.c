@@ -753,7 +753,7 @@ static int context_autospawn(pa_context *c) {
 
     if (r < 0) {
 
-        if (errno != ESRCH) {
+        if (errno != ECHILD) {
             pa_log(_("waitpid(): %s"), pa_cstrerror(errno));
             pa_context_fail(c, PA_ERR_INTERNAL);
             goto fail;
