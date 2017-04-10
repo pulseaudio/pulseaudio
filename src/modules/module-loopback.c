@@ -335,7 +335,7 @@ static void update_adjust_timer(struct userdata *u) {
  * depends on the reported latency ranges. In cases were the lower bounds of
  * source and sink latency are not reported correctly (USB) the result will
  * be wrong. */
-static void update_minimum_latency(struct userdata *u, pa_sink *sink, bool print_msg) {
+static void update_minimum_latency(struct userdata *u, pa_sink *sink) {
 
     u->minimum_latency = u->min_sink_latency;
     if (u->fixed_alsa_source)
@@ -370,16 +370,14 @@ static void update_minimum_latency(struct userdata *u, pa_sink *sink, bool print
     else
         u->output_thread_info.minimum_latency = u->minimum_latency;
 
-    if (print_msg) {
-        pa_log_info("Minimum possible end to end latency: %0.2f ms", (double)u->minimum_latency / PA_USEC_PER_MSEC);
-        if (u->latency < u->minimum_latency)
-           pa_log_warn("Configured latency of %0.2f ms is smaller than minimum latency, using minimum instead", (double)u->latency / PA_USEC_PER_MSEC);
-    }
+    pa_log_info("Minimum possible end to end latency: %0.2f ms", (double)u->minimum_latency / PA_USEC_PER_MSEC);
+    if (u->latency < u->minimum_latency)
+        pa_log_warn("Configured latency of %0.2f ms is smaller than minimum latency, using minimum instead", (double)u->latency / PA_USEC_PER_MSEC);
 }
 
 /* Called from main thread
  * Calculates minimum and maximum possible latency for source and sink */
-static void update_latency_boundaries(struct userdata *u, pa_source *source, pa_sink *sink, bool print_msg) {
+static void update_latency_boundaries(struct userdata *u, pa_source *source, pa_sink *sink) {
     const char *s;
 
     if (source) {
@@ -423,7 +421,7 @@ static void update_latency_boundaries(struct userdata *u, pa_source *source, pa_
             u->min_sink_latency = u->max_sink_latency;
     }
 
-    update_minimum_latency(u, sink, print_msg);
+    update_minimum_latency(u, sink);
 }
 
 /* Called from output context
@@ -626,7 +624,7 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
         pa_sink_input_set_property(u->sink_input, PA_PROP_DEVICE_ICON_NAME, n);
 
     /* Set latency and calculate latency limits */
-    update_latency_boundaries(u, dest, u->sink_input->sink, true);
+    update_latency_boundaries(u, dest, u->sink_input->sink);
     set_source_output_latency(u, dest);
     update_effective_source_latency(u, dest, u->sink_input->sink);
 
@@ -995,7 +993,7 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
         pa_source_output_set_property(u->source_output, PA_PROP_MEDIA_ICON_NAME, n);
 
     /* Set latency and calculate latency limits */
-    update_latency_boundaries(u, NULL, dest, true);
+    update_latency_boundaries(u, NULL, dest);
     set_sink_input_latency(u, dest);
     update_effective_source_latency(u, u->source_output->source, dest);
 
@@ -1087,7 +1085,7 @@ static int loopback_process_msg_cb(pa_msgobject *o, int code, void *userdata, in
                  * source implementations. */
                 pa_log_warn("Source minimum latency increased to %0.2f ms", (double)current_latency / PA_USEC_PER_MSEC);
                 u->configured_source_latency = current_latency;
-                update_latency_boundaries(u, u->source_output->source, u->sink_input->sink, false);
+                update_latency_boundaries(u, u->source_output->source, u->sink_input->sink);
             }
 
             return 0;
@@ -1102,13 +1100,35 @@ static int loopback_process_msg_cb(pa_msgobject *o, int code, void *userdata, in
                  * implementations. */
                 pa_log_warn("Sink minimum latency increased to %0.2f ms", (double)current_latency / PA_USEC_PER_MSEC);
                 u->configured_sink_latency = current_latency;
-                update_latency_boundaries(u, u->source_output->source, u->sink_input->sink, false);
+                update_latency_boundaries(u, u->source_output->source, u->sink_input->sink);
             }
 
             return 0;
     }
 
     return 0;
+}
+
+static pa_hook_result_t sink_port_latency_offset_changed_cb(pa_core *core, pa_sink *sink, struct userdata *u) {
+
+    if (sink != u->sink_input->sink)
+        return PA_HOOK_OK;
+
+    u->sink_latency_offset = sink->port_latency_offset;
+    update_minimum_latency(u, sink);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_port_latency_offset_changed_cb(pa_core *core, pa_source *source, struct userdata *u) {
+
+    if (source != u->source_output->source)
+        return PA_HOOK_OK;
+
+    u->source_latency_offset = source->port_latency_offset;
+    update_minimum_latency(u, u->sink_input->sink);
+
+    return PA_HOOK_OK;
 }
 
 int pa__init(pa_module *m) {
@@ -1342,7 +1362,7 @@ int pa__init(pa_module *m) {
     u->source_output->update_source_fixed_latency = update_source_latency_range_cb;
     u->source_output->userdata = u;
 
-    update_latency_boundaries(u, u->source_output->source, u->sink_input->sink, true);
+    update_latency_boundaries(u, u->source_output->source, u->sink_input->sink);
     set_sink_input_latency(u, u->sink_input->sink);
     set_source_output_latency(u, u->source_output->source);
 
@@ -1382,6 +1402,12 @@ int pa__init(pa_module *m) {
     if (source && !pa_proplist_contains(u->sink_input->proplist, PA_PROP_MEDIA_ICON_NAME)
             && (n = pa_proplist_gets(u->source_output->source->proplist, PA_PROP_DEVICE_ICON_NAME)))
         pa_proplist_sets(u->sink_input->proplist, PA_PROP_MEDIA_ICON_NAME, n);
+
+    /* Hooks to track changes of latency offsets */
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_PORT_LATENCY_OFFSET_CHANGED],
+                           PA_HOOK_NORMAL, (pa_hook_cb_t) sink_port_latency_offset_changed_cb, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_PORT_LATENCY_OFFSET_CHANGED],
+                           PA_HOOK_NORMAL, (pa_hook_cb_t) source_port_latency_offset_changed_cb, u);
 
     /* Setup message handler for main thread */
     u->msg = pa_msgobject_new(loopback_msg);

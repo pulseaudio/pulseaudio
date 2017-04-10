@@ -3295,6 +3295,8 @@ void pa_sink_set_port_latency_offset(pa_sink *s, int64_t offset) {
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_PORT_LATENCY_OFFSET, NULL, offset, NULL) == 0);
     else
         s->thread_info.port_latency_offset = offset;
+
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_PORT_LATENCY_OFFSET_CHANGED], s);
 }
 
 /* Called from main context */
