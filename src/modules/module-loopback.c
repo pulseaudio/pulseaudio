@@ -644,6 +644,11 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
         pa_asyncmsgq_send(u->sink_input->sink->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_SOURCE_CHANGED, NULL, 0, NULL);
     else
         u->output_thread_info.push_called = false;
+
+    /* The sampling rate may be far away from the default rate if we are still
+     * recovering from a previous source or sink change, so reset rate to
+     * default before moving the source. */
+    pa_sink_input_set_rate(u->sink_input, u->source_output->sample_spec.rate);
 }
 
 /* Called from main thread */
@@ -1008,6 +1013,11 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
 
     u->output_thread_info.pop_called = false;
     u->output_thread_info.first_pop_done = false;
+
+    /* Sample rate may be far away from the default rate if we are still
+     * recovering from a previous source or sink change, so reset rate to
+     * default before moving the sink. */
+    pa_sink_input_set_rate(u->sink_input, u->source_output->sample_spec.rate);
 }
 
 /* Called from main thread */
