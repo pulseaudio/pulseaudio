@@ -1580,7 +1580,12 @@ int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate) {
 
     i->sample_spec.rate = rate;
 
-    pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_RATE, PA_UINT_TO_PTR(rate), 0, NULL, NULL);
+    if (i->sink)
+        pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_RATE, PA_UINT_TO_PTR(rate), 0, NULL, NULL);
+    else {
+        i->thread_info.sample_spec.rate = rate;
+        pa_resampler_set_input_rate(i->thread_info.resampler, rate);
+    }
 
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     return 0;
