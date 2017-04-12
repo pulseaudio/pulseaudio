@@ -1454,9 +1454,10 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
         pa_proplist *pl;
 
         pl = pa_proplist_new();
-        if (u->sink_input->sink)
+        if (u->sink_input->sink) {
+            pa_proplist_sets(pl, PA_PROP_DEVICE_MASTER_DEVICE, u->sink_input->sink->name);
             y = pa_proplist_gets(u->sink_input->sink->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        else
+        } else
             y = "<unknown>"; /* Probably in the middle of a move */
         z = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION);
         pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "%s (echo cancelled with %s)", z ? z : dest->name,
@@ -1485,9 +1486,10 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
         pa_proplist *pl;
 
         pl = pa_proplist_new();
-        if (u->source_output->source)
+        if (u->source_output->source) {
+            pa_proplist_sets(pl, PA_PROP_DEVICE_MASTER_DEVICE, u->source_output->source->name);
             y = pa_proplist_gets(u->source_output->source->proplist, PA_PROP_DEVICE_DESCRIPTION);
-        else
+        } else
             y = "<unknown>"; /* Probably in the middle of a move */
         z = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION);
         pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "%s (echo cancelled with %s)", z ? z : dest->name,
