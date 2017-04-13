@@ -51,6 +51,7 @@ PA_MODULE_USAGE(
         _("sink_name=<name for the sink> "
           "sink_properties=<properties for the sink> "
           "master=<name of sink to filter> "
+          "sink_master=<name of sink to filter> "
           "format=<sample format> "
           "rate=<sample rate> "
           "channels=<number of channels> "
@@ -58,9 +59,11 @@ PA_MODULE_USAGE(
           "use_volume_sharing=<yes or no> "
           "force_flat_volume=<yes or no> "
           "hrir=/path/to/left_hrir.wav "
+          "autoloaded=<set if this module is being loaded automatically> "
         ));
 
 #define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
+#define DEFAULT_AUTOLOADED false
 
 struct userdata {
     pa_module *module;
@@ -87,12 +90,15 @@ struct userdata {
 
     float *input_buffer;
     int input_buffer_offset;
+
+    bool autoloaded;
 };
 
 static const char* const valid_modargs[] = {
     "sink_name",
     "sink_properties",
-    "master",
+    "master",  /* Will be deprecated. */
+    "sink_master",
     "format",
     "rate",
     "channels",
@@ -100,6 +106,7 @@ static const char* const valid_modargs[] = {
     "use_volume_sharing",
     "force_flat_volume",
     "hrir",
+    "autoloaded",
     NULL
 };
 
@@ -428,6 +435,19 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
 }
 
 /* Called from main context */
+static bool sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    if (u->autoloaded)
+        return false;
+
+    return u->sink != dest;
+}
+
+/* Called from main context */
 static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     struct userdata *u;
 
@@ -561,7 +581,7 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss, sink_input_ss;
     pa_channel_map map, sink_input_map;
     pa_modargs *ma;
-    pa_sink *master=NULL;
+    pa_sink *master = NULL;
     pa_sink_input_new_data sink_input_data;
     pa_sink_new_data sink_data;
     bool use_volume_sharing = true;
@@ -591,9 +611,12 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (!(master = pa_namereg_get(m->core, pa_modargs_get_value(ma, "master", NULL), PA_NAMEREG_SINK))) {
-        pa_log("Master sink not found");
-        goto fail;
+    if (!(master = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sink_master", NULL), PA_NAMEREG_SINK))) {
+        if (!(master = pa_namereg_get(m->core, pa_modargs_get_value(ma, "master", NULL), PA_NAMEREG_SINK))) {
+            pa_log("Master sink not found.");
+            goto fail;
+        } else
+            pa_log("Argument 'master' will be deprecated, please use 'sink_master' instead.");
     }
 
     pa_assert(master);
@@ -672,6 +695,12 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    u->autoloaded = DEFAULT_AUTOLOADED;
+    if (pa_modargs_get_value_boolean(ma, "autoloaded", &u->autoloaded) < 0) {
+        pa_log("Failed to parse autoloaded value");
+        goto fail;
+    }
+
     if ((u->auto_desc = !pa_proplist_contains(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION))) {
         const char *z;
 
@@ -731,6 +760,7 @@ int pa__init(pa_module*m) {
     u->sink_input->attach = sink_input_attach_cb;
     u->sink_input->detach = sink_input_detach_cb;
     u->sink_input->state_change = sink_input_state_change_cb;
+    u->sink_input->may_move_to = sink_input_may_move_to_cb;
     u->sink_input->moving = sink_input_moving_cb;
     u->sink_input->volume_changed = use_volume_sharing ? NULL : sink_input_volume_changed_cb;
     u->sink_input->mute_changed = sink_input_mute_changed_cb;
