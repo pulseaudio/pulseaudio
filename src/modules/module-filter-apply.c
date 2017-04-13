@@ -114,10 +114,10 @@ static struct filter *filter_new(const char *name, pa_sink *sink, pa_source *sou
 }
 
 static void filter_free(struct filter *f) {
-    pa_assert(f);
-
-    pa_xfree(f->name);
-    pa_xfree(f);
+    if (f) {
+        pa_xfree(f->name);
+        pa_xfree(f);
+    }
 }
 
 static const char* should_filter(pa_object *o, bool is_sink_input) {
@@ -506,7 +506,7 @@ static pa_hook_result_t process(struct userdata *u, pa_object *o, bool is_sink_i
 
 done:
     pa_xfree(module_name);
-    pa_xfree(fltr);
+    filter_free(fltr);
 
     return PA_HOOK_OK;
 }
