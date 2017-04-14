@@ -967,6 +967,7 @@ int pa__init(pa_module*m) {
     pa_channel_map map;
     pa_modargs *ma;
     char *t;
+    const char *master_name;
     pa_sink *master;
     pa_sink_input_new_data sink_input_data;
     pa_sink_new_data sink_data;
@@ -987,12 +988,18 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (!(master = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sink_master", NULL), PA_NAMEREG_SINK))) {
-        if (!(master = pa_namereg_get(m->core, pa_modargs_get_value(ma, "master", NULL), PA_NAMEREG_SINK))) {
-            pa_log("Master sink not found.");
-            goto fail;
-        } else
-            pa_log("Argument 'master' will be deprecated, please use 'sink_master' instead.");
+    master_name = pa_modargs_get_value(ma, "sink_master", NULL);
+    if (!master_name) {
+        master_name = pa_modargs_get_value(ma, "master", NULL);
+        if (master_name)
+            pa_log_warn("The 'master' module argument is deprecated and may be removed in the future, "
+                        "please use the 'sink_master' argument instead.");
+    }
+
+    master = pa_namereg_get(m->core, master_name, PA_NAMEREG_SINK);
+    if (!master) {
+        pa_log("Master sink not found.");
+        goto fail;
     }
 
     ss = master->sample_spec;
