@@ -98,6 +98,13 @@ struct userdata {
     int64_t sink_latency_offset;
     pa_usec_t minimum_latency;
 
+    /* lower latency limit found by underruns */
+    pa_usec_t underrun_latency_limit;
+
+    /* Various counters */
+    uint32_t iteration_counter;
+    uint32_t underrun_counter;
+
     bool fixed_alsa_source;
 
     /* Used for sink input and source output snapshots */
@@ -118,6 +125,8 @@ struct userdata {
     /* Output thread variables */
     struct {
         int64_t recv_counter;
+
+        /* Copied from main thread */
         pa_usec_t effective_source_latency;
         pa_usec_t minimum_latency;
 
@@ -171,6 +180,7 @@ enum {
 enum {
     LOOPBACK_MESSAGE_SOURCE_LATENCY_RANGE_CHANGED,
     LOOPBACK_MESSAGE_SINK_LATENCY_RANGE_CHANGED,
+    LOOPBACK_MESSAGE_UNDERRUN,
 };
 
 static void enable_adjust_timer(struct userdata *u, bool enable);
@@ -232,16 +242,94 @@ static uint32_t rate_controller(
     return new_rate;
 }
 
+/* Called from main thread.
+ * It has been a matter of discussion how to correctly calculate the minimum
+ * latency that module-loopback can deliver with a given source and sink.
+ * The calculation has been placed in a separate function so that the definition
+ * can easily be changed. The resulting estimate is not very exact because it
+ * depends on the reported latency ranges. In cases were the lower bounds of
+ * source and sink latency are not reported correctly (USB) the result will
+ * be wrong. */
+static void update_minimum_latency(struct userdata *u, pa_sink *sink, bool print_msg) {
+
+    if (u->underrun_latency_limit)
+        /* If we already detected a real latency limit because of underruns, use it */
+        u->minimum_latency = u->underrun_latency_limit;
+
+    else {
+        /* Calculate latency limit from latency ranges */
+
+        u->minimum_latency = u->min_sink_latency;
+        if (u->fixed_alsa_source)
+            /* If we are using an alsa source with fixed latency, we will get a wakeup when
+             * one fragment is filled, and then we empty the source buffer, so the source
+             * latency never grows much beyond one fragment (assuming that the CPU doesn't
+             * cause a bottleneck). */
+            u->minimum_latency += u->core->default_fragment_size_msec * PA_USEC_PER_MSEC;
+
+        else
+            /* In all other cases the source will deliver new data at latest after one source latency.
+             * Make sure there is enough data available that the sink can keep on playing until new
+             * data is pushed. */
+            u->minimum_latency += u->min_source_latency;
+
+        /* Multiply by 1.1 as a safety margin for delays that are proportional to the buffer sizes */
+        u->minimum_latency *= 1.1;
+
+        /* Add 1.5 ms as a safety margin for delays not related to the buffer sizes */
+        u->minimum_latency += 1.5 * PA_USEC_PER_MSEC;
+    }
+
+    /* Add the latency offsets */
+    if (-(u->sink_latency_offset + u->source_latency_offset) <= (int64_t)u->minimum_latency)
+        u->minimum_latency += u->sink_latency_offset + u->source_latency_offset;
+    else
+        u->minimum_latency = 0;
+
+    /* If the sink is valid, send a message to update the minimum latency to
+     * the output thread, else set the variable directly */
+    if (sink)
+        pa_asyncmsgq_send(sink->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_UPDATE_MIN_LATENCY, NULL, u->minimum_latency, NULL);
+    else
+        u->output_thread_info.minimum_latency = u->minimum_latency;
+
+    if (print_msg) {
+        pa_log_info("Minimum possible end to end latency: %0.2f ms", (double)u->minimum_latency / PA_USEC_PER_MSEC);
+        if (u->latency < u->minimum_latency)
+            pa_log_warn("Configured latency of %0.2f ms is smaller than minimum latency, using minimum instead", (double)u->latency / PA_USEC_PER_MSEC);
+    }
+}
+
 /* Called from main context */
 static void adjust_rates(struct userdata *u) {
     size_t buffer;
-    uint32_t old_rate, base_rate, new_rate;
+    uint32_t old_rate, base_rate, new_rate, run_hours;
     int32_t latency_difference;
     pa_usec_t current_buffer_latency, snapshot_delay, current_source_sink_latency, current_latency, latency_at_optimum_rate;
     pa_usec_t final_latency;
 
     pa_assert(u);
     pa_assert_ctl_context();
+
+    /* Runtime and counters since last change of source or sink
+     * or source/sink latency */
+    run_hours = u->iteration_counter * u->adjust_time / PA_USEC_PER_SEC / 3600;
+    u->iteration_counter +=1;
+
+    /* If we are seeing underruns then the latency is too small */
+    if (u->underrun_counter > 2) {
+        u->underrun_latency_limit = PA_MAX(u->latency, u->minimum_latency) + 5 * PA_USEC_PER_MSEC;
+        u->underrun_latency_limit = PA_CLIP_SUB((int64_t)u->underrun_latency_limit, u->sink_latency_offset + u->source_latency_offset);
+        update_minimum_latency(u, u->sink_input->sink, false);
+        pa_log_warn("Too many underruns, increasing latency to %0.2f ms", (double)u->minimum_latency / PA_USEC_PER_MSEC);
+        u->underrun_counter = 0;
+    }
+
+    /* Allow one underrun per hour */
+    if (u->iteration_counter * u->adjust_time / PA_USEC_PER_SEC / 3600 > run_hours) {
+        u->underrun_counter = PA_CLIP_SUB(u->underrun_counter, 1u);
+        pa_log_info("Underrun counter: %u", u->underrun_counter);
+    }
 
     /* Rates and latencies*/
     old_rate = u->sink_input->sample_spec.rate;
@@ -327,54 +415,6 @@ static void update_adjust_timer(struct userdata *u) {
         enable_adjust_timer(u, true);
 }
 
-/* Called from main thread.
- * It has been a matter of discussion how to correctly calculate the minimum
- * latency that module-loopback can deliver with a given source and sink.
- * The calculation has been placed in a separate function so that the definition
- * can easily be changed. The resulting estimate is not very exact because it
- * depends on the reported latency ranges. In cases were the lower bounds of
- * source and sink latency are not reported correctly (USB) the result will
- * be wrong. */
-static void update_minimum_latency(struct userdata *u, pa_sink *sink) {
-
-    u->minimum_latency = u->min_sink_latency;
-    if (u->fixed_alsa_source)
-        /* If we are using an alsa source with fixed latency, we will get a wakeup when
-         * one fragment is filled, and then we empty the source buffer, so the source
-         * latency never grows much beyond one fragment (assuming that the CPU doesn't
-         * cause a bottleneck). */
-        u->minimum_latency += u->core->default_fragment_size_msec * PA_USEC_PER_MSEC;
-
-    else
-        /* In all other cases the source will deliver new data at latest after one source latency.
-         * Make sure there is enough data available that the sink can keep on playing until new
-         * data is pushed. */
-        u->minimum_latency += u->min_source_latency;
-
-    /* Multiply by 1.1 as a safety margin for delays that are proportional to the buffer sizes */
-    u->minimum_latency *= 1.1;
-
-    /* Add 1.5 ms as a safety margin for delays not related to the buffer sizes */
-    u->minimum_latency += 1.5 * PA_USEC_PER_MSEC;
-
-    /* Add the latency offsets */
-    if (-(u->sink_latency_offset + u->source_latency_offset) <= (int64_t)u->minimum_latency)
-        u->minimum_latency += u->sink_latency_offset + u->source_latency_offset;
-    else
-        u->minimum_latency = 0;
-
-    /* If the sink is valid, send a message to update the minimum latency to
-     * the output thread, else set the variable directly */
-    if (sink)
-        pa_asyncmsgq_send(sink->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_UPDATE_MIN_LATENCY, NULL, u->minimum_latency, NULL);
-    else
-        u->output_thread_info.minimum_latency = u->minimum_latency;
-
-    pa_log_info("Minimum possible end to end latency: %0.2f ms", (double)u->minimum_latency / PA_USEC_PER_MSEC);
-    if (u->latency < u->minimum_latency)
-        pa_log_warn("Configured latency of %0.2f ms is smaller than minimum latency, using minimum instead", (double)u->latency / PA_USEC_PER_MSEC);
-}
-
 /* Called from main thread
  * Calculates minimum and maximum possible latency for source and sink */
 static void update_latency_boundaries(struct userdata *u, pa_source *source, pa_sink *sink) {
@@ -421,7 +461,7 @@ static void update_latency_boundaries(struct userdata *u, pa_source *source, pa_
             u->min_sink_latency = u->max_sink_latency;
     }
 
-    update_minimum_latency(u, sink);
+    update_minimum_latency(u, sink, true);
 }
 
 /* Called from output context
@@ -624,6 +664,7 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
         pa_sink_input_set_property(u->sink_input, PA_PROP_DEVICE_ICON_NAME, n);
 
     /* Set latency and calculate latency limits */
+    u->underrun_latency_limit = 0;
     update_latency_boundaries(u, dest, u->sink_input->sink);
     set_source_output_latency(u, dest);
     update_effective_source_latency(u, dest, u->sink_input->sink);
@@ -636,6 +677,10 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
         pa_sink_input_cork(u->sink_input, false);
 
     update_adjust_timer(u);
+
+    /* Reset counters */
+    u->iteration_counter = 0;
+    u->underrun_counter = 0;
 
     /* Send a mesage to the output thread that the source has changed.
      * If the sink is invalid here during a profile switching situation
@@ -814,15 +859,18 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
 
             /* Is this the end of an underrun? Then let's start things
              * right-away */
-            if (!u->output_thread_info.in_pop &&
-                u->sink_input->sink->thread_info.state != PA_SINK_SUSPENDED &&
+            if (u->sink_input->sink->thread_info.state != PA_SINK_SUSPENDED &&
                 u->sink_input->thread_info.underrun_for > 0 &&
                 pa_memblockq_is_readable(u->memblockq)) {
 
-                pa_log_debug("Requesting rewind due to end of underrun.");
-                pa_sink_input_request_rewind(u->sink_input,
-                                             (size_t) (u->sink_input->thread_info.underrun_for == (size_t) -1 ? 0 : u->sink_input->thread_info.underrun_for),
-                                             false, true, false);
+                pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u->msg), LOOPBACK_MESSAGE_UNDERRUN, NULL, 0, NULL, NULL);
+                /* If called from within the pop callback skip the rewind */
+                if (!u->output_thread_info.in_pop) {
+                    pa_log_debug("Requesting rewind due to end of underrun.");
+                    pa_sink_input_request_rewind(u->sink_input,
+                                                 (size_t) (u->sink_input->thread_info.underrun_for == (size_t) -1 ? 0 : u->sink_input->thread_info.underrun_for),
+                                                 false, true, false);
+                }
             }
 
             u->output_thread_info.recv_counter += (int64_t) chunk->length;
@@ -998,6 +1046,7 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
         pa_source_output_set_property(u->source_output, PA_PROP_MEDIA_ICON_NAME, n);
 
     /* Set latency and calculate latency limits */
+    u->underrun_latency_limit = 0;
     update_latency_boundaries(u, NULL, dest);
     set_sink_input_latency(u, dest);
     update_effective_source_latency(u, u->source_output->source, dest);
@@ -1010,6 +1059,10 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
         pa_source_output_cork(u->source_output, false);
 
     update_adjust_timer(u);
+
+    /* Reset counters */
+    u->iteration_counter = 0;
+    u->underrun_counter = 0;
 
     u->output_thread_info.pop_called = false;
     u->output_thread_info.first_pop_done = false;
@@ -1096,6 +1149,9 @@ static int loopback_process_msg_cb(pa_msgobject *o, int code, void *userdata, in
                 pa_log_warn("Source minimum latency increased to %0.2f ms", (double)current_latency / PA_USEC_PER_MSEC);
                 u->configured_source_latency = current_latency;
                 update_latency_boundaries(u, u->source_output->source, u->sink_input->sink);
+                /* We re-start counting when the latency has changed */
+                u->iteration_counter = 0;
+                u->underrun_counter = 0;
             }
 
             return 0;
@@ -1111,9 +1167,20 @@ static int loopback_process_msg_cb(pa_msgobject *o, int code, void *userdata, in
                 pa_log_warn("Sink minimum latency increased to %0.2f ms", (double)current_latency / PA_USEC_PER_MSEC);
                 u->configured_sink_latency = current_latency;
                 update_latency_boundaries(u, u->source_output->source, u->sink_input->sink);
+                /* We re-start counting when the latency has changed */
+                u->iteration_counter = 0;
+                u->underrun_counter = 0;
             }
 
             return 0;
+
+        case LOOPBACK_MESSAGE_UNDERRUN:
+
+            u->underrun_counter++;
+            pa_log_debug("Underrun detected, counter incremented to %u", u->underrun_counter);
+
+            return 0;
+
     }
 
     return 0;
@@ -1125,7 +1192,7 @@ static pa_hook_result_t sink_port_latency_offset_changed_cb(pa_core *core, pa_si
         return PA_HOOK_OK;
 
     u->sink_latency_offset = sink->port_latency_offset;
-    update_minimum_latency(u, sink);
+    update_minimum_latency(u, sink, true);
 
     return PA_HOOK_OK;
 }
@@ -1136,7 +1203,7 @@ static pa_hook_result_t source_port_latency_offset_changed_cb(pa_core *core, pa_
         return PA_HOOK_OK;
 
     u->source_latency_offset = source->port_latency_offset;
-    update_minimum_latency(u, u->sink_input->sink);
+    update_minimum_latency(u, u->sink_input->sink, true);
 
     return PA_HOOK_OK;
 }
@@ -1242,6 +1309,9 @@ int pa__init(pa_module *m) {
     u->output_thread_info.pop_called = false;
     u->output_thread_info.pop_adjust = false;
     u->output_thread_info.push_called = false;
+    u->iteration_counter = 0;
+    u->underrun_counter = 0;
+    u->underrun_latency_limit = 0;
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
     if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
