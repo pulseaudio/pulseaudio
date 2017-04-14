@@ -105,7 +105,10 @@ int pa_sample_format_valid(unsigned format) {
 }
 
 int pa_sample_rate_valid(uint32_t rate) {
-    return rate > 0 && rate <= PA_RATE_MAX;
+    /* The extra 1% is due to module-loopback: it temporarily sets
+     * a higher-than-nominal rate to get rid of excessive buffer
+     * latency */
+    return rate > 0 && rate <= PA_RATE_MAX * 101 / 100;
 }
 
 int pa_channels_valid(uint8_t channels) {
