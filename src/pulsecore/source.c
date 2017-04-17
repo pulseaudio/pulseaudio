@@ -1144,8 +1144,7 @@ pa_usec_t pa_source_get_latency_within_thread(pa_source *s) {
 
     /* FIXME: We probably should make this a proper vtable callback instead of going through process_msg() */
 
-    if (o->process_msg(o, PA_SOURCE_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
-        return -1;
+    o->process_msg(o, PA_SOURCE_MESSAGE_GET_LATENCY, &usec, 0, NULL);
 
     /* usec is unsigned, so check that the offset can be added to usec without
      * underflowing. */
