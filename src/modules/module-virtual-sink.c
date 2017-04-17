@@ -95,14 +95,14 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
              * sink input is first shut down, the sink second. */
             if (!PA_SINK_IS_LINKED(u->sink->thread_info.state) ||
                 !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state)) {
-                *((pa_usec_t*) data) = 0;
+                *((int64_t*) data) = 0;
                 return 0;
             }
 
-            *((pa_usec_t*) data) =
+            *((int64_t*) data) =
 
                 /* Get the latency of the master sink */
-                pa_sink_get_latency_within_thread(u->sink_input->sink) +
+                pa_sink_get_latency_within_thread(u->sink_input->sink, true) +
 
                 /* Add the latency internal to our sink input on top */
                 pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec);
@@ -255,7 +255,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     /* (4) IF YOU NEED THE LATENCY FOR SOMETHING ACQUIRE IT LIKE THIS: */
     current_latency =
         /* Get the latency of the master sink */
-        pa_sink_get_latency_within_thread(i->sink) +
+        pa_sink_get_latency_within_thread(i->sink, false) +
 
         /* Add the latency internal to our sink input on top */
         pa_bytes_to_usec(pa_memblockq_get_length(i->thread_info.render_memblockq), &i->sink->sample_spec);

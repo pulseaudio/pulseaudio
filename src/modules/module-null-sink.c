@@ -104,7 +104,7 @@ static int sink_process_msg(
             pa_usec_t now;
 
             now = pa_rtclock_now();
-            *((pa_usec_t*) data) = u->timestamp > now ? u->timestamp - now : 0ULL;
+            *((int64_t*) data) = (int64_t)u->timestamp - (int64_t)now;
 
             return 0;
         }

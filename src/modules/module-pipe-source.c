@@ -113,7 +113,7 @@ static int source_process_msg(
                 n = (size_t) l;
 #endif
 
-            *((pa_usec_t*) data) = pa_bytes_to_usec(n, &u->source->sample_spec);
+            *((int64_t*) data) = pa_bytes_to_usec(n, &u->source->sample_spec);
             return 0;
         }
     }

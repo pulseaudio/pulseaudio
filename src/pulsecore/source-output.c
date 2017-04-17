@@ -753,7 +753,7 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
          * of the queued data is actually still changeable. Hence
          * FIXME! */
 
-        latency = pa_sink_get_latency_within_thread(o->source->monitor_of);
+        latency = pa_sink_get_latency_within_thread(o->source->monitor_of, false);
 
         n = pa_usec_to_bytes(latency, &o->source->sample_spec);
 
@@ -1613,7 +1613,7 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
             pa_usec_t *r = userdata;
 
             r[0] += pa_bytes_to_usec(pa_memblockq_get_length(o->thread_info.delay_memblockq), &o->source->sample_spec);
-            r[1] += pa_source_get_latency_within_thread(o->source);
+            r[1] += pa_source_get_latency_within_thread(o->source, false);
 
             return 0;
         }

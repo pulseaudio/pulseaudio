@@ -102,7 +102,7 @@ static int source_process_msg(
             now = pa_rtclock_now();
             left_to_fill = u->timestamp > now ? u->timestamp - now : 0ULL;
 
-            *((pa_usec_t*) data) = u->block_usec > left_to_fill ? u->block_usec - left_to_fill : 0ULL;
+            *((int64_t*) data) = (int64_t)u->block_usec - left_to_fill;
 
             return 0;
         }

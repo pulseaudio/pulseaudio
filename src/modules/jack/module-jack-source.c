@@ -141,7 +141,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
             /* Convert it to usec */
             n = l * pa_frame_size(&u->source->sample_spec);
-            *((pa_usec_t*) data) = pa_bytes_to_usec(n, &u->source->sample_spec);
+            *((int64_t*) data) = pa_bytes_to_usec(n, &u->source->sample_spec);
 
             return 0;
         }

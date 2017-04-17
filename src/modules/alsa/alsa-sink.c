@@ -908,8 +908,7 @@ static void update_smoother(struct userdata *u) {
     u->smoother_interval = PA_MIN (u->smoother_interval * 2, SMOOTHER_MAX_INTERVAL);
 }
 
-static pa_usec_t sink_get_latency(struct userdata *u) {
-    pa_usec_t r;
+static int64_t sink_get_latency(struct userdata *u) {
     int64_t delay;
     pa_usec_t now1, now2;
 
@@ -920,12 +919,10 @@ static pa_usec_t sink_get_latency(struct userdata *u) {
 
     delay = (int64_t) pa_bytes_to_usec(u->write_count, &u->sink->sample_spec) - (int64_t) now2;
 
-    r = delay >= 0 ? (pa_usec_t) delay : 0;
-
     if (u->memchunk.memblock)
-        r += pa_bytes_to_usec(u->memchunk.length, &u->sink->sample_spec);
+        delay += pa_bytes_to_usec(u->memchunk.length, &u->sink->sample_spec);
 
-    return r;
+    return delay;
 }
 
 static int build_pollfd(struct userdata *u) {
@@ -1166,12 +1163,12 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     switch (code) {
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            pa_usec_t r = 0;
+            int64_t r = 0;
 
             if (u->pcm_handle)
                 r = sink_get_latency(u);
 
-            *((pa_usec_t*) data) = r;
+            *((int64_t*) data) = r;
 
             return 0;
         }

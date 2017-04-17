@@ -296,7 +296,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
         pa_log_debug("wi=%lu ri=%lu", (unsigned long) wi, (unsigned long) ri);
 
-        sink_delay = pa_sink_get_latency_within_thread(s->sink_input->sink);
+        sink_delay = pa_sink_get_latency_within_thread(s->sink_input->sink, false);
         render_delay = pa_bytes_to_usec(pa_memblockq_get_length(s->sink_input->thread_info.render_memblockq), &s->sink_input->sink->sample_spec);
 
         if (ri > render_delay+sink_delay)

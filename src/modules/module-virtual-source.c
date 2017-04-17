@@ -104,7 +104,7 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
         case PA_SINK_MESSAGE_GET_LATENCY:
 
             /* there's no real latency here */
-            *((pa_usec_t*) data) = 0;
+            *((int64_t*) data) = 0;
 
             return 0;
     }
@@ -183,7 +183,7 @@ static int source_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t 
             *((pa_usec_t*) data) =
 
                 /* Get the latency of the master source */
-                pa_source_get_latency_within_thread(u->source_output->source) +
+                pa_source_get_latency_within_thread(u->source_output->source, true) +
 
                 /* Add the latency internal to our source output on top */
                 /* FIXME, no idea what I am doing here */
@@ -402,7 +402,7 @@ static void source_output_state_change_cb(pa_source_output *o, pa_source_output_
 #if 0
     if (PA_SOURCE_OUTPUT_IS_LINKED(state) && o->thread_info.state == PA_SOURCE_OUTPUT_INIT && o->source) {
 
-        u->skip = pa_usec_to_bytes(PA_CLIP_SUB(pa_source_get_latency_within_thread(o->source),
+        u->skip = pa_usec_to_bytes(PA_CLIP_SUB(pa_source_get_latency_within_thread(o->source, false),
                                                u->latency),
                                    &o->sample_spec);
 

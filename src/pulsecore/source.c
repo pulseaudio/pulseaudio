@@ -1099,7 +1099,7 @@ int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
 
 /* Called from main thread */
 pa_usec_t pa_source_get_latency(pa_source *s) {
-    pa_usec_t usec;
+    int64_t usec;
 
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
@@ -1113,19 +1113,19 @@ pa_usec_t pa_source_get_latency(pa_source *s) {
 
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_LATENCY, &usec, 0, NULL) == 0);
 
-    /* usec is unsigned, so check that the offset can be added to usec without
+    /* The return value is unsigned, so check that the offset can be added to usec without
      * underflowing. */
-    if (-s->port_latency_offset <= (int64_t) usec)
+    if (-s->port_latency_offset <= usec)
         usec += s->port_latency_offset;
     else
         usec = 0;
 
-    return usec;
+    return (pa_usec_t)usec;
 }
 
 /* Called from IO thread */
-pa_usec_t pa_source_get_latency_within_thread(pa_source *s) {
-    pa_usec_t usec = 0;
+int64_t pa_source_get_latency_within_thread(pa_source *s, bool allow_negative) {
+    int64_t usec = 0;
     pa_msgobject *o;
 
     pa_source_assert_ref(s);
@@ -1146,11 +1146,9 @@ pa_usec_t pa_source_get_latency_within_thread(pa_source *s) {
 
     o->process_msg(o, PA_SOURCE_MESSAGE_GET_LATENCY, &usec, 0, NULL);
 
-    /* usec is unsigned, so check that the offset can be added to usec without
-     * underflowing. */
-    if (-s->thread_info.port_latency_offset <= (int64_t) usec)
-        usec += s->thread_info.port_latency_offset;
-    else
+    /* If allow_negative is false, the call should only return positive values, */
+    usec += s->thread_info.port_latency_offset;
+    if (!allow_negative && usec < 0)
         usec = 0;
 
     return usec;
@@ -2222,7 +2220,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
         case PA_SOURCE_MESSAGE_GET_LATENCY:
 
             if (s->monitor_of) {
-                *((pa_usec_t*) userdata) = 0;
+                *((int64_t*) userdata) = -pa_sink_get_latency_within_thread(s->monitor_of, true);
                 return 0;
             }
 
@@ -2696,7 +2694,7 @@ void pa_source_volume_change_push(pa_source *s) {
         return;
     }
 
-    nc->at = pa_source_get_latency_within_thread(s);
+    nc->at = pa_source_get_latency_within_thread(s, false);
     nc->at += pa_rtclock_now() + s->thread_info.volume_change_extra_delay;
 
     if (s->thread_info.volume_changes_tail) {

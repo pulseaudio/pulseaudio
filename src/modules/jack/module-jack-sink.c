@@ -168,6 +168,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             jack_nframes_t l, ft, d;
             jack_latency_range_t r;
             size_t n;
+            int32_t number_of_frames;
 
             /* This is the "worst-case" latency */
             jack_port_get_latency_range(u->port[0], JackPlaybackLatency, &r);
@@ -179,12 +180,17 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                 ft = jack_frame_time(u->client);
                 d = ft > u->saved_frame_time ? ft - u->saved_frame_time : 0;
-                l = l > d ? l - d : 0;
+                number_of_frames = (int32_t)l - d;
             }
 
             /* Convert it to usec */
-            n = l * pa_frame_size(&u->sink->sample_spec);
-            *((pa_usec_t*) data) = pa_bytes_to_usec(n, &u->sink->sample_spec);
+            if (number_of_frames > 0) {
+                n = number_of_frames * pa_frame_size(&u->sink->sample_spec);
+                *((int64_t*) data) = pa_bytes_to_usec(n, &u->sink->sample_spec);
+            } else {
+                n = - number_of_frames * pa_frame_size(&u->sink->sample_spec);
+                *((int64_t*) data) = - (int64_t)pa_bytes_to_usec(n, &u->sink->sample_spec);
+            }
 
             return 0;
         }

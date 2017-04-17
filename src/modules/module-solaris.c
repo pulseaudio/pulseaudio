@@ -385,7 +385,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     switch (code) {
 
         case PA_SINK_MESSAGE_GET_LATENCY:
-            *((pa_usec_t*) data) = sink_get_latency(u, &PA_SINK(o)->sample_spec);
+            *((int64_t*) data) = sink_get_latency(u, &PA_SINK(o)->sample_spec);
             return 0;
 
         case PA_SINK_MESSAGE_SET_STATE:

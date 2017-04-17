@@ -410,14 +410,14 @@ static int source_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t 
              * source output is first shut down, the source second. */
             if (!PA_SOURCE_IS_LINKED(u->source->thread_info.state) ||
                 !PA_SOURCE_OUTPUT_IS_LINKED(u->source_output->thread_info.state)) {
-                *((pa_usec_t*) data) = 0;
+                *((int64_t*) data) = 0;
                 return 0;
             }
 
-            *((pa_usec_t*) data) =
+            *((int64_t*) data) =
 
                 /* Get the latency of the master source */
-                pa_source_get_latency_within_thread(u->source_output->source) +
+                pa_source_get_latency_within_thread(u->source_output->source, true) +
                 /* Add the latency internal to our source output on top */
                 pa_bytes_to_usec(pa_memblockq_get_length(u->source_output->thread_info.delay_memblockq), &u->source_output->source->sample_spec) +
                 /* and the buffering we do on the source */
@@ -446,14 +446,14 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
              * sink input is first shut down, the sink second. */
             if (!PA_SINK_IS_LINKED(u->sink->thread_info.state) ||
                 !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state)) {
-                *((pa_usec_t*) data) = 0;
+                *((int64_t*) data) = 0;
                 return 0;
             }
 
-            *((pa_usec_t*) data) =
+            *((int64_t*) data) =
 
                 /* Get the latency of the master sink */
-                pa_sink_get_latency_within_thread(u->sink_input->sink) +
+                pa_sink_get_latency_within_thread(u->sink_input->sink, true) +
 
                 /* Add the latency internal to our sink input on top */
                 pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec);
@@ -1019,7 +1019,7 @@ static void source_output_snapshot_within_thread(struct userdata *u, struct snap
     pa_usec_t now, latency;
 
     now = pa_rtclock_now();
-    latency = pa_source_get_latency_within_thread(u->source_output->source);
+    latency = pa_source_get_latency_within_thread(u->source_output->source, false);
     delay = pa_memblockq_get_length(u->source_output->thread_info.delay_memblockq);
 
     delay = (u->source_output->thread_info.resampler ? pa_resampler_request(u->source_output->thread_info.resampler, delay) : delay);
@@ -1098,7 +1098,7 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
             pa_sink_input_assert_io_context(u->sink_input);
 
             now = pa_rtclock_now();
-            latency = pa_sink_get_latency_within_thread(u->sink_input->sink);
+            latency = pa_sink_get_latency_within_thread(u->sink_input->sink, false);
             delay = pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq);
 
             delay = (u->sink_input->thread_info.resampler ? pa_resampler_request(u->sink_input->thread_info.resampler, delay) : delay);

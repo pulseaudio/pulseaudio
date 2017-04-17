@@ -886,15 +886,15 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             break;
 
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
-            pa_usec_t wi, ri;
+            int64_t wi, ri;
 
             if (u->read_smoother) {
                 wi = pa_smoother_get(u->read_smoother, pa_rtclock_now());
                 ri = pa_bytes_to_usec(u->read_index, &u->sample_spec);
 
-                *((pa_usec_t*) data) = u->source->thread_info.fixed_latency + wi > ri ? u->source->thread_info.fixed_latency + wi - ri : 0;
+                *((int64_t*) data) = u->source->thread_info.fixed_latency + wi - ri;
             } else
-                *((pa_usec_t*) data) = 0;
+                *((int64_t*) data) = 0;
 
             return 0;
         }
@@ -1047,7 +1047,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             break;
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            pa_usec_t wi, ri;
+            int64_t wi, ri;
 
             if (u->read_smoother) {
                 ri = pa_smoother_get(u->read_smoother, pa_rtclock_now());
@@ -1057,7 +1057,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 wi = pa_bytes_to_usec(u->write_index, &u->sample_spec);
             }
 
-            *((pa_usec_t*) data) = u->sink->thread_info.fixed_latency + wi > ri ? u->sink->thread_info.fixed_latency + wi - ri : 0;
+            *((int64_t*) data) = u->sink->thread_info.fixed_latency + wi - ri;
 
             return 0;
         }

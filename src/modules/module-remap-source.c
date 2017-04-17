@@ -92,14 +92,14 @@ static int source_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t 
              * source output is first shut down, the source second. */
             if (!PA_SOURCE_IS_LINKED(u->source->thread_info.state) ||
                 !PA_SOURCE_OUTPUT_IS_LINKED(u->source_output->thread_info.state)) {
-                *((pa_usec_t*) data) = 0;
+                *((int64_t*) data) = 0;
                 return 0;
             }
 
-            *((pa_usec_t*) data) =
+            *((int64_t*) data) =
 
                 /* Get the latency of the master source */
-                pa_source_get_latency_within_thread(u->source_output->source) +
+                pa_source_get_latency_within_thread(u->source_output->source, true) +
                 /* Add the latency internal to our source output on top */
                 pa_bytes_to_usec(pa_memblockq_get_length(u->source_output->thread_info.delay_memblockq), &u->source_output->source->sample_spec);
 

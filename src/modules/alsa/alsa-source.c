@@ -809,7 +809,7 @@ static void update_smoother(struct userdata *u) {
     u->smoother_interval = PA_MIN (u->smoother_interval * 2, SMOOTHER_MAX_INTERVAL);
 }
 
-static pa_usec_t source_get_latency(struct userdata *u) {
+static int64_t source_get_latency(struct userdata *u) {
     int64_t delay;
     pa_usec_t now1, now2;
 
@@ -820,7 +820,7 @@ static pa_usec_t source_get_latency(struct userdata *u) {
 
     delay = (int64_t) now2 - (int64_t) pa_bytes_to_usec(u->read_count, &u->source->sample_spec);
 
-    return delay >= 0 ? (pa_usec_t) delay : 0;
+    return delay;
 }
 
 static int build_pollfd(struct userdata *u) {
@@ -1032,12 +1032,12 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
     switch (code) {
 
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
-            pa_usec_t r = 0;
+            int64_t r = 0;
 
             if (u->pcm_handle)
                 r = source_get_latency(u);
 
-            *((pa_usec_t*) data) = r;
+            *((int64_t*) data) = r;
 
             return 0;
         }

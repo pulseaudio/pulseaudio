@@ -251,13 +251,13 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
              * sink input is first shut down, the sink second. */
             if (!PA_SINK_IS_LINKED(u->sink->thread_info.state) ||
                 !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state)) {
-                *((pa_usec_t*) data) = 0;
+                *((int64_t*) data) = 0;
                 return 0;
             }
 
-            *((pa_usec_t*) data) =
+            *((int64_t*) data) =
                 /* Get the latency of the master sink */
-                pa_sink_get_latency_within_thread(u->sink_input->sink) +
+                pa_sink_get_latency_within_thread(u->sink_input->sink, true) +
 
                 /* Add the latency internal to our sink input on top */
                 pa_bytes_to_usec(pa_memblockq_get_length(u->output_q) +

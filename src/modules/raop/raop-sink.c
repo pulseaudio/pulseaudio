@@ -107,8 +107,8 @@ static void raop_state_cb(pa_raop_state_t state, void *userdata) {
     pa_asyncmsgq_post(u->thread_mq.inq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_SET_RAOP_STATE, PA_INT_TO_PTR(state), 0, NULL, NULL);
 }
 
-static pa_usec_t sink_get_latency(const struct userdata *u) {
-    pa_usec_t r, now;
+static int64_t sink_get_latency(const struct userdata *u) {
+    pa_usec_t now;
     int64_t latency;
 
     pa_assert(u);
@@ -118,9 +118,8 @@ static pa_usec_t sink_get_latency(const struct userdata *u) {
     now = pa_smoother_get(u->smoother, now);
 
     latency = pa_bytes_to_usec(u->write_count, &u->sink->sample_spec) - (int64_t) now;
-    r = latency >= 0 ? (pa_usec_t) latency : 0;
 
-    return r;
+    return latency;
 }
 
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
@@ -190,12 +189,12 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         }
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            pa_usec_t r = 0;
+            int64_t r = 0;
 
             if (pa_raop_client_can_stream(u->raop))
                 r = sink_get_latency(u);
 
-            *((pa_usec_t*) data) = r;
+            *((int64_t*) data) = r;
 
             return 0;
         }

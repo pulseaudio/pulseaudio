@@ -870,17 +870,15 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         }
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            pa_usec_t x, y, c, *delay = data;
+            pa_usec_t x, y, c;
+            int64_t *delay = data;
 
             x = pa_rtclock_now();
             y = pa_smoother_get(u->thread_info.smoother, x);
 
             c = pa_bytes_to_usec(u->thread_info.counter, &u->sink->sample_spec);
 
-            if (y < c)
-                *delay = c - y;
-            else
-                *delay = 0;
+            *delay = (int64_t)c - y;
 
             return 0;
         }

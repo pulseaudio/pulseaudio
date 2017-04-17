@@ -659,7 +659,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                     r = io_sink_get_latency(u);
             }
 
-            *((pa_usec_t*) data) = r;
+            *((int64_t*) data) = (int64_t)r;
 
             return 0;
         }
@@ -744,7 +744,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                     r = io_source_get_latency(u);
             }
 
-            *((pa_usec_t*) data) = r;
+            *((int64_t*) data) = (int64_t)r;
             return 0;
         }
 

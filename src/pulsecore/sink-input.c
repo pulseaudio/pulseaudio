@@ -2046,7 +2046,7 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
             pa_usec_t *r = userdata;
 
             r[0] += pa_bytes_to_usec(pa_memblockq_get_length(i->thread_info.render_memblockq), &i->sink->sample_spec);
-            r[1] += pa_sink_get_latency_within_thread(i->sink);
+            r[1] += pa_sink_get_latency_within_thread(i->sink, false);
 
             return 0;
         }

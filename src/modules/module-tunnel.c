@@ -513,12 +513,13 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         }
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            pa_usec_t yl, yr, *usec = data;
+            pa_usec_t yl, yr;
+            int64_t *usec = data;
 
             yl = pa_bytes_to_usec((uint64_t) u->counter, &u->sink->sample_spec);
             yr = pa_smoother_get(u->smoother, pa_rtclock_now());
 
-            *usec = yl > yr ? yl - yr : 0;
+            *usec = (int64_t)yl - yr;
             return 0;
         }
 
@@ -618,12 +619,13 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         }
 
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
-            pa_usec_t yr, yl, *usec = data;
+            pa_usec_t yr, yl;
+            int64_t *usec = data;
 
             yl = pa_bytes_to_usec((uint64_t) u->counter, &PA_SOURCE(o)->sample_spec);
             yr = pa_smoother_get(u->smoother, pa_rtclock_now());
 
-            *usec = yr > yl ? yr - yl : 0;
+            *usec = (int64_t)yr - yl;
             return 0;
         }
 

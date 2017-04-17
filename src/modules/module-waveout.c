@@ -378,7 +378,7 @@ static int process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa
                 pa_usec_t r = 0;
                 if (u->hwo)
                     r = sink_get_latency(u);
-                *((pa_usec_t*) data) = r;
+                *((int64_t*) data) = (int64_t)r;
                 return 0;
             }
 
@@ -396,7 +396,7 @@ static int process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa
                 pa_usec_t r = 0;
                 if (u->hwi)
                     r = source_get_latency(u);
-                *((pa_usec_t*) data) = r;
+                *((int64_t*) data) = (int64_t)r;
                 return 0;
             }
 

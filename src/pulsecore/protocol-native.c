@@ -1417,7 +1417,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
             s->read_index = pa_memblockq_get_read_index(s->memblockq);
             s->write_index = pa_memblockq_get_write_index(s->memblockq);
             s->render_memblockq_length = pa_memblockq_get_length(s->sink_input->thread_info.render_memblockq);
-            s->current_sink_latency = pa_sink_get_latency_within_thread(s->sink_input->sink);
+            s->current_sink_latency = pa_sink_get_latency_within_thread(s->sink_input->sink, false);
             s->underrun_for = s->sink_input->thread_info.underrun_for;
             s->playing_for = s->sink_input->thread_info.playing_for;
 
@@ -1686,8 +1686,8 @@ static int source_output_process_msg(pa_msgobject *_o, int code, void *userdata,
     switch (code) {
         case SOURCE_OUTPUT_MESSAGE_UPDATE_LATENCY:
             /* Atomically get a snapshot of all timing parameters... */
-            s->current_monitor_latency = o->source->monitor_of ? pa_sink_get_latency_within_thread(o->source->monitor_of) : 0;
-            s->current_source_latency = pa_source_get_latency_within_thread(o->source);
+            s->current_monitor_latency = o->source->monitor_of ? pa_sink_get_latency_within_thread(o->source->monitor_of, false) : 0;
+            s->current_source_latency = pa_source_get_latency_within_thread(o->source, false);
             s->on_the_fly_snapshot = pa_atomic_load(&s->on_the_fly);
             return 0;
     }

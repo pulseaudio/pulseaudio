@@ -112,7 +112,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             n += u->memchunk.length;
 
-            *((pa_usec_t*) data) = pa_bytes_to_usec(n, &u->sink->sample_spec);
+            *((int64_t*) data) = pa_bytes_to_usec(n, &u->sink->sample_spec);
             return 0;
         }
     }

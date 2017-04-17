@@ -526,7 +526,7 @@ void pa_sink_request_rewind(pa_sink*s, size_t nbytes);
 
 void pa_sink_invalidate_requested_latency(pa_sink *s, bool dynamic);
 
-pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s);
+int64_t pa_sink_get_latency_within_thread(pa_sink *s, bool allow_negative);
 
 /* Called from the main thread, from sink-input.c only. The normal way to set
  * the sink reference volume is to call pa_sink_set_volume(), but the flat

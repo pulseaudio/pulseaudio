@@ -102,7 +102,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             pa_usec_t now;
 
             now = pa_rtclock_now();
-            *((pa_usec_t*) data) = u->timestamp > now ? u->timestamp - now : 0;
+            *((int64_t*) data) = (int64_t)u->timestamp - (int64_t)now;
 
             return 0;
         }

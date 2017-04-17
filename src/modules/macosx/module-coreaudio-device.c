@@ -305,7 +305,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         }
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            *((pa_usec_t *) data) = get_latency_us(PA_OBJECT(o));
+            *((int64_t *) data) = get_latency_us(PA_OBJECT(o));
             return 0;
         }
     }
@@ -343,7 +343,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         }
 
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
-            *((pa_usec_t *) data) = get_latency_us(PA_OBJECT(o));
+            *((int64_t *) data) = get_latency_us(PA_OBJECT(o));
             return 0;
         }
     }
