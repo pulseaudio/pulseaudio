@@ -110,12 +110,12 @@ struct userdata {
     /* Used for sink input and source output snapshots */
     struct {
         int64_t send_counter;
-        pa_usec_t source_latency;
+        int64_t source_latency;
         pa_usec_t source_timestamp;
 
         int64_t recv_counter;
         size_t loopback_memblockq_length;
-        pa_usec_t sink_latency;
+        int64_t sink_latency;
         pa_usec_t sink_timestamp;
     } latency_snapshot;
 
@@ -125,9 +125,9 @@ struct userdata {
     /* Output thread variables */
     struct {
         int64_t recv_counter;
+        pa_usec_t effective_source_latency;
 
         /* Copied from main thread */
-        pa_usec_t effective_source_latency;
         pa_usec_t minimum_latency;
 
         /* Various booleans */
@@ -305,7 +305,8 @@ static void adjust_rates(struct userdata *u) {
     size_t buffer;
     uint32_t old_rate, base_rate, new_rate, run_hours;
     int32_t latency_difference;
-    pa_usec_t current_buffer_latency, snapshot_delay, current_source_sink_latency, current_latency, latency_at_optimum_rate;
+    pa_usec_t current_buffer_latency, snapshot_delay;
+    int64_t current_source_sink_latency, current_latency, latency_at_optimum_rate;
     pa_usec_t final_latency;
 
     pa_assert(u);
@@ -352,7 +353,7 @@ static void adjust_rates(struct userdata *u) {
     latency_at_optimum_rate = current_source_sink_latency + current_buffer_latency * old_rate / base_rate;
 
     final_latency = PA_MAX(u->latency, u->minimum_latency);
-    latency_difference = (int32_t)((int64_t)latency_at_optimum_rate - final_latency);
+    latency_difference = (int32_t)(latency_at_optimum_rate - final_latency);
 
     pa_log_debug("Loopback overall latency is %0.2f ms + %0.2f ms + %0.2f ms = %0.2f ms",
                 (double) u->latency_snapshot.sink_latency / PA_USEC_PER_MSEC,
@@ -466,12 +467,23 @@ static void update_latency_boundaries(struct userdata *u, pa_source *source, pa_
 
 /* Called from output context
  * Sets the memblockq to the configured latency corrected by latency_offset_usec */
-static void memblockq_adjust(struct userdata *u, pa_usec_t latency_offset_usec, bool allow_push) {
+static void memblockq_adjust(struct userdata *u, int64_t latency_offset_usec, bool allow_push) {
     size_t current_memblockq_length, requested_memblockq_length, buffer_correction;
-    pa_usec_t requested_buffer_latency, final_latency;
+    int64_t requested_buffer_latency;
+    pa_usec_t final_latency, requested_sink_latency;
 
     final_latency = PA_MAX(u->latency, u->output_thread_info.minimum_latency);
-    requested_buffer_latency = PA_CLIP_SUB(final_latency, latency_offset_usec);
+
+    /* If source or sink have some large negative latency offset, we might want to
+     * hold more than final_latency in the memblockq */
+    requested_buffer_latency = (int64_t)final_latency - latency_offset_usec;
+
+    /* Keep at least one sink latency in the queue to make sure that the sink
+     * never underruns initially */
+    requested_sink_latency = pa_sink_get_requested_latency_within_thread(u->sink_input->sink);
+    if (requested_buffer_latency < (int64_t)requested_sink_latency)
+        requested_buffer_latency = requested_sink_latency;
+
     requested_memblockq_length = pa_usec_to_bytes(requested_buffer_latency, &u->sink_input->sample_spec);
     current_memblockq_length = pa_memblockq_get_length(u->memblockq);
 
@@ -492,7 +504,8 @@ static void memblockq_adjust(struct userdata *u, pa_usec_t latency_offset_usec, 
 /* Called from input thread context */
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk) {
     struct userdata *u;
-    pa_usec_t push_time, current_source_latency;
+    pa_usec_t push_time;
+    int64_t current_source_latency;
 
     pa_source_output_assert_ref(o);
     pa_source_output_assert_io_context(o);
@@ -500,9 +513,9 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
 
     /* Send current source latency and timestamp with the message */
     push_time = pa_rtclock_now();
-    current_source_latency = pa_source_get_latency_within_thread(u->source_output->source, false);
+    current_source_latency = pa_source_get_latency_within_thread(u->source_output->source, true);
 
-    pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_POST, PA_UINT_TO_PTR(current_source_latency), push_time, chunk, NULL);
+    pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_POST, PA_INT_TO_PTR(current_source_latency), push_time, chunk, NULL);
     u->send_counter += (int64_t) chunk->length;
 }
 
@@ -531,7 +544,7 @@ static int source_output_process_msg_cb(pa_msgobject *obj, int code, void *data,
 
             u->latency_snapshot.send_counter = u->send_counter;
             /* Add content of delay memblockq to the source latency */
-            u->latency_snapshot.source_latency = pa_source_get_latency_within_thread(u->source_output->source, false) +
+            u->latency_snapshot.source_latency = pa_source_get_latency_within_thread(u->source_output->source, true) +
                                                  pa_bytes_to_usec(length, &u->source_output->source->sample_spec);
             u->latency_snapshot.source_timestamp = pa_rtclock_now();
 
@@ -813,14 +826,14 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
              * are enabled. Disable them on first push and correct the memblockq. If pop
              * has not been called yet, wait until the pop_cb() requests the adjustment */
             if (u->output_thread_info.pop_called && (!u->output_thread_info.push_called || u->output_thread_info.pop_adjust)) {
-                pa_usec_t time_delta;
+                int64_t time_delta;
 
                 /* This is the source latency at the time push was called */
-                time_delta = PA_PTR_TO_UINT(data);
+                time_delta = PA_PTR_TO_INT(data);
                 /* Add the time between push and post */
                 time_delta += pa_rtclock_now() - (pa_usec_t) offset;
                 /* Add the sink latency */
-                time_delta += pa_sink_get_latency_within_thread(u->sink_input->sink, false);
+                time_delta += pa_sink_get_latency_within_thread(u->sink_input->sink, true);
 
                 /* The source latency report includes the audio in the chunk,
                  * but since we already pushed the chunk to the memblockq, we need
@@ -840,9 +853,9 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
                  * next push also contains too much data, and in that case the
                  * resulting latency will be wrong. */
                 if (pa_bytes_to_usec(chunk->length, &u->sink_input->sample_spec) > u->output_thread_info.effective_source_latency)
-                    time_delta = PA_CLIP_SUB(time_delta, u->output_thread_info.effective_source_latency);
+                    time_delta -= (int64_t)u->output_thread_info.effective_source_latency;
                 else
-                    time_delta = PA_CLIP_SUB(time_delta, pa_bytes_to_usec(chunk->length, &u->sink_input->sample_spec));
+                    time_delta -= (int64_t)pa_bytes_to_usec(chunk->length, &u->sink_input->sample_spec);
 
                 /* FIXME: We allow pushing silence here to fix up the latency. This
                  * might lead to a gap in the stream */
@@ -895,7 +908,7 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
             u->latency_snapshot.recv_counter = u->output_thread_info.recv_counter;
             u->latency_snapshot.loopback_memblockq_length = pa_memblockq_get_length(u->memblockq);
             /* Add content of render memblockq to sink latency */
-            u->latency_snapshot.sink_latency = pa_sink_get_latency_within_thread(u->sink_input->sink, false) +
+            u->latency_snapshot.sink_latency = pa_sink_get_latency_within_thread(u->sink_input->sink, true) +
                                                pa_bytes_to_usec(length, &u->sink_input->sink->sample_spec);
             u->latency_snapshot.sink_timestamp = pa_rtclock_now();
 
