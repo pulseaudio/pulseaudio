@@ -1807,6 +1807,11 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
     pa_dbus_free_pending_list(&y->pending);
 
+    if (y->ofono_backend)
+        pa_bluetooth_ofono_backend_free(y->ofono_backend);
+    if (y->native_backend)
+        pa_bluetooth_native_backend_free(y->native_backend);
+
     if (y->adapters)
         pa_hashmap_free(y->adapters);
 
@@ -1817,11 +1822,6 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
         pa_assert(pa_hashmap_isempty(y->transports));
         pa_hashmap_free(y->transports);
     }
-
-    if (y->ofono_backend)
-        pa_bluetooth_ofono_backend_free(y->ofono_backend);
-    if (y->native_backend)
-        pa_bluetooth_native_backend_free(y->native_backend);
 
     if (y->connection) {
 
