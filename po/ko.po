@@ -1,4 +1,5 @@
 # eukim <eukim@redhat.com>, 2013. #zanata
+# KimJeongYeon <jeongyeon.kim@samsung.com>, 2017.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
@@ -7,20 +8,18 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2013-10-20 10:38-0400\n"
-"Last-Translator: eukim <eukim@redhat.com>\n"
+"PO-Revision-Date: 2017-04-23 02:11+0900\n"
+"Last-Translator: KimJeongYeon <jeongyeon.kim@samsung.com>\n"
 "Language-Team: Korean\n"
 "Language: ko\n"
-"X-Generator: Zanata 3.1.2\n"
-"Plural-Forms: nplurals=1; plural=0\n"
+"X-Generator: Poedit 1.8.7.1\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: ../src/modules/alsa/alsa-util.c:1128 ../src/modules/alsa/alsa-util.c:1203
 #, c-format
 msgid ""
-"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
-"ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
 "snd_pcm_avail()이 %lu 바이트 (%lu ms)의 매우 큰 값을 반환했습니다.\n"
 "ALSA 드라이버 '%s'의 오류일 수 있습니다. ALSA 개발자에게 이 문제를 보고해주시기 바랍니다."
@@ -28,10 +27,8 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1178
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes "
-"(%s%lu ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
 "snd_pcm_delay()가 %li 바이트 (%s%lu ms)의 매우 큰 값을 반환했습니다.\n"
 "ALSA 드라이버 '%s'의 오류일 수 있습니다. ALSA 개발자에게 이 문제를 보고해주시기 바랍니다."
@@ -39,10 +36,8 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1219
 #, c-format
 msgid ""
-"snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
-"%lu.\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_avail_delay() returned strange values: delay %lu is less than avail %lu.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
 "snd_pcm_avail_delay()가 이상한 값을 반환했습니다: 지연 시간 %lu은 사용 가능한 시간 %lu 보다 작습니다.\n"
 "ALSA 드라이버 '%s'의 오류일 수 있습니다. ALSA 개발자에게 이 문제를 보고해 주시기 바랍니다."
@@ -50,10 +45,8 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:1262
 #, c-format
 msgid ""
-"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
-"(%lu ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
 "snd_pcm_mmap_begin()이 %lu 바이트 (%lu ms)의 매우 큰 값을 반환했습니다.\n"
 "ALSA 드라이버 '%s'의 오류일 수 있습니다. ALSA 개발자에게 이 문제를 보고해 주시기 바랍니다."
@@ -72,21 +65,16 @@ msgstr "가상 LADSPA 싱크"
 
 #: ../src/modules/module-ladspa-sink.c:57
 msgid ""
-"sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
-"channels=<number of channels> channel_map=<input channel map> plugin=<ladspa "
-"plugin name> label=<ladspa plugin label> control=<comma separated list of "
-"input control values> input_ladspaport_map=<comma separated list of input "
-"LADSPA port names> output_ladspaport_map=<comma separated list of output "
-"LADSPA port names> "
+"sink_name=<name for the sink> sink_properties=<properties for the sink> master=<name of sink to filter> sink_master=<name of sink "
+"to filter> format=<sample format> rate=<sample rate> channels=<number of channels> channel_map=<input channel map> plugin=<ladspa "
+"plugin name> label=<ladspa plugin label> control=<comma separated list of input control values> input_ladspaport_map=<comma "
+"separated list of input LADSPA port names> output_ladspaport_map=<comma separated list of output LADSPA port names> autoloaded=<set "
+"if this module is being loaded automatically> "
 msgstr ""
-"sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
-"channels=<number of channels> channel_map=<input channel map> plugin=<ladspa "
-"plugin name> label=<ladspa plugin label> control=<comma separated list of "
-"input control values> input_ladspaport_map=<comma separated list of input "
-"LADSPA port names> output_ladspaport_map=<comma separated list of output "
-"LADSPA port names> "
+"sink_name=<싱크의 이름> sink_properties=<싱크에 속성들을 지정> master=<필터를 적용할 싱크의 이름> sink_master=<필터를 적용할 싱크의 "
+"이름> format=<샘플 형식> rate=<샘플 레이트> channels=<채널 수> channel_map=<입력 채널 맵> plugin=<ladspa 플러그인 이름> "
+"label=<ladspa 플러그인 레이블> control=<쉼표로 구분된 입력 제어값> input_ladspaport_map=<쉼표로 구분된 LADSPA 입력포트 이름의 목록> "
+"output_ladspaport_map=<쉼표로 구분된 LADSPA 출력포트 이름의 목록> autoloaded=<이 모듈이 자동으로 로드된다면 설정하십시오> "
 
 #: ../src/modules/module-null-sink.c:49
 msgid "Clocked NULL sink"
@@ -188,9 +176,7 @@ msgid "Failed to parse command line."
 msgstr "명령어 행 분석 실패."
 
 #: ../src/daemon/main.c:529
-msgid ""
-"System mode refused for non-root user. Only starting the D-Bus server lookup "
-"service."
+msgid "System mode refused for non-root user. Only starting the D-Bus server lookup service."
 msgstr "비 root 사용자에 대해 시스템 모드는 거부되었습니다. D-Bus 서버 검색 서비스만 시작합니다."
 
 #: ../src/daemon/main.c:611
@@ -208,9 +194,7 @@ msgid "Failed to kill daemon: %s"
 msgstr "데몬 종료 실패: %s"
 
 #: ../src/daemon/main.c:657
-msgid ""
-"This program is not intended to be run as root (unless --system is "
-"specified)."
+msgid "This program is not intended to be run as root (unless --system is specified)."
 msgstr "프로그램이 root로 실행되지 않습니다. (실행하려면 --system을 명기하십시오)."
 
 #: ../src/daemon/main.c:660
@@ -228,8 +212,7 @@ msgstr "%s에서 사용자 설정한 서버, start/autospawn을 거부하고 있
 
 #: ../src/daemon/main.c:713
 #, c-format
-msgid ""
-"User-configured server at %s, which appears to be local. Probing deeper."
+msgid "User-configured server at %s, which appears to be local. Probing deeper."
 msgstr "%s에 사용자가 설정한 서버, 이는 로컬에 있습니다. 상세히 조사합니다."
 
 #: ../src/daemon/main.c:718
@@ -384,19 +367,15 @@ msgstr "시스템 모드로 실행중: %s"
 
 #: ../src/daemon/main.c:964
 msgid ""
-"OK, so you are running PA in system mode. Please note that you most likely "
-"shouldn't be doing that.\n"
-"If you do it nonetheless then it's your own fault if things don't work as "
-"expected.\n"
-"Please read http://www.freedesktop.org/wiki/Software/PulseAudio/"
-"Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
-"mode is usually a bad idea."
+"OK, so you are running PA in system mode. Please note that you most likely shouldn't be doing that.\n"
+"If you do it nonetheless then it's your own fault if things don't work as expected.\n"
+"Please read http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/WhatIsWrongWithSystemWide/ for an explanation "
+"why system mode is usually a bad idea."
 msgstr ""
 "PA가 시스템 모드로 동작하고 있습니다. 하지만 이것은 권장되지 않습니다.\n"
 "만약 의도대로 정상동작하지 않더라도 그것은 당신의 잘못입니다.\n"
-"시스템 모드가 좋지 않은 이유에 대해서는 다음 문서를 확인하시기 바랍니다. "
-"http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/"
-"WhatIsWrongWithSystemWide/ "
+"시스템 모드가 좋지 않은 이유에 대해서는 다음 문서를 확인하시기 바랍니다. http://www.freedesktop.org/wiki/Software/PulseAudio/"
+"Documentation/User/WhatIsWrongWithSystemWide/ "
 
 #: ../src/daemon/main.c:981
 msgid "pa_pid_file_create() failed."
@@ -407,9 +386,7 @@ msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "최신 고해상도 타이머가 사용 가능합니다! 사용해 보십시오!"
 
 #: ../src/daemon/main.c:993
-msgid ""
-"Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
-"resolution timers enabled!"
+msgid "Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"
 msgstr "커널이 좋지 않습니다! 고해상도 타이머가 활성화되어 있는 Linux를 추천합니다!"
 
 #: ../src/daemon/main.c:1011
@@ -448,44 +425,35 @@ msgid ""
 "      --dump-modules                    Dump list of available modules\n"
 "      --dump-resample-methods           Dump available resample methods\n"
 "      --cleanup-shm                     Cleanup stale shared memory segments\n"
-"      --start                           Start the daemon if it is not "
-"running\n"
+"      --start                           Start the daemon if it is not running\n"
 "  -k  --kill                            Kill a running daemon\n"
-"      --check                           Check for a running daemon (only "
-"returns exit code)\n"
+"      --check                           Check for a running daemon (only returns exit code)\n"
 "\n"
 "OPTIONS:\n"
 "      --system[=BOOL]                   Run as system-wide instance\n"
 "  -D, --daemonize[=BOOL]                Daemonize after startup\n"
 "      --fail[=BOOL]                     Quit when startup fails\n"
 "      --high-priority[=BOOL]            Try to set high nice level\n"
-"                                        (only available as root, when SUID "
-"or\n"
+"                                        (only available as root, when SUID or\n"
 "                                        with elevated RLIMIT_NICE)\n"
 "      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
-"                                        (only available as root, when SUID "
-"or\n"
+"                                        (only available as root, when SUID or\n"
 "                                        with elevated RLIMIT_RTPRIO)\n"
-"      --disallow-module-loading[=BOOL]  Disallow module user requested "
-"module\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested module\n"
 "                                        loading/unloading after startup\n"
 "      --disallow-exit[=BOOL]            Disallow user requested exit\n"
-"      --exit-idle-time=SECS             Terminate the daemon when idle and "
-"this\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and this\n"
 "                                        time passed\n"
-"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
-"and\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle and\n"
 "                                        this time passed\n"
 "      --log-level[=LEVEL]               Increase or set verbosity level\n"
 "  -v                                    Increase the verbosity level\n"
 "      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
 "                                        Specify the log target\n"
-"      --log-meta[=BOOL]                 Include code location in log "
-"messages\n"
+"      --log-meta[=BOOL]                 Include code location in log messages\n"
 "      --log-time[=BOOL]                 Include timestamps in log messages\n"
 "      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
-"  -p, --dl-search-path=PATH             Set the search path for dynamic "
-"shared\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic shared\n"
 "                                        objects (plugins)\n"
 "      --resample-method=METHOD          Use the specified resampling method\n"
 "                                        (See --dump-resample-methods for\n"
@@ -496,12 +464,10 @@ msgid ""
 "      --disable-shm[=BOOL]              Disable shared memory support.\n"
 "\n"
 "STARTUP SCRIPT:\n"
-"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
-"with\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module with\n"
 "                                        the specified argument\n"
 "  -F, --file=FILENAME                   Run the specified script\n"
-"  -C                                    Open a command line on the running "
-"TTY\n"
+"  -C                                    Open a command line on the running TTY\n"
 "                                        after startup\n"
 "\n"
 "  -n                                    Don't load default script file\n"
@@ -571,9 +537,7 @@ msgid "--fail expects boolean argument"
 msgstr "--fail은 부울 인수를 예상합니다."
 
 #: ../src/daemon/cmdline.c:261
-msgid ""
-"--log-level expects log level argument (either numeric in range 0..4 or one "
-"of debug, info, notice, warn, error)."
+msgid "--log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error)."
 msgstr "--log-level은 로깅 수준 인수를 예상합니다 (0..4 숫자 범위 또는 디버그, 정보, 알림, 경고, 오류 중 하나)"
 
 #: ../src/daemon/cmdline.c:273
@@ -597,12 +561,8 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file는 boolean 인수를 사용합니다."
 
 #: ../src/daemon/cmdline.c:318
-msgid ""
-"Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
-"name 'file:<path>', 'newfile:<path>'."
-msgstr ""
-"잘못된 로그 대상: 'syslog', 'stderr','auto' 또는 유효한 파일 이름 'file:<path>', 'newfile:"
-"<path>' 중에 하나를 사용하십시오."
+msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file name 'file:<path>', 'newfile:<path>'."
+msgstr "잘못된 로그 대상: 'syslog', 'stderr','auto' 또는 유효한 파일 이름 'file:<path>', 'newfile:<path>' 중에 하나를 사용하십시오."
 
 #: ../src/daemon/cmdline.c:325
 msgid "--log-time expects boolean argument"
@@ -740,9 +700,7 @@ msgid "Failed to open configuration file: %s"
 msgstr "설정 파일 열기 실패: %s"
 
 #: ../src/daemon/daemon-conf.c:678
-msgid ""
-"The specified default channel map has a different number of channels than "
-"the specified default number of channels."
+msgid "The specified default channel map has a different number of channels than the specified default number of channels."
 msgstr "지정된 기본 채널 맵은 지정된 기본 채널 수와는 다른 채널 수를 가지고 있습니다."
 
 #: ../src/daemon/daemon-conf.c:764
@@ -974,10 +932,8 @@ msgstr "상단 후면 왼쪽"
 msgid "Top Rear Right"
 msgstr "상단 후면 오른쪽"
 
-#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:169
-#: ../src/pulse/volume.c:297 ../src/pulse/volume.c:323
-#: ../src/pulse/volume.c:343 ../src/pulse/volume.c:373
-#: ../src/pulse/format.c:125
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:169 ../src/pulse/volume.c:297 ../src/pulse/volume.c:323
+#: ../src/pulse/volume.c:343 ../src/pulse/volume.c:373 ../src/pulse/format.c:125
 msgid "(invalid)"
 msgstr "(잘못됨)"
 
@@ -1359,50 +1315,30 @@ msgid ""
 "  -v, --verbose                         Enable verbose operations\n"
 "\n"
 "  -s, --server=SERVER                   The name of the server to connect to\n"
-"  -d, --device=DEVICE                   The name of the sink/source to "
-"connect to\n"
-"  -n, --client-name=NAME                How to call this client on the "
-"server\n"
-"      --stream-name=NAME                How to call this stream on the "
-"server\n"
-"      --volume=VOLUME                   Specify the initial (linear) volume "
-"in range 0...65536\n"
-"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
-"44100)\n"
-"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
-"s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be, "
-"s24le, s24be,\n"
-"                                        s24-32le, s24-32be (defaults to "
-"s16ne)\n"
-"      --channels=CHANNELS               The number of channels, 1 for mono, "
-"2 for stereo\n"
+"  -d, --device=DEVICE                   The name of the sink/source to connect to\n"
+"  -n, --client-name=NAME                How to call this client on the server\n"
+"      --stream-name=NAME                How to call this stream on the server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to 44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, s24le, s24be,\n"
+"                                        s24-32le, s24-32be (defaults to s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, 2 for stereo\n"
 "                                        (defaults to 2)\n"
-"      --channel-map=CHANNELMAP          Channel map to use instead of the "
-"default\n"
-"      --fix-format                      Take the sample format from the sink "
-"the stream is\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the default\n"
+"      --fix-format                      Take the sample format from the sink the stream is\n"
 "                                        being connected to.\n"
-"      --fix-rate                        Take the sampling rate from the sink "
-"the stream is\n"
+"      --fix-rate                        Take the sampling rate from the sink the stream is\n"
 "                                        being connected to.\n"
-"      --fix-channels                    Take the number of channels and the "
-"channel map\n"
-"                                        from the sink the stream is being "
-"connected to.\n"
+"      --fix-channels                    Take the number of channels and the channel map\n"
+"                                        from the sink the stream is being connected to.\n"
 "      --no-remix                        Don't upmix or downmix channels.\n"
-"      --no-remap                        Map channels by index instead of "
-"name.\n"
-"      --latency=BYTES                   Request the specified latency in "
-"bytes.\n"
-"      --process-time=BYTES              Request the specified process time "
-"per request in bytes.\n"
-"      --latency-msec=MSEC               Request the specified latency in "
-"msec.\n"
-"      --process-time-msec=MSEC          Request the specified process time "
-"per request in msec.\n"
-"      --property=PROPERTY=VALUE         Set the specified property to the "
-"specified value.\n"
+"      --no-remap                        Map channels by index instead of name.\n"
+"      --latency=BYTES                   Request the specified latency in bytes.\n"
+"      --process-time=BYTES              Request the specified process time per request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time per request in msec.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the specified value.\n"
 "      --raw                             Record/play raw PCM data.\n"
 "      --passthrough                     passthrough data \n"
 "      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
@@ -1424,10 +1360,8 @@ msgstr ""
 "      --stream-name=NAME                서버에서 스트림 호출 방법\n"
 "      --volume=VOLUME                   초기 (선형) 볼륨을 0...65536 범위에서 지정\n"
 "      --rate=SAMPLERATE                 샘플 레이트를 Hz 단위로 지정 (기본값: 44100)\n"
-"      --format=SAMPLEFORMAT             샘플 유형을 다음 중 하나로 지정 s16le, s16be, u8, "
-"float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be, "
-"s24le, s24be,\n"
+"      --format=SAMPLEFORMAT             샘플 유형을 다음 중 하나로 지정 s16le, s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, s24le, s24be,\n"
 "                                        s24-32le, s24-32be (기본값: s16ne)\n"
 "      --channels=CHANNELS               채널 수를 지정, 1 (모노의 경우), 2 (스테레오의 경우)\n"
 "                                        (기본값: 2)\n"
@@ -1452,10 +1386,12 @@ msgstr ""
 
 #: ../src/utils/pacat.c:788
 #, c-format
-msgid "pacat %s\n"
+msgid ""
+"pacat %s\n"
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
-msgstr "pacat %s\n"
+msgstr ""
+"pacat %s\n"
 "libpulse %s로 컴파일됨\n"
 "libpulse %s와 링크됨\n"
 
@@ -1521,9 +1457,7 @@ msgid "Failed to open audio file."
 msgstr "오디오 파일을 열 수 없습니다."
 
 #: ../src/utils/pacat.c:1038
-msgid ""
-"Warning: specified sample specification will be overwritten with "
-"specification from file."
+msgid "Warning: specified sample specification will be overwritten with specification from file."
 msgstr "경고: 지정된 샘플 사양은 파일에서의 사양을 덮어쓰기하게 됩니다."
 
 #: ../src/utils/pacat.c:1041 ../src/utils/pactl.c:1534
@@ -1544,8 +1478,7 @@ msgstr "경고: 채널 맵을 파일에 기록할 수 없습니다."
 
 #: ../src/utils/pacat.c:1087
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "샘플 사양 '%s', 채널 맵 '%s'으로 %s 스트림을 엽니다."
 
 #: ../src/utils/pacat.c:1088
@@ -1644,10 +1577,12 @@ msgstr ""
 
 #: ../src/utils/pasuspender.c:248
 #, c-format
-msgid "pasuspender %s\n"
+msgid ""
+"pasuspender %s\n"
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
-msgstr "pasuspender %s\n"
+msgstr ""
+"pasuspender %s\n"
 "libpulse %s로 컴파일\n"
 "libpulse %s로 연결\n"
 
@@ -1834,11 +1769,9 @@ msgstr ""
 "\t속성:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:418 ../src/utils/pactl.c:488 ../src/utils/pactl.c:531
-#: ../src/utils/pactl.c:573 ../src/utils/pactl.c:671 ../src/utils/pactl.c:672
-#: ../src/utils/pactl.c:684 ../src/utils/pactl.c:744 ../src/utils/pactl.c:745
-#: ../src/utils/pactl.c:757 ../src/utils/pactl.c:809 ../src/utils/pactl.c:810
-#: ../src/utils/pactl.c:817
+#: ../src/utils/pactl.c:418 ../src/utils/pactl.c:488 ../src/utils/pactl.c:531 ../src/utils/pactl.c:573 ../src/utils/pactl.c:671
+#: ../src/utils/pactl.c:672 ../src/utils/pactl.c:684 ../src/utils/pactl.c:744 ../src/utils/pactl.c:745 ../src/utils/pactl.c:757
+#: ../src/utils/pactl.c:809 ../src/utils/pactl.c:810 ../src/utils/pactl.c:817
 msgid "n/a"
 msgstr "해당 없음 "
 
@@ -1856,7 +1789,8 @@ msgid ""
 "\tUsage counter: %s\n"
 "\tProperties:\n"
 "\t\t%s\n"
-msgstr "모듈 #%u\n"
+msgstr ""
+"모듈 #%u\n"
 "\t이름: %s\n"
 "\t인수: %s\n"
 "\t사용자 카운터: %s\n"
@@ -1870,12 +1804,14 @@ msgstr "클라이언트 정보를 가져올 수 없습니다: %s"
 
 #: ../src/utils/pactl.c:525
 #, c-format
-msgid "Client #%u\n"
+msgid ""
+"Client #%u\n"
 "\tDriver: %s\n"
 "\tOwner Module: %s\n"
 "\tProperties:\n"
 "\t\t%s\n"
-msgstr "클라이언트 #%u\n"
+msgstr ""
+"클라이언트 #%u\n"
 "\t드라이버: %s\n"
 "\t소유자 모듈: %s\n"
 "\t속성:\n"
@@ -1888,13 +1824,15 @@ msgstr "카드 정보를 가져올 수 없습니다: %s"
 
 #: ../src/utils/pactl.c:565
 #, c-format
-msgid "Card #%u\n"
+msgid ""
+"Card #%u\n"
 "\tName: %s\n"
 "\tDriver: %s\n"
 "\tOwner Module: %s\n"
 "\tProperties:\n"
 "\t\t%s\n"
-msgstr "카드 #%u\n"
+msgstr ""
+"카드 #%u\n"
 "\t이름: %s\n"
 "\t드라이버: %s\n"
 "\t소유자 모듈: %s\n"
@@ -1913,9 +1851,11 @@ msgstr "\t활성 프로파일: %s\n"
 
 #: ../src/utils/pactl.c:601
 #, c-format
-msgid "\t\t\tProperties:\n"
+msgid ""
+"\t\t\tProperties:\n"
 "\t\t\t\t%s\n"
-msgstr "\t\t\t속성:\n"
+msgstr ""
+"\t\t\t속성:\n"
 "\t\t\t\t%s\n"
 
 #: ../src/utils/pactl.c:606
@@ -2124,9 +2064,9 @@ msgid "server"
 msgstr "서버 "
 
 #: ../src/utils/pactl.c:1100
-#, fuzzy, c-format
+#, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr "%s #%u에서 이벤트 '%s'\n"
+msgstr "이벤트 '%s'는 %s #%u 상에 있습니다.\n"
 
 #: ../src/utils/pactl.c:1324
 msgid "Got SIGINT, exiting."
@@ -2140,16 +2080,10 @@ msgstr "잘못된 볼륨 사양 "
 msgid "Volume outside permissible range.\n"
 msgstr "볼륨이 허용 범위를 벗어납니다.\n"
 
-#: ../src/utils/pactl.c:1385 ../src/utils/pactl.c:1386
-#: ../src/utils/pactl.c:1387 ../src/utils/pactl.c:1388
-#: ../src/utils/pactl.c:1389 ../src/utils/pactl.c:1390
-#: ../src/utils/pactl.c:1391 ../src/utils/pactl.c:1392
-#: ../src/utils/pactl.c:1393 ../src/utils/pactl.c:1394
-#: ../src/utils/pactl.c:1395 ../src/utils/pactl.c:1396
-#: ../src/utils/pactl.c:1397 ../src/utils/pactl.c:1398
-#: ../src/utils/pactl.c:1399 ../src/utils/pactl.c:1400
-#: ../src/utils/pactl.c:1401 ../src/utils/pactl.c:1402
-#: ../src/utils/pactl.c:1403 ../src/utils/pactl.c:1404
+#: ../src/utils/pactl.c:1385 ../src/utils/pactl.c:1386 ../src/utils/pactl.c:1387 ../src/utils/pactl.c:1388 ../src/utils/pactl.c:1389
+#: ../src/utils/pactl.c:1390 ../src/utils/pactl.c:1391 ../src/utils/pactl.c:1392 ../src/utils/pactl.c:1393 ../src/utils/pactl.c:1394
+#: ../src/utils/pactl.c:1395 ../src/utils/pactl.c:1396 ../src/utils/pactl.c:1397 ../src/utils/pactl.c:1398 ../src/utils/pactl.c:1399
+#: ../src/utils/pactl.c:1400 ../src/utils/pactl.c:1401 ../src/utils/pactl.c:1402 ../src/utils/pactl.c:1403 ../src/utils/pactl.c:1404
 msgid "[options]"
 msgstr "[옵션]"
 
@@ -2181,8 +2115,7 @@ msgstr "이름|#N"
 msgid "#N SINK|SOURCE"
 msgstr "#N 싱크|소스"
 
-#: ../src/utils/pactl.c:1395 ../src/utils/pactl.c:1400 ../src/utils/pacmd.c:58
-#: ../src/utils/pacmd.c:72
+#: ../src/utils/pactl.c:1395 ../src/utils/pactl.c:1400 ../src/utils/pacmd.c:58 ../src/utils/pacmd.c:72
 msgid "NAME|#N 1|0"
 msgstr "이름|#N 1|0"
 
@@ -2222,8 +2155,7 @@ msgid ""
 "      --version                         Show version\n"
 "\n"
 "  -s, --server=SERVER                   The name of the server to connect to\n"
-"  -n, --client-name=NAME                How to call this client on the "
-"server\n"
+"  -n, --client-name=NAME                How to call this client on the server\n"
 msgstr ""
 "\n"
 "  -h, --help                            도움말 표시\n"
@@ -2234,10 +2166,12 @@ msgstr ""
 
 #: ../src/utils/pactl.c:1447
 #, c-format
-msgid "pactl %s\n"
+msgid ""
+"pactl %s\n"
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
-msgstr "pactl %s\n"
+msgstr ""
+"pactl %s\n"
 "libpulse %s로 컴파일 됨\n"
 "libpulse %s와 링크됨\n"
 
@@ -2283,14 +2217,11 @@ msgid "You have to specify a module index or name"
 msgstr "모듈 인덱스 또는 이름을 지정해야 합니다 "
 
 #: ../src/utils/pactl.c:1628
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
 msgstr "하나 이상의 싱크를 지정할 수 없습니다. 부울 값을 지정해야 합니다."
 
 #: ../src/utils/pactl.c:1641
-msgid ""
-"You may not specify more than one source. You have to specify a boolean "
-"value."
+msgid "You may not specify more than one source. You have to specify a boolean value."
 msgstr "하나 이상의 소스를 지정할 수 없습니다. 부울 값을 지정해야 합니다."
 
 #: ../src/utils/pactl.c:1653
@@ -2333,8 +2264,7 @@ msgstr "잘못된 소스 출력 인덱스 "
 msgid "You have to specify a sink name/index and a mute boolean"
 msgstr "싱크 이름/인덱스와 무음 부울을 지정해야 합니다."
 
-#: ../src/utils/pactl.c:1750 ../src/utils/pactl.c:1767
-#: ../src/utils/pactl.c:1789 ../src/utils/pactl.c:1810
+#: ../src/utils/pactl.c:1750 ../src/utils/pactl.c:1767 ../src/utils/pactl.c:1789 ../src/utils/pactl.c:1810
 msgid "Invalid mute specification"
 msgstr "잘못된 무음 사양 "
 
@@ -2359,14 +2289,11 @@ msgid "Invalid source output index specification"
 msgstr "잘못된 소스 출력 인덱스 사양 "
 
 #: ../src/utils/pactl.c:1824
-msgid ""
-"You have to specify a sink index and a semicolon-separated list of supported "
-"formats"
+msgid "You have to specify a sink index and a semicolon-separated list of supported formats"
 msgstr "싱크 인덱스 및 지원하는 형식의 세미콜론으로 분리된 목록을 지정해야 합니다 "
 
 #: ../src/utils/pactl.c:1836
-msgid ""
-"You have to specify a card name/index, a port name and a latency offset"
+msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr "카드 이름/인덱스, 포트 이름 및 지연 오프셋을 지정해야 합니다 "
 
 #: ../src/utils/pactl.c:1843
@@ -2384,8 +2311,7 @@ msgid ""
 "\n"
 " -d    Show current PulseAudio data attached to X11 display (default)\n"
 " -e    Export local PulseAudio data to X11 display\n"
-" -i    Import PulseAudio data from X11 display to local environment "
-"variables and cookie file.\n"
+" -i    Import PulseAudio data from X11 display to local environment variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
 "%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
@@ -2514,10 +2440,12 @@ msgstr ""
 
 #: ../src/utils/pacmd.c:131
 #, c-format
-msgid "pacmd %s\n"
+msgid ""
+"pacmd %s\n"
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
-msgstr "pacmd %s\n"
+msgstr ""
+"pacmd %s\n"
 "libpulse %s로 컴파일\n"
 "libpulse %s로 연결\n"
 
@@ -2565,12 +2493,9 @@ msgstr "autospawn 잠금에 액세스할 수 없습니다."
 #: ../src/modules/alsa/alsa-sink.c:562 ../src/modules/alsa/alsa-sink.c:728
 #, c-format
 msgid ""
-"ALSA woke us up to write new data to the device, but there was actually "
-"nothing to write!\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers.\n"
-"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
-"returned 0 or another value < min_avail."
+"ALSA woke us up to write new data to the device, but there was actually nothing to write!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
 "ALSA가 장치에 새 데이터를 쓰도록 재촉했지만 쓸 수 있는 것이 없습니다!\n"
 "이는 대부분 ALSA 드라이버 '%s'의 버그입니다. 이 문제를 ALSA 개발자에게 보고하십시오.\n"
@@ -2579,25 +2504,20 @@ msgstr ""
 #: ../src/modules/alsa/alsa-source.c:521 ../src/modules/alsa/alsa-source.c:674
 #, c-format
 msgid ""
-"ALSA woke us up to read new data from the device, but there was actually "
-"nothing to read!\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers.\n"
-"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
-"returned 0 or another value < min_avail."
+"ALSA woke us up to read new data from the device, but there was actually nothing to read!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
 "ALSA가 장치에 새 데이터를 읽도록 재촉했지만 읽을 수 있는 것이 없습니다!\n"
 "이는 대부분 ALSA 드라이버 '%s'의 버그입니다. 이 문제를 ALSA 개발자에게 보고하십시오.\n"
 "POLLIN 세트로 불러오려했지만 결과적으로 snd_pcm_avail()이 0 또는 다른 값 < min_avail을 반환했습니다. "
 
-#: ../src/modules/alsa/module-alsa-card.c:193
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2458
+#: ../src/modules/alsa/module-alsa-card.c:193 ../src/modules/bluetooth/module-bluetooth-device.c:2458
 #: ../src/modules/alsa/alsa-mixer.c:3949
 msgid "Off"
 msgstr "끄기 "
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2282
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2309
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2282 ../src/modules/bluetooth/module-bluetooth-device.c:2309
 msgid "Bluetooth Output"
 msgstr "블루투스 출력 "
 
@@ -2609,8 +2529,7 @@ msgstr "Bluetooth 고품질 (A2DP)"
 msgid "Bluetooth Telephony (HSP/HFP)"
 msgstr "Bluetooth 전화 (HSP/HFP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2328
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2336
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2328 ../src/modules/bluetooth/module-bluetooth-device.c:2336
 msgid "Bluetooth Handsfree Gateway"
 msgstr "블루투스 핸즈프리 게이트웨이 "
 
@@ -2634,14 +2553,12 @@ msgstr "핸즈프리 게이트웨이"
 msgid "PulseAudio Sound Server"
 msgstr "펄스오디오 사운드 서버"
 
-#: ../src/modules/module-rygel-media-server.c:510
-#: ../src/modules/module-rygel-media-server.c:548
+#: ../src/modules/module-rygel-media-server.c:510 ../src/modules/module-rygel-media-server.c:548
 #: ../src/modules/module-rygel-media-server.c:903
 msgid "Output Devices"
 msgstr "출력 장치"
 
-#: ../src/modules/module-rygel-media-server.c:511
-#: ../src/modules/module-rygel-media-server.c:549
+#: ../src/modules/module-rygel-media-server.c:511 ../src/modules/module-rygel-media-server.c:549
 #: ../src/modules/module-rygel-media-server.c:904
 msgid "Input Devices"
 msgstr "입력 장치"
@@ -2890,25 +2807,17 @@ msgstr "%s 입력"
 
 #: ../src/modules/echo-cancel/module-echo-cancel.c:63
 msgid ""
-"source_name=<name for the source> source_properties=<properties for the "
-"source> source_master=<name of source to filter> sink_name=<name for the "
-"sink> sink_properties=<properties for the sink> sink_master=<name of sink to "
-"filter> adjust_time=<how often to readjust rates in s> adjust_threshold=<how "
-"much drift to readjust after in ms> format=<sample format> rate=<sample "
-"rate> channels=<number of channels> channel_map=<channel map> aec_method="
-"<implementation to use> aec_args=<parameters for the AEC engine> save_aec="
-"<save AEC data in /tmp> autoloaded=<set if this module is being loaded "
-"automatically> use_volume_sharing=<yes or no> "
+"source_name=<name for the source> source_properties=<properties for the source> source_master=<name of source to filter> "
+"sink_name=<name for the sink> sink_properties=<properties for the sink> sink_master=<name of sink to filter> adjust_time=<how often "
+"to readjust rates in s> adjust_threshold=<how much drift to readjust after in ms> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> aec_method=<implementation to use> aec_args=<parameters for the AEC engine> "
+"save_aec=<save AEC data in /tmp> autoloaded=<set if this module is being loaded automatically> use_volume_sharing=<yes or no> "
 msgstr ""
-"source_name=<name for the source> source_properties=<properties for the "
-"source> source_master=<name of source to filter> sink_name=<name for the "
-"sink> sink_properties=<properties for the sink> sink_master=<name of sink to "
-"filter> adjust_time=<how often to readjust rates in s> adjust_threshold=<how "
-"much drift to readjust after in ms> format=<sample format> rate=<sample "
-"rate> channels=<number of channels> channel_map=<channel map> aec_method="
-"<implementation to use> aec_args=<parameters for the AEC engine> save_aec="
-"<save AEC data in /tmp> autoloaded=<set if this module is being loaded "
-"automatically> use_volume_sharing=<yes or no> "
+"source_name=<소스의 이름> source_properties=<소스에 속성들을 지정> source_master=<필터를 적용할 소스의 이름> sink_name=<싱크의 이름"
+"> sink_properties=<싱크에 속성들을 지정> sink_master=<필터를 적용할 싱크의 이름> adjust_time=<샘플 레이트 재조정을 몇 초 단위로 할 "
+"것인지 지정> adjust_threshold=<드리프트가 몇 ms 이후부터 재조정을 할 것인지 지정> format=<샘플 형식> rate=<샘플 레이트> channels=<채"
+"널 수> channel_map=<채널 맵> aec_method=<사용 할 구현체> aec_args=<AEC 엔진의 인자들> save_aec=<AEC 데이터를 /tmp 안에 저장> "
+"autoloaded=<이 모듈이 자동으로 로드된다면 설정하십시오> use_volume_sharing=<yes 또는 no> "
 
 #: ../src/modules/module-equalizer-sink.c:72
 msgid "General Purpose Equalizer"
@@ -2916,15 +2825,12 @@ msgstr "일반적 목적의 이퀼라이저 "
 
 #: ../src/modules/module-equalizer-sink.c:76
 msgid ""
-"sink_name=<name of the sink> sink_properties=<properties for the sink> "
-"sink_master=<sink to connect to> format=<sample format> rate=<sample rate> "
-"channels=<number of channels> channel_map=<channel map> autoloaded=<set if "
-"this module is being loaded automatically> use_volume_sharing=<yes or no> "
+"sink_name=<name of the sink> sink_properties=<properties for the sink> sink_master=<sink to connect to> format=<sample format> "
+"rate=<sample rate> channels=<number of channels> channel_map=<channel map> autoloaded=<set if this module is being loaded "
+"automatically> use_volume_sharing=<yes or no> "
 msgstr ""
-"sink_name=<name of the sink> sink_properties=<properties for the sink> "
-"sink_master=<sink to connect to> format=<sample format> rate=<sample rate> "
-"channels=<number of channels> channel_map=<channel map> autoloaded=<set if "
-"this module is being loaded automatically> use_volume_sharing=<yes or no> "
+"sink_name=<싱크의 이름> sink_properties=<싱크에 속성들을 지정> sink_master=<연결할 싱크> format=<샘플 형식> rate=<샘플 레이트> "
+"channels=<채널 수> channel_map=<채널 맵> autoloaded=<이 모듈이 자동으로 로드된다면 설정하십시오> use_volume_sharing=<yes 또는 no> "
 
 #: ../src/modules/module-filter-apply.c:48
 msgid "autoclean=<automatically unload unused filters?>"
@@ -2937,24 +2843,19 @@ msgid ""
 "\n"
 "-h, --help                            Show this help\n"
 "-v, --verbose                         Print debug messages\n"
-"      --from-rate=SAMPLERATE          From sample rate in Hz (defaults to "
-"44100)\n"
+"      --from-rate=SAMPLERATE          From sample rate in Hz (defaults to 44100)\n"
 "      --from-format=SAMPLEFORMAT      From sample type (defaults to s16le)\n"
-"      --from-channels=CHANNELS        From number of channels (defaults to "
-"1)\n"
-"      --to-rate=SAMPLERATE            To sample rate in Hz (defaults to "
-"44100)\n"
+"      --from-channels=CHANNELS        From number of channels (defaults to 1)\n"
+"      --to-rate=SAMPLERATE            To sample rate in Hz (defaults to 44100)\n"
 "      --to-format=SAMPLEFORMAT        To sample type (defaults to s16le)\n"
 "      --to-channels=CHANNELS          To number of channels (defaults to 1)\n"
 "      --resample-method=METHOD        Resample method (defaults to auto)\n"
 "      --seconds=SECONDS               From stream duration (defaults to 60)\n"
 "\n"
-"If the formats are not specified, the test performs all formats "
-"combinations,\n"
+"If the formats are not specified, the test performs all formats combinations,\n"
 "back and forth.\n"
 "\n"
-"Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, "
-"alaw,\n"
+"Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, alaw,\n"
 "32le, s32be (defaults to s16ne)\n"
 "\n"
 "See --dump-resample-methods for possible values of resample methods.\n"
@@ -2996,15 +2897,14 @@ msgstr "가상 서라운드 싱크 "
 
 #: ../src/modules/module-virtual-surround-sink.c:53
 msgid ""
-"sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
-"channels=<number of channels> channel_map=<channel map> use_volume_sharing="
-"<yes or no> force_flat_volume=<yes or no> hrir=/path/to/left_hrir.wav "
+"sink_name=<name for the sink> sink_properties=<properties for the sink> master=<name of sink to filter> sink_master=<name of sink "
+"to filter> format=<sample format> rate=<sample rate> channels=<number of channels> channel_map=<channel map> "
+"use_volume_sharing=<yes or no> force_flat_volume=<yes or no> hrir=/path/to/left_hrir.wav autoloaded=<set if this module is being "
+"loaded automatically> "
 msgstr ""
-"sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
-"channels=<number of channels> channel_map=<channel map> use_volume_sharing="
-"<yes or no> force_flat_volume=<yes or no> hrir=/path/to/left_hrir.wav "
+"sink_name=<싱크의 이름> sink_properties=<싱크에 속성들을 지정> master=<필터를 적용할 싱크의 이름> sink_master=<필터를 적용할 싱크의 "
+"이름> format=<샘플 형식> rate=<샘플 레이트> channels=<채널 수> channel_map=<채널 맵> use_volume_sharing=<yes 또는 no> "
+"force_flat_volume=<yes 또는 no> hrir=/path/to/left_hrir.wav autoloaded=<이 모듈이 자동으로 로드된다면 설정하십시오> "
 
 #. add on profile
 #: ../src/modules/macosx/module-coreaudio-device.c:747
