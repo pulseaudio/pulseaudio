@@ -1,0 +1,3181 @@
+# Croatian translation for pulseaudio
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the pulseaudio package.
+# gogo <trebelnik2@gmail.com>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: pulseaudio\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2017-03-29 21:37+0000\n"
+"PO-Revision-Date: 2017-04-23 23:05+0200\n"
+"Last-Translator: gogo <trebelnik2@gmail.com>\n"
+"Language-Team: Croatian <hr@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2017-04-20 21:04+0000\n"
+"X-Generator: Poedit 1.8.7.1\n"
+"Language: hr\n"
+
+#: ../src/daemon/cmdline.c:113
+#, c-format
+msgid ""
+"%s [options]\n"
+"\n"
+"COMMANDS:\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"      --dump-conf                       Dump default configuration\n"
+"      --dump-modules                    Dump list of available modules\n"
+"      --dump-resample-methods           Dump available resample methods\n"
+"      --cleanup-shm                     Cleanup stale shared memory segments\n"
+"      --start                           Start the daemon if it is not running\n"
+"  -k  --kill                            Kill a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Run as system-wide instance\n"
+"  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+"      --fail[=BOOL]                     Quit when startup fails\n"
+"      --high-priority[=BOOL]            Try to set high nice level\n"
+"                                        (only available as root, when SUID or\n"
+"                                        with elevated RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"                                        (only available as root, when SUID or\n"
+"                                        with elevated RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested module\n"
+"                                        loading/unloading after startup\n"
+"      --disallow-exit[=BOOL]            Disallow user requested exit\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
+"                                        time passed\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v  --verbose                         Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
+"                                        Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"      --enable-memfd[=BOOL]             Enable memfd shared memory support.\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
+"\n"
+"  -n                                    Don't load default script file\n"
+msgstr ""
+"%s [mogućnosti]\n"
+"\n"
+"NAREDBE:\n"
+"  -h, --help                            Prikaži ovu pomoć\n"
+"      --version                         Prikaži inačicu\n"
+"      --dump-conf                       Ispiši zadano podešavanje\n"
+"      --dump-modules                    Ispiši popis dostupnih modula\n"
+"      --dump-resample-methods           Ispiši dostupne načine normalizacije "
+"zvuka\n"
+"      --cleanup-shm                     Čišćenje dijeljenih segmenata "
+"memorije\n"
+"      --start                           Pokreni pozadinski program ako nije "
+"pokrenut\n"
+"  -k  --kill                            Ubij pokrenuti pozadinski program\n"
+"      --check                           Provjeri pozadinski program (samo "
+"vraća izlazni kôd)\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Pokreni na cijelom sustavu\n"
+"  -D, --daemonize[=BOOL]                Pokreni kao pozadinski program nakon "
+"pokretanja\n"
+"      --fail[=BOOL]                     Zatvori kada pokretanje ne uspije\n"
+"      --high-priority[=BOOL]            Pokušaj postaviti najvišu prihvatljivu "
+"razinu\n"
+"                                        (Samo je dostupno korijenskom "
+"korisniku, pri SUID-u ili\n"
+"                                        s povišenim RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Pokušaj omogućiti raspored u stvarnom "
+"vremenu\n"
+"                                        (samo je dostupno korijenskom "
+"korisniku, pri SUID-u ili\n"
+"                                        s povišenim RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Zabrani modulu korisnika zahtijevani "
+"modul\n"
+"                                        učitavanja/uklanjanja nakon "
+"pokretanja\n"
+"      --disallow-exit[=BOOL]            Zabrani zahtjev izlaza korisnika\n"
+"      --exit-idle-time=SEK             Zatvori pozadinski program u mirovanju "
+"i ovaj\n"
+"                                        puta proslijedi\n"
+"      --scache-idle-time=SEK           Ukloni automatski učitane uzorke u "
+"mirovanju i\n"
+"                                        ovaj puta proslijedi\n"
+"      --log-level[=RAZINA]               Povećaj ili postavi razinu opširnijeg "
+"zapisivanja\n"
+"  -v  --verbose                         Povećaj razinu opširnosti\n"
+"      --log-target={auto,syslog,stderr,datoteka:PUTANJA,nova datoteka:"
+"PUTANJA}\n"
+"                                        Određuje mete zapisa\n"
+"      --log-meta[=BOOL]                 Uključi kôd lokacije u poruke zapisa\n"
+"      --log-time[=BOOL]                 Uključi vremenske oznake u poruke "
+"zapisa\n"
+"      --log-backtrace=OKVIRI            Uključi povratno praćenje u poruke "
+"zapisa\n"
+"  -p, --dl-search-path=PUTANJA             Postavi putanju pretrage za "
+"promjenljivo dijeljene\n"
+"                                        objekte (priključke)\n"
+"      --resample-method=NAČIN          Koristi određeni način normalizacije "
+"zvuka\n"
+"                                        (Pogledaj --dump-resample-methods za\n"
+"                                        moguće vrijednosti)\n"
+"      --use-pid-file[=BOOL]             Stvori PID datoteku\n"
+"      --no-cpu-limit[=BOOL]             Nemoj instalirati CPU ograničivač "
+"učitavanja na\n"
+"                                        platforme koje ga podržavaju.\n"
+"      --disable-shm[=BOOL]              Onemogući podršku dijeljenja "
+"memorije.\n"
+"      --enable-memfd[=BOOL]             Omogući memfd podršku dijeljenja "
+"memorije.\n"
+"\n"
+"SKRIPTE POKRETANJA:\n"
+"  -L, --load=\"ARGUMENTI MODULA\"         Učitaj određeni priključak sa\n"
+"                                        određenim argumentom\n"
+"  -F, --file=NAZIV DATOTEKE                   Pokreni određenu skriptu\n"
+"  -C                                    Otvori naredbeni redak u pokrenutom "
+"TTY-jem\n"
+"                                        nakon pokretanja\n"
+"\n"
+"  -n                                    Ne učitavaj zadanu datoteku skripte\n"
+
+#: ../src/daemon/cmdline.c:246
+msgid "--daemonize expects boolean argument"
+msgstr "--deamonize očekuje boolean argument"
+
+#: ../src/daemon/cmdline.c:254
+msgid "--fail expects boolean argument"
+msgstr "--fail očekuje boolean argument"
+
+#: ../src/daemon/cmdline.c:265
+msgid ""
+"--log-level expects log level argument (either numeric in range 0..4 or one of "
+"debug, info, notice, warn, error)."
+msgstr ""
+"--log-level očekuje argument na razini zapisa (ili brojeve u rasponu 0..4 ili "
+"jedan od zapisa uklanjanja grešaka,informacija,bilješka,upozorenje,greška)"
+
+#: ../src/daemon/cmdline.c:277
+msgid "--high-priority expects boolean argument"
+msgstr "--high-priority očekuje boolean argument"
+
+#: ../src/daemon/cmdline.c:285
+msgid "--realtime expects boolean argument"
+msgstr "--realtime očekuje boolean argument"
+
+#: ../src/daemon/cmdline.c:293
+msgid "--disallow-module-loading expects boolean argument"
+msgstr "--disallow-module-loading očekuje boolean argument"
+
+#: ../src/daemon/cmdline.c:301
+msgid "--disallow-exit expects boolean argument"
+msgstr "--disallow-exit očekuje boolean argument"
+
+#: ../src/daemon/cmdline.c:309
+msgid "--use-pid-file expects boolean argument"
+msgstr "--use-pid-file očekuje boolean argument"
+
+#: ../src/daemon/cmdline.c:328
+msgid ""
+"Invalid log target: use either 'syslog', 'journal','stderr' or 'auto' or a "
+"valid file name 'file:<path>', 'newfile:<path>'."
+msgstr ""
+"Neispravno odredište zapisa: koristite ili 'syslog', 'journal','stderr',  "
+"'auto' ili valjani naziv datoteke 'datoteka:<putanja>', 'nova datoteka:"
+"<putanja>'."
+
+#: ../src/daemon/cmdline.c:330
+msgid ""
+"Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
+"name 'file:<path>', 'newfile:<path>'."
+msgstr ""
+"Neispravno odredište zapisa: koristite ili 'syslog', 'stderr' ili 'auto' ili "
+"valjani naziv datoteke 'datoteka:<putanja>', 'nova-datoteka:<putanja>'."
+
+#: ../src/daemon/cmdline.c:338
+msgid "--log-time expects boolean argument"
+msgstr "--log-time očekuje boolean argument"
+
+#: ../src/daemon/cmdline.c:346
+msgid "--log-meta expects boolean argument"
+msgstr "--log-meta očekuje boolean argument"
+
+#: ../src/daemon/cmdline.c:366
+#, c-format
+msgid "Invalid resample method '%s'."
+msgstr "Neispravan način normalizacije zvuka '%s'."
+
+#: ../src/daemon/cmdline.c:373
+msgid "--system expects boolean argument"
+msgstr "--system očekuje boolean argument"
+
+#: ../src/daemon/cmdline.c:381
+msgid "--no-cpu-limit expects boolean argument"
+msgstr "--no-cpu-limit očekuje boolean argument"
+
+#: ../src/daemon/cmdline.c:389
+msgid "--disable-shm expects boolean argument"
+msgstr "--disable-shm očekuje boolean argument"
+
+#: ../src/daemon/cmdline.c:397
+msgid "--enable-memfd expects boolean argument"
+msgstr "--enable-memfd očekuje boolean argument"
+
+#: ../src/daemon/daemon-conf.c:260
+#, c-format
+msgid "[%s:%u] Invalid log target '%s'."
+msgstr "[%s:%u] neispravno odredište zapisa '%s'."
+
+#: ../src/daemon/daemon-conf.c:275
+#, c-format
+msgid "[%s:%u] Invalid log level '%s'."
+msgstr "[%s:%u] neispravna razina zapisa '%s'."
+
+#: ../src/daemon/daemon-conf.c:290
+#, c-format
+msgid "[%s:%u] Invalid resample method '%s'."
+msgstr "[%s:%u] neispravan način normalizacije zvuka '%s'."
+
+#: ../src/daemon/daemon-conf.c:312
+#, c-format
+msgid "[%s:%u] Invalid rlimit '%s'."
+msgstr "[%s:%u] neispravan rlimit '%s'."
+
+#: ../src/daemon/daemon-conf.c:332
+#, c-format
+msgid "[%s:%u] Invalid sample format '%s'."
+msgstr "[%s:%u] neispravan format uzorka '%s'."
+
+#: ../src/daemon/daemon-conf.c:349 ../src/daemon/daemon-conf.c:366
+#, c-format
+msgid "[%s:%u] Invalid sample rate '%s'."
+msgstr "[%s:%u] neispravna frekvencija '%s'."
+
+#: ../src/daemon/daemon-conf.c:389
+#, c-format
+msgid "[%s:%u] Invalid sample channels '%s'."
+msgstr "[%s:%u] neispravan uzorak kanala '%s'."
+
+#: ../src/daemon/daemon-conf.c:406
+#, c-format
+msgid "[%s:%u] Invalid channel map '%s'."
+msgstr "[%s:%u] neispravno mapiranje kanala '%s'."
+
+#: ../src/daemon/daemon-conf.c:423
+#, c-format
+msgid "[%s:%u] Invalid number of fragments '%s'."
+msgstr "[%s:%u] neispravan broj fragmenta '%s'."
+
+#: ../src/daemon/daemon-conf.c:440
+#, c-format
+msgid "[%s:%u] Invalid fragment size '%s'."
+msgstr "[%s:%u] neispravna veličina fragmenta '%s'."
+
+#: ../src/daemon/daemon-conf.c:457
+#, c-format
+msgid "[%s:%u] Invalid nice level '%s'."
+msgstr "[%s:%u] neispravna prihvatljiva razina '%s'."
+
+#: ../src/daemon/daemon-conf.c:500
+#, c-format
+msgid "[%s:%u] Invalid server type '%s'."
+msgstr "[%s:%u] neispravna vrsta poslužitelja '%s'."
+
+#: ../src/daemon/daemon-conf.c:615
+#, c-format
+msgid "Failed to open configuration file: %s"
+msgstr "Nemoguće otvaranje datoteke podešavanja: %s"
+
+#: ../src/daemon/daemon-conf.c:631
+msgid ""
+"The specified default channel map has a different number of channels than the "
+"specified default number of channels."
+msgstr ""
+"Određeno zadano mapiranje kanala ima različit broj kanala od određenih zadanih "
+"broja kanala."
+
+#: ../src/daemon/daemon-conf.c:718
+#, c-format
+msgid "### Read from configuration file: %s ###\n"
+msgstr "### Čitano iz datoteke podešavanja: %s ###\n"
+
+#: ../src/daemon/dumpmodules.c:57
+#, c-format
+msgid "Name: %s\n"
+msgstr "Naziv: %s\n"
+
+#: ../src/daemon/dumpmodules.c:60
+#, c-format
+msgid "No module information available\n"
+msgstr "Nedostupna informacija modula\n"
+
+#: ../src/daemon/dumpmodules.c:63
+#, c-format
+msgid "Version: %s\n"
+msgstr "Inačica: %s\n"
+
+#: ../src/daemon/dumpmodules.c:65
+#, c-format
+msgid "Description: %s\n"
+msgstr "Opis: %s\n"
+
+#: ../src/daemon/dumpmodules.c:67
+#, c-format
+msgid "Author: %s\n"
+msgstr "Autor: %s\n"
+
+#: ../src/daemon/dumpmodules.c:69
+#, c-format
+msgid "Usage: %s\n"
+msgstr "Korištenje: %s\n"
+
+#: ../src/daemon/dumpmodules.c:70
+#, c-format
+msgid "Load Once: %s\n"
+msgstr "Učitano jednom: %s\n"
+
+#: ../src/daemon/dumpmodules.c:72
+#, c-format
+msgid "DEPRECATION WARNING: %s\n"
+msgstr "UPOZORENJE NEODOBRAVANJA: %s\n"
+
+#: ../src/daemon/dumpmodules.c:76
+#, c-format
+msgid "Path: %s\n"
+msgstr "Putanja: %s\n"
+
+#: ../src/daemon/ltdl-bind-now.c:75
+#, c-format
+msgid "Failed to open module %s: %s"
+msgstr "Neuspjelo otvaranje modula %s: %s"
+
+#: ../src/daemon/ltdl-bind-now.c:126
+msgid "Failed to find original lt_dlopen loader."
+msgstr "Neuspjelo traženje izvornog lt_dlopen učitača."
+
+#: ../src/daemon/ltdl-bind-now.c:131
+msgid "Failed to allocate new dl loader."
+msgstr "Neuspjela dodijela novog dl učitača."
+
+#: ../src/daemon/ltdl-bind-now.c:144
+msgid "Failed to add bind-now-loader."
+msgstr "Neuspjelo dodavanje bind-now-loadera"
+
+#: ../src/daemon/main.c:161
+#, c-format
+msgid "Failed to find user '%s'."
+msgstr "Neuspjelo pronalaženje korisnika '%s'"
+
+#: ../src/daemon/main.c:166
+#, c-format
+msgid "Failed to find group '%s'."
+msgstr "Neuspjelo pronalaženje grupe '%s'"
+
+#: ../src/daemon/main.c:175
+#, c-format
+msgid "GID of user '%s' and of group '%s' don't match."
+msgstr "GID korisnika '%s' i grupe '%s' se ne podudaraju."
+
+#: ../src/daemon/main.c:180
+#, c-format
+msgid "Home directory of user '%s' is not '%s', ignoring."
+msgstr "Osobna mapa korisnika '%s' nije '%s', zanemarujem."
+
+#: ../src/daemon/main.c:183 ../src/daemon/main.c:188
+#, c-format
+msgid "Failed to create '%s': %s"
+msgstr "Neuspjelo stvaranje '%s': %s"
+
+#: ../src/daemon/main.c:195
+#, c-format
+msgid "Failed to change group list: %s"
+msgstr "Neuspjela promjena grupnog popisa: %s"
+
+#: ../src/daemon/main.c:211
+#, c-format
+msgid "Failed to change GID: %s"
+msgstr "Neuspjela promjena GID-a: %s"
+
+#: ../src/daemon/main.c:227
+#, c-format
+msgid "Failed to change UID: %s"
+msgstr "Neuspjela promjena UID-a: %s"
+
+#: ../src/daemon/main.c:256
+msgid "System wide mode unsupported on this platform."
+msgstr "Način širom sustava nije podržan na ovoj platformi."
+
+#: ../src/daemon/main.c:494
+msgid "Failed to parse command line."
+msgstr "Neuspjela obrada naredbenog redka."
+
+#: ../src/daemon/main.c:533
+msgid ""
+"System mode refused for non-root user. Only starting the D-Bus server lookup "
+"service."
+msgstr ""
+"Način rada sustava  je nedostupan za nekorijenske korinike. Samo pokreni D-Bus "
+"poslužitelja usluge pretraživanja."
+
+#: ../src/daemon/main.c:632
+#, c-format
+msgid "Failed to kill daemon: %s"
+msgstr "Nuspjelo ubijanje pozadinskog programa: %s"
+
+#: ../src/daemon/main.c:661
+msgid ""
+"This program is not intended to be run as root (unless --system is specified)."
+msgstr ""
+"Ovaj program nije namijenjen za korijensko pokretanje (osim -- ako je određeno "
+"sustavom)"
+
+#: ../src/daemon/main.c:664
+msgid "Root privileges required."
+msgstr "Potrebne su korijenske ovlasti."
+
+#: ../src/daemon/main.c:671
+msgid "--start not supported for system instances."
+msgstr "-- start nije podržan za primjerke sustava"
+
+#: ../src/daemon/main.c:711
+#, c-format
+msgid "User-configured server at %s, refusing to start/autospawn."
+msgstr "Korisnički podešen poslužitelj na %s, odbija pokretanje/auto-množenje."
+
+#: ../src/daemon/main.c:717
+#, c-format
+msgid "User-configured server at %s, which appears to be local. Probing deeper."
+msgstr ""
+"Korisnički podešen poslužitelj na %s, izgleda da je lokalan. Dublje sondiranje."
+
+#: ../src/daemon/main.c:722
+msgid "Running in system mode, but --disallow-exit not set."
+msgstr "Pokrenuto u načinu rada sustava, ali --disallow-exit nije postavljen."
+
+#: ../src/daemon/main.c:725
+msgid "Running in system mode, but --disallow-module-loading not set."
+msgstr ""
+"Pokrenuto u načinu rada sustava, ali --disallow-module-loading nije postavljen."
+
+#: ../src/daemon/main.c:728
+msgid "Running in system mode, forcibly disabling SHM mode."
+msgstr "Pokrenuto u načinu rada sustava, prisilno onemogućavanje SHM načina."
+
+#: ../src/daemon/main.c:733
+msgid "Running in system mode, forcibly disabling exit idle time."
+msgstr ""
+"Pokrenuto u načinu rada sustava, prisilno onemogućavanje izlaza vremena "
+"mirovanja."
+
+#: ../src/daemon/main.c:766
+msgid "Failed to acquire stdio."
+msgstr "Neuspjelo dobivanje stdio."
+
+#: ../src/daemon/main.c:772 ../src/daemon/main.c:843
+#, c-format
+msgid "pipe() failed: %s"
+msgstr "pipe() neuspjelo: %s"
+
+#: ../src/daemon/main.c:777 ../src/daemon/main.c:848
+#, c-format
+msgid "fork() failed: %s"
+msgstr "fork() neuspjelo: %s"
+
+#: ../src/daemon/main.c:792 ../src/daemon/main.c:863 ../src/utils/pacat.c:562
+#, c-format
+msgid "read() failed: %s"
+msgstr "read() neuspjelo: %s"
+
+#: ../src/daemon/main.c:798
+msgid "Daemon startup failed."
+msgstr "Neuspjelo pokretanje pozadinskog programa."
+
+#: ../src/daemon/main.c:831
+#, c-format
+msgid "setsid() failed: %s"
+msgstr "setsid() neuspjelo: %s"
+
+#: ../src/daemon/main.c:958
+msgid "Failed to get machine ID"
+msgstr "Neuspjelo dobivanje ID-a računala"
+
+#: ../src/daemon/main.c:984
+msgid ""
+"OK, so you are running PA in system mode. Please make sure that you actually "
+"do want to do that.\n"
+"Please read http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/"
+"User/WhatIsWrongWithSystemWide/ for an explanation why system mode is usually "
+"a bad idea."
+msgstr ""
+"U redu, pokrenuli ste PA u načinu rada sustava. Pobrinite se da to zaista "
+"želite učiniti.\n"
+"Pročitajte http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/"
+"User/WhatIsWrongWithSystemWide/ za objašnjenje zašto je način rada sustava "
+"uobičajeno loša ideja."
+
+#: ../src/daemon/main.c:1000
+msgid "pa_pid_file_create() failed."
+msgstr "pa_pid_file_create() neuspjelo."
+
+#: ../src/daemon/main.c:1032
+msgid "pa_core_new() failed."
+msgstr "pa_core_new() neuspjelo"
+
+#: ../src/daemon/main.c:1103
+msgid "Failed to initialize daemon."
+msgstr "Neuspjelo pokretanje pozadinskog programa."
+
+#: ../src/daemon/main.c:1108
+msgid "Daemon startup without any loaded modules, refusing to work."
+msgstr ""
+"Pozadinski program je pokrenut bez ijednog učitanog modula, odbija raditi."
+
+#: ../src/daemon/pulseaudio.desktop.in.h:1
+msgid "PulseAudio Sound System"
+msgstr "PulseAudio zvučni sustav"
+
+#: ../src/daemon/pulseaudio.desktop.in.h:2
+msgid "Start the PulseAudio Sound System"
+msgstr "Pokreni PulseAudio zvučni sustav"
+
+#: ../src/modules/alsa/alsa-mixer.c:2378
+msgid "Input"
+msgstr "Ulaz"
+
+#: ../src/modules/alsa/alsa-mixer.c:2379
+msgid "Docking Station Input"
+msgstr "Ulaz priključne stanice"
+
+#: ../src/modules/alsa/alsa-mixer.c:2380
+msgid "Docking Station Microphone"
+msgstr "Mikrofon priključne stanice"
+
+#: ../src/modules/alsa/alsa-mixer.c:2381
+msgid "Docking Station Line In"
+msgstr "Ulaz priključne stanice"
+
+#: ../src/modules/alsa/alsa-mixer.c:2382 ../src/modules/alsa/alsa-mixer.c:2467
+msgid "Line In"
+msgstr "Ulaz"
+
+#: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
+#: ../src/modules/bluetooth/module-bluez4-device.c:2177
+#: ../src/modules/bluetooth/module-bluez5-device.c:1941
+msgid "Microphone"
+msgstr "Mikrofon"
+
+#: ../src/modules/alsa/alsa-mixer.c:2384 ../src/modules/alsa/alsa-mixer.c:2462
+msgid "Front Microphone"
+msgstr "Prednji mikrofon"
+
+#: ../src/modules/alsa/alsa-mixer.c:2385 ../src/modules/alsa/alsa-mixer.c:2463
+msgid "Rear Microphone"
+msgstr "Stražnji mikrofon"
+
+#: ../src/modules/alsa/alsa-mixer.c:2386
+msgid "External Microphone"
+msgstr "Vanjski mikrofon"
+
+#: ../src/modules/alsa/alsa-mixer.c:2387 ../src/modules/alsa/alsa-mixer.c:2465
+msgid "Internal Microphone"
+msgstr "Unutarnji mikrofon"
+
+#: ../src/modules/alsa/alsa-mixer.c:2388 ../src/modules/alsa/alsa-mixer.c:2468
+msgid "Radio"
+msgstr "Radio"
+
+#: ../src/modules/alsa/alsa-mixer.c:2389 ../src/modules/alsa/alsa-mixer.c:2469
+msgid "Video"
+msgstr "Video"
+
+#: ../src/modules/alsa/alsa-mixer.c:2390
+msgid "Automatic Gain Control"
+msgstr "Automatska kontrola pojačanja"
+
+#: ../src/modules/alsa/alsa-mixer.c:2391
+msgid "No Automatic Gain Control"
+msgstr "Bez automatske kontrole pojačanja"
+
+#: ../src/modules/alsa/alsa-mixer.c:2392
+msgid "Boost"
+msgstr "Pojačanje"
+
+#: ../src/modules/alsa/alsa-mixer.c:2393
+msgid "No Boost"
+msgstr "Bez pojačanja"
+
+#: ../src/modules/alsa/alsa-mixer.c:2394
+msgid "Amplifier"
+msgstr "Pojačalo"
+
+#: ../src/modules/alsa/alsa-mixer.c:2395
+msgid "No Amplifier"
+msgstr "Bez pojačala"
+
+#: ../src/modules/alsa/alsa-mixer.c:2396
+msgid "Bass Boost"
+msgstr "Pojačanje basa"
+
+#: ../src/modules/alsa/alsa-mixer.c:2397
+msgid "No Bass Boost"
+msgstr "Bez pojačanja basa"
+
+#: ../src/modules/alsa/alsa-mixer.c:2398
+#: ../src/modules/bluetooth/module-bluez4-device.c:2182
+#: ../src/modules/bluetooth/module-bluez5-device.c:1948
+msgid "Speaker"
+msgstr "Zvučnik"
+
+#: ../src/modules/alsa/alsa-mixer.c:2399 ../src/modules/alsa/alsa-mixer.c:2471
+msgid "Headphones"
+msgstr "Slušalice"
+
+#: ../src/modules/alsa/alsa-mixer.c:2460
+msgid "Analog Input"
+msgstr "Analogni ulaz"
+
+#: ../src/modules/alsa/alsa-mixer.c:2464
+msgid "Dock Microphone"
+msgstr "Ugrađeni mikrofon"
+
+#: ../src/modules/alsa/alsa-mixer.c:2466
+msgid "Headset Microphone"
+msgstr "Mikrofon sa slušalicama"
+
+#: ../src/modules/alsa/alsa-mixer.c:2470
+msgid "Analog Output"
+msgstr "Analogni izlaz"
+
+#: ../src/modules/alsa/alsa-mixer.c:2472
+msgid "LFE on Separate Mono Output"
+msgstr "(LFE) Efekti niske frekvencije na odvojenom mono izlazu"
+
+#: ../src/modules/alsa/alsa-mixer.c:2473
+msgid "Line Out"
+msgstr "Izlaz"
+
+#: ../src/modules/alsa/alsa-mixer.c:2474
+msgid "Analog Mono Output"
+msgstr "Analogni mono izlaz"
+
+#: ../src/modules/alsa/alsa-mixer.c:2475
+msgid "Speakers"
+msgstr "Zvučnici"
+
+#: ../src/modules/alsa/alsa-mixer.c:2476
+msgid "HDMI / DisplayPort"
+msgstr "HDMI / DisplayPort"
+
+#: ../src/modules/alsa/alsa-mixer.c:2477
+msgid "Digital Output (S/PDIF)"
+msgstr "Digitalni izlaz (S/PDIF)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2478
+msgid "Digital Input (S/PDIF)"
+msgstr "Digitalni ulaz (S/PDIF)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2479
+msgid "Digital Passthrough (S/PDIF)"
+msgstr "Digitalni prolaz (S/PDIF)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2480
+msgid "Multichannel Input"
+msgstr "Višekanalni ulaz"
+
+#: ../src/modules/alsa/alsa-mixer.c:2481
+msgid "Multichannel Output"
+msgstr "Višekanalni izlaz"
+
+#: ../src/modules/alsa/alsa-mixer.c:3990
+msgid "Analog Mono"
+msgstr "Analogni mono"
+
+#. Note: Not translated to "Analog Stereo Input", because the source
+#. * name gets "Input" appended to it automatically, so adding "Input"
+#. * here would lead to the source name to become "Analog Stereo Input
+#. * Input". The same logic applies to analog-stereo-output,
+#. * multichannel-input and multichannel-output.
+#: ../src/modules/alsa/alsa-mixer.c:3991 ../src/modules/alsa/alsa-mixer.c:3997
+#: ../src/modules/alsa/alsa-mixer.c:3998
+msgid "Analog Stereo"
+msgstr "Analogni stereo"
+
+#: ../src/modules/alsa/alsa-mixer.c:3999 ../src/modules/alsa/alsa-mixer.c:4000
+msgid "Multichannel"
+msgstr "Višekanalni"
+
+#: ../src/modules/alsa/alsa-mixer.c:4001
+msgid "Analog Surround 2.1"
+msgstr "Analogni surround 2.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4002
+msgid "Analog Surround 3.0"
+msgstr "Analogni surround 3.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4003
+msgid "Analog Surround 3.1"
+msgstr "Analogni surround 3.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4004
+msgid "Analog Surround 4.0"
+msgstr "Analogni surround 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4005
+msgid "Analog Surround 4.1"
+msgstr "Analogni surround 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4006
+msgid "Analog Surround 5.0"
+msgstr "Analogni surround 5.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4007
+msgid "Analog Surround 5.1"
+msgstr "Analogni surround 5.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4008
+msgid "Analog Surround 6.0"
+msgstr "Analogni surround 6.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4009
+msgid "Analog Surround 6.1"
+msgstr "Analogni surround 6.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4010
+msgid "Analog Surround 7.0"
+msgstr "Analogni surround 7.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4011
+msgid "Analog Surround 7.1"
+msgstr "Analogni surround 7.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4012
+msgid "Digital Stereo (IEC958)"
+msgstr "Digitalni stereo (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4013
+msgid "Digital Passthrough  (IEC958)"
+msgstr "Digitalni prolaz  (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4014
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr "Digitalni surround 4.0 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4015
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr "Digitalni surround 5.1 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4016
+msgid "Digital Surround 5.1 (IEC958/DTS)"
+msgstr "Digitalni surround 5.1 (IEC958/DTS)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4017
+msgid "Digital Stereo (HDMI)"
+msgstr "Digitalni stereo (HDMI)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4018
+msgid "Digital Surround 5.1 (HDMI)"
+msgstr "Digitalni surround 5.1 (HDMI)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4151
+msgid "Analog Mono Duplex"
+msgstr "Analogni mono obostrani"
+
+#: ../src/modules/alsa/alsa-mixer.c:4152
+msgid "Analog Stereo Duplex"
+msgstr "Analogni stereo obostrani"
+
+#: ../src/modules/alsa/alsa-mixer.c:4153
+msgid "Digital Stereo Duplex (IEC958)"
+msgstr "Digitalni stereo obostrani (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4154
+msgid "Multichannel Duplex"
+msgstr "Višekanalni obostrani"
+
+#: ../src/modules/alsa/alsa-mixer.c:4155
+#: ../src/modules/alsa/module-alsa-card.c:186
+#: ../src/modules/bluetooth/module-bluez4-device.c:2397
+#: ../src/modules/bluetooth/module-bluez5-device.c:2201
+#: ../src/modules/droid/module-droid-card.c:221
+msgid "Off"
+msgstr "Isključeno"
+
+#: ../src/modules/alsa/alsa-mixer.c:4254
+#, c-format
+msgid "%s Output"
+msgstr "%s izlaz"
+
+#: ../src/modules/alsa/alsa-mixer.c:4262
+#, c-format
+msgid "%s Input"
+msgstr "%s ulaz"
+
+#: ../src/modules/alsa/alsa-sink.c:570
+#, c-format
+msgid ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to "
+"the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA nas budi kako bi zapisali nove podatke na uređaj, ali zapravo se nema "
+"ništa za zapisati.\n"
+"To je zacijelo greška u ALSA upravljačkom programu '%s'. Prijavite ovaj "
+"problem ALSA razvijateljima.\n"
+"Probudila nas je POLLOUT postavka -- međutim naknadno snd_pcm_avail() je "
+"vratio 0 ili drugu vrijednost < min_avail."
+
+#: ../src/modules/alsa/alsa-sink.c:747
+#, c-format
+msgid ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to "
+"the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA nas budi kako bi zapisali nove podatke na uređaj, ali zapravo se nema "
+"ništa za zapisati!\n"
+"To je zacijelo greška u ALSA upravljačkom programu '%s'. Prijavite ovaj "
+"problem ALSA razvijateljima.\n"
+"Probudila nas je POLLOUT postavka -- međutim naknadno snd_pcm_avail() je "
+"vratio 0 ili drugu vrijednost < min_avail."
+
+#: ../src/modules/alsa/alsa-source.c:529
+#, c-format
+msgid ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to "
+"the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA nas budi kako bi pročitali nove podatke s uređaja, ali zapravo se nema "
+"ništa za pročitati.\n"
+"To je zacijelo greška u ALSA upravljačkom programu '%s'. Prijavite ovaj "
+"problem ALSA razvijateljima.\n"
+"Probudila nas je POLLIN postavka -- međutim naknadno snd_pcm_avail() je vratio "
+"0 ili drugu vrijednost < min_avail."
+
+#: ../src/modules/alsa/alsa-source.c:680
+#, c-format
+msgid ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to "
+"the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA nas budi kako bi pročitali nove podatke s uređaja, ali zapravo se nema "
+"ništa za pročitati!\n"
+"To je zacijelo greška u ALSA upravljačkom programu '%s'. Prijavite ovaj "
+"problem ALSA razvijateljima.\n"
+"Probudila nas je POLLIN postavka -- međutim naknadno snd_pcm_avail() je vratio "
+"0 ili drugu vrijednost < min_avail."
+
+#: ../src/modules/alsa/alsa-util.c:1166 ../src/modules/alsa/alsa-util.c:1241
+#, c-format
+msgid ""
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to "
+"the ALSA developers."
+msgstr ""
+"snd_pcm_avail() je vratio vrijednost koja je iznimno velika: %lu bajta (%lu "
+"ms).\n"
+"Najvjerojatnije je ovo greška ALSA upravljačkog programa '%s'. Prijavite "
+"problem ALSA razvijateljima."
+
+#: ../src/modules/alsa/alsa-util.c:1216
+#, c-format
+msgid ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to "
+"the ALSA developers."
+msgstr ""
+"snd_pcm_delay() je vratio vrijednost koja je iznimno velika: %li bajta (%s%lu "
+"ms).\n"
+"Najvjerojatnije je ovo greška ALSA upravljačkog programa '%s'. Prijavite "
+"problem ALSA razvijateljima."
+
+#: ../src/modules/alsa/alsa-util.c:1257
+#, c-format
+msgid ""
+"snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
+"%lu.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to "
+"the ALSA developers."
+msgstr ""
+"snd_pcm_avail_delay() je vratio nepoznate vrijednosti: kašnjenje %lu je manje "
+"od %lu.\n"
+"Najvjerojatnije je ovo greška ALSA upravljačkog programa '%s'. Prijavite "
+"problem ALSA razvijateljima."
+
+#: ../src/modules/alsa/alsa-util.c:1300
+#, c-format
+msgid ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to "
+"the ALSA developers."
+msgstr ""
+"snd_pcm_mmap_begin() je vratio vrijednost koja je iznimno velika: %lu bajta "
+"(%lu ms).\n"
+"Najvjerojatnije je ovo greška ALSA upravljačkog programa '%s'. Prijavite "
+"problem ALSA razvijateljima."
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2167
+#: ../src/modules/bluetooth/module-bluez5-device.c:1931
+msgid "Headset"
+msgstr "Slušalice s mikrofonom"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2172
+#: ../src/modules/bluetooth/module-bluez5-device.c:1936
+msgid "Handsfree"
+msgstr "Bez-ruku"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2187
+#: ../src/modules/bluetooth/module-bluez5-device.c:1954
+msgid "Headphone"
+msgstr "Slušalice"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2192
+#: ../src/modules/bluetooth/module-bluez5-device.c:1959
+msgid "Portable"
+msgstr "Prijenosnik"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2197
+#: ../src/modules/bluetooth/module-bluez5-device.c:1964
+msgid "Car"
+msgstr "Automobil"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2202
+#: ../src/modules/bluetooth/module-bluez5-device.c:1969
+msgid "HiFi"
+msgstr "HiFi"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2207
+#: ../src/modules/bluetooth/module-bluez5-device.c:1974
+msgid "Phone"
+msgstr "Telefon"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2215
+#: ../src/modules/bluetooth/module-bluez5-device.c:1926
+#: ../src/modules/bluetooth/module-bluez5-device.c:1942
+#: ../src/modules/bluetooth/module-bluez5-device.c:1980
+msgid "Bluetooth Output"
+msgstr "Bluetooth izlaz"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2218
+#: ../src/modules/bluetooth/module-bluez5-device.c:1925
+#: ../src/modules/bluetooth/module-bluez5-device.c:1947
+#: ../src/modules/bluetooth/module-bluez5-device.c:1953
+#: ../src/modules/bluetooth/module-bluez5-device.c:1979
+msgid "Bluetooth Input"
+msgstr "Bluetooth ulaz"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2259
+msgid "High Fidelity Playback (A2DP)"
+msgstr "Reprodukcija visoke autentičnosti (A2DP)"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2271
+msgid "High Fidelity Capture (A2DP)"
+msgstr "Snimanje visoke autentičnosti (A2DP)"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2283
+msgid "Telephony Duplex (HSP/HFP)"
+msgstr "Obostrana telefonija (HSP/HFP)"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2296
+msgid "Handsfree Gateway"
+msgstr "Bezručni pristupnik"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:2021
+msgid "High Fidelity Playback (A2DP Sink)"
+msgstr "Reprodukcija visoke autentičnosti (A2DP slivnik)"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:2033
+msgid "High Fidelity Capture (A2DP Source)"
+msgstr "Snimanje visoke autentičnosti (A2DP izvor)"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:2045
+msgid "Headset Head Unit (HSP/HFP)"
+msgstr "Jedinica slušalice s mikrofonom (HSP/HFP)"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:2058
+msgid "Headset Audio Gateway (HSP/HFP)"
+msgstr "Zvučni pristupnik slušalice s mikrofonom (HSP/HFP)"
+
+#: ../src/modules/echo-cancel/module-echo-cancel.c:61
+msgid ""
+"source_name=<name for the source> source_properties=<properties for the "
+"source> source_master=<name of source to filter> sink_name=<name for the sink> "
+"sink_properties=<properties for the sink> sink_master=<name of sink to filter> "
+"adjust_time=<how often to readjust rates in s> adjust_threshold=<how much "
+"drift to readjust after in ms> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> "
+"aec_method=<implementation to use> aec_args=<parameters for the AEC engine> "
+"save_aec=<save AEC data in /tmp> autoloaded=<set if this module is being "
+"loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes or "
+"no> "
+msgstr ""
+"source_name=<naziv izvora> source_properties=<svojstva izvora> "
+"source_master=<naziv filtera izvora> sink_name=<naziv slivnika> "
+"sink_properties=<svojstva slivnika> sink_master=<naziv filtera slivnika> "
+"adjust_time=<koliko često prilagoditi frekvenciju u sek.> "
+"adjust_threshold=<koliko pomaknuti za naknadnu prilagodbu u msec.> "
+"format=<format uzorka> rate=<frekvencija> channels=<broj kanala> "
+"channel_map=<ulazno mapiranje kanala> aec_method=<implementacija za upotrebu> "
+"aec_args=<parameteri za AEC pogon> save_aec=<spremi AEC podatke u /tmp> "
+"autoloaded=<postavi ako se ovaj modul učitava automatski> "
+"use_volume_sharing=<da ili ne> use_master_format=<da ili ne> "
+
+#. add on profile
+#: ../src/modules/macosx/module-coreaudio-device.c:811
+msgid "On"
+msgstr "Uključi"
+
+#: ../src/modules/module-allow-passthrough.c:73
+#: ../src/modules/module-always-sink.c:82
+msgid "Dummy Output"
+msgstr "Lažni izlaz"
+
+#. / TRANSLATORS: The app icon and name appears above this string. If the phrase
+#. / can't be translated in this language, translate the whole sentence
+#. / 'This app wants to record audio.'
+#: ../src/modules/trust-store/module-trust-store.c:154
+msgid "wants to record audio."
+msgstr "želi snimiti zvuk."
+
+#: ../src/modules/module-always-sink.c:36
+msgid "Always keeps at least one sink loaded even if it's a null one"
+msgstr "Uvijek drži bar jedan slivnik učitan čak iako se ne koristi"
+
+#: ../src/modules/module-equalizer-sink.c:70
+msgid "General Purpose Equalizer"
+msgstr "Ekvalizator opće namjene"
+
+#: ../src/modules/module-equalizer-sink.c:74
+msgid ""
+"sink_name=<name of the sink> sink_properties=<properties for the sink> "
+"sink_master=<sink to connect to> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> autoloaded=<set if "
+"this module is being loaded automatically> use_volume_sharing=<yes or no> "
+msgstr ""
+"sink_name=<naziv slivnika> sink_properties=<svojstva slivnika> "
+"sink_master=<slivnik za povezivanje s> format=<format uzorka> "
+"rate=<frekvencija> channels=<broj kanala> channel_map=<mapiranje kanala> "
+"autoloaded=<postavi ako se ovaj modul učitava automatski> "
+"use_volume_sharing=<da ili ne> "
+
+#: ../src/modules/module-filter-apply.c:47
+msgid "autoclean=<automatically unload unused filters?>"
+msgstr "autoclean=<automatski uklanja nekorištene filtere?>"
+
+#: ../src/modules/module-ladspa-sink.c:51
+msgid "Virtual LADSPA sink"
+msgstr "Virtualni LADSPA slivnik"
+
+#: ../src/modules/module-ladspa-sink.c:55
+msgid ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<input channel map> plugin=<ladspa "
+"plugin name> label=<ladspa plugin label> control=<comma separated list of "
+"input control values> input_ladspaport_map=<comma separated list of input "
+"LADSPA port names> output_ladspaport_map=<comma separated list of output "
+"LADSPA port names> "
+msgstr ""
+"sink_name=<naziv slivnika> sink_properties=<svojstva slivnika> master=<naziv "
+"filtera slivnika> format=<format uzorka> rate=<frekvencija> channels=<broj "
+"kanala> channel_map=<ulazno mapiranje kanala> plugin=<nazivladspa priključka> "
+"label=<oznaka ladspa priključka> control=<zarezom odvojeni popis vrijednosti "
+"ulaznog upravljanja> input_ladspaport_map=<zarezom odvojeni popis naziva "
+"LADSPA ulaza> output_ladspaport_map=<zarezom odvojeni popis naziva LADSPA "
+"izlaza> "
+
+#: ../src/modules/module-null-sink.c:47
+msgid "Clocked NULL sink"
+msgstr "Prikriven nekorišten slivnik"
+
+#: ../src/modules/module-null-sink.c:284
+msgid "Null Output"
+msgstr "Nema izlaza"
+
+#: ../src/modules/module-rygel-media-server.c:508
+#: ../src/modules/module-rygel-media-server.c:546
+#: ../src/modules/module-rygel-media-server.c:905
+msgid "Output Devices"
+msgstr "Izlazni uređaji"
+
+#: ../src/modules/module-rygel-media-server.c:509
+#: ../src/modules/module-rygel-media-server.c:547
+#: ../src/modules/module-rygel-media-server.c:906
+msgid "Input Devices"
+msgstr "Ulazni uređaji"
+
+#: ../src/modules/module-rygel-media-server.c:1063
+msgid "Audio on @HOSTNAME@"
+msgstr "Zvuk na @NAZIVRAČUNALA@"
+
+#. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
+#. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
+#: ../src/modules/module-tunnel-sink-new.c:307
+#: ../src/modules/module-tunnel-source-new.c:305
+#, c-format
+msgid "Tunnel for %s@%s"
+msgstr "Tunel za %s@%s"
+
+#: ../src/modules/module-tunnel-sink-new.c:521
+#: ../src/modules/module-tunnel-source-new.c:520
+#, c-format
+msgid "Tunnel to %s/%s"
+msgstr "Tunel do %s/%s"
+
+#: ../src/modules/module-virtual-surround-sink.c:47
+msgid "Virtual surround sink"
+msgstr "Virtalni surround slivnik"
+
+#: ../src/modules/module-virtual-surround-sink.c:51
+msgid ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> "
+"use_volume_sharing=<yes or no> force_flat_volume=<yes or no> hrir=/path/to/"
+"left_hrir.wav "
+msgstr ""
+"sink_name=<naziv slivnika> sink_properties=<svojstva slivnika> master=<naziv "
+"filtera slivnika> format=<format uzorka> rate=<frekvencija> channels=<broj "
+"kanala> channel_map=<ulazno mapiranje kanala> use_volume_sharing=<da ili ne> "
+"force_flat_volume=<da ili ne> hrir=/putanja/do/left_hrir.wav "
+
+#: ../src/modules/reserve-wrap.c:149
+msgid "PulseAudio Sound Server"
+msgstr "PulseAudio zvučni poslužitelj"
+
+#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:771
+msgid "Mono"
+msgstr "Mono"
+
+#: ../src/pulse/channelmap.c:105
+msgid "Front Center"
+msgstr "Prednji srednji"
+
+#: ../src/pulse/channelmap.c:106
+msgid "Front Left"
+msgstr "Prednji lijevi"
+
+#: ../src/pulse/channelmap.c:107
+msgid "Front Right"
+msgstr "Prednji desni"
+
+#: ../src/pulse/channelmap.c:109
+msgid "Rear Center"
+msgstr "Zadnji srednji"
+
+#: ../src/pulse/channelmap.c:110
+msgid "Rear Left"
+msgstr "Zadnji lijevi"
+
+#: ../src/pulse/channelmap.c:111
+msgid "Rear Right"
+msgstr "Zadnji desni"
+
+#: ../src/pulse/channelmap.c:113
+msgid "Subwoofer"
+msgstr "Dubokotonac"
+
+#: ../src/pulse/channelmap.c:115
+msgid "Front Left-of-center"
+msgstr "Prednji lijevo-od-srednjeg"
+
+#: ../src/pulse/channelmap.c:116
+msgid "Front Right-of-center"
+msgstr "Prednji desno-od-srednjeg"
+
+#: ../src/pulse/channelmap.c:118
+msgid "Side Left"
+msgstr "Srednji lijevi"
+
+#: ../src/pulse/channelmap.c:119
+msgid "Side Right"
+msgstr "Srednji desni"
+
+#: ../src/pulse/channelmap.c:121
+msgid "Auxiliary 0"
+msgstr "Pomoćni 0"
+
+#: ../src/pulse/channelmap.c:122
+msgid "Auxiliary 1"
+msgstr "Pomoćni 1"
+
+#: ../src/pulse/channelmap.c:123
+msgid "Auxiliary 2"
+msgstr "Pomoćni 2"
+
+#: ../src/pulse/channelmap.c:124
+msgid "Auxiliary 3"
+msgstr "Pomoćni 3"
+
+#: ../src/pulse/channelmap.c:125
+msgid "Auxiliary 4"
+msgstr "Pomoćni 4"
+
+#: ../src/pulse/channelmap.c:126
+msgid "Auxiliary 5"
+msgstr "Pomoćni 5"
+
+#: ../src/pulse/channelmap.c:127
+msgid "Auxiliary 6"
+msgstr "Pomoćni 6"
+
+#: ../src/pulse/channelmap.c:128
+msgid "Auxiliary 7"
+msgstr "Pomoćni 7"
+
+#: ../src/pulse/channelmap.c:129
+msgid "Auxiliary 8"
+msgstr "Pomoćni 8"
+
+#: ../src/pulse/channelmap.c:130
+msgid "Auxiliary 9"
+msgstr "Pomoćni 9"
+
+#: ../src/pulse/channelmap.c:131
+msgid "Auxiliary 10"
+msgstr "Pomoćni 10"
+
+#: ../src/pulse/channelmap.c:132
+msgid "Auxiliary 11"
+msgstr "Pomoćni 11"
+
+#: ../src/pulse/channelmap.c:133
+msgid "Auxiliary 12"
+msgstr "Pomoćni 12"
+
+#: ../src/pulse/channelmap.c:134
+msgid "Auxiliary 13"
+msgstr "Pomoćni 13"
+
+#: ../src/pulse/channelmap.c:135
+msgid "Auxiliary 14"
+msgstr "Pomoćni 14"
+
+#: ../src/pulse/channelmap.c:136
+msgid "Auxiliary 15"
+msgstr "Pomoćni 15"
+
+#: ../src/pulse/channelmap.c:137
+msgid "Auxiliary 16"
+msgstr "Pomoćni 16"
+
+#: ../src/pulse/channelmap.c:138
+msgid "Auxiliary 17"
+msgstr "Pomoćni 17"
+
+#: ../src/pulse/channelmap.c:139
+msgid "Auxiliary 18"
+msgstr "Pomoćni 18"
+
+#: ../src/pulse/channelmap.c:140
+msgid "Auxiliary 19"
+msgstr "Pomoćni 19"
+
+#: ../src/pulse/channelmap.c:141
+msgid "Auxiliary 20"
+msgstr "Pomoćni 20"
+
+#: ../src/pulse/channelmap.c:142
+msgid "Auxiliary 21"
+msgstr "Pomoćni 21"
+
+#: ../src/pulse/channelmap.c:143
+msgid "Auxiliary 22"
+msgstr "Pomoćni 22"
+
+#: ../src/pulse/channelmap.c:144
+msgid "Auxiliary 23"
+msgstr "Pomoćni 23"
+
+#: ../src/pulse/channelmap.c:145
+msgid "Auxiliary 24"
+msgstr "Pomoćni 24"
+
+#: ../src/pulse/channelmap.c:146
+msgid "Auxiliary 25"
+msgstr "Pomoćni 25"
+
+#: ../src/pulse/channelmap.c:147
+msgid "Auxiliary 26"
+msgstr "Pomoćni 26"
+
+#: ../src/pulse/channelmap.c:148
+msgid "Auxiliary 27"
+msgstr "Pomoćni 27"
+
+#: ../src/pulse/channelmap.c:149
+msgid "Auxiliary 28"
+msgstr "Pomoćni 28"
+
+#: ../src/pulse/channelmap.c:150
+msgid "Auxiliary 29"
+msgstr "Pomoćni 29"
+
+#: ../src/pulse/channelmap.c:151
+msgid "Auxiliary 30"
+msgstr "Pomoćni 30"
+
+#: ../src/pulse/channelmap.c:152
+msgid "Auxiliary 31"
+msgstr "Pomoćni 31"
+
+#: ../src/pulse/channelmap.c:154
+msgid "Top Center"
+msgstr "Gornji srednji"
+
+#: ../src/pulse/channelmap.c:156
+msgid "Top Front Center"
+msgstr "Gornji prednji srednji"
+
+#: ../src/pulse/channelmap.c:157
+msgid "Top Front Left"
+msgstr "Gornji prednji lijevi"
+
+#: ../src/pulse/channelmap.c:158
+msgid "Top Front Right"
+msgstr "Gornji prednji desni"
+
+#: ../src/pulse/channelmap.c:160
+msgid "Top Rear Center"
+msgstr "Gornji zadnji srednji"
+
+#: ../src/pulse/channelmap.c:161
+msgid "Top Rear Left"
+msgstr "Gornji zadnji lijevi"
+
+#: ../src/pulse/channelmap.c:162
+msgid "Top Rear Right"
+msgstr "Gornji zadnji desni"
+
+#: ../src/pulse/channelmap.c:479 ../src/pulse/format.c:121
+#: ../src/pulse/sample.c:174 ../src/pulse/volume.c:294 ../src/pulse/volume.c:320
+#: ../src/pulse/volume.c:340 ../src/pulse/volume.c:372 ../src/pulse/volume.c:412
+#: ../src/pulse/volume.c:431
+msgid "(invalid)"
+msgstr "(neispravno)"
+
+#: ../src/pulse/channelmap.c:775
+msgid "Stereo"
+msgstr "Stereo"
+
+#: ../src/pulse/channelmap.c:780
+msgid "Surround 4.0"
+msgstr "Surround 4.0"
+
+#: ../src/pulse/channelmap.c:786
+msgid "Surround 4.1"
+msgstr "Surround 4.1"
+
+#: ../src/pulse/channelmap.c:792
+msgid "Surround 5.0"
+msgstr "Surround 5.0"
+
+#: ../src/pulse/channelmap.c:798
+msgid "Surround 5.1"
+msgstr "Surround 5.1"
+
+#: ../src/pulse/channelmap.c:805
+msgid "Surround 7.1"
+msgstr "Surround 7.1"
+
+#: ../src/pulse/client-conf-x11.c:53 ../src/utils/pax11publish.c:97
+msgid "xcb_connect() failed"
+msgstr "xcb_connect() neuspjelo"
+
+#: ../src/pulse/client-conf-x11.c:58 ../src/utils/pax11publish.c:102
+msgid "xcb_connection_has_error() returned true"
+msgstr "xcb_connection_has_error() vratilo je 'true'"
+
+#: ../src/pulse/client-conf-x11.c:94
+msgid "Failed to parse cookie data"
+msgstr "Neuspjela obrada podataka kolačića"
+
+#: ../src/pulse/context.c:702
+#, c-format
+msgid "fork(): %s"
+msgstr "fork(): %s"
+
+#: ../src/pulse/context.c:757
+#, c-format
+msgid "waitpid(): %s"
+msgstr "waitpid(): %s"
+
+#: ../src/pulse/context.c:1463
+#, c-format
+msgid "Received message for unknown extension '%s'"
+msgstr "Primljena poruka za nepoznato proširenje '%s'"
+
+#: ../src/pulse/direction.c:37
+msgid "input"
+msgstr "ulaz"
+
+#: ../src/pulse/direction.c:39
+msgid "output"
+msgstr "izlaz"
+
+#: ../src/pulse/direction.c:41
+msgid "bidirectional"
+msgstr "dvosmjerno"
+
+#: ../src/pulse/direction.c:43
+msgid "invalid"
+msgstr "neispravno"
+
+#: ../src/pulsecore/core-util.c:1837
+#, c-format
+msgid ""
+"XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could e "
+"g happen if you try to connect to a non-root PulseAudio as a root user, over "
+"the native protocol. Don't do that.)"
+msgstr ""
+"XDG_RUNTIME_DIR (%s) nije u našem vlasništvu (uid %d), nego u uid %d! (To se "
+"npr. može dogoditi ako se pokušate povezati na nekorijenski PulseAudio kao "
+"korijenski korisnik, preko izvornog protokola. Ne činite to.)"
+
+#: ../src/pulsecore/core-util.h:97
+msgid "yes"
+msgstr "da"
+
+#: ../src/pulsecore/core-util.h:97
+msgid "no"
+msgstr "ne"
+
+#: ../src/pulsecore/lock-autospawn.c:141 ../src/pulsecore/lock-autospawn.c:227
+msgid "Cannot access autospawn lock."
+msgstr "Nemoguć pristup zaključavanju auto-množenja."
+
+#: ../src/pulsecore/log.c:165
+#, c-format
+msgid "Failed to open target file '%s'."
+msgstr "Nemoguće otvaranje odredišne datoteke '%s'."
+
+#: ../src/pulsecore/log.c:188
+#, c-format
+msgid ""
+"Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
+msgstr ""
+"Pokušaj otvaranja odredišne datoteke '%s', '%s.1', '%s.2' ... '%s.%d', ali "
+"ništa nije uspjelo."
+
+#: ../src/pulsecore/log.c:651
+msgid "Invalid log target."
+msgstr "Neispravno odredište zapisa."
+
+#: ../src/pulsecore/sink.c:3444
+msgid "Built-in Audio"
+msgstr "Ugrađeni zvuk"
+
+#: ../src/pulsecore/sink.c:3449
+msgid "Modem"
+msgstr "Modem"
+
+#: ../src/pulse/error.c:38
+msgid "OK"
+msgstr "U redu"
+
+#: ../src/pulse/error.c:39
+msgid "Access denied"
+msgstr "Pristup odbijen"
+
+#: ../src/pulse/error.c:40
+msgid "Unknown command"
+msgstr "Nepoznata naredba"
+
+#: ../src/pulse/error.c:41
+msgid "Invalid argument"
+msgstr "Neispravan argument"
+
+#: ../src/pulse/error.c:42
+msgid "Entity exists"
+msgstr "Unos postoji"
+
+#: ../src/pulse/error.c:43
+msgid "No such entity"
+msgstr "Nepostojeći unos"
+
+#: ../src/pulse/error.c:44
+msgid "Connection refused"
+msgstr "Povezivanje odbijeno"
+
+#: ../src/pulse/error.c:45
+msgid "Protocol error"
+msgstr "Greška protokola"
+
+#: ../src/pulse/error.c:46
+msgid "Timeout"
+msgstr "Istek vremena"
+
+#: ../src/pulse/error.c:47
+msgid "No authentication key"
+msgstr "Nema ključa ovjere"
+
+#: ../src/pulse/error.c:48
+msgid "Internal error"
+msgstr "Unutarnja greška"
+
+#: ../src/pulse/error.c:49
+msgid "Connection terminated"
+msgstr "Povezivanje prekinuto"
+
+#: ../src/pulse/error.c:50
+msgid "Entity killed"
+msgstr "Entitet ubijen"
+
+#: ../src/pulse/error.c:51
+msgid "Invalid server"
+msgstr "Neispravan poslužitelj"
+
+#: ../src/pulse/error.c:52
+msgid "Module initialization failed"
+msgstr "Neuspjelo pokretanje modula"
+
+#: ../src/pulse/error.c:53
+msgid "Bad state"
+msgstr "Loše stanje"
+
+#: ../src/pulse/error.c:54
+msgid "No data"
+msgstr "Nema podataka"
+
+#: ../src/pulse/error.c:55
+msgid "Incompatible protocol version"
+msgstr "Nekompatibilna inačica protokola"
+
+#: ../src/pulse/error.c:56
+msgid "Too large"
+msgstr "Preveliko"
+
+#: ../src/pulse/error.c:57
+msgid "Not supported"
+msgstr "Nije podržano"
+
+#: ../src/pulse/error.c:58
+msgid "Unknown error code"
+msgstr "Nepoznat kôd greške"
+
+#: ../src/pulse/error.c:59
+msgid "No such extension"
+msgstr "Nema takvog proširenja"
+
+#: ../src/pulse/error.c:60
+msgid "Obsolete functionality"
+msgstr "Zastarjela funkcionalnost"
+
+#: ../src/pulse/error.c:61
+msgid "Missing implementation"
+msgstr "Implementacija nedostaje"
+
+#: ../src/pulse/error.c:62
+msgid "Client forked"
+msgstr "Klijent odvojen"
+
+#: ../src/pulse/error.c:63
+msgid "Input/Output error"
+msgstr "Izlazno/Ulazna greška"
+
+#: ../src/pulse/error.c:64
+msgid "Device or resource busy"
+msgstr "Uređaj ili resurs zauzet"
+
+#: ../src/pulse/sample.c:176
+#, c-format
+msgid "%s %uch %uHz"
+msgstr "%s %uch %uHz"
+
+#: ../src/pulse/sample.c:188
+#, c-format
+msgid "%0.1f GiB"
+msgstr "%0.1f GiB"
+
+#: ../src/pulse/sample.c:190
+#, c-format
+msgid "%0.1f MiB"
+msgstr "%0.1f MiB"
+
+#: ../src/pulse/sample.c:192
+#, c-format
+msgid "%0.1f KiB"
+msgstr "%0.1f KiB"
+
+#: ../src/pulse/sample.c:194
+#, c-format
+msgid "%u B"
+msgstr "%u B"
+
+#: ../src/utils/pacat.c:134
+#, c-format
+msgid "Failed to drain stream: %s"
+msgstr "Neuspjeli istek toka: %s"
+
+#: ../src/utils/pacat.c:139
+msgid "Playback stream drained."
+msgstr "Reprodukcija toka istekla."
+
+#: ../src/utils/pacat.c:150
+msgid "Draining connection to server."
+msgstr "Istek povezivanja s poslužiteljem."
+
+#: ../src/utils/pacat.c:163
+#, c-format
+msgid "pa_stream_drain(): %s"
+msgstr "pa_stream_drain(): %s"
+
+#: ../src/utils/pacat.c:194 ../src/utils/pacat.c:543
+#, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "pa_stream_begin_write() neuspjelo: %s"
+
+#: ../src/utils/pacat.c:244 ../src/utils/pacat.c:274
+#, c-format
+msgid "pa_stream_peek() failed: %s"
+msgstr "pa_stream_peek() neuspjelo: %s"
+
+#: ../src/utils/pacat.c:324
+msgid "Stream successfully created."
+msgstr "Tok uspješno stvoren"
+
+#: ../src/utils/pacat.c:327
+#, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s"
+msgstr "pa_stream_get_buffer_attr() neuspjelo: %s"
+
+#: ../src/utils/pacat.c:331
+#, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
+msgstr ""
+"Mjerenja međuspremnika: najveća-duljina=%u, ukupna-duljina=%u, "
+"predmeđuspremnik=%u, najmanji-zahtjev=%u"
+
+#: ../src/utils/pacat.c:334
+#, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u"
+msgstr "Mjerenja međuspremnika: najveća-duljina=%u, veličina-fragmenta=%u"
+
+#: ../src/utils/pacat.c:338
+#, c-format
+msgid "Using sample spec '%s', channel map '%s'."
+msgstr "Koriste se specifikacije uzorka '%s', mapiranje kanala '%s'."
+
+#: ../src/utils/pacat.c:342
+#, c-format
+msgid "Connected to device %s (index: %u, suspended: %s)."
+msgstr "Povezano s uređajem %s (sadržaj: %u, suspendirano: %s)."
+
+#: ../src/utils/pacat.c:352
+#, c-format
+msgid "Stream error: %s"
+msgstr "Greška toka: %s"
+
+#: ../src/utils/pacat.c:362
+#, c-format
+msgid "Stream device suspended.%s"
+msgstr "Uređaj toka suspendiran.%s"
+
+#: ../src/utils/pacat.c:364
+#, c-format
+msgid "Stream device resumed.%s"
+msgstr "Uređaj toka ponovno pokrenut.%s"
+
+#: ../src/utils/pacat.c:372
+#, c-format
+msgid "Stream underrun.%s"
+msgstr "Tok neiskorišten.%s"
+
+#: ../src/utils/pacat.c:379
+#, c-format
+msgid "Stream overrun.%s"
+msgstr "Tok zauzet.%s"
+
+#: ../src/utils/pacat.c:386
+#, c-format
+msgid "Stream started.%s"
+msgstr "Tok pokrenut.%s"
+
+#: ../src/utils/pacat.c:393
+#, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s"
+msgstr "Tok premješten na uređaj %s (%u, %ssuspended).%s"
+
+#: ../src/utils/pacat.c:393
+msgid "not "
+msgstr "nije "
+
+#: ../src/utils/pacat.c:400
+#, c-format
+msgid "Stream buffer attributes changed.%s"
+msgstr "Svojstva međuspremnika toka promijenjena.%s"
+
+#: ../src/utils/pacat.c:415
+msgid "Cork request stack is empty: corking stream"
+msgstr "Spremište zahtjeva zatvaranja je prazno: zatvaranje toka"
+
+#: ../src/utils/pacat.c:421
+msgid "Cork request stack is empty: uncorking stream"
+msgstr "Spremište zahtjeva zatvaranja je prazno: otvaranje toka"
+
+#: ../src/utils/pacat.c:425
+msgid "Warning: Received more uncork requests than cork requests."
+msgstr ""
+"Upozorenje: primljeno je više zahtjeva za otvaranje od zahtjeva zatvaranja."
+
+#: ../src/utils/pacat.c:450
+#, c-format
+msgid "Connection established.%s"
+msgstr "Povezivanje uspostavljeno.%s"
+
+#: ../src/utils/pacat.c:453
+#, c-format
+msgid "pa_stream_new() failed: %s"
+msgstr "pa_stream_new() neuspjelo: %s"
+
+#: ../src/utils/pacat.c:491
+#, c-format
+msgid "pa_stream_connect_playback() failed: %s"
+msgstr "pa_stream_connect_playback() neuspjelo: %s"
+
+#: ../src/utils/pacat.c:497
+#, c-format
+msgid "Failed to set monitor stream: %s"
+msgstr "Neuspjelo postavljanje nadgeldanja toka: %s"
+
+#: ../src/utils/pacat.c:501
+#, c-format
+msgid "pa_stream_connect_record() failed: %s"
+msgstr "pa_stream_connect_record() neuspjelo: %s"
+
+#: ../src/utils/pacat.c:514 ../src/utils/pactl.c:1446
+#, c-format
+msgid "Connection failure: %s"
+msgstr "Povezivanje neuspjelo: %s"
+
+#: ../src/utils/pacat.c:557
+msgid "Got EOF."
+msgstr "EOF."
+
+#: ../src/utils/pacat.c:581
+#, c-format
+msgid "pa_stream_write() failed: %s"
+msgstr "pa_stream_write() neuspjelo: %s"
+
+#: ../src/utils/pacat.c:605
+#, c-format
+msgid "write() failed: %s"
+msgstr "write() neuspjelo: %s"
+
+#: ../src/utils/pacat.c:626
+msgid "Got signal, exiting."
+msgstr "Signal dobiven, izlazim."
+
+#: ../src/utils/pacat.c:640
+#, c-format
+msgid "Failed to get latency: %s"
+msgstr "Neuspjelo dobivanje latencije: %s"
+
+#: ../src/utils/pacat.c:645
+#, c-format
+msgid "Time: %0.3f sec; Latency: %0.0f usec."
+msgstr "Vrijeme: %0.3f sek; Latencija: %0.0f usek."
+
+#: ../src/utils/pacat.c:666
+#, c-format
+msgid "pa_stream_update_timing_info() failed: %s"
+msgstr "pa_stream_update_timing_info() neuspjelo: %s"
+
+#: ../src/utils/pacat.c:676
+#, c-format
+msgid ""
+"%s [options]\n"
+"%s\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
+"\n"
+"  -v, --verbose                         Enable verbose operations\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the server\n"
+"      --stream-name=NAME                How to call this stream on the server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume in "
+"range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, s16be, "
+"u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (defaults to "
+"s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, 2 "
+"for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink/"
+"source the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink/"
+"source the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink/source the stream is "
+"being connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time per "
+"request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in "
+"msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time per "
+"request in msec.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the "
+"specified value.\n"
+"      --raw                             Record/play raw PCM data.\n"
+"      --passthrough                     Passthrough data.\n"
+"      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
+"      --list-file-formats               List available file formats.\n"
+"      --monitor-stream=INDEX            Record from the sink input with index "
+"INDEX.\n"
+msgstr ""
+"%s [mogućnosti]\n"
+"%s\n"
+"\n"
+"  -h, --help                            Prikazuje ovu pomoć\n"
+"      --version                         Prikazuje inačicu\n"
+"\n"
+"  -r, --record                          Stvara povezivanje za snimanje\n"
+"  -p, --playback                        Stvara povezivanje za reprodukciju\n"
+"\n"
+"  -v, --verbose                         Omogućuje opširnije radnje\n"
+"\n"
+"  -s, --server=POSLUŽITELJ                   Naziv poslužitelja za "
+"povezivanje\n"
+"  -d, --device=UREĐAJ                   Naziv slivnika/izvora za povezivanje\n"
+"  -n, --client-name=NAZIV                Naziv klijenta na poslužitelju\n"
+"      --stream-name=NAZIV                Naziv toka na poslužitelju\n"
+"      --volume=GLASNOĆA ZVUKA                   Određuje početnu (linearnu) "
+"glasnoću zvuka u rasponu 0...65536\n"
+"      --rate=FREKVENCIJA                 Frekvencija u Hz (zadano 44100)\n"
+"      --format=FORMAT UZORKA             Vrsta uzorka, jedna od s16le, s16be, "
+"u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (zadano s16ne)\n"
+"      --channels=KANALI               Broj kanala, 1 za mono, 2 za stereo\n"
+"                                        (zadano 2)\n"
+"      --channel-map=MAPIRANJE KANALA          Korištenje mapiranja kanala "
+"umjesto zadanog\n"
+"      --fix-format                      Uzima uzorak formata iz slivnika/"
+"izvora s kojim\n"
+"                                        je tok povezan.\n"
+"      --fix-rate                        Uzima frekvenciju iz slivnika/izvora s "
+"kojim\n"
+"                                        je tok povezan.\n"
+"      --fix-channels                    Uzima broj kanala i mapiranje kanala\n"
+"                                        iz slivnika/izvora s kojim je tok "
+"povezan.\n"
+"      --no-remix                        Ne smanjuj ili pojačavaj kanale.\n"
+"      --no-remap                        Mapiraj kanale prema sadržaju umjesto "
+"nazivu.\n"
+"      --latency=BAJTOVI                   Zahtijevaj određenu latenciju u "
+"bajtima.\n"
+"      --process-time=BAJTOVI              Zahtijevaj određeno vrijeme procesa "
+"po zahtjevu u bajtima.\n"
+"      --latency-msec=MSEK               Zahtijevaj određenu latenciju u msek.\n"
+"      --process-time-msec=MSEK          Zahtijevaj određeno vrijeme procesa po "
+"zahtjevu u msek.\n"
+"      --property=VLASNIŠTVO=VRIJEDNOST         Postavi određeno vlasništvo za "
+"određenu vrijednost.\n"
+"      --raw                             Snimaj/Reproduciraj osnovne PCM "
+"podatke.\n"
+"      --passthrough                     Prolaz podataka.\n"
+"      --file-format[=FFORMAT]           Snimaj/Reproduciraj formatirane PCM "
+"podatke.\n"
+"      --list-file-formats               Prikaži dostupne formate datoteka.\n"
+"      --monitor-stream=SADRŽAJ            Snimaj s ulaza slivnika sa sadržajem "
+"SADRŽAJ.\n"
+
+#: ../src/utils/pacat.c:793
+msgid "Play back encoded audio files on a PulseAudio sound server."
+msgstr ""
+"Reproduciraj enkôdirane zvučne datoteke na PulseAudio zvučnom poslužitelju."
+
+#: ../src/utils/pacat.c:797
+msgid "Capture audio data from a PulseAudio sound server and write it to a file."
+msgstr ""
+"Snimi zvučne podatke s PulseAudio zvučnog poslužitelja i spremi ih u datoteku."
+
+#: ../src/utils/pacat.c:801
+msgid ""
+"Capture audio data from a PulseAudio sound server and write it to STDOUT or "
+"the specified file."
+msgstr ""
+"Snimi zvučne podatke s PulseAudio zvučnog poslužitelja i spremi ih u STDOUT "
+"ili određenu datoteku."
+
+#: ../src/utils/pacat.c:805
+msgid ""
+"Play back audio data from STDIN or the specified file on a PulseAudio sound "
+"server."
+msgstr ""
+"Reproduciraj zvučne datoteke sa STDIN-a ili određene datoteke na PulseAudio "
+"zvučnom poslužitelju."
+
+#: ../src/utils/pacat.c:819
+#, c-format
+msgid ""
+"pacat %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pacat %s\n"
+"Kompiliran s libpulse %s\n"
+"Povezan s libpulse %s\n"
+
+#: ../src/utils/pacat.c:852 ../src/utils/pactl.c:1648
+#, c-format
+msgid "Invalid client name '%s'"
+msgstr "Neispravan naziv klijenta '%s'"
+
+#: ../src/utils/pacat.c:867
+#, c-format
+msgid "Invalid stream name '%s'"
+msgstr "Neispravan naziv toka '%s'"
+
+#: ../src/utils/pacat.c:904
+#, c-format
+msgid "Invalid channel map '%s'"
+msgstr "Neispravno mapiranje kanala '%s'"
+
+#: ../src/utils/pacat.c:933 ../src/utils/pacat.c:947
+#, c-format
+msgid "Invalid latency specification '%s'"
+msgstr "Pogrešan opis latencije '%s'"
+
+#: ../src/utils/pacat.c:940 ../src/utils/pacat.c:954
+#, c-format
+msgid "Invalid process time specification '%s'"
+msgstr "Neispravno vrijeme obrade opisa '%s'"
+
+#: ../src/utils/pacat.c:966
+#, c-format
+msgid "Invalid property '%s'"
+msgstr "Nevaljano vlasništvo '%s'"
+
+#: ../src/utils/pacat.c:985
+#, c-format
+msgid "Unknown file format %s."
+msgstr "Nepoznata vrsta datoteke %s."
+
+#: ../src/utils/pacat.c:1000
+msgid "Failed to parse the argument for --monitor-stream"
+msgstr "Neuspjela obrada argumenta za --monitor-stream"
+
+#: ../src/utils/pacat.c:1011
+msgid "Invalid sample specification"
+msgstr "Nepoznat opis uzorka"
+
+#: ../src/utils/pacat.c:1021
+#, c-format
+msgid "open(): %s"
+msgstr "open(): %s"
+
+#: ../src/utils/pacat.c:1026
+#, c-format
+msgid "dup2(): %s"
+msgstr "dup2(): %s"
+
+#: ../src/utils/pacat.c:1033
+msgid "Too many arguments."
+msgstr "Previše argumenata."
+
+#: ../src/utils/pacat.c:1044
+msgid "Failed to generate sample specification for file."
+msgstr "Neuspjelo generiranje opisa uzorka za datoteku."
+
+#: ../src/utils/pacat.c:1070
+msgid "Failed to open audio file."
+msgstr "Neuspjelo otvaranje zvučne datoteke."
+
+#: ../src/utils/pacat.c:1076
+msgid ""
+"Warning: specified sample specification will be overwritten with specification "
+"from file."
+msgstr "Upozorenje: određeni opis uzorka biti će prepisan s opisom iz datoteke."
+
+#: ../src/utils/pacat.c:1079 ../src/utils/pactl.c:1712
+msgid "Failed to determine sample specification from file."
+msgstr "Neuspjelo određivanje opisa uzorka iz datoteke."
+
+#: ../src/utils/pacat.c:1088
+msgid "Warning: Failed to determine channel map from file."
+msgstr "Upozorenje: neuspjelo određivanje mapiranja kanala iz datoteke."
+
+#: ../src/utils/pacat.c:1099
+msgid "Channel map doesn't match sample specification"
+msgstr "Mapiranje kanala se ne podudara s opisom uzorka"
+
+#: ../src/utils/pacat.c:1110
+msgid "Warning: failed to write channel map to file."
+msgstr "Upozorenje: neuspjelo zapisivanje mapiranja kanala u datoteku."
+
+#: ../src/utils/pacat.c:1125
+#, c-format
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr "Otvaranje %s toka s opisom uzorka '%s' i mapiranja kanala '%s'."
+
+#: ../src/utils/pacat.c:1126
+msgid "recording"
+msgstr "snimanje"
+
+#: ../src/utils/pacat.c:1126
+msgid "playback"
+msgstr "reprodukcija"
+
+#: ../src/utils/pacat.c:1150
+msgid "Failed to set media name."
+msgstr "Neuspjelo postavljanje medijskog naziva."
+
+#: ../src/utils/pacat.c:1160 ../src/utils/pactl.c:2062
+msgid "pa_mainloop_new() failed."
+msgstr "pa_mainloop_new() neuspjelo."
+
+#: ../src/utils/pacat.c:1183
+msgid "io_new() failed."
+msgstr "io_new() neuspjelo."
+
+#: ../src/utils/pacat.c:1190 ../src/utils/pactl.c:2074
+msgid "pa_context_new() failed."
+msgstr "pa_context_new() neuspjelo."
+
+#: ../src/utils/pacat.c:1198 ../src/utils/pactl.c:2080
+#, c-format
+msgid "pa_context_connect() failed: %s"
+msgstr "pa_context_connect() neuspjelo: %s"
+
+#: ../src/utils/pacat.c:1204
+msgid "pa_context_rttime_new() failed."
+msgstr "pa_context_rttime_new() neuspjelo."
+
+#: ../src/utils/pacat.c:1211 ../src/utils/pactl.c:2085
+msgid "pa_mainloop_run() failed."
+msgstr "pa_mainloop_run() neuspjelo."
+
+#: ../src/utils/pacmd.c:51 ../src/utils/pactl.c:1570
+msgid "NAME [ARGS ...]"
+msgstr "NAZIV [ARGU ...]"
+
+#: ../src/utils/pacmd.c:52 ../src/utils/pacmd.c:60 ../src/utils/pactl.c:1571
+msgid "NAME|#N"
+msgstr "NAZIV|#N"
+
+#: ../src/utils/pacmd.c:53 ../src/utils/pacmd.c:63 ../src/utils/pactl.c:1569
+#: ../src/utils/pactl.c:1575
+msgid "NAME"
+msgstr "NAZIV"
+
+#: ../src/utils/pacmd.c:54
+msgid "NAME|#N VOLUME"
+msgstr "NAZIV|#N UREĐAJ"
+
+#: ../src/utils/pacmd.c:55
+msgid "#N VOLUME"
+msgstr "#N UREĐAJ"
+
+#: ../src/utils/pacmd.c:56 ../src/utils/pacmd.c:70 ../src/utils/pactl.c:1573
+msgid "NAME|#N 1|0"
+msgstr "NAZIV|#N 1|0"
+
+#: ../src/utils/pacmd.c:57
+msgid "#N 1|0"
+msgstr "#N 1|0"
+
+#: ../src/utils/pacmd.c:58
+msgid "NAME|#N KEY=VALUE"
+msgstr "NAZIV|#N TIPKA=VRIJEDNOST"
+
+#: ../src/utils/pacmd.c:59
+msgid "#N KEY=VALUE"
+msgstr "#N TIPKA=VRIJEDNOST"
+
+#: ../src/utils/pacmd.c:61
+msgid "#N"
+msgstr "#N"
+
+#: ../src/utils/pacmd.c:62
+msgid "NAME SINK|#N"
+msgstr "NAZIV SLIVNIKA|#N"
+
+#: ../src/utils/pacmd.c:64 ../src/utils/pacmd.c:65
+msgid "NAME FILENAME"
+msgstr "NAZIV NAZIV DATOTEKE"
+
+#: ../src/utils/pacmd.c:66
+msgid "PATHNAME"
+msgstr "NAZIV PUTANJE"
+
+#: ../src/utils/pacmd.c:67
+msgid "FILENAME SINK|#N"
+msgstr "NAZIV DATOTEKE SLIVNIKA|#N"
+
+#: ../src/utils/pacmd.c:69 ../src/utils/pactl.c:1572
+msgid "#N SINK|SOURCE"
+msgstr "#N SLIVNIK|IZVOR"
+
+#: ../src/utils/pacmd.c:71 ../src/utils/pacmd.c:77 ../src/utils/pacmd.c:78
+msgid "1|0"
+msgstr "1|0"
+
+#: ../src/utils/pacmd.c:72 ../src/utils/pactl.c:1574
+msgid "CARD PROFILE"
+msgstr "PROFIL KARTICE"
+
+#: ../src/utils/pacmd.c:73 ../src/utils/pactl.c:1576
+msgid "NAME|#N PORT"
+msgstr "NAZIV|#N ULAZ"
+
+#: ../src/utils/pacmd.c:74 ../src/utils/pactl.c:1582
+msgid "CARD-NAME|CARD-#N PORT OFFSET"
+msgstr "NAZIV-KARTICE|KARTICA-#N POMAK ULAZA"
+
+#: ../src/utils/pacmd.c:75
+msgid "TARGET"
+msgstr "ODREDIŠTE"
+
+#: ../src/utils/pacmd.c:76
+msgid "NUMERIC-LEVEL"
+msgstr "BROJČANA-RAZINA"
+
+#: ../src/utils/pacmd.c:79
+msgid "FRAMES"
+msgstr "OKVIRI"
+
+#: ../src/utils/pacmd.c:81
+#, c-format
+msgid ""
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"When no command is given pacmd starts in the interactive mode.\n"
+msgstr ""
+"\n"
+"  -h, --help                            Prikaži ovu pomoć\n"
+"      --version                         Prikaži pomoć\n"
+"Kada nema zadanih naredbi pacmd se pokreće u interaktivnom načinu.\n"
+
+#: ../src/utils/pacmd.c:128
+#, c-format
+msgid ""
+"pacmd %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pacmd %s\n"
+"Kompilirano s libpulse %s\n"
+"Povezano s libpulse %s\n"
+
+#: ../src/utils/pacmd.c:142
+msgid "No PulseAudio daemon running, or not running as session daemon."
+msgstr ""
+"Nema PulseAudio pozadinskog programa pokrenutog, ili nije pokrenut kao "
+"pozadinski program sesije."
+
+#: ../src/utils/pacmd.c:147
+#, c-format
+msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
+msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
+
+#: ../src/utils/pacmd.c:164
+#, c-format
+msgid "connect(): %s"
+msgstr "connect(): %s"
+
+#: ../src/utils/pacmd.c:172
+msgid "Failed to kill PulseAudio daemon."
+msgstr "Neuspjelo ubijanje PulseAudio pozadinskog programa."
+
+#: ../src/utils/pacmd.c:180
+msgid "Daemon not responding."
+msgstr "Pozadinski program ne regira."
+
+#: ../src/utils/pacmd.c:212 ../src/utils/pacmd.c:321 ../src/utils/pacmd.c:339
+#, c-format
+msgid "write(): %s"
+msgstr "write(): %s"
+
+#: ../src/utils/pacmd.c:268
+#, c-format
+msgid "poll(): %s"
+msgstr "poll(): %s"
+
+#: ../src/utils/pacmd.c:279 ../src/utils/pacmd.c:299
+#, c-format
+msgid "read(): %s"
+msgstr "read(): %s"
+
+#: ../src/utils/pactl.c:164
+#, c-format
+msgid "Failed to get statistics: %s"
+msgstr "Neuspjelo dobivanje statistike: %s"
+
+#: ../src/utils/pactl.c:170
+#, c-format
+msgid "Currently in use: %u blocks containing %s bytes total.\n"
+msgstr "Trenutno u upotrebi: %u blokova sadrži %s ukupno bajta.\n"
+
+#: ../src/utils/pactl.c:173
+#, c-format
+msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
+msgstr ""
+"Dodijeljeno tijekom cijelog vijeka trajanja: %u blokova sadrži %s ukupno "
+"bajta.\n"
+
+#: ../src/utils/pactl.c:176
+#, c-format
+msgid "Sample cache size: %s\n"
+msgstr "Veličina predmemorije uzorka: %s\n"
+
+#: ../src/utils/pactl.c:185
+#, c-format
+msgid "Failed to get server information: %s"
+msgstr "Neuspjelo dobivanje informacija poslužitelja: %s"
+
+#: ../src/utils/pactl.c:190
+#, c-format
+msgid ""
+"Server String: %s\n"
+"Library Protocol Version: %u\n"
+"Server Protocol Version: %u\n"
+"Is Local: %s\n"
+"Client Index: %u\n"
+"Tile Size: %zu\n"
+msgstr ""
+"Niz poslužitelja: %s\n"
+"Inačica biblioteke protokola: %u\n"
+"Inačica protokola poslužitelja: %u\n"
+"Je lokalan: %s\n"
+"Sadržaj klijenta: %u\n"
+"Veličina pločice: %zu\n"
+
+#: ../src/utils/pactl.c:206
+#, c-format
+msgid ""
+"User Name: %s\n"
+"Host Name: %s\n"
+"Server Name: %s\n"
+"Server Version: %s\n"
+"Default Sample Specification: %s\n"
+"Default Channel Map: %s\n"
+"Default Sink: %s\n"
+"Default Source: %s\n"
+"Cookie: %04x:%04x\n"
+msgstr ""
+"Ime korisnika: %s\n"
+"Naziv računala: %s\n"
+"Naziv poslužitelja: %s\n"
+"Inačica poslužitelja: %s\n"
+"Zadane specifikacije uzorka: %s\n"
+"Zadano mapiranje kanala: %s\n"
+"Zadani slivnik: %s\n"
+"Zadani  izvor: %s\n"
+"Kolačić: %04x:%04x\n"
+
+#: ../src/utils/pactl.c:255 ../src/utils/pactl.c:900 ../src/utils/pactl.c:978
+#, c-format
+msgid "Failed to get sink information: %s"
+msgstr "Neuspjelo dobivanje informacija slivnika: %s"
+
+#: ../src/utils/pactl.c:281
+#, c-format
+msgid ""
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s\n"
+"\tMonitor Source: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Slivnik #%u\n"
+"\tStanje: %s\n"
+"\tNaziv: %s\n"
+"\tOpis: %s\n"
+"\tUpravljački program: %s\n"
+"\tSpecifikacije uzorka: %s\n"
+"\tMapiranje kanala: %s\n"
+"\tVlasnik modula: %u\n"
+"\tUtišano: %s\n"
+"\tGlasnoća zvuka: %s\n"
+"\t        uravnoteženje %0.2f\n"
+"\tIzvorna glasnoća zvuka: %s\n"
+"\tNadgledanje izvora: %s\n"
+"\tLatencija: %0.0f usek, podešeno %0.0f usek\n"
+"\tOznake: %s%s%s%s%s%s%s\n"
+"\tSvojstva:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:325 ../src/utils/pactl.c:431 ../src/utils/pactl.c:592
+#, c-format
+msgid "\tPorts:\n"
+msgstr "\tUlazi:\n"
+
+#: ../src/utils/pactl.c:332 ../src/utils/pactl.c:438
+#, c-format
+msgid "\tActive Port: %s\n"
+msgstr "\tAktivni ulaz: %s\n"
+
+#: ../src/utils/pactl.c:338 ../src/utils/pactl.c:444
+#, c-format
+msgid "\tFormats:\n"
+msgstr "\tVrste:\n"
+
+#: ../src/utils/pactl.c:362 ../src/utils/pactl.c:920 ../src/utils/pactl.c:993
+#, c-format
+msgid "Failed to get source information: %s"
+msgstr "Neuspjelo dobivanje informacija izvora: %s"
+
+#: ../src/utils/pactl.c:388
+#, c-format
+msgid ""
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Izvor #%u\n"
+"\tStanje: %s\n"
+"\tNaziv: %s\n"
+"\tOpis: %s\n"
+"\tUpravljački program: %s\n"
+"\tSpecifikacije uzorka: %s\n"
+"\tMapiranje kanala: %s\n"
+"\tVlasnik modula: %u\n"
+"\tUtišano: %s\n"
+"\tGlasnoća zvuka: %s\n"
+"\t        uravnoteženje %0.2f\n"
+"\tIzvorna glasnoća zvuka: %s\n"
+"\tNadgledanje slivnika: %s\n"
+"\tLatencija: %0.0f usek, podešeno %0.0f usek\n"
+"\tOznake: %s%s%s%s%s%s\n"
+"\tSvojstva:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:416 ../src/utils/pactl.c:486 ../src/utils/pactl.c:529
+#: ../src/utils/pactl.c:571 ../src/utils/pactl.c:669 ../src/utils/pactl.c:670
+#: ../src/utils/pactl.c:681 ../src/utils/pactl.c:739 ../src/utils/pactl.c:740
+#: ../src/utils/pactl.c:751 ../src/utils/pactl.c:802 ../src/utils/pactl.c:803
+#: ../src/utils/pactl.c:809
+msgid "n/a"
+msgstr "nedostupno"
+
+#: ../src/utils/pactl.c:455 ../src/utils/pactl.c:859
+#, c-format
+msgid "Failed to get module information: %s"
+msgstr "Neuspjelo dobivanje informacija modula: %s"
+
+#: ../src/utils/pactl.c:478
+#, c-format
+msgid ""
+"Module #%u\n"
+"\tName: %s\n"
+"\tArgument: %s\n"
+"\tUsage counter: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Modul #%u\n"
+"\tNaziv: %s\n"
+"\tArgument: %s\n"
+"\tBrojač korištenja: %s\n"
+"\tSvojstva:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:497
+#, c-format
+msgid "Failed to get client information: %s"
+msgstr "Neuspjelo dobivanje informacija klijenta: %s"
+
+#: ../src/utils/pactl.c:523
+#, c-format
+msgid ""
+"Client #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Klijent #%u\n"
+"\tUpravljački program: %s\n"
+"\tVlasnik modula: %s\n"
+"\tSvojstva:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:540
+#, c-format
+msgid "Failed to get card information: %s"
+msgstr "Neuspjelo dobivanje informacija kartice: %s"
+
+#: ../src/utils/pactl.c:563
+#, c-format
+msgid ""
+"Card #%u\n"
+"\tName: %s\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Kartice #%u\n"
+"\tNaziv: %s\n"
+"\tUpravljački program: %s\n"
+"\tVlasnik modula: %s\n"
+"\tSvojstva:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:579
+#, c-format
+msgid "\tProfiles:\n"
+msgstr "\tProfili:\n"
+
+#: ../src/utils/pactl.c:581
+#, c-format
+msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
+msgstr "\t\t%s: %s (slivnici: %u, izvori: %u, prioritet: %u, dostupno: %s)\n"
+
+#: ../src/utils/pactl.c:586
+#, c-format
+msgid "\tActive Profile: %s\n"
+msgstr "\tAktivni profil: %s\n"
+
+#: ../src/utils/pactl.c:600
+#, c-format
+msgid ""
+"\t\t\tProperties:\n"
+"\t\t\t\t%s\n"
+msgstr ""
+"\t\t\tSvojstva:\n"
+"\t\t\t\t%s\n"
+
+#: ../src/utils/pactl.c:605
+#, c-format
+msgid "\t\t\tPart of profile(s): %s"
+msgstr "\t\t\tDio profila: %s"
+
+#: ../src/utils/pactl.c:622 ../src/utils/pactl.c:940 ../src/utils/pactl.c:1008
+#, c-format
+msgid "Failed to get sink input information: %s"
+msgstr "Neuspjelo dobivanje informacija ulaza slivnika: %s"
+
+#: ../src/utils/pactl.c:651
+#, c-format
+msgid ""
+"Sink Input #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSink: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tFormat: %s\n"
+"\tCorked: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Ulaz slivnika #%u\n"
+"\tUpravljački program: %s\n"
+"\tVlasnik modula: %s\n"
+"\tKlijent: %s\n"
+"\tSlivnik: %u\n"
+"\tSpecifikacije uzorka: %s\n"
+"\tMapiranje kanala: %s\n"
+"\tFormat: %s\n"
+"\tZatvoreno: %s\n"
+"\tUtišano: %s\n"
+"\tGlasnoća zvuka: %s\n"
+"\t        uravnoteženje %0.2f\n"
+"\tLatencija međuspremnika: %0.0f usek\n"
+"\tLatencija slivnika: %0.0f usek\n"
+"\tNačin normalizacije zvuka: %s\n"
+"\tSvojstva:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:692 ../src/utils/pactl.c:960 ../src/utils/pactl.c:1023
+#, c-format
+msgid "Failed to get source output information: %s"
+msgstr "Neuspjelo dobivanje informacija izvora izlaza: %s"
+
+#: ../src/utils/pactl.c:721
+#, c-format
+msgid ""
+"Source Output #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSource: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tFormat: %s\n"
+"\tCorked: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Izlaz izvora #%u\n"
+"\tUpravljački program: %s\n"
+"\tVlasnik modula: %s\n"
+"\tKlijent: %s\n"
+"\tSlivnik: %u\n"
+"\tSpecifikacije uzorka: %s\n"
+"\tMapiranje kanala: %s\n"
+"\tFormat: %s\n"
+"\tZatvoreno: %s\n"
+"\tUtišano: %s\n"
+"\tGlasnoća zvuka: %s\n"
+"\t        uravnoteženje %0.2f\n"
+"\tLatencija međuspremnika: %0.0f usek\n"
+"\tLatencija izlaza: %0.0f usek\n"
+"\tNačin normalizacije zvuka: %s\n"
+"\tSvojstva:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:762
+#, c-format
+msgid "Failed to get sample information: %s"
+msgstr "Neuspjelo dobivanje informacija uzorka: %s"
+
+#: ../src/utils/pactl.c:789
+#, c-format
+msgid ""
+"Sample #%u\n"
+"\tName: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tDuration: %0.1fs\n"
+"\tSize: %s\n"
+"\tLazy: %s\n"
+"\tFilename: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Uzorak #%u\n"
+"\tNaziv: %s\n"
+"\tSpecifikacije uzorka: %s\n"
+"\tMapiranje kanala: %s\n"
+"\tGlasnoća zvuka: %s\n"
+"\t        uravnoteženje %0.2f\n"
+"\tTrajanje: %0.1fs\n"
+"\tVeličina: %s\n"
+"\tNespremno: %s\n"
+"\tNaziv datoteke: %s\n"
+"\tSvojstva:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:817 ../src/utils/pactl.c:827
+#, c-format
+msgid "Failure: %s"
+msgstr "Neuspjeh: %s"
+
+#: ../src/utils/pactl.c:866
+#, c-format
+msgid "Failed to unload module: Module %s not loaded"
+msgstr "Neuspjelo uklanjanje modula: Modul %s nije učitan"
+
+#: ../src/utils/pactl.c:884
+#, c-format
+msgid ""
+"Failed to set volume: You tried to set volumes for %d channels, whereas "
+"channel/s supported = %d\n"
+msgstr ""
+"Neuspjelo postavljanje glasnoće zvuka: pokušali ste postaviti glasnoću zvuka "
+"za %d kanale, dok su kanal/i podržani = %d\n"
+
+#: ../src/utils/pactl.c:1050
+#, c-format
+msgid "Failed to set format: invalid format string %s"
+msgstr "Neuspjelo postavljanje formata: neispravni znak formata %s"
+
+#: ../src/utils/pactl.c:1093
+#, c-format
+msgid "Failed to upload sample: %s"
+msgstr "Neuspjelo učitavanje uzorka: %s"
+
+#: ../src/utils/pactl.c:1110
+msgid "Premature end of file"
+msgstr "Prerani kraj datoteke"
+
+#: ../src/utils/pactl.c:1130
+msgid "new"
+msgstr "novi"
+
+#: ../src/utils/pactl.c:1133
+msgid "change"
+msgstr "promijeni"
+
+#: ../src/utils/pactl.c:1136
+msgid "remove"
+msgstr "ukloni"
+
+#: ../src/utils/pactl.c:1139 ../src/utils/pactl.c:1174
+msgid "unknown"
+msgstr "nepoznat"
+
+#: ../src/utils/pactl.c:1147
+msgid "sink"
+msgstr "slivnik"
+
+#: ../src/utils/pactl.c:1150
+msgid "source"
+msgstr "izvor"
+
+#: ../src/utils/pactl.c:1153
+msgid "sink-input"
+msgstr "slivnik-izlaz"
+
+#: ../src/utils/pactl.c:1156
+msgid "source-output"
+msgstr "izvor-izlaz"
+
+#: ../src/utils/pactl.c:1159
+msgid "module"
+msgstr "modul"
+
+#: ../src/utils/pactl.c:1162
+msgid "client"
+msgstr "klijent"
+
+#: ../src/utils/pactl.c:1165
+msgid "sample-cache"
+msgstr "uzorak-predmemorija"
+
+#: ../src/utils/pactl.c:1168
+msgid "server"
+msgstr "poslužitelj"
+
+#: ../src/utils/pactl.c:1171
+msgid "card"
+msgstr "kartica"
+
+#: ../src/utils/pactl.c:1180
+#, c-format
+msgid "Event '%s' on %s #%u\n"
+msgstr "Događaj '%s' na %s #%u\n"
+
+#: ../src/utils/pactl.c:1452
+msgid "Got SIGINT, exiting."
+msgstr "SIGINT, izlazim."
+
+#: ../src/utils/pactl.c:1485
+msgid "Invalid volume specification"
+msgstr "Neispravan opis glasoće zvuka"
+
+#: ../src/utils/pactl.c:1508
+msgid "Volume outside permissible range.\n"
+msgstr "Glasnoća zvuka je izvan dopuštenog raspona.\n"
+
+#: ../src/utils/pactl.c:1521
+msgid "Invalid number of volume specifications.\n"
+msgstr "Pogrešan broj specifikacija glasnoće zvuka.\n"
+
+#: ../src/utils/pactl.c:1533
+msgid "Inconsistent volume specification.\n"
+msgstr "Nedosljedna specifikacija glasnoće zvuka.\n"
+
+#: ../src/utils/pactl.c:1563 ../src/utils/pactl.c:1564 ../src/utils/pactl.c:1565
+#: ../src/utils/pactl.c:1566 ../src/utils/pactl.c:1567 ../src/utils/pactl.c:1568
+#: ../src/utils/pactl.c:1569 ../src/utils/pactl.c:1570 ../src/utils/pactl.c:1571
+#: ../src/utils/pactl.c:1572 ../src/utils/pactl.c:1573 ../src/utils/pactl.c:1574
+#: ../src/utils/pactl.c:1575 ../src/utils/pactl.c:1576 ../src/utils/pactl.c:1577
+#: ../src/utils/pactl.c:1578 ../src/utils/pactl.c:1579 ../src/utils/pactl.c:1580
+#: ../src/utils/pactl.c:1581 ../src/utils/pactl.c:1582 ../src/utils/pactl.c:1583
+msgid "[options]"
+msgstr "[mogućnosti]"
+
+#: ../src/utils/pactl.c:1565
+msgid "[TYPE]"
+msgstr "[VRSTA]"
+
+#: ../src/utils/pactl.c:1567
+msgid "FILENAME [NAME]"
+msgstr "NAZIV-DATOTEKE [NAZIV]"
+
+#: ../src/utils/pactl.c:1568
+msgid "NAME [SINK]"
+msgstr "NAZIV [SLIVNIK]"
+
+#: ../src/utils/pactl.c:1577
+msgid "NAME|#N VOLUME [VOLUME ...]"
+msgstr "NAZIV|#N GLASNOĆA ZVUKA [GLASNOĆA ZVUKA ...]"
+
+#: ../src/utils/pactl.c:1578
+msgid "#N VOLUME [VOLUME ...]"
+msgstr "#N GLASNOĆA ZVUKA [GLASNOĆA ZVUKA ...]"
+
+#: ../src/utils/pactl.c:1579
+msgid "NAME|#N 1|0|toggle"
+msgstr "NAZIV|#N 1|0|prebacivanje"
+
+#: ../src/utils/pactl.c:1580
+msgid "#N 1|0|toggle"
+msgstr "#N 1|0|prebacivanje"
+
+#: ../src/utils/pactl.c:1581
+msgid "#N FORMATS"
+msgstr "#N FORMATI"
+
+#: ../src/utils/pactl.c:1584
+#, c-format
+msgid ""
+"\n"
+"The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
+"can be used to specify the default sink, source and monitor.\n"
+msgstr ""
+"\n"
+"Posebni nazivi @DEFAULT_SINK@, @DEFAULT_SOURCE@ i @DEFAULT_MONITOR@\n"
+"mogu se koristiti za određivanje zadanog slivnika, izvora i nadgledanja.\n"
+
+#: ../src/utils/pactl.c:1587
+#, c-format
+msgid ""
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect to\n"
+"  -n, --client-name=NAME                How to call this client on the server\n"
+msgstr ""
+"\n"
+"  -h, --help                            Prikazuje ovu pomoć\n"
+"      --version                         Prikazuje inačicu\n"
+"\n"
+"  -s, --server=SERVER                   Naziv poslužitelja za povezivanje\n"
+"  -n, --client-name=NAME                Kako nazvati ovaj klijent na "
+"poslužitelju\n"
+
+#: ../src/utils/pactl.c:1628
+#, c-format
+msgid ""
+"pactl %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pactl %s\n"
+"Kompilirano s libpulse %s\n"
+"Povezano s libpulse %s\n"
+
+#: ../src/utils/pactl.c:1684
+#, c-format
+msgid "Specify nothing, or one of: %s"
+msgstr "Ne određuj ništa, ili jedan od: %s"
+
+#: ../src/utils/pactl.c:1694
+msgid "Please specify a sample file to load"
+msgstr "Odredi datoteku uzorka za učitavanje"
+
+#: ../src/utils/pactl.c:1707
+msgid "Failed to open sound file."
+msgstr "Neuspjelo otvaranje datoteke zvuka."
+
+#: ../src/utils/pactl.c:1719
+msgid "Warning: Failed to determine sample specification from file."
+msgstr "Upozorenje: neuspjelo otkrivanje specifikacija uzorka iz datoteke"
+
+#: ../src/utils/pactl.c:1729
+msgid "You have to specify a sample name to play"
+msgstr "Morate odrediti naziv uzorka za reprodukciju"
+
+#: ../src/utils/pactl.c:1741
+msgid "You have to specify a sample name to remove"
+msgstr "Morate odrediti naziv uzorka za uklanjanje"
+
+#: ../src/utils/pactl.c:1750
+msgid "You have to specify a sink input index and a sink"
+msgstr "Morate odrediti sadržaj ulaza slivnika i slivnik"
+
+#: ../src/utils/pactl.c:1760
+msgid "You have to specify a source output index and a source"
+msgstr "Morate odrediti sadržaj izlaza izvora i izvor"
+
+#: ../src/utils/pactl.c:1775
+msgid "You have to specify a module name and arguments."
+msgstr "Morate odrediti naziv modula i argumente"
+
+#: ../src/utils/pactl.c:1795
+msgid "You have to specify a module index or name"
+msgstr "Morate odrediti sadržaj modula ili naziv"
+
+#: ../src/utils/pactl.c:1808
+msgid ""
+"You may not specify more than one sink. You have to specify a boolean value."
+msgstr ""
+"Možda niste odredili više od jednog slivnika. Morate odrediti boolean "
+"vrijednosti"
+
+#: ../src/utils/pactl.c:1813 ../src/utils/pactl.c:1833
+msgid "Invalid suspend specification."
+msgstr "Neispravna specifikacija suspendiranja."
+
+#: ../src/utils/pactl.c:1828
+msgid ""
+"You may not specify more than one source. You have to specify a boolean value."
+msgstr ""
+"Možda niste odredili više od jednog izvora. Morate odrediti boolean vrijednosti"
+
+#: ../src/utils/pactl.c:1845
+msgid "You have to specify a card name/index and a profile name"
+msgstr "Morate odrediti naziv kartice/sadržaj i naziv profila"
+
+#: ../src/utils/pactl.c:1856
+msgid "You have to specify a sink name/index and a port name"
+msgstr "Morate odrediti naziv slivnika/sadržaj i naziv ulaza"
+
+#: ../src/utils/pactl.c:1867
+msgid "You have to specify a sink name"
+msgstr "Morate odrediti naziv slivnika"
+
+#: ../src/utils/pactl.c:1877
+msgid "You have to specify a source name/index and a port name"
+msgstr "Morate odrediti naziv izvora/sadržaj i naziv ulaza"
+
+#: ../src/utils/pactl.c:1888
+msgid "You have to specify a source name"
+msgstr "Morate odrediti naziv izvora"
+
+#: ../src/utils/pactl.c:1898
+msgid "You have to specify a sink name/index and a volume"
+msgstr "Morate odrediti naziv slivnika/sadržaj i glasnoću zvuka"
+
+#: ../src/utils/pactl.c:1911
+msgid "You have to specify a source name/index and a volume"
+msgstr "Morate odrediti naziv izvora/sadržaj i glasnoću zvuka"
+
+#: ../src/utils/pactl.c:1924
+msgid "You have to specify a sink input index and a volume"
+msgstr "Morate odrediti sadržaj ulaza slivnika i glasnoću zvuka"
+
+#: ../src/utils/pactl.c:1929
+msgid "Invalid sink input index"
+msgstr "Neispravan sadržaj ulaza slivnika"
+
+#: ../src/utils/pactl.c:1940
+msgid "You have to specify a source output index and a volume"
+msgstr "Morate odrediti sadržaj izlaza izvora i glasanoću zvuka"
+
+#: ../src/utils/pactl.c:1945
+msgid "Invalid source output index"
+msgstr "Neispravan sadržaj izlaza izvora"
+
+#: ../src/utils/pactl.c:1956
+msgid ""
+"You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+"Morate odrediti naziv slivnika/sadržaj i radnju utišavanja (0, 1, ili "
+"'prebacivanje')"
+
+#: ../src/utils/pactl.c:1961 ../src/utils/pactl.c:1976 ../src/utils/pactl.c:1996
+#: ../src/utils/pactl.c:2014
+msgid "Invalid mute specification"
+msgstr "Neispravne specifikacije utišavanja"
+
+#: ../src/utils/pactl.c:1971
+msgid ""
+"You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+"Morate odrediti naziv izvora/sadržaj i radnju utišavanja (0, 1, ili "
+"'prebacivanje')"
+
+#: ../src/utils/pactl.c:1986
+msgid ""
+"You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+"Morate odrediti naziv sadržaj ulaza slivnika i radnju utišavanja (0, 1, ili "
+"'prebacivanje')"
+
+#: ../src/utils/pactl.c:1991
+msgid "Invalid sink input index specification"
+msgstr "Neispravna specifikacija sadržaja ulaza slivnika"
+
+#: ../src/utils/pactl.c:2004
+msgid ""
+"You have to specify a source output index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+"Morate odrediti sadržaj izlaza izvora i radnju utišavanja (0, 1, ili "
+"'prebacivanje')"
+
+#: ../src/utils/pactl.c:2009
+msgid "Invalid source output index specification"
+msgstr "Neispravna specifikacija sadržaja izlaza izvora"
+
+#: ../src/utils/pactl.c:2026
+msgid ""
+"You have to specify a sink index and a semicolon-separated list of supported "
+"formats"
+msgstr ""
+"Morate odrediti sadržaj slivnika i popis podržanih formata odvojenih točka-"
+"zarezom"
+
+#: ../src/utils/pactl.c:2038
+msgid "You have to specify a card name/index, a port name and a latency offset"
+msgstr "Morate odrediti naziv kartice/sadržaj, naziv ulaza i pomak latencije"
+
+#: ../src/utils/pactl.c:2045
+msgid "Could not parse latency offset"
+msgstr "Nemoguća obrada pomaka latencije"
+
+#: ../src/utils/pactl.c:2057
+msgid "No valid command specified."
+msgstr "Nema određenih valjanih naredbi."
+
+#: ../src/utils/pasuspender.c:79
+#, c-format
+msgid "fork(): %s\n"
+msgstr "fork(): %s\n"
+
+#: ../src/utils/pasuspender.c:92
+#, c-format
+msgid "execvp(): %s\n"
+msgstr "execvp(): %s\n"
+
+#: ../src/utils/pasuspender.c:111
+#, c-format
+msgid "Failure to resume: %s\n"
+msgstr "Neuspjelo ponovno pokretanje: %s\n"
+
+#: ../src/utils/pasuspender.c:145
+#, c-format
+msgid "Failure to suspend: %s\n"
+msgstr "Neuspjela suspenzija: %s\n"
+
+#: ../src/utils/pasuspender.c:170
+#, c-format
+msgid "WARNING: Sound server is not local, not suspending.\n"
+msgstr "UPOZORENJE: zvučni poslužitelj nije lokalan, ne suspendira se.\n"
+
+#: ../src/utils/pasuspender.c:183
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "Povezivanje neuspjelo: %s\n"
+
+#: ../src/utils/pasuspender.c:201
+#, c-format
+msgid "Got SIGINT, exiting.\n"
+msgstr "SIGINT, izlazim.\n"
+
+#: ../src/utils/pasuspender.c:219
+#, c-format
+msgid "WARNING: Child process terminated by signal %u\n"
+msgstr "WARNING: podređeni proces je završen sa signalom %u\n"
+
+#: ../src/utils/pasuspender.c:228
+#, c-format
+msgid ""
+"%s [options] ... \n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"  -s, --server=SERVER                   The name of the server to connect to\n"
+"\n"
+msgstr ""
+"%s [mogućnosti] ... \n"
+"\n"
+"  -h, --help                            Prikazuje ovu pomoć\n"
+"      --version                         Prikazuje inačicu\n"
+"  -s, --server=SERVER                   Naziv poslužitelja za povezivanje\n"
+"\n"
+
+#: ../src/utils/pasuspender.c:266
+#, c-format
+msgid ""
+"pasuspender %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pasuspender %s\n"
+"Kompilirano s libpulse %s\n"
+"Povezano s libpulse %s\n"
+
+#: ../src/utils/pasuspender.c:295
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "pa_mainloop_new() neuspjelo.\n"
+
+#: ../src/utils/pasuspender.c:308
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "pa_context_new() neuspjelo.\n"
+
+#: ../src/utils/pasuspender.c:320
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "pa_mainloop_run() neuspjelo.\n"
+
+#: ../src/utils/pax11publish.c:58
+#, c-format
+msgid ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Show current PulseAudio data attached to X11 display (default)\n"
+" -e    Export local PulseAudio data to X11 display\n"
+" -i    Import PulseAudio data from X11 display to local environment variables "
+"and cookie file.\n"
+" -r    Remove PulseAudio data from X11 display\n"
+msgstr ""
+"%s [-D prikaz] [-S poslužitelj] [-O slivnik] [-I izvor] [-c datoteka]  [-d|-e|-"
+"i|-r]\n"
+"\n"
+" -d    Prikazuje trenutne PulseAudio podatke povezane s X11 zaslonom (zadano)\n"
+" -e    Izvezi lokalne PulseAudio podatke na X11 zaslon\n"
+" -i    Uvezi PulseAudio podatke s X11 zaslona u varijable lokalnog okruženja i "
+"datoteku kolačića.\n"
+" -r    Ukloni PulseAudio podatke s X11 zaslona\n"
+
+#: ../src/utils/pax11publish.c:91
+#, c-format
+msgid "Failed to parse command line.\n"
+msgstr "Neuspjela obrada naredbenog redka.\n"
+
+#: ../src/utils/pax11publish.c:110
+#, c-format
+msgid "Server: %s\n"
+msgstr "Poslužitelj: %s\n"
+
+#: ../src/utils/pax11publish.c:112
+#, c-format
+msgid "Source: %s\n"
+msgstr "Izvor: %s\n"
+
+#: ../src/utils/pax11publish.c:114
+#, c-format
+msgid "Sink: %s\n"
+msgstr "Slivnik: %s\n"
+
+#: ../src/utils/pax11publish.c:116
+#, c-format
+msgid "Cookie: %s\n"
+msgstr "Kolačić: %s\n"
+
+#: ../src/utils/pax11publish.c:134
+#, c-format
+msgid "Failed to parse cookie data\n"
+msgstr "Neuspjela obrada podataka kolačića\n"
+
+#: ../src/utils/pax11publish.c:139
+#, c-format
+msgid "Failed to save cookie data\n"
+msgstr "Neuspjelo spremanje podataka kolačića\n"
+
+#: ../src/utils/pax11publish.c:168
+#, c-format
+msgid "Failed to get FQDN.\n"
+msgstr "Neuspjelo FQDN dobivanje.\n"
+
+#: ../src/utils/pax11publish.c:188
+#, c-format
+msgid "Failed to load cookie data\n"
+msgstr "Neuspjelo učitavanje podataka kolačića\n"
+
+#: ../src/utils/pax11publish.c:206
+#, c-format
+msgid "Not yet implemented.\n"
+msgstr "Još nije implementirano.\n"
+
+#~ msgid ""
+#~ "OK, so you are running PA in system mode. Please note that you most likely "
+#~ "shouldn't be doing that.\n"
+#~ "If you do it nonetheless then it's your own fault if things don't work as "
+#~ "expected.\n"
+#~ "Please read http://www.freedesktop.org/wiki/Software/PulseAudio/"
+#~ "Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
+#~ "mode is usually a bad idea."
+#~ msgstr ""
+#~ "U redu, PA je pokrenut u načinu rada sustava. Zapamtite kako to uglavnom ne "
+#~ "biste trebali raditi.\n"
+#~ "Ako ste ipak to učinili, vi ste odgovorni ako stvari ne rade kako bi se od "
+#~ "njih očekivalo.\n"
+#~ "Pročitajte http://www.freedesktop.org/wiki/Software/PulseAudio/"
+#~ "Documentation/User/WhatIsWrongWithSystemWide/ za objašnjenje zašto je način "
+#~ "rada sustava uobičajeno loša ideja."
