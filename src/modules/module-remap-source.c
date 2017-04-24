@@ -91,7 +91,8 @@ static int source_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t 
              * make sure we don't access it in that time. Also, the
              * source output is first shut down, the source second. */
             if (!PA_SOURCE_IS_LINKED(u->source->thread_info.state) ||
-                !PA_SOURCE_OUTPUT_IS_LINKED(u->source_output->thread_info.state)) {
+                !PA_SOURCE_OUTPUT_IS_LINKED(u->source_output->thread_info.state) ||
+                !u->source_output->source) {
                 *((int64_t*) data) = 0;
                 return 0;
             }

@@ -347,7 +347,8 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
          * make sure we don't access it in that time. Also, the
          * sink input is first shut down, the sink second. */
         if (!PA_SINK_IS_LINKED(u->sink->thread_info.state) ||
-                !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state)) {
+            !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state) ||
+            !u->sink_input->sink) {
             *((int64_t*) data) = 0;
             return 0;
         }
