@@ -165,14 +165,14 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             return 0;
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            jack_nframes_t l, ft, d;
+            jack_nframes_t ft, d;
             jack_latency_range_t r;
             size_t n;
             int32_t number_of_frames;
 
             /* This is the "worst-case" latency */
             jack_port_get_latency_range(u->port[0], JackPlaybackLatency, &r);
-            l = r.max + u->frames_in_buffer;
+            number_of_frames = r.max + u->frames_in_buffer;
 
             if (u->saved_frame_time_valid) {
                 /* Adjust the worst case latency by the time that
@@ -180,7 +180,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                 ft = jack_frame_time(u->client);
                 d = ft > u->saved_frame_time ? ft - u->saved_frame_time : 0;
-                number_of_frames = (int32_t)l - d;
+                number_of_frames -= d;
             }
 
             /* Convert it to usec */
