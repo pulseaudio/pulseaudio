@@ -80,6 +80,14 @@ enum {
     BLUETOOTH_MESSAGE_MAX
 };
 
+enum {
+    PA_SOURCE_MESSAGE_SETUP_STREAM = PA_SOURCE_MESSAGE_MAX,
+};
+
+enum {
+    PA_SINK_MESSAGE_SETUP_STREAM = PA_SINK_MESSAGE_MAX,
+};
+
 typedef struct bluetooth_msg {
     pa_msgobject parent;
     pa_card *card;
@@ -112,6 +120,7 @@ struct userdata {
     pa_bluetooth_device *device;
     pa_bluetooth_transport *transport;
     bool transport_acquired;
+    bool stream_setup_done;
 
     pa_card *card;
     pa_sink *sink;
@@ -731,6 +740,7 @@ static void teardown_stream(struct userdata *u) {
     }
 
     pa_log_debug("Audio stream torn down");
+    u->stream_setup_done = false;
 }
 
 static int transport_acquire(struct userdata *u, bool optional) {
@@ -743,7 +753,7 @@ static int transport_acquire(struct userdata *u, bool optional) {
 
     u->stream_fd = u->transport->acquire(u->transport, optional, &u->read_link_mtu, &u->write_link_mtu);
     if (u->stream_fd < 0)
-        return -1;
+        return u->stream_fd;
 
     u->transport_acquired = true;
     pa_log_info("Transport %s acquired: fd %d", u->transport->path, u->stream_fd);
@@ -765,6 +775,11 @@ static void transport_release(struct userdata *u) {
     u->transport_acquired = false;
 
     teardown_stream(u);
+
+    /* Set transport state to idle if this was not already done by the remote end closing
+     * the file descriptor. Only do this when called from the I/O thread */
+    if (pa_thread_mq_get() != NULL && u->transport->state == PA_BLUETOOTH_TRANSPORT_STATE_PLAYING)
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u->msg), BLUETOOTH_MESSAGE_STREAM_FD_HUP, NULL, 0, NULL, NULL);
 }
 
 /* Run from I/O thread */
@@ -802,6 +817,10 @@ static void setup_stream(struct userdata *u) {
     struct pollfd *pollfd;
     int one;
 
+    /* return if stream is already set up */
+    if (u->stream_setup_done)
+        return;
+
     pa_log_info("Transport %s resuming", u->transport->path);
 
     transport_config_mtu(u);
@@ -825,9 +844,24 @@ static void setup_stream(struct userdata *u) {
 
     u->read_index = u->write_index = 0;
     u->started_at = 0;
+    u->stream_setup_done = true;
 
     if (u->source)
         u->read_smoother = pa_smoother_new(PA_USEC_PER_SEC, 2*PA_USEC_PER_SEC, true, true, 10, pa_rtclock_now(), true);
+}
+
+/* Called from I/O thread, returns true if the transport was acquired or
+ * a connection was requested successfully. */
+static bool setup_transport_and_stream(struct userdata *u) {
+    int transport_error;
+
+    transport_error = transport_acquire(u, false);
+    if (transport_error < 0) {
+        if (transport_error != -EAGAIN)
+            return false;
+    } else
+        setup_stream(u);
+    return true;
 }
 
 /* Run from IO thread */
@@ -865,12 +899,8 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                         break;
 
                     /* Resume the device if the sink was suspended as well */
-                    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
-                        if (transport_acquire(u, false) < 0)
-                            failed = true;
-                        else
-                            setup_stream(u);
-                    }
+                    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
+                        failed = !setup_transport_and_stream(u);
 
                     /* We don't resume the smoother here. Instead we
                      * wait until the first packet arrives */
@@ -898,6 +928,11 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
             return 0;
         }
+
+        case PA_SOURCE_MESSAGE_SETUP_STREAM:
+            setup_stream(u);
+            return 0;
+
     }
 
     r = pa_source_process_msg(o, code, data, offset, chunk);
@@ -970,8 +1005,15 @@ static int add_source(struct userdata *u) {
             case PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY:
                 data.suspend_cause = PA_SUSPEND_USER;
                 break;
-            case PA_BLUETOOTH_PROFILE_A2DP_SINK:
             case PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT:
+                /* u->stream_fd contains the error returned by the last transport_acquire()
+                 * EAGAIN means we are waiting for a NewConnection signal */
+                if (u->stream_fd == -EAGAIN)
+                    data.suspend_cause = PA_SUSPEND_USER;
+                else
+                    pa_assert_not_reached();
+                break;
+            case PA_BLUETOOTH_PROFILE_A2DP_SINK:
             case PA_BLUETOOTH_PROFILE_OFF:
                 pa_assert_not_reached();
                 break;
@@ -1029,12 +1071,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                         break;
 
                     /* Resume the device if the source was suspended as well */
-                    if (!u->source || !PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
-                        if (transport_acquire(u, false) < 0)
-                            failed = true;
-                        else
-                            setup_stream(u);
-                    }
+                    if (!u->source || !PA_SOURCE_IS_OPENED(u->source->thread_info.state))
+                        failed = !setup_transport_and_stream(u);
 
                     break;
 
@@ -1061,6 +1099,10 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             return 0;
         }
+
+        case PA_SINK_MESSAGE_SETUP_STREAM:
+            setup_stream(u);
+            return 0;
     }
 
     r = pa_sink_process_msg(o, code, data, offset, chunk);
@@ -1132,10 +1174,17 @@ static int add_sink(struct userdata *u) {
             case PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY:
                 data.suspend_cause = PA_SUSPEND_USER;
                 break;
+            case PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT:
+                /* u->stream_fd contains the error returned by the last transport_acquire()
+                 * EAGAIN means we are waiting for a NewConnection signal */
+                if (u->stream_fd == -EAGAIN)
+                    data.suspend_cause = PA_SUSPEND_USER;
+                else
+                    pa_assert_not_reached();
+                break;
             case PA_BLUETOOTH_PROFILE_A2DP_SINK:
                 /* Profile switch should have failed */
             case PA_BLUETOOTH_PROFILE_A2DP_SOURCE:
-            case PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT:
             case PA_BLUETOOTH_PROFILE_OFF:
                 pa_assert_not_reached();
                 break;
@@ -1292,8 +1341,13 @@ static int setup_transport(struct userdata *u) {
 
     if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE || u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY)
         transport_acquire(u, true); /* In case of error, the sink/sources will be created suspended */
-    else if (transport_acquire(u, false) < 0)
-        return -1; /* We need to fail here until the interactions with module-suspend-on-idle and alike get improved */
+    else {
+        int transport_error;
+
+        transport_error = transport_acquire(u, false);
+        if (transport_error < 0 && transport_error != -EAGAIN)
+            return -1; /* We need to fail here until the interactions with module-suspend-on-idle and alike get improved */
+    }
 
     transport_config(u);
 
@@ -2001,6 +2055,14 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
         if (u->source) {
             pa_log_debug("Resuming source %s because its transport state changed to playing", u->source->name);
 
+            /* When the ofono backend resumes source or sink when in the audio gateway role, the
+             * state of source or sink may already be RUNNING before the transport is acquired via
+             * hf_audio_agent_new_connection(), so the pa_source_suspend() call will not lead to a
+             * state change message. In this case we explicitely need to signal the I/O thread to
+             * set up the stream. */
+            if (PA_SOURCE_IS_OPENED(u->source->state))
+                pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), PA_SOURCE_MESSAGE_SETUP_STREAM, NULL, 0, NULL);
+
             /* We remove the IDLE suspend cause, because otherwise
              * module-loopback doesn't uncork its streams. FIXME: Messing with
              * the IDLE suspend cause here is wrong, the correct way to handle
@@ -2013,6 +2075,10 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
 
         if (u->sink) {
             pa_log_debug("Resuming sink %s because its transport state changed to playing", u->sink->name);
+
+            /* Same comment as above */
+            if (PA_SINK_IS_OPENED(u->sink->state))
+                pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_SETUP_STREAM, NULL, 0, NULL);
 
             /* FIXME: See the previous comment. */
             pa_sink_suspend(u->sink, false, PA_SUSPEND_IDLE|PA_SUSPEND_USER);
@@ -2215,6 +2281,7 @@ int pa__init(pa_module* m) {
 
     u->msg->parent.process_msg = device_process_msg;
     u->msg->card = u->card;
+    u->stream_setup_done = false;
 
     if (u->profile != PA_BLUETOOTH_PROFILE_OFF)
         if (init_profile(u) < 0)

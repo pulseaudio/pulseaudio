@@ -161,7 +161,7 @@ static int hf_audio_agent_transport_acquire(pa_bluetooth_transport *t, bool opti
         DBusError derr;
 
         if (card->connecting)
-            return -1;
+            return -EAGAIN;
 
         card->connecting = true;
 
@@ -172,7 +172,7 @@ static int hf_audio_agent_transport_acquire(pa_bluetooth_transport *t, bool opti
             return -1;
 
         if (card->connecting)
-            return -1;
+            return -EAGAIN;
     }
 
     /* The correct block size should take into account the SCO MTU from
