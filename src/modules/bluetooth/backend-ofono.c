@@ -155,7 +155,7 @@ static int hf_audio_agent_transport_acquire(pa_bluetooth_transport *t, bool opti
 
     pa_assert(card);
 
-    if (!optional) {
+    if (!optional && card->fd < 0) {
         DBusMessage *m;
 
         pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.ofono.HandsfreeAudioCard", "Connect"));
