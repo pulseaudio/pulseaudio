@@ -2060,8 +2060,14 @@ static pa_hook_result_t transport_state_changed_cb(pa_bluetooth_discovery *y, pa
     if (t == u->transport && t->state <= PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
         pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, "off"), false) >= 0);
 
-    if (t->device == u->device)
+    if (t->device == u->device) {
+        /* Auto recover from errors causing the profile to be set to off */
+        if (u->profile == PA_BLUETOOTH_PROFILE_OFF && t->state == PA_BLUETOOTH_TRANSPORT_STATE_PLAYING) {
+            pa_log_debug("Switching to profile %s", pa_bluetooth_profile_to_string(t->profile));
+            pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, pa_bluetooth_profile_to_string(t->profile)), false) >= 0);
+        }
         handle_transport_state_change(u, t);
+    }
 
     return PA_HOOK_OK;
 }
