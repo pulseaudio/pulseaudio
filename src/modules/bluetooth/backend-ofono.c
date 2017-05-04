@@ -549,6 +549,8 @@ static DBusMessage *hf_audio_agent_new_connection(DBusConnection *c, DBusMessage
     if (!card || codec != HFP_AUDIO_CODEC_CVSD || card->transport->state == PA_BLUETOOTH_TRANSPORT_STATE_PLAYING) {
         pa_log_warn("New audio connection invalid arguments (path=%s fd=%d, codec=%d)", path, fd, codec);
         pa_assert_se(r = dbus_message_new_error(m, "org.ofono.Error.InvalidArguments", "Invalid arguments in method call"));
+        shutdown(fd, SHUT_RDWR);
+        close(fd);
         return r;
     }
 
