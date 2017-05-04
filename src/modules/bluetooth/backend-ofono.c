@@ -201,13 +201,10 @@ static void hf_audio_agent_transport_release(pa_bluetooth_transport *t) {
 
     pa_assert(card);
 
-    if (t->state <= PA_BLUETOOTH_TRANSPORT_STATE_IDLE) {
+    if (card->fd < 0) {
         pa_log_info("Transport %s already released", t->path);
         return;
     }
-
-    if (card->fd < 0)
-        return;
 
     /* shutdown to make sure connection is dropped immediately */
     shutdown(card->fd, SHUT_RDWR);
@@ -546,7 +543,7 @@ static DBusMessage *hf_audio_agent_new_connection(DBusConnection *c, DBusMessage
 
     card->connecting = false;
 
-    if (!card || codec != HFP_AUDIO_CODEC_CVSD || card->transport->state == PA_BLUETOOTH_TRANSPORT_STATE_PLAYING) {
+    if (!card || codec != HFP_AUDIO_CODEC_CVSD || card->fd >= 0) {
         pa_log_warn("New audio connection invalid arguments (path=%s fd=%d, codec=%d)", path, fd, codec);
         pa_assert_se(r = dbus_message_new_error(m, "org.ofono.Error.InvalidArguments", "Invalid arguments in method call"));
         shutdown(fd, SHUT_RDWR);
