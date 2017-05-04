@@ -65,6 +65,7 @@ struct hf_audio_card {
     char *remote_address;
     char *local_address;
 
+    bool connecting;
     int fd;
     uint8_t codec;
 
@@ -156,12 +157,22 @@ static int hf_audio_agent_transport_acquire(pa_bluetooth_transport *t, bool opti
     pa_assert(card);
 
     if (!optional && card->fd < 0) {
-        DBusMessage *m;
+        DBusMessage *m, *r;
+        DBusError derr;
 
+        if (card->connecting)
+            return -1;
+
+        card->connecting = true;
+
+        dbus_error_init(&derr);
         pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.ofono.HandsfreeAudioCard", "Connect"));
-        pa_assert_se(dbus_connection_send(pa_dbus_connection_get(card->backend->connection), m, NULL));
+        r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(card->backend->connection), m, -1, &derr);
+        if (!r)
+            return -1;
 
-        return -1;
+        if (card->connecting)
+            return -1;
     }
 
     /* The correct block size should take into account the SCO MTU from
@@ -532,6 +543,8 @@ static DBusMessage *hf_audio_agent_new_connection(DBusConnection *c, DBusMessage
     }
 
     card = pa_hashmap_get(backend->cards, path);
+
+    card->connecting = false;
 
     if (!card || codec != HFP_AUDIO_CODEC_CVSD || card->transport->state == PA_BLUETOOTH_TRANSPORT_STATE_PLAYING) {
         pa_log_warn("New audio connection invalid arguments (path=%s fd=%d, codec=%d)", path, fd, codec);
