@@ -3375,6 +3375,9 @@ int pa_sink_set_port(pa_sink *s, const char *name, bool save) {
 
     pa_sink_set_port_latency_offset(s, s->active_port->latency_offset);
 
+    /* The active port affects the default sink selection. */
+    pa_core_update_default_sink(s->core);
+
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_PORT_CHANGED], s);
 
     return 0;
