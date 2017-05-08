@@ -1627,6 +1627,22 @@ static bool find_filter_sink_input(pa_sink_input *target, pa_sink *s) {
     return false;
 }
 
+static bool is_filter_sink_moving(pa_sink_input *i) {
+    pa_sink *sink = i->sink;
+
+    if (!sink)
+        return false;
+
+    while (sink->input_to_master) {
+        sink = sink->input_to_master->sink;
+
+        if (!sink)
+            return true;
+    }
+
+    return false;
+}
+
 /* Called from main context */
 bool pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
     pa_sink_input_assert_ref(i);
@@ -1646,6 +1662,16 @@ bool pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
     /* Make sure we're not creating a filter sink cycle */
     if (find_filter_sink_input(i, dest)) {
         pa_log_debug("Can't connect input to %s, as that would create a cycle.", dest->name);
+        return false;
+    }
+
+    /* If this sink input is connected to a filter sink that itself is moving,
+     * then don't allow the move. Moving requires sending a message to the IO
+     * thread of the old sink, and if the old sink is a filter sink that is
+     * moving, there's no IO thread associated to the old sink. */
+    if (is_filter_sink_moving(i)) {
+        pa_log_debug("Can't move input from filter sink %s, because the filter sink itself is currently moving.",
+                     i->sink->name);
         return false;
     }
 

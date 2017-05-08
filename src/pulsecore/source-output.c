@@ -1265,6 +1265,22 @@ static bool find_filter_source_output(pa_source_output *target, pa_source *s) {
     return false;
 }
 
+static bool is_filter_source_moving(pa_source_output *o) {
+    pa_source *source = o->source;
+
+    if (!source)
+        return false;
+
+    while (source->output_from_master) {
+        source = source->output_from_master->source;
+
+        if (!source)
+            return true;
+    }
+
+    return false;
+}
+
 /* Called from main context */
 bool pa_source_output_may_move_to(pa_source_output *o, pa_source *dest) {
     pa_source_output_assert_ref(o);
@@ -1283,6 +1299,17 @@ bool pa_source_output_may_move_to(pa_source_output *o, pa_source *dest) {
     /* Make sure we're not creating a filter source cycle */
     if (find_filter_source_output(o, dest)) {
         pa_log_debug("Can't connect output to %s, as that would create a cycle.", dest->name);
+        return false;
+    }
+
+    /* If this source output is connected to a filter source that itself is
+     * moving, then don't allow the move. Moving requires sending a message to
+     * the IO thread of the old source, and if the old source is a filter
+     * source that is moving, there's no IO thread associated to the old
+     * source. */
+    if (is_filter_source_moving(o)) {
+        pa_log_debug("Can't move output from filter source %s, because the filter source itself is currently moving.",
+                     o->source->name);
         return false;
     }
 
