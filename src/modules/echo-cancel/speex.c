@@ -128,10 +128,10 @@ static bool pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_spec 
                 speex_preprocess_ctl(ec->params.speex.pp_state, SPEEX_PREPROCESS_SET_ECHO_SUPPRESS_ACTIVE,
                                      &echo_suppress_attenuation_active);
             }
-
-            speex_preprocess_ctl(ec->params.speex.pp_state, SPEEX_PREPROCESS_SET_ECHO_STATE,
-                                 ec->params.speex.state);
         }
+
+        speex_preprocess_ctl(ec->params.speex.pp_state, SPEEX_PREPROCESS_SET_ECHO_STATE,
+                             ec->params.speex.state);
 
         pa_log_info("Loaded speex preprocessor with params: agc=%s, denoise=%s, echo_suppress=%s", pa_yes_no(agc),
                     pa_yes_no(denoise), pa_yes_no(echo_suppress));
