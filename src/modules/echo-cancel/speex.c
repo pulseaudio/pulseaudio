@@ -33,6 +33,7 @@
 #define DEFAULT_FILTER_SIZE_MS 200
 #define DEFAULT_AGC_ENABLED true
 #define DEFAULT_DENOISE_ENABLED true
+#define DEFAULT_DEREVERB_ENABLED true
 #define DEFAULT_ECHO_SUPPRESS_ENABLED true
 #define DEFAULT_ECHO_SUPPRESS_ATTENUATION 0
 
@@ -41,6 +42,7 @@ static const char* const valid_modargs[] = {
     "filter_size_ms",
     "agc",
     "denoise",
+    "dereverb",
     "echo_suppress",
     "echo_suppress_attenuation",
     "echo_suppress_attenuation_active",
@@ -61,6 +63,7 @@ static void speex_ec_fixate_spec(pa_sample_spec *rec_ss, pa_channel_map *rec_map
 static bool pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_spec *out_ss, uint32_t nframes, pa_modargs *ma) {
     bool agc;
     bool denoise;
+    bool dereverb;
     bool echo_suppress;
     int32_t echo_suppress_attenuation;
     int32_t echo_suppress_attenuation_active;
@@ -74,6 +77,12 @@ static bool pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_spec 
     denoise = DEFAULT_DENOISE_ENABLED;
     if (pa_modargs_get_value_boolean(ma, "denoise", &denoise) < 0) {
         pa_log("Failed to parse denoise value");
+        goto fail;
+    }
+
+    dereverb = DEFAULT_DEREVERB_ENABLED;
+    if (pa_modargs_get_value_boolean(ma, "dereverb", &dereverb) < 0) {
+        pa_log("Failed to parse dereverb value");
         goto fail;
     }
 
@@ -103,11 +112,11 @@ static bool pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_spec 
         goto fail;
     }
 
-    if (agc || denoise || echo_suppress) {
+    if (agc || denoise || dereverb || echo_suppress) {
         spx_int32_t tmp;
 
         if (out_ss->channels != 1) {
-            pa_log("AGC, denoising and echo suppression only work with channels=1");
+            pa_log("AGC, denoising, dereverb and echo suppression only work with channels=1");
             goto fail;
         }
 
@@ -118,6 +127,9 @@ static bool pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_spec 
 
         tmp = denoise;
         speex_preprocess_ctl(ec->params.speex.pp_state, SPEEX_PREPROCESS_SET_DENOISE, &tmp);
+
+        tmp = dereverb;
+        speex_preprocess_ctl(ec->params.speex.pp_state, SPEEX_PREPROCESS_SET_DEREVERB, &tmp);
 
         if (echo_suppress) {
             if (echo_suppress_attenuation)
@@ -133,8 +145,8 @@ static bool pa_speex_ec_preprocessor_init(pa_echo_canceller *ec, pa_sample_spec 
         speex_preprocess_ctl(ec->params.speex.pp_state, SPEEX_PREPROCESS_SET_ECHO_STATE,
                              ec->params.speex.state);
 
-        pa_log_info("Loaded speex preprocessor with params: agc=%s, denoise=%s, echo_suppress=%s", pa_yes_no(agc),
-                    pa_yes_no(denoise), pa_yes_no(echo_suppress));
+        pa_log_info("Loaded speex preprocessor with params: agc=%s, denoise=%s, dereverb=%s, echo_suppress=%s",
+                    pa_yes_no(agc), pa_yes_no(denoise), pa_yes_no(dereverb), pa_yes_no(echo_suppress));
     } else
         pa_log_info("All preprocessing options are disabled");
 
