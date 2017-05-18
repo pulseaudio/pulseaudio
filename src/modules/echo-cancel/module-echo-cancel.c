@@ -459,6 +459,19 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
                 pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec);
 
             return 0;
+
+        case PA_SINK_MESSAGE_SET_STATE: {
+            pa_sink_state_t new_state = (pa_sink_state_t) PA_PTR_TO_UINT(data);
+
+            /* When set to running or idle for the first time, request a rewind
+             * of the master sink to make sure we are heard immediately */
+            if ((new_state == PA_SINK_IDLE || new_state == PA_SINK_RUNNING) && u->sink->thread_info.state == PA_SINK_INIT) {
+                pa_log_debug("Requesting rewind due to state change.");
+                pa_sink_input_request_rewind(u->sink_input, 0, false, true, true);
+            }
+            break;
+        }
+
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
@@ -883,6 +896,9 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     pa_source_output_assert_io_context(o);
     pa_assert_se(u = o->userdata);
 
+    if (!PA_SOURCE_IS_LINKED(u->source->thread_info.state))
+        return;
+
     if (!PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(u->source_output))) {
         pa_log("Push when no link?");
         return;
@@ -959,6 +975,9 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert(chunk);
     pa_assert_se(u = i->userdata);
 
+    if (!PA_SINK_IS_LINKED(u->sink->thread_info.state))
+        return -1;
+
     if (u->sink->thread_info.rewind_requested)
         pa_sink_process_rewind(u->sink, 0);
 
@@ -986,6 +1005,10 @@ static void source_output_process_rewind_cb(pa_source_output *o, size_t nbytes) 
     pa_source_output_assert_io_context(o);
     pa_assert_se(u = o->userdata);
 
+    /* If the source is not yet linked, there is nothing to rewind */
+    if (!PA_SOURCE_IS_LINKED(u->source->thread_info.state))
+        return;
+
     pa_source_process_rewind(u->source, nbytes);
 
     /* go back on read side, we need to use older sink data for this */
@@ -1004,6 +1027,10 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
+
+    /* If the sink is not yet linked, there is nothing to rewind */
+    if (!PA_SINK_IS_LINKED(u->sink->thread_info.state))
+        return;
 
     pa_log_debug("Sink process rewind %lld", (long long) nbytes);
 
@@ -1248,7 +1275,8 @@ static void source_output_attach_cb(pa_source_output *o) {
 
     pa_log_debug("Source output %d attach", o->index);
 
-    pa_source_attach_within_thread(u->source);
+    if (PA_SOURCE_IS_LINKED(u->source->thread_info.state))
+        pa_source_attach_within_thread(u->source);
 
     u->rtpoll_item_read = pa_rtpoll_item_new_asyncmsgq_read(
             o->source->thread_info.rtpoll,
@@ -1286,7 +1314,8 @@ static void sink_input_attach_cb(pa_sink_input *i) {
             PA_RTPOLL_LATE,
             u->asyncmsgq);
 
-    pa_sink_attach_within_thread(u->sink);
+    if (PA_SINK_IS_LINKED(u->sink->thread_info.state))
+        pa_sink_attach_within_thread(u->sink);
 }
 
 /* Called from source I/O thread context. */
@@ -1297,7 +1326,8 @@ static void source_output_detach_cb(pa_source_output *o) {
     pa_source_output_assert_io_context(o);
     pa_assert_se(u = o->userdata);
 
-    pa_source_detach_within_thread(u->source);
+    if (PA_SOURCE_IS_LINKED(u->source->thread_info.state))
+        pa_source_detach_within_thread(u->source);
     pa_source_set_rtpoll(u->source, NULL);
 
     pa_log_debug("Source output %d detach", o->index);
@@ -1315,7 +1345,8 @@ static void sink_input_detach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    pa_sink_detach_within_thread(u->sink);
+    if (PA_SINK_IS_LINKED(u->sink->thread_info.state))
+        pa_sink_detach_within_thread(u->sink);
 
     pa_sink_set_rtpoll(u->sink, NULL);
 
@@ -1345,14 +1376,6 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
     pa_assert_se(u = i->userdata);
 
     pa_log_debug("Sink input %d state %d", i->index, state);
-
-    /* If we are added for the first time, ask for a rewinding so that
-     * we are heard right-away. */
-    if (PA_SINK_INPUT_IS_LINKED(state) &&
-        i->thread_info.state == PA_SINK_INPUT_INIT && i->sink) {
-        pa_log_debug("Requesting rewind due to state change.");
-        pa_sink_input_request_rewind(i, 0, false, true, true);
-    }
 }
 
 /* Called from main context. */
@@ -1365,11 +1388,12 @@ static void source_output_kill_cb(pa_source_output *o) {
 
     u->dead = true;
 
-    /* The order here matters! We first kill the source output, followed
-     * by the source. That means the source callbacks must be protected
-     * against an unconnected source output! */
-    pa_source_output_unlink(u->source_output);
+    /* The order here matters! We first kill the source so that streams can
+     * properly be moved away while the source output is still connected to
+     * the master. */
+    pa_source_output_cork(u->source_output, true);
     pa_source_unlink(u->source);
+    pa_source_output_unlink(u->source_output);
 
     pa_source_output_unref(u->source_output);
     u->source_output = NULL;
@@ -1391,11 +1415,12 @@ static void sink_input_kill_cb(pa_sink_input *i) {
 
     u->dead = true;
 
-    /* The order here matters! We first kill the sink input, followed
-     * by the sink. That means the sink callbacks must be protected
-     * against an unconnected sink input! */
-    pa_sink_input_unlink(u->sink_input);
+    /* The order here matters! We first kill the sink so that streams
+     * can properly be moved away while the sink input is still connected
+     * to the master. */
+    pa_sink_input_cork(u->sink_input, true);
     pa_sink_unlink(u->sink);
+    pa_sink_input_unlink(u->sink_input);
 
     pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;
@@ -1910,6 +1935,7 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
     pa_source_output_new_data_set_sample_spec(&source_output_data, &source_output_ss);
     pa_source_output_new_data_set_channel_map(&source_output_data, &source_output_map);
+    source_output_data.flags |= PA_SOURCE_OUTPUT_START_CORKED;
 
     if (autoloaded)
         source_output_data.flags |= PA_SOURCE_OUTPUT_DONT_MOVE;
@@ -1947,7 +1973,7 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &sink_ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &sink_map);
-    sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE;
+    sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE | PA_SINK_INPUT_START_CORKED;
 
     if (autoloaded)
         sink_input_data.flags |= PA_SINK_INPUT_DONT_MOVE;
@@ -2035,11 +2061,18 @@ int pa__init(pa_module*m) {
     pa_sink_set_latency_range(u->sink, blocksize_usec, blocksize_usec * MAX_LATENCY_BLOCKS);
     pa_sink_input_set_requested_latency(u->sink_input, blocksize_usec * MAX_LATENCY_BLOCKS);
 
+    /* The order here is important. The input/output must be put first,
+     * otherwise streams might attach to the sink/source before the
+     * sink input or source output is attached to the master. */
+    pa_sink_input_put(u->sink_input);
+    pa_source_output_put(u->source_output);
+
     pa_sink_put(u->sink);
     pa_source_put(u->source);
 
-    pa_sink_input_put(u->sink_input);
-    pa_source_output_put(u->source_output);
+    pa_source_output_cork(u->source_output, false);
+    pa_sink_input_cork(u->sink_input, false);
+
     pa_modargs_free(ma);
 
     return 0;
@@ -2081,19 +2114,24 @@ void pa__done(pa_module*m) {
         u->core->mainloop->time_free(u->time_event);
 
     if (u->source_output)
-        pa_source_output_unlink(u->source_output);
+        pa_source_output_cork(u->source_output, true);
     if (u->sink_input)
-        pa_sink_input_unlink(u->sink_input);
+        pa_sink_input_cork(u->sink_input, true);
 
     if (u->source)
         pa_source_unlink(u->source);
     if (u->sink)
         pa_sink_unlink(u->sink);
 
-    if (u->source_output)
+    if (u->source_output) {
+        pa_source_output_unlink(u->source_output);
         pa_source_output_unref(u->source_output);
-    if (u->sink_input)
+    }
+
+    if (u->sink_input) {
+        pa_sink_input_unlink(u->sink_input);
         pa_sink_input_unref(u->sink_input);
+    }
 
     if (u->source)
         pa_source_unref(u->source);
