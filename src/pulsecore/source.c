@@ -603,10 +603,12 @@ void pa_source_put(pa_source *s) {
     else
         pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
 
-    pa_core_update_default_source(s->core);
-
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PUT], s);
+
+    /* This function must be called after the PA_CORE_HOOK_SOURCE_PUT hook,
+     * because module-switch-on-connect needs to know the old default source */
+    pa_core_update_default_source(s->core);
 }
 
 /* Called from main context */

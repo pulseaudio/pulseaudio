@@ -75,6 +75,12 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* 
             return PA_HOOK_OK;
     }
 
+    /* No default sink, nothing to move away, just set the new default */
+    if (!c->default_sink) {
+        pa_core_set_configured_default_sink(c, sink);
+        return PA_HOOK_OK;
+    }
+
     if (c->default_sink == sink)
         return PA_HOOK_OK;
 
@@ -133,6 +139,12 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
             return PA_HOOK_OK;
         else if (pa_streq(s, "isa"))
             return PA_HOOK_OK;
+    }
+
+    /* No default source, nothing to move away, just set the new default */
+    if (!c->default_source) {
+        pa_core_set_configured_default_source(c, source);
+        return PA_HOOK_OK;
     }
 
     if (c->default_source == source)

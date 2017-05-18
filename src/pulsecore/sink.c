@@ -660,10 +660,12 @@ void pa_sink_put(pa_sink* s) {
 
     pa_source_put(s->monitor_source);
 
-    pa_core_update_default_sink(s->core);
-
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_PUT], s);
+
+    /* This function must be called after the PA_CORE_HOOK_SINK_PUT hook,
+     * because module-switch-on-connect needs to know the old default sink */
+    pa_core_update_default_sink(s->core);
 }
 
 /* Called from main context */
