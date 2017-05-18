@@ -83,8 +83,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             /* The sink is _put() before the sink input is, so let's
              * make sure we don't access it yet */
             if (!PA_SINK_IS_LINKED(u->sink->thread_info.state) ||
-                !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state) ||
-                !u->sink_input->sink) {
+                !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state)) {
                 *((int64_t*) data) = 0;
                 return 0;
             }
