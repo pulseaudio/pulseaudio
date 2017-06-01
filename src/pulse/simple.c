@@ -466,7 +466,7 @@ pa_usec_t pa_simple_get_latency(pa_simple *p, int *rerror) {
             pa_usec_t extra = 0;
 
             if (p->direction == PA_STREAM_RECORD)
-                extra = pa_bytes_to_usec(p->read_length, pa_stream_get_sample_spec(p->stream));
+                extra = -pa_bytes_to_usec(p->read_index, pa_stream_get_sample_spec(p->stream));
 
             if (negative) {
                 if (extra > t)
