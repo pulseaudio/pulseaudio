@@ -52,6 +52,7 @@
 #include <pulse/gccmacro.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/sample-util.h>
 
 /* On some systems SIOCINQ isn't defined, but FIONREAD is just an alias */
 #if !defined(SIOCINQ) && defined(FIONREAD)
@@ -92,6 +93,7 @@ struct fd_info {
     pa_io_event_flags_t io_flags;
 
     void *buf;
+    size_t leftover;
     size_t rec_offset;
 
     int operation_success;
@@ -641,6 +643,7 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
     pthread_mutex_init(&i->mutex, NULL);
     i->ref = 1;
     i->buf = NULL;
+    i->leftover = 0;
     i->rec_offset = 0;
     i->unusable = 0;
     pa_cvolume_reset(&i->sink_volume, 2);
@@ -866,15 +869,18 @@ static int fd_info_copy_data(fd_info *i, int force) {
 
         while (n >= i->fragment_size || force) {
             ssize_t r;
+            size_t to_write;
 
             if (!i->buf) {
                 if (!(i->buf = malloc(i->fragment_size))) {
                     debug(DEBUG_LEVEL_NORMAL, __FILE__": malloc() failed.\n");
                     return -1;
                 }
+
+                i->leftover = 0;
             }
 
-            if ((r = read(i->thread_fd, i->buf, i->fragment_size)) <= 0) {
+            if ((r = read(i->thread_fd, ((uint8_t *) i->buf) + i->leftover, i->fragment_size - i->leftover)) <= 0) {
 
                 if (errno == EAGAIN)
                     break;
@@ -883,15 +889,19 @@ static int fd_info_copy_data(fd_info *i, int force) {
                 return -1;
             }
 
-            if (pa_stream_write(i->play_stream, i->buf, (size_t) r, free, 0LL, PA_SEEK_RELATIVE) < 0) {
+            to_write = pa_frame_align(r + i->leftover, &i->sample_spec);
+
+            if (pa_stream_write(i->play_stream, i->buf, to_write, NULL, 0LL, PA_SEEK_RELATIVE) < 0) {
                 debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_write(): %s\n", pa_strerror(pa_context_errno(i->context)));
                 return -1;
             }
 
-            i->buf = NULL;
+            i->leftover += r - to_write;
+            if (i->leftover)
+                memmove(i->buf, ((uint8_t *) i->buf) + to_write, i->leftover);
 
-            assert(n >= (size_t) r);
-            n -= (size_t) r;
+            assert(n >= (size_t) to_write);
+            n -= (size_t) to_write;
         }
 
         if (n >= i->fragment_size)
