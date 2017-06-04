@@ -31,10 +31,17 @@
 #include <sys/ioctl.h>
 #include <sys/types.h>
 
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#endif
+
 #include <signal.h>
 #include <stropts.h>
-#include <sys/conf.h>
 #include <sys/audio.h>
+
+#ifdef HAVE_SYS_CONF_H
+#include <sys/conf.h>
+#endif
 
 #include <pulse/mainloop-signal.h>
 #include <pulse/xmalloc.h>

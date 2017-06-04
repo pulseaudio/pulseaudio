@@ -436,7 +436,7 @@ AM_CONDITIONAL([HAVE_EVDEV], [test "x$HAVE_EVDEV" = "x1"])
 AC_CHECK_HEADERS_ONCE([sys/prctl.h])
 
 # Solaris
-AC_CHECK_HEADERS_ONCE([sys/filio.h])
+AC_CHECK_HEADERS_ONCE([sys/conf.h sys/filio.h])
 
 # Windows
 AC_CHECK_HEADERS_ONCE([windows.h winsock2.h ws2tcpip.h])
