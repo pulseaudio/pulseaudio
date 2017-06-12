@@ -1318,7 +1318,7 @@ static void transport_config(struct userdata *u) {
         sbc_info->frame_length = sbc_get_frame_length(&sbc_info->sbc);
 
         pa_log_info("SBC parameters: allocation=%u, subbands=%u, blocks=%u, bitpool=%u",
-                    sbc_info->sbc.allocation, sbc_info->sbc.subbands, sbc_info->sbc.blocks, sbc_info->sbc.bitpool);
+                    sbc_info->sbc.allocation, sbc_info->sbc.subbands ? 8 : 4, sbc_info->sbc.blocks, sbc_info->sbc.bitpool);
     }
 }
 
