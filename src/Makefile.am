@@ -1193,6 +1193,7 @@ modlibexec_LTLIBRARIES += \
 		module-card-restore.la \
 		module-default-device-restore.la \
 		module-always-sink.la \
+		module-always-source.la \
 		module-rescue-streams.la \
 		module-intended-roles.la \
 		module-suspend-on-idle.la \
@@ -1534,6 +1535,7 @@ SYMDEF_FILES = \
 		module-card-restore-symdef.h \
 		module-default-device-restore-symdef.h \
 		module-always-sink-symdef.h \
+		module-always-source-symdef.h \
 		module-rescue-streams-symdef.h \
 		module-intended-roles-symdef.h \
 		module-suspend-on-idle-symdef.h \
@@ -2020,6 +2022,12 @@ module_always_sink_la_SOURCES = modules/module-always-sink.c
 module_always_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_always_sink_la_LIBADD = $(MODULE_LIBADD)
 module_always_sink_la_CFLAGS = $(AM_CFLAGS)
+
+# Always Source module
+module_always_source_la_SOURCES = modules/module-always-source.c
+module_always_source_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_always_source_la_LIBADD = $(MODULE_LIBADD)
+module_always_source_la_CFLAGS = $(AM_CFLAGS)
 
 # Rescue streams module
 module_rescue_streams_la_SOURCES = modules/module-rescue-streams.c
