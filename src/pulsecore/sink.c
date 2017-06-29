@@ -694,10 +694,7 @@ void pa_sink_unlink(pa_sink* s) {
         pa_namereg_unregister(s->core, s->name);
     pa_idxset_remove_by_data(s->core->sinks, s, NULL);
 
-    if (s == s->core->configured_default_sink)
-        pa_core_set_configured_default_sink(s->core, NULL);
-    else
-        pa_core_update_default_sink(s->core);
+    pa_core_update_default_sink(s->core);
 
     if (s->card)
         pa_idxset_remove_by_data(s->card->sinks, s, NULL);

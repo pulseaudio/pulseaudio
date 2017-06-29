@@ -77,7 +77,7 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* 
 
     /* No default sink, nothing to move away, just set the new default */
     if (!c->default_sink) {
-        pa_core_set_configured_default_sink(c, sink);
+        pa_core_set_configured_default_sink(c, sink->name);
         return PA_HOOK_OK;
     }
 
@@ -91,7 +91,7 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* 
     old_default_sink = c->default_sink;
 
     /* Actually do the switch to the new sink */
-    pa_core_set_configured_default_sink(c, sink);
+    pa_core_set_configured_default_sink(c, sink->name);
 
     /* Now move all old inputs over */
     if (pa_idxset_size(old_default_sink->inputs) <= 0) {
@@ -143,7 +143,7 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
 
     /* No default source, nothing to move away, just set the new default */
     if (!c->default_source) {
-        pa_core_set_configured_default_source(c, source);
+        pa_core_set_configured_default_source(c, source->name);
         return PA_HOOK_OK;
     }
 
@@ -157,7 +157,7 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
     old_default_source = c->default_source;
 
     /* Actually do the switch to the new source */
-    pa_core_set_configured_default_source(c, source);
+    pa_core_set_configured_default_source(c, source->name);
 
     /* Now move all old outputs over */
     if (pa_idxset_size(old_default_source->outputs) <= 0) {

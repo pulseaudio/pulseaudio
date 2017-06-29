@@ -4346,7 +4346,7 @@ static void command_set_default_sink_or_source(pa_pdispatch *pd, uint32_t comman
         source = pa_namereg_get(c->protocol->core, s, PA_NAMEREG_SOURCE);
         CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
 
-        pa_core_set_configured_default_source(c->protocol->core, source);
+        pa_core_set_configured_default_source(c->protocol->core, source->name);
     } else {
         pa_sink *sink;
         pa_assert(command == PA_COMMAND_SET_DEFAULT_SINK);
@@ -4354,7 +4354,7 @@ static void command_set_default_sink_or_source(pa_pdispatch *pd, uint32_t comman
         sink = pa_namereg_get(c->protocol->core, s, PA_NAMEREG_SINK);
         CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
 
-        pa_core_set_configured_default_sink(c->protocol->core, sink);
+        pa_core_set_configured_default_sink(c->protocol->core, sink->name);
     }
 
     pa_pstream_send_simple_ack(c->pstream, tag);

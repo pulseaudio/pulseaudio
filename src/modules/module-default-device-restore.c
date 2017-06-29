@@ -60,7 +60,6 @@ static void load(struct userdata *u) {
         pa_log_info("Manually configured default sink, not overwriting.");
     else if ((f = pa_fopen_cloexec(u->sink_filename, "r"))) {
         char ln[256] = "";
-        pa_sink *s;
 
         if (fgets(ln, sizeof(ln)-1, f))
             pa_strip_nl(ln);
@@ -68,11 +67,12 @@ static void load(struct userdata *u) {
 
         if (!ln[0])
             pa_log_info("No previous default sink setting, ignoring.");
-        else if ((s = pa_namereg_get(u->core, ln, PA_NAMEREG_SINK))) {
-            pa_core_set_configured_default_sink(u->core, s);
-            pa_log_info("Restored default sink '%s'.", ln);
-        } else
-            pa_log_info("Saved default sink '%s' not existent, not restoring default sink setting.", ln);
+        else if (!pa_namereg_is_valid_name(ln))
+            pa_log_warn("Invalid sink name: %s", ln);
+        else {
+            pa_log_info("Restoring default sink '%s'.", ln);
+            pa_core_set_configured_default_sink(u->core, ln);
+        }
 
     } else if (errno != ENOENT)
         pa_log("Failed to load default sink: %s", pa_cstrerror(errno));
@@ -81,7 +81,6 @@ static void load(struct userdata *u) {
         pa_log_info("Manually configured default source, not overwriting.");
     else if ((f = pa_fopen_cloexec(u->source_filename, "r"))) {
         char ln[256] = "";
-        pa_source *s;
 
         if (fgets(ln, sizeof(ln)-1, f))
             pa_strip_nl(ln);
@@ -89,14 +88,15 @@ static void load(struct userdata *u) {
 
         if (!ln[0])
             pa_log_info("No previous default source setting, ignoring.");
-        else if ((s = pa_namereg_get(u->core, ln, PA_NAMEREG_SOURCE))) {
-            pa_core_set_configured_default_source(u->core, s);
-            pa_log_info("Restored default source '%s'.", ln);
-        } else
-            pa_log_info("Saved default source '%s' not existent, not restoring default source setting.", ln);
+        else if (!pa_namereg_is_valid_name(ln))
+            pa_log_warn("Invalid source name: %s", ln);
+        else {
+            pa_log_info("Restoring default source '%s'.", ln);
+            pa_core_set_configured_default_source(u->core, ln);
+        }
 
     } else if (errno != ENOENT)
-            pa_log("Failed to load default sink: %s", pa_cstrerror(errno));
+        pa_log("Failed to load default source: %s", pa_cstrerror(errno));
 }
 
 static void save(struct userdata *u) {
@@ -107,7 +107,7 @@ static void save(struct userdata *u) {
 
     if (u->sink_filename) {
         if ((f = pa_fopen_cloexec(u->sink_filename, "w"))) {
-            fprintf(f, "%s\n", u->core->default_sink ? u->core->default_sink->name : "");
+            fprintf(f, "%s\n", u->core->configured_default_sink ? u->core->configured_default_sink : "");
             fclose(f);
         } else
             pa_log("Failed to save default sink: %s", pa_cstrerror(errno));
@@ -115,7 +115,7 @@ static void save(struct userdata *u) {
 
     if (u->source_filename) {
         if ((f = pa_fopen_cloexec(u->source_filename, "w"))) {
-            fprintf(f, "%s\n", u->core->default_source ? u->core->default_source->name : "");
+            fprintf(f, "%s\n", u->core->configured_default_source ? u->core->configured_default_source : "");
             fclose(f);
         } else
             pa_log("Failed to save default source: %s", pa_cstrerror(errno));

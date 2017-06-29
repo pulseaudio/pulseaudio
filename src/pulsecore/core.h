@@ -163,9 +163,12 @@ struct pa_core {
     pa_hashmap *namereg, *shared;
 
     /* The default sink/source as configured by the user. If the user hasn't
-     * explicitly configured anything, these are set to NULL. */
-    pa_sink *configured_default_sink;
-    pa_source *configured_default_source;
+     * explicitly configured anything, these are set to NULL. These are strings
+     * instead of sink/source pointers, because that allows us to reference
+     * devices that don't currently exist. That's useful for remembering that
+     * a hotplugged USB sink was previously set as the default sink. */
+    char *configured_default_sink;
+    char *configured_default_source;
 
     /* The effective default sink/source. If no sink or source is explicitly
      * configured as the default, we pick the device that ranks highest
@@ -236,8 +239,8 @@ enum {
 
 pa_core* pa_core_new(pa_mainloop_api *m, bool shared, bool enable_memfd, size_t shm_size);
 
-void pa_core_set_configured_default_sink(pa_core *core, pa_sink *sink);
-void pa_core_set_configured_default_source(pa_core *core, pa_source *source);
+void pa_core_set_configured_default_sink(pa_core *core, const char *sink);
+void pa_core_set_configured_default_source(pa_core *core, const char *source);
 
 /* These should be called whenever something changes that may affect the
  * default sink or source choice.

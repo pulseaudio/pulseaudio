@@ -214,6 +214,8 @@ static void core_free(pa_object *o) {
 
     pa_assert(!c->default_source);
     pa_assert(!c->default_sink);
+    pa_xfree(c->configured_default_source);
+    pa_xfree(c->configured_default_sink);
 
     pa_silence_cache_done(&c->silence_cache);
     pa_mempool_unref(c->mempool);
@@ -224,38 +226,46 @@ static void core_free(pa_object *o) {
     pa_xfree(c);
 }
 
-void pa_core_set_configured_default_sink(pa_core *core, pa_sink *sink) {
-    pa_sink *old_sink;
+void pa_core_set_configured_default_sink(pa_core *core, const char *sink) {
+    char *old_sink;
 
     pa_assert(core);
 
-    old_sink = core->configured_default_sink;
+    old_sink = pa_xstrdup(core->configured_default_sink);
 
-    if (sink == old_sink)
-        return;
+    if (pa_safe_streq(sink, old_sink))
+        goto finish;
 
-    core->configured_default_sink = sink;
+    pa_xfree(core->configured_default_sink);
+    core->configured_default_sink = pa_xstrdup(sink);
     pa_log_info("configured_default_sink: %s -> %s",
-                old_sink ? old_sink->name : "(unset)", sink ? sink->name : "(unset)");
+                old_sink ? old_sink : "(unset)", sink ? sink : "(unset)");
 
     pa_core_update_default_sink(core);
+
+finish:
+    pa_xfree(old_sink);
 }
 
-void pa_core_set_configured_default_source(pa_core *core, pa_source *source) {
-    pa_source *old_source;
+void pa_core_set_configured_default_source(pa_core *core, const char *source) {
+    char *old_source;
 
     pa_assert(core);
 
-    old_source = core->configured_default_source;
+    old_source = pa_xstrdup(core->configured_default_source);
 
-    if (source == old_source)
-        return;
+    if (pa_safe_streq(source, old_source))
+        goto finish;
 
-    core->configured_default_source = source;
+    pa_xfree(core->configured_default_source);
+    core->configured_default_source = pa_xstrdup(source);
     pa_log_info("configured_default_source: %s -> %s",
-                old_source ? old_source->name : "(unset)", source ? source->name : "(unset)");
+                old_source ? old_source : "(unset)", source ? source : "(unset)");
 
     pa_core_update_default_source(core);
+
+finish:
+    pa_xfree(old_source);
 }
 
 /* a  < b  ->  return -1
@@ -275,9 +285,9 @@ static int compare_sinks(pa_sink *a, pa_sink *b) {
         return 1;
 
     /* The configured default sink is preferred over any other sink. */
-    if (b == core->configured_default_sink)
+    if (pa_safe_streq(b->name, core->configured_default_sink))
         return -1;
-    if (a == core->configured_default_sink)
+    if (pa_safe_streq(a->name, core->configured_default_sink))
         return 1;
 
     if (a->priority < b->priority)
@@ -349,9 +359,9 @@ static int compare_sources(pa_source *a, pa_source *b) {
         return 1;
 
     /* The configured default source is preferred over any other source. */
-    if (b == core->configured_default_source)
+    if (pa_safe_streq(b->name, core->configured_default_source))
         return -1;
-    if (a == core->configured_default_source)
+    if (pa_safe_streq(a->name, core->configured_default_source))
         return 1;
 
     /* Monitor sources lose to non-monitor sources. */
