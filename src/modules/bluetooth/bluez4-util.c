@@ -1116,6 +1116,8 @@ int pa_bluez4_transport_acquire(pa_bluez4_transport *t, bool optional, size_t *i
     pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.bluez.MediaTransport", "Acquire"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_STRING, &accesstype, DBUS_TYPE_INVALID));
     r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
+    dbus_message_unref(m);
+    m = NULL;
 
     if (!r) {
         dbus_error_free(&err);
@@ -1143,7 +1145,7 @@ fail:
 
 void pa_bluez4_transport_release(pa_bluez4_transport *t) {
     const char *accesstype = "rw";
-    DBusMessage *m;
+    DBusMessage *m, *r;
     DBusError err;
 
     pa_assert(t);
@@ -1154,7 +1156,13 @@ void pa_bluez4_transport_release(pa_bluez4_transport *t) {
 
     pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, "org.bluez.MediaTransport", "Release"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_STRING, &accesstype, DBUS_TYPE_INVALID));
-    dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
+    r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
+    dbus_message_unref(m);
+    m = NULL;
+    if (r) {
+        dbus_message_unref(r);
+        r = NULL;
+    }
 
     if (dbus_error_is_set(&err)) {
         pa_log("Failed to release transport %s: %s", t->path, err.message);

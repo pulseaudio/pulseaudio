@@ -474,6 +474,9 @@ int rd_acquire(
 		goto fail;
 	}
 
+        dbus_message_unref(m);
+        m = NULL;
+
 	if (!dbus_message_get_args(
 		    reply,
 		    error,
@@ -482,6 +485,9 @@ int rd_acquire(
 		r = -EIO;
 		goto fail;
 	}
+
+        dbus_message_unref(reply);
+        reply = NULL;
 
 	if (!good) {
 		r = -EBUSY;

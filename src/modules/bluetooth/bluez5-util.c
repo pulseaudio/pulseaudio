@@ -363,6 +363,8 @@ static int bluez5_transport_acquire_cb(pa_bluetooth_transport *t, bool optional,
     dbus_error_init(&err);
 
     r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
+    dbus_message_unref(m);
+    m = NULL;
     if (!r) {
         if (optional && pa_streq(err.name, "org.bluez.Error.NotAvailable"))
             pa_log_info("Failed optional acquire of unavailable transport %s", t->path);
@@ -393,7 +395,7 @@ finish:
 }
 
 static void bluez5_transport_release_cb(pa_bluetooth_transport *t) {
-    DBusMessage *m;
+    DBusMessage *m, *r;
     DBusError err;
 
     pa_assert(t);
@@ -408,7 +410,13 @@ static void bluez5_transport_release_cb(pa_bluetooth_transport *t) {
     }
 
     pa_assert_se(m = dbus_message_new_method_call(t->owner, t->path, BLUEZ_MEDIA_TRANSPORT_INTERFACE, "Release"));
-    dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
+    r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(t->device->discovery->connection), m, -1, &err);
+    dbus_message_unref(m);
+    m = NULL;
+    if (r) {
+        dbus_message_unref(r);
+        r = NULL;
+    }
 
     if (dbus_error_is_set(&err)) {
         pa_log_error("Failed to release transport %s: %s", t->path, err.message);
