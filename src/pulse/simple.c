@@ -463,18 +463,34 @@ pa_usec_t pa_simple_get_latency(pa_simple *p, int *rerror) {
         CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
 
         if (pa_stream_get_latency(p->stream, &t, &negative) >= 0) {
-            pa_usec_t extra = 0;
+            if (p->direction == PA_STREAM_RECORD) {
+                pa_usec_t already_read;
 
-            if (p->direction == PA_STREAM_RECORD)
-                extra = -pa_bytes_to_usec(p->read_index, pa_stream_get_sample_spec(p->stream));
+                /* pa_simple_read() calls pa_stream_peek() to get the next
+                 * chunk of audio. If the next chunk is larger than what the
+                 * pa_simple_read() caller wanted, the leftover data is stored
+                 * in p->read_data until pa_simple_read() is called again.
+                 * pa_stream_drop() won't be called until the whole chunk has
+                 * been consumed, which means that pa_stream_get_latency() will
+                 * return too large values, because the whole size of the
+                 * partially read chunk is included in the latency. Therefore,
+                 * we need to substract the already-read amount from the
+                 * latency. */
+                already_read = pa_bytes_to_usec(p->read_index, pa_stream_get_sample_spec(p->stream));
 
-            if (negative) {
-                if (extra > t)
-                    t = extra - t;
-                else
-                    t = 0;
-            } else
-                t += extra;
+                if (!negative) {
+                    if (t > already_read)
+                        t -= already_read;
+                    else
+                        t = 0;
+                }
+            }
+
+            /* We don't have a way to report negative latencies from
+             * pa_simple_get_latency(). If the latency is negative, let's
+             * report zero. */
+            if (negative)
+                t = 0;
 
             break;
         }
