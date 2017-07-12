@@ -130,7 +130,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
     <option>
       <p><opt>suspend-sink</opt> <arg>SINK</arg> <arg>1|0</arg></p>
-      <optdesc><p>Suspend or resume the specified sink (which my be
+      <optdesc><p>Suspend or resume the specified sink (which may be
       specified either by its symbolic name, or by its numeric index),
       depending whether 1 (suspend) or 0 (resume) is passed as last
       argument. Suspending a sink will pause all playback. Depending
@@ -142,7 +142,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
     <option>
       <p><opt>suspend-source</opt> <arg>SOURCE</arg> <arg>1|0</arg></p>
-      <optdesc><p>Suspend or resume the specified source (which my be
+      <optdesc><p>Suspend or resume the specified source (which may be
       specified either by its symbolic name, or by its numeric index),
       depending whether 1 (suspend) or 0 (resume) is passed as last
       argument. Suspending a source will pause all
