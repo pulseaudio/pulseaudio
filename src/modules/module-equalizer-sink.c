@@ -127,6 +127,8 @@ struct userdata {
 
     pa_database *database;
     char **base_profiles;
+
+    bool automatic_description;
 };
 
 static const char* const valid_modargs[] = {
@@ -1080,6 +1082,17 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     if (dest) {
         pa_sink_set_asyncmsgq(u->sink, dest->asyncmsgq);
         pa_sink_update_flags(u->sink, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY, dest->flags);
+
+        if (u->automatic_description) {
+            const char *master_description;
+            char *new_description;
+
+            master_description = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION);
+            new_description = pa_sprintf_malloc(_("FFT based equalizer on %s"),
+                                                master_description ? master_description : dest->name);
+            pa_sink_set_description(u->sink, new_description);
+            pa_xfree(new_description);
+        }
     } else
         pa_sink_set_asyncmsgq(u->sink, NULL);
 }
@@ -1089,7 +1102,6 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma;
-    const char *z;
     pa_sink *master;
     pa_sink_input_new_data sink_input_data;
     pa_sink_new_data sink_data;
@@ -1185,9 +1197,6 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_sample_spec(&sink_data, &ss);
     pa_sink_new_data_set_channel_map(&sink_data, &map);
 
-    z = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
-    pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "FFT based equalizer on %s", z ? z : master->name);
-
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
 
@@ -1195,6 +1204,15 @@ int pa__init(pa_module*m) {
         pa_log("Invalid properties");
         pa_sink_new_data_done(&sink_data);
         goto fail;
+    }
+
+    if (!pa_proplist_contains(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION)) {
+        const char *master_description;
+
+        master_description = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
+        pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION,
+                         _("FFT based equalizer on %s"), master_description ? master_description : master->name);
+        u->automatic_description = true;
     }
 
     u->autoloaded = DEFAULT_AUTOLOADED;
