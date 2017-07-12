@@ -196,7 +196,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     <option>
       <p><opt>--scache-idle-time</opt><arg>=SECS</arg></p>
 
-      <optdesc><p>Unload autoloaded samples from the cache when the
+      <optdesc><p>Unload autoloaded samples from the cache when they
       haven't been used for the specified number of
       seconds.</p></optdesc>
     </option>
