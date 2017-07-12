@@ -233,7 +233,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
-      <p><opt>set-source-output-mute</opt> <arg>INPUT</arg> <arg>1|0|toggle</arg></p>
+      <p><opt>set-source-output-mute</opt> <arg>OUTPUT</arg> <arg>1|0|toggle</arg></p>
       <optdesc><p>Set the mute status of the specified source output (identified by its numerical index).</p></optdesc>
     </option>
 
