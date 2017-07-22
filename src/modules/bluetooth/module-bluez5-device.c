@@ -77,6 +77,7 @@ static const char* const valid_modargs[] = {
 enum {
     BLUETOOTH_MESSAGE_IO_THREAD_FAILED,
     BLUETOOTH_MESSAGE_STREAM_FD_HUP,
+    BLUETOOTH_MESSAGE_SET_TRANSPORT_PLAYING,
     BLUETOOTH_MESSAGE_MAX
 };
 
@@ -755,8 +756,17 @@ static int transport_acquire(struct userdata *u, bool optional) {
     if (u->stream_fd < 0)
         return u->stream_fd;
 
+    /* transport_acquired must be set before calling
+     * pa_bluetooth_transport_set_state() */
     u->transport_acquired = true;
     pa_log_info("Transport %s acquired: fd %d", u->transport->path, u->stream_fd);
+
+    if (u->transport->state == PA_BLUETOOTH_TRANSPORT_STATE_IDLE) {
+        if (pa_thread_mq_get() != NULL)
+            pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u->msg), BLUETOOTH_MESSAGE_SET_TRANSPORT_PLAYING, NULL, 0, NULL, NULL);
+        else
+            pa_bluetooth_transport_set_state(u->transport, PA_BLUETOOTH_TRANSPORT_STATE_PLAYING);
+    }
 
     return 0;
 }
@@ -2216,6 +2226,16 @@ static int device_process_msg(pa_msgobject *obj, int code, void *data, int64_t o
         case BLUETOOTH_MESSAGE_STREAM_FD_HUP:
             if (u->transport->state > PA_BLUETOOTH_TRANSPORT_STATE_IDLE)
                 pa_bluetooth_transport_set_state(u->transport, PA_BLUETOOTH_TRANSPORT_STATE_IDLE);
+            break;
+        case BLUETOOTH_MESSAGE_SET_TRANSPORT_PLAYING:
+            /* transport_acquired needs to be checked here, because a message could have been
+             * pending when the profile was switched. If the new transport has been acquired
+             * correctly, the call below will have no effect because the transport state is
+             * already PLAYING. If transport_acquire() failed for the new profile, the transport
+             * state should not be changed. If the transport has been released for other reasons
+             * (I/O thread shutdown), transport_acquired will also be false. */
+            if (u->transport_acquired)
+                pa_bluetooth_transport_set_state(u->transport, PA_BLUETOOTH_TRANSPORT_STATE_PLAYING);
             break;
     }
 
