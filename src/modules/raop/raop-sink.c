@@ -391,6 +391,13 @@ static void thread_func(void *userdata) {
         if (!pa_raop_client_can_stream(u->raop))
             continue;
 
+        /* This assertion is meant to silence a complaint from Coverity about
+         * pollfd being possibly NULL when we access it later. That's a false
+         * positive, because we check pa_raop_client_can_stream() above, and if
+         * that returns true, it means that the connection is up, and when the
+         * connection is up, pollfd will be non-NULL. */
+        pa_assert(pollfd);
+
         if (u->memchunk.length <= 0) {
             if (u->memchunk.memblock)
                 pa_memblock_unref(u->memchunk.memblock);
