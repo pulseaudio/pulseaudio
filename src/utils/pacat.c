@@ -251,11 +251,11 @@ static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
             /* If there is a hole in the stream, we generate silence, except
              * if it's a passthrough stream in which case we skip the hole. */
             if (data || !(flags & PA_STREAM_PASSTHROUGH)) {
-                buffer = pa_xrealloc(buffer, buffer_length + length);
+                buffer = pa_xrealloc(buffer, buffer_index + buffer_length + length);
                 if (data)
-                    memcpy((uint8_t *) buffer + buffer_length, data, length);
+                    memcpy((uint8_t *) buffer + buffer_index + buffer_length, data, length);
                 else
-                    pa_silence_memory((uint8_t *) buffer + buffer_length, length, &sample_spec);
+                    pa_silence_memory((uint8_t *) buffer + buffer_index + buffer_length, length, &sample_spec);
 
                 buffer_length += length;
             }
