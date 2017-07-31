@@ -281,11 +281,6 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
         return PA_HOOK_OK;
     }
 
-    if (pa_idxset_size(port->card->sinks) == 0 && pa_idxset_size(port->card->sources) == 0)
-        /* This card is not initialized yet. We'll handle it in
-           sink_new / source_new callbacks later. */
-        return PA_HOOK_OK;
-
     switch (port->available) {
     case PA_AVAILABLE_YES:
         switch_to_port(port);

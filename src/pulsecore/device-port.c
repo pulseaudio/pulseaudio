@@ -92,7 +92,7 @@ void pa_device_port_set_available(pa_device_port *p, pa_available_t status) {
      * before the card object has been created. The card object should probably
      * be created before port objects, and then p->card could be non-NULL for
      * the whole lifecycle of pa_device_port. */
-    if (p->card) {
+    if (p->card && p->card->linked) {
         /* A sink or source whose active port is unavailable can't be the
          * default sink/source, so port availability changes may affect the
          * default sink/source choice. */
