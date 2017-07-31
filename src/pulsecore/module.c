@@ -84,7 +84,11 @@ bool pa_module_exists(const char *name) {
     state = NULL;
     if (PA_UNLIKELY(pa_run_from_build_tree())) {
         while ((p = pa_split(paths, ":", &state))) {
+#ifdef MESON_BUILD
+            pathname = pa_sprintf_malloc("%s" PA_PATH_SEP "src" PA_PATH_SEP "modules" PA_PATH_SEP "%s" PA_SOEXT, p, n);
+#else
             pathname = pa_sprintf_malloc("%s" PA_PATH_SEP ".libs" PA_PATH_SEP "%s" PA_SOEXT, p, n);
+#endif
             result = access(pathname, F_OK) == 0 ? true : false;
             pa_log_debug("Checking for existence of '%s': %s", pathname, result ? "success" : "failure");
             pa_xfree(pathname);

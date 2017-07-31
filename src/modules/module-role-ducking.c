@@ -23,7 +23,7 @@
 
 #include <pulsecore/macro.h>
 #include <pulsecore/core.h>
-#include <stream-interaction.h>
+#include "stream-interaction.h"
 
 PA_MODULE_AUTHOR("Flavio Ceolin <flavio.ceolin@profusion.mobi>");
 PA_MODULE_DESCRIPTION("Apply a ducking effect based on streams roles");

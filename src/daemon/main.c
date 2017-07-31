@@ -98,6 +98,15 @@
 #include "ltdl-bind-now.h"
 #include "server-lookup.h"
 
+#ifdef DISABLE_LIBTOOL_PRELOAD
+/* FIXME: work around a libtool bug by making sure we have 2 elements. Bug has
+ * been reported: https://debbugs.gnu.org/cgi/bugreport.cgi?bug=29576 */
+const lt_dlsymlist lt_preloaded_symbols[] = {
+    { "@PROGRAM@", NULL },
+    { NULL, NULL }
+};
+#endif
+
 #ifdef HAVE_LIBWRAP
 /* Only one instance of these variables */
 int allow_severity = LOG_INFO;

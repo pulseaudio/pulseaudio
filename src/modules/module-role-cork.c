@@ -23,7 +23,7 @@
 
 #include <pulsecore/macro.h>
 #include <pulsecore/core.h>
-#include <stream-interaction.h>
+#include "stream-interaction.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Mute & cork streams with certain roles while others exist");

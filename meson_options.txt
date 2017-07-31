@@ -1,0 +1,13 @@
+option('system_user',
+        type : 'string', value : 'pulse',
+        description : 'User for running the PulseAudio daemon as a system-wide instance (pulse)')
+option('system_group',
+        type : 'string', value : 'pulse',
+        description : 'Group for running the PulseAudio daemon as a system-wide instance (pulse)')
+option('access_group',
+        type : 'string', value : 'pulse-access',
+        description : 'Group which is allowed access to a system-wide PulseAudio daemon (pulse-access)')
+option('database',
+        type : 'combo', value : 'tdb',
+        choices : [ 'gdbm', 'tdb', 'simple' ],
+        description : 'Database backend')
