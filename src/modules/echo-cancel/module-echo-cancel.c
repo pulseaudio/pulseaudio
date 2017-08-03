@@ -2054,11 +2054,13 @@ int pa__init(pa_module*m) {
 
     /* We don't want to deal with too many chunks at a time */
     blocksize_usec = pa_bytes_to_usec(u->source_blocksize, &u->source->sample_spec);
-    pa_source_set_latency_range(u->source, blocksize_usec, blocksize_usec * MAX_LATENCY_BLOCKS);
+    if (u->source->flags & PA_SOURCE_DYNAMIC_LATENCY)
+        pa_source_set_latency_range(u->source, blocksize_usec, blocksize_usec * MAX_LATENCY_BLOCKS);
     pa_source_output_set_requested_latency(u->source_output, blocksize_usec * MAX_LATENCY_BLOCKS);
 
     blocksize_usec = pa_bytes_to_usec(u->sink_blocksize, &u->sink->sample_spec);
-    pa_sink_set_latency_range(u->sink, blocksize_usec, blocksize_usec * MAX_LATENCY_BLOCKS);
+    if (u->sink->flags & PA_SINK_DYNAMIC_LATENCY)
+        pa_sink_set_latency_range(u->sink, blocksize_usec, blocksize_usec * MAX_LATENCY_BLOCKS);
     pa_sink_input_set_requested_latency(u->sink_input, blocksize_usec * MAX_LATENCY_BLOCKS);
 
     /* The order here is important. The input/output must be put first,
