@@ -1343,6 +1343,7 @@ dist_alsapaths_DATA = \
 		modules/alsa/mixer/paths/analog-output-headphones-2.conf \
 		modules/alsa/mixer/paths/analog-output-lineout.conf \
 		modules/alsa/mixer/paths/analog-output-mono.conf \
+		modules/alsa/mixer/paths/iec958-stereo-input.conf \
 		modules/alsa/mixer/paths/iec958-stereo-output.conf \
 		modules/alsa/mixer/paths/hdmi-output-0.conf \
 		modules/alsa/mixer/paths/hdmi-output-1.conf \
