@@ -38,6 +38,7 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/poll.h>
+#include <pulsecore/rtpoll.h>
 #include <pulsecore/proplist-util.h>
 
 #include "module-tunnel-source-new-symdef.h"
@@ -75,6 +76,7 @@ struct userdata {
 
     pa_context *context;
     pa_stream *stream;
+    pa_rtpoll *rtpoll;
 
     bool update_stream_bufferattr_after_connect;
     bool connected;
@@ -502,6 +504,12 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    /* The rtpoll created here is never run. It is only necessary to avoid crashes
+     * when module-tunnel-source-new is used together with module-loopback.
+     * module-loopback bases the asyncmsq on the rtpoll provided by the source and
+     * only works because it calls pa_asyncmsq_process_one(). */
+    u->rtpoll = pa_rtpoll_new();
+
     /* Create source */
     pa_source_new_data_init(&source_data);
     source_data.driver = __FILE__;
@@ -538,6 +546,7 @@ int pa__init(pa_module *m) {
     u->source->update_requested_latency = source_update_requested_latency_cb;
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq->inq);
+    pa_source_set_rtpoll(u->source, u->rtpoll);
 
     if (!(u->thread = pa_thread_new("tunnel-source", thread_func, u))) {
         pa_log("Failed to create thread.");
@@ -597,6 +606,9 @@ void pa__done(pa_module *m) {
 
     if (u->source)
         pa_source_unref(u->source);
+
+    if (u->rtpoll)
+        pa_rtpoll_free(u->rtpoll);
 
     pa_xfree(u);
 }

@@ -38,6 +38,7 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/poll.h>
+#include <pulsecore/rtpoll.h>
 #include <pulsecore/proplist-util.h>
 
 #include "module-tunnel-sink-new-symdef.h"
@@ -77,6 +78,7 @@ struct userdata {
 
     pa_context *context;
     pa_stream *stream;
+    pa_rtpoll *rtpoll;
 
     bool update_stream_bufferattr_after_connect;
 
@@ -503,6 +505,15 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    /* The rtpoll created here is never run. It is only necessary to avoid crashes
+     * when module-tunnel-sink-new is used together with module-loopback or
+     * module-combine-sink. Both modules base their asyncmsq on the rtpoll provided
+     * by the sink. module-loopback and combine-sink only work because they call
+     * pa_asyncmsq_process_one() themselves. module_rtp_recv also uses the rtpoll,
+     * but never calls pa_asyncmsq_process_one(), so it will not work in combination
+     * with module-tunnel-sink-new. */
+    u->rtpoll = pa_rtpoll_new();
+
     /* Create sink */
     pa_sink_new_data_init(&sink_data);
     sink_data.driver = __FILE__;
@@ -541,6 +552,7 @@ int pa__init(pa_module *m) {
 
     /* set thread message queue */
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq->inq);
+    pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
     if (!(u->thread = pa_thread_new("tunnel-sink", thread_func, u))) {
         pa_log("Failed to create thread.");
@@ -600,6 +612,9 @@ void pa__done(pa_module *m) {
 
     if (u->sink)
         pa_sink_unref(u->sink);
+
+    if (u->rtpoll)
+        pa_rtpoll_free(u->rtpoll);
 
     pa_xfree(u);
 }
