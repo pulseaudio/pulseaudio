@@ -226,7 +226,11 @@ int pa_format_info_to_sample_spec_fake(const pa_format_info *f, pa_sample_spec *
      * formats, this function should return a non-zero values for these. */
 
     ss->format = PA_SAMPLE_S16LE;
-    ss->channels = 2;
+    if ((f->encoding == PA_ENCODING_TRUEHD_IEC61937) ||
+	(f->encoding == PA_ENCODING_DTSHD_IEC61937))
+	ss->channels = 8;
+    else
+	ss->channels = 2;
 
     if (map)
         pa_channel_map_init_stereo(map);
