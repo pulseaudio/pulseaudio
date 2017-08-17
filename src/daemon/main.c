@@ -888,7 +888,7 @@ int main(int argc, char *argv[]) {
 
     pa_set_env_and_record("PULSE_INTERNAL", "1");
     pa_assert_se(chdir("/") == 0);
-    umask(0022);
+    umask(0077);
 
 #ifdef HAVE_SYS_RESOURCE_H
     set_all_rlimits(conf);
