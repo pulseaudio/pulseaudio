@@ -462,13 +462,13 @@ static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bo
             return -1;
         }
 
-        pa_module_unload_request(m, false);
+        pa_module_unload(m, false);
 
     } else {
         PA_IDXSET_FOREACH(m, c->modules, idx)
             if (pa_streq(i, m->name)) {
                 unloaded = true;
-                pa_module_unload_request(m, false);
+                pa_module_unload(m, false);
             }
 
         if (unloaded == false) {
