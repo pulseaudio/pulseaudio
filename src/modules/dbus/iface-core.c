@@ -1506,7 +1506,7 @@ static void handle_load_module(DBusConnection *conn, DBusMessage *msg, void *use
 
     arg_string = pa_strbuf_to_string(arg_buffer);
 
-    if (!(module = pa_module_load(c->core, name, arg_string))) {
+    if (pa_module_load(&module, c->core, name, arg_string) < 0) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED, "Failed to load module.");
         goto finish;
     }

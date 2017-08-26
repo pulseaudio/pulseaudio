@@ -190,7 +190,7 @@ static void load_module(
     m->items[i].args = pa_xstrdup(args);
     m->items[i].index = PA_INVALID_INDEX;
 
-    if (!(mod = pa_module_load(u->core, name, args))) {
+    if (pa_module_load(&mod, u->core, name, args) < 0) {
         pa_log("pa_module_load() failed");
         return;
     }

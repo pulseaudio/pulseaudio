@@ -107,17 +107,21 @@ void pa_module_hook_connect(pa_module *m, pa_hook *hook, pa_hook_priority_t prio
     pa_dynarray_append(m->hooks, pa_hook_connect(hook, prio, cb, data));
 }
 
-pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
+int pa_module_load(pa_module** module, pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
     bool (*load_once)(void);
     const char* (*get_deprecated)(void);
     pa_modinfo *mi;
+    int errcode;
 
+    pa_assert(module);
     pa_assert(c);
     pa_assert(name);
 
-    if (c->disallow_module_loading)
+    if (c->disallow_module_loading) {
+        errcode = -PA_ERR_ACCESS;
         goto fail;
+    }
 
     m = pa_xnew(pa_module, 1);
     m->name = pa_xstrdup(name);
@@ -135,6 +139,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
          * loader, which never finds anything, and therefore says "file not
          * found". */
         pa_log("Failed to open module \"%s\".", name);
+        errcode = -PA_ERR_IO;
         goto fail;
     }
 
@@ -150,6 +155,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
             PA_IDXSET_FOREACH(i, c->modules, idx) {
                 if (pa_streq(name, i->name)) {
                     pa_log("Module \"%s\" should be loaded once at most. Refusing to load.", name);
+                    errcode = -PA_ERR_EXIST;
                     goto fail;
                 }
             }
@@ -165,6 +171,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
 
     if (!(m->init = (int (*)(pa_module*_m)) pa_load_sym(m->dl, name, PA_SYMBOL_INIT))) {
         pa_log("Failed to load module \"%s\": symbol \""PA_SYMBOL_INIT"\" not found.", name);
+        errcode = -PA_ERR_IO;
         goto fail;
     }
 
@@ -179,6 +186,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
 
     if (m->init(m) < 0) {
         pa_log_error("Failed to load module \"%s\" (argument: \"%s\"): initialization failed.", name, argument ? argument : "");
+        errcode = -PA_ERR_IO;
         goto fail;
     }
 
@@ -202,7 +210,9 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
 
     pa_hook_fire(&m->core->hooks[PA_CORE_HOOK_MODULE_NEW], m);
 
-    return m;
+    *module = m;
+
+    return 0;
 
 fail:
 
@@ -225,7 +235,9 @@ fail:
         pa_xfree(m);
     }
 
-    return NULL;
+    *module = NULL;
+
+    return errcode;
 }
 
 static void postponed_dlclose(pa_mainloop_api *api, void *userdata) {

@@ -310,7 +310,7 @@ static void resolver_cb(
 
     pa_log_debug("Loading module-raop-sink with arguments '%s'", args);
 
-    if ((m = pa_module_load(u->core, "module-raop-sink", args))) {
+    if (pa_module_load(&m, u->core, "module-raop-sink", args) >= 0) {
         tnl->module_index = m->index;
         pa_hashmap_put(u->tunnels, tnl, tnl);
         tnl = NULL;

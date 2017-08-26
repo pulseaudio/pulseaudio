@@ -4468,7 +4468,7 @@ static void command_load_module(pa_pdispatch *pd, uint32_t command, uint32_t tag
     CHECK_VALIDITY(c->pstream, name && *name && pa_utf8_valid(name) && !strchr(name, '/'), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !argument || pa_utf8_valid(argument), tag, PA_ERR_INVALID);
 
-    if (!(m = pa_module_load(c->protocol->core, name, argument))) {
+    if (pa_module_load(&m, c->protocol->core, name, argument) < 0) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_MODINITFAILED);
         return;
     }

@@ -65,7 +65,7 @@ int pa__init(pa_module*m) {
     pa_log_warn("We will now load module-stream-restore. Please make sure to remove module-volume-restore from your configuration.");
 
     t = pa_sprintf_malloc("restore_volume=%s restore_device=%s", pa_yes_no(restore_volume), pa_yes_no(restore_device));
-    n = pa_module_load(m->core, "module-stream-restore", t);
+    pa_module_load(&n, m->core, "module-stream-restore", t);
     pa_xfree(t);
 
     if (n)

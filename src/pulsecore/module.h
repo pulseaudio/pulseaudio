@@ -52,7 +52,7 @@ struct pa_module {
 
 bool pa_module_exists(const char *name);
 
-pa_module* pa_module_load(pa_core *c, const char *name, const char *argument);
+int pa_module_load(pa_module** m, pa_core *c, const char *name, const char *argument);
 
 void pa_module_unload(pa_module *m, bool force);
 void pa_module_unload_by_index(pa_core *c, uint32_t idx, bool force);

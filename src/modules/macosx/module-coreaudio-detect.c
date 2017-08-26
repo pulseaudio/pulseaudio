@@ -92,7 +92,7 @@ static int ca_device_added(struct pa_module *m, AudioObjectID id) {
         args = pa_sprintf_malloc("object_id=%d", (int) id);
 
     pa_log_debug("Loading %s with arguments '%s'", DEVICE_MODULE_NAME, args);
-    mod = pa_module_load(m->core, DEVICE_MODULE_NAME, args);
+    pa_module_load(&mod, m->core, DEVICE_MODULE_NAME, args);
     pa_xfree(args);
 
     if (!mod) {

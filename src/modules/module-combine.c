@@ -48,7 +48,7 @@ int pa__init(pa_module*m) {
 
     pa_log_warn("We will now load module-combine-sink. Please make sure to remove module-combine from your configuration.");
 
-    module = pa_module_load(m->core, "module-combine-sink", m->argument);
+    pa_module_load(&module, m->core, "module-combine-sink", m->argument);
     u->module_index = module ? module->index : PA_INVALID_INDEX;
 
     return module ? 0 : -1;

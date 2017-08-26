@@ -574,7 +574,7 @@ static pa_hook_result_t process(struct userdata *u, pa_object *o, bool is_sink_i
 
             pa_log_debug("Loading %s with arguments '%s'", module_name, args);
 
-            if ((m = pa_module_load(u->core, module_name, args))) {
+            if (pa_module_load(&m, u->core, module_name, args) >= 0) {
                 find_filters_for_module(u, m, want, parameters);
                 filter = pa_hashmap_get(u->filters, fltr);
                 done_something = true;

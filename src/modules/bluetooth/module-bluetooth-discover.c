@@ -52,13 +52,13 @@ int pa__init(pa_module* m) {
     u->bluez4_module_idx = PA_INVALID_INDEX;
 
     if (pa_module_exists("module-bluez5-discover")) {
-        mm = pa_module_load(m->core, "module-bluez5-discover", m->argument);
+        pa_module_load(&mm, m->core, "module-bluez5-discover", m->argument);
         if (mm)
             u->bluez5_module_idx = mm->index;
     }
 
     if (pa_module_exists("module-bluez4-discover")) {
-        mm = pa_module_load(m->core, "module-bluez4-discover",  NULL);
+        pa_module_load(&mm, m->core, "module-bluez4-discover",  NULL);
         if (mm)
             u->bluez4_module_idx = mm->index;
     }

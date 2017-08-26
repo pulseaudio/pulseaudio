@@ -421,6 +421,8 @@ static int pa_cli_command_info(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool
 
 static int pa_cli_command_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *name;
+    pa_error_code_t err;
+    pa_module *m = NULL;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -432,9 +434,13 @@ static int pa_cli_command_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool
         return -1;
     }
 
-    if (!pa_module_load(c, name,  pa_tokenizer_get(t, 2))) {
-        pa_strbuf_puts(buf, "Module load failed.\n");
-        return -1;
+    if ((err = pa_module_load(&m, c, name,  pa_tokenizer_get(t, 2))) < 0) {
+        if (err == PA_ERR_EXIST) {
+            pa_strbuf_puts(buf, "Module already loaded; ignoring.\n");
+        } else {
+            pa_strbuf_puts(buf, "Module load failed.\n");
+            return -1;
+        }
     }
 
     return 0;

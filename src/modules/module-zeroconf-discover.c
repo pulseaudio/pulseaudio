@@ -242,7 +242,7 @@ static void resolver_cb(
 
         pa_log_debug("Loading %s with arguments '%s'", module_name, args);
 
-        if ((m = pa_module_load(u->core, module_name, args))) {
+        if (pa_module_load(&m, u->core, module_name, args) >= 0) {
             tnl->module_index = m->index;
             pa_hashmap_put(u->tunnels, tnl, tnl);
             tnl = NULL;

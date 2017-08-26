@@ -71,7 +71,7 @@ static pa_sink *ensure_null_sink_for_sink(struct userdata *u, pa_sink *s, pa_cor
 
     t = pa_sprintf_malloc("sink_name=allow_passthrough_null_%s sink_properties='device.description=\"%s\"'",
                           name ? name : "", _("Dummy Output"));
-    m = pa_module_load(c, "module-null-sink", t);
+    pa_module_load(&m, c, "module-null-sink", t);
     pa_xfree(t);
 
     if (m == NULL)

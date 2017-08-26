@@ -111,7 +111,7 @@ static void ensure_ports_started(struct userdata* u) {
             } else {
                 args = pa_sprintf_malloc("connect=%s", pa_yes_no(u->autoconnect_ports));
             }
-            m = pa_module_load(u->core, modnames[i], args);
+            pa_module_load(&m, u->core, modnames[i], args);
             pa_xfree(args);
 
             if (m) {

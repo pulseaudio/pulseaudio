@@ -93,7 +93,7 @@ static pa_hook_result_t load_module_for_device(pa_bluez4_discovery *y, const pa_
             }
 
             pa_log_debug("Loading module-bluez4-device %s", args);
-            m = pa_module_load(u->module->core, "module-bluez4-device", args);
+            pa_module_load(&m, u->module->core, "module-bluez4-device", args);
             pa_xfree(args);
 
             if (m) {
