@@ -108,6 +108,7 @@ struct pa_sink {
     /* Saved volume state while we're in passthrough mode */
     pa_cvolume saved_volume;
     bool saved_save_volume:1;
+    bool is_passthrough_set:1;
 
     pa_asyncmsgq *asyncmsgq;
 

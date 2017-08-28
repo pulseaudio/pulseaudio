@@ -1626,6 +1626,11 @@ bool pa_sink_is_passthrough(pa_sink *s) {
 void pa_sink_enter_passthrough(pa_sink *s) {
     pa_cvolume volume;
 
+    if (s->is_passthrough_set) {
+	pa_log_debug("Sink %s is already in passthrough mode, nothing to do", s->name);
+	return;
+    }
+
     /* disable the monitor in passthrough mode */
     if (s->monitor_source) {
         pa_log_debug("Suspending monitor source %s, because the sink is entering the passthrough mode.", s->monitor_source->name);
@@ -1638,10 +1643,23 @@ void pa_sink_enter_passthrough(pa_sink *s) {
 
     pa_cvolume_set(&volume, s->sample_spec.channels, PA_MIN(s->base_volume, PA_VOLUME_NORM));
     pa_sink_set_volume(s, &volume, true, false);
+
+    pa_log_debug("Suspending/Restarting sink %s to enter passthrough mode", s->name);
+
+    /* force sink to be resumed in passthrough mode */
+    pa_sink_suspend(s, true, PA_SUSPEND_INTERNAL);
+    s->is_passthrough_set = true;
+    pa_sink_suspend(s, false, PA_SUSPEND_INTERNAL);
 }
 
 /* Called from main context */
 void pa_sink_leave_passthrough(pa_sink *s) {
+
+    if (!s->is_passthrough_set) {
+	pa_log_debug("Sink %s is not in passthrough mode, nothing to do", s->name);
+	return;
+    }
+
     /* Unsuspend monitor */
     if (s->monitor_source) {
         pa_log_debug("Resuming monitor source %s, because the sink is leaving the passthrough mode.", s->monitor_source->name);
@@ -1653,6 +1671,12 @@ void pa_sink_leave_passthrough(pa_sink *s) {
 
     pa_cvolume_init(&s->saved_volume);
     s->saved_save_volume = false;
+
+    /* force sink to be resumed in non-passthrough mode */
+    pa_sink_suspend(s, true, PA_SUSPEND_INTERNAL);
+    s->is_passthrough_set = false;
+    pa_sink_suspend(s, false, PA_SUSPEND_INTERNAL);
+
 }
 
 /* Called from main context. */
