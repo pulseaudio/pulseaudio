@@ -700,7 +700,7 @@ void pa_alsa_path_set_free(pa_alsa_path_set *ps) {
 }
 
 static long to_alsa_dB(pa_volume_t v) {
-    return (long) (pa_sw_volume_to_dB(v) * 100.0);
+    return lround(pa_sw_volume_to_dB(v) * 100.0);
 }
 
 static pa_volume_t from_alsa_dB(long v) {
