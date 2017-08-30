@@ -315,6 +315,9 @@ void pa_core_update_default_sink(pa_core *core) {
     pa_assert(core);
 
     PA_IDXSET_FOREACH(sink, core->sinks, idx) {
+        if (!PA_SINK_IS_LINKED(sink->state))
+            continue;
+
         if (!best) {
             best = sink;
             continue;
@@ -399,6 +402,9 @@ void pa_core_update_default_source(pa_core *core) {
     pa_assert(core);
 
     PA_IDXSET_FOREACH(source, core->sources, idx) {
+        if (!PA_SOURCE_IS_LINKED(source->state))
+            continue;
+
         if (!best) {
             best = source;
             continue;
