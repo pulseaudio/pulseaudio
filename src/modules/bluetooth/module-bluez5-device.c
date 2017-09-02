@@ -1960,7 +1960,7 @@ static int uuid_to_profile(const char *uuid, pa_bluetooth_profile_t *_r) {
         *_r = PA_BLUETOOTH_PROFILE_A2DP_SINK;
     else if (pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SOURCE))
         *_r = PA_BLUETOOTH_PROFILE_A2DP_SOURCE;
-    else if (pa_streq(uuid, PA_BLUETOOTH_UUID_HSP_HS) || pa_streq(uuid, PA_BLUETOOTH_UUID_HFP_HF))
+    else if (pa_bluetooth_uuid_is_hsp_hs(uuid) || pa_streq(uuid, PA_BLUETOOTH_UUID_HFP_HF))
         *_r = PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT;
     else if (pa_streq(uuid, PA_BLUETOOTH_UUID_HSP_AG) || pa_streq(uuid, PA_BLUETOOTH_UUID_HFP_AG))
         *_r = PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY;

@@ -176,6 +176,7 @@ static bool device_supports_profile(pa_bluetooth_device *device, pa_bluetooth_pr
             return !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_A2DP_SOURCE);
         case PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT:
             return !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HSP_HS)
+                || !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HSP_HS_ALT)
                 || !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HFP_HF);
         case PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY:
             return !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HSP_AG)

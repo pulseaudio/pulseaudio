@@ -335,7 +335,7 @@ static void register_profile(pa_bluetooth_backend *b, const char *profile, const
     pa_assert_se(dbus_message_iter_append_basic(&i, DBUS_TYPE_STRING, &uuid));
     dbus_message_iter_open_container(&i, DBUS_TYPE_ARRAY, DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING DBUS_TYPE_STRING_AS_STRING
             DBUS_TYPE_VARIANT_AS_STRING DBUS_DICT_ENTRY_END_CHAR_AS_STRING, &d);
-    if (pa_streq (uuid, PA_BLUETOOTH_UUID_HSP_HS)) {
+    if (pa_bluetooth_uuid_is_hsp_hs(uuid)) {
         /* In the headset role, the connection will only be initiated from the remote side */
         autoconnect = 0;
         pa_dbus_append_basic_variant_dict_entry(&d, "AutoConnect", DBUS_TYPE_BOOLEAN, &autoconnect);
