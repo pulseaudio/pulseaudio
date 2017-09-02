@@ -1310,7 +1310,8 @@ dist_alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/native-instruments-traktorkontrol-s4.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-korecontroller.conf \
 		modules/alsa/mixer/profile-sets/kinect-audio.conf \
-		modules/alsa/mixer/profile-sets/sb-omni-surround-5.1.conf
+		modules/alsa/mixer/profile-sets/sb-omni-surround-5.1.conf \
+		modules/alsa/mixer/profile-sets/steelseries-arctis-usb-audio.conf
 
 if HAVE_UDEV
 dist_udevrules_DATA = \
@@ -1352,7 +1353,10 @@ dist_alsapaths_DATA = \
 		modules/alsa/mixer/paths/hdmi-output-4.conf \
 		modules/alsa/mixer/paths/hdmi-output-5.conf \
 		modules/alsa/mixer/paths/hdmi-output-6.conf \
-		modules/alsa/mixer/paths/hdmi-output-7.conf
+		modules/alsa/mixer/paths/hdmi-output-7.conf \
+		modules/alsa/mixer/paths/steelseries-arctis-input.conf \
+		modules/alsa/mixer/paths/steelseries-arctis-output-mono.conf \
+		modules/alsa/mixer/paths/steelseries-arctis-output-stereo.conf
 
 endif
 
