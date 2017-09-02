@@ -1607,6 +1607,12 @@ static int start_thread(struct userdata *u) {
     if (u->sink) {
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
+
+        /* If we are in the headset role, the sink should not become default
+         * unless there is no other sound device available. */
+        if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY)
+            u->sink->priority = 1500;
+
         pa_sink_put(u->sink);
 
         if (u->sink->set_volume)
@@ -1616,6 +1622,13 @@ static int start_thread(struct userdata *u) {
     if (u->source) {
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_rtpoll(u->source, u->rtpoll);
+
+        /* If we are in the headset role or the device is an a2dp source,
+         * the source should not become default unless there is no other
+         * sound device available. */
+        if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY || u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE)
+            u->source->priority = 1500;
+
         pa_source_put(u->source);
 
         if (u->source->set_volume)
