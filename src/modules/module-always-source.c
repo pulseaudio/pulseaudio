@@ -80,7 +80,7 @@ static void load_null_source_if_needed(pa_core *c, pa_source *source, struct use
     u->ignore = true;
 
     t = pa_sprintf_malloc("source_name=%s", u->source_name);
-    m = pa_module_load(c, "module-null-source", t);
+    pa_module_load(&m, c, "module-null-source", t);
     u->null_module = m ? m->index : PA_INVALID_INDEX;
     pa_xfree(t);
 
