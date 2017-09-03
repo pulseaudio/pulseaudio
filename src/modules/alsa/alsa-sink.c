@@ -1596,30 +1596,34 @@ static bool sink_set_formats(pa_sink *s, pa_idxset *formats) {
     return true;
 }
 
-static int sink_update_rate_cb(pa_sink *s, uint32_t rate) {
+static int sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
     struct userdata *u = s->userdata;
     int i;
     bool supported = false;
 
+    /* FIXME: we only update rate for now */
+
     pa_assert(u);
 
     for (i = 0; u->rates[i]; i++) {
-        if (u->rates[i] == rate) {
+        if (u->rates[i] == spec->rate) {
             supported = true;
             break;
         }
     }
 
     if (!supported) {
-        pa_log_info("Sink does not support sample rate of %d Hz", rate);
+        pa_log_info("Sink does not support sample rate of %d Hz", spec->rate);
         return -1;
     }
 
     if (!PA_SINK_IS_OPENED(s->state)) {
-        pa_log_info("Updating rate for device %s, new rate is %d",u->device_name, rate);
-        u->sink->sample_spec.rate = rate;
+        pa_log_info("Updating rate for device %s, new rate is %d", u->device_name, spec->rate);
+        u->sink->sample_spec.rate = spec->rate;
         return 0;
     }
+
+    /* Passthrough status change is handled during unsuspend */
 
     return -1;
 }
@@ -2357,7 +2361,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     else
         u->sink->set_port = sink_set_port_cb;
     if (u->sink->alternate_sample_rate)
-        u->sink->update_rate = sink_update_rate_cb;
+        u->sink->reconfigure = sink_reconfigure_cb;
     u->sink->userdata = u;
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);

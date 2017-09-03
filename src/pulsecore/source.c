@@ -150,7 +150,7 @@ static void reset_callbacks(pa_source *s) {
     s->update_requested_latency = NULL;
     s->set_port = NULL;
     s->get_formats = NULL;
-    s->update_rate = NULL;
+    s->reconfigure = NULL;
 }
 
 /* Called from main context */
@@ -981,19 +981,21 @@ void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *
 }
 
 /* Called from main thread */
-int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
+int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, bool passthrough) {
     int ret;
-    uint32_t desired_rate;
+    pa_sample_spec desired_spec;
     uint32_t default_rate = s->default_sample_rate;
     uint32_t alternate_rate = s->alternate_sample_rate;
     bool default_rate_is_usable = false;
     bool alternate_rate_is_usable = false;
     bool avoid_resampling = s->core->avoid_resampling;
 
-    if (rate == s->sample_spec.rate)
+    /* We currently only try to reconfigure the sample rate */
+
+    if (pa_sample_spec_equal(spec, &s->sample_spec))
         return 0;
 
-    if (!s->update_rate && !s->monitor_of)
+    if (!s->reconfigure && !s->monitor_of)
         return -1;
 
     if (PA_UNLIKELY(default_rate == alternate_rate && !passthrough && !avoid_resampling)) {
@@ -1014,39 +1016,41 @@ int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
         }
     }
 
-    if (PA_UNLIKELY(!pa_sample_rate_valid(rate)))
+    if (PA_UNLIKELY(!pa_sample_spec_valid(spec)))
         return -1;
+
+    desired_spec = s->sample_spec;
 
     if (passthrough) {
         /* We have to try to use the source output rate */
-        desired_rate = rate;
+        desired_spec.rate = spec->rate;
 
-    } else if (avoid_resampling && (rate >= default_rate || rate >= alternate_rate)) {
+    } else if (avoid_resampling && (spec->rate >= default_rate || spec->rate >= alternate_rate)) {
         /* We just try to set the source output's sample rate if it's not too low */
-        desired_rate = rate;
+        desired_spec.rate = spec->rate;
 
-    } else if (default_rate == rate || alternate_rate == rate) {
+    } else if (default_rate == spec->rate || alternate_rate == spec->rate) {
         /* We can directly try to use this rate */
-        desired_rate = rate;
+        desired_spec.rate = spec->rate;
 
     } else {
         /* See if we can pick a rate that results in less resampling effort */
-        if (default_rate % 11025 == 0 && rate % 11025 == 0)
+        if (default_rate % 11025 == 0 && spec->rate % 11025 == 0)
             default_rate_is_usable = true;
-        if (default_rate % 4000 == 0 && rate % 4000 == 0)
+        if (default_rate % 4000 == 0 && spec->rate % 4000 == 0)
             default_rate_is_usable = true;
-        if (alternate_rate && alternate_rate % 11025 == 0 && rate % 11025 == 0)
+        if (alternate_rate && alternate_rate % 11025 == 0 && spec->rate % 11025 == 0)
             alternate_rate_is_usable = true;
-        if (alternate_rate && alternate_rate % 4000 == 0 && rate % 4000 == 0)
+        if (alternate_rate && alternate_rate % 4000 == 0 && spec->rate % 4000 == 0)
             alternate_rate_is_usable = true;
 
         if (alternate_rate_is_usable && !default_rate_is_usable)
-            desired_rate = alternate_rate;
+            desired_spec.rate = alternate_rate;
         else
-            desired_rate = default_rate;
+            desired_spec.rate = default_rate;
     }
 
-    if (desired_rate == s->sample_spec.rate)
+    if (pa_sample_spec_equal(&desired_spec, &s->sample_spec) && passthrough == pa_source_is_passthrough(s))
         return -1;
 
     if (!passthrough && pa_source_used_by(s) > 0)
@@ -1055,8 +1059,8 @@ int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
     pa_log_debug("Suspending source %s due to changing the sample rate.", s->name);
     pa_source_suspend(s, true, PA_SUSPEND_INTERNAL);
 
-    if (s->update_rate)
-        ret = s->update_rate(s, desired_rate);
+    if (s->reconfigure)
+        ret = s->reconfigure(s, &desired_spec, passthrough);
     else {
         /* This is a monitor source. */
 
@@ -1064,23 +1068,23 @@ int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough) {
          * have no idea whether the behaviour with passthrough streams is
          * sensible. */
         if (!passthrough) {
-            uint32_t old_rate = s->sample_spec.rate;
+            pa_sample_spec old_spec = s->sample_spec;
 
-            s->sample_spec.rate = desired_rate;
-            ret = pa_sink_update_rate(s->monitor_of, desired_rate, false);
+            s->sample_spec = desired_spec;
+            ret = pa_sink_reconfigure(s->monitor_of, &desired_spec, false);
 
             if (ret < 0) {
                 /* Changing the sink rate failed, roll back the old rate for
                  * the monitor source. Why did we set the source rate before
-                 * calling pa_sink_update_rate(), you may ask. The reason is
-                 * that pa_sink_update_rate() tries to update the monitor
+                 * calling pa_sink_reconfigure(), you may ask. The reason is
+                 * that pa_sink_reconfigure() tries to update the monitor
                  * source rate, but we are already in the process of updating
                  * the monitor source rate, so there's a risk of entering an
                  * infinite loop. Setting the source rate before calling
-                 * pa_sink_update_rate() makes the rate == s->sample_spec.rate
+                 * pa_sink_reconfigure() makes the rate == s->sample_spec.rate
                  * check in the beginning of this function return early, so we
                  * avoid looping. */
-                s->sample_spec.rate = old_rate;
+                s->sample_spec = old_spec;
             }
         } else
             ret = -1;

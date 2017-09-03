@@ -161,7 +161,7 @@ static void reset_callbacks(pa_sink *s) {
     s->set_port = NULL;
     s->get_formats = NULL;
     s->set_formats = NULL;
-    s->update_rate = NULL;
+    s->reconfigure = NULL;
 }
 
 /* Called from main context */
@@ -1411,9 +1411,9 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
 }
 
 /* Called from main thread */
-int pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
+int pa_sink_reconfigure(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
     int ret = -1;
-    uint32_t desired_rate;
+    pa_sample_spec desired_spec;
     uint32_t default_rate = s->default_sample_rate;
     uint32_t alternate_rate = s->alternate_sample_rate;
     uint32_t idx;
@@ -1422,10 +1422,12 @@ int pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
     bool alternate_rate_is_usable = false;
     bool avoid_resampling = s->core->avoid_resampling;
 
-    if (rate == s->sample_spec.rate)
+    /* We currently only try to reconfigure the sample rate */
+
+    if (pa_sample_spec_equal(spec, &s->sample_spec))
         return 0;
 
-    if (!s->update_rate)
+    if (!s->reconfigure)
         return -1;
 
     if (PA_UNLIKELY(default_rate == alternate_rate && !passthrough && !avoid_resampling)) {
@@ -1446,52 +1448,54 @@ int pa_sink_update_rate(pa_sink *s, uint32_t rate, bool passthrough) {
         }
     }
 
-    if (PA_UNLIKELY(!pa_sample_rate_valid(rate)))
+    if (PA_UNLIKELY(!pa_sample_spec_valid(spec)))
         return -1;
+
+    desired_spec = s->sample_spec;
 
     if (passthrough) {
         /* We have to try to use the sink input rate */
-        desired_rate = rate;
+        desired_spec.rate = spec->rate;
 
-    } else if (avoid_resampling && (rate >= default_rate || rate >= alternate_rate)) {
+    } else if (avoid_resampling && (spec->rate >= default_rate || spec->rate >= alternate_rate)) {
         /* We just try to set the sink input's sample rate if it's not too low */
-        desired_rate = rate;
+        desired_spec.rate = spec->rate;
 
-    } else if (default_rate == rate || alternate_rate == rate) {
+    } else if (default_rate == spec->rate || alternate_rate == spec->rate) {
         /* We can directly try to use this rate */
-        desired_rate = rate;
+        desired_spec.rate = spec->rate;
 
     } else {
         /* See if we can pick a rate that results in less resampling effort */
-        if (default_rate % 11025 == 0 && rate % 11025 == 0)
+        if (default_rate % 11025 == 0 && spec->rate % 11025 == 0)
             default_rate_is_usable = true;
-        if (default_rate % 4000 == 0 && rate % 4000 == 0)
+        if (default_rate % 4000 == 0 && spec->rate % 4000 == 0)
             default_rate_is_usable = true;
-        if (alternate_rate && alternate_rate % 11025 == 0 && rate % 11025 == 0)
+        if (alternate_rate && alternate_rate % 11025 == 0 && spec->rate % 11025 == 0)
             alternate_rate_is_usable = true;
-        if (alternate_rate && alternate_rate % 4000 == 0 && rate % 4000 == 0)
+        if (alternate_rate && alternate_rate % 4000 == 0 && spec->rate % 4000 == 0)
             alternate_rate_is_usable = true;
 
         if (alternate_rate_is_usable && !default_rate_is_usable)
-            desired_rate = alternate_rate;
+            desired_spec.rate = alternate_rate;
         else
-            desired_rate = default_rate;
+            desired_spec.rate = default_rate;
     }
 
-    if (desired_rate == s->sample_spec.rate)
+    if (pa_sample_spec_equal(&desired_spec, &s->sample_spec) && passthrough == pa_sink_is_passthrough(s))
         return -1;
 
     if (!passthrough && pa_sink_used_by(s) > 0)
         return -1;
 
-    pa_log_debug("Suspending sink %s due to changing the sample rate.", s->name);
+    pa_log_debug("Suspending sink %s due to changing format.", s->name);
     pa_sink_suspend(s, true, PA_SUSPEND_INTERNAL);
 
-    if (s->update_rate(s, desired_rate) >= 0) {
+    if (s->reconfigure(s, &desired_spec, passthrough) >= 0) {
         /* update monitor source as well */
         if (s->monitor_source && !passthrough)
-            pa_source_update_rate(s->monitor_source, desired_rate, false);
-        pa_log_info("Changed sampling rate successfully");
+            pa_source_reconfigure(s->monitor_source, &desired_spec, false);
+        pa_log_info("Changed format successfully");
 
         PA_IDXSET_FOREACH(i, s->inputs, idx) {
             if (i->state == PA_SINK_INPUT_CORKED)
@@ -1626,10 +1630,9 @@ bool pa_sink_is_passthrough(pa_sink *s) {
 void pa_sink_enter_passthrough(pa_sink *s) {
     pa_cvolume volume;
 
-    if (s->is_passthrough_set) {
-	pa_log_debug("Sink %s is already in passthrough mode, nothing to do", s->name);
-	return;
-    }
+    /* The sink implementation is reconfigured for passthrough in
+     * pa_sink_reconfigure(). This function sets the PA core objects to
+     * passthrough mode. */
 
     /* disable the monitor in passthrough mode */
     if (s->monitor_source) {
@@ -1645,21 +1648,10 @@ void pa_sink_enter_passthrough(pa_sink *s) {
     pa_sink_set_volume(s, &volume, true, false);
 
     pa_log_debug("Suspending/Restarting sink %s to enter passthrough mode", s->name);
-
-    /* force sink to be resumed in passthrough mode */
-    pa_sink_suspend(s, true, PA_SUSPEND_INTERNAL);
-    s->is_passthrough_set = true;
-    pa_sink_suspend(s, false, PA_SUSPEND_INTERNAL);
 }
 
 /* Called from main context */
 void pa_sink_leave_passthrough(pa_sink *s) {
-
-    if (!s->is_passthrough_set) {
-	pa_log_debug("Sink %s is not in passthrough mode, nothing to do", s->name);
-	return;
-    }
-
     /* Unsuspend monitor */
     if (s->monitor_source) {
         pa_log_debug("Resuming monitor source %s, because the sink is leaving the passthrough mode.", s->monitor_source->name);
@@ -1671,11 +1663,6 @@ void pa_sink_leave_passthrough(pa_sink *s) {
 
     pa_cvolume_init(&s->saved_volume);
     s->saved_save_volume = false;
-
-    /* force sink to be resumed in non-passthrough mode */
-    pa_sink_suspend(s, true, PA_SUSPEND_INTERNAL);
-    s->is_passthrough_set = false;
-    pa_sink_suspend(s, false, PA_SUSPEND_INTERNAL);
 
 }
 

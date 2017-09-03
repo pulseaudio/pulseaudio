@@ -356,7 +356,7 @@ int pa_source_output_new(
            module-suspend-on-idle can resume a source */
 
         pa_log_info("Trying to change sample rate");
-        if (pa_source_update_rate(data->source, data->sample_spec.rate, pa_source_output_new_data_is_passthrough(data)) >= 0)
+        if (pa_source_reconfigure(data->source, &data->sample_spec, pa_source_output_new_data_is_passthrough(data)) >= 0)
             pa_log_info("Rate changed to %u Hz", data->source->sample_spec.rate);
     }
 
@@ -529,7 +529,7 @@ static void source_output_set_state(pa_source_output *o, pa_source_output_state_
             !pa_sample_spec_equal(&o->sample_spec, &o->source->sample_spec)) {
             /* We were uncorked and the source was not playing anything -- let's try
              * to update the sample rate to avoid resampling */
-            pa_source_update_rate(o->source, o->sample_spec.rate, pa_source_output_is_passthrough(o));
+            pa_source_reconfigure(o->source, &o->sample_spec, pa_source_output_is_passthrough(o));
         }
 
         pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) == 0);
@@ -1523,7 +1523,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, bool save
            SOURCE_OUTPUT_MOVE_FINISH hook */
 
         pa_log_info("Trying to change sample rate");
-        if (pa_source_update_rate(dest, o->sample_spec.rate, pa_source_output_is_passthrough(o)) >= 0)
+        if (pa_source_reconfigure(dest, &o->sample_spec, pa_source_output_is_passthrough(o)) >= 0)
             pa_log_info("Rate changed to %u Hz", dest->sample_spec.rate);
     }
 

@@ -202,9 +202,9 @@ struct pa_source {
      * in descending order of preference. */
     pa_idxset* (*get_formats)(pa_source *s); /* ditto */
 
-    /* Called whenever the sampling frequency shall be changed. Called from
+    /* Called whenever device parameters need to be changed. Called from
      * main thread. */
-    int (*update_rate)(pa_source *s, uint32_t rate);
+    int (*reconfigure)(pa_source *s, pa_sample_spec *spec, bool passthrough);
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
@@ -396,7 +396,7 @@ bool pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist 
 int pa_source_set_port(pa_source *s, const char *name, bool save);
 void pa_source_set_mixer_dirty(pa_source *s, bool is_dirty);
 
-int pa_source_update_rate(pa_source *s, uint32_t rate, bool passthrough);
+int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, bool passthrough);
 
 unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
 unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */

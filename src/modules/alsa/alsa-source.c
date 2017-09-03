@@ -1398,28 +1398,30 @@ static void source_update_requested_latency_cb(pa_source *s) {
     update_sw_params(u);
 }
 
-static int source_update_rate_cb(pa_source *s, uint32_t rate) {
+static int source_reconfigure_cb(pa_source *s, pa_sample_spec *spec, bool passthrough) {
     struct userdata *u = s->userdata;
     int i;
     bool supported = false;
 
+    /* FIXME: we only update rate for now */
+
     pa_assert(u);
 
     for (i = 0; u->rates[i]; i++) {
-        if (u->rates[i] == rate) {
+        if (u->rates[i] == spec->rate) {
             supported = true;
             break;
         }
     }
 
     if (!supported) {
-        pa_log_info("Source does not support sample rate of %d Hz", rate);
+        pa_log_info("Source does not support sample rate of %d Hz", spec->rate);
         return -1;
     }
 
     if (!PA_SOURCE_IS_OPENED(s->state)) {
-        pa_log_info("Updating rate for device %s, new rate is %d", u->device_name, rate);
-        u->source->sample_spec.rate = rate;
+        pa_log_info("Updating rate for device %s, new rate is %d", u->device_name, spec->rate);
+        u->source->sample_spec.rate = spec->rate;
         return 0;
     }
 
@@ -2041,7 +2043,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     else
         u->source->set_port = source_set_port_cb;
     if (u->source->alternate_sample_rate)
-        u->source->update_rate = source_update_rate_cb;
+        u->source->reconfigure = source_reconfigure_cb;
     u->source->userdata = u;
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
