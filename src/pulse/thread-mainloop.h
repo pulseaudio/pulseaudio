@@ -37,7 +37,7 @@ PA_C_DECL_BEGIN
  *
  * The added feature in the threaded main loop is that it spawns a new thread
  * that runs the real main loop. This allows a synchronous application to use
- * the asynchronous API without risking to stall the PulseAudio library.
+ * the asynchronous API without risking stalling the PulseAudio library.
  *
  * \section creat_sec Creation
  *
@@ -247,7 +247,7 @@ typedef struct pa_threaded_mainloop pa_threaded_mainloop;
 
 /** Allocate a new threaded main loop object. You have to call
  * pa_threaded_mainloop_start() before the event loop thread starts
- * running. */
+ * running. Free with pa_threaded_mainloop_free. */
 pa_threaded_mainloop *pa_threaded_mainloop_new(void);
 
 /** Free a threaded main loop object. If the event loop thread is
@@ -255,7 +255,7 @@ pa_threaded_mainloop *pa_threaded_mainloop_new(void);
  * first. */
 void pa_threaded_mainloop_free(pa_threaded_mainloop* m);
 
-/** Start the event loop thread. */
+/** Start the event loop thread. Returns zero on success, negative on error. */
 int pa_threaded_mainloop_start(pa_threaded_mainloop *m);
 
 /** Terminate the event loop thread cleanly. Make sure to unlock the

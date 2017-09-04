@@ -186,7 +186,7 @@
  * Once the stream is up, data can start flowing between the client and the
  * server. Two different access models can be used to transfer the data:
  *
- * \li Asynchronous - The application register a callback using
+ * \li Asynchronous - The application registers a callback using
  *                    pa_stream_set_write_callback() and
  *                    pa_stream_set_read_callback() to receive notifications
  *                    that data can either be written or read.
@@ -222,9 +222,11 @@
  * accomplish that the pa_stream_write() function takes a seek mode
  * and an offset argument. The seek mode is one of:
  *
- * \li PA_SEEK_RELATIVE - seek relative to the current write index
- * \li PA_SEEK_ABSOLUTE - seek relative to the beginning of the playback buffer, (i.e. the first that was ever played in the stream)
- * \li PA_SEEK_RELATIVE_ON_READ - seek relative to the current read index. Use this to write data to the output buffer that should be played as soon as possible
+ * \li PA_SEEK_RELATIVE - seek relative to the current write index.
+ * \li PA_SEEK_ABSOLUTE - seek relative to the beginning of the playback buffer,
+ * (i.e. the first that was ever played in the stream).
+ * \li PA_SEEK_RELATIVE_ON_READ - seek relative to the current read index. Use
+ * this to write data to the output buffer that should be played as soon as possible.
  * \li PA_SEEK_RELATIVE_END - seek relative to the last byte ever written.
  *
  * If an application just wants to append some data to the output
@@ -309,10 +311,10 @@
  * been created -- uncork them all with a single call to
  * pa_stream_cork() for the master stream.
  *
- * To make sure that a particular stream doesn't stop to play when a
+ * To make sure that a particular stream doesn't stop playing when a
  * server side buffer underrun happens on it while the other
  * synchronized streams continue playing and hence deviate, you need to
- * pass a "prebuf" pa_buffer_attr of 0 when connecting it.
+ * pass a pa_buffer_attr with prebuf set to 0 when connecting.
  *
  * \section disc_sec Disconnecting
  *
@@ -396,7 +398,8 @@ pa_context* pa_stream_get_context(pa_stream *p);
 /** Return the sink input resp.\ source output index this stream is
  * identified in the server with. This is useful with the
  * introspection functions such as pa_context_get_sink_input_info()
- * or pa_context_get_source_output_info(). */
+ * or pa_context_get_source_output_info(). This returns PA_INVALID_INDEX
+ * on failure. */
 uint32_t pa_stream_get_index(pa_stream *s);
 
 /** Return the index of the sink or source this stream is connected to
@@ -406,8 +409,8 @@ uint32_t pa_stream_get_index(pa_stream *s);
  *
  * Please note that streams may be moved between sinks/sources and thus
  * it is recommended to use pa_stream_set_moved_callback() to be notified
- * about this. This function will return with -PA_ERR_NOTSUPPORTED when the
- * server is older than 0.9.8. \since 0.9.8 */
+ * about this. This function will return with PA_INVALID_INDEX on failure,
+ * including the being server older than 0.9.8. \since 0.9.8 */
 uint32_t pa_stream_get_device_index(pa_stream *s);
 
 /** Return the name of the sink or source this stream is connected to
@@ -417,8 +420,8 @@ uint32_t pa_stream_get_device_index(pa_stream *s);
  *
  * Please note that streams may be moved between sinks/sources and thus
  * it is recommended to use pa_stream_set_moved_callback() to be notified
- * about this. This function will return with -PA_ERR_NOTSUPPORTED when the
- * server is older than 0.9.8. \since 0.9.8 */
+ * about this. This function will fail when the server is older than
+ * 0.9.8. \since 0.9.8 */
 const char *pa_stream_get_device_name(pa_stream *s);
 
 /** Return 1 if the sink or source this stream is connected to has
@@ -454,7 +457,9 @@ int pa_stream_is_corked(pa_stream *s);
  *
  * Since 5.0, it's possible to specify a single-channel volume even if the
  * stream has multiple channels. In that case the same volume is applied to all
- * channels. */
+ * channels.
+ *
+ * Returns zero on success. */
 int pa_stream_connect_playback(
         pa_stream *s                  /**< The stream to connect to a sink */,
         const char *dev               /**< Name of the sink to connect to, or NULL for default */ ,
@@ -463,14 +468,14 @@ int pa_stream_connect_playback(
         const pa_cvolume *volume      /**< Initial volume, or NULL for default */,
         pa_stream *sync_stream        /**< Synchronize this stream with the specified one, or NULL for a standalone stream */);
 
-/** Connect the stream to a source. */
+/** Connect the stream to a source. Returns zero on success. */
 int pa_stream_connect_record(
         pa_stream *s                  /**< The stream to connect to a source */ ,
         const char *dev               /**< Name of the source to connect to, or NULL for default */,
         const pa_buffer_attr *attr    /**< Buffer attributes, or NULL for default */,
         pa_stream_flags_t flags       /**< Additional flags, or 0 for default */);
 
-/** Disconnect a stream from a source/sink. */
+/** Disconnect a stream from a source/sink. Returns zero on success. */
 int pa_stream_disconnect(pa_stream *s);
 
 /** Prepare writing data to the server (for playback streams). This
@@ -504,7 +509,14 @@ int pa_stream_disconnect(pa_stream *s);
  * pa_stream_write() use pa_stream_cancel_write(). Calling
  * pa_stream_begin_write() twice without calling pa_stream_write() or
  * pa_stream_cancel_write() in between will return exactly the same
- * \a data pointer and \a nbytes values. \since 0.9.16 */
+ * \a data pointer and \a nbytes values.
+ *
+ * On success, will return zero and a valid (non-NULL) pointer. If the
+ * return value is non-zero, or the pointer is NULL, this indicates an
+ * error. Callers should also pay careful attention to the returned
+ * length, which may not be the same as that passed in, as mentioned above.
+ *
+ * \since 0.9.16 */
 int pa_stream_begin_write(
         pa_stream *p,
         void **data,
@@ -517,8 +529,8 @@ int pa_stream_begin_write(
  * pa_stream_cancel_write() nor pa_stream_write() have been called
  * yet. Accessing the memory previously returned by
  * pa_stream_begin_write() after this call is invalid. Any further
- * explicit freeing of the memory area is not necessary. \since
- * 0.9.16 */
+ * explicit freeing of the memory area is not necessary.
+ * Returns zero on success. \since 0.9.16 */
 int pa_stream_cancel_write(
         pa_stream *p);
 
@@ -530,9 +542,9 @@ int pa_stream_cancel_write(
  *
  * The client may freely seek around in the output buffer. For
  * most applications it is typical to pass 0 and PA_SEEK_RELATIVE
- * as values for the arguments \a offset and \a seek. After the write
- * call succeeded the write index will be at the position after where
- * this chunk of data has been written to.
+ * as values for the arguments \a offset and \a seek respectively.
+ * After a successful write call the write index will be at the
+ * position after where this chunk of data has been written to.
  *
  * As an optimization for avoiding needless memory copies you may call
  * pa_stream_begin_write() before this call and then place your audio
@@ -540,10 +552,12 @@ int pa_stream_cancel_write(
  * a pointer to that memory area to pa_stream_write(). After the
  * invocation of pa_stream_write() the memory area may no longer be
  * accessed. Any further explicit freeing of the memory area is not
- * necessary. It is OK to write the memory area returned by
+ * necessary. It is OK to write to the memory area returned by
  * pa_stream_begin_write() only partially with this call, skipping
  * bytes both at the end and at the beginning of the reserved memory
- * area.*/
+ * area.
+ *
+ * Returns zero on success. */
 int pa_stream_write(
         pa_stream *p             /**< The stream to use */,
         const void *data         /**< The data to write */,
@@ -578,14 +592,16 @@ int pa_stream_write_ext_free(
  * Use pa_stream_drop() to actually remove the data from the buffer
  * and move the read index forward. pa_stream_drop() should not be
  * called if the buffer is empty, but it should be called if there is
- * a hole. */
+ * a hole.
+ *
+ * Returns zero on success, negative on error. */
 int pa_stream_peek(
         pa_stream *p                 /**< The stream to use */,
         const void **data            /**< Pointer to pointer that will point to data */,
         size_t *nbytes               /**< The length of the data read in bytes */);
 
 /** Remove the current fragment on record streams. It is invalid to do this without first
- * calling pa_stream_peek(). */
+ * calling pa_stream_peek(). Returns zero on success. */
 int pa_stream_drop(pa_stream *p);
 
 /** Return the number of bytes requested by the server that have not yet
@@ -595,10 +611,14 @@ int pa_stream_drop(pa_stream *p);
  * buffer_attr.maxlength bytes. This is usually not desirable, though, as
  * it would increase stream latency to be higher than requested
  * (buffer_attr.tlength).
+ *
+ * (size_t) -1 is returned on error.
  */
 size_t pa_stream_writable_size(pa_stream *p);
 
-/** Return the number of bytes that may be read using pa_stream_peek(). */
+/** Return the number of bytes that may be read using pa_stream_peek().
+ *
+ * (size_t) -1 is returned on error. */
 size_t pa_stream_readable_size(pa_stream *p);
 
 /** Drain a playback stream.  Use this for notification when the
@@ -635,7 +655,7 @@ int64_t pa_stream_get_underflow_index(pa_stream *p);
 /** Set the callback function that is called when a buffer underflow happens. (Only for playback streams) */
 void pa_stream_set_underflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
-/** Set the callback function that is called when a the server starts
+/** Set the callback function that is called when the server starts
  * playback after an underrun or on initial startup. This only informs
  * that audio is flowing again, it is no indication that audio started
  * to reach the speakers already. (Only for playback streams) \since
@@ -736,7 +756,9 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
  *
  * If no timing information has been
  * received yet this call will return -PA_ERR_NODATA. For more details
- * see pa_stream_get_timing_info(). */
+ * see pa_stream_get_timing_info().
+ *
+ * Returns zero on success, negative on error. */
 int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec);
 
 /** Determine the total stream latency. This function is based on
@@ -757,14 +779,13 @@ int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative);
 
 /** Return the latest raw timing data structure. The returned pointer
  * refers to an internal read-only instance of the timing
- * structure. The user should make a copy of this structure if he
- * wants to modify it. An in-place update to this data structure may
- * be requested using pa_stream_update_timing_info().
+ * structure. The user should make a copy of this structure if
+ * wanting to modify it. An in-place update to this data structure
+ * may be requested using pa_stream_update_timing_info().
  *
  * If no timing information has been received before (i.e. by
  * requesting pa_stream_update_timing_info() or by using
- * PA_STREAM_AUTO_TIMING_UPDATE), this function will fail with
- * -PA_ERR_NODATA.
+ * PA_STREAM_AUTO_TIMING_UPDATE), this function will return NULL.
  *
  * Please note that the write_index member field (and only this field)
  * is updated on each pa_stream_write() call, not just when a timing
@@ -791,7 +812,7 @@ const pa_format_info* pa_stream_get_format_info(pa_stream *s);
 const pa_buffer_attr* pa_stream_get_buffer_attr(pa_stream *s);
 
 /** Change the buffer metrics of the stream during playback. The
- * server might have chosen different buffer metrics then
+ * server might have chosen different buffer metrics than
  * requested. The selected metrics may be queried with
  * pa_stream_get_buffer_attr() as soon as the callback is called. Only
  * valid after the stream has been connected successfully and if the
@@ -821,13 +842,13 @@ pa_operation *pa_stream_proplist_remove(pa_stream *s, const char *const keys[], 
 
 /** For record streams connected to a monitor source: monitor only a
  * very specific sink input of the sink. This function needs to be
- * called before pa_stream_connect_record() is called. \since
- * 0.9.11 */
+ * called before pa_stream_connect_record() is called.
+ * Returns zero on success, negative on error. \since 0.9.11 */
 int pa_stream_set_monitor_stream(pa_stream *s, uint32_t sink_input_idx);
 
 /** Return the sink input index previously set with
- * pa_stream_set_monitor_stream().
- * \since 0.9.11 */
+ * pa_stream_set_monitor_stream(). Returns PA_INVALID_INDEX
+ * on failure. \since 0.9.11 */
 uint32_t pa_stream_get_monitor_stream(pa_stream *s);
 
 PA_C_DECL_END

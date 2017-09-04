@@ -46,7 +46,7 @@
  *                       that some implementations may block all other events
  *                       when a deferred event is active.
  * \li I/O events - Events that trigger on file descriptor activities.
- * \li Times events - Events that trigger after a fixed amount of time.
+ * \li Timer events - Events that trigger after a fixed amount of time.
  *
  * The abstraction is represented as a number of function pointers in the
  * pa_mainloop_api structure.
@@ -199,13 +199,14 @@ int pa_context_is_pending(pa_context *c);
 pa_context_state_t pa_context_get_state(pa_context *c);
 
 /** Connect the context to the specified server. If server is NULL,
-connect to the default server. This routine may but will not always
-return synchronously on error. Use pa_context_set_state_callback() to
-be notified when the connection is established. If flags doesn't have
-PA_CONTEXT_NOAUTOSPAWN set and no specific server is specified or
-accessible a new daemon is spawned. If api is non-NULL, the functions
-specified in the structure are used when forking a new child
-process. */
+ * connect to the default server. This routine may but will not always
+ * return synchronously on error. Use pa_context_set_state_callback() to
+ * be notified when the connection is established. If flags doesn't have
+ * PA_CONTEXT_NOAUTOSPAWN set and no specific server is specified or
+ * accessible a new daemon is spawned. If api is non-NULL, the functions
+ * specified in the structure are used when forking a new child
+ * process. Returns negative on certain errors such as invalid state
+ * or parameters. */
 int pa_context_connect(pa_context *c, const char *server, pa_context_flags_t flags, const pa_spawn_api *api);
 
 /** Terminate the context connection immediately */
@@ -237,11 +238,12 @@ const char* pa_context_get_server(pa_context *c);
 /** Return the protocol version of the library. */
 uint32_t pa_context_get_protocol_version(pa_context *c);
 
-/** Return the protocol version of the connected server. */
+/** Return the protocol version of the connected server.
+ * Returns PA_INVALID_INDEX on error. */
 uint32_t pa_context_get_server_protocol_version(pa_context *c);
 
 /** Update the property list of the client, adding new entries. Please
- * note that it is highly recommended to set as much properties
+ * note that it is highly recommended to set as many properties
  * initially via pa_context_new_with_proplist() as possible instead a
  * posteriori with this function, since that information may then be
  * used to route streams of the client to the right device. \since 0.9.11 */
@@ -252,7 +254,8 @@ pa_operation *pa_context_proplist_remove(pa_context *c, const char *const keys[]
 
 /** Return the client index this context is
  * identified in the server with. This is useful for usage with the
- * introspection functions, such as pa_context_get_client_info(). \since 0.9.11 */
+ * introspection functions, such as pa_context_get_client_info().
+ * Returns PA_INVALID_INDEX on error. \since 0.9.11 */
 uint32_t pa_context_get_index(pa_context *s);
 
 /** Create a new timer event source for the specified time (wrapper
@@ -271,7 +274,8 @@ void pa_context_rttime_restart(pa_context *c, pa_time_event *e, pa_usec_t usec);
  * of this size. It is not recommended writing smaller blocks than
  * this (unless required due to latency demands) because this
  * increases CPU usage. If ss is NULL you will be returned the
- * byte-exact tile size. If you pass a valid ss, then the tile size
+ * byte-exact tile size. if ss is invalid, (size_t) -1 will be
+ * returned. If you pass a valid ss, then the tile size
  * will be rounded down to multiple of the frame size. This is
  * supposed to be used in a construct such as
  * pa_context_get_tile_size(pa_stream_get_context(s),

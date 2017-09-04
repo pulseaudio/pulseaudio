@@ -31,14 +31,21 @@
  * Main loop abstraction layer. Both the PulseAudio core and the
  * PulseAudio client library use a main loop abstraction layer. Due to
  * this it is possible to embed PulseAudio into other
- * applications easily. Two main loop implementations are
+ * applications easily. Three main loop implementations are
  * currently available:
- * \li A minimal implementation based on the C library's poll() function (See \ref mainloop.h)
- * \li A wrapper around the GLIB main loop. Use this to embed PulseAudio into your GLIB/GTK+/GNOME programs (See \ref glib-mainloop.h)
+ * \li A minimal implementation based on the C library's poll() function
+ *     (See \ref mainloop.h).
+ * \li A special version of the previous implementation where all of
+ *     PulseAudio's internal handling runs in a separate thread
+ *     (See \ref thread-mainloop.h).
+ * \li A wrapper around the GLIB main loop. Use this to embed PulseAudio into
+ *     your GLIB/GTK+/GNOME programs (See \ref glib-mainloop.h).
  *
- * The structure pa_mainloop_api is used as vtable for the main loop abstraction.
+ * The structure pa_mainloop_api is used as a vtable for the main loop abstraction.
  *
- * This mainloop abstraction layer has no direct support for UNIX signals. Generic, mainloop implementation agnostic support is available through \ref mainloop-signal.h.
+ * This mainloop abstraction layer has no direct support for UNIX signals.
+ * Generic, mainloop implementation agnostic support is available through
+ * \ref mainloop-signal.h.
  * */
 
 PA_C_DECL_BEGIN

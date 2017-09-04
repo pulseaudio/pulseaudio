@@ -114,11 +114,11 @@
  * integer value or a NULL pointer. On success, zero or a positive integer
  * value or a valid pointer is returned.
  *
- * Functions of the \ref simple generally return -1 or NULL on failure and
+ * Functions of the \ref simple API generally return -1 or NULL on failure and
  * can optionally store an error code (see ::pa_error_code) using a pointer
  * argument.
  *
- * Functions of the \ref async return an negative error code or NULL on
+ * Functions of the \ref async API return an negative error code or NULL on
  * failure (see ::pa_error_code). In the later case, pa_context_errno()
  * can be used to obtain the error code of the last failed operation.
  *

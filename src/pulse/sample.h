@@ -259,7 +259,8 @@ typedef struct pa_sample_spec {
 /** Type for usec specifications (unsigned). Always 64 bit. */
 typedef uint64_t pa_usec_t;
 
-/** Return the amount of bytes playback of a second of audio with the specified sample type takes */
+/** Return the amount of bytes that constitute playback of one second of
+ * audio, with the specified sample spec. */
 size_t pa_bytes_per_second(const pa_sample_spec *spec) PA_GCC_PURE;
 
 /** Return the size of a frame with the specific sample type */
@@ -272,13 +273,14 @@ size_t pa_sample_size(const pa_sample_spec *spec) PA_GCC_PURE;
  * full sample spec. \since 0.9.15 */
 size_t pa_sample_size_of_format(pa_sample_format_t f) PA_GCC_PURE;
 
-/** Calculate the time the specified bytes take to play with the
- * specified sample type. The return value will always be rounded
- * down for non-integral return values. */
+/** Calculate the time it would take to play a buffer of the specified
+ * size with the specified sample type. The return value will always
+ * be rounded down for non-integral return values. */
 pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec) PA_GCC_PURE;
 
-/** Calculates the number of bytes that are required for the specified
- * time. The return value will always be rounded down for non-integral
+/** Calculates the size of a buffer required, for playback duration
+ * of the time specified, with the specified sample type. The
+ * return value will always be rounded down for non-integral
  * return values. \since 0.9 */
 size_t pa_usec_to_bytes(pa_usec_t t, const pa_sample_spec *spec) PA_GCC_PURE;
 
@@ -316,7 +318,7 @@ pa_sample_format_t pa_parse_sample_format(const char *format) PA_GCC_PURE;
  * it might become part of an ABI. */
 #define PA_SAMPLE_SPEC_SNPRINT_MAX 32
 
-/** Pretty print a sample type specification to a string */
+/** Pretty print a sample type specification to a string. Returns \a s. */
 char* pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec);
 
 /** Maximum required string length for pa_bytes_snprint(). Please note
@@ -326,26 +328,30 @@ char* pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec);
  * ABI. \since 0.9.16 */
 #define PA_BYTES_SNPRINT_MAX 11
 
-/** Pretty print a byte size value (i.e.\ "2.5 MiB") */
+/** Pretty print a byte size value (i.e.\ "2.5 MiB"). Returns \a s. */
 char* pa_bytes_snprint(char *s, size_t l, unsigned v);
 
-/** Return 1 when the specified format is little endian, return -1
- * when endianness does not apply to this format. \since 0.9.16 */
+/** Returns 1 when the specified format is little endian, 0 when
+ * big endian. Returns -1 when endianness does not apply to the
+ * specified format, or endianess is unknown. \since 0.9.16 */
 int pa_sample_format_is_le(pa_sample_format_t f) PA_GCC_PURE;
 
-/** Return 1 when the specified format is big endian, return -1 when
- * endianness does not apply to this format. \since 0.9.16 */
+/** Returns 1 when the specified format is big endian, 0 when
+ * little endian. Returns -1 when endianness does not apply to the
+ * specified format, or endianess is unknown. \since 0.9.16 */
 int pa_sample_format_is_be(pa_sample_format_t f) PA_GCC_PURE;
 
 #ifdef WORDS_BIGENDIAN
 #define pa_sample_format_is_ne(f) pa_sample_format_is_be(f)
 #define pa_sample_format_is_re(f) pa_sample_format_is_le(f)
 #else
-/** Return 1 when the specified format is native endian, return -1
- * when endianness does not apply to this format. \since 0.9.16 */
+/** Returns 1 when the specified format is native endian, 0 when
+ * not. Returns -1 when endianness does not apply to the
+ * specified format, or endianess is unknown. \since 0.9.16 */
 #define pa_sample_format_is_ne(f) pa_sample_format_is_le(f)
-/** Return 1 when the specified format is reverse endian, return -1
- * when endianness does not apply to this format. \since 0.9.16 */
+/** Returns 1 when the specified format is reverse endian, 0 when
+ * native. Returns -1 when endianness does not apply to the
+ * specified format, or endianess is unknown. \since 0.9.16 */
 #define pa_sample_format_is_re(f) pa_sample_format_is_be(f)
 #endif
 

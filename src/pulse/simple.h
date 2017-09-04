@@ -130,15 +130,16 @@ pa_simple* pa_simple_new(
 /** Close and free the connection to the server. The connection object becomes invalid when this is called. */
 void pa_simple_free(pa_simple *s);
 
-/** Write some data to the server. */
+/** Write some data to the server. Returns zero on success, negative on error. */
 int pa_simple_write(pa_simple *s, const void *data, size_t bytes, int *error);
 
-/** Wait until all data already written is played by the daemon. */
+/** Wait until all data already written is played by the daemon.
+ * Returns zero on success, negative on error. */
 int pa_simple_drain(pa_simple *s, int *error);
 
 /** Read some data from the server. This function blocks until \a bytes amount
  * of data has been received from the server, or until an error occurs.
- * Returns a negative value on failure. */
+ * Returns zero on success, negative on failure. */
 int pa_simple_read(
     pa_simple *s, /**< The connection object. */
     void *data,   /**< A pointer to a buffer. */
@@ -151,7 +152,8 @@ int pa_simple_read(
 /** Return the playback or record latency. */
 pa_usec_t pa_simple_get_latency(pa_simple *s, int *error);
 
-/** Flush the playback or record buffer. This discards any audio in the buffer. */
+/** Flush the playback or record buffer. This discards any audio in the buffer.
+ * Returns zero on success, negative on error. */
 int pa_simple_flush(pa_simple *s, int *error);
 
 PA_C_DECL_END

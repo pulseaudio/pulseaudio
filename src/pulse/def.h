@@ -97,7 +97,7 @@ typedef enum pa_operation_state {
     /**< The operation has completed */
     PA_OPERATION_CANCELLED
     /**< The operation has been cancelled. Operations may get cancelled by the
-     * application, or as a result of the context getting disconneted while the
+     * application, or as a result of the context getting disconnected while the
      * operation is pending. */
 } pa_operation_state_t;
 
@@ -118,7 +118,9 @@ typedef enum pa_context_flags {
     PA_CONTEXT_NOAUTOSPAWN = 0x0001U,
     /**< Disabled autospawning of the PulseAudio daemon if required */
     PA_CONTEXT_NOFAIL = 0x0002U
-    /**< Don't fail if the daemon is not available when pa_context_connect() is called, instead enter PA_CONTEXT_CONNECTING state and wait for the daemon to appear.  \since 0.9.15 */
+    /**< Don't fail if the daemon is not available when pa_context_connect() is
+     * called, instead enter PA_CONTEXT_CONNECTING state and wait for the daemon
+     * to appear.  \since 0.9.15 */
 } pa_context_flags_t;
 
 /** \cond fulldocs */
@@ -259,7 +261,7 @@ typedef enum pa_stream_flags {
     PA_STREAM_FIX_CHANNELS = 0x0100,
     /**< Use the number of channels and the channel map of the sink,
      * and possibly ignore the number of channels and the map the
-     * sample spec and the passed channel map contains. Usage similar
+     * sample spec and the passed channel map contain. Usage similar
      * to PA_STREAM_FIX_FORMAT. Only supported when the server is at
      * least PA 0.9.8. It is ignored on older servers.
      *
@@ -295,7 +297,7 @@ typedef enum pa_stream_flags {
 
     PA_STREAM_START_MUTED = 0x1000U,
     /**< Create in muted state. If neither PA_STREAM_START_UNMUTED nor
-     * PA_STREAM_START_MUTED it is left to the server to decide
+     * PA_STREAM_START_MUTED are set, it is left to the server to decide
      * whether to create the stream in muted or in unmuted
      * state. \since 0.9.11 */
 
@@ -330,7 +332,7 @@ typedef enum pa_stream_flags {
 
     PA_STREAM_START_UNMUTED = 0x10000U,
     /**< Create in unmuted state. If neither PA_STREAM_START_UNMUTED
-     * nor PA_STREAM_START_MUTED it is left to the server to decide
+     * nor PA_STREAM_START_MUTED are set it is left to the server to decide
      * whether to create the stream in muted or in unmuted
      * state. \since 0.9.15 */
 
@@ -703,7 +705,7 @@ typedef struct pa_timing_info {
     int64_t write_index;
     /**< Current write index into the playback buffer in bytes. Think
      * twice before using this for seeking purposes: it might be out
-     * of date a the time you want to use it. Consider using
+     * of date at the time you want to use it. Consider using
      * PA_SEEK_RELATIVE instead. */
 
     int read_index_corrupt;
@@ -714,7 +716,7 @@ typedef struct pa_timing_info {
     int64_t read_index;
     /**< Current read index into the playback buffer in bytes. Think
      * twice before using this for seeking purposes: it might be out
-     * of date a the time you want to use it. Consider using
+     * of date at the time you want to use it. Consider using
      * PA_SEEK_RELATIVE_ON_READ instead. */
 
     pa_usec_t configured_sink_usec;
@@ -758,16 +760,16 @@ typedef struct pa_spawn_api {
 /** Seek type for pa_stream_write(). */
 typedef enum pa_seek_mode {
     PA_SEEK_RELATIVE = 0,
-    /**< Seek relatively to the write index */
+    /**< Seek relative to the write index. */
 
     PA_SEEK_ABSOLUTE = 1,
-    /**< Seek relatively to the start of the buffer queue */
+    /**< Seek relative to the start of the buffer queue. */
 
     PA_SEEK_RELATIVE_ON_READ = 2,
-    /**< Seek relatively to the read index.  */
+    /**< Seek relative to the read index. */
 
     PA_SEEK_RELATIVE_END = 3
-    /**< Seek relatively to the current end of the buffer queue. */
+    /**< Seek relative to the current end of the buffer queue. */
 } pa_seek_mode_t;
 
 /** \cond fulldocs */
