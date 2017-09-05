@@ -17,6 +17,7 @@ Changes at a glance:
    module-virtual-surround-sink
  * Fixed input device handling in module-waveout
  * Improved bluetooth MTU configuration
+ * GNU Hurd support
  * Applications can request LADSPA or virtual surround filtering for their
    streams
  * Support for 32-bit applications on 64-bit systems in padsp
