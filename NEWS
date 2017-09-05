@@ -1,3 +1,74 @@
+PulseAudio 11.0
+
+Changes at a glance:
+
+ * Support for newer AirPlay hardware
+ * USB and bluetooth devices preferred over internal sound cards
+ * Bluetooth HSP headset role implemented
+ * Bluetooth HFP audio gateway role implemented (requires oFono)
+ * Bluetooth HSP audio gateway and HFP hands-free unit roles can be enabled
+   simultaneously
+ * Upmixing can now be disabled without bad side effects
+ * Avoid having unavailable sinks or sources as the default
+ * Option to avoid resampling more often
+ * Option to automatically switch bluetooth profile to HSP more often
+ * Better latency control in module-loopback
+ * Changed module argument names in module-ladspa-sink and
+   module-virtual-surround-sink
+ * Fixed input device handling in module-waveout
+ * Improved bluetooth MTU configuration
+ * Applications can request LADSPA or virtual surround filtering for their
+   streams
+ * Support for 32-bit applications on 64-bit systems in padsp
+
+Detailed change log:
+
+  https://www.freedesktop.org/wiki/Software/PulseAudio/Notes/11.0/
+
+Contributors
+
+  Arun Raghavan
+  ced2c
+  Christian Kellner
+  Colin Leroy
+  Corentin Noël
+  David Mandelberg
+  David Michael
+  Denis Shulyaka
+  Felipe Sateler
+  Georg Chini
+  Grzegorz Kolodziejczyk
+  Hajime Fujita
+  Hui Wang
+  Imre Vadász
+  Jungsup Lee
+  Karl Ove Hufthammer
+  KimJeongYeon
+  Luiz Augusto von Dentz
+  Martin Blanchard
+  Matthias Wabersich
+  Mihai Moldovan
+  Milo Casagrande
+  Moo
+  Moritz Bruder
+  Muhammet Kara
+  muzena
+  Pali Rohár
+  Paul Seyfert
+  Peter Meerwald-Stadler
+  Philip Chimento
+  Piotr Drąg
+  Rafael Fontenelle
+  Renjith Thomas
+  Stephen Paul Weber
+  Takashi Sakamoto
+  Tanu Kaskinen
+  Ted Ying
+  Vadim Troshchinskiy
+  Wim Taymans
+  Yuri Chornoivan
+
+
 PulseAudio 10.0
 
 Changes at a glance:
