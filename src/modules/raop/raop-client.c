@@ -526,7 +526,7 @@ static ssize_t resend_udp_audio_packets(pa_raop_client *c, uint16_t seq, uint16_
         if (buffer && packet->length > 0)
             written = pa_write(c->udp_cfd, buffer, packet->length, NULL);
         if (written < 0 && errno == EAGAIN) {
-            pa_log_debug("Discarding UDP (audio-restransmitted, seq=%d) packet due to EAGAIN", seq + i);
+            pa_log_debug("Discarding UDP (audio-retransmitted, seq=%d) packet due to EAGAIN", seq + i);
             pa_memblock_release(packet->memblock);
             continue;
         }
