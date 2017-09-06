@@ -1,5 +1,6 @@
 [Unit]
 Description=Sound System
+ConditionUser=!root
 
 [Socket]
 Priority=6
