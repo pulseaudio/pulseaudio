@@ -227,7 +227,7 @@ ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l) {
         return r; /* Fast path - we almost always successfully write everything */
 
     if (r < 0) {
-        if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
+        if (errno == EINTR || errno == EAGAIN)
             r = 0;
         else
             return r;
