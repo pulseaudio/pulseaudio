@@ -161,7 +161,7 @@ static pa_resample_method_t fix_method(
                 method = PA_RESAMPLER_AUTO;
                 break;
             }
-                                     /* Else fall through */
+            /* Else fall through */
         case PA_RESAMPLER_FFMPEG:
         case PA_RESAMPLER_SOXR_MQ:
         case PA_RESAMPLER_SOXR_HQ:
@@ -273,20 +273,20 @@ static pa_sample_format_t choose_work_format(
     switch (method) {
         /* This block is for resampling functions that only
          * support the S16 sample format. */
-        case PA_RESAMPLER_SPEEX_FIXED_BASE:     /* fall through */
+        case PA_RESAMPLER_SPEEX_FIXED_BASE:
         case PA_RESAMPLER_FFMPEG:
             work_format = PA_SAMPLE_S16NE;
             break;
 
         /* This block is for resampling functions that support
          * any sample format. */
-        case PA_RESAMPLER_COPY:                 /* fall through */
+        case PA_RESAMPLER_COPY:
         case PA_RESAMPLER_TRIVIAL:
             if (!map_required && a == b) {
                 work_format = a;
                 break;
             }
-                                                /* Else fall trough */
+            /* Else fall through */
         case PA_RESAMPLER_PEAKS:
             /* PEAKS, COPY and TRIVIAL do not benefit from increased
              * working precision, so for better performance use s16ne
@@ -295,7 +295,7 @@ static pa_sample_format_t choose_work_format(
                 work_format = PA_SAMPLE_S16NE;
                 break;
             }
-                                                /* Else fall trough */
+            /* Else fall through */
         case PA_RESAMPLER_SOXR_MQ:
         case PA_RESAMPLER_SOXR_HQ:
         case PA_RESAMPLER_SOXR_VHQ:
