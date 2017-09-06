@@ -1354,11 +1354,10 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
         case PA_SINK_INPUT_MESSAGE_GET_LATENCY: {
             pa_usec_t *r = userdata;
 
+            /* The default handler will add in the extra latency added by the resampler. */
             *r = pa_bytes_to_usec(pa_memblockq_get_length(c->input_memblockq), &c->sink_input->sample_spec);
-
-            /* Fall through, the default handler will add in the extra
-             * latency added by the resampler */
         }
+        /* Fall through. */
 
         default:
             return pa_sink_input_process_msg(o, code, userdata, offset, chunk);
