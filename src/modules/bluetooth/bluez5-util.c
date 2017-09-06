@@ -1024,7 +1024,7 @@ void pa_bluetooth_discovery_set_ofono_running(pa_bluetooth_discovery *y, bool is
 
                 pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, d->path, "org.bluez.Device1", "Disconnect"));
                 dbus_message_set_no_reply(m, true);
-                dbus_connection_send(pa_dbus_connection_get(y->connection), m, NULL);
+                pa_assert_se(dbus_connection_send(pa_dbus_connection_get(y->connection), m, NULL));
                 dbus_message_unref(m);
             }
         }
