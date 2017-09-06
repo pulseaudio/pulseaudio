@@ -1526,7 +1526,7 @@ void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_p
     pa_assert_ctl_context();
 
     switch (mode) {
-        case PA_UPDATE_SET: {
+        case PA_UPDATE_SET:
             /* Delete everything that is not in p. */
             for (state = NULL; (key = pa_proplist_iterate(i->proplist, &state));) {
                 if (!pa_proplist_contains(p, key))
@@ -1534,18 +1534,14 @@ void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_p
             }
 
             /* Fall through. */
-        }
-
-        case PA_UPDATE_REPLACE: {
+        case PA_UPDATE_REPLACE:
             for (state = NULL; (key = pa_proplist_iterate(p, &state));) {
                 pa_proplist_get(p, key, (const void **) &value, &nbytes);
                 pa_sink_input_set_property_arbitrary(i, key, value, nbytes);
             }
 
             break;
-        }
-
-        case PA_UPDATE_MERGE: {
+        case PA_UPDATE_MERGE:
             for (state = NULL; (key = pa_proplist_iterate(p, &state));) {
                 if (pa_proplist_contains(i->proplist, key))
                     continue;
@@ -1555,7 +1551,6 @@ void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_p
             }
 
             break;
-        }
     }
 }
 
