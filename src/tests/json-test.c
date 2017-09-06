@@ -248,7 +248,11 @@ START_TEST(bad_test) {
     };
 
     for (i = 0; i < PA_ELEMENTSOF(bad_parse); i++) {
-        fail_unless(pa_json_parse(bad_parse[i]) == NULL);
+        pa_json_object *obj;
+
+        fail_unless((obj = pa_json_parse(bad_parse[i])) == NULL);
+        if (obj)
+            pa_json_object_free(obj);
     }
 }
 END_TEST
