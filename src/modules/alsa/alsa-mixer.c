@@ -3990,6 +3990,7 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
     static const struct description_map well_known_descriptions[] = {
         { "analog-mono",            N_("Analog Mono") },
         { "analog-stereo",          N_("Analog Stereo") },
+        { "stereo-fallback",        N_("Stereo") },
         /* Note: Not translated to "Analog Stereo Input", because the source
          * name gets "Input" appended to it automatically, so adding "Input"
          * here would lead to the source name to become "Analog Stereo Input
@@ -4017,7 +4018,6 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
         { "iec958-dts-surround-51", N_("Digital Surround 5.1 (IEC958/DTS)") },
         { "hdmi-stereo",            N_("Digital Stereo (HDMI)") },
         { "hdmi-surround-51",       N_("Digital Surround 5.1 (HDMI)") },
-        { "unknown-stereo",         N_("Stereo") },
     };
 
     pa_assert(m);
