@@ -92,68 +92,20 @@
  * overflows/underruns.
  *
  * The buffer metrics may be controlled by the application. They are
- * described with a pa_buffer_attr structure which contains a number
- * of fields:
- *
- * \li maxlength - The absolute maximum number of bytes that can be
- *                 stored in the buffer. If this value is exceeded
- *                 then data will be lost. It is recommended to pass
- *                 (uint32_t) -1 here which will cause the server to
- *                 fill in the maximum possible value.
- *
- * \li tlength - The target fill level of the playback buffer. The
- *               server will only send requests for more data as long
- *               as the buffer has less than this number of bytes of
- *               data. If you pass (uint32_t) -1 (which is
- *               recommended) here the server will choose the longest
- *               target buffer fill level possible to minimize the
- *               number of necessary wakeups and maximize drop-out
- *               safety. This can exceed 2s of buffering. For
- *               low-latency applications or applications where
- *               latency matters you should pass a proper value here.
- *
- * \li prebuf - Number of bytes that need to be in the buffer before
- *              playback will commence. Start of playback can be
- *              forced using pa_stream_trigger() even though the
- *              prebuffer size hasn't been reached. If a buffer
- *              underrun occurs, this prebuffering will be again
- *              enabled. If the playback shall never stop in case of a
- *              buffer underrun, this value should be set to 0. In
- *              that case the read index of the output buffer
- *              overtakes the write index, and hence the fill level of
- *              the buffer is negative. If you pass (uint32_t) -1 here
- *              (which is recommended) the server will choose the same
- *              value as tlength here.
- *
- * \li minreq - Minimum number of free bytes in the playback
- *              buffer before the server will request more data. It is
- *              recommended to fill in (uint32_t) -1 here. This value
- *              influences how much time the sound server has to move
- *              data from the per-stream server-side playback buffer
- *              to the hardware playback buffer.
- *
- * \li fragsize - Maximum number of bytes that the server will push in
- *                one chunk for record streams. If you pass (uint32_t)
- *                -1 (which is recommended) here, the server will
- *                choose the longest fragment setting possible to
- *                minimize the number of necessary wakeups and
- *                maximize drop-out safety. This can exceed 2s of
- *                buffering. For low-latency applications or
- *                applications where latency matters you should pass a
- *                proper value here.
+ * described with a pa_buffer_attr structure.
  *
  * If PA_STREAM_ADJUST_LATENCY is set, then the tlength/fragsize
- * parameters will be interpreted slightly differently than described
- * above when passed to pa_stream_connect_record() and
- * pa_stream_connect_playback(): the overall latency that is comprised
- * of both the server side playback buffer length, the hardware
- * playback buffer length and additional latencies will be adjusted in
- * a way that it matches tlength resp. fragsize. Set
- * PA_STREAM_ADJUST_LATENCY if you want to control the overall
- * playback latency for your stream. Unset it if you want to control
- * only the latency induced by the server-side, rewritable playback
- * buffer. The server will try to fulfill the client's latency requests
- * as good as possible. However if the underlying hardware cannot
+ * parameters of the pa_buffer_attr structure will be interpreted
+ * slightly differently than otherwise when passed to
+ * pa_stream_connect_record() and pa_stream_connect_playback(): the
+ * overall latency that is comprised of both the server side playback
+ * buffer length, the hardware playback buffer length and additional
+ * latencies will be adjusted in a way that it matches tlength resp.
+ * fragsize. Set PA_STREAM_ADJUST_LATENCY if you want to control the
+ * overall playback latency for your stream. Unset it if you want to
+ * control only the latency induced by the server-side, rewritable
+ * playback buffer. The server will try to fulfill the client's latency
+ * requests as good as possible. However if the underlying hardware cannot
  * change the hardware buffer length or only in a limited range, the
  * actually resulting latency might be different from what the client
  * requested. Thus, for synchronization clients always need to check
@@ -164,8 +116,8 @@
  * tlength/fragsize, regardless whether PA_STREAM_ADJUST_LATENCY is
  * set or not.
  *
- * The server-side per-stream playback buffers are indexed by a write and a read
- * index. The application writes to the write index and the sound
+ * The server-side per-stream playback buffers are indexed by a write and
+ * a read index. The application writes to the write index and the sound
  * device reads from the read index. The read index is increased
  * monotonically, while the write index may be freely controlled by
  * the application. Subtracting the read index from the write index
