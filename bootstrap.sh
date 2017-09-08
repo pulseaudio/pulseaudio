@@ -32,13 +32,17 @@ fi
 # configure file faulty.
 if ! pkg-config --version &>/dev/null; then
     echo "pkg-config is required to bootstrap this program"
-    DIE=1
+    exit 1
 fi
-
 # Other necessary programs
-intltoolize --version >/dev/null || DIE=1
-test "$DIE" = 1 && exit 1
-
+if ! autopoint --version &>/dev/null ; then
+    echo "autopoint is required to bootstrap this program"
+    exit 1
+fi
+if ! intltoolize --version >/dev/null ; then
+    echo "intltoolize is required to bootstrap this program"
+    exit 1
+fi
 autopoint --force
 AUTOPOINT='intltoolize --automake --copy' autoreconf --force --install --verbose
 
