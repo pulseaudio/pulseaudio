@@ -1956,7 +1956,7 @@ static void propagate_reference_volume(pa_sink *s) {
 
             /* Since the origin sink uses volume sharing, this input's volume
              * needs to be updated to match the root sink's real volume, but
-             * that will be done later in update_shared_real_volume(). */
+             * that will be done later in update_real_volume(). */
             continue;
         }
 

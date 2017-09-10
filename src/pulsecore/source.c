@@ -1530,7 +1530,7 @@ static void propagate_reference_volume(pa_source *s) {
 
             /* Since the origin source uses volume sharing, this output's volume
              * needs to be updated to match the root source's real volume, but
-             * that will be done later in update_shared_real_volume(). */
+             * that will be done later in update_real_volume(). */
             continue;
         }
 
