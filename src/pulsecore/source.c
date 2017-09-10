@@ -1284,7 +1284,8 @@ static void compute_reference_ratios(pa_source *s) {
     PA_IDXSET_FOREACH(o, s->outputs, idx) {
         compute_reference_ratio(o);
 
-        if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
+        if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)
+                && PA_SOURCE_IS_LINKED(o->destination_source->state))
             compute_reference_ratios(o->destination_source);
     }
 }
@@ -1311,7 +1312,8 @@ static void compute_real_ratios(pa_source *s) {
             pa_cvolume_reset(&o->real_ratio, o->real_ratio.channels);
             o->soft_volume = o->volume_factor;
 
-            compute_real_ratios(o->destination_source);
+            if (PA_SOURCE_IS_LINKED(o->destination_source->state))
+                compute_real_ratios(o->destination_source);
 
             continue;
         }
@@ -1410,7 +1412,8 @@ static void get_maximum_output_volume(pa_source *s, pa_cvolume *max_volume, cons
         pa_cvolume remapped;
 
         if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)) {
-            get_maximum_output_volume(o->destination_source, max_volume, channel_map);
+            if (PA_SOURCE_IS_LINKED(o->destination_source->state))
+                get_maximum_output_volume(o->destination_source, max_volume, channel_map);
 
             /* Ignore this output. The origin source uses volume sharing, so this
              * output's volume will be set to be equal to the root source's real
@@ -1466,7 +1469,8 @@ static void update_real_volume(pa_source *s, const pa_cvolume *new_volume, pa_ch
                 compute_reference_ratio(o);
             }
 
-            update_real_volume(o->destination_source, new_volume, channel_map);
+            if (PA_SOURCE_IS_LINKED(o->destination_source->state))
+                update_real_volume(o->destination_source, new_volume, channel_map);
         }
     }
 }
@@ -1521,7 +1525,8 @@ static void propagate_reference_volume(pa_source *s) {
         pa_cvolume new_volume;
 
         if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)) {
-            propagate_reference_volume(o->destination_source);
+            if (PA_SOURCE_IS_LINKED(o->destination_source->state))
+                propagate_reference_volume(o->destination_source);
 
             /* Since the origin source uses volume sharing, this output's volume
              * needs to be updated to match the root source's real volume, but
@@ -1579,7 +1584,8 @@ static bool update_reference_volume(pa_source *s, const pa_cvolume *v, const pa_
         return false;
 
     PA_IDXSET_FOREACH(o, s->outputs, idx) {
-        if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
+        if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)
+                && PA_SOURCE_IS_LINKED(o->destination_source->state))
             update_reference_volume(o->destination_source, v, channel_map, false);
     }
 
@@ -1759,7 +1765,8 @@ static void propagate_real_volume(pa_source *s, const pa_cvolume *old_real_volum
             pa_sw_cvolume_multiply(&new_volume, &new_volume, &o->reference_ratio);
             pa_source_output_set_volume_direct(o, &new_volume);
 
-            if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER))
+            if (o->destination_source && (o->destination_source->flags & PA_SOURCE_SHARE_VOLUME_WITH_MASTER)
+                    && PA_SOURCE_IS_LINKED(o->destination_source->state))
                 propagate_real_volume(o->destination_source, old_real_volume);
         }
     }
