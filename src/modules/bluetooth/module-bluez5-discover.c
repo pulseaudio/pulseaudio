@@ -124,7 +124,7 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    autodetect_mtu = true;
+    autodetect_mtu = false;
     if (pa_modargs_get_value_boolean(ma, "autodetect_mtu", &autodetect_mtu) < 0) {
         pa_log("Invalid boolean value for autodetect_mtu parameter");
         goto fail;
