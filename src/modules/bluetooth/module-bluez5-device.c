@@ -787,6 +787,16 @@ static void transport_config_mtu(struct userdata *u) {
     if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT || u->profile == PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY) {
         u->read_block_size = u->read_link_mtu;
         u->write_block_size = u->write_link_mtu;
+
+        if (!pa_frame_aligned(u->read_block_size, &u->source->sample_spec)) {
+            pa_log_debug("Got invalid read MTU: %lu, rounding down", u->read_block_size);
+            u->read_block_size = pa_frame_align(u->read_block_size, &u->source->sample_spec);
+        }
+
+        if (!pa_frame_aligned(u->write_block_size, &u->sink->sample_spec)) {
+            pa_log_debug("Got invalid write MTU: %lu, rounding down", u->write_block_size);
+            u->write_block_size = pa_frame_align(u->write_block_size, &u->sink->sample_spec);
+        }
     } else {
         u->read_block_size =
             (u->read_link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
