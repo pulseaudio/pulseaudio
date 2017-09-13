@@ -206,6 +206,7 @@ static int sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_t *imtu
         if (getsockopt(sock, SOL_SCO, SCO_OPTIONS, &sco_opt, &len) < 0)
             pa_log_warn("getsockopt(SCO_OPTIONS) failed, loading defaults");
         else {
+            pa_log_debug("autodetected imtu = omtu = %u", sco_opt.mtu);
             if (imtu) *imtu = sco_opt.mtu;
             if (omtu) *omtu = sco_opt.mtu;
         }
