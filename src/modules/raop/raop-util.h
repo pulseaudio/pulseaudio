@@ -27,6 +27,8 @@
   Kungliga Tekniska högskolan.
 ***/
 
+#define RAOP_DEFAULT_LATENCY 2000 /* msec */
+
 int pa_raop_base64_encode(const void *data, int len, char **str);
 int pa_raop_base64_decode(const char *str, void *data);
 

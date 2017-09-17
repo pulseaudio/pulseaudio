@@ -44,11 +44,14 @@
 #include <pulsecore/avahi-wrap.h>
 
 #include "module-raop-discover-symdef.h"
+#include "raop-util.h"
 
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Discovery of RAOP devices");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
+PA_MODULE_USAGE(
+        "latency_msec=<audio latency - applies to all devices> ");
 
 #define SERVICE_TYPE_SINK "_raop._tcp"
 
@@ -61,9 +64,13 @@ struct userdata {
     AvahiServiceBrowser *sink_browser;
 
     pa_hashmap *tunnels;
+
+    bool latency_set;
+    uint32_t latency;
 };
 
 static const char* const valid_modargs[] = {
+    "latency_msec",
     NULL
 };
 
@@ -127,6 +134,23 @@ static void tunnel_free(struct tunnel *t) {
     pa_xfree(t);
 }
 
+/* This functions returns RAOP audio latency as guessed by the
+ * device model header.
+ * Feel free to complete the possible values after testing with
+ * your hardware.
+ */
+static uint32_t guess_latency_from_device(const char *model) {
+    uint32_t default_latency = RAOP_DEFAULT_LATENCY;
+
+    if (pa_streq(model, "PIONEER,1")) {
+        /* Pioneer N-30 */
+        default_latency = 2352;
+    }
+
+    pa_log_debug("Default latency is %u ms for device model %s.", default_latency, model);
+    return default_latency;
+}
+
 static void resolver_cb(
         AvahiServiceResolver *r,
         AvahiIfIndex interface, AvahiProtocol protocol,
@@ -145,6 +169,7 @@ static void resolver_cb(
     char at[AVAHI_ADDRESS_STR_MAX];
     AvahiStringList *l;
     pa_module *m;
+    uint32_t latency = RAOP_DEFAULT_LATENCY;
 
     pa_assert(u);
 
@@ -226,6 +251,9 @@ static void resolver_cb(
             /* Sample rate */
             pa_xfree(sr);
             sr = pa_xstrdup(value);
+        } else if (pa_streq(key, "am")) {
+            /* Device model */
+            latency = guess_latency_from_device(value);
         }
 
         avahi_free(key);
@@ -307,6 +335,13 @@ static void resolver_cb(
         pa_xfree(sr);
         pa_xfree(t);
     }
+
+    if (u->latency_set)
+        latency = u->latency;
+
+    t = args;
+    args = pa_sprintf_malloc("%s latency_msec=%u", args, latency);
+    pa_xfree(t);
 
     pa_log_debug("Loading module-raop-sink with arguments '%s'", args);
 
@@ -432,10 +467,17 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    u->sink_browser = NULL;
+
+    if (pa_modargs_get_value(ma, "latency_msec", NULL) != NULL) {
+        u->latency_set = true;
+        if (pa_modargs_get_value_u32(ma, "latency_msec", &u->latency) < 0) {
+            pa_log("Failed to parse latency_msec argument.");
+            goto fail;
+        }
+    }
 
     u->tunnels = pa_hashmap_new(tunnel_hash, tunnel_compare);
 

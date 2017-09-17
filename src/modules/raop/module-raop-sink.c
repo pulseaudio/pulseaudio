@@ -46,7 +46,8 @@ PA_MODULE_USAGE(
         "rate=<sample rate> "
         "channels=<number of channels> "
         "username=<authentication user name, default: \"iTunes\"> "
-        "password=<authentication password>");
+        "password=<authentication password> "
+        "latency_msec=<audio latency>");
 
 static const char* const valid_modargs[] = {
     "name",
@@ -61,6 +62,7 @@ static const char* const valid_modargs[] = {
     "channels",
     "username",
     "password",
+    "latency_msec",
     NULL
 };
 

@@ -63,6 +63,7 @@
 
 #include "raop-sink.h"
 #include "raop-client.h"
+#include "raop-util.h"
 
 struct userdata {
     pa_core *core;
@@ -87,6 +88,8 @@ struct userdata {
     pa_usec_t start;
     pa_smoother *smoother;
     uint64_t write_count;
+
+    uint32_t latency;
 };
 
 enum {
@@ -119,6 +122,9 @@ static int64_t sink_get_latency(const struct userdata *u) {
 
     latency = pa_bytes_to_usec(u->write_count, &u->sink->sample_spec) - (int64_t) now;
 
+    /* RAOP default latency */
+    latency += u->latency * PA_USEC_PER_MSEC;
+
     return latency;
 }
 
@@ -136,7 +142,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                     pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
-                    pa_smoother_pause(u->smoother, pa_rtclock_now());
                     /* Issue a TEARDOWN if we are still connected */
                     if (pa_raop_client_is_alive(u->raop)) {
                         pa_raop_client_teardown(u->raop);
@@ -163,7 +168,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                     pa_log_debug("RAOP: RUNNING");
 
                     now = pa_rtclock_now();
-                    pa_smoother_resume(u->smoother, now, true);
+                    pa_smoother_reset(u->smoother, now, false);
 
                     if (!pa_raop_client_is_alive(u->raop)) {
                         /* Connecting will trigger a RECORD and start steaming */
@@ -494,6 +499,12 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
     u->thread = NULL;
     u->rtpoll = pa_rtpoll_new();
     u->rtpoll_item = NULL;
+    u->latency = RAOP_DEFAULT_LATENCY;
+
+    if (pa_modargs_get_value_u32(ma, "latency_msec", &u->latency) < 0) {
+        pa_log("Failed to parse latency_msec argument");
+        goto fail;
+    }
 
     if (pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll) < 0) {
         pa_log("pa_thread_mq_init() failed.");
