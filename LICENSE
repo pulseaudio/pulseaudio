@@ -26,7 +26,7 @@ details.
 
 Some other files pulled into PA source (i.e. reference implementations that are
 considered too small and stable to be considered as an external library) use the
-more permissive MIT license. This include the device reservation DBus protocol
+more permissive MIT license. These include the device reservation DBus protocol
 and realtime kit implementations.
 
 A more permissive BSD-style license is used for LFE filters, see
