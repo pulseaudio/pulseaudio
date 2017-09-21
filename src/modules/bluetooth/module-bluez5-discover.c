@@ -98,7 +98,7 @@ static pa_hook_result_t device_connection_changed_cb(pa_bluetooth_discovery *y, 
 }
 
 #ifdef HAVE_BLUEZ_5_NATIVE_HEADSET
-const char *default_headset_backend = "auto";
+const char *default_headset_backend = "native";
 #else
 const char *default_headset_backend = "ofono";
 #endif
@@ -130,6 +130,9 @@ int pa__init(pa_module *m) {
         pa_log("headset parameter must be either ofono, native or auto (found %s)", headset_str);
         goto fail;
     }
+
+    /* default value if no module parameter */
+    enable_native_hfp_hf = (headset_backend == HEADSET_BACKEND_NATIVE);
 
     autodetect_mtu = false;
     if (pa_modargs_get_value_boolean(ma, "autodetect_mtu", &autodetect_mtu) < 0) {
