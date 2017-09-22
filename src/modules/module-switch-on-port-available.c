@@ -29,6 +29,11 @@
 
 #include "module-switch-on-port-available-symdef.h"
 
+PA_MODULE_AUTHOR("David Henningsson");
+PA_MODULE_DESCRIPTION("Switches ports and profiles when devices are plugged/unplugged");
+PA_MODULE_LOAD_ONCE(true);
+PA_MODULE_VERSION(PACKAGE_VERSION);
+
 struct card_info {
     struct userdata *userdata;
     pa_card *card;
