@@ -68,14 +68,14 @@ bashcompletiondir=@bashcompletiondir@
 dist_bashcompletion_DATA = shell-completion/bash/pulseaudio
 
 install-bashcompletion-aliases:
-	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/pactl
-	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/pacmd
-	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/pasuspender
-	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/padsp
-	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/pacat
-	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/paplay
-	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/parec
-	$(LN_S) -f pulseaudio $(DESTDIR)$(bashcompletiondir)/parecord
+	cd $(DESTDIR)$(bashcompletiondir) && $(LN_S) -f pulseaudio pactl
+	cd $(DESTDIR)$(bashcompletiondir) && $(LN_S) -f pulseaudio pacmd
+	cd $(DESTDIR)$(bashcompletiondir) && $(LN_S) -f pulseaudio pasuspender
+	cd $(DESTDIR)$(bashcompletiondir) && $(LN_S) -f pulseaudio padsp
+	cd $(DESTDIR)$(bashcompletiondir) && $(LN_S) -f pulseaudio pacat
+	cd $(DESTDIR)$(bashcompletiondir) && $(LN_S) -f pulseaudio paplay
+	cd $(DESTDIR)$(bashcompletiondir) && $(LN_S) -f pulseaudio parec
+	cd $(DESTDIR)$(bashcompletiondir) && $(LN_S) -f pulseaudio parecord
 
 install-data-hook: install-bashcompletion-aliases
 
