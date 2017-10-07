@@ -145,6 +145,9 @@ static uint32_t guess_latency_from_device(const char *model) {
     if (pa_streq(model, "PIONEER,1")) {
         /* Pioneer N-30 */
         default_latency = 2352;
+    } else if (pa_streq(model, "ShairportSync")) {
+        /* Shairport - software AirPort server */
+        default_latency = 2352;
     }
 
     pa_log_debug("Default latency is %u ms for device model %s.", default_latency, model);
