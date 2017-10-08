@@ -122,6 +122,10 @@
 ;                                      # the required-any are present.
 ; state.plugged = yes | no | unknown   # Normally a plugged jack would mean the port becomes available, and an unplugged means it's
 ; state.unplugged = yes | no | unknown # unavailable, but the port status can be overridden by specifying state.plugged and/or state.unplugged.
+; append-pcm-to-name = no | yes        # Add ",pcm=N" to the jack name? N is the hw PCM device index. HDMI jacks have
+;                                      # the PCM device index in their name, but different drivers use different
+;                                      # numbering schemes, so we can't hardcode the full jack name in our configuration
+;                                      # files.
 
 [Element PCM]
 switch = mute

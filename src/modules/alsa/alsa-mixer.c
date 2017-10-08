@@ -1812,11 +1812,30 @@ static int element_probe(pa_alsa_element *e, snd_mixer_t *m) {
     return 0;
 }
 
-static int jack_probe(pa_alsa_jack *j, snd_mixer_t *m) {
+static int jack_probe(pa_alsa_jack *j, pa_alsa_mapping *mapping, snd_mixer_t *m) {
     bool has_control;
 
     pa_assert(j);
     pa_assert(j->path);
+
+    if (j->append_pcm_to_name) {
+        char *new_name;
+
+        if (!mapping) {
+            /* This could also be an assertion, because this should never
+             * happen. At the time of writing, mapping can only be NULL when
+             * module-alsa-sink/source synthesizes a path, and those
+             * synthesized paths never have any jacks, so jack_probe() should
+             * never be called with a NULL mapping. */
+            pa_log("Jack %s: append_pcm_to_name is set, but mapping is NULL. Can't use this jack.", j->name);
+            return -1;
+        }
+
+        new_name = pa_sprintf_malloc("%s,pcm=%i Jack", j->name, mapping->hw_device_index);
+        pa_xfree(j->alsa_name);
+        j->alsa_name = new_name;
+        j->append_pcm_to_name = false;
+    }
 
     has_control = pa_alsa_mixer_find(m, j->alsa_name, 0) != NULL;
     pa_alsa_jack_set_has_control(j, has_control);
@@ -2326,6 +2345,30 @@ static int jack_parse_state(pa_config_parser_state *state) {
     return 0;
 }
 
+static int jack_parse_append_pcm_to_name(pa_config_parser_state *state) {
+    pa_alsa_path *path;
+    pa_alsa_jack *jack;
+    int b;
+
+    pa_assert(state);
+
+    path = state->userdata;
+    if (!(jack = jack_get(path, state->section))) {
+        pa_log("[%s:%u] Option 'append_pcm_to_name' not expected in section '%s'",
+               state->filename, state->lineno, state->section);
+        return -1;
+    }
+
+    b = pa_parse_boolean(state->rvalue);
+    if (b < 0) {
+        pa_log("[%s:%u] Invalid value for 'append_pcm_to_name': %s", state->filename, state->lineno, state->rvalue);
+        return -1;
+    }
+
+    jack->append_pcm_to_name = b;
+    return 0;
+}
+
 static int element_set_option(pa_alsa_element *e, snd_mixer_t *m, int alsa_idx) {
     snd_mixer_selem_id_t *sid;
     snd_mixer_elem_t *me;
@@ -2534,6 +2577,7 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
         /* [Jack ...] */
         { "state.plugged",       jack_parse_state,                  NULL, NULL },
         { "state.unplugged",     jack_parse_state,                  NULL, NULL },
+        { "append-pcm-to-name",  jack_parse_append_pcm_to_name,     NULL, NULL },
 
         /* [Element ...] */
         { "switch",              element_parse_switch,              NULL, NULL },
@@ -2746,7 +2790,7 @@ static void path_create_settings(pa_alsa_path *p) {
     element_create_settings(p->elements, NULL);
 }
 
-int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, bool ignore_dB) {
+int pa_alsa_path_probe(pa_alsa_path *p, pa_alsa_mapping *mapping, snd_mixer_t *m, bool ignore_dB) {
     pa_alsa_element *e;
     pa_alsa_jack *j;
     double min_dB[PA_CHANNEL_POSITION_MAX], max_dB[PA_CHANNEL_POSITION_MAX];
@@ -2766,7 +2810,7 @@ int pa_alsa_path_probe(pa_alsa_path *p, snd_mixer_t *m, bool ignore_dB) {
     pa_log_debug("Probing path '%s'", p->name);
 
     PA_LLIST_FOREACH(j, p->jacks) {
-        if (jack_probe(j, m) < 0) {
+        if (jack_probe(j, mapping, m) < 0) {
             p->supported = false;
             pa_log_debug("Probe of jack '%s' failed.", j->alsa_name);
             return -1;
@@ -3968,9 +4012,8 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
     }
 
     PA_HASHMAP_FOREACH(p, ps->paths, state) {
-        if (pa_alsa_path_probe(p, mixer_handle, m->profile_set->ignore_dB) < 0) {
+        if (pa_alsa_path_probe(p, m, mixer_handle, m->profile_set->ignore_dB) < 0)
             pa_hashmap_remove(ps->paths, p);
-        }
     }
 
     path_set_condense(ps, mixer_handle);
