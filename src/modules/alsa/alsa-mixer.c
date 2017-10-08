@@ -2051,6 +2051,28 @@ static int element_parse_enumeration(pa_config_parser_state *state) {
     return 0;
 }
 
+static int parse_eld_device(pa_config_parser_state *state) {
+    pa_alsa_path *path;
+    uint32_t eld_device;
+
+    path = state->userdata;
+
+    if (pa_atou(state->rvalue, &eld_device) >= 0) {
+        path->autodetect_eld_device = false;
+        path->eld_device = eld_device;
+        return 0;
+    }
+
+    if (pa_streq(state->rvalue, "auto")) {
+        path->autodetect_eld_device = true;
+        path->eld_device = -1;
+        return 0;
+    }
+
+    pa_log("[%s:%u] Invalid value for option 'eld-device': %s", state->filename, state->lineno, state->rvalue);
+    return -1;
+}
+
 static int option_parse_priority(pa_config_parser_state *state) {
     pa_alsa_path *p;
     pa_alsa_option *o;
@@ -2568,7 +2590,7 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
         { "description-key",     pa_config_parse_string,            NULL, "General" },
         { "description",         pa_config_parse_string,            NULL, "General" },
         { "mute-during-activation", pa_config_parse_bool,           NULL, "General" },
-        { "eld-device",          pa_config_parse_int,               NULL, "General" },
+        { "eld-device",          parse_eld_device,                  NULL, "General" },
 
         /* [Option ...] */
         { "priority",            option_parse_priority,             NULL, NULL },
@@ -2608,7 +2630,6 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
     items[1].data = &p->description_key;
     items[2].data = &p->description;
     items[3].data = &mute_during_activation;
-    items[4].data = &p->eld_device;
 
     if (!paths_dir)
         paths_dir = get_default_paths_dir();
@@ -4012,6 +4033,9 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
     }
 
     PA_HASHMAP_FOREACH(p, ps->paths, state) {
+        if (p->autodetect_eld_device)
+            p->eld_device = m->hw_device_index;
+
         if (pa_alsa_path_probe(p, m, mixer_handle, m->profile_set->ignore_dB) < 0)
             pa_hashmap_remove(ps->paths, p);
     }

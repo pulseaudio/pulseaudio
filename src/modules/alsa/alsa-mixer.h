@@ -193,6 +193,7 @@ struct pa_alsa_path {
     char *description_key;
     char *description;
     unsigned priority;
+    bool autodetect_eld_device;
     int eld_device;
     pa_proplist *proplist;
 
