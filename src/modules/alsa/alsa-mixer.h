@@ -275,6 +275,10 @@ struct pa_alsa_mapping {
     bool exact_channels:1;
     bool fallback:1;
 
+    /* The "y" in "hw:x,y". This is set to -1 before the device index has been
+     * queried, or if the query failed. */
+    int hw_device_index;
+
     /* Temporarily used during probing */
     snd_pcm_t *input_pcm;
     snd_pcm_t *output_pcm;
