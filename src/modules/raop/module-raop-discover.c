@@ -168,6 +168,7 @@ static void resolver_cb(
     char *device = NULL, *nicename, *dname, *vname, *args;
     char *tp = NULL, *et = NULL, *cn = NULL;
     char *ch = NULL, *ss = NULL, *sr = NULL;
+    char *dm = NULL;
     char *t = NULL;
     char at[AVAHI_ADDRESS_STR_MAX];
     AvahiStringList *l;
@@ -256,7 +257,8 @@ static void resolver_cb(
             sr = pa_xstrdup(value);
         } else if (pa_streq(key, "am")) {
             /* Device model */
-            latency = guess_latency_from_device(value);
+            pa_xfree(dm);
+            dm = pa_xstrdup(value);
         }
 
         avahi_free(key);
@@ -278,6 +280,7 @@ static void resolver_cb(
         pa_xfree(ch);
         pa_xfree(ss);
         pa_xfree(sr);
+        pa_xfree(dm);
         goto finish;
     }
 
@@ -285,22 +288,24 @@ static void resolver_cb(
     pa_xfree(dname);
 
     avahi_address_snprint(at, sizeof(at), a);
-    if (nicename) {
-        args = pa_sprintf_malloc("server=[%s]:%u "
-                                 "sink_name=%s "
-                                 "sink_properties='device.description=\"%s (%s:%u)\"'",
-                                 at, port,
-                                 vname,
-                                 nicename, at, port);
-        pa_xfree(nicename);
-    } else {
-        args = pa_sprintf_malloc("server=[%s]:%u "
-                                 "sink_name=%s"
-                                 "sink_properties='device.description=\"%s:%u\"'",
-                                 at, port,
-                                 vname,
-                                 at, port);
-    }
+
+    if (nicename == NULL)
+        nicename = pa_xstrdup("RAOP");
+
+    if (dm == NULL)
+        dm = pa_xstrdup(_("Unknown device model"));
+
+    latency = guess_latency_from_device(dm);
+
+    args = pa_sprintf_malloc("server=[%s]:%u "
+                             "sink_name=%s "
+                             "sink_properties='device.description=\"%s (%s:%u)\" device.model=\"%s\"'",
+                             at, port,
+                             vname,
+                             nicename, at, port,
+                             dm);
+    pa_xfree(nicename);
+    pa_xfree(dm);
 
     if (tp != NULL) {
         t = args;
