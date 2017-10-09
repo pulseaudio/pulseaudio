@@ -299,10 +299,10 @@ static void resolver_cb(
 
     args = pa_sprintf_malloc("server=[%s]:%u "
                              "sink_name=%s "
-                             "sink_properties='device.description=\"%s (%s:%u)\" device.model=\"%s\"'",
+                             "sink_properties='device.description=\"%s\" device.model=\"%s\"'",
                              at, port,
                              vname,
-                             nicename, at, port,
+                             nicename,
                              dm);
     pa_xfree(nicename);
     pa_xfree(dm);

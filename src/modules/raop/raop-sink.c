@@ -69,6 +69,7 @@ struct userdata {
     pa_core *core;
     pa_module *module;
     pa_sink *sink;
+    pa_card *card;
 
     pa_thread *thread;
     pa_thread_mq thread_mq;
@@ -465,6 +466,77 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
+static int sink_set_port_cb(pa_sink *s, pa_device_port *p) {
+    return 0;
+}
+
+static pa_device_port *raop_create_port(struct userdata *u, const char *server) {
+    pa_device_port_new_data data;
+    pa_device_port *port;
+
+    pa_device_port_new_data_init(&data);
+
+    pa_device_port_new_data_set_name(&data, "network-output");
+    pa_device_port_new_data_set_description(&data, server);
+    pa_device_port_new_data_set_direction(&data, PA_DIRECTION_OUTPUT);
+
+    port = pa_device_port_new(u->core, &data, 0);
+
+    pa_device_port_new_data_done(&data);
+
+    if (port == NULL)
+        return NULL;
+
+    pa_device_port_ref(port);
+
+    return port;
+}
+
+static pa_card_profile *raop_create_profile() {
+    pa_card_profile *profile;
+
+    profile = pa_card_profile_new("RAOP", _("RAOP standard profile"), 0);
+    profile->priority = 10;
+    profile->n_sinks = 1;
+    profile->n_sources = 0;
+    profile->max_sink_channels = 2;
+    profile->max_source_channels = 0;
+
+    return profile;
+}
+
+static pa_card *raop_create_card(pa_module *m, pa_device_port *port, pa_card_profile *profile, const char *server, const char *nicename) {
+    pa_card_new_data data;
+    pa_card *card;
+    char *card_name;
+
+    pa_card_new_data_init(&data);
+
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, nicename);
+    data.driver = __FILE__;
+
+    card_name = pa_sprintf_malloc("raop_client.%s", server);
+    pa_card_new_data_set_name(&data, card_name);
+    pa_xfree(card_name);
+
+    pa_hashmap_put(data.ports, port->name, port);
+    pa_hashmap_put(data.profiles, profile->name, profile);
+
+    card = pa_card_new(m->core, &data);
+
+    pa_card_new_data_done(&data);
+
+    if (card == NULL)
+        return NULL;
+
+    pa_card_choose_initial_profile(card);
+
+    pa_card_put(card);
+
+    return card;
+}
+
 pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
     struct userdata *u = NULL;
     pa_sample_spec ss;
@@ -473,6 +545,9 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
     const char /* *username, */ *password;
     pa_sink_new_data data;
     const char *name = NULL;
+    const char *description = NULL;
+    pa_device_port *port;
+    pa_card_profile *profile;
 
     pa_assert(m);
     pa_assert(ma);
@@ -590,6 +665,28 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
         goto fail;
     }
 
+    port = raop_create_port(u, server);
+    if (port == NULL) {
+        pa_log("Failed to create port object");
+        goto fail;
+    }
+
+    profile = raop_create_profile();
+    pa_hashmap_put(port->profiles, profile->name, profile);
+
+    description = pa_proplist_gets(data.proplist, PA_PROP_DEVICE_DESCRIPTION);
+    if (description == NULL)
+        description = server;
+
+    u->card = raop_create_card(m, port, profile, server, description);
+    if (u->card == NULL) {
+        pa_log("Failed to create card object");
+        goto fail;
+    }
+
+    data.card = u->card;
+    pa_hashmap_put(data.ports, port->name, port);
+
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY | PA_SINK_NETWORK);
     pa_sink_new_data_done(&data);
 
@@ -602,6 +699,7 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
     pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
     pa_sink_set_set_mute_callback(u->sink, sink_set_mute_cb);
     u->sink->userdata = u;
+    u->sink->set_port = sink_set_port_cb;
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
@@ -679,6 +777,9 @@ static void userdata_free(struct userdata *u) {
     if (u->smoother)
         pa_smoother_free(u->smoother);
     u->smoother = NULL;
+
+    if (u->card)
+        pa_card_free(u->card);
 
     pa_xfree(u);
 }
