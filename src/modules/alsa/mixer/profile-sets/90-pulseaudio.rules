@@ -24,6 +24,7 @@ SUBSYSTEMS=="platform", DRIVERS=="thinkpad_acpi", ENV{PULSE_IGNORE}="1"
 
 # Force enable speaker and internal mic for some laptops
 # This should only be necessary for kernels 3.3, 3.4 and 3.5 (as they are lacking the phantom jack kctls).
+# For the Asus EeePCs also with newer kernels (tested with 4.9).
 # Acer AOA150
 ATTRS{subsystem_vendor}=="0x1025", ATTRS{subsystem_device}=="0x015b", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
 # Acer Aspire 4810TZ
@@ -68,6 +69,10 @@ ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x0558", ENV{PULSE_
 ATTRS{subsystem_vendor}=="0x1028", ATTRS{subsystem_device}=="0x0579", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
 # Asus 904HA (1000H)
 ATTRS{subsystem_vendor}=="0x1043", ATTRS{subsystem_device}=="0x831a", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
+# Asus EeePC R11CX
+ATTRS{subsystem_vendor}=="0x1043", ATTRS{subsystem_device}=="0x8516", ENV{PULSE_PROFILE_SET}="force-speaker.conf"
+# Asus EeePC R011PX
+ATTRS{subsystem_vendor}=="0x1043", ATTRS{subsystem_device}=="0x8437", ENV{PULSE_PROFILE_SET}="force-speaker.conf"
 # Asus T101MT
 ATTRS{subsystem_vendor}=="0x1043", ATTRS{subsystem_device}=="0x83ce", ENV{PULSE_PROFILE_SET}="force-speaker-and-int-mic.conf"
 # Sony Vaio VGN-SR21M
