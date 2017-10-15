@@ -1861,7 +1861,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, pa_bluetooth_pro
     switch (profile) {
     case PA_BLUETOOTH_PROFILE_A2DP_SINK:
         cp = pa_card_profile_new(name, _("High Fidelity Playback (A2DP Sink)"), sizeof(pa_bluetooth_profile_t));
-        cp->priority = 10;
+        cp->priority = 40;
         cp->n_sinks = 1;
         cp->n_sources = 0;
         cp->max_sink_channels = 2;
@@ -1873,7 +1873,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, pa_bluetooth_pro
 
     case PA_BLUETOOTH_PROFILE_A2DP_SOURCE:
         cp = pa_card_profile_new(name, _("High Fidelity Capture (A2DP Source)"), sizeof(pa_bluetooth_profile_t));
-        cp->priority = 10;
+        cp->priority = 20;
         cp->n_sinks = 0;
         cp->n_sources = 1;
         cp->max_sink_channels = 0;
@@ -1885,7 +1885,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, pa_bluetooth_pro
 
     case PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT:
         cp = pa_card_profile_new(name, _("Headset Head Unit (HSP/HFP)"), sizeof(pa_bluetooth_profile_t));
-        cp->priority = 20;
+        cp->priority = 30;
         cp->n_sinks = 1;
         cp->n_sources = 1;
         cp->max_sink_channels = 1;
@@ -1898,7 +1898,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, pa_bluetooth_pro
 
     case PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY:
         cp = pa_card_profile_new(name, _("Headset Audio Gateway (HSP/HFP)"), sizeof(pa_bluetooth_profile_t));
-        cp->priority = 20;
+        cp->priority = 10;
         cp->n_sinks = 1;
         cp->n_sources = 1;
         cp->max_sink_channels = 1;
