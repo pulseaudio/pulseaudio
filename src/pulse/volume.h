@@ -34,9 +34,9 @@
  *
  * \section overv_sec Overview
  *
- * Sinks, sources, sink inputs and samples can all have their own volumes.
- * To deal with these, The PulseAudio library contains a number of functions
- * that ease handling.
+ * Sinks, sources, sink inputs, source outputs and samples can all have their
+ * own volumes. To deal with these, The PulseAudio library contains a number of
+ * functions that ease handling.
  *
  * The basic volume type in PulseAudio is the \ref pa_volume_t type. Most of
  * the time, applications will use the aggregated pa_cvolume structure that
@@ -47,13 +47,12 @@
  *
  * There is no single well-defined meaning attached to the 100% volume for a
  * sink input. In fact, it depends on the server configuration. With flat
- * volumes enabled (the default in most Linux distributions), it means the
- * maximum volume that the sound hardware is capable of, which is usually so
- * high that you absolutely must not set sink input volume to 100% unless the
- * the user explicitly requests that (note that usually you shouldn't set the
- * volume anyway if the user doesn't explicitly request it, instead, let
- * PulseAudio decide the volume for the sink input). With flat volumes disabled
- * (the default in Ubuntu), the sink input volume is relative to the sink
+ * volumes enabled, it means the maximum volume that the sound hardware is
+ * capable of, which is usually so high that you absolutely must not set sink
+ * input volume to 100% unless the the user explicitly requests that (note that
+ * usually you shouldn't set the volume anyway if the user doesn't explicitly
+ * request it, instead, let PulseAudio decide the volume for the sink input).
+ * With flat volumes disabled the sink input volume is relative to the sink
  * volume, so 100% sink input volume means that the sink input is played at the
  * current sink volume level. In this case 100% is often a good default volume
  * for a sink input, although you still should let PulseAudio decide the
@@ -62,9 +61,9 @@
  *
  * \section calc_sec Calculations
  *
- * The volumes in PulseAudio are logarithmic in nature and applications
- * shouldn't perform calculations with them directly. Instead, they should
- * be converted to and from either dB or a linear scale:
+ * The volumes in PulseAudio are cubic in nature and applications shouldn't
+ * perform calculations with them directly. Instead, they should be converted
+ * to and from either dB or a linear scale:
  *
  * \li dB - pa_sw_volume_from_dB() / pa_sw_volume_to_dB()
  * \li Linear - pa_sw_volume_from_linear() / pa_sw_volume_to_linear()
@@ -72,14 +71,12 @@
  * For simple multiplication, pa_sw_volume_multiply() and
  * pa_sw_cvolume_multiply() can be used.
  *
- * Calculations can only be reliably performed on software volumes
- * as it is commonly unknown what scale hardware volumes relate to.
- *
- * The functions described above are only valid when used with
- * software volumes. Hence it is usually a better idea to treat all
- * volume values as opaque with a range from PA_VOLUME_MUTED (0%) to
- * PA_VOLUME_NORM (100%) and to refrain from any calculations with
- * them.
+ * It's often unknown what scale hardware volumes relate to. Don't use the
+ * above functions on sink and source volumes, unless the sink or source in
+ * question has the PA_SINK_DECIBEL_VOLUME or PA_SOURCE_DECIBEL_VOLUME flag
+ * set. The conversion functions are rarely needed anyway, most of the time
+ * it's sufficient to treat all volumes as opaque with a range from
+ * PA_VOLUME_MUTED (0%) to PA_VOLUME_NORM (100%).
  *
  * \section conv_sec Convenience Functions
  *
