@@ -1518,7 +1518,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, bool save
 
     if (!(o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) &&
         !pa_sample_spec_equal(&o->sample_spec, &dest->sample_spec)) {
-        /* try to change dest sink rate if possible without glitches.
+        /* try to change dest source rate if possible without glitches.
            module-suspend-on-idle resumes destination source with
            SOURCE_OUTPUT_MOVE_FINISH hook */
 
