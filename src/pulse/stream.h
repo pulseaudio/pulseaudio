@@ -706,7 +706,9 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
 
 /** Return the current playback/recording time. This is based on the
  * data in the timing info structure returned by
- * pa_stream_get_timing_info().
+ * pa_stream_get_timing_info(). The returned time is in the sound card
+ * clock domain, which usually runs at a slightly different rate than
+ * the system clock.
  *
  * This function will usually only return new data if a timing info
  * update has been received. Only if timing interpolation has been
@@ -738,7 +740,9 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
 int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec);
 
 /** Determine the total stream latency. This function is based on
- * pa_stream_get_time().
+ * pa_stream_get_time(). The returned time is in the sound card clock
+ * domain, which usually runs at a slightly different rate than the
+ * system clock.
  *
  * The latency is stored in \a *r_usec. In case the stream is a
  * monitoring stream the result can be negative, i.e. the captured

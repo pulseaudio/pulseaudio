@@ -641,8 +641,8 @@ typedef enum pa_subscription_event_type {
  * pa_stream_update_timing_info() and pa_stream_get_timing_info(). The
  * total output latency a sample that is written with
  * pa_stream_write() takes to be played may be estimated by
- * sink_usec+buffer_usec+transport_usec. (where buffer_usec is defined
- * as pa_bytes_to_usec(write_index-read_index)) The output buffer
+ * sink_usec+buffer_usec+transport_usec (where buffer_usec is defined
+ * as pa_bytes_to_usec(write_index-read_index)). The output buffer
  * which buffer_usec relates to may be manipulated freely (with
  * pa_stream_write()'s seek argument, pa_stream_flush() and friends),
  * the buffers sink_usec and source_usec relate to are first-in
@@ -652,12 +652,19 @@ typedef enum pa_subscription_event_type {
  * source_usec+buffer_usec+transport_usec-sink_usec. (Take care of
  * sign issues!) When connected to a monitor source sink_usec contains
  * the latency of the owning sink. The two latency estimations
- * described here are implemented in pa_stream_get_latency(). Please
- * note that this structure can be extended as part of evolutionary
- * API updates at any time in any new release.*/
+ * described here are implemented in pa_stream_get_latency().
+ *
+ * All time values are in the sound card clock domain, unless noted
+ * otherwise. The sound card clock usually runs at a slightly different
+ * rate than the system clock.
+ *
+ * Please note that this structure can be extended as part of evolutionary
+ * API updates at any time in any new release.
+ * */
 typedef struct pa_timing_info {
     struct timeval timestamp;
-    /**< The time when this timing info structure was current */
+    /**< The system clock time when this timing info structure was
+     * current. */
 
     int synchronized_clocks;
     /**< Non-zero if the local and the remote machine have
