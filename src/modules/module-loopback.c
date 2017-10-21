@@ -83,6 +83,12 @@ struct userdata {
 
     pa_time_event *time_event;
 
+    /* Variables used to calculate the average time between
+     * subsequent calls of adjust_rates() */
+    pa_usec_t adjust_time_stamp;
+    pa_usec_t real_adjust_time;
+    pa_usec_t real_adjust_time_sum;
+
     /* Values from command line configuration */
     pa_usec_t latency;
     pa_usec_t adjust_time;
@@ -104,8 +110,10 @@ struct userdata {
     /* Various counters */
     uint32_t iteration_counter;
     uint32_t underrun_counter;
+    uint32_t adjust_counter;
 
     bool fixed_alsa_source;
+    bool source_sink_changed;
 
     /* Used for sink input and source output snapshots */
     struct {
@@ -307,14 +315,14 @@ static void adjust_rates(struct userdata *u) {
     int32_t latency_difference;
     pa_usec_t current_buffer_latency, snapshot_delay;
     int64_t current_source_sink_latency, current_latency, latency_at_optimum_rate;
-    pa_usec_t final_latency;
+    pa_usec_t final_latency, now;
 
     pa_assert(u);
     pa_assert_ctl_context();
 
     /* Runtime and counters since last change of source or sink
      * or source/sink latency */
-    run_hours = u->iteration_counter * u->adjust_time / PA_USEC_PER_SEC / 3600;
+    run_hours = u->iteration_counter * u->real_adjust_time / PA_USEC_PER_SEC / 3600;
     u->iteration_counter +=1;
 
     /* If we are seeing underruns then the latency is too small */
@@ -327,10 +335,19 @@ static void adjust_rates(struct userdata *u) {
     }
 
     /* Allow one underrun per hour */
-    if (u->iteration_counter * u->adjust_time / PA_USEC_PER_SEC / 3600 > run_hours) {
+    if (u->iteration_counter * u->real_adjust_time / PA_USEC_PER_SEC / 3600 > run_hours) {
         u->underrun_counter = PA_CLIP_SUB(u->underrun_counter, 1u);
         pa_log_info("Underrun counter: %u", u->underrun_counter);
     }
+
+    /* Calculate real adjust time */
+    now = pa_rtclock_now();
+    if (!u->source_sink_changed) {
+        u->adjust_counter++;
+        u->real_adjust_time_sum += now - u->adjust_time_stamp;
+        u->real_adjust_time = u->real_adjust_time_sum / u->adjust_counter;
+    }
+    u->adjust_time_stamp = now;
 
     /* Rates and latencies*/
     old_rate = u->sink_input->sample_spec.rate;
@@ -364,7 +381,9 @@ static void adjust_rates(struct userdata *u) {
     pa_log_debug("Loopback latency at base rate is %0.2f ms", (double)latency_at_optimum_rate / PA_USEC_PER_MSEC);
 
     /* Calculate new rate */
-    new_rate = rate_controller(base_rate, u->adjust_time, latency_difference);
+    new_rate = rate_controller(base_rate, u->real_adjust_time, latency_difference);
+
+    u->source_sink_changed = false;
 
     /* Set rate */
     pa_sink_input_set_rate(u->sink_input, new_rate);
@@ -694,6 +713,8 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     /* Reset counters */
     u->iteration_counter = 0;
     u->underrun_counter = 0;
+
+    u->source_sink_changed = true;
 
     /* Send a mesage to the output thread that the source has changed.
      * If the sink is invalid here during a profile switching situation
@@ -1077,6 +1098,8 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     u->iteration_counter = 0;
     u->underrun_counter = 0;
 
+    u->source_sink_changed = true;
+
     u->output_thread_info.pop_called = false;
     u->output_thread_info.first_pop_done = false;
 
@@ -1325,6 +1348,9 @@ int pa__init(pa_module *m) {
     u->iteration_counter = 0;
     u->underrun_counter = 0;
     u->underrun_latency_limit = 0;
+    u->source_sink_changed = true;
+    u->real_adjust_time_sum = 0;
+    u->adjust_counter = 0;
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
     if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
@@ -1336,6 +1362,8 @@ int pa__init(pa_module *m) {
         u->adjust_time = adjust_time_sec * PA_USEC_PER_SEC;
     else
         u->adjust_time = DEFAULT_ADJUST_TIME_USEC;
+
+    u->real_adjust_time = u->adjust_time;
 
     pa_sink_input_new_data_init(&sink_input_data);
     sink_input_data.driver = __FILE__;
