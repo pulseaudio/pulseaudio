@@ -65,6 +65,7 @@ static const pa_client_conf default_conf = {
     .cookie_file_from_client_conf = NULL,
     .autospawn = true,
     .disable_shm = false,
+    .disable_memfd = false,
     .shm_size = 0,
     .auto_connect_localhost = false,
     .auto_connect_display = false
