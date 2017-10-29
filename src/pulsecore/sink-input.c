@@ -338,6 +338,11 @@ int pa_sink_input_new(
         data->format = pa_format_info_copy(pa_idxset_first(data->nego_formats, NULL));
 
     if (PA_LIKELY(data->format)) {
+        /* We know that data->sink is set, because data->format has been set.
+         * data->format is set after a successful format negotiation, and that
+         * can't happen before data->sink has been set. */
+        pa_assert(data->sink);
+
         pa_log_debug("Negotiated format: %s", pa_format_info_snprint(fmt, sizeof(fmt), data->format));
     } else {
         pa_format_info *format;
