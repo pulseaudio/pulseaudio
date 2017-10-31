@@ -969,13 +969,15 @@ static int suspend(struct userdata *u) {
 }
 
 /* Called from IO context */
-static int update_sw_params(struct userdata *u) {
+static int update_sw_params(struct userdata *u, bool may_need_rewind) {
+    size_t old_unused;
     snd_pcm_uframes_t avail_min;
     int err;
 
     pa_assert(u);
 
     /* Use the full buffer if no one asked us for anything specific */
+    old_unused = u->hwbuf_unused;
     u->hwbuf_unused = 0;
 
     if (u->use_tsched) {
@@ -1019,9 +1021,21 @@ static int update_sw_params(struct userdata *u) {
         return err;
     }
 
+    /* If we're lowering the latency, we need to do a rewind, because otherwise
+     * we might end up in a situation where the hw buffer contains more data
+     * than the new configured latency. The rewind has to be requested before
+     * updating max_rewind, because the rewind amount is limited to max_rewind.
+     *
+     * If may_need_rewind is false, it means that we're just starting playback,
+     * and rewinding is never needed in that situation. */
+    if (may_need_rewind && u->hwbuf_unused > old_unused) {
+        pa_log_debug("Requesting rewind due to latency change.");
+        pa_sink_request_rewind(u->sink, (size_t) -1);
+    }
+
     pa_sink_set_max_request_within_thread(u->sink, u->hwbuf_size - u->hwbuf_unused);
-     if (pa_alsa_pcm_is_hw(u->pcm_handle))
-         pa_sink_set_max_rewind_within_thread(u->sink, u->hwbuf_size);
+    if (pa_alsa_pcm_is_hw(u->pcm_handle))
+        pa_sink_set_max_rewind_within_thread(u->sink, u->hwbuf_size - u->hwbuf_unused);
     else {
         pa_log_info("Disabling rewind_within_thread for device %s", u->device_name);
         pa_sink_set_max_rewind_within_thread(u->sink, 0);
@@ -1122,7 +1136,7 @@ static int unsuspend(struct userdata *u) {
         goto fail;
     }
 
-    if (update_sw_params(u) < 0)
+    if (update_sw_params(u, false) < 0)
         goto fail;
 
     if (build_pollfd(u) < 0)
@@ -1518,7 +1532,6 @@ static int sink_set_port_cb(pa_sink *s, pa_device_port *p) {
 
 static void sink_update_requested_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
-    size_t before;
     pa_assert(u);
     pa_assert(u->use_tsched); /* only when timer scheduling is used
                                * we can dynamically adjust the
@@ -1527,19 +1540,7 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
     if (!u->pcm_handle)
         return;
 
-    before = u->hwbuf_unused;
-    update_sw_params(u);
-
-    /* Let's check whether we now use only a smaller part of the
-    buffer then before. If so, we need to make sure that subsequent
-    rewinds are relative to the new maximum fill level and not to the
-    current fill level. Thus, let's do a full rewind once, to clear
-    things up. */
-
-    if (u->hwbuf_unused > before) {
-        pa_log_debug("Requesting rewind due to latency change.");
-        pa_sink_request_rewind(s, (size_t) -1);
-    }
+    update_sw_params(u, true);
 }
 
 static pa_idxset* sink_get_formats(pa_sink *s) {
@@ -2396,7 +2397,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     reserve_update(u);
 
-    if (update_sw_params(u) < 0)
+    if (update_sw_params(u, false) < 0)
         goto fail;
 
     if (u->ucm_context) {
