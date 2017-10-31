@@ -371,6 +371,17 @@ static void source_output_process_rewind_cb(pa_source_output *o, size_t nbytes) 
 }
 
 /* Called from output thread context */
+static void source_output_update_max_rewind_cb(pa_source_output *o, size_t nbytes) {
+    struct userdata *u;
+
+    pa_source_output_assert_ref(o);
+    pa_source_output_assert_io_context(o);
+    pa_assert_se(u = o->userdata);
+
+    pa_source_set_max_rewind_within_thread(u->source, nbytes);
+}
+
+/* Called from output thread context */
 static void source_output_attach_cb(pa_source_output *o) {
     struct userdata *u;
 
@@ -605,6 +616,7 @@ int pa__init(pa_module*m) {
 
     u->source_output->push = source_output_push_cb;
     u->source_output->process_rewind = source_output_process_rewind_cb;
+    u->source_output->update_max_rewind = source_output_update_max_rewind_cb;
     u->source_output->kill = source_output_kill_cb;
     u->source_output->attach = source_output_attach_cb;
     u->source_output->detach = source_output_detach_cb;
