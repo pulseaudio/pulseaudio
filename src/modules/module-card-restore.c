@@ -561,7 +561,7 @@ static pa_hook_result_t card_choose_initial_profile_callback(pa_core *core, pa_c
 
         profile = pa_hashmap_get(card->profiles, e->profile);
         if (profile) {
-            pa_log_info("Restoring profile '%s' for card %s.", card->active_profile->name, card->name);
+            pa_log_info("Restoring profile '%s' for card %s.", profile->name, card->name);
             pa_card_set_profile(card, profile, true);
         } else {
             pa_log_debug("Tried to restore profile %s for card %s, but the card doesn't have such profile.",
