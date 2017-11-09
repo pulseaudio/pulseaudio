@@ -2164,8 +2164,10 @@ void pa__done(pa_module*m) {
         if (u->ec->done)
             u->ec->done(u->ec);
 
-        if (u->ec->msg)
+        if (u->ec->msg) {
             u->ec->msg->dead = true;
+            pa_echo_canceller_msg_unref(u->ec->msg);
+        }
 
         pa_xfree(u->ec);
     }
@@ -2346,6 +2348,7 @@ int main(int argc, char* argv[]) {
 
     u.ec->done(u.ec);
     u.ec->msg->dead = true;
+    pa_echo_canceller_msg_unref(u.ec->msg);
 
 out:
     if (u.captured_file)
