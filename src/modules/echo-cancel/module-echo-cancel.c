@@ -184,6 +184,7 @@ struct userdata;
 
 struct pa_echo_canceller_msg {
     pa_msgobject parent;
+    bool dead;
     struct userdata *userdata;
 };
 
@@ -1553,6 +1554,20 @@ static int canceller_process_msg_cb(pa_msgobject *o, int code, void *userdata, i
     pa_assert(o);
 
     msg = PA_ECHO_CANCELLER_MSG(o);
+
+    /* When the module is unloaded, there may still remain queued messages for
+     * the canceller. Messages are sent to the main thread using the master
+     * source's asyncmsgq, and that message queue isn't (and can't be, at least
+     * with the current asyncmsgq API) cleared from the canceller messages when
+     * module-echo-cancel is unloaded.
+     *
+     * The userdata may already have been freed at this point, but the
+     * asyncmsgq holds a reference to the pa_echo_canceller_msg object, which
+     * contains a flag to indicate that all remaining messages have to be
+     * ignored. */
+    if (msg->dead)
+        return 0;
+
     u = msg->userdata;
 
     switch (code) {
@@ -2149,6 +2164,9 @@ void pa__done(pa_module*m) {
         if (u->ec->done)
             u->ec->done(u->ec);
 
+        if (u->ec->msg)
+            u->ec->msg->dead = true;
+
         pa_xfree(u->ec);
     }
 
@@ -2327,6 +2345,7 @@ int main(int argc, char* argv[]) {
     }
 
     u.ec->done(u.ec);
+    u.ec->msg->dead = true;
 
 out:
     if (u.captured_file)
