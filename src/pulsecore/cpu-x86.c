@@ -24,35 +24,28 @@
 
 #include <stdint.h>
 
+#ifdef HAVE_CPUID_H
+#include <cpuid.h>
+#endif
+
 #include <pulsecore/log.h>
 
 #include "cpu-x86.h"
 
-#if defined (__i386__) || defined (__amd64__)
-static void get_cpuid(uint32_t op, uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d) {
-    __asm__ __volatile__ (
-        "  push %%"PA_REG_b"   \n\t"
-        "  cpuid               \n\t"
-        "  mov %%ebx, %%esi    \n\t"
-        "  pop %%"PA_REG_b"    \n\t"
-
-        : "=a" (*a), "=S" (*b), "=c" (*c), "=d" (*d)
-        : "0" (op)
-    );
-}
-#endif
-
 void pa_cpu_get_x86_flags(pa_cpu_x86_flag_t *flags) {
-#if defined (__i386__) || defined (__amd64__)
+#if (defined(__i386__) || defined(__amd64__)) && defined(HAVE_CPUID_H)
     uint32_t eax, ebx, ecx, edx;
     uint32_t level;
 
     *flags = 0;
 
     /* get standard level */
-    get_cpuid(0x00000000, &level, &ebx, &ecx, &edx);
+    if (__get_cpuid(0x00000000, &level, &ebx, &ecx, &edx) == 0)
+        goto finish;
+
     if (level >= 1) {
-        get_cpuid(0x00000001, &eax, &ebx, &ecx, &edx);
+        if (__get_cpuid(0x00000001, &eax, &ebx, &ecx, &edx) == 0)
+            goto finish;
 
         if (edx & (1<<15))
           *flags |= PA_CPU_X86_CMOV;
@@ -80,9 +73,12 @@ void pa_cpu_get_x86_flags(pa_cpu_x86_flag_t *flags) {
     }
 
     /* get extended level */
-    get_cpuid(0x80000000, &level, &ebx, &ecx, &edx);
+    if (__get_cpuid(0x80000000, &level, &ebx, &ecx, &edx) == 0)
+        goto finish;
+
     if (level >= 0x80000001) {
-        get_cpuid(0x80000001, &eax, &ebx, &ecx, &edx);
+        if (__get_cpuid(0x80000001, &eax, &ebx, &ecx, &edx) == 0)
+            goto finish;
 
         if (edx & (1<<22))
           *flags |= PA_CPU_X86_MMXEXT;
@@ -97,6 +93,7 @@ void pa_cpu_get_x86_flags(pa_cpu_x86_flag_t *flags) {
           *flags |= PA_CPU_X86_3DNOW;
     }
 
+finish:
     pa_log_info("CPU flags: %s%s%s%s%s%s%s%s%s%s%s",
     (*flags & PA_CPU_X86_CMOV) ? "CMOV " : "",
     (*flags & PA_CPU_X86_MMX) ? "MMX " : "",
@@ -109,7 +106,7 @@ void pa_cpu_get_x86_flags(pa_cpu_x86_flag_t *flags) {
     (*flags & PA_CPU_X86_MMXEXT) ? "MMXEXT " : "",
     (*flags & PA_CPU_X86_3DNOW) ? "3DNOW " : "",
     (*flags & PA_CPU_X86_3DNOWEXT) ? "3DNOWEXT " : "");
-#endif /* defined (__i386__) || defined (__amd64__) */
+#endif /* (defined(__i386__) || defined(__amd64__)) && defined(HAVE_CPUID_H) */
 }
 
 bool pa_cpu_init_x86(pa_cpu_x86_flag_t *flags) {

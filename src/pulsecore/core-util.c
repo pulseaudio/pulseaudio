@@ -124,6 +124,10 @@
 #include <sys/personality.h>
 #endif
 
+#ifdef HAVE_CPUID_H
+#include <cpuid.h>
+#endif
+
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 #include <pulse/utf8.h>
@@ -136,7 +140,6 @@
 #include <pulsecore/strbuf.h>
 #include <pulsecore/usergroup.h>
 #include <pulsecore/strlist.h>
-#include <pulsecore/cpu-x86.h>
 #include <pulsecore/pipe.h>
 #include <pulsecore/once.h>
 
@@ -3663,11 +3666,13 @@ bool pa_running_in_vm(void) {
 
     /* Both CPUID and DMI are x86 specific interfaces... */
 
-    uint32_t eax = 0x40000000;
+#ifdef HAVE_CPUID_H
+    uint32_t eax;
     union {
         uint32_t sig32[3];
         char text[13];
     } sig;
+#endif
 
 #ifdef __linux__
     const char *const dmi_vendors[] = {
@@ -3701,19 +3706,18 @@ bool pa_running_in_vm(void) {
 
 #endif
 
-    /* http://lwn.net/Articles/301888/ */
+#ifdef HAVE_CPUID_H
+
+    /* Hypervisors provide their signature on the 0x40000000 cpuid leaf.
+     * http://lwn.net/Articles/301888/
+     *
+     * XXX: Why are we checking a list of signatures instead of the
+     * "hypervisor present bit"? According to the LWN article, the "hypervisor
+     * present bit" would be available on bit 31 of ECX on leaf 0x1, and that
+     * bit would tell us directly whether we're in a virtual machine or not. */
     pa_zero(sig);
-
-    __asm__ __volatile__ (
-        /* ebx/rbx is being used for PIC! */
-        "  push %%"PA_REG_b"         \n\t"
-        "  cpuid                     \n\t"
-        "  mov %%ebx, %1             \n\t"
-        "  pop %%"PA_REG_b"          \n\t"
-
-        : "=a" (eax), "=r" (sig.sig32[0]), "=c" (sig.sig32[1]), "=d" (sig.sig32[2])
-        : "0" (eax)
-    );
+    if (__get_cpuid(0x40000000, &eax, &sig.sig32[0], &sig.sig32[1], &sig.sig32[2]) == 0)
+        return false;
 
     if (pa_streq(sig.text, "XenVMMXenVMM") ||
         pa_streq(sig.text, "KVMKVMKVM") ||
@@ -3722,8 +3726,9 @@ bool pa_running_in_vm(void) {
         /* http://msdn.microsoft.com/en-us/library/bb969719.aspx */
         pa_streq(sig.text, "Microsoft Hv"))
         return true;
+#endif /* HAVE_CPUID_H */
 
-#endif
+#endif /* defined(__i386__) || defined(__x86_64__) */
 
     return false;
 }

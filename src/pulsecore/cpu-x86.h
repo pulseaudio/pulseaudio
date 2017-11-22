@@ -43,20 +43,8 @@ bool pa_cpu_init_x86 (pa_cpu_x86_flag_t *flags);
 
 #if defined (__i386__)
 typedef int32_t pa_reg_x86;
-#define PA_REG_a "eax"
-#define PA_REG_b "ebx"
-#define PA_REG_c "ecx"
-#define PA_REG_d "edx"
-#define PA_REG_D "edi"
-#define PA_REG_S "esi"
 #elif defined (__amd64__)
 typedef int64_t pa_reg_x86;
-#define PA_REG_a "rax"
-#define PA_REG_b "rbx"
-#define PA_REG_c "rcx"
-#define PA_REG_d "rdx"
-#define PA_REG_D "rdi"
-#define PA_REG_S "rsi"
 #endif
 
 /* some optimized functions */

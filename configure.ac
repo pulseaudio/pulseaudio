@@ -410,7 +410,7 @@ AC_SUBST([LIBLTDL])
 AC_HEADER_STDC
 
 # POSIX
-AC_CHECK_HEADERS_ONCE([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
+AC_CHECK_HEADERS_ONCE([arpa/inet.h cpuid.h glob.h grp.h netdb.h netinet/in.h \
     netinet/in_systm.h netinet/tcp.h poll.h pwd.h sched.h \
     sys/mman.h sys/select.h sys/socket.h sys/wait.h \
     sys/uio.h syslog.h sys/dl.h dlfcn.h linux/sockios.h])
