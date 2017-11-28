@@ -658,7 +658,8 @@ static void route_sink_input(struct userdata *u, pa_sink_input *si) {
     pa_assert(u);
     pa_assert(u->do_routing);
 
-    if (si->save_sink)
+    /* Don't override user or application routing requests. */
+    if (si->save_sink || si->sink_requested_by_application)
         return;
 
     /* Skip this if it is already in the process of being moved anyway */
@@ -729,7 +730,8 @@ static void route_source_output(struct userdata *u, pa_source_output *so) {
     pa_assert(u);
     pa_assert(u->do_routing);
 
-    if (so->save_source)
+    /* Don't override user or application routing requests. */
+    if (so->save_source || so->source_requested_by_application)
         return;
 
     if (so->direct_on_input)
