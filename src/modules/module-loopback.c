@@ -1370,7 +1370,7 @@ int pa__init(pa_module *m) {
     sink_input_data.module = m;
 
     if (sink)
-        pa_sink_input_new_data_set_sink(&sink_input_data, sink, false);
+        pa_sink_input_new_data_set_sink(&sink_input_data, sink, false, true);
 
     if (pa_modargs_get_proplist(ma, "sink_input_properties", sink_input_data.proplist, PA_UPDATE_REPLACE) < 0) {
         pa_log("Failed to parse the sink_input_properties value.");
@@ -1437,7 +1437,7 @@ int pa__init(pa_module *m) {
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
     if (source)
-        pa_source_output_new_data_set_source(&source_output_data, source, false);
+        pa_source_output_new_data_set_source(&source_output_data, source, false, true);
 
     if (pa_modargs_get_proplist(ma, "source_output_properties", source_output_data.proplist, PA_UPDATE_REPLACE) < 0) {
         pa_log("Failed to parse the source_output_properties value.");

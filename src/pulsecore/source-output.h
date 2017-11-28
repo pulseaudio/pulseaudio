@@ -75,6 +75,15 @@ struct pa_source_output {
     pa_client *client;                    /* may be NULL */
 
     pa_source *source;                    /* NULL while being moved */
+
+    /* This is set to true when creating the source output if the source was
+     * requested by the application that created the source output. This is
+     * sometimes useful for determining whether the source output should be
+     * moved by some automatic policy. If the source output is moved away from
+     * the source that the application requested, this flag is reset to
+     * false. */
+    bool source_requested_by_application;
+
     pa_source *destination_source;        /* only set by filter sources */
 
     /* A source output can monitor just a single input of a sink, in which case we find it here */
@@ -243,6 +252,7 @@ typedef struct pa_source_output_new_data {
     pa_client *client;
 
     pa_source *source;
+    bool source_requested_by_application;
     pa_source *destination_source;
 
     pa_resample_method_t resample_method;
@@ -277,7 +287,8 @@ void pa_source_output_new_data_set_volume(pa_source_output_new_data *data, const
 void pa_source_output_new_data_apply_volume_factor(pa_source_output_new_data *data, const pa_cvolume *volume_factor);
 void pa_source_output_new_data_apply_volume_factor_source(pa_source_output_new_data *data, const pa_cvolume *volume_factor);
 void pa_source_output_new_data_set_muted(pa_source_output_new_data *data, bool mute);
-bool pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_source *s, bool save);
+bool pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_source *s, bool save,
+                                          bool requested_by_application);
 bool pa_source_output_new_data_set_formats(pa_source_output_new_data *data, pa_idxset *formats);
 void pa_source_output_new_data_done(pa_source_output_new_data *data);
 

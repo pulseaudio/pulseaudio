@@ -423,7 +423,7 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
     sdata.module = c->options->module;
     sdata.client = c->client;
     if (sink)
-        pa_sink_input_new_data_set_sink(&sdata, sink, false);
+        pa_sink_input_new_data_set_sink(&sdata, sink, false, true);
     pa_sink_input_new_data_set_sample_spec(&sdata, &ss);
 
     pa_sink_input_new(&c->sink_input, c->protocol->core, &sdata);
@@ -523,7 +523,7 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
     sdata.module = c->options->module;
     sdata.client = c->client;
     if (source)
-        pa_source_output_new_data_set_source(&sdata, source, false);
+        pa_source_output_new_data_set_source(&sdata, source, false, true);
     pa_source_output_new_data_set_sample_spec(&sdata, &ss);
 
     pa_source_output_new(&c->source_output, c->protocol->core, &sdata);

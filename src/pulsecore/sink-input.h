@@ -80,6 +80,14 @@ struct pa_sink_input {
     pa_client *client;                  /* may be NULL */
 
     pa_sink *sink;                      /* NULL while we are being moved */
+
+    /* This is set to true when creating the sink input if the sink was
+     * requested by the application that created the sink input. This is
+     * sometimes useful for determining whether the sink input should be
+     * moved by some automatic policy. If the sink input is moved away from the
+     * sink that the application requested, this flag is reset to false. */
+    bool sink_requested_by_application;
+
     pa_sink *origin_sink;               /* only set by filter sinks */
 
     /* A sink input may be connected to multiple source outputs
@@ -284,6 +292,7 @@ typedef struct pa_sink_input_new_data {
     pa_client *client;
 
     pa_sink *sink;
+    bool sink_requested_by_application;
     pa_sink *origin_sink;
 
     pa_resample_method_t resample_method;
@@ -321,7 +330,7 @@ void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cv
 void pa_sink_input_new_data_add_volume_factor(pa_sink_input_new_data *data, const char *key, const pa_cvolume *volume_factor);
 void pa_sink_input_new_data_add_volume_factor_sink(pa_sink_input_new_data *data, const char *key, const pa_cvolume *volume_factor);
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, bool mute);
-bool pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, bool save);
+bool pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, bool save, bool requested_by_application);
 bool pa_sink_input_new_data_set_formats(pa_sink_input_new_data *data, pa_idxset *formats);
 void pa_sink_input_new_data_done(pa_sink_input_new_data *data);
 

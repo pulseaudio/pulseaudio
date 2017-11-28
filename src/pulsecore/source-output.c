@@ -123,7 +123,8 @@ void pa_source_output_new_data_set_muted(pa_source_output_new_data *data, bool m
     data->muted = mute;
 }
 
-bool pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_source *s, bool save) {
+bool pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_source *s, bool save,
+                                          bool requested_by_application) {
     bool ret = true;
     pa_idxset *formats = NULL;
 
@@ -134,6 +135,7 @@ bool pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_so
         /* We're not working with the extended API */
         data->source = s;
         data->save_source = save;
+        data->source_requested_by_application = requested_by_application;
     } else {
         /* Extended API: let's see if this source supports the formats the client would like */
         formats = pa_source_check_formats(s, data->req_formats);
@@ -142,6 +144,7 @@ bool pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_so
             /* Source supports at least one of the requested formats */
             data->source = s;
             data->save_source = save;
+            data->source_requested_by_application = requested_by_application;
             if (data->nego_formats)
                 pa_idxset_free(data->nego_formats, (pa_free_cb_t) pa_format_info_free);
             data->nego_formats = formats;
@@ -167,7 +170,8 @@ bool pa_source_output_new_data_set_formats(pa_source_output_new_data *data, pa_i
 
     if (data->source) {
         /* Trigger format negotiation */
-        return pa_source_output_new_data_set_source(data, data->source, data->save_source);
+        return pa_source_output_new_data_set_source(data, data->source, data->save_source,
+                                                    data->source_requested_by_application);
     }
 
     return true;
@@ -271,7 +275,7 @@ int pa_source_output_new(
             pa_return_val_if_fail(source, -PA_ERR_NOENTITY);
         }
 
-        pa_source_output_new_data_set_source(data, source, false);
+        pa_source_output_new_data_set_source(data, source, false, false);
     }
 
     /* If something didn't pick a format for us, pick the top-most format since
@@ -424,6 +428,7 @@ int pa_source_output_new(
     o->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     o->module = data->module;
     o->source = data->source;
+    o->source_requested_by_application = data->source_requested_by_application;
     o->destination_source = data->destination_source;
     o->client = data->client;
 
@@ -1365,6 +1370,7 @@ int pa_source_output_start_move(pa_source_output *o) {
     pa_cvolume_remap(&o->volume_factor_source, &o->source->channel_map, &o->channel_map);
 
     o->source = NULL;
+    o->source_requested_by_application = false;
 
     pa_source_output_unref(o);
 

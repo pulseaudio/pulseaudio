@@ -533,7 +533,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
         data.driver = __FILE__;
         data.module = o->module;
         data.client = c->client;
-        pa_sink_input_new_data_set_sink(&data, sink, false);
+        pa_sink_input_new_data_set_sink(&data, sink, false, true);
         pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
         pa_sink_input_new_data_set_sample_spec(&data, &o->sample_spec);
 
@@ -589,7 +589,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
         data.driver = __FILE__;
         data.module = o->module;
         data.client = c->client;
-        pa_source_output_new_data_set_source(&data, source, false);
+        pa_source_output_new_data_set_source(&data, source, false, true);
         pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
         pa_source_output_new_data_set_sample_spec(&data, &o->sample_spec);
 

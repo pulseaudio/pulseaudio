@@ -996,7 +996,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
                 pa_sink *sink;
 
                 if ((sink = pa_idxset_get_by_index(u->core->sinks, device_index))) {
-                    if (!pa_sink_input_new_data_set_sink(new_data, sink, false))
+                    if (!pa_sink_input_new_data_set_sink(new_data, sink, false, false))
                         pa_log_debug("Not restoring device for stream because no supported format was found");
                 }
             }
@@ -1036,7 +1036,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
                 pa_source *source;
 
                 if ((source = pa_idxset_get_by_index(u->core->sources, device_index)))
-                    if (!pa_source_output_new_data_set_source(new_data, source, false))
+                    if (!pa_source_output_new_data_set_source(new_data, source, false, false))
                         pa_log_debug("Not restoring device for stream because no supported format was found");
             }
         }

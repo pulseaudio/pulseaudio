@@ -1451,7 +1451,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
            same time, in which case we want to make sure we don't
            interfere with that */
         if (s && PA_SINK_IS_LINKED(pa_sink_get_state(s)))
-            if (pa_sink_input_new_data_set_sink(new_data, s, true))
+            if (pa_sink_input_new_data_set_sink(new_data, s, true, false))
                 pa_log_info("Restoring device for stream %s.", name);
 
         entry_free(e);
@@ -1555,7 +1555,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
            interfere with that */
         if (s && PA_SOURCE_IS_LINKED(pa_source_get_state(s))) {
             pa_log_info("Restoring device for stream %s.", name);
-            pa_source_output_new_data_set_source(new_data, s, true);
+            pa_source_output_new_data_set_source(new_data, s, true, false);
         }
 
         entry_free(e);

@@ -1943,7 +1943,7 @@ int pa__init(pa_module*m) {
     pa_source_output_new_data_init(&source_output_data);
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
-    pa_source_output_new_data_set_source(&source_output_data, source_master, false);
+    pa_source_output_new_data_set_source(&source_output_data, source_master, false, true);
     source_output_data.destination_source = u->source;
 
     pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_NAME, "Echo-Cancel Source Stream");
@@ -1982,7 +1982,7 @@ int pa__init(pa_module*m) {
     pa_sink_input_new_data_init(&sink_input_data);
     sink_input_data.driver = __FILE__;
     sink_input_data.module = m;
-    pa_sink_input_new_data_set_sink(&sink_input_data, sink_master, false);
+    pa_sink_input_new_data_set_sink(&sink_input_data, sink_master, false, true);
     sink_input_data.origin_sink = u->sink;
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Echo-Cancel Sink Stream");
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");

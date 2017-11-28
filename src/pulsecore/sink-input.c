@@ -180,7 +180,7 @@ void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, bool mute) {
     data->muted = mute;
 }
 
-bool pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, bool save) {
+bool pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, bool save, bool requested_by_application) {
     bool ret = true;
     pa_idxset *formats = NULL;
 
@@ -191,6 +191,7 @@ bool pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, b
         /* We're not working with the extended API */
         data->sink = s;
         data->save_sink = save;
+        data->sink_requested_by_application = requested_by_application;
     } else {
         /* Extended API: let's see if this sink supports the formats the client can provide */
         formats = pa_sink_check_formats(s, data->req_formats);
@@ -199,6 +200,7 @@ bool pa_sink_input_new_data_set_sink(pa_sink_input_new_data *data, pa_sink *s, b
             /* Sink supports at least one of the requested formats */
             data->sink = s;
             data->save_sink = save;
+            data->sink_requested_by_application = requested_by_application;
             if (data->nego_formats)
                 pa_idxset_free(data->nego_formats, (pa_free_cb_t) pa_format_info_free);
             data->nego_formats = formats;
@@ -224,7 +226,7 @@ bool pa_sink_input_new_data_set_formats(pa_sink_input_new_data *data, pa_idxset 
 
     if (data->sink) {
         /* Trigger format negotiation */
-        return pa_sink_input_new_data_set_sink(data, data->sink, data->save_sink);
+        return pa_sink_input_new_data_set_sink(data, data->sink, data->save_sink, data->sink_requested_by_application);
     }
 
     return true;
@@ -329,7 +331,7 @@ int pa_sink_input_new(
     if (!data->sink) {
         pa_sink *sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK);
         pa_return_val_if_fail(sink, -PA_ERR_NOENTITY);
-        pa_sink_input_new_data_set_sink(data, sink, false);
+        pa_sink_input_new_data_set_sink(data, sink, false, false);
     }
 
     /* If something didn't pick a format for us, pick the top-most format since
@@ -479,6 +481,7 @@ int pa_sink_input_new(
     i->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     i->module = data->module;
     i->sink = data->sink;
+    i->sink_requested_by_application = data->sink_requested_by_application;
     i->origin_sink = data->origin_sink;
     i->client = data->client;
 
@@ -1741,6 +1744,7 @@ int pa_sink_input_start_move(pa_sink_input *i) {
     pa_cvolume_remap(&i->volume_factor_sink, &i->sink->channel_map, &i->channel_map);
 
     i->sink = NULL;
+    i->sink_requested_by_application = false;
 
     pa_sink_input_unref(i);
 

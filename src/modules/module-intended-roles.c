@@ -93,7 +93,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
 
     /* Prefer the default sink over any other sink, just in case... */
     if (c->default_sink)
-        if (role_match(c->default_sink->proplist, role) && pa_sink_input_new_data_set_sink(new_data, c->default_sink, false))
+        if (role_match(c->default_sink->proplist, role) && pa_sink_input_new_data_set_sink(new_data, c->default_sink, false, false))
             return PA_HOOK_OK;
 
     /* @todo: favour the highest priority device, not the first one we find? */
@@ -104,7 +104,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         if (!PA_SINK_IS_LINKED(pa_sink_get_state(s)))
             continue;
 
-        if (role_match(s->proplist, role) && pa_sink_input_new_data_set_sink(new_data, s, false))
+        if (role_match(s->proplist, role) && pa_sink_input_new_data_set_sink(new_data, s, false, false))
             return PA_HOOK_OK;
     }
 
@@ -138,7 +138,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     /* Prefer the default source over any other source, just in case... */
     if (c->default_source)
         if (role_match(c->default_source->proplist, role)) {
-            pa_source_output_new_data_set_source(new_data, c->default_source, false);
+            pa_source_output_new_data_set_source(new_data, c->default_source, false, false);
             return PA_HOOK_OK;
         }
 
@@ -154,7 +154,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
 
         /* @todo: favour the highest priority device, not the first one we find? */
         if (role_match(s->proplist, role)) {
-            pa_source_output_new_data_set_source(new_data, s, false);
+            pa_source_output_new_data_set_source(new_data, s, false, false);
             return PA_HOOK_OK;
         }
     }

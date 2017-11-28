@@ -430,7 +430,7 @@ int pa__init(pa_module*m) {
     pa_proplist_setf(data.proplist, "rtp.ttl", "%lu", (unsigned long) ttl);
     data.driver = __FILE__;
     data.module = m;
-    pa_source_output_new_data_set_source(&data, s, false);
+    pa_source_output_new_data_set_source(&data, s, false, true);
     pa_source_output_new_data_set_sample_spec(&data, &ss);
     pa_source_output_new_data_set_channel_map(&data, &cm);
     data.flags |= get_dont_inhibit_auto_suspend_flag(s, inhibit_auto_suspend);

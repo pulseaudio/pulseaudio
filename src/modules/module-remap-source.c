@@ -380,7 +380,7 @@ int pa__init(pa_module*m) {
     pa_source_output_new_data_init(&source_output_data);
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
-    pa_source_output_new_data_set_source(&source_output_data, master, false);
+    pa_source_output_new_data_set_source(&source_output_data, master, false, true);
     source_output_data.destination_source = u->source;
 
     pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_NAME, "Remapped Stream");
