@@ -41,15 +41,18 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "only_from_unavailable=<boolean, only switch from unavailable ports> "
+        "ignore_virtual=<boolean, ignore new virtual sinks and sources, defaults to true> "
 );
 
 static const char* const valid_modargs[] = {
     "only_from_unavailable",
+    "ignore_virtual",
     NULL,
 };
 
 struct userdata {
     bool only_from_unavailable;
+    bool ignore_virtual;
 };
 
 static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* userdata) {
@@ -74,6 +77,10 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* 
         else if (pa_streq(s, "isa"))
             return PA_HOOK_OK;
     }
+
+    /* Ignore virtual sinks if not configured otherwise on the command line */
+    if (u->ignore_virtual && !(sink->flags & PA_SINK_HARDWARE))
+        return PA_HOOK_OK;
 
     /* No default sink, nothing to move away, just set the new default */
     if (!c->default_sink) {
@@ -141,6 +148,10 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
             return PA_HOOK_OK;
     }
 
+    /* Ignore virtual sources if not configured otherwise on the command line */
+    if (u->ignore_virtual && !(source->flags & PA_SOURCE_HARDWARE))
+        return PA_HOOK_OK;
+
     /* No default source, nothing to move away, just set the new default */
     if (!c->default_source) {
         pa_core_set_configured_default_source(c, source->name);
@@ -199,6 +210,12 @@ int pa__init(pa_module*m) {
 
     if (pa_modargs_get_value_boolean(ma, "only_from_unavailable", &u->only_from_unavailable) < 0) {
 	pa_log("Failed to get a boolean value for only_from_unavailable.");
+	goto fail;
+    }
+
+    u->ignore_virtual = true;
+    if (pa_modargs_get_value_boolean(ma, "ignore_virtual", &u->ignore_virtual) < 0) {
+	pa_log("Failed to get a boolean value for ignore_virtual.");
 	goto fail;
     }
 
