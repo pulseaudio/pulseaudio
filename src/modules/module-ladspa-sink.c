@@ -54,6 +54,7 @@ PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_USAGE(
     _("sink_name=<name for the sink> "
       "sink_properties=<properties for the sink> "
+      "sink_input_properties=<properties for the sink input> "
       "master=<name of sink to filter> "
       "sink_master=<name of sink to filter> "
       "format=<sample format> "
@@ -108,6 +109,7 @@ struct userdata {
 static const char* const valid_modargs[] = {
     "sink_name",
     "sink_properties",
+    "sink_input_properties",
     "master",  /* Will be deprecated. */
     "sink_master",
     "format",
@@ -1312,6 +1314,13 @@ int pa__init(pa_module*m) {
     sink_input_data.origin_sink = u->sink;
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "LADSPA Stream");
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
+
+    if (pa_modargs_get_proplist(ma, "sink_input_properties", sink_input_data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_sink_input_new_data_done(&sink_input_data);
+        goto fail;
+    }
+
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
     sink_input_data.flags |= PA_SINK_INPUT_START_CORKED;
