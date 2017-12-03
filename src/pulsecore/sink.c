@@ -920,9 +920,11 @@ void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, bool save) {
     pa_assert(q);
 
     while ((i = PA_SINK_INPUT(pa_queue_pop(q)))) {
-        if (pa_sink_input_finish_move(i, s, save) < 0)
-            pa_sink_input_fail_move(i);
+        if (PA_SINK_INPUT_IS_LINKED(i->state)) {
+            if (pa_sink_input_finish_move(i, s, save) < 0)
+                pa_sink_input_fail_move(i);
 
+        }
         pa_sink_input_unref(i);
     }
 

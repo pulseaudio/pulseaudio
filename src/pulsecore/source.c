@@ -860,9 +860,11 @@ void pa_source_move_all_finish(pa_source *s, pa_queue *q, bool save) {
     pa_assert(q);
 
     while ((o = PA_SOURCE_OUTPUT(pa_queue_pop(q)))) {
-        if (pa_source_output_finish_move(o, s, save) < 0)
-            pa_source_output_fail_move(o);
+        if (PA_SOURCE_OUTPUT_IS_LINKED(o->state)) {
+            if (pa_source_output_finish_move(o, s, save) < 0)
+                pa_source_output_fail_move(o);
 
+        }
         pa_source_output_unref(o);
     }
 
