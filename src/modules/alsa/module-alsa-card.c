@@ -38,7 +38,6 @@
 #include "alsa-ucm.h"
 #include "alsa-sink.h"
 #include "alsa-source.h"
-#include "module-alsa-card-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("ALSA Card");

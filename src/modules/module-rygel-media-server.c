@@ -44,8 +44,6 @@
 #include <pulsecore/protocol-http.h>
 #include <pulsecore/parseaddr.h>
 
-#include "module-rygel-media-server-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("UPnP MediaServer Plugin for Rygel");
 PA_MODULE_VERSION(PACKAGE_VERSION);

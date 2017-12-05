@@ -40,8 +40,6 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/core-util.h>
 
-#include "module-mmkbd-evdev-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Multimedia keyboard support via Linux evdev");
 PA_MODULE_VERSION(PACKAGE_VERSION);

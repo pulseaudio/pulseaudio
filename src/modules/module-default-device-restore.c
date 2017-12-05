@@ -34,8 +34,6 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-error.h>
 
-#include "module-default-device-restore-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Automatically restore the default sink and source");
 PA_MODULE_VERSION(PACKAGE_VERSION);

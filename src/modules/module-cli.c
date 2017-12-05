@@ -35,8 +35,6 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 
-#include "module-cli-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Command line interface");
 PA_MODULE_VERSION(PACKAGE_VERSION);

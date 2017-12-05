@@ -31,8 +31,6 @@
 
 #include <CoreAudio/CoreAudio.h>
 
-#include "module-coreaudio-detect-symdef.h"
-
 #define DEVICE_MODULE_NAME "module-coreaudio-device"
 
 PA_MODULE_AUTHOR("Daniel Mack");

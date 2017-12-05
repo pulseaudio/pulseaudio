@@ -41,8 +41,6 @@
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/sample-util.h>
 
-#include "module-jack-source-symdef.h"
-
 /* See module-jack-sink for a few comments how this module basically
  * works */
 

@@ -45,8 +45,6 @@
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/strlist.h>
 
-#include "module-combine-sink-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Combine multiple sinks to one");
 PA_MODULE_VERSION(PACKAGE_VERSION);

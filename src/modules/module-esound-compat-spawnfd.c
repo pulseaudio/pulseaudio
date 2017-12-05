@@ -30,8 +30,6 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 
-#include "module-esound-compat-spawnfd-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("ESOUND compatibility module: -spawnfd emulation");
 PA_MODULE_LOAD_ONCE(true);

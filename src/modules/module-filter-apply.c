@@ -35,8 +35,6 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/proplist-util.h>
 
-#include "module-filter-apply-symdef.h"
-
 #define PA_PROP_FILTER_APPLY_PARAMETERS PA_PROP_FILTER_APPLY".%s.parameters"
 #define PA_PROP_FILTER_APPLY_MOVING     "filter.apply.moving"
 #define PA_PROP_FILTER_APPLY_SET_BY_MFA "filter.apply.set_by_mfa"

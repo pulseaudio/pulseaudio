@@ -71,7 +71,6 @@
 #endif
 
 #include "oss-util.h"
-#include "module-oss-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("OSS Sink/Source");

@@ -28,7 +28,6 @@
 
 #include "alsa-util.h"
 #include "alsa-sink.h"
-#include "module-alsa-sink-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("ALSA Sink");

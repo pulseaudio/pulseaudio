@@ -53,8 +53,6 @@
 #include <pulsecore/poll.h>
 #include <pulsecore/arpa-inet.h>
 
-#include "module-rtp-recv-symdef.h"
-
 #include "rtp.h"
 #include "sdp.h"
 #include "sap.h"

@@ -28,8 +28,6 @@
 
 #include "raop-sink.h"
 
-#include "module-raop-sink-symdef.h"
-
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("RAOP Sink");
 PA_MODULE_VERSION(PACKAGE_VERSION);

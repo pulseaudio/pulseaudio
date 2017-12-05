@@ -51,8 +51,6 @@
 #include <pulsecore/sample-util.h>
 #include <pulsecore/ltdl-helper.h>
 
-#include "module-echo-cancel-symdef.h"
-
 PA_MODULE_AUTHOR("Wim Taymans");
 PA_MODULE_DESCRIPTION("Echo Cancellation");
 PA_MODULE_VERSION(PACKAGE_VERSION);

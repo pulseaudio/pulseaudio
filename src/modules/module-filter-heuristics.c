@@ -30,8 +30,6 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/modargs.h>
 
-#include "module-filter-heuristics-symdef.h"
-
 #define PA_PROP_FILTER_APPLY_MOVING "filter.apply.moving"
 #define PA_PROP_FILTER_HEURISTICS "filter.heuristics"
 

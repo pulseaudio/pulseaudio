@@ -36,8 +36,6 @@
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 
-#include "module-loopback-symdef.h"
-
 PA_MODULE_AUTHOR("Pierre-Louis Bossart");
 PA_MODULE_DESCRIPTION("Loopback from source to sink");
 PA_MODULE_VERSION(PACKAGE_VERSION);

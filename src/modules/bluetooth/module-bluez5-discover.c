@@ -30,8 +30,6 @@
 
 #include "bluez5-util.h"
 
-#include "module-bluez5-discover-symdef.h"
-
 PA_MODULE_AUTHOR("João Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Detect available BlueZ 5 Bluetooth audio devices and load BlueZ 5 Bluetooth audio drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);

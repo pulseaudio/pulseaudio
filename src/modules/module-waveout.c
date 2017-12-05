@@ -39,8 +39,6 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 
-#include "module-waveout-symdef.h"
-
 PA_MODULE_AUTHOR("Pierre Ossman");
 PA_MODULE_DESCRIPTION("Windows waveOut Sink/Source");
 PA_MODULE_VERSION(PACKAGE_VERSION);

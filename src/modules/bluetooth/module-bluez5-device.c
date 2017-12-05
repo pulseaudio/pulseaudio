@@ -49,8 +49,6 @@
 #include "bluez5-util.h"
 #include "rtp.h"
 
-#include "module-bluez5-device-symdef.h"
-
 PA_MODULE_AUTHOR("João Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("BlueZ 5 Bluetooth audio sink and source");
 PA_MODULE_VERSION(PACKAGE_VERSION);

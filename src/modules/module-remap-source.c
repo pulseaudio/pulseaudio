@@ -38,8 +38,6 @@
 #include <pulsecore/ltdl-helper.h>
 #include <pulsecore/mix.h>
 
-#include "module-remap-source-symdef.h"
-
 PA_MODULE_AUTHOR("Stefan Huber");
 PA_MODULE_DESCRIPTION("Virtual channel remapping source");
 PA_MODULE_VERSION(PACKAGE_VERSION);

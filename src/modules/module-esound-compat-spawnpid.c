@@ -31,8 +31,6 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 
-#include "module-esound-compat-spawnpid-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("ESOUND compatibility module: -spawnpid emulation");
 PA_MODULE_VERSION(PACKAGE_VERSION);

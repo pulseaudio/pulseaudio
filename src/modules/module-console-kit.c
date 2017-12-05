@@ -37,8 +37,6 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/dbus-shared.h>
 
-#include "module-console-kit-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Create a client for each ConsoleKit session of this user");
 PA_MODULE_VERSION(PACKAGE_VERSION);

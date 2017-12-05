@@ -31,8 +31,6 @@
 #include <pulsecore/source-output.h>
 #include <pulsecore/namereg.h>
 
-#include "module-intended-roles-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Automatically set device of streams based on intended roles of devices");
 PA_MODULE_VERSION(PACKAGE_VERSION);

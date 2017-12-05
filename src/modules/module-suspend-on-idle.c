@@ -32,8 +32,6 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 
-#include "module-suspend-on-idle-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("When a sink/source is idle for too long, suspend it");
 PA_MODULE_VERSION(PACKAGE_VERSION);

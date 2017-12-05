@@ -43,8 +43,6 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/protocol-native.h>
 
-#include "module-bonjour-publish-symdef.h"
-
 PA_MODULE_AUTHOR("Daniel Mack");
 PA_MODULE_DESCRIPTION("Mac OS X Bonjour Service Publisher");
 PA_MODULE_VERSION(PACKAGE_VERSION);

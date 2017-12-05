@@ -36,8 +36,6 @@
 #include <pulsecore/ratelimit.h>
 #include <pulsecore/strbuf.h>
 
-#include "module-udev-detect-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);

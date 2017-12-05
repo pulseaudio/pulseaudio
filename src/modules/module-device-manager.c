@@ -49,8 +49,6 @@
 #include <pulsecore/database.h>
 #include <pulsecore/tagstruct.h>
 
-#include "module-device-manager-symdef.h"
-
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("Keep track of devices (and their descriptions) both past and present and prioritise by role");
 PA_MODULE_VERSION(PACKAGE_VERSION);

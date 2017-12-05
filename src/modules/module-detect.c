@@ -39,8 +39,6 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 
-#include "module-detect-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);

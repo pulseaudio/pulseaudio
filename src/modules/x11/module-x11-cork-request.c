@@ -38,8 +38,6 @@
 #include <pulsecore/x11wrap.h>
 #include <pulsecore/core-util.h>
 
-#include "module-x11-cork-request-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Synthesize X11 media key events when cork/uncork is requested");
 PA_MODULE_VERSION(PACKAGE_VERSION);

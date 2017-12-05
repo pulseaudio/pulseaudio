@@ -28,8 +28,6 @@
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
 
-#include "module-hal-detect-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Compatibility module");
 PA_MODULE_VERSION(PACKAGE_VERSION);

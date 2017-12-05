@@ -36,8 +36,6 @@
 #include <pulsecore/sample-util.h>
 #include <pulsecore/ltdl-helper.h>
 
-#include "module-virtual-sink-symdef.h"
-
 PA_MODULE_AUTHOR("Pierre-Louis Bossart");
 PA_MODULE_DESCRIPTION(_("Virtual sink"));
 PA_MODULE_VERSION(PACKAGE_VERSION);

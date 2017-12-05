@@ -31,8 +31,6 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-util.h>
 
-#include "module-rescue-streams-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("When a sink/source is removed, try to move its streams to the default sink/source");
 PA_MODULE_VERSION(PACKAGE_VERSION);

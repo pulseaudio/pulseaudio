@@ -44,7 +44,6 @@
 #include <pulsecore/dbus-util.h>
 #endif
 
-#include "module-ladspa-sink-symdef.h"
 #include "ladspa.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");

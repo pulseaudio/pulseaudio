@@ -48,8 +48,6 @@
 #include <CoreAudio/CoreAudioTypes.h>
 #include <CoreAudio/AudioHardware.h>
 
-#include "module-coreaudio-device-symdef.h"
-
 #define DEFAULT_FRAMES_PER_IOPROC 512
 
 PA_MODULE_AUTHOR("Daniel Mack");

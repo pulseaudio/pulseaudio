@@ -31,8 +31,6 @@
 #include <pulsecore/source.h>
 #include <pulsecore/core-util.h>
 
-#include "module-bluetooth-policy-symdef.h"
-
 PA_MODULE_AUTHOR("Frédéric Dalleau, Pali Rohár");
 PA_MODULE_DESCRIPTION("Policy module to make using bluetooth devices out-of-the-box easier");
 PA_MODULE_VERSION(PACKAGE_VERSION);

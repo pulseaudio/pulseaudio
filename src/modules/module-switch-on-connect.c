@@ -33,8 +33,6 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-util.h>
 
-#include "module-switch-on-connect-symdef.h"
-
 PA_MODULE_AUTHOR("Michael Terry");
 PA_MODULE_DESCRIPTION("When a sink/source is added, switch to it or conditionally switch to it");
 PA_MODULE_VERSION(PACKAGE_VERSION);

@@ -65,8 +65,6 @@
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/poll.h>
 
-#include "module-esound-sink-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("ESOUND Sink");
 PA_MODULE_VERSION(PACKAGE_VERSION);

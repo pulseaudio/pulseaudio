@@ -41,8 +41,6 @@
 #include <pulsecore/strlist.h>
 #include <pulsecore/protocol-native.h>
 
-#include "module-x11-publish-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("X11 credential publisher");
 PA_MODULE_VERSION(PACKAGE_VERSION);

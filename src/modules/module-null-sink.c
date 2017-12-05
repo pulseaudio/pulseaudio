@@ -41,8 +41,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 
-#include "module-null-sink-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION(_("Clocked NULL sink"));
 PA_MODULE_VERSION(PACKAGE_VERSION);

@@ -34,8 +34,6 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-util.h>
 
-#include "module-allow-passthrough-symdef.h"
-
 PA_MODULE_AUTHOR("Guillaume Desmottes");
 PA_MODULE_DESCRIPTION("When a passthrough stream is requested, route all the other streams to a dummy device");
 PA_MODULE_VERSION(PACKAGE_VERSION);

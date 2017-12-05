@@ -37,8 +37,6 @@
 #include <pulsecore/log.h>
 #include <pulsecore/sink-input.h>
 
-#include "module-position-event-sounds-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Position event sounds between L and R depending on the position on screen of the widget triggering them.");
 PA_MODULE_VERSION(PACKAGE_VERSION);

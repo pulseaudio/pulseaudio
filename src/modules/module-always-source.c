@@ -31,8 +31,6 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 
-#include "module-always-source-symdef.h"
-
 PA_MODULE_AUTHOR("Sebastian Dröge");
 PA_MODULE_DESCRIPTION(_("Always keeps at least one source loaded even if it's a null one"));
 PA_MODULE_VERSION(PACKAGE_VERSION);

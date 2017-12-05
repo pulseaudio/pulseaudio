@@ -37,8 +37,6 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/macro.h>
 
-#include "module-lirc-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("LIRC volume control");
 PA_MODULE_VERSION(PACKAGE_VERSION);

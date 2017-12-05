@@ -32,8 +32,6 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/dbus-shared.h>
 
-#include "module-jackdbus-detect-symdef.h"
-
 PA_MODULE_AUTHOR("David Henningsson");
 PA_MODULE_DESCRIPTION("Adds JACK sink/source ports when JACK is started");
 PA_MODULE_LOAD_ONCE(true);

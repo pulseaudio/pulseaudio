@@ -43,7 +43,6 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/avahi-wrap.h>
 
-#include "module-raop-discover-symdef.h"
 #include "raop-util.h"
 
 PA_MODULE_AUTHOR("Colin Guthrie");

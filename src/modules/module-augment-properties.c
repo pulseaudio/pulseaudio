@@ -34,8 +34,6 @@
 #include <pulsecore/client.h>
 #include <pulsecore/conf-parser.h>
 
-#include "module-augment-properties-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Augment the property sets of streams with additional static information");
 PA_MODULE_VERSION(PACKAGE_VERSION);

@@ -38,8 +38,6 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/start-child.h>
 
-#include "module-gconf-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("GConf Adapter");
 PA_MODULE_VERSION(PACKAGE_VERSION);

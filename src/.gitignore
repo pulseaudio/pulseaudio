@@ -25,7 +25,6 @@ pax11publish
 pulseaudio
 pulseaudio.service
 start-pulseaudio-x11
-*-symdef.h
 *-orc-gen.[ch]
 # tests
 alsa-mixer-path-test

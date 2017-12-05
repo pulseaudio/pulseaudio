@@ -46,8 +46,6 @@
 #include <pulsecore/socket-util.h>
 #include <pulsecore/arpa-inet.h>
 
-#include "module-rtp-send-symdef.h"
-
 #include "rtp.h"
 #include "sdp.h"
 #include "sap.h"

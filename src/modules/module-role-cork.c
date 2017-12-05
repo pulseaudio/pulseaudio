@@ -25,8 +25,6 @@
 #include <pulsecore/core.h>
 #include <stream-interaction.h>
 
-#include "module-role-cork-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Mute & cork streams with certain roles while others exist");
 PA_MODULE_VERSION(PACKAGE_VERSION);

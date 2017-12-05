@@ -25,8 +25,6 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/module.h>
 
-#include "module-bluetooth-discover-symdef.h"
-
 PA_MODULE_AUTHOR("João Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Detect available Bluetooth daemon and load the corresponding discovery module");
 PA_MODULE_VERSION(PACKAGE_VERSION);

@@ -35,8 +35,6 @@
 #include <pulsecore/log.h>
 #include <pulsecore/x11wrap.h>
 
-#include "module-x11-xsmp-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("X11 session management");
 PA_MODULE_VERSION(PACKAGE_VERSION);

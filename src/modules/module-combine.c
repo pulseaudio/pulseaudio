@@ -27,8 +27,6 @@
 #include <pulsecore/module.h>
 #include <pulsecore/log.h>
 
-#include "module-combine-symdef.h"
-
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("Compatibility module (module-combine rename)");
 PA_MODULE_VERSION(PACKAGE_VERSION);

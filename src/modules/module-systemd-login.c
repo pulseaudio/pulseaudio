@@ -38,8 +38,6 @@
 #include <pulsecore/idxset.h>
 #include <pulsecore/modargs.h>
 
-#include "module-systemd-login-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Create a client for each login session of this user");
 PA_MODULE_VERSION(PACKAGE_VERSION);

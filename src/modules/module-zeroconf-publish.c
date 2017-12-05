@@ -54,8 +54,6 @@
 #define HOSTNAME_DBUS_ICON_PROPERTY "IconName"
 #endif
 
-#include "module-zeroconf-publish-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Publisher");
 PA_MODULE_VERSION(PACKAGE_VERSION);

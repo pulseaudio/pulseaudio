@@ -30,8 +30,6 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 
-#include "module-always-sink-symdef.h"
-
 PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION(_("Always keeps at least one sink loaded even if it's a null one"));
 PA_MODULE_VERSION(PACKAGE_VERSION);

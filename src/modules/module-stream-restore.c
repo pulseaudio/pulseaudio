@@ -56,8 +56,6 @@
 #include <pulsecore/protocol-dbus.h>
 #endif
 
-#include "module-stream-restore-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Automatically restore the volume/mute/device state of streams");
 PA_MODULE_VERSION(PACKAGE_VERSION);

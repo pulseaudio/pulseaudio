@@ -39,8 +39,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 
-#include "module-sine-source-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Sine wave generator source");
 PA_MODULE_VERSION(PACKAGE_VERSION);

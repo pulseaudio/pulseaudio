@@ -31,8 +31,6 @@
 #include <pulsecore/protocol-native.h>
 #include <pulsecore/log.h>
 
-#include "module-native-protocol-fd-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Native protocol autospawn helper");
 PA_MODULE_VERSION(PACKAGE_VERSION);

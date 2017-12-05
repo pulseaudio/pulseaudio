@@ -41,8 +41,6 @@
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/proplist-util.h>
 
-#include "module-tunnel-source-new-symdef.h"
-
 PA_MODULE_AUTHOR("Alexander Couzens");
 PA_MODULE_DESCRIPTION("Create a network source which connects via a stream to a remote PulseAudio server");
 PA_MODULE_VERSION(PACKAGE_VERSION);

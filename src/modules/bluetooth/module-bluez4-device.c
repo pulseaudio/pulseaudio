@@ -51,7 +51,6 @@
 
 #include <sbc/sbc.h>
 
-#include "module-bluez4-device-symdef.h"
 #include "a2dp-codecs.h"
 #include "rtp.h"
 #include "bluez4-util.h"

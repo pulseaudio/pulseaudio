@@ -32,7 +32,6 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/dbus-shared.h>
 
-#include "module-bluez4-discover-symdef.h"
 #include "bluez4-util.h"
 
 PA_MODULE_AUTHOR("João Paulo Rechi Vita");

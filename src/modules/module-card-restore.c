@@ -44,8 +44,6 @@
 #include <pulsecore/database.h>
 #include <pulsecore/tagstruct.h>
 
-#include "module-card-restore-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Automatically restore profile of cards");
 PA_MODULE_VERSION(PACKAGE_VERSION);

@@ -62,8 +62,6 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/time-smoother.h>
 
-#include "module-solaris-symdef.h"
-
 PA_MODULE_AUTHOR("Pierre Ossman");
 PA_MODULE_DESCRIPTION("Solaris Sink/Source");
 PA_MODULE_VERSION(PACKAGE_VERSION);

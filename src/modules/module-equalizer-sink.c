@@ -64,8 +64,6 @@
 #include <pulsecore/protocol-dbus.h>
 #include <pulsecore/dbus-util.h>
 
-#include "module-equalizer-sink-symdef.h"
-
 PA_MODULE_AUTHOR("Jason Newton");
 PA_MODULE_DESCRIPTION(_("General Purpose Equalizer"));
 PA_MODULE_VERSION(PACKAGE_VERSION);

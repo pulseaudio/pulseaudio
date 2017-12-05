@@ -41,8 +41,6 @@
 #include "iface-client.h"
 #include "iface-core.h"
 
-#include "module-dbus-protocol-symdef.h"
-
 PA_MODULE_DESCRIPTION("D-Bus interface");
 PA_MODULE_USAGE(
         "access=local|remote|local,remote "

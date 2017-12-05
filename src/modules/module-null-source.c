@@ -41,8 +41,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/thread.h>
 
-#include "module-null-source-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering & Marc-Andre Lureau");
 PA_MODULE_DESCRIPTION("Clocked NULL source");
 PA_MODULE_VERSION(PACKAGE_VERSION);

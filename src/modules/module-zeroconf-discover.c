@@ -42,8 +42,6 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/avahi-wrap.h>
 
-#include "module-zeroconf-discover-symdef.h"
-
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Discovery");
 PA_MODULE_VERSION(PACKAGE_VERSION);

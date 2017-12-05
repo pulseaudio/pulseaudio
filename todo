@@ -1,5 +1,4 @@
 Build System:
-- Remove symdef files and use macros (like most other projects)
 - Use own name mangling scheme instead of ltdl's, which will eliminate the
   need for .la files or extra trickery.
 

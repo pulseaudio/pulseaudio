@@ -41,8 +41,6 @@
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/sample-util.h>
 
-#include "module-jack-sink-symdef.h"
-
 /* General overview:
  *
  * Because JACK has a very inflexible event loop management which

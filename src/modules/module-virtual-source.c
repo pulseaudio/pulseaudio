@@ -39,8 +39,6 @@
 #include <pulsecore/ltdl-helper.h>
 #include <pulsecore/mix.h>
 
-#include "module-virtual-source-symdef.h"
-
 PA_MODULE_AUTHOR("Pierre-Louis Bossart");
 PA_MODULE_DESCRIPTION("Virtual source");
 PA_MODULE_VERSION(PACKAGE_VERSION);

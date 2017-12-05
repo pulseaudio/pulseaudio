@@ -41,8 +41,6 @@
 
 #include <math.h>
 
-#include "module-virtual-surround-sink-symdef.h"
-
 PA_MODULE_AUTHOR("Niels Ole Salscheider");
 PA_MODULE_DESCRIPTION(_("Virtual surround sink"));
 PA_MODULE_VERSION(PACKAGE_VERSION);
