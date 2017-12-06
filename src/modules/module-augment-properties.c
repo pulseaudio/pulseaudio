@@ -137,10 +137,13 @@ static char * find_desktop_file_in_dir(struct rule *r, const char *desktop_file_
     pa_assert(st);
 
     fn = pa_sprintf_malloc("%s" PA_PATH_SEP "%s.desktop", desktop_file_dir, r->process_name);
-    if (stat(fn, st) == 0) {
+    if (stat(fn, st) == 0)
         return fn;
-    } else {
+
+    pa_xfree(fn);
+
 #ifdef DT_DIR
+    {
         DIR *desktopfiles_dir;
         struct dirent *dir;
 
@@ -152,18 +155,20 @@ static char * find_desktop_file_in_dir(struct rule *r, const char *desktop_file_
                     || pa_streq(dir->d_name, ".."))
                     continue;
 
-                pa_xfree(fn);
                 fn = pa_sprintf_malloc("%s" PA_PATH_SEP "%s" PA_PATH_SEP "%s.desktop", desktop_file_dir, dir->d_name, r->process_name);
 
                 if (stat(fn, st) == 0) {
                     closedir(desktopfiles_dir);
                     return fn;
                 }
+
+                pa_xfree(fn);
             }
             closedir(desktopfiles_dir);
         }
-#endif
     }
+#endif
+
     return NULL;
 }
 
