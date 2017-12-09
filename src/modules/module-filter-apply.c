@@ -646,6 +646,11 @@ static pa_hook_result_t sink_input_proplist_cb(pa_core *core, pa_sink_input *i, 
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
+    /* Eliminate nested and redundant hook event that is triggered by
+       pa_sink_input_set_property() in do_move(). */
+    if (pa_proplist_gets(i->proplist, PA_PROP_FILTER_APPLY_MOVING))
+        return PA_HOOK_OK;
+
     return process(u, PA_OBJECT(i), true, true);
 }
 
@@ -722,6 +727,11 @@ static pa_hook_result_t source_output_move_finish_cb(pa_core *core, pa_source_ou
 static pa_hook_result_t source_output_proplist_cb(pa_core *core, pa_source_output *o, struct userdata *u) {
     pa_core_assert_ref(core);
     pa_source_output_assert_ref(o);
+
+    /* Eliminate nested and redundant hook event that is triggered by
+       pa_source_output_set_property() in do_move(). */
+    if (pa_proplist_gets(o->proplist, PA_PROP_FILTER_APPLY_MOVING))
+        return PA_HOOK_OK;
 
     return process(u, PA_OBJECT(o), false, true);
 }
