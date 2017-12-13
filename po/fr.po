@@ -699,7 +699,7 @@ msgstr "Sortie analogique (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2386
 msgid "Line Out"
-msgstr "Entrée ligne"
+msgstr "Sortie ligne"
 
 #: ../src/modules/alsa/alsa-mixer.c:2387
 msgid "Analog Mono Output"
