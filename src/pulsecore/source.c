@@ -761,6 +761,10 @@ void pa_source_set_mixer_dirty(pa_source *s, bool is_dirty) {
 
 /* Called from main context */
 int pa_source_suspend(pa_source *s, bool suspend, pa_suspend_cause_t cause) {
+    pa_suspend_cause_t old_cause;
+    char old_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
+    char new_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
+
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
@@ -769,10 +773,17 @@ int pa_source_suspend(pa_source *s, bool suspend, pa_suspend_cause_t cause) {
     if (s->monitor_of && cause != PA_SUSPEND_PASSTHROUGH)
         return -PA_ERR_NOTSUPPORTED;
 
+    old_cause = s->suspend_cause;
+
     if (suspend)
         s->suspend_cause |= cause;
     else
         s->suspend_cause &= ~cause;
+
+    if (s->suspend_cause != old_cause) {
+        pa_log_debug("%s: suspend_cause: %s -> %s", s->name, pa_suspend_cause_to_string(old_cause, old_cause_buf),
+                     pa_suspend_cause_to_string(s->suspend_cause, new_cause_buf));
+    }
 
     if (!(s->suspend_cause & PA_SUSPEND_SESSION) && (pa_atomic_load(&s->mixer_dirty) != 0)) {
         /* This might look racy but isn't: If somebody sets mixer_dirty exactly here,
@@ -797,8 +808,6 @@ int pa_source_suspend(pa_source *s, bool suspend, pa_suspend_cause_t cause) {
 
     if ((pa_source_get_state(s) == PA_SOURCE_SUSPENDED) == !!s->suspend_cause)
         return 0;
-
-    pa_log_debug("Suspend cause of source %s is 0x%04x, %s", s->name, s->suspend_cause, s->suspend_cause ? "suspending" : "resuming");
 
     if (s->suspend_cause)
         return source_set_state(s, PA_SOURCE_SUSPENDED);

@@ -502,3 +502,44 @@ void pa_core_rttime_restart(pa_core *c, pa_time_event *e, pa_usec_t usec) {
 
     c->mainloop->time_restart(e, pa_timeval_rtstore(&tv, usec, true));
 }
+
+/* Helper macro to reduce repetition in pa_suspend_cause_to_string().
+ * Parameters:
+ *   char *p: the current position in the write buffer
+ *   bool first: is cause_to_check the first cause to be written?
+ *   pa_suspend_cause_t cause_bitfield: the causes given to pa_suspend_cause_to_string()
+ *   pa_suspend_cause_t cause_to_check: the cause whose presence in cause_bitfield is to be checked
+ */
+#define CHECK_CAUSE(p, first, cause_bitfield, cause_to_check) \
+    if (cause_bitfield & PA_SUSPEND_##cause_to_check) {       \
+        size_t len = sizeof(#cause_to_check) - 1;             \
+        if (!first) {                                         \
+            *p = '|';                                         \
+            p++;                                              \
+        }                                                     \
+        first = false;                                        \
+        memcpy(p, #cause_to_check, len);                      \
+        p += len;                                             \
+    }
+
+const char *pa_suspend_cause_to_string(pa_suspend_cause_t cause_bitfield, char buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE]) {
+    char *p = buf;
+    bool first = true;
+
+    CHECK_CAUSE(p, first, cause_bitfield, USER);
+    CHECK_CAUSE(p, first, cause_bitfield, APPLICATION);
+    CHECK_CAUSE(p, first, cause_bitfield, IDLE);
+    CHECK_CAUSE(p, first, cause_bitfield, SESSION);
+    CHECK_CAUSE(p, first, cause_bitfield, PASSTHROUGH);
+    CHECK_CAUSE(p, first, cause_bitfield, INTERNAL);
+    CHECK_CAUSE(p, first, cause_bitfield, UNAVAILABLE);
+
+    if (p == buf) {
+        memcpy(p, "(none)", 6);
+        p += 6;
+    }
+
+    *p = 0;
+
+    return buf;
+}

@@ -26,7 +26,10 @@
 #include <pulsecore/cpu.h>
 
 /* This is a bitmask that encodes the cause why a sink/source is
- * suspended. */
+ * suspended.
+ *
+ * When adding new causes, remember to update pa_suspend_cause_to_string() and
+ * PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE! */
 typedef enum pa_suspend_cause {
     PA_SUSPEND_USER = 1,         /* Exposed to the user via some protocol */
     PA_SUSPEND_APPLICATION = 2,  /* Used by the device reservation logic */
@@ -265,5 +268,12 @@ void pa_core_maybe_vacuum(pa_core *c);
 /* wrapper for c->mainloop->time_*() RT time events */
 pa_time_event* pa_core_rttime_new(pa_core *c, pa_usec_t usec, pa_time_event_cb_t cb, void *userdata);
 void pa_core_rttime_restart(pa_core *c, pa_time_event *e, pa_usec_t usec);
+
+static const size_t PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE =
+    sizeof("USER|APPLICATION|IDLE|SESSION|PASSTHROUGH|INTERNAL|UNAVAILABLE");
+
+/* Converts the given suspend cause to a string. The string is written to the
+ * provided buffer. The same buffer is the return value of this function. */
+const char *pa_suspend_cause_to_string(pa_suspend_cause_t cause, char buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE]);
 
 #endif
