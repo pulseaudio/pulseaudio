@@ -364,6 +364,7 @@ int pa_alsa_set_mixer_rtpoll(struct pa_alsa_mixer_pdata *pd, snd_mixer_t *mixer,
 struct pa_alsa_port_data {
     pa_alsa_path *path;
     pa_alsa_setting *setting;
+    bool suspend_when_unavailable;
 };
 
 void pa_alsa_add_ports(void *sink_or_source_new_data, pa_alsa_path_set *ps, pa_card *card);

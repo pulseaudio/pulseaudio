@@ -426,6 +426,22 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
         if (tp->avail == PA_AVAILABLE_NO)
            pa_device_port_set_available(tp->port, tp->avail);
 
+    for (tp = tports; tp->port; tp++) {
+        pa_alsa_port_data *data;
+        pa_sink *sink;
+        uint32_t idx;
+
+        data = PA_DEVICE_PORT_DATA(tp->port);
+
+        if (!data->suspend_when_unavailable)
+            continue;
+
+        PA_IDXSET_FOREACH(sink, u->core->sinks, idx) {
+            if (sink->active_port == tp->port)
+                pa_sink_suspend(sink, tp->avail == PA_AVAILABLE_NO, PA_SUSPEND_UNAVAILABLE);
+        }
+    }
+
     /* Update profile availabilities. The logic could be improved; for now we
      * only set obviously unavailable profiles (those that contain only
      * unavailable ports) to PA_AVAILABLE_NO and all others to
@@ -834,6 +850,24 @@ int pa__init(pa_module *m) {
         pa_log("Invalid properties");
         pa_card_new_data_done(&data);
         goto fail;
+    }
+
+    /* The Intel HDMI LPE driver needs some special handling. When the HDMI
+     * cable is not plugged in, trying to play audio doesn't work. Any written
+     * audio is immediately discarded and an underrun is reported, and that
+     * results in an infinite loop of "fill buffer, handle underrun". To work
+     * around this issue, the suspend_when_unavailable flag is used to stop
+     * playback when the HDMI cable is unplugged. */
+    if (pa_safe_streq(pa_proplist_gets(data.proplist, "alsa.driver_name"), "snd_hdmi_lpe_audio")) {
+        pa_device_port *port;
+        void *state;
+
+        PA_HASHMAP_FOREACH(port, data.ports, state) {
+            pa_alsa_port_data *port_data;
+
+            port_data = PA_DEVICE_PORT_DATA(port);
+            port_data->suspend_when_unavailable = true;
+        }
     }
 
     u->card = pa_card_new(m->core, &data);

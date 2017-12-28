@@ -34,6 +34,7 @@ typedef enum pa_suspend_cause {
     PA_SUSPEND_SESSION = 8,      /* Used by module-hal for mark inactive sessions */
     PA_SUSPEND_PASSTHROUGH = 16, /* Used to suspend monitor sources when the sink is in passthrough mode */
     PA_SUSPEND_INTERNAL = 32,    /* This is used for short period server-internal suspends, such as for sample rate updates */
+    PA_SUSPEND_UNAVAILABLE = 64, /* Used by device implementations that have to suspend when the device is unavailable */
     PA_SUSPEND_ALL = 0xFFFF      /* Magic cause that can be used to resume forcibly */
 } pa_suspend_cause_t;
 

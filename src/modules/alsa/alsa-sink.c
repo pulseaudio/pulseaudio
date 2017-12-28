@@ -1527,6 +1527,11 @@ static int sink_set_port_cb(pa_sink *s, pa_device_port *p) {
             s->set_volume(s);
     }
 
+    if (data->suspend_when_unavailable && p->available == PA_AVAILABLE_NO)
+        pa_sink_suspend(s, true, PA_SUSPEND_UNAVAILABLE);
+    else
+        pa_sink_suspend(s, false, PA_SUSPEND_UNAVAILABLE);
+
     return 0;
 }
 
@@ -2459,6 +2464,23 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     if (profile_set)
         pa_alsa_profile_set_free(profile_set);
+
+    /* Suspend if necessary. FIXME: It would be better to start suspended, but
+     * that would require some core changes. It's possible to set
+     * pa_sink_new_data.suspend_cause, but that has to be done before the
+     * pa_sink_new() call, and we know if we need to suspend only after the
+     * pa_sink_new() call when the initial port has been chosen. Calling
+     * pa_sink_suspend() between pa_sink_new() and pa_sink_put() would
+     * otherwise work, but currently pa_sink_suspend() will crash if
+     * pa_sink_put() hasn't been called. */
+    if (u->sink->active_port) {
+        pa_alsa_port_data *port_data;
+
+        port_data = PA_DEVICE_PORT_DATA(u->sink->active_port);
+
+        if (port_data->suspend_when_unavailable && u->sink->active_port->available == PA_AVAILABLE_NO)
+            pa_sink_suspend(u->sink, true, PA_SUSPEND_UNAVAILABLE);
+    }
 
     return u->sink;
 
