@@ -228,17 +228,17 @@ static struct port_pointers find_port_pointers(pa_device_port *port) {
 }
 
 /* Switches to a port, switching profiles if necessary or preferred */
-static bool switch_to_port(pa_device_port *port) {
+static void switch_to_port(pa_device_port *port) {
     struct port_pointers pp = find_port_pointers(port);
 
     if (pp.is_port_active)
-        return true; /* Already selected */
+        return; /* Already selected */
 
     pa_log_debug("Trying to switch to port %s", port->name);
     if (!pp.is_preferred_profile_active) {
         if (try_to_switch_profile(port) < 0) {
             if (!pp.is_possible_profile_active)
-                return false;
+                return;
         }
         else
             /* Now that profile has changed, our sink and source pointers must be updated */
@@ -249,17 +249,16 @@ static bool switch_to_port(pa_device_port *port) {
         pa_source_set_port(pp.source, port->name, false);
     if (pp.sink)
         pa_sink_set_port(pp.sink, port->name, false);
-    return true;
 }
 
 /* Switches away from a port, switching profiles if necessary or preferred */
-static bool switch_from_port(pa_device_port *port) {
+static void switch_from_port(pa_device_port *port) {
     struct port_pointers pp = find_port_pointers(port);
     pa_device_port *p, *best_port = NULL;
     void *state;
 
     if (!pp.is_port_active)
-        return true; /* Already deselected */
+        return; /* Already deselected */
 
     /* Try to find a good enough port to switch to */
     PA_HASHMAP_FOREACH(p, port->card->ports, state)
@@ -270,9 +269,7 @@ static bool switch_from_port(pa_device_port *port) {
     pa_log_debug("Trying to switch away from port %s, found %s", port->name, best_port ? best_port->name : "no better option");
 
     if (best_port)
-        return switch_to_port(best_port);
-
-    return false;
+        switch_to_port(best_port);
 }
 
 
