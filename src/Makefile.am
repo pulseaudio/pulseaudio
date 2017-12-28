@@ -1931,7 +1931,7 @@ module_card_restore_la_CFLAGS = $(AM_CFLAGS) -DPA_MODULE_NAME=module_card_restor
 module_default_device_restore_la_SOURCES = modules/module-default-device-restore.c
 module_default_device_restore_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_default_device_restore_la_LIBADD = $(MODULE_LIBADD)
-module_default_device_restore_la_CFLAGS = $(AM_CFLAGS) -DPA_MODULE_NAME=module_device_restore
+module_default_device_restore_la_CFLAGS = $(AM_CFLAGS) -DPA_MODULE_NAME=module_default_device_restore
 
 # Always Sink module
 module_always_sink_la_SOURCES = modules/module-always-sink.c
