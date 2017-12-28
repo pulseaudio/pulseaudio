@@ -407,6 +407,8 @@ unsigned pa_source_check_suspend(pa_source *s, pa_source_output *ignore);
 
 #define pa_source_get_state(s) ((pa_source_state_t) (s)->state)
 
+const char *pa_source_state_to_string(pa_source_state_t state);
+
 /* Moves all inputs away, and stores them in pa_queue */
 pa_queue *pa_source_move_all_start(pa_source *s, pa_queue *q);
 void pa_source_move_all_finish(pa_source *s, pa_queue *q, bool save);

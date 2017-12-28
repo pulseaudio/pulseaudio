@@ -381,6 +381,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
             return ret;
         }
 
+    pa_log_debug("%s: state: %s -> %s", s->name, pa_source_state_to_string(s->state), pa_source_state_to_string(state));
     s->state = state;
 
     if (state != PA_SOURCE_UNLINKED) { /* if we enter UNLINKED state pa_source_unlink() will fire the appropriate events */
@@ -2012,6 +2013,19 @@ unsigned pa_source_check_suspend(pa_source *s, pa_source_output *ignore) {
     }
 
     return ret;
+}
+
+const char *pa_source_state_to_string(pa_source_state_t state) {
+    switch (state) {
+        case PA_SOURCE_INIT:          return "INIT";
+        case PA_SOURCE_IDLE:          return "IDLE";
+        case PA_SOURCE_RUNNING:       return "RUNNING";
+        case PA_SOURCE_SUSPENDED:     return "SUSPENDED";
+        case PA_SOURCE_UNLINKED:      return "UNLINKED";
+        case PA_SOURCE_INVALID_STATE: return "INVALID_STATE";
+    }
+
+    pa_assert_not_reached();
 }
 
 /* Called from the IO thread */

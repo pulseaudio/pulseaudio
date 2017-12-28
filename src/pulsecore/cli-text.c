@@ -196,40 +196,6 @@ char *pa_card_list_to_string(pa_core *c) {
     return pa_strbuf_to_string_free(s);
 }
 
-static const char *sink_state_to_string(pa_sink_state_t state) {
-    switch (state) {
-        case PA_SINK_INIT:
-            return "INIT";
-        case PA_SINK_RUNNING:
-            return "RUNNING";
-        case PA_SINK_SUSPENDED:
-            return "SUSPENDED";
-        case PA_SINK_IDLE:
-            return "IDLE";
-        case PA_SINK_UNLINKED:
-            return "UNLINKED";
-        default:
-            return "INVALID";
-    }
-}
-
-static const char *source_state_to_string(pa_source_state_t state) {
-    switch (state) {
-        case PA_SOURCE_INIT:
-            return "INIT";
-        case PA_SOURCE_RUNNING:
-            return "RUNNING";
-        case PA_SOURCE_SUSPENDED:
-            return "SUSPENDED";
-        case PA_SOURCE_IDLE:
-            return "IDLE";
-        case PA_SOURCE_UNLINKED:
-            return "UNLINKED";
-        default:
-            return "INVALID";
-    }
-}
-
 char *pa_sink_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_sink *sink;
@@ -283,7 +249,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->flags & PA_SINK_LATENCY ? "LATENCY " : "",
             sink->flags & PA_SINK_FLAT_VOLUME ? "FLAT_VOLUME " : "",
             sink->flags & PA_SINK_DYNAMIC_LATENCY ? "DYNAMIC_LATENCY" : "",
-            sink_state_to_string(pa_sink_get_state(sink)),
+            pa_sink_state_to_string(pa_sink_get_state(sink)),
             sink->suspend_cause & PA_SUSPEND_USER ? "USER " : "",
             sink->suspend_cause & PA_SUSPEND_APPLICATION ? "APPLICATION " : "",
             sink->suspend_cause & PA_SUSPEND_IDLE ? "IDLE " : "",
@@ -396,7 +362,7 @@ char *pa_source_list_to_string(pa_core *c) {
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
             source->flags & PA_SOURCE_LATENCY ? "LATENCY " : "",
             source->flags & PA_SOURCE_DYNAMIC_LATENCY ? "DYNAMIC_LATENCY" : "",
-            source_state_to_string(pa_source_get_state(source)),
+            pa_source_state_to_string(pa_source_get_state(source)),
             source->suspend_cause & PA_SUSPEND_USER ? "USER " : "",
             source->suspend_cause & PA_SUSPEND_APPLICATION ? "APPLICATION " : "",
             source->suspend_cause & PA_SUSPEND_IDLE ? "IDLE " : "",

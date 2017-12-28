@@ -476,6 +476,8 @@ unsigned pa_sink_check_suspend(pa_sink *s, pa_sink_input *ignore_input, pa_sourc
 
 #define pa_sink_get_state(s) ((s)->state)
 
+const char *pa_sink_state_to_string(pa_sink_state_t state);
+
 /* Moves all inputs away, and stores them in pa_queue */
 pa_queue *pa_sink_move_all_start(pa_sink *s, pa_queue *q);
 void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, bool save);

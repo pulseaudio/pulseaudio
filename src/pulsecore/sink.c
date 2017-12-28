@@ -427,6 +427,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
             return ret;
         }
 
+    pa_log_debug("%s: state: %s -> %s", s->name, pa_sink_state_to_string(s->state), pa_sink_state_to_string(state));
     s->state = state;
 
     if (state != PA_SINK_UNLINKED) { /* if we enter UNLINKED state pa_sink_unlink() will fire the appropriate events */
@@ -2460,6 +2461,19 @@ unsigned pa_sink_check_suspend(pa_sink *s, pa_sink_input *ignore_input, pa_sourc
         ret += pa_source_check_suspend(s->monitor_source, ignore_output);
 
     return ret;
+}
+
+const char *pa_sink_state_to_string(pa_sink_state_t state) {
+    switch (state) {
+        case PA_SINK_INIT:          return "INIT";
+        case PA_SINK_IDLE:          return "IDLE";
+        case PA_SINK_RUNNING:       return "RUNNING";
+        case PA_SINK_SUSPENDED:     return "SUSPENDED";
+        case PA_SINK_UNLINKED:      return "UNLINKED";
+        case PA_SINK_INVALID_STATE: return "INVALID_STATE";
+    }
+
+    pa_assert_not_reached();
 }
 
 /* Called from the IO thread */
