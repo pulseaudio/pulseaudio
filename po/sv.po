@@ -19,16 +19,16 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://bugs.freedesktop.org/enter_bug.cgi?"
 "product=PulseAudio&keywords=I18N+L10N&component=misc\n"
-"POT-Creation-Date: 2017-03-19 15:27+0000\n"
-"PO-Revision-Date: 2017-03-19 23:14+0100\n"
-"Last-Translator: Josef Andersson <l10nl18nsweja@gmail.com>\n"
+"POT-Creation-Date: 2017-12-05 15:26+0000\n"
+"PO-Revision-Date: 2017-12-05 20:20+0100\n"
+"Last-Translator: Josef Andersson <josef.andersson@fripost.org>\n"
 "Language-Team: Svenska <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.8.11\n"
+"X-Generator: Poedit 2.0.4\n"
 
 #: ../src/daemon/cmdline.c:113
 #, c-format
@@ -398,55 +398,55 @@ msgstr "Misslyckades med att allokera en ny dl loader."
 msgid "Failed to add bind-now-loader."
 msgstr "Misslyckades med att lägga till bind-now-loader."
 
-#: ../src/daemon/main.c:160
+#: ../src/daemon/main.c:162
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "Misslyckades med att hitta användaren ”%s”."
 
-#: ../src/daemon/main.c:165
+#: ../src/daemon/main.c:167
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "Misslyckades med att hitta gruppen ”%s”."
 
-#: ../src/daemon/main.c:174
+#: ../src/daemon/main.c:176
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "GID för användare ”%s” och för grupp ”%s” stämmer inte överens."
 
-#: ../src/daemon/main.c:179
+#: ../src/daemon/main.c:181
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "Hemkatalogen för användaren ”%s” är inte ”%s”, ignorerar."
 
-#: ../src/daemon/main.c:182 ../src/daemon/main.c:187
+#: ../src/daemon/main.c:184 ../src/daemon/main.c:189
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Misslyckades med att skapa ”%s”: %s"
 
-#: ../src/daemon/main.c:194
+#: ../src/daemon/main.c:196
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "Misslyckades med att ändra grupplista: %s"
 
-#: ../src/daemon/main.c:210
+#: ../src/daemon/main.c:212
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "Misslyckades med att ändra GID: %s"
 
-#: ../src/daemon/main.c:226
+#: ../src/daemon/main.c:228
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "Misslyckades med att ändra UID: %s"
 
-#: ../src/daemon/main.c:255
+#: ../src/daemon/main.c:257
 msgid "System wide mode unsupported on this platform."
 msgstr "Systemomfattande läge stöds inte på denna plattform."
 
-#: ../src/daemon/main.c:484
+#: ../src/daemon/main.c:486
 msgid "Failed to parse command line."
 msgstr "Misslyckades med att tolka kommandoraden."
 
-#: ../src/daemon/main.c:523
+#: ../src/daemon/main.c:525
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
@@ -454,12 +454,12 @@ msgstr ""
 "Systemläge vägrades för icke-rootanvändare. Startar bara D-Bus-"
 "serveruppslagningstjänsten."
 
-#: ../src/daemon/main.c:622
+#: ../src/daemon/main.c:624
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Misslyckades med att döda demonen: %s"
 
-#: ../src/daemon/main.c:651
+#: ../src/daemon/main.c:653
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -467,75 +467,75 @@ msgstr ""
 "Detta program är inte tänkt att köras som root (såvida inte --system har "
 "angivits)."
 
-#: ../src/daemon/main.c:654
+#: ../src/daemon/main.c:656
 msgid "Root privileges required."
 msgstr "Root-behörighet krävs."
 
-#: ../src/daemon/main.c:661
+#: ../src/daemon/main.c:663
 msgid "--start not supported for system instances."
 msgstr "--start stöds inte för systeminstanser."
 
-#: ../src/daemon/main.c:701
+#: ../src/daemon/main.c:703
 #, c-format
 msgid "User-configured server at %s, refusing to start/autospawn."
 msgstr "Användaranpassad server på %s, vägrar starta/autostarta."
 
-#: ../src/daemon/main.c:707
+#: ../src/daemon/main.c:709
 #, c-format
 msgid ""
 "User-configured server at %s, which appears to be local. Probing deeper."
 msgstr ""
 "Användaranpassad server på %s, som ser ut att vara lokal. Undersöker djupare."
 
-#: ../src/daemon/main.c:712
+#: ../src/daemon/main.c:714
 msgid "Running in system mode, but --disallow-exit not set."
 msgstr "Kör i systemläge, men --disallow-exit är inte angett."
 
-#: ../src/daemon/main.c:715
+#: ../src/daemon/main.c:717
 msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr "Kör i systemläge, men --disallow-module-loading är inte angett."
 
-#: ../src/daemon/main.c:718
+#: ../src/daemon/main.c:720
 msgid "Running in system mode, forcibly disabling SHM mode."
 msgstr "Kör i systemläge, tvingar fram inaktivering av SHM-läge."
 
-#: ../src/daemon/main.c:723
+#: ../src/daemon/main.c:725
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr "Kör i systemläge, tvingar fram avslut vid inaktivitet."
 
-#: ../src/daemon/main.c:756
+#: ../src/daemon/main.c:758
 msgid "Failed to acquire stdio."
 msgstr "Misslyckades med att få stdio."
 
-#: ../src/daemon/main.c:762 ../src/daemon/main.c:833
+#: ../src/daemon/main.c:764 ../src/daemon/main.c:835
 #, c-format
 msgid "pipe() failed: %s"
 msgstr "pipe() misslyckades: %s"
 
-#: ../src/daemon/main.c:767 ../src/daemon/main.c:838
+#: ../src/daemon/main.c:769 ../src/daemon/main.c:840
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() misslyckades: %s"
 
-#: ../src/daemon/main.c:782 ../src/daemon/main.c:853 ../src/utils/pacat.c:562
+#: ../src/daemon/main.c:784 ../src/daemon/main.c:855 ../src/utils/pacat.c:562
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() misslyckades: %s"
 
-#: ../src/daemon/main.c:788
+#: ../src/daemon/main.c:790
 msgid "Daemon startup failed."
 msgstr "Demonstart misslyckades."
 
-#: ../src/daemon/main.c:821
+#: ../src/daemon/main.c:823
 #, c-format
 msgid "setsid() failed: %s"
 msgstr "setsid() misslyckades: %s"
 
-#: ../src/daemon/main.c:948
+#: ../src/daemon/main.c:950
 msgid "Failed to get machine ID"
 msgstr "Misslyckades med att hämta maskin-ID"
 
-#: ../src/daemon/main.c:974
+#: ../src/daemon/main.c:976
 msgid ""
 "OK, so you are running PA in system mode. Please make sure that you actually "
 "do want to do that.\n"
@@ -549,19 +549,19 @@ msgstr ""
 "WhatIsWrongWithSystemWide/ för en förklaring till varför systemläge "
 "vanligtvis är en dålig idé."
 
-#: ../src/daemon/main.c:990
+#: ../src/daemon/main.c:992
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() misslyckades."
 
-#: ../src/daemon/main.c:1022
+#: ../src/daemon/main.c:1024
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() misslyckades."
 
-#: ../src/daemon/main.c:1092
+#: ../src/daemon/main.c:1094
 msgid "Failed to initialize daemon."
 msgstr "Misslyckades med att initiera demon."
 
-#: ../src/daemon/main.c:1097
+#: ../src/daemon/main.c:1099
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Demonen startade utan inlästa moduler, fungerar inte."
 
@@ -594,8 +594,8 @@ msgid "Line In"
 msgstr "Linje in"
 
 #: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
-#: ../src/modules/bluetooth/module-bluez4-device.c:2103
-#: ../src/modules/bluetooth/module-bluez5-device.c:1727
+#: ../src/modules/bluetooth/module-bluez4-device.c:2104
+#: ../src/modules/bluetooth/module-bluez5-device.c:1783
 msgid "Microphone"
 msgstr "Mikrofon"
 
@@ -656,8 +656,8 @@ msgid "No Bass Boost"
 msgstr "Ingen basökning"
 
 #: ../src/modules/alsa/alsa-mixer.c:2398
-#: ../src/modules/bluetooth/module-bluez4-device.c:2108
-#: ../src/modules/bluetooth/module-bluez5-device.c:1734
+#: ../src/modules/bluetooth/module-bluez4-device.c:2109
+#: ../src/modules/bluetooth/module-bluez5-device.c:1790
 msgid "Speaker"
 msgstr "Högtalare"
 
@@ -682,46 +682,50 @@ msgid "Analog Output"
 msgstr "Analog utgång"
 
 #: ../src/modules/alsa/alsa-mixer.c:2472
+msgid "Headphones Mono Output"
+msgstr "Monoutgång för hörlurar"
+
+#: ../src/modules/alsa/alsa-mixer.c:2473
 msgid "LFE on Separate Mono Output"
 msgstr "LFE på separat monoutgång"
 
-#: ../src/modules/alsa/alsa-mixer.c:2473
+#: ../src/modules/alsa/alsa-mixer.c:2474
 msgid "Line Out"
 msgstr "Linje ut"
 
-#: ../src/modules/alsa/alsa-mixer.c:2474
+#: ../src/modules/alsa/alsa-mixer.c:2475
 msgid "Analog Mono Output"
 msgstr "Analog monoutgång"
 
-#: ../src/modules/alsa/alsa-mixer.c:2475
+#: ../src/modules/alsa/alsa-mixer.c:2476
 msgid "Speakers"
 msgstr "Högtalare"
 
-#: ../src/modules/alsa/alsa-mixer.c:2476
+#: ../src/modules/alsa/alsa-mixer.c:2477
 msgid "HDMI / DisplayPort"
 msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2477
+#: ../src/modules/alsa/alsa-mixer.c:2478
 msgid "Digital Output (S/PDIF)"
 msgstr "Digital utgång (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2478
+#: ../src/modules/alsa/alsa-mixer.c:2479
 msgid "Digital Input (S/PDIF)"
 msgstr "Digital ingång (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2479
+#: ../src/modules/alsa/alsa-mixer.c:2480
 msgid "Digital Passthrough (S/PDIF)"
 msgstr "Digital genomströmning (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2480
+#: ../src/modules/alsa/alsa-mixer.c:2481
 msgid "Multichannel Input"
 msgstr "Multikanalingång"
 
-#: ../src/modules/alsa/alsa-mixer.c:2481
+#: ../src/modules/alsa/alsa-mixer.c:2482
 msgid "Multichannel Output"
 msgstr "Multikanalutgång"
 
-#: ../src/modules/alsa/alsa-mixer.c:3990
+#: ../src/modules/alsa/alsa-mixer.c:3991
 msgid "Analog Mono"
 msgstr "Analog mono"
 
@@ -730,116 +734,124 @@ msgstr "Analog mono"
 #. * here would lead to the source name to become "Analog Stereo Input
 #. * Input". The same logic applies to analog-stereo-output,
 #. * multichannel-input and multichannel-output.
-#: ../src/modules/alsa/alsa-mixer.c:3991 ../src/modules/alsa/alsa-mixer.c:3997
-#: ../src/modules/alsa/alsa-mixer.c:3998
+#: ../src/modules/alsa/alsa-mixer.c:3992 ../src/modules/alsa/alsa-mixer.c:3999
+#: ../src/modules/alsa/alsa-mixer.c:4000
 msgid "Analog Stereo"
 msgstr "Analog stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:3999 ../src/modules/alsa/alsa-mixer.c:4000
+#: ../src/modules/alsa/alsa-mixer.c:3993 ../src/pulse/channelmap.c:775
+msgid "Stereo"
+msgstr "Stereo"
+
+#: ../src/modules/alsa/alsa-mixer.c:4001 ../src/modules/alsa/alsa-mixer.c:4002
 msgid "Multichannel"
 msgstr "Multikanal"
 
-#: ../src/modules/alsa/alsa-mixer.c:4001
+#: ../src/modules/alsa/alsa-mixer.c:4003
 msgid "Analog Surround 2.1"
 msgstr "Analog surround 2.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4002
+#: ../src/modules/alsa/alsa-mixer.c:4004
 msgid "Analog Surround 3.0"
 msgstr "Analog surround 3.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4003
+#: ../src/modules/alsa/alsa-mixer.c:4005
 msgid "Analog Surround 3.1"
 msgstr "Analog surround 3.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4004
+#: ../src/modules/alsa/alsa-mixer.c:4006
 msgid "Analog Surround 4.0"
 msgstr "Analog surround 4.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4005
+#: ../src/modules/alsa/alsa-mixer.c:4007
 msgid "Analog Surround 4.1"
 msgstr "Analog surround 4.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4006
+#: ../src/modules/alsa/alsa-mixer.c:4008
 msgid "Analog Surround 5.0"
 msgstr "Analog surround 5.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4007
+#: ../src/modules/alsa/alsa-mixer.c:4009
 msgid "Analog Surround 5.1"
 msgstr "Analog surround 5.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4008
+#: ../src/modules/alsa/alsa-mixer.c:4010
 msgid "Analog Surround 6.0"
 msgstr "Analog surround 6.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4009
+#: ../src/modules/alsa/alsa-mixer.c:4011
 msgid "Analog Surround 6.1"
 msgstr "Analog surround 6.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4010
+#: ../src/modules/alsa/alsa-mixer.c:4012
 msgid "Analog Surround 7.0"
 msgstr "Analog surround 7.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4011
+#: ../src/modules/alsa/alsa-mixer.c:4013
 msgid "Analog Surround 7.1"
 msgstr "Analog surround 7.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4012
+#: ../src/modules/alsa/alsa-mixer.c:4014
 msgid "Digital Stereo (IEC958)"
 msgstr "Digital stereo (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4013
+#: ../src/modules/alsa/alsa-mixer.c:4015
 msgid "Digital Passthrough  (IEC958)"
 msgstr "Digital genomströmning (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4014
+#: ../src/modules/alsa/alsa-mixer.c:4016
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Digital surround 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4015
+#: ../src/modules/alsa/alsa-mixer.c:4017
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Digital surround 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4016
+#: ../src/modules/alsa/alsa-mixer.c:4018
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr "Digital surround 5.1 (IEC958/DTS)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4017
+#: ../src/modules/alsa/alsa-mixer.c:4019
 msgid "Digital Stereo (HDMI)"
 msgstr "Digital stereo (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4018
+#: ../src/modules/alsa/alsa-mixer.c:4020
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr "Digital surround 5.1 (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4151
+#: ../src/modules/alsa/alsa-mixer.c:4153
 msgid "Analog Mono Duplex"
 msgstr "Analog mono duplex"
 
-#: ../src/modules/alsa/alsa-mixer.c:4152
+#: ../src/modules/alsa/alsa-mixer.c:4154
 msgid "Analog Stereo Duplex"
 msgstr "Analog stereo duplex"
 
-#: ../src/modules/alsa/alsa-mixer.c:4153
+#: ../src/modules/alsa/alsa-mixer.c:4155
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Digital stereo duplex (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4154
+#: ../src/modules/alsa/alsa-mixer.c:4156
 msgid "Multichannel Duplex"
 msgstr "Multikanalduplex"
 
-#: ../src/modules/alsa/alsa-mixer.c:4155
+#: ../src/modules/alsa/alsa-mixer.c:4157
+msgid "Stereo Duplex"
+msgstr "Stereo duplex"
+
+#: ../src/modules/alsa/alsa-mixer.c:4158
 #: ../src/modules/alsa/module-alsa-card.c:186
-#: ../src/modules/bluetooth/module-bluez4-device.c:2323
-#: ../src/modules/bluetooth/module-bluez5-device.c:1982
+#: ../src/modules/bluetooth/module-bluez4-device.c:2324
+#: ../src/modules/bluetooth/module-bluez5-device.c:2038
 msgid "Off"
 msgstr "Av"
 
-#: ../src/modules/alsa/alsa-mixer.c:4254
+#: ../src/modules/alsa/alsa-mixer.c:4257
 #, c-format
 msgid "%s Output"
 msgstr "%s utgång"
 
-#: ../src/modules/alsa/alsa-mixer.c:4262
+#: ../src/modules/alsa/alsa-mixer.c:4265
 #, c-format
 msgid "%s Input"
 msgstr "%s ingång"
@@ -964,85 +976,85 @@ msgstr ""
 "Förmodligen är detta ett fel i ALSA-drivrutinen ”%s”. Vänligen rapportera "
 "problemet till ALSA-utvecklarna."
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2093
-#: ../src/modules/bluetooth/module-bluez5-device.c:1717
+#: ../src/modules/bluetooth/module-bluez4-device.c:2094
+#: ../src/modules/bluetooth/module-bluez5-device.c:1773
 msgid "Headset"
 msgstr "Headset"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2098
-#: ../src/modules/bluetooth/module-bluez5-device.c:1722
+#: ../src/modules/bluetooth/module-bluez4-device.c:2099
+#: ../src/modules/bluetooth/module-bluez5-device.c:1778
 msgid "Handsfree"
 msgstr "Handsfree"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2113
-#: ../src/modules/bluetooth/module-bluez5-device.c:1740
+#: ../src/modules/bluetooth/module-bluez4-device.c:2114
+#: ../src/modules/bluetooth/module-bluez5-device.c:1796
 msgid "Headphone"
 msgstr "Hörlurar"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2118
-#: ../src/modules/bluetooth/module-bluez5-device.c:1745
+#: ../src/modules/bluetooth/module-bluez4-device.c:2119
+#: ../src/modules/bluetooth/module-bluez5-device.c:1801
 msgid "Portable"
 msgstr "Bärbar"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2123
-#: ../src/modules/bluetooth/module-bluez5-device.c:1750
+#: ../src/modules/bluetooth/module-bluez4-device.c:2124
+#: ../src/modules/bluetooth/module-bluez5-device.c:1806
 msgid "Car"
 msgstr "Bil"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2128
-#: ../src/modules/bluetooth/module-bluez5-device.c:1755
+#: ../src/modules/bluetooth/module-bluez4-device.c:2129
+#: ../src/modules/bluetooth/module-bluez5-device.c:1811
 msgid "HiFi"
 msgstr "HiFi"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2133
-#: ../src/modules/bluetooth/module-bluez5-device.c:1760
+#: ../src/modules/bluetooth/module-bluez4-device.c:2134
+#: ../src/modules/bluetooth/module-bluez5-device.c:1816
 msgid "Phone"
 msgstr "Telefon"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2141
-#: ../src/modules/bluetooth/module-bluez5-device.c:1712
-#: ../src/modules/bluetooth/module-bluez5-device.c:1728
-#: ../src/modules/bluetooth/module-bluez5-device.c:1766
+#: ../src/modules/bluetooth/module-bluez4-device.c:2142
+#: ../src/modules/bluetooth/module-bluez5-device.c:1768
+#: ../src/modules/bluetooth/module-bluez5-device.c:1784
+#: ../src/modules/bluetooth/module-bluez5-device.c:1822
 msgid "Bluetooth Output"
 msgstr "Bluetooth-utgång"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2144
-#: ../src/modules/bluetooth/module-bluez5-device.c:1711
-#: ../src/modules/bluetooth/module-bluez5-device.c:1733
-#: ../src/modules/bluetooth/module-bluez5-device.c:1739
-#: ../src/modules/bluetooth/module-bluez5-device.c:1765
+#: ../src/modules/bluetooth/module-bluez4-device.c:2145
+#: ../src/modules/bluetooth/module-bluez5-device.c:1767
+#: ../src/modules/bluetooth/module-bluez5-device.c:1789
+#: ../src/modules/bluetooth/module-bluez5-device.c:1795
+#: ../src/modules/bluetooth/module-bluez5-device.c:1821
 msgid "Bluetooth Input"
 msgstr "Bluetooth-ingång"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2185
+#: ../src/modules/bluetooth/module-bluez4-device.c:2186
 msgid "High Fidelity Playback (A2DP)"
 msgstr "High fidelity playback (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2197
+#: ../src/modules/bluetooth/module-bluez4-device.c:2198
 msgid "High Fidelity Capture (A2DP)"
 msgstr "High fidelity capture (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2209
+#: ../src/modules/bluetooth/module-bluez4-device.c:2210
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Telephony duplex (HSP/HFP)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2222
+#: ../src/modules/bluetooth/module-bluez4-device.c:2223
 msgid "Handsfree Gateway"
 msgstr "Handsfree gateway"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1807
+#: ../src/modules/bluetooth/module-bluez5-device.c:1863
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "High fidelity playback (A2DP Sink)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1819
+#: ../src/modules/bluetooth/module-bluez5-device.c:1875
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "High fidelity capture (A2DP Source)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1831
+#: ../src/modules/bluetooth/module-bluez5-device.c:1887
 msgid "Headset Head Unit (HSP/HFP)"
 msgstr "Headset head unit (HSP/HFP)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1844
+#: ../src/modules/bluetooth/module-bluez5-device.c:1900
 msgid "Headset Audio Gateway (HSP/HFP)"
 msgstr "Headset audio gateway (HSP/HFP)"
 
@@ -1071,7 +1083,7 @@ msgstr ""
 "eller nej> use_master_format=<ja eller nej> "
 
 #. add on profile
-#: ../src/modules/macosx/module-coreaudio-device.c:811
+#: ../src/modules/macosx/module-coreaudio-device.c:826
 msgid "On"
 msgstr "På"
 
@@ -1083,6 +1095,10 @@ msgstr "Attrapputgång"
 #: ../src/modules/module-always-sink.c:36
 msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr "Håll alltid minst en mottagare inläst även om den är null"
+
+#: ../src/modules/module-always-source.c:37
+msgid "Always keeps at least one source loaded even if it's a null one"
+msgstr "Håll alltid minst en källa inläst även om den är null"
 
 #: ../src/modules/module-equalizer-sink.c:70
 msgid "General Purpose Equalizer"
@@ -1101,7 +1117,13 @@ msgstr ""
 "channel_map=<kanalmappning> autoloaded=<om denna modul läses in automatiskt> "
 "use_volume_sharing=<ja eller nej> "
 
-#: ../src/modules/module-filter-apply.c:47
+#: ../src/modules/module-equalizer-sink.c:1091
+#: ../src/modules/module-equalizer-sink.c:1214
+#, c-format
+msgid "FFT based equalizer on %s"
+msgstr "FFT-baserad equalizer på %s"
+
+#: ../src/modules/module-filter-apply.c:49
 msgid "autoclean=<automatically unload unused filters?>"
 msgstr "autoclean=<automatiskt inaktivera oanvända filter?>"
 
@@ -1112,21 +1134,23 @@ msgstr "Virtual LADSPA-mottagare"
 #: ../src/modules/module-ladspa-sink.c:55
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
-"channels=<number of channels> channel_map=<input channel map> plugin=<ladspa "
-"plugin name> label=<ladspa plugin label> control=<comma separated list of "
-"input control values> input_ladspaport_map=<comma separated list of input "
-"LADSPA port names> output_ladspaport_map=<comma separated list of output "
-"LADSPA port names> "
+"master=<name of sink to filter> sink_master=<name of sink to filter> "
+"format=<sample format> rate=<sample rate> channels=<number of channels> "
+"channel_map=<input channel map> plugin=<ladspa plugin name> label=<ladspa "
+"plugin label> control=<comma separated list of input control values> "
+"input_ladspaport_map=<comma separated list of input LADSPA port names> "
+"output_ladspaport_map=<comma separated list of output LADSPA port names> "
+"autoloaded=<set if this module is being loaded automatically> "
 msgstr ""
 "sink_name=<namn på mottagare> sink_properties=<egenskaper för mottagare> "
-"master=<namn på mottagare att filtrera> format=<samplingsformat> "
-"rate=<samplingshastighet> channels=<antal kanaler> "
-"channel_map=<ingångskanalmappning> plugin=<namn på ladspa-instick> "
+"master=<namn på mottagare att filtrera> sink_master=<namn på mottagare att "
+"filtrera> format=<samplingsformat> rate=<samplingshastighet> channels=<antal "
+"kanaler> channel_map=<ingångskanalmappning> plugin=<namn på ladspa-instick> "
 "label=<etikett för ladspa-instick> control=<kommaseparerad lista över "
 "ingångskontrollvärden> input_ladspaport_map=<kommaseparerad lista över "
 "LADSPA-portnamn för ingång> output_ladspaport_map=<kommaseparerad lista över "
-"LADSPA-portnamn för utgång> "
+"LADSPA-portnamn för utgång> autoloaded=<angiven om denna modul läses in "
+"automatiskt> "
 
 #: ../src/modules/module-null-sink.c:47
 msgid "Clocked NULL sink"
@@ -1154,14 +1178,14 @@ msgstr "Ljud på @HOSTNAME@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: ../src/modules/module-tunnel-sink-new.c:307
-#: ../src/modules/module-tunnel-source-new.c:305
+#: ../src/modules/module-tunnel-sink-new.c:309
+#: ../src/modules/module-tunnel-source-new.c:307
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "Tunnel för %s@%s"
 
-#: ../src/modules/module-tunnel-sink-new.c:521
-#: ../src/modules/module-tunnel-source-new.c:520
+#: ../src/modules/module-tunnel-sink-new.c:532
+#: ../src/modules/module-tunnel-source-new.c:528
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "Tunnel till %s/%s"
@@ -1173,16 +1197,26 @@ msgstr "Virtual surround-mottagare"
 #: ../src/modules/module-virtual-surround-sink.c:51
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
-"channels=<number of channels> channel_map=<channel map> "
-"use_volume_sharing=<yes or no> force_flat_volume=<yes or no> hrir=/path/to/"
-"left_hrir.wav "
+"master=<name of sink to filter> sink_master=<name of sink to filter> "
+"format=<sample format> rate=<sample rate> channels=<number of channels> "
+"channel_map=<channel map> use_volume_sharing=<yes or no> "
+"force_flat_volume=<yes or no> hrir=/path/to/left_hrir.wav autoloaded=<set if "
+"this module is being loaded automatically> "
 msgstr ""
 "sink_name=<namn för mottagaren> sink_properties=<egenskaper för mottagaren> "
-"master=<namn på mottagare att filtrera> format=<samplingsformat> "
-"rate=<samplingshastighet> channels=<antal kanaler> "
-"channel_map=<kanalmappning> use_volume_sharing=<ja eller nej> "
+"master=<namn på mottagare att filtrera> sink_master=<namn på mottagare att "
+"filtrera> format=<samplingsformat> rate=<samplingshastighet> channels=<antal "
+"kanaler> channel_map=<kanalmappning> use_volume_sharing=<ja eller nej> "
 "force_flat_volume=<ja eller nej> hrir=/path/to/left_hrir.wav "
+"autoloaded=<angiven om denna modul läses in automatiskt> "
+
+#: ../src/modules/raop/module-raop-discover.c:296
+msgid "Unknown device model"
+msgstr "Okänd enhetsmodell"
+
+#: ../src/modules/raop/raop-sink.c:498
+msgid "RAOP standard profile"
+msgstr "RAOP-standardprofil"
 
 #: ../src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
@@ -1393,16 +1427,12 @@ msgid "Top Rear Right"
 msgstr "Topp bak höger"
 
 #: ../src/pulse/channelmap.c:479 ../src/pulse/format.c:121
-#: ../src/pulse/sample.c:174 ../src/pulse/volume.c:294
-#: ../src/pulse/volume.c:320 ../src/pulse/volume.c:340
-#: ../src/pulse/volume.c:372 ../src/pulse/volume.c:412
-#: ../src/pulse/volume.c:431
+#: ../src/pulse/sample.c:177 ../src/pulse/volume.c:306
+#: ../src/pulse/volume.c:332 ../src/pulse/volume.c:352
+#: ../src/pulse/volume.c:384 ../src/pulse/volume.c:424
+#: ../src/pulse/volume.c:443
 msgid "(invalid)"
 msgstr "(ogiltig)"
-
-#: ../src/pulse/channelmap.c:775
-msgid "Stereo"
-msgstr "Stereo"
 
 #: ../src/pulse/channelmap.c:780
 msgid "Surround 4.0"
@@ -1506,11 +1536,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Ogiltigt mål för logg."
 
-#: ../src/pulsecore/sink.c:3458
+#: ../src/pulsecore/sink.c:3486
 msgid "Built-in Audio"
 msgstr "Inbyggt ljud"
 
-#: ../src/pulsecore/sink.c:3463
+#: ../src/pulsecore/sink.c:3491
 msgid "Modem"
 msgstr "Modem"
 
@@ -1622,27 +1652,27 @@ msgstr "In-/utgångsfel"
 msgid "Device or resource busy"
 msgstr "Enhet eller resurs upptagen"
 
-#: ../src/pulse/sample.c:176
+#: ../src/pulse/sample.c:179
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %u kan. %u Hz"
 
-#: ../src/pulse/sample.c:188
+#: ../src/pulse/sample.c:191
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f GiB"
 
-#: ../src/pulse/sample.c:190
+#: ../src/pulse/sample.c:193
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f MiB"
 
-#: ../src/pulse/sample.c:192
+#: ../src/pulse/sample.c:195
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f KiB"
 
-#: ../src/pulse/sample.c:194
+#: ../src/pulse/sample.c:197
 #, c-format
 msgid "%u B"
 msgstr "%u B"
