@@ -93,7 +93,13 @@ ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="0839", ENV{PULSE_PROFILE_SET}="nativ
 ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="baff", ENV{PULSE_PROFILE_SET}="native-instruments-traktorkontrol-s4.conf"
 ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="4711", ENV{PULSE_PROFILE_SET}="native-instruments-korecontroller.conf"
 ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="041d", ENV{PULSE_PROFILE_SET}="native-instruments-traktor-audio2.conf"
+
+# There appear to be two IDs in use for Traktor Audio 6 (or maybe 17cc:1011
+# is just incorrect - 17cc:1010 has been verified to be correct at least
+# for some hardware).
+ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="1010", ENV{PULSE_PROFILE_SET}="native-instruments-traktor-audio6.conf"
 ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="1011", ENV{PULSE_PROFILE_SET}="native-instruments-traktor-audio6.conf"
+
 ATTRS{idVendor}=="17cc", ATTRS{idProduct}=="1021", ENV{PULSE_PROFILE_SET}="native-instruments-traktor-audio10.conf"
 ATTRS{idVendor}=="0763", ATTRS{idProduct}=="2012", ENV{PULSE_PROFILE_SET}="maudio-fasttrack-pro.conf"
 ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02bb", ENV{PULSE_PROFILE_SET}="kinect-audio.conf"
