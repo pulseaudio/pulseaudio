@@ -1503,7 +1503,6 @@ doxygen/doxygen.conf
 src/pulse/version.h
 po/Makefile.in
 man/pulseaudio.1.xml
-man/esdcompat.1.xml
 man/pax11publish.1.xml
 man/pacat.1.xml
 man/pacmd.1.xml
@@ -1517,7 +1516,12 @@ man/pulse-cli-syntax.5.xml
 man/start-pulseaudio-x11.1.xml
 ])
 
-AC_CONFIG_FILES([src/esdcompat:src/daemon/esdcompat.in], [chmod +x src/esdcompat])
+AS_IF([test "x$HAVE_ESOUND" = "x1"],
+    [
+        AC_CONFIG_FILES([man/esdcompat.1.xml])
+        AC_CONFIG_FILES([src/esdcompat:src/daemon/esdcompat.in], [chmod +x src/esdcompat])
+    ])
+
 AC_CONFIG_FILES([src/start-pulseaudio-x11:src/daemon/start-pulseaudio-x11.in], [chmod +x src/start-pulseaudio-x11])
 AC_CONFIG_FILES([src/client.conf:src/pulse/client.conf.in])
 AC_CONFIG_FILES([src/daemon.conf:src/daemon/daemon.conf.in],

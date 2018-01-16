@@ -18,7 +18,6 @@ DISTCLEANFILES = \
 
 noinst_DATA = \
 	pulseaudio.1.xml \
-	esdcompat.1.xml \
 	pax11publish.1.xml \
 	pacat.1.xml \
 	pacmd.1.xml \
@@ -31,6 +30,10 @@ noinst_DATA = \
 	pulse-cli-syntax.5.xml \
 	start-pulseaudio-x11.1.xml
 
+if HAVE_ESOUND
+noinst_DATA += esdcompat.1.xml
+endif
+
 xmllint: $(noinst_DATA)
 	for f in $(noinst_DATA) ; do \
 			xmllint --noout --valid "$$f" || exit 1 ; \
@@ -40,7 +43,6 @@ if BUILD_MANPAGES
 
 dist_man_MANS = \
 	pulseaudio.1 \
-	esdcompat.1 \
 	pax11publish.1 \
 	pacat.1 \
 	pacmd.1 \
@@ -53,6 +55,9 @@ dist_man_MANS = \
 	pulse-cli-syntax.5 \
 	start-pulseaudio-x11.1
 
+if HAVE_ESOUND
+dist_man_MANS += esdcompat.1
+endif
 CLEANFILES = \
 	$(dist_man_MANS)
 

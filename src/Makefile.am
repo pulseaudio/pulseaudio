@@ -183,7 +183,11 @@ endif
 #       Utility programs          #
 ###################################
 
-bin_SCRIPTS = esdcompat
+bin_SCRIPTS =
+
+if HAVE_ESOUND
+bin_SCRIPTS += esdcompat
+endif
 
 bin_PROGRAMS += \
 		pacat \
