@@ -1641,10 +1641,25 @@ fail:
 }
 
 static DBusMessage *endpoint_release(DBusConnection *conn, DBusMessage *m, void *userdata) {
-    DBusMessage *r;
+    DBusMessage *r = NULL;
 
-    pa_assert_se(r = dbus_message_new_error(m, BLUEZ_MEDIA_ENDPOINT_INTERFACE ".Error.NotImplemented",
-                                            "Method not implemented"));
+    /* From doc/media-api.txt in bluez:
+     *
+     *    This method gets called when the service daemon
+     *    unregisters the endpoint. An endpoint can use it to do
+     *    cleanup tasks. There is no need to unregister the
+     *    endpoint, because when this method gets called it has
+     *    already been unregistered.
+     *
+     * We don't have any cleanup to do. */
+
+    /* Reply only if requested. Generally bluetoothd doesn't request a reply
+     * to the Release() call. Sending replies when not requested on the system
+     * bus tends to cause errors in syslog from dbus-daemon, because it
+     * doesn't let unexpected replies through, so it's important to have this
+     * check here. */
+    if (!dbus_message_get_no_reply(m))
+        pa_assert_se(r = dbus_message_new_method_return(m));
 
     return r;
 }
