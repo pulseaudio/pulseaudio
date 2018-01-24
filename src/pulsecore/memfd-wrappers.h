@@ -20,13 +20,14 @@
   License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 ***/
 
-#ifdef HAVE_MEMFD
+#if defined(HAVE_MEMFD) && !defined(HAVE_MEMFD_CREATE)
 
 #include <sys/syscall.h>
 #include <fcntl.h>
 
 /*
- * No glibc wrappers exist for memfd_create(2), so provide our own.
+ * Before glibc version 2.27 there was no wrapper for memfd_create(2),
+ * so we have to provide our own.
  *
  * Also define memfd fcntl sealing macros. While they are already
  * defined in the kernel header file <linux/fcntl.h>, that file as
@@ -63,6 +64,6 @@ static inline int memfd_create(const char *name, unsigned int flags) {
 #define F_SEAL_WRITE    0x0008  /* prevent writes */
 #endif
 
-#endif /* HAVE_MEMFD */
+#endif /* HAVE_MEMFD && !HAVE_MEMFD_CREATE */
 
 #endif

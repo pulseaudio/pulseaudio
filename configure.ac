@@ -610,6 +610,9 @@ AS_IF([test "x$enable_memfd" = "xyes" && test "x$HAVE_MEMFD" = "x0"],
     [AC_MSG_ERROR([*** Your Linux kernel does not support memfd shared memory.
                   *** Use linux v3.17 or higher for such a feature.])])
 
+AS_IF([test "x$HAVE_MEMFD" = "x1"],
+    AC_CHECK_FUNCS([memfd_create]))
+
 AC_SUBST(HAVE_MEMFD)
 AM_CONDITIONAL([HAVE_MEMFD], [test "x$HAVE_MEMFD" = x1])
 AS_IF([test "x$HAVE_MEMFD" = "x1"], AC_DEFINE([HAVE_MEMFD], 1, [Have memfd shared memory.]))
