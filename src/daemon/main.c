@@ -397,7 +397,7 @@ int main(int argc, char *argv[]) {
     pa_log_set_level(PA_LOG_NOTICE);
     pa_log_set_flags(PA_LOG_COLORS|PA_LOG_PRINT_FILE|PA_LOG_PRINT_LEVEL, PA_LOG_RESET);
 
-#if defined(__linux__) && defined(__OPTIMIZE__)
+#if !defined(HAVE_BIND_NOW) && defined(__linux__) && defined(__OPTIMIZE__)
     /*
        Disable lazy relocations to make usage of external libraries
        more deterministic for our RT threads. We abuse __OPTIMIZE__ as

@@ -213,6 +213,9 @@ AC_SUBST([VERSIONING_LDFLAGS])
 # The -z now syntax is lifted from Sun's linker and works with GNU's too, other linkers might be added later.
 AX_APPEND_LINK_FLAGS([-Wl,-z,now], [IMMEDIATE_LDFLAGS])
 AC_SUBST([IMMEDIATE_LDFLAGS])
+AS_CASE([$IMMEDIATE_LDFLAGS],[*-z,now*],
+    [AC_DEFINE([HAVE_BIND_NOW],[1],
+               [Define to 1 if immediate binding is available])])
 
 # On ELF systems we don't want the libraries to be unloaded since we don't clean them up properly,
 # so we request the nodelete flag to be enabled.
