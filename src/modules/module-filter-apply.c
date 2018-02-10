@@ -259,6 +259,12 @@ static bool find_paired_master(struct userdata *u, struct filter *filter, pa_obj
 
                 if (pa_streq(g, group)) {
                     if (pa_streq(module_name, so->source->module->name)) {
+                        /* Make sure we are not routing to the monitor source
+                         * of the same filter */
+                        if (so->source->monitor_of) {
+                            pa_xfree(g);
+                            continue;
+                        }
                         /* Make sure we're not routing to another instance of
                          * the same filter. */
                         filter->source_master = so->source->output_from_master->source;
