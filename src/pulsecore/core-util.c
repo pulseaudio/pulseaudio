@@ -202,7 +202,7 @@ static void set_nonblock(int fd, bool nonblock) {
         nv = v & ~O_NONBLOCK;
 
     if (v != nv)
-        pa_assert_se(fcntl(fd, F_SETFL, v|O_NONBLOCK) >= 0);
+        pa_assert_se(fcntl(fd, F_SETFL, nv) >= 0);
 
 #elif defined(OS_IS_WIN32)
     u_long arg;
