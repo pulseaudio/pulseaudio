@@ -2545,6 +2545,8 @@ static int path_verify(pa_alsa_path *p) {
         { "iec958-passthrough-output",  N_("Digital Passthrough (S/PDIF)") },
         { "multichannel-input",         N_("Multichannel Input") },
         { "multichannel-output",        N_("Multichannel Output") },
+        { "steelseries-arctis-5-output-game", N_("Game Output") },
+        { "steelseries-arctis-5-output-chat", N_("Chat Output") },
     };
 
     pa_alsa_element *e;

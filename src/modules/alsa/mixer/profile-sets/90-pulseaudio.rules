@@ -105,7 +105,8 @@ ATTRS{idVendor}=="0763", ATTRS{idProduct}=="2012", ENV{PULSE_PROFILE_SET}="maudi
 ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02bb", ENV{PULSE_PROFILE_SET}="kinect-audio.conf"
 ATTRS{idVendor}=="041e", ATTRS{idProduct}=="322c", ENV{PULSE_PROFILE_SET}="sb-omni-surround-5.1.conf"
 ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="4014", ENV{PULSE_PROFILE_SET}="dell-dock-tb16-usb-audio.conf"
-ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1260", ENV{PULSE_PROFILE_SET}="steelseries-arctis-usb-audio.conf"
+ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1250", ENV{PULSE_PROFILE_SET}="steelseries-arctis-5-usb-audio.conf"
+ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1260", ENV{PULSE_PROFILE_SET}="steelseries-arctis-7-usb-audio.conf"
 ATTRS{idVendor}=="147a", ATTRS{idProduct}=="e055", ENV{PULSE_PROFILE_SET}="cmedia-high-speed-true-hdaudio.conf"
 
 LABEL="pulseaudio_end"
