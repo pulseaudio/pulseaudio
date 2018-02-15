@@ -8,15 +8,15 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugs.freedesktop.org/enter_bug.cgi?"
 "product=PulseAudio&keywords=I18N+L10N&component=misc\n"
-"POT-Creation-Date: 2017-07-25 22:04+0000\n"
-"PO-Revision-Date: 2017-08-04 19:15+0300\n"
+"POT-Creation-Date: 2017-12-09 03:27+0000\n"
+"PO-Revision-Date: 2018-02-13 00:55+0200\n"
 "Last-Translator: Moo\n"
 "Language-Team: \n"
 "Language: lt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 2.0.6\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n"
 "%100<10 || n%100>=20) ? 1 : 2);\n"
 
@@ -399,55 +399,55 @@ msgstr "Nepavyko paskirstyti naujo dl įkėliklio."
 msgid "Failed to add bind-now-loader."
 msgstr "Nepavyko pridėti bind-now-loader."
 
-#: ../src/daemon/main.c:160
+#: ../src/daemon/main.c:162
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "Nepavyko rasti naudotojo \"%s\"."
 
-#: ../src/daemon/main.c:165
+#: ../src/daemon/main.c:167
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "Nepavyko rasti grupės \"%s\"."
 
-#: ../src/daemon/main.c:174
+#: ../src/daemon/main.c:176
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "Naudoto \"%s\" ir grupės \"%s\" GID nesutampa."
 
-#: ../src/daemon/main.c:179
+#: ../src/daemon/main.c:181
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "\"%s\" naudotojo namų katalogas nėra \"%s\", nepaisoma."
 
-#: ../src/daemon/main.c:182 ../src/daemon/main.c:187
+#: ../src/daemon/main.c:184 ../src/daemon/main.c:189
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Nepavyko sukurti \"%s\": %s"
 
-#: ../src/daemon/main.c:194
+#: ../src/daemon/main.c:196
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "Nepavyko pakeisti grupės sąrašo: %s"
 
-#: ../src/daemon/main.c:210
+#: ../src/daemon/main.c:212
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "Nepavyko pakeisti GID: %s"
 
-#: ../src/daemon/main.c:226
+#: ../src/daemon/main.c:228
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "Nepavyko pakeisti UID: %s"
 
-#: ../src/daemon/main.c:255
+#: ../src/daemon/main.c:257
 msgid "System wide mode unsupported on this platform."
 msgstr "Sistemą apimanti veiksena šioje platformoje nepalaikoma."
 
-#: ../src/daemon/main.c:484
+#: ../src/daemon/main.c:486
 msgid "Failed to parse command line."
 msgstr "Nepavyko analizuoti komandų eilutės."
 
-#: ../src/daemon/main.c:523
+#: ../src/daemon/main.c:525
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
@@ -455,12 +455,12 @@ msgstr ""
 "Sistemos veiksena atsisakė pasileisti ne root naudotojui. Paleidžiama tik D-"
 "Bus serverio peržvalginė tarnyba."
 
-#: ../src/daemon/main.c:622
+#: ../src/daemon/main.c:624
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Nepavyko nutraukti tarnybos: %s"
 
-#: ../src/daemon/main.c:651
+#: ../src/daemon/main.c:653
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -468,22 +468,22 @@ msgstr ""
 "Ši programa nėra skirta vykdyti administratoriaus teisėmis (nebent yra "
 "nurodyta --system)."
 
-#: ../src/daemon/main.c:654
+#: ../src/daemon/main.c:656
 msgid "Root privileges required."
 msgstr "Reikalaujamos pagrindinio naudotojo (root) teisės."
 
-#: ../src/daemon/main.c:661
+#: ../src/daemon/main.c:663
 msgid "--start not supported for system instances."
 msgstr "Parametras --start nėra palaikomas sistemos egzemplioriams."
 
-#: ../src/daemon/main.c:701
+#: ../src/daemon/main.c:703
 #, c-format
 msgid "User-configured server at %s, refusing to start/autospawn."
 msgstr ""
 "Naudotojo sukonfigūruotas serveris ties %s, atsisako pasileisti/automatiškai "
 "atnaujinti darbą."
 
-#: ../src/daemon/main.c:707
+#: ../src/daemon/main.c:709
 #, c-format
 msgid ""
 "User-configured server at %s, which appears to be local. Probing deeper."
@@ -491,59 +491,59 @@ msgstr ""
 "Naudotojo sukonfigūruotas serveris ties %s, kuris, atrodo, yra vietinis. "
 "Tiriama išsamiau."
 
-#: ../src/daemon/main.c:712
+#: ../src/daemon/main.c:714
 msgid "Running in system mode, but --disallow-exit not set."
 msgstr "Vykdoma sistemos veiksenoje, tačiau nėra nustatytas --disallow-exit."
 
-#: ../src/daemon/main.c:715
+#: ../src/daemon/main.c:717
 msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr ""
 "Vykdoma sistemos veiksenoje, tačiau nėra nustatytas --disallow-module-"
 "loading."
 
-#: ../src/daemon/main.c:718
+#: ../src/daemon/main.c:720
 msgid "Running in system mode, forcibly disabling SHM mode."
 msgstr "Vykdoma sistemos veiksenoje, priverstinai išjungiama SHM veiksena."
 
-#: ../src/daemon/main.c:723
+#: ../src/daemon/main.c:725
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
 "Vykdoma sistemos veiksenoje, priverstinai išjungiamas išėjimo laikas, esant "
 "neveiklumui."
 
-#: ../src/daemon/main.c:756
+#: ../src/daemon/main.c:758
 msgid "Failed to acquire stdio."
 msgstr "Nepavyko įgyti stdio."
 
-#: ../src/daemon/main.c:762 ../src/daemon/main.c:833
+#: ../src/daemon/main.c:764 ../src/daemon/main.c:835
 #, c-format
 msgid "pipe() failed: %s"
 msgstr "pipe() nepavyko: %s"
 
-#: ../src/daemon/main.c:767 ../src/daemon/main.c:838
+#: ../src/daemon/main.c:769 ../src/daemon/main.c:840
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() nepavyko: %s"
 
-#: ../src/daemon/main.c:782 ../src/daemon/main.c:853 ../src/utils/pacat.c:562
+#: ../src/daemon/main.c:784 ../src/daemon/main.c:855 ../src/utils/pacat.c:562
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() nepavyko: %s"
 
-#: ../src/daemon/main.c:788
+#: ../src/daemon/main.c:790
 msgid "Daemon startup failed."
 msgstr "Tarnybos paleidimas nepavyko."
 
-#: ../src/daemon/main.c:821
+#: ../src/daemon/main.c:823
 #, c-format
 msgid "setsid() failed: %s"
 msgstr "setsid() nepavyko: %s"
 
-#: ../src/daemon/main.c:948
+#: ../src/daemon/main.c:950
 msgid "Failed to get machine ID"
 msgstr "Nepavyko gauti sistemos ID"
 
-#: ../src/daemon/main.c:974
+#: ../src/daemon/main.c:976
 msgid ""
 "OK, so you are running PA in system mode. Please make sure that you actually "
 "do want to do that.\n"
@@ -557,19 +557,19 @@ msgstr ""
 "Documentation/User/WhatIsWrongWithSystemWide/ , kad sužinotumėte kodėl "
 "sistemos veiksena, dažniausiai, yra netikusi mintis."
 
-#: ../src/daemon/main.c:990
+#: ../src/daemon/main.c:992
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() nepavyko."
 
-#: ../src/daemon/main.c:1022
+#: ../src/daemon/main.c:1024
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() nepavyko."
 
-#: ../src/daemon/main.c:1092
+#: ../src/daemon/main.c:1094
 msgid "Failed to initialize daemon."
 msgstr "Nepavyko inicijuoti tarnybos."
 
-#: ../src/daemon/main.c:1097
+#: ../src/daemon/main.c:1099
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Tarnybos paleidimas be jokių įkeltų modulių, tarnyba negalės veikti."
 
@@ -603,7 +603,7 @@ msgstr "Įvadinė linija"
 
 #: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
 #: ../src/modules/bluetooth/module-bluez4-device.c:2104
-#: ../src/modules/bluetooth/module-bluez5-device.c:1750
+#: ../src/modules/bluetooth/module-bluez5-device.c:1783
 msgid "Microphone"
 msgstr "Mikrofonas"
 
@@ -665,7 +665,7 @@ msgstr "Be žemų tonų pastiprinimo"
 
 #: ../src/modules/alsa/alsa-mixer.c:2398
 #: ../src/modules/bluetooth/module-bluez4-device.c:2109
-#: ../src/modules/bluetooth/module-bluez5-device.c:1757
+#: ../src/modules/bluetooth/module-bluez5-device.c:1790
 msgid "Speaker"
 msgstr "Garsiakalbis"
 
@@ -690,46 +690,50 @@ msgid "Analog Output"
 msgstr "Analoginė išvestis"
 
 #: ../src/modules/alsa/alsa-mixer.c:2472
+msgid "Headphones Mono Output"
+msgstr "Ausinių mono išvestis"
+
+#: ../src/modules/alsa/alsa-mixer.c:2473
 msgid "LFE on Separate Mono Output"
 msgstr "Žemųjų dažnių efektai atskiroje mono išvestyje"
 
-#: ../src/modules/alsa/alsa-mixer.c:2473
+#: ../src/modules/alsa/alsa-mixer.c:2474
 msgid "Line Out"
 msgstr "Išvadinė linija"
 
-#: ../src/modules/alsa/alsa-mixer.c:2474
+#: ../src/modules/alsa/alsa-mixer.c:2475
 msgid "Analog Mono Output"
 msgstr "Analoginė mono išvestis"
 
-#: ../src/modules/alsa/alsa-mixer.c:2475
+#: ../src/modules/alsa/alsa-mixer.c:2476
 msgid "Speakers"
 msgstr "Garsiakalbiai"
 
-#: ../src/modules/alsa/alsa-mixer.c:2476
+#: ../src/modules/alsa/alsa-mixer.c:2477
 msgid "HDMI / DisplayPort"
 msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2477
+#: ../src/modules/alsa/alsa-mixer.c:2478
 msgid "Digital Output (S/PDIF)"
 msgstr "Skaitmeninė išvestis (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2478
+#: ../src/modules/alsa/alsa-mixer.c:2479
 msgid "Digital Input (S/PDIF)"
 msgstr "Skaitmeninė įvestis (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2479
+#: ../src/modules/alsa/alsa-mixer.c:2480
 msgid "Digital Passthrough (S/PDIF)"
 msgstr "Skaitmeninis persiuntimas (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2480
+#: ../src/modules/alsa/alsa-mixer.c:2481
 msgid "Multichannel Input"
 msgstr "Daugiakanalė įvestis"
 
-#: ../src/modules/alsa/alsa-mixer.c:2481
+#: ../src/modules/alsa/alsa-mixer.c:2482
 msgid "Multichannel Output"
 msgstr "Daugiakanalė išvestis"
 
-#: ../src/modules/alsa/alsa-mixer.c:3990
+#: ../src/modules/alsa/alsa-mixer.c:3991
 msgid "Analog Mono"
 msgstr "Analoginė mono"
 
@@ -738,124 +742,124 @@ msgstr "Analoginė mono"
 #. * here would lead to the source name to become "Analog Stereo Input
 #. * Input". The same logic applies to analog-stereo-output,
 #. * multichannel-input and multichannel-output.
-#: ../src/modules/alsa/alsa-mixer.c:3991 ../src/modules/alsa/alsa-mixer.c:3997
-#: ../src/modules/alsa/alsa-mixer.c:3998
+#: ../src/modules/alsa/alsa-mixer.c:3992 ../src/modules/alsa/alsa-mixer.c:3999
+#: ../src/modules/alsa/alsa-mixer.c:4000
 msgid "Analog Stereo"
 msgstr "Analoginė stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:3999 ../src/modules/alsa/alsa-mixer.c:4000
-msgid "Multichannel"
-msgstr "Daugiakanalė"
-
-#: ../src/modules/alsa/alsa-mixer.c:4001
-msgid "Analog Surround 2.1"
-msgstr "Analoginė erdvinė 2.1"
-
-#: ../src/modules/alsa/alsa-mixer.c:4002
-msgid "Analog Surround 3.0"
-msgstr "Analoginė erdvinė 3.0"
-
-#: ../src/modules/alsa/alsa-mixer.c:4003
-msgid "Analog Surround 3.1"
-msgstr "Analoginė erdvinė 3.1"
-
-#: ../src/modules/alsa/alsa-mixer.c:4004
-msgid "Analog Surround 4.0"
-msgstr "Analoginė erdvinė 4.0"
-
-#: ../src/modules/alsa/alsa-mixer.c:4005
-msgid "Analog Surround 4.1"
-msgstr "Analoginė erdvinė 4.1"
-
-#: ../src/modules/alsa/alsa-mixer.c:4006
-msgid "Analog Surround 5.0"
-msgstr "Analoginė erdvinė 5.0"
-
-#: ../src/modules/alsa/alsa-mixer.c:4007
-msgid "Analog Surround 5.1"
-msgstr "Analoginė erdvinė 5.1"
-
-#: ../src/modules/alsa/alsa-mixer.c:4008
-msgid "Analog Surround 6.0"
-msgstr "Analoginė erdvinė 6.0"
-
-#: ../src/modules/alsa/alsa-mixer.c:4009
-msgid "Analog Surround 6.1"
-msgstr "Analoginė erdvinė 6.1"
-
-#: ../src/modules/alsa/alsa-mixer.c:4010
-msgid "Analog Surround 7.0"
-msgstr "Analoginė erdvinė 7.0"
-
-#: ../src/modules/alsa/alsa-mixer.c:4011
-msgid "Analog Surround 7.1"
-msgstr "Analoginė erdvinė 7.1"
-
-#: ../src/modules/alsa/alsa-mixer.c:4012
-msgid "Digital Stereo (IEC958)"
-msgstr "Skaitmeninė stereo (IEC958)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4013
-msgid "Digital Passthrough  (IEC958)"
-msgstr "Skaitmeninis persiuntimas (IEC958)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4014
-msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr "Skaitmeninė erdvinė 4.0 (IEC958/AC3)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4015
-msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr "Skaitmeninė erdvinė 5.1 (IEC958/AC3)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4016
-msgid "Digital Surround 5.1 (IEC958/DTS)"
-msgstr "Skaitmeninė erdvinė 5.1 (IEC958/DTS)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4017
-msgid "Digital Stereo (HDMI)"
-msgstr "Skaitmeninė stereo (HDMI)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4018
-msgid "Digital Surround 5.1 (HDMI)"
-msgstr "Skaitmeninė erdvinė 5.1 (HDMI)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4019 ../src/pulse/channelmap.c:775
+#: ../src/modules/alsa/alsa-mixer.c:3993 ../src/pulse/channelmap.c:775
 msgid "Stereo"
 msgstr "Stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:4152
+#: ../src/modules/alsa/alsa-mixer.c:4001 ../src/modules/alsa/alsa-mixer.c:4002
+msgid "Multichannel"
+msgstr "Daugiakanalė"
+
+#: ../src/modules/alsa/alsa-mixer.c:4003
+msgid "Analog Surround 2.1"
+msgstr "Analoginė erdvinė 2.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4004
+msgid "Analog Surround 3.0"
+msgstr "Analoginė erdvinė 3.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4005
+msgid "Analog Surround 3.1"
+msgstr "Analoginė erdvinė 3.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4006
+msgid "Analog Surround 4.0"
+msgstr "Analoginė erdvinė 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4007
+msgid "Analog Surround 4.1"
+msgstr "Analoginė erdvinė 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4008
+msgid "Analog Surround 5.0"
+msgstr "Analoginė erdvinė 5.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4009
+msgid "Analog Surround 5.1"
+msgstr "Analoginė erdvinė 5.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4010
+msgid "Analog Surround 6.0"
+msgstr "Analoginė erdvinė 6.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4011
+msgid "Analog Surround 6.1"
+msgstr "Analoginė erdvinė 6.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4012
+msgid "Analog Surround 7.0"
+msgstr "Analoginė erdvinė 7.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4013
+msgid "Analog Surround 7.1"
+msgstr "Analoginė erdvinė 7.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4014
+msgid "Digital Stereo (IEC958)"
+msgstr "Skaitmeninė stereo (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4015
+msgid "Digital Passthrough  (IEC958)"
+msgstr "Skaitmeninis persiuntimas (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4016
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr "Skaitmeninė erdvinė 4.0 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4017
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr "Skaitmeninė erdvinė 5.1 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4018
+msgid "Digital Surround 5.1 (IEC958/DTS)"
+msgstr "Skaitmeninė erdvinė 5.1 (IEC958/DTS)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4019
+msgid "Digital Stereo (HDMI)"
+msgstr "Skaitmeninė stereo (HDMI)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4020
+msgid "Digital Surround 5.1 (HDMI)"
+msgstr "Skaitmeninė erdvinė 5.1 (HDMI)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4153
 msgid "Analog Mono Duplex"
 msgstr "Analoginė dvipusė mono"
 
-#: ../src/modules/alsa/alsa-mixer.c:4153
+#: ../src/modules/alsa/alsa-mixer.c:4154
 msgid "Analog Stereo Duplex"
 msgstr "Analoginė dvipusė stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:4154
+#: ../src/modules/alsa/alsa-mixer.c:4155
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Skaitmeninė dvipusė stereo (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4155
+#: ../src/modules/alsa/alsa-mixer.c:4156
 msgid "Multichannel Duplex"
 msgstr "Daugiakanalė dvipusė"
 
-#: ../src/modules/alsa/alsa-mixer.c:4156
+#: ../src/modules/alsa/alsa-mixer.c:4157
 msgid "Stereo Duplex"
 msgstr "Dvipusė stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:4157
+#: ../src/modules/alsa/alsa-mixer.c:4158
 #: ../src/modules/alsa/module-alsa-card.c:186
 #: ../src/modules/bluetooth/module-bluez4-device.c:2324
-#: ../src/modules/bluetooth/module-bluez5-device.c:2005
+#: ../src/modules/bluetooth/module-bluez5-device.c:2038
 msgid "Off"
 msgstr "Išjungta"
 
-#: ../src/modules/alsa/alsa-mixer.c:4256
+#: ../src/modules/alsa/alsa-mixer.c:4257
 #, c-format
 msgid "%s Output"
 msgstr "%s išvestis"
 
-#: ../src/modules/alsa/alsa-mixer.c:4264
+#: ../src/modules/alsa/alsa-mixer.c:4265
 #, c-format
 msgid "%s Input"
 msgstr "%s įvestis"
@@ -981,52 +985,52 @@ msgstr ""
 "klaidą pranešti ALSA kūrėjams."
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2094
-#: ../src/modules/bluetooth/module-bluez5-device.c:1740
+#: ../src/modules/bluetooth/module-bluez5-device.c:1773
 msgid "Headset"
 msgstr "Ausinės su mikrofonu"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2099
-#: ../src/modules/bluetooth/module-bluez5-device.c:1745
+#: ../src/modules/bluetooth/module-bluez5-device.c:1778
 msgid "Handsfree"
 msgstr "Laisvų rankų įranga"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2114
-#: ../src/modules/bluetooth/module-bluez5-device.c:1763
+#: ../src/modules/bluetooth/module-bluez5-device.c:1796
 msgid "Headphone"
 msgstr "Ausinė"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2119
-#: ../src/modules/bluetooth/module-bluez5-device.c:1768
+#: ../src/modules/bluetooth/module-bluez5-device.c:1801
 msgid "Portable"
 msgstr "Portatyvi sistema"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2124
-#: ../src/modules/bluetooth/module-bluez5-device.c:1773
+#: ../src/modules/bluetooth/module-bluez5-device.c:1806
 msgid "Car"
 msgstr "Automobilis"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2129
-#: ../src/modules/bluetooth/module-bluez5-device.c:1778
+#: ../src/modules/bluetooth/module-bluez5-device.c:1811
 msgid "HiFi"
 msgstr "HiFi"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2134
-#: ../src/modules/bluetooth/module-bluez5-device.c:1783
+#: ../src/modules/bluetooth/module-bluez5-device.c:1816
 msgid "Phone"
 msgstr "Telefonas"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2142
-#: ../src/modules/bluetooth/module-bluez5-device.c:1735
-#: ../src/modules/bluetooth/module-bluez5-device.c:1751
-#: ../src/modules/bluetooth/module-bluez5-device.c:1789
+#: ../src/modules/bluetooth/module-bluez5-device.c:1768
+#: ../src/modules/bluetooth/module-bluez5-device.c:1784
+#: ../src/modules/bluetooth/module-bluez5-device.c:1822
 msgid "Bluetooth Output"
 msgstr "Bluetooth išvestis"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2145
-#: ../src/modules/bluetooth/module-bluez5-device.c:1734
-#: ../src/modules/bluetooth/module-bluez5-device.c:1756
-#: ../src/modules/bluetooth/module-bluez5-device.c:1762
-#: ../src/modules/bluetooth/module-bluez5-device.c:1788
+#: ../src/modules/bluetooth/module-bluez5-device.c:1767
+#: ../src/modules/bluetooth/module-bluez5-device.c:1789
+#: ../src/modules/bluetooth/module-bluez5-device.c:1795
+#: ../src/modules/bluetooth/module-bluez5-device.c:1821
 msgid "Bluetooth Input"
 msgstr "Bluetooth įvestis"
 
@@ -1046,19 +1050,19 @@ msgstr "Telefoninė dvipusė (HSP/HFP)"
 msgid "Handsfree Gateway"
 msgstr "Laisvų rankų įrangos tinklų sietuvas"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1830
+#: ../src/modules/bluetooth/module-bluez5-device.c:1863
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Aukštos kokybės atkūrimas (A2DP rinktuvas)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1842
+#: ../src/modules/bluetooth/module-bluez5-device.c:1875
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Aukštos kokybės paėmimas (A2DP šaltinis)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1854
+#: ../src/modules/bluetooth/module-bluez5-device.c:1887
 msgid "Headset Head Unit (HSP/HFP)"
 msgstr "Ausinių su mikrofonu pagrindinis įtaisas (HSP/HFP)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1867
+#: ../src/modules/bluetooth/module-bluez5-device.c:1900
 msgid "Headset Audio Gateway (HSP/HFP)"
 msgstr "Ausinių su mikrofonu garso tinklų sietuvas (HSP/HFP)"
 
@@ -1088,7 +1092,7 @@ msgstr ""
 "use_master_format=<yes arba no> "
 
 #. add on profile
-#: ../src/modules/macosx/module-coreaudio-device.c:811
+#: ../src/modules/macosx/module-coreaudio-device.c:826
 msgid "On"
 msgstr "Įjungta"
 
@@ -1100,6 +1104,10 @@ msgstr "Fiktyvi išvestis"
 #: ../src/modules/module-always-sink.c:36
 msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr "Visada palieka įkeltą bent vieną rinktuvą, netgi jei tai yra nulinis"
+
+#: ../src/modules/module-always-source.c:37
+msgid "Always keeps at least one source loaded even if it's a null one"
+msgstr "Visada palieka įkeltą bent vieną šaltinį, net jeigu tai yra nulinis"
 
 #: ../src/modules/module-equalizer-sink.c:70
 msgid "General Purpose Equalizer"
@@ -1118,7 +1126,13 @@ msgstr ""
 "schema> autoloaded=<nustatyti ar šis modulis bus įkeliamas automatiškai> "
 "use_volume_sharing=<yes arba no> "
 
-#: ../src/modules/module-filter-apply.c:48
+#: ../src/modules/module-equalizer-sink.c:1091
+#: ../src/modules/module-equalizer-sink.c:1214
+#, c-format
+msgid "FFT based equalizer on %s"
+msgstr "FFT pagrįstas glodintuvas ties %s"
+
+#: ../src/modules/module-filter-apply.c:49
 msgid "autoclean=<automatically unload unused filters?>"
 msgstr "autoclean=<ar automatiškai iškelti nenaudojamus filtrus?>"
 
@@ -1129,24 +1143,26 @@ msgstr "Virtualus LADSPA rinktuvas"
 #: ../src/modules/module-ladspa-sink.c:55
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> sink_master=<name of sink to filter> "
-"format=<sample format> rate=<sample rate> channels=<number of channels> "
-"channel_map=<input channel map> plugin=<ladspa plugin name> label=<ladspa "
-"plugin label> control=<comma separated list of input control values> "
-"input_ladspaport_map=<comma separated list of input LADSPA port names> "
-"output_ladspaport_map=<comma separated list of output LADSPA port names> "
-"autoloaded=<set if this module is being loaded automatically> "
+"sink_input_properties=<properties for the sink input> master=<name of sink "
+"to filter> sink_master=<name of sink to filter> format=<sample format> "
+"rate=<sample rate> channels=<number of channels> channel_map=<input channel "
+"map> plugin=<ladspa plugin name> label=<ladspa plugin label> control=<comma "
+"separated list of input control values> input_ladspaport_map=<comma "
+"separated list of input LADSPA port names> output_ladspaport_map=<comma "
+"separated list of output LADSPA port names> autoloaded=<set if this module "
+"is being loaded automatically> "
 msgstr ""
 "sink_name=<rinktuvo pavadinimas> sink_properties=<rinktuvo savybės> "
-"master=<rinktuvo, kurį filtruoti, pavadinimas> sink_master=<rinktuvo, kurį "
-"filtruoti, pavadinimas> format=<ėminio formatas> rate=<skaitmeninimo dažnis> "
-"channels=<kanalų skaičius> channel_map=<įvesties kanalų schema> "
-"plugin=<ladspa įskiepio pavadinimas> label=<ladspa įskiepio etiketė> "
-"control=<kableliais atskirtų įvesties valdymo reikšmių sąrašas> "
-"input_ladspaport_map=<kableliais atskirtų LADSPA įvesties prievadų "
-"pavadinimų sąrašas> output_ladspaport_map=<kableliais atskirtų LADSPA "
-"išvesties prievadų pavadinimų sąrašas> autoloaded=<nustatyti ar šis modulis "
-"bus įkeliamas automatiškai> "
+"sink_input_properties=<rinktuvo įvesties savybės> master=<rinktuvo, kurį "
+"filtruoti, pavadinimas> sink_master=<rinktuvo, kurį filtruoti, pavadinimas> "
+"format=<ėminio formatas> rate=<skaitmeninimo dažnis> channels=<kanalų "
+"skaičius> channel_map=<įvesties kanalų schema> plugin=<ladspa įskiepio "
+"pavadinimas> label=<ladspa įskiepio etiketė> control=<kableliais atskirtų "
+"įvesties valdymo reikšmių sąrašas> input_ladspaport_map=<kableliais atskirtų "
+"LADSPA įvesties prievadų pavadinimų sąrašas> "
+"output_ladspaport_map=<kableliais atskirtų LADSPA išvesties prievadų "
+"pavadinimų sąrašas> autoloaded=<nustatyti ar šis modulis bus įkeliamas "
+"automatiškai> "
 
 #: ../src/modules/module-null-sink.c:47
 msgid "Clocked NULL sink"
@@ -1174,14 +1190,14 @@ msgstr "Garsas ties @HOSTNAME@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: ../src/modules/module-tunnel-sink-new.c:307
-#: ../src/modules/module-tunnel-source-new.c:305
+#: ../src/modules/module-tunnel-sink-new.c:309
+#: ../src/modules/module-tunnel-source-new.c:307
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "Tunelis, skirtas %s@%s"
 
-#: ../src/modules/module-tunnel-sink-new.c:521
-#: ../src/modules/module-tunnel-source-new.c:520
+#: ../src/modules/module-tunnel-sink-new.c:532
+#: ../src/modules/module-tunnel-source-new.c:528
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "Tunelis į %s/%s"
@@ -1206,6 +1222,14 @@ msgstr ""
 "use_volume_sharing=<yes arba no> force_flat_volume=<yes arba no> hrir=/"
 "kelias/iki/left_hrir.wav autoloaded=<nustatyti ar šis modulis bus įkeliamas "
 "automatiškai> "
+
+#: ../src/modules/raop/module-raop-discover.c:296
+msgid "Unknown device model"
+msgstr "Nežinomas įrenginio modelis"
+
+#: ../src/modules/raop/raop-sink.c:498
+msgid "RAOP standard profile"
+msgstr "RAOP standartinis profilis"
 
 #: ../src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
@@ -1486,7 +1510,7 @@ msgstr "dvikryptė"
 msgid "invalid"
 msgstr "neteisinga"
 
-#: ../src/pulsecore/core-util.c:1856
+#: ../src/pulsecore/core-util.c:1859
 #, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
@@ -1527,11 +1551,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Neteisinga žurnalo paskirtis."
 
-#: ../src/pulsecore/sink.c:3466
+#: ../src/pulsecore/sink.c:3486
 msgid "Built-in Audio"
 msgstr "Įtaisytas garsas"
 
-#: ../src/pulsecore/sink.c:3471
+#: ../src/pulsecore/sink.c:3491
 msgid "Modem"
 msgstr "Modemas"
 
