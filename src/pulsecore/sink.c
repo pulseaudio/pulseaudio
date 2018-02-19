@@ -397,45 +397,76 @@ pa_sink* pa_sink_new(
 }
 
 /* Called from main context */
-static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
-    int ret;
-    bool suspend_change;
-    pa_sink_state_t original_state;
+static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t suspend_cause) {
+    int ret = 0;
+    bool state_changed;
+    bool suspend_cause_changed;
+    bool suspending;
+    bool resuming;
 
     pa_assert(s);
     pa_assert_ctl_context();
 
-    if (s->state == state)
+    state_changed = state != s->state;
+    suspend_cause_changed = suspend_cause != s->suspend_cause;
+
+    if (!state_changed && !suspend_cause_changed)
         return 0;
 
-    original_state = s->state;
+    suspending = PA_SINK_IS_OPENED(s->state) && state == PA_SINK_SUSPENDED;
+    resuming = s->state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(state);
 
-    suspend_change =
-        (original_state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(state)) ||
-        (PA_SINK_IS_OPENED(original_state) && state == PA_SINK_SUSPENDED);
+    /* If we are resuming, suspend_cause must be 0. */
+    pa_assert(!resuming || !suspend_cause);
 
-    if (s->set_state)
-        if ((ret = s->set_state(s, state)) < 0)
-            return ret;
+    /* Here's something to think about: what to do with the suspend cause if
+     * resuming the sink fails? The old suspend cause will be incorrect, so we
+     * can't use that. On the other hand, if we set no suspend cause (as is the
+     * case currently), then it looks strange to have a sink suspended without
+     * any cause. It might be a good idea to add a new "resume failed" suspend
+     * cause, or it might just add unnecessary complexity, given that the
+     * current approach of not setting any suspend cause works well enough. */
 
-    if (s->asyncmsgq)
-        if ((ret = pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL)) < 0) {
-
-            if (s->set_state)
-                s->set_state(s, original_state);
-
-            return ret;
-        }
-
-    pa_log_debug("%s: state: %s -> %s", s->name, pa_sink_state_to_string(s->state), pa_sink_state_to_string(state));
-    s->state = state;
-
-    if (state != PA_SINK_UNLINKED) { /* if we enter UNLINKED state pa_sink_unlink() will fire the appropriate events */
-        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], s);
-        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    if (s->set_state && state_changed) {
+        ret = s->set_state(s, state);
+        /* set_state() is allowed to fail only when resuming. */
+        pa_assert(ret >= 0 || resuming);
     }
 
-    if (suspend_change) {
+    if (ret >= 0 && s->asyncmsgq && state_changed)
+        if ((ret = pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL)) < 0) {
+            /* SET_STATE is allowed to fail only when resuming. */
+            pa_assert(resuming);
+
+            if (s->set_state)
+                s->set_state(s, PA_SINK_SUSPENDED);
+        }
+
+    if (suspend_cause_changed) {
+        char old_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
+        char new_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
+
+        pa_log_debug("%s: suspend_cause: %s -> %s", s->name, pa_suspend_cause_to_string(s->suspend_cause, old_cause_buf),
+                     pa_suspend_cause_to_string(suspend_cause, new_cause_buf));
+        s->suspend_cause = suspend_cause;
+    }
+
+    if (ret < 0)
+        goto finish;
+
+    if (state_changed) {
+        pa_log_debug("%s: state: %s -> %s", s->name, pa_sink_state_to_string(s->state), pa_sink_state_to_string(state));
+        s->state = state;
+
+        /* If we enter UNLINKED state, then we don't send change notifications.
+         * pa_sink_unlink() will send unlink notifications instead. */
+        if (state != PA_SINK_UNLINKED) {
+            pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], s);
+            pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+        }
+    }
+
+    if (suspending || resuming) {
         pa_sink_input *i;
         uint32_t idx;
 
@@ -447,12 +478,13 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
                 pa_sink_input_kill(i);
             else if (i->suspend)
                 i->suspend(i, state == PA_SINK_SUSPENDED);
-
-        if (s->monitor_source)
-            pa_source_sync_suspend(s->monitor_source);
     }
 
-    return 0;
+finish:
+    if ((suspending || resuming || suspend_cause_changed) && s->monitor_source)
+        pa_source_sync_suspend(s->monitor_source);
+
+    return ret;
 }
 
 void pa_sink_set_get_volume_callback(pa_sink *s, pa_sink_cb_t cb) {
@@ -655,9 +687,9 @@ void pa_sink_put(pa_sink* s) {
     pa_assert(s->monitor_source->thread_info.max_latency == s->thread_info.max_latency);
 
     if (s->suspend_cause)
-        pa_assert_se(sink_set_state(s, PA_SINK_SUSPENDED) == 0);
+        pa_assert_se(sink_set_state(s, PA_SINK_SUSPENDED, s->suspend_cause) == 0);
     else
-        pa_assert_se(sink_set_state(s, PA_SINK_IDLE) == 0);
+        pa_assert_se(sink_set_state(s, PA_SINK_IDLE, 0) == 0);
 
     pa_source_put(s->monitor_source);
 
@@ -707,7 +739,7 @@ void pa_sink_unlink(pa_sink* s) {
     }
 
     if (linked)
-        sink_set_state(s, PA_SINK_UNLINKED);
+        sink_set_state(s, PA_SINK_UNLINKED, 0);
     else
         s->state = PA_SINK_UNLINKED;
 
@@ -830,7 +862,7 @@ int pa_sink_update_status(pa_sink*s) {
     if (s->state == PA_SINK_SUSPENDED)
         return 0;
 
-    return sink_set_state(s, pa_sink_used_by(s) ? PA_SINK_RUNNING : PA_SINK_IDLE);
+    return sink_set_state(s, pa_sink_used_by(s) ? PA_SINK_RUNNING : PA_SINK_IDLE, 0);
 }
 
 /* Called from any context - must be threadsafe */
@@ -840,31 +872,19 @@ void pa_sink_set_mixer_dirty(pa_sink *s, bool is_dirty) {
 
 /* Called from main context */
 int pa_sink_suspend(pa_sink *s, bool suspend, pa_suspend_cause_t cause) {
-    pa_suspend_cause_t old_cause;
-    char old_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
-    char new_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
+    pa_suspend_cause_t merged_cause;
 
     pa_sink_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SINK_IS_LINKED(s->state));
     pa_assert(cause != 0);
 
-    old_cause = s->suspend_cause;
+    if (suspend)
+        merged_cause = s->suspend_cause | cause;
+    else
+        merged_cause = s->suspend_cause & ~cause;
 
-    if (suspend) {
-        s->suspend_cause |= cause;
-        s->monitor_source->suspend_cause |= cause;
-    } else {
-        s->suspend_cause &= ~cause;
-        s->monitor_source->suspend_cause &= ~cause;
-    }
-
-    if (s->suspend_cause != old_cause) {
-        pa_log_debug("%s: suspend_cause: %s -> %s", s->name, pa_suspend_cause_to_string(old_cause, old_cause_buf),
-                     pa_suspend_cause_to_string(s->suspend_cause, new_cause_buf));
-    }
-
-    if (!(s->suspend_cause & PA_SUSPEND_SESSION) && (pa_atomic_load(&s->mixer_dirty) != 0)) {
+    if (!(merged_cause & PA_SUSPEND_SESSION) && (pa_atomic_load(&s->mixer_dirty) != 0)) {
         /* This might look racy but isn't: If somebody sets mixer_dirty exactly here,
            it'll be handled just fine. */
         pa_sink_set_mixer_dirty(s, false);
@@ -885,13 +905,10 @@ int pa_sink_suspend(pa_sink *s, bool suspend, pa_suspend_cause_t cause) {
         }
     }
 
-    if ((pa_sink_get_state(s) == PA_SINK_SUSPENDED) == !!s->suspend_cause)
-        return 0;
-
-    if (s->suspend_cause)
-        return sink_set_state(s, PA_SINK_SUSPENDED);
+    if (merged_cause)
+        return sink_set_state(s, PA_SINK_SUSPENDED, merged_cause);
     else
-        return sink_set_state(s, pa_sink_used_by(s) ? PA_SINK_RUNNING : PA_SINK_IDLE);
+        return sink_set_state(s, pa_sink_used_by(s) ? PA_SINK_RUNNING : PA_SINK_IDLE, 0);
 }
 
 /* Called from main context */

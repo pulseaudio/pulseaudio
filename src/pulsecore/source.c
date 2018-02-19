@@ -351,45 +351,76 @@ pa_source* pa_source_new(
 }
 
 /* Called from main context */
-static int source_set_state(pa_source *s, pa_source_state_t state) {
-    int ret;
-    bool suspend_change;
-    pa_source_state_t original_state;
+static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_cause_t suspend_cause) {
+    int ret = 0;
+    bool state_changed;
+    bool suspend_cause_changed;
+    bool suspending;
+    bool resuming;
 
     pa_assert(s);
     pa_assert_ctl_context();
 
-    if (s->state == state)
+    state_changed = state != s->state;
+    suspend_cause_changed = suspend_cause != s->suspend_cause;
+
+    if (!state_changed && !suspend_cause_changed)
         return 0;
 
-    original_state = s->state;
+    suspending = PA_SOURCE_IS_OPENED(s->state) && state == PA_SOURCE_SUSPENDED;
+    resuming = s->state == PA_SOURCE_SUSPENDED && PA_SOURCE_IS_OPENED(state);
 
-    suspend_change =
-        (original_state == PA_SOURCE_SUSPENDED && PA_SOURCE_IS_OPENED(state)) ||
-        (PA_SOURCE_IS_OPENED(original_state) && state == PA_SOURCE_SUSPENDED);
+    /* If we are resuming, suspend_cause must be 0. */
+    pa_assert(!resuming || !suspend_cause);
 
-    if (s->set_state)
-        if ((ret = s->set_state(s, state)) < 0)
-            return ret;
+    /* Here's something to think about: what to do with the suspend cause if
+     * resuming the source fails? The old suspend cause will be incorrect, so we
+     * can't use that. On the other hand, if we set no suspend cause (as is the
+     * case currently), then it looks strange to have a source suspended without
+     * any cause. It might be a good idea to add a new "resume failed" suspend
+     * cause, or it might just add unnecessary complexity, given that the
+     * current approach of not setting any suspend cause works well enough. */
 
-    if (s->asyncmsgq)
-        if ((ret = pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL)) < 0) {
-
-            if (s->set_state)
-                s->set_state(s, original_state);
-
-            return ret;
-        }
-
-    pa_log_debug("%s: state: %s -> %s", s->name, pa_source_state_to_string(s->state), pa_source_state_to_string(state));
-    s->state = state;
-
-    if (state != PA_SOURCE_UNLINKED) { /* if we enter UNLINKED state pa_source_unlink() will fire the appropriate events */
-        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], s);
-        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    if (s->set_state && state_changed) {
+        ret = s->set_state(s, state);
+        /* set_state() is allowed to fail only when resuming. */
+        pa_assert(ret >= 0 || resuming);
     }
 
-    if (suspend_change) {
+    if (ret >= 0 && s->asyncmsgq && state_changed)
+        if ((ret = pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL)) < 0) {
+            /* SET_STATE is allowed to fail only when resuming. */
+            pa_assert(resuming);
+
+            if (s->set_state)
+                s->set_state(s, PA_SOURCE_SUSPENDED);
+        }
+
+    if (suspend_cause_changed) {
+        char old_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
+        char new_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
+
+        pa_log_debug("%s: suspend_cause: %s -> %s", s->name, pa_suspend_cause_to_string(s->suspend_cause, old_cause_buf),
+                     pa_suspend_cause_to_string(suspend_cause, new_cause_buf));
+        s->suspend_cause = suspend_cause;
+    }
+
+    if (ret < 0)
+        goto finish;
+
+    if (state_changed) {
+        pa_log_debug("%s: state: %s -> %s", s->name, pa_source_state_to_string(s->state), pa_source_state_to_string(state));
+        s->state = state;
+
+        /* If we enter UNLINKED state, then we don't send change notifications.
+         * pa_source_unlink() will send unlink notifications instead. */
+        if (state == PA_SOURCE_UNLINKED) {
+            pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], s);
+            pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+        }
+    }
+
+    if (suspending || resuming) {
         pa_source_output *o;
         uint32_t idx;
 
@@ -403,7 +434,8 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
                 o->suspend(o, state == PA_SOURCE_SUSPENDED);
     }
 
-    return 0;
+finish:
+    return ret;
 }
 
 void pa_source_set_get_volume_callback(pa_source *s, pa_source_cb_t cb) {
@@ -600,9 +632,9 @@ void pa_source_put(pa_source *s) {
     pa_assert(!(s->flags & PA_SOURCE_DYNAMIC_LATENCY) == !(s->thread_info.fixed_latency == 0));
 
     if (s->suspend_cause)
-        pa_assert_se(source_set_state(s, PA_SOURCE_SUSPENDED) == 0);
+        pa_assert_se(source_set_state(s, PA_SOURCE_SUSPENDED, s->suspend_cause) == 0);
     else
-        pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
+        pa_assert_se(source_set_state(s, PA_SOURCE_IDLE, 0) == 0);
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PUT], s);
@@ -649,7 +681,7 @@ void pa_source_unlink(pa_source *s) {
     }
 
     if (linked)
-        source_set_state(s, PA_SOURCE_UNLINKED);
+        source_set_state(s, PA_SOURCE_UNLINKED, 0);
     else
         s->state = PA_SOURCE_UNLINKED;
 
@@ -751,7 +783,7 @@ int pa_source_update_status(pa_source*s) {
     if (s->state == PA_SOURCE_SUSPENDED)
         return 0;
 
-    return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE);
+    return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE, 0);
 }
 
 /* Called from any context - must be threadsafe */
@@ -761,9 +793,7 @@ void pa_source_set_mixer_dirty(pa_source *s, bool is_dirty) {
 
 /* Called from main context */
 int pa_source_suspend(pa_source *s, bool suspend, pa_suspend_cause_t cause) {
-    pa_suspend_cause_t old_cause;
-    char old_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
-    char new_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
+    pa_suspend_cause_t merged_cause;
 
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
@@ -773,19 +803,12 @@ int pa_source_suspend(pa_source *s, bool suspend, pa_suspend_cause_t cause) {
     if (s->monitor_of && cause != PA_SUSPEND_PASSTHROUGH)
         return -PA_ERR_NOTSUPPORTED;
 
-    old_cause = s->suspend_cause;
-
     if (suspend)
-        s->suspend_cause |= cause;
+        merged_cause = s->suspend_cause | cause;
     else
-        s->suspend_cause &= ~cause;
+        merged_cause = s->suspend_cause & ~cause;
 
-    if (s->suspend_cause != old_cause) {
-        pa_log_debug("%s: suspend_cause: %s -> %s", s->name, pa_suspend_cause_to_string(old_cause, old_cause_buf),
-                     pa_suspend_cause_to_string(s->suspend_cause, new_cause_buf));
-    }
-
-    if (!(s->suspend_cause & PA_SUSPEND_SESSION) && (pa_atomic_load(&s->mixer_dirty) != 0)) {
+    if (!(merged_cause & PA_SUSPEND_SESSION) && (pa_atomic_load(&s->mixer_dirty) != 0)) {
         /* This might look racy but isn't: If somebody sets mixer_dirty exactly here,
            it'll be handled just fine. */
         pa_source_set_mixer_dirty(s, false);
@@ -806,18 +829,16 @@ int pa_source_suspend(pa_source *s, bool suspend, pa_suspend_cause_t cause) {
         }
     }
 
-    if ((pa_source_get_state(s) == PA_SOURCE_SUSPENDED) == !!s->suspend_cause)
-        return 0;
-
-    if (s->suspend_cause)
-        return source_set_state(s, PA_SOURCE_SUSPENDED);
+    if (merged_cause)
+        return source_set_state(s, PA_SOURCE_SUSPENDED, merged_cause);
     else
-        return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE);
+        return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE, 0);
 }
 
 /* Called from main context */
 int pa_source_sync_suspend(pa_source *s) {
     pa_sink_state_t state;
+    pa_suspend_cause_t suspend_cause;
 
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
@@ -825,13 +846,22 @@ int pa_source_sync_suspend(pa_source *s) {
     pa_assert(s->monitor_of);
 
     state = pa_sink_get_state(s->monitor_of);
+    suspend_cause = s->monitor_of->suspend_cause;
 
-    if (state == PA_SINK_SUSPENDED)
-        return source_set_state(s, PA_SOURCE_SUSPENDED);
+    /* The monitor source usually has the same state and suspend cause as the
+     * sink, the only exception is when the monitor source is suspended due to
+     * the sink being in the passthrough mode. If the monitor currently has the
+     * PASSTHROUGH suspend cause, then we have to keep the monitor suspended
+     * even if the sink is running. */
+    if (s->suspend_cause & PA_SUSPEND_PASSTHROUGH)
+        suspend_cause |= PA_SUSPEND_PASSTHROUGH;
+
+    if (state == PA_SINK_SUSPENDED || suspend_cause)
+        return source_set_state(s, PA_SOURCE_SUSPENDED, suspend_cause);
 
     pa_assert(PA_SINK_IS_OPENED(state));
 
-    return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE);
+    return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE, 0);
 }
 
 /* Called from main context */
