@@ -885,8 +885,6 @@ static bool setup_transport_and_stream(struct userdata *u) {
 /* Run from IO thread */
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE(o)->userdata;
-    bool failed = false;
-    int r;
 
     pa_assert(u->source == PA_SOURCE(o));
     pa_assert(u->transport);
@@ -917,8 +915,10 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                         break;
 
                     /* Resume the device if the sink was suspended as well */
-                    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
-                        failed = !setup_transport_and_stream(u);
+                    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
+                        if (!setup_transport_and_stream(u))
+                            return -1;
+                    }
 
                     /* We don't resume the smoother here. Instead we
                      * wait until the first packet arrives */
@@ -953,9 +953,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
     }
 
-    r = pa_source_process_msg(o, code, data, offset, chunk);
-
-    return (r < 0 || !failed) ? r : -1;
+    return pa_source_process_msg(o, code, data, offset, chunk);
 }
 
 /* Run from main thread */
@@ -1057,8 +1055,6 @@ static int add_source(struct userdata *u) {
 /* Run from IO thread */
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
-    bool failed = false;
-    int r;
 
     pa_assert(u->sink == PA_SINK(o));
     pa_assert(u->transport);
@@ -1089,8 +1085,10 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                         break;
 
                     /* Resume the device if the source was suspended as well */
-                    if (!u->source || !PA_SOURCE_IS_OPENED(u->source->thread_info.state))
-                        failed = !setup_transport_and_stream(u);
+                    if (!u->source || !PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
+                        if (!setup_transport_and_stream(u))
+                            return -1;
+                    }
 
                     break;
 
@@ -1123,9 +1121,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             return 0;
     }
 
-    r = pa_sink_process_msg(o, code, data, offset, chunk);
-
-    return (r < 0 || !failed) ? r : -1;
+    return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
 /* Run from main thread */
