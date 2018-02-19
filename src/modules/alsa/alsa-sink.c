@@ -939,7 +939,7 @@ static int build_pollfd(struct userdata *u) {
 }
 
 /* Called from IO context */
-static int suspend(struct userdata *u) {
+static void suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->pcm_handle);
 
@@ -964,8 +964,6 @@ static int suspend(struct userdata *u) {
     pa_sink_set_max_request_within_thread(u->sink, 0);
 
     pa_log_info("Device suspended...");
-
-    return 0;
 }
 
 /* Called from IO context */
@@ -1192,12 +1190,9 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
 
                 case PA_SINK_SUSPENDED: {
-                    int r;
-
                     pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
-                    if ((r = suspend(u)) < 0)
-                        return r;
+                    suspend(u);
 
                     break;
                 }

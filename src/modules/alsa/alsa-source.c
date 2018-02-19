@@ -837,7 +837,7 @@ static int build_pollfd(struct userdata *u) {
 }
 
 /* Called from IO context */
-static int suspend(struct userdata *u) {
+static void suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->pcm_handle);
 
@@ -853,8 +853,6 @@ static int suspend(struct userdata *u) {
     }
 
     pa_log_info("Device suspended...");
-
-    return 0;
 }
 
 /* Called from IO context */
@@ -1047,12 +1045,9 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
 
                 case PA_SOURCE_SUSPENDED: {
-                    int r;
-
                     pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
 
-                    if ((r = suspend(u)) < 0)
-                        return r;
+                    suspend(u);
 
                     break;
                 }

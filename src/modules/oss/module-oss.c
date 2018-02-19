@@ -485,7 +485,7 @@ static void build_pollfd(struct userdata *u) {
 }
 
 /* Called from IO context */
-static int suspend(struct userdata *u) {
+static void suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->fd >= 0);
 
@@ -530,8 +530,6 @@ static int suspend(struct userdata *u) {
     }
 
     pa_log_info("Device suspended...");
-
-    return 0;
 }
 
 /* Called from IO context */
@@ -670,10 +668,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 case PA_SINK_SUSPENDED:
                     pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
-                    if (!u->source || u->source_suspended) {
-                        if (suspend(u) < 0)
-                            return -1;
-                    }
+                    if (!u->source || u->source_suspended)
+                        suspend(u);
 
                     do_trigger = true;
 
@@ -753,10 +749,8 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                 case PA_SOURCE_SUSPENDED:
                     pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
 
-                    if (!u->sink || u->sink_suspended) {
-                        if (suspend(u) < 0)
-                            return -1;
-                    }
+                    if (!u->sink || u->sink_suspended)
+                        suspend(u);
 
                     do_trigger = true;
 

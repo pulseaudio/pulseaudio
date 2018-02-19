@@ -348,7 +348,7 @@ static int open_audio_device(struct userdata *u, pa_sample_spec *ss) {
     return u->fd;
 }
 
-static int suspend(struct userdata *u) {
+static void suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->fd >= 0);
 
@@ -364,8 +364,6 @@ static int suspend(struct userdata *u) {
     }
 
     pa_log_info("Device suspended.");
-
-    return 0;
 }
 
 static int unsuspend(struct userdata *u) {
@@ -403,10 +401,9 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                     pa_smoother_pause(u->smoother, pa_rtclock_now());
 
-                    if (!u->source || u->source_suspended) {
-                        if (suspend(u) < 0)
-                            return -1;
-                    }
+                    if (!u->source || u->source_suspended)
+                        suspend(u);
+
                     u->sink_suspended = true;
                     break;
 
@@ -457,10 +454,9 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
                     pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
 
-                    if (!u->sink || u->sink_suspended) {
-                        if (suspend(u) < 0)
-                            return -1;
-                    }
+                    if (!u->sink || u->sink_suspended)
+                        suspend(u);
+
                     u->source_suspended = true;
                     break;
 
