@@ -1058,6 +1058,9 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
                     if (u->source->thread_info.state == PA_SOURCE_INIT) {
                         if (build_pollfd(u) < 0)
+                            /* FIXME: This will cause an assertion failure in
+                             * pa_source_put(), because with the current design
+                             * pa_source_put() is not allowed to fail. */
                             return -PA_ERR_IO;
                     }
 

@@ -1203,6 +1203,9 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                     if (u->sink->thread_info.state == PA_SINK_INIT) {
                         if (build_pollfd(u) < 0)
+                            /* FIXME: This will cause an assertion failure in
+                             * pa_sink_put(), because with the current design
+                             * pa_sink_put() is not allowed to fail. */
                             return -PA_ERR_IO;
                     }
 
