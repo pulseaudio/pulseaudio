@@ -427,8 +427,8 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t 
      * cause, or it might just add unnecessary complexity, given that the
      * current approach of not setting any suspend cause works well enough. */
 
-    if (s->set_state && state_changed) {
-        ret = s->set_state(s, state);
+    if (s->set_state) {
+        ret = s->set_state(s, state, suspend_cause);
         /* set_state() is allowed to fail only when resuming. */
         pa_assert(ret >= 0 || resuming);
     }
@@ -439,7 +439,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t 
             pa_assert(resuming);
 
             if (s->set_state)
-                s->set_state(s, PA_SINK_SUSPENDED);
+                s->set_state(s, PA_SINK_SUSPENDED, 0);
         }
 
     if (suspend_cause_changed) {

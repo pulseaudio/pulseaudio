@@ -126,8 +126,16 @@ struct pa_sink {
 
     /* Called when the main loop requests a state change. Called from
      * main loop context. If returns -1 the state change will be
-     * inhibited */
-    int (*set_state)(pa_sink *s, pa_sink_state_t state); /* may be NULL */
+     * inhibited. This will also be called even if only the suspend cause
+     * changes.
+     *
+     * s->state and s->suspend_cause haven't been updated yet when this is
+     * called, so the callback can get the old state through those variables.
+     *
+     * If set_state() is successful, the IO thread will be notified with the
+     * SET_STATE message. The message handler is allowed to fail, in which
+     * case the old state is restored, and set_state() is called again. */
+    int (*set_state)(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t suspend_cause); /* may be NULL */
 
     /* Sink drivers that support hardware volume may set this
      * callback. This is called when the current volume needs to be

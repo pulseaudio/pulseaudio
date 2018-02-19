@@ -680,11 +680,16 @@ static void unsuspend(struct userdata *u) {
 }
 
 /* Called from main context */
-static int sink_set_state(pa_sink *sink, pa_sink_state_t state) {
+static int sink_set_state(pa_sink *sink, pa_sink_state_t state, pa_suspend_cause_t suspend_cause) {
     struct userdata *u;
 
     pa_sink_assert_ref(sink);
     pa_assert_se(u = sink->userdata);
+
+    /* It may be that only the suspend cause is changing, in which
+     * case there's nothing to do. */
+    if (state == u->sink->state)
+        return 0;
 
     /* Please note that in contrast to the ALSA modules we call
      * suspend/unsuspend from main context here! */

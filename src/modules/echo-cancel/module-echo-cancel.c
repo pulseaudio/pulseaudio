@@ -477,7 +477,7 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
 }
 
 /* Called from main context */
-static int source_set_state_cb(pa_source *s, pa_source_state_t state) {
+static int source_set_state_cb(pa_source *s, pa_source_state_t state, pa_suspend_cause_t suspend_cause) {
     struct userdata *u;
 
     pa_source_assert_ref(s);
@@ -502,7 +502,7 @@ static int source_set_state_cb(pa_source *s, pa_source_state_t state) {
 }
 
 /* Called from main context */
-static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
+static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t suspend_cause) {
     struct userdata *u;
 
     pa_sink_assert_ref(s);

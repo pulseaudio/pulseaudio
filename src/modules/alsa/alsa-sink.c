@@ -1232,7 +1232,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 }
 
 /* Called from main context */
-static int sink_set_state_cb(pa_sink *s, pa_sink_state_t new_state) {
+static int sink_set_state_cb(pa_sink *s, pa_sink_state_t new_state, pa_suspend_cause_t new_suspend_cause) {
     pa_sink_state_t old_state;
     struct userdata *u;
 

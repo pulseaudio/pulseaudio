@@ -568,10 +568,15 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 }
 
 /* Called from main context */
-static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
+static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t suspend_cause) {
     struct userdata *u;
     pa_sink_assert_ref(s);
     u = s->userdata;
+
+    /* It may be that only the suspend cause is changing, in which
+     * case there's nothing to do. */
+    if (state == s->state)
+        return 0;
 
     switch ((pa_sink_state_t) state) {
 
@@ -665,10 +670,15 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 }
 
 /* Called from main context */
-static int source_set_state(pa_source *s, pa_source_state_t state) {
+static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_cause_t suspend_cause) {
     struct userdata *u;
     pa_source_assert_ref(s);
     u = s->userdata;
+
+    /* It may be that only the suspend cause is changing, in which
+     * case there's nothing to do. */
+    if (state == s->state)
+        return 0;
 
     switch ((pa_source_state_t) state) {
 

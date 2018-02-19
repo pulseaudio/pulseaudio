@@ -112,7 +112,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 }
 
 /* Called from main context */
-static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
+static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t suspend_cause) {
     struct userdata *u;
 
     pa_sink_assert_ref(s);
