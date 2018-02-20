@@ -1300,15 +1300,15 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    if (sink) {
-        ss = sink->sample_spec;
-        map = sink->channel_map;
+    if (source) {
+        ss = source->sample_spec;
+        map = source->channel_map;
         format_set = true;
         rate_set = true;
         channels_set = true;
-    } else if (source) {
-        ss = source->sample_spec;
-        map = source->channel_map;
+    } else if (sink) {
+        ss = sink->sample_spec;
+        map = sink->channel_map;
         format_set = true;
         rate_set = true;
         channels_set = true;
@@ -1389,74 +1389,6 @@ int pa__init(pa_module *m) {
 
     u->real_adjust_time = u->adjust_time;
 
-    pa_sink_input_new_data_init(&sink_input_data);
-    sink_input_data.driver = __FILE__;
-    sink_input_data.module = m;
-
-    if (sink)
-        pa_sink_input_new_data_set_sink(&sink_input_data, sink, false, true);
-
-    if (pa_modargs_get_proplist(ma, "sink_input_properties", sink_input_data.proplist, PA_UPDATE_REPLACE) < 0) {
-        pa_log("Failed to parse the sink_input_properties value.");
-        pa_sink_input_new_data_done(&sink_input_data);
-        goto fail;
-    }
-
-    if (!pa_proplist_contains(sink_input_data.proplist, PA_PROP_MEDIA_ROLE))
-        pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
-
-    pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
-    pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
-    sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE | PA_SINK_INPUT_START_CORKED;
-
-    if (!remix)
-        sink_input_data.flags |= PA_SINK_INPUT_NO_REMIX;
-
-    if (!format_set)
-        sink_input_data.flags |= PA_SINK_INPUT_FIX_FORMAT;
-
-    if (!rate_set)
-        sink_input_data.flags |= PA_SINK_INPUT_FIX_RATE;
-
-    if (!channels_set)
-        sink_input_data.flags |= PA_SINK_INPUT_FIX_CHANNELS;
-
-    sink_dont_move = false;
-    if (pa_modargs_get_value_boolean(ma, "sink_dont_move", &sink_dont_move) < 0) {
-        pa_log("sink_dont_move= expects a boolean argument.");
-        goto fail;
-    }
-
-    if (sink_dont_move)
-        sink_input_data.flags |= PA_SINK_INPUT_DONT_MOVE;
-
-    pa_sink_input_new(&u->sink_input, m->core, &sink_input_data);
-    pa_sink_input_new_data_done(&sink_input_data);
-
-    if (!u->sink_input)
-        goto fail;
-
-    /* If format, rate or channels were originally unset, they are set now
-     * after the pa_sink_input_new() call. */
-    ss = u->sink_input->sample_spec;
-    map = u->sink_input->channel_map;
-
-    u->sink_input->parent.process_msg = sink_input_process_msg_cb;
-    u->sink_input->pop = sink_input_pop_cb;
-    u->sink_input->process_rewind = sink_input_process_rewind_cb;
-    u->sink_input->kill = sink_input_kill_cb;
-    u->sink_input->state_change = sink_input_state_change_cb;
-    u->sink_input->attach = sink_input_attach_cb;
-    u->sink_input->detach = sink_input_detach_cb;
-    u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
-    u->sink_input->update_max_request = sink_input_update_max_request_cb;
-    u->sink_input->may_move_to = sink_input_may_move_to_cb;
-    u->sink_input->moving = sink_input_moving_cb;
-    u->sink_input->suspend = sink_input_suspend_cb;
-    u->sink_input->update_sink_latency_range = update_sink_latency_range_cb;
-    u->sink_input->update_sink_fixed_latency = update_sink_latency_range_cb;
-    u->sink_input->userdata = u;
-
     pa_source_output_new_data_init(&source_output_data);
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
@@ -1478,6 +1410,15 @@ int pa__init(pa_module *m) {
 
     if (!remix)
         source_output_data.flags |= PA_SOURCE_OUTPUT_NO_REMIX;
+
+    if (!format_set)
+        source_output_data.flags |= PA_SOURCE_OUTPUT_FIX_FORMAT;
+
+    if (!rate_set)
+        source_output_data.flags |= PA_SOURCE_OUTPUT_FIX_RATE;
+
+    if (!channels_set)
+        source_output_data.flags |= PA_SOURCE_OUTPUT_FIX_CHANNELS;
 
     source_dont_move = false;
     if (pa_modargs_get_value_boolean(ma, "source_dont_move", &source_dont_move) < 0) {
@@ -1506,6 +1447,65 @@ int pa__init(pa_module *m) {
     u->source_output->update_source_latency_range = update_source_latency_range_cb;
     u->source_output->update_source_fixed_latency = update_source_latency_range_cb;
     u->source_output->userdata = u;
+
+    /* If format, rate or channels were originally unset, they are set now
+     * after the pa_source_output_new() call. */
+    ss = u->source_output->sample_spec;
+    map = u->source_output->channel_map;
+
+    pa_sink_input_new_data_init(&sink_input_data);
+    sink_input_data.driver = __FILE__;
+    sink_input_data.module = m;
+
+    if (sink)
+        pa_sink_input_new_data_set_sink(&sink_input_data, sink, false, true);
+
+    if (pa_modargs_get_proplist(ma, "sink_input_properties", sink_input_data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Failed to parse the sink_input_properties value.");
+        pa_sink_input_new_data_done(&sink_input_data);
+        goto fail;
+    }
+
+    if (!pa_proplist_contains(sink_input_data.proplist, PA_PROP_MEDIA_ROLE))
+        pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
+
+    pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
+    pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
+    sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE | PA_SINK_INPUT_START_CORKED;
+
+    if (!remix)
+        sink_input_data.flags |= PA_SINK_INPUT_NO_REMIX;
+
+    sink_dont_move = false;
+    if (pa_modargs_get_value_boolean(ma, "sink_dont_move", &sink_dont_move) < 0) {
+        pa_log("sink_dont_move= expects a boolean argument.");
+        goto fail;
+    }
+
+    if (sink_dont_move)
+        sink_input_data.flags |= PA_SINK_INPUT_DONT_MOVE;
+
+    pa_sink_input_new(&u->sink_input, m->core, &sink_input_data);
+    pa_sink_input_new_data_done(&sink_input_data);
+
+    if (!u->sink_input)
+        goto fail;
+
+    u->sink_input->parent.process_msg = sink_input_process_msg_cb;
+    u->sink_input->pop = sink_input_pop_cb;
+    u->sink_input->process_rewind = sink_input_process_rewind_cb;
+    u->sink_input->kill = sink_input_kill_cb;
+    u->sink_input->state_change = sink_input_state_change_cb;
+    u->sink_input->attach = sink_input_attach_cb;
+    u->sink_input->detach = sink_input_detach_cb;
+    u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
+    u->sink_input->update_max_request = sink_input_update_max_request_cb;
+    u->sink_input->may_move_to = sink_input_may_move_to_cb;
+    u->sink_input->moving = sink_input_moving_cb;
+    u->sink_input->suspend = sink_input_suspend_cb;
+    u->sink_input->update_sink_latency_range = update_sink_latency_range_cb;
+    u->sink_input->update_sink_fixed_latency = update_sink_latency_range_cb;
+    u->sink_input->userdata = u;
 
     update_latency_boundaries(u, u->source_output->source, u->sink_input->sink);
     set_sink_input_latency(u, u->sink_input->sink);
