@@ -442,28 +442,53 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
         }
     }
 
-    /* Update profile availabilities. The logic could be improved; for now we
-     * only set obviously unavailable profiles (those that contain only
-     * unavailable ports) to PA_AVAILABLE_NO and all others to
-     * PA_AVAILABLE_UNKNOWN. */
+    /* Update profile availabilities. Ideally we would mark all profiles
+     * unavailable that contain unavailable devices. We can't currently do that
+     * in all cases, because if there are multiple sinks in a profile, and the
+     * profile contains a mix of available and unavailable ports, we don't know
+     * how the ports are distributed between the different sinks. It's possible
+     * that some sinks contain only unavailable ports, in which case we should
+     * mark the profile as unavailable, but it's also possible that all sinks
+     * contain at least one available port, in which case we should mark the
+     * profile as available. Until the data structures are improved so that we
+     * can distinguish between these two cases, we mark the problematic cases
+     * as available (well, "unknown" to be precise, but there's little
+     * practical difference).
+     *
+     * When all output ports are unavailable, we know that all sinks are
+     * unavailable, and therefore the profile is marked unavailable as well.
+     * The same applies to input ports as well, of course.
+     *
+     * If there are no output ports at all, but the profile contains at least
+     * one sink, then the output is considered to be available. */
     PA_HASHMAP_FOREACH(profile, u->card->profiles, state) {
         pa_device_port *port;
         void *state2;
-        pa_available_t available = PA_AVAILABLE_NO;
-
-        /* Don't touch the "off" profile. */
-        if (profile->n_sources == 0 && profile->n_sinks == 0)
-            continue;
+        bool has_input_port = false;
+        bool has_output_port = false;
+        bool found_available_input_port = false;
+        bool found_available_output_port = false;
+        pa_available_t available = PA_AVAILABLE_UNKNOWN;
 
         PA_HASHMAP_FOREACH(port, u->card->ports, state2) {
             if (!pa_hashmap_get(port->profiles, profile->name))
                 continue;
 
-            if (port->available != PA_AVAILABLE_NO) {
-                available = PA_AVAILABLE_UNKNOWN;
-                break;
+            if (port->direction == PA_DIRECTION_INPUT) {
+                has_input_port = true;
+
+                if (port->available != PA_AVAILABLE_NO)
+                    found_available_input_port = true;
+            } else {
+                has_output_port = true;
+
+                if (port->available != PA_AVAILABLE_NO)
+                    found_available_output_port = true;
             }
         }
+
+        if ((has_input_port && !found_available_input_port) || (has_output_port && !found_available_output_port))
+            available = PA_AVAILABLE_NO;
 
         pa_card_profile_set_available(profile, available);
     }
