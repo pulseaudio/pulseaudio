@@ -45,6 +45,7 @@ PA_MODULE_USAGE(
         "sink=<sink to connect to> "
         "adjust_time=<how often to readjust rates in s> "
         "latency_msec=<latency in ms> "
+        "max_latency_msec=<maximum latency in ms> "
         "format=<sample format> "
         "rate=<sample rate> "
         "channels=<number of channels> "
@@ -89,6 +90,7 @@ struct userdata {
 
     /* Values from command line configuration */
     pa_usec_t latency;
+    pa_usec_t max_latency;
     pa_usec_t adjust_time;
 
     /* Latency boundaries and current values */
@@ -158,6 +160,7 @@ static const char* const valid_modargs[] = {
     "sink",
     "adjust_time",
     "latency_msec",
+    "max_latency_msec",
     "format",
     "rate",
     "channels",
@@ -325,10 +328,20 @@ static void adjust_rates(struct userdata *u) {
 
     /* If we are seeing underruns then the latency is too small */
     if (u->underrun_counter > 2) {
-        u->underrun_latency_limit = PA_MAX(u->latency, u->minimum_latency) + 5 * PA_USEC_PER_MSEC;
-        u->underrun_latency_limit = PA_CLIP_SUB((int64_t)u->underrun_latency_limit, u->sink_latency_offset + u->source_latency_offset);
+        pa_usec_t target_latency;
+
+        target_latency = PA_MAX(u->latency, u->minimum_latency) + 5 * PA_USEC_PER_MSEC;
+
+        if (u->max_latency == 0 || target_latency < u->max_latency) {
+            u->underrun_latency_limit = PA_CLIP_SUB((int64_t)target_latency, u->sink_latency_offset + u->source_latency_offset);
+            pa_log_warn("Too many underruns, increasing latency to %0.2f ms", (double)target_latency / PA_USEC_PER_MSEC);
+        } else {
+            u->underrun_latency_limit = PA_CLIP_SUB((int64_t)u->max_latency, u->sink_latency_offset + u->source_latency_offset);
+            pa_log_warn("Too many underruns, configured maximum latency of %0.2f ms is reached", (double)u->max_latency / PA_USEC_PER_MSEC);
+            pa_log_warn("Consider increasing the max_latency_msec");
+        }
+
         update_minimum_latency(u, u->sink_input->sink, false);
-        pa_log_warn("Too many underruns, increasing latency to %0.2f ms", (double)u->minimum_latency / PA_USEC_PER_MSEC);
         u->underrun_counter = 0;
     }
 
@@ -347,7 +360,7 @@ static void adjust_rates(struct userdata *u) {
     }
     u->adjust_time_stamp = now;
 
-    /* Rates and latencies*/
+    /* Rates and latencies */
     old_rate = u->sink_input->sample_spec.rate;
     base_rate = u->source_output->sample_spec.rate;
 
@@ -1252,6 +1265,7 @@ int pa__init(pa_module *m) {
     pa_source_output_new_data source_output_data;
     bool source_dont_move;
     uint32_t latency_msec;
+    uint32_t max_latency_msec;
     pa_sample_spec ss;
     pa_channel_map map;
     bool format_set = false;
@@ -1336,10 +1350,22 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    max_latency_msec = 0;
+    if (pa_modargs_get_value_u32(ma, "max_latency_msec", &max_latency_msec) < 0) {
+        pa_log("Invalid maximum latency specification");
+        goto fail;
+    }
+
+    if (max_latency_msec > 0 && max_latency_msec < latency_msec) {
+        pa_log_warn("Configured maximum latency is smaller than latency, using latency instead");
+        max_latency_msec = latency_msec;
+    }
+
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
     u->latency = (pa_usec_t) latency_msec * PA_USEC_PER_MSEC;
+    u->max_latency = (pa_usec_t) max_latency_msec * PA_USEC_PER_MSEC;
     u->output_thread_info.pop_called = false;
     u->output_thread_info.pop_adjust = false;
     u->output_thread_info.push_called = false;
