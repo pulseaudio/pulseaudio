@@ -91,8 +91,8 @@ static int sink_process_msg(
     switch (code) {
         case PA_SINK_MESSAGE_SET_STATE:
 
-            if (pa_sink_get_state(u->sink) == PA_SINK_SUSPENDED || pa_sink_get_state(u->sink) == PA_SINK_INIT) {
-                if (PA_PTR_TO_UINT(data) == PA_SINK_RUNNING || PA_PTR_TO_UINT(data) == PA_SINK_IDLE)
+            if (u->sink->thread_info.state == PA_SINK_SUSPENDED || u->sink->thread_info.state == PA_SINK_INIT) {
+                if (PA_SINK_IS_OPENED(PA_PTR_TO_UINT(data)))
                     u->timestamp = pa_rtclock_now();
             }
 

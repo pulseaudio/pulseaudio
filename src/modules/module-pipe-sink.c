@@ -111,10 +111,10 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
     switch (code) {
         case PA_SINK_MESSAGE_SET_STATE:
-            if (pa_sink_get_state(u->sink) == PA_SINK_SUSPENDED || pa_sink_get_state(u->sink) == PA_SINK_INIT) {
-                if (PA_PTR_TO_UINT(data) == PA_SINK_RUNNING || PA_PTR_TO_UINT(data) == PA_SINK_IDLE)
+            if (u->sink->thread_info.state == PA_SINK_SUSPENDED || u->sink->thread_info.state == PA_SINK_INIT) {
+                if (PA_SINK_IS_OPENED(PA_PTR_TO_UINT(data)))
                     u->timestamp = pa_rtclock_now();
-            } else if (pa_sink_get_state(u->sink) == PA_SINK_RUNNING || pa_sink_get_state(u->sink) == PA_SINK_IDLE) {
+            } else if (u->sink->thread_info.state == PA_SINK_RUNNING || u->sink->thread_info.state == PA_SINK_IDLE) {
                 if (PA_PTR_TO_UINT(data) == PA_SINK_SUSPENDED) {
                     /* Clear potential FIFO error flag */
                     u->fifo_error = false;
