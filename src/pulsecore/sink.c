@@ -481,7 +481,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t 
     }
 
 finish:
-    if ((suspending || resuming || suspend_cause_changed) && s->monitor_source)
+    if ((suspending || resuming || suspend_cause_changed) && s->monitor_source && state != PA_SINK_UNLINKED)
         pa_source_sync_suspend(s->monitor_source);
 
     return ret;
