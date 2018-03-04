@@ -590,7 +590,6 @@ msgid "Line In"
 msgstr "Jalur Masuk"
 
 #: ../src/modules/alsa/alsa-mixer.c:2448 ../src/modules/alsa/alsa-mixer.c:2526
-#: ../src/modules/bluetooth/module-bluez4-device.c:2103
 #: ../src/modules/bluetooth/module-bluez5-device.c:1781
 msgid "Microphone"
 msgstr "Mikrofon"
@@ -652,7 +651,6 @@ msgid "No Bass Boost"
 msgstr "Tanpa Boost Bass"
 
 #: ../src/modules/alsa/alsa-mixer.c:2463
-#: ../src/modules/bluetooth/module-bluez4-device.c:2108
 #: ../src/modules/bluetooth/module-bluez5-device.c:1788
 msgid "Speaker"
 msgstr "Speaker"
@@ -839,7 +837,6 @@ msgstr "Dupleks Stereo"
 
 #: ../src/modules/alsa/alsa-mixer.c:4226
 #: ../src/modules/alsa/module-alsa-card.c:185
-#: ../src/modules/bluetooth/module-bluez4-device.c:2323
 #: ../src/modules/bluetooth/module-bluez5-device.c:2036
 msgid "Off"
 msgstr "Mati"
@@ -974,71 +971,46 @@ msgstr ""
 "Sangat mungkin ini adalah kutu pada driver ALSA '%s'. Silakan laporkan hal "
 "ini ke para pengembang ALSA."
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2093
 #: ../src/modules/bluetooth/module-bluez5-device.c:1771
 msgid "Headset"
 msgstr "Headset"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2098
 #: ../src/modules/bluetooth/module-bluez5-device.c:1776
 msgid "Handsfree"
 msgstr "Handsfree"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2113
 #: ../src/modules/bluetooth/module-bluez5-device.c:1794
 msgid "Headphone"
 msgstr "Headphone"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2118
 #: ../src/modules/bluetooth/module-bluez5-device.c:1799
 msgid "Portable"
 msgstr "Portabel"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2123
 #: ../src/modules/bluetooth/module-bluez5-device.c:1804
 msgid "Car"
 msgstr "Mobil"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2128
 #: ../src/modules/bluetooth/module-bluez5-device.c:1809
 msgid "HiFi"
 msgstr "HiFi"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2133
 #: ../src/modules/bluetooth/module-bluez5-device.c:1814
 msgid "Phone"
 msgstr "Telepon"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2141
 #: ../src/modules/bluetooth/module-bluez5-device.c:1766
 #: ../src/modules/bluetooth/module-bluez5-device.c:1782
 #: ../src/modules/bluetooth/module-bluez5-device.c:1820
 msgid "Bluetooth Output"
 msgstr "Keluaran Bluetooth"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2144
 #: ../src/modules/bluetooth/module-bluez5-device.c:1765
 #: ../src/modules/bluetooth/module-bluez5-device.c:1787
 #: ../src/modules/bluetooth/module-bluez5-device.c:1793
 #: ../src/modules/bluetooth/module-bluez5-device.c:1819
 msgid "Bluetooth Input"
 msgstr "Masukan Bluetooth"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2185
-msgid "High Fidelity Playback (A2DP)"
-msgstr "Main Ulang High Fidelity (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2197
-msgid "High Fidelity Capture (A2DP)"
-msgstr "High Fidelity Capture (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2209
-msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Dupleks Teleponi (HSP/HFP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2222
-msgid "Handsfree Gateway"
-msgstr "Gateway Handsfree"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1861
 #, fuzzy
