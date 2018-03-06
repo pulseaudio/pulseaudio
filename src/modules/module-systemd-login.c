@@ -84,6 +84,20 @@ static int add_session(struct userdata *u, const char *id) {
     pa_hashmap_put(u->sessions, session->id, session);
 
     pa_log_debug("Added new session %s", id);
+
+    /* Positive exit_idle_time is only useful when we have no session tracking
+     * capability, so we can set it to 0 now that we have detected a session.
+     * The benefit of setting exit_idle_time to 0 is that pulseaudio will exit
+     * immediately when the session ends. That in turn is useful, because some
+     * systems (those that use pam_systemd but don't use systemd for managing
+     * pulseaudio) clean $XDG_RUNTIME_DIR on logout, but fail to terminate all
+     * services that depend on the files in $XDG_RUNTIME_DIR. The directory
+     * contains our sockets, and if the sockets are removed without terminating
+     * pulseaudio, a quick relogin will likely cause trouble, because a new
+     * instance will be spawned while the old instance is still running. */
+    if (u->core->exit_idle_time > 0)
+        pa_core_set_exit_idle_time(u->core, 0);
+
     return 0;
 }
 

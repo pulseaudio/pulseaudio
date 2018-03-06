@@ -426,6 +426,16 @@ void pa_core_update_default_source(pa_core *core) {
     pa_hook_fire(&core->hooks[PA_CORE_HOOK_DEFAULT_SOURCE_CHANGED], core->default_source);
 }
 
+void pa_core_set_exit_idle_time(pa_core *core, int time) {
+    pa_assert(core);
+
+    if (time == core->exit_idle_time)
+        return;
+
+    pa_log_info("exit_idle_time: %i -> %i", core->exit_idle_time, time);
+    core->exit_idle_time = time;
+}
+
 static void exit_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata) {
     pa_core *c = userdata;
     pa_assert(c->exit_event == e);

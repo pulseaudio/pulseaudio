@@ -189,8 +189,21 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     <option>
       <p><opt>--exit-idle-time</opt><arg>=SECS</arg></p>
 
-      <optdesc><p>Terminate the daemon when idle and the specified
-      number of seconds passed.</p></optdesc>
+      <optdesc>
+        <p>Terminate the daemon after the last client quit and this time in
+        seconds passed. Use a negative value to disable this feature. Defaults
+        to 20.</p>
+
+        <p>When PulseAudio runs in the per-user mode and detects a login
+        session, then any positive value will be reset to 0 so that PulseAudio
+        will terminate immediately on logout. A positive value therefore has
+        effect only in environments where there's no support for login session
+        tracking. A negative value can still be used to disable any automatic
+        exit.</p>
+
+        <p>When PulseAudio runs in the system mode, automatic exit is always
+        disabled, so this option does nothing.</p>
+      </optdesc>
     </option>
 
     <option>
