@@ -154,20 +154,23 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static int trigger(struct userdata *u, bool quick) {
+/* Sink and source states are passed as arguments, because this is called
+ * during state changes, and we need the new state, but thread_info.state
+ * has not yet been updated. */
+static void trigger(struct userdata *u, pa_sink_state_t sink_state, pa_source_state_t source_state, bool quick) {
     int enable_bits = 0, zero = 0;
 
     pa_assert(u);
 
     if (u->fd < 0)
-        return 0;
+        return;
 
     pa_log_debug("trigger");
 
-    if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state))
+    if (u->source && PA_SOURCE_IS_OPENED(source_state))
         enable_bits |= PCM_ENABLE_INPUT;
 
-    if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state))
+    if (u->sink && PA_SINK_IS_OPENED(sink_state))
         enable_bits |= PCM_ENABLE_OUTPUT;
 
     pa_log_debug("trigger: %i", enable_bits);
@@ -204,21 +207,20 @@ static int trigger(struct userdata *u, bool quick) {
              * register the fd as ready.
              */
 
-            if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
+            if (u->source && PA_SOURCE_IS_OPENED(source_state)) {
                 uint8_t *buf = pa_xnew(uint8_t, u->in_fragment_size);
 
-                if (pa_read(u->fd, buf, u->in_fragment_size, NULL) < 0) {
+                /* XXX: Shouldn't this be done only when resuming the source?
+                 * Currently this code path is executed also when resuming the
+                 * sink while the source is already running. */
+
+                if (pa_read(u->fd, buf, u->in_fragment_size, NULL) < 0)
                     pa_log("pa_read() failed: %s", pa_cstrerror(errno));
-                    pa_xfree(buf);
-                    return -1;
-                }
 
                 pa_xfree(buf);
             }
         }
     }
-
-    return 0;
 }
 
 static void mmap_fill_memblocks(struct userdata *u, unsigned n) {
@@ -641,8 +643,8 @@ fail:
 /* Called from IO context */
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
-    int ret;
     bool do_trigger = false, quick = true;
+    pa_sink_state_t new_state;
 
     switch (code) {
 
@@ -662,8 +664,9 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         }
 
         case PA_SINK_MESSAGE_SET_STATE:
+            new_state = PA_PTR_TO_UINT(data);
 
-            switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
+            switch (new_state) {
 
                 case PA_SINK_SUSPENDED:
                     pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
@@ -709,23 +712,18 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             }
 
             break;
-
     }
 
-    ret = pa_sink_process_msg(o, code, data, offset, chunk);
+    if (do_trigger)
+        trigger(u, new_state, u->source ? u->source->thread_info.state : PA_SOURCE_INVALID_STATE, quick);
 
-    if (ret >= 0 && do_trigger) {
-        if (trigger(u, quick) < 0)
-            return -1;
-    }
-
-    return ret;
+    return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE(o)->userdata;
-    int ret;
-    int do_trigger = false, quick = true;
+    bool do_trigger = false, quick = true;
+    pa_source_state_t new_state;
 
     switch (code) {
 
@@ -744,8 +742,10 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         }
 
         case PA_SOURCE_MESSAGE_SET_STATE:
+            new_state = PA_PTR_TO_UINT(data);
 
-            switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
+            switch (new_state) {
+
                 case PA_SOURCE_SUSPENDED:
                     pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
 
@@ -789,17 +789,12 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
             }
             break;
-
     }
 
-    ret = pa_source_process_msg(o, code, data, offset, chunk);
+    if (do_trigger)
+        trigger(u, u->sink ? u->sink->thread_info.state : PA_SINK_INVALID_STATE, new_state, quick);
 
-    if (ret >= 0 && do_trigger) {
-        if (trigger(u, quick) < 0)
-            return -1;
-    }
-
-    return ret;
+    return pa_source_process_msg(o, code, data, offset, chunk);
 }
 
 static void sink_get_volume(pa_sink *s) {
