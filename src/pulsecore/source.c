@@ -141,7 +141,7 @@ void pa_source_new_data_done(pa_source_new_data *data) {
 static void reset_callbacks(pa_source *s) {
     pa_assert(s);
 
-    s->set_state = NULL;
+    s->set_state_in_main_thread = NULL;
     s->get_volume = NULL;
     s->set_volume = NULL;
     s->write_volume = NULL;
@@ -381,9 +381,9 @@ static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_ca
      * cause, or it might just add unnecessary complexity, given that the
      * current approach of not setting any suspend cause works well enough. */
 
-    if (s->set_state) {
-        ret = s->set_state(s, state, suspend_cause);
-        /* set_state() is allowed to fail only when resuming. */
+    if (s->set_state_in_main_thread) {
+        ret = s->set_state_in_main_thread(s, state, suspend_cause);
+        /* set_state_in_main_thread() is allowed to fail only when resuming. */
         pa_assert(ret >= 0 || resuming);
     }
 
@@ -392,8 +392,8 @@ static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_ca
             /* SET_STATE is allowed to fail only when resuming. */
             pa_assert(resuming);
 
-            if (s->set_state)
-                s->set_state(s, PA_SOURCE_SUSPENDED, 0);
+            if (s->set_state_in_main_thread)
+                s->set_state_in_main_thread(s, PA_SOURCE_SUSPENDED, 0);
         }
 
     if (suspend_cause_changed) {

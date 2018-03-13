@@ -1230,7 +1230,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 }
 
 /* Called from main context */
-static int sink_set_state_cb(pa_sink *s, pa_sink_state_t new_state, pa_suspend_cause_t new_suspend_cause) {
+static int sink_set_state_in_main_thread_cb(pa_sink *s, pa_sink_state_t new_state, pa_suspend_cause_t new_suspend_cause) {
     pa_sink_state_t old_state;
     struct userdata *u;
 
@@ -2359,7 +2359,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     u->sink->parent.process_msg = sink_process_msg;
     if (u->use_tsched)
         u->sink->update_requested_latency = sink_update_requested_latency_cb;
-    u->sink->set_state = sink_set_state_cb;
+    u->sink->set_state_in_main_thread = sink_set_state_in_main_thread_cb;
     if (u->ucm_context)
         u->sink->set_port = sink_set_port_ucm_cb;
     else

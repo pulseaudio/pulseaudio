@@ -133,10 +133,11 @@ struct pa_source {
      * s->state and s->suspend_cause haven't been updated yet when this is
      * called, so the callback can get the old state through those variables.
      *
-     * If set_state() is successful, the IO thread will be notified with the
-     * SET_STATE message. The message handler is allowed to fail, in which
-     * case the old state is restored, and set_state() is called again. */
-    int (*set_state)(pa_source *source, pa_source_state_t state, pa_suspend_cause_t suspend_cause); /* may be NULL */
+     * If set_state_in_main_thread() is successful, the IO thread will be
+     * notified with the SET_STATE message. The message handler is allowed to
+     * fail, in which case the old state is restored, and
+     * set_state_in_main_thread() is called again. */
+    int (*set_state_in_main_thread)(pa_source *source, pa_source_state_t state, pa_suspend_cause_t suspend_cause); /* may be NULL */
 
     /* Called when the volume is queried. Called from main loop
      * context. If this is NULL a PA_SOURCE_MESSAGE_GET_VOLUME message

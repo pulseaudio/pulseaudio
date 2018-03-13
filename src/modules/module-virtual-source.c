@@ -111,7 +111,7 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
 }
 
 /* Called from main context */
-static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t suspend_cause) {
+static int sink_set_state_in_main_thread_cb(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t suspend_cause) {
     struct userdata *u;
 
     pa_sink_assert_ref(s);
@@ -194,7 +194,7 @@ static int source_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t 
 }
 
 /* Called from main context */
-static int source_set_state_cb(pa_source *s, pa_source_state_t state, pa_suspend_cause_t suspend_cause) {
+static int source_set_state_in_main_thread_cb(pa_source *s, pa_source_state_t state, pa_suspend_cause_t suspend_cause) {
     struct userdata *u;
 
     pa_source_assert_ref(s);
@@ -579,7 +579,7 @@ int pa__init(pa_module*m) {
     }
 
     u->source->parent.process_msg = source_process_msg_cb;
-    u->source->set_state = source_set_state_cb;
+    u->source->set_state_in_main_thread = source_set_state_in_main_thread_cb;
     u->source->update_requested_latency = source_update_requested_latency_cb;
     pa_source_set_set_mute_callback(u->source, source_set_mute_cb);
     if (!use_volume_sharing) {
@@ -667,7 +667,7 @@ int pa__init(pa_module*m) {
         u->sink->parent.process_msg = sink_process_msg_cb;
         u->sink->update_requested_latency = sink_update_requested_latency_cb;
         u->sink->request_rewind = sink_request_rewind_cb;
-        u->sink->set_state = sink_set_state_cb;
+        u->sink->set_state_in_main_thread = sink_set_state_in_main_thread_cb;
         u->sink->userdata = u;
 
         pa_sink_set_asyncmsgq(u->sink, master->asyncmsgq);

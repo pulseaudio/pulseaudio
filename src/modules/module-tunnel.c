@@ -568,7 +568,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 }
 
 /* Called from main context */
-static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t suspend_cause) {
+static int sink_set_state_in_main_thread_cb(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t suspend_cause) {
     struct userdata *u;
     pa_sink_assert_ref(s);
     u = s->userdata;
@@ -670,7 +670,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 }
 
 /* Called from main context */
-static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_cause_t suspend_cause) {
+static int source_set_state_in_main_thread_cb(pa_source *s, pa_source_state_t state, pa_suspend_cause_t suspend_cause) {
     struct userdata *u;
     pa_source_assert_ref(s);
     u = s->userdata;
@@ -2156,7 +2156,7 @@ int pa__init(pa_module*m) {
 
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
-    u->sink->set_state = sink_set_state;
+    u->sink->set_state_in_main_thread = sink_set_state_in_main_thread_cb;
     pa_sink_set_set_volume_callback(u->sink, sink_set_volume);
     pa_sink_set_set_mute_callback(u->sink, sink_set_mute);
 
@@ -2199,7 +2199,7 @@ int pa__init(pa_module*m) {
     }
 
     u->source->parent.process_msg = source_process_msg;
-    u->source->set_state = source_set_state;
+    u->source->set_state_in_main_thread = source_set_state_in_main_thread_cb;
     u->source->userdata = u;
 
 /*     pa_source_set_latency_range(u->source, MIN_NETWORK_LATENCY_USEC, 0); */

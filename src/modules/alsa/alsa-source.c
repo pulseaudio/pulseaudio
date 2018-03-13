@@ -1085,7 +1085,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 }
 
 /* Called from main context */
-static int source_set_state_cb(pa_source *s, pa_source_state_t new_state, pa_suspend_cause_t new_suspend_cause) {
+static int source_set_state_in_main_thread_cb(pa_source *s, pa_source_state_t new_state, pa_suspend_cause_t new_suspend_cause) {
     pa_source_state_t old_state;
     struct userdata *u;
 
@@ -2035,7 +2035,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     u->source->parent.process_msg = source_process_msg;
     if (u->use_tsched)
         u->source->update_requested_latency = source_update_requested_latency_cb;
-    u->source->set_state = source_set_state_cb;
+    u->source->set_state_in_main_thread = source_set_state_in_main_thread_cb;
     if (u->ucm_context)
         u->source->set_port = source_set_port_ucm_cb;
     else
