@@ -1039,46 +1039,6 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
             return 0;
         }
-
-        case PA_SOURCE_MESSAGE_SET_STATE:
-
-            switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
-
-                case PA_SOURCE_SUSPENDED: {
-                    pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
-
-                    suspend(u);
-
-                    break;
-                }
-
-                case PA_SOURCE_IDLE:
-                case PA_SOURCE_RUNNING: {
-                    int r;
-
-                    if (u->source->thread_info.state == PA_SOURCE_INIT) {
-                        if (build_pollfd(u) < 0)
-                            /* FIXME: This will cause an assertion failure in
-                             * pa_source_put(), because with the current design
-                             * pa_source_put() is not allowed to fail. */
-                            return -PA_ERR_IO;
-                    }
-
-                    if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
-                        if ((r = unsuspend(u)) < 0)
-                            return r;
-                    }
-
-                    break;
-                }
-
-                case PA_SOURCE_UNLINKED:
-                case PA_SOURCE_INIT:
-                case PA_SOURCE_INVALID_STATE:
-                    ;
-            }
-
-            break;
     }
 
     return pa_source_process_msg(o, code, data, offset, chunk);
@@ -1099,6 +1059,54 @@ static int source_set_state_in_main_thread_cb(pa_source *s, pa_source_state_t ne
     else if (old_state == PA_SOURCE_SUSPENDED && PA_SOURCE_IS_OPENED(new_state))
         if (reserve_init(u, u->device_name) < 0)
             return -PA_ERR_BUSY;
+
+    return 0;
+}
+
+/* Called from the IO thread. */
+static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_state) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    switch (new_state) {
+
+        case PA_SOURCE_SUSPENDED: {
+            pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
+
+            suspend(u);
+
+            break;
+        }
+
+        case PA_SOURCE_IDLE:
+        case PA_SOURCE_RUNNING: {
+            int r;
+
+            if (u->source->thread_info.state == PA_SOURCE_INIT) {
+                if (build_pollfd(u) < 0)
+                    /* FIXME: This will cause an assertion failure, because
+                     * with the current design pa_source_put() is not allowed
+                     * to fail and pa_source_put() has no fallback code that
+                     * would start the source suspended if opening the device
+                     * fails. */
+                    return -PA_ERR_IO;
+            }
+
+            if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
+                if ((r = unsuspend(u)) < 0)
+                    return r;
+            }
+
+            break;
+        }
+
+        case PA_SOURCE_UNLINKED:
+        case PA_SOURCE_INIT:
+        case PA_SOURCE_INVALID_STATE:
+            ;
+    }
 
     return 0;
 }
@@ -2036,6 +2044,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     if (u->use_tsched)
         u->source->update_requested_latency = source_update_requested_latency_cb;
     u->source->set_state_in_main_thread = source_set_state_in_main_thread_cb;
+    u->source->set_state_in_io_thread = source_set_state_in_io_thread_cb;
     if (u->ucm_context)
         u->source->set_port = source_set_port_ucm_cb;
     else

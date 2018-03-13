@@ -134,18 +134,6 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
                 pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec);
 
             return 0;
-
-        case PA_SINK_MESSAGE_SET_STATE: {
-            pa_sink_state_t new_state = (pa_sink_state_t) PA_PTR_TO_UINT(data);
-
-            /* When set to running or idle for the first time, request a rewind
-             * of the master sink to make sure we are heard immediately */
-            if ((new_state == PA_SINK_IDLE || new_state == PA_SINK_RUNNING) && u->sink->thread_info.state == PA_SINK_INIT) {
-                pa_log_debug("Requesting rewind due to state change.");
-                pa_sink_input_request_rewind(u->sink_input, 0, false, true, true);
-            }
-            break;
-        }
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
@@ -163,6 +151,23 @@ static int sink_set_state_in_main_thread_cb(pa_sink *s, pa_sink_state_t state, p
         return 0;
 
     pa_sink_input_cork(u->sink_input, state == PA_SINK_SUSPENDED);
+    return 0;
+}
+
+/* Called from the IO thread. */
+static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    /* When set to running or idle for the first time, request a rewind
+     * of the master sink to make sure we are heard immediately */
+    if ((new_state == PA_SINK_IDLE || new_state == PA_SINK_RUNNING) && u->sink->thread_info.state == PA_SINK_INIT) {
+        pa_log_debug("Requesting rewind due to state change.");
+        pa_sink_input_request_rewind(u->sink_input, 0, false, true, true);
+    }
+
     return 0;
 }
 
@@ -730,6 +735,7 @@ int pa__init(pa_module*m) {
 
     u->sink->parent.process_msg = sink_process_msg_cb;
     u->sink->set_state_in_main_thread = sink_set_state_in_main_thread_cb;
+    u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
     u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->request_rewind = sink_request_rewind_cb;
     pa_sink_set_set_mute_callback(u->sink, sink_set_mute_cb);

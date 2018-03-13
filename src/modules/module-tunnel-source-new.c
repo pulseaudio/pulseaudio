@@ -428,28 +428,37 @@ static int source_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t 
 
             return 0;
         }
-        case PA_SOURCE_MESSAGE_SET_STATE:
-            if (!u->stream || pa_stream_get_state(u->stream) != PA_STREAM_READY)
-                break;
-
-            switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
-                case PA_SOURCE_SUSPENDED: {
-                    cork_stream(u, true);
-                    break;
-                }
-                case PA_SOURCE_IDLE:
-                case PA_SOURCE_RUNNING: {
-                    cork_stream(u, false);
-                    break;
-                }
-                case PA_SOURCE_INVALID_STATE:
-                case PA_SOURCE_INIT:
-                case PA_SOURCE_UNLINKED:
-                    break;
-            }
-            break;
     }
     return pa_source_process_msg(o, code, data, offset, chunk);
+}
+
+/* Called from the IO thread. */
+static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_state) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    if (!u->stream || pa_stream_get_state(u->stream) != PA_STREAM_READY)
+        return 0;
+
+    switch (new_state) {
+        case PA_SOURCE_SUSPENDED: {
+            cork_stream(u, true);
+            break;
+        }
+        case PA_SOURCE_IDLE:
+        case PA_SOURCE_RUNNING: {
+            cork_stream(u, false);
+            break;
+        }
+        case PA_SOURCE_INVALID_STATE:
+        case PA_SOURCE_INIT:
+        case PA_SOURCE_UNLINKED:
+            break;
+    }
+
+    return 0;
 }
 
 int pa__init(pa_module *m) {
@@ -541,6 +550,7 @@ int pa__init(pa_module *m) {
     pa_source_new_data_done(&source_data);
     u->source->userdata = u;
     u->source->parent.process_msg = source_process_msg_cb;
+    u->source->set_state_in_io_thread = source_set_state_in_io_thread_cb;
     u->source->update_requested_latency = source_update_requested_latency_cb;
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq->inq);

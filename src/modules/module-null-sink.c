@@ -89,15 +89,6 @@ static int sink_process_msg(
     struct userdata *u = PA_SINK(o)->userdata;
 
     switch (code) {
-        case PA_SINK_MESSAGE_SET_STATE:
-
-            if (u->sink->thread_info.state == PA_SINK_SUSPENDED || u->sink->thread_info.state == PA_SINK_INIT) {
-                if (PA_SINK_IS_OPENED(PA_PTR_TO_UINT(data)))
-                    u->timestamp = pa_rtclock_now();
-            }
-
-            break;
-
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t now;
 
@@ -109,6 +100,21 @@ static int sink_process_msg(
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
+}
+
+/* Called from the IO thread. */
+static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    if (u->sink->thread_info.state == PA_SINK_SUSPENDED || u->sink->thread_info.state == PA_SINK_INIT) {
+        if (PA_SINK_IS_OPENED(new_state))
+            u->timestamp = pa_rtclock_now();
+    }
+
+    return 0;
 }
 
 static void sink_update_requested_latency_cb(pa_sink *s) {
@@ -297,6 +303,7 @@ int pa__init(pa_module*m) {
     }
 
     u->sink->parent.process_msg = sink_process_msg;
+    u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
     u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->userdata = u;
 

@@ -151,6 +151,7 @@ static void reset_callbacks(pa_sink *s) {
     pa_assert(s);
 
     s->set_state_in_main_thread = NULL;
+    s->set_state_in_io_thread = NULL;
     s->get_volume = NULL;
     s->set_volume = NULL;
     s->write_volume = NULL;
@@ -2849,6 +2850,13 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             bool suspend_change =
                 (s->thread_info.state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(PA_PTR_TO_UINT(userdata))) ||
                 (PA_SINK_IS_OPENED(s->thread_info.state) && PA_PTR_TO_UINT(userdata) == PA_SINK_SUSPENDED);
+
+            if (s->set_state_in_io_thread) {
+                int r;
+
+                if ((r = s->set_state_in_io_thread(s, PA_PTR_TO_UINT(userdata))) < 0)
+                    return r;
+            }
 
             s->thread_info.state = PA_PTR_TO_UINT(userdata);
 

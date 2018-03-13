@@ -136,64 +136,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     pa_assert(u->raop);
 
     switch (code) {
-        case PA_SINK_MESSAGE_SET_STATE: {
-            switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
-                case PA_SINK_SUSPENDED: {
-                    pa_log_debug("RAOP: SUSPENDED");
-
-                    pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
-
-                    /* Issue a TEARDOWN if we are still connected */
-                    if (pa_raop_client_is_alive(u->raop)) {
-                        pa_raop_client_teardown(u->raop);
-                    }
-
-                    break;
-                }
-
-                case PA_SINK_IDLE: {
-                    pa_log_debug("RAOP: IDLE");
-
-                    /* Issue a FLUSH if we're comming from running state */
-                    if (u->sink->thread_info.state == PA_SINK_RUNNING) {
-                        pa_rtpoll_set_timer_disabled(u->rtpoll);
-                        pa_raop_client_flush(u->raop);
-                    }
-
-                    break;
-                }
-
-                case PA_SINK_RUNNING: {
-                    pa_usec_t now;
-
-                    pa_log_debug("RAOP: RUNNING");
-
-                    now = pa_rtclock_now();
-                    pa_smoother_reset(u->smoother, now, false);
-
-                    if (!pa_raop_client_is_alive(u->raop)) {
-                        /* Connecting will trigger a RECORD and start steaming */
-                        pa_raop_client_announce(u->raop);
-                    } else if (!pa_raop_client_can_stream(u->raop)) {
-                        /* RECORD alredy sent, simply start streaming */
-                        pa_raop_client_stream(u->raop);
-                        pa_rtpoll_set_timer_absolute(u->rtpoll, now);
-                        u->write_count = 0;
-                        u->start = now;
-                    }
-
-                    break;
-                }
-
-                case PA_SINK_UNLINKED:
-                case PA_SINK_INIT:
-                case PA_SINK_INVALID_STATE:
-                    break;
-            }
-
-            break;
-        }
-
         case PA_SINK_MESSAGE_GET_LATENCY: {
             int64_t r = 0;
 
@@ -276,6 +218,68 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
+}
+
+/* Called from the IO thread. */
+static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    switch (new_state) {
+        case PA_SINK_SUSPENDED:
+            pa_log_debug("RAOP: SUSPENDED");
+
+            pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
+
+            /* Issue a TEARDOWN if we are still connected */
+            if (pa_raop_client_is_alive(u->raop)) {
+                pa_raop_client_teardown(u->raop);
+            }
+
+            break;
+
+        case PA_SINK_IDLE:
+            pa_log_debug("RAOP: IDLE");
+
+            /* Issue a FLUSH if we're comming from running state */
+            if (u->sink->thread_info.state == PA_SINK_RUNNING) {
+                pa_rtpoll_set_timer_disabled(u->rtpoll);
+                pa_raop_client_flush(u->raop);
+            }
+
+            break;
+
+        case PA_SINK_RUNNING: {
+            pa_usec_t now;
+
+            pa_log_debug("RAOP: RUNNING");
+
+            now = pa_rtclock_now();
+            pa_smoother_reset(u->smoother, now, false);
+
+            if (!pa_raop_client_is_alive(u->raop)) {
+                /* Connecting will trigger a RECORD and start steaming */
+                pa_raop_client_announce(u->raop);
+            } else if (!pa_raop_client_can_stream(u->raop)) {
+                /* RECORD alredy sent, simply start streaming */
+                pa_raop_client_stream(u->raop);
+                pa_rtpoll_set_timer_absolute(u->rtpoll, now);
+                u->write_count = 0;
+                u->start = now;
+            }
+
+            break;
+        }
+
+        case PA_SINK_UNLINKED:
+        case PA_SINK_INIT:
+        case PA_SINK_INVALID_STATE:
+            break;
+    }
+
+    return 0;
 }
 
 static void sink_set_volume_cb(pa_sink *s) {
@@ -696,6 +700,7 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
     }
 
     u->sink->parent.process_msg = sink_process_msg;
+    u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
     pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
     pa_sink_set_set_mute_callback(u->sink, sink_set_mute_cb);
     u->sink->userdata = u;

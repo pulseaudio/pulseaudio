@@ -386,45 +386,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
     switch (code) {
 
-        case PA_SINK_MESSAGE_SET_STATE:
-
-            switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
-
-                case PA_SINK_SUSPENDED:
-                    /* Ignore if transition is PA_SINK_INIT->PA_SINK_SUSPENDED */
-                    if (!PA_SINK_IS_OPENED(u->sink->thread_info.state))
-                        break;
-
-                    /* Stop the device if the source is suspended as well */
-                    if (!u->source || u->source->state == PA_SOURCE_SUSPENDED)
-                        /* We deliberately ignore whether stopping
-                         * actually worked. Since the stream_fd is
-                         * closed it doesn't really matter */
-                        bt_transport_release(u);
-
-                    break;
-
-                case PA_SINK_IDLE:
-                case PA_SINK_RUNNING:
-                    if (u->sink->thread_info.state != PA_SINK_SUSPENDED)
-                        break;
-
-                    /* Resume the device if the source was suspended as well */
-                    if (!u->source || !PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
-                        if (bt_transport_acquire(u, false) < 0)
-                            return -1;
-                        else
-                            setup_stream(u);
-                    }
-                    break;
-
-                case PA_SINK_UNLINKED:
-                case PA_SINK_INIT:
-                case PA_SINK_INVALID_STATE:
-                    ;
-            }
-            break;
-
         case PA_SINK_MESSAGE_GET_LATENCY: {
 
             if (u->read_smoother) {
@@ -451,6 +412,52 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
+/* Called from the IO thread. */
+static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    switch (new_state) {
+
+        case PA_SINK_SUSPENDED:
+            /* Ignore if transition is PA_SINK_INIT->PA_SINK_SUSPENDED */
+            if (!PA_SINK_IS_OPENED(u->sink->thread_info.state))
+                break;
+
+            /* Stop the device if the source is suspended as well */
+            if (!u->source || u->source->state == PA_SOURCE_SUSPENDED)
+                /* We deliberately ignore whether stopping
+                 * actually worked. Since the stream_fd is
+                 * closed it doesn't really matter */
+                bt_transport_release(u);
+
+            break;
+
+        case PA_SINK_IDLE:
+        case PA_SINK_RUNNING:
+            if (u->sink->thread_info.state != PA_SINK_SUSPENDED)
+                break;
+
+            /* Resume the device if the source was suspended as well */
+            if (!u->source || !PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
+                if (bt_transport_acquire(u, false) < 0)
+                    return -1;
+                else
+                    setup_stream(u);
+            }
+            break;
+
+        case PA_SINK_UNLINKED:
+        case PA_SINK_INIT:
+        case PA_SINK_INVALID_STATE:
+            break;
+    }
+
+    return 0;
+}
+
 /* Run from IO thread */
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE(o)->userdata;
@@ -459,46 +466,6 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
     pa_assert(u->transport);
 
     switch (code) {
-
-        case PA_SOURCE_MESSAGE_SET_STATE:
-
-            switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
-
-                case PA_SOURCE_SUSPENDED:
-                    /* Ignore if transition is PA_SOURCE_INIT->PA_SOURCE_SUSPENDED */
-                    if (!PA_SOURCE_IS_OPENED(u->source->thread_info.state))
-                        break;
-
-                    /* Stop the device if the sink is suspended as well */
-                    if (!u->sink || u->sink->state == PA_SINK_SUSPENDED)
-                        bt_transport_release(u);
-
-                    if (u->read_smoother)
-                        pa_smoother_pause(u->read_smoother, pa_rtclock_now());
-                    break;
-
-                case PA_SOURCE_IDLE:
-                case PA_SOURCE_RUNNING:
-                    if (u->source->thread_info.state != PA_SOURCE_SUSPENDED)
-                        break;
-
-                    /* Resume the device if the sink was suspended as well */
-                    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
-                        if (bt_transport_acquire(u, false) < 0)
-                            return -1;
-                        else
-                            setup_stream(u);
-                    }
-                    /* We don't resume the smoother here. Instead we
-                     * wait until the first packet arrives */
-                    break;
-
-                case PA_SOURCE_UNLINKED:
-                case PA_SOURCE_INIT:
-                case PA_SOURCE_INVALID_STATE:
-                    ;
-            }
-            break;
 
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
             int64_t wi, ri;
@@ -517,6 +484,53 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
     }
 
     return pa_source_process_msg(o, code, data, offset, chunk);
+}
+
+/* Called from the IO thread. */
+static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_state) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    switch (new_state) {
+
+        case PA_SOURCE_SUSPENDED:
+            /* Ignore if transition is PA_SOURCE_INIT->PA_SOURCE_SUSPENDED */
+            if (!PA_SOURCE_IS_OPENED(u->source->thread_info.state))
+                break;
+
+            /* Stop the device if the sink is suspended as well */
+            if (!u->sink || u->sink->state == PA_SINK_SUSPENDED)
+                bt_transport_release(u);
+
+            if (u->read_smoother)
+                pa_smoother_pause(u->read_smoother, pa_rtclock_now());
+            break;
+
+        case PA_SOURCE_IDLE:
+        case PA_SOURCE_RUNNING:
+            if (u->source->thread_info.state != PA_SOURCE_SUSPENDED)
+                break;
+
+            /* Resume the device if the sink was suspended as well */
+            if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
+                if (bt_transport_acquire(u, false) < 0)
+                    return -1;
+                else
+                    setup_stream(u);
+            }
+            /* We don't resume the smoother here. Instead we
+             * wait until the first packet arrives */
+            break;
+
+        case PA_SOURCE_UNLINKED:
+        case PA_SOURCE_INIT:
+        case PA_SOURCE_INVALID_STATE:
+            break;
+    }
+
+    return 0;
 }
 
 /* Called from main thread context */
@@ -1591,6 +1605,7 @@ static int add_sink(struct userdata *u) {
 
         u->sink->userdata = u;
         u->sink->parent.process_msg = sink_process_msg;
+        u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
         u->sink->set_port = sink_set_port_cb;
     }
 
@@ -1663,6 +1678,7 @@ static int add_source(struct userdata *u) {
 
         u->source->userdata = u;
         u->source->parent.process_msg = source_process_msg;
+        u->source->set_state_in_io_thread = source_set_state_in_io_thread_cb;
         u->source->set_port = source_set_port_cb;
     }
 

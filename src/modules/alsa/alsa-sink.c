@@ -1184,46 +1184,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             return 0;
         }
-
-        case PA_SINK_MESSAGE_SET_STATE:
-
-            switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
-
-                case PA_SINK_SUSPENDED: {
-                    pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
-
-                    suspend(u);
-
-                    break;
-                }
-
-                case PA_SINK_IDLE:
-                case PA_SINK_RUNNING: {
-                    int r;
-
-                    if (u->sink->thread_info.state == PA_SINK_INIT) {
-                        if (build_pollfd(u) < 0)
-                            /* FIXME: This will cause an assertion failure in
-                             * pa_sink_put(), because with the current design
-                             * pa_sink_put() is not allowed to fail. */
-                            return -PA_ERR_IO;
-                    }
-
-                    if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
-                        if ((r = unsuspend(u)) < 0)
-                            return r;
-                    }
-
-                    break;
-                }
-
-                case PA_SINK_UNLINKED:
-                case PA_SINK_INIT:
-                case PA_SINK_INVALID_STATE:
-                    ;
-            }
-
-            break;
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
@@ -1244,6 +1204,54 @@ static int sink_set_state_in_main_thread_cb(pa_sink *s, pa_sink_state_t new_stat
     else if (old_state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(new_state))
         if (reserve_init(u, u->device_name) < 0)
             return -PA_ERR_BUSY;
+
+    return 0;
+}
+
+/* Called from the IO thread. */
+static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    switch (new_state) {
+
+        case PA_SINK_SUSPENDED: {
+            pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
+
+            suspend(u);
+
+            break;
+        }
+
+        case PA_SINK_IDLE:
+        case PA_SINK_RUNNING: {
+            int r;
+
+            if (u->sink->thread_info.state == PA_SINK_INIT) {
+                if (build_pollfd(u) < 0)
+                    /* FIXME: This will cause an assertion failure, because
+                     * with the current design pa_sink_put() is not allowed
+                     * to fail and pa_sink_put() has no fallback code that
+                     * would start the sink suspended if opening the device
+                     * fails. */
+                    return -PA_ERR_IO;
+            }
+
+            if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
+                if ((r = unsuspend(u)) < 0)
+                    return r;
+            }
+
+            break;
+        }
+
+        case PA_SINK_UNLINKED:
+        case PA_SINK_INIT:
+        case PA_SINK_INVALID_STATE:
+            break;
+    }
 
     return 0;
 }
@@ -2360,6 +2368,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     if (u->use_tsched)
         u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->set_state_in_main_thread = sink_set_state_in_main_thread_cb;
+    u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
     if (u->ucm_context)
         u->sink->set_port = sink_set_port_ucm_cb;
     else

@@ -125,19 +125,31 @@ struct pa_source {
 
     bool set_mute_in_progress;
 
-    /* Called when the main loop requests a state change. Called from
-     * main loop context. If returns -1 the state change will be
-     * inhibited. This will also be called even if only the suspend cause
+    /* Callbacks for doing things when the source state and/or suspend cause is
+     * changed. It's fine to set either or both of the callbacks to NULL if the
+     * implementation doesn't have anything to do on state or suspend cause
      * changes.
      *
-     * s->state and s->suspend_cause haven't been updated yet when this is
-     * called, so the callback can get the old state through those variables.
+     * set_state_in_main_thread() is called first. The callback is allowed to
+     * report failure if and only if the source changes its state from
+     * SUSPENDED to IDLE or RUNNING. (FIXME: It would make sense to allow
+     * failure also when changing state from INIT to IDLE or RUNNING, but
+     * currently that will crash pa_source_put().) If
+     * set_state_in_main_thread() fails, set_state_in_io_thread() won't be
+     * called.
      *
-     * If set_state_in_main_thread() is successful, the IO thread will be
-     * notified with the SET_STATE message. The message handler is allowed to
-     * fail, in which case the old state is restored, and
-     * set_state_in_main_thread() is called again. */
-    int (*set_state_in_main_thread)(pa_source *source, pa_source_state_t state, pa_suspend_cause_t suspend_cause); /* may be NULL */
+     * If set_state_in_main_thread() is successful (or not set), then
+     * set_state_in_io_thread() is called. Again, failure is allowed if and
+     * only if the source changes state from SUSPENDED to IDLE or RUNNING. If
+     * set_state_in_io_thread() fails, then set_state_in_main_thread() is
+     * called again, this time with the state parameter set to SUSPENDED and
+     * the suspend_cause parameter set to 0.
+     *
+     * pa_source.state, pa_source.thread_info.state and pa_source.suspend_cause
+     * are updated only after all the callback calls. In case of failure, the
+     * state is set to SUSPENDED and the suspend cause is set to 0. */
+    int (*set_state_in_main_thread)(pa_source *s, pa_source_state_t state, pa_suspend_cause_t suspend_cause); /* may be NULL */
+    int (*set_state_in_io_thread)(pa_source *s, pa_source_state_t state); /* may be NULL */
 
     /* Called when the volume is queried. Called from main loop
      * context. If this is NULL a PA_SOURCE_MESSAGE_GET_VOLUME message

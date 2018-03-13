@@ -87,13 +87,6 @@ static int source_process_msg(
 
     switch (code) {
 
-        case PA_SOURCE_MESSAGE_SET_STATE:
-
-            if (PA_PTR_TO_UINT(data) == PA_SOURCE_RUNNING)
-                u->timestamp = pa_rtclock_now();
-
-            break;
-
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
             pa_usec_t now, left_to_fill;
 
@@ -107,6 +100,19 @@ static int source_process_msg(
     }
 
     return pa_source_process_msg(o, code, data, offset, chunk);
+}
+
+/* Called from the IO thread. */
+static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_state) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    if (new_state == PA_SOURCE_RUNNING)
+        u->timestamp = pa_rtclock_now();
+
+    return 0;
 }
 
 static void source_update_requested_latency_cb(pa_source *s) {
@@ -257,6 +263,7 @@ int pa__init(pa_module*m) {
     }
 
     u->source->parent.process_msg = source_process_msg;
+    u->source->set_state_in_io_thread = source_set_state_in_io_thread_cb;
     u->source->update_requested_latency = source_update_requested_latency_cb;
     u->source->userdata = u;
 

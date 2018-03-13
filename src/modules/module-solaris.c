@@ -390,51 +390,57 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         case PA_SINK_MESSAGE_GET_LATENCY:
             *((int64_t*) data) = sink_get_latency(u, &PA_SINK(o)->sample_spec);
             return 0;
-
-        case PA_SINK_MESSAGE_SET_STATE:
-
-            switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
-
-                case PA_SINK_SUSPENDED:
-
-                    pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
-
-                    pa_smoother_pause(u->smoother, pa_rtclock_now());
-
-                    if (!u->source || u->source_suspended)
-                        suspend(u);
-
-                    u->sink_suspended = true;
-                    break;
-
-                case PA_SINK_IDLE:
-                case PA_SINK_RUNNING:
-
-                    if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
-                        pa_smoother_resume(u->smoother, pa_rtclock_now(), true);
-
-                        if (!u->source || u->source_suspended) {
-                            bool mute;
-                            if (unsuspend(u) < 0)
-                                return -1;
-                            u->sink->get_volume(u->sink);
-                            if (u->sink->get_mute(u->sink, &mute) >= 0)
-                                pa_sink_set_mute(u->sink, mute, false);
-                        }
-                        u->sink_suspended = false;
-                    }
-                    break;
-
-                case PA_SINK_INVALID_STATE:
-                case PA_SINK_UNLINKED:
-                case PA_SINK_INIT:
-                    ;
-            }
-
-            break;
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
+}
+
+/* Called from the IO thread. */
+static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    switch (new_state) {
+
+        case PA_SINK_SUSPENDED:
+
+            pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
+
+            pa_smoother_pause(u->smoother, pa_rtclock_now());
+
+            if (!u->source || u->source_suspended)
+                suspend(u);
+
+            u->sink_suspended = true;
+            break;
+
+        case PA_SINK_IDLE:
+        case PA_SINK_RUNNING:
+
+            if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
+                pa_smoother_resume(u->smoother, pa_rtclock_now(), true);
+
+                if (!u->source || u->source_suspended) {
+                    bool mute;
+                    if (unsuspend(u) < 0)
+                        return -1;
+                    u->sink->get_volume(u->sink);
+                    if (u->sink->get_mute(u->sink, &mute) >= 0)
+                        pa_sink_set_mute(u->sink, mute, false);
+                }
+                u->sink_suspended = false;
+            }
+            break;
+
+        case PA_SINK_INVALID_STATE:
+        case PA_SINK_UNLINKED:
+        case PA_SINK_INIT:
+            ;
+    }
+
+    return 0;
 }
 
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
@@ -445,45 +451,51 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         case PA_SOURCE_MESSAGE_GET_LATENCY:
             *((pa_usec_t*) data) = source_get_latency(u, &PA_SOURCE(o)->sample_spec);
             return 0;
-
-        case PA_SOURCE_MESSAGE_SET_STATE:
-
-            switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
-
-                case PA_SOURCE_SUSPENDED:
-
-                    pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
-
-                    if (!u->sink || u->sink_suspended)
-                        suspend(u);
-
-                    u->source_suspended = true;
-                    break;
-
-                case PA_SOURCE_IDLE:
-                case PA_SOURCE_RUNNING:
-
-                    if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
-                        if (!u->sink || u->sink_suspended) {
-                            if (unsuspend(u) < 0)
-                                return -1;
-                            u->source->get_volume(u->source);
-                        }
-                        u->source_suspended = false;
-                    }
-                    break;
-
-                case PA_SOURCE_UNLINKED:
-                case PA_SOURCE_INIT:
-                case PA_SOURCE_INVALID_STATE:
-                    ;
-
-            }
-            break;
-
     }
 
     return pa_source_process_msg(o, code, data, offset, chunk);
+}
+
+/* Called from the IO thread. */
+static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_state) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    switch (new_state) {
+
+        case PA_SOURCE_SUSPENDED:
+
+            pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
+
+            if (!u->sink || u->sink_suspended)
+                suspend(u);
+
+            u->source_suspended = true;
+            break;
+
+        case PA_SOURCE_IDLE:
+        case PA_SOURCE_RUNNING:
+
+            if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
+                if (!u->sink || u->sink_suspended) {
+                    if (unsuspend(u) < 0)
+                        return -1;
+                    u->source->get_volume(u->source);
+                }
+                u->source_suspended = false;
+            }
+            break;
+
+        case PA_SOURCE_UNLINKED:
+        case PA_SOURCE_INIT:
+        case PA_SOURCE_INVALID_STATE:
+            ;
+
+    }
+
+    return 0;
 }
 
 static void sink_set_volume(pa_sink *s) {
@@ -960,6 +972,7 @@ int pa__init(pa_module *m) {
 
         u->source->userdata = u;
         u->source->parent.process_msg = source_process_msg;
+        u->source->set_state_in_io_thread = source_set_state_in_io_thread_cb;
 
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_rtpoll(u->source, u->rtpoll);
@@ -1003,6 +1016,7 @@ int pa__init(pa_module *m) {
         pa_assert(u->sink);
         u->sink->userdata = u;
         u->sink->parent.process_msg = sink_process_msg;
+        u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
 
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);

@@ -718,6 +718,25 @@ static int sink_set_state_in_main_thread_cb(pa_sink *sink, pa_sink_state_t state
     return 0;
 }
 
+/* Called from the IO thread. */
+static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state) {
+    struct userdata *u;
+    bool running;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    running = new_state == PA_SINK_RUNNING;
+    pa_atomic_store(&u->thread_info.running, running);
+
+    if (running)
+        pa_smoother_resume(u->thread_info.smoother, pa_rtclock_now(), true);
+    else
+        pa_smoother_pause(u->thread_info.smoother, pa_rtclock_now());
+
+    return 0;
+}
+
 /* Called from IO context */
 static void update_max_request(struct userdata *u) {
     size_t max_request = 0;
@@ -858,19 +877,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     struct userdata *u = PA_SINK(o)->userdata;
 
     switch (code) {
-
-        case PA_SINK_MESSAGE_SET_STATE: {
-            bool running = (PA_PTR_TO_UINT(data) == PA_SINK_RUNNING);
-
-            pa_atomic_store(&u->thread_info.running, running);
-
-            if (running)
-                pa_smoother_resume(u->thread_info.smoother, pa_rtclock_now(), true);
-            else
-                pa_smoother_pause(u->thread_info.smoother, pa_rtclock_now());
-
-            break;
-        }
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t x, y, c;
@@ -1426,6 +1432,7 @@ int pa__init(pa_module*m) {
 
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->set_state_in_main_thread = sink_set_state_in_main_thread_cb;
+    u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
     u->sink->update_requested_latency = sink_update_requested_latency;
     u->sink->userdata = u;
 

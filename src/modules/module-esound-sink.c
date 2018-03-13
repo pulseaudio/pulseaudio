@@ -141,32 +141,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
     switch (code) {
 
-        case PA_SINK_MESSAGE_SET_STATE:
-
-            switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
-
-                case PA_SINK_SUSPENDED:
-                    pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
-
-                    pa_smoother_pause(u->smoother, pa_rtclock_now());
-                    break;
-
-                case PA_SINK_IDLE:
-                case PA_SINK_RUNNING:
-
-                    if (u->sink->thread_info.state == PA_SINK_SUSPENDED)
-                        pa_smoother_resume(u->smoother, pa_rtclock_now(), true);
-
-                    break;
-
-                case PA_SINK_UNLINKED:
-                case PA_SINK_INIT:
-                case PA_SINK_INVALID_STATE:
-                    ;
-            }
-
-            break;
-
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t w, r;
 
@@ -192,6 +166,38 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
+}
+
+/* Called from the IO thread. */
+static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    switch (new_state) {
+
+        case PA_SINK_SUSPENDED:
+            pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
+
+            pa_smoother_pause(u->smoother, pa_rtclock_now());
+            break;
+
+        case PA_SINK_IDLE:
+        case PA_SINK_RUNNING:
+
+            if (u->sink->thread_info.state == PA_SINK_SUSPENDED)
+                pa_smoother_resume(u->smoother, pa_rtclock_now(), true);
+
+            break;
+
+        case PA_SINK_UNLINKED:
+        case PA_SINK_INIT:
+        case PA_SINK_INVALID_STATE:
+            ;
+    }
+
+    return 0;
 }
 
 static void thread_func(void *userdata) {
@@ -611,6 +617,7 @@ int pa__init(pa_module*m) {
     }
 
     u->sink->parent.process_msg = sink_process_msg;
+    u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
     u->sink->userdata = u;
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
