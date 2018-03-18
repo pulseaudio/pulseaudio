@@ -1,99 +1,26 @@
 # Copyright (C) 2009 Free Software Foundation, Inc.
-# This file is distributed under the same license as the pulseaudio.master-tx package.
+# This file is distributed under the same license as the pulseaudio package.
 #
-# Yuri Chornoivan <yurchor@ukr.net>, 2009, 2012, 2013, 2014, 2015, 2017.
+# Yuri Chornoivan <yurchor@ukr.net>, 2009, 2012, 2013, 2014, 2015, 2017, 2018.
 msgid ""
 msgstr ""
-"Project-Id-Version: pulseaudio.master-tx\n"
-"Report-Msgid-Bugs-To: https://bugs.freedesktop.org/enter_bug.cgi?"
-"product=PulseAudio&keywords=I18N+L10N&component=misc\n"
-"POT-Creation-Date: 2017-05-22 15:43+0000\n"
-"PO-Revision-Date: 2017-06-25 22:26+0300\n"
+"Project-Id-Version: pulseaudio\n"
+"Report-Msgid-Bugs-To: https://bugs.freedesktop.org/enter_bug.cgi?product=Pulse"
+"Audio&keywords=I18N+L10N&component=misc\n"
+"POT-Creation-Date: 2017-12-09 03:27+0000\n"
+"PO-Revision-Date: 2018-03-18 12:35+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
-"Language-Team: Ukrainian <translation@linux.org.ua>\n"
+"Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 1.5\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Lokalize 2.0\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<"
+"=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: ../src/daemon/cmdline.c:113
 #, c-format
-#| msgid ""
-#| "%s [options]\n"
-#| "\n"
-#| "COMMANDS:\n"
-#| "  -h, --help                            Show this help\n"
-#| "      --version                         Show version\n"
-#| "      --dump-conf                       Dump default configuration\n"
-#| "      --dump-modules                    Dump list of available modules\n"
-#| "      --dump-resample-methods           Dump available resample methods\n"
-#| "      --cleanup-shm                     Cleanup stale shared memory "
-#| "segments\n"
-#| "      --start                           Start the daemon if it is not "
-#| "running\n"
-#| "  -k  --kill                            Kill a running daemon\n"
-#| "      --check                           Check for a running daemon (only "
-#| "returns exit code)\n"
-#| "\n"
-#| "OPTIONS:\n"
-#| "      --system[=BOOL]                   Run as system-wide instance\n"
-#| "  -D, --daemonize[=BOOL]                Daemonize after startup\n"
-#| "      --fail[=BOOL]                     Quit when startup fails\n"
-#| "      --high-priority[=BOOL]            Try to set high nice level\n"
-#| "                                        (only available as root, when "
-#| "SUID or\n"
-#| "                                        with elevated RLIMIT_NICE)\n"
-#| "      --realtime[=BOOL]                 Try to enable realtime "
-#| "scheduling\n"
-#| "                                        (only available as root, when "
-#| "SUID or\n"
-#| "                                        with elevated RLIMIT_RTPRIO)\n"
-#| "      --disallow-module-loading[=BOOL]  Disallow module user requested "
-#| "module\n"
-#| "                                        loading/unloading after startup\n"
-#| "      --disallow-exit[=BOOL]            Disallow user requested exit\n"
-#| "      --exit-idle-time=SECS             Terminate the daemon when idle "
-#| "and this\n"
-#| "                                        time passed\n"
-#| "      --scache-idle-time=SECS           Unload autoloaded samples when "
-#| "idle and\n"
-#| "                                        this time passed\n"
-#| "      --log-level[=LEVEL]               Increase or set verbosity level\n"
-#| "  -v  --verbose                         Increase the verbosity level\n"
-#| "      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
-#| "                                        Specify the log target\n"
-#| "      --log-meta[=BOOL]                 Include code location in log "
-#| "messages\n"
-#| "      --log-time[=BOOL]                 Include timestamps in log "
-#| "messages\n"
-#| "      --log-backtrace=FRAMES            Include a backtrace in log "
-#| "messages\n"
-#| "  -p, --dl-search-path=PATH             Set the search path for dynamic "
-#| "shared\n"
-#| "                                        objects (plugins)\n"
-#| "      --resample-method=METHOD          Use the specified resampling "
-#| "method\n"
-#| "                                        (See --dump-resample-methods for\n"
-#| "                                        possible values)\n"
-#| "      --use-pid-file[=BOOL]             Create a PID file\n"
-#| "      --no-cpu-limit[=BOOL]             Do not install CPU load limiter "
-#| "on\n"
-#| "                                        platforms that support it.\n"
-#| "      --disable-shm[=BOOL]              Disable shared memory support.\n"
-#| "\n"
-#| "STARTUP SCRIPT:\n"
-#| "  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin "
-#| "module with\n"
-#| "                                        the specified argument\n"
-#| "  -F, --file=FILENAME                   Run the specified script\n"
-#| "  -C                                    Open a command line on the "
-#| "running TTY\n"
-#| "                                        after startup\n"
-#| "\n"
-#| "  -n                                    Don't load default script file\n"
 msgid ""
 "%s [options]\n"
 "\n"
@@ -329,7 +256,6 @@ msgid "--disable-shm expects boolean argument"
 msgstr "Для параметра --disable-shm слід вказувати булевий аргумент"
 
 #: ../src/daemon/cmdline.c:397
-#| msgid "--realtime expects boolean argument"
 msgid "--enable-memfd expects boolean argument"
 msgstr "Для параметра --enable-memfd слід вказувати булевий аргумент"
 
@@ -361,7 +287,7 @@ msgstr "[%s:%u] Некоректний формат фрагмента «%s»."
 #: ../src/daemon/daemon-conf.c:351 ../src/daemon/daemon-conf.c:368
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr "[%s:%u] Некоректна частота вибірки «%s»."
+msgstr "[%s:%u] Некоректна частота дискретизації «%s»."
 
 #: ../src/daemon/daemon-conf.c:391
 #, c-format
@@ -476,55 +402,55 @@ msgstr ""
 msgid "Failed to add bind-now-loader."
 msgstr "Не вдалося додати bind-now-loader."
 
-#: ../src/daemon/main.c:160
+#: ../src/daemon/main.c:162
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "Не вдалося знайти користувача «%s»."
 
-#: ../src/daemon/main.c:165
+#: ../src/daemon/main.c:167
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "Не вдалося знайти групу «%s»."
 
-#: ../src/daemon/main.c:174
+#: ../src/daemon/main.c:176
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "GID користувача «%s» і групи «%s» не збігаються."
 
-#: ../src/daemon/main.c:179
+#: ../src/daemon/main.c:181
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "Домашнім каталогом користувача «%s» не є «%s», дані проігноровано."
 
-#: ../src/daemon/main.c:182 ../src/daemon/main.c:187
+#: ../src/daemon/main.c:184 ../src/daemon/main.c:189
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Не вдалося створити «%s»: %s"
 
-#: ../src/daemon/main.c:194
+#: ../src/daemon/main.c:196
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "Не вдалося змінити список груп: %s"
 
-#: ../src/daemon/main.c:210
+#: ../src/daemon/main.c:212
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "Не вдалося змінити GID: %s"
 
-#: ../src/daemon/main.c:226
+#: ../src/daemon/main.c:228
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "Не вдалося змінити UID: %s"
 
-#: ../src/daemon/main.c:255
+#: ../src/daemon/main.c:257
 msgid "System wide mode unsupported on this platform."
 msgstr "Загальносистемний режим не підтримується на цій платформі."
 
-#: ../src/daemon/main.c:484
+#: ../src/daemon/main.c:486
 msgid "Failed to parse command line."
 msgstr "Не вдалося обробити рядок команди."
 
-#: ../src/daemon/main.c:523
+#: ../src/daemon/main.c:525
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
@@ -532,12 +458,12 @@ msgstr ""
 "Запуск у системному режимі для неадміністративного користувача неможливий. "
 "Буде запущено лише службу виявлення пристроїв сервера D-Bus."
 
-#: ../src/daemon/main.c:622
+#: ../src/daemon/main.c:624
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Не вдалося завершити роботу фонової служби: %s"
 
-#: ../src/daemon/main.c:651
+#: ../src/daemon/main.c:653
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -545,23 +471,23 @@ msgstr ""
 "Цю програму не призначено для запуску від імені користувача root (якщо не "
 "вказано параметра --system)."
 
-#: ../src/daemon/main.c:654
+#: ../src/daemon/main.c:656
 msgid "Root privileges required."
 msgstr "Потрібні права доступу користувача root."
 
-#: ../src/daemon/main.c:661
+#: ../src/daemon/main.c:663
 msgid "--start not supported for system instances."
 msgstr ""
 "Параметр --start не підтримується для загальносистемних екземплярів програми."
 
-#: ../src/daemon/main.c:701
+#: ../src/daemon/main.c:703
 #, c-format
 msgid "User-configured server at %s, refusing to start/autospawn."
 msgstr ""
 "Налаштований користувачем сервер на %s, не вдалося запустити/автоматично "
 "відновити роботу."
 
-#: ../src/daemon/main.c:707
+#: ../src/daemon/main.c:709
 #, c-format
 msgid ""
 "User-configured server at %s, which appears to be local. Probing deeper."
@@ -569,68 +495,60 @@ msgstr ""
 "Налаштований користувачем сервер на %s, який, здається, є локальним. "
 "Виконуємо докладнішу діагностику."
 
-#: ../src/daemon/main.c:712
+#: ../src/daemon/main.c:714
 msgid "Running in system mode, but --disallow-exit not set."
 msgstr ""
 "Запуск у загальносистемному режимі, але не встановлено --disallow-exit."
 
-#: ../src/daemon/main.c:715
+#: ../src/daemon/main.c:717
 msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr ""
 "Запуск у загальносистемному режимі, але не встановлено --disallow-module-"
 "loading."
 
-#: ../src/daemon/main.c:718
+#: ../src/daemon/main.c:720
 msgid "Running in system mode, forcibly disabling SHM mode."
 msgstr "Запуск у загальносистемному режимі, примусове вимикання режиму SHM."
 
-#: ../src/daemon/main.c:723
+#: ../src/daemon/main.c:725
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
 "Запуск у загальносистемному режимі, примусове вимикання режиму параметрів "
 "часу виходу, якщо немає активності."
 
-#: ../src/daemon/main.c:756
+#: ../src/daemon/main.c:758
 msgid "Failed to acquire stdio."
 msgstr "Не вдалося отримати stdio."
 
-#: ../src/daemon/main.c:762 ../src/daemon/main.c:833
+#: ../src/daemon/main.c:764 ../src/daemon/main.c:835
 #, c-format
 msgid "pipe() failed: %s"
 msgstr "Спроба виконання pipe() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:767 ../src/daemon/main.c:838
+#: ../src/daemon/main.c:769 ../src/daemon/main.c:840
 #, c-format
 msgid "fork() failed: %s"
 msgstr "Спроба виконання fork() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:782 ../src/daemon/main.c:853 ../src/utils/pacat.c:562
+#: ../src/daemon/main.c:784 ../src/daemon/main.c:855 ../src/utils/pacat.c:562
 #, c-format
 msgid "read() failed: %s"
 msgstr "Спроба виконання read() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:788
+#: ../src/daemon/main.c:790
 msgid "Daemon startup failed."
 msgstr "Спроба запуску фонової служби завершилася невдало."
 
-#: ../src/daemon/main.c:821
+#: ../src/daemon/main.c:823
 #, c-format
 msgid "setsid() failed: %s"
 msgstr "Спроба виконання setsid() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:948
+#: ../src/daemon/main.c:950
 msgid "Failed to get machine ID"
 msgstr "Спроба отримати ідентифікатор системи завершилася невдало"
 
-#: ../src/daemon/main.c:974
-#| msgid ""
-#| "OK, so you are running PA in system mode. Please note that you most "
-#| "likely shouldn't be doing that.\n"
-#| "If you do it nonetheless then it's your own fault if things don't work as "
-#| "expected.\n"
-#| "Please read http://www.freedesktop.org/wiki/Software/PulseAudio/"
-#| "Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why "
-#| "system mode is usually a bad idea."
+#: ../src/daemon/main.c:976
 msgid ""
 "OK, so you are running PA in system mode. Please make sure that you actually "
 "do want to do that.\n"
@@ -638,25 +556,25 @@ msgid ""
 "Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
 "mode is usually a bad idea."
 msgstr ""
-"Гаразд, ви запустили PA у системному режимі. Будь ласка, переконайтеся, що це "
-"саме те, що вам потрібно.\n"
+"Гаразд, ви запустили PA у системному режимі. Будь ласка, переконайтеся, що "
+"це саме те, що вам потрібно.\n"
 "Будь ласка, ознайомтеся зі статтею http://www.freedesktop.org/wiki/Software/"
 "PulseAudio/Documentation/User/WhatIsWrongWithSystemWide/ , щоб дізнатися про "
 "те, чому не варто використовувати системний режим."
 
-#: ../src/daemon/main.c:990
+#: ../src/daemon/main.c:992
 msgid "pa_pid_file_create() failed."
 msgstr "Спроба виконання pa_pid_file_create() зазнала невдачі."
 
-#: ../src/daemon/main.c:1022
+#: ../src/daemon/main.c:1024
 msgid "pa_core_new() failed."
 msgstr "Спроба виконання pa_core_new() зазнала невдачі."
 
-#: ../src/daemon/main.c:1092
+#: ../src/daemon/main.c:1094
 msgid "Failed to initialize daemon."
 msgstr "Не вдалося ініціалізувати фонову службу."
 
-#: ../src/daemon/main.c:1097
+#: ../src/daemon/main.c:1099
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Запуск фонової служби без жодного завантаженого модуля, служба не буде "
@@ -692,7 +610,7 @@ msgstr "Лінійний вхід"
 
 #: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
 #: ../src/modules/bluetooth/module-bluez4-device.c:2104
-#: ../src/modules/bluetooth/module-bluez5-device.c:1750
+#: ../src/modules/bluetooth/module-bluez5-device.c:1783
 msgid "Microphone"
 msgstr "Мікрофон"
 
@@ -754,7 +672,7 @@ msgstr "Без підсилення"
 
 #: ../src/modules/alsa/alsa-mixer.c:2398
 #: ../src/modules/bluetooth/module-bluez4-device.c:2109
-#: ../src/modules/bluetooth/module-bluez5-device.c:1757
+#: ../src/modules/bluetooth/module-bluez5-device.c:1790
 msgid "Speaker"
 msgstr "Гучномовець"
 
@@ -779,46 +697,51 @@ msgid "Analog Output"
 msgstr "Аналогове відтворення"
 
 #: ../src/modules/alsa/alsa-mixer.c:2472
+#| msgid "Analog Mono Output"
+msgid "Headphones Mono Output"
+msgstr "Моно-вихід навушників"
+
+#: ../src/modules/alsa/alsa-mixer.c:2473
 msgid "LFE on Separate Mono Output"
 msgstr "Аналоговий вихід (сабвуфер)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2473
+#: ../src/modules/alsa/alsa-mixer.c:2474
 msgid "Line Out"
 msgstr "Лінійний вихід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2474
+#: ../src/modules/alsa/alsa-mixer.c:2475
 msgid "Analog Mono Output"
 msgstr "Аналоговий моно-вихід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2475
+#: ../src/modules/alsa/alsa-mixer.c:2476
 msgid "Speakers"
 msgstr "Гучномовці"
 
-#: ../src/modules/alsa/alsa-mixer.c:2476
+#: ../src/modules/alsa/alsa-mixer.c:2477
 msgid "HDMI / DisplayPort"
 msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2477
+#: ../src/modules/alsa/alsa-mixer.c:2478
 msgid "Digital Output (S/PDIF)"
 msgstr "Цифровий вихід (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2478
+#: ../src/modules/alsa/alsa-mixer.c:2479
 msgid "Digital Input (S/PDIF)"
 msgstr "Цифровий вхід (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2479
+#: ../src/modules/alsa/alsa-mixer.c:2480
 msgid "Digital Passthrough (S/PDIF)"
 msgstr "Цифрове передавання (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2480
+#: ../src/modules/alsa/alsa-mixer.c:2481
 msgid "Multichannel Input"
 msgstr "Багатоканальний вхід"
 
-#: ../src/modules/alsa/alsa-mixer.c:2481
+#: ../src/modules/alsa/alsa-mixer.c:2482
 msgid "Multichannel Output"
 msgstr "Багатоканальний вихід"
 
-#: ../src/modules/alsa/alsa-mixer.c:3990
+#: ../src/modules/alsa/alsa-mixer.c:3991
 msgid "Analog Mono"
 msgstr "Аналогове моно"
 
@@ -827,125 +750,124 @@ msgstr "Аналогове моно"
 #. * here would lead to the source name to become "Analog Stereo Input
 #. * Input". The same logic applies to analog-stereo-output,
 #. * multichannel-input and multichannel-output.
-#: ../src/modules/alsa/alsa-mixer.c:3991 ../src/modules/alsa/alsa-mixer.c:3997
-#: ../src/modules/alsa/alsa-mixer.c:3998
+#: ../src/modules/alsa/alsa-mixer.c:3992 ../src/modules/alsa/alsa-mixer.c:3999
+#: ../src/modules/alsa/alsa-mixer.c:4000
 msgid "Analog Stereo"
 msgstr "Аналогове стерео"
 
-#: ../src/modules/alsa/alsa-mixer.c:3999 ../src/modules/alsa/alsa-mixer.c:4000
-msgid "Multichannel"
-msgstr "Багатоканальний"
-
-#: ../src/modules/alsa/alsa-mixer.c:4001
-msgid "Analog Surround 2.1"
-msgstr "Аналоговий об'ємний 2.1"
-
-#: ../src/modules/alsa/alsa-mixer.c:4002
-msgid "Analog Surround 3.0"
-msgstr "Аналоговий об'ємний 3.0"
-
-#: ../src/modules/alsa/alsa-mixer.c:4003
-msgid "Analog Surround 3.1"
-msgstr "Аналоговий об'ємний 3.1"
-
-#: ../src/modules/alsa/alsa-mixer.c:4004
-msgid "Analog Surround 4.0"
-msgstr "Аналоговий об'ємний 4.0"
-
-#: ../src/modules/alsa/alsa-mixer.c:4005
-msgid "Analog Surround 4.1"
-msgstr "Аналоговий об'ємний 4.1"
-
-#: ../src/modules/alsa/alsa-mixer.c:4006
-msgid "Analog Surround 5.0"
-msgstr "Аналоговий об'ємний 5.0"
-
-#: ../src/modules/alsa/alsa-mixer.c:4007
-msgid "Analog Surround 5.1"
-msgstr "Аналоговий об'ємний 5.1"
-
-#: ../src/modules/alsa/alsa-mixer.c:4008
-msgid "Analog Surround 6.0"
-msgstr "Аналоговий об'ємний 6.0"
-
-#: ../src/modules/alsa/alsa-mixer.c:4009
-msgid "Analog Surround 6.1"
-msgstr "Аналоговий об'ємний 6.1"
-
-#: ../src/modules/alsa/alsa-mixer.c:4010
-msgid "Analog Surround 7.0"
-msgstr "Аналоговий об'ємний 7.0"
-
-#: ../src/modules/alsa/alsa-mixer.c:4011
-msgid "Analog Surround 7.1"
-msgstr "Аналоговий об'ємний 7.1"
-
-#: ../src/modules/alsa/alsa-mixer.c:4012
-msgid "Digital Stereo (IEC958)"
-msgstr "Цифрове стерео (IEC958)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4013
-msgid "Digital Passthrough  (IEC958)"
-msgstr "Цифрове передавання (IEC958)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4014
-msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr "Цифровий об’ємний 4.0 (IEC958/AC3)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4015
-msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr "Цифровий об’ємний 5.1 (IEC958/AC3)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4016
-msgid "Digital Surround 5.1 (IEC958/DTS)"
-msgstr "Цифровий об’ємний 5.1 (IEC958/DTS)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4017
-msgid "Digital Stereo (HDMI)"
-msgstr "Цифровий стерео (HDMI)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4018
-msgid "Digital Surround 5.1 (HDMI)"
-msgstr "Цифровий об’ємний 5.1 (HDMI)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4019 ../src/pulse/channelmap.c:775
+#: ../src/modules/alsa/alsa-mixer.c:3993 ../src/pulse/channelmap.c:775
 msgid "Stereo"
 msgstr "Стерео"
 
-#: ../src/modules/alsa/alsa-mixer.c:4152
+#: ../src/modules/alsa/alsa-mixer.c:4001 ../src/modules/alsa/alsa-mixer.c:4002
+msgid "Multichannel"
+msgstr "Багатоканальний"
+
+#: ../src/modules/alsa/alsa-mixer.c:4003
+msgid "Analog Surround 2.1"
+msgstr "Аналоговий об'ємний 2.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4004
+msgid "Analog Surround 3.0"
+msgstr "Аналоговий об'ємний 3.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4005
+msgid "Analog Surround 3.1"
+msgstr "Аналоговий об'ємний 3.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4006
+msgid "Analog Surround 4.0"
+msgstr "Аналоговий об'ємний 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4007
+msgid "Analog Surround 4.1"
+msgstr "Аналоговий об'ємний 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4008
+msgid "Analog Surround 5.0"
+msgstr "Аналоговий об'ємний 5.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4009
+msgid "Analog Surround 5.1"
+msgstr "Аналоговий об'ємний 5.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4010
+msgid "Analog Surround 6.0"
+msgstr "Аналоговий об'ємний 6.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4011
+msgid "Analog Surround 6.1"
+msgstr "Аналоговий об'ємний 6.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4012
+msgid "Analog Surround 7.0"
+msgstr "Аналоговий об'ємний 7.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:4013
+msgid "Analog Surround 7.1"
+msgstr "Аналоговий об'ємний 7.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:4014
+msgid "Digital Stereo (IEC958)"
+msgstr "Цифрове стерео (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4015
+msgid "Digital Passthrough  (IEC958)"
+msgstr "Цифрове передавання (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4016
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr "Цифровий об’ємний 4.0 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4017
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr "Цифровий об’ємний 5.1 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4018
+msgid "Digital Surround 5.1 (IEC958/DTS)"
+msgstr "Цифровий об’ємний 5.1 (IEC958/DTS)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4019
+msgid "Digital Stereo (HDMI)"
+msgstr "Цифровий стерео (HDMI)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4020
+msgid "Digital Surround 5.1 (HDMI)"
+msgstr "Цифровий об’ємний 5.1 (HDMI)"
+
+#: ../src/modules/alsa/alsa-mixer.c:4153
 msgid "Analog Mono Duplex"
 msgstr "Аналогове двобічне моно"
 
-#: ../src/modules/alsa/alsa-mixer.c:4153
+#: ../src/modules/alsa/alsa-mixer.c:4154
 msgid "Analog Stereo Duplex"
 msgstr "Аналогове двобічне стерео"
 
-#: ../src/modules/alsa/alsa-mixer.c:4154
+#: ../src/modules/alsa/alsa-mixer.c:4155
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Цифрове двобічне стерео (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4155
+#: ../src/modules/alsa/alsa-mixer.c:4156
 msgid "Multichannel Duplex"
 msgstr "Багатоканальний двобічний"
 
-#: ../src/modules/alsa/alsa-mixer.c:4156
-#| msgid "Analog Stereo Duplex"
+#: ../src/modules/alsa/alsa-mixer.c:4157
 msgid "Stereo Duplex"
 msgstr "Двобічне стерео"
 
-#: ../src/modules/alsa/alsa-mixer.c:4157
+#: ../src/modules/alsa/alsa-mixer.c:4158
 #: ../src/modules/alsa/module-alsa-card.c:186
 #: ../src/modules/bluetooth/module-bluez4-device.c:2324
-#: ../src/modules/bluetooth/module-bluez5-device.c:2005
+#: ../src/modules/bluetooth/module-bluez5-device.c:2038
 msgid "Off"
 msgstr "Вимкнено"
 
-#: ../src/modules/alsa/alsa-mixer.c:4256
+#: ../src/modules/alsa/alsa-mixer.c:4257
 #, c-format
 msgid "%s Output"
 msgstr "вихід %s"
 
-#: ../src/modules/alsa/alsa-mixer.c:4264
+#: ../src/modules/alsa/alsa-mixer.c:4265
 #, c-format
 msgid "%s Input"
 msgstr "вхід %s"
@@ -1071,52 +993,52 @@ msgstr ""
 "про цю ваду розробникам ALSA."
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2094
-#: ../src/modules/bluetooth/module-bluez5-device.c:1740
+#: ../src/modules/bluetooth/module-bluez5-device.c:1773
 msgid "Headset"
 msgstr "Гарнітура"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2099
-#: ../src/modules/bluetooth/module-bluez5-device.c:1745
+#: ../src/modules/bluetooth/module-bluez5-device.c:1778
 msgid "Handsfree"
 msgstr "Пристрій гучного зв’язку"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2114
-#: ../src/modules/bluetooth/module-bluez5-device.c:1763
+#: ../src/modules/bluetooth/module-bluez5-device.c:1796
 msgid "Headphone"
 msgstr "Навушники"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2119
-#: ../src/modules/bluetooth/module-bluez5-device.c:1768
+#: ../src/modules/bluetooth/module-bluez5-device.c:1801
 msgid "Portable"
 msgstr "Портативна система"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2124
-#: ../src/modules/bluetooth/module-bluez5-device.c:1773
+#: ../src/modules/bluetooth/module-bluez5-device.c:1806
 msgid "Car"
 msgstr "Автомобільна система"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2129
-#: ../src/modules/bluetooth/module-bluez5-device.c:1778
+#: ../src/modules/bluetooth/module-bluez5-device.c:1811
 msgid "HiFi"
 msgstr "HiFi"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2134
-#: ../src/modules/bluetooth/module-bluez5-device.c:1783
+#: ../src/modules/bluetooth/module-bluez5-device.c:1816
 msgid "Phone"
 msgstr "Телефон"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2142
-#: ../src/modules/bluetooth/module-bluez5-device.c:1735
-#: ../src/modules/bluetooth/module-bluez5-device.c:1751
-#: ../src/modules/bluetooth/module-bluez5-device.c:1789
+#: ../src/modules/bluetooth/module-bluez5-device.c:1768
+#: ../src/modules/bluetooth/module-bluez5-device.c:1784
+#: ../src/modules/bluetooth/module-bluez5-device.c:1822
 msgid "Bluetooth Output"
 msgstr "Bluetooth (відтворення)"
 
 #: ../src/modules/bluetooth/module-bluez4-device.c:2145
-#: ../src/modules/bluetooth/module-bluez5-device.c:1734
-#: ../src/modules/bluetooth/module-bluez5-device.c:1756
-#: ../src/modules/bluetooth/module-bluez5-device.c:1762
-#: ../src/modules/bluetooth/module-bluez5-device.c:1788
+#: ../src/modules/bluetooth/module-bluez5-device.c:1767
+#: ../src/modules/bluetooth/module-bluez5-device.c:1789
+#: ../src/modules/bluetooth/module-bluez5-device.c:1795
+#: ../src/modules/bluetooth/module-bluez5-device.c:1821
 msgid "Bluetooth Input"
 msgstr "Bluetooth (вхід)"
 
@@ -1136,34 +1058,23 @@ msgstr "Телефонний дуплекс (HSP/HFP)"
 msgid "Handsfree Gateway"
 msgstr "Пристрій гучного зв’язку"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1830
+#: ../src/modules/bluetooth/module-bluez5-device.c:1863
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Високоточне відтворення (приймач A2DP)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1842
+#: ../src/modules/bluetooth/module-bluez5-device.c:1875
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Високоточне захоплення (джерело A2DP)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1854
+#: ../src/modules/bluetooth/module-bluez5-device.c:1887
 msgid "Headset Head Unit (HSP/HFP)"
 msgstr "Головний модуль гарнітури (HSP/HFP)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1867
+#: ../src/modules/bluetooth/module-bluez5-device.c:1900
 msgid "Headset Audio Gateway (HSP/HFP)"
 msgstr "Звуковий шлюз гарнітури (HSP/HFP)"
 
 #: ../src/modules/echo-cancel/module-echo-cancel.c:61
-#| msgid ""
-#| "source_name=<name for the source> source_properties=<properties for the "
-#| "source> source_master=<name of source to filter> sink_name=<name for the "
-#| "sink> sink_properties=<properties for the sink> sink_master=<name of sink "
-#| "to filter> adjust_time=<how often to readjust rates in s> "
-#| "adjust_threshold=<how much drift to readjust after in ms> format=<sample "
-#| "format> rate=<sample rate> channels=<number of channels> "
-#| "channel_map=<channel map> aec_method=<implementation to use> "
-#| "aec_args=<parameters for the AEC engine> save_aec=<save AEC data in /tmp> "
-#| "autoloaded=<set if this module is being loaded automatically> "
-#| "use_volume_sharing=<yes or no> "
 msgid ""
 "source_name=<name for the source> source_properties=<properties for the "
 "source> source_master=<name of source to filter> sink_name=<name for the "
@@ -1185,12 +1096,11 @@ msgstr ""
 "channel_map=<карта каналів> aec_method=<реалізація обробки> "
 "aec_args=<параметри рушія придушення луни> save_aec=<чи слід зберігати дані "
 "придушення луни до /tmp> autoloaded=<визначити, чи слід завантажувати модуль "
-"у автоматичному режимі> use_volume_sharing=<yes або no> use_master_format=<"
-"yes "
-"або no> "
+"у автоматичному режимі> use_volume_sharing=<yes або no> "
+"use_master_format=<yes або no> "
 
 #. add on profile
-#: ../src/modules/macosx/module-coreaudio-device.c:811
+#: ../src/modules/macosx/module-coreaudio-device.c:826
 msgid "On"
 msgstr "Увімкнено"
 
@@ -1205,6 +1115,12 @@ msgstr ""
 "Завжди підтримувати принаймні один завантажений приймач, навіть якщо він "
 "буде нульовим"
 
+#: ../src/modules/module-always-source.c:37
+#| msgid "Always keeps at least one sink loaded even if it's a null one"
+msgid "Always keeps at least one source loaded even if it's a null one"
+msgstr ""
+"Завжди зберігати принаймні одне завантажене джерело, навіть якщо воно порожнє"
+
 #: ../src/modules/module-equalizer-sink.c:70
 msgid "General Purpose Equalizer"
 msgstr "Еквалайзер загального призначення"
@@ -1218,11 +1134,17 @@ msgid ""
 msgstr ""
 "sink_name=<назва приймача> sink_properties=<властивості приймача> "
 "sink_master=<назва приймача, з яким слід встановти з’єднання> format=<формат "
-"фрагмента> rate=<частота вибірки> channels=<кількість каналів> "
+"фрагмента> rate=<частота дискретизації> channels=<кількість каналів> "
 "channel_map=<карта каналів> autoloaded=<визначити, чи слід завантажувати цей "
 "модуль у автоматичному режимі> use_volume_sharing=<yes або no> "
 
-#: ../src/modules/module-filter-apply.c:48
+#: ../src/modules/module-equalizer-sink.c:1091
+#: ../src/modules/module-equalizer-sink.c:1214
+#, c-format
+msgid "FFT based equalizer on %s"
+msgstr "Еквалайзер на основі ШПФ на %s"
+
+#: ../src/modules/module-filter-apply.c:49
 msgid "autoclean=<automatically unload unused filters?>"
 msgstr "autoclean=<чи слід автоматично вивантажувати невикористані фільтри?>"
 
@@ -1233,28 +1155,31 @@ msgstr "Віртуальний приймач LADSPA"
 #: ../src/modules/module-ladspa-sink.c:55
 #| msgid ""
 #| "sink_name=<name for the sink> sink_properties=<properties for the sink> "
-#| "master=<name of sink to filter> format=<sample format> rate=<sample rate> "
-#| "channels=<number of channels> channel_map=<input channel map> "
-#| "plugin=<ladspa plugin name> label=<ladspa plugin label> control=<comma "
-#| "separated list of input control values> input_ladspaport_map=<comma "
-#| "separated list of input LADSPA port names> output_ladspaport_map=<comma "
-#| "separated list of output LADSPA port names> "
+#| "master=<name of sink to filter> sink_master=<name of sink to filter> "
+#| "format=<sample format> rate=<sample rate> channels=<number of channels> "
+#| "channel_map=<input channel map> plugin=<ladspa plugin name> label=<ladspa "
+#| "plugin label> control=<comma separated list of input control values> "
+#| "input_ladspaport_map=<comma separated list of input LADSPA port names> "
+#| "output_ladspaport_map=<comma separated list of output LADSPA port names> "
+#| "autoloaded=<set if this module is being loaded automatically> "
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> sink_master=<name of sink to filter> "
-"format=<sample format> rate=<sample rate> channels=<number of channels> "
-"channel_map=<input channel map> plugin=<ladspa plugin name> label=<ladspa "
-"plugin label> control=<comma separated list of input control values> "
-"input_ladspaport_map=<comma separated list of input LADSPA port names> "
-"output_ladspaport_map=<comma separated list of output LADSPA port names> "
-"autoloaded=<set if this module is being loaded automatically> "
+"sink_input_properties=<properties for the sink input> master=<name of sink "
+"to filter> sink_master=<name of sink to filter> format=<sample format> "
+"rate=<sample rate> channels=<number of channels> channel_map=<input channel "
+"map> plugin=<ladspa plugin name> label=<ladspa plugin label> control=<comma "
+"separated list of input control values> input_ladspaport_map=<comma "
+"separated list of input LADSPA port names> output_ladspaport_map=<comma "
+"separated list of output LADSPA port names> autoloaded=<set if this module "
+"is being loaded automatically> "
 msgstr ""
 "sink_name=<назва приймача> sink_properties=<властивості приймача> "
-"master=<назва приймача для фільтрування> sink_master=<назва приймача для "
-"фільтрування> format=<формат фрагмента> "
-"rate=<частота вибірки> channels=<кількість каналів> channel_map=<карта "
-"каналів вхідних даних> plugin=<назва додатка ladspa> label=<мітка додатка "
-"ladspa> control=<розділений комами список значень вхідних параметрів> "
+"sink_input_properties=<властивості входу приймача> master=<назва приймача для"
+" фільтрування> sink_master=<назва приймача для "
+"фільтрування> format=<формат фрагмента> rate=<частота дискретизації> "
+"channels=<кількість каналів> channel_map=<карта каналів вхідних даних> "
+"plugin=<назва додатка ladspa> label=<мітка додатка ladspa> "
+"control=<розділений комами список значень вхідних параметрів> "
 "input_ladspaport_map=<список назв портів вхідних даних LADSPA, відокремлених "
 "комами> output_ladspaport_map=<список назв портів вихідних даних LADSPA, "
 "відокремлених комами> autoloaded=<встановіть, якщо цей модуль завантажується "
@@ -1286,14 +1211,14 @@ msgstr "Звук на @НАЗВАВУЗЛА@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: ../src/modules/module-tunnel-sink-new.c:307
-#: ../src/modules/module-tunnel-source-new.c:305
+#: ../src/modules/module-tunnel-sink-new.c:309
+#: ../src/modules/module-tunnel-source-new.c:307
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "Тунель для %s@%s"
 
-#: ../src/modules/module-tunnel-sink-new.c:521
-#: ../src/modules/module-tunnel-source-new.c:520
+#: ../src/modules/module-tunnel-sink-new.c:532
+#: ../src/modules/module-tunnel-source-new.c:528
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "Тунель до %s/%s"
@@ -1303,12 +1228,6 @@ msgid "Virtual surround sink"
 msgstr "Віртуальний навколишній приймач"
 
 #: ../src/modules/module-virtual-surround-sink.c:51
-#| msgid ""
-#| "sink_name=<name for the sink> sink_properties=<properties for the sink> "
-#| "master=<name of sink to filter> format=<sample format> rate=<sample rate> "
-#| "channels=<number of channels> channel_map=<channel map> "
-#| "use_volume_sharing=<yes or no> force_flat_volume=<yes or no> hrir=/path/"
-#| "to/left_hrir.wav "
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1319,11 +1238,20 @@ msgid ""
 msgstr ""
 "sink_name=<назва приймача> sink_properties=<властивості приймача> "
 "master=<назва приймача для фільтрування> sink_master=<назва приймача для "
-"фільтрування> format=<формат фрагмента> "
-"rate=<частота вибірки> channels=<кількість каналів> channel_map=<карта "
-"каналів> use_volume_sharing=<yes або no> force_flat_volume=<yes або no> "
-"hrir=/шлях/до/лівого_hrir.wav autoloaded=<встановіть, якщо цей модуль "
-"завантажується автоматично> "
+"фільтрування> format=<формат фрагмента> rate=<частота дискретизації> "
+"channels=<кількість каналів> channel_map=<карта каналів> "
+"use_volume_sharing=<yes або no> force_flat_volume=<yes або no> hrir=/шлях/до/"
+"лівого_hrir.wav autoloaded=<встановіть, якщо цей модуль завантажується "
+"автоматично> "
+
+#: ../src/modules/raop/module-raop-discover.c:296
+#| msgid "Unknown error code"
+msgid "Unknown device model"
+msgstr "Невідома модель пристрою"
+
+#: ../src/modules/raop/raop-sink.c:498
+msgid "RAOP standard profile"
+msgstr "Стандартний профіль RAOP"
 
 #: ../src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
@@ -1604,7 +1532,7 @@ msgstr "двобічний"
 msgid "invalid"
 msgstr "некоректний"
 
-#: ../src/pulsecore/core-util.c:1856
+#: ../src/pulsecore/core-util.c:1859
 #, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
@@ -1646,11 +1574,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Некоректна адреса файла журналу."
 
-#: ../src/pulsecore/sink.c:3469
+#: ../src/pulsecore/sink.c:3486
 msgid "Built-in Audio"
 msgstr "Вбудоване аудіо"
 
-#: ../src/pulsecore/sink.c:3474
+#: ../src/pulsecore/sink.c:3491
 msgid "Modem"
 msgstr "Модем"
 
