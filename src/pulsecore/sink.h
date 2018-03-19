@@ -115,7 +115,6 @@ struct pa_sink {
 
     pa_hashmap *ports;
     pa_device_port *active_port;
-    pa_atomic_t mixer_dirty;
 
     /* The latency offset is inherited from the currently active port */
     int64_t port_latency_offset;
@@ -251,8 +250,8 @@ struct pa_sink {
      * thread context. */
     pa_sink_cb_t update_requested_latency; /* may be NULL */
 
-    /* Called whenever the port shall be changed. Called from IO
-     * thread if deferred volumes are enabled, and main thread otherwise. */
+    /* Called whenever the port shall be changed. Called from the main
+     * thread. */
     int (*set_port)(pa_sink *s, pa_device_port *port); /* may be NULL */
 
     /* Called to get the list of formats supported by the sink, sorted
@@ -356,7 +355,6 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_GET_MAX_REQUEST,
     PA_SINK_MESSAGE_SET_MAX_REWIND,
     PA_SINK_MESSAGE_SET_MAX_REQUEST,
-    PA_SINK_MESSAGE_SET_PORT,
     PA_SINK_MESSAGE_UPDATE_VOLUME_AND_MUTE,
     PA_SINK_MESSAGE_SET_PORT_LATENCY_OFFSET,
     PA_SINK_MESSAGE_MAX
@@ -483,7 +481,6 @@ bool pa_sink_get_mute(pa_sink *sink, bool force_refresh);
 bool pa_sink_update_proplist(pa_sink *s, pa_update_mode_t mode, pa_proplist *p);
 
 int pa_sink_set_port(pa_sink *s, const char *name, bool save);
-void pa_sink_set_mixer_dirty(pa_sink *s, bool is_dirty);
 
 unsigned pa_sink_linked_by(pa_sink *s); /* Number of connected streams */
 unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are not corked */

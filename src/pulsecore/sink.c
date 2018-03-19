@@ -64,11 +64,6 @@ struct pa_sink_volume_change {
     PA_LLIST_FIELDS(pa_sink_volume_change);
 };
 
-struct sink_message_set_port {
-    pa_device_port *port;
-    int ret;
-};
-
 struct set_state_data {
     pa_sink_state_t state;
     pa_suspend_cause_t suspend_cause;
@@ -259,7 +254,6 @@ pa_sink* pa_sink_new(
     s->flags = flags;
     s->priority = 0;
     s->suspend_cause = data->suspend_cause;
-    pa_sink_set_mixer_dirty(s, false);
     s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);
     s->driver = pa_xstrdup(pa_path_get_filename(data->driver));
@@ -897,11 +891,6 @@ int pa_sink_update_status(pa_sink*s) {
     return sink_set_state(s, pa_sink_used_by(s) ? PA_SINK_RUNNING : PA_SINK_IDLE, 0);
 }
 
-/* Called from any context - must be threadsafe */
-void pa_sink_set_mixer_dirty(pa_sink *s, bool is_dirty) {
-    pa_atomic_store(&s->mixer_dirty, is_dirty ? 1 : 0);
-}
-
 /* Called from main context */
 int pa_sink_suspend(pa_sink *s, bool suspend, pa_suspend_cause_t cause) {
     pa_suspend_cause_t merged_cause;
@@ -915,27 +904,6 @@ int pa_sink_suspend(pa_sink *s, bool suspend, pa_suspend_cause_t cause) {
         merged_cause = s->suspend_cause | cause;
     else
         merged_cause = s->suspend_cause & ~cause;
-
-    if (!(merged_cause & PA_SUSPEND_SESSION) && (pa_atomic_load(&s->mixer_dirty) != 0)) {
-        /* This might look racy but isn't: If somebody sets mixer_dirty exactly here,
-           it'll be handled just fine. */
-        pa_sink_set_mixer_dirty(s, false);
-        pa_log_debug("Mixer is now accessible. Updating alsa mixer settings.");
-        if (s->active_port && s->set_port) {
-            if (s->flags & PA_SINK_DEFERRED_VOLUME) {
-                struct sink_message_set_port msg = { .port = s->active_port, .ret = 0 };
-                pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_PORT, &msg, 0, NULL) == 0);
-            }
-            else
-                s->set_port(s, s->active_port);
-        }
-        else {
-            if (s->set_mute)
-                s->set_mute(s);
-            if (s->set_volume)
-                s->set_volume(s);
-        }
-    }
 
     if (merged_cause)
         return sink_set_state(s, PA_SINK_SUSPENDED, merged_cause);
@@ -2969,15 +2937,6 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             pa_sink_set_max_request_within_thread(s, (size_t) offset);
             return 0;
 
-        case PA_SINK_MESSAGE_SET_PORT:
-
-            pa_assert(userdata);
-            if (s->set_port) {
-                struct sink_message_set_port *msg_data = userdata;
-                msg_data->ret = s->set_port(s, msg_data->port);
-            }
-            return 0;
-
         case PA_SINK_MESSAGE_UPDATE_VOLUME_AND_MUTE:
             /* This message is sent from IO-thread and handled in main thread. */
             pa_assert_ctl_context();
@@ -3432,7 +3391,6 @@ size_t pa_sink_get_max_request(pa_sink *s) {
 /* Called from main context */
 int pa_sink_set_port(pa_sink *s, const char *name, bool save) {
     pa_device_port *port;
-    int ret;
 
     pa_sink_assert_ref(s);
     pa_assert_ctl_context();
@@ -3453,15 +3411,7 @@ int pa_sink_set_port(pa_sink *s, const char *name, bool save) {
         return 0;
     }
 
-    if (s->flags & PA_SINK_DEFERRED_VOLUME) {
-        struct sink_message_set_port msg = { .port = port, .ret = 0 };
-        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_PORT, &msg, 0, NULL) == 0);
-        ret = msg.ret;
-    }
-    else
-        ret = s->set_port(s, port);
-
-    if (ret < 0)
+    if (s->set_port(s, port) < 0)
         return -PA_ERR_NOENTITY;
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);

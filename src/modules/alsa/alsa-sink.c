@@ -161,6 +161,10 @@ struct userdata {
     pa_alsa_ucm_mapping_context *ucm_context;
 };
 
+enum {
+    SINK_MESSAGE_SYNC_MIXER = PA_SINK_MESSAGE_MAX
+};
+
 static void userdata_free(struct userdata *u);
 
 /* FIXME: Is there a better way to do this than device names? */
@@ -1168,6 +1172,43 @@ fail:
     return -PA_ERR_IO;
 }
 
+/* Called from the IO thread or the main thread depending on whether deferred
+ * volume is enabled or not (with deferred volume all mixer handling is done
+ * from the IO thread).
+ *
+ * Sets the mixer settings to match the current sink and port state (the port
+ * is given as an argument, because active_port may still point to the old
+ * port, if we're switching ports). */
+static void sync_mixer(struct userdata *u, pa_device_port *port) {
+    pa_alsa_setting *setting = NULL;
+
+    pa_assert(u);
+
+    if (!u->mixer_path)
+        return;
+
+    /* port may be NULL, because if we use a synthesized mixer path, then the
+     * sink has no ports. */
+    if (port) {
+        pa_alsa_port_data *data;
+
+        data = PA_DEVICE_PORT_DATA(port);
+        setting = data->setting;
+    }
+
+    pa_alsa_path_select(u->mixer_path, setting, u->mixer_handle, u->sink->muted);
+
+    if (u->sink->set_mute)
+        u->sink->set_mute(u->sink);
+    if (u->sink->flags & PA_SINK_DEFERRED_VOLUME) {
+        if (u->sink->write_volume)
+            u->sink->write_volume(u->sink);
+    } else {
+        if (u->sink->set_volume)
+            u->sink->set_volume(u->sink);
+    }
+}
+
 /* Called from IO context */
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
@@ -1184,6 +1225,13 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             return 0;
         }
+
+        case SINK_MESSAGE_SYNC_MIXER: {
+            pa_device_port *port = data;
+
+            sync_mixer(u, port);
+            return 0;
+        }
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
@@ -1196,6 +1244,16 @@ static int sink_set_state_in_main_thread_cb(pa_sink *s, pa_sink_state_t new_stat
 
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
+
+    /* When our session becomes active, we need to sync the mixer, because
+     * another user may have changed the mixer settings.
+     *
+     * If deferred volume is enabled, the syncing is done in the
+     * set_state_in_io_thread() callback instead. */
+    if (!(s->flags & PA_SINK_DEFERRED_VOLUME)
+            && (s->suspend_cause & PA_SUSPEND_SESSION)
+            && !(new_suspend_cause & PA_SUSPEND_SESSION))
+        sync_mixer(u, s->active_port);
 
     old_state = pa_sink_get_state(u->sink);
 
@@ -1215,8 +1273,18 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
     pa_assert(s);
     pa_assert_se(u = s->userdata);
 
+    /* When our session becomes active, we need to sync the mixer, because
+     * another user may have changed the mixer settings.
+     *
+     * If deferred volume is disabled, the syncing is done in the
+     * set_state_in_main_thread() callback instead. */
+    if ((s->flags & PA_SINK_DEFERRED_VOLUME)
+            && (s->suspend_cause & PA_SUSPEND_SESSION)
+            && !(new_suspend_cause & PA_SUSPEND_SESSION))
+        sync_mixer(u, s->active_port);
+
     /* It may be that only the suspend cause is changing, in which case there's
-     * nothing to do. */
+     * nothing more to do. */
     if (new_state == s->thread_info.state)
         return 0;
 
@@ -1273,10 +1341,8 @@ static int ctl_mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
     if (!PA_SINK_IS_LINKED(u->sink->state))
         return 0;
 
-    if (u->sink->suspend_cause & PA_SUSPEND_SESSION) {
-        pa_sink_set_mixer_dirty(u->sink, true);
+    if (u->sink->suspend_cause & PA_SUSPEND_SESSION)
         return 0;
-    }
 
     if (mask & SND_CTL_EVENT_MASK_VALUE) {
         pa_sink_get_volume(u->sink, true);
@@ -1295,10 +1361,8 @@ static int io_mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
     if (mask == SND_CTL_EVENT_MASK_REMOVE)
         return 0;
 
-    if (u->sink->suspend_cause & PA_SUSPEND_SESSION) {
-        pa_sink_set_mixer_dirty(u->sink, true);
+    if (u->sink->suspend_cause & PA_SUSPEND_SESSION)
         return 0;
-    }
 
     if (mask & SND_CTL_EVENT_MASK_VALUE)
         pa_sink_update_volume_and_mute(u->sink);
@@ -1522,21 +1586,13 @@ static int sink_set_port_cb(pa_sink *s, pa_device_port *p) {
     pa_assert(u->mixer_handle);
 
     data = PA_DEVICE_PORT_DATA(p);
-
     pa_assert_se(u->mixer_path = data->path);
-    pa_alsa_path_select(u->mixer_path, data->setting, u->mixer_handle, s->muted);
-
     mixer_volume_init(u);
 
-    if (s->set_mute)
-        s->set_mute(s);
-    if (s->flags & PA_SINK_DEFERRED_VOLUME) {
-        if (s->write_volume)
-            s->write_volume(s);
-    } else {
-        if (s->set_volume)
-            s->set_volume(s);
-    }
+    if (s->flags & PA_SINK_DEFERRED_VOLUME)
+        pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_SYNC_MIXER, p, 0, NULL);
+    else
+        sync_mixer(u, p);
 
     if (data->suspend_when_unavailable && p->available == PA_AVAILABLE_NO)
         pa_sink_suspend(s, true, PA_SUSPEND_UNAVAILABLE);

@@ -116,7 +116,6 @@ struct pa_source {
 
     pa_hashmap *ports;
     pa_device_port *active_port;
-    pa_atomic_t mixer_dirty;
 
     /* The latency offset is inherited from the currently active port */
     int64_t port_latency_offset;
@@ -215,8 +214,8 @@ struct pa_source {
      * thread context. */
     pa_source_cb_t update_requested_latency; /* may be NULL */
 
-    /* Called whenever the port shall be changed. Called from IO
-     * thread if deferred volumes are enabled, and main thread otherwise. */
+    /* Called whenever the port shall be changed. Called from the main
+     * thread. */
     int (*set_port)(pa_source *s, pa_device_port *port); /*ditto */
 
     /* Called to get the list of formats supported by the source, sorted
@@ -294,7 +293,6 @@ typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_GET_FIXED_LATENCY,
     PA_SOURCE_MESSAGE_GET_MAX_REWIND,
     PA_SOURCE_MESSAGE_SET_MAX_REWIND,
-    PA_SOURCE_MESSAGE_SET_PORT,
     PA_SOURCE_MESSAGE_UPDATE_VOLUME_AND_MUTE,
     PA_SOURCE_MESSAGE_SET_PORT_LATENCY_OFFSET,
     PA_SOURCE_MESSAGE_MAX
@@ -415,7 +413,6 @@ bool pa_source_get_mute(pa_source *source, bool force_refresh);
 bool pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist *p);
 
 int pa_source_set_port(pa_source *s, const char *name, bool save);
-void pa_source_set_mixer_dirty(pa_source *s, bool is_dirty);
 
 int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, bool passthrough);
 
