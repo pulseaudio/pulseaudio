@@ -666,13 +666,18 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 }
 
 /* Called from the IO thread. */
-static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state) {
+static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state, pa_suspend_cause_t new_suspend_cause) {
     struct userdata *u;
     bool do_trigger = false;
     bool quick = true;
 
     pa_assert(s);
     pa_assert_se(u = s->userdata);
+
+    /* It may be that only the suspend cause is changing, in which case there's
+     * nothing to do. */
+    if (new_state == s->thread_info.state)
+        return 0;
 
     switch (new_state) {
 
@@ -749,13 +754,18 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 }
 
 /* Called from the IO thread. */
-static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_state) {
+static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_state, pa_suspend_cause_t new_suspend_cause) {
     struct userdata *u;
     bool do_trigger = false;
     bool quick = true;
 
     pa_assert(s);
     pa_assert_se(u = s->userdata);
+
+    /* It may be that only the suspend cause is changing, in which case there's
+     * nothing to do. */
+    if (new_state == s->thread_info.state)
+        return 0;
 
     switch (new_state) {
 

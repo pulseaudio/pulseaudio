@@ -103,7 +103,7 @@ static int source_process_msg(
 }
 
 /* Called from the IO thread. */
-static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_state) {
+static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_state, pa_suspend_cause_t new_suspend_cause) {
     struct userdata *u;
 
     pa_assert(s);

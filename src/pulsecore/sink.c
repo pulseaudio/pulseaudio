@@ -69,6 +69,11 @@ struct sink_message_set_port {
     int ret;
 };
 
+struct set_state_data {
+    pa_sink_state_t state;
+    pa_suspend_cause_t suspend_cause;
+};
+
 static void sink_free(pa_object *s);
 
 static void pa_sink_volume_change_push(pa_sink *s);
@@ -429,19 +434,49 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t 
      * current approach of not setting any suspend cause works well enough. */
 
     if (s->set_state_in_main_thread) {
-        ret = s->set_state_in_main_thread(s, state, suspend_cause);
-        /* set_state_in_main_thread() is allowed to fail only when resuming. */
-        pa_assert(ret >= 0 || resuming);
+        if ((ret = s->set_state_in_main_thread(s, state, suspend_cause)) < 0) {
+            /* set_state_in_main_thread() is allowed to fail only when resuming. */
+            pa_assert(resuming);
+
+            /* If resuming fails, we set the state to SUSPENDED and
+             * suspend_cause to 0. */
+            state = PA_SINK_SUSPENDED;
+            suspend_cause = 0;
+            state_changed = false;
+            suspend_cause_changed = suspend_cause != s->suspend_cause;
+            resuming = false;
+
+            /* We know the state isn't changing. If the suspend cause isn't
+             * changing either, then there's nothing more to do. */
+            if (!suspend_cause_changed)
+                return ret;
+        }
     }
 
-    if (ret >= 0 && s->asyncmsgq && state_changed)
-        if ((ret = pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL)) < 0) {
+    if (s->asyncmsgq) {
+        struct set_state_data data = { .state = state, .suspend_cause = suspend_cause };
+
+        if ((ret = pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_STATE, &data, 0, NULL)) < 0) {
             /* SET_STATE is allowed to fail only when resuming. */
             pa_assert(resuming);
 
             if (s->set_state_in_main_thread)
                 s->set_state_in_main_thread(s, PA_SINK_SUSPENDED, 0);
+
+            /* If resuming fails, we set the state to SUSPENDED and
+             * suspend_cause to 0. */
+            state = PA_SINK_SUSPENDED;
+            suspend_cause = 0;
+            state_changed = false;
+            suspend_cause_changed = suspend_cause != s->suspend_cause;
+            resuming = false;
+
+            /* We know the state isn't changing. If the suspend cause isn't
+             * changing either, then there's nothing more to do. */
+            if (!suspend_cause_changed)
+                return ret;
         }
+    }
 
     if (suspend_cause_changed) {
         char old_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
@@ -451,9 +486,6 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t 
                      pa_suspend_cause_to_string(suspend_cause, new_cause_buf));
         s->suspend_cause = suspend_cause;
     }
-
-    if (ret < 0)
-        goto finish;
 
     if (state_changed) {
         pa_log_debug("%s: state: %s -> %s", s->name, pa_sink_state_to_string(s->state), pa_sink_state_to_string(state));
@@ -481,7 +513,6 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t 
                 i->suspend(i, state == PA_SINK_SUSPENDED);
     }
 
-finish:
     if ((suspending || resuming || suspend_cause_changed) && s->monitor_source && state != PA_SINK_UNLINKED)
         pa_source_sync_suspend(s->monitor_source);
 
@@ -2846,19 +2877,19 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             return 0;
 
         case PA_SINK_MESSAGE_SET_STATE: {
-
+            struct set_state_data *data = userdata;
             bool suspend_change =
-                (s->thread_info.state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(PA_PTR_TO_UINT(userdata))) ||
-                (PA_SINK_IS_OPENED(s->thread_info.state) && PA_PTR_TO_UINT(userdata) == PA_SINK_SUSPENDED);
+                (s->thread_info.state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(data->state)) ||
+                (PA_SINK_IS_OPENED(s->thread_info.state) && data->state == PA_SINK_SUSPENDED);
 
             if (s->set_state_in_io_thread) {
                 int r;
 
-                if ((r = s->set_state_in_io_thread(s, PA_PTR_TO_UINT(userdata))) < 0)
+                if ((r = s->set_state_in_io_thread(s, data->state, data->suspend_cause)) < 0)
                     return r;
             }
 
-            s->thread_info.state = PA_PTR_TO_UINT(userdata);
+            s->thread_info.state = data->state;
 
             if (s->thread_info.state == PA_SINK_SUSPENDED) {
                 s->thread_info.rewind_nbytes = 0;

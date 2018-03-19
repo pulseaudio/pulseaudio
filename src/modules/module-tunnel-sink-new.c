@@ -434,11 +434,16 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
 }
 
 /* Called from the IO thread. */
-static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state) {
+static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state, pa_suspend_cause_t new_suspend_cause) {
     struct userdata *u;
 
     pa_assert(s);
     pa_assert_se(u = s->userdata);
+
+    /* It may be that only the suspend cause is changing, in which case there's
+     * nothing to do. */
+    if (new_state == s->thread_info.state)
+        return 0;
 
     if (!u->stream || pa_stream_get_state(u->stream) != PA_STREAM_READY)
         return 0;

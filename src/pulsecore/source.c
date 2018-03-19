@@ -61,6 +61,11 @@ struct source_message_set_port {
     int ret;
 };
 
+struct set_state_data {
+    pa_source_state_t state;
+    pa_suspend_cause_t suspend_cause;
+};
+
 static void source_free(pa_object *o);
 
 static void pa_source_volume_change_push(pa_source *s);
@@ -383,19 +388,49 @@ static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_ca
      * current approach of not setting any suspend cause works well enough. */
 
     if (s->set_state_in_main_thread) {
-        ret = s->set_state_in_main_thread(s, state, suspend_cause);
-        /* set_state_in_main_thread() is allowed to fail only when resuming. */
-        pa_assert(ret >= 0 || resuming);
+        if ((ret = s->set_state_in_main_thread(s, state, suspend_cause)) < 0) {
+            /* set_state_in_main_thread() is allowed to fail only when resuming. */
+            pa_assert(resuming);
+
+            /* If resuming fails, we set the state to SUSPENDED and
+             * suspend_cause to 0. */
+            state = PA_SOURCE_SUSPENDED;
+            suspend_cause = 0;
+            state_changed = false;
+            suspend_cause_changed = suspend_cause != s->suspend_cause;
+            resuming = false;
+
+            /* We know the state isn't changing. If the suspend cause isn't
+             * changing either, then there's nothing more to do. */
+            if (!suspend_cause_changed)
+                return ret;
+        }
     }
 
-    if (ret >= 0 && s->asyncmsgq && state_changed)
-        if ((ret = pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL)) < 0) {
+    if (s->asyncmsgq) {
+        struct set_state_data data = { .state = state, .suspend_cause = suspend_cause };
+
+        if ((ret = pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_STATE, &data, 0, NULL)) < 0) {
             /* SET_STATE is allowed to fail only when resuming. */
             pa_assert(resuming);
 
             if (s->set_state_in_main_thread)
                 s->set_state_in_main_thread(s, PA_SOURCE_SUSPENDED, 0);
+
+            /* If resuming fails, we set the state to SUSPENDED and
+             * suspend_cause to 0. */
+            state = PA_SOURCE_SUSPENDED;
+            suspend_cause = 0;
+            state_changed = false;
+            suspend_cause_changed = suspend_cause != s->suspend_cause;
+            resuming = false;
+
+            /* We know the state isn't changing. If the suspend cause isn't
+             * changing either, then there's nothing more to do. */
+            if (!suspend_cause_changed)
+                return ret;
         }
+    }
 
     if (suspend_cause_changed) {
         char old_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
@@ -405,9 +440,6 @@ static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_ca
                      pa_suspend_cause_to_string(suspend_cause, new_cause_buf));
         s->suspend_cause = suspend_cause;
     }
-
-    if (ret < 0)
-        goto finish;
 
     if (state_changed) {
         pa_log_debug("%s: state: %s -> %s", s->name, pa_source_state_to_string(s->state), pa_source_state_to_string(state));
@@ -435,7 +467,6 @@ static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_ca
                 o->suspend(o, state == PA_SOURCE_SUSPENDED);
     }
 
-finish:
     return ret;
 }
 
@@ -2220,19 +2251,19 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
             return 0;
 
         case PA_SOURCE_MESSAGE_SET_STATE: {
-
+            struct set_state_data *data = userdata;
             bool suspend_change =
-                (s->thread_info.state == PA_SOURCE_SUSPENDED && PA_SOURCE_IS_OPENED(PA_PTR_TO_UINT(userdata))) ||
-                (PA_SOURCE_IS_OPENED(s->thread_info.state) && PA_PTR_TO_UINT(userdata) == PA_SOURCE_SUSPENDED);
+                (s->thread_info.state == PA_SOURCE_SUSPENDED && PA_SOURCE_IS_OPENED(data->state)) ||
+                (PA_SOURCE_IS_OPENED(s->thread_info.state) && data->state == PA_SOURCE_SUSPENDED);
 
             if (s->set_state_in_io_thread) {
                 int r;
 
-                if ((r = s->set_state_in_io_thread(s, PA_PTR_TO_UINT(userdata))) < 0)
+                if ((r = s->set_state_in_io_thread(s, data->state, data->suspend_cause)) < 0)
                     return r;
             }
 
-            s->thread_info.state = PA_PTR_TO_UINT(userdata);
+            s->thread_info.state = data->state;
 
             if (suspend_change) {
                 pa_source_output *o;

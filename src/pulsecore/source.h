@@ -149,7 +149,7 @@ struct pa_source {
      * are updated only after all the callback calls. In case of failure, the
      * state is set to SUSPENDED and the suspend cause is set to 0. */
     int (*set_state_in_main_thread)(pa_source *s, pa_source_state_t state, pa_suspend_cause_t suspend_cause); /* may be NULL */
-    int (*set_state_in_io_thread)(pa_source *s, pa_source_state_t state); /* may be NULL */
+    int (*set_state_in_io_thread)(pa_source *s, pa_source_state_t state, pa_suspend_cause_t suspend_cause); /* may be NULL */
 
     /* Called when the volume is queried. Called from main loop
      * context. If this is NULL a PA_SOURCE_MESSAGE_GET_VOLUME message

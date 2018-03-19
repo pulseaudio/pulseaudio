@@ -719,12 +719,17 @@ static int sink_set_state_in_main_thread_cb(pa_sink *sink, pa_sink_state_t state
 }
 
 /* Called from the IO thread. */
-static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state) {
+static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state, pa_suspend_cause_t new_suspend_cause) {
     struct userdata *u;
     bool running;
 
     pa_assert(s);
     pa_assert_se(u = s->userdata);
+
+    /* It may be that only the suspend cause is changing, in which case there's
+     * nothing to do. */
+    if (new_state == s->thread_info.state)
+        return 0;
 
     running = new_state == PA_SINK_RUNNING;
     pa_atomic_store(&u->thread_info.running, running);

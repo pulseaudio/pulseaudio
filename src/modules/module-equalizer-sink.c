@@ -288,7 +288,7 @@ static int sink_set_state_in_main_thread_cb(pa_sink *s, pa_sink_state_t state, p
 }
 
 /* Called from the IO thread. */
-static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state) {
+static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state, pa_suspend_cause_t new_suspend_cause) {
     struct userdata *u;
 
     pa_assert(s);
