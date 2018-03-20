@@ -411,7 +411,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
 
         case PA_SINK_SUSPENDED:
 
-            pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
+            pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
 
             pa_smoother_pause(u->smoother, pa_rtclock_now());
 
@@ -424,16 +424,16 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
         case PA_SINK_IDLE:
         case PA_SINK_RUNNING:
 
-            if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
+            if (s->thread_info.state == PA_SINK_SUSPENDED) {
                 pa_smoother_resume(u->smoother, pa_rtclock_now(), true);
 
                 if (!u->source || u->source_suspended) {
                     bool mute;
                     if (unsuspend(u) < 0)
                         return -1;
-                    u->sink->get_volume(u->sink);
-                    if (u->sink->get_mute(u->sink, &mute) >= 0)
-                        pa_sink_set_mute(u->sink, mute, false);
+                    s->get_volume(s);
+                    if (s->get_mute(s, &mute) >= 0)
+                        pa_sink_set_mute(s, mute, false);
                 }
                 u->sink_suspended = false;
             }
@@ -477,7 +477,7 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
 
         case PA_SOURCE_SUSPENDED:
 
-            pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
+            pa_assert(PA_SOURCE_IS_OPENED(s->thread_info.state));
 
             if (!u->sink || u->sink_suspended)
                 suspend(u);
@@ -488,11 +488,11 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
         case PA_SOURCE_IDLE:
         case PA_SOURCE_RUNNING:
 
-            if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
+            if (s->thread_info.state == PA_SOURCE_SUSPENDED) {
                 if (!u->sink || u->sink_suspended) {
                     if (unsuspend(u) < 0)
                         return -1;
-                    u->source->get_volume(u->source);
+                    s->get_volume(s);
                 }
                 u->source_suspended = false;
             }

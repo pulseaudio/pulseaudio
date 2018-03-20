@@ -403,7 +403,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
 
     /* When set to running or idle for the first time, request a rewind
      * of the master sink to make sure we are heard immediately */
-    if ((new_state == PA_SINK_IDLE || new_state == PA_SINK_RUNNING) && u->sink->thread_info.state == PA_SINK_INIT) {
+    if (PA_SINK_IS_OPENED(new_state) && s->thread_info.state == PA_SINK_INIT) {
         pa_log_debug("Requesting rewind due to state change.");
         pa_sink_input_request_rewind(u->sink_input, 0, false, true, true);
     }

@@ -1291,7 +1291,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
     switch (new_state) {
 
         case PA_SINK_SUSPENDED: {
-            pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
+            pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
 
             suspend(u);
 
@@ -1302,7 +1302,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
         case PA_SINK_RUNNING: {
             int r;
 
-            if (u->sink->thread_info.state == PA_SINK_INIT) {
+            if (s->thread_info.state == PA_SINK_INIT) {
                 if (build_pollfd(u) < 0)
                     /* FIXME: This will cause an assertion failure, because
                      * with the current design pa_sink_put() is not allowed
@@ -1312,7 +1312,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
                     return -PA_ERR_IO;
             }
 
-            if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
+            if (s->thread_info.state == PA_SINK_SUSPENDED) {
                 if ((r = unsuspend(u)) < 0)
                     return r;
             }

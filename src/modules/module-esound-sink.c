@@ -183,7 +183,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
     switch (new_state) {
 
         case PA_SINK_SUSPENDED:
-            pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
+            pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
 
             pa_smoother_pause(u->smoother, pa_rtclock_now());
             break;
@@ -191,7 +191,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
         case PA_SINK_IDLE:
         case PA_SINK_RUNNING:
 
-            if (u->sink->thread_info.state == PA_SINK_SUSPENDED)
+            if (s->thread_info.state == PA_SINK_SUSPENDED)
                 pa_smoother_resume(u->smoother, pa_rtclock_now(), true);
 
             break;

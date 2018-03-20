@@ -682,7 +682,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
     switch (new_state) {
 
         case PA_SINK_SUSPENDED:
-            pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
+            pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
 
             if (!u->source || u->source_suspended)
                 suspend(u);
@@ -695,12 +695,12 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
         case PA_SINK_IDLE:
         case PA_SINK_RUNNING:
 
-            if (u->sink->thread_info.state == PA_SINK_INIT) {
+            if (s->thread_info.state == PA_SINK_INIT) {
                 do_trigger = true;
                 quick = u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state);
             }
 
-            if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
+            if (s->thread_info.state == PA_SINK_SUSPENDED) {
 
                 if (!u->source || u->source_suspended) {
                     if (unsuspend(u) < 0)
@@ -770,7 +770,7 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
     switch (new_state) {
 
         case PA_SOURCE_SUSPENDED:
-            pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
+            pa_assert(PA_SOURCE_IS_OPENED(s->thread_info.state));
 
             if (!u->sink || u->sink_suspended)
                 suspend(u);
@@ -783,12 +783,12 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
         case PA_SOURCE_IDLE:
         case PA_SOURCE_RUNNING:
 
-            if (u->source->thread_info.state == PA_SOURCE_INIT) {
+            if (s->thread_info.state == PA_SOURCE_INIT) {
                 do_trigger = true;
                 quick = u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state);
             }
 
-            if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
+            if (s->thread_info.state == PA_SOURCE_SUSPENDED) {
 
                 if (!u->sink || u->sink_suspended) {
                     if (unsuspend(u) < 0)

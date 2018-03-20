@@ -109,7 +109,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
     pa_assert(s);
     pa_assert_se(u = s->userdata);
 
-    if (u->sink->thread_info.state == PA_SINK_SUSPENDED || u->sink->thread_info.state == PA_SINK_INIT) {
+    if (s->thread_info.state == PA_SINK_SUSPENDED || s->thread_info.state == PA_SINK_INIT) {
         if (PA_SINK_IS_OPENED(new_state))
             u->timestamp = pa_rtclock_now();
     }

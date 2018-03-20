@@ -1146,7 +1146,7 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
     switch (new_state) {
 
         case PA_SOURCE_SUSPENDED: {
-            pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
+            pa_assert(PA_SOURCE_IS_OPENED(s->thread_info.state));
 
             suspend(u);
 
@@ -1157,7 +1157,7 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
         case PA_SOURCE_RUNNING: {
             int r;
 
-            if (u->source->thread_info.state == PA_SOURCE_INIT) {
+            if (s->thread_info.state == PA_SOURCE_INIT) {
                 if (build_pollfd(u) < 0)
                     /* FIXME: This will cause an assertion failure, because
                      * with the current design pa_source_put() is not allowed
@@ -1167,7 +1167,7 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
                     return -PA_ERR_IO;
             }
 
-            if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
+            if (s->thread_info.state == PA_SOURCE_SUSPENDED) {
                 if ((r = unsuspend(u)) < 0)
                     return r;
             }

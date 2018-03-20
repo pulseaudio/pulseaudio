@@ -423,7 +423,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
 
         case PA_SINK_SUSPENDED:
             /* Ignore if transition is PA_SINK_INIT->PA_SINK_SUSPENDED */
-            if (!PA_SINK_IS_OPENED(u->sink->thread_info.state))
+            if (!PA_SINK_IS_OPENED(s->thread_info.state))
                 break;
 
             /* Stop the device if the source is suspended as well */
@@ -437,7 +437,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
 
         case PA_SINK_IDLE:
         case PA_SINK_RUNNING:
-            if (u->sink->thread_info.state != PA_SINK_SUSPENDED)
+            if (s->thread_info.state != PA_SINK_SUSPENDED)
                 break;
 
             /* Resume the device if the source was suspended as well */
@@ -497,7 +497,7 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
 
         case PA_SOURCE_SUSPENDED:
             /* Ignore if transition is PA_SOURCE_INIT->PA_SOURCE_SUSPENDED */
-            if (!PA_SOURCE_IS_OPENED(u->source->thread_info.state))
+            if (!PA_SOURCE_IS_OPENED(s->thread_info.state))
                 break;
 
             /* Stop the device if the sink is suspended as well */
@@ -510,7 +510,7 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
 
         case PA_SOURCE_IDLE:
         case PA_SOURCE_RUNNING:
-            if (u->source->thread_info.state != PA_SOURCE_SUSPENDED)
+            if (s->thread_info.state != PA_SOURCE_SUSPENDED)
                 break;
 
             /* Resume the device if the sink was suspended as well */
