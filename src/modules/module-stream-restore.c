@@ -346,13 +346,18 @@ static void dbus_entry_free(struct dbus_entry *de) {
 static int get_volume_arg(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, pa_channel_map *map, pa_cvolume *vol) {
     DBusMessageIter array_iter;
     DBusMessageIter struct_iter;
+    char *signature;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(iter);
-    pa_assert(pa_streq(dbus_message_iter_get_signature(iter), "a(uu)"));
     pa_assert(map);
     pa_assert(vol);
+
+    pa_assert_se(signature = dbus_message_iter_get_signature(iter));
+    pa_assert(pa_streq(signature, "a(uu)"));
+
+    dbus_free(signature);
 
     pa_channel_map_init(map);
     pa_cvolume_init(vol);

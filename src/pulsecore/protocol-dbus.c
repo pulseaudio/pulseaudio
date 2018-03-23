@@ -313,7 +313,7 @@ struct call_info {
     const char *property_interface; /* The interface argument of a property call is stored here. */
     pa_dbus_property_handler *property_handler;
     const char *expected_property_sig; /* Property signature from the introspection data. */
-    const char *property_sig; /* The signature of the new value in the received .Set message. */
+    char *property_sig; /* The signature of the new value in the received .Set message. */
     DBusMessageIter variant_iter; /* Iterator pointing to the beginning of the new value variant of a .Set call. */
 
     const char *method; /* Method name (extracted from the message). */
@@ -431,7 +431,7 @@ static enum find_result_t find_handler_from_properties_call(struct call_info *ca
 
         dbus_message_iter_recurse(&msg_iter, &call_info->variant_iter);
 
-        call_info->property_sig = dbus_message_iter_get_signature(&call_info->variant_iter);
+        pa_assert_se(call_info->property_sig = dbus_message_iter_get_signature(&call_info->variant_iter));
 
         if (*call_info->property_interface) {
             if (!(call_info->iface_entry = pa_hashmap_get(call_info->obj_entry->interfaces, call_info->property_interface)))
@@ -494,6 +494,7 @@ static enum find_result_t find_handler(struct call_info *call_info) {
 static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessage *message, void *user_data) {
     pa_dbus_protocol *p = user_data;
     struct call_info call_info;
+    call_info.property_sig = NULL;
 
     pa_assert(connection);
     pa_assert(message);
@@ -588,6 +589,9 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
     }
 
 finish:
+    if (call_info.property_sig)
+        dbus_free(call_info.property_sig);
+
     return DBUS_HANDLER_RESULT_HANDLED;
 }
 

@@ -735,6 +735,7 @@ void pa_dbus_append_proplist_variant_dict_entry(DBusMessageIter *dict_iter, cons
 pa_proplist *pa_dbus_get_proplist_arg(DBusConnection *c, DBusMessage *msg, DBusMessageIter *iter) {
     DBusMessageIter dict_iter;
     DBusMessageIter dict_entry_iter;
+    char *signature;
     pa_proplist *proplist = NULL;
     const char *key = NULL;
     const uint8_t *value = NULL;
@@ -743,7 +744,11 @@ pa_proplist *pa_dbus_get_proplist_arg(DBusConnection *c, DBusMessage *msg, DBusM
     pa_assert(c);
     pa_assert(msg);
     pa_assert(iter);
-    pa_assert(pa_streq(dbus_message_iter_get_signature(iter), "a{say}"));
+
+    pa_assert(signature = dbus_message_iter_get_signature(iter));
+    pa_assert_se(pa_streq(signature, "a{say}"));
+
+    dbus_free(signature);
 
     proplist = pa_proplist_new();
 
