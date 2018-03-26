@@ -597,7 +597,6 @@ msgid "Line In"
 msgstr "Ulaz"
 
 #: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
-#: ../src/modules/bluetooth/module-bluez4-device.c:2104
 #: ../src/modules/bluetooth/module-bluez5-device.c:1696
 msgid "Microphone"
 msgstr "Mikrofon"
@@ -659,7 +658,6 @@ msgid "No Bass Boost"
 msgstr "Bez pojačanja basa"
 
 #: ../src/modules/alsa/alsa-mixer.c:2398
-#: ../src/modules/bluetooth/module-bluez4-device.c:2109
 #: ../src/modules/bluetooth/module-bluez5-device.c:1703
 msgid "Speaker"
 msgstr "Zvučnik"
@@ -832,7 +830,6 @@ msgstr "Višekanalni obostrani"
 
 #: ../src/modules/alsa/alsa-mixer.c:4155
 #: ../src/modules/alsa/module-alsa-card.c:186
-#: ../src/modules/bluetooth/module-bluez4-device.c:2324
 #: ../src/modules/bluetooth/module-bluez5-device.c:1951
 msgid "Off"
 msgstr "Isključeno"
@@ -967,71 +964,46 @@ msgstr ""
 "Najvjerojatnije je ovo greška ALSA upravljačkog programa '%s'. Prijavite "
 "problem ALSA razvijateljima."
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2094
 #: ../src/modules/bluetooth/module-bluez5-device.c:1686
 msgid "Headset"
 msgstr "Slušalice s mikrofonom"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2099
 #: ../src/modules/bluetooth/module-bluez5-device.c:1691
 msgid "Handsfree"
 msgstr "Bez-ruku"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2114
 #: ../src/modules/bluetooth/module-bluez5-device.c:1709
 msgid "Headphone"
 msgstr "Slušalice"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2119
 #: ../src/modules/bluetooth/module-bluez5-device.c:1714
 msgid "Portable"
 msgstr "Prijenosnik"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2124
 #: ../src/modules/bluetooth/module-bluez5-device.c:1719
 msgid "Car"
 msgstr "Automobil"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2129
 #: ../src/modules/bluetooth/module-bluez5-device.c:1724
 msgid "HiFi"
 msgstr "HiFi"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2134
 #: ../src/modules/bluetooth/module-bluez5-device.c:1729
 msgid "Phone"
 msgstr "Telefon"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2142
 #: ../src/modules/bluetooth/module-bluez5-device.c:1681
 #: ../src/modules/bluetooth/module-bluez5-device.c:1697
 #: ../src/modules/bluetooth/module-bluez5-device.c:1735
 msgid "Bluetooth Output"
 msgstr "Bluetooth izlaz"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2145
 #: ../src/modules/bluetooth/module-bluez5-device.c:1680
 #: ../src/modules/bluetooth/module-bluez5-device.c:1702
 #: ../src/modules/bluetooth/module-bluez5-device.c:1708
 #: ../src/modules/bluetooth/module-bluez5-device.c:1734
 msgid "Bluetooth Input"
 msgstr "Bluetooth ulaz"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2186
-msgid "High Fidelity Playback (A2DP)"
-msgstr "Reprodukcija visoke autentičnosti (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2198
-msgid "High Fidelity Capture (A2DP)"
-msgstr "Snimanje visoke autentičnosti (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2210
-msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Obostrana telefonija (HSP/HFP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2223
-msgid "Handsfree Gateway"
-msgstr "Bezručni pristupnik"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1776
 msgid "High Fidelity Playback (A2DP Sink)"

@@ -1462,13 +1462,6 @@ modlibexec_LTLIBRARIES += \
 		module-bluetooth-policy.la
 endif
 
-if HAVE_BLUEZ_4
-modlibexec_LTLIBRARIES += \
-		libbluez4-util.la \
-		module-bluez4-discover.la \
-		module-bluez4-device.la
-endif
-
 if HAVE_BLUEZ_5
 modlibexec_LTLIBRARIES += \
 		libbluez5-util.la \
@@ -2117,25 +2110,6 @@ module_bluetooth_discover_la_SOURCES = modules/bluetooth/module-bluetooth-discov
 module_bluetooth_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_bluetooth_discover_la_LIBADD = $(MODULE_LIBADD)
 module_bluetooth_discover_la_CFLAGS = $(AM_CFLAGS) -DPA_MODULE_NAME=module_bluetooth_discover
-
-# Bluetooth BlueZ 4 sink / source
-module_bluez4_discover_la_SOURCES = modules/bluetooth/module-bluez4-discover.c
-module_bluez4_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_bluez4_discover_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) libbluez4-util.la
-module_bluez4_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) -DPA_MODULE_NAME=module_bluez4_discover
-
-libbluez4_util_la_SOURCES = \
-		modules/bluetooth/a2dp-codecs.h \
-		modules/bluetooth/bluez4-util.c \
-		modules/bluetooth/bluez4-util.h
-libbluez4_util_la_LDFLAGS = -avoid-version
-libbluez4_util_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS)
-libbluez4_util_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
-
-module_bluez4_device_la_SOURCES = modules/bluetooth/module-bluez4-device.c modules/bluetooth/rtp.h
-module_bluez4_device_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_bluez4_device_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS) $(SBC_LIBS) libbluez4-util.la
-module_bluez4_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) $(SBC_CFLAGS) -DPA_MODULE_NAME=module_bluez4_device
 
 # Bluetooth BlueZ 5 sink / source
 libbluez5_util_la_SOURCES = \

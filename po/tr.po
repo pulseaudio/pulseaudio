@@ -678,7 +678,6 @@ msgid "Line In"
 msgstr "Hat girişi"
 
 #: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
-#: ../src/modules/bluetooth/module-bluez4-device.c:2104
 #: ../src/modules/bluetooth/module-bluez5-device.c:1696
 msgid "Microphone"
 msgstr "Mikrofon"
@@ -740,7 +739,6 @@ msgid "No Bass Boost"
 msgstr "Bas Artırma"
 
 #: ../src/modules/alsa/alsa-mixer.c:2398
-#: ../src/modules/bluetooth/module-bluez4-device.c:2109
 #: ../src/modules/bluetooth/module-bluez5-device.c:1703
 msgid "Speaker"
 msgstr "Hoparlör"
@@ -922,7 +920,6 @@ msgstr "İkili Stereo"
 
 #: ../src/modules/alsa/alsa-mixer.c:4157
 #: ../src/modules/alsa/module-alsa-card.c:186
-#: ../src/modules/bluetooth/module-bluez4-device.c:2324
 #: ../src/modules/bluetooth/module-bluez5-device.c:1951
 msgid "Off"
 msgstr "Kapalı"
@@ -1054,71 +1051,46 @@ msgstr ""
 "Büyük ihtimalle bu bir ALSA sürücüsü '%s' hatasıdır. Lütfen bu sorunu ALSA "
 "geliştiricilerine bildirin."
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2094
 #: ../src/modules/bluetooth/module-bluez5-device.c:1686
 msgid "Headset"
 msgstr "Kulaklık"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2099
 #: ../src/modules/bluetooth/module-bluez5-device.c:1691
 msgid "Handsfree"
 msgstr "Ahizesiz"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2114
 #: ../src/modules/bluetooth/module-bluez5-device.c:1709
 msgid "Headphone"
 msgstr "Kulaklık"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2119
 #: ../src/modules/bluetooth/module-bluez5-device.c:1714
 msgid "Portable"
 msgstr "Taşınabilir"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2124
 #: ../src/modules/bluetooth/module-bluez5-device.c:1719
 msgid "Car"
 msgstr "Araba"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2129
 #: ../src/modules/bluetooth/module-bluez5-device.c:1724
 msgid "HiFi"
 msgstr "Yüksek duyarlılık"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2134
 #: ../src/modules/bluetooth/module-bluez5-device.c:1729
 msgid "Phone"
 msgstr "Telefon"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2142
 #: ../src/modules/bluetooth/module-bluez5-device.c:1681
 #: ../src/modules/bluetooth/module-bluez5-device.c:1697
 #: ../src/modules/bluetooth/module-bluez5-device.c:1735
 msgid "Bluetooth Output"
 msgstr "Bluetooth Çıkışı"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2145
 #: ../src/modules/bluetooth/module-bluez5-device.c:1680
 #: ../src/modules/bluetooth/module-bluez5-device.c:1702
 #: ../src/modules/bluetooth/module-bluez5-device.c:1708
 #: ../src/modules/bluetooth/module-bluez5-device.c:1734
 msgid "Bluetooth Input"
 msgstr "Bluetooth Girişi"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2186
-msgid "High Fidelity Playback (A2DP)"
-msgstr "Yüksek Kaliteli Çalma (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2198
-msgid "High Fidelity Capture (A2DP)"
-msgstr "Yüksek Kaliteli Yakalama (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2210
-msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Çift yönlü Telefon (HSP/HFP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2223
-msgid "Handsfree Gateway"
-msgstr "Eller Serbest Geçidi"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1776
 msgid "High Fidelity Playback (A2DP Sink)"

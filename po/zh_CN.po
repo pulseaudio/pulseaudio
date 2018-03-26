@@ -555,7 +555,6 @@ msgid "Line In"
 msgstr "输入插孔"
 
 #: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
-#: ../src/modules/bluetooth/module-bluez4-device.c:2099
 #: ../src/modules/bluetooth/module-bluez5-device.c:1710
 msgid "Microphone"
 msgstr "话筒"
@@ -617,7 +616,6 @@ msgid "No Bass Boost"
 msgstr "无重低音增强"
 
 #: ../src/modules/alsa/alsa-mixer.c:2398
-#: ../src/modules/bluetooth/module-bluez4-device.c:2104
 #: ../src/modules/bluetooth/module-bluez5-device.c:1717
 msgid "Speaker"
 msgstr "扬声器"
@@ -790,7 +788,6 @@ msgstr "多声道双工"
 
 #: ../src/modules/alsa/alsa-mixer.c:4155
 #: ../src/modules/alsa/module-alsa-card.c:186
-#: ../src/modules/bluetooth/module-bluez4-device.c:2295
 #: ../src/modules/bluetooth/module-bluez5-device.c:1941
 msgid "Off"
 msgstr "关"
@@ -911,71 +908,46 @@ msgstr ""
 "snd_pcm_mmap_begin() 返回的值非常大：%lu 字节(%lu ms)。\n"
 "这很可能是由 ALSA 驱动程序 %s 中的 bug。请向 ALSA 开发者举报这个问题。"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2089
 #: ../src/modules/bluetooth/module-bluez5-device.c:1700
 msgid "Headset"
 msgstr "耳机"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2094
 #: ../src/modules/bluetooth/module-bluez5-device.c:1705
 msgid "Handsfree"
 msgstr "免手操作"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2109
 #: ../src/modules/bluetooth/module-bluez5-device.c:1723
 msgid "Headphone"
 msgstr "头戴耳机"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2114
 #: ../src/modules/bluetooth/module-bluez5-device.c:1728
 msgid "Portable"
 msgstr "便携式"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2119
 #: ../src/modules/bluetooth/module-bluez5-device.c:1733
 msgid "Car"
 msgstr "车内"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2124
 #: ../src/modules/bluetooth/module-bluez5-device.c:1738
 msgid "HiFi"
 msgstr "高保真"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2129
 #: ../src/modules/bluetooth/module-bluez5-device.c:1743
 msgid "Phone"
 msgstr "电话"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2137
 #: ../src/modules/bluetooth/module-bluez5-device.c:1695
 #: ../src/modules/bluetooth/module-bluez5-device.c:1711
 #: ../src/modules/bluetooth/module-bluez5-device.c:1749
 msgid "Bluetooth Output"
 msgstr "蓝牙输出"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2140
 #: ../src/modules/bluetooth/module-bluez5-device.c:1694
 #: ../src/modules/bluetooth/module-bluez5-device.c:1716
 #: ../src/modules/bluetooth/module-bluez5-device.c:1722
 #: ../src/modules/bluetooth/module-bluez5-device.c:1748
 msgid "Bluetooth Input"
 msgstr "蓝牙输入"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2176
-msgid "High Fidelity Playback (A2DP)"
-msgstr "高保真回放(A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2187
-msgid "High Fidelity Capture (A2DP)"
-msgstr "高保真采集(A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2198
-msgid "Telephony Duplex (HSP/HFP)"
-msgstr "双工电话(HSP/HFP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2210
-msgid "Handsfree Gateway"
-msgstr "蓝牙音频网关"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1786
 msgid "High Fidelity Playback (A2DP Sink)"

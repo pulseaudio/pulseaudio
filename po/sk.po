@@ -495,7 +495,6 @@ msgid "Line In"
 msgstr "Vstupná linka"
 
 #: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
-#: ../src/modules/bluetooth/module-bluez4-device.c:2099
 #: ../src/modules/bluetooth/module-bluez5-device.c:1710
 msgid "Microphone"
 msgstr "Mikrofón"
@@ -557,7 +556,6 @@ msgid "No Bass Boost"
 msgstr "Bez zosilnenia basov"
 
 #: ../src/modules/alsa/alsa-mixer.c:2398
-#: ../src/modules/bluetooth/module-bluez4-device.c:2104
 #: ../src/modules/bluetooth/module-bluez5-device.c:1717
 msgid "Speaker"
 msgstr "Reproduktor"
@@ -730,7 +728,6 @@ msgstr "Obojsmerný viackanálový"
 
 #: ../src/modules/alsa/alsa-mixer.c:4155
 #: ../src/modules/alsa/module-alsa-card.c:186
-#: ../src/modules/bluetooth/module-bluez4-device.c:2295
 #: ../src/modules/bluetooth/module-bluez5-device.c:1941
 msgid "Off"
 msgstr "Vypnuté"
@@ -825,71 +822,46 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2089
 #: ../src/modules/bluetooth/module-bluez5-device.c:1700
 msgid "Headset"
 msgstr "Headset"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2094
 #: ../src/modules/bluetooth/module-bluez5-device.c:1705
 msgid "Handsfree"
 msgstr "Handsfree"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2109
 #: ../src/modules/bluetooth/module-bluez5-device.c:1723
 msgid "Headphone"
 msgstr "Slúchadlo"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2114
 #: ../src/modules/bluetooth/module-bluez5-device.c:1728
 msgid "Portable"
 msgstr "Prenosné"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2119
 #: ../src/modules/bluetooth/module-bluez5-device.c:1733
 msgid "Car"
 msgstr "Automobil"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2124
 #: ../src/modules/bluetooth/module-bluez5-device.c:1738
 msgid "HiFi"
 msgstr "HiFi"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2129
 #: ../src/modules/bluetooth/module-bluez5-device.c:1743
 msgid "Phone"
 msgstr "Telefón"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2137
 #: ../src/modules/bluetooth/module-bluez5-device.c:1695
 #: ../src/modules/bluetooth/module-bluez5-device.c:1711
 #: ../src/modules/bluetooth/module-bluez5-device.c:1749
 msgid "Bluetooth Output"
 msgstr "Výstup cez Bluetooth"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2140
 #: ../src/modules/bluetooth/module-bluez5-device.c:1694
 #: ../src/modules/bluetooth/module-bluez5-device.c:1716
 #: ../src/modules/bluetooth/module-bluez5-device.c:1722
 #: ../src/modules/bluetooth/module-bluez5-device.c:1748
 msgid "Bluetooth Input"
 msgstr "Vstup cez Bluetooth"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2176
-msgid "High Fidelity Playback (A2DP)"
-msgstr "Hi-Fi prehrávanie (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2187
-msgid "High Fidelity Capture (A2DP)"
-msgstr "Hi-Fi zaznamenávanie (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2198
-msgid "Telephony Duplex (HSP/HFP)"
-msgstr ""
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2210
-msgid "Handsfree Gateway"
-msgstr "Brána pre handsfree"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1786
 msgid "High Fidelity Playback (A2DP Sink)"

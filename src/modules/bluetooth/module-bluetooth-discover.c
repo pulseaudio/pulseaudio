@@ -36,7 +36,6 @@ PA_MODULE_USAGE(
 
 struct userdata {
     uint32_t bluez5_module_idx;
-    uint32_t bluez4_module_idx;
 };
 
 int pa__init(pa_module* m) {
@@ -47,7 +46,6 @@ int pa__init(pa_module* m) {
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->bluez5_module_idx = PA_INVALID_INDEX;
-    u->bluez4_module_idx = PA_INVALID_INDEX;
 
     if (pa_module_exists("module-bluez5-discover")) {
         pa_module_load(&mm, m->core, "module-bluez5-discover", m->argument);
@@ -55,13 +53,7 @@ int pa__init(pa_module* m) {
             u->bluez5_module_idx = mm->index;
     }
 
-    if (pa_module_exists("module-bluez4-discover")) {
-        pa_module_load(&mm, m->core, "module-bluez4-discover",  NULL);
-        if (mm)
-            u->bluez4_module_idx = mm->index;
-    }
-
-    if (u->bluez5_module_idx == PA_INVALID_INDEX && u->bluez4_module_idx == PA_INVALID_INDEX) {
+    if (u->bluez5_module_idx == PA_INVALID_INDEX) {
         pa_xfree(u);
         return -1;
     }
@@ -79,9 +71,6 @@ void pa__done(pa_module* m) {
 
     if (u->bluez5_module_idx != PA_INVALID_INDEX)
         pa_module_unload_by_index(m->core, u->bluez5_module_idx, true);
-
-    if (u->bluez4_module_idx != PA_INVALID_INDEX)
-        pa_module_unload_by_index(m->core, u->bluez4_module_idx, true);
 
     pa_xfree(u);
 }

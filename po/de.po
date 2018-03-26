@@ -602,7 +602,6 @@ msgid "Line In"
 msgstr "Line-Eingang"
 
 #: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
-#: ../src/modules/bluetooth/module-bluez4-device.c:2099
 #: ../src/modules/bluetooth/module-bluez5-device.c:1710
 msgid "Microphone"
 msgstr "Mikrofon"
@@ -664,7 +663,6 @@ msgid "No Bass Boost"
 msgstr "Keine Bassverstärkung"
 
 #: ../src/modules/alsa/alsa-mixer.c:2398
-#: ../src/modules/bluetooth/module-bluez4-device.c:2104
 #: ../src/modules/bluetooth/module-bluez5-device.c:1717
 msgid "Speaker"
 msgstr "Lautsprecher"
@@ -837,7 +835,6 @@ msgstr "Mehrkanal-Duplex"
 
 #: ../src/modules/alsa/alsa-mixer.c:4155
 #: ../src/modules/alsa/module-alsa-card.c:186
-#: ../src/modules/bluetooth/module-bluez4-device.c:2319
 #: ../src/modules/bluetooth/module-bluez5-device.c:1965
 msgid "Off"
 msgstr "Aus"
@@ -976,71 +973,46 @@ msgstr ""
 "Dies ist wahrscheinlich ein Fehler im ALSA-Treiber »%s«. Bitte melden Sie "
 "dieses Problem den ALSA-Entwicklern."
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2089
 #: ../src/modules/bluetooth/module-bluez5-device.c:1700
 msgid "Headset"
 msgstr "Headset"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2094
 #: ../src/modules/bluetooth/module-bluez5-device.c:1705
 msgid "Handsfree"
 msgstr "Freisprecheinrichtung"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2109
 #: ../src/modules/bluetooth/module-bluez5-device.c:1723
 msgid "Headphone"
 msgstr "Kopfhörer"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2114
 #: ../src/modules/bluetooth/module-bluez5-device.c:1728
 msgid "Portable"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2119
 #: ../src/modules/bluetooth/module-bluez5-device.c:1733
 msgid "Car"
 msgstr "Auto"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2124
 #: ../src/modules/bluetooth/module-bluez5-device.c:1738
 msgid "HiFi"
 msgstr "HiFi"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2129
 #: ../src/modules/bluetooth/module-bluez5-device.c:1743
 msgid "Phone"
 msgstr "Telefon"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2137
 #: ../src/modules/bluetooth/module-bluez5-device.c:1695
 #: ../src/modules/bluetooth/module-bluez5-device.c:1711
 #: ../src/modules/bluetooth/module-bluez5-device.c:1749
 msgid "Bluetooth Output"
 msgstr "Bluetooth-Ausgabe"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2140
 #: ../src/modules/bluetooth/module-bluez5-device.c:1694
 #: ../src/modules/bluetooth/module-bluez5-device.c:1716
 #: ../src/modules/bluetooth/module-bluez5-device.c:1722
 #: ../src/modules/bluetooth/module-bluez5-device.c:1748
 msgid "Bluetooth Input"
 msgstr "Bluetooth-Eingabe"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2181
-msgid "High Fidelity Playback (A2DP)"
-msgstr "High Fidelity Playback (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2193
-msgid "High Fidelity Capture (A2DP)"
-msgstr "High Fidelity Capture (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2205
-msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Telephony Duplex (HSP/HFP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2218
-msgid "Handsfree Gateway"
-msgstr ""
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1790
 msgid "High Fidelity Playback (A2DP Sink)"

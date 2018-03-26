@@ -779,7 +779,6 @@ msgid "Line In"
 msgstr "Линейный вход"
 
 #: ../src/modules/alsa/alsa-mixer.c:2256 ../src/modules/alsa/alsa-mixer.c:2334
-#: ../src/modules/bluetooth/module-bluez4-device.c:2101
 #: ../src/modules/bluetooth/module-bluez5-device.c:1451
 msgid "Microphone"
 msgstr "Микрофон"
@@ -843,7 +842,6 @@ msgid "No Bass Boost"
 msgstr "Нет усиления басов"
 
 #: ../src/modules/alsa/alsa-mixer.c:2271
-#: ../src/modules/bluetooth/module-bluez4-device.c:2106
 #: ../src/modules/bluetooth/module-bluez5-device.c:1458
 msgid "Speaker"
 msgstr "Динамик"
@@ -998,7 +996,6 @@ msgstr "Цифровой стерео дуплекс (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3959
 #: ../src/modules/alsa/module-alsa-card.c:193
-#: ../src/modules/bluetooth/module-bluez4-device.c:2297
 #: ../src/modules/bluetooth/module-bluez5-device.c:1656
 msgid "Off"
 msgstr "Выключено"
@@ -1101,72 +1098,47 @@ msgstr ""
 "Вероятно, это ошибка в драйвере ALSA «%s». Пожалуйста, сообщите об этой "
 "проблеме разработчикам ALSA."
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2091
 #: ../src/modules/bluetooth/module-bluez5-device.c:1441
 msgid "Headset"
 msgstr "Гарнитура"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2096
 #: ../src/modules/bluetooth/module-bluez5-device.c:1446
 msgid "Handsfree"
 msgstr "Хендс-фри"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2111
 #: ../src/modules/bluetooth/module-bluez5-device.c:1464
 msgid "Headphone"
 msgstr "Наушник"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2116
 #: ../src/modules/bluetooth/module-bluez5-device.c:1469
 msgid "Portable"
 msgstr "Портативный динамик"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2121
 #: ../src/modules/bluetooth/module-bluez5-device.c:1474
 msgid "Car"
 msgstr "Автомобильный динамик"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2126
 #: ../src/modules/bluetooth/module-bluez5-device.c:1479
 msgid "HiFi"
 msgstr "Hi-Fi"
 
 # BUGME: please clarify, does this mean a cell phone? --aspotashev
-#: ../src/modules/bluetooth/module-bluez4-device.c:2131
 #: ../src/modules/bluetooth/module-bluez5-device.c:1484
 msgid "Phone"
 msgstr "Телефон"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2139
 #: ../src/modules/bluetooth/module-bluez5-device.c:1436
 #: ../src/modules/bluetooth/module-bluez5-device.c:1452
 #: ../src/modules/bluetooth/module-bluez5-device.c:1490
 msgid "Bluetooth Output"
 msgstr "Выход Bluetooth"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2142
 #: ../src/modules/bluetooth/module-bluez5-device.c:1435
 #: ../src/modules/bluetooth/module-bluez5-device.c:1457
 #: ../src/modules/bluetooth/module-bluez5-device.c:1463
 #: ../src/modules/bluetooth/module-bluez5-device.c:1489
 msgid "Bluetooth Input"
 msgstr "Вход Bluetooth"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2178
-msgid "High Fidelity Playback (A2DP)"
-msgstr "Воспроизведение высокого качества (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2189
-msgid "High Fidelity Capture (A2DP)"
-msgstr "Запись высокого качества (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2200
-msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Дуплексная телефония (HSP/HFP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2212
-msgid "Handsfree Gateway"
-msgstr "Шлюз передачи данных для хендс-фри"
 
 #. TODO: Change this profile's name to a2dp_sink, to reflect the remote
 #. * device's role and be consistent with the a2dp source profile

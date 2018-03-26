@@ -14,7 +14,6 @@ src/modules/alsa/alsa-util.c
 src/modules/alsa/module-alsa-card.c
 src/modules/alsa/module-alsa-sink.c
 src/modules/alsa/module-alsa-source.c
-src/modules/bluetooth/module-bluez4-device.c
 src/modules/bluetooth/module-bluez5-device.c
 src/modules/echo-cancel/module-echo-cancel.c
 src/modules/gconf/gconf-helper.c

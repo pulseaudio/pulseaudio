@@ -840,7 +840,6 @@ msgid "Line In"
 msgstr "Γραμμή εισόδου"
 
 #: ../src/modules/alsa/alsa-mixer.c:2256 ../src/modules/alsa/alsa-mixer.c:2334
-#: ../src/modules/bluetooth/module-bluez4-device.c:2101
 #: ../src/modules/bluetooth/module-bluez5-device.c:1451
 msgid "Microphone"
 msgstr "Μικρόφωνο"
@@ -902,7 +901,6 @@ msgid "No Bass Boost"
 msgstr "Χωρίς ενίσχυση μπάσων"
 
 #: ../src/modules/alsa/alsa-mixer.c:2271
-#: ../src/modules/bluetooth/module-bluez4-device.c:2106
 #: ../src/modules/bluetooth/module-bluez5-device.c:1458
 msgid "Speaker"
 msgstr "Ηχείο"
@@ -1057,7 +1055,6 @@ msgstr "Ψηφιακός στερεοφωνικός αμφίδρομος (IEC958
 
 #: ../src/modules/alsa/alsa-mixer.c:3959
 #: ../src/modules/alsa/module-alsa-card.c:193
-#: ../src/modules/bluetooth/module-bluez4-device.c:2297
 #: ../src/modules/bluetooth/module-bluez5-device.c:1656
 msgid "Off"
 msgstr "Ανενεργό"
@@ -1158,71 +1155,46 @@ msgstr ""
 "Το πιθανότερο αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε, "
 "αναφέρτε αυτό το θέμα στους προγραμματιστές ALSA."
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2091
 #: ../src/modules/bluetooth/module-bluez5-device.c:1441
 msgid "Headset"
 msgstr "Ακουστικά"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2096
 #: ../src/modules/bluetooth/module-bluez5-device.c:1446
 msgid "Handsfree"
 msgstr "Ανοιχτής ακρόασης"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2111
 #: ../src/modules/bluetooth/module-bluez5-device.c:1464
 msgid "Headphone"
 msgstr "Ακουστικό"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2116
 #: ../src/modules/bluetooth/module-bluez5-device.c:1469
 msgid "Portable"
 msgstr "Φορητό"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2121
 #: ../src/modules/bluetooth/module-bluez5-device.c:1474
 msgid "Car"
 msgstr "Αυτοκίνητο"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2126
 #: ../src/modules/bluetooth/module-bluez5-device.c:1479
 msgid "HiFi"
 msgstr "Υψηλή πιστότητα"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2131
 #: ../src/modules/bluetooth/module-bluez5-device.c:1484
 msgid "Phone"
 msgstr "Τηλέφωνο"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2139
 #: ../src/modules/bluetooth/module-bluez5-device.c:1436
 #: ../src/modules/bluetooth/module-bluez5-device.c:1452
 #: ../src/modules/bluetooth/module-bluez5-device.c:1490
 msgid "Bluetooth Output"
 msgstr "Έξοδος μπλουτούθ"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2142
 #: ../src/modules/bluetooth/module-bluez5-device.c:1435
 #: ../src/modules/bluetooth/module-bluez5-device.c:1457
 #: ../src/modules/bluetooth/module-bluez5-device.c:1463
 #: ../src/modules/bluetooth/module-bluez5-device.c:1489
 msgid "Bluetooth Input"
 msgstr "Είσοδος μπλουτούθ"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2178
-msgid "High Fidelity Playback (A2DP)"
-msgstr "Αναπαραγωγή υψηλής ποιότητα (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2189
-msgid "High Fidelity Capture (A2DP)"
-msgstr "Λήψη υψηλής ποιότητας (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2200
-msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Αμφίδρομη τηλεφωνία (HSP/HFP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2212
-msgid "Handsfree Gateway"
-msgstr "Πύλη ανοιχτής ακρόασης"
 
 #. TODO: Change this profile's name to a2dp_sink, to reflect the remote
 #. * device's role and be consistent with the a2dp source profile

@@ -521,7 +521,6 @@ msgid "Line In"
 msgstr "Entrada linha"
 
 #: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
-#: ../src/modules/bluetooth/module-bluez4-device.c:2173
 #: ../src/modules/bluetooth/module-bluez5-device.c:1937
 msgid "Microphone"
 msgstr "Micrò"
@@ -583,7 +582,6 @@ msgid "No Bass Boost"
 msgstr "Pas d'amplificacion de las bassas"
 
 #: ../src/modules/alsa/alsa-mixer.c:2398
-#: ../src/modules/bluetooth/module-bluez4-device.c:2178
 #: ../src/modules/bluetooth/module-bluez5-device.c:1944
 msgid "Speaker"
 msgstr "Nautparlaire"
@@ -756,7 +754,6 @@ msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:4155
 #: ../src/modules/alsa/module-alsa-card.c:186
-#: ../src/modules/bluetooth/module-bluez4-device.c:2369
 #: ../src/modules/bluetooth/module-bluez5-device.c:2173
 #: ../src/modules/droid/module-droid-card.c:221
 msgid "Off"
@@ -880,71 +877,46 @@ msgstr ""
 "S'agís fòrt probablament d'un bug dins lo pilòt ALSA « %s ». Raportatz "
 "aqueste problèma als desvolopaires d'ALSA."
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2163
 #: ../src/modules/bluetooth/module-bluez5-device.c:1927
 msgid "Headset"
 msgstr "Casc àudio"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2168
 #: ../src/modules/bluetooth/module-bluez5-device.c:1932
 msgid "Handsfree"
 msgstr "Mans liuras"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2183
 #: ../src/modules/bluetooth/module-bluez5-device.c:1950
 msgid "Headphone"
 msgstr "Escotadors"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2188
 #: ../src/modules/bluetooth/module-bluez5-device.c:1955
 msgid "Portable"
 msgstr "Portable"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2193
 #: ../src/modules/bluetooth/module-bluez5-device.c:1960
 msgid "Car"
 msgstr "Telefòn de veitura"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2198
 #: ../src/modules/bluetooth/module-bluez5-device.c:1965
 msgid "HiFi"
 msgstr "HiFi"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2203
 #: ../src/modules/bluetooth/module-bluez5-device.c:1970
 msgid "Phone"
 msgstr "Telefòn"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2211
 #: ../src/modules/bluetooth/module-bluez5-device.c:1922
 #: ../src/modules/bluetooth/module-bluez5-device.c:1938
 #: ../src/modules/bluetooth/module-bluez5-device.c:1976
 msgid "Bluetooth Output"
 msgstr "Sortida Bluetooth"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2214
 #: ../src/modules/bluetooth/module-bluez5-device.c:1921
 #: ../src/modules/bluetooth/module-bluez5-device.c:1943
 #: ../src/modules/bluetooth/module-bluez5-device.c:1949
 #: ../src/modules/bluetooth/module-bluez5-device.c:1975
 msgid "Bluetooth Input"
 msgstr "Entrada Bluetooth"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2250
-msgid "High Fidelity Playback (A2DP)"
-msgstr "Lectura nauta fidelitat (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2261
-msgid "High Fidelity Capture (A2DP)"
-msgstr "Captura Hi-Fi (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2272
-msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Telefonia en duplèx (HSP/HFP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2284
-msgid "Handsfree Gateway"
-msgstr "Pòrt mans liuras"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:2013
 msgid "High Fidelity Playback (A2DP Sink)"

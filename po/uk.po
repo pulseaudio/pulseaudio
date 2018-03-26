@@ -609,8 +609,7 @@ msgid "Line In"
 msgstr "Лінійний вхід"
 
 #: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
-#: ../src/modules/bluetooth/module-bluez4-device.c:2104
-#: ../src/modules/bluetooth/module-bluez5-device.c:1783
+#: ../src/modules/bluetooth/module-bluez5-device.c:1750
 msgid "Microphone"
 msgstr "Мікрофон"
 
@@ -671,8 +670,7 @@ msgid "No Bass Boost"
 msgstr "Без підсилення"
 
 #: ../src/modules/alsa/alsa-mixer.c:2398
-#: ../src/modules/bluetooth/module-bluez4-device.c:2109
-#: ../src/modules/bluetooth/module-bluez5-device.c:1790
+#: ../src/modules/bluetooth/module-bluez5-device.c:1757
 msgid "Speaker"
 msgstr "Гучномовець"
 
@@ -857,8 +855,7 @@ msgstr "Двобічне стерео"
 
 #: ../src/modules/alsa/alsa-mixer.c:4158
 #: ../src/modules/alsa/module-alsa-card.c:186
-#: ../src/modules/bluetooth/module-bluez4-device.c:2324
-#: ../src/modules/bluetooth/module-bluez5-device.c:2038
+#: ../src/modules/bluetooth/module-bluez5-device.c:2005
 msgid "Off"
 msgstr "Вимкнено"
 
@@ -992,73 +989,48 @@ msgstr ""
 "Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2094
-#: ../src/modules/bluetooth/module-bluez5-device.c:1773
+#: ../src/modules/bluetooth/module-bluez5-device.c:1740
 msgid "Headset"
 msgstr "Гарнітура"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2099
-#: ../src/modules/bluetooth/module-bluez5-device.c:1778
+#: ../src/modules/bluetooth/module-bluez5-device.c:1745
 msgid "Handsfree"
 msgstr "Пристрій гучного зв’язку"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2114
-#: ../src/modules/bluetooth/module-bluez5-device.c:1796
+#: ../src/modules/bluetooth/module-bluez5-device.c:1763
 msgid "Headphone"
 msgstr "Навушники"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2119
-#: ../src/modules/bluetooth/module-bluez5-device.c:1801
+#: ../src/modules/bluetooth/module-bluez5-device.c:1768
 msgid "Portable"
 msgstr "Портативна система"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2124
-#: ../src/modules/bluetooth/module-bluez5-device.c:1806
+#: ../src/modules/bluetooth/module-bluez5-device.c:1773
 msgid "Car"
 msgstr "Автомобільна система"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2129
-#: ../src/modules/bluetooth/module-bluez5-device.c:1811
+#: ../src/modules/bluetooth/module-bluez5-device.c:1778
 msgid "HiFi"
 msgstr "HiFi"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2134
-#: ../src/modules/bluetooth/module-bluez5-device.c:1816
+#: ../src/modules/bluetooth/module-bluez5-device.c:1783
 msgid "Phone"
 msgstr "Телефон"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2142
-#: ../src/modules/bluetooth/module-bluez5-device.c:1768
-#: ../src/modules/bluetooth/module-bluez5-device.c:1784
-#: ../src/modules/bluetooth/module-bluez5-device.c:1822
+#: ../src/modules/bluetooth/module-bluez5-device.c:1735
+#: ../src/modules/bluetooth/module-bluez5-device.c:1751
+#: ../src/modules/bluetooth/module-bluez5-device.c:1789
 msgid "Bluetooth Output"
 msgstr "Bluetooth (відтворення)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2145
-#: ../src/modules/bluetooth/module-bluez5-device.c:1767
-#: ../src/modules/bluetooth/module-bluez5-device.c:1789
-#: ../src/modules/bluetooth/module-bluez5-device.c:1795
-#: ../src/modules/bluetooth/module-bluez5-device.c:1821
+#: ../src/modules/bluetooth/module-bluez5-device.c:1734
+#: ../src/modules/bluetooth/module-bluez5-device.c:1756
+#: ../src/modules/bluetooth/module-bluez5-device.c:1762
+#: ../src/modules/bluetooth/module-bluez5-device.c:1788
 msgid "Bluetooth Input"
 msgstr "Bluetooth (вхід)"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2186
-msgid "High Fidelity Playback (A2DP)"
-msgstr "Високоточне відтворення (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2198
-msgid "High Fidelity Capture (A2DP)"
-msgstr "Високоточне захоплення (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2210
-msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Телефонний дуплекс (HSP/HFP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2223
-msgid "Handsfree Gateway"
-msgstr "Пристрій гучного зв’язку"
-
-#: ../src/modules/bluetooth/module-bluez5-device.c:1863
+#: ../src/modules/bluetooth/module-bluez5-device.c:1830
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Високоточне відтворення (приймач A2DP)"
 

@@ -568,7 +568,6 @@ msgid "Line In"
 msgstr "Linje inn"
 
 #: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
-#: ../src/modules/bluetooth/module-bluez4-device.c:2104
 #: ../src/modules/bluetooth/module-bluez5-device.c:1750
 msgid "Microphone"
 msgstr "Mikrofon"
@@ -643,7 +642,6 @@ msgid "No Bass Boost"
 msgstr "Inga bassforsterking"
 
 #: ../src/modules/alsa/alsa-mixer.c:2398
-#: ../src/modules/bluetooth/module-bluez4-device.c:2109
 #: ../src/modules/bluetooth/module-bluez5-device.c:1757
 msgid "Speaker"
 msgstr "Høgtalar"
@@ -845,7 +843,6 @@ msgstr "Stereo dupleks"
 
 #: ../src/modules/alsa/alsa-mixer.c:4157
 #: ../src/modules/alsa/module-alsa-card.c:186
-#: ../src/modules/bluetooth/module-bluez4-device.c:2324
 #: ../src/modules/bluetooth/module-bluez5-device.c:2005
 msgid "Off"
 msgstr "Av"
@@ -943,50 +940,42 @@ msgstr ""
 "snd_pcm_mmap_begin() gav ein verdi som er uvanleg stor: %lu byte (%lu ms).\n"
 "Dette kjem truleg av ein feil i ALSA-drivaren «%s». Meld frå om problemet til ALSA-utviklarane."
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2094
 #: ../src/modules/bluetooth/module-bluez5-device.c:1740
 #| msgctxt "This device is a Headset"
 #| msgid "Headset"
 msgid "Headset"
 msgstr "Hovudsett"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2099
 #: ../src/modules/bluetooth/module-bluez5-device.c:1745
 #| msgctxt "For holding pieces"
 #| msgid "Hand"
 msgid "Handsfree"
 msgstr "Handfri"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2114
 #: ../src/modules/bluetooth/module-bluez5-device.c:1763
 msgid "Headphone"
 msgstr "Hovudtelefonar"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2119
 #: ../src/modules/bluetooth/module-bluez5-device.c:1768
 #| msgctxt "portugal_districts.kgm"
 #| msgid "Portalegre"
 msgid "Portable"
 msgstr "Portabel"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2124
 #: ../src/modules/bluetooth/module-bluez5-device.c:1773
 msgid "Car"
 msgstr "Bil"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2129
 #: ../src/modules/bluetooth/module-bluez5-device.c:1778
 msgid "HiFi"
 msgstr "Hi-fi"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2134
 #: ../src/modules/bluetooth/module-bluez5-device.c:1783
 #| msgctxt "Name"
 #| msgid "Phone"
 msgid "Phone"
 msgstr "Telefon"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2142
 #: ../src/modules/bluetooth/module-bluez5-device.c:1735
 #: ../src/modules/bluetooth/module-bluez5-device.c:1751
 #: ../src/modules/bluetooth/module-bluez5-device.c:1789
@@ -995,7 +984,6 @@ msgstr "Telefon"
 msgid "Bluetooth Output"
 msgstr "Bluetooth-utlyd"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2145
 #: ../src/modules/bluetooth/module-bluez5-device.c:1734
 #: ../src/modules/bluetooth/module-bluez5-device.c:1756
 #: ../src/modules/bluetooth/module-bluez5-device.c:1762
@@ -1004,22 +992,6 @@ msgstr "Bluetooth-utlyd"
 #| msgid "Bluetooth On"
 msgid "Bluetooth Input"
 msgstr "Bluetooth-innlyd"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2186
-msgid "High Fidelity Playback (A2DP)"
-msgstr "Hi-fi-avspeling (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2198
-msgid "High Fidelity Capture (A2DP)"
-msgstr "Hi-fi-opptak (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2210
-msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Telefon dupleks (HSP/HFP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2223
-msgid "Handsfree Gateway"
-msgstr "Handfri-portnar"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1830
 msgid "High Fidelity Playback (A2DP Sink)"

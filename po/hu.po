@@ -609,7 +609,6 @@ msgid "Line In"
 msgstr "Vonalbemenet"
 
 #: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
-#: ../src/modules/bluetooth/module-bluez4-device.c:2099
 #: ../src/modules/bluetooth/module-bluez5-device.c:1710
 msgid "Microphone"
 msgstr "Mikrofon"
@@ -671,7 +670,6 @@ msgid "No Bass Boost"
 msgstr "Nincs basszuskiemelés"
 
 #: ../src/modules/alsa/alsa-mixer.c:2398
-#: ../src/modules/bluetooth/module-bluez4-device.c:2104
 #: ../src/modules/bluetooth/module-bluez5-device.c:1717
 msgid "Speaker"
 msgstr "Hangszóró"
@@ -844,7 +842,6 @@ msgstr "Többcsatornás duplex"
 
 #: ../src/modules/alsa/alsa-mixer.c:4155
 #: ../src/modules/alsa/module-alsa-card.c:186
-#: ../src/modules/bluetooth/module-bluez4-device.c:2319
 #: ../src/modules/bluetooth/module-bluez5-device.c:1965
 msgid "Off"
 msgstr "Kikapcsolva"
@@ -983,72 +980,47 @@ msgstr ""
 "Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. Jelentse "
 "ezt a problémát az ALSA fejlesztői felé."
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2089
 #: ../src/modules/bluetooth/module-bluez5-device.c:1700
 msgid "Headset"
 msgstr "Fejhallgató"
 
 # FIXME: utánanézni
-#: ../src/modules/bluetooth/module-bluez4-device.c:2094
 #: ../src/modules/bluetooth/module-bluez5-device.c:1705
 msgid "Handsfree"
 msgstr "Kihangosító"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2109
 #: ../src/modules/bluetooth/module-bluez5-device.c:1723
 msgid "Headphone"
 msgstr "Fülhallgató"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2114
 #: ../src/modules/bluetooth/module-bluez5-device.c:1728
 msgid "Portable"
 msgstr "Hordozható"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2119
 #: ../src/modules/bluetooth/module-bluez5-device.c:1733
 msgid "Car"
 msgstr "Autó"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2124
 #: ../src/modules/bluetooth/module-bluez5-device.c:1738
 msgid "HiFi"
 msgstr "Hi-Fi"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2129
 #: ../src/modules/bluetooth/module-bluez5-device.c:1743
 msgid "Phone"
 msgstr "Telefon"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2137
 #: ../src/modules/bluetooth/module-bluez5-device.c:1695
 #: ../src/modules/bluetooth/module-bluez5-device.c:1711
 #: ../src/modules/bluetooth/module-bluez5-device.c:1749
 msgid "Bluetooth Output"
 msgstr "Bluetooth kimenet"
 
-#: ../src/modules/bluetooth/module-bluez4-device.c:2140
 #: ../src/modules/bluetooth/module-bluez5-device.c:1694
 #: ../src/modules/bluetooth/module-bluez5-device.c:1716
 #: ../src/modules/bluetooth/module-bluez5-device.c:1722
 #: ../src/modules/bluetooth/module-bluez5-device.c:1748
 msgid "Bluetooth Input"
 msgstr "Bluetooth bemenet"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2181
-msgid "High Fidelity Playback (A2DP)"
-msgstr "Hi-Fi lejátszás (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2193
-msgid "High Fidelity Capture (A2DP)"
-msgstr "Hi-Fi felvétel (A2DP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2205
-msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Telefon duplex (HSP/HFP)"
-
-#: ../src/modules/bluetooth/module-bluez4-device.c:2218
-msgid "Handsfree Gateway"
-msgstr "Kihangosító átjáró"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1790
 msgid "High Fidelity Playback (A2DP Sink)"

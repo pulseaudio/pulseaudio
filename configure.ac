@@ -1071,23 +1071,13 @@ AX_DEFINE_DIR(PA_MACHINE_ID_FALLBACK, PA_MACHINE_ID_FALLBACK,
 
 #### BlueZ support (optional, dependent on D-Bus and SBC) ####
 
-AC_ARG_ENABLE([bluez4],
-    AS_HELP_STRING([--disable-bluez4],[Disable optional BlueZ 4 support]))
 AC_ARG_ENABLE([bluez5],
     AS_HELP_STRING([--disable-bluez5],[Disable optional BlueZ 5 support]))
 
 ## SBC ##
-AS_IF([test "x$enable_bluez4" != "xno" || test "x$enable_bluez5" != "xno"],
+AS_IF([test "x$enable_bluez5" != "xno"],
     [PKG_CHECK_MODULES(SBC, [ sbc >= 1.0 ], HAVE_SBC=1, HAVE_SBC=0)],
     HAVE_SBC=0)
-
-## BlueZ 4 ##
-AS_IF([test "x$enable_bluez4" != "xno" && test "x$HAVE_DBUS" = "x1" && test "x$HAVE_SBC" = "x1"], HAVE_BLUEZ_4=1,
-      HAVE_BLUEZ_4=0)
-AS_IF([test "x$enable_bluez4" = "xyes" && test "x$HAVE_BLUEZ_4" != "x1"],
-    [AC_MSG_ERROR([*** BLUEZ 4 support not found (requires sbc and D-Bus)])])
-AC_SUBST(HAVE_BLUEZ_4)
-AM_CONDITIONAL([HAVE_BLUEZ_4], [test "x$HAVE_BLUEZ_4" = x1])
 
 ## BlueZ 5 ##
 AS_IF([test "x$enable_bluez5" != "xno" && test "x$HAVE_DBUS" = "x1" && test "x$HAVE_SBC" = "x1"], HAVE_BLUEZ_5=1,
@@ -1097,7 +1087,7 @@ AS_IF([test "x$enable_bluez5" = "xyes" && test "x$HAVE_BLUEZ_5" != "x1"],
 AC_SUBST(HAVE_BLUEZ_5)
 AM_CONDITIONAL([HAVE_BLUEZ_5], [test "x$HAVE_BLUEZ_5" = x1])
 
-AS_IF([test "x$HAVE_BLUEZ_4" = "x1" || test "x$HAVE_BLUEZ_5" = "x1"], HAVE_BLUEZ=1, HAVE_BLUEZ=0)
+AS_IF([test "x$HAVE_BLUEZ_5" = "x1"], HAVE_BLUEZ=1, HAVE_BLUEZ=0)
 AC_SUBST(HAVE_BLUEZ)
 AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
 
@@ -1604,7 +1594,6 @@ AS_IF([test "x$HAVE_UDEV" = "x1"], ENABLE_UDEV=yes, ENABLE_UDEV=no)
 AS_IF([test "x$HAVE_SYSTEMD_DAEMON" = "x1"], ENABLE_SYSTEMD_DAEMON=yes, ENABLE_SYSTEMD_DAEMON=no)
 AS_IF([test "x$HAVE_SYSTEMD_LOGIN" = "x1"], ENABLE_SYSTEMD_LOGIN=yes, ENABLE_SYSTEMD_LOGIN=no)
 AS_IF([test "x$HAVE_SYSTEMD_JOURNAL" = "x1"], ENABLE_SYSTEMD_JOURNAL=yes, ENABLE_SYSTEMD_JOURNAL=no)
-AS_IF([test "x$HAVE_BLUEZ_4" = "x1"], ENABLE_BLUEZ_4=yes, ENABLE_BLUEZ_4=no)
 AS_IF([test "x$HAVE_BLUEZ_5" = "x1"], ENABLE_BLUEZ_5=yes, ENABLE_BLUEZ_5=no)
 AS_IF([test "x$HAVE_BLUEZ_5_OFONO_HEADSET" = "x1"], ENABLE_BLUEZ_5_OFONO_HEADSET=yes, ENABLE_BLUEZ_5_OFONO_HEADSET=no)
 AS_IF([test "x$HAVE_BLUEZ_5_NATIVE_HEADSET" = "x1"], ENABLE_BLUEZ_5_NATIVE_HEADSET=yes, ENABLE_BLUEZ_5_NATIVE_HEADSET=no)
@@ -1663,7 +1652,6 @@ echo "
     Enable Async DNS:              ${ENABLE_LIBASYNCNS}
     Enable LIRC:                   ${ENABLE_LIRC}
     Enable D-Bus:                  ${ENABLE_DBUS}
-      Enable BlueZ 4:              ${ENABLE_BLUEZ_4}
       Enable BlueZ 5:              ${ENABLE_BLUEZ_5}
         Enable ofono headsets:     ${ENABLE_BLUEZ_5_OFONO_HEADSET}
         Enable native headsets:    ${ENABLE_BLUEZ_5_NATIVE_HEADSET}
