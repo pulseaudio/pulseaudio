@@ -2,21 +2,22 @@
 # Copyright (C) 2008, 2009 the author(s) of pulseaudio.
 # This file is distributed under the same license as the pulseaudio package.
 # Petr Kovar <pknbe@volny.cz>, 2008, 2009, 2012.
+# Daniel Rusek <mail@asciiwolf.com>, 2018.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-01-30 10:10+0000\n"
-"PO-Revision-Date: 2012-01-30 09:52+0000\n"
-"Last-Translator: Petr Kovar <pknbe@volny.cz>\n"
+"PO-Revision-Date: 2018-03-30 20:12+0200\n"
+"Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Lokalize 1.0\n"
+"X-Generator: Poedit 2.0.6\n"
 
 #: ../src/modules/alsa/alsa-util.c:1136 ../src/modules/alsa/alsa-util.c:1204
 #, c-format
@@ -266,9 +267,9 @@ msgid "Failed to acquire stdio."
 msgstr "Nezdařilo se získání stdio."
 
 #: ../src/daemon/main.c:763 ../src/daemon/main.c:828
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "pipe selhalo: %s"
+msgstr "pipe() selhalo: %s"
 
 #: ../src/daemon/main.c:768 ../src/daemon/main.c:833
 #, c-format
@@ -289,9 +290,9 @@ msgid "Daemon startup successful."
 msgstr "Spuštění démona bylo úspěšné."
 
 #: ../src/daemon/main.c:816
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() selhalo: %s"
+msgstr "setsid() selhalo: %s"
 
 #: ../src/daemon/main.c:901
 #, c-format
@@ -337,9 +338,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "Běží v režimu valgrind: %s"
 
 #: ../src/daemon/main.c:921
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "Běží na počítači: %s"
+msgstr "Běží ve VM: %s"
 
 #: ../src/daemon/main.c:924
 msgid "Optimized build: yes"
@@ -455,7 +456,7 @@ msgid "Daemon terminated."
 msgstr "Démon ukončen."
 
 #: ../src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -564,16 +565,14 @@ msgstr ""
 "      --exit-idle-time=SEKUNDY          Ukončí démona v případě nečinnosti a "
 "po\n"
 "                                        této době\n"
-"      --module-idle-time=SEKUNDY        Zruší nahrání automaticky nahraných "
-"modulů v případě nečinnosti\n"
-"                                        a po této době\n"
 "      --scache-idle-time=SEKUNDY        Zruší nahrání automaticky nahraných "
 "vzorků v případě nečinnosti a\n"
 "                                        po této době\n"
 "      --log-level[=ÚROVEŇ]              Zvýší nebo nastaví úroveň "
 "podrobností\n"
 "  -v                                    Zvýší úroveň podrobností\n"
-"      --log-target={auto,syslog,stderr} Určí cíl záznamů\n"
+"      --log-target={auto,syslog,stderr,file:PATH}\n"
+"                                        Určí cíl záznamů\n"
 "      --log-meta[=BOOLEOVSKÁ]           Do záznamů zahrne umístění kódu\n"
 "      --log-time[=BOOLEOVSKÁ]           Do záznamů zahrne určení času\n"
 "      --log-backtrace=RÁMCE             Do záznamů zahrne backtrace\n"
@@ -635,12 +634,12 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file předpokládá booleovský argument"
 
 #: ../src/daemon/cmdline.c:318
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
 "name 'file:<path>'."
 msgstr ""
-"Neplatný cíl protokolu: použijte buďto \"syslog\", \"stderr\" nebo \"auto\"."
+"Neplatný cíl protokolu: použijte buďto \"syslog\", \"stderr\", \"auto\" nebo "
+"platný název souboru \"file:<path>\"."
 
 #: ../src/daemon/cmdline.c:325
 msgid "--log-time expects boolean argument"
@@ -768,9 +767,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Neplatná úroveň nice \"%s\"."
 
 #: ../src/daemon/daemon-conf.c:528
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] Neplatná vzorkovací frekvence \"%s\"."
+msgstr "[%s:%u] Neplatný typ serveru \"%s\"."
 
 #: ../src/daemon/daemon-conf.c:641
 #, c-format
@@ -803,14 +802,12 @@ msgid "Start the PulseAudio Sound System"
 msgstr "Spustit zvukový systém PulseAudio"
 
 #: ../src/daemon/pulseaudio-kde.desktop.in.h:1
-#, fuzzy
 msgid "PulseAudio Sound System KDE Routing Policy"
-msgstr "Zvukový systém PulseAudio"
+msgstr "Pravidla směrování KDE zvukového systému PulseAudio"
 
 #: ../src/daemon/pulseaudio-kde.desktop.in.h:2
-#, fuzzy
 msgid "Start the PulseAudio Sound System with KDE Routing Policy"
-msgstr "Spustit zvukový systém PulseAudio"
+msgstr "Spustit zvukový systém PulseAudio s pravidly směrování KDE"
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
 msgid "Mono"
@@ -842,7 +839,7 @@ msgstr "Zadní pravý"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "Subwoofer"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1181,9 +1178,8 @@ msgid "%u B"
 msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:54 ../src/utils/pax11publish.c:100
-#, fuzzy
 msgid "xcb_connect() failed"
-msgstr "pa_context_connect() selhalo: %s"
+msgstr "xcb_connect() selhalo"
 
 #: ../src/pulse/client-conf-x11.c:59 ../src/utils/pax11publish.c:105
 msgid "xcb_connection_has_error() returned true"
@@ -1390,7 +1386,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() selhalo: %s"
 
 #: ../src/utils/pacat.c:653
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1476,8 +1472,10 @@ msgstr ""
 "je 44100)\n"
 "      --format=FORMÁTVZORKU             Typ vzorku, jeden z s16le, s16be, "
 "u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be "
-"(výchozí je s16ne)\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (výchozí je "
+"s16ne)\n"
 "      --channels=KANÁLY                 Počet kanálů, u mono 1, u sterea 2\n"
 "                                        (výchozí je 2)\n"
 "      --channel-map=MAPAKANÁLŮ          Mapa kanálů určená k použití namísto "
@@ -1497,10 +1495,11 @@ msgstr ""
 "      --latency=BAJTY                   Vyžádá určenou latenci v bajtech.\n"
 "      --process-time=BAJTY              Vyžádá určený čas zpracování na "
 "požadavek v bajtech.\n"
+"      --latency-msec=MSEC               Vyžádá určenou latenci v msec.\n"
 "      --property=VLASTNOST=HODNOTA      Nastaví určenou vlastnost na určenou "
 "hodnotu.\n"
 "      --raw                             Nahrává/přehrává surová data PCM.\n"
-"      --file-format=FORMÁT              Nahrává/přehrává formátovaná data "
+"      --file-format[=FORMÁT]            Nahrává/přehrává formátovaná data "
 "PCM.\n"
 "      --list-file-formats               Zobrazí seznam dostupných formátů "
 "souborů.\n"
@@ -1615,9 +1614,8 @@ msgid "playback"
 msgstr "přehrávání"
 
 #: ../src/utils/pacat.c:1110
-#, fuzzy
 msgid "Failed to set media name."
-msgstr "Nezdařila se analýza příkazového řádku."
+msgstr "Nezdařilo se nastavení názvu média."
 
 #: ../src/utils/pacat.c:1117 ../src/utils/pactl.c:1777
 msgid "pa_mainloop_new() failed."
@@ -1765,7 +1763,7 @@ msgid ""
 msgstr ""
 
 #: ../src/utils/pactl.c:192
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1785,7 +1783,7 @@ msgstr ""
 "Výchozí mapa kanálů: %s\n"
 "Výchozí cíl: %s\n"
 "Výchozí zdroj: %s\n"
-"Cookie: %08x\n"
+"Cookie: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:244 ../src/utils/pactl.c:830
 #, c-format
@@ -1793,7 +1791,7 @@ msgid "Failed to get sink information: %s"
 msgstr "Nezdařilo se získání informací o cíli: %s"
 
 #: ../src/utils/pactl.c:270
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink #%u\n"
 "\tState: %s\n"
@@ -1827,7 +1825,7 @@ msgstr ""
 "\tZákladní hlasitost %s%s%s\n"
 "\tZdroj sledování: %s\n"
 "\tLatence: %0.0f μs, konfigurováno %0.0f μs\n"
-"\tPříznaky: %s%s%s%s%s%s\n"
+"\tPříznaky: %s%s%s%s%s%s%s\n"
 "\tVlastnosti:\n"
 "\t\t%s\n"
 
@@ -1842,9 +1840,9 @@ msgid "\tActive Port: %s\n"
 msgstr "\tAktivní port: %s\n"
 
 #: ../src/utils/pactl.c:331 ../src/utils/pactl.c:443
-#, fuzzy, c-format
+#, c-format
 msgid "\tFormats:\n"
-msgstr "\tPorty:\n"
+msgstr "\tFormáty:\n"
 
 #: ../src/utils/pactl.c:357 ../src/utils/pactl.c:849
 #, c-format
@@ -1978,7 +1976,7 @@ msgid "Failed to get sink input information: %s"
 msgstr "Nezdařilo se získání informací o vstupu cíle: %s"
 
 #: ../src/utils/pactl.c:622
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink Input #%u\n"
 "\tDriver: %s\n"
@@ -2005,6 +2003,7 @@ msgstr ""
 "\tCíl: %u\n"
 "\tUrčení vzorku: %s\n"
 "\tMapa kanálů: %s\n"
+"\tFormát: %s\n"
 "\tZtlumení: %s\n"
 "\tHlasitost: %s\n"
 "\t        %s\n"
@@ -2021,7 +2020,7 @@ msgid "Failed to get source output information: %s"
 msgstr "Selhalo získání informace o výstupu zdroje: %s"
 
 #: ../src/utils/pactl.c:693
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Source Output #%u\n"
 "\tDriver: %s\n"
@@ -2045,9 +2044,10 @@ msgstr ""
 "\tOvladač: %s\n"
 "\tModul vlastníka: %s\n"
 "\tKlient: %s\n"
-"\tCíl: %u\n"
+"\tZdroj: %u\n"
 "\tUrčení vzorku: %s\n"
 "\tMapa kanálů: %s\n"
+"\tFormát: %s\n"
 "\tZtlumení: %s\n"
 "\tHlasitost: %s\n"
 "\t        %s\n"
@@ -2115,52 +2115,51 @@ msgstr "Předčasný konec souboru"
 
 #: ../src/utils/pactl.c:991
 msgid "new"
-msgstr ""
+msgstr "nový"
 
 #: ../src/utils/pactl.c:994
 msgid "change"
-msgstr ""
+msgstr "změna"
 
 #: ../src/utils/pactl.c:997
 msgid "remove"
-msgstr ""
+msgstr "odstranění"
 
 #: ../src/utils/pactl.c:1000 ../src/utils/pactl.c:1035
 msgid "unknown"
-msgstr ""
+msgstr "neznámý"
 
 #: ../src/utils/pactl.c:1008
 msgid "sink"
-msgstr ""
+msgstr "cíl"
 
 #: ../src/utils/pactl.c:1011
 msgid "source"
-msgstr ""
+msgstr "zdroj"
 
 #: ../src/utils/pactl.c:1014
 msgid "sink-input"
-msgstr ""
+msgstr "cíl-vstup"
 
 #: ../src/utils/pactl.c:1017
 msgid "source-output"
-msgstr ""
+msgstr "zdroj-výstup"
 
 #: ../src/utils/pactl.c:1020
 msgid "module"
-msgstr ""
+msgstr "modul"
 
 #: ../src/utils/pactl.c:1023
 msgid "client"
-msgstr ""
+msgstr "klient"
 
 #: ../src/utils/pactl.c:1026
 msgid "sample-cache"
 msgstr ""
 
 #: ../src/utils/pactl.c:1029 ../src/utils/pactl.c:1032
-#, fuzzy
 msgid "server"
-msgstr "Neplatný server"
+msgstr "server"
 
 #: ../src/utils/pactl.c:1041
 #, c-format
@@ -2190,27 +2189,27 @@ msgstr ""
 #: ../src/utils/pactl.c:1335 ../src/utils/pactl.c:1336
 #: ../src/utils/pactl.c:1337
 msgid "[options]"
-msgstr ""
+msgstr "[přepínače]"
 
 #: ../src/utils/pactl.c:1321
 msgid "[TYPE]"
-msgstr ""
+msgstr "[TYP]"
 
 #: ../src/utils/pactl.c:1323
 msgid "FILENAME [NAME]"
-msgstr ""
+msgstr "NÁZEVSOUBORU [NÁZEV]"
 
 #: ../src/utils/pactl.c:1324
 msgid "NAME [SINK]"
-msgstr ""
+msgstr "NÁZEV [CÍL]"
 
 #: ../src/utils/pactl.c:1325
 msgid "NAME"
-msgstr ""
+msgstr "NÁZEV"
 
 #: ../src/utils/pactl.c:1326
 msgid "NAME [ARGS ...]"
-msgstr ""
+msgstr "NÁZEV [ARGUMENTY ...]"
 
 #: ../src/utils/pactl.c:1327
 msgid "#N"
@@ -2249,7 +2248,7 @@ msgid "#N FORMATS"
 msgstr ""
 
 #: ../src/utils/pactl.c:1339
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -2260,12 +2259,12 @@ msgid ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 msgstr ""
-"%s [přepínače] ... \n"
 "\n"
 "  -h, --help                            Zobrazí tuto nápovědu\n"
 "      --version                         Zobrazí verzi\n"
-"  -s, --server=SERVER                   Název připojovaného serveru\n"
 "\n"
+"  -s, --server=SERVER                   Název připojovaného serveru\n"
+"  -n, --client-name=NÁZEV               Jak nazývat tento klient na serveru\n"
 
 #: ../src/utils/pactl.c:1380
 #, c-format
@@ -2359,14 +2358,12 @@ msgid "Invalid sink input index"
 msgstr "Neplatný index vstupu cíle"
 
 #: ../src/utils/pactl.c:1660
-#, fuzzy
 msgid "You have to specify a source output index and a volume"
-msgstr "Je nutné zadat index výstupu zdroje a zdroj"
+msgstr "Je nutné zadat index výstupu zdroje a hlasitost"
 
 #: ../src/utils/pactl.c:1665
-#, fuzzy
 msgid "Invalid source output index"
-msgstr "Neplatný index vstupu cíle"
+msgstr "Neplatný index výstupu zdroje"
 
 #: ../src/utils/pactl.c:1677
 msgid "You have to specify a sink name/index and a mute boolean"
@@ -2374,9 +2371,8 @@ msgstr "Je nutné upřesnit název cíle/indexu a booleovskou hodnotu ztlumení"
 
 #: ../src/utils/pactl.c:1682 ../src/utils/pactl.c:1699
 #: ../src/utils/pactl.c:1721 ../src/utils/pactl.c:1742
-#, fuzzy
 msgid "Invalid mute specification"
-msgstr "Neplatné určení vzorku"
+msgstr "Neplatné určení ztlumení"
 
 #: ../src/utils/pactl.c:1694
 msgid "You have to specify a source name/index and a mute boolean"
@@ -2396,9 +2392,8 @@ msgid "You have to specify a source output index and a mute boolean"
 msgstr "Je nutné upřesnit název zdroje/indexu a booleovskou hodnotu ztlumení"
 
 #: ../src/utils/pactl.c:1737
-#, fuzzy
 msgid "Invalid source output index specification"
-msgstr "Neplatné určení indexu vstupu cíle"
+msgstr "Neplatné určení indexu výstupu cíle"
 
 #: ../src/utils/pactl.c:1756
 #, fuzzy
@@ -2616,12 +2611,10 @@ msgid "Docking Station Input"
 msgstr "Vstup dokovací stanice"
 
 #: ../src/modules/alsa/alsa-mixer.c:2221
-#, fuzzy
 msgid "Docking Station Microphone"
 msgstr "Mikrofon dokovací stanice"
 
 #: ../src/modules/alsa/alsa-mixer.c:2222
-#, fuzzy
 msgid "Docking Station Line In"
 msgstr "Vstup dokovací stanice"
 
@@ -2634,14 +2627,12 @@ msgid "Microphone"
 msgstr "Mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:2225 ../src/modules/alsa/alsa-mixer.c:2303
-#, fuzzy
 msgid "Front Microphone"
-msgstr "Mikrofon dokovací stanice"
+msgstr "Přední mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:2226 ../src/modules/alsa/alsa-mixer.c:2304
-#, fuzzy
 msgid "Rear Microphone"
-msgstr "Mikrofon"
+msgstr "Zadní mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:2227
 msgid "External Microphone"
@@ -2684,18 +2675,16 @@ msgid "No Amplifier"
 msgstr "Bez zesilovače"
 
 #: ../src/modules/alsa/alsa-mixer.c:2237
-#, fuzzy
 msgid "Bass Boost"
-msgstr "Zesílení"
+msgstr "Zesílení basů"
 
 #: ../src/modules/alsa/alsa-mixer.c:2238
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "Bez zesílení"
+msgstr "Bez zesílení basů"
 
 #: ../src/modules/alsa/alsa-mixer.c:2239
 msgid "Speaker"
-msgstr ""
+msgstr "Reproduktor"
 
 #: ../src/modules/alsa/alsa-mixer.c:2240 ../src/modules/alsa/alsa-mixer.c:2311
 msgid "Headphones"
@@ -2718,32 +2707,28 @@ msgid "LFE on Separate Mono Output"
 msgstr "Analogový výstup (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2313
-#, fuzzy
 msgid "Line Out"
-msgstr "Linkový vstup"
+msgstr "Linkový výstup"
 
 #: ../src/modules/alsa/alsa-mixer.c:2314
 msgid "Analog Mono Output"
 msgstr "Analogový výstup mono"
 
 #: ../src/modules/alsa/alsa-mixer.c:2315
-#, fuzzy
 msgid "Speakers"
-msgstr "Analogové stereo"
+msgstr "Reproduktory"
 
 #: ../src/modules/alsa/alsa-mixer.c:2316
 msgid "HDMI / DisplayPort"
-msgstr ""
+msgstr "HDMI / DisplayPort"
 
 #: ../src/modules/alsa/alsa-mixer.c:2317
-#, fuzzy
 msgid "Digital Output (S/PDIF)"
-msgstr "Digitální stereo (HDMI)"
+msgstr "Digitální výstup (S/PDIF)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2318
-#, fuzzy
 msgid "Digital Passthrough (S/PDIF)"
-msgstr "Digitální stereo (HDMI)"
+msgstr "Digitální průchod (S/PDIF)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3756
 msgid "Analog Mono"
@@ -2802,9 +2787,8 @@ msgid "Digital Stereo (IEC958)"
 msgstr "Digitální stereo (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3770
-#, fuzzy
 msgid "Digital Passthrough  (IEC958)"
-msgstr "Digitální stereo (IEC958)"
+msgstr "Digitální průchod (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3771
 msgid "Digital Surround 4.0 (IEC958/AC3)"
@@ -2819,9 +2803,8 @@ msgid "Digital Stereo (HDMI)"
 msgstr "Digitální stereo (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3774
-#, fuzzy
 msgid "Digital Surround 5.1 (HDMI)"
-msgstr "Digitální Surround 5.1 (IEC958/AC3)"
+msgstr "Digitální Surround 5.1 (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3895
 msgid "Analog Mono Duplex"
@@ -2836,14 +2819,14 @@ msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Digitální duplexní stereo (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3997
-#, fuzzy, c-format
+#, c-format
 msgid "%s Output"
-msgstr "Výstup \"null\""
+msgstr "%s výstup"
 
 #: ../src/modules/alsa/alsa-mixer.c:4005
-#, fuzzy, c-format
+#, c-format
 msgid "%s Input"
-msgstr "Vstup"
+msgstr "%s vstup"
 
 #: ../src/modules/echo-cancel/module-echo-cancel.c:63
 msgid ""
@@ -2860,7 +2843,7 @@ msgstr ""
 
 #: ../src/modules/module-equalizer-sink.c:72
 msgid "General Purpose Equalizer"
-msgstr ""
+msgstr "Obecný ekvalizér"
 
 #: ../src/modules/module-equalizer-sink.c:76
 #, fuzzy
@@ -2911,9 +2894,9 @@ msgid ""
 msgstr ""
 
 #: ../src/tests/resampler-test.c:356
-#, fuzzy, c-format
+#, c-format
 msgid "%s %s\n"
-msgstr "%s %s"
+msgstr "%s %s\n"
 
 #: ../src/tests/resampler-test.c:419
 #, c-format
