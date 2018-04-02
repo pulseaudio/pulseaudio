@@ -3,9 +3,6 @@
 .*.swp
 ABOUT-NLS
 build-aux
-intltool-extract.in
-intltool-merge.in
-intltool-update.in
 *~
 *.tar.gz
 *.pc

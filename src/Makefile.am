@@ -127,7 +127,9 @@ if HAVE_X11
 xdgautostart_in_files = \
 		daemon/pulseaudio.desktop.in
 xdgautostart_DATA = $(xdgautostart_in_files:.desktop.in=.desktop)
-@INTLTOOL_DESKTOP_RULE@
+$(xdgautostart_DATA): $(xdgautostart_in_files)
+	$(AM_V_GEN) $(MSGFMT) --desktop --template $< -d $(top_srcdir)/po -o $@
+
 endif
 
 

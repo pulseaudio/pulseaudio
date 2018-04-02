@@ -39,12 +39,8 @@ if ! autopoint --version &>/dev/null ; then
     echo "autopoint is required to bootstrap this program"
     exit 1
 fi
-if ! intltoolize --version >/dev/null ; then
-    echo "intltoolize is required to bootstrap this program"
-    exit 1
-fi
-autopoint --force
-AUTOPOINT='intltoolize --automake --copy' autoreconf --force --install --verbose
+
+autoreconf --force --install --verbose
 
 if test "x$NOCONFIGURE" = "x"; then
     CFLAGS="$CFLAGS -g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen "$@" && \

@@ -99,21 +99,12 @@ PKG_PROG_PKG_CONFIG
 
 # gettext
 
-if test "x$enable_nls" != "xno"; then
-IT_PROG_INTLTOOL([0.35.0])
-
-AM_GNU_GETTEXT_VERSION([0.18.1])
+AM_GNU_GETTEXT_VERSION([0.19.8])
 AM_GNU_GETTEXT([external])
 
 GETTEXT_PACKAGE=pulseaudio
 AC_SUBST([GETTEXT_PACKAGE])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
-else
-# workaround till an intltool m4 bug is fixed upstream
-# (https://bugs.launchpad.net/intltool/+bug/904647)
-USE_NLS=no
-AC_SUBST(USE_NLS)
-fi
 
 
 #### Determine host OS ####

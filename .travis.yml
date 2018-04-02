@@ -16,7 +16,6 @@ before_install:
     autopoint
     autoconf
     automake
-    intltool
     check
     libasound2-dev
     libasyncns-dev
