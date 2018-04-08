@@ -163,9 +163,18 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
-      <p><opt>suspend-sink|suspend-source</opt> <arg>index|name</arg> <arg>boolean</arg></p>
-      <optdesc><p>Suspend (i.e. disconnect from the underlying hardware) a sink
-      (resp. source).</p></optdesc>
+      <p><opt>suspend-sink|suspend-source</opt> <arg>name|index</arg>
+        <arg>true|false</arg>
+      </p>
+      <optdesc><p>Suspend or resume the specified sink or source (which may be
+        specified either by its name or index), depending whether true
+        (suspend) or false (resume) is passed as last argument. Suspending
+        a sink will pause all playback and suspending a source will pause all
+        capturing. Depending on the module implementing the sink or source this
+        might have the effect that the underlying device is closed, making it
+        available for other applications to use. The exact behaviour depends on
+        the module.
+      </p></optdesc>
     </option>
 
     <option>
