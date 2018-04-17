@@ -1,4 +1,14 @@
 <schemalist gettext-domain="pulseaudio">
+  <schema id="org.freedesktop.pulseaudio.modules" path="/org/freedesktop/pulseaudio/modules/">
+    <child name="combine" schema="org.freedesktop.pulseaudio.module"/>
+    <child name="remote-access" schema="org.freedesktop.pulseaudio.module"/>
+    <child name="zeroconf-discover" schema="org.freedesktop.pulseaudio.module"/>
+    <child name="raop-discover" schema="org.freedesktop.pulseaudio.module"/>
+    <child name="rtp-recv" schema="org.freedesktop.pulseaudio.module"/>
+    <child name="rtp-send" schema="org.freedesktop.pulseaudio.module"/>
+    <child name="upnp-media-server" schema="org.freedesktop.pulseaudio.module"/>
+  </schema>
+
   <schema id="org.freedesktop.pulseaudio.module">
     <key name="name" type="s">
       <default>''</default>
