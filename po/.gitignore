@@ -8,7 +8,7 @@
 /insert-header.sin
 /pulseaudio.pot
 /quot.sed
-/remove-potcdate.sin
+/remove-potcdate.*
 /*.mo
 /*.gmo
 /Makefile
