@@ -114,6 +114,11 @@ int main(int argc, char *argv[]) {
     g_main_loop_unref(g);
 
     g_ptr_array_unref(groups);
+
+    /* group_names can't be freed earlier, because the values are being used as
+     * the user_data for module_group_callback(). */
+    g_strfreev(group_names);
+
     g_object_unref(G_OBJECT(settings));
 
     return 0;
