@@ -912,10 +912,20 @@ AS_IF([test "x$enable_gtk3" = "xyes" && test "x$HAVE_GTK30" = "x0"],
 AM_CONDITIONAL([HAVE_GTK30], [test "x$HAVE_GTK30" = x1])
 AS_IF([test "x$HAVE_GTK30" = "x1"], AC_DEFINE([HAVE_GTK], 1, [Have GTK?]))
 
-#### GConf support (optional) ####
+#### GSettings and GConf support (optional) ####
+
+AC_ARG_ENABLE([gsettings],
+    AS_HELP_STRING([--disable-gsettings],[Disable optional GSettings support]))
 
 AC_ARG_ENABLE([gconf],
     AS_HELP_STRING([--disable-gconf],[Disable optional GConf support]))
+
+AS_IF([test "x$enable_gsettings" != "xno"],
+    [PKG_CHECK_MODULES(GSETTINGS, [ gio-2.0 >= 2.26.0 ], [HAVE_GSETTINGS=1], [HAVE_GSETTINGS=0])],
+    HAVE_GSETTINGS=0)
+
+AS_IF([test "x$enable_gsettings" = "xyes" && test "x$HAVE_GSETTINGS" = "x0"],
+    [AC_MSG_ERROR([*** GSettings support not found])])
 
 AS_IF([test "x$enable_gconf" != "xno"],
     [PKG_CHECK_MODULES(GCONF, [ gconf-2.0 >= 2.4.0 gobject-2.0 ], HAVE_GCONF=1, HAVE_GCONF=0)],
@@ -924,23 +934,21 @@ AS_IF([test "x$enable_gconf" != "xno"],
 AS_IF([test "x$enable_gconf" = "xyes" && test "x$HAVE_GCONF" = "x0"],
     [AC_MSG_ERROR([*** GConf support not found])])
 
-AM_CONDITIONAL([HAVE_GCONF], [test "x$HAVE_GCONF" = x1])
-AC_SUBST([HAVE_GCONF])
+# Enable only one of GSettings and GConf, unless both were explicitly
+# requested. If neither was explicitly requested and both are available, prefer
+# GSettings. This is done, because if module-gsettings and module-gconf are
+# both loaded, they can cause conflicting or at least confusing configuration.
+# Distributions may want to enable both modules when building PulseAudio, if
+# they ensure that both modules are never installed at the same time.
+AS_IF([test "x$HAVE_GSETTINGS" = "x1" && test "x$enable_gconf" != "xyes"],
+      [HAVE_GCONF=0])
+AS_IF([test "x$HAVE_GCONF" = "x1" && test "x$enable_gsettings" != "xyes"],
+      [HAVE_GSETTINGS=0])
 
-#### GSettings support (optional) ####
-
-AC_ARG_ENABLE([gsettings],
-    AS_HELP_STRING([--enable-gsettings],[Enable optional GSettings support]))
-
-AS_IF([test "x$enable_gsettings" = "xyes"],
-    [PKG_CHECK_MODULES(GSETTINGS, [ gio-2.0 >= 2.26.0 ], [HAVE_GSETTINGS=1], [HAVE_GSETTINGS=0])],
-    HAVE_GSETTINGS=0)
-
-AS_IF([test "x$enable_gsettings" = "xyes" && test "x$HAVE_GSETTINGS" = "x0"],
-    [AC_MSG_ERROR([*** GSettings support not found])])
-
-AM_CONDITIONAL([HAVE_GSETTINGS], [test "x$HAVE_GSETTINGS" = x1])
+AM_CONDITIONAL([HAVE_GSETTINGS], [test "x$HAVE_GSETTINGS" = "x1"])
 AC_SUBST([HAVE_GSETTINGS])
+AM_CONDITIONAL([HAVE_GCONF], [test "x$HAVE_GCONF" = "x1"])
+AC_SUBST([HAVE_GCONF])
 
 if test "x$HAVE_GSETTINGS" = "x1" ; then
     GLIB_GSETTINGS
