@@ -88,8 +88,6 @@ int main(int argc, char *argv[]) {
     if (!(settings = g_settings_new(PA_GSETTINGS_MODULE_GROUPS_SCHEMA)))
         goto fail;
 
-    g_signal_connect(settings, "changed", (GCallback) module_group_callback, NULL);
-
     group_names = g_settings_list_children(settings);
 
     for (name = group_names; *name; name++) {
