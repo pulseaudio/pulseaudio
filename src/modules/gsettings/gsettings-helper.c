@@ -93,8 +93,14 @@ int main(int argc, char *argv[]) {
     group_names = g_settings_list_children(settings);
 
     for (name = group_names; *name; name++) {
-        g_signal_connect(g_settings_get_child(settings, *name), "changed",
-                         (GCallback) module_group_callback, *name);
+        GSettings *child = g_settings_get_child(settings, *name);
+
+        /* The child may have been removed between the
+         * g_settings_list_children() and g_settings_get_child() calls. */
+        if (!child)
+            continue;
+
+        g_signal_connect(child, "changed", (GCallback) module_group_callback, *name);
         handle_module_group(*name);
     }
 
