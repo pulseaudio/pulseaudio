@@ -79,6 +79,7 @@ static void module_group_callback(GSettings *settings, gchar *key, gpointer user
 int main(int argc, char *argv[]) {
     GMainLoop *g;
     GSettings *settings;
+    GPtrArray *groups;
     gchar **group_names, **name;
 
 #if !GLIB_CHECK_VERSION(2,36,0)
@@ -88,6 +89,7 @@ int main(int argc, char *argv[]) {
     if (!(settings = g_settings_new(PA_GSETTINGS_MODULE_GROUPS_SCHEMA)))
         goto fail;
 
+    groups = g_ptr_array_new_full(0, g_object_unref);
     group_names = g_settings_list_children(settings);
 
     for (name = group_names; *name; name++) {
@@ -98,6 +100,7 @@ int main(int argc, char *argv[]) {
         if (!child)
             continue;
 
+        g_ptr_array_add(groups, child);
         g_signal_connect(child, "changed", (GCallback) module_group_callback, *name);
         handle_module_group(*name);
     }
@@ -110,6 +113,7 @@ int main(int argc, char *argv[]) {
     g_main_loop_run(g);
     g_main_loop_unref(g);
 
+    g_ptr_array_unref(groups);
     g_object_unref(G_OBJECT(settings));
 
     return 0;
