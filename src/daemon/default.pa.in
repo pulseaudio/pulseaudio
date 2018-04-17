@@ -110,6 +110,18 @@ ifelse(@OS_IS_WIN32@, 0, [dnl
 #load-module module-null-sink sink_name=rtp format=s16be channels=2 rate=44100 sink_properties="device.description='RTP Multicast Sink'"
 #load-module module-rtp-send source=rtp.monitor
 
+ifelse(@HAVE_GSETTINGS@, 1, [dnl
+### Load additional modules from GSettings. This can be configured with the paprefs tool.
+### Please keep in mind that the modules configured by paprefs might conflict with manually
+### loaded modules.
+.ifexists module-gsettings@PA_SOEXT@
+.nofail
+load-module module-gsettings
+.fail
+.endif
+])dnl
+
+ifelse(@HAVE_GCONF@, 1, [dnl
 ### Load additional modules from GConf settings. This can be configured with the paprefs tool.
 ### Please keep in mind that the modules configured by paprefs might conflict with manually
 ### loaded modules.
@@ -118,6 +130,7 @@ ifelse(@OS_IS_WIN32@, 0, [dnl
 load-module module-gconf
 .fail
 .endif
+])dnl
 
 ### Automatically restore the default sink/source when changed by the user
 ### during runtime

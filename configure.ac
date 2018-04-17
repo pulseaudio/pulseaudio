@@ -925,6 +925,7 @@ AS_IF([test "x$enable_gconf" = "xyes" && test "x$HAVE_GCONF" = "x0"],
     [AC_MSG_ERROR([*** GConf support not found])])
 
 AM_CONDITIONAL([HAVE_GCONF], [test "x$HAVE_GCONF" = x1])
+AC_SUBST([HAVE_GCONF])
 
 #### GSettings support (optional) ####
 
@@ -939,6 +940,7 @@ AS_IF([test "x$enable_gsettings" = "xyes" && test "x$HAVE_GSETTINGS" = "x0"],
     [AC_MSG_ERROR([*** GSettings support not found])])
 
 AM_CONDITIONAL([HAVE_GSETTINGS], [test "x$HAVE_GSETTINGS" = x1])
+AC_SUBST([HAVE_GSETTINGS])
 
 if test "x$enable_gsettings" = "xyes" && test "x$HAVE_GSETTINGS" = "x1" ; then
     GLIB_GSETTINGS
