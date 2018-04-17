@@ -28,21 +28,19 @@
 
 #include <pulsecore/core-util.h>
 
-#define PA_GSETTINGS_MODULE_SCHEMA "org.freedesktop.pulseaudio.module"
-#define PA_GSETTINGS_MODULES_SCHEMA "org.freedesktop.pulseaudio.modules"
-#define PA_GSETTINGS_MODULES_PATH "/org/freedesktop/pulseaudio/modules/"
+#define PA_GSETTINGS_MODULE_GROUP_SCHEMA "org.freedesktop.pulseaudio.module-group"
+#define PA_GSETTINGS_MODULE_GROUPS_SCHEMA "org.freedesktop.pulseaudio.module-groups"
+#define PA_GSETTINGS_MODULE_GROUPS_PATH "/org/freedesktop/pulseaudio/module-groups/"
 
-static void modules_callback(GSettings *settings, gchar *key, gpointer user_data);
-
-static void handle_module(gchar *name) {
+static void handle_module_group(gchar *name) {
     GSettings *settings;
     gchar p[1024];
     gboolean enabled;
     int i;
 
-    pa_snprintf(p, sizeof(p), PA_GSETTINGS_MODULES_PATH"%s/", name);
+    pa_snprintf(p, sizeof(p), PA_GSETTINGS_MODULE_GROUPS_PATH"%s/", name);
 
-    if (!(settings = g_settings_new_with_path(PA_GSETTINGS_MODULE_SCHEMA,
+    if (!(settings = g_settings_new_with_path(PA_GSETTINGS_MODULE_GROUP_SCHEMA,
                                               p)))
         return;
 
@@ -74,30 +72,30 @@ static void handle_module(gchar *name) {
     g_object_unref(G_OBJECT(settings));
 }
 
-static void modules_callback(GSettings *settings, gchar *key, gpointer user_data) {
-    handle_module(user_data);
+static void module_group_callback(GSettings *settings, gchar *key, gpointer user_data) {
+    handle_module_group(user_data);
 }
 
 int main(int argc, char *argv[]) {
     GMainLoop *g;
     GSettings *settings;
-    gchar **modules, **m;
+    gchar **group_names, **name;
 
 #if !GLIB_CHECK_VERSION(2,36,0)
     g_type_init();
 #endif
 
-    if (!(settings = g_settings_new(PA_GSETTINGS_MODULES_SCHEMA)))
+    if (!(settings = g_settings_new(PA_GSETTINGS_MODULE_GROUPS_SCHEMA)))
         goto fail;
 
-    g_signal_connect(settings, "changed", (GCallback) modules_callback, NULL);
+    g_signal_connect(settings, "changed", (GCallback) module_group_callback, NULL);
 
-    modules = g_settings_list_children (settings);
+    group_names = g_settings_list_children(settings);
 
-    for (m = modules; *m; m++) {
-        g_signal_connect(g_settings_get_child (settings, *m), "changed",
-                         (GCallback) modules_callback, *m);
-        handle_module(*m);
+    for (name = group_names; *name; name++) {
+        g_signal_connect(g_settings_get_child(settings, *name), "changed",
+                         (GCallback) module_group_callback, *name);
+        handle_module_group(*name);
     }
 
     /* Signal the parent that we are now initialized */
