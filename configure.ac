@@ -942,7 +942,7 @@ AS_IF([test "x$enable_gsettings" = "xyes" && test "x$HAVE_GSETTINGS" = "x0"],
 AM_CONDITIONAL([HAVE_GSETTINGS], [test "x$HAVE_GSETTINGS" = x1])
 AC_SUBST([HAVE_GSETTINGS])
 
-if test "x$enable_gsettings" = "xyes" && test "x$HAVE_GSETTINGS" = "x1" ; then
+if test "x$HAVE_GSETTINGS" = "x1" ; then
     GLIB_GSETTINGS
 fi
 
