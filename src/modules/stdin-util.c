@@ -17,8 +17,6 @@
   License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 ***/
 
-#include "stdin-util.h"
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

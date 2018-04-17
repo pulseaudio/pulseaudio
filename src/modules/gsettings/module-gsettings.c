@@ -17,7 +17,9 @@
   along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 ***/
 
-#include "../stdin-util.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -25,6 +27,8 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/start-child.h>
+
+#include "../stdin-util.h"
 
 PA_MODULE_AUTHOR("Sylvain Baubeau");
 PA_MODULE_DESCRIPTION("GSettings Adapter");
