@@ -56,6 +56,7 @@
 #include <pulse/timeval.h>
 
 #include <pulsecore/socket.h>
+#include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/usergroup.h>
@@ -69,6 +70,29 @@
 #include <dlfcn.h>
 
 static int _main() PA_GCC_WEAKREF(main);
+#endif
+
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
+
+#ifdef HAVE_SCHED_H
+#include <sched.h>
+
+#if defined(__linux__) && !defined(SCHED_RESET_ON_FORK)
+#define SCHED_RESET_ON_FORK 0x40000000
+#endif
+#endif
+
+#ifdef __APPLE__
+#include <mach/mach_init.h>
+#include <mach/thread_act.h>
+#include <mach/thread_policy.h>
+#include <sys/sysctl.h>
+#endif
+
+#ifdef HAVE_DBUS
+#include <pulsecore/rtkit.h>
 #endif
 
 char *pa_get_user_name(char *s, size_t l) {
@@ -341,4 +365,156 @@ int pa_msleep(unsigned long t) {
 #else
 #error "Platform lacks a sleep function."
 #endif
+}
+
+#ifdef _POSIX_PRIORITY_SCHEDULING
+static int set_scheduler(int rtprio) {
+#ifdef HAVE_SCHED_H
+    struct sched_param sp;
+#ifdef HAVE_DBUS
+    int r;
+    long long rttime;
+#ifdef RLIMIT_RTTIME
+    struct rlimit rl;
+#endif
+    DBusError error;
+    DBusConnection *bus;
+
+    dbus_error_init(&error);
+#endif
+
+    pa_zero(sp);
+    sp.sched_priority = rtprio;
+
+#ifdef SCHED_RESET_ON_FORK
+    if (pthread_setschedparam(pthread_self(), SCHED_RR|SCHED_RESET_ON_FORK, &sp) == 0) {
+        pa_log_debug("SCHED_RR|SCHED_RESET_ON_FORK worked.");
+        return 0;
+    }
+#endif
+
+    if (pthread_setschedparam(pthread_self(), SCHED_RR, &sp) == 0) {
+        pa_log_debug("SCHED_RR worked.");
+        return 0;
+    }
+#endif  /* HAVE_SCHED_H */
+
+#ifdef HAVE_DBUS
+    /* Try to talk to RealtimeKit */
+
+    if (!(bus = dbus_bus_get_private(DBUS_BUS_SYSTEM, &error))) {
+        pa_log("Failed to connect to system bus: %s", error.message);
+        dbus_error_free(&error);
+        errno = -EIO;
+        return -1;
+    }
+
+    /* We need to disable exit on disconnect because otherwise
+     * dbus_shutdown will kill us. See
+     * https://bugs.freedesktop.org/show_bug.cgi?id=16924 */
+    dbus_connection_set_exit_on_disconnect(bus, FALSE);
+
+    rttime = rtkit_get_rttime_usec_max(bus);
+    if (rttime >= 0) {
+#ifdef RLIMIT_RTTIME
+        r = getrlimit(RLIMIT_RTTIME, &rl);
+
+        if (r >= 0 && (long long) rl.rlim_max > rttime) {
+            pa_log_info("Clamping rlimit-rttime to %lld for RealtimeKit", rttime);
+            rl.rlim_cur = rl.rlim_max = rttime;
+            r = setrlimit(RLIMIT_RTTIME, &rl);
+
+            if (r < 0)
+                pa_log("setrlimit() failed: %s", pa_cstrerror(errno));
+        }
+#endif
+        r = rtkit_make_realtime(bus, 0, rtprio);
+        dbus_connection_close(bus);
+        dbus_connection_unref(bus);
+
+        if (r >= 0) {
+            pa_log_debug("RealtimeKit worked.");
+            return 0;
+        }
+
+        errno = -r;
+    } else {
+        dbus_connection_close(bus);
+        dbus_connection_unref(bus);
+        errno = -rttime;
+    }
+
+#else
+    errno = 0;
+#endif
+
+    return -1;
+}
+#endif
+
+/* Make the current thread a realtime thread, and acquire the highest
+ * rtprio we can get that is less or equal the specified parameter. If
+ * the thread is already realtime, don't do anything. */
+int pa_thread_make_realtime(int rtprio) {
+
+#if defined(OS_IS_DARWIN)
+    struct thread_time_constraint_policy ttcpolicy;
+    uint64_t freq = 0;
+    size_t size = sizeof(freq);
+    int ret;
+
+    ret = sysctlbyname("hw.cpufrequency", &freq, &size, NULL, 0);
+    if (ret < 0) {
+        pa_log_info("Unable to read CPU frequency, acquisition of real-time scheduling failed.");
+        return -1;
+    }
+
+    pa_log_debug("sysctl for hw.cpufrequency: %llu", freq);
+
+    /* See http://developer.apple.com/library/mac/#documentation/Darwin/Conceptual/KernelProgramming/scheduler/scheduler.html */
+    ttcpolicy.period = freq / 160;
+    ttcpolicy.computation = freq / 3300;
+    ttcpolicy.constraint = freq / 2200;
+    ttcpolicy.preemptible = 1;
+
+    ret = thread_policy_set(mach_thread_self(),
+                            THREAD_TIME_CONSTRAINT_POLICY,
+                            (thread_policy_t) &ttcpolicy,
+                            THREAD_TIME_CONSTRAINT_POLICY_COUNT);
+    if (ret) {
+        pa_log_info("Unable to set real-time thread priority (%08x).", ret);
+        return -1;
+    }
+
+    pa_log_info("Successfully acquired real-time thread priority.");
+    return 0;
+
+#elif defined(_POSIX_PRIORITY_SCHEDULING)
+    int p;
+
+    if (set_scheduler(rtprio) >= 0) {
+        pa_log_info("Successfully enabled SCHED_RR scheduling for thread, with priority %i.", rtprio);
+        return 0;
+    }
+
+    for (p = rtprio-1; p >= 1; p--)
+        if (set_scheduler(p) >= 0) {
+            pa_log_info("Successfully enabled SCHED_RR scheduling for thread, with priority %i, which is lower than the requested %i.", p, rtprio);
+            return 0;
+        }
+#elif defined(OS_IS_WIN32)
+    /* Windows only allows realtime scheduling to be set on a per process basis.
+     * Therefore, instead of making the thread realtime, just give it the highest non-realtime priority. */
+    if (SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL)) {
+        pa_log_info("Successfully enabled THREAD_PRIORITY_TIME_CRITICAL scheduling for thread.");
+        return 0;
+    }
+
+    pa_log_warn("SetThreadPriority() failed: 0x%08X", GetLastError());
+    errno = EPERM;
+#else
+    errno = ENOTSUP;
+#endif
+    pa_log_info("Failed to acquire real-time scheduling: %s", pa_cstrerror(errno));
+    return -1;
 }

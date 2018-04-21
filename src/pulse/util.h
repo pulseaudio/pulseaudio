@@ -54,6 +54,12 @@ char *pa_path_get_filename(const char *p);
 /** Wait t milliseconds */
 int pa_msleep(unsigned long t);
 
+/** Make the calling thread realtime if we can. On Linux, this uses RealTimeKit
+ * if available and POSIX APIs otherwise (the latter applies to other UNIX
+ * variants as well). This is also implemented for macOS and Windows.
+ * \since 13.0 */
+int pa_thread_make_realtime(int rtprio);
+
 PA_C_DECL_END
 
 #endif

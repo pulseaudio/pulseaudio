@@ -29,6 +29,7 @@
 
 #include <jack/jack.h>
 
+#include <pulse/util.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/sink.h>
@@ -224,7 +225,7 @@ static void thread_func(void *userdata) {
     pa_log_debug("Thread starting up");
 
     if (u->core->realtime_scheduling)
-        pa_make_realtime(u->core->realtime_priority);
+        pa_thread_make_realtime(u->core->realtime_priority);
 
     pa_thread_mq_install(&u->thread_mq);
 
@@ -267,7 +268,7 @@ static void jack_init(void *arg) {
     pa_log_info("JACK thread starting up.");
 
     if (u->core->realtime_scheduling)
-        pa_make_realtime(u->core->realtime_priority+4);
+        pa_thread_make_realtime(u->core->realtime_priority+4);
 }
 
 /* JACK Callback: This is called when JACK kicks us */

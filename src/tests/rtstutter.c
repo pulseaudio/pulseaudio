@@ -57,7 +57,7 @@ static void work(void *p) {
 
     pa_log_notice("CPU%i: Created thread.", PA_PTR_TO_UINT(p));
 
-    pa_make_realtime(12);
+    pa_thread_make_realtime(12);
 
 #ifdef HAVE_PTHREAD_SETAFFINITY_NP
 {

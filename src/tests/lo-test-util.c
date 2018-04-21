@@ -208,7 +208,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_READY: {
             pa_buffer_attr buffer_attr;
 
-            pa_make_realtime(4);
+            pa_thread_make_realtime(4);
 
             /* Create playback stream */
             buffer_attr.maxlength = -1;

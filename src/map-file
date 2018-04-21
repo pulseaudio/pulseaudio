@@ -225,6 +225,7 @@ pa_mainloop_run;
 pa_mainloop_set_poll_func;
 pa_mainloop_wakeup;
 pa_msleep;
+pa_thread_make_realtime
 pa_operation_cancel;
 pa_operation_get_state;
 pa_operation_ref;
