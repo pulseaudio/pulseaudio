@@ -86,6 +86,12 @@ int main(int argc, char *argv[]) {
     g_type_init();
 #endif
 
+    /* gsettings-data-convert copies data from GConf to GSettings. The
+     * conversion is defined in the pulseaudio.convert file. The conversion is
+     * done only once, so running the command every time gsettings-helper
+     * starts is safe. */
+    g_spawn_command_line_sync("gsettings-data-convert", NULL, NULL, NULL, NULL);
+
     if (!(settings = g_settings_new(PA_GSETTINGS_MODULE_GROUPS_SCHEMA)))
         goto fail;
 

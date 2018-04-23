@@ -34,6 +34,9 @@ endif
 if HAVE_DBUS
 dbuspolicydir=$(sysconfdir)/dbus-1/system.d
 endif
+if HAVE_GSETTINGS
+gsettingsdataconvertdir=$(datadir)/GConf/gsettings
+endif
 
 ###################################
 #     Compiler/linker flags       #
@@ -1418,6 +1421,9 @@ modlibexec_LTLIBRARIES += \
 
 pulselibexec_PROGRAMS += \
 		gsettings-helper
+
+dist_gsettingsdataconvert_DATA = \
+		modules/gsettings/pulseaudio.convert
 endif
 
 if HAVE_WAVEOUT
