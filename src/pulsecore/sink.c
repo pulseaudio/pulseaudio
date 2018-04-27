@@ -271,11 +271,6 @@ pa_sink* pa_sink_new(
     else
         s->alternate_sample_rate = s->core->alternate_sample_rate;
 
-    if (s->sample_spec.rate == s->alternate_sample_rate) {
-        pa_log_warn("Default and alternate sample rates are the same.");
-        s->alternate_sample_rate = 0;
-    }
-
     s->inputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
     s->input_to_master = NULL;
@@ -1500,9 +1495,9 @@ int pa_sink_reconfigure(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
             default_rate_is_usable = true;
         if (default_rate % 4000 == 0 && spec->rate % 4000 == 0)
             default_rate_is_usable = true;
-        if (alternate_rate && alternate_rate % 11025 == 0 && spec->rate % 11025 == 0)
+        if (alternate_rate % 11025 == 0 && spec->rate % 11025 == 0)
             alternate_rate_is_usable = true;
-        if (alternate_rate && alternate_rate % 4000 == 0 && spec->rate % 4000 == 0)
+        if (alternate_rate % 4000 == 0 && spec->rate % 4000 == 0)
             alternate_rate_is_usable = true;
 
         if (alternate_rate_is_usable && !default_rate_is_usable)

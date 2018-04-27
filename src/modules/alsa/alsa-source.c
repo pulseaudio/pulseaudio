@@ -2110,8 +2110,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         u->source->set_port = source_set_port_ucm_cb;
     else
         u->source->set_port = source_set_port_cb;
-    if (u->source->alternate_sample_rate)
-        u->source->reconfigure = source_reconfigure_cb;
+    u->source->reconfigure = source_reconfigure_cb;
     u->source->userdata = u;
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);

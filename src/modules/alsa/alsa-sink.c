@@ -2434,8 +2434,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         u->sink->set_port = sink_set_port_ucm_cb;
     else
         u->sink->set_port = sink_set_port_cb;
-    if (u->sink->alternate_sample_rate)
-        u->sink->reconfigure = sink_reconfigure_cb;
+    u->sink->reconfigure = sink_reconfigure_cb;
     u->sink->userdata = u;
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
