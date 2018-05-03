@@ -514,11 +514,6 @@ fail:
     if (sap_fd >= 0)
         pa_close(sap_fd);
 
-    if (o) {
-        pa_source_output_unlink(o);
-        pa_source_output_unref(o);
-    }
-
     return -1;
 }
 
