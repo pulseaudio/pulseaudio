@@ -718,7 +718,7 @@ static int parse_control_parameters(struct userdata *u, const char *cdata, doubl
 
     pa_log_debug("Trying to read %lu control values", u->n_control);
 
-    if (!cdata && u->n_control > 0)
+    if (!cdata || u->n_control == 0)
         return -1;
 
     pa_log_debug("cdata: '%s'", cdata);
