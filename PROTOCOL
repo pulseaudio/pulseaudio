@@ -420,6 +420,13 @@ memfd support only to 10.0+ clients.
 
 Check commit 451d1d676237c81 for further details.
 
+## v33, implemented by >= 13.0
+
+Added two values to the pa_encoding_t enum:
+
+    PA_ENCODING_TRUEHD_IEC61937 := 7
+    PA_ENCODING_DTSHD_IEC61937 := 8
+
 #### If you just changed the protocol, read this
 ## module-tunnel depends on the sink/source/sink-input/source-input protocol
 ## internals, so if you changed these, you might have broken module-tunnel.
