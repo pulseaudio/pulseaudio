@@ -184,6 +184,12 @@ static pa_hook_result_t sink_input_new_cb(pa_core *core, pa_sink_input_new_data 
     if (!new_data->format && new_data->nego_formats && !pa_idxset_isempty(new_data->nego_formats))
         new_data->format = pa_format_info_copy(pa_idxset_first(new_data->nego_formats, NULL));
 
+    if (!new_data->format) {
+        /* Sink doesn't support any requested format */
+        pa_log_debug("Default sink does not match sink input requested formats");
+        return PA_HOOK_OK;
+    }
+
     if (pa_sink_input_new_data_is_passthrough(new_data))
         return new_passthrough_stream(u, core, new_data->sink, NULL);
 
