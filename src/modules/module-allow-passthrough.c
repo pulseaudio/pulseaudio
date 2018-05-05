@@ -177,7 +177,7 @@ static pa_hook_result_t sink_input_new_cb(pa_core *core, pa_sink_input_new_data 
      * format). */
     if (!new_data->sink) {
         pa_sink *sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK);
-        pa_return_val_if_fail(sink, -PA_ERR_NOENTITY);
+        pa_return_val_if_fail(sink, PA_HOOK_OK);
         pa_sink_input_new_data_set_sink(new_data, sink, false, false);
     }
 
