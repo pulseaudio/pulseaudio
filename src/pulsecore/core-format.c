@@ -227,13 +227,21 @@ int pa_format_info_to_sample_spec_fake(const pa_format_info *f, pa_sample_spec *
 
     ss->format = PA_SAMPLE_S16LE;
     if ((f->encoding == PA_ENCODING_TRUEHD_IEC61937) ||
-	(f->encoding == PA_ENCODING_DTSHD_IEC61937))
-	ss->channels = 8;
-    else
-	ss->channels = 2;
-
-    if (map)
-        pa_channel_map_init_stereo(map);
+        (f->encoding == PA_ENCODING_DTSHD_IEC61937)) {
+        ss->channels = 8;
+        if (map) {
+            /* We use the ALSA mapping, because most likely we will be using an
+             * ALSA sink. This doesn't really matter anyway, though, because
+             * the channel map doesn't affect anything with passthrough
+             * streams. The channel map just needs to be consistent with the
+             * sample spec's channel count. */
+            pa_channel_map_init_auto(map, 8, PA_CHANNEL_MAP_ALSA);
+        }
+    } else {
+        ss->channels = 2;
+        if (map)
+            pa_channel_map_init_stereo(map);
+    }
 
     pa_return_val_if_fail(pa_format_info_get_prop_int(f, PA_PROP_FORMAT_RATE, &rate) == 0, -PA_ERR_INVALID);
     ss->rate = (uint32_t) rate;
