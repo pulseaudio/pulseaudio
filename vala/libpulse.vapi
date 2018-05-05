@@ -1288,6 +1288,7 @@ namespace PulseAudio {
                 public uint32 n_volume_steps;
                 public uint32 card;
                 public uint32 n_ports;
+                [CCode (array_length_cname="n_ports")]
                 public SinkPortInfo*[] ports;
                 public SinkPortInfo* active_port;
         }
@@ -1321,6 +1322,7 @@ namespace PulseAudio {
                 public uint32 n_volume_steps;
                 public uint32 card;
                 public uint32 n_ports;
+                [CCode (array_length_cname="n_ports")]
                 public SourcePortInfo*[] ports;
                 public SourcePortInfo* active_port;
         }
