@@ -253,6 +253,7 @@ static void connect_ports(struct userdata *u, void *new_data, pa_direction_t dir
 static int sco_process_render(struct userdata *u) {
     ssize_t l;
     pa_memchunk memchunk;
+    int saved_errno;
 
     pa_assert(u);
     pa_assert(u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT ||
@@ -279,14 +280,22 @@ static int sco_process_render(struct userdata *u) {
         if (l > 0)
             break;
 
-        if (errno == EINTR)
+        saved_errno = errno;
+
+        if (saved_errno == EINTR)
             /* Retry right away if we got interrupted */
             continue;
-        else if (errno == EAGAIN)
-            /* Hmm, apparently the socket was not writable, give up for now */
-            return 0;
 
-        pa_log_error("Failed to write data to SCO socket: %s", pa_cstrerror(errno));
+        pa_memblock_unref(memchunk.memblock);
+
+        if (saved_errno == EAGAIN) {
+            /* Hmm, apparently the socket was not writable, give up for now.
+             * Because the data was already rendered, let's discard the block. */
+            pa_log_debug("Got EAGAIN on write() after POLLOUT, probably there is a temporary connection loss.");
+            return 1;
+        }
+
+        pa_log_error("Failed to write data to SCO socket: %s", pa_cstrerror(saved_errno));
         return -1;
     }
 
@@ -296,6 +305,8 @@ static int sco_process_render(struct userdata *u) {
         pa_log_error("Wrote memory block to socket only partially! %llu written, wanted to write %llu.",
                     (unsigned long long) l,
                     (unsigned long long) memchunk.length);
+
+        pa_memblock_unref(memchunk.memblock);
         return -1;
     }
 
@@ -514,9 +525,11 @@ static int a2dp_process_render(struct userdata *u) {
                 /* Retry right away if we got interrupted */
                 continue;
 
-            else if (errno == EAGAIN)
+            else if (errno == EAGAIN) {
                 /* Hmm, apparently the socket was not writable, give up for now */
+                pa_log_debug("Got EAGAIN on write() after POLLOUT, probably there is a temporary connection loss.");
                 break;
+            }
 
             pa_log_error("Failed to write data to socket: %s", pa_cstrerror(errno));
             ret = -1;
@@ -1470,9 +1483,6 @@ static int write_block(struct userdata *u) {
         if ((n_written = sco_process_render(u)) < 0)
             return -1;
     }
-
-    if (n_written == 0)
-        pa_log_debug("Got EAGAIN on write() after POLLOUT, probably there is a temporary connection loss.");
 
     return n_written;
 }
