@@ -109,7 +109,9 @@ EXTRA_DIST = \
 		daemon/pulseaudio.desktop.in \
 		map-file \
 		daemon/pulseaudio-system.conf \
-		modules/echo-cancel/adrian-license.txt
+		modules/echo-cancel/adrian-license.txt \
+		modules/gsettings/org.freedesktop.pulseaudio.gschema.xml \
+		modules/gsettings/pulseaudio.convert
 
 pulseconf_DATA = \
 		default.pa \
@@ -1422,7 +1424,7 @@ modlibexec_LTLIBRARIES += \
 pulselibexec_PROGRAMS += \
 		gsettings-helper
 
-dist_gsettingsdataconvert_DATA = \
+gsettingsdataconvert_DATA = \
 		modules/gsettings/pulseaudio.convert
 endif
 
