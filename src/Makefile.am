@@ -105,7 +105,6 @@ EXTRA_DIST = \
 		daemon/systemd/user/pulseaudio.socket \
 		utils/padsp.in \
 		utils/qpaeq \
-		modules/module-defs.h.m4 \
 		daemon/pulseaudio.desktop.in \
 		map-file \
 		daemon/pulseaudio-system.conf \
