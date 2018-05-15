@@ -1187,7 +1187,9 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_status_t *status, snd_pcm_sframes
     size_t abs_k;
     int err;
     snd_pcm_sframes_t avail = 0;
+#if (SND_LIB_VERSION >= ((1<<16)|(1<<8)|0)) /* API additions in 1.1.0 */
     snd_pcm_audio_tstamp_config_t tstamp_config;
+#endif
 
     pa_assert(pcm);
     pa_assert(delay);
@@ -1201,11 +1203,15 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_status_t *status, snd_pcm_sframes
      * avail, delay and timestamp values in a single kernel call to improve
      * timer-based scheduling */
 
+#if (SND_LIB_VERSION >= ((1<<16)|(1<<8)|0)) /* API additions in 1.1.0 */
+
     /* The time stamp configuration needs to be set so that the
-     * ALSA code will use the internal delay reported by the driver */
+     * ALSA code will use the internal delay reported by the driver.
+     * The time stamp configuration was introduced in alsa version 1.1.0. */
     tstamp_config.type_requested = 1; /* ALSA default time stamp type */
     tstamp_config.report_delay = 1;
     snd_pcm_status_set_audio_htstamp_config(status, &tstamp_config);
+#endif
 
     if ((err = snd_pcm_status(pcm, status)) < 0)
         return err;
