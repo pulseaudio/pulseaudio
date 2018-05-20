@@ -1570,7 +1570,7 @@ static void source_update_requested_latency_cb(pa_source *s) {
     update_sw_params(u);
 }
 
-static void source_reconfigure_cb(pa_source *s, pa_sample_spec *spec, bool passthrough) {
+static int source_reconfigure_cb(pa_source *s, pa_sample_spec *spec, pa_channel_map *map, bool passthrough) {
     struct userdata *u = s->userdata;
     int i;
     bool format_supported = false;
@@ -1604,6 +1604,8 @@ static void source_reconfigure_cb(pa_source *s, pa_sample_spec *spec, bool passt
         pa_log_info("Source does not support sample rate of %u, set it to a verfied value", spec->rate);
         pa_source_set_sample_rate(u->source, u->verified_sample_spec.rate);
     }
+
+    return 0;
 }
 
 static void thread_func(void *userdata) {

@@ -150,9 +150,16 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
     pa_sink_set_max_request_within_thread(s, nbytes);
 }
 
-static void sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
+static int sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, pa_channel_map *map, bool passthrough) {
     /* We don't need to do anything */
     s->sample_spec = *spec;
+
+    if (map)
+        s->channel_map = *map;
+    else
+        pa_channel_map_init_auto(&s->channel_map, spec->channels, PA_CHANNEL_MAP_DEFAULT);
+
+    return 0;
 }
 
 static bool sink_set_formats_cb(pa_sink *s, pa_idxset *formats) {

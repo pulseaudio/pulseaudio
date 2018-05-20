@@ -106,7 +106,9 @@ struct pa_sink {
     bool save_volume:1;
     bool save_muted:1;
 
-    /* Saved volume state while we're in passthrough mode */
+    /* Saved state while we're in passthrough mode */
+    pa_sample_spec saved_spec;
+    pa_channel_map saved_map;
     pa_cvolume saved_volume;
     bool saved_save_volume:1;
 
@@ -267,7 +269,7 @@ struct pa_sink {
 
     /* Called whenever device parameters need to be changed. Called from
      * main thread. */
-    void (*reconfigure)(pa_sink *s, pa_sample_spec *spec, bool passthrough);
+    int (*reconfigure)(pa_sink *s, pa_sample_spec *spec, pa_channel_map *map, bool passthrough);
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
@@ -445,7 +447,7 @@ unsigned pa_device_init_priority(pa_proplist *p);
 
 /**** May be called by everyone, from main context */
 
-void pa_sink_reconfigure(pa_sink *s, pa_sample_spec *spec, bool passthrough);
+int pa_sink_reconfigure(pa_sink *s, pa_sample_spec *spec, pa_channel_map *map, bool passthrough, bool restore);
 void pa_sink_set_port_latency_offset(pa_sink *s, int64_t offset);
 
 /* The returned value is supposed to be in the time domain of the sound card! */

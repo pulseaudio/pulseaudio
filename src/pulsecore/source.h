@@ -107,7 +107,9 @@ struct pa_source {
     bool save_volume:1;
     bool save_muted:1;
 
-    /* Saved volume state while we're in passthrough mode */
+    /* Saved state while we're in passthrough mode */
+    pa_sample_spec saved_spec;
+    pa_channel_map saved_map;
     pa_cvolume saved_volume;
     bool saved_save_volume:1;
 
@@ -225,7 +227,7 @@ struct pa_source {
 
     /* Called whenever device parameters need to be changed. Called from
      * main thread. */
-    void (*reconfigure)(pa_source *s, pa_sample_spec *spec, bool passthrough);
+    int (*reconfigure)(pa_source *s, pa_sample_spec *spec, pa_channel_map *map, bool passthrough);
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
@@ -418,7 +420,7 @@ bool pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist 
 
 int pa_source_set_port(pa_source *s, const char *name, bool save);
 
-void pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, bool passthrough);
+int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, pa_channel_map *map, bool passthrough, bool restore);
 
 unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
 unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */

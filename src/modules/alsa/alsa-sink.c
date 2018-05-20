@@ -1758,7 +1758,7 @@ static bool sink_set_formats(pa_sink *s, pa_idxset *formats) {
     return true;
 }
 
-static void sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
+static int sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, pa_channel_map *map, bool passthrough) {
     struct userdata *u = s->userdata;
     int i;
     bool format_supported = false;
@@ -1794,6 +1794,8 @@ static void sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrou
     }
 
     /* Passthrough status change is handled during unsuspend */
+
+    return 0;
 }
 
 static int process_rewind(struct userdata *u) {
