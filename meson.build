@@ -12,7 +12,7 @@ pa_version_micro = version_split[2]
 pa_version_major_minor = pa_version_major + '.' + pa_version_minor
 
 pa_api_version = 12
-pa_protocol_version = 31
+pa_protocol_version = 33
 
 apiversion = '1.0'
 soversion = 0

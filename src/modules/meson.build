@@ -6,8 +6,6 @@ all_modules = [
   [ 'module-augment-properties', 'module-augment-properties.c' ],
   [ 'module-bluetooth-discover', 'bluetooth/module-bluetooth-discover.c' ],
   [ 'module-bluetooth-policy', 'bluetooth/module-bluetooth-policy.c' ],
-#  [ 'module-bluez4-device', 'bluetooth/module-bluez4-device.c' ],
-#  [ 'module-bluez4-discover', 'bluetooth/module-bluez4-discover.c' ],
 #  [ 'module-bluez5-device', 'bluetooth/module-bluez5-device.c' ],
 #  [ 'module-bluez5-discover', 'bluetooth/module-bluez5-discover.c' ],
 #  [ 'module-bonjour-publish', 'macosx/module-bonjour-publish.c' ],
