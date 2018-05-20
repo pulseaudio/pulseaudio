@@ -57,6 +57,7 @@ cdata.set_quoted('DESKTOPFILEDIR', join_paths(datadir, 'applications'))
 check_headers = [
   'arpa/inet.h',
   'cpuid.h',
+  'execinfo.h',
   'grp.h',
   'langinfo.h',
   'locale.h',
@@ -78,6 +79,7 @@ check_headers = [
   'sys/select.h',
   'sys/socket.h',
   'sys/un.h',
+  'sys/wait.h',
   'valgrind/memcheck.h',
   'xlocale.h',
 ]
@@ -104,6 +106,8 @@ check_functions = [
   'fork',
   'fstat',
   'getaddrinfo',
+  'getgrgid_r',
+  'getpwnam_r',
   'gettimeofday',
   'getuid',
   'lstat',
