@@ -218,11 +218,7 @@ static void io_event_cb(pa_mainloop_api *mainloop, pa_io_event *e, int fd, pa_io
     unsigned int flags = 0;
     DBusWatch *watch = userdata;
 
-#ifdef HAVE_DBUS_WATCH_GET_UNIX_FD
     pa_assert(fd == dbus_watch_get_unix_fd(watch));
-#else
-    pa_assert(fd == dbus_watch_get_fd(watch));
-#endif
 
     if (!dbus_watch_get_enabled(watch)) {
         pa_log_warn("Asked to handle disabled watch: %p %i", (void*) watch, fd);
@@ -289,11 +285,7 @@ static dbus_bool_t watch_add_cb(DBusWatch *watch, void *data) {
 
     ev = mainloop->io_new(
             mainloop,
-#ifdef HAVE_DBUS_WATCH_GET_UNIX_FD
             dbus_watch_get_unix_fd(watch),
-#else
-            dbus_watch_get_fd(watch),
-#endif
             get_watch_flags(watch), io_event_cb, watch);
 
     dbus_watch_set_data(watch, ev, NULL);

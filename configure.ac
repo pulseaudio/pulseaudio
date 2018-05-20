@@ -1041,15 +1041,6 @@ AS_IF([test "x$enable_dbus" != "xno"],
 AS_IF([test "x$enable_dbus" = "xyes" && test "x$HAVE_DBUS" = "x0"],
     [AC_MSG_ERROR([*** D-Bus not available or too old version])])
 
-AS_IF([test "x$HAVE_DBUS" = "x1"],
-    [
-        save_CFLAGS="$CFLAGS"; CFLAGS="$CFLAGS $DBUS_CFLAGS"
-        save_LIBS="$LIBS"; LIBS="$LIBS $DBUS_LIBS"
-        AC_CHECK_FUNCS(dbus_watch_get_unix_fd)
-        CFLAGS="$save_CFLAGS"
-        LIBS="$save_LIBS"
-    ])
-
 AC_SUBST(HAVE_DBUS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 AS_IF([test "x$HAVE_DBUS" = "x1"], AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.]))
