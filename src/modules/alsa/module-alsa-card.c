@@ -640,7 +640,8 @@ static pa_hook_result_t card_suspend_changed(pa_core *c, pa_card *card, struct u
     if (card->suspend_cause == 0) {
         /* We were unsuspended, update jack state in case it changed while we were suspended */
         PA_HASHMAP_FOREACH(jack, u->jacks, state) {
-            report_jack_state(jack->melem, 0);
+            if (jack->melem)
+                report_jack_state(jack->melem, 0);
         }
     }
 
