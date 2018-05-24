@@ -271,6 +271,8 @@ pa_sink* pa_sink_new(
     else
         s->alternate_sample_rate = s->core->alternate_sample_rate;
 
+    s->avoid_resampling = data->avoid_resampling;
+
     s->inputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
     s->input_to_master = NULL;
@@ -1444,7 +1446,7 @@ int pa_sink_reconfigure(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
     pa_sink_input *i;
     bool default_rate_is_usable = false;
     bool alternate_rate_is_usable = false;
-    bool avoid_resampling = s->core->avoid_resampling;
+    bool avoid_resampling = s->avoid_resampling;
 
     /* We currently only try to reconfigure the sample rate */
 
@@ -1512,7 +1514,7 @@ int pa_sink_reconfigure(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
     if (!passthrough && pa_sink_used_by(s) > 0)
         return -1;
 
-    pa_log_debug("Suspending sink %s due to changing format.", s->name);
+    pa_log_debug("Suspending sink %s due to changing format, desired rate = %u", s->name, desired_spec.rate);
     pa_sink_suspend(s, true, PA_SUSPEND_INTERNAL);
 
     if (s->reconfigure(s, &desired_spec, passthrough) >= 0) {

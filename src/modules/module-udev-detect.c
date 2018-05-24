@@ -46,7 +46,8 @@ PA_MODULE_USAGE(
         "fixed_latency_range=<disable latency range changes on underrun?> "
         "ignore_dB=<ignore dB information from the device?> "
         "deferred_volume=<syncronize sw and hw volume changes in IO-thread?> "
-        "use_ucm=<use ALSA UCM for card configuration?>");
+        "use_ucm=<use ALSA UCM for card configuration?> "
+        "avoid_resampling=<use stream original sample rate if possible?>");
 
 struct device {
     char *path;
@@ -67,6 +68,7 @@ struct userdata {
     bool ignore_dB:1;
     bool deferred_volume:1;
     bool use_ucm:1;
+    bool avoid_resampling:1;
 
     uint32_t tsched_buffer_size;
 
@@ -85,6 +87,7 @@ static const char* const valid_modargs[] = {
     "ignore_dB",
     "deferred_volume",
     "use_ucm",
+    "avoid_resampling",
     NULL
 };
 
@@ -401,6 +404,7 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
                      "ignore_dB=%s "
                      "deferred_volume=%s "
                      "use_ucm=%s "
+                     "avoid_resampling=%s "
                      "card_properties=\"module-udev-detect.discovered=1\"",
                      path_get_card_id(path),
                      n,
@@ -409,7 +413,8 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
                      pa_yes_no(u->fixed_latency_range),
                      pa_yes_no(u->ignore_dB),
                      pa_yes_no(u->deferred_volume),
-                     pa_yes_no(u->use_ucm));
+                     pa_yes_no(u->use_ucm),
+                     pa_yes_no(u->avoid_resampling));
     pa_xfree(n);
 
     if (u->tsched_buffer_size_valid)
@@ -682,6 +687,7 @@ int pa__init(pa_module *m) {
     int fd;
     bool use_tsched = true, fixed_latency_range = false, ignore_dB = false, deferred_volume = m->core->deferred_volume;
     bool use_ucm = true;
+    bool avoid_resampling;
 
     pa_assert(m);
 
@@ -733,6 +739,13 @@ int pa__init(pa_module *m) {
         goto fail;
     }
     u->use_ucm = use_ucm;
+
+    avoid_resampling = m->core->avoid_resampling;
+    if (pa_modargs_get_value_boolean(ma, "avoid_resampling", &avoid_resampling) < 0) {
+        pa_log("Failed to parse avoid_resampling= argument.");
+        goto fail;
+    }
+    u->avoid_resampling = avoid_resampling;
 
     if (!(u->udev = udev_new())) {
         pa_log("Failed to initialize udev library.");

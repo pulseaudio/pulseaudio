@@ -68,6 +68,7 @@ PA_MODULE_USAGE(
         "profile_set=<profile set configuration file> "
         "paths_dir=<directory containing the path configuration files> "
         "use_ucm=<load use case manager> "
+        "avoid_resampling=<use stream original sample rate if possible?> "
 );
 
 static const char* const valid_modargs[] = {
@@ -95,6 +96,7 @@ static const char* const valid_modargs[] = {
     "profile_set",
     "paths_dir",
     "use_ucm",
+    "avoid_resampling",
     NULL
 };
 

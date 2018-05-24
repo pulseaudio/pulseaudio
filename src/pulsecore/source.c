@@ -258,6 +258,8 @@ pa_source* pa_source_new(
     else
         s->alternate_sample_rate = s->core->alternate_sample_rate;
 
+    s->avoid_resampling = data->avoid_resampling;
+
     s->outputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
     s->monitor_of = NULL;
@@ -1025,7 +1027,7 @@ int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, bool passthrough) 
     uint32_t alternate_rate = s->alternate_sample_rate;
     bool default_rate_is_usable = false;
     bool alternate_rate_is_usable = false;
-    bool avoid_resampling = s->core->avoid_resampling;
+    bool avoid_resampling = s->avoid_resampling;
 
     /* We currently only try to reconfigure the sample rate */
 
@@ -1093,7 +1095,7 @@ int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, bool passthrough) 
     if (!passthrough && pa_source_used_by(s) > 0)
         return -1;
 
-    pa_log_debug("Suspending source %s due to changing the sample rate.", s->name);
+    pa_log_debug("Suspending source %s due to changing the sample rate to %u", s->name, desired_spec.rate);
     pa_source_suspend(s, true, PA_SUSPEND_INTERNAL);
 
     if (s->reconfigure)

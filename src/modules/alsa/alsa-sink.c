@@ -2101,7 +2101,16 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark, rewind_safeguard;
     snd_pcm_uframes_t period_frames, buffer_frames, tsched_frames;
     size_t frame_size;
-    bool use_mmap = true, b, use_tsched = true, d, ignore_dB = false, namereg_fail = false, deferred_volume = false, set_formats = false, fixed_latency_range = false;
+    bool use_mmap = true;
+    bool use_tsched = true;
+    bool ignore_dB = false;
+    bool namereg_fail = false;
+    bool deferred_volume = false;
+    bool set_formats = false;
+    bool fixed_latency_range = false;
+    bool b;
+    bool d;
+    bool avoid_resampling;
     pa_sink_new_data data;
     bool volume_is_set;
     bool mute_is_set;
@@ -2113,6 +2122,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     ss = m->core->default_sample_spec;
     map = m->core->default_channel_map;
+    avoid_resampling = m->core->avoid_resampling;
 
     /* Pick sample spec overrides from the mapping, if any */
     if (mapping) {
@@ -2368,6 +2378,13 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         goto fail;
     }
     data.namereg_fail = namereg_fail;
+
+    if (pa_modargs_get_value_boolean(ma, "avoid_resampling", &avoid_resampling) < 0) {
+        pa_log("Failed to parse avoid_resampling argument.");
+        pa_sink_new_data_done(&data);
+        goto fail;
+    }
+    data.avoid_resampling = avoid_resampling;
 
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_sink_new_data_set_channel_map(&data, &map);
