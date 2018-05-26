@@ -125,7 +125,7 @@ static void reset_callbacks(pa_context *c) {
     c->ext_stream_restore.userdata = NULL;
 }
 
-pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *name, pa_proplist *p) {
+pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *name, const pa_proplist *p) {
     pa_context *c;
     pa_mem_type_t type;
 

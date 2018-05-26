@@ -174,7 +174,7 @@ pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name);
 /** Instantiate a new connection context with an abstract mainloop API
  * and an application name, and specify the initial client property
  * list. \since 0.9.11 */
-pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *name, pa_proplist *proplist);
+pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *name, const pa_proplist *proplist);
 
 /** Decrease the reference counter of the context by one */
 void pa_context_unref(pa_context *c);
