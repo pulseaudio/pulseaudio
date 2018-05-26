@@ -213,6 +213,26 @@ int pa_format_info_get_prop_string_array(const pa_format_info *f, const char *ke
 /** Frees a string array returned by \ref pa_format_info_get_prop_string_array. \since 2.0 */
 void pa_format_info_free_string_array(char **values, int n_values);
 
+/** Gets the sample format stored in the format info. Returns a negative error
+ * code on failure. If the sample format property is not set at all, returns a
+ * negative integer. \since 13.0 */
+int pa_format_info_get_sample_format(const pa_format_info *f, pa_sample_format_t *sf);
+
+/** Gets the sample rate stored in the format info. Returns a negative error
+ * code on failure. If the sample rate property is not set at all, returns a
+ * negative integer. \since 13.0 */
+int pa_format_info_get_rate(const pa_format_info *f, uint32_t *rate);
+
+/** Gets the channel count stored in the format info. Returns a negative error
+ * code on failure. If the channels property is not set at all, returns a
+ * negative integer. \since 13.0 */
+int pa_format_info_get_channels(const pa_format_info *f, uint8_t *channels);
+
+/** Gets the channel map stored in the format info. Returns a negative error
+ * code on failure. If the channel map property is not
+ * set at all, returns a negative integer. \since 13.0 */
+int pa_format_info_get_channel_map(const pa_format_info *f, pa_channel_map *map);
+
 /** Sets an integer property on the given format info. \since 1.0 */
 void pa_format_info_set_prop_int(pa_format_info *f, const char *key, int value);
 /** Sets a property with a list of integer values on the given format info. \since 1.0 */

@@ -22,26 +22,6 @@
 
 #include <stdbool.h>
 
-/* Gets the sample format stored in the format info. Returns a negative error
- * code on failure. If the sample format property is not set at all, returns
- * -PA_ERR_NOENTITY. */
-int pa_format_info_get_sample_format(const pa_format_info *f, pa_sample_format_t *sf);
-
-/* Gets the sample rate stored in the format info. Returns a negative error
- * code on failure. If the sample rate property is not set at all, returns
- * -PA_ERR_NOENTITY. */
-int pa_format_info_get_rate(const pa_format_info *f, uint32_t *rate);
-
-/* Gets the channel count stored in the format info. Returns a negative error
- * code on failure. If the channels property is not set at all, returns
- * -PA_ERR_NOENTITY. */
-int pa_format_info_get_channels(const pa_format_info *f, uint8_t *channels);
-
-/* Gets the channel map stored in the format info. Returns a negative error
- * code on failure. If the channel map property is not set at all, returns
- * -PA_ERR_NOENTITY. */
-int pa_format_info_get_channel_map(const pa_format_info *f, pa_channel_map *map);
-
 /* Convert a sample spec and an optional channel map to a new PCM format info
  * object (remember to free it). If map is NULL, then the channel map will be
  * left unspecified. If some fields of the sample spec should be ignored, pass

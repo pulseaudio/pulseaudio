@@ -515,6 +515,95 @@ void pa_format_info_free_string_array(char **values, int n_values) {
     pa_xfree(values);
 }
 
+int pa_format_info_get_sample_format(const pa_format_info *f, pa_sample_format_t *sf) {
+    int r;
+    char *sf_str;
+    pa_sample_format_t sf_local;
+
+    pa_assert(f);
+    pa_assert(sf);
+
+    r = pa_format_info_get_prop_string(f, PA_PROP_FORMAT_SAMPLE_FORMAT, &sf_str);
+    if (r < 0)
+        return r;
+
+    sf_local = pa_parse_sample_format(sf_str);
+    pa_xfree(sf_str);
+
+    if (!pa_sample_format_valid(sf_local)) {
+        pa_log_debug("Invalid sample format.");
+        return -PA_ERR_INVALID;
+    }
+
+    *sf = sf_local;
+
+    return 0;
+}
+
+int pa_format_info_get_rate(const pa_format_info *f, uint32_t *rate) {
+    int r;
+    int rate_local;
+
+    pa_assert(f);
+    pa_assert(rate);
+
+    r = pa_format_info_get_prop_int(f, PA_PROP_FORMAT_RATE, &rate_local);
+    if (r < 0)
+        return r;
+
+    if (!pa_sample_rate_valid(rate_local)) {
+        pa_log_debug("Invalid sample rate: %i", rate_local);
+        return -PA_ERR_INVALID;
+    }
+
+    *rate = rate_local;
+
+    return 0;
+}
+
+int pa_format_info_get_channels(const pa_format_info *f, uint8_t *channels) {
+    int r;
+    int channels_local;
+
+    pa_assert(f);
+    pa_assert(channels);
+
+    r = pa_format_info_get_prop_int(f, PA_PROP_FORMAT_CHANNELS, &channels_local);
+    if (r < 0)
+        return r;
+
+    if (!pa_channels_valid(channels_local)) {
+        pa_log_debug("Invalid channel count: %i", channels_local);
+        return -PA_ERR_INVALID;
+    }
+
+    *channels = channels_local;
+
+    return 0;
+}
+
+int pa_format_info_get_channel_map(const pa_format_info *f, pa_channel_map *map) {
+    int r;
+    char *map_str;
+
+    pa_assert(f);
+    pa_assert(map);
+
+    r = pa_format_info_get_prop_string(f, PA_PROP_FORMAT_CHANNEL_MAP, &map_str);
+    if (r < 0)
+        return r;
+
+    map = pa_channel_map_parse(map, map_str);
+    pa_xfree(map_str);
+
+    if (!map) {
+        pa_log_debug("Failed to parse channel map.");
+        return -PA_ERR_INVALID;
+    }
+
+    return 0;
+}
+
 void pa_format_info_set_sample_format(pa_format_info *f, pa_sample_format_t sf) {
     pa_format_info_set_prop_string(f, PA_PROP_FORMAT_SAMPLE_FORMAT, pa_sample_format_to_string(sf));
 }
