@@ -850,7 +850,7 @@ finish:
     pa_context_unref(c);
 }
 
-int64_t pa_stream_get_underflow_index(pa_stream *p) {
+int64_t pa_stream_get_underflow_index(const pa_stream *p) {
     pa_assert(p);
     return p->latest_underrun_at_index;
 }

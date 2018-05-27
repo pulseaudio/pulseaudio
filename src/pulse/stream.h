@@ -602,7 +602,7 @@ void pa_stream_set_overflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, voi
  * known (e.g.\ if no underflow has occurred, or server is older than 1.0).
  * Can be used inside the underflow callback to get information about the current underflow.
  * (Only for playback streams) \since 1.0 */
-int64_t pa_stream_get_underflow_index(pa_stream *p);
+int64_t pa_stream_get_underflow_index(const pa_stream *p);
 
 /** Set the callback function that is called when a buffer underflow happens. (Only for playback streams) */
 void pa_stream_set_underflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
