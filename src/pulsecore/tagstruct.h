@@ -81,7 +81,7 @@ void pa_tagstruct_put_timeval(pa_tagstruct*t, const struct timeval *tv);
 void pa_tagstruct_put_usec(pa_tagstruct*t, pa_usec_t u);
 void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map);
 void pa_tagstruct_put_cvolume(pa_tagstruct *t, const pa_cvolume *cvolume);
-void pa_tagstruct_put_proplist(pa_tagstruct *t, pa_proplist *p);
+void pa_tagstruct_put_proplist(pa_tagstruct *t, const pa_proplist *p);
 void pa_tagstruct_put_volume(pa_tagstruct *t, pa_volume_t volume);
 void pa_tagstruct_put_format_info(pa_tagstruct *t, pa_format_info *f);
 

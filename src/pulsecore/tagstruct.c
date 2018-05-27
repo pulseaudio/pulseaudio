@@ -310,7 +310,7 @@ void pa_tagstruct_put_volume(pa_tagstruct *t, pa_volume_t vol) {
     write_u32(t, vol);
 }
 
-void pa_tagstruct_put_proplist(pa_tagstruct *t, pa_proplist *p) {
+void pa_tagstruct_put_proplist(pa_tagstruct *t, const pa_proplist *p) {
     void *state = NULL;
     pa_assert(t);
     pa_assert(p);
