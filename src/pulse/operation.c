@@ -129,7 +129,7 @@ void pa_operation_done(pa_operation *o) {
     operation_set_state(o, PA_OPERATION_DONE);
 }
 
-pa_operation_state_t pa_operation_get_state(pa_operation *o) {
+pa_operation_state_t pa_operation_get_state(const pa_operation *o) {
     pa_assert(o);
     pa_assert(PA_REFCNT_VALUE(o) >= 1);
 

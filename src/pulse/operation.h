@@ -49,7 +49,7 @@ void pa_operation_unref(pa_operation *o);
 void pa_operation_cancel(pa_operation *o);
 
 /** Return the current status of the operation */
-pa_operation_state_t pa_operation_get_state(pa_operation *o);
+pa_operation_state_t pa_operation_get_state(const pa_operation *o);
 
 /** Set the callback function that is called when the operation state
  * changes. Usually this is not necessary, since the functions that
