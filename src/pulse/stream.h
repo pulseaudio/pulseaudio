@@ -380,11 +380,11 @@ const char *pa_stream_get_device_name(const pa_stream *s);
  * been suspended. This will return 0 if not, and a negative value on
  * error. This function will return with -PA_ERR_NOTSUPPORTED when the
  * server is older than 0.9.8. \since 0.9.8 */
-int pa_stream_is_suspended(pa_stream *s);
+int pa_stream_is_suspended(const pa_stream *s);
 
 /** Return 1 if the this stream has been corked. This will return 0 if
  * not, and a negative value on error. \since 0.9.11 */
-int pa_stream_is_corked(pa_stream *s);
+int pa_stream_is_corked(const pa_stream *s);
 
 /** Connect the stream to a sink. It is strongly recommended to pass
  * NULL in both \a dev and \a volume and to set neither

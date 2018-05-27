@@ -2740,7 +2740,7 @@ const char *pa_stream_get_device_name(const pa_stream *s) {
     return s->device_name;
 }
 
-int pa_stream_is_suspended(pa_stream *s) {
+int pa_stream_is_suspended(const pa_stream *s) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
@@ -2752,7 +2752,7 @@ int pa_stream_is_suspended(pa_stream *s) {
     return s->suspended;
 }
 
-int pa_stream_is_corked(pa_stream *s) {
+int pa_stream_is_corked(const pa_stream *s) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
