@@ -318,7 +318,7 @@ const char *pa_proplist_gets(pa_proplist *p, const char *key);
  * point to an internally allocated buffer. The caller should make a
  * copy of the data before the property list is accessed again.
  * Returns zero on success, negative on error. \since 0.9.11 */
-int pa_proplist_get(pa_proplist *p, const char *key, const void **data, size_t *nbytes);
+int pa_proplist_get(const pa_proplist *p, const char *key, const void **data, size_t *nbytes);
 
 /** Update mode enum for pa_proplist_update(). \since 0.9.11 */
 typedef enum pa_update_mode {

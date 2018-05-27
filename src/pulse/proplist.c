@@ -299,7 +299,7 @@ const char *pa_proplist_gets(pa_proplist *p, const char *key) {
     return (char*) prop->value;
 }
 
-int pa_proplist_get(pa_proplist *p, const char *key, const void **data, size_t *nbytes) {
+int pa_proplist_get(const pa_proplist *p, const char *key, const void **data, size_t *nbytes) {
     struct property *prop;
 
     pa_assert(p);
