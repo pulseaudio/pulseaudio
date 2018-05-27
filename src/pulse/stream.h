@@ -345,7 +345,7 @@ pa_stream *pa_stream_ref(pa_stream *s);
 pa_stream_state_t pa_stream_get_state(const pa_stream *p);
 
 /** Return the context this stream is attached to. */
-pa_context* pa_stream_get_context(pa_stream *p);
+pa_context* pa_stream_get_context(const pa_stream *p);
 
 /** Return the sink input resp.\ source output index this stream is
  * identified in the server with. This is useful with the

@@ -338,7 +338,7 @@ pa_stream_state_t pa_stream_get_state(const pa_stream *s) {
     return s->state;
 }
 
-pa_context* pa_stream_get_context(pa_stream *s) {
+pa_context* pa_stream_get_context(const pa_stream *s) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
