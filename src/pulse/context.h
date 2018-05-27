@@ -196,7 +196,7 @@ int pa_context_errno(pa_context *c);
 int pa_context_is_pending(pa_context *c);
 
 /** Return the current context status */
-pa_context_state_t pa_context_get_state(pa_context *c);
+pa_context_state_t pa_context_get_state(const pa_context *c);
 
 /** Connect the context to the specified server. If server is NULL,
  * connect to the default server. This routine may but will not always

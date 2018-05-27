@@ -1058,7 +1058,7 @@ void pa_context_disconnect(pa_context *c) {
         pa_context_set_state(c, PA_CONTEXT_TERMINATED);
 }
 
-pa_context_state_t pa_context_get_state(pa_context *c) {
+pa_context_state_t pa_context_get_state(const pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
