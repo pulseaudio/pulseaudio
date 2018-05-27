@@ -116,7 +116,7 @@ pa_operation* pa_context_play_sample_with_proplist(
         const char *name                /**< Name of the sample to play */,
         const char *dev                 /**< Sink to play this sample on */,
         pa_volume_t volume              /**< Volume to play this sample with. Starting with 0.9.15 you may pass here PA_VOLUME_INVALID which will leave the decision about the volume to the server side, which is a good idea.  */ ,
-        pa_proplist *proplist           /**< Property list for this sound. The property list of the cached entry will be merged into this property list */,
+        pa_proplist *proplist           /**< Property list for this sound. The property list of the cached entry will have this merged into it. */,
         pa_context_play_sample_cb_t cb  /**< Call this function after successfully starting playback, or NULL */,
         void *userdata                  /**< Userdata to pass to the callback */);
 
