@@ -397,10 +397,10 @@ void pa_proplist_clear(pa_proplist *p);
 pa_proplist* pa_proplist_copy(const pa_proplist *p);
 
 /** Return the number of entries in the property list. \since 0.9.15 */
-unsigned pa_proplist_size(pa_proplist *p);
+unsigned pa_proplist_size(const pa_proplist *p);
 
 /** Returns 0 when the proplist is empty, positive otherwise \since 0.9.15 */
-int pa_proplist_isempty(pa_proplist *p);
+int pa_proplist_isempty(const pa_proplist *p);
 
 /** Return non-zero when a and b have the same keys and values.
  * \since 0.9.16 */

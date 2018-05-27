@@ -662,13 +662,13 @@ pa_proplist* pa_proplist_copy(const pa_proplist *p) {
     return copy;
 }
 
-unsigned pa_proplist_size(pa_proplist *p) {
+unsigned pa_proplist_size(const pa_proplist *p) {
     pa_assert(p);
 
     return pa_hashmap_size(MAKE_HASHMAP_CONST(p));
 }
 
-int pa_proplist_isempty(pa_proplist *p) {
+int pa_proplist_isempty(const pa_proplist *p) {
     pa_assert(p);
 
     return pa_hashmap_isempty(MAKE_HASHMAP_CONST(p));
