@@ -801,7 +801,7 @@ int pa_stream_set_monitor_stream(pa_stream *s, uint32_t sink_input_idx);
 /** Return the sink input index previously set with
  * pa_stream_set_monitor_stream(). Returns PA_INVALID_INDEX
  * on failure. \since 0.9.11 */
-uint32_t pa_stream_get_monitor_stream(pa_stream *s);
+uint32_t pa_stream_get_monitor_stream(const pa_stream *s);
 
 PA_C_DECL_END
 

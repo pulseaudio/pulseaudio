@@ -2915,7 +2915,7 @@ int pa_stream_set_monitor_stream(pa_stream *s, uint32_t sink_input_idx) {
     return 0;
 }
 
-uint32_t pa_stream_get_monitor_stream(pa_stream *s) {
+uint32_t pa_stream_get_monitor_stream(const pa_stream *s) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
