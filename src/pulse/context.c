@@ -1369,7 +1369,7 @@ uint32_t pa_context_get_index(pa_context *c) {
     return c->client_index;
 }
 
-pa_operation *pa_context_proplist_update(pa_context *c, pa_update_mode_t mode, pa_proplist *p, pa_context_success_cb_t cb, void *userdata) {
+pa_operation *pa_context_proplist_update(pa_context *c, pa_update_mode_t mode, const pa_proplist *p, pa_context_success_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
