@@ -334,7 +334,7 @@ void pa_tagstruct_put_proplist(pa_tagstruct *t, const pa_proplist *p) {
     pa_tagstruct_puts(t, NULL);
 }
 
-void pa_tagstruct_put_format_info(pa_tagstruct *t, pa_format_info *f) {
+void pa_tagstruct_put_format_info(pa_tagstruct *t, const pa_format_info *f) {
     pa_assert(t);
     pa_assert(f);
 
