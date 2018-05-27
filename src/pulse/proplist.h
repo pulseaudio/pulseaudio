@@ -404,7 +404,7 @@ int pa_proplist_isempty(const pa_proplist *p);
 
 /** Return non-zero when a and b have the same keys and values.
  * \since 0.9.16 */
-int pa_proplist_equal(pa_proplist *a, pa_proplist *b);
+int pa_proplist_equal(const pa_proplist *a, const pa_proplist *b);
 
 PA_C_DECL_END
 

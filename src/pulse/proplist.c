@@ -674,7 +674,7 @@ int pa_proplist_isempty(const pa_proplist *p) {
     return pa_hashmap_isempty(MAKE_HASHMAP_CONST(p));
 }
 
-int pa_proplist_equal(pa_proplist *a, pa_proplist *b) {
+int pa_proplist_equal(const pa_proplist *a, const pa_proplist *b) {
     const void *key = NULL;
     struct property *a_prop = NULL;
     struct property *b_prop = NULL;
