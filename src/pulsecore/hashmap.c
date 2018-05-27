@@ -231,7 +231,7 @@ void pa_hashmap_remove_all(pa_hashmap *h) {
     }
 }
 
-void *pa_hashmap_iterate(pa_hashmap *h, void **state, const void **key) {
+void *pa_hashmap_iterate(const pa_hashmap *h, void **state, const void **key) {
     struct hashmap_entry *e;
 
     pa_assert(h);
@@ -264,7 +264,7 @@ at_end:
     return NULL;
 }
 
-void *pa_hashmap_iterate_backwards(pa_hashmap *h, void **state, const void **key) {
+void *pa_hashmap_iterate_backwards(const pa_hashmap *h, void **state, const void **key) {
     struct hashmap_entry *e;
 
     pa_assert(h);
@@ -297,7 +297,7 @@ at_beginning:
     return NULL;
 }
 
-void* pa_hashmap_first(pa_hashmap *h) {
+void* pa_hashmap_first(const pa_hashmap *h) {
     pa_assert(h);
 
     if (!h->iterate_list_head)
@@ -306,7 +306,7 @@ void* pa_hashmap_first(pa_hashmap *h) {
     return h->iterate_list_head->value;
 }
 
-void* pa_hashmap_last(pa_hashmap *h) {
+void* pa_hashmap_last(const pa_hashmap *h) {
     pa_assert(h);
 
     if (!h->iterate_list_tail)
@@ -329,13 +329,13 @@ void* pa_hashmap_steal_first(pa_hashmap *h) {
     return data;
 }
 
-unsigned pa_hashmap_size(pa_hashmap *h) {
+unsigned pa_hashmap_size(const pa_hashmap *h) {
     pa_assert(h);
 
     return h->n_entries;
 }
 
-bool pa_hashmap_isempty(pa_hashmap *h) {
+bool pa_hashmap_isempty(const pa_hashmap *h) {
     pa_assert(h);
 
     return h->n_entries == 0;

@@ -61,10 +61,10 @@ int pa_hashmap_remove_and_free(pa_hashmap *h, const void *key);
 void pa_hashmap_remove_all(pa_hashmap *h);
 
 /* Return the current number of entries of the hashmap */
-unsigned pa_hashmap_size(pa_hashmap *h);
+unsigned pa_hashmap_size(const pa_hashmap *h);
 
 /* Return true if the hashmap is empty */
-bool pa_hashmap_isempty(pa_hashmap *h);
+bool pa_hashmap_isempty(const pa_hashmap *h);
 
 /* May be used to iterate through the hashmap. Initially the opaque
    pointer *state has to be set to NULL. The hashmap may not be
@@ -72,19 +72,19 @@ bool pa_hashmap_isempty(pa_hashmap *h);
    via pa_hashmap_remove(). The key of the entry is returned in *key,
    if key is non-NULL. After the last entry in the hashmap NULL is
    returned. */
-void *pa_hashmap_iterate(pa_hashmap *h, void **state, const void**key);
+void *pa_hashmap_iterate(const pa_hashmap *h, void **state, const void**key);
 
 /* Same as pa_hashmap_iterate() but goes backwards */
-void *pa_hashmap_iterate_backwards(pa_hashmap *h, void **state, const void**key);
+void *pa_hashmap_iterate_backwards(const pa_hashmap *h, void **state, const void**key);
 
 /* Remove the oldest entry in the hashmap and return it */
 void *pa_hashmap_steal_first(pa_hashmap *h);
 
 /* Return the oldest entry in the hashmap */
-void* pa_hashmap_first(pa_hashmap *h);
+void* pa_hashmap_first(const pa_hashmap *h);
 
 /* Return the newest entry in the hashmap */
-void* pa_hashmap_last(pa_hashmap *h);
+void* pa_hashmap_last(const pa_hashmap *h);
 
 /* A macro to ease iteration through all entries */
 #define PA_HASHMAP_FOREACH(e, h, state) \
