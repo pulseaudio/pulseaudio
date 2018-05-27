@@ -632,7 +632,7 @@ fail:
     return NULL;
 }
 
-int pa_proplist_contains(pa_proplist *p, const char *key) {
+int pa_proplist_contains(const pa_proplist *p, const char *key) {
     pa_assert(p);
     pa_assert(key);
 

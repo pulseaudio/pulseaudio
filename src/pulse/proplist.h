@@ -387,7 +387,7 @@ pa_proplist *pa_proplist_from_string(const char *str);
 
 /** Returns 1 if an entry for the specified key exists in the
  * property list. Returns negative on error. \since 0.9.11 */
-int pa_proplist_contains(pa_proplist *p, const char *key);
+int pa_proplist_contains(const pa_proplist *p, const char *key);
 
 /** Remove all entries from the property list object. \since 0.9.11 */
 void pa_proplist_clear(pa_proplist *p);
