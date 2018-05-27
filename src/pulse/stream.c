@@ -345,7 +345,7 @@ pa_context* pa_stream_get_context(const pa_stream *s) {
     return s->context;
 }
 
-uint32_t pa_stream_get_index(pa_stream *s) {
+uint32_t pa_stream_get_index(const pa_stream *s) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 

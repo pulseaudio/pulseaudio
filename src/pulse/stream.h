@@ -352,7 +352,7 @@ pa_context* pa_stream_get_context(const pa_stream *p);
  * introspection functions such as pa_context_get_sink_input_info()
  * or pa_context_get_source_output_info(). This returns PA_INVALID_INDEX
  * on failure. */
-uint32_t pa_stream_get_index(pa_stream *s);
+uint32_t pa_stream_get_index(const pa_stream *s);
 
 /** Return the index of the sink or source this stream is connected to
  * in the server. This is useful with the introspection
