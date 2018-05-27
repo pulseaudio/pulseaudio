@@ -2714,7 +2714,7 @@ pa_operation* pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr
     return o;
 }
 
-uint32_t pa_stream_get_device_index(pa_stream *s) {
+uint32_t pa_stream_get_device_index(const pa_stream *s) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
@@ -2727,7 +2727,7 @@ uint32_t pa_stream_get_device_index(pa_stream *s) {
     return s->device_index;
 }
 
-const char *pa_stream_get_device_name(pa_stream *s) {
+const char *pa_stream_get_device_name(const pa_stream *s) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 

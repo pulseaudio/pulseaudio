@@ -363,7 +363,7 @@ uint32_t pa_stream_get_index(const pa_stream *s);
  * it is recommended to use pa_stream_set_moved_callback() to be notified
  * about this. This function will return with PA_INVALID_INDEX on failure,
  * including the being server older than 0.9.8. \since 0.9.8 */
-uint32_t pa_stream_get_device_index(pa_stream *s);
+uint32_t pa_stream_get_device_index(const pa_stream *s);
 
 /** Return the name of the sink or source this stream is connected to
  * in the server. This is useful with the introspection
@@ -374,7 +374,7 @@ uint32_t pa_stream_get_device_index(pa_stream *s);
  * it is recommended to use pa_stream_set_moved_callback() to be notified
  * about this. This function will fail when the server is older than
  * 0.9.8. \since 0.9.8 */
-const char *pa_stream_get_device_name(pa_stream *s);
+const char *pa_stream_get_device_name(const pa_stream *s);
 
 /** Return 1 if the sink or source this stream is connected to has
  * been suspended. This will return 0 if not, and a negative value on
