@@ -379,7 +379,7 @@ const char *pa_proplist_iterate(const pa_proplist *p, void **state) {
     return prop->key;
 }
 
-char *pa_proplist_to_string_sep(pa_proplist *p, const char *sep) {
+char *pa_proplist_to_string_sep(const pa_proplist *p, const char *sep) {
     const char *key;
     void *state = NULL;
     pa_strbuf *buf;
@@ -437,7 +437,7 @@ char *pa_proplist_to_string_sep(pa_proplist *p, const char *sep) {
     return pa_strbuf_to_string_free(buf);
 }
 
-char *pa_proplist_to_string(pa_proplist *p) {
+char *pa_proplist_to_string(const pa_proplist *p) {
     char *s, *t;
 
     s = pa_proplist_to_string_sep(p, "\n");

@@ -374,12 +374,12 @@ const char *pa_proplist_iterate(const pa_proplist *p, void **state);
  * works very much like pa_proplist_to_string_sep() and uses a newline
  * as separator and appends one final one. Call pa_xfree() on the
  * result. \since 0.9.11 */
-char *pa_proplist_to_string(pa_proplist *p);
+char *pa_proplist_to_string(const pa_proplist *p);
 
 /** Format the property list nicely as a human readable string and
  * choose the separator. Call pa_xfree() on the result. \since
  * 0.9.15 */
-char *pa_proplist_to_string_sep(pa_proplist *p, const char *sep);
+char *pa_proplist_to_string_sep(const pa_proplist *p, const char *sep);
 
 /** Allocate a new property list and assign key/value from a human
  * readable string. \since 0.9.15 */
