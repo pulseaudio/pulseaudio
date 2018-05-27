@@ -370,7 +370,7 @@ int pa_proplist_unset_many(pa_proplist *p, const char * const keys[]) {
     return n;
 }
 
-const char *pa_proplist_iterate(pa_proplist *p, void **state) {
+const char *pa_proplist_iterate(const pa_proplist *p, void **state) {
     struct property *prop;
 
     if (!(prop = pa_hashmap_iterate(MAKE_HASHMAP_CONST(p), state, NULL)))

@@ -368,7 +368,7 @@ int pa_proplist_unset_many(pa_proplist *p, const char * const keys[]);
  * current entry. On each invocation this function will return the
  * key string for the next entry. The keys in the property list do not
  * have any particular order. \since 0.9.11 */
-const char *pa_proplist_iterate(pa_proplist *p, void **state);
+const char *pa_proplist_iterate(const pa_proplist *p, void **state);
 
 /** Format the property list nicely as a human readable string. This
  * works very much like pa_proplist_to_string_sep() and uses a newline
