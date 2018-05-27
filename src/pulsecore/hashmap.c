@@ -173,7 +173,7 @@ int pa_hashmap_put(pa_hashmap *h, void *key, void *value) {
     return 0;
 }
 
-void* pa_hashmap_get(pa_hashmap *h, const void *key) {
+void* pa_hashmap_get(const pa_hashmap *h, const void *key) {
     unsigned hash;
     struct hashmap_entry *e;
 

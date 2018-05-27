@@ -45,7 +45,7 @@ void pa_hashmap_free(pa_hashmap*);
 int pa_hashmap_put(pa_hashmap *h, void *key, void *value);
 
 /* Return an entry from the hashmap */
-void* pa_hashmap_get(pa_hashmap *h, const void *key);
+void* pa_hashmap_get(const pa_hashmap *h, const void *key);
 
 /* Returns the data of the entry while removing */
 void* pa_hashmap_remove(pa_hashmap *h, const void *key);
