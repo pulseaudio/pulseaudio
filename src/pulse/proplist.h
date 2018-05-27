@@ -311,7 +311,7 @@ int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nb
  * the data is not valid UTF-8. Will return a NUL-terminated string in
  * an internally allocated buffer. The caller should make a copy of
  * the data before accessing the property list again. \since 0.9.11 */
-const char *pa_proplist_gets(pa_proplist *p, const char *key);
+const char *pa_proplist_gets(const pa_proplist *p, const char *key);
 
 /** Store the value for the specified key in \a data. Will store a
  * NUL-terminated string for string entries. The \a data pointer returned will

@@ -272,7 +272,7 @@ int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nb
     return 0;
 }
 
-const char *pa_proplist_gets(pa_proplist *p, const char *key) {
+const char *pa_proplist_gets(const pa_proplist *p, const char *key) {
     struct property *prop;
 
     pa_assert(p);
