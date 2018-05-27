@@ -416,7 +416,7 @@ pa_cvolume* pa_cvolume_set_position(pa_cvolume *cv, const pa_channel_map *map, p
  * position. Will return 0 if there is no channel at the position
  * specified. You can check if a channel map includes a specific
  * position by calling pa_channel_map_has_position(). \since 0.9.16 */
-pa_volume_t pa_cvolume_get_position(pa_cvolume *cv, const pa_channel_map *map, pa_channel_position_t t) PA_GCC_PURE;
+pa_volume_t pa_cvolume_get_position(const pa_cvolume *cv, const pa_channel_map *map, pa_channel_position_t t) PA_GCC_PURE;
 
 /** This goes through all channels in a and b and sets the
  * corresponding channel in dest to the greater volume of both. a, b
