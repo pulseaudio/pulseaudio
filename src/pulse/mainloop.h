@@ -96,7 +96,7 @@ a negative value on error. On success returns the number of source dispatched. *
 int pa_mainloop_dispatch(pa_mainloop *m);
 
 /** Return the return value as specified with the main loop's quit() routine. */
-int pa_mainloop_get_retval(pa_mainloop *m);
+int pa_mainloop_get_retval(const pa_mainloop *m);
 
 /** Run a single iteration of the main loop. This is a convenience function
 for pa_mainloop_prepare(), pa_mainloop_poll() and pa_mainloop_dispatch().

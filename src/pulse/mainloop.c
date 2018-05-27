@@ -910,7 +910,7 @@ quit:
     return -2;
 }
 
-int pa_mainloop_get_retval(pa_mainloop *m) {
+int pa_mainloop_get_retval(const pa_mainloop *m) {
     pa_assert(m);
 
     return m->retval;

@@ -299,7 +299,7 @@ void pa_threaded_mainloop_accept(pa_threaded_mainloop *m);
 
 /** Return the return value as specified with the main loop's
  * pa_mainloop_quit() routine. */
-int pa_threaded_mainloop_get_retval(pa_threaded_mainloop *m);
+int pa_threaded_mainloop_get_retval(const pa_threaded_mainloop *m);
 
 /** Return the main loop abstraction layer vtable for this main loop.
  * There is no need to free this object as it is owned by the loop

@@ -231,7 +231,7 @@ void pa_threaded_mainloop_accept(pa_threaded_mainloop *m) {
     pa_cond_signal(m->accept_cond, 0);
 }
 
-int pa_threaded_mainloop_get_retval(pa_threaded_mainloop *m) {
+int pa_threaded_mainloop_get_retval(const pa_threaded_mainloop *m) {
     pa_assert(m);
 
     return pa_mainloop_get_retval(m->real_mainloop);
