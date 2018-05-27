@@ -1678,7 +1678,7 @@ int pa_stream_drop(pa_stream *s) {
     return 0;
 }
 
-size_t pa_stream_writable_size(pa_stream *s) {
+size_t pa_stream_writable_size(const pa_stream *s) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
@@ -1689,7 +1689,7 @@ size_t pa_stream_writable_size(pa_stream *s) {
     return s->requested_bytes > 0 ? (size_t) s->requested_bytes : 0;
 }
 
-size_t pa_stream_readable_size(pa_stream *s) {
+size_t pa_stream_readable_size(const pa_stream *s) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 

@@ -566,12 +566,12 @@ int pa_stream_drop(pa_stream *p);
  *
  * (size_t) -1 is returned on error.
  */
-size_t pa_stream_writable_size(pa_stream *p);
+size_t pa_stream_writable_size(const pa_stream *p);
 
 /** Return the number of bytes that may be read using pa_stream_peek().
  *
  * (size_t) -1 is returned on error. */
-size_t pa_stream_readable_size(pa_stream *p);
+size_t pa_stream_readable_size(const pa_stream *p);
 
 /** Drain a playback stream.  Use this for notification when the
  * playback buffer is empty after playing all the audio in the buffer.
