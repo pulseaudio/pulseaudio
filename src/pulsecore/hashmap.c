@@ -119,7 +119,7 @@ void pa_hashmap_free(pa_hashmap *h) {
     pa_xfree(h);
 }
 
-static struct hashmap_entry *hash_scan(pa_hashmap *h, unsigned hash, const void *key) {
+static struct hashmap_entry *hash_scan(const pa_hashmap *h, unsigned hash, const void *key) {
     struct hashmap_entry *e;
     pa_assert(h);
     pa_assert(hash < NBUCKETS);
