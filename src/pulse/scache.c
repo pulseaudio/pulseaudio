@@ -205,7 +205,7 @@ pa_operation *pa_context_play_sample(pa_context *c, const char *name, const char
     return o;
 }
 
-pa_operation *pa_context_play_sample_with_proplist(pa_context *c, const char *name, const char *dev, pa_volume_t volume, pa_proplist *p, pa_context_play_sample_cb_t cb, void *userdata) {
+pa_operation *pa_context_play_sample_with_proplist(pa_context *c, const char *name, const char *dev, pa_volume_t volume, const pa_proplist *p, pa_context_play_sample_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
@@ -237,9 +237,9 @@ pa_operation *pa_context_play_sample_with_proplist(pa_context *c, const char *na
     if (p)
         pa_tagstruct_put_proplist(t, p);
     else {
-        p = pa_proplist_new();
-        pa_tagstruct_put_proplist(t, p);
-        pa_proplist_free(p);
+        pa_proplist *empty_proplist = pa_proplist_new();
+        pa_tagstruct_put_proplist(t, empty_proplist);
+        pa_proplist_free(empty_proplist);
     }
 
     pa_pstream_send_tagstruct(c->pstream, t);
