@@ -236,7 +236,7 @@ pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_su
 const char* pa_context_get_server(pa_context *c);
 
 /** Return the protocol version of the library. */
-uint32_t pa_context_get_protocol_version(pa_context *c);
+uint32_t pa_context_get_protocol_version(const pa_context *c);
 
 /** Return the protocol version of the connected server.
  * Returns PA_INVALID_INDEX on error. */

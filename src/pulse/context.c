@@ -1331,7 +1331,7 @@ const char* pa_context_get_server(pa_context *c) {
     return c->server;
 }
 
-uint32_t pa_context_get_protocol_version(pa_context *c) {
+uint32_t pa_context_get_protocol_version(const pa_context *c) {
     return PA_PROTOCOL_VERSION;
 }
 
