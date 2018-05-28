@@ -516,6 +516,9 @@ static record_stream* record_stream_new(
         pa_sink_input *direct_on_input,
         int *ret) {
 
+    /* Note: This function takes ownership of the 'formats' param, so we need
+     * to take extra care to not leak it */
+
     record_stream *s;
     pa_source_output *source_output = NULL;
     pa_source_output_new_data data;
@@ -2368,6 +2371,8 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
         (passthrough ? PA_SOURCE_OUTPUT_PASSTHROUGH : 0);
 
     s = record_stream_new(c, source, &ss, &map, formats, &attr, volume_set ? &volume : NULL, muted, muted_set, flags, p, adjust_latency, early_requests, relative_volume, peak_detect, direct_on_input, &ret);
+    /* We no longer own the formats idxset */
+    formats = NULL;
 
     CHECK_VALIDITY_GOTO(c->pstream, s, tag, ret, finish);
 
