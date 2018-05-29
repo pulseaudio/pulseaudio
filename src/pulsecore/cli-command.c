@@ -1282,7 +1282,12 @@ static int pa_cli_command_play_file(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
         return -1;
     }
 
-    return pa_play_file(sink, fname, NULL);
+    if (pa_play_file(sink, fname, NULL) < 0) {
+        pa_strbuf_puts(buf, "Failed to play sound file.\n");
+        return -1;
+    }
+
+    return 0;
 }
 
 static int pa_cli_command_list_shared_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
