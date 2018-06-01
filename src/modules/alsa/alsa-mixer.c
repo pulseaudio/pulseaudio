@@ -4060,6 +4060,7 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
     static const struct description_map well_known_descriptions[] = {
         { "analog-mono",            N_("Analog Mono") },
         { "analog-stereo",          N_("Analog Stereo") },
+        { "mono-fallback",          N_("Mono") },
         { "stereo-fallback",        N_("Stereo") },
         /* Note: Not translated to "Analog Stereo Input", because the source
          * name gets "Input" appended to it automatically, so adding "Input"
