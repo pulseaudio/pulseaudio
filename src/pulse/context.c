@@ -1275,7 +1275,7 @@ pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_
     return o;
 }
 
-int pa_context_is_local(pa_context *c) {
+int pa_context_is_local(const pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 

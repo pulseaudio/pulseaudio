@@ -227,7 +227,7 @@ pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, pa_co
 pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata);
 
 /** Returns 1 when the connection is to a local daemon. Returns negative when no connection has been made yet. */
-int pa_context_is_local(pa_context *c);
+int pa_context_is_local(const pa_context *c);
 
 /** Set a different application name for context on the server. */
 pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata);
