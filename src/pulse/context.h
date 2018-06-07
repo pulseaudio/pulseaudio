@@ -264,7 +264,7 @@ pa_time_event* pa_context_rttime_new(const pa_context *c, pa_usec_t usec, pa_tim
 
 /** Restart a running or expired timer event source (wrapper for
  * mainloop->time_restart). \since 0.9.16 */
-void pa_context_rttime_restart(pa_context *c, pa_time_event *e, pa_usec_t usec);
+void pa_context_rttime_restart(const pa_context *c, pa_time_event *e, pa_usec_t usec);
 
 /** Return the optimal block size for passing around audio buffers. It
  * is recommended to allocate buffers of the size returned here when

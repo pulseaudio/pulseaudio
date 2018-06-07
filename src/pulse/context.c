@@ -1606,7 +1606,7 @@ pa_time_event* pa_context_rttime_new(const pa_context *c, pa_usec_t usec, pa_tim
     return c->mainloop->time_new(c->mainloop, &tv, cb, userdata);
 }
 
-void pa_context_rttime_restart(pa_context *c, pa_time_event *e, pa_usec_t usec) {
+void pa_context_rttime_restart(const pa_context *c, pa_time_event *e, pa_usec_t usec) {
     struct timeval tv;
 
     pa_assert(c);
