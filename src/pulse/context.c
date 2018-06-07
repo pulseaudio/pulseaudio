@@ -1319,7 +1319,7 @@ const char* pa_get_library_version(void) {
     return pa_get_headers_version();
 }
 
-const char* pa_context_get_server(pa_context *c) {
+const char* pa_context_get_server(const pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 

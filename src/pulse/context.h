@@ -233,7 +233,7 @@ int pa_context_is_local(const pa_context *c);
 pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata);
 
 /** Return the server name this context is connected to. */
-const char* pa_context_get_server(pa_context *c);
+const char* pa_context_get_server(const pa_context *c);
 
 /** Return the protocol version of the library. */
 uint32_t pa_context_get_protocol_version(const pa_context *c);
