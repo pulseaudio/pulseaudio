@@ -1591,7 +1591,7 @@ finish:
         pa_proplist_free(pl);
 }
 
-pa_time_event* pa_context_rttime_new(pa_context *c, pa_usec_t usec, pa_time_event_cb_t cb, void *userdata) {
+pa_time_event* pa_context_rttime_new(const pa_context *c, pa_usec_t usec, pa_time_event_cb_t cb, void *userdata) {
     struct timeval tv;
 
     pa_assert(c);

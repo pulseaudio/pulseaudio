@@ -260,7 +260,7 @@ uint32_t pa_context_get_index(pa_context *s);
 
 /** Create a new timer event source for the specified time (wrapper
  * for mainloop->time_new). \since 0.9.16 */
-pa_time_event* pa_context_rttime_new(pa_context *c, pa_usec_t usec, pa_time_event_cb_t cb, void *userdata);
+pa_time_event* pa_context_rttime_new(const pa_context *c, pa_usec_t usec, pa_time_event_cb_t cb, void *userdata);
 
 /** Restart a running or expired timer event source (wrapper for
  * mainloop->time_restart). \since 0.9.16 */
