@@ -1106,7 +1106,7 @@ void pa_context_set_event_callback(pa_context *c, pa_context_event_cb_t cb, void
     c->event_userdata = userdata;
 }
 
-int pa_context_is_pending(pa_context *c) {
+int pa_context_is_pending(const pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 

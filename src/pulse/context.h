@@ -193,7 +193,7 @@ void pa_context_set_event_callback(pa_context *p, pa_context_event_cb_t cb, void
 int pa_context_errno(const pa_context *c);
 
 /** Return non-zero if some data is pending to be written to the connection */
-int pa_context_is_pending(pa_context *c);
+int pa_context_is_pending(const pa_context *c);
 
 /** Return the current context status */
 pa_context_state_t pa_context_get_state(const pa_context *c);
