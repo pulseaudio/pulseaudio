@@ -190,7 +190,7 @@ void pa_context_set_state_callback(pa_context *c, pa_context_notify_cb_t cb, voi
 void pa_context_set_event_callback(pa_context *p, pa_context_event_cb_t cb, void *userdata);
 
 /** Return the error number of the last failed operation */
-int pa_context_errno(pa_context *c);
+int pa_context_errno(const pa_context *c);
 
 /** Return non-zero if some data is pending to be written to the connection */
 int pa_context_is_pending(pa_context *c);

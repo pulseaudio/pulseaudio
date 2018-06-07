@@ -1068,7 +1068,7 @@ pa_context_state_t pa_context_get_state(const pa_context *c) {
     return c->state;
 }
 
-int pa_context_errno(pa_context *c) {
+int pa_context_errno(const pa_context *c) {
 
     if (!c)
         return PA_ERR_INVALID;
