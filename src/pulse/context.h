@@ -240,7 +240,7 @@ uint32_t pa_context_get_protocol_version(const pa_context *c);
 
 /** Return the protocol version of the connected server.
  * Returns PA_INVALID_INDEX on error. */
-uint32_t pa_context_get_server_protocol_version(pa_context *c);
+uint32_t pa_context_get_server_protocol_version(const pa_context *c);
 
 /** Update the property list of the client, adding new entries. Please
  * note that it is highly recommended to set as many properties

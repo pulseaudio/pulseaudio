@@ -1338,7 +1338,7 @@ uint32_t pa_context_get_protocol_version(const pa_context *c) {
     return PA_PROTOCOL_VERSION;
 }
 
-uint32_t pa_context_get_server_protocol_version(pa_context *c) {
+uint32_t pa_context_get_server_protocol_version(const pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
