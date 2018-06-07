@@ -55,6 +55,10 @@
 #define PA_PROTOCOL_FLAG_SHM 0x80000000U
 #define PA_PROTOCOL_FLAG_MEMFD 0x40000000U
 
+typedef struct pa_context_error {
+    int error;
+} pa_context_error;
+
 struct pa_context {
     PA_REFCNT_DECLARE;
 
@@ -80,7 +84,7 @@ struct pa_context {
     uint32_t version;
     uint32_t ctag;
     uint32_t csyncid;
-    int error;
+    pa_context_error *error;
     pa_context_state_t state;
 
     pa_context_notify_cb_t state_callback;

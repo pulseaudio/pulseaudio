@@ -139,6 +139,9 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     c = pa_xnew0(pa_context, 1);
     PA_REFCNT_INIT(c);
 
+    c->error = pa_xnew0(pa_context_error, 1);
+    assert(c->error);
+
     c->proplist = p ? pa_proplist_copy(p) : pa_proplist_new();
 
     if (name)
@@ -156,7 +159,7 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     PA_LLIST_HEAD_INIT(pa_stream, c->streams);
     PA_LLIST_HEAD_INIT(pa_operation, c->operations);
 
-    c->error = PA_OK;
+    c->error->error = PA_OK;
     c->state = PA_CONTEXT_UNCONNECTED;
 
     reset_callbacks(c);
@@ -315,7 +318,7 @@ int pa_context_set_error(pa_context *c, int error) {
     pa_assert(error < PA_ERR_MAX);
 
     if (c)
-        c->error = error;
+        c->error->error = error;
 
     return error;
 }
@@ -1072,7 +1075,7 @@ int pa_context_errno(pa_context *c) {
 
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
-    return c->error;
+    return c->error->error;
 }
 
 void pa_context_set_state_callback(pa_context *c, pa_context_notify_cb_t cb, void *userdata) {
