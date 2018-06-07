@@ -256,7 +256,7 @@ pa_operation *pa_context_proplist_remove(pa_context *c, const char *const keys[]
  * identified in the server with. This is useful for usage with the
  * introspection functions, such as pa_context_get_client_info().
  * Returns PA_INVALID_INDEX on error. \since 0.9.11 */
-uint32_t pa_context_get_index(pa_context *s);
+uint32_t pa_context_get_index(const pa_context *s);
 
 /** Create a new timer event source for the specified time (wrapper
  * for mainloop->time_new). \since 0.9.16 */

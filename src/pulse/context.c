@@ -1361,7 +1361,7 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
     return t;
 }
 
-uint32_t pa_context_get_index(pa_context *c) {
+uint32_t pa_context_get_index(const pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
