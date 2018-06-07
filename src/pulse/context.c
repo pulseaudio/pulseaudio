@@ -1621,7 +1621,7 @@ void pa_context_rttime_restart(const pa_context *c, pa_time_event *e, pa_usec_t 
     }
 }
 
-size_t pa_context_get_tile_size(pa_context *c, const pa_sample_spec *ss) {
+size_t pa_context_get_tile_size(const pa_context *c, const pa_sample_spec *ss) {
     size_t fs, mbs;
 
     pa_assert(c);

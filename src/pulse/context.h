@@ -280,7 +280,7 @@ void pa_context_rttime_restart(const pa_context *c, pa_time_event *e, pa_usec_t 
  * supposed to be used in a construct such as
  * pa_context_get_tile_size(pa_stream_get_context(s),
  * pa_stream_get_sample_spec(ss)); \since 0.9.20 */
-size_t pa_context_get_tile_size(pa_context *c, const pa_sample_spec *ss);
+size_t pa_context_get_tile_size(const pa_context *c, const pa_sample_spec *ss);
 
 /** Load the authentication cookie from a file. This function is primarily
  * meant for PulseAudio's own tunnel modules, which need to load the cookie
