@@ -1731,7 +1731,7 @@ pa_operation * pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *us
     return o;
 }
 
-static pa_usec_t calc_time(pa_stream *s, bool ignore_transport) {
+static pa_usec_t calc_time(const pa_stream *s, bool ignore_transport) {
     pa_usec_t usec;
 
     pa_assert(s);
@@ -2485,7 +2485,7 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
     return 0;
 }
 
-static pa_usec_t time_counter_diff(pa_stream *s, pa_usec_t a, pa_usec_t b, int *negative) {
+static pa_usec_t time_counter_diff(const pa_stream *s, pa_usec_t a, pa_usec_t b, int *negative) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
