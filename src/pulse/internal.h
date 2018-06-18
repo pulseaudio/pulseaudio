@@ -274,7 +274,7 @@ void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 void pa_context_fail(pa_context *c, int error);
-int pa_context_set_error(pa_context *c, int error);
+int pa_context_set_error(const pa_context *c, int error);
 void pa_context_set_state(pa_context *c, pa_context_state_t st);
 int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t, bool fail);
 pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, void (*internal_callback)(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata), void (*cb)(void), void *userdata);

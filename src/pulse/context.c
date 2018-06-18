@@ -313,7 +313,7 @@ void pa_context_set_state(pa_context *c, pa_context_state_t st) {
     pa_context_unref(c);
 }
 
-int pa_context_set_error(pa_context *c, int error) {
+int pa_context_set_error(const pa_context *c, int error) {
     pa_assert(error >= 0);
     pa_assert(error < PA_ERR_MAX);
 
