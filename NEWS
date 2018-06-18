@@ -1,3 +1,82 @@
+PulseAudio 12.0
+
+Changes at a glance:
+
+ * Better latency reporting (and hence better A/V sync) with the A2DP bluetooth
+   profile
+ * Much more accurate latency reporting for AirPlay devices
+ * module-switch-on-connect now ignores virtual devices
+ * When using passthrough for compressed audio, set the "non-audio" bit
+ * Prioritize HDMI output over S/PDIF output
+ * HSP support for more bluetooth headsets
+ * Choose the A2DP bluetooth profile by default instead of HSP
+ * New "sink_input_properties" module argument for module-ladspa-sink
+ * New "use_system_clock_for_timing" module argument for module-pipe-sink
+ * module-pipe-sink can now use an existing pipe
+ * Fixed a crash or high CPU use problem with Intel HDMI LPE
+ * Steelseries Arctis 7 USB headset stereo output support
+ * Dell Thunderbolt Dock TB16 speaker jack support
+ * Fixed digital input support for some USB sound cards
+ * Fixed Native Instruments Traktor Audio 6 detection
+ * Ability to disable input or output on macOS
+ * New "dereverb" option for the Speex echo canceller
+ * New module: module-always-source
+ * State files not any more readable by all users in the system mode
+ * module-augment-properties now uses XDG_DATA_DIRS to find .desktop files
+ * Updates for the Vala bindings
+ * The GConf dependency can now be avoided
+ * qpaeq license changed from AGPL to LGPL
+ * qpaeq ported to Qt 5
+ * Compatibility with glibc 2.27
+ * The esdcompat tool isn't any more installed if esound support is disabled
+
+Detailed change log:
+
+  https://www.freedesktop.org/wiki/Software/PulseAudio/Notes/12.0/
+
+Contributors
+
+  Andika Triwidada
+  Andrius Štikonas
+  Arun Raghavan
+  Cheng-Chia Tseng
+  Colin Leroy
+  Constantine Kharlamov
+  Daniel Rusek
+  David Henningsson
+  David Hewitt
+  Felipe Sateler
+  Georg Chini
+  Guenter Milde
+  Hui Wang
+  Ian Ray
+  Iceyer
+  jnqnfe
+  Johan Heikkilä
+  Josef Andersson
+  Jungsup Lee
+  Khem Raj
+  KimJeongYeon
+  Kristian Klausen
+  Laurent Bigonville
+  Mihai Moldovan
+  Mr. M
+  Peter Meerwald-Stadler
+  Pierre-Louis Bossart
+  Piotr Drąg
+  Roliga
+  Russell Treleaven
+  Salvador Fandino
+  Samo Pogačnik
+  Sangchul Lee
+  Sebastian Dröge
+  Sylvain Baubeau
+  Tanu Kaskinen
+  Vivek Dasmohapatra
+  wellington wallace
+  Yuri Chornoivan
+
+
 PulseAudio 11.1
 
 A bug fix release.
