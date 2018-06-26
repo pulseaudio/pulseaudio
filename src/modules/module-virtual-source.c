@@ -232,7 +232,7 @@ static void source_set_volume_cb(pa_source *s) {
     pa_source_assert_ref(s);
     pa_assert_se(u = s->userdata);
 
-    if (!PA_SOURCE_IS_LINKED(pa_source_get_state(s)) ||
+    if (!PA_SOURCE_IS_LINKED(s->state) ||
         !PA_SOURCE_OUTPUT_IS_LINKED(u->source_output->state))
         return;
 
@@ -246,7 +246,7 @@ static void source_set_mute_cb(pa_source *s) {
     pa_source_assert_ref(s);
     pa_assert_se(u = s->userdata);
 
-    if (!PA_SOURCE_IS_LINKED(pa_source_get_state(s)) ||
+    if (!PA_SOURCE_IS_LINKED(s->state) ||
         !PA_SOURCE_OUTPUT_IS_LINKED(u->source_output->state))
         return;
 
@@ -273,7 +273,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
 
     /* if uplink sink exists, pull data from there; simplify by using
        same length as chunk provided by source */
-    if (u->sink && (pa_sink_get_state(u->sink) == PA_SINK_RUNNING)) {
+    if (u->sink && (u->sink->thread_info.state == PA_SINK_RUNNING)) {
         pa_memchunk tchunk;
         size_t nbytes = chunk->length;
         pa_mix_info streams[2];

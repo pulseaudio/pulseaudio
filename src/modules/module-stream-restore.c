@@ -1453,7 +1453,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         /* It might happen that a stream and a sink are set up at the
            same time, in which case we want to make sure we don't
            interfere with that */
-        if (s && PA_SINK_IS_LINKED(pa_sink_get_state(s)))
+        if (s && PA_SINK_IS_LINKED(s->state))
             if (pa_sink_input_new_data_set_sink(new_data, s, true, false))
                 pa_log_info("Restoring device for stream %s.", name);
 
@@ -1556,7 +1556,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
         /* It might happen that a stream and a sink are set up at the
            same time, in which case we want to make sure we don't
            interfere with that */
-        if (s && PA_SOURCE_IS_LINKED(pa_source_get_state(s))) {
+        if (s && PA_SOURCE_IS_LINKED(s->state)) {
             pa_log_info("Restoring device for stream %s.", name);
             pa_source_output_new_data_set_source(new_data, s, true, false);
         }
@@ -1764,7 +1764,7 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
 
                 if ((d = pa_namereg_get(c, e->device, PA_NAMEREG_SINK)) &&
                     d != sink &&
-                    PA_SINK_IS_LINKED(pa_sink_get_state(d)))
+                    PA_SINK_IS_LINKED(d->state))
                     pa_sink_input_move_to(si, d, true);
             }
 
@@ -1815,7 +1815,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
 
                 if ((d = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE)) &&
                     d != source &&
-                    PA_SOURCE_IS_LINKED(pa_source_get_state(d)))
+                    PA_SOURCE_IS_LINKED(d->state))
                     pa_source_output_move_to(so, d, true);
             }
 

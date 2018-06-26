@@ -357,7 +357,7 @@ int pa_sink_input_new(
         return -PA_ERR_NOTSUPPORTED;
     }
 
-    pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
+    pa_return_val_if_fail(PA_SINK_IS_LINKED(data->sink->state), -PA_ERR_BADSTATE);
     pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink
                                                && data->sync_base->state == PA_SINK_INPUT_CORKED),
                           -PA_ERR_INVALID);
@@ -442,7 +442,7 @@ int pa_sink_input_new(
         return r;
 
     if ((data->flags & PA_SINK_INPUT_NO_CREATE_ON_SUSPEND) &&
-        pa_sink_get_state(data->sink) == PA_SINK_SUSPENDED) {
+        data->sink->state == PA_SINK_SUSPENDED) {
         pa_log_warn("Failed to create sink input: sink is suspended.");
         return -PA_ERR_BADSTATE;
     }
@@ -720,7 +720,7 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     reset_callbacks(i);
 
     if (i->sink) {
-        if (PA_SINK_IS_LINKED(pa_sink_get_state(i->sink)))
+        if (PA_SINK_IS_LINKED(i->sink->state))
             pa_sink_update_status(i->sink);
 
         i->sink = NULL;

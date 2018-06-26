@@ -966,18 +966,19 @@ static int esd_proto_standby_or_resume(connection *c, esd_proto_t request, const
 
 static int esd_proto_standby_mode(connection *c, esd_proto_t request, const void *data, size_t length) {
     int32_t mode;
-    pa_sink *sink, *source;
+    pa_sink *sink;
+    pa_source *source;
 
     connection_assert_ref(c);
 
     mode = ESM_RUNNING;
 
     if ((sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK)))
-        if (pa_sink_get_state(sink) == PA_SINK_SUSPENDED)
+        if (sink->state == PA_SINK_SUSPENDED)
             mode = ESM_ON_STANDBY;
 
     if ((source = pa_namereg_get(c->protocol->core, c->options->default_source, PA_NAMEREG_SOURCE)))
-        if (pa_source_get_state(source) == PA_SOURCE_SUSPENDED)
+        if (source->state == PA_SOURCE_SUSPENDED)
             mode = ESM_ON_STANDBY;
 
     mode = PA_MAYBE_INT32_SWAP(c->swap_byte_order, mode);

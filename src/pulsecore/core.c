@@ -481,12 +481,12 @@ void pa_core_maybe_vacuum(pa_core *c) {
 
         idx = 0;
         PA_IDXSET_FOREACH(si, c->sinks, idx)
-            if (pa_sink_get_state(si) != PA_SINK_SUSPENDED)
+            if (si->state != PA_SINK_SUSPENDED)
                 return;
 
         idx = 0;
         PA_IDXSET_FOREACH(so, c->sources, idx)
-            if (pa_source_get_state(so) != PA_SOURCE_SUSPENDED)
+            if (so->state != PA_SOURCE_SUSPENDED)
                 return;
 
         pa_log_info("All sinks and sources are suspended, vacuuming memory");

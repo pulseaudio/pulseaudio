@@ -390,18 +390,16 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
 
     if (pa_sink_isinstance(o)) {
         pa_sink *s = PA_SINK(o);
-        pa_sink_state_t state = pa_sink_get_state(s);
 
         if (pa_sink_check_suspend(s, NULL, NULL) <= 0)
-            if (PA_SINK_IS_OPENED(state))
+            if (PA_SINK_IS_OPENED(s->state))
                 restart(d);
 
     } else if (pa_source_isinstance(o)) {
         pa_source *s = PA_SOURCE(o);
-        pa_source_state_t state = pa_source_get_state(s);
 
         if (pa_source_check_suspend(s, NULL) <= 0)
-            if (PA_SOURCE_IS_OPENED(state))
+            if (PA_SOURCE_IS_OPENED(s->state))
                 restart(d);
     }
 
@@ -481,12 +479,12 @@ void pa__done(pa_module*m) {
     u = m->userdata;
 
     PA_HASHMAP_FOREACH(d, u->device_infos, state) {
-        if (d->sink && pa_sink_get_state(d->sink) == PA_SINK_SUSPENDED) {
+        if (d->sink && d->sink->state == PA_SINK_SUSPENDED) {
             pa_log_debug("Resuming sink %s on module unload.", d->sink->name);
             pa_sink_suspend(d->sink, false, PA_SUSPEND_IDLE);
         }
 
-        if (d->source && pa_source_get_state(d->source) == PA_SOURCE_SUSPENDED) {
+        if (d->source && d->source->state == PA_SOURCE_SUSPENDED) {
             pa_log_debug("Resuming source %s on module unload.", d->source->name);
             pa_source_suspend(d->source, false, PA_SUSPEND_IDLE);
         }

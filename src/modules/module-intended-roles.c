@@ -99,7 +99,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         if (s == c->default_sink)
             continue;
 
-        if (!PA_SINK_IS_LINKED(pa_sink_get_state(s)))
+        if (!PA_SINK_IS_LINKED(s->state))
             continue;
 
         if (role_match(s->proplist, role) && pa_sink_input_new_data_set_sink(new_data, s, false, false))
@@ -147,7 +147,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
         if (s == c->default_source)
             continue;
 
-        if (!PA_SOURCE_IS_LINKED(pa_source_get_state(s)))
+        if (!PA_SOURCE_IS_LINKED(s->state))
             continue;
 
         /* @todo: favour the highest priority device, not the first one we find? */
@@ -293,7 +293,7 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
             if (d == c->default_sink || d == sink)
                 continue;
 
-            if (!PA_SINK_IS_LINKED(pa_sink_get_state(d)))
+            if (!PA_SINK_IS_LINKED(d->state))
                 continue;
 
             if (role_match(d->proplist, role))
@@ -349,7 +349,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
             if (d == c->default_source || d == source)
                 continue;
 
-            if (!PA_SOURCE_IS_LINKED(pa_source_get_state(d)))
+            if (!PA_SOURCE_IS_LINKED(d->state))
                 continue;
 
             /* If moving from a monitor, move to another monitor */

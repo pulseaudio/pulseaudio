@@ -1256,7 +1256,7 @@ static int sink_set_state_in_main_thread_cb(pa_sink *s, pa_sink_state_t new_stat
             && !(new_suspend_cause & PA_SUSPEND_SESSION))
         sync_mixer(u, s->active_port);
 
-    old_state = pa_sink_get_state(u->sink);
+    old_state = u->sink->state;
 
     if (PA_SINK_IS_OPENED(old_state) && new_state == PA_SINK_SUSPENDED)
         reserve_done(u);

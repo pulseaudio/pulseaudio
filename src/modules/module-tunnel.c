@@ -1669,7 +1669,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_tagstruct_putu32(reply, PA_INVALID_INDEX);
     pa_tagstruct_puts(reply, u->sink_name);
     pa_tagstruct_putu32(reply, u->maxlength);
-    pa_tagstruct_put_boolean(reply, !PA_SINK_IS_OPENED(pa_sink_get_state(u->sink)));
+    pa_tagstruct_put_boolean(reply, !PA_SINK_IS_OPENED(u->sink->state));
     pa_tagstruct_putu32(reply, u->tlength);
     pa_tagstruct_putu32(reply, u->prebuf);
     pa_tagstruct_putu32(reply, u->minreq);
@@ -1688,7 +1688,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_tagstruct_putu32(reply, PA_INVALID_INDEX);
     pa_tagstruct_puts(reply, u->source_name);
     pa_tagstruct_putu32(reply, u->maxlength);
-    pa_tagstruct_put_boolean(reply, !PA_SOURCE_IS_OPENED(pa_source_get_state(u->source)));
+    pa_tagstruct_put_boolean(reply, !PA_SOURCE_IS_OPENED(u->source->state));
     pa_tagstruct_putu32(reply, u->fragsize);
 #endif
 

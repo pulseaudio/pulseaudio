@@ -849,7 +849,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
         latency = pa_sink_get_latency(d->sink);
         is_hardware_device = !!(d->sink->flags & PA_SINK_HARDWARE);
         is_network_device = !!(d->sink->flags & PA_SINK_NETWORK);
-        state = pa_sink_get_state(d->sink);
+        state = d->sink->state;
     } else {
         idx = d->source->index;
         name = d->source->name;
@@ -870,7 +870,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
         latency = pa_source_get_latency(d->source);
         is_hardware_device = !!(d->source->flags & PA_SOURCE_HARDWARE);
         is_network_device = !!(d->source->flags & PA_SOURCE_NETWORK);
-        state = pa_source_get_state(d->source);
+        state = d->source->state;
     }
     if (owner_module)
         owner_module_path = pa_dbusiface_core_get_module_path(d->core, owner_module);
@@ -1158,9 +1158,9 @@ static pa_hook_result_t state_changed_cb(void *hook_data, void *call_data, void 
         return PA_HOOK_OK;
 
     if (d->type == PA_DEVICE_TYPE_SINK)
-        new_sink_state = pa_sink_get_state(d->sink);
+        new_sink_state = d->sink->state;
     else
-        new_source_state = pa_source_get_state(d->source);
+        new_source_state = d->source->state;
 
     if ((d->type == PA_DEVICE_TYPE_SINK && d->sink_state != new_sink_state)
         || (d->type == PA_DEVICE_TYPE_SOURCE && d->source_state != new_source_state)) {
@@ -1258,7 +1258,7 @@ pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_si
     d->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, SINK_OBJECT_NAME, sink->index);
     d->volume = *pa_sink_get_volume(sink, false);
     d->mute = pa_sink_get_mute(sink, false);
-    d->sink_state = pa_sink_get_state(sink);
+    d->sink_state = sink->state;
     d->ports = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) pa_dbusiface_device_port_free);
     d->next_port_index = 0;
     d->active_port = sink->active_port;
@@ -1301,7 +1301,7 @@ pa_dbusiface_device *pa_dbusiface_device_new_source(pa_dbusiface_core *core, pa_
     d->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, SOURCE_OBJECT_NAME, source->index);
     d->volume = *pa_source_get_volume(source, false);
     d->mute = pa_source_get_mute(source, false);
-    d->source_state = pa_source_get_state(source);
+    d->source_state = source->state;
     d->ports = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, (pa_free_cb_t) pa_dbusiface_device_port_free);
     d->next_port_index = 0;
     d->active_port = source->active_port;

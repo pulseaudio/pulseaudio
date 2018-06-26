@@ -1829,7 +1829,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool
 
         pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_max(pa_sink_get_volume(sink, false)));
         pa_strbuf_printf(buf, "set-sink-mute %s %s\n", sink->name, pa_yes_no(pa_sink_get_mute(sink, false)));
-        pa_strbuf_printf(buf, "suspend-sink %s %s\n", sink->name, pa_yes_no(pa_sink_get_state(sink) == PA_SINK_SUSPENDED));
+        pa_strbuf_printf(buf, "suspend-sink %s %s\n", sink->name, pa_yes_no(sink->state == PA_SINK_SUSPENDED));
     }
 
     nl = false;
@@ -1842,7 +1842,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool
 
         pa_strbuf_printf(buf, "set-source-volume %s 0x%03x\n", source->name, pa_cvolume_max(pa_source_get_volume(source, false)));
         pa_strbuf_printf(buf, "set-source-mute %s %s\n", source->name, pa_yes_no(pa_source_get_mute(source, false)));
-        pa_strbuf_printf(buf, "suspend-source %s %s\n", source->name, pa_yes_no(pa_source_get_state(source) == PA_SOURCE_SUSPENDED));
+        pa_strbuf_printf(buf, "suspend-source %s %s\n", source->name, pa_yes_no(source->state == PA_SOURCE_SUSPENDED));
     }
 
     nl = false;

@@ -714,7 +714,7 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
 
     /* Uncork the sink input unless the destination is suspended for other
      * reasons than idle. */
-    if (pa_source_get_state(dest) == PA_SOURCE_SUSPENDED)
+    if (dest->state == PA_SOURCE_SUSPENDED)
         pa_sink_input_cork(u->sink_input, (dest->suspend_cause != PA_SUSPEND_IDLE));
     else
         pa_sink_input_cork(u->sink_input, false);
@@ -1098,7 +1098,7 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
 
     /* Uncork the source output unless the destination is suspended for other
      * reasons than idle */
-    if (pa_sink_get_state(dest) == PA_SINK_SUSPENDED)
+    if (dest->state == PA_SINK_SUSPENDED)
         pa_source_output_cork(u->source_output, (dest->suspend_cause != PA_SUSPEND_IDLE));
     else
         pa_source_output_cork(u->source_output, false);
@@ -1565,10 +1565,10 @@ int pa__init(pa_module *m) {
     pa_sink_input_put(u->sink_input);
     pa_source_output_put(u->source_output);
 
-    if (pa_source_get_state(u->source_output->source) != PA_SOURCE_SUSPENDED)
+    if (u->source_output->source->state != PA_SOURCE_SUSPENDED)
         pa_sink_input_cork(u->sink_input, false);
 
-    if (pa_sink_get_state(u->sink_input->sink) != PA_SINK_SUSPENDED)
+    if (u->sink_input->sink->state != PA_SINK_SUSPENDED)
         pa_source_output_cork(u->source_output, false);
 
     update_adjust_timer(u);

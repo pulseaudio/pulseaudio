@@ -494,8 +494,6 @@ unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are n
  * why "ignore_output" may be relevant). */
 unsigned pa_sink_check_suspend(pa_sink *s, pa_sink_input *ignore_input, pa_source_output *ignore_output);
 
-#define pa_sink_get_state(s) ((s)->state)
-
 const char *pa_sink_state_to_string(pa_sink_state_t state);
 
 /* Moves all inputs away, and stores them in pa_queue */

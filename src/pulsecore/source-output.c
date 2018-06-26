@@ -301,7 +301,7 @@ int pa_source_output_new(
         return -PA_ERR_NOTSUPPORTED;
     }
 
-    pa_return_val_if_fail(PA_SOURCE_IS_LINKED(pa_source_get_state(data->source)), -PA_ERR_BADSTATE);
+    pa_return_val_if_fail(PA_SOURCE_IS_LINKED(data->source->state), -PA_ERR_BADSTATE);
     pa_return_val_if_fail(!data->direct_on_input || data->direct_on_input->sink == data->source->monitor_of, -PA_ERR_INVALID);
 
     /* Routing is done. We have a source and a format. */
@@ -390,7 +390,7 @@ int pa_source_output_new(
         return r;
 
     if ((data->flags & PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND) &&
-        pa_source_get_state(data->source) == PA_SOURCE_SUSPENDED) {
+        data->source->state == PA_SOURCE_SUSPENDED) {
         pa_log("Failed to create source output: source is suspended.");
         return -PA_ERR_BADSTATE;
     }
@@ -612,7 +612,7 @@ void pa_source_output_unlink(pa_source_output*o) {
     reset_callbacks(o);
 
     if (o->source) {
-        if (PA_SOURCE_IS_LINKED(pa_source_get_state(o->source)))
+        if (PA_SOURCE_IS_LINKED(o->source->state))
             pa_source_update_status(o->source);
 
         o->source = NULL;

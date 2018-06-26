@@ -842,7 +842,7 @@ int pa_source_sync_suspend(pa_source *s) {
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
     pa_assert(s->monitor_of);
 
-    state = pa_sink_get_state(s->monitor_of);
+    state = s->monitor_of->state;
     suspend_cause = s->monitor_of->suspend_cause;
 
     /* The monitor source usually has the same state and suspend cause as the

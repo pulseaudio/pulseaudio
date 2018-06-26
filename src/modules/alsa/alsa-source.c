@@ -1111,7 +1111,7 @@ static int source_set_state_in_main_thread_cb(pa_source *s, pa_source_state_t ne
             && !(new_suspend_cause & PA_SUSPEND_SESSION))
         sync_mixer(u, s->active_port);
 
-    old_state = pa_source_get_state(u->source);
+    old_state = u->source->state;
 
     if (PA_SOURCE_IS_OPENED(old_state) && new_state == PA_SOURCE_SUSPENDED)
         reserve_done(u);

@@ -452,7 +452,7 @@ static void sink_set_mute_cb(pa_sink *s) {
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
 
-    if (!PA_SINK_IS_LINKED(pa_sink_get_state(s)) ||
+    if (!PA_SINK_IS_LINKED(s->state) ||
             !PA_SINK_INPUT_IS_LINKED(u->sink_input->state))
         return;
 
