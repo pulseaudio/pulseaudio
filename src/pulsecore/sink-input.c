@@ -541,7 +541,6 @@ int pa_sink_input_new(
 
     i->thread_info.state = i->state;
     i->thread_info.attached = false;
-    pa_atomic_store(&i->thread_info.drained, 1);
     i->thread_info.sample_spec = i->sample_spec;
     i->thread_info.resampler = resampler;
     i->thread_info.soft_volume = i->soft_volume;
@@ -609,9 +608,6 @@ static void sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) 
     pa_sink_input *ssync;
     pa_assert(i);
     pa_assert_ctl_context();
-
-    if (state == PA_SINK_INPUT_DRAINED)
-        state = PA_SINK_INPUT_RUNNING;
 
     if (i->state == state)
         return;
@@ -924,7 +920,6 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink bytes */, pa
 
             /* OK, we're corked or the implementor didn't give us any
              * data, so let's just hand out silence */
-            pa_atomic_store(&i->thread_info.drained, 1);
 
             pa_memblockq_seek(i->thread_info.render_memblockq, (int64_t) slength, PA_SEEK_RELATIVE, true);
             i->thread_info.playing_for = 0;
@@ -934,8 +929,6 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink bytes */, pa
             }
             break;
         }
-
-        pa_atomic_store(&i->thread_info.drained, 0);
 
         pa_assert(tchunk.length > 0);
         pa_assert(tchunk.memblock);
@@ -2013,10 +2006,6 @@ void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state
     if (state == i->thread_info.state)
         return;
 
-    if ((state == PA_SINK_INPUT_DRAINED || state == PA_SINK_INPUT_RUNNING) &&
-        !(i->thread_info.state == PA_SINK_INPUT_DRAINED || i->thread_info.state != PA_SINK_INPUT_RUNNING))
-        pa_atomic_store(&i->thread_info.drained, 1);
-
     corking = state == PA_SINK_INPUT_CORKED && i->thread_info.state == PA_SINK_INPUT_RUNNING;
     uncorking = i->thread_info.state == PA_SINK_INPUT_CORKED && state == PA_SINK_INPUT_RUNNING;
 
@@ -2128,9 +2117,6 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
 pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_ctl_context();
-
-    if (i->state == PA_SINK_INPUT_RUNNING || i->state == PA_SINK_INPUT_DRAINED)
-        return pa_atomic_load(&i->thread_info.drained) ? PA_SINK_INPUT_DRAINED : PA_SINK_INPUT_RUNNING;
 
     return i->state;
 }

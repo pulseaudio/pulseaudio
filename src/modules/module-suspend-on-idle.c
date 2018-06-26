@@ -222,7 +222,7 @@ static pa_hook_result_t sink_input_move_finish_hook_cb(pa_core *c, pa_sink_input
     pa_assert(u);
 
     state = pa_sink_input_get_state(s);
-    if (state != PA_SINK_INPUT_RUNNING && state != PA_SINK_INPUT_DRAINED)
+    if (state != PA_SINK_INPUT_RUNNING)
         return PA_HOOK_OK;
 
     if ((d = pa_hashmap_get(u->device_infos, s->sink)))
@@ -282,7 +282,7 @@ static pa_hook_result_t sink_input_state_changed_hook_cb(pa_core *c, pa_sink_inp
     pa_assert(u);
 
     state = pa_sink_input_get_state(s);
-    if ((state == PA_SINK_INPUT_RUNNING || state == PA_SINK_INPUT_DRAINED) && s->sink)
+    if (state == PA_SINK_INPUT_RUNNING && s->sink)
         if ((d = pa_hashmap_get(u->device_infos, s->sink)))
             resume(d);
 

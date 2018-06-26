@@ -35,7 +35,6 @@
 
 typedef enum pa_sink_input_state {
     PA_SINK_INPUT_INIT,         /*< The stream is not active yet, because pa_sink_input_put() has not been called yet */
-    PA_SINK_INPUT_DRAINED,      /*< The stream stopped playing because there was no data to play */
     PA_SINK_INPUT_RUNNING,      /*< The stream is alive and kicking */
     PA_SINK_INPUT_CORKED,       /*< The stream was corked on user request */
     PA_SINK_INPUT_UNLINKED      /*< The stream is dead */
@@ -43,7 +42,7 @@ typedef enum pa_sink_input_state {
 } pa_sink_input_state_t;
 
 static inline bool PA_SINK_INPUT_IS_LINKED(pa_sink_input_state_t x) {
-    return x == PA_SINK_INPUT_DRAINED || x == PA_SINK_INPUT_RUNNING || x == PA_SINK_INPUT_CORKED;
+    return x == PA_SINK_INPUT_RUNNING || x == PA_SINK_INPUT_CORKED;
 }
 
 typedef enum pa_sink_input_flags {
@@ -67,9 +66,6 @@ struct pa_sink_input {
     uint32_t index;
     pa_core *core;
 
-    /* Please note that this state should only be read with
-     * pa_sink_input_get_state(). That function will transparently
-     * merge the thread_info.drained value in. */
     pa_sink_input_state_t state;
     pa_sink_input_flags_t flags;
 
@@ -231,7 +227,6 @@ struct pa_sink_input {
 
     struct {
         pa_sink_input_state_t state;
-        pa_atomic_t drained;
 
         pa_cvolume soft_volume;
         bool muted:1;

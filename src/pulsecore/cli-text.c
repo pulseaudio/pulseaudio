@@ -525,7 +525,6 @@ char *pa_sink_input_list_to_string(pa_core *c) {
     static const char* const state_table[] = {
         [PA_SINK_INPUT_INIT] = "INIT",
         [PA_SINK_INPUT_RUNNING] = "RUNNING",
-        [PA_SINK_INPUT_DRAINED] = "DRAINED",
         [PA_SINK_INPUT_CORKED] = "CORKED",
         [PA_SINK_INPUT_UNLINKED] = "UNLINKED"
     };
