@@ -434,8 +434,8 @@ static void hf_audio_agent_register_reply(DBusPendingCall *pending, void *userda
     pa_assert_se(r = dbus_pending_call_steal_reply(pending));
 
     if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
-        pa_log_error("Failed to register as a handsfree audio agent with ofono: %s: %s",
-                     dbus_message_get_error_name(r), pa_dbus_get_error_message(r));
+        pa_log_info("Failed to register as a handsfree audio agent with ofono: %s: %s",
+                    dbus_message_get_error_name(r), pa_dbus_get_error_message(r));
         goto finish;
     }
 
