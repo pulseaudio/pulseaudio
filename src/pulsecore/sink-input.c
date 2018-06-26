@@ -359,7 +359,7 @@ int pa_sink_input_new(
 
     pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
     pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink
-                                               && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED),
+                                               && data->sync_base->state == PA_SINK_INPUT_CORKED),
                           -PA_ERR_INVALID);
 
     /* Routing is done. We have a sink and a format. */
@@ -1720,7 +1720,7 @@ int pa_sink_input_start_move(pa_sink_input *i) {
 
     pa_idxset_remove_by_data(i->sink->inputs, i, NULL);
 
-    if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
+    if (i->state == PA_SINK_INPUT_CORKED)
         pa_assert_se(i->sink->n_corked-- >= 1);
 
     if (pa_sink_input_is_passthrough(i))
@@ -1922,7 +1922,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, bool save) {
 
     pa_cvolume_remap(&i->volume_factor_sink, &i->channel_map, &i->sink->channel_map);
 
-    if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
+    if (i->state == PA_SINK_INPUT_CORKED)
         i->sink->n_corked++;
 
     pa_sink_input_update_rate(i);
@@ -2111,14 +2111,6 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
     }
 
     return -PA_ERR_NOTIMPLEMENTED;
-}
-
-/* Called from main thread */
-pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i) {
-    pa_sink_input_assert_ref(i);
-    pa_assert_ctl_context();
-
-    return i->state;
 }
 
 /* Called from IO context */

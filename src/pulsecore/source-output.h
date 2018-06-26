@@ -344,8 +344,6 @@ int pa_source_output_start_move(pa_source_output *o);
 int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, bool save);
 void pa_source_output_fail_move(pa_source_output *o);
 
-#define pa_source_output_get_state(o) ((o)->state)
-
 pa_usec_t pa_source_output_get_requested_latency(pa_source_output *o);
 
 /* To be used exclusively by the source driver thread */

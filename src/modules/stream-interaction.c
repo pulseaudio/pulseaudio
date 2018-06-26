@@ -98,7 +98,7 @@ static const char *find_trigger_stream(struct userdata *u, pa_sink *s, pa_sink_i
             continue;
 
         trigger_role = get_trigger_role(u, j, g);
-        if (trigger_role && !j->muted && pa_sink_input_get_state(j) != PA_SINK_INPUT_CORKED)
+        if (trigger_role && !j->muted && j->state != PA_SINK_INPUT_CORKED)
             return trigger_role;
     }
 
@@ -185,7 +185,7 @@ static inline void apply_interaction_to_sink(struct userdata *u, pa_sink *s, con
         /* the application only after sink_input_put() was called. If a new stream turns */
         /* up, act as if it was not corked. In the case of module-role-cork this will */
         /* only mute the stream because corking is reverted later by the application */
-        corked = (pa_sink_input_get_state(j) == PA_SINK_INPUT_CORKED);
+        corked = (j->state == PA_SINK_INPUT_CORKED);
         if (new_stream && corked)
             corked = false;
         interaction_applied = !!pa_hashmap_get(g->interaction_state, j);
@@ -227,7 +227,7 @@ static void remove_interactions(struct userdata *u, struct group *g) {
         for (j = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx_input)); j; j = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx_input))) {
 
             if(!!pa_hashmap_get(g->interaction_state, j)) {
-                corked = (pa_sink_input_get_state(j) == PA_SINK_INPUT_CORKED);
+                corked = (j->state == PA_SINK_INPUT_CORKED);
                 if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
                    role = "no_role";
                 uncork_or_unduck(u, j, role, corked, g);
@@ -289,7 +289,7 @@ static pa_hook_result_t sink_input_state_changed_cb(pa_core *core, pa_sink_input
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    if (PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(i)) && get_trigger_role(u, i, NULL))
+    if (PA_SINK_INPUT_IS_LINKED(i->state) && get_trigger_role(u, i, NULL))
         return process(u, i, true, false);
 
     return PA_HOOK_OK;
@@ -299,7 +299,7 @@ static pa_hook_result_t sink_input_mute_changed_cb(pa_core *core, pa_sink_input 
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    if (PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(i)) && get_trigger_role(u, i, NULL))
+    if (PA_SINK_INPUT_IS_LINKED(i->state) && get_trigger_role(u, i, NULL))
         return process(u, i, true, false);
 
     return PA_HOOK_OK;
@@ -309,7 +309,7 @@ static pa_hook_result_t sink_input_proplist_changed_cb(pa_core *core, pa_sink_in
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    if (PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(i)))
+    if (PA_SINK_INPUT_IS_LINKED(i->state))
         return process(u, i, true, false);
 
     return PA_HOOK_OK;

@@ -1356,7 +1356,7 @@ int pa_source_output_start_move(pa_source_output *o) {
 
     pa_idxset_remove_by_data(o->source->outputs, o, NULL);
 
-    if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
+    if (o->state == PA_SOURCE_OUTPUT_CORKED)
         pa_assert_se(origin->n_corked-- >= 1);
 
     if (pa_source_output_is_passthrough(o))
@@ -1551,7 +1551,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, bool save
 
     pa_cvolume_remap(&o->volume_factor_source, &o->channel_map, &o->source->channel_map);
 
-    if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
+    if (o->state == PA_SOURCE_OUTPUT_CORKED)
         o->source->n_corked++;
 
     pa_source_output_update_rate(o);

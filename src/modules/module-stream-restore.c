@@ -1657,7 +1657,7 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct
         /* It might happen that a stream and a sink are set up at the
            same time, in which case we want to make sure we don't
            interfere with that */
-        if (!PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(si)))
+        if (!PA_SINK_INPUT_IS_LINKED(si->state))
             continue;
 
         if (!(name = pa_proplist_get_stream_group(si->proplist, "sink-input", IDENTIFICATION_PROPERTY)))
@@ -1710,7 +1710,7 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
         /* It might happen that a stream and a source are set up at the
            same time, in which case we want to make sure we don't
            interfere with that */
-        if (!PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(so)))
+        if (!PA_SOURCE_OUTPUT_IS_LINKED(so->state))
             continue;
 
         if (!(name = pa_proplist_get_stream_group(so->proplist, "source-output", IDENTIFICATION_PROPERTY)))

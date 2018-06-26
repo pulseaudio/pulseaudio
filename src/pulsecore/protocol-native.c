@@ -2880,7 +2880,7 @@ static void command_get_playback_latency(pa_pdispatch *pd, uint32_t command, uin
     pa_tagstruct_put_boolean(reply,
                              s->playing_for > 0 &&
                              pa_sink_get_state(s->sink_input->sink) == PA_SINK_RUNNING &&
-                             pa_sink_input_get_state(s->sink_input) == PA_SINK_INPUT_RUNNING);
+                             s->sink_input->state == PA_SINK_INPUT_RUNNING);
     pa_tagstruct_put_timeval(reply, &tv);
     pa_tagstruct_put_timeval(reply, pa_gettimeofday(&now));
     pa_tagstruct_puts64(reply, s->write_index);
@@ -2925,7 +2925,7 @@ static void command_get_record_latency(pa_pdispatch *pd, uint32_t command, uint3
                           pa_bytes_to_usec(s->on_the_fly_snapshot, &s->source_output->sample_spec));
     pa_tagstruct_put_boolean(reply,
                              pa_source_get_state(s->source_output->source) == PA_SOURCE_RUNNING &&
-                             pa_source_output_get_state(s->source_output) == PA_SOURCE_OUTPUT_RUNNING);
+                             s->source_output->state == PA_SOURCE_OUTPUT_RUNNING);
     pa_tagstruct_put_timeval(reply, &tv);
     pa_tagstruct_put_timeval(reply, pa_gettimeofday(&now));
     pa_tagstruct_puts64(reply, pa_memblockq_get_write_index(s->memblockq));
@@ -3392,7 +3392,7 @@ static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, 
     if (c->version >= 13)
         pa_tagstruct_put_proplist(t, s->proplist);
     if (c->version >= 19)
-        pa_tagstruct_put_boolean(t, (pa_sink_input_get_state(s) == PA_SINK_INPUT_CORKED));
+        pa_tagstruct_put_boolean(t, s->state == PA_SINK_INPUT_CORKED);
     if (c->version >= 20) {
         pa_tagstruct_put_boolean(t, has_volume);
         pa_tagstruct_put_boolean(t, s->volume_writable);
@@ -3432,7 +3432,7 @@ static void source_output_fill_tagstruct(pa_native_connection *c, pa_tagstruct *
     if (c->version >= 13)
         pa_tagstruct_put_proplist(t, s->proplist);
     if (c->version >= 19)
-        pa_tagstruct_put_boolean(t, (pa_source_output_get_state(s) == PA_SOURCE_OUTPUT_CORKED));
+        pa_tagstruct_put_boolean(t, s->state == PA_SOURCE_OUTPUT_CORKED);
     if (c->version >= 22) {
         pa_tagstruct_put_cvolume(t, &v);
         pa_tagstruct_put_boolean(t, s->muted);

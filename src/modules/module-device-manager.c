@@ -671,7 +671,7 @@ static void route_sink_input(struct userdata *u, pa_sink_input *si) {
     /* It might happen that a stream and a sink are set up at the
     same time, in which case we want to make sure we don't
     interfere with that */
-    if (!PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(si)))
+    if (!PA_SINK_INPUT_IS_LINKED(si->state))
         return;
 
     if (!(role = pa_proplist_gets(si->proplist, PA_PROP_MEDIA_ROLE)))
@@ -746,7 +746,7 @@ static void route_source_output(struct userdata *u, pa_source_output *so) {
     /* It might happen that a stream and a source are set up at the
     same time, in which case we want to make sure we don't
     interfere with that */
-    if (!PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(so)))
+    if (!PA_SOURCE_OUTPUT_IS_LINKED(so->state))
         return;
 
     if (!(role = pa_proplist_gets(so->proplist, PA_PROP_MEDIA_ROLE)))

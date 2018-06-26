@@ -215,14 +215,12 @@ static pa_hook_result_t sink_input_move_start_hook_cb(pa_core *c, pa_sink_input 
 
 static pa_hook_result_t sink_input_move_finish_hook_cb(pa_core *c, pa_sink_input *s, struct userdata *u) {
     struct device_info *d;
-    pa_sink_input_state_t state;
 
     pa_assert(c);
     pa_sink_input_assert_ref(s);
     pa_assert(u);
 
-    state = pa_sink_input_get_state(s);
-    if (state != PA_SINK_INPUT_RUNNING)
+    if (s->state != PA_SINK_INPUT_RUNNING)
         return PA_HOOK_OK;
 
     if ((d = pa_hashmap_get(u->device_infos, s->sink)))
@@ -259,7 +257,7 @@ static pa_hook_result_t source_output_move_finish_hook_cb(pa_core *c, pa_source_
     pa_source_output_assert_ref(s);
     pa_assert(u);
 
-    if (pa_source_output_get_state(s) != PA_SOURCE_OUTPUT_RUNNING)
+    if (s->state != PA_SOURCE_OUTPUT_RUNNING)
         return PA_HOOK_OK;
 
     if (s->source->monitor_of)
@@ -275,14 +273,12 @@ static pa_hook_result_t source_output_move_finish_hook_cb(pa_core *c, pa_source_
 
 static pa_hook_result_t sink_input_state_changed_hook_cb(pa_core *c, pa_sink_input *s, struct userdata *u) {
     struct device_info *d;
-    pa_sink_input_state_t state;
 
     pa_assert(c);
     pa_sink_input_assert_ref(s);
     pa_assert(u);
 
-    state = pa_sink_input_get_state(s);
-    if (state == PA_SINK_INPUT_RUNNING && s->sink)
+    if (s->state == PA_SINK_INPUT_RUNNING && s->sink)
         if ((d = pa_hashmap_get(u->device_infos, s->sink)))
             resume(d);
 
@@ -294,7 +290,7 @@ static pa_hook_result_t source_output_state_changed_hook_cb(pa_core *c, pa_sourc
     pa_source_output_assert_ref(s);
     pa_assert(u);
 
-    if (pa_source_output_get_state(s) == PA_SOURCE_OUTPUT_RUNNING && s->source) {
+    if (s->state == PA_SOURCE_OUTPUT_RUNNING && s->source) {
         struct device_info *d;
 
         if (s->source->monitor_of)

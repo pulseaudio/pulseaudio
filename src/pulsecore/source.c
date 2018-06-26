@@ -2024,22 +2024,18 @@ unsigned pa_source_check_suspend(pa_source *s, pa_source_output *ignore) {
     ret = 0;
 
     PA_IDXSET_FOREACH(o, s->outputs, idx) {
-        pa_source_output_state_t st;
-
         if (o == ignore)
             continue;
-
-        st = pa_source_output_get_state(o);
 
         /* We do not assert here. It is perfectly valid for a source output to
          * be in the INIT state (i.e. created, marked done but not yet put)
          * and we should not care if it's unlinked as it won't contribute
          * towards our busy status.
          */
-        if (!PA_SOURCE_OUTPUT_IS_LINKED(st))
+        if (!PA_SOURCE_OUTPUT_IS_LINKED(o->state))
             continue;
 
-        if (st == PA_SOURCE_OUTPUT_CORKED)
+        if (o->state == PA_SOURCE_OUTPUT_CORKED)
             continue;
 
         if (o->flags & PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND)

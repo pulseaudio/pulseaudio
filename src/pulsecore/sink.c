@@ -2456,22 +2456,18 @@ unsigned pa_sink_check_suspend(pa_sink *s, pa_sink_input *ignore_input, pa_sourc
     ret = 0;
 
     PA_IDXSET_FOREACH(i, s->inputs, idx) {
-        pa_sink_input_state_t st;
-
         if (i == ignore_input)
             continue;
-
-        st = pa_sink_input_get_state(i);
 
         /* We do not assert here. It is perfectly valid for a sink input to
          * be in the INIT state (i.e. created, marked done but not yet put)
          * and we should not care if it's unlinked as it won't contribute
          * towards our busy status.
          */
-        if (!PA_SINK_INPUT_IS_LINKED(st))
+        if (!PA_SINK_INPUT_IS_LINKED(i->state))
             continue;
 
-        if (st == PA_SINK_INPUT_CORKED)
+        if (i->state == PA_SINK_INPUT_CORKED)
             continue;
 
         if (i->flags & PA_SINK_INPUT_DONT_INHIBIT_AUTO_SUSPEND)
