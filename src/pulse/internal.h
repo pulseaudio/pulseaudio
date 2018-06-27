@@ -318,6 +318,6 @@ void pa_ext_device_manager_command(pa_context *c, uint32_t tag, pa_tagstruct *t)
 void pa_ext_device_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
 void pa_ext_stream_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
 
-bool pa_mainloop_is_our_api(pa_mainloop_api*m);
+bool pa_mainloop_is_our_api(const pa_mainloop_api*m);
 
 #endif

@@ -971,7 +971,7 @@ void pa_mainloop_set_poll_func(pa_mainloop *m, pa_poll_func poll_func, void *use
     m->poll_func_userdata = userdata;
 }
 
-bool pa_mainloop_is_our_api(pa_mainloop_api *m) {
+bool pa_mainloop_is_our_api(const pa_mainloop_api *m) {
     pa_assert(m);
 
     return m->io_new == mainloop_io_new;
