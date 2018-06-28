@@ -112,7 +112,7 @@ struct userdata {
     pa_cvolume hardware_volume;
 
     pa_sample_format_t *supported_formats;
-    unsigned int *rates;
+    unsigned int *supported_rates;
 
     size_t
         frame_size,
@@ -1647,14 +1647,14 @@ static bool sink_set_formats(pa_sink *s, pa_idxset *formats) {
      * framework, but this must be changed if we do. */
 
     /* Count how many sample rates we support */
-    for (idx = 0, n = 0; u->rates[idx]; idx++)
+    for (idx = 0, n = 0; u->supported_rates[idx]; idx++)
         n++;
 
     /* First insert non-PCM formats since we prefer those. */
     PA_IDXSET_FOREACH(f, formats, idx) {
         if (!pa_format_info_is_pcm(f)) {
             g = pa_format_info_copy(f);
-            pa_format_info_set_prop_int_array(g, PA_PROP_FORMAT_RATE, (int *) u->rates, n);
+            pa_format_info_set_prop_int_array(g, PA_PROP_FORMAT_RATE, (int *) u->supported_rates, n);
             pa_idxset_put(u->formats, g, NULL);
         }
     }
@@ -1680,8 +1680,8 @@ static int sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthroug
 
     pa_assert(u);
 
-    for (i = 0; u->rates[i]; i++) {
-        if (u->rates[i] == spec->rate) {
+    for (i = 0; u->supported_rates[i]; i++) {
+        if (u->supported_rates[i] == spec->rate) {
             supported = true;
             break;
         }
@@ -2356,8 +2356,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         goto fail;
     }
 
-    u->rates = pa_alsa_get_supported_rates(u->pcm_handle, ss.rate);
-    if (!u->rates) {
+    u->supported_rates = pa_alsa_get_supported_rates(u->pcm_handle, ss.rate);
+    if (!u->supported_rates) {
         pa_log_error("Failed to find any supported sample rates.");
         goto fail;
     }
@@ -2639,8 +2639,8 @@ static void userdata_free(struct userdata *u) {
     if (u->supported_formats)
         pa_xfree(u->supported_formats);
 
-    if (u->rates)
-        pa_xfree(u->rates);
+    if (u->supported_rates)
+        pa_xfree(u->supported_rates);
 
     reserve_done(u);
     monitor_done(u);

@@ -100,7 +100,7 @@ struct userdata {
     pa_cvolume hardware_volume;
 
     pa_sample_format_t *supported_formats;
-    unsigned int *rates;
+    unsigned int *supported_rates;
 
     size_t
         frame_size,
@@ -1476,8 +1476,8 @@ static int source_reconfigure_cb(pa_source *s, pa_sample_spec *spec, bool passth
 
     pa_assert(u);
 
-    for (i = 0; u->rates[i]; i++) {
-        if (u->rates[i] == spec->rate) {
+    for (i = 0; u->supported_rates[i]; i++) {
+        if (u->supported_rates[i] == spec->rate) {
             supported = true;
             break;
         }
@@ -2032,8 +2032,8 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         goto fail;
     }
 
-    u->rates = pa_alsa_get_supported_rates(u->pcm_handle, ss.rate);
-    if (!u->rates) {
+    u->supported_rates = pa_alsa_get_supported_rates(u->pcm_handle, ss.rate);
+    if (!u->supported_rates) {
         pa_log_error("Failed to find any supported sample rates.");
         goto fail;
     }
@@ -2269,8 +2269,8 @@ static void userdata_free(struct userdata *u) {
     if (u->supported_formats)
         pa_xfree(u->supported_formats);
 
-    if (u->rates)
-        pa_xfree(u->rates);
+    if (u->supported_rates)
+        pa_xfree(u->supported_rates);
 
     reserve_done(u);
     monitor_done(u);
