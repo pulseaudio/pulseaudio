@@ -99,6 +99,7 @@ struct userdata {
 
     pa_cvolume hardware_volume;
 
+    pa_sample_format_t *supported_formats;
     unsigned int *rates;
 
     size_t
@@ -2025,6 +2026,12 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
             pa_log_info("Disabling latency range changes on overrun");
     }
 
+    u->supported_formats = pa_alsa_get_supported_formats(u->pcm_handle, ss.format);
+    if (!u->supported_formats) {
+        pa_log_error("Failed to find any supported sample formats.");
+        goto fail;
+    }
+
     u->rates = pa_alsa_get_supported_rates(u->pcm_handle, ss.rate);
     if (!u->rates) {
         pa_log_error("Failed to find any supported sample rates.");
@@ -2258,6 +2265,9 @@ static void userdata_free(struct userdata *u) {
 
     if (u->smoother)
         pa_smoother_free(u->smoother);
+
+    if (u->supported_formats)
+        pa_xfree(u->supported_formats);
 
     if (u->rates)
         pa_xfree(u->rates);

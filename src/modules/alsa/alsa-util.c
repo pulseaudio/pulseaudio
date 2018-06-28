@@ -1430,6 +1430,84 @@ unsigned int *pa_alsa_get_supported_rates(snd_pcm_t *pcm, unsigned int fallback_
     return rates;
 }
 
+pa_sample_format_t *pa_alsa_get_supported_formats(snd_pcm_t *pcm, pa_sample_format_t fallback_format) {
+    static const snd_pcm_format_t format_trans_to_pa[] = {
+        [SND_PCM_FORMAT_U8] = PA_SAMPLE_U8,
+        [SND_PCM_FORMAT_A_LAW] = PA_SAMPLE_ALAW,
+        [SND_PCM_FORMAT_MU_LAW] = PA_SAMPLE_ULAW,
+        [SND_PCM_FORMAT_S16_LE] = PA_SAMPLE_S16LE,
+        [SND_PCM_FORMAT_S16_BE] = PA_SAMPLE_S16BE,
+        [SND_PCM_FORMAT_FLOAT_LE] = PA_SAMPLE_FLOAT32LE,
+        [SND_PCM_FORMAT_FLOAT_BE] = PA_SAMPLE_FLOAT32BE,
+        [SND_PCM_FORMAT_S32_LE] = PA_SAMPLE_S32LE,
+        [SND_PCM_FORMAT_S32_BE] = PA_SAMPLE_S32BE,
+        [SND_PCM_FORMAT_S24_3LE] = PA_SAMPLE_S24LE,
+        [SND_PCM_FORMAT_S24_3BE] = PA_SAMPLE_S24BE,
+        [SND_PCM_FORMAT_S24_LE] = PA_SAMPLE_S24_32LE,
+        [SND_PCM_FORMAT_S24_BE] = PA_SAMPLE_S24_32BE,
+    };
+    static const snd_pcm_format_t all_formats[] = {
+        SND_PCM_FORMAT_U8,
+        SND_PCM_FORMAT_A_LAW,
+        SND_PCM_FORMAT_MU_LAW,
+        SND_PCM_FORMAT_S16_LE,
+        SND_PCM_FORMAT_S16_BE,
+        SND_PCM_FORMAT_FLOAT_LE,
+        SND_PCM_FORMAT_FLOAT_BE,
+        SND_PCM_FORMAT_S32_LE,
+        SND_PCM_FORMAT_S32_BE,
+        SND_PCM_FORMAT_S24_3LE,
+        SND_PCM_FORMAT_S24_3BE,
+        SND_PCM_FORMAT_S24_LE,
+        SND_PCM_FORMAT_S24_BE,
+    };
+    bool supported[PA_ELEMENTSOF(all_formats)] = {
+        false,
+    };
+    snd_pcm_hw_params_t *hwparams;
+    unsigned int i, j, n;
+    pa_sample_format_t *formats = NULL;
+    int ret;
+
+    snd_pcm_hw_params_alloca(&hwparams);
+
+    if ((ret = snd_pcm_hw_params_any(pcm, hwparams)) < 0) {
+        pa_log_debug("snd_pcm_hw_params_any() failed: %s", pa_alsa_strerror(ret));
+        return NULL;
+    }
+
+    for (i = 0, n = 0; i < PA_ELEMENTSOF(all_formats); i++) {
+        if (snd_pcm_hw_params_test_format(pcm, hwparams, all_formats[i]) == 0) {
+            supported[i] = true;
+            n++;
+        }
+    }
+
+    if (n > 0) {
+        formats = pa_xnew(pa_sample_format_t, n + 1);
+
+        for (i = 0, j = 0; i < PA_ELEMENTSOF(all_formats); i++) {
+            if (supported[i])
+                formats[j++] = format_trans_to_pa[all_formats[i]];
+        }
+
+        formats[j] = PA_SAMPLE_MAX;
+    } else {
+        formats = pa_xnew(pa_sample_format_t, 2);
+
+        formats[0] = fallback_format;
+        if ((ret = snd_pcm_hw_params_set_format(pcm, hwparams, format_trans_to_pa[formats[0]])) < 0) {
+            pa_log_debug("snd_pcm_hw_params_set_format() failed: %s", pa_alsa_strerror(ret));
+            pa_xfree(formats);
+            return NULL;
+        }
+
+        formats[1] = PA_SAMPLE_MAX;
+    }
+
+    return formats;
+}
+
 bool pa_alsa_pcm_is_hw(snd_pcm_t *pcm) {
     snd_pcm_info_t* info;
     snd_pcm_info_alloca(&info);
