@@ -1,5 +1,6 @@
 # eukim <eukim@redhat.com>, 2013. #zanata
 # KimJeongYeon <jeongyeon.kim@samsung.com>, 2017.
+# Sangchul Lee <sc11.lee@samsung.com>, 2018.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
@@ -8,8 +9,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2017-04-23 02:11+0900\n"
-"Last-Translator: KimJeongYeon <jeongyeon.kim@samsung.com>\n"
+"PO-Revision-Date: 2018-06-21 15:10+0900\n"
+"Last-Translator: Sangchul Lee <sc11.lee@samsung.com>\n"
 "Language-Team: Korean\n"
 "Language: ko\n"
 "X-Generator: Poedit 1.8.7.1\n"
@@ -333,12 +334,12 @@ msgstr "모든 assert 활성화됨."
 
 #: ../src/daemon/main.c:938
 msgid "Failed to get machine ID"
-msgstr "장치 ID 가져오기 실패"
+msgstr "머신 ID 가져오기 실패"
 
 #: ../src/daemon/main.c:941
 #, c-format
 msgid "Machine ID is %s."
-msgstr "장치 ID는 %s입니다."
+msgstr "머신 ID는 %s입니다."
 
 #: ../src/daemon/main.c:945
 #, c-format
@@ -511,7 +512,7 @@ msgstr ""
 "        --log-backtrace=FRAMES            로그 메세지에 역추적을 포함\n"
 "  -p, --dl-search-path=PATH              동적 공유 객체 (plugins)에 \n"
 "                                          검색 경로를 설정\n"
-"      --resample-method=METHOD          지정한 재샘플링 방법을 사용\n"
+"      --resample-method=METHOD          지정한 리샘플링 방법을 사용\n"
 "                                          (사용 가능한 값은 --dump-resample-methods\n"
 "                                          에서 참조)\n"
 "       --use-pid-file[=BOOL]             PID 파일 생성\n"
@@ -2834,7 +2835,7 @@ msgstr ""
 
 #: ../src/modules/module-filter-apply.c:48
 msgid "autoclean=<automatically unload unused filters?>"
-msgstr "autoclean=<automatically unload unused filters?>"
+msgstr "autoclean=<사용되지 않는 필터들을 자동으로 언로드>"
 
 #: ../src/tests/resampler-test.c:257
 #, c-format
@@ -2870,7 +2871,7 @@ msgstr ""
 "      --to-rate=SAMPLERATE            변환 후 샘플 레이트 (Hz) (기본값 44100)\n"
 "      --to-format=SAMPLEFORMAT        변환 후 샘플 유형 (기본값 s16le)\n"
 "      --to-channels=CHANNELS          변환 후 채널 수 (기본값 1)\n"
-"      --resample-method=METHOD        다시 샘플링 방법 (기본값 auto)\n"
+"      --resample-method=METHOD        리샘플링 방법 (기본값 auto)\n"
 "      --seconds=SECONDS               변환 전 스트림 시간 (기본값 60)\n"
 "\n"
 "형식이 지정되지 않은 경우 모든 형식의 조합을\n"
@@ -2879,7 +2880,7 @@ msgstr ""
 "샘플 유형은 s16le, s16be, u8, float32le, float32be, ulaw, alaw, 32le, s32be에서\n"
 "하나를 선택합니다 (기본값 s16ne)\n"
 "\n"
-"다시 샘플링 방법에 사용 가능한 값은 --dump-resample-methods에서 참조하십시오.\n"
+"리샘플링 방법에 사용 가능한 값은 --dump-resample-methods에서 참조하십시오.\n"
 
 #: ../src/tests/resampler-test.c:356
 #, c-format
