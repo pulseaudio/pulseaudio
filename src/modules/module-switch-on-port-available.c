@@ -281,6 +281,14 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
         return PA_HOOK_OK;
     }
 
+    /* Our profile switching logic caused trouble with bluetooth headsets (see
+     * https://bugs.freedesktop.org/show_bug.cgi?id=107044) and
+     * module-bluetooth-policy takes care of automatic profile switching
+     * anyway, so we ignore bluetooth cards in
+     * module-switch-on-port-available. */
+    if (pa_safe_streq(pa_proplist_gets(port->card->proplist, PA_PROP_DEVICE_BUS), "bluetooth"))
+        return PA_HOOK_OK;
+
     switch (port->available) {
     case PA_AVAILABLE_YES:
         switch_to_port(port);
