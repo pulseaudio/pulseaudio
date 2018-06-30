@@ -17,6 +17,7 @@ before_install:
     autoconf
     automake
     check
+    gettext
     libasound2-dev
     libasyncns-dev
     libatomic-ops-dev
