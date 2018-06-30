@@ -1,0 +1,18 @@
+image: registry.freedesktop.org/pulseaudio/pulseaudio/ubuntu:18.04
+
+build:
+  stage: build
+  script:
+    - export MAKEFLAGS="-j$(nproc)"
+    - NOCONFIGURE=1 ./bootstrap.sh
+    - mkdir build
+    - cd build
+    - ../configure --localstatedir=/var
+    - make
+    - make check
+    - make check-daemon
+    - ulimit -c 0 # don't dump core files on tests that are supposed to assert
+    - make distcheck
+  artifacts:
+    paths:
+      - build/
