@@ -243,7 +243,13 @@ int pa__init(pa_module *m) {
     if (mkfifo(u->filename, 0666) < 0) {
         pa_log("mkfifo('%s'): %s", u->filename, pa_cstrerror(errno));
         goto fail;
+    } else {
+        /* Our umask is 077, so the pipe won't be created with the requested
+         * permissions. Let's fix the permissions with chmod(). */
+        if (chmod(u->filename, 0666) < 0)
+            pa_log_warn("chomd('%s'): %s", u->filename, pa_cstrerror(errno));
     }
+
     if ((u->fd = pa_open_cloexec(u->filename, O_RDWR, 0)) < 0) {
         pa_log("open('%s'): %s", u->filename, pa_cstrerror(errno));
         goto fail;
