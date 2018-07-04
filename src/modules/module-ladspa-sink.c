@@ -1054,15 +1054,13 @@ int pa__init(pa_module*m) {
     u->output = NULL;
     u->ss = ss;
 
-    /* If the LADSPA_PATH environment variable is not set, we use the
-     * LADSPA_PATH preprocessor macro instead. The macro can contain characters
-     * that need to be escaped (especially on Windows backslashes are common).
-     * The "#" preprocessor operator helpfully adds the required escaping while
-     * turning the LADSPA_PATH macro into a string. */
-#define QUOTE_MACRO(x) #x
     if (!(e = getenv("LADSPA_PATH")))
-        e = QUOTE_MACRO(LADSPA_PATH);
-#undef QUOTE_MACRO
+        /* The LADSPA_PATH preprocessor macro isn't a string literal (i.e. it
+         * doesn't contain quotes), because otherwise the build system would
+         * have an extra burden of getting the escaping right (Windows paths
+         * are especially tricky). PA_EXPAND_AND_STRINGIZE does the necessary
+         * escaping. */
+        e = PA_EXPAND_AND_STRINGIZE(LADSPA_PATH);
 
     /* FIXME: This is not exactly thread safe */
     t = pa_xstrdup(lt_dlgetsearchpath());
