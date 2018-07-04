@@ -298,6 +298,12 @@ static inline size_t PA_ALIGN(size_t l) {
              ? (-1 - PA_INT_TYPE_MAX(type))                            \
              : (type) 0))
 
+/* The '#' preprocessor operator doesn't expand any macros that are in the
+ * parameter, which is why we need a separate macro for those cases where the
+ * parameter contains a macro that needs expanding. */
+#define PA_STRINGIZE(x) #x
+#define PA_EXPAND_AND_STRINGIZE(x) PA_STRINGIZE(x)
+
 /* We include this at the very last place */
 #include <pulsecore/log.h>
 
