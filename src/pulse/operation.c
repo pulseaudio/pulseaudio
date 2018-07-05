@@ -102,6 +102,9 @@ static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
     if (st == o->state)
         return;
 
+    if ((o->state == PA_OPERATION_DONE) || (o->state == PA_OPERATION_CANCELED))
+        return;
+
     pa_operation_ref(o);
 
     o->state = st;
