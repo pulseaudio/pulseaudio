@@ -36,6 +36,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
     "headset=ofono|native|auto"
+    "autodetect_mtu=<boolean>"
 );
 
 static const char* const valid_modargs[] = {
