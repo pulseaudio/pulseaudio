@@ -1,3 +1,18 @@
+PulseAudio 12.1
+
+A bug fix release.
+
+ * Fixed crash when switching to A2DP bluetooth profile
+ * Fixed plugin search path in module-ladspa-sink
+ * Fixed file permissions for the pipes created by module-pipe-sink and
+   module-pipe-source
+
+Contributors
+
+  Mr. M
+  Tanu Kaskinen
+
+
 PulseAudio 12.0
 
 Changes at a glance:
