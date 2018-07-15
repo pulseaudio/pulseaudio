@@ -19,6 +19,7 @@ SUBSYSTEM!="sound", GOTO="pulseaudio_end"
 ACTION!="change", GOTO="pulseaudio_end"
 KERNEL!="card*", GOTO="pulseaudio_end"
 SUBSYSTEMS=="usb", GOTO="pulseaudio_check_usb"
+SUBSYSTEMS=="firewire", GOTO="pulseaudio_firewire_quirk"
 
 SUBSYSTEMS=="platform", DRIVERS=="thinkpad_acpi", ENV{PULSE_IGNORE}="1"
 
@@ -108,5 +109,14 @@ ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="4014", ENV{PULSE_PROFILE_SET}="dell-
 ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1250", ENV{PULSE_PROFILE_SET}="steelseries-arctis-5-usb-audio.conf"
 ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1260", ENV{PULSE_PROFILE_SET}="steelseries-arctis-7-usb-audio.conf"
 ATTRS{idVendor}=="147a", ATTRS{idProduct}=="e055", ENV{PULSE_PROFILE_SET}="cmedia-high-speed-true-hdaudio.conf"
+
+GOTO="pulseaudio_end"
+
+LABEL="pulseaudio_firewire_quirk"
+
+# Focusrite Saffire Pro 10/26 i/o has a quirk to disappear from IEEE 1394 bus when losing connections.
+# https://bugzilla.kernel.org/show_bug.cgi?id=199365
+ENV{ID_VENDOR_ID}=="0x00130e", ENV{ID_MODEL_ID}=="0x000003", ENV{PULSE_IGNORE}="1"
+ENV{ID_VENDOR_ID}=="0x00130e", ENV{ID_MODEL_ID}=="0x000006", ENV{PULSE_IGNORE}="1"
 
 LABEL="pulseaudio_end"
