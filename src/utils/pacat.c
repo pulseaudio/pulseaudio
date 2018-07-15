@@ -810,7 +810,7 @@ int main(int argc, char *argv[]) {
     while ((c = getopt_long(argc, argv, "rpd:s:n:hv", long_options, NULL)) != -1) {
 
         switch (c) {
-            case 'h' :
+            case 'h':
                 help(bn);
                 ret = 0;
                 goto quit;
