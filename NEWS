@@ -1,3 +1,14 @@
+PulseAudio 12.2
+
+The previous release tarball contained a broken configure script, this release
+fixes the tarball. There are no changes in the source, except for this NEWS
+file update.
+
+Contributors
+
+  Tanu Kaskinen
+
+
 PulseAudio 12.1
 
 A bug fix release.
