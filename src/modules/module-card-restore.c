@@ -48,11 +48,14 @@ PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Automatically restore profile of cards");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
+PA_MODULE_USAGE(
+    "restore_bluetooth_profile=<boolean>"
+);
 
 #define SAVE_INTERVAL (10 * PA_USEC_PER_SEC)
 
 static const char* const valid_modargs[] = {
-    NULL
+    "restore_bluetooth_profile=<boolean>"
 };
 
 struct userdata {
@@ -60,6 +63,7 @@ struct userdata {
     pa_module *module;
     pa_time_event *save_time_event;
     pa_database *database;
+    bool restore_bluetooth_profile;
 };
 
 #define ENTRY_VERSION 4
@@ -554,6 +558,12 @@ static pa_hook_result_t card_choose_initial_profile_callback(pa_core *core, pa_c
     if (!(e = entry_read(u, card->name)))
         return PA_HOOK_OK;
 
+    if (!u->restore_bluetooth_profile) {
+        const char *s = pa_proplist_gets(card->proplist, PA_PROP_DEVICE_BUS);
+        if (pa_safe_streq(s, "bluetooth"))
+            return PA_HOOK_OK;
+    }
+
     if (e->profile[0]) {
         pa_card_profile *profile;
 
@@ -607,6 +617,7 @@ int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     char *fname;
+    bool restore_bluetooth_profile;
 
     pa_assert(m);
 
@@ -615,9 +626,16 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    restore_bluetooth_profile = false;
+    if (pa_modargs_get_value_boolean(ma, "restore_bluetooth_profile", &restore_bluetooth_profile) < 0) {
+        pa_log("Invalid boolean value for restore_bluetooth_profile parameter");
+        goto fail;
+    }
+
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
+    u->restore_bluetooth_profile = restore_bluetooth_profile;
 
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) card_new_hook_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_CHOOSE_INITIAL_PROFILE], PA_HOOK_NORMAL,
