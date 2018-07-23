@@ -2,7 +2,7 @@
 .version
 .*.swp
 ABOUT-NLS
-build-aux
+build*
 *~
 *.tar.gz
 *.pc
