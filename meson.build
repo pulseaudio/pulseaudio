@@ -1,6 +1,6 @@
 project('pulseaudio', 'c', 'cpp',
         version : '10.99.1',
-        meson_version : '>= 0.31.0',
+        meson_version : '>= 0.42.0',
         default_options : [ 'c_std=gnu11', 'cpp_std=c++11' ]
         )
 
