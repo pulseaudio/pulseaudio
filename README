@@ -4,10 +4,10 @@ WEB SITE:
 	http://pulseaudio.org/
 
 GIT:
-	git://anongit.freedesktop.org/pulseaudio/pulseaudio
+	https://gitlab.freedesktop.org/pulseaudio/pulseaudio.git
 
-GITWEB/CGIT:
-	http://cgit.freedesktop.org/pulseaudio/pulseaudio/
+GitLab:
+	https://gitlab.freedesktop.org/pulseaudio/pulseaudio
 
 MAILING LIST:
 	http://lists.freedesktop.org/mailman/listinfo/pulseaudio-discuss
