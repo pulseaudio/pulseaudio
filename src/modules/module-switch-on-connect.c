@@ -201,14 +201,14 @@ int pa__init(pa_module*m) {
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE+20, (pa_hook_cb_t) source_put_hook_callback, u);
 
     if (pa_modargs_get_value_boolean(ma, "only_from_unavailable", &u->only_from_unavailable) < 0) {
-	pa_log("Failed to get a boolean value for only_from_unavailable.");
-	goto fail;
+        pa_log("Failed to get a boolean value for only_from_unavailable.");
+        goto fail;
     }
 
     u->ignore_virtual = true;
     if (pa_modargs_get_value_boolean(ma, "ignore_virtual", &u->ignore_virtual) < 0) {
-	pa_log("Failed to get a boolean value for ignore_virtual.");
-	goto fail;
+        pa_log("Failed to get a boolean value for ignore_virtual.");
+        goto fail;
     }
 
     pa_modargs_free(ma);
