@@ -136,7 +136,7 @@ static pa_sink* find_evacuation_sink(pa_core *c, pa_sink_input *i, pa_sink *skip
         target = fb_sink;
 
     if (!target)
-	pa_log_debug("No evacuation sink found.");
+        pa_log_debug("No evacuation sink found.");
 
     return target;
 }
