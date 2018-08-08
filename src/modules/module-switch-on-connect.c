@@ -69,12 +69,9 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* 
         return PA_HOOK_OK;
 
     /* Don't switch to any internal devices */
-    if ((s = pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_BUS))) {
-        if (pa_streq(s, "pci"))
-            return PA_HOOK_OK;
-        else if (pa_streq(s, "isa"))
-            return PA_HOOK_OK;
-    }
+    s = pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_BUS);
+    if (pa_safe_streq(s, "pci") || pa_safe_streq(s, "isa"))
+        return PA_HOOK_OK;
 
     /* Ignore virtual sinks if not configured otherwise on the command line */
     if (u->ignore_virtual && !(sink->flags & PA_SINK_HARDWARE))
@@ -139,12 +136,9 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
         return PA_HOOK_OK;
 
     /* Don't switch to any internal devices */
-    if ((s = pa_proplist_gets(source->proplist, PA_PROP_DEVICE_BUS))) {
-        if (pa_streq(s, "pci"))
-            return PA_HOOK_OK;
-        else if (pa_streq(s, "isa"))
-            return PA_HOOK_OK;
-    }
+    s = pa_proplist_gets(source->proplist, PA_PROP_DEVICE_BUS);
+    if (pa_safe_streq(s, "pci") || pa_safe_streq(s, "isa"))
+        return PA_HOOK_OK;
 
     /* Ignore virtual sources if not configured otherwise on the command line */
     if (u->ignore_virtual && !(source->flags & PA_SOURCE_HARDWARE))
