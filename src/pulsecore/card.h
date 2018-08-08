@@ -128,7 +128,7 @@ pa_card *pa_card_new(pa_core *c, pa_card_new_data *data);
 
 /* Select the initial card profile according to the configured policies. This
  * must be called between pa_card_new() and pa_card_put(), after the port and
- * profile availablities have been initialized. */
+ * profile availabilities have been initialized. */
 void pa_card_choose_initial_profile(pa_card *card);
 
 void pa_card_put(pa_card *c);
