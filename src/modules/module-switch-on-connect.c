@@ -70,11 +70,14 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* 
 
     pa_log_debug("Trying to switch to new sink %s", sink->name);
 
-    /* Don't switch to any internal devices */
-    s = pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_BUS);
-    if (pa_safe_streq(s, "pci") || pa_safe_streq(s, "isa")) {
-        pa_log_debug("Refusing to switch to sink on %s bus", s);
-        return PA_HOOK_OK;
+    /* Don't switch to any internal devices except HDMI */
+    s = pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_STRING);
+    if (s && !pa_startswith(s, "hdmi")) {
+        s = pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_BUS);
+        if (pa_safe_streq(s, "pci") || pa_safe_streq(s, "isa")) {
+            pa_log_debug("Refusing to switch to sink on %s bus", s);
+            return PA_HOOK_OK;
+        }
     }
 
     /* Ignore virtual sinks if not configured otherwise on the command line */
