@@ -27,6 +27,7 @@
 
 #include <pulsecore/module.h>
 #include <pulsecore/client.h>
+#include <pulsecore/card.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
 #include <pulsecore/sink-input.h>
@@ -101,19 +102,6 @@ char *pa_client_list_to_string(pa_core *c) {
     return pa_strbuf_to_string_free(s);
 }
 
-static const char *available_to_string(pa_available_t a) {
-    switch (a) {
-        case PA_AVAILABLE_UNKNOWN:
-            return "unknown";
-        case PA_AVAILABLE_NO:
-            return "no";
-        case PA_AVAILABLE_YES:
-            return "yes";
-        default:
-            return "invalid"; /* Should never happen! */
-    }
-}
-
 static void append_port_list(pa_strbuf *s, pa_hashmap *ports) {
     pa_device_port *p;
     void *state;
@@ -128,7 +116,7 @@ static void append_port_list(pa_strbuf *s, pa_hashmap *ports) {
         char *t = pa_proplist_to_string_sep(p->proplist, "\n\t\t\t\t");
         pa_strbuf_printf(s, "\t\t%s: %s (priority %u, latency offset %" PRId64 " usec, available: %s)\n",
             p->name, p->description, p->priority, p->latency_offset,
-            available_to_string(p->available));
+            pa_available_to_string(p->available));
         pa_strbuf_printf(s, "\t\t\tproperties:\n\t\t\t\t%s\n", t);
         pa_xfree(t);
     }
@@ -171,7 +159,7 @@ char *pa_card_list_to_string(pa_core *c) {
         pa_strbuf_puts(s, "\tprofiles:\n");
         PA_HASHMAP_FOREACH(profile, card->profiles, state)
             pa_strbuf_printf(s, "\t\t%s: %s (priority %u, available: %s)\n", profile->name, profile->description,
-                             profile->priority, available_to_string(profile->available));
+                             profile->priority, pa_available_to_string(profile->available));
 
         pa_strbuf_printf(
                 s,
