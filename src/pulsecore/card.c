@@ -36,6 +36,19 @@
 
 #include "card.h"
 
+const char *pa_available_to_string(pa_available_t available) {
+    switch (available) {
+        case PA_AVAILABLE_UNKNOWN:
+            return "unknown";
+        case PA_AVAILABLE_NO:
+            return "no";
+        case PA_AVAILABLE_YES:
+            return "yes";
+        default:
+            pa_assert_not_reached();
+    }
+}
+
 pa_card_profile *pa_card_profile_new(const char *name, const char *description, size_t extra) {
     pa_card_profile *c;
 

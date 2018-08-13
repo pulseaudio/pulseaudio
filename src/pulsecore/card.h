@@ -113,6 +113,8 @@ typedef struct {
     pa_direction_t direction;
 } pa_card_preferred_port_changed_hook_data;
 
+const char *pa_available_to_string(pa_available_t available);
+
 pa_card_profile *pa_card_profile_new(const char *name, const char *description, size_t extra);
 void pa_card_profile_free(pa_card_profile *c);
 
