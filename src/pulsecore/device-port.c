@@ -84,8 +84,7 @@ void pa_device_port_set_available(pa_device_port *p, pa_available_t status) {
 /*    pa_assert(status != PA_AVAILABLE_UNKNOWN); */
 
     p->available = status;
-    pa_log_debug("Setting port %s to status %s", p->name, status == PA_AVAILABLE_YES ? "yes" :
-       status == PA_AVAILABLE_NO ? "no" : "unknown");
+    pa_log_debug("Setting port %s to status %s", p->name, pa_available_to_string(status));
 
     /* Post subscriptions to the card which owns us */
     /* XXX: We need to check p->card, because this function may be called
