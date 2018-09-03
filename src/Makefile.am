@@ -299,6 +299,7 @@ TESTS_norun = \
 TESTS_daemon = \
 		connect-stress \
 		extended-test \
+		passthrough-test \
 		interpol-test \
 		sync-playback
 
@@ -477,6 +478,11 @@ extended_test_SOURCES = tests/extended-test.c
 extended_test_LDADD = $(AM_LDADD) libpulse.la
 extended_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 extended_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
+
+passthrough_test_SOURCES = tests/passthrough-test.c
+passthrough_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
+passthrough_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+passthrough_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 strlist_test_SOURCES = tests/strlist-test.c
 strlist_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
