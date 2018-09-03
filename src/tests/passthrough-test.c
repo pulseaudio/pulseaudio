@@ -266,6 +266,61 @@ START_TEST (passthrough_playback_test) {
 }
 END_TEST
 
+static void sink_info_cb(pa_context *c, const pa_sink_info *i, int eol, void *userdata) {
+    pa_cvolume *v = (pa_cvolume *) userdata;
+
+    if (eol)
+        return;
+
+    *v = i->volume;
+
+    pa_threaded_mainloop_signal(mainloop, false);
+}
+
+static void get_sink_volume(pa_cvolume *v) {
+    pa_operation *o;
+
+    pa_threaded_mainloop_lock(mainloop);
+
+    o = pa_context_get_sink_info_by_name(context, sink_name, sink_info_cb, v);
+    WAIT_FOR_OPERATION(o);
+
+    pa_threaded_mainloop_unlock(mainloop);
+}
+
+START_TEST (passthrough_volume_test) {
+    /* Set a non-100% volume of the sink before playback, create a passthrough
+     * stream, make sure volume gets set to 100%, and then restored when the
+     * stream goes away */
+    pa_stream *stream;
+    pa_operation *o;
+    pa_cvolume volume, tmp;
+
+    pa_threaded_mainloop_lock(mainloop);
+
+    pa_cvolume_set(&volume, 2, PA_VOLUME_NORM / 2);
+    o = pa_context_set_sink_volume_by_name(context, sink_name, &volume, success_cb, NULL);
+    WAIT_FOR_OPERATION(o);
+
+    pa_threaded_mainloop_unlock(mainloop);
+
+    stream = connect_stream();
+
+    pa_threaded_mainloop_lock(mainloop);
+    pa_threaded_mainloop_wait(mainloop);
+    fail_unless(PA_STREAM_IS_GOOD(pa_stream_get_state(stream)));
+    pa_threaded_mainloop_unlock(mainloop);
+
+    get_sink_volume(&tmp);
+    fail_unless(pa_cvolume_is_norm(&tmp));
+
+    disconnect_stream(stream);
+
+    get_sink_volume(&tmp);
+    fail_unless(pa_cvolume_equal(&volume, &tmp));
+}
+END_TEST
+
 int main(int argc, char *argv[]) {
     int failed = 0;
     Suite *s;
@@ -278,7 +333,9 @@ int main(int argc, char *argv[]) {
     tc = tcase_create("passthrough");
     tcase_add_checked_fixture(tc, passthrough_setup, passthrough_teardown);
     tcase_add_test(tc, passthrough_playback_test);
-    tcase_set_timeout(tc, 4);
+    sink_num++;
+    tcase_add_test(tc, passthrough_volume_test);
+    tcase_set_timeout(tc, 5);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);
