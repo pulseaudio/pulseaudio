@@ -1173,6 +1173,7 @@ static pa_bluetooth_adapter* adapter_create(pa_bluetooth_discovery *y, const cha
     a = pa_xnew0(pa_bluetooth_adapter, 1);
     a->discovery = y;
     a->path = pa_xstrdup(path);
+    a->uuids = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, pa_xfree);
 
     pa_hashmap_put(y->adapters, a->path, a);
 
@@ -1373,6 +1374,30 @@ static void parse_adapter_properties(pa_bluetooth_adapter *a, DBusMessageIter *i
             dbus_message_iter_get_basic(&variant_i, &value);
             a->address = pa_xstrdup(value);
             a->valid = true;
+        } else if (dbus_message_iter_get_arg_type(&variant_i) == DBUS_TYPE_ARRAY) {
+            DBusMessageIter ai;
+            dbus_message_iter_recurse(&variant_i, &ai);
+
+            if (dbus_message_iter_get_arg_type(&ai) == DBUS_TYPE_STRING && pa_streq(key, "UUIDs")) {
+                pa_hashmap_remove_all(a->uuids);
+                while (dbus_message_iter_get_arg_type(&ai) != DBUS_TYPE_INVALID) {
+                    const char *value;
+                    char *uuid;
+
+                    dbus_message_iter_get_basic(&ai, &value);
+
+                    if (pa_hashmap_get(a->uuids, value)) {
+                        dbus_message_iter_next(&ai);
+                        continue;
+                    }
+
+                    uuid = pa_xstrdup(value);
+                    pa_hashmap_put(a->uuids, uuid, uuid);
+
+                    pa_log_debug("%s: %s", key, value);
+                    dbus_message_iter_next(&ai);
+                }
+            }
         }
 
         dbus_message_iter_next(&element_i);
