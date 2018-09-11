@@ -2198,6 +2198,9 @@ static int add_card(struct userdata *u) {
         if (pa_hashmap_get(data.profiles, pa_bluetooth_profile_to_string(profile)))
             continue;
 
+        if (!pa_bluetooth_device_supports_profile(d, profile))
+            continue;
+
         cp = create_card_profile(u, profile, data.ports);
         pa_hashmap_put(data.profiles, cp->name, cp);
     }
