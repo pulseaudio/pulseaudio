@@ -2195,11 +2195,18 @@ static int add_card(struct userdata *u) {
         if (uuid_to_profile(uuid, &profile) < 0)
             continue;
 
-        if (pa_hashmap_get(data.profiles, pa_bluetooth_profile_to_string(profile)))
-            continue;
+        pa_log_debug("Trying to create profile %s (%s) for device %s (%s)",
+                     pa_bluetooth_profile_to_string(profile), uuid, d->alias, d->address);
 
-        if (!pa_bluetooth_device_supports_profile(d, profile))
+        if (pa_hashmap_get(data.profiles, pa_bluetooth_profile_to_string(profile))) {
+            pa_log_debug("%s already exists", pa_bluetooth_profile_to_string(profile));
             continue;
+        }
+
+        if (!pa_bluetooth_device_supports_profile(d, profile)) {
+            pa_log_debug("%s is not supported by the device or adapter", pa_bluetooth_profile_to_string(profile));
+            continue;
+        }
 
         cp = create_card_profile(u, profile, data.ports);
         pa_hashmap_put(data.profiles, cp->name, cp);
