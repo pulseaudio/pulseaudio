@@ -1,3 +1,5 @@
+configure_file(input : 'version.h.in', output :  'version.h', configuration : cdata)
+
 libpulse_sources = [
   'channelmap.c',
   'context.c',
