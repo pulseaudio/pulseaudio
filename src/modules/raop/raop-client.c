@@ -555,7 +555,7 @@ static size_t build_udp_sync_packet(pa_raop_client *c, uint32_t stamp, uint32_t 
         buffer[0] |= 0x10;
     stamp -= delay;
     buffer[1] = htonl(stamp);
-    /* Set the transmited timestamp to current time. */
+    /* Set the transmitted timestamp to current time. */
     transmitted = timeval_to_ntp(pa_rtclock_get(&tv));
     buffer[2] = htonl(transmitted >> 32);
     buffer[3] = htonl(transmitted & 0xffffffff);
