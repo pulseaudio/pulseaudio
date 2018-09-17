@@ -13,6 +13,10 @@ build:
     - make check-daemon
     - ulimit -c 0 # don't dump core files on tests that are supposed to assert
     - make distcheck
+    - cd ..
+    - meson . build-meson
+    - ninja -C build-meson
   artifacts:
     paths:
       - build/
+      - build-meson/

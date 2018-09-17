@@ -41,6 +41,8 @@ RUN apt-get update && apt-get install -y \
     libxml-parser-perl \
     libxtst-dev \
     make \
+    meson \
+    ninja-build \
     systemd
 
 # Add a user and set as default for the build. This is safer, in general, and
