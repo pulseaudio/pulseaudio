@@ -106,7 +106,7 @@ static void raop_state_cb(pa_raop_state_t state, void *userdata) {
 
     pa_assert(u);
 
-    pa_log_debug("State change recieved, informing IO thread...");
+    pa_log_debug("State change received, informing IO thread...");
 
     pa_asyncmsgq_post(u->thread_mq.inq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_SET_RAOP_STATE, PA_INT_TO_PTR(state), 0, NULL, NULL);
 }
