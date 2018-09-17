@@ -2212,7 +2212,7 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
             /* When the ofono backend resumes source or sink when in the audio gateway role, the
              * state of source or sink may already be RUNNING before the transport is acquired via
              * hf_audio_agent_new_connection(), so the pa_source_suspend() call will not lead to a
-             * state change message. In this case we explicitely need to signal the I/O thread to
+             * state change message. In this case we explicitly need to signal the I/O thread to
              * set up the stream. */
             if (PA_SOURCE_IS_OPENED(u->source->state))
                 pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), PA_SOURCE_MESSAGE_SETUP_STREAM, NULL, 0, NULL);
