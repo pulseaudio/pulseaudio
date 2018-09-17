@@ -410,7 +410,7 @@ Changes at a glance:
   * Better support for multichannel and 2.1 profiles
   * Protocol optimisations
   * Remap optimisations
-  * Lots of other enhancements, bug fixes, and documenation and i18n updates
+  * Lots of other enhancements, bug fixes, and documentation and i18n updates
 
 Detailed change log:
 
@@ -485,7 +485,7 @@ Changes at a glance:
   * Improved float->s16 and s16->float sample conversion for ARM NEON
   * "Available" flag for card profiles
   * Removed module-dbus-protocol from the default configuration
-  * Lots of other enhancements, bug fixes, and documenation and i18n updates
+  * Lots of other enhancements, bug fixes, and documentation and i18n updates
 
 Detailed change log:
 
@@ -550,7 +550,7 @@ Changes at a glance:
   * Echo canceller infrastructure fixes
   * Bash and zsh completion for command line tools
   * Solaris and OS X fixes
-  * Lots of other enhancements, bug fixes, and documenation and i18n updates
+  * Lots of other enhancements, bug fixes, and documentation and i18n updates
 
 Detailed change log:
 
