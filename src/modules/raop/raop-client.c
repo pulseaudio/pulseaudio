@@ -232,7 +232,7 @@ static inline void bit_writer(uint8_t **buffer, uint8_t *bit_pos, size_t *size, 
     if (!data_bit_len)
         return;
 
-    /* If bit pos is zero, we will definately use at least one bit from the current byte so size increments. */
+    /* If bit pos is zero, we will definitely use at least one bit from the current byte so size increments. */
     if (!*bit_pos)
         *size += 1;
 
