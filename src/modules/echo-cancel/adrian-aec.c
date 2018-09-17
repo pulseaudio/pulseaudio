@@ -116,7 +116,7 @@ void AEC_done(AEC *a) {
 
 // Adrian soft decision DTD
 // (Dual Average Near-End to Far-End signal Ratio DTD)
-// This algorithm uses exponential smoothing with differnt
+// This algorithm uses exponential smoothing with different
 // ageing parameters to get fast and slow near-end and far-end
 // signal averages. The ratio of NFRs term
 // (dfast / xfast) / (dslow / xslow) is used to compute the stepsize
