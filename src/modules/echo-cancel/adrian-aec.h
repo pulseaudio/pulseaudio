@@ -286,7 +286,7 @@ public:
 #endif
 
 
-// Extention in taps to reduce mem copies
+// Extension in taps to reduce mem copies
 #define NLMS_EXT  (10*8)
 
 // block size in taps to optimize DTD calculation
