@@ -25,7 +25,7 @@ try:
 except ImportError as e:
     sys.stderr.write('There was an error importing needed libraries\n'
                      'Make sure you have qt5 and dbus-python installed\n'
-                     'The error that occured was:\n'
+                     'The error that occurred was:\n'
                      '\t%s\n' % (str(e)))
     sys.exit(-1)
 
