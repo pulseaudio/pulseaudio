@@ -54,7 +54,7 @@ void *pa_dynarray_last(pa_dynarray *array);
 int pa_dynarray_remove_by_index(pa_dynarray *array, unsigned i);
 
 /* Returns -PA_ERR_NOENTITY if p is not found in the array, and zero
- * otherwise. If the array contains multiple occurrencies of p, only one of
+ * otherwise. If the array contains multiple occurrences of p, only one of
  * them is removed (and it's unspecified which one). */
 int pa_dynarray_remove_by_data(pa_dynarray *array, void *p);
 
