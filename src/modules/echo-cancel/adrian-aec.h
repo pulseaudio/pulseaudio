@@ -96,7 +96,7 @@
 
 /* Double Talk Detector Speaker/Microphone Threshold. Range <=1
  * Large value (M0dB) is good for Single-Talk Echo cancellation,
- * small value (M12dB) is good for Doulbe-Talk AEC */
+ * small value (M12dB) is good for Double-Talk AEC */
 #define GeigelThreshold M6dB
 
 /* for Non Linear Processor. Range >0 to 1. Large value (M0dB) is good
