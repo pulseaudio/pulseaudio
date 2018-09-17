@@ -204,7 +204,7 @@ static void resolver_cb(
             /* Transport protocol:
              *  - TCP = only TCP,
              *  - UDP = only UDP,
-             *  - TCP,UDP = both supported (UDP should be prefered) */
+             *  - TCP,UDP = both supported (UDP should be preferred) */
             pa_xfree(tp);
             if (pa_str_in_list(value, ",", "UDP"))
                 tp = pa_xstrdup("UDP");
