@@ -15,7 +15,7 @@
 
 ; Mixer path for PulseAudio's ALSA backend, common elements for all
 ; input paths. If multiple options by the same id are discovered they
-; will be suffixed with a number to distuingish them, in the same
+; will be suffixed with a number to distinguish them, in the same
 ; order they appear here.
 ;
 ; Source selection should use the following names:
