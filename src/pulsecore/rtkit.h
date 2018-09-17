@@ -61,7 +61,7 @@ int rtkit_make_high_priority(DBusConnection *system_bus, pid_t thread, int nice_
  */
 int rtkit_get_max_realtime_priority(DBusConnection *system_bus);
 
-/* Retreive the minimum value of nice level available. High prio requests
+/* Retrieve the minimum value of nice level available. High prio requests
  * below this value will fail. The returned value is a negative errno
  * style error code, or 0 on success.*/
 int rtkit_get_min_nice_level(DBusConnection *system_bus, int* min_nice_level);
