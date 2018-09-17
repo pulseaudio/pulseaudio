@@ -780,7 +780,7 @@ endif
 libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += $(GLIB20_CFLAGS) $(GTK30_CFLAGS)
 
 ## Please note that libpulsecommon implicitly also depends on<
-## libpulse! i.e. we have a cyclic dependancy here. Which is intended
+## libpulse! i.e. we have a cyclic dependency here. Which is intended
 ## since libpulse only includes stable, official APIs, while
 ## libpulsecommon only includes unofficial APIs.
 
