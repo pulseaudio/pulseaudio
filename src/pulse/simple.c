@@ -474,7 +474,7 @@ pa_usec_t pa_simple_get_latency(pa_simple *p, int *rerror) {
                  * been consumed, which means that pa_stream_get_latency() will
                  * return too large values, because the whole size of the
                  * partially read chunk is included in the latency. Therefore,
-                 * we need to substract the already-read amount from the
+                 * we need to subtract the already-read amount from the
                  * latency. */
                 already_read = pa_bytes_to_usec(p->read_index, pa_stream_get_sample_spec(p->stream));
 
