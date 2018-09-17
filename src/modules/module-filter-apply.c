@@ -162,7 +162,7 @@ static const char* get_filter_parameters(pa_object *o, const char *want, bool is
 
 /* This function is used to set or unset the filter related stream properties. This is necessary
  * if a stream does not have filter.apply set and is manually moved to a filter sink or source.
- * In this case, the properies must be temporarily set and removed when the stream is moved away
+ * In this case, the properties must be temporarily set and removed when the stream is moved away
  * from the filter. */
 static void set_filter_properties(pa_proplist *pl, struct filter *filter, bool set_properties) {
     char *prop_parameters;
