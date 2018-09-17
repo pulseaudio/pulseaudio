@@ -1682,7 +1682,7 @@ that you enable D-Bus support if your platform supports it.
 Many parts of PulseAudio use D-Bus, from ConsoleKit interaction
 to the Device Reservation Protocol to speak to JACK, Bluetooth
 support and even a native control protocol for communicating and
-controling the PulseAudio daemon itself.
+controlling the PulseAudio daemon itself.
 ===== WARNING WARNING WARNING WARNING WARNING WARNING WARNING =====
 "
 fi
