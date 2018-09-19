@@ -456,7 +456,7 @@ static void fix_record_buffer_attr_pre(record_stream *s) {
          * guarantee it. */
 
         if (fragsize_usec != s->configured_source_latency)
-            pa_log_debug("Could not configure a sufficiently low latency. Early requests might not be satisifed.");
+            pa_log_debug("Could not configure a sufficiently low latency. Early requests might not be satisfied.");
 
     } else if (s->adjust_latency) {
 
@@ -888,7 +888,7 @@ static void fix_playback_buffer_attr(playback_stream *s) {
          * guarantee it. */
 
         if (minreq_usec != s->configured_sink_latency)
-            pa_log_debug("Could not configure a sufficiently low latency. Early requests might not be satisifed.");
+            pa_log_debug("Could not configure a sufficiently low latency. Early requests might not be satisfied.");
 
     } else if (s->adjust_latency) {
 
