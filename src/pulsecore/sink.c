@@ -1512,6 +1512,10 @@ int pa_sink_reconfigure(pa_sink *s, pa_sample_spec *spec, pa_channel_map *map, b
         /* Save the previous sample spec and channel map, we will try to restore it when leaving passthrough */
         s->saved_spec = s->sample_spec;
         s->saved_map = s->channel_map;
+
+        /* Save the volume, we're going to reset it to NORM while in passthrough */
+        s->saved_volume = *pa_sink_get_volume(s, true);
+        s->saved_save_volume = s->save_volume;
     }
 
     if (restore) {
@@ -1597,20 +1601,44 @@ int pa_sink_reconfigure(pa_sink *s, pa_sample_spec *spec, pa_channel_map *map, b
             pa_sink_input_update_resampler(i);
     }
 
-    if (!pa_channel_map_equal(&old_map, &s->channel_map)) {
-        /* Remap stored volumes to the new channel map */
+    if (!restore && !pa_channel_map_equal(&old_map, &s->channel_map)) {
+        /* Remap stored volumes to the new channel map if we're not just restoring a previously saved volume */
         pa_cvolume_remap(&s->reference_volume, &old_map, &s->channel_map);
         pa_cvolume_remap(&s->real_volume, &old_map, &s->channel_map);
         pa_cvolume_remap(&s->soft_volume, &old_map, &s->channel_map);
     }
 
-    pa_sink_suspend(s, false, PA_SUSPEND_INTERNAL);
+    if (passthrough) {
+        /* set the volume to NORM */
+        pa_cvolume volume;
+
+        pa_cvolume_set(&volume, s->sample_spec.channels, PA_MIN(s->base_volume, PA_VOLUME_NORM));
+        pa_sink_set_volume(s, &volume, true, false);
+
+        /* disable the monitor in passthrough mode */
+        if (s->monitor_source) {
+            pa_log_debug("Suspending monitor source %s, because the sink is entering the passthrough mode.", s->monitor_source->name);
+            pa_source_suspend(s->monitor_source, true, PA_SUSPEND_PASSTHROUGH);
+        }
+    }
 
     if (restore) {
         /* Reset saved spec and channel map so we don't try to restore it again */
         pa_sample_spec_init(&s->saved_spec);
         pa_channel_map_init(&s->saved_map);
+
+        /* Restore sink volume to what it was before we entered passthrough mode */
+        pa_sink_set_volume(s, &s->saved_volume, true, s->saved_save_volume);
+        pa_cvolume_init(&s->saved_volume);
+        s->saved_save_volume = false;
+
+        if (s->monitor_source) {
+            pa_log_debug("Resuming monitor source %s, because the sink is leaving the passthrough mode.", s->monitor_source->name);
+            pa_source_suspend(s->monitor_source, false, PA_SUSPEND_PASSTHROUGH);
+        }
     }
+
+    pa_sink_suspend(s, false, PA_SUSPEND_INTERNAL);
 
     return ret;
 }
@@ -1729,46 +1757,6 @@ bool pa_sink_is_passthrough(pa_sink *s) {
     }
 
     return false;
-}
-
-/* Called from main context */
-void pa_sink_enter_passthrough(pa_sink *s) {
-    pa_cvolume volume;
-
-    /* The sink implementation is reconfigured for passthrough in
-     * pa_sink_reconfigure(). This function sets the PA core objects to
-     * passthrough mode. */
-
-    /* disable the monitor in passthrough mode */
-    if (s->monitor_source) {
-        pa_log_debug("Suspending monitor source %s, because the sink is entering the passthrough mode.", s->monitor_source->name);
-        pa_source_suspend(s->monitor_source, true, PA_SUSPEND_PASSTHROUGH);
-    }
-
-    /* set the volume to NORM */
-    s->saved_volume = *pa_sink_get_volume(s, true);
-    s->saved_save_volume = s->save_volume;
-
-    pa_cvolume_set(&volume, s->sample_spec.channels, PA_MIN(s->base_volume, PA_VOLUME_NORM));
-    pa_sink_set_volume(s, &volume, true, false);
-
-    pa_log_debug("Suspending/Restarting sink %s to enter passthrough mode", s->name);
-}
-
-/* Called from main context */
-void pa_sink_leave_passthrough(pa_sink *s) {
-    /* Unsuspend monitor */
-    if (s->monitor_source) {
-        pa_log_debug("Resuming monitor source %s, because the sink is leaving the passthrough mode.", s->monitor_source->name);
-        pa_source_suspend(s->monitor_source, false, PA_SUSPEND_PASSTHROUGH);
-    }
-
-    /* Restore sink volume to what it was before we entered passthrough mode */
-    pa_sink_set_volume(s, &s->saved_volume, true, s->saved_save_volume);
-
-    pa_cvolume_init(&s->saved_volume);
-    s->saved_save_volume = false;
-
 }
 
 /* Called from main context. */

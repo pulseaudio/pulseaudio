@@ -474,9 +474,6 @@ bool pa_sink_is_filter(pa_sink *s);
 /* Is the sink in passthrough mode? (that is, is there a passthrough sink input
  * connected to this sink? */
 bool pa_sink_is_passthrough(pa_sink *s);
-/* These should be called when a sink enters/leaves passthrough mode */
-void pa_sink_enter_passthrough(pa_sink *s);
-void pa_sink_leave_passthrough(pa_sink *s);
 
 void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume, bool sendmsg, bool save);
 const pa_cvolume *pa_sink_get_volume(pa_sink *sink, bool force_refresh);

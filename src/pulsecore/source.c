@@ -1091,6 +1091,10 @@ int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, pa_channel_map *ma
         /* Save the previous sample spec and channel map, we will try to restore it when leaving passthrough */
         s->saved_spec = s->sample_spec;
         s->saved_map = s->channel_map;
+
+        /* Save the volume, we're going to reset it to NORM while in passthrough */
+        s->saved_volume = *pa_source_get_volume(s, true);
+        s->saved_save_volume = s->save_volume;
     }
 
     if (restore) {
@@ -1205,8 +1209,8 @@ int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, pa_channel_map *ma
         }
     }
 
-    if (!pa_channel_map_equal(&old_map, &s->channel_map)) {
-        /* Remap stored volumes to the new channel map */
+    if (!restore && !pa_channel_map_equal(&old_map, &s->channel_map)) {
+        /* Remap stored volumes to the new channel map if we're not just restoring a previously saved volume */
         pa_cvolume_remap(&s->reference_volume, &old_map, &s->channel_map);
         pa_cvolume_remap(&s->real_volume, &old_map, &s->channel_map);
         pa_cvolume_remap(&s->soft_volume, &old_map, &s->channel_map);
@@ -1214,10 +1218,23 @@ int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, pa_channel_map *ma
 
     pa_log_info("Reconfigured successfully");
 
+    if (passthrough) {
+        /* set the volume to NORM */
+        pa_cvolume volume;
+
+        pa_cvolume_set(&volume, s->sample_spec.channels, PA_MIN(s->base_volume, PA_VOLUME_NORM));
+        pa_source_set_volume(s, &volume, true, false);
+    }
+
     if (restore) {
         /* Reset saved spec and channel map so we don't try to restore it again */
         pa_sample_spec_init(&s->saved_spec);
         pa_channel_map_init(&s->saved_map);
+
+        /* Restore source volume to what it was before we entered passthrough mode */
+        pa_source_set_volume(s, &s->saved_volume, true, s->saved_save_volume);
+        pa_cvolume_init(&s->saved_volume);
+        s->saved_save_volume = false;
     }
 
 unsuspend:
@@ -1329,27 +1346,6 @@ bool pa_source_is_passthrough(pa_source *s) {
 
     /* NB Currently only monitor sources support passthrough mode */
     return (s->monitor_of && pa_sink_is_passthrough(s->monitor_of));
-}
-
-/* Called from main context */
-void pa_source_enter_passthrough(pa_source *s) {
-    pa_cvolume volume;
-
-    /* set the volume to NORM */
-    s->saved_volume = *pa_source_get_volume(s, true);
-    s->saved_save_volume = s->save_volume;
-
-    pa_cvolume_set(&volume, s->sample_spec.channels, PA_MIN(s->base_volume, PA_VOLUME_NORM));
-    pa_source_set_volume(s, &volume, true, false);
-}
-
-/* Called from main context */
-void pa_source_leave_passthrough(pa_source *s) {
-    /* Restore source volume to what it was before we entered passthrough mode */
-    pa_source_set_volume(s, &s->saved_volume, true, s->saved_save_volume);
-
-    pa_cvolume_init(&s->saved_volume);
-    s->saved_save_volume = false;
 }
 
 /* Called from main context. */

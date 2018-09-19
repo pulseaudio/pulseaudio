@@ -716,9 +716,6 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     i->state = PA_SINK_INPUT_UNLINKED;
 
     if (linked && i->sink) {
-        if (pa_sink_input_is_passthrough(i))
-            pa_sink_leave_passthrough(i->sink);
-
         /* We might need to update the sink's volume if we are in flat volume mode. */
         if (pa_sink_flat_volume_enabled(i->sink))
             pa_sink_set_volume(i->sink, NULL, false, false);
@@ -830,9 +827,6 @@ void pa_sink_input_put(pa_sink_input *i) {
 
         set_real_ratio(i, &i->volume);
     }
-
-    if (pa_sink_input_is_passthrough(i))
-        pa_sink_enter_passthrough(i->sink);
 
     i->thread_info.soft_volume = i->soft_volume;
     i->thread_info.muted = i->muted;
@@ -1744,9 +1738,6 @@ int pa_sink_input_start_move(pa_sink_input *i) {
     if (i->state == PA_SINK_INPUT_CORKED)
         pa_assert_se(i->sink->n_corked-- >= 1);
 
-    if (pa_sink_input_is_passthrough(i))
-        pa_sink_leave_passthrough(i->sink);
-
     if (pa_sink_flat_volume_enabled(i->sink))
         /* We might need to update the sink's volume if we are in flat
          * volume mode. */
@@ -1964,9 +1955,6 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, bool save) {
     pa_sink_update_status(dest);
 
     update_volume_due_to_moving(i, dest);
-
-    if (pa_sink_input_is_passthrough(i))
-        pa_sink_enter_passthrough(i->sink);
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_FINISH_MOVE, i, 0, NULL) == 0);
 

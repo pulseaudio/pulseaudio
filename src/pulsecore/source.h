@@ -406,9 +406,6 @@ bool pa_source_is_filter(pa_source *s);
 /* Is the source in passthrough mode? (that is, is this a monitor source for a sink
  * that has a passthrough sink input connected to it. */
 bool pa_source_is_passthrough(pa_source *s);
-/* These should be called when a source enters/leaves passthrough mode */
-void pa_source_enter_passthrough(pa_source *s);
-void pa_source_leave_passthrough(pa_source *s);
 
 void pa_source_set_volume(pa_source *source, const pa_cvolume *volume, bool sendmsg, bool save);
 const pa_cvolume *pa_source_get_volume(pa_source *source, bool force_refresh);
