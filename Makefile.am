@@ -28,6 +28,7 @@ EXTRA_DIST = \
 	doxygen/doxygen.conf.in \
 	PROTOCOL \
 	README \
+	CODE_OF_CONDUCT.md \
 	scripts/benchmark_memory_usage.sh \
 	scripts/plot_memory_usage.gp \
 	scripts/benchmarks/README \
