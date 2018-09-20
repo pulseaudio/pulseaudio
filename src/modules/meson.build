@@ -80,10 +80,6 @@ all_modules = [
   [ 'module-virtual-surround-sink', 'module-virtual-surround-sink.c' ],
   [ 'module-volume-restore', 'module-volume-restore.c' ],
 #  [ 'module-waveout', 'module-waveout.c' ],
-#  [ 'module-x11-bell', 'x11/module-x11-bell.c' ],
-#  [ 'module-x11-cork-request', 'x11/module-x11-cork-request.c' ],
-#  [ 'module-x11-publish', 'x11/module-x11-publish.c' ],
-#  [ 'module-x11-xsmp', 'x11/module-x11-xsmp.c' ],
 #  [ 'module-zeroconf-discover', 'module-zeroconf-discover.c' ],
 #  [ 'module-zeroconf-publish', 'module-zeroconf-publish.c' ],
 ]
@@ -136,6 +132,23 @@ endif
 
 if udev_dep.found()
   all_modules += [ [ 'module-udev-detect', 'module-udev-detect.c', [], [], [udev_dep] ] ]
+endif
+
+if x11_dep.found()
+  all_modules += [
+    [ 'module-x11-bell', 'x11/module-x11-bell.c', [], [], [x11_dep] ],
+    [ 'module-x11-publish', 'x11/module-x11-publish.c', [], [], [x11_dep], libprotocol_native ],
+  ]
+  if xtst_dep.found()
+    all_modules += [
+      [ 'module-x11-cork-request', 'x11/module-x11-cork-request.c', [], [], [x11_dep, xtst_dep] ],
+    ]
+  endif
+  if ice_dep.found() and sm_dep.found()
+    all_modules += [
+      [ 'module-x11-xsmp', 'x11/module-x11-xsmp.c', [], [], [x11_dep, ice_dep, sm_dep] ],
+    ]
+  endif
 endif
 
 foreach m : all_modules

@@ -126,6 +126,11 @@ if dbus_dep.found()
   ]
 endif
 
+if x11_dep.found()
+  libpulsecore_sources += ['x11wrap.c']
+  libpulsecore_headers += ['x11wrap.h']
+endif
+
 # FIXME: walk through dependencies and add files
 
 # FIXME: SIMD support (ORC)

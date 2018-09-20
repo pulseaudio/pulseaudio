@@ -228,6 +228,11 @@ cdata.set('DISABLE_ORC', 1)
 
 # Module dependencies
 
+# X11 deps, we don't define any HAVE_XXX for these one
+ice_dep = dependency('ice', required : false)
+sm_dep = dependency('sm', required: false)
+xtst_dep = dependency('xtst', required: false)
+
 avahi_dep = dependency('avahi-client', version : '>= 0.6.0', required : false)
 if avahi_dep.found()
   cdata.set('HAVE_AVAHI', 1)
