@@ -159,12 +159,52 @@ libpulsecore = shared_library('pulsecore-' + pa_version_major_minor,
 
 libpulsecore_dep = declare_dependency(link_with: libpulsecore)
 
-# For modules that need protocol native functionality
+# Internal libraries for modules
+# TODO: understand 'c_args' and 'dependencies' better, maybe we can remove some
+
+libcli = shared_library('cli',
+  'cli.c',
+  'cli.h',
+  c_args : [pa_c_args, server_c_args, database_c_args],
+  include_directories : [configinc, topinc],
+  dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep],
+  install : true
+)
+
+libcli_dep = declare_dependency(link_with: libcli)
+
+libprotocol_cli = shared_library('protocol_cli',
+  'protocol-cli.c',
+  'protocol-cli.h',
+  c_args : [pa_c_args, server_c_args, database_c_args],
+  include_directories : [configinc, topinc],
+  dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep, libcli_dep],
+  install : true
+)
+
+libprotocol_http = shared_library('protocol_http',
+  ['protocol-http.c', 'mime-type.c'],
+  ['protocol-http.h', 'mime-type.h'],
+  c_args : [pa_c_args, server_c_args, database_c_args],
+  include_directories : [configinc, topinc],
+  dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep],
+  install : true
+)
+
 libprotocol_native = shared_library('protocol_native',
   'protocol-native.c',
   ['protocol-native.h', 'native-common.h'],
   c_args : [pa_c_args, server_c_args, database_c_args],
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep, dbus_dep],
+  install : true
+)
+
+libprotocol_simple = shared_library('protocol_simple',
+  'protocol-simple.c',
+  'protocol-simple.h',
+  c_args : [pa_c_args, server_c_args, database_c_args],
+  include_directories : [configinc, topinc],
+  dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep],
   install : true
 )
