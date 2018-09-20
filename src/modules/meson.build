@@ -119,9 +119,13 @@ endif
 
 if openssl_dep.found()
   all_modules += [
-#  [ 'module-raop-discover', 'raop/module-raop-discover.c' ],
     [ 'module-raop-sink', 'raop/module-raop-sink.c', [], [], [], libraop ],
   ]
+  if avahi_dep.found()
+    all_modules += [
+      [ 'module-raop-discover', 'raop/module-raop-discover.c', [], [], [avahi_dep], libavahi_wrap ],
+    ]
+  endif
 endif
 
 if systemd_dep.found()

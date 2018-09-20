@@ -228,6 +228,11 @@ cdata.set('DISABLE_ORC', 1)
 
 # Module dependencies
 
+avahi_dep = dependency('avahi-client', version : '>= 0.6.0', required : false)
+if avahi_dep.found()
+  cdata.set('HAVE_AVAHI', 1)
+endif
+
 jack_dep = dependency('jack', version : '>= 0.117.0', required : false)
 if jack_dep.found()
   cdata.set('HAVE_JACK', 1)

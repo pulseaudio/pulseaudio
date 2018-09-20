@@ -162,6 +162,16 @@ libpulsecore_dep = declare_dependency(link_with: libpulsecore)
 # Internal libraries for modules
 # TODO: understand 'c_args' and 'dependencies' better, maybe we can remove some
 
+libavahi_wrap = shared_library('avahi_wrap',
+  'avahi-wrap.c',
+  'avahi-wrap.h',
+  c_args : [pa_c_args, server_c_args, database_c_args],
+  include_directories : [configinc, topinc],
+  dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep, avahi_dep],
+  implicit_include_directories : false, # pulsecore/poll.h <vs> /usr/include/poll.h
+  install : true
+)
+
 libcli = shared_library('cli',
   'cli.c',
   'cli.h',
