@@ -44,7 +44,6 @@ all_modules = [
 #  [ 'module-lirc', 'module-lirc.c' ],
   [ 'module-loopback', 'module-loopback.c' ],
   [ 'module-match', 'module-match.c' ],
-#  [ 'module-mmkbd-evdev', 'module-mmkbd-evdev.c' ],
   [ 'module-native-protocol-fd', 'module-native-protocol-fd.c', [], [], [], libprotocol_native ],
   [ 'module-native-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_NATIVE', '-DUSE_TCP_SOCKETS'], [], libprotocol_native ],
   [ 'module-native-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_NATIVE', '-DUSE_UNIX_SOCKETS'], [], libprotocol_native ],
@@ -81,6 +80,16 @@ all_modules = [
   [ 'module-volume-restore', 'module-volume-restore.c' ],
 #  [ 'module-waveout', 'module-waveout.c' ],
 ]
+
+# Modules enabled by headers
+
+if cc.has_header('linux/input.h')
+  all_modules += [
+    [ 'module-mmkbd-evdev', 'module-mmkbd-evdev.c' ],
+  ]
+endif
+
+# Modules enabled by dependencies
 
 if alsa_dep.found()
   subdir('alsa')
