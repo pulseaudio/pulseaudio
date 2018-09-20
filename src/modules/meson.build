@@ -80,8 +80,6 @@ all_modules = [
   [ 'module-virtual-surround-sink', 'module-virtual-surround-sink.c' ],
   [ 'module-volume-restore', 'module-volume-restore.c' ],
 #  [ 'module-waveout', 'module-waveout.c' ],
-#  [ 'module-zeroconf-discover', 'module-zeroconf-discover.c' ],
-#  [ 'module-zeroconf-publish', 'module-zeroconf-publish.c' ],
 ]
 
 if alsa_dep.found()
@@ -90,6 +88,13 @@ if alsa_dep.found()
     [ 'module-alsa-card', 'alsa/module-alsa-card.c', [], [], [alsa_dep, libm_dep], libalsa_util ],
     [ 'module-alsa-sink', 'alsa/module-alsa-sink.c', [], [], [alsa_dep, libm_dep], libalsa_util ],
     [ 'module-alsa-source', 'alsa/module-alsa-source.c', [], [], [alsa_dep, libm_dep], libalsa_util ],
+  ]
+endif
+
+if avahi_dep.found()
+  all_modules += [
+    [ 'module-zeroconf-discover', 'module-zeroconf-discover.c', [], [], [avahi_dep], libavahi_wrap ],
+    [ 'module-zeroconf-publish', 'module-zeroconf-publish.c', [], [], [avahi_dep, dbus_dep], [libavahi_wrap, libprotocol_native] ],
   ]
 endif
 
