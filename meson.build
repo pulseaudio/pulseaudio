@@ -216,6 +216,13 @@ if alsa_dep.found()
   cdata.set('HAVE_ALSA_UCM', 1)
 endif
 
+systemd_dep = dependency('libsystemd', required : false)
+if systemd_dep.found()
+  cdata.set('HAVE_SYSTEMD_DAEMON', 1)
+  cdata.set('HAVE_SYSTEMD_LOGIN', 1)
+  cdata.set('HAVE_SYSTEMD_JOURNAL', 1)
+endif
+
 # FIXME: support ORC
 cdata.set('DISABLE_ORC', 1)
 
