@@ -20,7 +20,6 @@ all_modules = [
 #  [ 'module-console-kit', 'module-console-kit.c' ],
 #  [ 'module-coreaudio-detect', 'macosx/module-coreaudio-detect.c' ],
 #  [ 'module-coreaudio-device', 'macosx/module-coreaudio-device.c' ],
-#  [ 'module-dbus-protocol', 'module-dbus-protocol.c' ]
   [ 'module-default-device-restore', 'module-default-device-restore.c', [], [], [], libprotocol_native ],
   [ 'module-detect', 'module-detect.c' ],
   [ 'module-device-manager', 'module-device-manager.c', [], [], [], libprotocol_native ],
@@ -97,6 +96,13 @@ if alsa_dep.found()
     [ 'module-alsa-card', 'alsa/module-alsa-card.c', [], [], [alsa_dep, libm_dep], libalsa_util ],
     [ 'module-alsa-sink', 'alsa/module-alsa-sink.c', [], [], [alsa_dep, libm_dep], libalsa_util ],
     [ 'module-alsa-source', 'alsa/module-alsa-source.c', [], [], [alsa_dep, libm_dep], libalsa_util ],
+  ]
+endif
+
+if dbus_dep.found()
+  subdir('dbus')
+  all_modules += [
+    [ 'module-dbus-protocol', 'dbus/module-dbus-protocol.c', [], [], [dbus_dep], libdbus_util ],
   ]
 endif
 
