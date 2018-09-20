@@ -1,3 +1,5 @@
+subdir('rtp')
+
 # module name, sources, [headers, extra flags, extra deps, extra libs]
 all_modules = [
   [ 'module-allow-passthrough', 'module-allow-passthrough.c' ],
