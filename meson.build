@@ -221,6 +221,9 @@ cdata.set('DISABLE_ORC', 1)
 
 # Module dependencies
 udev_dep = dependency('libudev', version : '>= 143', required : false)
+if udev_dep.found()
+  cdata.set('HAVE_UDEV', 1)
+endif
 
 # Now generate config.h from everything above
 configure_file(output : 'config.h', configuration : cdata)
