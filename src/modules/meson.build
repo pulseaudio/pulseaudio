@@ -37,9 +37,7 @@ all_modules = [
   [ 'module-http-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_TCP_SOCKETS'], [], libprotocol_http ],
   [ 'module-http-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_UNIX_SOCKETS'], [], libprotocol_http ],
   [ 'module-intended-roles', 'module-intended-roles.c' ],
-#  [ 'module-jackdbus-detect', 'jack/module-jackdbus-detect.c' ],
-#  [ 'module-jack-sink', 'jack/module-jack-sink.c' ],
-#  [ 'module-jack-source', 'jack/module-jack-source.c' ],
+  [ 'module-jackdbus-detect', 'jack/module-jackdbus-detect.c', [], [], [dbus_dep] ],
 #  [ 'module-ladspa-sink', 'module-ladspa-sink.c' ],
 #  [ 'module-lirc', 'module-lirc.c' ],
   [ 'module-loopback', 'module-loopback.c' ],
@@ -109,6 +107,13 @@ endif
 if fftw_dep.found()
   all_modules += [
     [ 'module-equalizer-sink', 'module-equalizer-sink.c', [], [], [dbus_dep, fftw_dep, libm_dep] ],
+  ]
+endif
+
+if jack_dep.found()
+  all_modules += [
+    [ 'module-jack-sink', 'jack/module-jack-sink.c', [], [], [jack_dep] ],
+    [ 'module-jack-source', 'jack/module-jack-source.c', [], [], [jack_dep] ],
   ]
 endif
 

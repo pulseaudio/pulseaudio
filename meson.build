@@ -228,6 +228,11 @@ cdata.set('DISABLE_ORC', 1)
 
 # Module dependencies
 
+jack_dep = dependency('jack', version : '>= 0.117.0', required : false)
+if jack_dep.found()
+  cdata.set('HAVE_JACK', 1)
+endif
+
 fftw_dep = dependency('fftw3f', required : false)
 if fftw_dep.found()
   cdata.set('HAVE_FFTW', 1)
