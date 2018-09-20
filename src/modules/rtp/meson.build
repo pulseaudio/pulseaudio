@@ -22,3 +22,5 @@ librtp = shared_library('librtp',
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep],
   install : true
 )
+
+librtp_dep = declare_dependency(link_with: librtp)

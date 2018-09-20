@@ -238,6 +238,11 @@ if fftw_dep.found()
   cdata.set('HAVE_FFTW', 1)
 endif
 
+openssl_dep = dependency('openssl', version : '>= 0.9', required : false)
+if openssl_dep.found()
+  cdata.set('HAVE_OPENSSL', 1)
+endif
+
 udev_dep = dependency('libudev', version : '>= 143', required : false)
 if udev_dep.found()
   cdata.set('HAVE_UDEV', 1)

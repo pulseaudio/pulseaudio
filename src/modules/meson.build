@@ -1,4 +1,6 @@
+# Order matters! raop needs rtp!
 subdir('rtp')
+subdir('raop')
 
 # module name, sources, [headers, extra flags, extra deps, extra libs]
 all_modules = [
@@ -52,8 +54,6 @@ all_modules = [
   [ 'module-pipe-sink', 'module-pipe-sink.c' ],
   [ 'module-pipe-source', 'module-pipe-source.c' ],
   [ 'module-position-event-sounds', 'module-position-event-sounds.c' ],
-#  [ 'module-raop-discover', 'raop/module-raop-discover.c' ],
-#  [ 'module-raop-sink', 'raop/module-raop-sink.c' ],
   [ 'module-remap-sink', 'module-remap-sink.c' ],
   [ 'module-remap-source', 'module-remap-source.c' ],
   [ 'module-rescue-streams', 'module-rescue-streams.c' ],
@@ -114,6 +114,13 @@ if jack_dep.found()
   all_modules += [
     [ 'module-jack-sink', 'jack/module-jack-sink.c', [], [], [jack_dep] ],
     [ 'module-jack-source', 'jack/module-jack-source.c', [], [], [jack_dep] ],
+  ]
+endif
+
+if openssl_dep.found()
+  all_modules += [
+#  [ 'module-raop-discover', 'raop/module-raop-discover.c' ],
+    [ 'module-raop-sink', 'raop/module-raop-sink.c', [], [], [], libraop ],
   ]
 endif
 
