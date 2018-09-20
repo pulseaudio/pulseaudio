@@ -54,12 +54,12 @@
 #include <pulsecore/random.h>
 #include <pulsecore/poll.h>
 
+#include <modules/rtp/rtsp_client.h>
+
 #include "raop-client.h"
 #include "raop-packet-buffer.h"
 #include "raop-crypto.h"
 #include "raop-util.h"
-
-#include "rtsp_client.h"
 
 #define DEFAULT_RAOP_PORT 5000
 
