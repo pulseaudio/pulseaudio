@@ -45,7 +45,7 @@
 #include "alsa-mixer.h"
 
 #ifdef HAVE_UDEV
-#include "udev-util.h"
+#include <modules/udev-util.h>
 #endif
 
 static int set_format(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, pa_sample_format_t *f) {
