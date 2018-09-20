@@ -248,6 +248,11 @@ if fftw_dep.found()
   cdata.set('HAVE_FFTW', 1)
 endif
 
+lirc_dep = dependency('lirc', required : false)
+if lirc_dep.found()
+  cdata.set('HAVE_LIRC', 1)
+endif
+
 openssl_dep = dependency('openssl', version : '>= 0.9', required : false)
 if openssl_dep.found()
   cdata.set('HAVE_OPENSSL', 1)

@@ -41,7 +41,6 @@ all_modules = [
   [ 'module-intended-roles', 'module-intended-roles.c' ],
   [ 'module-jackdbus-detect', 'jack/module-jackdbus-detect.c', [], [], [dbus_dep] ],
 #  [ 'module-ladspa-sink', 'module-ladspa-sink.c' ],
-#  [ 'module-lirc', 'module-lirc.c' ],
   [ 'module-loopback', 'module-loopback.c' ],
   [ 'module-match', 'module-match.c' ],
   [ 'module-native-protocol-fd', 'module-native-protocol-fd.c', [], [], [], libprotocol_native ],
@@ -124,6 +123,12 @@ if jack_dep.found()
   all_modules += [
     [ 'module-jack-sink', 'jack/module-jack-sink.c', [], [], [jack_dep] ],
     [ 'module-jack-source', 'jack/module-jack-source.c', [], [], [jack_dep] ],
+  ]
+endif
+
+if lirc_dep.found()
+  all_modules += [
+    [ 'module-lirc', 'module-lirc.c', [], [], [lirc_dep] ],
   ]
 endif
 
