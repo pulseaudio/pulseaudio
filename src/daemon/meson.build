@@ -29,6 +29,6 @@ executable('pulseaudio',
   install: true,
   include_directories : [configinc, topinc],
   link_with : [libpulsecore, libpulsecommon, libpulse],
-  dependencies : [ltdl_dep, cap_dep, dbus_dep],
+  dependencies : [ltdl_dep, cap_dep, dbus_dep, systemd_dep],
   c_args : pa_c_args,
 )
