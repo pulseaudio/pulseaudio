@@ -12,9 +12,9 @@ all_modules = [
 #  [ 'module-bluez5-discover', 'bluetooth/module-bluez5-discover.c' ],
 #  [ 'module-bonjour-publish', 'macosx/module-bonjour-publish.c' ],
   [ 'module-card-restore', 'module-card-restore.c' ],
-  [ 'module-cli', 'module-cli.c' ],
-  [ 'module-cli-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_CLI', '-DUSE_TCP_SOCKETS'] ],
-  [ 'module-cli-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_CLI', '-DUSE_UNIX_SOCKETS'] ],
+  [ 'module-cli', 'module-cli.c', [], [], [], libcli ],
+  [ 'module-cli-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_CLI', '-DUSE_TCP_SOCKETS'], [], libprotocol_cli ],
+  [ 'module-cli-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_CLI', '-DUSE_UNIX_SOCKETS'], [], libprotocol_cli ],
   [ 'module-combine', 'module-combine.c' ],
   [ 'module-combine-sink', 'module-combine-sink.c' ],
 #  [ 'module-console-kit', 'module-console-kit.c' ],
@@ -23,7 +23,7 @@ all_modules = [
 #  [ 'module-dbus-protocol', 'module-dbus-protocol.c' ]
   [ 'module-default-device-restore', 'module-default-device-restore.c', [], [], [], libprotocol_native ],
   [ 'module-detect', 'module-detect.c' ],
-  [ 'module-device-manager', 'module-device-manager.c' ],
+  [ 'module-device-manager', 'module-device-manager.c', [], [], [], libprotocol_native ],
   [ 'module-device-restore', 'module-device-restore.c', [], [], [dbus_dep], libprotocol_native ],
 #  [ 'module-echo-cancel', 'module-echo-cancel.c' ],
   [ 'module-esound-compat-spawnfd', 'module-esound-compat-spawnfd.c' ],
@@ -35,8 +35,8 @@ all_modules = [
   [ 'module-filter-heuristics', 'module-filter-heuristics.c' ],
 #  [ 'module-gconf', 'gconf/module-gconf.c' ],
   [ 'module-hal-detect', 'module-hal-detect-compat.c' ],
-  [ 'module-http-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_TCP_SOCKETS'] ],
-  [ 'module-http-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_UNIX_SOCKETS'] ],
+  [ 'module-http-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_TCP_SOCKETS'], [], libprotocol_http ],
+  [ 'module-http-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_UNIX_SOCKETS'], [], libprotocol_http ],
   [ 'module-intended-roles', 'module-intended-roles.c' ],
 #  [ 'module-jackdbus-detect', 'jack/module-jackdbus-detect.c' ],
 #  [ 'module-jack-sink', 'jack/module-jack-sink.c' ],
@@ -46,7 +46,7 @@ all_modules = [
   [ 'module-loopback', 'module-loopback.c' ],
   [ 'module-match', 'module-match.c' ],
 #  [ 'module-mmkbd-evdev', 'module-mmkbd-evdev.c' ],
-  [ 'module-native-protocol-fd', 'module-native-protocol-fd.c' ],
+  [ 'module-native-protocol-fd', 'module-native-protocol-fd.c', [], [], [], libprotocol_native ],
   [ 'module-native-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_NATIVE', '-DUSE_TCP_SOCKETS'], [], libprotocol_native ],
   [ 'module-native-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_NATIVE', '-DUSE_UNIX_SOCKETS'], [], libprotocol_native ],
   [ 'module-null-sink', 'module-null-sink.c' ],
@@ -62,11 +62,11 @@ all_modules = [
   [ 'module-rescue-streams', 'module-rescue-streams.c' ],
   [ 'module-role-cork', ['module-role-cork.c', 'stream-interaction.c'], 'stream-interaction.h' ],
   [ 'module-role-ducking', ['module-role-ducking.c', 'stream-interaction.c'], 'stream-interaction.h' ],
-  [ 'module-rtp-recv', 'rtp/module-rtp-recv.c' ],
-  [ 'module-rtp-send', 'rtp/module-rtp-send.c' ],
-  [ 'module-rygel-media-server', 'module-rygel-media-server.c', [], [], [dbus_dep] ],
-  [ 'module-simple-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_SIMPLE', '-DUSE_TCP_SOCKETS'] ],
-  [ 'module-simple-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_SIMPLE', '-DUSE_UNIX_SOCKETS'] ],
+  [ 'module-rtp-recv', 'rtp/module-rtp-recv.c', [], [], [], librtp ],
+  [ 'module-rtp-send', 'rtp/module-rtp-send.c' , [], [], [], librtp ],
+  [ 'module-rygel-media-server', 'module-rygel-media-server.c', [], [], [dbus_dep], libprotocol_http ],
+  [ 'module-simple-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_SIMPLE', '-DUSE_TCP_SOCKETS'], [], libprotocol_simple ],
+  [ 'module-simple-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_SIMPLE', '-DUSE_UNIX_SOCKETS'], [], libprotocol_simple ],
   [ 'module-sine', 'module-sine.c' ],
   [ 'module-sine-source', 'module-sine-source.c' ],
 #  [ 'module-solaris', 'module-solaris.c' ],
@@ -74,9 +74,9 @@ all_modules = [
   [ 'module-suspend-on-idle', 'module-suspend-on-idle.c' ],
   [ 'module-switch-on-connect', 'module-switch-on-connect.c' ],
   [ 'module-switch-on-port-available', 'module-switch-on-port-available.c' ],
-  [ 'module-tunnel-sink', 'module-tunnel.c' ],
+  [ 'module-tunnel-sink', 'module-tunnel.c', [], [], [x11_dep] ],
   [ 'module-tunnel-sink-new', 'module-tunnel-sink-new.c' ],
-  [ 'module-tunnel-source', 'module-tunnel.c' ],
+  [ 'module-tunnel-source', 'module-tunnel.c', [], [], [x11_dep] ],
   [ 'module-tunnel-source-new', 'module-tunnel-source-new.c' ],
   [ 'module-virtual-sink', 'module-virtual-sink.c' ],
   [ 'module-virtual-source', 'module-virtual-source.c' ],
@@ -94,15 +94,15 @@ all_modules = [
 if alsa_dep.found()
   subdir('alsa')
   all_modules += [
-    [ 'module-alsa-card', 'alsa/module-alsa-card.c', [], [], [alsa_dep], libalsa_util ],
-    [ 'module-alsa-sink', 'alsa/module-alsa-sink.c', [], [], [alsa_dep], libalsa_util ],
-    [ 'module-alsa-source', 'alsa/module-alsa-source.c', [], [], [alsa_dep], libalsa_util ],
+    [ 'module-alsa-card', 'alsa/module-alsa-card.c', [], [], [alsa_dep, libm_dep], libalsa_util ],
+    [ 'module-alsa-sink', 'alsa/module-alsa-sink.c', [], [], [alsa_dep, libm_dep], libalsa_util ],
+    [ 'module-alsa-source', 'alsa/module-alsa-source.c', [], [], [alsa_dep, libm_dep], libalsa_util ],
   ]
 endif
 
 if fftw_dep.found()
   all_modules += [
-    [ 'module-equalizer-sink', 'module-equalizer-sink.c', [], [], [dbus_dep, fftw_dep] ],
+    [ 'module-equalizer-sink', 'module-equalizer-sink.c', [], [], [dbus_dep, fftw_dep, libm_dep] ],
   ]
 endif
 
@@ -130,7 +130,7 @@ foreach m : all_modules
     include_directories : [configinc, topinc],
     c_args : [pa_c_args, server_c_args, '-DPA_MODULE_NAME=' + name.underscorify()] + extra_flags,
     install : true,
-    dependencies : [thread_dep, libpulse_dep, libpulsecore_dep] + extra_deps,
+    dependencies : [thread_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep] + extra_deps,
     link_args : [ '-Wl,--no-undefined' ],
     link_with : extra_libs,
     name_prefix : '',
