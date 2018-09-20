@@ -227,6 +227,12 @@ endif
 cdata.set('DISABLE_ORC', 1)
 
 # Module dependencies
+
+fftw_dep = dependency('fftw3f', required : false)
+if fftw_dep.found()
+  cdata.set('HAVE_FFTW', 1)
+endif
+
 udev_dep = dependency('libudev', version : '>= 143', required : false)
 if udev_dep.found()
   cdata.set('HAVE_UDEV', 1)

@@ -24,7 +24,6 @@ all_modules = [
   [ 'module-device-manager', 'module-device-manager.c' ],
   [ 'module-device-restore', 'module-device-restore.c', [], [], [dbus_dep], libprotocol_native ],
 #  [ 'module-echo-cancel', 'module-echo-cancel.c' ],
-  [ 'module-equalizer-sink', 'module-equalizer-sink.c', [], [], [dbus_dep] ],
   [ 'module-esound-compat-spawnfd', 'module-esound-compat-spawnfd.c' ],
   [ 'module-esound-compat-spawnpid', 'module-esound-compat-spawnpid.c' ],
 #  [ 'module-esound-protocol-tcp', 'module-protocol-stub.c' ],
@@ -96,6 +95,12 @@ if alsa_dep.found()
     [ 'module-alsa-card', 'alsa/module-alsa-card.c', [], [], [alsa_dep], libalsa_util ],
     [ 'module-alsa-sink', 'alsa/module-alsa-sink.c', [], [], [alsa_dep], libalsa_util ],
     [ 'module-alsa-source', 'alsa/module-alsa-source.c', [], [], [alsa_dep], libalsa_util ],
+  ]
+endif
+
+if fftw_dep.found()
+  all_modules += [
+    [ 'module-equalizer-sink', 'module-equalizer-sink.c', [], [], [dbus_dep, fftw_dep] ],
   ]
 endif
 
