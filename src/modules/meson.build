@@ -73,7 +73,6 @@ all_modules = [
   [ 'module-suspend-on-idle', 'module-suspend-on-idle.c' ],
   [ 'module-switch-on-connect', 'module-switch-on-connect.c' ],
   [ 'module-switch-on-port-available', 'module-switch-on-port-available.c' ],
-  [ 'module-systemd-login', 'module-systemd-login.c' ],
   [ 'module-tunnel-sink', 'module-tunnel.c' ],
   [ 'module-tunnel-sink-new', 'module-tunnel-sink-new.c' ],
   [ 'module-tunnel-source', 'module-tunnel.c' ],
@@ -97,6 +96,12 @@ if alsa_dep.found()
     [ 'module-alsa-card', 'alsa/module-alsa-card.c', [], [], [alsa_dep], libalsa_util ],
     [ 'module-alsa-sink', 'alsa/module-alsa-sink.c', [], [], [alsa_dep], libalsa_util ],
     [ 'module-alsa-source', 'alsa/module-alsa-source.c', [], [], [alsa_dep], libalsa_util ],
+  ]
+endif
+
+if systemd_dep.found()
+  all_modules += [
+    [ 'module-systemd-login', 'module-systemd-login.c', [], [], [systemd_dep] ],
   ]
 endif
 
