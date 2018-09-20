@@ -525,7 +525,7 @@ void pa_log_levelv_meta(
 
                     saved_errno = errno;
                     fprintf(stderr, "%s\n", "Error writing logs to the journal. Redirect log messages to console.");
-                    fprintf(stderr, "%s %s\n", metadata, t);
+                    fprintf(stderr, "%s\n", t);
 #endif
                     pa_log_set_target(&new_target);
                 }
