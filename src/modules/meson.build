@@ -107,9 +107,21 @@ if avahi_dep.found()
 endif
 
 if dbus_dep.found()
-  subdir('dbus')
   all_modules += [
-    [ 'module-dbus-protocol', 'dbus/module-dbus-protocol.c', [], [], [dbus_dep], libdbus_util ],
+    [ 'module-dbus-protocol',
+      [ 'dbus/iface-card.c', 'dbus/iface-card.h',
+	'dbus/iface-card-profile.c', 'dbus/iface-card-profile.h',
+	'dbus/iface-client.c', 'dbus/iface-client.h',
+	'dbus/iface-core.c', 'dbus/iface-core.h',
+	'dbus/iface-device.c', 'dbus/iface-device.h',
+	'dbus/iface-device-port.c', 'dbus/iface-device-port.h',
+	'dbus/iface-memstats.c', 'dbus/iface-memstats.h',
+	'dbus/iface-module.c', 'dbus/iface-module.h',
+	'dbus/iface-sample.c', 'dbus/iface-sample.h',
+	'dbus/iface-stream.c', 'dbus/iface-stream.h',
+	'dbus/module-dbus-protocol.c',
+      ],
+      [], [], [dbus_dep] ]
   ]
 endif
 
