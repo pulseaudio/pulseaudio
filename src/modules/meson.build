@@ -8,10 +8,6 @@ all_modules = [
   [ 'module-always-sink', 'module-always-sink.c' ],
   [ 'module-always-source', 'module-always-source.c' ],
   [ 'module-augment-properties', 'module-augment-properties.c' ],
-#  [ 'module-bluetooth-discover', 'bluetooth/module-bluetooth-discover.c' ],
-#  [ 'module-bluetooth-policy', 'bluetooth/module-bluetooth-policy.c' ],
-#  [ 'module-bluez5-device', 'bluetooth/module-bluez5-device.c' ],
-#  [ 'module-bluez5-discover', 'bluetooth/module-bluez5-discover.c' ],
 #  [ 'module-bonjour-publish', 'macosx/module-bonjour-publish.c' ],
   [ 'module-card-restore', 'module-card-restore.c' ],
   [ 'module-cli', 'module-cli.c', [], [], [], libcli ],
@@ -123,6 +119,20 @@ if dbus_dep.found()
       ],
       [], [], [dbus_dep] ]
   ]
+endif
+
+if dbus_dep.found() and sbc_dep.found()
+  all_modules += [
+    [ 'module-bluetooth-discover', 'bluetooth/module-bluetooth-discover.c' ],
+    [ 'module-bluetooth-policy', 'bluetooth/module-bluetooth-policy.c', [], [], [dbus_dep] ]
+  ]
+  if bluez_dep.found()
+    subdir('bluetooth')
+    all_modules += [
+      [ 'module-bluez5-device', 'bluetooth/module-bluez5-device.c', [], [], [sbc_dep], libbluez5_util ],
+      [ 'module-bluez5-discover', 'bluetooth/module-bluez5-discover.c', [], [], [dbus_dep], libbluez5_util ],
+    ]
+  endif
 endif
 
 if fftw_dep.found()

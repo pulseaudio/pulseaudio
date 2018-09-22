@@ -238,6 +238,12 @@ if avahi_dep.found()
   cdata.set('HAVE_AVAHI', 1)
 endif
 
+bluez_dep = dependency('bluez', version : '>= 4.101', required : false)
+if bluez_dep.found()
+  cdata.set('HAVE_BLUEZ_5_NATIVE_HEADSET', 1)
+  cdata.set('HAVE_BLUEZ_5_OFONO_HEADSET', 1) # TODO This should be optional
+endif
+
 jack_dep = dependency('jack', version : '>= 0.117.0', required : false)
 if jack_dep.found()
   cdata.set('HAVE_JACK', 1)
@@ -256,6 +262,15 @@ endif
 openssl_dep = dependency('openssl', version : '>= 0.9', required : false)
 if openssl_dep.found()
   cdata.set('HAVE_OPENSSL', 1)
+endif
+
+sbc_dep = dependency('sbc', version : '>= 1.0', required : false)
+if sbc_dep.found()
+  cdata.set('HAVE_SBC', 1)
+endif
+if sbc_dep.found() and dbus_dep.found()
+  cdata.set('HAVE_BLUEZ', 1)
+  cdata.set('HAVE_BLUEZ_5', 1)
 endif
 
 udev_dep = dependency('libudev', version : '>= 143', required : false)
