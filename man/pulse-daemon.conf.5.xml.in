@@ -124,12 +124,13 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
-      <p><opt>avoid-resampling=</opt> If set, try to configure the
-      device to avoid resampling. This only works on devices which
+      <p><opt>avoid-processing=</opt> If set, try to configure the
+      device to avoid resampling, conversion and channel mixing. This only works on devices which
       support reconfiguring their rate, and when no other streams are
       already playing or capturing audio. The device will also not be
       configured to a rate less than the default and alternate sample
-      rates.</p>
+      rates, a channel count less than the default channels, or a sample
+      format that is smaller than the default sample format.</p>
     </option>
 
     <option>

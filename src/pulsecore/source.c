@@ -104,11 +104,11 @@ void pa_source_new_data_set_alternate_sample_rate(pa_source_new_data *data, cons
     data->alternate_sample_rate = alternate_sample_rate;
 }
 
-void pa_source_new_data_set_avoid_resampling(pa_source_new_data *data, bool avoid_resampling) {
+void pa_source_new_data_set_avoid_processing(pa_source_new_data *data, bool avoid_processing) {
     pa_assert(data);
 
-    data->avoid_resampling_is_set = true;
-    data->avoid_resampling = avoid_resampling;
+    data->avoid_processing_is_set = true;
+    data->avoid_processing = avoid_processing;
 }
 
 void pa_source_new_data_set_volume(pa_source_new_data *data, const pa_cvolume *volume) {
@@ -258,7 +258,7 @@ pa_source* pa_source_new(
 
     s->sample_spec = data->sample_spec;
     s->channel_map = data->channel_map;
-    s->default_sample_rate = s->sample_spec.rate;
+    s->default_sample_spec = s->sample_spec;
     pa_sample_spec_init(&s->saved_spec);
     pa_channel_map_init(&s->saved_map);
 
@@ -267,10 +267,10 @@ pa_source* pa_source_new(
     else
         s->alternate_sample_rate = s->core->alternate_sample_rate;
 
-    if (data->avoid_resampling_is_set)
-        s->avoid_resampling = data->avoid_resampling;
+    if (data->avoid_processing_is_set)
+        s->avoid_processing = data->avoid_processing;
     else
-        s->avoid_resampling = s->core->avoid_resampling;
+        s->avoid_processing = s->core->avoid_processing;
 
     s->outputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
@@ -1050,11 +1050,13 @@ void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *
 int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, pa_channel_map *map, bool passthrough, bool restore) {
     int ret;
     pa_sample_spec desired_spec;
-    uint32_t default_rate = s->default_sample_rate;
+    pa_sample_format_t default_format = s->default_sample_spec.format;
+    uint32_t default_rate = s->default_sample_spec.rate;
     uint32_t alternate_rate = s->alternate_sample_rate;
+    uint8_t default_channels = s->default_sample_spec.channels;
     bool default_rate_is_usable = false;
     bool alternate_rate_is_usable = false;
-    bool avoid_resampling = s->avoid_resampling;
+    bool avoid_processing = s->avoid_processing;
     pa_channel_map old_map, *new_map;
 
     pa_assert(restore || (spec != NULL));
@@ -1066,7 +1068,7 @@ int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, pa_channel_map *ma
     if (!s->reconfigure && !s->monitor_of)
         return -1;
 
-    if (PA_UNLIKELY(default_rate == alternate_rate && !passthrough && !restore && !avoid_resampling)) {
+    if (PA_UNLIKELY(default_rate == alternate_rate && !passthrough && !restore && !avoid_processing)) {
         pa_log_debug("Default and alternate sample rates are the same, so there is no point in switching.");
         return -1;
     }
@@ -1105,13 +1107,15 @@ int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, pa_channel_map *ma
         /* We have to try to use the source output spec */
         desired_spec = *spec;
 
-    } else if (avoid_resampling) {
-        /* We just try to set the source output's sample rate if it's not too low */
+    } else if (avoid_processing) {
         desired_spec = s->sample_spec;
+
         if (spec->rate >= default_rate || spec->rate >= alternate_rate)
             desired_spec.rate = spec->rate;
-        /* FIXME: don't set this if it's too low */
-        desired_spec.format = spec->format;
+        if (spec->channels >= default_channels)
+            desired_spec.channels = spec->channels;
+        if (pa_sample_size_of_format(spec->format) >= pa_sample_size_of_format(default_format))
+            desired_spec.format = spec->format;
 
     } else if (default_rate == spec->rate || alternate_rate == spec->rate) {
         /* We can directly try to use this rate */

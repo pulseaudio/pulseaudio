@@ -81,9 +81,9 @@ struct pa_sink {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
-    uint32_t default_sample_rate;
+    pa_sample_spec default_sample_spec;
     uint32_t alternate_sample_rate;
-    bool avoid_resampling:1;
+    bool avoid_processing:1;
 
     pa_idxset *inputs;
     unsigned n_corked;
@@ -379,14 +379,14 @@ typedef struct pa_sink_new_data {
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
     uint32_t alternate_sample_rate;
-    bool avoid_resampling:1;
+    bool avoid_processing:1;
     pa_cvolume volume;
     bool muted:1;
 
     bool sample_spec_is_set:1;
     bool channel_map_is_set:1;
     bool alternate_sample_rate_is_set:1;
-    bool avoid_resampling_is_set:1;
+    bool avoid_processing_is_set:1;
     bool volume_is_set:1;
     bool muted_is_set:1;
 

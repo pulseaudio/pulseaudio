@@ -1956,7 +1956,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     bool fixed_latency_range = false;
     bool b;
     bool d;
-    bool avoid_resampling;
+    bool avoid_processing;
     pa_source_new_data data;
     bool volume_is_set;
     bool mute_is_set;
@@ -1968,7 +1968,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
 
     ss = m->core->default_sample_spec;
     map = m->core->default_channel_map;
-    avoid_resampling = m->core->avoid_resampling;
+    avoid_processing = m->core->avoid_processing;
 
     /* Pick sample spec overrides from the mapping, if any */
     if (mapping) {
@@ -2218,12 +2218,12 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     }
     data.namereg_fail = namereg_fail;
 
-    if (pa_modargs_get_value_boolean(ma, "avoid_resampling", &avoid_resampling) < 0) {
-        pa_log("Failed to parse avoid_resampling argument.");
+    if (pa_modargs_get_value_boolean(ma, "avoid_processing", &avoid_processing) < 0) {
+        pa_log("Failed to parse avoid_processing argument.");
         pa_source_new_data_done(&data);
         goto fail;
     }
-    pa_source_new_data_set_avoid_resampling(&data, avoid_resampling);
+    pa_source_new_data_set_avoid_processing(&data, avoid_processing);
 
     pa_source_new_data_set_sample_spec(&data, &ss);
     pa_source_new_data_set_channel_map(&data, &map);

@@ -1053,7 +1053,7 @@ int main(int argc, char *argv[]) {
     c->resample_method = conf->resample_method;
     c->realtime_priority = conf->realtime_priority;
     c->realtime_scheduling = conf->realtime_scheduling;
-    c->avoid_resampling = conf->avoid_resampling;
+    c->avoid_processing = conf->avoid_processing;
     c->disable_remixing = conf->disable_remixing;
     c->remixing_use_all_sink_channels = conf->remixing_use_all_sink_channels;
     c->remixing_produce_lfe = conf->remixing_produce_lfe;
