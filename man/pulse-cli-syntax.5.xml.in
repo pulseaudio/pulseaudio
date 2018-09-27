@@ -334,7 +334,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       <optdesc><p>Execute the subsequent block of commands only if the specified
       file exists. Typically <arg>filename</arg> indicates a module. Relative
       paths are resolved using the module directory as the base. By using an
-      absolute path, the existance of other files can be checked as well.</p></optdesc>
+      absolute path, the existence of other files can be checked as well.</p></optdesc>
     </option>
     <option>
       <p><opt>.else</opt> and <opt>.endif</opt></p>
