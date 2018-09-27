@@ -44,7 +44,6 @@ all_modules = [
   [ 'module-native-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_NATIVE', '-DUSE_UNIX_SOCKETS'], [], libprotocol_native ],
   [ 'module-null-sink', 'module-null-sink.c' ],
   [ 'module-null-source', 'module-null-source.c' ],
-#  [ 'module-oss', 'oss/module-oss.c' ],
   [ 'module-pipe-sink', 'module-pipe-sink.c' ],
   [ 'module-pipe-source', 'module-pipe-source.c' ],
   [ 'module-position-event-sounds', 'module-position-event-sounds.c' ],
@@ -81,6 +80,12 @@ all_modules = [
 if cc.has_header('linux/input.h')
   all_modules += [
     [ 'module-mmkbd-evdev', 'module-mmkbd-evdev.c' ],
+  ]
+endif
+
+if cc.has_header('sys/soundcard.h')
+  all_modules += [
+    [ 'module-oss', [ 'oss/module-oss.c', 'oss/oss-util.c', 'oss/oss-util.h' ] ],
   ]
 endif
 

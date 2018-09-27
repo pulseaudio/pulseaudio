@@ -65,3 +65,27 @@ executable('pax11publish',
   dependencies : [x11_dep],
   c_args : pa_c_args,
 )
+
+if cc.has_header('sys/soundcard.h')
+  libpulsecommon_sources = [
+    'padsp.c',
+  ]
+
+  libpulsedsp = shared_library('pulsedsp',
+    libpulsecommon_sources,
+    install: true,
+    include_directories : [configinc, topinc],
+    link_with : [libpulsecommon, libpulse],
+    link_args : ['-ldl'],
+    dependencies: [thread_dep],
+    c_args : [pa_c_args, '-Wno-nonnull-compare']
+  )
+
+  configure_file(
+    input : 'padsp.in',
+    output : 'padsp',
+    configuration : cdata,
+    install : true,
+    install_dir : join_paths(prefix, get_option('bindir')),
+  )
+endif
