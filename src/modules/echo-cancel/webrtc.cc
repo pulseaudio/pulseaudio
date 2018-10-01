@@ -196,26 +196,26 @@ static bool parse_mic_geometry(const char **mic_geometry, std::vector<webrtc::Po
      * radius is distance from the array center in meters.
      */
 
-    int i;
+    long unsigned int i;
     float f[3];
 
     for (i = 0; i < geometry.size(); i++) {
         if (!parse_point(mic_geometry, f)) {
-            pa_log("Failed to parse channel %d in mic_geometry", i);
+            pa_log("Failed to parse channel %lu in mic_geometry", i);
             return false;
         }
 
         /* Except for the last point, we should have a trailing comma */
         if (i != geometry.size() - 1) {
             if (**mic_geometry != ',') {
-                pa_log("Failed to parse channel %d in mic_geometry", i);
+                pa_log("Failed to parse channel %lu in mic_geometry", i);
                 return false;
             }
 
             (*mic_geometry)++;
         }
 
-        pa_log_debug("Got mic #%d position: (%g, %g, %g)", i, f[0], f[1], f[2]);
+        pa_log_debug("Got mic #%lu position: (%g, %g, %g)", i, f[0], f[1], f[2]);
 
         geometry[i].c[0] = f[0];
         geometry[i].c[1] = f[1];
