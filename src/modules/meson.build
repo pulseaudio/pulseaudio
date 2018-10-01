@@ -36,7 +36,7 @@ all_modules = [
   [ 'module-http-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_UNIX_SOCKETS'], [], libprotocol_http ],
   [ 'module-intended-roles', 'module-intended-roles.c' ],
   [ 'module-jackdbus-detect', 'jack/module-jackdbus-detect.c', [], [], [dbus_dep] ],
-#  [ 'module-ladspa-sink', 'module-ladspa-sink.c' ],
+  [ 'module-ladspa-sink', 'module-ladspa-sink.c', 'ladspa.h', ['-DLADSPA_PATH="' + join_paths(prefix, get_option('libdir')) + '/ladspa:/usr/local/lib/ladspa:/usr/lib/ladspa:/usr/local/lib64/ladspa:/usr/lib64/ladspa"'], [dbus_dep, libm_dep, ltdl_dep] ],
   [ 'module-loopback', 'module-loopback.c' ],
   [ 'module-match', 'module-match.c' ],
   [ 'module-native-protocol-fd', 'module-native-protocol-fd.c', [], [], [], libprotocol_native ],
