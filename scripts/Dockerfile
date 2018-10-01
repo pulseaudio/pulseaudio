@@ -39,6 +39,7 @@ RUN apt-get update && apt-get install -y \
     libx11-xcb-dev \
     libxcb1-dev \
     libxml-parser-perl \
+    libxml2-utils \
     libxtst-dev \
     make \
     meson \
