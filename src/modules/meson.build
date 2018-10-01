@@ -22,7 +22,6 @@ all_modules = [
   [ 'module-detect', 'module-detect.c' ],
   [ 'module-device-manager', 'module-device-manager.c', [], [], [], libprotocol_native ],
   [ 'module-device-restore', 'module-device-restore.c', [], [], [dbus_dep], libprotocol_native ],
-#  [ 'module-echo-cancel', 'module-echo-cancel.c' ],
   [ 'module-esound-compat-spawnfd', 'module-esound-compat-spawnfd.c' ],
   [ 'module-esound-compat-spawnpid', 'module-esound-compat-spawnpid.c' ],
 #  [ 'module-esound-protocol-tcp', 'module-protocol-stub.c' ],
@@ -196,6 +195,53 @@ if x11_dep.found()
     ]
   endif
 endif
+
+# Module echo-cancel is quite modular itself and requires a section of its own
+
+module_echo_cancel_sources = [
+  'echo-cancel/echo-cancel.h',
+  'echo-cancel/module-echo-cancel.c',
+  'echo-cancel/null.c',
+]
+module_echo_cancel_flags = []
+module_echo_cancel_deps = []
+module_echo_cancel_libs = []
+
+# FIXME: Adrian support should be optional
+module_echo_cancel_sources += [
+  'echo-cancel/adrian.c', 'echo-cancel/adrian.h',
+  'echo-cancel/adrian-aec.c', 'echo-cancel/adrian-aec.h',
+]
+module_echo_cancel_flags += ['-DHAVE_ADRIAN_EC=1']
+
+# FIXME: support ORC (depends on Adrian)
+#ORC_SOURCE += modules/echo-cancel/adrian-aec
+#module_echo_cancel_sources += [
+#  'echo-cancel/adrian-aec-orc-gen.c', 'echo-cancel/adrian-aec-orc-gen.h'
+#]
+#module_echo_cancel_deps += [orc_dep]
+
+if speex_dep.found()
+  module_echo_cancel_sources += ['echo-cancel/speex.c']
+  module_echo_cancel_deps += [speex_dep]
+endif
+
+if webrtc_dep.found()
+  subdir('echo-cancel')
+  module_echo_cancel_libs += [libwebrtc_util]
+endif
+
+all_modules += [
+  [ 'module-echo-cancel',
+    module_echo_cancel_sources,
+    [],
+    module_echo_cancel_flags,
+    module_echo_cancel_deps,
+    module_echo_cancel_libs,
+  ]
+]
+
+# Generate a shared module object for each modules
 
 foreach m : all_modules
   name = m[0]

@@ -279,9 +279,19 @@ if sbc_dep.found() and dbus_dep.found()
   cdata.set('HAVE_BLUEZ_5', 1)
 endif
 
+speex_dep = dependency('speexdsp', version : '>= 1.2', required : false)
+if speex_dep.found()
+  cdata.set('HAVE_SPEEX', 1)
+endif
+
 udev_dep = dependency('libudev', version : '>= 143', required : false)
 if udev_dep.found()
   cdata.set('HAVE_UDEV', 1)
+endif
+
+webrtc_dep = dependency('webrtc-audio-processing', version : '>= 0.2', required : false)
+if webrtc_dep.found()
+  cdata.set('HAVE_WEBRTC', 1)
 endif
 
 # Now generate config.h from everything above
