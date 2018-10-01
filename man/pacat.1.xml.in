@@ -225,15 +225,15 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     <option>
       <p><opt>--raw</opt></p>
       <optdesc><p>Play/record raw audio data. This is the default if
-      this program is invoked as <cmd>pacat</cmd>, <cmd>parec</cmd> or
-      <cmd>pamon</cmd>.</p></optdesc>
+      this program is invoked as <file>pacat</file>, <file>parec</file> or
+      <file>pamon</file>.</p></optdesc>
     </option>
 
     <option>
       <p><opt>--file-format</opt><arg>[=FFORMAT]</arg></p>
       <optdesc><p>Play/record encoded audio data in the file format
       specified. This is the default if this program is invoked as
-      <cmd>paplay</cmd> and <cmd>parecord</cmd>.</p></optdesc>
+      <file>paplay</file> and <file>parecord</file>.</p></optdesc>
     </option>
 
     <option>
