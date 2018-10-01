@@ -297,4 +297,5 @@ endif
 # Now generate config.h from everything above
 configure_file(output : 'config.h', configuration : cdata)
 
+subdir('man')
 subdir('src')
