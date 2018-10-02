@@ -1165,8 +1165,11 @@ snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa
 
         PA_ONCE_BEGIN {
             char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
-            pa_log(_("snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
-                     "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."),
+            pa_log(ngettext("snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu ms).\n"
+                            "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
+                            "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
+                            "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
+                            (unsigned long) k),
                    (unsigned long) k,
                    (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC),
                    pa_strnull(dn));
@@ -1228,8 +1231,11 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_status_t *status, snd_pcm_sframes
 
         PA_ONCE_BEGIN {
             char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
-            pa_log(_("snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%lu ms).\n"
-                     "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."),
+            pa_log(ngettext("snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s%lu ms).\n"
+                            "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
+                            "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%lu ms).\n"
+                            "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
+                            (signed long) k),
                    (signed long) k,
                    k < 0 ? "-" : "",
                    (unsigned long) (pa_bytes_to_usec(abs_k, ss) / PA_USEC_PER_MSEC),
@@ -1253,8 +1259,11 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_status_t *status, snd_pcm_sframes
 
             PA_ONCE_BEGIN {
                 char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
-                pa_log(_("snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
-                         "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."),
+                pa_log(ngettext("snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu ms).\n"
+                                "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
+                                "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
+                                "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
+                                (unsigned long) k),
                        (unsigned long) k,
                        (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC),
                        pa_strnull(dn));
@@ -1312,8 +1321,11 @@ int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas
                     k >= pa_bytes_per_second(ss)*10))
         PA_ONCE_BEGIN {
             char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
-            pa_log(_("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
-                     "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."),
+            pa_log(ngettext("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte (%lu ms).\n"
+                            "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
+                            "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
+                            "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.",
+                            (unsigned long) k),
                    (unsigned long) k,
                    (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC),
                    pa_strnull(dn));
