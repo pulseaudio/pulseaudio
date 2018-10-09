@@ -33,6 +33,11 @@ datadir = join_paths(prefix, get_option('datadir'))
 localstatedir = join_paths(prefix, get_option('localstatedir'))
 sysconfdir = join_paths(prefix, get_option('sysconfdir'))
 
+pulsedspdir = get_option('pulsedspdir')
+if pulsedspdir == ''
+  join_paths(prefix, get_option('libdir'), 'pulseaudio')
+endif
+
 cc = meson.get_compiler('c')
 
 cdata = configuration_data()
@@ -238,7 +243,7 @@ cdata.set('DISABLE_ORC', 1)
 if cc.has_header('sys/soundcard.h')
   cdata.set('HAVE_OSS_OUTPUT', 1)
   cdata.set('HAVE_OSS_WRAPPER', 1)
-  cdata.set_quoted('PULSEDSP_LOCATION',	join_paths(prefix, get_option('libdir'), 'pulseaudio'))
+  cdata.set_quoted('PULSEDSP_LOCATION',	pulsedspdir)
 endif
 
 # X11 deps, we don't define any HAVE_XXX for these one

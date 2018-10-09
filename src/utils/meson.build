@@ -69,6 +69,7 @@ if cc.has_header('sys/soundcard.h')
   libpulsedsp = shared_library('pulsedsp',
     libpulsecommon_sources,
     install: true,
+    install_dir : pulsedspdir,
     include_directories : [configinc, topinc],
     link_with : [libpulsecommon, libpulse],
     link_args : ['-ldl'],

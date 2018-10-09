@@ -11,3 +11,6 @@ option('database',
         type : 'combo', value : 'tdb',
         choices : [ 'gdbm', 'tdb', 'simple' ],
         description : 'Database backend')
+option('pulsedspdir',
+       type : 'string',
+       description : 'Specify location where OSS wrapper will be installed')
