@@ -28,7 +28,13 @@ soversion = 0
 # current = minor * 100 + micro
 libversion = '@0@.@1@.0'.format(soversion, pa_version_minor.to_int() * 100 + pa_version_micro.to_int())
 
+# Paths
+
 prefix = get_option('prefix')
+if not prefix.startswith('/')
+  error('Prefix is not absolute: "@0@"'.format(prefix))
+endif
+
 datadir = join_paths(prefix, get_option('datadir'))
 localstatedir = join_paths(prefix, get_option('localstatedir'))
 sysconfdir = join_paths(prefix, get_option('sysconfdir'))
