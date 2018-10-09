@@ -182,18 +182,10 @@ endif
 if x11_dep.found()
   all_modules += [
     [ 'module-x11-bell', 'x11/module-x11-bell.c', [], [], [x11_dep] ],
+    [ 'module-x11-cork-request', 'x11/module-x11-cork-request.c', [], [], [x11_dep, xtst_dep] ],
     [ 'module-x11-publish', 'x11/module-x11-publish.c', [], [], [x11_dep], libprotocol_native ],
+    [ 'module-x11-xsmp', 'x11/module-x11-xsmp.c', [], [], [x11_dep, ice_dep, sm_dep] ],
   ]
-  if xtst_dep.found()
-    all_modules += [
-      [ 'module-x11-cork-request', 'x11/module-x11-cork-request.c', [], [], [x11_dep, xtst_dep] ],
-    ]
-  endif
-  if ice_dep.found() and sm_dep.found()
-    all_modules += [
-      [ 'module-x11-xsmp', 'x11/module-x11-xsmp.c', [], [], [x11_dep, ice_dep, sm_dep] ],
-    ]
-  endif
 endif
 
 # Module echo-cancel is quite modular itself and requires a section of its own

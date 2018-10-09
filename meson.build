@@ -230,6 +230,10 @@ endif
 
 x11_dep = dependency('x11-xcb', required : false)
 if x11_dep.found()
+  xcb_dep  = dependency('xcb',  required : true, version : '>= 1.6')
+  ice_dep  = dependency('ice',  required : true)
+  sm_dep   = dependency('sm',   required : true)
+  xtst_dep = dependency('xtst', required : true)
   cdata.set('HAVE_X11', 1)
 endif
 
@@ -255,11 +259,6 @@ if cc.has_header('sys/soundcard.h')
   cdata.set('HAVE_OSS_WRAPPER', 1)
   cdata.set_quoted('PULSEDSP_LOCATION',	pulsedspdir)
 endif
-
-# X11 deps, we don't define any HAVE_XXX for these one
-ice_dep = dependency('ice', required : false)
-sm_dep = dependency('sm', required: false)
-xtst_dep = dependency('xtst', required: false)
 
 avahi_dep = dependency('avahi-client', version : '>= 0.6.0', required : false)
 if avahi_dep.found()
